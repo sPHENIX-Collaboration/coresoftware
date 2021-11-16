@@ -3,8 +3,6 @@
 
 #include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <phfield/PHField.h>
@@ -17,13 +15,13 @@
 #include <string>
 #include <utility>
 
+typedef std::map<TrkrDefs::cluskey, Acts::Vector3D> PositionMap;
+
 class ALICEKF
 {
   public:
   ALICEKF(PHCompositeNode *topNode, 
           TrkrClusterContainer* cmap, 
-	  ActsSurfaceMaps *surfMaps,
-	  ActsTrackingGeometry *tGeometry,
           double fieldDir,
           unsigned int min_clusters,
           double max_sin_phi,
@@ -31,15 +29,13 @@ class ALICEKF
   {
     _B = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
     _cluster_map = cmap;
-    _surfmaps = surfMaps;
-    _tGeometry = tGeometry;
     _fieldDir = fieldDir;
     _max_sin_phi = max_sin_phi;
     _v = verbosity;
     _min_clusters_per_track = min_clusters;
   }
   ~ALICEKF(){}
-  std::vector<SvtxTrack_v2> ALICEKalmanFilter(std::vector<std::vector<TrkrDefs::cluskey>> chains, bool use_nhits_limit);
+  std::vector<SvtxTrack_v2> ALICEKalmanFilter(std::vector<std::vector<TrkrDefs::cluskey>> chains, bool use_nhits_limit, PositionMap& globalPositions);
   Eigen::Matrix<double,6,6> getEigenCov(SvtxTrack_v2 &track);
   bool covIsPosDef(SvtxTrack_v2 &track);
   void repairCovariance(SvtxTrack_v2 &track);
@@ -49,17 +45,15 @@ class ALICEKF
   void useConstBField(bool opt) {_use_const_field = opt;}
   void useFixedClusterError(bool opt) {_use_fixed_clus_error = opt;}
   void setFixedClusterError(int i,double val) {_fixed_clus_error.at(i)=val;}
-  double getClusterError(TrkrCluster* c, int i, int j);
+  double getClusterError(TrkrCluster* c, Acts::Vector3D global, int i, int j);
   void line_fit(std::vector<std::pair<double,double>> pts, double& a, double& b);
-  void line_fit_clusters(std::vector<TrkrCluster*> cls, double& a, double& b);
+  void line_fit_clusters(std::vector<TrkrCluster*> cls, std::vector<Acts::Vector3D>& globalPositions, double& a, double& b);
   std::vector<double> GetCircleClusterResiduals(std::vector<std::pair<double,double>> pts, double R, double X0, double Y0);
   std::vector<double> GetLineClusterResiduals(std::vector<std::pair<double,double>> pts, double A, double B); 
   private:
   PHField* _B;
   size_t _min_clusters_per_track = 20;
   TrkrClusterContainer* _cluster_map = nullptr;
-  ActsTrackingGeometry *_tGeometry = nullptr;
-  ActsSurfaceMaps *_surfmaps = nullptr;
   int Verbosity(){ return _v; }
   int _v = 0;
   double _Bzconst = 10*0.000299792458f;
