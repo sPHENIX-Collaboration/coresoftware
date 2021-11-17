@@ -16,9 +16,10 @@
 
 #include <phool/PHTimer.h>
 
+#include <tpc/TpcDistortionCorrection.h>
+
 #include <trackbase/TrkrDefs.h>  // for cluskey
 #include <trackbase/TrkrCluster.h>
-
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack_v2.h>
 
@@ -105,13 +106,22 @@ class PHCASeeding : public PHTrackSeeding
   /// acts transformation object
   ActsTransformations m_transform;
   
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection m_distortionCorrection;
+
+  /// get global position for a given cluster
+  /**
+   * uses ActsTransformation to convert cluster local position into global coordinates
+   * incorporates TPC distortion correction, if present
+   */
+  Acts::Vector3D getGlobalPosition(TrkrCluster*) const;
+
   PositionMap FillTree();
   int FindSeedsWithMerger(PositionMap&);
   std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> CreateLinks(const std::vector<coordKey>& clusters, PositionMap& globalPositions, int mode = skip_layers::off) const;
   std::vector<std::vector<keylink>> FindBiLinks(const std::vector<std::unordered_set<keylink>>& belowLinks, const std::vector<std::unordered_set<keylink>>& aboveLinks) const;
   std::vector<keylist> FollowBiLinks(const std::vector<std::vector<keylink>>& bidirectionalLinks, PositionMap& globalPositions) const;
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values) const;
-  pointKey makepointKey(TrkrDefs::cluskey k) const ;
   std::vector<keylist> RemoveBadClusters(const std::vector<keylist>& seeds, PositionMap& globalPositions) const;
   
   void publishSeeds(const std::vector<SvtxTrack_v2>& seeds);
@@ -140,9 +150,15 @@ class PHCASeeding : public PHTrackSeeding
   bool _use_fixed_clus_err = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
 
+  /// acts geometry
   ActsTrackingGeometry *tGeometry{nullptr};
+
+  /// acts surface map
   ActsSurfaceMaps *surfMaps{nullptr};
 
+  /// distortion correction object
+  TpcDistortionCorrectionContainer* m_dcc = nullptr;
+  
   std::shared_ptr<ALICEKF> fitter;
  
   std::unique_ptr<PHTimer> t_seed;
