@@ -16,7 +16,7 @@ namespace
 }
 
 //________________________________________________________
-TVector3 TpcDistortionCorrection::get_corrected_position( const TVector3& source, const TpcDistortionCorrectionObject* dco) const
+Acts::Vector3D TpcDistortionCorrection::get_corrected_position( const Acts::Vector3D& source, const TpcDistortionCorrectionObject* dco, unsigned int mask) const
 {
   // get cluster radius, phi and z
   const auto r = std::sqrt( square( source.x() ) + square( source.y() ) );
@@ -27,9 +27,9 @@ TVector3 TpcDistortionCorrection::get_corrected_position( const TVector3& source
   const int index = z > 0 ? 1:0;
 
   // apply corrections
-  const auto phi_new = phi - dco->m_hDPint[index]->Interpolate(phi,r,z)/r;
-  const auto r_new = r - dco->m_hDRint[index]->Interpolate(phi,r,z);
-  const auto z_new = z - dco->m_hDZint[index]->Interpolate(phi,r,z);
+  const auto phi_new = (dco->m_hDPint[index] && (mask&COORD_PHI)) ? phi - dco->m_hDPint[index]->Interpolate(phi,r,z)/r : phi;
+  const auto r_new = (dco->m_hDRint[index] && (mask&COORD_R)) ? r - dco->m_hDRint[index]->Interpolate(phi,r,z) : r;
+  const auto z_new = (dco->m_hDZint[index] && (mask&COORD_Z)) ? z - dco->m_hDZint[index]->Interpolate(phi,r,z) : z;
   
   // update cluster
   const auto x_new = r_new*std::cos( phi_new );
