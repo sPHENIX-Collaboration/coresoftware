@@ -23,7 +23,7 @@ pkginclude_HEADERS = \
   TpcClusterizer.h \
   TpcDefs.h \
   TpcDistortionCorrection.h \
-  TpcDistortionCorrectionObject.h \
+  TpcDistortionCorrectionContainer.h \
   TpcLoadDistortionCorrection.h \
   TpcSpaceChargeCorrection.h
 
