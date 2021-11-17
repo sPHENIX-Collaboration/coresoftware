@@ -43,7 +43,7 @@ class TpcLoadDistortionCorrection : public SubsysReco
   std::string m_distortion_filename;
 
   //! distortion object node name
-  std::string m_node_name = "TpcDistortionCorrectionObject";
+  std::string m_node_name = "TpcDistortionCorrectionContainer";
 
 };
 

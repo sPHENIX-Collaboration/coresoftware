@@ -1,8 +1,8 @@
-#ifndef TPC_TPCDISTORTIONCORRECTIONOBJECT_H
-#define TPC_TPCDISTORTIONCORRECTIONOBJECT_H
+#ifndef TPC_TPCDISTORTIONCORRECTIONCONTAINER_H
+#define TPC_TPCDISTORTIONCORRECTIONCONTAINER_H
 
 /*!
- * \file TpcDistortionCorrectionObject.h
+ * \file TpcDistortionCorrectionContainer.h
  * \brief stores distortion correction histograms on the node tree
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
@@ -11,12 +11,12 @@
 
 class TH3;
 
-class TpcDistortionCorrectionObject
+class TpcDistortionCorrectionContainer
 {
   public:
 
   //! constructor
-  TpcDistortionCorrectionObject() = default;
+  TpcDistortionCorrectionContainer() = default;
   
   //!@name space charge distortion histograms
   //@{

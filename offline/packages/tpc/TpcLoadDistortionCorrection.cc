@@ -5,7 +5,7 @@
  */
 
 #include "TpcLoadDistortionCorrection.h"
-#include "TpcDistortionCorrectionObject.h"
+#include "TpcDistortionCorrectionContainer.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
@@ -44,12 +44,12 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   }
   
   // get distortion correction object and create if not found
-  auto distortion_correction_object = findNode::getClass<TpcDistortionCorrectionObject>( topNode, m_node_name );
+  auto distortion_correction_object = findNode::getClass<TpcDistortionCorrectionContainer>( topNode, m_node_name );
   if( !distortion_correction_object )
   { 
-    std::cout << "TpcLoadDistortionCorrection::InitRun - creating TpcDistortionCorrectionObject in node " << m_node_name << std::endl;
-    distortion_correction_object = new TpcDistortionCorrectionObject;
-    auto node = new PHDataNode<TpcDistortionCorrectionObject>(distortion_correction_object, m_node_name);
+    std::cout << "TpcLoadDistortionCorrection::InitRun - creating TpcDistortionCorrectionContainer in node " << m_node_name << std::endl;
+    distortion_correction_object = new TpcDistortionCorrectionContainer;
+    auto node = new PHDataNode<TpcDistortionCorrectionContainer>(distortion_correction_object, m_node_name);
     svtxNode->addNode(node);
   }
   
