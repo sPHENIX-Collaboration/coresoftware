@@ -355,7 +355,7 @@ PositionMap PHCASeeding::FillTree()
   int nlayer[60];
   ActsTransformations transform;
 
-  std::map<TrkrDefs::cluskey, Acts::Vector3D> cachedPositions;
+  PositionMap cachedPositions;
 
   for (int j = 0; j < 60; ++j) nlayer[j] = 0;
   auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -384,9 +384,9 @@ PositionMap PHCASeeding::FillTree()
 	  if(nhits<_min_nhits_per_cluster) continue;
 	}
       */
-      const auto globalpos = transform.getGlobalPosition(cluster,
-							 surfMaps,
-							 tGeometry);
+      const Acts::Vector3F globalpos = transform.getGlobalPositionF(cluster,
+								    surfMaps,
+								    tGeometry);
       cachedPositions.insert(std::make_pair(ckey, globalpos));
       TVector3 vec(globalpos(0), globalpos(1), globalpos(2));
       double clus_phi = vec.Phi();
@@ -1056,7 +1056,7 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
 #endif
   t_fill->stop();
   t_seed->stop();
-  fitter = std::make_shared<ALICEKF>(topNode,_cluster_map,surfMaps,tGeometry,_fieldDir,_min_clusters_per_track,_max_sin_phi,Verbosity());
+  fitter = std::make_shared<ALICEKF>(topNode,_cluster_map,_fieldDir,_min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->useConstBField(_use_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
   fitter->setFixedClusterError(0,_fixed_clus_err.at(0));

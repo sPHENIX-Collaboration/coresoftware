@@ -33,6 +33,8 @@ class SvtxVertexMap;
 class SvtxTrackMap;
 class AssocInfoContainer;
 
+typedef std::map<TrkrDefs::cluskey, Acts::Vector3F> PositionMap;
+
 class PHSimpleKFProp : public SubsysReco
 {
  public:
@@ -89,9 +91,9 @@ class PHSimpleKFProp : public SubsysReco
   ActsTrackingGeometry *_tgeometry = nullptr;
   ActsSurfaceMaps *_surfmaps = nullptr;
   void MoveToFirstTPCCluster();
-  void PrepareKDTrees();
-  std::vector<TrkrDefs::cluskey> PropagateTrack(SvtxTrack* track);
-  std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(std::vector<std::vector<TrkrDefs::cluskey>> seeds);
+  PositionMap PrepareKDTrees();
+  std::vector<TrkrDefs::cluskey> PropagateTrack(SvtxTrack* track, PositionMap& globalPositions);
+  std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(std::vector<std::vector<TrkrDefs::cluskey>> seeds, PositionMap& globalPositions);
   template <typename T>
   struct KDPointCloud
   {
@@ -133,7 +135,7 @@ class PHSimpleKFProp : public SubsysReco
 
   void line_fit(std::vector<std::pair<double,double>> points, double &A, double &B);
   void line_fit_clusters(std::vector<TrkrCluster*> clusters, double &A, double &B);
-  void CircleFitByTaubin(std::vector<Acts::Vector3D> points, double &R, double &X0, double &Y0);
+  void CircleFitByTaubin(std::vector<Acts::Vector3F> points, double &R, double &X0, double &Y0);
   void findRoot(const double R, const double X0, const double Y0,
 		double& x, double& y);
   bool _use_const_field = false;
