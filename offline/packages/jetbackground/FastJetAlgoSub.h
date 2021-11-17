@@ -12,13 +12,13 @@ class FastJetAlgoSub : public JetAlgo
 {
  public:
   FastJetAlgoSub(Jet::ALGO algo, float par, float verbosity = 0);
-  virtual ~FastJetAlgoSub() {}
+  ~FastJetAlgoSub() override {}
 
-  void identify(std::ostream& os = std::cout);
-  Jet::ALGO get_algo() { return _algo; }
-  float get_par() { return _par; }
+  void identify(std::ostream& os = std::cout) override;
+  Jet::ALGO get_algo() override { return _algo; }
+  float get_par() override { return _par; }
 
-  std::vector<Jet*> get_jets(std::vector<Jet*> particles);
+  std::vector<Jet*> get_jets(std::vector<Jet*> particles) override;
 
  private:
   int _verbosity;

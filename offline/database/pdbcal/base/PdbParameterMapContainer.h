@@ -17,11 +17,11 @@ class PdbParameterMapContainer : public PdbCalChan
   typedef std::pair<parIter, parIter> parConstRange;
 
   PdbParameterMapContainer() {}
-  virtual ~PdbParameterMapContainer();
+  ~PdbParameterMapContainer() override;
 
-  void print() const;
+  void print() const override;
 
-  void Reset();
+  void Reset() override;
 
   void AddPdbParameterMap(const int layer, PdbParameterMap *params);
   const PdbParameterMap *GetParameters(const int layer) const;
@@ -34,7 +34,7 @@ class PdbParameterMapContainer : public PdbCalChan
  protected:
   std::map<int, PdbParameterMap *> parametermap;
 
-  ClassDef(PdbParameterMapContainer, 1)
+  ClassDefOverride(PdbParameterMapContainer, 1)
 };
 
 #endif

@@ -14,10 +14,10 @@
 #include <phool/getClass.h>
 
 #include <cassert>
-#include <cmath>                             // for asinh, atan2, cos, cosh
+#include <cmath>  // for asinh, atan2, cos, cosh
 #include <iostream>
-#include <map>                               // for _Rb_tree_const_iterator
-#include <utility>                           // for pair
+#include <map>      // for _Rb_tree_const_iterator
+#include <utility>  // for pair
 #include <vector>
 
 using namespace std;

@@ -62,13 +62,13 @@ int G4TowerNtuple::process_event(PHCompositeNode *topNode)
     nodename << "TOWER_" << _tower_type[*iter];
     geonodename.str("");
     geonodename << "TOWERGEOM_" << *iter;
-    RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, geonodename.str().c_str());
+    RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, geonodename.str());
     if (!towergeom)
     {
       cout << "no geometry node " << geonodename.str() << " for " << *iter << endl;
       continue;
     }
-    RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode, nodename.str().c_str());
+    RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode, nodename.str());
     if (towers)
     {
       double esum = 0;
@@ -104,7 +104,7 @@ int G4TowerNtuple::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4TowerNtuple::End(PHCompositeNode *topNode)
+int G4TowerNtuple::End(PHCompositeNode */*topNode*/)
 {
   outfile->cd();
   ntup->Write();

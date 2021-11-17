@@ -19,8 +19,6 @@
 #include <utility>                     // for pair
 #include <vector>
 
-using namespace std;
-
 FastJetAlgo::FastJetAlgo(Jet::ALGO algo, float par, int verbosity)
   : _verbosity(verbosity)
   , _algo(algo)
@@ -36,10 +34,10 @@ FastJetAlgo::FastJetAlgo(Jet::ALGO algo, float par, int verbosity)
   }
   else
   {
-    ostringstream nullstream;
+    std::ostringstream nullstream;
     clusseq.set_fastjet_banner_stream(&nullstream);
     clusseq.print_banner();
-    clusseq.set_fastjet_banner_stream(&cout);
+    clusseq.set_fastjet_banner_stream(&std::cout);
   }
 }
 
@@ -52,12 +50,12 @@ void FastJetAlgo::identify(std::ostream& os)
     os << "KT r=" << _par;
   else if (_algo == Jet::CAMBRIDGE)
     os << "CAMBRIDGE r=" << _par;
-  os << endl;
+  os << std::endl;
 }
 
 std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
 {
-  if (_verbosity > 1) cout << "FastJetAlgo::process_event -- entered" << endl;
+  if (_verbosity > 1) std::cout << "FastJetAlgo::process_event -- entered" << std::endl;
 
   // translate to fastjet
   std::vector<fastjet::PseudoJet> pseudojets;
@@ -144,7 +142,7 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
     jets.push_back(jet);
   }
 
-  if (_verbosity > 1) cout << "FastJetAlgo::process_event -- exited" << endl;
+  if (_verbosity > 1) std::cout << "FastJetAlgo::process_event -- exited" << std::endl;
 
   return jets;
 }

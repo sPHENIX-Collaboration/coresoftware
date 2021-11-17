@@ -26,6 +26,8 @@
 #include <eicsmear/erhic/ParticleMC.h>  // for ParticleMC
 #include <eicsmear/erhic/Pid.h>         // for Pid
 
+#include <eicsmear/erhic/EventDEMP.h>
+
 // General Root and C++ classes
 #include <TBranch.h>  // for TBranch
 #include <TChain.h>
@@ -50,7 +52,7 @@ ReadEICFiles::ReadEICFiles(const string &name)
   , GenEvent(nullptr)
   , _node_name("PHHepMCGenEvent")
 {
-  hepmc_helper.set_embedding_id(1);  // default embedding ID to 1
+  PHHepMCGenHelper::set_embedding_id(1);  // default embedding ID to 1
   return;
 }
 
@@ -88,6 +90,12 @@ void ReadEICFiles::GetTree()
   {
     m_EvtGenId = EvtGen::Milou;
   }
+
+  if (EventClass.find("DEMP") != string::npos)
+  {
+    m_EvtGenId = EvtGen::DEMP;
+  }
+
   Tin->SetBranchAddress("event", &GenEvent);
   nEntries = Tin->GetEntries();
 }
@@ -130,6 +138,13 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
     evthead->set_milou_trueQ2(gen->trueQ2);
   }
   break;
+  case EvtGen::DEMP:
+  {
+    erhic::EventDEMP *gen = dynamic_cast<erhic::EventDEMP *>(GenEvent);
+    evthead->set_eventgenerator_type(EicEventHeader::EvtGen::DEMP);
+    evthead->set_demp_weight(gen->weight);
+  }
+  break;
   case EvtGen::Unknown:
     cout << "unknown event generator" << endl;
     break;
@@ -137,6 +152,7 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
     cout << "what is this " << m_EvtGenId << " ????" << endl;
     break;
   }
+
   /* Create GenEvent */
   HepMC::GenEvent *evt = new HepMC::GenEvent();
 
@@ -326,11 +342,12 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
   evt->set_beam_particles(hepmc_beam1, hepmc_beam2);
 
   /* pass HepMC to PHNode*/
-  PHHepMCGenEvent *success = hepmc_helper.insert_event(evt);
+  PHHepMCGenEvent *success = PHHepMCGenHelper::insert_event(evt);
   if (Verbosity() > 1)
   {
     cout << __PRETTY_FUNCTION__ << " : " << __LINE__ << endl;
     evt->print();
+    cout << endl << endl;
   }
 
   if (!success)
@@ -347,7 +364,7 @@ int ReadEICFiles::process_event(PHCompositeNode *topNode)
 
 int ReadEICFiles::CreateNodeTree(PHCompositeNode *topNode)
 {
-  hepmc_helper.create_node_tree(topNode);
+  PHHepMCGenHelper::create_node_tree(topNode);
 
   PHNodeIterator iter(topNode);
   // Looking for the DST node

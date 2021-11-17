@@ -133,7 +133,7 @@ float EmcCluster::GetECoreCorrected()
   float ecore, ecorecorr;
   ecore = GetECore();
   fOwner->Momenta(&fHitList, e, x, y, xx, yy, xy);
-  fOwner->CorrectECore(ecore, x, y, &ecorecorr);
+  fOwner->CorrectECore(ecore, x, y, ecorecorr);
   return ecorecorr;
 }
 

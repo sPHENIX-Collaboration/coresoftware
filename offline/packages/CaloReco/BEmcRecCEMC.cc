@@ -237,14 +237,43 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float 
 
 void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
+  /*
   xC = xA;
   yC = yA;
   zC = zA;
+  */
+
+  float logE = log(0.1);
+  if( E>0.1 ) logE = log(E);
+
+  // Rotate by phi (towers are tilted by a fixed angle in phi by ~9 deg?)
+  // Just tuned from sim data
+  float phi = 0.002 - 0.001*logE;
+  xC = xA*cos(phi) - yA*sin(phi);
+  yC = xA*sin(phi) + yA*cos(phi);
+
+  // Correction in z
+  // Just tuned for sim data ... don't fully understand why it works like that
+  float rA = sqrt(xA*xA + yA*yA);
+  //  float theta_twr = GetTowerTheta(xA,yA,zA);
+  float theta_twr;
+  if( fabs(zA)<=15 ) theta_twr = 0;
+  else if( zA>15 )   theta_twr = atan2(zA-15,rA);
+  else               theta_twr = atan2(zA+15,rA);
+
+  float theta_tr = atan2(zA-fVz,rA);
+  float L = -1.3 + 0.7*logE; // Shower CG in long. direction
+  float dz = L*sin(theta_tr-theta_twr)/cos(theta_twr);
+
+  dz -= fVz*0.10;
+
+  zC = zA - dz;
+
   return;
 }
 
-void BEmcRecCEMC::CorrectEnergy(float Energy, float x, float y,
-                                float* Ecorr)
+void BEmcRecCEMC::CorrectEnergy(float Energy, float /*x*/, float /*y*/,
+                                float& Ecorr)
 {
   // Corrects the EM Shower Energy for attenuation in fibers and
   // long energy leakage
@@ -266,10 +295,10 @@ void BEmcRecCEMC::CorrectEnergy(float Energy, float x, float y,
   corr = leak*att;
   *Ecorr = Energy/corr;
   */
-  *Ecorr = Energy;
+  Ecorr = Energy;
 }
 
-void BEmcRecCEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
+void BEmcRecCEMC::CorrectECore(float Ecore, float /*x*/, float /*y*/, float& Ecorr)
 {
   // Corrects the EM Shower Core Energy for attenuation in fibers,
   // long energy leakage and angle dependance
@@ -277,7 +306,7 @@ void BEmcRecCEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
   // (x,y) - impact position (cm) in Sector frame
 
   const float c0 = 0.950;  // For no threshold
-  *Ecorr = Ecore / c0;
+  Ecorr = Ecore / c0;
 }
 
 void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
@@ -346,6 +375,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   //  dx = 0;
 
   xc = x0 - dx;
+  while (xc < -0.5) xc += float(fNx);
+  while (xc >= fNx - 0.5) xc -= float(fNx);
 
   y0 = y + yZero;
   iy0 = EmcCluster::lowint(y0 + 0.5);

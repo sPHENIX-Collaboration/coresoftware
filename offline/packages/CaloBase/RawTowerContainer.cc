@@ -104,6 +104,21 @@ RawTowerContainer::getTower(const unsigned int ieta, const unsigned int iphi) co
   return getTower(key);
 }
 
+RawTower *
+RawTowerContainer::getTower(const unsigned int ieta, const unsigned int iphi , const unsigned int il)
+{
+  RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(_caloid, ieta, iphi, il);
+  return getTower(key);
+}
+
+const RawTower *
+RawTowerContainer::getTower(const unsigned int ieta, const unsigned int iphi, const unsigned int il) const
+{
+  RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(_caloid, ieta, iphi, il);
+  return getTower(key);
+}
+
+
 int RawTowerContainer::isValid() const
 {
   return (!_towers.empty());

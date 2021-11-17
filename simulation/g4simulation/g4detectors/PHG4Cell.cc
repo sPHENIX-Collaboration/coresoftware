@@ -29,11 +29,11 @@ PHG4Cell::CopyFrom(const PHObject *phobj)
 void
 PHG4Cell::identify(ostream& os) const
 {
-  cout << "Class " << this->ClassName() << endl;
+  os << "Class " << this->ClassName() << endl;
   return;
 }
 
-ostream& operator<<(ostream& stream, const PHG4Cell * cell){
+ostream& operator<<(ostream& stream, const PHG4Cell * /*cell*/){
   stream << "PHG4Cell"  << endl;
   return stream;
 }

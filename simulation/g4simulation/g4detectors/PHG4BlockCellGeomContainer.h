@@ -21,9 +21,10 @@ class PHG4BlockCellGeomContainer: public PHObject
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
   PHG4BlockCellGeomContainer(){}
-  virtual ~PHG4BlockCellGeomContainer();
+  ~PHG4BlockCellGeomContainer() override;
 
-  void identify(std::ostream& os = std::cout) const;
+// from PHObject
+  void identify(std::ostream& os = std::cout) const override;
 
   int AddLayerCellGeom(const int i, PHG4BlockCellGeom *mygeom);
   int AddLayerCellGeom(PHG4BlockCellGeom *mygeom);
@@ -33,7 +34,7 @@ class PHG4BlockCellGeomContainer: public PHObject
 
  protected:
   std::map<int,PHG4BlockCellGeom *> layergeoms ;
-  ClassDef(PHG4BlockCellGeomContainer,1)
+  ClassDefOverride(PHG4BlockCellGeomContainer,1)
 };
 
 #endif

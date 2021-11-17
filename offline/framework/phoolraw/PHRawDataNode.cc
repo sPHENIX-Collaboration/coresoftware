@@ -10,9 +10,7 @@
 
 #include <Event/phenixTypes.h>
 
-using namespace std;
-
-PHRawDataNode::PHRawDataNode(PHDWORD* d, const string& n,
+PHRawDataNode::PHRawDataNode(PHDWORD* d, const std::string& n,
                              const int l, const int i, const int w, const int h)
   : PHDataNode<PHDWORD>(d, n)
   , length(l)
@@ -30,7 +28,7 @@ PHRawDataNode::~PHRawDataNode()
   setData(nullptr);
 }
 
-bool PHRawDataNode::write(PHIOManager* IOManager, const string&)
+bool PHRawDataNode::write(PHIOManager* IOManager, const std::string&)
 {
   PHRawOManager* rawOManager = dynamic_cast<PHRawOManager*>(IOManager);
   bool bret = false;

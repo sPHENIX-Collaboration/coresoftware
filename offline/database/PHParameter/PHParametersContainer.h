@@ -23,7 +23,7 @@ class PHParametersContainer : public PHObject
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
   explicit PHParametersContainer(const std::string &name = "NONE");
-  virtual ~PHParametersContainer();
+  ~PHParametersContainer() override;
 
   void AddPHParameters(const int detid, PHParameters *params);
   const PHParameters *GetParameters(const int detid) const;
@@ -35,7 +35,7 @@ class PHParametersContainer : public PHObject
   std::string Name() const { return superdetectorname; }
   //  std::pair<std::map<int, PHParameters *>::const_iterator,  std::map<int, PHParameters *>::const_iterator> GetAllParameters() {return std::make_pair(parametermap.begin(),parametermap.end());}
   ConstRange GetAllParameters() const { return std::make_pair(parametermap.begin(), parametermap.end()); }
-  void Print(Option_t *option = "") const;
+  void Print(Option_t *option = "") const override;
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   void UpdateNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   int ExistDetid(const int detid) const;

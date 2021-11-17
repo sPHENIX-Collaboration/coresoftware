@@ -121,6 +121,8 @@ class JetRecoEval
   /// what was the energy contribution to this reconstructed jet from a particular source
   float get_energy_contribution(Jet* recojet, Jet::SRC src);
 
+  void set_track_nodename(const std::string& name);
+
   // ---full sim node required--------------------------------------------------
 
   /// which truth hits contributed to this reconstructed jet?
@@ -164,6 +166,7 @@ class JetRecoEval
   std::map<std::pair<Jet*, Jet*>, float> _cache_get_energy_contribution;
   std::map<std::pair<Jet*, Jet::SRC>, float> _cache_get_energy_contribution_src;  /// used in get_energy_contribution (Jet* recojet, Jet::SRC src);
   std::map<Jet*, std::set<PHG4Hit*> > _cache_all_truth_hits;
+  std::string m_TrackNodeName = "SvtxTrackMap";
 };
 
 #endif  // G4EVAL_JETRECOEVAL_H

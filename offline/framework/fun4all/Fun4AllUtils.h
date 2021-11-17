@@ -8,7 +8,7 @@
 
 namespace Fun4AllUtils
 {
-std::pair<int, int> GetRunSegment(const std::string &filename);
+  std::pair<int, int> GetRunSegment(const std::string &filename);
 }
 
 #endif

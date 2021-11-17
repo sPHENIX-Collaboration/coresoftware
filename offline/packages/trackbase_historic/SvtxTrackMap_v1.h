@@ -15,39 +15,39 @@ class SvtxTrackMap_v1 : public SvtxTrackMap
   SvtxTrackMap_v1();
   SvtxTrackMap_v1(const SvtxTrackMap_v1& trackmap);
   SvtxTrackMap_v1& operator=(const SvtxTrackMap_v1& trackmap);
-  virtual ~SvtxTrackMap_v1();
+  ~SvtxTrackMap_v1() override;
 
-  void identify(std::ostream& os = std::cout) const;
-  void Reset();
-  int isValid() const { return 1; }
-  PHObject* CloneMe() const { return new SvtxTrackMap_v1(*this); }
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
+  int isValid() const override { return 1; }
+  PHObject* CloneMe() const override { return new SvtxTrackMap_v1(*this); }
 
-  bool empty() const { return _map.empty(); }
-  size_t size() const { return _map.size(); }
-  size_t count(unsigned int idkey) const { return _map.count(idkey); }
-  void clear() { Reset(); }
+  bool empty() const override{ return _map.empty(); }
+  size_t size() const override { return _map.size(); }
+  size_t count(unsigned int idkey) const override{ return _map.count(idkey); }
+  void clear() override { Reset(); }
 
-  const SvtxTrack* get(unsigned int idkey) const;
-  SvtxTrack* get(unsigned int idkey);
-  SvtxTrack* insert(const SvtxTrack* track);
-  size_t erase(unsigned int idkey)
+  const SvtxTrack* get(unsigned int idkey) const override;
+  SvtxTrack* get(unsigned int idkey) override;
+  SvtxTrack* insert(const SvtxTrack* track) override;
+  size_t erase(unsigned int idkey) override
   {
     delete _map[idkey];
     return _map.erase(idkey);
   }
 
-  ConstIter begin() const { return _map.begin(); }
-  ConstIter find(unsigned int idkey) const { return _map.find(idkey); }
-  ConstIter end() const { return _map.end(); }
+  ConstIter begin() const override { return _map.begin(); }
+  ConstIter find(unsigned int idkey) const override { return _map.find(idkey); }
+  ConstIter end() const override { return _map.end(); }
 
-  Iter begin() { return _map.begin(); }
-  Iter find(unsigned int idkey) { return _map.find(idkey); }
-  Iter end() { return _map.end(); }
+  Iter begin() override { return _map.begin(); }
+  Iter find(unsigned int idkey) override { return _map.find(idkey); }
+  Iter end() override { return _map.end(); }
 
  private:
   TrackMap _map;
 
-  ClassDef(SvtxTrackMap_v1, 1);
+  ClassDefOverride(SvtxTrackMap_v1, 1);
 };
 
 #endif

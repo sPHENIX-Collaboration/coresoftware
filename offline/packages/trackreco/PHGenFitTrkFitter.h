@@ -84,16 +84,16 @@ class PHGenFitTrkFitter : public SubsysReco
   PHGenFitTrkFitter(const std::string& name = "PHGenFitTrkFitter");
 
   //!Initialization, called for initialization
-  virtual int Init(PHCompositeNode*);
+  int Init(PHCompositeNode*) override;
 
   //!Initialization Run, called for initialization of a run
-  virtual int InitRun(PHCompositeNode*);
+  int InitRun(PHCompositeNode*) override;
 
   //!Process Event, called for each event
-  virtual int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //!End, write and close files
-  virtual int End(PHCompositeNode*);
+  int End(PHCompositeNode*) override;
 
   //! For evalution
   //! Change eval output filename

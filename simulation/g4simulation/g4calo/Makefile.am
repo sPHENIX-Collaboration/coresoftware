@@ -17,14 +17,13 @@ pkginclude_HEADERS = \
   HcalRawTowerBuilder.h \
   RawTowerBuilder.h \
   RawTowerBuilderByHitIndex.h \
-  RawTowerDigitizer.h
-
+  RawTowerDigitizer.h 
 libg4calo_la_SOURCES = \
   HcalRawTowerBuilder.cc \
   RawTowerBuilder.cc \
   RawTowerBuilderByHitIndex.cc \
-  RawTowerDigitizer.cc
-
+  RawTowerDigitizer.cc 
+  
 libg4calo_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib

@@ -17,6 +17,7 @@
 class PHCompositeNode;
 
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 class SvtxVertexMap;
 
 /// \class PHInitVertexing
@@ -27,10 +28,10 @@ class PHInitVertexing : public SubsysReco
 {
  public:
   PHInitVertexing(const std::string &name = "PHInitVertexing");
-  virtual ~PHInitVertexing() {}
+  ~PHInitVertexing() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
  protected:
 
@@ -44,6 +45,7 @@ class PHInitVertexing : public SubsysReco
 
 
   TrkrClusterContainer *_cluster_map;
+  TrkrHitSetContainer  *_hitsets;
   SvtxVertexMap *_vertex_map;
 
  private:

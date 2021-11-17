@@ -103,9 +103,9 @@ public:
 			       const std::string &,
 			       PHTimeStamp &) = 0;
 
-  virtual void GetUsedBankRids(std::map<std::string,std::set<int> > &usedbanks) const {}
+  virtual void GetUsedBankRids(std::map<std::string,std::set<int> > &/*usedbanks*/) const {}
   virtual void ClearUsedBankRids() {}
-  virtual  void SetMaxInsertTime(const PHTimeStamp &tMax) {}
+  virtual  void SetMaxInsertTime(const PHTimeStamp &/*tMax*/) {}
 
 protected:
 

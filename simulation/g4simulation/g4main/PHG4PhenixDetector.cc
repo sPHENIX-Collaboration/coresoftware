@@ -110,5 +110,17 @@ G4VPhysicalVolume *PHG4PhenixDetector::Construct()
 
   if (m_Verbosity > 0) std::cout << "PHG4PhenixDetector::Construct - done." << std::endl;
 
+
+  //Optional PostConstruction call after all geometry is constructed
+  for (PHG4Detector *det: m_DetectorList)
+  {
+    if (det)
+    {
+      det->PostConstruction();
+    }
+  }
+
+  if (m_Verbosity > 0) std::cout << "PHG4PhenixDetector::PostConstruction - done." << std::endl;
+
   return physiWorld;
 }

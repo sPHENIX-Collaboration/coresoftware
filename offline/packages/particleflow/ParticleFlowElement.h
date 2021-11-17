@@ -19,32 +19,37 @@ class ParticleFlowElement : public PHObject
 
   enum PFLOWTYPE
   {
-    CHARGED = 0,
-    EM = 1,
-    NEUTRAL = 2,
+    UNASSIGNED = -1,
+    MATCHED_CHARGED_HADRON = 0,
+    UNMATCHED_CHARGED_HADRON = 1,
+    UNMATCHED_EM_PARTICLE = 2,
+    UNMATCHED_NEUTRAL_HADRON = 3,
+    LEFTOVER_EM_PARTICLE = 4
   };
 
   ParticleFlowElement() {}
-  virtual ~ParticleFlowElement() {}
+  ~ParticleFlowElement() override {}
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Reset() { return; }
-  virtual int isValid() const { return 0; }
+  void identify(std::ostream& os = std::cout) const override;
+  int isValid() const override { return 0; }
 
   virtual unsigned int get_id() const { return 0xFFFFFFFF; }
-  virtual void set_id(unsigned int id) { return; }
+  virtual void set_id(unsigned int) { return; }
+
+  virtual ParticleFlowElement::PFLOWTYPE get_type() const {return ParticleFlowElement::PFLOWTYPE::UNASSIGNED; }
+  virtual void set_type( ParticleFlowElement::PFLOWTYPE ) { return; }
 
   virtual float get_px() const { return NAN; }
-  virtual void set_px(float px) { return; }
+  virtual void set_px(float) { return; }
 
   virtual float get_py() const { return NAN; }
-  virtual void set_py(float py) { return; }
+  virtual void set_py(float) { return; }
 
   virtual float get_pz() const { return NAN; }
-  virtual void set_pz(float pz) { return; }
+  virtual void set_pz(float) { return; }
 
   virtual float get_e() const { return NAN; }
-  virtual void set_e(float e) { return; }
+  virtual void set_e(float) { return; }
 
   virtual float get_p() const { return NAN; }
   virtual float get_pt() const { return NAN; }
@@ -53,7 +58,7 @@ class ParticleFlowElement : public PHObject
   virtual float get_phi() const { return NAN; }
   virtual float get_mass() const { return NAN; }
 
-  ClassDef(ParticleFlowElement, 1);
+  ClassDefOverride(ParticleFlowElement, 1);
 };
 
 #endif

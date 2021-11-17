@@ -42,7 +42,7 @@ JetEvaluator::JetEvaluator(const string &name,
 {
 }
 
-int JetEvaluator::Init(PHCompositeNode *topNode)
+int JetEvaluator::Init(PHCompositeNode */*topNode*/)
 {
   _ievent = 0;
 
@@ -97,7 +97,7 @@ int JetEvaluator::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int JetEvaluator::End(PHCompositeNode *topNode)
+int JetEvaluator::End(PHCompositeNode */*topNode*/)
 {
   _tfile->cd();
 
@@ -120,13 +120,13 @@ int JetEvaluator::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void JetEvaluator::printInputInfo(PHCompositeNode *topNode)
+void JetEvaluator::printInputInfo(PHCompositeNode */*topNode*/)
 {
   // to be implemented later if needed
   return;
 }
 
-void JetEvaluator::printOutputInfo(PHCompositeNode *topNode)
+void JetEvaluator::printOutputInfo(PHCompositeNode */*topNode*/)
 {
   // to be implemented later if needed
   return;

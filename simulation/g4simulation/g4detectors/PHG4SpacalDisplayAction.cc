@@ -31,7 +31,7 @@ PHG4SpacalDisplayAction::~PHG4SpacalDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
   for (auto it : m_LogicalVolumeMap)

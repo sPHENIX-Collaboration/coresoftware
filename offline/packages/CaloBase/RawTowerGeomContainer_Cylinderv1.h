@@ -17,65 +17,67 @@ class RawTowerGeomContainer_Cylinderv1 : public RawTowerGeomContainerv1
  public:
   RawTowerGeomContainer_Cylinderv1(
       RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE);
-  virtual ~RawTowerGeomContainer_Cylinderv1() { Reset(); }
+  ~RawTowerGeomContainer_Cylinderv1() override { Reset(); }
 
-  virtual void
-  identify(std::ostream& os = std::cout) const;
+  void
+  identify(std::ostream& os = std::cout) const override;
 
-  virtual void Reset();
+  void Reset() override;
 
   double
-  get_radius() const
+  get_radius() const override
   {
     return radius;
   }
 
   double
-  get_thickness() const
+  get_thickness() const override
   {
     return thickness;
   }
 
-  int get_phibins() const
+  int get_phibins() const override
   {
     return phi_bound_map.size();
   }
-  int get_etabins() const
+  int get_etabins() const override
   {
     return eta_bound_map.size();
   }
 
   std::pair<double, double>
-  get_phibounds(const int ibin) const;
+  get_phibounds(const int ibin) const override;
   std::pair<double, double>
-  get_etabounds(const int ibin) const;
-  double
-  get_etacenter(const int ibin) const;
-  double
-  get_phicenter(const int ibin) const;
+  get_etabounds(const int ibin) const override;
 
-  int get_etabin(const double eta) const;
-  int get_phibin(const double phi) const;
+  double
+  get_etacenter(const int ibin) const override;
+
+  double
+  get_phicenter(const int ibin) const override;
+
+  int get_etabin(const double eta) const override;
+  int get_phibin(const double phi) const override;
 
   void
-  set_radius(const double r)
+  set_radius(const double r) override
   {
     radius = r;
   }
   void
-  set_thickness(const double t)
+  set_thickness(const double t) override
   {
     thickness = t;
   }
   void
-  set_phibins(const int i);
+  set_phibins(const int i) override;
   void
-  set_etabins(const int i);
+  set_etabins(const int i) override;
 
   void
-  set_etabounds(const int ibin, const std::pair<double, double>& bounds);
+  set_etabounds(const int ibin, const std::pair<double, double>& bounds) override;
   void
-  set_phibounds(const int ibin, const std::pair<double, double>& bounds);
+  set_phibounds(const int ibin, const std::pair<double, double>& bounds) override;
 
  protected:
   double radius;
@@ -87,7 +89,7 @@ class RawTowerGeomContainer_Cylinderv1 : public RawTowerGeomContainerv1
   bound_map_t eta_bound_map;
   bound_map_t phi_bound_map;
 
-  ClassDef(RawTowerGeomContainer_Cylinderv1, 1)
+  ClassDefOverride(RawTowerGeomContainer_Cylinderv1, 1)
 };
 
 #endif

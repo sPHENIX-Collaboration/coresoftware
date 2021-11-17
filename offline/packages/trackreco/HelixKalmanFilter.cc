@@ -513,7 +513,7 @@ void HelixKalmanFilter::calculate_dAdAp(HelixKalmanState& state,
 // dA'/dp , where p is the momentum vector
 void HelixKalmanFilter::calculate_dApdp(HelixKalmanState& state,
                                   Matrix<float, 3, 3>& dApdp, Vector3f& p,
-                                  float phi, float cosphi, float sinphi) {
+					float /*phi*/, float cosphi, float sinphi) {
   float k = state.kappa;
   float dzdl = state.dzdl;
 

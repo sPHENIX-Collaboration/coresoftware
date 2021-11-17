@@ -13,9 +13,9 @@ class BEmcRecEEMC : public BEmcRec
 {
  public:
   BEmcRecEEMC();
-  virtual ~BEmcRecEEMC();
-  void CorrectEnergy(float energy, float x, float y, float *ecorr) override;
-  void CorrectECore(float ecore, float x, float y, float *ecorecorr) override;
+  ~BEmcRecEEMC() override {}
+  void CorrectEnergy(float energy, float x, float y, float &ecorr) override;
+  void CorrectECore(float ecore, float x, float y, float &ecorecorr) override;
   void CorrectPosition(float energy, float x, float y, float &xcorr, float &ycorr) override;
   void CorrectShowerDepth(float energy, float x, float y, float z, float &xc, float &yc, float &zc) override;
   static float GetImpactAngle(float e, float x, float y);
@@ -26,6 +26,7 @@ class BEmcRecEEMC : public BEmcRec
 
  private:
   //  BEmcProfile *_emcprof;
+  //  float Scin_size;
 };
 
 #endif

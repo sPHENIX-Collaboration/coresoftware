@@ -13,10 +13,6 @@
 #include <iostream>
 #include <string>
 
-class PHObject;
-
-using namespace std;
-
 PHFieldConfigv2::PHFieldConfigv2(
     double field_mag_x,
     double field_mag_y,
@@ -46,5 +42,5 @@ void PHFieldConfigv2::identify(std::ostream& os) const
   {
     os << "Empty";
   }
-  os << endl;
+  os << std::endl;
 }

@@ -13,9 +13,10 @@ class G4RootScintillatorSlatContainer : public PHObject
 {
  public:
   G4RootScintillatorSlatContainer();
-  virtual ~G4RootScintillatorSlatContainer();
+  ~G4RootScintillatorSlatContainer() override;
 
-  void Reset();
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
 
   G4RootScintillatorSlat* AddSlat(const PHG4ScintillatorSlat& slat);
 
@@ -34,7 +35,6 @@ class G4RootScintillatorSlatContainer : public PHObject
   void set_event(const int i) { event = i; }
   int get_event() const { return event; }
 
-  void identify(std::ostream& os = std::cout) const;
 
  protected:
   int idet;
@@ -44,7 +44,7 @@ class G4RootScintillatorSlatContainer : public PHObject
   int event;
   TClonesArray* SnglSlats;
 
-  ClassDef(G4RootScintillatorSlatContainer, 1)
+  ClassDefOverride(G4RootScintillatorSlatContainer, 1)
 };
 
 #endif

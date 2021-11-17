@@ -1,6 +1,5 @@
 #include "Fun4AllUtils.h"
 
-#include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
 // this is an ugly hack, the gcc optimizer has a bug which
 // triggers the uninitialized variable warning which
@@ -15,6 +14,7 @@
 #include <boost/lexical_cast.hpp>
 #endif
 
+#include <algorithm>  // for max
 #include <iostream>
 #include <vector>
 
@@ -32,7 +32,7 @@ Fun4AllUtils::GetRunSegment(const std::string& filename)
   // tokenizer does not have reverse iterator, so fill it in vector
   // and reverse iterate on vector
   vector<string> tokens;
-  BOOST_FOREACH (string t, tok)
+  for (auto& t : tok)
   {
     tokens.push_back(t);
   }

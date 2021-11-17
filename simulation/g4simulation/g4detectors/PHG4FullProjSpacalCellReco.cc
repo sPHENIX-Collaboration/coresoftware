@@ -63,7 +63,7 @@ PHG4FullProjSpacalCellReco::PHG4FullProjSpacalCellReco(const string &name) :
 }
 
 int
-PHG4FullProjSpacalCellReco::ResetEvent(PHCompositeNode *topNode)
+PHG4FullProjSpacalCellReco::ResetEvent(PHCompositeNode */*topNode*/)
 {
   sum_energy_g4hit = 0.;
   return Fun4AllReturnCodes::EVENT_OK;

@@ -13,8 +13,7 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I${G4_MAIN}/include \
-  -I$(ROOTSYS)/include \
-  -I$(OFFLINE_MAIN)/include/eigen3 
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -22,14 +21,17 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  ActsTransformations.h \
-  ActsTrack.h \
-  ActsTrackingGeometry.h \
-  ActsSurfaceMaps.h \
+  ../PHTpcTracker/PHTpcTrackerUtil.h \
+  ../PHTpcTracker/externals/kdfinder.hpp \
   ActsEvaluator.h \
+  ALICEKF.h \
   AssocInfoContainer.h \
+  AssocInfoContainerv1.h \
   CellularAutomaton.h \
   CellularAutomaton_v1.h \
+  GPUTPCBaseTrackParam.h \
+  GPUTPCTrackLinearisation.h \
+  GPUTPCTrackParam.h \
   HelixHoughBin.h \
   HelixHoughBin_v1.h \
   HelixHoughFuncs.h \
@@ -38,38 +40,46 @@ pkginclude_HEADERS = \
   HelixHoughSpace_v1.h \
   HelixKalmanFilter.h \
   MakeActsGeometry.h \
+  nanoflann.hpp \
+  PHActsSiliconSeeding.h \
+  PHActsVertexPropagator.h \
+  PHActsTrkFitter.h \
+  PHActsTrackProjection.h \
+  PHCASeeding.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
-  PHActsSourceLinks.h \
-  PHActsTracks.h \
-  PHActsTrkProp.h \
-  PHActsVertexFinder.h \
-  PHActsTrkFitter.h \
-  PHActsVertexFitter.h \
   PHGenFitTrkProp.h \
+  PHGhostRejection.h \
   PHHoughSeeding.h \
-  PHRTreeSeeding.h \
-  PHCASeeding.h \
+  PHHybridSeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
-  PHSiliconTpcTrackMatching.h \
   PHMicromegasTpcTrackMatching.h \
+  PHRTreeSeeding.h \
+  PHSiliconTpcTrackMatching.h \
+  PHSimpleVertexFinder.h \
+  PHTrackCleaner.h \
+  PHTrackSelector.h \
+  PHRaveVertexing.h \
   PHSiliconTruthTrackSeeding.h \
+  PHSimpleKFProp.h \
+  PHTpcClusterMover.h \
+  PHTpcDeltaZCorrection.h \
+  PHTpcTrackSeedCircleFit.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
   PHTrackSetMerging.h \
+  PHTrackSetCopyMerging.h \
+  PHTruthClustering.h \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
-  VertexFitter.h \
-  PHRaveVertexing.h \
-  GPUTPCBaseTrackParam.h \
-  GPUTPCTrackLinearisation.h \
-  GPUTPCTrackParam.h
+  VertexFitter.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
+  AssocInfoContainerv1_Dict.cc \
   HelixHoughBin_Dict.cc \
   HelixHoughBin_v1_Dict.cc \
   HelixHoughFuncs_Dict.cc \
@@ -80,6 +90,7 @@ ROOTDICTS = \
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
   AssocInfoContainer_Dict_rdict.pcm \
+  AssocInfoContainerv1_Dict_rdict.pcm \
   HelixHoughBin_Dict_rdict.pcm \
   HelixHoughBin_v1_Dict_rdict.pcm \
   HelixHoughFuncs_Dict_rdict.pcm \
@@ -89,26 +100,25 @@ ROOTDICTS = \
 
 libtrack_reco_io_la_SOURCES = \
   $(ROOTDICTS) \
+  AssocInfoContainerv1.cc \
   AssocInfoContainer.cc \
   CellularAutomaton_v1.cc \
+  GPUTPCTrackParam.cxx \
+  HelixHoughBin.cc \
   HelixHoughBin_v1.cc \
   HelixHoughFuncs_v1.cc \
   HelixHoughSpace_v1.cc \
   HelixKalmanFilter.cc \
-  VertexFitter.cc \
-  GPUTPCTrackParam.cxx
+  VertexFitter.cc
 
 if MAKE_ACTS
 ACTS_SOURCES = \
-  ActsTransformations.cc \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
-  PHActsSourceLinks.cc \
-  PHActsTracks.cc \
-  PHActsTrkProp.cc \
+  PHActsSiliconSeeding.cc \
   PHActsTrkFitter.cc \
-  PHActsVertexFinder.cc \
-  PHActsVertexFitter.cc
+  PHActsVertexPropagator.cc \
+  PHActsTrackProjection.cc
 
 $OFFLINE_MAIN/share:
 dist_data_DATA = \
@@ -118,7 +128,6 @@ dist_data_DATA = \
 AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
 
 ACTS_LIBS = \
-  -lg4eval \
   -lActsCore \
   -lActsFatras \
   -lActsPluginTGeo \
@@ -134,35 +143,48 @@ endif
 
 libtrack_reco_la_SOURCES = \
   $(ACTS_SOURCES) \
+  ../PHTpcTracker/PHTpcTrackerUtil.cc \
+  ALICEKF.cc \
+  PH3DVertexing.cc \
+  PHCASeeding.cc \
+  PHGenFitTrackProjection.cc \
+  PHGenFitTrkFitter.cc \
+  PHGenFitTrkProp.cc \
+  PHGhostRejection.cc \
+  PHHoughSeeding.cc \
+  PHHybridSeeding.cc \
   PHInitVertexing.cc \
   PHInitZVertexing.cc \
+  PHMicromegasTpcTrackMatching.cc \
+  PHRaveVertexing.cc \
+  PHRTreeSeeding.cc \
+  PHSiliconTpcTrackMatching.cc \
+  PHSiliconTruthTrackSeeding.cc \
+  PHSimpleKFProp.cc \
+  PHSimpleVertexFinder.cc \
+  PHTpcClusterMover.cc \
+  PHTpcDeltaZCorrection.cc \
+  PHTpcTrackSeedCircleFit.cc \
+  PHTrackCleaner.cc \
   PHTrackSeeding.cc \
+  PHTrackSelector.cc \
   PHTrackSetMerging.cc \
   PHTrackPropagating.cc \
   PHTrackFitting.cc \
-  PH3DVertexing.cc \
-  PHTruthVertexing.cc \
-  PHSiliconTpcTrackMatching.cc \
-  PHMicromegasTpcTrackMatching.cc \
+  PHTruthClustering.cc \
   PHTruthTrackSeeding.cc \
-  PHSiliconTruthTrackSeeding.cc \
-  PHTruthSiliconAssociation.cc \
-  PHHoughSeeding.cc \
-  PHRTreeSeeding.cc \
-  PHCASeeding.cc \
-  PHGenFitTrkProp.cc \
-  PHGenFitTrkFitter.cc \
-  PHGenFitTrackProjection.cc \
-  PHRaveVertexing.cc 
+  PHTruthVertexing.cc \
+  PHTruthSiliconAssociation.cc
 
 libtrack_reco_io_la_LIBADD = \
   -lphool \
-  -lHelixHough
+  -lHelixHough 
 
 libtrack_reco_la_LIBADD = \
   libtrack_reco_io.la \
   $(ACTS_LIBS) \
   -lSubsysReco \
+  -lg4eval \
   -lg4testbench \
   -lg4detectors \
   -lgsl \
@@ -181,7 +203,8 @@ libtrack_reco_la_LIBADD = \
   -lintt_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter
+  -lphparameter \
+  -llog4cpp
 
 
 # Rule for generating table CINT dictionaries.

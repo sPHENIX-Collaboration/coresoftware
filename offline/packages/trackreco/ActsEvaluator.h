@@ -2,16 +2,18 @@
 #define ACTSEVALUATOR_H
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
 
-#include "ActsTrackingGeometry.h"
-#include "ActsTrack.h"
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <Acts/Utilities/Helpers.hpp>
 
 #include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 #include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
+
+#include <boost/bimap.hpp>
 
 class TTree;
 class TFile;
@@ -21,6 +23,7 @@ class SvtxVertexMap;
 class SvtxEvalStack;
 class SvtxTrackMap;
 class PHG4TruthInfoContainer;
+class TrkrClusterContainer;
 class SvtxEvaluator;
 
 #include <map>
@@ -39,6 +42,9 @@ using Acts::VectorHelpers::perp;
 using Acts::VectorHelpers::phi;
 using Acts::VectorHelpers::theta;
 
+typedef boost::bimap<TrkrDefs::cluskey, unsigned int> CluskeyBimap;
+
+
 /**
  * This class is an analyzing class for the Acts track fitting, and produces
  * a tree with many branches useful for debugging what Acts is doing. 
@@ -52,12 +58,12 @@ class ActsEvaluator : public SubsysReco
  public:
   ActsEvaluator(const std::string &name = "ActsEvaluator.root",
                      SvtxEvaluator *svtxEvaluator = nullptr);
-  ~ActsEvaluator();
+  ~ActsEvaluator() override;
 
-  int Init(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int ResetEvent(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int ResetEvent(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
   void setEvalCKF(bool evalCKF) {m_evalCKF = evalCKF;}
 
  private:
@@ -70,7 +76,7 @@ class ActsEvaluator : public SubsysReco
 
   void fillG4Particle(PHG4Particle *part);
 
-  void fillProtoTrack(ActsTrack track, PHCompositeNode *topNode);
+  void fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode);
 
   void fillFittedTrackParams(const Trajectory traj,
 			     const size_t &trackTip,
@@ -85,22 +91,29 @@ class ActsEvaluator : public SubsysReco
   void calculateDCA(const Acts::BoundTrackParameters param, 
 		    const Acts::Vector3D vertex);
 
+  Surface getSurface(TrkrDefs::cluskey cluskey,TrkrDefs::subsurfkey surfkey);
+  Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
+  Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey);
+  Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey);
+
+
   Acts::Vector3D getGlobalTruthHit(PHCompositeNode *topNode, 
-				   const unsigned int hitID,
+				   TrkrDefs::cluskey cluskey,
 				   float &_gt);
-  TrkrDefs::cluskey getClusKey(const unsigned int hitID);
+
+  ActsSurfaceMaps *m_surfMaps{nullptr};
 
   SvtxEvaluator *m_svtxEvaluator{nullptr};
   PHG4TruthInfoContainer *m_truthInfo{nullptr};
-  SvtxTrackMap *m_trackMap{nullptr};
+  SvtxTrackMap *m_trackMap{nullptr}, *m_actsProtoTrackMap{nullptr};
   SvtxEvalStack *m_svtxEvalStack{nullptr};
   std::map<const unsigned int, std::map<const size_t, 
     const unsigned int>> *m_actsTrackKeyMap{nullptr};
   std::map<const unsigned int, Trajectory> *m_actsFitResults{nullptr};
-  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey{nullptr};
-  std::map<unsigned int, ActsTrack> *m_actsProtoTrackMap{nullptr};
+
   ActsTrackingGeometry *m_tGeometry{nullptr};
-  SvtxVertexMap *m_vertexMap;
+  SvtxVertexMap *m_vertexMap{nullptr};
+  TrkrClusterContainer *m_clusterContainer{nullptr};
 
   /// boolean indicating whether or not to evaluate the CKF or
   /// the KF. Must correspond with what was run to do fitting

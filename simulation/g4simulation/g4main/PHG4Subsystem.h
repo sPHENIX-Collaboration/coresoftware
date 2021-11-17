@@ -10,10 +10,12 @@
 #include <string>
 
 class G4LogicalVolume;
+class G4ParticleDefinition;
 class PHCompositeNode;
 class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4EventAction;
+class PHG4StackingAction;
 class PHG4SteppingAction;
 class PHG4TrackingAction;
 
@@ -23,14 +25,11 @@ class PHG4Subsystem : public SubsysReco
   //! constructor
   PHG4Subsystem(const std::string &name = "Generic Subsystem")
     : SubsysReco(name)
-    , m_MyMotherSubsystem(nullptr)
-    , m_MyLogicalVolume(nullptr)
-    , overlapcheck(false)
   {
   }
 
   //! destructor
-  virtual ~PHG4Subsystem(void) {}
+  ~PHG4Subsystem(void) override {}
 
   //! event processing
   virtual int process_after_geant(PHCompositeNode *)
@@ -68,6 +67,8 @@ class PHG4Subsystem : public SubsysReco
     return nullptr;
   }
 
+  virtual PHG4StackingAction *GetStackingAction() const {return nullptr;}
+
   void OverlapCheck(const bool chk = true) { overlapcheck = chk; }
 
   bool CheckOverlap() const { return overlapcheck; }
@@ -83,10 +84,16 @@ class PHG4Subsystem : public SubsysReco
 // and return true
   virtual bool CanBeMotherSubsystem() const {return false;}
 
+//
+  virtual void AddProcesses(G4ParticleDefinition */*particle*/) {}
+
+// define materials used in detector
+  virtual void DefineMaterials() {}
+
  private:
-  PHG4Subsystem *m_MyMotherSubsystem;
-  G4LogicalVolume *m_MyLogicalVolume;
-  bool overlapcheck;
+  PHG4Subsystem *m_MyMotherSubsystem = nullptr;
+  G4LogicalVolume *m_MyLogicalVolume = nullptr;
+  bool overlapcheck = false;
 };
 
 #endif  // G4MAIN_PHG4SUBSYSTEM_H

@@ -2,6 +2,7 @@
 
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4CellDefs.h>  // for get_phibin
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
@@ -130,7 +131,7 @@ int G4CellNtuple::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4CellNtuple::End(PHCompositeNode *topNode)
+int G4CellNtuple::End(PHCompositeNode */*topNode*/)
 {
   outfile->cd();
   ntup->Write();

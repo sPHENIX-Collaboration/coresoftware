@@ -28,9 +28,9 @@ class PHIOManager
   virtual void print() const = 0;
 
  protected:
-  PHIOManager();
+  PHIOManager() {}
   std::string filename;
-  size_t eventNumber;
+  size_t eventNumber = 0;
 };
 
 #endif

@@ -8,10 +8,9 @@
 
 #include <list>
 #include <string>
-#include <type_traits>           // for __decay_and_strip<>::__type
-#include <utility>               // for make_pair, pair
+#include <type_traits>  // for __decay_and_strip<>::__type
+#include <utility>      // for make_pair, pair
 #include <vector>
-
 
 class PHCompositeNode;
 class SubsysReco;
@@ -21,7 +20,7 @@ class Fun4AllSyncManager;
 class Fun4AllInputManager : public Fun4AllBase
 {
  public:
-  virtual ~Fun4AllInputManager();
+  ~Fun4AllInputManager() override;
   virtual int fileopen(const std::string & /*filename*/) { return -1; }
   virtual int fileclose() { return -1; }
   virtual int run(const int /*nevents=0*/) { return -1; }
@@ -31,8 +30,8 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int GetSyncObject(SyncObject ** /*mastersync*/) { return 0; }
   virtual int SyncIt(const SyncObject * /*mastersync*/) { return Fun4AllReturnCodes::SYNC_FAIL; }
   virtual int BranchSelect(const std::string & /*branch*/, const int /*iflag*/) { return -1; }
-  virtual int setBranches() { return -1; }
-  virtual void Print(const std::string &what = "ALL") const;
+  virtual int setBranches() { return -1; }  // publich bc needed by the sync manager
+  void Print(const std::string &what = "ALL") const override;
   virtual int PushBackEvents(const int /*nevt*/) { return -1; }
   // so people can use the skip they are used to instead of PushBackEvents
   // with negative arg
@@ -55,7 +54,8 @@ class Fun4AllInputManager : public Fun4AllBase
   std::string TopNodeName() const { return m_TopNodeName; }
   bool FileListEmpty() const { return m_FileList.empty(); }
   virtual int IsOpen() const { return m_IsOpen; }
-  virtual int SkipForThisManager(const int nevents) {return 0;}
+  virtual int SkipForThisManager(const int /*nevents*/) { return 0; }
+  virtual int HasSyncObject() const { return 0; }
 
  protected:
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");

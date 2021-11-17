@@ -16,12 +16,10 @@
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
-#include <memory>
 #include <set>
 #include <utility>
 
 using namespace std;
-using namespace CLHEP;  // units
 
 PHField2D::PHField2D(const string &filename, const int verb, const float magfield_rescale)
   : PHField(verb)

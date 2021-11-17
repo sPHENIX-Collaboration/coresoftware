@@ -8,61 +8,57 @@
 #include <iostream>
 
 ///
-class SyncObject: public PHObject
+class SyncObject : public PHObject
 {
  public:
-
   /// dtor
-  virtual ~SyncObject() {}
+  ~SyncObject() override {}
 
   /// Clear Sync
-  virtual void Reset();
+  void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream 
    */
-  virtual void identify(std::ostream& os = std::cout) const;
-
+  void identify(std::ostream& os = std::cout) const override;
 
   /// isValid returns non zero if object contains valid data
-  virtual int isValid() const;
+  int isValid() const override;
 
-  virtual PHObject* CloneMe() const;
-  virtual SyncObject& operator=(const SyncObject &source);
-  virtual int Different(const SyncObject *other) const;
+  PHObject* CloneMe() const override;
+  virtual SyncObject& operator=(const SyncObject& source);
+  virtual int Different(const SyncObject* other) const;
 
   /// set Event Counter
-  virtual void EventCounter(const int /*ival*/) {return;}
+  virtual void EventCounter(const int /*ival*/) { return; }
 
   /// set Event Number
-  virtual void EventNumber(const int /*ival*/) {return;}
-
+  virtual void EventNumber(const int /*ival*/) { return; }
 
   /// set Segment Number
-  virtual void SegmentNumber(const int /*ival*/) {return;}
+  virtual void SegmentNumber(const int /*ival*/) { return; }
 
   /// set Run Number
-  virtual void RunNumber(const int /*ival*/) {return;}
+  virtual void RunNumber(const int /*ival*/) { return; }
 
  protected:
   /// get Event Number
-  virtual int EventNumber() const {return -9999;}
+  virtual int EventNumber() const { return -9999; }
   /// get Event Counter
-  virtual int EventCounter() const {return -9999;}
+  virtual int EventCounter() const { return -9999; }
   /// get Run Number
-  virtual int RunNumber() const {return -9999;}
+  virtual int RunNumber() const { return -9999; }
   /// get Segment Number
-  virtual int SegmentNumber() const {return -9999;}
+  virtual int SegmentNumber() const { return -9999; }
 
- private: // prevent doc++ from showing ClassDef
+ private:  // prevent doc++ from showing ClassDefOverride
   friend class SyncObjectv1;
   friend class Fun4AllDstInputManager;
   friend class Fun4AllDstPileupInputManager;
   friend class DumpSyncObject;
   friend class SegmentSelect;
 
-  ClassDef(SyncObject,1)
-
+  ClassDefOverride(SyncObject, 1)
 };
 
 #endif

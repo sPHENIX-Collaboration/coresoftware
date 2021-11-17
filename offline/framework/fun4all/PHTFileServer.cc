@@ -12,9 +12,9 @@
 
 #include <TObject.h>  // for TObject, TObject::kWriteDelete
 
-#include <iostream>   // for operator<<, basic_ostream, ostringstream, endl
+#include <iostream>  // for operator<<, basic_ostream, ostringstream, endl
 #include <sstream>
-#include <utility>    // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 using namespace std;
 

@@ -71,18 +71,18 @@ class PHRTreeSeeding : public PHTrackSeeding
   void set_phi_scale(float scale) { _phi_scale = scale; }
   void set_z_scale(float scale) { _z_scale = scale; }
 
-  virtual ~PHRTreeSeeding()
+  ~PHRTreeSeeding() override
   {
   }
 
  protected:
-  int Setup(PHCompositeNode *topNode);
+  int Setup(PHCompositeNode *topNode) override;
   int GetNodes(PHCompositeNode *topNode);
   int Process();
-  int Process(PHCompositeNode *topNode);
+  int Process(PHCompositeNode *topNode) override;
   int InitializeGeometry(PHCompositeNode *topNode);
 
-  int End();
+  int End() override;
 
  private:
   /// fetch node pointers

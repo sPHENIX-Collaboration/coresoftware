@@ -34,62 +34,61 @@ class PHFieldConfigv2 : public PHFieldConfig
   {
   }
 
-  virtual ~PHFieldConfigv2() {}
+  ~PHFieldConfigv2() override {}
 
   /// Virtual copy constructor.
-  virtual PHObject* CloneMe() const { return new PHFieldConfigv2(*this); }
+  PHObject* CloneMe() const override { return new PHFieldConfigv2(*this); }
 
   /** identify Function from PHObject
    @param os Output Stream
    */
-  virtual void
-  identify(std::ostream& os = std::cout) const;
+  void
+  identify(std::ostream& os = std::cout) const override;
 
   /// Clear Content
-  virtual void
-  Reset() {}
+  void Reset() override {}
 
   /// isValid returns non zero if object contains vailid data
-  virtual int
-  isValid() const { return 3; }
+  int
+  isValid() const override { return 3; }
 
-  FieldConfigTypes get_field_config() const
+  FieldConfigTypes get_field_config() const override
   {
     return kFieldUniform;
   }
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfigv2
-  double get_field_mag_x() const
+  double get_field_mag_x() const override
   {
     return field_mag_x_;
   }
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfigv2
-  void set_field_mag_x(double fieldMagX)
+  void set_field_mag_x(double fieldMagX) override
   {
     field_mag_x_ = fieldMagX;
   }
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfigv2
-  double get_field_mag_y() const
+  double get_field_mag_y() const override
   {
     return field_mag_y_;
   }
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfigv2
-  void set_field_mag_y(double fieldMagY)
+  void set_field_mag_y(double fieldMagY) override
   {
     field_mag_y_ = fieldMagY;
   }
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfigv2
-  double get_field_mag_z() const
+  double get_field_mag_z() const override
   {
     return field_mag_z_;
   }
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfigv2
-  void set_field_mag_z(double fieldMagZ)
+  void set_field_mag_z(double fieldMagZ) override
   {
     field_mag_z_ = fieldMagZ;
   }
@@ -99,7 +98,7 @@ class PHFieldConfigv2 : public PHFieldConfig
   double field_mag_y_;
   double field_mag_z_;
 
-  ClassDef(PHFieldConfigv2, 1)
+  ClassDefOverride(PHFieldConfigv2, 1)
 };
 
 #endif

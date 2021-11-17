@@ -1,6 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = libffaobjects.la
+lib_LTLIBRARIES = \
+  libffaobjects.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -18,6 +19,7 @@ ROOTDICTS = \
   FlagSave_Dict.cc \
   FlagSavev1_Dict.cc \
   RunHeader_Dict.cc \
+  RunHeaderv1_Dict.cc \
   SyncObject_Dict.cc \
   SyncObjectv1_Dict.cc \
   EventHeader_Dict.cc \
@@ -29,6 +31,7 @@ nobase_dist_pcm_DATA = \
   FlagSave_Dict_rdict.pcm \
   FlagSavev1_Dict_rdict.pcm \
   RunHeader_Dict_rdict.pcm \
+  RunHeaderv1_Dict_rdict.pcm \
   SyncObject_Dict_rdict.pcm \
   SyncObjectv1_Dict_rdict.pcm \
   EventHeader_Dict_rdict.pcm \
@@ -39,6 +42,7 @@ pkginclude_HEADERS = \
   FlagSave.h \
   FlagSavev1.h \
   RunHeader.h \
+  RunHeaderv1.h \
   SyncDefs.h \
   SyncObject.h \
   SyncObjectv1.h \
@@ -50,6 +54,7 @@ libffaobjects_la_SOURCES = \
   $(ROOTDICTS) \
   FlagSavev1.cc \
   RunHeader.cc \
+  RunHeaderv1.cc \
   SyncObject.cc \
   SyncObjectv1.cc \
   EventHeader.cc \

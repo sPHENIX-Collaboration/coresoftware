@@ -24,11 +24,10 @@ class MicromegasTile: public PHObject
   using List = std::vector<MicromegasTile>;
 
   //! default constructor
-  MicromegasTile()
-  {}
+  MicromegasTile() = default;
 
-// ROOT wants a virtual dtor
-  virtual ~MicromegasTile() {}
+  //! destructor
+  ~MicromegasTile() override = default;
 
   //! constructor
   MicromegasTile( std::array<double, 4> values )
@@ -51,7 +50,7 @@ class MicromegasTile: public PHObject
   double m_sizePhi = 0;
   double m_sizeZ = 0;
 
-  ClassDef(MicromegasTile,1)
+  ClassDefOverride(MicromegasTile,1)
 };
 
 #endif

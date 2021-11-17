@@ -15,23 +15,27 @@ class Fun4AllDstOutputManager : public Fun4AllOutputManager
 {
  public:
   Fun4AllDstOutputManager(const std::string &myname = "DSTOUT", const std::string &filename = "dstout.root");
-  virtual ~Fun4AllDstOutputManager();
+  ~Fun4AllDstOutputManager() override;
 
-  int AddNode(const std::string &nodename);
-  int StripNode(const std::string &nodename);
-  int StripRunNode(const std::string &nodename);
-  int outfileopen(const std::string &fname);
+  int AddNode(const std::string &nodename) override;
+  int AddRunNode(const std::string &nodename) override;
+  int StripNode(const std::string &nodename) override;
+  int StripRunNode(const std::string &nodename) override;
+  void SaveRunNode(const int i) override {m_SaveRunNodeFlag = i;}
+  int outfileopen(const std::string &fname) override;
 
-  void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
-  int Write(PHCompositeNode *startNode);
-  int WriteNode(PHCompositeNode *thisNode);
+  int Write(PHCompositeNode *startNode) override;
+  int WriteNode(PHCompositeNode *thisNode) override;
 
  private:
+  PHNodeIOManager *dstOut = nullptr;
+  int m_SaveRunNodeFlag = 1;
   std::set<std::string> savenodes;
+  std::set<std::string> saverunnodes;
   std::set<std::string> stripnodes;
   std::set<std::string> striprunnodes;
-  PHNodeIOManager *dstOut;
 };
 
 #endif

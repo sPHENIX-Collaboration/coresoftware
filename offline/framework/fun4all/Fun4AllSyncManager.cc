@@ -1,11 +1,14 @@
 #include "Fun4AllSyncManager.h"
 
 #include "Fun4AllInputManager.h"
+#include "Fun4AllReturnCodes.h"  // for EVENT_OK, RESET_NODE_TREE
 #include "Fun4AllServer.h"
 
 #include <ffaobjects/SyncObject.h>
 
 #include <phool/phool.h>  // for PHWHERE
+
+#include <TSystem.h>
 
 #include <cstdlib>
 #include <iostream>  // for operator<<, endl, basic_ostream
@@ -18,13 +21,6 @@ using namespace std;
 
 Fun4AllSyncManager::Fun4AllSyncManager(const string &name)
   : Fun4AllBase(name)
-  , m_PrdfSegment(0)
-  , m_PrdfEvents(0)
-  , m_EventsTotal(0)
-  , m_CurrentRun(0)
-  , m_CurrentEvent(0)
-  , m_Repeat(0)
-  , m_MasterSync(nullptr)
 {
   return;
 }
@@ -99,10 +95,34 @@ int Fun4AllSyncManager::run(const int nevnts)
   {
     unsigned iman = 0;
     int ifirst = 0;
+    int hassync = 0;
     for (vector<Fun4AllInputManager *>::iterator iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
     {
       m_iretInManager[iman] = (*iter)->run(1);
       iret += m_iretInManager[iman];
+      // one can run DSTs without sync object via the DST input manager
+      // this only poses a problem if one runs two of them and expects the syncing to work
+      // or mix DSTs with sync object and without
+      if (!hassync && (*iter)->HasSyncObject())  // only update if hassync is 0 and input mgr is non zero
+      {
+        hassync = (*iter)->HasSyncObject();
+      }
+      else
+      {
+        if ((*iter)->HasSyncObject())  // if zero (no syncing) no need to go further
+        {
+          if (hassync != (*iter)->HasSyncObject())  // we have sync and no sync mixed
+          {
+            PrintSyncProblem();
+            gSystem->Exit(1);
+          }
+          else if (hassync < 0)  // we have more than one nosync input
+          {
+            PrintSyncProblem();
+            gSystem->Exit(1);
+          }
+        }
+      }
       if (!ifirst)
       {
         if (!m_iretInManager[iman])
@@ -438,5 +458,21 @@ void Fun4AllSyncManager::CurrentEvent(const int evt)
   m_CurrentEvent = evt;
   Fun4AllServer *se = Fun4AllServer::instance();
   se->EventNumber(evt);
+  return;
+}
+
+void Fun4AllSyncManager::PrintSyncProblem() const
+{
+  cout << "Bad use of Fun4AllDstInputManager for file(s) which do not have a synchronization object" << endl;
+  cout << "This works for single streams but if you run with multiple input streams this might lead to event mixing" << endl;
+  cout << "If you insist to run this (you take full responsibility), change the following in your macro: " << endl;
+  for (auto iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
+  {
+    if ((*iter)->HasSyncObject() < 0)
+    {
+      cout << "File " << (*iter)->FileName() << " does not contain a sync object" << endl;
+      cout << "Change its Fun4AllDstInputManager with name " << (*iter)->Name() << " from Fun4AllDstInputManager to Fun4AllNoSyncDstInputManager" << endl;
+    }
+  }
   return;
 }

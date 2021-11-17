@@ -53,13 +53,7 @@ bool PHG4CylinderDetector::IsInCylinder(const G4VPhysicalVolume *volume) const
 //_______________________________________________________________
 void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  G4Material *TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
-
-  if (!TrackerMaterial)
-  {
-    cout << "Error: Can not set material " << m_Params->get_string_param("material") << endl;
-    gSystem->Exit(1);
-  }
+  G4Material *TrackerMaterial = GetDetectorMaterial(m_Params->get_string_param("material"));
 
   // determine length of cylinder using PHENIX's rapidity coverage if flag is true
   double radius = m_Params->get_double_param("radius") * cm;
@@ -90,7 +84,39 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
                                                         nullptr, nullptr, g4userlimits);
   PHG4Subsystem *mysys = GetMySubsystem();
   mysys->SetLogicalVolume(cylinder_logic);
-  m_CylinderPhysicalVolume = new G4PVPlacement(0, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
+
+  G4RotationMatrix *rotm = new G4RotationMatrix();
+  int nRotation(0);
+  if (m_Params->get_double_param("rot_x") !=0 )
+  {
+    ++ nRotation;
+    rotm->rotateX(m_Params->get_double_param("rot_x") * deg);
+  }
+  if (m_Params->get_double_param("rot_y") !=0 )
+  {
+    ++ nRotation;
+    rotm->rotateY(m_Params->get_double_param("rot_y") * deg);
+  }
+  if (m_Params->get_double_param("rot_z") !=0 )
+  {
+    ++ nRotation;
+    rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
+  }
+
+  if (nRotation>=2)
+  {
+    cout <<__PRETTY_FUNCTION__<<": Warning : " <<GetName()<<" is configured with more than one of the x-y-z rotations of "
+        <<"("<<m_Params->get_double_param("rot_x")<<", "
+        <<m_Params->get_double_param("rot_x")<<", "
+        <<m_Params->get_double_param("rot_x")<<") degrees. "
+        <<"The rotation is instruction is ambiguous and they are performed in the order of X->Y->Z rotations with result rotation matrix of:";
+    rotm->print(cout);
+  }
+
+  m_CylinderPhysicalVolume = new G4PVPlacement(rotm,
+					       G4ThreeVector(m_Params->get_double_param("place_x") * cm,
+							     m_Params->get_double_param("place_y") * cm,
+							     m_Params->get_double_param("place_z") * cm),
                                                cylinder_logic,
                                                G4String(GetName()),
                                                logicWorld, 0, false, OverlapCheck());

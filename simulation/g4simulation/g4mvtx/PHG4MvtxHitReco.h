@@ -16,13 +16,13 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterContainerInterface
  public:
   explicit PHG4MvtxHitReco(const std::string &name = "PHG4MvtxRECO");
 
-  virtual ~PHG4MvtxHitReco() {}
+  ~PHG4MvtxHitReco() override {}
 
   //! module initialization
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
   void Detector(const std::string &d) { detector = d; }
 
@@ -30,7 +30,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterContainerInterface
   double get_timing_window_max(const int i) { return tmin_max[i].second; }
   void set_timing_window(const int detid, const double tmin, const double tmax);
 
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
  protected:
   std::string detector;

@@ -5,11 +5,12 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
-class PHG4BbcDetector;
+#include <string>  // for string
 
 class G4Step;
 class G4VPhysicalVolume;
 class PHCompositeNode;
+class PHG4BbcDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHParameters;
@@ -21,37 +22,41 @@ class PHG4BbcSteppingAction : public PHG4SteppingAction
   PHG4BbcSteppingAction(PHG4BbcDetector*, const PHParameters*);
 
   //! destructor
-  virtual ~PHG4BbcSteppingAction();
+  ~PHG4BbcSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  bool UserSteppingAction(const G4Step*, bool) override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode*);
+  void SetInterfacePointers(PHCompositeNode*) override;
+
+  void SetHitNodeName(const std::string& type, const std::string& name) override;
 
  private:
   //! pointer to the detector
-  PHG4BbcDetector* m_Detector;
+  PHG4BbcDetector* m_Detector = nullptr;
 
   //! pointer to hit container
-  PHG4HitContainer* m_HitContainer;
-  PHG4Hit* m_Hit;
-  PHG4HitContainer *m_SaveHitContainer;
+  PHG4HitContainer* m_HitContainer = nullptr;
+  PHG4HitContainer* m_SupportHitContainer = nullptr;
+  const PHParameters* m_Params = nullptr;
+  PHG4Hit* m_Hit = nullptr;
+  PHG4HitContainer* m_SaveHitContainer = nullptr;
 
-  G4VPhysicalVolume *m_SaveVolPre;
-  G4VPhysicalVolume *m_SaveVolPost;
+  G4VPhysicalVolume* m_SaveVolPre = nullptr;
+  G4VPhysicalVolume* m_SaveVolPost = nullptr;
 
-  int m_SaveTrackId;
-  int m_SavePreStepStatus;
-  int m_SavePostStepStatus;
-  //int m_ActiveFlag;
-  //int m_BlackHoleFlag;
-  double m_EdepSum;
-  double m_EionSum;
+  int m_SaveTrackId = -1;
+  int m_SavePreStepStatus = -1;
+  int m_SavePostStepStatus = -1;
+  int m_ActiveFlag = 0;
+  int m_BlackHoleFlag = 0;
+  int m_SupportFlag = 0;
+  double m_EdepSum = 0.;
+  double m_EionSum = 0.;
 
-  //! pointer to parameters
-  //const PHParameters* m_Params;
-
+  std::string m_HitNodeName;
+  std::string m_SupportNodeName;
 };
 
-#endif  // PHG4BbcSteppingAction_h__
+#endif  // G4DETECTORS_PHG4BBCSTEPPINGACTION_H

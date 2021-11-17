@@ -11,10 +11,10 @@ class DumpPHG4ScintillatorSlatContainer : public DumpObject
 {
  public:
   DumpPHG4ScintillatorSlatContainer(const std::string &NodeName);
-  virtual ~DumpPHG4ScintillatorSlatContainer() {}
+  ~DumpPHG4ScintillatorSlatContainer() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif

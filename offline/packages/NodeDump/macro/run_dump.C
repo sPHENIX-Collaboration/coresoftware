@@ -1,10 +1,17 @@
+#ifndef MACRO_RUNDUMP_C
+#define MACRO_RUNDUMP_C
+
+
+#include <nodedump/Dumper.h>
+#include <fun4all/Fun4AllServer.h>
+#include <fun4all/Fun4AllDstInputManager.h>
+
+R__LOAD_LIBRARY(libfun4all.so)
+R__LOAD_LIBRARY(libphnodedump.so)
+
 void run_dump(const char *infile, const int evts=100)
 {
-  gSystem->Load("libg4hough.so");
-  gSystem->Load("libphnodedump.so");
-  gSystem->Load("libg4vertex_io.so");
-  gSystem->Load("libg4bbc_io.so");
-  
+  gSystem->Load("libg4dst.so");
   Fun4AllServer* se = Fun4AllServer::instance();
 
   Dumper *dmp = new Dumper();
@@ -20,3 +27,5 @@ void run_dump(const char *infile, const int evts=100)
   se->End();
   delete se;
 }
+
+#endif

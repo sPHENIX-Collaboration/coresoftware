@@ -12,7 +12,10 @@
 
 #include <g4gdml/PHG4GDMLConfig.hh>
 
+#include <phool/recoConsts.h>
+
 #include <Geant4/G4Box.hh>
+#include <Geant4/G4Exception.hh>      // for G4Exception, G4ExceptionD
 #include <Geant4/G4ExceptionSeverity.hh>  // for FatalException
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
@@ -24,7 +27,6 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Types.hh>  // for G4double
 #include <Geant4/G4Vector3D.hh>
-#include <Geant4/globals.hh>  // for G4Exception, G4ExceptionDe...
 
 #include <TSystem.h>
 
@@ -62,7 +64,8 @@ PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHG4Subsystem* subsys, PH
   }
 
   //this class loads Chris Cullen 2D spacal design July 2015 by default.
-  get_geom_v3()->load_demo_sector_tower_map_2015_Chris_Cullen_2D_spacal();
+  // this step is deprecated now
+  // get_geom_v3()->load_demo_sector_tower_map_2015_Chris_Cullen_2D_spacal();
 
   assert(parameters);
   get_geom_v3()->ImportParameters(*parameters);
@@ -104,7 +107,8 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
                                  halfpi - pi / get_geom_v3()->get_azimuthal_n_sec(),
                                  twopi / get_geom_v3()->get_azimuthal_n_sec());
 
-  G4Material* cylinder_mat = G4Material::GetMaterial("G4_AIR");
+  recoConsts *rc = recoConsts::instance();
+  G4Material* cylinder_mat = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   assert(cylinder_mat);
 
   G4LogicalVolume* sec_logic = new G4LogicalVolume(sec_solid, cylinder_mat,
@@ -114,7 +118,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 
   // construct walls
 
-  G4Material* wall_mat = G4Material::GetMaterial(get_geom_v3()->get_sidewall_mat());
+  G4Material* wall_mat = GetDetectorMaterial(get_geom_v3()->get_sidewall_mat());
   assert(wall_mat);
 
   if (get_geom_v3()->get_sidewall_thickness() > 0)
@@ -505,8 +509,7 @@ PHG4FullProjSpacalDetector::Construct_Tower(
       g_tower.pAlp2 * rad                                       // G4double pAlp2 //
   );
 
-  G4Material* cylinder_mat = G4Material::GetMaterial(
-      get_geom_v3()->get_absorber_mat());
+  G4Material* cylinder_mat = GetDetectorMaterial(get_geom_v3()->get_absorber_mat());
   assert(cylinder_mat);
 
   G4LogicalVolume* block_logic = new G4LogicalVolume(block_solid, cylinder_mat,
@@ -551,7 +554,7 @@ PHG4FullProjSpacalDetector::Construct_Tower(
   return block_logic;
 }
 
-void PHG4FullProjSpacalDetector::Print(const std::string& what) const
+void PHG4FullProjSpacalDetector::Print(const std::string& /*what*/) const
 {
   cout << "PHG4FullProjSpacalDetector::Print::" << GetName()
        << " - Print Geometry:" << endl;

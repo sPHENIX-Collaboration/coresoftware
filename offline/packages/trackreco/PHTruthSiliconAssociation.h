@@ -15,6 +15,7 @@ class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
 class TrkrClusterContainer;
+class TrkrHitSetContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
 class PHG4TruthInfoContainer;
@@ -29,7 +30,7 @@ class PHTruthSiliconAssociation : public SubsysReco
 
   PHTruthSiliconAssociation(const std::string &name = "PHTruthSiliconAssociation");
 
-  virtual ~PHTruthSiliconAssociation();
+  ~PHTruthSiliconAssociation() override;
 
   /** Called during initialization.
       Typically this is where you can book histograms, and e.g.
@@ -77,6 +78,7 @@ class PHTruthSiliconAssociation : public SubsysReco
   PHG4HitContainer *_g4hits_intt{nullptr};
   
   TrkrClusterContainer *_cluster_map{nullptr};
+  TrkrHitSetContainer  *_hitsets{nullptr};
   TrkrClusterHitAssoc *_cluster_hit_map{nullptr};
   TrkrHitTruthAssoc *_hit_truth_map{nullptr};
   SvtxTrackMap *_track_map{nullptr};

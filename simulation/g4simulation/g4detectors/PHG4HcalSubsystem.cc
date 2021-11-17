@@ -99,10 +99,10 @@ int PHG4HcalSubsystem::InitRun(PHCompositeNode* topNode)
     {
       nodename << "G4HIT_" << detector_type << "_" << layer;
     }
-    PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!cylinder_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
     }
     cylinder_hits->AddLayer(layer);
     if (absorberactive)
@@ -116,12 +116,12 @@ int PHG4HcalSubsystem::InitRun(PHCompositeNode* topNode)
       {
         nodename << "G4HIT_ABSORBER_" << detector_type << "_" << layer;
       }
-      PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
-      if (!cylinder_hits)
+      PHG4HitContainer* cylinder_hits_2 = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
+      if (!cylinder_hits_2)
       {
-        dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
+        dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits_2 = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
       }
-      cylinder_hits->AddLayer(layer);
+      cylinder_hits_2->AddLayer(layer);
     }
     steppingAction_ = new PHG4HcalSteppingAction(detector_);
     steppingAction_->set_zmin(zpos - detlength / 2.);

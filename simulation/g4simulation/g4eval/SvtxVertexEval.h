@@ -5,6 +5,7 @@
 
 #include <map>
 #include <set>
+#include <string>  // for string
 #include <utility>
 
 class PHCompositeNode;
@@ -66,6 +67,7 @@ class SvtxVertexEval
   unsigned int get_errors() { return _errors + _trackeval.get_errors(); }
 
   void set_use_initial_vertex(bool use_init_vertex) { _use_initial_vertex = use_init_vertex; }
+  void set_use_genfit_vertex(bool use_genfit_vertex) { _use_genfit_vertex = use_genfit_vertex; }
 
   void set_track_nodename(const std::string& name);
 
@@ -79,7 +81,8 @@ class SvtxVertexEval
   PHG4TruthInfoContainer* _truthinfo;
 
   bool _strict;
-  bool _use_initial_vertex;
+  bool _use_initial_vertex = true;
+  bool _use_genfit_vertex = false;
   int _verbosity;
   unsigned int _errors;
 

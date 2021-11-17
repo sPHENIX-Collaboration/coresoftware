@@ -12,10 +12,6 @@
 
 #include <iostream>
 
-class PHObject;
-
-using namespace std;
-
 PHFieldConfigv1::PHFieldConfigv1(FieldConfigTypes field_config,
                                  const std::string& filename,
                                  double magfield_rescale)
@@ -41,7 +37,7 @@ void PHFieldConfigv1::identify(std::ostream& os) const
   {
     os << "Empty";
   }
-  os << endl;
+  os << std::endl;
 }
 
 /// isValid returns non zero if object contains valid data

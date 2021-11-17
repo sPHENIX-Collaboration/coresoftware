@@ -5,11 +5,11 @@
 
 namespace CLHEP
 {
-class HepRandomEngine;
+  class HepRandomEngine;
 }
 namespace HepMC
 {
-class GenEvent;
+  class GenEvent;
 }
 
 enum flowAfterburnerAlgorithm

@@ -14,6 +14,7 @@
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class SvtxTrackMap;
+class SvtxVertexMap;
 
 class QAG4SimulationVertex : public SubsysReco
 {
@@ -30,6 +31,9 @@ class QAG4SimulationVertex : public SubsysReco
 
   void addEmbeddingID(int embeddingID);
 
+  void setTrackgMapName(const std::string &name) { m_trackMapName = name; }
+  void setVertexMapName(const std::string &name) { m_vertexMapName = name; }
+
  private:
   int load_nodes(PHCompositeNode *);
 
@@ -40,8 +44,13 @@ class QAG4SimulationVertex : public SubsysReco
   std::unique_ptr<SvtxEvalStack> m_svtxEvalStack;
 
   SvtxTrackMap *m_trackMap = nullptr;
+  SvtxVertexMap *m_vertexMap = nullptr;
+  PHG4TruthInfoContainer *m_truthInfo = nullptr;
 
   std::set<int> m_embeddingIDs;
+
+  std::string m_trackMapName = "SvtxTrackMap";
+  std::string m_vertexMapName = "SvtxVertexMap";
 };
 
 #endif  // QAG4SIMULATIONVERTEX_H

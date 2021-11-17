@@ -67,7 +67,7 @@ PHG4GDMLDetector::~PHG4GDMLDetector()
 
 void
 
-PHG4GDMLDetector::Print(const std::string& what) const
+PHG4GDMLDetector::Print(const std::string& /*what*/) const
 {
   cout << "PHG4GDMLDetector::" << GetName() << " - import " << m_TopVolName << " from " << m_GDMPath << " with shift "
        << m_placeX << ","

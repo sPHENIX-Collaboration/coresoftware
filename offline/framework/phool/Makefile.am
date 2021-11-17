@@ -30,7 +30,6 @@ libphool_la_SOURCES = \
   $(ROOTDICTS) \
   PHCompositeNode.cc \
   PHFlag.cc \
-  PHIOManager.cc \
   PHMessage.cc \
   PHNode.cc \
   PHNodeIOManager.cc \

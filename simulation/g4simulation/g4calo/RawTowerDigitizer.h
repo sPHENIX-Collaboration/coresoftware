@@ -23,10 +23,10 @@ class RawTowerDigitizer : public SubsysReco
 {
  public:
   RawTowerDigitizer(const std::string &name = "RawTowerDigitizer");
-  virtual ~RawTowerDigitizer();
+  ~RawTowerDigitizer() override;
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
   void Detector(const std::string &d) { m_Detector = d; _tower_params.set_name(d);}
   void TowerType(const int type) { m_TowerType = type; }
   void set_seed(const unsigned int iseed);

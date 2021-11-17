@@ -16,7 +16,7 @@ class recoConsts : public PHFlag
     return __instance;
   }
 
-  void Print() const;
+  void Print() const override;
 
  private:
   recoConsts() {}

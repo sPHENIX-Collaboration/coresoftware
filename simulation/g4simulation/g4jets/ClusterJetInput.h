@@ -18,13 +18,13 @@ class ClusterJetInput : public JetInput
 {
  public:
   ClusterJetInput(Jet::SRC input);
-  virtual ~ClusterJetInput() {}
+  ~ClusterJetInput() override {}
 
-  void identify(std::ostream& os = std::cout);
+  void identify(std::ostream& os = std::cout) override;
 
-  Jet::SRC get_src() { return _input; }
+  Jet::SRC get_src() override { return _input; }
 
-  std::vector<Jet*> get_input(PHCompositeNode* topNode);
+  std::vector<Jet*> get_input(PHCompositeNode* topNode) override;
 
  private:
   int _verbosity;

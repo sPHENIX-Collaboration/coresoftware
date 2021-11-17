@@ -5,6 +5,8 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+#include <cmath>
+
 class G4Step;
 class PHCompositeNode;
 class PHG4HcalDetector;
@@ -19,13 +21,13 @@ class PHG4HcalSteppingAction : public PHG4SteppingAction
   PHG4HcalSteppingAction(PHG4HcalDetector*);
 
   //! destroctor
-  virtual ~PHG4HcalSteppingAction();
+  ~PHG4HcalSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  bool UserSteppingAction(const G4Step*, bool) override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode*);
+  void SetInterfacePointers(PHCompositeNode*) override;
 
   void set_zmin(const float z) { zmin = z; }
   void set_zmax(const float z) { zmax = z; }
@@ -40,15 +42,15 @@ class PHG4HcalSteppingAction : public PHG4SteppingAction
   PHG4HcalDetector* detector_;
 
   //! pointer to hit container
-  PHG4HitContainer* m_HitContainer;
-  PHG4HitContainer* m_AbsorberHits;
-  PHG4HitContainer* m_SaveHitContainer;
-  PHG4Hit* m_Hit;
-  PHG4Shower* m_SaveShower;
-  float zmin;
-  float zmax;
+  PHG4HitContainer* m_HitContainer = nullptr;
+  PHG4HitContainer* m_AbsorberHits = nullptr;
+  PHG4HitContainer* m_SaveHitContainer = nullptr;
+  PHG4Hit* m_Hit = nullptr;
+  PHG4Shower* m_SaveShower = nullptr;
+  float zmin = NAN;
+  float zmax = NAN;
 
-  bool light_scint_model_;
+  bool light_scint_model_ = true;
 };
 
 #endif  // PHG4VHcalSteppingAction_h

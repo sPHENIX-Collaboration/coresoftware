@@ -28,11 +28,11 @@ class ParticleFlowElementContainer : public PHObject
       
     }
   
-  virtual ~ParticleFlowElementContainer() {}
+  ~ParticleFlowElementContainer() override {}
 
-  void Reset();
-  int isValid() const;
-  void identify(std::ostream &os = std::cout) const;
+  void Reset() override;
+  int isValid() const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   void AddParticleFlowElement(int index, ParticleFlowElement *pflowElement);
   ParticleFlowElement *getParticleFlowElement(int index);
@@ -47,7 +47,7 @@ class ParticleFlowElementContainer : public PHObject
  protected:
   Map _pflowElementMap;
 
-  ClassDef(ParticleFlowElementContainer, 1)
+  ClassDefOverride(ParticleFlowElementContainer, 1)
 };
 
 #endif

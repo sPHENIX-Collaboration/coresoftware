@@ -20,7 +20,7 @@ class JetInput
 
   virtual Jet::SRC get_src() { return Jet::VOID; }
 
-  virtual std::vector<Jet*> get_input(PHCompositeNode* topNode)
+  virtual std::vector<Jet*> get_input(PHCompositeNode* /*topNode*/)
   {
     return std::vector<Jet*>();
   }

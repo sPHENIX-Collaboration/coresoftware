@@ -12,7 +12,9 @@ libg4dst_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -lcalo_io \
   -lcalotrigger_io \
+  -lffaobjects \
   -lg4bbc_io \
+  -lcentrality_io \
   -lg4detectors_io \
   -lg4intt_io \
   -lg4jets_io \
@@ -28,7 +30,8 @@ libg4dst_la_LDFLAGS = \
   -lphhepmc_io \
   -ltpc_io \
   -ltrack_reco_io \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -lkfparticle_sphenix_io
 
 libg4dst_la_SOURCES = \
    g4dst.cc
