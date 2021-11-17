@@ -9,6 +9,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -72,6 +73,8 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
   if(Verbosity() > 0)
     std::cout << PHWHERE << " track map size " << _track_map->size() << std::endl;
 
+  ActsTransformations transformer;
+
   // loop over the tracks
   for (auto phtrk_iter = _track_map->begin();
        phtrk_iter != _track_map->end(); 
@@ -91,8 +94,8 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	}
 
       // Get the TPC clusters for this track
-      std::map<unsigned int, TrkrCluster*> tpc_clusters;
-      std::vector<TrkrCluster*> clusters;
+      std::vector<Acts::Vector3D> globalClusterPositions;
+      std::map<TrkrDefs::cluskey, Acts::Vector3D> tpc_clusters;
 
       for (SvtxTrack::ConstClusterKeyIter key_iter = _track->begin_cluster_keys();
 	   key_iter != _track->end_cluster_keys();
@@ -107,18 +110,34 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  // get the cluster
 	  TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
 
-	  tpc_clusters.insert(std::make_pair(layer, tpc_clus));
-	  clusters.push_back(tpc_clus);
+	  auto global = transformer.getGlobalPosition(tpc_clus,
+						      _surfmaps,
+						      _tGeometry);
 
-	  if(Verbosity() > 10) 
-	    std::cout << "  TPC cluster in layer " << layer << " with position " << tpc_clus->getX() 
-		      << "  " << tpc_clus->getY() << "  " << tpc_clus->getZ() << " outer_clusters.size() " << tpc_clusters.size() << std::endl;
+	  bool test_mover = true;
+	  if(test_mover)
+	    {
+	      Acts::Vector3D shift(0.2,0.2,0.3);
+	      if(Verbosity() > 10)
+		std::cout << " initial position: " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
+
+	      global += shift;
+
+	      if(Verbosity() > 10)
+		std::cout << "         shifted position: " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
+	    }
+
+	  globalClusterPositions.push_back(global);
+	  tpc_clusters.insert(std::make_pair(cluster_key, global));
+
+	  std::cout << "  TPC cluster in layer " << layer << " with position " << global[0] 
+		    << "  " << global[1] << "  " <<global[2] << " outer_clusters.size() " << tpc_clusters.size() << std::endl;
 	}
 
       // need at least 3 clusters to fit a circle
-      if(tpc_clusters.size() < 3)
+      if(globalClusterPositions.size() < 3)
 	{
-	  if(Verbosity() > 3) std::cout << PHWHERE << "  -- skip this tpc track, not enough clusters " << std::endl; 
+	  if(Verbosity() > 3) std::cout << PHWHERE << "  -- skip this tpc track, not enough clusters: " << globalClusterPositions.size() << std::endl; 
 	  continue;  // skip to the next TPC track
 	}
 
@@ -126,7 +145,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
       double R = 0;
       double X0 = 0;
       double Y0 = 0;
-      CircleFitByTaubin(clusters, R, X0, Y0);
+      CircleFitByTaubin(globalClusterPositions, R, X0, Y0);
       if(Verbosity() > 10) 
 	std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
 
@@ -135,7 +154,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 
       // get the straight line representing the z trajectory in the form of z vs radius
       double A = 0; double B = 0;
-      line_fit(clusters, A, B);
+      line_fit(globalClusterPositions, A, B);
       if(Verbosity() > 10) 
 	std::cout << " Fitted line has A " << A << " B " << B << std::endl;
 
@@ -144,36 +163,87 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	   clus_iter != tpc_clusters.end(); 
 	   ++clus_iter)
 	{
-	  unsigned int layer = clus_iter->first;
-	  TrkrCluster *cluster = clus_iter->second;
-	 
+	  TrkrDefs::cluskey cluskey = clus_iter->first;
+	  //	  TrkrCluster *cluster = _clustermap->
+	  unsigned int layer = TrkrDefs::getLayer(cluskey);
+	  Acts::Vector3D global = clus_iter->second;
+
 	  // get circle position at target surface radius 
 	  double target_radius = layer_radius[layer-7];
-	  int ret = get_circle_circle_intersection(target_radius, R, X0, Y0, cluster->getX(), cluster->getY(), _x_proj, _y_proj);
+	  int ret = get_circle_circle_intersection(target_radius, R, X0, Y0, global[0], global[1], _x_proj, _y_proj);
 	  if(ret == Fun4AllReturnCodes::ABORTEVENT) continue;  // skip to next cluster
 	  // z projection is unique
 	  _z_proj = B + A * target_radius;
 	  
 	  // get circle position at cluster radius	  
-	  double cluster_radius = sqrt(cluster->getX() * cluster->getX() + cluster->getY() * cluster->getY());
-	  ret = get_circle_circle_intersection(cluster_radius, R, X0, Y0, cluster->getX(), cluster->getY(), _x_start, _y_start);
+	  double cluster_radius = sqrt(global[0] * global[0] + global[1] * global[1]);
+	  ret = get_circle_circle_intersection(cluster_radius, R, X0, Y0, global[0], global[1], _x_start, _y_start);
 	  if(ret == Fun4AllReturnCodes::ABORTEVENT) continue;  // skip to next cluster
 	  // z projection is unique
 	  _z_start = B + A * cluster_radius;
 	  
 	  // calculate dx, dy, dz along circle trajectory from cluster radius to surface radius
-	  double xnew = cluster->getX() - (_x_start - _x_proj);
-	  double ynew = cluster->getY() - (_y_start - _y_proj);
-	  double znew = cluster->getZ() - (_z_start - _z_proj);
+	  double xnew = global[0] - (_x_start - _x_proj);
+	  double ynew = global[1] - (_y_start - _y_proj);
+	  double znew = global[2] - (_z_start - _z_proj);
 	  
 	  // now move the cluster to the surface radius
-	  cluster->setX(xnew);
-	  cluster->setY(ynew);
-	  cluster->setZ(znew);
+	  // we keep the cluster key fixed, change the surface if necessary
+	  // write the new cluster position local coordinates on the surface
+
+	  Acts::Vector3D global_new(xnew, ynew, znew);
+	  
+	  TrkrDefs::subsurfkey subsurfkey;
+	  TrkrDefs::hitsetkey tpcHitSetKey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+	  Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
+							global_new,
+							_surfmaps,
+							_tGeometry,
+							subsurfkey);
+	
+	  if(!surface)
+	    {
+	      /// If the surface can't be found, we can't track with it. So 
+	      /// just continue and don't modify the cluster to the container
+	      std::cout << PHWHERE << "Faild to find surface for cluster " << cluskey << std::endl;
+	      continue;
+	    }
+
+	  TrkrCluster *cluster =  _cluster_map->findCluster(cluskey);	
+	  cluster->setSubSurfKey(subsurfkey);
+
+	  Acts::Vector3D normal = surface->normal(_tGeometry->geoContext);
+	  auto local = surface->globalToLocal(_tGeometry->geoContext,
+					      global * Acts::UnitConstants::cm,
+					      normal);
+
+	  Acts::Vector3D center = surface->center(_tGeometry->geoContext)/Acts::UnitConstants::cm;
+	  double clusRadius = sqrt(xnew * xnew + ynew * ynew);
+	  double clusphi = atan2(ynew, xnew);
+	  double rClusPhi = clusRadius * clusphi;
+	  double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
+	  double surfPhiCenter = atan2(center[1], center[0]);
+	  double surfRphiCenter = surfPhiCenter * surfRadius;
+	  double surfZCenter = center[2];
+
+	  Acts::Vector2D localPos;
+	  if(local.ok())
+	    {
+	      localPos = local.value() / Acts::UnitConstants::cm;
+	    }
+	  else
+	    {
+	      /// otherwise take the manual calculation
+	      localPos(0) = rClusPhi - surfRphiCenter;
+	      localPos(1) = znew - surfZCenter; 
+	    }
+
+	  cluster->setLocalX(localPos(0));
+	  cluster->setLocalY(localPos(1));
 
 	  if(Verbosity() > 0)
 	    {
-	      std::cout << "*** cluster_radius " << cluster_radius << " cluster x,y,z: " << cluster->getX() << "  " << cluster->getY() << "  " << cluster->getZ() << std::endl;
+	      std::cout << "*** cluster_radius " << cluster_radius << " cluster x,y,z: " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
 	      std::cout << "    projection_radius " << target_radius << " proj x,y,z: " << _x_proj << "  " << _y_proj << "  " << _z_proj << std::endl; 
 	      std::cout << "    traj_start_radius " << cluster_radius << " start x,y,z: "<< _x_start << "  " << _y_start << "  " << _z_start << std::endl; 
 	      std::cout << "    moved_clus_radius " << target_radius << " final x,y,z: "<< xnew << "  " << ynew << "  " << znew << std::endl; 
@@ -205,6 +275,20 @@ int  PHTpcClusterMover::GetNodes(PHCompositeNode* topNode)
     std::cout << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
+  if(!_surfmaps)
+    {
+      std::cout << PHWHERE << "Error, can't find acts surface maps" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  _tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  if(!_tGeometry)
+    {
+      std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -243,7 +327,7 @@ int PHTpcClusterMover::get_circle_circle_intersection(double target_radius, doub
      }
    return Fun4AllReturnCodes::EVENT_OK;   
  }
-void PHTpcClusterMover::CircleFitByTaubin (std::vector<TrkrCluster*> clusters, double &R, double &X0, double &Y0)
+void PHTpcClusterMover::CircleFitByTaubin (std::vector<Acts::Vector3D> clusters, double &R, double &X0, double &Y0)
 /*  
       Circle fit to a given set of data points (in 2D)
       This is an algebraic fit, due to Taubin, based on the journal article
@@ -257,6 +341,8 @@ void PHTpcClusterMover::CircleFitByTaubin (std::vector<TrkrCluster*> clusters, d
        Nikolai Chernov  (September 2012)
 */
 {
+  //  ActsTransformations transformer;
+
   int iter,IterMAX=99;
   
   double Mz,Mxy,Mxx,Myy,Mxz,Myz,Mzz,Cov_xy,Var_z;
@@ -270,8 +356,9 @@ void PHTpcClusterMover::CircleFitByTaubin (std::vector<TrkrCluster*> clusters, d
   double weight = 0;
   for(unsigned int iclus = 0; iclus < clusters.size(); ++iclus)
     {
-      meanX += clusters[iclus]->getX();
-      meanY += clusters[iclus]->getY();
+      std::cout << "    add cluster with x " << clusters[iclus][0] << " and y " << clusters[iclus][1] << std::endl;
+      meanX += clusters[iclus][0];
+      meanY += clusters[iclus][1];
       weight++;
     }
   meanX /= weight;
@@ -283,8 +370,8 @@ void PHTpcClusterMover::CircleFitByTaubin (std::vector<TrkrCluster*> clusters, d
   
   for (unsigned int i=0; i<clusters.size(); i++)
     {
-      double Xi = clusters[i]->getX() - meanX;   //  centered x-coordinates
-      double Yi = clusters[i]->getY() - meanY;   //  centered y-coordinates
+      double Xi = clusters[i][0] - meanX;   //  centered x-coordinates
+      double Yi = clusters[i][1] - meanY;   //  centered y-coordinates
       double Zi = Xi*Xi + Yi*Yi;
       
       Mxy += Xi*Yi;
@@ -371,16 +458,16 @@ void PHTpcClusterMover::circle_circle_intersection(double r1, double r2, double 
 
 }
 
-void  PHTpcClusterMover::line_fit(std::vector<TrkrCluster*> clusters, double &a, double &b)
+void  PHTpcClusterMover::line_fit(std::vector<Acts::Vector3D> clusters, double &a, double &b)
 {
   // copied from: https://www.bragitoff.com
   // we want to fit z vs radius
-  
+
    double xsum=0,x2sum=0,ysum=0,xysum=0;                //variables for sums/sigma of xi,yi,xi^2,xiyi etc
    for (unsigned int i=0; i<clusters.size(); ++i)
     {
-      double z = clusters[i]->getZ();
-      double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
+      double z = clusters[i][2];
+      double r = sqrt(pow(clusters[i][0],2) + pow(clusters[i][1], 2));
 
       xsum=xsum+r;                        //calculate sigma(xi)
       ysum=ysum+z;                        //calculate sigma(yi)
@@ -390,15 +477,62 @@ void  PHTpcClusterMover::line_fit(std::vector<TrkrCluster*> clusters, double &a,
    a=(clusters.size()*xysum-xsum*ysum)/(clusters.size()*x2sum-xsum*xsum);            //calculate slope
    b=(x2sum*ysum-xsum*xysum)/(x2sum*clusters.size()-xsum*xsum);            //calculate intercept
 
-   if(Verbosity() > 10)
-     {
-       for (unsigned int i=0;i<clusters.size(); ++i)
-	 {
-	   double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
-	   double z_fit = a * r + b;                    //to calculate y(fitted) at given x points
-	   std::cout << " r " << r << " z " << clusters[i]->getZ() << " z_fit " << z_fit << std::endl; 
-	 } 
-     }
-
     return;
 }   
+
+Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
+						       Acts::Vector3D world,
+						       ActsSurfaceMaps *surfMaps,
+						       ActsTrackingGeometry *tGeometry,
+						       TrkrDefs::subsurfkey& subsurfkey)
+{
+  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
+  mapIter = surfMaps->tpcSurfaceMap.find(hitsetkey);
+  
+  if(mapIter == surfMaps->tpcSurfaceMap.end())
+    {
+      std::cout << PHWHERE 
+		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
+		<< hitsetkey << std::endl;
+      return nullptr;
+    }
+  
+  double world_phi = atan2(world[1], world[0]);
+  double world_z = world[2];
+  
+  std::vector<Surface> surf_vec = mapIter->second;
+  unsigned int surf_index = 999;
+  
+  double surfStepPhi = tGeometry->tpcSurfStepPhi;
+  double surfStepZ = tGeometry->tpcSurfStepZ;
+  
+  for(unsigned int i=0;i<surf_vec.size(); ++i)
+    {
+      Surface this_surf = surf_vec[i];
+      
+      auto vec3d = this_surf->center(tGeometry->geoContext);
+      std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
+      double surf_phi = atan2(surf_center[1], surf_center[0]);
+      double surf_z = surf_center[2];
+      
+      if( (world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
+	  (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )
+	{
+	  surf_index = i;	  
+	  break;
+	}
+    }
+	  
+  subsurfkey = surf_index;
+  
+  if(surf_index == 999)
+    {
+      std::cout << PHWHERE 
+		<< "Error: TPC surface index not defined, skipping cluster!" 
+		<< std::endl;
+      return nullptr;
+    }
+  
+  return surf_vec[surf_index];
+  
+}
