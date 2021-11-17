@@ -218,6 +218,19 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+Acts::Vector3D PHCASeeding::getGlobalPosition( TrkrCluster* cluster ) const
+{
+  // get global position from Acts transform
+  auto globalpos = m_transform.getGlobalPosition(cluster,
+    surfMaps,
+    tGeometry);
+
+  // check if TPC distortion correction are in place and apply
+  if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
+
+  return globalpos;
+}
+
 void PHCASeeding::QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values) const
 {
   double phimin_2pi = phimin;
@@ -255,10 +268,12 @@ PositionMap PHCASeeding::FillTree()
 	  continue; // skip hits used in a previous iteration
       }
 
-      const auto globalpos = m_transform.getGlobalPositionF(cluster,
-							 surfMaps,
-							 tGeometry);
+      // TODO: cleanup
+      const auto globalpos_d = getGlobalPosition(cluster);
+      
+      const Acts::Vector3F globalpos = { (float) globalpos_d.x(), (float) globalpos_d.y(), (float) globalpos_d.z()};
       cachedPositions.insert(std::make_pair(ckey, globalpos));
+
       const double clus_phi = get_phi( globalpos );      
       const double clus_eta = get_eta( globalpos );
       const double clus_l = layer;  
@@ -712,7 +727,7 @@ std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& 
       double y = global(1);
       double z = global(2);
       xy_pts.push_back(std::make_pair(x,y));
-      rz_pts.push_back(std::make_pair(sqrt(x*x+y*y),z));
+      rz_pts.push_back(std::make_pair(std::sqrt(square(x)+square(y)),z));
     }
     if(Verbosity()>0) std::cout << "chain size: " << chain.size() << std::endl;
     double A;
@@ -747,9 +762,17 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   if(Verbosity()>0) std::cout << "Called Setup" << std::endl;
   if(Verbosity()>0) std::cout << "topNode:" << topNode << std::endl;
   PHTrackSeeding::Setup(topNode);
+  
+  // geometry initialization
   int ret = InitializeGeometry(topNode);
   if(ret != Fun4AllReturnCodes::EVENT_OK)
     { return ret; }
+    
+  // tpc distortion correction
+  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  if( m_dcc )
+  { std::cout << "PHCASeeding::Setup - found TPC distortion correction container" << std::endl; }
+  
   t_fill = std::make_unique<PHTimer>("t_fill");
   t_seed = std::make_unique<PHTimer>("t_seed");
   t_fill->stop();
