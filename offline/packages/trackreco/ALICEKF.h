@@ -8,6 +8,8 @@
 #include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
 
+#include <Acts/Utilities/Definitions.hpp>
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
@@ -15,7 +17,7 @@
 #include <string>
 #include <utility>
 
-typedef std::map<TrkrDefs::cluskey, Acts::Vector3D> PositionMap;
+typedef std::map<TrkrDefs::cluskey, Acts::Vector3F> PositionMap;
 
 class ALICEKF
 {
@@ -45,9 +47,9 @@ class ALICEKF
   void useConstBField(bool opt) {_use_const_field = opt;}
   void useFixedClusterError(bool opt) {_use_fixed_clus_error = opt;}
   void setFixedClusterError(int i,double val) {_fixed_clus_error.at(i)=val;}
-  double getClusterError(TrkrCluster* c, Acts::Vector3D global, int i, int j);
+  double getClusterError(TrkrCluster* c, Acts::Vector3F global, int i, int j);
   void line_fit(std::vector<std::pair<double,double>> pts, double& a, double& b);
-  void line_fit_clusters(std::vector<TrkrCluster*> cls, std::vector<Acts::Vector3D>& globalPositions, double& a, double& b);
+  void line_fit_clusters(std::vector<TrkrCluster*> cls, std::vector<Acts::Vector3F>& globalPositions, double& a, double& b);
   std::vector<double> GetCircleClusterResiduals(std::vector<std::pair<double,double>> pts, double R, double X0, double Y0);
   std::vector<double> GetLineClusterResiduals(std::vector<std::pair<double,double>> pts, double A, double B); 
   private:

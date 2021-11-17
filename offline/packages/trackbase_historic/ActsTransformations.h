@@ -68,7 +68,10 @@ class ActsTransformations
 			   const size_t &trackTip,
 			   SvtxTrack *svtxTrack,
 			   Acts::GeometryContext geoContext) const;
-
+  
+  Acts::Vector3F getGlobalPositionF(TrkrCluster* cluster,
+				    ActsSurfaceMaps* surfMaps,
+				    ActsTrackingGeometry *tGeometry) const;
   Acts::Vector3D getGlobalPosition(TrkrCluster* cluster,
 				   ActsSurfaceMaps* surfMaps,
 				   ActsTrackingGeometry *tGeometry) const;

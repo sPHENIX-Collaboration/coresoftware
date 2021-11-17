@@ -72,7 +72,7 @@ typedef std::pair<point, TrkrDefs::cluskey> pointKey;
 typedef std::pair<std::array<float,3>, TrkrDefs::cluskey> coordKey;
 typedef std::array<coordKey,2> keylink;
 typedef std::vector<TrkrDefs::cluskey> keylist;
-typedef std::map<TrkrDefs::cluskey, Acts::Vector3D> PositionMap;
+typedef std::map<TrkrDefs::cluskey, Acts::Vector3F> PositionMap;
 
 class PHCASeeding : public PHTrackSeeding
 {
