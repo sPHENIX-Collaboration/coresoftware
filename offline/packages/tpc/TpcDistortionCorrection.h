@@ -29,11 +29,6 @@ class TpcDistortionCorrection
   
   //! get cluster corrected 3D position using given DistortionCorrectionObject
   Acts::Vector3D get_corrected_position( const Acts::Vector3D&, const TpcDistortionCorrectionContainer*, unsigned int mask = COORD_ALL ) const;
- 
-  private: 
-  
-  //! verbosity
-  int m_verbosity = 0;
   
 };
 
