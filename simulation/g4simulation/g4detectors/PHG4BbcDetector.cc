@@ -57,7 +57,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // Logical Volume Info for a BBC PMT
   G4Material *Quartz = G4Material::GetMaterial("G4_SILICON_DIOXIDE");
 
-  const G4double z_bbcq[] = {-1.5, 1.5};
+  const G4double z_bbcq[] = {-1.5*cm, 1.5*cm};
   const G4double rInner_bbcq[] = {0.,0.};
   const G4double rOuter_bbcq[] = {1.27*cm,1.27*cm};
   G4Polyhedra *bbcq = new G4Polyhedra("bbcq",0.,2.0*M_PI,6,2,z_bbcq,rInner_bbcq,rOuter_bbcq); // bbc quartz radiator
@@ -120,42 +120,70 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   // BBC Outer and Inner Cylindrical Shells
   G4Material *Alum = G4Material::GetMaterial("G4_Al");
-  G4Tubs *bbc_shell = new G4Tubs("bbc_shell",14.9*cm, 15*cm, 12.2*cm, 0, 2*M_PI);
-  G4LogicalVolume *bbc_shell_lv = new G4LogicalVolume(bbc_shell, Alum, G4String("Bbc_Shell"));
-  G4VisAttributes *bbc_shell_VisAtt = new G4VisAttributes();
-  bbc_shell_VisAtt->SetVisibility(true);
-  bbc_shell_VisAtt->SetForceSolid(true);
-  bbc_shell_VisAtt->SetColour(G4Colour::Gray());
-  bbc_shell_lv->SetVisAttributes(bbcqVisAtt);
-  // Place South Shell
-  G4VPhysicalVolume *shell_vol[2] = {0};
-  shell_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+2-12.2)*cm),
-          bbc_shell_lv, "BBC_SHELL", logicWorld, false, 0, OverlapCheck());
-  // Place North Shell
-  shell_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-2+12.2)*cm),
-          bbc_shell_lv, "BBC_SHELL", logicWorld, false, 1, OverlapCheck());
-  shell_vol[0]->GetName();
-  shell_vol[1]->GetName();
+  G4Tubs *bbc_outer_shell = new G4Tubs("bbc_outer_shell",14.9*cm, 15*cm, 12.2*cm, 0, 2*M_PI);
+  G4LogicalVolume *bbc_outer_shell_lv = new G4LogicalVolume(bbc_outer_shell, Alum, G4String("Bbc_Outer_Shell"));
+  G4VisAttributes *bbc_outer_shell_VisAtt = new G4VisAttributes();
+  bbc_outer_shell_VisAtt->SetVisibility(true);
+  bbc_outer_shell_VisAtt->SetForceSolid(true);
+  bbc_outer_shell_VisAtt->SetColour(G4Colour::Gray());
+  bbc_outer_shell_lv->SetVisAttributes(bbcqVisAtt);
+  G4Tubs *bbc_inner_shell = new G4Tubs("bbc_inner_shell",5.0*cm, 5.5*cm, 12.2*cm, 0, 2*M_PI);
+  G4LogicalVolume *bbc_inner_shell_lv = new G4LogicalVolume(bbc_outer_shell, Alum, G4String("Bbc_Inner_Shell"));
+  G4VisAttributes *bbc_inner_shell_VisAtt = new G4VisAttributes();
+  bbc_inner_shell_VisAtt->SetVisibility(true);
+  bbc_inner_shell_VisAtt->SetForceSolid(true);
+  bbc_inner_shell_VisAtt->SetColour(G4Colour::Gray());
+  bbc_inner_shell_lv->SetVisAttributes(bbcqVisAtt);
+
+  G4VPhysicalVolume *outer_shell_vol[2] = {0};
+  G4VPhysicalVolume *inner_shell_vol[2] = {0};
+
+  // Place South Shells
+  outer_shell_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+2-12.2)*cm),
+          bbc_outer_shell_lv, "BBC_OUTER_SHELL", logicWorld, false, 0, OverlapCheck());
+  inner_shell_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+2-12.2)*cm),
+          bbc_inner_shell_lv, "BBC_INNER_SHELL", logicWorld, false, 0, OverlapCheck());
+
+  // Place North Shells
+  outer_shell_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-2+12.2)*cm),
+          bbc_outer_shell_lv, "BBC_OUTER_SHELL", logicWorld, false, 1, OverlapCheck());
+  inner_shell_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-2+12.2)*cm),
+          bbc_inner_shell_lv, "BBC_INNER_SHELL", logicWorld, false, 0, OverlapCheck());
+
+  outer_shell_vol[0]->GetName();
+  outer_shell_vol[1]->GetName();
+  inner_shell_vol[0]->GetName();
+  inner_shell_vol[1]->GetName();
 
 
-  // BBC Front Plate
-  G4Tubs *bbc_fplate = new G4Tubs("bbc_fplate", 5*cm, 15*cm, 0.5*cm, 0, 2*M_PI);
-  G4LogicalVolume *bbc_fplate_lv = new G4LogicalVolume(bbc_fplate, Alum, G4String("Bbc_Front_Plate"));
-  G4VisAttributes *bbc_fplate_VisAtt = new G4VisAttributes();
-  bbc_fplate_VisAtt->SetVisibility(true);
-  bbc_fplate_VisAtt->SetForceSolid(true);
-  bbc_fplate_VisAtt->SetColour(G4Colour::Gray());
-  bbc_fplate_lv->SetVisAttributes(bbcqVisAtt);
+  // BBC Front and Back Plates
+  G4Tubs *bbc_plate = new G4Tubs("bbc_fplate", 5*cm, 15*cm, 0.5*cm, 0, 2*M_PI);
+  G4LogicalVolume *bbc_plate_lv = new G4LogicalVolume(bbc_plate, Alum, G4String("Bbc_Cover_Plates"));
+  G4VisAttributes *bbc_plate_VisAtt = new G4VisAttributes();
+  bbc_plate_VisAtt->SetVisibility(true);
+  bbc_plate_VisAtt->SetForceSolid(true);
+  bbc_plate_VisAtt->SetColour(G4Colour::Gray());
+  bbc_plate_lv->SetVisAttributes(bbcqVisAtt);
+
+  G4VPhysicalVolume *fplate_vol[2] = {0};   // Front Plates
+  G4VPhysicalVolume *bplate_vol[2] = {0};   // Back Plates
 
   // Place South Plates
-  G4VPhysicalVolume *fplate_vol[2] = {0};
   fplate_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+2.5)*cm),
-          bbc_fplate_lv, "BBC_FPLATE", logicWorld, false, 0, OverlapCheck());
-  // Place North Plate
+          bbc_plate_lv, "BBC_FPLATE", logicWorld, false, 0, OverlapCheck());
+  bplate_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+2.5-24.0)*cm),
+          bbc_plate_lv, "BBC_BPLATE", logicWorld, false, 0, OverlapCheck());
+
+  // Place North Plates
   fplate_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-2.5)*cm),
-          bbc_fplate_lv, "BBC_FPLATE", logicWorld, false, 1, OverlapCheck());
+          bbc_plate_lv, "BBC_FPLATE", logicWorld, false, 1, OverlapCheck());
+  bplate_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-2.5+24.0)*cm),
+          bbc_plate_lv, "BBC_BPLATE", logicWorld, false, 0, OverlapCheck());
+
   fplate_vol[0]->GetName();
   fplate_vol[1]->GetName();
+  bplate_vol[0]->GetName();
+  bplate_vol[1]->GetName();
 
   return;
 }
