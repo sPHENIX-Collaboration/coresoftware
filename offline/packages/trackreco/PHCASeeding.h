@@ -18,9 +18,8 @@
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
 
+#include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <Eigen/Core>
@@ -41,38 +40,21 @@
 #include <memory>
 #include <set>
 
-
- 
-class PHCompositeNode;  // lines 196-196
-class SvtxClusterMap;   // lines 202-202
-class SvtxHitMap;       // lines 211-211
-class SvtxTrackMap;     // lines 204-204
-class SvtxVertex;
-class SvtxVertexMap;    // lines 206-206
-
-enum skip_layers {on, off};
-
-//#define _USE_ALAN_FULL_VERTEXING_
-#define _USE_ALAN_TRACK_REFITTING_
-
-//#define _MEARGE_SEED_CLUSTER_
-//#define _USE_ZERO_SEED_
-
-//#define _USE_CONSTANT_SEARCH_WIN_
-
-//#define _DO_FULL_FITTING_
-
-//end
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
+class PHCompositeNode;  
+class TpcDistortionCorrectionContainer;
 
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
-typedef bg::model::point<float, 3, bg::cs::cartesian> point;
-typedef bg::model::box<point> box;
-typedef std::pair<point, TrkrDefs::cluskey> pointKey;
-typedef std::pair<std::array<float,3>, TrkrDefs::cluskey> coordKey;
-typedef std::array<coordKey,2> keylink;
-typedef std::vector<TrkrDefs::cluskey> keylist;
-typedef std::map<TrkrDefs::cluskey, Acts::Vector3F> PositionMap;
+
+using point = bg::model::point<float, 3, bg::cs::cartesian>;
+using box = bg::model::box<point>;
+using pointKey = std::pair<point, TrkrDefs::cluskey>;
+using coordKey = std::pair<std::array<float,3>, TrkrDefs::cluskey>;
+using keylink = std::array<coordKey,2>;
+using keylist = std::vector<TrkrDefs::cluskey>;
+using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3F>;
 
 class PHCASeeding : public PHTrackSeeding
 {
@@ -117,44 +99,26 @@ class PHCASeeding : public PHTrackSeeding
   int End() override;
 
  private:
-  /// fetch node pointers
+  
+  enum skip_layers {on, off};
 
-  // node pointers
-  SvtxTrackMap *_g4tracks;
-  SvtxVertexMap *_g4vertexes;
-  //nodes to get norm vector
-  SvtxHitMap *_svtxhitsmap;
-  int *_hit_used_map;
-  int _hit_used_map_size;
-
-  std::vector<float> _radii_all;
-
-  double phiadd(double phi1, double phi2);
-  double phidiff(double phi1, double phi2);
+  /// acts transformation object
+  ActsTransformations m_transform;
+  
   PositionMap FillTree();
-  void FillTree(std::vector<pointKey> clusters);
-  int FindSeedsWithMerger(PositionMap& globalPositions);
-  std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> CreateLinks(std::vector<coordKey> clusters, PositionMap& globalPositions, int mode = skip_layers::off);
-  std::vector<std::vector<keylink>> FindBiLinks(std::vector<std::unordered_set<keylink>> belowLinks, std::vector<std::unordered_set<keylink>> aboveLinks);
-  std::vector<keylist> FollowBiLinks(std::vector<std::vector<keylink>> bidirectionalLinks, PositionMap& globalPositions);
-  void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values);
-  pointKey toPointKey(coordKey v);
-  std::vector<pointKey> toPointKey(std::vector<coordKey> v);
-  coordKey fromPointKey(pointKey p);
-  std::vector<coordKey> fromPointKey(std::vector<pointKey> p);
-  Eigen::Matrix<float,6,6> getEigenCov(SvtxTrack_v2 &track);
-  std::vector<keylist> MergeSeeds(std::vector<keylist> seeds);
-  pointKey makepointKey(TrkrDefs::cluskey k);
-  std::vector<keylist> RemoveBadClusters(std::vector<keylist> seeds, PositionMap& globalPositions);
-  void publishSeeds(std::vector<SvtxTrack_v2> seeds);
-
-  std::map<int, unsigned int> _layer_ilayer_map_all;
-  std::map<int, unsigned int> _layer_ilayer_map;
+  int FindSeedsWithMerger(PositionMap&);
+  std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> CreateLinks(const std::vector<coordKey>& clusters, PositionMap& globalPositions, int mode = skip_layers::off) const;
+  std::vector<std::vector<keylink>> FindBiLinks(const std::vector<std::unordered_set<keylink>>& belowLinks, const std::vector<std::unordered_set<keylink>>& aboveLinks) const;
+  std::vector<keylist> FollowBiLinks(const std::vector<std::vector<keylink>>& bidirectionalLinks, PositionMap& globalPositions) const;
+  void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values) const;
+  pointKey makepointKey(TrkrDefs::cluskey k) const ;
+  std::vector<keylist> RemoveBadClusters(const std::vector<keylist>& seeds, PositionMap& globalPositions) const;
+  
+  void publishSeeds(const std::vector<SvtxTrack_v2>& seeds);
 
   //int _nlayers_all;
   //unsigned int _nlayers_seeding;
   //std::vector<int> _seeding_layer;
-  SvtxVertex *_vertex;
 
   const unsigned int _nlayers_maps;
   const unsigned int _nlayers_intt;
@@ -171,7 +135,6 @@ class PHCASeeding : public PHTrackSeeding
   float _cosTheta_limit;
   double _rz_outlier_threshold = 0.1;
   double _xy_outlier_threshold = 0.1;
-  //std::vector<float> _radii_all;
   double _fieldDir = -1;
   bool _use_const_field = false;
   bool _use_fixed_clus_err = false;
