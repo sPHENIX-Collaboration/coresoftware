@@ -7,7 +7,7 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-#include <TVector3.h>
+#include <Acts/Utilities/Definitions.hpp>
 
 class TpcDistortionCorrectionObject;
 
@@ -17,9 +17,18 @@ class TpcDistortionCorrection
   
   //! constructor
   TpcDistortionCorrection() = default;
+
+  enum CoordMask
+  {
+    COORD_PHI = 1<<0,
+    COORD_R = 1<<1,
+    COORD_Z = 1<<2,
+    COORD_PHIZ = COORD_PHI|COORD_Z,
+    COORD_ALL = COORD_PHI|COORD_R|COORD_Z
+  };
   
   //! get cluster corrected 3D position using given DistortionCorrectionObject
-  TVector3 get_corrected_position( const TVector3&, const TpcDistortionCorrectionObject* ) const;
+  Acts::Vector3D get_corrected_position( const Acts::Vector3D&, const TpcDistortionCorrectionObject*, unsigned int mask = COORD_ALL ) const;
  
   private: 
   
