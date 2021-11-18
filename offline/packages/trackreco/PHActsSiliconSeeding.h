@@ -265,7 +265,7 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
 
-  bool m_cleanSeeds = false;
+  bool m_cleanSeeds = true;
 
   int m_nBadUpdates = 0;
   int m_nBadInitialFits = 0;
