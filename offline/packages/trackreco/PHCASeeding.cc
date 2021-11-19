@@ -68,8 +68,6 @@
 // forward declarations
 class PHCompositeNode;
 
-
-
 //#define _DEBUG_
 
 #if defined(_DEBUG_)
