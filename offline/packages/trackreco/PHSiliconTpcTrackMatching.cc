@@ -117,9 +117,10 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
 	}  
     }
   
-  // Find all matches of tpc and si tracklets in eta and phi (only)
-  // Multiple matches are handled by duplicating the tpc tracklet into a new track
-  // "_seed_track_map" records (original id,duplicate id) so that the track cleaner can choose the one with the best Acts fit later
+  // Find all matches of tpc and si tracklets in eta and phi, x and y
+  //     If _pp_mode is not set, a match in z is also required - gives same behavior as old code
+  // In any case, multiple matches are handled by duplicating the tpc tracklet into a new track
+  //     "_seed_track_map" records (original id,duplicate id) so that the track cleaner can choose the one with the best Acts fit later
   std::multimap<unsigned int, unsigned int> tpc_matches;
   std::set<unsigned int> tpc_matched_set;
   findEtaPhiMatches(tpc_matched_set, tpc_matches);
@@ -131,27 +132,16 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   std::set<int> crossing_set;
   if(_pp_mode)
     {
-      // All tracks treated as if we do not know the bunch crossing
-      tagMatchCrossing(tpc_matches, crossing_set, crossing_matches, tpc_crossing_map);
-    }
-  /*
-  else
-    {
-      // Only triggered crossing tracks are matched, uses z-matching only
-      tagInTimeTracks(tpc_matches, crossing_set, crossing_matches, tpc_crossing_map);
-    }
-  */
-
-  if(_pp_mode) 
-    {
       // This section is to correct the TPC z positions of tracks for all bunch crossings.  
-      // Uses crossing_set and crossing_matches from tagMatchCrossing, makes a more precise crossing estimate
       //=================================================================================
 
-      // This map captures crossing, tpc_id and si_id
-      std::multimap<double, std::pair<unsigned int, unsigned int>> si_sorted_map;
+      // All tracks treated as if we do not know the bunch crossing
+      // The crossing estimate here is crude, for now
+      tagMatchCrossing(tpc_matches, crossing_set, crossing_matches, tpc_crossing_map);
 
       // Sort candidates by the silicon tracklet Z position by putting them in si_sorted map
+      //      -- captures crossing, tpc_id and si_id
+      std::multimap<double, std::pair<unsigned int, unsigned int>> si_sorted_map;
       for( auto ncross : crossing_set)
 	{
 	  if(Verbosity() > 1) std::cout << " ncross = " << ncross << std::endl;
@@ -194,10 +184,8 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
     }
   else
     {
-      // only crossing zero has been added to the map, just add silicon clusters
-      //addSiliconClusters(crossing_matches);
+      // only crossing zero has been added to the tpc_matches map, just add silicon clusters
       addSiliconClusters(tpc_matches);
-
     }
   
   if(Verbosity() > 0)  
@@ -540,7 +528,7 @@ void PHSiliconTpcTrackMatching::correctTpcClusterZ(
 		{
 		  // get the cluster z
 		  TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
-		  std::cout << "      original local cluster z " << tpc_clus->getLocalY() << std::endl;
+		  if(Verbosity() > 2) std::cout << "      original local cluster z " << tpc_clus->getLocalY() << std::endl;
 		  auto global = transformer.getGlobalPosition(tpc_clus,
 							      _surfmaps,
 							      _tGeometry);
@@ -611,19 +599,11 @@ void PHSiliconTpcTrackMatching::cleanVertexMap(
 	}
     }
 
-  // We now have a complication due to this sanity check
-  //     If an entry in bad_map is the only copy of a TPC track, it would fail the Acts fit if we add the si clusters. 
-  //          So deleting it from vertex_map will leave the TPC tracklet as the full track, as we would want.
-  //     If an entry in bad_map is a duplicate copy of a matched TPC track, deleting it from vertex_map leaves that copy as the original TPC track
-  //          This is dangerous, because track cleaner may decide that the original TPC track is better than the si matched tracks.
-  //           In that case, we should delete the track.
-  //     But what if there is really no si match, and we get multiple fake si matches?
-  //           We want to end up with the TPC track alone in that case
-  //           How to do this?
-  //    Maybe start with _seed_track_map?
-  //           If the bad match is the last copy of the track, just delete the vertex_map entry so no si is added
-  //           If the bad match is not the last copy, delete it from vertex_map and from the node tree
-
+  // If we delete an entry from vertex map, the TPC track is not associated with a bunch crossing, 
+  //    -- the cluster z values are not changed, and the silicon clusters are not added. 
+  // The track remains in the track map as a TPC-only track, by default assumed to be in bunch crossing zero
+  // If multiple entries are deleted from vertex map, the TPC-only track copies are left in the track map, and also in _seed-track_map
+  // The track cleaner will remove all but one of them, based on chisq from the Acts fitter.
 
   // remove bad entries from vertex_map so the wrong silicon is not associated
   for(auto [ivert, id_pair] : bad_map)
