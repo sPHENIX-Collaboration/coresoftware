@@ -89,7 +89,6 @@ class PHCASeeding : public PHTrackSeeding
       float neighbor_phi_width = .02,
       float neighbor_eta_width = .01,
       float maxSinPhi = 0.999,
-      float Bz = 14*0.000299792458f,
       float cosTheta_limit = -0.8);
 
   ~PHCASeeding() override {}
@@ -170,7 +169,6 @@ class PHCASeeding : public PHTrackSeeding
   float _neighbor_phi_width;
   float _neighbor_eta_width;
   float _max_sin_phi;
-  float _Bz;
   float _cosTheta_limit;
   double _rz_outlier_threshold = 0.1;
   double _xy_outlier_threshold = 0.1;
