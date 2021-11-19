@@ -67,11 +67,9 @@ namespace
 	  unsigned short zoffset = 0;
 	  unsigned short maxHalfSizeZ = 0;
 	  unsigned short maxHalfSizePhi = 0;
-    double m_drift_velocity_scale = 1.0;
-	  std::pair<double,double> par0_neg;
-	  std::pair<double,double> par0_pos;
-	  std::pair<double,double> par1_neg;
-	  std::pair<double,double> par1_pos;
+   double m_drift_velocity_scale = 1.0;
+	  double par0_neg = 0;
+   double par0_pos = 0;
 	  std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist = nullptr;
 	  std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>  *clusterhitassoc = nullptr;
 	};
@@ -375,24 +373,9 @@ namespace
 	  // Conversion gain is 20 mV/fC - relates total charge collected on pad to PEAK voltage out of ADC. The GEM gain is assumed to be 2000
 	  // To get equivalent charge per Z bin, so that summing ADC input voltage over all Z bins returns total input charge, divide voltages by 2.4 for 80 ns SAMPA
 	  // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
-			
-	  // correct cluster z for shaping distortion
-	  // get parameters of z dependence at this layer
-	  double p0, p1;
-	  if(clusz < 0)
-	    {
-	      p0 = my_data.par0_neg.first + my_data.par0_neg.second*my_data.layer;
-	      p1 = my_data.par1_neg.first + my_data.par1_neg.second*my_data.layer;
-	    }
-	  else
-	    {
-	      p0 = my_data.par0_pos.first + my_data.par0_pos.second*my_data.layer;
-	      p1 = my_data.par1_pos.first + my_data.par1_pos.second*my_data.layer;
-	    }
-	  double z_correction = p0 + p1 * clusz;
-	  clusz -= z_correction;
-	
-	  // Fill in the cluster details
+    clusz -= (clusz<0) ? my_data.par0_neg:my_data.par0_pos;
+    
+    // Fill in the cluster details
 	  //================
 	  clus->setAdc(adc_sum);
 	  
@@ -763,9 +746,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
     thread_pair.data.m_drift_velocity_scale = m_drift_velocity_scale;
     thread_pair.data.par0_neg = par0_neg;
-    thread_pair.data.par1_neg = par1_neg;
     thread_pair.data.par0_pos = par0_pos;
-    thread_pair.data.par1_pos = par1_pos;
     
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
     unsigned short NPhiBinsSector = NPhiBins/12;
