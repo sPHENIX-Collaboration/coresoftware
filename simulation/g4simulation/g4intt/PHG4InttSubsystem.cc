@@ -280,24 +280,31 @@ void PHG4InttSubsystem::SetDefaultParameters()
 
     // SUPPORTPARAMS //////////////////////////////////////
     // int param
-    set_default_int_param(SUPPORTPARAMS, "supportactive", 0);
+    set_default_int_param(SUPPORTPARAMS, "supportactive", 1);
 
     // double param
-    set_default_double_param(SUPPORTPARAMS, "inner_skin_inner_radius", 6.2416);
-    set_default_double_param(SUPPORTPARAMS, "inner_skin_length",      50.7   );
-    set_default_double_param(SUPPORTPARAMS, "inner_skin_outer_radius", 6.2666);
+    // set_default_double_param(SUPPORTPARAMS, "inner_skin_inner_radius", 6.2416);
+    // set_default_double_param(SUPPORTPARAMS, "inner_skin_length",      50.7   );
+    // set_default_double_param(SUPPORTPARAMS, "inner_skin_outer_radius", 6.2666);
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_inner_radius", 12.9667 / 2  );
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_outer_radius", 13.0175 / 2 );
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_length",      49.7   );
     
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_inner_radius", 12.0444);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_outer_radius", 12.0694);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_length",       50.7   );
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_inner_radius", 12.0444);
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_outer_radius", 12.0694);
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_length",       50.7   );
 
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_inner_radius", 12.0694);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_outer_radius", 12.2194);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_length",       50.7   );
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_inner_radius", 12.0694);
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_outer_radius", 12.2194);
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_length",       50.7   );
 
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_inner_radius", 12.2194);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_outer_radius", 12.2444);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_length",       50.7   );
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_inner_radius", 12.2194);
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_outer_radius", 12.2444);
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_length",       50.7   );
+
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_inner_radius", 23.4950 / 2 );
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_outer_radius", 23.5458 / 2);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_length",       49.7   );
 
     // Endcap ring flag
     set_default_int_param(SUPPORTPARAMS, "endcap_ring_enabled", 1);

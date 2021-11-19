@@ -160,6 +160,12 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
       visatt->SetVisibility( true );
 
     }
+    else if (it.second == "Skin")
+    {
+      visatt->SetColour( colour_CFRP );
+      visatt->SetVisibility( true );
+
+    }
     else
     {
       cout << "did not assign color to " << it.first->GetName()
