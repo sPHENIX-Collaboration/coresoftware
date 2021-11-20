@@ -867,7 +867,6 @@ void  ALICEKF::line_fit(std::vector<std::pair<double,double>> points, double &a,
 void  ALICEKF::line_fit_clusters(std::vector<TrkrCluster*> clusters, std::vector<Acts::Vector3F>& globalPositions, double &a, double &b)
 {
   std::vector<std::pair<double,double>> points;
-  ActsTransformations transformer;
   for (unsigned int i=0; i<clusters.size(); ++i)
     {
       const auto globalpos = globalPositions.at(i);
