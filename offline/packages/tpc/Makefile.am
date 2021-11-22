@@ -31,9 +31,10 @@ pcmdir = $(libdir)
 
 # sources for tpc library
 libtpc_la_SOURCES = \
+  TpcClusterCleaner.cc \
   TpcClusterizer.cc \
-  TpcSpaceChargeCorrection.cc \
-  TpcClusterCleaner.cc
+  TpcLoadDistortionCorrection.cc \
+  TpcSpaceChargeCorrection.cc
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
