@@ -17,7 +17,7 @@
 #include <string>
 #include <utility>
 
-typedef std::map<TrkrDefs::cluskey, Acts::Vector3F> PositionMap;
+using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3F>;
 
 class ALICEKF
 {
