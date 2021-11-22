@@ -348,7 +348,20 @@ void PHG4InttSubsystem::SetDefaultParameters()
 
     set_default_double_param(SUPPORTPARAMS, "endcap_AlPEEK_Alring_length",          0.75   );
     set_default_double_param(SUPPORTPARAMS, "endcap_AlPEEK_Cring_length",           0.5    );
-			         
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Survice barrel, outer
+    set_default_double_param(SUPPORTPARAMS, "service_barrel_outer_inner_radius", 33.02 / 2  );
+    set_default_double_param(SUPPORTPARAMS, "service_barrel_outer_outer_radius", 33.34 / 2 );
+    set_default_double_param(SUPPORTPARAMS, "service_barrel_outer_length",      273.69   );
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Support tube
+    set_default_double_param(SUPPORTPARAMS, "support_tube_inner_radius", 37.47 / 2  );
+    set_default_double_param(SUPPORTPARAMS, "support_tube_outer_radius", 38.10 / 2 );
+    set_default_double_param(SUPPORTPARAMS, "support_tube_length",      273.69   );
+
+    
     // Cylinders for the bus extenders
     set_default_int_param(SUPPORTPARAMS,    "bus_extender",    1);  // 0: OFF, 1: ON
     set_default_double_param(SUPPORTPARAMS, "bus_extender_length",   120.0 );    // in cm

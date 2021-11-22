@@ -1183,7 +1183,41 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), inner_skin_volume,
                     "si_support_inner_skin", trackerenvelope, false, 0, OverlapCheck());
-
+  
+  // Service barrel outer  ////////////////////////////////////////////////////////////////////////////////////
+  G4Tubs *service_barrel_outer_tube = new G4Tubs("si_service_barrel_outer",
+                                       supportparams->get_double_param("service_barrel_outer_inner_radius") * cm,
+                                       supportparams->get_double_param("service_barrel_outer_outer_radius") * cm,
+                                       supportparams->get_double_param("service_barrel_outer_length") * cm / 2.,
+                                       -M_PI, 2.0 * M_PI);
+  G4LogicalVolume *service_barrel_outer_volume = new G4LogicalVolume(service_barrel_outer_tube, GetDetectorMaterial("CFRP_INTT"),
+                                                           "service_barrel_outer_volume", 0, 0, 0);
+  if (m_IsSupportActive > 0)
+  {
+    m_PassiveVolumeTuple.insert(make_pair(service_barrel_outer_volume, make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::SERVICE_BARREL_OUTER)));
+  }
+  m_DisplayAction->AddVolume(service_barrel_outer_volume, "Skin");
+  
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), service_barrel_outer_volume,
+                    "si_support_service_barrel_outer", trackerenvelope, false, 0, OverlapCheck());
+  
+  // Support Tube  ////////////////////////////////////////////////////////////////////////////////////
+  G4Tubs *support_tube_tube = new G4Tubs("si_support_tube",
+                                       supportparams->get_double_param("support_tube_inner_radius") * cm,
+                                       supportparams->get_double_param("support_tube_outer_radius") * cm,
+                                       supportparams->get_double_param("support_tube_length") * cm / 2.,
+                                       -M_PI, 2.0 * M_PI);
+  G4LogicalVolume *support_tube_volume = new G4LogicalVolume(support_tube_tube, GetDetectorMaterial("CFRP_INTT"),
+                                                           "support_tube_volume", 0, 0, 0);
+  if (m_IsSupportActive > 0)
+  {
+    m_PassiveVolumeTuple.insert(make_pair(support_tube_volume, make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::SUPPORT_TUBE)));
+  }
+  m_DisplayAction->AddVolume(support_tube_volume, "Skin");
+  
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), support_tube_volume,
+                    "si_support_support_tube", trackerenvelope, false, 0, OverlapCheck());
+  
   // Endcap ring in simulations = Endcap rings + endcap staves
   int inttlayer = (m_LayerBeginEndIteratorPair.first)->second;
   const PHParameters *params1 = m_ParamsContainer->GetParameters(inttlayer);
@@ -1286,7 +1320,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   G4LogicalVolume *endcap_AlPEEK_Alring_3_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_3, GetDetectorMaterial("G4_Al"),
 								       "endcap_AlPEEK_Alring_3_volume", 0, 0, 0);
   m_DisplayAction->AddVolume(endcap_AlPEEK_Alring_3_volume, "EndcapAlPEEK_Al3");
-
+  
   double endcap_outer_edge_z = 0.0; // absolute z-coordinate of outer edge (furthest side from the origin) of the endcap, used for bus extender
 
   if (m_IsEndcapActive)
