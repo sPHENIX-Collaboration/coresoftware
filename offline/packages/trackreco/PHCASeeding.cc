@@ -380,7 +380,7 @@ std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_se
     unsigned int StartLayer = StartCluster->first[2];
     if(StartLayer < _start_layer) continue;
     if(StartLayer > _end_layer) continue;
-    const auto globalpos = globalPositions.find(StartCluster->second)->second;
+    const auto& globalpos = globalPositions.at(StartCluster->second);
     double StartX = globalpos(0);
     double StartY = globalpos(1);
     double StartZ = globalpos(2);
@@ -425,14 +425,14 @@ std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_se
 
     std::transform(ClustersBelow.begin(),ClustersBelow.end(),delta_below.begin(),
 	      [&](pointKey BelowCandidate){
-	const auto belowpos = globalPositions.find(BelowCandidate.second)->second;
+	const auto& belowpos = globalPositions.at(BelowCandidate.second);
         return std::array<double,3>{belowpos(0)-StartX,
           belowpos(1)-StartY,
           belowpos(2)-StartZ};});
 
     std::transform(ClustersAbove.begin(),ClustersAbove.end(),delta_above.begin(),
       [&](pointKey AboveCandidate){
-	const auto abovepos = globalPositions.find(AboveCandidate.second)->second;
+	const auto& abovepos = globalPositions.at(AboveCandidate.second);
         return std::array<double,3>{abovepos(0)-StartX,
           abovepos(1)-StartY,
           abovepos(2)-StartZ};});
@@ -490,7 +490,7 @@ std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_se
         delta_2below.resize(clustersTwoLayersBelow.size());
         std::transform(clustersTwoLayersBelow.begin(),clustersTwoLayersBelow.end(),delta_2below.begin(),
           [&](pointKey BelowCandidate){
-	    const auto belowpos = globalPositions.find(BelowCandidate.second)->second;
+	    const auto& belowpos = globalPositions.at(BelowCandidate.second);
             return std::array<double,3>{(belowpos(0))-StartX,
               (belowpos(1))-StartY,
               (belowpos(2))-StartZ};});
@@ -527,7 +527,7 @@ std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_se
           delta_2above.resize(clustersTwoLayersAbove.size());
           std::transform(clustersTwoLayersAbove.begin(),clustersTwoLayersAbove.end(),delta_2above.begin(),
             [&](pointKey AboveCandidate){
-	      const auto abovepos = globalPositions.find(AboveCandidate.second)->second;
+	      const auto& abovepos = globalPositions.at(AboveCandidate.second);
               return std::array<double,3>{(abovepos(0))-StartX,
                 (abovepos(1))-StartY,
                 (abovepos(2))-StartZ};});
@@ -673,7 +673,7 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
     double lastphi = -100;
     for(size_t j=0;j<trackSeedKeyLists[i].size();++j)
     {
-      const auto globalpos = globalPositions.find(trackSeedKeyLists[i][j])->second;           
+      const auto& globalpos = globalPositions.at(trackSeedKeyLists[i][j]);           
       const double clus_phi = get_phi( globalpos );
       const double clus_eta = get_eta( globalpos );
       const double etajump = clus_eta-lasteta;
@@ -721,7 +721,7 @@ std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& 
 
     for(const TrkrDefs::cluskey& ckey : chain)
     {
-      const auto global = globalPositions.find(ckey)->second;
+      const auto &global = globalPositions.at(ckey);
       double x = global(0);
       double y = global(1);
       double z = global(2);
