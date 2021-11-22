@@ -268,9 +268,8 @@ PositionMap PHCASeeding::FillTree()
 	  continue; // skip hits used in a previous iteration
       }
 
-      // TODO: cleanup
-      const auto globalpos_d = getGlobalPosition(cluster);
-      
+      // get global position, convert to Acts::Vector3F and store in map
+      const Acts::Vector3D globalpos_d = getGlobalPosition(cluster);
       const Acts::Vector3F globalpos = { (float) globalpos_d.x(), (float) globalpos_d.y(), (float) globalpos_d.z()};
       cachedPositions.insert(std::make_pair(ckey, globalpos));
 
@@ -328,7 +327,7 @@ int PHCASeeding::Process(PHCompositeNode */*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHCASeeding::FindSeedsWithMerger(PositionMap& globalPositions)
+int PHCASeeding::FindSeedsWithMerger(const PositionMap& globalPositions)
 {
   std::vector<pointKey> allClusters;
   std::vector<std::unordered_set<keylink>> belowLinks;
@@ -357,7 +356,7 @@ int PHCASeeding::FindSeedsWithMerger(PositionMap& globalPositions)
   return seeds.size();
 }
 
-std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> PHCASeeding::CreateLinks(const std::vector<coordKey>& clusters, PositionMap& globalPositions, int mode) const
+std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> PHCASeeding::CreateLinks(const std::vector<coordKey>& clusters, const PositionMap& globalPositions, int mode) const
 {
   size_t nclusters = 0;
 
@@ -603,7 +602,7 @@ std::vector<std::vector<keylink>> PHCASeeding::FindBiLinks(const std::vector<std
   return bidirectionalLinks;
 }
 
-std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<keylink>>& bidirectionalLinks, PositionMap& globalPositions) const
+std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<keylink>>& bidirectionalLinks, const PositionMap& globalPositions) const
 {
   // follow bidirectional links to form lists of cluster keys
   // (to be fitted for track seed parameters)
@@ -707,7 +706,7 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
   return trackSeedKeyLists;
 }
 
-std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, PositionMap& globalPositions) const
+std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
 {
   if(Verbosity()>0) std::cout << "removing bad clusters" << std::endl;
   std::vector<keylist> clean_chains;
