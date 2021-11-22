@@ -77,7 +77,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_surfmaps,_tgeometry,_fieldDir,
+  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_fieldDir,
 				     _min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->useConstBField(_use_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
@@ -158,7 +158,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   if(Verbosity()>0) cout << "starting Process" << endl;
   MoveToFirstTPCCluster();
   if(Verbosity()>0) cout << "moved tracks into TPC" << endl;
-  PrepareKDTrees();
+  PositionMap globalPositions = PrepareKDTrees();
   if(Verbosity()>0) cout << "prepared KD trees" << endl;
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<SvtxTrack> unused_tracks;
@@ -174,7 +174,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     if(is_tpc)
     {
       if(Verbosity()>0) cout << "is tpc track" << endl;
-      new_chains.push_back(PropagateTrack(track));
+      new_chains.push_back(PropagateTrack(track, globalPositions));
     }
     else
     {
@@ -185,23 +185,26 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   }
   
   _track_map->Reset();
-  std::vector<std::vector<TrkrDefs::cluskey>> clean_chains = RemoveBadClusters(new_chains); 
-  std::vector<SvtxTrack_v2> ptracks = fitter->ALICEKalmanFilter(clean_chains,true);
+  std::vector<std::vector<TrkrDefs::cluskey>> clean_chains = RemoveBadClusters(new_chains, globalPositions); 
+  std::vector<SvtxTrack_v2> ptracks = fitter->ALICEKalmanFilter(clean_chains,true, globalPositions);
   publishSeeds(ptracks);
   publishSeeds(unused_tracks);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHSimpleKFProp::PrepareKDTrees()
+PositionMap PHSimpleKFProp::PrepareKDTrees()
 {
+  PositionMap globalPositions;
   //***** convert clusters to kdhits, and divide by layer
   std::vector<std::vector<std::vector<double> > > kdhits;
   kdhits.resize(58);
   if (!_cluster_map)
   {
     std::cout << "WARNING: (tracking.PHTpcTrackerUtil.convert_clusters_to_hits) cluster map is not provided" << endl;
-    return;
+    return globalPositions;
   }
+
+
   ActsTransformations transformer;
   auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (auto hitsetitr = hitsetrange.first;
@@ -222,8 +225,9 @@ void PHSimpleKFProp::PrepareKDTrees()
 	  }
 	}
       }
-      auto globalPos = transformer.getGlobalPosition(cluster,_surfmaps,_tgeometry);
 
+      auto globalPos = transformer.getGlobalPositionF(cluster,_surfmaps,_tgeometry);
+      globalPositions.insert(std::make_pair(cluskey, globalPos));
       int layer = TrkrDefs::getLayer(cluskey);
       std::vector<double> kdhit(4);
       kdhit[0] = globalPos(0);
@@ -255,11 +259,12 @@ void PHSimpleKFProp::PrepareKDTrees()
     _kdtrees[l] = std::make_shared<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>, 3>>(3,*(_ptclouds[l]),nanoflann::KDTreeSingleIndexAdaptorParams(10));
     _kdtrees[l]->buildIndex();
   }
+
+  return globalPositions;
 }
 
 void PHSimpleKFProp::MoveToFirstTPCCluster()
 {
-  
   for(auto& [key, track] : *_track_map)
     {
       double track_x = track->get_x();
@@ -273,24 +278,26 @@ void PHSimpleKFProp::MoveToFirstTPCCluster()
       std::vector<TrkrDefs::cluskey> ckeys;
       std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
       std::vector<TrkrCluster*> tpc_clusters;
-      // extract TPC clusters
-      for(auto ckey : ckeys)
-	{
-	  if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId ) tpc_clusters.push_back(_cluster_map->findCluster(ckey));
-	}
-      // get circle fit for TPC clusters plus vertex
-      std::vector<Acts::Vector3D> globalPositions;
+
+      std::vector<Acts::Vector3F> trkGlobPos;
       ActsTransformations transformer;
-      for(auto cluster : tpc_clusters)
+      // extract TPC clusters
+      for(auto& ckey : ckeys)
 	{
-	  auto global = transformer.getGlobalPosition(cluster,_surfmaps,_tgeometry);
-	  globalPositions.push_back(global);
+    if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId )
+    {
+	      auto clus = _cluster_map->findCluster(ckey);
+	      tpc_clusters.push_back(clus);
+	      auto global = transformer.getGlobalPositionF(clus,_surfmaps, _tgeometry);
+	      trkGlobPos.push_back(global);
+	    }
 	}
 
+      // get circle fit for TPC clusters plus vertex
       double R = 0;
       double xc = 0;
       double yc = 0;
-      CircleFitByTaubin(globalPositions,R,xc,yc);
+      CircleFitByTaubin(trkGlobPos,R,xc,yc);
     // want angle of tangent to circle at innermost (i.e. last) cluster
       size_t inner_index;
       if(TrkrDefs::getLayer(ckeys[0])>TrkrDefs::getLayer(ckeys.back()))
@@ -301,16 +308,16 @@ void PHSimpleKFProp::MoveToFirstTPCCluster()
 	{
 	  inner_index = 0;
 	}
-      double cluster_x = globalPositions.at(inner_index)(0);
-      double cluster_y = globalPositions.at(inner_index)(1);
+      double cluster_x = trkGlobPos.at(inner_index)(0);
+      double cluster_y = trkGlobPos.at(inner_index)(1);
       double dy = cluster_y-yc;
       double dx = cluster_x-xc;
       double phi = atan2(dy,dx);
-      double dx0 = globalPositions.at(0)(0) - xc;     
-      double dy0 = globalPositions.at(0)(1) - yc;
+      double dx0 = trkGlobPos.at(0)(0) - xc;     
+      double dy0 = trkGlobPos.at(0)(1) - yc;
       double phi0 = atan2(dy0, dx0);
-      double dx1 = globalPositions.at(1)(0) - xc;
-      double dy1 = globalPositions.at(1)(1) - yc;
+      double dx1 = trkGlobPos.at(1)(0) - xc;
+      double dy1 = trkGlobPos.at(1)(1) - yc;
       double phi1 = atan2(dy1, dx1);
       double dphi = phi1 - phi0;
       if(dphi < 0)
@@ -322,15 +329,14 @@ void PHSimpleKFProp::MoveToFirstTPCCluster()
       track->set_px(pt*cos(phi));
       track->set_py(pt*sin(phi));
       // set track position
-      track->set_x(globalPositions.at(0)(0));
-      track->set_y(globalPositions.at(0)(1));
-      track->set_z(globalPositions.at(0)(2));
+      track->set_x(trkGlobPos.at(0)(0));
+      track->set_y(trkGlobPos.at(0)(1));
+      track->set_z(trkGlobPos.at(0)(2));
   }
 
- 
 }
 
-std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
+std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, PositionMap& globalPositions)
 {
   // extract cluster list
   std::vector<TrkrDefs::cluskey> ckeys;
@@ -466,7 +472,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
   double old_phi = track_phi;
   unsigned int old_layer = TrkrDefs::getLayer(ckeys[0]);
   if(Verbosity()>0) cout << "first layer: " << old_layer << endl;
-  ActsTransformations transformer;
+
   propagated_track.push_back(ckeys[0]);
   // first, propagate downward
   for(unsigned int l=old_layer+1;l<=54;l++)
@@ -494,14 +500,14 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
     {
       if(Verbosity()>0) cout << "layer is filled" << endl;
       TrkrCluster* nc = _cluster_map->findCluster(next_ckey);
-      auto globalpos = transformer.getGlobalPosition(nc,_surfmaps,_tgeometry);
+      auto globalpos = globalPositions.find(next_ckey)->second;
       double cx = globalpos(0);
       double cy = globalpos(1);
       double cz = globalpos(2);
       double cphi = atan2(cy,cx);
-      double cxerr = sqrt(fitter->getClusterError(nc,0,0));
-      double cyerr = sqrt(fitter->getClusterError(nc,1,1));
-      double czerr = sqrt(fitter->getClusterError(nc,2,2));
+      double cxerr = sqrt(fitter->getClusterError(nc,globalpos,0,0));
+      double cyerr = sqrt(fitter->getClusterError(nc,globalpos,1,1));
+      double czerr = sqrt(fitter->getClusterError(nc,globalpos,2,2));
       double alpha = cphi-old_phi;
       double tX = kftrack.GetX();
       double tY = kftrack.GetY();
@@ -599,13 +605,13 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
       std::vector<double> point = _ptclouds[l]->pts[index_out[0]];
       TrkrDefs::cluskey closest_ckey = (*((int64_t*)&point[3]));
       TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
-      auto ccglob = transformer.getGlobalPosition(cc,_surfmaps,_tgeometry);
+      auto ccglob = globalPositions.find(closest_ckey)->second;
       double ccX = ccglob(0);
       double ccY = ccglob(1);
       double ccZ = ccglob(2);
-      double cxerr = sqrt(fitter->getClusterError(cc,0,0));
-      double cyerr = sqrt(fitter->getClusterError(cc,1,1));
-      double czerr = sqrt(fitter->getClusterError(cc,2,2));
+      double cxerr = sqrt(fitter->getClusterError(cc,ccglob,0,0));
+      double cyerr = sqrt(fitter->getClusterError(cc,ccglob,1,1));
+      double czerr = sqrt(fitter->getClusterError(cc,ccglob,2,2));
       double ccphi = atan2(ccY,ccX);
       if(Verbosity()>0) cout << "cluster position: (" << ccX << ", " << ccY << ", " << ccZ << ")" << endl;
       if(Verbosity()>0) cout << "cluster position error: (" << cxerr << ", " << cyerr << ", " << czerr << ")" << endl;
@@ -631,8 +637,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
 //        kftrack.SetY(-ccX*sin(ccphi)+ccY*cos(ccphi));
 //        kftrack.SetZ(cc->getZ());
         double ccaY = -ccX*sin(ccphi)+ccY*cos(ccphi);
-        double ccerrY = fitter->getClusterError(cc,0,0)*sin(ccphi)*sin(ccphi)+fitter->getClusterError(cc,0,1)*sin(ccphi)*cos(ccphi)+fitter->getClusterError(cc,1,1)*cos(ccphi)*cos(ccphi);
-        double ccerrZ = fitter->getClusterError(cc,2,2);
+        double ccerrY = fitter->getClusterError(cc,ccglob,0,0)*sin(ccphi)*sin(ccphi)+fitter->getClusterError(cc,ccglob,0,1)*sin(ccphi)*cos(ccphi)+fitter->getClusterError(cc,ccglob,1,1)*cos(ccphi)*cos(ccphi);
+        double ccerrZ = fitter->getClusterError(cc,ccglob,2,2);
         kftrack.Filter(ccaY,ccZ,ccerrY,ccerrZ,_max_sin_phi);
         if(Verbosity()>0) cout << "added cluster" << endl;
         old_phi = ccphi;
@@ -673,8 +679,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
     if(layer_filled)
     {
       if(Verbosity()>0) cout << "layer is filled" << endl;
-      TrkrCluster* nc = _cluster_map->findCluster(next_ckey);
-      auto ncglob = transformer.getGlobalPosition(nc,_surfmaps,_tgeometry);
+      auto ncglob = globalPositions.find(next_ckey)->second;
       double cx = ncglob(0);
       double cy = ncglob(1);
       double cz = ncglob(2);
@@ -739,13 +744,13 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
       std::vector<double> point = _ptclouds[l]->pts[index_out[0]];
       TrkrDefs::cluskey closest_ckey = (*((int64_t*)&point[3]));
       TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
-      auto ccglob2 = transformer.getGlobalPosition(cc,_surfmaps,_tgeometry);
+      auto ccglob2 = globalPositions.find(closest_ckey)->second;
       double ccX = ccglob2(0);
       double ccY = ccglob2(1);
       double ccZ = ccglob2(2);
-      double cxerr = sqrt(fitter->getClusterError(cc,0,0));
-      double cyerr = sqrt(fitter->getClusterError(cc,1,1));
-      double czerr = sqrt(fitter->getClusterError(cc,2,2));
+      double cxerr = sqrt(fitter->getClusterError(cc,ccglob2,0,0));
+      double cyerr = sqrt(fitter->getClusterError(cc,ccglob2,1,1));
+      double czerr = sqrt(fitter->getClusterError(cc,ccglob2,2,2));
       if(Verbosity()>0) cout << "cluster position: (" << ccX << ", " << ccY << ", " << ccZ << ")" << endl;
       double ccphi = atan2(ccY,ccX);
       if(Verbosity()>0) cout << "cluster position errors: (" << cxerr << ", " << cyerr << ", " << czerr << ")" << endl;
@@ -769,8 +774,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
 */
         kftrack.Rotate(alpha,kfline,10.);
         double ccaY = -ccX*sin(ccphi)+ccY*cos(ccphi);
-        double ccerrY = fitter->getClusterError(cc,0,0)*sin(ccphi)*sin(ccphi)+fitter->getClusterError(cc,1,0)*sin(ccphi)*cos(ccphi)+fitter->getClusterError(cc,1,1)*cos(ccphi)*cos(ccphi);
-        double ccerrZ = fitter->getClusterError(cc,2,2);
+        double ccerrY = fitter->getClusterError(cc,ccglob2,0,0)*sin(ccphi)*sin(ccphi)+fitter->getClusterError(cc,ccglob2,1,0)*sin(ccphi)*cos(ccphi)+fitter->getClusterError(cc,ccglob2,1,1)*cos(ccphi)*cos(ccphi);
+        double ccerrZ = fitter->getClusterError(cc,ccglob2,2,2);
         kftrack.Filter(ccaY,ccZ,ccerrY,ccerrZ,_max_sin_phi);
 //        kftrack.SetX(ccX*cos(ccphi)+ccY*sin(ccphi));
 //        kftrack.SetY(-ccX*sin(ccphi)+ccY*cos(ccphi));
@@ -787,23 +792,20 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track)
   return propagated_track;
 }
 
-vector<keylist> PHSimpleKFProp::RemoveBadClusters(vector<keylist> chains)
+vector<keylist> PHSimpleKFProp::RemoveBadClusters(vector<keylist> chains, PositionMap& globalPositions)
 {
   if(Verbosity()>0) cout << "removing bad clusters" << endl;
   vector<keylist> clean_chains;
-  for(keylist chain : chains)
+  for(keylist& chain : chains)
   {
     if(chain.size()<3) continue;
     keylist clean_chain;
 
     vector<pair<double,double>> xy_pts;
     vector<pair<double,double>> rz_pts;
-    ActsTransformations transformer;
-    
-    for(TrkrDefs::cluskey ckey : chain)
+    for(TrkrDefs::cluskey& ckey : chain)
     {
-      TrkrCluster* c = _cluster_map->findCluster(ckey);
-      auto global = transformer.getGlobalPosition(c,_surfmaps,_tgeometry);
+      auto global = globalPositions.find(ckey)->second;
       xy_pts.push_back(make_pair(global(0),global(1)));
       float r = sqrt(global(0)*global(0) + global(1)*global(1));
       rz_pts.push_back(make_pair(r,global(2)));
@@ -970,11 +972,11 @@ void PHSimpleKFProp::MoveToVertex()
 
       // make circle fit 
       std::vector<std::pair<double, double>> cpoints;
-      std::vector<Acts::Vector3D> globalpositions;
+      std::vector<Acts::Vector3F> globalpositions;
       ActsTransformations transformer;
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
-	  auto glob = transformer.getGlobalPosition(clusters.at(i),_surfmaps,_tgeometry);
+	  auto glob = transformer.getGlobalPositionF(clusters.at(i),_surfmaps,_tgeometry);
 	  globalpositions.push_back(glob);
 	  cpoints.push_back(std::make_pair(glob(0),glob(1)));
 	}
@@ -1138,7 +1140,7 @@ void  PHSimpleKFProp::line_fit_clusters(std::vector<TrkrCluster*> clusters, doub
     return;
 }
 
-void PHSimpleKFProp::CircleFitByTaubin (std::vector<Acts::Vector3D> points, double &R, double &X0, double &Y0)
+void PHSimpleKFProp::CircleFitByTaubin (std::vector<Acts::Vector3F> points, double &R, double &X0, double &Y0)
 /*  
       Circle fit to a given set of data points (in 2D)
       This is an algebraic fit, due to Taubin, based on the journal article
