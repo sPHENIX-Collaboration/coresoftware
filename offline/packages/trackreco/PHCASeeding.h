@@ -72,7 +72,7 @@ typedef std::pair<point, TrkrDefs::cluskey> pointKey;
 typedef std::pair<std::array<float,3>, TrkrDefs::cluskey> coordKey;
 typedef std::array<coordKey,2> keylink;
 typedef std::vector<TrkrDefs::cluskey> keylist;
-
+typedef std::map<TrkrDefs::cluskey, Acts::Vector3F> PositionMap;
 
 class PHCASeeding : public PHTrackSeeding
 {
@@ -131,13 +131,12 @@ class PHCASeeding : public PHTrackSeeding
 
   double phiadd(double phi1, double phi2);
   double phidiff(double phi1, double phi2);
-  void FillTree();
+  PositionMap FillTree();
   void FillTree(std::vector<pointKey> clusters);
-  std::vector<coordKey> FindLinkedClusters();
-  int FindSeedsWithMerger();
-  std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> CreateLinks(std::vector<coordKey> clusters, int mode = skip_layers::off);
+  int FindSeedsWithMerger(PositionMap& globalPositions);
+  std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> CreateLinks(std::vector<coordKey> clusters, PositionMap& globalPositions, int mode = skip_layers::off);
   std::vector<std::vector<keylink>> FindBiLinks(std::vector<std::unordered_set<keylink>> belowLinks, std::vector<std::unordered_set<keylink>> aboveLinks);
-  std::vector<keylist> FollowBiLinks(std::vector<std::vector<keylink>> bidirectionalLinks);
+  std::vector<keylist> FollowBiLinks(std::vector<std::vector<keylink>> bidirectionalLinks, PositionMap& globalPositions);
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values);
   pointKey toPointKey(coordKey v);
   std::vector<pointKey> toPointKey(std::vector<coordKey> v);
@@ -146,7 +145,7 @@ class PHCASeeding : public PHTrackSeeding
   Eigen::Matrix<float,6,6> getEigenCov(SvtxTrack_v2 &track);
   std::vector<keylist> MergeSeeds(std::vector<keylist> seeds);
   pointKey makepointKey(TrkrDefs::cluskey k);
-  std::vector<keylist> RemoveBadClusters(std::vector<keylist> seeds);
+  std::vector<keylist> RemoveBadClusters(std::vector<keylist> seeds, PositionMap& globalPositions);
   void publishSeeds(std::vector<SvtxTrack_v2> seeds);
 
   std::map<int, unsigned int> _layer_ilayer_map_all;
