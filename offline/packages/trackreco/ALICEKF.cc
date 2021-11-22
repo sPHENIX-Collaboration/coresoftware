@@ -84,7 +84,7 @@ double ALICEKF::getClusterError(TrkrCluster* c, Acts::Vector3F global, int i, in
     }
 }
 
-vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,bool use_nhits_limit, PositionMap& globalPositions)
+vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,bool use_nhits_limit, const PositionMap& globalPositions)
 {
 //  TFile* f = new TFile("/sphenix/u/mjpeters/macros_hybrid/detectors/sPHENIX/pull.root", "RECREATE");
 //  TNtuple* ntp = new TNtuple("pull","pull","cx:cy:cz:xerr:yerr:zerr:tx:ty:tz:layer:xsize:ysize:phisize:phierr:zsize");
