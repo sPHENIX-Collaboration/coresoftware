@@ -364,7 +364,7 @@ void PHG4InttSubsystem::SetDefaultParameters()
     
     // Cylinders for the bus extenders
     set_default_int_param(SUPPORTPARAMS,    "bus_extender",    1);  // 0: OFF, 1: ON
-    set_default_double_param(SUPPORTPARAMS, "bus_extender_length",   120.0 );    // in cm
+    set_default_double_param(SUPPORTPARAMS, "bus_extender_length",   111.0 );    // in cm
     set_default_double_param(SUPPORTPARAMS, "bus_extender_ends_at",  328.5 );    // z-coordinate in cm where the bus extender ends at
     set_default_double_param(SUPPORTPARAMS, "bus_extender_radius",    15.0 );    // radius of the innermost layer (copper for the inner barrel)
     set_default_double_param(SUPPORTPARAMS, "bus_extender_copper_x",  48.0e-4 * 1.5 ); // thickness of the copper layer of the bus extenders in cm, it's 48 um
