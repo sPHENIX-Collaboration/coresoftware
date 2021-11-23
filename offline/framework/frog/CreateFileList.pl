@@ -37,6 +37,8 @@ my %proddesc = (
     "6" => "hijing (0-4.88fm) pileup 0-20fm",
     "7" => "HF pythia8 Charm",
     "8" => "HF pythia8 Bottom",
+    "9" => "HF pythia8 Charm D0",
+    "10" => "HF pythia8 Bottom D0"
     );
 
 
@@ -46,7 +48,8 @@ my $randomize;
 my $prodtype;
 my $runnumber= 2;
 my $verbose;
-GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, 'rand' => \$randomize, 's:i' => \$start_segment, 'run:i' => \$runnumber, "verbose" =>\$verbose);
+my $nopileup;
+GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, "nopileup" => \$nopileup, 'rand' => \$randomize, 's:i' => \$start_segment, 'run:i' => \$runnumber, "verbose" =>\$verbose);
 my $filenamestring;
 my %filetypes = ();
 if (defined $prodtype)
@@ -60,7 +63,7 @@ if (defined $prodtype)
     elsif ($prodtype == 2)
     {
 	$filenamestring = "sHijing_0_488fm_50kHz_bkg_0_12fm";
-        die "This dataset has been deleted\n";
+        die "Dataset $prodtype has been deleted\n";
 	&commonfiletypes();
     }
     elsif ($prodtype == 3)
@@ -76,7 +79,7 @@ if (defined $prodtype)
     elsif ($prodtype == 5)
     {
 	$filenamestring = "sHijing_0_12fm_50kHz_bkg_0_20fm";
-        die "This dataset has been deleted\n";
+        die "Dataset $prodtype has been deleted\n";
 	&commonfiletypes();
     }
     elsif ($prodtype == 6)
@@ -86,12 +89,38 @@ if (defined $prodtype)
     }
     elsif ($prodtype == 7)
     {
-	$filenamestring = "pythia8_Charm_3MHz";
+	$filenamestring = "pythia8_Charm";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	}
 	&commonfiletypes();
     }
     elsif ($prodtype == 8)
     {
-	$filenamestring = "pythia8_Bottom_3MHz";
+	$filenamestring = "pythia8_Bottom";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	}
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 9)
+    {
+	$filenamestring = "pythia8_CharmD0";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	}
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 10)
+    {
+	$filenamestring = "pythia8_BottomD0";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	}
 	&commonfiletypes();
     }
     else
@@ -109,6 +138,7 @@ if ($#ARGV < 0)
 	print "usage: CreateFileLists.pl -type <production type> <filetypes>\n";
 	print "parameters:\n";
 	print "-n    : <number of events>\n";
+	print "-nopileup : without pileup\n";
 	print "-rand : randomize segments used\n";
 	print "-run  : runnumber\n";
 	print "-s    : <starting segment>\n";
@@ -221,7 +251,7 @@ foreach  my $tp (keys %req_types)
     {
 	my @sp1 = split(/_/,$filenamestring);
 	my $newfilenamestring;
-	if ($#sp1 == 3)
+	if ($#sp1 == 3 ||$#sp1 == 6 )
 	{
 	    $newfilenamestring = sprintf("%s_%s_%s",$sp1[0],$sp1[1],$sp1[2]);
 	}
