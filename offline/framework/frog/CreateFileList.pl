@@ -398,7 +398,7 @@ sub commonfiletypes
 # pass3 calo
     $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
 #pass3 trk
-    $filetypes{"DST_TRKR_CLUSTER"} = "TPC/Silicon Clusters";
+    $filetypes{"DST_TRKR_HIT"} = "TPC and Silicon Hits";
     $filetypes{"DST_TRUTH"} = "Truth Info (updated with Clusters)";
 #pass4 tracks
     $filetypes{"DST_TRACKS"} = "Reconstructed Tracks";
