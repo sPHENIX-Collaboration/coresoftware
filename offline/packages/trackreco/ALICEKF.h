@@ -17,7 +17,7 @@
 #include <string>
 #include <utility>
 
-typedef std::map<TrkrDefs::cluskey, Acts::Vector3F> PositionMap;
+using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3F>;
 
 class ALICEKF
 {
@@ -37,7 +37,7 @@ class ALICEKF
     _min_clusters_per_track = min_clusters;
   }
   ~ALICEKF(){}
-  std::vector<SvtxTrack_v2> ALICEKalmanFilter(std::vector<std::vector<TrkrDefs::cluskey>> chains, bool use_nhits_limit, PositionMap& globalPositions);
+  std::vector<SvtxTrack_v2> ALICEKalmanFilter(std::vector<std::vector<TrkrDefs::cluskey>> chains, bool use_nhits_limit, const PositionMap& globalPositions);
   Eigen::Matrix<double,6,6> getEigenCov(SvtxTrack_v2 &track);
   bool covIsPosDef(SvtxTrack_v2 &track);
   void repairCovariance(SvtxTrack_v2 &track);
