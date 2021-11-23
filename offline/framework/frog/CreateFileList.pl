@@ -143,7 +143,7 @@ if ($#ARGV < 0)
 	print "-run  : runnumber\n";
 	print "-s    : <starting segment>\n";
 	print "-type : production type\n";
-	foreach my $pd (sort keys %proddesc)
+	foreach my $pd (sort { $a <=> $b } keys %proddesc)
 	{
 	    print "    $pd : $proddesc{$pd}\n";
 	}
