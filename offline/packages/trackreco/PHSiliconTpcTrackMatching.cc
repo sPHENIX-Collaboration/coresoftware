@@ -392,21 +392,26 @@ void PHSiliconTpcTrackMatching::addSiliconClusters( std::multimap<unsigned int, 
 	  tpc_track->insert_cluster_key(si_cluster_key);
 	  _assoc_container->SetClusterTrackAssoc(si_cluster_key, tpc_track->get_id());
 	  
-	  // update the track position to the si one
-	  tpc_track->set_x(si_track->get_x());
-	  tpc_track->set_y(si_track->get_y());
-	  tpc_track->set_z(si_track->get_z());
-	  
-	  if(Verbosity() > 2)
-	    std::cout << " TPC seed track ID " << tpc_track->get_id() << " si track id " << si_track->get_id()
-		      << " new nclus " << tpc_track->size_cluster_keys() << std::endl;
 
 	}
+
+      // update the track position to the si one
+      tpc_track->set_x(si_track->get_x());
+      tpc_track->set_y(si_track->get_y());
+      tpc_track->set_z(si_track->get_z());
+      
+      if(Verbosity() > 2)
+	std::cout << " TPC seed track ID " << tpc_track->get_id() << " si track id " << si_track->get_id()
+		  << " new nclus " << tpc_track->size_cluster_keys() << std::endl;
+
+      if(Verbosity() > 2)
+	tpc_track->identify(); 
     }
 
   return;
 }	  
 
+// not used
 void PHSiliconTpcTrackMatching::addSiliconClusters( std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches )
 {
 
@@ -432,18 +437,21 @@ void PHSiliconTpcTrackMatching::addSiliconClusters( std::multimap<int, std::pair
 	  tpc_track->insert_cluster_key(si_cluster_key);
 	  _assoc_container->SetClusterTrackAssoc(si_cluster_key, tpc_track->get_id());
 	  
-	  // update the track position to the si one
-	  tpc_track->set_x(si_track->get_x());
-	  tpc_track->set_y(si_track->get_y());
-	  tpc_track->set_z(si_track->get_z());
-	  
-	  if(Verbosity() > 2)
-	    std::cout << " TPC seed track ID " << tpc_track->get_id() << " si track id " << si_track->get_id()
-		      << " new nclus " << tpc_track->size_cluster_keys() << std::endl;
-
 	}
-    }
 
+      // update the track position to the si one
+      tpc_track->set_x(si_track->get_x());
+      tpc_track->set_y(si_track->get_y());
+      tpc_track->set_z(si_track->get_z());
+      
+      if(Verbosity() > 2)
+	std::cout << " TPC seed track ID " << tpc_track->get_id() << " si track id " << si_track->get_id()
+		  << " new nclus " << tpc_track->size_cluster_keys() << std::endl;
+
+      if(Verbosity() > 2)
+	tpc_track->identify();      
+    }
+  
   return;
 }	  
 
@@ -472,18 +480,23 @@ void PHSiliconTpcTrackMatching::addSiliconClusters(  std::multimap<unsigned int,
 	  tpc_track->insert_cluster_key(si_cluster_key);
 	  _assoc_container->SetClusterTrackAssoc(si_cluster_key, tpc_track->get_id());
 	  
-	  // update the track position to the si one
-	  tpc_track->set_x(si_track->get_x());
-	  tpc_track->set_y(si_track->get_y());
-	  tpc_track->set_z(si_track->get_z());
-	  
-	  if(Verbosity() > 2)
-	    std::cout << " TPC seed track ID " << tpc_track->get_id() << " si track id " << si_track->get_id()
-		      << " new nclus " << tpc_track->size_cluster_keys() << std::endl;
-
 	}
+  
+      // update the track position to the si one
+      tpc_track->set_x(si_track->get_x());
+      tpc_track->set_y(si_track->get_y());
+      tpc_track->set_z(si_track->get_z());
+      
+      if(Verbosity() > 2)
+	{
+	  std::cout << " TPC seed track ID " << tpc_track->get_id() << " si track id " << si_track->get_id()
+		    << " new nclus " << tpc_track->size_cluster_keys() << std::endl;
+	}
+      
+      if(Verbosity() > 2)  
+	tpc_track->identify();
     }
-
+  
   return;
 }	  
       
@@ -815,10 +828,12 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
 	  if(Verbosity() > 2)
 	    {
-	      cout << " testing for a match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;	  
-	      cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " <<   tpc_phi-si_phi << " phi search " << _phi_search_win  << " tpc_eta " << tpc_eta 
-		   << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << " eta search " << _eta_search_win << endl;
+	      cout << " testing for a match for TPC track " << _tracklet_tpc->get_id() << " with pT " << _tracklet_tpc->get_pt() 
+		   << " with Si track " << _tracklet_si->get_id() << endl;	  
+	      cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " <<   tpc_phi-si_phi << " phi search " << _phi_search_win*mag  << " tpc_eta " << tpc_eta 
+		   << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << " eta search " << _eta_search_win*mag << endl;
 	      std::cout << "      tpc x " << tpc_x << " si x " << si_x << " tpc y " << tpc_y << " si y " << si_y << " tpc_z " << tpc_z  << " si z " << si_z << std::endl;
+	      std::cout << "      x search " << _x_search_win*mag << " y search " << _y_search_win*mag << " z search " << _z_search_win*mag  << std::endl;
 	    }
 
 	  bool eta_match = false;
@@ -871,7 +886,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
 	      if(Verbosity() > 1)  
 		{
-		  cout << " found a z-match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;
+		  cout << " found a match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;
 		  cout << "          tpc_phi " << tpc_phi << " si_phi " <<  si_phi << " phi_match " << phi_match 
 		       << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
 		  std::cout << "      tpc x " << tpc_x << " si x " << si_x << " tpc y " << tpc_y << " si y " << si_y << " tpc_z " << tpc_z  << " si z " << si_z << std::endl;
