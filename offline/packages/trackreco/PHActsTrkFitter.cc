@@ -201,6 +201,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       trackTimer.restart();
 
       auto sourceLinks = getSourceLinks(track);
+      if(sourceLinks.size() == 0) continue;
+
       /// If using directed navigation, collect surface list to navigate
    
       SurfacePtrVec surfaces;
@@ -396,7 +398,10 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
       auto key = *clusIter;
       auto cluster = m_clusterContainer->findCluster(key);
       if(!cluster)
-	std::cout << "Failed to get cluster with key " << key << std::endl;
+	{
+	  if(Verbosity() > 0) std::cout << "Failed to get cluster with key " << key << " for track " << track->get_id() << std::endl;
+	  continue;
+	}
 
       auto subsurfkey = cluster->getSubSurfKey();
       
