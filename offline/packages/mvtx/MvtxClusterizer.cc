@@ -155,6 +155,7 @@ int MvtxClusterizer::InitRun(PHCompositeNode *topNode)
       DetNode->addNode(newNode);
     }
 
+
   //----------------
   // Report Settings
   //----------------
@@ -331,13 +332,12 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       
 	  }  //mapiter
 
-
 	// This is the local position
 	locclusx = locxsum / nhits;
 	locclusz = loczsum / nhits;
 
 	clus->setAdc(nhits);
-	
+
 	const double pitch = layergeom->get_pixel_x();
 	const double length = layergeom->get_pixel_z();
 	const double phisize = phibins.size() * pitch;
@@ -349,13 +349,20 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	/*
 	  they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in phi and z
 	  other clusters, which are very few and pathological, get a scale factor of 1
+	  These scale factors are applied to produce cluster pulls with width unity
 	*/
-	static constexpr std::array<double, 4> scalefactors_phi = {{ 0.2, 0.18, 0.6, 0.31 }};
+
 	double phierror = pitch * invsqrt12;
-	if( phibins.size() == 2 && zbins.size() == 2 ) phierror*=scalefactors_phi[0];
+	
+	static constexpr std::array<double, 7> scalefactors_phi = {{ 0.36, 0.6,0.37,0.49,0.4,0.37,0.33 }};
+	if(phibins.size() == 1 && zbins.size() == 1) phierror*=scalefactors_phi[0];
+	else if(phibins.size() == 2 && zbins.size() == 1) phierror*=scalefactors_phi[1];
+	else if(phibins.size() == 1 && zbins.size() == 2) phierror*=scalefactors_phi[2];
+	else if( phibins.size() == 2 && zbins.size() == 2 ) phierror*=scalefactors_phi[0];
 	else if( phibins.size() == 2 && zbins.size() == 3 )  phierror*=scalefactors_phi[1];
 	else if( phibins.size() == 3 && zbins.size() == 2 )  phierror*=scalefactors_phi[2];
 	else if( phibins.size() == 3 && zbins.size() == 3 )  phierror*=scalefactors_phi[3];
+	
 	
 	// scale factors (z direction)
 	/*

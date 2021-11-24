@@ -429,12 +429,15 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	/*
 	  they corresponds to clusters of size 1 and 2 in phi
 	  other clusters, which are very few and pathological, get a scale factor of 1
+	  These scale factors are applied to produce cluster pulls with width unity
 	*/
-	static constexpr std::array<double, 2> scalefactors_phi = {{ 0.81, 0.31 }};
+
 	float phierror = pitch * invsqrt12;
-	if( phibins.size() == 1 ) phierror*=scalefactors_phi[0];
-	else if( phibins.size() == 2 )  phierror*=scalefactors_phi[1];
 	
+	static constexpr std::array<double, 3> scalefactors_phi = {{ 0.85, 0.4, 0.33 }};
+	if( phibins.size() == 1 && layer < 5) phierror*=scalefactors_phi[0];
+	else if( phibins.size() == 2 && layer < 5) phierror*=scalefactors_phi[1];
+	else if( phibins.size() == 2 && layer > 4) phierror*=scalefactors_phi[2]; 
 	// z error. All clusters have a z-size of 1.
 	const float zerror = length * invsqrt12;
 
