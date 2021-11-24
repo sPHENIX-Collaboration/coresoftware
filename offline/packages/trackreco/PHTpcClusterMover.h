@@ -17,6 +17,9 @@
 
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase_historic/ActsTransformations.h>
+#include <tpc/TpcDistortionCorrectionContainer.h>
+#include <tpc/TpcDistortionCorrection.h>
 
 class PHCompositeNode;
 class SvtxTrack;
@@ -52,6 +55,13 @@ void  line_fit(std::vector<Acts::Vector3D> clusters, double &a, double &b);
 					ActsTrackingGeometry *tGeometry,
 					TrkrDefs::subsurfkey& subsurfkey);
 
+
+ /// acts transformation object
+  ActsTransformations _transformer;
+  
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection _distortionCorrection;
+
   double _z_start=0.0; 
   double _y_start=0.0; 
   double _x_start=0.0; 
@@ -65,8 +75,10 @@ void  line_fit(std::vector<Acts::Vector3D> clusters, double &a, double &b);
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};						    
+  TrkrClusterContainer *_corrected_cluster_map{nullptr};						    
   ActsSurfaceMaps *_surfmaps{nullptr};
   ActsTrackingGeometry *_tGeometry{nullptr};
+  TpcDistortionCorrectionContainer* _dcc{nullptr};
 
   double layer_radius[48] = {0};
   double inner_tpc_min_radius = 30.0;

@@ -395,6 +395,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
     {
       auto key = *clusIter;
       auto cluster = m_clusterContainer->findCluster(key);
+      if(!cluster)
+	std::cout << "Failed to get cluster with key " << key << std::endl;
 
       auto subsurfkey = cluster->getSubSurfKey();
       
@@ -818,7 +820,17 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
+  if(m_clusterContainer)
+    {
+      std::cout << " Using CORRECTED_TRKR_CLUSTER node " << std::endl;
+    }
+  else
+    {
+      std::cout << " CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl;
+      m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+    }
+
   if(!m_clusterContainer)
     {
       std::cout << PHWHERE 

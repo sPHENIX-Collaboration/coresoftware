@@ -243,15 +243,17 @@ PHTpcTrackSeedCircleFit::PHTpcTrackSeedCircleFit(const std::string &name):
 {}
 
 //____________________________________________________________________________..
-int PHTpcTrackSeedCircleFit::InitRun(PHCompositeNode*)
-{ return Fun4AllReturnCodes::EVENT_OK; }
-
-//____________________________________________________________________________..
-int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode* topnode)
-{
+int PHTpcTrackSeedCircleFit::InitRun(PHCompositeNode *topnode)
+{ 
   // get relevant nodes
   int ret = GetNodes( topnode );
   if( ret != Fun4AllReturnCodes::EVENT_OK ) return ret;
+
+  return Fun4AllReturnCodes::EVENT_OK; }
+
+//____________________________________________________________________________..
+int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode*)
+{
   
   // _track_map contains the TPC seed track stubs
   // We want to associate these TPC track seeds with a collision vertex
@@ -457,8 +459,18 @@ int  PHTpcTrackSeedCircleFit::GetNodes(PHCompositeNode* topNode)
   if(_use_truth_clusters)
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
   else
-    _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-
+    {
+      _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+      if(_cluster_map)
+	{
+	  std::cout << " using CORRECTED_TRKR_CLUSTER node  "<< std::endl;
+	}
+      else
+	{
+	  std::cout << " CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER " << std::endl;
+	  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+	}
+    }
   if (!_cluster_map)
   {
     std::cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;

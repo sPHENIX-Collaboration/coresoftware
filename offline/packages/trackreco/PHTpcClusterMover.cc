@@ -4,17 +4,19 @@
 
 /// Tracking includes
 
-#include <trackbase/TrkrCluster.h>            // for TrkrCluster
+#include <trackbase/TrkrClusterv3.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
-#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterContainerv3.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/ActsTransformations.h>
+
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/PHCompositeNode.h>
 
 #include <TF1.h>
 
@@ -50,17 +52,17 @@ int PHTpcClusterMover::InitRun(PHCompositeNode *topNode)
   for(int i=0; i < 16; ++i)
     {
       layer_radius[i] = inner_tpc_min_radius + (double) i * inner_tpc_spacing + 0.5 * inner_tpc_spacing;
-      if(Verbosity() > 0) std::cout << " i " << i << " layer_radius " << layer_radius[i] << std::endl;
+      if(Verbosity() > 4) std::cout << " i " << i << " layer_radius " << layer_radius[i] << std::endl;
     }
   for(int i=0; i < 16; ++i)
     {
       layer_radius[i+16] = mid_tpc_min_radius + (double) i * mid_tpc_spacing + 0.5 * mid_tpc_spacing;
-      if(Verbosity() > 0) std::cout << " i " << i << " layer_radius " << layer_radius[i+16] << std::endl;
+      if(Verbosity() > 4) std::cout << " i " << i << " layer_radius " << layer_radius[i+16] << std::endl;
     }
   for(int i=0; i < 16; ++i)
     {
       layer_radius[i+32] = outer_tpc_min_radius + (double) i * outer_tpc_spacing  +  0.5 * outer_tpc_spacing;
-       if(Verbosity() > 0) std::cout << " i " << i << " layer_radius " << layer_radius[i+32] << std::endl;
+       if(Verbosity() > 4) std::cout << " i " << i << " layer_radius " << layer_radius[i+32] << std::endl;
     }
 
   return ret;
@@ -72,8 +74,6 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 
   if(Verbosity() > 0)
     std::cout << PHWHERE << " track map size " << _track_map->size() << std::endl;
-
-  ActsTransformations transformer;
 
   // loop over the tracks
   for (auto phtrk_iter = _track_map->begin();
@@ -93,7 +93,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 		    << std::endl;
 	}
 
-      // Get the TPC clusters for this track
+      // Get the TPC clusters for this track and correct them for distortions
       std::vector<Acts::Vector3D> globalClusterPositions;
       std::map<TrkrDefs::cluskey, Acts::Vector3D> tpc_clusters;
 
@@ -107,31 +107,21 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 
 	  if(trkrId != TrkrDefs::tpcId) continue;  // we want only TPC clusters
 
-	  // get the cluster
+	  // get the cluster in 3D coordinates
 	  TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
-
-	  auto global = transformer.getGlobalPosition(tpc_clus,
+	  auto global = _transformer.getGlobalPosition(tpc_clus,
 						      _surfmaps,
 						      _tGeometry);
 
-	  bool test_mover = true;
-	  if(test_mover)
-	    {
-	      Acts::Vector3D shift(0.2,0.2,0.3);
-	      if(Verbosity() > 10)
-		std::cout << " initial position: " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
+	  // check if TPC distortion correction are in place and apply
+	  if(Verbosity() > 2)  std::cout << "  layer " << layer << " distorted cluster position: " << global[0] << "  " << global[1] << "  " << global[2];
+	  if( _dcc ) global = _distortionCorrection.get_corrected_position( global, _dcc ); 
+	  if(Verbosity() > 2) std::cout << "   corrected cluster position: " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
 
-	      global += shift;
-
-	      if(Verbosity() > 10)
-		std::cout << "         shifted position: " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
-	    }
-
+	  // Store the corrected 3D cluster positions
 	  globalClusterPositions.push_back(global);
 	  tpc_clusters.insert(std::make_pair(cluster_key, global));
 
-	  std::cout << "  TPC cluster in layer " << layer << " with position " << global[0] 
-		    << "  " << global[1] << "  " <<global[2] << " outer_clusters.size() " << tpc_clusters.size() << std::endl;
 	}
 
       // need at least 3 clusters to fit a circle
@@ -209,22 +199,25 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	      continue;
 	    }
 
+	  // get the original cluster
 	  TrkrCluster *cluster =  _cluster_map->findCluster(cluskey);	
-	  cluster->setSubSurfKey(subsurfkey);
 
+	  // put the corrected cluster in the new cluster map
+	  // ghost tracks can have repeat clusters, so use findOrAddClusters
+	  TrkrCluster *newclus = _corrected_cluster_map->findOrAddCluster(cluskey)->second;
+	  newclus->setSubSurfKey(subsurfkey);
+	  newclus->setAdc(cluster->getAdc());
+
+	  newclus->setActsLocalError(0,0,cluster->getActsLocalError(0,0));
+	  newclus->setActsLocalError(1,0,cluster->getActsLocalError(1,0));
+	  newclus->setActsLocalError(0,1,cluster->getActsLocalError(0,1));
+	 newclus->setActsLocalError(1,1,cluster->getActsLocalError(1,1));
+
+	  // get local coordinates
 	  Acts::Vector3D normal = surface->normal(_tGeometry->geoContext);
 	  auto local = surface->globalToLocal(_tGeometry->geoContext,
 					      global * Acts::UnitConstants::cm,
 					      normal);
-
-	  Acts::Vector3D center = surface->center(_tGeometry->geoContext)/Acts::UnitConstants::cm;
-	  double clusRadius = sqrt(xnew * xnew + ynew * ynew);
-	  double clusphi = atan2(ynew, xnew);
-	  double rClusPhi = clusRadius * clusphi;
-	  double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
-	  double surfPhiCenter = atan2(center[1], center[0]);
-	  double surfRphiCenter = surfPhiCenter * surfRadius;
-	  double surfZCenter = center[2];
 
 	  Acts::Vector2D localPos;
 	  if(local.ok())
@@ -234,22 +227,32 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  else
 	    {
 	      /// otherwise take the manual calculation
+	      Acts::Vector3D center = surface->center(_tGeometry->geoContext)/Acts::UnitConstants::cm;
+	      double clusRadius = sqrt(xnew * xnew + ynew * ynew);
+	      double clusphi = atan2(ynew, xnew);
+	      double rClusPhi = clusRadius * clusphi;
+	      double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
+	      double surfPhiCenter = atan2(center[1], center[0]);
+	      double surfRphiCenter = surfPhiCenter * surfRadius;
+	      double surfZCenter = center[2];
+	      
 	      localPos(0) = rClusPhi - surfRphiCenter;
 	      localPos(1) = znew - surfZCenter; 
 	    }
-
-	  cluster->setLocalX(localPos(0));
-	  cluster->setLocalY(localPos(1));
-
-	  if(Verbosity() > 0)
+	  
+	  if(Verbosity() > 4)
 	    {
 	      std::cout << "*** cluster_radius " << cluster_radius << " cluster x,y,z: " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
 	      std::cout << "    projection_radius " << target_radius << " proj x,y,z: " << _x_proj << "  " << _y_proj << "  " << _z_proj << std::endl; 
 	      std::cout << "    traj_start_radius " << cluster_radius << " start x,y,z: "<< _x_start << "  " << _y_start << "  " << _z_start << std::endl; 
 	      std::cout << "    moved_clus_radius " << target_radius << " final x,y,z: "<< xnew << "  " << ynew << "  " << znew << std::endl; 
 	    }
-	  
+
+	  newclus->setLocalX(localPos(0));
+	  newclus->setLocalY(localPos(1));
 	}
+
+      // The silicon clusters  for this track will be copied over after the matching is done
     }
   
   return Fun4AllReturnCodes::EVENT_OK;
@@ -289,15 +292,58 @@ int  PHTpcClusterMover::GetNodes(PHCompositeNode* topNode)
       std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+
+  // tpc distortion correction
+  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  if( _dcc )
+    { 
+      std::cout << "PHTpcClusterMover:   found TPC distortion correction container" << std::endl; 
+    }
+      
+  // create the node for distortion corrected clusters, if it does not already exist
+  _corrected_cluster_map  = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+  if(!_corrected_cluster_map)
+    {
+      std::cout << "Creating node CORRECTED_TRKR_CLUSTER" << std::endl;
+
+      PHNodeIterator iter(topNode);
+
+      // Looking for the DST node
+      PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+      if (!dstNode)
+	{
+	  std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}      
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      if (!DetNode)
+	{
+	  DetNode = new PHCompositeNode("TRKR");
+	  dstNode->addNode(DetNode);
+	}
+      
+      _corrected_cluster_map = new TrkrClusterContainerv3;
+      PHIODataNode<PHObject> *TrkrClusterContainerNode =
+        new PHIODataNode<PHObject>(_corrected_cluster_map, "CORRECTED_TRKR_CLUSTER", "PHObject");
+      DetNode->addNode(TrkrClusterContainerNode);
+    }    
+  else
+    {
+      _corrected_cluster_map->Reset();
+    }          
+
+
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHTpcClusterMover::get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xclus, double yclus, double &x, double &y)
- {
-   // finds the intersection of the fitted circle with the cylinder having radius = target_radius
-   double xplus = 0;
-   double yplus = 0; 
+{
+  // finds the intersection of the fitted circle with the cylinder having radius = target_radius
+  double xplus = 0;
+  double yplus = 0; 
    double xminus = 0;
    double yminus = 0;
    
@@ -341,8 +387,6 @@ void PHTpcClusterMover::CircleFitByTaubin (std::vector<Acts::Vector3D> clusters,
        Nikolai Chernov  (September 2012)
 */
 {
-  //  ActsTransformations transformer;
-
   int iter,IterMAX=99;
   
   double Mz,Mxy,Mxx,Myy,Mxz,Myz,Mzz,Cov_xy,Var_z;
@@ -356,7 +400,7 @@ void PHTpcClusterMover::CircleFitByTaubin (std::vector<Acts::Vector3D> clusters,
   double weight = 0;
   for(unsigned int iclus = 0; iclus < clusters.size(); ++iclus)
     {
-      std::cout << "    add cluster with x " << clusters[iclus][0] << " and y " << clusters[iclus][1] << std::endl;
+      if(Verbosity() > 3)  std::cout << "    add cluster with x " << clusters[iclus][0] << " and y " << clusters[iclus][1] << std::endl;
       meanX += clusters[iclus][0];
       meanY += clusters[iclus][1];
       weight++;
