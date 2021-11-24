@@ -288,14 +288,25 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode*)
 
       // Get the TPC clusters for this tracklet
       std::vector<TrkrCluster*> clusters = getTrackClusters(tracklet_tpc);
+      if(Verbosity() > 3) std::cout << " TPC tracklet " << tracklet_tpc->get_id() << " clusters.size " << clusters.size() << std::endl;
 
       // count TPC layers for this track
+      bool reject_track = false;
       std::set<unsigned int> layers;
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
+	  if(!clusters[i])
+	    {
+	      if(Verbosity() > 0) std::cout << " trackid " << phtrk_iter->first << " no cluster found, skip track" << std::endl;
+	      reject_track = true;
+	      break;
+	    }	      
 	  unsigned int layer = TrkrDefs::getLayer(clusters[i]->getClusKey());
 	  layers.insert(layer);
 	}
+
+      if(reject_track) continue;
+    
       unsigned int nlayers = layers.size();
       if(Verbosity() > 2) std::cout << "    TPC layers this track: " << nlayers << std::endl;
 

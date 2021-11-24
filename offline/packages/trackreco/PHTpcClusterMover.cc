@@ -140,7 +140,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
 
       // toss tracks for which the fitted circle could not have come from the vertex
-      if(R < 30.0) continue;
+      //if(R < 30.0) continue;
 
       // get the straight line representing the z trajectory in the form of z vs radius
       double A = 0; double B = 0;
@@ -203,7 +203,10 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  TrkrCluster *cluster =  _cluster_map->findCluster(cluskey);	
 
 	  // put the corrected cluster in the new cluster map
-	  // ghost tracks can have repeat clusters, so use findOrAddClusters
+
+	  // ghost tracks can have repeat clusters, so check if cluster already moved
+	  if(_corrected_cluster_map->findCluster(cluskey)) continue;
+
 	  TrkrCluster *newclus = _corrected_cluster_map->findOrAddCluster(cluskey)->second;
 	  newclus->setSubSurfKey(subsurfkey);
 	  newclus->setAdc(cluster->getAdc());
