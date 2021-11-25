@@ -583,8 +583,18 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
   if(_use_truth_clusters)
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
   else
-    _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-
+    {
+      _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+      if(_cluster_map)
+	{
+	  std::cout << " Using CORRECTED_TRKR_CLUSTER node " << std::endl;
+	}
+      else
+	{
+	  std::cout << " CORRECTED_TRKR_CLUSTER node not found, usimng TRKR_CLUSTER" << std::endl;
+	  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+	}
+    }
   if (!_cluster_map)
   {
     std:: cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
