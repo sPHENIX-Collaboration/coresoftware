@@ -16,6 +16,7 @@ AM_LDFLAGS = \
 libg4centrality_la_LIBADD = \
   -lfun4all \
   -lphg4hit \
+  -lphparameter \
   -lcentrality_io \
   -lCGAL \
   -ltrackbase_historic_io
