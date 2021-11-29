@@ -159,7 +159,7 @@ class PHCASeeding : public PHTrackSeeding
   /// distortion correction object
   TpcDistortionCorrectionContainer* m_dcc = nullptr;
   
-  std::shared_ptr<ALICEKF> fitter;
+  std::unique_ptr<ALICEKF> fitter;
  
   std::unique_ptr<PHTimer> t_seed;
   std::unique_ptr<PHTimer> t_fill;
