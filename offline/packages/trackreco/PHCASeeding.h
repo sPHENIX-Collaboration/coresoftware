@@ -11,6 +11,7 @@
 //begin
 
 #include "PHTrackSeeding.h"      // for PHTrackSeeding
+#include "ALICEKF.h"
 
 #include <tpc/TpcDistortionCorrection.h>
 
@@ -36,7 +37,6 @@
 
 struct ActsSurfaceMaps;
 struct ActsTrackingGeometry;
-class ALICEKF;
 class PHCompositeNode;  
 class PHTimer;
 class SvtxTrack_v2;

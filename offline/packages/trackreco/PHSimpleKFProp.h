@@ -7,6 +7,7 @@
 #ifndef TRACKRECO_PHSIMPLEKFPROP_H
 #define TRACKRECO_PHSIMPLEKFPROP_H
 
+#include "ALICEKF.h"
 #include "nanoflann.hpp"
 
 // PHENIX includes
@@ -25,7 +26,6 @@
 // forward declarations
 struct ActsSurfaceMaps;
 struct ActsTrackingGeometry;
-class ALICEKF;
 class PHCompositeNode;
 class PHField;
 class SvtxTrack;
