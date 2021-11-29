@@ -549,7 +549,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
   const double track_px = track->get_px();
   const double track_py = track->get_py();
   const double track_pz = track->get_pz();
-  const double track_pt = std::sqrt( square( track_py ) + square( track_pz ) );
+  const double track_pt = std::sqrt( square( track_py ) + square( track_px ) );
   const double track_pt3 = std::pow( track_pt, 3. );
   
   Eigen::Matrix<double,6,5> Jrot;
