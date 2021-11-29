@@ -1,20 +1,34 @@
+/*!
+ *  \file PHSimpleKFProp.cc
+ *  \brief		kalman filter based propagator
+ *  \author Michael Peters & Christof Roland
+ */
+
 #include "PHSimpleKFProp.h"
 
+#include "ALICEKF.h"
 #include "AssocInfoContainer.h"
 #include "nanoflann.hpp"
 #include "GPUTPCTrackParam.h"
 #include "GPUTPCTrackLinearisation.h"
-#include <trackbase_historic/ActsTransformations.h>
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
+#include <fun4all/Fun4AllReturnCodes.h>
 
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 #include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
-#include <Geant4/G4SystemOfUnits.hh>
+
+#include <phool/getClass.h>
+#include <phool/phool.h>                       // for PHWHERE
+
+// tpc distortion correction
+#include <tpc/TpcDistortionCorrectionContainer.h>
+
+#include <trackbase_historic/ActsTransformations.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -22,13 +36,10 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <Geant4/G4SystemOfUnits.hh>
 
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/getClass.h>
-#include <phool/phool.h>                       // for PHWHERE
+#include <Eigen/Core>
+#include <Eigen/Dense>
 
 #include <iostream>                            // for operator<<, basic_ostream
 #include <vector>
@@ -236,6 +247,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   
   int ret = get_nodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+  
   _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
   if(!_surfmaps)
     {
@@ -249,6 +261,11 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
       std::cout << "No Acts tracking geometry, exiting." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+   
+  // tpc distortion correction
+  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  if( m_dcc )
+  { std::cout << "PHSimpleKFProp::InitRun - found TPC distortion correction container" << std::endl; }
 
   fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_fieldDir,
 				     _min_clusters_per_track,_max_sin_phi,Verbosity());
@@ -329,10 +346,10 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   }
 
   if(Verbosity()>0) std::cout << "starting Process" << std::endl;
-  MoveToFirstTPCCluster();
-  if(Verbosity()>0) std::cout << "moved tracks into TPC" << std::endl;
-  const PositionMap globalPositions = PrepareKDTrees();
+  const auto globalPositions = PrepareKDTrees();
   if(Verbosity()>0) std::cout << "prepared KD trees" << std::endl;
+  MoveToFirstTPCCluster(globalPositions);
+  if(Verbosity()>0) std::cout << "moved tracks into TPC" << std::endl;
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<SvtxTrack> unused_tracks;
   for(SvtxTrackMap::Iter track_it = _track_map->begin(); track_it != _track_map->end(); ++track_it )
@@ -365,6 +382,19 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+Acts::Vector3D PHSimpleKFProp::getGlobalPosition( TrkrCluster* cluster ) const
+{
+  // get global position from Acts transform
+  auto globalpos = m_transform.getGlobalPosition(cluster,
+    _surfmaps,
+    _tgeometry);
+
+  // check if TPC distortion correction are in place and apply
+  if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
+
+  return globalpos;
+}
+
 PositionMap PHSimpleKFProp::PrepareKDTrees()
 {
   PositionMap globalPositions;
@@ -377,12 +407,9 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
     return globalPositions;
   }
 
-
-  ActsTransformations transformer;
   auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
+  for (auto hitsetitr = hitsetrange.first; hitsetitr != hitsetrange.second; ++hitsetitr)
+  {
     auto range = _cluster_map->getClusters(hitsetitr->first);
     for (TrkrClusterContainer::ConstIterator it = range.first; it != range.second; ++it)
     {
@@ -390,22 +417,24 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
       TrkrCluster* cluster = it->second;
       if(!cluster) continue;
       if(_n_iteration!=0){
-	if(_iteration_map != NULL ){
-	  //	  std::cout << "map exists entries: " << _iteration_map->size() << std::endl;
-	  if(_iteration_map->getIteration(cluskey)>0){ 
-	    //std::cout << "hit used, continue" << std::endl;
-	    continue; // skip hits used in a previous iteration
-	  }
-	}
+        if(_iteration_map != NULL ){
+          //	  std::cout << "map exists entries: " << _iteration_map->size() << std::endl;
+          if(_iteration_map->getIteration(cluskey)>0){ 
+            //std::cout << "hit used, continue" << std::endl;
+            continue; // skip hits used in a previous iteration
+          }
+        }
       }
 
-      auto globalPos = transformer.getGlobalPositionF(cluster,_surfmaps,_tgeometry);
-      globalPositions.insert(std::make_pair(cluskey, globalPos));
+      const Acts::Vector3D globalpos_d = getGlobalPosition(cluster);
+      const Acts::Vector3F globalpos = { (float) globalpos_d.x(), (float) globalpos_d.y(), (float) globalpos_d.z()};
+      globalPositions.insert(std::make_pair(cluskey, globalpos));
+
       int layer = TrkrDefs::getLayer(cluskey);
       std::vector<double> kdhit(4);
-      kdhit[0] = globalPos(0);
-      kdhit[1] = globalPos(1);
-      kdhit[2] = globalPos(2);
+      kdhit[0] = globalpos_d.x();
+      kdhit[1] = globalpos_d.y();
+      kdhit[2] = globalpos_d.z();
       uint64_t key = cluster->getClusKey();
       std::memcpy(&kdhit[3], &key, sizeof(key));
     
@@ -436,41 +465,34 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
   return globalPositions;
 }
 
-void PHSimpleKFProp::MoveToFirstTPCCluster()
+void PHSimpleKFProp::MoveToFirstTPCCluster( const PositionMap& globalPositions )
 {
-  for(auto& [key, track] : *_track_map)
+  for(const auto& [key, track] : *_track_map)
+  {
+    double track_x = track->get_x();
+    double track_y = track->get_y();
+    if(sqrt(track_x*track_x+track_y*track_y)>10.)
     {
-      double track_x = track->get_x();
-      double track_y = track->get_y();
-      if(sqrt(track_x*track_x+track_y*track_y)>10.)
-	{
-	  if(Verbosity()>0) std::cout << "WARNING: attempting to move track to TPC which is already in TPC! Aborting for this track." << std::endl;
-	  continue;
-	}
-      // get cluster keys
+      if(Verbosity()>0) std::cout << "WARNING: attempting to move track to TPC which is already in TPC! Aborting for this track." << std::endl;
+      continue;
+    }
+     
+    // get cluster keys
       std::vector<TrkrDefs::cluskey> ckeys;
       std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
-      std::vector<TrkrCluster*> tpc_clusters;
+      
       std::vector<Acts::Vector3F> trkGlobPos;
-
-      // get circle fit for TPC clusters plus vertex
-      ActsTransformations transformer;
-      // extract TPC clusters
-      for(auto& ckey : ckeys)
-	{
-    if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId )	   
-    {
-	      auto clus = _cluster_map->findCluster(ckey);
-	      tpc_clusters.push_back(clus);
-	      auto global = transformer.getGlobalPositionF(clus,_surfmaps, _tgeometry);
-	      trkGlobPos.push_back(global);
-	    }
-	}
+      for(const auto& ckey : ckeys)
+      {
+        if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId )
+        { trkGlobPos.push_back(globalPositions.at(ckey)); }
+      }
 
       // get circle fit for TPC clusters plus vertex
       double R = 0;
       double xc = 0;
       double yc = 0;
+      
       CircleFitByTaubin(trkGlobPos,R,xc,yc);
     // want angle of tangent to circle at innermost (i.e. last) cluster
       size_t inner_index;
