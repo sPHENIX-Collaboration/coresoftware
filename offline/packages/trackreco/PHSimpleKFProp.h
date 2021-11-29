@@ -1,37 +1,40 @@
 /*!
- *  \file		  PHTrackPropagating.h
- *  \brief		Base class for track seeding
- *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ *  \file PHSimpleKFProp.h
+ *  \brief		kalman filter based propagator
+ *  \author Michael Peters & Christof Roland
  */
 
 #ifndef TRACKRECO_PHSIMPLEKFPROP_H
 #define TRACKRECO_PHSIMPLEKFPROP_H
 
+#include "nanoflann.hpp"
+
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
+#include <tpc/TpcDistortionCorrection.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
-#include <phfield/PHField.h>
-#include "nanoflann.hpp"
-#include "ALICEKF.h"
-
-// STL includes
-#include <string>
-#include <vector>
-#include <memory>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <Eigen/Core>
 
+// STL includes
+#include <memory>
+#include <string>
+#include <vector>
+
 // forward declarations
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
+class ALICEKF;
 class PHCompositeNode;
+class PHField;
+class SvtxTrack;
+class SvtxTrack_v2;
+class TpcDistortionCorrectionContainer;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
-class SvtxVertexMap;
 class SvtxTrackMap;
-class AssocInfoContainer;
 
 using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3F>;
 
@@ -63,6 +66,13 @@ class PHSimpleKFProp : public SubsysReco
   void SetIteration(int iter){_n_iteration = iter;}
 
  private:
+
+  /// acts transformation object
+  ActsTransformations m_transform;
+
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection m_distortionCorrection;
+
   bool _use_truth_clusters = false;
   
   /// fetch node pointers
@@ -88,10 +98,27 @@ class PHSimpleKFProp : public SubsysReco
   SvtxTrackMap *_track_map = nullptr;
   TrkrHitSetContainer *_hitsets = nullptr;
   PHField* _field_map = nullptr;
+  
+  /// acts geometry
   ActsTrackingGeometry *_tgeometry = nullptr;
+
+  /// acts surface map
   ActsSurfaceMaps *_surfmaps = nullptr;
-  void MoveToFirstTPCCluster();
+
+  /// distortion correction container
+  TpcDistortionCorrectionContainer* m_dcc = nullptr;
+
+  /// get global position for a given cluster
+  /**
+   * uses ActsTransformation to convert cluster local position into global coordinates
+   * incorporates TPC distortion correction, if present
+   */
+  Acts::Vector3D getGlobalPosition(TrkrCluster*) const;
+
   PositionMap PrepareKDTrees();
+
+  void MoveToFirstTPCCluster(const PositionMap&);
+
   std::vector<TrkrDefs::cluskey> PropagateTrack(SvtxTrack* track, const PositionMap& globalPositions) const;
   std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(const std::vector<std::vector<TrkrDefs::cluskey>>& seeds, const PositionMap& globalPositions) const;
   template <typename T>
