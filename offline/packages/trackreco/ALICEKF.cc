@@ -24,9 +24,9 @@
 #define LogWarning(exp) if(Verbosity()>0) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
 
 using namespace std;
-typedef vector<TrkrDefs::cluskey> keylist;
+using keylist = vector<TrkrDefs::cluskey>;
 
-bool ALICEKF::checknan(double val, const std::string &name, int num)
+bool ALICEKF::checknan(double val, const std::string &name, int num) const
 {
   if(std::isnan(val))
   {
@@ -35,7 +35,7 @@ bool ALICEKF::checknan(double val, const std::string &name, int num)
   return std::isnan(val);
 }
 
-double ALICEKF::get_Bz(double x, double y, double z)
+double ALICEKF::get_Bz(double x, double y, double z) const
 {
   if(_use_const_field) return 1.4;
   double p[4] = {x*cm,y*cm,z*cm,0.*cm};
@@ -44,7 +44,7 @@ double ALICEKF::get_Bz(double x, double y, double z)
   return bfield[2]/tesla;
 }
 
-double ALICEKF::getClusterError(TrkrCluster* c, Acts::Vector3F global, int i, int j)
+double ALICEKF::getClusterError(TrkrCluster* c, Acts::Vector3F global, int i, int j) const
 {
   if(_use_fixed_clus_error) 
   {
@@ -84,7 +84,7 @@ double ALICEKF::getClusterError(TrkrCluster* c, Acts::Vector3F global, int i, in
     }
 }
 
-vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,bool use_nhits_limit, const PositionMap& globalPositions)
+vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(const vector<keylist>& trackSeedKeyLists,bool use_nhits_limit, const PositionMap& globalPositions) const
 {
 //  TFile* f = new TFile("/sphenix/u/mjpeters/macros_hybrid/detectors/sPHENIX/pull.root", "RECREATE");
 //  TNtuple* ntp = new TNtuple("pull","pull","cx:cy:cz:xerr:yerr:zerr:tx:ty:tz:layer:xsize:ysize:phisize:phierr:zsize");
@@ -92,14 +92,14 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
   int nseeds = 0;
  
   if(Verbosity()>0) std::cout << "min clusters per track: " << _min_clusters_per_track << "\n";
-  for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
+  for( auto trackKeyChain:trackSeedKeyLists )
   {
-    if(trackKeyChain->size()<2) continue;
-    if(use_nhits_limit && trackKeyChain->size() < _min_clusters_per_track) continue;
-    if(TrkrDefs::getLayer(trackKeyChain->front())<TrkrDefs::getLayer(trackKeyChain->back())) std::reverse(trackKeyChain->begin(),trackKeyChain->end());
+    if(trackKeyChain.size()<2) continue;
+    if(use_nhits_limit && trackKeyChain.size() < _min_clusters_per_track) continue;
+    if(TrkrDefs::getLayer(trackKeyChain.front())<TrkrDefs::getLayer(trackKeyChain.back())) std::reverse(trackKeyChain.begin(),trackKeyChain.end());
     // get starting cluster from key
     // Transform sPHENIX coordinates into ALICE-compatible coordinates
-    const auto& globalpos = globalPositions.at(trackKeyChain->at(0));
+    const auto& globalpos = globalPositions.at(trackKeyChain.at(0));
     double x0 = globalpos(0);
     double y0 = globalpos(1);
     double z0 = globalpos(2);;
@@ -124,7 +124,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     double trackCartesian_y = 0.;
     double trackCartesian_z = 0.;
     // Pre-set momentum-based parameters to improve numerical stability
-    const auto& secondpos = globalPositions.at(trackKeyChain->at(1));
+    const auto& secondpos = globalPositions.at(trackKeyChain.at(1));
 
     double second_x = secondpos(0);
     double second_y = secondpos(1);
@@ -144,9 +144,9 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     
     // get initial pt estimate
     std::vector<std::pair<double,double>> pts;
-    for(size_t c=0;c<trackKeyChain->size();++c)
+    for(size_t c=0;c<trackKeyChain.size();++c)
     {
-      const auto& clpos = globalPositions.at(trackKeyChain->at(c));
+      const auto& clpos = globalPositions.at(trackKeyChain.at(c));
       pts.push_back(std::make_pair(clpos(0),clpos(1)));
     }
     double R;
@@ -172,7 +172,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
   
     GPUTPCTrackLinearisation trackLine(trackSeed);
 
-    LogDebug(endl << endl << "------------------------" << endl << "seed size: " << trackKeyChain->size() << endl << endl << endl);
+    LogDebug(endl << endl << "------------------------" << endl << "seed size: " << trackKeyChain.size() << endl << endl << endl);
     int cluster_ctr = 1;
 //    bool aborted = false;
     // starting at second cluster, perform track propagation
@@ -191,7 +191,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     std::vector<double> phisize;
     std::vector<double> phierr;
     std::vector<double> zsize;
-    for(keylist::iterator clusterkey = next(trackKeyChain->begin()); clusterkey != trackKeyChain->end(); ++clusterkey)
+    for(auto clusterkey = next(trackKeyChain.begin()); clusterkey != trackKeyChain.end(); ++clusterkey)
     {
       LogDebug("-------------------------------------------------------------" << endl);
       LogDebug("cluster " << cluster_ctr << " -> " << cluster_ctr + 1 << endl);
@@ -441,7 +441,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     #endif
     double track_pterr = sqrt(trackSeed.GetErr2QPt())/(trackSeed.GetQPt()*trackSeed.GetQPt());
     // If Kalman filter doesn't do its job (happens often with short seeds), use the circle-fit estimate as the central value
-    if(trackKeyChain->size()<10) track_pt = fabs(1./init_QPt);
+    if(trackKeyChain.size()<10) track_pt = fabs(1./init_QPt);
     LogDebug("track pt = " << track_pt << " +- " << track_pterr << endl);
     LogDebug("track ALICE p = (" << track_pX << ", " << track_pY << ", " << track_pz << ")" << endl);
     LogDebug("track p = (" << track_px << ", " << track_py << ", " << track_pz << ")" << endl);
@@ -469,8 +469,8 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     if(checknan(track_z,"z",nseeds)) continue;
     double track_zerr = sqrt(trackSeed.GetErr2Z());
     if(checknan(track_zerr,"zerr",nseeds)) continue;
-    auto lcluster = _cluster_map->findCluster(trackKeyChain->back());
-    const auto& lclusterglob = globalPositions.at(trackKeyChain->back());
+    auto lcluster = _cluster_map->findCluster(trackKeyChain.back());
+    const auto& lclusterglob = globalPositions.at(trackKeyChain.back());
     const float lclusterrad = sqrt(lclusterglob(0)*lclusterglob(0) + lclusterglob(1)*lclusterglob(1));
     double last_cluster_phierr = lcluster->getRPhiError() / lclusterrad;
     // phi error assuming error in track radial coordinate is zero
@@ -486,9 +486,9 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     SvtxTrack_v2 track;
     track.set_id(nseeds);
 //    track.set_vertex_id(_vertex_ids[best_vtx]);
-    for (unsigned int j = 0; j < trackKeyChain->size(); ++j)
+    for (unsigned int j = 0; j < trackKeyChain.size(); ++j)
     {
-      track.insert_cluster_key(trackKeyChain->at(j));
+      track.insert_cluster_key(trackKeyChain.at(j));
     }
     track.set_chisq(trackSeed.GetChi2());
     track.set_ndf(trackSeed.GetNDF());
@@ -499,7 +499,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     double s = sin(track_phi);
     double c = cos(track_phi);
     double p = trackSeed.GetSinPhi();
-    // TrkrCluster *cl = _cluster_map->findCluster(trackKeyChain->at(0));
+    // TrkrCluster *cl = _cluster_map->findCluster(trackKeyChain.at(0));
     track.set_x(trackSeed.GetX()*c-trackSeed.GetY()*s);//_vertex_x[best_vtx]);  //track.set_x(cl->getX());
     track.set_y(trackSeed.GetX()*s+trackSeed.GetY()*c);//_vertex_y[best_vtx]);  //track.set_y(cl->getY());
     track.set_z(trackSeed.GetZ());//_vertex_z[best_vtx]);  //track.set_z(cl->getZ());
@@ -698,7 +698,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
   return seeds_vector;
 }
 
-Eigen::Matrix<double,6,6> ALICEKF::getEigenCov(SvtxTrack_v2 &track)
+Eigen::Matrix<double,6,6> ALICEKF::getEigenCov(const SvtxTrack_v2 &track) const
 {
   Eigen::Matrix<double,6,6> cov;
   for(int i=0;i<6;i++)
@@ -711,7 +711,7 @@ Eigen::Matrix<double,6,6> ALICEKF::getEigenCov(SvtxTrack_v2 &track)
   return cov;
 }
 
-bool ALICEKF::covIsPosDef(SvtxTrack_v2 &track)
+bool ALICEKF::covIsPosDef(const SvtxTrack_v2 &track) const
 {
   // put covariance matrix into Eigen container
   Eigen::Matrix<double,6,6> cov = getEigenCov(track);
@@ -721,7 +721,7 @@ bool ALICEKF::covIsPosDef(SvtxTrack_v2 &track)
   return (chDec.info() != Eigen::NumericalIssue);
 }
 
-void ALICEKF::repairCovariance(SvtxTrack_v2 &track)
+void ALICEKF::repairCovariance(SvtxTrack_v2 &track) const
 {
   // find closest positive definite matrix
   Eigen::Matrix<double,6,6> cov = getEigenCov(track);
@@ -739,7 +739,7 @@ void ALICEKF::repairCovariance(SvtxTrack_v2 &track)
     }
   }
 }
-void ALICEKF::CircleFitByTaubin (std::vector<std::pair<double,double>> points, double &R, double &X0, double &Y0)
+void ALICEKF::CircleFitByTaubin (const std::vector<std::pair<double,double>>& points, double &R, double &X0, double &Y0) const
 /*  
       Circle fit to a given set of data points (in 2D)
       This is an algebraic fit, due to Taubin, based on the journal article
@@ -832,7 +832,7 @@ void ALICEKF::CircleFitByTaubin (std::vector<std::pair<double,double>> points, d
   R = sqrt(Xcenter*Xcenter + Ycenter*Ycenter + Mz);
 }
 
-void  ALICEKF::line_fit(std::vector<std::pair<double,double>> points, double &a, double &b)
+void  ALICEKF::line_fit(const std::vector<std::pair<double,double>>& points, double &a, double &b) const
 {
   // copied from: https://www.bragitoff.com
   // we want to fit z vs radius
@@ -864,7 +864,7 @@ void  ALICEKF::line_fit(std::vector<std::pair<double,double>> points, double &a,
     return;
 }   
 
-void  ALICEKF::line_fit_clusters(std::vector<TrkrCluster*> clusters, std::vector<Acts::Vector3F>& globalPositions, double &a, double &b)
+void  ALICEKF::line_fit_clusters(const std::vector<TrkrCluster*>& clusters, const std::vector<Acts::Vector3F>& globalPositions, double &a, double &b) const
 {
   std::vector<std::pair<double,double>> points;
   for (unsigned int i=0; i<clusters.size(); ++i)
@@ -881,7 +881,7 @@ void  ALICEKF::line_fit_clusters(std::vector<TrkrCluster*> clusters, std::vector
     return;
 }
 
-std::vector<double> ALICEKF::GetCircleClusterResiduals(std::vector<std::pair<double,double>> points, double R, double X0, double Y0)
+std::vector<double> ALICEKF::GetCircleClusterResiduals(const std::vector<std::pair<double,double>>& points, double R, double X0, double Y0) const
 {
   std::vector<double> residues;
   // calculate cluster residuals from the fitted circle
@@ -897,7 +897,7 @@ std::vector<double> ALICEKF::GetCircleClusterResiduals(std::vector<std::pair<dou
   return residues;  
 }
 
-std::vector<double> ALICEKF::GetLineClusterResiduals(std::vector<std::pair<double,double>> points, double A, double B)
+std::vector<double> ALICEKF::GetLineClusterResiduals(const std::vector<std::pair<double,double>>& points, double A, double B) const
 {
   std::vector<double> residues;
   // calculate cluster residuals from the fitted circle
