@@ -14,6 +14,8 @@ class SvtxTrack;
 class TF1;
 class TpcSeedTrackMap;
 class AssocInfoContainer;
+class TrkrClusterContainer;
+
 class PHSiliconTpcTrackMatching : public SubsysReco
 {
  public:
@@ -57,6 +59,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
 
+  void copySiliconClustersToCorrectedMap( );
+
   std::string _track_map_name_silicon;
 
   // default values, can be replaced from the macro
@@ -71,6 +75,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   SvtxTrackMap *_track_map_silicon{nullptr};
   SvtxTrack *_tracklet_tpc{nullptr};
   SvtxTrack *_tracklet_si{nullptr};
+  TrkrClusterContainer *_cluster_map{nullptr};
+  TrkrClusterContainer *_corrected_cluster_map{nullptr};
 
   TpcSeedTrackMap *_seed_track_map{nullptr};
   //std::multimap<unsigned int, unsigned int> _seed_track_map;
