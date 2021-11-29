@@ -131,7 +131,7 @@ class PHSimpleKFProp : public SubsysReco
   double get_Bz(double x, double y, double z) const;
   void publishSeeds(const std::vector<SvtxTrack_v2>&);
   void publishSeeds(const std::vector<SvtxTrack>&);
-  void MoveToVertex();
+//   void MoveToVertex();
 
   bool _use_const_field = false;
   bool _use_fixed_clus_err = false;
