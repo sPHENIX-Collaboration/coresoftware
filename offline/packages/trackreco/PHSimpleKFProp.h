@@ -92,8 +92,8 @@ class PHSimpleKFProp : public SubsysReco
   ActsSurfaceMaps *_surfmaps = nullptr;
   void MoveToFirstTPCCluster();
   PositionMap PrepareKDTrees();
-  std::vector<TrkrDefs::cluskey> PropagateTrack(SvtxTrack* track, PositionMap& globalPositions);
-  std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(std::vector<std::vector<TrkrDefs::cluskey>> seeds, PositionMap& globalPositions);
+  std::vector<TrkrDefs::cluskey> PropagateTrack(SvtxTrack* track, const PositionMap& globalPositions) const;
+  std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(const std::vector<std::vector<TrkrDefs::cluskey>>& seeds, const PositionMap& globalPositions) const;
   template <typename T>
   struct KDPointCloud
   {
@@ -128,7 +128,7 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<std::shared_ptr<KDPointCloud<double>>> _ptclouds;
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
-  double get_Bz(double x, double y, double z);
+  double get_Bz(double x, double y, double z) const;
   void publishSeeds(std::vector<SvtxTrack_v2>);
   void publishSeeds(std::vector<SvtxTrack>);
   void MoveToVertex();

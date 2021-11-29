@@ -88,7 +88,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-double PHSimpleKFProp::get_Bz(double x, double y, double z)
+double PHSimpleKFProp::get_Bz(double x, double y, double z) const
 {
   if(_use_const_field) return 1.4;
   double p[4] = {x*cm,y*cm,z*cm,0.*cm};
@@ -158,7 +158,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   if(Verbosity()>0) cout << "starting Process" << endl;
   MoveToFirstTPCCluster();
   if(Verbosity()>0) cout << "moved tracks into TPC" << endl;
-  PositionMap globalPositions = PrepareKDTrees();
+  const PositionMap globalPositions = PrepareKDTrees();
   if(Verbosity()>0) cout << "prepared KD trees" << endl;
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<SvtxTrack> unused_tracks;
@@ -336,7 +336,7 @@ void PHSimpleKFProp::MoveToFirstTPCCluster()
 
 }
 
-std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, PositionMap& globalPositions)
+std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, const PositionMap& globalPositions) const
 {
   // extract cluster list
   std::vector<TrkrDefs::cluskey> ckeys;
@@ -500,7 +500,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
     {
       if(Verbosity()>0) cout << "layer is filled" << endl;
       TrkrCluster* nc = _cluster_map->findCluster(next_ckey);
-      auto globalpos = globalPositions.find(next_ckey)->second;
+      auto globalpos = globalPositions.at(next_ckey);
       double cx = globalpos(0);
       double cy = globalpos(1);
       double cz = globalpos(2);
@@ -605,7 +605,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
       std::vector<double> point = _ptclouds[l]->pts[index_out[0]];
       TrkrDefs::cluskey closest_ckey = (*((int64_t*)&point[3]));
       TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
-      auto ccglob = globalPositions.find(closest_ckey)->second;
+      auto ccglob = globalPositions.at(closest_ckey);
       double ccX = ccglob(0);
       double ccY = ccglob(1);
       double ccZ = ccglob(2);
@@ -679,7 +679,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
     if(layer_filled)
     {
       if(Verbosity()>0) cout << "layer is filled" << endl;
-      auto ncglob = globalPositions.find(next_ckey)->second;
+      auto ncglob = globalPositions.at(next_ckey);
       double cx = ncglob(0);
       double cy = ncglob(1);
       double cz = ncglob(2);
@@ -744,7 +744,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
       std::vector<double> point = _ptclouds[l]->pts[index_out[0]];
       TrkrDefs::cluskey closest_ckey = (*((int64_t*)&point[3]));
       TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
-      auto ccglob2 = globalPositions.find(closest_ckey)->second;
+      auto ccglob2 = globalPositions.at(closest_ckey);
       double ccX = ccglob2(0);
       double ccY = ccglob2(1);
       double ccZ = ccglob2(2);
@@ -792,20 +792,20 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
   return propagated_track;
 }
 
-vector<keylist> PHSimpleKFProp::RemoveBadClusters(vector<keylist> chains, PositionMap& globalPositions)
+vector<keylist> PHSimpleKFProp::RemoveBadClusters(const vector<keylist>& chains, const PositionMap& globalPositions) const
 {
   if(Verbosity()>0) cout << "removing bad clusters" << endl;
   vector<keylist> clean_chains;
-  for(keylist& chain : chains)
+  for(const keylist& chain : chains)
   {
     if(chain.size()<3) continue;
     keylist clean_chain;
 
     vector<pair<double,double>> xy_pts;
     vector<pair<double,double>> rz_pts;
-    for(TrkrDefs::cluskey& ckey : chain)
+    for(const TrkrDefs::cluskey& ckey : chain)
     {
-      auto global = globalPositions.find(ckey)->second;
+      auto global = globalPositions.at(ckey);
       xy_pts.push_back(make_pair(global(0),global(1)));
       float r = sqrt(global(0)*global(0) + global(1)*global(1));
       rz_pts.push_back(make_pair(r,global(2)));
