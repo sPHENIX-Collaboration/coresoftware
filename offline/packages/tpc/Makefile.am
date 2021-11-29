@@ -24,8 +24,7 @@ pkginclude_HEADERS = \
   TpcDefs.h \
   TpcDistortionCorrection.h \
   TpcDistortionCorrectionContainer.h \
-  TpcLoadDistortionCorrection.h \
-  TpcSpaceChargeCorrection.h
+  TpcLoadDistortionCorrection.h
 
 pcmdir = $(libdir)
 
@@ -33,8 +32,7 @@ pcmdir = $(libdir)
 libtpc_la_SOURCES = \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
-  TpcLoadDistortionCorrection.cc \
-  TpcSpaceChargeCorrection.cc
+  TpcLoadDistortionCorrection.cc
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
