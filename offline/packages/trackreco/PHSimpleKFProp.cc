@@ -145,8 +145,6 @@ namespace
     Myz /= weight;
     Mzz /= weight;
     
-  	  double r = std::sqrt(square(clusters[i]->getX()) + square(clusters[i]->getY(), 2));	    //  computing coefficients of the characteristic polynomial
-
     Mz = Mxx + Myy;
     Cov_xy = Mxx*Myy - Mxy*Mxy;
     Var_z = Mzz - Mz*Mz;
