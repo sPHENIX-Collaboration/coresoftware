@@ -179,44 +179,44 @@ namespace
     R = std::sqrt(square(Xcenter) + square(Ycenter));
   }
 
-  void findRoot(const double R, const double X0, const double Y0, double& x, double& y)
-  {
-    /**
-    * We need to determine the closest point on the circle to the origin
-    * since we can't assume that the track originates from the origin
-    * The eqn for the circle is (x-X0)^2+(y-Y0)^2=R^2 and we want to
-    * minimize d = sqrt((0-x)^2+(0-y)^2), the distance between the
-    * origin and some (currently, unknown) point on the circle x,y.
-    *
-    * Solving the circle eqn for x and substituting into d gives an eqn for
-    * y. Taking the derivative and setting equal to 0 gives the following
-    * two solutions. We take the smaller solution as the correct one, as
-    * usually one solution is wildly incorrect (e.g. 1000 cm)
-    */
-
-    double miny = (sqrt(pow(X0, 2) * pow(R, 2) * pow(Y0, 2) + pow(R, 2)
-      * pow(Y0,4)) + pow(X0,2) * Y0 + pow(Y0, 3))
-      / (pow(X0, 2) + pow(Y0, 2));
-
-    double miny2 = (-sqrt(pow(X0, 2) * pow(R, 2) * pow(Y0, 2) + pow(R, 2)
-      * pow(Y0,4)) + pow(X0,2) * Y0 + pow(Y0, 3))
-      / (pow(X0, 2) + pow(Y0, 2));
-
-    double minx = std::sqrt(square(R) - square(miny - Y0)) + X0;
-    double minx2 = -std::sqrt(square(R) - square(miny2 - Y0)) + X0;
-
-    /// Figure out which of the two roots is actually closer to the origin
-    if(fabs(minx) < fabs(minx2))
-      x = minx;
-    else
-      x = minx2;
-
-    if(fabs(miny) < fabs(miny2))
-      y = miny;
-    else
-      y = miny2;
-
-  }
+//   void findRoot(const double R, const double X0, const double Y0, double& x, double& y)
+//   {
+//     /**
+//     * We need to determine the closest point on the circle to the origin
+//     * since we can't assume that the track originates from the origin
+//     * The eqn for the circle is (x-X0)^2+(y-Y0)^2=R^2 and we want to
+//     * minimize d = sqrt((0-x)^2+(0-y)^2), the distance between the
+//     * origin and some (currently, unknown) point on the circle x,y.
+//     *
+//     * Solving the circle eqn for x and substituting into d gives an eqn for
+//     * y. Taking the derivative and setting equal to 0 gives the following
+//     * two solutions. We take the smaller solution as the correct one, as
+//     * usually one solution is wildly incorrect (e.g. 1000 cm)
+//     */
+// 
+//     double miny = (sqrt(pow(X0, 2) * pow(R, 2) * pow(Y0, 2) + pow(R, 2)
+//       * pow(Y0,4)) + pow(X0,2) * Y0 + pow(Y0, 3))
+//       / (pow(X0, 2) + pow(Y0, 2));
+// 
+//     double miny2 = (-sqrt(pow(X0, 2) * pow(R, 2) * pow(Y0, 2) + pow(R, 2)
+//       * pow(Y0,4)) + pow(X0,2) * Y0 + pow(Y0, 3))
+//       / (pow(X0, 2) + pow(Y0, 2));
+// 
+//     double minx = std::sqrt(square(R) - square(miny - Y0)) + X0;
+//     double minx2 = -std::sqrt(square(R) - square(miny2 - Y0)) + X0;
+// 
+//     /// Figure out which of the two roots is actually closer to the origin
+//     if(fabs(minx) < fabs(minx2))
+//       x = minx;
+//     else
+//       x = minx2;
+// 
+//     if(fabs(miny) < fabs(miny2))
+//       y = miny;
+//     else
+//       y = miny2;
+// 
+//   }
 
 }
 
