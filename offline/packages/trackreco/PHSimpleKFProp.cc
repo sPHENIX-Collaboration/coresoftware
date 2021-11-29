@@ -481,16 +481,11 @@ void PHSimpleKFProp::MoveToFirstTPCCluster( const PositionMap& globalPositions )
       std::vector<TrkrDefs::cluskey> ckeys;
       std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
       
-      std::vector<TrkrCluster*> tpc_clusters;
       std::vector<Acts::Vector3F> trkGlobPos;
       for(const auto& ckey : ckeys)
       {
         if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId )
-        {
-          auto clus = _cluster_map->findCluster(ckey);
-          tpc_clusters.push_back(clus);
-          trkGlobPos.push_back(globalPositions.at(ckey));
-        }
+        { trkGlobPos.push_back(globalPositions.at(ckey)); }
       }
 
       // get circle fit for TPC clusters plus vertex
