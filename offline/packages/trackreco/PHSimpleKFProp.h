@@ -33,7 +33,7 @@ class SvtxVertexMap;
 class SvtxTrackMap;
 class AssocInfoContainer;
 
-typedef std::map<TrkrDefs::cluskey, Acts::Vector3F> PositionMap;
+using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3F>;
 
 class PHSimpleKFProp : public SubsysReco
 {
@@ -129,15 +129,10 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z) const;
-  void publishSeeds(std::vector<SvtxTrack_v2>);
-  void publishSeeds(std::vector<SvtxTrack>);
+  void publishSeeds(const std::vector<SvtxTrack_v2>&);
+  void publishSeeds(const std::vector<SvtxTrack>&);
   void MoveToVertex();
 
-  void line_fit(std::vector<std::pair<double,double>> points, double &A, double &B);
-  void line_fit_clusters(std::vector<TrkrCluster*> clusters, double &A, double &B);
-  void CircleFitByTaubin(std::vector<Acts::Vector3F> points, double &R, double &X0, double &Y0);
-  void findRoot(const double R, const double X0, const double Y0,
-		double& x, double& y);
   bool _use_const_field = false;
   bool _use_fixed_clus_err = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
