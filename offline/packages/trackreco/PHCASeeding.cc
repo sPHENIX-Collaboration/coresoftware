@@ -6,6 +6,7 @@
  */
 
 #include "PHCASeeding.h"
+#include "ALICEKF.h"
 #include "GPUTPCTrackLinearisation.h"
 #include "GPUTPCTrackParam.h"
 
