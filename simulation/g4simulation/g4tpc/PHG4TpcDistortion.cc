@@ -166,7 +166,7 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
   if (phi < 0) phi += 2 * M_PI;
   const int zpart=(z>0?1:0); //z<0 corresponds to the negative side, which is element 0.
 
-  TH3* hdistortion;
+  TH3* hdistortion=null;
 
 
   if (axis!='r' && axis!='p' && axis !='z'){
