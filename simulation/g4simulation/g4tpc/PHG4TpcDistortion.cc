@@ -200,7 +200,6 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
   if (hdistortion){
     return hdistortion->Interpolate(phi, r, z);
   } else {
-     if (axis!='r' && axis!='p' && axis !='z'){
     std::cout << "Distortion Requested along axis " << axis << ", but distortion map does not exist.  Exiting.\n" << std::endl;
     exit(1);
   }
