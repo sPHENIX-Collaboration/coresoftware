@@ -385,8 +385,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
         if (do_ElectronDriftQAHistos)
         {
-          const double phi_final_nodiff = atan2(y_start + y_distortion, x_start + x_distortion);
-          const double rad_final_nodiff = sqrt(pow(x_start + x_distortion, 2) + pow(y_start + y_distortion, 2));
+          const double phi_final_nodiff = phistart+phi_distortion;
+          const double rad_final_nodiff = radstart+r_distortion;
           deltarnodiff->Fill(radstart, rad_final_nodiff - radstart);    //delta r no diffusion, just distortion
           deltaphinodiff->Fill(phistart, phi_final_nodiff - phistart);  //delta phi no diffusion, just distortion
           deltaphivsRnodiff->Fill(radstart, phi_final_nodiff - phistart);
