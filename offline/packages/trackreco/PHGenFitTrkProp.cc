@@ -360,7 +360,7 @@ int PHGenFitTrkProp::GetNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHGenFitTrkProp::check_track_exists(MapPHGenFitTrack::iterator iter, SvtxTrackMap::Iter phtrk_iter)
+int PHGenFitTrkProp::check_track_exists(MapPHGenFitTrack::iterator iter, SvtxTrackMap::Iter /*phtrk_iter*/)
 {
   //Loop over hitIDs on current track and check if they have been used
   unsigned int n_clu = iter->second->get_cluster_keys().size();

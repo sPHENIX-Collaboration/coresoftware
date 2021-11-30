@@ -41,22 +41,22 @@ PHG4Hit::CopyFrom(const PHObject *phobj)
 void
 PHG4Hit::identify(ostream& os) const
 {
-  cout << "Class " << this->ClassName() << endl;
-  cout << "x0: " << get_x(0)
+  os << "Class " << this->ClassName() << endl;
+  os << "x0: " << get_x(0)
        << ", y0: " << get_y(0)
        << ", z0: " << get_z(0)
        << ", t0: " << get_t(0) << endl;
-  cout << "x1: " << get_x(1)
+  os << "x1: " << get_x(1)
        << ", y1: " << get_y(1)
        << ", z1: " << get_z(1)
        << ", t1: " << get_t(1) << endl;
-  cout     << "trackid: " << get_trkid() << ", edep: " << get_edep() << endl;
-  cout     << "strip_z_index: " << get_strip_z_index() << ", strip_y_index: " << get_strip_y_index() << endl;
-  cout     << "ladder_z_index: " << get_ladder_z_index() << ", ladder_phi_index: " << get_ladder_phi_index() << endl;
-  cout     << "stave_index: " << get_property_int(prop_stave_index) << " half_stave_index " << get_property_int(prop_half_stave_index) << endl;
-  cout     << "module_index: " << get_property_int(prop_module_index) << " chip_index " << get_property_int(prop_chip_index) << endl;
-  cout << "layer id: " << get_layer() << ", scint_id: " << get_scint_id() << endl;
-  cout << "hit type: " << get_hit_type() << endl; 
+  os     << "trackid: " << get_trkid() << ", edep: " << get_edep() << endl;
+  os     << "strip_z_index: " << get_strip_z_index() << ", strip_y_index: " << get_strip_y_index() << endl;
+  os     << "ladder_z_index: " << get_ladder_z_index() << ", ladder_phi_index: " << get_ladder_phi_index() << endl;
+  os     << "stave_index: " << get_property_int(prop_stave_index) << " half_stave_index " << get_property_int(prop_half_stave_index) << endl;
+  os     << "module_index: " << get_property_int(prop_module_index) << " chip_index " << get_property_int(prop_chip_index) << endl;
+  os << "layer id: " << get_layer() << ", scint_id: " << get_scint_id() << endl;
+  os << "hit type: " << get_hit_type() << endl; 
   return;
 }
 

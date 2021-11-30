@@ -93,13 +93,13 @@ void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
 
 }
 
-void BEmcRecEEMC::CorrectEnergy(float Energy, float x, float y,
+void BEmcRecEEMC::CorrectEnergy(float Energy, float /*x*/, float /*y*/,
                                 float& Ecorr)
 {
   Ecorr = Energy;
 }
 
-void BEmcRecEEMC::CorrectECore(float Ecore, float x, float y, float& Ecorr)
+void BEmcRecEEMC::CorrectECore(float Ecore, float /*x*/, float /*y*/, float& Ecorr)
 {
   // Corrects the EM Shower Core Energy for attenuation in fibers,
   // long energy leakage and angle dependance
@@ -109,7 +109,7 @@ void BEmcRecEEMC::CorrectECore(float Ecore, float x, float y, float& Ecorr)
   Ecorr = Ecore;
 }
 
-float BEmcRecEEMC::GetImpactAngle(float e, float x, float y)
+float BEmcRecEEMC::GetImpactAngle(float /*e*/, float /*x*/, float /*y*/)
 // Get impact angle, (x,y) - position in Sector frame (cm)
 {
   /*

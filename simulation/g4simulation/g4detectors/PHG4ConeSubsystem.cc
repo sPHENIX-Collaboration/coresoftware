@@ -8,6 +8,7 @@
 
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4SteppingAction.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode

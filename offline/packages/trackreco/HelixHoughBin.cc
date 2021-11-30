@@ -7,7 +7,7 @@ HelixHoughBin::ConstClusterIter HelixHoughBin::begin_clusters() const
   return HelixHoughBinClusterSet.end();
 }
 
-HelixHoughBin::ConstClusterIter HelixHoughBin::find_cluster(unsigned int cluster_id) const
+HelixHoughBin::ConstClusterIter HelixHoughBin::find_cluster(unsigned int /*cluster_id*/) const
 {
   return HelixHoughBinClusterSet.end();
 }
@@ -21,7 +21,7 @@ HelixHoughBin::ClusterIter HelixHoughBin::begin_clusters()
   return HelixHoughBinClusterSet.end();
 }
 
-HelixHoughBin::ClusterIter HelixHoughBin::find_cluster(unsigned int cluster_id)
+HelixHoughBin::ClusterIter HelixHoughBin::find_cluster(unsigned int /*cluster_id*/)
 {
   return HelixHoughBinClusterSet.end();
 }

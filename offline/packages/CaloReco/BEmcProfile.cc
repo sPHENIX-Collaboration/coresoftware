@@ -361,7 +361,7 @@ float BEmcProfile::GetProbTest(std::vector<EmcModule>* plist, int NX, float en, 
 }
 */
 
-void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float phi, float ddz, float ddy, float& ep, float& err)
+void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float /*phi*/, float ddz, float ddy, float& ep, float& err)
 // ip changes from 0 to NP-1, meaning the profile index 1,2,..,NP
 {
   ep = err = -1;
@@ -511,7 +511,7 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float phi, fl
 }
 
 
-float BEmcProfile::PredictEnergyR(float energy, float theta, float phi, float rr)
+float BEmcProfile::PredictEnergyR(float energy, float theta, float /*phi*/, float rr)
 {
 
   if (!bloaded)

@@ -85,7 +85,7 @@ PHGenFitTrackProjection::PHGenFitTrackProjection(const string &name, const int p
 	_cal_types.push_back(SvtxTrack::HCALOUT);
 }
 
-int PHGenFitTrackProjection::Init(PHCompositeNode *topNode) {
+int PHGenFitTrackProjection::Init(PHCompositeNode */*topNode*/) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -471,6 +471,6 @@ int PHGenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHGenFitTrackProjection::End(PHCompositeNode *topNode) {
+int PHGenFitTrackProjection::End(PHCompositeNode */*topNode*/) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }

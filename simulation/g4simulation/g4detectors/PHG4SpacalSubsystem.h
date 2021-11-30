@@ -13,7 +13,7 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <string>                   // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4Detector;
@@ -56,21 +56,26 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
   void
   Print(const std::string &what = "ALL") const override;
 
+  void CosmicSetup(const int i) { m_CosmicSetupFlag = i; }
+  int CosmicSetup() const { return m_CosmicSetupFlag; }
+
  private:
   void SetDefaultParameters() override;
   //  SpacalGeom_t _geom;
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4SpacalDetector *detector_;
+  PHG4SpacalDetector *detector_ = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction *steppingAction_;
+  PHG4SteppingAction *steppingAction_ = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction *m_DisplayAction;
+  PHG4DisplayAction *m_DisplayAction = nullptr;
+
+  int m_CosmicSetupFlag = 0;
 };
 
 #endif

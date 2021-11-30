@@ -101,7 +101,7 @@ void HelixHoughBin_v1::set_bins(unsigned int zoomlevel, unsigned int bin) {
 // bin = kappabin + nkappabin* (phibin + nphibin* (dbin + ndbin *( dzdlbin + ndzdlbin*z0bin) ) )
 } 
 
-unsigned int HelixHoughBin_v1::get_global_bin(unsigned int zoomlevel)
+unsigned int HelixHoughBin_v1::get_global_bin(unsigned int /*zoomlevel*/)
 {
 	return _global_bin;
 }

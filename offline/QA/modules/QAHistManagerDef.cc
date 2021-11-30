@@ -20,8 +20,6 @@
 #include <iosfwd>  // for std
 #include <vector>
 
-using namespace std;
-
 namespace QAHistManagerDef
 {
   //! Get a pointer to the default hist manager for QA modules
@@ -33,9 +31,9 @@ namespace QAHistManagerDef
 
     if (not hm)
     {
-      //        cout
+      //        std::cout
       //            << "QAHistManagerDef::get_HistoManager - Making Fun4AllHistoManager EMCalAna_HISTOS"
-      //            << endl;
+      //            << std::endl;
       hm = new Fun4AllHistoManager(HistoManagerName);
       se->registerHistoManager(hm);
     }
@@ -63,7 +61,7 @@ namespace QAHistManagerDef
     Axis_t from = log10(axis->GetXmin());
     Axis_t to = log10(axis->GetXmax());
     Axis_t width = (to - from) / bins;
-    vector<Axis_t> new_bins(bins + 1);
+    std::vector<Axis_t> new_bins(bins + 1);
 
     for (int i = 0; i <= bins; i++)
     {

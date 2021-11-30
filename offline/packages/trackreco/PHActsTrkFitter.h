@@ -42,8 +42,8 @@ namespace ActsExamples
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
-class SvtxVertexMap;
 class TrkrClusterContainer;
+class TrkrClusterIterationMapv1;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
@@ -82,11 +82,25 @@ class PHActsTrkFitter : public SubsysReco
   void fitSiliconMMs(bool fitSiliconMMs)
        {m_fitSiliconMMs = fitSiliconMMs;}
 
+  /// require micromegas in SiliconMM fits
+  void setUseMicromegas( bool value )
+  { m_useMicromegas = value; }
+
   void setUpdateSvtxTrackStates(bool fillSvtxTrackStates)
        { m_fillSvtxTrackStates = fillSvtxTrackStates; }   
 
   void useActsEvaluator(bool actsEvaluator)
   { m_actsEvaluator = actsEvaluator; }
+  
+  void setFieldMap(std::string& fieldMap)
+  { m_fieldMap = fieldMap; }
+
+  void setAbsPdgHypothesis(unsigned int pHypothesis)
+  { m_pHypothesis = pHypothesis; }
+
+  void SetIteration(int iter){_n_iteration = iter;}
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  void set_seed_track_map_name(const std::string &map_name) { _seed_track_map_name = map_name; }
 
  private:
 
@@ -98,7 +112,6 @@ class PHActsTrkFitter : public SubsysReco
 
   void loopTracks(Acts::Logging::Level logLevel);
   SourceLinkVec getSourceLinks(SvtxTrack *track);
-  Acts::Vector3D getVertex(SvtxTrack *track);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(Trajectory traj, SvtxTrack* track);
@@ -140,7 +153,6 @@ class PHActsTrkFitter : public SubsysReco
   /// TrackMap containing SvtxTracks
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxTrackMap *m_directedTrackMap = nullptr;
-  SvtxVertexMap *m_vertexMap = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
   ActsSurfaceMaps *m_surfMaps = nullptr;
   
@@ -151,12 +163,24 @@ class PHActsTrkFitter : public SubsysReco
   /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
   bool m_fitSiliconMMs = false;
 
+  /// requires micromegas present when fitting silicon-MM surfaces
+  bool m_useMicromegas = true;
+  
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates = true;
 
   bool m_actsEvaluator = false;
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
   SvtxTrackMap *m_seedTracks = nullptr;
+
+  std::string m_fieldMap = "";
+  TrkrClusterIterationMapv1* _iteration_map = nullptr;
+  int _n_iteration = 0;
+  std::string _track_map_name = "SvtxTrackMap";
+  std::string _seed_track_map_name = "SeedTrackMap";
+
+  /// Default particle assumption to pion
+  unsigned int m_pHypothesis = 211;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;

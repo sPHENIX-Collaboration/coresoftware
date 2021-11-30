@@ -107,7 +107,7 @@ PHG4InEventCompress::process_event(PHCompositeNode *topNode)
 }
 
 int
-PHG4InEventCompress::End(PHCompositeNode *topNode)
+PHG4InEventCompress::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

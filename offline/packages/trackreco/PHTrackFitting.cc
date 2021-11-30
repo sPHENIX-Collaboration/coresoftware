@@ -31,7 +31,7 @@ PHTrackFitting::PHTrackFitting(const std::string& name)
 {
 }
 
-int PHTrackFitting::Init(PHCompositeNode* topNode)
+int PHTrackFitting::Init(PHCompositeNode* /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -41,7 +41,7 @@ int PHTrackFitting::InitRun(PHCompositeNode* topNode)
   return Setup(topNode);
 }
 
-int PHTrackFitting::process_event(PHCompositeNode* topNode)
+int PHTrackFitting::process_event(PHCompositeNode* /*topNode*/)
 {
   return Process();
 }

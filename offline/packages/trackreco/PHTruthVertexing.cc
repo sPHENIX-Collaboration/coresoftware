@@ -128,19 +128,19 @@ int PHTruthVertexing::Process(PHCompositeNode* topNode)
   if (Verbosity() > 0) 
       _vertex_map->identify();
    
-  if(_acts_silicon)
-    assignStubsVertices(topNode);
+  if(_associate_tracks)
+    { assignTracksVertices(topNode); }
     
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHTruthVertexing::assignStubsVertices(PHCompositeNode *topNode)
+void PHTruthVertexing::assignTracksVertices(PHCompositeNode *topNode)
 {
-  SvtxTrackMap * trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconTrackMap");
+  SvtxTrackMap * trackMap = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name.c_str());
   if(!trackMap)
     {
       std::cout << PHWHERE 
-		<< "Can't find silicon stub track map. Exiting" 
+		<< "Can't find requested track map. Exiting" 
 		<< std::endl;
       return;
     }

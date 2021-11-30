@@ -1,8 +1,5 @@
 #include "LiteCaloEval.h"
 
-#include <calobase/RawCluster.h>
-#include <calobase/RawClusterContainer.h>
-#include <calobase/RawClusterUtility.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
@@ -26,7 +23,10 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <cmath>                            // for abs
+#include <map>                               // for _Rb_tree_const_iterator
 #include <memory>
+#include <utility>                           // for pair
 
 //____________________________________________________________________________..
 LiteCaloEval::LiteCaloEval(const std::string& name, const std::string& caloname, const std::string& filename)
@@ -37,7 +37,7 @@ LiteCaloEval::LiteCaloEval(const std::string& name, const std::string& caloname,
 }
 
 //____________________________________________________________________________..
-int LiteCaloEval::InitRun(PHCompositeNode* topNode)
+int LiteCaloEval::InitRun(PHCompositeNode* /*topNode*/)
 {
   // just quit if we forgot to set the calorimeter type
   if (calotype == LiteCaloEval::NONE)
@@ -219,7 +219,7 @@ int LiteCaloEval::process_event(PHCompositeNode* topNode)
 }
 
 //____________________________________________________________________________..
-int LiteCaloEval::End(PHCompositeNode* topNode)
+int LiteCaloEval::End(PHCompositeNode* /*topNode*/)
 {
   cal_output->cd();
   if (calotype == LiteCaloEval::HCALIN)

@@ -10,6 +10,7 @@
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
@@ -152,9 +153,11 @@ std::shared_ptr<TrkrCluster> SvtxClusterEval::max_truth_cluster_by_energy(TrkrDe
     cout << "         max truth particle by cluster energy has  trackID  " << max_particle->get_track_id() << endl;      
 
   TrkrCluster* reco_cluster = _clustermap->findCluster(cluster_key);
-  double reco_x = reco_cluster->getX();
-  double reco_y = reco_cluster->getY();
-  double reco_z = reco_cluster->getZ();
+  ActsTransformations transformer;
+  auto global = transformer.getGlobalPosition(reco_cluster,_surfmaps,_tgeometry);
+  double reco_x = global(0);
+  double reco_y = global(1);
+  double reco_z = global(2);
   double r = sqrt(reco_x*reco_x + reco_y*reco_y);
   //double reco_rphi = r*fast_approx_atan2(reco_y, reco_x);
   double reco_rphi = r*atan2(reco_y, reco_x);
@@ -289,14 +292,15 @@ TrkrCluster* SvtxClusterEval::reco_cluster_from_truth_cluster(std::shared_ptr<Tr
   if(nreco > 0)
     {
       // Find a matching reco cluster with position inside 4 sigmas, and replace reco_cluskey
-      
+      ActsTransformations transform;
       for(std::set<TrkrDefs::cluskey>::iterator it = reco_cluskeys.begin(); it != reco_cluskeys.end(); ++it)
 	{
 	  // get the cluster
 	  TrkrCluster* this_cluster = _clustermap->findCluster(*it);
-	  double this_x = this_cluster->getX();
-	  double this_y = this_cluster->getY();
-	  double this_z = this_cluster->getZ();
+	  auto global = transform.getGlobalPosition(this_cluster,_surfmaps,_tgeometry);
+	  double this_x = global(0);
+	  double this_y = global(1);
+	  double this_z = global(2);
 	  double this_rphi = gr*atan2(this_y, this_x);
 	  //double this_rphi = gr*fast_approx_atan2(this_y, this_x);
 	  
@@ -454,8 +458,10 @@ PHG4Hit* SvtxClusterEval::all_truth_hits_by_nhit(TrkrDefs::cluskey cluster_key)
 	}
     }
   */
+  ActsTransformations transformer;
   TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
-  TVector3 cvec(cluster->getX(), cluster->getY(), cluster->getZ());
+  auto glob = transformer.getGlobalPosition(cluster,_surfmaps,_tgeometry);
+  TVector3 cvec(glob(0), glob(1), glob(2));
   unsigned int layer = TrkrDefs::getLayer(cluster_key);
   std::set<PHG4Hit*> truth_hits;
 
@@ -574,9 +580,11 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
   std::pair<int, int> out_pair;
   out_pair.first = 0;
   out_pair.second = -1;
+  ActsTransformations transform;
 
   TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
-  TVector3 cvec(cluster->getX(), cluster->getY(), cluster->getZ());
+  auto global = transform.getGlobalPosition(cluster,_surfmaps,_tgeometry);
+  TVector3 cvec(global(0), global(1), global(2));
   unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
   std::multimap<PHG4HitDefs::keytype,TrkrDefs::hitkey> g4keyperhit;
@@ -907,7 +915,7 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Particle* tru
 }
 
 void SvtxClusterEval::FillRecoClusterFromG4HitCache(){
-  PHTimer *Mytimer = new PHTimer("ReCl_timer");
+  auto Mytimer = std::make_unique<PHTimer>("ReCl_timer");
   Mytimer->stop();
   Mytimer->restart();
 
@@ -940,7 +948,7 @@ void SvtxClusterEval::FillRecoClusterFromG4HitCache(){
     std::multimap<PHG4Particle*, TrkrDefs::cluskey>::const_iterator lower_bound = temp_clusters_from_particles.lower_bound(g4particle);
     std::multimap<PHG4Particle*, TrkrDefs::cluskey>::const_iterator upper_bound = temp_clusters_from_particles.upper_bound(g4particle);
     std::multimap<PHG4Particle*, TrkrDefs::cluskey>::const_iterator cfp_iter;
-    for(cfp_iter = lower_bound;cfp_iter != upper_bound;cfp_iter++){
+    for(cfp_iter = lower_bound;cfp_iter != upper_bound;++cfp_iter){
       TrkrDefs::cluskey cluster_key = cfp_iter->second;
       clusters.insert(cluster_key);
     }
@@ -979,6 +987,7 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
 
       // get all reco clusters
       if(_verbosity > 1) cout << "all_clusters_from_g4hit: list all reco clusters " << endl;
+    
       auto hitsetrange = _hitsets->getHitSets();
       for (auto hitsetitr = hitsetrange.first;
 	   hitsetitr != hitsetrange.second;
@@ -991,9 +1000,8 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
 	  if(_verbosity > 1) 
 	    {
 	      cout << " layer " << layer << " cluster_key " << cluster_key << " adc " << clus->getAdc() 
-		   << " x " << clus->getX() 
-		   << " y " << clus->getY() 
-		   << " z " << clus->getZ() 
+		   << " localx " << clus->getLocalX() 
+		   << " localy " << clus->getLocalY() 
 		   << endl;
 	      cout << "  associated hits:";
 	      std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
@@ -1298,12 +1306,15 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode* topNode)
   _g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
   _g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
   _g4hits_mms = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
-
+  _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  _tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  
   return;
 }
 
 void SvtxClusterEval::fill_cluster_layer_map()
 {
+  ActsTransformations transformer;
   // loop over all the clusters
   auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::inttId);
   for (auto hitsetitr = hitsetrange.first;
@@ -1314,8 +1325,8 @@ void SvtxClusterEval::fill_cluster_layer_map()
       TrkrDefs::cluskey cluster_key = iter->first;
       unsigned int ilayer = TrkrDefs::getLayer(cluster_key);
       TrkrCluster *cluster = iter->second;
-      //float clus_phi = fast_approx_atan2(cluster->getY(), cluster->getX());
-      float clus_phi = atan2(cluster->getY(), cluster->getX());
+      auto glob = transformer.getGlobalPosition(cluster, _surfmaps,_tgeometry);
+      float clus_phi = atan2(glob(1), glob(0));
       
       multimap<unsigned int, innerMap>::iterator it = _clusters_per_layer.find(ilayer);
       if (it == _clusters_per_layer.end())

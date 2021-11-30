@@ -40,9 +40,9 @@ class RawTower : public PHObject
     PHOOL_VIRTUAL_WARN("isValid()");
     return 0;
   }
-  void identify(std::ostream& os = std::cout) const override { PHOOL_VIRTUAL_WARN("identify()"); }
+  void identify(std::ostream& /*os*/ = std::cout) const override { PHOOL_VIRTUAL_WARN("identify()"); }
 
-  virtual void set_id(RawTowerDefs::keytype id) { PHOOL_VIRTUAL_WARN("set_id()"); }
+  virtual void set_id(RawTowerDefs::keytype) { PHOOL_VIRTUAL_WARN("set_id()"); }
   virtual RawTowerDefs::keytype get_id() const
   {
     PHOOL_VIRTUAL_WARN("get_id()");
@@ -143,7 +143,7 @@ class RawTower : public PHObject
   virtual CellConstRange get_g4cells() const;
   virtual CellIterator find_g4cell(CellKeyType id);
   virtual CellConstIterator find_g4cell(CellKeyType id) const;
-  virtual void add_ecell(const CellKeyType g4cellid, const float ecell)
+  virtual void add_ecell(const CellKeyType /*g4cellid*/, const float /*ecell*/)
   {
     PHOOL_VIRTUAL_WARN("add_ecell(const CellKeyType g4cellid, const float ecell)");
     return;
@@ -153,9 +153,9 @@ class RawTower : public PHObject
   virtual bool empty_g4showers() const { return true; }
   virtual size_t size_g4showers() const { return 0; }
   virtual ShowerConstRange get_g4showers() const;
-  virtual ShowerIterator find_g4shower(int id);
-  virtual ShowerConstIterator find_g4shower(int id) const;
-  virtual void add_eshower(const int g4showerid, const float eshower)
+  virtual ShowerIterator find_g4shower(int /*id*/);
+  virtual ShowerConstIterator find_g4shower(int /*id*/) const;
+  virtual void add_eshower(const int /*g4showerid*/, const float /*eshower*/)
   {
     PHOOL_VIRTUAL_WARN("add_eshower(const unsigned int g4showerid, const float eshower)");
     return;
@@ -178,16 +178,16 @@ class RawTower : public PHObject
     prop_MAX_NUMBER = UCHAR_MAX
   };
 
-  virtual bool has_property(const PROPERTY prop_id) const { return false; }
-  virtual double get_property(const PROPERTY prop_id) const { return NAN; }
-  virtual void set_property(const PROPERTY prop_id, const double value) { return; }
+  virtual bool has_property(const PROPERTY /*prop_id*/) const { return false; }
+  virtual double get_property(const PROPERTY /*prop_id*/) const { return NAN; }
+  virtual void set_property(const PROPERTY /*prop_id*/, const double /*value*/) { return; }
   static const std::string get_property_info(PROPERTY prop_id);
 
  protected:
   RawTower() {}
 
-  virtual unsigned int get_property_nocheck(const PROPERTY prop_id) const { return UINT_MAX; }
-  virtual void set_property_nocheck(const PROPERTY prop_id, const unsigned int) { return; }
+  virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const { return UINT_MAX; }
+  virtual void set_property_nocheck(const PROPERTY /*prop_id*/, const unsigned int) { return; }
 
   ClassDefOverride(RawTower, 1)
 };

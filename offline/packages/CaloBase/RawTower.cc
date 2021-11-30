@@ -7,12 +7,12 @@
 RawTower::CellMap DummyCellMap;
 RawTower::ShowerMap DummyShowerMap;
 
-RawTower::CellIterator RawTower::find_g4cell(CellKeyType id)
+RawTower::CellIterator RawTower::find_g4cell(CellKeyType /*id*/)
 {
   return DummyCellMap.end();
 }
 
-RawTower::CellConstIterator RawTower::find_g4cell(CellKeyType id) const
+RawTower::CellConstIterator RawTower::find_g4cell(CellKeyType /*id*/) const
 {
   return DummyCellMap.end();
 }
@@ -29,12 +29,12 @@ RawTower::ShowerConstRange RawTower::get_g4showers() const
   return ShowerConstRange(DummyShowerMap.begin(), DummyShowerMap.end());
 }
 
-RawTower::ShowerIterator RawTower::find_g4shower(int id)
+RawTower::ShowerIterator RawTower::find_g4shower(int /*id*/)
 {
   return DummyShowerMap.end();
 }
 
-RawTower::ShowerConstIterator RawTower::find_g4shower(int id) const
+RawTower::ShowerConstIterator RawTower::find_g4shower(int /*id*/) const
 {
   return DummyShowerMap.end();
 }

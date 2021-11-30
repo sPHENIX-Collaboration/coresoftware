@@ -1,50 +1,47 @@
 /* vim: set sw=2 ft=cpp: */
 
-#include "PHG4EPDetector.h"
+#include "PHG4EPDDetector.h"
+
+#include "PHG4EPDDisplayAction.h"
 
 #include <g4main/PHG4Detector.h>
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
 #include <phparameter/PHParameters.h>
-#include <phparameter/PHParametersContainer.h>
 
-#include <Geant4/G4Colour.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>
-#include <Geant4/G4String.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
-#include <Geant4/G4TwoVector.hh>  // for G4TwoVector
-#include <Geant4/G4VisAttributes.hh>
+#include <Geant4/G4TwoVector.hh>        // for G4TwoVector
+#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
+#include <algorithm>  // for max
 #include <cmath>
-#include <iterator>  // for end
-#include <vector>    // for vector
+#include <vector>  // for vector
 
-PHG4EPDetector::PHG4EPDetector(PHG4Subsystem* subsys,
-                               PHCompositeNode* node,
-                               PHParametersContainer* params,
-                               std::string const& name)
+PHG4EPDDetector::PHG4EPDDetector(PHG4Subsystem* subsys,
+                                 PHCompositeNode* node,
+                                 PHParameters* parameters,
+                                 std::string const& name)
   : PHG4Detector(subsys, node, name)
+  , m_DisplayAction(dynamic_cast<PHG4EPDDisplayAction*>(subsys->GetDisplayAction()))
+  , m_Params(parameters)
+  , m_ActiveFlag(m_Params->get_int_param("active"))
+  , m_SupportActiveFlag(m_Params->get_int_param("supportactive"))
 {
-  PHParameters const* pars = params->GetParameters(-1);
-  m_z_position = pars->get_double_param("z_position");
 }
 
-void PHG4EPDetector::ConstructMe(G4LogicalVolume* world)
+void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
 {
-  G4Material* material = G4Material::GetMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
+  G4Material* material = GetDetectorMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
 
-  G4VisAttributes* attrs = new G4VisAttributes();
-
-  attrs->SetVisibility(true);
-  attrs->SetForceSolid(true);
-  attrs->SetColour(G4Colour::Red());
-
-  G4ThreeVector positive(0., 0., m_z_position * cm);
-  G4ThreeVector negative(0., 0., -m_z_position * cm);
+  G4ThreeVector positive(0., 0., m_Params->get_double_param("place_z") * cm);
+  G4ThreeVector negative(0., 0., -m_Params->get_double_param("place_z") * cm);
 
   constexpr int32_t ntiles = 31;
   constexpr int32_t nslices = 12;
@@ -54,10 +51,10 @@ void PHG4EPDetector::ConstructMe(G4LogicalVolume* world)
     std::string label = "EPD_tile_" + std::to_string(i);
 
     G4ExtrudedSolid* block = construct_block(i);
-    G4LogicalVolume* volume = new G4LogicalVolume(
-        block, material, label.data(), 0, 0, 0);
+    G4LogicalVolume* volume = new G4LogicalVolume(block, material, label, 0, 0, 0);
 
-    volume->SetVisAttributes(attrs);
+    GetDisplayAction()->AddVolume(volume, volume->GetName());
+    m_ActiveLogVolSet.insert(volume);
 
     for (int32_t k = 0; k < nslices; ++k)
     {
@@ -80,18 +77,33 @@ void PHG4EPDetector::ConstructMe(G4LogicalVolume* world)
   }
 }
 
-bool PHG4EPDetector::contains(G4VPhysicalVolume* volume) const
+int PHG4EPDDetector::IsInDetector(G4VPhysicalVolume* volume) const
 {
-  return m_volumes.find(volume) != std::end(m_volumes);
+  G4LogicalVolume* mylogvol = volume->GetLogicalVolume();
+  if (m_ActiveFlag)
+  {
+    if (m_ActiveLogVolSet.find(mylogvol) != m_ActiveLogVolSet.end())
+    {
+      return 1;
+    }
+  }
+  if (m_SupportActiveFlag)
+  {
+    if (m_SupportLogVolSet.find(mylogvol) != m_SupportLogVolSet.end())
+    {
+      return -2;
+    }
+  }
+  return 0;
 }
 
-uint32_t PHG4EPDetector::module_id_for(int32_t index, int32_t slice,
-                                       int32_t side)
+uint32_t PHG4EPDDetector::module_id_for(int32_t index, int32_t slice,
+                                        int32_t side)
 {
   return (side << 9 | slice << 5 | index) & 0x3FF;
 }
 
-uint32_t PHG4EPDetector::module_id_for(G4VPhysicalVolume* volume)
+uint32_t PHG4EPDDetector::module_id_for(G4VPhysicalVolume* volume)
 {
   return m_volumes[volume];
 }
@@ -132,9 +144,9 @@ static constexpr double coordinates[31][6][2] = {
     {{-229.4, 861.8}, {-17.5, 890.6}, {-0.8, 892.7}, {-0.8, 838.3}, {-8.3, 837.3}, {-215.5, 810.0}},
 };
 
-G4ExtrudedSolid* PHG4EPDetector::construct_block(int32_t index)
+G4ExtrudedSolid* PHG4EPDDetector::construct_block(int32_t index)
 {
-  G4String label("tile_" + std::to_string(index));
+  std::string label("tile_" + std::to_string(index));
 
   const double(*coords)[6][2] = &coordinates[index];
 
@@ -146,8 +158,9 @@ G4ExtrudedSolid* PHG4EPDetector::construct_block(int32_t index)
     double y = (*coords)[i][1];
 
     if (x == 0. && y == 0.)
+    {
       continue;
-
+    }
     vertices.emplace_back(x * mm, y * mm);
   }
 

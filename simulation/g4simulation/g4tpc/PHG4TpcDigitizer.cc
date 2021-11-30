@@ -210,7 +210,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
   // We convert to volts at the input to the ADC and add noise generated with the RMS value of the noise voltage at the ADC input
   // We assume the pedestal is zero, for simplicity, so the noise fluctuates above and below zero
 
-  // Note that zbin = 0 corresponds to -100.5 cm, zbin 248 corresponds to 0 cm, and zbin 497 corresponds to +100.5 cm
+  // Note that zbin = 0 corresponds to -105.5 cm, zbin 248 corresponds to 0 cm, and zbin 497 corresponds to +105.5 cm
   // increasing time should be bins (497 -> 249) and (0 -> 248)
 
   //----------

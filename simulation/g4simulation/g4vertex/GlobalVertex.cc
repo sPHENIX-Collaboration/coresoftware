@@ -7,7 +7,7 @@ GlobalVertex::ConstVtxIter GlobalVertex::begin_vtxids() const
   return DummyGlobalVertex.end();
 }
 
-GlobalVertex::ConstVtxIter GlobalVertex::find_vtxids(VTXTYPE type) const
+GlobalVertex::ConstVtxIter GlobalVertex::find_vtxids(VTXTYPE /*type*/) const
 {
   return DummyGlobalVertex.end();
 }
@@ -22,7 +22,7 @@ GlobalVertex::VtxIter GlobalVertex::begin_vtxids()
   return DummyGlobalVertex.end();
 }
 
-GlobalVertex::VtxIter GlobalVertex::find_vtxids(VTXTYPE type)
+GlobalVertex::VtxIter GlobalVertex::find_vtxids(VTXTYPE /*type*/)
 {
   return DummyGlobalVertex.end();
 }

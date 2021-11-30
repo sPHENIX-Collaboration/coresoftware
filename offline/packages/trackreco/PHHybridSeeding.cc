@@ -230,7 +230,7 @@ int PHHybridSeeding::InitializeGeometry(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHHybridSeeding::Process(PHCompositeNode *topNode)
+int PHHybridSeeding::Process(PHCompositeNode */*topNode*/)
 {
   // wipe previous vertex coordinates
   _vertex_x.clear();
@@ -331,8 +331,23 @@ int PHHybridSeeding::Setup(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   
+  auto surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  if(!surfmaps)
+    {
+      std::cout << "No Acts surface maps, bailing." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  auto tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  if(!tGeometry)
+    {
+      std::cout << "No Acts tracking geometry, exiting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   InitializeGeometry(topNode);
-  fitter = std::make_shared<ALICEKF>(topNode,_cluster_map,_fieldDir,_min_fit_track_size,_max_sin_phi,Verbosity()); 
+  fitter = std::make_shared<ALICEKF>(topNode,_cluster_map,surfmaps, tGeometry,
+				     _fieldDir,_min_fit_track_size,_max_sin_phi,Verbosity()); 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

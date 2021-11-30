@@ -37,7 +37,7 @@ class TrkrHitTruthAssoc : public PHObject
   void Reset() override
   {}
 
-  void identify(std::ostream &os = std::cout) const override
+  void identify(std::ostream &/*os*/ = std::cout) const override
   {}
 
   /**
@@ -46,7 +46,7 @@ class TrkrHitTruthAssoc : public PHObject
    * @param[in] hidx TrkrHit index in TrkrHitSet
    * @param[in] ckey Key for assocuated g4hit
    */
-  virtual void addAssoc(const TrkrDefs::hitsetkey hitsetkey, const TrkrDefs::hitkey hitkey, const PHG4HitDefs::keytype  g4hitkey) 
+  virtual void addAssoc(const TrkrDefs::hitsetkey /*hitsetkey*/, const TrkrDefs::hitkey /*hitkey*/, const PHG4HitDefs::keytype  /*g4hitkey*/) 
   {}
 
   /**
@@ -55,10 +55,10 @@ class TrkrHitTruthAssoc : public PHObject
    * @param[in] hidx TrkrHit index in TrkrHitSet
    * @param[in] ckey Key for assocuated g4hit
    */
-  virtual void findOrAddAssoc(const TrkrDefs::hitsetkey hitsetkey, const TrkrDefs::hitkey hitkey, const PHG4HitDefs::keytype  g4hitkey)
+  virtual void findOrAddAssoc(const TrkrDefs::hitsetkey /*hitsetkey*/, const TrkrDefs::hitkey /*hitkey*/, const PHG4HitDefs::keytype  /*g4hitkey*/)
   {}
 
-  virtual void removeAssoc(const TrkrDefs::hitsetkey hitsetkey, const TrkrDefs::hitkey hitkey)
+  virtual void removeAssoc(const TrkrDefs::hitsetkey /*hitsetkey*/, const TrkrDefs::hitkey /*hitkey*/)
   {}
 
   /**
@@ -66,7 +66,7 @@ class TrkrHitTruthAssoc : public PHObject
    * @param[in] hset TrkrHitSet key
    * @param[in] hidx TrkrHit index in TrkrHitSet
    */
-  virtual void getG4Hits(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx, MMap &temp_map) const
+  virtual void getG4Hits(const TrkrDefs::hitsetkey /*hitsetkey*/, const unsigned int /*hidx*/, MMap &/*temp_map*/) const
   {}
 
   protected:

@@ -82,7 +82,7 @@ KFParticle_Tools::KFParticle_Tools()
 {
 }
 
-KFParticle KFParticle_Tools::makeVertex(PHCompositeNode *topNode)
+KFParticle KFParticle_Tools::makeVertex(PHCompositeNode */*topNode*/)
 {
   float f_vertexParameters[6] = {m_dst_vertex->get_x(),
                                  m_dst_vertex->get_y(),
@@ -129,7 +129,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
   return primaryVertices;
 }
 
-KFParticle KFParticle_Tools::makeParticle(PHCompositeNode *topNode)  ///Return a KFPTrack from track vector and covariance matrix. No mass or vertex constraints
+KFParticle KFParticle_Tools::makeParticle(PHCompositeNode */*topNode*/)  ///Return a KFPTrack from track vector and covariance matrix. No mass or vertex constraints
 {
   float f_trackParameters[6] = {m_dst_track->get_x(),
                                 m_dst_track->get_y(),
@@ -189,7 +189,7 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle v
   return associatedVertex->size_tracks();
 }
 
-const bool KFParticle_Tools::isGoodTrack(KFParticle particle, const std::vector<KFParticle> primaryVertices)
+/*const*/ bool KFParticle_Tools::isGoodTrack(KFParticle particle, const std::vector<KFParticle> primaryVertices)
 {
   bool goodTrack = false;
   
@@ -632,7 +632,7 @@ float KFParticle_Tools::calculateEllipsoidVolume(KFParticle particle)
   if (cov_matrix(0, 0) * cov_matrix(1, 1) * cov_matrix(2, 2) == 0)
     volume = 0;
   else
-    volume = (4 / 3) * M_PI * sqrt((std::abs(cov_matrix.Determinant())));  //The covariance matrix is error-squared
+    volume = (4. / 3.) * M_PI * sqrt((std::abs(cov_matrix.Determinant())));  //The covariance matrix is error-squared
 
   return volume;
 }

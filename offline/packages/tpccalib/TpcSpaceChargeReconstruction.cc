@@ -32,7 +32,7 @@ namespace
 
   /// calculate delta_phi between -pi and pi
   template< class T>
-    T delta_phi( const T& phi )
+    inline constexpr T delta_phi( const T& phi )
   {
     if( phi >= M_PI ) return phi - 2*M_PI;
     else if( phi < -M_PI ) return phi + 2*M_PI;
@@ -79,11 +79,7 @@ void TpcSpaceChargeReconstruction::set_grid_dimensions( int phibins, int rbins, 
 { m_matrix_container->set_grid_dimensions( phibins, rbins, zbins ); }
 
 //_____________________________________________________________________
-void TpcSpaceChargeReconstruction::set_outputfile( const std::string& filename )
-{ m_outputfile = filename; }
-
-//_____________________________________________________________________
-int TpcSpaceChargeReconstruction::Init(PHCompositeNode* topNode )
+int TpcSpaceChargeReconstruction::Init(PHCompositeNode* /*topNode*/ )
 {
   // reset counters
   m_total_tracks = 0;
@@ -138,7 +134,7 @@ int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int TpcSpaceChargeReconstruction::End(PHCompositeNode* topNode )
+int TpcSpaceChargeReconstruction::End(PHCompositeNode* /*topNode*/ )
 {
 
   // save matrix container in output file

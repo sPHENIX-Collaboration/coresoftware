@@ -65,7 +65,7 @@ int RawTowerDeadTowerInterp::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerDeadTowerInterp::process_event(PHCompositeNode *topNode)
+int RawTowerDeadTowerInterp::process_event(PHCompositeNode */*topNode*/)
 {
   if (Verbosity())
   {
@@ -228,7 +228,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerDeadTowerInterp::End(PHCompositeNode *topNode)
+int RawTowerDeadTowerInterp::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

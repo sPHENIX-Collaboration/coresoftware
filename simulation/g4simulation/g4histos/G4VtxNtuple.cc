@@ -44,7 +44,7 @@ int G4VtxNtuple::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4VtxNtuple::End(PHCompositeNode *topNode)
+int G4VtxNtuple::End(PHCompositeNode */*topNode*/)
 {
   hm->dumpHistos(m_FileName, "RECREATE");
   return 0;

@@ -48,17 +48,9 @@ class EventEvaluator : public SubsysReco
   void set_strict(bool b) { _strict = b; }
 
   void set_do_store_event_level_info(bool b) { _do_store_event_info = b; }
-  void set_do_FHCAL(bool b) { _do_FHCAL = b; }
-  void set_do_BECAL(bool b) { _do_BECAL = b; }
   void set_do_HCALIN(bool b) { _do_HCALIN = b; }
   void set_do_HCALOUT(bool b) { _do_HCALOUT = b; }
-  void set_do_EHCAL(bool b) { _do_EHCAL = b; }
-  void set_do_FEMC(bool b) { _do_FEMC = b; }
   void set_do_CEMC(bool b) { _do_CEMC = b; }
-  void set_do_EEMC(bool b) { _do_EEMC = b; }
-  void set_do_EEMCG(bool b) { _do_EEMCG = b; }
-  void set_do_DRCALO(bool b) { _do_DRCALO = b; }
-  void set_do_LFHCAL(bool b) { _do_LFHCAL = b; }
   void set_do_HITS(bool b) { _do_HITS = b; }
   void set_do_TRACKS(bool b) { _do_TRACKS = b; }
   void set_do_CLUSTERS(bool b) { _do_CLUSTERS = b; }
@@ -88,17 +80,9 @@ class EventEvaluator : public SubsysReco
 
  private:
   bool _do_store_event_info;
-  bool _do_FHCAL;
-  bool _do_BECAL;
   bool _do_HCALIN;
   bool _do_HCALOUT;
-  bool _do_EHCAL;
-  bool _do_FEMC;
   bool _do_CEMC;
-  bool _do_EEMC;
-  bool _do_EEMCG;
-  bool _do_DRCALO;
-  bool _do_LFHCAL;
   bool _do_HITS;
   bool _do_TRACKS;
   bool _do_CLUSTERS;
@@ -124,72 +108,18 @@ class EventEvaluator : public SubsysReco
   float* _hits_t;
 
   // towers
-  int _nTowers_FHCAL;
-  float* _tower_FHCAL_E;
-  int* _tower_FHCAL_iEta;
-  int* _tower_FHCAL_iPhi;
-  int* _tower_FHCAL_trueID;
-
-  // towers
-  int _nTowers_BECAL;
-  float* _tower_BECAL_E;
-  int* _tower_BECAL_iEta;
-  int* _tower_BECAL_iPhi;
-  int* _tower_BECAL_trueID;
-
-  // towers
   int _nTowers_HCALIN;
   float* _tower_HCALIN_E;
   int* _tower_HCALIN_iEta;
   int* _tower_HCALIN_iPhi;
   int* _tower_HCALIN_trueID;
 
-  // towers
   int _nTowers_HCALOUT;
   float* _tower_HCALOUT_E;
   int* _tower_HCALOUT_iEta;
   int* _tower_HCALOUT_iPhi;
   int* _tower_HCALOUT_trueID;
 
-  int _nTowers_EHCAL;
-  float* _tower_EHCAL_E;
-  int* _tower_EHCAL_iEta;
-  int* _tower_EHCAL_iPhi;
-  int* _tower_EHCAL_trueID;
-
-  int _nTowers_DRCALO;
-  float* _tower_DRCALO_E;
-  int* _tower_DRCALO_NScint;
-  int* _tower_DRCALO_NCerenkov;
-  int* _tower_DRCALO_iEta;
-  int* _tower_DRCALO_iPhi;
-  int* _tower_DRCALO_trueID;
-
-  int _nTowers_LFHCAL;
-  float* _tower_LFHCAL_E;
-  int* _tower_LFHCAL_iEta;
-  int* _tower_LFHCAL_iPhi;
-  int* _tower_LFHCAL_iL;
-  int* _tower_LFHCAL_trueID;
-
-  int _nTowers_FEMC;
-  float* _tower_FEMC_E;
-  int* _tower_FEMC_iEta;
-  int* _tower_FEMC_iPhi;
-  int* _tower_FEMC_trueID;
-
-  int _nTowers_EEMC;
-  float* _tower_EEMC_E;
-  int* _tower_EEMC_iEta;
-  int* _tower_EEMC_iPhi;
-  int* _tower_EEMC_trueID;
-
-  int _nTowers_EEMCG;
-  float* _tower_EEMCG_E;
-  int* _tower_EEMCG_iEta;
-  int* _tower_EEMCG_iPhi;
-  int* _tower_EEMCG_trueID;
-  
   int _nTowers_CEMC;
   float* _tower_CEMC_E;
   int* _tower_CEMC_iEta;
@@ -197,13 +127,6 @@ class EventEvaluator : public SubsysReco
   int* _tower_CEMC_trueID;
 
   // clusters
-  int _nclusters_FHCAL;
-  float* _cluster_FHCAL_E;
-  float* _cluster_FHCAL_Eta;
-  float* _cluster_FHCAL_Phi;
-  int* _cluster_FHCAL_NTower;
-  int* _cluster_FHCAL_trueID;
-
   int _nclusters_HCALIN;
   float* _cluster_HCALIN_E;
   float* _cluster_HCALIN_Eta;
@@ -218,20 +141,6 @@ class EventEvaluator : public SubsysReco
   int* _cluster_HCALOUT_NTower;
   int* _cluster_HCALOUT_trueID;
 
-  int _nclusters_EHCAL;
-  float* _cluster_EHCAL_E;
-  float* _cluster_EHCAL_Eta;
-  float* _cluster_EHCAL_Phi;
-  int* _cluster_EHCAL_NTower;
-  int* _cluster_EHCAL_trueID;
-
-  int _nclusters_FEMC;
-  float* _cluster_FEMC_E;
-  float* _cluster_FEMC_Eta;
-  float* _cluster_FEMC_Phi;
-  int* _cluster_FEMC_NTower;
-  int* _cluster_FEMC_trueID;
-
   int _nclusters_CEMC;
   float* _cluster_CEMC_E;
   float* _cluster_CEMC_Eta;
@@ -239,20 +148,6 @@ class EventEvaluator : public SubsysReco
   int* _cluster_CEMC_NTower;
   int* _cluster_CEMC_trueID;
 
-  int _nclusters_EEMC;
-  float* _cluster_EEMC_E;
-  float* _cluster_EEMC_Eta;
-  float* _cluster_EEMC_Phi;
-  int* _cluster_EEMC_NTower;
-  int* _cluster_EEMC_trueID;
-
-  int _nclusters_EEMCG;
-  float* _cluster_EEMCG_E;
-  float* _cluster_EEMCG_Eta;
-  float* _cluster_EEMCG_Phi;
-  int* _cluster_EEMCG_NTower;
-  int* _cluster_EEMCG_trueID;
-  
   // vertex
   float _vertex_x;
   float _vertex_y;
@@ -328,17 +223,9 @@ class EventEvaluator : public SubsysReco
   float _reco_e_threshold_BECAL;
   int _depth_MCstack;
 
-  CaloEvalStack* _caloevalstackFHCAL;
-  CaloEvalStack* _caloevalstackBECAL;
   CaloEvalStack* _caloevalstackHCALIN;
   CaloEvalStack* _caloevalstackHCALOUT;
-  CaloEvalStack* _caloevalstackEHCAL;
-  CaloEvalStack* _caloevalstackDRCALO;
-  CaloEvalStack* _caloevalstackLFHCAL;
-  CaloEvalStack* _caloevalstackFEMC;
   CaloEvalStack* _caloevalstackCEMC;
-  CaloEvalStack* _caloevalstackEEMC;
-  CaloEvalStack* _caloevalstackEEMCG;
   
   //----------------------------------
   // evaluator output ntuples
@@ -361,11 +248,8 @@ class EventEvaluator : public SubsysReco
   void resetBuffer();                                     ///< reset the tree variables before filling for a new event
 
   const int _maxNHits = 10000;
-  const int _maxNTowers = 50 * 50;
   const int _maxNTowersCentral = 2000;
-  const int _maxNTowersDR = 3000 * 3000;
   const int _maxNTowersCalo = 5000000;
-  const int _maxNclusters = 100;
   const int _maxNclustersCentral = 2000;
   const int _maxNTracks = 200;
   const int _maxNProjections = 2000;
@@ -373,17 +257,9 @@ class EventEvaluator : public SubsysReco
   const int _maxNHepmcp = 1000;
 
   enum calotype {
-      kFHCAL         = 0,
-      kFEMC         = 1,
-      kDRCALO        = 2,
-      kEEMC         = 3,
-      kCEMC         = 4,
-      kEHCAL         = 5,
-      kHCALIN       = 6,
-      kHCALOUT       = 7,
-      kLFHCAL        = 8,
-      kEEMCG         = 9,
-      kBECAL         = 10
+      kCEMC         = 0,
+      kHCALIN       = 1,
+      kHCALOUT       = 2
   };
 
 };

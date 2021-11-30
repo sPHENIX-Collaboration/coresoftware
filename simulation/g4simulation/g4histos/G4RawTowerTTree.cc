@@ -86,7 +86,7 @@ int G4RawTowerTTree::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4RawTowerTTree::End(PHCompositeNode *topNode)
+int G4RawTowerTTree::End(PHCompositeNode */*topNode*/)
 {
   hm->dumpHistos(_histofilename);
   delete hm;

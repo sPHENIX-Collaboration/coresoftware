@@ -70,7 +70,7 @@ void PHG4ParticleGeneratorD0::set_mass(const double mass_in)
   return;
 }
 
-int PHG4ParticleGeneratorD0::InitRun(PHCompositeNode *topNode)
+int PHG4ParticleGeneratorD0::InitRun(PHCompositeNode */*topNode*/)
 {
   unsigned int iseed = PHRandomSeed();  // fixed seed handled in PHRandomSeed()
   std::cout << Name() << " random seed: " << iseed << std::endl;

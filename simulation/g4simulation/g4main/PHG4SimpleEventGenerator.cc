@@ -96,6 +96,11 @@ void PHG4SimpleEventGenerator::set_phi_range(const double min, const double max)
   return;
 }
 
+void PHG4SimpleEventGenerator::set_power_law_n(const double n)
+{
+  m_powerLawN = n;
+}
+
 void PHG4SimpleEventGenerator::set_pt_range(const double min, const double max, const double pt_gaus_width)
 {
   if (min > max)
@@ -352,16 +357,32 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
         exit(-1);
       }
 
-      double phi = (m_PhiMax - m_PhiMin) * gsl_rng_uniform_pos(RandomGenerator()) + m_PhiMin;
+      double phi = (m_PhiMax - m_PhiMin) * gsl_rng_uniform_pos(RandomGenerator()) + m_PhiMin;      
 
       double pt;
+      
       if (!std::isnan(m_P_Min) && !std::isnan(m_P_Max) && !std::isnan(m_P_GausWidth))
       {
-        pt = ((m_P_Max - m_P_Min) * gsl_rng_uniform_pos(RandomGenerator()) + m_P_Min + gsl_ran_gaussian(RandomGenerator(), m_P_GausWidth)) / cosh(eta);
+	pt = ((m_P_Max - m_P_Min) * gsl_rng_uniform_pos(RandomGenerator()) + m_P_Min + gsl_ran_gaussian(RandomGenerator(), m_P_GausWidth)) / cosh(eta);
+	if(!std::isnan(m_powerLawN))
+	{
+	  double y = gsl_rng_uniform_pos(RandomGenerator());
+	  double x1 = pow(m_Pt_Max, m_powerLawN+1);
+	  double x0 = pow(m_Pt_Min, m_powerLawN+1);
+	  pt = pow((x1-x0)*y + x0,1./(m_powerLawN+1.));
+	}
       }
       else if (!std::isnan(m_Pt_Min) && !std::isnan(m_Pt_Max) && !std::isnan(m_Pt_GausWidth))
       {
         pt = (m_Pt_Max - m_Pt_Min) * gsl_rng_uniform_pos(RandomGenerator()) + m_Pt_Min + gsl_ran_gaussian(RandomGenerator(), m_Pt_GausWidth);
+	if(!std::isnan(m_powerLawN))
+	{
+	  double y = gsl_rng_uniform_pos(RandomGenerator());
+	  double x1 = pow(m_Pt_Max, m_powerLawN+1);
+	  double x0 = pow(m_Pt_Min, m_powerLawN+1);
+	  pt = pow((x1-x0)*y + x0,1./(m_powerLawN+1.));
+	}
+
       }
       else
       {

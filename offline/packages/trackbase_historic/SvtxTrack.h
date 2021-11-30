@@ -64,91 +64,91 @@ class SvtxTrack : public PHObject
   //
 
   virtual unsigned int get_id() const { return UINT_MAX; }
-  virtual void set_id(unsigned int id) {}
+  virtual void set_id(unsigned int) {}
 
   virtual unsigned int get_vertex_id() const { return UINT_MAX; }
-  virtual void set_vertex_id(unsigned int vertex_id) {}
+  virtual void set_vertex_id(unsigned int) {}
 
   virtual bool get_positive_charge() const { return false; }
-  virtual void set_positive_charge(bool ispos) {}
+  virtual void set_positive_charge(bool) {}
 
   virtual int get_charge() const { return -1; }
-  virtual void set_charge(int charge) {}
+  virtual void set_charge(int) {}
 
   virtual float get_chisq() const { return NAN; }
-  virtual void set_chisq(float chisq) {}
+  virtual void set_chisq(float) {}
 
   virtual unsigned int get_ndf() const { return UINT_MAX; }
-  virtual void set_ndf(int ndf) {}
+  virtual void set_ndf(int) {}
 
   virtual float get_quality() const { return NAN; }
 
   virtual float get_dca() const { return NAN; }
-  virtual void set_dca(float dca) {}
+  virtual void set_dca(float) {}
 
   virtual float get_dca_error() const { return NAN; }
-  virtual void set_dca_error(float dca) {}
+  virtual void set_dca_error(float) {}
 
   virtual float get_dca2d() const { return NAN; }
-  virtual void set_dca2d(float dca2d) {}
+  virtual void set_dca2d(float) {}
 
   virtual float get_dca2d_error() const { return NAN; }
-  virtual void set_dca2d_error(float error) {}
+  virtual void set_dca2d_error(float) {}
 
   virtual float get_dca3d_xy() const { return NAN; }
-  virtual void set_dca3d_xy(float dcaxy) {}
+  virtual void set_dca3d_xy(float) {}
 
   virtual float get_dca3d_xy_error() const { return NAN; }
-  virtual void set_dca3d_xy_error(float error) {}
+  virtual void set_dca3d_xy_error(float) {}
 
   virtual float get_dca3d_z() const { return NAN; }
-  virtual void set_dca3d_z(float dcaz) {}
+  virtual void set_dca3d_z(float) {}
 
   virtual float get_dca3d_z_error() const { return NAN; }
-  virtual void set_dca3d_z_error(float error) {}
+  virtual void set_dca3d_z_error(float) {}
 
   virtual float get_x() const { return NAN; }
-  virtual void set_x(float x) {}
+  virtual void set_x(float) {}
 
   virtual float get_y() const { return NAN; }
-  virtual void set_y(float y) {}
+  virtual void set_y(float) {}
 
   virtual float get_z() const { return NAN; }
-  virtual void set_z(float z) {}
+  virtual void set_z(float) {}
 
-  virtual float get_pos(unsigned int i) const { return NAN; }
+  virtual float get_pos(unsigned int) const { return NAN; }
 
   virtual float get_px() const { return NAN; }
-  virtual void set_px(float px) {}
+  virtual void set_px(float) {}
 
   virtual float get_py() const { return NAN; }
-  virtual void set_py(float py) {}
+  virtual void set_py(float) {}
 
   virtual float get_pz() const { return NAN; }
-  virtual void set_pz(float pz) {}
+  virtual void set_pz(float) {}
 
-  virtual float get_mom(unsigned int i) const { return NAN; }
+  virtual float get_mom(unsigned int) const { return NAN; }
 
   virtual float get_p() const { return NAN; }
   virtual float get_pt() const { return NAN; }
   virtual float get_eta() const { return NAN; }
   virtual float get_phi() const { return NAN; }
 
-  virtual float get_error(int i, int j) const { return NAN; }
-  virtual void set_error(int i, int j, float value) {}
+  virtual float get_error(int /*i*/, int /*j*/) const { return NAN; }
+  virtual void set_error(int /*i*/, int /*j*/, float /*value*/) {}
 
   //
   // state methods -------------------------------------------------------------
   //
   virtual bool empty_states() const { return false; }
   virtual size_t size_states() const { return 0; }
-  virtual size_t count_states(float pathlength) const { return 0; }
+  virtual size_t count_states(float /*pathlength*/) const { return 0; }
   virtual void clear_states() {}
 
-  virtual const SvtxTrackState* get_state(float pathlength) const { return nullptr; }
-  virtual SvtxTrackState* get_state(float pathlength) { return nullptr; }
-  virtual SvtxTrackState* insert_state(const SvtxTrackState* state) { return nullptr; }
-  virtual size_t erase_state(float pathlength) { return 0; }
+  virtual const SvtxTrackState* get_state(float /*pathlength*/) const { return nullptr; }
+  virtual SvtxTrackState* get_state(float /*pathlength*/) { return nullptr; }
+  virtual SvtxTrackState* insert_state(const SvtxTrackState*) { return nullptr; }
+  virtual size_t erase_state(float /*pathlength*/) { return 0; }
 
   virtual ConstStateIter begin_states() const;
   virtual ConstStateIter find_state(float pathlength)  const;
@@ -172,13 +172,13 @@ class SvtxTrack : public PHObject
   virtual size_t size_clusters() const { return 0; }
 
   //! deprecated - please use cluster keys instead
-  virtual void insert_cluster(unsigned int clusterid) {}
+  virtual void insert_cluster(unsigned int /*clusterid*/) {}
   //! deprecated - please use cluster keys instead
-  virtual size_t erase_cluster(unsigned int clusterid) { return 0; }
+  virtual size_t erase_cluster(unsigned int /*clusterid*/) { return 0; }
   //! deprecated - please use cluster keys instead
   virtual ConstClusterIter begin_clusters() const;
   //! deprecated - please use cluster keys instead
-  virtual ConstClusterIter find_cluster(unsigned int clusterid) const;
+  virtual ConstClusterIter find_cluster(unsigned int /*clusterid*/) const;
   //! deprecated - please use cluster keys instead
   virtual ConstClusterIter end_clusters() const;
   //! deprecated - please use cluster keys instead
@@ -193,8 +193,8 @@ class SvtxTrack : public PHObject
   virtual bool empty_cluster_keys() const { return false; }
   virtual size_t size_cluster_keys() const { return 0; }
 
-  virtual void insert_cluster_key(TrkrDefs::cluskey clusterid) {}
-  virtual size_t erase_cluster_key(TrkrDefs::cluskey clusterid) { return 0; }
+  virtual void insert_cluster_key(TrkrDefs::cluskey /*clusterid*/) {}
+  virtual size_t erase_cluster_key(TrkrDefs::cluskey /*clusterid*/) { return 0; }
   virtual ConstClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) const;
   virtual ConstClusterKeyIter begin_cluster_keys() const;
   virtual ConstClusterKeyIter end_cluster_keys() const;
@@ -205,30 +205,30 @@ class SvtxTrack : public PHObject
   //
   // calo projection methods ---------------------------------------------------
   //
-  virtual float get_cal_dphi(CAL_LAYER layer) const { return 0.; }
-  virtual void set_cal_dphi(CAL_LAYER layer, float dphi) {}
+  virtual float get_cal_dphi(CAL_LAYER /*layer*/) const { return 0.; }
+  virtual void set_cal_dphi(CAL_LAYER /*layer*/, float /*dphi*/) {}
 
-  virtual float get_cal_deta(CAL_LAYER layer) const { return 0.; }
-  virtual void set_cal_deta(CAL_LAYER layer, float deta) {}
+  virtual float get_cal_deta(CAL_LAYER /*layer*/) const { return 0.; }
+  virtual void set_cal_deta(CAL_LAYER /*layer*/, float /*deta*/) {}
 
-  virtual float get_cal_energy_3x3(CAL_LAYER layer) const { return 0.; }
-  virtual void set_cal_energy_3x3(CAL_LAYER layer, float energy_3x3) {}
+  virtual float get_cal_energy_3x3(CAL_LAYER /*layer*/) const { return 0.; }
+  virtual void set_cal_energy_3x3(CAL_LAYER /*layer*/, float /*energy_3x3*/) {}
 
-  virtual float get_cal_energy_5x5(CAL_LAYER layer) const { return 0.; }
-  virtual void set_cal_energy_5x5(CAL_LAYER layer, float energy_5x5) {}
+  virtual float get_cal_energy_5x5(CAL_LAYER /*layer*/) const { return 0.; }
+  virtual void set_cal_energy_5x5(CAL_LAYER /*layer*/, float /*energy_5x5*/) {}
 
-  virtual unsigned int get_cal_cluster_id(CAL_LAYER layer) const { return 0; }
-  virtual void set_cal_cluster_id(CAL_LAYER layer, unsigned int id) {}
+  virtual unsigned int get_cal_cluster_id(CAL_LAYER /*layer*/) const { return 0; }
+  virtual void set_cal_cluster_id(CAL_LAYER /*layer*/, unsigned int /*id*/) {}
 
-  virtual TrkrDefs::cluskey get_cal_cluster_key(CAL_LAYER layer) const { return 0; }
-  virtual void set_cal_cluster_key(CAL_LAYER layer, TrkrDefs::cluskey key) {}
+  virtual TrkrDefs::cluskey get_cal_cluster_key(CAL_LAYER /*layer*/) const { return 0; }
+  virtual void set_cal_cluster_key(CAL_LAYER /*layer*/, TrkrDefs::cluskey /*key*/) {}
 
-  virtual float get_cal_cluster_e(CAL_LAYER layer) const { return 0.; }
-  virtual void set_cal_cluster_e(CAL_LAYER layer, float e) {}
+  virtual float get_cal_cluster_e(CAL_LAYER /*layer*/) const { return 0.; }
+  virtual void set_cal_cluster_e(CAL_LAYER /*layer*/, float /*e*/) {}
 
   // Acts methods for use by Acts modules only
-  virtual float get_acts_covariance(unsigned int i, unsigned int j) const { return NAN;}
-  virtual void set_acts_covariance(unsigned int i, unsigned int j, float value) {}
+  virtual float get_acts_covariance(unsigned int /*i*/, unsigned int /*j*/) const { return NAN;}
+  virtual void set_acts_covariance(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
  
   
 
@@ -238,8 +238,8 @@ class SvtxTrack : public PHObject
 
   //SvtxTrack_FastSim
   virtual unsigned int get_truth_track_id() const { return UINT_MAX; }
-  virtual void set_truth_track_id(unsigned int truthTrackId) {}
-  virtual void set_num_measurements(int nmeas) {}
+  virtual void set_truth_track_id(unsigned int) {}
+  virtual void set_num_measurements(int) {}
   virtual unsigned int get_num_measurements() const { return 0; }
 
   //SvtxTrack_FastSim_v1
@@ -249,15 +249,15 @@ class SvtxTrack : public PHObject
 
   virtual bool empty_g4hit_id() const { return true; }
   virtual size_t size_g4hit_id() const { return 0; }
-  virtual void add_g4hit_id(int volume, PHG4HitDefs::keytype id) {}
+  virtual void add_g4hit_id(int /*volume*/, PHG4HitDefs::keytype /*id*/) {}
   virtual HitIdIter begin_g4hit_id();
   virtual HitIdConstIter begin_g4hit_id() const;
-  virtual HitIdIter find_g4hit_id(int volume);
-  virtual HitIdConstIter find_g4hit_id(int volume) const;
+  virtual HitIdIter find_g4hit_id(int /*volume*/);
+  virtual HitIdConstIter find_g4hit_id(int /*volume*/) const;
   virtual HitIdIter end_g4hit_id();
   virtual HitIdConstIter end_g4hit_id() const;
-  virtual size_t remove_g4hit_id(int volume, PHG4HitDefs::keytype id) { return 0; }
-  virtual size_t remove_g4hit_volume(int volume) { return 0; }
+  virtual size_t remove_g4hit_id(int /*volume*/, PHG4HitDefs::keytype /*id*/) { return 0; }
+  virtual size_t remove_g4hit_volume(int /*volume*/) { return 0; }
   virtual void clear_g4hit_id() {}
   virtual const HitIdMap& g4hit_ids() const;
 

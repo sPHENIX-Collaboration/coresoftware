@@ -32,6 +32,7 @@ libtpccalib_la_LIBADD = \
   -ltrackbase_historic_io
 
 pkginclude_HEADERS = \
+  TpcDirectLaserReconstruction.h \
   TpcSpaceChargeMatrixContainer.h \
   TpcSpaceChargeMatrixContainerv1.h \
   TpcSpaceChargeMatrixInversion.h \
@@ -53,6 +54,7 @@ libtpccalib_io_la_SOURCES = \
   TpcSpaceChargeMatrixContainerv1.cc 
 
 libtpccalib_la_SOURCES = \
+  TpcDirectLaserReconstruction.cc \
   TpcSpaceChargeMatrixInversion.cc \
   TpcSpaceChargeReconstruction.cc \
   TpcSpaceChargeReconstructionHelper.cc \

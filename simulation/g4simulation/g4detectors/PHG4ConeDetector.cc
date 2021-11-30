@@ -46,13 +46,7 @@ bool PHG4ConeDetector::IsInConeActive(G4VPhysicalVolume *volume)
 //_______________________________________________________________
 void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  G4Material *TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
-
-  if (!TrackerMaterial)
-  {
-    std::cout << "Error: Can not set material" << std::endl;
-    exit(-1);
-  }
+  G4Material *TrackerMaterial = GetDetectorMaterial(m_Params->get_string_param("material"));
 
   G4VSolid *cone_solid = new G4Cons((GetName() + "_SOLID"),
                                     m_Params->get_double_param("rmin1") * cm,

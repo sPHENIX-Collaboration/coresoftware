@@ -66,6 +66,7 @@ static IsStateFinal isfinal;
 
 HepMCNodeReader::HepMCNodeReader(const std::string &name)
   : SubsysReco(name)
+  , is_pythia(false)
   , use_seed(0)
   , seed(0)
   , vertex_pos_x(0.0)
@@ -188,6 +189,8 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
       genevt->identify();
     }
 
+    const auto collisionVertex = genevt->get_collision_vertex();
+
     HepMC::GenEvent *evt = genevt->getEvent();
     if (!evt)
     {
@@ -282,6 +285,20 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
                                           (*v)->position().y(),
                                           (*v)->position().z(),
                                           (*v)->position().t());
+	if(is_pythia)
+	  {
+	    lv_vertex.setX(collisionVertex.x());
+	    lv_vertex.setY(collisionVertex.y());
+	    lv_vertex.setZ(collisionVertex.z());
+	    lv_vertex.setT(collisionVertex.t());
+	    if (Verbosity() > 1)
+	      {
+		std::cout << __PRETTY_FUNCTION__ << " " << __LINE__ 
+			  << std::endl;
+		std::cout << "\t vertex reset to collision vertex: " 
+			  << lv_vertex << std::endl;
+	      }
+	  }
 
         // event gen frame to lab frame
         lv_vertex = lortentz_rotation(lv_vertex);
@@ -419,7 +436,7 @@ void HepMCNodeReader::SmearVertex(const double s_x, const double s_y,
   return;
 }
 
-void HepMCNodeReader::Embed(const int i)
+void HepMCNodeReader::Embed(const int)
 {
   cout << "HepMCNodeReader::Embed - WARNING - this function is depreciated. "
        << "Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."

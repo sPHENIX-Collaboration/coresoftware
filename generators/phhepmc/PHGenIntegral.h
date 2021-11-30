@@ -31,7 +31,7 @@ class PHGenIntegral : public PHObject
   }
 
   //! Integrated luminosity in pb^-1
-  virtual void set_Integrated_Lumi(Double_t integratedLumi)
+  virtual void set_Integrated_Lumi(Double_t /*integratedLumi*/)
   {
   }
 
@@ -42,7 +42,7 @@ class PHGenIntegral : public PHObject
   }
 
   //! Number of accepted events in the event generator. This can be higher than fNProcessedEvent depending on trigger on the event generator
-  virtual void set_N_Generator_Accepted_Event(ULong64_t nGeneratorAcceptedEvent)
+  virtual void set_N_Generator_Accepted_Event(ULong64_t /*nGeneratorAcceptedEvent*/)
   {
   }
 
@@ -53,7 +53,7 @@ class PHGenIntegral : public PHObject
   }
 
   //! Number of processed events in the Fun4All cycles
-  virtual void set_N_Processed_Event(ULong64_t nProcessedEvent)
+  virtual void set_N_Processed_Event(ULong64_t /*nProcessedEvent*/)
   {
   }
 
@@ -68,7 +68,7 @@ class PHGenIntegral : public PHObject
   //! Sum of weight assigned to the events by the generators.
   //! Event weight is normally 1 and thus equal to number of the generated event and is uninteresting.
   //! However, there are several cases where one may have nontrivial event weights, e.g. using user hooks in Pythia8 generators to reweight the phase space
-  virtual void set_Sum_Of_Weight(Double_t sumOfWeight)
+  virtual void set_Sum_Of_Weight(Double_t /*sumOfWeight*/)
   {
   }
 
@@ -82,7 +82,7 @@ class PHGenIntegral : public PHObject
   virtual const std::string& get_Description() const;
 
   //! description on the source
-  virtual void set_Description(const std::string& description)
+  virtual void set_Description(const std::string& /*description*/)
   {
   }
 

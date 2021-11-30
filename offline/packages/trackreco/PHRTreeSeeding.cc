@@ -482,7 +482,7 @@ void PHRTreeSeeding::FillTree()
   std::cout << "number of duplicates : " << n_dupli << std::endl;
 }
 
-int PHRTreeSeeding::Process(PHCompositeNode *topNode)
+int PHRTreeSeeding::Process(PHCompositeNode */*topNode*/)
 {
   TFile fpara("rtree_para.root", "RECREATE");
   TNtuple *NT = new TNtuple("NT", "NT", "pt:dpt:z:dz:phi:dphi:c:dc:nhit");

@@ -382,37 +382,37 @@ PHG4Hitv1::set_local_z(const int i, const float f)
 void
 PHG4Hitv1::identify(ostream& os) const
 {
-  cout << "Class " << this->ClassName() << endl;
-  cout << "hitid: 0x" << hex << hitid << dec << endl; 
-  cout << "x0: " << get_x(0)
+  os << "Class " << this->ClassName() << endl;
+  os << "hitid: 0x" << hex << hitid << dec << endl; 
+  os << "x0: " << get_x(0)
        << ", y0: " << get_y(0)
        << ", z0: " << get_z(0)
        << ", t0: " << get_t(0) << endl;
-  cout << "x1: " << get_x(1)
+  os << "x1: " << get_x(1)
        << ", y1: " << get_y(1)
        << ", z1: " << get_z(1)
        << ", t1: " << get_t(1) << endl;
-  cout << "trackid: " << trackid << ", showerid: " << showerid
+  os << "trackid: " << trackid << ", showerid: " << showerid
        << ", edep: " << edep << endl;
   for (prop_map_t::const_iterator i = prop_map.begin(); i!= prop_map.end(); ++i)
     {
       PROPERTY prop_id = static_cast<PROPERTY>(i->first);
       pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-      cout << "\t" << prop_id << ":\t" << property_info.first << " = \t";
+      os << "\t" << prop_id << ":\t" << property_info.first << " = \t";
       switch(property_info.second)
 	{
 	case type_int:
-	  cout << get_property_int(prop_id);
+	  os << get_property_int(prop_id);
 	  break;
 	case type_uint:
-	  cout << get_property_uint(prop_id);
+	  os << get_property_uint(prop_id);
 	  break;
 	case type_float:
-	  cout << get_property_float(prop_id);
+	  os << get_property_float(prop_id);
 	  break;
 	default:
-	  cout << " unknown type ";
+	  os << " unknown type ";
 	}
-      cout <<endl;
+      os <<endl;
     }
 }

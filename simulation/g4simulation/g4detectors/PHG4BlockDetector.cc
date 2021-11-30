@@ -53,13 +53,7 @@ bool PHG4BlockDetector::IsInBlock(G4VPhysicalVolume *volume) const
 //_______________________________________________________________
 void PHG4BlockDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  G4Material *TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
-
-  if (!TrackerMaterial)
-  {
-    std::cout << "Error: Can not set material" << std::endl;
-    exit(-1);
-  }
+  G4Material *TrackerMaterial = GetDetectorMaterial(m_Params->get_string_param("material"));
 
   G4VSolid *block_solid = new G4Box(G4String(GetName()),
                                     m_Params->get_double_param("size_x") / 2. * cm,

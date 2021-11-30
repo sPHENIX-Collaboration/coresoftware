@@ -87,14 +87,10 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 	
 	if(trkrId != TrkrDefs::tpcId) continue;  // we want only TPC clusters
 	
-	if (Verbosity() >= 1)
+	if (Verbosity() > 1)
 	  {
-	  std::cout << " cluster : " << cluskey << " layer " << layer
-		    << " position x,y,z " << cluster->getX() << "  " << cluster->getY() << "  " << cluster->getZ()
-		    << " ADC " << cluster->getAdc()
-		    << std::endl;
-	  std::cout << "       errors: r-phi " << cluster->getRPhiError() << " Z " << cluster->getZError() 
-		    << " phi size " << cluster->getPhiSize() << " Z size " << cluster->getZSize()
+	  std::cout << " layer " << layer << " cluster : " << cluskey 
+		    << " ADC " << cluster->getAdc() << "       errors: r-phi " << cluster->getRPhiError() << " Z " << cluster->getZError() 
 		    << std::endl;
 	  }
 	
@@ -109,8 +105,8 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 	
 	// errors too large
 	// associated with very small ADC values
-	if(cluster->getRPhiError() > _rphi_error_high_cut)
-	  discard_cluster = true;
+	//if(cluster->getRPhiError() > _rphi_error_high_cut)
+	//discard_cluster = true;
 	
 	if(discard_cluster)
 	  {
@@ -118,37 +114,25 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 	    // mark it for modification
 	    discard_set.insert(cluskey);
 	    if(Verbosity() > 0) 
-	      std::cout << " found cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
-			<< " phisize " << cluster->getPhiSize() << " Z size " << cluster->getZSize() << std::endl;
+	      std::cout << "                       discard cluster " << cluskey << " with ephi " << cluster->getRPhiError() << " adc " << cluster->getAdc() 
+			<< std::endl;
 	  }
       }
   }
 
   for(auto iter = discard_set.begin(); iter != discard_set.end(); ++iter)
     {
-      /*
+
       // remove bad clusters from the node tree map
       _cluster_map->removeCluster(*iter);
-      */
-      
-      // increase the errors on the bad clusters to _new_rphi_error in r-phi and _new_z_error in z
-      TrkrCluster *clus = _cluster_map->findCluster(*iter);
-      double clusphi = atan2(clus->getY() , clus->getX());
-      double error[3][3] = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
-      rotate_error(_new_rphi_error, _new_z_error, clusphi, error);
-      for(int i = 0; i < 3; ++i)
-	for(int j = 0; j < 3; ++j)
-	  clus->setError(i,j,error[i][j]);
-      
-      if(Verbosity() > 1)
-	{
-	  TrkrDefs::cluskey ckey = clus->getClusKey();
-	  std::cout << " changed cluster " << ckey << " error to erphi " << clus->getRPhiError() << " ez " << clus->getZError() << std::endl;
-	}
-    }
 
+    }
+      
   if(Verbosity() > 0)
-    std::cout << "Clusters updated this event: " << count_discards << std::endl;
+    {
+      std::cout << "Clusters discarded this event: " << count_discards << std::endl;
+      std::cout << "Clusters remaining: " << _cluster_map->size() << std::endl;  
+    }
 
   /*
   // check the map on the node tree 
@@ -182,12 +166,12 @@ int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int TpcClusterCleaner::End(PHCompositeNode *topNode)
+int TpcClusterCleaner::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int  TpcClusterCleaner::GetNodes(PHCompositeNode* topNode)
+int  TpcClusterCleaner::GetNodes(PHCompositeNode* /*topNode*/)
 {
 
   return Fun4AllReturnCodes::EVENT_OK;

@@ -59,7 +59,8 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   /**
    * this is the file where space charge matrix container is stored 
    */
-  void set_outputfile( const std::string& filename );
+  void set_outputfile( const std::string& filename )
+  { m_outputfile = filename; }
 
   //@}
 

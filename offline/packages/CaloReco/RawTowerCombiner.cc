@@ -87,7 +87,7 @@ int RawTowerCombiner::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerCombiner::process_event(PHCompositeNode *topNode)
+int RawTowerCombiner::process_event(PHCompositeNode */*topNode*/)
 {
   assert(_towers);
 
@@ -195,7 +195,7 @@ int RawTowerCombiner::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerCombiner::End(PHCompositeNode *topNode)
+int RawTowerCombiner::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

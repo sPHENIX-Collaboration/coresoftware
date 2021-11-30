@@ -101,7 +101,7 @@ int PHG4GDMLSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 }
 
 //_______________________________________________________________________
-int PHG4GDMLSubsystem::process_event(PHCompositeNode *topNode)
+int PHG4GDMLSubsystem::process_event(PHCompositeNode */*topNode*/)
 {
   return 0;
 }

@@ -14,64 +14,64 @@
 
 using namespace std;
 
-static const unsigned int digits = 2;
-static const unsigned int r = 7;
-static const unsigned int radix = 1 << r;
-static const unsigned int mask = radix - 1;
+//static const unsigned int digits = 2;
+//static const unsigned int r = 7;
+//static const unsigned int radix = 1 << r;
+//static const unsigned int mask = radix - 1;
 
-static void radix_sort(std::vector<BinEntryPair5D>& A) {
-  unsigned int SIZE = A.size();
-  std::vector<BinEntryPair5D> B(SIZE);
-  std::vector<unsigned int> cnt(radix);
+// static void radix_sort(std::vector<BinEntryPair5D>& A) {
+//   unsigned int SIZE = A.size();
+//   std::vector<BinEntryPair5D> B(SIZE);
+//   std::vector<unsigned int> cnt(radix);
 
-  for (unsigned int i = 0, shift = 0; i < digits; i++, shift += r) {
-    for (unsigned int j = 0; j < radix; ++j) {
-      cnt[j] = 0;
-    }
+//   for (unsigned int i = 0, shift = 0; i < digits; i++, shift += r) {
+//     for (unsigned int j = 0; j < radix; ++j) {
+//       cnt[j] = 0;
+//     }
 
-    for (unsigned int j = 0; j < SIZE; ++j) {
-      ++cnt[(A[j].bin >> shift) & mask];
-    }
+//     for (unsigned int j = 0; j < SIZE; ++j) {
+//       ++cnt[(A[j].bin >> shift) & mask];
+//     }
 
-    for (unsigned int j = 1; j < radix; ++j) {
-      cnt[j] += cnt[j - 1];
-    }
+//     for (unsigned int j = 1; j < radix; ++j) {
+//       cnt[j] += cnt[j - 1];
+//     }
 
-    for (long j = SIZE - 1; j >= 0; --j) {
-      B[--cnt[(A[j].bin >> shift) & mask]] = A[j];
-    }
+//     for (long j = SIZE - 1; j >= 0; --j) {
+//       B[--cnt[(A[j].bin >> shift) & mask]] = A[j];
+//     }
 
-    for (unsigned int j = 0; j < SIZE; ++j) {
-      A[j] = B[j];
-    }
-  }
-}
+//     for (unsigned int j = 0; j < SIZE; ++j) {
+//       A[j] = B[j];
+//     }
+//   }
+// }
 
-static void radix_sort(unsigned int* A, unsigned int* B, unsigned int SIZE) {
-  unsigned int cnt[1 << 7];
+// static void radix_sort(unsigned int* A, unsigned int* B, unsigned int SIZE) {
+//   unsigned int cnt[1 << 7];
 
-  for (unsigned int i = 0, shift = 0; i < digits; i++, shift += r) {
-    for (unsigned int j = 0; j < radix; ++j) {
-      cnt[j] = 0;
-    }
+//   for (unsigned int i = 0, shift = 0; i < digits; i++, shift += r) {
+//     for (unsigned int j = 0; j < radix; ++j) {
+//       cnt[j] = 0;
+//     }
 
-    for (unsigned int j = 0; j < SIZE; ++j) {
-      ++cnt[((A[j] >> 20) >> shift) & mask];
-    }
+//     for (unsigned int j = 0; j < SIZE; ++j) {
+//       ++cnt[((A[j] >> 20) >> shift) & mask];
+//     }
 
-    for (unsigned int j = 1; j < radix; ++j) {
-      cnt[j] += cnt[j - 1];
-    }
+//     for (unsigned int j = 1; j < radix; ++j) {
+//       cnt[j] += cnt[j - 1];
+//     }
 
-    for (long j = SIZE - 1; j >= 0; --j) {
-      B[--cnt[((A[j] >> 20) >> shift) & mask]] = A[j];
-    }
+//     for (long j = SIZE - 1; j >= 0; --j) {
+//       B[--cnt[((A[j] >> 20) >> shift) & mask]] = A[j];
+//     }
 
-    for (unsigned int j = 0; j < SIZE; ++j) {
-      A[j] = B[j];
-    }
-  }
-}
+//     for (unsigned int j = 0; j < SIZE; ++j) {
+//       A[j] = B[j];
+//     }
+//   }
+// }
 
 static void counting_sort(unsigned int MAX, std::vector<BinEntryPair5D>& A,
                           unsigned int* C, unsigned int* bins_start,
@@ -236,13 +236,13 @@ void fillBins4_sse(float* min_phi_a, float* max_phi_a, float n_phi_val,
   _mm_store_si128((__m128i*)phihi2, highphi_sel_2);
 }
 
-void HelixHough::fillBins(unsigned int total_bins, unsigned int hit_counter,
+void HelixHough::fillBins(unsigned int /*total_bins*/, unsigned int hit_counter,
                           float* min_phi_a, float* max_phi_a,
                           vector<SimpleHit3D>& four_hits, fastvec2d& z_bins,
                           unsigned int n_d, unsigned int n_k,
                           unsigned int n_dzdl, unsigned int n_z0,
                           unsigned int d_bin, unsigned int k_bin,
-                          unsigned int n_phi, unsigned int zoomlevel,
+                          unsigned int n_phi, unsigned int /*zoomlevel*/,
                           float low_phi, float high_phi, float inv_phi_range,
                           fastvec& vote_array) {
   unsigned int buffer[(1 << 10)];
@@ -331,8 +331,8 @@ void HelixHough::fillBins(unsigned int total_bins, unsigned int hit_counter,
   vote_array.push_back(buffer, bufnum);
 }
 
-void HelixHough::vote_z(unsigned int zoomlevel, unsigned int n_phi,
-                        unsigned int n_d, unsigned int n_k, unsigned int n_dzdl,
+void HelixHough::vote_z(unsigned int zoomlevel, unsigned int /*n_phi*/,
+                        unsigned int /*n_d*/, unsigned int /*n_k*/, unsigned int n_dzdl,
                         unsigned int n_z0, fastvec2d& z_bins) {
   float z0_size =
       (zoomranges[zoomlevel].max_z0 - zoomranges[zoomlevel].min_z0) /

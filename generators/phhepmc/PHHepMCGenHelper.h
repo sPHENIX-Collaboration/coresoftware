@@ -11,11 +11,14 @@
 #ifndef PHHEPMC_PHHEPMCGENHELPER_H
 #define PHHEPMC_PHHEPMCGENHELPER_H
 
+#include <CLHEP/Vector/ThreeVector.h>
+
 #include <gsl/gsl_rng.h>
 
 #include <cmath>
 #include <string>
 #include <utility>
+#include <vector>
 
 class PHCompositeNode;
 class PHHepMCGenEvent;
@@ -82,12 +85,6 @@ class PHHepMCGenHelper
   //! send HepMC::GenEvent to DST tree. This function takes ownership of evt
   PHHepMCGenEvent *insert_event(HepMC::GenEvent *evt);
 
-  //! Record the translation,boost,rotation for HepMC frame to lab frame according to collision settings
-  void HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *genevent);
-
-  //! move vertex in translation according to vertex settings
-  void move_vertex(PHHepMCGenEvent *genevent);
-
   const PHHepMCGenEventMap *get_geneventmap() const
   {
     return _geneventmap;
@@ -151,6 +148,14 @@ class PHHepMCGenHelper
     m_beam_angular_z_coefficient_hv = {{beamA_h, beamA_v}, {beamB_h, beamB_v}};
   }
 
+  //! simulate bunch interaction instead of applying vertex distributions
+  void use_beam_bunch_sim(bool b) { m_use_beam_bunch_sim = b; }
+
+  //! Beam bunch geometry as 3D Gauss width
+  //! First element is beamA, in vector of Gaussian Sigma H,V,Longitudinal
+  //! Second element is beamB, in vector of Gaussian Sigma H,V,Longitudinal
+  void set_beam_bunch_width(const std::vector<double> &beamA, const std::vector<double> &beamB);
+
   void CopySettings(PHHepMCGenHelper &helper);
 
   //! copy setting to helper_dest
@@ -165,10 +170,25 @@ class PHHepMCGenHelper
 
   int PHHepMCGenHelper_Verbosity() { return m_verbosity; }
 
+ protected:
+  //! Record the translation,boost,rotation for HepMC frame to lab frame according to collision settings
+  void HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *genevent);
+
+  //! move vertex in translation according to vertex settings
+  void move_vertex(PHHepMCGenEvent *genevent);
+
+  //! generate vertx with bunch interaction according to
+  //! https://github.com/eic/documents/blob/d06b5597a0a89dcad215bab50fe3eefa17a097a5/reports/general/Note-Simulations-BeamEffects.pdf
+  //! \return pair of bunch local z position for beam A and beam B
+  std::pair<double, double> generate_vertx_with_bunch_interaction(PHHepMCGenEvent *genevent);
+
  private:
   gsl_rng *RandomGenerator;
 
   double smear(const double position, const double width, VTXFUNC dist) const;
+
+  //! function to convert spherical coordinate to Hep3Vector in x-y-z
+  static CLHEP::Hep3Vector pair2Hep3Vector(const std::pair<double, double> &theta_phi);
 
   VTXFUNC _vertex_func_x;
   VTXFUNC _vertex_func_y;
@@ -226,6 +246,22 @@ class PHHepMCGenHelper
 
   //!verbosity
   int m_verbosity = 0;
+
+  //! simulate bunch interaction instead of applying vertex distributions
+  bool m_use_beam_bunch_sim = false;
+
+  //! Beam bunch geometry as 3D Gauss width
+  //! First element is beamA, in vector of Gaussian Sigma H,V,Longitudinal
+  //! Second element is beamB, in vector of Gaussian Sigma H,V,Longitudinal
+  std::pair<std::vector<double>, std::vector<double>> m_beam_bunch_width = {
+      {0, 0, 0},  //+z beam
+      {0, 0, 0}   //-z beam
+  };
+
+  //! use m_beam_bunch_width to calculate horizontal and vertical collision width
+  //! \param[in] hv_index 0: horizontal. 1: vertical
+  double get_collision_width(unsigned int hv_index);
+
 };
 
 #endif /* PHHEPMC_PHHEPMCGENHELPER_H */

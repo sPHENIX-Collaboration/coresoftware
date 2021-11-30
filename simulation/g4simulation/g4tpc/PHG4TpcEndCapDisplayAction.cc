@@ -30,7 +30,7 @@ PHG4TpcEndCapDisplayAction::~PHG4TpcEndCapDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4TpcEndCapDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4TpcEndCapDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
   for (auto it : m_LogicalVolumeMap)

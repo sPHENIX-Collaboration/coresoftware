@@ -122,7 +122,7 @@ bool PHParameters::exist_double_param(const std::string &name) const
   return false;
 }
 
-void PHParameters::Print(Option_t *option) const
+void PHParameters::Print(Option_t */*option*/) const
 {
   std::cout << "Parameters for " << m_Detector << std::endl;
   printint();
