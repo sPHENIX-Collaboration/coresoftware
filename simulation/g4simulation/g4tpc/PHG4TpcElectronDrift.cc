@@ -372,19 +372,16 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       if (m_distortionMap)
       {
-        const double x_distortion = m_distortionMap->get_x_distortion(x_start, y_start, z_start);
-        const double y_distortion = m_distortionMap->get_y_distortion(x_start, y_start, z_start);
-        const double z_distortion = m_distortionMap->get_z_distortion(x_start, y_start, z_start);
+	const double r_distortion = m_distortionMap->get_r_distortion(radstart, phistart, z_start);
+	const double phi_distortion = m_distortionMap->get_phi_distortion(radstart, phistart, z_start);
+	const double z_distortion = m_distortionMap->get_z_distortion(radstart, phistart, z_start);
 
-        x_final += x_distortion;
-        y_final += y_distortion;
+	rad_final+=r_distortion;
+	phi_final+=phi_distrtion;
+	z_final += z_distortion;
 
-        // TODO: should check again against TPC acceptance
-        z_final += z_distortion;
-
-        // re-calculate rad and phi final, including distortions
-        rad_final = sqrt(square(x_final) + square(y_final));
-        phi_final = atan2(y_final, x_final);
+	x_final=rad_final*std::cos(phi_final);
+	y_final=rad_final*std::sin(phi_final);
 
         if (do_ElectronDriftQAHistos)
         {
