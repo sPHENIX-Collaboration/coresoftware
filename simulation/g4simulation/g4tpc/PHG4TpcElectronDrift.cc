@@ -377,7 +377,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	const double z_distortion = m_distortionMap->get_z_distortion(radstart, phistart, z_start);
 
 	rad_final+=r_distortion;
-	phi_final+=phi_distrtion;
+	phi_final+=phi_distortion;
 	z_final += z_distortion;
 
 	x_final=rad_final*std::cos(phi_final);
