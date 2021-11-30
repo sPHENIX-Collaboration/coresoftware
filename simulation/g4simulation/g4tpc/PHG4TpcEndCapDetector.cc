@@ -77,8 +77,7 @@ PHG4TpcEndCapDetector::PHG4TpcEndCapDetector(PHG4Subsystem *subsys,
   Verbosity(m_Params->get_int_param("construction_verbosity"));
 }
 
-PHG4TpcEndCapDetector::
-    ~PHG4TpcEndCapDetector()
+PHG4TpcEndCapDetector::~PHG4TpcEndCapDetector()
 {
   if (m_EndCapAssembly)
   {
@@ -94,8 +93,9 @@ PHG4TpcEndCapDetector::
 //_______________________________________________________________
 int PHG4TpcEndCapDetector::IsInDetector(G4VPhysicalVolume *volume) const
 {
-  set<G4VPhysicalVolume *>::const_iterator iter = m_PhysicalVolumesSet.find(volume);
-  if (iter != m_PhysicalVolumesSet.end())
+  G4LogicalVolume *logvol = volume->GetLogicalVolume();
+  std::set<G4LogicalVolume *>::const_iterator iter = m_LogicalVolumesSet.find(logvol);
+  if (iter != m_LogicalVolumesSet.end())
   {
     return 1;
   }
@@ -111,8 +111,7 @@ void PHG4TpcEndCapDetector::ConstructMe(G4LogicalVolume *logicWorld)
   m_EndCapAssembly = ConstructEndCapAssembly();
   assert(m_EndCapAssembly);
 
-  G4TranslateZ3D g4vec_front_z(
-      m_Params->get_double_param("envelop_front_surface_z") * cm);
+  G4TranslateZ3D g4vec_front_z(m_Params->get_double_param("envelop_front_surface_z") * cm);
 
   G4RotateY3D rotm_otherside(180 * deg);
 
@@ -173,7 +172,7 @@ G4AssemblyVolume *PHG4TpcEndCapDetector::ConstructEndCapAssembly()
 
   //instead of building this layer-by-layer, we build a single block corresponding to all the gems that were previously handled in this fashion:
   totalThickness*=n_GEM_layers;
-  AddLayer(assemblyvol, starting_z, G4String("GEMAllParts"), "GEMeffective", totalThickness, 64); //note this slightly udnercounts the gas because the gas fill should be 100%, and slightly mispositions the inner edge of the material because the way it is made <100% in AddLayer is by making it thinner than nominally requested but centering it in the region it would have occupied.
+  AddLayer(assemblyvol, starting_z, G4String("GEMAllParts"), "GEMeffective", totalThickness, 64); //note this slightly undercounts the gas because the gas fill should be 100%, and slightly mispositions the inner edge of the material because the way it is made <100% in AddLayer is by making it thinner than nominally requested but centering it in the region it would have occupied.
 
   // 16 layer readout plane by TTM
   // https://indico.bnl.gov/event/8307/contributions/36744/attachments/27646/42337/R3-Review.pptx
@@ -249,8 +248,7 @@ void PHG4TpcEndCapDetector ::AddLayer(  //
   G4ThreeVector g4vec(0, 0, z_start);
   z_start += _depth / 2.;
 
-  string name_base =
-      boost::str(boost::format("%1%_Layer_%2%") % GetName() % _name);
+  string name_base = boost::str(boost::format("%1%_Layer_%2%") % GetName() % _name);
 
   G4VSolid *solid_layer = new G4Tubs(
       name_base,
@@ -267,6 +265,7 @@ void PHG4TpcEndCapDetector ::AddLayer(  //
   }
 
   G4LogicalVolume *logical_layer = new G4LogicalVolume(solid_layer, material, name_base);
+  m_LogicalVolumesSet.insert(logical_layer);
 
   assemblyvol->AddPlacedVolume(logical_layer, g4vec, nullptr);
 
@@ -339,6 +338,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
         0, CLHEP::twopi);
 
     G4LogicalVolume *log_solid_wagon_wheel_front_frame = new G4LogicalVolume(solid_wagon_wheel_front_frame, material, name_base);
+    m_LogicalVolumesSet.insert(log_solid_wagon_wheel_front_frame);
 
     assmeblyvol->AddPlacedVolume(log_solid_wagon_wheel_front_frame,
                                  g4vec_wagon_wheel_front_frame,
@@ -380,6 +380,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
                                                                         zero, 1.0,
                                                                         zero, 1.0);
     G4LogicalVolume *log_solid_wagon_wheel_front_frame_spoke = new G4LogicalVolume(solid_wagon_wheel_front_frame_spoke, material, name_base_spoke);
+    m_LogicalVolumesSet.insert(log_solid_wagon_wheel_front_frame_spoke);
 
     const G4double sector_dphi = CLHEP::twopi / n_sectors;
     for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
@@ -420,6 +421,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
         0, CLHEP::twopi);
 
     G4LogicalVolume *log_solid_wagon_wheel = new G4LogicalVolume(solid_wagon_wheel, material, name_base);
+    m_LogicalVolumesSet.insert(log_solid_wagon_wheel);
 
     assmeblyvol->AddPlacedVolume(log_solid_wagon_wheel,
                                  g4vec_wagon_wheel_rim_outer,
@@ -454,6 +456,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
                                                             zero, 1.0,
                                                             zero, 1.0);
     G4LogicalVolume *log_solid_wagon_wheel_spoke = new G4LogicalVolume(solid_wagon_wheel_spoke, material, name_base);
+    m_LogicalVolumesSet.insert(log_solid_wagon_wheel_spoke);
 
     G4ThreeVector g4vec_wagon_wheel_spoke(0, 0, z_start + wagon_wheel_spoke_width / 2.);
 
@@ -554,6 +557,8 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
 
       //
       G4LogicalVolume *log_vol = new G4LogicalVolume(solid, material, name_base);
+      m_LogicalVolumesSet.insert(log_vol);
+
       for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
       {
         G4Transform3D trans(
@@ -624,6 +629,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
 
         G4LogicalVolume *log_electronics = new G4LogicalVolume(solid_electronics,
                                                                G4Material::GetMaterial("FR4"), name_base + "_PCB");
+	m_LogicalVolumesSet.insert(log_electronics);
 
         assmeblyvol_electronics->AddPlacedVolume(log_electronics,
                                                  g4vec_electronics, nullptr);
@@ -646,6 +652,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
 
         G4LogicalVolume *log_electronics = new G4LogicalVolume(solid_electronics,
                                                                G4Material::GetMaterial("G4_Cu"), name_base + "_Cu");
+	m_LogicalVolumesSet.insert(log_electronics);
 
         assmeblyvol_electronics->AddPlacedVolume(log_electronics,
                                                  g4vec_electronics, nullptr);
@@ -668,6 +675,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
 
         G4LogicalVolume *log_electronics = new G4LogicalVolume(solid_electronics,
                                                                G4Material::GetMaterial("G4_Al"), name_base + "_Al");
+	m_LogicalVolumesSet.insert(log_electronics);
 
         assmeblyvol_electronics->AddPlacedVolume(log_electronics,
                                                  g4vec_electronics, nullptr);

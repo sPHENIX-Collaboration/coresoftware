@@ -42,11 +42,11 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   const std::string SuperDetector() const { return m_SuperDetector; }
 
  private:
-  PHParameters *m_Params;
-  PHG4TpcEndCapDisplayAction *m_DisplayAction;
+  PHParameters *m_Params = nullptr;
+  PHG4TpcEndCapDisplayAction *m_DisplayAction = nullptr;
 
   // active volumes
-  std::set<G4VPhysicalVolume *> m_PhysicalVolumesSet;
+  std::set<G4LogicalVolume *> m_LogicalVolumesSet;
 
   std::string m_SuperDetector;
 
