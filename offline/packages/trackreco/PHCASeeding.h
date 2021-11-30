@@ -11,40 +11,37 @@
 //begin
 
 #include "PHTrackSeeding.h"      // for PHTrackSeeding
-
 #include "ALICEKF.h"
-
-#include <phool/PHTimer.h>
 
 #include <tpc/TpcDistortionCorrection.h>
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
-#include <trackbase/TrkrCluster.h>
 #include <trackbase_historic/ActsTransformations.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
-
-#include <TNtuple.h>
 
 #include <boost/geometry/geometries/box.hpp>    // for box
 #include <boost/geometry/geometries/point.hpp>  // for point
 #include <boost/geometry/index/rtree.hpp>       // for ca
 
 #include <cmath>     // for M_PI
-#include <map>       // for map
 #include <cstdint>  // for uint64_t
-#include <string>    // for string
-#include <utility>   // for pair
-#include <vector>    // for vector
+#include <map>       // for map
 #include <memory>
 #include <set>
+#include <string>    // for string
+#include <utility>   // for pair
+#include <unordered_set>
+#include <vector>    // for vector
 
 struct ActsSurfaceMaps;
 struct ActsTrackingGeometry;
 class PHCompositeNode;  
+class PHTimer;
+class SvtxTrack_v2;
 class TpcDistortionCorrectionContainer;
+class TrkrCluster;
 
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
@@ -156,10 +153,10 @@ class PHCASeeding : public PHTrackSeeding
   /// acts surface map
   ActsSurfaceMaps *surfMaps{nullptr};
 
-  /// distortion correction object
+  /// distortion correction container
   TpcDistortionCorrectionContainer* m_dcc = nullptr;
   
-  std::shared_ptr<ALICEKF> fitter;
+  std::unique_ptr<ALICEKF> fitter;
  
   std::unique_ptr<PHTimer> t_seed;
   std::unique_ptr<PHTimer> t_fill;
