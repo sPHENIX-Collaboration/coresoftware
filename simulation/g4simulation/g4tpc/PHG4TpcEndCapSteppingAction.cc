@@ -64,18 +64,8 @@ PHG4TpcEndCapSteppingAction::PHG4TpcEndCapSteppingAction(PHG4TpcEndCapDetector *
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_Params(parameters)
-  , m_HitContainer(nullptr)
-  , m_Hit(nullptr)
-  , m_SaveHitContainer(nullptr)
-  , m_SaveVolPre(nullptr)
-  , m_SaveVolPost(nullptr)
-  , m_SaveTrackId(-1)
-  , m_SavePreStepStatus(-1)
-  , m_SavePostStepStatus(-1)
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_BlackHoleFlag(m_Params->get_int_param("blackhole"))
-  , m_EdepSum(0)
-  , m_EionSum(0)
 {
 }
 
@@ -347,13 +337,25 @@ bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep,bool /*
 //____________________________________________________________________________..
 void PHG4TpcEndCapSteppingAction::SetInterfacePointers(PHCompositeNode *topNode)
 {
-  string hitnodename = "G4HIT_" + m_Detector->GetName();
   // now look for the map and grab a pointer to it.
-  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   // if we do not find the node we need to make it.
   if (!m_HitContainer)
   {
     std::cout << "PHG4TpcEndCapSteppingAction::SetTopNode - unable to find "
-              << hitnodename << std::endl;
+              << m_HitNodeName << std::endl;
+    gSystem->Exit(1);
   }
+}
+
+void PHG4TpcEndCapSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }

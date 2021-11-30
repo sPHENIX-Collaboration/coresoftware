@@ -31,9 +31,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4TpcEndCapSubsystem::PHG4TpcEndCapSubsystem(const std::string &name)
   : PHG4DetectorSubsystem(name)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
 {
   // call base class method which will set up parameter infrastructure
   // and call our SetDefaultParameters() method
@@ -42,7 +39,6 @@ PHG4TpcEndCapSubsystem::PHG4TpcEndCapSubsystem(const std::string &name)
 
 PHG4TpcEndCapSubsystem::~PHG4TpcEndCapSubsystem()
 {
-  if (m_DisplayAction)
     delete m_DisplayAction;
 }
 
@@ -51,34 +47,49 @@ int PHG4TpcEndCapSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  PHNodeIterator dstIter(dstNode);
 
   // create display settings before detector (detector adds its volumes to it)
   m_DisplayAction = new PHG4TpcEndCapDisplayAction(Name());
 
-  if (GetParams()->get_int_param("active"))
-  {
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", Name()));
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode(Name());
-      dstNode->addNode(DetNode);
-    }
-    string g4hitnodename = "G4HIT_" + Name();
-    PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(DetNode, g4hitnodename);
-    if (!g4_hits)
-    {
-      g4_hits = new PHG4HitContainer(g4hitnodename);
-      DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, g4hitnodename, "PHObject"));
-    }
-  }
   // create detector
   m_Detector = new PHG4TpcEndCapDetector(this, topNode, GetParams(), Name());
+  m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
+  m_Detector->Verbosity(Verbosity());
+
+  if (GetParams()->get_int_param("active"))
+  {
+    PHNodeIterator dstIter(dstNode);
+    PHCompositeNode *DetNode = dstNode;
+    if (SuperDetector() != "NONE" && !SuperDetector().empty())
+    {
+     PHNodeIterator iter_dst(dstNode);
+      DetNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(DetNode);
+      }
+    }
+    std::string detector_suffix = SuperDetector();
+    if (detector_suffix == "NONE")
+    {
+      detector_suffix = Name();
+    }
+    m_HitNodeName = "G4HIT_" + detector_suffix;
+    PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(DetNode, m_HitNodeName);
+    if (!g4_hits)
+    {
+      g4_hits = new PHG4HitContainer(m_HitNodeName);
+      DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, m_HitNodeName, "PHObject"));
+    }
+  }
   // create stepping action if detector is active
   if (GetParams()->get_int_param("active"))
   {
     m_SteppingAction = new PHG4TpcEndCapSteppingAction(m_Detector, GetParams());
+    m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
   }
   return 0;
 }

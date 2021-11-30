@@ -58,15 +58,19 @@ class PHG4TpcEndCapSubsystem : public PHG4DetectorSubsystem
  private:
   //! detector construction
   /*! derives from PHG4Detector */
-  PHG4TpcEndCapDetector* m_Detector;
+  PHG4TpcEndCapDetector* m_Detector = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction *m_DisplayAction;
+  PHG4DisplayAction *m_DisplayAction = nullptr;
+
+  //! node name for the PHG4Hits
+  std::string m_HitNodeName;
+
 };
 
 #endif  // PHG4TPCENDCAPSUBSYSTEM_H
