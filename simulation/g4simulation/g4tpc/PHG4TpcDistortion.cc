@@ -146,19 +146,19 @@ double PHG4TpcDistortion::get_z_distortion_cartesian(double x, double y, double 
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_r_distortion(double r, double phi, double z) const
 {
-  return get_distortion('r',r,p, z);
+  return get_distortion('r',r,phi, z);
 }
 
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_phi_distortion(double r, double phi, double z) const
 {
-  return get_distortion('p',r,p, z);
+  return get_distortion('p',r,phi, z);
 }
 
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_z_distortion(double r, double phi, double z) const
 {
-  return get_distortion('z',r,p, z);
+  return get_distortion('z',r,phi, z);
 }
 
 double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double z) const
