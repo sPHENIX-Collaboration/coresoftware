@@ -372,6 +372,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 
       // get the cluster
       TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
+      if(!tpc_clus) continue;
 
       outer_clusters.insert(std::make_pair(layer, tpc_clus));
       clusters.push_back(tpc_clus);
