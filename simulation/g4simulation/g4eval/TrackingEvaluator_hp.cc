@@ -429,7 +429,9 @@ int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, m_trackmapname);
 
   // cluster map
-  m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+  if( !m_cluster_map )
+  { m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER"); }
 
   // cluster hit association map
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
