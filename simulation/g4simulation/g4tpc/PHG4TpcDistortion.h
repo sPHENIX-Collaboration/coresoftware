@@ -101,7 +101,7 @@ class PHG4TpcDistortion
 
  private:
   //! get distortion for a set of histogram and an input momentum distribution
-  double get_distortion(TH3 *hstatic, TH3 *htimeOrdered, double r, double phi, double z) const;
+  double get_distortion(char axis, double r, double phi, double z) const;
 
   //! The verbosity level. 0 means not verbose at all.
   int verbosity = 0;
@@ -123,7 +123,7 @@ class PHG4TpcDistortion
   bool m_time_ordered_map_onesided = false;
   std::string m_time_ordered_distortion_filename;
   std::unique_ptr<TFile> m_time_ordered_tfile;
-  TTree *TimeTree[2];
+  TTree *TimeTree;
   TH3 *TimehDR[2];
   TH3 *TimehDP[2];
   TH3 *TimehDZ[2];
