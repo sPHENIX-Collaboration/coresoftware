@@ -61,6 +61,9 @@ class PHG4TpcSubsystem : public PHG4DetectorSubsystem
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction *m_DisplayAction;
+
+  std::string m_HitNodeName;
+  std::string m_AbsorberNodeName;
 };
 
 #endif
