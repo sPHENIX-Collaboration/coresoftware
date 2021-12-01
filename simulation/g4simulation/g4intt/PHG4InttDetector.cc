@@ -1224,36 +1224,6 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   const int laddertype = params1->get_int_param("laddertype");
   const PHParameters *params = m_ParamsContainer->GetParameters(laddertype);
     
-  // Aluminum ring
-  G4Tubs *endcap_Al_ring = new G4Tubs("endcap_Al_ring",
-                                      supportparams->get_double_param("endcap_Alring_inner_radius") * cm,
-                                      supportparams->get_double_param("endcap_Alring_outer_radius") * cm,
-                                      supportparams->get_double_param("endcap_Alring_length") * cm / 2.,
-                                      -M_PI, 2.0 * M_PI);
-
-  G4LogicalVolume *endcap_Al_ring_volume = new G4LogicalVolume(endcap_Al_ring, GetDetectorMaterial("Al6061T6"),
-                                                               "endcap_Al_ring_volume", 0, 0, 0);
-
-  // Stainlees steal ring
-  G4Tubs *endcap_SS_ring = new G4Tubs("endcap_SS_ring",
-                                      supportparams->get_double_param("endcap_SSring_inner_radius") * cm,
-                                      supportparams->get_double_param("endcap_SSring_outer_radius") * cm,
-                                      supportparams->get_double_param("endcap_SSring_length") * cm / 2.,
-                                      -M_PI, 2.0 * M_PI);
-
-  G4LogicalVolume *endcap_SS_ring_volume = new G4LogicalVolume(endcap_SS_ring, GetDetectorMaterial("SS316"),
-                                                               "endcap_SS_ring_volume", 0, 0, 0);
-
-  // Water Glycol ring
-  G4Tubs *endcap_WG_ring = new G4Tubs("endcap_WG_ring",
-                                      supportparams->get_double_param("endcap_WGring_inner_radius") * cm,
-                                      supportparams->get_double_param("endcap_WGring_outer_radius") * cm,
-                                      supportparams->get_double_param("endcap_WGring_length") * cm / 2.,
-                                      -M_PI, 2.0 * M_PI);
-
-  G4LogicalVolume *endcap_WG_ring_volume = new G4LogicalVolume(endcap_WG_ring, GetDetectorMaterial("WaterGlycol_INTT"),
-                                                               "endcap_WG_ring_volume", 0, 0, 0);
-
   // Carbon PEEK ring ////////////////////////////////////////////////////////////////////////////////////
   G4Tubs *endcap_CP_ring = new G4Tubs("endcap_CP_ring",
                                       supportparams->get_double_param("endcap_CPring_inner_radius") * cm,
@@ -1321,12 +1291,42 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 								       "endcap_AlPEEK_Alring_3_volume", 0, 0, 0);
   m_DisplayAction->AddVolume(endcap_AlPEEK_Alring_3_volume, "EndcapAlPEEK_Al3");
   
-  double endcap_outer_edge_z = 0.0; // absolute z-coordinate of outer edge (furthest side from the origin) of the endcap, used for bus extender
 
   if (m_IsEndcapActive)
   {
+  double endcap_outer_edge_z = 0.0; // absolute z-coordinate of outer edge (furthest side from the origin) of the endcap, used for bus extender
     if (supportparams->get_int_param("endcap_ring_type") == 0)  // Place Al endcap rings
     {
+      // Aluminum ring
+      G4Tubs *endcap_Al_ring = new G4Tubs("endcap_Al_ring",
+					  supportparams->get_double_param("endcap_Alring_inner_radius") * cm,
+					  supportparams->get_double_param("endcap_Alring_outer_radius") * cm,
+					  supportparams->get_double_param("endcap_Alring_length") * cm / 2.,
+					  -M_PI, 2.0 * M_PI);
+
+      G4LogicalVolume *endcap_Al_ring_volume = new G4LogicalVolume(endcap_Al_ring, GetDetectorMaterial("Al6061T6"),
+								   "endcap_Al_ring_volume", 0, 0, 0);
+
+      // Stainlees steal ring
+      G4Tubs *endcap_SS_ring = new G4Tubs("endcap_SS_ring",
+					  supportparams->get_double_param("endcap_SSring_inner_radius") * cm,
+					  supportparams->get_double_param("endcap_SSring_outer_radius") * cm,
+					  supportparams->get_double_param("endcap_SSring_length") * cm / 2.,
+					  -M_PI, 2.0 * M_PI);
+
+      G4LogicalVolume *endcap_SS_ring_volume = new G4LogicalVolume(endcap_SS_ring, GetDetectorMaterial("SS316"),
+								   "endcap_SS_ring_volume", 0, 0, 0);
+
+      // Water Glycol ring
+      G4Tubs *endcap_WG_ring = new G4Tubs("endcap_WG_ring",
+					  supportparams->get_double_param("endcap_WGring_inner_radius") * cm,
+					  supportparams->get_double_param("endcap_WGring_outer_radius") * cm,
+					  supportparams->get_double_param("endcap_WGring_length") * cm / 2.,
+					  -M_PI, 2.0 * M_PI);
+
+      G4LogicalVolume *endcap_WG_ring_volume = new G4LogicalVolume(endcap_WG_ring, GetDetectorMaterial("WaterGlycol_INTT"),
+								   "endcap_WG_ring_volume", 0, 0, 0);
+
       double endcap_ring_z = supportparams->get_double_param("endcap_ring_z") * cm;
       for (int i = 0; i < 2; i++)  // i=0 : positive z, i=1 negative z
       {
