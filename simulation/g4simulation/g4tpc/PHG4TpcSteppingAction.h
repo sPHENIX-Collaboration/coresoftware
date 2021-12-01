@@ -31,26 +31,26 @@ class PHG4TpcSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4TpcDetector *detector_;
+  PHG4TpcDetector *m_Detector = nullptr;
 
   //! pointer to hit container
-  PHG4HitContainer *hits_;
-  PHG4HitContainer *absorberhits_;
-  PHG4Hit *hit;
-  const PHParameters *params;
-  PHG4HitContainer *savehitcontainer;
-  PHG4Shower *saveshower;
-  G4VPhysicalVolume *savevolpre;
-  G4VPhysicalVolume *savevolpost;
-  int savetrackid;
-  int saveprestepstatus;
-  int savepoststepstatus;
+  PHG4HitContainer *m_HitContainer = nullptr;
+  PHG4HitContainer *m_AbsorberHitContainer = nullptr;
+  PHG4Hit *m_Hit = nullptr;
+  const PHParameters *m_Params = nullptr;
+  PHG4HitContainer *m_CurrentHitContainer = nullptr;
+  PHG4Shower *m_Shower = nullptr;
+  G4VPhysicalVolume *m_SaveVolPre = nullptr;
+  G4VPhysicalVolume *m_SaveVolPost = nullptr;
+  int m_SaveTrackId = -1;
+  int m_SavePreStepStatus = -1;
+  int m_SavePostStepStatus = -1;
   // since getting parameters is a map search we do not want to
   // do this in every step, the parameters used are cached
   // in the following variables
-  int IsActive;
-  int IsBlackHole;
-  int use_g4_steps;
+//  int m_IsActiveFlag = 0;
+  int m_IsBlackHoleFlag = 0;
+  int m_UseG4StepsFlag = 0;
 
   std::string m_HitNodeName;
   std::string m_AbsorberNodeName;

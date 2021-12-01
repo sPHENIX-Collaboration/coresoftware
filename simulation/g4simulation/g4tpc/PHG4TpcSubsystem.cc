@@ -48,9 +48,9 @@ int PHG4TpcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   // create display settings before detector (detector adds its volumes to it)
   m_DisplayAction = new PHG4TpcDisplayAction(Name());
   // create detector
-  detector_ = new PHG4TpcDetector(this, topNode, GetParams(), Name());
-  detector_->SuperDetector(SuperDetector());
-  detector_->OverlapCheck(CheckOverlap());
+  m_Detector = new PHG4TpcDetector(this, topNode, GetParams(), Name());
+  m_Detector->SuperDetector(SuperDetector());
+  m_Detector->OverlapCheck(CheckOverlap());
   std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
@@ -89,16 +89,16 @@ int PHG4TpcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
 
     // create stepping action
-    steppingAction_ = new PHG4TpcSteppingAction(detector_, GetParams());
-    steppingAction_->SetHitNodeName("G4HIT", m_HitNodeName);
-    steppingAction_->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
+    m_SteppingAction = new PHG4TpcSteppingAction(m_Detector, GetParams());
+    m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
   }
   else
   {
     // if this is a black hole it does not have to be active
     if (GetParams()->get_int_param("blackhole"))
     {
-      steppingAction_ = new PHG4TpcSteppingAction(detector_, GetParams());
+      m_SteppingAction = new PHG4TpcSteppingAction(m_Detector, GetParams());
     }
   }
   return 0;
@@ -109,9 +109,9 @@ int PHG4TpcSubsystem::process_event(PHCompositeNode *topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
-  if (steppingAction_)
+  if (m_SteppingAction)
   {
-    steppingAction_->SetInterfacePointers(topNode);
+    m_SteppingAction->SetInterfacePointers(topNode);
   }
   return 0;
 }
@@ -120,13 +120,13 @@ void PHG4TpcSubsystem::Print(const std::string &what) const
 {
   std::cout << Name() << " Parameters: " << std::endl;
   GetParams()->Print();
-  if (detector_)
+  if (m_Detector)
   {
-    detector_->Print(what);
+    m_Detector->Print(what);
   }
-  if (steppingAction_)
+  if (m_SteppingAction)
   {
-    steppingAction_->Print(what);
+    m_SteppingAction->Print(what);
   }
 
   return;
@@ -135,7 +135,7 @@ void PHG4TpcSubsystem::Print(const std::string &what) const
 //_______________________________________________________________________
 PHG4Detector *PHG4TpcSubsystem::GetDetector(void) const
 {
-  return detector_;
+  return m_Detector;
 }
 
 void PHG4TpcSubsystem::SetDefaultParameters()
