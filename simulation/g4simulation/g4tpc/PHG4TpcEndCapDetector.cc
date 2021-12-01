@@ -138,7 +138,7 @@ G4AssemblyVolume *PHG4TpcEndCapDetector::ConstructEndCapAssembly()
   thickness.push_back(0.005 * cm);
   material.push_back("sPHENIX_TPC_Gas");  // proper gas name, but should be pulled from params to match TpcSubsystem?
   thickness.push_back(0.2 * cm);
-  G4Material *temp = GetDetectorMaterial("GEMeffective",false);
+  G4Material *temp = GetDetectorMaterial("GEMeffective", false);
   if (temp == nullptr)
   {
     CreateCompositeMaterial("GEMeffective", material, thickness);  //see new function below
@@ -179,7 +179,7 @@ void PHG4TpcEndCapDetector ::CreateCompositeMaterial(
   //check that desired material name doesn't already exist
   //note that this throws a warning.
   std::cout << __PRETTY_FUNCTION__ << " NOTICE: Checking if material " << compositeName << " exists.  This will return a warning if it doesn't, but that is okay." << std::endl;
-  G4Material *tempmat = GetDetectorMaterial(compositeName,false);
+  G4Material *tempmat = GetDetectorMaterial(compositeName, false);
 
   if (tempmat != nullptr)
   {
@@ -536,8 +536,8 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
       if (Verbosity())
       {
         std::cout << __PRETTY_FUNCTION__ << " - electronics_cooling_block " << name_base
-             << " Rin = " << Rin << " Rout = " << Rout
-             << " phi = " << spoke_phi << " to " << (sector_dphi - spoke_phi) << std::endl;
+                  << " Rin = " << Rin << " Rout = " << Rout
+                  << " phi = " << spoke_phi << " to " << (sector_dphi - spoke_phi) << std::endl;
       }
 
       //
@@ -572,16 +572,19 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
     for (int ring_id = 1; ring_id <= n_radial_modules; ++ring_id)
     {
       const G4double Rout = m_Params->get_double_param(
-                           boost::str(boost::format("electronics_cooling_block_R_R%1%_outer") % (ring_id))) * cm - electronics_assemly_thickness;
+                                boost::str(boost::format("electronics_cooling_block_R_R%1%_outer") % (ring_id))) *
+                                cm -
+                            electronics_assemly_thickness;
       const G4double Rin = m_Params->get_double_param(
-                           boost::str(boost::format("electronics_cooling_block_R_R%1%_inner") % (ring_id))) *
-              cm + electronics_assemly_thickness;
+                               boost::str(boost::format("electronics_cooling_block_R_R%1%_inner") % (ring_id))) *
+                               cm +
+                           electronics_assemly_thickness;
       const int nFEE = m_Params->get_int_param(boost::str(boost::format("electronics_nFEE_R%1%") % (ring_id)));
 
       if (nFEE <= 0)
       {
         std::cout << __PRETTY_FUNCTION__ << " warning : ignore FEE construction for module " << ring_id << " as "
-             << boost::str(boost::format("electronics_nFEE_R2%1%") % (ring_id)) << " = " << nFEE << std::endl;
+                  << boost::str(boost::format("electronics_nFEE_R2%1%") % (ring_id)) << " = " << nFEE << std::endl;
 
         continue;
       }
@@ -590,70 +593,70 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
       G4double starting_electronics(0);
       std::string name_base = boost::str(boost::format("%1%_%2%_Ring%3%") % GetName() % "electronics" % ring_id);
 
-        if (Verbosity())
-        {
-          std::cout << __PRETTY_FUNCTION__ << " - electronics G4_PCB z_start = " << z_start
-               << " starting_electronics = " << starting_electronics << std::endl;
-        }
-        starting_electronics -= electronics_FEE_PCB_thickness / 2.;
-        G4ThreeVector g4vec_electronics;
-         g4vec_electronics.set(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
-        starting_electronics -= electronics_FEE_PCB_thickness / 2.;
-	G4VSolid *solid_electronics = nullptr;
-        solid_electronics = new G4Box(name_base + "_PCB",
-                                                electronics_FEE_PCB_thickness / 2.,
-                                                (Rout - Rin) / 2.,
-                                                electronics_FEE_depth / 2.);
+      if (Verbosity())
+      {
+        std::cout << __PRETTY_FUNCTION__ << " - electronics G4_PCB z_start = " << z_start
+                  << " starting_electronics = " << starting_electronics << std::endl;
+      }
+      starting_electronics -= electronics_FEE_PCB_thickness / 2.;
+      G4ThreeVector g4vec_electronics;
+      g4vec_electronics.set(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
+      starting_electronics -= electronics_FEE_PCB_thickness / 2.;
+      G4VSolid *solid_electronics = nullptr;
+      solid_electronics = new G4Box(name_base + "_PCB",
+                                    electronics_FEE_PCB_thickness / 2.,
+                                    (Rout - Rin) / 2.,
+                                    electronics_FEE_depth / 2.);
 
-        G4LogicalVolume *log_electronics = nullptr;
-        log_electronics = new G4LogicalVolume(solid_electronics,GetDetectorMaterial("FR4"), name_base + "_PCB");
-        m_LogicalVolumesSet.insert(log_electronics);
+      G4LogicalVolume *log_electronics = nullptr;
+      log_electronics = new G4LogicalVolume(solid_electronics, GetDetectorMaterial("FR4"), name_base + "_PCB");
+      m_LogicalVolumesSet.insert(log_electronics);
 
-        assmeblyvol_electronics->AddPlacedVolume(log_electronics,
-                                                 g4vec_electronics, nullptr);
-        m_DisplayAction->AddVolume(log_electronics, "FR4");
-        if (Verbosity())
-        {
-          std::cout << __PRETTY_FUNCTION__ << " - electronics G4_Cu z_start = " << z_start
-               << " starting_electronics = " << starting_electronics << std::endl;
-        }
-        starting_electronics -= electronics_FEE_Cu_thickness / 2.;
-        g4vec_electronics.set(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
-        starting_electronics -= electronics_FEE_Cu_thickness / 2.;
+      assmeblyvol_electronics->AddPlacedVolume(log_electronics,
+                                               g4vec_electronics, nullptr);
+      m_DisplayAction->AddVolume(log_electronics, "FR4");
+      if (Verbosity())
+      {
+        std::cout << __PRETTY_FUNCTION__ << " - electronics G4_Cu z_start = " << z_start
+                  << " starting_electronics = " << starting_electronics << std::endl;
+      }
+      starting_electronics -= electronics_FEE_Cu_thickness / 2.;
+      g4vec_electronics.set(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
+      starting_electronics -= electronics_FEE_Cu_thickness / 2.;
 
-        solid_electronics = new G4Box(name_base + "_Cu",
-                                                electronics_FEE_Cu_thickness / 2.,
-                                                (Rout - Rin) / 2.,
-                                                electronics_FEE_depth / 2.);
+      solid_electronics = new G4Box(name_base + "_Cu",
+                                    electronics_FEE_Cu_thickness / 2.,
+                                    (Rout - Rin) / 2.,
+                                    electronics_FEE_depth / 2.);
 
-        log_electronics = new G4LogicalVolume(solid_electronics, GetDetectorMaterial("G4_Cu"), name_base + "_Cu");
-        m_LogicalVolumesSet.insert(log_electronics);
+      log_electronics = new G4LogicalVolume(solid_electronics, GetDetectorMaterial("G4_Cu"), name_base + "_Cu");
+      m_LogicalVolumesSet.insert(log_electronics);
 
-        assmeblyvol_electronics->AddPlacedVolume(log_electronics,
-                                                 g4vec_electronics, nullptr);
-        m_DisplayAction->AddVolume(log_electronics, "Cu");
-        if (Verbosity())
-        {
-          std::cout << __PRETTY_FUNCTION__ << " - electronics Al z_start = " << z_start
-               << " starting_electronics = " << starting_electronics << std::endl;
-        }
-        starting_electronics -= electronics_FEE_Al_thickness / 2.;
-        g4vec_electronics.set(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
-        starting_electronics -= electronics_FEE_Al_thickness / 2.;
+      assmeblyvol_electronics->AddPlacedVolume(log_electronics,
+                                               g4vec_electronics, nullptr);
+      m_DisplayAction->AddVolume(log_electronics, "Cu");
+      if (Verbosity())
+      {
+        std::cout << __PRETTY_FUNCTION__ << " - electronics Al z_start = " << z_start
+                  << " starting_electronics = " << starting_electronics << std::endl;
+      }
+      starting_electronics -= electronics_FEE_Al_thickness / 2.;
+      g4vec_electronics.set(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
+      starting_electronics -= electronics_FEE_Al_thickness / 2.;
 
-        solid_electronics = new G4Box(name_base + "_Al",
-                                                electronics_FEE_Al_thickness / 2.,
-                                                (Rout - Rin) / 2.,
-                                                electronics_FEE_depth / 2.);
+      solid_electronics = new G4Box(name_base + "_Al",
+                                    electronics_FEE_Al_thickness / 2.,
+                                    (Rout - Rin) / 2.,
+                                    electronics_FEE_depth / 2.);
 
-        log_electronics = new G4LogicalVolume(solid_electronics,
-                                                               GetDetectorMaterial("G4_Al"), 
-                                                               name_base + "_Al");
-        m_LogicalVolumesSet.insert(log_electronics);
+      log_electronics = new G4LogicalVolume(solid_electronics,
+                                            GetDetectorMaterial("G4_Al"),
+                                            name_base + "_Al");
+      m_LogicalVolumesSet.insert(log_electronics);
 
-        assmeblyvol_electronics->AddPlacedVolume(log_electronics,
-                                                 g4vec_electronics, nullptr);
-        m_DisplayAction->AddVolume(log_electronics, "cooling_block");
+      assmeblyvol_electronics->AddPlacedVolume(log_electronics,
+                                               g4vec_electronics, nullptr);
+      m_DisplayAction->AddVolume(log_electronics, "cooling_block");
 
       for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
       {
