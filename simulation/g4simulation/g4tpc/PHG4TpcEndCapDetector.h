@@ -17,7 +17,6 @@ class PHG4Subsystem;
 class PHParameters;
 class G4AssemblyVolume;
 class PHG4TpcEndCapDisplayAction;
-class G4VSolid;
 
 class PHG4TpcEndCapDetector : public PHG4Detector
 {

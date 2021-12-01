@@ -17,7 +17,6 @@ class PHCompositeNode;
 class PHG4CellContainer;
 class PHG4CylinderCellGeomContainer;
 class PHG4CylinderCellGeom;
-class TF1;
 class TNtuple;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;

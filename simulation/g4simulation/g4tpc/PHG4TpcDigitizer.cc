@@ -1,6 +1,6 @@
 #include "PHG4TpcDigitizer.h"
 
-//#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
@@ -35,16 +35,16 @@ using namespace std;
 PHG4TpcDigitizer::PHG4TpcDigitizer(const string &name)
   : SubsysReco(name)
   , TpcMinLayer(7)
-  , ADCThreshold(2700)
-  ,  // electrons
-  TpcEnc(670)
-  ,  // electrons
-  Pedestal(50000)
-  ,  // electrons
-  ChargeToPeakVolts(20)
-  ,  // mV/fC
-  ADCSignalConversionGain(numeric_limits<float>::signaling_NaN())
-  ,  // will be assigned in PHG4TpcDigitizer::InitRun
+  , ADCThreshold(2700) // electrons
+  ,
+  TpcEnc(670) // electrons
+  ,
+  Pedestal(50000) // electrons
+  ,
+  ChargeToPeakVolts(20) // mV/fC
+  ,
+  ADCSignalConversionGain(numeric_limits<float>::signaling_NaN() )// will be assigned in PHG4TpcDigitizer::InitRun
+  ,
   ADCNoiseConversionGain(numeric_limits<float>::signaling_NaN())  // will be assigned in PHG4TpcDigitizer::InitRun
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
@@ -53,7 +53,9 @@ PHG4TpcDigitizer::PHG4TpcDigitizer(const string &name)
   gsl_rng_set(RandomGenerator, seed);
 
   if (Verbosity() > 0)
+  {
     cout << "Creating PHG4TpcDigitizer with name = " << name << endl;
+  }
 }
 
 PHG4TpcDigitizer::~PHG4TpcDigitizer()
@@ -557,7 +559,9 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 	  if(tpchit->getAdc() == 0)
 	    {
 	      if(Verbosity() > 20) 
+	      {
 		cout << "                       --   this hit not digitized - delete it" << endl;
+	      }
 	      // screws up the iterator to delete it here, store the hitkey for later deletion
 		delete_hitkey_list.push_back(std::make_pair(hitsetkey, hitkey));
 	    }

@@ -9,9 +9,6 @@
 #include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4VisAttributes.hh>
 
-#include <TSystem.h>
-
-#include <iostream>
 #include <utility>  // for pair
 
 PHG4TpcEndCapDisplayAction::PHG4TpcEndCapDisplayAction(const std::string &name)

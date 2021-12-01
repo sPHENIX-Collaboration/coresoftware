@@ -6,9 +6,11 @@
 
 #include <array>
 #include <cmath>
+#include <string>                              // for string
 #include <vector>
 
-class PHG4Hitv1;
+class PHCompositeNode;
+class PHG4Hit;
 
 // all distances in mm, all angles in rad
 // class that generates stripes and dummy hit coordinates
@@ -54,9 +56,9 @@ private:
   /// g4hitnode name
   std::string hitnodename;
 
-  std::vector<PHG4Hitv1*> PHG4Hits;
-  std::vector<PHG4Hitv1*> BotVertices;
-  std::vector<PHG4Hitv1*> TopVertices;
+  std::vector<PHG4Hit*> PHG4Hits;
+  std::vector<PHG4Hit*> BotVertices;
+  std::vector<PHG4Hit*> TopVertices;
 
   static constexpr double mm = 1.0;
   static constexpr double cm = 10.0;
@@ -201,8 +203,8 @@ private:
     std::array<int,nRadii>& nStripesIn, 
     std::array<int,nRadii>& nStripesBefore);
 
-  PHG4Hitv1* GetBotVerticesFromStripe(int moduleID, int radiusID, int stripeID) const;
-  PHG4Hitv1* GetTopVerticesFromStripe(int moduleID, int radiusID, int stripeID) const;
+  PHG4Hit* GetBotVerticesFromStripe(int moduleID, int radiusID, int stripeID) const;
+  PHG4Hit* GetTopVerticesFromStripe(int moduleID, int radiusID, int stripeID) const;
 
   int SearchModule(int nStripes, 
     const double x1a[][nRadii], const double x1b[][nRadii], 
@@ -213,7 +215,7 @@ private:
     const double x3b[][nRadii], const double y3b[][nRadii], 
     double x, double y, const std::array<int,nRadii>& nGoodStripes) const;
 
-  PHG4Hitv1* GetPHG4HitFromStripe(int petalID, int moduleID, int radiusID, int stripeID, int nElectrons) const;
+  PHG4Hit* GetPHG4HitFromStripe(int petalID, int moduleID, int radiusID, int stripeID, int nElectrons) const;
 };
 
 

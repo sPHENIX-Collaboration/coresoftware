@@ -2,15 +2,19 @@
 #define G4TPC_PHG4TPCDIRECTLASER_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <phparameter/PHParameterInterface.h>
 
 #include <TVector3.h>
 
 #include <cmath>
+#include <string>                              // for string, allocator
+#include <vector>                              // for vector
 
 class PHG4HitContainer;
 class SvtxTrackMap;
 class PHG4TruthInfoContainer;
+class PHCompositeNode;
 
 class PHG4TpcDirectLaser: public SubsysReco, public PHParameterInterface
 {

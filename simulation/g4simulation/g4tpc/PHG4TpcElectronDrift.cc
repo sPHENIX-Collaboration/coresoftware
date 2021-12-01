@@ -6,13 +6,14 @@
 #include "PHG4TpcPadPlane.h"  // for PHG4TpcPadPlane
 
 #include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHit.h>                          // for TrkrHit
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
+#include <trackbase/TrkrHitTruthAssoc.h>                // for TrkrHitTruthA...
 #include <trackbase/TrkrHitTruthAssocv1.h>
 
 #include <tpc/TpcDefs.h>
@@ -42,14 +43,12 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TH3.h>
 #include <TNtuple.h>
 #include <TSystem.h>
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
-#include <bitset>
 #include <cassert>
 #include <cmath>    // for sqrt, abs, NAN
 #include <cstdlib>  // for exit

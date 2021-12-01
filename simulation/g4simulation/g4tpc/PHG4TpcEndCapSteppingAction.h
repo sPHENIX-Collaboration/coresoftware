@@ -5,6 +5,8 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+#include <string>                       // for string
+
 class PHG4TpcEndCapDetector;
 
 class G4Step;
