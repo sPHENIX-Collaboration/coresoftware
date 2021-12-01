@@ -64,7 +64,7 @@ int PHG4TpcEndCapSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       }
     }
     std::string detector_suffix = SuperDetector();
-    if (detector_suffix == "NONE")
+    if (detector_suffix == "NONE" || detector_suffix.empty())
     {
       detector_suffix = Name();
     }
