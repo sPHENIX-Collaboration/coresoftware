@@ -26,6 +26,23 @@ namespace
     return x * x;
   }
 
+  // print histogram
+  void print_histogram( TH3* h )
+  {
+
+    std::cout << "PHG4TpcDistortion::print_histogram - name: " << h->GetName() << std::endl;
+    for( const auto& axis:{h->GetXaxis(), h->GetYaxis(), h->GetZaxis() } )
+    {
+      std::cout
+        << "  " << axis->GetName()
+        << " bins: " << axis->GetNbins()
+        << " min: " << axis->GetXmin()
+        << " max: " << axis->GetXmax()
+        << std::endl;
+    }
+    std::cout << std::endl;
+  }
+  
 }  // namespace
 
 //__________________________________________________________________________________________________________
@@ -46,8 +63,15 @@ void PHG4TpcDistortion::Init()
     hDYint = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionY"));
     hDZint = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ"));
 
+    if( verbosity )
+    { 
+      for( const auto& h:{ hDXint, hDYint, hDZint } )
+      { print_histogram( h ); }
+    }
+    
     // if z = -50 is in the underflow bin, map is only one-sided.
     m_static_map_onesided = (hDXint->GetZaxis()->FindBin(-50) == 0);
+    std::cout << "PHG4TpcDistortion::Init - m_static_map_onesided: " << m_static_map_onesided << std::endl;
   }
 
   if (m_do_time_ordered_distortions)
