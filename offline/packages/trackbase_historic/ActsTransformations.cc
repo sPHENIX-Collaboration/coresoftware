@@ -258,7 +258,13 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
   
 }
 
-
+Acts::Vector3F ActsTransformations::getGlobalPositionF(TrkrCluster* cluster,
+						       ActsSurfaceMaps* surfMaps,
+						       ActsTrackingGeometry* tGeometry) const
+{
+  const Acts::Vector3D doublePos = getGlobalPosition(cluster,surfMaps,tGeometry);
+  return Acts::Vector3F(doublePos(0), doublePos(1), doublePos(2));
+}
 Acts::Vector3D ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
 						      ActsSurfaceMaps* surfMaps,
 						      ActsTrackingGeometry *tGeometry) const
