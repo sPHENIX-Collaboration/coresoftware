@@ -29,7 +29,6 @@
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4GenericTrap.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVParameterised.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
