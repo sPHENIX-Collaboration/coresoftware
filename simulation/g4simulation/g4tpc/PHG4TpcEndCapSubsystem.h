@@ -28,7 +28,7 @@ class PHG4TpcEndCapSubsystem : public PHG4DetectorSubsystem
   PHG4TpcEndCapSubsystem(const std::string& name = "PHG4TpcEndCap");
 
   //! destructor
-  ~PHG4TpcEndCapSubsystem() override ;
+  ~PHG4TpcEndCapSubsystem() override;
 
   /*!
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
@@ -49,7 +49,7 @@ class PHG4TpcEndCapSubsystem : public PHG4DetectorSubsystem
   //! Print info (from SubsysReco)
   void Print(const std::string& what = "ALL") const override;
 
-  PHG4DisplayAction *GetDisplayAction()   const override { return m_DisplayAction; }
+  PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
  protected:
   // \brief Set default parameter values
@@ -66,11 +66,10 @@ class PHG4TpcEndCapSubsystem : public PHG4DetectorSubsystem
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction *m_DisplayAction = nullptr;
+  PHG4DisplayAction* m_DisplayAction = nullptr;
 
   //! node name for the PHG4Hits
   std::string m_HitNodeName;
-
 };
 
 #endif  // PHG4TPCENDCAPSUBSYSTEM_H
