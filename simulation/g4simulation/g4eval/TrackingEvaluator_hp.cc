@@ -612,7 +612,10 @@ void TrackingEvaluator_hp::evaluate_tracks()
       auto cluster = m_cluster_map->findCluster( cluster_key );
       if( !cluster )
       {
-        std::cout << "TrackingEvaluator_hp::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
+        std::cout << "TrackingEvaluator_hp::evaluate_tracks -"
+          << " unable to find cluster for key " << cluster_key 
+          << " detector: " << TrkrDefs::getTrkrId( cluster_key )
+          << std::endl;
         continue;
       }
 
