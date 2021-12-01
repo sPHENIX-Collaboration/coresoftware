@@ -373,9 +373,11 @@ void PHG4InttSubsystem::SetDefaultParameters()
     set_default_double_param(SUPPORTPARAMS, "rail_dphi",        90.  );  // deg
     set_default_double_param(SUPPORTPARAMS, "rail_inner_radius", 0.45);
     set_default_double_param(SUPPORTPARAMS, "rail_length",     410   );  // tpc length
+    //set_default_double_param(SUPPORTPARAMS, "rail_length",     20   );  // tpc length
     set_default_double_param(SUPPORTPARAMS, "rail_outer_radius", 0.6 );
     set_default_double_param(SUPPORTPARAMS, "rail_phi_start",   45.  );  // deg
-    set_default_double_param(SUPPORTPARAMS, "rail_radius",     16.85 );
+    //set_default_double_param(SUPPORTPARAMS, "rail_radius",     16.85 );
+    set_default_double_param(SUPPORTPARAMS, "rail_radius",     (33.34 + 0.6 * 2 ) /2  ); // tentativevalue
   }
 
   return;
