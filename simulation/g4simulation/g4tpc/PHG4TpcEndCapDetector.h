@@ -1,13 +1,14 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4TPC_PHG4TPCENDCAPDETECTOR_H
-#define G4TPC_PHG4TPCENDCAPDETECTOR_H
+#ifndef PHG4TPCENDCAPDETECTOR_H
+#define PHG4TPCENDCAPDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 #include <Geant4/G4Types.hh>
 
 #include <set>
 #include <string>  // for string
+#include <vector>
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
@@ -16,7 +17,6 @@ class PHG4Subsystem;
 class PHParameters;
 class G4AssemblyVolume;
 class PHG4TpcEndCapDisplayAction;
-class G4VSolid;
 
 class PHG4TpcEndCapDetector : public PHG4Detector
 {
@@ -41,11 +41,11 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   const std::string SuperDetector() const { return m_SuperDetector; }
 
  private:
-  PHParameters *m_Params;
-  PHG4TpcEndCapDisplayAction *m_DisplayAction;
+  PHParameters *m_Params = nullptr;
+  PHG4TpcEndCapDisplayAction *m_DisplayAction = nullptr;
 
   // active volumes
-  std::set<G4VPhysicalVolume *> m_PhysicalVolumesSet;
+  std::set<G4LogicalVolume *> m_LogicalVolumesSet;
 
   std::string m_SuperDetector;
 
@@ -63,11 +63,17 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   AddLayer(  //
       G4AssemblyVolume *assmeblyvol,
       G4double &z_start,
-      const std::string &_name,               //! name base for this layer
-      const std::string &_material,           //! material name in G4
+      std::string _name,               //! name base for this layer
+      std::string _material,           //! material name in G4
       G4double _depth,                 //! depth in G4 units
       double _percentage_filled = 100  //! percentage filled//
   );
+
+  void CreateCompositeMaterial(               //
+      std::string compositeName,              //! desired name for the new material
+      std::vector<std::string> materialName,  //! vector of the names of the component materials in G4
+      std::vector<double> thickness           //! thickness of this particular layer (assuming 100 percent filled)
+  );
 };
 
-#endif  // G4TPC_PHG4TPCENDCAPDETECTOR_H
+#endif  // PHG4TPCENDCAPDETECTOR_H

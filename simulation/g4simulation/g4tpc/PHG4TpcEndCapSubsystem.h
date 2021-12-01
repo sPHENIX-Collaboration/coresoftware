@@ -5,6 +5,8 @@
 
 #include <g4detectors/PHG4DetectorSubsystem.h>
 
+#include <string>  // for allocator, string
+
 class PHCompositeNode;
 class PHG4Detector;
 class PHG4TpcEndCapDetector;
@@ -28,7 +30,7 @@ class PHG4TpcEndCapSubsystem : public PHG4DetectorSubsystem
   PHG4TpcEndCapSubsystem(const std::string& name = "PHG4TpcEndCap");
 
   //! destructor
-  ~PHG4TpcEndCapSubsystem() override ;
+  ~PHG4TpcEndCapSubsystem() override;
 
   /*!
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
@@ -49,7 +51,7 @@ class PHG4TpcEndCapSubsystem : public PHG4DetectorSubsystem
   //! Print info (from SubsysReco)
   void Print(const std::string& what = "ALL") const override;
 
-  PHG4DisplayAction *GetDisplayAction()   const override { return m_DisplayAction; }
+  PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
  protected:
   // \brief Set default parameter values
@@ -58,15 +60,18 @@ class PHG4TpcEndCapSubsystem : public PHG4DetectorSubsystem
  private:
   //! detector construction
   /*! derives from PHG4Detector */
-  PHG4TpcEndCapDetector* m_Detector;
+  PHG4TpcEndCapDetector* m_Detector = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction *m_DisplayAction;
+  PHG4DisplayAction* m_DisplayAction = nullptr;
+
+  //! node name for the PHG4Hits
+  std::string m_HitNodeName;
 };
 
 #endif  // PHG4TPCENDCAPSUBSYSTEM_H
