@@ -1,13 +1,3 @@
-//____________________________________________________________________________..
-//
-// This is the interface to the framework. You only need to define the parameters
-// you use for your detector in the SetDefaultParameters() method here
-// The place to do this is marked by //implement your own here//
-// The parameters have no units, they need to be converted in the
-// PHG4TpcEndCapDetector::ConstructMe() method
-// but the convention is as mentioned cm and deg
-//____________________________________________________________________________..
-//
 #include "PHG4TpcEndCapSubsystem.h"
 
 #include "PHG4TpcEndCapDetector.h"
@@ -26,8 +16,6 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4TpcEndCapSubsystem::PHG4TpcEndCapSubsystem(const std::string &name)
   : PHG4DetectorSubsystem(name)
@@ -39,7 +27,7 @@ PHG4TpcEndCapSubsystem::PHG4TpcEndCapSubsystem(const std::string &name)
 
 PHG4TpcEndCapSubsystem::~PHG4TpcEndCapSubsystem()
 {
-    delete m_DisplayAction;
+  delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
@@ -63,8 +51,8 @@ int PHG4TpcEndCapSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     PHCompositeNode *DetNode = dstNode;
     if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
-     PHNodeIterator iter_dst(dstNode);
-      DetNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+      PHNodeIterator iter_dst(dstNode);
+      DetNode = dynamic_cast<PHCompositeNode *>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
 
       if (!DetNode)
       {
@@ -105,7 +93,7 @@ int PHG4TpcEndCapSubsystem::process_event(PHCompositeNode *topNode)
   return 0;
 }
 //_______________________________________________________________________
-void PHG4TpcEndCapSubsystem::Print(const string &what) const
+void PHG4TpcEndCapSubsystem::Print(const std::string &what) const
 {
   if (m_Detector)
   {
@@ -148,7 +136,7 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
 
   set_default_string_param("wagon_wheel_material", "G4_Al");
 
-  set_default_double_param("wagon_wheel_sector_phi_offset_degree", 360./12./2.);
+  set_default_double_param("wagon_wheel_sector_phi_offset_degree", 360. / 12. / 2.);
 
   set_default_double_param("wagon_wheel_front_frame_thickness", inch_to_cm * .38);
   set_default_double_param("wagon_wheel_front_frame_spoke_width", inch_to_cm * 1.12);

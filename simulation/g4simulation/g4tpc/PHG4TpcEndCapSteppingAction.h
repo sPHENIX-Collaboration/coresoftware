@@ -53,4 +53,4 @@ class PHG4TpcEndCapSteppingAction : public PHG4SteppingAction
   std::string m_HitNodeName;
 };
 
-#endif // PHG4TPCENDCAPSTEPPINGACTION_H
+#endif  // PHG4TPCENDCAPSTEPPINGACTION_H

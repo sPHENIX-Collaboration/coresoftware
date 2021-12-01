@@ -7,8 +7,8 @@
 #include <Geant4/G4Types.hh>
 
 #include <set>
-#include <vector>
 #include <string>  // for string
+#include <vector>
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
@@ -70,13 +70,11 @@ class PHG4TpcEndCapDetector : public PHG4Detector
       double _percentage_filled = 100  //! percentage filled//
   );
 
-  void CreateCompositeMaterial( //
-      std::string compositeName, //! desired name for the new material
-      std::vector<std::string> materialName, //! vector of the names of the component materials in G4
-      std::vector<double>thickness //! thickness of this particular layer (assuming 100 percent filled)
+  void CreateCompositeMaterial(               //
+      std::string compositeName,              //! desired name for the new material
+      std::vector<std::string> materialName,  //! vector of the names of the component materials in G4
+      std::vector<double> thickness           //! thickness of this particular layer (assuming 100 percent filled)
   );
-
-  
 };
 
 #endif  // PHG4TPCENDCAPDETECTOR_H
