@@ -29,9 +29,6 @@ class PHG4Detector;
 //_______________________________________________________________________
 PHG4TpcSubsystem::PHG4TpcSubsystem(const std::string &name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
-  , detector_(nullptr)
-  , steppingAction_(nullptr)
-  , m_DisplayAction(nullptr)
 {
   InitializeParameters();
 }

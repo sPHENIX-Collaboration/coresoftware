@@ -52,15 +52,15 @@ class PHG4TpcSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! derives from PHG4Detector */
-  PHG4TpcDetector *detector_;
+  PHG4TpcDetector *detector_ = nullptr;
 
   //! detector "stepping" action, executes after every G4 step
   /*! derives from PHG4SteppingAction */
-  PHG4SteppingAction *steppingAction_;
+  PHG4SteppingAction *steppingAction_ = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction *m_DisplayAction;
+  PHG4DisplayAction *m_DisplayAction = nullptr;
 
   std::string m_HitNodeName;
   std::string m_AbsorberNodeName;
