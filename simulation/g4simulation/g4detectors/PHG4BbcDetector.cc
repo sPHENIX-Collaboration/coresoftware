@@ -4,17 +4,20 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4Detector.h>       // for PHG4Detector
-#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Detector.h>
+#include <g4main/PHG4DisplayAction.h>
 #include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4Polyhedra.hh>
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+#include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
+#include <Geant4/G4VPhysicalVolume.hh>
+#include <Geant4/G4Material.hh>
+#include <Geant4/G4NistManager.hh>
+#include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
 #include <iostream>  // for operator<<, endl, bas...
@@ -59,6 +62,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   //std::cout << PHWHERE << " Constructing BBC" << std::endl;
 
   // Logical Volume Info for a BBC PMT
+  /*
   G4Material *Quartz = GetDetectorMaterial("G4_SILICON_DIOXIDE");
 
   const G4double z_bbcq[] = {-1.5*cm, 1.5*cm};
@@ -70,157 +74,202 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   m_PhysLogicalVolSet.insert(bbcq_lv);
   GetDisplayAction()->AddVolume(bbcq_lv, "Bbc_quartz");
+  */
+  //=========================================================
+  
 
-  //m_bbcz = m_Params->get_double_param("z") * cm;
-  m_bbcz = 250.0 * cm;  // The midpoint of the quartz is at 250 cm
+  //========================
+  // Build a single BBC PMT
+  //========================
+
+  G4NistManager* manager = G4NistManager::Instance();
+  
+  // BBC Detector Tube (BBCD) Logical Volume (contains all parts of PMT+Radiator)
+  G4Material* Vacuum = manager->FindOrBuildMaterial("G4_Galactic");
+  //G4Material* Vacuum = GetDetectorMaterial("G4_Galactic");
+  G4double z_bbcd[] = { -6.15*cm, 6.15*cm };
+  G4double len_bbcd = z_bbcd[1] - z_bbcd[0];
+  G4double rin_bbcd[] = { 0*cm, 0*cm };
+  G4double rout_bbcd[] = { 1.4*cm, 1.4*cm };
+  G4Polyhedra *bbcd = new G4Polyhedra("bbcd",0.,2*M_PI,6,2,z_bbcd,rin_bbcd,rout_bbcd);
+  G4LogicalVolume *bbcd_lv = new G4LogicalVolume(bbcd, Vacuum, G4String("Bbc_tube"));
+  G4VisAttributes *bbcdVisAtt = new G4VisAttributes();
+  bbcd_lv->SetVisAttributes(bbcdVisAtt);
+
+  //
+  //  Place the BBCA, BBCQ, BBCP, BBCR and BBCH in to BBCD.
+  //
+
+  // BBC Attachment Plate (BBCA)
+  const G4double z_bbca[] = {-0.5*cm, -0.201*cm, -0.2*cm, 0.5*cm};
+  const G4double rInner_bbca[] = {0.2*cm, 0.2*cm, 0.2*cm, 0.2*cm};
+  const G4double rOuter_bbca[] = {1.4*cm, 1.4*cm, 1.375*cm, 1.375*cm};
+  G4Polyhedra *bbca = new G4Polyhedra("bbca",0.,2*M_PI,6,4,z_bbca,rInner_bbca,rOuter_bbca);
+
+  G4Material* Aluminum = manager->FindOrBuildMaterial("G4_Al");
+
+  G4LogicalVolume *bbca_lv = new G4LogicalVolume(bbca, Aluminum, G4String("Bbc_attach_plate"));
+  G4VisAttributes *bbcaVisAtt = new G4VisAttributes();
+  bbcaVisAtt->SetVisibility(true);
+  bbcaVisAtt->SetForceSolid(true);
+  bbcaVisAtt->SetColour(G4Colour::Gray());
+  bbca_lv->SetVisAttributes(bbcaVisAtt);
+
+  G4double xpos = 0.*cm;
+  G4double ypos = 0.*cm;
+  //G4double zpos = (-1.5-0.5)*cm;
+  G4double len_bbca = z_bbca[3]-z_bbca[0];
+  G4double zpos = z_bbcd[0]+ len_bbca*0.5;
+  G4cout << "BBCA " << zpos << G4endl;
+
+  G4VPhysicalVolume *bbca_phys = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbca_lv, "BBCA", bbcd_lv, false, 0);
+  bbca_phys->GetName();
+
+  G4Material* Quartz = manager->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
+
+  // BBC Quartz Radiator
+  const G4double z_bbcq[] = {-1.5*cm, 1.5*cm};
+  const G4double rInner_bbcq[] = {0.,0.};
+  const G4double rOuter_bbcq[] = {1.27*cm,1.27*cm};
+  G4Polyhedra *bbcq = new G4Polyhedra("bbcq",0.,2*M_PI,6,2,z_bbcq,rInner_bbcq,rOuter_bbcq);
+
+  G4LogicalVolume *bbcq_lv = new G4LogicalVolume(bbcq, Quartz, G4String("Bbc_quartz"));
+  G4VisAttributes *bbcqVisAtt = new G4VisAttributes();
+  bbcqVisAtt->SetVisibility(true);
+  bbcqVisAtt->SetForceSolid(true);
+  bbcqVisAtt->SetColour(G4Colour::Cyan());
+  bbcq_lv->SetVisAttributes(bbcqVisAtt);
+
+  xpos = 0.*cm;
+  ypos = 0.*cm;
+  G4double len_bbcq = z_bbcq[1]-z_bbcq[0];
+  zpos += len_bbca*0.5 + len_bbcq*0.5;
+  G4cout << "BBCP " << zpos << G4endl;
+
+  G4VPhysicalVolume *bbcq_phys = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbcq_lv, "BBCQ", bbcd_lv, false, 0);
+  bbcq_phys->GetName();
+
+  // BBC PMT
+  const G4double len_bbcp = 4.4*cm;
+  const G4double rInner_bbcp = 1.09*cm;
+  const G4double rOuter_bbcp = 1.29*cm;
+  G4Tubs *bbcp = new G4Tubs("bbcp",rInner_bbcp,rOuter_bbcp,len_bbcp*0.5,0*deg,360*deg);
+
+  G4LogicalVolume *bbcp_lv = new G4LogicalVolume(bbcp, Quartz, G4String("Bbc_PMT"));
+  G4VisAttributes *bbcpVisAtt = new G4VisAttributes();
+  bbcpVisAtt->SetVisibility(true);
+  bbcpVisAtt->SetForceSolid(true);
+  bbcpVisAtt->SetColour(G4Colour::Blue());
+  bbcp_lv->SetVisAttributes(bbcpVisAtt);
+
+  xpos = 0.*cm;
+  ypos = 0.*cm;
+  zpos += len_bbcq*0.5 + len_bbcp*0.5;
+
+  G4VPhysicalVolume *bbcp_phys = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbcp_lv, "BBCP", bbcd_lv, false, 0);
+  bbcp_phys->GetName();
+
+  // BBC Breeder Module
+  const G4double len_bbcr = 3.9*cm;
+  const G4double rInner_bbcr = 0.0*cm;
+  const G4double rOuter_bbcr = 1.2*cm;
+  G4Tubs *bbcr = new G4Tubs("bbcr",rInner_bbcr,rOuter_bbcr,len_bbcr*0.5,0*deg,360*deg);
+
+  G4int natoms;
+  G4int ncomponents;
+  G4double density;
+  G4Material *G10 =
+      new G4Material("G10", density = 1.700 * g / cm3, ncomponents = 4);
+  G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), natoms = 1);
+  G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), natoms = 2);
+  G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 3);
+  G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), natoms = 3);
+
+  G4LogicalVolume *bbcr_lv = new G4LogicalVolume(bbcr, G10, G4String("Bbc_Breeder_Module"));
+  G4VisAttributes *bbcrVisAtt = new G4VisAttributes();
+  bbcrVisAtt->SetVisibility(true);
+  bbcrVisAtt->SetForceSolid(true);
+  bbcrVisAtt->SetColour(G4Colour::Green());
+  bbcr_lv->SetVisAttributes(bbcrVisAtt);
+
+  xpos = 0.*cm;
+  ypos = 0.*cm;
+  zpos += len_bbcp*0.5 + len_bbcr*0.5;
+
+  G4VPhysicalVolume *bbcr_phys = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbcr_lv, "BBCR", bbcd_lv, false, 0);
+  bbcr_phys->GetName();
+
+  // BBC Mu Metal Shield
+  const G4double z_bbch[] = {-5.65*cm, 5.65*cm};
+  const G4double rInner_bbch[] = {1.375*cm,1.375*cm};
+  const G4double rOuter_bbch[] = {1.4*cm,1.4*cm};
+  G4Polyhedra *bbch = new G4Polyhedra("bbch",0.,2*M_PI,6,2,z_bbch,rInner_bbch,rOuter_bbch);
+
+  G4Material* MuMetal = manager->FindOrBuildMaterial("G4_STAINLESS-STEEL");
+
+  G4LogicalVolume *bbch_lv = new G4LogicalVolume(bbch, MuMetal, G4String("Bbc_Shield"));
+  G4VisAttributes *bbchVisAtt = new G4VisAttributes();
+  //bbchVisAtt->SetVisibility(true);
+  //bbchVisAtt->SetForceSolid(true);
+  //bbchVisAtt->SetColour(G4Colour::Grey());
+  bbch_lv->SetVisAttributes(bbchVisAtt);
+
+  xpos = 0.*cm;
+  ypos = 0.*cm;
+  G4double len_bbch = z_bbch[1] - z_bbch[0];
+  zpos = z_bbcd[0] + 0.3*cm + len_bbch*0.5;
+
+  G4VPhysicalVolume *bbch_phys = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbch_lv, "BBCH", bbcd_lv, false, 0);
+  bbch_phys->GetName();
+
 
   // Locations of the 64 PMT tubes in an arm.
   // Should probably move this to a geometry object...
-  float xpos[] = {
-      2.45951,
-      -2.45951,
-      4.91902,
-      0,
-      -4.91902,
-      7.37854,
-      2.45951,
-      -2.45951,
-      -7.37854,
-      9.83805,
-      4.91902,
-      0,
-      -4.91902,
-      -9.83805,
-      7.37854,
-      2.45951,
-      -2.45951,
-      -7.37854,
-      9.83805,
-      4.91902,
-      -4.91902,
-      -9.83805,
-      12.2976,
-      7.37854,
-      -7.37854,
-      -12.2976,
-      9.83805,
-      -9.83805,
-      12.2976,
-      7.37854,
-      -7.37854,
-      -12.2976,
-      12.2976,
-      7.37854,
-      -7.37854,
-      -12.2976,
-      9.83805,
-      -9.83805,
-      12.2976,
-      7.37854,
-      -7.37854,
-      -12.2976,
-      9.83805,
-      4.91902,
-      -4.91902,
-      -9.83805,
-      7.37854,
-      2.45951,
-      -2.45951,
-      -7.37854,
-      9.83805,
-      4.91902,
-      0,
-      -4.91902,
-      -9.83805,
-      7.37854,
-      2.45951,
-      -2.45951,
-      -7.37854,
-      4.91902,
-      0,
-      -4.91902,
-      2.45951,
-      -2.45951,
+  float tube_xpos[] = {
+      2.45951, -2.45951, 4.91902, 0, -4.91902, 7.37854, 2.45951, -2.45951,
+      -7.37854, 9.83805, 4.91902, 0, -4.91902, -9.83805, 7.37854, 2.45951,
+      -2.45951, -7.37854, 9.83805, 4.91902, -4.91902, -9.83805, 12.2976, 7.37854,
+      -7.37854, -12.2976, 9.83805, -9.83805, 12.2976, 7.37854, -7.37854, -12.2976,
+      12.2976, 7.37854, -7.37854, -12.2976, 9.83805, -9.83805, 12.2976, 7.37854,
+      -7.37854, -12.2976, 9.83805, 4.91902, -4.91902, -9.83805, 7.37854, 2.45951,
+      -2.45951, -7.37854, 9.83805, 4.91902, 0, -4.91902, -9.83805, 7.37854,
+      2.45951, -2.45951, -7.37854, 4.91902, 0, -4.91902, 2.45951, -2.45951,
   };
 
-  float ypos[] = {
-      12.78,
-      12.78,
-      11.36,
-      11.36,
-      11.36,
-      9.94,
-      9.94,
-      9.94,
-      9.94,
-      8.52,
-      8.52,
-      8.52,
-      8.52,
-      8.52,
-      7.1,
-      7.1,
-      7.1,
-      7.1,
-      5.68,
-      5.68,
-      5.68,
-      5.68,
-      4.26,
-      4.26,
-      4.26,
-      4.26,
-      2.84,
-      2.84,
-      1.42,
-      1.42,
-      1.42,
-      1.42,
-      -1.42,
-      -1.42,
-      -1.42,
-      -1.42,
-      -2.84,
-      -2.84,
-      -4.26,
-      -4.26,
-      -4.26,
-      -4.26,
-      -5.68,
-      -5.68,
-      -5.68,
-      -5.68,
-      -7.1,
-      -7.1,
-      -7.1,
-      -7.1,
-      -8.52,
-      -8.52,
-      -8.52,
-      -8.52,
-      -8.52,
-      -9.94,
-      -9.94,
-      -9.94,
-      -9.94,
-      -11.36,
-      -11.36,
-      -11.36,
-      -12.78,
-      -12.78,
+  float tube_ypos[] = {
+      12.78, 12.78, 11.36, 11.36, 11.36, 9.94, 9.94, 9.94,
+      9.94, 8.52, 8.52, 8.52, 8.52, 8.52, 7.1, 7.1,
+      7.1, 7.1, 5.68, 5.68, 5.68, 5.68, 4.26, 4.26,
+      4.26, 4.26, 2.84, 2.84, 1.42, 1.42, 1.42, 1.42,
+      -1.42, -1.42, -1.42, -1.42, -2.84, -2.84, -4.26, -4.26,
+      -4.26, -4.26, -5.68, -5.68, -5.68, -5.68, -7.1, -7.1,
+      -7.1, -7.1, -8.52, -8.52, -8.52, -8.52, -8.52, -9.94,
+      -9.94, -9.94, -9.94, -11.36, -11.36, -11.36, -12.78, -12.78,
   };
+
+  //m_bbcz = m_Params->get_double_param("z") * cm;
+  m_bbcz = 250.0 * cm;  // The front face of the quartz is at 250 cm
+
+  float tube_zpos = m_bbcz + len_bbcd/2.0 - len_bbca;
+
   const int NPMT = 64;  // No. PMTs per arm
+  G4RotationMatrix *arm_rot[2];
   for (int iarm = 0; iarm < 2; iarm++)
   {
+    arm_rot[iarm] = new G4RotationMatrix;
     float side = 1.0;
-    if (iarm == 0) side = -1.0;
+    if (iarm == 0) 
+    {
+      side = -1.0;
+      arm_rot[iarm]->rotateY(180*deg);
+    }
 
     // Add BBC PMT's
     for (int itube = 0; itube < NPMT; itube++)
     {
       // Quartz Cerenkov Radiators (active)
-      new G4PVPlacement(0, G4ThreeVector(side * xpos[itube] * cm, ypos[itube] * cm, side * m_bbcz),
-                        bbcq_lv, "BBC", logicWorld, false, iarm * NPMT + itube, OverlapCheck());
+      new G4PVPlacement(arm_rot[iarm], G4ThreeVector(side * tube_xpos[itube] * cm, tube_ypos[itube] * cm, side * tube_zpos),
+                        bbcd_lv, "BBC", logicWorld, false, iarm * NPMT + itube, OverlapCheck());
 
       // PMT bodies (inactive)
     }
@@ -229,36 +278,35 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // Now Build the BBC Housing
 
   // BBC Outer and Inner Cylindrical Shells
-<<<<<<< HEAD
-  G4Material *Alum = G4Material::GetMaterial("G4_Al");
-  G4Tubs *bbc_outer_shell = new G4Tubs("bbc_outer_shell", 14.9*cm, 15*cm, 12.2*cm, 0, 2*M_PI);
-  G4LogicalVolume *bbc_outer_shell_lv = new G4LogicalVolume(bbc_outer_shell, Alum, G4String("Bbc_Outer_Shell"));
+  G4Tubs *bbc_outer_shell = new G4Tubs("bbc_outer_shell", 14.9*cm, 15*cm, 11.5*cm, 0, 2*M_PI);
+  G4LogicalVolume *bbc_outer_shell_lv = new G4LogicalVolume(bbc_outer_shell, Aluminum, G4String("Bbc_Outer_Shell"));
   G4VisAttributes *bbc_outer_shell_VisAtt = new G4VisAttributes();
   bbc_outer_shell_VisAtt->SetVisibility(true);
   bbc_outer_shell_VisAtt->SetForceSolid(true);
   bbc_outer_shell_VisAtt->SetColour(G4Colour::Gray());
-  bbc_outer_shell_lv->SetVisAttributes(bbcqVisAtt);
-  G4Tubs *bbc_inner_shell = new G4Tubs("bbc_inner_shell",5.0*cm, 5.5*cm, 12.2*cm, 0, 2*M_PI);
-  G4LogicalVolume *bbc_inner_shell_lv = new G4LogicalVolume(bbc_outer_shell, Alum, G4String("Bbc_Inner_Shell"));
+  bbc_outer_shell_lv->SetVisAttributes(bbc_outer_shell_VisAtt);
+
+  G4Tubs *bbc_inner_shell = new G4Tubs("bbc_inner_shell",5.0*cm, 5.5*cm, 11.5*cm, 0, 2*M_PI);
+  G4LogicalVolume *bbc_inner_shell_lv = new G4LogicalVolume(bbc_inner_shell, Aluminum, G4String("Bbc_Inner_Shell"));
   G4VisAttributes *bbc_inner_shell_VisAtt = new G4VisAttributes();
   bbc_inner_shell_VisAtt->SetVisibility(true);
   bbc_inner_shell_VisAtt->SetForceSolid(true);
   bbc_inner_shell_VisAtt->SetColour(G4Colour::Gray());
-  bbc_inner_shell_lv->SetVisAttributes(bbcqVisAtt);
+  bbc_inner_shell_lv->SetVisAttributes(bbc_outer_shell_VisAtt);
 
   G4VPhysicalVolume *outer_shell_vol[2] = {0};
   G4VPhysicalVolume *inner_shell_vol[2] = {0};
 
   // Place South Shells
-  outer_shell_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+2-12.2)*cm),
+  outer_shell_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+1.0-11.5)*cm),
           bbc_outer_shell_lv, "BBC_OUTER_SHELL", logicWorld, false, 0, OverlapCheck());
-  inner_shell_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+2-12.2)*cm),
+  inner_shell_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+1.0-11.5)*cm),
           bbc_inner_shell_lv, "BBC_INNER_SHELL", logicWorld, false, 0, OverlapCheck());
 
   // Place North Shells
-  outer_shell_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-2+12.2)*cm),
+  outer_shell_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-1.0+11.5)*cm),
           bbc_outer_shell_lv, "BBC_OUTER_SHELL", logicWorld, false, 1, OverlapCheck());
-  inner_shell_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-2+12.2)*cm),
+  inner_shell_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-1.0+11.5)*cm),
           bbc_inner_shell_lv, "BBC_INNER_SHELL", logicWorld, false, 0, OverlapCheck());
 
   outer_shell_vol[0]->GetName();
@@ -269,32 +317,40 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   // BBC Front and Back Plates
   G4Tubs *bbc_plate = new G4Tubs("bbc_fplate", 5*cm, 15*cm, 0.5*cm, 0, 2*M_PI);
-  G4LogicalVolume *bbc_plate_lv = new G4LogicalVolume(bbc_plate, Alum, G4String("Bbc_Cover_Plates"));
+  G4LogicalVolume *bbc_plate_lv = new G4LogicalVolume(bbc_plate, Aluminum, G4String("Bbc_Cover_Plates"));
   G4VisAttributes *bbc_plate_VisAtt = new G4VisAttributes();
   bbc_plate_VisAtt->SetVisibility(true);
   bbc_plate_VisAtt->SetForceSolid(true);
   bbc_plate_VisAtt->SetColour(G4Colour::Gray());
-  bbc_plate_lv->SetVisAttributes(bbcqVisAtt);
+  bbc_plate_lv->SetVisAttributes(bbc_plate_VisAtt);
 
   G4VPhysicalVolume *fplate_vol[2] = {0};   // Front Plates
   G4VPhysicalVolume *bplate_vol[2] = {0};   // Back Plates
 
   // Place South Plates
-  fplate_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+2.5)*cm),
+  fplate_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+1.0+0.5)*cm),
           bbc_plate_lv, "BBC_FPLATE", logicWorld, false, 0, OverlapCheck());
-  bplate_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+2.5-24.0)*cm),
+  bplate_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+1.0+0.5-24.0)*cm),
           bbc_plate_lv, "BBC_BPLATE", logicWorld, false, 0, OverlapCheck());
 
   // Place North Plates
-  fplate_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-2.5)*cm),
+  fplate_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-1.0-0.5)*cm),
           bbc_plate_lv, "BBC_FPLATE", logicWorld, false, 1, OverlapCheck());
-  bplate_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-2.5+24.0)*cm),
+  bplate_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-1.0-0.5+24.0)*cm),
           bbc_plate_lv, "BBC_BPLATE", logicWorld, false, 0, OverlapCheck());
 
   fplate_vol[0]->GetName();
   fplate_vol[1]->GetName();
   bplate_vol[0]->GetName();
   bplate_vol[1]->GetName();
+
+  // bbcq is the active detector element
+  m_PhysLogicalVolSet.insert(bbcq_lv);
+
+  GetDisplayAction()->AddVolume(bbcd_lv, "Bbc_tube");
+  GetDisplayAction()->AddVolume(bbc_plate_lv, "Bbc_plate");
+  GetDisplayAction()->AddVolume(bbc_outer_shell_lv, "Bbc_oshell");
+  GetDisplayAction()->AddVolume(bbc_inner_shell_lv, "Bbc_ishell");
 
   return;
 }
