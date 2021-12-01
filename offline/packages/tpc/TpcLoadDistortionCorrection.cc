@@ -15,6 +15,29 @@
 #include <TFile.h>
 #include <TH3.h>
 
+namespace
+{
+
+  // print histogram
+  void print_histogram( TH3* h )
+  {
+
+    std::cout << "TpcLoadDistortionCorrection::InitRun - name: " << h->GetName() << std::endl;
+    for( const auto& axis:{h->GetXaxis(), h->GetYaxis(), h->GetZaxis() } )
+    {
+      std::cout
+        << "  " << axis->GetName()
+        << " bins: " << axis->GetNbins()
+        << " min: " << axis->GetXmin()
+        << " max: " << axis->GetXmax()
+        << std::endl;
+    }
+    std::cout << std::endl;
+  }
+  
+}  // namespace
+
+
 //_____________________________________________________________________
 TpcLoadDistortionCorrection::TpcLoadDistortionCorrection( const std::string& name ):
   SubsysReco( name)
@@ -71,26 +94,15 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
 	distortion_correction_object->m_hDZint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionZ%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDZint[i] );
       }
 
-    // dump axis limits
     if( Verbosity() )
-      {
-	for( int i =0; i < 2; ++i )
-	  {
-	    std::cout << "TpcLoadDistortionCorrection::InitRun - histogram: " << distortion_correction_object->m_hDPint[i]->GetName() << std::endl;
-	    for(const auto& axis:{ 
-		distortion_correction_object->m_hDPint[i]->GetXaxis(), 
-		  distortion_correction_object->m_hDPint[i]->GetYaxis(), 
-		  distortion_correction_object->m_hDPint[i]->GetZaxis() })
-	      {
-		std::cout
-		  << "TpcLoadDistortionCorrection::InitRun -"
-		  << " axis: " << axis->GetTitle()
-		  << " bins: " << axis->GetNbins()
-		  << " limits: " << axis->GetXmin() << " " << axis->GetXmax()
-		  << std::endl;
-	      }
-	  }
-      }
+    {
+      for( const auto& h:{
+        distortion_correction_object->m_hDPint[0], distortion_correction_object->m_hDPint[1],
+        distortion_correction_object->m_hDRint[0], distortion_correction_object->m_hDRint[1],
+        distortion_correction_object->m_hDZint[0], distortion_correction_object->m_hDZint[1] } )
+      { print_histogram( h ); }
+    }
+
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
