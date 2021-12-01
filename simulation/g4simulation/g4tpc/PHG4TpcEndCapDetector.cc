@@ -5,7 +5,7 @@
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Detector.h>
-#include <g4main/PHG4DisplayAction.h>              // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
 
 #include <TSystem.h>
@@ -22,17 +22,17 @@
 #include <Geant4/G4Transform3D.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4Types.hh>                       // for G4double
+#include <Geant4/G4Types.hh>  // for G4double
 #include <Geant4/G4VPhysicalVolume.hh>
 
 #include <CLHEP/Vector/RotationZ.h>
 
 #include <boost/format.hpp>
 
-#include <algorithm>                               // for max, copy
+#include <algorithm>  // for max, copy
 #include <cassert>
 #include <cmath>
-#include <cstdlib>                                // for exit
+#include <cstdlib>  // for exit
 #include <iostream>
 
 class G4VSolid;
@@ -195,8 +195,8 @@ void PHG4TpcEndCapDetector ::CreateCompositeMaterial(
     if (tempmat == nullptr)
     {
       std::cout << __PRETTY_FUNCTION__ << " Fatal Error: component material " << materialName[i] << " does not exist." << std::endl;
-       gSystem->Exit(1);
-       exit(1);
+      gSystem->Exit(1);
+      exit(1);
     }
     totalArealDensity += tempmat->GetDensity() * thickness[i];
     totalThickness += thickness[i];

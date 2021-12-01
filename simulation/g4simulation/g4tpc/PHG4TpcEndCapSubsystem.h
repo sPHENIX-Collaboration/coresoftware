@@ -5,7 +5,7 @@
 
 #include <g4detectors/PHG4DetectorSubsystem.h>
 
-#include <string>                               // for allocator, string
+#include <string>  // for allocator, string
 
 class PHCompositeNode;
 class PHG4Detector;

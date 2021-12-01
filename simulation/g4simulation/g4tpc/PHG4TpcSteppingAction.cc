@@ -9,7 +9,7 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
@@ -18,23 +18,23 @@
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
-#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fPostSt...
-#include <Geant4/G4String.hh>                  // for G4String
+#include <Geant4/G4StepPoint.hh>   // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fPostSt...
+#include <Geant4/G4String.hh>      // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
-#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
-#include <Geant4/G4Track.hh>                   // for G4Track
-#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
-#include <Geant4/G4Types.hh>                   // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
-#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
-#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
+#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4TrackStatus.hh>            // for fStopAndKill
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
-#include <cmath>                               // for isfinite
-#include <cstdlib>                            // for exit
+#include <cmath>    // for isfinite
+#include <cstdlib>  // for exit
 #include <iostream>
-#include <string>                              // for operator<<, operator+
+#include <string>  // for operator<<, operator+
 
 class PHCompositeNode;
 
@@ -133,15 +133,15 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       std::cout << GetName() << ": New Hit for  " << std::endl;
       std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-           << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
-           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << std::endl;
+                << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
+                << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << std::endl;
       std::cout << "last track: " << savetrackid
-           << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+                << ", current trackid: " << aTrack->GetTrackID() << std::endl;
       std::cout << "phys pre vol: " << volume->GetName()
-           << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+                << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
       std::cout << " previous phys pre vol: " << savevolpre->GetName()
-           << " previous phys post vol: " << savevolpost->GetName() << std::endl;
+                << " previous phys post vol: " << savevolpost->GetName() << std::endl;
     }
     // if previous hit was saved, hit pointer was set to nullptr
     // and we have to make a new one
@@ -192,15 +192,15 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       std::cout << GetName() << ": hit was not created" << std::endl;
       std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-           << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
-           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << std::endl;
+                << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
+                << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << std::endl;
       std::cout << "last track: " << savetrackid
-           << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+                << ", current trackid: " << aTrack->GetTrackID() << std::endl;
       std::cout << "phys pre vol: " << volume->GetName()
-           << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+                << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
       std::cout << " previous phys pre vol: " << savevolpre->GetName()
-           << " previous phys post vol: " << savevolpost->GetName() << std::endl;
+                << " previous phys post vol: " << savevolpost->GetName() << std::endl;
       exit(1);
     }
     // check if track id matches the initial one when the hit was created
@@ -208,10 +208,10 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       std::cout << GetName() << ": hits do not belong to the same track" << std::endl;
       std::cout << "saved track: " << savetrackid
-           << ", current trackid: " << aTrack->GetTrackID()
-           << ", prestep status: " << prePoint->GetStepStatus()
-           << ", previous post step status: " << savepoststepstatus
-           << std::endl;
+                << ", current trackid: " << aTrack->GetTrackID()
+                << ", prestep status: " << prePoint->GetStepStatus()
+                << ", previous post step status: " << savepoststepstatus
+                << std::endl;
 
       exit(1);
     }
@@ -286,22 +286,22 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           if ((rin > 69.0 && rin < 70.125) || (rout > 69.0 && rout < 70.125))
           {
             std::cout << "Added Tpc g4hit with rin, rout = " << rin << "  " << rout
-                 << " g4hitid " << hit->get_hit_id() << std::endl;
+                      << " g4hitid " << hit->get_hit_id() << std::endl;
             std::cout << " xin " << hit->get_x(0)
-                 << " yin " << hit->get_y(0)
-                 << " zin " << hit->get_z(0)
-                 << " rin " << rin
-                 << std::endl;
+                      << " yin " << hit->get_y(0)
+                      << " zin " << hit->get_z(0)
+                      << " rin " << rin
+                      << std::endl;
             std::cout << " xout " << hit->get_x(1)
-                 << " yout " << hit->get_y(1)
-                 << " zout " << hit->get_z(1)
-                 << " rout " << rout
-                 << std::endl;
+                      << " yout " << hit->get_y(1)
+                      << " zout " << hit->get_z(1)
+                      << " rout " << rout
+                      << std::endl;
             std::cout << " xav " << (hit->get_x(1) + hit->get_x(0)) / 2.0
-                 << " yav " << (hit->get_y(1) + hit->get_y(0)) / 2.0
-                 << " zav " << (hit->get_z(1) + hit->get_z(0)) / 2.0
-                 << " rav " << (rout + rin) / 2.0
-                 << std::endl;
+                      << " yav " << (hit->get_y(1) + hit->get_y(0)) / 2.0
+                      << " zav " << (hit->get_z(1) + hit->get_z(0)) / 2.0
+                      << " rav " << (rout + rin) / 2.0
+                      << std::endl;
           }
 
         // ownership has been transferred to container, set to null

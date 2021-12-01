@@ -7,12 +7,12 @@
 
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include "Geant4/G4String.hh"          // for G4String
 #include <Geant4/G4VisAttributes.hh>
+#include "Geant4/G4String.hh"  // for G4String
 
 #include <cstdlib>
 #include <iostream>
-#include <utility>                     // for pair
+#include <utility>  // for pair
 
 PHG4TpcDisplayAction::PHG4TpcDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
@@ -28,7 +28,7 @@ PHG4TpcDisplayAction::~PHG4TpcDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4TpcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
+void PHG4TpcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
   static const G4Colour color[] = {PHG4TpcColorDefs::tpc_cu_color,
                                    PHG4TpcColorDefs::tpc_pcb_color,
@@ -70,7 +70,7 @@ void PHG4TpcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
     else
     {
       std::cout << "did not assing color to " << it.first->GetName()
-           << " under " << it.second << std::endl;
+                << " under " << it.second << std::endl;
       gSystem->Exit(1);
       exit(1);
     }
