@@ -105,8 +105,19 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  unsigned int trkrId = TrkrDefs::getTrkrId(cluster_key);
 	  unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
-	  if(trkrId != TrkrDefs::tpcId) continue;  // we want only TPC clusters
-
+    // non Tpc clusters are copied unchanged to the new map
+	  if(trkrId != TrkrDefs::tpcId) 
+    {
+      // get cluster from original map
+      auto cluster =  _cluster_map->findCluster(cluster_key);	
+      if( !cluster ) continue;
+      
+      // create in corrected map and copy content
+      auto newclus = _corrected_cluster_map->findOrAddCluster(cluster_key)->second;
+      newclus->CopyFrom( cluster );
+      continue;      
+    }
+    
 	  // get the cluster in 3D coordinates
 	  TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
 	  auto global = _transformer.getGlobalPosition(tpc_clus,
