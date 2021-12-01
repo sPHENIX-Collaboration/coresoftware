@@ -84,8 +84,7 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   G4VSolid *tpc_envelope = new G4Tubs("tpc_envelope", inner_cage_radius, outer_cage_radius, params->get_double_param("tpc_length") * cm / 2., 0., 2 * M_PI);
 
-  
-  recoConsts* rc = recoConsts::instance();
+  recoConsts *rc = recoConsts::instance();
   G4LogicalVolume *tpc_envelope_logic = new G4LogicalVolume(tpc_envelope,
                                                             GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")),
                                                             "tpc_envelope");
@@ -217,14 +216,14 @@ int PHG4TpcDetector::ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope)
                                             params->get_double_param("cage_layer_9_thickness") * cm};
 
   static const std::string material[nlayers] = {params->get_string_param("cage_layer_1_material"),
-                                           params->get_string_param("cage_layer_2_material"),
-                                           params->get_string_param("cage_layer_3_material"),
-                                           params->get_string_param("cage_layer_4_material"),
-                                           params->get_string_param("cage_layer_5_material"),
-                                           params->get_string_param("cage_layer_6_material"),
-                                           params->get_string_param("cage_layer_7_material"),
-                                           params->get_string_param("cage_layer_8_material"),
-                                           params->get_string_param("cage_layer_9_material")};
+                                                params->get_string_param("cage_layer_2_material"),
+                                                params->get_string_param("cage_layer_3_material"),
+                                                params->get_string_param("cage_layer_4_material"),
+                                                params->get_string_param("cage_layer_5_material"),
+                                                params->get_string_param("cage_layer_6_material"),
+                                                params->get_string_param("cage_layer_7_material"),
+                                                params->get_string_param("cage_layer_8_material"),
+                                                params->get_string_param("cage_layer_9_material")};
 
   double tpc_cage_radius = inner_cage_radius;
   std::ostringstream name;

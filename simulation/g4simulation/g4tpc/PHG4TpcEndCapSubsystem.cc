@@ -8,7 +8,7 @@
 
 #include <g4detectors/PHG4DetectorSubsystem.h>  // for PHG4DetectorSubsystem
 
-#include <g4main/PHG4DisplayAction.h>           // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4SteppingAction.h>
 
