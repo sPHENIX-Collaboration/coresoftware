@@ -23,7 +23,6 @@
 #include <cmath>     // for NAN
 #include <iostream>  // for operator<<, basic_ost...
 #include <set>
-#include <sstream>
 
 class PHG4Detector;
 
@@ -59,48 +58,43 @@ int PHG4TpcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
-    if (!DetNode)
+    PHCompositeNode* DetNode = dstNode;
+    if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
-      DetNode = new PHCompositeNode(SuperDetector());
-      dstNode->addNode(DetNode);
+      PHNodeIterator iter_dst(dstNode);
+      DetNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+      if (!DetNode)
+      {
+	DetNode = new PHCompositeNode(SuperDetector());
+	dstNode->addNode(DetNode);
+      }
     }
-
-    std::ostringstream nodename;
-    if (SuperDetector() != "NONE")
+    std::string detector_suffix = SuperDetector();
+    if (detector_suffix == "NONE" || detector_suffix.empty())
     {
-      nodename << "G4HIT_" << SuperDetector();
+      detector_suffix = Name();
     }
-    else
-    {
-      nodename << "G4HIT_" << Name();
-    }
-    nodes.insert(nodename.str());
+    m_HitNodeName = "G4HIT_" + detector_suffix;
+    nodes.insert(m_HitNodeName);
+    m_AbsorberNodeName = "G4HIT_ABSORBER_" + detector_suffix;
     if (GetParams()->get_int_param("absorberactive"))
     {
-      nodename.str("");
-      if (SuperDetector() != "NONE")
-      {
-        nodename << "G4HIT_ABSORBER_" << SuperDetector();
-      }
-      else
-      {
-        nodename << "G4HIT_ABSORBER_" << Name();
-      }
-      nodes.insert(nodename.str());
+      nodes.insert(m_AbsorberNodeName);
     }
-    BOOST_FOREACH (std::string node, nodes)
+    for (auto nodename: nodes)
     {
-      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node.c_str());
+      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
       {
-        g4_hits = new PHG4HitContainer(node);
-        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node.c_str(), "PHObject"));
+        g4_hits = new PHG4HitContainer(nodename);
+        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, nodename, "PHObject"));
       }
     }
 
     // create stepping action
     steppingAction_ = new PHG4TpcSteppingAction(detector_, GetParams());
+    steppingAction_->SetHitNodeName("G4HIT", m_HitNodeName);
+    steppingAction_->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
   }
   else
   {

@@ -15,6 +15,8 @@
 
 #include <phool/getClass.h>
 
+#include <TSystem.h>
+
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
@@ -328,33 +330,36 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4TpcSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  std::string hitnodename;
-  std::string absorbernodename;
-  if (detector_->SuperDetector() != "NONE")
-  {
-    hitnodename = "G4HIT_" + detector_->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->SuperDetector();
-  }
-  else
-  {
-    hitnodename = "G4HIT_" + detector_->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->GetName();
-  }
-
-  //now look for the map and grab a pointer to it.
-  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-  absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
+  hits_ = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, m_AbsorberNodeName);
 
   // if we do not find the node it's messed up.
   if (!hits_)
   {
-    std::cout << "PHG4TpcSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    std::cout << "PHG4TpcSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
   }
   if (!absorberhits_)
   {
     if (Verbosity() > 1)
     {
-      std::cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << std::endl;
+      std::cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << std::endl;
     }
   }
+}
+
+void PHG4TpcSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_ABSORBER")
+  {
+    m_AbsorberNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }

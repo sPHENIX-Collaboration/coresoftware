@@ -27,6 +27,8 @@ class PHG4TpcSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   void SetInterfacePointers(PHCompositeNode *) override;
 
+  void SetHitNodeName(const std::string& type, const std::string& name) override;
+
  private:
   //! pointer to the detector
   PHG4TpcDetector *detector_;
@@ -49,6 +51,9 @@ class PHG4TpcSteppingAction : public PHG4SteppingAction
   int IsActive;
   int IsBlackHole;
   int use_g4_steps;
+
+  std::string m_HitNodeName;
+  std::string m_AbsorberNodeName;
 };
 
 #endif  // G4TPC_PHG4TPCSTEPPINGACTION_H
