@@ -45,7 +45,6 @@ PHG4TpcSteppingAction::PHG4TpcSteppingAction(PHG4TpcDetector* detector, const PH
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_Params(parameters)
-//  , m_IsActiveFlag(m_Params->get_int_param("active"))
   , m_IsBlackHoleFlag(m_Params->get_int_param("blackhole"))
 {
   if (std::isfinite(m_Params->get_double_param("steplimits")))

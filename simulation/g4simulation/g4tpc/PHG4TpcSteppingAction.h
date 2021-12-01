@@ -48,7 +48,6 @@ class PHG4TpcSteppingAction : public PHG4SteppingAction
   // since getting parameters is a map search we do not want to
   // do this in every step, the parameters used are cached
   // in the following variables
-//  int m_IsActiveFlag = 0;
   int m_IsBlackHoleFlag = 0;
   int m_UseG4StepsFlag = 0;
 
