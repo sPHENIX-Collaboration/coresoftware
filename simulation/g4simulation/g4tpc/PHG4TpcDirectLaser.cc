@@ -1,27 +1,36 @@
 #include "PHG4TpcDirectLaser.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
+#include <phparameter/PHParameterInterface.h>    // for PHParameterInterface
 
-#include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4HitDefs.h>                  // for get_volume_id
 #include <g4main/PHG4Particlev3.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPointv1.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                  // for SubsysReco
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                      // for PHObject
+#include <phool/phool.h>                         // for PHWHERE
 
 #include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 
+#include <TVector3.h>                            // for TVector3, operator*
+
 #include <gsl/gsl_const_mksa.h> // for the speed of light
+
 #include <cassert>
 #include <optional>
+#include <iostream>                              // for operator<<, basic_os...
 
 namespace
 {

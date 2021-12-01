@@ -1,14 +1,23 @@
 #include "PHG4TpcCentralMembrane.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
+#include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4HitDefs.h>                // for get_volume_id
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                // for SubsysReco
 
 #include <phool/getClass.h>
+#include <phool/phool.h>                       // for PHWHERE
 
 #include <TVector3.h>
+
+#include <iostream>                            // for operator<<, endl, basi...
+
+class PHCompositeNode;
 
 namespace
 {
@@ -308,9 +317,9 @@ void PHG4TpcCentralMembrane::CalculateVertices(
   }
 }
 
-PHG4Hitv1* PHG4TpcCentralMembrane::GetBotVerticesFromStripe(int moduleID, int radiusID, int stripeID) const
+PHG4Hit* PHG4TpcCentralMembrane::GetBotVerticesFromStripe(int moduleID, int radiusID, int stripeID) const
 {
-  PHG4Hitv1 *botvert;
+  PHG4Hit *botvert;
   TVector3 dummyPos0, dummyPos1;
     
   //0 - left, 1 - right
@@ -347,9 +356,9 @@ PHG4Hitv1* PHG4TpcCentralMembrane::GetBotVerticesFromStripe(int moduleID, int ra
   return botvert;
 }
 
-PHG4Hitv1* PHG4TpcCentralMembrane::GetTopVerticesFromStripe(int moduleID, int radiusID, int stripeID) const
+PHG4Hit* PHG4TpcCentralMembrane::GetTopVerticesFromStripe(int moduleID, int radiusID, int stripeID) const
 {
-  PHG4Hitv1 *topvert = nullptr;
+  PHG4Hit *topvert = nullptr;
   TVector3 dummyPos0, dummyPos1;
     
   //0 - left, 1 - right
@@ -457,10 +466,10 @@ int PHG4TpcCentralMembrane::getSearchResult(double xcheck, double ycheck) const
   return result;
 }
 
-PHG4Hitv1* PHG4TpcCentralMembrane::GetPHG4HitFromStripe(int petalID, int moduleID, int radiusID, int stripeID, int nElectrons) const
+PHG4Hit* PHG4TpcCentralMembrane::GetPHG4HitFromStripe(int petalID, int moduleID, int radiusID, int stripeID, int nElectrons) const
 { //this function generates a PHG4 hit using coordinates from a stripe
   const double phi_petal = M_PI/9.0; // angle span of one petal
-  PHG4Hitv1 *hit;
+  PHG4Hit *hit;
   TVector3 dummyPos0, dummyPos1;
   
   //could put in some sanity checks here but probably not necessary since this is only really used within the class

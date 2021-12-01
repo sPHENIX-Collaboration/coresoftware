@@ -16,6 +16,7 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4ParticleDefinition.hh>
+#include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4StepPoint.hh>               // for G4StepPoint
 #include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fPostSt...

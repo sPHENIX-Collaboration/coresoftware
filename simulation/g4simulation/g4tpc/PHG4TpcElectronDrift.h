@@ -4,14 +4,16 @@
 #ifndef G4TPC_PHG4TPCELECTRONDRIFT_H
 #define G4TPC_PHG4TPCELECTRONDRIFT_H
 
-#include <fun4all/SubsysReco.h>
+#include <phparameter/PHParameterInterface.h>
+
 #include <g4main/PHG4HitContainer.h>
 
-#include <phparameter/PHParameterInterface.h>
-#include <cmath>
-#include <memory>
+#include <fun4all/SubsysReco.h>
 
 #include <gsl/gsl_rng.h>
+
+#include <cmath>
+#include <memory>
 #include <string>  // for string
 
 class PHG4TpcPadPlane;

@@ -1,41 +1,38 @@
 #include "PHG4TpcEndCapDetector.h"
+
 #include "PHG4TpcEndCapDisplayAction.h"
 
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Detector.h>
+#include <g4main/PHG4DisplayAction.h>              // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
 
 #include <TSystem.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4Color.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
-#include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
-#include <Geant4/G4MultiUnion.hh>
-#include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4String.hh>
-#include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Transform3D.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4UserLimits.hh>
+#include <Geant4/G4Types.hh>                       // for G4double
 #include <Geant4/G4VPhysicalVolume.hh>
-#include <Geant4/G4VSolid.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <CLHEP/Vector/RotationZ.h>
 
 #include <boost/format.hpp>
 
+#include <algorithm>                               // for max, copy
 #include <cassert>
 #include <cmath>
+#include <cstdlib>                                // for exit
 #include <iostream>
 
 class G4VSolid;
@@ -198,7 +195,8 @@ void PHG4TpcEndCapDetector ::CreateCompositeMaterial(
     if (tempmat == nullptr)
     {
       std::cout << __PRETTY_FUNCTION__ << " Fatal Error: component material " << materialName[i] << " does not exist." << std::endl;
-      assert(!tempmat);
+       gSystem->Exit(1);
+       exit(1);
     }
     totalArealDensity += tempmat->GetDensity() * thickness[i];
     totalThickness += thickness[i];
@@ -494,8 +492,6 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
       gSystem->Exit(1);
       exit(1);
     }
-
-    const G4double electronics_cooling_block_thickness = m_Params->get_double_param("electronics_cooling_block_thickness") * cm;
 
     G4ThreeVector g4vec_electronics_cooling_block(0, 0, z_start + electronics_cooling_block_thickness / 2.);
 
