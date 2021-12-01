@@ -614,7 +614,7 @@ void TrackingEvaluator_hp::evaluate_tracks()
       {
         std::cout << "TrackingEvaluator_hp::evaluate_tracks -"
           << " unable to find cluster for key " << cluster_key 
-          << " detector: " << TrkrDefs::getTrkrId( cluster_key )
+          << " detector: " << (int) TrkrDefs::getTrkrId( cluster_key )
           << std::endl;
         continue;
       }
