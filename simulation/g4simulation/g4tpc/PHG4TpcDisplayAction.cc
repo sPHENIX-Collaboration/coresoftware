@@ -10,10 +10,9 @@
 #include "Geant4/G4String.hh"          // for G4String
 #include <Geant4/G4VisAttributes.hh>
 
+#include <cstdlib>
 #include <iostream>
 #include <utility>                     // for pair
-
-using namespace std;
 
 PHG4TpcDisplayAction::PHG4TpcDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
@@ -70,9 +69,10 @@ void PHG4TpcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
     }
     else
     {
-      cout << "did not assing color to " << it.first->GetName()
-           << " under " << it.second << endl;
+      std::cout << "did not assing color to " << it.first->GetName()
+           << " under " << it.second << std::endl;
       gSystem->Exit(1);
+      exit(1);
     }
     logvol->SetVisAttributes(visatt);
   }
