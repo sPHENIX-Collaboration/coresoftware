@@ -27,8 +27,6 @@
 
 class PHG4Detector;
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4TpcSubsystem::PHG4TpcSubsystem(const std::string &name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
@@ -57,7 +55,7 @@ int PHG4TpcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   detector_ = new PHG4TpcDetector(this, topNode, GetParams(), Name());
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
-  set<string> nodes;
+  std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
@@ -68,7 +66,7 @@ int PHG4TpcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    ostringstream nodename;
+    std::ostringstream nodename;
     if (SuperDetector() != "NONE")
     {
       nodename << "G4HIT_" << SuperDetector();
@@ -91,7 +89,7 @@ int PHG4TpcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       }
       nodes.insert(nodename.str());
     }
-    BOOST_FOREACH (string node, nodes)
+    BOOST_FOREACH (std::string node, nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node.c_str());
       if (!g4_hits)
@@ -127,9 +125,9 @@ int PHG4TpcSubsystem::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-void PHG4TpcSubsystem::Print(const string &what) const
+void PHG4TpcSubsystem::Print(const std::string &what) const
 {
-  cout << Name() << " Parameters: " << endl;
+  std::cout << Name() << " Parameters: " << std::endl;
   GetParams()->Print();
   if (detector_)
   {

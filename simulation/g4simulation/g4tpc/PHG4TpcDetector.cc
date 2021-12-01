@@ -27,8 +27,6 @@
 class G4VSolid;
 class PHCompositeNode;
 
-using namespace std;
-
 //_______________________________________________________________
 PHG4TpcDetector::PHG4TpcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -79,7 +77,7 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // 9th layer cu
 
   double steplimits = params->get_double_param("steplimits") * cm;
-  if (isfinite(steplimits))
+  if (std::isfinite(steplimits))
   {
     g4userlimits = new G4UserLimits(steplimits);
   }
@@ -103,7 +101,7 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
 int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
 {
-  static map<int, string> tpcgasvolname =
+  static std::map<int, std::string> tpcgasvolname =
       {{PHG4TpcDefs::North, "tpc_gas_north"},
        {PHG4TpcDefs::South, "tpc_gas_south"}};
 
@@ -180,14 +178,14 @@ int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
   G4VPhysicalVolume *tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, (tpc_half_length + tpc_window_thickness) / 2.),
                                                       tpc_gas_logic, tpcgasvolname[PHG4TpcDefs::North],
                                                       tpc_envelope, false, PHG4TpcDefs::North, OverlapCheck());
-  cout << "north copy no: " << tpc_gas_phys->GetCopyNo() << endl;
+  std::cout << "north copy no: " << tpc_gas_phys->GetCopyNo() << std::endl;
 
   activevols.insert(tpc_gas_phys);
   tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, -(tpc_half_length + tpc_window_thickness) / 2.),
                                    tpc_gas_logic, tpcgasvolname[PHG4TpcDefs::South],
                                    tpc_envelope, false, PHG4TpcDefs::South, OverlapCheck());
 
-  cout << "south copy no: " << tpc_gas_phys->GetCopyNo() << endl;
+  std::cout << "south copy no: " << tpc_gas_phys->GetCopyNo() << std::endl;
   activevols.insert(tpc_gas_phys);
 
 #if G4VERSION_NUMBER >= 1033
@@ -218,7 +216,7 @@ int PHG4TpcDetector::ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope)
                                             params->get_double_param("cage_layer_8_thickness") * cm,
                                             params->get_double_param("cage_layer_9_thickness") * cm};
 
-  static const string material[nlayers] = {params->get_string_param("cage_layer_1_material"),
+  static const std::string material[nlayers] = {params->get_string_param("cage_layer_1_material"),
                                            params->get_string_param("cage_layer_2_material"),
                                            params->get_string_param("cage_layer_3_material"),
                                            params->get_string_param("cage_layer_4_material"),
@@ -229,7 +227,7 @@ int PHG4TpcDetector::ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope)
                                            params->get_string_param("cage_layer_9_material")};
 
   double tpc_cage_radius = inner_cage_radius;
-  ostringstream name;
+  std::ostringstream name;
   for (int i = 0; i < nlayers; i++)
   {
     name.str("");
