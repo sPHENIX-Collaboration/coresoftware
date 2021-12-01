@@ -120,7 +120,6 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   //G4double zpos = (-1.5-0.5)*cm;
   G4double len_bbca = z_bbca[3]-z_bbca[0];
   G4double zpos = z_bbcd[0]+ len_bbca*0.5;
-  G4cout << "BBCA " << zpos << G4endl;
 
   G4VPhysicalVolume *bbca_phys = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbca_lv, "BBCA", bbcd_lv, false, 0);
   bbca_phys->GetName();
@@ -144,7 +143,6 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   ypos = 0.*cm;
   G4double len_bbcq = z_bbcq[1]-z_bbcq[0];
   zpos += len_bbca*0.5 + len_bbcq*0.5;
-  G4cout << "BBCP " << zpos << G4endl;
 
   G4VPhysicalVolume *bbcq_phys = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbcq_lv, "BBCQ", bbcd_lv, false, 0);
   bbcq_phys->GetName();
@@ -178,8 +176,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4int natoms;
   G4int ncomponents;
   G4double density;
-  G4Material *G10 =
-      new G4Material("G10", density = 1.700 * g / cm3, ncomponents = 4);
+  G4Material *G10 = new G4Material("BBC_G10", density = 1.700 * g / cm3, ncomponents = 4);
   G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), natoms = 1);
   G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), natoms = 2);
   G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 3);
