@@ -83,6 +83,23 @@ FROG::location(const string &logical_name)
           break;
         }
       }
+      else if (iter == "XROOTD")
+      {
+        if (Verbosity() > 1)
+        {
+          cout << "Searching FileCatalog for XRootD file "
+               << logical_name << endl;
+        }
+        if (XRootDSearch(logical_name))
+        {
+          if (Verbosity() > 1)
+          {
+            cout << "Found " << logical_name << " in XRootD, returning "
+                 << pfn << endl;
+          }
+          break;
+        }
+      }
       else  // assuming this is a file path
       {
         if (Verbosity() > 0)
@@ -190,6 +207,32 @@ bool FROG::dCacheSearch(const string &lname)
     if (std::ifstream(dcachefile))
     {
       pfn = "dcache:" + dcachefile;
+      bret = true;
+    }
+  }
+  delete rs;
+  delete stmt;
+  return bret;
+}
+
+bool FROG::XRootDSearch(const string &lname)
+{
+  bool bret = false;
+  if (!GetConnection())
+  {
+    return bret;
+  }
+  string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'dcache'";
+
+  odbc::Statement *stmt = m_OdbcConnection->createStatement();
+  odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
+
+  if (rs->next())
+  {
+    string xrootdfile = rs->getString(1);
+    if (std::ifstream(xrootdfile))
+    {
+      pfn = "root://dcsphdoor02.rcf.bnl.gov:1095" + xrootdfile;
       bret = true;
     }
   }
