@@ -7,34 +7,28 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4DisplayAction.h>           // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4SteppingAction.h>          // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>                 // for PHIODataNode
-#include <phool/PHNode.h>                       // for PHNode
-#include <phool/PHNodeIterator.h>               // for PHNodeIterator
-#include <phool/PHObject.h>                     // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
+#include <phool/getClass.h>
 
 #include <boost/foreach.hpp>
 
-#include <cmath>                               // for NAN
-#include <iostream>                             // for operator<<, basic_ost...
+#include <cmath>     // for NAN
+#include <iostream>  // for operator<<, basic_ost...
 #include <set>
-#include <sstream>
 
 class PHG4Detector;
-
-using namespace std;
 
 //_______________________________________________________________________
 PHG4TpcSubsystem::PHG4TpcSubsystem(const std::string &name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
-  , detector_(nullptr)
-  , steppingAction_(nullptr)
-  , m_DisplayAction(nullptr)
 {
   InitializeParameters();
 }
@@ -54,62 +48,57 @@ int PHG4TpcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   // create display settings before detector (detector adds its volumes to it)
   m_DisplayAction = new PHG4TpcDisplayAction(Name());
   // create detector
-  detector_ = new PHG4TpcDetector(this, topNode, GetParams(), Name());
-  detector_->SuperDetector(SuperDetector());
-  detector_->OverlapCheck(CheckOverlap());
-  set<string> nodes;
+  m_Detector = new PHG4TpcDetector(this, topNode, GetParams(), Name());
+  m_Detector->SuperDetector(SuperDetector());
+  m_Detector->OverlapCheck(CheckOverlap());
+  std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
-    if (!DetNode)
+    PHCompositeNode* DetNode = dstNode;
+    if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
-      DetNode = new PHCompositeNode(SuperDetector());
-      dstNode->addNode(DetNode);
+      PHNodeIterator iter_dst(dstNode);
+      DetNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+      if (!DetNode)
+      {
+	DetNode = new PHCompositeNode(SuperDetector());
+	dstNode->addNode(DetNode);
+      }
     }
-
-    ostringstream nodename;
-    if (SuperDetector() != "NONE")
+    std::string detector_suffix = SuperDetector();
+    if (detector_suffix == "NONE" || detector_suffix.empty())
     {
-      nodename << "G4HIT_" << SuperDetector();
+      detector_suffix = Name();
     }
-    else
-    {
-      nodename << "G4HIT_" << Name();
-    }
-    nodes.insert(nodename.str());
+    m_HitNodeName = "G4HIT_" + detector_suffix;
+    nodes.insert(m_HitNodeName);
+    m_AbsorberNodeName = "G4HIT_ABSORBER_" + detector_suffix;
     if (GetParams()->get_int_param("absorberactive"))
     {
-      nodename.str("");
-      if (SuperDetector() != "NONE")
-      {
-        nodename << "G4HIT_ABSORBER_" << SuperDetector();
-      }
-      else
-      {
-        nodename << "G4HIT_ABSORBER_" << Name();
-      }
-      nodes.insert(nodename.str());
+      nodes.insert(m_AbsorberNodeName);
     }
-    BOOST_FOREACH (string node, nodes)
+    for (auto nodename: nodes)
     {
-      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node.c_str());
+      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
       {
-        g4_hits = new PHG4HitContainer(node);
-        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node.c_str(), "PHObject"));
+        g4_hits = new PHG4HitContainer(nodename);
+        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, nodename, "PHObject"));
       }
     }
 
     // create stepping action
-    steppingAction_ = new PHG4TpcSteppingAction(detector_, GetParams());
+    m_SteppingAction = new PHG4TpcSteppingAction(m_Detector, GetParams());
+    m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
   }
   else
   {
     // if this is a black hole it does not have to be active
     if (GetParams()->get_int_param("blackhole"))
     {
-      steppingAction_ = new PHG4TpcSteppingAction(detector_, GetParams());
+      m_SteppingAction = new PHG4TpcSteppingAction(m_Detector, GetParams());
     }
   }
   return 0;
@@ -120,24 +109,24 @@ int PHG4TpcSubsystem::process_event(PHCompositeNode *topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
-  if (steppingAction_)
+  if (m_SteppingAction)
   {
-    steppingAction_->SetInterfacePointers(topNode);
+    m_SteppingAction->SetInterfacePointers(topNode);
   }
   return 0;
 }
 
-void PHG4TpcSubsystem::Print(const string &what) const
+void PHG4TpcSubsystem::Print(const std::string &what) const
 {
-  cout << Name() << " Parameters: " << endl;
+  std::cout << Name() << " Parameters: " << std::endl;
   GetParams()->Print();
-  if (detector_)
+  if (m_Detector)
   {
-    detector_->Print(what);
+    m_Detector->Print(what);
   }
-  if (steppingAction_)
+  if (m_SteppingAction)
   {
-    steppingAction_->Print(what);
+    m_SteppingAction->Print(what);
   }
 
   return;
@@ -146,7 +135,7 @@ void PHG4TpcSubsystem::Print(const string &what) const
 //_______________________________________________________________________
 PHG4Detector *PHG4TpcSubsystem::GetDetector(void) const
 {
-  return detector_;
+  return m_Detector;
 }
 
 void PHG4TpcSubsystem::SetDefaultParameters()

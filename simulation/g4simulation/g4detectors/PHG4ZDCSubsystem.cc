@@ -71,7 +71,7 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     }
     // create hit output nodes
     std::string detector_suffix = SuperDetector();
-    if (detector_suffix == "NONE")
+    if (detector_suffix == "NONE" || detector_suffix.empty())
     {
       detector_suffix = Name();
     }
