@@ -4,14 +4,16 @@
 #ifndef G4TPC_PHG4TPCELECTRONDRIFT_H
 #define G4TPC_PHG4TPCELECTRONDRIFT_H
 
-#include <fun4all/SubsysReco.h>
+#include <phparameter/PHParameterInterface.h>
+
 #include <g4main/PHG4HitContainer.h>
 
-#include <phparameter/PHParameterInterface.h>
-#include <cmath>
-#include <memory>
+#include <fun4all/SubsysReco.h>
 
 #include <gsl/gsl_rng.h>
+
+#include <cmath>
+#include <memory>
 #include <string>  // for string
 
 class PHG4TpcPadPlane;
@@ -58,7 +60,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
   //! setup readout plane
   void registerPadPlane(PHG4TpcPadPlane *padplane);
-  
+
  private:
   //! map a given x,y,z coordinates to plane hits
   void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
@@ -72,7 +74,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::unique_ptr<PHG4TpcDistortion> m_distortionMap;
   int event_num = 0;
   bool do_ElectronDriftQAHistos = false;
-  
+
   ///@name evaluation histograms
   //@{
   TH1 *dlong = nullptr;
@@ -90,7 +92,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TH2 *deltarnodist = nullptr;
   TH2 *deltaz = nullptr;
   //@}
-  
+
   std::unique_ptr<TFile> m_outf;
   std::unique_ptr<TFile> EDrift_outf;
 
@@ -98,7 +100,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TNtuple *nthit = nullptr;
   TNtuple *ntfinalhit = nullptr;
   TNtuple *ntpad = nullptr;
-  
+
   std::string detector;
   std::string hitnodename;
   std::string seggeonodename;

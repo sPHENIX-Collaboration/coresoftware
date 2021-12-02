@@ -5,6 +5,8 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+#include <string>  // for string
+
 class PHG4TpcEndCapDetector;
 
 class G4Step;
@@ -29,24 +31,28 @@ class PHG4TpcEndCapSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   void SetInterfacePointers(PHCompositeNode*) override;
 
+  void SetHitNodeName(const std::string& type, const std::string& name) override;
+
  private:
   //! pointer to the detector
-  PHG4TpcEndCapDetector* m_Detector;
-  const PHParameters* m_Params;
+  PHG4TpcEndCapDetector* m_Detector = nullptr;
+  const PHParameters* m_Params = nullptr;
   //! pointer to hit container
-  PHG4HitContainer* m_HitContainer;
-  PHG4Hit* m_Hit;
-  PHG4HitContainer* m_SaveHitContainer;
-  G4VPhysicalVolume* m_SaveVolPre;
-  G4VPhysicalVolume* m_SaveVolPost;
+  PHG4HitContainer* m_HitContainer = nullptr;
+  PHG4Hit* m_Hit = nullptr;
+  PHG4HitContainer* m_SaveHitContainer = nullptr;
+  G4VPhysicalVolume* m_SaveVolPre = nullptr;
+  G4VPhysicalVolume* m_SaveVolPost = nullptr;
 
-  int m_SaveTrackId;
-  int m_SavePreStepStatus;
-  int m_SavePostStepStatus;
-  int m_ActiveFlag;
-  int m_BlackHoleFlag;
-  double m_EdepSum;
-  double m_EionSum;
+  int m_SaveTrackId = -1;
+  int m_SavePreStepStatus = -1;
+  int m_SavePostStepStatus = -1;
+  int m_ActiveFlag = 0;
+  int m_BlackHoleFlag = 0;
+  double m_EdepSum = 0.;
+  double m_EionSum = 0.;
+
+  std::string m_HitNodeName;
 };
 
-#endif // PHG4TPCENDCAPSTEPPINGACTION_H
+#endif  // PHG4TPCENDCAPSTEPPINGACTION_H

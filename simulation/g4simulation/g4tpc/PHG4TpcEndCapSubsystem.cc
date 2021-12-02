@@ -1,13 +1,3 @@
-//____________________________________________________________________________..
-//
-// This is the interface to the framework. You only need to define the parameters
-// you use for your detector in the SetDefaultParameters() method here
-// The place to do this is marked by //implement your own here//
-// The parameters have no units, they need to be converted in the
-// PHG4TpcEndCapDetector::ConstructMe() method
-// but the convention is as mentioned cm and deg
-//____________________________________________________________________________..
-//
 #include "PHG4TpcEndCapSubsystem.h"
 
 #include "PHG4TpcEndCapDetector.h"
@@ -16,6 +6,9 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <g4detectors/PHG4DetectorSubsystem.h>  // for PHG4DetectorSubsystem
+
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4SteppingAction.h>
 
@@ -26,14 +19,9 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4TpcEndCapSubsystem::PHG4TpcEndCapSubsystem(const std::string &name)
   : PHG4DetectorSubsystem(name)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
 {
   // call base class method which will set up parameter infrastructure
   // and call our SetDefaultParameters() method
@@ -42,8 +30,7 @@ PHG4TpcEndCapSubsystem::PHG4TpcEndCapSubsystem(const std::string &name)
 
 PHG4TpcEndCapSubsystem::~PHG4TpcEndCapSubsystem()
 {
-  if (m_DisplayAction)
-    delete m_DisplayAction;
+  delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
@@ -51,34 +38,49 @@ int PHG4TpcEndCapSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  PHNodeIterator dstIter(dstNode);
 
   // create display settings before detector (detector adds its volumes to it)
   m_DisplayAction = new PHG4TpcEndCapDisplayAction(Name());
 
-  if (GetParams()->get_int_param("active"))
-  {
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", Name()));
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode(Name());
-      dstNode->addNode(DetNode);
-    }
-    string g4hitnodename = "G4HIT_" + Name();
-    PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(DetNode, g4hitnodename);
-    if (!g4_hits)
-    {
-      g4_hits = new PHG4HitContainer(g4hitnodename);
-      DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, g4hitnodename, "PHObject"));
-    }
-  }
   // create detector
   m_Detector = new PHG4TpcEndCapDetector(this, topNode, GetParams(), Name());
+  m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
+  m_Detector->Verbosity(Verbosity());
+
+  if (GetParams()->get_int_param("active"))
+  {
+    PHNodeIterator dstIter(dstNode);
+    PHCompositeNode *DetNode = dstNode;
+    if (SuperDetector() != "NONE" && !SuperDetector().empty())
+    {
+      PHNodeIterator iter_dst(dstNode);
+      DetNode = dynamic_cast<PHCompositeNode *>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(DetNode);
+      }
+    }
+    std::string detector_suffix = SuperDetector();
+    if (detector_suffix == "NONE" || detector_suffix.empty())
+    {
+      detector_suffix = Name();
+    }
+    m_HitNodeName = "G4HIT_" + detector_suffix;
+    PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(DetNode, m_HitNodeName);
+    if (!g4_hits)
+    {
+      g4_hits = new PHG4HitContainer(m_HitNodeName);
+      DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, m_HitNodeName, "PHObject"));
+    }
+  }
   // create stepping action if detector is active
   if (GetParams()->get_int_param("active"))
   {
     m_SteppingAction = new PHG4TpcEndCapSteppingAction(m_Detector, GetParams());
+    m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
   }
   return 0;
 }
@@ -94,7 +96,7 @@ int PHG4TpcEndCapSubsystem::process_event(PHCompositeNode *topNode)
   return 0;
 }
 //_______________________________________________________________________
-void PHG4TpcEndCapSubsystem::Print(const string &what) const
+void PHG4TpcEndCapSubsystem::Print(const std::string &what) const
 {
   if (m_Detector)
   {
@@ -137,7 +139,7 @@ void PHG4TpcEndCapSubsystem::SetDefaultParameters()
 
   set_default_string_param("wagon_wheel_material", "G4_Al");
 
-  set_default_double_param("wagon_wheel_sector_phi_offset_degree", 360./12./2.);
+  set_default_double_param("wagon_wheel_sector_phi_offset_degree", 360. / 12. / 2.);
 
   set_default_double_param("wagon_wheel_front_frame_thickness", inch_to_cm * .38);
   set_default_double_param("wagon_wheel_front_frame_spoke_width", inch_to_cm * 1.12);

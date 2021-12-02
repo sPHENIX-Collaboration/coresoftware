@@ -6,9 +6,12 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHit.h>    // for TrkrHit
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrHitTruthAssocv1.h>
 
 #include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
