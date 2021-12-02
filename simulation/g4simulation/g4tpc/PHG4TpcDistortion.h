@@ -109,24 +109,22 @@ class PHG4TpcDistortion
   //!@name static histograms
   //@{
   bool m_do_static_distortions = false;
-  bool m_static_map_onesided = false;
   std::string m_static_distortion_filename;
   std::unique_ptr<TFile> m_static_tfile;
-  TH3 *hDRint[2];
-  TH3 *hDPint[2];
-  TH3 *hDZint[2];
+  TH3 *hDRint[2]={nullptr,nullptr};
+  TH3 *hDPint[2]={nullptr,nullptr};
+  TH3 *hDZint[2]={nullptr,nullptr};
   //@}
 
   //!@name time ordered histograms
   //@{
   bool m_do_time_ordered_distortions = false;
-  bool m_time_ordered_map_onesided = false;
   std::string m_time_ordered_distortion_filename;
   std::unique_ptr<TFile> m_time_ordered_tfile;
-  TTree *TimeTree;
-  TH3 *TimehDR[2];
-  TH3 *TimehDP[2];
-  TH3 *TimehDZ[2];
+  TTree *TimeTree=nullptr;
+  TH3 *TimehDR[2]={nullptr,nullptr};
+  TH3 *TimehDP[2]={nullptr,nullptr};
+  TH3 *TimehDZ[2]={nullptr,nullptr};
   //@}
 };
 

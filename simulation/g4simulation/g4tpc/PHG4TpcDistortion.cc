@@ -172,6 +172,8 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
     std::cout << "Distortion Requested along axis " << axis << " which is invalid.  Exiting.\n" << std::endl;
     exit(1);
   }
+
+  double _distortion=0.;
   
   //select the appropriate histogram:
   if (m_do_static_distortions)
@@ -183,7 +185,15 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
       } else if (axis=='z'){
 	hdistortion=hDZint[zpart];
       }
-    } else if (m_do_time_ordered_distortions)
+      if (hdistortion){
+	_distortion+=hdistortion->Interpolate(phi, r, z);
+      } else {
+	std::cout << "Static Distortion Requested along axis " << axis << ", but distortion map does not exist.  Exiting.\n" << std::endl;
+    exit(1);
+      }
+    }
+
+  if (m_do_time_ordered_distortions)
     {
       if (axis=='r'){
 	hdistortion=TimehDR[zpart];
@@ -192,15 +202,13 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
       } else if (axis=='z'){
 	hdistortion=TimehDZ[zpart];
       }
-    } else {
-    return 0; //neither distortion exists, or we are not applying one.
-  }
+      if (hdistortion){
+	_distortion+=hdistortion->Interpolate(phi, r, z);
+      } else {
+	std::cout << "Time Series Distortion Requested along axis " << axis << ", but distortion map does not exist.  Exiting.\n" << std::endl;
+	exit(1);
+      }
+    }
 
-  if (hdistortion){
-    return hdistortion->Interpolate(phi, r, z);
-  } else {
-    std::cout << "Distortion Requested along axis " << axis << ", but distortion map does not exist.  Exiting.\n" << std::endl;
-    exit(1);
-  }
-  return 0;
+  return _distortion;
 }
