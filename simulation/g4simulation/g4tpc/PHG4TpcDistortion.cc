@@ -150,7 +150,7 @@ double PHG4TpcDistortion::get_r_distortion(double r, double phi, double z) const
 }
 
 //__________________________________________________________________________________________________________
-double PHG4TpcDistortion::get_phi_distortion(double r, double phi, double z) const
+double PHG4TpcDistortion::get_rphi_distortion(double r, double phi, double z) const
 {
   return get_distortion('p',r,phi, z);
 }

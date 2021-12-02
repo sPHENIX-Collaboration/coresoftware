@@ -40,8 +40,8 @@ class PHG4TpcDistortion
   //! radial distortion for a given cylindrical truth location of the primary ionization
   double get_r_distortion(double r, double phi, double z) const;
 
-  //! phi distortion for a given cylindrical truth location of the primary ionization
-  double get_phi_distortion(double r, double phi, double z) const;
+  //! R*phi (hence the unitful phi-hat) distortion for a given cylindrical truth location of the primary ionization
+  double get_rphi_distortion(double r, double phi, double z) const;
 
   //! z distortion for a given cylindrical truth location of the primary ionization
   double get_z_distortion(double r, double phi, double z) const;
