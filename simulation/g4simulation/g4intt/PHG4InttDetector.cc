@@ -29,7 +29,6 @@
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4GenericTrap.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVParameterised.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
@@ -152,6 +151,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
     double fphx_y = params->get_double_param("fphx_y") * cm;
     double fphx_z = params->get_double_param("fphx_z") * cm;
     double fphx_offset_z = params->get_double_param("fphx_offset_z") * cm;
+
     double si_glue_x = params->get_double_param("si_glue_x") * cm;
     double fphx_glue_x = params->get_double_param("fphx_glue_x") * cm;
     double halfladder_inside_z = params->get_double_param("halfladder_inside_z") * cm;
@@ -1114,47 +1114,59 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   }
 
   // Outer skin
-  G4Tubs *outer_skin_cfcin_tube = new G4Tubs("si_outer_skin_cfcin",
-                                             supportparams->get_double_param("outer_skin_cfcin_inner_radius") * cm,
-                                             supportparams->get_double_param("outer_skin_cfcin_outer_radius") * cm,
-                                             supportparams->get_double_param("outer_skin_cfcin_length") * cm / 2.,
-                                             -M_PI, 2.0 * M_PI);
-  G4LogicalVolume *outer_skin_cfcin_volume = new G4LogicalVolume(outer_skin_cfcin_tube, GetDetectorMaterial("CFRP_INTT"),
-                                                                 "outer_skin_cfcin_volume", 0, 0, 0);
+  // G4Tubs *outer_skin_cfcin_tube = new G4Tubs("si_outer_skin_cfcin",
+  //                                            supportparams->get_double_param("outer_skin_cfcin_inner_radius") * cm,
+  //                                            supportparams->get_double_param("outer_skin_cfcin_outer_radius") * cm,
+  //                                            supportparams->get_double_param("outer_skin_cfcin_length") * cm / 2.,
+  //                                            -M_PI, 2.0 * M_PI);
+  // G4LogicalVolume *outer_skin_cfcin_volume = new G4LogicalVolume(outer_skin_cfcin_tube, GetDetectorMaterial("CFRP_INTT"),
+  //                                                                "outer_skin_cfcin_volume", 0, 0, 0);
 
-  G4Tubs *outer_skin_foam_tube = new G4Tubs("si_outer_skin_foam",
-                                            supportparams->get_double_param("outer_skin_foam_inner_radius") * cm,
-                                            supportparams->get_double_param("outer_skin_foam_outer_radius") * cm,
-                                            supportparams->get_double_param("outer_skin_foam_length") * cm / 2.,
-                                            -M_PI, 2.0 * M_PI);
-  G4LogicalVolume *outer_skin_foam_volume = new G4LogicalVolume(outer_skin_foam_tube, GetDetectorMaterial("ROHACELL_FOAM_110"),
-                                                                "outer_skin_foam_volume", 0, 0, 0);
+  // G4Tubs *outer_skin_foam_tube = new G4Tubs("si_outer_skin_foam",
+  //                                           supportparams->get_double_param("outer_skin_foam_inner_radius") * cm,
+  //                                           supportparams->get_double_param("outer_skin_foam_outer_radius") * cm,
+  //                                           supportparams->get_double_param("outer_skin_foam_length") * cm / 2.,
+  //                                           -M_PI, 2.0 * M_PI);
+  // G4LogicalVolume *outer_skin_foam_volume = new G4LogicalVolume(outer_skin_foam_tube, GetDetectorMaterial("ROHACELL_FOAM_110"),
+  //                                                               "outer_skin_foam_volume", 0, 0, 0);
 
-  G4Tubs *outer_skin_cfcout_tube = new G4Tubs("si_outer_skin_cfcout",
-                                              supportparams->get_double_param("outer_skin_cfcout_inner_radius") * cm,
-                                              supportparams->get_double_param("outer_skin_cfcout_outer_radius") * cm,
-                                              supportparams->get_double_param("outer_skin_cfcout_length") * cm / 2.,
-                                              -M_PI, 2.0 * M_PI);
-  G4LogicalVolume *outer_skin_cfcout_volume = new G4LogicalVolume(outer_skin_cfcout_tube, GetDetectorMaterial("CFRP_INTT"),
-                                                                  "outer_skin_cfcout_volume", 0, 0, 0);
+  // G4Tubs *outer_skin_cfcout_tube = new G4Tubs("si_outer_skin_cfcout",
+  //                                             supportparams->get_double_param("outer_skin_cfcout_inner_radius") * cm,
+  //                                             supportparams->get_double_param("outer_skin_cfcout_outer_radius") * cm,
+  //                                             supportparams->get_double_param("outer_skin_cfcout_length") * cm / 2.,
+  //                                             -M_PI, 2.0 * M_PI);
+  // G4LogicalVolume *outer_skin_cfcout_volume = new G4LogicalVolume(outer_skin_cfcout_tube, GetDetectorMaterial("CFRP_INTT"),
+  //                                                                 "outer_skin_cfcout_volume", 0, 0, 0);
+
+  G4Tubs *outer_skin_tube = new G4Tubs("si_outer_skin",
+				       supportparams->get_double_param("outer_skin_inner_radius") * cm,
+				       supportparams->get_double_param("outer_skin_outer_radius") * cm,
+				       supportparams->get_double_param("outer_skin_length") * cm / 2.,
+				       -M_PI, 2.0 * M_PI);
+  G4LogicalVolume *outer_skin_volume = new G4LogicalVolume(outer_skin_tube, GetDetectorMaterial("CFRP_INTT"),
+							   "outer_skin_volume", 0, 0, 0);
+
   if (m_IsSupportActive > 0)
   {
-    m_PassiveVolumeTuple.insert(make_pair(outer_skin_cfcin_volume, make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::INTT_OUTER_SKIN)));
-    m_PassiveVolumeTuple.insert(make_pair(outer_skin_foam_volume, make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::INTT_OUTER_SKIN)));
-    m_PassiveVolumeTuple.insert(make_pair(outer_skin_cfcout_volume, make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::INTT_OUTER_SKIN)));
+    // m_PassiveVolumeTuple.insert(make_pair(outer_skin_cfcin_volume, make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::INTT_OUTER_SKIN)));
+    // m_PassiveVolumeTuple.insert(make_pair(outer_skin_foam_volume, make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::INTT_OUTER_SKIN)));
+    // m_PassiveVolumeTuple.insert(make_pair(outer_skin_cfcout_volume, make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::INTT_OUTER_SKIN)));
+    m_PassiveVolumeTuple.insert(make_pair(outer_skin_volume, make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::INTT_OUTER_SKIN)));
   }
-  m_DisplayAction->AddVolume(outer_skin_cfcin_volume, "Rail");
-  m_DisplayAction->AddVolume(outer_skin_foam_volume, "Rail");
-  m_DisplayAction->AddVolume(outer_skin_cfcout_volume, "Rail");
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_cfcin_volume,
-                    "si_support_outer_skin_cfcin", trackerenvelope, false, 0, OverlapCheck());
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_foam_volume,
-                    "si_support_outer_skin_foam", trackerenvelope, false, 0, OverlapCheck());
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_cfcout_volume,
-                    "si_support_outer_skin_cfcout", trackerenvelope, false, 0, OverlapCheck());
+  // m_DisplayAction->AddVolume(outer_skin_cfcin_volume, "Skin");
+  // m_DisplayAction->AddVolume(outer_skin_foam_volume, "Skin");
+  // m_DisplayAction->AddVolume(outer_skin_cfcout_volume, "Skin");
+  // new G4PVPlacement(0, G4ThreeVector(0, 0.0, 0), outer_skin_cfcin_volume,
+  //                   "si_support_outer_skin_cfcin", trackerenvelope, false, 0, OverlapCheck());
+  // new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_foam_volume,
+  //                   "si_support_outer_skin_foam", trackerenvelope, false, 0, OverlapCheck());
+  // new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_cfcout_volume,
+  //                   "si_support_outer_skin_cfcout", trackerenvelope, false, 0, OverlapCheck());
+  m_DisplayAction->AddVolume(outer_skin_volume, "Skin");
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0, 0), outer_skin_volume,
+		    "si_support_outer_skin_cfcin", trackerenvelope, false, 0, OverlapCheck());
 
   // Inner skin
-
   G4Tubs *inner_skin_tube = new G4Tubs("si_inner_skin",
                                        supportparams->get_double_param("inner_skin_inner_radius") * cm,
                                        supportparams->get_double_param("inner_skin_outer_radius") * cm,
@@ -1166,46 +1178,51 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   {
     m_PassiveVolumeTuple.insert(make_pair(inner_skin_volume, make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::INTT_INNER_SKIN)));
   }
-  m_DisplayAction->AddVolume(inner_skin_volume, "Rail");
+  m_DisplayAction->AddVolume(inner_skin_volume, "Skin");
+  
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), inner_skin_volume,
                     "si_support_inner_skin", trackerenvelope, false, 0, OverlapCheck());
-
+  
+  // Service barrel outer  ////////////////////////////////////////////////////////////////////////////////////
+  G4Tubs *service_barrel_outer_tube = new G4Tubs("si_service_barrel_outer",
+                                       supportparams->get_double_param("service_barrel_outer_inner_radius") * cm,
+                                       supportparams->get_double_param("service_barrel_outer_outer_radius") * cm,
+                                       supportparams->get_double_param("service_barrel_outer_length") * cm / 2.,
+                                       -M_PI, 2.0 * M_PI);
+  G4LogicalVolume *service_barrel_outer_volume = new G4LogicalVolume(service_barrel_outer_tube, GetDetectorMaterial("CFRP_INTT"),
+                                                           "service_barrel_outer_volume", 0, 0, 0);
+  if (m_IsSupportActive > 0)
+  {
+    m_PassiveVolumeTuple.insert(make_pair(service_barrel_outer_volume, make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::SERVICE_BARREL_OUTER)));
+  }
+  m_DisplayAction->AddVolume(service_barrel_outer_volume, "Skin");
+  
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), service_barrel_outer_volume,
+                    "si_support_service_barrel_outer", trackerenvelope, false, 0, OverlapCheck());
+  
+  // Support Tube  ////////////////////////////////////////////////////////////////////////////////////
+  G4Tubs *support_tube_tube = new G4Tubs("si_support_tube",
+                                       supportparams->get_double_param("support_tube_inner_radius") * cm,
+                                       supportparams->get_double_param("support_tube_outer_radius") * cm,
+                                       supportparams->get_double_param("support_tube_length") * cm / 2.,
+                                       -M_PI, 2.0 * M_PI);
+  G4LogicalVolume *support_tube_volume = new G4LogicalVolume(support_tube_tube, GetDetectorMaterial("CFRP_INTT"),
+                                                           "support_tube_volume", 0, 0, 0);
+  if (m_IsSupportActive > 0)
+  {
+    m_PassiveVolumeTuple.insert(make_pair(support_tube_volume, make_tuple(PHG4InttDefs::SUPPORT_DETID, PHG4InttDefs::SUPPORT_TUBE)));
+  }
+  m_DisplayAction->AddVolume(support_tube_volume, "Skin");
+  
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), support_tube_volume,
+                    "si_support_support_tube", trackerenvelope, false, 0, OverlapCheck());
+  
   // Endcap ring in simulations = Endcap rings + endcap staves
   int inttlayer = (m_LayerBeginEndIteratorPair.first)->second;
   const PHParameters *params1 = m_ParamsContainer->GetParameters(inttlayer);
   const int laddertype = params1->get_int_param("laddertype");
   const PHParameters *params = m_ParamsContainer->GetParameters(laddertype);
     
-  // Aluminum ring
-  G4Tubs *endcap_Al_ring = new G4Tubs("endcap_Al_ring",
-                                      supportparams->get_double_param("endcap_Alring_inner_radius") * cm,
-                                      supportparams->get_double_param("endcap_Alring_outer_radius") * cm,
-                                      supportparams->get_double_param("endcap_Alring_length") * cm / 2.,
-                                      -M_PI, 2.0 * M_PI);
-
-  G4LogicalVolume *endcap_Al_ring_volume = new G4LogicalVolume(endcap_Al_ring, GetDetectorMaterial("Al6061T6"),
-                                                               "endcap_Al_ring_volume", 0, 0, 0);
-
-  // Stainlees steal ring
-  G4Tubs *endcap_SS_ring = new G4Tubs("endcap_SS_ring",
-                                      supportparams->get_double_param("endcap_SSring_inner_radius") * cm,
-                                      supportparams->get_double_param("endcap_SSring_outer_radius") * cm,
-                                      supportparams->get_double_param("endcap_SSring_length") * cm / 2.,
-                                      -M_PI, 2.0 * M_PI);
-
-  G4LogicalVolume *endcap_SS_ring_volume = new G4LogicalVolume(endcap_SS_ring, GetDetectorMaterial("SS316"),
-                                                               "endcap_SS_ring_volume", 0, 0, 0);
-
-  // Water Glycol ring
-  G4Tubs *endcap_WG_ring = new G4Tubs("endcap_WG_ring",
-                                      supportparams->get_double_param("endcap_WGring_inner_radius") * cm,
-                                      supportparams->get_double_param("endcap_WGring_outer_radius") * cm,
-                                      supportparams->get_double_param("endcap_WGring_length") * cm / 2.,
-                                      -M_PI, 2.0 * M_PI);
-
-  G4LogicalVolume *endcap_WG_ring_volume = new G4LogicalVolume(endcap_WG_ring, GetDetectorMaterial("WaterGlycol_INTT"),
-                                                               "endcap_WG_ring_volume", 0, 0, 0);
-
   // Carbon PEEK ring ////////////////////////////////////////////////////////////////////////////////////
   G4Tubs *endcap_CP_ring = new G4Tubs("endcap_CP_ring",
                                       supportparams->get_double_param("endcap_CPring_inner_radius") * cm,
@@ -1272,13 +1289,43 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   G4LogicalVolume *endcap_AlPEEK_Alring_3_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_3, GetDetectorMaterial("G4_Al"),
 								       "endcap_AlPEEK_Alring_3_volume", 0, 0, 0);
   m_DisplayAction->AddVolume(endcap_AlPEEK_Alring_3_volume, "EndcapAlPEEK_Al3");
-
-  double endcap_outer_edge_z = 0.0; // absolute z-coordinate of outer edge (furthest side from the origin) of the endcap, used for bus extender
+  
 
   if (m_IsEndcapActive)
   {
+  double endcap_outer_edge_z = 0.0; // absolute z-coordinate of outer edge (furthest side from the origin) of the endcap, used for bus extender
     if (supportparams->get_int_param("endcap_ring_type") == 0)  // Place Al endcap rings
     {
+      // Aluminum ring
+      G4Tubs *endcap_Al_ring = new G4Tubs("endcap_Al_ring",
+					  supportparams->get_double_param("endcap_Alring_inner_radius") * cm,
+					  supportparams->get_double_param("endcap_Alring_outer_radius") * cm,
+					  supportparams->get_double_param("endcap_Alring_length") * cm / 2.,
+					  -M_PI, 2.0 * M_PI);
+
+      G4LogicalVolume *endcap_Al_ring_volume = new G4LogicalVolume(endcap_Al_ring, GetDetectorMaterial("Al6061T6"),
+								   "endcap_Al_ring_volume", 0, 0, 0);
+
+      // Stainlees steal ring
+      G4Tubs *endcap_SS_ring = new G4Tubs("endcap_SS_ring",
+					  supportparams->get_double_param("endcap_SSring_inner_radius") * cm,
+					  supportparams->get_double_param("endcap_SSring_outer_radius") * cm,
+					  supportparams->get_double_param("endcap_SSring_length") * cm / 2.,
+					  -M_PI, 2.0 * M_PI);
+
+      G4LogicalVolume *endcap_SS_ring_volume = new G4LogicalVolume(endcap_SS_ring, GetDetectorMaterial("SS316"),
+								   "endcap_SS_ring_volume", 0, 0, 0);
+
+      // Water Glycol ring
+      G4Tubs *endcap_WG_ring = new G4Tubs("endcap_WG_ring",
+					  supportparams->get_double_param("endcap_WGring_inner_radius") * cm,
+					  supportparams->get_double_param("endcap_WGring_outer_radius") * cm,
+					  supportparams->get_double_param("endcap_WGring_length") * cm / 2.,
+					  -M_PI, 2.0 * M_PI);
+
+      G4LogicalVolume *endcap_WG_ring_volume = new G4LogicalVolume(endcap_WG_ring, GetDetectorMaterial("WaterGlycol_INTT"),
+								   "endcap_WG_ring_volume", 0, 0, 0);
+
       double endcap_ring_z = supportparams->get_double_param("endcap_ring_z") * cm;
       for (int i = 0; i < 2; i++)  // i=0 : positive z, i=1 negative z
       {
@@ -1455,7 +1502,8 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 			(boost::format("bus_extender_kapton_outer_layer_pv_%d") % i ).str(),
 			trackerenvelope, false, 0, OverlapCheck());
     }
-}
+  }
+
   return 0;
 }
 
