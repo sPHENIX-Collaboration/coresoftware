@@ -33,6 +33,13 @@ class TrkrClusterv3 : public TrkrCluster
   void Reset() override {}
   int isValid() const override;
   PHObject* CloneMe() const override { return new TrkrClusterv3(*this); }
+  
+  //! copy content from base class
+  void CopyFrom( const TrkrCluster& ) override;
+
+  //! copy content from base class
+  void CopyFrom( TrkrCluster* source ) override
+  { CopyFrom( *source ); }
 
   void setClusKey(TrkrDefs::cluskey id) override { m_cluskey = id; }
   TrkrDefs::cluskey getClusKey() const override { return m_cluskey; }

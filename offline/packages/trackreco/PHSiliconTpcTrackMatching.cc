@@ -521,22 +521,14 @@ void PHSiliconTpcTrackMatching::copySiliconClustersToCorrectedMap( )
 	   ++iter)
 	{
 	  TrkrDefs::cluskey cluster_key = *iter;
-	  unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
+   const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
 	  if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId)
 	    {
 	      TrkrCluster *cluster =  _cluster_map->findCluster(cluster_key);	
-	      TrkrCluster *newclus = _corrected_cluster_map->findOrAddCluster(cluster_key)->second;
-	  
-	      newclus->setSubSurfKey(cluster->getSubSurfKey());
-	      newclus->setAdc(cluster->getAdc());
-	      
-	      newclus->setActsLocalError(0,0,cluster->getActsLocalError(0,0));
-	      newclus->setActsLocalError(1,0,cluster->getActsLocalError(1,0));
-	      newclus->setActsLocalError(0,1,cluster->getActsLocalError(0,1));
-	      newclus->setActsLocalError(1,1,cluster->getActsLocalError(1,1));
-	      
-	      newclus->setLocalX(cluster->getLocalX());
-	      newclus->setLocalY(cluster->getLocalY());
+       if( !cluster ) continue;
+      
+       TrkrCluster *newclus = _corrected_cluster_map->findOrAddCluster(cluster_key)->second;
+       newclus->CopyFrom( cluster );
 	    }
 	}      
     }

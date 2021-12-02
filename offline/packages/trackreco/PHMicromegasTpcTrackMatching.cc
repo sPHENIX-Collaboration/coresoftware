@@ -568,6 +568,10 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 
   }
 
+  // loop over all tracks and copy the silicon clusters to the corrected cluster map
+  if(_corrected_cluster_map)
+  { copyMicromegasClustersToCorrectedMap(); }
+
   if(Verbosity() > 0)
   { std::cout << " Final track map size " << _track_map->size() << std::endl; }
 
@@ -581,26 +585,27 @@ int PHMicromegasTpcTrackMatching::End(PHCompositeNode*)
 //_________________________________________________________________________________________________
 int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 {
+  // tpc-distortion-corrected clusters
+  _corrected_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
+  if(_corrected_cluster_map)
+    {
+      std::cout << " Found CORRECTED_TRKR_CLUSTER node " << std::endl;
+    }
+    
+  // all clusters
   if(_use_truth_clusters)
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
   else
     {
-      _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
-      if(_cluster_map)
-	{
-	  std::cout << " Using CORRECTED_TRKR_CLUSTER node " << std::endl;
-	}
-      else
-	{
-	  std::cout << " CORRECTED_TRKR_CLUSTER node not found, usimng TRKR_CLUSTER" << std::endl;
-	  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-	}
+      _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     }
+
   if (!_cluster_map)
   {
     std:: cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+    
 
   _tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
   if(!_tGeometry)
@@ -642,3 +647,32 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
+void PHMicromegasTpcTrackMatching::copyMicromegasClustersToCorrectedMap( )
+{
+  // loop over final track map, copy silicon clusters to corrected cluster map
+  for (auto phtrk_iter = _track_map->begin();
+       phtrk_iter != _track_map->end(); 
+       ++phtrk_iter)
+    {
+      SvtxTrack *track = phtrk_iter->second;
+
+      // loop over associated clusters to get keys for silicon cluster
+      for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
+	   iter != track->end_cluster_keys();
+	   ++iter)
+	{
+	  TrkrDefs::cluskey cluster_key = *iter;
+   const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
+	  if(trkrid == TrkrDefs::micromegasId)
+	    {
+	      TrkrCluster *cluster =  _cluster_map->findCluster(cluster_key);	
+       if( !cluster ) continue;
+      
+       TrkrCluster *newclus = _corrected_cluster_map->findOrAddCluster(cluster_key)->second;
+       newclus->CopyFrom( cluster );
+	    }
+	}      
+    }
+}
+  

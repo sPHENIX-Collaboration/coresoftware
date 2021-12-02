@@ -6,7 +6,7 @@
  */
 #include "TrkrClusterContainerv3.h"
 #include "TrkrCluster.h"
-#include "TrkrClusterv2.h"
+#include "TrkrClusterv3.h"
 #include "TrkrDefs.h"
 
 #include <cstdlib>
@@ -123,7 +123,7 @@ TrkrClusterContainerv3::findOrAddCluster(TrkrDefs::cluskey key)
   if( it == map.end() || (key<it->first) )
   {
     // add new cluster and set its key
-    it = map.insert(it, std::make_pair(key, new TrkrClusterv2()));
+    it = map.insert(it, std::make_pair(key, new TrkrClusterv3()));
     it->second->setClusKey( key );
   }
   
