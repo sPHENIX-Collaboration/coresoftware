@@ -8,7 +8,7 @@
 
 /// Tracking includes
 #include <trackbase/TrkrClusterv3.h>
-#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterContainerv3.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
