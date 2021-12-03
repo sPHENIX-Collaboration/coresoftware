@@ -460,7 +460,8 @@ int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 
   // micromegas geometry
   m_micromegas_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );
-  assert( m_micromegas_geom_container );
+//   if( !m_micromegas_geom_container )
+//   { std::cout << "TrackingEvaluator_hp::load_nodes - unable to find CYLINDERGEOM_MICROMEGAS_FULL" << std::endl; }
 
   return Fun4AllReturnCodes::EVENT_OK;
 
