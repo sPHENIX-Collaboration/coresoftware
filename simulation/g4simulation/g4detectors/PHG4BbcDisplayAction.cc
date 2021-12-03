@@ -39,9 +39,25 @@ void PHG4BbcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     visatt->SetVisibility(true);
     visatt->SetForceSolid(true);
     m_VisAttVec.push_back(visatt);  // for later deletion
-    if (it.second == "Bbc_quartz")
+    if (it.second == "Bbc_Breeder_Module")
     {
-      visatt->SetColour(G4Colour::Yellow());
+      visatt->SetColour(G4Colour::Green());
+    }
+    else if (it.second == "Bbc_Inner_Shell")
+    {
+      visatt->SetColour(G4Colour::Gray());
+    }
+    else if (it.second == "Bbc_quartz")
+    {
+      visatt->SetColour(G4Colour::Cyan());
+    }
+    else if (it.second == "Bbc_Outer_Shell")
+    {
+      visatt->SetColour(G4Colour::Gray());
+    }
+    else if (it.second == "Bbc_PMT")
+    {
+      visatt->SetColour(G4Colour::Blue());
     }
     else if (it.second == "Bbc_Shell")
     {
@@ -50,6 +66,10 @@ void PHG4BbcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     else if (it.second == "Bbc_Front_Plate")
     {
       visatt->SetColour(0.5, 0.5, 0.5, 0.4);
+    }
+    else if (it.second == "Bbc_attach_plate")
+    {
+      visatt->SetColour(G4Colour::Gray());
     }
     else
     {

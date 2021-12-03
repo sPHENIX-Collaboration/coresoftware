@@ -8,6 +8,8 @@
 #include <g4main/PHG4DisplayAction.h>
 #include <g4main/PHG4Subsystem.h>
 
+#include <phool/recoConsts.h>
+
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4Polyhedra.hh>
@@ -59,6 +61,7 @@ int PHG4BbcDetector::IsInBbc(G4VPhysicalVolume *volume) const
 
 void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
+//  recoConsts* rc = recoConsts::instance();
   //std::cout << PHWHERE << " Constructing BBC" << std::endl;
 
   // Logical Volume Info for a BBC PMT
@@ -86,15 +89,16 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   
   // BBC Detector Tube (BBCD) Logical Volume (contains all parts of PMT+Radiator)
   G4Material* Vacuum = manager->FindOrBuildMaterial("G4_Galactic");
-  //G4Material* Vacuum = GetDetectorMaterial("G4_Galactic");
+//  G4Material* Vacuum = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4double z_bbcd[] = { -6.15*cm, 6.15*cm };
   G4double len_bbcd = z_bbcd[1] - z_bbcd[0];
   G4double rin_bbcd[] = { 0*cm, 0*cm };
   G4double rout_bbcd[] = { 1.4*cm, 1.4*cm };
   G4Polyhedra *bbcd = new G4Polyhedra("bbcd",0.,2*M_PI,6,2,z_bbcd,rin_bbcd,rout_bbcd);
   G4LogicalVolume *bbcd_lv = new G4LogicalVolume(bbcd, Vacuum, G4String("Bbc_tube"));
-  G4VisAttributes *bbcdVisAtt = new G4VisAttributes();
-  bbcd_lv->SetVisAttributes(bbcdVisAtt);
+//  GetDisplayAction()->AddVolume(bbcd_lv, "Bbc_tube");
+//  G4VisAttributes *bbcdVisAtt = new G4VisAttributes();
+//  bbcd_lv->SetVisAttributes(bbcdVisAtt);
 
   //
   //  Place the BBCA, BBCQ, BBCP, BBCR and BBCH in to BBCD.
@@ -109,11 +113,8 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Material* Aluminum = manager->FindOrBuildMaterial("G4_Al");
 
   G4LogicalVolume *bbca_lv = new G4LogicalVolume(bbca, Aluminum, G4String("Bbc_attach_plate"));
-  G4VisAttributes *bbcaVisAtt = new G4VisAttributes();
-  bbcaVisAtt->SetVisibility(true);
-  bbcaVisAtt->SetForceSolid(true);
-  bbcaVisAtt->SetColour(G4Colour::Gray());
-  bbca_lv->SetVisAttributes(bbcaVisAtt);
+  m_SupportLogicalVolSet.insert(bbca_lv);
+  GetDisplayAction()->AddVolume(bbca_lv,"Bbc_attach_plate");
 
   G4double xpos = 0.*cm;
   G4double ypos = 0.*cm;
@@ -121,8 +122,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4double len_bbca = z_bbca[3]-z_bbca[0];
   G4double zpos = z_bbcd[0]+ len_bbca*0.5;
 
-  G4VPhysicalVolume *bbca_phys = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbca_lv, "BBCA", bbcd_lv, false, 0);
-  bbca_phys->GetName();
+  new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbca_lv, "BBCA", bbcd_lv, false, 0);
 
   G4Material* Quartz = manager->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
 
@@ -133,11 +133,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Polyhedra *bbcq = new G4Polyhedra("bbcq",0.,2*M_PI,6,2,z_bbcq,rInner_bbcq,rOuter_bbcq);
 
   G4LogicalVolume *bbcq_lv = new G4LogicalVolume(bbcq, Quartz, G4String("Bbc_quartz"));
-  G4VisAttributes *bbcqVisAtt = new G4VisAttributes();
-  bbcqVisAtt->SetVisibility(true);
-  bbcqVisAtt->SetForceSolid(true);
-  bbcqVisAtt->SetColour(G4Colour::Cyan());
-  bbcq_lv->SetVisAttributes(bbcqVisAtt);
+  GetDisplayAction()->AddVolume(bbcq_lv,"Bbc_quartz");
 
   xpos = 0.*cm;
   ypos = 0.*cm;
@@ -154,11 +150,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Tubs *bbcp = new G4Tubs("bbcp",rInner_bbcp,rOuter_bbcp,len_bbcp*0.5,0*deg,360*deg);
 
   G4LogicalVolume *bbcp_lv = new G4LogicalVolume(bbcp, Quartz, G4String("Bbc_PMT"));
-  G4VisAttributes *bbcpVisAtt = new G4VisAttributes();
-  bbcpVisAtt->SetVisibility(true);
-  bbcpVisAtt->SetForceSolid(true);
-  bbcpVisAtt->SetColour(G4Colour::Blue());
-  bbcp_lv->SetVisAttributes(bbcpVisAtt);
+  GetDisplayAction()->AddVolume(bbcp_lv,"Bbc_PMT");
 
   xpos = 0.*cm;
   ypos = 0.*cm;
@@ -183,18 +175,13 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), natoms = 3);
 
   G4LogicalVolume *bbcr_lv = new G4LogicalVolume(bbcr, G10, G4String("Bbc_Breeder_Module"));
-  G4VisAttributes *bbcrVisAtt = new G4VisAttributes();
-  bbcrVisAtt->SetVisibility(true);
-  bbcrVisAtt->SetForceSolid(true);
-  bbcrVisAtt->SetColour(G4Colour::Green());
-  bbcr_lv->SetVisAttributes(bbcrVisAtt);
+  GetDisplayAction()->AddVolume(bbcr_lv,"Bbc_Breeder_Module");
 
   xpos = 0.*cm;
   ypos = 0.*cm;
   zpos += len_bbcp*0.5 + len_bbcr*0.5;
 
-  G4VPhysicalVolume *bbcr_phys = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbcr_lv, "BBCR", bbcd_lv, false, 0);
-  bbcr_phys->GetName();
+  new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbcr_lv, "BBCR", bbcd_lv, false, 0);
 
   // BBC Mu Metal Shield
   const G4double z_bbch[] = {-5.65*cm, 5.65*cm};
@@ -205,11 +192,6 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Material* MuMetal = manager->FindOrBuildMaterial("G4_STAINLESS-STEEL");
 
   G4LogicalVolume *bbch_lv = new G4LogicalVolume(bbch, MuMetal, G4String("Bbc_Shield"));
-  G4VisAttributes *bbchVisAtt = new G4VisAttributes();
-  //bbchVisAtt->SetVisibility(true);
-  //bbchVisAtt->SetForceSolid(true);
-  //bbchVisAtt->SetColour(G4Colour::Grey());
-  bbch_lv->SetVisAttributes(bbchVisAtt);
 
   xpos = 0.*cm;
   ypos = 0.*cm;
@@ -277,19 +259,11 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // BBC Outer and Inner Cylindrical Shells
   G4Tubs *bbc_outer_shell = new G4Tubs("bbc_outer_shell", 14.9*cm, 15*cm, 11.5*cm, 0, 2*M_PI);
   G4LogicalVolume *bbc_outer_shell_lv = new G4LogicalVolume(bbc_outer_shell, Aluminum, G4String("Bbc_Outer_Shell"));
-  G4VisAttributes *bbc_outer_shell_VisAtt = new G4VisAttributes();
-  bbc_outer_shell_VisAtt->SetVisibility(true);
-  bbc_outer_shell_VisAtt->SetForceSolid(true);
-  bbc_outer_shell_VisAtt->SetColour(G4Colour::Gray());
-  bbc_outer_shell_lv->SetVisAttributes(bbc_outer_shell_VisAtt);
+  GetDisplayAction()->AddVolume(bbc_outer_shell_lv,"Bbc_Outer_Shell");
 
   G4Tubs *bbc_inner_shell = new G4Tubs("bbc_inner_shell",5.0*cm, 5.5*cm, 11.5*cm, 0, 2*M_PI);
   G4LogicalVolume *bbc_inner_shell_lv = new G4LogicalVolume(bbc_inner_shell, Aluminum, G4String("Bbc_Inner_Shell"));
-  G4VisAttributes *bbc_inner_shell_VisAtt = new G4VisAttributes();
-  bbc_inner_shell_VisAtt->SetVisibility(true);
-  bbc_inner_shell_VisAtt->SetForceSolid(true);
-  bbc_inner_shell_VisAtt->SetColour(G4Colour::Gray());
-  bbc_inner_shell_lv->SetVisAttributes(bbc_outer_shell_VisAtt);
+  GetDisplayAction()->AddVolume(bbc_inner_shell_lv,"Bbc_Inner_Shell");
 
   G4VPhysicalVolume *outer_shell_vol[2] = {0};
   G4VPhysicalVolume *inner_shell_vol[2] = {0};
@@ -305,21 +279,17 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
           bbc_outer_shell_lv, "BBC_OUTER_SHELL", logicWorld, false, 1, OverlapCheck());
   inner_shell_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-1.0+11.5)*cm),
           bbc_inner_shell_lv, "BBC_INNER_SHELL", logicWorld, false, 0, OverlapCheck());
-
-  outer_shell_vol[0]->GetName();
-  outer_shell_vol[1]->GetName();
-  inner_shell_vol[0]->GetName();
-  inner_shell_vol[1]->GetName();
+// this is more to prevent compiler warnings about unused variables
+  if (!outer_shell_vol[0] || !outer_shell_vol[1] || !inner_shell_vol[0] || !inner_shell_vol[1])
+  {
+    std::cout << "problem placing BBC Sheels" << std::endl;
+  }
 
 
   // BBC Front and Back Plates
   G4Tubs *bbc_plate = new G4Tubs("bbc_fplate", 5*cm, 15*cm, 0.5*cm, 0, 2*M_PI);
   G4LogicalVolume *bbc_plate_lv = new G4LogicalVolume(bbc_plate, Aluminum, G4String("Bbc_Cover_Plates"));
-  G4VisAttributes *bbc_plate_VisAtt = new G4VisAttributes();
-  bbc_plate_VisAtt->SetVisibility(true);
-  bbc_plate_VisAtt->SetForceSolid(true);
-  bbc_plate_VisAtt->SetColour(G4Colour::Gray());
-  bbc_plate_lv->SetVisAttributes(bbc_plate_VisAtt);
+  GetDisplayAction()->AddVolume(bbc_plate_lv,"Bbc_Cover_Plates");
 
   G4VPhysicalVolume *fplate_vol[2] = {0};   // Front Plates
   G4VPhysicalVolume *bplate_vol[2] = {0};   // Back Plates
@@ -336,18 +306,18 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   bplate_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-1.0-0.5+24.0)*cm),
           bbc_plate_lv, "BBC_BPLATE", logicWorld, false, 0, OverlapCheck());
 
-  fplate_vol[0]->GetName();
-  fplate_vol[1]->GetName();
-  bplate_vol[0]->GetName();
-  bplate_vol[1]->GetName();
+// this is more to prevent compiler warnings about unused variables
+  if (!fplate_vol[0] || !fplate_vol[1] || !bplate_vol[0] || !bplate_vol[1])
+  {
+    std::cout << "problem placing BBC Sheels" << std::endl;
+  }
 
   // bbcq is the active detector element
   m_PhysLogicalVolSet.insert(bbcq_lv);
 
-  GetDisplayAction()->AddVolume(bbcd_lv, "Bbc_tube");
-  GetDisplayAction()->AddVolume(bbc_plate_lv, "Bbc_plate");
-  GetDisplayAction()->AddVolume(bbc_outer_shell_lv, "Bbc_oshell");
-  GetDisplayAction()->AddVolume(bbc_inner_shell_lv, "Bbc_ishell");
+//  GetDisplayAction()->AddVolume(bbc_plate_lv, "Bbc_plate");
+//  GetDisplayAction()->AddVolume(bbc_outer_shell_lv, "Bbc_oshell");
+//  GetDisplayAction()->AddVolume(bbc_inner_shell_lv, "Bbc_ishell");
 
   return;
 }
