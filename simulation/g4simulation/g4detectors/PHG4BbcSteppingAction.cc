@@ -129,7 +129,7 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
 
   // Create a new hit if a G4 Track enters a new volume or is freshly created
   // For this we look at the step status of the prePoint (beginning of the G4 Step).
-  // This should be either fGeomBoundary (G4 Track crosses into volume) or 
+  // This should be either fGeomBoundary (G4 Track crosses into volume) or
   // fUndefined (G4 Track newly created)
 
   switch (prePoint->GetStepStatus())
@@ -191,8 +191,6 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     else
     {
       m_SaveHitContainer = m_SupportHitContainer;
-//      std::cout << "implement stuff for whichactive < 0 (inactive volumes)" << std::endl;
-//      gSystem->Exit(1);
     }
 
     // this is for the tracking of the truth info
