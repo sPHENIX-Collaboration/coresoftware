@@ -54,6 +54,7 @@ class PHG4BbcSteppingAction : public PHG4SteppingAction
   int m_SupportFlag = 0;
   double m_EdepSum = 0.;
   double m_EionSum = 0.;
+  double m_PathLen = 0.;
 
   std::string m_HitNodeName;
   std::string m_SupportNodeName;
