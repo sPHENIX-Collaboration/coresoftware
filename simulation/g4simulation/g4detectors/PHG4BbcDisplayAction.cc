@@ -43,6 +43,10 @@ void PHG4BbcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     {
       visatt->SetColour(G4Colour::Green());
     }
+    else if (it.second == "Bbc_Cover_Plates")
+    {
+      visatt->SetColour(G4Colour::Gray());
+    }
     else if (it.second == "Bbc_Inner_Shell")
     {
       visatt->SetColour(G4Colour::Gray());

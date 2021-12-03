@@ -61,44 +61,21 @@ int PHG4BbcDetector::IsInBbc(G4VPhysicalVolume *volume) const
 
 void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-//  recoConsts* rc = recoConsts::instance();
-  //std::cout << PHWHERE << " Constructing BBC" << std::endl;
-
-  // Logical Volume Info for a BBC PMT
-  /*
-  G4Material *Quartz = GetDetectorMaterial("G4_SILICON_DIOXIDE");
-
-  const G4double z_bbcq[] = {-1.5*cm, 1.5*cm};
-  const G4double rInner_bbcq[] = {0., 0.};
-  const G4double rOuter_bbcq[] = {1.27*cm, 1.27*cm};
-  G4Polyhedra *bbcq = new G4Polyhedra("bbcq", 0., 2.0 * M_PI, 6, 2, z_bbcq, rInner_bbcq, rOuter_bbcq);  // bbc quartz radiator
-
-  G4LogicalVolume *bbcq_lv = new G4LogicalVolume(bbcq, Quartz, "Bbc_quartz");
-
-  m_PhysLogicalVolSet.insert(bbcq_lv);
-  GetDisplayAction()->AddVolume(bbcq_lv, "Bbc_quartz");
-  */
-  //=========================================================
-  
+  recoConsts* rc = recoConsts::instance();
 
   //========================
   // Build a single BBC PMT
   //========================
 
-  G4NistManager* manager = G4NistManager::Instance();
   
   // BBC Detector Tube (BBCD) Logical Volume (contains all parts of PMT+Radiator)
-  G4Material* Vacuum = manager->FindOrBuildMaterial("G4_Galactic");
-//  G4Material* Vacuum = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
+  G4Material* WorldMaterial = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4double z_bbcd[] = { -6.15*cm, 6.15*cm };
   G4double len_bbcd = z_bbcd[1] - z_bbcd[0];
   G4double rin_bbcd[] = { 0*cm, 0*cm };
   G4double rout_bbcd[] = { 1.4*cm, 1.4*cm };
   G4Polyhedra *bbcd = new G4Polyhedra("bbcd",0.,2*M_PI,6,2,z_bbcd,rin_bbcd,rout_bbcd);
-  G4LogicalVolume *bbcd_lv = new G4LogicalVolume(bbcd, Vacuum, G4String("Bbc_tube"));
-//  GetDisplayAction()->AddVolume(bbcd_lv, "Bbc_tube");
-//  G4VisAttributes *bbcdVisAtt = new G4VisAttributes();
-//  bbcd_lv->SetVisAttributes(bbcdVisAtt);
+  G4LogicalVolume *bbcd_lv = new G4LogicalVolume(bbcd, WorldMaterial, G4String("Bbc_tube"));
 
   //
   //  Place the BBCA, BBCQ, BBCP, BBCR and BBCH in to BBCD.
@@ -110,7 +87,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   const G4double rOuter_bbca[] = {1.4*cm, 1.4*cm, 1.375*cm, 1.375*cm};
   G4Polyhedra *bbca = new G4Polyhedra("bbca",0.,2*M_PI,6,4,z_bbca,rInner_bbca,rOuter_bbca);
 
-  G4Material* Aluminum = manager->FindOrBuildMaterial("G4_Al");
+  G4Material* Aluminum = GetDetectorMaterial("G4_Al");
 
   G4LogicalVolume *bbca_lv = new G4LogicalVolume(bbca, Aluminum, G4String("Bbc_attach_plate"));
   m_SupportLogicalVolSet.insert(bbca_lv);
@@ -118,13 +95,16 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   G4double xpos = 0.*cm;
   G4double ypos = 0.*cm;
-  //G4double zpos = (-1.5-0.5)*cm;
   G4double len_bbca = z_bbca[3]-z_bbca[0];
   G4double zpos = z_bbcd[0]+ len_bbca*0.5;
 
-  new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbca_lv, "BBCA", bbcd_lv, false, 0);
+  G4VPhysicalVolume *bbca_phys = new G4PVPlacement(nullptr, G4ThreeVector(xpos, ypos, zpos), bbca_lv, "BBCA", bbcd_lv, false, 0);
+  if (!bbca_phys) // more to prevent compiler warnings
+  {
+    std::cout << "placement of BBCA failed" << std::endl;
+  }
 
-  G4Material* Quartz = manager->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
+  G4Material* Quartz = GetDetectorMaterial("G4_SILICON_DIOXIDE");
 
   // BBC Quartz Radiator
   const G4double z_bbcq[] = {-1.5*cm, 1.5*cm};
@@ -140,8 +120,11 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4double len_bbcq = z_bbcq[1]-z_bbcq[0];
   zpos += len_bbca*0.5 + len_bbcq*0.5;
 
-  G4VPhysicalVolume *bbcq_phys = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbcq_lv, "BBCQ", bbcd_lv, false, 0);
-  bbcq_phys->GetName();
+  G4VPhysicalVolume *bbcq_phys = new G4PVPlacement(nullptr, G4ThreeVector(xpos, ypos, zpos), bbcq_lv, "BBCQ", bbcd_lv, false, 0);
+  if (!bbcq_phys) // more to prevent compiler warnings
+  {
+    std::cout << "placement of BBCQ failed" << std::endl;
+  }
 
   // BBC PMT
   const G4double len_bbcp = 4.4*cm;
@@ -156,8 +139,11 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   ypos = 0.*cm;
   zpos += len_bbcq*0.5 + len_bbcp*0.5;
 
-  G4VPhysicalVolume *bbcp_phys = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbcp_lv, "BBCP", bbcd_lv, false, 0);
-  bbcp_phys->GetName();
+  G4VPhysicalVolume *bbcp_phys = new G4PVPlacement(nullptr, G4ThreeVector(xpos, ypos, zpos), bbcp_lv, "BBCP", bbcd_lv, false, 0);
+  if (!bbcp_phys) // more to prevent compiler warnings
+  {
+    std::cout << "placement of BBCP failed" << std::endl;
+  }
 
   // BBC Breeder Module
   const G4double len_bbcr = 3.9*cm;
@@ -169,19 +155,24 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4int ncomponents;
   G4double density;
   G4Material *G10 = new G4Material("BBC_G10", density = 1.700 * g / cm3, ncomponents = 4);
+  G4NistManager* manager = G4NistManager::Instance();
   G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), natoms = 1);
   G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), natoms = 2);
   G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 3);
   G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), natoms = 3);
 
-  G4LogicalVolume *bbcr_lv = new G4LogicalVolume(bbcr, G10, G4String("Bbc_Breeder_Module"));
+  G4LogicalVolume *bbcr_lv = new G4LogicalVolume(bbcr, G10, "Bbc_Breeder_Module");
   GetDisplayAction()->AddVolume(bbcr_lv,"Bbc_Breeder_Module");
 
   xpos = 0.*cm;
   ypos = 0.*cm;
   zpos += len_bbcp*0.5 + len_bbcr*0.5;
 
-  new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbcr_lv, "BBCR", bbcd_lv, false, 0);
+  G4PVPlacement *plcmt = new G4PVPlacement(nullptr, G4ThreeVector(xpos, ypos, zpos), bbcr_lv, "BBCR", bbcd_lv, false, 0);
+  if (!plcmt) // more to prevent compiler warnings
+  {
+    std::cout << "placement of BBCR failed" << std::endl;
+  }
 
   // BBC Mu Metal Shield
   const G4double z_bbch[] = {-5.65*cm, 5.65*cm};
@@ -198,9 +189,11 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4double len_bbch = z_bbch[1] - z_bbch[0];
   zpos = z_bbcd[0] + 0.3*cm + len_bbch*0.5;
 
-  G4VPhysicalVolume *bbch_phys = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos), bbch_lv, "BBCH", bbcd_lv, false, 0);
-  bbch_phys->GetName();
-
+  G4VPhysicalVolume *bbch_phys = new G4PVPlacement(nullptr, G4ThreeVector(xpos, ypos, zpos), bbch_lv, "BBCH", bbcd_lv, false, 0);
+  if (!bbch_phys) // more to prevent compiler warnings
+  {
+    std::cout << "placement of BBCH failed" << std::endl;
+  }
 
   // Locations of the 64 PMT tubes in an arm.
   // Should probably move this to a geometry object...
@@ -269,15 +262,15 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4VPhysicalVolume *inner_shell_vol[2] = {0};
 
   // Place South Shells
-  outer_shell_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+1.0-11.5)*cm),
+  outer_shell_vol[0] = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, (-250+1.0-11.5)*cm),
           bbc_outer_shell_lv, "BBC_OUTER_SHELL", logicWorld, false, 0, OverlapCheck());
-  inner_shell_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+1.0-11.5)*cm),
+  inner_shell_vol[0] = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, (-250+1.0-11.5)*cm),
           bbc_inner_shell_lv, "BBC_INNER_SHELL", logicWorld, false, 0, OverlapCheck());
 
   // Place North Shells
-  outer_shell_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-1.0+11.5)*cm),
+  outer_shell_vol[1] = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, (250-1.0+11.5)*cm),
           bbc_outer_shell_lv, "BBC_OUTER_SHELL", logicWorld, false, 1, OverlapCheck());
-  inner_shell_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-1.0+11.5)*cm),
+  inner_shell_vol[1] = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, (250-1.0+11.5)*cm),
           bbc_inner_shell_lv, "BBC_INNER_SHELL", logicWorld, false, 0, OverlapCheck());
 // this is more to prevent compiler warnings about unused variables
   if (!outer_shell_vol[0] || !outer_shell_vol[1] || !inner_shell_vol[0] || !inner_shell_vol[1])
@@ -295,15 +288,15 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4VPhysicalVolume *bplate_vol[2] = {0};   // Back Plates
 
   // Place South Plates
-  fplate_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+1.0+0.5)*cm),
+  fplate_vol[0] = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, (-250+1.0+0.5)*cm),
           bbc_plate_lv, "BBC_FPLATE", logicWorld, false, 0, OverlapCheck());
-  bplate_vol[0] = new G4PVPlacement(0, G4ThreeVector(0, 0, (-250+1.0+0.5-24.0)*cm),
+  bplate_vol[0] = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, (-250+1.0+0.5-24.0)*cm),
           bbc_plate_lv, "BBC_BPLATE", logicWorld, false, 0, OverlapCheck());
 
   // Place North Plates
-  fplate_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-1.0-0.5)*cm),
+  fplate_vol[1] = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, (250-1.0-0.5)*cm),
           bbc_plate_lv, "BBC_FPLATE", logicWorld, false, 1, OverlapCheck());
-  bplate_vol[1] = new G4PVPlacement(0, G4ThreeVector(0, 0, (250-1.0-0.5+24.0)*cm),
+  bplate_vol[1] = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, (250-1.0-0.5+24.0)*cm),
           bbc_plate_lv, "BBC_BPLATE", logicWorld, false, 0, OverlapCheck());
 
 // this is more to prevent compiler warnings about unused variables
