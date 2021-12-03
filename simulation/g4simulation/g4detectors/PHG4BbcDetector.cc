@@ -13,18 +13,19 @@
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4Polyhedra.hh>
+#include <Geant4/G4RotationMatrix.hh>           // for G4RotationMatrix
+#include <Geant4/G4String.hh>                   // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Types.hh>                    // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4NistManager.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
 #include <iostream>  // for operator<<, endl, bas...
 
-class G4Material;
 class PHCompositeNode;
 
 PHG4BbcDetector::PHG4BbcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam)
