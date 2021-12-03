@@ -5,6 +5,7 @@
 
 #include "PHG4CylinderGeom.h"
 
+#include <cmath>
 #include <iostream>  // for cout, ostream
 
 class PHParameters;
@@ -12,10 +13,9 @@ class PHParameters;
 class PHG4CylinderGeomv1 : public PHG4CylinderGeom
 {
  public:
-  PHG4CylinderGeomv1();
+  PHG4CylinderGeomv1() {}
   PHG4CylinderGeomv1(const double r, const double zmi, const double zma, const double thickn)
-    : layer(-1)
-    , radius(r)
+    : radius(r)
     , zmin(zmi)
     , zmax(zma)
     , thickness(thickn)
@@ -43,11 +43,11 @@ class PHG4CylinderGeomv1 : public PHG4CylinderGeom
   void ImportParameters(const PHParameters& param) override;
 
  protected:
-  int layer;
-  double radius;
-  double zmin;
-  double zmax;
-  double thickness;
+  int layer = -1;
+  double radius = NAN;
+  double zmin = NAN;
+  double zmax = NAN;
+  double thickness = NAN;
 
   ClassDefOverride(PHG4CylinderGeomv1, 1)
 };

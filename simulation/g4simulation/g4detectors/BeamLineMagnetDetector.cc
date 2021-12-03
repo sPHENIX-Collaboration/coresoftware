@@ -17,7 +17,6 @@
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Mag_UsualEqRhs.hh>
 #include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4QuadrupoleMagField.hh>

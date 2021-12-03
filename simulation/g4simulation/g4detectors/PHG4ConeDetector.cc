@@ -9,17 +9,16 @@
 
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
 #include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>   // for cm
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
 
-#include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, endl, basic_ostream
 #include <sstream>
 
+class G4Material;
 class G4VSolid;
 
 //_______________________________________________________________
