@@ -13,7 +13,6 @@
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Mag_UsualEqRhs.hh>
 #include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4QuadrupoleMagField.hh>
@@ -32,6 +31,7 @@
 #include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, basic_ostream
 
+class G4Material;
 class G4VSolid;
 class PHCompositeNode;
 class PHG4Subsystem;

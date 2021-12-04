@@ -7,7 +7,6 @@
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
 #include <Geant4/G4String.hh>          // for G4String
@@ -23,6 +22,7 @@
 #include <iostream>   // for operator<<, ostringstream
 #include <sstream>
 
+class G4Material;
 class G4VSolid;
 class PHCompositeNode;
 
