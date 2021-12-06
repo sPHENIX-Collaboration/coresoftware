@@ -276,6 +276,17 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 
   // add placement
   new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), cylinder_logic, G4String(GetName()), logicWorld, false, 0, OverlapCheck() );
+ 
+  // make 1 tile
+  // ----------i
+  double tile_length = 55*cm;//TODO
+  double tile_width = 25*cm;
+  double tile_0_angle = tile_width / radius *cm; 
+  G4VSolid *tile_o = new G4Tubs(G4String(GetName())+"_tile", radius - 0.001*mm, radius + thickness + 0.001*mm, tile_length, -tile_0_angle *rad, tile_0_angle *rad); 
+  G4LogicalVolume *tile_o_logic = new G4LogicalVolume(tile_o, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), G4String(GetName())+"_tile_logic");
+  tile_o_logic->SetVisAttributes(vis);
+
+  new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), tile_o_logic, G4String(GetName()) +"_tile0", cylinder_logic, false, 0, OverlapCheck() );// no rotation for tile0
 
   // keep track of current layer
   int layer_index = m_FirstLayer;
