@@ -1339,7 +1339,7 @@ void TrackingEvaluator_hp::fill_g4particle_map()
   }
 
   // special treatment for micromegas because one must check that the hits actually fires an existing tile
-  if( m_g4hits_micromegas )
+  if( m_g4hits_micromegas && m_micromegas_geom_container)
   {
 
     // loop over hits
