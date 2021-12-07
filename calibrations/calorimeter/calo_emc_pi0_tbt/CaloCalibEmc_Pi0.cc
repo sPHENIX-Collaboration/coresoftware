@@ -45,12 +45,22 @@ using namespace std;
 
 //____________________________________________________________________________..
 CaloCalibEmc_Pi0::CaloCalibEmc_Pi0(const std::string& name, const std::string& filename):
-SubsysReco(name)
- , _ievent(0)
- , cal_output(0)
- , _caloname("CEMC")
- , _filename(filename)
+  SubsysReco(name)
+  , _ievent(0)
+  , cal_output(0)
+  , _caloname("CEMC")
+  , _filename(filename)
+  , energy_eta_hist(0)
+  , e_eta_phi(0)
+  , pairInvMassTotal(0)
+  ,_eventTree(0)
+  ,_eventNumber(-1)
+  ,_nClusters(-1)
+  ,maxTowerEta(-1)
+  ,maxTowerPhi(-1)
+  ,alphaCut(-1.0)
 {
+ 
 
 
 

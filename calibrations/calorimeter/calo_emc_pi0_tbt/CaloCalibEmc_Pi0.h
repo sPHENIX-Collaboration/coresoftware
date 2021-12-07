@@ -52,8 +52,8 @@ class CaloCalibEmc_Pi0 : public SubsysReco
 
 
  // histos lists
-  TH1 *cemc_hist_eta_phi[96][258];// = {0};
-  TH1 *eta_hist[96];// = {0};
+  TH1 *cemc_hist_eta_phi[96][258]= {0};
+  TH1 *eta_hist[96]= {0};
   TH2F *energy_eta_hist;// = Null;
   TH3F *e_eta_phi;// = Null;
 
@@ -63,18 +63,18 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   // TTree variables
   int _eventNumber;
   int _nClusters;
-  float _clusterIDs[10000];
-  float _clusterEnergies[10000];
-  float _clusterPts[10000];
-  int _clusterEtas[10000];
-  int _clusterPhis[10000];
+  float _clusterIDs[10000]={0};
+  float _clusterEnergies[10000]={0};
+  float _clusterPts[10000]={0};
+  int _clusterEtas[10000]={0};
+  int _clusterPhis[10000]={0};
   
 
   int maxTowerEta;
   int maxTowerPhi; 
   
-  int _maxTowerEtas[10000];
-  int _maxTowerPhis[10000];
+  int _maxTowerEtas[10000]={0};
+  int _maxTowerPhis[10000]={0};
 
   float alphaCut;
 
