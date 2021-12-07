@@ -34,10 +34,10 @@ class PHTrackCleaner : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-
  private:
 
   int GetNodes(PHCompositeNode* topNode);
+  void findGhostTracks();
 
 SvtxTrackMap *_track_map{nullptr};
 SvtxTrack *_track{nullptr};

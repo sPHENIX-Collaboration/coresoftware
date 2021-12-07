@@ -42,12 +42,13 @@ void PHG4TpcDistortion::Init()
     }
 
     //Open Static Space Charge Maps
-    hDXint = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionX"));
-    hDYint = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionY"));
-    hDZint = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ"));
+    hDRint[0] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionR_negz"));
+    hDRint[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionR_posz"));
+    hDPint[0] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionP_negz"));
+    hDPint[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionP_posz"));
+    hDZint[0] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ_negz"));
+    hDZint[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ_posz"));
 
-    // if z = -50 is in the underflow bin, map is only one-sided.
-    m_static_map_onesided = (hDXint->GetZaxis()->FindBin(-50) == 0);
   }
 
   if (m_do_time_ordered_distortions)
@@ -61,14 +62,20 @@ void PHG4TpcDistortion::Init()
     }
 
     // create histograms
-    TimehDX = new TH3F();
-    TimehDY = new TH3F();
-    TimehDZ = new TH3F();
+    TimehDR[0] = new TH3F();
+    TimehDR[1] = new TH3F();
+    TimehDP[0] = new TH3F();
+    TimehDP[1] = new TH3F();
+    TimehDZ[0] = new TH3F();
+    TimehDZ[1] = new TH3F();
 
     TimeTree = static_cast<TTree*>(m_time_ordered_tfile->Get("TimeDists"));
-    TimeTree->SetBranchAddress("hIntDistortionX", &TimehDX);
-    TimeTree->SetBranchAddress("hIntDistortionY", &TimehDY);
-    TimeTree->SetBranchAddress("hIntDistortionZ", &TimehDZ);
+    TimeTree->SetBranchAddress("hIntDistortionR_negz", &(TimehDR[0]));
+    TimeTree->SetBranchAddress("hIntDistortionR_posz", &(TimehDR[1]));
+    TimeTree->SetBranchAddress("hIntDistortionP_negz", &(TimehDP[0]));
+    TimeTree->SetBranchAddress("hIntDistortionP_posz", &(TimehDP[1]));
+    TimeTree->SetBranchAddress("hIntDistortionZ_negz", &(TimehDZ[0]));
+    TimeTree->SetBranchAddress("hIntDistortionZ_posz", &(TimehDZ[1]));
   }
 }
 
@@ -84,51 +91,124 @@ void PHG4TpcDistortion::load_event(int event_num)
       std::cout << "Distortion map sequence repeating as of event number " << event_num << std::endl;
     }
     TimeTree->GetEntry(event_num);
-
-    // if z = -50 is in the underflow bin, map is only one-sided.
-    m_time_ordered_map_onesided = (TimehDX->GetZaxis()->FindBin(-50) == 0);
   }
 
   return;
 }
 
 //__________________________________________________________________________________________________________
-double PHG4TpcDistortion::get_x_distortion(double x, double y, double z) const
+double PHG4TpcDistortion::get_x_distortion_cartesian(double x, double y, double z) const
 {
-  return get_distortion(hDXint, TimehDX, x, y, z);
+  double r=sqrt(x*x+y*y);
+  double phi=std::atan2(y,x);
+
+  //get components
+  double dr=get_distortion('r', r, phi, z);
+  double dphi=get_distortion('p', r, phi, z);
+
+  //rotate into cartesian based on local r phi:
+  double cosphi=cos(phi);
+  double sinphi=sin(phi);
+  double dx=dr*cosphi-dphi*sinphi;
+  return dx;
 }
 
 //__________________________________________________________________________________________________________
-double PHG4TpcDistortion::get_y_distortion(double x, double y, double z) const
+double PHG4TpcDistortion::get_y_distortion_cartesian(double x, double y, double z) const
 {
-  return get_distortion(hDYint, TimehDY, x, y, z);
+  double r=sqrt(x*x+y*y);
+  double phi=std::atan2(y,x);
+
+  //get components
+  double dr=get_distortion('r', r, phi, z);
+  double dphi=get_distortion('p', r, phi, z);
+
+  //rotate into cartesian based on local r phi:
+  double cosphi=cos(phi);
+  double sinphi=sin(phi);
+  double dy=dphi*cosphi+dr*sinphi;
+  return dy;
 }
 
 //__________________________________________________________________________________________________________
-double PHG4TpcDistortion::get_z_distortion(double x, double y, double z) const
+double PHG4TpcDistortion::get_z_distortion_cartesian(double x, double y, double z) const
 {
-  return get_distortion(hDZint, TimehDZ, x, y, z);
+  double r=sqrt(x*x+y*y);
+  double phi=std::atan2(y,x);
+
+  //get components
+  double dz=get_distortion('z', r, phi, z);
+
+  return dz;
 }
 
-//__________________________________________________________________________________
-double PHG4TpcDistortion::get_distortion(TH3* hstatic, TH3* htimeOrdered, double x, double y, double z) const
+
+//__________________________________________________________________________________________________________
+double PHG4TpcDistortion::get_r_distortion(double r, double phi, double z) const
 {
-  double phi = std::atan2(y, x);
+  return get_distortion('r',r,phi, z);
+}
+
+//__________________________________________________________________________________________________________
+double PHG4TpcDistortion::get_rphi_distortion(double r, double phi, double z) const
+{
+  return get_distortion('p',r,phi, z);
+}
+
+//__________________________________________________________________________________________________________
+double PHG4TpcDistortion::get_z_distortion(double r, double phi, double z) const
+{
+  return get_distortion('z',r,phi, z);
+}
+
+double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double z) const
+{
   if (phi < 0) phi += 2 * M_PI;
-  const double r = std::sqrt(square(x) + square(y));
+  const int zpart=(z>0?1:0); //z<0 corresponds to the negative side, which is element 0.
 
-  double x_distortion = 0;
-  if (hstatic)
-  {
-    const auto zmap = m_static_map_onesided ? std::abs(z) : z;
-    x_distortion += hstatic->Interpolate(phi, r, zmap);
+  TH3* hdistortion=nullptr;
+
+  if (axis!='r' && axis!='p' && axis !='z'){
+    std::cout << "Distortion Requested along axis " << axis << " which is invalid.  Exiting.\n" << std::endl;
+    exit(1);
   }
 
-  if (htimeOrdered)
-  {
-    const auto zmap = m_time_ordered_map_onesided ? std::abs(z) : z;
-    x_distortion += htimeOrdered->Interpolate(phi, r, zmap);
-  }
+  double _distortion=0.;
+  
+  //select the appropriate histogram:
+  if (m_do_static_distortions)
+    {
+      if (axis=='r'){
+	hdistortion=hDRint[zpart];
+      } else if (axis=='p'){
+	hdistortion=hDPint[zpart];
+      } else if (axis=='z'){
+	hdistortion=hDZint[zpart];
+      }
+      if (hdistortion){
+	_distortion+=hdistortion->Interpolate(phi, r, z);
+      } else {
+	std::cout << "Static Distortion Requested along axis " << axis << ", but distortion map does not exist.  Exiting.\n" << std::endl;
+    exit(1);
+      }
+    }
 
-  return x_distortion;
+  if (m_do_time_ordered_distortions)
+    {
+      if (axis=='r'){
+	hdistortion=TimehDR[zpart];
+      } else if (axis=='p'){
+	hdistortion=TimehDP[zpart];
+      } else if (axis=='z'){
+	hdistortion=TimehDZ[zpart];
+      }
+      if (hdistortion){
+	_distortion+=hdistortion->Interpolate(phi, r, z);
+      } else {
+	std::cout << "Time Series Distortion Requested along axis " << axis << ", but distortion map does not exist.  Exiting.\n" << std::endl;
+	exit(1);
+      }
+    }
+
+  return _distortion;
 }

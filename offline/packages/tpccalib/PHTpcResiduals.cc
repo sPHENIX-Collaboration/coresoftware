@@ -13,9 +13,11 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxTrackState_v1.h>
+
 #include <micromegas/MicromegasDefs.h>
 
 #include <Acts/Surfaces/PerigeeSurface.hpp>
@@ -33,6 +35,8 @@
 #include <cmath>
 #include <TFile.h>
 #include <TTree.h>
+#include <TH1.h>
+#include <TH2.h>
 
 #include <iostream>
 #include <sstream>
@@ -46,7 +50,7 @@ namespace
   // radius
   template<class T> T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
 
-  template<class T> T deltaPhi(const T& phi)
+  template<class T> inline constexpr T deltaPhi(const T& phi)
   {
     if (phi > M_PI) 
       return phi - 2. * M_PI;
@@ -103,10 +107,8 @@ int PHTpcResiduals::process_event(PHCompositeNode *topNode)
 int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
 {
   std::cout << "PHTpcResiduals::End - writing matrices to " << m_outputfile << std::endl;
-
   if(Verbosity() > 0)
-    std::cout << "Number of bad SL propagations " 
-	      << m_nBadProps << std::endl;
+  { std::cout << "PHTpcResiduals::End - Number of bad SL propagations " << m_nBadProps << std::endl; }
       
   // save matrix container in output file
   if( m_matrix_container )
@@ -116,6 +118,14 @@ int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
     m_matrix_container->Write( "TpcSpaceChargeMatrixContainer" );
   }
 
+  // save histograms
+  if( m_savehistograms && m_histogramfile )
+  {
+    m_histogramfile->cd();
+    for( const auto o:std::initializer_list<TObject*>({ h_rphiResid, h_zResid, h_etaResidLayer, h_zResidLayer, h_etaResid, h_index, h_alpha, h_beta, h_deltarphi_layer, h_deltaz_layer, residTup }) )
+    { if( o ) o->Write(); }
+    m_histogramfile->Close();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -123,8 +133,8 @@ int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
 int PHTpcResiduals::processTracks(PHCompositeNode */*topNode*/)
 {
 
-  std::cout << "proto track size " << m_trackMap->size()
-	    <<std::endl;
+  if( Verbosity() )
+  { std::cout << "PHTpcResiduals::processTracks - proto track size " << m_trackMap->size() <<std::endl; }
 
   for(auto &[trackKey, track] : *m_trackMap)
     {
@@ -171,14 +181,20 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track)
 	      << nMMHits << std::endl;
 
   // Require at least 2 hits in each detector
-  if(nMvtxHits < 2 or nInttHits < 2 or nMMHits < 2)
+  if( m_useMicromegas )
+  {
+    if(nMvtxHits<2 || nInttHits<2 || nMMHits<2)
     return false;
+  } else {
+    if(nMvtxHits<2 || nInttHits<2 )
+    return false;
+  }
 
   return true;
 
 }
 
-SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
+PHTpcResiduals::SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
 {
   auto key = cluster->getClusKey();
   auto subsurfkey = cluster->getSubSurfKey();
@@ -267,31 +283,11 @@ Surface PHTpcResiduals::getMMSurface(TrkrDefs::hitsetkey hitsetkey)
 }
 
 //___________________________________________________________________________________
-Acts::Vector3D PHTpcResiduals::getVertex(SvtxTrack *track)
-{
-  auto vertexId = track->get_vertex_id();
-  const SvtxVertex* svtxVertex = m_vertexMap->get(vertexId);
-  if(!svtxVertex)
-    {
-      if(Verbosity() > 0)
-	std::cout << " Warning: No SvtxVertex for track found. Using (0,0,0)" 
-		  << std::endl;
-      return Acts::Vector3D(0,0,0);
-    }
-
-  Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
-			svtxVertex->get_y() * Acts::UnitConstants::cm, 
-			svtxVertex->get_z() * Acts::UnitConstants::cm);
-  return vertex;
-}
 Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track)
 {
   Acts::Vector3D momentum(track->get_px(), 
 			  track->get_py(), 
 			  track->get_pz());
-  auto vertex = getVertex(track);
-  Acts::Vector4D actsFourPos(vertex(0), vertex(1), vertex(2),
-			     10 * Acts::UnitConstants::ns);
   double trackQ = track->get_charge() * Acts::UnitConstants::e;
   double p = track->get_p();
   
@@ -303,12 +299,12 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track)
 	  cov(i,j) = track->get_acts_covariance(i, j);
 	}
     }
+  const Acts::Vector3D position(track->get_x() * Acts::UnitConstants::cm,
+    track->get_y() * Acts::UnitConstants::cm,
+    track->get_z() * Acts::UnitConstants::cm);
 
-  auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-				        Acts::Vector3D(vertex(0), 
-						       vertex(1), 
-						       vertex(2)));
-
+  const auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(position);
+  const auto actsFourPos = Acts::Vector4D(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
   Acts::BoundTrackParameters seed(perigee, m_tGeometry->geoContext,
 				  actsFourPos, momentum,
 				  p, trackQ, cov);
@@ -347,25 +343,29 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       auto result = propagateTrackState(trackParams, sl);
 
       if(result.ok())
-	{	  
-	  auto trackStateParams = std::move(**result);
-	  if(Verbosity() > 1)
-	    std::cout << "Silicon+MM momentum : " 
-		      << trackParams.momentum()
-		      << std::endl
-		      << "Propagator momentum : " 
-		      << trackStateParams.momentum()
-		      << std::endl;
-	  
+      {
+        auto pathLength = (*result).first;
+        auto trackStateParams = std::move(*(*result).second);
+        if(Verbosity() > 1)
+        {
+          std::cout << "PHTpcResiduals::processTrack -"
+            << " path length: " << pathLength
+            << " track momentum : "
+            << trackParams.momentum()
+            << " propagator momentum : "
+            << trackStateParams.momentum()
+            << std::endl;
+        }
 
-	  calculateTpcResiduals(trackStateParams, cluster);
-	}
-      else
-	{
-	  m_nBadProps++;
-	
-	  continue;
-	}
+        addTrackState( track, pathLength, trackStateParams );
+        calculateTpcResiduals(trackStateParams, cluster);
+
+      } else 	{
+
+        m_nBadProps++;
+        continue;
+        
+      }
     } 
 
   if(m_nBadProps > initNBadProps && Verbosity() > 1)
@@ -383,7 +383,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
         
 }
 
-BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
+PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState(
 			   const Acts::BoundTrackParameters& params,
 			   const SourceLink& sl)
 {
@@ -393,7 +393,7 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
     std::cout << " which has associated detector element " << sl.referenceSurface().associatedDetectorElement()->thickness() << std::endl;
   */
   return std::visit([params, sl, this]
-		    (auto && inputField) -> BoundTrackParamPtrResult {
+		    (auto && inputField) -> ExtrapolationResult {
       using InputMagneticField = 
 	typename std::decay_t<decltype(inputField)>::element_type;
       using MagneticField      = Acts::SharedBField<InputMagneticField>;
@@ -417,24 +417,61 @@ BoundTrackParamPtrResult PHTpcResiduals::propagateTrackState(
       auto result = propagator.propagate(params, sl.referenceSurface(), 
 					 options);
    
+        
       if(result.ok())
-	return std::move((*result).endParameters);
-      else
-	return result.error();
+      {
+        // return both path length and extrapolated parameters
+        return std::make_pair( (*result).pathLength/Acts::UnitConstants::cm, std::move((*result).endParameters) );
+      } else {
+        return result.error();
+      }
    },
      std::move(m_tGeometry->magField));
 
 }
+
+void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Acts::BoundTrackParameters& params )
+{
+
+  /* this is essentially a copy of the code from trackbase_historic/ActsTransformations::fillSvtxTrackStates */
+
+  // create track state
+  SvtxTrackState_v1 state( pathlength );
+
+  // save global position
+  const auto global = params.position(m_tGeometry->geoContext);
+  state.set_x(global.x() / Acts::UnitConstants::cm);
+  state.set_y(global.y() / Acts::UnitConstants::cm);
+  state.set_z(global.z() / Acts::UnitConstants::cm);
+
+  // save momentum
+  const auto momentum = params.momentum();
+  state.set_px(momentum.x());
+  state.set_py(momentum.y());
+  state.set_pz(momentum.z());
+
+  // covariance
+  ActsTransformations transformer;
+  const auto globalCov = transformer.rotateActsCovToSvtxTrack(params, m_tGeometry->geoContext);
+  for (int i = 0; i < 6; ++i)
+    for (int j = 0; j < 6; ++j)
+  { state.set_error(i, j, globalCov(i,j)); }
+
+  track->insert_state(&state);
+}
+
 void PHTpcResiduals::calculateTpcResiduals(
   const Acts::BoundTrackParameters &params,
-  const TrkrCluster* cluster)
+  TrkrCluster* cluster)
 {
   
   cluskey = cluster->getClusKey();
   // Get all the relevant information for residual calculation
-  clusR = std::sqrt(square(cluster->getX()) + square(cluster->getY()));
-  clusPhi = std::atan2(cluster->getY(), cluster->getX());
-  clusZ = cluster->getZ();
+  ActsTransformations transformer;
+  const auto globClusPos = transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
+  clusR = std::sqrt(square(globClusPos(0)) + square(globClusPos(1)));
+  clusPhi = std::atan2(globClusPos(1), globClusPos(0));
+  clusZ = globClusPos(2);
 
   clusRPhiErr = cluster->getRPhiError();
   clusZErr = cluster->getZError();
@@ -513,9 +550,9 @@ void PHTpcResiduals::calculateTpcResiduals(
   const auto trackEta 
     = std::atanh(params.momentum().z() / params.absoluteMomentum());
   const auto clusEta = std::atanh(clusZ / std::sqrt(
-    square(cluster->getX()) +
-    square(cluster->getY()) +
-    square(cluster->getZ())));
+    square(globClusPos(0)) +
+    square(globClusPos(1)) +
+    square(globClusPos(2))));
 
   const auto trackPPhi = -params.momentum()(0) * std::sin(statePhi) +
     params.momentum()(1) * std::cos(statePhi);
@@ -529,26 +566,15 @@ void PHTpcResiduals::calculateTpcResiduals(
     std::cout << "Track angles " << trackPPhi << ", " << trackPR
 	      << ", " << trackPZ << ", " << trackAlpha << ", " << trackBeta
 	      << std::endl;
-
-  if(std::abs(trackAlpha) > m_maxTAlpha
-     or std::abs(drphi) > m_maxResidualDrphi)
-    return;
-
-  if(std::abs(trackBeta) > m_maxTBeta
-     or std::abs(dz) > m_maxResidualDz)
-    return;
     
   tanBeta = trackBeta;
   tanAlpha = trackAlpha;
-  
-  Acts::Vector3D globClus(cluster->getX(), 
-			  cluster->getY(), 
-			  cluster->getZ());
-  const auto index = getCell(globClus);
-  
-  if(Verbosity() > 3)
-    std::cout << "Bin index found is " << index << std::endl;
 
+  // get cell index
+  const auto index = getCell(globClusPos);
+  if(Verbosity() > 3)
+  { std::cout << "Bin index found is " << index << std::endl; }
+  
   if(index < 0 ) return;
 
   if( m_savehistograms )
@@ -562,8 +588,21 @@ void PHTpcResiduals::calculateTpcResiduals(
     h_zResidLayer->Fill(clusR , dz);
     h_etaResidLayer->Fill(clusR , clusEta - trackEta);
     
+    const auto layer =  TrkrDefs::getLayer(cluster->getClusKey());
+    h_deltarphi_layer->Fill( layer, drphi );
+    h_deltaz_layer->Fill( layer, dz );
+
     residTup->Fill();
   }
+  
+  // check track angles and residuals agains cuts
+  if(std::abs(trackAlpha) > m_maxTAlpha
+     or std::abs(drphi) > m_maxResidualDrphi)
+    return;
+
+  if(std::abs(trackBeta) > m_maxTBeta
+     or std::abs(dz) > m_maxResidualDz)
+    return;
   
   // Fill distortion matrices
   m_matrix_container->add_to_lhs(index, 0, 0, 1./erp );
@@ -626,14 +665,6 @@ int PHTpcResiduals::createNodes(PHCompositeNode */*topNode*/)
 
 int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 {
-  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode,
-						  "SvtxVertexMap");
-  if(!m_vertexMap)
-    {
-      std::cout << PHWHERE << "No vertex map, exiting." 
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
 
   m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
 						   "ActsSurfaceMaps");
@@ -695,6 +726,10 @@ void PHTpcResiduals::makeHistograms()
 			     60, 20, 80, 500, -0.2, 0.2);
   h_zResidLayer = new TH2F("zResidLayer", ";r [cm]; #Deltaz [cm]",
 			   60, 20, 80, 1000, -2, 2);
+
+  h_deltarphi_layer = new TH2F( "deltarphi_layer", ";layer; r.#Delta#phi_{track-cluster} (cm)", 57, 0, 57, 500, -2, 2 );
+  h_deltaz_layer = new TH2F( "deltaz_layer", ";layer; #Deltaz_{track-cluster} (cm)", 57, 0, 57, 100, -2, 2 );
+
   residTup = new TTree("residTree","tpc residual info");
   residTup->Branch("tanAlpha",&tanAlpha,"tanAlpha/D");
   residTup->Branch("tanBeta",&tanBeta,"tanBeta/D");
@@ -714,7 +749,7 @@ void PHTpcResiduals::makeHistograms()
 //   residTup->Branch("ir",&ir,"ir/I");
 //   residTup->Branch("iz",&iz,"iz/I");
 //   residTup->Branch("iphi",&iphi,"iphi/I");
-  residTup->Branch("cluskey",&cluskey,"cluskey/I");
+  residTup->Branch("cluskey",&cluskey,"cluskey/l");
   residTup->Branch("event",&m_event,"event/I");
 
 }

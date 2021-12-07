@@ -2,10 +2,11 @@
 
 #include <g4main/PHG4Detector.h>  // for PHG4Detector
 
+#include <phool/recoConsts.h>
+
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
 #include <Geant4/G4String.hh>          // for G4String
@@ -21,6 +22,7 @@
 #include <iostream>   // for operator<<, ostringstream
 #include <sstream>
 
+class G4Material;
 class G4VSolid;
 class PHCompositeNode;
 
@@ -88,7 +90,8 @@ int PHG4CEmcTestBeamDetector::IsInCEmcTestBeam(G4VPhysicalVolume* volume) const
 void PHG4CEmcTestBeamDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   CalculateGeometry();
-  G4Material* Air = G4Material::GetMaterial("G4_AIR");
+  recoConsts* rc = recoConsts::instance();
+  G4Material* Air = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4VSolid* cemc_tub = new G4Tubs("CEmcTub", inner_radius - 2 * no_overlap, outer_radius + 2 * no_overlap, (w_dimension[2] + 2 * no_overlap) / 2., 0, cemc_angular_coverage);
   G4LogicalVolume* cemc_log = new G4LogicalVolume(cemc_tub, Air, G4String("CEmc"), 0, 0, 0);
 
@@ -126,7 +129,8 @@ void PHG4CEmcTestBeamDetector::ConstructMe(G4LogicalVolume* logicWorld)
 // here we build up the tower from the sandwichs (tungsten + scintillator)
 int PHG4CEmcTestBeamDetector::ConstructTowerVolume(G4LogicalVolume* tower_log)
 {
-  G4Material* Air = G4Material::GetMaterial("G4_AIR");
+  recoConsts* rc = recoConsts::instance();
+  G4Material* Air = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4VSolid* sandwich_box = new G4Box("Sandwich_box",
                                      w_dimension[0] / 2., sandwich_thickness / 2., w_dimension[2] / 2.);
 
@@ -167,8 +171,8 @@ int PHG4CEmcTestBeamDetector::ConstructTowerVolume(G4LogicalVolume* tower_log)
 int PHG4CEmcTestBeamDetector::ConstructSandwichVolume(G4LogicalVolume* sandwich)
 {
   vector<G4LogicalVolume*> block_logic;
-  G4Material* AbsorberMaterial = G4Material::GetMaterial("G4_W");
-  G4Material* ScintiMaterial = G4Material::GetMaterial("G4_POLYSTYRENE");
+  G4Material* AbsorberMaterial = GetDetectorMaterial("G4_W");
+  G4Material* ScintiMaterial = GetDetectorMaterial("G4_POLYSTYRENE");
 
   if (active_scinti_fraction > 1 || active_scinti_fraction < 0)
   {

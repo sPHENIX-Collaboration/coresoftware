@@ -632,7 +632,7 @@ float KFParticle_Tools::calculateEllipsoidVolume(KFParticle particle)
   if (cov_matrix(0, 0) * cov_matrix(1, 1) * cov_matrix(2, 2) == 0)
     volume = 0;
   else
-    volume = (4 / 3) * M_PI * sqrt((std::abs(cov_matrix.Determinant())));  //The covariance matrix is error-squared
+    volume = (4. / 3.) * M_PI * sqrt((std::abs(cov_matrix.Determinant())));  //The covariance matrix is error-squared
 
   return volume;
 }

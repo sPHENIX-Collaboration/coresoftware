@@ -6,7 +6,7 @@
  */
 
 #include "PHActsTrkFitter.h"
-#include "ActsTransformations.h"
+#include <trackbase_historic/ActsTransformations.h>
 
 /// Tracking includes
 #include <trackbase/TrkrClusterContainer.h>
@@ -16,8 +16,6 @@
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertex.h>
 #include <micromegas/MicromegasDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -155,10 +153,8 @@ int PHActsTrkFitter::ResetEvent(PHCompositeNode */*topNode*/)
 
     }
   
-  if(m_actsEvaluator)
-    {
-      m_trajectories->clear();
-    }
+  m_trajectories->clear();
+    
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -198,22 +194,28 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   for(const auto& [trackKey, track] : *m_trackMap)
     {
       if(!track)
-	{
-	  continue;
-	}
+	{ continue; }
 
       PHTimer trackTimer("TrackTimer");
       trackTimer.stop();
       trackTimer.restart();
 
       auto sourceLinks = getSourceLinks(track);
+      if(sourceLinks.size() == 0) continue;
+
       /// If using directed navigation, collect surface list to navigate
    
       SurfacePtrVec surfaces;
       if(m_fitSiliconMMs)
       {
         sourceLinks = getSurfaceVector(sourceLinks, surfaces);
-        if( std::none_of( surfaces.begin(), surfaces.end(), [this]( const auto& surface )
+        
+        // skip if there is no surfaces
+        if( surfaces.empty() ) continue;
+        
+        // make sure micromegas are in the tracks, if required
+        if( m_useMicromegas &&
+          std::none_of( surfaces.begin(), surfaces.end(), [this]( const auto& surface )
           { return m_surfMaps->isMicromegasSurface( *surface ); } ) )
         { continue; }
       }
@@ -221,12 +223,15 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       Acts::Vector3D momentum(track->get_px(), 
 			      track->get_py(), 
 			      track->get_pz());
-   
-      auto actsVertex = getVertex(track);
+
+      Acts::Vector3D position(track->get_x() * Acts::UnitConstants::cm,
+			      track->get_y() * Acts::UnitConstants::cm,
+			      track->get_z() * Acts::UnitConstants::cm);
+
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-					  actsVertex);
-      auto actsFourPos = Acts::Vector4D(actsVertex(0), actsVertex(1),
-					actsVertex(2),
+					  position);
+      auto actsFourPos = Acts::Vector4D(position(0), position(1),
+					position(2),
 					10 * Acts::UnitConstants::ns);
       Acts::BoundSymMatrix cov = setDefaultCovariance();
  
@@ -249,7 +254,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// associated to this track and the corresponding track seed which
       /// corresponds to the PHGenFitTrkProp track seeds
       Acts::PropagatorPlainOptions ppPlainOptions;
-      ppPlainOptions.absPdgCode = 11;
+      ppPlainOptions.absPdgCode = m_pHypothesis;
       Acts::KalmanFitterOptions<Acts::VoidOutlierFinder> kfOptions(
 			        m_tGeometry->geoContext,
 				m_tGeometry->magFieldContext,
@@ -321,23 +326,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
 }
 
-Acts::Vector3D PHActsTrkFitter::getVertex(SvtxTrack *track)
-{
-  auto vertexId = track->get_vertex_id();
-  const SvtxVertex* svtxVertex = m_vertexMap->get(vertexId);
-  if(!svtxVertex)
-    {
-      if(Verbosity() > 0)
-	std::cout << " Warning: No SvtxVertex for track found. Using (0,0,0)" 
-		  << std::endl;
-      return Acts::Vector3D(0,0,0);
-    }
-
-  Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
-			svtxVertex->get_y() * Acts::UnitConstants::cm, 
-			svtxVertex->get_z() * Acts::UnitConstants::cm);
-  return vertex;
-}
 
 //___________________________________________________________________________________
 Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfkey surfkey) const
@@ -409,6 +397,11 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
     {
       auto key = *clusIter;
       auto cluster = m_clusterContainer->findCluster(key);
+      if(!cluster)
+	{
+	  if(Verbosity() > 0) std::cout << "Failed to get cluster with key " << key << " for track " << track->get_id() << std::endl;
+	  continue;
+	}
 
       auto subsurfkey = cluster->getSubSurfKey();
       
@@ -441,6 +434,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
 	  std::cout << "Surface : " << std::endl;
 	  sl.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
 	  std::cout << std::endl;
+	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
 	  std::cout << "For key " << key << " with global pos " << std::endl
 		    << cluster->getX() << ", " << cluster->getY() << ", " << cluster->getZ()
 		    << std::endl;
@@ -485,10 +479,8 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 						 trackTips, indexedParams, 
 						 track->get_vertex_id());
 
-  if(m_actsEvaluator)
-    {
-      m_trajectories->insert(std::make_pair(track->get_id(), *trajectory));
-    }
+  m_trajectories->insert(std::make_pair(track->get_id(), *trajectory));
+    
 
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
@@ -537,18 +529,23 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
       if(Verbosity() > 1)
       { std::cout<<"SL available on : " << sl.referenceSurface().geometryId()<<std::endl; } 
 
-      if( !m_surfMaps->isTpcSurface( sl.referenceSurface() ) )
-      {
-        siliconMMSls.push_back(sl);
-        surfaces.push_back(&sl.referenceSurface());
-      }
+      // skip TPC surfaces
+      if( m_surfMaps->isTpcSurface( sl.referenceSurface() ) ) continue;
+      
+      // also skip micromegas surfaces if not used
+      if( m_surfMaps->isMicromegasSurface( sl.referenceSurface() ) && !m_useMicromegas ) continue;
+
+      // update vectors
+      siliconMMSls.push_back(sl);
+      surfaces.push_back(&sl.referenceSurface());
+
     }
 
   /// Surfaces need to be sorted in order, i.e. from smallest to
   /// largest radius extending from target surface
   /// Add a check to ensure this
-  if(surfaces.size() > 0)
-    checkSurfaceVec(surfaces);
+  if(!surfaces.empty())
+  { checkSurfaceVec(surfaces); }
 
   if(Verbosity() > 1)
     {
@@ -621,17 +618,14 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       std::cout << " cluster keys size " << track->size_cluster_keys() << std::endl;  
     }
 
-  // The number of associated clusters may have changed - start over
+  
   if(!m_fitSiliconMMs)
-    {
-      track->clear_states();
-      track->clear_cluster_keys();
-    }
+    { track->clear_states(); }
 
   // create a state at pathlength = 0.0
   // This state holds the track parameters, which will be updated below
   float pathlength = 0.0;
-  SvtxTrackState_v1 out( pathlength);
+  SvtxTrackState_v1 out(pathlength);
   out.set_x(0.0);
   out.set_y(0.0);
   out.set_z(0.0);
@@ -660,15 +654,9 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 
   ActsTransformations rotater;
   rotater.setVerbosity(Verbosity());
-  
-  float dca3Dxy = NAN;
-  float dca3Dz = NAN;
-  float dca3DxyCov = NAN;
-  float dca3DzCov = NAN;
  
   if(params.covariance())
-    {
-     
+    {     
       Acts::BoundSymMatrix rotatedCov = 
 	rotater.rotateActsCovToSvtxTrack(params,
 					  m_tGeometry->geoContext);
@@ -678,48 +666,18 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 	  for(int j = 0; j < 6; j++)
 	    {
 	      track->set_error(i,j, rotatedCov(i,j));
-	      track->set_acts_covariance(i,j, params.covariance().value()(i,j));
+	      track->set_acts_covariance(i,j, 
+					 params.covariance().value()(i,j));
 	    }
-	}
-    
-      unsigned int vertexId = track->get_vertex_id();
-
-      const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
-
-      if(!svtxVertex) 
-	{
-	  std::cout << PHWHERE << " vertex ID " << vertexId << " not found!" << " for track " << track->get_id() << std::endl;
-	 return; 
-	}
-   
-      Acts::Vector3D vertex(
-		  svtxVertex->get_x() * Acts::UnitConstants::cm, 
-		  svtxVertex->get_y() * Acts::UnitConstants::cm, 
-		  svtxVertex->get_z() * Acts::UnitConstants::cm);
-   
-      rotater.calculateDCA(params, vertex, rotatedCov,
-			    m_tGeometry->geoContext, 
-			    dca3Dxy, dca3Dz, 
-			    dca3DxyCov, dca3DzCov);
+	} 
     }
 
-  /// Set the DCA here. The DCA will be updated after the final
-  /// vertex fitting in PHActsVertexFinder
-  track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
-  track->set_dca3d_z(dca3Dz / Acts::UnitConstants::cm);
-
-  /// The covariance that goes into the rotater is already in sphenix
-  /// units, so we don't need to convert back
-  track->set_dca3d_xy_error(sqrt(dca3DxyCov));
-  track->set_dca3d_z_error(sqrt(dca3DzCov));
-  
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
 
   PHTimer trackStateTimer("TrackStateTimer");
   trackStateTimer.stop();
   trackStateTimer.restart();
-
 
   if(m_fillSvtxTrackStates)
     rotater.fillSvtxTrackStates(traj, trackTip, track,
@@ -733,7 +691,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 	      << stateTime << std::endl;
 
   if(m_timeAnalysis)
-    h_stateTime->Fill(stateTime);
+    { h_stateTime->Fill(stateTime); }
 
   if(Verbosity() > 2)
     {  
@@ -830,30 +788,28 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 	} 
     }
 
+  m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
+  if(!m_trajectories)
+    {
+      m_trajectories = new std::map<const unsigned int, Trajectory>;
+      PHDataNode<std::map<const unsigned int, Trajectory>> *node = 
+	new PHDataNode<std::map<const unsigned int, Trajectory>>(m_trajectories, "ActsTrajectories");
+      svtxNode->addNode(node);
+      
+    }
+  
   if(m_actsEvaluator)
     {
-      m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode,
-										    "ActsTrajectories");
-      if(!m_trajectories)
-	{
-	  m_trajectories = new std::map<const unsigned int, Trajectory>;
-	  PHDataNode<std::map<const unsigned int, Trajectory>> *node = 
-	    new PHDataNode<std::map<const unsigned int, Trajectory>>(m_trajectories, "ActsTrajectories");
-	  svtxNode->addNode(node);
-	  
-	}
+      m_seedTracks = findNode::getClass<SvtxTrackMap>(topNode,_seed_track_map_name);
       
-      m_seedTracks = findNode::getClass<SvtxTrackMap>(topNode,"SeedTrackMap");
-         
       if(!m_seedTracks)
 	{
 	  m_seedTracks = new SvtxTrackMap_v1;
 	  
 	  PHIODataNode<PHObject> *seedNode = 
-	    new PHIODataNode<PHObject>(m_seedTracks,"SeedTrackMap","PHObject");
+	    new PHIODataNode<PHObject>(m_seedTracks,_seed_track_map_name,"PHObject");
 	  svtxNode->addNode(seedNode);
 	}
-
     }
   
   return Fun4AllReturnCodes::EVENT_OK;
@@ -869,7 +825,17 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
+  if(m_clusterContainer)
+    {
+      std::cout << " Using CORRECTED_TRKR_CLUSTER node " << std::endl;
+    }
+  else
+    {
+      std::cout << " CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl;
+      m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+    }
+
   if(!m_clusterContainer)
     {
       std::cout << PHWHERE 
@@ -885,16 +851,8 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  
-  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if(!m_vertexMap)
-    {
-      std::cout << PHWHERE << "SvtxVertexMap not on node tree, bailing"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+ 
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   
   if(!m_trackMap)
     {

@@ -2,18 +2,18 @@ AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
-    libg4detectors_io.la \
-    libg4detectors.la
+  libg4detectors_io.la \
+  libg4detectors.la
 
 AM_CXXFLAGS = `geant4-config --cflags  | sed s/-Woverloaded-virtual// | sed s/-pedantic// | sed s/-Wshadow// | sed s/-W\ //`
 
 AM_CPPFLAGS = \
-    -DCGAL_DISABLE_ROUNDING_MATH_CHECK \
-    -I$(includedir) \
-    -I$(OFFLINE_MAIN)/include \
-    -I$(ROOTSYS)/include \
-    -I$(G4_MAIN)/include \
-    -I$(OPT_SPHENIX)/include
+  -DCGAL_DISABLE_ROUNDING_MATH_CHECK \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
+  -I$(ROOTSYS)/include \
+  -I$(G4_MAIN)/include \
+  -I$(OPT_SPHENIX)/include
 
 # set in configure.in to check if gcc version >= 4.8
 #if GCC_GE_48
@@ -21,8 +21,8 @@ AM_CPPFLAGS = \
 #endif
 
 AM_LDFLAGS = \
-    -L$(libdir) \
-    -L$(OFFLINE_MAIN)/lib
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
 
 libg4detectors_io_la_LIBADD = \
   -lphool \
@@ -88,7 +88,9 @@ pkginclude_HEADERS = \
   PHG4SectorConstructor.h \
   PHG4SectorSubsystem.h \
   PHG4SpacalSubsystem.h \
-  PHG4StepStatusDecode.h 
+  PHG4StepStatusDecode.h \
+  PHG4ZDCDefs.h \
+  PHG4ZDCSubsystem.h
 
 ROOT_IO_DICTS = \
   PHG4BlockCellGeom_Dict.cc \
@@ -190,6 +192,7 @@ libg4detectors_la_SOURCES = \
   PHG4GDMLDetector.cc \
   PHG4GDMLSubsystem.cc \
   PHG4BbcDetector.cc \
+  PHG4BbcDisplayAction.cc \
   PHG4BbcSteppingAction.cc \
   PHG4BbcSubsystem.cc \
   PHG4BeamlineMagnetDetector.cc \
@@ -217,6 +220,9 @@ libg4detectors_la_SOURCES = \
   PHG4EnvelopeSteppingAction.cc \
   PHG4EnvelopeSubsystem.cc \
   PHG4EventActionClearZeroEdep.cc \
+  PHG4FullProjSpacalDetector.cc \
+  PHG4FullProjTiltedSpacalDetector.cc \
+  PHG4FullProjSpacalCellReco.cc \
   PHG4GenHit.cc \
   PHG4HcalCellReco.cc \
   PHG4HcalDetector.cc \
@@ -232,23 +238,25 @@ libg4detectors_la_SOURCES = \
   PHG4OuterHcalFieldSetup.cc \
   PHG4OuterHcalSteppingAction.cc \
   PHG4OuterHcalSubsystem.cc \
+  PHG4PSTOFDetector.cc \
+  PHG4PSTOFSteppingAction.cc \
+  PHG4PSTOFSubsystem.cc \
   PHG4SectorConstructor.cc \
   PHG4SectorDetector.cc \
   PHG4SectorDisplayAction.cc \
   PHG4SectorSteppingAction.cc \
   PHG4SectorSubsystem.cc \
-  PHG4StepStatusDecode.cc \
-  PHG4TrackStatusDecode.cc \
-  PHG4PSTOFDetector.cc \
-  PHG4PSTOFSteppingAction.cc \
-  PHG4PSTOFSubsystem.cc \
   PHG4SpacalDetector.cc \
   PHG4SpacalDisplayAction.cc \
-  PHG4FullProjSpacalDetector.cc \
-  PHG4FullProjTiltedSpacalDetector.cc \
-  PHG4FullProjSpacalCellReco.cc \
   PHG4SpacalSteppingAction.cc \
-  PHG4SpacalSubsystem.cc 
+  PHG4SpacalSubsystem.cc \
+  PHG4StepStatusDecode.cc \
+  PHG4TrackStatusDecode.cc \
+  PHG4ZDCDetector.cc \
+  PHG4ZDCDisplayAction.cc \
+  PHG4ZDCSteppingAction.cc \
+  PHG4ZDCSubsystem.cc
+
 bin_SCRIPTS = \
   CreateG4Subsystem.pl
 

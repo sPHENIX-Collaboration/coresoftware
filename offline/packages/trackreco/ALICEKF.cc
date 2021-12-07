@@ -5,10 +5,13 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <Geant4/G4SystemOfUnits.hh>
-
+#include <trackbase_historic/ActsTransformations.h>
 #include "TFile.h"
 #include "TNtuple.h"
 
+#include <TMatrixFfwd.h>
+#include <TMatrixT.h>   
+#include <TMatrixTUtils.h>
 //#define _DEBUG_
 
 #if defined(_DEBUG_)
@@ -20,10 +23,16 @@
 #define LogError(exp) if(Verbosity()>0) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
 #define LogWarning(exp) if(Verbosity()>0) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
 
-using namespace std;
-typedef vector<TrkrDefs::cluskey> keylist;
+using keylist = std::vector<TrkrDefs::cluskey>;
 
-bool ALICEKF::checknan(double val, const std::string &name, int num)
+// anonymous namespace for local functions
+namespace
+{
+  // square
+  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+}
+
+bool ALICEKF::checknan(double val, const std::string &name, int num) const
 {
   if(std::isnan(val))
   {
@@ -32,7 +41,7 @@ bool ALICEKF::checknan(double val, const std::string &name, int num)
   return std::isnan(val);
 }
 
-double ALICEKF::get_Bz(double x, double y, double z)
+double ALICEKF::get_Bz(double x, double y, double z) const
 {
   if(_use_const_field) return 1.4;
   double p[4] = {x*cm,y*cm,z*cm,0.*cm};
@@ -41,35 +50,66 @@ double ALICEKF::get_Bz(double x, double y, double z)
   return bfield[2]/tesla;
 }
 
-double ALICEKF::getClusterError(TrkrCluster* c, int i, int j)
+double ALICEKF::getClusterError(TrkrCluster* c, Acts::Vector3F global, int i, int j) const
 {
   if(_use_fixed_clus_error) 
   {
      if(i==j) return _fixed_clus_error.at(i)*_fixed_clus_error.at(i);
      else return 0.;
   }
-  else return c->getError(i,j);
+  else 
+    {
+      TMatrixF localErr(3,3);
+      localErr[0][0] = 0.;
+      localErr[0][1] = 0.;
+      localErr[0][2] = 0.;
+      localErr[1][0] = 0.;
+      localErr[1][1] = c->getActsLocalError(0,0);
+      localErr[1][2] = c->getActsLocalError(0,1);
+      localErr[2][0] = 0.;
+      localErr[2][1] = c->getActsLocalError(1,0);
+      localErr[2][2] = c->getActsLocalError(2,0);
+      float clusphi = atan2(global(1), global(0));
+      TMatrixF ROT(3,3);
+      ROT[0][0] = cos(clusphi);
+      ROT[0][1] = -sin(clusphi);
+      ROT[0][2] = 0.0;
+      ROT[1][0] = sin(clusphi);
+      ROT[1][1] = cos(clusphi);
+      ROT[1][2] = 0.0;
+      ROT[2][0] = 0.0;
+      ROT[2][1] = 0.0;
+      ROT[2][2] = 1.0;
+      TMatrixF ROT_T(3,3);
+      ROT_T.Transpose(ROT);
+  
+      TMatrixF err(3,3);
+      err = ROT * localErr * ROT_T;
+      
+      return err[i][j];
+    }
 }
 
-vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyLists,bool use_nhits_limit)
+std::vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& trackSeedKeyLists,bool use_nhits_limit, const PositionMap& globalPositions) const
 {
 //  TFile* f = new TFile("/sphenix/u/mjpeters/macros_hybrid/detectors/sPHENIX/pull.root", "RECREATE");
 //  TNtuple* ntp = new TNtuple("pull","pull","cx:cy:cz:xerr:yerr:zerr:tx:ty:tz:layer:xsize:ysize:phisize:phierr:zsize");
-  vector<SvtxTrack_v2> seeds_vector;
+  std::vector<SvtxTrack_v2> seeds_vector;
   int nseeds = 0;
+ 
   if(Verbosity()>0) std::cout << "min clusters per track: " << _min_clusters_per_track << "\n";
-  for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
+  for( auto trackKeyChain:trackSeedKeyLists )
   {
-    if(trackKeyChain->size()<2) continue;
-    if(use_nhits_limit && trackKeyChain->size() < _min_clusters_per_track) continue;
-    if(TrkrDefs::getLayer(trackKeyChain->front())<TrkrDefs::getLayer(trackKeyChain->back())) std::reverse(trackKeyChain->begin(),trackKeyChain->end());
+    if(trackKeyChain.size()<2) continue;
+    if(use_nhits_limit && trackKeyChain.size() < _min_clusters_per_track) continue;
+    if(TrkrDefs::getLayer(trackKeyChain.front())<TrkrDefs::getLayer(trackKeyChain.back())) std::reverse(trackKeyChain.begin(),trackKeyChain.end());
     // get starting cluster from key
-    TrkrCluster* startCluster = _cluster_map->findCluster(trackKeyChain->at(0));
     // Transform sPHENIX coordinates into ALICE-compatible coordinates
-    double x0 = startCluster->getPosition(0);
-    double y0 = startCluster->getPosition(1);
-    double z0 = startCluster->getPosition(2);
-    LogDebug("Initial (x,y,z): (" << x0 << "," << y0 << "," << z0 << ")" << endl);
+    const auto& globalpos = globalPositions.at(trackKeyChain.at(0));
+    double x0 = globalpos(0);
+    double y0 = globalpos(1);
+    double z0 = globalpos(2);;
+    LogDebug("Initial (x,y,z): (" << x0 << "," << y0 << "," << z0 << ")" << std::endl);
     // ALICE x coordinate = distance from beampipe
     double alice_x0 = sqrt(x0*x0+y0*y0);
     double alice_y0 = 0;
@@ -90,10 +130,11 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     double trackCartesian_y = 0.;
     double trackCartesian_z = 0.;
     // Pre-set momentum-based parameters to improve numerical stability
-    TrkrCluster* SecondCluster = _cluster_map->findCluster(trackKeyChain->at(1));
-    double second_x = SecondCluster->getPosition(0);
-    double second_y = SecondCluster->getPosition(1);
-    double second_z = SecondCluster->getPosition(2);
+    const auto& secondpos = globalPositions.at(trackKeyChain.at(1));
+
+    double second_x = secondpos(0);
+    double second_y = secondpos(1);
+    double second_z = secondpos(2);
     double first_phi = atan2(y0,x0);
     double second_alice_x = second_x*cos(first_phi)+second_y*sin(first_phi);
     double delta_alice_x = second_alice_x - alice_x0;
@@ -103,41 +144,42 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     double delta_z = second_z - z0;
     double init_DzDs = -delta_z / sqrt(delta_alice_x*delta_alice_x + second_alice_y*second_alice_y);
     trackSeed.SetSinPhi(init_SinPhi);
-    LogDebug("Set initial SinPhi to " << init_SinPhi << endl);
+    LogDebug("Set initial SinPhi to " << init_SinPhi << std::endl);
     trackSeed.SetDzDs(init_DzDs);
-    LogDebug("Set initial DzDs to " << init_DzDs << endl);
+    LogDebug("Set initial DzDs to " << init_DzDs << std::endl);
     
     // get initial pt estimate
     std::vector<std::pair<double,double>> pts;
-    for(size_t c=0;c<trackKeyChain->size();++c)
+    std::transform( trackKeyChain.begin(), trackKeyChain.end(), std::back_inserter( pts ), [&globalPositions]( const TrkrDefs::cluskey& key )
     {
-      TrkrCluster* cl = _cluster_map->findCluster(trackKeyChain->at(c));
-      pts.push_back(std::make_pair(cl->getX(),cl->getY()));
-    }
+      const auto& clpos = globalPositions.at(key);
+      return std::make_pair(clpos(0),clpos(1));
+    });
+    
     double R;
     double x_center;
     double y_center;
     CircleFitByTaubin(pts,R,x_center,y_center);
-    if(Verbosity()>1) cout << "circle fit parameters: R=" << R << ", X0=" << x_center << ", Y0=" << y_center << endl;
+    if(Verbosity()>1) std::cout << "circle fit parameters: R=" << R << ", X0=" << x_center << ", Y0=" << y_center << std::endl;
     double init_QPt = 1./(0.3*R/100.*get_Bz(x0,y0,z0));
     // determine charge
     double phi_first = atan2(y0,x0);
-    if(Verbosity()>1) cout << "phi_first: " << phi_first << endl;
+    if(Verbosity()>1) std::cout << "phi_first: " << phi_first << std::endl;
     double phi_second = atan2(second_y,second_x);
-    if(Verbosity()>1) cout << "phi_second: " << phi_second << endl;
+    if(Verbosity()>1) std::cout << "phi_second: " << phi_second << std::endl;
     double dphi = phi_second - phi_first;
-    if(Verbosity()>1) cout << "dphi: " << dphi << endl;
+    if(Verbosity()>1) std::cout << "dphi: " << dphi << std::endl;
     if(dphi>M_PI) dphi = 2*M_PI - dphi;
     if(dphi<-M_PI) dphi = 2*M_PI + dphi;
-    if(Verbosity()>1) cout << "corrected dphi: " << dphi << endl;
+    if(Verbosity()>1) std::cout << "corrected dphi: " << dphi << std::endl;
     if(dphi<0) init_QPt = -1*init_QPt;
-    LogDebug("initial QPt: " << init_QPt << endl);
+    LogDebug("initial QPt: " << init_QPt << std::endl);
     trackSeed.SetQPt(init_QPt);
 
-
+  
     GPUTPCTrackLinearisation trackLine(trackSeed);
 
-    LogDebug(endl << endl << "------------------------" << endl << "seed size: " << trackKeyChain->size() << endl << endl << endl);
+    LogDebug(std::endl << std::endl << "------------------------" << std::endl << "seed size: " << trackKeyChain.size() << std::endl << std::endl << std::endl);
     int cluster_ctr = 1;
 //    bool aborted = false;
     // starting at second cluster, perform track propagation
@@ -156,28 +198,30 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     std::vector<double> phisize;
     std::vector<double> phierr;
     std::vector<double> zsize;
-    for(keylist::iterator clusterkey = next(trackKeyChain->begin()); clusterkey != trackKeyChain->end(); ++clusterkey)
+    for(auto clusterkey = std::next(trackKeyChain.begin()); clusterkey != trackKeyChain.end(); ++clusterkey)
     {
-      LogDebug("-------------------------------------------------------------" << endl);
-      LogDebug("cluster " << cluster_ctr << " -> " << cluster_ctr + 1 << endl);
-      LogDebug("this cluster (x,y,z) = (" << x << "," << y << "," << z << ")" << endl);
-      LogDebug("layer " << (int)TrkrDefs::getLayer(*clusterkey) << endl);
+      LogDebug("-------------------------------------------------------------" << std::endl);
+      LogDebug("cluster " << cluster_ctr << " -> " << cluster_ctr + 1 << std::endl);
+      LogDebug("this cluster (x,y,z) = (" << x << "," << y << "," << z << ")" << std::endl);
+      LogDebug("layer " << (int)TrkrDefs::getLayer(*clusterkey) << std::endl);
       // get cluster from key
       TrkrCluster* nextCluster = _cluster_map->findCluster(*clusterkey);
+      const auto& nextpos = globalPositions.at(*clusterkey);
+     
       // find ALICE x-coordinate
-      double nextCluster_x = nextCluster->getPosition(0);
-      double nextCluster_xerr = sqrt(getClusterError(nextCluster,0,0));
-      double nextCluster_y = nextCluster->getPosition(1);
-      double nextCluster_yerr = sqrt(getClusterError(nextCluster,1,1));
-      double nextCluster_z = nextCluster->getPosition(2);
-      double nextCluster_zerr = sqrt(getClusterError(nextCluster,2,2));
+      double nextCluster_x = nextpos(0);
+      double nextCluster_xerr = sqrt(getClusterError(nextCluster,nextpos,0,0));
+      double nextCluster_y = nextpos(1);
+      double nextCluster_yerr = sqrt(getClusterError(nextCluster,nextpos,1,1));
+      double nextCluster_z = nextpos(2);
+      double nextCluster_zerr = sqrt(getClusterError(nextCluster,nextpos,2,2));
       // rotate track coordinates to match orientation of next cluster
       double newPhi = atan2(nextCluster_y,nextCluster_x);
-      LogDebug("new phi = " << newPhi << endl);
+      LogDebug("new phi = " << newPhi << std::endl);
       double oldPhi = atan2(y,x);
-      LogDebug("old phi = " << oldPhi << endl);
+      LogDebug("old phi = " << oldPhi << std::endl);
       double alpha = newPhi - oldPhi;
-      LogDebug("alpha = " << alpha << endl);
+      LogDebug("alpha = " << alpha << std::endl);
       if(!trackSeed.Rotate(alpha,trackLine,_max_sin_phi))
       {
         LogWarning("Rotate failed! Aborting for this seed...\n");
@@ -185,7 +229,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
         break;
       }
       double nextAlice_x = nextCluster_x*cos(newPhi)+nextCluster_y*sin(newPhi);
-      LogDebug("track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << endl);
+      LogDebug("track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << std::endl);
       LogDebug("Transporting from " << alice_x << " to " << nextAlice_x << "...");
       GPUTPCTrackParam::GPUTPCTrackFitParam fp;
       trackSeed.CalculateFitParameters(fp);
@@ -202,42 +246,44 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
         }
   //    }
       // convert ALICE coordinates to sPHENIX cartesian coordinates, for debugging
+
       double predicted_alice_x = trackSeed.GetX();
-      LogDebug("new track ALICE x = " << trackSeed.GetX() << endl);
+      LogDebug("new track ALICE x = " << trackSeed.GetX() << std::endl);
       double predicted_alice_y = trackSeed.GetY();
-      LogDebug("new track ALICE y = " << trackSeed.GetY() << endl);
+      LogDebug("new track ALICE y = " << trackSeed.GetY() << std::endl);
       double predicted_z = trackSeed.GetZ();
-      LogDebug("new track z = " << trackSeed.GetZ() << endl);
+      LogDebug("new track z = " << trackSeed.GetZ() << std::endl);
       double cos_phi = x/sqrt(x*x+y*y);
-      LogDebug("cos_phi = " << cos_phi << endl);
+      LogDebug("cos_phi = " << cos_phi << std::endl);
       double sin_phi = y/sqrt(x*x+y*y);
-      LogDebug("sin phi = " << sin_phi << endl);
+      LogDebug("sin phi = " << sin_phi << std::endl);
       trackCartesian_x = predicted_alice_x*cos_phi-predicted_alice_y*sin_phi;
       trackCartesian_y = predicted_alice_x*sin_phi+predicted_alice_y*cos_phi;
       trackCartesian_z = predicted_z;
-      LogDebug("Track transported to (x,y,z) = (" << trackCartesian_x << "," << trackCartesian_y << "," << trackCartesian_z << ")" << endl);
-      LogDebug("Track position ALICE Y error: " << sqrt(trackSeed.GetCov(0)) << endl);
-      LogDebug("Track position x error: " << sqrt(trackSeed.GetCov(0))*sin_phi << endl);
-      LogDebug("Track position y error: " << sqrt(trackSeed.GetCov(0))*cos_phi << endl);
-      LogDebug("Track position z error: " << sqrt(trackSeed.GetCov(5)) << endl);
-      LogDebug("Next cluster is at (x,y,z) = (" << nextCluster_x << "," << nextCluster_y << "," << nextCluster_z << ")" << endl);
-      LogDebug("Cluster errors: (" << nextCluster_xerr << ", " << nextCluster_yerr << ", " << nextCluster_zerr << ")" << endl);
-      LogDebug("track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << endl);
+      LogDebug("Track transported to (x,y,z) = (" << trackCartesian_x << "," << trackCartesian_y << "," << trackCartesian_z << ")" << std::endl);
+      LogDebug("Track position ALICE Y error: " << sqrt(trackSeed.GetCov(0)) << std::endl);
+      LogDebug("Track position x error: " << sqrt(trackSeed.GetCov(0))*sin_phi << std::endl);
+      LogDebug("Track position y error: " << sqrt(trackSeed.GetCov(0))*cos_phi << std::endl);
+      LogDebug("Track position z error: " << sqrt(trackSeed.GetCov(5)) << std::endl);
+      LogDebug("Next cluster is at (x,y,z) = (" << nextCluster_x << "," << nextCluster_y << "," << nextCluster_z << ")" << std::endl);
+      LogDebug("Cluster errors: (" << nextCluster_xerr << ", " << nextCluster_yerr << ", " << nextCluster_zerr << ")" << std::endl);
+      LogDebug("track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << std::endl);
       //double nextCluster_alice_y = (nextCluster_x/cos(newPhi) - nextCluster_y/sin(newPhi))/(tan(newPhi)+1./tan(newPhi));
       //double nextCluster_alice_y = 0.;
       double nextCluster_alice_y = -nextCluster_x*sin(newPhi)+nextCluster_y*cos(newPhi);
-      LogDebug("next cluster ALICE y = " << nextCluster_alice_y << endl);
-      double y2_error = getClusterError(nextCluster,0,0)*sin(newPhi)*sin(newPhi)+2*getClusterError(nextCluster,0,1)*cos(newPhi)*sin(newPhi)+getClusterError(nextCluster,1,1)*cos(newPhi)*cos(newPhi);
-      double z2_error = getClusterError(nextCluster,2,2);
-      LogDebug("track ALICE SinPhi = " << trackSeed.GetSinPhi() << endl);
-      LogDebug("track DzDs = " << trackSeed.GetDzDs() << endl);
-      LogDebug("chi2 = " << trackSeed.GetChi2() << endl);
-      LogDebug("NDF = " << trackSeed.GetNDF() << endl);
-      LogDebug("chi2 / NDF = " << trackSeed.GetChi2()/trackSeed.GetNDF() << endl);
+      LogDebug("next cluster ALICE y = " << nextCluster_alice_y << std::endl);
+      double y2_error = getClusterError(nextCluster,nextpos,0,0)*sin(newPhi)*sin(newPhi)+2*getClusterError(nextCluster,nextpos,0,1)*cos(newPhi)*sin(newPhi)+getClusterError(nextCluster,nextpos,1,1)*cos(newPhi)*cos(newPhi);
+      double z2_error = getClusterError(nextCluster,nextpos,2,2);
+      LogDebug("track ALICE SinPhi = " << trackSeed.GetSinPhi() << std::endl);
+      LogDebug("track DzDs = " << trackSeed.GetDzDs() << std::endl);
+      LogDebug("chi2 = " << trackSeed.GetChi2() << std::endl);
+      LogDebug("NDF = " << trackSeed.GetNDF() << std::endl);
+      LogDebug("chi2 / NDF = " << trackSeed.GetChi2()/trackSeed.GetNDF() << std::endl);
+  
       // Apply Kalman filter
       if(!trackSeed.Filter(nextCluster_alice_y,nextCluster_z,y2_error,z2_error,_max_sin_phi))
       {
-	LogError("Kalman filter failed for seed " << nseeds << "! Aborting for this seed..." << endl);
+	LogError("Kalman filter failed for seed " << nseeds << "! Aborting for this seed..." << std::endl);
 //        aborted = true;
         break;
       }
@@ -250,9 +296,9 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
       double track_pz = -track_pt*trackSeed.GetDzDs();
       double track_pterr = sqrt(trackSeed.GetErr2QPt())/(trackSeed.GetQPt()*trackSeed.GetQPt());
       #endif
-      LogDebug("track pt = " << track_pt << " +- " << track_pterr << endl);
-      LogDebug("track ALICE p = (" << track_pX << ", " << track_pY << ", " << track_pz << ")" << endl);
-      LogDebug("track p = (" << track_px << ", " << track_py << ", " << track_pz << ")" << endl);
+      LogDebug("track pt = " << track_pt << " +- " << track_pterr << std::endl);
+      LogDebug("track ALICE p = (" << track_pX << ", " << track_pY << ", " << track_pz << ")" << std::endl);
+      LogDebug("track p = (" << track_px << ", " << track_py << ", " << track_pz << ")" << std::endl);
       x = nextCluster_x;
       y = nextCluster_y;
       #if defined(_DEBUG_)
@@ -260,9 +306,15 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
       alice_x = nextAlice_x;
       #endif
       ++cluster_ctr;
+  
       //if(cluster_ctr>10)
       {
-        cx.push_back(nextCluster_x);
+    
+	float nextclusrad = std::sqrt(nextCluster_x*nextCluster_x +
+				      nextCluster_y*nextCluster_y);
+	float nextclusphierr = nextCluster->getRPhiError() / nextclusrad;
+
+	cx.push_back(nextCluster_x);
         cy.push_back(nextCluster_y);
         cz.push_back(nextCluster_z);
         tx.push_back(trackCartesian_x);
@@ -272,15 +324,11 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
         yerr.push_back(nextCluster_yerr);
         zerr.push_back(nextCluster_zerr);
         layer.push_back(TrkrDefs::getLayer(*clusterkey));
-        xsize.push_back(sqrt(nextCluster->getSize(0,0)));
-        ysize.push_back(sqrt(nextCluster->getSize(1,1)));
-        phisize.push_back(nextCluster->getPhiSize());
-        phierr.push_back(nextCluster->getPhiError());
-        zsize.push_back(nextCluster->getZSize());
+        phierr.push_back(nextclusphierr);     
       }
     }
 //    if(aborted) continue;
-    if(Verbosity()>0) cout << "finished track\n";
+    if(Verbosity()>0) std::cout << "finished track\n";
 /*
     // transport to beamline
 //    float old_phi = atan2(y,x);
@@ -303,7 +351,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
 //      old_phi = new_phi;
     }
     if(aborted) continue;
-    cout << "transported to beamline\n";
+    std::cout << "transported to beamline\n";
     // find nearest vertex
     double beamline_X = trackSeed.GetX();
     double beamline_Y = trackSeed.GetY();
@@ -327,12 +375,12 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
         best_vtx = i;
       }
     }
-    cout << "best vtx:\n";
-    cout << "("<<_vertex_x[best_vtx]<<","<<_vertex_y[best_vtx]<<","<<_vertex_z[best_vtx]<<")\n";
+    std::cout << "best vtx:\n";
+    std::cout << "("<<_vertex_x[best_vtx]<<","<<_vertex_y[best_vtx]<<","<<_vertex_z[best_vtx]<<")\n";
     // Fit to vertex point
     double vertex_phi = atan2(_vertex_y[best_vtx],_vertex_x[best_vtx]);
-    cout << "vertex_phi: " << vertex_phi << "\n";
-    cout << "track_phi: " << track_phi << "\n";
+    std::cout << "vertex_phi: " << vertex_phi << "\n";
+    std::cout << "track_phi: " << track_phi << "\n";
 //    double alpha = vertex_phi - track_phi;
     // Here's where we need to be careful about the vertex position.
     // Most clusters are at roughly the same spatial phi, with only a little rotation required between them.
@@ -352,8 +400,8 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
       while(alpha>M_PI/4) alpha -= M_PI/2;
       crosses_origin = true;
     }
-    if(crosses_origin) cout << "bad\n";
-    cout << "alpha: " << alpha << "\n";
+    if(crosses_origin) std::cout << "bad\n";
+    std::cout << "alpha: " << alpha << "\n";
 
     if(!trackSeed.Rotate(alpha,trackLine,_max_sin_phi))
     {
@@ -362,7 +410,7 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
       continue;
     }
     LogDebug("ALICE coordinates after rotation: (" << trackSeed.GetX() << ", " << trackSeed.GetY() << ", " << trackSeed.GetZ() << ")\n");
-    cout << "rotated to vertex\n";
+    std::cout << "rotated to vertex\n";
 
     double vertex_X = sqrt(_vertex_x[best_vtx]*_vertex_x[best_vtx]+_vertex_y[best_vtx]*_vertex_y[best_vtx]);
     if(crosses_origin) vertex_X = -vertex_X;
@@ -372,20 +420,20 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
       aborted = true;
       continue;
     }
-    LogDebug("Track transported to (x,y,z) = (" << trackSeed.GetX()*cos(vertex_phi)-trackSeed.GetY()*sin(vertex_phi) << "," << trackSeed.GetX()*sin(vertex_phi)+trackSeed.GetY()*cos(vertex_phi) << "," << trackSeed.GetZ() << ")" << endl);
-    LogDebug("Next cluster is at (x,y,z) = (" << _vertex_x[best_vtx] << "," << _vertex_y[best_vtx] << "," << _vertex_z[best_vtx] << ")" << endl);
+    LogDebug("Track transported to (x,y,z) = (" << trackSeed.GetX()*cos(vertex_phi)-trackSeed.GetY()*sin(vertex_phi) << "," << trackSeed.GetX()*sin(vertex_phi)+trackSeed.GetY()*cos(vertex_phi) << "," << trackSeed.GetZ() << ")" << std::endl);
+    LogDebug("Next cluster is at (x,y,z) = (" << _vertex_x[best_vtx] << "," << _vertex_y[best_vtx] << "," << _vertex_z[best_vtx] << ")" << std::endl);
 
     double vertex_Y = -_vertex_x[best_vtx]*sin(vertex_phi)+_vertex_y[best_vtx]*cos(vertex_phi);
-    cout << "vertex Y: " << vertex_Y << "\n";
-    cout << "transported to vertex\n";
+    std::cout << "vertex Y: " << vertex_Y << "\n";
+    std::cout << "transported to vertex\n";
     double vertex_Yerr = -_vertex_xerr[best_vtx]*sin(vertex_phi)+_vertex_yerr[best_vtx]*cos(vertex_phi);
-    cout << "vertex Y err: " << vertex_Yerr << "\n";
+    std::cout << "vertex Y err: " << vertex_Yerr << "\n";
 
     if(!trackSeed.Filter(vertex_Y,_vertex_z[best_vtx],vertex_Yerr*vertex_Yerr,_vertex_zerr[best_vtx]*_vertex_zerr[best_vtx],_max_sin_phi))
     {
-      cout << "filter failed\n";
+      std::cout << "filter failed\n";
       if (Verbosity() >= 1)
-        LogError("Kalman filter failed for seed " << nseeds << "! Aborting for this seed..." << endl);
+        LogError("Kalman filter failed for seed " << nseeds << "! Aborting for this seed..." << std::endl);
       aborted = true;
       continue;
     }
@@ -400,15 +448,15 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     #endif
     double track_pterr = sqrt(trackSeed.GetErr2QPt())/(trackSeed.GetQPt()*trackSeed.GetQPt());
     // If Kalman filter doesn't do its job (happens often with short seeds), use the circle-fit estimate as the central value
-    if(trackKeyChain->size()<10) track_pt = fabs(1./init_QPt);
-    LogDebug("track pt = " << track_pt << " +- " << track_pterr << endl);
-    LogDebug("track ALICE p = (" << track_pX << ", " << track_pY << ", " << track_pz << ")" << endl);
-    LogDebug("track p = (" << track_px << ", " << track_py << ", " << track_pz << ")" << endl);
+    if(trackKeyChain.size()<10) track_pt = fabs(1./init_QPt);
+    LogDebug("track pt = " << track_pt << " +- " << track_pterr << std::endl);
+    LogDebug("track ALICE p = (" << track_pX << ", " << track_pY << ", " << track_pz << ")" << std::endl);
+    LogDebug("track p = (" << track_px << ", " << track_py << ", " << track_pz << ")" << std::endl);
 
 /*    
     if(cluster_ctr!=1 && !trackSeed.CheckNumericalQuality())
     {
-      cout << "ERROR: Track seed failed numerical quality check before conversion to sPHENIX coordinates! Skipping this one.\n";
+      std::cout << "ERROR: Track seed failed numerical quality check before conversion to sPHENIX coordinates! Skipping this one.\n";
       aborted = true;
       continue;
     } 
@@ -421,20 +469,23 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     if(checknan(track_pt,"pT",nseeds)) continue;
 //    double track_pterr = sqrt(trackSeed.GetErr2QPt())/(trackSeed.GetQPt()*trackSeed.GetQPt());
     if(checknan(track_pterr,"pT err",nseeds)) continue;
-    LogDebug("Track pterr = " << track_pterr << endl);
+    LogDebug("Track pterr = " << track_pterr << std::endl);
     double track_x = trackSeed.GetX()*cos(track_phi)-trackSeed.GetY()*sin(track_phi);
     double track_y = trackSeed.GetX()*sin(track_phi)+trackSeed.GetY()*cos(track_phi);
     double track_z = trackSeed.GetZ();
     if(checknan(track_z,"z",nseeds)) continue;
     double track_zerr = sqrt(trackSeed.GetErr2Z());
     if(checknan(track_zerr,"zerr",nseeds)) continue;
-    double last_cluster_phierr = _cluster_map->findCluster(trackKeyChain->back())->getPhiError();
+    auto lcluster = _cluster_map->findCluster(trackKeyChain.back());
+    const auto& lclusterglob = globalPositions.at(trackKeyChain.back());
+    const float lclusterrad = sqrt(lclusterglob(0)*lclusterglob(0) + lclusterglob(1)*lclusterglob(1));
+    double last_cluster_phierr = lcluster->getRPhiError() / lclusterrad;
     // phi error assuming error in track radial coordinate is zero
     double track_phierr = sqrt(pow(last_cluster_phierr,2)+(pow(trackSeed.GetX(),2)*trackSeed.GetErr2Y()) / 
       pow(pow(trackSeed.GetX(),2)+pow(trackSeed.GetY(),2),2));
     if(checknan(track_phierr,"phierr",nseeds)) continue;
-    LogDebug("Track phi = " << atan2(track_py,track_px) << endl);
-    LogDebug("Track phierr = " << track_phierr << endl);
+    LogDebug("Track phi = " << atan2(track_py,track_px) << std::endl);
+    LogDebug("Track phierr = " << track_phierr << std::endl);
     double track_curvature = trackSeed.GetKappa(_Bzconst*get_Bz(track_x,track_y,track_z));
     if(checknan(track_curvature,"curvature",nseeds)) continue;
     double track_curverr = sqrt(trackSeed.GetErr2QPt())*_Bzconst*get_Bz(track_x,track_y,track_z);
@@ -442,9 +493,9 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     SvtxTrack_v2 track;
     track.set_id(nseeds);
 //    track.set_vertex_id(_vertex_ids[best_vtx]);
-    for (unsigned int j = 0; j < trackKeyChain->size(); ++j)
+    for (unsigned int j = 0; j < trackKeyChain.size(); ++j)
     {
-      track.insert_cluster_key(trackKeyChain->at(j));
+      track.insert_cluster_key(trackKeyChain.at(j));
     }
     track.set_chisq(trackSeed.GetChi2());
     track.set_ndf(trackSeed.GetNDF());
@@ -455,13 +506,13 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
     double s = sin(track_phi);
     double c = cos(track_phi);
     double p = trackSeed.GetSinPhi();
-    // TrkrCluster *cl = _cluster_map->findCluster(trackKeyChain->at(0));
+    // TrkrCluster *cl = _cluster_map->findCluster(trackKeyChain.at(0));
     track.set_x(trackSeed.GetX()*c-trackSeed.GetY()*s);//_vertex_x[best_vtx]);  //track.set_x(cl->getX());
     track.set_y(trackSeed.GetX()*s+trackSeed.GetY()*c);//_vertex_y[best_vtx]);  //track.set_y(cl->getY());
     track.set_z(trackSeed.GetZ());//_vertex_z[best_vtx]);  //track.set_z(cl->getZ());
-    if(Verbosity()>0) cout << "x " << track.get_x() << "\n";
-    if(Verbosity()>0) cout << "y " << track.get_y() << "\n";
-    if(Verbosity()>0) cout << "z " << track.get_z() << "\n";
+    if(Verbosity()>0) std::cout << "x " << track.get_x() << "\n";
+    if(Verbosity()>0) std::cout << "y " << track.get_y() << "\n";
+    if(Verbosity()>0) std::cout << "z " << track.get_z() << "\n";
     if(checknan(p,"ALICE sinPhi",nseeds)) continue;
     double d = trackSeed.GetDzDs();
     if(checknan(d,"ALICE dz/ds",nseeds)) continue;
@@ -650,11 +701,11 @@ vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(vector<keylist> trackSeedKeyList
 //  f->cd();
 //  ntp->Write();
 //  f->Close();
-  if(Verbosity()>0) cout << "number of seeds: " << nseeds << "\n";
+  if(Verbosity()>0) std::cout << "number of seeds: " << nseeds << "\n";
   return seeds_vector;
 }
 
-Eigen::Matrix<double,6,6> ALICEKF::getEigenCov(SvtxTrack_v2 &track)
+Eigen::Matrix<double,6,6> ALICEKF::getEigenCov(const SvtxTrack_v2 &track) const
 {
   Eigen::Matrix<double,6,6> cov;
   for(int i=0;i<6;i++)
@@ -667,7 +718,7 @@ Eigen::Matrix<double,6,6> ALICEKF::getEigenCov(SvtxTrack_v2 &track)
   return cov;
 }
 
-bool ALICEKF::covIsPosDef(SvtxTrack_v2 &track)
+bool ALICEKF::covIsPosDef(const SvtxTrack_v2 &track) const
 {
   // put covariance matrix into Eigen container
   Eigen::Matrix<double,6,6> cov = getEigenCov(track);
@@ -677,7 +728,7 @@ bool ALICEKF::covIsPosDef(SvtxTrack_v2 &track)
   return (chDec.info() != Eigen::NumericalIssue);
 }
 
-void ALICEKF::repairCovariance(SvtxTrack_v2 &track)
+void ALICEKF::repairCovariance(SvtxTrack_v2 &track) const
 {
   // find closest positive definite matrix
   Eigen::Matrix<double,6,6> cov = getEigenCov(track);
@@ -695,7 +746,7 @@ void ALICEKF::repairCovariance(SvtxTrack_v2 &track)
     }
   }
 }
-void ALICEKF::CircleFitByTaubin (std::vector<std::pair<double,double>> points, double &R, double &X0, double &Y0)
+void ALICEKF::CircleFitByTaubin (const std::vector<std::pair<double,double>>& points, double &R, double &X0, double &Y0) const
 /*  
       Circle fit to a given set of data points (in 2D)
       This is an algebraic fit, due to Taubin, based on the journal article
@@ -716,10 +767,10 @@ void ALICEKF::CircleFitByTaubin (std::vector<std::pair<double,double>> points, d
   double meanX = 0;
   double meanY = 0;
   double weight = 0;
-  for(unsigned int i = 0; i < points.size(); ++i)
+    for( const auto& point:points )
     {
-      meanX += points[i].first;
-      meanY += points[i].second;
+      meanX += point.first;
+      meanY += point.second;
       weight++;
     }
   meanX /= weight;
@@ -728,11 +779,10 @@ void ALICEKF::CircleFitByTaubin (std::vector<std::pair<double,double>> points, d
   //     computing moments 
   
   Mxx=Myy=Mxy=Mxz=Myz=Mzz=0.;
-  
-  for (unsigned int i=0; i<points.size(); i++)
+    for( const auto& point:points )
     {
-      double Xi = points[i].first - meanX;   //  centered x-coordinates
-      double Yi = points[i].second - meanY;   //  centered y-coordinates
+      double Xi = point.first - meanX;   //  centered x-coordinates
+      double Yi = point.second - meanY;   //  centered y-coordinates
       double Zi = Xi*Xi + Yi*Yi;
       
       Mxy += Xi*Yi;
@@ -769,7 +819,7 @@ void ALICEKF::CircleFitByTaubin (std::vector<std::pair<double,double>> points, d
     {
       double Dy = A1 + x*(A22 + A33*x);
       double xnew = x - y/Dy;
-      if ((xnew == x)||(!isfinite(xnew))) break;
+      if ((xnew == x)||(!std::isfinite(xnew))) break;
       double ynew = A0 + xnew*(A1 + xnew*(A2 + xnew*A3));
       if (fabs(ynew)>=fabs(y))  break;
       x = xnew;  y = ynew;
@@ -788,20 +838,20 @@ void ALICEKF::CircleFitByTaubin (std::vector<std::pair<double,double>> points, d
   R = sqrt(Xcenter*Xcenter + Ycenter*Ycenter + Mz);
 }
 
-void  ALICEKF::line_fit(std::vector<std::pair<double,double>> points, double &a, double &b)
+void  ALICEKF::line_fit(const std::vector<std::pair<double,double>>& points, double &a, double &b) const
 {
   // copied from: https://www.bragitoff.com
   // we want to fit z vs radius
   
-   double xsum=0,x2sum=0,ysum=0,xysum=0;                //variables for sums/sigma of xi,yi,xi^2,xiyi etc
-   for (unsigned int i=0; i<points.size(); ++i)
+    double xsum=0,x2sum=0,ysum=0,xysum=0;                //variables for sums/sigma of xi,yi,xi^2,xiyi etc
+    for( const auto& point:points )
     {
-      double r = points[i].first;
-      double z = points[i].second;
+      double r = point.first;
+      double z = point.second;
 
       xsum=xsum+r;                        //calculate sigma(xi)
       ysum=ysum+z;                        //calculate sigma(yi)
-      x2sum=x2sum+pow(r,2);                //calculate sigma(x^2i)
+      x2sum=x2sum+square(r);                //calculate sigma(x^2i)
       xysum=xysum+r*z;                    //calculate sigma(xi*yi)
     }
    a=(points.size()*xysum-xsum*ysum)/(points.size()*x2sum-xsum*xsum);            //calculate slope
@@ -820,56 +870,35 @@ void  ALICEKF::line_fit(std::vector<std::pair<double,double>> points, double &a,
     return;
 }   
 
-void  ALICEKF::line_fit_clusters(std::vector<TrkrCluster*> clusters, double &a, double &b)
-{
-  std::vector<std::pair<double,double>> points;
-  
-   for (unsigned int i=0; i<clusters.size(); ++i)
-     {
-       double z = clusters[i]->getZ();
-       double r = sqrt(pow(clusters[i]->getX(),2) + pow(clusters[i]->getY(), 2));
-
-       points.push_back(make_pair(r,z));
-     }
-
-   line_fit(points, a, b);
-
-    return;
-}
-
-std::vector<double> ALICEKF::GetCircleClusterResiduals(std::vector<std::pair<double,double>> points, double R, double X0, double Y0)
+std::vector<double> ALICEKF::GetCircleClusterResiduals(const std::vector<std::pair<double,double>>& points, double R, double X0, double Y0) const
 {
   std::vector<double> residues;
-  // calculate cluster residuals from the fitted circle
-  for(unsigned int i = 0; i < points.size(); ++i)
-    {
-      double x = points[i].first;
-      double y = points[i].second;
+  std::transform( points.begin(), points.end(), std::back_inserter( residues ), [R,X0,Y0]( const std::pair<double,double>& point )
+  {
+    double x = point.first;
+    double y = point.second;
 
-      // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
-      double dca = sqrt( (x - X0)*(x-X0) + (y-Y0)*(y-Y0) )  -  R;  
-      residues.push_back(dca);
-    }
+    // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
+    return std::sqrt( square(x-X0) + square(y-Y0) )  -  R;  
+  } );
   return residues;  
 }
 
-std::vector<double> ALICEKF::GetLineClusterResiduals(std::vector<std::pair<double,double>> points, double A, double B)
+std::vector<double> ALICEKF::GetLineClusterResiduals(const std::vector<std::pair<double,double>>& points, double A, double B) const
 {
   std::vector<double> residues;
   // calculate cluster residuals from the fitted circle
-  for(unsigned int i = 0; i < points.size(); ++i)
-    {
-      double r = points[i].first;
-      double z = points[i].second;
-
-      // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
-
-      double a = -A;
-      double b = 1.0;
-      double c = -B;
-      double dca = sqrt(pow(a*r+b*z+c, 2)) / sqrt(a*a+b*b);
-
-      residues.push_back(dca);
-    }
+  std::transform( points.begin(), points.end(), std::back_inserter( residues ), [A,B]( const std::pair<double,double>& point )
+  {
+    double r = point.first;
+    double z = point.second;
+    
+    // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
+    
+    double a = -A;
+    double b = 1.0;
+    double c = -B;
+    return std::abs(a*r+b*z+c)/sqrt(square(a)+square(b));
+  });
   return residues;  
 }

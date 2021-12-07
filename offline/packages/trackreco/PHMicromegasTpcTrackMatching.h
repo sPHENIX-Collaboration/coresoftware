@@ -3,12 +3,18 @@
 #ifndef PHMICROMEGASTPCTRACKMATCHING_H
 #define PHMICROMEGASTPCTRACKMATCHING_H
 
-#include <trackreco/PHTrackPropagating.h>
+#include <fun4all/SubsysReco.h>
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <array>
 #include <string>
 #include <vector>
 
+class TrkrClusterContainer;
+class TrkrClusterIterationMapv1;
+class SvtxTrackMap;
+class AssocInfoContainer;
 class PHCompositeNode;
 class PHG4CylinderGeomContainer;
 class SvtxTrack;
@@ -17,7 +23,7 @@ class TF1;
 class TH1;
 class TrkrHitSetContainer;
 
-class PHMicromegasTpcTrackMatching : public PHTrackPropagating
+class PHMicromegasTpcTrackMatching : public SubsysReco
 {
   
   public:
@@ -32,20 +38,30 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   void set_test_windows_printout(const bool test){_test_windows = test;}
   void set_sc_calib_mode(const bool mode){_sc_calib_mode = mode;}
   void set_collision_rate(const double rate){_collision_rate = rate;}
-
-  protected:
-  int Setup(PHCompositeNode* topNode) override;
-  int Process() override;
-  int End() override;
+  void SetIteration(int iter){_n_iteration = iter;}
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  
+  int InitRun(PHCompositeNode* topNode) override;
+  int process_event(PHCompositeNode*) override;
+  int End(PHCompositeNode*) override;
   
   private:
 
   //! load nodes relevant for the analysis
   int GetNodes(PHCompositeNode* topNode);
+
+  void copyMicromegasClustersToCorrectedMap( );
     
   //! number of layers in the micromegas
   static constexpr unsigned int _n_mm_layers = 2;
   
+  bool _use_truth_clusters = false;
+  TrkrClusterContainer *_cluster_map{nullptr};
+  TrkrClusterContainer *_corrected_cluster_map{nullptr};
+
+  SvtxTrackMap *_track_map{nullptr};
+  AssocInfoContainer *_assoc_container{nullptr};
+
   //! default rphi search window for each layer
   std::array<double,_n_mm_layers> _rphi_search_win = {0.25, 13.0}; 
 
@@ -73,6 +89,12 @@ class PHMicromegasTpcTrackMatching : public PHTrackPropagating
   
   //! micomegas geometry
   PHG4CylinderGeomContainer* _geomContainerMicromegas = nullptr;
+  TrkrClusterIterationMapv1* _iteration_map = nullptr;
+  int _n_iteration = 0;
+  std::string _track_map_name = "SvtxTrackMap";
+
+  ActsTrackingGeometry *_tGeometry = nullptr;
+  ActsSurfaceMaps *_surfmaps = nullptr;
 
   //! coarse SC correction function
   TF1 *fdrphi{nullptr};

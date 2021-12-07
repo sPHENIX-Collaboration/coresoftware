@@ -20,6 +20,7 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <g4gdml/PHG4GDMLConfig.hh>
 #include <g4gdml/PHG4GDMLUtility.hh>
@@ -35,10 +36,8 @@
 #include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>  // for G4Transform3D, G4RotateZ3D
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4Types.hh>              // for G4double
+#include <Geant4/G4Types.hh>  // for G4double
 #include <Geant4/G4UserLimits.hh>
-
-#include <boost/foreach.hpp>
 
 #include <cassert>
 #include <cstdlib>   // for exit
@@ -46,8 +45,6 @@
 #include <sstream>
 
 class PHG4CylinderGeom;
-
-using namespace std;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
@@ -59,21 +56,14 @@ PHG4SpacalDetector::PHG4SpacalDetector(PHG4Subsystem *subsys,
                                        bool init_geom)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4SpacalDisplayAction *>(subsys->GetDisplayAction()))
-  , cylinder_solid(nullptr)
-  , cylinder_logic(nullptr)
-  , cylinder_physi(nullptr)
-  , active(0)
-  , absorberactive(0)
   , layer(lyr)
-  , fiber_core_step_limits(nullptr)
-  , _geom(nullptr)
 {
   if (init_geom)
   {
     _geom = new SpacalGeom_t();
     if (_geom == nullptr)
     {
-      cout << "PHG4SpacalDetector::Constructor - Fatal Error - invalid geometry object!" << endl;
+      std::cout << "PHG4SpacalDetector::Constructor - Fatal Error - invalid geometry object!" << std::endl;
       gSystem->Exit(1);
       exit(1);
     }
@@ -98,7 +88,7 @@ PHG4SpacalDetector::~PHG4SpacalDetector(void)
 //_______________________________________________________________
 int PHG4SpacalDetector::IsInCylinderActive(const G4VPhysicalVolume *volume)
 {
-  //  cout << "checking detector" << endl;
+  //  std::cout << "checking detector" << std::endl;
   if (active && fiber_core_vol.find(volume) != fiber_core_vol.end())
   {
     //      return fiber_core_vol.find(volume)->second;
@@ -107,13 +97,19 @@ int PHG4SpacalDetector::IsInCylinderActive(const G4VPhysicalVolume *volume)
   if (absorberactive)
   {
     if (fiber_vol.find(volume) != fiber_vol.end())
+    {
       return FIBER_CLADING;
+    }
 
     if (block_vol.find(volume) != block_vol.end())
+    {
       return ABSORBER;
+    }
 
     if (calo_vol.find(volume) != calo_vol.end())
+    {
       return SUPPORT;
+    }
   }
   return INACTIVE;
 }
@@ -123,79 +119,85 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   assert(_geom);
 
-  fiber_core_step_limits = new G4UserLimits(
-      _geom->get_fiber_core_step_size() * cm);
+  fiber_core_step_limits = new G4UserLimits(_geom->get_fiber_core_step_size() * cm);
 
   Verbosity(_geom->get_construction_verbose());
 
   if ((Verbosity() > 0))
   {
-    cout << "PHG4SpacalDetector::Construct::" << GetName()
-         << " - Start. Print Geometry:" << endl;
+    std::cout << "PHG4SpacalDetector::Construct::" << GetName()
+              << " - Start. Print Geometry:" << std::endl;
     Print();
   }
 
   if ((_geom->get_zmin() * cm + _geom->get_zmax() * cm) / 2 != _geom->get_zpos() * cm)
   {
-    cout
-        << "PHG4SpacalDetector::Construct - ERROR - not yet support unsymmetric system. Let me know if you need it. - Jin"
-        << endl;
+    std::cout << "PHG4SpacalDetector::Construct - ERROR - not yet support unsymmetric system. Let me know if you need it. - Jin" << std::endl;
     _geom->Print();
     gSystem->Exit(-1);
   }
   if (_geom->get_zmin() * cm >= _geom->get_zmax() * cm)
   {
-    cout << "PHG4SpacalDetector::Construct - ERROR - zmin >= zmax!" << endl;
+    std::cout << "PHG4SpacalDetector::Construct - ERROR - zmin >= zmax!" << std::endl;
     _geom->Print();
     gSystem->Exit(-1);
   }
 
-  G4Tubs *_cylinder_solid = new G4Tubs(G4String(GetName()),
-                                       _geom->get_radius() * cm, _geom->get_max_radius() * cm,
-                                       _geom->get_length() * cm / 2.0, 0, twopi);
+  G4Tubs *cylinder_solid = new G4Tubs(G4String(GetName()),
+                                      _geom->get_radius() * cm, _geom->get_max_radius() * cm,
+                                      _geom->get_length() * cm / 2.0, 0, twopi);
 
-  cylinder_solid = _cylinder_solid;
-
-  G4Material *cylinder_mat = G4Material::GetMaterial("G4_AIR");
+  recoConsts *rc = recoConsts::instance();
+  G4Material *cylinder_mat = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   assert(cylinder_mat);
 
-  cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat,
-                                       G4String(GetName()), 0, 0, 0);
+  G4LogicalVolume *cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat, GetName(), 0, 0, 0);
   GetDisplayAction()->AddVolume(cylinder_logic, "SpacalCylinder");
-
-  cylinder_physi = new G4PVPlacement(0,
-                                     G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
-                                                   _geom->get_zpos() * cm),
-                                     cylinder_logic, G4String(GetName()),
-                                     logicWorld, false, 0, OverlapCheck());
-
+  if (!m_CosmicSetupFlag)
+  {
+    new G4PVPlacement(0, G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm, _geom->get_zpos() * cm),
+                      cylinder_logic, GetName(),
+                      logicWorld, false, 0, OverlapCheck());
+  }
   // install sectors
   if (_geom->get_sector_map().size() == 0)
+  {
     _geom->init_default_sector_map();
+  }
 
   if ((Verbosity() > 0))
   {
-    cout << "PHG4SpacalDetector::Construct::" << GetName()
-         << " - start constructing " << _geom->get_sector_map().size() << " sectors in total. " << endl;
+    std::cout << "PHG4SpacalDetector::Construct::" << GetName()
+              << " - start constructing " << _geom->get_sector_map().size() << " sectors in total. " << std::endl;
     Print();
   }
 
   std::pair<G4LogicalVolume *, G4Transform3D> psec = Construct_AzimuthalSeg();
   G4LogicalVolume *sec_logic = psec.first;
   const G4Transform3D &sec_trans = psec.second;
-  BOOST_FOREACH (const SpacalGeom_t::sector_map_t::value_type &val, _geom->get_sector_map())
+
+  for (const SpacalGeom_t::sector_map_t::value_type &val : _geom->get_sector_map())
   {
     const int sec = val.first;
     const double rot = val.second;
 
     G4Transform3D sec_place = G4RotateZ3D(rot) * sec_trans;
 
-    stringstream name;
+    std::ostringstream name;
     name << GetName() << "_sec" << sec;
-
-    G4PVPlacement *calo_phys = new G4PVPlacement(sec_place, sec_logic,
-                                                 G4String(name.str()), cylinder_logic, false, sec,
-                                                 OverlapCheck());
+    G4PVPlacement *calo_phys = nullptr;
+    if (m_CosmicSetupFlag)
+    {
+      calo_phys = new G4PVPlacement(0, G4ThreeVector(0, -(_geom->get_radius()) * cm, 0), sec_logic,
+                                    G4String(name.str()), logicWorld, false, sec,
+                                    OverlapCheck());
+    }
+    else
+    {
+      calo_phys = new G4PVPlacement(sec_place, sec_logic,
+                                    G4String(name.str()), cylinder_logic, false, sec,
+                                    OverlapCheck());
+    }
     calo_vol[calo_phys] = sec;
 
     assert(gdml_config);
@@ -205,7 +207,7 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   if (active)
   {
-    ostringstream geonode;
+    std::ostringstream geonode;
     if (superdetector != "NONE")
     {
       geonode << "CYLINDERGEOM_" << superdetector;
@@ -214,15 +216,12 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
     {
       geonode << "CYLINDERGEOM_" << detector_type << "_" << layer;
     }
-    PHG4CylinderGeomContainer *geo = findNode::getClass<
-        PHG4CylinderGeomContainer>(topNode(), geonode.str());
+    PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode.str());
     if (!geo)
     {
       geo = new PHG4CylinderGeomContainer();
       PHNodeIterator iter(topNode());
-      PHCompositeNode *runNode =
-          dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode",
-                                                         "RUN"));
+      PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo,
                                                                    geonode.str(), "PHObject");
       runNode->addNode(newNode);
@@ -236,7 +235,7 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   if (absorberactive)
   {
-    ostringstream geonode;
+    std::ostringstream geonode;
     if (superdetector != "NONE")
     {
       geonode << "CYLINDERGEOM_ABSORBER_" << superdetector;
@@ -245,15 +244,12 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
     {
       geonode << "CYLINDERGEOM_ABSORBER_" << detector_type << "_" << layer;
     }
-    PHG4CylinderGeomContainer *geo = findNode::getClass<
-        PHG4CylinderGeomContainer>(topNode(), geonode.str());
+    PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode.str());
     if (!geo)
     {
       geo = new PHG4CylinderGeomContainer();
       PHNodeIterator iter(topNode());
-      PHCompositeNode *runNode =
-          dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode",
-                                                         "RUN"));
+      PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo,
                                                                    geonode.str(), "PHObject");
       runNode->addNode(newNode);
@@ -267,8 +263,8 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   if ((Verbosity() > 0))
   {
-    cout << "PHG4SpacalDetector::Construct::" << GetName()
-         << " - Completed. Print Geometry:" << endl;
+    std::cout << "PHG4SpacalDetector::Construct::" << GetName()
+              << " - Completed. Print Geometry:" << std::endl;
     Print();
   }
 }
@@ -276,20 +272,20 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 std::pair<G4LogicalVolume *, G4Transform3D>
 PHG4SpacalDetector::Construct_AzimuthalSeg()
 {
-  G4Tubs *sec_solid = new G4Tubs(G4String(GetName() + string("_sec")),
+  G4Tubs *sec_solid = new G4Tubs(G4String(GetName() + std::string("_sec")),
                                  _geom->get_radius() * cm, _geom->get_max_radius() * cm,
                                  _geom->get_length() * cm / 2.0, 0, twopi / _geom->get_azimuthal_n_sec());
 
-  G4Material *cylinder_mat = G4Material::GetMaterial(_geom->get_absorber_mat());
+  G4Material *cylinder_mat = GetDetectorMaterial(_geom->get_absorber_mat());
   assert(cylinder_mat);
 
   G4LogicalVolume *sec_logic = new G4LogicalVolume(sec_solid, cylinder_mat,
-                                                   G4String(G4String(GetName() + string("_sec"))), 0, 0, nullptr);
+                                                   G4String(G4String(GetName() + std::string("_sec"))), 0, 0, nullptr);
 
   GetDisplayAction()->AddVolume(sec_logic, "AzimuthSegment");
 
   const double fiber_length = _geom->get_thickness() * cm - 2 * _geom->get_fiber_outer_r() * cm;
-  G4LogicalVolume *fiber_logic = Construct_Fiber(fiber_length, string(""));
+  G4LogicalVolume *fiber_logic = Construct_Fiber(fiber_length, std::string(""));
 
   int fiber_count = 0;
   //  double z_step = _geom->get_fiber_distance() * cm * sqrt(3) / 2.;
@@ -299,10 +295,9 @@ PHG4SpacalDetector::Construct_AzimuthalSeg()
   {
     const double rot = twopi / _geom->get_azimuthal_n_sec() * ((fiber_count % 2 == 0) ? 1. / 4. : 3. / 4.);
 
-    G4Transform3D fiber_place(
-        G4RotateZ3D(rot) * G4TranslateZ3D(z) * G4TranslateX3D(_geom->get_half_radius() * cm) * G4RotateY3D(halfpi));
+    G4Transform3D fiber_place(G4RotateZ3D(rot) * G4TranslateZ3D(z) * G4TranslateX3D(_geom->get_half_radius() * cm) * G4RotateY3D(halfpi));
 
-    stringstream name;
+    std::ostringstream name;
     name << GetName() << "_fiber_" << fiber_count;
 
     G4PVPlacement *fiber_physi = new G4PVPlacement(fiber_place, fiber_logic,
@@ -319,41 +314,40 @@ PHG4SpacalDetector::Construct_AzimuthalSeg()
 
   if (Verbosity() > 0)
   {
-    cout << "PHG4SpacalDetector::Construct_AzimuthalSeg::" << GetName()
-         << " - constructed " << fiber_count << " fibers" << endl;
-    cout << "\t"
-         << "_geom->get_fiber_distance() = " << _geom->get_fiber_distance()
-         << endl;
-    cout << "\t"
-         << "fiber_length = " << fiber_length / cm << endl;
-    cout << "\t"
-         << "z_step = " << z_step << endl;
-    cout << "\t"
-         << "_geom->get_azimuthal_bin() = " << _geom->get_azimuthal_n_sec()
-         << endl;
-    cout << "\t"
-         << "_geom->get_azimuthal_distance() = "
-         << _geom->get_azimuthal_distance() << endl;
-    cout << "\t"
-         << "_geom->is_virualize_fiber() = " << _geom->is_virualize_fiber()
-         << endl;
+    std::cout << "PHG4SpacalDetector::Construct_AzimuthalSeg::" << GetName()
+              << " - constructed " << fiber_count << " fibers" << std::endl;
+    std::cout << "\t"
+              << "_geom->get_fiber_distance() = " << _geom->get_fiber_distance()
+              << std::endl;
+    std::cout << "\t"
+              << "fiber_length = " << fiber_length / cm << std::endl;
+    std::cout << "\t"
+              << "z_step = " << z_step << std::endl;
+    std::cout << "\t"
+              << "_geom->get_azimuthal_bin() = " << _geom->get_azimuthal_n_sec()
+              << std::endl;
+    std::cout << "\t"
+              << "_geom->get_azimuthal_distance() = "
+              << _geom->get_azimuthal_distance() << std::endl;
+    std::cout << "\t"
+              << "_geom->is_virualize_fiber() = " << _geom->is_virualize_fiber()
+              << std::endl;
   }
 
-  return make_pair(sec_logic, G4Transform3D::Identity);
+  return std::make_pair(sec_logic, G4Transform3D::Identity);
 }
 
 G4LogicalVolume *
-PHG4SpacalDetector::Construct_Fiber(const G4double length, const string &id)
+PHG4SpacalDetector::Construct_Fiber(const G4double length, const std::string &id)
 {
-  G4Tubs *fiber_solid = new G4Tubs(G4String(GetName() + string("_fiber") + id),
+  G4Tubs *fiber_solid = new G4Tubs(G4String(GetName() + std::string("_fiber") + id),
                                    0, _geom->get_fiber_outer_r() * cm, length / 2.0, 0, twopi);
 
-  G4Material *clading_mat = G4Material::GetMaterial(
-      _geom->get_fiber_clading_mat());
+  G4Material *clading_mat = GetDetectorMaterial(_geom->get_fiber_clading_mat());
   assert(clading_mat);
 
   G4LogicalVolume *fiber_logic = new G4LogicalVolume(fiber_solid, clading_mat,
-                                                     G4String(G4String(GetName() + string("_fiber") + id)), 0, 0,
+                                                     G4String(G4String(GetName() + std::string("_fiber") + id)), 0, 0,
                                                      nullptr);
 
   {
@@ -361,14 +355,14 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const string &id)
   }
 
   G4Tubs *core_solid = new G4Tubs(
-      G4String(GetName() + string("_fiber_core") + id), 0,
+      G4String(GetName() + std::string("_fiber_core") + id), 0,
       _geom->get_fiber_core_diameter() * cm / 2, length / 2.0, 0, twopi);
 
-  G4Material *core_mat = G4Material::GetMaterial(_geom->get_fiber_core_mat());
+  G4Material *core_mat = GetDetectorMaterial(_geom->get_fiber_core_mat());
   assert(core_mat);
 
   G4LogicalVolume *core_logic = new G4LogicalVolume(core_solid, core_mat,
-                                                    G4String(G4String(GetName() + string("_fiber_core") + id)), 0, 0,
+                                                    G4String(G4String(GetName() + std::string("_fiber_core") + id)), 0, 0,
                                                     fiber_core_step_limits);
 
   {
@@ -377,17 +371,16 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const string &id)
 
   const bool overlapcheck_fiber = OverlapCheck() and (Verbosity() >= 3);
   G4PVPlacement *core_physi = new G4PVPlacement(0, G4ThreeVector(), core_logic,
-                                                G4String(G4String(GetName() + string("_fiber_core") + id)), fiber_logic,
+                                                G4String(G4String(GetName() + std::string("_fiber_core") + id)), fiber_logic,
                                                 false, 0, overlapcheck_fiber);
   fiber_core_vol[core_physi] = 0;
 
   return fiber_logic;
 }
 
-void PHG4SpacalDetector::Print(const std::string &/*what*/) const
+void PHG4SpacalDetector::Print(const std::string & /*what*/) const
 {
-  cout << "PHG4SpacalDetector::Print::" << GetName() << " - Print Geometry:"
-       << endl;
+  std::cout << "PHG4SpacalDetector::Print::" << GetName() << " - Print Geometry:" << std::endl;
   _geom->Print();
 
   return;

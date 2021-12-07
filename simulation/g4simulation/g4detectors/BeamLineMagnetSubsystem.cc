@@ -23,14 +23,9 @@
 
 class PHG4Detector;
 
-using namespace std;
-
 //_______________________________________________________________________
 BeamLineMagnetSubsystem::BeamLineMagnetSubsystem(const std::string &na, const int lyr)
   : PHG4DetectorSubsystem(na, lyr)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
 {
   InitializeParameters();
 }
@@ -46,8 +41,6 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-
   // create display settings before detector
   BeamLineMagnetDisplayAction *displayaction = new BeamLineMagnetDisplayAction(Name());
   m_DisplayAction = displayaction;
@@ -56,57 +49,35 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->Verbosity(Verbosity());
-  set<string> nodes;
+  std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode(SuperDetector());
-      dstNode->addNode(DetNode);
-    }
-
-    ostringstream nodename;
-    if (SuperDetector() != "NONE")
+    PHCompositeNode *DetNode = dstNode;
+    if (SuperDetector() != "NONE" || SuperDetector().empty())
     {
       // create super detector subnodes
       PHNodeIterator iter_dst(dstNode);
-      PHCompositeNode *superSubNode = dynamic_cast<PHCompositeNode *>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
-      if (!superSubNode)
+      DetNode = dynamic_cast<PHCompositeNode *>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+      if (!DetNode)
       {
-        superSubNode = new PHCompositeNode(SuperDetector());
-        dstNode->addNode(superSubNode);
+        DetNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(DetNode);
       }
-      dstNode = superSubNode;
-      PHNodeIterator iter_run(runNode);
-      superSubNode = dynamic_cast<PHCompositeNode *>(iter_run.findFirst("PHCompositeNode", SuperDetector()));
-      if (!superSubNode)
-      {
-        superSubNode = new PHCompositeNode(SuperDetector());
-        runNode->addNode(superSubNode);
-      }
-      runNode = superSubNode;
-
-      nodename << "G4HIT_" << SuperDetector();
     }
-    else
+    // create hit output nodes
+    std::string detector_suffix = SuperDetector();
+    if (detector_suffix == "NONE")
     {
-      nodename << "G4HIT_" << Name();
+      detector_suffix = Name();
     }
-    nodes.insert(nodename.str());
+
+    m_HitNodeName = "G4HIT_" + detector_suffix;
+    nodes.insert(m_HitNodeName);
+    m_AbsorberNodeName = "G4HIT_ABSORBER_" + detector_suffix;
     if (GetParams()->get_int_param("absorberactive"))
     {
-      nodename.str("");
-      if (SuperDetector() != "NONE")
-      {
-        nodename << "G4HIT_ABSORBER_" << SuperDetector();
-      }
-      else
-      {
-        nodename << "G4HIT_ABSORBER_" << Name();
-      }
-      nodes.insert(nodename.str());
+      nodes.insert(m_AbsorberNodeName);
     }
     for (auto node : nodes)
     {
@@ -117,14 +88,14 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
         DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node, "PHObject"));
       }
     }
-
     m_SteppingAction = new BeamLineMagnetSteppingAction(m_Detector, GetParams());
+    m_SteppingAction->SetHitNodeName("G4HIT",m_HitNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER",m_AbsorberNodeName);
   }
   else if (GetParams()->get_int_param("blackhole"))
   {
     m_SteppingAction = new BeamLineMagnetSteppingAction(m_Detector, GetParams());
   }
-
   return 0;
 }
 
@@ -155,36 +126,37 @@ void BeamLineMagnetSubsystem::SetDefaultParameters()
   set_default_double_param("field_z", 0.);
   set_default_double_param("fieldgradient", 0.);
 
-  set_default_double_param("field_global_position_x", 0.); // abs. position to world for field manager
-  set_default_double_param("field_global_position_y", 0.); // abs. position to world for field manager
-  set_default_double_param("field_global_position_z", 0.); // abs. position to world for field manager
-  set_default_double_param("field_global_rot_x", 0.); // abs. rotation to world for field manager
-  set_default_double_param("field_global_rot_y", 0.); // abs. rotation to world for field manager
-  set_default_double_param("field_global_rot_z", 0.); // abs. rotation to world for field manager
+  set_default_double_param("field_global_position_x", 0.);  // abs. position to world for field manager
+  set_default_double_param("field_global_position_y", 0.);  // abs. position to world for field manager
+  set_default_double_param("field_global_position_z", 0.);  // abs. position to world for field manager
+  set_default_double_param("field_global_rot_x", 0.);       // abs. rotation to world for field manager
+  set_default_double_param("field_global_rot_y", 0.);       // abs. rotation to world for field manager
+  set_default_double_param("field_global_rot_z", 0.);       // abs. rotation to world for field manager
 
   set_default_double_param("length", 100);
-  set_default_double_param("place_x", 0.); // relative position to mother vol.
-  set_default_double_param("place_y", 0.); // relative position to mother vol.
-  set_default_double_param("place_z", 0.); // relative position to mother vol.
+  set_default_double_param("place_x", 0.);  // relative position to mother vol.
+  set_default_double_param("place_y", 0.);  // relative position to mother vol.
+  set_default_double_param("place_z", 0.);  // relative position to mother vol.
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
   set_default_double_param("inner_radius", 4);
   set_default_double_param("outer_radius", 100);
+  set_default_double_param("skin_thickness",0.); // Fe thickness before tracks are terminated
 }
 
-void BeamLineMagnetSubsystem::Print(const string &/*what*/) const
+void BeamLineMagnetSubsystem::Print(const std::string & /*what*/) const
 {
-  cout << Name() << " Parameters: " << endl;
+  std::cout << Name() << " Parameters: " << std::endl;
   if (!BeginRunExecuted())
   {
-    cout << "Need to execute BeginRun() before parameter printout is meaningful" << endl;
-    cout << "To do so either run one or more events or on the command line execute: " << endl;
-    cout << "Fun4AllServer *se = Fun4AllServer::instance();" << endl;
-    cout << "PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");" << endl;
-    cout << "g4->InitRun(se->topNode());" << endl;
-    cout << "BeamLineMagnetSubsystem *cyl = (PHG4BeamLineMagnetSubsystem *) g4->getSubsystem(\"" << Name() << "\");" << endl;
-    cout << "cyl->Print()" << endl;
+    std::cout << "Need to execute BeginRun() before parameter printout is meaningful" << std::endl;
+    std::cout << "To do so either run one or more events or on the command line execute: " << std::endl;
+    std::cout << "Fun4AllServer *se = Fun4AllServer::instance();" << std::endl;
+    std::cout << "PHG4Reco *g4 = (PHG4Reco *) se->getSubsysReco(\"PHG4RECO\");" << std::endl;
+    std::cout << "g4->InitRun(se->topNode());" << std::endl;
+    std::cout << "BeamLineMagnetSubsystem *cyl = (PHG4BeamLineMagnetSubsystem *) g4->getSubsystem(\"" << Name() << "\");" << std::endl;
+    std::cout << "cyl->Print()" << std::endl;
     return;
   }
   GetParams()->Print();

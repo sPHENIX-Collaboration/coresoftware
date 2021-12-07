@@ -18,48 +18,46 @@ class PHG4ZDCSubsystem : public PHG4DetectorSubsystem
  public:
   /** Constructor
    */
-  PHG4ZDCSubsystem(const std::string& name = "ZDC_DEFAULT", const int layer = 0);
+  explicit PHG4ZDCSubsystem(const std::string& name, const int layer);
 
   /** Destructor
    */
-  virtual ~PHG4ZDCSubsystem();
+  ~PHG4ZDCSubsystem() override;
 
   /**
-     Creates the m_Detector object and place it on the node tree, under "DETECTORS" node (or whatever)
-     Creates the stepping action and place it on the node tree, under "ACTIONS" node
      Creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitRunSubsystem(PHCompositeNode*);
+  int InitRunSubsystem(PHCompositeNode*) override;
 
   /** Event processing
    */
-  int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   /** Accessors (reimplemented)
    */
-  PHG4Detector* GetDetector() const;
-  PHG4SteppingAction* GetSteppingAction() const { return m_SteppingAction; }
+  PHG4Detector* GetDetector() const override;
+  PHG4SteppingAction* GetSteppingAction() const  override { return m_SteppingAction; }
 
-  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
-
-  
+  PHG4DisplayAction* GetDisplayAction() const  override { return m_DisplayAction; }
 
  private:
-  void SetDefaultParameters();
+  void SetDefaultParameters() override;
 
   /** Pointer to the Geant4 implementation of the detector
    */
-  PHG4ZDCDetector* m_Detector;
+  PHG4ZDCDetector* m_Detector = nullptr;
 
   /** Stepping action
    */
-  PHG4SteppingAction* m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction;
+  PHG4DisplayAction* m_DisplayAction = nullptr;
 
-  
+  std::string m_HitNodeName;
+  std::string m_AbsorberNodeName;
+  std::string m_SupportNodeName;
 };
 
 #endif

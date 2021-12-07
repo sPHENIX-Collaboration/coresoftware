@@ -13,7 +13,6 @@
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Mag_UsualEqRhs.hh>
 #include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4QuadrupoleMagField.hh>
@@ -32,6 +31,7 @@
 #include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, basic_ostream
 
+class G4Material;
 class G4VSolid;
 class PHCompositeNode;
 class PHG4Subsystem;
@@ -61,13 +61,7 @@ bool PHG4BeamlineMagnetDetector::IsInBeamlineMagnet(const G4VPhysicalVolume *vol
 //_______________________________________________________________
 void PHG4BeamlineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
 {
-  G4Material *TrackerMaterial = G4Material::GetMaterial(params->get_string_param("material"));
-
-  if (!TrackerMaterial)
-  {
-    std::cout << "Error: Can not set material" << std::endl;
-    exit(-1);
-  }
+  G4Material *TrackerMaterial = GetDetectorMaterial(params->get_string_param("material"));
 
   G4VisAttributes *fieldVis = new G4VisAttributes();
   PHG4Utils::SetColour(fieldVis, "BlackHole");
@@ -155,7 +149,7 @@ void PHG4BeamlineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                       params->get_double_param("length") * cm / 2., 0, twopi);
 
   G4LogicalVolume *magnet_logic = new G4LogicalVolume(magnet_solid,
-                                                      G4Material::GetMaterial("G4_Galactic"),
+                                                      GetDetectorMaterial("G4_Galactic"),
                                                       GetName(),
                                                       0, 0, 0);
   magnet_logic->SetVisAttributes(fieldVis);

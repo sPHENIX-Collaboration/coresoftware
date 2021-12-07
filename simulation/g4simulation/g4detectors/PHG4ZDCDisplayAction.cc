@@ -27,7 +27,7 @@ PHG4ZDCDisplayAction::~PHG4ZDCDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4ZDCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4ZDCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
   for (auto it : m_LogicalVolumeMap)
@@ -45,9 +45,8 @@ void PHG4ZDCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     {
       visatt->SetColour(G4Colour::Blue());
     }
-    else if (it.second == "Envelope")
+    else if (it.second == "Envelope" || it.second == "fiber_plate_air")
     {
-      visatt->SetColour(G4Colour::Magenta());
       visatt->SetVisibility(false);
       visatt->SetForceSolid(false);
     }
@@ -59,13 +58,25 @@ void PHG4ZDCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     {
       visatt->SetColour(G4Colour::Red());
     }
+    else if (it.second == "Window")
+    {
+      visatt->SetColour(G4Colour::Blue());
+    }
+    else if (it.second == "SMD")
+    {
+      visatt->SetColour(G4Colour::Yellow());
+    }
     else if (it.second == "FiberPlate")
+    {
+      visatt->SetColour(G4Colour::Cyan());
+    }
+    else if (it.second == "Scint_solid")
     {
       visatt->SetColour(G4Colour::Cyan());
     }
     else
     {
-      cout << "unknown logical volume " << it.second << endl;
+      cout << GetName() << " unknown logical volume " << it.second << endl;
       gSystem->Exit(1);
     }
     logvol->SetVisAttributes(visatt);

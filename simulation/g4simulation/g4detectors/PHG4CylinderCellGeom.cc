@@ -2,25 +2,7 @@
 #include "PHG4CylinderCellDefs.h"
 
 #include <phool/phool.h>
-#include <cmath>
 #include <cstdlib>
-
-using namespace std;
-
-PHG4CylinderCellGeom::PHG4CylinderCellGeom():
-  layer(-9999),
-  binning(0),
-  radius(NAN),
-  nzbins(-1),
-  zmin(NAN),
-  zstep(NAN),
-  nphibins(-1),
-  phimin(-M_PI),
-  phistep(NAN),
-  thickness(NAN)
-{
-  return;
-}
 
 void
 PHG4CylinderCellGeom::set_zbins(const int i)
@@ -174,59 +156,59 @@ PHG4CylinderCellGeom::identify(std::ostream& os) const
       os << ", etabins: " << nzbins<<" for Spacal";
       break;
     default:
-      os << "no valid binning method: " << binning << endl;
+      os << "no valid binning method: " << binning << std::endl;
       return;
       break;
     }
   os << ", phimin: " << phimin
      << ", phibins: " << nphibins
      << ", phistep: " << phistep
-     << endl;
+     << std::endl;
   return;
 }
 
-pair<double, double>
+std::pair<double, double>
 PHG4CylinderCellGeom::get_zbounds(const int ibin) const
 {
   if (ibin < 0 || ibin > nzbins)
     {
-      cout << PHWHERE << " Asking for invalid bin in z: " << ibin << endl;
+      std::cout << PHWHERE << " Asking for invalid bin in z: " << ibin << std::endl;
       exit(1);
     }
   check_binning_method(PHG4CylinderCellDefs::sizebinning);
   double zlow = zmin + ibin * zstep;
   double zhigh = zlow + zstep;
-  return make_pair(zlow, zhigh);
+  return std::make_pair(zlow, zhigh);
 }
 
-pair<double, double>
+std::pair<double, double>
 PHG4CylinderCellGeom::get_etabounds(const int ibin) const
 {
   if (ibin < 0 || ibin > nzbins)
     {
-      cout << PHWHERE << " Asking for invalid bin in z: " << ibin << endl;
+      std::cout << PHWHERE << " Asking for invalid bin in z: " << ibin << std::endl;
       exit(1);
     }
   check_binning_method_eta("PHG4CylinderCellGeom::get_etabounds");
 //  check_binning_method(PHG4CylinderCellDefs::etaphibinning);
   double zlow = zmin + ibin * zstep;
   double zhigh = zlow + zstep;
-  return make_pair(zlow, zhigh);
+  return std::make_pair(zlow, zhigh);
 }
 
 
-pair<double, double>
+std::pair<double, double>
 PHG4CylinderCellGeom::get_phibounds(const int ibin) const
 {
   if (ibin < 0 || ibin > nphibins)
     {
-      cout << PHWHERE << "Asking for invalid bin in phi: " << ibin << endl;
+      std::cout << PHWHERE << "Asking for invalid bin in phi: " << ibin << std::endl;
       exit(1);
     }
 
   double philow = phimin + ibin * phistep;
   double phihigh = philow + phistep;
-  return make_pair(philow, phihigh);
+  return std::make_pair(philow, phihigh);
 }
 
 int
@@ -272,7 +254,7 @@ PHG4CylinderCellGeom::get_zcenter(const int ibin) const
 {
   if (ibin < 0 || ibin > nzbins)
     {
-      cout << PHWHERE << "Asking for invalid bin in z: " << ibin << endl;
+      std::cout << PHWHERE << "Asking for invalid bin in z: " << ibin << std::endl;
       exit(1);
     }
   check_binning_method(PHG4CylinderCellDefs::sizebinning);
@@ -284,8 +266,8 @@ PHG4CylinderCellGeom::get_etacenter(const int ibin) const
 {
   if (ibin < 0 || ibin > nzbins)
     {
-      cout << PHWHERE << "Asking for invalid bin in eta: " << ibin << endl;
-      cout << "minbin: 0, maxbin " << nzbins << endl; 
+      std::cout << PHWHERE << "Asking for invalid bin in eta: " << ibin << std::endl;
+      std::cout << "minbin: 0, maxbin " << nzbins << std::endl; 
       exit(1);
     }
   check_binning_method_eta();
@@ -297,7 +279,7 @@ PHG4CylinderCellGeom::get_phicenter(const int ibin) const
 {
   if (ibin < 0 || ibin > nphibins)
     {
-      cout << PHWHERE << "Asking for invalid bin in phi: " << ibin << endl;
+      std::cout << PHWHERE << "Asking for invalid bin in phi: " << ibin << std::endl;
       exit(1);
     }
 
@@ -305,7 +287,7 @@ PHG4CylinderCellGeom::get_phicenter(const int ibin) const
   return (phimin + (ibin + 0.5)*phistep);
 }
 
-string
+std::string
 PHG4CylinderCellGeom::methodname(const int i) const
 {
   switch (i)
@@ -333,9 +315,9 @@ PHG4CylinderCellGeom::check_binning_method(const int i) const
 {
   if (binning != i)
     {
-      cout << "different binning method used " << methodname(binning)
+      std::cout << "different binning method used " << methodname(binning)
            << ", not : " << methodname(i)
-           << endl;
+           << std::endl;
       exit(1);
     }
   return;
@@ -349,13 +331,13 @@ PHG4CylinderCellGeom::check_binning_method_eta(const std::string & src) const
       binning != PHG4CylinderCellDefs::spacalbinning)
     {
       if (src.size())
-        cout << src<<" : ";
+        std::cout << src<<" : ";
 
-      cout << "different binning method used " << methodname(binning)
-           << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)
-	   << " or " << methodname(PHG4CylinderCellDefs::etaslatbinning)
-     << " or " << methodname(PHG4CylinderCellDefs::spacalbinning)
-           << endl;
+      std::cout << "different binning method used " << methodname(binning)
+        << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)
+        << " or " << methodname(PHG4CylinderCellDefs::etaslatbinning)
+        << " or " << methodname(PHG4CylinderCellDefs::spacalbinning)
+        << std::endl;
       exit(1);
     }
   return;
@@ -370,14 +352,14 @@ PHG4CylinderCellGeom::check_binning_method_phi(const std::string & src) const
       binning != PHG4CylinderCellDefs::spacalbinning)
     {
       if (src.size())
-        cout << src<<" : ";
+        std::cout << src<<" : ";
 
-      cout << "different binning method used " << methodname(binning)
+      std::cout << "different binning method used " << methodname(binning)
            << ", not : " << methodname(PHG4CylinderCellDefs::etaphibinning)
            << " or " << methodname(PHG4CylinderCellDefs::sizebinning)
            << " or " << methodname(PHG4CylinderCellDefs::etaslatbinning)
            << " or " << methodname(PHG4CylinderCellDefs::spacalbinning)
-           << endl;
+           << std::endl;
       exit(1);
     }
   return;

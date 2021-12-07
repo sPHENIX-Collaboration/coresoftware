@@ -11,6 +11,8 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 
 #include <tpc/TpcDefs.h>
 
@@ -18,11 +20,13 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrClusterIterationMapv1.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
@@ -144,7 +148,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                                                "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
                                                "gembed:gprimary:nclusters:"
                                                "clusID:x:y:z:eta:phi:e:adc:layer:size:"
-                                               "phisize:zsize:efromtruth:dphitru:detatru:dztru:drtru:"
+                                               "efromtruth:dphitru:detatru:dztru:drtru:"
                                                "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_hit_eval) _ntp_hit = new TNtuple("ntp_hit", "svtxhit => max truth",
@@ -159,8 +163,8 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
 
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster", "svtxcluster => max truth",
                                                    "event:seed:hitID:x:y:z:r:phi:eta:theta:ex:ey:ez:ephi:"
-                                                   "e:adc:maxadc:layer:phielem:zelem:size:phisize:"
-                                                   "zsize:trackID:g4hitID:gx:"
+                                                   "e:adc:maxadc:layer:phielem:zelem:size:"
+                                                   "trackID:niter:g4hitID:gx:"
                                                    "gy:gz:gr:gphi:geta:gt:gtrackID:gflavor:"
                                                    "gpx:gpy:gpz:gvx:gvy:gvz:gvt:"
                                                    "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
@@ -168,7 +172,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                                                    "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_g4cluster_eval) _ntp_g4cluster = new TNtuple("ntp_g4cluster", "g4cluster => max truth",
-						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary:gphisize:gzsize:gadc:nreco:x:y:z:r:phi:eta:ex:ey:ez:ephi:phisize:zsize:adc"); 
+						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary:gphisize:gzsize:gadc:nreco:x:y:z:r:phi:eta:ex:ey:ez:ephi:adc"); 
                                                        
   if (_do_gtrack_eval) _ntp_gtrack = new TNtuple("ntp_gtrack", "g4particle => best svtxtrack",
                                                  "event:seed:gntracks:gtrackID:gflavor:gnhits:gnmaps:gnintt:gnmms:"
@@ -490,6 +494,14 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
     unsigned int nclusters[100] = {0};
     unsigned int nhits[100] = {0};
 
+    ActsTrackingGeometry *tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+    ActsSurfaceMaps *surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
+    if(!tgeometry or !surfmaps)
+      {
+	std::cout << PHWHERE << "No Acts geometry on node tree. Can't  continue."
+		  << std::endl;
+      }
+
     if (hitsetmap)
       {
 	TrkrHitSetContainer::ConstRange all_hitsets = hitsetmap->getHitSets();
@@ -651,9 +663,11 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 	      TrkrDefs::cluskey cluster_key = *kter;
 	      
 	      TrkrCluster *cluster = clustermap->findCluster(cluster_key);
-	      float x = cluster->getX();
-	      float y = cluster->getY();
-	      float z = cluster->getZ();
+	      ActsTransformations transformer;
+	      auto glob = transformer.getGlobalPosition(cluster,surfmaps,tgeometry);
+	      float x = glob(0);
+	      float y = glob(1);
+	      float z = glob(2);
 	      
 	      cout << " => #" << cluster_key;
 	      cout << " xreco = (";
@@ -707,10 +721,11 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
             {
 	      TrkrDefs::cluskey cluster_key = *iter;
               TrkrCluster *cluster = clustermap->findCluster(cluster_key);
-
-              float x = cluster->getX();
-              float y = cluster->getY();
-              float z = cluster->getZ();
+	      ActsTransformations transformer;
+	      auto glob = transformer.getGlobalPosition(cluster,surfmaps,tgeometry);
+              float x = glob(0);
+              float y = glob(1);
+              float z = glob(2);
 
               cout << " #" << cluster_key << " xreco = (";
               cout.width(5);
@@ -765,6 +780,17 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 {
   if (Verbosity() > 1) cout << "SvtxEvaluator::fillOutputNtuples() entered" << endl;
   
+  ActsTrackingGeometry *tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  ActsSurfaceMaps *surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
+  if(!tgeometry or !surfmaps)
+    {
+      std::cout << "No Acts geometry on node tree. Can't  continue."
+		<< std::endl;
+      return;
+    }
+
+  ActsTransformations actsTransformer;
+
   SvtxVertexEval* vertexeval = _svtxevalstack->get_vertex_eval();
   SvtxClusterEval* clustereval = _svtxevalstack->get_cluster_eval();
   SvtxTrackEval* trackeval = _svtxevalstack->get_track_eval();
@@ -1388,8 +1414,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       float adc = NAN;
       float layer = NAN;
       float size = NAN;
-      float phisize = NAN;
-      float zsize = NAN;
       float efromtruth = NAN;
       float dphitru = NAN;
       float detatru = NAN;
@@ -1402,9 +1426,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       if (cluster)
       {
         clusID = cluster_key;
-        x = cluster->getX();
-        y = cluster->getY();
-        z = cluster->getZ();
+	auto global = actsTransformer.getGlobalPosition(cluster,surfmaps,tgeometry);
+        x = global(0);
+        y = global(1);
+        z = global(2);
         TVector3 vec2(x, y, z);
         eta = vec2.Eta();
         phi = vec2.Phi();
@@ -1422,8 +1447,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  {
 	    ++size; 
 	  }
-        phisize = cluster->getPhiSize();
-        zsize = cluster->getZSize();
+
         dphitru = vec2.DeltaPhi(vg4);
         detatru = eta - geta;
         dztru = z - gz;
@@ -1474,9 +1498,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                             adc,
                             layer,
                             size,
-                            phisize,
-                            zsize,
-                            efromtruth,
+			    efromtruth,
                             dphitru,
                             detatru,
                             dztru,
@@ -1712,6 +1734,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
     TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+    TrkrClusterIterationMapv1* _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
+
     if (Verbosity() > 1){
       if (clustermap != nullptr)
 	cout << "got clustermap" << endl;
@@ -1740,17 +1764,22 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  TrkrCluster *cluster = clustermap->findCluster(cluster_key);
 	  SvtxTrack* track = trackeval->best_track_from(cluster_key);
 	  PHG4Particle* g4particle = clustereval->max_truth_particle_by_cluster_energy(cluster_key);
+	  float niter = 0;
+	  if(_iteration_map!=NULL)
+	    niter = _iteration_map->getIteration(cluster_key);
 	  float hitID = (float) cluster_key;
-	  float x = cluster->getX();
-	  float y = cluster->getY();
-	  float z = cluster->getZ();
+	  auto cglob = actsTransformer.getGlobalPosition(cluster,surfmaps,tgeometry);
+	  float x = cglob(0);
+	  float y = cglob(1);
+	  float z = cglob(2);
 	  TVector3 pos(x, y, z);
 	  float r = pos.Perp();
 	  float phi = pos.Phi();
 	  float eta = pos.Eta();
 	  float theta = pos.Theta();
-	  float ex = sqrt(cluster->getError(0, 0));
-	  float ey = sqrt(cluster->getError(1, 1));
+	  auto globerr = calculateClusterError(cluster,phi);
+	  float ex = sqrt(globerr[0][0]);
+	  float ey = sqrt(globerr[1][1]);
 	  float ez = cluster->getZError();
 	  float ephi = cluster->getRPhiError();
 	  
@@ -1785,8 +1814,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		maxadc = (hit->getAdc()-70);
 	    }
 	  e = sumadc;
-	  float phisize = cluster->getPhiSize();
-	  float zsize = cluster->getZSize();
 	  
 	  float trackID = NAN;
 	  if (track!=NULL) trackID = track->get_id();
@@ -1917,9 +1944,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 				  sector,
 				  side,
 				  size,
-				  phisize,
-				  zsize,
 				  trackID,
+				  niter,
 				  g4hitID,
 				  gx,
 				  gy,
@@ -1971,6 +1997,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
     TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+    TrkrClusterIterationMapv1* _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
 
     if (trackmap != nullptr && clustermap != nullptr && clusterhitmap != nullptr && hitsets != nullptr){
       for (SvtxTrackMap::Iter iter = trackmap->begin();
@@ -1995,17 +2022,23 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster_key);
 	      PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 	      
-	      float hitID = cluster_key;
-	      float x = cluster->getX();
-	      float y = cluster->getY();
-	      float z = cluster->getZ();
+	      //float hitID = cluster_key;
+	      float niter = 0;
+	      if(_iteration_map!=NULL)
+		niter = _iteration_map->getIteration(cluster_key);
+	      float hitID = (float) TrkrDefs::getClusIndex(cluster_key);
+	      auto glob = actsTransformer.getGlobalPosition(cluster,surfmaps,tgeometry);
+	      float x = glob(0);
+	      float y = glob(1);
+	      float z = glob(2);
 	      TVector3 pos(x, y, z);
 	      float r = pos.Perp();
 	      float phi = pos.Phi();
 	      float eta = pos.Eta();
 	      float theta = pos.Theta();
-	      float ex = sqrt(cluster->getError(0, 0));
-	      float ey = sqrt(cluster->getError(1, 1));
+	      auto globerr = calculateClusterError(cluster,phi);
+	      float ex = sqrt(globerr[0][0]);
+	      float ey = sqrt(globerr[1][1]);
 	      float ez = cluster->getZError();
 	      
 	      float ephi = cluster->getRPhiError();
@@ -2032,10 +2065,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  if(hit->getAdc()>maxadc)
 		    maxadc = hit->getAdc();
 		}
-	      
-
-	      float phisize = cluster->getPhiSize();
-	      float zsize = cluster->getZSize();
 	      
 	      float trackID = NAN;
 	      trackID = track->get_id();
@@ -2149,9 +2178,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 				      sector,
 				      side,
 				      size,
-				      phisize,
-				      zsize,
 				      trackID,
+				      niter,
 				      g4hitID,
 				      gx,
 				      gy,
@@ -2274,8 +2302,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float ey = NAN;
 	      float ez = NAN;
 	      float ephi = NAN;
-	      float phisize = NAN;
-	      float zsize = NAN;
 	      float adc = NAN;
 
 	      float nreco = 0;
@@ -2284,22 +2310,20 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      if(reco_cluster)
 		{
 		  nreco = 1;
-		  
-		  x = reco_cluster->getX();
-		  y = reco_cluster->getY();
-		  z = reco_cluster->getZ();
+		  auto glob = actsTransformer.getGlobalPosition(reco_cluster,surfmaps,tgeometry);
+		  x = glob(0);
+		  y = glob(1);
+		  z = glob(2);
 
 		  TVector3 pos(x, y, z);
 		  r = sqrt(x*x+y*y);
 		  phi = pos.Phi();
 		  eta = pos.Eta();
-		  ex = sqrt(reco_cluster->getError(0, 0));
-		  ey = sqrt(reco_cluster->getError(1, 1));
+		  auto globerr = calculateClusterError(reco_cluster,phi);
+		  ex = sqrt(globerr[0][0]);
+		  ey = sqrt(globerr[1][1]);
 		  ez = reco_cluster->getZError();		  
-		  ephi = reco_cluster->getRPhiError();
-
-		  phisize = reco_cluster->getPhiSize();  
-		  zsize = reco_cluster->getZSize();   
+		  ephi = reco_cluster->getRPhiError(); 
 		  
 		  adc = reco_cluster->getAdc();
 
@@ -2345,8 +2369,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 					ey,
 					ez,
 					ephi,
-					phisize,
-					zsize,
 					adc };
 	      _ntp_g4cluster->Fill(g4cluster_data);
 	    }
@@ -2413,7 +2435,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         unsigned int nglintt = 0;
         unsigned int ngltpc = 0;
         unsigned int nglmms = 0;
-	/*
+	
         int lmaps[_nlayers_maps + 1];
         if (_nlayers_maps > 0)
           for (unsigned int i = 0; i < _nlayers_maps; i++) lmaps[i] = 0;
@@ -2503,7 +2525,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           for (unsigned int i = 0; i < _nlayers_tpc; i++) ngltpc += ltpc[i];
 	if (_nlayers_mms > 0)
           for (unsigned int i = 0; i < _nlayers_mms; i++) nglmms += lmms[i];
-	*/
+	
         float gpx = g4particle->get_px();
         float gpy = g4particle->get_py();
         float gpz = g4particle->get_pz();
@@ -3477,3 +3499,33 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 }
 
+TMatrixF SvtxEvaluator::calculateClusterError(TrkrCluster* c, float& clusphi)
+{
+   TMatrixF localErr(3,3);
+   localErr[0][0] = 0.;
+   localErr[0][1] = 0.;
+   localErr[0][2] = 0.;
+   localErr[1][0] = 0.;
+   localErr[1][1] = c->getActsLocalError(0,0);
+   localErr[1][2] = c->getActsLocalError(0,1);
+   localErr[2][0] = 0.;
+   localErr[2][1] = c->getActsLocalError(1,0);
+   localErr[2][2] = c->getActsLocalError(1,1);
+  
+   TMatrixF ROT(3,3);
+   ROT[0][0] = cos(clusphi);
+   ROT[0][1] = -sin(clusphi);
+   ROT[0][2] = 0.0;
+   ROT[1][0] = sin(clusphi);
+   ROT[1][1] = cos(clusphi);
+   ROT[1][2] = 0.0;
+   ROT[2][0] = 0.0;
+   ROT[2][1] = 0.0;
+   ROT[2][2] = 1.0;
+   TMatrixF ROT_T(3,3);
+   ROT_T.Transpose(ROT);
+   
+   TMatrixF err(3,3);
+   err = ROT * localErr * ROT_T;
+   return err;
+}

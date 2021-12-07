@@ -3,7 +3,7 @@
 #ifndef PHSILICONTPCTRACKMATCHING_H
 #define PHSILICONTPCTRACKMATCHING_H
 
-#include <trackreco/PHTrackPropagating.h>
+#include <fun4all/SubsysReco.h>
 
 #include <string>
 #include <map>
@@ -13,8 +13,10 @@ class SvtxTrackMap;
 class SvtxTrack;
 class TF1;
 class TpcSeedTrackMap;
+class AssocInfoContainer;
+class TrkrClusterContainer;
 
-class PHSiliconTpcTrackMatching : public PHTrackPropagating
+class PHSiliconTpcTrackMatching : public SubsysReco
 {
  public:
 
@@ -43,16 +45,21 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   void set_sc_calib_mode(const bool flag){_sc_calib_flag = flag;}
   void set_collision_rate(const double rate){_collision_rate = rate;}
 
- protected:
-  int Setup(PHCompositeNode* topNode) override;
+  int InitRun(PHCompositeNode* topNode) override;
 
-  int Process() override;
+  int process_event(PHCompositeNode*) override;
 
-  int End() override;
-  
+  int End(PHCompositeNode*) override;
+
+  void set_silicon_track_map_name(const std::string &map_name) { _silicon_track_map_name = map_name; }
+  void set_tpcseed_track_map_name(const std::string &map_name) { _tpcseed_track_map_name = map_name; }
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  void SetIteration(int iter){_n_iteration = iter;}
  private:
 
   int GetNodes(PHCompositeNode* topNode);
+
+  void copySiliconClustersToCorrectedMap( );
 
   std::string _track_map_name_silicon;
 
@@ -63,9 +70,13 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   double _y_search_win = 0.3;
   double _z_search_win = 0.4;
   
+  AssocInfoContainer *_assoc_container{nullptr};
+  SvtxTrackMap *_track_map{nullptr};
   SvtxTrackMap *_track_map_silicon{nullptr};
   SvtxTrack *_tracklet_tpc{nullptr};
   SvtxTrack *_tracklet_si{nullptr};
+  TrkrClusterContainer *_cluster_map{nullptr};
+  TrkrClusterContainer *_corrected_cluster_map{nullptr};
 
   TpcSeedTrackMap *_seed_track_map{nullptr};
   //std::multimap<unsigned int, unsigned int> _seed_track_map;
@@ -92,6 +103,10 @@ class PHSiliconTpcTrackMatching : public PHTrackPropagating
   std::string _field;
   int _fieldDir = -1;
 
+  int _n_iteration = 0;
+  std::string _track_map_name = "SvtxTrackMap";
+  std::string _tpcseed_track_map_name = "TpcSeedTrackMap";
+  std::string _silicon_track_map_name = "SvtxSiliconTrackMap";
 };
 
 #endif // PHTRUTHSILICONASSOCIATION_H

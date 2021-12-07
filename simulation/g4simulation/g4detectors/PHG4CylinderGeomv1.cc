@@ -2,20 +2,6 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <cmath>
-
-using namespace std;
-
-PHG4CylinderGeomv1::PHG4CylinderGeomv1():
-  layer(-1),
-  radius(NAN),
-  zmin(NAN),
-  zmax(NAN),
-  thickness(NAN)
-{
-  return;
-}
-
 void
 PHG4CylinderGeomv1::identify(std::ostream& os) const
 {
@@ -24,7 +10,7 @@ PHG4CylinderGeomv1::identify(std::ostream& os) const
      << ", thickness: " << thickness
      << ", zmin: " << zmin 
      << ", zmax: " << zmax 
-     << endl;
+     << std::endl;
   return;
 }
 

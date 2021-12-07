@@ -5,6 +5,8 @@
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
 #include <trackbase/TpcSeedTrackMapv1.h>     
+#include <trackbase/TrkrClusterContainerv3.h>   
+#include <trackbase/TrkrClusterv3.h>   
 #include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
@@ -38,7 +40,7 @@ using namespace std;
 
 //____________________________________________________________________________..
 PHSiliconTpcTrackMatching::PHSiliconTpcTrackMatching(const std::string &name):
- PHTrackPropagating(name)
+  SubsysReco(name)
  , _track_map_name_silicon("SvtxSiliconTrackMap")
 {
   //cout << "PHSiliconTpcTrackMatching::PHSiliconTpcTrackMatching(const std::string &name) Calling ctor" << endl;
@@ -51,7 +53,7 @@ PHSiliconTpcTrackMatching::~PHSiliconTpcTrackMatching()
 }
 
 //____________________________________________________________________________..
-int PHSiliconTpcTrackMatching::Setup(PHCompositeNode *topNode)
+int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
 {
   // put these in the output file
   cout << PHWHERE "_is_ca_seeder " << _is_ca_seeder << " Search windows: phi " << _phi_search_win << " eta " 
@@ -74,18 +76,15 @@ int PHSiliconTpcTrackMatching::Setup(PHCompositeNode *topNode)
   fscdphi = new TF1("f2","[0] + [1]*x^2");
   fscdphi->SetParameter(0, _parsc0 * _collision_rate / _reference_collision_rate);
   fscdphi->SetParameter(1, _parsc1 * _collision_rate / _reference_collision_rate);
-
-  int ret = PHTrackPropagating::Setup(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  ret = GetNodes(topNode);
+ 
+  int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   return ret;
 }
 
 //____________________________________________________________________________..
-int PHSiliconTpcTrackMatching::Process()
+int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
 {
   // _track_map contains the TPC seed track stubs
   // _track_map_silicon contains the silicon seed track stubs
@@ -97,6 +96,9 @@ int PHSiliconTpcTrackMatching::Process()
   if(Verbosity() > 0)
     cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << endl;
 
+  if(_track_map->size() == 0)
+    return Fun4AllReturnCodes::EVENT_OK;
+    
   if(Verbosity() > 2)
     {
       // list silicon tracks
@@ -115,15 +117,17 @@ int PHSiliconTpcTrackMatching::Process()
   
   
   // We remember the original size of the TPC track map here
-  const unsigned int original_track_map_lastkey = _track_map->end()->first;
-  
+  const unsigned int original_track_map_lastkey = _track_map->empty() ? 0:std::prev(_track_map->end())->first;
+  if(Verbosity() > 1)
+    std::cout << "Original track map has lastkey " << original_track_map_lastkey << std::endl;
+
   // loop over the original TPC tracks
   for (auto phtrk_iter = _track_map->begin();
        phtrk_iter != _track_map->end(); 
        ++phtrk_iter)
     {
       // we may add tracks to the map, so we stop at the last original track
-      if(phtrk_iter->first >= original_track_map_lastkey)  break;
+      if(phtrk_iter->first > original_track_map_lastkey)  break;
       
       _tracklet_tpc = phtrk_iter->second;
       
@@ -316,11 +320,6 @@ int PHSiliconTpcTrackMatching::Process()
 	  if(isi == 0)
 	    {
 	      // update the original track on the node tree
-	      
-	      // the track takes its vertex from the si stub
-	      unsigned int vertexId = _tracklet_si->get_vertex_id();
-	      _tracklet_tpc->set_vertex_id(vertexId);
-	      
 	      _tracklet_tpc->set_x(_tracklet_si->get_x());
 	      _tracklet_tpc->set_y(_tracklet_si->get_y());
 	      _tracklet_tpc->set_z(_tracklet_si->get_z());
@@ -350,14 +349,11 @@ int PHSiliconTpcTrackMatching::Process()
 #else
 	      auto newTrack = std::make_unique<SvtxTrack_v2>();
 #endif
-	      const unsigned int lastTrackKey = _track_map->end()->first; 
-	      if(Verbosity() > 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey << endl;
+	      const unsigned int lastTrackKey =  _track_map->empty() ? 0:std::prev(_track_map->end())->first; 
+	      if(Verbosity() > 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey + 1 << endl;
 	      
-	      newTrack->set_id(lastTrackKey);
-	      
-	      unsigned int vertexId = _tracklet_si->get_vertex_id();
-	      newTrack->set_vertex_id(vertexId);
-	      
+	      newTrack->set_id(lastTrackKey+1);
+	    
 	      newTrack->set_x(_tracklet_si->get_x());
 	      newTrack->set_y(_tracklet_si->get_y());
 	      newTrack->set_z(_tracklet_si->get_z());
@@ -415,6 +411,11 @@ int PHSiliconTpcTrackMatching::Process()
 	  isi++;
 	}
     }
+
+  // loop over all tracks and copy the silicon clusters to the corrected cluster map
+  if(_corrected_cluster_map)
+    copySiliconClustersToCorrectedMap();
+
   
   if(Verbosity() > 0)  
     cout << " Final track map size " << _track_map->size() << " seed-track map size " << _seed_track_map->size() << endl;
@@ -425,7 +426,7 @@ int PHSiliconTpcTrackMatching::Process()
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHSiliconTpcTrackMatching::End()
+int PHSiliconTpcTrackMatching::End(PHCompositeNode* )
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -436,15 +437,28 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
   // Get additional objects off the Node Tree
   //---------------------------------
 
-  _track_map_silicon = findNode::getClass<SvtxTrackMap>(topNode,  "SvtxSiliconTrackMap");
+   _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
+  if (!_assoc_container)
+  {
+    cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _track_map_silicon = findNode::getClass<SvtxTrackMap>(topNode, _silicon_track_map_name);
   if (!_track_map_silicon)
   {
     cerr << PHWHERE << " ERROR: Can't find SvtxSiliconTrackMap: " << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-   _seed_track_map  = findNode::getClass<TpcSeedTrackMap>(topNode,
-							 "TpcSeedTrackMap");
+  _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
+  if (!_track_map)
+  {
+    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap " << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+   _seed_track_map  = findNode::getClass<TpcSeedTrackMap>(topNode, _tpcseed_track_map_name);
   if(!_seed_track_map)
     {
       std::cout << "Creating node TpcSeedTrackMap" << std::endl;
@@ -472,10 +486,52 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
       
       _seed_track_map = new TpcSeedTrackMapv1();
       PHIODataNode<PHObject> *node
-	= new PHIODataNode<PHObject>(_seed_track_map, "TpcSeedTrackMap");
+	= new PHIODataNode<PHObject>(_seed_track_map, _tpcseed_track_map_name);
       svtxNode->addNode(node);
     }
 
-  return Fun4AllReturnCodes::EVENT_OK;
+ _corrected_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
+  if(_corrected_cluster_map)
+    {
+      std::cout << " Found CORRECTED_TRKR_CLUSTER node " << std::endl;
+    }
+  
+ _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+ if (!_cluster_map)
+   {
+     std::cout << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
+     return Fun4AllReturnCodes::ABORTEVENT;
+   }
+ 
+ return Fun4AllReturnCodes::EVENT_OK;
 }
+
+void PHSiliconTpcTrackMatching::copySiliconClustersToCorrectedMap( )
+{
+  // loop over final track map, copy silicon clusters to corrected cluster map
+  for (auto phtrk_iter = _track_map->begin();
+       phtrk_iter != _track_map->end(); 
+       ++phtrk_iter)
+    {
+      SvtxTrack *track = phtrk_iter->second;
+
+      // loop over associated clusters to get keys for silicon cluster
+      for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
+	   iter != track->end_cluster_keys();
+	   ++iter)
+	{
+	  TrkrDefs::cluskey cluster_key = *iter;
+   const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
+	  if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId)
+	    {
+	      TrkrCluster *cluster =  _cluster_map->findCluster(cluster_key);	
+       if( !cluster ) continue;
+      
+       TrkrCluster *newclus = _corrected_cluster_map->findOrAddCluster(cluster_key)->second;
+       newclus->CopyFrom( cluster );
+	    }
+	}      
+    }
+}
+  
 

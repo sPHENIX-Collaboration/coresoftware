@@ -117,6 +117,7 @@ class PHG4Reco : public SubsysReco
   PHG4Subsystem *getSubsystem(const std::string &name);
   PHG4DisplayAction *GetDisplayAction() { return m_DisplayAction; }
   void Dump_GDML(const std::string &filename);
+  void Dump_G4_GDML(const std::string &filename);
 
   void G4Verbosity(const int i);
 

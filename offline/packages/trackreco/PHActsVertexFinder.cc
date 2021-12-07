@@ -1,5 +1,5 @@
 #include "PHActsVertexFinder.h"
-#include "ActsTransformations.h"
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -52,29 +52,30 @@
 PHActsVertexFinder::PHActsVertexFinder(const std::string &name)
   : PHInitVertexing(name)
   , m_actsVertexMap(nullptr)
+  , m_trajectories(nullptr)
 {
 }
 
 int PHActsVertexFinder::Setup(PHCompositeNode *topNode)
 {
-  int ret = createNodes(topNode);
+  int ret = getNodes(topNode);
+  if(ret != Fun4AllReturnCodes::EVENT_OK)
+    return ret;
+
+  ret = createNodes(topNode);
   if(ret != Fun4AllReturnCodes::EVENT_OK)
     return ret;
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsVertexFinder::Process(PHCompositeNode *topNode)
+int PHActsVertexFinder::Process(PHCompositeNode*)
 {
   if(Verbosity() > 0)
     {
       std::cout << "Starting event " << m_event << " in PHActsVertexFinder"
 		<< std::endl;
     }
-
-  int ret = getNodes(topNode);
-  if(ret != Fun4AllReturnCodes::EVENT_OK)
-    return ret;
 
   /// Create a map that correlates the track momentum to the track key
   KeyMap keyMap;
@@ -160,43 +161,52 @@ void PHActsVertexFinder::checkTrackVertexAssociation()
 TrackPtrVector PHActsVertexFinder::getTracks(KeyMap& keyMap)
 {
   std::vector<const Acts::BoundTrackParameters*> trackPtrs;
+  
+  for(const auto& [key, traj] : *m_trajectories)
+    {
+      const auto svtxTrack = m_svtxTrackMap->get(key);
+      
+      // Track was removed by the track cleaner, skip it
+      if(!svtxTrack)
+	{ continue; }
 
-  for(const auto &[key, track] : *m_svtxTrackMap)
-  {
-    Acts::Vector3D momentum(track->get_px(), 
-			    track->get_py(), 
-			    track->get_pz());
-    Acts::Vector4D position(track->get_x() * Acts::UnitConstants::cm,
-			    track->get_y() * Acts::UnitConstants::cm,
-			    track->get_z() * Acts::UnitConstants::cm,
-			    10. * Acts::UnitConstants::ns);
-    
-    auto vertexId = track->get_vertex_id();
-    const SvtxVertex* svtxVertex = m_svtxVertexMap->get(vertexId);
-    Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
-			  svtxVertex->get_y() * Acts::UnitConstants::cm, 
-			  svtxVertex->get_z() * Acts::UnitConstants::cm);
+      int nmaps = 0;
+      int nintt = 0;
+      int ntpc = 0;
+      
+      for(SvtxTrack::ConstClusterKeyIter clusIter = svtxTrack->begin_cluster_keys();
+	  clusIter != svtxTrack->end_cluster_keys();
+	  ++clusIter)
+	{
+	  auto key = *clusIter;
+	  auto trkrId = TrkrDefs::getTrkrId(key);
+	  if(trkrId == TrkrDefs::TrkrId::mvtxId)
+	    { nmaps++; }
+	  if(trkrId == TrkrDefs::TrkrId::inttId)
+	    { nintt++; }
+	  if(trkrId == TrkrDefs::TrkrId::tpcId)
+	    { ntpc++; }
+	}
 
-    Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
-    for(int i = 0; i < 6; i++)
-      for(int j = 0; j < 6; j++)
-	cov(i,j) = track->get_acts_covariance(i,j);
-    
-    auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(vertex);
+      if((nmaps + nintt + ntpc) < 35)
+	{ continue; }
+      if(svtxTrack->get_pt() < 0.5)
+	{ continue; }
+      if(nmaps < 1)
+	{ continue; }
+      
+      const auto& [trackTips, mj] = traj.trajectory();
+      for(const auto& trackTip : trackTips)
+	{
+	  const Acts::BoundTrackParameters* params =
+	    new Acts::BoundTrackParameters(traj.trackParameters(trackTip));
+	  trackPtrs.push_back(params);
+	  
+	  keyMap.insert(std::make_pair(params, key));
 
-    int charge = track->get_charge();
-    if(m_fieldMap.find("3d") != std::string::npos)
-      { charge *= -1; }
-
-    const auto param = new Acts::BoundTrackParameters(
-			   pSurface, m_tGeometry->geoContext,
-			   position, momentum, track->get_p(),
-			   charge, cov);
-
-    keyMap.insert(std::make_pair(param, key));
-    trackPtrs.push_back(param);
-  }
-
+	}
+    }
+  
   if(Verbosity() > 3)
     {
       std::cout << "Finding vertices for the following number of tracks "
@@ -325,6 +335,22 @@ void PHActsVertexFinder::fillVertexMap(VertexVector& vertices,
 
   if(vertices.size() > 0)
     m_svtxVertexMap->clear();
+  
+  else if (vertices.size() == 0)
+    {
+      auto svtxVertex = std::make_unique<SvtxVertex_v1>();
+      svtxVertex->set_x(0);
+      svtxVertex->set_y(0);
+      svtxVertex->set_z(0);
+       for(int i = 0; i < 3; ++i) 
+	{
+	  for(int j = 0; j < 3; ++j)
+	    {
+	      svtxVertex->set_error(i, j, 100.); 
+	    }
+	}
+       m_svtxVertexMap->insert(svtxVertex.release());
+    }
 
   for(auto& vertex : vertices)
     {
@@ -504,19 +530,29 @@ int PHActsVertexFinder::createNodes(PHCompositeNode *topNode)
       svtxNode->addNode(node);
     }
 
+  m_svtxVertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if(!m_svtxVertexMap)
+    {
+      m_svtxVertexMap = new SvtxVertexMap_v1;
+      PHIODataNode<PHObject> *node = new PHIODataNode<PHObject>(m_svtxVertexMap,
+								"SvtxVertexMap",
+								"PHObject");
+      svtxNode->addNode(node);
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHActsVertexFinder::getNodes(PHCompositeNode *topNode)
 {
-  m_svtxVertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if(!m_svtxVertexMap)
+  m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
+  if(!m_trajectories)
     {
-      std::cout << PHWHERE << "No SvtxVertexMap on node tree, bailing."
+      std::cout << PHWHERE << "No trajectories on node tree, bailing."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    
+
   m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, 
 							 "ActsTrackingGeometry");
   if(!m_tGeometry)

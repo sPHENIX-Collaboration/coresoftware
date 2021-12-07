@@ -17,10 +17,9 @@
 class PHCompositeNode;
 class SvtxTrack;
 class SvtxTrackMap;
-class SvtxVertexMap;
-class TrkrClusterContainer;
 class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
+class TrkrClusterContainer;
 
 namespace ActsExamples
 {
@@ -28,14 +27,10 @@ namespace ActsExamples
 }
 
 #include <memory>
-#include <TH1.h>
-#include <TH2.h>
-#include <TTree.h>
-
-using SourceLink = ActsExamples::TrkrClusterSourceLink;
-using BoundTrackParamPtr = 
-  std::unique_ptr<const Acts::BoundTrackParameters>;
-using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
+class TFile;
+class TH1;
+class TH2;
+class TTree;
 
 /**
  * This class takes preliminary fits from PHActsTrkFitter to the 
@@ -67,17 +62,33 @@ class PHTpcResiduals : public SubsysReco
   void setMaxTrackResidualDz(float maxResidualDz)
     { m_maxResidualDz = maxResidualDz; }
   
-  void setGridDimensions(const int phiBins, const int rBins,
-			 const int zBins);
+  void setGridDimensions(const int phiBins, const int rBins, const int zBins);
 
   /// set to true to store evaluation histograms and ntuples
   void setSavehistograms( bool value ) { m_savehistograms = value; }
     
+  /// output file name for evaluation histograms
+  void setHistogramOutputfile(const std::string &outputfile) {m_histogramfilename = outputfile;}
+
   /// output file name for storing the space charge reconstruction matrices
   void setOutputfile(const std::string &outputfile) {m_outputfile = outputfile;}
+
+  /// require micromegas to be present when extrapolating tracks to the TPC
+  void setUseMicromegas( bool value )
+  { m_useMicromegas = value; }
   
  private:
 
+  using SourceLink = ActsExamples::TrkrClusterSourceLink;
+  using BoundTrackParamPtr = 
+    std::unique_ptr<const Acts::BoundTrackParameters>;
+  
+  /// pairs path length and track parameters
+  using BoundTrackParamPtrPair = std::pair<float,BoundTrackParamPtr>;
+
+  /// result of track extrapolation
+  using ExtrapolationResult = Acts::Result<BoundTrackParamPtrPair>;
+  
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 
@@ -86,15 +97,20 @@ class PHTpcResiduals : public SubsysReco
   bool checkTrack(SvtxTrack* track);
   void processTrack(SvtxTrack* track);
 
+  /// fill track state from bound track parameters
+  void addTrackState( SvtxTrack* track, float pathlength, const Acts::BoundTrackParameters& params );
+  
   /// Calculates TPC residuals given an Acts::Propagation result to
   /// a TPC surface
-  void calculateTpcResiduals(const Acts::BoundTrackParameters& params,
-			     const TrkrCluster* cluster);
-
-  /// Propagates the silicon+MM track fit to the surface on which
-  /// an available source link in the TPC exists, added from the stub
-  /// matching propagation
-  BoundTrackParamPtrResult propagateTrackState(
+  void calculateTpcResiduals(const Acts::BoundTrackParameters& params, TrkrCluster* cluster);
+        
+  /** \brief 
+   * Propagates the silicon+MM track fit to the surface on which
+   * an available source link in the TPC exists, added from the stub
+   * matching propagation
+   * returns the path lenght and the resulting parameters
+   */
+  ExtrapolationResult propagateTrackState(
   const Acts::BoundTrackParameters& params, 
 		     const SourceLink& sl);
 
@@ -110,11 +126,9 @@ class PHTpcResiduals : public SubsysReco
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
   Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey);
   Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey);
-  Acts::Vector3D getVertex(SvtxTrack *track);
 
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
-  SvtxVertexMap *m_vertexMap = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
@@ -147,6 +161,9 @@ class PHTpcResiduals : public SubsysReco
   /// Counter for number of bad propagations from propagateTrackState()
   int m_nBadProps = 0;
 
+  /// require micromegas to be present when extrapolating tracks to the TPC
+  bool m_useMicromegas = true;
+
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
   /// Output root histograms
@@ -160,15 +177,33 @@ class PHTpcResiduals : public SubsysReco
   TH2 *h_alpha = nullptr;
   TH2 *h_beta = nullptr;
   TTree *residTup = nullptr;
+
+  /// delta rphi vs layer number
+  TH2 *h_deltarphi_layer = nullptr;
+
+  /// delta z vs layer number
+  TH2 *h_deltaz_layer = nullptr;
+
   std::string m_histogramfilename = "PHTpcResiduals.root";
   std::unique_ptr<TFile> m_histogramfile = nullptr;
 
   /// For diagnostics
-  double tanAlpha = 0, tanBeta = 0, drphi = 0, dz = 0, clusR = 0, clusPhi = 0, 
-    clusZ = 0, statePhi = 0, stateZ = 0, stateRPhiErr = 0, stateZErr = 0, 
-    clusRPhiErr = 0, clusZErr = 0, stateR = 0;
-  // int cell = 0, ir = 0, iz = 0, iphi = 0;
-  unsigned int cluskey = 0;
+  double tanAlpha = 0;
+  double tanBeta = 0;
+  double drphi = 0;
+  double dz = 0;
+  double clusR = 0;
+  double clusPhi = 0;
+  double clusZ = 0;
+  double statePhi = 0;
+  double stateZ = 0;
+  double stateRPhiErr = 0;
+  double stateZErr = 0;
+  double clusRPhiErr = 0;
+  double clusZErr = 0;
+  double stateR = 0;
+  TrkrDefs::cluskey cluskey = 0;
+
 };
 
 #endif

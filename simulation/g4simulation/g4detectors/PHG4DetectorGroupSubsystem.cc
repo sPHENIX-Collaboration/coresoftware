@@ -94,9 +94,9 @@ int PHG4DetectorGroupSubsystem::InitRun(PHCompositeNode *topNode)
   }
 
   PHParametersContainer::ConstRange begin_end = m_ParamsContainerDefault->GetAllParameters();
-  for (PHParametersContainer::ConstIterator iter = begin_end.first; iter != begin_end.second; ++iter)
+  for (PHParametersContainer::ConstIterator piter = begin_end.first; piter != begin_end.second; ++piter)
   {
-    m_ParamsContainer->AddPHParameters(iter->first, iter->second);
+    m_ParamsContainer->AddPHParameters(piter->first, piter->second);
   }
   // the content has been handed off to the param container on the node tree
   // clear our internal map of parameters and delete it to avoid it being used accidentally
@@ -146,6 +146,10 @@ int PHG4DetectorGroupSubsystem::InitRun(PHCompositeNode *topNode)
     }
   }
   m_ParamsContainer->SaveToNodeTree(RunDetNode, paramnodename);
+  // define the materials for the detector
+// at this point all flags are known so materials set in the macro can
+// be implemented here
+  DefineMaterials();
   int iret = InitRunSubsystem(topNode);
   m_ParamsContainer->UpdateNodeTree(RunDetNode, paramnodename);
   if (Verbosity() > 0)

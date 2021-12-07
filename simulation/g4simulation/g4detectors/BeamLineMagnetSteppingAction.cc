@@ -44,6 +44,7 @@ BeamLineMagnetSteppingAction::BeamLineMagnetSteppingAction(BeamLineMagnetDetecto
   , m_Detector(detector)
   , m_Params(parameters)
   , m_ActiveFlag(m_Params->get_int_param("active"))
+  , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
   , m_BlackHoleFlag(m_Params->get_int_param("blackhole"))
 {
 }
@@ -76,19 +77,32 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
-  G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything ONLY if in the magnet iron, just put all kinetic energy into edep
-  if (m_BlackHoleFlag and whichactive == -1)
+  if (whichactive == -1)
+  {
+    if (m_BlackHoleFlag)
+    {
+      edep = aTrack->GetKineticEnergy() / GeV;
+      G4Track* killtrack = const_cast<G4Track*>(aTrack);
+      killtrack->SetTrackStatus(fStopAndKill);
+    }
+    if (!m_AbsorberActiveFlag)
+    {
+      return false;
+    }
+  }
+  if (whichactive == -2)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
   }
-
   if (!m_ActiveFlag)
+  {
     return false;
+  }
 
   int magnet_id = volume->GetCopyNo();  // magnet id is stored in copy number
   bool geantino = false;
@@ -155,8 +169,6 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
     m_EdepSum = 0;
     if (whichactive > 0)
     {
-      m_EionSum = 0;
-      m_Hit->set_eion(0);
       m_SaveHitContainer = m_HitContainer;
     }
     else
@@ -216,10 +228,6 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
   // ceases to exist
   //sum up the energy to get total deposited
   m_EdepSum += edep;
-  if (whichactive > 0)
-  {
-    m_EionSum += eion;
-  }
   // if any of these conditions is true this is the last step in
   // this volume and we need to save the hit
   // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
@@ -253,18 +261,10 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
       if (geantino)
       {
         m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-        if (whichactive > 0)
-        {
-          m_Hit->set_eion(-1);
-        }
       }
       else
       {
         m_Hit->set_edep(m_EdepSum);
-      }
-      if (whichactive > 0)
-      {
-        m_Hit->set_eion(m_EionSum);
       }
       m_SaveHitContainer->AddHit(magnet_id, m_Hit);
       // ownership has been transferred to container, set to null
@@ -286,22 +286,8 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
 //____________________________________________________________________________..
 void BeamLineMagnetSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  std::string hitnodename;
-  std::string absorbernodename;
-  if (m_Detector->SuperDetector() != "NONE")
-  {
-    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->SuperDetector();
-  }
-  else
-  {
-    hitnodename = "G4HIT_" + m_Detector->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
-  }
-
-  //now look for the map and grab a pointer to it.
-  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_AbsorberNodeName);
 
   // If this is a black hole but otherwise not an active detector there is
   // no hitnode, otherwise this will crash in the user stepping action
@@ -309,14 +295,31 @@ void BeamLineMagnetSteppingAction::SetInterfacePointers(PHCompositeNode* topNode
   {
     if (!m_BlackHoleFlag)
     {
-      std::cout << "BeamLineMagnetSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+      std::cout << "BeamLineMagnetSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
     }
   }
   if (!m_AbsorberHitContainer)
   {
     if (Verbosity() > 1)
     {
-      std::cout << "BeamLineMagnetSteppingAction::SetTopNode - unable to find " << absorbernodename << std::endl;
+      std::cout << "BeamLineMagnetSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << std::endl;
     }
   }
+}
+
+void BeamLineMagnetSteppingAction::SetHitNodeName(const std::string &type, const std::string &name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_ABSORBER")
+  {
+    m_AbsorberNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }

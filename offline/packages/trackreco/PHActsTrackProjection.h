@@ -13,6 +13,8 @@
 #include <Acts/Surfaces/CylinderSurface.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 
+#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
+
 class PHCompositeNode;
 class RawClusterContainer;
 class RawTowerContainer;
@@ -29,6 +31,7 @@ using BoundTrackParamPtr =
   std::unique_ptr<const Acts::BoundTrackParameters>;
 using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
+using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
 
 
 /**
@@ -89,6 +92,8 @@ class PHActsTrackProjection : public SubsysReco
   ActsTrackingGeometry *m_tGeometry = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
+  std::map<const unsigned int, Trajectory> *m_trajectories{nullptr};
+
 
   /// Objects to hold calorimeter information. There are 
   /// only 3 calo layers

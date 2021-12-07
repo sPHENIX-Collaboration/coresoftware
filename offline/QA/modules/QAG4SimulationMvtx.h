@@ -16,6 +16,9 @@ class TrkrHitSetContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
 
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
+
 /// \class QAG4SimulationMvtx
 class QAG4SimulationMvtx : public SubsysReco
 {
@@ -47,13 +50,19 @@ class QAG4SimulationMvtx : public SubsysReco
   TrkrClusterContainer* m_cluster_map = nullptr;
 
   /// hitsets
-  TrkrHitSetContainer  *m_hitsets = nullptr;
+  TrkrHitSetContainer* m_hitsets = nullptr;
 
   /// clusters to hit association
   TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;
 
   /// hit to g4hit association
   TrkrHitTruthAssoc* m_hit_truth_map = nullptr;
+
+  /// Acts surface maps for surface lookup
+  ActsSurfaceMaps* m_surfmaps = nullptr;
+
+  /// Acts tracking geometry for surface lookup
+  ActsTrackingGeometry* m_tGeometry = nullptr;
 
   /// g4 hits
   PHG4HitContainer* m_g4hits_mvtx = nullptr;

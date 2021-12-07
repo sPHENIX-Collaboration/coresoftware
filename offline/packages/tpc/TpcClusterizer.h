@@ -27,39 +27,46 @@ class TpcClusterizer : public SubsysReco
 {
  public:
   TpcClusterizer(const std::string &name = "TpcClusterizer");
-  ~TpcClusterizer() override{}
+  ~TpcClusterizer() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
   void set_sector_fiducial_cut(const double cut){SectorFiducialCut = cut; }
-  void set_search_bins(const int bins){NSearch = bins;}
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
+  void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size ;}
+  void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeZ = size ;}
 
+  void set_drift_velocity_scale(double value) { m_drift_velocity_scale = value; }
+  
  private:
-  bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom);
+  bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const;
 
-  TrkrHitSetContainer *m_hits;
-  TrkrClusterContainer *m_clusterlist;
-  TrkrClusterHitAssoc *m_clusterhitassoc;
-  ActsSurfaceMaps *m_surfMaps;
-  ActsTrackingGeometry *m_tGeometry;
+  TrkrHitSetContainer *m_hits = nullptr;
+  TrkrClusterContainer *m_clusterlist = nullptr;
+  TrkrClusterHitAssoc *m_clusterhitassoc = nullptr;
+  ActsSurfaceMaps *m_surfMaps = nullptr;
+  ActsTrackingGeometry *m_tGeometry = nullptr;
 
-  bool do_hit_assoc;
-  double pedestal;
-  double SectorFiducialCut;
+  bool do_hit_assoc = true;
+  double pedestal = 74.4;
+  double SectorFiducialCut = 0.5;
+  unsigned short MaxClusterHalfSizePhi = 3;
+  unsigned short MaxClusterHalfSizeZ = 5;
 
+  /// drift velocity scale factor
+  /** 
+   * represents the ratio vdrift_measured/vdrift_true
+   * it is used to get cluster z from its timebin
+   **/
+  double m_drift_velocity_scale = 1.0;
+  
   // TPC shaping offset correction parameters
   // From Tony Frawley May 13, 2021
-  std::pair<double,double> par0_neg = std::make_pair(0.0538913, 0.000252096);
-  std::pair<double,double> par0_pos = std::make_pair(-0.0647731, 0.000296734);
-  std::pair<double,double> par1_neg = std::make_pair(-0.000208279, 1.9205e-06);
-  std::pair<double,double> par1_pos = std::make_pair(-0.000195514, 2.26467e-06);
+  double par0_neg = 0.0503;
+  double par0_pos = -0.0503;
   
-  int NSearch;
-  int NZBinsMax;
-
 };
 
 #endif
