@@ -1028,6 +1028,9 @@ void TrackingEvaluator_hp::add_trk_information( TrackingEvaluator_hp::ClusterStr
   cluster._trk_r = get_r( cluster._trk_x, cluster._trk_y );
   cluster._trk_phi = std::atan2( cluster._trk_y, cluster._trk_x );
 
+  // store extrapolation delta r
+  cluster._trk_dr = dr;
+  
   /* store local momentum information */
   cluster._trk_px = state->get_px();
   cluster._trk_py = state->get_py();
@@ -1088,6 +1091,8 @@ void TrackingEvaluator_hp::add_trk_information_micromegas( TrackingEvaluator_hp:
   cluster._trk_r = get_r( cluster._trk_x, cluster._trk_y );
   cluster._trk_phi = std::atan2( cluster._trk_y, cluster._trk_x );
 
+  cluster._trk_dr = delta_y;
+  
   /* store local momentum information */
   cluster._trk_px = state->get_px();
   cluster._trk_py = state->get_py();

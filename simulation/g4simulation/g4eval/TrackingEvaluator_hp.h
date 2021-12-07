@@ -137,6 +137,9 @@ class TrackingEvaluator_hp : public SubsysReco
     float _trk_phi_error = 0;
     float _trk_z_error = 0;
 
+    // extrapolation distance
+    float _trk_dr = 0;
+    
     //! track inclination at cluster in r,phi plane
     float _trk_alpha = 0;
 
