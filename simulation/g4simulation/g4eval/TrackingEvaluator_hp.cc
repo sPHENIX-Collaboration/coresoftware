@@ -527,7 +527,15 @@ void TrackingEvaluator_hp::evaluate_event()
       }
     }
   }
-
+  
+  auto count_g4hits = []( PHG4HitContainer* container )
+  {  return container ? container->size():0; };
+    
+  event._ng4hits_mvtx = count_g4hits( m_g4hits_mvtx );
+  event._ng4hits_intt = count_g4hits( m_g4hits_intt );
+  event._ng4hits_tpc = count_g4hits( m_g4hits_tpc );
+  event._ng4hits_micromegas = count_g4hits( m_g4hits_micromegas );
+  
   // store
   m_container->addEvent(event);
 }

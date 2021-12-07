@@ -77,7 +77,7 @@ class TrackingEvaluator_hp : public SubsysReco
     //! number of clusters per layer / event
     unsigned int _nclusters[max_layer];
 
-    //! number of clusters in the TPC
+    //! number of clusters in the mvtx
     unsigned int _nclusters_mvtx = 0;
 
     //! number of clusters in the intt
@@ -88,6 +88,20 @@ class TrackingEvaluator_hp : public SubsysReco
 
     //! number of clusters in the Micromegas
     unsigned int _nclusters_micromegas = 0;
+    
+
+    //! number of g4hits in the mvtx
+    unsigned int _ng4hits_mvtx = 0;
+
+    //! number of g4hits in the intt
+    unsigned int _ng4hits_intt = 0;
+
+    //! number of g4hits in the TPC
+    unsigned int _ng4hits_tpc = 0;
+
+    //! number of g4hits in the Micromegas
+    unsigned int _ng4hits_micromegas = 0;
+    
   };
 
   // cluster information to be stored in tree
