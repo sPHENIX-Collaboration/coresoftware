@@ -11,7 +11,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <g4main/PHG4Detector.h>
-
+#include <g4main/PHG4Subsystem.h>
 #include <micromegas/CylinderGeomMicromegas.h>
 
 #include <phool/getClass.h>
@@ -255,6 +255,8 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   // get initial radius
   const double radius = m_Params->get_double_param("mm_radius")*cm;
   const double length =  m_Params->get_double_param("mm_length")*cm;
+  const double width =  m_Params->get_double_param("mm_width")*cm;
+  const double cyllength =  m_Params->get_double_param("mm_cyllength")*cm;
 
   // get total thickness
   const double thickness = std::accumulate(
@@ -265,28 +267,27 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   std::cout << "PHG4MicromegasDetector::ConstructMe - detector thickness is " << thickness/cm << " cm" << std::endl;
 
   // create mother volume
-  auto cylinder_solid = new G4Tubs( G4String(GetName()), radius - 0.001*mm, radius + thickness + 0.001*mm, length / 2., 0, M_PI*2);
+  auto cylinder_solid = new G4Tubs( G4String(GetName()+ "_m"), radius - 0.001*mm, radius + thickness + 0.001*mm, cyllength / 2., 0, M_PI*2);
 
   recoConsts* rc = recoConsts::instance();
-  auto cylinder_logic = new G4LogicalVolume( cylinder_solid, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), G4String(GetName()) );
+  auto cylinder_logic = new G4LogicalVolume( cylinder_solid, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), G4String(GetName())+"_m" );
   auto vis = new G4VisAttributes(G4Color(G4Colour::Grey()));
   vis->SetForceSolid(true);
   vis->SetVisibility(false);
-  cylinder_logic->SetVisAttributes(vis);
+  //cylinder_logic->SetVisAttributes(vis);
 
   // add placement
-  new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), cylinder_logic, G4String(GetName()), logicWorld, false, 0, OverlapCheck() );
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(cylinder_logic);
+ // new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), cylinder_logic, G4String(GetName()), logicWorld, false, 0, OverlapCheck() );
  
   // make 1 tile
-  // ----------i
-  double tile_length = 55*cm;//TODO
-  double tile_width = 25*cm;
-  double tile_0_angle = tile_width / radius *cm; 
-  G4VSolid *tile_o = new G4Tubs(G4String(GetName())+"_tile", radius - 0.001*mm, radius + thickness + 0.001*mm, tile_length, -tile_0_angle *rad, tile_0_angle *rad); 
-  G4LogicalVolume *tile_o_logic = new G4LogicalVolume(tile_o, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), G4String(GetName())+"_tile_logic");
+  // ----------
+  auto tile_o = new G4Tubs(G4String(GetName())+"_tile0", radius - 0.001*mm, radius + thickness + 0.001*mm, length, -width/radius *rad, width/radius *rad); 
+  auto tile_o_logic = new G4LogicalVolume(tile_o, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), G4String(GetName())+"_tile0");
   tile_o_logic->SetVisAttributes(vis);
 
-  new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), tile_o_logic, G4String(GetName()) +"_tile0", cylinder_logic, false, 0, OverlapCheck() );// no rotation for tile0
+  new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), tile_o_logic, G4String(GetName()) +"_tile0", logicWorld, false, 0, OverlapCheck() );// no rotation for tile0
 
   // keep track of current layer
   int layer_index = m_FirstLayer;
@@ -307,14 +308,14 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     const auto material = layer_material.at(type);
     const auto color = layer_color.at(type);
 
-    auto component_solid = new G4Tubs(cname+"_solid", current_radius, current_radius+thickness, length/2, 0, M_PI*2);
+    auto component_solid = new G4Tubs(cname+"_solid", current_radius, current_radius+thickness, length, -width/radius*rad, width/radius*rad);
     auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
     auto vis = new G4VisAttributes( color );
     vis->SetForceSolid(true);
     vis->SetVisibility(true);
     component_logic->SetVisAttributes(vis);
 
-    auto component_phys = new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), component_logic, cname+"_phys", cylinder_logic, false, 0, OverlapCheck() );
+    auto component_phys = new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), component_logic, cname+"_phys", tile_o_logic, false, 0, OverlapCheck() );
 
     // store active volume
     if( type == Component::Gas2 ) m_activeVolumes.insert( std::make_pair( component_phys, layer_index++ ) );
