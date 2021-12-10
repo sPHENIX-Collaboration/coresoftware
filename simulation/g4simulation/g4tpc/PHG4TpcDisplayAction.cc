@@ -69,10 +69,12 @@ void PHG4TpcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     }
     else
     {
-      std::cout << "did not assing color to " << it.first->GetName()
-                << " under " << it.second << std::endl;
-      gSystem->Exit(1);
-      exit(1);
+      std::cout << "did not assign specific color to " << it.first->GetName()
+                << " under " << it.second << ".  Defaulting to TpcWindow color." << std::endl;
+      visatt->SetColor(PHG4TpcColorDefs::tpc_pcb_color);
+
+      //gSystem->Exit(1);
+      //exit(1);
     }
     logvol->SetVisAttributes(visatt);
   }

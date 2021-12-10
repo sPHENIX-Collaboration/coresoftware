@@ -7,7 +7,7 @@
 
 #include <cmath>
 #include <set>
-#include <string>
+#include <vector>
 
 class G4LogicalVolume;
 class G4UserLimits;
@@ -38,6 +38,10 @@ class PHG4TpcDetector : public PHG4Detector
  private:
   int ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope);
   int ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope);
+  int ConstructTpcExternalSupports(G4LogicalVolume *logicWorld);
+
+  void CreateCompositeMaterial(std::string compositeName, std::vector<std::string> materialName, std::vector<double> thickness);
+  
   PHG4TpcDisplayAction *m_DisplayAction = nullptr;
   PHParameters *m_Params = nullptr;
   G4UserLimits *m_G4UserLimits = nullptr;

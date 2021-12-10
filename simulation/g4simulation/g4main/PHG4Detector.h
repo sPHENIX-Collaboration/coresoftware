@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 class G4LogicalVolume;
 class G4Material;
