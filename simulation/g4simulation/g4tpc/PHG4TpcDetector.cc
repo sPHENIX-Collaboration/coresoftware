@@ -243,7 +243,8 @@ int PHG4TpcDetector::ConstructTpcExternalSupports(G4LogicalVolume *logicWorld)
   double hangerRadius=32.05*inch;
   double hangerX=std::sin(hangerAngle)*hangerRadius;
   double hangerY=std::cos(hangerAngle)*hangerRadius;
-  G4VSolid *hangerBeam = new G4Tubs("tpc_hanger_beam", 0, 2.*inch,(m_Params->get_double_param("tpc_length") * cm )/ 2., 0., 2*M_PI);
+  double hangerDiameter=2.*inch;
+  G4VSolid *hangerBeam = new G4Tubs("tpc_hanger_beam", 0,hangerDiameter/2.,(m_Params->get_double_param("tpc_length") * cm )/ 2., 0., 2*M_PI);
   G4LogicalVolume *hangerBeamLogic = new G4LogicalVolume(hangerBeam,
 							stainlessSteel,
 							"tpc_hanger_beam");
