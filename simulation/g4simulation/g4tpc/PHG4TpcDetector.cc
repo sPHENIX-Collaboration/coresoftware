@@ -268,7 +268,9 @@ int PHG4TpcDetector::ConstructTpcExternalSupports(G4LogicalVolume *logicWorld)
   double rodAngleStart=M_PI/12.;
   double rodAngularSpacing=2*M_PI/12.;
   double rodRadius=31.04*inch;
-  G4VSolid *tieRod = new G4Tubs("tpc_tie_rod",0.9375*inch, 1.*inch,(m_Params->get_double_param("tpc_length") * cm )/ 2., 0., 2*M_PI);
+  double rodWallThickness=1./8.*inch;
+  double rodDiameter=3./4.*inch;
+  G4VSolid *tieRod = new G4Tubs("tpc_tie_rod",rodDiameter/2.-rodWallThickness, rodDiameter/2.,(m_Params->get_double_param("tpc_length") * cm )/ 2., 0., 2*M_PI);
   G4LogicalVolume *tieRodLogic = new G4LogicalVolume(tieRod,
 							carbonFiber,
 							"tpc_tie_rod");
