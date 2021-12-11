@@ -41,6 +41,7 @@
 #include <map>
 #include <stdexcept>
 #include <utility>                                      // for make_pair, pair
+#include <fstream>
 
 using namespace std;
 
@@ -56,6 +57,7 @@ HcalRawTowerBuilder::HcalRawTowerBuilder(const std::string &name)
   , m_NcellToTower(-1)
 {
   InitializeParameters();
+ 
 }
 
 int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
@@ -110,7 +112,8 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   m_TowerEnergySrc = get_int_param("tower_energy_source");
   m_Emin = get_double_param("emin");
   m_NcellToTower = get_int_param("n_scinti_plates_per_tower");
-  if (Verbosity() >= 1)
+ 
+ if (Verbosity() >= 1)
   {
     cout << "HcalRawTowerBuilder::InitRun :";
     if (m_TowerEnergySrc == kEnergyDeposition)
@@ -129,6 +132,7 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
     {
       cout << "unknown energy source" << endl;
     }
+  
   }
   m_TowerGeomNodeName = "TOWERGEOM_" + m_Detector;
   m_RawTowerGeom = findNode::getClass<RawTowerGeomContainer>(topNode,
@@ -222,24 +226,55 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   {
     m_RawTowerGeom->identify();
   }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
+
 int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 3)
-  {
-    std::cout << PHWHERE << "Process event entered" << std::endl;
-  }
 
+ /* decalibration occurs if user supplies a non empty decalMap.txt
+    file, otherwise code will proceed with no de-calibration (as is)
+*/
+    double cell_weight = 0.0;
+    double decal_e[24][64]={0.0};
+    int etabin = -1;
+    int phibin = -1;
+    double decal = 0.0;
+    std::string de_cal_flag = "empty";
+    ifstream in1("decalMap.txt");
+    std::ofstream out1("CalibMap.txt", std::ofstream::out);
+    int rows = 0;
+    if(in1.is_open())
+    {
+      while(!in1.eof()) 
+     {
+
+       in1 >> etabin >> phibin >> decal;
+       decal_e[etabin][phibin]=decal;
+       rows++;
+       if(rows > 1)
+       { 
+        de_cal_flag = "DECALMODE";
+        out1<<etabin<<"\t"<<phibin<<"\t"<<decal<<std::endl; 
+       }   
+     }
+    }
+       
+    if (Verbosity() > 3)
+    {
+    std::cout << PHWHERE << "Process event entered" << std::endl;
+    }
+  
   // get cells
   std::string cellnodename = "G4CELL_" + m_Detector;
   PHG4CellContainer *slats = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (!slats)
   {
-    std::cerr << PHWHERE << " " << cellnodename
+     std::cerr << PHWHERE << " " << cellnodename
               << " Node missing, doing nothing." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   // loop over all slats in an event
@@ -248,45 +283,62 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
   for (cell_iter = cell_range.first; cell_iter != cell_range.second;
        ++cell_iter)
   {
-    PHG4Cell *cell = cell_iter->second;
 
-    if (Verbosity() > 2)
-    {
-      std::cout << PHWHERE << " print out the cell:" << std::endl;
-      cell->identify();
-    }
+    PHG4Cell *cell = cell_iter->second;
+     
     short twrrow = get_tower_row(PHG4CellDefs::ScintillatorSlatBinning::get_row(cell->get_cellid()));
-    // add the energy to the corresponding tower
-    // towers are addressed column/row to make the mapping more intuitive
+    short twrcol = PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid());
+     
     RawTower *tower = m_Towers->getTower(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid()), twrrow);
     if (!tower)
     {
       tower = new RawTowerv1();
-      tower->set_energy(0);
+      tower->set_energy(0.0);
       m_Towers->AddTower(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid()), twrrow, tower);
     }
-    double cell_weight = 0;
+
+ 
     if (m_TowerEnergySrc == kEnergyDeposition)
     {
-      cell_weight = cell->get_edep();
+      if(de_cal_flag == "DECALMODE" && decal_e[twrcol][twrrow] != 0)
+      {
+	cell_weight = cell->get_edep() * decal_e[twrcol][twrrow];
+      }
+      else
+      {
+        cell_weight = cell->get_edep();
+      }
     }
-    else if (m_TowerEnergySrc == kLightYield)
+    else if (m_TowerEnergySrc == kLightYield )
     {
-      cell_weight = cell->get_light_yield();
+      if(de_cal_flag == "DECALMODE" && decal_e[twrcol][twrrow] != 0)
+      {
+	cell_weight = cell->get_light_yield() * decal_e[twrcol][twrrow];
+      }
+      else
+      {
+        cell_weight = cell->get_light_yield();
+      }
     }
     else if (m_TowerEnergySrc == kIonizationEnergy)
     {
-      cell_weight = cell->get_eion();
+      if(de_cal_flag == "DECALMODE" && decal_e[twrcol][twrrow] != 0)
+      {
+	cell_weight = cell->get_eion() * decal_e[twrcol][twrrow];
+      }
+      else
+      {
+        cell_weight = cell->get_eion();
+      }
     }
     else
     {
       cout << Name() << ": unknown tower energy source "
            << m_TowerEnergySrc << endl;
-      gSystem->Exit(1);
     }
-
-    tower->add_ecell(cell->get_cellid(), cell_weight);
-
+    
+   tower->add_ecell(cell->get_cellid(), cell_weight);
+    
     PHG4Cell::ShowerEdepConstRange range = cell->get_g4showers();
     for (PHG4Cell::ShowerEdepConstIterator shower_iter = range.first;
          shower_iter != range.second;
@@ -294,19 +346,23 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     {
       tower->add_eshower(shower_iter->first, shower_iter->second);
     }
-    tower->set_energy(tower->get_energy() + cell_weight);
-  }
-  double towerE = 0;
-  if (m_ChkEnergyConservationFlag)
-  {
+ 
+   tower->set_energy(tower->get_energy() + cell_weight);
+  
+ }
+
+ double towerE = 0;
+ if (m_ChkEnergyConservationFlag)
+   {
     double cellE = slats->getTotalEdep();
     towerE = m_Towers->getTotalEdep();
-    if (fabs(cellE - towerE) / cellE > 1e-5)
+   if (fabs(cellE - towerE) / cellE > 1e-5)
     {
       cout << "towerE: " << towerE << ", cellE: " << cellE << ", delta: "
            << cellE - towerE << endl;
     }
-  }
+    }
+
   if (Verbosity())
   {
     towerE = m_Towers->getTotalEdep();
@@ -326,7 +382,7 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
       iter->second->identify();
     }
   }
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -378,7 +434,7 @@ void HcalRawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
                                                                    m_TowerNodeName, "PHObject");
     DetNode->addNode(towerNode);
   }
-  return;
+     return;
 }
 
 short HcalRawTowerBuilder::get_tower_row(const short cellrow) const
@@ -418,9 +474,9 @@ void HcalRawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
   set_double_param(PHG4HcalDefs::innerrad, pars->get_double_param(PHG4HcalDefs::innerrad));
   set_double_param(PHG4HcalDefs::outerrad, pars->get_double_param(PHG4HcalDefs::outerrad));
 
-  int nTiles = 2 * pars->get_int_param(PHG4HcalDefs::n_scinti_tiles); 
+  int nTiles = 2 * pars->get_int_param(PHG4HcalDefs::n_scinti_tiles);
   if(nTiles <= 0){
-    nTiles = pars->get_int_param(PHG4HcalDefs::n_scinti_tiles_pos) + pars->get_int_param(PHG4HcalDefs::n_scinti_tiles_neg);    
+    nTiles = pars->get_int_param(PHG4HcalDefs::n_scinti_tiles_pos) + pars->get_int_param(PHG4HcalDefs::n_scinti_tiles_neg);
   }
   set_int_param("etabins", nTiles);
 
