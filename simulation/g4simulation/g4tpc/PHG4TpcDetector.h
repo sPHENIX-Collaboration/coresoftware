@@ -7,7 +7,6 @@
 
 #include <cmath>
 #include <set>
-#include <vector>
 
 class G4LogicalVolume;
 class G4UserLimits;
