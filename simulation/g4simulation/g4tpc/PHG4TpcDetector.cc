@@ -268,7 +268,7 @@ int PHG4TpcDetector::ConstructTpcExternalSupports(G4LogicalVolume *logicWorld)
   G4Material *carbonFiber=GetDetectorMaterial("CFRP_INTT");
   double rodAngleStart=M_PI/12.;
   double rodAngularSpacing=2*M_PI/12.;
-  double rodRadius=31.1*inch;
+  double rodRadius=31.3*inch;
   double rodWallThickness=1./8.*inch;
   double rodDiameter=3./4.*inch;
   G4VSolid *tieRod = new G4Tubs("tpc_tie_rod",rodDiameter/2.-rodWallThickness, rodDiameter/2.,(m_Params->get_double_param("tpc_length") * cm )/ 2., 0., 2*M_PI);
