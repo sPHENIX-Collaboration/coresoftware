@@ -136,8 +136,7 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   if (!m_RawTowerGeom)
   {
     m_RawTowerGeom = new RawTowerGeomContainer_Cylinderv1(RawTowerDefs::convert_name_to_caloid(m_Detector));
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(m_RawTowerGeom,
-                                                                 m_TowerGeomNodeName, "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(m_RawTowerGeom, m_TowerGeomNodeName, "PHObject");
     RunDetNode->addNode(newNode);
   }
   double innerrad = get_double_param(PHG4HcalDefs::innerrad);
@@ -167,8 +166,7 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   {
     for (int ieta = 0; ieta < m_RawTowerGeom->get_etabins(); ieta++)
     {
-      const RawTowerDefs::keytype key =
-          RawTowerDefs::encode_towerid(RawTowerDefs::convert_name_to_caloid(m_Detector), ieta, iphi);
+      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::convert_name_to_caloid(m_Detector), ieta, iphi);
 
       const double x(geom_ref_radius * cos(m_RawTowerGeom->get_phicenter(iphi)));
       const double y(geom_ref_radius * sin(m_RawTowerGeom->get_phicenter(iphi)));
