@@ -239,19 +239,19 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     file, otherwise code will proceed with no de-calibration (as is)
 */
     double cell_weight = 0.0;
-    double decal_e[24][64]={0.0};
-    int etabin = -1;
-    int phibin = -1;
-    double decal = 0.0;
+    double decal_e[24][64]={{0.0}};
     std::string de_cal_flag = "empty";
     ifstream in1("decalMap.txt");
     std::ofstream out1("CalibMap.txt", std::ofstream::out);
-    int rows = 0;
     if(in1.is_open())
     {
+    int rows = 0;
       while(!in1.eof()) 
      {
 
+    int etabin = -1;
+    int phibin = -1;
+    double decal = 0.0;
        in1 >> etabin >> phibin >> decal;
        decal_e[etabin][phibin]=decal;
        rows++;
@@ -273,8 +273,10 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
   PHG4CellContainer *slats = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (!slats)
   {
-     std::cerr << PHWHERE << " " << cellnodename
-              << " Node missing, doing nothing." << std::endl;
+     std::cout << PHWHERE << " Node " << cellnodename
+              << " missing, quitting" << std::endl;
+     gSystem->Exit(1);
+     exit(1);
   }
 
   // loop over all slats in an event
@@ -335,6 +337,8 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     {
       cout << Name() << ": unknown tower energy source "
            << m_TowerEnergySrc << endl;
+      gSystem->Exit(1);
+      exit(1);
     }
     
    tower->add_ecell(cell->get_cellid(), cell_weight);
@@ -389,26 +393,23 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
 void HcalRawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
-  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst(
-      "PHCompositeNode", "RUN"));
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
-    std::cerr << PHWHERE << "Run Node missing, doing nothing." << std::endl;
-    throw std::runtime_error(
-        "Failed to find Run node in HcalRawTowerBuilder::CreateNodes");
+    std::cout << PHWHERE << "Run Node missing, exiting." << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst(
-      "PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    std::cerr << PHWHERE << "DST Node missing, doing nothing." << std::endl;
-    throw std::runtime_error(
-        "Failed to find DST node in HcalRawTowerBuilder::CreateNodes");
+    std::cout << PHWHERE << "DST Node missing, exiting." << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
 
   PHNodeIterator dstiter(dstNode);
-  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst(
-      "PHCompositeNode", m_Detector));
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", m_Detector));
   if (!DetNode)
   {
     DetNode = new PHCompositeNode(m_Detector);
