@@ -229,6 +229,12 @@ Acts::Vector3D PHCASeeding::getGlobalPosition( TrkrCluster* cluster ) const
   // check if TPC distortion correction are in place and apply
   if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
 
+//   std::cout << "PHCASeeding::getGlobalPosition -"
+//     << " key: " << cluster->getClusKey() 
+//     << " local: (" << cluster->getLocalX() << ", " << cluster->getLocalY() << ")"
+//     << " global: (" << globalpos.x() << ", " << globalpos.y() << ", " << globalpos.z() << ")"
+//     << std::endl;
+  
   return globalpos;
 }
 
@@ -754,7 +760,15 @@ std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& 
 void PHCASeeding::publishSeeds(const std::vector<SvtxTrack_v2>& seeds)
 {
   for( const auto&  seed:seeds )
-  { _track_map->insert(&seed);}
+  { 
+//     std::cout << "PHCASeeding::publishSeeds -"
+//       << " id: " << seed.get_id() 
+//       << " position: (" << seed.get_x() << ", " << seed.get_y() << ", " << seed.get_z() << ")" 
+//       << " momentum: (" << seed.get_px() << ", " << seed.get_py() << ", " << seed.get_pz() << ")" 
+//       << std::endl;
+        
+    _track_map->insert(&seed);
+  }
 }
 
 int PHCASeeding::Setup(PHCompositeNode *topNode)
