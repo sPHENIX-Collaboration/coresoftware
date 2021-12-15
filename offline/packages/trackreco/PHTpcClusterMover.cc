@@ -206,7 +206,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	    {
 	      /// If the surface can't be found, we can't track with it. So 
 	      /// just continue and don't modify the cluster to the container
-	      std::cout << PHWHERE << "Faild to find surface for cluster " << cluskey << std::endl;
+	      std::cout << PHWHERE << "Failed to find surface for cluster " << cluskey << std::endl;
 	      continue;
 	    }
 
@@ -588,6 +588,8 @@ Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitse
       std::cout << PHWHERE 
 		<< "Error: TPC surface index not defined, skipping cluster!" 
 		<< std::endl;
+      std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
+		<< " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
       return nullptr;
     }
   
