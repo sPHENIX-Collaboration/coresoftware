@@ -732,7 +732,6 @@ std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& 
       double x = global(0);
       double y = global(1);
       xy_pts.push_back(std::make_pair(x,y));
-
 //       double z = global(2);
 //       rz_pts.push_back(std::make_pair(std::sqrt(square(x)+square(y)),z));
     }
@@ -742,31 +741,29 @@ std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& 
 //     double B = 0;
 //     fitter->line_fit(rz_pts,A,B);
 //     const std::vector<double> rz_resid = fitter->GetLineClusterResiduals(rz_pts,A,B);
-    
     double R = 0;
     double X0 = 0;
     double Y0 = 0;
     fitter->CircleFitByTaubin(xy_pts,R,X0,Y0);
-    if( std::isnan( R ) )
-    {      
-      
-      // circle fit failed keep chain unchanged
-      clean_chains.push_back( chain );
-      
-    } else {
 
-      // calculate residuals
-      const std::vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
-      for(size_t i=0;i<chain.size();i++)
-      {
-        if(xy_resid[i]>_xy_outlier_threshold) continue;
-        clean_chain.push_back(chain[i]);
-        clean_chains.push_back(clean_chain);
-        if(Verbosity()>0) std::cout << "pushed clean chain with " << clean_chain.size() << " clusters" << std::endl;
-      }
-      
+    // skip chain entirely if fit fails
+    /*
+     * note: this is consistent with what the code was doing before
+     * but in principle we could also keep the seed unchanged instead
+     * this is to be studied independently
+     */
+    if( std::isnan( R ) ) continue;
+
+    // calculate residuals
+    const std::vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
+    for(size_t i=0;i<chain.size();i++)
+    {
+      if(xy_resid[i]>_xy_outlier_threshold) continue;
+      clean_chain.push_back(chain[i]);
     }
-    
+
+    clean_chains.push_back(clean_chain);
+    if(Verbosity()>0) std::cout << "pushed clean chain with " << clean_chain.size() << " clusters" << std::endl;
   }
   return clean_chains;
 }
