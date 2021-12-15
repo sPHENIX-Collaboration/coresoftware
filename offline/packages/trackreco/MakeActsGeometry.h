@@ -164,7 +164,7 @@ class MakeActsGeometry : public SubsysReco
   /// Several maps that connect Acts world to sPHENIX G4 world 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> m_clusterNodeMap;
   std::map<TrkrDefs::hitsetkey, Surface> m_clusterSurfaceMapSilicon;
-  std::map<TrkrDefs::hitsetkey, std::vector<Surface>> m_clusterSurfaceMapTpcEdit;
+  std::map<unsigned int, std::vector<Surface>> m_clusterSurfaceMapTpcEdit;  // uses layer as key
   std::map<TrkrDefs::hitsetkey, Surface> m_clusterSurfaceMapMmEdit;
   
   /// These don't change, we are building the tpc this way!

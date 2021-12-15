@@ -228,8 +228,10 @@ namespace
 					    ActsTrackingGeometry *tGeometry,
 					    TrkrDefs::subsurfkey& subsurfkey)
 	{
-	  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
-	  mapIter = surfMaps->tpcSurfaceMap.find(hitsetkey);
+
+	  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+	  std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
+	  mapIter = surfMaps->tpcSurfaceMap.find(layer);
 	  
 	  if(mapIter == surfMaps->tpcSurfaceMap.end())
 	    {

@@ -544,8 +544,9 @@ Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitse
 						       ActsTrackingGeometry *tGeometry,
 						       TrkrDefs::subsurfkey& subsurfkey)
 {
-  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
-  mapIter = surfMaps->tpcSurfaceMap.find(hitsetkey);
+  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+  std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
+  mapIter = surfMaps->tpcSurfaceMap.find(layer);
   
   if(mapIter == surfMaps->tpcSurfaceMap.end())
     {
@@ -572,7 +573,37 @@ Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitse
       std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       double surf_phi = atan2(surf_center[1], surf_center[0]);
       double surf_z = surf_center[2];
-      
+
+      // check for wrong side
+      if(world_z / surf_z < 0) continue;   // wrong side
+
+      if(Verbosity() > 2)
+	std::cout << "  try surf_phi " << surf_phi << " surf_z " << surf_z 
+		  << " surfStepPhi/2 " << surfStepPhi/2.0 << " surfStepZ/2 " << surfStepZ/2.0  
+		  << " world_phi " << world_phi << " world_z " << world_z 
+		  << std::endl;        
+
+      // i=0 and i = surf_vec.size()-1 are special cases
+      if(i==0)
+	{
+	  if( (world_phi > surf_phi - surfStepPhi  && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
+	      (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )
+	    {
+	      surf_index = i;	  
+	      break;
+	    }
+	}
+
+      if(i==surf_vec.size() - 1)
+	{
+	  if( (world_phi > surf_phi - surfStepPhi/2.0  && world_phi < surf_phi + surfStepPhi  ) &&
+	      (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )
+	    {
+	      surf_index = i;	  
+	      break;
+	    }
+	}
+
       if( (world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
 	  (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )
 	{
@@ -580,6 +611,7 @@ Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitse
 	  break;
 	}
     }
+
 	  
   subsurfkey = surf_index;
   
@@ -590,6 +622,7 @@ Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitse
 		<< std::endl;
       std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
 		<< " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
+      std::cout << "     world_phi " << world_phi << " world_z " << world_z << std::endl;
       return nullptr;
     }
   
