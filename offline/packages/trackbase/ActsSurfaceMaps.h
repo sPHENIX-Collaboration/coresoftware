@@ -34,7 +34,7 @@ struct ActsSurfaceMaps
   std::map<TrkrDefs::hitsetkey, Surface> siliconSurfaceMap;
 
   //! map hitset to surface vector for the TPC
-  std::map<TrkrDefs::hitsetkey, SurfaceVec> tpcSurfaceMap;
+  std::map<unsigned int, SurfaceVec> tpcSurfaceMap;   // uses layer as key
 
   //! map hitset to surface vector for the micromegas
   std::map<TrkrDefs::hitsetkey, Surface> mmSurfaceMap;

@@ -746,11 +746,14 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 					      vec3d(2) / 10.0};
 	
 	  TrkrDefs::hitsetkey hitsetkey = getTpcHitSetKeyFromCoords(world_center);
+	  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
 
 	  /// If there is already an entry for this hitsetkey, add the surface
 	  /// to its corresponding vector
-	  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
-	  mapIter = m_clusterSurfaceMapTpcEdit.find(hitsetkey);
+	  //std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
+	  std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
+	  //mapIter = m_clusterSurfaceMapTpcEdit.find(hitsetkey);
+	  mapIter = m_clusterSurfaceMapTpcEdit.find(layer);
 	  
 	  if(mapIter != m_clusterSurfaceMapTpcEdit.end())
 	    {
@@ -761,8 +764,8 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 	      /// Otherwise make a new map entry
 	      std::vector<Surface> dumvec;
 	      dumvec.push_back(surf);
-	      std::pair<TrkrDefs::hitsetkey, std::vector<Surface>> tmp = 
-		std::make_pair(hitsetkey, dumvec);
+	      std::pair<unsigned int, std::vector<Surface>> tmp = 
+		std::make_pair(layer, dumvec);
 	      m_clusterSurfaceMapTpcEdit.insert(tmp);
 	    }
 	  
