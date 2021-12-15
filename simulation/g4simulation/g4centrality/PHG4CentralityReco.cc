@@ -46,11 +46,11 @@ int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
 
   auto bhits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_BBC");
   if (!bhits)
-    std::cout << "PHG4CentralityReco::InitRun : cannot find G4HIT_BBC, will not use MBD centrality";
+    std::cout << "PHG4CentralityReco::InitRun : cannot find G4HIT_BBC, will not use MBD centrality" << std::endl;
 
   auto ehits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_EPD");
   if (!ehits)
-    std::cout << "PHG4CentralityReco::InitRun : cannot find G4HIT_EPD, will not use sEPD centrality";
+    std::cout << "PHG4CentralityReco::InitRun : cannot find G4HIT_EPD, will not use sEPD centrality" << std::endl;
   
   if ( _centrality_calibration_params.exist_string_param("description") ) {
     if (Verbosity() >= 1 ) {
@@ -99,7 +99,16 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
   auto event_header = findNode::getClass<EventHeaderv1>(topNode, "EventHeader" );
   if ( event_header ) {
     _bimp = event_header->get_floatval("bimp");
+
+    if (Verbosity() >= 5)
+      std::cout << "PHG4CentralityReco::process_event : Hijing impact parameter b = " << _bimp << std::endl;
   }
+  else
+    {
+      if (Verbosity() >= 5)
+	std::cout << "PHG4CentralityReco::process_event : No Hijing impact parameter info, setting b = 101" << std::endl;
+    }
+
   
   _mbd_N = 0;
   _mbd_S = 0;
@@ -167,7 +176,7 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
   if (_do_centrality_calibration) {
 
     // sEPD centrality
-    float low_epd_val = -1;
+    float low_epd_val = -10000;
     float high_epd_val = 10000;
     int low_epd_centile = -1;
     int high_epd_centile = -1;
@@ -175,7 +184,7 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
     for(std::map<float,int>::iterator it = _cent_cal_epd.begin(); it != _cent_cal_epd.end(); ++it) {
       float signal = it->first;
       int cent = it->second;
-      
+
       if (signal < _epd_NS && signal > low_epd_val) {
 	low_epd_val = signal;
 	low_epd_centile = cent;
@@ -198,7 +207,7 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
     }
 
     // MBD centrality
-    float low_mbd_val = -1;
+    float low_mbd_val = -10000;
     float high_mbd_val = 10000;
     int low_mbd_centile = -1;
     int high_mbd_centile = -1;

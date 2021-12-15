@@ -23,7 +23,6 @@
 #include <string>   // for string
 #include <utility>  // for pair
 
-class G4Tubs;
 class G4LogicalVolume;
 class G4UserLimits;
 class G4VPhysicalVolume;
