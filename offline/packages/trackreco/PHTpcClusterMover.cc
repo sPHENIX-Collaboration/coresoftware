@@ -105,19 +105,20 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  unsigned int trkrId = TrkrDefs::getTrkrId(cluster_key);
 	  unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
-    // non Tpc clusters are copied unchanged to the new map
+	  // non Tpc clusters are copied unchanged to the new map if they are present
+	  // This is needed for truth seeding case, where the tracks already have silicon clusters 
 	  if(trkrId != TrkrDefs::tpcId) 
-    {
-      // get cluster from original map
-      auto cluster =  _cluster_map->findCluster(cluster_key);	
-      if( !cluster ) continue;
-      
-      // create in corrected map and copy content
-      auto newclus = _corrected_cluster_map->findOrAddCluster(cluster_key)->second;
-      newclus->CopyFrom( cluster );
-      continue;      
-    }
-    
+	    {
+	      // get cluster from original map
+	      auto cluster =  _cluster_map->findCluster(cluster_key);	
+	      if( !cluster ) continue;
+	      
+	      // create in corrected map and copy content
+	      auto newclus = _corrected_cluster_map->findOrAddCluster(cluster_key)->second;
+	      newclus->CopyFrom( cluster );
+	      continue;      
+	    }
+	  
 	  // get the cluster in 3D coordinates
 	  TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
 	  auto global = _transformer.getGlobalPosition(tpc_clus,
@@ -165,7 +166,6 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	   ++clus_iter)
 	{
 	  TrkrDefs::cluskey cluskey = clus_iter->first;
-	  //	  TrkrCluster *cluster = _clustermap->
 	  unsigned int layer = TrkrDefs::getLayer(cluskey);
 	  Acts::Vector3D global = clus_iter->second;
 
@@ -266,7 +266,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  newclus->setLocalY(localPos(1));
 	}
 
-      // The silicon clusters  for this track will be copied over after the matching is done
+      // For normal reconstruction, the silicon clusters  for this track will be copied over after the matching is done
     }
   
   return Fun4AllReturnCodes::EVENT_OK;
