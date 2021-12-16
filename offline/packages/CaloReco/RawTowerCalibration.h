@@ -33,11 +33,16 @@ class RawTowerCalibration : public SubsysReco
     _tower_calib_params.set_name(d);
   }
   void
+  CalibFile(const std::string &f)
+  {
+    calibfile = f;
+  }
+
+  void
   TowerType(const int type)
   {
     _tower_type = type;
   }
-
   enum enu_calib_algorithm
   {
     //! directly pass the energy of raw tower to calibrated tower. Zero suppression is applied
@@ -136,8 +141,8 @@ class RawTowerCalibration : public SubsysReco
   {
     return _tower_calib_params;
   }
-
- protected:
+ 
+  protected:
   void
   CreateNodes(PHCompositeNode *topNode);
 
@@ -148,12 +153,13 @@ class RawTowerCalibration : public SubsysReco
   RawTowerGeomContainer *rawtowergeom;
 
   std::string detector;
+  std::string calibfile;
   std::string RawTowerNodeName;
   std::string CaliTowerNodeName;
   std::string TowerGeomNodeName;
 
   std::string _calib_tower_node_prefix;
-  std::string _raw_tower_node_prefix;
+  std::string _raw_tower_node_prefix;  
 
   //! pedstal in unit of ADC
   double _pedstal_ADC;
@@ -170,8 +176,11 @@ class RawTowerCalibration : public SubsysReco
   //! tower type to act on
   int _tower_type;
 
+
   //! Tower by tower calibration parameters
   PHParameters _tower_calib_params;
-};
+
+  
+ };
 
 #endif
