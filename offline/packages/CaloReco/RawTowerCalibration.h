@@ -25,7 +25,6 @@ class RawTowerCalibration : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
   void
   Detector(const std::string &d)
   {
@@ -154,9 +153,6 @@ class RawTowerCalibration : public SubsysReco
 
   std::string detector;
   std::string calibfile;
-  std::string RawTowerNodeName;
-  std::string CaliTowerNodeName;
-  std::string TowerGeomNodeName;
 
   std::string _calib_tower_node_prefix;
   std::string _raw_tower_node_prefix;  
