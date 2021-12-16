@@ -174,7 +174,7 @@ class MakeActsGeometry : public SubsysReco
 
   /// TPC Acts::Surface subdivisions
   double m_minSurfZ = 0.;
-  double m_maxSurfZ = 105.5;
+  double m_maxSurfZ = 105.78;
   unsigned int m_nSurfZ = 1;
   unsigned int m_nSurfPhi = 12;
   double m_surfStepPhi = 0;
