@@ -249,26 +249,56 @@ namespace
 	  
 	  double surfStepPhi = tGeometry->tpcSurfStepPhi;
 	  double surfStepZ = tGeometry->tpcSurfStepZ;
-	
+
 	  for(unsigned int i=0;i<surf_vec.size(); ++i)
 	    {
 	      Surface this_surf = surf_vec[i];
-	  
+	      
 	      auto vec3d = this_surf->center(tGeometry->geoContext);
 	      std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
 	      double surf_phi = atan2(surf_center[1], surf_center[0]);
 	      double surf_z = surf_center[2];
-	 
+	      
+	      // check for Z  at start - is this the correct side?
+	      if(world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0)
+		{
+		  // i=0 and i = surf_vec.size()-1 are special cases
+		  if(i==0)
+		    {
+		      if(world_phi > surf_phi - surfStepPhi  && world_phi < surf_phi + surfStepPhi / 2.0 )
+			{
+			  surf_index = i;	  
+			  break;
+			}
+		    }
+		  
+		  if(i==surf_vec.size() - 1)
+		    {
+		      if(world_phi > surf_phi - surfStepPhi/2.0  && world_phi < surf_phi + surfStepPhi  )
+			{
+			  surf_index = i;	  
+			  break;
+			}
+		    }
+		  
+		  if(world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 )
+		    {
+		      surf_index = i;	  
+		      break;
+		    }
+		}  
+	      /*
 	      if( (world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
 		  (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )
 		{
 		  surf_index = i;	  
 		  break;
 		}
+	      */
 	    }
 	  
 	  subsurfkey = surf_index;
-	
+	  
 	  if(surf_index == 999)
 	    {
 	      std::cout << PHWHERE 
