@@ -718,32 +718,44 @@ std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& 
     keylist clean_chain;
 
     std::vector<std::pair<double,double>> xy_pts;
-    std::vector<std::pair<double,double>> rz_pts;
+//     std::vector<std::pair<double,double>> rz_pts;
 
     for(const TrkrDefs::cluskey& ckey : chain)
     {
       const auto &global = globalPositions.at(ckey);
       double x = global(0);
       double y = global(1);
-      double z = global(2);
       xy_pts.push_back(std::make_pair(x,y));
-      rz_pts.push_back(std::make_pair(std::sqrt(square(x)+square(y)),z));
+//       double z = global(2);
+//       rz_pts.push_back(std::make_pair(std::sqrt(square(x)+square(y)),z));
     }
     if(Verbosity()>0) std::cout << "chain size: " << chain.size() << std::endl;
-    double A;
-    double B;
-    double R;
-    double X0;
-    double Y0;
+
+//     double A = 0;
+//     double B = 0;
+//     fitter->line_fit(rz_pts,A,B);
+//     const std::vector<double> rz_resid = fitter->GetLineClusterResiduals(rz_pts,A,B);
+    double R = 0;
+    double X0 = 0;
+    double Y0 = 0;
     fitter->CircleFitByTaubin(xy_pts,R,X0,Y0);
-    fitter->line_fit(rz_pts,A,B);
+
+    // skip chain entirely if fit fails
+    /*
+     * note: this is consistent with what the code was doing before
+     * but in principle we could also keep the seed unchanged instead
+     * this is to be studied independently
+     */
+    if( std::isnan( R ) ) continue;
+
+    // calculate residuals
     const std::vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
-    const std::vector<double> rz_resid = fitter->GetLineClusterResiduals(rz_pts,A,B);
     for(size_t i=0;i<chain.size();i++)
     {
       if(xy_resid[i]>_xy_outlier_threshold) continue;
       clean_chain.push_back(chain[i]);
     }
+
     clean_chains.push_back(clean_chain);
     if(Verbosity()>0) std::cout << "pushed clean chain with " << clean_chain.size() << " clusters" << std::endl;
   }
