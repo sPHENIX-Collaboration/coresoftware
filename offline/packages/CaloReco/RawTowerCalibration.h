@@ -25,23 +25,22 @@ class RawTowerCalibration : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  void
-  Detector(const std::string &d)
+  void Detector(const std::string &d)
   {
-    detector = d;
+    m_Detector = d;
     _tower_calib_params.set_name(d);
   }
-  void
-  CalibFile(const std::string &f)
+
+  void CalibFile(const std::string &f)
   {
     calibfile = f;
   }
 
-  void
-  TowerType(const int type)
+  void  TowerType(const int type)
   {
     _tower_type = type;
   }
+
   enum enu_calib_algorithm
   {
     //! directly pass the energy of raw tower to calibrated tower. Zero suppression is applied
@@ -54,108 +53,87 @@ class RawTowerCalibration : public SubsysReco
     kTower_by_tower_calibration = 2
   };
 
-  enu_calib_algorithm
-  get_calib_algorithm() const
+  enu_calib_algorithm  get_calib_algorithm() const
   {
-    return _calib_algorithm;
+    return m_CalibAlgorithmEnum;
   }
 
-  void
-  set_calib_algorithm(enu_calib_algorithm calibAlgorithm)
+  void  set_calib_algorithm(enu_calib_algorithm calibAlgorithm)
   {
-    _calib_algorithm = calibAlgorithm;
+    m_CalibAlgorithmEnum = calibAlgorithm;
   }
 
-  double
-  get_calib_const_GeV_ADC() const
+  double  get_calib_const_GeV_ADC() const
   {
     return _calib_const_GeV_ADC;
   }
 
-  void
-  set_calib_const_GeV_ADC(double calibConstGeVAdc)
+  void  set_calib_const_GeV_ADC(double calibConstGeVAdc)
   {
     _calib_const_GeV_ADC = calibConstGeVAdc;
   }
 
-  void
-  set_variable_GeV_ADC(const bool value)
+  void  set_variable_GeV_ADC(const bool value)
   {
     _GeV_ADC_file = value;
   }
 
-  std::string
-  get_calib_tower_node_prefix() const
+  std::string  get_calib_tower_node_prefix() const
   {
-    return _calib_tower_node_prefix;
+    return m_CalibTowerNodePrefix;
   }
 
-  void
-  set_calib_tower_node_prefix(const std::string &calibTowerNodePrefix)
+  void  set_calib_tower_node_prefix(const std::string &calibTowerNodePrefix)
   {
-    _calib_tower_node_prefix = calibTowerNodePrefix;
+    m_CalibTowerNodePrefix = calibTowerNodePrefix;
   }
 
-  double
-  get_pedstal_ADC() const
+  double  get_pedstal_ADC() const
   {
     return _pedstal_ADC;
   }
 
-  void
-  set_pedstal_ADC(double pedstalAdc)
+  void  set_pedstal_ADC(double pedstalAdc)
   {
     _pedstal_ADC = pedstalAdc;
   }
 
-  void
-  set_variable_pedestal(const bool value)
+  void  set_variable_pedestal(const bool value)
   {
     _pedestal_file = value;
   }
 
-  std::string
-  get_raw_tower_node_prefix() const
+  std::string  get_raw_tower_node_prefix() const
   {
-    return _raw_tower_node_prefix;
+    return m_RawTowerNodePrefix;
   }
 
-  void
-  set_raw_tower_node_prefix(const std::string &rawTowerNodePrefix)
+  void  set_raw_tower_node_prefix(const std::string &rawTowerNodePrefix)
   {
-    _raw_tower_node_prefix = rawTowerNodePrefix;
-  }
-
-  void
-  set_zero_suppression_GeV(double)
-  {
-    std::cout << "RawTowerCalibration::set_zero_suppression_GeV is deprecated!" << std::endl
-              << "  See discussion at https://github.com/sPHENIX-Collaboration/coresoftware/pull/867" << std::endl
-              << std::endl;
+    m_RawTowerNodePrefix = rawTowerNodePrefix;
   }
 
   //! Get the parameters for update. Useful fields are listed in SetDefaultParameters();
-  PHParameters &
-  GetCalibrationParameters()
+  PHParameters &  GetCalibrationParameters()
   {
     return _tower_calib_params;
   }
  
   protected:
-  void
-  CreateNodes(PHCompositeNode *topNode);
 
-  enu_calib_algorithm _calib_algorithm;
+  void CreateNodes(PHCompositeNode *topNode);
+
+  enu_calib_algorithm m_CalibAlgorithmEnum = kNo_calibration;
 
   RawTowerContainer *m_CalibTowerContainer = nullptr;
   RawTowerContainer *m_RawTowerContainer = nullptr;
   RawTowerGeomContainer *m_RawTowerGeomContainer = nullptr;
 
-  std::string detector;
+  std::string m_Detector;
   std::string calibfile;
 
-  std::string _calib_tower_node_prefix;
-  std::string _raw_tower_node_prefix;  
+  std::string m_CalibTowerNodePrefix = "CALIB";
+  std::string m_RawTowerNodePrefix = "RAW";  
 
   //! pedstal in unit of ADC
   double _pedstal_ADC;
