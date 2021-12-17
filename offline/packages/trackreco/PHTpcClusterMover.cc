@@ -579,8 +579,8 @@ Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitse
   double surfStepPhi = tGeometry->tpcSurfStepPhi;
   double surfStepZ = tGeometry->tpcSurfStepZ;
 
-  if(world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0 &&
-    world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 )
+  if( (world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
+      (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )	
     {
       if(Verbosity() > 2)
 	std::cout <<  "     got it:  surf_phi " << surf_phi << " surf_z " << surf_z 

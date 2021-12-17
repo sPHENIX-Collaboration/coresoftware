@@ -367,7 +367,8 @@ Surface PHActsTrkFitter::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
 //___________________________________________________________________________________
 Surface PHActsTrkFitter::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey) const
 {
-  const auto iter = m_surfMaps->tpcSurfaceMap.find(hitsetkey);
+  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+  const auto iter = m_surfMaps->tpcSurfaceMap.find(layer);
   if(iter != m_surfMaps->tpcSurfaceMap.end())
   {
     auto surfvec = iter->second;
