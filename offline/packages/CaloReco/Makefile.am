@@ -9,7 +9,8 @@ lib_LTLIBRARIES = \
 
 libcalo_reco_la_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 libcalo_reco_la_LIBADD = \
   -lCLHEP \
@@ -19,7 +20,9 @@ libcalo_reco_la_LIBADD = \
   -lgslcblas \
   -lg4vertex_io \
   -lcalo_io \
-  -lphparameter
+  -lphparameter \
+  -lxpload
+
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -33,7 +36,7 @@ pkginclude_HEADERS = \
   RawClusterBuilderTemplate.h \
   RawClusterPositionCorrection.h \
   RawTowerCalibration.h 
-  
+
 libcalo_reco_la_SOURCES = \
   BEmcCluster.cc \
   BEmcProfile.cc \
