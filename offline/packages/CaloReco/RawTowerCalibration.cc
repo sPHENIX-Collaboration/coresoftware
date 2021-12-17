@@ -35,10 +35,17 @@
 
 RawTowerCalibration::RawTowerCalibration(const std::string &name)
   : SubsysReco(name)
-  ,  //
-  m_CalibrationFile("empty.txt")
   , m_TowerCalibParams(name)
 {
+  for (size_t i = 0; i<  m_RecalArray.size(); i++)
+  {
+    for (size_t j = 0; j < m_RecalArray[0].size(); j++)
+    {
+      m_RecalArray[i][j]  = 1.;
+    }
+  }
+
+//  m_testarray.fill(1);
 }
 
 int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
@@ -141,35 +148,38 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
       }
       else
       {
-        double recal_e[24][64] = {{0.0}};
+        if (! m_CalibrationFileName.empty())
+	{
         std::ifstream calibrate_tower;
-        calibrate_tower.open(m_CalibrationFile);
+        calibrate_tower.open(m_CalibrationFileName);
         if (calibrate_tower.is_open())
         {
           int rows = 0;
-          while (!calibrate_tower.eof())
-          {
             int etabin = -1;
             int phibin = -1;
-            double recal = 0.0;
+            double recal = 1.;
             calibrate_tower >> etabin >> phibin >> recal;
-            recal_e[etabin][phibin] = recal;
+          while (!calibrate_tower.eof())
+          {
+	    // at does a bounds check
+            m_RecalArray.at(etabin).at(phibin) = recal;
+            calibrate_tower >> etabin >> phibin >> recal;
             rows++;
+          }
             if (rows > 1)
             {
               re_cal_flag = "CALIBMODE";
             }
-          }
         }
-
-        tower_by_tower_calib = recal_e[eta][phi];
+	}
+        tower_by_tower_calib = m_RecalArray[eta][phi];
       }
 
       const double raw_energy = raw_tower->get_energy();
 
       if (re_cal_flag == "CALIBMODE" && tower_by_tower_calib != 0)
       {
-        recalibrated_e = raw_energy / tower_by_tower_calib;
+        recalibrated_e = raw_energy * tower_by_tower_calib;
       }
       else if (re_cal_flag == "CALIBMODE" && tower_by_tower_calib == 0)
       {

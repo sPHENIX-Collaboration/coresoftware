@@ -5,6 +5,7 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <array>
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -34,7 +35,7 @@ class RawTowerCalibration : public SubsysReco
 
   void CalibFile(const std::string &f)
   {
-    m_CalibrationFile = f;
+    m_CalibrationFileName = f;
   }
 
   void TowerType(const int type)
@@ -123,35 +124,39 @@ class RawTowerCalibration : public SubsysReco
  protected:
   void CreateNodes(PHCompositeNode *topNode);
 
-  enu_calib_algorithm m_CalibAlgorithmEnum = kNo_calibration;
-
   RawTowerContainer *m_CalibTowerContainer = nullptr;
   RawTowerContainer *m_RawTowerContainer = nullptr;
   RawTowerGeomContainer *m_RawTowerGeomContainer = nullptr;
 
-  std::string m_Detector;
-  std::string m_CalibrationFile;
-
-  std::string m_CalibTowerNodePrefix = "CALIB";
-  std::string m_RawTowerNodePrefix = "RAW";
-
-  //! pedstal in unit of ADC
-  double m_PedestalADC = NAN;
-
-  //! pedestal from file
-  bool m_PedestalFromFileFlag = false;
-
-  //! calibration constant in unit of GeV per ADC
-  double m_CalibConst_GeV_per_ADC = NAN;
-
-  //! GeV per ADC from file
-  bool m_GeV_per_ADC_FromFileFlag = false;
+  enu_calib_algorithm m_CalibAlgorithmEnum = kNo_calibration;
 
   //! tower type to act on
   int m_TowerType = -1;
 
+  //! pedstal in unit of ADC
+  double m_PedestalADC = NAN;
+
+  //! calibration constant in unit of GeV per ADC
+  double m_CalibConst_GeV_per_ADC = NAN;
+
+//  double m_RecalArray[24][64] = {{0.0}};
+  std::array< std::array<double,64>, 24> m_RecalArray;
+  //! pedestal from file
+  bool m_PedestalFromFileFlag = false;
+
+  //! GeV per ADC from file
+  bool m_GeV_per_ADC_FromFileFlag = false;
+
+
+  std::string m_Detector;
+  std::string m_CalibrationFileName;
+
+  std::string m_CalibTowerNodePrefix = "CALIB";
+  std::string m_RawTowerNodePrefix = "RAW";
+
   //! Tower by tower calibration parameters
   PHParameters m_TowerCalibParams;
+
 };
 
 #endif
