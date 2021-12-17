@@ -29,7 +29,7 @@ class RawTowerCalibration : public SubsysReco
   void Detector(const std::string &d)
   {
     m_Detector = d;
-    _tower_calib_params.set_name(d);
+    m_TowerCalibParams.set_name(d);
   }
 
   void CalibFile(const std::string &f)
@@ -117,7 +117,7 @@ class RawTowerCalibration : public SubsysReco
   //! Get the parameters for update. Useful fields are listed in SetDefaultParameters();
   PHParameters &  GetCalibrationParameters()
   {
-    return _tower_calib_params;
+    return m_TowerCalibParams;
   }
  
   protected:
@@ -153,7 +153,7 @@ class RawTowerCalibration : public SubsysReco
 
 
   //! Tower by tower calibration parameters
-  PHParameters _tower_calib_params;
+  PHParameters m_TowerCalibParams;
 
   
  };

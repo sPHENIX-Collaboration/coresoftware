@@ -32,13 +32,12 @@
 #include <string>
 #include <utility>
 #include <fstream>
-using namespace std;
 
 RawTowerCalibration::RawTowerCalibration(const std::string &name)
   : SubsysReco(name)
   ,  //
   calibfile("empty.txt")
-  , _tower_calib_params(name)
+  , m_TowerCalibParams(name)
 {
 }
 
@@ -124,27 +123,27 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
      if (caloid == RawTowerDefs::LFHCAL) 
       {
         const int l   = raw_tower->get_binl();
-        const string calib_const_name("calib_const_eta" + to_string(eta) + "_phi" + to_string(phi) + "_l" + to_string(l));
+        const std::string calib_const_name("calib_const_eta" + std::to_string(eta) + "_phi" + std::to_string(phi) + "_l" + std::to_string(l));
 
-        tower_by_tower_calib = _tower_calib_params.get_double_param(calib_const_name);
+        tower_by_tower_calib = m_TowerCalibParams.get_double_param(calib_const_name);
 
         if (m_PedestalFromFileFlag == true)
         {
-          const string pedstal_name("PedCentral_ADC_eta" + to_string(eta) + "_phi" + to_string(phi)+ "_l" + to_string(l));
-          m_PedestalADC = _tower_calib_params.get_double_param(pedstal_name);
+          const std::string pedstal_name("PedCentral_ADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi)+ "_l" + std::to_string(l));
+          m_PedestalADC = m_TowerCalibParams.get_double_param(pedstal_name);
         }
 
         if (m_GeV_per_ADC_FromFileFlag == true)
         {
-          const string GeVperADCname("GeVperADC_eta" + to_string(eta) + "_phi" + to_string(phi)+ "_l" + to_string(l));
-          m_CalibConst_GeV_per_ADC = _tower_calib_params.get_double_param(GeVperADCname);
+          const std::string GeVperADCname("GeVperADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi)+ "_l" + std::to_string(l));
+          m_CalibConst_GeV_per_ADC = m_TowerCalibParams.get_double_param(GeVperADCname);
         }
       } 
       else
       {     
 
        double recal_e[24][64] = {{0.0}};
-       ifstream calibrate_tower;
+       std::ifstream calibrate_tower;
        calibrate_tower.open(calibfile);
        if (calibrate_tower.is_open())
         {
