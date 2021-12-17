@@ -233,9 +233,9 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
   double decal_e[24][64] = {{0.0}};
   std::string de_cal_flag = "empty";
   std::ifstream in1("decalMap.txt");
-  std::ofstream out1("CalibMap.txt", std::ofstream::out);
   if (in1.is_open())
   {
+    std::ofstream out1("CalibMap.txt", std::ofstream::out);
     int rows = 0;
     while (!in1.eof())
     {
