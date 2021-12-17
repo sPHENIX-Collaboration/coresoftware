@@ -76,28 +76,31 @@ int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
   }
 
   // this is for testing our condition DB, it's reply is not used right now
-  recoConsts *rc = recoConsts::instance();
-  uint64_t timestamp = rc->get_IntFlag("RUNNUMBER");
-  std::string tag = "example_tag_1";
-  std::string cfg = "test";
-  xpload::Configurator config(cfg);
-  std::vector<std::string> paths = xpload::fetch(tag, timestamp, config);
-  if (paths.empty())
+  if (m_UseConditionsDB)
   {
-    if (Verbosity())
+    recoConsts *rc = recoConsts::instance();
+    uint64_t timestamp = rc->get_IntFlag("RUNNUMBER");
+    std::string tag = "example_tag_1";
+    std::string cfg = "test";
+    xpload::Configurator config(cfg);
+    std::vector<std::string> paths = xpload::fetch(tag, timestamp, config);
+    if (paths.empty())
     {
-      std::cout << "No paths in conditions DB found" << std::endl;
-    }
-  }
-  else
-  {
-    if (Verbosity())
-    {
-      std::cout << "Found paths:" << std::endl;
-
-      for (const std::string &path : paths)
+      if (Verbosity())
       {
-        std::cout << path << std::endl;
+        std::cout << "No paths in conditions DB found" << std::endl;
+      }
+    }
+    else
+    {
+      if (Verbosity())
+      {
+        std::cout << "Found paths:" << std::endl;
+
+        for (const std::string &path : paths)
+        {
+          std::cout << path << std::endl;
+        }
       }
     }
   }

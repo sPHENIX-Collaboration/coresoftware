@@ -33,6 +33,11 @@ class RawTowerCalibration : public SubsysReco
     m_TowerCalibParams.set_name(d);
   }
 
+  void useDB(const bool b = true)
+  {
+    m_UseConditionsDB = b;
+  }
+
   void CalibFile(const std::string &f)
   {
     m_CalibrationFileName = f;
@@ -144,6 +149,9 @@ class RawTowerCalibration : public SubsysReco
 
   //! GeV per ADC from file
   bool m_GeV_per_ADC_FromFileFlag = false;
+
+  //! use conditions DB
+  bool m_UseConditionsDB = false;
 
   std::array< std::array<double,64>, 24> m_RecalArray;
 
