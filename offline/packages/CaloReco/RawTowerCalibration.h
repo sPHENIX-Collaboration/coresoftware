@@ -34,10 +34,10 @@ class RawTowerCalibration : public SubsysReco
 
   void CalibFile(const std::string &f)
   {
-    calibfile = f;
+    m_CalibrationFile = f;
   }
 
-  void  TowerType(const int type)
+  void TowerType(const int type)
   {
     m_TowerType = type;
   }
@@ -54,74 +54,73 @@ class RawTowerCalibration : public SubsysReco
     kTower_by_tower_calibration = 2
   };
 
-  enu_calib_algorithm  get_calib_algorithm() const
+  enu_calib_algorithm get_calib_algorithm() const
   {
     return m_CalibAlgorithmEnum;
   }
 
-  void  set_calib_algorithm(enu_calib_algorithm calibAlgorithm)
+  void set_calib_algorithm(enu_calib_algorithm calibAlgorithm)
   {
     m_CalibAlgorithmEnum = calibAlgorithm;
   }
 
-  double  get_calib_const_GeV_ADC() const
+  double get_calib_const_GeV_ADC() const
   {
     return m_CalibConst_GeV_per_ADC;
   }
 
-  void  set_calib_const_GeV_ADC(double calibConstGeVAdc)
+  void set_calib_const_GeV_ADC(double calibConstGeVAdc)
   {
     m_CalibConst_GeV_per_ADC = calibConstGeVAdc;
   }
 
-  void  set_variable_GeV_ADC(const bool value)
+  void set_variable_GeV_ADC(const bool value)
   {
     m_GeV_per_ADC_FromFileFlag = value;
   }
 
-  std::string  get_calib_tower_node_prefix() const
+  std::string get_calib_tower_node_prefix() const
   {
     return m_CalibTowerNodePrefix;
   }
 
-  void  set_calib_tower_node_prefix(const std::string &calibTowerNodePrefix)
+  void set_calib_tower_node_prefix(const std::string &calibTowerNodePrefix)
   {
     m_CalibTowerNodePrefix = calibTowerNodePrefix;
   }
 
-  double  get_pedstal_ADC() const
+  double get_pedstal_ADC() const
   {
     return m_PedestalADC;
   }
 
-  void  set_pedstal_ADC(const double pedstalAdc)
+  void set_pedstal_ADC(const double pedstalAdc)
   {
     m_PedestalADC = pedstalAdc;
   }
 
-  void  set_variable_pedestal(const bool value)
+  void set_variable_pedestal(const bool value)
   {
     m_PedestalFromFileFlag = value;
   }
 
-  std::string  get_raw_tower_node_prefix() const
+  std::string get_raw_tower_node_prefix() const
   {
     return m_RawTowerNodePrefix;
   }
 
-  void  set_raw_tower_node_prefix(const std::string &rawTowerNodePrefix)
+  void set_raw_tower_node_prefix(const std::string &rawTowerNodePrefix)
   {
     m_RawTowerNodePrefix = rawTowerNodePrefix;
   }
 
   //! Get the parameters for update. Useful fields are listed in SetDefaultParameters();
-  PHParameters &  GetCalibrationParameters()
+  PHParameters &GetCalibrationParameters()
   {
     return m_TowerCalibParams;
   }
- 
-  protected:
 
+ protected:
   void CreateNodes(PHCompositeNode *topNode);
 
   enu_calib_algorithm m_CalibAlgorithmEnum = kNo_calibration;
@@ -131,10 +130,10 @@ class RawTowerCalibration : public SubsysReco
   RawTowerGeomContainer *m_RawTowerGeomContainer = nullptr;
 
   std::string m_Detector;
-  std::string calibfile;
+  std::string m_CalibrationFile;
 
   std::string m_CalibTowerNodePrefix = "CALIB";
-  std::string m_RawTowerNodePrefix = "RAW";  
+  std::string m_RawTowerNodePrefix = "RAW";
 
   //! pedstal in unit of ADC
   double m_PedestalADC = NAN;
@@ -151,11 +150,8 @@ class RawTowerCalibration : public SubsysReco
   //! tower type to act on
   int m_TowerType = -1;
 
-
   //! Tower by tower calibration parameters
   PHParameters m_TowerCalibParams;
-
-  
- };
+};
 
 #endif

@@ -26,17 +26,17 @@
 #include <cmath>
 #include <cstdlib>
 #include <exception>
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include <fstream>
 
 RawTowerCalibration::RawTowerCalibration(const std::string &name)
   : SubsysReco(name)
   ,  //
-  calibfile("empty.txt")
+  m_CalibrationFile("empty.txt")
   , m_TowerCalibParams(name)
 {
 }
@@ -68,20 +68,20 @@ int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
+int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
 {
-   if (Verbosity())
-   {
+  if (Verbosity())
+  {
     std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
               << "Process event entered" << std::endl;
-   } 
+  }
 
   RawTowerContainer::ConstRange begin_end = m_RawTowerContainer->getTowers();
   RawTowerContainer::ConstIterator rtiter;
   for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
   {
     const RawTowerDefs::keytype key = rtiter->first;
-    
+
     const RawTower *raw_tower = rtiter->second;
     assert(raw_tower);
 
@@ -105,8 +105,8 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
     {
       const double raw_energy = raw_tower->get_energy();
       const double calib_energy = (raw_energy - m_PedestalADC) * m_CalibConst_GeV_per_ADC;
-      
-       RawTower *calib_tower = new RawTowerv2(*raw_tower);
+
+      RawTower *calib_tower = new RawTowerv2(*raw_tower);
       calib_tower->set_energy(calib_energy);
       m_CalibTowerContainer->AddTower(key, calib_tower);
     }
@@ -115,77 +115,76 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
       RawTowerDefs::CalorimeterId caloid = RawTowerDefs::decode_caloid(key);
       const int eta = raw_tower->get_bineta();
       const int phi = raw_tower->get_binphi();
- 
+
       double tower_by_tower_calib = 1.;
       double recalibrated_e = 0.0;
       std::string re_cal_flag = "empty";
- 
-     if (caloid == RawTowerDefs::LFHCAL) 
+
+      if (caloid == RawTowerDefs::LFHCAL)
       {
-        const int l   = raw_tower->get_binl();
+        const int l = raw_tower->get_binl();
         const std::string calib_const_name("calib_const_eta" + std::to_string(eta) + "_phi" + std::to_string(phi) + "_l" + std::to_string(l));
 
         tower_by_tower_calib = m_TowerCalibParams.get_double_param(calib_const_name);
 
         if (m_PedestalFromFileFlag == true)
         {
-          const std::string pedstal_name("PedCentral_ADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi)+ "_l" + std::to_string(l));
+          const std::string pedstal_name("PedCentral_ADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi) + "_l" + std::to_string(l));
           m_PedestalADC = m_TowerCalibParams.get_double_param(pedstal_name);
         }
 
         if (m_GeV_per_ADC_FromFileFlag == true)
         {
-          const std::string GeVperADCname("GeVperADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi)+ "_l" + std::to_string(l));
+          const std::string GeVperADCname("GeVperADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi) + "_l" + std::to_string(l));
           m_CalibConst_GeV_per_ADC = m_TowerCalibParams.get_double_param(GeVperADCname);
         }
-      } 
+      }
       else
-      {     
-
-       double recal_e[24][64] = {{0.0}};
-       std::ifstream calibrate_tower;
-       calibrate_tower.open(calibfile);
-       if (calibrate_tower.is_open())
+      {
+        double recal_e[24][64] = {{0.0}};
+        std::ifstream calibrate_tower;
+        calibrate_tower.open(m_CalibrationFile);
+        if (calibrate_tower.is_open())
         {
-            int rows = 0;
-            while (!calibrate_tower.eof())
+          int rows = 0;
+          while (!calibrate_tower.eof())
+          {
+            int etabin = -1;
+            int phibin = -1;
+            double recal = 0.0;
+            calibrate_tower >> etabin >> phibin >> recal;
+            recal_e[etabin][phibin] = recal;
+            rows++;
+            if (rows > 1)
             {
-              int etabin = -1;
-              int phibin = -1;
-              double recal = 0.0;
-              calibrate_tower >> etabin >> phibin >> recal;
-              recal_e[etabin][phibin] = recal;
-              rows++;
-              if (rows > 1)
-              {
-                re_cal_flag = "CALIBMODE";
-              }
+              re_cal_flag = "CALIBMODE";
             }
           }
-     
-          tower_by_tower_calib = recal_e[eta][phi];
+        }
+
+        tower_by_tower_calib = recal_e[eta][phi];
       }
-     
-       const double raw_energy = raw_tower->get_energy();
-       
-       if(re_cal_flag == "CALIBMODE" && tower_by_tower_calib != 0)
-       {
-        recalibrated_e = raw_energy/tower_by_tower_calib;
-       }
-       else if(re_cal_flag == "CALIBMODE" && tower_by_tower_calib == 0)
-       {  
-         recalibrated_e = 0.;
-       }
-       else
-       {
-         recalibrated_e = raw_energy; 
-       }
-         
-        const double calib_energy = (recalibrated_e - m_PedestalADC) * m_CalibConst_GeV_per_ADC;
- 
-        RawTower *calib_tower = new RawTowerv2(*raw_tower);
-        calib_tower->set_energy(calib_energy);
-        m_CalibTowerContainer->AddTower(key, calib_tower);
+
+      const double raw_energy = raw_tower->get_energy();
+
+      if (re_cal_flag == "CALIBMODE" && tower_by_tower_calib != 0)
+      {
+        recalibrated_e = raw_energy / tower_by_tower_calib;
+      }
+      else if (re_cal_flag == "CALIBMODE" && tower_by_tower_calib == 0)
+      {
+        recalibrated_e = 0.;
+      }
+      else
+      {
+        recalibrated_e = raw_energy;
+      }
+
+      const double calib_energy = (recalibrated_e - m_PedestalADC) * m_CalibConst_GeV_per_ADC;
+
+      RawTower *calib_tower = new RawTowerv2(*raw_tower);
+      calib_tower->set_energy(calib_energy);
+      m_CalibTowerContainer->AddTower(key, calib_tower);
     }
 
     else
@@ -193,11 +192,11 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
       std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
                 << " invalid calibration algorithm #" << m_CalibAlgorithmEnum
                 << std::endl;
-    gSystem->Exit(1);
-    exit(1);
+      gSystem->Exit(1);
+      exit(1);
     }
-  } 
- 
+  }
+
   if (Verbosity())
   {
     std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
@@ -206,7 +205,6 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
               << m_CalibTowerContainer->getTotalEdep() << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
-  
 }
 
 void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
