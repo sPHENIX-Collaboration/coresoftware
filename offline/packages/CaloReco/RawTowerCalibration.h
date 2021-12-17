@@ -139,14 +139,13 @@ class RawTowerCalibration : public SubsysReco
   //! calibration constant in unit of GeV per ADC
   double m_CalibConst_GeV_per_ADC = NAN;
 
-//  double m_RecalArray[24][64] = {{0.0}};
-  std::array< std::array<double,64>, 24> m_RecalArray;
   //! pedestal from file
   bool m_PedestalFromFileFlag = false;
 
   //! GeV per ADC from file
   bool m_GeV_per_ADC_FromFileFlag = false;
 
+  std::array< std::array<double,64>, 24> m_RecalArray;
 
   std::string m_Detector;
   std::string m_CalibrationFileName;

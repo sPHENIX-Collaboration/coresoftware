@@ -54,12 +54,12 @@ int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
 
   // Looking for the DST node
   PHCompositeNode *dstNode;
-  dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode",
-                                                           "DST"));
+  dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
               << "DST Node missing, doing nothing." << std::endl;
+    gSystem->Exit(1);
     exit(1);
   }
 
@@ -72,6 +72,35 @@ int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
     std::cout << e.what() << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+// read calibration file into m_RecalArray array
+        if (! m_CalibrationFileName.empty())
+	{
+	  std::ifstream calibrate_tower;
+	  calibrate_tower.open(m_CalibrationFileName, std::ifstream::in);
+	  if (calibrate_tower.is_open())
+	  {
+            int etabin = -1;
+            int phibin = -1;
+            double recal = 1.;
+            calibrate_tower >> etabin >> phibin >> recal;
+	    while (!calibrate_tower.eof())
+	    {
+	      if (! std::isfinite(recal))
+	      {
+		std::cout << "Calibration constant at etabin " << etabin
+			  << ", phibin " << phibin << " in " << m_CalibrationFileName
+			  << " is not finite: " << recal << std::endl;
+		gSystem->Exit(1);
+		exit(1);
+	      }
+	      // at() does a bounds check
+	      m_RecalArray.at(etabin).at(phibin) = recal;
+	      calibrate_tower >> etabin >> phibin >> recal;
+	    }
+	    calibrate_tower.close();
+	  }
+      }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -125,7 +154,6 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
 
       double tower_by_tower_calib = 1.;
       double recalibrated_e = 0.0;
-      std::string re_cal_flag = "empty";
 
       if (caloid == RawTowerDefs::LFHCAL)
       {
@@ -146,49 +174,12 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
           m_CalibConst_GeV_per_ADC = m_TowerCalibParams.get_double_param(GeVperADCname);
         }
       }
-      else
-      {
-        if (! m_CalibrationFileName.empty())
-	{
-        std::ifstream calibrate_tower;
-        calibrate_tower.open(m_CalibrationFileName);
-        if (calibrate_tower.is_open())
-        {
-          int rows = 0;
-            int etabin = -1;
-            int phibin = -1;
-            double recal = 1.;
-            calibrate_tower >> etabin >> phibin >> recal;
-          while (!calibrate_tower.eof())
-          {
-	    // at does a bounds check
-            m_RecalArray.at(etabin).at(phibin) = recal;
-            calibrate_tower >> etabin >> phibin >> recal;
-            rows++;
-          }
-            if (rows > 1)
-            {
-              re_cal_flag = "CALIBMODE";
-            }
-        }
-	}
-        tower_by_tower_calib = m_RecalArray[eta][phi];
-      }
+
+      tower_by_tower_calib = m_RecalArray[eta][phi];
 
       const double raw_energy = raw_tower->get_energy();
 
-      if (re_cal_flag == "CALIBMODE" && tower_by_tower_calib != 0)
-      {
-        recalibrated_e = raw_energy * tower_by_tower_calib;
-      }
-      else if (re_cal_flag == "CALIBMODE" && tower_by_tower_calib == 0)
-      {
-        recalibrated_e = 0.;
-      }
-      else
-      {
-        recalibrated_e = raw_energy;
-      }
+      recalibrated_e = raw_energy * tower_by_tower_calib;
 
       const double calib_energy = (recalibrated_e - m_PedestalADC) * m_CalibConst_GeV_per_ADC;
 
