@@ -147,9 +147,9 @@ class RawTowerCalibration : public SubsysReco
 
   enu_calib_algorithm _calib_algorithm;
 
-  RawTowerContainer *_calib_towers;
-  RawTowerContainer *_raw_towers;
-  RawTowerGeomContainer *rawtowergeom;
+  RawTowerContainer *m_CalibTowerContainer = nullptr;
+  RawTowerContainer *m_RawTowerContainer = nullptr;
+  RawTowerGeomContainer *m_RawTowerGeomContainer = nullptr;
 
   std::string detector;
   std::string calibfile;

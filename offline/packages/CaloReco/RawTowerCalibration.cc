@@ -38,11 +38,6 @@ RawTowerCalibration::RawTowerCalibration(const std::string &name)
   : SubsysReco(name)
   , _calib_algorithm(kNo_calibration)
   ,  //
-  _calib_towers(nullptr)
-  , _raw_towers(nullptr)
-  ,  //
-  rawtowergeom(nullptr)
-  ,  //
   detector("NONE")
   ,  //
   calibfile("empty.txt")
@@ -101,7 +96,7 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
               << "Process event entered" << std::endl;
    } 
 
-  RawTowerContainer::ConstRange begin_end = _raw_towers->getTowers();
+  RawTowerContainer::ConstRange begin_end = m_RawTowerContainer->getTowers();
   RawTowerContainer::ConstIterator rtiter;
   for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
   {
@@ -110,8 +105,7 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
     const RawTower *raw_tower = rtiter->second;
     assert(raw_tower);
 
-    RawTowerGeom *raw_tower_geom = rawtowergeom->get_tower_geometry(
-        raw_tower->get_id());
+    RawTowerGeom *raw_tower_geom = m_RawTowerGeomContainer->get_tower_geometry(raw_tower->get_id());
     assert(raw_tower_geom);
 
     if (_tower_type >= 0)
@@ -125,7 +119,7 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
 
     if (_calib_algorithm == kNo_calibration)
     {
-      _calib_towers->AddTower(key, new RawTowerv2(*raw_tower));
+      m_CalibTowerContainer->AddTower(key, new RawTowerv2(*raw_tower));
     }
     else if (_calib_algorithm == kSimple_linear_calibration)
     {
@@ -134,7 +128,7 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
       
        RawTower *calib_tower = new RawTowerv2(*raw_tower);
       calib_tower->set_energy(calib_energy);
-      _calib_towers->AddTower(key, calib_tower);
+      m_CalibTowerContainer->AddTower(key, calib_tower);
     }
     else if (_calib_algorithm == kTower_by_tower_calibration)
     {
@@ -213,7 +207,7 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
  
         RawTower *calib_tower = new RawTowerv2(*raw_tower);
         calib_tower->set_energy(calib_energy);
-        _calib_towers->AddTower(key, calib_tower);
+        m_CalibTowerContainer->AddTower(key, calib_tower);
     }
 
     else
@@ -221,17 +215,17 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
                 << " invalid calibration algorithm #" << _calib_algorithm
                 << std::endl;
-
-      return Fun4AllReturnCodes::ABORTRUN;
+    gSystem->Exit(1);
+    exit(1);
     }
   } 
  
   if (Verbosity())
   {
     std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
-              << "input sum energy = " << _raw_towers->getTotalEdep()
+              << "input sum energy = " << m_RawTowerContainer->getTotalEdep()
               << ", output sum digitalized value = "
-              << _calib_towers->getTotalEdep() << std::endl;
+              << m_CalibTowerContainer->getTotalEdep() << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
   
@@ -240,8 +234,7 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
 void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
-  PHCompositeNode *runNode = static_cast<PHCompositeNode *>(iter.findFirst(
-      "PHCompositeNode", "RUN"));
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
     std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
@@ -251,9 +244,8 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
   }
 
   std::string TowerGeomNodeName = "TOWERGEOM_" + detector;
-  rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode,
-                                                           TowerGeomNodeName);
-  if (!rawtowergeom)
+  m_RawTowerGeomContainer = findNode::getClass<RawTowerGeomContainer>(topNode, TowerGeomNodeName);
+  if (!m_RawTowerGeomContainer)
   {
     std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
               << " " << TowerGeomNodeName << " Node missing, doing bail out!"
@@ -264,11 +256,10 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
 
   if (Verbosity() >= 1)
   {
-    rawtowergeom->identify();
+    m_RawTowerGeomContainer->identify();
   }
 
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst(
-      "PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
@@ -278,8 +269,8 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
   }
 
   std::string RawTowerNodeName = "TOWER_" + _raw_tower_node_prefix + "_" + detector;
-  _raw_towers = findNode::getClass<RawTowerContainer>(dstNode, RawTowerNodeName);
-  if (!_raw_towers)
+  m_RawTowerContainer = findNode::getClass<RawTowerContainer>(dstNode, RawTowerNodeName);
+  if (!m_RawTowerContainer)
   {
     std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
               << " " << RawTowerNodeName << " Node missing, doing bail out!"
@@ -299,11 +290,11 @@ void RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
 
   // Be careful as a previous calibrator may have been registered for this detector
   std::string CalibTowerNodeName = "TOWER_" + _calib_tower_node_prefix + "_" + detector;
-  _calib_towers = findNode::getClass<RawTowerContainer>(DetNode, CalibTowerNodeName);
-  if (!_calib_towers)
+  m_CalibTowerContainer = findNode::getClass<RawTowerContainer>(DetNode, CalibTowerNodeName);
+  if (!m_CalibTowerContainer)
   {
-    _calib_towers = new RawTowerContainer(_raw_towers->getCalorimeterID());
-    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(_calib_towers, CalibTowerNodeName, "PHObject");
+    m_CalibTowerContainer = new RawTowerContainer(m_RawTowerContainer->getCalorimeterID());
+    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_CalibTowerContainer, CalibTowerNodeName, "PHObject");
     DetNode->addNode(towerNode);
   }
   return;
