@@ -19,13 +19,17 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <TSystem.h>
+
+#include <xpload/xpload.h>
 
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <exception>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -37,15 +41,13 @@ RawTowerCalibration::RawTowerCalibration(const std::string &name)
   : SubsysReco(name)
   , m_TowerCalibParams(name)
 {
-  for (size_t i = 0; i<  m_RecalArray.size(); i++)
+  for (size_t i = 0; i < m_RecalArray.size(); i++)
   {
     for (size_t j = 0; j < m_RecalArray[0].size(); j++)
     {
-      m_RecalArray[i][j]  = 1.;
+      m_RecalArray[i][j] = 1.;
     }
   }
-
-//  m_testarray.fill(1);
 }
 
 int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
@@ -72,35 +74,64 @@ int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
     std::cout << e.what() << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-// read calibration file into m_RecalArray array
-        if (! m_CalibrationFileName.empty())
-	{
-	  std::ifstream calibrate_tower;
-	  calibrate_tower.open(m_CalibrationFileName, std::ifstream::in);
-	  if (calibrate_tower.is_open())
-	  {
-            int etabin = -1;
-            int phibin = -1;
-            double recal = 1.;
-            calibrate_tower >> etabin >> phibin >> recal;
-	    while (!calibrate_tower.eof())
-	    {
-	      if (! std::isfinite(recal))
-	      {
-		std::cout << "Calibration constant at etabin " << etabin
-			  << ", phibin " << phibin << " in " << m_CalibrationFileName
-			  << " is not finite: " << recal << std::endl;
-		gSystem->Exit(1);
-		exit(1);
-	      }
-	      // at() does a bounds check
-	      m_RecalArray.at(etabin).at(phibin) = recal;
-	      calibrate_tower >> etabin >> phibin >> recal;
-	    }
-	    calibrate_tower.close();
-	  }
-      }
 
+  // this is for testing our condition DB, it's reply is not used right now
+  recoConsts *rc = recoConsts::instance();
+  uint64_t timestamp = rc->get_IntFlag("RUNNUMBER");
+  std::string tag = "example_tag_1";
+  std::string cfg = "test";
+  xpload::Configurator config(cfg);
+  std::vector<std::string> paths = xpload::fetch(tag, timestamp, config);
+  if (paths.empty())
+  {
+    if (Verbosity())
+    {
+      std::cout << "No paths in conditions DB found" << std::endl;
+    }
+  }
+  else
+  {
+    if (Verbosity())
+    {
+      std::cout << "Found paths:" << std::endl;
+
+      for (const std::string &path : paths)
+      {
+        std::cout << path << std::endl;
+      }
+    }
+  }
+  // read calibration file into m_RecalArray array
+  if (!m_CalibrationFileName.empty())
+  {
+    if (std::filesystem::exists(m_CalibrationFileName))
+    {
+      std::ifstream calibrate_tower;
+      calibrate_tower.open(m_CalibrationFileName, std::ifstream::in);
+      if (calibrate_tower.is_open())
+      {
+        int etabin = -1;
+        int phibin = -1;
+        double recal = 1.;
+        calibrate_tower >> etabin >> phibin >> recal;
+        while (!calibrate_tower.eof())
+        {
+          if (!std::isfinite(recal))
+          {
+            std::cout << "Calibration constant at etabin " << etabin
+                      << ", phibin " << phibin << " in " << m_CalibrationFileName
+                      << " is not finite: " << recal << std::endl;
+            gSystem->Exit(1);
+            exit(1);
+          }
+          // at() does a bounds check
+          m_RecalArray.at(etabin).at(phibin) = recal;
+          calibrate_tower >> etabin >> phibin >> recal;
+        }
+        calibrate_tower.close();
+      }
+    }
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
