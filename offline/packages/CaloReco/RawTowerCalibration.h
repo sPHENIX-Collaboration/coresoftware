@@ -5,6 +5,7 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <cmath>
 #include <iostream>
 #include <string>
 
@@ -38,7 +39,7 @@ class RawTowerCalibration : public SubsysReco
 
   void  TowerType(const int type)
   {
-    _tower_type = type;
+    m_TowerType = type;
   }
 
   enum enu_calib_algorithm
@@ -65,17 +66,17 @@ class RawTowerCalibration : public SubsysReco
 
   double  get_calib_const_GeV_ADC() const
   {
-    return _calib_const_GeV_ADC;
+    return m_CalibConst_GeV_per_ADC;
   }
 
   void  set_calib_const_GeV_ADC(double calibConstGeVAdc)
   {
-    _calib_const_GeV_ADC = calibConstGeVAdc;
+    m_CalibConst_GeV_per_ADC = calibConstGeVAdc;
   }
 
   void  set_variable_GeV_ADC(const bool value)
   {
-    _GeV_ADC_file = value;
+    m_GeV_per_ADC_FromFileFlag = value;
   }
 
   std::string  get_calib_tower_node_prefix() const
@@ -90,17 +91,17 @@ class RawTowerCalibration : public SubsysReco
 
   double  get_pedstal_ADC() const
   {
-    return _pedstal_ADC;
+    return m_PedestalADC;
   }
 
-  void  set_pedstal_ADC(double pedstalAdc)
+  void  set_pedstal_ADC(const double pedstalAdc)
   {
-    _pedstal_ADC = pedstalAdc;
+    m_PedestalADC = pedstalAdc;
   }
 
   void  set_variable_pedestal(const bool value)
   {
-    _pedestal_file = value;
+    m_PedestalFromFileFlag = value;
   }
 
   std::string  get_raw_tower_node_prefix() const
@@ -136,19 +137,19 @@ class RawTowerCalibration : public SubsysReco
   std::string m_RawTowerNodePrefix = "RAW";  
 
   //! pedstal in unit of ADC
-  double _pedstal_ADC;
+  double m_PedestalADC = NAN;
 
   //! pedestal from file
-  bool _pedestal_file;
+  bool m_PedestalFromFileFlag = false;
 
   //! calibration constant in unit of GeV per ADC
-  double _calib_const_GeV_ADC;
+  double m_CalibConst_GeV_per_ADC = NAN;
 
   //! GeV per ADC from file
-  bool _GeV_ADC_file;
+  bool m_GeV_per_ADC_FromFileFlag = false;
 
   //! tower type to act on
-  int _tower_type;
+  int m_TowerType = -1;
 
 
   //! Tower by tower calibration parameters
