@@ -271,6 +271,19 @@ PositionMap PHCASeeding::FillTree()
 
       // get global position, convert to Acts::Vector3F and store in map
       const Acts::Vector3D globalpos_d = getGlobalPosition(cluster);
+
+      if(Verbosity() > 3)
+	{
+	  ActsTransformations transformer;
+	  auto global_before = transformer.getGlobalPosition(cluster,
+							     surfMaps,
+							     tGeometry);
+	  TrkrDefs::cluskey key = cluster->getClusKey();
+	  std::cout << "CaSeeder: Cluster: " << key << std::endl;
+	  std::cout << " Global before: " << global_before[0] << "  " << global_before[1] << "  " << global_before[2] << std::endl;
+	  std::cout << " Global after   : " << globalpos_d[0] << "  " << globalpos_d[1] << "  " << globalpos_d[2] << std::endl;
+	}
+
       const Acts::Vector3F globalpos = { (float) globalpos_d.x(), (float) globalpos_d.y(), (float) globalpos_d.z()};
       cachedPositions.insert(std::make_pair(ckey, globalpos));
 

@@ -7,8 +7,9 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-
 #include <trackbase_historic/ActsTransformations.h>
+
+#include <tpc/TpcDistortionCorrectionContainer.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4Particle.h>  // for PHG4Particle
@@ -310,15 +311,24 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode*)
       unsigned int nlayers = layers.size();
       if(Verbosity() > 2) std::cout << "    TPC layers this track: " << nlayers << std::endl;
 
-      ActsTransformations transformer;
 
       std::vector<Acts::Vector3D> globalClusterPositions;
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
-	  auto global = transformer.getGlobalPosition(clusters.at(i),
-						       _surfmaps,
-						       _tGeometry);
+	  const Acts::Vector3D global = getGlobalPosition(clusters.at(i));
 	  globalClusterPositions.push_back(global);
+
+	  if(Verbosity() > 3)
+	    {
+	      ActsTransformations transformer;
+	      auto global_before = transformer.getGlobalPosition(clusters.at(i),
+								 _surfmaps,
+								 _tGeometry);
+	      TrkrDefs::cluskey key = clusters.at(i)->getClusKey();
+	      std::cout << "CircleFit: Cluster: " << key << " _corrected_clusters " << _are_clusters_corrected << std::endl;
+	      std::cout << " Global before: " << global_before[0] << "  " << global_before[1] << "  " << global_before[2] << std::endl;
+	      std::cout << " Global after   : " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
+	    }
 	}
       
       if(clusters.size() < 3)
@@ -482,6 +492,7 @@ int  PHTpcTrackSeedCircleFit::GetNodes(PHCompositeNode* topNode)
 	{
 	  std::cout << " CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER " << std::endl;
 	  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+	  _are_clusters_corrected = false;
 	}
     }
   if (!_cluster_map)
@@ -489,6 +500,11 @@ int  PHTpcTrackSeedCircleFit::GetNodes(PHCompositeNode* topNode)
     std::cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  // tpc distortion correction
+  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  if( _dcc )
+  { std::cout << "PHTpcTrackSeedCircleFit::get_Nodes  - found TPC distortion correction container" << std::endl; }
 
   _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   if (!_track_map)
@@ -529,3 +545,18 @@ std::vector<TrkrCluster*> PHTpcTrackSeedCircleFit::getTrackClusters(SvtxTrack *t
     return clusters;
   }
   
+Acts::Vector3D PHTpcTrackSeedCircleFit::getGlobalPosition( TrkrCluster* cluster ) const
+{
+  // get global position from Acts transform
+  ActsTransformations transformer;
+  auto globalpos = transformer.getGlobalPosition(cluster,
+    _surfmaps,
+    _tGeometry);
+
+  // check if TPC distortion correction are in place and apply if clusters are not from the corrected node
+  if( !_are_clusters_corrected)
+    if(_dcc) { globalpos = _distortionCorrection.get_corrected_position( globalpos, _dcc ); }
+
+  return globalpos;
+}
+
