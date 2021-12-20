@@ -198,7 +198,6 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   }
 
   // Locations of the 64 PMT tubes in an arm.
-
   // These are the x,y for the south BBC.
   // The north inverts the x coordinate (x -> -x)
   // (NB: Should probably move this to a geometry object...)
