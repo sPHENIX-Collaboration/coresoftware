@@ -154,10 +154,13 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
     phistart = phiend;
     m_RawTowerGeom->set_phibounds(i, range);
   }
-  double etalowbound = -1.1;
+  //double etalowbound = -1.1;
+  double etalowbound = -get_double_param("scinti_eta_coverage_neg");
   for (int i = 0; i < get_int_param("etabins"); i++)
   {
-    double etahibound = etalowbound + 2.2 / get_int_param("etabins");
+    //double etahibound = etalowbound + 2.2 / get_int_param("etabins");
+    double etahibound = etalowbound + 
+      (get_double_param("scinti_eta_coverage_neg")+get_double_param("scinti_eta_coverage_pos")) / get_int_param("etabins");
     std::pair<double, double> range = std::make_pair(etalowbound, etahibound);
     m_RawTowerGeom->set_etabounds(i, range);
     etalowbound = etahibound;
@@ -441,6 +444,10 @@ void HcalRawTowerBuilder::SetDefaultParameters()
   set_default_double_param("emin", 1.e-6);
   set_default_double_param(PHG4HcalDefs::outerrad, NAN);
   set_default_double_param(PHG4HcalDefs::innerrad, NAN);
+
+  set_default_double_param("scinti_eta_coverage_neg", 1.1);
+  set_default_double_param("scinti_eta_coverage_pos", 1.1);
+
 }
 
 void HcalRawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
@@ -466,6 +473,8 @@ void HcalRawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
   if (nTiles <= 0)
   {
     nTiles = pars->get_int_param(PHG4HcalDefs::n_scinti_tiles_pos) + pars->get_int_param(PHG4HcalDefs::n_scinti_tiles_neg);
+    set_double_param("scinti_eta_coverage_neg",pars->get_double_param("scinti_eta_coverage_neg")); 
+    set_double_param("scinti_eta_coverage_pos",pars->get_double_param("scinti_eta_coverage_pos"));     
   }
   set_int_param("etabins", nTiles);
 
