@@ -777,17 +777,46 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
       // update track coordinates after transport
       tX = kftrack.GetX();
       tY = kftrack.GetY();
+      double tYerr = sqrt(kftrack.GetCov(0));
+      double tzerr = sqrt(kftrack.GetCov(5));
       tx = tX*cos(old_phi)-tY*sin(old_phi);
       ty = tX*sin(old_phi)+tY*cos(old_phi);
       tz = kftrack.GetZ();
-      double tYerr = sqrt(kftrack.GetCov(0));
-      double tzerr = sqrt(kftrack.GetCov(5));
+      double query_pt[3] = {tx, ty, tz};
+
+      if(m_dcc)
+	{
+	  // The distortion corrected cluster positions in globalPos are not at the layer radius
+	  // We want to project to the radius appropriate for the globalPos values
+	  // Get the distortion correction for the projection point, and calculate the radial increment
+	  Acts::Vector3D proj_pt(tx,ty,tz);
+	  if( m_dcc ) { proj_pt = m_distortionCorrection.get_corrected_position( proj_pt, m_dcc ); }
+	  // this point is meaningless, except that it givs us an estimate of the corrected radius of a point measured in this layer
+	  double radius = sqrt(proj_pt[0]*proj_pt[0] + proj_pt[1]*proj_pt[1]);
+	  // now project the track to that radius
+
+	  kftrack.TransportToX(radius,kfline,_Bzconst*get_Bz(tx,ty,tz),10.);
+	  if(std::isnan(kftrack.GetX()) ||
+	     std::isnan(kftrack.GetY()) ||
+	     std::isnan(kftrack.GetZ())) continue;
+	  tX = kftrack.GetX();
+	  tY = kftrack.GetY();
+	  tYerr = sqrt(kftrack.GetCov(0));
+	  tzerr = sqrt(kftrack.GetCov(5));
+	  tx = tX*cos(old_phi)-tY*sin(old_phi);
+	  ty = tX*sin(old_phi)+tY*cos(old_phi);
+	  tz = kftrack.GetZ();
+	  query_pt[0] = tx;
+	  query_pt[1] = ty;
+	  query_pt[2] = tz; 
+	}
+
       double txerr = fabs(tYerr*sin(old_phi));
       double tyerr = fabs(tYerr*cos(old_phi));
       if(Verbosity()>0) std::cout << "transported to " << radii[l-7] << "\n";
       if(Verbosity()>0) std::cout << "track position: (" << tx << ", " << ty << ", " << tz << ")" << std::endl;
       if(Verbosity()>0) std::cout << "track position error: (" << txerr << ", " << tyerr << ", " << tzerr << ")" << std::endl;
-      double query_pt[3] = {tx, ty, tz};
+
 //      size_t ret_index;
 //      double out_dist_sqr;
 //      nanoflann::KNNResultSet<double> resultSet(1);
@@ -926,12 +955,42 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
       tx = tX*cos(old_phi)-tY*sin(old_phi);
       ty = tX*sin(old_phi)+tY*cos(old_phi);
       tz = kftrack.GetZ();
+      double query_pt[3] = {tx, ty, tz};
+
+      // Now look for the nearest cluster to this projection point (tx,ty,tz), which is at the nominal layer radius
+      if(m_dcc)
+	{
+	  // The distortion corrected cluster positions in globalPos are not at the layer radius
+	  // We want to project to the radius appropriate for the globalPos values
+	  // Get the distortion correction for the projection point, and calculate the radial increment
+	  Acts::Vector3D proj_pt(tx,ty,tz);
+	  if( m_dcc ) { proj_pt = m_distortionCorrection.get_corrected_position( proj_pt, m_dcc ); }
+	  // this point is meaningless, except that it givs us an estimate of the corrected radius of a point measured in this layer
+	  double radius = sqrt(proj_pt[0]*proj_pt[0] + proj_pt[1]*proj_pt[1]);
+	  // now project the track to that radius
+
+	  kftrack.TransportToX(radius,kfline,_Bzconst*get_Bz(tx,ty,tz),10.);
+	  if(std::isnan(kftrack.GetX()) ||
+	     std::isnan(kftrack.GetY()) ||
+	     std::isnan(kftrack.GetZ())) continue;
+	  tX = kftrack.GetX();
+	  tY = kftrack.GetY();
+	  tYerr = sqrt(kftrack.GetCov(0));
+	  tzerr = sqrt(kftrack.GetCov(5));
+	  tx = tX*cos(old_phi)-tY*sin(old_phi);
+	  ty = tX*sin(old_phi)+tY*cos(old_phi);
+	  tz = kftrack.GetZ();
+	  query_pt[0] = tx;
+	  query_pt[1] = ty;
+	  query_pt[2] = tz; 
+	}
+
       double txerr = fabs(tYerr*sin(old_phi));
       double tyerr = fabs(tYerr*cos(old_phi));
       if(Verbosity()>0) std::cout << "transported to " << radii[l-7] << "\n";
       if(Verbosity()>0) std::cout << "track position: (" << kftrack.GetX()*cos(old_phi)-kftrack.GetY()*sin(old_phi) << ", " << kftrack.GetX()*sin(old_phi)+kftrack.GetY()*cos(old_phi) << ", " << kftrack.GetZ() << ")" << std::endl;
       if(Verbosity()>0) std::cout << "track position errors: (" << txerr << ", " << tyerr << ", " << tzerr << ")" << std::endl;
-      double query_pt[3] = {tx, ty, tz};
+
       std::vector<long unsigned int> index_out(1);
       std::vector<double> distance_out(1);
       int n_results = _kdtrees[l]->knnSearch(&query_pt[0],1,&index_out[0],&distance_out[0]);
