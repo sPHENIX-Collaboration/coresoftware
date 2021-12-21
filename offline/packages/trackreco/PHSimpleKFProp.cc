@@ -789,12 +789,20 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
 	  // The distortion corrected cluster positions in globalPos are not at the layer radius
 	  // We want to project to the radius appropriate for the globalPos values
 	  // Get the distortion correction for the projection point, and calculate the radial increment
+
+	  double proj_radius = sqrt(tx*tx+ty*ty);
+	  if(proj_radius > 78.0 || abs(tz) > 105.5) continue;   // projection is bad, no cluster will be found
+
 	  Acts::Vector3D proj_pt(tx,ty,tz);
-	  if( m_dcc ) { proj_pt = m_distortionCorrection.get_corrected_position( proj_pt, m_dcc ); }
-	  // this point is meaningless, except that it givs us an estimate of the corrected radius of a point measured in this layer
+	  if(Verbosity() > 2) 
+	    std::cout << " call distortion correction for layer " << l  << " tx " << tx << " ty " << ty << " tz " << tz << " radius " << proj_radius << std::endl;
+	  proj_pt = m_distortionCorrection.get_corrected_position( proj_pt, m_dcc ); 
+	  // this point is meaningless, except that it gives us an estimate of the corrected radius of a point measured in this layer
 	  double radius = sqrt(proj_pt[0]*proj_pt[0] + proj_pt[1]*proj_pt[1]);
 	  // now project the track to that radius
-
+	  if(Verbosity() > 2) 
+	    std::cout << " call transport again for layer " << l  << " x " << proj_pt[0] << " y " << proj_pt[1] << " z " << proj_pt[2] 
+		      << " radius " << radius << std::endl;
 	  kftrack.TransportToX(radius,kfline,_Bzconst*get_Bz(tx,ty,tz),10.);
 	  if(std::isnan(kftrack.GetX()) ||
 	     std::isnan(kftrack.GetY()) ||
@@ -836,6 +844,51 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
       double ccX = ccglob(0);
       double ccY = ccglob(1);
       double ccZ = ccglob(2);
+
+      /*
+      // alternatively:
+      if(m_dcc)
+	{
+	  // The distortion corrected cluster positions in globalPos are not at the layer radius
+	  // We want to project to the radius appropriate for the globalPos values
+	  // Get the radius from the nearest associated cluster found above
+	  Acts::Vector3D proj_pt(ccX, ccY, ccZ);
+	  double radius = sqrt(proj_pt[0]*proj_pt[0] + proj_pt[1]*proj_pt[1]);
+
+	  // now project the track to that radius
+	  if(Verbosity() > 2) 
+	    std::cout << " call transport again for layer " << l  << " x " << proj_pt[0] << " y " << proj_pt[1] << " z " << proj_pt[2] 
+		      << " radius " << radius << std::endl;
+	  kftrack.TransportToX(radius,kfline,_Bzconst*get_Bz(ccX,ccY,ccZ),10.);
+	  if(std::isnan(kftrack.GetX()) ||
+	     std::isnan(kftrack.GetY()) ||
+	     std::isnan(kftrack.GetZ())) continue;
+	  tX = kftrack.GetX();
+	  tY = kftrack.GetY();
+	  tYerr = sqrt(kftrack.GetCov(0));
+	  tzerr = sqrt(kftrack.GetCov(5));
+	  tx = tX*cos(old_phi)-tY*sin(old_phi);
+	  ty = tX*sin(old_phi)+tY*cos(old_phi);
+	  tz = kftrack.GetZ();
+	  query_pt[0] = tx;
+	  query_pt[1] = ty;
+	  query_pt[2] = tz; 
+
+	  n_results = _kdtrees[l]->knnSearch(&query_pt[0],1,&index_out[0],&distance_out[0]);
+	  if(Verbosity()>0) std::cout << "index_out: " << index_out[0] << std::endl;
+	  if(Verbosity()>0) std::cout << "squared_distance_out: " << distance_out[0] << std::endl;
+	  if(Verbosity()>0) std::cout << "solid_angle_dist: " << atan2(sqrt(distance_out[0]),radii[l-7]) << std::endl;
+	  if(n_results==0) continue;
+	  point = _ptclouds[l]->pts[index_out[0]];
+	  closest_ckey = (*((int64_t*)&point[3]));
+	  cc = _cluster_map->findCluster(closest_ckey);
+	  ccglob = globalPositions.at(closest_ckey);
+	  ccX = ccglob(0);
+	  ccY = ccglob(1);
+	  ccZ = ccglob(2);
+	}
+      */      
+
       double cxerr = sqrt(fitter->getClusterError(cc,ccglob,0,0));
       double cyerr = sqrt(fitter->getClusterError(cc,ccglob,1,1));
       double czerr = sqrt(fitter->getClusterError(cc,ccglob,2,2));
@@ -963,12 +1016,20 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
 	  // The distortion corrected cluster positions in globalPos are not at the layer radius
 	  // We want to project to the radius appropriate for the globalPos values
 	  // Get the distortion correction for the projection point, and calculate the radial increment
+	  double proj_radius = sqrt(tx*tx+ty*ty);
+	  if(proj_radius > 78.0 || abs(tz) > 105.5) continue;   // projection is bad, no cluster will be found
+
 	  Acts::Vector3D proj_pt(tx,ty,tz);
-	  if( m_dcc ) { proj_pt = m_distortionCorrection.get_corrected_position( proj_pt, m_dcc ); }
+	  if(Verbosity() > 2)
+	    std::cout << " call distortion correction for layer " << l  << " tx " << tx << " ty " << ty << " tz " << tz << " radius " << proj_radius << std::endl;
+	  proj_pt = m_distortionCorrection.get_corrected_position( proj_pt, m_dcc ); 
 	  // this point is meaningless, except that it givs us an estimate of the corrected radius of a point measured in this layer
 	  double radius = sqrt(proj_pt[0]*proj_pt[0] + proj_pt[1]*proj_pt[1]);
-	  // now project the track to that radius
 
+	  // now project the track to that radius
+	  if(Verbosity() > 2)
+	    std::cout << " call transport again for layer " << l  << " x " << proj_pt[0] << " y " << proj_pt[1] << " z " << proj_pt[2] 
+		      << " radius " << radius << std::endl;
 	  kftrack.TransportToX(radius,kfline,_Bzconst*get_Bz(tx,ty,tz),10.);
 	  if(std::isnan(kftrack.GetX()) ||
 	     std::isnan(kftrack.GetY()) ||
@@ -1005,6 +1066,51 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
       double ccX = ccglob2(0);
       double ccY = ccglob2(1);
       double ccZ = ccglob2(2);
+
+      /*
+      // alternatively:
+      if(m_dcc)
+	{
+	  // The distortion corrected cluster positions in globalPos are not at the layer radius
+	  // We want to project to the radius appropriate for the globalPos values
+	  // Get the radius from the global position of the nearest cluster found above 
+	  Acts::Vector3D proj_pt(ccX, ccY, ccZ);
+	  double radius = sqrt(proj_pt[0]*proj_pt[0] + proj_pt[1]*proj_pt[1]);
+
+	  // now project the track to that radius
+	  if(Verbosity() > 2) 
+	    std::cout << " call transport again for layer " << l  << " x " << proj_pt[0] << " y " << proj_pt[1] << " z " << proj_pt[2] 
+		      << " radius " << radius << std::endl;
+	  kftrack.TransportToX(radius,kfline,_Bzconst*get_Bz(ccX,ccY,ccZ),10.);
+	  if(std::isnan(kftrack.GetX()) ||
+	     std::isnan(kftrack.GetY()) ||
+	     std::isnan(kftrack.GetZ())) continue;
+	  tX = kftrack.GetX();
+	  tY = kftrack.GetY();
+	  tYerr = sqrt(kftrack.GetCov(0));
+	  tzerr = sqrt(kftrack.GetCov(5));
+	  tx = tX*cos(old_phi)-tY*sin(old_phi);
+	  ty = tX*sin(old_phi)+tY*cos(old_phi);
+	  tz = kftrack.GetZ();
+	  query_pt[0] = tx;
+	  query_pt[1] = ty;
+	  query_pt[2] = tz; 
+
+	  n_results = _kdtrees[l]->knnSearch(&query_pt[0],1,&index_out[0],&distance_out[0]);
+	  if(Verbosity()>0) std::cout << "index_out: " << index_out[0] << std::endl;
+	  if(Verbosity()>0) std::cout << "squared_distance_out: " << distance_out[0] << std::endl;
+	  if(Verbosity()>0) std::cout << "solid_angle_dist: " << atan2(sqrt(distance_out[0]),radii[l-7]) << std::endl;
+	  if(n_results==0) continue;
+	  point = _ptclouds[l]->pts[index_out[0]];
+	  closest_ckey = (*((int64_t*)&point[3]));
+	  cc = _cluster_map->findCluster(closest_ckey);
+	  ccglob2 = globalPositions.at(closest_ckey);
+	  ccX = ccglob2(0);
+	  ccY = ccglob2(1);
+	  ccZ = ccglob2(2);
+	}
+      */
+
       double cxerr = sqrt(fitter->getClusterError(cc,ccglob2,0,0));
       double cyerr = sqrt(fitter->getClusterError(cc,ccglob2,1,1));
       double czerr = sqrt(fitter->getClusterError(cc,ccglob2,2,2));
