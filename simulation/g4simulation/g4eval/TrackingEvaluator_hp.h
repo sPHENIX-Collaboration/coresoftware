@@ -287,6 +287,38 @@ class TrackingEvaluator_hp : public SubsysReco
     ClusterStruct::List _clusters;
 
   };
+  
+  
+  // track information to be stored in tree
+  class TrackStruct_small
+  {
+    public:
+
+    // constructor
+    explicit TrackStruct_small() = default;
+ 
+    int _charge = 0;
+    unsigned int _nclusters = 0;
+
+    /// mask of layers for which there is a cluster in the track
+    int64_t _mask = 0LL;
+
+    unsigned int _nclusters_mvtx = 0;
+    unsigned int _nclusters_intt = 0;
+    unsigned int _nclusters_tpc = 0;
+    unsigned int _nclusters_micromegas = 0;
+
+    float _chisquare = 0;
+    int _ndf = 0;
+
+    float _px = 0;
+    float _py = 0;
+    float _pz = 0;
+    float _pt = 0;
+    float _p = 0;
+    float _eta = 0;
+
+  };
 
   // pair information to be stored in tree
   class TrackPairStruct
@@ -308,9 +340,8 @@ class TrackingEvaluator_hp : public SubsysReco
     float _m = 0;
     float _eta = 0;
 
-    std::array<float,2> _trk_pt = {{0,0}};
-    std::array<int,2> _contributors = {{0,0}};
-
+    std::array<TrackStruct_small,2> _tracks;
+    
     //@}
   };
 

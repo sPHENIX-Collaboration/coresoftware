@@ -133,11 +133,11 @@ namespace
       []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
   }
 
-  //! create track struct from struct from svx track
-  TrackingEvaluator_hp::TrackStruct create_track( SvtxTrack* track )
+  //! fill basic information to track struct
+  template<class T> 
+    void fill_track_struct( T& trackStruct, SvtxTrack* track )
   {
-    TrackingEvaluator_hp::TrackStruct trackStruct;
-
+    
     trackStruct._charge = track->get_charge();
     trackStruct._nclusters = track->size_cluster_keys();
     trackStruct._mask = get_mask( track );
@@ -149,18 +149,29 @@ namespace
     trackStruct._chisquare = track->get_chisq();
     trackStruct._ndf = track->get_ndf();
 
+    trackStruct._px = track->get_px();
+    trackStruct._py = track->get_py();
+    trackStruct._pz = track->get_pz();
+    trackStruct._p = get_p( trackStruct._px, trackStruct._py, trackStruct._pz );
+    trackStruct._pt = get_pt( trackStruct._px, trackStruct._py );
+    trackStruct._eta = get_eta( trackStruct._p, trackStruct._pz );
+    
+  }
+  
+  //! create track struct from struct from svx track
+  TrackingEvaluator_hp::TrackStruct create_track( SvtxTrack* track )
+  {
+    TrackingEvaluator_hp::TrackStruct trackStruct;
+    
+    // fill basic information, also used in TrackStruct_small
+    fill_track_struct( trackStruct, track );
+
+    // fill additional information
     trackStruct._x = track->get_x();
     trackStruct._y = track->get_y();
     trackStruct._z = track->get_z();
     trackStruct._r = get_r( trackStruct._x, trackStruct._y );
     trackStruct._phi = std::atan2( trackStruct._y, trackStruct._x );
-
-    trackStruct._px = track->get_px();
-    trackStruct._py = track->get_py();
-    trackStruct._pz = track->get_pz();
-    trackStruct._pt = get_pt( trackStruct._px, trackStruct._py );
-    trackStruct._p = get_p( trackStruct._px, trackStruct._py, trackStruct._pz );
-    trackStruct._eta = get_eta( trackStruct._p, trackStruct._pz );
 
     return trackStruct;
   }
@@ -184,9 +195,6 @@ namespace
     auto secondE = std::sqrt( square( electronMass ) + square( get_p( second->get_px(), second->get_py(), second->get_pz() ) ) );
     trackpair_struct._e = firstE + secondE;
     trackpair_struct._m = std::sqrt( square( trackpair_struct._e ) - square( trackpair_struct._p ) );
-
-    trackpair_struct._trk_pt[0] = get_pt( first->get_px(), first->get_py()  );
-    trackpair_struct._trk_pt[1] = get_pt( second->get_px(), second->get_py()  );
 
     return trackpair_struct;
   }
@@ -579,11 +587,10 @@ void TrackingEvaluator_hp::evaluate_tracks()
   // clear array
   m_container->clearTracks();
 
-  for( const auto& trackpair:*m_track_map )
+  for( const auto& [track_id,track]:*m_track_map )
   {
 
     // create track information
-    const auto track = trackpair.second;
     auto track_struct = create_track( track );
 
     // truth information
@@ -702,12 +709,21 @@ void TrackingEvaluator_hp::evaluate_track_pairs()
   for( auto firstIter = m_track_map->begin(); firstIter != m_track_map->end(); ++firstIter )
   {
     const auto first = firstIter->second;
+
+    TrackStruct_small first_struct;
+    fill_track_struct( first_struct, first ); 
     for( auto  secondIter = m_track_map->begin(); secondIter != firstIter; ++secondIter )
     {
       const auto second = secondIter->second;
       auto trackpair_struct = create_track_pair( first, second );
-      trackpair_struct._contributors[0] = get_max_contributor( first ).second;
-      trackpair_struct._contributors[1] = get_max_contributor( second ).second;
+      
+      // copy first track information
+      trackpair_struct._tracks[0] = first_struct;
+
+      // fill second track information
+      fill_track_struct( trackpair_struct._tracks[1], second ); 
+      
+      // add to container
       m_container->addTrackPair( trackpair_struct );
     }
   }
