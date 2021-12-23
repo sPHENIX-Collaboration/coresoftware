@@ -37,6 +37,7 @@
 
 #include <cmath>      // for fabs, NAN, cos
 #include <exception>  // for exception
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -46,28 +47,36 @@
 HcalRawTowerBuilder::HcalRawTowerBuilder(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-  , m_Towers(nullptr)
-  , m_RawTowerGeom(nullptr)
-  , m_Detector("NONE")
-  , m_Emin(NAN)
-  , m_ChkEnergyConservationFlag(0)
-  , m_TowerEnergySrc(enu_tower_energy_src::unknown)
-  , m_NcellToTower(-1)
 {
   InitializeParameters();
+  for (size_t i = 0; i < m_DecalArray.size(); i++)
+  {
+    for (size_t j = 0; j < m_DecalArray[0].size(); j++)
+    {
+      m_DecalArray[i][j] = 1.;
+    }
+  }
 }
 
 int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
 {
+  if (m_Detector.empty())
+  {
+    std::cout << PHWHERE
+              << " Detector name not set, use HcalRawTowerBuilder::Detector(string) to set, exiting"
+              << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
   PHNodeIterator iter(topNode);
 
   // Looking for the DST node
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode",
-                                                                            "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+    std::cout << PHWHERE << "DST Node missing, exiting" << std::endl;
     gSystem->Exit(1);
+    exit(1);
   }
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   std::string paramnodename = "TOWERPARAM_" + m_Detector;
@@ -79,7 +88,8 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   catch (std::exception &e)
   {
     std::cout << e.what() << std::endl;
-    //exit(1);
+    gSystem->Exit(1);
+    exit(1);
   }
 
   // order first default,
@@ -109,7 +119,10 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   m_TowerEnergySrc = get_int_param("tower_energy_source");
   m_Emin = get_double_param("emin");
   m_NcellToTower = get_int_param("n_scinti_plates_per_tower");
-
+  if (!m_TowerDecalFactors.empty())
+  {
+    SetTowerDecalFactors();
+  }
   if (Verbosity() >= 1)
   {
     std::cout << "HcalRawTowerBuilder::InitRun :";
@@ -131,8 +144,7 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
     }
   }
   m_TowerGeomNodeName = "TOWERGEOM_" + m_Detector;
-  m_RawTowerGeom = findNode::getClass<RawTowerGeomContainer>(topNode,
-                                                             m_TowerGeomNodeName);
+  m_RawTowerGeom = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
   if (!m_RawTowerGeom)
   {
     m_RawTowerGeom = new RawTowerGeomContainer_Cylinderv1(RawTowerDefs::convert_name_to_caloid(m_Detector));
@@ -224,6 +236,37 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_RawTowerGeom->identify();
   }
 
+// read decalibration file into m_DecalArray array
+  if (!m_DeCalibrationFileName.empty())
+  {
+    if (std::filesystem::exists(m_DeCalibrationFileName))
+    {
+      std::ifstream decalibrate_tower;
+      decalibrate_tower.open(m_DeCalibrationFileName, std::ifstream::in);
+      if (decalibrate_tower.is_open())
+      {
+        while (!decalibrate_tower.eof())
+        {
+        int etabin = -1;
+        int phibin = -1;
+        double recal = 1.;
+        decalibrate_tower >> etabin >> phibin >> recal;
+          if (!std::isfinite(recal))
+          {
+            std::cout << "Calibration constant at etabin " << etabin
+                      << ", phibin " << phibin << " in " << m_DeCalibrationFileName
+                      << " is not finite: " << recal << std::endl;
+            gSystem->Exit(1);
+            exit(1);
+          }
+          // at() does a bounds check
+          m_DecalArray.at(etabin).at(phibin) = recal;
+          decalibrate_tower >> etabin >> phibin >> recal;
+        }
+        decalibrate_tower.close();
+      }
+    }
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -233,29 +276,6 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     file, otherwise code will proceed with no de-calibration (as is)
 */
   double cell_weight = 0.0;
-  double decal_e[24][64] = {{0.0}};
-  std::string de_cal_flag = "empty";
-  std::ifstream in1("decalMap.txt");
-  std::ofstream out1("CalibMap.txt", std::ofstream::out);
-  if (in1.is_open())
-  {
-    int rows = 0;
-    while (!in1.eof())
-    {
-      int etabin = -1;
-      int phibin = -1;
-      double decal = 0.0;
-      in1 >> etabin >> phibin >> decal;
-      decal_e[etabin][phibin] = decal;
-      rows++;
-      if (rows > 1)
-      {
-        de_cal_flag = "DECALMODE";
-        out1 << etabin << "\t" << phibin << "\t" << decal << std::endl;
-      }
-    }
-  }
-
   if (Verbosity() > 3)
   {
     std::cout << PHWHERE << "Process event entered" << std::endl;
@@ -281,7 +301,6 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     PHG4Cell *cell = cell_iter->second;
 
     short twrrow = get_tower_row(PHG4CellDefs::ScintillatorSlatBinning::get_row(cell->get_cellid()));
-    short twrcol = PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid());
 
     RawTower *tower = m_Towers->getTower(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid()), twrrow);
     if (!tower)
@@ -293,36 +312,15 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
 
     if (m_TowerEnergySrc == kEnergyDeposition)
     {
-      if (de_cal_flag == "DECALMODE" && decal_e[twrcol][twrrow] != 0)
-      {
-        cell_weight = cell->get_edep() * decal_e[twrcol][twrrow];
-      }
-      else
-      {
         cell_weight = cell->get_edep();
-      }
     }
     else if (m_TowerEnergySrc == kLightYield)
     {
-      if (de_cal_flag == "DECALMODE" && decal_e[twrcol][twrrow] != 0)
-      {
-        cell_weight = cell->get_light_yield() * decal_e[twrcol][twrrow];
-      }
-      else
-      {
         cell_weight = cell->get_light_yield();
-      }
     }
     else if (m_TowerEnergySrc == kIonizationEnergy)
     {
-      if (de_cal_flag == "DECALMODE" && decal_e[twrcol][twrrow] != 0)
-      {
-        cell_weight = cell->get_eion() * decal_e[twrcol][twrrow];
-      }
-      else
-      {
         cell_weight = cell->get_eion();
-      }
     }
     else
     {
@@ -332,6 +330,8 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
       exit(1);
     }
 
+    cell_weight *= m_DecalArray.at(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid())).
+                                at(PHG4CellDefs::ScintillatorSlatBinning::get_row(cell->get_cellid()));
     tower->add_ecell(cell->get_cellid(), cell_weight);
 
     PHG4Cell::ShowerEdepConstRange range = cell->get_g4showers();
@@ -421,8 +421,7 @@ void HcalRawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   {
     m_Towers = new RawTowerContainer(RawTowerDefs::convert_name_to_caloid(m_Detector));
 
-    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_Towers,
-                                                                   m_TowerNodeName, "PHObject");
+    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_Towers, m_TowerNodeName, "PHObject");
     DetNode->addNode(towerNode);
   }
   return;
@@ -480,4 +479,34 @@ void HcalRawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
 
   delete pars;
   return;
+}
+
+void HcalRawTowerBuilder::set_cell_decal_factor(const int etabin, const int phibin, const double d)
+{
+  m_DecalArray.at(etabin).at(phibin) = d;
+}
+
+void HcalRawTowerBuilder::SetTowerDecalFactors()
+{
+  for (auto iter = m_TowerDecalFactors.begin(); iter != m_TowerDecalFactors.end(); ++iter)
+  {
+    set_tower_decal_factor_real(iter->first.first,iter->first.second,iter->second);
+  }
+}
+
+void HcalRawTowerBuilder::set_tower_decal_factor(const int etabin, const int phibin, const double d)
+{
+  // since we do not have the number of scintillators per tower at this point
+  // the decal values are cached in m_TowerDecalFactors to be set during the InitRun
+  std::pair<int, int> etaphi = std::make_pair(etabin,phibin);
+  m_TowerDecalFactors[etaphi] = d;
+}
+
+void HcalRawTowerBuilder::set_tower_decal_factor_real(const int etabin, const int phibin, const double d)
+{
+  for (int i=0; i<m_NcellToTower; i++)
+  {
+    int istart = phibin*m_NcellToTower + i;
+    m_DecalArray.at(etabin).at(istart) = d;
+  }
 }

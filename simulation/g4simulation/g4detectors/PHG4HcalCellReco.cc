@@ -123,7 +123,28 @@ int PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
     std::cout << "could not locate cell node " << cellnodename << std::endl;
     exit(1);
   }
-
+  if (std::isfinite(m_FixedEnergy))
+  {
+    int maxcolumn = 24;
+    int maxrow = 320;
+    if (detector == "HCALIN")
+    {
+      maxrow = 256;
+    }
+    for (int icolumn = 0 ; icolumn <  maxcolumn; icolumn++)
+    {
+      for (int irow = 0; irow < maxrow; irow++)
+      {
+      PHG4CellDefs::keytype key = PHG4CellDefs::ScintillatorSlatBinning::genkey(0, icolumn, irow);
+      PHG4Cell *cell = new PHG4Cellv1(key);
+      cell->add_edep(m_FixedEnergy);
+      cell->add_eion(m_FixedEnergy);
+      cell->add_light_yield(m_FixedEnergy);
+      slats->AddCell(cell);
+      }
+    }
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
   PHG4HitContainer::ConstIterator hiter;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
