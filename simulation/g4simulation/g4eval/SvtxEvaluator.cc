@@ -221,8 +221,6 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
 
 int SvtxEvaluator::InitRun(PHCompositeNode* /*topNode*/)
 {
-  //clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -357,7 +355,9 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode* topNode)
     }
 
     cout << "---SVTXCLUSTERS-------------" << endl;
-    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+    if(!clustermap)
+      clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     
     TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
     
@@ -490,7 +490,11 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
     }
 
     TrkrHitSetContainer *hitsetmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
+    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+    if(!clustermap)
+      clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
     unsigned int nclusters[100] = {0};
     unsigned int nhits[100] = {0};
 
@@ -902,7 +906,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	   << endl;
     }
   TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  TrkrClusterContainer* clustermap_in = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
+  TrkrClusterContainer* clustermap_in = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+  if(!clustermap_in)
+    clustermap_in = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
   nclus_all = clustermap_in->size();
 
   auto hitsetrange = hitsets->getHitSets(TrkrDefs::TrkrId::inttId);
@@ -1420,7 +1428,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       float dztru = NAN;
       float drtru = NAN;
 
-      TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+      TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+      if(!clustermap)
+	clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
       TrkrCluster *cluster = clustermap->findCluster(cluster_key);
 
       if (cluster)
@@ -1731,7 +1742,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   {
     if (Verbosity() > 1) cout << "Filling ntp_cluster (all of them) " << endl;
     // need things off of the DST...
-    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+    if(!clustermap)
+      clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
     TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
     TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
     TrkrClusterIterationMapv1* _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
@@ -1994,7 +2008,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
     // need things off of the DST...
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
-    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
+    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+    if(!clustermap)
+      clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
     TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
     TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
     TrkrClusterIterationMapv1* _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
@@ -2018,6 +2036,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    {
 	      TrkrDefs::cluskey cluster_key = *iter;
 	      TrkrCluster* cluster = clustermap->findCluster(cluster_key);
+	      if(!cluster) continue;   // possible to be missing from corrected clusters if cluster mover fails
 	      
 	      PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster_key);
 	      PHG4Particle* g4particle = trutheval->get_particle(g4hit);
