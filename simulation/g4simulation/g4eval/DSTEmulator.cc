@@ -553,6 +553,7 @@ int DSTEmulator::load_nodes( PHCompositeNode* topNode )
       m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
     }
   // cluster map
+
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
   if(m_cluster_map->size()>0)
     {
@@ -563,6 +564,7 @@ int DSTEmulator::load_nodes( PHCompositeNode* topNode )
       std::cout << " DSTEmulator: CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl;
       m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
     }
+
   // cluster hit association map
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
 

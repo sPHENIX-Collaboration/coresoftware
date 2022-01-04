@@ -359,7 +359,8 @@ Surface ActsTransformations::getTpcSurface(TrkrDefs::hitsetkey hitsetkey,
 					   TrkrDefs::subsurfkey surfkey,
 					   ActsSurfaceMaps* maps) const
 {
-  const auto iter = maps->tpcSurfaceMap.find(hitsetkey);
+  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+  const auto iter = maps->tpcSurfaceMap.find(layer);
   if(iter != maps->tpcSurfaceMap.end())
   {
     auto surfvec = iter->second;

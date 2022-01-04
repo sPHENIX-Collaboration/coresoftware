@@ -35,6 +35,8 @@ class PHG4HcalCellReco : public SubsysReco, public PHParameterInterface
 
   void set_timing_window(const double tmi, const double tma);
 
+  void set_fixed_energy(const double efix) {m_FixedEnergy = efix;}
+
  protected:
   int CheckEnergy(PHCompositeNode *topNode);
   std::string detector;
@@ -45,6 +47,7 @@ class PHG4HcalCellReco : public SubsysReco, public PHParameterInterface
 
   double tmin = NAN;
   double tmax = NAN;
+  double m_FixedEnergy = NAN;
 };
 
 #endif

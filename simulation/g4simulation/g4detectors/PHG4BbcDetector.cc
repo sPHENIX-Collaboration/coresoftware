@@ -62,6 +62,8 @@ int PHG4BbcDetector::IsInBbc(G4VPhysicalVolume *volume) const
 
 void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
+  //std::cout << "PHG4BbcDetector::ConstructMe()" << std::endl;
+
   recoConsts *rc = recoConsts::instance();
 
   //========================
@@ -196,166 +198,108 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   }
 
   // Locations of the 64 PMT tubes in an arm.
-  // Should probably move this to a geometry object...
-  float tube_xpos[] = {
-      2.45951,
-      -2.45951,
-      4.91902,
-      0,
-      -4.91902,
-      7.37854,
-      2.45951,
-      -2.45951,
-      -7.37854,
-      9.83805,
-      4.91902,
-      0,
-      -4.91902,
-      -9.83805,
-      7.37854,
-      2.45951,
-      -2.45951,
-      -7.37854,
-      9.83805,
-      4.91902,
-      -4.91902,
-      -9.83805,
-      12.2976,
-      7.37854,
-      -7.37854,
-      -12.2976,
-      9.83805,
-      -9.83805,
-      12.2976,
-      7.37854,
-      -7.37854,
-      -12.2976,
-      12.2976,
-      7.37854,
-      -7.37854,
-      -12.2976,
-      9.83805,
-      -9.83805,
-      12.2976,
-      7.37854,
-      -7.37854,
-      -12.2976,
-      9.83805,
-      4.91902,
-      -4.91902,
-      -9.83805,
-      7.37854,
-      2.45951,
-      -2.45951,
-      -7.37854,
-      9.83805,
-      4.91902,
-      0,
-      -4.91902,
-      -9.83805,
-      7.37854,
-      2.45951,
-      -2.45951,
-      -7.37854,
-      4.91902,
-      0,
-      -4.91902,
-      2.45951,
-      -2.45951,
-  };
-
-  float tube_ypos[] = {
-      12.78,
-      12.78,
-      11.36,
-      11.36,
-      11.36,
-      9.94,
-      9.94,
-      9.94,
-      9.94,
-      8.52,
-      8.52,
-      8.52,
-      8.52,
-      8.52,
-      7.1,
-      7.1,
-      7.1,
-      7.1,
-      5.68,
-      5.68,
-      5.68,
-      5.68,
-      4.26,
-      4.26,
-      4.26,
-      4.26,
-      2.84,
-      2.84,
-      1.42,
-      1.42,
-      1.42,
-      1.42,
-      -1.42,
-      -1.42,
-      -1.42,
-      -1.42,
-      -2.84,
-      -2.84,
-      -4.26,
-      -4.26,
-      -4.26,
-      -4.26,
-      -5.68,
-      -5.68,
-      -5.68,
-      -5.68,
-      -7.1,
-      -7.1,
-      -7.1,
-      -7.1,
-      -8.52,
-      -8.52,
-      -8.52,
-      -8.52,
-      -8.52,
-      -9.94,
-      -9.94,
-      -9.94,
-      -9.94,
-      -11.36,
-      -11.36,
-      -11.36,
-      -12.78,
-      -12.78,
-  };
+  // These are the x,y for the south BBC.
+  // The north inverts the x coordinate (x -> -x)
+  // (NB: Should probably move this to a geometry object...)
+  float TubeLoc[64][2] = {
+    { -12.2976,	4.26 },
+    { -12.2976,	1.42 },
+    { -9.83805,	8.52 },
+    { -9.83805,	5.68 },
+    { -9.83805,	2.84 },
+    { -7.37854,	9.94 },
+    { -7.37854,	7.1 },
+    { -7.37854,	4.26 },
+    { -7.37854,	1.42 },
+    { -4.91902,	11.36 },
+    { -4.91902,	8.52 },
+    { -4.91902,	5.68 },
+    { -2.45951,	12.78 },
+    { -2.45951,	9.94 },
+    { -2.45951,	7.1 },
+    { 0,	11.36 },
+    { 0,	8.52 },
+    { 2.45951,	12.78 },
+    { 2.45951,	9.94 },
+    { 2.45951,	7.1 },
+    { 4.91902,	11.36 },
+    { 4.91902,	8.52 },
+    { 4.91902,	5.68 },
+    { 7.37854,	9.94 },
+    { 7.37854,	7.1 },
+    { 7.37854,	4.26 },
+    { 7.37854,	1.42 },
+    { 9.83805,	8.52 },
+    { 9.83805,	5.68 },
+    { 9.83805,	2.84 },
+    { 12.2976,	4.26 },
+    { 12.2976,	1.42 },
+    { 12.2976,	-4.26 },
+    { 12.2976,	-1.42 },
+    { 9.83805,	-8.52 },
+    { 9.83805,	-5.68 },
+    { 9.83805,	-2.84 },
+    { 7.37854,	-9.94 },
+    { 7.37854,	-7.1 },
+    { 7.37854,	-4.26 },
+    { 7.37854,	-1.42 },
+    { 4.91902,	-11.36 },
+    { 4.91902,	-8.52 },
+    { 4.91902,	-5.68 },
+    { 2.45951,	-12.78 },
+    { 2.45951,	-9.94 },
+    { 2.45951,	-7.1 },
+    { 0,	-11.36 },
+    { 0,	-8.52 },
+    { -2.45951,	-12.78 },
+    { -2.45951,	-9.94 },
+    { -2.45951,	-7.1 },
+    { -4.91902,	-11.36 },
+    { -4.91902,	-8.52 },
+    { -4.91902,	-5.68 },
+    { -7.37854,	-9.94 },
+    { -7.37854,	-7.1 },
+    { -7.37854,	-4.26 },
+    { -7.37854,	-1.42 },
+    { -9.83805,	-8.52 },
+    { -9.83805,	-5.68 },
+    { -9.83805,	-2.84 },
+    { -12.2976,	-4.26 },
+    { -12.2976,	-1.42 }
+  };    
 
   //m_bbcz = m_Params->get_double_param("z") * cm;
   m_bbcz = 250.0 * cm;  // The front face of the quartz is at 250 cm
 
-  float tube_zpos = m_bbcz + len_bbcd / 2.0 - len_bbca;
+  const float tube_zpos = m_bbcz + len_bbcd / 2.0 - len_bbca;
 
   const int NPMT = 64;  // No. PMTs per arm
   G4RotationMatrix *arm_rot[2];
   for (int iarm = 0; iarm < 2; iarm++)
   {
     arm_rot[iarm] = new G4RotationMatrix;
-    float side = 1.0;
-    if (iarm == 0)
+    float xside = 1.0;
+    float zside = 1.0;
+    if (iarm == 0)  // South Arm = 0
     {
-      side = -1.0;
+      xside = 1.0;
+      zside = -1.0;
       arm_rot[iarm]->rotateY(180 * deg);
+    }
+    else  // North Arm = 1
+    {
+      xside = -1.0;
+      zside = 1.0;
     }
 
     // Add BBC PMT's
     for (int itube = 0; itube < NPMT; itube++)
     {
-      // Quartz Cerenkov Radiators (active)
-      new G4PVPlacement(arm_rot[iarm], G4ThreeVector(side * tube_xpos[itube] * cm, tube_ypos[itube] * cm, side * tube_zpos),
-                        bbcd_lv, "BBC", logicWorld, false, iarm * NPMT + itube, OverlapCheck());
-
-      // PMT bodies (inactive)
+      // Full PMT Housing with Active Quartz Cerenkov Radiators
+      float tube_xpos = xside * TubeLoc[itube][0] * cm;
+      float tube_ypos = TubeLoc[itube][1] * cm;
+      new G4PVPlacement(arm_rot[iarm], G4ThreeVector( tube_xpos, tube_ypos, zside*tube_zpos ),
+                        bbcd_lv, "BBCD", logicWorld, false, iarm * NPMT + itube, OverlapCheck());
     }
   }
 
@@ -410,10 +354,61 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   bplate_vol[1] = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, (250 - 1.0 - 0.5 + 24.0) * cm),
                                     bbc_plate_lv, "BBC_BPLATE", logicWorld, false, 0, OverlapCheck());
 
-  // this is more to prevent compiler warnings about unused variables
-  if (!fplate_vol[0] || !fplate_vol[1] || !bplate_vol[0] || !bplate_vol[1])
+  // Place BBC Cables
+  G4Material* Cu = manager->FindOrBuildMaterial("G4_Cu");
+  const G4double len_cable = 120*cm;
+  const G4double r_CableConductor = 0.09525*cm;
+  G4Tubs *bbc_cablecond = new G4Tubs("bbc_cablecond",0.,r_CableConductor,len_cable*0.5,0*deg,360*deg);
+
+  G4LogicalVolume *bbc_cablecond_lv = new G4LogicalVolume(bbc_cablecond, Cu, G4String("Bbc_CableCond"));
+
+  const G4double rIn_CableShield = 0.302876*cm;
+  const G4double rOut_CableShield = 0.3175*cm;
+  G4Tubs *bbc_cableshield = new G4Tubs("bbc_cableshield",rIn_CableShield,rOut_CableShield,len_cable*0.5,0*deg,360*deg);
+
+  G4LogicalVolume *bbc_cableshield_lv = new G4LogicalVolume(bbc_cableshield, Cu, G4String("Bbc_CableShield"));
+
+  ypos = len_cable/2 + 5*cm;
+
+  // For now we make this vertical, but they should be slanted toward the endcap
+  G4RotationMatrix *rot_cable = new G4RotationMatrix();
+  rot_cable->rotateX( 90*deg );
+
+  int icable = 0;
+
+  for (int iarm=0; iarm<2; iarm++)
   {
-    std::cout << "problem placing BBC Sheels" << std::endl;
+    float zsign = -1.0;
+    if ( iarm == 1 )
+    {
+      zsign = 1.0;
+    }
+
+    for (int iring=1; iring<5; iring++)
+    {
+      float ring_radius = iring*0.67*cm; 
+      int ncables = 2*M_PI*ring_radius/(0.635*cm);
+      double dphi = 2*M_PI/ncables;
+
+      //G4cout << "BBC_CABLE " << iring << "\t" << ring_radius << "\t" << ncables << "\t" << dphi*180/3.14 << G4endl;
+
+      // place cables in ring
+      for (int ic=0; ic<ncables; ic++)
+      {
+        xpos = cos(dphi*ic)*ring_radius;
+        zpos = sin(dphi*ic)*ring_radius + zsign*(m_bbcz + 30*cm);
+        // Place Inner Conductor
+        new G4PVPlacement(rot_cable, G4ThreeVector(xpos, ypos, zpos), bbc_cablecond_lv, "BBC_Cable_Cond", logicWorld, false, icable, OverlapCheck());
+        // Place Shield
+        new G4PVPlacement(rot_cable, G4ThreeVector(xpos, ypos, zpos), bbc_cableshield_lv, "BBC_Cable_Shield", logicWorld, false, icable++, OverlapCheck());
+      }
+    }
+  }
+
+  // this is more to prevent compiler warnings about unused variables
+  if ( !fplate_vol[0] || !fplate_vol[1] || !bplate_vol[0] || !bplate_vol[1] )
+  {
+    std::cout << "problem placing BBC Sheets" << std::endl;
   }
 
   // bbcq is the active detector element
@@ -422,6 +417,8 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   //  GetDisplayAction()->AddVolume(bbc_plate_lv, "Bbc_plate");
   //  GetDisplayAction()->AddVolume(bbc_outer_shell_lv, "Bbc_oshell");
   //  GetDisplayAction()->AddVolume(bbc_inner_shell_lv, "Bbc_ishell");
+
+  std::cout << "INSIDE BBC" << std::endl;
 
   return;
 }

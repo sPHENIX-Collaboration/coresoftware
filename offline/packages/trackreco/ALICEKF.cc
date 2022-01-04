@@ -132,17 +132,17 @@ std::vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(const std::vector<keylist>&
     // Pre-set momentum-based parameters to improve numerical stability
     const auto& secondpos = globalPositions.at(trackKeyChain.at(1));
 
-    double second_x = secondpos(0);
-    double second_y = secondpos(1);
-    double second_z = secondpos(2);
-    double first_phi = atan2(y0,x0);
-    double second_alice_x = second_x*cos(first_phi)+second_y*sin(first_phi);
-    double delta_alice_x = second_alice_x - alice_x0;
+    const double second_x = secondpos(0);
+    const double second_y = secondpos(1);
+    const double second_z = secondpos(2);
+    const double first_phi = atan2(y0,x0);
+    const double second_alice_x = second_x*std::cos(first_phi)+second_y*std::sin(first_phi);
+    const double delta_alice_x = second_alice_x - alice_x0;
     //double second_alice_y = (second_x/cos(first_phi)-second_y/sin(first_phi))/(sin(first_phi)/cos(first_phi)+cos(first_phi)/sin(first_phi));
-    double second_alice_y = -second_x*sin(first_phi)+second_y*cos(first_phi);
-    double init_SinPhi = second_alice_y / sqrt(delta_alice_x*delta_alice_x + second_alice_y*second_alice_y);
-    double delta_z = second_z - z0;
-    double init_DzDs = -delta_z / sqrt(delta_alice_x*delta_alice_x + second_alice_y*second_alice_y);
+    const double second_alice_y = -second_x*std::sin(first_phi)+second_y*std::cos(first_phi);
+    const double init_SinPhi = second_alice_y / std::sqrt(square(delta_alice_x) + square(second_alice_y));
+    const double delta_z = second_z - z0;
+    const double init_DzDs = -delta_z / std::sqrt(square(delta_alice_x) + square(second_alice_y));
     trackSeed.SetSinPhi(init_SinPhi);
     LogDebug("Set initial SinPhi to " << init_SinPhi << std::endl);
     trackSeed.SetDzDs(init_DzDs);
@@ -156,11 +156,16 @@ std::vector<SvtxTrack_v2> ALICEKF::ALICEKalmanFilter(const std::vector<keylist>&
       return std::make_pair(clpos(0),clpos(1));
     });
     
-    double R;
-    double x_center;
-    double y_center;
+    double R = 0;
+    double x_center = 0;
+    double y_center = 0;
     CircleFitByTaubin(pts,R,x_center,y_center);
     if(Verbosity()>1) std::cout << "circle fit parameters: R=" << R << ", X0=" << x_center << ", Y0=" << y_center << std::endl;
+    
+    // check circle fit success
+    /* failed fit will result in infinite momentum for the track, which in turn will break the kalman filter */
+    if( std::isnan(R) ) continue;   
+    
     double init_QPt = 1./(0.3*R/100.*get_Bz(x0,y0,z0));
     // determine charge
     double phi_first = atan2(y0,x0);
@@ -756,42 +761,39 @@ void ALICEKF::CircleFitByTaubin (const std::vector<std::pair<double,double>>& po
                   IEEE Trans. PAMI, Vol. 13, pages 1115-1138, (1991)
 */
 {
-  int iter,IterMAX=99;
-  
-  double Mz,Mxy,Mxx,Myy,Mxz,Myz,Mzz,Cov_xy,Var_z;
-  double A0,A1,A2,A22,A3,A33;
-  double x,y;
-  double DET,Xcenter,Ycenter;
-  
   // Compute x- and y- sample means   
   double meanX = 0;
   double meanY = 0;
   double weight = 0;
-    for( const auto& point:points )
-    {
-      meanX += point.first;
-      meanY += point.second;
-      weight++;
-    }
+  for( const auto& point:points )
+  {
+    meanX += point.first;
+    meanY += point.second;
+    weight++;
+  }
   meanX /= weight;
   meanY /= weight;
 
   //     computing moments 
-  
-  Mxx=Myy=Mxy=Mxz=Myz=Mzz=0.;
-    for( const auto& point:points )
-    {
-      double Xi = point.first - meanX;   //  centered x-coordinates
-      double Yi = point.second - meanY;   //  centered y-coordinates
-      double Zi = Xi*Xi + Yi*Yi;
-      
-      Mxy += Xi*Yi;
-      Mxx += Xi*Xi;
-      Myy += Yi*Yi;
-      Mxz += Xi*Zi;
-      Myz += Yi*Zi;
-      Mzz += Zi*Zi;
-    }
+  double Mxy = 0;
+  double Mxx = 0;
+  double Myy = 0;
+  double Mxz = 0;
+  double Myz = 0;
+  double Mzz = 0;
+  for( const auto& point:points )
+  {
+    double Xi = point.first - meanX;   //  centered x-coordinates
+    double Yi = point.second - meanY;   //  centered y-coordinates
+    double Zi = Xi*Xi + Yi*Yi;
+    
+    Mxy += Xi*Yi;
+    Mxx += Xi*Xi;
+    Myy += Yi*Yi;
+    Mxz += Xi*Zi;
+    Myz += Yi*Zi;
+    Mzz += Zi*Zi;
+  }
   Mxx /= weight;
   Myy /= weight;
   Mxy /= weight;
@@ -800,36 +802,37 @@ void ALICEKF::CircleFitByTaubin (const std::vector<std::pair<double,double>>& po
   Mzz /= weight;
   
   //  computing coefficients of the characteristic polynomial
-  
-  Mz = Mxx + Myy;
-  Cov_xy = Mxx*Myy - Mxy*Mxy;
-  Var_z = Mzz - Mz*Mz;
-  A3 = 4*Mz;
-  A2 = -3*Mz*Mz - Mzz;
-  A1 = Var_z*Mz + 4*Cov_xy*Mz - Mxz*Mxz - Myz*Myz;
-  A0 = Mxz*(Mxz*Myy - Myz*Mxy) + Myz*(Myz*Mxx - Mxz*Mxy) - Var_z*Cov_xy;
-  A22 = A2 + A2;
-  A33 = A3 + A3 + A3;
+  const double Mz = Mxx + Myy;
+  const double Cov_xy = Mxx*Myy - Mxy*Mxy;
+  const double Var_z = Mzz - Mz*Mz;
+  const double A3 = 4*Mz;
+  const double A2 = -3*Mz*Mz - Mzz;
+  const double A1 = Var_z*Mz + 4*Cov_xy*Mz - Mxz*Mxz - Myz*Myz;
+  const double A0 = Mxz*(Mxz*Myy - Myz*Mxy) + Myz*(Myz*Mxx - Mxz*Mxy) - Var_z*Cov_xy;
+  const double A22 = A2 + A2;
+  const double A33 = A3 + A3 + A3;
   
   //    finding the root of the characteristic polynomial
   //    using Newton's method starting at x=0  
   //    (it is guaranteed to converge to the right root)
-  
-  for (x=0.,y=A0,iter=0; iter<IterMAX; iter++)  // usually, 4-6 iterations are enough
-    {
-      double Dy = A1 + x*(A22 + A33*x);
-      double xnew = x - y/Dy;
-      if ((xnew == x)||(!std::isfinite(xnew))) break;
-      double ynew = A0 + xnew*(A1 + xnew*(A2 + xnew*A3));
-      if (fabs(ynew)>=fabs(y))  break;
-      x = xnew;  y = ynew;
-    }
+  double x = 0;
+  double y = A0;  
+  static constexpr int IterMAX=99;
+  for (int iter=0; iter<IterMAX; ++iter)  // usually, 4-6 iterations are enough
+  {
+    double Dy = A1 + x*(A22 + A33*x);
+    double xnew = x - y/Dy;
+    if ((xnew == x)||(!std::isfinite(xnew))) break;
+    double ynew = A0 + xnew*(A1 + xnew*(A2 + xnew*A3));
+    if (fabs(ynew)>=fabs(y))  break;
+    x = xnew;  y = ynew;
+  }
   
   //  computing parameters of the fitting circle
-  
-  DET = x*x - x*Mz + Cov_xy;
-  Xcenter = (Mxz*(Myy - x) - Myz*Mxy)/DET/2;
-  Ycenter = (Myz*(Mxx - x) - Mxz*Mxy)/DET/2;
+  const double DET = x*x - x*Mz + Cov_xy;
+    
+  const double Xcenter = (Mxz*(Myy - x) - Myz*Mxy)/DET/2;
+  const double Ycenter = (Myz*(Mxx - x) - Mxz*Mxy)/DET/2;
   
   //  assembling the output
   
