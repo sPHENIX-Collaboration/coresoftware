@@ -2,11 +2,11 @@
 
 #include <tpc/TpcDefs.h>
 
-#include <trackbase/ActsSurfaceMaps.h>                  // for ActsSurfaceMaps
-#include <trackbase/ActsTrackingGeometry.h>             // for ActsTrackingG...
-#include <trackbase/TrkrClusterContainer.h>             // for TrkrClusterCo...
-#include <trackbase/TrkrClusterHitAssoc.h>              // for TrkrClusterHi...
-#include <trackbase/TrkrHit.h>                          // for TrkrHit
+#include <trackbase/ActsSurfaceMaps.h>       // for ActsSurfaceMaps
+#include <trackbase/ActsTrackingGeometry.h>  // for ActsTrackingG...
+#include <trackbase/TrkrClusterContainer.h>  // for TrkrClusterCo...
+#include <trackbase/TrkrClusterHitAssoc.h>   // for TrkrClusterHi...
+#include <trackbase/TrkrHit.h>               // for TrkrHit
 
 //#include <trackbase/TrkrClusterContainerv3.h>
 //#include <trackbase/TrkrClusterv2.h>
@@ -17,7 +17,7 @@
 #include <trackbase/TrkrHitSetContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                         // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -27,7 +27,7 @@
 
 #include <phool/PHCompositeNode.h>
 //#include <phool/PHIODataNode.h>                         // for PHIODataNode
-#include <phool/PHNode.h>                               // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 //#include <phool/PHObject.h>                             // for PHObject
 #include <phool/getClass.h>
@@ -37,8 +37,8 @@
 // #include <TMatrixT.h>       // for TMatrixT, ope...
 // #include <TMatrixTUtils.h>  // for TMatrixTRow
 
-#include <TFile.h>  
 #include <TF1.h>
+#include <TFile.h>
 #include <TTree.h>
 
 #include <cmath>  // for sqrt, cos, sin
@@ -53,50 +53,54 @@
 
 //#include <phool/PHCompositeNode.h>
 
-namespace 
+namespace
 {
-  template<class T> inline constexpr T square( const T& x ) { return x*x; }
-}
+  template <class T>
+  inline constexpr T square(const T &x)
+  {
+    return x * x;
+  }
+}  // namespace
 
 //typedef std::pair<unsigned short, unsigned short> iphiz;
 //typedef std::pair<unsigned short, iphiz> ihit;
 
-int findRBin(float R){
+int findRBin(float R)
+{
   // Finding pad number from the center (bin) for hits
-  int binR=-1;
+  int binR = -1;
   //Realistic binning
-  //double r_bins[r_bins_N+1] = {217.83, 
+  //double r_bins[r_bins_N+1] = {217.83,
   //                            311.05,317.92,323.31,329.27,334.63,340.59,345.95,351.91,357.27,363.23,368.59,374.55,379.91,385.87,391.23,397.19,402.49,
   //                            411.53,421.70,431.90,442.11,452.32,462.52,472.73,482.94,493.14,503.35,513.56,523.76,533.97,544.18,554.39,564.59,574.76,
   //                            583.67,594.59,605.57,616.54,627.51,638.48,649.45,660.42,671.39,682.36,693.33,704.30,715.27,726.24,737.21,748.18,759.11};
   const int r_bins_N = 53;
-  double r_bins[r_bins_N+1];
-  r_bins[0]=30.3125;
-  double bin_width=0.625;
-  for(int i=1;i<r_bins_N;i++){
-    if(i==16) bin_width=0.9375;
-    if(i>16) bin_width=1.25;
-    if(i==31) bin_width=1.1562;
-    if(i>31) bin_width=1.0624;
+  double r_bins[r_bins_N + 1];
+  r_bins[0] = 30.3125;
+  double bin_width = 0.625;
+  for (int i = 1; i < r_bins_N; i++)
+  {
+    if (i == 16) bin_width = 0.9375;
+    if (i > 16) bin_width = 1.25;
+    if (i == 31) bin_width = 1.1562;
+    if (i > 31) bin_width = 1.0624;
 
-    r_bins[i]=r_bins[i-1]+bin_width;
-
+    r_bins[i] = r_bins[i - 1] + bin_width;
   }
-
 
   double R_min = 30;
-  while(R>R_min){
-    binR+=1;
-    R_min=r_bins[binR];
+  while (R > R_min)
+  {
+    binR += 1;
+    R_min = r_bins[binR];
   }
   return binR;
-
 }
 
 //____________________________________________________________________________..
-PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name):
- SubsysReco(name)
-  {
+PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name)
+  : SubsysReco(name)
+{
   std::cout << "PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name) Calling ctor" << std::endl;
 }
 
@@ -104,12 +108,12 @@ bool PHG4TpcPadBaselineShift::is_in_sector_boundary(int phibin, int sector, PHG4
 {
   bool reject_it = false;
 
-  // sector boundaries occur every 1/12 of the full phi bin range  
+  // sector boundaries occur every 1/12 of the full phi bin range
   int PhiBins = layergeom->get_phibins();
-  int PhiBinsSector = PhiBins/12;
+  int PhiBinsSector = PhiBins / 12;
 
   double radius = layergeom->get_radius();
-  double PhiBinSize = 2.0* radius * M_PI / (double) PhiBins;
+  double PhiBinSize = 2.0 * radius * M_PI / (double) PhiBins;
 
   // sector starts where?
   int sector_lo = sector * PhiBinsSector;
@@ -117,10 +121,10 @@ bool PHG4TpcPadBaselineShift::is_in_sector_boundary(int phibin, int sector, PHG4
 
   int sector_fiducial_bins = (int) (SectorFiducialCut / PhiBinSize);
 
-  if(phibin < sector_lo + sector_fiducial_bins || phibin > sector_hi - sector_fiducial_bins)
-    {
-      reject_it = true;
-    }
+  if (phibin < sector_lo + sector_fiducial_bins || phibin > sector_hi - sector_fiducial_bins)
+  {
+    reject_it = true;
+  }
 
   return reject_it;
 }
@@ -131,28 +135,29 @@ PHG4TpcPadBaselineShift::~PHG4TpcPadBaselineShift()
 }
 
 //____________________________________________________________________________..
-int PHG4TpcPadBaselineShift::Init(PHCompositeNode */*topNode*/)
+int PHG4TpcPadBaselineShift::Init(PHCompositeNode * /*topNode*/)
 {
   //outfile = new TFile(_filename.c_str(), "RECREATE");
-  _hit_z   = 0;
-  _hit_r   = 0;
+  _hit_z = 0;
+  _hit_r = 0;
   _hit_phi = 0;
   _hit_e = 0;
   _hit_adc = 0;
   _hit_adc_bls = 0;
-  _hit_layer=-1;
-  _hit_sector=-1;
-  if(_writeTree==1){
+  _hit_layer = -1;
+  _hit_sector = -1;
+  if (_writeTree == 1)
+  {
     outfile = new TFile(_filename.c_str(), "RECREATE");
-    _rawHits=new TTree("hTree","tpc hit tree for base-line shift tests");
-    _rawHits->Branch("z",&_hit_z);
-    _rawHits->Branch("r",&_hit_r);
-    _rawHits->Branch("phi",&_hit_phi);
-    _rawHits->Branch("e",&_hit_e);
-    _rawHits->Branch("adc",&_hit_adc);
-    _rawHits->Branch("adc_BLS",&_hit_adc_bls);
-    _rawHits->Branch("hit_layer",&_hit_layer);
-    _rawHits->Branch("_hit_sector",&_hit_sector);
+    _rawHits = new TTree("hTree", "tpc hit tree for base-line shift tests");
+    _rawHits->Branch("z", &_hit_z);
+    _rawHits->Branch("r", &_hit_r);
+    _rawHits->Branch("phi", &_hit_phi);
+    _rawHits->Branch("e", &_hit_e);
+    _rawHits->Branch("adc", &_hit_adc);
+    _rawHits->Branch("adc_BLS", &_hit_adc_bls);
+    _rawHits->Branch("hit_layer", &_hit_layer);
+    _rawHits->Branch("_hit_sector", &_hit_sector);
   }
   return 0;
   //std::cout << "PHG4TpcPadBaselineShift::Init(PHCompositeNode *topNode) Initializing" << std::endl;
@@ -180,7 +185,7 @@ int PHG4TpcPadBaselineShift::InitRun(PHCompositeNode *topNode)
 int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
 {
   //  int print_layer = 18;
-  
+
   if (Verbosity() > 1000)
     std::cout << "PHG4TpcPadBaselineShift::Process_Event" << std::endl;
 
@@ -215,7 +220,7 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  
+
   PHG4CylinderCellGeomContainer *geom_container =
       findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
@@ -225,24 +230,24 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
   }
 
   m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,
-							 "ActsTrackingGeometry");
-  if(!m_tGeometry)
-    {
-      std::cout << PHWHERE
-		<< "ActsTrackingGeometry not found on node tree. Exiting"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
+                                                         "ActsTrackingGeometry");
+  if (!m_tGeometry)
+  {
+    std::cout << PHWHERE
+              << "ActsTrackingGeometry not found on node tree. Exiting"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
-						   "ActsSurfaceMaps");
-  if(!m_surfMaps)
-    {
-      std::cout << PHWHERE 
-		<< "ActsSurfaceMaps not found on node tree. Exiting"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
+                                                   "ActsSurfaceMaps");
+  if (!m_surfMaps)
+  {
+    std::cout << PHWHERE
+              << "ActsSurfaceMaps not found on node tree. Exiting"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   // The hits are stored in hitsets, where each hitset contains all hits in a given TPC readout (layer, sector, side), so clusters are confined to a hitset
   // The TPC clustering is more complicated than for the silicon, because we have to deal with overlapping clusters
@@ -251,53 +256,49 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
   //const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
 
-
-  
-
   //Loop over R positions & sectors
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
-       {
+  {
     TrkrHitSet *hitset = hitsetitr->second;
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
-    unsigned int sector= TpcDefs::getSectorId(hitsetitr->first);
+    unsigned int sector = TpcDefs::getSectorId(hitsetitr->first);
     PHG4CylinderCellGeom *layergeom = geom_container->GetLayerCellGeom(layer);
-    
-    _hit_sector=sector;
-    _hit_layer=layer;
 
-    double radius = layergeom->get_radius();//in cm
+    _hit_sector = sector;
+    _hit_layer = layer;
 
-    _hit_r=radius  ;
+    double radius = layergeom->get_radius();  //in cm
 
+    _hit_r = radius;
 
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
-    unsigned short NPhiBinsSector = NPhiBins/12;
-    unsigned short NZBins = (unsigned short)layergeom->get_zbins();
-    unsigned short NZBinsSide = NZBins/2;
+    unsigned short NPhiBinsSector = NPhiBins / 12;
+    unsigned short NZBins = (unsigned short) layergeom->get_zbins();
+    unsigned short NZBinsSide = NZBins / 2;
     unsigned short NZBinsMin = 0;
     unsigned short PhiOffset = NPhiBinsSector * sector;
 
-
-
-    if (side == 0){
+    if (side == 0)
+    {
       NZBinsMin = 0;
-      NZBinsMax = NZBins / 2 -1;
+      NZBinsMax = NZBins / 2 - 1;
     }
-    else{
+    else
+    {
       NZBinsMin = NZBins / 2;
       NZBinsMax = NZBins;
     }
     unsigned short ZOffset = NZBinsMin;
     //Gives per pad ADC for particular R and sector in event
-    int perPadADC=0;
+    int perPadADC = 0;
     unsigned short phibins = NPhiBinsSector;
     unsigned short phioffset = PhiOffset;
-    unsigned short zbins=NZBinsSide;
-    unsigned short zoffset=ZOffset;
-    float sumADC = perPadADC; // 14 lines later just set to zero
+    unsigned short zbins = NZBinsSide;
+    unsigned short zoffset = ZOffset;
+    float sumADC = perPadADC;  // 14 lines later just set to zero
 
     //phibins - number of pads in the sector
     //The Sampa clock time is 18.8 MHz, so the sampling time is 53.2 ns = 1 Z bin.
@@ -306,85 +307,90 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
     //The maximum drift time in the TPC is 13.2 microseconds.
     //So, 53.2 ns / Z bin.
 
-    TF1 *f1 = new TF1("f1","[0]*exp(-(x-[1])/[2])",0,1000);
-    f1->SetParameter(0,0.005);
-    f1->SetParameter(1,0);
-    f1->SetParameter(2,60); // in terms of 50nsec time bins
+    TF1 *f1 = new TF1("f1", "[0]*exp(-(x-[1])/[2])", 0, 1000);
+    f1->SetParameter(0, 0.005);
+    f1->SetParameter(1, 0);
+    f1->SetParameter(2, 60);  // in terms of 50nsec time bins
 
-//    sumADC=0.; // this is set to zero 14 lines up (perPadADC is zero)
+    //    sumADC=0.; // this is set to zero 14 lines up (perPadADC is zero)
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
 
     std::vector<unsigned short> adcval(zbins, 0);
-//    std::multimap<unsigned short, ihit> all_hit_map;
-//    std::vector<ihit> hit_vect;
+    //    std::multimap<unsigned short, ihit> all_hit_map;
+    //    std::vector<ihit> hit_vect;
     // Loop over phi & z
-    for (TrkrHitSet::ConstIterator hitr = hitrangei.first; hitr != hitrangei.second;++hitr){
+    for (TrkrHitSet::ConstIterator hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
+    {
       unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
       unsigned short zbin = TpcDefs::getTBin(hitr->first) - zoffset;
-      float_t fadc = (hitr->second->getAdc()) ; // proper int rounding +0.5
+      float_t fadc = (hitr->second->getAdc());  // proper int rounding +0.5
       unsigned short adc = 0;
-      if(fadc>0) 
-        adc =  (unsigned short) fadc;
-      if(phibin >= phibins) continue;
-      if(zbin   >= zbins) continue; // zbin is unsigned int, <0 cannot happen
+      if (fadc > 0)
+        adc = (unsigned short) fadc;
+      if (phibin >= phibins) continue;
+      if (zbin >= zbins) continue;  // zbin is unsigned int, <0 cannot happen
       adcval[zbin] = (unsigned short) adc;
-      sumADC+=adc;
-      }
+      sumADC += adc;
+    }
     //Define ion-induced charge
-    sumADC/=phibins;
-    float ind_charge = -0.5*sumADC*_CScale;//CScale is the coefficient related to the capacitance of the bottom layer of the bottom GEM
+    sumADC /= phibins;
+    float ind_charge = -0.5 * sumADC * _CScale;  //CScale is the coefficient related to the capacitance of the bottom layer of the bottom GEM
     double pi = 2 * acos(0.0);
 
-    for (TrkrHitSet::ConstIterator hitr = hitrangei.first; hitr != hitrangei.second;++hitr){
+    for (TrkrHitSet::ConstIterator hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
+    {
       unsigned short phibin = TpcDefs::getPad(hitr->first);
-      unsigned short zbin = TpcDefs::getTBin(hitr->first) ;
-     	// Get the hitkey
-	  	TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(phibin, zbin);
-	  	TrkrHit *hit = nullptr;
+      unsigned short zbin = TpcDefs::getTBin(hitr->first);
+      // Get the hitkey
+      TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(phibin, zbin);
+      TrkrHit *hit = nullptr;
       hit = hitsetitr->second->getHit(hitkey);
 
       zbin = TpcDefs::getTBin(hitr->first);
       phibin = TpcDefs::getPad(hitr->first);
       double phi_center = layergeom->get_phicenter(phibin);
-      if (phi_center<0) phi_center+=2*pi;
+      if (phi_center < 0) phi_center += 2 * pi;
       _hit_phi = phi_center;
       _hit_z = layergeom->get_zcenter(zbin);
 
-      if(hit)_hit_e = hit->getEnergy();        
-      _hit_adc=0;
-      _hit_adc_bls=0;
+      if (hit) _hit_e = hit->getEnergy();
+      _hit_adc = 0;
+      _hit_adc_bls = 0;
 
-      float_t fadc = (hitr->second->getAdc()) ;// proper int rounding +0.5
-      _hit_adc=fadc;
-      _hit_adc_bls=_hit_adc+int(ind_charge);
+      float_t fadc = (hitr->second->getAdc());  // proper int rounding +0.5
+      _hit_adc = fadc;
+      _hit_adc_bls = _hit_adc + int(ind_charge);
 
-      if(hit && _hit_adc>0){ 
+      if (hit && _hit_adc > 0)
+      {
         //Trkr hit has only one value m_adc which is energy and ADC at the same time
-        if(_hit_adc_bls>0){hit->setAdc(_hit_adc_bls);}
-        else{hit->setAdc(0);}
+        if (_hit_adc_bls > 0)
+        {
+          hit->setAdc(_hit_adc_bls);
+        }
+        else
+        {
+          hit->setAdc(0);
+        }
       }
-      if(_writeTree==1)_rawHits->Fill();
+      if (_writeTree == 1) _rawHits->Fill();
     }
 
-
-
-
     //hitsetitr++;
-
   }
-  
+
   //pthread_attr_destroy(&attr);
 
   // wait for completion of all threads
   //for( const auto& thread_pair:threads )
-  //{ 
+  //{
   //  int rc2 = pthread_join(thread_pair.thread, nullptr);
-  //  if (rc2) 
+  //  if (rc2)
   //  { std::cout << "Error:unable to join," << rc2 << std::endl; }
   //}
 
   if (Verbosity() > 0)
-    std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;
+    std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters " << std::endl;
   std::cout << "PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -404,9 +410,10 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
 //}
 
 //____________________________________________________________________________..
-int PHG4TpcPadBaselineShift::End(PHCompositeNode */*topNode*/)
+int PHG4TpcPadBaselineShift::End(PHCompositeNode * /*topNode*/)
 {
-  if(_writeTree==1){
+  if (_writeTree == 1)
+  {
     outfile->cd();
     outfile->Write();
     outfile->Close();
@@ -428,16 +435,18 @@ int PHG4TpcPadBaselineShift::End(PHCompositeNode */*topNode*/)
 //{
 //  std::cout << "PHG4TpcPadBaselineShift::Print(const std::string &what) const Printing info for " << what << std::endl;
 //}
-void PHG4TpcPadBaselineShift::setScale(float CScale){
+void PHG4TpcPadBaselineShift::setScale(float CScale)
+{
   _CScale = CScale;
   std::cout << "PHG4TpcPadBaselineShift::setFileName: Scale factor is set to:" << CScale << std::endl;
 }
-void PHG4TpcPadBaselineShift::setFileName(const std::string &filename){
-  _filename=filename;
+void PHG4TpcPadBaselineShift::setFileName(const std::string &filename)
+{
+  _filename = filename;
   std::cout << "PHG4TpcPadBaselineShift::setFileName: Output file name for PHG4TpcPadBaselineShift is set to:" << filename << std::endl;
 }
-void PHG4TpcPadBaselineShift::writeTree(int f_writeTree){
-  _writeTree=f_writeTree;
+void PHG4TpcPadBaselineShift::writeTree(int f_writeTree)
+{
+  _writeTree = f_writeTree;
   std::cout << "PHG4TpcPadBaselineShift::writeTree: True" << std::endl;
 }
-

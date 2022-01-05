@@ -10,10 +10,10 @@
 
 #include <climits>
 #include <cmath>
-//#include <map> 
+//#include <map>
 //#include <vector>
 #include <string>
-#include <utility>               // for pair
+#include <utility>  // for pair
 
 class PHCompositeNode;
 
@@ -36,14 +36,12 @@ class PHG4TpcPadBaselineShift : public SubsysReco
   typedef std::pair<unsigned short, iphiz> ihit;
 
  public:
-
-
   PHG4TpcPadBaselineShift(const std::string &name = "PHG4TpcPadBaselineShift");
 
   virtual ~PHG4TpcPadBaselineShift();
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
-  int process_event(PHCompositeNode *topNode) override; 
+  int process_event(PHCompositeNode *topNode) override;
   //int ResetEvent(PHCompositeNode *topNode) override;
 
   //int EndRun(const int runnumber) override;
@@ -54,42 +52,40 @@ class PHG4TpcPadBaselineShift : public SubsysReco
 
   //void Print(const std::string &what = "ALL") const override;
 
-   void setScale(float CScale);
-   void setFileName(const std::string &filename);
-   void writeTree(int f_writeTree);
- 
+  void setScale(float CScale);
+  void setFileName(const std::string &filename);
+  void writeTree(int f_writeTree);
 
  private:
-   bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom);
-   float _hit_z = NAN ;
-   float _hit_r = NAN ;
-   float _hit_phi= NAN;
-   float _hit_e= NAN;
-   int _hit_adc = INT_MIN;
-   int _hit_adc_bls = INT_MIN;
-   int _hit_layer = INT_MIN;
-   int _hit_sector = INT_MIN;
+  bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom);
+  float _hit_z = NAN;
+  float _hit_r = NAN;
+  float _hit_phi = NAN;
+  float _hit_e = NAN;
+  int _hit_adc = INT_MIN;
+  int _hit_adc_bls = INT_MIN;
+  int _hit_layer = INT_MIN;
+  int _hit_sector = INT_MIN;
 
-   TrkrHitSetContainer *m_hits = nullptr;
-   TrkrClusterContainer *m_clusterlist = nullptr;
-   TrkrClusterHitAssoc *m_clusterhitassoc = nullptr;
-   ActsSurfaceMaps *m_surfMaps = nullptr;
-   ActsTrackingGeometry *m_tGeometry = nullptr;
+  TrkrHitSetContainer *m_hits = nullptr;
+  TrkrClusterContainer *m_clusterlist = nullptr;
+  TrkrClusterHitAssoc *m_clusterhitassoc = nullptr;
+  ActsSurfaceMaps *m_surfMaps = nullptr;
+  ActsTrackingGeometry *m_tGeometry = nullptr;
 
-//   bool do_hit_assoc = true;
-//   double pedestal = 74.4;
-   int _writeTree = 0;
-   double SectorFiducialCut = 0.5;
+  //   bool do_hit_assoc = true;
+  //   double pedestal = 74.4;
+  int _writeTree = 0;
+  double SectorFiducialCut = 0.5;
 
-//   int NSearch = 2;
-   int NZBinsMax = 0;
-   float _CScale = 1.;
+  //   int NSearch = 2;
+  int NZBinsMax = 0;
+  float _CScale = 1.;
 
-   TFile *outfile = nullptr;
-   std::string _filename = "./hitsBLS.root";
+  TFile *outfile = nullptr;
+  std::string _filename = "./hitsBLS.root";
 
-   TTree *_rawHits = nullptr;
-
+  TTree *_rawHits = nullptr;
 };
 
-#endif // PHG4TpcPadBaselineShift_H
+#endif  // PHG4TpcPadBaselineShift_H
