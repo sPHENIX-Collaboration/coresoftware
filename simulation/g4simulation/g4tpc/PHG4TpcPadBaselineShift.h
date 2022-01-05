@@ -4,14 +4,9 @@
 #define G4TPC_PHG4TpcPadBaselineShift_H
 
 #include <fun4all/SubsysReco.h>
-//#include <trackbase/TrkrCluster.h>
-//#include <trackbase/ActsSurfaceMaps.h>
-//#include <trackbase/ActsTrackingGeometry.h>
 
 #include <climits>
 #include <cmath>
-//#include <map>
-//#include <vector>
 #include <string>
 #include <utility>  // for pair
 
@@ -20,21 +15,16 @@ class PHCompositeNode;
 class TTree;
 class TFile;
 
-//class TrkrHitSet;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class PHG4CylinderCellGeom;
-//class PHG4CylinderCellGeomContainer;
 
 struct ActsSurfaceMaps;
 struct ActsTrackingGeometry;
 
 class PHG4TpcPadBaselineShift : public SubsysReco
 {
-  typedef std::pair<unsigned short, unsigned short> iphiz;
-  typedef std::pair<unsigned short, iphiz> ihit;
-
  public:
   PHG4TpcPadBaselineShift(const std::string &name = "PHG4TpcPadBaselineShift");
 

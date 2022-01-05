@@ -8,11 +8,7 @@
 #include <trackbase/TrkrClusterHitAssoc.h>   // for TrkrClusterHi...
 #include <trackbase/TrkrHit.h>               // for TrkrHit
 
-//#include <trackbase/TrkrClusterContainerv3.h>
-//#include <trackbase/TrkrClusterv2.h>
-//#include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
-//#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -22,20 +18,11 @@
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
-//#include <Acts/Utilities/Units.hpp>
-//#include <Acts/Surfaces/Surface.hpp>
-
 #include <phool/PHCompositeNode.h>
-//#include <phool/PHIODataNode.h>                         // for PHIODataNode
 #include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-//#include <phool/PHObject.h>                             // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
-
-// #include <TMatrixFfwd.h>    // for TMatrixF
-// #include <TMatrixT.h>       // for TMatrixT, ope...
-// #include <TMatrixTUtils.h>  // for TMatrixTRow
 
 #include <TF1.h>
 #include <TFile.h>
@@ -46,12 +33,7 @@
 #include <map>  // for _Rb_tree_cons...
 #include <string>
 #include <utility>  // for pair
-//#include <array>
 #include <vector>
-
-//#include <fun4all/Fun4AllReturnCodes.h>
-
-//#include <phool/PHCompositeNode.h>
 
 namespace
 {
@@ -61,9 +43,6 @@ namespace
     return x * x;
   }
 }  // namespace
-
-//typedef std::pair<unsigned short, unsigned short> iphiz;
-//typedef std::pair<unsigned short, iphiz> ihit;
 
 int findRBin(float R)
 {
@@ -187,7 +166,9 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
   //  int print_layer = 18;
 
   if (Verbosity() > 1000)
+  {
     std::cout << "PHG4TpcPadBaselineShift::Process_Event" << std::endl;
+  }
 
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -326,7 +307,9 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
       float_t fadc = (hitr->second->getAdc());  // proper int rounding +0.5
       unsigned short adc = 0;
       if (fadc > 0)
+      {
         adc = (unsigned short) fadc;
+      }
       if (phibin >= phibins) continue;
       if (zbin >= zbins) continue;  // zbin is unsigned int, <0 cannot happen
       adcval[zbin] = (unsigned short) adc;
@@ -335,7 +318,7 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
     //Define ion-induced charge
     sumADC /= phibins;
     float ind_charge = -0.5 * sumADC * _CScale;  //CScale is the coefficient related to the capacitance of the bottom layer of the bottom GEM
-    double pi = 2 * acos(0.0);
+    double pi = M_PI;
 
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
     {
