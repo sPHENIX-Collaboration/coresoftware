@@ -2,11 +2,17 @@
 
 #include <tpc/TpcDefs.h>
 
-#include <trackbase/TrkrClusterContainerv3.h>
-#include <trackbase/TrkrClusterv2.h>
-#include <trackbase/TrkrClusterHitAssocv3.h>
+#include <trackbase/ActsSurfaceMaps.h>                  // for ActsSurfaceMaps
+#include <trackbase/ActsTrackingGeometry.h>             // for ActsTrackingG...
+#include <trackbase/TrkrClusterContainer.h>             // for TrkrClusterCo...
+#include <trackbase/TrkrClusterHitAssoc.h>              // for TrkrClusterHi...
+#include <trackbase/TrkrHit.h>                          // for TrkrHit
+
+//#include <trackbase/TrkrClusterContainerv3.h>
+//#include <trackbase/TrkrClusterv2.h>
+//#include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
-#include <trackbase/TrkrHitv2.h>
+//#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -16,20 +22,20 @@
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
-#include <Acts/Utilities/Units.hpp>
-#include <Acts/Surfaces/Surface.hpp>
+//#include <Acts/Utilities/Units.hpp>
+//#include <Acts/Surfaces/Surface.hpp>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>                         // for PHIODataNode
+//#include <phool/PHIODataNode.h>                         // for PHIODataNode
 #include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                             // for PHObject
+//#include <phool/PHObject.h>                             // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <TMatrixFfwd.h>    // for TMatrixF
-#include <TMatrixT.h>       // for TMatrixT, ope...
-#include <TMatrixTUtils.h>  // for TMatrixTRow
+// #include <TMatrixFfwd.h>    // for TMatrixF
+// #include <TMatrixT.h>       // for TMatrixT, ope...
+// #include <TMatrixTUtils.h>  // for TMatrixTRow
 
 #include <TFile.h>  
 #include <TF1.h>
@@ -40,10 +46,10 @@
 #include <map>  // for _Rb_tree_cons...
 #include <string>
 #include <utility>  // for pair
-#include <array>
+//#include <array>
 #include <vector>
 
-#include <fun4all/Fun4AllReturnCodes.h>
+//#include <fun4all/Fun4AllReturnCodes.h>
 
 //#include <phool/PHCompositeNode.h>
 
@@ -52,8 +58,8 @@ namespace
   template<class T> inline constexpr T square( const T& x ) { return x*x; }
 }
 
-typedef std::pair<unsigned short, unsigned short> iphiz;
-typedef std::pair<unsigned short, iphiz> ihit;
+//typedef std::pair<unsigned short, unsigned short> iphiz;
+//typedef std::pair<unsigned short, iphiz> ihit;
 
 int findRBin(float R){
   // Finding pad number from the center (bin) for hits
@@ -90,21 +96,6 @@ int findRBin(float R){
 //____________________________________________________________________________..
 PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name):
  SubsysReco(name)
-  , m_hits(nullptr)
-  , m_clusterlist(nullptr)
-  , m_clusterhitassoc(nullptr)
-  , m_surfMaps(nullptr)
-  , m_tGeometry(nullptr)
-  , do_hit_assoc(true)
-  , pedestal(74.4)
-  ,_writeTree(0)
-  , SectorFiducialCut(0.5)
-  , NSearch(2)
-  , NZBinsMax(0)
-  , _CScale(1)
-  , outfile(nullptr)
-  , _filename("./hitsBLS.root")
-
   {
   std::cout << "PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name) Calling ctor" << std::endl;
 }
@@ -306,7 +297,7 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
     unsigned short phioffset = PhiOffset;
     unsigned short zbins=NZBinsSide;
     unsigned short zoffset=ZOffset;
-    float sumADC = perPadADC;
+    float sumADC = perPadADC; // 14 lines later just set to zero
 
     //phibins - number of pads in the sector
     //The Sampa clock time is 18.8 MHz, so the sampling time is 53.2 ns = 1 Z bin.
@@ -320,12 +311,12 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
     f1->SetParameter(1,0);
     f1->SetParameter(2,60); // in terms of 50nsec time bins
 
-    sumADC=0;
+//    sumADC=0.; // this is set to zero 14 lines up (perPadADC is zero)
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
 
     std::vector<unsigned short> adcval(zbins, 0);
-    std::multimap<unsigned short, ihit> all_hit_map;
-    std::vector<ihit> hit_vect;
+//    std::multimap<unsigned short, ihit> all_hit_map;
+//    std::vector<ihit> hit_vect;
     // Loop over phi & z
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first; hitr != hitrangei.second;++hitr){
       unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
@@ -441,7 +432,7 @@ void PHG4TpcPadBaselineShift::setScale(float CScale){
   _CScale = CScale;
   std::cout << "PHG4TpcPadBaselineShift::setFileName: Scale factor is set to:" << CScale << std::endl;
 }
-void PHG4TpcPadBaselineShift::setFileName(std::string filename){
+void PHG4TpcPadBaselineShift::setFileName(const std::string &filename){
   _filename=filename;
   std::cout << "PHG4TpcPadBaselineShift::setFileName: Output file name for PHG4TpcPadBaselineShift is set to:" << filename << std::endl;
 }
