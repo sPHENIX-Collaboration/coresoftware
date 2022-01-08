@@ -9,9 +9,10 @@
 
 // Move to new storage containers
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHitv2.h>                      // for TrkrHit
+#include <trackbase/TrkrHit.h>                      // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <phparameter/PHParameterInterface.h>       // for PHParameterInterface
 
@@ -202,6 +203,9 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       exit(1);
     }
 
+  // Get the TrkrHitTruthAssoc node
+  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+
  //-------------
   // Digitization
   //-------------
@@ -225,6 +229,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       // get all of the hits from this hitset      
       TrkrHitSet *hitset = hitset_iter->second;
       TrkrHitSet::ConstRange hit_range = hitset->getHits();
+      std::set<TrkrDefs::hitkey> dead_hits; // hits on dead channel
       for(TrkrHitSet::ConstIterator hit_iter = hit_range.first;
 	  hit_iter != hit_range.second;
 	  ++hit_iter)
@@ -248,11 +253,14 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 					     ))
 		{
 		  ++m_nDeadCells;
+
 		  if (Verbosity() >= VERBOSITY_MORE)
 		    {
 		      cout << "PHG4InttDigitizer::DigitizeLadderCells - dead strip at layer " << layer << ": ";
 		      hit->identify();
 		    }
+
+      dead_hits.insert(hit_iter->first);  // store hitkey of dead channels to be remove later
 		  continue;
 		}
 	    }  //    if (deadmap)
@@ -276,6 +284,16 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 		 << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << hit->getAdc() << endl;
  
 	} // end loop over hits in this hitset
+
+      // remove hits on dead channel in TRKR_HITSET and TRKR_HITTRUTHASSOC
+      for(const auto& key:dead_hits) {
+        if(Verbosity() > 2)
+          cout<<" PHG4InttDigitizer: remove hit with key: " << key << endl;
+
+        hitset->removeHit(key);
+
+        if( hittruthassoc ) hittruthassoc->removeAssoc(hitsetkey, key);
+      }
     } // end loop over hitsets
   
   return;

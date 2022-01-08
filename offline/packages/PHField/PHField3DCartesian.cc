@@ -6,6 +6,7 @@
 
 #include <Geant4/G4SystemOfUnits.hh>
 
+#include <boost/stacktrace.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
 
@@ -144,6 +145,9 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
                 << ", y: " << ysav / cm
                 << ", z: " << zsav / cm
                 << std::endl;
+      std::cout << "Here is the stacktrace: " << std::endl;
+      std::cout << boost::stacktrace::stacktrace();
+      std::cout << "This is not a segfault. Check the stacktrace for the guilty party (typically #2)" << std::endl;
       ifirst++;
     }
     return;

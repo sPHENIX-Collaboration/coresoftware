@@ -7,8 +7,9 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-
 #include <trackbase_historic/ActsTransformations.h>
+
+#include <tpc/TpcDistortionCorrectionContainer.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4Particle.h>  // for PHG4Particle
@@ -70,7 +71,7 @@ namespace
     line_fit(points, a, b);
   }
   
-  void CircleFitByTaubin (std::vector<std::pair<double,double>> points, double &R, double &X0, double &Y0)
+  void CircleFitByTaubin (std::vector<Acts::Vector3D> points, double &R, double &X0, double &Y0)
     /*  
     Circle fit to a given set of data points (in 2D)
     This is an algebraic fit, due to Taubin, based on the journal article
@@ -91,10 +92,10 @@ namespace
     double meanX = 0;
     double meanY = 0;
     double weight = 0;
-    for(unsigned int i = 0; i < points.size(); ++i)
+    for(const auto& position : points)
     {
-      meanX += points[i].first;
-      meanY += points[i].second;
+      meanX += position(0);
+      meanY += position(1);
       weight++;
     }
     meanX /= weight;
@@ -104,10 +105,10 @@ namespace
     
     Mxx=Myy=Mxy=Mxz=Myz=Mzz=0.;
     
-    for (unsigned int i=0; i<points.size(); i++)
+    for (const auto& position : points)
     {
-      double Xi = points[i].first - meanX;   //  centered x-coordinates
-      double Yi = points[i].second - meanY;   //  centered y-coordinates
+      double Xi = position(0) - meanX;   //  centered x-coordinates
+      double Yi = position(1) - meanY;   //  centered y-coordinates
       double Zi = Xi*Xi + Yi*Yi;
       
       Mxy += Xi*Yi;
@@ -219,7 +220,7 @@ namespace
     const double miny2 = (-std::sqrt(square(X0)*square(R)*square(Y0) + square(R) 
       * pow(Y0,4)) + square(X0) * Y0 + pow(Y0, 3)) 
       / (square(X0)+square(Y0));
-    
+
     const double minx = std::sqrt(square(R) - square(miny-Y0)) + X0;
     const double minx2 = -std::sqrt(square(R) - square(miny2-Y0)) + X0;
 
@@ -243,15 +244,17 @@ PHTpcTrackSeedCircleFit::PHTpcTrackSeedCircleFit(const std::string &name):
 {}
 
 //____________________________________________________________________________..
-int PHTpcTrackSeedCircleFit::InitRun(PHCompositeNode*)
-{ return Fun4AllReturnCodes::EVENT_OK; }
-
-//____________________________________________________________________________..
-int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode* topnode)
-{
+int PHTpcTrackSeedCircleFit::InitRun(PHCompositeNode *topnode)
+{ 
   // get relevant nodes
   int ret = GetNodes( topnode );
   if( ret != Fun4AllReturnCodes::EVENT_OK ) return ret;
+
+  return Fun4AllReturnCodes::EVENT_OK; }
+
+//____________________________________________________________________________..
+int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode*)
+{
   
   // _track_map contains the TPC seed track stubs
   // We want to associate these TPC track seeds with a collision vertex
@@ -286,28 +289,46 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode* topnode)
 
       // Get the TPC clusters for this tracklet
       std::vector<TrkrCluster*> clusters = getTrackClusters(tracklet_tpc);
+      if(Verbosity() > 3) std::cout << " TPC tracklet " << tracklet_tpc->get_id() << " clusters.size " << clusters.size() << std::endl;
 
       // count TPC layers for this track
+      bool reject_track = false;
       std::set<unsigned int> layers;
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
+	  if(!clusters[i])
+	    {
+	      if(Verbosity() > 0) std::cout << " trackid " << phtrk_iter->first << " no cluster found, skip track" << std::endl;
+	      reject_track = true;
+	      break;
+	    }	      
 	  unsigned int layer = TrkrDefs::getLayer(clusters[i]->getClusKey());
 	  layers.insert(layer);
 	}
+
+      if(reject_track) continue;
+    
       unsigned int nlayers = layers.size();
       if(Verbosity() > 2) std::cout << "    TPC layers this track: " << nlayers << std::endl;
 
-      ActsTransformations transformer;
 
-      std::vector<std::pair<double, double>> cpoints;
       std::vector<Acts::Vector3D> globalClusterPositions;
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
-	  auto global = transformer.getGlobalPosition(clusters.at(i),
-						       _surfmaps,
-						       _tGeometry);
+	  const Acts::Vector3D global = getGlobalPosition(clusters.at(i));
 	  globalClusterPositions.push_back(global);
-	  cpoints.push_back(std::make_pair(global(0), global(1)));
+
+	  if(Verbosity() > 3)
+	    {
+	      ActsTransformations transformer;
+	      auto global_before = transformer.getGlobalPosition(clusters.at(i),
+								 _surfmaps,
+								 _tGeometry);
+	      TrkrDefs::cluskey key = clusters.at(i)->getClusKey();
+	      std::cout << "CircleFit: Cluster: " << key << " _corrected_clusters " << _are_clusters_corrected << std::endl;
+	      std::cout << " Global before: " << global_before[0] << "  " << global_before[1] << "  " << global_before[2] << std::endl;
+	      std::cout << " Global after   : " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
+	    }
 	}
       
       if(clusters.size() < 3)
@@ -337,13 +358,16 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode* topnode)
       
       // make circle fit
       double R, X0, Y0;
-      CircleFitByTaubin(cpoints, R, X0, Y0);
+      CircleFitByTaubin(globalClusterPositions, R, X0, Y0);
       if(Verbosity() > 2) 
       { std::cout << "PHTpcTrackSeedCircleFit::process_event - track: " << track_key << " R=" << R << " X0=" << X0 << " Y0=" << Y0 << std::endl; }
 
       // set the track x and y positions to the circle PCA
       double dcax, dcay;
       findRoot(R, X0, Y0, dcax, dcay);
+      if(std::isnan(dcax) or std::isnan(dcay)) 
+	{ continue; }
+
       tracklet_tpc->set_x(dcax);
       tracklet_tpc->set_y(dcay);
 
@@ -362,18 +386,18 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode* topnode)
       
       // We want the angle of the tangent relative to the positive x axis
       // start with the angle of the radial line from vertex to circle center
-
+      
       double dx = X0 - dcax;
       double dy = Y0 - dcay;
       double phi= atan2(-dx,dy);
-    
+     
       // convert to the angle of the tangent to the circle
       // we need to know if the track proceeds clockwise or CCW around the circle
-      double dx0 = cpoints[0].first - X0;
-      double dy0 = cpoints[0].second - Y0;
+      double dx0 = globalClusterPositions.at(0)(0) - X0;
+      double dy0 = globalClusterPositions.at(0)(1) - Y0;
       double phi0 = atan2(dy0, dx0);
-      double dx1 = cpoints[1].first - X0;
-      double dy1 = cpoints[1].second - Y0;
+      double dx1 = globalClusterPositions.at(1)(0) - X0;
+      double dy1 = globalClusterPositions.at(1)(1) - Y0;
       double phi1 = atan2(dy1, dx1);
       double dphi = phi1 - phi0;
 
@@ -395,18 +419,19 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode* topnode)
 	  if(phi > M_PI)
 	    { phi -= 2. * M_PI; }
 	}
-
+   
       if(Verbosity() > 5) 
 	std::cout << " input track phi " << tracklet_tpc->get_phi()  << " new phi " << phi  << std::endl;  
-
+     
       // get the updated values of px, py, pz from the pT and the angles found here
       double px_new = pt_track * cos(phi);
       double py_new = pt_track * sin(phi);
       double ptrack_new = pt_track / cos(track_angle);
       double pz_new = ptrack_new * sin(track_angle);
 
-      if(Verbosity() > 5)
-	std::cout << " input track mom " << tracklet_tpc->get_p() << " new mom " << ptrack_new
+      if(Verbosity() > 4)
+	std::cout << " input track id " << tracklet_tpc->get_id() 
+		  << " input track mom " << tracklet_tpc->get_p() << " new mom " << ptrack_new
 		  << " px in " << tracklet_tpc->get_px()  << " px " << px_new 
 		  << " py in " << tracklet_tpc->get_py() << " py " << py_new 
 		  << " pz in " << tracklet_tpc->get_pz() << " pz " << pz_new 
@@ -457,13 +482,29 @@ int  PHTpcTrackSeedCircleFit::GetNodes(PHCompositeNode* topNode)
   if(_use_truth_clusters)
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
   else
-    _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-
+    {
+      _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+      if(_cluster_map)
+	{
+	  std::cout << " using CORRECTED_TRKR_CLUSTER node  "<< std::endl;
+	}
+      else
+	{
+	  std::cout << " CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER " << std::endl;
+	  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+	  _are_clusters_corrected = false;
+	}
+    }
   if (!_cluster_map)
   {
     std::cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  // tpc distortion correction
+  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  if( _dcc )
+  { std::cout << "PHTpcTrackSeedCircleFit::get_Nodes  - found TPC distortion correction container" << std::endl; }
 
   _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   if (!_track_map)
@@ -504,3 +545,18 @@ std::vector<TrkrCluster*> PHTpcTrackSeedCircleFit::getTrackClusters(SvtxTrack *t
     return clusters;
   }
   
+Acts::Vector3D PHTpcTrackSeedCircleFit::getGlobalPosition( TrkrCluster* cluster ) const
+{
+  // get global position from Acts transform
+  ActsTransformations transformer;
+  auto globalpos = transformer.getGlobalPosition(cluster,
+    _surfmaps,
+    _tGeometry);
+
+  // check if TPC distortion correction are in place and apply if clusters are not from the corrected node
+  if( !_are_clusters_corrected)
+    if(_dcc) { globalpos = _distortionCorrection.get_corrected_position( globalpos, _dcc ); }
+
+  return globalpos;
+}
+

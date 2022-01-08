@@ -3,7 +3,7 @@
 /*!
  * \file PHG4TPCDistortion.h
  * \brief
- * \author Jin Huang <jhuang@bnl.gov>, Henry Klest <henry.klest@stonybrook.edu>, Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
+ * \author Jin Huang <jhuang@bnl.gov>, Henry Klest <henry.klest@stonybrook.edu>, Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>, Ross Corliss <ross.corliss@stonybrook.edu>
  * \version $Revision:   $
  * \date $Date: $
  */
@@ -29,14 +29,27 @@ class PHG4TpcDistortion
   //@{
 
   //! x distortion for a given truth location of the primary ionization
-  double get_x_distortion(double x, double y, double z) const;
+  double get_x_distortion_cartesian(double x, double y, double z) const;
 
   //! y distortion for a given truth location of the primary ionization
-  double get_y_distortion(double x, double y, double z) const;
+  double get_y_distortion_cartesian(double x, double y, double z) const;
 
   //! z distortion for a given truth location of the primary ionization
-  double get_z_distortion(double x, double y, double z) const;
+  double get_z_distortion_cartesian(double x, double y, double z) const;
+  
+  //! radial distortion for a given cylindrical truth location of the primary ionization
+  double get_r_distortion(double r, double phi, double z) const;
 
+  //! R*phi (hence the unitful phi-hat) distortion for a given cylindrical truth location of the primary ionization
+  double get_rphi_distortion(double r, double phi, double z) const;
+
+  //! z distortion for a given cylindrical truth location of the primary ionization
+  double get_z_distortion(double r, double phi, double z) const;
+
+
+
+
+  
   //! Gets the verbosity of this module.
   int Verbosity() const
   {
@@ -48,13 +61,13 @@ class PHG4TpcDistortion
   //!@name modifiers
   //@{
 
-  //! enable static distortions
+  //! enable distortions from a single fixed source
   void set_do_static_distortions(bool value)
   {
     m_do_static_distortions = value;
   }
 
-  //! static distortion filename
+  //! set the filename for the single fixed distortion
   void set_static_distortion_filename(const std::string &value)
   {
     m_static_distortion_filename = value;
@@ -88,7 +101,7 @@ class PHG4TpcDistortion
 
  private:
   //! get distortion for a set of histogram and an input momentum distribution
-  double get_distortion(TH3 *hstatic, TH3 *htimeOrdered, double x, double y, double z) const;
+  double get_distortion(char axis, double r, double phi, double z) const;
 
   //! The verbosity level. 0 means not verbose at all.
   int verbosity = 0;
@@ -96,24 +109,22 @@ class PHG4TpcDistortion
   //!@name static histograms
   //@{
   bool m_do_static_distortions = false;
-  bool m_static_map_onesided = false;
   std::string m_static_distortion_filename;
   std::unique_ptr<TFile> m_static_tfile;
-  TH3 *hDXint = nullptr;
-  TH3 *hDYint = nullptr;
-  TH3 *hDZint = nullptr;
+  TH3 *hDRint[2]={nullptr,nullptr};
+  TH3 *hDPint[2]={nullptr,nullptr};
+  TH3 *hDZint[2]={nullptr,nullptr};
   //@}
 
   //!@name time ordered histograms
   //@{
   bool m_do_time_ordered_distortions = false;
-  bool m_time_ordered_map_onesided = false;
   std::string m_time_ordered_distortion_filename;
   std::unique_ptr<TFile> m_time_ordered_tfile;
-  TTree *TimeTree = nullptr;
-  TH3 *TimehDX = nullptr;
-  TH3 *TimehDY = nullptr;
-  TH3 *TimehDZ = nullptr;
+  TTree *TimeTree=nullptr;
+  TH3 *TimehDR[2]={nullptr,nullptr};
+  TH3 *TimehDP[2]={nullptr,nullptr};
+  TH3 *TimehDZ[2]={nullptr,nullptr};
   //@}
 };
 

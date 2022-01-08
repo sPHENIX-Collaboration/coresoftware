@@ -3,15 +3,13 @@
 #include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNode.h>                      // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 
 #include <string>
-
-using namespace std;
 
 PHG4TpcPadPlane::PHG4TpcPadPlane(const std::string &name)
   : SubsysReco(name)
@@ -25,8 +23,8 @@ int PHG4TpcPadPlane::InitRun(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
-  string paramnodename = "G4TPCPADPLANE";
-  string geonodename = "G4TPCPADPLANEPAR";
+  std::string paramnodename = "G4TPCPADPLANE";
+  std::string geonodename = "G4TPCPADPLANEPAR";
   UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
   PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));

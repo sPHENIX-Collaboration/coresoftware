@@ -49,12 +49,16 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
 
   //! load nodes relevant for the analysis
   int GetNodes(PHCompositeNode* topNode);
+
+  void copyMicromegasClustersToCorrectedMap( );
     
   //! number of layers in the micromegas
   static constexpr unsigned int _n_mm_layers = 2;
   
   bool _use_truth_clusters = false;
   TrkrClusterContainer *_cluster_map{nullptr};
+  TrkrClusterContainer *_corrected_cluster_map{nullptr};
+
   SvtxTrackMap *_track_map{nullptr};
   AssocInfoContainer *_assoc_container{nullptr};
 

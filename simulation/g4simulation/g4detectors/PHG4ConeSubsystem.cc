@@ -21,9 +21,6 @@
 #include <sstream>
 
 class PHG4Detector;
-class PHG4SteppingAction;
-
-using namespace std;
 
 //_______________________________________________________________________
 PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string &name, const int lyr)
@@ -44,10 +41,10 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   // create display settings before detector
   PHG4ConeDisplayAction *disp_action = new PHG4ConeDisplayAction(Name(), GetParams());
-  if (isfinite(m_ColorArray[0]) &&
-      isfinite(m_ColorArray[1]) &&
-      isfinite(m_ColorArray[2]) &&
-      isfinite(m_ColorArray[3]))
+  if (std::isfinite(m_ColorArray[0]) &&
+      std::isfinite(m_ColorArray[1]) &&
+      std::isfinite(m_ColorArray[2]) &&
+      std::isfinite(m_ColorArray[3]))
   {
     disp_action->SetColor(m_ColorArray[0], m_ColorArray[1], m_ColorArray[2], m_ColorArray[3]);
   }
@@ -63,7 +60,7 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
     PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
 
-    string nodename;
+    std::string nodename;
     if (SuperDetector() != "NONE")
     {
       PHNodeIterator iter_dst(dstNode);

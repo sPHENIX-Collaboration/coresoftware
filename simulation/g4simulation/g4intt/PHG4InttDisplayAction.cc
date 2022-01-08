@@ -71,7 +71,8 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
     else if (it.second == "Rail")
     {
       visatt->SetColour( G4Colour::Cyan());
-      visatt->SetVisibility( false );
+      //visatt->SetVisibility( false );
+      visatt->SetVisibility( true );
 
     }
     else if (it.second == "RohaCell")
@@ -157,6 +158,12 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
     else if (it.second.find("Kapton") != string::npos ) // any Kapton
     {
       visatt->SetColour( G4Colour(0.0, 0.590, 1.0, 0.5 ) ); // blue
+      visatt->SetVisibility( true );
+
+    }
+    else if (it.second == "Skin")
+    {
+      visatt->SetColour( colour_CFRP );
       visatt->SetVisibility( true );
 
     }

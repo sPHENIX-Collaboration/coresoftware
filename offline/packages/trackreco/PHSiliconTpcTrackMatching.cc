@@ -5,8 +5,8 @@
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
 #include <trackbase/TpcSeedTrackMapv1.h>     
-#include <trackbase/TrkrClusterContainer.h>     
-#include <trackbase/TrkrCluster.h>     
+#include <trackbase/TrkrClusterContainerv3.h>   
+#include <trackbase/TrkrClusterv3.h>   
 #include <trackbase_historic/SvtxTrack_v2.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
@@ -58,7 +58,7 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
 {
   // put these in the output file
   cout << PHWHERE "_is_ca_seeder " << _is_ca_seeder << " Search windows: phi " << _phi_search_win << " eta " 
-       << _eta_search_win << endl;
+       << _eta_search_win << " pp_mode " << _pp_mode << endl;
 
   // corrects the PHTpcTracker phi bias
   fdphi = new TF1("f1", "[0] + [1]/x^[2]");
@@ -187,6 +187,10 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
       // only crossing zero has been added to the tpc_matches map, just add silicon clusters
       addSiliconClusters(tpc_matches);
     }
+
+  // loop over all tracks and copy the silicon clusters to the corrected cluster map
+  if(_corrected_cluster_map)
+    copySiliconClustersToCorrectedMap();
   
   if(Verbosity() > 0)  
     cout << " Final track map size " << _track_map->size() 
@@ -262,6 +266,12 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
       svtxNode->addNode(node);
     }
   
+  _corrected_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
+  if(_corrected_cluster_map)
+    {
+      std::cout << " Found CORRECTED_TRKR_CLUSTER node " << std::endl;
+    }
+  
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (!_cluster_map)
       {
@@ -309,7 +319,13 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
       unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
       if(trkrid == TrkrDefs::tpcId)
 	{
-	  TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
+
+	  TrkrCluster *tpc_clus;
+	  if(_corrected_cluster_map)
+	    tpc_clus =  _corrected_cluster_map->findCluster(cluster_key);
+	  else
+	    tpc_clus =  _cluster_map->findCluster(cluster_key);
+
 	  auto global = transformer.getGlobalPosition(tpc_clus,
 						       _surfmaps,
 						       _tGeometry);
@@ -540,7 +556,12 @@ void PHSiliconTpcTrackMatching::correctTpcClusterZ(
 	      if(trkrid == TrkrDefs::tpcId)
 		{
 		  // get the cluster z
-		  TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
+		  TrkrCluster *tpc_clus;
+		  if(_corrected_cluster_map)
+		    tpc_clus =  _corrected_cluster_map->findCluster(cluster_key);
+		  else
+		    tpc_clus =  _cluster_map->findCluster(cluster_key);
+
 		  if(Verbosity() > 2) std::cout << "      original local cluster z " << tpc_clus->getLocalY() << std::endl;
 		  auto global = transformer.getGlobalPosition(tpc_clus,
 							      _surfmaps,
@@ -564,7 +585,12 @@ void PHSiliconTpcTrackMatching::correctTpcClusterZ(
 
 		  if(Verbosity() > 2)
 		    {
-		      TrkrCluster *tpc_clus_check =  _cluster_map->findCluster(cluster_key);
+		      TrkrCluster *tpc_clus_check;
+		      if(_corrected_cluster_map)
+			tpc_clus_check =  _corrected_cluster_map->findCluster(cluster_key);
+		      else
+			tpc_clus_check =  _cluster_map->findCluster(cluster_key);
+		      
 		      auto global_check = transformer.getGlobalPosition(tpc_clus_check,
 									_surfmaps,
 									_tGeometry);
@@ -995,8 +1021,10 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	    }
 	}
     }
+
   return;
 }
+
 void PHSiliconTpcTrackMatching::tagInTimeTracks(  
 						std::multimap<unsigned int, unsigned int> &tpc_matches,
 						std::set<int> &crossing_set,
@@ -1073,5 +1101,36 @@ void PHSiliconTpcTrackMatching::tagMatchCrossing(
 		  << " crossing " << crossing 
 		  << std::endl;		
     }
+
 return;
 }
+
+void PHSiliconTpcTrackMatching::copySiliconClustersToCorrectedMap( )
+{
+  // loop over final track map, copy silicon clusters to corrected cluster map
+  for (auto phtrk_iter = _track_map->begin();
+       phtrk_iter != _track_map->end(); 
+       ++phtrk_iter)
+    {
+      SvtxTrack *track = phtrk_iter->second;
+
+      // loop over associated clusters to get keys for silicon cluster
+      for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
+	   iter != track->end_cluster_keys();
+	   ++iter)
+	{
+	  TrkrDefs::cluskey cluster_key = *iter;
+	  const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
+	  if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId)
+	    {
+	      TrkrCluster *cluster =  _cluster_map->findCluster(cluster_key);	
+	      if( !cluster ) continue;
+	      
+	      TrkrCluster *newclus = _corrected_cluster_map->findOrAddCluster(cluster_key)->second;
+	      newclus->CopyFrom( cluster );
+	    }
+	}      
+    }
+}
+
+

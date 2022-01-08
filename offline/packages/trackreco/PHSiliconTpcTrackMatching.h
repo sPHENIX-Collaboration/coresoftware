@@ -88,7 +88,9 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   void cleanVertexMap( std::map<unsigned int, double> &vertex_crossings_map,
 		       std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map,
 		       std::map<unsigned int, int> &tpc_crossing_map );
-  
+   void copySiliconClustersToCorrectedMap( );
+
+
   std::string _track_map_name_silicon;
 
   // default values, can be replaced from the macro
@@ -104,8 +106,10 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   SvtxTrack *_tracklet_tpc{nullptr};
   SvtxTrack *_tracklet_si{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};
+  TrkrClusterContainer *_corrected_cluster_map{nullptr};
   ActsSurfaceMaps *_surfmaps{nullptr};
   ActsTrackingGeometry *_tGeometry{nullptr};
+
 
   TpcSeedTrackMap *_seed_track_map{nullptr};
   //std::multimap<unsigned int, unsigned int> _seed_track_map;

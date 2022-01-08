@@ -7,13 +7,12 @@
 
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include "Geant4/G4String.hh"          // for G4String
 #include <Geant4/G4VisAttributes.hh>
+#include "Geant4/G4String.hh"  // for G4String
 
+#include <cstdlib>
 #include <iostream>
-#include <utility>                     // for pair
-
-using namespace std;
+#include <utility>  // for pair
 
 PHG4TpcDisplayAction::PHG4TpcDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
@@ -29,7 +28,7 @@ PHG4TpcDisplayAction::~PHG4TpcDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4TpcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
+void PHG4TpcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
   static const G4Colour color[] = {PHG4TpcColorDefs::tpc_cu_color,
                                    PHG4TpcColorDefs::tpc_pcb_color,
@@ -70,9 +69,12 @@ void PHG4TpcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
     }
     else
     {
-      cout << "did not assing color to " << it.first->GetName()
-           << " under " << it.second << endl;
-      gSystem->Exit(1);
+      std::cout << "did not assign specific color to " << it.first->GetName()
+                << " under " << it.second << ".  Defaulting to TpcWindow color." << std::endl;
+      visatt->SetColor(PHG4TpcColorDefs::tpc_pcb_color);
+
+      //gSystem->Exit(1);
+      //exit(1);
     }
     logvol->SetVisAttributes(visatt);
   }

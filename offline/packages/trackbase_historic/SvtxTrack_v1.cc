@@ -34,7 +34,9 @@ SvtxTrack_v1::~SvtxTrack_v1()
 
 void SvtxTrack_v1::CopyFrom( const SvtxTrack& source )
 {
-
+  // do nothing if copying onto oneself
+  if( this == &source ) return;
+ 
   // parent class method
   SvtxTrack::CopyFrom( source );
 

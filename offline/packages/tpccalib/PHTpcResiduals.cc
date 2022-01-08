@@ -264,7 +264,8 @@ Surface PHTpcResiduals::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
 //___________________________________________________________________________________
 Surface PHTpcResiduals::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey)
 {
-  const auto iter = m_surfMaps->tpcSurfaceMap.find(hitsetkey);
+  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+  const auto iter = m_surfMaps->tpcSurfaceMap.find(layer);
   if(iter != m_surfMaps->tpcSurfaceMap.end())
   {
     auto surfvec = iter->second;

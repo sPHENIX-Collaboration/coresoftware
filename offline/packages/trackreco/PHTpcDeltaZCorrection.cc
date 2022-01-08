@@ -90,7 +90,16 @@ int PHTpcDeltaZCorrection::load_nodes( PHCompositeNode* topNode )
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   assert(m_track_map);
 
-  m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+  if(m_cluster_map)
+    {
+      if(Verbosity() > 0) std::cout << " Using CORRECTED_TRKR_CLUSTER node " << std::endl;
+    }
+  else
+    {
+      if(Verbosity() > 0) std::cout << " CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl;
+      m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+    }
   assert(m_cluster_map);
   return Fun4AllReturnCodes::EVENT_OK;
 }

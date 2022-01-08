@@ -30,6 +30,7 @@ pkginclude_HEADERS = \
   PHG4TpcDistortion.h \
   PHG4TpcElectronDrift.h \
   PHG4TpcEndCapSubsystem.h \
+  PHG4TpcPadBaselineShift.h \
   PHG4TpcPadPlane.h \
   PHG4TpcPadPlaneReadout.h \
   PHG4TpcSubsystem.h 
@@ -46,6 +47,7 @@ libg4tpc_la_SOURCES = \
   PHG4TpcEndCapDisplayAction.cc \
   PHG4TpcEndCapSteppingAction.cc \
   PHG4TpcEndCapSubsystem.cc \
+  PHG4TpcPadBaselineShift.cc \
   PHG4TpcPadPlane.cc \
   PHG4TpcPadPlaneReadout.cc \
   PHG4TpcSteppingAction.cc \

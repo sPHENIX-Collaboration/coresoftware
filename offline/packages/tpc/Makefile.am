@@ -17,19 +17,22 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64
+
 pkginclude_HEADERS = \
-  TpcDefs.h \
+  TpcClusterCleaner.h \
   TpcClusterizer.h \
-  TpcSpaceChargeCorrection.h \
-  TpcClusterCleaner.h
+  TpcDefs.h \
+  TpcDistortionCorrection.h \
+  TpcDistortionCorrectionContainer.h \
+  TpcLoadDistortionCorrection.h
 
 pcmdir = $(libdir)
 
 # sources for tpc library
 libtpc_la_SOURCES = \
+  TpcClusterCleaner.cc \
   TpcClusterizer.cc \
-  TpcSpaceChargeCorrection.cc \
-  TpcClusterCleaner.cc
+  TpcLoadDistortionCorrection.cc
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
@@ -40,7 +43,8 @@ libtpc_la_LIBADD = \
 # sources for io library
 libtpc_io_la_SOURCES = \
   $(ROOTDICTS) \
-  TpcDefs.cc
+  TpcDefs.cc \
+  TpcDistortionCorrection.cc
 
 libtpc_io_la_LIBADD = \
   -ltrack_io \

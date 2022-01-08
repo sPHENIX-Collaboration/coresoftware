@@ -201,6 +201,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       trackTimer.restart();
 
       auto sourceLinks = getSourceLinks(track);
+      if(sourceLinks.size() == 0) continue;
+
       /// If using directed navigation, collect surface list to navigate
    
       SurfacePtrVec surfaces;
@@ -237,6 +239,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if(m_fieldMap.find("3d") != std::string::npos)
 	{ charge *= -1; }
 
+      if(Verbosity() > 2)
+	{ printTrackSeed(track); }
+
       /// Reset the track seed with the dummy covariance and the 
       /// primary vertex as the track position
       ActsExamples::TrackParameters seed(actsFourPos,
@@ -244,9 +249,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 					 track->get_p(),
 					 charge,
 					 cov);
-
-      if(Verbosity() > 2)
-	printTrackSeed(seed);
      
       /// Call KF now. Have a vector of sourceLinks corresponding to clusters
       /// associated to this track and the corresponding track seed which
@@ -365,7 +367,8 @@ Surface PHActsTrkFitter::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
 //___________________________________________________________________________________
 Surface PHActsTrkFitter::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey) const
 {
-  const auto iter = m_surfMaps->tpcSurfaceMap.find(hitsetkey);
+  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+  const auto iter = m_surfMaps->tpcSurfaceMap.find(layer);
   if(iter != m_surfMaps->tpcSurfaceMap.end())
   {
     auto surfvec = iter->second;
@@ -395,6 +398,11 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
     {
       auto key = *clusIter;
       auto cluster = m_clusterContainer->findCluster(key);
+      if(!cluster)
+	{
+	  if(Verbosity() > 0) std::cout << "Failed to get cluster with key " << key << " for track " << track->get_id() << std::endl;
+	  continue;
+	}
 
       auto subsurfkey = cluster->getSubSurfKey();
       
@@ -428,8 +436,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track)
 	  sl.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
 	  std::cout << std::endl;
 	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
-	  std::cout << "For key " << key << " with global pos " << std::endl
-		    << cluster->getX() << ", " << cluster->getY() << ", " << cluster->getZ()
+	  std::cout << "For key " << key << " with local pos " << std::endl
+		    << cluster->getLocalX() << ", " << cluster->getLocalY()
 		    << std::endl;
 	}
     
@@ -714,35 +722,37 @@ Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance() const
   /// If we are using distortions, then we need to blow up the covariance
   /// a bit since the seed was created with distorted TPC clusters
   if(m_fitSiliconMMs)
-    cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+    {
+      cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
            0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
            0., 0., 0.1, 0., 0., 0.,
            0., 0., 0., 0.1, 0., 0.,
            0., 0., 0., 0., 0.005 , 0.,
            0., 0., 0., 0., 0., 1.;
+    }
   else
-    cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+    {
+      cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
            0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
            0., 0., 0.05, 0., 0., 0.,
            0., 0., 0., 0.05, 0., 0.,
            0., 0., 0., 0., 0.00005 , 0.,
            0., 0., 0., 0., 0., 1.;
+    }
 
   return cov;
 }
 
-void PHActsTrkFitter::printTrackSeed(const ActsExamples::TrackParameters& seed) const
+void PHActsTrkFitter::printTrackSeed(const SvtxTrack* seed) const
 {
-  std::cout << PHWHERE << " Processing proto track with position:" 
-    << seed.position(m_tGeometry->geoContext) 
-    << std::endl 
-    << "momentum: " << seed.momentum() 
-    << std::endl
-    << "charge : " << seed.charge() 
-    << std::endl;
-  std::cout << "proto track covariance " << std::endl
-    << seed.covariance().value() << std::endl;
-  
+  std::cout << PHWHERE << " Processing proto track with id: " 
+	    << seed->get_id() << " and  position:" 
+	    << seed->get_x() << ", " << seed->get_y() << ", " 
+	    << seed->get_z() << std::endl 
+	    << "momentum: " << seed->get_px() << ", " << seed->get_py()
+	    << ", " << seed->get_pz() << std::endl
+	    << "charge : " << seed->get_charge()
+	    << std::endl;  
 }
     
 int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
@@ -818,7 +828,17 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
+  if(m_clusterContainer)
+    {
+      std::cout << " Using CORRECTED_TRKR_CLUSTER node " << std::endl;
+    }
+  else
+    {
+      std::cout << " CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl;
+      m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+    }
+
   if(!m_clusterContainer)
     {
       std::cout << PHWHERE 

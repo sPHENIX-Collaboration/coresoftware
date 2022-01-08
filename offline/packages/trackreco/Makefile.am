@@ -51,7 +51,6 @@ pkginclude_HEADERS = \
   PHGenFitTrkProp.h \
   PHGhostRejection.h \
   PHHoughSeeding.h \
-  PHHybridSeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
   PHMicromegasTpcTrackMatching.h \
@@ -152,7 +151,6 @@ libtrack_reco_la_SOURCES = \
   PHGenFitTrkProp.cc \
   PHGhostRejection.cc \
   PHHoughSeeding.cc \
-  PHHybridSeeding.cc \
   PHInitVertexing.cc \
   PHInitZVertexing.cc \
   PHMicromegasTpcTrackMatching.cc \

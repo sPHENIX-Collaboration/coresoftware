@@ -258,7 +258,13 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
   
 }
 
-
+Acts::Vector3F ActsTransformations::getGlobalPositionF(TrkrCluster* cluster,
+						       ActsSurfaceMaps* surfMaps,
+						       ActsTrackingGeometry* tGeometry) const
+{
+  const Acts::Vector3D doublePos = getGlobalPosition(cluster,surfMaps,tGeometry);
+  return Acts::Vector3F(doublePos(0), doublePos(1), doublePos(2));
+}
 Acts::Vector3D ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
 						      ActsSurfaceMaps* surfMaps,
 						      ActsTrackingGeometry *tGeometry) const
@@ -353,7 +359,8 @@ Surface ActsTransformations::getTpcSurface(TrkrDefs::hitsetkey hitsetkey,
 					   TrkrDefs::subsurfkey surfkey,
 					   ActsSurfaceMaps* maps) const
 {
-  const auto iter = maps->tpcSurfaceMap.find(hitsetkey);
+  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+  const auto iter = maps->tpcSurfaceMap.find(layer);
   if(iter != maps->tpcSurfaceMap.end())
   {
     auto surfvec = iter->second;
