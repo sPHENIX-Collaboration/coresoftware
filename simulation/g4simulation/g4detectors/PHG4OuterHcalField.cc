@@ -42,8 +42,8 @@ void PHG4OuterHcalField::GetFieldValue(const double Point[4], double* Bfield) co
   if (!field_manager)
   {
     std::cout << "PHG4OuterHcalField::GetFieldValue"
-         << " - Error! can not find field manager in G4TransportationManager"
-         << std::endl;
+              << " - Error! can not find field manager in G4TransportationManager"
+              << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
@@ -74,11 +74,11 @@ void PHG4OuterHcalField::GetFieldValue(const double Point[4], double* Bfield) co
     if (gap_width >= layer_width)
     {
       std::cout << "PHG4OuterHcalField::GetFieldValue gap_width " << gap_width
-		<< " < layer_width: " << layer_width
+                << " < layer_width: " << layer_width
                 << " existing now, here is some debug info" << std::endl;
-      std::cout << "coordinates: x: " << Point[0]/cm
-                << ", y: " <<  Point[1]/cm
-                << ", z: " <<  Point[2]/cm << std::endl;
+      std::cout << "coordinates: x: " << Point[0] / cm
+                << ", y: " << Point[1] / cm
+                << ", z: " << Point[2] / cm << std::endl;
       std::cout << "n_steel_plates: " << n_steel_plates << std::endl;
       std::cout << "Radius: " << R << std::endl;
       std::cout << "layer_RdPhi: " << layer_RdPhi << std::endl;
@@ -114,8 +114,8 @@ void PHG4OuterHcalField::GetFieldValue(const double Point[4], double* Bfield) co
   else
   {
     std::cout << "PHG4OuterHcalField::GetFieldValue"
-	 << " - Error! can not find detecor field in field manager!"
-	 << std::endl;
+              << " - Error! can not find detecor field in field manager!"
+              << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
