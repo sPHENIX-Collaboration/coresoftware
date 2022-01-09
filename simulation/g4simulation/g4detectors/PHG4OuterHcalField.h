@@ -19,7 +19,7 @@
 /*!
  * \brief PHG4OuterHcalField
  *
- * After burner to produce magnetic field in inner HCal on top of sPHENIX field map
+ * After burner to produce magnetic field in outer HCal on top of sPHENIX field map
  * In leading order, for the field within the plane of absorber plate,
  *  iron absorb almost all the flux, with field in the air-scintillator region
  * reduced to 1/relative_permeability_absorber of that in the iron.
@@ -31,6 +31,8 @@
 class PHG4OuterHcalField : public G4MagneticField
 {
  public:
+  PHG4OuterHcalField() = delete;
+
   PHG4OuterHcalField(bool isInIron, G4int steelPlates,
                      G4double scintiGap, G4double tiltAngle);
 
