@@ -98,6 +98,8 @@ class TrkrClusterv3 : public TrkrCluster
    { std::cout << "Deprecated size function"<< std::endl; return NAN;}
    float getZSize() const override 
    {std::cout << "Deprecated size function" << std::endl; return NAN;}
+   float getPhiError() const override 
+   { std::cout << "Deprecated getPhiError function"<< std::endl; return NAN;}
 
  protected:
 
