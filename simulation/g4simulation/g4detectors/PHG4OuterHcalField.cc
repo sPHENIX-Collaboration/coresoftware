@@ -15,6 +15,7 @@
 #include <Geant4/G4Field.hh>  // for G4Field
 #include <Geant4/G4FieldManager.hh>
 #include <Geant4/G4PhysicalConstants.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4TransportationManager.hh>
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 #include <Geant4/G4Vector3D.hh>
@@ -23,8 +24,6 @@
 #include <cmath>    // for atan2, cos, sin, sqrt
 #include <cstdlib>  // for exit
 #include <iostream>
-
-using namespace std;
 
 PHG4OuterHcalField::PHG4OuterHcalField(bool isInIron, G4int steelPlates,
                                        G4double scintiGap, G4double tiltAngle)
@@ -42,9 +41,9 @@ void PHG4OuterHcalField::GetFieldValue(const double Point[4], double* Bfield) co
 
   if (!field_manager)
   {
-    cout << "PHG4OuterHcalField::GetFieldValue"
-         << " - Error! can not find field manager in G4TransportationManager"
-         << endl;
+    std::cout << "PHG4OuterHcalField::GetFieldValue"
+              << " - Error! can not find field manager in G4TransportationManager"
+              << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
@@ -72,9 +71,22 @@ void PHG4OuterHcalField::GetFieldValue(const double Point[4], double* Bfield) co
     const double layer_RdPhi = R * twopi / n_steel_plates;
     const double layer_width = layer_RdPhi * cos(tilt_angle);
     const double gap_width = scinti_gap;
-
-    assert(gap_width < layer_width);
-
+    if (gap_width >= layer_width)
+    {
+      std::cout << "PHG4OuterHcalField::GetFieldValue gap_width " << gap_width
+                << " < layer_width: " << layer_width
+                << " existing now, here is some debug info" << std::endl;
+      std::cout << "coordinates: x: " << Point[0] / cm
+                << ", y: " << Point[1] / cm
+                << ", z: " << Point[2] / cm << std::endl;
+      std::cout << "n_steel_plates: " << n_steel_plates << std::endl;
+      std::cout << "Radius: " << R << std::endl;
+      std::cout << "layer_RdPhi: " << layer_RdPhi << std::endl;
+      std::cout << "layer_width: " << layer_width << std::endl;
+      std::cout << "tilt_angle: " << tilt_angle << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
     // sign definition of tilt_angle is rotation around the -z axis
     const G4Vector3D absorber_dir(cos(atan2(y, x) - tilt_angle),
                                   sin(atan2(y, x) - tilt_angle), 0);
@@ -101,14 +113,10 @@ void PHG4OuterHcalField::GetFieldValue(const double Point[4], double* Bfield) co
   }
   else
   {
-    static bool once = true;
-
-    if (once)
-    {
-      once = false;
-      cout << "PHG4OuterHcalField::GetFieldValue"
-           << " - Error! can not find detecor field in field manager!"
-           << endl;
-    }
+    std::cout << "PHG4OuterHcalField::GetFieldValue"
+              << " - Error! can not find detecor field in field manager!"
+              << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
 }
