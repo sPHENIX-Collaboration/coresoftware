@@ -761,13 +761,14 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
   // get detector type
   const auto trkrId = TrkrDefs::getTrkrId( cluster_key );
   const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
+  const auto r = get_r( global.x(), global.y());
   std::cout
     << "TrackingEvaluator_hp::print_cluster -"
     << " layer: " << (int)TrkrDefs::getLayer(cluster_key)
     << " type: " << (int) trkrId
     << " position: (" << global.x() << "," << global.y() << "," << global.z() << ")"
-    << " polar: (" << get_r( global.x(), global.y()) << "," << std::atan2( global.y(), global.x()) << "," << global.z() << ")"
-    << " errors: (" << cluster->getPhiError() << ", " << cluster->getZError() << ")"
+    << " polar: (" << r << "," << std::atan2( global.y(), global.x()) << "," << global.z() << ")"
+    << " errors: (" << cluster->getRPhiError()/r << ", " << cluster->getZError() << ")"
     << std::endl;
 
   // get associated hits
@@ -1025,7 +1026,7 @@ TrackingEvaluator_hp::ClusterStruct TrackingEvaluator_hp::create_cluster( TrkrDe
   cluster_struct._z = global.z();
   cluster_struct._r = get_r( cluster_struct._x, cluster_struct._y );
   cluster_struct._phi = std::atan2( cluster_struct._y, cluster_struct._x );
-  cluster_struct._phi_error = cluster->getPhiError();
+  cluster_struct._phi_error = cluster->getRPhiError()/cluster_struct._r;
   cluster_struct._z_error = cluster->getZError();
 
   if(TrkrDefs::getTrkrId(key) == TrkrDefs::micromegasId)
