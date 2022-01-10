@@ -697,7 +697,7 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrD
   cluster_struct.z = global.z();
   cluster_struct.r = get_r( cluster_struct.x, cluster_struct.y );
   cluster_struct.phi = std::atan2( cluster_struct.y, cluster_struct.x );
-  cluster_struct.phi_error = cluster->getPhiError();
+  cluster_struct.phi_error = cluster->getRPhiError()/cluster_struct.r;
   cluster_struct.z_error = cluster->getZError();
 
   return cluster_struct;
