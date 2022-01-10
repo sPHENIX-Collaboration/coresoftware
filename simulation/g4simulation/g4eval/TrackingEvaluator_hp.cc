@@ -134,10 +134,10 @@ namespace
   }
 
   //! fill basic information to track struct
-  template<class T> 
+  template<class T>
     void fill_track_struct( T& trackStruct, SvtxTrack* track )
   {
-    
+
     trackStruct._charge = track->get_charge();
     trackStruct._nclusters = track->size_cluster_keys();
     trackStruct._mask = get_mask( track );
@@ -155,14 +155,14 @@ namespace
     trackStruct._p = get_p( trackStruct._px, trackStruct._py, trackStruct._pz );
     trackStruct._pt = get_pt( trackStruct._px, trackStruct._py );
     trackStruct._eta = get_eta( trackStruct._p, trackStruct._pz );
-    
+
   }
-  
+
   //! create track struct from struct from svx track
   TrackingEvaluator_hp::TrackStruct create_track( SvtxTrack* track )
   {
     TrackingEvaluator_hp::TrackStruct trackStruct;
-    
+
     // fill basic information, also used in TrackStruct_small
     fill_track_struct( trackStruct, track );
 
@@ -535,15 +535,15 @@ void TrackingEvaluator_hp::evaluate_event()
       }
     }
   }
-  
+
   auto count_g4hits = []( PHG4HitContainer* container )
   {  return container ? container->size():0; };
-    
+
   event._ng4hits_mvtx = count_g4hits( m_g4hits_mvtx );
   event._ng4hits_intt = count_g4hits( m_g4hits_intt );
   event._ng4hits_tpc = count_g4hits( m_g4hits_tpc );
   event._ng4hits_micromegas = count_g4hits( m_g4hits_micromegas );
-  
+
   // store
   m_container->addEvent(event);
 }
@@ -629,7 +629,7 @@ void TrackingEvaluator_hp::evaluate_tracks()
       if( !cluster )
       {
         std::cout << "TrackingEvaluator_hp::evaluate_tracks -"
-          << " unable to find cluster for key " << cluster_key 
+          << " unable to find cluster for key " << cluster_key
           << " detector: " << (int) TrkrDefs::getTrkrId( cluster_key )
           << std::endl;
         continue;
@@ -711,18 +711,18 @@ void TrackingEvaluator_hp::evaluate_track_pairs()
     const auto first = firstIter->second;
 
     TrackStruct_small first_struct;
-    fill_track_struct( first_struct, first ); 
+    fill_track_struct( first_struct, first );
     for( auto  secondIter = m_track_map->begin(); secondIter != firstIter; ++secondIter )
     {
       const auto second = secondIter->second;
       auto trackpair_struct = create_track_pair( first, second );
-      
+
       // copy first track information
       trackpair_struct._tracks[0] = first_struct;
 
       // fill second track information
-      fill_track_struct( trackpair_struct._tracks[1], second ); 
-      
+      fill_track_struct( trackpair_struct._tracks[1], second );
+
       // add to container
       m_container->addTrackPair( trackpair_struct );
     }
@@ -1027,10 +1027,10 @@ TrackingEvaluator_hp::ClusterStruct TrackingEvaluator_hp::create_cluster( TrkrDe
   cluster_struct._phi = std::atan2( cluster_struct._y, cluster_struct._x );
   cluster_struct._phi_error = cluster->getPhiError();
   cluster_struct._z_error = cluster->getZError();
-  
+
   if(TrkrDefs::getTrkrId(key) == TrkrDefs::micromegasId)
   { cluster_struct._tileid = MicromegasDefs::getTileId(key); }
-  
+
   return cluster_struct;
 }
 
@@ -1054,7 +1054,7 @@ void TrackingEvaluator_hp::add_trk_information( TrackingEvaluator_hp::ClusterStr
 
   // store extrapolation delta r
   cluster._trk_dr = dr;
-  
+
   /* store local momentum information */
   cluster._trk_px = state->get_px();
   cluster._trk_py = state->get_py();
@@ -1116,7 +1116,7 @@ void TrackingEvaluator_hp::add_trk_information_micromegas( TrackingEvaluator_hp:
   cluster._trk_phi = std::atan2( cluster._trk_y, cluster._trk_x );
 
   cluster._trk_dr = delta_y;
-  
+
   /* store local momentum information */
   cluster._trk_px = state->get_px();
   cluster._trk_py = state->get_py();
@@ -1275,14 +1275,14 @@ void TrackingEvaluator_hp::add_truth_information_micromegas( TrackingEvaluator_h
   for( const auto& g4hit:g4hits )
   {
     const auto weight = g4hit->get_edep();
-    
+
     // convert g4hit to planar coordinate
     PHG4Hitv1 g4hit_copy( g4hit );
     layergeom->convert_to_planar( tileid, &g4hit_copy );
-    
+
     for( int i = 0; i < 2; ++i )
     {
-      
+
       // convert position to local
       TVector3 g4hit_world(g4hit_copy.get_x(i), g4hit_copy.get_y(i), g4hit_copy.get_z(i));
       TVector3 g4hit_local = layergeom->get_local_from_world_coords( tileid, g4hit_world );
