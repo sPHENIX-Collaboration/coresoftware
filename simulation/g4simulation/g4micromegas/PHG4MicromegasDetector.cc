@@ -174,57 +174,47 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     DriftKapton,
     DriftCarbon
   };
-
-  // layer thickness
-  // numbers from M. Vandenbroucke <maxence.vandenbroucke@cea.fr>
-  const std::map<Component,float> layer_thickness =
+  
+  
+  // layer definition
+  struct LayerStruct
   {
-    { Component::PCB, 1.*mm },
-    { Component::CuStrips, 12.*micrometer },
-    { Component::KaptonStrips, 50.*micrometer },
-    { Component::ResistiveStrips, 20.*micrometer },
-    { Component::Gas1, 120.*micrometer },
-    { Component::Mesh, 18.*0.8*micrometer }, // 0.8 correction factor is to account for the mesh denstity@18/45
-    { Component::Gas2, 3.*mm },
-    { Component::DriftCuElectrode, 15.*micrometer },
-    { Component::DriftKapton, 50.*micrometer },
-    { Component::DriftCarbon, 1.*mm }
+    // constructor
+    LayerStruct( float thickness, G4Material* material, G4Colour color ):
+      m_thickness( thickness ),
+      m_material( material ),
+      m_color( color )
+    {}
+    
+    // thickness
+    float m_thickness = 0;
+    
+    // material
+    G4Material* m_material = nullptr;
+    
+    // color
+    G4Colour m_color = 0;    
   };
 
-  // materials
-  const std::map<Component,G4Material*> layer_material =
+  // define all layers
+  const std::map<Component, LayerStruct> layer_map = 
   {
-    { Component::PCB, GetDetectorMaterial("mmg_FR4") },
-    { Component::CuStrips, GetDetectorMaterial("mmg_Strips") },
-    { Component::KaptonStrips, GetDetectorMaterial("mmg_Kapton") },
-    { Component::ResistiveStrips, GetDetectorMaterial("mmg_ResistPaste" ) },
-    { Component::Gas1, GetDetectorMaterial( "mmg_Gas" ) },
-    { Component::Mesh, GetDetectorMaterial("mmg_Mesh") },
-    { Component::Gas2, GetDetectorMaterial( "mmg_Gas" ) },
-    { Component::DriftCuElectrode, GetDetectorMaterial("G4_Cu") },
-    { Component::DriftKapton, GetDetectorMaterial("mmg_Kapton") },
-    { Component::DriftCarbon, GetDetectorMaterial("G4_C") }
+    { Component::PCB, {1.*mm, GetDetectorMaterial("mmg_FR4"), G4Colour::Green() }},
+    { Component::CuStrips, { 12.*micrometer, GetDetectorMaterial("mmg_Strips"), G4Colour::Brown() }},
+    { Component::KaptonStrips, { 50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown() }},
+		{ Component::ResistiveStrips, { 20.*micrometer, GetDetectorMaterial("mmg_ResistPaste" ), G4Colour::Black() }},
+		{ Component::Gas1, { 120.*micrometer, GetDetectorMaterial( "mmg_Gas" ), G4Colour::Grey() }},
+		{ Component::Mesh, { 18.*0.8*micrometer,  GetDetectorMaterial("mmg_Mesh"), G4Colour::White()} }, // 0.8 correction factor to thickness is to account for the mesh denstity@18/45
+		{ Component::Gas2, { 3.*mm, GetDetectorMaterial( "mmg_Gas" ), G4Colour::Grey()}},
+		{ Component::DriftCuElectrode, { 15.*micrometer, GetDetectorMaterial("G4_Cu"), G4Colour::Brown() }},
+		{ Component::DriftKapton, { 50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown() }},
+		{ Component::DriftCarbon, { 1.*mm, GetDetectorMaterial("G4_C"), G4Colour(150/255., 75/255., 0) }}
   };
-
-  // color
-  const std::map<Component, G4Colour> layer_color =
-  {
-    { Component::PCB, G4Colour::Green()},
-    { Component::CuStrips, G4Colour::Brown()},
-    { Component::KaptonStrips, G4Colour::Brown()},
-    { Component::ResistiveStrips, G4Colour::Black()},
-    { Component::Gas1, G4Colour::Grey()},
-    { Component::Mesh, G4Colour::White()},
-    { Component::Gas2, G4Colour::Grey()},
-    { Component::DriftCuElectrode, G4Colour::Brown()},
-    { Component::DriftKapton, G4Colour::Brown()},
-    { Component::DriftCarbon, G4Colour(150/255., 75/255., 0)}
-  };
-
+  
   // setup layers in the correct order, going outwards from beam axis
   /* same compoment can appear multiple times. Layer names must be unique */
   using LayerDefinition = std::tuple<Component,std::string>;
-  const std::vector<LayerDefinition> layer_definitions =
+  const std::vector<LayerDefinition> layer_stack =
   {
     // inner side
     std::make_tuple( Component::DriftCarbon, "DriftCarbon_inner" ),
@@ -269,9 +259,9 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 
   // get total thickness
   const double thickness = std::accumulate(
-    layer_definitions.begin(), layer_definitions.end(), 0.,
-    [layer_thickness](double value, LayerDefinition layer )
-    { return value + layer_thickness.at(std::get<0>(layer)); } );
+    layer_stack.begin(), layer_stack.end(), 0.,
+    [&layer_map](double value, LayerDefinition layer )
+    { return value + layer_map.at(std::get<0>(layer)).m_thickness; } );
 
   std::cout << "PHG4MicromegasDetector::ConstructMe - detector thickness is " << thickness/cm << " cm" << std::endl;
 
@@ -303,39 +293,36 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     new G4PVPlacement( zRot, G4ThreeVector(0,0,centerZ[idtile]), tile_o_logic, G4String(GetName()) +"_tile_"+ G4String(idtile), logicWorld, false, 0, OverlapCheck() );// no rotation for tile0
 
     // keep track of current layer
-    int layer_index = m_FirstLayer;
+  int layer_index = m_FirstLayer;
 
-    // create detector
-    /* we loop over registered layers and create volumes for each */
-    auto current_radius = radius;
+  // create detector
+  /* we loop over registered layers and create volumes for each */
+  auto current_radius = radius;
+  for( const auto& layer:layer_stack )
+  {
+    const Component& type = std::get<0>(layer);
+    const std::string& name = std::get<1>(layer);
 
-    for( const auto& layer:layer_definitions )
-    {
-      const Component& type = std::get<0>(layer);
-      const std::string& name = std::get<1>(layer);
+    // layer name
+    G4String cname = G4String(GetName()) + "_" + name;
 
-      // layer name
-      G4String cname = G4String(GetName()) + "_" + name + G4String(idtile);
+    // get thickness, material and name
+    const auto& thickness = layer_map.at(type).m_thickness;
+    const auto& material = layer_map.at(type).m_material;
+    const auto& color = layer_map.at(type).m_color;
 
-      // get thickness, material and name
-      const auto thickness = layer_thickness.at(type);
-      const auto material = layer_material.at(type);
-      const auto color = layer_color.at(type);
+    auto component_solid = new G4Tubs(cname+"_solid", current_radius, current_radius+thickness, length/2, 0, M_PI*2);
+    auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
+    auto vis = new G4VisAttributes( color );
+    vis->SetForceSolid(true);
+    vis->SetVisibility(true);
+    component_logic->SetVisAttributes(vis);
 
-      //auto component_solid = new G4Tubs(cname+"_solid", current_radius, current_radius+thickness, length, -width/radius*rad, width/radius*rad);
-      auto component_solid = new G4Box(cname+"_solid", thickness / 2., width / 2., length / 2.);
-      auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
-    
-      auto vis = new G4VisAttributes( color );
-      vis->SetForceSolid(true);
-      vis->SetVisibility(true);
-      component_logic->SetVisAttributes(vis);
-    
-      auto component_phys = new G4PVPlacement( zRot, G4ThreeVector(0,0, centerZ[idtile]), component_logic, cname+"_phys", tile_o_logic, false, 0, OverlapCheck() );
+    auto component_phys = new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), component_logic, cname+"_phys", cylinder_logic, false, 0, OverlapCheck() );
 
-      // store active volume
-      if( type == Component::Gas2 ) m_activeVolumes.insert( std::make_pair( component_phys, layer_index++ ) );
-      else m_passiveVolumes.insert( component_phys );
+    // store active volume
+    if( type == Component::Gas2 ) m_activeVolumes.insert( std::make_pair( component_phys, layer_index++ ) );
+    else m_passiveVolumes.insert( component_phys );
 
       // update radius
       current_radius += thickness;
