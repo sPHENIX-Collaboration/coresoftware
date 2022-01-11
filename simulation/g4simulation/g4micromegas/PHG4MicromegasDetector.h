@@ -9,6 +9,7 @@
  */
 
 #include <g4main/PHG4Detector.h>
+#include <micromegas/MicromegasTile.h>
 
 #include <map>
 #include <set>
@@ -50,6 +51,10 @@ class PHG4MicromegasDetector : public PHG4Detector
   //! super detector name
   const std::string SuperDetector() const { return m_SuperDetector; }
 
+  //! set micromegas tiles
+  void set_tiles( const MicromegasTile::List& tiles )
+  { m_tiles = tiles; }
+
   private:
 
   //! create needed material
@@ -74,6 +79,9 @@ class PHG4MicromegasDetector : public PHG4Detector
   
   //! super detector name
   std::string m_SuperDetector;
+
+  //! micromegas tiles
+  MicromegasTile::List m_tiles;
 
   //! first layer number
   /* there are two layers in the detector */

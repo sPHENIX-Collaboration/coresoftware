@@ -202,13 +202,13 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     { Component::PCB, {1.*mm, GetDetectorMaterial("mmg_FR4"), G4Colour::Green() }},
     { Component::CuStrips, { 12.*micrometer, GetDetectorMaterial("mmg_Strips"), G4Colour::Brown() }},
     { Component::KaptonStrips, { 50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown() }},
-		{ Component::ResistiveStrips, { 20.*micrometer, GetDetectorMaterial("mmg_ResistPaste" ), G4Colour::Black() }},
-		{ Component::Gas1, { 120.*micrometer, GetDetectorMaterial( "mmg_Gas" ), G4Colour::Grey() }},
-		{ Component::Mesh, { 18.*0.8*micrometer,  GetDetectorMaterial("mmg_Mesh"), G4Colour::White()} }, // 0.8 correction factor to thickness is to account for the mesh denstity@18/45
-		{ Component::Gas2, { 3.*mm, GetDetectorMaterial( "mmg_Gas" ), G4Colour::Grey()}},
-		{ Component::DriftCuElectrode, { 15.*micrometer, GetDetectorMaterial("G4_Cu"), G4Colour::Brown() }},
-		{ Component::DriftKapton, { 50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown() }},
-		{ Component::DriftCarbon, { 1.*mm, GetDetectorMaterial("G4_C"), G4Colour(150/255., 75/255., 0) }}
+    { Component::ResistiveStrips, { 20.*micrometer, GetDetectorMaterial("mmg_ResistPaste" ), G4Colour::Black() }},
+    { Component::Gas1, { 120.*micrometer, GetDetectorMaterial( "mmg_Gas" ), G4Colour::Grey() }},
+    { Component::Mesh, { 18.*0.8*micrometer,  GetDetectorMaterial("mmg_Mesh"), G4Colour::White()} }, // 0.8 correction factor to thickness is to account for the mesh denstity@18/45
+    { Component::Gas2, { 3.*mm, GetDetectorMaterial( "mmg_Gas" ), G4Colour::Grey()}},
+    { Component::DriftCuElectrode, { 15.*micrometer, GetDetectorMaterial("G4_Cu"), G4Colour::Brown() }},
+    { Component::DriftKapton, { 50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown() }},
+    { Component::DriftCarbon, { 1.*mm, GetDetectorMaterial("G4_C"), G4Colour(150/255., 75/255., 0) }}
   };
   
   // setup layers in the correct order, going outwards from beam axis
@@ -344,7 +344,7 @@ void PHG4MicromegasDetector::add_geometry_node()
   if( !m_Params->get_int_param("active")) return;
 
   // find or create geometry node
-  std::string geonode_name = std::string( "CYLINDERGEOM_" ) + m_SuperDetector;
+  const auto geonode_name = std::string( "CYLINDERGEOM_" ) + m_SuperDetector + "_FULL";
   auto geonode = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode_name);
   if (!geonode)
   {
@@ -356,7 +356,8 @@ void PHG4MicromegasDetector::add_geometry_node()
   }
 
   // add cylinder objects
-  /* one single cylinder is defined and contains all the tiles. The dimensions cover the tile corners. */
+  /* one cylinder is added per physical volume. The dimention correspond to the drift volume */
+  bool is_first = true;
   for( const auto& pair:m_activeVolumes )
   {
     // store layer and volume
@@ -376,7 +377,42 @@ void PHG4MicromegasDetector::add_geometry_node()
     cylinder->set_zmin( -box->GetZHalfLength()/cm );
     cylinder->set_zmax( box->GetZHalfLength()/cm );
     std::cout << "PHG4MicromegasDetector:: added geom node ok" <<std::endl;
+//     cylinder->set_radius( (tub->GetInnerRadius()/cm + tub->GetOuterRadius()/cm)/2 );
+//     cylinder->set_thickness( tub->GetOuterRadius()/cm - tub->GetInnerRadius()/cm );
+//     cylinder->set_zmin( -tub->GetZHalfLength()/cm );
+//     cylinder->set_zmax( tub->GetZHalfLength()/cm );
+
+    // tiles
+    cylinder->set_tiles( m_tiles );
+
+    /*
+     * asign segmentation type and pitch
+     * assume first layer in phi, other(s) are z
+     */
+    cylinder->set_segmentation_type( is_first ?
+      MicromegasDefs::SegmentationType::SEGMENTATION_PHI :
+      MicromegasDefs::SegmentationType::SEGMENTATION_Z );
+
+    /*
+     * assign drift direction
+     * assume first layer is outward, with readout plane at the top, and others are inward, with readout plane at the bottom
+     * this is used to properly implement transverse diffusion in ::process_event
+     */
+    cylinder->set_drift_direction( is_first ?
+      MicromegasDefs::DriftDirection::OUTWARD :
+      MicromegasDefs::DriftDirection::INWARD );
+
+    // pitch
+    /* they correspond to 256 channels along the phi direction, and 256 along the z direction, assuming 25x50 tiles */
+    cylinder->set_pitch( is_first ? 25./256 : 50./256 );
+
+    if( Verbosity() )
+    { cylinder->identify( std::cout ); }
+    
     geonode->AddLayerGeom(layer, cylinder);
+        
+    is_first = false;
+    
   }
 
 }

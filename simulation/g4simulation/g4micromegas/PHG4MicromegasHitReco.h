@@ -9,7 +9,6 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-#include <micromegas/MicromegasTile.h>
 #include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
@@ -42,22 +41,11 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! parameters
   void SetDefaultParameters() override;
 
-  //! set micromegas tiles
-  void set_tiles( const MicromegasTile::List& tiles )
-  { m_tiles = tiles; }
-
   private:
-
-  //! return bare geo node name, used for seting up cylinders in G4
-  std::string bare_geonodename() const
-  { return "CYLINDERGEOM_" + m_detector; }
 
   //! return full geo node name, that also contains tile information
   std::string full_geonodename() const
   { return "CYLINDERGEOM_" + m_detector + "_FULL"; }
-
-  //! setup tiles definition in CylinderGeom
-  void setup_tiles(PHCompositeNode*);
 
   //! get total number of electrons collected for a give g4hit
   /*! this accounts for the number of primary electrons, the detector gain, and fluctuations */
@@ -98,9 +86,6 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
 
   //! use zig zag pads
   bool m_zigzag_strips = true;
-
-  //! micromegas tiles
-  MicromegasTile::List m_tiles;
 
   //! rng de-allocator
   class Deleter

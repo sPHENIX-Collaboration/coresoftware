@@ -64,6 +64,9 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
 
+  // copy tiles
+  m_Detector->set_tiles( m_tiles );
+  
   // create stepping action if detector is active
   if (GetParams()->get_int_param("active"))
   { m_SteppingAction = new PHG4MicromegasSteppingAction(m_Detector, GetParams()); }
