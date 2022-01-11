@@ -330,9 +330,12 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   }
 
   // print physical layers
-  std::cout << "PHG4MicromegasDetector::ConstructMe - first layer: " << m_FirstLayer << std::endl;
-  for( const auto& pair:m_activeVolumes )
-  {  std::cout << "PHG4MicromegasDetector::ConstructMe - layer: " << pair.second << " volume: " << pair.first->GetName() << std::endl; }
+  if( Verbosity() )
+  {
+    std::cout << "PHG4MicromegasDetector::ConstructMe - first layer: " << m_FirstLayer << std::endl;
+    for( const auto& pair:m_activeVolumes )
+    {  std::cout << "PHG4MicromegasDetector::ConstructMe - layer: " << pair.second << " volume: " << pair.first->GetName() << std::endl; }
+  }
 
   return;
 }
@@ -395,7 +398,7 @@ void PHG4MicromegasDetector::add_geometry_node()
     /* they correspond to 256 channels along the phi direction, and 256 along the z direction, assuming 25x50 tiles */
     cylinder->set_pitch( is_first ? 25./256 : 50./256 );
 
-    if( Verbosity() )
+    // if( Verbosity() )
     { cylinder->identify( std::cout ); }
 
     geonode->AddLayerGeom(layer_index, cylinder);
