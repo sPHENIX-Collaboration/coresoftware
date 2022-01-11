@@ -135,9 +135,6 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
       << std::endl;
   }
 
-  // setup tiles
-  setup_tiles( topNode );
-
   // get dst node
   PHNodeIterator iter(topNode);
   auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -414,81 +411,6 @@ void PHG4MicromegasHitReco::SetDefaultParameters()
 
   // zigzag strips
   set_default_int_param("micromegas_zigzag_strips", true );
-}
-
-//___________________________________________________________________________
-void PHG4MicromegasHitReco::setup_tiles(PHCompositeNode* topNode)
-{
-
-  // get geometry
-  const auto geonodename_full = full_geonodename();
-  auto geonode_full = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename_full);
-  if (!geonode_full)
-  {
-    // if full geometry (cylinder + tiles) do not exist, try create it from bare geometry (cylinder only)
-    const auto geonodename_bare = bare_geonodename();
-    auto geonode_bare =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename_bare);
-    if( !geonode_bare )
-    {
-      std::cout << PHWHERE << "Could not locate geometry node " << geonodename_bare << std::endl;
-      exit(1);
-    }
-
-    // create new node
-    if( Verbosity() )
-    { std::cout << "PHG4MicromegasHitReco::setup_tiles - " << PHWHERE << " creating node " << geonodename_full << std::endl; }
-
-    geonode_full = new PHG4CylinderGeomContainer();
-    PHNodeIterator iter(topNode);
-    auto runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
-    auto newNode = new PHIODataNode<PHObject>(geonode_full, geonodename_full, "PHObject");
-    runNode->addNode(newNode);
-
-    // copy cylinders
-    PHG4CylinderGeomContainer::ConstRange range = geonode_bare->get_begin_end();
-    for( auto iter = range.first; iter != range.second; ++iter )
-    {
-      const auto layer = iter->first;
-      const auto cylinder = static_cast<CylinderGeomMicromegas*>(iter->second);
-      geonode_full->AddLayerGeom( layer, new CylinderGeomMicromegas( *cylinder ) );
-    }
-  }
-
-  // get cylinders
-  PHG4CylinderGeomContainer::ConstRange range = geonode_full->get_begin_end();
-  for( auto iter = range.first; iter != range.second; ++iter )
-  {
-    auto cylinder = static_cast<CylinderGeomMicromegas*>(iter->second);
-
-    // assign tiles
-    cylinder->set_tiles( m_tiles );
-
-    /*
-     * asign segmentation type and pitch
-     * assume first layer in phi, other(s) are z
-     */
-    const bool is_first( iter == range.first );
-    cylinder->set_segmentation_type( is_first ?
-      MicromegasDefs::SegmentationType::SEGMENTATION_PHI :
-      MicromegasDefs::SegmentationType::SEGMENTATION_Z );
-
-    /*
-     * assign drift direction
-     * assume first layer is outward, with readout plane at the top, and others are inward, with readout plane at the bottom
-     * this is used to properly implement transverse diffusion in ::process_event
-     */
-    cylinder->set_drift_direction( is_first ?
-      MicromegasDefs::DriftDirection::OUTWARD :
-      MicromegasDefs::DriftDirection::INWARD );
-
-    // pitch
-    /* they correspond to 256 channels along the phi direction, and 256 along the z direction, assuming 25x50 tiles */
-    cylinder->set_pitch( is_first ? 25./256 : 50./256 );
-
-    if( Verbosity() )
-    { cylinder->identify( std::cout ); }
-
-  }
 }
 
 //___________________________________________________________________________
