@@ -22,7 +22,6 @@
 #include <phool/PHObject.h>                         // for PHObject
 #include <phool/recoConsts.h>
 
-#include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Color.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -32,6 +31,7 @@
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4String.hh>                       // for G4String
 #include <Geant4/G4ThreeVector.hh>                  // for G4ThreeVector
+#include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Types.hh>                        // for G4double
 #include <Geant4/G4VPhysicalVolume.hh>              // for G4VPhysicalVolume
 #include <Geant4/G4VSolid.hh>                       // for G4VSolid
@@ -174,8 +174,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     DriftKapton,
     DriftCarbon
   };
-  
-  
+
   // layer definition
   struct LayerStruct
   {
@@ -185,19 +184,19 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
       m_material( material ),
       m_color( color )
     {}
-    
+
     // thickness
     float m_thickness = 0;
-    
+
     // material
     G4Material* m_material = nullptr;
-    
+
     // color
-    G4Colour m_color = 0;    
+    G4Colour m_color = 0;
   };
 
   // define all layers
-  const std::map<Component, LayerStruct> layer_map = 
+  const std::map<Component, LayerStruct> layer_map =
   {
     { Component::PCB, {1.*mm, GetDetectorMaterial("mmg_FR4"), G4Colour::Green() }},
     { Component::CuStrips, { 12.*micrometer, GetDetectorMaterial("mmg_Strips"), G4Colour::Brown() }},
@@ -210,7 +209,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     { Component::DriftKapton, { 50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown() }},
     { Component::DriftCarbon, { 1.*mm, GetDetectorMaterial("G4_C"), G4Colour(150/255., 75/255., 0) }}
   };
-  
+
   // setup layers in the correct order, going outwards from beam axis
   /* same compoment can appear multiple times. Layer names must be unique */
   using LayerDefinition = std::tuple<Component,std::string>;
@@ -226,7 +225,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     std::make_tuple( Component::ResistiveStrips, "ResistiveStrips_inner" ),
     std::make_tuple( Component::KaptonStrips, "KaptonStrips_inner" ),
     std::make_tuple( Component::CuStrips, "CuStrips_inner"  ),
-    
+
     // PCB
     std::make_tuple( Component::PCB, "PCB" ),
 
@@ -245,18 +244,8 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   // start seting up volumes
   // get initial radius
   const double radius = m_Params->get_double_param("mm_radius")*cm;
-  const double length = m_Params->get_double_param("mm_tilelength")*cm;
-  const double width =  m_Params->get_double_param("mm_width")*cm;
   const double cyllength =  m_Params->get_double_param("mm_cyllength")*cm;
   
-  //tiles coordinates x,y,z
-  const int ntiles = 8;
-  //first tiles along z (bottom) then each side
-  const double centerPhi[ntiles] = {0.,0.,0.,0.,-M_PI/12.,-M_PI/12.,M_PI/12.,M_PI/12.};
-  // 4 tiles equally distributed along tpc length then 2 on the middle on each sid << std::endl;
-  const double centerZ[ntiles] = {cyllength*0.5/4., cyllength*1.5/4., cyllength*2.5/4., cyllength*3.5/4., 
-                                  cyllength*1.5/4., cyllength*2.5/4., cyllength*1.5/4., cyllength*2.5/4.};  
-
   // get total thickness
   const double thickness = std::accumulate(
     layer_stack.begin(), layer_stack.end(), 0.,
@@ -279,54 +268,65 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   PHG4Subsystem *mysys = GetMySubsystem();
   mysys->SetLogicalVolume(cylinder_logic);
   new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), cylinder_logic, G4String(GetName()), logicWorld, false, 0, OverlapCheck() );
- 
- for( int idtile=0; idtile<ntiles; idtile++ )
-{ 
-    // make the tiles
-    // ----------
-    //auto tile_o = new G4Tubs(G4String(GetName())+"_tile0", radius - 0.001*mm, radius + thickness + 0.001*mm, length, -width/radius *rad, width/radius *rad);
-    auto tile_o = new G4Box(G4String(GetName())+"_tile_"+ G4String(idtile), thickness / 2., width / 2., length / 2.);  
-    auto tile_o_logic = new G4LogicalVolume(tile_o, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), G4String(GetName())+"_tile0");
-    tile_o_logic->SetVisAttributes(vis);
-    auto zRot = new G4RotationMatrix();
-    zRot->rotateY(centerPhi[idtile]);
-    new G4PVPlacement( zRot, G4ThreeVector(0,0,centerZ[idtile]), tile_o_logic, G4String(GetName()) +"_tile_"+ G4String(idtile), logicWorld, false, 0, OverlapCheck() );// no rotation for tile0
-
-    // keep track of current layer
-  int layer_index = m_FirstLayer;
 
   // create detector
-  /* we loop over registered layers and create volumes for each */
-  auto current_radius = radius;
-  for( const auto& layer:layer_stack )
+  // loop over tiles
+  for( size_t tileid = 0; tileid < m_tiles.size(); ++tileid )
   {
-    const Component& type = std::get<0>(layer);
-    const std::string& name = std::get<1>(layer);
 
-    // layer name
-    G4String cname = G4String(GetName()) + "_" + name;
+    // get relevant tile
+    const auto& tile = m_tiles[tileid];
 
-    // get thickness, material and name
-    const auto& thickness = layer_map.at(type).m_thickness;
-    const auto& material = layer_map.at(type).m_material;
-    const auto& color = layer_map.at(type).m_color;
+    // get tile's dimension and orientation
+    const double dy = CylinderGeomMicromegas::reference_radius*tile.m_sizePhi*cm;
+    const double dz = tile.m_sizeZ*cm;
+    const double phi = tile.m_centerPhi*radian;
 
-    auto component_solid = new G4Tubs(cname+"_solid", current_radius, current_radius+thickness, length/2, 0, M_PI*2);
-    auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
-    auto vis = new G4VisAttributes( color );
-    vis->SetForceSolid(true);
-    vis->SetVisibility(true);
-    component_logic->SetVisAttributes(vis);
+    // create rotation matrix
+    auto rotation = new G4RotationMatrix;
+    rotation->rotateZ( phi );
 
-    auto component_phys = new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), component_logic, cname+"_phys", cylinder_logic, false, 0, OverlapCheck() );
+    /* we loop over registered layers and create volumes for each */
+    auto current_radius = radius;
+    for( const auto& [type, name]:layer_stack )
+    {
 
-    // store active volume
-    if( type == Component::Gas2 ) m_activeVolumes.insert( std::make_pair( component_phys, layer_index++ ) );
-    else m_passiveVolumes.insert( component_phys );
+      // layer name
+      G4String cname = G4String(GetName()) + "_" + name + "_" + std::to_string(tileid);
+
+      // get thickness, material and name
+      const auto& thickness = layer_map.at(type).m_thickness;
+      const auto& material = layer_map.at(type).m_material;
+      const auto& color = layer_map.at(type).m_color;
+
+      auto component_solid = new G4Box(cname+"_solid", thickness/2, dy/2, dz/2 );
+      auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
+      auto vis = new G4VisAttributes( color );
+      vis->SetForceSolid(true);
+      vis->SetVisibility(true);
+      component_logic->SetVisAttributes(vis);
+
+      G4ThreeVector center( 0, 0, current_radius + thickness/2);
+      auto component_phys = new G4PVPlacement( rotation, center, component_logic, cname+"_phys", cylinder_logic, false, 0, OverlapCheck() );
+
+      if( type == Component::Gas2 )
+      {
+
+        // store active volume
+        // define layer from name
+        const int layer_index = (name == "Gas2_inner") ? m_FirstLayer : m_FirstLayer+1;
+        m_activeVolumes.insert( std::make_pair( component_phys, layer_index ) );
+
+        // store radius associated to this layer
+        m_layer_radius.insert( std::make_pair( layer_index, (current_radius + thickness/2)/cm ) );
+        m_layer_thickness.insert( std::make_pair( layer_index, thickness/cm) );
+
+      } else m_passiveVolumes.insert( component_phys );
 
       // update radius
       current_radius += thickness;
     }
+
   }
 
   // print physical layers
@@ -355,32 +355,21 @@ void PHG4MicromegasDetector::add_geometry_node()
     runNode->addNode(newNode);
   }
 
+  // cylinder maximal length
+  const double length =  m_Params->get_double_param("mm_length");
+
   // add cylinder objects
   /* one cylinder is added per physical volume. The dimention correspond to the drift volume */
   bool is_first = true;
-  for( const auto& pair:m_activeVolumes )
+  for( const auto& [layer_index, radius]:m_layer_radius )
   {
-    // store layer and volume
-    const int layer = pair.second;
-    const G4VPhysicalVolume* volume_phys = pair.first;
-
-    // get solid volume, cast to a box
-    const auto box = dynamic_cast<const G4Box*>( volume_phys->GetLogicalVolume()->GetSolid() );
-
     // create cylinder and match geometry
     /* note: cylinder segmentation type and pitch is set in PHG4MicromegasHitReco */
-    auto cylinder = new CylinderGeomMicromegas(layer);
-    const double innerRadius = m_Params->get_double_param("mm_radius")*cm;
-    const double outerRadius = sqrt( innerRadius/cm*innerRadius/cm + box->GetYHalfLength()/cm*box->GetYHalfLength()/cm );
-    cylinder->set_radius( ( innerRadius/cm + outerRadius/cm )/2. );
-    cylinder->set_thickness( box->GetXHalfLength()*2./cm );
-    cylinder->set_zmin( -box->GetZHalfLength()/cm );
-    cylinder->set_zmax( box->GetZHalfLength()/cm );
-    std::cout << "PHG4MicromegasDetector:: added geom node ok" <<std::endl;
-//     cylinder->set_radius( (tub->GetInnerRadius()/cm + tub->GetOuterRadius()/cm)/2 );
-//     cylinder->set_thickness( tub->GetOuterRadius()/cm - tub->GetInnerRadius()/cm );
-//     cylinder->set_zmin( -tub->GetZHalfLength()/cm );
-//     cylinder->set_zmax( tub->GetZHalfLength()/cm );
+    auto cylinder = new CylinderGeomMicromegas(layer_index);
+    cylinder->set_radius( radius );
+    cylinder->set_thickness( m_layer_radius.at(layer_index) );
+    cylinder->set_zmin( -length/2 );
+    cylinder->set_zmax( length/2 );
 
     // tiles
     cylinder->set_tiles( m_tiles );
@@ -408,11 +397,11 @@ void PHG4MicromegasDetector::add_geometry_node()
 
     if( Verbosity() )
     { cylinder->identify( std::cout ); }
-    
-    geonode->AddLayerGeom(layer, cylinder);
-        
+
+    geonode->AddLayerGeom(layer_index, cylinder);
+
     is_first = false;
-    
+
   }
 
 }
