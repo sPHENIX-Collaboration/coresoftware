@@ -70,6 +70,14 @@ class PHG4MicromegasDetector : public PHG4Detector
   //! detector parameters
   PHParameters* m_Params = nullptr;
 
+  //! map layer index to radius (cm)
+  /** it is filled while creating G4 volumes */
+  std::map<int, double> m_layer_radius;
+  
+  //! map layer index to thickness (cm)
+  /** it is filled while creating G4 volumes */
+  std::map<int, double> m_layer_thickness;
+
   //! active volumes, and mapping to layer
   /*! it is needed in the stepping action to map a volume to a given layer */
   std::map<G4VPhysicalVolume*, int> m_activeVolumes;
