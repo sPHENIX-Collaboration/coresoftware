@@ -387,7 +387,7 @@ void PHG4MicromegasDetector::add_geometry_node()
     /* note: cylinder segmentation type and pitch is set in PHG4MicromegasHitReco */
     auto cylinder = new CylinderGeomMicromegas(layer_index);
     cylinder->set_radius( radius );
-    cylinder->set_thickness( m_layer_radius.at(layer_index) );
+    cylinder->set_thickness( m_layer_thickness.at(layer_index) );
     cylinder->set_zmin( -length/2 );
     cylinder->set_zmax( length/2 );
 
