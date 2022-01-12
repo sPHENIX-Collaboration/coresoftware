@@ -302,7 +302,9 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     {
 
       // layer name
-      G4String cname = G4String(GetName()) + "_" + name + "_" + std::to_string(tileid);
+      G4String cname = m_tiles.size() > 1 ? 
+        G4String(GetName()) + "_" + name + "_" + std::to_string(tileid):
+        G4String(GetName()) + "_" + name;
 
       // get thickness, material and name
       const auto& thickness = layer_map.at(type).m_thickness;
