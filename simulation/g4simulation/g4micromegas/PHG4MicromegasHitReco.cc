@@ -255,6 +255,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
        * at this point we do not check the strip validity.
        * This will be done when actually distributing electrons along the G4Hit track segment
        */
+      /* const int tileid_g4hit = g4hit->get_property_int( PHG4Hit::prop_index_i ); */
       const int tileid = layergeom->find_tile_planar( (world_in+world_out)*0.5 );
       if( tileid < 0 ) continue;
 
