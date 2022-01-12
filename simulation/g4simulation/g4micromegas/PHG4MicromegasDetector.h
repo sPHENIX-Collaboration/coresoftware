@@ -45,6 +45,9 @@ class PHG4MicromegasDetector : public PHG4Detector
   //! return layer associated to a given volume, or -1 if invalid
   int get_layer(G4VPhysicalVolume*) const;
 
+  //! return tile id associated to a given volume, or -1 if invalid
+  int get_tileid(G4VPhysicalVolume*) const;
+
   //! super detector name
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
 
@@ -81,6 +84,10 @@ class PHG4MicromegasDetector : public PHG4Detector
   //! active volumes, and mapping to layer
   /*! it is needed in the stepping action to map a volume to a given layer */
   std::map<G4VPhysicalVolume*, int> m_activeVolumes;
+
+  //! map active volumes to tile number
+  /*! it is needed in the stepping action to map a volume to a given tile id */
+  std::map<G4VPhysicalVolume*, int> m_tiles_map;
 
   //! also store passive volumes
   std::set<G4VPhysicalVolume*> m_passiveVolumes;
