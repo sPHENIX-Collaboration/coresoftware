@@ -97,6 +97,13 @@ class PHG4Reco : public SubsysReco
     m_ForceDecayType = force_decay_type;
   }
 
+  //! export geometry to root file
+  void export_geometry( bool b, const std::string& filename = "sPHENIXGeom.root" )
+  {
+    m_ExportGeometry = b;
+    m_ExportGeomFilename = filename;
+  }
+  
   //! Save geometry from Geant4 to DST
   void save_DST_geometry(bool b) { m_SaveDstGeometryFlag = b; }
   void SetWorldSizeX(const double sx) { m_WorldSize[0] = sx; }
@@ -184,6 +191,9 @@ class PHG4Reco : public SubsysReco
   std::string m_WorldMaterial;
   std::string m_PhysicsList;
 
+  bool m_ExportGeometry = false;
+  std::string m_ExportGeomFilename = "sPHENIXGeom.root";
+  
   // settings for the external Pythia6 decayer
   bool m_ActiveDecayerFlag;     //< turn on/off decayer
   bool m_ActiveForceDecayFlag;  //< turn on/off force decay channels
