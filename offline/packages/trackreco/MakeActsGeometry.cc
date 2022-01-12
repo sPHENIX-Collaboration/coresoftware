@@ -282,68 +282,6 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   // adds surfaces to the underlying volume, so both north and south placements get them
   addActsTpcSurfaces(tpc_gas_north_vol, geoManager);
 
-  // Micromegas geometry edits
-  // These will only be made if the Micromegas nodes are found in the node tree
-  //====================
-  // The micromegas detectors have both layers in the same tile. The inner and outer sides are mirrored
-  // The detector details are (printed from Init method), where the thickness corresponds to the drift volume:
-  // layer 55: Phi segmented, radius: 82.2565 cm, thickness: 0.3 cm, zmin: -110cm, zmax: 110cm, pitch: 0.0976562cm
-  // layer: 55 volume: MICROMEGAS_55_Gas2_inner_phys
-  // layer 56: radius: z segmented, 82.6998 cm, thickness: 0.3 cm, zmin: -110cm, zmax: 110cm, pitch: 0.195312cm
-  // layer: 56 volume: MICROMEGAS_55_Gas2_outer_phys
-
-  TGeoNode *micromegas_envelope_node = nullptr;
-  for (int i = 0; i < World_vol->GetNdaughters(); i++)
-  {
-    TString node_name = World_vol->GetNode(i)->GetName();
-
-    if (node_name.BeginsWith("MICROMEGAS"))
-    {
-      if (Verbosity())
-        std::cout << "EditTPCGeometry - found micromegas node " << node_name << std::endl;
-
-      micromegas_envelope_node = World_vol->GetNode(i);
-      break;
-    }
-  }
-
-  /*
-  need to load micromegas geometry already now because it is needed for
-  defining the volumes relevant for acts
-  */
-  m_geomContainerMicromegas = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );
-
-  if(micromegas_envelope_node && m_geomContainerMicromegas)
-  {
-
-    /// If the node was found, we're building the MMs
-    m_buildMMs = true;
-
-    TGeoVolume *micromegas_envelope_vol = micromegas_envelope_node->GetVolume();
-    assert(micromegas_envelope_vol);
-
-    // Get inner and outer volume and edit them
-    for (int i = 0; i < micromegas_envelope_vol->GetNdaughters(); i++)
-    {
-      TString node_name = micromegas_envelope_vol->GetNode(i)->GetName();
-
-      // this gets both inner and outer
-      if (node_name.BeginsWith("MICROMEGAS_55_Gas2"))
-      {
-        if (Verbosity())
-        { std::cout << "EditTPCGeometry - found Micromegas node " << node_name << std::endl; }
-
-        auto micromegas_node = micromegas_envelope_vol->GetNode(i);
-        const int mm_layer = node_name.BeginsWith("MICROMEGAS_55_Gas2_inner") ? 0:1;
-
-        auto micromegas_vol = micromegas_node->GetVolume();
-        assert(micromegas_vol);
-
-        addActsMicromegasSurfaces(mm_layer, micromegas_vol, geoManager);
-      }
-    }
-  }
-  
   // done
   geoManager->CloseGeometry();
   
@@ -352,61 +290,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 
 }
 
-//________________________________________________________________________________
-void MakeActsGeometry::addActsMicromegasSurfaces( int mm_layer, TGeoVolume *micromegas_vol, TGeoManager *geoManager)
-{
-  // The input micromegas_vol is either the inner (mm_layer 0) or outer (mm_layer 1) drift volume
-
-  // load medium
-  TGeoMedium *micromegas_medium = micromegas_vol->GetMedium();
-  assert(micromegas_medium);
-
-  // get first layer
-  int first_layer_mm =  static_cast<CylinderGeomMicromegas*>(m_geomContainerMicromegas->GetFirstLayerGeom())->get_layer();
-    
-  // load relevant geometry
-  const auto layergeom = static_cast<CylinderGeomMicromegas*>(m_geomContainerMicromegas->GetLayerGeom(first_layer_mm + mm_layer));
-
-  // loop over micromegas tiles
-  // there will be one volume defined per tile
-  for( size_t tileid = 0; tileid < layergeom->get_tiles_count(); ++tileid )
-  {
-  
-    // get relevant tile
-    const auto& tile = layergeom->get_tile(tileid);
-
-    // volume name
-    const auto volume_name = Form( "micromegas_measurement_%i_%zu", mm_layer, tileid );
-        
-    // create volume 
-    /*
-     * in acts local coordinates, x axis is the normal to the surface
-     * y and z are the measurement directions
-     */
-    auto micromegas_measurement_vol = geoManager->MakeBox(
-      volume_name,
-      micromegas_medium, 
-      (layergeom->get_thickness() - 0.1)/2,
-      CylinderGeomMicromegas::reference_radius*tile.m_sizePhi/2,
-      tile.m_sizeZ/2 );
-
-    micromegas_measurement_vol->SetLineColor(kBlack);
-    micromegas_measurement_vol->SetFillColor(kYellow);
-    micromegas_measurement_vol->SetVisibility(kTRUE);
-  
-    // get position of the center in global frame
-    const TVector3 global_center = layergeom->get_world_from_local_coords( tileid, { 0, 0, 0 });
-
-    // create relevant rotation
-    const auto rotation_name = Form( "micromegas_rotation_%i_%zu", mm_layer, tileid );
-    auto rotation = new TGeoRotation(rotation_name);
-    rotation->RotateZ( tile.m_centerPhi*180./M_PI );
-    auto micromegas_measurement_location = new TGeoCombiTrans( global_center.x(), global_center.y(), global_center.z(), rotation );
-    micromegas_vol->AddNode(micromegas_measurement_vol, 1, micromegas_measurement_location);    
-  } 
-}
-
-void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, 
+void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 					  TGeoManager *geoManager)
 {
   TGeoMedium *tpc_gas_medium = tpc_gas_vol->GetMedium();
@@ -773,6 +657,11 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
   const auto mmLayerArray = mmVolume->confinedLayers();
   const auto mmLayerVector = mmLayerArray->arrayObjects();
 
+  std::cout << "MakeActsGeometry::makeMmMapPairs -"
+    << " mmVolume: " << mmVolume->volumeName() 
+    << " mmLayerVector size: " << mmLayerVector.size()
+    << std::endl;
+  
   /// Need to unfold each layer that Acts builds
   for(unsigned int i = 0; i < mmLayerVector.size(); i++)
   {
@@ -782,6 +671,11 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
     /// surfaceVector is a vector of surfaces corresponding to the micromegas layer
     /// that acts builds
     const auto surfaceVector = surfaceArray->surfaces();
+
+    std::cout << "MakeActsGeometry::makeMmMapPairs -"
+      << " surfaceVector size: " << surfaceVector.size()
+      << std::endl;
+
     for( unsigned int j = 0; j < surfaceVector.size(); j++)
     {
       auto surface = surfaceVector.at(j)->getSharedPtr();

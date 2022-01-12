@@ -104,12 +104,6 @@ class MakeActsGeometry : public SubsysReco
   void addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, 
 			  TGeoManager *geoManager);
 
-  /// create relevant micromegas volumes relevant for ACTS
-  /**
-   * there is one volume per micromegas tile. It is a box included inside the main G4 Micromegas cylinder
-   */
-  void addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micromegas_vol, TGeoManager *geoManager);
-
   /// Silicon layers made by BuildSiliconLayers and its helper functions
   void buildActsSurfaces();
 
