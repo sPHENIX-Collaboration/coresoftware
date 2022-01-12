@@ -61,6 +61,13 @@ int PHG4MicromegasDetector::get_layer(G4VPhysicalVolume *volume) const
 }
 
 //_______________________________________________________________
+int PHG4MicromegasDetector::get_tileid(G4VPhysicalVolume *volume) const
+{
+  const auto iter = m_tiles_map.find( volume );
+  return iter == m_tiles_map.end() ? -1:iter->second;
+}
+
+//_______________________________________________________________
 void PHG4MicromegasDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   create_materials();
@@ -323,7 +330,8 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
         // define layer from name
         const int layer_index = (name == "Gas2_inner") ? m_FirstLayer : m_FirstLayer+1;
         m_activeVolumes.insert( std::make_pair( component_phys, layer_index ) );
-
+        m_tiles_map.insert( std::make_pair( component_phys, tileid ) );
+        
         // store radius associated to this layer
         m_layer_radius.insert( std::make_pair( layer_index, (current_radius + thickness/2)/cm ) );
         m_layer_thickness.insert( std::make_pair( layer_index, thickness/cm) );
