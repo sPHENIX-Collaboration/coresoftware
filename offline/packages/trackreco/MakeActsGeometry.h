@@ -141,11 +141,11 @@ class MakeActsGeometry : public SubsysReco
 						 std::vector<double> &world);
   TrkrDefs::hitsetkey getTpcHitSetKeyFromCoords(std::vector<double> &world);
 
-  /// Helper diagnostic function for identifying active layers in subdetectors
-  void isActive(TGeoNode *gnode, int nmax_print);
+//   /// Helper diagnostic function for identifying active layers in subdetectors
+//   void isActive(TGeoNode *gnode, int nmax_print);
 
-  /// Makes map of TrkrHitSetKey<-->TGeoNode
-  void makeTGeoNodeMap(PHCompositeNode *topNode);
+//   /// Makes map of TrkrHitSetKey<-->TGeoNode
+//   void makeTGeoNodeMap(PHCompositeNode *topNode);
   
   void unpackVolumes();
 
