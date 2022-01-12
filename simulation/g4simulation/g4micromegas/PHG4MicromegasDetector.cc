@@ -280,11 +280,14 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     // get tile's dimension and orientation
     const double dy = CylinderGeomMicromegas::reference_radius*tile.m_sizePhi*cm;
     const double dz = tile.m_sizeZ*cm;
-    const double phi = tile.m_centerPhi*radian;
-
+    
+    const double centerZ = tile.m_centerZ*cm;
+    const double centerPhi = tile.m_centerPhi;
+    
     // create rotation matrix
+    /* not completely sure why one must rotate with oposite angle as that use for the translation */
     auto rotation = new G4RotationMatrix;
-    rotation->rotateZ( phi );
+    rotation->rotateZ( -centerPhi*radian );
 
     /* we loop over registered layers and create volumes for each */
     auto current_radius = radius;
@@ -306,7 +309,11 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
       vis->SetVisibility(true);
       component_logic->SetVisAttributes(vis);
 
-      G4ThreeVector center( 0, 0, current_radius + thickness/2);
+      const G4ThreeVector center( 
+        (current_radius + thickness/2)*std::cos(centerPhi), 
+        (current_radius + thickness/2)*std::sin(centerPhi), 
+        centerZ );
+    
       auto component_phys = new G4PVPlacement( rotation, center, component_logic, cname+"_phys", cylinder_logic, false, 0, OverlapCheck() );
 
       if( type == Component::Gas2 )
@@ -396,6 +403,7 @@ void PHG4MicromegasDetector::add_geometry_node()
 
     // pitch
     /* they correspond to 256 channels along the phi direction, and 256 along the z direction, assuming 25x50 tiles */
+    /* todo: calculate from tile dimensions */
     cylinder->set_pitch( is_first ? 25./256 : 50./256 );
 
     // if( Verbosity() )
