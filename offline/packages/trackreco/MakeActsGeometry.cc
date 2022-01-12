@@ -116,8 +116,6 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->geoContext = m_geoCtxt;
   m_actsGeometry->tpcSurfStepPhi = m_surfStepPhi;
   m_actsGeometry->tpcSurfStepZ = m_surfStepZ;
-  m_actsGeometry->mmSurfStepPhi = m_surfStepPhi;
-  m_actsGeometry->mmSurfStepZ = m_surfStepZ;
 
   // fill ActsSurfaceMap content
   m_surfMaps->siliconSurfaceMap = m_clusterSurfaceMapSilicon;
@@ -1007,93 +1005,94 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
   return intt_hitsetkey;
 }
 
-void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode * /*topNode*/)
-{
-  // This is just a diagnostic method
-  // it lets you list all of the nodes by setting print_sensors = true
 
-  if (!m_geoManager)
-  {
-    std::cout << PHWHERE << " Did not find TGeoManager, quit! " << std::endl;
-    return;
-  }
-  TGeoVolume *topVol = m_geoManager->GetTopVolume();
-  TObjArray *nodeArray = topVol->GetNodes();
-
-  TIter iObj(nodeArray);
-  while (TObject *obj = iObj())
-  {
-    TGeoNode *node = dynamic_cast<TGeoNode *>(obj);
-    std::string node_str = node->GetName();
-
-    std::string mvtx("MVTX_Wrapper");
-    std::string intt("ladder");
-    std::string intt_ext("ladderext");
-    std::string tpc("tpc_envelope");
-    std::string micromegas("MICROMEGAS_55");
-
-    if (node_str.compare(0, mvtx.length(), mvtx) == 0)  // is it in the MVTX?
-    {
-      if (Verbosity() > 2) 
-	std::cout << " node " << node->GetName() << " is the MVTX wrapper" 
-		  << std::endl;
-  
-      /// The Mvtx has an additional wrapper that needs to be unpacked
-      TObjArray *mvtxArray = node->GetNodes();
-      TIter mvtxObj(mvtxArray);
-      while(TObject *mvtx = mvtxObj())
-	{
-	  TGeoNode *mvtxNode = dynamic_cast<TGeoNode *>(mvtx);
-	  if(Verbosity() > 2)
-	    std::cout << "mvtx node name is " << mvtxNode->GetName() 
-		      << std::endl;
-	  std::string mvtxav1("av_1");
-	  std::string mvtxNodeName = mvtxNode->GetName();
-	  
-	  /// We only want the av_1 nodes
-	  if(mvtxNodeName.compare(0, mvtxav1.length(), mvtxav1) == 0)
-	    getMvtxKeyFromNode(mvtxNode);
-	}
-    }
-    else if (node_str.compare(0, intt.length(), intt) == 0)  // is it in the INTT?
-    {
-      // We do not want the "ladderext" nodes
-      if (node_str.compare(0, intt_ext.length(), intt_ext) == 0)
-        continue;
-
-      if (Verbosity() > 2) 
-	std::cout << " node " << node->GetName() << " is in the INTT" 
-		  << std::endl;
-      getInttKeyFromNode(node);
-    }
-    /// Put placeholders for the TPC and MMs. Because we modify the geometry
-    /// within TGeoVolume, we don't need a mapping to the TGeoNode
-    else if (node_str.compare(0, tpc.length(), tpc) == 0)  // is it in the TPC?
-      {
-	if(Verbosity() > 2)
-	  std::cout << " node " << node->GetName() 
-		    << " is in the TPC " << std::endl;
-      }
-    else if (node_str.compare(0, micromegas.length(), micromegas) == 0)  // is it in the Micromegas?
-      {
-	if(Verbosity() > 2)
-	  std::cout << " node " << node->GetName() 
-		    << " is in the MMs " << std::endl;
-      }
-    else
-      continue;
-
-    bool print_sensor_paths = false;  // normally false
-    if (print_sensor_paths)
-    {
-      // Descends the node tree to find the active silicon nodes - used for information only
-      std::cout << " Top Node is " << node->GetName() << " volume name is " << node->GetVolume()->GetName() << std::endl;
-
-      int nmax_print = 20;
-      isActive(node, nmax_print);
-    }
-  }
-}
+// void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode * /*topNode*/)
+// {
+//   // This is just a diagnostic method
+//   // it lets you list all of the nodes by setting print_sensors = true
+// 
+//   if (!m_geoManager)
+//   {
+//     std::cout << PHWHERE << " Did not find TGeoManager, quit! " << std::endl;
+//     return;
+//   }
+//   TGeoVolume *topVol = m_geoManager->GetTopVolume();
+//   TObjArray *nodeArray = topVol->GetNodes();
+// 
+//   TIter iObj(nodeArray);
+//   while (TObject *obj = iObj())
+//   {
+//     TGeoNode *node = dynamic_cast<TGeoNode *>(obj);
+//     std::string node_str = node->GetName();
+// 
+//     std::string mvtx("MVTX_Wrapper");
+//     std::string intt("ladder");
+//     std::string intt_ext("ladderext");
+//     std::string tpc("tpc_envelope");
+//     std::string micromegas("MICROMEGAS_55");
+// 
+//     if (node_str.compare(0, mvtx.length(), mvtx) == 0)  // is it in the MVTX?
+//     {
+//       if (Verbosity() > 2)
+// 	std::cout << " node " << node->GetName() << " is the MVTX wrapper"
+// 		  << std::endl;
+// 
+//       /// The Mvtx has an additional wrapper that needs to be unpacked
+//       TObjArray *mvtxArray = node->GetNodes();
+//       TIter mvtxObj(mvtxArray);
+//       while(TObject *mvtx = mvtxObj())
+// 	{
+// 	  TGeoNode *mvtxNode = dynamic_cast<TGeoNode *>(mvtx);
+// 	  if(Verbosity() > 2)
+// 	    std::cout << "mvtx node name is " << mvtxNode->GetName()
+// 		      << std::endl;
+// 	  std::string mvtxav1("av_1");
+// 	  std::string mvtxNodeName = mvtxNode->GetName();
+// 
+// 	  /// We only want the av_1 nodes
+// 	  if(mvtxNodeName.compare(0, mvtxav1.length(), mvtxav1) == 0)
+// 	    getMvtxKeyFromNode(mvtxNode);
+// 	}
+//     }
+//     else if (node_str.compare(0, intt.length(), intt) == 0)  // is it in the INTT?
+//     {
+//       // We do not want the "ladderext" nodes
+//       if (node_str.compare(0, intt_ext.length(), intt_ext) == 0)
+//         continue;
+// 
+//       if (Verbosity() > 2)
+// 	std::cout << " node " << node->GetName() << " is in the INTT"
+// 		  << std::endl;
+//       getInttKeyFromNode(node);
+//     }
+//     /// Put placeholders for the TPC and MMs. Because we modify the geometry
+//     /// within TGeoVolume, we don't need a mapping to the TGeoNode
+//     else if (node_str.compare(0, tpc.length(), tpc) == 0)  // is it in the TPC?
+//       {
+// 	if(Verbosity() > 2)
+// 	  std::cout << " node " << node->GetName()
+// 		    << " is in the TPC " << std::endl;
+//       }
+//     else if (node_str.compare(0, micromegas.length(), micromegas) == 0)  // is it in the Micromegas?
+//       {
+// 	if(Verbosity() > 2)
+// 	  std::cout << " node " << node->GetName()
+// 		    << " is in the MMs " << std::endl;
+//       }
+//     else
+//       continue;
+// 
+//     bool print_sensor_paths = false;  // normally false
+//     if (print_sensor_paths)
+//     {
+//       // Descends the node tree to find the active silicon nodes - used for information only
+//       std::cout << " Top Node is " << node->GetName() << " volume name is " << node->GetVolume()->GetName() << std::endl;
+// 
+//       int nmax_print = 20;
+//       isActive(node, nmax_print);
+//     }
+//   }
+// }
 
 void MakeActsGeometry::getInttKeyFromNode(TGeoNode *gnode)
 {
@@ -1254,84 +1253,84 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
   return;
 }
 
-void MakeActsGeometry::isActive(TGeoNode *gnode, int nmax_print)
-{
-  // Not used in analysis: diagnostic, for looking at the node tree only.
-  // Recursively searches gnode for silicon sensors, prints out heirarchy
-
-  std::string node_str = gnode->GetName();
-
-  std::string intt_refactive("siactive");
-  std::string mvtx_refactive("MVTXSensor");
-  std::string tpc_refactive("tpc_gas_measurement");
-  std::string micromegas_refactive("MICROMEGAS_55");
-
-  if (node_str.compare(0, intt_refactive.length(), intt_refactive) == 0)
-  {
-    std::cout << "          ******* Found INTT active volume,  node is " 
-	      << gnode->GetName()
-	      << " volume name is " << gnode->GetVolume()->GetName() 
-	      << std::endl;
-        
-    return;
-  }
-  else if (node_str.compare(0, mvtx_refactive.length(), mvtx_refactive) == 0)
-  {
-    std::cout << "        ******* Found MVTX active volume,  node is " 
-	      << gnode->GetName()
-	      << " volume name is " << gnode->GetVolume()->GetName() 
-	      << std::endl;
- 
-     return;
-  }
-  else if (node_str.compare(0, tpc_refactive.length(), tpc_refactive) == 0)
-  {
-    if(nprint_tpc < nmax_print)
-      {
-	std::cout << "     ******* Found TPC  active volume,  node is " 
-		  << gnode->GetName()
-		  << " volume name is " << gnode->GetVolume()->GetName() 
-		  << std::endl;
-      }
-    nprint_tpc++;
-
-    return;
-  }
-  else if (node_str.compare(0, micromegas_refactive.length(), micromegas_refactive) == 0)
-  {
-    std::cout << "     ******* Found Micromegas  active volume,  node is "
-	      << gnode->GetName()
-	      << " volume name is " << gnode->GetVolume()->GetName() 
-	      << std::endl;
-
-    return;
-  }
-  else
-    {
-      if(nprint_tpc < nmax_print)
-	{
-	  std::cout << "          ******* Found  node " 
-		    << gnode->GetName()
-		    << " volume name is " << gnode->GetVolume()->GetName() 
-		    << std::endl;
-	}
-      nprint_tpc++;
-      
-      return;      
-    }
-
-
-  int ndaught = gnode->GetNdaughters();
-
-  for (int i = 0; i < ndaught; ++i)
-  {
-    std::cout << "     " << gnode->GetVolume()->GetName() 
-	      << "  daughter " << i << " has name " 
-	      << gnode->GetDaughter(i)->GetVolume()->GetName() << std::endl;
-    
-    isActive(gnode->GetDaughter(i), nmax_print);
-  }
-}
+// void MakeActsGeometry::isActive(TGeoNode *gnode, int nmax_print)
+// {
+//   // Not used in analysis: diagnostic, for looking at the node tree only.
+//   // Recursively searches gnode for silicon sensors, prints out heirarchy
+// 
+//   std::string node_str = gnode->GetName();
+// 
+//   std::string intt_refactive("siactive");
+//   std::string mvtx_refactive("MVTXSensor");
+//   std::string tpc_refactive("tpc_gas_measurement");
+//   std::string micromegas_refactive("MICROMEGAS_55");
+// 
+//   if (node_str.compare(0, intt_refactive.length(), intt_refactive) == 0)
+//   {
+//     std::cout << "          ******* Found INTT active volume,  node is "
+// 	      << gnode->GetName()
+// 	      << " volume name is " << gnode->GetVolume()->GetName()
+// 	      << std::endl;
+// 
+//     return;
+//   }
+//   else if (node_str.compare(0, mvtx_refactive.length(), mvtx_refactive) == 0)
+//   {
+//     std::cout << "        ******* Found MVTX active volume,  node is "
+// 	      << gnode->GetName()
+// 	      << " volume name is " << gnode->GetVolume()->GetName()
+// 	      << std::endl;
+// 
+//      return;
+//   }
+//   else if (node_str.compare(0, tpc_refactive.length(), tpc_refactive) == 0)
+//   {
+//     if(nprint_tpc < nmax_print)
+//       {
+// 	std::cout << "     ******* Found TPC  active volume,  node is "
+// 		  << gnode->GetName()
+// 		  << " volume name is " << gnode->GetVolume()->GetName()
+// 		  << std::endl;
+//       }
+//     nprint_tpc++;
+// 
+//     return;
+//   }
+//   else if (node_str.compare(0, micromegas_refactive.length(), micromegas_refactive) == 0)
+//   {
+//     std::cout << "     ******* Found Micromegas  active volume,  node is "
+// 	      << gnode->GetName()
+// 	      << " volume name is " << gnode->GetVolume()->GetName()
+// 	      << std::endl;
+// 
+//     return;
+//   }
+//   else
+//     {
+//       if(nprint_tpc < nmax_print)
+// 	{
+// 	  std::cout << "          ******* Found  node "
+// 		    << gnode->GetName()
+// 		    << " volume name is " << gnode->GetVolume()->GetName()
+// 		    << std::endl;
+// 	}
+//       nprint_tpc++;
+// 
+//       return;
+//     }
+// 
+// 
+//   int ndaught = gnode->GetNdaughters();
+// 
+//   for (int i = 0; i < ndaught; ++i)
+//   {
+//     std::cout << "     " << gnode->GetVolume()->GetName()
+// 	      << "  daughter " << i << " has name "
+// 	      << gnode->GetDaughter(i)->GetVolume()->GetName() << std::endl;
+// 
+//     isActive(gnode->GetDaughter(i), nmax_print);
+//   }
+// }
 
 
 void MakeActsGeometry::setPlanarSurfaceDivisions()
