@@ -165,7 +165,7 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   if(fake_surfaces)
     editTPCGeometry(topNode);
   else
-    std::cout << " NOT adding TPC and MMs surfaces" << std::endl;
+    std::cout << " NOT adding TPC surfaces" << std::endl;
 
   // need to get nodes first, in order to be able to build the proper micromegas geometry
   if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
