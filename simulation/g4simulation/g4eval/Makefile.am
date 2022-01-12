@@ -62,7 +62,10 @@ pkginclude_HEADERS = \
   TrackEvaluation.h \
   DSTEmulator.h \
   TrackEvaluationContainer.h \
-  TrackEvaluationContainerv1.h
+  TrackEvaluationContainerv1.h  \
+  DSTCompressor.h \
+  compressor_generator.h
+
 
 ROOTDICTS = \
   TrackEvaluationContainer_Dict.cc \
