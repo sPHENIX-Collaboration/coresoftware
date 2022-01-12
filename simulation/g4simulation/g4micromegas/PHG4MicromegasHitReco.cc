@@ -264,33 +264,14 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
        * at this point we do not check the strip validity.
        * This will be done when actually distributing electrons along the G4Hit track segment
        */
-      const int tileid = layergeom->find_tile_cylindrical( (world_in+world_out)*0.5 );
+      const int tileid = layergeom->find_tile_planar( (world_in+world_out)*0.5 );
       if( tileid < 0 ) continue;
-
-      /*
-       * in geant4 hits are generated on a cylinder located at layergeom->get_radius()
-       * the actual micromegas tiles however are plane surfaces, tengent to said cylinder
-       * one must convert the g4hit in and out positions from the cylinder back to the actual
-       * micromegas surface
-       */
-
-      // make a local copy of the g4hit
-      PHG4Hitv1 g4hit_copy( g4hit );
-
-      /*
-       * move hit coordinates to plane,
-       * update world coordinates
-       * get corresponding local coordinates
-       */
-      layergeom->convert_to_planar( tileid, &g4hit_copy );
-      world_in.SetXYZ( g4hit_copy.get_x(0), g4hit_copy.get_y(0), g4hit_copy.get_z(0) );
-      world_out.SetXYZ( g4hit_copy.get_x(1), g4hit_copy.get_y(1), g4hit_copy.get_z(1) );
 
       const auto local_in = layergeom->get_local_from_world_coords( tileid, world_in );
       const auto local_out = layergeom->get_local_from_world_coords( tileid, world_out );
 
       // number of primary elections
-      const auto nprimary = get_primary_electrons( &g4hit_copy );
+      const auto nprimary = get_primary_electrons( g4hit );
       if( !nprimary ) continue;
 
       // create hitset
