@@ -555,15 +555,22 @@ int DSTEmulator::load_nodes( PHCompositeNode* topNode )
   // cluster map
 
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
-  if(m_cluster_map->size()>0)
-    {
-      std::cout << " DSTEmulator: Using CORRECTED_TRKR_CLUSTER node " << std::endl;
-    }
-  else
-    {
-      std::cout << " DSTEmulator: CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl;
-      m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
-    }
+  if(m_cluster_map){
+    if(m_cluster_map->size()>0)
+      {
+	std::cout << " DSTEmulator: Using CORRECTED_TRKR_CLUSTER node " << std::endl;
+      }
+    else
+      {
+	std::cout << " DSTEmulator: CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl;
+	m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+      }
+  }else{
+
+    std::cout << " DSTEmulator: CORRECTED_TRKR_CLUSTER node not found at all, using TRKR_CLUSTER" << std::endl;
+    m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+  }
+  
 
   // cluster hit association map
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
@@ -725,11 +732,11 @@ void DSTEmulator::evaluate_tracks()
       */
     //Get Surface
     Acts::Vector3D global(trk_x, trk_y, trk_z);
-    TrkrDefs::subsurfkey subsurfkey = cluster->getSubSurfKey();
+    //    TrkrDefs::subsurfkey subsurfkey = cluster->getSubSurfKey();
 
-    std::cout << " subsurfkey: " << subsurfkey << std::endl;
-    std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
-    mapIter = m_surfMaps->tpcSurfaceMap.find(hitsetkey);
+    //    std::cout << " subsurfkey: " << subsurfkey << std::endl;
+    std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
+    mapIter = m_surfMaps->tpcSurfaceMap.find(layer);
     
     if(mapIter == m_surfMaps->tpcSurfaceMap.end()){
       std::cout << PHWHERE 
@@ -743,9 +750,22 @@ void DSTEmulator::evaluate_tracks()
     // double global_phi = atan2(global[1], global[0]);
     // double global_z = global[2];
   
+
+    // Predict which surface index this phi and z will correspond to
+    // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
     std::vector<Surface> surf_vec = mapIter->second;
-  
-    Surface surface = surf_vec[subsurfkey];
+
+    Acts::Vector3D world(globalpos_d[0], globalpos_d[1],globalpos_d[2]);
+    double world_phi = atan2(world[1], world[0]);
+    double world_z = world[2];
+
+    double fraction =  (world_phi + M_PI) / (2.0 * M_PI);
+    double rounded_nsurf = round( (double) (surf_vec.size()/2) * fraction  - 0.5);
+    unsigned int nsurf = (unsigned int) rounded_nsurf; 
+    if(world_z < 0)
+      nsurf += surf_vec.size()/2;
+    
+    Surface surface = surf_vec[nsurf];
 
     Acts::Vector3D center = surface->center(m_tGeometry->geoContext) 
       / Acts::UnitConstants::cm;
