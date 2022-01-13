@@ -227,17 +227,14 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
       TVector3 world_out( g4hit->get_x(1), g4hit->get_y(1), g4hit->get_z(1) );
 
       // get tile
-      const int tileid = layergeom->find_tile_cylindrical( (world_in+world_out)*0.5 );
+      const int tileid = layergeom->find_tile_planar( (world_in+world_out)*0.5 );
       if( tileid < 0 ) continue;
-
-      world_in.SetXYZ( g4hit->get_x(0), g4hit->get_y(0), g4hit->get_z(0) );
-      world_out.SetXYZ( g4hit->get_x(1), g4hit->get_y(1), g4hit->get_z(1) );
 
       const int stripnum = layergeom->find_strip_from_world_coords( tileid, (world_in + world_out)*0.5  );
       if( stripnum < 0 ) continue;
 
       // create G4Hit struct
-      auto g4hitstruct = create_g4hit( &g4hit_copy );
+      auto g4hitstruct = create_g4hit( g4hit );
       g4hitstruct._layer = layer;
       g4hitstruct._tile = tileid;
 

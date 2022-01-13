@@ -1385,14 +1385,8 @@ void TrackingEvaluator_hp::fill_g4particle_map()
       TVector3 world( g4hit->get_avg_x(), g4hit->get_avg_y(), g4hit->get_avg_z() );
 
       // make sure that the mid point is in one of the tiles
-      const int tileid = layergeom->find_tile_cylindrical( world );
+      const int tileid = layergeom->find_tile_planar( world );
       if( tileid < 0 ) continue;
-
-      // make a local copy of the g4hit
-      // update world coordinates
-      PHG4Hitv1 g4hit_copy( g4hit );
-      layergeom->convert_to_planar( tileid, &g4hit_copy );
-      world = TVector3( g4hit_copy.get_avg_x(), g4hit_copy.get_avg_y(), g4hit_copy.get_avg_z() );
 
       // find strip
       const int strip = layergeom->find_strip_from_world_coords( tileid, world );
