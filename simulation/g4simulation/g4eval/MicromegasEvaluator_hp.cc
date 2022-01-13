@@ -230,12 +230,8 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
       const int tileid = layergeom->find_tile_cylindrical( (world_in+world_out)*0.5 );
       if( tileid < 0 ) continue;
 
-      // convert to planar coordinates
-      PHG4Hitv1 g4hit_copy( g4hit );
-
-      layergeom->convert_to_planar( tileid, &g4hit_copy );
-      world_in.SetXYZ( g4hit_copy.get_x(0), g4hit_copy.get_y(0), g4hit_copy.get_z(0) );
-      world_out.SetXYZ( g4hit_copy.get_x(1), g4hit_copy.get_y(1), g4hit_copy.get_z(1) );
+      world_in.SetXYZ( g4hit->get_x(0), g4hit->get_y(0), g4hit->get_z(0) );
+      world_out.SetXYZ( g4hit->get_x(1), g4hit->get_y(1), g4hit->get_z(1) );
 
       const int stripnum = layergeom->find_strip_from_world_coords( tileid, (world_in + world_out)*0.5  );
       if( stripnum < 0 ) continue;
