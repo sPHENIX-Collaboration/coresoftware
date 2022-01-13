@@ -102,13 +102,6 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
     return m_tiles[tileid];
   }
 
-  //! convert g4hit coordinates from cylinder Micromegas to planar
-  /**
-    * this assumes that Micromegas Geant4 implementation are cylinders, while actual tiles are planes
-    * one must then 'drift' the g4hit along its momentum from its radius to the releval "y" in local coordinates
-    */
-  void convert_to_planar( uint tileid, PHG4Hit* ) const;
-
   //! get strip for a give world location and tile
   int find_strip_from_world_coords( uint tileid, const TVector3& ) const;
 
