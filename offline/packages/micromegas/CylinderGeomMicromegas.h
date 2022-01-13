@@ -83,6 +83,10 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   TVector3 get_world_from_local_vect( uint tileid, const TVector3& ) const;
 
   //! get tile for a given world location assuming tiles are portion of cylinder centered around tile center
+  /** it is used to find the tile hit by a given track. 
+   * The track is first extrapolated to the layer cylinder, the relevant tile is found, if any
+   * the track is then extrapolated a second time to the correct tile plane
+   */
   int find_tile_cylindrical( const TVector3& ) const;
 
   //! get tile for a given world location assuming tiles are planes centered on tile center and tengent to local cylinder
