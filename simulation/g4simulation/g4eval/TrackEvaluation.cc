@@ -296,7 +296,7 @@ namespace
   }
 
   // print to stream
-  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const TrackEvaluationContainerv1::ClusterStruct& cluster )
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const TrackEvaluationContainerv1::ClusterStruct& cluster )
   {
     out << "ClusterStruct" << std::endl;
     out << "  cluster: (" << cluster.x << "," << cluster.y << "," << cluster.z << ")" << std::endl;
@@ -305,7 +305,7 @@ namespace
     return out;
   }
 
-  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const TVector3& position)
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const TVector3& position)
   {
     out << "(" << position.x() << ", " << position.y() << ", " << position.z() << ")";
     return out;
