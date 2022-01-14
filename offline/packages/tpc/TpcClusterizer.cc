@@ -461,9 +461,27 @@ namespace
 	  // Add the hit associations to the TrkrClusterHitAssoc node
 	  // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
 	  
-	  if(my_data.clusterlist) my_data.clusterlist->insert(std::make_pair(ckey, clus.release()));
-	  if(my_data.do_assoc && my_data.clusterhitassoc){
-	    for (unsigned int i = 0; i < hitkeyvec.size(); i++){
+    if(my_data.clusterlist)     
+    {
+      const auto [iter, inserted] = my_data.clusterlist->insert(std::make_pair(ckey, clus.get()));
+
+      /*
+       * if cluster was properly inserted in the map, one should release the unique_ptr,
+       * to make sure that the cluster is not deleted when going out-of-scope
+       */
+      if( inserted ) clus.release();
+      else {
+        // print error message. Duplicated cluster keys should not happen
+        std::cout 
+          << PHWHERE 
+          << "Error: duplicated cluster key: " << ckey << " - new cluster not inserted in map"
+          << std::endl;        
+      }
+      
+    }
+      
+    if(my_data.do_assoc && my_data.clusterhitassoc){
+      for (unsigned int i = 0; i < hitkeyvec.size(); i++){
         my_data.clusterhitassoc->insert(std::make_pair(ckey, hitkeyvec[i]));
 	    }
 	  }
