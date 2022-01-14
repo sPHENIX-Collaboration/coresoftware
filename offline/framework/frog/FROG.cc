@@ -115,6 +115,23 @@ FROG::location(const std::string &logical_name)
           break;
         }
       }
+      else if (iter == "MINIO")
+      {
+        if (Verbosity() > 1)
+        {
+          std::cout << "Searching FileCatalog for Lustre file via MinIO"
+               << logical_name << std::endl;
+        }
+        if (MinIOSearch(logical_name))
+        {
+          if (Verbosity() > 1)
+          {
+            std::cout << "Found " << logical_name << " in Lustre, returning MinIO URL "
+                 << pfn << std::endl;
+          }
+          break;
+        }
+      }
       else  // assuming this is a file path
       {
         if (Verbosity() > 0)
@@ -271,6 +288,44 @@ bool FROG::LustreSearch(const std::string &lname)
   if (rs->next())
   {
     pfn = rs->getString(1);
+    bret = true;
+  }
+  delete rs;
+  delete stmt;
+  return bret;
+}
+
+bool FROG::MinIOSearch(const std::string &lname)
+{
+  bool bret = false;
+  if (!GetConnection())
+  {
+    return bret;
+  }
+  std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'lustre'";
+
+  odbc::Statement *stmt = m_OdbcConnection->createStatement();
+  odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
+
+  if (rs->next())
+  {
+    pfn = rs->getString(1);
+    std::string toreplace("/sphenix/lustre01/sphnxpro");
+    size_t strpos = pfn.find(toreplace);
+    if (strpos == std::string::npos)
+    {
+      std::cout << " could not locate " << toreplace 
+		<< " in full file path " << pfn << std::endl;
+      exit(1);
+    }
+    else if (strpos > 0)
+    {
+      std::cout << "full file path " << pfn 
+		<< "does not start with " << toreplace << std::endl;
+      exit(1);
+
+    }
+    pfn.replace(pfn.begin(),pfn.begin()+toreplace.size(),"s3://dcsphst004.rcf.bnl.gov:9000");
     bret = true;
   }
   delete rs;
