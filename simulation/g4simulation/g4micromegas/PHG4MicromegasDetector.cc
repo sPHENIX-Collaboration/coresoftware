@@ -266,13 +266,13 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     { return value + layer_map.at(std::get<0>(layer)).m_thickness; } );
 
   // get max panel width. It is needed to make sure all panels fit inside the parent G4Tub
-  const double max_panel_width =  CylinderGeomMicromegas::reference_radius*std::max_element( m_tiles.begin(), m_tiles.end(),  
+  const double max_panel_width = CylinderGeomMicromegas::reference_radius*std::max_element( m_tiles.begin(), m_tiles.end(),
     [](const MicromegasTile& first, const MicromegasTile& second ) { return first.m_sizePhi < second.m_sizePhi; } )->m_sizePhi*cm;
-  
+
   // get master volume min and max radius
   const auto min_radius = radius - 0.001*mm;
   const auto max_radius = std::sqrt( square( radius + thickness ) + square( max_panel_width/2 ) ) + 0.001*mm;
-  
+
   // create mother volume
   auto cylinder_solid = new G4Tubs( G4String(GetName()), min_radius, max_radius, cyllength/2, 0, M_PI*2);
 
@@ -299,10 +299,10 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     // get tile's dimension and orientation
     const double dy = CylinderGeomMicromegas::reference_radius*tile.m_sizePhi*cm;
     const double dz = tile.m_sizeZ*cm;
-    
+
     const double centerZ = tile.m_centerZ*cm;
     const double centerPhi = tile.m_centerPhi;
-    
+
     // create rotation matrix
     /* not completely sure why one must rotate with oposite angle as that use for the translation */
     auto rotation = new G4RotationMatrix;
@@ -314,7 +314,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     {
 
       // layer name
-      G4String cname = m_tiles.size() > 1 ? 
+      G4String cname = m_tiles.size() > 1 ?
         G4String(GetName()) + "_" + name + "_" + std::to_string(tileid):
         G4String(GetName()) + "_" + name;
 
@@ -330,11 +330,11 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
       vis->SetVisibility(true);
       component_logic->SetVisAttributes(vis);
 
-      const G4ThreeVector center( 
-        (current_radius + thickness/2)*std::cos(centerPhi), 
-        (current_radius + thickness/2)*std::sin(centerPhi), 
+      const G4ThreeVector center(
+        (current_radius + thickness/2)*std::cos(centerPhi),
+        (current_radius + thickness/2)*std::sin(centerPhi),
         centerZ );
-    
+
       auto component_phys = new G4PVPlacement( rotation, center, component_logic, cname+"_phys", cylinder_logic, false, 0, OverlapCheck() );
 
       if( type == Component::Gas2 )
@@ -345,7 +345,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
         const int layer_index = (name == "Gas2_inner") ? m_FirstLayer : m_FirstLayer+1;
         m_activeVolumes.insert( std::make_pair( component_phys, layer_index ) );
         m_tiles_map.insert( std::make_pair( component_phys, tileid ) );
-        
+
         // store radius associated to this layer
         m_layer_radius.insert( std::make_pair( layer_index, (current_radius + thickness/2)/cm ) );
         m_layer_thickness.insert( std::make_pair( layer_index, thickness/cm) );
