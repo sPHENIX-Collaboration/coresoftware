@@ -43,6 +43,12 @@
 #include <utility>                                  // for pair, make_pair
 #include <vector>                                   // for vector
 
+namespace
+{
+  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+}
+
+
 //____________________________________________________________________________..
 PHG4MicromegasDetector::PHG4MicromegasDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -259,10 +265,16 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     [&layer_map](double value, LayerDefinition layer )
     { return value + layer_map.at(std::get<0>(layer)).m_thickness; } );
 
-  std::cout << "PHG4MicromegasDetector::ConstructMe - detector thickness is " << thickness/cm << " cm" << std::endl;
-
+  // get max panel width. It is needed to make sure all panels fit inside the parent G4Tub
+  const double max_panel_width =  CylinderGeomMicromegas::reference_radius*std::max_element( m_tiles.begin(), m_tiles.end(),  
+    [](const MicromegasTile& first, const MicromegasTile& second ) { return first.m_sizePhi < second.m_sizePhi; } )->m_sizePhi*cm;
+  
+  // get master volume min and max radius
+  const auto min_radius = radius - 0.001*mm;
+  const auto max_radius = std::sqrt( square( radius + thickness ) + square( max_panel_width/2 ) ) + 0.001*mm;
+  
   // create mother volume
-  auto cylinder_solid = new G4Tubs( G4String(GetName()+ "_m"), radius - 0.001*mm, sqrt( radius*radius + thickness*thickness/2. ) + 0.001*mm, cyllength / 2., 0, M_PI*2);
+  auto cylinder_solid = new G4Tubs( G4String(GetName()), min_radius, max_radius, cyllength/2, 0, M_PI*2);
 
   recoConsts* rc = recoConsts::instance();
   auto cylinder_logic = new G4LogicalVolume( cylinder_solid, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), G4String(GetName())+"_m" );
