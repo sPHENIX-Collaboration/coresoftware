@@ -90,6 +90,13 @@ namespace
       + (gaus(xloc+pitch, sigma) - gaus(xloc, sigma))*square(sigma)/pitch;
   }
 
+  // TVector3 streamer
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const TVector3& position)
+  {
+    out << "(" << position.x() << ", " << position.y() << ", " << position.z() << ")";
+    return out;
+  }
+
 }
 
 //___________________________________________________________________________
@@ -250,15 +257,10 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       TVector3 world_in( g4hit->get_x(0), g4hit->get_y(0), g4hit->get_z(0) );
       TVector3 world_out( g4hit->get_x(1), g4hit->get_y(1), g4hit->get_z(1) );
 
-      // make sure that the mid point is in one of the tiles
-      /*
-       * at this point we do not check the strip validity.
-       * This will be done when actually distributing electrons along the G4Hit track segment
-       */
-      /* const int tileid_g4hit = g4hit->get_property_int( PHG4Hit::prop_index_i ); */
-      const int tileid = layergeom->find_tile_planar( (world_in+world_out)*0.5 );
-      if( tileid < 0 ) continue;
+      // get tile id from g4hit
+      const int tileid = g4hit->get_property_int( PHG4Hit::prop_index_i );
 
+      // convert to local coordinate
       const auto local_in = layergeom->get_local_from_world_coords( tileid, world_in );
       const auto local_out = layergeom->get_local_from_world_coords( tileid, world_out );
 
