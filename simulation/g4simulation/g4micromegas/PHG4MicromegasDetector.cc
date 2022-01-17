@@ -254,11 +254,11 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   // start seting up volumes
   // get initial radius
   const double radius = m_Params->get_double_param("mm_radius")*cm;
-  const double length =  m_Params->get_double_param("mm_length")*cm;
+  const double length = m_Params->get_double_param("mm_tilelength")*cm;
   const double width =  m_Params->get_double_param("mm_width")*cm;
   const double cyllength =  m_Params->get_double_param("mm_cyllength")*cm;
-
-  // get total thickness
+  
+// get total thickness
   const double thickness = std::accumulate(
     layer_definitions.begin(), layer_definitions.end(), 0.,
     [layer_thickness](double value, LayerDefinition layer )
