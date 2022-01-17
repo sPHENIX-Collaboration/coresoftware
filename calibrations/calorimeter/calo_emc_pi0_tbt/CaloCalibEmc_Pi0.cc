@@ -50,7 +50,6 @@ CaloCalibEmc_Pi0::CaloCalibEmc_Pi0(const std::string& name, const std::string& f
   , cal_output(0)
   , _caloname("CEMC")
   , _filename(filename)
-  , eta_hist(0)
   , energy_eta_hist(0)
   , e_eta_phi(0)
   , pairInvMassTotal(0)
@@ -62,7 +61,7 @@ CaloCalibEmc_Pi0::CaloCalibEmc_Pi0(const std::string& name, const std::string& f
   ,alphaCut(-1.0)
 {
  
-
+  eta_hist[0] = 0;
 
 
 }
