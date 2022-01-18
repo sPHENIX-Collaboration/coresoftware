@@ -1266,7 +1266,9 @@ void AnnularFieldSim::populate_fieldmap(){
   if (truncation_length>0) {
     printf(" ==> truncating anything more than %d cells away\n",truncation_length);
   }
-  unsigned long long totalelements=nr_roi*nphi_roi*nz_roi;
+  unsigned long long totalelements=nr_roi;
+  totalelements*=nphi_roi;
+  totalelements*=nz_roi; //breaking up this multiplication prevents a 32bit math overflow
   unsigned long long percent=totalelements/100*debug_npercent;
   printf("total elements = %llu\n",totalelements*nr*nphi*nz);
 
@@ -1327,7 +1329,12 @@ void  AnnularFieldSim::populate_full3d_lookup(){
   //  TVector3 (*f)[fx][fy][fz][ox][oy][oz]=field_;
   printf("populating full lookup table for (%dx%dx%d)x(%dx%dx%d) grid\n",
 	 (rmax_roi-rmin_roi),(phimax_roi-phimin_roi),(zmax_roi-zmin_roi),nr,nphi,nz);
-  unsigned long long totalelements=(rmax_roi-rmin_roi)*(phimax_roi-phimin_roi)*(zmax_roi-zmin_roi)*nr*nphi*nz;
+  unsigned long long totalelements=(rmax_roi-rmin_roi);
+  totalelements*=(phimax_roi-phimin_roi);
+  totalelements*=(zmax_roi-zmin_roi);
+  totalelements*=nr;
+  totalelements*=nphi;
+  totalelements*=nz;//breaking up this multiplication prevents a 32bit math overflow
   unsigned long long percent=totalelements/100*debug_npercent;
   printf("total elements = %llu\n",totalelements);
   TVector3 at(1,0,0);
@@ -1579,7 +1586,11 @@ void  AnnularFieldSim::populate_phislice_lookup(){
   //remember the 'f' part of Epartial uses relative indices.
   //  TVector3 (*f)[fx][fy][fz][ox][oy][oz]=field_;
   printf("populating phislice  lookup for (%dx%dx%d)x(%dx%dx%d) grid\n",nr_roi,1,nz_roi,nr,nphi,nz);
-  unsigned long long totalelements=nr*nphi*nz*nr_roi*1*nz_roi;
+  unsigned long long totalelements=nr;//nr*nphi*nz*nr_roi*nz_roi
+  totalelements*=nphi;
+  totalelements*=nz;
+  totalelements*=nr_roi;
+  totalelements*=nz_roi;//breaking up this multiplication prevents a 32bit math overflow
   unsigned long long percent=totalelements/100*debug_npercent;
   printf("total elements = %llu\n",totalelements);
   TVector3 at(1,0,0);
@@ -1625,7 +1636,11 @@ void  AnnularFieldSim::populate_phislice_lookup(){
 
 void  AnnularFieldSim::load_phislice_lookup(const char* sourcefile){
   printf("loading phislice  lookup for (%dx%dx%d)x(%dx%dx%d) grid from %s\n",nr_roi,1,nz_roi,nr,nphi,nz,sourcefile);
-  unsigned long long totalelements=nr*nphi*nz*nr_roi*1*nz_roi;
+  unsigned long long totalelements=nr;//nr*nphi*nz*nr_roi*nz_roi
+  totalelements*=nphi;
+  totalelements*=nz;
+  totalelements*=nr_roi;
+  totalelements*=nz_roi;//breaking up this multiplication prevents a 32bit math overflow
   unsigned long long percent=totalelements/100*debug_npercent;
   printf("total elements = %llu\n",totalelements);
 
@@ -1710,7 +1725,11 @@ void  AnnularFieldSim::load_phislice_lookup(const char* sourcefile){
 
 void  AnnularFieldSim::save_phislice_lookup(const char* destfile){
   printf("saving phislice  lookup for (%dx%dx%d)x(%dx%dx%d) grid to %s\n",nr_roi,1,nz_roi,nr,nphi,nz,destfile);
-  unsigned long long totalelements=nr*nphi*nz*nr_roi*1*nz_roi;
+  unsigned long long totalelements=nr;//nr*nphi*nz*nr_roi*nz_roi
+  totalelements*=nphi;
+  totalelements*=nz;
+  totalelements*=nr_roi;
+  totalelements*=nz_roi;//breaking up this multiplication prevents a 32bit math overflow
   unsigned long long percent=totalelements/100*debug_npercent;
   printf("total elements = %llu\n",totalelements);
 
@@ -2217,50 +2236,6 @@ TVector3 AnnularFieldSim::swimToInSteps(float zdest,TVector3 start,int steps=1, 
   TVector3 distortion=GetTotalDistortion(zdest,start,steps,interpolate,goodToStep);
   return straightline+distortion;
   
-  //short-circuit if we're out of range:
-  
-  double zdist=(zdest-start.Z())*cm;
-  double zstep=zdist/steps;
-  start=start*cm;
-  
-  TVector3 ret=start;
-  TVector3 accumulated_distortion(0,0,0);
-  TVector3 accumulated_drift(0,0,0);
-  TVector3 drift_step(0,0,zstep);
-  TVector3 last_distortion(0,0,0);
-
-  //the conceptual approach here is to get the vector distortion in each z step, and use the transverse component of that to update the transverse value of that to update the transverse position post-step
-
-  
-
-  int rt,pt,zt; //just placeholders for the bounds-checking.
-  BoundsCase zBound;
-  for (int i=0;i<steps;i++){
-    zBound=GetZindexAndCheckBounds(ret.Z(),&zt);
-    if (zBound==OnLowEdge){
-      //nudge it in z:
-      ret.SetZ(ret.Z()+ALMOST_ZERO);
-    }
-    if (GetRindexAndCheckBounds(ret.Perp(),&rt)!=InBounds
-	|| GetPhiIndexAndCheckBounds(ret.Phi(),&pt)!=InBounds
-	|| (zBound==OutOfBounds)){
-      printf("AnnularFieldSim::swimToInSteps starting at (%f,%f,%f)=(r%f,p%f,z%f) with drift_step=%f, at step %d, asked to swim particle from (%f,%f,%f) (rphiz)=(%f,%f,%f)which is outside the ROI.\n",start.X(),start.Y(),start.Z(),start.Perp(),start.Phi(),start.Z(),zstep,i,ret.X(),ret.Y(),ret.Z(),ret.Perp(),ret.Phi(),ret.Z());
-    printf(" -- %f <= r < %f \t%f <= phi < %f \t%f <= z < %f \n",rmin_roi*step.Perp()+rmin,rmax_roi*step.Perp()+rmin, phimin_roi*step.Phi(),phimax_roi*step.Phi(),zmin_roi*step.Z(),zmax_roi*step.Z());
-    printf("Returning last good position.\n");
-      if (!(goodToStep==0)) *goodToStep=i-1;
-      //assert (1==2);
-      return (start+accumulated_drift+drift_step*(i-1))*(1.0/cm);
-    }
-    last_distortion=accumulated_distortion;
-    GetStepDistortion(start.Z()+zstep*(i+1),ret,true,false);
-    accumulated_distortion+=GetStepDistortion(start.Z()+zstep*(i+1),ret,true,false);
-    accumulated_drift+=drift_step;
-
-    //this seems redundant, but if the distortions are small they may lose precision and stop actually changing the position when step size is small.  This allows them to accumulate separately so they can grow properly:
-    ret=start+accumulated_distortion+accumulated_drift;
-  }
-  *goodToStep=steps;
-  return ret*(1.0/cm);
 }
 
 TVector3 AnnularFieldSim::GetTotalDistortion(float zdest,TVector3 start,int steps, bool interpolate, int *goodToStep){
@@ -2567,9 +2542,9 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char* filebase, int r
   //monitor plots, and the position that that plot monitors at:
   
   //TVector3 pos((nrh/2+0.5)*s.Perp()+rih,0,(nzh/2+0.5)*s.Z()+zih);
-  TVector3 pos((nrh/2+0.5)*s.Perp()+rih,0,zmin+step.Z()*(floor(nz/2)+0.5));
-  float posphi=(nph/2+0.5)*s.Phi()+pih;
-  pos.SetPhi((nph/2+0.5)*s.Phi()+pih);
+    TVector3 pos( ((int)(nrh/2)+0.5)*s.Perp()+rih, 0, zmin+((int)(nz/2)+0.5)*step.Z());
+    float posphi=((int)(nph/2)+0.5)*s.Phi()+pih;
+    pos.SetPhi(posphi);
   //int xi[3]={nrh/2,nph/2,nzh/2};
   int xi[3]={(int)floor((pos.Perp()-rih)/s.Perp()),(int)floor((posphi-pih)/s.Phi()),(int)floor((pos.Z()-zih)/s.Z())};
   if (!hasTwin) printf("rpz slice indices= (%d,%d,%d) (no twin)\n",xi[0],xi[1],xi[2]);
@@ -2643,7 +2618,9 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char* filebase, int r
 
 
   printf("generating separated distortion map with (%dx%dx%d) grid \n",nrh,nph,nzh);
-  unsigned long long totalelements=nrh*nph*nzh;
+  unsigned long long totalelements=nrh;
+  totalelements*=nph;
+  totalelements*=nzh; //breaking up this multiplication prevents a 32bit math overflow
   unsigned long long percent=totalelements/100*debug_npercent;
   printf("total elements = %llu\n",totalelements);
 
@@ -3044,9 +3021,9 @@ void AnnularFieldSim::GenerateDistortionMaps(const char* filebase, int r_subsamp
   //monitor plots, and the position that plot monitors at:
   
   //TVector3 pos((nrh/2+0.5)*s.Perp()+rih,0,(nzh/2+0.5)*s.Z()+zih);
-  TVector3 pos((nrh/2+0.5)*s.Perp()+rih,0,zmin+step.Z()*(floor(nz/2)+0.5));
-  float posphi=(nph/2+0.5)*s.Phi()+pih;
-  pos.SetPhi((nph/2+0.5)*s.Phi()+pih);
+  TVector3 pos( ((int)(nrh/2)+0.5)*s.Perp()+rih, 0, zmin+((int)(nz/2)+0.5)*step.Z());
+  float posphi=((int)(nph/2)+0.5)*s.Phi()+pih;
+  pos.SetPhi(posphi);
   //int xi[3]={nrh/2,nph/2,nzh/2};
   int xi[3]={(int)floor((pos.Perp()-rih)/s.Perp()),(int)floor((posphi-pih)/s.Phi()),(int)floor((pos.Z()-zih)/s.Z())};
   if (!hasTwin) printf("rpz slice indices= (%d,%d,%d) (no twin)\n",xi[0],xi[1],xi[2]);
@@ -3120,7 +3097,9 @@ void AnnularFieldSim::GenerateDistortionMaps(const char* filebase, int r_subsamp
 
 
   printf("generating distortion map with (%dx%dx%d) grid \n",nrh,nph,nzh);
-  unsigned long long totalelements=nrh*nph*nzh;
+  unsigned long long totalelements=nrh;
+  totalelements*=nph;
+  totalelements*=nzh; //breaking up this multiplication prevents a 32bit math overflow
   unsigned long long percent=totalelements/100*debug_npercent;
   printf("total elements = %llu\n",totalelements);
 
@@ -3665,8 +3644,10 @@ float AnnularFieldSim::GetChargeAt(TVector3 pos){
   //assume pos is in native units (see header)
   int r,p,z;
 
-  GetRindexAndCheckBounds(pos.Perp(),  &r);//==BoundsCase::OutOfBounds) return zero_vector;
-  GetPhiIndexAndCheckBounds(pos.Phi(), &p);//==BoundsCase::OutOfBounds) return zero_vector;
+  //get the bounds, but we don't need to actually check the cases, just loading these values to quiet coverity.
+  BoundsCase rBoundsOkay=GetRindexAndCheckBounds(pos.Perp(),  &r);//==BoundsCase::OutOfBounds) return zero_vector;
+  BoundsCase phiBoundsOkay=GetPhiIndexAndCheckBounds(pos.Phi(), &p);//==BoundsCase::OutOfBounds) return zero_vector;
+  
   BoundsCase zbound=GetZindexAndCheckBounds(pos.Z(), &z);//==BoundsCase::OutOfBounds) return zero_vector;
   if (zbound==OutOfBounds && hasTwin) return twin->GetChargeAt(pos);
   return q->Get(r,p,z);

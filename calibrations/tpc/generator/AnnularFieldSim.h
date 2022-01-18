@@ -293,7 +293,7 @@ debug_printActionEveryN=0; return;};
 #define MULTIARRAY
 template <class T>
 class MultiArray : public TObject{
-   //class to hold an up-to-six dimensional array of whatever T is.  Any indices not used are flattened.
+   //class to hold an up-to-six dimensional array of whatever T is.  Any indices not used are flattened.  This should probably be replaced with sets of TH3s...
  public:
    static const int MAX_DIM=6;
    int dim;
@@ -319,6 +319,9 @@ class MultiArray : public TObject{
      field=static_cast<T*>( malloc(length*sizeof(T) ));
      //field=(T)( malloc(length*sizeof(T) ));
      //for (int i=0;i<length;i++) field[i].SetXYZ(0,0,0);
+   }
+   ~MultiArray(){
+     free(field);
    }
 
    void Add(int a, int b, int c, T in){

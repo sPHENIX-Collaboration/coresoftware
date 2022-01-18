@@ -341,8 +341,8 @@ double Rossegger::Rmn(int m, int n, double r){
 
   //  Check input arguments for sanity...
   int error=0;
-  if (m<0 || m>NumberOfOrders) error=1;
-  if (n<0 || n>NumberOfOrders) error=1;
+  if (m<0 || m>=NumberOfOrders) error=1;
+  if (n<0 || n>=NumberOfOrders) error=1;
   if (r<a || r>b)              error=1;
   if (error)
     {
@@ -365,8 +365,8 @@ double Rossegger::Rmn_(int m, int n, double r){
 
   //  Check input arguments for sanity...
   int error=0;
-  if (m<0 || m>NumberOfOrders) error=1;
-  if (n<0 || n>NumberOfOrders) error=1;
+  if (m<0 || m>=NumberOfOrders) error=1;
+  if (n<0 || n>=NumberOfOrders) error=1;
   if (r<a || r>b)              error=1;
   if (error)
     {
@@ -384,12 +384,14 @@ double Rossegger::Rmn_(int m, int n, double r){
   return R;
 }
 
-double Rossegger::Rmn1(int m, int n, double r)
+double Rossegger::Rmn1( BoundsCase rBoundsOkay=GetRindexAndCheckBounds(pos.Perp(),  &r);//==BoundsCase::OutOfBounds) return zero_vector;
+  BoundsCase phiBoundsOkay=GetPhiIndexAndCheckBounds(pos.Phi(), &p);//==BoundsCase::OutOfBounds) return zero_vector;
+  int m, int n, double r)
 {
  //  Check input arguments for sanity...
   int error=0;
-  if (m<0 || m>NumberOfOrders) error=1;
-  if (n<0 || n>NumberOfOrders) error=1;
+  if (m<0 || m>=NumberOfOrders) error=1;
+  if (n<0 || n>=NumberOfOrders) error=1;
   if (r<a || r>b)              error=1;
   if (error)
     {
@@ -410,8 +412,8 @@ double Rossegger::Rmn1_(int m, int n, double r)
 {
  //  Check input arguments for sanity...
   int error=0;
-  if (m<0 || m>NumberOfOrders) error=1;
-  if (n<0 || n>NumberOfOrders) error=1;
+  if (m<0 || m>=NumberOfOrders) error=1;
+  if (n<0 || n>=NumberOfOrders) error=1;
   if (r<a || r>b)              error=1;
   if (error)
     {
@@ -433,8 +435,8 @@ double Rossegger::Rmn2(int m, int n, double r)
 {
  //  Check input arguments for sanity...
   int error=0;
-  if (m<0 || m>NumberOfOrders) error=1;
-  if (n<0 || n>NumberOfOrders) error=1;
+  if (m<0 || m>=NumberOfOrders) error=1;
+  if (n<0 || n>=NumberOfOrders) error=1;
   if (r<a || r>b)              error=1;
   if (error)
     {
@@ -455,8 +457,8 @@ double Rossegger::Rmn2_(int m, int n, double r)
 {
  //  Check input arguments for sanity...
   int error=0;
-  if (m<0 || m>NumberOfOrders) error=1;
-  if (n<0 || n>NumberOfOrders) error=1;
+  if (m<0 || m>=NumberOfOrders) error=1;
+  if (n<0 || n>=NumberOfOrders) error=1;
   if (r<a || r>b)              error=1;
   if (error)
     {
@@ -478,8 +480,8 @@ double Rossegger::RPrime(int m, int n, double ref, double r)
 {
  //  Check input arguments for sanity...
   int error=0;
-  if (m<0   || m>NumberOfOrders) error=1;
-  if (n<0   || n>NumberOfOrders) error=1;
+  if (m<0   || m>=NumberOfOrders) error=1;
+  if (n<0   || n>=NumberOfOrders) error=1;
   if (ref<a || ref>b)            error=1;
   if (r<a   || r>b)              error=1;
   if (error)
@@ -508,8 +510,8 @@ double Rossegger::RPrime_(int m, int n, double ref, double r)
 {
  //  Check input arguments for sanity...
   int error=0;
-  if (m<0   || m>NumberOfOrders) error=1;
-  if (n<0   || n>NumberOfOrders) error=1;
+  if (m<0   || m>=NumberOfOrders) error=1;
+  if (n<0   || n>=NumberOfOrders) error=1;
   if (ref<a || ref>b)            error=1;
   if (r<a   || r>b)              error=1;
   if (error)
@@ -563,8 +565,8 @@ double Rossegger::Rnk(int n, int k, double r)
 {
  //  Check input arguments for sanity...
   int error=0;
-  if (n<0   || n>NumberOfOrders) error=1;
-  if (k<0   || k>NumberOfOrders) error=1;
+  if (n<0   || n>=NumberOfOrders) error=1;
+  if (k<0   || k>=NumberOfOrders) error=1;
   if (r<a   || r>b)              error=1;
   if (error)
     {
@@ -581,8 +583,8 @@ double Rossegger::Rnk_(int n, int k, double r)
 {
  //  Check input arguments for sanity...
   int error=0;
-  if (n<0   || n>NumberOfOrders) error=1;
-  if (k<0   || k>NumberOfOrders) error=1;
+  if (n<0   || n>=NumberOfOrders) error=1;
+  if (k<0   || k>=NumberOfOrders) error=1;
   if (r<a   || r>b)              error=1;
   if (error)
     {
