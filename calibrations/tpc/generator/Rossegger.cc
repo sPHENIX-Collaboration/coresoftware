@@ -384,9 +384,7 @@ double Rossegger::Rmn_(int m, int n, double r){
   return R;
 }
 
-double Rossegger::Rmn1( BoundsCase rBoundsOkay=GetRindexAndCheckBounds(pos.Perp(),  &r);//==BoundsCase::OutOfBounds) return zero_vector;
-  BoundsCase phiBoundsOkay=GetPhiIndexAndCheckBounds(pos.Phi(), &p);//==BoundsCase::OutOfBounds) return zero_vector;
-  int m, int n, double r)
+double Rossegger::Rmn1(  int m, int n, double r)
 {
  //  Check input arguments for sanity...
   int error=0;
