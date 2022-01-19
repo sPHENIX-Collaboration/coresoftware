@@ -351,7 +351,28 @@ int AnnularFieldSim::FilterPhiIndex(int phi,int range=-1){
   }
   return p;
 }
-  
+
+
+int AnnularFieldSim::GetRindex(float pos){
+
+  float r0f=(pos-rmin)/step.Perp(); //the position in r, in units of step, starting from the low edge of the 0th bin.
+  int r0=floor(r0f);
+  return r0;
+}
+
+int AnnularFieldSim::GetPhiIndex(float pos){
+  float p0f=(pos)/step.Phi(); //the position in phi, in units of step, starting from the low edge of the 0th bin.
+  int phitemp=floor(p0f);
+  int p0=FilterPhiIndex(phitemp);
+  return p0;
+}
+
+int AnnularFieldSim::GetZindex(float pos){
+  float z0f=(pos-zmin)/step.Z(); //the position in z, in units of step, starting from the low edge of the 0th bin.
+  int z0=floor(z0f);
+  return z0;
+}
+
 AnnularFieldSim::BoundsCase AnnularFieldSim::GetRindexAndCheckBounds(float pos, int *r){
   //if(debugFlag()) printf("%d: AnnularFieldSim::GetRindexAndCheckBounds(r=%f)\n",__LINE__,pos);
 
@@ -3644,9 +3665,9 @@ float AnnularFieldSim::GetChargeAt(TVector3 pos){
   //assume pos is in native units (see header)
   int r,p,z;
 
-  //get the bounds, but we don't need to actually check the cases, just loading these values to quiet coverity.
-  BoundsCase rBoundsOkay=GetRindexAndCheckBounds(pos.Perp(),  &r);//==BoundsCase::OutOfBounds) return zero_vector;
-  BoundsCase phiBoundsOkay=GetPhiIndexAndCheckBounds(pos.Phi(), &p);//==BoundsCase::OutOfBounds) return zero_vector;
+  //get the bounds, but we don't want to actually check the cases, because the charge can go outside the vector region.
+  r=GetRindex(pos.Perp());
+  p=GetPhiIndex(pos.Phi());
   
   BoundsCase zbound=GetZindexAndCheckBounds(pos.Z(), &z);//==BoundsCase::OutOfBounds) return zero_vector;
   if (zbound==OutOfBounds && hasTwin) return twin->GetChargeAt(pos);
