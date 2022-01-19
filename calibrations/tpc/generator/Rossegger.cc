@@ -2,8 +2,6 @@
 
 #include <TMath.h>
 #include <TFile.h>
-#include <TH2.h>
-#include <TH3.h>
 #include <TTree.h>
 
 #include <boost/math/special_functions.hpp> //covers all the special functions.
@@ -24,10 +22,6 @@ extern"C"{
 }
 //
 
-
-//using namespace std;
-//using namespace TMath;
-//using namespace boost::math::special_functions
 
 //Bessel Function J_n(x):
 #define jn(order,x) boost::math::cyl_bessel_j(order,x)

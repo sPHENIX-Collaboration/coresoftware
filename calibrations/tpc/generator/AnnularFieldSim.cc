@@ -1666,7 +1666,7 @@ void  AnnularFieldSim::load_phislice_lookup(const char* sourcefile){
   TFile *input=TFile::Open(sourcefile,"READ");
 
   TTree *tInfo=(TTree*)(input->Get("info"));
-  if (!tInfo) assert(1==3);
+  assert(tInfo);
 
   float file_rmin,file_rmax,file_zmin,file_zmax;
   int file_rmin_roi, file_rmax_roi,file_zmin_roi,file_zmax_roi;
@@ -1709,7 +1709,7 @@ void  AnnularFieldSim::load_phislice_lookup(const char* sourcefile){
   }
 
   TTree *tLookup=(TTree*)(input->Get("phislice"));
-  if (!tLookup) assert(1==5);
+  assert(tLookup);
    int ior,ifr,iophi,ioz,ifz;
    TVector3 *unitf=0; 
    tLookup->SetBranchAddress("ir_source",&ior);
