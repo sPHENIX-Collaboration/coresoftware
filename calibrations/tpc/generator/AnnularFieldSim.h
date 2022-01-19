@@ -284,7 +284,7 @@ debug_printActionEveryN=0; return;};
   BoundsCase GetPhiIndexAndCheckBounds(float pos, int *phi);
   BoundsCase GetZindexAndCheckBounds(float pos, int *z);
   int GetRindex(float pos);
-  int GePhiRindex(float pos);
+  int GetPhiIndex(float pos);
   int GetZindex(float pos);
 
   void UpdateOmegaTau(){omegatau_nominal=-Bnominal*vdrift/abs(Enominal);return;}; //various constants to match internal representation to the familiar formula.  Adding in these factors suggests I should switch to a unitful calculation throughout...

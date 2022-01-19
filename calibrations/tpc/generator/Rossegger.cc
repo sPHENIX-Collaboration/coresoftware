@@ -2,6 +2,8 @@
 
 #include <TMath.h>
 #include <TFile.h>
+#include <TH2.h>
+#include <TH3.h>
 #include <TTree.h>
 
 #include <boost/math/special_functions.hpp> //covers all the special functions.
@@ -22,11 +24,9 @@ extern"C"{
 }
 //
 
-#include "TH2D.h"
-#include "TH3.h"
 
-using namespace std;
-using namespace TMath;
+//using namespace std;
+//using namespace TMath;
 //using namespace boost::math::special_functions
 
 //Bessel Function J_n(x):
@@ -74,14 +74,14 @@ Rossegger::Rossegger(double InnerRadius, double OuterRadius, double Rdo_Z, doubl
   PrecalcDerivedConstants();
  
 
-  cout << "Rossegger object initialized as follows:" << endl;
-  cout << "  Inner Radius = " << a << " cm." << endl;
-  cout << "  Outer Radius = " << b << " cm." << endl;
-  cout << "  Half  Length = " << L << " cm." << endl;
+  std::cout << "Rossegger object initialized as follows:" << std::endl;
+  std::cout << "  Inner Radius = " << a << " cm." << std::endl;
+  std::cout << "  Outer Radius = " << b << " cm." << std::endl;
+  std::cout << "  Half  Length = " << L << " cm." << std::endl;
 
   if (!CheckZeroes(0.01))
   {
-    cout << "CheckZeroes(0.01) returned false, exiting" << endl;
+    std::cout << "CheckZeroes(0.01) returned false, exiting" << std::endl;
     exit(1);
   }
   return ;
@@ -96,7 +96,7 @@ double Rossegger::FindNextZero(double xstart,double epsilon,int order, double (R
   while (! (  (value == 0) || (value<0 && previous>0) || (value>0 && previous<0)) ){
     	  //  Rossegger equation 5.12
     value = (this->*func)(order, x);
-    if (value == 0) cout << "hit it exactly!  Go buy a lottery ticket!" << endl;
+    if (value == 0) std::cout << "hit it exactly!  Go buy a lottery ticket!" << std::endl;
     if ( (value == 0) || (value<0 && previous>0) || (value>0 && previous<0))
       {
 	//when we go from one sign to the other, we have bracketed the zero
@@ -106,7 +106,7 @@ double Rossegger::FindNextZero(double xstart,double epsilon,int order, double (R
 	double slope = (value-previous)/epsilon;
 	double intercept =  value - slope*x;
 	double x0  = -intercept/slope;
-	if (verbosity>1) cout << " " << x0 << "," << endl;
+	if (verbosity>1) std::cout << " " << x0 << "," << std::endl;
 	double n0=  (this->*func)(order, x-epsilon);
 	double n1= (this->*func)(order, x+epsilon);
 	if ((n0<0 && n1<0)||(n0>0 && n1>0)){
@@ -118,7 +118,7 @@ double Rossegger::FindNextZero(double xstart,double epsilon,int order, double (R
     previous = value;
     x+=epsilon;
   }
-  cout <<"logic break!\n";
+  std::cout <<"logic break!\n";
   assert(1==2);
   return 0;
 
@@ -126,11 +126,11 @@ double Rossegger::FindNextZero(double xstart,double epsilon,int order, double (R
 
 void Rossegger::FindBetamn(double epsilon)
 {
-  cout << "Now filling the Beta[m][n] Array..."<<endl;
-  if (verbosity>5) cout << "numberOfOrders= " << NumberOfOrders <<endl;
+  std::cout << "Now filling the Beta[m][n] Array..."<<std::endl;
+  if (verbosity>5) std::cout << "numberOfOrders= " << NumberOfOrders <<std::endl;
   for (int m=0; m<NumberOfOrders; m++)
     {
-      if (verbosity) cout << "Filling Beta["<<m<<"][n]..." << endl;
+      if (verbosity) std::cout << "Filling Beta["<<m<<"][n]..." << std::endl;
 
       double x=epsilon;
       for (int n=0;n<NumberOfOrders;n++){//  !!!  Off by one from Rossegger convention  !!!
@@ -153,7 +153,7 @@ void Rossegger::FindBetamn(double epsilon)
 	  double jna_over_jnb=jn(m,Betamn[m][n]*a)/jn(m,Betamn[m][n]*b);
 	  N2mn[m][n] *= (jna_over_jnb*jna_over_jnb-1.0);
 	  //rcc note!  in eq 5.17, N2nm is set with betamn[m][n], but from context that looks to be a typo.  The order is mn everywhere else
-	  if (verbosity>1) cout << "m: " << m << " n: " << n << " N2[m][n]: " << N2mn[m][n];
+	  if (verbosity>1) std::cout << "m: " << m << " n: " << n << " N2[m][n]: " << N2mn[m][n];
 	  double integral=0.0;
 	  double step = 0.01;
 	  if (verbosity>1)
@@ -163,20 +163,20 @@ void Rossegger::FindBetamn(double epsilon)
 		
 		integral += rmnval*rmnval*r*step;//Rmn(m,n,r)*Rmn(m,n,r)*r*step;
 	      }
-	      cout << " Int: " << integral << endl;
+	      std::cout << " Int: " << integral << std::endl;
 	    }
 	  //N2mn[m][n] = integral;
 	}
     }
 
-  cout << "Done." << endl;
+  std::cout << "Done." << std::endl;
 }
 
 
 void Rossegger::FindMunk(double epsilon)
 {
-  cout << "Now filling the Mu[n][k] Array..."<<endl;
-  if (verbosity>5)  cout << "numberOfOrders= " << NumberOfOrders <<endl;
+  std::cout << "Now filling the Mu[n][k] Array..."<<std::endl;
+  if (verbosity>5)  std::cout << "numberOfOrders= " << NumberOfOrders <<std::endl;
   // We're looking for the zeroes of Rossegger eqn. 5.46:
   // R_nk(mu_nk;a,b)=Limu(Beta_n*a)Kimu(Beta_n*b)-Kimu(Beta_n*a)Limu(Beta_n*b)=0
   // since a and b are fixed, R_nk is a function solely of mu_nk and n.
@@ -186,7 +186,7 @@ void Rossegger::FindMunk(double epsilon)
 
   for (int n=0; n<NumberOfOrders; n++)//  !!!  Off by one from Rossegger convention  !!!
     {
-      if (verbosity) cout << "Filling Mu["<<n<<"][k]..." << endl;
+      if (verbosity) std::cout << "Filling Mu["<<n<<"][k]..." << std::endl;
       double x=epsilon;
       for (int k=0;k<NumberOfOrders;k++){
 	x=FindNextZero(x,epsilon,n,&Rossegger::Rnk_for_zeroes);
@@ -219,17 +219,17 @@ void Rossegger::FindMunk(double epsilon)
 		integral += rnkval*rnkval/r*step;
 	      }
 	  if (verbosity>1)
-	    {	      cout << " Int: " << integral << endl;
+	    {	      std::cout << " Int: " << integral << std::endl;
 	    }
 	  N2nk[n][k] = integral;
-	  if (verbosity>1) cout << "n: " << n << " k: " << k << " N2nk[n][k]: " << N2nk[n][k];
+	  if (verbosity>1) std::cout << "n: " << n << " k: " << k << " N2nk[n][k]: " << N2nk[n][k];
 
 	}
     }
 
 
   
-  cout << "Done." << endl;
+  std::cout << "Done." << std::endl;
   return;
 }
 
@@ -274,7 +274,7 @@ void Rossegger::PrecalcFreeConstants(){ //Routine used to fill the arrays of oth
       im_BetaN_a[m][n]=in(m,BetaN_a[n]);  //in(m,BetaN*a) as used in Rossegger 5.32
       km_BetaN_b[m][n]=kn(m,BetaN_b[n]); //kn(m,BetaN*b) as used in Rossegger 5.33
       im_BetaN_b[m][n]=in(m,BetaN_b[n]); //in(m,BetaN*b) as used in Rossegger 5.33
-      bessel_denominator[m][n]=BesselI(m,BetaN_a[n])*BesselK(m,BetaN_b[n])-BesselI(m,BetaN_b[n])*BesselK(m,BetaN_a[n]);  //BesselI(m,BetaN*a)*BesselK(m,BetaN*b)-BesselI(m,BetaN*b)*BesselK(m,BetaN*a) as in Rossegger 5.65
+      bessel_denominator[m][n]=TMath::BesselI(m,BetaN_a[n])*TMath::BesselK(m,BetaN_b[n])-TMath::BesselI(m,BetaN_b[n])*TMath::BesselK(m,BetaN_a[n]);  //TMath::BesselI(m,BetaN*a)*TMath::BesselK(m,BetaN*b)-TMath::BesselI(m,BetaN*b)*TMath::BesselK(m,BetaN*a) as in Rossegger 5.65
       
     }
   }
@@ -337,7 +337,7 @@ void Rossegger::PrecalcDerivedConstants(){ //Routine used to fill the arrays of 
  }
 
 double Rossegger::Rmn(int m, int n, double r){
-  if (verbosity>100) cout << "Determine Rmn("<<m<<","<<n<<","<<r<<") = ";
+  if (verbosity>100) std::cout << "Determine Rmn("<<m<<","<<n<<","<<r<<") = ";
 
   //  Check input arguments for sanity...
   int error=0;
@@ -346,7 +346,7 @@ double Rossegger::Rmn(int m, int n, double r){
   if (r<a || r>b)              error=1;
   if (error)
     {
-      cout << "Invalid arguments Rmn("<<m<<","<<n<<","<<r<<")" << endl;;
+      std::cout << "Invalid arguments Rmn("<<m<<","<<n<<","<<r<<")" << std::endl;;
       return 0;
     }
 
@@ -356,12 +356,12 @@ double Rossegger::Rmn(int m, int n, double r){
   double R=0;
   R = ym_Betamn_a[m][n]*jn(m,Betamn[m][n]*r) - jm_Betamn_a[m][n]*yn(m,Betamn[m][n]*r);
 
-  if (verbosity>100) cout << R << endl;
+  if (verbosity>100) std::cout << R << std::endl;
   return R;
 }
 
 double Rossegger::Rmn_(int m, int n, double r){
-  if (verbosity>100) cout << "Determine Rmn("<<m<<","<<n<<","<<r<<") = ";
+  if (verbosity>100) std::cout << "Determine Rmn("<<m<<","<<n<<","<<r<<") = ";
 
   //  Check input arguments for sanity...
   int error=0;
@@ -370,7 +370,7 @@ double Rossegger::Rmn_(int m, int n, double r){
   if (r<a || r>b)              error=1;
   if (error)
     {
-      cout << "Invalid arguments Rmn("<<m<<","<<n<<","<<r<<")" << endl;;
+      std::cout << "Invalid arguments Rmn("<<m<<","<<n<<","<<r<<")" << std::endl;;
       return 0;
     }
 
@@ -380,7 +380,7 @@ double Rossegger::Rmn_(int m, int n, double r){
   double R=0;
   R = yn(m,Betamn[m][n]*a)*jn(m,Betamn[m][n]*r) - jn(m,Betamn[m][n]*a)*yn(m,Betamn[m][n]*r);
 
-  if (verbosity>100) cout << R << endl;
+  if (verbosity>100) std::cout << R << std::endl;
   return R;
 }
 
@@ -393,7 +393,7 @@ double Rossegger::Rmn1(  int m, int n, double r)
   if (r<a || r>b)              error=1;
   if (error)
     {
-      cout << "Invalid arguments Rmn1("<<m<<","<<n<<","<<r<<")" << endl;;
+      std::cout << "Invalid arguments Rmn1("<<m<<","<<n<<","<<r<<")" << std::endl;;
       return 0;
     }
 
@@ -415,7 +415,7 @@ double Rossegger::Rmn1_(int m, int n, double r)
   if (r<a || r>b)              error=1;
   if (error)
     {
-      cout << "Invalid arguments Rmn1("<<m<<","<<n<<","<<r<<")" << endl;;
+      std::cout << "Invalid arguments Rmn1("<<m<<","<<n<<","<<r<<")" << std::endl;;
       return 0;
     }
 
@@ -438,7 +438,7 @@ double Rossegger::Rmn2(int m, int n, double r)
   if (r<a || r>b)              error=1;
   if (error)
     {
-      cout << "Invalid arguments Rmn2("<<m<<","<<n<<","<<r<<")" << endl;;
+      std::cout << "Invalid arguments Rmn2("<<m<<","<<n<<","<<r<<")" << std::endl;;
       return 0;
     }
 
@@ -460,7 +460,7 @@ double Rossegger::Rmn2_(int m, int n, double r)
   if (r<a || r>b)              error=1;
   if (error)
     {
-      cout << "Invalid arguments Rmn2("<<m<<","<<n<<","<<r<<")" << endl;;
+      std::cout << "Invalid arguments Rmn2("<<m<<","<<n<<","<<r<<")" << std::endl;;
       return 0;
     }
 
@@ -484,7 +484,7 @@ double Rossegger::RPrime(int m, int n, double ref, double r)
   if (r<a   || r>b)              error=1;
   if (error)
     {
-      cout << "Invalid arguments RPrime("<<m<<","<<n<<","<<ref<<","<<r<<")" << endl;;
+      std::cout << "Invalid arguments RPrime("<<m<<","<<n<<","<<ref<<","<<r<<")" << std::endl;;
       return 0;
     }
 
@@ -514,7 +514,7 @@ double Rossegger::RPrime_(int m, int n, double ref, double r)
   if (r<a   || r>b)              error=1;
   if (error)
     {
-      cout << "Invalid arguments RPrime("<<m<<","<<n<<","<<ref<<","<<r<<")" << endl;;
+      std::cout << "Invalid arguments RPrime("<<m<<","<<n<<","<<ref<<","<<r<<")" << std::endl;;
       return 0;
     }
 
@@ -568,7 +568,7 @@ double Rossegger::Rnk(int n, int k, double r)
   if (r<a   || r>b)              error=1;
   if (error)
     {
-      cout << "Invalid arguments Rnk("<<n<<","<<k<<","<<r<<")" << endl;;
+      std::cout << "Invalid arguments Rnk("<<n<<","<<k<<","<<r<<")" << std::endl;;
       return 0;
     }
    //  Rossegger Equation 5.45
@@ -586,7 +586,7 @@ double Rossegger::Rnk_(int n, int k, double r)
   if (r<a   || r>b)              error=1;
   if (error)
     {
-      cout << "Invalid arguments Rnk("<<n<<","<<k<<","<<r<<")" << endl;;
+      std::cout << "Invalid arguments Rnk("<<n<<","<<k<<","<<r<<")" << std::endl;;
       return 0;
     }
   double BetaN_=(n+1)*pi/L;
@@ -608,30 +608,30 @@ double Rossegger::Ez(double r, double phi, double z, double r1, double phi1, dou
   if (z1<0   || z1>L)        error=1;
   if (error)
     {
-      cout << "Invalid arguments Ez(";
-      cout <<r<<",";
-      cout <<phi<<",";
-      cout <<z<<",";
-      cout <<r1<<",";
-      cout <<phi1<<",";
-      cout <<z1;
-      cout <<")" << endl;;
+      std::cout << "Invalid arguments Ez(";
+      std::cout <<r<<",";
+      std::cout <<phi<<",";
+      std::cout <<z<<",";
+      std::cout <<r1<<",";
+      std::cout <<phi1<<",";
+      std::cout <<z1;
+      std::cout <<")" << std::endl;;
       return 0;
     }
   //Rossegger Equation 5.64
   double G=0;
   for (int m=0; m<NumberOfOrders; m++)
     {
-      if (verbosity>10) cout << endl << m;
+      if (verbosity>10) std::cout << std::endl << m;
       for (int n=0; n<NumberOfOrders; n++)
 	{
-	  if (verbosity>10) cout << " " << n;
+	  if (verbosity>10) std::cout << " " << n;
 	  double term = 1; //unitless
-	  if (verbosity>10) cout << " " << term; 
+	  if (verbosity>10) std::cout << " " << term; 
 	  term *= (2 - ((m==0)?1:0))*cos(m*(phi-phi1));//unitless
-	  if (verbosity>10) cout << " " << term; 
+	  if (verbosity>10) std::cout << " " << term; 
 	  term *= Rmn(m,n,r)*Rmn(m,n,r1)/N2mn[m][n];//units of 1/[L]^2 
-	  if (verbosity>10) cout << " " << term; 
+	  if (verbosity>10) std::cout << " " << term; 
 	  if (z<z1)
 	    {
 	      term *=  cosh(Betamn[m][n]*z)*sinh(Betamn[m][n]*(L-z1))/sinh_Betamn_L[m][n];//unitless
@@ -640,14 +640,14 @@ double Rossegger::Ez(double r, double phi, double z, double r1, double phi1, dou
 	    {
 	      term *= -cosh(Betamn[m][n]*(L-z))*sinh(Betamn[m][n]*z1)/sinh_Betamn_L[m][n];//unitless
 	    }
-	  if (verbosity>10) cout << " " << term; 
+	  if (verbosity>10) std::cout << " " << term; 
 	  G += term;
-	  if (verbosity>10) cout << " " << term << " " << G << endl;
+	  if (verbosity>10) std::cout << " " << term << " " << G << std::endl;
 	}
     }
 
   G=G/(2.0*pi);
-  if (verbosity) cout << "Ez = " << G << endl;
+  if (verbosity) std::cout << "Ez = " << G << std::endl;
 
   return G;
 }
@@ -665,30 +665,30 @@ double Rossegger::Ez_(double r, double phi, double z, double r1, double phi1, do
   if (z1<0   || z1>L)        error=1;
   if (error)
     {
-      cout << "Invalid arguments Ez(";
-      cout <<r<<",";
-      cout <<phi<<",";
-      cout <<z<<",";
-      cout <<r1<<",";
-      cout <<phi1<<",";
-      cout <<z1;
-      cout <<")" << endl;;
+      std::cout << "Invalid arguments Ez(";
+      std::cout <<r<<",";
+      std::cout <<phi<<",";
+      std::cout <<z<<",";
+      std::cout <<r1<<",";
+      std::cout <<phi1<<",";
+      std::cout <<z1;
+      std::cout <<")" << std::endl;;
       return 0;
     }
 
   double G=0;
   for (int m=0; m<NumberOfOrders; m++)
     {
-      if (verbosity>10) cout << endl << m;
+      if (verbosity>10) std::cout << std::endl << m;
       for (int n=0; n<NumberOfOrders; n++)
 	{
-	  if (verbosity>10) cout << " " << n;
+	  if (verbosity>10) std::cout << " " << n;
 	  double term = 1/(2.0*pi);
-	  if (verbosity>10) cout << " " << term; 
+	  if (verbosity>10) std::cout << " " << term; 
 	  term *= (2 - ((m==0)?1:0))*cos(m*(phi-phi1));//unitless
-	  if (verbosity>10) cout << " " << term; 
+	  if (verbosity>10) std::cout << " " << term; 
 	  term *= Rmn(m,n,r)*Rmn(m,n,r1)/N2mn[m][n];//units of 1/[L]^2
-	  if (verbosity>10) cout << " " << term; 
+	  if (verbosity>10) std::cout << " " << term; 
 	  if (z<z1)
 	    {
 	      term *=  cosh(Betamn[m][n]*z)*sinh(Betamn[m][n]*(L-z1))/sinh(Betamn[m][n]*L);
@@ -697,12 +697,12 @@ double Rossegger::Ez_(double r, double phi, double z, double r1, double phi1, do
 	    {
 	      term *= -cosh(Betamn[m][n]*(L-z))*sinh(Betamn[m][n]*z1)/sinh(Betamn[m][n]*L);;
 	    }
-	  if (verbosity>10) cout << " " << term; 
+	  if (verbosity>10) std::cout << " " << term; 
 	  G += term;
-	  if (verbosity>10) cout << " " << term << " " << G << endl;
+	  if (verbosity>10) std::cout << " " << term << " " << G << std::endl;
 	}
     }
-  if (verbosity) cout << "Ez = " << G << endl;
+  if (verbosity) std::cout << "Ez = " << G << std::endl;
 
   return G;
 }
@@ -726,14 +726,14 @@ double Rossegger::Er(double r, double phi, double z, double r1, double phi1, dou
   if (z1<0   || z1>L)        error=1;
   if (error)
     {
-      cout << "Invalid arguments Er(";
-      cout <<r<<",";
-      cout <<phi<<",";
-      cout <<z<<",";
-      cout <<r1<<",";
-      cout <<phi1<<",";
-      cout <<z1;
-      cout <<")" << endl;;
+      std::cout << "Invalid arguments Er(";
+      std::cout <<r<<",";
+      std::cout <<phi<<",";
+      std::cout <<z<<",";
+      std::cout <<r1<<",";
+      std::cout <<phi1<<",";
+      std::cout <<z1;
+      std::cout <<")" << std::endl;;
       return 0;
     }
 
@@ -760,7 +760,7 @@ double Rossegger::Er(double r, double phi, double z, double r1, double phi1, dou
   }
 
   G=G/(L*pi);//units of 1/[L] -- net is 1/[L]^2
-  if (verbosity) cout << "Er = " << G << endl;
+  if (verbosity) std::cout << "Er = " << G << std::endl;
 
   return G;
 }
@@ -781,14 +781,14 @@ double Rossegger::Er_(double r, double phi, double z, double r1, double phi1, do
   if (z1<0   || z1>L)        error=1;
   if (error)
     {
-      cout << "Invalid arguments Er(";
-      cout <<r<<",";
-      cout <<phi<<",";
-      cout <<z<<",";
-      cout <<r1<<",";
-      cout <<phi1<<",";
-      cout <<z1;
-      cout <<")" << endl;;
+      std::cout << "Invalid arguments Er(";
+      std::cout <<r<<",";
+      std::cout <<phi<<",";
+      std::cout <<z<<",";
+      std::cout <<r1<<",";
+      std::cout <<phi1<<",";
+      std::cout <<z1;
+      std::cout <<")" << std::endl;;
       return 0;
     }
 
@@ -810,13 +810,13 @@ double Rossegger::Er_(double r, double phi, double z, double r1, double phi1, do
 	      term *= Rmn1_(m,n,r1)*RPrime_(m,n,b,r);
 	    }
 
-	  term /= BesselI(m,BetaN_*a)*BesselK(m,BetaN_*b)-BesselI(m,BetaN_*b)*BesselK(m,BetaN_*a);
+	  term /= TMath::BesselI(m,BetaN_*a)*TMath::BesselK(m,BetaN_*b)-TMath::BesselI(m,BetaN_*b)*TMath::BesselK(m,BetaN_*a);
 
 	  G += term;
 	}
     }
 
-  if (verbosity) cout << "Er = " << G << endl;
+  if (verbosity) std::cout << "Er = " << G << std::endl;
 
   return G;
 }
@@ -835,14 +835,14 @@ double Rossegger::Ephi(double r, double phi, double z, double r1, double phi1, d
   if (z1<0   || z1>L)        error=1;
   if (error)
     {
-      cout << "Invalid arguments Ephi(";
-      cout <<r<<",";
-      cout <<phi<<",";
-      cout <<z<<",";
-      cout <<r1<<",";
-      cout <<phi1<<",";
-      cout <<z1;
-      cout <<")" << endl;;
+      std::cout << "Invalid arguments Ephi(";
+      std::cout <<r<<",";
+      std::cout <<phi<<",";
+      std::cout <<z<<",";
+      std::cout <<r1<<",";
+      std::cout <<phi1<<",";
+      std::cout <<z1;
+      std::cout <<")" << std::endl;;
       return 0;
     }
 
@@ -866,7 +866,7 @@ double Rossegger::Ephi(double r, double phi, double z, double r1, double phi1, d
   }
 
   G=G/(L*r);//units of 1/[L]^2.  r comes from the phi term in cylindrical gradient expression.
-  if (verbosity) cout << "Ephi = " << G << endl;
+  if (verbosity) std::cout << "Ephi = " << G << std::endl;
  
   return G;
 }
@@ -885,14 +885,14 @@ double Rossegger::Ephi_(double r, double phi, double z, double r1, double phi1, 
   if (z1<0   || z1>L)        error=1;
   if (error)
     {
-      cout << "Invalid arguments Ephi(";
-      cout <<r<<",";
-      cout <<phi<<",";
-      cout <<z<<",";
-      cout <<r1<<",";
-      cout <<phi1<<",";
-      cout <<z1;
-      cout <<")" << endl;;
+      std::cout << "Invalid arguments Ephi(";
+      std::cout <<r<<",";
+      std::cout <<phi<<",";
+      std::cout <<z<<",";
+      std::cout <<r1<<",";
+      std::cout <<phi1<<",";
+      std::cout <<z1;
+      std::cout <<")" << std::endl;;
       return 0;
     }
 
@@ -901,19 +901,19 @@ double Rossegger::Ephi_(double r, double phi, double z, double r1, double phi1, 
   //Rossegger Eqn. 5.66:
   for (int k=0; k<NumberOfOrders; k++) //off by one from Rossegger convention!
     {
-      if (verbosity) cout << "\nk=" << k;
+      if (verbosity) std::cout << "\nk=" << k;
       for (int n=0; n<NumberOfOrders; n++) //off by one from Rossegger convention!
 	{
-	  if (verbosity) cout << " n=" << n;
+	  if (verbosity) std::cout << " n=" << n;
 	  double BetaN_ = (n+1)*pi/L;	  
 	  double term = 1/(L*r);
-	  if (verbosity) cout << " 1/L=" << term; 
+	  if (verbosity) std::cout << " 1/L=" << term; 
 	  term *= sin(BetaN_*z)*sin(BetaN_*z1);
-	  if (verbosity) cout << " *sinsin=" << term; 
+	  if (verbosity) std::cout << " *sinsin=" << term; 
 	  term *= Rnk_(n,k,r)*Rnk_(n,k,r1);
-	  if (verbosity) cout << " *rnkrnk=" << term;
+	  if (verbosity) std::cout << " *rnkrnk=" << term;
 	  term/=N2nk[n][k];
-	  if (verbosity) cout << " */nnknnk=" << term;
+	  if (verbosity) std::cout << " */nnknnk=" << term;
 
 	  //the derivative of cosh(munk(pi-|phi-phi1|)
 	  if (phi>phi1)
@@ -928,15 +928,15 @@ double Rossegger::Ephi_(double r, double phi, double z, double r1, double phi1, 
 	      //term *=  -Munk[n][k]*sinh(Munk[n][k]*pi*(phi-phi1));
 	      //this originally has a factor of Munk in front, but that cancels with one in the denominator
 	    }
-	  if (verbosity) cout << " *sinh(mu*pi-phi-phi)=" << term;
+	  if (verbosity) std::cout << " *sinh(mu*pi-phi-phi)=" << term;
 	  term *= 1/(sinh(pi*Munk[n][k]));
 	  //term *= 1/(Munk[n][k]*sinh(pi*Munk[n][k]));
 	      //this originally has a factor of Munk in front, but that cancels with one in the numerator
 	  G += term;
-	  if (verbosity) cout << "  /sinh=" << term << " G=" << G << endl;
+	  if (verbosity) std::cout << "  /sinh=" << term << " G=" << G << std::endl;
 	}
     }
-  if (verbosity) cout << "Ephi = " << G << endl;
+  if (verbosity) std::cout << "Ephi = " << G << std::endl;
    verbosity=0;
 
   return G;

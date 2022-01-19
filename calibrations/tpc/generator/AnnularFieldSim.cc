@@ -4,22 +4,20 @@
 #include "Rossegger.h"
 
 #include <TCanvas.h>
-#include <TFormula.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
 #include <TH3.h>
 #include <TLatex.h>
-#include <TROOT.h>
+#include <TString.h>
 #include <TStyle.h>
 #include <TTree.h>
 #include <TVector3.h>
 
 #include <boost/format.hpp>
 
+#include <cmath>
 #include <iostream>
-
-using namespace std;
 
 #define ALMOST_ZERO 0.00001
 
@@ -82,7 +80,7 @@ AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, flo
   dim.SetXYZ(1,0,0);
   dim.SetPerp(rmax-rmin);
   dim.SetPhi(0);
-  phispan=2*TMath::Pi();
+  phispan=2*M_PI;
   dim.SetZ(zmax-zmin);
 
   //set the green's functions model:
@@ -327,10 +325,10 @@ TVector3 AnnularFieldSim::calc_unit_field(TVector3 at, TVector3 from){
 double AnnularFieldSim::FilterPhiPos(double phi){
   double p=phi;
   if (p>=phispan){
-    p-=2*TMath::Pi();
+    p-=2*M_PI;
   }
   if (p<0){
-    p+=2*TMath::Pi();
+    p+=2*M_PI;
   }
   return p;
 }
@@ -633,7 +631,7 @@ TVector3 AnnularFieldSim::GetWeightedCellCenter(int r, int phi, int z){
   float rin=r*step.Perp()+rmin;
   float rout=rin+step.Perp();
 
-  float rMid=(4*TMath::Sin(step.Phi()/2)*(pow(rout,3)-pow(rin,3))
+  float rMid=(4*sin(step.Phi()/2)*(pow(rout,3)-pow(rin,3))
 	      /(3*step.Phi()*(pow(rout,2)-pow(rin,2))));
   c.SetPerp(rMid);
   c.SetPhi((phi+0.5)*step.Phi());
@@ -893,14 +891,14 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   bool phiSymmetry=(phiptr==0); //if the phi pointer is zero, assume phi symmetry.
   int lowres_factor=10; // to fill in gaps, we group together loweres^3 cells into one block and use that average.
   printf("loading field from %f<z<%f\n",zmin,zmax);
-  TH3F *htEntries=new TH3F("htentries","num of entries in the field loading",nphi,0,TMath::Pi()*2.0,nr,rmin,rmax, nz,zmin,zmax);
+  TH3F *htEntries=new TH3F("htentries","num of entries in the field loading",nphi,0,M_PI*2.0,nr,rmin,rmax, nz,zmin,zmax);
   TH3F *htSum[3];
-   TH3F *htEntriesLow=new TH3F("htentrieslow","num of lowres entries in the field loading",nphi/lowres_factor+1,0,TMath::Pi()*2.0,nr/lowres_factor+1,rmin,rmax, nz/lowres_factor+1,zmin,zmax);
+   TH3F *htEntriesLow=new TH3F("htentrieslow","num of lowres entries in the field loading",nphi/lowres_factor+1,0,M_PI*2.0,nr/lowres_factor+1,rmin,rmax, nz/lowres_factor+1,zmin,zmax);
   TH3F *htSumLow[3];
   char axis[]="rpz";
   for (int i=0;i<3;i++){
-    htSum[i]=new TH3F(Form("htsum%d",i),Form("sum of %c-axis entries in the field loading",*(axis+i)),nphi,0,TMath::Pi()*2.0,nr,rmin,rmax, nz,zmin,zmax);
-    htSumLow[i]=new TH3F(Form("htsumlow%d",i),Form("sum of low %c-axis entries in the field loading",*(axis+i)),nphi/lowres_factor+1,0,TMath::Pi()*2.0,nr/lowres_factor+1,rmin,rmax, nz/lowres_factor+1,zmin,zmax);
+    htSum[i]=new TH3F(Form("htsum%d",i),Form("sum of %c-axis entries in the field loading",*(axis+i)),nphi,0,M_PI*2.0,nr,rmin,rmax, nz,zmin,zmax);
+    htSumLow[i]=new TH3F(Form("htsumlow%d",i),Form("sum of low %c-axis entries in the field loading",*(axis+i)),nphi/lowres_factor+1,0,M_PI*2.0,nr/lowres_factor+1,rmin,rmax, nz/lowres_factor+1,zmin,zmax);
   }
 
   int nEntries=source->GetEntries();
@@ -982,8 +980,8 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
 void AnnularFieldSim::load_spacecharge(const std::string &filename, const std::string &histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity){
   TFile *f=TFile::Open(filename.c_str());
   TH3F* scmap=(TH3F*)f->Get(histname.c_str());
-  cout << "Loading spacecharge from '" << filename
-       << "'.  Seeking histname '" << histname << "'" << endl;
+  std::cout << "Loading spacecharge from '" << filename
+       << "'.  Seeking histname '" << histname << "'" << std::endl;
   chargefilename = filename + ":" + histname;
 //  sprintf(chargefilename,"%s:%s",filename,histname);
   load_spacecharge(scmap,zoffset,chargescale, cmscale, isChargeDensity);
@@ -994,8 +992,8 @@ void AnnularFieldSim::load_spacecharge(const std::string &filename, const std::s
 void AnnularFieldSim::load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz,const std::string &filename, const std::string &histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity){
   TFile *f=TFile::Open(filename.c_str());
   TH3F* scmap=(TH3F*)f->Get(histname.c_str());
-  cout << "Resampling spacecharge from '" << filename
-       << "'.  Seeking histname '" << histname << "'" << endl;
+  std::cout << "Resampling spacecharge from '" << filename
+       << "'.  Seeking histname '" << histname << "'" << std::endl;
   chargefilename = filename + ":" + histname;
   load_and_resample_spacecharge(new_nphi,new_nr,new_nz,scmap,zoffset,chargescale, cmscale, isChargeDensity);
   f->Close();
@@ -1821,9 +1819,9 @@ void AnnularFieldSim::setFlatFields(float B, float E){
   printf("lengths:  Eext=%d, Bfie=%d\n",Eexternal->Length(),Bfield->Length());
   char fieldstr[100];
   sprintf(fieldstr,"%f",E);
-  Efieldname = "E:Flat:" + string(fieldstr);
+  Efieldname = "E:Flat:" + std::string(fieldstr);
   sprintf(fieldstr,"%f",B);
-  Bfieldname = "B:Flat:" + string(fieldstr);
+  Bfieldname = "B:Flat:" + std::string(fieldstr);
 
   Enominal=E*(V/cm);
   Bnominal=B*Tesla;
@@ -2345,7 +2343,7 @@ void AnnularFieldSim::PlotFieldSlices(const std::string &filebase,TVector3 pos, 
   }
  
   printf("plotting field slices for %c field...\n", which);
-  cout << "file=" << filebase << endl;;
+  std::cout << "file=" << filebase << std::endl;;
   TString plotfilename=TString::Format("%s.%cfield_slices.pdf",filebase.c_str(),which);
   TVector3 inner=GetInnerEdge();
   TVector3 outer=GetOuterEdge();
@@ -2360,7 +2358,7 @@ void AnnularFieldSim::PlotFieldSlices(const std::string &filebase,TVector3 pos, 
   char axis[]="rpzrpz";
   float axisval[]={(float)pos.Perp(),(float)pos.Phi(),(float)pos.Z(),(float)pos.Perp(),(float)pos.Phi(),(float)pos.Z()};
   int axn[]={nr_roi,nphi_roi,nz_roi,nr_roi,nphi_roi,nz_roi};
-  float axtop[]={(float)outer.Perp(),TMath::TwoPi(),(float)outer.Z(),(float)outer.Perp(),TMath::TwoPi(),(float)outer.Z()};
+  float axtop[]={(float)outer.Perp(),2*M_PI,(float)outer.Z(),(float)outer.Perp(),2*M_PI,(float)outer.Z()};
   float axbot[]={(float)inner.Perp(),0,(float)inner.Z(),(float)inner.Perp(),0,(float)inner.Z()};
 
   //if we are in charge of a twin, extend our axes:
@@ -2458,7 +2456,7 @@ void AnnularFieldSim::PlotFieldSlices(const std::string &filebase,TVector3 pos, 
   }
   c->SaveAs(plotfilename);
   printf("after plotting field slices...\n");
-  cout << "file=" << filebase << endl;
+  std::cout << "file=" << filebase << std::endl;
   
 return;
 }
@@ -3472,7 +3470,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest,TVector3 start, bool int
   double zdist=zdest-start.Z();
 
   //short-circuit if there's no travel length:
-  if (TMath::Abs(zdist)<ALMOST_ZERO*step.Z()){
+  if (fabs(zdist)<ALMOST_ZERO*step.Z()){
     printf("Asked  particle from (%f,%f,%f) to z=%f, which is a distance of %fcm.  Returning zero.\n",start.X(),start.Y(),start.Z(), zdest,zdist);
     return zero_vector;
   }
