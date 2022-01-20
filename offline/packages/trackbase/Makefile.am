@@ -20,6 +20,10 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
   ActsTrackingGeometry.h \
+  CMFlashCluster.h \
+  CMFlashClusterv1.h \
+  CMFlashClusterContainer.h \
+  CMFlashClusterContainerv1.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
   TrkrCluster.h \
@@ -48,6 +52,10 @@ pkginclude_HEADERS = \
   TrkrHitSetContainerv1.h
 
 ROOTDICTS = \
+  CMFlashCluster_Dict.cc \
+  CMFlashClusterv1_Dict.cc \
+  CMFlashClusterContainer_Dict.cc \
+  CMFlashClusterContainerv1_Dict.cc \
   TrkrCluster_Dict.cc \
   TrkrClusterv1_Dict.cc \
   TrkrClusterv2_Dict.cc \
@@ -77,6 +85,10 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  CMFlashCluster_Dict_rdict.pcm \
+  CMFlashClusterv1_Dict_rdict.pcm \
+  CMFlashClusterContainer_Dict_rdict.pcm \
+  CMFlashClusterContainerv1_Dict_rdict.pcm \
   TrkrCluster_Dict_rdict.pcm \
   TrkrClusterv1_Dict_rdict.pcm \
   TrkrClusterv2_Dict_rdict.pcm \
@@ -107,6 +119,8 @@ nobase_dist_pcm_DATA = \
 libtrack_io_la_SOURCES = \
   $(ROOTDICTS) \
   ActsSurfaceMaps.cc \
+  CMFlashClusterv1.cc \
+  CMFlashClusterContainerv1.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
   TrkrClusterv3.cc \
