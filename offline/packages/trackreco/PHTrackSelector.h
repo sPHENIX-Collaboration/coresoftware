@@ -47,15 +47,15 @@ class PHTrackSelector : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
 
+  std::string _track_map_name;
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};
-  TrkrClusterIterationMapv1* _iteration_map{nullptr};
+  TrkrClusterIterationMapv1* _iteration_map = nullptr;
 
   TpcSeedTrackMap *_seed_track_map{nullptr};
-  std::string _track_map_name;
 
   int _n_iter = 1;
-  unsigned int min_tpc_clusters = 40;
+  unsigned int min_tpc_clusters = 35;
   unsigned int min_mvtx_hits = 2;
   unsigned int min_intt_hits = 1;
   float max_chi2_ndf = 30;

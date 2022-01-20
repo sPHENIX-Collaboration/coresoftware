@@ -10,9 +10,9 @@
 #include <phool/phool.h>
 
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
+#include <Geant4/G4RotationMatrix.hh>            // for G4RotationMatrix
 #include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
@@ -25,6 +25,7 @@
 #include <iostream>  // for operator<<, endl, basic_ost...
 #include <sstream>
 
+class G4Material;
 class G4VSolid;
 class PHCompositeNode;
 
@@ -53,13 +54,7 @@ bool PHG4CylinderDetector::IsInCylinder(const G4VPhysicalVolume *volume) const
 //_______________________________________________________________
 void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  G4Material *TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
-
-  if (!TrackerMaterial)
-  {
-    cout << "Error: Can not set material " << m_Params->get_string_param("material") << endl;
-    gSystem->Exit(1);
-  }
+  G4Material *TrackerMaterial = GetDetectorMaterial(m_Params->get_string_param("material"));
 
   // determine length of cylinder using PHENIX's rapidity coverage if flag is true
   double radius = m_Params->get_double_param("radius") * cm;

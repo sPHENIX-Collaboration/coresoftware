@@ -9,8 +9,8 @@
 #include <trackbase/TrkrHitSet.h>
 
 #include <map>
-#include <string>                  // for string
-#include <utility>                 // for pair, make_pair
+#include <string>   // for string
+#include <utility>  // for pair, make_pair
 #include <vector>
 
 #include <gsl/gsl_rng.h>
@@ -24,7 +24,7 @@ class PHG4TpcDigitizer : public SubsysReco
   ~PHG4TpcDigitizer() override;
 
   //! module initialization
-  int Init(PHCompositeNode */*topNode*/) override { return 0; }
+  int Init(PHCompositeNode * /*topNode*/) override { return 0; }
 
   //! run initialization
   int InitRun(PHCompositeNode *topNode) override;
@@ -33,7 +33,7 @@ class PHG4TpcDigitizer : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
 
   //! end of process
-  int End(PHCompositeNode */*topNode*/) override { return 0; };
+  int End(PHCompositeNode * /*topNode*/) override { return 0; };
 
   void set_adc_scale(const int layer, const unsigned int max_adc, const float energy_per_adc)
   {

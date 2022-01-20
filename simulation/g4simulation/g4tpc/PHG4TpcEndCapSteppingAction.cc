@@ -1,21 +1,3 @@
-//____________________________________________________________________________..
-//
-// This is a working template for the Stepping Action which needs to be implemented
-// for active detectors. Most of the code is error handling and access to the G4 objects
-// and our data structures. It does not need any adjustment. The only thing you need to
-// do is to add the properties of the G4Hits you want to save for later analysis
-// This needs to be done in 2 places, G4Hits are generated when a G4 track enters a new
-// volume (or is created). Here you give it an initial value. When the G4 track leaves
-// the volume the final value needs to be set.
-// The places to do this is marked by //implement your own here//
-//
-// As guidance you can look at the total (integrated over all steps in a volume) energy
-// deposit which should always be saved.
-// Additionally the total ionization energy is saved - this can be removed if you are not
-// interested in this. Naturally you may want remove these comments in your version
-//
-//____________________________________________________________________________..
-
 #include "PHG4TpcEndCapSteppingAction.h"
 
 #include "PHG4TpcEndCapDetector.h"
@@ -35,12 +17,12 @@
 
 #include <TSystem.h>
 
-#include <Geant4/G4ParticleDefinition.hh> 
+#include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh> 
+#include <Geant4/G4StepPoint.hh>
 #include <Geant4/G4StepStatus.hh>
-#include <Geant4/G4String.hh> 
+#include <Geant4/G4String.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4TouchableHandle.hh>
@@ -57,25 +39,13 @@
 
 class PHCompositeNode;
 
-using namespace std;
-
 //____________________________________________________________________________..
 PHG4TpcEndCapSteppingAction::PHG4TpcEndCapSteppingAction(PHG4TpcEndCapDetector *detector, const PHParameters *parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_Params(parameters)
-  , m_HitContainer(nullptr)
-  , m_Hit(nullptr)
-  , m_SaveHitContainer(nullptr)
-  , m_SaveVolPre(nullptr)
-  , m_SaveVolPost(nullptr)
-  , m_SaveTrackId(-1)
-  , m_SavePreStepStatus(-1)
-  , m_SavePostStepStatus(-1)
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_BlackHoleFlag(m_Params->get_int_param("blackhole"))
-  , m_EdepSum(0)
-  , m_EionSum(0)
 {
 }
 
@@ -91,7 +61,7 @@ PHG4TpcEndCapSteppingAction::~PHG4TpcEndCapSteppingAction()
 
 //____________________________________________________________________________..
 // This is the implementation of the G4 UserSteppingAction
-bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep,bool /*was_used*/)
+bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep, bool /*was_used*/)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
@@ -128,25 +98,25 @@ bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep,bool /*
   // geantino or chargedgeantino has pid=0
   if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
       aTrack->GetParticleDefinition()->GetParticleName().find("geantino") !=
-          string::npos)  // this also accounts for "chargedgeantino"
+          std::string::npos)  // this also accounts for "chargedgeantino"
   {
     geantino = true;
   }
   G4StepPoint *prePoint = aStep->GetPreStepPoint();
   G4StepPoint *postPoint = aStep->GetPostStepPoint();
 
-// Here we have to decide if we need to create a new hit.  Normally this should 
-// only be neccessary if a G4 Track enters a new volume or is freshly created
-// For this we look at the step status of the prePoint (beginning of the G4 Step).
-// This should be either fGeomBoundary (G4 Track crosses into volume) or 
-// fUndefined (G4 Track newly created)
-// Sadly over the years with different G4 versions we have observed cases where
-// G4 produces "impossible hits" which we try to catch here
-// These errors were always rare and it is not clear if they still exist but we
-// still check for them for safety. We can reproduce G4 runs identically (if given
-// the sequence of random number seeds you find in the log), the printouts help
-// us giving the G4 support information about those failures
-// 
+  // Here we have to decide if we need to create a new hit.  Normally this should
+  // only be neccessary if a G4 Track enters a new volume or is freshly created
+  // For this we look at the step status of the prePoint (beginning of the G4 Step).
+  // This should be either fGeomBoundary (G4 Track crosses into volume) or
+  // fUndefined (G4 Track newly created)
+  // Sadly over the years with different G4 versions we have observed cases where
+  // G4 produces "impossible hits" which we try to catch here
+  // These errors were always rare and it is not clear if they still exist but we
+  // still check for them for safety. We can reproduce G4 runs identically (if given
+  // the sequence of random number seeds you find in the log), the printouts help
+  // us giving the G4 support information about those failures
+  //
   switch (prePoint->GetStepStatus())
   {
   case fPostStepDoItProc:
@@ -160,24 +130,24 @@ bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep,bool /*
     {
       // this is an impossible G4 Step print out diagnostic to help debug, not sure if
       // this is still with us
-      cout << GetName() << ": New Hit for  " << endl;
-      cout << "prestep status: "
-           << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-           << ", poststep status: "
-           << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-           << ", last pre step status: "
-           << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-           << ", last post step status: "
-           << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
-      cout << "last track: " << m_SaveTrackId
-           << ", current trackid: " << aTrack->GetTrackID() << endl;
-      cout << "phys pre vol: " << volume->GetName()
-           << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-      cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-           << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
+      std::cout << GetName() << ": New Hit for  " << std::endl;
+      std::cout << "prestep status: "
+                << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+                << ", poststep status: "
+                << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                << ", last pre step status: "
+                << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+                << ", last post step status: "
+                << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+      std::cout << "last track: " << m_SaveTrackId
+                << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+      std::cout << "phys pre vol: " << volume->GetName()
+                << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+      std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+                << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
     }
     [[fallthrough]];
- // These are the normal cases
+    // These are the normal cases
   case fGeomBoundary:
   case fUndefined:
     if (!m_Hit)
@@ -210,7 +180,7 @@ bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep,bool /*
     }
     else
     {
-      cout << "implement stuff for whichactive < 0 (inactive volumes)" << endl;
+      std::cout << "implement stuff for whichactive < 0 (inactive volumes)" << std::endl;
       gSystem->Exit(1);
     }
     // this is for the tracking of the truth info
@@ -230,40 +200,40 @@ bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep,bool /*
   // This section is called for every step
   // some sanity checks for inconsistencies (aka bugs) we have seen over the years
   // check if this hit was created, if not print out last post step status
-  if (!m_Hit || !isfinite(m_Hit->get_x(0)))
+  if (!m_Hit || !std::isfinite(m_Hit->get_x(0)))
   {
-    cout << GetName() << ": hit was not created" << endl;
-    cout << "prestep status: "
-         << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-         << ", poststep status: "
-         << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-         << ", last pre step status: "
-         << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-         << ", last post step status: "
-         << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
-    cout << "last track: " << m_SaveTrackId
-         << ", current trackid: " << aTrack->GetTrackID() << endl;
-    cout << "phys pre vol: " << volume->GetName()
-         << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-    cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-         << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
+    std::cout << GetName() << ": hit was not created" << std::endl;
+    std::cout << "prestep status: "
+              << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+              << ", poststep status: "
+              << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+              << ", last pre step status: "
+              << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+              << ", last post step status: "
+              << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+    std::cout << "last track: " << m_SaveTrackId
+              << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+    std::cout << "phys pre vol: " << volume->GetName()
+              << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+    std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+              << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
     // This is fatal - a hit from nowhere. This needs to be looked at and fixed
     gSystem->Exit(1);
   }
   // check if track id matches the initial one when the hit was created
   if (aTrack->GetTrackID() != m_SaveTrackId)
   {
-    cout << GetName() << ": hits do not belong to the same track" << endl;
-    cout << "saved track: " << m_SaveTrackId
-         << ", current trackid: " << aTrack->GetTrackID()
-         << ", prestep status: " << prePoint->GetStepStatus()
-         << ", previous post step status: " << m_SavePostStepStatus << endl;
+    std::cout << GetName() << ": hits do not belong to the same track" << std::endl;
+    std::cout << "saved track: " << m_SaveTrackId
+              << ", current trackid: " << aTrack->GetTrackID()
+              << ", prestep status: " << prePoint->GetStepStatus()
+              << ", previous post step status: " << m_SavePostStepStatus << std::endl;
     // This is fatal - a hit from nowhere. This needs to be looked at and fixed
     gSystem->Exit(1);
   }
 
-// We need to cache a few things from one step to the next
-// to identify impossible hits and subsequent debugging printout
+  // We need to cache a few things from one step to the next
+  // to identify impossible hits and subsequent debugging printout
   m_SavePreStepStatus = prePoint->GetStepStatus();
   m_SavePostStepStatus = postPoint->GetStepStatus();
   m_SaveVolPre = volume;
@@ -308,8 +278,8 @@ bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep,bool /*
       }
       if (geantino)
       {
- //implement your own here://
- // if you want to do something special for geantinos (normally you do not)
+        //implement your own here://
+        // if you want to do something special for geantinos (normally you do not)
         m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way
                               // geantinos survive the g4hit compression
         if (whichactive > 0)
@@ -321,8 +291,8 @@ bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep,bool /*
       {
         m_Hit->set_edep(m_EdepSum);
       }
- //implement your own here://
- // what you set here will be saved in the output
+      //implement your own here://
+      // what you set here will be saved in the output
       if (whichactive > 0)
       {
         m_Hit->set_eion(m_EionSum);
@@ -347,13 +317,25 @@ bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep,bool /*
 //____________________________________________________________________________..
 void PHG4TpcEndCapSteppingAction::SetInterfacePointers(PHCompositeNode *topNode)
 {
-  string hitnodename = "G4HIT_" + m_Detector->GetName();
   // now look for the map and grab a pointer to it.
-  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   // if we do not find the node we need to make it.
   if (!m_HitContainer)
   {
     std::cout << "PHG4TpcEndCapSteppingAction::SetTopNode - unable to find "
-              << hitnodename << std::endl;
+              << m_HitNodeName << std::endl;
+    gSystem->Exit(1);
   }
+}
+
+void PHG4TpcEndCapSteppingAction::SetHitNodeName(const std::string &type, const std::string &name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }

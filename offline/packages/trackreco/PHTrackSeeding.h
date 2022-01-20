@@ -20,6 +20,7 @@ class PHCompositeNode;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitSetContainer;
+class TrkrClusterIterationMapv1;
 class SvtxVertexMap;
 class SvtxTrackMap;
 class AssocInfoContainer;
@@ -39,7 +40,7 @@ class PHTrackSeeding : public SubsysReco
   int End(PHCompositeNode *topNode) override;
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void SetUseTruthClusters(bool setit){_use_truth_clusters = setit;}
-
+  void SetIteration(int iter){_n_iteration = iter;}
  protected:
   /// setup interface for trackers, called in InitRun, setup things like pointers to nodes.
   /// overrided in derived classes
@@ -54,6 +55,8 @@ class PHTrackSeeding : public SubsysReco
 
   TrkrClusterContainer *_cluster_map = nullptr;
   TrkrClusterHitAssoc *_cluster_hit_map = nullptr;
+  TrkrClusterIterationMapv1* _iteration_map;
+  int _n_iteration;
   SvtxVertexMap *_vertex_map = nullptr;
   SvtxTrackMap *_track_map = nullptr;
   AssocInfoContainer *_assoc_container = nullptr;

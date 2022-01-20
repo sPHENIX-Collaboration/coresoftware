@@ -12,7 +12,6 @@ AM_LDFLAGS = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(OFFLINE_MAIN)/include/eigen3 \
   -I$(ROOTSYS)/include \
   -DHomogeneousField
 
@@ -40,7 +39,6 @@ libkfparticle_sphenix_io_la_SOURCES = \
   KFParticle_Container.cc
 
 libkfparticle_sphenix_la_SOURCES = \
-  KFParticle_Container.cc \
   KFParticle_DST.cc \
   KFParticle_truthAndDetTools.cc \
   KFParticle_nTuple.cc \

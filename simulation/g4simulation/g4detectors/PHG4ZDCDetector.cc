@@ -128,11 +128,11 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   }
 
   recoConsts* rc = recoConsts::instance();
-  G4Material* WorldMaterial = G4Material::GetMaterial(rc->get_StringFlag("WorldMaterial"));
-  G4Material* Fe = G4Material::GetMaterial("G4_Fe");
-  G4Material* W = G4Material::GetMaterial("G4_W");
-  G4Material* PMMA = G4Material::GetMaterial("G4_PLEXIGLASS");
-  G4Material* Scint = G4Material::GetMaterial("G4_POLYSTYRENE");  //place holder
+  G4Material* WorldMaterial = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
+  G4Material* Fe = GetDetectorMaterial("G4_Fe");
+  G4Material* W = GetDetectorMaterial("G4_W");
+  G4Material* PMMA = GetDetectorMaterial("G4_PLEXIGLASS");
+  G4Material* Scint = GetDetectorMaterial("G4_POLYSTYRENE");  //place holder
 
   G4double TGap = m_DFiber + m_Gap;
   G4double Mod_Length = 2 * m_TPlate + m_NLay * (TGap + m_TAbsorber);
@@ -151,7 +151,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   G4VSolid* ExitWindow_2cut_solid = new G4SubtractionSolid("ExitWindow_2cut_solid", ExitWindow_1cut_solid, Hole_solid, 0, G4ThreeVector(-m_PlaceHole, 0, 0));
 
-  G4LogicalVolume* ExitWindow_log = new G4LogicalVolume(ExitWindow_2cut_solid, G4Material::GetMaterial("G4_STAINLESS-STEEL"), G4String("ExitWindow_log"), 0, 0, 0);
+  G4LogicalVolume* ExitWindow_log = new G4LogicalVolume(ExitWindow_2cut_solid, GetDetectorMaterial("G4_STAINLESS-STEEL"), G4String("ExitWindow_log"), 0, 0, 0);
 
   GetDisplayAction()->AddVolume(ExitWindow_log, "Window");
   m_SupportLogicalVolSet.insert(ExitWindow_log);
