@@ -12,6 +12,7 @@
 #include <g4main/PHG4Utils.h>
 
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
 
 #include <TSystem.h>
 
@@ -424,7 +425,8 @@ void PHG4InnerHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &uple
 // actual inner hcal construction
 void PHG4InnerHcalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  G4Material *Air = G4Material::GetMaterial("G4_AIR");
+  recoConsts* rc = recoConsts::instance();
+  G4Material *Air = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4VSolid *hcal_envelope_cylinder = new G4Tubs("InnerHcal_envelope_solid", m_EnvelopeInnerRadius, m_EnvelopeOuterRadius, m_EnvelopeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("Hcal_envelope"), 0, 0, 0);
@@ -503,7 +505,7 @@ int PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume *hcalenvelope)
   SetTiltViaNcross();  // if number of crossings is set, use it to determine tilt
   CheckTiltAngle();    // die if the tilt angle is out of range
   G4VSolid *steel_plate = ConstructSteelPlate(hcalenvelope);
-  G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(m_Params->get_string_param("material")), "HcalInnerSteelPlate", 0, 0, 0);
+  G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, GetDetectorMaterial(m_Params->get_string_param("material")), "HcalInnerSteelPlate", 0, 0, 0);
   m_DisplayAction->AddSteelVolume(steel_logical);
   m_ScintiMotherAssembly = ConstructHcalScintillatorAssembly(hcalenvelope);
   double phi = 0;
@@ -768,7 +770,7 @@ PHG4InnerHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalen
     {
       g4userlimits = new G4UserLimits(steplimits);
     }
-    G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(m_ScintiTilesVec[i], G4Material::GetMaterial("G4_POLYSTYRENE"), name.str().c_str(), nullptr, nullptr, g4userlimits);
+    G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(m_ScintiTilesVec[i], GetDetectorMaterial("G4_POLYSTYRENE"), name.str(), nullptr, nullptr, g4userlimits);
     m_DisplayAction->AddScintiVolume(scinti_tile_logic);
     assmeblyvol->AddPlacedVolume(scinti_tile_logic, g4vec, nullptr);
   }

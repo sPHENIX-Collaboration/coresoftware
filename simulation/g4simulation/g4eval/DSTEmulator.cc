@@ -5,6 +5,7 @@
 
 #include "DSTEmulator.h"
 #include "TrackEvaluationContainerv1.h"
+#include "DSTCompressor.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4main/PHG4Hit.h>
@@ -333,6 +334,8 @@ namespace
     /* this is done by using a linear extrapolation, with a straight line going through all provided G4Hits in and out positions */
     const auto rextrap = cluster.r;
     cluster.truth_size = hits.size();
+    std::cout << "inter" << "\n";
+
     cluster.truth_x = interpolate<&PHG4Hit::get_x>( hits, rextrap );
     cluster.truth_y = interpolate<&PHG4Hit::get_y>( hits, rextrap );
     cluster.truth_z = interpolate<&PHG4Hit::get_z>( hits, rextrap );
@@ -343,6 +346,8 @@ namespace
     cluster.truth_px = interpolate<&PHG4Hit::get_px>( hits, rextrap );
     cluster.truth_py = interpolate<&PHG4Hit::get_py>( hits, rextrap );
     cluster.truth_pz = interpolate<&PHG4Hit::get_pz>( hits, rextrap );
+
+    std::cout << "inter2" << "\n";
 
     /*
     store state angles in (r,phi) and (r,z) plans
@@ -403,10 +408,14 @@ namespace
 }
 
 //_____________________________________________________________________
-DSTEmulator::DSTEmulator( const std::string& name, const std::string &filename ):
+DSTEmulator::DSTEmulator( const std::string& name, const std::string &filename, int inBits,
+                          int inSabotage, bool compress):
   SubsysReco( name)
   , _filename(filename)
   , _tfile(nullptr)
+  , nBits(inBits)
+  , sabotage(inSabotage)
+  , apply_compression(compress)
 {}
 
 //_____________________________________________________________________
@@ -416,11 +425,11 @@ int DSTEmulator::Init(PHCompositeNode* topNode )
   _tfile = new TFile(_filename.c_str(), "RECREATE");
  
   _dst_data = new TNtuple("dst_data", "dst data","event:seed:"
-			  "c3x:c3y:c3z:t3x:t3y:t3z:"
+			  "c3x:c3y:c3z:c3p:t3x:t3y:t3z:"
 			  "c2x:c2y:c2r:c2l:t2x:t2y:t2r:t2l:"
-			  "d2x:d2y:"
+			  "d2x:d2y:dr:"
 			  "cmp_d2x:cmp_d2y:"
-			  "pt:eta:phi");
+			  "pt:eta:phi:charge");
   
   // find DST node
   PHNodeIterator iter(topNode);
@@ -445,6 +454,22 @@ int DSTEmulator::Init(PHCompositeNode* topNode )
   auto newNode = new PHIODataNode<PHObject>( new TrackEvaluationContainerv1, "TrackEvaluationContainer","PHObject");
   evalNode->addNode(newNode);
   
+  // m_compressor = new DSTCompressor(4.08407e-02,
+  //                                  7.46530e-02,
+  //                                  5.14381e-05,
+  //                                  2.06291e-01,
+  // with new distortion setting
+  // m_compressor = new DSTCompressor(-2.70072e-02,
+  //                                  2.49574e-02,
+  //                                  1.12803e-03,
+  //                                  5.91965e-02,
+  // with mininum layer 7
+  m_compressor = new DSTCompressor(6.96257e-04,
+                                   3.16806e-02,
+                                   7.32860e-05,
+                                   5.93230e-02,
+                                   nBits,
+                                   nBits);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -499,15 +524,53 @@ int DSTEmulator::End(PHCompositeNode* )
   return Fun4AllReturnCodes::EVENT_OK; 
 }
 
+Acts::Vector3D DSTEmulator::getGlobalPosition( TrkrCluster* cluster ) const
+{
+  // get global position from Acts transform
+  auto globalpos = m_transform.getGlobalPosition(cluster,
+    m_surfMaps,
+    m_tGeometry);
+
+  // check if TPC distortion correction are in place and apply
+  // if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
+
+  return globalpos;
+}
+
 //_____________________________________________________________________
 int DSTEmulator::load_nodes( PHCompositeNode* topNode )
 {
 
   // get necessary nodes
-  m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-
+  m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMapTPCOnly");
+  if(m_track_map)
+    {
+      std::cout << " DSTEmulator: Using TPC Only Track Map node " << std::endl;
+    }
+  else
+    {
+      std::cout << " DSTEmulator: TPC Only Track Map node not found, using default" << std::endl;
+      m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+    }
   // cluster map
-  m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+
+  m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
+  if(m_cluster_map){
+    if(m_cluster_map->size()>0)
+      {
+	std::cout << " DSTEmulator: Using CORRECTED_TRKR_CLUSTER node " << std::endl;
+      }
+    else
+      {
+	std::cout << " DSTEmulator: CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl;
+	m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+      }
+  }else{
+
+    std::cout << " DSTEmulator: CORRECTED_TRKR_CLUSTER node not found at all, using TRKR_CLUSTER" << std::endl;
+    m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+  }
+  
 
   // cluster hit association map
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
@@ -537,6 +600,7 @@ int DSTEmulator::load_nodes( PHCompositeNode* topNode )
 //_____________________________________________________________________
 void DSTEmulator::evaluate_tracks()
 {
+
   if( !( m_track_map && m_cluster_map && m_container ) ) return;
 
   int iseed = 0;
@@ -580,13 +644,18 @@ void DSTEmulator::evaluate_tracks()
         continue;
       }
 
+      if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::tpcId) continue;
+
       // create new cluster struct
       // auto cluster_struct = create_cluster( cluster_key, cluster );
 
       // find track state that is the closest to cluster
       /* this assumes that both clusters and states are sorted along r */
       //     const auto radius( cluster_struct.r );
-      float radius = get_r( cluster->getX(), cluster->getY() );
+      const Acts::Vector3D globalpos_d = getGlobalPosition(cluster);
+      float radius = get_r( globalpos_d[0], globalpos_d[1] );
+      float clu_phi = std::atan2( globalpos_d[0], globalpos_d[1] );
+      std::cout << "radius " << radius << std::endl;
       float dr_min = -1;
       for( auto iter = state_iter; iter != track->end_states(); ++iter )
       {
@@ -600,30 +669,43 @@ void DSTEmulator::evaluate_tracks()
       // Got cluster and got state
       /*
        */
-      /*      std::cout << "NEW (xl|yl) " 
+
+      std::cout << "NEW (xg|yg) " 
+		<< globalpos_d[0] << " | " 
+		<<  globalpos_d[1]
+		<< std::endl;
+      std::cout << "NEW (xl|yl) " 
 		<< cluster->getLocalX() << " | " 
 		<< cluster->getLocalY() 
 		<< std::endl;
-      */
+      
       //state to local
       // store track state in cluster struct
       //      add_trk_information( cluster_struct, state_iter->second );
       //	void add_trk_information( TrackEvaluationContainerv1::ClusterStruct& cluster, SvtxTrackState* state )
       // need to extrapolate the track state to the right cluster radius to get proper residuals  
       const auto trk_r = get_r( state_iter->second->get_x(), state_iter->second->get_y() );
-      const auto dr = get_r( cluster->getX(), cluster->getY() ) - trk_r;
+      std::cout << " trk_r  " << trk_r << std::endl;
+      const auto dr = get_r( globalpos_d[0], globalpos_d[1] ) - trk_r;
+      std::cout << " dr  " << dr << std::endl;
       const auto trk_drdt = (state_iter->second->get_x()*state_iter->second->get_px() + state_iter->second->get_y()*state_iter->second->get_py())/trk_r;
+      std::cout << " trk_drdt  " << trk_drdt << std::endl;
       const auto trk_dxdr = state_iter->second->get_px()/trk_drdt;
+      std::cout << " trk_dxdr " << trk_dxdr << std::endl;
       const auto trk_dydr = state_iter->second->get_py()/trk_drdt;
+      std::cout << " trk_dydr  " << trk_dydr << std::endl;
       const auto trk_dzdr = state_iter->second->get_pz()/trk_drdt;
+      std::cout << " trk_dzdr  " << trk_dzdr << std::endl;
       
 	// store state position
       /*	*/
       float trk_x = state_iter->second->get_x() + dr*trk_dxdr;
       float trk_y = state_iter->second->get_y() + dr*trk_dydr;
       float trk_z = state_iter->second->get_z() + dr*trk_dzdr;
+      std::cout << "trk_x " << state_iter->second->get_x() << "trk_y" << state_iter->second->get_y() << "trk_z " << state_iter->second->get_z() << std::endl;
       //      float trk_r = get_r( trk_x, trk_y );
       //cluster.trk_phi = std::atan2( cluster.trk_y, cluster.trk_x );
+
       
       /* store local momentum information
 	 cluster.trk_px = state->get_px();
@@ -650,22 +732,11 @@ void DSTEmulator::evaluate_tracks()
       */
     //Get Surface
     Acts::Vector3D global(trk_x, trk_y, trk_z);
-    //TrkrDefs::subsurfkey subsurfkey;
-    /*
-    Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
-						  global,
-						  surfMaps,
-						  tGeometry,
-						  subsurfkey);
-						  //HERE
-     Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
-     Acts::Vector3D world,
-     ActsSurfaceMaps *surfMaps,
-     ActsTrackingGeometry *tGeometry,
-     TrkrDefs::subsurfkey& subsurfkey){
-     */
-    std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
-    mapIter = m_surfMaps->tpcSurfaceMap.find(hitsetkey);
+    //    TrkrDefs::subsurfkey subsurfkey = cluster->getSubSurfKey();
+
+    //    std::cout << " subsurfkey: " << subsurfkey << std::endl;
+    std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
+    mapIter = m_surfMaps->tpcSurfaceMap.find(layer);
     
     if(mapIter == m_surfMaps->tpcSurfaceMap.end()){
       std::cout << PHWHERE 
@@ -675,40 +746,26 @@ void DSTEmulator::evaluate_tracks()
 		<< hitsetkey << std::endl;
       continue;// nullptr;
     }
-
-    double global_phi = atan2(global[1], global[0]);
-    double global_z = global[2];
+    std::cout << " g0: " << global[0] << " g1: " << global[1] << " g2:" << global[2] << std::endl;
+    // double global_phi = atan2(global[1], global[0]);
+    // double global_z = global[2];
   
+
+    // Predict which surface index this phi and z will correspond to
+    // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
     std::vector<Surface> surf_vec = mapIter->second;
-    unsigned int surf_index = 999;
-  
-    double surfStepPhi = m_tGeometry->tpcSurfStepPhi;
-    double surfStepZ = m_tGeometry->tpcSurfStepZ;
 
-    for(unsigned int i=0;i<surf_vec.size(); ++i){
-      Surface this_surf = surf_vec[i];
-      auto vec3d = this_surf->center(m_tGeometry->geoContext);
-      std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
-      double surf_phi = atan2(surf_center[1], surf_center[0]);
-      double surf_z = surf_center[2];
-      
-      if( (global_phi > surf_phi - surfStepPhi / 2.0 && global_phi < surf_phi + surfStepPhi / 2.0 ) &&
-	  (global_z > surf_z - surfStepZ / 2.0 && global_z < surf_z + surfStepZ / 2.0) ){
-	surf_index = i;	  
-	break;
-      }
-    }
-  
-    //   subsurfkey = surf_index;
+    Acts::Vector3D world(globalpos_d[0], globalpos_d[1],globalpos_d[2]);
+    double world_phi = atan2(world[1], world[0]);
+    double world_z = world[2];
 
-    if(surf_index == 999){
-      std::cout << PHWHERE 
-		<< "Error: TPC surface index not defined, skipping cluster!" 
-		<< std::endl;
-      continue;
-    }
+    double fraction =  (world_phi + M_PI) / (2.0 * M_PI);
+    double rounded_nsurf = round( (double) (surf_vec.size()/2) * fraction  - 0.5);
+    unsigned int nsurf = (unsigned int) rounded_nsurf; 
+    if(world_z < 0)
+      nsurf += surf_vec.size()/2;
     
-    Surface surface = surf_vec[surf_index];
+    Surface surface = surf_vec[nsurf];
 
     Acts::Vector3D center = surface->center(m_tGeometry->geoContext) 
       / Acts::UnitConstants::cm;
@@ -724,6 +781,9 @@ void DSTEmulator::evaluate_tracks()
 
     double trklocX =  0;
     double trklocY =  0;
+    float delta_r = 0;
+
+    delta_r = TrkRadius - surfRadius;
     trklocX = rTrkPhi - surfRphiCenter;
     trklocY = trk_z - surfZCenter;
     /*
@@ -743,6 +803,15 @@ void DSTEmulator::evaluate_tracks()
     float comp_dx = compress_dx(delta_x);
     float comp_dy = compress_dy(delta_y);
 
+    // Sabotage the tracking by multiplying the residuals with a random number
+    if (sabotage == -1) {
+      comp_dx = rnd.Uniform(-1, 1) * delta_x;
+      comp_dy = rnd.Uniform(-1, 1) * delta_y;
+    } else if (sabotage == -2) {
+      comp_dx = rnd.Uniform(-10, 10);
+      comp_dy = rnd.Uniform(-10, 10);
+    }
+
     /* "dst_data", "dst data","event:seed:"
 			  "c3x:c3y:c3z:t3x:t3y:t3z:"
 			  "c2x:c2y:c2r:c2l:t2x:t2y:t2r:t2l:"
@@ -752,15 +821,16 @@ void DSTEmulator::evaluate_tracks()
     */
     float data[] = {1,
 		    (float)iseed,
-		    cluster->getX(),
-		    cluster->getY(), 
-		    cluster->getZ(),
+		    (float)globalpos_d[0],
+		    (float)globalpos_d[1],
+		    (float)globalpos_d[2],
+		    clu_phi,
 		    trk_x,
 		    trk_y,
 		    trk_z,
 		    cluster->getLocalX(),
 		    cluster->getLocalY(),
-		    get_r(cluster->getX() ,cluster->getY()),
+		    get_r((float)globalpos_d[0],(float)globalpos_d[1]),
 		    (float)layer,
 		    (float)trklocX,
 		    (float)trklocY,
@@ -768,15 +838,21 @@ void DSTEmulator::evaluate_tracks()
 		    (float)layer,
 		    delta_x,
 		    delta_y,
+		    delta_r,
 		    comp_dx,
 		    comp_dy,
 		    track_struct.pt,
 		    track_struct.eta,
-		    track_struct.phi};
+		    track_struct.phi,
+        (float) track_struct.charge
+    };
     _dst_data->Fill(data);
+    std::cout << "filled" << "\n";
 
-    cluster->setLocalX(trklocX+comp_dx);
-    cluster->setLocalY(trklocY+comp_dy);
+    if (apply_compression) {
+      cluster->setLocalX(trklocX - comp_dx);
+      cluster->setLocalY(trklocY - comp_dy);
+    }
 
 
 #ifdef JUNK
@@ -807,20 +883,16 @@ void DSTEmulator::evaluate_tracks()
 //_____________________________________________________________________
 float DSTEmulator::compress_dx( float in_val )
 {
-  float out_val = 0;
-
-  out_val  = in_val *= 1.05;
-
+  unsigned short key = m_compressor->compressPhi(in_val);
+  float out_val = m_compressor->decompressPhi(key);
   return out_val;
 }
 
 //_____________________________________________________________________
 float DSTEmulator::compress_dy( float in_val )
 {
-  float out_val = 0;
-
-  out_val  = in_val *= 1.05;
-
+  unsigned short key = m_compressor->compressZ(in_val);
+  float out_val = m_compressor->decompressZ(key);
   return out_val;
 }
 

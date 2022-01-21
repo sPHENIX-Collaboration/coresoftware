@@ -155,6 +155,7 @@ int MvtxClusterizer::InitRun(PHCompositeNode *topNode)
       DetNode->addNode(newNode);
     }
 
+
   //----------------
   // Report Settings
   //----------------
@@ -292,23 +293,18 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	set<int> zbins;
 
 	// determine the cluster position...
-	double xsum = 0.0;
-	double ysum = 0.0;
-	double zsum = 0.0;
+	double locxsum = 0.;
+	double loczsum = 0.;
 	const unsigned int nhits = std::distance( clusrange.first, clusrange.second );
 
-	double clusx = NAN;
-	double clusy = NAN;
-	double clusz = NAN;
+	double locclusx = NAN;
+	double locclusz = NAN;
 
 	// we need the geometry object for this layer to get the global positions
 	int layer = TrkrDefs::getLayer(ckey);
 	auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geom_container->GetLayerGeom(layer));
 	if (!layergeom)
 	  exit(1);
-
-	int chip = MvtxDefs::getChipId(ckey);
-	int stave =  MvtxDefs::getStaveId(ckey);
 
 	for ( auto mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
 	  {
@@ -318,7 +314,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	    zbins.insert(col);
 	    phibins.insert(row);
 
-	    // get local coordinates, in stafe reference frame, for hit
+	    // get local coordinates, in stae reference frame, for hit
 	    auto local_coords = layergeom->get_local_coords_from_pixel(row,col);
 	    
 	    /*
@@ -328,28 +324,20 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	    */
 	    local_coords.SetY( 1e-4 );
 	    
-	    // convert to world coordinates
-	    const auto world_coords = layergeom->get_world_from_local_coords( stave, chip, local_coords );
-	    
 	    // update cluster position
-	    xsum += world_coords.X();
-	    ysum += world_coords.Y();
-	    zsum += world_coords.Z();
-	    
+	    locxsum += local_coords.X();
+	    loczsum += local_coords.Z();
 	    // add the association between this cluster key and this hitkey to the table
 	    m_clusterhitassoc->addAssoc(ckey, mapiter->second.first);
       
 	  }  //mapiter
 
-
-	// This is the global position
-	clusx = xsum / nhits;
-	clusy = ysum / nhits;
-	clusz = zsum / nhits;
+	// This is the local position
+	locclusx = locxsum / nhits;
+	locclusz = loczsum / nhits;
 
 	clus->setAdc(nhits);
-	
-	const double thickness = layergeom->get_pixel_thickness();
+
 	const double pitch = layergeom->get_pixel_x();
 	const double length = layergeom->get_pixel_z();
 	const double phisize = phibins.size() * pitch;
@@ -361,13 +349,20 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	/*
 	  they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in phi and z
 	  other clusters, which are very few and pathological, get a scale factor of 1
+	  These scale factors are applied to produce cluster pulls with width unity
 	*/
-	static constexpr std::array<double, 4> scalefactors_phi = {{ 0.2, 0.18, 0.6, 0.31 }};
-	double phierror = pitch*invsqrt12;
-	if( phibins.size() == 2 && zbins.size() == 2 ) phierror*=scalefactors_phi[0];
+
+	double phierror = pitch * invsqrt12;
+	
+	static constexpr std::array<double, 7> scalefactors_phi = {{ 0.36, 0.6,0.37,0.49,0.4,0.37,0.33 }};
+	if(phibins.size() == 1 && zbins.size() == 1) phierror*=scalefactors_phi[0];
+	else if(phibins.size() == 2 && zbins.size() == 1) phierror*=scalefactors_phi[1];
+	else if(phibins.size() == 1 && zbins.size() == 2) phierror*=scalefactors_phi[2];
+	else if( phibins.size() == 2 && zbins.size() == 2 ) phierror*=scalefactors_phi[0];
 	else if( phibins.size() == 2 && zbins.size() == 3 )  phierror*=scalefactors_phi[1];
 	else if( phibins.size() == 3 && zbins.size() == 2 )  phierror*=scalefactors_phi[2];
 	else if( phibins.size() == 3 && zbins.size() == 3 )  phierror*=scalefactors_phi[3];
+	
 	
 	// scale factors (z direction)
 	/*
@@ -385,75 +380,13 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  cout << " MvtxClusterizer: layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize
 	       << " zbins " << zbins.size() << " length " << length << " zsize " << zsize << endl;
 	
-	double ladder_location[3] = {0.0, 0.0, 0.0};
-	// returns the center of the sensor in world coordinates - used to get the ladder phi location
-	layergeom->find_sensor_center(stave, 0, 0, chip, ladder_location);
-
-
-	// tilt refers to a rotation around the radial vector from the origin, and this is zero for the MVTX ladders
-	//float tilt = 0.0;
-
-	TMatrixF ERR(3, 3);
-	ERR[0][0] = square(thickness*invsqrt12);
-	ERR[0][1] = 0.0;
-	ERR[0][2] = 0.0;
-	ERR[1][0] = 0.0;
-	ERR[1][1] = square( phierror );
-	ERR[1][2] = 0.0;
-	ERR[2][0] = 0.0;
-	ERR[2][1] = 0.0;
-	ERR[2][2] = square( zerror );
-	
-	// returns the center of the sensor in world coordinates - used to get the ladder phi location
-	layergeom->find_sensor_center(stave, 0, 0, chip, ladder_location);
-	const double ladderphi = std::atan2(ladder_location[1], ladder_location[0]) + layergeom->get_stave_phi_tilt();
-	
-	TMatrixF ROT(3, 3);
-	ROT[0][0] = cos(ladderphi);
-	ROT[0][1] = -1.0 * sin(ladderphi);
-	ROT[0][2] = 0.0;
-	ROT[1][0] = sin(ladderphi);
-	ROT[1][1] = cos(ladderphi);
-	ROT[1][2] = 0.0;
-	ROT[2][0] = 0.0;
-	ROT[2][1] = 0.0;
-	ROT[2][2] = 1.0;
-
-	TMatrixF &R = ROT;
-	TMatrixF R_T(3, 3);
-	R_T.Transpose(R);
-
-	TMatrixF GLOBAL_COV(3, 3);
-	GLOBAL_COV = R * ERR * R_T;
-
-	/// Now rotate back by cluster phi
-	/// We do this because the initial local cluster covariance produces
-	/// nontrivial pulls in rphi. This replicates the code formerly in 
-	/// TrkrCluster
-	float clusphi = -atan2(clusy, clusx);
-
-	const auto cosphi = std::cos(clusphi);
-	const auto sinphi = std::sin(clusphi);
-	float rphierr = sinphi*sinphi*GLOBAL_COV[0][0]
-	  + cosphi*cosphi*GLOBAL_COV[1][1] +
-	  2.*cosphi*sinphi*GLOBAL_COV[0][1];
-        
-	if(Verbosity() > 2)
-	  cout << " Local ERR = " << ERR[0][0] << "  " << ERR[1][1] << "  " << ERR[2][2] << endl;
-
-	TVector3 local(0,0,0);
-	TVector3 world(clusx, clusy, clusz);
-	local = layergeom->get_local_from_world_coords(stave, 0, 0,
-						       chip,
-						       world);
-
-	clus->setLocalX(local[0]);
-	clus->setLocalY(local[2]);
+	clus->setLocalX(locclusx);
+	clus->setLocalY(locclusz);
 	/// Take the rphi and z uncertainty of the cluster
-	clus->setActsLocalError(0,0,rphierr);
-	clus->setActsLocalError(0,1,ERR[1][2]);
-	clus->setActsLocalError(1,0,ERR[2][1]);
-	clus->setActsLocalError(1,1,ERR[2][2]);
+	clus->setActsLocalError(0,0,square(phierror));
+	clus->setActsLocalError(0,1,0.);
+	clus->setActsLocalError(1,0,0.);
+	clus->setActsLocalError(1,1,square(zerror));
 	
 	/// All silicon surfaces have a 1-1 map to hitsetkey. 
 	/// So set subsurface key to 0

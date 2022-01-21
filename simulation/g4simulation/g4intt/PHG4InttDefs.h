@@ -39,6 +39,8 @@ static const int INTT_INNER_SKIN = -20;
 static const int SI_GLUE = -21; // new 29/05/2020
 static const int FPHX_GLUE = -22; // new 29/05/2020
  
+ static const int SERVICE_BARREL_OUTER = -23; // new 19/Nov/2021
+ static const int SUPPORT_TUBE = -24; // new 19/Nov/2021
 // detid of support structures
 static const int SUPPORT_DETID = 100;
 

@@ -32,6 +32,7 @@ libg4intt_la_LIBADD = \
 pkginclude_HEADERS = \
   InttDeadMap.h \
   InttDeadMapv1.h \
+  PHG4InttDeadMapLoader.h \
   PHG4InttDigitizer.h  \
   PHG4InttDefs.h \
   PHG4InttHitReco.h \

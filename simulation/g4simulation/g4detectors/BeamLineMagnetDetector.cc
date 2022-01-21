@@ -9,13 +9,14 @@
 
 #include <phool/phool.h>
 
+#include <TSystem.h>
+
 #include <Geant4/G4ChordFinder.hh>
 #include <Geant4/G4ClassicalRK4.hh>
 #include <Geant4/G4FieldManager.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Mag_UsualEqRhs.hh>
 #include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4QuadrupoleMagField.hh>
@@ -52,6 +53,10 @@ int BeamLineMagnetDetector::IsInBeamLineMagnet(const G4VPhysicalVolume *volume) 
   {
     return 1;
   }
+  if (volume == magnet_core_physi)
+  {
+    return -2;
+  }
   if (volume == magnet_iron_physi)
   {
     return -1;
@@ -79,7 +84,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                              m_Params->get_double_param("outer_radius") * cm,
                                              m_Params->get_double_param("length") * cm / 2., 0, twopi);
   G4LogicalVolume *magnet_mother_logic = new G4LogicalVolume(magnet_mother_solid,
-                                                             G4Material::GetMaterial("G4_Galactic"),
+                                                             GetDetectorMaterial("G4_Galactic"),
                                                              GetName(),
                                                              0, 0, 0);
 
@@ -167,10 +172,37 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                            m_Params->get_double_param("outer_radius") * cm,
                                            m_Params->get_double_param("length") * cm / 2., 0, twopi);
   G4LogicalVolume *magnet_iron_logic = new G4LogicalVolume(magnet_iron_solid,
-                                                           G4Material::GetMaterial("G4_Fe"),
+                                                           GetDetectorMaterial("G4_Fe"),
                                                            GetName(),
                                                            0, 0, 0);
   m_DisplayAction->AddVolume(magnet_iron_logic, magnettype);
+
+  if (m_Params->get_double_param("skin_thickness") > 0)
+  {
+    if (m_Params->get_double_param("inner_radius") * cm + m_Params->get_double_param("skin_thickness") * cm >
+        m_Params->get_double_param("outer_radius") * cm - m_Params->get_double_param("skin_thickness") * cm)
+    {
+      std::cout << "Magnet skin thickness " << m_Params->get_double_param("skin_thickness") << " too large, exceeds 2xmagnet thickness "
+                << m_Params->get_double_param("outer_radius") * cm - m_Params->get_double_param("inner_radius") * cm
+                << std::endl;
+      gSystem->Exit(1);
+    }
+
+    G4VSolid *magnet_core_solid = new G4Tubs(GetName().append("_Core"),
+                                             m_Params->get_double_param("inner_radius") * cm + m_Params->get_double_param("skin_thickness") * cm,
+                                             m_Params->get_double_param("outer_radius") * cm - m_Params->get_double_param("skin_thickness") * cm,
+                                             (m_Params->get_double_param("length") * cm - m_Params->get_double_param("skin_thickness") * cm) / 2., 0, twopi);
+    G4LogicalVolume *magnet_core_logic = new G4LogicalVolume(magnet_core_solid,
+                                                             GetDetectorMaterial("G4_Fe"),
+                                                             GetName(),
+                                                             0, 0, 0);
+    m_DisplayAction->AddVolume(magnet_core_logic, magnettype);
+
+    magnet_core_physi = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0),
+                                          magnet_core_logic,
+                                          GetName().append("_Solid"),
+                                          magnet_iron_logic, false, m_MagnetId, OverlapCheck());
+  }
   magnet_iron_physi = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0),
                                         magnet_iron_logic,
                                         GetName().append("_Solid"),
@@ -182,7 +214,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                             m_Params->get_double_param("length") * cm / 2., 0, twopi);
 
   m_magnetFieldLogic = new G4LogicalVolume(magnet_field_solid,
-                                           G4Material::GetMaterial("G4_Galactic"),
+                                           GetDetectorMaterial("G4_Galactic"),
                                            GetName(),
                                            0, 0, 0);
 

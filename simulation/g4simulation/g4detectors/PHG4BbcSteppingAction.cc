@@ -1,6 +1,9 @@
 #include "PHG4BbcSteppingAction.h"
+
 #include "PHG4BbcDetector.h"
 #include "PHG4StepStatusDecode.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -36,19 +39,13 @@
 class PHCompositeNode;
 
 //____________________________________________________________________________..
-PHG4BbcSteppingAction::PHG4BbcSteppingAction(PHG4BbcDetector* detector, const PHParameters* /*parameters*/)
+PHG4BbcSteppingAction::PHG4BbcSteppingAction(PHG4BbcDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
-  , m_HitContainer(nullptr)
-  , m_Hit(nullptr)
-  , m_SaveHitContainer(nullptr)
-  , m_SaveVolPre(nullptr)
-  , m_SaveVolPost(nullptr)
-  , m_SaveTrackId(-1)
-  , m_SavePreStepStatus(-1)
-  , m_SavePostStepStatus(-1)
-  , m_EdepSum(0)
-  , m_EionSum(0)
+  , m_Params(parameters)
+  , m_ActiveFlag(m_Params->get_int_param("active"))
+  , m_BlackHoleFlag(m_Params->get_int_param("blackhole"))
+  , m_SupportFlag(m_Params->get_int_param("supportactive"))
 {
 }
 
@@ -85,18 +82,33 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
+  G4double steplen = aStep->GetStepLength() / cm;
   const G4Track* aTrack = aStep->GetTrack();
 
-  // if this detector stops everything, just put all kinetic energy into edep
+  // check steplength vs tracklength
   /*
-  if (m_BlackHoleFlag)
+  G4double tracklen = aTrack->GetTrackLength() / cm;
+  if ( tracklen != steplen )
   {
-    edep = aTrack->GetKineticEnergy() / GeV;
-    G4Track *killtrack = const_cast<G4Track *>(aTrack);
-    killtrack->SetTrackStatus(fStopAndKill);
+    std::cout << "YYY " << tracklen << "\t" << steplen << std::endl;
   }
   */
 
+  // if this detector stops everything, just put all kinetic energy into edep
+  if (m_BlackHoleFlag)
+  {
+    edep = aTrack->GetKineticEnergy() / GeV;
+    G4Track* killtrack = const_cast<G4Track*>(aTrack);
+    killtrack->SetTrackStatus(fStopAndKill);
+    if (!m_ActiveFlag)
+    {
+      return false;
+    }
+  }
+  if (whichactive < 0 && !m_SupportFlag)
+  {
+    return false;
+  }
   bool geantino = false;
   // the check for the pdg code speeds things up, I do not want to make
   // an expensive string compare for every track when we know
@@ -113,16 +125,13 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
   //       std::cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
   //       std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
 
-  int detector_id = touch->GetCopyNumber();
-  /*
-  if (detector_id != whichactive)
-  {
-    std::cout << PHWHERE << " inconsistency between G4 copy number: "
-	 << detector_id << " and module id from detector: "
-	 << whichactive << std::endl;
-    //gSystem->Exit(1);
-  }
-  */
+  //int detector_id = touch->GetCopyNumber(); // not used
+  int tube_id = touch->GetCopyNumber(1);
+
+  // Create a new hit if a G4 Track enters a new volume or is freshly created
+  // For this we look at the step status of the prePoint (beginning of the G4 Step).
+  // This should be either fGeomBoundary (G4 Track crosses into volume) or
+  // fUndefined (G4 Track newly created)
 
   switch (prePoint->GetStepStatus())
   {
@@ -157,36 +166,37 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     {
       m_Hit = new PHG4Hitv1();
     }
-    m_Hit->set_layer(detector_id);
+    m_Hit->set_layer( tube_id );
+    m_Hit->set_scint_id( tube_id );
+
     //here we set the entrance values in cm
     m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
     m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
     m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
     // time in ns
-    m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
+    m_Hit->set_t(0, prePoint->GetGlobalTime() / ns);
     //set the track ID
     m_Hit->set_trkid(aTrack->GetTrackID());
     m_SaveTrackId = aTrack->GetTrackID();
-    if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
-    {
-      if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
-      {
-        m_Hit->set_trkid(pp->GetUserTrackId());
-      }
-    }
+
     //set the initial energy deposit
     m_EdepSum = 0;
     if (whichactive > 0)
     {
       m_EionSum = 0;
-      m_Hit->set_eion(0);
+      m_Hit->set_eion( 0 );
+
+      m_PathLen = 0.;
+      m_Hit->set_path_length( m_PathLen );
+
       m_SaveHitContainer = m_HitContainer;
     }
     else
     {
-      std::cout << "implement stuff for whichactive < 0" << std::endl;
-      gSystem->Exit(1);
+      m_SaveHitContainer = m_SupportHitContainer;
     }
+
+    // this is for the tracking of the truth info
     if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
     {
       if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
@@ -218,6 +228,7 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
               << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
     gSystem->Exit(1);
   }
+
   // check if track id matches the initial one when the hit was created
   if (aTrack->GetTrackID() != m_SaveTrackId)
   {
@@ -230,6 +241,9 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
 
     gSystem->Exit(1);
   }
+
+  // We need to cache a few things from one step to the next
+  // to identify impossible hits and subsequent debugging printout
   m_SavePreStepStatus = prePoint->GetStepStatus();
   m_SavePostStepStatus = postPoint->GetStepStatus();
   m_SaveVolPre = volume;
@@ -238,12 +252,15 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
   // here we just update the exit values, it will be overwritten
   // for every step until we leave the volume or the particle
   // ceases to exist
-  //sum up the energy to get total deposited
+
+  // Sum up the energies and lengths to get totals
   m_EdepSum += edep;
   if (whichactive > 0)
   {
     m_EionSum += eion;
+    m_PathLen += steplen;
   }
+
   // if any of these conditions is true this is the last step in
   // this volume and we need to save the hit
   // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
@@ -280,6 +297,7 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
         if (whichactive > 0)
         {
           m_Hit->set_eion(-1);
+          m_Hit->set_path_length(-1);
         }
       }
       else
@@ -289,8 +307,9 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
       if (whichactive > 0)
       {
         m_Hit->set_eion(m_EionSum);
+        m_Hit->set_path_length(m_PathLen);
       }
-      m_SaveHitContainer->AddHit(detector_id, m_Hit);
+      m_SaveHitContainer->AddHit(tube_id, m_Hit);
       // ownership has been transferred to container, set to null
       // so we will create a new hit for the next track
       m_Hit = nullptr;
@@ -310,24 +329,40 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
 //____________________________________________________________________________..
 void PHG4BbcSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  std::string hitnodename = "G4HIT_" + m_Detector->GetName();
-  /*
-  if (m_Detector->SuperDetector() != "NONE")
-  {
-    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
-  }
-  else
-  {
-    hitnodename = "G4HIT_" + m_Detector->GetName();
-  }
-  */
-
-  //now look for the map and grab a pointer to it.
-  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-
-  // if we do not find the node we need to make it.
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  m_SupportHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_SupportNodeName);
+  // if we do not find the node it's messed up.
   if (!m_HitContainer)
   {
-    std::cout << "PHG4BbcSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    if (!m_Params->get_int_param("blackhole"))  // not messed up if we have a black hole
+    {
+      std::cout << "PHG4BbcSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
+      gSystem->Exit(1);
+    }
   }
+  // this is perfectly fine if support hits are disabled
+  if (!m_SupportHitContainer)
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "PHG4BbcSteppingAction::SetTopNode - unable to find " << m_SupportNodeName << std::endl;
+    }
+  }
+}
+
+void PHG4BbcSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_SUPPORT")
+  {
+    m_SupportNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }

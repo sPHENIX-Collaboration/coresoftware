@@ -280,24 +280,31 @@ void PHG4InttSubsystem::SetDefaultParameters()
 
     // SUPPORTPARAMS //////////////////////////////////////
     // int param
-    set_default_int_param(SUPPORTPARAMS, "supportactive", 0);
+    set_default_int_param(SUPPORTPARAMS, "supportactive", 1);
 
     // double param
-    set_default_double_param(SUPPORTPARAMS, "inner_skin_inner_radius", 6.2416);
-    set_default_double_param(SUPPORTPARAMS, "inner_skin_length",      50.7   );
-    set_default_double_param(SUPPORTPARAMS, "inner_skin_outer_radius", 6.2666);
+    // set_default_double_param(SUPPORTPARAMS, "inner_skin_inner_radius", 6.2416);
+    // set_default_double_param(SUPPORTPARAMS, "inner_skin_length",      50.7   );
+    // set_default_double_param(SUPPORTPARAMS, "inner_skin_outer_radius", 6.2666);
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_inner_radius", 12.9667 / 2  );
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_outer_radius", 13.0175 / 2 );
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_length",      49.7   );
     
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_inner_radius", 12.0444);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_outer_radius", 12.0694);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_length",       50.7   );
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_inner_radius", 12.0444);
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_outer_radius", 12.0694);
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_length",       50.7   );
 
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_inner_radius", 12.0694);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_outer_radius", 12.2194);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_length",       50.7   );
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_inner_radius", 12.0694);
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_outer_radius", 12.2194);
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_length",       50.7   );
 
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_inner_radius", 12.2194);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_outer_radius", 12.2444);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_length",       50.7   );
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_inner_radius", 12.2194);
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_outer_radius", 12.2444);
+    // set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_length",       50.7   );
+
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_inner_radius", 23.4950 / 2 );
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_outer_radius", 23.5458 / 2);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_length",       49.7   );
 
     // Endcap ring flag
     set_default_int_param(SUPPORTPARAMS, "endcap_ring_enabled", 1);
@@ -341,10 +348,23 @@ void PHG4InttSubsystem::SetDefaultParameters()
 
     set_default_double_param(SUPPORTPARAMS, "endcap_AlPEEK_Alring_length",          0.75   );
     set_default_double_param(SUPPORTPARAMS, "endcap_AlPEEK_Cring_length",           0.5    );
-			         
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Survice barrel, outer
+    set_default_double_param(SUPPORTPARAMS, "service_barrel_outer_inner_radius", 33.02 / 2  );
+    set_default_double_param(SUPPORTPARAMS, "service_barrel_outer_outer_radius", 33.34 / 2 );
+    set_default_double_param(SUPPORTPARAMS, "service_barrel_outer_length",      273.69   );
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Support tube
+    set_default_double_param(SUPPORTPARAMS, "support_tube_inner_radius", 37.47 / 2  );
+    set_default_double_param(SUPPORTPARAMS, "support_tube_outer_radius", 38.10 / 2 );
+    set_default_double_param(SUPPORTPARAMS, "support_tube_length",      273.69   );
+
+    
     // Cylinders for the bus extenders
     set_default_int_param(SUPPORTPARAMS,    "bus_extender",    1);  // 0: OFF, 1: ON
-    set_default_double_param(SUPPORTPARAMS, "bus_extender_length",   120.0 );    // in cm
+    set_default_double_param(SUPPORTPARAMS, "bus_extender_length",   111.0 );    // in cm
     set_default_double_param(SUPPORTPARAMS, "bus_extender_ends_at",  328.5 );    // z-coordinate in cm where the bus extender ends at
     set_default_double_param(SUPPORTPARAMS, "bus_extender_radius",    15.0 );    // radius of the innermost layer (copper for the inner barrel)
     set_default_double_param(SUPPORTPARAMS, "bus_extender_copper_x",  48.0e-4 * 1.5 ); // thickness of the copper layer of the bus extenders in cm, it's 48 um
@@ -353,9 +373,11 @@ void PHG4InttSubsystem::SetDefaultParameters()
     set_default_double_param(SUPPORTPARAMS, "rail_dphi",        90.  );  // deg
     set_default_double_param(SUPPORTPARAMS, "rail_inner_radius", 0.45);
     set_default_double_param(SUPPORTPARAMS, "rail_length",     410   );  // tpc length
+    //set_default_double_param(SUPPORTPARAMS, "rail_length",     20   );  // tpc length
     set_default_double_param(SUPPORTPARAMS, "rail_outer_radius", 0.6 );
     set_default_double_param(SUPPORTPARAMS, "rail_phi_start",   45.  );  // deg
-    set_default_double_param(SUPPORTPARAMS, "rail_radius",     16.85 );
+    //set_default_double_param(SUPPORTPARAMS, "rail_radius",     16.85 );
+    set_default_double_param(SUPPORTPARAMS, "rail_radius",     (33.34 + 0.6 * 2 ) /2  ); // tentativevalue
   }
 
   return;

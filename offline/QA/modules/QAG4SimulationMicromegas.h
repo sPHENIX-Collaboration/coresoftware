@@ -2,8 +2,6 @@
 #define QA_QAG4SIMULATIONMICROMEGAS_H
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -18,6 +16,9 @@ class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
+
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
 
 /// \class QAG4SimulationMicromegas
 class QAG4SimulationMicromegas : public SubsysReco
@@ -38,7 +39,7 @@ class QAG4SimulationMicromegas : public SubsysReco
 
   /// evaluate hits
   void evaluate_hits();
-  
+
   /// evaluate clusters
   void evaluate_clusters();
 
@@ -53,16 +54,16 @@ class QAG4SimulationMicromegas : public SubsysReco
   PHG4CylinderGeomContainer* m_micromegas_geonode = nullptr;
 
   /// Acts surface maps for surface lookup
-  ActsSurfaceMaps *m_surfmaps = nullptr;
+  ActsSurfaceMaps* m_surfmaps = nullptr;
 
   /// Acts tracking geometry for surface lookup
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsTrackingGeometry* m_tGeometry = nullptr;
 
   /// cluster map
   TrkrClusterContainer* m_cluster_map = nullptr;
 
   /// hitsets
-  TrkrHitSetContainer  *m_hitsets = nullptr;
+  TrkrHitSetContainer* m_hitsets = nullptr;
 
   /// clusters to hit association
   TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;

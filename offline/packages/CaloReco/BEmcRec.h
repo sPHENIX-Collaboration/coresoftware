@@ -110,6 +110,9 @@ class BEmcRec
   }
 
   float GetProb(std::vector<EmcModule> HitList, float e, float xg, float yg, float zg, float &chi2, int &ndf);
+  void SetProbNoiseParam(float rn) { fgProbNoiseParam = rn; }
+  float GetProbNoiseParam() { return fgProbNoiseParam; }
+
   virtual std::string Name() const { return m_ThisName; }
   virtual void Name(const std::string &name) { m_ThisName = name; }
 
@@ -136,6 +139,7 @@ class BEmcRec
   std::vector<EmcModule> *fModules;
   std::vector<EmcCluster> *fClusters;
 
+  float fgProbNoiseParam = 0.04;
   float fgTowerThresh = 0.01;
   float fgMinPeakEnergy = 0.08;
   static int const fgMaxLen = 1000;
