@@ -9,6 +9,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrClusterIterationMapv1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                  // for SubsysReco
@@ -27,6 +28,8 @@ using namespace std;
 
 PHTrackSeeding::PHTrackSeeding(const std::string& name)
   : SubsysReco(name)
+  , _iteration_map(nullptr)
+  , _n_iteration(0)
 {
 }
 
@@ -37,6 +40,13 @@ int PHTrackSeeding::InitRun(PHCompositeNode* topNode)
 
 int PHTrackSeeding::process_event(PHCompositeNode* topNode)
 {
+  if(_n_iteration >0){
+    _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "CLUSTER_ITERATION_MAP");
+    if (!_iteration_map){
+      cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
   return Process(topNode);
 }
 

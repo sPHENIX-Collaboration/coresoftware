@@ -13,6 +13,8 @@
 
 #include <g4gdml/PHG4GDMLConfig.hh>
 
+#include <phool/recoConsts.h>
+
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4DisplacedSolid.hh>
 #include <Geant4/G4Exception.hh>  // for G4Exception
@@ -275,12 +277,11 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       outter_half_width, get_geom_v3()->get_length() * cm / 2.0, get_geom_v3()->get_length() * cm / 2.0,  // G4double pDy2, G4double pDx3, G4double pDx4,
       0                                                                                                   // G4double pAlp2 //
   );
-  G4Transform3D sec_solid_transform =
-      G4TranslateY3D(enclosure_center) * G4RotateY3D(halfpi) * G4RotateX3D(-halfpi);
-  G4VSolid* sec_solid_place = new G4DisplacedSolid(
-      G4String(GetName() + string("_sec")), sec_solid, sec_solid_transform);
+  G4Transform3D sec_solid_transform = G4TranslateY3D(enclosure_center) * G4RotateY3D(halfpi) * G4RotateX3D(-halfpi);
+  G4VSolid* sec_solid_place = new G4DisplacedSolid(G4String(GetName() + string("_sec")), sec_solid, sec_solid_transform);
 
-  G4Material* cylinder_mat = G4Material::GetMaterial("G4_AIR");
+  recoConsts* rc = recoConsts::instance();
+  G4Material* cylinder_mat = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   assert(cylinder_mat);
 
   G4LogicalVolume* sec_logic = new G4LogicalVolume(sec_solid_place, cylinder_mat,
@@ -290,7 +291,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
   // construct walls
 
-  G4Material* wall_mat = G4Material::GetMaterial(get_geom_v3()->get_sidewall_mat());
+  G4Material* wall_mat = GetDetectorMaterial(get_geom_v3()->get_sidewall_mat());
   assert(wall_mat);
 
   if (get_geom_v3()->get_sidewall_thickness() > 0)
@@ -316,8 +317,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
                                       outter_half_width, side_wall_half_thickness, side_wall_half_thickness,  // G4double pDy2, G4double pDx3, G4double pDx4,
                                       0                                                                       // G4double pAlp2 //
     );
-    G4VSolid* wall_solid_place = new G4DisplacedSolid(
-        G4String(GetName() + string("_EndWall")), wall_solid, sec_solid_transform);
+    G4VSolid* wall_solid_place = new G4DisplacedSolid(G4String(GetName() + string("_EndWall")), wall_solid, sec_solid_transform);
 
     G4LogicalVolume* wall_logic = new G4LogicalVolume(wall_solid_place, wall_mat,
                                                       G4String(G4String(GetName() + string("_EndWall"))), 0, 0,
@@ -334,10 +334,11 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     BOOST_FOREACH (z_locations_t::value_type& val, z_locations)
     {
       if (get_geom_v3()->get_construction_verbose() >= 2)
+      {
         cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg::"
              << GetName() << " - constructed End Wall ID " << val.first
              << " @ Z = " << val.second << endl;
-
+      }
       G4Transform3D wall_trans = G4TranslateZ3D(val.second);
 
       G4PVPlacement* wall_phys = new G4PVPlacement(wall_trans, wall_logic,
@@ -372,6 +373,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       const int sign_azimuth = val.second.second;
 
       if (get_geom_v3()->get_construction_verbose() >= 2)
+      {
         cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg::"
              << GetName() << " - constructed Side Wall ID " << val.first
              << " with"
@@ -381,11 +383,9 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
              << sign_azimuth * pi / get_geom_v3()->get_azimuthal_n_sec()
              << " Shift Z = " << sign_z * (get_geom_v3()->get_length() * cm / 4)
              << endl;
-
-      const G4double azimuth_roate =
-          sign_azimuth > 0 ? edge1_tilt_angle : edge2_tilt_angle;
-      const G4double edge_half_depth = -get_geom_v3()->get_sidewall_thickness() * cm - get_geom_v3()->get_sidewall_outer_torr() * cm +
-                                       (sign_azimuth > 0 ? edge1_half_depth : edge2_half_depth);
+      }
+      const G4double azimuth_roate = sign_azimuth > 0 ? edge1_tilt_angle : edge2_tilt_angle;
+      const G4double edge_half_depth = -get_geom_v3()->get_sidewall_thickness() * cm - get_geom_v3()->get_sidewall_outer_torr() * cm + (sign_azimuth > 0 ? edge1_half_depth : edge2_half_depth);
 
       G4Box* wall_solid = new G4Box(G4String(GetName() + G4String("_SideWall_") + to_string(val.first)),
                                     get_geom_v3()->get_sidewall_thickness() * cm / 2.0,
@@ -423,7 +423,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
            << " - construct dividers" << endl;
     }
 
-    G4Material* divider_mat = G4Material::GetMaterial(get_geom_v3()->get_divider_mat());
+    G4Material* divider_mat = GetDetectorMaterial(get_geom_v3()->get_divider_mat());
     assert(divider_mat);
 
     int ID = 300;
@@ -788,7 +788,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
       g_tower.pAlp2 * rad                                       // G4double pAlp2 //
   );
 
-  G4Material* cylinder_mat = G4Material::GetMaterial(get_geom_v3()->get_absorber_mat());
+  G4Material* cylinder_mat = GetDetectorMaterial(get_geom_v3()->get_absorber_mat());
   assert(cylinder_mat);
 
   G4LogicalVolume* block_logic = new G4LogicalVolume(block_solid, cylinder_mat,
@@ -900,8 +900,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_LightGuide(
                                          + G4ThreeVector(0, 0, -0.5 * g_tower.LightguideHeight * cm)  //shift in the light guide height
   );
 
-  G4Material* cylinder_mat = G4Material::GetMaterial(
-      g_tower.LightguideMaterial);
+  G4Material* cylinder_mat = GetDetectorMaterial(g_tower.LightguideMaterial);
   assert(cylinder_mat);
 
   G4LogicalVolume* block_logic = new G4LogicalVolume(block_solid, cylinder_mat,

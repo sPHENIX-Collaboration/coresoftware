@@ -69,6 +69,26 @@ int TrkrClusterv3::isValid() const
   return 1;
 }
 
+void TrkrClusterv3::CopyFrom( const TrkrCluster& source )
+{
+  // do nothing if copying onto oneself
+  if( this == &source ) return;
+ 
+  // parent class method
+  TrkrCluster::CopyFrom( source );
+ 
+  setClusKey( source.getClusKey() );
+  setLocalX( source.getLocalX() );
+  setLocalY( source.getLocalY() );
+  
+  for (int j = 0; j < 2; ++j)
+    for (int i = 0; i < 2; ++i)
+  { setActsLocalError(i, j, source.getActsLocalError(i, j)); }
+  
+  setSubSurfKey( source.getSubSurfKey() );
+  setAdc( source.getAdc() );
+}
+
 float TrkrClusterv3::getRPhiError() const
 { return std::sqrt(m_actsLocalErr[0][0]); }
 

@@ -43,6 +43,7 @@ class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
 class TrkrClusterContainer;
+class TrkrClusterIterationMapv1;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
 using FitResult = Acts::KalmanFitterResult<SourceLink>;
@@ -92,7 +93,15 @@ class PHActsTrkFitter : public SubsysReco
   { m_actsEvaluator = actsEvaluator; }
   
   void setFieldMap(std::string& fieldMap)
-    { m_fieldMap = fieldMap; }
+  { m_fieldMap = fieldMap; }
+
+  void setAbsPdgHypothesis(unsigned int pHypothesis)
+  { m_pHypothesis = pHypothesis; }
+
+  void SetIteration(int iter){_n_iteration = iter;}
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  void set_seed_track_map_name(const std::string &map_name) { _seed_track_map_name = map_name; }
+
  private:
 
   /// Get all the nodes
@@ -130,7 +139,7 @@ class PHActsTrkFitter : public SubsysReco
   Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey) const;
 
   Acts::BoundSymMatrix setDefaultCovariance() const;
-  void printTrackSeed(const ActsExamples::TrackParameters& seed) const;
+  void printTrackSeed(const SvtxTrack* seed) const;
 
   /// Event counter
   int m_event = 0;
@@ -165,6 +174,13 @@ class PHActsTrkFitter : public SubsysReco
   SvtxTrackMap *m_seedTracks = nullptr;
 
   std::string m_fieldMap = "";
+  TrkrClusterIterationMapv1* _iteration_map = nullptr;
+  int _n_iteration = 0;
+  std::string _track_map_name = "SvtxTrackMap";
+  std::string _seed_track_map_name = "SeedTrackMap";
+
+  /// Default particle assumption to pion
+  unsigned int m_pHypothesis = 211;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;

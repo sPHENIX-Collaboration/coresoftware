@@ -9,17 +9,16 @@
 
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
 #include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>   // for cm
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
 
-#include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, endl, basic_ostream
 #include <sstream>
 
+class G4Material;
 class G4VSolid;
 
 //_______________________________________________________________
@@ -46,13 +45,7 @@ bool PHG4ConeDetector::IsInConeActive(G4VPhysicalVolume *volume)
 //_______________________________________________________________
 void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  G4Material *TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
-
-  if (!TrackerMaterial)
-  {
-    std::cout << "Error: Can not set material" << std::endl;
-    exit(-1);
-  }
+  G4Material *TrackerMaterial = GetDetectorMaterial(m_Params->get_string_param("material"));
 
   G4VSolid *cone_solid = new G4Cons((GetName() + "_SOLID"),
                                     m_Params->get_double_param("rmin1") * cm,

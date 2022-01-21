@@ -146,6 +146,10 @@ int PHG4DetectorGroupSubsystem::InitRun(PHCompositeNode *topNode)
     }
   }
   m_ParamsContainer->SaveToNodeTree(RunDetNode, paramnodename);
+  // define the materials for the detector
+// at this point all flags are known so materials set in the macro can
+// be implemented here
+  DefineMaterials();
   int iret = InitRunSubsystem(topNode);
   m_ParamsContainer->UpdateNodeTree(RunDetNode, paramnodename);
   if (Verbosity() > 0)

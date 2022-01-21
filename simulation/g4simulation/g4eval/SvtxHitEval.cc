@@ -686,7 +686,11 @@ void SvtxHitEval::get_node_pointers(PHCompositeNode* topNode)
 {
   // need things off of the DST...
   _hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  _clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+ 
+  _clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
+  if(!_clustermap)
+    _clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  
  _hit_truth_map = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
 
   // need things off of the DST...

@@ -32,11 +32,6 @@ class TH1;
 class TH2;
 class TTree;
 
-using SourceLink = ActsExamples::TrkrClusterSourceLink;
-using BoundTrackParamPtr = 
-  std::unique_ptr<const Acts::BoundTrackParameters>;
-using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
-
 /**
  * This class takes preliminary fits from PHActsTrkFitter to the 
  * silicon + MM clusters and calculates the residuals in the TPC 
@@ -84,6 +79,16 @@ class PHTpcResiduals : public SubsysReco
   
  private:
 
+  using SourceLink = ActsExamples::TrkrClusterSourceLink;
+  using BoundTrackParamPtr = 
+    std::unique_ptr<const Acts::BoundTrackParameters>;
+  
+  /// pairs path length and track parameters
+  using BoundTrackParamPtrPair = std::pair<float,BoundTrackParamPtr>;
+
+  /// result of track extrapolation
+  using ExtrapolationResult = Acts::Result<BoundTrackParamPtrPair>;
+  
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 
@@ -92,15 +97,20 @@ class PHTpcResiduals : public SubsysReco
   bool checkTrack(SvtxTrack* track);
   void processTrack(SvtxTrack* track);
 
+  /// fill track state from bound track parameters
+  void addTrackState( SvtxTrack* track, float pathlength, const Acts::BoundTrackParameters& params );
+  
   /// Calculates TPC residuals given an Acts::Propagation result to
   /// a TPC surface
-  void calculateTpcResiduals(const Acts::BoundTrackParameters& params,
-			     TrkrCluster* cluster);
-
-  /// Propagates the silicon+MM track fit to the surface on which
-  /// an available source link in the TPC exists, added from the stub
-  /// matching propagation
-  BoundTrackParamPtrResult propagateTrackState(
+  void calculateTpcResiduals(const Acts::BoundTrackParameters& params, TrkrCluster* cluster);
+        
+  /** \brief 
+   * Propagates the silicon+MM track fit to the surface on which
+   * an available source link in the TPC exists, added from the stub
+   * matching propagation
+   * returns the path lenght and the resulting parameters
+   */
+  ExtrapolationResult propagateTrackState(
   const Acts::BoundTrackParameters& params, 
 		     const SourceLink& sl);
 

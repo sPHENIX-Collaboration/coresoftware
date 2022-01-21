@@ -192,6 +192,7 @@ libg4detectors_la_SOURCES = \
   PHG4GDMLDetector.cc \
   PHG4GDMLSubsystem.cc \
   PHG4BbcDetector.cc \
+  PHG4BbcDisplayAction.cc \
   PHG4BbcSteppingAction.cc \
   PHG4BbcSubsystem.cc \
   PHG4BeamlineMagnetDetector.cc \

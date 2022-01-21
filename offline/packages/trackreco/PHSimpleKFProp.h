@@ -1,42 +1,48 @@
 /*!
- *  \file		  PHTrackPropagating.h
- *  \brief		Base class for track seeding
- *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ *  \file PHSimpleKFProp.h
+ *  \brief		kalman filter based propagator
+ *  \author Michael Peters & Christof Roland
  */
 
 #ifndef TRACKRECO_PHSIMPLEKFPROP_H
 #define TRACKRECO_PHSIMPLEKFPROP_H
 
+#include "ALICEKF.h"
+#include "nanoflann.hpp"
+
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
+#include <tpc/TpcDistortionCorrection.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
-#include <phfield/PHField.h>
-#include "nanoflann.hpp"
-#include "ALICEKF.h"
-
-// STL includes
-#include <string>
-#include <vector>
-#include <memory>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <Eigen/Core>
 
+// STL includes
+#include <memory>
+#include <string>
+#include <vector>
+
 // forward declarations
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
 class PHCompositeNode;
+class PHField;
+class SvtxTrack;
+class SvtxTrack_v2;
+class TpcDistortionCorrectionContainer;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
-class SvtxVertexMap;
+class TrkrClusterIterationMapv1;
 class SvtxTrackMap;
-class AssocInfoContainer;
+
+using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3F>;
 
 class PHSimpleKFProp : public SubsysReco
 {
  public:
   PHSimpleKFProp(const std::string &name = "PHSimpleKFProp");
-  virtual ~PHSimpleKFProp() {}
+  ~PHSimpleKFProp() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -56,8 +62,17 @@ class PHSimpleKFProp : public SubsysReco
   void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
   void use_truth_clusters(bool truth)
   { _use_truth_clusters = truth; }
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  void SetIteration(int iter){_n_iteration = iter;}
 
  private:
+
+  /// acts transformation object
+  ActsTransformations m_transform;
+
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection m_distortionCorrection;
+
   bool _use_truth_clusters = false;
   
   /// fetch node pointers
@@ -83,12 +98,29 @@ class PHSimpleKFProp : public SubsysReco
   SvtxTrackMap *_track_map = nullptr;
   TrkrHitSetContainer *_hitsets = nullptr;
   PHField* _field_map = nullptr;
+  
+  /// acts geometry
   ActsTrackingGeometry *_tgeometry = nullptr;
+
+  /// acts surface map
   ActsSurfaceMaps *_surfmaps = nullptr;
-  void MoveToFirstTPCCluster();
-  void PrepareKDTrees();
-  std::vector<TrkrDefs::cluskey> PropagateTrack(SvtxTrack* track);
-  std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(std::vector<std::vector<TrkrDefs::cluskey>> seeds);
+
+  /// distortion correction container
+  TpcDistortionCorrectionContainer* m_dcc = nullptr;
+
+  /// get global position for a given cluster
+  /**
+   * uses ActsTransformation to convert cluster local position into global coordinates
+   * incorporates TPC distortion correction, if present
+   */
+  Acts::Vector3D getGlobalPosition(TrkrCluster*) const;
+
+  PositionMap PrepareKDTrees();
+
+  void MoveToFirstTPCCluster(const PositionMap&);
+
+  std::vector<TrkrDefs::cluskey> PropagateTrack(SvtxTrack* track, const PositionMap& globalPositions) const;
+  std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(const std::vector<std::vector<TrkrDefs::cluskey>>& seeds, const PositionMap& globalPositions) const;
   template <typename T>
   struct KDPointCloud
   {
@@ -122,20 +154,19 @@ class PHSimpleKFProp : public SubsysReco
   };
   std::vector<std::shared_ptr<KDPointCloud<double>>> _ptclouds;
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
-  std::shared_ptr<ALICEKF> fitter;
-  double get_Bz(double x, double y, double z);
-  void publishSeeds(std::vector<SvtxTrack_v2>);
-  void publishSeeds(std::vector<SvtxTrack>);
-  void MoveToVertex();
+  std::unique_ptr<ALICEKF> fitter;
+  double get_Bz(double x, double y, double z) const;
+  void publishSeeds(const std::vector<SvtxTrack_v2>&);
+  void publishSeeds(const std::vector<SvtxTrack>&);
+//   void MoveToVertex();
 
-  void line_fit(std::vector<std::pair<double,double>> points, double &A, double &B);
-  void line_fit_clusters(std::vector<TrkrCluster*> clusters, double &A, double &B);
-  void CircleFitByTaubin(std::vector<Acts::Vector3D> points, double &R, double &X0, double &Y0);
-  void findRoot(const double R, const double X0, const double Y0,
-		double& x, double& y);
   bool _use_const_field = false;
   bool _use_fixed_clus_err = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
+  TrkrClusterIterationMapv1* _iteration_map = nullptr;
+  int _n_iteration = 0;
+  std::string _track_map_name = "SvtxTrackMap";
+
 };
 
 #endif

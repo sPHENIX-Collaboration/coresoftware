@@ -1,4 +1,5 @@
 #include "QAG4SimulationCalorimeter.h"
+
 #include "QAHistManagerDef.h"
 
 #include <g4main/PHG4Hit.h>
@@ -35,15 +36,14 @@
 #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 
 #include <cassert>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <iterator>  // for reverse_iterator
 #include <map>
 #include <utility>
 
-using namespace std;
-
-QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(const string &calo_name,
+QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(const std::string &calo_name,
                                                      QAG4SimulationCalorimeter::enu_flags flags)
   : SubsysReco("QAG4SimulationCalorimeter_" + calo_name)
   , _calo_name(calo_name)
@@ -66,9 +66,9 @@ int QAG4SimulationCalorimeter::InitRun(PHCompositeNode *topNode)
                                                                "G4HIT_" + _calo_name);
     if (!_calo_hit_container)
     {
-      cout << "QAG4SimulationCalorimeter::InitRun - Fatal Error - "
-           << "unable to find DST node "
-           << "G4HIT_" + _calo_name << endl;
+      std::cout << "QAG4SimulationCalorimeter::InitRun - Fatal Error - "
+                << "unable to find DST node "
+                << "G4HIT_" + _calo_name << std::endl;
       assert(_calo_hit_container);
     }
 
@@ -76,10 +76,10 @@ int QAG4SimulationCalorimeter::InitRun(PHCompositeNode *topNode)
                                                                    "G4HIT_ABSORBER_" + _calo_name);
     if (!_calo_abs_hit_container)
     {
-      cout << "QAG4SimulationCalorimeter::InitRun - Fatal Error - "
-           << "unable to find DST node "
-           << "G4HIT_ABSORBER_" + _calo_name
-           << endl;
+      std::cout << "QAG4SimulationCalorimeter::InitRun - Fatal Error - "
+                << "unable to find DST node "
+                << "G4HIT_ABSORBER_" + _calo_name
+                << std::endl;
       assert(_calo_abs_hit_container);
     }
   }
@@ -88,9 +88,9 @@ int QAG4SimulationCalorimeter::InitRun(PHCompositeNode *topNode)
                                                                 "G4TruthInfo");
   if (!_truth_container)
   {
-    cout << "QAG4SimulationCalorimeter::InitRun - Fatal Error - "
-         << "unable to find DST node "
-         << "G4TruthInfo" << endl;
+    std::cout << "QAG4SimulationCalorimeter::InitRun - Fatal Error - "
+              << "unable to find DST node "
+              << "G4TruthInfo" << std::endl;
     assert(_truth_container);
   }
 
@@ -129,22 +129,22 @@ int QAG4SimulationCalorimeter::Init(PHCompositeNode *topNode)
   if (flag(kProcessG4Hit))
   {
     if (Verbosity() >= 1)
-      cout << "QAG4SimulationCalorimeter::Init - Process sampling fraction"
-           << endl;
+      std::cout << "QAG4SimulationCalorimeter::Init - Process sampling fraction"
+                << std::endl;
     Init_G4Hit(topNode);
   }
   if (flag(kProcessTower))
   {
     if (Verbosity() >= 1)
-      cout << "QAG4SimulationCalorimeter::Init - Process tower occupancies"
-           << endl;
+      std::cout << "QAG4SimulationCalorimeter::Init - Process tower occupancies"
+                << std::endl;
     Init_Tower(topNode);
   }
   if (flag(kProcessCluster))
   {
     if (Verbosity() >= 1)
-      cout << "QAG4SimulationCalorimeter::Init - Process tower occupancies"
-           << endl;
+      std::cout << "QAG4SimulationCalorimeter::Init - Process tower occupancies"
+                << std::endl;
     Init_Cluster(topNode);
   }
 
@@ -154,7 +154,7 @@ int QAG4SimulationCalorimeter::Init(PHCompositeNode *topNode)
 int QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 2)
-    cout << "QAG4SimulationCalorimeter::process_event() entered" << endl;
+    std::cout << "QAG4SimulationCalorimeter::process_event() entered" << std::endl;
 
   if (_caloevalstack)
     _caloevalstack->next_event(topNode);
@@ -194,13 +194,13 @@ int QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-string
+std::string
 QAG4SimulationCalorimeter::get_histo_prefix()
 {
-  return "h_QAG4Sim_" + string(_calo_name);
+  return "h_QAG4Sim_" + std::string(_calo_name);
 }
 
-int QAG4SimulationCalorimeter::Init_G4Hit(PHCompositeNode */*topNode*/)
+int QAG4SimulationCalorimeter::Init_G4Hit(PHCompositeNode * /*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -248,10 +248,10 @@ int QAG4SimulationCalorimeter::Init_G4Hit(PHCompositeNode */*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode */*topNode*/)
+int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() > 2)
-    cout << "QAG4SimulationCalorimeter::process_event_G4Hit() entered" << endl;
+    std::cout << "QAG4SimulationCalorimeter::process_event_G4Hit() entered" << std::endl;
 
   TH1F *h = nullptr;
 
@@ -282,9 +282,9 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode */*topNode*/)
 
   if (Verbosity() > 2)
   {
-    cout
+    std::cout
         << "QAG4SimulationCalorimeter::process_event_G4Hit() handle this truth particle"
-        << endl;
+        << std::endl;
     last_primary->identify();
   }
   const PHG4VtxPoint *primary_vtx =  //
@@ -292,9 +292,9 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode */*topNode*/)
   assert(primary_vtx);
   if (Verbosity() > 2)
   {
-    cout
+    std::cout
         << "QAG4SimulationCalorimeter::process_event_G4Hit() handle this vertex"
-        << endl;
+        << std::endl;
     primary_vtx->identify();
   }
 
@@ -357,7 +357,7 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode */*topNode*/)
           this_hit->get_trkid());
       if (!particle)
       {
-        cout << __PRETTY_FUNCTION__ << " - Error - this PHG4hit missing particle: ";
+        std::cout << __PRETTY_FUNCTION__ << " - Error - this PHG4hit missing particle: ";
         this_hit->identify();
       }
       assert(particle);
@@ -394,9 +394,9 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode */*topNode*/)
   }
 
   if (Verbosity() > 3)
-    cout << "QAG4SimulationCalorimeter::process_event_G4Hit::" << _calo_name
-         << " - SF = " << e_calo / (e_calo + ea_calo + 1e-9) << ", VSF = "
-         << ev_calo / (e_calo + ea_calo + 1e-9) << endl;
+    std::cout << "QAG4SimulationCalorimeter::process_event_G4Hit::" << _calo_name
+              << " - SF = " << e_calo / (e_calo + ea_calo + 1e-9) << ", VSF = "
+              << ev_calo / (e_calo + ea_calo + 1e-9) << std::endl;
 
   if (e_calo + ea_calo > 0)
   {
@@ -423,14 +423,14 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode */*topNode*/)
   }
 
   if (Verbosity() > 3)
-    cout << "QAG4SimulationCalorimeter::process_event_G4Hit::" << _calo_name
-         << " - histogram " << h->GetName() << " Get Sum = " << h->GetSum()
-         << endl;
+    std::cout << "QAG4SimulationCalorimeter::process_event_G4Hit::" << _calo_name
+              << " - histogram " << h->GetName() << " Get Sum = " << h->GetSum()
+              << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationCalorimeter::Init_Tower(PHCompositeNode */*topNode*/)
+int QAG4SimulationCalorimeter::Init_Tower(PHCompositeNode * /*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -486,10 +486,10 @@ int QAG4SimulationCalorimeter::Init_Tower(PHCompositeNode */*topNode*/)
 
 int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
 {
-  const string detector(_calo_name);
+  const std::string detector(_calo_name);
 
   if (Verbosity() > 2)
-    cout << "QAG4SimulationCalorimeter::process_event_Tower() entered" << endl;
+    std::cout << "QAG4SimulationCalorimeter::process_event_Tower() entered" << std::endl;
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -497,36 +497,36 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
       get_histo_prefix() + "_Normalization"));
   assert(h_norm);
 
-  string towernodename = "TOWER_CALIB_" + detector;
+  std::string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
   RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode,
-                                                                    towernodename.c_str());
+                                                                    towernodename);
   if (!towers)
   {
-    std::cout << PHWHERE << ": Could not find node " << towernodename.c_str()
+    std::cout << PHWHERE << ": Could not find node " << towernodename
               << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  string towergeomnodename = "TOWERGEOM_" + detector;
+  std::string towergeomnodename = "TOWERGEOM_" + detector;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(
-      topNode, towergeomnodename.c_str());
+      topNode, towergeomnodename);
   if (!towergeom)
   {
-    cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str()
-         << endl;
+    std::cout << PHWHERE << ": Could not find node " << towergeomnodename
+              << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   static const int max_size = 5;
-  map<int, string> size_label;
+  std::map<int, std::string> size_label;
   size_label[1] = "1x1";
   size_label[2] = "2x2";
   size_label[3] = "3x3";
   size_label[4] = "4x4";
   size_label[5] = "5x5";
-  map<int, double> max_energy;
-  map<int, TH1F *> energy_hist_list;
-  map<int, TH1F *> max_energy_hist_list;
+  std::map<int, double> max_energy;
+  std::map<int, TH1F *> energy_hist_list;
+  std::map<int, TH1F *> max_energy_hist_list;
 
   for (int size = 1; size <= max_size; ++size)
   {
@@ -600,7 +600,7 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationCalorimeter::Init_Cluster(PHCompositeNode */*topNode*/)
+int QAG4SimulationCalorimeter::Init_Cluster(PHCompositeNode * /*topNode*/)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -621,29 +621,28 @@ int QAG4SimulationCalorimeter::Init_Cluster(PHCompositeNode */*topNode*/)
 int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
 {
   if (Verbosity() > 2)
-    cout << "QAG4SimulationCalorimeter::process_event_Cluster() entered"
-         << endl;
+  {
+    std::cout << "QAG4SimulationCalorimeter::process_event_Cluster() entered"
+              << std::endl;
+  }
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  string towergeomnodename = "TOWERGEOM_" + _calo_name;
+  std::string towergeomnodename = "TOWERGEOM_" + _calo_name;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(
-      topNode, towergeomnodename.c_str());
+      topNode, towergeomnodename);
   if (!towergeom)
   {
-    cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str()
-         << endl;
+    std::cout << PHWHERE << ": Could not find node " << towergeomnodename << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   //get a cluster count
-  TH1D *h_norm = dynamic_cast<TH1D *>(hm->getHisto(
-      get_histo_prefix() + "_Normalization"));
+  TH1D *h_norm = dynamic_cast<TH1D *>(hm->getHisto(get_histo_prefix() + "_Normalization"));
   assert(h_norm);
 
   std::string nodename = "CLUSTER_" + _calo_name;
-  RawClusterContainer *clusters = findNode::getClass<RawClusterContainer>(
-      topNode, nodename.c_str());
+  RawClusterContainer *clusters = findNode::getClass<RawClusterContainer>(topNode, nodename);
   assert(clusters);
   h_norm->Fill("Cluster", clusters->size());
 
@@ -655,9 +654,9 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
 
   if (Verbosity() > 2)
   {
-    cout
+    std::cout
         << "QAG4SimulationCalorimeter::process_event_Cluster() handle this truth particle"
-        << endl;
+        << std::endl;
     last_primary->identify();
   }
 
@@ -675,10 +674,10 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
     // has a cluster matched and best cluster selected
 
     if (Verbosity() > 3)
-      cout << "QAG4SimulationCalorimeter::process_event_Cluster::"
-           << _calo_name << " - get cluster with energy "
-           << cluster->get_energy() << " VS primary energy "
-           << last_primary->get_e() << endl;
+      std::cout << "QAG4SimulationCalorimeter::process_event_Cluster::"
+                << _calo_name << " - get cluster with energy "
+                << cluster->get_energy() << " VS primary energy "
+                << last_primary->get_e() << std::endl;
 
     h->Fill(cluster->get_energy() / (last_primary->get_e() + 1e-9));  //avoids divide zero
 
@@ -690,9 +689,9 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
     assert(primary_vtx);
     if (Verbosity() > 2)
     {
-      cout
+      std::cout
           << "QAG4SimulationCalorimeter::process_event_Cluster() handle this vertex"
-          << endl;
+          << std::endl;
       primary_vtx->identify();
     }
 
@@ -728,8 +727,8 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
   else
   {
     if (Verbosity() > 3)
-      cout << "QAG4SimulationCalorimeter::process_event_Cluster::"
-           << _calo_name << " - missing cluster !";
+      std::cout << "QAG4SimulationCalorimeter::process_event_Cluster::"
+                << _calo_name << " - missing cluster !";
     h->Fill(0);  // no cluster matched
   }
 

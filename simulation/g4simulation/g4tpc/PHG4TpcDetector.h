@@ -5,8 +5,9 @@
 
 #include <g4main/PHG4Detector.h>
 
+#include <cmath>
 #include <set>
-#include <string>
+#include <vector>
 
 class G4LogicalVolume;
 class G4UserLimits;
@@ -31,23 +32,27 @@ class PHG4TpcDetector : public PHG4Detector
   void ConstructMe(G4LogicalVolume *world) override;
 
   int IsInTpc(G4VPhysicalVolume *) const;
-  void SuperDetector(const std::string &name) { superdetector = name; }
-  const std::string SuperDetector() const { return superdetector; }
+  void SuperDetector(const std::string &name) { m_SuperDetectorName = name; }
+  const std::string SuperDetector() const { return m_SuperDetectorName; }
 
  private:
   int ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope);
   int ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope);
-  PHG4TpcDisplayAction *m_DisplayAction;
-  PHParameters *params;
-  G4UserLimits *g4userlimits;
-  int active;
-  int absorberactive;
-  double inner_cage_radius;
-  double outer_cage_radius;
-  std::set<G4VPhysicalVolume *> absorbervols;
-  std::set<G4VPhysicalVolume *> activevols;
+  int ConstructTpcExternalSupports(G4LogicalVolume *logicWorld);
 
-  std::string superdetector;
+  void CreateCompositeMaterial(std::string compositeName, std::vector<std::string> materialName, std::vector<double> thickness);
+  
+  PHG4TpcDisplayAction *m_DisplayAction = nullptr;
+  PHParameters *m_Params = nullptr;
+  G4UserLimits *m_G4UserLimits = nullptr;
+  int m_ActiveFlag = 0;
+  int m_AbsorberActiveFlag = 0;
+  double m_InnerCageRadius = NAN;
+  double m_OuterCageRadius = NAN;
+  std::set<G4VPhysicalVolume *> m_AbsorberVolumeSet;
+  std::set<G4VPhysicalVolume *> m_ActiveVolumeSet;
+
+  std::string m_SuperDetectorName;
 };
 
 #endif

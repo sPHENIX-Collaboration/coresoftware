@@ -43,7 +43,7 @@ class PHG4TpcSubsystem : public PHG4DetectorSubsystem
   //! accessors (reimplemented)
   PHG4Detector *GetDetector(void) const override;
 
-  PHG4SteppingAction *GetSteppingAction(void) const override { return steppingAction_; }
+  PHG4SteppingAction *GetSteppingAction(void) const override { return m_SteppingAction; }
 
   PHG4DisplayAction *GetDisplayAction() const override { return m_DisplayAction; }
 
@@ -52,15 +52,18 @@ class PHG4TpcSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! derives from PHG4Detector */
-  PHG4TpcDetector *detector_;
+  PHG4TpcDetector *m_Detector = nullptr;
 
   //! detector "stepping" action, executes after every G4 step
   /*! derives from PHG4SteppingAction */
-  PHG4SteppingAction *steppingAction_;
+  PHG4SteppingAction *m_SteppingAction = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction *m_DisplayAction;
+  PHG4DisplayAction *m_DisplayAction = nullptr;
+
+  std::string m_HitNodeName;
+  std::string m_AbsorberNodeName;
 };
 
 #endif
