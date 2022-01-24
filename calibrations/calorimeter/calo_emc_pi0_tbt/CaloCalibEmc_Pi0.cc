@@ -50,8 +50,8 @@ CaloCalibEmc_Pi0::CaloCalibEmc_Pi0(const std::string& name, const std::string& f
   , cal_output(0)
   , _caloname("CEMC")
   , _filename(filename)
-  , energy_eta_hist(0)
-  , e_eta_phi(0)
+  , mass_eta(0)
+  , mass_eta_phi(0)
   , pairInvMassTotal(0)
   ,_eventTree(0)
   ,_eventNumber(-1)
@@ -61,9 +61,16 @@ CaloCalibEmc_Pi0::CaloCalibEmc_Pi0(const std::string& name, const std::string& f
   ,alphaCut(-1.0)
 {
  
-  eta_hist[0] = 0;
 
-
+  for (int nj=0; nj < 96; nj++)
+    {
+      eta_hist[nj] = NULL;
+      for (int nk=0; nk < 256; nk++)
+	{
+	  cemc_hist_eta_phi[nj][nk] = NULL; 
+	}
+    }
+  
 }
 
 
@@ -79,6 +86,10 @@ int CaloCalibEmc_Pi0::InitRun(PHCompositeNode* topNode)
 	
 	
 	pairInvMassTotal = new TH1F("pairInvMassTotal", "Pair Mass Histo", 70, 0.0, 0.7);
+	mass_eta = new TH2F("mass_eta", "2d Pair Mass Histo", 70, 0.0, 0.7, 400,-1.5,1.5);
+	mass_eta_phi = new TH3F("mass_eta_phi", "3d Pair Mass Histo", 70, 0.0, 0.7, 150,-1.5,1.5, 256, -3.142, 3.142);
+	
+
 	  
 	  // histo to record every tower by tower locations	
 	  for (int i = 0; i<96; i++)  // eta rows
@@ -313,12 +324,14 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode* topNode)
 						if (tt_clus_energy > 2.5 && tt2_clus_energy > 1.5)
 						{   
 							pairInvMassTotal-> Fill(pairInvMass);
+							mass_eta->Fill(pairInvMass,tt_clus_eta);							                                      mass_eta_phi->Fill(pairInvMass,tt_clus_eta, tt_clus_phi);
+
 						}
 
 
 						// fill the tower by tower histograms with invariant mass
-						cemc_hist_eta_phi[maxTowerEta][maxTowerPhi]->Fill(pairInvMass);
-						eta_hist[maxTowerEta]->Fill(pairInvMass);
+						 cemc_hist_eta_phi[maxTowerEta][maxTowerPhi]->Fill(pairInvMass);
+						 eta_hist[maxTowerEta]->Fill(pairInvMass);
 					}
 
 				}

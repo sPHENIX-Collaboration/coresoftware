@@ -52,10 +52,10 @@ class CaloCalibEmc_Pi0 : public SubsysReco
 
 
  // histos lists
-  TH1 *cemc_hist_eta_phi[96][258]= {0};
+  TH1 *cemc_hist_eta_phi[96][258];
   TH1 *eta_hist[96]= {0};
-  TH2F *energy_eta_hist;// = Null;
-  TH3F *e_eta_phi;// = Null;
+  TH2F *mass_eta;// = Null;
+  TH3F *mass_eta_phi;// = Null;
 
   TH1F *pairInvMassTotal;
 
