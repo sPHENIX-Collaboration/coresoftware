@@ -54,12 +54,16 @@ class PHG4MicromegasDetector : public PHG4Detector
   //! super detector name
   const std::string SuperDetector() const { return m_SuperDetector; }
 
-  //! set micromegas tiles
-  void set_tiles( const MicromegasTile::List& tiles )
-  { m_tiles = tiles; }
+//   //! set micromegas tiles
+//   void set_tiles( const MicromegasTile::List& tiles )
+//   { m_tiles = tiles; }
 
   private:
 
+  //! setup tiles
+  /** the method is now private because tiles are now hard coded */
+  void setup_tiles();
+  
   //! create needed material
   void create_materials() const;
 
