@@ -53,7 +53,7 @@ namespace
 PHG4MicromegasDetector::PHG4MicromegasDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
   , m_Params(parameters)
-{}
+{ setup_tiles(); }
 
 //_______________________________________________________________
 bool PHG4MicromegasDetector::IsInDetector(G4VPhysicalVolume *volume) const
@@ -92,6 +92,37 @@ void PHG4MicromegasDetector::Print(const std::string &what) const
     m_Params->Print();
   }
   return;
+}
+
+//_______________________________________________________________
+void PHG4MicromegasDetector::setup_tiles()
+{
+  
+  // TODO: replace with more realistic description from latest engineering drawings
+  m_tiles.clear();
+
+  // hard coded TPC definitions
+  static constexpr double length = 210;
+  static constexpr double tile_length = 50;
+  static constexpr double tile_width = 25;
+
+  {
+    // bottom most sector 3pi/2 has 4 modules
+    static constexpr double phi = 3.*M_PI/2;
+    static constexpr int ntiles = 4;
+    for (int i = 0; i < ntiles; ++i)
+    { m_tiles.emplace_back(phi, length * ((0.5 + i) / ntiles - 0.5), tile_width/CylinderGeomMicromegas::reference_radius, tile_length); }
+  }
+  
+  {
+    // neighbor sectors have two modules, separated by 10cm
+    static constexpr double zoffset = 10;
+    for( const double& phi: { 4.*M_PI/3, 5.*M_PI/3 } )
+    {
+      m_tiles.emplace_back( phi, length*(1.5/4-0.5) - zoffset, tile_width/CylinderGeomMicromegas::reference_radius, tile_length );
+      m_tiles.emplace_back( phi, length*(2.5/4-0.5) + zoffset, tile_width/CylinderGeomMicromegas::reference_radius, tile_length );
+    }  
+  }
 }
 
 //_______________________________________________________________

@@ -10,7 +10,6 @@
  */
 
 #include <g4detectors/PHG4DetectorSubsystem.h>
-#include <micromegas/MicromegasTile.h>
 
 #include <string>                               // for string
 
@@ -54,19 +53,12 @@ class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
   //! Print info (from SubsysReco)
   void Print(const std::string& what = "ALL") const override;
 
-  //! set micromegas tiles
-  void set_tiles( const MicromegasTile::List& tiles )
-  { m_tiles = tiles; }
-
   protected:
   
   // \brief Set default parameter values
   void SetDefaultParameters() override;
 
   private:
-
-  //! micromegas tiles
-  MicromegasTile::List m_tiles;
 
   //! detector construction
   /*! derives from PHG4Detector */
