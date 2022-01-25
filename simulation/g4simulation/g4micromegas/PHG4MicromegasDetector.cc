@@ -291,7 +291,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   const double cyllength =  m_Params->get_double_param("mm_cyllength")*cm;
   
   // get total thickness
-  const double thickness = std::accumulate(
+  const double tile_thickness = std::accumulate(
     layer_stack.begin(), layer_stack.end(), 0.,
     [&layer_map](double value, LayerDefinition layer )
     { return value + layer_map.at(std::get<0>(layer)).m_thickness; } );
@@ -302,7 +302,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 
   // get master volume min and max radius
   const auto min_radius = radius - 0.001*mm;
-  const auto max_radius = std::sqrt( square( radius + thickness ) + square( max_panel_width/2 ) ) + 0.001*mm;
+  const auto max_radius = std::sqrt( square( radius + tile_thickness ) + square( max_panel_width/2 ) ) + 0.001*mm;
 
   // create mother volume
   auto cylinder_solid = new G4Tubs( G4String(GetName()), min_radius, max_radius, cyllength/2, 0, M_PI*2);
@@ -337,7 +337,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 
     // create tile master volume
     const G4String tilename = G4String(GetName()) + "_tile_" + std::to_string(tileid);
-    auto tile_solid = new G4Box( tilename+"_solid", thickness/2, dy, dz/2 );
+    auto tile_solid = new G4Box( tilename+"_solid", tile_thickness/2, dy, dz/2 );
     auto tile_logic = new G4LogicalVolume( tile_solid, world_material, tilename+"_logic");
     auto vis = new G4VisAttributes(G4Colour::Grey());
     vis->SetForceSolid(true);
@@ -350,14 +350,14 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     rotation->rotateZ( -centerPhi*radian );
 
     const G4ThreeVector center(
-      (radius + thickness/2)*std::cos(centerPhi),
-      (radius + thickness/2)*std::sin(centerPhi),
+      (radius + tile_thickness/2)*std::cos(centerPhi),
+      (radius + tile_thickness/2)*std::sin(centerPhi),
       centerZ );
     
     new G4PVPlacement( rotation, center, tile_logic, tilename+"_phys", cylinder_logic, false, 0, OverlapCheck() );
     
     /* we loop over registered layers and create volumes for each as daughter of the tile volume */
-    auto current_radius_local = -thickness/2;
+    auto current_radius_local = -tile_thickness/2;
     for( const auto& [type, name]:layer_stack )
     {
 
@@ -389,7 +389,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
         m_tiles_map.insert( std::make_pair( component_phys, tileid ) );
 
         // store radius associated to this layer
-        m_layer_radius.insert( std::make_pair( layer_index, (radius + current_radius_local + thickness/2)/cm ) );
+        m_layer_radius.insert( std::make_pair( layer_index, (radius + tile_thickness/2 + current_radius_local + thickness/2)/cm ) );
         m_layer_thickness.insert( std::make_pair( layer_index, thickness/cm) );
 
       } else m_passiveVolumes.insert( component_phys );
