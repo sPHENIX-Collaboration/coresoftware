@@ -23,6 +23,7 @@
 #include <phool/recoConsts.h>
 
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Box.hh>
 #include <Geant4/G4Color.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
@@ -267,7 +268,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   std::cout << "PHG4MicromegasDetector::ConstructMe - detector thickness is " << thickness/cm << " cm" << std::endl;
 
   // create mother volume
-  auto cylinder_solid = new G4Tubs( G4String(GetName()+ "_m"), radius - 0.001*mm, radius + thickness + 0.001*mm, cyllength / 2., 0, M_PI*2);
+  auto cylinder_solid = new G4Tubs( G4String(GetName()+ "_m"), radius - 0.001*mm, sqrt( radius*radius + thickness*thickness/2. ) + 0.001*mm, cyllength / 2., 0, M_PI*2);
 
   recoConsts* rc = recoConsts::instance();
   auto cylinder_logic = new G4LogicalVolume( cylinder_solid, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), G4String(GetName())+"_m" );
@@ -283,10 +284,12 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
  
   // make 1 tile
   // ----------
-  auto tile_o = new G4Tubs(G4String(GetName())+"_tile0", radius - 0.001*mm, radius + thickness + 0.001*mm, length, -width/radius *rad, width/radius *rad); 
+  //auto tile_o = new G4Tubs(G4String(GetName())+"_tile0", radius - 0.001*mm, radius + thickness + 0.001*mm, length, -width/radius *rad, width/radius *rad);
+  auto tile_o = new G4Box(G4String(GetName())+"_tile0", thickness / 2., width / 2., length / 2.);  
   auto tile_o_logic = new G4LogicalVolume(tile_o, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), G4String(GetName())+"_tile0");
   tile_o_logic->SetVisAttributes(vis);
-
+  //auto G4RotationMatrix zRot = new G4RotationMatrix();
+  //zRot->rotateY();
   new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), tile_o_logic, G4String(GetName()) +"_tile0", logicWorld, false, 0, OverlapCheck() );// no rotation for tile0
 
   // keep track of current layer
@@ -308,8 +311,10 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     const auto material = layer_material.at(type);
     const auto color = layer_color.at(type);
 
-    auto component_solid = new G4Tubs(cname+"_solid", current_radius, current_radius+thickness, length, -width/radius*rad, width/radius*rad);
+    //auto component_solid = new G4Tubs(cname+"_solid", current_radius, current_radius+thickness, length, -width/radius*rad, width/radius*rad);
+    auto component_solid = new G4Box(cname+"_solid", thickness / 2., width / 2., length / 2.);
     auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
+    
     auto vis = new G4VisAttributes( color );
     vis->SetForceSolid(true);
     vis->SetVisibility(true);
@@ -352,23 +357,26 @@ void PHG4MicromegasDetector::add_geometry_node()
   }
 
   // add cylinder objects
-  /* one cylinder is added per physical volume. The dimention correspond to the drift volume */
+  /* one single cylinder is defined and contains all the tiles. The dimensions cover the tile corners. */
   for( const auto& pair:m_activeVolumes )
   {
     // store layer and volume
     const int layer = pair.second;
     const G4VPhysicalVolume* volume_phys = pair.first;
 
-    // get solid volume, cast to a tube
-    const auto tub = dynamic_cast<const G4Tubs*>( volume_phys->GetLogicalVolume()->GetSolid() );
+    // get solid volume, cast to a box
+    const auto box = dynamic_cast<const G4Box*>( volume_phys->GetLogicalVolume()->GetSolid() );
 
     // create cylinder and match geometry
     /* note: cylinder segmentation type and pitch is set in PHG4MicromegasHitReco */
     auto cylinder = new CylinderGeomMicromegas(layer);
-    cylinder->set_radius( (tub->GetInnerRadius()/cm + tub->GetOuterRadius()/cm)/2 );
-    cylinder->set_thickness( tub->GetOuterRadius()/cm - tub->GetInnerRadius()/cm );
-    cylinder->set_zmin( -tub->GetZHalfLength()/cm );
-    cylinder->set_zmax( tub->GetZHalfLength()/cm );
+    const double innerRadius = m_Params->get_double_param("mm_radius")*cm;
+    const double outerRadius = sqrt( innerRadius/cm*innerRadius/cm + box->GetYHalfLength()/cm*box->GetYHalfLength()/cm );
+    cylinder->set_radius( ( innerRadius/cm + outerRadius/cm )/2. );
+    cylinder->set_thickness( box->GetXHalfLength()*2./cm );
+    cylinder->set_zmin( -box->GetZHalfLength()/cm );
+    cylinder->set_zmax( box->GetZHalfLength()/cm );
+    std::cout << "PHG4MicromegasDetector:: added geom node ok" <<std::endl;
     geonode->AddLayerGeom(layer, cylinder);
   }
 
