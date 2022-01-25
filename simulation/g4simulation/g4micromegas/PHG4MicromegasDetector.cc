@@ -259,7 +259,15 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   const double width =  m_Params->get_double_param("mm_width")*cm;
   const double cyllength =  m_Params->get_double_param("mm_cyllength")*cm;
   
-// get total thickness
+  //tiles coordinates x,y,z
+  const int ntiles = 8;
+  //first tiles along z (bottom) then each side
+  const double centerPhi[ntiles] = {0.,0.,0.,0.,-M_PI/12.,-M_PI/12.,M_PI/12.,M_PI/12.};
+  // 4 tiles equally distributed along tpc length then 2 on the middle on each sid << std::endl;
+  const double centerZ[ntiles] = {cyllength*0.5/4., cyllength*1.5/4., cyllength*2.5/4., cyllength*3.5/4., 
+                                  cyllength*1.5/4., cyllength*2.5/4., cyllength*1.5/4., cyllength*2.5/4.};  
+
+  // get total thickness
   const double thickness = std::accumulate(
     layer_definitions.begin(), layer_definitions.end(), 0.,
     [layer_thickness](double value, LayerDefinition layer )
@@ -280,54 +288,58 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   // add placement
   PHG4Subsystem *mysys = GetMySubsystem();
   mysys->SetLogicalVolume(cylinder_logic);
- // new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), cylinder_logic, G4String(GetName()), logicWorld, false, 0, OverlapCheck() );
+  new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), cylinder_logic, G4String(GetName()), logicWorld, false, 0, OverlapCheck() );
  
-  // make 1 tile
-  // ----------
-  //auto tile_o = new G4Tubs(G4String(GetName())+"_tile0", radius - 0.001*mm, radius + thickness + 0.001*mm, length, -width/radius *rad, width/radius *rad);
-  auto tile_o = new G4Box(G4String(GetName())+"_tile0", thickness / 2., width / 2., length / 2.);  
-  auto tile_o_logic = new G4LogicalVolume(tile_o, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), G4String(GetName())+"_tile0");
-  tile_o_logic->SetVisAttributes(vis);
-  //auto G4RotationMatrix zRot = new G4RotationMatrix();
-  //zRot->rotateY();
-  new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), tile_o_logic, G4String(GetName()) +"_tile0", logicWorld, false, 0, OverlapCheck() );// no rotation for tile0
+ for( int idtile=0; idtile<ntiles; idtile++ )
+{ 
+    // make the tiles
+    // ----------
+    //auto tile_o = new G4Tubs(G4String(GetName())+"_tile0", radius - 0.001*mm, radius + thickness + 0.001*mm, length, -width/radius *rad, width/radius *rad);
+    auto tile_o = new G4Box(G4String(GetName())+"_tile_"+ G4String(idtile), thickness / 2., width / 2., length / 2.);  
+    auto tile_o_logic = new G4LogicalVolume(tile_o, GetDetectorMaterial(rc->get_StringFlag("WorldMaterial")), G4String(GetName())+"_tile0");
+    tile_o_logic->SetVisAttributes(vis);
+    auto zRot = new G4RotationMatrix();
+    zRot->rotateY(centerPhi[idtile]);
+    new G4PVPlacement( zRot, G4ThreeVector(0,0,centerZ[idtile]), tile_o_logic, G4String(GetName()) +"_tile_"+ G4String(idtile), logicWorld, false, 0, OverlapCheck() );// no rotation for tile0
 
-  // keep track of current layer
-  int layer_index = m_FirstLayer;
+    // keep track of current layer
+    int layer_index = m_FirstLayer;
 
-  // create detector
-  /* we loop over registered layers and create volumes for each */
-  auto current_radius = radius;
-  for( const auto& layer:layer_definitions )
-  {
-    const Component& type = std::get<0>(layer);
-    const std::string& name = std::get<1>(layer);
+    // create detector
+    /* we loop over registered layers and create volumes for each */
+    auto current_radius = radius;
 
-    // layer name
-    G4String cname = G4String(GetName()) + "_" + name;
+    for( const auto& layer:layer_definitions )
+    {
+      const Component& type = std::get<0>(layer);
+      const std::string& name = std::get<1>(layer);
 
-    // get thickness, material and name
-    const auto thickness = layer_thickness.at(type);
-    const auto material = layer_material.at(type);
-    const auto color = layer_color.at(type);
+      // layer name
+      G4String cname = G4String(GetName()) + "_" + name + G4String(idtile);
 
-    //auto component_solid = new G4Tubs(cname+"_solid", current_radius, current_radius+thickness, length, -width/radius*rad, width/radius*rad);
-    auto component_solid = new G4Box(cname+"_solid", thickness / 2., width / 2., length / 2.);
-    auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
+      // get thickness, material and name
+      const auto thickness = layer_thickness.at(type);
+      const auto material = layer_material.at(type);
+      const auto color = layer_color.at(type);
+
+      //auto component_solid = new G4Tubs(cname+"_solid", current_radius, current_radius+thickness, length, -width/radius*rad, width/radius*rad);
+      auto component_solid = new G4Box(cname+"_solid", thickness / 2., width / 2., length / 2.);
+      auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
     
-    auto vis = new G4VisAttributes( color );
-    vis->SetForceSolid(true);
-    vis->SetVisibility(true);
-    component_logic->SetVisAttributes(vis);
+      auto vis = new G4VisAttributes( color );
+      vis->SetForceSolid(true);
+      vis->SetVisibility(true);
+      component_logic->SetVisAttributes(vis);
+    
+      auto component_phys = new G4PVPlacement( zRot, G4ThreeVector(0,0, centerZ[idtile]), component_logic, cname+"_phys", tile_o_logic, false, 0, OverlapCheck() );
 
-    auto component_phys = new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), component_logic, cname+"_phys", tile_o_logic, false, 0, OverlapCheck() );
+      // store active volume
+      if( type == Component::Gas2 ) m_activeVolumes.insert( std::make_pair( component_phys, layer_index++ ) );
+      else m_passiveVolumes.insert( component_phys );
 
-    // store active volume
-    if( type == Component::Gas2 ) m_activeVolumes.insert( std::make_pair( component_phys, layer_index++ ) );
-    else m_passiveVolumes.insert( component_phys );
-
-    // update radius
-    current_radius += thickness;
+      // update radius
+      current_radius += thickness;
+    }
   }
 
   // print physical layers
