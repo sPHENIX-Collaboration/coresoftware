@@ -14,7 +14,7 @@ class PHCompositeNode;
 class TrkrHitSet;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
-class TrkrClusterHitAssoc;
+class TrkrClusterHitAssocv3;
 class PHG4CylinderCellGeom;
 class PHG4CylinderCellGeomContainer;
 
@@ -45,7 +45,7 @@ class TpcClusterizer : public SubsysReco
 
   TrkrHitSetContainer *m_hits = nullptr;
   TrkrClusterContainer *m_clusterlist = nullptr;
-  TrkrClusterHitAssoc *m_clusterhitassoc = nullptr;
+  TrkrClusterHitAssocv3 *m_clusterhitassoc = nullptr;
   ActsSurfaceMaps *m_surfMaps = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
 
@@ -54,7 +54,7 @@ class TpcClusterizer : public SubsysReco
   double SectorFiducialCut = 0.5;
   unsigned short MaxClusterHalfSizePhi = 3;
   unsigned short MaxClusterHalfSizeZ = 5;
-
+  int nevent = 0;
   /// drift velocity scale factor
   /** 
    * represents the ratio vdrift_measured/vdrift_true
