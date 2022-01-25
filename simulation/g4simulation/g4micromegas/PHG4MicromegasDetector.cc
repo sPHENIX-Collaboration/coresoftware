@@ -200,6 +200,61 @@ void PHG4MicromegasDetector::create_materials() const
 //_______________________________________________________________
 void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 {
+
+  // start seting up volumes
+  // get initial radius
+  const double radius = m_Params->get_double_param("mm_radius")*cm;
+
+  // create detector
+  // loop over tiles
+  for( size_t tileid = 0; tileid < m_tiles.size(); ++tileid )
+  {
+
+    // get relevant tile
+    const auto& tile = m_tiles[tileid];
+
+    // get tile's dimension and orientation
+    const double dy = CylinderGeomMicromegas::reference_radius*tile.m_sizePhi*cm;
+    const double dz = tile.m_sizeZ*cm;
+
+    // create tile master volume
+    auto tile_logic = construct_micromegas_tile( tileid, dy, dz );
+    
+    // palce tile in master volume
+    const double centerZ = tile.m_centerZ*cm;
+    const double centerPhi = tile.m_centerPhi;
+ 
+    // place
+    /* not completely sure why one must rotate with oposite angle as that use for the translation */
+    auto rotation = new G4RotationMatrix;
+    rotation->rotateZ( -centerPhi*radian );
+
+    const G4ThreeVector center(
+      radius*std::cos(centerPhi),
+      radius*std::sin(centerPhi),
+      centerZ );
+    
+    const auto tilename = GetName() + "_tile_" + std::to_string(tileid);
+    new G4PVPlacement( rotation, center, tile_logic, tilename+"_phys", logicWorld, false, 0, OverlapCheck() );
+  }
+  
+  // adjust active volume radius to account for world placement
+  for( auto&& [layer, layer_radius]:m_layer_radius ) { layer_radius += radius/cm; }
+  
+  // print physical layers
+  if( Verbosity() )
+  {
+    std::cout << "PHG4MicromegasDetector::ConstructMe - first layer: " << m_FirstLayer << std::endl;
+    for( const auto& pair:m_activeVolumes )
+    {  std::cout << "PHG4MicromegasDetector::ConstructMe - layer: " << pair.second << " volume: " << pair.first->GetName() << std::endl; }
+  }
+
+  return;
+}
+
+//_______________________________________________________________
+G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, double dy, double dz )
+{
   // components enumeration
   /*
   this describes all the detector onion layers for a single side
@@ -284,132 +339,76 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     std::make_tuple( Component::DriftKapton, "DriftKapton_outer" ),
     std::make_tuple( Component::DriftCarbon, "DriftCarbon_outer" )
   };
-
-  // start seting up volumes
-  // get initial radius
-  const double radius = m_Params->get_double_param("mm_radius")*cm;
-  const double cyllength =  m_Params->get_double_param("mm_cyllength")*cm;
-  
-  // get total thickness
+    
+  // calculate total tile thickness
   const double tile_thickness = std::accumulate(
     layer_stack.begin(), layer_stack.end(), 0.,
     [&layer_map](double value, LayerDefinition layer )
     { return value + layer_map.at(std::get<0>(layer)).m_thickness; } );
 
-  // get max panel width. It is needed to make sure all panels fit inside the parent G4Tub
-  const double max_panel_width = CylinderGeomMicromegas::reference_radius*std::max_element( m_tiles.begin(), m_tiles.end(),
-    [](const MicromegasTile& first, const MicromegasTile& second ) { return first.m_sizePhi < second.m_sizePhi; } )->m_sizePhi*cm;
-
-  // get master volume min and max radius
-  const auto min_radius = radius - 0.001*mm;
-  const auto max_radius = std::sqrt( square( radius + tile_thickness ) + square( max_panel_width/2 ) ) + 0.001*mm;
-
-  // create mother volume
-  auto cylinder_solid = new G4Tubs( G4String(GetName()), min_radius, max_radius, cyllength/2, 0, M_PI*2);
-
+  // get world material to define parent volume
   auto rc = recoConsts::instance();
   auto world_material = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
-  auto cylinder_logic = new G4LogicalVolume( cylinder_solid, world_material, G4String(GetName()) );
-  auto vis = new G4VisAttributes(G4Color(G4Colour::Grey()));
+
+  // define tile name
+  const auto tilename = GetName() + "_tile_" + std::to_string(tileid);
+  
+  auto tile_solid = new G4Box( tilename+"_solid", tile_thickness/2, dy/2, dz/2 );
+  auto tile_logic = new G4LogicalVolume( tile_solid, world_material, tilename+"_logic");
+  auto vis = new G4VisAttributes(G4Colour::Grey());
   vis->SetForceSolid(true);
   vis->SetVisibility(false);
-  //cylinder_logic->SetVisAttributes(vis);
 
-  // add placement
-  PHG4Subsystem *mysys = GetMySubsystem();
-  mysys->SetLogicalVolume(cylinder_logic);
-  new G4PVPlacement( nullptr, G4ThreeVector(0,0,0), cylinder_logic, G4String(GetName()), logicWorld, false, 0, OverlapCheck() );
+  tile_logic->SetVisAttributes(vis);
 
-  // create detector
-  // loop over tiles
-  for( size_t tileid = 0; tileid < m_tiles.size(); ++tileid )
+  /* we loop over registered layers and create volumes for each as daughter of the tile volume */
+  auto current_radius_local = -tile_thickness/2;
+  for( const auto& [type, name]:layer_stack )
   {
 
-    // get relevant tile
-    const auto& tile = m_tiles[tileid];
+    // layer name
+    const G4String cname = G4String(GetName()) + "_" + name;
+    
+    // get thickness, material and name
+    const auto& thickness = layer_map.at(type).m_thickness;
+    const auto& material = layer_map.at(type).m_material;
+    const auto& color = layer_map.at(type).m_color;
 
-    // get tile's dimension and orientation
-    const double dy = CylinderGeomMicromegas::reference_radius*tile.m_sizePhi*cm;
-    const double dz = tile.m_sizeZ*cm;
-
-    const double centerZ = tile.m_centerZ*cm;
-    const double centerPhi = tile.m_centerPhi;
-
-    // create tile master volume
-    const G4String tilename = G4String(GetName()) + "_tile_" + std::to_string(tileid);
-    auto tile_solid = new G4Box( tilename+"_solid", tile_thickness/2, dy, dz/2 );
-    auto tile_logic = new G4LogicalVolume( tile_solid, world_material, tilename+"_logic");
-    auto vis = new G4VisAttributes(G4Colour::Grey());
+    auto component_solid = new G4Box(cname+"_solid", thickness/2, dy/2, dz/2 );
+    auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
+    auto vis = new G4VisAttributes( color );
     vis->SetForceSolid(true);
-    vis->SetVisibility(false);
-    tile_logic->SetVisAttributes(vis);
-
-    // place
-    /* not completely sure why one must rotate with oposite angle as that use for the translation */
-    auto rotation = new G4RotationMatrix;
-    rotation->rotateZ( -centerPhi*radian );
-
-    const G4ThreeVector center(
-      (radius + tile_thickness/2)*std::cos(centerPhi),
-      (radius + tile_thickness/2)*std::sin(centerPhi),
-      centerZ );
+    vis->SetVisibility(true);
+    component_logic->SetVisAttributes(vis);
     
-    new G4PVPlacement( rotation, center, tile_logic, tilename+"_phys", cylinder_logic, false, 0, OverlapCheck() );
+    const G4ThreeVector center( (current_radius_local + thickness/2), 0, 0 );
+    auto component_phys = new G4PVPlacement( nullptr, center, component_logic, cname+"_phys", tile_logic, false, 0, OverlapCheck() );
     
-    /* we loop over registered layers and create volumes for each as daughter of the tile volume */
-    auto current_radius_local = -tile_thickness/2;
-    for( const auto& [type, name]:layer_stack )
+    if( type == Component::Gas2 )
     {
+      
+      // store active volume
+      // define layer from name
+      const int layer_index = (name == "Gas2_inner") ? m_FirstLayer : m_FirstLayer+1;
+      m_activeVolumes.insert( std::make_pair( component_phys, layer_index ) );
+      m_tiles_map.insert( std::make_pair( component_phys, tileid ) );
+      
+      // store radius associated to this layer
+      m_layer_radius.insert( std::make_pair( layer_index, (current_radius_local + thickness/2)/cm ) );
+      m_layer_thickness.insert( std::make_pair( layer_index, thickness/cm) );
 
-      // layer name
-      const G4String cname = G4String(GetName()) + "_" + name;
+    } else m_passiveVolumes.insert( component_phys );
 
-      // get thickness, material and name
-      const auto& thickness = layer_map.at(type).m_thickness;
-      const auto& material = layer_map.at(type).m_material;
-      const auto& color = layer_map.at(type).m_color;
-
-      auto component_solid = new G4Box(cname+"_solid", thickness/2, dy/2, dz/2 );
-      auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
-      auto vis = new G4VisAttributes( color );
-      vis->SetForceSolid(true);
-      vis->SetVisibility(true);
-      component_logic->SetVisAttributes(vis);
-
-      const G4ThreeVector center( (current_radius_local + thickness/2), 0, 0 );
-      auto component_phys = new G4PVPlacement( nullptr, center, component_logic, cname+"_phys", tile_logic, false, 0, OverlapCheck() );
-
-      if( type == Component::Gas2 )
-      {
-
-        // store active volume
-        // define layer from name
-        const int layer_index = (name == "Gas2_inner") ? m_FirstLayer : m_FirstLayer+1;
-        m_activeVolumes.insert( std::make_pair( component_phys, layer_index ) );
-        m_tiles_map.insert( std::make_pair( component_phys, tileid ) );
-
-        // store radius associated to this layer
-        m_layer_radius.insert( std::make_pair( layer_index, (radius + tile_thickness/2 + current_radius_local + thickness/2)/cm ) );
-        m_layer_thickness.insert( std::make_pair( layer_index, thickness/cm) );
-
-      } else m_passiveVolumes.insert( component_phys );
-
-      // update radius
-      current_radius_local += thickness;
-    }
-
-  }
-
-  // print physical layers
-  if( Verbosity() )
-  {
-    std::cout << "PHG4MicromegasDetector::ConstructMe - first layer: " << m_FirstLayer << std::endl;
-    for( const auto& pair:m_activeVolumes )
-    {  std::cout << "PHG4MicromegasDetector::ConstructMe - layer: " << pair.second << " volume: " << pair.first->GetName() << std::endl; }
-  }
-
-  return;
+    // update radius
+    current_radius_local += thickness;
+  }  
+  
+  // return master logical volume
+  return tile_logic;
+  
 }
+
+
 
 //_______________________________________________________________
 void PHG4MicromegasDetector::add_geometry_node()
