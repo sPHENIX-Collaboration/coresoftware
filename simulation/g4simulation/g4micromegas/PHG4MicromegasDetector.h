@@ -70,10 +70,14 @@ class PHG4MicromegasDetector : public PHG4Detector
   //! construct
   void construct_micromegas(G4LogicalVolume*);
 
+  //! create a micromegas tile of given dimension
+  /** returns the master logical volume that can then be placed inside the world logical volume */
+  G4LogicalVolume* construct_micromegas_tile( int tileid, double delta_y, double delta_z );
+  
   //! add geometry node
   /*! this handles the internal (module/strips) segmentation, needed for tracking*/
   void add_geometry_node();
-
+  
   //! detector parameters
   PHParameters* m_Params = nullptr;
 
