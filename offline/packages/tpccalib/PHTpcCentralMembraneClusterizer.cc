@@ -10,7 +10,6 @@
 #include <TH1F.h>
 #include <TH2F.h>
 #include <string>
-#include <tpc/TpcDefs.h>
 #include <TVector3.h>
 #include <TCanvas.h>
 #include <TGraph.h>
@@ -18,6 +17,7 @@
 
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>
+#include <tpc/TpcDefs.h>
 #include <trackbase/CMFlashClusterv1.h>
 #include <trackbase/CMFlashClusterContainerv1.h>
 #include <trackbase/TrkrClusterv3.h>
@@ -44,32 +44,27 @@ PHTpcCentralMembraneClusterizer::PHTpcCentralMembraneClusterizer(const std::stri
  SubsysReco(name)
 {
 
+
   // Make some histograms on an output file for diagnostics
   char temp[500];
   sprintf(temp,
-  	  "./eval_output/Energy_Histograms_%i.root",process);
+	  "./eval_output/Energy_Histograms_%i.root", _process);
   fout = new TFile(temp,"RECREATE");
-
+  
   henergy = new TH1F("henergy", "cluster energy", 200, 0, 2000);
   hxy = new TH2F("hxy","cluster x:y",800,-100,100,800,-80,80);
-
-  hClustE[0]= new TH1F("hRawClusterEnergy","Cluster Energy Before Merging;E[?]",100,0,2000);
-  hClustE[1] = new TH1F("hMatchedClusterEnergy","Pair Cluster Energy After Merging;E[?]",100,0,2000);
-  hClustE[2] = new TH1F("hSoloClusterEnergy","Lone Cluster Energy After Merging;E[?]",100,0,2000);
-
+  hz = new TH1F("hz","cluster z", 220, -2,2);
+  
+  hClustE[0]= new TH1F("hRawClusterEnergy","Cluster Energy Before Merging;E[?]",200,0,2000);
+  hClustE[1] = new TH1F("hMatchedClusterEnergy","Pair Cluster Energy After Merging;E[?]",200,0,2000);
+  hClustE[2] = new TH1F("hSoloClusterEnergy","Lone Cluster Energy After Merging;E[?]",200,0,2000);
+  
   hDist=new TH1F("hDist","3D distance to nearby clusters on same padrow;dist[cm]",100,-1,10);
   hDistRow=new TH2F("hDistRow","phi distance to nearby clusters vs (lower)row;dist[rad];padrow",100,-0.001,0.01,60,-0.5,59.5);
   hDist2=new TH1F("hDist2","phi distance to nearby clusters on same padrow;dist[rad]",100,-0.001,0.01);
   hDistRowAdj=new TH2F("hDistRowAdj","phi distance to nearby clusters vs (lower)row;dist[rad];(lower) padrow",100,-0.001,0.01,60,-0.5,59.5);
   hDist2Adj=new TH1F("hDist2Adj","phi distance to nearby clusters on adjacent padrow;dist[rad]",100,-0.001,0.01);
 
-
-  /*
-  fout = new TFile("readback_ntuple.root","RECREATE");
-
-  ntp = new TNtuple("ntp", "ntp", "pt:x:y:z:dcaxy:dcaz:vtxid:nclus:qual");
-  */
-  //cout << "CMreco::CMreco(const std::string &name) Calling ctor" << endl;
 }
 
 //____________________________________________________________________________..
@@ -118,6 +113,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	   clusiter != clusRange.second; ++clusiter)
 	{
 	  TrkrDefs::cluskey cluskey = clusiter->first;
+	  auto trkrid = TrkrDefs::getTrkrId(cluskey);
+	  if(trkrid != TrkrDefs::tpcId) continue;
+
 	  TrkrCluster *cluster = clusiter->second;
 	  ActsTransformations transformer;
 	  auto glob = transformer.getGlobalPosition(cluster,surfmaps,tgeometry);
@@ -125,17 +123,23 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	  float x = glob(0);
 	  float y = glob(1);
 	  float z = glob(2);
+
+	  if(Verbosity() > 0)
+	    {
+	      unsigned int lyr = TrkrDefs::getLayer(cluskey);
+	      unsigned short  side = TpcDefs::getSide(cluskey);
+	      std::cout << " z " << z << " side " << side << " layer " << lyr << " Adc " << cluster->getAdc() << " x " << x << " y " << y << std::endl;
+	    }
+	  
+	  if(cluster->getAdc() < _min_adc_value) continue;
+
 	  i_pair.push_back(-1);
 	  energy.push_back(cluster->getAdc());
 	  nTpcClust++;
-	  if(Verbosity() > 0)
-	    std::cout << "nTpcClust in loop is: " << nTpcClust << std::endl;
 	  pos.push_back(TVector3(x,y,z));
 	  layer.push_back((int)(TrkrDefs::getLayer(cluskey)));
 	  if(Verbosity() > 0)
-	    {
 	      std::cout << ":\t" << x << "\t" << y << "\t" << z <<std::endl;
-	    }
 	}
     }
 
@@ -151,17 +155,23 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	    {
 	      delta=pos[i]-pos[j];
 	      dphi=abs(pos[i].DeltaPhi(pos[j]));
-	      hDist->Fill(delta.Mag());
-	      hDist2->Fill(dphi);
-	      hDistRow->Fill(dphi,layer[i]);
+	      if(_histos)
+		{
+		  hDist->Fill(delta.Mag());
+		  hDist2->Fill(dphi);
+		  hDistRow->Fill(dphi,layer[i]);
+		}
 	    }
 	  if (abs(layer[i]-layer[j])==1)
 	    {  //match those centers to the known/expected stripe positions
 	      
 	      delta=pos[i]-pos[j];
 	      dphi=abs(pos[i].DeltaPhi(pos[j]));
-	      hDist2Adj->Fill(dphi);
-	      hDistRowAdj->Fill(dphi,layer[i]);
+	      if(_histos)
+		{
+		  hDist2Adj->Fill(dphi);
+		  hDistRowAdj->Fill(dphi,layer[i]);
+		}
 	    }
 	}
     }
@@ -222,13 +232,15 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
     
   for (int i=0;i<nTpcClust;++i)
     {
-      hClustE[0]->Fill(energy[i]);
+      if(_histos)  hClustE[0]->Fill(energy[i]);
+
       if (goodPair[i])
 	{
 	  if (i_pair[i]>i)
 	    {
+	      if(_histos)  hClustE[1]->Fill(energy[i]+energy[i_pair[i]]);
+
 	      aveenergy.push_back(energy[i]+energy[i_pair[i]]);
-	      hClustE[1]->Fill(energy[i]+energy[i_pair[i]]);
 	      TVector3 temppos=energy[i]*pos[i];
 	      temppos=temppos+(energy[i_pair[i]]*pos[i_pair[i]]);
 	      temppos=temppos*(1./(energy[i]+energy[i_pair[i]]));
@@ -237,15 +249,16 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	} 
       else 
 	{
+	  if(_histos)  hClustE[2]->Fill(energy[i]);
+
 	  aveenergy.push_back(energy[i]);
-	  hClustE[2]->Fill(energy[i]);
 	  avepos.push_back(pos[i]);
 	}
     }      
       
   // Loop over the vectors and put the clusters on the node tree
   //==============================================	
-  std::cout << " vector size is " << avepos.size() << std::endl; 
+  if(Verbosity() > 1)  std::cout << " vector size is " << avepos.size() << std::endl; 
   
   for(unsigned int iv = 0; iv <avepos.size(); ++iv)
     {
@@ -270,14 +283,17 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       auto cmkey = cmitr->first;
       auto cmclus = cmitr->second;
 
-      std::cout << "found cluster " << cmkey << " with adc " << cmclus->getAdc() 
-		<< " x " << cmclus->getX() << " y " << cmclus->getY() << " z " << cmclus->getZ() 
-		<< std::endl; 
-      
-      henergy->Fill(cmclus->getAdc());
-      hxy->Fill(cmclus->getX(), cmclus->getY());
-      hz->Fill(cmclus->getZ());
+      if(Verbosity() > 0)
+	std::cout << "found cluster " << cmkey << " with adc " << cmclus->getAdc() 
+		  << " x " << cmclus->getX() << " y " << cmclus->getY() << " z " << cmclus->getZ() 
+		  << std::endl; 
 
+      if(_histos)
+	{      
+	  henergy->Fill(cmclus->getAdc());
+	  hxy->Fill(cmclus->getX(), cmclus->getY());
+	  hz->Fill(cmclus->getZ());
+	}
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -293,22 +309,26 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHTpcCentralMembraneClusterizer::End(PHCompositeNode * /* topNode */)
 {
-  fout->cd();
 
-  henergy->Write();
-  hxy->Write();
-  hz->Write();
-
-  hClustE[0]->Write();
-  hClustE[1]->Write();
-  hClustE[2]->Write();
-  hDist->Write();
-  hDistRow->Write();
-  hDist2->Write();
-  hDistRowAdj->Write();
-  hDist2Adj->Write();
-
-  fout->Close();
+  if(_histos)
+    {
+      fout->cd();
+      
+      henergy->Write();
+      hxy->Write();
+      hz->Write();
+      
+      hClustE[0]->Write();
+      hClustE[1]->Write();
+      hClustE[2]->Write();
+      hDist->Write();
+      hDistRow->Write();
+      hDist2->Write();
+      hDistRowAdj->Write();
+      hDist2Adj->Write();
+      
+      fout->Close();
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

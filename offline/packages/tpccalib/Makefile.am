@@ -29,7 +29,8 @@ libtpccalib_la_LIBADD = \
   -lSubsysReco \
   -lg4detectors_io \
   -ltrack_io \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -ltpc_io
 
 pkginclude_HEADERS = \
   TpcDirectLaserReconstruction.h \

@@ -32,11 +32,9 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
 
   virtual ~PHTpcCentralMembraneClusterizer();
 
-  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
-  void set_process(const unsigned int proc)
-  {
-    process = proc;
-  }
+  void set_process(const unsigned int proc)  { _process = proc;  }
+  void set_histos_on(const bool val) {_histos = val;}
+  void set_min_adc_value(const unsigned int val) {_min_adc_value = val;}
 
  //! run initialization
   int InitRun(PHCompositeNode *topNode);
@@ -77,10 +75,9 @@ int End(PHCompositeNode *topNode);
   TH1F *hDist2Adj;
   TH1F *hClustE[3];
   
-  unsigned int MAXPAD = 2400;
-  unsigned int process = 0;
-
-
+  unsigned int _process = 0;
+  unsigned int _min_adc_value = 180;
+  bool _histos = false;
 
   TNtuple *ntp{nullptr};
   TFile *fout;
