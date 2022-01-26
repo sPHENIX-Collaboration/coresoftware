@@ -41,7 +41,12 @@ namespace RawTowerDefs
     LFHCAL = 11,
     BECAL = 12,
     ZDC = 13,
-    B0ECAL = 14
+    B0ECAL = 14,
+    BWD_0 = 15,
+    BWD_1 = 16,
+    BWD_2 = 17,
+    BWD_3 = 18,
+    BWD_4 = 19
   };
 
   /*! Returns CaloTowerID for given calorimeter ID, tower index 1, and tower index 2
@@ -254,6 +259,26 @@ namespace RawTowerDefs
       return "B0ECAL";
       break;
   
+    case BWD_0:
+      return "BWD_0";
+      break;
+  
+    case BWD_1:
+      return "BWD_1";
+      break;
+  
+    case BWD_2:
+      return "BWD_2";
+      break;
+  
+    case BWD_3:
+      return "BWD_3";
+      break;
+  
+    case BWD_4:
+      return "BWD_4";
+      break;
+  
     default:
       std::cout
           << "Invalid calorimeter ID passed to RawTowerDefs::convert_caloid_to_name"
@@ -311,6 +336,21 @@ namespace RawTowerDefs
 
     else if (caloname == "B0ECAL")
       return B0ECAL;
+
+    else if (caloname == "BWD_0")
+      return BWD_0;
+
+    else if (caloname == "BWD_1")
+      return BWD_1;
+
+    else if (caloname == "BWD_2")
+      return BWD_2;
+
+    else if (caloname == "BWD_3")
+      return BWD_3;
+
+    else if (caloname == "BWD_4")
+      return BWD_4;
 
     else
     {

@@ -604,6 +604,7 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
       // get all of the g4hits for this hitkey
       std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;    
       _hit_truth_map->getG4Hits(hitsetkey, hitkey, temp_map); 	  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
+    
       for(std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter =  temp_map.begin(); htiter != temp_map.end(); ++htiter) 
 	{
 	  // extract the g4 hit key here and add the hits to the set
@@ -1108,6 +1109,7 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
     // get all reco clusters
     // cout << "cache size ==0" << endl;
     if(_verbosity > 1) cout << "all_clusters: found # " << _clustermap->size() << endl;
+    
     // loop over clusters and get all contributing hits
     auto hitsetrange = _hitsets->getHitSets();
     for (auto hitsetitr = hitsetrange.first;
@@ -1117,10 +1119,12 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
       for( auto iter = range.first; iter != range.second; ++iter ){
 	TrkrDefs::cluskey cluster_key = iter->first;
 	int layer_in = TrkrDefs::getLayer(cluster_key);
+
 	if(layer_in<0) continue;
 	// TrkrCluster *clus = iter->second;
 	
 	std::pair<int, int> gid_lay = gtrackid_and_layer_by_nhit(cluster_key);
+
 	//      std::map<std::pair<int, unsigned int>, TrkrDefs::cluskey>::iterator it_exists;
 	//      it_exists = 
 	if(_cache_best_cluster_from_gtrackid_layer.count(gid_lay)==0){
@@ -1135,6 +1139,7 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
     }
   }
   
+
   // get the clusters
   TrkrDefs::cluskey best_cluster = 0;
   //  PHG4Hit*, std::set<TrkrDefs::cluskey> >::iterator iter =
@@ -1144,6 +1149,7 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
     {
       return iter->second;
     }
+
   return best_cluster;
 }
 
@@ -1297,8 +1303,17 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode* topNode)
   // need things off of the DST...
 
   _clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
-  if(!_clustermap)
+  if(!_clustermap) {
     _clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  } 
+  else 
+    {
+      /// Need a catch for if the node corrected cluster node exists but hasn't been filled 
+      /// yet, in e.g. the case of truth track seeding
+      if(_clustermap->size() == 0)
+	_clustermap = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+    }
+  
 
   _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   _cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
