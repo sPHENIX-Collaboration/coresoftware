@@ -7,7 +7,7 @@ import sys
 
 gROOT.SetBatch(True)
 
-dirName = '/sphenix/user/shulga/Work/SpaceCharge/macros/calibrations/tpc_calibration/fillSpaceChargeMaps/Files/'
+dirName = '/sphenix/user/shulga/Work/workfest2021_pull/coresoftware/calibrations/tpc/fillSpaceChargeMaps/Files/'
 #bXs = [1508071, 3016509, 4524020, 6032112, 7540028, 9048092, 10556072, 12064371, 13572143, 15080178, 16588072, 18096105]
 #bXs = [18096105]
 h_names = []#'_h_hits','_h_R','_h_DC_E']
@@ -23,7 +23,7 @@ bX = sys.argv[2]
 
 print(bX)
 name = 'mdc2_ADCBins_UseFieldMaps_hist_G4Hits_sHijing_0-12fm_bX{}*'.format(bX)
-outputName = '/sphenix/user/shulga/Work/SpaceCharge/macros/calibrations/tpc_calibration/fillSpaceChargeMaps/Files/Summary_hist_mdc2_UseFieldMaps_AA_event_{}_bX{}.root'.format(ib,bX)
+outputName = './Files/Summary_hist_mdc2_UseFieldMaps_AA_event_{}_bX{}.root'.format(ib,bX)
 
 filePattern = dirName+name
 files = sorted(glob.glob(filePattern))
