@@ -32,7 +32,7 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
 
   virtual ~PHTpcCentralMembraneClusterizer();
 
-  void set_process(const unsigned int proc)  { _process = proc;  }
+  void set_process(const int proc)  { _process = proc;  }
   void set_histos_on(const bool val) {_histos = val;}
   void set_min_adc_value(const unsigned int val) {_min_adc_value = val;}
 
@@ -58,10 +58,10 @@ int End(PHCompositeNode *topNode);
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};
   SvtxVertexMap *_vertex_map{nullptr};
-  TrkrClusterContainer *_cluster_map;
+  TrkrClusterContainer *_cluster_map{nullptr};
   CMFlashClusterContainer *_corrected_CMcluster_map{nullptr};
-  TrkrClusterHitAssoc *_cluster_hit_map;
-  TrkrHitSetContainer *_hitset_map;
+  TrkrClusterHitAssoc *_cluster_hit_map{nullptr};
+  TrkrHitSetContainer *_hitset_map{nullptr};
   const bool clst_track = true;
 
 
@@ -75,7 +75,7 @@ int End(PHCompositeNode *topNode);
   TH1F *hDist2Adj;
   TH1F *hClustE[3];
   
-  unsigned int _process = 0;
+  int _process = 0;
   unsigned int _min_adc_value = 180;
   bool _histos = false;
 
