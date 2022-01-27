@@ -65,7 +65,7 @@ class fillSpaceChargeMaps : public SubsysReco
 
   void SetFrequency(int freq);
   //void SetBeamXing(int newBeamXing);
-  void SetBeamXing(std::vector<int> beamXs);
+  void SetBeamXing(const std::vector<int> beamXs);
   //void SetBeamXingEnd(std::vector<int> beamXs_end);
   void SetEvtStart(int newEvtStart);
   void SetUseIBFMap(bool useIBFMap = true);
@@ -98,23 +98,23 @@ class fillSpaceChargeMaps : public SubsysReco
    int _evtstart = 0;
    int _fAvg = 0;
    int _fSliming = 0;
-   TTree *_rawHits;
-   int _isOnPlane;
-   float _hit_z  ;
-   float _hit_r  ;
-   float _hit_phi;
-   float _hit_eion;
-   float _ibf_vol;   
-   float _amp_ele_vol;
-   float _event_timestamp;
-   float _event_bunchXing;
+   TTree *_rawHits =0;
+   int _isOnPlane = 0;
+   float _hit_z  = 0 ;
+   float _hit_r  = 0 ;
+   float _hit_phi = 0;
+   float _hit_eion = 0;
+   float _ibf_vol = 0;   
+   float _amp_ele_vol = 0;
+   float _event_timestamp = 0;
+   float _event_bunchXing = 0;
    
-   bool _fUseIBFMap;
-   TH2*   _h_modules_anode;
-   TH2*   _h_modules_measuredibf;
-   TH1*   _h_hits;
-   TH1*   _h_R;
-   TH2*   _h_DC_E;
+   bool _fUseIBFMap = false;
+   TH2*   _h_modules_anode = 0;
+   TH2*   _h_modules_measuredibf = 0;
+   TH1*   _h_hits = 0;
+   TH1*   _h_R = 0;
+   TH2*   _h_DC_E = 0;
    TH3*   _h_SC_prim[30];
    TH3*   _h_SC_ibf[30];
 
@@ -134,9 +134,9 @@ class fillSpaceChargeMaps : public SubsysReco
    float mbRate=_freqKhz*kHz;
    float xingRate = 9.383*MHz;
    //float mean = mbRate/xingRate;
-   float z_rdo=105.5*cm;
-   float rmin=20*cm;
-   float rmax=78*cm;
+   //float z_rdo=105.5*cm;
+   //float rmin=20*cm;
+   //float rmax=78*cm;
 
    double Ne_dEdx = 1.56/cm;   // keV/cm
    double CF4_dEdx = 7.00/cm;  // keV/cm
@@ -150,9 +150,9 @@ class fillSpaceChargeMaps : public SubsysReco
    //double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
    double Tpc_ElectronsPerGeV = Tpc_NTot / Tpc_dEdx*1e6; //electrons per gev.
 
-  int nr=159;
-  int nphi=360;
-  int nz=62*2;
+  //int nr=159;
+  //int nphi=360;
+  //int nz=62*2;
   
   //double hrstep=(rmax-rmin)/nr;
   //double hphistep=2*pi/nphi;
@@ -161,9 +161,9 @@ class fillSpaceChargeMaps : public SubsysReco
    //int nBeams = z_rdo/(vIon/xingRate); //numaber of beamcrossings to fill TPC
 
 
-   float _mbRate   ;
-   float _xingRate ;
-   float _mean     ;
+   float _mbRate  = 0 ;
+   float _xingRate = 0 ;
+   float _mean = 0   ;
 };
 
 #endif // fillSpaceChargeMaps_H
