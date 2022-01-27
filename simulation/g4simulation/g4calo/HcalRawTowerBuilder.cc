@@ -49,13 +49,7 @@ HcalRawTowerBuilder::HcalRawTowerBuilder(const std::string &name)
   , PHParameterInterface(name)
 {
   InitializeParameters();
-  for (size_t i = 0; i < m_DecalArray.size(); i++)
-  {
-    for (size_t j = 0; j < m_DecalArray[0].size(); j++)
-    {
-      m_DecalArray[i][j] = 1.;
-    }
-  }
+
 }
 
 int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
@@ -236,38 +230,49 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_RawTowerGeom->identify();
   }
 
-// read decalibration file into m_DecalArray array
-  if (!m_DeCalibrationFileName.empty())
-  {
-    if (std::filesystem::exists(m_DeCalibrationFileName))
-    {
-      std::ifstream decalibrate_tower;
-      decalibrate_tower.open(m_DeCalibrationFileName, std::ifstream::in);
-      if (decalibrate_tower.is_open())
+  int m = m_DecalArray[0].size();
+  int n = m_DecalArray.size();
+
+  for(int i = 0; i < n; i++){
+    for(int j= 0; j < m; j++){
+          m_DecalArray[i][j] = 1.;
+	}}
+
+    if (!m_DeCalibrationFileName.empty())
       {
-        while (!decalibrate_tower.eof())
+        if (std::filesystem::exists(m_DeCalibrationFileName))
         {
-        int etabin = -1;
-        int phibin = -1;
-        double recal = 1.;
-        decalibrate_tower >> etabin >> phibin >> recal;
-          if (!std::isfinite(recal))
+          std::ifstream decalibrate_tower;
+          decalibrate_tower.open(m_DeCalibrationFileName, std::ifstream::in);
+          if (decalibrate_tower.is_open())
           {
-            std::cout << "Calibration constant at etabin " << etabin
-                      << ", phibin " << phibin << " in " << m_DeCalibrationFileName
-                      << " is not finite: " << recal << std::endl;
-            gSystem->Exit(1);
-            exit(1);
+            while (!decalibrate_tower.eof())
+            {
+            int etabin = -1;
+            int phibin = -1;
+            for(int i = 0; i < n ; i++)
+             {
+                for(int j = 0; j < m; j++)
+                  {
+                    decalibrate_tower >> etabin >> phibin >> m_DecalArray[i][j];
+                      if (!std::isfinite(m_DecalArray[i][j]))
+                      {
+                          std::cout << "Calibration constant at etabin " << etabin
+                            << ", phibin " << phibin << " in " << m_DeCalibrationFileName
+                            << " is not finite: " << m_DecalArray[i][j] << std::endl;
+                          gSystem->Exit(1);
+                          exit(1);
+                      }
+                      
+                  }
+             }
+            }
+            decalibrate_tower.close();
           }
-          // at() does a bounds check
-          m_DecalArray.at(etabin).at(phibin) = recal;
-          decalibrate_tower >> etabin >> phibin >> recal;
         }
-        decalibrate_tower.close();
       }
-    }
-  }
-  return Fun4AllReturnCodes::EVENT_OK;
+
+ return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
@@ -275,6 +280,7 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
   /* decalibration occurs if user supplies a non empty decalMap.txt
     file, otherwise code will proceed with no de-calibration (as is)
 */
+
   double cell_weight = 0.0;
   if (Verbosity() > 3)
   {
@@ -329,7 +335,7 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
       gSystem->Exit(1);
       exit(1);
     }
-
+  
     cell_weight *= m_DecalArray.at(PHG4CellDefs::ScintillatorSlatBinning::get_column(cell->get_cellid())).
                                 at(PHG4CellDefs::ScintillatorSlatBinning::get_row(cell->get_cellid()));
     tower->add_ecell(cell->get_cellid(), cell_weight);
@@ -469,6 +475,7 @@ void HcalRawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
   set_double_param(PHG4HcalDefs::outerrad, pars->get_double_param(PHG4HcalDefs::outerrad));
 
   int nTiles = 2 * pars->get_int_param(PHG4HcalDefs::n_scinti_tiles);
+  int nPhislices = pars->get_int_param(PHG4HcalDefs::scipertwr) * pars->get_int_param(PHG4HcalDefs::n_towers);
   if (nTiles <= 0)
   {
     nTiles = pars->get_int_param(PHG4HcalDefs::n_scinti_tiles_pos) + pars->get_int_param(PHG4HcalDefs::n_scinti_tiles_neg);
@@ -476,7 +483,8 @@ void HcalRawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
     set_double_param("scinti_eta_coverage_pos",pars->get_double_param("scinti_eta_coverage_pos"));     
   }
   set_int_param("etabins", nTiles);
-
+  m_DecalArray.resize(nTiles, std::vector<double> (nPhislices));
+ 
   delete pars;
   return;
 }
