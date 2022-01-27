@@ -120,9 +120,9 @@ class fillSpaceChargeMaps : public SubsysReco
 
 
    float f=0.5;//for now, just pick the middle of the hit.  Do better later.
-   float ns=1e-9,us=1e-6,ms=1e-3,s=1;
-   float um=1e-3, mm=1, cm=10,m=1000; //changed to make 'cm' 1.0, for convenience.
-   float Hz=1, kHz=1e3, MHz=1e6;
+   float ns=1e-9,s=1;// us=1e-6,ms=1e-3,
+   float  mm=1, cm=10,m=1000; //um=1e-3,//changed to make 'cm' 1.0, for convenience.
+   float  kHz=1e3, MHz=1e6; //Hz=1,
    float V=1;
    //used two ways:  1) to apply units to variables when defined
    //                2) to divide by certain units so that those variables are expressed in those units.
@@ -133,7 +133,7 @@ class fillSpaceChargeMaps : public SubsysReco
    //float vIon=16.0*um/us;
    float mbRate=_freqKhz*kHz;
    float xingRate = 9.383*MHz;
-   float mean = mbRate/xingRate;
+   //float mean = mbRate/xingRate;
    float z_rdo=105.5*cm;
    float rmin=20*cm;
    float rmax=78*cm;
@@ -147,18 +147,18 @@ class fillSpaceChargeMaps : public SubsysReco
    double Tpc_NTot = 0.50 * Ne_NTotal + 0.50 * CF4_NTotal;
    double Tpc_dEdx = 0.50 * Ne_dEdx   + 0.50 * CF4_dEdx;
 
-   double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
+   //double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
    double Tpc_ElectronsPerGeV = Tpc_NTot / Tpc_dEdx*1e6; //electrons per gev.
 
   int nr=159;
   int nphi=360;
   int nz=62*2;
   
-  double hrstep=(rmax-rmin)/nr;
-  double hphistep=2*pi/nphi;
-  double hzstep=z_rdo/nz;
+  //double hrstep=(rmax-rmin)/nr;
+  //double hphistep=2*pi/nphi;
+  //double hzstep=z_rdo/nz;
 
-   int nBeams = z_rdo/(vIon/xingRate); //numaber of beamcrossings to fill TPC
+   //int nBeams = z_rdo/(vIon/xingRate); //numaber of beamcrossings to fill TPC
 
 
    float _mbRate   ;

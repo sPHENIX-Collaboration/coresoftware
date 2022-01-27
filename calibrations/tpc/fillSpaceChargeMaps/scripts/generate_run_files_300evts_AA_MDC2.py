@@ -114,15 +114,15 @@ for j, (start,end) in enumerate(zip(evt_start,evt_end)):
             n_line+=1
 
         f_job.close
-        chmod_px(filename_bx)
     ff_bx.close
-    filename_dag.close
-    chmod_px(filename_dag)
+    chmod_px(filename_bx)
+    
     #chmod_px(filename)
     filename_B = "./condor_macros/add_hist_{}.job".format(int(evt_bX[j]))
     ff_dag.write("JOB B {}\n".format(filename_B ))
     ff_dag.write(parent_str + " CHILD B")
     ff_dag.close
+    chmod_px(filename_dag)
 
     # files for adding histos
     # - .sh:
@@ -137,7 +137,7 @@ for j, (start,end) in enumerate(zip(evt_start,evt_end)):
     chmod_px(filename_B_sh)
 
     # - .job:
-    introduction = [
+    add_file_content = [
         "Universe        = vanilla",
         "Executable      = {}".format(filename_B_sh),
         "Arguments       = \"run job add histos AA {}\"".format(int(evt_bX[j])),
@@ -152,14 +152,10 @@ for j, (start,end) in enumerate(zip(evt_start,evt_end)):
         "Queue"
         ]
     ff_B = open(filename_B,"w+")
-    for line in introduction:
+    for line in add_file_content:
         ff_B.write(line+"\n")
     ff_B.close
 
-
-
-
-    
 
 ff.close
 ff_all_dag.close
