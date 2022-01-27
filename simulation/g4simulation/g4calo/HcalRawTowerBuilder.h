@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <string>
+#include <vector>
 
 class PHCompositeNode;
 class RawTowerContainer;
@@ -83,8 +84,7 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
   std::string m_TowerGeomNodeName;
   std::string m_SimTowerNodePrefix;
   std::string m_DeCalibrationFileName;
-
-  std::array< std::array<double,320>, 24> m_DecalArray;
+  std::vector<std::vector <double> > m_DecalArray;  
   std::map<std::pair<int,int>,double> m_TowerDecalFactors;
 };
 
