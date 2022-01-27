@@ -101,26 +101,27 @@ void PHG4MicromegasDetector::setup_tiles()
   // TODO: replace with more realistic description from latest engineering drawings
   m_tiles.clear();
 
-  // hard coded TPC definitions
-  static constexpr double length = 210;
-  static constexpr double tile_length = 50;
-  static constexpr double tile_width = 25;
+  // tile dimensions
+  /* this corresponds to the active area only */
+  static constexpr double tile_length = 51.2;
+  static constexpr double tile_width = 25.6;
 
   {
     // bottom most sector 3pi/2 has 4 modules
     static constexpr double phi = 3.*M_PI/2;
-    static constexpr int ntiles = 4;
-    for (int i = 0; i < ntiles; ++i)
-    { m_tiles.emplace_back(phi, length * ((0.5 + i) / ntiles - 0.5), tile_width/CylinderGeomMicromegas::reference_radius, tile_length); }
+    
+    // tiles z position from CAD model (THREE PANELS UPDATE 1-18-21)
+    for( const double& tile_z:{ -82.8, -27.6, 27.6, 82.2 } )
+    { m_tiles.emplace_back(phi, tile_z, tile_width/CylinderGeomMicromegas::reference_radius, tile_length); }
   }
   
   {
     // neighbor sectors have two modules, separated by 10cm
-    static constexpr double zoffset = 10;
     for( const double& phi: { 4.*M_PI/3, 5.*M_PI/3 } )
     {
-      m_tiles.emplace_back( phi, length*(1.5/4-0.5) - zoffset, tile_width/CylinderGeomMicromegas::reference_radius, tile_length );
-      m_tiles.emplace_back( phi, length*(2.5/4-0.5) + zoffset, tile_width/CylinderGeomMicromegas::reference_radius, tile_length );
+      // tiles z position from CAD model (THREE PANELS UPDATE 1-18-21)
+      for( const double& tile_z:{ -37.1, 37.1 } )
+      { m_tiles.emplace_back(phi, tile_z, tile_width/CylinderGeomMicromegas::reference_radius, tile_length); }
     }  
   }
 }
@@ -202,8 +203,9 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 {
 
   // start seting up volumes
-  // get initial radius
-  const double radius = m_Params->get_double_param("mm_radius")*cm;
+  // Micromegas detector radius
+  /* it corresponds to the position of the center of the micromegas (along its thickness direction), as measured in CAD model (THREE PANELS UPDATE 1-18-21) */
+  const double radius = 84.77*cm;
 
   // create detector
   // loop over tiles
@@ -297,12 +299,14 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, 
   // define all layers
   const std::map<Component, LayerStruct> layer_map =
   {
-    { Component::PCB, {1.*mm, GetDetectorMaterial("mmg_FR4"), G4Colour::Green() }},
+    /* adjusted PCB thickness so that total thickness up to Gas2 is 1.6mm, consistently with CAD model */
+    { Component::PCB, {1.384*mm, GetDetectorMaterial("mmg_FR4"), G4Colour::Green() }},
     { Component::CuStrips, { 12.*micrometer, GetDetectorMaterial("mmg_Strips"), G4Colour::Brown() }},
     { Component::KaptonStrips, { 50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown() }},
     { Component::ResistiveStrips, { 20.*micrometer, GetDetectorMaterial("mmg_ResistPaste" ), G4Colour::Black() }},
     { Component::Gas1, { 120.*micrometer, GetDetectorMaterial( "mmg_Gas" ), G4Colour::Grey() }},
-    { Component::Mesh, { 18.*0.8*micrometer,  GetDetectorMaterial("mmg_Mesh"), G4Colour::White()} }, // 0.8 correction factor to thickness is to account for the mesh denstity@18/45
+    /* 0.8 correction factor to thickness is to account for the mesh denstity@18/45 */
+    { Component::Mesh, { 18.*0.8*micrometer,  GetDetectorMaterial("mmg_Mesh"), G4Colour::White()} }, 
     { Component::Gas2, { 3.*mm, GetDetectorMaterial( "mmg_Gas" ), G4Colour::Grey()}},
     { Component::DriftCuElectrode, { 15.*micrometer, GetDetectorMaterial("G4_Cu"), G4Colour::Brown() }},
     { Component::DriftKapton, { 50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown() }},
@@ -324,11 +328,10 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, 
     std::make_tuple( Component::ResistiveStrips, "ResistiveStrips_inner" ),
     std::make_tuple( Component::KaptonStrips, "KaptonStrips_inner" ),
     std::make_tuple( Component::CuStrips, "CuStrips_inner"  ),
-
-    // PCB
-    std::make_tuple( Component::PCB, "PCB" ),
+    std::make_tuple( Component::PCB, "PCB_inner" ),
 
     // outer side (= inner side, mirrored)
+    std::make_tuple( Component::PCB, "PCB_outer" ),
     std::make_tuple( Component::CuStrips, "CuStrips_outer" ),
     std::make_tuple( Component::KaptonStrips, "KaptonStrips_outer" ),
     std::make_tuple( Component::ResistiveStrips, "ResistiveStrips_outer" ),
@@ -408,8 +411,6 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, 
   
 }
 
-
-
 //_______________________________________________________________
 void PHG4MicromegasDetector::add_geometry_node()
 {
@@ -429,7 +430,7 @@ void PHG4MicromegasDetector::add_geometry_node()
   }
 
   // cylinder maximal length
-  const double length =  m_Params->get_double_param("mm_length");
+  static constexpr double length = 220;
 
   // add cylinder objects
   /* one cylinder is added per physical volume. The dimention correspond to the drift volume */
