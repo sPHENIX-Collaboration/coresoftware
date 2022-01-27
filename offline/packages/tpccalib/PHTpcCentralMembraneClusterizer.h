@@ -42,10 +42,8 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   //! event processing
   int process_event(PHCompositeNode *topNode);
 
-  int EndRun(PHCompositeNode *topNode);
-
   //! end of process
-int End(PHCompositeNode *topNode);
+  int End(PHCompositeNode * topNode);
 
  protected:
   
@@ -55,15 +53,10 @@ int End(PHCompositeNode *topNode);
 
   std::string _track_map_name;
 
-  SvtxTrackMap *_track_map{nullptr};
-  SvtxTrack *_track{nullptr};
-  SvtxVertexMap *_vertex_map{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};
   CMFlashClusterContainer *_corrected_CMcluster_map{nullptr};
   TrkrClusterHitAssoc *_cluster_hit_map{nullptr};
   TrkrHitSetContainer *_hitset_map{nullptr};
-  const bool clst_track = true;
-
 
   TH1F *henergy;
   TH1F *hz;
@@ -79,7 +72,6 @@ int End(PHCompositeNode *topNode);
   unsigned int _min_adc_value = 180;
   bool _histos = false;
 
-  TNtuple *ntp{nullptr};
   TFile *fout;
 
 };

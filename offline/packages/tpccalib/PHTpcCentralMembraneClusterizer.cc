@@ -300,14 +300,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
- int PHTpcCentralMembraneClusterizer::EndRun(PHCompositeNode  * /* topNode */)
-{
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int PHTpcCentralMembraneClusterizer::End(PHCompositeNode * /* topNode */)
+int PHTpcCentralMembraneClusterizer::End(PHCompositeNode * /*topNode*/ )
 {
 
   if(_histos)
