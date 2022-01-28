@@ -72,12 +72,9 @@ namespace
     double par0_neg = 0;
     double par0_pos = 0;
     std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist = nullptr;
-    std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>  *clusterhitassoc = nullptr;
+    //std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>  *clusterhitassoc = nullptr;
     std::vector<assoc> *association_vector = nullptr;
-    //    std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>  clusterhitassoc2;
-    //    std::vector<TrkrDefs::cluskey> *cluskeys;
-    //  std::vector<TrkrDefs::hitkey> *hitkeys;
-    //TrkrClusterHitAssocv3 *clusterhitassoc = nullptr;
+    //    std::vector<TrkrClusterv3*> *cluster_vector = nullptr;
   };
   
   pthread_mutex_t mythreadlock;
@@ -270,8 +267,10 @@ namespace
 	  double surf_z = surf_center[2];
 	  double surf_phi = atan2(surf_center[1], surf_center[0]);
 
-	  if( (world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
-	  (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )	
+	  if( ((world_phi >= (surf_phi - (surfStepPhi / 2.0))) && 
+	       (world_phi <= (surf_phi + (surfStepPhi / 2.0)))) &&
+	      ((world_z >= (surf_z - (surfStepZ / 2.0))) 
+	       && (world_z <= (surf_z + (surfStepZ / 2.0)))) )	
 	    {
 	      surf_index = nsurf;
 	      subsurfkey = nsurf;
@@ -286,7 +285,8 @@ namespace
 	      std::cout << "     world_phi " << world_phi << " world_z " << world_z << std::endl;
 	      std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
 	      std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
-	      std::cout << " number of surfaces " << surf_vec.size() << std::endl;
+	      std::cout << "     surfStepPhi " << surfStepPhi << " surfStepZ " << surfStepZ << std::endl; 
+	      std::cout << " number of surfaces " << surf_vec.size() << " nsurf: "  << nsurf << std::endl;
 	      return nullptr;
 	    }
 	  	 
@@ -363,14 +363,34 @@ namespace
       // This is the global position
       double clusphi = phi_sum / adc_sum;
       double clusz = z_sum / adc_sum;
+      float clusx = radius * cos(clusphi);
+      float clusy = radius * sin(clusphi);
       
       const double phi_cov = phi2_sum/adc_sum - square(clusphi);
       const double z_cov = z2_sum/adc_sum - square(clusz);
+       // Get the surface key to find the surface from the 
+
+      TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey( my_data.layer, my_data.sector, my_data.side );      
+      Acts::Vector3D global(clusx, clusy, clusz);
+      TrkrDefs::subsurfkey subsurfkey = 0;
+      Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
+						    global,
+						    my_data.surfmaps,
+						    my_data.tGeometry,
+						    subsurfkey);
       
+      if(!surface)
+	{
+	  /// If the surface can't be found, we can't track with it. So 
+	  /// just return and don't add the cluster to the container
+	  hitkeyvec.clear();
+	  return;
+	}
       // create the cluster entry directly in the node tree
       
       const TrkrDefs::cluskey ckey = TpcDefs::genClusKey( my_data.hitset->getHitSetKey(), iclus );
       
+      //TrkrClusterv3 *clus = new TrkrClusterv3();
       auto clus = std::make_unique<TrkrClusterv3>();
       clus->setClusKey(ckey);
       
@@ -396,9 +416,7 @@ namespace
       //================
       clus->setAdc(adc_sum);
       
-      float clusx = radius * cos(clusphi);
-      float clusy = radius * sin(clusphi);
-      
+
       TMatrixF ERR(3, 3);
       ERR[0][0] = 0.0;
       ERR[0][1] = 0.0;
@@ -410,24 +428,7 @@ namespace
       ERR[2][1] = 0.0;
       ERR[2][2] = z_err_square;
       
-      // Get the surface key to find the surface from the 
-      TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey( my_data.layer, my_data.sector, my_data.side );
-      
-      Acts::Vector3D global(clusx, clusy, clusz);
-      
-      TrkrDefs::subsurfkey subsurfkey;
-      Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
-						    global,
-						    my_data.surfmaps,
-						    my_data.tGeometry,
-						    subsurfkey);
-      
-      if(!surface)
-	{
-	  /// If the surface can't be found, we can't track with it. So 
-	  /// just return and don't add the cluster to the container
-	  return;
-	}
+     
       
       clus->setSubSurfKey(subsurfkey);
       
@@ -467,19 +468,14 @@ namespace
       clus->setActsLocalError(1,0, ERR[2][1]);
       clus->setActsLocalError(0,1, ERR[1][2]);
       clus->setActsLocalError(1,1, ERR[2][2]);
-      /*
-      if(clusx>40000000000&&clusy>400000000000)
-	std::cout << "help" << std::endl; 
-      if(localPos(1)>40000000000&&localPos(1)>400000000000)
-	std::cout << "help" << std::endl; 
-      */
+
       // Add the hit associations to the TrkrClusterHitAssoc node
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
       
       if(my_data.clusterlist)     
 	{
 	  const auto [iter, inserted] = my_data.clusterlist->insert(std::make_pair(ckey, clus.get()));
-	  
+	  //my_data.cluster_vector->push_back(clus);
 	  /*
 	   * if cluster was properly inserted in the map, one should release the unique_ptr,
 	   * to make sure that the cluster is not deleted when going out-of-scope
@@ -496,7 +492,8 @@ namespace
 	  
 	}
 
-      if(my_data.do_assoc && my_data.clusterhitassoc){
+      //      if(my_data.do_assoc && my_data.clusterhitassoc){
+      if(my_data.do_assoc){
 	//std::cout << "filling assoc" << std::endl;
 	for (unsigned int i = 0; i < hitkeyvec.size(); i++){
 	  my_data.association_vector->push_back(std::make_pair(ckey, hitkeyvec[i]));
@@ -525,9 +522,23 @@ namespace
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
 	 hitr != hitrangei.second;
 	 ++hitr){
+      if( TpcDefs::getPad(hitr->first) - phioffset < 0 ){
+	//std::cout << "WARNING phibin out of range: " << TpcDefs::getPad(hitr->first) - phioffset << " | " << phibins << std::endl;
+	continue;
+      }
+      if( TpcDefs::getTBin(hitr->first) - zoffset < 0 ){
+	//std::cout << "WARNING zbin out of range: " << TpcDefs::getTBin(hitr->first) - zoffset  << " | " << zbins <<std::endl;
+      }
       unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
       unsigned short zbin = TpcDefs::getTBin(hitr->first) - zoffset;
-      
+      if(phibin>=phibins){
+	//std::cout << "WARNING phibin out of range: " << phibin << " | " << phibins << std::endl;
+	continue;
+      }
+      if(zbin>=zbins){
+	//std::cout << "WARNING z bin out of range: " << zbin << " | " << zbins << std::endl;
+	continue;
+      }
       float_t fadc = (hitr->second->getAdc()) - pedestal; // proper int rounding +0.5
       unsigned short adc = 0;
       if(fadc>0) adc =  (unsigned short) fadc;
@@ -693,7 +704,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   }
 
   // get node for clusters
-  m_clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  m_clusterlist = findNode::getClass<TrkrClusterContainerv3>(topNode, "TRKR_CLUSTER");
   if (!m_clusterlist)
   {
     std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER." << std::endl;
@@ -790,9 +801,10 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.side = side;
     thread_pair.data.do_assoc = do_hit_assoc;
     thread_pair.data.clusterlist = m_clusterlist->getClusterMap(hitsetid);
-    thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterMap(hitsetid);
-    //   thread_pair.data.clusterhitassoc = m_clusterhitassoc;
+    // thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterMap(hitsetid);
+    // thread_pair.data.clusterhitassoc = m_clusterhitassoc;
     thread_pair.data.association_vector  = new std::vector<assoc>;
+    // thread_pair.data.cluster_vector  = new std::vector<TrkrClusterv3*>;
     thread_pair.data.tGeometry = m_tGeometry;
     thread_pair.data.surfmaps = m_surfMaps;
     thread_pair.data.maxHalfSizeZ =  MaxClusterHalfSizeZ;
@@ -844,7 +856,23 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     }
     thread_pair.data.association_vector->clear();
     delete thread_pair.data.association_vector;
+
+    //    for(auto citer = thread_pair.data.cluster_vector->begin(); citer != thread_pair.data.cluster_vector->end();++citer){
+    // m_clusterlist->addCluster(*citer);
+      // m_clusterlist->addClusToVec(*citer);
+      
+      // delete *citer;
+      //      const auto [iter, inserted] = my_data.clusterlist->insert(std::make_pair(ckey, clus.get()));
+	  
+	  /*
+	   * if cluster was properly inserted in the map, one should release the unique_ptr,
+	   * to make sure that the cluster is not deleted when going out-of-scope
+	   */
+    // }
+    // thread_pair.data.cluster_vector->clear();
+    // delete thread_pair.data.cluster_vector;
   }
+
   if (Verbosity() > 0)
     std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters "  << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;

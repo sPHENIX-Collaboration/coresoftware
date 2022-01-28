@@ -20,13 +20,20 @@ namespace
 void TrkrClusterContainerv3::Reset()
 {
   // delete all clusters
-  for( const auto& map_pair:m_clusmap )
-    for( const auto& pair:map_pair.second )
-  { delete pair.second; }
+  for( auto& map_pair:m_clusmap ){
+    for( auto& pair:map_pair.second ){ 
+      delete pair.second; 
+    }
+    Map empty_map;
+    empty_map.swap(map_pair.second);
+
+  }
 
   // clear the maps
   m_clusmap.clear();
+
 }
+
 
 //_________________________________________________________________
 void TrkrClusterContainerv3::identify(std::ostream& os) const
@@ -59,7 +66,12 @@ void TrkrClusterContainerv3::removeCluster(TrkrDefs::cluskey key)
   
   // find relevant cluster map if any and remove corresponding cluster
   auto iter = m_clusmap.find( hitsetkey );
-  if( iter != m_clusmap.end() ) iter->second.erase( key );
+  if( iter != m_clusmap.end() ){
+    TrkrCluster* clus = findCluster(key);
+    delete clus;
+    iter->second.erase( key );
+    
+  }
 }
   
 //_________________________________________________________________
