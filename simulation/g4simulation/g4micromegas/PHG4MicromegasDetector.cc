@@ -466,9 +466,8 @@ void PHG4MicromegasDetector::add_geometry_node()
       MicromegasDefs::DriftDirection::INWARD );
 
     // pitch
-    /* they correspond to 256 channels along the phi direction, and 256 along the z direction, assuming 25x50 tiles */
-    /* todo: calculate from tile dimensions */
-    cylinder->set_pitch( is_first ? 25./256 : 50./256 );
+    // first layer (phi) has 1mm pitch. second layer (z) has 2mm pitch
+    cylinder->set_pitch( is_first ? 0.1 : 0.2 );
 
     // if( Verbosity() )
     { cylinder->identify( std::cout ); }
