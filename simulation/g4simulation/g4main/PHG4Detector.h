@@ -10,6 +10,7 @@
 
 class G4LogicalVolume;
 class G4Material;
+class G4Element;
 class G4UserSteppingAction;
 class G4VSolid;
 class PHCompositeNode;
@@ -59,6 +60,7 @@ class PHG4Detector
   virtual PHCompositeNode *topNode() { return m_topNode; }
   virtual PHG4Subsystem *GetMySubsystem() {return m_MySubsystem;}
   static G4Material *GetDetectorMaterial(const std::string &name, const bool quit = true);
+  static G4Element *GetDetectorElement(const std::string &name, const bool quit = true);
 
  private:
   PHCompositeNode *m_topNode = nullptr;
