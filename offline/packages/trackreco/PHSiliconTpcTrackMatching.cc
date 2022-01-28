@@ -824,9 +824,10 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	  _tracklet_tpc->identify();
 	}
 
+      // This is no longer applicable I believe, and now wrong - look into it
+      //=============================
       // correct the TPC tracklet phi for the space charge offset, if this is the calib pass
       // this is done just to let us tighten up the matching window
-
       if(_sc_calib_flag)
 	{
 	  tpc_phi -= fscdphi->Eval(tpc_eta);
@@ -834,6 +835,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       // the distortion correction can push tpc_phi outside +/- M_PI
       if(tpc_phi < - M_PI) tpc_phi += 2.0*M_PI;
       if(tpc_phi > M_PI) tpc_phi -= 2.0*M_PI;
+      //=============================
 
       double tpc_x = _tracklet_tpc->get_x();
       double tpc_y = _tracklet_tpc->get_y();
