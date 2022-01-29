@@ -102,9 +102,11 @@ void PHG4MicromegasDetector::setup_tiles()
   m_tiles.clear();
 
   // tile dimensions
-  /* this corresponds to the active area only */
-  static constexpr double tile_length = 51.2;
-  static constexpr double tile_width = 25.6;
+  /* they correspond to the total micromegas PCB size. They must match the definitions in construct_micromegas_tile */
+//   static constexpr double tile_length = 51.2;
+//   static constexpr double tile_width = 25.6;
+  static constexpr double tile_length = 54.2; // cm
+  static constexpr double tile_width = 31.6;  // cm
 
   {
     // bottom most sector 3pi/2 has 4 modules
@@ -215,12 +217,8 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     // get relevant tile
     const auto& tile = m_tiles[tileid];
 
-    // get tile's dimension and orientation
-    const double dy = CylinderGeomMicromegas::reference_radius*tile.m_sizePhi*cm;
-    const double dz = tile.m_sizeZ*cm;
-
     // create tile master volume
-    auto tile_logic = construct_micromegas_tile( tileid, dy, dz );
+    auto tile_logic = construct_micromegas_tile( tileid );
     
     // palce tile in master volume
     const double centerZ = tile.m_centerZ*cm;
@@ -255,7 +253,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 }
 
 //_______________________________________________________________
-G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, double dy, double dz )
+G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
 {
   // components enumeration
   /*
@@ -280,10 +278,14 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, 
   struct LayerStruct
   {
     // constructor
-    LayerStruct( float thickness, G4Material* material, G4Colour color ):
+    LayerStruct( float thickness, G4Material* material, G4Colour color, double dy, double dz, double y_offset, double z_offset ):
       m_thickness( thickness ),
       m_material( material ),
-      m_color( color )
+      m_color( color ),
+      m_dy( dy ),
+      m_dz( dz ),
+      m_y_offset( y_offset ),
+      m_z_offset( z_offset )
     {}
 
     // thickness
@@ -294,23 +296,36 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, 
 
     // color
     G4Colour m_color = 0;
+    
+    // dimension along y
+    double m_dy = 0;
+    
+    // dimension along z
+    double m_dz = 0;
+    
+    // center offset along y
+    double m_y_offset = 0;
+    
+    // center offset along z
+    double m_z_offset = 0;
+    
   };
 
   // define all layers
   const std::map<Component, LayerStruct> layer_map =
   {
     /* adjusted PCB thickness so that total thickness up to Gas2 is 1.6mm, consistently with CAD model */
-    { Component::PCB, {1.384*mm, GetDetectorMaterial("mmg_FR4"), G4Colour::Green() }},
-    { Component::CuStrips, { 12.*micrometer, GetDetectorMaterial("mmg_Strips"), G4Colour::Brown() }},
-    { Component::KaptonStrips, { 50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown() }},
-    { Component::ResistiveStrips, { 20.*micrometer, GetDetectorMaterial("mmg_ResistPaste" ), G4Colour::Black() }},
-    { Component::Gas1, { 120.*micrometer, GetDetectorMaterial( "mmg_Gas" ), G4Colour::Grey() }},
+    { Component::PCB, LayerStruct(1.384*mm, GetDetectorMaterial("mmg_FR4"), G4Colour::Green(), 316*mm, 542*mm, 0, 0 )},
+    { Component::CuStrips, LayerStruct(12.*micrometer, GetDetectorMaterial("mmg_Strips"), G4Colour::Brown(), 256*mm, 512*mm, -15*mm, 0)},
+    { Component::KaptonStrips, LayerStruct(50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown(), 256*mm, 512*mm, -15*mm, 0)},
+    { Component::ResistiveStrips, LayerStruct(20.*micrometer, GetDetectorMaterial("mmg_ResistPaste" ), G4Colour::Black(), 256*mm, 512*mm, -15*mm, 0)},
+    { Component::Gas1, LayerStruct(120.*micrometer, GetDetectorMaterial( "mmg_Gas" ), G4Colour::Grey(), 256*mm, 512*mm, -15*mm, 0)},
     /* 0.8 correction factor to thickness is to account for the mesh denstity@18/45 */
-    { Component::Mesh, { 18.*0.8*micrometer,  GetDetectorMaterial("mmg_Mesh"), G4Colour::White()} }, 
-    { Component::Gas2, { 3.*mm, GetDetectorMaterial( "mmg_Gas" ), G4Colour::Grey()}},
-    { Component::DriftCuElectrode, { 15.*micrometer, GetDetectorMaterial("G4_Cu"), G4Colour::Brown() }},
-    { Component::DriftKapton, { 50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown() }},
-    { Component::DriftCarbon, { 1.*mm, GetDetectorMaterial("G4_C"), G4Colour(150/255., 75/255., 0) }}
+    { Component::Mesh, LayerStruct(18.*0.8*micrometer,  GetDetectorMaterial("mmg_Mesh"), G4Colour::White(), 256*mm, 512*mm, -15*mm, 0)}, 
+    { Component::Gas2, LayerStruct(3.*mm, GetDetectorMaterial( "mmg_Gas" ), G4Colour::Grey(), 256*mm, 512*mm, -15*mm, 0)},
+    { Component::DriftCuElectrode, LayerStruct(15.*micrometer, GetDetectorMaterial("G4_Cu"), G4Colour::Brown(), 256*mm, 512*mm, -15*mm, 0)},
+    { Component::DriftKapton, LayerStruct(50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown(), 256*mm, 512*mm, -15*mm, 0)},
+    { Component::DriftCarbon, LayerStruct(1.*mm, GetDetectorMaterial("G4_C"), G4Colour(150/255., 75/255., 0), 256*mm, 512*mm, -15*mm, 0)}
   };
 
   // setup layers in the correct order, going outwards from beam axis
@@ -349,6 +364,10 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, 
     [&layer_map](double value, LayerDefinition layer )
     { return value + layer_map.at(std::get<0>(layer)).m_thickness; } );
 
+  // tile dimensions match that of the PCB layer
+  const double tile_dy = layer_map.at(Component::PCB).m_dy;
+  const double tile_dz = layer_map.at(Component::PCB).m_dz;
+  
   // get world material to define parent volume
   auto rc = recoConsts::instance();
   auto world_material = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
@@ -356,7 +375,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, 
   // define tile name
   const auto tilename = GetName() + "_tile_" + std::to_string(tileid);
   
-  auto tile_solid = new G4Box( tilename+"_solid", tile_thickness/2, dy/2, dz/2 );
+  auto tile_solid = new G4Box( tilename+"_solid", tile_thickness/2, tile_dy/2, tile_dz/2 );
   auto tile_logic = new G4LogicalVolume( tile_solid, world_material, tilename+"_logic");
   auto vis = new G4VisAttributes(G4Colour::Grey());
   vis->SetForceSolid(true);
@@ -373,10 +392,17 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, 
     const G4String cname = G4String(GetName()) + "_" + name;
     
     // get thickness, material and name
-    const auto& thickness = layer_map.at(type).m_thickness;
-    const auto& material = layer_map.at(type).m_material;
-    const auto& color = layer_map.at(type).m_color;
+    const auto& component( layer_map.at(type) );
+    const auto& thickness = component.m_thickness;
+    const auto& material = component.m_material;
+    const auto& color = component.m_color;
+    
+    const auto& dy = component.m_dy;
+    const auto& dz = component.m_dz;
 
+    const auto& y_offset = component.m_y_offset;
+    const auto& z_offset = component.m_z_offset;
+    
     auto component_solid = new G4Box(cname+"_solid", thickness/2, dy/2, dz/2 );
     auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
     auto vis = new G4VisAttributes( color );
@@ -384,7 +410,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, 
     vis->SetVisibility(true);
     component_logic->SetVisAttributes(vis);
     
-    const G4ThreeVector center( (current_radius_local + thickness/2), 0, 0 );
+    const G4ThreeVector center( (current_radius_local + thickness/2), y_offset, z_offset );
     auto component_phys = new G4PVPlacement( nullptr, center, component_logic, cname+"_phys", tile_logic, false, 0, OverlapCheck() );
     
     if( type == Component::Gas2 )
