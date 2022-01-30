@@ -2,6 +2,7 @@
 #include <TFile.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h> 
+#include <iostream>
 
 R__LOAD_LIBRARY(libgslcblas.so)
 R__LOAD_LIBRARY(libgsl.so)
