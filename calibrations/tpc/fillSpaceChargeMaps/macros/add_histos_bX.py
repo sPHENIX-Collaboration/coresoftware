@@ -54,3 +54,12 @@ for hist in histos:
     hist.Write()
 outfile.Write()
 outfile.Close()
+
+
+# Remove all the used files
+for file in files :
+    if os.path.exists(file):
+        os.remove(file)
+    else:
+        print("Can not delete the file as it doesn't exist:{}",file)
+

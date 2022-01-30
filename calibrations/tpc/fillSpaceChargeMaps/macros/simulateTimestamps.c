@@ -2,7 +2,6 @@
 #include <TFile.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h> 
-#include <iostream>
 
 R__LOAD_LIBRARY(libgslcblas.so)
 R__LOAD_LIBRARY(libgsl.so)
@@ -11,9 +10,6 @@ R__LOAD_LIBRARY(libgsl.so)
 void simulateTimestamps()
 {
 
-
-  //set_style( false );
-   
   // random generator
   auto rng = gsl_rng_alloc(gsl_rng_mt19937);
   //gsl_rng_set( rng, time(0) );//time(0) is the seed
@@ -22,7 +18,6 @@ void simulateTimestamps()
   // time interval (s) between two bunch crossing
   /* value copied from generators/phhepmc/Fun4AllHepMCPileupInputManager.cc */
   static constexpr double deltat_crossing = 106e-9; 
-  std::cout << "SimulateCollisions - deltat_crossing: " << deltat_crossing << std::endl;
   
   // triggered rate (Hz)
   // static constexpr double trigger_rate = 1e5; // Hijing 100kHz
@@ -33,9 +28,9 @@ void simulateTimestamps()
   static constexpr double mu = trigger_rate*deltat_crossing;
   
   // print configuration
-  std::cout << "SimulateCollisions - deltat_crossing: " << deltat_crossing << std::endl;
-  std::cout << "SimulateCollisions - trigger_rate: " << trigger_rate << std::endl;
-  std::cout << "SimulateCollisions - mu: " << mu << std::endl;
+  printf("SimulateCollisions - deltat_crossing: %f \n", deltat_crossing );
+  printf("SimulateCollisions - trigger_rate: %f \n" , trigger_rate);
+  printf("SimulateCollisions - mu: %f \n" , mu);
   
   // number of requested triggers (should correspond approximately to 1/10 second of data taking)
   // static constexpr uint ntrigtot = 1e4;
@@ -62,7 +57,6 @@ void simulateTimestamps()
   for( int itrig = 0; itrig < ntrigtot; )
   {
 
-    if( itrig%100000==0 ) std::cout << "SimulateCollisions - itrig: " << itrig << std::endl;
     
     ++ bunchcrossing;
     time += deltat_crossing;
@@ -75,11 +69,12 @@ void simulateTimestamps()
       timestamps ->Fill();
       previous_trigger_time = time;
       ++itrig;
+      if( itrig%100000==0 ) printf("SimulateCollisions - itrig: %d \n", itrig );
     }        
   }
   
   // printout last trigger time
-  std::cout << "SimulateCollisions - last trigger time: " << time << std::endl;
+  printf("SimulateCollisions - last trigger time: %f \n", time );
   
   out.close();
   gsl_rng_free(rng);
