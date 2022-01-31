@@ -72,22 +72,26 @@ class ActsTransformations
   Acts::Vector3F getGlobalPositionF(TrkrCluster* cluster,
 				    ActsSurfaceMaps* surfMaps,
 				    ActsTrackingGeometry *tGeometry) const;
+
   Acts::Vector3D getGlobalPosition(TrkrCluster* cluster,
 				   ActsSurfaceMaps* surfMaps,
 				   ActsTrackingGeometry *tGeometry) const;
+
   Surface getSurface(TrkrCluster* cluster,
 		     ActsSurfaceMaps* surfMaps) const;
   
- private:
-  int m_verbosity = 0;
-
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey,
 			    ActsSurfaceMaps *maps) const;
+
   Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey,
-			TrkrDefs::subsurfkey surfkey,
-			ActsSurfaceMaps *maps) const;
+    TrkrDefs::subsurfkey surfkey,
+    ActsSurfaceMaps *maps) const;
+
   Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey,
-		       ActsSurfaceMaps *maps) const;
+    ActsSurfaceMaps *maps) const;
+
+  private:
+  int m_verbosity = 0;
   
 
 };
