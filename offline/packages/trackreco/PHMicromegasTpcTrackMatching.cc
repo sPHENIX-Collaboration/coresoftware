@@ -518,7 +518,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 	}
         // store cluster and key
         const auto& [key, cluster] = *clusiter;
-	const auto glob = transformer.getGlobalPosition(cluster,_surfmaps,_tGeometry);
+        const auto glob = transformer.getGlobalPosition(cluster,_surfmaps,_tGeometry);
         const TVector3 world_cluster(glob(0), glob(1), glob(2));
         const TVector3 local_cluster = layergeom->get_local_from_world_coords( tileid, world_cluster );
 
