@@ -389,7 +389,13 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
   {
 
     // layer name
-    const G4String cname = G4String(GetName()) + "_" + name;
+    /* 
+     * for the Gas2 layers, which are the active components, we use a different volume name,
+     * that match the old geometry implementation. This maximizes compatibility with previous versions
+     */
+    const G4String cname = (type == Component::Gas2) ? 
+      "micromegas_measurement_" + name:
+      G4String(GetName()) + "_" + name;
     
     // get thickness, material and name
     const auto& component( layer_map.at(type) );
