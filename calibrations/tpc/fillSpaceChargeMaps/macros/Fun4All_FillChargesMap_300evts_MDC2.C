@@ -23,7 +23,7 @@ std::vector<int> readBeamXings(){
   //cout << "fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << endl;
   std::vector<int> bXs;
   string line;
-  string txt_file = "/sphenix/user/shulga/Work/IBF/DistortionMap/timestamps_50kHz.txt";
+  string txt_file = "./data/timestamps_50kHz_1M.txt";
   ifstream InputFile (txt_file);
   //std::map<int,int> timestamps;
   if (InputFile.is_open()){

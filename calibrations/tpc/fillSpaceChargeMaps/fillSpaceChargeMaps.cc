@@ -312,7 +312,7 @@ int fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode)
   //cout << "fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << endl;
   std::string line;
   //AA collisions timestamps
-  std::string txt_file = "./data/timestamps_50kHz.txt";
+  std::string txt_file = "./data/timestamps_50kHz_1M.txt";
   int start_line = 3;
   if(_collSyst==1){
     //pp collisions timestamps

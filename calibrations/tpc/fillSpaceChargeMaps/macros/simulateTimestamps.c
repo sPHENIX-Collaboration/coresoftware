@@ -3,6 +3,9 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h> 
 
+#include <stdio.h>
+#include <stdlib.h>
+
 R__LOAD_LIBRARY(libgslcblas.so)
 R__LOAD_LIBRARY(libgsl.so)
 
@@ -37,9 +40,11 @@ void simulateTimestamps()
   //static constexpr uint ntrigtot = 6e6;
   static constexpr uint ntrigtot = 1e6;
   // write all timestamps to a file
-  std::ofstream out( "./data/timestamps_50kHz_1M.txt" );
-  out << "// bunchcrossin id; time (ns)" << std::endl;
-  out << "// assuming 106ns between bunches" << std::endl;
+  FILE *fptr;
+  fptr = fopen("./data/timestamps_50kHz_1M.txt","w");
+  fprintf(fptr,"// bunchcrossin id; time (ns)\n");
+  fprintf(fptr,"// assuming 106ns between bunches\n" );
+
     
   // running collision time
   int64_t bunchcrossing = 0;
@@ -55,16 +60,14 @@ void simulateTimestamps()
   
   // generate triggers
   for( int itrig = 0; itrig < ntrigtot; )
-  {
-
-    
+  {    
     ++ bunchcrossing;
     time += deltat_crossing;
     
     auto ntrig = gsl_ran_poisson( rng, mu );    
     for( uint i = 0; i < ntrig; ++i )
     { 
-      out << bunchcrossing << " " << time*1e9 << std::endl;
+      fprintf(fptr,"%d %d\n",int(bunchcrossing), int(time*1e9) );
       timeD = (time-previous_trigger_time)*1e9;
       timestamps ->Fill();
       previous_trigger_time = time;
@@ -76,7 +79,8 @@ void simulateTimestamps()
   // printout last trigger time
   printf("SimulateCollisions - last trigger time: %f \n", time );
   
-  out.close();
+  fclose(fptr);
+  //out.close();
   gsl_rng_free(rng);
 
   TFile *outf = new TFile("./data/timestamps_50kHz_1M_t.root","recreate");
