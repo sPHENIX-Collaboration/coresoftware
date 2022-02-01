@@ -103,8 +103,6 @@ void PHG4MicromegasDetector::setup_tiles()
 
   // tile dimensions
   /* they correspond to the total micromegas PCB size. They must match the definitions in construct_micromegas_tile */
-//   static constexpr double tile_length = 51.2;
-//   static constexpr double tile_width = 25.6;
   static constexpr double tile_length = 54.2; // cm
   static constexpr double tile_width = 31.6;  // cm
 
@@ -207,7 +205,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   // start seting up volumes
   // Micromegas detector radius
   /* it corresponds to the radial position of the innermost surface of a Micromegas module , as measured in CAD model (THREE PANELS UPDATE 1-18-21) */
-  static constexpr double inner_radius = 84.31*cm;
+  static constexpr double inner_radius = 84.203*cm;
 
   /* 
    * this is the radius at the center of a module.
