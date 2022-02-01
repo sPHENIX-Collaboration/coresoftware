@@ -650,7 +650,7 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 //____________________________________________________________________________________________
 void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 {
-  // if(Verbosity() > 10)
+  if(Verbosity() > 10)
   { std::cout << "MakeActsGeometry::makeMmMapPairs - mmVolume: " << mmVolume->volumeName() << std::endl; }
   const auto mmLayerArray = mmVolume->confinedLayers();
   const auto mmLayerVector = mmLayerArray->arrayObjects();
