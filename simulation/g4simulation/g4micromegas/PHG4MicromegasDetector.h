@@ -74,6 +74,9 @@ class PHG4MicromegasDetector : public PHG4Detector
   /** returns the master logical volume that can then be placed inside the world logical volume */
   G4LogicalVolume* construct_micromegas_tile( int tileid );
   
+  //! construct FEE board
+  G4LogicalVolume* construct_fee_board( int id );
+  
   //! add geometry node
   /*! this handles the internal (module/strips) segmentation, needed for tracking*/
   void add_geometry_node();

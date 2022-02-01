@@ -361,7 +361,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
   // calculate total tile thickness
   const double tile_thickness = std::accumulate(
     layer_stack.begin(), layer_stack.end(), 0.,
-    [&layer_map](double value, LayerDefinition layer )
+    [&layer_map](double value, const LayerDefinition& layer )
     { return value + layer_map.at(std::get<0>(layer)).m_thickness; } );
 
   // tile dimensions match that of the PCB layer
@@ -440,6 +440,111 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
   
   // return master logical volume
   return tile_logic;
+  
+}
+
+//_______________________________________________________________
+G4LogicalVolume* PHG4MicromegasDetector::construct_fee_board( int id )
+{
+ 
+  // layer definition
+  struct LayerStruct
+  {
+    // constructor
+    LayerStruct( const std::string& name, float thickness, G4Material* material, G4Colour color ):
+      m_name( name ),
+      m_thickness( thickness ),
+      m_material( material ),
+      m_color( color )
+    {}
+
+    // name
+    std::string m_name;
+    
+    // thickness
+    float m_thickness = 0;
+
+    // material
+    G4Material* m_material = nullptr;
+
+    // color
+    G4Colour m_color = 0;   
+  };
+
+  
+  static constexpr double inch_to_cm = 2.54;
+
+  /* 
+   * FEE board consists of FR4 PCB, a coper layer, and an aluminium layer, for cooling. 
+   * FR4 and Cu layer thickness taken from TPC description (PHG4TpcEndCapSubsystem::SetDefaultParameters)
+   * Al layer correspond to cooling plate. Thickness from mechanical drawings
+   */
+  const std::vector<LayerStruct> layer_stack = {
+    LayerStruct( "fee_pcb", 0.07*inch_to_cm*cm, GetDetectorMaterial("mmg_FR4"), G4Colour::Green() ),
+    LayerStruct( "fee_cu", 35e-4*10*0.8*cm, GetDetectorMaterial("G4_Cu"), G4Colour::Brown() ),
+    LayerStruct( "fee_al", 0.25*inch_to_cm*cm, GetDetectorMaterial("G4_Al"), G4Colour::Grey() ) };
+    
+  // calculate total tile thickness
+  const double fee_thickness = std::accumulate(
+    layer_stack.begin(), layer_stack.end(), 0.,
+    [](double value, const LayerStruct& layer )
+    { return value + layer.m_thickness; } );
+
+  // fee dimensions match CAD drawings
+  const double fee_dy = 141.51*mm;
+  const double fee_dz = 140*mm;
+  
+  // get world material to define parent volume
+  auto rc = recoConsts::instance();
+  auto world_material = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
+
+  // define tile name
+  const auto feename = GetName() + "_fee_" + std::to_string(id);
+  
+  auto fee_solid = new G4Box( feename+"_solid", fee_thickness/2, fee_dy/2, fee_dz/2 );
+  auto fee_logic = new G4LogicalVolume( fee_solid, world_material, feename+"_logic");
+  auto vis = new G4VisAttributes(G4Colour::Grey());
+  vis->SetForceSolid(true);
+  vis->SetVisibility(false);
+
+  fee_logic->SetVisAttributes(vis);
+
+  /* we loop over registered layers and create volumes for each as daughter of the fee volume */
+  auto current_radius_local = -fee_thickness/2;
+  for( const auto& layer:layer_stack )
+  {
+
+    // layer name
+    /* 
+     * for the Gas2 layers, which are the active components, we use a different volume name,
+     * that match the old geometry implementation. This maximizes compatibility with previous versions
+     */
+    const G4String cname = G4String(GetName()) + "_" + layer.m_name;
+    
+    // get thickness, material and name
+    const auto& thickness = layer.m_thickness;
+    const auto& material = layer.m_material;
+    const auto& color = layer.m_color;
+        
+    auto component_solid = new G4Box(cname+"_solid", thickness/2, fee_dy/2, fee_dz/2 );
+    auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
+    auto vis = new G4VisAttributes( color );
+    vis->SetForceSolid(true);
+    vis->SetVisibility(true);
+    component_logic->SetVisAttributes(vis);
+    
+    const G4ThreeVector center( (current_radius_local + thickness/2), 0, 0);
+    auto component_phys = new G4PVPlacement( nullptr, center, component_logic, cname+"_phys", fee_logic, false, 0, OverlapCheck() );
+    
+    // store as passive
+    m_passiveVolumes.insert( component_phys );
+
+    // update radius
+    current_radius_local += thickness;
+  }  
+  
+  // return master logical volume
+  return fee_logic;
   
 }
 
