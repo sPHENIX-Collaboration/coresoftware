@@ -86,8 +86,12 @@ class MakeActsGeometry : public SubsysReco
   double getSurfStepPhi() {return m_surfStepPhi;}
   double getSurfStepZ() {return m_surfStepZ;}
 
-  void add_fake_surfaces(bool add){fake_surfaces = add;}
+  void add_fake_surfaces(bool add)
+  {fake_surfaces = add;}
 
+  void build_mm_surfaces( bool value )
+  { m_buildMMs = value; }
+    
  private:
   /// Main function to build all acts geometry for use in the fitting modules
   int buildAllGeometry(PHCompositeNode *topNode);
