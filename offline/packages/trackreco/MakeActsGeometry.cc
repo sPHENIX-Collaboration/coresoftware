@@ -172,11 +172,11 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;  
 
   // In case we did not call EditTpcGeometry, we still want to make the MMs surface map
-  if(m_geomContainerMicromegas)
-    {
-      m_buildMMs = true;
-      std::cout << " WILL  add MMs surfaces to ActsSurfaceMap " << std::endl;  
-    }
+  if( m_buildMMs && !m_geomContainerMicromegas )
+  {
+    std::cout << "MakeActsGeometry::buildAllGeometry - could not find node CYLINDERGEOM_MICROMEGAS_FULL. Disabling building MM surfaces" << std::endl;
+    m_buildMMs = false;
+  }
 
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
