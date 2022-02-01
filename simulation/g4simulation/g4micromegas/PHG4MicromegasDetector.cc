@@ -206,9 +206,15 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 
   // start seting up volumes
   // Micromegas detector radius
-  /* it corresponds to the position of the center of the micromegas (along its thickness direction), as measured in CAD model (THREE PANELS UPDATE 1-18-21) */
-  const double radius = 84.77*cm;
+  /* it corresponds to the radial position of the innermost surface of a Micromegas module , as measured in CAD model (THREE PANELS UPDATE 1-18-21) */
+  static constexpr double inner_radius = 84.31*cm;
 
+  /* 
+   * this is the radius at the center of a module.
+   * it is updated when constructing the first tile, assuming that all tiles are identical
+   */
+  double radius = 0;
+  
   // create detector
   // loop over tiles
   for( size_t tileid = 0; tileid < m_tiles.size(); ++tileid )
@@ -219,6 +225,13 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 
     // create tile master volume
     auto tile_logic = construct_micromegas_tile( tileid );
+    
+    // get tile thickness
+    if( tileid == 0 )
+    {
+      const double tile_thickness = static_cast<G4Box*>(tile_logic->GetSolid())->GetXHalfLength()*2;
+      radius = inner_radius + tile_thickness/2;
+    }
     
     // palce tile in master volume
     const double centerZ = tile.m_centerZ*cm;
@@ -271,7 +284,8 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
     Gas2,
     DriftCuElectrode,
     DriftKapton,
-    DriftCarbon
+    DriftCarbon,
+    FeeSupport
   };
 
   // layer definition
@@ -325,7 +339,8 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
     { Component::Gas2, LayerStruct(3.*mm, GetDetectorMaterial( "mmg_Gas" ), G4Colour::Grey(), 256*mm, 512*mm, -15*mm, 0)},
     { Component::DriftCuElectrode, LayerStruct(15.*micrometer, GetDetectorMaterial("G4_Cu"), G4Colour::Brown(), 256*mm, 512*mm, -15*mm, 0)},
     { Component::DriftKapton, LayerStruct(50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown(), 256*mm, 512*mm, -15*mm, 0)},
-    { Component::DriftCarbon, LayerStruct(1.*mm, GetDetectorMaterial("G4_C"), G4Colour(150/255., 75/255., 0), 256*mm, 512*mm, -15*mm, 0)}
+    { Component::DriftCarbon, LayerStruct(1.*mm, GetDetectorMaterial("G4_C"), G4Colour(150/255., 75/255., 0), 256*mm, 512*mm, -15*mm, 0)},
+    { Component::FeeSupport, LayerStruct(2.38*mm, GetDetectorMaterial("G4_Al"), G4Colour::Grey(), 182*mm, 542*mm, -67*mm, 0)}
   };
 
   // setup layers in the correct order, going outwards from beam axis
@@ -355,14 +370,27 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
     std::make_tuple( Component::Gas2, "Gas2_outer" ),
     std::make_tuple( Component::DriftCuElectrode, "DriftCuElectrode_outer" ),
     std::make_tuple( Component::DriftKapton, "DriftKapton_outer" ),
-    std::make_tuple( Component::DriftCarbon, "DriftCarbon_outer" )
+    std::make_tuple( Component::DriftCarbon, "DriftCarbon_outer" ),
+    
+    // FEE support plate
+    std::make_tuple( Component::FeeSupport, "FEE_support" )
   };
     
+  // create two FEE boards up front, to get their total thickness and add to master volume
+  std::array<G4LogicalVolume*, 2> fee_board_logic = 
+  {
+    construct_fee_board(0),
+    construct_fee_board(1)
+  };
+  
+  // fee thickness
+  const double fee_thickness = static_cast<G4Box*>(fee_board_logic[0]->GetSolid())->GetXHalfLength()*2;
+  
   // calculate total tile thickness
   const double tile_thickness = std::accumulate(
     layer_stack.begin(), layer_stack.end(), 0.,
     [&layer_map](double value, const LayerDefinition& layer )
-    { return value + layer_map.at(std::get<0>(layer)).m_thickness; } );
+    { return value + layer_map.at(std::get<0>(layer)).m_thickness; } ) + fee_thickness;
 
   // tile dimensions match that of the PCB layer
   const double tile_dy = layer_map.at(Component::PCB).m_dy;
@@ -438,9 +466,15 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
     current_radius_local += thickness;
   }  
   
-  // return master logical volume
-  return tile_logic;
+  // add FEE boards
+  /* offsets measured from CAD drawings */
+  static constexpr double fee_y_offset = ( 316./2 - 44.7 - 141.5/2 )*mm;
+  static constexpr double fee_x_offset = ( 542./2 - 113.1 - 140./2 )*mm;
+  new G4PVPlacement( nullptr, {current_radius_local+fee_thickness/2, -fee_y_offset, -fee_x_offset}, fee_board_logic[0], GetName() + "_fee_0_phys", tile_logic, false, 0, OverlapCheck() );  
+  new G4PVPlacement( nullptr, {current_radius_local+fee_thickness/2, -fee_y_offset, fee_x_offset}, fee_board_logic[1], GetName() + "_fee_1_phys", tile_logic, false, 0, OverlapCheck() );  
   
+  // return master logical volume
+  return tile_logic; 
 }
 
 //_______________________________________________________________
@@ -541,7 +575,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_fee_board( int id )
 
     // update radius
     current_radius_local += thickness;
-  }  
+  }   
   
   // return master logical volume
   return fee_logic;
