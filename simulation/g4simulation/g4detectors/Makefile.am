@@ -29,11 +29,15 @@ libg4detectors_io_la_LIBADD = \
   -lphparameter
 
 
+libg4detectors_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  `fastjet-config --libs`
+
 libg4detectors_la_LIBADD = \
   libg4detectors_io.la \
   -lphg4gdml \
   -lphool  \
-  -lCGAL \
   -lSubsysReco \
   -lg4testbench 
 

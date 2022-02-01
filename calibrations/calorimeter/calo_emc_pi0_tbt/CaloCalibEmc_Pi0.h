@@ -19,8 +19,7 @@ class TString;
 class CaloCalibEmc_Pi0 : public SubsysReco
 {
  public:
-
-  CaloCalibEmc_Pi0(const std::string &name = "CaloCalibEmc_Pi0",const std::string &fnm = "outJF");
+  CaloCalibEmc_Pi0(const std::string &name = "CaloCalibEmc_Pi0", const std::string &fnm = "outJF");
 
   virtual ~CaloCalibEmc_Pi0() {}
 
@@ -40,45 +39,40 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
   void Loop(TString _filename, int nevts);
-  
+
   void FittingHistos();
 
-
  private:
-  int _ievent;
-  TFile *cal_output;
-  std::string _caloname;
+  int _ievent = 0;
+  TFile *cal_output = nullptr;
+  std::string _caloname = "CEMC";
   std::string _filename;
 
-
- // histos lists
+  // histos lists
   TH1 *cemc_hist_eta_phi[96][258];
-  TH1 *eta_hist[96]= {0};
-  TH2F *mass_eta;// = Null;
-  TH3F *mass_eta_phi;// = Null;
+  TH1 *eta_hist[96] = {0};
+  TH2F *mass_eta = nullptr;
+  TH3F *mass_eta_phi = nullptr;
 
-  TH1F *pairInvMassTotal;
+  TH1F *pairInvMassTotal = nullptr;
 
-  TTree * _eventTree;
+  TTree *_eventTree = nullptr;
   // TTree variables
-  int _eventNumber;
-  int _nClusters;
-  float _clusterIDs[10000]={0};
-  float _clusterEnergies[10000]={0};
-  float _clusterPts[10000]={0};
-  int _clusterEtas[10000]={0};
-  int _clusterPhis[10000]={0};
-  
+  int _eventNumber = -1;
+  int _nClusters = -1;
+  float _clusterIDs[10000] = {0};
+  float _clusterEnergies[10000] = {0};
+  float _clusterPts[10000] = {0};
+  int _clusterEtas[10000] = {0};
+  int _clusterPhis[10000] = {0};
 
-  int maxTowerEta;
-  int maxTowerPhi; 
-  
-  int _maxTowerEtas[10000]={0};
-  int _maxTowerPhis[10000]={0};
+  int maxTowerEta = -1;
+  int maxTowerPhi = -1;
 
-  float alphaCut;
+  int _maxTowerEtas[10000] = {0};
+  int _maxTowerPhis[10000] = {0};
 
-
+  float alphaCut = -1.;
 };
 
 #endif  //   CALOCALIBEMC_PI0_H

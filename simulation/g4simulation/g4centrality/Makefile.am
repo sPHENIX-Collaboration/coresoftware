@@ -14,12 +14,10 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libg4centrality_la_LIBADD = \
+  -lcentrality_io \
   -lfun4all \
   -lphg4hit \
-  -lphparameter \
-  -lcentrality_io \
-  -lCGAL \
-  -ltrackbase_historic_io
+  -lphparameter
 
 pkginclude_HEADERS = \
   PHG4CentralityReco.h

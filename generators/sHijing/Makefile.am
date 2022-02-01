@@ -4,11 +4,10 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   `geant4-config --libs-without-gui` \
+  `fastjet-config --libs` \
   -lHepMC \
   -lhijing \
   -lhijing_dummy \
-  -lfastjet \
-  -lCGAL \
   -lgfortran \
   -lpthread
 
