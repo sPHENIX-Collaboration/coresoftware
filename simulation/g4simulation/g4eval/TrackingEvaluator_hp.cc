@@ -401,7 +401,6 @@ int TrackingEvaluator_hp::process_event(PHCompositeNode* topNode)
 
   if(m_flags&PrintClusters) print_clusters();
   if(m_flags&PrintTracks) print_tracks();
-
   if(m_flags&EvalEvent) evaluate_event();
   if(m_flags&EvalClusters) evaluate_clusters();
   if(m_flags&EvalTracks)
@@ -589,7 +588,6 @@ void TrackingEvaluator_hp::evaluate_tracks()
 
   for( const auto& [track_id,track]:*m_track_map )
   {
-
     // create track information
     auto track_struct = create_track( track );
 
@@ -606,6 +604,7 @@ void TrackingEvaluator_hp::evaluate_tracks()
     }
 
     // get associated particle and store relevant information
+    if( m_g4truthinfo )
     {
       const auto particle = m_g4truthinfo->GetParticle(id);
       track_struct._embed = get_embed(particle);
@@ -623,7 +622,6 @@ void TrackingEvaluator_hp::evaluate_tracks()
     // loop over clusters
     for( auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter )
     {
-
       const auto& cluster_key = *key_iter;
       auto cluster = m_cluster_map->findCluster( cluster_key );
       if( !cluster )
