@@ -576,6 +576,13 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     cout << "===========================================================================" << endl;
   }
 
+  // dump geometry to root file
+  if( m_ExportGeometry )
+  {
+    std::cout << "PHG4Reco::InitRun - writing geometry to " << m_ExportGeomFilename << std::endl;
+    PHGeomUtility::ExportGeomtry(topNode, m_ExportGeomFilename);
+  }
+  
   return 0;
 }
 
