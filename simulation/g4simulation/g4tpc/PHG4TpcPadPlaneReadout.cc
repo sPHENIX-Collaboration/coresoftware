@@ -1,9 +1,6 @@
 #include "PHG4TpcPadPlaneReadout.h"
 
-#include <g4detectors/PHG4Cell.h>  // for PHG4Cell
-#include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CellDefs.h>  // for genkey, keytype
-#include <g4detectors/PHG4Cellv1.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
@@ -194,16 +191,13 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
               << " layernum " << layernum
               << " phi " << phi
               << " sigmaT " << sigmaT
-              << " zigzag_pads " << zigzag_pads
+      //<< " zigzag_pads " << zigzag_pads
               << std::endl;
 
   pad_phibin.clear();
   pad_phibin_share.clear();
-  if (zigzag_pads)
-    populate_zigzag_phibins(layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
-  else
-    populate_rectangular_phibins(layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
-
+  populate_zigzag_phibins(layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
+  
   // Normalize the shares so they add up to 1
   double norm1 = 0.0;
   for (unsigned int ipad = 0; ipad < pad_phibin.size(); ++ipad)
@@ -352,44 +346,6 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
     }
 
   hit++;
-
-  return;
-}
-
-void PHG4TpcPadPlaneReadout::populate_rectangular_phibins(const unsigned int /*layernum*/, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share)
-{
-  double cloud_sig_rp_inv = 1. / cloud_sig_rp;
-
-  const int phibin = LayerGeom->get_phibin(phi);
-  const int nphibins = LayerGeom->get_phibins();
-
-  double radius = LayerGeom->get_radius();
-  double phidisp = phi - LayerGeom->get_phicenter(phibin);
-  double phistepsize = LayerGeom->get_phistep();
-
-  // bin the charge in phi - consider phi bins up and down 3 sigma in r-phi
-  int n_rp = int(3 * cloud_sig_rp / (radius * phistepsize) + 1);
-  for (int iphi = -n_rp; iphi != n_rp + 1; ++iphi)
-  {
-    int cur_phi_bin = phibin + iphi;
-    // correcting for continuity in phi
-    if (cur_phi_bin < 0)
-      cur_phi_bin += nphibins;
-    else if (cur_phi_bin >= nphibins)
-      cur_phi_bin -= nphibins;
-    if ((cur_phi_bin < 0) || (cur_phi_bin >= nphibins))
-    {
-      std::cout << "PHG4CylinderCellTpcReco => error in phi continuity. Skipping" << std::endl;
-      continue;
-    }
-    // Get the integral of the charge probability distribution in phi inside the current phi step
-    double phiLim1 = 0.5 * M_SQRT2 * ((iphi + 0.5) * phistepsize * radius - phidisp * radius) * cloud_sig_rp_inv;
-    double phiLim2 = 0.5 * M_SQRT2 * ((iphi - 0.5) * phistepsize * radius - phidisp * radius) * cloud_sig_rp_inv;
-    double phi_integral = 0.5 * (erf(phiLim1) - erf(phiLim2));
-
-    pad_phibin.push_back(cur_phi_bin);
-    pad_phibin_share.push_back(phi_integral);
-  }
 
   return;
 }
@@ -621,8 +577,6 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_int_param("ntpc_phibins_mid", 1536);
   set_default_int_param("ntpc_phibins_outer", 2304);
 
-  set_default_int_param("zigzag_pads", 1);
-
   // GEM Gain
   /*
   hp (2020/09/04): gain changed from 2000 to 1400, to accomodate gas mixture change 
@@ -678,8 +632,6 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   PhiBinWidth[0] = 2.0 * M_PI / (double) NPhiBins[0];
   PhiBinWidth[1] = 2.0 * M_PI / (double) NPhiBins[1];
   PhiBinWidth[2] = 2.0 * M_PI / (double) NPhiBins[2];
-
-  zigzag_pads = get_int_param("zigzag_pads");
 
   averageGEMGain = get_double_param("gem_amplification");
 }
