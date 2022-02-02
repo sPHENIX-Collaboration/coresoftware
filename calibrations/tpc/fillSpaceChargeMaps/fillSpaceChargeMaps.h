@@ -64,9 +64,7 @@ class fillSpaceChargeMaps : public SubsysReco
   void Print(const std::string &what = "ALL") const override;
 
   void SetFrequency(int freq);
-  //void SetBeamXing(int newBeamXing);
-  void SetBeamXing(const std::vector<int> beamXs);
-  //void SetBeamXingEnd(std::vector<int> beamXs_end);
+  void SetBeamXing(std::vector<int>& beamXs);
   void SetEvtStart(int newEvtStart);
   void SetUseIBFMap(bool useIBFMap = true);
   void SetGain(float ampGain=2e3);
@@ -115,8 +113,10 @@ class fillSpaceChargeMaps : public SubsysReco
    TH1*   _h_hits = 0;
    TH1*   _h_R = 0;
    TH2*   _h_DC_E = 0;
-   TH3*   _h_SC_prim[30];
-   TH3*   _h_SC_ibf[30];
+   static const int nFrames = 30;
+   TH3*   _h_SC_prim[nFrames];
+   TH3*   _h_SC_ibf[nFrames];
+
 
 
    float f=0.5;//for now, just pick the middle of the hit.  Do better later.

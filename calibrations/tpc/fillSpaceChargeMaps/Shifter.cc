@@ -122,7 +122,7 @@ double x, y, z;
   return shiftposition;
 }
 
-TVector3 Shifter::Shift(TVector3 position){
+TVector3 Shifter::Shift(TVector3& position){
   
   return ShiftBack(ShiftForward(position));
 }

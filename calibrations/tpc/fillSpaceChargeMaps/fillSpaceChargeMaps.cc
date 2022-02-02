@@ -212,6 +212,10 @@ fillSpaceChargeMaps::fillSpaceChargeMaps(const std::string &name, const std::str
  ,_shiftElectrons(0)
 
 {
+  for(int i=0; i<nFrames; i++){
+    _h_SC_prim[i] = 0;
+    _h_SC_ibf[i] = 0;
+    }
   cout << "fillSpaceChargeMaps::fillSpaceChargeMaps(const std::string &name) Calling ctor" << endl;
 }
 
@@ -618,7 +622,7 @@ void fillSpaceChargeMaps::SetFrequency(int freq){
   _freqKhz = freq;
   cout<<"Frequency is set to: "<<_freqKhz<<" kHz"<<endl;
 }
-void fillSpaceChargeMaps::SetBeamXing(const std::vector<int> beamXs){
+void fillSpaceChargeMaps::SetBeamXing(std::vector<int>& beamXs){
   _beamxing = beamXs;
   cout<<"Initial BeamXing is set to: "<<_beamxing[0]<<endl;
 
