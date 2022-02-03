@@ -17,7 +17,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <utility> 
 #include <vector>
 
 PHNodeIterator::PHNodeIterator(PHCompositeNode* node)

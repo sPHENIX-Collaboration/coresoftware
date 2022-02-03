@@ -2,6 +2,7 @@
 #include "recoConsts.h"
 
 #include <iostream>
+#include <memory>  // for allocator
 #include <queue>
 #include <random>
 
