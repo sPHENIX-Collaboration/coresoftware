@@ -54,6 +54,7 @@ class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
   void Print(const std::string& what = "ALL") const override;
 
   protected:
+  
   // \brief Set default parameter values
   void SetDefaultParameters() override;
 

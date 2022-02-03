@@ -296,7 +296,7 @@ namespace
   }
 
   // print to stream
-  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const TrackEvaluationContainerv1::ClusterStruct& cluster )
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const TrackEvaluationContainerv1::ClusterStruct& cluster )
   {
     out << "ClusterStruct" << std::endl;
     out << "  cluster: (" << cluster.x << "," << cluster.y << "," << cluster.z << ")" << std::endl;
@@ -305,7 +305,7 @@ namespace
     return out;
   }
 
-  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const TVector3& position)
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const TVector3& position)
   {
     out << "(" << position.x() << ", " << position.y() << ", " << position.z() << ")";
     return out;
@@ -923,20 +923,15 @@ void TrackEvaluation::add_truth_information_micromegas( TrackEvaluationContainer
   for( const auto& g4hit:g4hits )
   {
     const auto weight = g4hit->get_edep();
-
-    // convert g4hit to planar coordinate
-    PHG4Hitv1 g4hit_copy( g4hit );
-    layergeom->convert_to_planar( tileid, &g4hit_copy );
-
     for( int i = 0; i < 2; ++i )
     {
 
       // convert position to local
-      TVector3 g4hit_world(g4hit_copy.get_x(i), g4hit_copy.get_y(i), g4hit_copy.get_z(i));
+      TVector3 g4hit_world(g4hit->get_x(i), g4hit->get_y(i), g4hit->get_z(i));
       TVector3 g4hit_local = layergeom->get_local_from_world_coords( tileid, g4hit_world );
 
       // convert momentum to local
-      TVector3 momentum_world(g4hit_copy.get_px(i), g4hit_copy.get_py(i), g4hit_copy.get_pz(i));
+      TVector3 momentum_world(g4hit->get_px(i), g4hit->get_py(i), g4hit->get_pz(i));
       TVector3 momentum_local = layergeom->get_local_from_world_vect( tileid, momentum_world );
 
       hits.push_back( {.position = g4hit_local, .momentum = momentum_local, .weight = weight } );

@@ -152,41 +152,6 @@ int CylinderGeomMicromegas::find_tile_planar( const TVector3& world_coordinates 
 }
 
 //________________________________________________________________________________
-void CylinderGeomMicromegas::convert_to_planar( uint tileid, PHG4Hit* hit ) const
-{
-  
-  // get extrapolation direction based on in and out G4Hit positions
-  const TVector3 world_direction( hit->get_x(1)-hit->get_x(0), hit->get_y(1)-hit->get_y(0), hit->get_z(1)-hit->get_z(0) );
-
-  // same treatment is applied to both coordinates of the G4Hit 
-  for( int i = 0; i < 2; ++i )
-  {
-
-    const TVector3 world_coordinates( hit->get_x(i), hit->get_y(i), hit->get_z(i) );
-
-    // get coordinate radius, and compare to reference radius. This will be use to offset local position along y in local space
-    const double delta_radius = get_r( world_coordinates.x(), world_coordinates.y() ) - m_radius;
-
-    // convert position and direction to local coordinates
-    const auto local_coordinates = get_local_from_world_coords( tileid, world_coordinates );
-    const auto local_direction = get_local_from_world_vect( tileid, world_direction );
-
-    // propagate along local_direction to the rigth y
-    const double delta_y = delta_radius - local_coordinates.y();
-    TVector3 new_local_coordinates(
-      local_coordinates.x() + delta_y*local_direction.x()/local_direction.y(),
-      local_coordinates.y() + delta_y,
-      local_coordinates.z() + delta_y*local_direction.z()/local_direction.y() );
-
-    // convert back to world coordinate and assign to g4hit
-    const auto new_world_coordinates = get_world_from_local_coords( tileid, new_local_coordinates );
-    hit->set_x(i, new_world_coordinates.x() );
-    hit->set_y(i, new_world_coordinates.y() );
-    hit->set_z(i, new_world_coordinates.z() );
-  }
-}
-
-//________________________________________________________________________________
 int CylinderGeomMicromegas::find_strip_from_world_coords( uint tileid, const TVector3& world_coordinates ) const
 {
   // convert to local coordinates

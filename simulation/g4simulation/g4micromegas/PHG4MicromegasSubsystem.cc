@@ -63,7 +63,7 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->Verbosity(Verbosity());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
-
+  
   // create stepping action if detector is active
   if (GetParams()->get_int_param("active"))
   { m_SteppingAction = new PHG4MicromegasSteppingAction(m_Detector, GetParams()); }
@@ -82,10 +82,7 @@ int PHG4MicromegasSubsystem::process_event(PHCompositeNode *topNode)
 
 //_______________________________________________________________________
 void PHG4MicromegasSubsystem::Print(const std::string &what) const
-{
-  if (m_Detector) m_Detector->Print(what);
-  return;
-}
+{ if (m_Detector) m_Detector->Print(what); }
 
 //_______________________________________________________________________
 PHG4Detector* PHG4MicromegasSubsystem::GetDetector(void) const
@@ -97,7 +94,4 @@ PHG4SteppingAction* PHG4MicromegasSubsystem::GetSteppingAction() const
 
 //_______________________________________________________________________
 void PHG4MicromegasSubsystem::SetDefaultParameters()
-{
-  set_default_double_param("mm_length", 220);
-  set_default_double_param("mm_radius", 82);
-}
+{}
