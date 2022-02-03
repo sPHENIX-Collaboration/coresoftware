@@ -13,45 +13,43 @@
 #include <cstdio>
 #include <stdexcept>
 
-using namespace std;
-
 //_________________________________________________________
-PHTimeServer::timer PHTimeServer::insert_new(const string& key)
+PHTimeServer::timer PHTimeServer::insert_new(const std::string& key)
 {
-  string tmp_key(key);
+  std::string tmp_key(key);
 
   int version = 0;
   while ((_timers.find(tmp_key)) != _timers.end())
   {
     version++;
-    ostringstream o;
+    std::ostringstream o;
     o << key << "_" << version;
     tmp_key = o.str();
   }
 
   // create a new timer
-  _timers.insert(pair<string, timer>(tmp_key, timer(tmp_key, _timer_id)));
+  _timers.insert(std::pair<std::string, timer>(tmp_key, timer(tmp_key, _timer_id)));
   _timer_id++;
 
   // returns timer
   return _timers.find(tmp_key)->second;
 }
 //_________________________________________________________
-PHTimeServer::timer PHTimeServer::insert_new_single_shot(const string& key)
+PHTimeServer::timer PHTimeServer::insert_new_single_shot(const std::string& key)
 {
-  string tmp_key(key);
+  std::string tmp_key(key);
 
   int version = 0;
   while ((_single_shot_timers.find(tmp_key)) != _single_shot_timers.end())
   {
     version++;
-    ostringstream o;
+    std::ostringstream o;
     o << key << "_" << version;
     tmp_key = o.str();
   }
 
   // create a new timer
-  _single_shot_timers.insert(pair<string, timer>(tmp_key, timer(tmp_key, _single_shot_timer_id)));
+  _single_shot_timers.insert(std::pair<std::string, timer>(tmp_key, timer(tmp_key, _single_shot_timer_id)));
   _single_shot_timer_id++;
 
   // returns timer
@@ -59,7 +57,7 @@ PHTimeServer::timer PHTimeServer::insert_new_single_shot(const string& key)
 }
 
 //_________________________________________________________
-PHTimeServer::timer PHTimeServer::get_timer(const string& key)
+PHTimeServer::timer PHTimeServer::get_timer(const std::string& key)
 {
   // check for existing timer matching key
   time_iterator _iter = _timers.find(key);
@@ -67,14 +65,14 @@ PHTimeServer::timer PHTimeServer::get_timer(const string& key)
     return _iter->second;
   else
   {
-    ostringstream what;
+    std::ostringstream what;
     what << "unknown timer \"" << key << "\" requested.";
-    throw invalid_argument(what.str());
+    throw std::invalid_argument(what.str());
   }
 }
 
 //_________________________________________________________
-PHTimeServer::timer PHTimeServer::get_single_shot_timer(const string& key)
+PHTimeServer::timer PHTimeServer::get_single_shot_timer(const std::string& key)
 {
   // check for existing timer matching key
   time_iterator _iter = _single_shot_timers.find(key);
@@ -82,14 +80,14 @@ PHTimeServer::timer PHTimeServer::get_single_shot_timer(const string& key)
     return _iter->second;
   else
   {
-    ostringstream what;
+    std::ostringstream what;
     what << "unknown timer \"" << key << "\" requested.";
-    throw invalid_argument(what.str());
+    throw std::invalid_argument(what.str());
   }
 }
 
 //_________________________________________________________
-void PHTimeServer::print(ostream& out) const
+void PHTimeServer::print(std::ostream& out) const
 {
   PHTimer::PRINT(out, "Mutoo PHTimeServer");
 
@@ -102,7 +100,7 @@ void PHTimeServer::print(ostream& out) const
             iter->second.get_uid(),
             iter->second.get()->elapsed(),
             (char*) ((iter->second.get()->get_state() == PHTimer::RUN) ? " (running)" : " (stopped)"));
-    out << str << endl;
+    out << str << std::endl;
   }
 
   // run over single_shot timers
@@ -115,7 +113,7 @@ void PHTimeServer::print(ostream& out) const
             iter->second.get_uid(),
             iter->second.get()->elapsed(),
             (char*) ((iter->second.get()->get_state() == PHTimer::RUN) ? " (running)" : " (stopped)"));
-    out << str << endl;
+    out << str << std::endl;
   }
 
   PHTimer::PRINT(out, "**");
@@ -124,7 +122,7 @@ void PHTimeServer::print(ostream& out) const
 }
 
 //_________________________________________________________
-void PHTimeServer::print_stat(ostream& out) const
+void PHTimeServer::print_stat(std::ostream& out) const
 {
   // print nothing if no timer was registered
   if (_timers.empty() && _single_shot_timers.empty()) return;
@@ -143,7 +141,7 @@ void PHTimeServer::print_stat(ostream& out) const
               iter->second.get()->get_accumulated_time(),
               iter->second.get()->get_ncycle(),
               iter->second.get()->get_time_per_cycle());
-      out << str << endl;
+      out << str << std::endl;
     }
 
   // single shot timers
@@ -162,7 +160,7 @@ void PHTimeServer::print_stat(ostream& out) const
       if (iter->second.get()->get_ncycle() != 1)
         out << " WARNING: single_shot started more than once.";
 
-      out << endl;
+      out << std::endl;
     }
 
   PHTimer::PRINT(out, "**");

@@ -13,14 +13,9 @@
 
 #include <iostream>
 
-using namespace std;
-
-PHCompositeNode::PHCompositeNode(const string& name)
-  : PHNode(name, "PHCompositeNode")
-  , deleteMe(0)
-{
-  type = "PHCompositeNode";
-}
+PHCompositeNode::PHCompositeNode(const std::string& n)
+  : PHNode(n, "PHCompositeNode")
+{}
 
 PHCompositeNode::~PHCompositeNode()
 {
@@ -45,8 +40,8 @@ bool PHCompositeNode::addNode(PHNode* newNode)
   {
     if (thisNode->getName() == newNode->getName())
     {
-      cout << PHWHERE << "Node " << newNode->getName()
-           << " already exists" << endl;
+      std::cout << PHWHERE << "Node " << newNode->getName()
+           << " already exists" << std::endl;
       return false;
     }
   }
@@ -100,7 +95,7 @@ void PHCompositeNode::forgetMe(PHNode* child)
 
 bool PHCompositeNode::write(PHIOManager* IOManager, const std::string& path)
 {
-  string newPath = name;
+  std::string newPath = name;
   if (!path.empty())
   {
     newPath = path + phooldefs::branchpathdelim + name;
@@ -118,10 +113,10 @@ bool PHCompositeNode::write(PHIOManager* IOManager, const std::string& path)
   return success;
 }
 
-void PHCompositeNode::print(const string& path)
+void PHCompositeNode::print(const std::string& path)
 {
-  string newPath = "   " + path;
-  cout << path << name << " (" << type << ")/" << endl;
+  std::string newPath = "   " + path;
+  std::cout << path << name << " (" << type << ")/" << std::endl;
   PHPointerListIterator<PHNode> nodeIter(subNodes);
   PHNode* thisNode;
   while ((thisNode = nodeIter()))

@@ -5,9 +5,7 @@
 #include <queue>
 #include <random>
 
-using namespace std;
-
-static queue<unsigned int> seedqueue;
+static std::queue<unsigned int> seedqueue;
 static std::mt19937 fRandomGenerator;
 static std::uniform_int_distribution<unsigned int> fDistribution;
 
@@ -41,7 +39,7 @@ unsigned int PHRandomSeed::GetSeed()
   }
   if (verbose)
   {
-    cout << "PHRandomSeed::GetSeed() seed: " << iseed << endl;
+    std::cout << "PHRandomSeed::GetSeed() seed: " << iseed << std::endl;
   }
   return iseed;
 }
@@ -53,7 +51,7 @@ void PHRandomSeed::InitSeed()
   {
     // fixed init seed
     const unsigned int seed = rc->get_IntFlag("RANDOMSEED");
-    cout << "PHRandomSeed: using fixed seed " << seed << endl;
+    std::cout << "PHRandomSeed: using fixed seed " << seed << std::endl;
     fRandomGenerator.seed(seed);
     fFixed = true;
     fInitialized = true;

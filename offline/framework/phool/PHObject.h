@@ -35,15 +35,6 @@ class PHObject : public TObject
 
   /// isValid returns non zero if object contains vailid data
   virtual int isValid() const;
-  virtual int isValid(const float) const;
-  virtual int isValid(const double) const;
-  virtual int isValid(const int) const;
-  virtual int isValid(const unsigned int) const;
-
-  virtual int isImplemented(const float f) const;
-  virtual int isImplemented(const double f) const;
-  virtual int isImplemented(const int i) const;
-  virtual int isImplemented(const unsigned int i) const;
 
   virtual int Integrate() const { return 0; }
   virtual int Integrate(PHObject* /*obj*/) { return -1; }

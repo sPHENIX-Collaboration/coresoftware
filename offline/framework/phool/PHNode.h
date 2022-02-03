@@ -27,7 +27,7 @@ class PHNode
   const std::string getClass() const { return objectclass; }
   void setParent(PHNode *p) { parent = p; }
   void setName(const std::string &n) { name = n; }
-  void setObjectType(const std::string &type) { objecttype = type; }
+  void setObjectType(const std::string &n) { objecttype = n; }
   virtual void prune() = 0;
   virtual void print(const std::string &) = 0;
   virtual void forgetMe(PHNode *) = 0;
