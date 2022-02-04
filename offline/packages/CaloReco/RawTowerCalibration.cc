@@ -19,16 +19,26 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
+
+#include <TSystem.h>
+
+#include <xpload/xpload.h>
 
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <exception>
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <fstream>
+
+#include <dbfile_calo_calib/HcalCaloCalibSimpleCorrFilev1.h>
+
 
 using namespace std;
 
@@ -36,36 +46,42 @@ RawTowerCalibration::RawTowerCalibration(const std::string &name)
   : SubsysReco(name)
   , _calib_algorithm(kNo_calibration)
   ,  //
-  _calib_towers(nullptr)
+    _calib_towers(nullptr)
   , _raw_towers(nullptr)
   ,  //
-  rawtowergeom(nullptr)
+    rawtowergeom(nullptr)
   ,  //
-  detector("NONE")
+    detector("NONE")
   ,  //
-  _calib_tower_node_prefix("CALIB")
+    _calib_tower_node_prefix("CALIB")
   , _raw_tower_node_prefix("RAW")
   ,  //
   //! pedstal in unit of ADC
-  _pedstal_ADC(NAN)
+    _pedstal_ADC(NAN)
   ,
   //! default to fixed pedestal
-  _pedestal_file(false)
+    _pedestal_file(false)
   ,
-  //! calibration constant in unit of GeV per ADC
-  _calib_const_GeV_ADC(NAN)
+    //! calibration constant in unit of GeV per ADC
+    _calib_const_GeV_ADC(NAN)
   ,  //
-  //! default to fixed GeV per ADC
-  _GeV_ADC_file(false)
+    //! default to fixed GeV per ADC
+    _GeV_ADC_file(false)
   , _tower_type(-1)
   , _tower_calib_params(name)
+  ,  m_CalibrationFileName("")
+  ,  m_UseConditionsDB(false)
+  , _cal_dbfile(0)
 {
-}
 
+  //_tower_type = -1;
+
+}
+  
 int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
-
+  
   // Looking for the DST node
   PHCompositeNode *dstNode;
   dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode",
@@ -86,8 +102,48 @@ int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
     std::cout << e.what() << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  
+  // this is for testing our condition DB, it's reply is not used right now
+  if (m_UseConditionsDB)
+    {
+      recoConsts *rc = recoConsts::instance();
+      uint64_t timestamp = rc->get_IntFlag("RUNNUMBER");
+      std::string tag = "example_tag_1";
+      std::string cfg = "test";
+      xpload::Configurator config(cfg);
+      //std::vector<std::string> paths = xpload::fetch(tag, cfg, timestamp, config);
+      xpload::Result pathres = xpload::fetch(tag, cfg, timestamp, config);
+      if (pathres.paths.empty())
+	{
+      if (Verbosity())
+	{
+	  std::cout << "No paths in conditions DB found" << std::endl;
+	}
+	}
+      else
+	{
+	  if (Verbosity())
+	    {
+	      std::cout << "Found paths:" << std::endl;
+	      
+	      for (const std::string &path : pathres.paths)
+		{
+		  std::cout << path << std::endl;
+		}
+	    }
+	}
+    }
+
+  if (_calib_algorithm == kDbfile_tbt_gain_corr)
+    {
+      _cal_dbfile = (CaloCalibSimpleCorrFile *)  new  HcalCaloCalibSimpleCorrFilev1();
+      _cal_dbfile->Open(m_CalibrationFileName.c_str());
+    }
+    
   return Fun4AllReturnCodes::EVENT_OK;
+
 }
+
 
 int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
 {
@@ -189,6 +245,35 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
       calib_tower->set_energy(calib_energy);
       _calib_towers->AddTower(key, calib_tower);
     }
+    else if (_calib_algorithm == kDbfile_tbt_gain_corr)
+    {
+
+      if (!_cal_dbfile)
+	{
+	  std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+              << "kDbfile_tbt_gain_corr  chosen but no file loaded" << std::endl;
+	  return  Fun4AllReturnCodes::ABORTRUN;
+	}
+     
+      float gain_factor = -888; 
+      //      gain_factor = _cal_dbfile->getCorr(key);
+      
+      const int eta = raw_tower->get_bineta();
+      const int phi = raw_tower->get_binphi();
+
+      gain_factor = _cal_dbfile->getCorr(eta,phi);
+
+      const double raw_energy = raw_tower->get_energy();
+      RawTower *calib_tower = new RawTowerv2(*raw_tower);
+
+      // still include separate _calib_const_GeV_ADC factor
+      // for global shifts.
+
+      float corr_energy = raw_energy * gain_factor* _calib_const_GeV_ADC;
+      calib_tower->set_energy(corr_energy);
+      _calib_towers->AddTower(key, calib_tower);
+ 
+   }
     else
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
