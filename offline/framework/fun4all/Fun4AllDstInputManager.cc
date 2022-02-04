@@ -281,8 +281,8 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
         cout << "mastersync run number: " << mastersync->RunNumber()
              << ", this run number: " << syncobject->RunNumber() << endl;
       }
-      while (syncobject->RunNumber() < mastersync->RunNumber())
 
+      while (syncobject->RunNumber() < mastersync->RunNumber())
       {
         events_skipped_during_sync++;
         if (Verbosity() > 2)
@@ -291,7 +291,7 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
                << ", master: " << mastersync->RunNumber()
                << endl;
         }
-        int iret = ReadNextEventSyncObject();
+        iret = ReadNextEventSyncObject();
         if (iret)
         {
           return iret;
@@ -312,7 +312,7 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
                << ", master: " << mastersync->SegmentNumber()
                << endl;
         }
-        int iret = ReadNextEventSyncObject();
+        iret = ReadNextEventSyncObject();
         if (iret)
         {
           return iret;
@@ -337,7 +337,7 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
                << ", master: " << mastersync->EventCounter()
                << endl;
         }
-        int iret = ReadNextEventSyncObject();
+        iret = ReadNextEventSyncObject();
         if (iret)
         {
           return iret;
@@ -371,7 +371,7 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
         fileclose();
         return Fun4AllReturnCodes::SYNC_FAIL;
       }
-      int iret = syncobject->Different(mastersync);  // final check if they really agree
+      iret = syncobject->Different(mastersync);  // final check if they really agree
       if (iret)                                      // if not things are severely wrong
       {
         cout << PHWHERE << " MasterSync and SyncObject of " << Name() << " are different" << endl;
@@ -574,12 +574,12 @@ int Fun4AllDstInputManager::setBranches()
   return 0;
 }
 
-int Fun4AllDstInputManager::setSyncBranches(PHNodeIOManager *IManager)
+int Fun4AllDstInputManager::setSyncBranches(PHNodeIOManager *IMan)
 {
   // protection against switching off the sync variables
   for (int i = 0; i < syncdefs::NUM_SYNC_VARS; i++)
   {
-    IManager->selectObjectToRead(syncdefs::SYNCVARS[i], 1);
+    IMan->selectObjectToRead(syncdefs::SYNCVARS[i], 1);
   }
   return 0;
 }
