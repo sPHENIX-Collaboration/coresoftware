@@ -15,7 +15,9 @@
 
 PHCompositeNode::PHCompositeNode(const std::string& n)
   : PHNode(n, "PHCompositeNode")
-{}
+{
+ type = "PHCompositeNode";
+}
 
 PHCompositeNode::~PHCompositeNode()
 {
