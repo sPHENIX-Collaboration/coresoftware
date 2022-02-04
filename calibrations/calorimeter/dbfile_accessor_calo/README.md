@@ -1,4 +1,5 @@
 CaloCalibSimpleCorrFile.h -- base class for format independent wrapper API for calorimeter conditions DB files
+
 HcalCaloCalib...v1 -- first implementation using Hcal cosmics text file formats previously created by Ejiro some code also taken from some improvements from Chris Pinkenburg
  
  
