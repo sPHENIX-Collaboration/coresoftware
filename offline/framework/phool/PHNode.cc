@@ -24,11 +24,7 @@ PHNode::PHNode(const std::string& n)
 }
 
 PHNode::PHNode(const std::string& n, const std::string& typ)
-  : parent(nullptr)
-  , persistent(true)
-  , type("PHNode")
-  , objecttype(typ)
-  , reset_able(true)
+  :  objecttype(typ)
 {
   int badnode = 0;
   if (n.find(".") != std::string::npos)
