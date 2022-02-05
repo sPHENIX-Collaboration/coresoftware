@@ -7,6 +7,8 @@
 #include "PHNodeIterator.h"
 #include "phooldefs.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TBranch.h>  // for TBranch
 #include <TBranchElement.h>
 #include <TBranchObject.h>
@@ -19,6 +21,7 @@
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TTree.h>
+#pragma GCC diagnostic pop
 
 #include <boost/algorithm/string.hpp>
 
@@ -30,26 +33,24 @@
 #include <utility>
 #include <vector>
 
-using namespace std;
-
-PHNodeIOManager::PHNodeIOManager(const string& f,
+PHNodeIOManager::PHNodeIOManager(const std::string& f,
                                  const PHAccessType a)
 {
   isFunctionalFlag = setFile(f, "titled by PHOOL", a) ? 1 : 0;
 }
 
-PHNodeIOManager::PHNodeIOManager(const string& f, const string& title,
+PHNodeIOManager::PHNodeIOManager(const std::string& f, const std::string& title,
                                  const PHAccessType a)
 {
   isFunctionalFlag = setFile(f, title, a) ? 1 : 0;
 }
 
-PHNodeIOManager::PHNodeIOManager(const string& f, const PHAccessType a,
+PHNodeIOManager::PHNodeIOManager(const std::string& f, const PHAccessType a,
                                  const PHTreeType treeindex)
 {
   if (treeindex != PHEventTree)
   {
-    ostringstream temp;
+    std::ostringstream temp;
     temp << TreeName << treeindex;  // create e.g. T1
     TreeName = temp.str();
   }
@@ -74,7 +75,7 @@ void PHNodeIOManager::closeFile()
   }
 }
 
-bool PHNodeIOManager::setFile(const string& f, const string& title,
+bool PHNodeIOManager::setFile(const std::string& f, const std::string& title,
                               const PHAccessType a)
 {
   filename = f;
@@ -88,7 +89,7 @@ bool PHNodeIOManager::setFile(const string& f, const string& title,
     delete file;
     file = nullptr;
   }
-  string currdir = gDirectory->GetPath();
+  std::string currdir = gDirectory->GetPath();
   gROOT->cd();
   switch (accessMode)
   {
@@ -152,7 +153,7 @@ bool PHNodeIOManager::write(PHCompositeNode* topNode)
   return false;
 }
 
-bool PHNodeIOManager::write(TObject** data, const string& path, int buffersize, int splitlevel)
+bool PHNodeIOManager::write(TObject** data, const std::string& path, int buffersize, int splitlevel)
 {
   if (file && tree)
   {
@@ -204,7 +205,8 @@ PHNodeIOManager::read(PHCompositeNode* topNode, size_t requestedEvent)
   }
   else
   {
-    return 0;
+    delete topNode;
+    return nullptr;
   }
 }
 
@@ -214,26 +216,26 @@ void PHNodeIOManager::print() const
   {
     if (accessMode == PHReadOnly)
     {
-      cout << "PHNodeIOManager reading  " << filename << endl;
+      std::cout << "PHNodeIOManager reading  " << filename << std::endl;
     }
     else
     {
-      cout << "PHNodeIOManager writing  " << filename << endl;
+      std::cout << "PHNodeIOManager writing  " << filename << std::endl;
     }
   }
   if (file && tree)
   {
     tree->Print();
   }
-  cout << "\n\nList of selected objects to read:" << endl;
-  map<string, bool>::const_iterator classiter;
+  std::cout << "\n\nList of selected objects to read:" << std::endl;
+  std::map<std::string, bool>::const_iterator classiter;
   for (classiter = objectToRead.begin(); classiter != objectToRead.end(); ++classiter)
   {
-    cout << classiter->first << " is set to " << classiter->second << endl;
+    std::cout << classiter->first << " is set to " << classiter->second << std::endl;
   }
 }
 
-string
+std::string
 PHNodeIOManager::getBranchClassName(TBranch* branch)
 {
   // OK. Here all the game is to find out the name of the type
@@ -264,7 +266,7 @@ PHNodeIOManager::getBranchClassName(TBranch* branch)
     assert(leaf != 0);
     return leaf->GetTypeName();
   }
-  cout << PHWHERE << "Fatal error, dynamic cast of TBranchObject failed" << endl;
+  std::cout << PHWHERE << "Fatal error, dynamic cast of TBranchObject failed" << std::endl;
   gSystem->Exit(1);
   exit(1);  // the compiler does not know gSystem->Exit() quits, needs exit to avoid warning
 }
@@ -286,7 +288,7 @@ bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
   // to cd() in the current file before trying to fetch any event,
   // otherwise mixing of reading 2.25/03 DST with writing some
   // 3.01/05 trees will fail.
-  string currdir = gDirectory->GetPath();
+  std::string currdir = gDirectory->GetPath();
   TFile* file_ptr = gFile;  // save current gFile
   file->cd();
 
@@ -311,7 +313,7 @@ bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
   }
   if (bytesRead == -1)
   {
-    cout << PHWHERE << "Error: Input TTree corrupt, exiting now" << endl;
+    std::cout << PHWHERE << "Error: Input TTree corrupt, exiting now" << std::endl;
     exit(1);
   }
   return true;
@@ -322,7 +324,7 @@ int PHNodeIOManager::readSpecific(size_t requestedEvent, const std::string& obje
   // objectName should be one of the valid branch name of the "T" TTree, and
   // should be one of the branches selected by selectObjectToRead() method.
   // No wildcard allowed for the moment.
-  map<string, TBranch*>::const_iterator p = fBranches.find(objectName);
+  std::map<std::string, TBranch*>::const_iterator p = fBranches.find(objectName);
 
   if (p != fBranches.end())
   {
@@ -347,11 +349,11 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   {
     if (filename.empty())
     {
-      cout << PHWHERE << "filename was never set" << endl;
+      std::cout << PHWHERE << "filename was never set" << std::endl;
     }
     else
     {
-      cout << PHWHERE << "TFile " << filename << " NULL pointer" << endl;
+      std::cout << PHWHERE << "TFile " << filename << " NULL pointer" << std::endl;
     }
     return nullptr;
   }
@@ -360,21 +362,21 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
 
   if (!tree)
   {
-    cout << PHWHERE << "PHNodeIOManager::reconstructNodeTree : Root Tree "
-         << TreeName << " not found in file " << file->GetName() << endl;
+    std::cout << PHWHERE << "PHNodeIOManager::reconstructNodeTree : Root Tree "
+         << TreeName << " not found in file " << file->GetName() << std::endl;
     return nullptr;
   }
 
   // ROOT sucks, we need a unique name for the tree so we can open multiple
   // files. So we take the memory location of the file pointer which
   // should be unique within this process to create it
-  ostringstream nname;
+  std::ostringstream nname;
   nname << TreeName << file;
 
   tree->SetName(nname.str().c_str());
 
   // Select the branches according to objectToRead
-  map<string, bool>::const_iterator it;
+  std::map<std::string, bool>::const_iterator it;
 
   if (tree->GetNbranches() > 0)
   {
@@ -401,11 +403,11 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   // Loop over all branches in the tree. Each branch-name contains the
   // full 'path' of composite-nodes in the original node tree. We
   // split the name and reconstruct the tree.
-  string delimeters = phooldefs::branchpathdelim + phooldefs::legacypathdelims;  // add old backslash for backward compat
+  std::string delimeters = phooldefs::branchpathdelim + phooldefs::legacypathdelims;  // add old backslash for backward compat
   for (i = 0; i < (size_t)(branchArray->GetEntriesFast()); i++)
   {
-    string branchname = (*branchArray)[i]->GetName();
-    vector<string> splitvec;
+    std::string branchname = (*branchArray)[i]->GetName();
+    std::vector<std::string> splitvec;
     boost::split(splitvec, branchname, boost::is_any_of(delimeters));
     for (size_t ia = 1; ia < splitvec.size() - 1; ia++)  // -1 so we skip the node name
     {
@@ -423,8 +425,8 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
       continue;
     }
 
-    string branchClassName = getBranchClassName(thisBranch);
-    string branchName = thisBranch->GetName();
+    std::string branchClassName = getBranchClassName(thisBranch);
+    std::string branchName = thisBranch->GetName();
     fBranches[branchName] = thisBranch;
 
     assert(gROOT != 0);
@@ -432,10 +434,10 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
 
     if (!thisClass)
     {
-      cout << PHWHERE << endl;
-      cout << "Missing Class: " << branchClassName << endl;
-      cout << "Did you forget to load the shared library which contains "
-           << branchClassName << "?" << endl;
+      std::cout << PHWHERE << std::endl;
+      std::cout << "Missing Class: " << branchClassName << std::endl;
+      std::cout << "Did you forget to load the shared library which contains "
+           << branchClassName << "?" << std::endl;
     }
     // it does not make sense to continue - the code coredumps
     // later if a class is not loaded
@@ -452,19 +454,19 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
     else
     {
       TObject* oldobject = newIODataNode->getData();
-      string oldclass = oldobject->ClassName();
+      std::string oldclass = oldobject->ClassName();
       if (oldclass != branchClassName)
       {
-        cout << "You only have to worry if you get this message when reading parallel files"
-             << endl
-             << "if you get this when opening the 2nd, 3rd,... file" << endl
-             << "It looks like your objects are not of the same version in these files" << endl;
-        cout << PHWHERE << "Found object " << oldobject->ClassName()
+        std::cout << "You only have to worry if you get this message when reading parallel files"
+             << std::endl
+             << "if you get this when opening the 2nd, 3rd,... file" << std::endl
+             << "It looks like your objects are not of the same version in these files" << std::endl;
+        std::cout << PHWHERE << "Found object " << oldobject->ClassName()
              << " in node tree but the  file "
              << filename << " contains a " << branchClassName
-             << " object. The object will be replaced without harming you" << endl;
-        cout << "CAVEAT: If you use local copies of pointers to data nodes" << endl
-             << "instead of searching the node tree you are in trouble now" << endl;
+             << " object. The object will be replaced without harming you" << std::endl;
+        std::cout << "CAVEAT: If you use local copies of pointers to data nodes" << std::endl
+             << "instead of searching the node tree you are in trouble now" << std::endl;
         delete newIODataNode;
         TObject* newTObject = static_cast<TObject*>(thisClass->New());
         newIODataNode = new PHIODataNode<TObject>(newTObject, (*splitvec.rbegin()).c_str());
@@ -478,9 +480,9 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
     }
     else
     {
-      cout << PHWHERE << branchClassName.c_str()
+      std::cout << PHWHERE << branchClassName.c_str()
            << " inherits neither from PHTable nor from PHObject"
-           << " setting type to PHObject" << endl;
+           << " setting type to PHObject" << std::endl;
       newIODataNode->setObjectType("PHObject");
     }
     thisBranch->SetAddress(&(newIODataNode->data));
@@ -499,7 +501,7 @@ void PHNodeIOManager::selectObjectToRead(const std::string& objectName, bool rea
   // If tree is already open, loop over map and set branch status
   if (tree)
   {
-    map<string, bool>::const_iterator it;
+    std::map<std::string, bool>::const_iterator it;
 
     for (it = objectToRead.begin(); it != objectToRead.end(); ++it)
     {
@@ -512,7 +514,7 @@ void PHNodeIOManager::selectObjectToRead(const std::string& objectName, bool rea
 
 bool PHNodeIOManager::isSelected(const std::string& objectName)
 {
-  map<string, TBranch*>::const_iterator p = fBranches.find(objectName);
+  std::map<std::string, TBranch*>::const_iterator p = fBranches.find(objectName);
 
   if (p != fBranches.end())
   {
@@ -544,7 +546,7 @@ PHNodeIOManager::GetBytesWritten()
   return 0.;
 }
 
-map<string, TBranch*>*
+std::map<std::string, TBranch*>*
 PHNodeIOManager::GetBranchMap()
 {
   FillBranchMap();
@@ -562,14 +564,14 @@ int PHNodeIOManager::FillBranchMap()
       for (size_t i = 0; i < (size_t)(branchArray->GetEntriesFast()); i++)
       {
         TBranch* thisBranch = (TBranch*) ((*branchArray)[i]);
-        string branchName = (*branchArray)[i]->GetName();
+        std::string branchName = (*branchArray)[i]->GetName();
         fBranches[branchName] = thisBranch;
       }
     }
     else
     {
-      cout << PHWHERE << " No Root Tree " << TreeName
-           << " on file " << filename << endl;
+      std::cout << PHWHERE << " No Root Tree " << TreeName
+           << " on file " << filename << std::endl;
       return -1;
     }
   }
@@ -582,10 +584,10 @@ bool PHNodeIOManager::NodeExist(const std::string& nodename)
   {
     FillBranchMap();
   }
-  string delimeters = phooldefs::branchpathdelim + phooldefs::legacypathdelims;  // add old backslash for backward compat
+  std::string delimeters = phooldefs::branchpathdelim + phooldefs::legacypathdelims;  // add old backslash for backward compat
   for (auto iter = fBranches.begin(); iter != fBranches.end(); ++iter)
   {
-    vector<string> splitvec;
+    std::vector<std::string> splitvec;
     boost::split(splitvec, iter->first, boost::is_any_of(delimeters));
     if (splitvec.back() == nodename)
     {
