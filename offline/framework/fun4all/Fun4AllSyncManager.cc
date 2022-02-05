@@ -8,7 +8,10 @@
 
 #include <phool/phool.h>  // for PHWHERE
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
+#pragma GCC diagnostic pop
 
 #include <cstdlib>
 #include <iostream>  // for operator<<, endl, basic_ostream
