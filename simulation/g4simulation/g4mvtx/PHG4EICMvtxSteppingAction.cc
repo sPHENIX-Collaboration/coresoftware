@@ -367,19 +367,19 @@ bool PHG4EICMvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     if (Verbosity() > 0)
     {
-      G4StepPoint* prePoint = aStep->GetPreStepPoint();
-      G4StepPoint* postPoint = aStep->GetPostStepPoint();
+      G4StepPoint* prePointA = aStep->GetPreStepPoint();
+      G4StepPoint* postPointA = aStep->GetPostStepPoint();
       cout << "----- PHg4MvtxSteppingAction::UserSteppingAction - active volume = " << sensor_volume->GetName() << endl;
       cout << "       layer = " << layer_id << endl;
       cout << "       stave number = " << stave_id << " half_stave_number = " << half_stave_number << endl;
       cout << "       module number  = " << module_number << endl;
       cout << "       chip number = " << chip_number << endl;
-      cout << "       prepoint x position " << prePoint->GetPosition().x() / cm << endl;
-      cout << "       prepoint y position " << prePoint->GetPosition().y() / cm << endl;
-      cout << "       prepoint z position " << prePoint->GetPosition().z() / cm << endl;
-      cout << "       postpoint x position " << postPoint->GetPosition().x() / cm << endl;
-      cout << "       postpoint y position " << postPoint->GetPosition().y() / cm << endl;
-      cout << "       postpoint z position " << postPoint->GetPosition().z() / cm << endl;
+      cout << "       prepoint x position " << prePointA->GetPosition().x() / cm << endl;
+      cout << "       prepoint y position " << prePointA->GetPosition().y() / cm << endl;
+      cout << "       prepoint z position " << prePointA->GetPosition().z() / cm << endl;
+      cout << "       postpoint x position " << postPointA->GetPosition().x() / cm << endl;
+      cout << "       postpoint y position " << postPointA->GetPosition().y() / cm << endl;
+      cout << "       postpoint z position " << postPointA->GetPosition().z() / cm << endl;
       cout << "       edep " << edep << endl;
     }
 
