@@ -55,7 +55,7 @@ class TpcSpaceChargeMatrixInversion: public Fun4AllBase
   std::string m_outputfile = "DistortionCorrections.root";
 
   /// true if only tracks with micromegas must be used
-  bool m_do_extrapolation = true;
+  bool m_do_extrapolation = false;
 
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
