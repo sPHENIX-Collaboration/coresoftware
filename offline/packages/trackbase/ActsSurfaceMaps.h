@@ -6,7 +6,7 @@
  *  \author Tony Frawley <afrawley@fsu.edu>, Joe Osborn <osbornjd@ornl.gov>, Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-#include <trackbase/TrkrDefs.h>
+#include "TrkrDefs.h"
 
 namespace Acts{ class Surface; }
 class TGeoNode;

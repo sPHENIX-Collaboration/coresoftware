@@ -9,9 +9,11 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
+
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
@@ -141,7 +143,7 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
     // Smear the truth values out by 5% so that the seed momentum and
     // position aren't completely exact
     
-    double random = 0;//((double) rand() / (RAND_MAX)) * 0.05;
+    double random = ((double) rand() / (RAND_MAX)) * 0.05;
     // make it negative sometimes
     if(rand() % 2)
       random *= -1;
@@ -196,6 +198,7 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 	   << endl;
       cout << " nhits: " << svtx_track->size_cluster_keys()<< endl;
       //Print associated clusters;
+      ActsTransformations transformer;
       for (SvtxTrack::ConstClusterKeyIter iter_clus =
                svtx_track->begin_cluster_keys();
            iter_clus != svtx_track->end_cluster_keys(); ++iter_clus)
@@ -203,8 +206,10 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
         TrkrDefs::cluskey cluster_key = *iter_clus;
 	cout << "Key: "  << cluster_key<< endl;
         TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
-        float radius = sqrt(
-            cluster->getX() * cluster->getX() + cluster->getY() * cluster->getY());
+	Acts::Vector3D global = transformer.getGlobalPosition(cluster,
+							      surfmaps,
+							      tgeometry);
+        float radius = sqrt(global(0) * global(0) + global(1) * global(1));
         cout << "       cluster ID: "
              << cluster->getClusKey() << ", cluster radius: " << radius
              << endl;
@@ -220,15 +225,24 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 int PHTruthTrackSeeding::GetNodes(PHCompositeNode* topNode)
 {
 
- m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode,
-							 "TRKR_CLUSTER");
- 
- if(!m_clusterMap)
-   {
-     cerr << PHWHERE << "Error: Can't find node TRKR_CLUSTER" << endl;
-     return Fun4AllReturnCodes::ABORTEVENT;
-   }
+  tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  
+  if((!tgeometry or !surfmaps) and m_helicalTrackFit) 
+    {
+      std::cerr << PHWHERE << "Error, can' find needed Acts nodes " << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
+  m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode,
+							  "TRKR_CLUSTER");
+  
+  if(!m_clusterMap)
+    {
+      cerr << PHWHERE << "Error: Can't find node TRKR_CLUSTER" << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
   _g4truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!_g4truth_container)
   {
@@ -274,7 +288,7 @@ void PHTruthTrackSeeding::circleFitSeed(std::vector<TrkrDefs::cluskey> clusters,
 					int charge)
 {
   double R, X0, Y0;
-  circleFitByTaubin(clusters, R, X0, Y0);
+  auto globalPositions = circleFitByTaubin(clusters, R, X0, Y0);
 
   findRoot(R, X0, Y0, x, y);
 
@@ -288,7 +302,7 @@ void PHTruthTrackSeeding::circleFitSeed(std::vector<TrkrDefs::cluskey> clusters,
     }
  
   double m, B;
-  lineFit(clusters, m, B);
+  lineFit(globalPositions, m, B);
   z = B;
   
   double theta = atan(1./m);
@@ -309,16 +323,15 @@ void PHTruthTrackSeeding::circleFitSeed(std::vector<TrkrDefs::cluskey> clusters,
   
 }
 
-void PHTruthTrackSeeding::lineFit(std::vector<TrkrDefs::cluskey>& clusters,
+void PHTruthTrackSeeding::lineFit(std::vector<Acts::Vector3D>& clusterPositions,
 				  double& A, double& B)
 {
   
   double xsum = 0,x2sum = 0,ysum = 0,xysum = 0;    
-  for(auto& clusterkey : clusters)
+  for(const auto& pos : clusterPositions)
     {
-      auto cluster = m_clusterMap->findCluster(clusterkey);
-      double z = cluster->getZ();
-      double r = sqrt(pow(cluster->getX(),2) + pow(cluster->getY(), 2));
+      double z = pos(2);
+      double r = sqrt(pow(pos(0),2) + pow(pos(1), 2));
       
       xsum=xsum+r;               // calculate sigma(xi)
       ysum=ysum+z;               // calculate sigma(yi)
@@ -327,10 +340,10 @@ void PHTruthTrackSeeding::lineFit(std::vector<TrkrDefs::cluskey>& clusters,
     }
   
   /// calculate slope
-  A = (clusters.size()*xysum-xsum*ysum) / (clusters.size()*x2sum-xsum*xsum);
+  A = (clusterPositions.size()*xysum-xsum*ysum) / (clusterPositions.size()*x2sum-xsum*xsum);
 
   /// calculate intercept
-  B = (x2sum*ysum-xsum*xysum) / (x2sum*clusters.size()-xsum*xsum);
+  B = (x2sum*ysum-xsum*xysum) / (x2sum*clusterPositions.size()-xsum*xsum);
   
 }
 void PHTruthTrackSeeding::findRoot(const double& R, const double& X0, const double& Y0, double& x, double& y)
@@ -360,8 +373,8 @@ void PHTruthTrackSeeding::findRoot(const double& R, const double& X0, const doub
   
 }
 
-void PHTruthTrackSeeding::circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clusters,
-					     double& R, double& X0, double& Y0)
+std::vector<Acts::Vector3D> PHTruthTrackSeeding::circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clusters,
+								   double& R, double& X0, double& Y0)
 {
   /**  
    *   Circle fit to a given set of data points (in 2D)
@@ -389,12 +402,15 @@ void PHTruthTrackSeeding::circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clus
   double meanX = 0;
   double meanY = 0;
   double weight = 0;
-  
-  for(auto cluskey : clusters)
+  ActsTransformations transformer;
+  std::vector<Acts::Vector3D> globalPositions;
+  for(auto& cluskey : clusters)
     {
       auto clus = m_clusterMap->findCluster(cluskey);
-      meanX += clus->getX();
-      meanY += clus->getY();
+      auto glob = transformer.getGlobalPosition(clus,surfmaps,tgeometry);
+      globalPositions.push_back(glob);
+      meanX += glob(0);
+      meanY += glob(1);
       weight++;
     }
   meanX /= weight;
@@ -402,12 +418,10 @@ void PHTruthTrackSeeding::circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clus
 
   Mxx=Myy=Mxy=Mxz=Myz=Mzz=0.;
 
-  for(auto cluskey : clusters)
+  for(auto& pos : globalPositions)
     {
-      auto clus = m_clusterMap->findCluster(cluskey);
-
-      double Xi = clus->getX() - meanX;
-      double Yi = clus->getY() - meanY;
+      double Xi = pos(0) - meanX;
+      double Yi = pos(1) - meanY;
       double Zi = Xi * Xi + Yi * Yi;
 
       Mxy += Xi*Yi;
@@ -458,4 +472,5 @@ void PHTruthTrackSeeding::circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clus
   Y0 = Ycenter + meanY;
   R = sqrt(Xcenter*Xcenter + Ycenter*Ycenter + Mz);
 
+  return globalPositions;
 }

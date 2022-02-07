@@ -17,7 +17,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <utility> 
 #include <vector>
 
 PHNodeIterator::PHNodeIterator(PHCompositeNode* node)
@@ -69,7 +68,7 @@ PHNodeIterator::findFirst(const std::string& requiredType, const std::string& re
       }
     }
   }
-  return 0;
+  return nullptr;
 }
 
 PHNode*
@@ -96,7 +95,7 @@ PHNodeIterator::findFirst(const std::string& requiredName)
       }
     }
   }
-  return 0;
+  return nullptr;
 }
 
 bool PHNodeIterator::cd(const std::string& pathString)

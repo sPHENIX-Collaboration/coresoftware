@@ -40,7 +40,7 @@ class PHCompositeNode : public PHNode
  protected:
   void forgetMe(PHNode *) override;
   PHPointerList<PHNode> subNodes;
-  int deleteMe;
+  int deleteMe = 0;
 
  private:
   PHCompositeNode() = delete;

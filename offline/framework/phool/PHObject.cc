@@ -2,7 +2,11 @@
 
 #include "phool.h"
 
+// root reuses kDefault
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
+#pragma GCC diagnostic pop
 
 #include <iostream>
 
@@ -55,77 +59,6 @@ int PHObject::isValid() const
   return 0;
 }
 
-int PHObject::isValid(const float) const
-{
-  // give warning if this method is not implemented
-  std::cout << PHWHERE
-            << " isValid(const float f) not implemented by daughter class"
-            << std::endl;
-  return 0;
-}
-
-int PHObject::isValid(const double) const
-{
-  // give warning if this method is not implemented
-  std::cout << PHWHERE
-            << " isValid(const double) not implemented by daughter class"
-            << std::endl;
-  return 0;
-}
-
-int PHObject::isValid(const int) const
-{
-  // give warning if this method is not implemented
-  std::cout << PHWHERE
-            << " isValid(const int) not implemented by daughter class"
-            << std::endl;
-  return 0;
-}
-
-int PHObject::isValid(const unsigned int) const
-{
-  // give warning if this method is not implemented
-  std::cout << PHWHERE
-            << " isValid(const unsigned int) not implemented by daughter class"
-            << std::endl;
-  return 0;
-}
-
-int PHObject::isImplemented(const float) const
-{
-  // give warning if this method is not implemented
-  std::cout << PHWHERE
-            << " isImplemented(const float f) not implemented by daughter class"
-            << std::endl;
-  return 0;
-}
-
-int PHObject::isImplemented(const double) const
-{
-  // give warning if this method is not implemented
-  std::cout << PHWHERE
-            << " isImplemented(const double) not implemented by daughter class"
-            << std::endl;
-  return 0;
-}
-
-int PHObject::isImplemented(const int) const
-{
-  // give warning if this method is not implemented
-  std::cout << PHWHERE
-            << " isImplemented(const int) not implemented by daughter class"
-            << std::endl;
-  return 0;
-}
-
-int PHObject::isImplemented(const unsigned int) const
-{
-  // give warning if this method is not implemented
-  std::cout << PHWHERE
-            << " isImplemented(const unsigned int) not implemented by daughter class"
-            << std::endl;
-  return 0;
-}
 
 
 void PHObject::CopyFrom(const PHObject */*obj*/)
