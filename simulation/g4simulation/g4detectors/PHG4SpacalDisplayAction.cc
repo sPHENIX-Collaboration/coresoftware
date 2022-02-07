@@ -5,7 +5,10 @@
 #include <g4main/PHG4DisplayAction.h>   // for PHG4DisplayAction
 #include <g4main/PHG4Utils.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
+#pragma GCC diagnostic pop
 
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4String.hh>           // for G4String

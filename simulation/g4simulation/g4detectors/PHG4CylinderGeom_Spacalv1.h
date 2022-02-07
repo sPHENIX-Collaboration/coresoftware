@@ -74,9 +74,9 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
   }
 
   void
-  set_xpos(double xpos)
+  set_xpos(double x)
   {
-    this->xpos = xpos;
+    this->xpos = x;
   }
 
   double
@@ -86,9 +86,9 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
   }
 
   void
-  set_ypos(double ypos)
+  set_ypos(double y)
   {
-    this->ypos = ypos;
+    this->ypos = y;
   }
 
   double
@@ -98,9 +98,9 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
   }
 
   void
-  set_zpos(double zpos)
+  set_zpos(double z)
   {
-    this->zpos = zpos;
+    this->zpos = z;
   }
 
   ///@}
@@ -272,9 +272,9 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
   }
 
   void
-  set_config(config_t config)
+  set_config(config_t c)
   {
-    this->config = config;
+    this->config = c;
   }
 
   bool

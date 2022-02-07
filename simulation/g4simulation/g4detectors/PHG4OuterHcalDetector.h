@@ -7,8 +7,12 @@
 
 #include <Geant4/G4Types.hh>  // for G4double
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wc11-extensions"
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/point_generators_2.h>
+#pragma GCC diagnostic pop
 
 #include <map>
 #include <set>

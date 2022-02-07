@@ -22,7 +22,10 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
+#pragma GCC diagnostic pop
 
 #include <array>  // for array, array<>::value_...
 #include <cmath>

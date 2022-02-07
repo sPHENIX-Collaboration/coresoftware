@@ -31,7 +31,10 @@
 #include <Geant4/G4Types.hh>  // for G4double
 #include <Geant4/G4Vector3D.hh>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
+#pragma GCC diagnostic pop
 
 #include <boost/foreach.hpp>
 
@@ -144,9 +147,9 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   const G4double block_edge1_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm + 2.0 * get_geom_v3()->get_assembly_spacing() * cm) / cos(edge1_tilt_angle);
   const G4double block_edge2_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm + 2.0 * get_geom_v3()->get_assembly_spacing() * cm) / cos(edge2_tilt_angle);
   G4double block_width_ratio = 0;
-  for (int s = 0; s < phi_bin_in_sec; ++s)
+  for (int n = 0; n < phi_bin_in_sec; ++n)
   {
-    block_width_ratio += 1 / cos(block_azimuth_angle * (0.5 + s) + edge1_tilt_angle);
+    block_width_ratio += 1 / cos(block_azimuth_angle * (0.5 + n) + edge1_tilt_angle);
   }
   const G4double block_half_height_width = (block_edge1_half_width + block_edge2_half_width) / block_width_ratio;
   assert(block_half_height_width > 0);
@@ -167,9 +170,9 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
                                                      numeric_limits<double>::signaling_NaN(),
                                                      numeric_limits<double>::signaling_NaN()});  // [phi-bin in sector] -> azimuth geometry
   G4double block_x_edge1 = block_edge1_half_width;
-  for (int s = 0; s < phi_bin_in_sec; ++s)
+  for (int n = 0; n < phi_bin_in_sec; ++n)
   {
-    block_azimuth_geom& geom = block_azimuth_geoms[s];
+    block_azimuth_geom& geom = block_azimuth_geoms[n];
 
     geom.angle = block_azimuth_angle * (0.5 + s) + edge1_tilt_angle;
     const G4double block_x_size = block_half_height_width / cos(geom.angle);
@@ -208,14 +211,14 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
   if (get_geom_v3()->get_sidewall_thickness() > 0)
   {
-    for (int s = 0; s < phi_bin_in_sec - 1; ++s)
+    for (int n = 0; n < phi_bin_in_sec - 1; ++n)
     {
-      block_divider_azimuth_geom& geom = divider_azimuth_geoms[s];
+      block_divider_azimuth_geom& geom = divider_azimuth_geoms[n];
 
-      geom.angle = 0.5 * (block_azimuth_geoms[s].angle + block_azimuth_geoms[s + 1].angle);
-      geom.projection_center_y = 0.5 * (block_azimuth_geoms[s].projection_center_y + block_azimuth_geoms[s + 1].projection_center_y);
-      geom.projection_center_x = 0.5 * (block_azimuth_geoms[s].projection_center_x + block_azimuth_geoms[s + 1].projection_center_x);
-      geom.radial_displacement = 0.5 * (block_azimuth_geoms[s].projection_length + block_azimuth_geoms[s + 1].projection_length);
+      geom.angle = 0.5 * (block_azimuth_geoms[n].angle + block_azimuth_geoms[n + 1].angle);
+      geom.projection_center_y = 0.5 * (block_azimuth_geoms[n].projection_center_y + block_azimuth_geoms[n + 1].projection_center_y);
+      geom.projection_center_x = 0.5 * (block_azimuth_geoms[n].projection_center_x + block_azimuth_geoms[n + 1].projection_center_x);
+      geom.radial_displacement = 0.5 * (block_azimuth_geoms[n].projection_length + block_azimuth_geoms[n + 1].projection_length);
 
       geom.thickness = 2.0 * get_geom_v3()->get_assembly_spacing() * cm * cos(block_azimuth_angle / 2.) - 2 * um;
       geom.width = get_geom_v3()->get_divider_width() * cm;
@@ -249,20 +252,20 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
          << "\t block_width_ratio = " << block_width_ratio << endl
          << "\t block_half_height_width = " << block_half_height_width << endl;
 
-    for (int s = 0; s < phi_bin_in_sec; ++s)
+    for (int n = 0; n < phi_bin_in_sec; ++n)
     {
-      cout << "\t block[" << s << "].angle = " << block_azimuth_geoms[s].angle << endl;
-      cout << "\t block[" << s << "].projection_center_y = " << block_azimuth_geoms[s].projection_center_y << endl;
-      cout << "\t block[" << s << "].projection_center_x = " << block_azimuth_geoms[s].projection_center_x << endl;
+      cout << "\t block[" << n << "].angle = " << block_azimuth_geoms[n].angle << endl;
+      cout << "\t block[" << n << "].projection_center_y = " << block_azimuth_geoms[n].projection_center_y << endl;
+      cout << "\t block[" << n << "].projection_center_x = " << block_azimuth_geoms[n].projection_center_x << endl;
     }
-    for (int s = 0; s < phi_bin_in_sec - 1; ++s)
+    for (int n = 0; n < phi_bin_in_sec - 1; ++n)
     {
-      cout << "\t divider[" << s << "].angle = " << divider_azimuth_geoms[s].angle << endl;
-      cout << "\t divider[" << s << "].projection_center_x = " << divider_azimuth_geoms[s].projection_center_x << endl;
-      cout << "\t divider[" << s << "].projection_center_y = " << divider_azimuth_geoms[s].projection_center_y << endl;
-      cout << "\t divider[" << s << "].radial_displacement = " << divider_azimuth_geoms[s].radial_displacement << endl;
-      cout << "\t divider[" << s << "].thickness = " << divider_azimuth_geoms[s].thickness << endl;
-      cout << "\t divider[" << s << "].width = " << divider_azimuth_geoms[s].width << endl;
+      cout << "\t divider[" << n << "].angle = " << divider_azimuth_geoms[n].angle << endl;
+      cout << "\t divider[" << n << "].projection_center_x = " << divider_azimuth_geoms[n].projection_center_x << endl;
+      cout << "\t divider[" << n << "].projection_center_y = " << divider_azimuth_geoms[n].projection_center_y << endl;
+      cout << "\t divider[" << n << "].radial_displacement = " << divider_azimuth_geoms[n].radial_displacement << endl;
+      cout << "\t divider[" << n << "].thickness = " << divider_azimuth_geoms[n].thickness << endl;
+      cout << "\t divider[" << n << "].width = " << divider_azimuth_geoms[n].width << endl;
     }
   }
 

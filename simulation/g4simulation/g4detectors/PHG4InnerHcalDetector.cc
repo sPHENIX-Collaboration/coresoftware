@@ -14,7 +14,10 @@
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
+#pragma GCC diagnostic pop
 
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4Box.hh>
@@ -34,11 +37,14 @@
 #include <Geant4/G4UserLimits.hh>
 #include <Geant4/G4VSolid.hh>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <CGAL/Boolean_set_operations_2.h>
 #include <CGAL/Circular_kernel_intersections.h>
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/Object.h>
 #include <CGAL/point_generators_2.h>
+#pragma GCC diagnostic pop
 
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
@@ -296,58 +302,56 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume */*hcalenvelope*/)
   Point_2 upperright;
   Point_2 mid_upperscint(xmidpoint, ymidpoint);
   Point_2 p_upperedge(xcoordup, ycoordup);
+  Line_2 sup(mid_upperscint, p_upperedge);       // center vertical
+  Line_2 perpA = sup.perpendicular(p_upperedge);  // that is the upper edge of the steel plate
+  Point_2 sc1A(m_InnerRadius, 0), sc2A(0, m_InnerRadius), sc3A(-m_InnerRadius, 0);
+  Circle_2 inner_circleA(sc1A, sc2A, sc3A);
+  vector<CGAL::Object> resA;
+  CGAL::intersection(inner_circleA, perpA, std::back_inserter(resA));
+  vector<CGAL::Object>::const_iterator iterA;
+  double pxmax = 0.;
+  for (iterA = resA.begin(); iterA != resA.end(); ++iterA)
   {
-    Line_2 sup(mid_upperscint, p_upperedge);       // center vertical
-    Line_2 perp = sup.perpendicular(p_upperedge);  // that is the upper edge of the steel plate
-    Point_2 sc1(m_InnerRadius, 0), sc2(0, m_InnerRadius), sc3(-m_InnerRadius, 0);
-    Circle_2 inner_circle(sc1, sc2, sc3);
-    vector<CGAL::Object> res;
-    CGAL::intersection(inner_circle, perp, std::back_inserter(res));
-    vector<CGAL::Object>::const_iterator iter;
-    double pxmax = 0.;
-    for (iter = res.begin(); iter != res.end(); ++iter)
+    CGAL::Object obj = *iterA;
+    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
-      CGAL::Object obj = *iter;
-      if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
+      if (CGAL::to_double(point->first.x()) > pxmax)
       {
-        if (CGAL::to_double(point->first.x()) > pxmax)
-        {
-          pxmax = CGAL::to_double(point->first.x());
-          Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-          upperleft = pntmp;
-        }
-      }
-      else
-      {
-        cout << "CGAL::Object type not pair..." << endl;
+	pxmax = CGAL::to_double(point->first.x());
+	Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+	upperleft = pntmp;
       }
     }
-
-    double xcoordup2 = xmidpoint - m_ScintiOuterGap / 2. * sin(angle_mid_scinti / rad);
-    double ycoordup2 = ymidpoint - m_ScintiOuterGap / 2. * cos(angle_mid_scinti / rad);
-    Point_2 p_upperedge2(xcoordup2, ycoordup2);
-    Line_2 sup2(mid_upperscint, p_upperedge2);        // center vertical
-    Line_2 perp2 = sup2.perpendicular(p_upperedge2);  // that is the upper edge of the steel plate
-
-    Point_2 so1(m_OuterRadius, 0), so2(0, m_OuterRadius), so3(-m_OuterRadius, 0);
-    Circle_2 outer_circle(so1, so2, so3);
-    res.clear();  // just clear the content from the last intersection search
-    CGAL::intersection(outer_circle, perp2, std::back_inserter(res));
-    for (iter = res.begin(); iter != res.end(); ++iter)
+    else
     {
-      CGAL::Object obj = *iter;
-      if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
+      cout << "CGAL::Object type not pair..." << endl;
+    }
+  }
+
+  double xcoordup2 = xmidpoint - m_ScintiOuterGap / 2. * sin(angle_mid_scinti / rad);
+  double ycoordup2 = ymidpoint - m_ScintiOuterGap / 2. * cos(angle_mid_scinti / rad);
+  Point_2 p_upperedge2(xcoordup2, ycoordup2);
+  Line_2 sup2(mid_upperscint, p_upperedge2);        // center vertical
+  Line_2 perpA2 = sup2.perpendicular(p_upperedge2);  // that is the upper edge of the steel plate
+
+  Point_2 so1A(m_OuterRadius, 0), so2A(0, m_OuterRadius), so3A(-m_OuterRadius, 0);
+  Circle_2 outer_circleA(so1A, so2A, so3A);
+  resA.clear();  // just clear the content from the last intersection search
+  CGAL::intersection(outer_circleA, perpA2, std::back_inserter(resA));
+  for (iterA = resA.begin(); iterA != resA.end(); ++iterA)
+  {
+    CGAL::Object obj = *iterA;
+    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
+    {
+      if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_loweredge.x()))
       {
-        if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_loweredge.x()))
-        {
-          Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-          upperright = pntmp;
-        }
+	Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+	upperright = pntmp;
       }
-      else
-      {
-        cout << "CGAL::Object type not pair..." << endl;
-      }
+    }
+    else
+    {
+      cout << "CGAL::Object type not pair..." << endl;
     }
   }
   // the left corners are on a secant with the inner boundary, they need to be shifted
@@ -736,8 +740,8 @@ PHG4InnerHcalDetector::x_at_y(Point_2 &p0, Point_2 &p1, double yin)
   double newx = fabs(x[0]) + fabs(x[1]);
   Point_2 p0new(-newx, yin);
   Point_2 p1new(newx, yin);
-  Segment_2 s(p0new, p1new);
-  CGAL::Object result = CGAL::intersection(l, s);
+  Segment_2 seg(p0new, p1new);
+  CGAL::Object result = CGAL::intersection(l, seg);
   if (const Point_2 *ipoint = CGAL::object_cast<Point_2>(&result))
   {
     xret = CGAL::to_double(ipoint->x());

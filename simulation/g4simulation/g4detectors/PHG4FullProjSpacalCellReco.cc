@@ -320,8 +320,8 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       ParDetNode = new PHCompositeNode(detector);
       parNode->addNode(ParDetNode);
     }
-  string geonodename = "G4CELLGEO_" + detector;
-  PutOnParNode(ParDetNode,geonodename);
+  std::string cellgeonodename = "G4CELLGEO_" + detector;
+  PutOnParNode(ParDetNode,cellgeonodename);
   tmin = get_double_param("tmin");
   tmax = get_double_param("tmax");
 

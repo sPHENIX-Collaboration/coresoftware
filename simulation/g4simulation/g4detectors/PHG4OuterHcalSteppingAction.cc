@@ -21,12 +21,15 @@
 #include <phool/getClass.h>
 
 // Root headers
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TAxis.h>                             // for TAxis
 #include <TH2.h>
 #include <TH2F.h>
 #include <TNamed.h>                            // for TNamed
 #include <TSystem.h>
 #include <TFile.h>
+#pragma GCC diagnostic pop
 
 // Geant4 headers
 
@@ -121,7 +124,7 @@ int PHG4OuterHcalSteppingAction::Init()
   }
 
   mappingfilename << "/HCALOUT/tilemap/oHCALMaps092021.root";
-  TFile *f = new TFile(mappingfilename.str().data()); 
+  TFile *f = new TFile(mappingfilename.str().c_str()); 
   MapCorr = (TH2F *)f->Get("hCombinedMap");
   if(!MapCorr){
     std::cout << "ERROR: MapCorr is NULL" << std::endl; 

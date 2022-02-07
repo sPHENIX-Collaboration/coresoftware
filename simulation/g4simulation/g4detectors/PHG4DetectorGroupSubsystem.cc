@@ -14,10 +14,17 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wc11-extensions"
 #include <boost/format.hpp>
 #include <boost/stacktrace.hpp>
+#pragma GCC diagnostic pop
 
 #include <cassert>  // for assert
 #include <cstdlib>  // for exit

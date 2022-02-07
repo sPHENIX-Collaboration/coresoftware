@@ -23,7 +23,7 @@ class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
   void identify(std::ostream& os = std::cout) const override;
 
   void add_edep(const double f, const double e, const double ly) override {edep+=f; eion+= e; light_yield+=ly;}
-  void add_hit_key(PHG4HitDefs::keytype key) override {hit_id.insert(key);}
+  void add_hit_key(PHG4HitDefs::keytype i) override {hit_id.insert(i);}
   
   void set_key(PHG4ScintillatorSlatDefs::keytype i) override {key = i;}
   void set_light_yield(const double lightYield)  {light_yield = lightYield;}

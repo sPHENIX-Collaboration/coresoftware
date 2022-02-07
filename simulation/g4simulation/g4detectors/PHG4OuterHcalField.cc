@@ -10,7 +10,10 @@
 
 #include "PHG4OuterHcalField.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
+#pragma GCC diagnostic pop
 
 #include <Geant4/G4Field.hh>  // for G4Field
 #include <Geant4/G4FieldManager.hh>
