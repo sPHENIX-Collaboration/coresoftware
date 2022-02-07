@@ -127,9 +127,9 @@ class Track
     return verbosity;
   }
 
-  void set_verbosity(int verbosity)
+  void set_verbosity(int v)
   {
-    this->verbosity = verbosity;
+    this->verbosity = v;
   }
 
   //SMART(genfit::Track) getGenFitTrack() {return _track;}
