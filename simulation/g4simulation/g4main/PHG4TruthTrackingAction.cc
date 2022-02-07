@@ -239,9 +239,9 @@ PHG4Particle* PHG4TruthTrackingAction::AddParticle(PHG4TruthInfoContainer& truth
   // determine the momentum vector
   G4ParticleDefinition* def = track.GetDefinition();
   int pdgid = def->GetPDGEncoding();
-  double m = def->GetPDGMass();
+  double mass = def->GetPDGMass();
   double ke = track.GetVertexKineticEnergy();
-  double ptot = sqrt(ke * ke + 2.0 * m * ke);
+  double ptot = sqrt(ke * ke + 2.0 * mass * ke);
   G4ThreeVector pdir = track.GetVertexMomentumDirection();
   pdir *= ptot;
   PHG4Particle* ti = nullptr;
