@@ -10,7 +10,7 @@
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-#include <Acts/EventData/MultiTrajectory.hpp>
+#include <ActsExamples/EventData/Trajectories.hpp>
 
 #include <ActsExamples/EventData/Track.hpp>
 
@@ -24,7 +24,7 @@
 
 class TrkrCluster;
 
-using Trajectory = Acts::MultiTrajectory;
+using Trajectory = ActsExamples::Trajectories;
 
 
 /**
@@ -66,18 +66,18 @@ class ActsTransformations
 		    float &dca3DxyCov,
 		    float &dca3DzCov) const;
 
-  void fillSvtxTrackState(const Trajectory& traj, 
-			  const size_t &trackTip,
-			  SvtxTrack *svtxTrack,
-			  Acts::GeometryContext geoContext) const;
+  void fillSvtxTrackStates(const Acts::MultiTrajectory& traj, 
+			   const size_t& trackTip,
+			   SvtxTrack *svtxTrack,
+			   Acts::GeometryContext& geoContext) const;
   
   Eigen::Matrix<float,3,1> getGlobalPositionF(TrkrCluster* cluster,
 					      ActsSurfaceMaps* surfMaps,
 					      ActsTrackingGeometry *tGeometry) const;
 
   Acts::Vector3 getGlobalPosition(TrkrCluster* cluster,
-				   ActsSurfaceMaps* surfMaps,
-				   ActsTrackingGeometry *tGeometry) const;
+				  ActsSurfaceMaps* surfMaps,
+				  ActsTrackingGeometry *tGeometry) const;
 
   Surface getSurface(TrkrCluster* cluster,
 		     ActsSurfaceMaps* surfMaps) const;

@@ -386,12 +386,11 @@ Surface ActsTransformations::getMMSurface(TrkrDefs::hitsetkey hitsetkey,
   return (iter == maps->mmSurfaceMap.end()) ? nullptr:iter->second;
 }
 
-void ActsTransformations::fillSvtxTrackState(const Trajectory& traj,
-					     const size_t &trackTip,
-					     SvtxTrack *svtxTrack,
-					     Acts::GeometryContext geoContext) const
-{
-
+void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory& traj,
+					      const size_t& trackTip,
+					      SvtxTrack *svtxTrack,
+					      Acts::GeometryContext& geoContext) const
+{ 
   traj.visitBackwards(trackTip, [&](const auto &state) 
   {
     
