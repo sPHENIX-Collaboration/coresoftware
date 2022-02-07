@@ -7,12 +7,14 @@
 
 /// Acts includes to create all necessary definitions
 #include <Acts/Utilities/BinnedArray.hpp>
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-#include "SvtxTrack.h"
+#include <Acts/EventData/MultiTrajectory.hpp>
 
-#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/EventData/Track.hpp>
+
+#include "SvtxTrack.h"
 
 /// std (and the like) includes
 #include <cmath>
@@ -22,7 +24,7 @@
 
 class TrkrCluster;
 
-using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
+using Trajectory = Acts::MultiTrajectory;
 
 
 /**
@@ -46,7 +48,7 @@ class ActsTransformations
   
   /// Same as above, but rotate from Acts basis to global (x,y,z,px,py,pz)
   Acts::BoundSymMatrix rotateActsCovToSvtxTrack(
-                       const Acts::BoundTrackParameters params,
+                       const ActsExamples::TrackParameters params,
 		       Acts::GeometryContext geoCtxt) const;
 
   void setVerbosity(int verbosity) {m_verbosity = verbosity;}
@@ -55,8 +57,8 @@ class ActsTransformations
 
   /// Calculate the DCA for a given Acts fitted track parameters and 
   /// vertex
-  void calculateDCA(const Acts::BoundTrackParameters param,
-		    Acts::Vector3D vertex,
+  void calculateDCA(const ActsExamples::TrackParameters param,
+		    Acts::Vector3 vertex,
 		    Acts::BoundSymMatrix cov,
 		    Acts::GeometryContext geoCtxt,
 		    float &dca3Dxy,
@@ -69,11 +71,11 @@ class ActsTransformations
 			   SvtxTrack *svtxTrack,
 			   Acts::GeometryContext geoContext) const;
   
-  Acts::Vector3F getGlobalPositionF(TrkrCluster* cluster,
-				    ActsSurfaceMaps* surfMaps,
-				    ActsTrackingGeometry *tGeometry) const;
+  Eigen::Matrix<float,3,1> getGlobalPositionF(TrkrCluster* cluster,
+					      ActsSurfaceMaps* surfMaps,
+					      ActsTrackingGeometry *tGeometry) const;
 
-  Acts::Vector3D getGlobalPosition(TrkrCluster* cluster,
+  Acts::Vector3 getGlobalPosition(TrkrCluster* cluster,
 				   ActsSurfaceMaps* surfMaps,
 				   ActsTrackingGeometry *tGeometry) const;
 
