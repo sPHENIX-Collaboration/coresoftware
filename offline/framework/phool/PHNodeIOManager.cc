@@ -205,7 +205,6 @@ PHNodeIOManager::read(PHCompositeNode* topNode, size_t requestedEvent)
   }
   else
   {
-    delete topNode;
     return nullptr;
   }
 }
