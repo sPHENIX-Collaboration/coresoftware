@@ -14,7 +14,7 @@
 
 #include "PHG4CylinderGeom_Spacalv2.h"
 
-#include <iostream>                     // for operator<<, basic_ostream::op...
+#include <iostream>  // for operator<<, basic_ostream::op...
 #include <map>
 #include <string>
 #include <utility>  // std::pair, std::make_pair
@@ -28,10 +28,10 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
 
   ~PHG4CylinderGeom_Spacalv3() override;
 
-// from PHObject
+  // from PHObject
   void identify(std::ostream& os = std::cout) const override;
 
-// from TObject
+  // from TObject
   void Print(Option_t* option = "") const override;
 
   void SetDefault() override;
@@ -70,7 +70,7 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
   }
 
   void
-  set_sidewall_mat(const std::string &absorberMat)
+  set_sidewall_mat(const std::string& absorberMat)
   {
     sidewall_mat = absorberMat;
   }

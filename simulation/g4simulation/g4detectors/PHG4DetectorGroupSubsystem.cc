@@ -154,8 +154,8 @@ int PHG4DetectorGroupSubsystem::InitRun(PHCompositeNode *topNode)
   }
   m_ParamsContainer->SaveToNodeTree(RunDetNode, paramnodename);
   // define the materials for the detector
-// at this point all flags are known so materials set in the macro can
-// be implemented here
+  // at this point all flags are known so materials set in the macro can
+  // be implemented here
   DefineMaterials();
   int iret = InitRunSubsystem(topNode);
   m_ParamsContainer->UpdateNodeTree(RunDetNode, paramnodename);
@@ -509,7 +509,7 @@ int PHG4DetectorGroupSubsystem::SaveParamsToDB()
   return iret;
 }
 
-int PHG4DetectorGroupSubsystem::ReadParamsFromDB(const string &/*name*/, const int /*issuper*/)
+int PHG4DetectorGroupSubsystem::ReadParamsFromDB(const string & /*name*/, const int /*issuper*/)
 {
   int iret = 1;
   // if (issuper)
@@ -557,7 +557,7 @@ int PHG4DetectorGroupSubsystem::SaveParamsToFile(const PHG4DetectorGroupSubsyste
   return iret;
 }
 
-int PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string &/*name*/, const PHG4DetectorGroupSubsystem::FILE_TYPE ftyp, const int /*issuper*/)
+int PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string & /*name*/, const PHG4DetectorGroupSubsystem::FILE_TYPE ftyp, const int /*issuper*/)
 {
   string extension;
   switch (ftyp)

@@ -17,7 +17,7 @@
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4DisplacedSolid.hh>
-#include <Geant4/G4Exception.hh>  // for G4Exception
+#include <Geant4/G4Exception.hh>          // for G4Exception
 #include <Geant4/G4ExceptionSeverity.hh>  // for FatalException
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>

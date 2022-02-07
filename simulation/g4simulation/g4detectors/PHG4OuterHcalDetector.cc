@@ -136,7 +136,7 @@ int PHG4OuterHcalDetector::IsInOuterHcal(G4VPhysicalVolume *volume) const
 }
 
 G4VSolid *
-PHG4OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume */*hcalenvelope*/)
+PHG4OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume * /*hcalenvelope*/)
 {
   double mid_radius = m_InnerRadius + (m_OuterRadius - m_InnerRadius) / 2.;
   PHG4OuterHcalDetector::Point_2 p_in_1(mid_radius, 0);  // center of scintillator
@@ -213,7 +213,7 @@ PHG4OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume */*hcalenvelope*
 }
 
 G4VSolid *
-PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume */*hcalenvelope*/)
+PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
 {
   // calculate steel plate on top of the scinti box. Lower edge is the upper edge of
   // the scintibox + 1/2 the airgap
@@ -284,7 +284,7 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume */*hcalenvelope*/)
   PHG4OuterHcalDetector::Point_2 upperright;
   PHG4OuterHcalDetector::Point_2 mid_upperscint(xmidpoint, ymidpoint);
   PHG4OuterHcalDetector::Point_2 p_upperedge(xcoordup, ycoordup);
-  Line_2 sup(mid_upperscint, p_upperedge);       // center vertical
+  Line_2 sup(mid_upperscint, p_upperedge);        // center vertical
   Line_2 perpA = sup.perpendicular(p_upperedge);  // that is the upper edge of the steel plate
   PHG4OuterHcalDetector::Point_2 sc1A(m_InnerRadius, 0), sc2A(0, m_InnerRadius), sc3A(-m_InnerRadius, 0);
   Circle_2 inner_circleA(sc1A, sc2A, sc3A);
@@ -299,9 +299,9 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume */*hcalenvelope*/)
     {
       if (CGAL::to_double(point->first.x()) > pxmax)
       {
-	pxmax = CGAL::to_double(point->first.x());
-	PHG4OuterHcalDetector::Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-	upperleft = pntmp;
+        pxmax = CGAL::to_double(point->first.x());
+        PHG4OuterHcalDetector::Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+        upperleft = pntmp;
       }
     }
     else
@@ -320,8 +320,8 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume */*hcalenvelope*/)
     {
       if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_loweredge.x()))
       {
-	PHG4OuterHcalDetector::Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-	upperright = pntmp;
+        PHG4OuterHcalDetector::Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+        upperright = pntmp;
       }
     }
     else

@@ -15,7 +15,7 @@
 #include <phool/recoConsts.h>
 
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4Exception.hh>      // for G4Exception, G4ExceptionD
+#include <Geant4/G4Exception.hh>          // for G4Exception, G4ExceptionD
 #include <Geant4/G4ExceptionSeverity.hh>  // for FatalException
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
@@ -110,7 +110,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
                                  halfpi - pi / get_geom_v3()->get_azimuthal_n_sec(),
                                  twopi / get_geom_v3()->get_azimuthal_n_sec());
 
-  recoConsts *rc = recoConsts::instance();
+  recoConsts* rc = recoConsts::instance();
   G4Material* cylinder_mat = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   assert(cylinder_mat);
 

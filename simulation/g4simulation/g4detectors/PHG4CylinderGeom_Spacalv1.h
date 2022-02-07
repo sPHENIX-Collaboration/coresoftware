@@ -14,7 +14,7 @@
 
 #include "PHG4CylinderGeomv2.h"
 
-#include <iostream>              // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
 #include <string>
 
@@ -33,10 +33,10 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
     sector_map.clear();
   }
 
-// from PHObject
+  // from PHObject
   void identify(std::ostream &os = std::cout) const override;
 
-// from TObject
+  // from TObject
   void Print(Option_t *option = "") const override;
 
   virtual void SetDefault();

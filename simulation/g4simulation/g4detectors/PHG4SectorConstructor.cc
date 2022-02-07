@@ -9,13 +9,13 @@
 #include "PHG4SectorConstructor.h"
 #include "PHG4SectorDisplayAction.h"
 
-#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
-#include <g4main/PHG4Subsystem.h>         // for PHG4Subsystem
 #include <g4main/PHG4Detector.h>
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>      // for PHG4Subsystem
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4DisplacedSolid.hh>     // for G4DisplacedSolid
-#include <Geant4/G4Exception.hh>  // for G4Exception
+#include <Geant4/G4Exception.hh>          // for G4Exception
 #include <Geant4/G4ExceptionSeverity.hh>  // for FatalException, JustWarning
 #include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -28,14 +28,14 @@
 #include <Geant4/G4ThreeVector.hh>    // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>    // for G4Transform3D, G4RotateX3D
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4Types.hh>              // for G4int
+#include <Geant4/G4Types.hh>  // for G4int
 
 #include <algorithm>  // for max
 #include <cassert>
+#include <climits>
 #include <cmath>
 #include <iostream>
 #include <sstream>
-#include <climits>
 
 PHG4Sector::PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name, PHG4Subsystem *subsys)
   : overlapcheck_sector(false)
@@ -185,9 +185,9 @@ void PHG4Sector::PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *World
   {
     std::ostringstream strstr;
     strstr << name_base << " - accumulated thickness = "
-      << (z_start + geom.get_total_thickness() / 2) / um
-      << " um expected thickness = " << geom.get_total_thickness() / um
-      << " um";
+           << (z_start + geom.get_total_thickness() / 2) / um
+           << " um expected thickness = " << geom.get_total_thickness() / um
+           << " um";
     G4Exception(
         (std::string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(),
         __FILE__, FatalException, strstr.str().c_str());
@@ -197,22 +197,22 @@ void PHG4Sector::PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *World
   if (Verbosity() > 1)
   {
     std::cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base
-	   << " - total thickness = " << geom.get_total_thickness() / cm << " cm"
-	   << std::endl;
+              << " - total thickness = " << geom.get_total_thickness() / cm << " cm"
+              << std::endl;
     std::cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base << " - "
-	   << map_log_vol.size() << " logical volume constructed" << std::endl;
+              << map_log_vol.size() << " logical volume constructed" << std::endl;
     std::cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base << " - "
-	   << map_phy_vol.size() << " physical volume constructed; "
-	   << map_active_phy_vol.size() << " is active." << std::endl;
+              << map_phy_vol.size() << " physical volume constructed; "
+              << map_active_phy_vol.size() << " is active." << std::endl;
   }
 }
 
 G4VSolid *
 PHG4Sector::PHG4SectorConstructor::Construct_Sectors_Plane(  //
-    const std::string &name,                     //
-    const double start_z,                        //
-    const double thickness,                      //
-    G4VSolid *SecConeBoundary_Det                //
+    const std::string &name,                                 //
+    const double start_z,                                    //
+    const double thickness,                                  //
+    G4VSolid *SecConeBoundary_Det                            //
 )
 {
   assert(SecConeBoundary_Det);
@@ -270,7 +270,7 @@ PHG4Sector::PHG4SectorConstructor::RegisterLogicalVolume(G4LogicalVolume *v)
   if (map_log_vol.find(v->GetName()) != map_log_vol.end())
   {
     std::cout << "PHG4SectorConstructor::RegisterVolume - Warning - replacing "
-           << v->GetName() << std::endl;
+              << v->GetName() << std::endl;
   }
 
   map_log_vol[v->GetName()] = v;
@@ -280,7 +280,7 @@ PHG4Sector::PHG4SectorConstructor::RegisterLogicalVolume(G4LogicalVolume *v)
 
 G4PVPlacement *
 PHG4Sector::PHG4SectorConstructor::RegisterPhysicalVolume(G4PVPlacement *v,
-                                              const bool active)
+                                                          const bool active)
 {
   if (!v)
   {
@@ -337,7 +337,7 @@ PHG4Sector::Sector_Geometry::get_max_R() const
       strstr << "min_polar_angle = " << min_polar_angle << std::endl;
       strstr << "max_polar_angle = " << max_polar_angle << std::endl;
       strstr << "cos(min_polar_angle + normal_polar_angle) = "
-        << cos(min_polar_angle + normal_polar_angle) << std::endl;
+             << cos(min_polar_angle + normal_polar_angle) << std::endl;
 
       G4Exception("Sector_Geometry::get_max_R", __FILE__, FatalException,
                   strstr.str().c_str());
@@ -350,7 +350,7 @@ PHG4Sector::Sector_Geometry::get_max_R() const
       strstr << "min_polar_angle = " << min_polar_angle << std::endl;
       strstr << "max_polar_angle = " << max_polar_angle << std::endl;
       strstr << "cos(max_polar_angle + normal_polar_angle) = "
-        << cos(max_polar_angle + normal_polar_angle) << std::endl;
+             << cos(max_polar_angle + normal_polar_angle) << std::endl;
 
       G4Exception("Sector_Geometry::get_max_R", __FILE__, FatalException,
                   strstr.str().c_str());
@@ -460,7 +460,7 @@ void PHG4Sector::Sector_Geometry::AddLayers_HBD_Readout()
 //! refractive index aerogel radiator. Nucl. Instrum. Meth., A548:383 390, 2005. arXiv:
 //! physics/0504220, doi:10.1016/j.nima.2005.05.030
 void PHG4Sector::Sector_Geometry::AddLayers_AeroGel_ePHENIX(const double radiator_length,
-                                                const double expansion_length, std::string radiator)
+                                                            const double expansion_length, std::string radiator)
 {
   if (radiator == "Default")
   {

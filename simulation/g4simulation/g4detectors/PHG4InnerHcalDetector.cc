@@ -101,23 +101,23 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector(PHG4Subsystem *subsys, PHCompositeN
   , m_Layer(0)
   , m_ScintiLogicNamePrefix("HcalInnerScinti")
 {
-  
   // n_scinti_tiles takes precedence
 
-  int nTiles = 2 * m_Params->get_int_param(PHG4HcalDefs::n_scinti_tiles); 
-  if(nTiles <= 0){
-    nTiles =  m_NumScintiTilesPos +  m_NumScintiTilesNeg; 
+  int nTiles = 2 * m_Params->get_int_param(PHG4HcalDefs::n_scinti_tiles);
+  if (nTiles <= 0)
+  {
+    nTiles = m_NumScintiTilesPos + m_NumScintiTilesNeg;
   }
-  else{
-    m_NumScintiTilesPos = nTiles/2; 
-    m_Params->set_int_param("n_scinti_tiles_pos", nTiles/2);
-    m_NumScintiTilesNeg = nTiles/2; 
-    m_Params->set_int_param("n_scinti_tiles_neg", nTiles/2);
+  else
+  {
+    m_NumScintiTilesPos = nTiles / 2;
+    m_Params->set_int_param("n_scinti_tiles_pos", nTiles / 2);
+    m_NumScintiTilesNeg = nTiles / 2;
+    m_Params->set_int_param("n_scinti_tiles_neg", nTiles / 2);
   }
 
   // allocate memory for scintillator plates
   m_ScintiTilesVec.assign(nTiles, static_cast<G4VSolid *>(nullptr));
-
 }
 
 PHG4InnerHcalDetector::~PHG4InnerHcalDetector()
@@ -147,7 +147,7 @@ int PHG4InnerHcalDetector::IsInInnerHcal(G4VPhysicalVolume *volume) const
 }
 
 G4VSolid *
-PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume */*hcalenvelope*/)
+PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume * /*hcalenvelope*/)
 {
   double mid_radius = m_InnerRadius + (m_OuterRadius - m_InnerRadius) / 2.;
   Point_2 p_in_1(mid_radius, 0);  // center of scintillator
@@ -224,7 +224,7 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume */*hcalenvelope*
 }
 
 G4VSolid *
-PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume */*hcalenvelope*/)
+PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
 {
   // calculate steel plate on top of the scinti box. Lower edge is the upper edge of
   // the scintibox + 1/2 the airgap
@@ -302,7 +302,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume */*hcalenvelope*/)
   Point_2 upperright;
   Point_2 mid_upperscint(xmidpoint, ymidpoint);
   Point_2 p_upperedge(xcoordup, ycoordup);
-  Line_2 sup(mid_upperscint, p_upperedge);       // center vertical
+  Line_2 sup(mid_upperscint, p_upperedge);        // center vertical
   Line_2 perpA = sup.perpendicular(p_upperedge);  // that is the upper edge of the steel plate
   Point_2 sc1A(m_InnerRadius, 0), sc2A(0, m_InnerRadius), sc3A(-m_InnerRadius, 0);
   Circle_2 inner_circleA(sc1A, sc2A, sc3A);
@@ -317,9 +317,9 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume */*hcalenvelope*/)
     {
       if (CGAL::to_double(point->first.x()) > pxmax)
       {
-	pxmax = CGAL::to_double(point->first.x());
-	Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-	upperleft = pntmp;
+        pxmax = CGAL::to_double(point->first.x());
+        Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+        upperleft = pntmp;
       }
     }
     else
@@ -331,7 +331,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume */*hcalenvelope*/)
   double xcoordup2 = xmidpoint - m_ScintiOuterGap / 2. * sin(angle_mid_scinti / rad);
   double ycoordup2 = ymidpoint - m_ScintiOuterGap / 2. * cos(angle_mid_scinti / rad);
   Point_2 p_upperedge2(xcoordup2, ycoordup2);
-  Line_2 sup2(mid_upperscint, p_upperedge2);        // center vertical
+  Line_2 sup2(mid_upperscint, p_upperedge2);         // center vertical
   Line_2 perpA2 = sup2.perpendicular(p_upperedge2);  // that is the upper edge of the steel plate
 
   Point_2 so1A(m_OuterRadius, 0), so2A(0, m_OuterRadius), so3A(-m_OuterRadius, 0);
@@ -345,8 +345,8 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume */*hcalenvelope*/)
     {
       if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_loweredge.x()))
       {
-	Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
-	upperright = pntmp;
+        Point_2 pntmp(CGAL::to_double(point->first.x()), CGAL::to_double(point->first.y()));
+        upperright = pntmp;
       }
     }
     else
@@ -429,7 +429,7 @@ void PHG4InnerHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &uple
 // actual inner hcal construction
 void PHG4InnerHcalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  recoConsts* rc = recoConsts::instance();
+  recoConsts *rc = recoConsts::instance();
   G4Material *Air = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4VSolid *hcal_envelope_cylinder = new G4Tubs("InnerHcal_envelope_solid", m_EnvelopeInnerRadius, m_EnvelopeOuterRadius, m_EnvelopeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
@@ -584,8 +584,9 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
 
   // eta->theta
   // scinti_eta_coverage takes precedence
-  G4double eta_cov = m_Params->get_double_param("scinti_eta_coverage"); 
-  if(eta_cov>0){
+  G4double eta_cov = m_Params->get_double_param("scinti_eta_coverage");
+  if (eta_cov > 0)
+  {
     m_Params->set_double_param("scinti_eta_coverage_pos", eta_cov);
     m_Params->set_double_param("scinti_eta_coverage_neg", eta_cov);
   }
@@ -609,15 +610,15 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
   {
     theta = M_PI / 2 - PHG4Utils::get_theta(eta);  // theta = 90 for eta=0
     x[0] = m_InnerRadius - overhang;
-    z[0] = tan(theta) * m_InnerRadius; 
+    z[0] = tan(theta) * m_InnerRadius;
     x[1] = m_OuterRadius + overhang;  // since the tile is tilted, x is not at the outer radius but beyond
-    z[1] = tan(theta) * m_OuterRadius; 
+    z[1] = tan(theta) * m_OuterRadius;
     eta += delta_eta_pos;
     theta = M_PI / 2 - PHG4Utils::get_theta(eta);  // theta = 90 for eta=0
     x[2] = m_InnerRadius - overhang;
-    z[2] = tan(theta) * m_InnerRadius; 
+    z[2] = tan(theta) * m_InnerRadius;
     x[3] = m_OuterRadius + overhang;  // since the tile is tilted, x is not at the outer radius but beyond
-    z[3] = tan(theta) * m_OuterRadius; 
+    z[3] = tan(theta) * m_OuterRadius;
     // apply gap between scintillators
     z[0] += scinti_gap_neighbor / 2.;
     z[1] += scinti_gap_neighbor / 2.;
@@ -656,23 +657,22 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
     G4VSolid *scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, -m_Params->get_double_param("place_z") * cm));
     delete rotm;
     m_ScintiTilesVec[i + m_NumScintiTilesNeg] = scinti_tile;
-
   }
-  
-  eta = 0.0; // reset
+
+  eta = 0.0;  // reset
   for (int i = 0; i < m_NumScintiTilesNeg; i++)
   {
     theta = M_PI / 2 - PHG4Utils::get_theta(eta);  // theta = 90 for eta=0
     x[0] = m_InnerRadius - overhang;
-    z[0] = tan(theta) * m_InnerRadius; 
+    z[0] = tan(theta) * m_InnerRadius;
     x[1] = m_OuterRadius + overhang;  // since the tile is tilted, x is not at the outer radius but beyond
-    z[1] = tan(theta) * m_OuterRadius; 
+    z[1] = tan(theta) * m_OuterRadius;
     eta += delta_eta_neg;
     theta = M_PI / 2 - PHG4Utils::get_theta(eta);  // theta = 90 for eta=0
     x[2] = m_InnerRadius - overhang;
-    z[2] = tan(theta) * m_InnerRadius; 
+    z[2] = tan(theta) * m_InnerRadius;
     x[3] = m_OuterRadius + overhang;  // since the tile is tilted, x is not at the outer radius but beyond
-    z[3] = tan(theta) * m_OuterRadius; 
+    z[3] = tan(theta) * m_OuterRadius;
     // apply gap between scintillators
     z[0] += scinti_gap_neighbor / 2.;
     z[1] += scinti_gap_neighbor / 2.;
@@ -712,7 +712,6 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
     G4VSolid *scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, -m_Params->get_double_param("place_z") * cm));
     m_ScintiTilesVec[m_NumScintiTilesNeg - i - 1] = scinti_tile;
     delete rotm;
-
   }
 
   // for (unsigned int i=0; i<m_ScintiTilesVec.size(); i++)

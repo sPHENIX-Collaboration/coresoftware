@@ -310,7 +310,7 @@ void BeamLineMagnetSteppingAction::SetInterfacePointers(PHCompositeNode* topNode
   }
 }
 
-void BeamLineMagnetSteppingAction::SetHitNodeName(const std::string &type, const std::string &name)
+void BeamLineMagnetSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
 {
   if (type == "G4HIT")
   {

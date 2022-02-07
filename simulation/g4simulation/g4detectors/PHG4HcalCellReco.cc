@@ -134,16 +134,16 @@ int PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
     {
       maxrow = 256;
     }
-    for (int icolumn = 0 ; icolumn <  maxcolumn; icolumn++)
+    for (int icolumn = 0; icolumn < maxcolumn; icolumn++)
     {
       for (int irow = 0; irow < maxrow; irow++)
       {
-      PHG4CellDefs::keytype key = PHG4CellDefs::ScintillatorSlatBinning::genkey(0, icolumn, irow);
-      PHG4Cell *cell = new PHG4Cellv1(key);
-      cell->add_edep(m_FixedEnergy);
-      cell->add_eion(m_FixedEnergy);
-      cell->add_light_yield(m_FixedEnergy);
-      slats->AddCell(cell);
+        PHG4CellDefs::keytype key = PHG4CellDefs::ScintillatorSlatBinning::genkey(0, icolumn, irow);
+        PHG4Cell *cell = new PHG4Cellv1(key);
+        cell->add_edep(m_FixedEnergy);
+        cell->add_eion(m_FixedEnergy);
+        cell->add_light_yield(m_FixedEnergy);
+        slats->AddCell(cell);
       }
     }
     return Fun4AllReturnCodes::EVENT_OK;
@@ -212,7 +212,7 @@ int PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HcalCellReco::End(PHCompositeNode */*topNode*/)
+int PHG4HcalCellReco::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -2,7 +2,7 @@
 
 #include "PHG4CylinderGeom_Spacalv1.h"  // for PHG4CylinderGeom_Spacalv1
 
-#include <g4main/PHG4DisplayAction.h>   // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Utils.h>
 
 #pragma GCC diagnostic push
@@ -11,11 +11,11 @@
 #pragma GCC diagnostic pop
 
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4String.hh>           // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4VisAttributes.hh>
 
 #include <iostream>
-#include <utility>                      // for pair
+#include <utility>  // for pair
 
 using namespace std;
 
@@ -34,7 +34,7 @@ PHG4SpacalDisplayAction::~PHG4SpacalDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
+void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
   for (auto it : m_LogicalVolumeMap)

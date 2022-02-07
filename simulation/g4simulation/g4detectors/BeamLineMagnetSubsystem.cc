@@ -89,8 +89,8 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       }
     }
     m_SteppingAction = new BeamLineMagnetSteppingAction(m_Detector, GetParams());
-    m_SteppingAction->SetHitNodeName("G4HIT",m_HitNodeName);
-    m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER",m_AbsorberNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
   }
   else if (GetParams()->get_int_param("blackhole"))
   {
@@ -142,7 +142,7 @@ void BeamLineMagnetSubsystem::SetDefaultParameters()
   set_default_double_param("rot_z", 0.);
   set_default_double_param("inner_radius", 4);
   set_default_double_param("outer_radius", 100);
-  set_default_double_param("skin_thickness",0.); // Fe thickness before tracks are terminated
+  set_default_double_param("skin_thickness", 0.);  // Fe thickness before tracks are terminated
 }
 
 void BeamLineMagnetSubsystem::Print(const std::string & /*what*/) const
