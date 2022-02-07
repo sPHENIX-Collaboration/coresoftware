@@ -15,8 +15,6 @@ class ChargeMapReader
   MultiArray<float> *charge=nullptr;
   TH3* hSourceCharge=nullptr;
   TH3* hChargeDensity=nullptr;
-  bool chargeHistExists=true;
-  bool chargeArrayExists=false;
   float inputAxisScale=1;//multiply the r and z dimensions of the input histogram by this, when filling our internal array.  So if the input histogram is in mm and we want to fill our array in cm, inputUnit=0.1;
   float inputChargeScale=1;//multiply the content the input histogram bins by this, when filling our internal array.
   int nBins[3]={1,1,1};//r,phi,z bins of the output fixed-width array
