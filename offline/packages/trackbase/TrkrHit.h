@@ -44,6 +44,9 @@ class TrkrHit : public PHObject
   virtual void setAdc(const unsigned int) {}
   virtual unsigned int getAdc() { return 0;}
 
+  virtual void setTime(const float) {}
+  virtual float getTime() { return 0;}
+
  protected:
 
   ClassDefOverride(TrkrHit, 1);
