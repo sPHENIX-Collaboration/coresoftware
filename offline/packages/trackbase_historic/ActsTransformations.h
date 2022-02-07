@@ -66,10 +66,10 @@ class ActsTransformations
 		    float &dca3DxyCov,
 		    float &dca3DzCov) const;
 
-  void fillSvtxTrackStates(const Trajectory& traj, 
-			   const size_t &trackTip,
-			   SvtxTrack *svtxTrack,
-			   Acts::GeometryContext geoContext) const;
+  void fillSvtxTrackState(const Trajectory& traj, 
+			  const size_t &trackTip,
+			  SvtxTrack *svtxTrack,
+			  Acts::GeometryContext geoContext) const;
   
   Eigen::Matrix<float,3,1> getGlobalPositionF(TrkrCluster* cluster,
 					      ActsSurfaceMaps* surfMaps,

@@ -16,7 +16,7 @@
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
-#include <Acts/Utilities/Units.hpp>
+#include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
 #include <phool/PHCompositeNode.h>
@@ -226,7 +226,7 @@ namespace
 	}
   
   	Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
-					    Acts::Vector3D world,
+					    Acts::Vector3 world,
 					    ActsSurfaceMaps *surfMaps,
 					    ActsTrackingGeometry *tGeometry,
 					    TrkrDefs::subsurfkey& subsurfkey)
@@ -371,7 +371,7 @@ namespace
        // Get the surface key to find the surface from the 
 
       TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey( my_data.layer, my_data.sector, my_data.side );      
-      Acts::Vector3D global(clusx, clusy, clusz);
+      Acts::Vector3 global(clusx, clusy, clusz);
       TrkrDefs::subsurfkey subsurfkey = 0;
       Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
 						    global,
@@ -432,10 +432,10 @@ namespace
       
       clus->setSubSurfKey(subsurfkey);
       
-      Acts::Vector3D center = surface->center(my_data.tGeometry->geoContext)/Acts::UnitConstants::cm;
+      Acts::Vector3 center = surface->center(my_data.tGeometry->geoContext)/Acts::UnitConstants::cm;
       
       // no conversion needed, only used in acts
-      Acts::Vector3D normal = surface->normal(my_data.tGeometry->geoContext);
+      Acts::Vector3 normal = surface->normal(my_data.tGeometry->geoContext);
       double clusRadius = sqrt(clusx * clusx + clusy * clusy);
       double rClusPhi = clusRadius * clusphi;
       double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
@@ -446,7 +446,7 @@ namespace
       auto local = surface->globalToLocal(my_data.tGeometry->geoContext,
 					  global * Acts::UnitConstants::cm,
 					  normal);
-      Acts::Vector2D localPos;
+      Acts::Vector2 localPos;
       
       // Prefer Acts transformation since we build the TPC surfaces manually
       if(local.ok())
