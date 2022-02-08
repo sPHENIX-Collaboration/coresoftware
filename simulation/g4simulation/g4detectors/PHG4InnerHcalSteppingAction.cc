@@ -16,7 +16,16 @@
 
 #include <TSystem.h>
 
+// Root headers
+#include <TAxis.h>                             // for TAxis
+#include <TH2.h>
+#include <TH2F.h>
+#include <TNamed.h>                            // for TNamed
+#include <TSystem.h>
+#include <TFile.h>
+
 #include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
+#include <Geant4/G4PropagatorInField.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4StepPoint.hh>               // for G4StepPoint
@@ -27,10 +36,12 @@
 #include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
 #include <Geant4/G4Track.hh>                   // for G4Track
 #include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
+#include <Geant4/G4TransportationManager.hh>
 #include <Geant4/G4Types.hh>                   // for G4double
 #include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
 #include <Geant4/G4VTouchable.hh>              // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
+#include <Geant4/G4Transform3D.hh>
 
 #include <cmath>                               // for isfinite
 #include <iostream>
@@ -40,6 +51,9 @@
 class PHCompositeNode;
 
 using namespace std;
+
+TH2F *mapCorr = NULL;
+
 //____________________________________________________________________________..
 PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
@@ -59,10 +73,6 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* 
   , m_IsBlackHole(m_Params->get_int_param("blackhole"))
   , m_LightScintModel(m_Params->get_int_param("light_scint_model"))
 {
-  SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
-                     m_Params->get_double_param("light_balance_inner_corr"),
-                     m_Params->get_double_param("light_balance_outer_radius") * cm,
-                     m_Params->get_double_param("light_balance_outer_corr"));
 }
 
 PHG4InnerHcalSteppingAction::~PHG4InnerHcalSteppingAction()
@@ -72,6 +82,35 @@ PHG4InnerHcalSteppingAction::~PHG4InnerHcalSteppingAction()
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete m_Hit;
+}
+
+int PHG4InnerHcalSteppingAction::Init()
+{
+    
+ SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
+                       m_Params->get_double_param("light_balance_inner_corr"),
+                       m_Params->get_double_param("light_balance_outer_radius") * cm,
+                       m_Params->get_double_param("light_balance_outer_corr"));
+
+  
+ std::ostringstream ihcalmapname;
+ const char* Calibroot = getenv("CALIBRATIONROOT");
+ if (Calibroot) { ihcalmapname << Calibroot;}
+ else
+ {
+    std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+    gSystem->Exit(1);
+ }
+ 
+  ihcalmapname << "/HCALIN/tilemap/iHCALMaps012022.root";
+  TFile *file = new TFile(ihcalmapname.str().data());
+  mapCorr = (TH2F *)file->Get("hCombined");
+  if(!mapCorr){
+    std::cout << "ERROR: mapCorr is NULL" << std::endl;
+    gSystem->Exit(1);
+  }
+  
+  return 0;
 }
 //____________________________________________________________________________..
 bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
@@ -101,7 +140,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     layer_id = layer_tower.first;
     tower_id = layer_tower.second;
     // cout << "name " << volume->GetName() << ", mid: " << layer_id
-    //  	   << ", twr: " << tower_id << endl;
+    //         << ", twr: " << tower_id << endl;
   }
   else
   {
@@ -173,7 +212,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
       m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
       m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
-      // time in ns
+     // time in ns
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
       //set and save the track ID
       m_Hit->set_trkid(aTrack->GetTrackID());
@@ -244,20 +283,57 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
     m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
     m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
-
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
+    if (whichactive > 0)
+    {
+        G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
+        G4ThreeVector worldPosition = postPoint->GetPosition();
+        G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
+
+       if (m_LightScintModel)
+        {
+   
+         light_yield = GetVisibleEnergyDeposition(aStep);
+        
+         if(mapCorr)
+          {
+           float lx = (localPosition.x()/cm);
+           float lz = fabs(localPosition.z()/cm);
+
+           //use tilemap coordinates
+           int lcz = (int)(5.0*lz) + 1;
+           int lcx = (int)(5.0*(lx+12.1)) + 1;
+               
+           if((lcx>=1) && (lcx<=mapCorr->GetNbinsY()) &&
+            (lcz>=1) && (lcz<=mapCorr->GetNbinsX()))
+           {
+            light_yield *= (double) (mapCorr->GetBinContent(lcz, lcx));
+           }
+          else
+          {
+            light_yield = 0.0;
+          }
+        }
+      }
+      else
+       {
+          light_yield = eion;
+       }
+      
+     if (ValidCorrection())
+     {
+       double cor =  GetLightCorrection(postPoint->GetPosition().x() , (postPoint->GetPosition().y() ));
+       cout << "applying cor: " << cor << endl;
+      light_yield = light_yield *  GetLightCorrection(postPoint->GetPosition().x() , (postPoint->GetPosition().y() ));
+     }
+  }
+   
     //sum up the energy to get total deposited
     m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (whichactive > 0)  // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
     {
       m_Hit->set_eion(m_Hit->get_eion() + eion);
-      light_yield = eion;
-      if (m_LightScintModel)
-      {
-        light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
-      }
-      light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x(), postPoint->GetPosition().y());
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
     if (geantino)
@@ -288,7 +364,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         postPoint->GetStepStatus() == fWorldBoundary ||
         postPoint->GetStepStatus() == fAtRestDoItProc ||
         aTrack->GetTrackStatus() == fStopAndKill)
-    {
+     {
       // save only hits with energy deposit (or -1 for geantino)
       if (m_Hit->get_edep())
       {
@@ -316,6 +392,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   {
     return false;
   }
+ 
 }
 
 //____________________________________________________________________________..
