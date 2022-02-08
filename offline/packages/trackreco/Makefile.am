@@ -132,7 +132,7 @@ ACTS_LIBS = \
   -lActsPluginTGeo \
   -lActsExamplesCommon \
   -lActsPluginJson \
-  -lActsExamplesFitting \
+  -lActsExamplesTrackFitting \
   -lActsExamplesTrackFinding \
   -lActsExamplesDetectorTGeo \
   -lActsExamplesFramework \
