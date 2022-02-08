@@ -12,7 +12,7 @@ AM_CXXFLAGS = `geant4-config --cflags`
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
   HcalRawTowerBuilder.h \

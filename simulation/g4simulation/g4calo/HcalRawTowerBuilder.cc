@@ -33,11 +33,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-// TSystem shadows an enum (kDefault)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 #include <cmath>      // for fabs, NAN, cos
 #include <exception>  // for exception
