@@ -276,10 +276,10 @@ void PHG4TpcCentralMembrane::CalculateVertices(
       corner[3].SetXYZ(padfrac - arc_r, (widthmod[j] * str_width[i][j]) / 2, 0);    //"2b" = length of the pad, but not including the arc piece
 
       TVector3 rotatedcorner[4];
-      for (int i = 0; i < 4; i++)
+      for (int n = 0; n < 4; n++)
       {
-        rotatedcorner[i] = corner[i];
-        rotatedcorner[i].RotateZ(theta);
+        rotatedcorner[n] = corner[n];
+        rotatedcorner[n].RotateZ(theta);
       }
 
       x1a[i_out][j] = rotatedcorner[0].X() + cx[i_out][j];
@@ -338,8 +338,14 @@ void PHG4TpcCentralMembrane::CalculateVertices(
       nStripesBefore_R1_e[0] = 0;
 
       nStripesIn[j] = keepUntil[j] - keepThisAndAfter[j];
-
-      nStripesBefore[j] = nStripesIn[j - 1] + nStripesBefore[j - 1];
+      if (j==0)
+      {
+	nStripesBefore[j] = 0;
+      }
+      else
+      {
+        nStripesBefore[j] = nStripesIn[j - 1] + nStripesBefore[j - 1];
+      }
       nStripesBefore_R1_e[0] = 0;
     }
     nGoodStripes[j] = i_out;
