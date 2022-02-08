@@ -15,11 +15,7 @@
 #include <g4main/PHG4SteppingAction.h>
 #include <g4main/PHG4TrackUserInfoV1.h>
 
-// TSystem shadows an enum (kDefault)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>

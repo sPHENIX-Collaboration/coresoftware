@@ -34,10 +34,7 @@
 #include <Geant4/G4VTouchable.hh>             // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>

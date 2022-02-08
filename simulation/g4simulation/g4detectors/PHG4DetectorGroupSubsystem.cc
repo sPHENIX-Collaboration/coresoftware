@@ -14,15 +14,13 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
+#include <boost/format.hpp>
+
+// boost stacktrace has shadowed variables
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wc11-extensions"
-#include <boost/format.hpp>
 #include <boost/stacktrace.hpp>
 #pragma GCC diagnostic pop
 

@@ -25,10 +25,7 @@
 #include <g4gdml/PHG4GDMLConfig.hh>
 #include <g4gdml/PHG4GDMLUtility.hh>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>

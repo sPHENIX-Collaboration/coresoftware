@@ -10,9 +10,9 @@ if test $ac_cv_prog_gxx = yes; then
 fi
 
 case $CXX in
- clang++)
-  CXXFLAGS="$CXXFLAGS -Wno-undefined-var-template -Wno-tautological-overlap-compare -Wno-deprecated-copy"
- ;;
+  clang++)
+    CXXFLAGS="$CXXFLAGS -Wno-c11-extensions -Wno-deprecated-copy -Wno-tautological-overlap-compare"
+  ;;
 esac
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "

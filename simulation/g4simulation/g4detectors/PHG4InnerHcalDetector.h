@@ -7,7 +7,6 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wc11-extensions"
 #include <CGAL/Cartesian.h>  // for Cartesian_base_ref_count::...
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/Point_2.h>  // for Point_2

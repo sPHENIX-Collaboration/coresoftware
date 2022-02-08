@@ -21,15 +21,12 @@
 #include <phool/getClass.h>
 
 // Root headers
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TAxis.h>  // for TAxis
 #include <TFile.h>
 #include <TH2.h>
 #include <TH2F.h>
 #include <TNamed.h>  // for TNamed
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 // Geant4 headers
 

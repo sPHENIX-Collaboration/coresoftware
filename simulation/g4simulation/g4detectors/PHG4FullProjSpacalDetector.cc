@@ -28,10 +28,7 @@
 #include <Geant4/G4Types.hh>  // for G4double
 #include <Geant4/G4Vector3D.hh>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 #include <boost/foreach.hpp>
 

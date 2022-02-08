@@ -14,10 +14,7 @@
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4Box.hh>
@@ -40,6 +37,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include <CGAL/Boolean_set_operations_2.h>
 #include <CGAL/Circular_kernel_intersections.h>
 #include <CGAL/Exact_circular_kernel_2.h>

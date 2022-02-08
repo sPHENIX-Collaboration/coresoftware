@@ -19,10 +19,7 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4UserLimits.hh>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 #include <cmath>
 #include <iostream>  // for operator<<, endl, basic_ost...

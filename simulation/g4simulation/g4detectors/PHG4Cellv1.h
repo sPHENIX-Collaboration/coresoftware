@@ -30,6 +30,8 @@ class PHG4Cellv1 : public PHG4Cell
   bool has_binning(const PHG4CellDefs::CellBinning binning) const override;
   short int get_detid() const override;
 
+  using PHG4Cell::add_edep;
+
   void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep) override;
   void add_shower_edep(const int g4showerid, const float edep) override;
 
