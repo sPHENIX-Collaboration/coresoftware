@@ -6,14 +6,7 @@ AC_PROG_CXX(CC g++)
 
 LT_INIT([disable-static])
 
-case $CXX in
- clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wextra"
- ;;
- *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
- ;;
-esac
+CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow"
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
