@@ -7,7 +7,7 @@
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
 
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Propagator/Propagator.hpp>
 #include <Acts/Utilities/Result.hpp>
 
@@ -115,7 +115,7 @@ class PHTpcResiduals : public SubsysReco
 		     const SourceLink& sl);
 
   /// Gets distortion cell for identifying bins in TPC
-  int getCell(const Acts::Vector3D& loc);
+  int getCell(const Acts::Vector3& loc);
   
   void makeHistograms();
   SourceLink makeSourceLink(TrkrCluster* cluster);

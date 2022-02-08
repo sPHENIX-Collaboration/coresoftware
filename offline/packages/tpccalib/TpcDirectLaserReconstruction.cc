@@ -480,7 +480,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 }
 
 //_____________________________________________________________________
-int TpcDirectLaserReconstruction::get_cell_index( const Acts::Vector3D& global ) const
+int TpcDirectLaserReconstruction::get_cell_index( const Acts::Vector3& global ) const
 {
   // get grid dimensions from matrix container
   int phibins = 0;
