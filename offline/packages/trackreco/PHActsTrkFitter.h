@@ -15,7 +15,7 @@
 #include <trackbase/ActsSurfaceMaps.h>
 
 #include <Acts/Utilities/BinnedArray.hpp>
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
 #include <Acts/EventData/MeasurementHelpers.hpp>
@@ -23,10 +23,10 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
-#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
-#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
-
-#include <boost/bimap.hpp>
+#include <ActsExamples/TrackFitting/TrkrClusterFittingAlgorithm.hpp>
+#include <ActsExamples/EventData/Trajectories.hpp>
+#include <ActsExamples/EventData/Track.hpp>
+#include <ActsExamples/EventData/Measurement.hpp>
 
 #include <memory>
 #include <string>
@@ -46,14 +46,11 @@ class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
 
 using SourceLink = ActsExamples::TrkrClusterSourceLink;
-using FitResult = Acts::KalmanFitterResult<SourceLink>;
-using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
-using Measurement = Acts::Measurement<ActsExamples::TrkrClusterSourceLink,
-                                      Acts::BoundIndices,
-                                      Acts::eBoundLoc0,
-                                      Acts::eBoundLoc1>;
+using FitResult = Acts::KalmanFitterResult;
+using Trajectory = ActsExamples::Trajectories;
+using Measurement = Acts::Measurement<Acts::BoundIndices,2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
-using SourceLinkVec = std::vector<SourceLink>;
+using SourceLinkVec = std::vector<std::reference_wrapper<const SourceLink>>;
 
 class PHActsTrkFitter : public SubsysReco
 {
@@ -111,7 +108,8 @@ class PHActsTrkFitter : public SubsysReco
   int createNodes(PHCompositeNode *topNode);
 
   void loopTracks(Acts::Logging::Level logLevel);
-  SourceLinkVec getSourceLinks(SvtxTrack *track);
+  SourceLinkVec getSourceLinks(SvtxTrack *track, 
+			       ActsExamples::MeasurementContainer& measurements);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(Trajectory traj, SvtxTrack* track);
@@ -121,8 +119,8 @@ class PHActsTrkFitter : public SubsysReco
   ActsExamples::TrkrClusterFittingAlgorithm::FitterResult fitTrack(
            const SourceLinkVec& sourceLinks, 
 	   const ActsExamples::TrackParameters& seed,
-	   const Acts::KalmanFitterOptions<Acts::VoidOutlierFinder>& 
-	         kfOptions,
+	   const ActsExamples::TrkrClusterFittingAlgorithm::TrackFitterOptions& 
+	     kfOptions,
 	   const SurfacePtrVec& surfSequence);
 
   /// Functions to get list of sorted surfaces for direct navigation, if
