@@ -57,6 +57,7 @@
 #include <ActsExamples/Options/CommonOptions.hpp>
 #include <ActsExamples/Plugins/Obj/ObjWriterOptions.hpp>
 #include <ActsExamples/Utilities/Options.hpp>
+#include <ActsExamples/MagneticField/MagneticFieldOptions.hpp>
 
 #include <TGeoManager.h>
 #include <TMatrixT.h>
@@ -508,8 +509,10 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[], ActsExamples::IBaseD
   ActsExamples::Options::addGeometryOptions(desc);
   ActsExamples::Options::addMaterialOptions(desc);
   ActsExamples::Options::addObjWriterOptions(desc);
-  ActsExamples::Options::addOutputOptions(desc);
-  ActsExamples::Options::addBFieldOptions(desc);
+  ActsExamples::Options::addOutputOptions(desc, 
+					  ActsExamples::OutputFormat::Obj |
+					  ActsExamples::OutputFormat::Root);
+  ActsExamples::Options::addMagneticFieldOptions(desc);
 
   /// Add specific options for this geometry
   detector.addOptions(desc);
@@ -521,7 +524,7 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[], ActsExamples::IBaseD
   m_tGeometry = geometry.first;
   m_contextDecorators = geometry.second;
 
-  m_magneticField = ActsExamples::Options::readBField(vm);
+  m_magneticField = ActsExamples::Options::readMagneticField(vm);
 
   size_t ievt = 0;
   size_t ialg = 0;
