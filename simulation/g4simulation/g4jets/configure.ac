@@ -10,6 +10,9 @@ CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow"
 dnl leaving this here in case we want to play with different compiler 
 dnl specific flags
 case $CXX in
+ *analyzer)
+   CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"
+ ;;
  clang++)
  ;;
  *g++)
