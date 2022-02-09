@@ -17,7 +17,7 @@
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4DisplacedSolid.hh>
-#include <Geant4/G4Exception.hh>          // for G4Exception
+#include <Geant4/G4Exception.hh>  // for G4Exception
 #include <Geant4/G4ExceptionSeverity.hh>  // for FatalException
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
@@ -144,9 +144,9 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   const G4double block_edge1_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm + 2.0 * get_geom_v3()->get_assembly_spacing() * cm) / cos(edge1_tilt_angle);
   const G4double block_edge2_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm + 2.0 * get_geom_v3()->get_assembly_spacing() * cm) / cos(edge2_tilt_angle);
   G4double block_width_ratio = 0;
-  for (int n = 0; n < phi_bin_in_sec; ++n)
+  for (int sa = 0; sa < phi_bin_in_sec; ++sa)
   {
-    block_width_ratio += 1 / cos(block_azimuth_angle * (0.5 + n) + edge1_tilt_angle);
+    block_width_ratio += 1 / cos(block_azimuth_angle * (0.5 + sa) + edge1_tilt_angle);
   }
   const G4double block_half_height_width = (block_edge1_half_width + block_edge2_half_width) / block_width_ratio;
   assert(block_half_height_width > 0);
@@ -167,11 +167,11 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
                                                      numeric_limits<double>::signaling_NaN(),
                                                      numeric_limits<double>::signaling_NaN()});  // [phi-bin in sector] -> azimuth geometry
   G4double block_x_edge1 = block_edge1_half_width;
-  for (int n = 0; n < phi_bin_in_sec; ++n)
+  for (int sa = 0; sa < phi_bin_in_sec; ++sa)
   {
-    block_azimuth_geom& geom = block_azimuth_geoms[n];
+    block_azimuth_geom& geom = block_azimuth_geoms[sa];
 
-    geom.angle = block_azimuth_angle * (0.5 + s) + edge1_tilt_angle;
+    geom.angle = block_azimuth_angle * (0.5 + sa) + edge1_tilt_angle;
     const G4double block_x_size = block_half_height_width / cos(geom.angle);
     assert(block_x_size > 0);
     const G4double x_center = block_x_edge1 - 0.5 * block_x_size;
@@ -208,14 +208,14 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
   if (get_geom_v3()->get_sidewall_thickness() > 0)
   {
-    for (int n = 0; n < phi_bin_in_sec - 1; ++n)
+    for (int sa = 0; sa < phi_bin_in_sec - 1; ++sa)
     {
-      block_divider_azimuth_geom& geom = divider_azimuth_geoms[n];
+      block_divider_azimuth_geom& geom = divider_azimuth_geoms[sa];
 
-      geom.angle = 0.5 * (block_azimuth_geoms[n].angle + block_azimuth_geoms[n + 1].angle);
-      geom.projection_center_y = 0.5 * (block_azimuth_geoms[n].projection_center_y + block_azimuth_geoms[n + 1].projection_center_y);
-      geom.projection_center_x = 0.5 * (block_azimuth_geoms[n].projection_center_x + block_azimuth_geoms[n + 1].projection_center_x);
-      geom.radial_displacement = 0.5 * (block_azimuth_geoms[n].projection_length + block_azimuth_geoms[n + 1].projection_length);
+      geom.angle = 0.5 * (block_azimuth_geoms[sa].angle + block_azimuth_geoms[sa + 1].angle);
+      geom.projection_center_y = 0.5 * (block_azimuth_geoms[sa].projection_center_y + block_azimuth_geoms[sa + 1].projection_center_y);
+      geom.projection_center_x = 0.5 * (block_azimuth_geoms[sa].projection_center_x + block_azimuth_geoms[sa + 1].projection_center_x);
+      geom.radial_displacement = 0.5 * (block_azimuth_geoms[sa].projection_length + block_azimuth_geoms[sa + 1].projection_length);
 
       geom.thickness = 2.0 * get_geom_v3()->get_assembly_spacing() * cm * cos(block_azimuth_angle / 2.) - 2 * um;
       geom.width = get_geom_v3()->get_divider_width() * cm;
@@ -249,20 +249,20 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
          << "\t block_width_ratio = " << block_width_ratio << endl
          << "\t block_half_height_width = " << block_half_height_width << endl;
 
-    for (int n = 0; n < phi_bin_in_sec; ++n)
+    for (int sa = 0; sa < phi_bin_in_sec; ++sa)
     {
-      cout << "\t block[" << n << "].angle = " << block_azimuth_geoms[n].angle << endl;
-      cout << "\t block[" << n << "].projection_center_y = " << block_azimuth_geoms[n].projection_center_y << endl;
-      cout << "\t block[" << n << "].projection_center_x = " << block_azimuth_geoms[n].projection_center_x << endl;
+      cout << "\t block[" << sa << "].angle = " << block_azimuth_geoms[sa].angle << endl;
+      cout << "\t block[" << sa << "].projection_center_y = " << block_azimuth_geoms[sa].projection_center_y << endl;
+      cout << "\t block[" << sa << "].projection_center_x = " << block_azimuth_geoms[sa].projection_center_x << endl;
     }
-    for (int n = 0; n < phi_bin_in_sec - 1; ++n)
+    for (int sa = 0; sa < phi_bin_in_sec - 1; ++sa)
     {
-      cout << "\t divider[" << n << "].angle = " << divider_azimuth_geoms[n].angle << endl;
-      cout << "\t divider[" << n << "].projection_center_x = " << divider_azimuth_geoms[n].projection_center_x << endl;
-      cout << "\t divider[" << n << "].projection_center_y = " << divider_azimuth_geoms[n].projection_center_y << endl;
-      cout << "\t divider[" << n << "].radial_displacement = " << divider_azimuth_geoms[n].radial_displacement << endl;
-      cout << "\t divider[" << n << "].thickness = " << divider_azimuth_geoms[n].thickness << endl;
-      cout << "\t divider[" << n << "].width = " << divider_azimuth_geoms[n].width << endl;
+      cout << "\t divider[" << sa << "].angle = " << divider_azimuth_geoms[sa].angle << endl;
+      cout << "\t divider[" << sa << "].projection_center_x = " << divider_azimuth_geoms[sa].projection_center_x << endl;
+      cout << "\t divider[" << sa << "].projection_center_y = " << divider_azimuth_geoms[sa].projection_center_y << endl;
+      cout << "\t divider[" << sa << "].radial_displacement = " << divider_azimuth_geoms[sa].radial_displacement << endl;
+      cout << "\t divider[" << sa << "].thickness = " << divider_azimuth_geoms[sa].thickness << endl;
+      cout << "\t divider[" << sa << "].width = " << divider_azimuth_geoms[sa].width << endl;
     }
   }
 
