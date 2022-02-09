@@ -31,7 +31,7 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include <Acts/Utilities/Units.hpp>
+#include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
 #include <TFile.h>
@@ -524,7 +524,7 @@ int DSTEmulator::End(PHCompositeNode* )
   return Fun4AllReturnCodes::EVENT_OK; 
 }
 
-Acts::Vector3D DSTEmulator::getGlobalPosition( TrkrCluster* cluster ) const
+Acts::Vector3 DSTEmulator::getGlobalPosition( TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
   auto globalpos = m_transform.getGlobalPosition(cluster,
@@ -652,7 +652,7 @@ void DSTEmulator::evaluate_tracks()
       // find track state that is the closest to cluster
       /* this assumes that both clusters and states are sorted along r */
       //     const auto radius( cluster_struct.r );
-      const Acts::Vector3D globalpos_d = getGlobalPosition(cluster);
+      const Acts::Vector3 globalpos_d = getGlobalPosition(cluster);
       float radius = get_r( globalpos_d[0], globalpos_d[1] );
       float clu_phi = std::atan2( globalpos_d[0], globalpos_d[1] );
       std::cout << "radius " << radius << std::endl;
@@ -731,7 +731,7 @@ void DSTEmulator::evaluate_tracks()
 	      << std::endl;
       */
     //Get Surface
-    Acts::Vector3D global(trk_x, trk_y, trk_z);
+    Acts::Vector3 global(trk_x, trk_y, trk_z);
     //    TrkrDefs::subsurfkey subsurfkey = cluster->getSubSurfKey();
 
     //    std::cout << " subsurfkey: " << subsurfkey << std::endl;
@@ -755,7 +755,7 @@ void DSTEmulator::evaluate_tracks()
     // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
     std::vector<Surface> surf_vec = mapIter->second;
 
-    Acts::Vector3D world(globalpos_d[0], globalpos_d[1],globalpos_d[2]);
+    Acts::Vector3 world(globalpos_d[0], globalpos_d[1],globalpos_d[2]);
     double world_phi = atan2(world[1], world[0]);
     double world_z = world[2];
 
@@ -767,11 +767,11 @@ void DSTEmulator::evaluate_tracks()
     
     Surface surface = surf_vec[nsurf];
 
-    Acts::Vector3D center = surface->center(m_tGeometry->geoContext) 
+    Acts::Vector3 center = surface->center(m_tGeometry->geoContext) 
       / Acts::UnitConstants::cm;
   
     // no conversion needed, only used in acts
-    //    Acts::Vector3D normal = surface->normal(m_tGeometry->geoContext);
+    //    Acts::Vector3 normal = surface->normal(m_tGeometry->geoContext);
     double TrkRadius = sqrt(trk_x * trk_x + trk_y * trk_y);
     double rTrkPhi = TrkRadius * atan2(trk_y, trk_x);//trkphi;
     double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
