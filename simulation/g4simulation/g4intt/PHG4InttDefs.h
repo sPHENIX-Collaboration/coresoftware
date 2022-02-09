@@ -44,6 +44,6 @@ static const int FPHX_GLUE = -22; // new 29/05/2020
 // detid of support structures
 static const int SUPPORT_DETID = 100;
 
-};  // namespace PHG4InttDefs
+}  // namespace PHG4InttDefs
 
 #endif

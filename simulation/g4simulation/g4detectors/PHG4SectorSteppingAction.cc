@@ -5,12 +5,12 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-#include <g4main/PHG4SteppingAction.h>        // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
-#include <Geant4/G4ParticleDefinition.hh>     // for G4ParticleDefinition
+#include <Geant4/G4ParticleDefinition.hh>  // for G4ParticleDefinition
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4StepPoint.hh>              // for G4StepPoint
 #include <Geant4/G4StepStatus.hh>             // for fGeomBoundary, fAtRestD...
@@ -25,7 +25,7 @@
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <iostream>
-#include <string>                             // for string, operator+, oper...
+#include <string>  // for string, operator+, oper...
 
 class G4VPhysicalVolume;
 class PHCompositeNode;

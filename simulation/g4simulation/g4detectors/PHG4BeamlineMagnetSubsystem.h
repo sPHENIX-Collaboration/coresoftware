@@ -5,23 +5,22 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <string>                   // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4BeamlineMagnetDetector;
 class PHG4Detector;
 
-class PHG4BeamlineMagnetSubsystem: public PHG4DetectorSubsystem
+class PHG4BeamlineMagnetSubsystem : public PHG4DetectorSubsystem
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4BeamlineMagnetSubsystem( const std::string &name = "CYLINDER", const int layer = 0 );
+  PHG4BeamlineMagnetSubsystem(const std::string &name = "CYLINDER", const int layer = 0);
 
   //! destructor
-  ~PHG4BeamlineMagnetSubsystem( void ) override
-  {}
+  ~PHG4BeamlineMagnetSubsystem(void) override
+  {
+  }
 
   //! init runwise stuff
   /*!
@@ -42,15 +41,14 @@ class PHG4BeamlineMagnetSubsystem: public PHG4DetectorSubsystem
   void Print(const std::string &what = "ALL") const override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector( void ) const override;
+  PHG4Detector *GetDetector(void) const override;
 
  private:
   void SetDefaultParameters() override;
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4BeamlineMagnetDetector* detector_;
-
+  PHG4BeamlineMagnetDetector *detector_;
 };
 
 #endif

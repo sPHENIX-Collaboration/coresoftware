@@ -15,54 +15,54 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
 // Root headers
-#include <TAxis.h>                             // for TAxis
+#include <TAxis.h>  // for TAxis
+#include <TFile.h>
 #include <TH2.h>
 #include <TH2F.h>
-#include <TNamed.h>                            // for TNamed
+#include <TNamed.h>  // for TNamed
 #include <TSystem.h>
-#include <TFile.h>
 
 // Geant4 headers
 
 #include <Geant4/G4Field.hh>
 #include <Geant4/G4FieldManager.hh>
-#include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
+#include <Geant4/G4ParticleDefinition.hh>  // for G4ParticleDefinition
 #include <Geant4/G4PropagatorInField.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
-#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fAtRest...
-#include <Geant4/G4String.hh>                  // for G4String
+#include <Geant4/G4StepPoint.hh>   // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fAtRest...
+#include <Geant4/G4String.hh>      // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
-#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
-#include <Geant4/G4Track.hh>                   // for G4Track
-#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
-#include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4Types.hh>                   // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
-#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
-#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
+#include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>  // for G4TouchableHandle
+#include <Geant4/G4Track.hh>            // for G4Track
+#include <Geant4/G4TrackStatus.hh>      // for fStopAndKill
 #include <Geant4/G4Transform3D.hh>
+#include <Geant4/G4TransportationManager.hh>
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 // finally system headers
 #include <cassert>
-#include <cmath>                               // for isfinite, sqrt
+#include <cmath>  // for isfinite, sqrt
 #include <iostream>
-#include <string>                              // for operator<<, string
-#include <utility>                             // for pair
+#include <string>   // for operator<<, string
+#include <utility>  // for pair
 
 class PHCompositeNode;
 
 using namespace std;
 
-TH2F *MapCorr = NULL;
+TH2F* MapCorr = NULL;
 
 //____________________________________________________________________________..
 PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector* detector, const PHParameters* parameters)
@@ -100,13 +100,11 @@ PHG4OuterHcalSteppingAction::~PHG4OuterHcalSteppingAction()
 int PHG4OuterHcalSteppingAction::Init()
 {
   m_EnableFieldCheckerFlag = m_Params->get_int_param("field_check");
-// method in base class for light correction
+  // method in base class for light correction
   SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
-		     m_Params->get_double_param("light_balance_inner_corr"),
-		     m_Params->get_double_param("light_balance_outer_radius") * cm,
-		     m_Params->get_double_param("light_balance_outer_corr")
-    );
-
+                     m_Params->get_double_param("light_balance_inner_corr"),
+                     m_Params->get_double_param("light_balance_outer_radius") * cm,
+                     m_Params->get_double_param("light_balance_outer_corr"));
 
   std::ostringstream mappingfilename;
   const char* calibroot = getenv("CALIBRATIONROOT");
@@ -121,11 +119,12 @@ int PHG4OuterHcalSteppingAction::Init()
   }
 
   mappingfilename << "/HCALOUT/tilemap/oHCALMaps092021.root";
-  TFile *f = new TFile(mappingfilename.str().data()); 
-  MapCorr = (TH2F *)f->Get("hCombinedMap");
-  if(!MapCorr){
-    std::cout << "ERROR: MapCorr is NULL" << std::endl; 
-    gSystem->Exit(1); 
+  TFile* f = new TFile(mappingfilename.str().c_str());
+  MapCorr = (TH2F*) f->Get("hCombinedMap");
+  if (!MapCorr)
+  {
+    std::cout << "ERROR: MapCorr is NULL" << std::endl;
+    gSystem->Exit(1);
   }
 
   return 0;
@@ -244,11 +243,11 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       // 	G4ThreeVector worldPosition = prePoint->GetPosition();
       // 	G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
 
-      // 	m_Hit->set_property(PHG4Hit::prop_local_x_0, (float)(localPosition.x()/cm)); 
-      // 	m_Hit->set_property(PHG4Hit::prop_local_y_0, (float)(localPosition.y()/cm)); 
-      // 	m_Hit->set_property(PHG4Hit::prop_local_z_0, (float)(localPosition.z()/cm)); 
+      // 	m_Hit->set_property(PHG4Hit::prop_local_x_0, (float)(localPosition.x()/cm));
+      // 	m_Hit->set_property(PHG4Hit::prop_local_y_0, (float)(localPosition.y()/cm));
+      // 	m_Hit->set_property(PHG4Hit::prop_local_z_0, (float)(localPosition.z()/cm));
 
-      //   m_Hit->set_property(PHG4Hit::prop_layer, (unsigned int) layer_id); 
+      //   m_Hit->set_property(PHG4Hit::prop_layer, (unsigned int) layer_id);
 
       // }
 
@@ -326,8 +325,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     if (whichactive > 0)
     {
-
-      // Local Coordinates: 
+      // Local Coordinates:
 
       //G4TouchableHandle theTouchable = postPoint->GetTouchableHandle();
       // Use prePoint; sometimes the end point can be on the boundary/out of the scintillator
@@ -335,39 +333,37 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       G4ThreeVector worldPosition = postPoint->GetPosition();
       G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
 
-      // DEBUG 
-      // m_Hit->set_property(PHG4Hit::prop_local_x_1, (float)(localPosition.x()/cm)); 
-      // m_Hit->set_property(PHG4Hit::prop_local_y_1, (float)(localPosition.y()/cm)); 
-      // m_Hit->set_property(PHG4Hit::prop_local_z_1, (float)(localPosition.z()/cm)); 
+      // DEBUG
+      // m_Hit->set_property(PHG4Hit::prop_local_x_1, (float)(localPosition.x()/cm));
+      // m_Hit->set_property(PHG4Hit::prop_local_y_1, (float)(localPosition.y()/cm));
+      // m_Hit->set_property(PHG4Hit::prop_local_z_1, (float)(localPosition.z()/cm));
 
-      // m_Hit->set_property(PHG4Hit::prop_layer, (unsigned int) layer_id); 
+      // m_Hit->set_property(PHG4Hit::prop_layer, (unsigned int) layer_id);
 
       if (m_LightScintModelFlag)
       {
         light_yield = GetVisibleEnergyDeposition(aStep);
 
-	if(MapCorr){
+        if (MapCorr)
+        {
+          float lx = (localPosition.x() / cm);
+          float lz = fabs(localPosition.z() / cm);  // reverse the sense for towerid<12
 
-	  float lx = (localPosition.x()/cm); 
-	  float lz = fabs(localPosition.z()/cm); // reverse the sense for towerid<12
+          // convert to the map bin coordinates:
+          // map is in 0.5 cm bins
+          int lcz = (int) (2.0 * lz) + 1;
+          int lcx = (int) (2.0 * (lx + 42.75)) + 1;
 
-	  // convert to the map bin coordinates:
-	  // map is in 0.5 cm bins
-	  int lcz = (int)(2.0*lz) + 1; 
-	  int lcx = (int)(2.0*(lx+42.75)) + 1;
-
-	  if( (lcx>=1) && (lcx<=MapCorr->GetNbinsY()) &&
-	      (lcz>=1) && (lcz<=MapCorr->GetNbinsX()) ){
-	  
-	    light_yield *= (double) (MapCorr->GetBinContent(lcz, lcx));
-
-	  }
-	  else{
-	    light_yield = 0.0; 
-	  }
-
-	} 
-      
+          if ((lcx >= 1) && (lcx <= MapCorr->GetNbinsY()) &&
+              (lcz >= 1) && (lcz <= MapCorr->GetNbinsX()))
+          {
+            light_yield *= (double) (MapCorr->GetBinContent(lcz, lcx));
+          }
+          else
+          {
+            light_yield = 0.0;
+          }
+        }
       }
       else
       {
@@ -376,9 +372,9 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
       if (ValidCorrection())
       {
-	double cor =  GetLightCorrection(postPoint->GetPosition().x() , (postPoint->GetPosition().y() ));
-	cout << "applying cor: " << cor << endl;
-        light_yield = light_yield *  GetLightCorrection(postPoint->GetPosition().x() , (postPoint->GetPosition().y() ));
+        double cor = GetLightCorrection(postPoint->GetPosition().x(), (postPoint->GetPosition().y()));
+        cout << "applying cor: " << cor << endl;
+        light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x(), (postPoint->GetPosition().y()));
       }
     }
 
