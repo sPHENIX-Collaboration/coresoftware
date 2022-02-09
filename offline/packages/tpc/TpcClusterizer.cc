@@ -74,7 +74,7 @@ namespace
     std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist = nullptr;
     //std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>  *clusterhitassoc = nullptr;
     std::vector<assoc> *association_vector = nullptr;
-    //    std::vector<TrkrClusterv3*> *cluster_vector = nullptr;
+    std::vector<TrkrClusterv3*> *cluster_vector = nullptr;
   };
   
   pthread_mutex_t mythreadlock;
@@ -389,9 +389,8 @@ namespace
       // create the cluster entry directly in the node tree
       
       const TrkrDefs::cluskey ckey = TpcDefs::genClusKey( my_data.hitset->getHitSetKey(), iclus );
-      
-      //TrkrClusterv3 *clus = new TrkrClusterv3();
-      auto clus = std::make_unique<TrkrClusterv3>();
+      TrkrClusterv3 *clus = new TrkrClusterv3();
+      //auto clus = std::make_unique<TrkrClusterv3>();
       clus->setClusKey(ckey);
       
       // Estimate the errors
@@ -474,13 +473,12 @@ namespace
       
       if(my_data.clusterlist)     
 	{
-	  const auto [iter, inserted] = my_data.clusterlist->insert(std::make_pair(ckey, clus.get()));
-	  //my_data.cluster_vector->push_back(clus);
+	  my_data.cluster_vector->push_back(clus);
 	  /*
 	   * if cluster was properly inserted in the map, one should release the unique_ptr,
 	   * to make sure that the cluster is not deleted when going out-of-scope
 	   */
-	  
+	  /*
 	  if( inserted ) clus.release();
 	  else {
 	    // print error message. Duplicated cluster keys should not happen
@@ -489,6 +487,7 @@ namespace
 	      << "Error: duplicated cluster key: " << ckey << " - new cluster not inserted in map"
 	      << std::endl;        
 	  }
+	  */
 	  
 	}
 
@@ -804,7 +803,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     // thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterMap(hitsetid);
     // thread_pair.data.clusterhitassoc = m_clusterhitassoc;
     thread_pair.data.association_vector  = new std::vector<assoc>;
-    // thread_pair.data.cluster_vector  = new std::vector<TrkrClusterv3*>;
+    thread_pair.data.cluster_vector  = new std::vector<TrkrClusterv3*>;
     thread_pair.data.tGeometry = m_tGeometry;
     thread_pair.data.surfmaps = m_surfMaps;
     thread_pair.data.maxHalfSizeZ =  MaxClusterHalfSizeZ;
@@ -857,8 +856,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.association_vector->clear();
     delete thread_pair.data.association_vector;
 
-    //    for(auto citer = thread_pair.data.cluster_vector->begin(); citer != thread_pair.data.cluster_vector->end();++citer){
-    // m_clusterlist->addCluster(*citer);
+    for(auto citer = thread_pair.data.cluster_vector->begin(); citer != thread_pair.data.cluster_vector->end();++citer){
+      m_clusterlist->addCluster(*citer);
       // m_clusterlist->addClusToVec(*citer);
       
       // delete *citer;
@@ -868,9 +867,9 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	   * if cluster was properly inserted in the map, one should release the unique_ptr,
 	   * to make sure that the cluster is not deleted when going out-of-scope
 	   */
-    // }
-    // thread_pair.data.cluster_vector->clear();
-    // delete thread_pair.data.cluster_vector;
+    }
+    thread_pair.data.cluster_vector->clear();
+    delete thread_pair.data.cluster_vector;
   }
 
   if (Verbosity() > 0)
