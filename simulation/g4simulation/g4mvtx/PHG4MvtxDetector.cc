@@ -22,8 +22,6 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4GDMLParser.hh>
-#include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
@@ -35,6 +33,13 @@
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4Tubs.hh>
+
+// xerces has some shadowed variables
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <Geant4/G4GDMLParser.hh>
+#include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
+#pragma GCC diagnostic pop
 
 #include <cmath>
 #include <cstdio>    // for sprintf
@@ -57,7 +62,7 @@ namespace mvtxGeomDef
   double wrap_rmin = 2.1 * cm;
   double wrap_rmax = mvtx_shell_inner_radius + mvtx_shell_thickness;
   double wrap_zlen = mvtx_shell_length;
-};
+}
 
 PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
