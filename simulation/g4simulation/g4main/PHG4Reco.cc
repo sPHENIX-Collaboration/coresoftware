@@ -492,7 +492,6 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   theCerenkovProcess->SetMaxNumPhotonsPerStep(300);
   theCerenkovProcess->SetMaxBetaChangePerStep(10.0);
   theCerenkovProcess->SetTrackSecondariesFirst(false);  // current PHG4TruthTrackingAction does not support suspect active track and track secondary first
-
   theScintillationProcess->SetScintillationYieldFactor(1.0);
   theScintillationProcess->SetTrackSecondariesFirst(false);
   // theScintillationProcess->SetScintillationExcitationRatio(1.0);
@@ -608,7 +607,7 @@ int PHG4Reco::StartGui()
   // kludge, using boost::dll::program_location().string().c_str() for the
   // program name and putting it into args lead to invalid reads in G4String
   char *args[] = {(char *) ("root.exe")};
-  G4UIExecutive *ui = new G4UIExecutive(1, args);
+  G4UIExecutive *ui = new G4UIExecutive(1, args, "qt");
   InitUImanager();
   m_UImanager->ApplyCommand("/control/execute init_gui_vis.mac");
   ui->SessionStart();
@@ -1067,11 +1066,13 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
   G4MaterialPropertiesTable *MPT_CF4 = new G4MaterialPropertiesTable();
 
-  MPT_CF4->AddProperty("RINDEX", PhotonEnergy_CF4, RefractiveIndex_CF4, nEntries_CF4)
-      ->SetSpline(true);
-  MPT_CF4->AddProperty("ABSLENGTH", PhotonEnergy_CF4, Absorption_CF4, nEntries_CF4)
-      ->SetSpline(true);
-
+#if G4VERSION_NUMBER >= 1100
+  MPT_CF4->AddProperty("RINDEX", PhotonEnergy_CF4, RefractiveIndex_CF4, nEntries_CF4,false,true);
+  MPT_CF4->AddProperty("ABSLENGTH", PhotonEnergy_CF4, Absorption_CF4, nEntries_CF4,false,true);
+#else
+  MPT_CF4->AddProperty("RINDEX", PhotonEnergy_CF4, RefractiveIndex_CF4, nEntries_CF4)->SetSpline(true);
+  MPT_CF4->AddProperty("ABSLENGTH", PhotonEnergy_CF4, Absorption_CF4, nEntries_CF4)->SetSpline(true);
+#endif
   CF4->SetMaterialPropertiesTable(MPT_CF4);
 
   //
@@ -1128,11 +1129,13 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
   G4MaterialPropertiesTable *MPT_LiF = new G4MaterialPropertiesTable();
 
-  MPT_LiF->AddProperty("RINDEX", PhotonEnergy_LiF, RefractiveIndex_LiF, nEntries_LiF)
-      ->SetSpline(true);
-  MPT_LiF->AddProperty("ABSLENGTH", PhotonEnergy_LiF, Absorption_LiF, nEntries_LiF)
-      ->SetSpline(true);
-
+#if G4VERSION_NUMBER >= 1100
+  MPT_LiF->AddProperty("RINDEX", PhotonEnergy_LiF, RefractiveIndex_LiF, nEntries_LiF,false,true);
+  MPT_LiF->AddProperty("ABSLENGTH", PhotonEnergy_LiF, Absorption_LiF, nEntries_LiF,false,true);
+#else
+  MPT_LiF->AddProperty("RINDEX", PhotonEnergy_LiF, RefractiveIndex_LiF, nEntries_LiF)->SetSpline(true);
+  MPT_LiF->AddProperty("ABSLENGTH", PhotonEnergy_LiF, Absorption_LiF, nEntries_LiF)->SetSpline(true);
+#endif
   LiF->SetMaterialPropertiesTable(MPT_LiF);
 
   //
@@ -1178,8 +1181,13 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
   G4MaterialPropertiesTable *MPT_CsI = new G4MaterialPropertiesTable();
 
+#if G4VERSION_NUMBER >= 1100
+  MPT_CsI->AddProperty("RINDEX", PhotonEnergy_CsI, RefractiveIndex_CsI, nEntries_CsI,false,true);
+  MPT_CsI->AddProperty("ABSLENGTH", PhotonEnergy_CsI, Absorption_CsI, nEntries_CsI,false,true);
+#else
   MPT_CsI->AddProperty("RINDEX", PhotonEnergy_CsI, RefractiveIndex_CsI, nEntries_CsI)->SetSpline(true);
   MPT_CsI->AddProperty("ABSLENGTH", PhotonEnergy_CsI, Absorption_CsI, nEntries_CsI)->SetSpline(true);
+#endif
 
   CsI->SetMaterialPropertiesTable(MPT_CsI);
 
