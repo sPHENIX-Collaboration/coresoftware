@@ -59,6 +59,16 @@ namespace
     else 
       return phi;
   }
+  
+  /// get sector median angle associated to a given index
+  /** this assumes that sector 0 is centered on phi=0, then numbered along increasing phi */
+  inline constexpr double get_sector_phi( int isec ) 
+  { return isec*M_PI/6; }
+  
+  // specify bins for which one will save histograms
+  static const std::vector<float> phi_rec = { get_sector_phi(9) };
+  static const std::vector<float> z_rec = { 5. };
+  
 }
 
 PHTpcResiduals::PHTpcResiduals(const std::string &name)
@@ -124,6 +134,13 @@ int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
     m_histogramfile->cd();
     for( const auto o:std::initializer_list<TObject*>({ h_rphiResid, h_zResid, h_etaResidLayer, h_zResidLayer, h_etaResid, h_index, h_alpha, h_beta, h_deltarphi_layer, h_deltaz_layer, residTup }) )
     { if( o ) o->Write(); }
+    
+    // also write histograms from vectors
+    for( const auto& [cell,h]:h_drphi ) { if(h) h->Write(); }
+    for( const auto& [cell,h]:h_dz ) { if(h) h->Write(); }
+    for( const auto& [cell,h]:h_drphi_alpha ) { if(h) h->Write(); }
+    for( const auto& [cell,h]:h_dz_beta ) { if(h) h->Write(); }
+    
     m_histogramfile->Close();
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -593,6 +610,11 @@ void PHTpcResiduals::calculateTpcResiduals(
     h_deltarphi_layer->Fill( layer, drphi );
     h_deltaz_layer->Fill( layer, dz );
 
+    { const auto iter = h_drphi.find( index ); if( iter != h_drphi.end() ) iter->second->Fill( drphi ); }
+    { const auto iter = h_drphi_alpha.find( index ); if( iter != h_drphi_alpha.end() ) iter->second->Fill( tanAlpha, drphi ); }
+    { const auto iter = h_dz.find( index ); if( iter != h_dz.end() ) iter->second->Fill( dz ); }
+    { const auto iter = h_dz_beta.find( index ); if( iter != h_dz_beta.end() ) iter->second->Fill( tanBeta, dz ); }
+    
     residTup->Fill();
   }
   
@@ -730,6 +752,68 @@ void PHTpcResiduals::makeHistograms()
   h_deltarphi_layer = new TH2F( "deltarphi_layer", ";layer; r.#Delta#phi_{track-cluster} (cm)", 57, 0, 57, 500, -2, 2 );
   h_deltaz_layer = new TH2F( "deltaz_layer", ";layer; #Deltaz_{track-cluster} (cm)", 57, 0, 57, 100, -2, 2 );
 
+  {
+
+    // get grid dimensions from matrix container
+    int phibins = 0;
+    int rbins = 0;
+    int zbins = 0;
+    m_matrix_container->get_grid_dimensions( phibins, rbins, zbins );
+    
+    // get bins corresponding to selected angles
+    std::set<int> phibin_rec;
+    std::transform( phi_rec.begin(), phi_rec.end(), std::inserter( phibin_rec, phibin_rec.end() ), [&]( const float& phi ) { return phibins*(phi-m_phiMin)/(m_phiMax-m_phiMin); } );
+    
+    std::set<int> zbin_rec;
+    std::transform( z_rec.begin(), z_rec.end(), std::inserter( zbin_rec, zbin_rec.end() ), [&]( const float& z ) { return zbins*(z-m_zMin)/(m_zMax-m_zMin); } );
+
+    // keep track of all cell ids that match selected histograms
+    for( int iphi = 0; iphi < phibins; ++iphi )
+      for( int ir = 0; ir < rbins; ++ir )
+      for( int iz = 0; iz < zbins; ++iz )
+    {
+    
+      if( phibin_rec.find( iphi ) == phibin_rec.end() && zbin_rec.find( iz ) == zbin_rec.end() ) continue;
+      const auto icell = m_matrix_container->get_cell_index( iphi, ir, iz );
+      
+      {
+        // rphi residuals
+        const auto hname = Form( "residual_drphi_p%i_r%i_z%i", iphi, ir, iz );
+        auto h = new TH1F( hname, hname, 100, -m_maxResidualDrphi, +m_maxResidualDrphi );
+        h->GetXaxis()->SetTitle( "r.#Delta#phi_{cluster-track} (cm)" );
+        h_drphi.insert( std::make_pair( icell, h ) );
+      }
+
+      {
+        // 2D histograms
+        const auto hname = Form( "residual_2d_drphi_p%i_r%i_z%i", iphi, ir, iz );
+        auto h = new TH2F( hname, hname, 100, -m_maxTAlpha, m_maxTAlpha, 100, -m_maxResidualDrphi, +m_maxResidualDrphi );
+        h->GetXaxis()->SetTitle( "tan#alpha" );
+        h->GetYaxis()->SetTitle( "r.#Delta#phi_{cluster-track} (cm)" );
+        h_drphi_alpha.insert( std::make_pair( icell, h ) );
+      }
+
+      {
+        // z residuals
+        const auto hname = Form( "residual_dz_p%i_r%i_z%i", iphi, ir, iz );
+        auto h = new TH1F( hname, hname, 100, -m_maxResidualDz, +m_maxResidualDz );
+        h->GetXaxis()->SetTitle( "#Deltaz_{cluster-track} (cm)" );
+        h_dz.insert( std::make_pair( icell, h ) );
+      }
+
+      {
+        // 2D histograms
+        const auto hname = Form( "residual_2d_dz_p%i_r%i_z%i", iphi, ir, iz );
+        auto h = new TH2F( hname, hname, 100, -m_maxTBeta, m_maxTBeta, 100, -m_maxResidualDz, +m_maxResidualDz );
+        h->GetXaxis()->SetTitle( "tan#beta" );
+        h->GetYaxis()->SetTitle( "#Deltaz_{cluster-track} (cm)" );
+        h_dz_beta.insert( std::make_pair( icell, h ) );
+      }     
+    }
+    
+  }
+  
+  
   residTup = new TTree("residTree","tpc residual info");
   residTup->Branch("tanAlpha",&tanAlpha,"tanAlpha/D");
   residTup->Branch("tanBeta",&tanBeta,"tanBeta/D");

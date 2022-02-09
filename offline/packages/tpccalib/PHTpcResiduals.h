@@ -176,6 +176,18 @@ class PHTpcResiduals : public SubsysReco
   TH1 *h_index = nullptr;
   TH2 *h_alpha = nullptr;
   TH2 *h_beta = nullptr;
+  
+  //@name additional histograms that copy the per-cell data used to extract the distortions
+  //@{
+  using TH1_map_t = std::map<int,TH1*>;
+  using TH2_map_t = std::map<int,TH2*>;
+  
+  TH1_map_t h_drphi;
+  TH1_map_t h_dz;
+  TH2_map_t h_drphi_alpha;
+  TH2_map_t h_dz_beta;
+  //@}
+  
   TTree *residTup = nullptr;
 
   /// delta rphi vs layer number
