@@ -333,7 +333,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
   if (Verbosity() > 100)
     if (layernum == print_layer)
     {
-      std::cout << " hit " << hit << " quick centroid for this electron " << std::endl;
+      std::cout << " hit " << m_NHits << " quick centroid for this electron " << std::endl;
       std::cout << "      phi centroid = " << phi_integral / weight << " phi in " << phi << " phi diff " << phi_integral / weight - phi << std::endl;
       std::cout << "      z centroid = " << z_integral / weight << " z in " << z_gem << " z diff " << z_integral / weight - z_gem << std::endl;
       // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer print_layer.
@@ -346,12 +346,12 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
       */
     }
 
-  hit++;
+  m_NHits++;
 
   return;
 }
 
-void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share)
+void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &phibin_pad, std::vector<double> &phibin_pad_share)
 {
   const double radius = LayerGeom->get_radius();
   const double phistepsize = LayerGeom->get_phistep();
@@ -428,15 +428,15 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   // now we have the overlap for each pad
   for (int ipad = 0; ipad <= npads; ipad++)
   {
-    pad_phibin.push_back(pad_keep[ipad]);
-    pad_phibin_share.push_back(overlap[ipad]);
+    phibin_pad.push_back(pad_keep[ipad]);
+    phibin_pad_share.push_back(overlap[ipad]);
     if (rad_gem < output_radius) std::cout << "         zigzags: for pad " << ipad << " integral is " << overlap[ipad] << std::endl;
   }
 
   return;
 }
 
-void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const std::array<double, 2> &cloud_sig_zz, std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share)
+void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const std::array<double, 2> &cloud_sig_zz, std::vector<int> &zbin_adc, std::vector<double> &zbin_adc_share)
 {
   int zbin = LayerGeom->get_zbin(z);
   if (zbin < 0 || zbin > LayerGeom->get_zbins())
@@ -542,8 +542,8 @@ void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const std::array<dou
                     << " index " << index << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral " << z_integral << std::endl;
     }
 
-    adc_zbin.push_back(cur_z_bin);
-    adc_zbin_share.push_back(z_integral);
+    zbin_adc.push_back(cur_z_bin);
+    zbin_adc_share.push_back(z_integral);
   }
 
   return;

@@ -24,7 +24,7 @@ class PHG4CylinderGeomv1 : public PHG4CylinderGeom
 
   ~PHG4CylinderGeomv1() override {}
 
-// from PHObject
+  // from PHObject
   void identify(std::ostream& os = std::cout) const override;
 
   int get_layer() const override { return layer; }

@@ -45,7 +45,7 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   // this to our parameters
   void SaveAllHits(bool i = true) { m_SaveAllHitsFlag = i; }
 
-  void HitNodeName(const std::string &name) {m_HitNodeName = name;}
+  void HitNodeName(const std::string &name) { m_HitNodeName = name; }
 
  private:
   //! pointer to the Subsystem

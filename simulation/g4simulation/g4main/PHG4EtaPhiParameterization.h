@@ -34,10 +34,10 @@ public:
   ~PHG4EtaPhiParameterization() override;
   
   virtual void Print(std::ostream& os = std::cout) const;
-
   void ComputeTransformation(const G4int copyNo,
 			     G4VPhysicalVolume* physVol) const override;
   
+  using G4VPVParameterisation::ComputeDimensions; // avoid warning for not implemented ComputeDimension methods
   void ComputeDimensions(G4Tubs& ring, const G4int copyNo,
 			 const G4VPhysicalVolume* physVol) const override;
 

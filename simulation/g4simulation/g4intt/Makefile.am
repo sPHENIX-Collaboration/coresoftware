@@ -1,5 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
+AM_CXXFLAGS = `geant4-config --cflags`
+
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
     libg4intt_io.la \
@@ -8,8 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
     -I$(includedir) \
     -I$(OFFLINE_MAIN)/include \
-    -I$(ROOTSYS)/include \
-    -I$(G4_MAIN)/include
+    -isystem$(ROOTSYS)/include
 
 # set in configure.in to check if gcc version >= 4.8
 #if GCC_GE_48
@@ -41,7 +42,9 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   InttDeadMap_Dict.cc \
   InttDeadMapv1_Dict.cc
+
 pcmdir = $(libdir)
+
 nobase_dist_pcm_DATA = \
   InttDeadMap_Dict_rdict.pcm \
   InttDeadMapv1_Dict_rdict.pcm

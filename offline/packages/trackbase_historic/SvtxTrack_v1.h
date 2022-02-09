@@ -37,6 +37,7 @@ class SvtxTrack_v1 : public SvtxTrack
   PHObject* CloneMe() const override { return new SvtxTrack_v1(*this); }
   
   // copy content from base class
+  using PHObject::CopyFrom; // avoid warning for not implemented CopyFrom methods
   void CopyFrom( const SvtxTrack& ) override;
   void CopyFrom( SvtxTrack* source ) override
   { CopyFrom( *source ); }
