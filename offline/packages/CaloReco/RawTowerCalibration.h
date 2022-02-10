@@ -1,10 +1,11 @@
 #ifndef CALORECO_RAWTOWERCALIBRATION_H
 #define CALORECO_RAWTOWERCALIBRATION_H
 
+#include <dbfile_calo_calib/CaloCalibSimpleCorrFile.h>
+
 #include <fun4all/SubsysReco.h>
 
 #include <phparameter/PHParameters.h>
-#include "dbfile_calo_calib/CaloCalibSimpleCorrFile.h"
 
 #include <iostream>
 #include <string>

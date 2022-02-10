@@ -1,5 +1,6 @@
 #include "RawTowerCalibration.h"
 
+
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>
@@ -7,6 +8,8 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerv1.h>
 #include <calobase/RawTowerv2.h>
+
+#include <dbfile_calo_calib/HcalCaloCalibSimpleCorrFilev1.h>
 
 #include <phparameter/PHParameters.h>
 
@@ -37,7 +40,7 @@
 #include <utility>
 #include <fstream>
 
-#include <dbfile_calo_calib/HcalCaloCalibSimpleCorrFilev1.h>
+
 
 
 using namespace std;
