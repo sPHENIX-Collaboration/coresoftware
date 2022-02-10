@@ -773,7 +773,7 @@ void PHTpcResiduals::makeHistograms()
       for( int iz = 0; iz < zbins; ++iz )
     {
     
-      if( phibin_rec.find( iphi ) == phibin_rec.end() && zbin_rec.find( iz ) == zbin_rec.end() ) continue;
+      if( phibin_rec.find( iphi ) == phibin_rec.end() || zbin_rec.find( iz ) == zbin_rec.end() ) continue;
       const auto icell = m_matrix_container->get_cell_index( iphi, ir, iz );
       
       {
@@ -803,8 +803,9 @@ void PHTpcResiduals::makeHistograms()
 
       {
         // 2D histograms
+        static constexpr double maxTBeta = 0.5;
         const auto hname = Form( "residual_2d_dz_p%i_r%i_z%i", iphi, ir, iz );
-        auto h = new TH2F( hname, hname, 100, -m_maxTBeta, m_maxTBeta, 100, -m_maxResidualDz, +m_maxResidualDz );
+        auto h = new TH2F( hname, hname, 100, -maxTBeta, maxTBeta, 100, -m_maxResidualDz, +m_maxResidualDz );
         h->GetXaxis()->SetTitle( "tan#beta" );
         h->GetYaxis()->SetTitle( "#Deltaz_{cluster-track} (cm)" );
         h_dz_beta.insert( std::make_pair( icell, h ) );
