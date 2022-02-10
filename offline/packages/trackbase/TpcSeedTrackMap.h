@@ -1,7 +1,7 @@
 #ifndef TRACKRECO_TPCSEEDTRACKMAP_H
 #define TRACKRECO_TPCSEEDTRACKMAP_H
 
-#include <trackbase/TrkrDefs.h>
+#include "TrkrDefs.h"
 
 #include  <phool/PHObject.h>
 

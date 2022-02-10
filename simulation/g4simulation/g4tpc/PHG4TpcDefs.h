@@ -14,6 +14,6 @@ namespace PHG4TpcDefs
     Window = 100,
     WindowCore
   };
-};  // namespace PHG4TpcDefs
+}  // namespace PHG4TpcDefs
 
 #endif

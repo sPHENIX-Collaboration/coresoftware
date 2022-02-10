@@ -102,7 +102,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   const std::string geonodename = "G4CELLPAR_" + detector;
   const std::string tpcgeonodename = "G4GEO_" + detector;
   hitnodename = "G4HIT_" + detector;
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     std::cout << Name() << " Could not locate G4HIT node " << hitnodename << std::endl;
@@ -145,12 +145,11 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   }
 
   seggeonodename = "CYLINDERCELLGEOM_SVTX";  // + detector;
-  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename.c_str());
+  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename);
   if (!seggeo)
   {
     seggeo = new PHG4CylinderCellGeomContainer();
-    auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-    auto newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str(), "PHObject");
+    auto newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
     runNode->addNode(newNode);
   }
 
@@ -264,7 +263,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   }
 
   // g4hits
-  auto g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  auto g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     std::cout << "Could not locate g4 hit node " << hitnodename << std::endl;
@@ -588,9 +587,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
+void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *padnt, TNtuple *hitnt)
 {
-  padplane->MapToPadPlane(single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
+  padplane->MapToPadPlane(single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, hiter, padnt, hitnt);
 }
 
 int PHG4TpcElectronDrift::End(PHCompositeNode * /*topNode*/)

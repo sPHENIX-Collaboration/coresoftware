@@ -5,9 +5,12 @@
 
 #include <g4main/PHG4Detector.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <CGAL/Cartesian.h>  // for Cartesian_base_ref_count::...
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/Point_2.h>  // for Point_2
+#pragma GCC diagnostic pop
 
 #include <map>
 #include <set>

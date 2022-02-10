@@ -12,8 +12,8 @@
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
-#include <Geant4/G4RotationMatrix.hh>            // for G4RotationMatrix
-#include <Geant4/G4String.hh>  // for G4String
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4Tubs.hh>
@@ -88,36 +88,36 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   G4RotationMatrix *rotm = new G4RotationMatrix();
   int nRotation(0);
-  if (m_Params->get_double_param("rot_x") !=0 )
+  if (m_Params->get_double_param("rot_x") != 0)
   {
-    ++ nRotation;
+    ++nRotation;
     rotm->rotateX(m_Params->get_double_param("rot_x") * deg);
   }
-  if (m_Params->get_double_param("rot_y") !=0 )
+  if (m_Params->get_double_param("rot_y") != 0)
   {
-    ++ nRotation;
+    ++nRotation;
     rotm->rotateY(m_Params->get_double_param("rot_y") * deg);
   }
-  if (m_Params->get_double_param("rot_z") !=0 )
+  if (m_Params->get_double_param("rot_z") != 0)
   {
-    ++ nRotation;
+    ++nRotation;
     rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
   }
 
-  if (nRotation>=2)
+  if (nRotation >= 2)
   {
-    cout <<__PRETTY_FUNCTION__<<": Warning : " <<GetName()<<" is configured with more than one of the x-y-z rotations of "
-        <<"("<<m_Params->get_double_param("rot_x")<<", "
-        <<m_Params->get_double_param("rot_x")<<", "
-        <<m_Params->get_double_param("rot_x")<<") degrees. "
-        <<"The rotation is instruction is ambiguous and they are performed in the order of X->Y->Z rotations with result rotation matrix of:";
+    cout << __PRETTY_FUNCTION__ << ": Warning : " << GetName() << " is configured with more than one of the x-y-z rotations of "
+         << "(" << m_Params->get_double_param("rot_x") << ", "
+         << m_Params->get_double_param("rot_x") << ", "
+         << m_Params->get_double_param("rot_x") << ") degrees. "
+         << "The rotation is instruction is ambiguous and they are performed in the order of X->Y->Z rotations with result rotation matrix of:";
     rotm->print(cout);
   }
 
   m_CylinderPhysicalVolume = new G4PVPlacement(rotm,
-					       G4ThreeVector(m_Params->get_double_param("place_x") * cm,
-							     m_Params->get_double_param("place_y") * cm,
-							     m_Params->get_double_param("place_z") * cm),
+                                               G4ThreeVector(m_Params->get_double_param("place_x") * cm,
+                                                             m_Params->get_double_param("place_y") * cm,
+                                                             m_Params->get_double_param("place_z") * cm),
                                                cylinder_logic,
                                                G4String(GetName()),
                                                logicWorld, 0, false, OverlapCheck());

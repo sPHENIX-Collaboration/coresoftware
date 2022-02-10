@@ -22,7 +22,7 @@ class PHG4EnvelopeDetector : public PHG4Detector
   PHG4EnvelopeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
 
   //Destructor
-  ~PHG4EnvelopeDetector() override{}
+  ~PHG4EnvelopeDetector() override {}
 
   //Construct
   void ConstructMe(G4LogicalVolume *world) override;

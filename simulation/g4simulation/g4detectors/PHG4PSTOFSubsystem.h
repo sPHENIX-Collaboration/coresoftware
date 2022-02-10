@@ -74,7 +74,6 @@ class PHG4PSTOFSubsystem : public PHG4DetectorGroupSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* steppingAction_;
-
 };
 
 #endif

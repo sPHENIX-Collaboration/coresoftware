@@ -10,14 +10,12 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
-
 void PHNodeReset::perform(PHNode* node)
 {
   if (node->getResetFlag() != true) return;
   if (verbosity > 0)
   {
-    cout << "PHNodeReset: Resetting " << node->getName() << endl;
+    std::cout << "PHNodeReset: Resetting " << node->getName() << std::endl;
   }
   if (node->getType() == "PHDataNode" || node->getType() == "PHIODataNode")
   {

@@ -21,7 +21,11 @@
 #include <Geant4/G4PrimaryVertex.hh>                    // for G4PrimaryVertex
 #include <Geant4/G4VUserPrimaryParticleInformation.hh>  // for G4VUserPrimar...
 
+// eigen has some shadowed variables
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <Eigen/Dense>
+#pragma GCC diagnostic pop
 
 #include <cmath>     // for isnan
 #include <cstdlib>   // for abs

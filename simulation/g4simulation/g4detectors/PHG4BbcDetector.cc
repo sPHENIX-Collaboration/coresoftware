@@ -202,71 +202,70 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // The north inverts the x coordinate (x -> -x)
   // (NB: Should probably move this to a geometry object...)
   float TubeLoc[64][2] = {
-    { -12.2976,	4.26 },
-    { -12.2976,	1.42 },
-    { -9.83805,	8.52 },
-    { -9.83805,	5.68 },
-    { -9.83805,	2.84 },
-    { -7.37854,	9.94 },
-    { -7.37854,	7.1 },
-    { -7.37854,	4.26 },
-    { -7.37854,	1.42 },
-    { -4.91902,	11.36 },
-    { -4.91902,	8.52 },
-    { -4.91902,	5.68 },
-    { -2.45951,	12.78 },
-    { -2.45951,	9.94 },
-    { -2.45951,	7.1 },
-    { 0,	11.36 },
-    { 0,	8.52 },
-    { 2.45951,	12.78 },
-    { 2.45951,	9.94 },
-    { 2.45951,	7.1 },
-    { 4.91902,	11.36 },
-    { 4.91902,	8.52 },
-    { 4.91902,	5.68 },
-    { 7.37854,	9.94 },
-    { 7.37854,	7.1 },
-    { 7.37854,	4.26 },
-    { 7.37854,	1.42 },
-    { 9.83805,	8.52 },
-    { 9.83805,	5.68 },
-    { 9.83805,	2.84 },
-    { 12.2976,	4.26 },
-    { 12.2976,	1.42 },
-    { 12.2976,	-4.26 },
-    { 12.2976,	-1.42 },
-    { 9.83805,	-8.52 },
-    { 9.83805,	-5.68 },
-    { 9.83805,	-2.84 },
-    { 7.37854,	-9.94 },
-    { 7.37854,	-7.1 },
-    { 7.37854,	-4.26 },
-    { 7.37854,	-1.42 },
-    { 4.91902,	-11.36 },
-    { 4.91902,	-8.52 },
-    { 4.91902,	-5.68 },
-    { 2.45951,	-12.78 },
-    { 2.45951,	-9.94 },
-    { 2.45951,	-7.1 },
-    { 0,	-11.36 },
-    { 0,	-8.52 },
-    { -2.45951,	-12.78 },
-    { -2.45951,	-9.94 },
-    { -2.45951,	-7.1 },
-    { -4.91902,	-11.36 },
-    { -4.91902,	-8.52 },
-    { -4.91902,	-5.68 },
-    { -7.37854,	-9.94 },
-    { -7.37854,	-7.1 },
-    { -7.37854,	-4.26 },
-    { -7.37854,	-1.42 },
-    { -9.83805,	-8.52 },
-    { -9.83805,	-5.68 },
-    { -9.83805,	-2.84 },
-    { -12.2976,	-4.26 },
-    { -12.2976,	-1.42 }
-  };    
+      {-12.2976, 4.26},
+      {-12.2976, 1.42},
+      {-9.83805, 8.52},
+      {-9.83805, 5.68},
+      {-9.83805, 2.84},
+      {-7.37854, 9.94},
+      {-7.37854, 7.1},
+      {-7.37854, 4.26},
+      {-7.37854, 1.42},
+      {-4.91902, 11.36},
+      {-4.91902, 8.52},
+      {-4.91902, 5.68},
+      {-2.45951, 12.78},
+      {-2.45951, 9.94},
+      {-2.45951, 7.1},
+      {0, 11.36},
+      {0, 8.52},
+      {2.45951, 12.78},
+      {2.45951, 9.94},
+      {2.45951, 7.1},
+      {4.91902, 11.36},
+      {4.91902, 8.52},
+      {4.91902, 5.68},
+      {7.37854, 9.94},
+      {7.37854, 7.1},
+      {7.37854, 4.26},
+      {7.37854, 1.42},
+      {9.83805, 8.52},
+      {9.83805, 5.68},
+      {9.83805, 2.84},
+      {12.2976, 4.26},
+      {12.2976, 1.42},
+      {12.2976, -4.26},
+      {12.2976, -1.42},
+      {9.83805, -8.52},
+      {9.83805, -5.68},
+      {9.83805, -2.84},
+      {7.37854, -9.94},
+      {7.37854, -7.1},
+      {7.37854, -4.26},
+      {7.37854, -1.42},
+      {4.91902, -11.36},
+      {4.91902, -8.52},
+      {4.91902, -5.68},
+      {2.45951, -12.78},
+      {2.45951, -9.94},
+      {2.45951, -7.1},
+      {0, -11.36},
+      {0, -8.52},
+      {-2.45951, -12.78},
+      {-2.45951, -9.94},
+      {-2.45951, -7.1},
+      {-4.91902, -11.36},
+      {-4.91902, -8.52},
+      {-4.91902, -5.68},
+      {-7.37854, -9.94},
+      {-7.37854, -7.1},
+      {-7.37854, -4.26},
+      {-7.37854, -1.42},
+      {-9.83805, -8.52},
+      {-9.83805, -5.68},
+      {-9.83805, -2.84},
+      {-12.2976, -4.26},
+      {-12.2976, -1.42}};
 
   //m_bbcz = m_Params->get_double_param("z") * cm;
   m_bbcz = 250.0 * cm;  // The front face of the quartz is at 250 cm
@@ -298,7 +297,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
       // Full PMT Housing with Active Quartz Cerenkov Radiators
       float tube_xpos = xside * TubeLoc[itube][0] * cm;
       float tube_ypos = TubeLoc[itube][1] * cm;
-      new G4PVPlacement(arm_rot[iarm], G4ThreeVector( tube_xpos, tube_ypos, zside*tube_zpos ),
+      new G4PVPlacement(arm_rot[iarm], G4ThreeVector(tube_xpos, tube_ypos, zside * tube_zpos),
                         bbcd_lv, "BBCD", logicWorld, false, iarm * NPMT + itube, OverlapCheck());
     }
   }
@@ -355,48 +354,48 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
                                     bbc_plate_lv, "BBC_BPLATE", logicWorld, false, 0, OverlapCheck());
 
   // Place BBC Cables
-  G4Material* Cu = manager->FindOrBuildMaterial("G4_Cu");
-  const G4double len_cable = 120*cm;
-  const G4double r_CableConductor = 0.09525*cm;
-  G4Tubs *bbc_cablecond = new G4Tubs("bbc_cablecond",0.,r_CableConductor,len_cable*0.5,0*deg,360*deg);
+  G4Material *Cu = manager->FindOrBuildMaterial("G4_Cu");
+  const G4double len_cable = 120 * cm;
+  const G4double r_CableConductor = 0.09525 * cm;
+  G4Tubs *bbc_cablecond = new G4Tubs("bbc_cablecond", 0., r_CableConductor, len_cable * 0.5, 0 * deg, 360 * deg);
 
   G4LogicalVolume *bbc_cablecond_lv = new G4LogicalVolume(bbc_cablecond, Cu, G4String("Bbc_CableCond"));
 
-  const G4double rIn_CableShield = 0.302876*cm;
-  const G4double rOut_CableShield = 0.3175*cm;
-  G4Tubs *bbc_cableshield = new G4Tubs("bbc_cableshield",rIn_CableShield,rOut_CableShield,len_cable*0.5,0*deg,360*deg);
+  const G4double rIn_CableShield = 0.302876 * cm;
+  const G4double rOut_CableShield = 0.3175 * cm;
+  G4Tubs *bbc_cableshield = new G4Tubs("bbc_cableshield", rIn_CableShield, rOut_CableShield, len_cable * 0.5, 0 * deg, 360 * deg);
 
   G4LogicalVolume *bbc_cableshield_lv = new G4LogicalVolume(bbc_cableshield, Cu, G4String("Bbc_CableShield"));
 
-  ypos = len_cable/2 + 5*cm;
+  ypos = len_cable / 2 + 5 * cm;
 
   // For now we make this vertical, but they should be slanted toward the endcap
   G4RotationMatrix *rot_cable = new G4RotationMatrix();
-  rot_cable->rotateX( 90*deg );
+  rot_cable->rotateX(90 * deg);
 
   int icable = 0;
 
-  for (int iarm=0; iarm<2; iarm++)
+  for (int iarm = 0; iarm < 2; iarm++)
   {
     float zsign = -1.0;
-    if ( iarm == 1 )
+    if (iarm == 1)
     {
       zsign = 1.0;
     }
 
-    for (int iring=1; iring<5; iring++)
+    for (int iring = 1; iring < 5; iring++)
     {
-      float ring_radius = iring*0.67*cm; 
-      int ncables = 2*M_PI*ring_radius/(0.635*cm);
-      double dphi = 2*M_PI/ncables;
+      float ring_radius = iring * 0.67 * cm;
+      int ncables = 2 * M_PI * ring_radius / (0.635 * cm);
+      double dphi = 2 * M_PI / ncables;
 
       //G4cout << "BBC_CABLE " << iring << "\t" << ring_radius << "\t" << ncables << "\t" << dphi*180/3.14 << G4endl;
 
       // place cables in ring
-      for (int ic=0; ic<ncables; ic++)
+      for (int ic = 0; ic < ncables; ic++)
       {
-        xpos = cos(dphi*ic)*ring_radius;
-        zpos = sin(dphi*ic)*ring_radius + zsign*(m_bbcz + 30*cm);
+        xpos = cos(dphi * ic) * ring_radius;
+        zpos = sin(dphi * ic) * ring_radius + zsign * (m_bbcz + 30 * cm);
         // Place Inner Conductor
         new G4PVPlacement(rot_cable, G4ThreeVector(xpos, ypos, zpos), bbc_cablecond_lv, "BBC_Cable_Cond", logicWorld, false, icable, OverlapCheck());
         // Place Shield
@@ -406,7 +405,7 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   }
 
   // this is more to prevent compiler warnings about unused variables
-  if ( !fplate_vol[0] || !fplate_vol[1] || !bplate_vol[0] || !bplate_vol[1] )
+  if (!fplate_vol[0] || !fplate_vol[1] || !bplate_vol[0] || !bplate_vol[1])
   {
     std::cout << "problem placing BBC Sheets" << std::endl;
   }

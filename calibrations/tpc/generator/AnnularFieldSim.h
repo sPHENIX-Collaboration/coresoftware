@@ -1,4 +1,5 @@
 #include "Rossegger.h"
+#include "MultiArray.h" //for TH3 alternative
 
 #include <TObject.h>  // for TObject
 #include <TVector3.h>
@@ -10,10 +11,9 @@
 
 #include <cassert>
 
-template <class T>
-class MultiArray;
 class AnalyticFieldModel;
-class TH3F;
+class ChargeMapReader;
+class TH3;
 class TTree;
 
 class AnnularFieldSim
@@ -104,7 +104,7 @@ class AnnularFieldSim
   std::string Bfieldname;
   std::string Efieldname;
   //  char fieldstring[300],Bfieldname[100],Efieldname[100];
-  std::string chargefilename;
+  std::string chargesourcename;
   char chargestring[300] = {0};  //, chargefilename[100];
   float Enominal = NAN;          //magnitude of the nominal field on which drift speed is based, in V/cm.
   float Bnominal;                //magnitude of the nominal magnetic field on which drift speed is based, in Tesla.
@@ -165,9 +165,11 @@ class AnnularFieldSim
   MultiArray<TVector3> *Epartial_phislice;  //electric field in a 2D phi-slice from the full 3D region.
   MultiArray<TVector3> *Eexternal;          //externally applied electric field in each f-bin in the roi
   MultiArray<TVector3> *Bfield;             //magnetic field in each f-bin in the roi
-  MultiArray<double> *q;                    //space charge in each f-bin in the whole volume
-  MultiArray<double> *q_local;              //temporary holder of space charge in each f-bin and summed bin of the high-res region.
-  MultiArray<double> *q_lowres;             //space charge in each l-bin. = sums over sets of f-bins.
+
+  ChargeMapReader *q; // //class to read and report charge.
+  //  MultiArray<double> *q;                    //space charge in each f-bin in the whole volume
+    MultiArray<double> *q_local;              //temporary holder of space charge in each f-bin and summed bin of the high-res region.
+    MultiArray<double> *q_lowres;             //space charge in each l-bin. = sums over sets of f-bins.
 
  public:
   //constructors with history for backwards compatibility
@@ -235,14 +237,14 @@ class AnnularFieldSim
   //file-writing functions for complex mapping questions:
   void GenerateDistortionMaps(const char *filebase, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
   void GenerateSeparateDistortionMaps(const char *filebase, int r_subsamples = 1, int p_subsamples = 1, int z_subsamples = 1, int z_substeps = 1, bool andCartesian = false);
-  void PlotFieldSlices(const std::string &filebase, TVector3 pos, char which = 'E');
+  void PlotFieldSlices(const char *filebase, TVector3 pos, char which = 'E');
 
   void load_spacecharge(const std::string &filename, const std::string &histname, float zoffset = 0, float chargescale = 1, float cmscale = 1, bool isChargeDensity = true);
-  void load_spacecharge(TH3F *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
+  void load_spacecharge(TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity, const char* inputchargestring="");
 
   void load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz, const std::string &filename, const std::string &histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
 
-  void load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz, TH3F *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
+  void load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz, TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
 
   void load_analytic_spacecharge(float scalefactor);
   void add_testcharge(float r, float phi, float z, float coulombs);
@@ -340,145 +342,3 @@ class AnnularFieldSim
     return;
   };  //various constants to match internal representation to the familiar formula.  Adding in these factors suggests I should switch to a unitful calculation throughout...
 };
-
-#ifndef MULTIARRAY
-#define MULTIARRAY
-template <class T>
-class MultiArray : public TObject
-{
-  //class to hold an up-to-six dimensional array of whatever T is.  Any indices not used are flattened.  This should probably be replaced with sets of TH3s...
- public:
-  static const int MAX_DIM = 6;
-  int dim;
-  int n[6];
-  int length;
-  T *field;
-
-  MultiArray(int a = 0, int b = 0, int c = 0, int d = 0, int e = 0, int f = 0)
-  {
-    int n_[6];
-    for (int i = 0; i < MAX_DIM; i++)
-      n[i] = 0;
-    n_[0] = a;
-    n_[1] = b;
-    n_[2] = c;
-    n_[3] = d;
-    n_[4] = e;
-    n_[5] = f;
-    length = 1;
-    dim = MAX_DIM;
-    for (int i = 0; i < dim; i++)
-    {
-      if (n_[i] < 1)
-      {
-        dim = i;
-        break;
-      }
-      n[i] = n_[i];
-      length *= n[i];
-    }
-    field = static_cast<T *>(malloc(length * sizeof(T)));
-    //field=(T)( malloc(length*sizeof(T) ));
-    //for (int i=0;i<length;i++) field[i].SetXYZ(0,0,0);
-  }
-  ~MultiArray()
-  {
-    free(field);
-  }
-
-  void Add(int a, int b, int c, T in)
-  {
-    Add(a, b, c, 0, 0, 0, in);
-    return;
-  };
-  void Add(int a, int b, int c, int d, int e, int f, T in)
-  {
-    int n_[6];
-    n_[0] = a;
-    n_[1] = b;
-    n_[2] = c;
-    n_[3] = d;
-    n_[4] = e;
-    n_[5] = f;
-    int index = n_[0];
-    for (int i = 1; i < dim; i++)
-    {
-      index = (index * n[i]) + n_[i];
-    }
-    field[index] = field[index] + in;
-    return;
-  }
-
-  T Get(int a = 0, int b = 0, int c = 0, int d = 0, int e = 0, int f = 0)
-  {
-    int n_[6];
-    n_[0] = a;
-    n_[1] = b;
-    n_[2] = c;
-    n_[3] = d;
-    n_[4] = e;
-    n_[5] = f;
-    int index = 0;
-    for (int i = 0; i < dim; i++)
-    {
-      if (n[i] <= n_[i] || n_[i] < 0)
-      {  //check bounds
-        printf("asking for el %d %d %d %d %d %d.  %dth element is outside of bounds 0<x<%d\n", n_[0], n_[1], n_[2], n_[3], n_[4], n_[5], n_[i], n[i]);
-        assert(false);
-      }
-      index = (index * n[i]) + n_[i];
-    }
-    return field[index];
-  }
-  T *GetPtr(int a = 0, int b = 0, int c = 0, int d = 0, int e = 0, int f = 0)
-  {  //faster for repeated access.
-    int n_[6];
-    n_[0] = a;
-    n_[1] = b;
-    n_[2] = c;
-    n_[3] = d;
-    n_[4] = e;
-    n_[5] = f;
-    int index = n_[0];
-    for (int i = 1; i < dim; i++)
-    {
-      index = (index * n[i]) + n_[i];
-    }
-    return &(field[index]);
-  }
-
-  T *GetFlat(int a = 0)
-  {
-    if (a >= length) assert(false);  //check bounds
-    return &(field[a]);
-  }
-
-  int Length()
-  {
-    return length;
-  }
-
-  void Set(int a, int b, int c, T in)
-  {
-    Set(a, b, c, 0, 0, 0, in);
-    return;
-  };
-  void Set(int a, int b, int c, int d, int e, int f, T in)
-  {
-    int n_[6];
-    n_[0] = a;
-    n_[1] = b;
-    n_[2] = c;
-    n_[3] = d;
-    n_[4] = e;
-    n_[5] = f;
-    int index = n_[0];
-    for (int i = 1; i < dim; i++)
-    {
-      index = (index * n[i]) + n_[i];
-    }
-    field[index] = in;
-    return;
-  }
-};
-#endif  //MULTIARRAY

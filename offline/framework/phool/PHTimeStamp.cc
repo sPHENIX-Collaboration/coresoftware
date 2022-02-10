@@ -14,8 +14,6 @@
 #include <cstring>
 #include <iostream>
 
-using namespace std;
-
 const unsigned long long PHTimeStamp::PHFarFuture = ULLONG_MAX;
 
 #ifdef WIN32
@@ -116,7 +114,7 @@ int PHTimeStamp::isInRange(const PHTimeStamp &t1, const PHTimeStamp &t2)
 
 void PHTimeStamp::print()
 {
-  cout << *this;
+  std::cout << *this;
 }
 
 //
@@ -166,7 +164,7 @@ PHTimeStamp PHTimeStamp::operator-=(time_t t)
 
 void PHTimeStamp::print() const
 {
-  cout << *this << endl;
+  std::cout << *this << std::endl;
 }
 char *PHTimeStamp::formatTimeString() const
 {
@@ -214,7 +212,7 @@ time_t operator-(const PHTimeStamp &t1, const PHTimeStamp &t2)
   return t1.getTics() - t2.getTics();
 }
 
-ostream &operator<<(ostream &s, const PHTimeStamp &t)
+std::ostream &operator<<(std::ostream &s, const PHTimeStamp &t)
 {
   time_t tics = t.getTics();
   char timeString[25];
@@ -223,7 +221,7 @@ ostream &operator<<(ostream &s, const PHTimeStamp &t)
   return s << timeString;
 }
 
-istream &operator>>(istream &s, PHTimeStamp &t)
+std::istream &operator>>(std::istream &s, PHTimeStamp &t)
 {
   char timeString[25];
   s.getline(timeString, 25);

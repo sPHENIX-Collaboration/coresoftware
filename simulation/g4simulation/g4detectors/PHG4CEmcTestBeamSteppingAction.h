@@ -13,32 +13,29 @@ class PHG4HitContainer;
 
 class PHG4CEmcTestBeamSteppingAction : public PHG4SteppingAction
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4CEmcTestBeamSteppingAction( PHG4CEmcTestBeamDetector* );
+  PHG4CEmcTestBeamSteppingAction(PHG4CEmcTestBeamDetector*);
 
   //! destroctor
   ~PHG4CEmcTestBeamSteppingAction() override
-  {}
+  {
+  }
 
   //! stepping action
   bool UserSteppingAction(const G4Step*, bool) override;
 
   //! reimplemented from base class
-  void SetInterfacePointers( PHCompositeNode* ) override;
+  void SetInterfacePointers(PHCompositeNode*) override;
 
-  private:
-
+ private:
   //! pointer to the detector
   PHG4CEmcTestBeamDetector* detector_;
 
   //! pointer to hit container
-  PHG4HitContainer * hits_;
-  PHG4HitContainer * absorberhits_;
-  PHG4Hit *hit;
+  PHG4HitContainer* hits_;
+  PHG4HitContainer* absorberhits_;
+  PHG4Hit* hit;
 };
 
-
-#endif // PHG4CEmcTestBeamSteppingAction_h
+#endif  // PHG4CEmcTestBeamSteppingAction_h
