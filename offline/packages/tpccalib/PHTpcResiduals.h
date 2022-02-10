@@ -13,6 +13,7 @@
 
 #include <Acts/EventData/TrackParameters.hpp>
 #include <ActsExamples/EventData/Track.hpp>
+#include <trackbase_historic/ActsTransformations.h>
 
 class PHCompositeNode;
 class SvtxTrack;
@@ -94,7 +95,7 @@ class PHTpcResiduals : public SubsysReco
 
   int processTracks(PHCompositeNode *topNode);
 
-  bool checkTrack(SvtxTrack* track);
+  bool checkTrack(SvtxTrack* track) const;
   void processTrack(SvtxTrack* track);
 
   /// fill track state from bound track parameters
@@ -110,23 +111,19 @@ class PHTpcResiduals : public SubsysReco
    * matching propagation
    * returns the path lenght and the resulting parameters
    */
-  ExtrapolationResult propagateTrackState(
-  const Acts::BoundTrackParameters& params, 
-		     const SourceLink& sl);
+  ExtrapolationResult propagateTrackState( const Acts::BoundTrackParameters& params, const SourceLink& sl ) const;
 
   /// Gets distortion cell for identifying bins in TPC
-  int getCell(const Acts::Vector3D& loc);
+  int getCell(const Acts::Vector3D& loc) const;
   
   void makeHistograms();
-  SourceLink makeSourceLink(TrkrCluster* cluster);
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
-  Surface getSurface(TrkrDefs::cluskey cluskey,
-		     TrkrDefs::subsurfkey);
-      
-  Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
-  Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey);
-  Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey);
+  
+  SourceLink makeSourceLink(TrkrCluster* cluster) const;
+  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track) const;
 
+  /// actis transformation
+  ActsTransformations m_transformer;
+  
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
   SvtxTrackMap *m_trackMap = nullptr;

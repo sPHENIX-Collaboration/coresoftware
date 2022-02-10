@@ -13,7 +13,6 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
@@ -148,7 +147,7 @@ int PHTpcResiduals::processTracks(PHCompositeNode */*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-bool PHTpcResiduals::checkTrack(SvtxTrack* track)
+bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
 {
  
   if(track->get_pt() < 0.5)
@@ -194,21 +193,19 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track)
 
 }
 
-PHTpcResiduals::SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
+PHTpcResiduals::SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster) const
 {
-  auto key = cluster->getClusKey();
-  auto subsurfkey = cluster->getSubSurfKey();
       
-  // Make a safety check for clusters that couldn't be attached
-  // to a surface
-  auto surf = getSurface(key, subsurfkey);
-  if(!surf)
-    return SourceLink();
+  // get surface from clusters
+  const auto surf = m_transformer.getSurface( cluster, m_surfMaps );
+  if(!surf) return SourceLink();
   
+  // local position in ACTS unit
   Acts::BoundVector loc = Acts::BoundVector::Zero();
   loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
   loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
   
+  // local covariance matrix in ACTS unit
   Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
   cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
     cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
@@ -219,72 +216,14 @@ PHTpcResiduals::SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
   cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
     cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
   
+  const auto key = cluster->getClusKey();
   SourceLink sl(key, surf, loc, cov);
   
   return sl;
 }
 
 //___________________________________________________________________________________
-Surface PHTpcResiduals::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfkey surfkey)
-{
-  const auto trkrid = TrkrDefs::getTrkrId(cluskey);
-  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-
-  switch( trkrid )
-  {
-    case TrkrDefs::TrkrId::micromegasId: return getMMSurface( hitsetkey );
-    case TrkrDefs::TrkrId::tpcId: return getTpcSurface(hitsetkey, surfkey);
-    case TrkrDefs::TrkrId::mvtxId:
-    case TrkrDefs::TrkrId::inttId:
-    {
-      return getSiliconSurface(hitsetkey);
-    }
-  }
-  
-  // unreachable
-  return nullptr;
-  
-}
-
-//___________________________________________________________________________________
-Surface PHTpcResiduals::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
-{
-  auto surfMap = m_surfMaps->siliconSurfaceMap;
-  auto iter = surfMap.find(hitsetkey);
-  if(iter != surfMap.end())
-    {
-      return iter->second;
-    }
-  
-  // If it can't be found, return nullptr
-  return nullptr;
-
-}
-
-//___________________________________________________________________________________
-Surface PHTpcResiduals::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey)
-{
-  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-  const auto iter = m_surfMaps->tpcSurfaceMap.find(layer);
-  if(iter != m_surfMaps->tpcSurfaceMap.end())
-  {
-    auto surfvec = iter->second;
-    return surfvec.at(surfkey);
-  }
-  
-  // If it can't be found, return nullptr to skip this cluster
-  return nullptr;
-}
-
-//___________________________________________________________________________________
-Surface PHTpcResiduals::getMMSurface(TrkrDefs::hitsetkey hitsetkey)
-{
-  const auto iter = m_surfMaps->mmSurfaceMap.find( hitsetkey );
-  return (iter == m_surfMaps->mmSurfaceMap.end()) ? nullptr:iter->second;
-}
-
-//___________________________________________________________________________________
-Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track)
+Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) const
 {
   Acts::Vector3D momentum(track->get_px(), 
 			  track->get_py(), 
@@ -386,7 +325,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
 PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState(
 			   const Acts::BoundTrackParameters& params,
-			   const SourceLink& sl)
+			   const SourceLink& sl) const
 {
   /*
   std::cout << "Propagating to geo id " << sl.referenceSurface().geometryId() << std::endl;
@@ -452,8 +391,7 @@ void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Ac
   state.set_pz(momentum.z());
 
   // covariance
-  ActsTransformations transformer;
-  const auto globalCov = transformer.rotateActsCovToSvtxTrack(params, m_tGeometry->geoContext);
+  const auto globalCov = m_transformer.rotateActsCovToSvtxTrack(params, m_tGeometry->geoContext);
   for (int i = 0; i < 6; ++i)
     for (int j = 0; j < 6; ++j)
   { state.set_error(i, j, globalCov(i,j)); }
@@ -468,8 +406,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   
   cluskey = cluster->getClusKey();
   // Get all the relevant information for residual calculation
-  ActsTransformations transformer;
-  const auto globClusPos = transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
+  const auto globClusPos = m_transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
   clusR = std::sqrt(square(globClusPos(0)) + square(globClusPos(1)));
   clusPhi = std::atan2(globClusPos(1), globClusPos(0));
   clusZ = globClusPos(2);
@@ -536,13 +473,11 @@ void PHTpcResiduals::calculateTpcResiduals(
 	      << "   " << statePhi << "+/-" << stateRPhiErr
 	      << " and " << stateZ << "+/-" << stateZErr << std::endl;
 
-  const auto erp = square(clusRPhiErr);
-  const auto ez = square(clusZErr);
-
-  const auto dPhi = clusPhi - statePhi;
+  const auto erp = square(clusRPhiErr) + square(stateRPhiErr);
+  const auto ez = square(clusZErr) + square(stateZErr);
 
   // Calculate residuals
-  drphi = clusR * deltaPhi(dPhi);
+  drphi = clusR * deltaPhi(clusPhi - statePhi);
   dz  = clusZ - stateZ;
 
   if(Verbosity() > 3)
@@ -628,7 +563,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   return;
 }
 
-int PHTpcResiduals::getCell(const Acts::Vector3D& loc)
+int PHTpcResiduals::getCell(const Acts::Vector3D& loc) const
 {
 
   // get grid dimensions from matrix container
