@@ -166,11 +166,7 @@ PHGenFitTrkFitter::PHGenFitTrkFitter(const string& name)
  * Init
  */
 int PHGenFitTrkFitter::Init(PHCompositeNode* /*topNode*/)
-{
-  //	CreateNodes(topNode);
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
+{ return Fun4AllReturnCodes::EVENT_OK; }
 
 /*
  * Init run
@@ -183,9 +179,10 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
   PHField* field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
   //_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
-  _fitter.reset( PHGenFit::Fitter::getInstance(tgeo_manager,
-                                          field, _track_fitting_alg_name,
-                                          "RKTrackRep", _do_evt_display) );
+  _fitter.reset( PHGenFit::Fitter::getInstance(
+    tgeo_manager,
+    field, _track_fitting_alg_name,
+    "RKTrackRep", _do_evt_display) );
   _fitter->set_verbosity(Verbosity());
   //LogDebug(genfit::FieldManager::getInstance()->getFieldVal(TVector3(0, 0, 0)).Z());
 
@@ -209,6 +206,7 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 /*
  * process_event():
  *  Call user instructions for every event.
@@ -644,8 +642,7 @@ int PHGenFitTrkFitter::CreateNodes(PHCompositeNode* topNode)
   // create nodes...
   PHNodeIterator iter(topNode);
 
-  PHCompositeNode* dstNode = static_cast<PHCompositeNode*>(iter.findFirst(
-      "PHCompositeNode", "DST"));
+  PHCompositeNode* dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     cerr << PHWHERE << "DST Node missing, doing nothing." << endl;
@@ -654,8 +651,7 @@ int PHGenFitTrkFitter::CreateNodes(PHCompositeNode* topNode)
   PHNodeIterator iter_dst(dstNode);
 
   // Create the SVTX node
-  PHCompositeNode* tb_node = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst(
-      "PHCompositeNode", "SVTX"));
+  PHCompositeNode* tb_node = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst( "PHCompositeNode", "SVTX"));
   if (!tb_node)
   {
     tb_node = new PHCompositeNode("SVTX");
@@ -721,6 +717,23 @@ const std::set<int>& PHGenFitTrkFitter::get_disabled_layers() const
  */
 int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 {
+  
+  // acts geometry
+  m_tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  if(!m_tgeometry)
+  {
+    std::cout << PHWHERE << "No acts tracking geometry, can't proceed" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+  
+  // acts surfaces
+  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
+  if(!m_surfmaps)
+  {
+    std::cout << PHWHERE << "No acts surface maps, can't proceed" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+  
   //DST objects
   //Truth container
   _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
@@ -792,12 +805,32 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//struct CompMeasurementByR {
-//  bool operator() (PHGenFit::Measurement *m1,PHGenFit::Measurement *m2) {
-//	  float x1 = m1->getMeasurement()
-//
-//	  return (i<j);}
-//} myobject;
+//_________________________________________________________________________________
+Acts::Vector3D PHGenFitTrkFitter::getGlobalPosition( TrkrCluster* cluster )
+{
+  
+  // get cluster key
+  const auto key = cluster->getClusKey();
+  
+  // find closest iterator in map
+  auto it = m_globalPositions.lower_bound( key );
+  if (it == m_globalPositions.end()|| (key < it->first ))
+  {
+    // get global position from Acts transform
+    const auto globalpos = m_transform.getGlobalPosition(cluster,
+      m_surfmaps,
+      m_tgeometry);
+
+    /*
+     * todo: should also either apply distortion corrections 
+     * or make sure clusters are loaded from corrected map, after cluster mover
+     */
+    
+    // add new cluster and set its key
+    it = m_globalPositions.insert(it, std::make_pair(key, globalpos));
+  }
+  return it->second;
+}
 
 /*
  * fit track with SvtxTrack as input seed.
@@ -839,27 +872,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   // Create measurements
   std::vector<PHGenFit::Measurement*> measurements;
 
-  /*!
-   * if fit track as a primary track
-   */
-
-  /*
-  if(invertex and Verbosity() >= 2)
-    {
-      LogDebug(invertex->size_tracks());
-      LogDebug(invertex->get_chisq());
-      LogDebug(invertex->get_ndof());
-      for (unsigned int i = 0; i < 3; i++)
-  for (unsigned int j = 0; j < 3; j++)
-    {
-      LogDebug(invertex->get_error(i,j));
-    }
-    }
-  */
-
-  /*!
-   *
-   */
 #if _DEBUG_MODE_ == 1
   if (invertex
       //			and invertex->size_tracks() == 1
@@ -933,9 +945,10 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
        iter != intrack->end_cluster_keys(); ++iter){
     TrkrDefs::cluskey cluster_key = *iter;
     TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
-    float x = cluster->getPosition(0);
-    float y = cluster->getPosition(1);
-    float r = sqrt(square(x) + square(y));
+    
+    // get global position
+    const auto globalPosition = getGlobalPosition( cluster );
+    float r = sqrt(square( globalPosition.x() ) + square( globalPosition.y() ));
     m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
     int layer_out = TrkrDefs::getLayer(cluster_key);
     if(Verbosity() > 10) cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
@@ -968,13 +981,14 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
         << endl;
 #endif
 
-    TVector3 pos(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
+    const auto globalPosition_acts = getGlobalPosition( cluster );
 
+    const TVector3 pos(globalPosition_acts.x(), globalPosition_acts.y(), globalPosition_acts.z() );
     seed_mom.SetPhi(pos.Phi());
     seed_mom.SetTheta(pos.Theta());
 
     // by default assume normal to local surface is along cluster azimuthal position
-    TVector3 n(cluster->getPosition(0), cluster->getPosition(1), 0);
+    TVector3 n( globalPosition_acts.x(), globalPosition_acts.y(), 0 );
 
     // replace normal by proper vector for specified subsystems
     switch( TrkrDefs::getTrkrId(cluster_key) )
@@ -1071,13 +1085,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     if (Verbosity() >= 1)
       {
 	LogWarning("Track fitting failed");
-	/*
-	cout << " track->getChisq() " << track->get_chi2() << " get_ndf " << track->get_ndf()
-	     << " mom.X " << track->get_mom().X()
-	     << " mom.Y " << track->get_mom().Y()
-	     << " mom.Z " << track->get_mom().Z()
-	     << endl;
-	*/
       }
     //delete track;
     return nullptr;
@@ -1216,72 +1223,6 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   out_track->set_dca(dca3d);
   out_track->set_dca_error(dca3d_error);
 
-  /*!
-   * dca3d_xy, dca3d_z
-   */
-
-  /*
-  // Rotate from u,v,n to r: n X Z, Z': n X r, n using 5D state/cov
-  // commented on 2017-10-09
-
-  TMatrixF pos_in(3,1);
-  TMatrixF cov_in(3,3);
-  pos_in[0][0] = gf_state_vertex_ca->getState()[3];
-  pos_in[1][0] = gf_state_vertex_ca->getState()[4];
-  pos_in[2][0] = 0.;
-
-  cov_in[0][0] = gf_state_vertex_ca->getCov()[3][3];
-  cov_in[0][1] = gf_state_vertex_ca->getCov()[3][4];
-  cov_in[0][2] = 0.;
-  cov_in[1][0] = gf_state_vertex_ca->getCov()[4][3];
-  cov_in[1][1] = gf_state_vertex_ca->getCov()[4][4];
-  cov_in[1][2] = 0.;
-  cov_in[2][0] = 0.;
-  cov_in[2][1] = 0.;
-  cov_in[2][2] = 0.;
-
-  TMatrixF pos_out(3,1);
-  TMatrixF cov_out(3,3);
-
-  TVector3 vu = gf_state_vertex_ca->getPlane().get()->getU();
-  TVector3 vv = gf_state_vertex_ca->getPlane().get()->getV();
-  TVector3 vn = vu.Cross(vv);
-
-  pos_cov_uvn_to_rz(vu, vv, vn, pos_in, cov_in, pos_out, cov_out);
-
-  //! vertex cov in (u',v',n')
-  TMatrixF vertex_cov_out(3,3);
-
-  get_vertex_error_uvn(vu,vv,vn, vertex_cov, vertex_cov_out);
-
-  float dca3d_xy = pos_out[0][0];
-  float dca3d_z  = pos_out[1][0];
-
-  float dca3d_xy_error = sqrt(cov_out[0][0] + vertex_cov_out[0][0]);
-  float dca3d_z_error  = sqrt(cov_out[1][1] + vertex_cov_out[1][1]);
-
-    //Begin DEBUG
-//	LogDebug("rotation debug---------- ");
-//	gf_state_vertex_ca->Print();
-//	LogDebug("dca rotation---------- ");
-//	pos_out = pos_in;
-//	cov_out = cov_in;
-//	pos_in.Print();
-//	cov_in.Print();
-//	pos_out.Print();
-//	cov_out.Print();
-//	cout
-//		<<"dca3d_xy: "<<dca3d_xy <<" +- "<<dca3d_xy_error*dca3d_xy_error
-//		<<"; dca3d_z: "<<dca3d_z<<" +- "<< dca3d_z_error*dca3d_z_error
-//		<<"\n";
-//	gf_state_vertex_ca->get6DCov().Print();
-//	LogDebug("vertex rotation---------- ");
-//	vertex_position.Print();
-//	vertex_cov.Print();
-//	vertex_cov_out.Print();
-  //End DEBUG
-  */
-
   //
   // in: X, Y, Z; out; r: n X Z, Z X r, Z
 
@@ -1388,66 +1329,6 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
     }
   }
 
-  //	for (SvtxTrack::ConstClusterIter iter = svtx_track->begin_clusters();
-  //			iter != svtx_track->end_clusters(); ++iter) {
-  //		unsigned int cluster_id = *iter;
-  //		SvtxCluster* cluster = _clustermap->get(cluster_id);
-  //		if (!cluster) {
-  //			LogError("No cluster Found!");
-  //			continue;
-  //		}
-  //		//cluster->identify; //DEBUG
-  //
-  //		//unsigned int l = cluster->get_layer();
-  //
-  //		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
-  //
-  //		double radius = pos.Pt();
-  //
-  //		std::shared_ptr<genfit::MeasuredStateOnPlane> gf_state = nullptr;
-  //		try {
-  //			gf_state = std::shared_ptr < genfit::MeasuredStateOnPlane
-  //					> (phgf_track->extrapolateToCylinder(radius,
-  //							TVector3(0, 0, 0), TVector3(0, 0, 1), 0));
-  //		} catch (...) {
-  //			if (Verbosity() >= 2)
-  //				LogWarning("Exrapolation failed!");
-  //		}
-  //		if (!gf_state) {
-  //			if (Verbosity() > 1)
-  //				LogWarning("Exrapolation failed!");
-  //			continue;
-  //		}
-  //
-  //		//SvtxTrackState* state = new SvtxTrackState_v1(radius);
-  //		std::shared_ptr<SvtxTrackState> state = std::shared_ptr<SvtxTrackState> (new SvtxTrackState_v1(radius));
-  //		state->set_x(gf_state->getPos().x());
-  //		state->set_y(gf_state->getPos().y());
-  //		state->set_z(gf_state->getPos().z());
-  //
-  //		state->set_px(gf_state->getMom().x());
-  //		state->set_py(gf_state->getMom().y());
-  //		state->set_pz(gf_state->getMom().z());
-  //
-  //		//gf_state->getCov().Print();
-  //
-  //		for (int i = 0; i < 6; i++) {
-  //			for (int j = i; j < 6; j++) {
-  //				state->set_error(i, j, gf_state->get6DCov()[i][j]);
-  //			}
-  //		}
-  //
-  //		out_track->insert_state(state.get());
-  //
-  //#ifdef _DEBUG_
-  //		cout
-  //		<<__LINE__
-  //		<<": " << radius <<" => "
-  //		<<sqrt(state->get_x()*state->get_x() + state->get_y()*state->get_y())
-  //		<<endl;
-  //#endif
-  //	}
-
 #ifdef _DEBUG_
   cout << __LINE__ << endl;
 #endif
@@ -1524,8 +1405,8 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       { continue; }
 
       // get position
-      TVector3 pos(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
-      float r_cluster = std::sqrt( square(pos[0]) + square(pos[1]) );
+      const auto globalPosition = getGlobalPosition( cluster );    
+      float r_cluster = std::sqrt( square(globalPosition.x()) + square(globalPosition.y()) );
 
       // loop over states
       /* find first state whose radius is larger than that of cluster if any */
