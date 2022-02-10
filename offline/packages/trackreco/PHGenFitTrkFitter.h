@@ -9,6 +9,7 @@
 #define TRACKRECO_PHGENFITTRKFITTER_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #if defined(__CLING__)
 // needed, it crashes on Ubuntu using singularity with local cvmfs install
@@ -44,6 +45,9 @@ namespace PHGenFit
 {
 class Fitter;
 } /* namespace PHGenFit */
+
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
 
 class SvtxTrackMap;
 class SvtxVertexMap;
@@ -253,6 +257,13 @@ class PHGenFitTrkFitter : public SubsysReco
   //!Create New nodes
   int CreateNodes(PHCompositeNode*);
 
+  /// get global position for a given cluster
+  /**
+   * uses ActsTransformation to convert cluster local position into global coordinates
+   * incorporates TPC distortion correction, if present
+   */
+  Acts::Vector3D getGlobalPosition(TrkrCluster*);
+
   /*
    * fit track with SvtxTrack as input seed.
    * \param intrack Input SvtxTrack
@@ -334,8 +345,19 @@ class PHGenFitTrkFitter : public SubsysReco
   //! https://rave.hepforge.org/trac/wiki/RaveMethods
   std::string _vertexing_method = "avr-smoothing:1-minweight:0.5-primcut:9-seccut:9";
 
-  //PHRaveVertexFactory* _vertex_finder;
+  /// acts transformation object
+  ActsTransformations m_transform;
 
+  /// acts geometry
+  ActsTrackingGeometry *m_tgeometry = nullptr;
+
+  /// acts surface map
+  ActsSurfaceMaps *m_surfmaps = nullptr;
+
+  /// map cluster keys to global position
+  using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3D>;
+  PositionMap m_globalPositions;
+  
   //! Input Node pointers
   PHG4TruthInfoContainer* _truth_container = nullptr;
   TrkrClusterContainer* _clustermap = nullptr;
