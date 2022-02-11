@@ -40,7 +40,8 @@ pkginclude_HEADERS = \
   TpcSpaceChargeReconstruction.h \
   TpcSpaceChargeReconstructionHelper.h \
   PHTpcResiduals.h \
-  PHTpcCentralMembraneClusterizer.h
+  PHTpcCentralMembraneClusterizer.h \
+  PHTpcCentralMembraneMatcher.h
 
 ROOTDICTS = \
   TpcSpaceChargeMatrixContainer_Dict.cc \
@@ -61,7 +62,8 @@ libtpccalib_la_SOURCES = \
   TpcSpaceChargeReconstruction.cc \
   TpcSpaceChargeReconstructionHelper.cc \
   PHTpcResiduals.cc \
-  PHTpcCentralMembraneClusterizer.cc
+  PHTpcCentralMembraneClusterizer.cc \
+  PHTpcCentralMembraneMatcher.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
