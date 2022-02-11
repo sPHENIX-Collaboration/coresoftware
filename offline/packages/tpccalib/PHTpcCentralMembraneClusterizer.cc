@@ -132,6 +132,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	    }
 	  
 	  if(cluster->getAdc() < _min_adc_value) continue;
+	  if(z < _min_z_value) continue;
 
 	  i_pair.push_back(-1);
 	  energy.push_back(cluster->getAdc());
@@ -361,7 +362,6 @@ int  PHTpcCentralMembraneClusterizer::GetNodes(PHCompositeNode* topNode)
   if(!_corrected_CMcluster_map)
     {
       std::cout << "Creating node CORRECTED_CM_CLUSTER" << std::endl;
-      
       PHNodeIterator iter(topNode);
       
       // Looking for the DST node

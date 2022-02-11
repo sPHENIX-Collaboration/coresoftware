@@ -18,6 +18,8 @@
 /// Tracking includes
 #include <trackbase/CMFlashClusterv1.h>
 #include <trackbase/CMFlashClusterContainerv1.h>
+#include <trackbase/CMFlashDifferencev1.h>
+#include <trackbase/CMFlashDifferenceContainerv1.h>
 
 using namespace std;
 
@@ -34,7 +36,15 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
   
   hxy_reco = new TH2F("hxy_reco","reco cluster x:y",800,-100,100,800,-80,80);
   hxy_truth = new TH2F("hxy_truth","truth cluster x:y",800,-100,100,800,-80,80);
-  
+  hdrdphi = new TH2F("hdrdphi","dr vs dphi",800,-0.5,0.5,800,-0.001,0.001);
+  hdrdphi->GetXaxis()->SetTitle("dr");  
+  hdrdphi->GetYaxis()->SetTitle("dphi");  
+  hrdr = new TH2F("hrdr","dr vs r",800,0.0,80.0,800,-0.5,0.5);
+  hrdr->GetXaxis()->SetTitle("r");  
+  hrdr->GetYaxis()->SetTitle("dr");  
+  hrdphi = new TH2F("hrdphi","dphi vs r",800,0.0,80.0,800,-0.001,0.001);
+  hrdphi->GetXaxis()->SetTitle("r");  
+  hrdphi->GetYaxis()->SetTitle("dphi");  
   
   // Get truth cluster positions
   //=====================
@@ -139,6 +149,10 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       auto cmkey = cmitr->first;
       auto cmclus = cmitr->second;
       TVector3 tmp_pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
+
+      // Do we want to do the static + average distortion corrections here?
+      // That makes the most sense, since the pattern matching becomes far easier if the differences are small
+
       reco_pos.push_back(tmp_pos);
 
       if(Verbosity() > 0)
@@ -175,14 +189,48 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
  
   for(const auto &p : matched_pair)
     {
-      std::cout << " rad1 " << truth_pos[p.first].Mag() << " rad2 " << reco_pos[p.second].Mag() 
-		<< " phi1 " << truth_pos[p.first].Phi() << " phi2 " << reco_pos[p.second].Phi() 
-		<< std::endl;
+      if(_histos)
+	{
+	  double dr = truth_pos[p.first].Mag() - reco_pos[p.second].Mag();
+	  double dphi = truth_pos[p.first].Phi() - reco_pos[p.second].Phi();
+	  double r =  truth_pos[p.first].Mag();
+	  
+	  hdrdphi->Fill(dr, dphi);
+	  hrdr->Fill(r,dr);
+	  hrdphi->Fill(r,dphi);
+	}
 
+      unsigned int key = p.first;
+      std::pair<float, float> reco_xy(reco_pos[p.second].X(), reco_pos[p.second].Y());
+
+      std::cout << " key " << key << " reco_xy x value " << reco_xy.first << " reco_xy y value " << reco_xy.second << std::endl;
+
+      // add to node tree
+     auto cmdiff = new CMFlashDifferencev1();
+
+     cmdiff->setTruthX(truth_pos[p.first].X());
+     cmdiff->setTruthY(truth_pos[p.first].Y());      
+     cmdiff->setRecoX(reco_pos[p.second].X());
+     cmdiff->setRecoY(reco_pos[p.second].Y());
+      
+      _cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
 
     } 
- 
-  // How to store these differences?
+  
+  // read back differences from node tree as a check
+  auto diffrange = _cm_flash_diffs->getDifferences();
+  for (auto cmitr = diffrange.first;
+       cmitr !=diffrange.second;
+       ++cmitr)
+    {
+      auto key = cmitr->first;
+      auto cmreco = cmitr->second;
+
+      std::cout << " key " << key << " truth X " << cmreco->getTruthX() << " reco X " << cmreco->getRecoX()
+		<< " truth Y " << cmreco->getTruthY() << " reco Y " << cmreco->getRecoY()
+		<< std::endl;
+
+    }
 
 
  
@@ -199,6 +247,9 @@ int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
       
       hxy_reco->Write();
       hxy_truth->Write();
+      hdrdphi->Write();
+      hrdr->Write();
+      hrdphi->Write();
             
       fout->Close();
     }
@@ -220,6 +271,32 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
       std::cout << PHWHERE << "CORRECTED_CM_CLUSTER Node missing, abort." << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }      
+
+
+  std::cout << "Creating node CM_FLASH_DIFFERENCES" << std::endl;  
+  PHNodeIterator iter(topNode);
+  
+  // Looking for the DST node
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+    {
+      std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }      
+  PHNodeIterator dstiter(dstNode);
+  PHCompositeNode *DetNode =
+    dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+  if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
+    }
+  
+  _cm_flash_diffs = new CMFlashDifferenceContainerv1;
+  PHIODataNode<PHObject> *CMFlashDifferenceNode =
+    new PHIODataNode<PHObject>(_cm_flash_diffs, "CM_FLASH_DIFFERENCES", "PHObject");
+  DetNode->addNode(CMFlashDifferenceNode);
+  
   
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -12,6 +12,7 @@
 
 class PHCompositeNode;
 class CMFlashClusterContainer;
+class CMFlashDifferenceContainer;
 
 class TF1;
 class TNtuple;
@@ -47,9 +48,13 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   int GetNodes(PHCompositeNode* topNode);
 
   CMFlashClusterContainer *_corrected_CMcluster_map{nullptr};
+  CMFlashDifferenceContainer *_cm_flash_diffs{nullptr};
 
   TH2F *hxy_reco;
   TH2F *hxy_truth;
+  TH2F *hdrdphi;
+  TH2F *hrdr;
+  TH2F *hrdphi;
 
   std::vector<TVector3> reco_pos;
   std::vector<TVector3> truth_pos;
@@ -148,6 +153,7 @@ void CalculateCenters(
     std::array<int, nRadii>& nStripesIn,
     std::array<int, nRadii>& nStripesBefore,
     double cx[][nRadii], double cy[][nRadii] );
+
 
 };
 

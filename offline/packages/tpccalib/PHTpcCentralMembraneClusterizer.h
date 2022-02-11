@@ -35,6 +35,7 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   void set_process(const int proc)  { _process = proc;  }
   void set_histos_on(const bool val) {_histos = val;}
   void set_min_adc_value(const unsigned int val) {_min_adc_value = val;}
+  void set_min_z_value(const double val) {_min_z_value = val;}
 
  //! run initialization
   int InitRun(PHCompositeNode *topNode);
@@ -69,7 +70,8 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   TH1F *hClustE[3];
   
   int _process = 0;
-  unsigned int _min_adc_value = 180;
+  unsigned int _min_adc_value = 0;
+  double _min_z_value = 1.0;
   bool _histos = false;
 
   TFile *fout;
