@@ -4,7 +4,7 @@
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 
 AUTOMAKE_OPTIONS = foreign
