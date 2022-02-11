@@ -1,4 +1,4 @@
-AC_INIT(dbfile_acc_calo_calib,[1.00])
+AC_INIT(dbfile_calo_calib,[1.00])
 AC_CONFIG_SRCDIR([configure.ac])
 
 AM_INIT_AUTOMAKE
