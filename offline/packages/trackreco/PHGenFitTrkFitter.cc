@@ -882,37 +882,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   // Create measurements
   std::vector<PHGenFit::Measurement*> measurements;
 
-#if _DEBUG_MODE_ == 1
-  if (invertex
-      //			and invertex->size_tracks() == 1
-  )
-  {
-    TRandom3 rand(0);
-    double dxy = 0.0007;  //7 um
-    double dz = 0.003;    //30 um
-
-    TVector3 pos(invertex->get_x(), invertex->get_y(), invertex->get_z());
-    TMatrixDSym cov(3);
-
-    // Use smeared position instead of reco'd one.
-    double x = rand.Gaus(0, dxy);
-    double y = rand.Gaus(0, dxy);
-    double z = rand.Gaus(0, dz);
-    pos.SetXYZ(x, y, z);
-
-    for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 3; j++)
-        cov[i][j] = 0;
-
-    cov[0][0] = dxy * dxy;
-    cov[1][1] = dxy * dxy;
-    cov[2][2] = dz * dz;
-
-    PHGenFit::Measurement* meas = new PHGenFit::SpacepointMeasurement(
-        pos, cov);
-    measurements.push_back(meas);
-  }
-#else
   //! 1000 is a arbitrary number for now
   const double vertex_chi2_over_dnf_cut = 1000;
   const double vertex_cov_element_cut = 10000;  //arbitrary cut cm*cm
@@ -946,7 +915,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   }
     }
   }
-#endif
 
   // sort clusters with radius before fitting
   if(Verbosity() > 10)   intrack->identify();
@@ -1058,9 +1026,9 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     if(Verbosity() > 10)
     {
       cout << "Add meas layer " << layer << " cluskey " << cluster_key
-        << endl
         << " pos.X " << pos.X() << " pos.Y " << pos.Y() << " pos.Z " << pos.Z()
-        << "  n.X " <<  n.X() << " n.Y " << n.Y()
+        << " r: " << std::sqrt(square( pos.x()) + square(pos.y()))
+        << " n.X " <<  n.X() << " n.Y " << n.Y()
         << " RPhiErr " << cluster->getRPhiError()
         << " ZErr " << cluster->getZError()
         << endl;
@@ -1080,9 +1048,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   //TODO Add multiple TrackRep choices.
   //int pid = 211;
   genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
-  std::shared_ptr<PHGenFit::Track> track(new PHGenFit::Track(rep, seed_pos, seed_mom,
-                                                             seed_cov));
-
+  std::shared_ptr<PHGenFit::Track> track(new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov));
+                                                          
   //TODO unsorted measurements, should use sorted ones?
   track->addMeasurements(measurements);
 
@@ -1093,7 +1060,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 
   if (_fitter->processTrack(track.get(), false) != 0)
   {
-    if (Verbosity() >= 1)
+    // if (Verbosity() >= 1)
       {
 	LogWarning("Track fitting failed");
       }
@@ -1357,7 +1324,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       continue;
     }
 
-    genfit::KalmanFitterInfo* kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
+    auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
     if (!kfi)
     {
       if (Verbosity() > 1)
@@ -1394,7 +1361,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
         << __LINE__
         << ": " << id
         << ": " << pathlength << " => "
-        << sqrt(state->get_x() * state->get_x() + state->get_y() * state->get_y())
+        << sqrt( square(state->get_x()) + square(state->get_y()) )
         << endl;
 #endif
   }
@@ -1569,98 +1536,6 @@ bool PHGenFitTrkFitter::FillSvtxVertexMap(
 
   return true;
 }
-
-//bool PHGenFitTrkFitter::pos_cov_uvn_to_rz(const TVector3 u, const TVector3 v,
-//		const TVector3 n, const TMatrixF pos_in, const TMatrixF cov_in,
-//		TMatrixF& pos_out, TMatrixF& cov_out) const {
-//
-//	if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) {
-//		if(Verbosity() > 0) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
-//		return false;
-//	}
-//
-//	if(cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3) {
-//		if(Verbosity() > 0) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
-//		return false;
-//	}
-//
-//	TVector3 up = TVector3(0., 0., 1.).Cross(n);
-//	if(up.Mag() < 0.00001){
-//		if(Verbosity() > 0) LogWarning("n is parallel to z");
-//		return false;
-//	}
-//
-//	TMatrixF R(3, 3);
-//	TMatrixF R_inv(3,3);
-//	TMatrixF R_inv_T(3,3);
-//
-//	try {
-//		TMatrixF ROT1(3, 3);
-//		TMatrixF ROT2(3, 3);
-//		TMatrixF ROT3(3, 3);
-//
-//		// rotate n along z to xz plane
-//		float phi = -TMath::ATan2(n.Y(), n.X());
-//		ROT1[0][0] = cos(phi);
-//		ROT1[0][1] = -sin(phi);
-//		ROT1[0][2] = 0;
-//		ROT1[1][0] = sin(phi);
-//		ROT1[1][1] = cos(phi);
-//		ROT1[1][2] = 0;
-//		ROT1[2][0] = 0;
-//		ROT1[2][1] = 0;
-//		ROT1[2][2] = 1;
-//
-//		// rotate n along y to z
-//		TVector3 n1(n);
-//		n1.RotateZ(phi);
-//		float theta = -TMath::ATan2(n1.X(), n1.Z());
-//		ROT2[0][0] = cos(theta);
-//		ROT2[0][1] = 0;
-//		ROT2[0][2] = sin(theta);
-//		ROT2[1][0] = 0;
-//		ROT2[1][1] = 1;
-//		ROT2[1][2] = 0;
-//		ROT2[2][0] = -sin(theta);
-//		ROT2[2][1] = 0;
-//		ROT2[2][2] = cos(theta);
-//
-//		// rotate u along z to x
-//		TVector3 u2(u);
-//		u2.RotateZ(phi);
-//		u2.RotateY(theta);
-//		float phip = -TMath::ATan2(u2.Y(), u2.X());
-//		phip -= -TMath::ATan2(up.Y(), up.X());
-//		ROT3[0][0] = cos(phip);
-//		ROT3[0][1] = -sin(phip);
-//		ROT3[0][2] = 0;
-//		ROT3[1][0] = sin(phip);
-//		ROT3[1][1] = cos(phip);
-//		ROT3[1][2] = 0;
-//		ROT3[2][0] = 0;
-//		ROT3[2][1] = 0;
-//		ROT3[2][2] = 1;
-//
-//		// R: rotation from u,v,n to (z X n), v', z
-//		R = ROT3 * ROT2 * ROT1;
-//		R_inv = R.Invert();
-//		R_inv_T.Transpose(R_inv);
-//
-//	} catch (...) {
-//		if (Verbosity() > 0)
-//			LogWarning("Can't get rotation matrix");
-//
-//		return false;
-//	}
-//
-//	pos_out.ResizeTo(3, 1);
-//	cov_out.ResizeTo(3, 3);
-//
-//	pos_out = R_inv * pos_in;
-//	cov_out = R_inv * cov_in * R_inv_T;
-//
-//	return true;
-//}
 
 bool PHGenFitTrkFitter::pos_cov_uvn_to_rz(const TVector3& u, const TVector3& v,
                                           const TVector3& n, const TMatrixF& pos_in, const TMatrixF& cov_in,
