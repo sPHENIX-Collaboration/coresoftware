@@ -4,11 +4,7 @@
 
 #include "phool.h"
 
-// root reuses kDefault
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 // boost stacktrace header causes a shadow warning
 #pragma GCC diagnostic push
