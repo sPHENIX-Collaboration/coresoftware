@@ -2,8 +2,12 @@
 
 #include <tpc/TpcDefs.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <trackbase/ActsSurfaceMaps.h>       // for ActsSurfaceMaps
 #include <trackbase/ActsTrackingGeometry.h>  // for ActsTrackingG...
+#pragma GCC diagnostic pop
+
 #include <trackbase/TrkrClusterContainer.h>  // for TrkrClusterCo...
 #include <trackbase/TrkrClusterHitAssoc.h>   // for TrkrClusterHi...
 #include <trackbase/TrkrHit.h>               // for TrkrHit

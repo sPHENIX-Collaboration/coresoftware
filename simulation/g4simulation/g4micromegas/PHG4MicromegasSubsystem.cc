@@ -21,8 +21,8 @@
 #include <phool/getClass.h>
 
 //_______________________________________________________________________
-PHG4MicromegasSubsystem::PHG4MicromegasSubsystem(const std::string &name, int layer)
-  : PHG4DetectorSubsystem(name, layer)
+PHG4MicromegasSubsystem::PHG4MicromegasSubsystem(const std::string &name, int layerno)
+  : PHG4DetectorSubsystem(name, layerno)
 {
   // call base class method which will set up parameter infrastructure
   // and call our SetDefaultParameters() method

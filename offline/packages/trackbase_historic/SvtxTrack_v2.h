@@ -37,6 +37,8 @@ class SvtxTrack_v2: public SvtxTrack
   int isValid() const override;
   PHObject* CloneMe() const override { return new SvtxTrack_v2(*this); }
 
+  //! import PHObject CopyFrom, in order to avoid clang warning
+  using PHObject::CopyFrom;
   // copy content from base class
   void CopyFrom( const SvtxTrack& ) override;
   void CopyFrom( SvtxTrack* source ) override

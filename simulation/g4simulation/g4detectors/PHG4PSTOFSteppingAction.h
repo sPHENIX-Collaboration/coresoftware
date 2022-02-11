@@ -34,10 +34,10 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
   //! pointer to hit container
   PHG4HitContainer* hits_;
   PHG4Hit* hit;
-  PHG4HitContainer *savehitcontainer;
+  PHG4HitContainer* savehitcontainer;
 
-  G4VPhysicalVolume *savevolpre;
-  G4VPhysicalVolume *savevolpost;
+  G4VPhysicalVolume* savevolpre;
+  G4VPhysicalVolume* savevolpost;
   int savetrackid;
   int saveprestepstatus;
   int savepoststepstatus;

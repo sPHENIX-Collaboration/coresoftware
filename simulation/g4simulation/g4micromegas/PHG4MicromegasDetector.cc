@@ -437,10 +437,10 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
     
     auto component_solid = new G4Box(cname+"_solid", thickness/2, dy/2, dz/2 );
     auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
-    auto vis = new G4VisAttributes( color );
-    vis->SetForceSolid(true);
-    vis->SetVisibility(true);
-    component_logic->SetVisAttributes(vis);
+    auto visA = new G4VisAttributes( color );
+    visA->SetForceSolid(true);
+    visA->SetVisibility(true);
+    component_logic->SetVisAttributes(visA);
     
     const G4ThreeVector center( (current_radius_local + thickness/2), y_offset, z_offset );
     auto component_phys = new G4PVPlacement( nullptr, center, component_logic, cname+"_phys", tile_logic, false, 0, OverlapCheck() );
@@ -560,10 +560,10 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_fee_board( int id )
         
     auto component_solid = new G4Box(cname+"_solid", thickness/2, fee_dy/2, fee_dz/2 );
     auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
-    auto vis = new G4VisAttributes( color );
-    vis->SetForceSolid(true);
-    vis->SetVisibility(true);
-    component_logic->SetVisAttributes(vis);
+    auto visA = new G4VisAttributes( color );
+    visA->SetForceSolid(true);
+    visA->SetVisibility(true);
+    component_logic->SetVisAttributes(visA);
     
     const G4ThreeVector center( (current_radius_local + thickness/2), 0, 0);
     auto component_phys = new G4PVPlacement( nullptr, center, component_logic, cname+"_phys", fee_logic, false, 0, OverlapCheck() );

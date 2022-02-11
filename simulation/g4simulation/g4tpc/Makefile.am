@@ -3,14 +3,15 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+AM_CXXFLAGS = `geant4-config --cflags`
+
 lib_LTLIBRARIES = \
   libg4tpc.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(G4_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
