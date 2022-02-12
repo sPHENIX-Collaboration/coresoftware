@@ -9,6 +9,8 @@
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <tpc/TpcDistortionCorrectionContainer.h>
+#include <tpc/TpcDistortionCorrection.h>
 
 class PHCompositeNode;
 class CMFlashClusterContainer;
@@ -47,8 +49,12 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
 
+ /// tpc distortion correction utility class
+  TpcDistortionCorrection _distortionCorrection;
+
   CMFlashClusterContainer *_corrected_CMcluster_map{nullptr};
   CMFlashDifferenceContainer *_cm_flash_diffs{nullptr};
+  TpcDistortionCorrectionContainer* _dcc{nullptr};
 
   TH2F *hxy_reco;
   TH2F *hxy_truth;
@@ -56,8 +62,8 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   TH2F *hrdr;
   TH2F *hrdphi;
 
-  std::vector<TVector3> reco_pos;
-  std::vector<TVector3> truth_pos;
+   std::vector<TVector3> reco_pos;
+   std::vector<TVector3> truth_pos;
   
   int _process = 0;
   bool _histos = true;

@@ -68,10 +68,11 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
 	  dummyPos.RotateZ(k * phi_petal);
 	  
 	  truth_pos.push_back(dummyPos);
-	  
-	  std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
-		    <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
-		    << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
+
+	  if(Verbosity() > 2)	  
+	    std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
+		      <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
+		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
 	  if(_histos) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}  
   
@@ -84,10 +85,11 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
 	  dummyPos.RotateZ(k * phi_petal);
 	  
 	  truth_pos.push_back(dummyPos);
-	  
-	  std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
-		    <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
-		    << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
+
+	  if(Verbosity() > 2)	  
+	    std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
+		      <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
+		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
 	  if(_histos) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}  
   
@@ -99,10 +101,11 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
 	  dummyPos.RotateZ(k * phi_petal);
 	  
 	  truth_pos.push_back(dummyPos);
-	  
-	  std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
-		    <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
-		    << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
+
+	  if(Verbosity() > 2)	  
+	    std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
+		      <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
+		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
 	  if(_histos) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}      	  
   
@@ -115,9 +118,10 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
 
 	  truth_pos.push_back(dummyPos);
 	  
-	  std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
-		    <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
-		    << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
+	  if(Verbosity() > 2)
+	    std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
+		      <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
+		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
 	  if(_histos) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}      	  
 }
@@ -148,21 +152,23 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     {
       auto cmkey = cmitr->first;
       auto cmclus = cmitr->second;
-      TVector3 tmp_pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
 
-      // Do we want to do the static + average distortion corrections here?
-      // That makes the most sense, since the pattern matching becomes far easier if the differences are small
+      // Do the static + average distortion corrections if the container was found
+      Acts::Vector3D pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
+      if( _dcc)  pos = _distortionCorrection.get_corrected_position( pos, _dcc ); 
 
+      TVector3 tmp_pos(pos[0], pos[1], pos[2]);
       reco_pos.push_back(tmp_pos);
 
-      if(Verbosity() > 0)
-	std::cout << "found cluster " << cmkey << " with adc " << cmclus->getAdc() 
-		  << " x " << cmclus->getX() << " y " << cmclus->getY() << cmclus->getZ()
-		  << std::endl; 
+      if(Verbosity() > 2)
+	{
+	  std::cout << "found raw cluster " << cmkey << " with x " << cmclus->getX() << " y " << cmclus->getY() << " z " << cmclus->getZ()	<< std::endl; 
+	  std::cout << "                --- corrected positions: " << tmp_pos.X() << "  " << tmp_pos.Y() << "  " << tmp_pos.Z() << std::endl; 
+	}
 
       if(_histos)
 	{      
-	  hxy_reco->Fill(cmclus->getX(), cmclus->getY());
+	  hxy_reco->Fill(tmp_pos.X(), tmp_pos.Y());
 	}
     }
 
@@ -200,40 +206,34 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	  hrdphi->Fill(r,dphi);
 	}
 
-      unsigned int key = p.first;
-      std::pair<float, float> reco_xy(reco_pos[p.second].X(), reco_pos[p.second].Y());
-
-      std::cout << " key " << key << " reco_xy x value " << reco_xy.first << " reco_xy y value " << reco_xy.second << std::endl;
-
       // add to node tree
+      unsigned int key = p.first;
      auto cmdiff = new CMFlashDifferencev1();
-
      cmdiff->setTruthX(truth_pos[p.first].X());
      cmdiff->setTruthY(truth_pos[p.first].Y());      
      cmdiff->setRecoX(reco_pos[p.second].X());
      cmdiff->setRecoY(reco_pos[p.second].Y());
-      
-      _cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
-
+     
+     _cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
     } 
   
   // read back differences from node tree as a check
-  auto diffrange = _cm_flash_diffs->getDifferences();
-  for (auto cmitr = diffrange.first;
-       cmitr !=diffrange.second;
-       ++cmitr)
-    {
-      auto key = cmitr->first;
-      auto cmreco = cmitr->second;
-
-      std::cout << " key " << key << " truth X " << cmreco->getTruthX() << " reco X " << cmreco->getRecoX()
-		<< " truth Y " << cmreco->getTruthY() << " reco Y " << cmreco->getRecoY()
-		<< std::endl;
-
+  if(Verbosity() > 0)
+    {	
+      auto diffrange = _cm_flash_diffs->getDifferences();
+      for (auto cmitr = diffrange.first;
+	   cmitr !=diffrange.second;
+	   ++cmitr)
+	{
+	  auto key = cmitr->first;
+	  auto cmreco = cmitr->second;
+	  	  
+	  std::cout << " key " << key << " truth X " << cmreco->getTruthX() << " reco X " << cmreco->getRecoX()
+		    << " truth Y " << cmreco->getTruthY() << " reco Y " << cmreco->getRecoY()
+		    << std::endl;
+	}
     }
-
-
- 
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -272,7 +272,14 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }      
 
+  // tpc distortion correction
+  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  if( _dcc )
+    { 
+      std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container" << std::endl; 
+    }
 
+  // create node for results of matching
   std::cout << "Creating node CM_FLASH_DIFFERENCES" << std::endl;  
   PHNodeIterator iter(topNode);
   
