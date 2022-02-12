@@ -18,10 +18,7 @@
 #include <phool/phool.h>  // for PHWHERE, PHReadOnly, PHRunTree
 #include <phool/phooldefs.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 #include <boost/algorithm/string.hpp>
 

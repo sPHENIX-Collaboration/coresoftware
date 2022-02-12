@@ -7,8 +7,6 @@
 #include "PHNodeIterator.h"
 #include "phooldefs.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TBranch.h>  // for TBranch
 #include <TBranchElement.h>
 #include <TBranchObject.h>
@@ -21,7 +19,6 @@
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TTree.h>
-#pragma GCC diagnostic pop
 
 #include <boost/algorithm/string.hpp>
 

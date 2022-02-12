@@ -18,6 +18,7 @@
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
+class PHG4MicromegasDisplayAction;
 class PHG4Subsystem;
 class PHParameters;
 
@@ -58,6 +59,9 @@ class PHG4MicromegasDetector : public PHG4Detector
 //   void set_tiles( const MicromegasTile::List& tiles )
 //   { m_tiles = tiles; }
 
+  //! access the display action
+  PHG4MicromegasDisplayAction* GetDisplayAction() { return m_DisplayAction; }
+
   private:
 
   //! setup tiles
@@ -81,6 +85,9 @@ class PHG4MicromegasDetector : public PHG4Detector
   /*! this handles the internal (module/strips) segmentation, needed for tracking*/
   void add_geometry_node();
   
+  //! vis attribute handling (save memory in batch)
+  PHG4MicromegasDisplayAction* m_DisplayAction = nullptr;
+
   //! detector parameters
   PHParameters* m_Params = nullptr;
 

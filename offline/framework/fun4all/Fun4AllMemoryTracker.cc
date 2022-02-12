@@ -1,9 +1,6 @@
 #include "Fun4AllMemoryTracker.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 #include <iostream>
 #include <utility>  // for pair, make_pair
