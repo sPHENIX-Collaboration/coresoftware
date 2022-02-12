@@ -9,37 +9,51 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
 #include <TSystem.h>
 
+// Root headers
+#include <TAxis.h>                             // for TAxis
+#include <TH2.h>
+#include <TH2F.h>
+#include <TNamed.h>                            // for TNamed
+#include <TSystem.h>
+#include <TFile.h>
+
 #include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
+#include <Geant4/G4PropagatorInField.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh>   // for G4StepPoint
-#include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fAtRest...
-#include <Geant4/G4String.hh>      // for G4String
+#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fAtRest...
+#include <Geant4/G4String.hh>                  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
-#include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
-#include <Geant4/G4Track.hh>                  // for G4Track
-#include <Geant4/G4TrackStatus.hh>            // for fStopAndKill
-#include <Geant4/G4Types.hh>                  // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
-#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
-#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
+#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                   // for G4Track
+#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
+#include <Geant4/G4TransportationManager.hh>
+#include <Geant4/G4Types.hh>                   // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
+#include <Geant4/G4Transform3D.hh>
 
-#include <cmath>  // for isfinite
+#include <cmath>                               // for isfinite
 #include <iostream>
-#include <string>   // for operator<<, operator+
-#include <utility>  // for pair
+#include <string>                              // for operator<<, operator+
+#include <utility>                             // for pair
+
 
 class PHCompositeNode;
 
 using namespace std;
+
+TH2F *mapCorr = NULL;
 //____________________________________________________________________________..
 PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
@@ -73,9 +87,35 @@ PHG4InnerHcalSteppingAction::~PHG4InnerHcalSteppingAction()
   // legal to delete (it results in a no operation)
   delete m_Hit;
 }
+
+//____________________________________________________________________________..
+int PHG4InnerHcalSteppingAction::Init()
+{
+      
+ std::ostringstream ihcalmapname;
+ const char* Calibroot = getenv("CALIBRATIONROOT");
+ if (Calibroot) { ihcalmapname << Calibroot;}
+ else
+ {
+    std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+    gSystem->Exit(1);
+ }
+ 
+  ihcalmapname << "/HCALIN/tilemap/iHCALMapsNorm020922.root";
+  TFile *file = new TFile(ihcalmapname.str().data());
+  mapCorr = (TH2F *)file->Get("ihcalmapcombined");
+  if(!mapCorr){
+    std::cout << "ERROR: mapCorr is NULL" << std::endl;
+    gSystem->Exit(1);
+  }
+  
+  return 0;
+}
+
 //____________________________________________________________________________..
 bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 {
+ 
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
   // get volume of the current step
@@ -251,15 +291,39 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (whichactive > 0)  // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
     {
+        G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
+        G4ThreeVector worldPosition = postPoint->GetPosition();
+        G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
+
       m_Hit->set_eion(m_Hit->get_eion() + eion);
       light_yield = eion;
+     
       if (m_LightScintModel)
       {
         light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
+	float lx = (localPosition.x()/cm);
+        float lz = fabs(localPosition.z()/cm); 
+	 
+	  if(mapCorr)
+          {
+           //adjust to tilemap coordinates
+           int lcz = (int)(5.0*lz) + 1;
+           int lcx = (int)(5.0*(lx+12.1)) + 1;
+               
+           if((lcx>=1) && (lcx<=mapCorr->GetNbinsY()) &&
+            (lcz>=1) && (lcz<=mapCorr->GetNbinsX()))
+           {
+            light_yield *= (double) (mapCorr->GetBinContent(lcz, lcx));
+           }
+          else
+          {
+            light_yield = 0.0;
+          }
+        }
       }
       light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x(), postPoint->GetPosition().y());
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
-    }
+     }
     if (geantino)
     {
       m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
@@ -293,6 +357,8 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       if (m_Hit->get_edep())
       {
         m_SaveHitContainer->AddHit(layer_id, m_Hit);
+
+  
         if (m_SaveShower)
         {
           m_SaveShower->add_g4hit_id(m_SaveHitContainer->GetID(), m_Hit->get_hit_id());
@@ -351,3 +417,4 @@ void PHG4InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
     }
   }
 }
+
