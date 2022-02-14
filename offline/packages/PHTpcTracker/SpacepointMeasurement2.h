@@ -35,7 +35,7 @@ namespace PHGenFit
     void init(const TVector3& pos, const TMatrixDSym& cov);
 
     //!dtor
-    ~SpacepointMeasurement2();
+    ~SpacepointMeasurement2() override;
 
    protected:
   };

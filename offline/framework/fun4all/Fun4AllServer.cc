@@ -26,10 +26,7 @@
 #include <TROOT.h>
 #include <TSysEvtHandler.h>  // for ESignals
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 #include <algorithm>
 #include <cmath>

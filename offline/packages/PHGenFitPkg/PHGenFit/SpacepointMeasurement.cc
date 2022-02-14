@@ -66,9 +66,4 @@ SpacepointMeasurement::SpacepointMeasurement(const TVector3& pos, const TMatrixD
   init(pos, cov);
 }
 
-SpacepointMeasurement::~SpacepointMeasurement()
-{
-  //delete _measurement;
-}
-
 }  // namespace PHGenFit
