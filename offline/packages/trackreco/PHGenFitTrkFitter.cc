@@ -740,12 +740,18 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
   _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   // Input Svtx Clusters
-  //_clustermap = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
-  _clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  if (!_clustermap && _event < 2)
+  _clustermap = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
+  if(_clustermap)
   {
-    cout << PHWHERE << " TRKR_CLUSTER node not found on node tree"
-         << endl;
+    std::cout << "PHGenFitTrkFitter::GetNodes - Using CORRECTED_TRKR_CLUSTER node " << std::endl;
+  } else {
+    std::cout << "PHGenFitTrkFitter::GetNodes - CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl;
+    _clustermap = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+  }
+
+  if(!_clustermap)
+  {
+    cout << PHWHERE << " TRKR_CLUSTER node not found on node tree" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
