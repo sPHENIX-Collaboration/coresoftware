@@ -175,17 +175,15 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
 {
   CreateNodes(topNode);
 
-  TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
-  PHField* field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
+  auto tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
+  auto field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
-  //_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
   _fitter.reset( PHGenFit::Fitter::getInstance(
     tgeo_manager,
     field, _track_fitting_alg_name,
     "RKTrackRep", _do_evt_display) );
-  // _fitter->set_verbosity(Verbosity());
-  _fitter->set_verbosity(10);
-  //LogDebug(genfit::FieldManager::getInstance()->getFieldVal(TVector3(0, 0, 0)).Z());
+  
+  _fitter->set_verbosity(Verbosity());
 
   _vertex_finder.reset( new genfit::GFRaveVertexFactory(Verbosity()) );
   _vertex_finder->setMethod(_vertexing_method.data());
