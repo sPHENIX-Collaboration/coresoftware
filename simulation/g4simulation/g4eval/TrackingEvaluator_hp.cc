@@ -690,6 +690,13 @@ void TrackingEvaluator_hp::evaluate_tracks()
       if( is_micromegas ) add_trk_information_micromegas( cluster_struct, state_iter->second );
       else add_trk_information( cluster_struct, state_iter->second );
 
+      
+      // some printout
+      std::cout << "TrackingEvaluator_hp::evaluate_tracks -"
+        << " cluster key: " <<  cluster_key
+        << " _trk_rphi_error: " << cluster_struct._trk_r*cluster_struct._trk_phi_error 
+        << " _trk_z_error: " << cluster_struct._trk_z_error << std::endl;
+      
       // add to track
       track_struct._clusters.push_back( cluster_struct );
     }
