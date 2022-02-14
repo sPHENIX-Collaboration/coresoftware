@@ -393,13 +393,13 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
         const auto prob = m_Pt_Dist.back()*gsl_rng_uniform(RandomGenerator());
 
         // get the first bin with value larger than prob
-        for( size_t i = 0; i < m_Pt_Dist.size(); ++i )
+        for( size_t ipt = 0; ipt < m_Pt_Dist.size(); ++ipt )
         {
-          if( m_Pt_Dist[i] > prob )
+          if( m_Pt_Dist[ipt] > prob )
           {
             // get a flat random number in the corresponding interval
             /* we use 1.0-gsl_rng_uniform, because we want to exclude 0, and keep 1, to make sure one cannot get a pT of zero */
-            pt = m_Pt_Bins[i] + (m_Pt_Bins[i+1]-m_Pt_Bins[i])*(1.0-gsl_rng_uniform(RandomGenerator()));
+            pt = m_Pt_Bins[ipt] + (m_Pt_Bins[ipt+1]-m_Pt_Bins[ipt])*(1.0-gsl_rng_uniform(RandomGenerator()));
             break;
           }
         }
