@@ -221,6 +221,14 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   geomNode->SetGeometry(geoManager);
   assert(geoManager);
   
+  if(TGeoManager::GetDefaultUnits() != TGeoManager::EDefaultUnits::kRootUnits)
+    {
+      std::cerr << "There is a potential unit mismatch in the Acts geometry building."
+		<< " It is dangerous to continue and may lead to inconsistencies in the geometry. Exiting." 
+		<< std::endl;
+      gSystem->Exit(1);
+    }
+  
   TGeoVolume *World_vol = geoManager->GetTopVolume();
   
   // TPC geometry edits
@@ -305,7 +313,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
   TGeoVolume *tpc_gas_measurement_vol[m_nTpcLayers];
   double tan_half_phi = tan(m_surfStepPhi / 2.0);
   int copy = 0;
-  for(unsigned int ilayer = 0; ilayer < m_nTpcLayers; ++ilayer)
+  for(unsigned int ilayer = 0; ilayer < 1/*m_nTpcLayers*/; ++ilayer)
     {
       // make a box for this layer
       char bname[500];
@@ -320,13 +328,13 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
       tpc_gas_measurement_vol[ilayer] = geoManager->MakeBox(bname, tpc_gas_medium, 
 							    m_layerThickness[ilayer]*half_width_clearance_thick, 
 							    box_r_phi*half_width_clearance_phi, 
-							    m_surfStepZ*half_width_clearance_z);
+							    50);
 
       tpc_gas_measurement_vol[ilayer]->SetLineColor(kBlack);
       tpc_gas_measurement_vol[ilayer]->SetFillColor(kYellow);
       tpc_gas_measurement_vol[ilayer]->SetVisibility(kTRUE);
 
-      if(Verbosity() > 3)
+      if(Verbosity() > -1)
 	{
 	  std::cout << " Made box for layer " << ilayer 
 		    << " with dx " << m_layerThickness[ilayer] << " dy " 
@@ -341,7 +349,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
       for (unsigned int iz = 0; iz < m_nSurfZ; ++iz)
 	{
 	  // The (half) tpc gas volume is 105.5 cm long and is symmetric around (x,y,z) = (0,0,0) in its frame
-	  double z_center = -1*m_surfStepZ/2.0 + (double) iz * m_surfStepZ;
+	  double z_center = 0.0;
 
 	  for (unsigned int imod = 0; imod < m_nTpcModulesPerLayer; ++imod)
 	    {
@@ -371,7 +379,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 				       copy, tpc_gas_measurement_location);
         
 		  copy++;
-		  if(Verbosity() > 3 ) 
+		  if(Verbosity() > -1 ) 
 		    {
         
 		      std::cout << "Box center : ("<<x_center<<", " <<y_center
@@ -380,7 +388,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 				<< ", " << atan2(y_center,x_center) << ", " 
 				<< z_center << std::endl;
 		      std::cout << "Box dimensions " <<m_layerThickness[ilayer] *half_width_clearance_thick
-				<<" , " << box_r_phi/(m_layerRadius[ilayer]-m_layerThickness[ilayer]/2.) * half_width_clearance_phi << ", " 
+				<<" , " << box_r_phi/(m_layerRadius[ilayer]-m_layerThickness[ilayer]/2.) * half_width_clearance_phi 
 				<< ", " << m_surfStepZ*half_width_clearance_z << " and in xyz " 
 				<< m_layerThickness[ilayer]*half_width_clearance_thick*cos(box_r_phi/(m_layerRadius[ilayer]-m_layerThickness[ilayer]/2.)*half_width_clearance_phi) << ", " 
 				<< m_layerThickness[ilayer]*half_width_clearance_thick*sin(box_r_phi/(m_layerRadius[ilayer]-m_layerThickness[ilayer]/2.)*half_width_clearance_phi) << ", " 
