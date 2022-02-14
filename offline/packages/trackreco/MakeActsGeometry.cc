@@ -212,6 +212,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
     {
       geomNode->Reset();
     }
+
   PHGeomIOTGeo *dstGeomIO = PHGeomUtility::GetGeomIOTGeoNode(topNode, false);
   assert(dstGeomIO);
   assert(dstGeomIO->isValid());
@@ -221,7 +222,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   assert(geoManager);
   
   TGeoVolume *World_vol = geoManager->GetTopVolume();
-
+  
   // TPC geometry edits
   //===============
 
@@ -229,7 +230,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   TGeoNode *tpc_gas_north_node = nullptr;
 
   // find tpc north gas volume at path of World*/tpc_envelope*
-  if (Verbosity())
+  if (Verbosity()> -1)
   {
     std::cout << "EditTPCGeometry - searching under volume: ";
     World_vol->Print();
@@ -238,6 +239,8 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   {
     TString node_name = World_vol->GetNode(i)->GetName();
 
+    auto vol = World_vol->GetNode(i)->GetVolume();
+    vol->Print();
     if (node_name.BeginsWith("tpc_envelope"))
     {
       if (Verbosity())
@@ -252,7 +255,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   // find tpc north gas volume at path of World*/tpc_envelope*/tpc_gas_north*
   TGeoVolume *tpc_envelope_vol = tpc_envelope_node->GetVolume();
   assert(tpc_envelope_vol);
-  if (Verbosity())
+  if (Verbosity() > -1)
     {
       std::cout << "EditTPCGeometry - searching under volume: ";
       tpc_envelope_vol->Print();
@@ -276,7 +279,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   TGeoVolume *tpc_gas_north_vol = tpc_gas_north_node->GetVolume();
   assert(tpc_gas_north_vol);
 
-  if (Verbosity() > 3)
+  if (Verbosity() > -1)
   {
     std::cout << "EditTPCGeometry - gas volume: ";
     tpc_gas_north_vol->Print();
@@ -323,9 +326,6 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
       tpc_gas_measurement_vol[ilayer]->SetFillColor(kYellow);
       tpc_gas_measurement_vol[ilayer]->SetVisibility(kTRUE);
 
-      /// Replace the gas volume with the new volumes to avoid overlaps
-      geoManager->ReplaceVolume(tpc_gas_vol,tpc_gas_measurement_vol[ilayer]);
-
       if(Verbosity() > 3)
 	{
 	  std::cout << " Made box for layer " << ilayer 
@@ -366,10 +366,10 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 					 new TGeoRotation(rot_name,
 							  phi_center_degrees, 
 							  0, 0));
-		  std::cout << "add node "<<iz << ", " << imod << ", " << iphi <<std::endl;
+		 
 		  tpc_gas_vol->AddNode(tpc_gas_measurement_vol[ilayer], 
 				       copy, tpc_gas_measurement_location);
-		  std::cout << "added"<<std::endl;
+        
 		  copy++;
 		  if(Verbosity() > 3 ) 
 		    {
