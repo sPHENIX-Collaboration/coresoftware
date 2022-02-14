@@ -485,11 +485,15 @@ void PHTpcResiduals::calculateTpcResiduals(
   stateZ = trackZ;
 
   if(Verbosity() > 3)
+  {
     std::cout << "State r phi and z " 
-	      << stateR
-	      << "   " << statePhi << "+/-" << stateRPhiErr
-	      << " and " << stateZ << "+/-" << stateZErr << std::endl;
-
+      << stateR
+      << "   " << statePhi << "+/-" << stateRPhiErr
+      << " and " << stateZ << "+/-" << stateZErr << std::endl;
+  }
+   
+  std::cout << "PHTpcResiduals::calculateTpcResiduals - cluster: " << cluster->getClusKey() << " state rphi error: " << stateRPhiErr << " z error: " << stateZErr << std::endl;
+      
   const auto erp = square(clusRPhiErr) + square(stateRPhiErr);
   const auto ez = square(clusZErr) + square(stateZErr);
 
