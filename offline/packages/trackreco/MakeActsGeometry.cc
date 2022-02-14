@@ -203,10 +203,10 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
 void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 {
   // Because we reset and rebuild the geomNode, we do edits of the TPC geometry in the same module
-  
+
   PHGeomTGeo *geomNode = PHGeomUtility::GetGeomTGeoNode(topNode, true);
   assert(geomNode);
-  
+
   /// Reset the geometry node, which we will recreate with the TPC edits
   if(geomNode->isValid())
     {
@@ -216,19 +216,19 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   PHGeomIOTGeo *dstGeomIO = PHGeomUtility::GetGeomIOTGeoNode(topNode, false);
   assert(dstGeomIO);
   assert(dstGeomIO->isValid());
-  
+
   TGeoManager *geoManager = dstGeomIO->ConstructTGeoManager();
   geomNode->SetGeometry(geoManager);
   assert(geoManager);
-  
+ 
   if(TGeoManager::GetDefaultUnits() != TGeoManager::EDefaultUnits::kRootUnits)
     {
-      std::cerr << "There is a potential unit mismatch in the Acts geometry building."
-		<< " It is dangerous to continue and may lead to inconsistencies in the geometry. Exiting." 
+      std::cerr << "There is a potential unit mismatch in the ROOT geometry."
+		<< " It is dangerous to continue and may lead to inconsistencies in the Acts geometry. Exiting." 
 		<< std::endl;
       gSystem->Exit(1);
     }
-  
+
   TGeoVolume *World_vol = geoManager->GetTopVolume();
   
   // TPC geometry edits
@@ -246,9 +246,6 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   for (int i = 0; i < World_vol->GetNdaughters(); i++)
   {
     TString node_name = World_vol->GetNode(i)->GetName();
-
-    auto vol = World_vol->GetNode(i)->GetVolume();
-    vol->Print();
     if (node_name.BeginsWith("tpc_envelope"))
     {
       if (Verbosity())
@@ -258,6 +255,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
       break;
     }
   }
+
   assert(tpc_envelope_node);
 
   // find tpc north gas volume at path of World*/tpc_envelope*/tpc_gas_north*
@@ -313,7 +311,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
   TGeoVolume *tpc_gas_measurement_vol[m_nTpcLayers];
   double tan_half_phi = tan(m_surfStepPhi / 2.0);
   int copy = 0;
-  for(unsigned int ilayer = 0; ilayer < 1/*m_nTpcLayers*/; ++ilayer)
+  for(unsigned int ilayer = 0; ilayer < m_nTpcLayers; ++ilayer)
     {
       // make a box for this layer
       char bname[500];
@@ -328,7 +326,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
       tpc_gas_measurement_vol[ilayer] = geoManager->MakeBox(bname, tpc_gas_medium, 
 							    m_layerThickness[ilayer]*half_width_clearance_thick, 
 							    box_r_phi*half_width_clearance_phi, 
-							    50);
+							    m_surfStepZ*half_width_clearance_z);
 
       tpc_gas_measurement_vol[ilayer]->SetLineColor(kBlack);
       tpc_gas_measurement_vol[ilayer]->SetFillColor(kYellow);
