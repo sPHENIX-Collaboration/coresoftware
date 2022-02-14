@@ -74,6 +74,7 @@ int PHGeomUtility::ImportGeomFile(PHCompositeNode *topNode,
 
   // force TGeoManager to use the Fun4All unit of cm
 #if ROOT_VERSION_CODE >= ROOT_VERSION(6,23,2)
+  TGeoManager::LockDefaultUnits(kFALSE);
   TGeoManager::SetDefaultUnits( TGeoManager::kRootUnits );
   TGeoManager::LockDefaultUnits(kTRUE);
 #else
