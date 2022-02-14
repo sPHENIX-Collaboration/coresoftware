@@ -217,7 +217,7 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
  */
 int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 {
-  _event++;
+  ++_event;
   
   if (Verbosity() > 1)
     std::cout << PHWHERE << "Events processed: " << _event << std::endl;
@@ -744,10 +744,16 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
   _clustermap = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
   if(_clustermap)
   {
-    std::cout << "PHGenFitTrkFitter::GetNodes - Using CORRECTED_TRKR_CLUSTER node " << std::endl;
+    
+    if( _event < 2 )
+    { std::cout << "PHGenFitTrkFitter::GetNodes - Using CORRECTED_TRKR_CLUSTER node " << std::endl; }
+    
   } else {
-    std::cout << "PHGenFitTrkFitter::GetNodes - CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl;
+
+    if( _event < 2 )
+    { std::cout << "PHGenFitTrkFitter::GetNodes - CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl; }
     _clustermap = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+  
   }
 
   if(!_clustermap)
