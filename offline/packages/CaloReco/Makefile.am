@@ -7,6 +7,7 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
   libcalo_reco.la 
 
+#
 libcalo_reco_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib64 \
