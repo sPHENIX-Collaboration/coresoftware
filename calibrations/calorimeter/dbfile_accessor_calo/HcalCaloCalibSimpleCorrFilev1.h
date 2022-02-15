@@ -30,7 +30,7 @@ class HcalCaloCalibSimpleCorrFilev1 : public CaloCalibSimpleCorrFile
   float getCorr(const unsigned int ieta, const unsigned int iphi) override;
 
 
-  ConstIterator AddCorr(const unsigned int ieta, const unsigned int iphi, float corr);
+  ConstIterator AddCorr(const unsigned int ieta, const unsigned int iphi, float corr) override;
   void set_CalibrationFileName(const char * inFileName) {m_CalibrationFileName = inFileName;}
 
   
