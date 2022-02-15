@@ -9,6 +9,7 @@
 #define TRACKRECO_PHGENFITTRKFITTER_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #if defined(__CLING__)
 // needed, it crashes on Ubuntu using singularity with local cvmfs install
@@ -44,6 +45,9 @@ namespace PHGenFit
 {
 class Fitter;
 } /* namespace PHGenFit */
+
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
 
 class SvtxTrackMap;
 class SvtxVertexMap;
@@ -224,7 +228,6 @@ class PHGenFitTrkFitter : public SubsysReco
   {
     _vertex_min_ndf = vertexMinPT;
   }
-  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
 
   //!@name disabled layers interface
   //@{
@@ -253,6 +256,13 @@ class PHGenFitTrkFitter : public SubsysReco
   //!Create New nodes
   int CreateNodes(PHCompositeNode*);
 
+  /// get global position for a given cluster
+  /**
+   * uses ActsTransformation to convert cluster local position into global coordinates
+   * incorporates TPC distortion correction, if present
+   */
+  Acts::Vector3D getGlobalPosition(TrkrCluster*);
+
   /*
    * fit track with SvtxTrack as input seed.
    * \param intrack Input SvtxTrack
@@ -268,40 +278,12 @@ class PHGenFitTrkFitter : public SubsysReco
       const std::vector<genfit::GFRaveVertex*>& rave_vertices,
       const std::vector<genfit::Track*>& gf_tracks);
 
-  bool pos_cov_uvn_to_rz(
-      const TVector3& u,
-      const TVector3& v,
-      const TVector3& n,
-      const TMatrixF& pos_in,
-      const TMatrixF& cov_in,
-      TMatrixF& pos_out,
-      TMatrixF& cov_out) const;
-
-  bool get_vertex_error_uvn(
-      const TVector3& u,
-      const TVector3& v,
-      const TVector3& n,
-      const TMatrixF& cov_in,
-      TMatrixF& cov_out) const;
-
   bool pos_cov_XYZ_to_RZ(
       const TVector3& n,
       const TMatrixF& pos_in,
       const TMatrixF& cov_in,
       TMatrixF& pos_out,
       TMatrixF& cov_out) const;
-
-  /*!
-   * Get 3D Rotation Matrix that rotates frame (x,y,z) to (x',y',z')
-   * Default rotate local to global, or rotate vector in global to local representation
-   */
-  TMatrixF get_rotation_matrix(
-      const TVector3 x,
-      const TVector3 y,
-      const TVector3 z,
-      const TVector3 xp = TVector3(1., 0., 0.),
-      const TVector3 yp = TVector3(0., 1., 0.),
-      const TVector3 zp = TVector3(0., 0., 1.)) const;
 
   //bool _make_separate_nodes;
   OutPutMode _output_mode = PHGenFitTrkFitter::MakeNewNode;
@@ -334,13 +316,23 @@ class PHGenFitTrkFitter : public SubsysReco
   //! https://rave.hepforge.org/trac/wiki/RaveMethods
   std::string _vertexing_method = "avr-smoothing:1-minweight:0.5-primcut:9-seccut:9";
 
-  //PHRaveVertexFactory* _vertex_finder;
+  /// acts transformation object
+  ActsTransformations m_transform;
 
+  /// acts geometry
+  ActsTrackingGeometry *m_tgeometry = nullptr;
+
+  /// acts surface map
+  ActsSurfaceMaps *m_surfmaps = nullptr;
+
+  /// map cluster keys to global position
+  using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3D>;
+  PositionMap m_globalPositions;
+  
   //! Input Node pointers
   PHG4TruthInfoContainer* _truth_container = nullptr;
   TrkrClusterContainer* _clustermap = nullptr;
   SvtxTrackMap* _trackmap = nullptr;
-  std::string _track_map_name;
   SvtxVertexMap* _vertexmap = nullptr;
 
   //! Output Node pointers

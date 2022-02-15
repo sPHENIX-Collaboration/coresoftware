@@ -7,10 +7,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/phool.h>  // for PHWHERE, PHReadOnly, PHRunTree
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
-#pragma GCC diagnostic pop
 
 #include <cstdlib>
 #include <iostream>

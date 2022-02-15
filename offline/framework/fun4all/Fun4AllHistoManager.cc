@@ -8,10 +8,7 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TNamed.h>
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <TTree.h>
-#pragma GCC diagnostic pop
 
 #include <RVersion.h>
 #if ROOT_VERSION_CODE >= ROOT_VERSION(5, 20, 0)

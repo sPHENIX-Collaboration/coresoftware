@@ -26,6 +26,8 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   //! stepping action
   bool UserSteppingAction(const G4Step *, bool) override;
 
+  int Init() override;
+
   //! reimplemented from base class
   void SetInterfacePointers(PHCompositeNode *) override;
 
@@ -54,3 +56,4 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
 };
 
 #endif  // G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
+
