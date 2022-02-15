@@ -397,7 +397,7 @@
       }
     }
   ],
-  "geo-tgeo-unit-scalor": 1.0,
+  "geo-tgeo-unit-scalor": 10.0,
   "geo-tgeo-build-beampipe": false,
   "geo-tgeo-beampipe-parameters": [
     0.0,
