@@ -9,6 +9,7 @@ lib_LTLIBRARIES = \
 
 libcalo_reco_la_LDFLAGS = \
   -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib64 \
   -L$(OFFLINE_MAIN)/lib
 
 libcalo_reco_la_LIBADD = \
@@ -19,6 +20,8 @@ libcalo_reco_la_LIBADD = \
   -lgslcblas \
   -lg4vertex_io \
   -lcalo_io \
+  -lcaloCalibDBFile \
+  -lxpload \
   -lphparameter
 
 AM_CPPFLAGS = \
