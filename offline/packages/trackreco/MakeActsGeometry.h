@@ -110,7 +110,7 @@ class MakeActsGeometry : public SubsysReco
   /// Silicon layers made by BuildSiliconLayers and its helper functions
   void buildActsSurfaces();
 
-  /// Function that mimics ActsFW::GeometryExampleBase
+  /// Function that mimics ActsExamples::GeometryExampleBase
   void makeGeometry(int argc, char* argv[], 
 		    ActsExamples::IBaseDetector& detector);
  

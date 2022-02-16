@@ -55,7 +55,6 @@
 #include <ActsExamples/Framework/WhiteBoard.hpp>
 #include <ActsExamples/Geometry/CommonGeometry.hpp>
 #include <ActsExamples/Options/CommonOptions.hpp>
-#include <ActsExamples/Plugins/Obj/ObjWriterOptions.hpp>
 #include <ActsExamples/Utilities/Options.hpp>
 #include <ActsExamples/MagneticField/MagneticFieldOptions.hpp>
 
@@ -73,6 +72,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include <filesystem>
 
 namespace
 {
@@ -169,7 +169,7 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
     std::cout << " NOT adding TPC surfaces" << std::endl;
 
   /// Export the new geometry to a root file for examination
-  if(Verbosity() > -1)
+  if(Verbosity() > 3)
     {
       PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.root"); 
       PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.gdml");
@@ -190,7 +190,7 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
 
   /// Run Acts layer builder
-  //buildActsSurfaces();
+  buildActsSurfaces();
 
   /// Create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
   //makeTGeoNodeMap(topNode);
@@ -238,7 +238,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   TGeoNode *tpc_gas_north_node = nullptr;
 
   // find tpc north gas volume at path of World*/tpc_envelope*
-  if (Verbosity()> -1)
+  if (Verbosity()> 3)
   {
     std::cout << "EditTPCGeometry - searching under volume: ";
     World_vol->Print();
@@ -261,7 +261,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   // find tpc north gas volume at path of World*/tpc_envelope*/tpc_gas_north*
   TGeoVolume *tpc_envelope_vol = tpc_envelope_node->GetVolume();
   assert(tpc_envelope_vol);
-  if (Verbosity() > -1)
+  if (Verbosity() > 3)
     {
       std::cout << "EditTPCGeometry - searching under volume: ";
       tpc_envelope_vol->Print();
@@ -285,7 +285,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   TGeoVolume *tpc_gas_north_vol = tpc_gas_north_node->GetVolume();
   assert(tpc_gas_north_vol);
 
-  if (Verbosity() > -1)
+  if (Verbosity() > 3)
   {
     std::cout << "EditTPCGeometry - gas volume: ";
     tpc_gas_north_vol->Print();
@@ -332,7 +332,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
       tpc_gas_measurement_vol[ilayer]->SetFillColor(kYellow);
       tpc_gas_measurement_vol[ilayer]->SetVisibility(kTRUE);
 
-      if(Verbosity() > -1)
+      if(Verbosity() > 3)
 	{
 	  std::cout << " Made box for layer " << ilayer 
 		    << " with dx " << m_layerThickness[ilayer] << " dy " 
@@ -377,7 +377,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 				       copy, tpc_gas_measurement_location);
         
 		  copy++;
-		  if(Verbosity() > -1 ) 
+		  if(Verbosity() > 3 ) 
 		    {
         
 		      std::cout << "Box center : ("<<x_center<<", " <<y_center
@@ -417,14 +417,13 @@ void MakeActsGeometry::buildActsSurfaces()
 
   // Response file contains arguments necessary for geometry building
   std::string argstr[argc]{
-    "-n1", "-l0", 
-      "--response-file", responseFile,
+    "--geo-tgeo-jsonconfig", responseFile,
       "--mat-input-type","file",
       "--mat-input-file", materialFile,
-      "--bf-values","0","0", m_magField,
+      "--bf-constant-tesla","0:0:1.4",
       "--bf-bscalor"};
   
-  argstr[13] = std::to_string(m_magFieldRescale);
+  argstr[9] = std::to_string(m_magFieldRescale);
      
 
   /// Alter args if using field map
@@ -438,15 +437,15 @@ void MakeActsGeometry::buildActsSurfaces()
       m_magField = std::string(getenv("CALIBRATIONROOT")) +
 	std::string("/Field/Map/sphenix3dbigmapxyz.root");
       
-      argstr[8] = "--bf-map";
-      argstr[9] = m_magField;
-      argstr[10]= "--bf-name";
-      argstr[11] = "fieldmap";
-      argstr[12] = "--bf-lscalor";
-      argstr[13] = "10";
-      argstr[14] = "--bf-bscalor";
-      argstr[15] = std::to_string(m_magFieldRescale);  
-
+      argstr[6] = "--bf-map-file";
+      argstr[7] = m_magField;
+      argstr[8]= "--bf-map-tree";
+      argstr[9] = "fieldmap";
+      argstr[10] = "--bf-map-lengthscale-mm";
+      argstr[11] = "10";
+      argstr[12] = "--bf-map-fieldscale-tesla";
+      argstr[13] = std::to_string(m_magFieldRescale);  
+      
     }
 
   if(Verbosity() > 0)
@@ -456,7 +455,7 @@ void MakeActsGeometry::buildActsSurfaces()
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)
     {
-      if(Verbosity() > 0)
+      if(Verbosity() > -1)
 	std::cout << argstr[i] << ", ";
       // need a copy, since .c_str() returns a const char * and process geometry will not take a const
       arg[i] = strdup(argstr[i].c_str());
@@ -475,32 +474,30 @@ void MakeActsGeometry::buildActsSurfaces()
 void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
 					       std::string& materialFile)
 {
-
-  responseFile = m_buildMMs ? "tgeo-sphenix-mms.response":"tgeo-sphenix.response";
-  materialFile = m_buildMMs ? "sphenix-mm-material.json":"sphenix-material.json";
-
+  responseFile = "tgeo-sphenix-mms.json";
+  materialFile = "sphenix-mm-material.json";
+        
   /// Check to see if files exist locally - if not, use defaults
   std::ifstream file;
 
   file.open(responseFile);
-  if(!file)
+  if(!file.is_open())
     {
       std::cout << responseFile
 		<< " not found locally, use repo version"
 		<< std::endl;
   
 	responseFile = std::string(getenv("OFFLINE_MAIN")) +
-    (m_buildMMs ? "/share/tgeo-sphenix-mms.response":"/share/tgeo-sphenix.response");
+	  "/share/tgeo-sphenix-mms.json";
     }
-    
-  file.open(materialFile);
-  if(!file)
+
+  if(!file.is_open())
     {
       std::cout << materialFile 
 		<< " not found locally, use repo version" 
 		<< std::endl;
-	materialFile = std::string(getenv("CALIBRATIONROOT")) +
-    (m_buildMMs ? "/ACTS/sphenix-mm-material.json":"/ACTS/sphenix-material.json");
+      materialFile = std::string(getenv("CALIBRATIONROOT")) +
+	"/ACTS/sphenix-mm-material.json";
     }
   
   if(Verbosity() > -1)
@@ -514,31 +511,29 @@ void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
   return;
 
 }
-void MakeActsGeometry::makeGeometry(int argc, char* argv[], ActsExamples::IBaseDetector &detector)
+void MakeActsGeometry::makeGeometry(int argc, char* argv[], 
+				    ActsExamples::IBaseDetector &detector)
 {
   
   /// setup and parse options
+  //boost::program_options::options_description desc;
   auto desc = ActsExamples::Options::makeDefaultOptions();
   ActsExamples::Options::addGeometryOptions(desc);
   ActsExamples::Options::addMaterialOptions(desc);
-  ActsExamples::Options::addObjWriterOptions(desc);
-  ActsExamples::Options::addOutputOptions(desc, 
-					  ActsExamples::OutputFormat::Obj |
-					  ActsExamples::OutputFormat::Root);
-  ActsExamples::Options::addMagneticFieldOptions(desc);
+  ActsExamples::Options::addSequencerOptions(desc);
 
   /// Add specific options for this geometry
   detector.addOptions(desc);
   auto vm = ActsExamples::Options::parse(desc, argc, argv);
-
+  std::cout << std::endl << "building"<<std::endl;
   /// The geometry, material and decoration
   auto geometry = ActsExamples::Geometry::build(vm, detector);
   /// Geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
   m_tGeometry = geometry.first;
   m_contextDecorators = geometry.second;
-
+  std::cout << "read field"<<std::endl;
   m_magneticField = ActsExamples::Options::readMagneticField(vm);
-
+  std::cout << "Read"<<std::endl;
   size_t ievt = 0;
   size_t ialg = 0;
 
@@ -553,7 +548,7 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[], ActsExamples::IBaseD
   m_calibContext = context.calibContext;
   m_magFieldContext = context.magFieldContext;
   m_geoCtxt = context.geoContext;
-    
+  std::cout << "unpack vol"<<std::endl;
   unpackVolumes();
   
   return;
@@ -1478,3 +1473,4 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
