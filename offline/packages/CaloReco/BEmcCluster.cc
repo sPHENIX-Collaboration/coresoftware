@@ -347,23 +347,23 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
       int ichmax = (ich / fOwner->GetNx() + 2) * fOwner->GetNx() - 1;
       int ichmin = (ich / fOwner->GetNx() - 1) * fOwner->GetNx();
       int ixc = ich - ich / fOwner->GetNx() * fOwner->GetNx();
-      int in = ic + 1;
+      int inA = ic + 1;
       // check right, and 3 towers above if there is another max
-      while ((in < nhit) && (hlist[in].ich <= ichmax))
+      while ((inA < nhit) && (hlist[inA].ich <= ichmax))
       {
-        int ix = hlist[in].ich - hlist[in].ich / fOwner->GetNx() * fOwner->GetNx();
-        //old	if( (abs(ixc-ix) <= 1) && (hlist[in].amp >= amp) ) goto new_ic;
-        if ((abs(fOwner->iTowerDist(ix, ixc)) <= 1) && (hlist[in].amp >= amp)) goto new_ic;
-        in++;
+        int ixA = hlist[inA].ich - hlist[inA].ich / fOwner->GetNx() * fOwner->GetNx();
+        //old	if( (abs(ixc-ixA) <= 1) && (hlist[inA].amp >= amp) ) goto new_ic;
+        if ((abs(fOwner->iTowerDist(ixA, ixc)) <= 1) && (hlist[inA].amp >= amp)) goto new_ic;
+        inA++;
       }
-      in = ic - 1;
+      inA = ic - 1;
       // check left, and 3 towers below if there is another max
-      while ((in >= 0) && (hlist[in].ich >= ichmin))
+      while ((inA >= 0) && (hlist[inA].ich >= ichmin))
       {
-        int ix = hlist[in].ich - hlist[in].ich / fOwner->GetNx() * fOwner->GetNx();
-        //old	if( (abs(ixc-ix) <= 1) && (hlist[in].amp > amp) ) goto new_ic;
-        if ((abs(fOwner->iTowerDist(ix, ixc)) <= 1) && (hlist[in].amp > amp)) goto new_ic;
-        in--;
+        int ixA = hlist[inA].ich - hlist[inA].ich / fOwner->GetNx() * fOwner->GetNx();
+        //old	if( (abs(ixc-ixA) <= 1) && (hlist[inA].amp > amp) ) goto new_ic;
+        if ((abs(fOwner->iTowerDist(ixA, ixc)) <= 1) && (hlist[inA].amp > amp)) goto new_ic;
+        inA--;
       }
       if (npk >= fgMaxNofPeaks)
       {
