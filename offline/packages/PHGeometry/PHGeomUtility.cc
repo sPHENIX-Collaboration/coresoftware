@@ -47,6 +47,15 @@ PHGeomUtility::GetTGeoManager(PHCompositeNode *topNode)
     dst_geom = LoadFromIONode(topNode);
   }
 
+  if (TGeoManager::GetDefaultUnits() != TGeoManager::kRootUnits )
+  {
+    cout << __PRETTY_FUNCTION__ << " TGeoManager was not constructed with RootUnits, which potentially leads to unit mismatch with Fun4All. This is considered a fatal error."
+        <<endl;
+
+    exit(1);
+    return nullptr;
+  }
+
   UpdateIONode(topNode);
 
   return dst_geom->GetGeometry();
