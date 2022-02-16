@@ -475,9 +475,9 @@ void MakeActsGeometry::buildActsSurfaces()
 void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
 					       std::string& materialFile)
 {
-  responseFile = "tgeo-sphenix-mms.json";
-  materialFile = "sphenix-mm-material.json";
-        
+ 
+  responseFile = m_buildMMs ? "tgeo-sphenix-mms.json":"tgeo-sphenix.json";
+  materialFile = m_buildMMs ? "sphenix-mm-material.json":"sphenix-material.json";
   /// Check to see if files exist locally - if not, use defaults
   std::ifstream file;
 
@@ -488,17 +488,18 @@ void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
 		<< " not found locally, use repo version"
 		<< std::endl;
   
-	responseFile = std::string(getenv("OFFLINE_MAIN")) +
-	  "/share/tgeo-sphenix-mms.json";
+      responseFile = std::string(getenv("OFFLINE_MAIN")) +
+	(m_buildMMs ? "/share/tgeo-sphenix-mms.response":"/share/tgeo-sphenix.response");
     }
 
+  file.open(materialFile);
   if(!file.is_open())
     {
       std::cout << materialFile 
 		<< " not found locally, use repo version" 
 		<< std::endl;
       materialFile = std::string(getenv("CALIBRATIONROOT")) +
-	"/ACTS/sphenix-mm-material.json";
+	(m_buildMMs ? "/ACTS/sphenix-mm-material.json":"/ACTS/sphenix-material.json");
     }
   
   if(Verbosity() > -1)

@@ -121,6 +121,7 @@ ACTS_SOURCES = \
 
 $OFFLINE_MAIN/share:
 dist_data_DATA = \
+  tgeo-sphenix.json \
   tgeo-sphenix-mms.json
 
 AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
