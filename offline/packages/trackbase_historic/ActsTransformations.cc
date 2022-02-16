@@ -267,23 +267,23 @@ Acts::Vector3 ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
 						      ActsSurfaceMaps* surfMaps,
 						      ActsTrackingGeometry *tGeometry) const
 {
-  std::cout << "starting get global position"<<std::endl;
+
   Acts::Vector3 glob;
-  std::cout << "Getting trkrid for " << cluster->getClusKey() << std::endl;
+ 
   const auto trkrid = TrkrDefs::getTrkrId(cluster->getClusKey());
-  std::cout << "Trkrid " << (unsigned int)trkrid<<std::endl;
+
   auto surface = getSurface(cluster, surfMaps);
-  std::cout << "problem in surface getting"<<std::endl;
+
   if(!surface)
     {
-      std::cout << "no surface"<<std::endl;
+   
       std::cerr << "Couldn't identify cluster surface. Returning NAN"
 		<< std::endl;
       glob(0) = NAN;
       glob(1) = NAN;
       glob(2) = NAN;
       return glob;
-    } else std::cout << "Got surface "<< std::endl;
+    } 
 
   Acts::Vector2 local(cluster->getLocalX(), cluster->getLocalY());
   Acts::Vector3 global;
@@ -299,9 +299,8 @@ Acts::Vector3 ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
 
   /// Otherwise do the manual calculation
   /// Undo the manual calculation that is performed in TpcClusterizer
-  std::cout << "Getting surf center"<<std::endl;
   auto surfCenter = surface->center(tGeometry->geoContext);
-  std::cout << "Got surf center"<<std::endl;
+
   surfCenter /= Acts::UnitConstants::cm;
   double surfPhiCenter = atan2(surfCenter(1), surfCenter(0));
   double surfRadius = radius(surfCenter(0), surfCenter(1));
@@ -313,7 +312,7 @@ Acts::Vector3 ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
   double clusphi = clusRPhi / surfRadius;
   double gclusx = surfRadius * cos(clusphi);
   double gclusy = surfRadius * sin(clusphi);
-  std::cout << "setting global and returning : " << gclusx << ", " << gclusy << ", " << gclusz << std::endl;
+
   global(0) = gclusx;
   global(1) = gclusy;
   global(2) = gclusz;
