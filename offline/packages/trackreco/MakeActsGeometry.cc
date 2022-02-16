@@ -417,6 +417,7 @@ void MakeActsGeometry::buildActsSurfaces()
 
   // Response file contains arguments necessary for geometry building
   std::string argstr[argc]{
+    "-n1",
     "--geo-tgeo-jsonconfig", responseFile,
       "--mat-input-type","file",
       "--mat-input-file", materialFile,
@@ -437,14 +438,14 @@ void MakeActsGeometry::buildActsSurfaces()
       m_magField = std::string(getenv("CALIBRATIONROOT")) +
 	std::string("/Field/Map/sphenix3dbigmapxyz.root");
       
-      argstr[6] = "--bf-map-file";
-      argstr[7] = m_magField;
-      argstr[8]= "--bf-map-tree";
-      argstr[9] = "fieldmap";
-      argstr[10] = "--bf-map-lengthscale-mm";
-      argstr[11] = "10";
-      argstr[12] = "--bf-map-fieldscale-tesla";
-      argstr[13] = std::to_string(m_magFieldRescale);  
+      argstr[7] = "--bf-map-file";
+      argstr[8] = m_magField;
+      argstr[9]= "--bf-map-tree";
+      argstr[10] = "fieldmap";
+      argstr[11] = "--bf-map-lengthscale-mm";
+      argstr[12] = "10";
+      argstr[13] = "--bf-map-fieldscale-tesla";
+      argstr[14] = std::to_string(m_magFieldRescale);  
       
     }
 
@@ -516,24 +517,24 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[],
 {
   
   /// setup and parse options
-  //boost::program_options::options_description desc;
-  auto desc = ActsExamples::Options::makeDefaultOptions();
+  boost::program_options::options_description desc;
   ActsExamples::Options::addGeometryOptions(desc);
   ActsExamples::Options::addMaterialOptions(desc);
-  ActsExamples::Options::addSequencerOptions(desc);
+  ActsExamples::Options::addMagneticFieldOptions(desc);
 
   /// Add specific options for this geometry
   detector.addOptions(desc);
   auto vm = ActsExamples::Options::parse(desc, argc, argv);
-  std::cout << std::endl << "building"<<std::endl;
+ 
   /// The geometry, material and decoration
   auto geometry = ActsExamples::Geometry::build(vm, detector);
   /// Geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
+
   m_tGeometry = geometry.first;
   m_contextDecorators = geometry.second;
-  std::cout << "read field"<<std::endl;
+
   m_magneticField = ActsExamples::Options::readMagneticField(vm);
-  std::cout << "Read"<<std::endl;
+
   size_t ievt = 0;
   size_t ialg = 0;
 
@@ -548,7 +549,7 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[],
   m_calibContext = context.calibContext;
   m_magFieldContext = context.magFieldContext;
   m_geoCtxt = context.geoContext;
-  std::cout << "unpack vol"<<std::endl;
+ 
   unpackVolumes();
   
   return;
@@ -560,8 +561,12 @@ void MakeActsGeometry::unpackVolumes()
   /// vol is a TrackingVolume pointer  
   auto vol = m_tGeometry->highestTrackingVolume();
 
-  if(Verbosity() > 10 )
-  { std::cout << "MakeActsGeometry::unpackVolumes - top volume: " << vol->volumeName() << std::endl; }
+  if(Verbosity() > 3 )
+  { 
+    std::cout << "MakeActsGeometry::unpackVolumes - top volume: " << vol->volumeName() << std::endl; 
+    std::cout << "Before: Mvtx: m_clusterSurfaceMapSilicon size    " << m_clusterSurfaceMapSilicon.size() << std::endl;
+    std::cout << "Before: m_clusterSurfaceMapTpc size    " << m_clusterSurfaceMapTpcEdit.size() << std::endl;
+  }
 
   if(m_buildMMs)
   {
@@ -573,29 +578,31 @@ void MakeActsGeometry::unpackVolumes()
   
   {
     // MVTX
-    //std::cout << "Before: Mvtx: m_clusterSurfaceMapSilicon size    " << m_clusterSurfaceMapSilicon.size() << std::endl;
     auto mvtxBarrel = find_volume_by_name( vol, "MVTX::Barrel" );
     assert( mvtxBarrel );
     makeMvtxMapPairs(mvtxBarrel);
-    //std::cout << "After: Mvtx: m_clusterSurfaceMapSilicon size    " << m_clusterSurfaceMapSilicon.size() << std::endl;
+    if(Verbosity() > 3)
+      { std::cout << "After: Mvtx: m_clusterSurfaceMapSilicon size    " << m_clusterSurfaceMapSilicon.size() << std::endl; }
   }
 
   {
     // INTT
-    //std::cout << "Before: INTT: m_clusterSurfaceMapSilicon size    " << m_clusterSurfaceMapSilicon.size() << std::endl;
+    if(Verbosity() > 3)
+      { std::cout << "Before: INTT: m_clusterSurfaceMapSilicon size    " << m_clusterSurfaceMapSilicon.size() << std::endl; }
     auto inttBarrel = find_volume_by_name( vol, "Silicon::Barrel" );
     assert( inttBarrel );
     makeInttMapPairs(inttBarrel);
-    //std::cout << "After: INTT: m_clusterSurfaceMapSilicon size    " << m_clusterSurfaceMapSilicon.size() << std::endl;
+    if(Verbosity() > -1)
+      { std::cout << "After: INTT: m_clusterSurfaceMapSilicon size    " << m_clusterSurfaceMapSilicon.size() << std::endl; }
   }
 
   {
     // TPC
-    //std::cout << "Before: m_clusterSurfaceMapTpc size    " << m_clusterSurfaceMapTpcEdit.size() << std::endl;
     auto tpcBarrel = find_volume_by_name( vol, "TPC::Barrel" );
     assert( tpcBarrel );
     makeTpcMapPairs(tpcBarrel);
-    //std::cout << "After: m_clusterSurfaceMapTpc size    " << m_clusterSurfaceMapTpcEdit.size() << std::endl;
+    if(Verbosity() > 3)
+      { std::cout << "After: m_clusterSurfaceMapTpc size    " << m_clusterSurfaceMapTpcEdit.size() << std::endl; }
   }
 
   return;
