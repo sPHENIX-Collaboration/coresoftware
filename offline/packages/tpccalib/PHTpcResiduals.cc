@@ -491,9 +491,7 @@ void PHTpcResiduals::calculateTpcResiduals(
       << "   " << statePhi << "+/-" << stateRPhiErr
       << " and " << stateZ << "+/-" << stateZErr << std::endl;
   }
-   
-  std::cout << "PHTpcResiduals::calculateTpcResiduals - cluster: " << cluster->getClusKey() << " state rphi error: " << stateRPhiErr << " z error: " << stateZErr << std::endl;
-      
+
   const auto erp = square(clusRPhiErr) + square(stateRPhiErr);
   const auto ez = square(clusZErr) + square(stateZErr);
 
