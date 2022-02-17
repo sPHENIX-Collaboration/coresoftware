@@ -342,9 +342,12 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 	  tpc_gas_measurement_vol[ilayer]->Print();
 	  tpc_gas_measurement_vol[ilayer]->CheckOverlaps();
 
-	}
-    
-      for (unsigned int iz = 0; iz < m_nSurfZ; ++iz)
+  int copy = 0;	      
+  for (unsigned int iz = 0; iz < m_nSurfZ; ++iz)
+    {
+      // The (half) tpc gas volume is 105.5 cm long and is symmetric around (x,y,z) = (0,0,0) in its frame
+      double z_center = 0.0;
+      for (unsigned int imod = 0; imod < m_nTpcModulesPerLayer; ++imod)
 	{
 	  // The (half) tpc gas volume is 105.5 cm long and is symmetric around (x,y,z) = (0,0,0) in its frame
 	  double z_center = 0.0;
