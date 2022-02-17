@@ -14,6 +14,8 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -70,8 +72,8 @@ TpcSpaceChargeReconstruction::TpcSpaceChargeReconstruction( const std::string& n
   SubsysReco( name)
   , PHParameterInterface(name)
   , m_matrix_container( new TpcSpaceChargeMatrixContainerv1 )
-{ 
-  InitializeParameters(); 
+{
+  InitializeParameters();
 }
 
 //_____________________________________________________________________
@@ -118,13 +120,20 @@ int TpcSpaceChargeReconstruction::InitRun(PHCompositeNode* )
     // also identify the matrix container
     m_matrix_container->identify();
   }
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_____________________________________________________________________
 int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 {
+  
+  // increment local event counter
+  ++m_event;
+  
+  // clear global position cache
+  m_globalPositions.clear();
+
   // load nodes
   const auto res = load_nodes(topNode);
   if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
@@ -144,7 +153,7 @@ int TpcSpaceChargeReconstruction::End(PHCompositeNode* /*topNode*/ )
     outputfile->cd();
     m_matrix_container->Write( "TpcSpaceChargeMatrixContainer" );
   }
-  
+
   // print counters
   std::cout
     << "TpcSpaceChargeReconstruction::End -"
@@ -177,12 +186,59 @@ void TpcSpaceChargeReconstruction::SetDefaultParameters()
 int TpcSpaceChargeReconstruction::load_nodes( PHCompositeNode* topNode )
 {
   // get necessary nodes
+  m_tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  assert( m_tgeometry );
+
+  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
+  assert( m_surfmaps );
+
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   assert(m_track_map);
 
-  m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  assert(m_cluster_map);
+    m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
+  if(m_cluster_map)
+  {
+
+    if( m_event < 2 )
+    { std::cout << "TpcSpaceChargeReconstruction::load_nodes - Using CORRECTED_TRKR_CLUSTER node " << std::endl; }
+
+  } else {
+
+    if( m_event < 2 )
+    { std::cout << "TpcSpaceChargeReconstruction::load_nodes - CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl; }
+    m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+
+  }
+
+  assert( m_cluster_map );
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//_________________________________________________________________________________
+Acts::Vector3D TpcSpaceChargeReconstruction::get_global_position( TrkrCluster* cluster )
+{
+
+  // get cluster key
+  const auto key = cluster->getClusKey();
+
+  // find closest iterator in map
+  auto it = m_globalPositions.lower_bound( key );
+  if (it == m_globalPositions.end()|| (key < it->first ))
+  {
+    // get global position from Acts transform
+    const auto globalpos = m_transform.getGlobalPosition(cluster,
+      m_surfmaps,
+      m_tgeometry);
+
+    /*
+     * todo: should also either apply distortion corrections
+     * or make sure clusters are loaded from corrected map, after cluster mover
+     */
+
+    // add new cluster and set its key
+    it = m_globalPositions.insert(it, std::make_pair(key, globalpos));
+  }
+  return it->second;
 }
 
 //_____________________________________________________________________
@@ -242,9 +298,10 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     if(detId != TrkrDefs::tpcId) continue;
 
     // cluster r, phi and z
-    const auto cluster_r = get_r( cluster->getX(), cluster->getY() );
-    const auto cluster_phi = std::atan2( cluster->getY(), cluster->getX() );
-    const auto cluster_z = cluster->getZ();
+    const auto global_position = get_global_position( cluster );
+    const auto cluster_r = get_r( global_position.x(), global_position.y() );
+    const auto cluster_phi = std::atan2( global_position.y(), global_position.x() );
+    const auto cluster_z = global_position.z();
 
     // cluster errors
     const auto cluster_rphi_error = cluster->getRPhiError();
@@ -364,9 +421,9 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       std::cout << "TpcSpaceChargeReconstruction::process_track - invalid cell index" << std::endl;
       continue;
     }
-    
+
     // update matrices
-    // see https://indico.bnl.gov/event/7440/contributions/43328/attachments/31334/49446/talk.pdf for details 
+    // see https://indico.bnl.gov/event/7440/contributions/43328/attachments/31334/49446/talk.pdf for details
     m_matrix_container->add_to_lhs(i, 0, 0, 1./erp );
     m_matrix_container->add_to_lhs(i, 0, 1, 0 );
     m_matrix_container->add_to_lhs(i, 0, 2, talpha/erp );
@@ -394,28 +451,32 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 }
 
 //_____________________________________________________________________
-int TpcSpaceChargeReconstruction::get_cell_index( TrkrCluster* cluster ) const
+int TpcSpaceChargeReconstruction::get_cell_index( TrkrCluster* cluster )
 {
   // get grid dimensions from matrix container
   int phibins = 0;
   int rbins = 0;
   int zbins = 0;
   m_matrix_container->get_grid_dimensions( phibins, rbins, zbins );
-  
+
+
+  // get global position
+  const auto global_position = get_global_position( cluster );
+
   // phi
   // bound check
-  float phi = std::atan2( cluster->getY(), cluster->getX() );
+  float phi = std::atan2( global_position.y(), global_position.x() );
   while( phi < m_phimin ) phi += 2.*M_PI;
   while( phi >= m_phimax ) phi -= 2.*M_PI;
   int iphi = phibins*(phi-m_phimin)/(m_phimax-m_phimin);
 
   // radius
-  const float r = get_r( cluster->getX(), cluster->getY() );
+  const float r = get_r( global_position.x(), global_position.y() );
   if( r < m_rmin || r >= m_rmax ) return -1;
   int ir = rbins*(r-m_rmin)/(m_rmax-m_rmin);
 
   // z
-  const float z = cluster->getZ();
+  const float z = global_position.z();
   if( z < m_zmin || z >= m_zmax ) return -1;
   int iz = zbins*(z-m_zmin)/(m_zmax-m_zmin);
 
