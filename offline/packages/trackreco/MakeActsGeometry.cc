@@ -341,17 +341,13 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 		    << m_surfStepZ << std::endl;
 	  tpc_gas_measurement_vol[ilayer]->Print();
 	  tpc_gas_measurement_vol[ilayer]->CheckOverlaps();
-
-  int copy = 0;	      
-  for (unsigned int iz = 0; iz < m_nSurfZ; ++iz)
-    {
-      // The (half) tpc gas volume is 105.5 cm long and is symmetric around (x,y,z) = (0,0,0) in its frame
-      double z_center = 0.0;
-      for (unsigned int imod = 0; imod < m_nTpcModulesPerLayer; ++imod)
+	}
+      	      
+      for (unsigned int iz = 0; iz < m_nSurfZ; ++iz)
 	{
 	  // The (half) tpc gas volume is 105.5 cm long and is symmetric around (x,y,z) = (0,0,0) in its frame
 	  double z_center = 0.0;
-
+	  
 	  for (unsigned int imod = 0; imod < m_nTpcModulesPerLayer; ++imod)
 	    {
 	      for (unsigned int iphi = 0; iphi < m_nSurfPhi; ++iphi)
@@ -399,7 +395,7 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 	    }
 	}
     }
-}
+	}
 
 /**
  * Builds silicon layers and TPC geometry in the ACTS surface world
