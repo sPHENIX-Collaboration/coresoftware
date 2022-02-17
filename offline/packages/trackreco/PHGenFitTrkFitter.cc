@@ -7,6 +7,49 @@
 
 #include "PHGenFitTrkFitter.h"
 
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/PHTFileServer.h>
+#include <fun4all/SubsysReco.h>                     // for SubsysReco
+
+#include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Particlev2.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>                    // for PHG4VtxPoint
+#include <g4main/PHG4VtxPointv1.h>
+
+#include <intt/InttDefs.h>
+#include <intt/CylinderGeomIntt.h>
+
+#include <micromegas/MicromegasDefs.h>
+#include <micromegas/CylinderGeomMicromegas.h>
+
+#include <mvtx/MvtxDefs.h>
+#include <mvtx/CylinderGeom_Mvtx.h>
+
+#include <phfield/PHFieldUtility.h>
+
+#include <phgenfit/Fitter.h>
+#include <phgenfit/Measurement.h>                   // for Measurement
+#include <phgenfit/PlanarMeasurement.h>
+#include <phgenfit/SpacepointMeasurement.h>
+#include <phgenfit/Track.h>
+
+#include <phgeom/PHGeomUtility.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                           // for PHNode
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                         // for PHObject
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
@@ -21,45 +64,6 @@
 #include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
 #include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>       // for SvtxVertexMap
-
-#include <intt/InttDefs.h>
-#include <intt/CylinderGeomIntt.h>
-
-#include <micromegas/MicromegasDefs.h>
-#include <micromegas/CylinderGeomMicromegas.h>
-
-#include <mvtx/MvtxDefs.h>
-#include <mvtx/CylinderGeom_Mvtx.h>
-
-#include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
-#include <g4detectors/PHG4CylinderGeomContainer.h>
-
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Particlev2.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>                    // for PHG4VtxPoint
-#include <g4main/PHG4VtxPointv1.h>
-
-#include <phgenfit/Fitter.h>
-#include <phgenfit/Measurement.h>                   // for Measurement
-#include <phgenfit/PlanarMeasurement.h>
-#include <phgenfit/SpacepointMeasurement.h>
-#include <phgenfit/Track.h>
-
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
-#include <fun4all/SubsysReco.h>                     // for SubsysReco
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                           // for PHNode
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                         // for PHObject
-#include <phool/getClass.h>
-#include <phool/phool.h>
-
-#include <phfield/PHFieldUtility.h>
-#include <phgeom/PHGeomUtility.h>
 
 #include <GenFit/AbsMeasurement.h>                  // for AbsMeasurement
 #include <GenFit/EventDisplay.h>                    // for EventDisplay
@@ -220,11 +224,10 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
   ++_event;
   
   if (Verbosity() > 1)
-    std::cout << PHWHERE << "Events processed: " << _event << std::endl;
-  //	if (_event % 1000 == 0)
-  //		cout << PHWHERE << "Events processed: " << _event << endl;
+  { std::cout << PHWHERE << "Events processed: " << _event << std::endl; }
 
-  //cout << "Start PHGenFitTrkfitter::process_event" << endl;
+  // clear global position map
+  m_globalPositions.clear();
 
   GetNodes(topNode);
 
@@ -484,6 +487,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 #ifdef _DEBUG_
   cout << __LINE__ << endl;
 #endif
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -740,7 +744,7 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
   //Truth container
   _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
-  // Input Svtx Clusters
+  // clusters
   _clustermap = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
   if(_clustermap)
   {
