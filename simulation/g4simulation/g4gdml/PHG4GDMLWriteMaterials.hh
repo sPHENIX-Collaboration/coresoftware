@@ -49,9 +49,9 @@
 class G4Isotope;
 class G4Element;
 class G4Material;
+class G4PhysicsFreeVector;
 
 #if G4VERSION_NUMBER >= 1100
-class G4PhysicsFreeVector;
 class G4MaterialPropertiesTable;
 #else
 class G4PhysicsOrderedFreeVector;
