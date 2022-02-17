@@ -240,9 +240,14 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Cot of maximum theta angle
   float m_cotThetaMax = 2.9;
   
+  /// Maximum impact parameter allowed in mm
+  float m_impactMax = 20;
+
+  int m_numPhiNeighbors = 3;
+
   /// B field value in z direction
   /// bfield for space point grid neds to be in kiloTesla
-  float m_bField = 1.4 / 1000.;
+  float m_bField = 1.4 * Acts::UnitConstants::T;
 
   std::shared_ptr<Acts::BinFinder<SpacePoint>> 
     m_bottomBinFinder, m_topBinFinder;

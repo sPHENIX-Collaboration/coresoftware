@@ -47,11 +47,11 @@ int PHActsSiliconSeeding::Init(PHCompositeNode */*topNode*/)
   // vector containing the map of z bins in the top and bottom layers
   std::vector<std::pair<int, int> > zBinNeighborsTop;
   std::vector<std::pair<int, int> > zBinNeighborsBottom;
-  int numPhiNeighbors=1;
+
   m_bottomBinFinder = 
-    std::make_shared<Acts::BinFinder<SpacePoint>>(Acts::BinFinder<SpacePoint>(zBinNeighborsBottom, numPhiNeighbors));
+    std::make_shared<Acts::BinFinder<SpacePoint>>(Acts::BinFinder<SpacePoint>(zBinNeighborsBottom, m_numPhiNeighbors));
   m_topBinFinder = 
-    std::make_shared<Acts::BinFinder<SpacePoint>>(Acts::BinFinder<SpacePoint>(zBinNeighborsTop, numPhiNeighbors));
+    std::make_shared<Acts::BinFinder<SpacePoint>>(Acts::BinFinder<SpacePoint>(zBinNeighborsTop, m_numPhiNeighbors));
 
   Acts::SeedFilterConfig sfCfg;
   sfCfg.maxSeedsPerSpM = m_maxSeedsPerSpM;
@@ -169,7 +169,7 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
 
   if(m_seedAnalysis)
     { h_nInputMeas->Fill(spVec.size()); }
-
+  
   auto grid = 
     Acts::SpacePointGridCreator::createGrid<SpacePoint>(m_gridCfg);
 
@@ -187,16 +187,19 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
   SeedContainer seeds;
   seeds.clear();
   decltype(seedFinder)::State state;
+
   for(; !(groupIt == endGroup); ++groupIt)
     {
+    
       seedFinder.createSeedsForGroup(state, std::back_inserter(seeds),
 				     groupIt.bottom(),
 				     groupIt.middle(),
 				     groupIt.top(),
 				     rRangeSPExtent);
+
       seedVector.push_back(seeds);
     }
-  
+
   return seedVector;
 }
 
@@ -1387,6 +1390,8 @@ Acts::SpacePointGridConfig PHActsSiliconSeeding::configureSPGrid()
   config.zMin = m_zMin;
   config.deltaRMax = m_deltaRMax;
   config.cotThetaMax = m_cotThetaMax;
+  config.impactMax = m_impactMax;
+  config.numPhiNeighbors = m_numPhiNeighbors;
 
   return config;
 }
@@ -1418,7 +1423,7 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
   config.radLengthPerSeed = 0.05;
 
   /// Maximum impact parameter must be smaller than rMin
-  config.impactMax = 20;
+  config.impactMax = m_impactMax;
 
   return config;
 }
