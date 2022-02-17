@@ -327,8 +327,7 @@ Surface ActsTransformations::getSurface(TrkrCluster *cluster,
   const auto surfkey = cluster->getSubSurfKey();
   const auto trkrid = TrkrDefs::getTrkrId(cluskey);
   const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-  std::cout << "getting surface "<<(unsigned int)trkrid << ", " 
-	    <<(unsigned int)hitsetkey << std::endl;
+
   switch( trkrid )
   {
   case TrkrDefs::TrkrId::micromegasId: return getMMSurface( hitsetkey, surfMaps );
@@ -368,11 +367,10 @@ Surface ActsTransformations::getTpcSurface(TrkrDefs::hitsetkey hitsetkey,
   
   if(iter != maps->tpcSurfaceMap.end())
   {
-    std::cout << "Finding surface"<<std::endl;
     auto surfvec = iter->second;
     return surfvec.at(surfkey);
   }
-  std::cout << "Returning no surface"<<std::endl;
+
   /// If it can't be found, return nullptr to skip this cluster
   return nullptr;
 }
