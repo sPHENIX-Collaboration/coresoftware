@@ -7,6 +7,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include <CGAL/Cartesian.h>  // for Cartesian_base_ref_count::...
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/Point_2.h>  // for Point_2

@@ -9,6 +9,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/point_generators_2.h>
 #pragma GCC diagnostic pop

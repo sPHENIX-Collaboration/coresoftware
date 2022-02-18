@@ -102,13 +102,13 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
   const auto in_par_ranges = deadMapParam.get_all_int_params();
 
-  for (auto iter = in_par_ranges.first; iter != in_par_ranges.second; ++iter)
+  for (auto iterA = in_par_ranges.first; iterA != in_par_ranges.second; ++iterA)
   {
-    const string &deadChanName = iter->first;
+    const string &deadChanName = iterA->first;
 
     if (Verbosity())
     {
-      cout << "deadMapParam[" << deadChanName << "] = " << iter->second << ": ";
+      cout << "deadMapParam[" << deadChanName << "] = " << iterA->second << ": ";
     }
 
     boost::char_separator<char> sep("_");
@@ -169,7 +169,7 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
       cout << endl;
     }
 
-  }  //  for (const auto iter = in_par_ranges.first; iter != in_par_ranges.second; ++iter)
+  }  //  for (const auto iterA = in_par_ranges.first; iterA != in_par_ranges.second; ++iterA)
 
   if (Verbosity())
   {
