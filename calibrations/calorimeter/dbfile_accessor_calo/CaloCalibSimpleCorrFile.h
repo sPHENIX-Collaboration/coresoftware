@@ -31,7 +31,7 @@ class CaloCalibSimpleCorrFile
   virtual void View() { PHOOL_VIRTUAL_WARN("View"); }
   virtual void ViewReadable() { PHOOL_VIRTUAL_WARN("ViewReadable"); }
 
-  ~CaloCalibSimpleCorrFile() {}
+  virtual ~CaloCalibSimpleCorrFile() { PHOOL_VIRTUAL_WARN("Destructor"); }
 
   /*
   void Reset() override;

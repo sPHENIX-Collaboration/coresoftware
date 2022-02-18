@@ -15,7 +15,7 @@ class HcalCaloCalibSimpleCorrFilev1 : public CaloCalibSimpleCorrFile
 {
  public:
   HcalCaloCalibSimpleCorrFilev1(){}
-  ~HcalCaloCalibSimpleCorrFilev1(){}
+  ~HcalCaloCalibSimpleCorrFilev1() override {}
 
   /*
   void Reset();
