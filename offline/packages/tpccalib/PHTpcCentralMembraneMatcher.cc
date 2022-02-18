@@ -177,11 +177,11 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   // loop over truth positions
   for(unsigned int i=0; i<truth_pos.size(); ++i)
     {
-      double rad1=truth_pos[i].Mag();
+      double rad1=sqrt(truth_pos[i].X() * truth_pos[i].X() + truth_pos[i].Y() * truth_pos[i].Y());
       double phi1 = truth_pos[i].Phi();
       for(unsigned int j = 0; j < reco_pos.size(); ++j)
 	{
-	  double rad2=reco_pos[j].Mag();
+	  double rad2=sqrt(reco_pos[j].X() * reco_pos[j].X() + reco_pos[j].Y() * reco_pos[j].Y());
 	  double phi2 = reco_pos[j].Phi();
 
 	  if(fabs(rad1-rad2) < _rad_cut && fabs(phi1-phi2) < _phi_cut)
@@ -197,9 +197,12 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     {
       if(_histos)
 	{
-	  double dr = truth_pos[p.first].Mag() - reco_pos[p.second].Mag();
-	  double dphi = truth_pos[p.first].Phi() - reco_pos[p.second].Phi();
-	  double r =  truth_pos[p.first].Mag();
+	  double rad1 = sqrt(reco_pos[p.second].X() * reco_pos[p.second].X() + reco_pos[p.second].Y() * reco_pos[p.second].Y());
+	  double rad2 = sqrt(truth_pos[p.first].X() * truth_pos[p.first].X() + truth_pos[p.first].Y() * truth_pos[p.first].Y());
+
+	  double dr =  rad1-rad2;
+	  double dphi = reco_pos[p.second].Phi() - truth_pos[p.first].Phi();
+	  double r =  rad2;
 	  
 	  hdrdphi->Fill(dr, dphi);
 	  hrdr->Fill(r,dr);
@@ -218,7 +221,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     } 
   
   // read back differences from node tree as a check
-  if(Verbosity() > 0)
+  //if(Verbosity() > 0)
     {	
       auto diffrange = _cm_flash_diffs->getDifferences();
       for (auto cmitr = diffrange.first;
@@ -227,9 +230,12 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	{
 	  auto key = cmitr->first;
 	  auto cmreco = cmitr->second;
-	  	  
+	  //	  double dr = sqrt( pow(cmreco->getRecoX(), 2) + pow(cmreco->getRecoY(), 2) ) -  sqrt( pow(cmreco->getTruthX(), 2) + pow(cmreco->getTruthY(), 2) ) ;
+
 	  std::cout << " key " << key << " truth X " << cmreco->getTruthX() << " reco X " << cmreco->getRecoX()
-		    << " truth Y " << cmreco->getTruthY() << " reco Y " << cmreco->getRecoY()
+		    << " truth Y " << cmreco->getTruthY() << " reco Y " << cmreco->getRecoY() 
+		    << " truth R " << sqrt( pow(cmreco->getTruthX(), 2) + pow(cmreco->getTruthY(), 2) ) 
+		    << " reco R " << sqrt( pow(cmreco->getRecoX(), 2) + pow(cmreco->getRecoY(), 2) ) 
 		    << std::endl;
 	}
     }

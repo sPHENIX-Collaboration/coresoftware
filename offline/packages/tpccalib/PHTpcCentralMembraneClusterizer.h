@@ -37,6 +37,8 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   void set_min_adc_value(const unsigned int val) {_min_adc_value = val;}
   void set_min_z_value(const double val) {_min_z_value = val;}
 
+  float roughErfInverse(float x);
+
  //! run initialization
   int InitRun(PHCompositeNode *topNode);
 

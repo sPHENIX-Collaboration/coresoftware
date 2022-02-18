@@ -242,18 +242,77 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	      if(_histos)  hClustE[1]->Fill(energy[i]+energy[i_pair[i]]);
 
 	      aveenergy.push_back(energy[i]+energy[i_pair[i]]);
+
+	      // The pads measure phi and z accurately
+	      // They do not measure R! It is taken as the center of the padrow
+	      // The x and y values are derived from phi and R.
+	      // Not normally a problem, since tracks cross entire padrow
+	      // CM flash clusters have limited radial extent, do not necessarily cross padrows completely - then their nominal R is wrong.
+	      // So:
+	      //     Get phi from the energy weighted cluster phi values.
+	      //     Get R from the procedure below
+
+	      // Get phi and z centroid
+	      double avePhi = (pos[i].Phi() * energy[i] + pos[i_pair[i]].Phi() * energy[i_pair[i]]) * (1./(energy[i]+energy[i_pair[i]]));	      
+	      double aveZ = (pos[i].Z() * energy[i] + pos[i_pair[i]].Z() * energy[i_pair[i]]) * (1./(energy[i]+energy[i_pair[i]])); 	      
+
+	      // R Centroid determination is not trivial - the width of the distribution is smaller than the width of a padrow
+	      // Cannot use single padrow CM flash clusters, R position is not well defined because cluster is smaller than padrow
+	      // 2-cluster case: Weighting by padrow center radius is not correct because distribution does not fill padrow (needs to be approximately linearly)
+
+	      //  Use ratio of component cluster energies to estimate number of sigmas at row boundary
+	      float efrac = energy[i] / (energy[i] + energy[i_pair[i]]);
+	      /*
+	      // The normal distribution CDF, efrac,  is related to the Erf by:  Erf(x/sqrt(2)) = 2*CDF(x) - 1
+	      float Erf = 2.0 * efrac - 1;
+	      float mu = roughErfInverse(Erf) * sqrt(2);
+	      */
+	      double rad1 = sqrt(pos[i].X() * pos[i].X() + pos[i].Y() * pos[i].Y());
+	      double rad2 = sqrt(pos[i_pair[i]].X() * pos[i_pair[i]].X() + pos[i_pair[i]].Y() * pos[i_pair[i]].Y());
+
+	      // get layer boundary from layer numbers to do it right!
+	      double rad_lyr_boundary = (rad1 + rad2) / 2.0;	 
+
+	      //   Use width of distribution to determine where radius at center of distribution must be
+	      double _cmclus_dr = 1.0;  // cm	
+	      if(layer[i] < 24)
+		_cmclus_dr = 0.475;
+	      else if(layer[i] > 23 && layer[i] < 39)
+		_cmclus_dr = 0.9; 
+
+	      float below = efrac * _cmclus_dr;  // stripe length below boundary
+	      float above = (1-efrac) * _cmclus_dr;  // stripe length above boundary
+	      double aveR;
+	      if(efrac > 0.5) 
+		aveR = rad_lyr_boundary + above  - _cmclus_dr/2.0;
+	      else
+		aveR = rad_lyr_boundary - below  + _cmclus_dr/2.0;
+
+	      std::cout << " efrac " << efrac << " _cmclus_dr "<< _cmclus_dr << " rad_lyr_boundary " << rad_lyr_boundary << " aveR " << aveR 
+			<< " R i " << rad1 << " R i_pair " << rad2 << std::endl;	   
+	
+	      TVector3 temppos(aveR*cos(avePhi), aveR*sin(avePhi), aveZ);
+	      /*
 	      TVector3 temppos=energy[i]*pos[i];
 	      temppos=temppos+(energy[i_pair[i]]*pos[i_pair[i]]);
 	      temppos=temppos*(1./(energy[i]+energy[i_pair[i]]));
+	      */
+
 	      avepos.push_back(temppos);
+
+	      std::cout << " layer i " << layer[i] << " energy " << energy[i] << " pos i " << pos[i].X() << "  " << pos[i].Y() << "  " << pos[i].Z()
+			<< " layer i_pair " << layer[i_pair[i]] << " energy i_pair " << energy[i_pair[i]] 
+			<< " pos i_pair " << pos[i_pair[i]].X() << "  " <<  pos[i_pair[i]].Y() << "  " <<  pos[i_pair[i]].Z()
+			<< " reco pos " << temppos.x() << "  " << temppos.Y() << "  " << temppos.Z() 
+			<< std::endl;
 	    }
 	} 
       else 
 	{
 	  if(_histos)  hClustE[2]->Fill(energy[i]);
-
-	  aveenergy.push_back(energy[i]);
-	  avepos.push_back(pos[i]);
+	  // These single cluster cases do not have a good radius centroid estimate, skip them
+	  //aveenergy.push_back(energy[i]);
+	  //avepos.push_back(pos[i]);
 	}
     }      
       
@@ -388,5 +447,21 @@ int  PHTpcCentralMembraneClusterizer::GetNodes(PHCompositeNode* topNode)
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
+float PHTpcCentralMembraneClusterizer::roughErfInverse(float x){
+  // Based on "A handy approximation for the error function and its inverse" by Sergei Winitzki.
+   float tt1, tt2, lnx, sgn;
+   sgn = (x < 0) ? -1.0f : 1.0f;
+
+   x = (1 - x)*(1 + x);        // x = 1 - x*x;
+   lnx = logf(x);
+
+   tt1 = 2/(M_PI*0.147) + 0.5f * lnx;
+   tt2 = 1/(0.147) * lnx;
+
+   return(sgn*sqrtf(-tt1 + sqrtf(tt1*tt1 - tt2)));
+}
+    
+    
 
 
