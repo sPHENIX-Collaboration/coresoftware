@@ -43,7 +43,8 @@ int PHActsSiliconSeeding::Init(PHCompositeNode */*topNode*/)
 {
   m_seedFinderCfg = configureSeeder();
   m_gridCfg = configureSPGrid();
-  
+  Acts::SeedFilterConfig sfCfg = configureSeedFilter();
+
   // vector containing the map of z bins in the top and bottom layers
   std::vector<std::pair<int, int> > zBinNeighborsTop;
   std::vector<std::pair<int, int> > zBinNeighborsBottom;
@@ -52,9 +53,6 @@ int PHActsSiliconSeeding::Init(PHCompositeNode */*topNode*/)
     std::make_shared<Acts::BinFinder<SpacePoint>>(Acts::BinFinder<SpacePoint>(zBinNeighborsBottom, m_numPhiNeighbors));
   m_topBinFinder = 
     std::make_shared<Acts::BinFinder<SpacePoint>>(Acts::BinFinder<SpacePoint>(zBinNeighborsTop, m_numPhiNeighbors));
-
-  Acts::SeedFilterConfig sfCfg;
-  sfCfg.maxSeedsPerSpM = m_maxSeedsPerSpM;
 
   m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePoint>>(
      Acts::SeedFilter<SpacePoint>(sfCfg));
@@ -197,8 +195,9 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
 				     groupIt.top(),
 				     rRangeSPExtent);
 
-      seedVector.push_back(seeds);
     }
+  
+  seedVector.push_back(seeds);
 
   return seedVector;
 }
@@ -1379,6 +1378,8 @@ Surface PHActsSiliconSeeding::getSurface(TrkrDefs::hitsetkey hitsetkey)
   return nullptr;
 
 }
+
+
 Acts::SpacePointGridConfig PHActsSiliconSeeding::configureSPGrid()
 {
   Acts::SpacePointGridConfig config;
@@ -1393,6 +1394,14 @@ Acts::SpacePointGridConfig PHActsSiliconSeeding::configureSPGrid()
   config.impactMax = m_impactMax;
   config.numPhiNeighbors = m_numPhiNeighbors;
 
+
+  return config;
+}
+
+Acts::SeedFilterConfig PHActsSiliconSeeding::configureSeedFilter()
+{
+  Acts::SeedFilterConfig config;
+  config.maxSeedsPerSpM = m_maxSeedsPerSpM;
   return config;
 }
 
@@ -1407,12 +1416,12 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
   config.zMax = m_zMax;
 
   /// Min/max distance between two measurements in one seed
-  config.deltaRMin = 1.;
+  config.deltaRMin = m_deltaRMin;
   config.deltaRMax = m_deltaRMax;
 
   /// Limiting collision region in z
-  config.collisionRegionMin = -300.;
-  config.collisionRegionMax = 300.;
+  config.collisionRegionMin = -300. * Acts::UnitConstants::mm;
+  config.collisionRegionMax = 300. * Acts::UnitConstants::mm;
   config.sigmaScattering = 5.;
   config.maxSeedsPerSpM = m_maxSeedsPerSpM;
   config.cotThetaMax = m_cotThetaMax;

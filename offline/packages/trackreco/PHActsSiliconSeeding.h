@@ -130,7 +130,8 @@ class PHActsSiliconSeeding : public SubsysReco
   /// are a number of tunable parameters for the seeder here
   Acts::SeedfinderConfig<SpacePoint> configureSeeder();
   Acts::SpacePointGridConfig configureSPGrid();
-  
+  Acts::SeedFilterConfig configureSeedFilter();
+
   /// Take final seeds and fill the SvtxTrackMap
   void makeSvtxTracks(GridSeeds& seedVector);
   
@@ -225,25 +226,27 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Limiting location of measurements (e.g. detector constraints)
   /// We limit to the MVTX
-  float m_rMax = 200.;
-  float m_rMin = 23.;
-  float m_zMax = 300.;
-  float m_zMin = -300.;
+  float m_rMax = 200. * Acts::UnitConstants::mm;
+  float m_rMin = 23. * Acts::UnitConstants::mm;
+  float m_zMax = 300. * Acts::UnitConstants::mm;
+  float m_zMin = -300. * Acts::UnitConstants::mm;
 
   /// Value tuned to provide as large of phi bins as possible. 
   /// Increases the secondary finding efficiency
   float m_gridFactor = 2.3809;
 
   /// max distance between two measurements in one seed
-  float m_deltaRMax = 15;
-  
+  float m_deltaRMax = 15 * Acts::UnitConstants::mm;
+  float m_deltaRMin = 1. * Acts::UnitConstants::mm;
   /// Cot of maximum theta angle
   float m_cotThetaMax = 2.9;
   
   /// Maximum impact parameter allowed in mm
-  float m_impactMax = 20;
+  float m_impactMax = 20 * Acts::UnitConstants::mm;
 
-  int m_numPhiNeighbors = 3;
+  /// Only used in seeding with specified z bin edges, which
+  /// is more configuration than we need
+  int m_numPhiNeighbors = 0;
 
   /// B field value in z direction
   /// bfield for space point grid neds to be in kiloTesla
