@@ -463,7 +463,9 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   theCerenkovProcess->SetMaxNumPhotonsPerStep(300);
   theCerenkovProcess->SetMaxBetaChangePerStep(10.0);
   theCerenkovProcess->SetTrackSecondariesFirst(false);  // current PHG4TruthTrackingAction does not support suspect active track and track secondary first
+#if G4VERSION_NUMBER < 1100
   theScintillationProcess->SetScintillationYieldFactor(1.0);
+#endif
   theScintillationProcess->SetTrackSecondariesFirst(false);
   // theScintillationProcess->SetScintillationExcitationRatio(1.0);
 

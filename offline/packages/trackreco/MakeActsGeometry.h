@@ -172,7 +172,9 @@ class MakeActsGeometry : public SubsysReco
 
   /// TPC Acts::Surface subdivisions
   double m_minSurfZ = 0.;
-  double m_maxSurfZ = 105.78;
+  /// This value must be less than the TPC gas volume in TGeo, which 
+  /// is 105.22 cm
+  double m_maxSurfZ = 105.219999;
   unsigned int m_nSurfZ = 1;
   unsigned int m_nSurfPhi = 12;
   double m_surfStepPhi = 0;

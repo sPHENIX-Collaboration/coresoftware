@@ -459,7 +459,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   if (fitOutput.fittedParameters)
     {
        indexedParams.emplace(fitOutput.trackTip, 
-			    fitOutput.fittedParameters.value());
+			     fitOutput.fittedParameters.value());
 
       if (Verbosity() > 2)
         {
@@ -474,6 +474,12 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
                     << std::endl;
 	  std::cout << "For trackTip == " << fitOutput.trackTip << std::endl;
         }
+    }
+  else 
+    {
+      /// Track fit failed in some way if there are no fit parameters. Remove
+      m_trackMap->erase(track->get_id());
+      return;
     }
 
   auto trajectory = std::make_unique<Trajectory>(fitOutput.fittedStates,
