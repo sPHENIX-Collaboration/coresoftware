@@ -488,7 +488,7 @@ void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
 		<< std::endl;
   
       responseFile = std::string(getenv("OFFLINE_MAIN")) +
-	(m_buildMMs ? "/share/tgeo-sphenix-mms.response":"/share/tgeo-sphenix.response");
+	(m_buildMMs ? "/share/tgeo-sphenix-mms.json":"/share/tgeo-sphenix.json");
     }
 
   file.open(materialFile);
