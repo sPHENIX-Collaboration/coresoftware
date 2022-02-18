@@ -27,12 +27,6 @@ class CaloCalibSimpleCorrFile
   {
   }
 
-  CaloCalibSimpleCorrFile(const char * corrFile, RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE)
-    : _caloid(caloid)
-    {
-      Open(corrFile);
-    }
-
   virtual void Open(const char *) { PHOOL_VIRTUAL_WARN("Open"); }
   virtual void View() { PHOOL_VIRTUAL_WARN("View"); }
   virtual void ViewReadable() { PHOOL_VIRTUAL_WARN("ViewReadable"); }
