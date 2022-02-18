@@ -127,10 +127,10 @@ int TpcSpaceChargeReconstruction::InitRun(PHCompositeNode* )
 //_____________________________________________________________________
 int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 {
-  
+
   // increment local event counter
   ++m_event;
-  
+
   // clear global position cache
   m_globalPositions.clear();
 
@@ -245,13 +245,14 @@ Acts::Vector3D TpcSpaceChargeReconstruction::get_global_position( TrkrCluster* c
 void TpcSpaceChargeReconstruction::process_tracks()
 {
   if( !( m_track_map && m_cluster_map ) ) return;
-  for( auto iter = m_track_map->begin(); iter != m_track_map->end(); ++iter )
+
+  for(const auto &[trackKey, track] : *m_track_map)
   {
     ++m_total_tracks;
-    if( accept_track( iter->second ) )
+    if( accept_track( track ) )
     {
       ++m_accepted_tracks;
-      process_track( iter->second );
+      process_track( track );
     }
   }
 }
@@ -275,6 +276,23 @@ bool TpcSpaceChargeReconstruction::accept_track( SvtxTrack* track ) const
 //_____________________________________________________________________
 void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 {
+
+  // printout all track state
+  if( Verbosity() )
+  {
+    for( auto&& iter = track->begin_states(); iter != track->end_states(); ++iter )
+    {
+      const auto& [pathlength, state] = *iter;
+      const auto r = std::sqrt( square( state->get_x() ) + square( state->get_y() ));
+      const auto phi = std::atan2( state->get_y(), state->get_x() );
+      std::cout << "TpcSpaceChargeReconstruction::process_track -"
+        << " pathlength: " << pathlength
+        << " radius: " << r
+        << " phi: " << phi
+        << " z: " << state->get_z()
+        << std::endl;
+    }
+  }
 
   // running track state
   auto state_iter = track->begin_states();
@@ -327,6 +345,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
         dr_min = dr;
       } else break;
     }
+
 
     // get relevant track state
     const auto state = state_iter->second;
