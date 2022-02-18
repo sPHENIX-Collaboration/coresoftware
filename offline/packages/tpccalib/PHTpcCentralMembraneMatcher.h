@@ -61,6 +61,8 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   TH2F *hdrdphi;
   TH2F *hrdr;
   TH2F *hrdphi;
+  TH1F *hdr;
+  TH1F *hdrphi;
 
    std::vector<TVector3> reco_pos;
    std::vector<TVector3> truth_pos;

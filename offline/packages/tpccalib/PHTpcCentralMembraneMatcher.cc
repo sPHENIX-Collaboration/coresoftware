@@ -45,6 +45,8 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
   hrdphi = new TH2F("hrdphi","dphi vs r",800,0.0,80.0,800,-0.001,0.001);
   hrdphi->GetXaxis()->SetTitle("r");  
   hrdphi->GetYaxis()->SetTitle("dphi");  
+  hdr = new TH1F("hdr", "dr", 200,-0.2, 0.2);
+  hdrphi = new TH1F("hdrphi","r * dphi", 200, -0.1, 0.1);
   
   // Get truth cluster positions
   //=====================
@@ -160,10 +162,12 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       TVector3 tmp_pos(pos[0], pos[1], pos[2]);
       reco_pos.push_back(tmp_pos);
 
-      if(Verbosity() > 2)
+      if(Verbosity() > 0)
 	{
-	  std::cout << "found raw cluster " << cmkey << " with x " << cmclus->getX() << " y " << cmclus->getY() << " z " << cmclus->getZ()	<< std::endl; 
-	  std::cout << "                --- corrected positions: " << tmp_pos.X() << "  " << tmp_pos.Y() << "  " << tmp_pos.Z() << std::endl; 
+	  double raw_rad = sqrt( cmclus->getX()*cmclus->getX() + cmclus->getY()*cmclus->getY() );
+	  double corr_rad = sqrt( tmp_pos.X()*tmp_pos.X() + tmp_pos.Y()*tmp_pos.Y() );
+	  std::cout << "found raw cluster " << cmkey << " with x " << cmclus->getX() << " y " << cmclus->getY() << " z " << cmclus->getZ()   << " radius " << raw_rad << std::endl; 
+	  std::cout << "                --- corrected positions: " << tmp_pos.X() << "  " << tmp_pos.Y() << "  " << tmp_pos.Z() << " radius " << corr_rad << std::endl; 
 	}
 
       if(_histos)
@@ -203,7 +207,9 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	  double dr =  rad1-rad2;
 	  double dphi = reco_pos[p.second].Phi() - truth_pos[p.first].Phi();
 	  double r =  rad2;
-	  
+
+	  hdrphi->Fill(r * dphi);
+	  hdr->Fill(dr);	  
 	  hdrdphi->Fill(dr, dphi);
 	  hrdr->Fill(r,dr);
 	  hrdphi->Fill(r,dphi);
@@ -220,9 +226,9 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
      _cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
     } 
   
-  // read back differences from node tree as a check
-  //if(Verbosity() > 0)
+  if(Verbosity() > 0)
     {	
+      // read back differences from node tree as a check
       auto diffrange = _cm_flash_diffs->getDifferences();
       for (auto cmitr = diffrange.first;
 	   cmitr !=diffrange.second;
@@ -230,7 +236,6 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	{
 	  auto key = cmitr->first;
 	  auto cmreco = cmitr->second;
-	  //	  double dr = sqrt( pow(cmreco->getRecoX(), 2) + pow(cmreco->getRecoY(), 2) ) -  sqrt( pow(cmreco->getTruthX(), 2) + pow(cmreco->getTruthY(), 2) ) ;
 
 	  std::cout << " key " << key << " truth X " << cmreco->getTruthX() << " reco X " << cmreco->getRecoX()
 		    << " truth Y " << cmreco->getTruthY() << " reco Y " << cmreco->getRecoY() 
@@ -256,6 +261,8 @@ int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
       hdrdphi->Write();
       hrdr->Write();
       hrdphi->Write();
+      hdr->Write();
+      hdrphi->Write();
             
       fout->Close();
     }

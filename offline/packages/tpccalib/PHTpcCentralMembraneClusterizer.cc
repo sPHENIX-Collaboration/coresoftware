@@ -15,6 +15,9 @@
 #include <TGraph.h>
 #include <cmath>
 
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>
 #include <tpc/TpcDefs.h>
@@ -83,7 +86,7 @@ int PHTpcCentralMembraneClusterizer::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 {
- 
+
   //local coord conversion below
   ActsTrackingGeometry *tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
   std::cout << "got tgeom" << std::endl;
@@ -245,8 +248,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 
 	      // The pads measure phi and z accurately
 	      // They do not measure R! It is taken as the center of the padrow
-	      // The x and y values are derived from phi and R.
-	      // Not normally a problem, since tracks cross entire padrow
+	      // The x and y values are derived from phi and R. Not normally a problem, since tracks cross entire padrow
 	      // CM flash clusters have limited radial extent, do not necessarily cross padrows completely - then their nominal R is wrong.
 	      // So:
 	      //     Get phi from the energy weighted cluster phi values.
@@ -256,28 +258,38 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	      double avePhi = (pos[i].Phi() * energy[i] + pos[i_pair[i]].Phi() * energy[i_pair[i]]) * (1./(energy[i]+energy[i_pair[i]]));	      
 	      double aveZ = (pos[i].Z() * energy[i] + pos[i_pair[i]].Z() * energy[i_pair[i]]) * (1./(energy[i]+energy[i_pair[i]])); 	      
 
-	      // R Centroid determination is not trivial - the width of the distribution is smaller than the width of a padrow
 	      // Cannot use single padrow CM flash clusters, R position is not well defined because cluster is smaller than padrow
 	      // 2-cluster case: Weighting by padrow center radius is not correct because distribution does not fill padrow (needs to be approximately linearly)
-
-	      //  Use ratio of component cluster energies to estimate number of sigmas at row boundary
+	      // Use ratio of component cluster energies to estimate number of sigmas at row boundary
 	      float efrac = energy[i] / (energy[i] + energy[i_pair[i]]);
-	      /*
-	      // The normal distribution CDF, efrac,  is related to the Erf by:  Erf(x/sqrt(2)) = 2*CDF(x) - 1
-	      float Erf = 2.0 * efrac - 1;
-	      float mu = roughErfInverse(Erf) * sqrt(2);
-	      */
-	      double rad1 = sqrt(pos[i].X() * pos[i].X() + pos[i].Y() * pos[i].Y());
-	      double rad2 = sqrt(pos[i_pair[i]].X() * pos[i_pair[i]].X() + pos[i_pair[i]].Y() * pos[i_pair[i]].Y());
 
-	      // get layer boundary from layer numbers to do it right!
-	      double rad_lyr_boundary = (rad1 + rad2) / 2.0;	 
+	      PHG4CylinderCellGeom *layergeom1 = _geom_container->GetLayerCellGeom(layer[i]);
+	      double rad1 = layergeom1->get_radius();
+	      PHG4CylinderCellGeom *layergeom2 = _geom_container->GetLayerCellGeom(layer[i_pair[i]]);
+	      double rad2 = layergeom2->get_radius();
+	      PHG4CylinderCellGeom *layergeom0;
+	      double layer_dr;
+	      if(layer[i] != 7 && layer[i] != 23 && layer[i] != 39)
+		{
+		  layergeom0 = _geom_container->GetLayerCellGeom(layer[i]-1);
+		  layer_dr = rad1 - layergeom0->get_radius();
+		}
+	      else
+		{
+		  layergeom0 = _geom_container->GetLayerCellGeom(layer[i]+1);
+		  layer_dr = layergeom0->get_radius() - rad1; 
+		}
+	      double rad_lyr_boundary = rad1 + layer_dr / 2.0;	 
 
-	      //   Use width of distribution to determine where radius at center of distribution must be
+	      // Use radial width of stripe to determine where radius at center of distribution must be
+	      // We have to use distortion corrected cluster positions to determine which stripe this came from
+	      Acts::Vector3D dist_pos(pos[i].X(), pos[i].Y(), pos[i].Z());
+	      if( _dcc)  dist_pos = _distortionCorrection.get_corrected_position( dist_pos, _dcc ); 
+	      double dist_r = sqrt(dist_pos[0]*dist_pos[0] + dist_pos[1] * dist_pos[1]);
 	      double _cmclus_dr = 1.0;  // cm	
-	      if(layer[i] < 24)
+	      if(dist_r < 41.0)
 		_cmclus_dr = 0.475;
-	      else if(layer[i] > 23 && layer[i] < 39)
+	      else if(dist_r > 41.0 && rad2 < 58.0)
 		_cmclus_dr = 0.9; 
 
 	      float below = efrac * _cmclus_dr;  // stripe length below boundary
@@ -288,23 +300,19 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	      else
 		aveR = rad_lyr_boundary - below  + _cmclus_dr/2.0;
 
-	      std::cout << " efrac " << efrac << " _cmclus_dr "<< _cmclus_dr << " rad_lyr_boundary " << rad_lyr_boundary << " aveR " << aveR 
-			<< " R i " << rad1 << " R i_pair " << rad2 << std::endl;	   
+	      if(Verbosity() > 0)
+		std::cout << " efrac " << efrac << " _cmclus_dr "<< _cmclus_dr << " rad_lyr_boundary " << rad_lyr_boundary << " aveR " << aveR 
+			  << " layer i " << layer[i] << " R i " << rad1 << " layer i_pair " << layer[i_pair[i]] << " R i_pair " << rad2 << " layer_dr " << layer_dr << std::endl;	   
 	
 	      TVector3 temppos(aveR*cos(avePhi), aveR*sin(avePhi), aveZ);
-	      /*
-	      TVector3 temppos=energy[i]*pos[i];
-	      temppos=temppos+(energy[i_pair[i]]*pos[i_pair[i]]);
-	      temppos=temppos*(1./(energy[i]+energy[i_pair[i]]));
-	      */
-
 	      avepos.push_back(temppos);
 
-	      std::cout << " layer i " << layer[i] << " energy " << energy[i] << " pos i " << pos[i].X() << "  " << pos[i].Y() << "  " << pos[i].Z()
-			<< " layer i_pair " << layer[i_pair[i]] << " energy i_pair " << energy[i_pair[i]] 
-			<< " pos i_pair " << pos[i_pair[i]].X() << "  " <<  pos[i_pair[i]].Y() << "  " <<  pos[i_pair[i]].Z()
-			<< " reco pos " << temppos.x() << "  " << temppos.Y() << "  " << temppos.Z() 
-			<< std::endl;
+	      if(Verbosity() > 0)
+		std::cout << " layer i " << layer[i] << " energy " << energy[i] << " pos i " << pos[i].X() << "  " << pos[i].Y() << "  " << pos[i].Z()
+			  << " layer i_pair " << layer[i_pair[i]] << " energy i_pair " << energy[i_pair[i]] 
+			  << " pos i_pair " << pos[i_pair[i]].X() << "  " <<  pos[i_pair[i]].Y() << "  " <<  pos[i_pair[i]].Z()
+			  << " reco pos " << temppos.x() << "  " << temppos.Y() << "  " << temppos.Z() 
+			  << std::endl;
 	    }
 	} 
       else 
@@ -416,6 +424,21 @@ int  PHTpcCentralMembraneClusterizer::GetNodes(PHCompositeNode* topNode)
     cerr << PHWHERE << " ERROR: Can't find node TRKR_HITSET" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  _geom_container =
+      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!_geom_container)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  // tpc distortion correction
+  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  if( _dcc )
+    { 
+      std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container" << std::endl; 
+    }
 
   _corrected_CMcluster_map  = findNode::getClass<CMFlashClusterContainer>(topNode, "CORRECTED_CM_CLUSTER");
   if(!_corrected_CMcluster_map)

@@ -9,6 +9,8 @@
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <tpc/TpcDistortionCorrectionContainer.h>
+#include <tpc/TpcDistortionCorrection.h>
 
 class PHCompositeNode;
 class SvtxTrackMap;
@@ -17,6 +19,7 @@ class SvtxVertexMap;
 class TrkrClusterHitAssoc;
 class TrkrHitSetContainer;
 class CMFlashClusterContainer;
+class  PHG4CylinderCellGeomContainer;
 
 class TF1;
 class TNtuple;
@@ -56,10 +59,15 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
 
   std::string _track_map_name;
 
+ /// tpc distortion correction utility class
+  TpcDistortionCorrection _distortionCorrection;
+
   TrkrClusterContainer *_cluster_map{nullptr};
   CMFlashClusterContainer *_corrected_CMcluster_map{nullptr};
   TrkrClusterHitAssoc *_cluster_hit_map{nullptr};
   TrkrHitSetContainer *_hitset_map{nullptr};
+  PHG4CylinderCellGeomContainer *_geom_container{nullptr};
+ TpcDistortionCorrectionContainer* _dcc{nullptr};
 
   TH1F *henergy;
   TH1F *hz;
