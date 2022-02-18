@@ -1254,7 +1254,10 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey clusk
   globalPos = sl.referenceSurface().localToGlobal(m_tGeometry->geoContext,
 						  localPos, mom);
 
-  auto localCov = sl.covariance().block<2,2>(Acts::eBoundLoc0, Acts::eBoundLoc0);
+  Acts::SymMatrix2 localCov = Acts::SymMatrix2::Zero();
+  localCov(0,0) = sl.covariance()(0,0);
+  localCov(1,1) = sl.covariance()(1,1);
+  
   float x = globalPos.x();
   float y = globalPos.y();
   float z = globalPos.z();
@@ -1293,8 +1296,9 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey clusk
   if(Verbosity() > 2)
     std::cout << "Space point has " 
 	      << x << ", " << y << ", " << z
-	      << " with variances " << localCov(0,0) 
-	      << ", " << localCov(1,1)
+	      << " with rphi/z variances " << localCov(0,0) 
+	      << ", " << localCov(1,1) << " and rotated variances "
+	      << var[0] << ", " << var[1] 
 	      << " and cluster key "
 	      << cluskey << " and geo id "
 	      << sl.referenceSurface().geometryId() << std::endl;
@@ -1345,7 +1349,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 	    cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
 
 	  SourceLink sl(surface->geometryId(), cluskey, surface, loc, cov);
-
+	 
 	  auto sp = makeSpacePoint(cluskey, sl).release();
 	  spVec.push_back(sp);
 	  rRangeSPExtent.check({sp->x(), sp->y(), sp->z()});
