@@ -217,7 +217,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Configurable parameters
   /// seed pt has to be in MeV
-  float m_minSeedPt = 100;
+  float m_minSeedPt = 100 * Acts::UnitConstants::MeV;
 
   /// How many seeds a given hit can be the middle hit of the seed
   /// MVTX can only have the middle layer be the middle hit
