@@ -163,6 +163,15 @@ class PHTpcResiduals : public SubsysReco
 
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
+  ///@name counters
+  //@{
+  int m_total_tracks = 0;
+  int m_accepted_tracks = 0;
+
+  int m_total_clusters = 0;
+  int m_accepted_clusters = 0;
+  //@}
+
   /// Output root histograms
   bool m_savehistograms = false;
   TH2 *h_rphiResid = nullptr;
