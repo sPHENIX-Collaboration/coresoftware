@@ -78,6 +78,14 @@ PHTpcResiduals::PHTpcResiduals(const std::string &name)
 int PHTpcResiduals::Init(PHCompositeNode */*topNode*/)
 {
   if( m_savehistograms ) makeHistograms();
+  
+  // reset counters
+  m_total_tracks = 0;
+  m_accepted_tracks = 0;
+
+  m_total_clusters = 0;
+  m_accepted_clusters = 0;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -142,6 +150,22 @@ int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
     
     m_histogramfile->Close();
   }
+  
+  // print counters
+  std::cout
+    << "PHTpcResiduals::End -"
+    << " track statistics total: " << m_total_tracks
+    << " accepted: " << m_accepted_tracks
+    << " fraction: " << 100.*m_accepted_tracks/m_total_tracks << "%"
+    << std::endl;
+
+  std::cout
+    << "PHTpcResiduals::End -"
+    << " cluster statistics total: " << m_total_clusters
+    << " accepted: " << m_accepted_clusters << " fraction: "
+    << 100.*m_accepted_clusters/m_total_clusters << "%"
+    << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -152,14 +176,18 @@ int PHTpcResiduals::processTracks(PHCompositeNode */*topNode*/)
   if( Verbosity() )
   { std::cout << "PHTpcResiduals::processTracks - proto track size " << m_trackMap->size() <<std::endl; }
 
-  for(auto &[trackKey, track] : *m_trackMap)
+  for(const auto &[trackKey, track] : *m_trackMap)
+  {
+    if(Verbosity() > 1) 
+    { std::cout << "Processing track key " << trackKey << std::endl; }
+    
+    ++m_total_tracks;
+    if(checkTrack(track))
     {
-      if(Verbosity() > 1)
-	std::cout << "Processing track key " << trackKey
-		  << std::endl;
-      if(checkTrack(track))
-	processTrack(track);
+      ++m_accepted_tracks;
+      processTrack(track);
     }
+  }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -184,11 +212,11 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
       auto key = *clusIter;
       auto trkrId = TrkrDefs::getTrkrId(key);
       if(trkrId == TrkrDefs::TrkrId::mvtxId)
-	nMvtxHits++;
+        ++nMvtxHits;
       else if(trkrId == TrkrDefs::TrkrId::inttId)
-	nInttHits++;
+        ++nInttHits;
       else if(trkrId == TrkrDefs::TrkrId::micromegasId)
-	nMMHits++;
+        ++nMMHits;
     }
 
   if(Verbosity() > 2)
@@ -288,10 +316,12 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
        ++clusIter)
     {
       auto cluskey = *clusIter;
-      
+
+      ++m_total_clusters;
+
       // only propagate to tpc surfaces
       if(TrkrDefs::getTrkrId(cluskey) != TrkrDefs::TrkrId::tpcId)
-	continue;;
+      { continue; }
 
       auto cluster = m_clusterContainer->findCluster(cluskey);
 
@@ -583,6 +613,9 @@ void PHTpcResiduals::calculateTpcResiduals(
   
   // update entries in cell
   m_matrix_container->add_to_entries(index);
+  
+  // increment number of accepted clusters
+  ++m_accepted_clusters;
   
   return;
 }
