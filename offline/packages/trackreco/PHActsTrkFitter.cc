@@ -202,11 +202,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       trackTimer.restart();
       ActsExamples::MeasurementContainer measurements;
       auto sourceLinks = getSourceLinks(track, measurements);
-    
+     
       if(sourceLinks.size() == 0) continue;
 
       /// If using directed navigation, collect surface list to navigate
-   
       SurfacePtrVec surfaces;
       if(m_fitSiliconMMs)
       {
@@ -318,7 +317,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  /// Track fit failed, get rid of the track from the map
 	  badTracks.push_back(trackKey);
 	  m_nBadFits++;
-
+	  if(Verbosity() > 1)
+	    { 
+	      std::cout << "Track fit failed for track " << trackKey 
+			<< " with Acts error message " 
+			<< result.error() << ", " << result.error().message()
+			<< std::endl;
+	    }
 	}
 
       trackTimer.stop();
@@ -333,6 +338,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   /// Now erase bad tracks from the track map
   for(const auto& key : badTracks)
     {
+      if(Verbosity() > 2)
+	{ std::cout << "Erasing bad track " << key << std::endl; }
       m_trackMap->erase(key);
     }
 
@@ -459,7 +466,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	}
     
       sourcelinks.push_back(std::cref(sl));
-      measurements.push_back(*sl);
+      measurements.push_back(sl.getMeasurement());
     }
  
   return sourcelinks;
@@ -472,7 +479,8 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
   std::vector<size_t> trackTips;
-  trackTips.push_back(fitOutput.lastMeasurementIndex);
+  trackTips.reserve(1);
+  trackTips.emplace_back(fitOutput.lastMeasurementIndex);
   ActsExamples::Trajectories::IndexedParameters indexedParams;
   if (fitOutput.fittedParameters)
     {
@@ -496,7 +504,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 
   Trajectory trajectory(fitOutput.fittedStates,
 			trackTips, indexedParams);
-
+ 
   m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
     
 
@@ -506,7 +514,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   updateTrackTimer.stop();
   updateTrackTimer.restart();
   if(fitOutput.fittedParameters)
-    updateSvtxTrack(trajectory, track);
+    { updateSvtxTrack(trajectory, track); }
   
   updateTrackTimer.stop();
   auto updateTime = updateTrackTimer.get_accumulated_time();
