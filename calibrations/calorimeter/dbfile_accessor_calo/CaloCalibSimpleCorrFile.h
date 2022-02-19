@@ -33,12 +33,10 @@ class CaloCalibSimpleCorrFile
 
   virtual ~CaloCalibSimpleCorrFile() { PHOOL_VIRTUAL_WARN("Destructor"); }
 
-  /*
-  void Reset() override;
-  int isValid() const override;
-  void identify(std::ostream &os = std::cout) const override;
-  */
-
+  //void Reset() override;
+  //int isValid() const override;
+  //void identify(std::ostream &os = std::cout) const override;
+ 
   void setCalorimeterID(RawTowerDefs::CalorimeterId caloid) { _caloid = caloid; }
   RawTowerDefs::CalorimeterId getCalorimeterID() { return _caloid; }
 
