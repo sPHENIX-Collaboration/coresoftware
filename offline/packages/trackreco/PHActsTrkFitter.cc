@@ -501,6 +501,12 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 	  std::cout << "For trackTip == " << fitOutput.lastMeasurementIndex << std::endl;
         }
     }
+  else 
+    {
+      /// Track fit failed in some way if there are no fit parameters. Remove
+      m_trackMap->erase(track->get_id());
+      return;
+    }
 
   Trajectory trajectory(fitOutput.fittedStates,
 			trackTips, indexedParams);

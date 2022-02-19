@@ -7,6 +7,49 @@
 
 #include "PHGenFitTrkFitter.h"
 
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/PHTFileServer.h>
+#include <fun4all/SubsysReco.h>                     // for SubsysReco
+
+#include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Particlev2.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>                    // for PHG4VtxPoint
+#include <g4main/PHG4VtxPointv1.h>
+
+#include <intt/InttDefs.h>
+#include <intt/CylinderGeomIntt.h>
+
+#include <micromegas/MicromegasDefs.h>
+#include <micromegas/CylinderGeomMicromegas.h>
+
+#include <mvtx/MvtxDefs.h>
+#include <mvtx/CylinderGeom_Mvtx.h>
+
+#include <phfield/PHFieldUtility.h>
+
+#include <phgenfit/Fitter.h>
+#include <phgenfit/Measurement.h>                   // for Measurement
+#include <phgenfit/PlanarMeasurement.h>
+#include <phgenfit/SpacepointMeasurement.h>
+#include <phgenfit/Track.h>
+
+#include <phgeom/PHGeomUtility.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                           // for PHNode
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                         // for PHObject
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
@@ -21,45 +64,6 @@
 #include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
 #include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>       // for SvtxVertexMap
-
-#include <intt/InttDefs.h>
-#include <intt/CylinderGeomIntt.h>
-
-#include <micromegas/MicromegasDefs.h>
-#include <micromegas/CylinderGeomMicromegas.h>
-
-#include <mvtx/MvtxDefs.h>
-#include <mvtx/CylinderGeom_Mvtx.h>
-
-#include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
-#include <g4detectors/PHG4CylinderGeomContainer.h>
-
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Particlev2.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>                    // for PHG4VtxPoint
-#include <g4main/PHG4VtxPointv1.h>
-
-#include <phgenfit/Fitter.h>
-#include <phgenfit/Measurement.h>                   // for Measurement
-#include <phgenfit/PlanarMeasurement.h>
-#include <phgenfit/SpacepointMeasurement.h>
-#include <phgenfit/Track.h>
-
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
-#include <fun4all/SubsysReco.h>                     // for SubsysReco
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                           // for PHNode
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                         // for PHObject
-#include <phool/getClass.h>
-#include <phool/phool.h>
-
-#include <phfield/PHFieldUtility.h>
-#include <phgeom/PHGeomUtility.h>
 
 #include <GenFit/AbsMeasurement.h>                  // for AbsMeasurement
 #include <GenFit/EventDisplay.h>                    // for EventDisplay
@@ -181,7 +185,7 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
     tgeo_manager,
     field, _track_fitting_alg_name,
     "RKTrackRep", _do_evt_display) );
-  
+
   _fitter->set_verbosity(Verbosity());
 
   _vertex_finder.reset( new genfit::GFRaveVertexFactory(Verbosity()) );
@@ -203,8 +207,11 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
   }
 
   // print disabled layers
-  for( const auto& layer:_disabled_layers )
-  { std::cout << PHWHERE << " Layer " << layer << " is disabled." << std::endl; }
+  if( Verbosity() )
+  {
+    for( const auto& layer:_disabled_layers )
+    { std::cout << PHWHERE << " Layer " << layer << " is disabled." << std::endl; }
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -218,13 +225,12 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
 int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 {
   ++_event;
-  
-  if (Verbosity() > 1)
-    std::cout << PHWHERE << "Events processed: " << _event << std::endl;
-  //	if (_event % 1000 == 0)
-  //		cout << PHWHERE << "Events processed: " << _event << endl;
 
-  //cout << "Start PHGenFitTrkfitter::process_event" << endl;
+  if (Verbosity() > 1)
+  { std::cout << PHWHERE << "Events processed: " << _event << std::endl; }
+
+  // clear global position map
+  m_globalPositions.clear();
 
   GetNodes(topNode);
 
@@ -484,6 +490,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 #ifdef _DEBUG_
   cout << __LINE__ << endl;
 #endif
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -536,14 +543,14 @@ void PHGenFitTrkFitter::fill_eval_tree(PHCompositeNode* /*topNode*/)
     for ( const auto& pair:*_trackmap )
     { new ((*_tca_trackmap)[i++])(SvtxTrack_v2)( *pair.second ); }
   }
-  
+
   if (_vertexmap)
   {
     int i = 0;
     for ( const auto& pair:*_vertexmap )
     { new ((*_tca_vertexmap)[i++])(SvtxVertex_v1)( *dynamic_cast<SvtxVertex_v1*>(pair.second) ); }
   }
-  
+
   if (_trackmap_refit)
   {
     int i = 0;
@@ -719,7 +726,7 @@ const std::set<int>& PHGenFitTrkFitter::get_disabled_layers() const
  */
 int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 {
-  
+
   // acts geometry
   m_tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
   if(!m_tgeometry)
@@ -727,7 +734,7 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
     std::cout << PHWHERE << "No acts tracking geometry, can't proceed" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  
+
   // acts surfaces
   m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
   if(!m_surfmaps)
@@ -735,25 +742,25 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
     std::cout << PHWHERE << "No acts surface maps, can't proceed" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  
+
   //DST objects
   //Truth container
   _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
-  // Input Svtx Clusters
+  // clusters
   _clustermap = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
   if(_clustermap)
   {
-    
+
     if( _event < 2 )
     { std::cout << "PHGenFitTrkFitter::GetNodes - Using CORRECTED_TRKR_CLUSTER node " << std::endl; }
-    
+
   } else {
 
     if( _event < 2 )
     { std::cout << "PHGenFitTrkFitter::GetNodes - CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl; }
     _clustermap = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
-  
+
   }
 
   if(!_clustermap)
@@ -822,10 +829,10 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 //_________________________________________________________________________________
 Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrCluster* cluster )
 {
-  
+
   // get cluster key
   const auto key = cluster->getClusKey();
-  
+
   // find closest iterator in map
   auto it = m_globalPositions.lower_bound( key );
   if (it == m_globalPositions.end()|| (key < it->first ))
@@ -836,10 +843,10 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrCluster* cluster )
       m_tgeometry);
 
     /*
-     * todo: should also either apply distortion corrections 
+     * todo: should also either apply distortion corrections
      * or make sure clusters are loaded from corrected map, after cluster mover
      */
-    
+
     // add new cluster and set its key
     it = m_globalPositions.insert(it, std::make_pair(key, globalpos));
   }
@@ -864,7 +871,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 
   auto geom_container_intt = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   assert( geom_container_intt );
-  
+
   auto geom_container_mvtx = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   assert( geom_container_mvtx );
 
@@ -927,7 +934,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
        iter != intrack->end_cluster_keys(); ++iter){
     TrkrDefs::cluskey cluster_key = *iter;
     TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
-    
+
     // get global position
     const auto globalPosition = getGlobalPosition( cluster );
     float r = sqrt(square( globalPosition.x() ) + square( globalPosition.y() ));
@@ -975,12 +982,12 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     // replace normal by proper vector for specified subsystems
     switch( TrkrDefs::getTrkrId(cluster_key) )
     {
-      
+
       case TrkrDefs::mvtxId:
       {
         int stave_index = MvtxDefs::getStaveId(cluster_key);
         int chip_index = MvtxDefs::getChipId(cluster_key);
-        
+
         double ladder_location[3] = {0.0, 0.0, 0.0};
         auto geom = static_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
         // returns the center of the sensor in world coordinates - used to get the ladder phi location
@@ -993,14 +1000,14 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
         n.RotateZ(geom->get_stave_phi_tilt());
         break;
       }
-      
+
       case TrkrDefs::inttId:
       {
         auto geom = static_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
         double hit_location[3] = {0.0, 0.0, 0.0};
         geom->find_segment_center(InttDefs::getLadderZId(cluster_key),
           InttDefs::getLadderPhiId(cluster_key), hit_location);
-        
+
         //cout << " Intt strip phi tilt = " <<  geom->get_strip_phi_tilt()
         //   << " seg.X " << hit_location[0] << " seg.Y " << hit_location[1] << " seg.Z " << hit_location[2] << endl;
         n.SetXYZ(hit_location[0], hit_location[1], 0);
@@ -1015,15 +1022,15 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
         assert( geom_container_micromegas );
         auto geom = static_cast<CylinderGeomMicromegas*>(geom_container_micromegas->GetLayerGeom(layer));
         const auto tileid = MicromegasDefs::getTileId( cluster_key );
-        
+
         // in local coordinate, n is along y axis
         // convert to global coordinates
         n = geom->get_world_from_local_vect( tileid, TVector3( 0, 1, 0 ) );
       }
-      
+
       default: break;
     }
-    
+
     // create measurement
     auto meas = new PHGenFit::PlanarMeasurement(pos, n, cluster->getRPhiError(), cluster->getZError());
 
@@ -1053,7 +1060,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   //int pid = 211;
   genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
   std::shared_ptr<PHGenFit::Track> track(new PHGenFit::Track(rep, seed_pos, seed_mom, seed_cov));
-                                                          
+
   //TODO unsorted measurements, should use sorted ones?
   track->addMeasurements(measurements);
 
@@ -1387,8 +1394,9 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       { continue; }
 
       // get position
-      const auto globalPosition = getGlobalPosition( cluster );    
-      float r_cluster = std::sqrt( square(globalPosition.x()) + square(globalPosition.y()) );
+      const auto globalPosition = getGlobalPosition( cluster );
+      const TVector3 pos(globalPosition.x(), globalPosition.y(), globalPosition.z() );
+      const float r_cluster = std::sqrt( square(globalPosition.x()) + square(globalPosition.y()) );
 
       // loop over states
       /* find first state whose radius is larger than that of cluster if any */
@@ -1410,7 +1418,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
         } catch (...) {
 
-          if (Verbosity() > 1)
+          if(Verbosity())
           { LogWarning("Failed to get kf fitted state"); }
 
         }
@@ -1441,7 +1449,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
         auto tmp = *kfi->getBackwardUpdate();
         pathlength -= tmp.extrapolateToPoint( vertex_position );
       } catch (...) {
-        if(Verbosity() > 0)
+        if(Verbosity())
         { std::cerr << PHWHERE << "Failed to forward extrapolate from id " << id_min << " to disabled layer " << layer << std::endl; }
         continue;
       }
@@ -1459,7 +1467,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
         gf_state_backward.extrapolateToPlane( gf_state.getPlane() );
         gf_state = genfit::calcAverageState( gf_state, gf_state_backward );
       } catch (...) {
-        if(Verbosity() > 0)
+        if(Verbosity())
         { std::cerr << PHWHERE << "Failed to backward extrapolate from id " << id << " to disabled layer " << layer << std::endl; }
         continue;
       }
@@ -1472,6 +1480,24 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
   }
 
+  // printout all track state
+  if( Verbosity() )
+  {
+    for( auto&& iter = out_track->begin_states(); iter != out_track->end_states(); ++iter )
+    {
+      const auto& [pathlength, state] = *iter;
+      const auto r = std::sqrt( square( state->get_x() ) + square( state->get_y() ));
+      const auto phi = std::atan2( state->get_y(), state->get_x() );
+      std::cout << "PHGenFitTrkFitter::MakeSvtxTrack -"
+        << " pathlength: " << pathlength
+        << " radius: " << r
+        << " phi: " << phi
+        << " z: " << state->get_z()
+        << std::endl;
+    }
+
+    std::cout << std::endl;
+  }
   return out_track;
 }
 

@@ -13,7 +13,6 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
@@ -60,6 +59,16 @@ namespace
     else 
       return phi;
   }
+  
+  /// get sector median angle associated to a given index
+  /** this assumes that sector 0 is centered on phi=0, then numbered along increasing phi */
+  inline constexpr double get_sector_phi( int isec ) 
+  { return isec*M_PI/6; }
+  
+  // specify bins for which one will save histograms
+  static const std::vector<float> phi_rec = { get_sector_phi(9) };
+  static const std::vector<float> z_rec = { 5. };
+  
 }
 
 PHTpcResiduals::PHTpcResiduals(const std::string &name)
@@ -70,6 +79,14 @@ PHTpcResiduals::PHTpcResiduals(const std::string &name)
 int PHTpcResiduals::Init(PHCompositeNode */*topNode*/)
 {
   if( m_savehistograms ) makeHistograms();
+  
+  // reset counters
+  m_total_tracks = 0;
+  m_accepted_tracks = 0;
+
+  m_total_clusters = 0;
+  m_accepted_clusters = 0;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -125,8 +142,31 @@ int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
     m_histogramfile->cd();
     for( const auto o:std::initializer_list<TObject*>({ h_rphiResid, h_zResid, h_etaResidLayer, h_zResidLayer, h_etaResid, h_index, h_alpha, h_beta, h_deltarphi_layer, h_deltaz_layer, residTup }) )
     { if( o ) o->Write(); }
+    
+    // also write histograms from vectors
+    for( const auto& [cell,h]:h_drphi ) { if(h) h->Write(); }
+    for( const auto& [cell,h]:h_dz ) { if(h) h->Write(); }
+    for( const auto& [cell,h]:h_drphi_alpha ) { if(h) h->Write(); }
+    for( const auto& [cell,h]:h_dz_beta ) { if(h) h->Write(); }
+    
     m_histogramfile->Close();
   }
+  
+  // print counters
+  std::cout
+    << "PHTpcResiduals::End -"
+    << " track statistics total: " << m_total_tracks
+    << " accepted: " << m_accepted_tracks
+    << " fraction: " << 100.*m_accepted_tracks/m_total_tracks << "%"
+    << std::endl;
+
+  std::cout
+    << "PHTpcResiduals::End -"
+    << " cluster statistics total: " << m_total_clusters
+    << " accepted: " << m_accepted_clusters << " fraction: "
+    << 100.*m_accepted_clusters/m_total_clusters << "%"
+    << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -137,19 +177,23 @@ int PHTpcResiduals::processTracks(PHCompositeNode */*topNode*/)
   if( Verbosity() )
   { std::cout << "PHTpcResiduals::processTracks - proto track size " << m_trackMap->size() <<std::endl; }
 
-  for(auto &[trackKey, track] : *m_trackMap)
+  for(const auto &[trackKey, track] : *m_trackMap)
+  {
+    if(Verbosity() > 1) 
+    { std::cout << "Processing track key " << trackKey << std::endl; }
+    
+    ++m_total_tracks;
+    if(checkTrack(track))
     {
-      if(Verbosity() > 1)
-	std::cout << "Processing track key " << trackKey
-		  << std::endl;
-      if(checkTrack(track))
-	processTrack(track);
+      ++m_accepted_tracks;
+      processTrack(track);
     }
+  }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-bool PHTpcResiduals::checkTrack(SvtxTrack* track)
+bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
 {
  
   if(track->get_pt() < 0.5)
@@ -169,11 +213,11 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track)
       auto key = *clusIter;
       auto trkrId = TrkrDefs::getTrkrId(key);
       if(trkrId == TrkrDefs::TrkrId::mvtxId)
-	nMvtxHits++;
+        ++nMvtxHits;
       else if(trkrId == TrkrDefs::TrkrId::inttId)
-	nInttHits++;
+        ++nInttHits;
       else if(trkrId == TrkrDefs::TrkrId::micromegasId)
-	nMMHits++;
+        ++nMMHits;
     }
 
   if(Verbosity() > 2)
@@ -195,21 +239,19 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track)
 
 }
 
-PHTpcResiduals::SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
+PHTpcResiduals::SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster) const
 {
-  auto key = cluster->getClusKey();
-  auto subsurfkey = cluster->getSubSurfKey();
       
-  // Make a safety check for clusters that couldn't be attached
-  // to a surface
-  auto surf = getSurface(key, subsurfkey);
-  if(!surf)
-    return SourceLink();
+  // get surface from clusters
+  const auto surf = m_transformer.getSurface( cluster, m_surfMaps );
+  if(!surf) return SourceLink();
   
+  // local position in ACTS unit
   Acts::BoundVector loc = Acts::BoundVector::Zero();
   loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
   loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
   
+  // local covariance matrix in ACTS unit
   Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
   cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
     cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
@@ -219,73 +261,15 @@ PHTpcResiduals::SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster)
     cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
   cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
     cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
-  
+
+  const auto key = cluster->getClusKey();
   SourceLink sl(surf->geometryId(),key, surf, loc, cov);
   
   return sl;
 }
 
 //___________________________________________________________________________________
-Surface PHTpcResiduals::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfkey surfkey)
-{
-  const auto trkrid = TrkrDefs::getTrkrId(cluskey);
-  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-
-  switch( trkrid )
-  {
-    case TrkrDefs::TrkrId::micromegasId: return getMMSurface( hitsetkey );
-    case TrkrDefs::TrkrId::tpcId: return getTpcSurface(hitsetkey, surfkey);
-    case TrkrDefs::TrkrId::mvtxId:
-    case TrkrDefs::TrkrId::inttId:
-    {
-      return getSiliconSurface(hitsetkey);
-    }
-  }
-  
-  // unreachable
-  return nullptr;
-  
-}
-
-//___________________________________________________________________________________
-Surface PHTpcResiduals::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
-{
-  auto surfMap = m_surfMaps->siliconSurfaceMap;
-  auto iter = surfMap.find(hitsetkey);
-  if(iter != surfMap.end())
-    {
-      return iter->second;
-    }
-  
-  // If it can't be found, return nullptr
-  return nullptr;
-
-}
-
-//___________________________________________________________________________________
-Surface PHTpcResiduals::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey)
-{
-  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-  const auto iter = m_surfMaps->tpcSurfaceMap.find(layer);
-  if(iter != m_surfMaps->tpcSurfaceMap.end())
-  {
-    auto surfvec = iter->second;
-    return surfvec.at(surfkey);
-  }
-  
-  // If it can't be found, return nullptr to skip this cluster
-  return nullptr;
-}
-
-//___________________________________________________________________________________
-Surface PHTpcResiduals::getMMSurface(TrkrDefs::hitsetkey hitsetkey)
-{
-  const auto iter = m_surfMaps->mmSurfaceMap.find( hitsetkey );
-  return (iter == m_surfMaps->mmSurfaceMap.end()) ? nullptr:iter->second;
-}
-
-//___________________________________________________________________________________
-Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track)
+Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) const
 {
   Acts::Vector3 momentum(track->get_px(), 
 			  track->get_py(), 
@@ -333,10 +317,12 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
        ++clusIter)
     {
       auto cluskey = *clusIter;
-      
+
+      ++m_total_clusters;
+
       // only propagate to tpc surfaces
       if(TrkrDefs::getTrkrId(cluskey) != TrkrDefs::TrkrId::tpcId)
-	continue;;
+      { continue; }
 
       auto cluster = m_clusterContainer->findCluster(cluskey);
 
@@ -387,7 +373,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
 PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState(
 			   const Acts::BoundTrackParameters& params,
-			   const SourceLink& sl)
+			   const SourceLink& sl) const
 {
  
 
@@ -443,8 +429,7 @@ void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Ac
   state.set_pz(momentum.z());
 
   // covariance
-  ActsTransformations transformer;
-  const auto globalCov = transformer.rotateActsCovToSvtxTrack(params, m_tGeometry->geoContext);
+  const auto globalCov = m_transformer.rotateActsCovToSvtxTrack(params, m_tGeometry->geoContext);
   for (int i = 0; i < 6; ++i)
     for (int j = 0; j < 6; ++j)
   { state.set_error(i, j, globalCov(i,j)); }
@@ -459,8 +444,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   
   cluskey = cluster->getClusKey();
   // Get all the relevant information for residual calculation
-  ActsTransformations transformer;
-  const auto globClusPos = transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
+  const auto globClusPos = m_transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
   clusR = std::sqrt(square(globClusPos(0)) + square(globClusPos(1)));
   clusPhi = std::atan2(globClusPos(1), globClusPos(0));
   clusZ = globClusPos(2);
@@ -522,18 +506,18 @@ void PHTpcResiduals::calculateTpcResiduals(
   stateZ = trackZ;
 
   if(Verbosity() > 3)
+  {
     std::cout << "State r phi and z " 
-	      << stateR
-	      << "   " << statePhi << "+/-" << stateRPhiErr
-	      << " and " << stateZ << "+/-" << stateZErr << std::endl;
+      << stateR
+      << "   " << statePhi << "+/-" << stateRPhiErr
+      << " and " << stateZ << "+/-" << stateZErr << std::endl;
+  }
 
-  const auto erp = square(clusRPhiErr);
-  const auto ez = square(clusZErr);
-
-  const auto dPhi = clusPhi - statePhi;
+  const auto erp = square(clusRPhiErr) + square(stateRPhiErr);
+  const auto ez = square(clusZErr) + square(stateZErr);
 
   // Calculate residuals
-  drphi = clusR * deltaPhi(dPhi);
+  drphi = clusR * deltaPhi(clusPhi - statePhi);
   dz  = clusZ - stateZ;
 
   if(Verbosity() > 3)
@@ -584,6 +568,11 @@ void PHTpcResiduals::calculateTpcResiduals(
     h_deltarphi_layer->Fill( layer, drphi );
     h_deltaz_layer->Fill( layer, dz );
 
+    { const auto iter = h_drphi.find( index ); if( iter != h_drphi.end() ) iter->second->Fill( drphi ); }
+    { const auto iter = h_drphi_alpha.find( index ); if( iter != h_drphi_alpha.end() ) iter->second->Fill( tanAlpha, drphi ); }
+    { const auto iter = h_dz.find( index ); if( iter != h_dz.end() ) iter->second->Fill( dz ); }
+    { const auto iter = h_dz_beta.find( index ); if( iter != h_dz_beta.end() ) iter->second->Fill( tanBeta, dz ); }
+    
     residTup->Fill();
   }
   
@@ -615,6 +604,9 @@ void PHTpcResiduals::calculateTpcResiduals(
   
   // update entries in cell
   m_matrix_container->add_to_entries(index);
+  
+  // increment number of accepted clusters
+  ++m_accepted_clusters;
   
   return;
 }
@@ -722,6 +714,69 @@ void PHTpcResiduals::makeHistograms()
   h_deltarphi_layer = new TH2F( "deltarphi_layer", ";layer; r.#Delta#phi_{track-cluster} (cm)", 57, 0, 57, 500, -2, 2 );
   h_deltaz_layer = new TH2F( "deltaz_layer", ";layer; #Deltaz_{track-cluster} (cm)", 57, 0, 57, 100, -2, 2 );
 
+  {
+
+    // get grid dimensions from matrix container
+    int phibins = 0;
+    int rbins = 0;
+    int zbins = 0;
+    m_matrix_container->get_grid_dimensions( phibins, rbins, zbins );
+    
+    // get bins corresponding to selected angles
+    std::set<int> phibin_rec;
+    std::transform( phi_rec.begin(), phi_rec.end(), std::inserter( phibin_rec, phibin_rec.end() ), [&]( const float& phi ) { return phibins*(phi-m_phiMin)/(m_phiMax-m_phiMin); } );
+    
+    std::set<int> zbin_rec;
+    std::transform( z_rec.begin(), z_rec.end(), std::inserter( zbin_rec, zbin_rec.end() ), [&]( const float& z ) { return zbins*(z-m_zMin)/(m_zMax-m_zMin); } );
+
+    // keep track of all cell ids that match selected histograms
+    for( int iphi = 0; iphi < phibins; ++iphi )
+      for( int ir = 0; ir < rbins; ++ir )
+      for( int iz = 0; iz < zbins; ++iz )
+    {
+    
+      if( phibin_rec.find( iphi ) == phibin_rec.end() || zbin_rec.find( iz ) == zbin_rec.end() ) continue;
+      const auto icell = m_matrix_container->get_cell_index( iphi, ir, iz );
+      
+      {
+        // rphi residuals
+        const auto hname = Form( "residual_drphi_p%i_r%i_z%i", iphi, ir, iz );
+        auto h = new TH1F( hname, hname, 100, -m_maxResidualDrphi, +m_maxResidualDrphi );
+        h->GetXaxis()->SetTitle( "r.#Delta#phi_{cluster-track} (cm)" );
+        h_drphi.insert( std::make_pair( icell, h ) );
+      }
+
+      {
+        // 2D histograms
+        const auto hname = Form( "residual_2d_drphi_p%i_r%i_z%i", iphi, ir, iz );
+        auto h = new TH2F( hname, hname, 100, -m_maxTAlpha, m_maxTAlpha, 100, -m_maxResidualDrphi, +m_maxResidualDrphi );
+        h->GetXaxis()->SetTitle( "tan#alpha" );
+        h->GetYaxis()->SetTitle( "r.#Delta#phi_{cluster-track} (cm)" );
+        h_drphi_alpha.insert( std::make_pair( icell, h ) );
+      }
+
+      {
+        // z residuals
+        const auto hname = Form( "residual_dz_p%i_r%i_z%i", iphi, ir, iz );
+        auto h = new TH1F( hname, hname, 100, -m_maxResidualDz, +m_maxResidualDz );
+        h->GetXaxis()->SetTitle( "#Deltaz_{cluster-track} (cm)" );
+        h_dz.insert( std::make_pair( icell, h ) );
+      }
+
+      {
+        // 2D histograms
+        static constexpr double maxTBeta = 0.5;
+        const auto hname = Form( "residual_2d_dz_p%i_r%i_z%i", iphi, ir, iz );
+        auto h = new TH2F( hname, hname, 100, -maxTBeta, maxTBeta, 100, -m_maxResidualDz, +m_maxResidualDz );
+        h->GetXaxis()->SetTitle( "tan#beta" );
+        h->GetYaxis()->SetTitle( "#Deltaz_{cluster-track} (cm)" );
+        h_dz_beta.insert( std::make_pair( icell, h ) );
+      }     
+    }
+    
+  }
+  
+  
   residTup = new TTree("residTree","tpc residual info");
   residTup->Branch("tanAlpha",&tanAlpha,"tanAlpha/D");
   residTup->Branch("tanBeta",&tanBeta,"tanBeta/D");
