@@ -29,7 +29,6 @@
 #include <Acts/Surfaces/Surface.hpp>
 
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
-#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
 
 
 #include <cmath>
@@ -239,35 +238,6 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
 
 }
 
-PHTpcResiduals::SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster) const
-{
-      
-  // get surface from clusters
-  const auto surf = m_transformer.getSurface( cluster, m_surfMaps );
-  if(!surf) return SourceLink();
-  
-  // local position in ACTS unit
-  Acts::BoundVector loc = Acts::BoundVector::Zero();
-  loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
-  loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
-  
-  // local covariance matrix in ACTS unit
-  Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
-  cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
-    cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
-  cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
-    cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
-  cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
-    cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
-  cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
-    cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
-
-  const auto key = cluster->getClusKey();
-  SourceLink sl(surf->geometryId(),key, surf, loc, cov);
-  
-  return sl;
-}
-
 //___________________________________________________________________________________
 Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) const
 {
@@ -326,9 +296,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
       auto cluster = m_clusterContainer->findCluster(cluskey);
 
-      auto sl = makeSourceLink(cluster);
-      
-      auto result = propagateTrackState(trackParams, sl);
+      const auto surf = m_transformer.getSurface( m_clusterContainer->findCluster(cluskey), 
+						  m_surfMaps );
+
+      auto result = propagateTrackState(trackParams, surf);
 
       if(result.ok())
       {
@@ -373,7 +344,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
 PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState(
 			   const Acts::BoundTrackParameters& params,
-			   const SourceLink& sl) const
+			   const Surface& surf) const
 {
  
 
@@ -395,8 +366,7 @@ PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState(
 				    m_tGeometry->magFieldContext,
 				    Acts::LoggerWrapper{*logger});
      
-  auto result = propagator.propagate(params, sl.referenceSurface(), 
-				     options);
+  auto result = propagator.propagate(params, *surf, options);
    
         
   if(result.ok())
@@ -803,3 +773,4 @@ void PHTpcResiduals::makeHistograms()
 
 void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins, const int zBins)
 { m_matrix_container->set_grid_dimensions( phiBins, rBins, zBins ); }
+
