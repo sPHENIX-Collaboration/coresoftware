@@ -48,11 +48,11 @@ int PHActsSiliconSeeding::Init(PHCompositeNode */*topNode*/)
   // vector containing the map of z bins in the top and bottom layers
   std::vector<std::pair<int, int> > zBinNeighborsTop;
   std::vector<std::pair<int, int> > zBinNeighborsBottom;
-
+  int nphineighbors = 1;
   m_bottomBinFinder = 
-    std::make_shared<Acts::BinFinder<SpacePoint>>(Acts::BinFinder<SpacePoint>(zBinNeighborsBottom, m_numPhiNeighbors));
+    std::make_shared<Acts::BinFinder<SpacePoint>>(Acts::BinFinder<SpacePoint>(zBinNeighborsBottom, nphineighbors));
   m_topBinFinder = 
-    std::make_shared<Acts::BinFinder<SpacePoint>>(Acts::BinFinder<SpacePoint>(zBinNeighborsTop, m_numPhiNeighbors));
+    std::make_shared<Acts::BinFinder<SpacePoint>>(Acts::BinFinder<SpacePoint>(zBinNeighborsTop, nphineighbors));
 
   m_seedFinderCfg.seedFilter = std::make_unique<Acts::SeedFilter<SpacePoint>>(
      Acts::SeedFilter<SpacePoint>(sfCfg));
@@ -1250,9 +1250,9 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey clusk
   Acts::Vector2 localPos(sl.location()(0), sl.location()(1));
   Acts::Vector3 globalPos(0,0,0);
   Acts::Vector3 mom(1,1,1);
-
-  globalPos = sl.referenceSurface().localToGlobal(m_tGeometry->geoContext,
-						  localPos, mom);
+  const auto surf = m_tGeometry->tGeometry->findSurface(sl.geometryId());
+  globalPos = surf->localToGlobal(m_tGeometry->geoContext,
+				  localPos, mom);
 
   Acts::SymMatrix2 localCov = Acts::SymMatrix2::Zero();
   localCov(0,0) = sl.covariance()(0,0);
@@ -1273,10 +1273,9 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey clusk
   /// dr/d{x,y} = (1 / sqrt(x² + y²)) * 2 * {x,y}
   ///             = 2 * {x,y} / r
   ///       dz/dz = 1 
- 
+
   Acts::RotationMatrix3 rotLocalToGlobal =
-    sl.referenceSurface().referenceFrame(m_tGeometry->geoContext, 
-					  globalPos, mom);
+    surf->referenceFrame(m_tGeometry->geoContext, globalPos, mom);
   auto scale = 2 / std::hypot(x,y);
   Acts::ActsMatrix<2, 3> jacXyzToRhoZ = Acts::ActsMatrix<2, 3>::Zero();
   jacXyzToRhoZ(0, Acts::ePos0) = scale * x;
@@ -1291,7 +1290,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey clusk
 
 
   SpacePointPtr spPtr(new SpacePoint{cluskey, x, y, z, r, 
-	sl.referenceSurface().geometryId(), var[0], var[1]});
+	sl.geometryId(), var[0], var[1]});
 
   if(Verbosity() > 2)
     std::cout << "Space point has " 
@@ -1301,7 +1300,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey clusk
 	      << var[0] << ", " << var[1] 
 	      << " and cluster key "
 	      << cluskey << " and geo id "
-	      << sl.referenceSurface().geometryId() << std::endl;
+	      << sl.geometryId() << std::endl;
   
   return spPtr;
 
@@ -1348,7 +1347,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 	  cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
 	    cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
 
-	  SourceLink sl(surface->geometryId(), cluskey, surface, loc, cov);
+	  SourceLink sl(surface->geometryId(), cluskey, loc, cov);
 	 
 	  auto sp = makeSpacePoint(cluskey, sl).release();
 	  spVec.push_back(sp);
