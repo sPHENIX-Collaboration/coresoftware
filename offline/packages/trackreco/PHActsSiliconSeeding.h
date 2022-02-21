@@ -137,6 +137,7 @@ class PHActsSiliconSeeding : public SubsysReco
   
   /// Create a seeding space point out of an Acts::SourceLink
   SpacePointPtr makeSpacePoint(const TrkrDefs::cluskey cluskey, 
+			       const Surface& surf,
 			       const SourceLink& sl);
   
   /// Get all space points for the seeder

@@ -1245,12 +1245,13 @@ void PHActsSiliconSeeding::circleFitByTaubin(const std::vector<Acts::Vector3>& g
 }
 
 SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey cluskey, 
+						   const Surface& surf,
 						   const SourceLink& sl)
 {
   Acts::Vector2 localPos(sl.location()(0), sl.location()(1));
   Acts::Vector3 globalPos(0,0,0);
   Acts::Vector3 mom(1,1,1);
-  const auto surf = m_tGeometry->tGeometry->findSurface(sl.geometryId());
+
   globalPos = surf->localToGlobal(m_tGeometry->geoContext,
 				  localPos, mom);
 
@@ -1350,7 +1351,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 
 	  SourceLink sl(surface->geometryId(), cluskey, loc, cov);
 	 
-	  auto sp = makeSpacePoint(cluskey, sl).release();
+	  auto sp = makeSpacePoint(cluskey, surface, sl).release();
 	  spVec.push_back(sp);
 	  rRangeSPExtent.check({sp->x(), sp->y(), sp->z()});
 	  numSiliconHits++;
