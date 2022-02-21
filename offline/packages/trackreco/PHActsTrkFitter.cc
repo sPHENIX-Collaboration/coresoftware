@@ -37,7 +37,7 @@
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 
-#include <ActsExamples/Framework/AlgorithmContext.hpp>
+#include <ActsExamples/EventData/Index.hpp>
 
 #include <cmath>
 #include <iostream>
@@ -59,11 +59,11 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
-  m_fitCfg.fit = ActsExamples::TrkrClusterFittingAlgorithm::makeTrackFitterFunction(
+  m_fitCfg.fit = ActsExamples::TrackFittingAlgorithm::makeTrackFitterFunction(
                m_tGeometry->tGeometry,
 	       m_tGeometry->magField);
 
-  m_fitCfg.dfit = ActsExamples::TrkrClusterFittingAlgorithm::makeTrackFitterFunction(
+  m_fitCfg.dFit = ActsExamples::TrackFittingAlgorithm::makeTrackFitterFunction(
 	       m_tGeometry->magField);
 
   if(m_timeAnalysis)
@@ -414,8 +414,9 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 				   ActsExamples::MeasurementContainer& measurements)
 {
 
-  SourceLinkVec sourcelinks;
-
+  SourceLinkVec sourcelinkwrappers;
+  std::vector<SourceLink> sourcelinks;
+  int iter = 0;
   for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
        clusIter != track->end_cluster_keys();
        ++clusIter)
@@ -436,11 +437,13 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
       if(!surf)
 	continue;
   
-      Acts::BoundVector loc = Acts::BoundVector::Zero();
+      Acts::ActsVector<2> loc;
       loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
       loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
-      
-      Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+      std::array<Acts::BoundIndices,2> indices;
+      indices[0] = Acts::BoundIndices::eBoundLoc0;
+      indices[1] = Acts::BoundIndices::eBoundLoc1;
+      Acts::ActsSymMatrix<2> cov = Acts::ActsSymMatrix<2>::Zero();
       cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
 	cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
       cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
@@ -449,12 +452,16 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
       cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
 	cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
-    
-      SourceLink sl(surf->geometryId(), key, loc, cov);
+      ActsExamples::Index index = measurements.size();
+
+      SourceLink sl(surf->geometryId(), index, key);
+  
+      Acts::Measurement<Acts::BoundIndices,2> meas(sl, indices, loc, cov);
       if(Verbosity() > 3)
 	{
-	  std::cout << "source link " << sl.cluskey() << ", loc : " 
-		    << sl.location().transpose() << std::endl << ", cov : " << sl.covariance().transpose() << std::endl
+	  std::cout << "source link " << sl.index() << ", loc : " 
+		    << loc.transpose() << std::endl 
+		    << ", cov : " << cov.transpose() << std::endl
 		    << " geo id " << sl.geometryId() << std::endl;
 	  std::cout << "Surface : " << std::endl;
 	  surf.get()->toStream(m_tGeometry->geoContext, std::cout);
@@ -465,11 +472,15 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 		    << std::endl;
 	}
     
-      sourcelinks.push_back(std::cref(sl));
-      measurements.push_back(sl.getMeasurement());
+      /// We need to call a std::vector push_back first to allocate
+      /// the memory for the std::cref to access properly
+      sourcelinks.push_back(sl);
+      sourcelinkwrappers.push_back(std::cref(sourcelinks.at(iter)));
+      measurements.push_back(meas);
+      iter++;
     }
- 
-  return sourcelinks;
+
+  return sourcelinkwrappers;
 
 }
 
@@ -535,15 +546,15 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   return;
 }
 
-ActsExamples::TrkrClusterFittingAlgorithm::FitterResult PHActsTrkFitter::fitTrack(
+ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
           const SourceLinkVec& sourceLinks, 
 	  const ActsExamples::TrackParameters& seed,
-	  const ActsExamples::TrkrClusterFittingAlgorithm::TrackFitterOptions& 
+	  const ActsExamples::TrackFittingAlgorithm::TrackFitterOptions& 
 	         kfOptions, 
 	  const SurfacePtrVec& surfSequence)
 {
   if(m_fitSiliconMMs) 
-    { return (*m_fitCfg.dfit)(sourceLinks, seed, kfOptions, surfSequence); }
+    { return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence); }
 
   return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions); 
 }

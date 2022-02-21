@@ -23,10 +23,11 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
-#include <ActsExamples/TrackFitting/TrkrClusterFittingAlgorithm.hpp>
+#include <ActsExamples/TrackFitting/TrackFittingAlgorithm.hpp>
 #include <ActsExamples/EventData/Trajectories.hpp>
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/Measurement.hpp>
+#include <ActsExamples/EventData/IndexSourceLink.hpp>
 
 #include <memory>
 #include <string>
@@ -34,10 +35,6 @@
 #include <TH1.h>
 #include <TH2.h>
 
-namespace ActsExamples
-{
-  class TrkrClusterSourceLink;
-}
 
 class MakeActsGeometry;
 class SvtxTrack;
@@ -45,7 +42,7 @@ class SvtxTrackMap;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
 
-using SourceLink = ActsExamples::TrkrClusterSourceLink;
+using SourceLink = ActsExamples::IndexSourceLink;
 using FitResult = Acts::KalmanFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices,2>;
@@ -116,10 +113,10 @@ class PHActsTrkFitter : public SubsysReco
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
-  ActsExamples::TrkrClusterFittingAlgorithm::FitterResult fitTrack(
+  ActsExamples::TrackFittingAlgorithm::TrackFitterResult fitTrack(
            const SourceLinkVec& sourceLinks, 
 	   const ActsExamples::TrackParameters& seed,
-	   const ActsExamples::TrkrClusterFittingAlgorithm::TrackFitterOptions& 
+	   const ActsExamples::TrackFittingAlgorithm::TrackFitterOptions& 
 	     kfOptions,
 	   const SurfacePtrVec& surfSequence);
 
@@ -146,7 +143,7 @@ class PHActsTrkFitter : public SubsysReco
   ActsTrackingGeometry *m_tGeometry = nullptr;
 
   /// Configuration containing the fitting function instance
-  ActsExamples::TrkrClusterFittingAlgorithm::Config m_fitCfg;
+  ActsExamples::TrackFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
   SvtxTrackMap *m_trackMap = nullptr;
