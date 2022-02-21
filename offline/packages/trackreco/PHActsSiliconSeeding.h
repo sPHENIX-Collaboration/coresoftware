@@ -15,8 +15,6 @@
 #include <Acts/Seeding/BinFinder.hpp>
 #include <Acts/Seeding/SpacePointGrid.hpp>
 
-#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
-
 #include <string>
 #include <map>
 #include <TFile.h>
@@ -31,8 +29,6 @@ class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class TrkrClusterIterationMapv1;
-
-using SourceLink = ActsExamples::TrkrClusterSourceLink;
 
 /**
  * A struct for Acts to take cluster information for seeding
@@ -136,9 +132,8 @@ class PHActsSiliconSeeding : public SubsysReco
   void makeSvtxTracks(GridSeeds& seedVector);
   
   /// Create a seeding space point out of an Acts::SourceLink
-  SpacePointPtr makeSpacePoint(const TrkrDefs::cluskey cluskey, 
-			       const Surface& surf,
-			       const SourceLink& sl);
+  SpacePointPtr makeSpacePoint(const Surface& surf,
+			       const TrkrCluster* clus);
   
   /// Get all space points for the seeder
   std::vector<const SpacePoint*> getMvtxSpacePoints(Acts::Extent& rRangeSPExtent);

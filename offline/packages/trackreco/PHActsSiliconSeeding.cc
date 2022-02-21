@@ -1244,11 +1244,11 @@ void PHActsSiliconSeeding::circleFitByTaubin(const std::vector<Acts::Vector3>& g
 
 }
 
-SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey cluskey, 
-						   const Surface& surf,
-						   const SourceLink& sl)
+SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const Surface& surf,
+						   const TrkrCluster* clus)
 {
-  Acts::Vector2 localPos(sl.location()(0), sl.location()(1));
+  Acts::Vector2 localPos(clus->getLocalX(), 
+			 clus->getLocalY());
   Acts::Vector3 globalPos(0,0,0);
   Acts::Vector3 mom(1,1,1);
 
@@ -1256,8 +1256,8 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey clusk
 				  localPos, mom);
 
   Acts::SymMatrix2 localCov = Acts::SymMatrix2::Zero();
-  localCov(0,0) = sl.covariance()(0,0);
-  localCov(1,1) = sl.covariance()(1,1);
+  localCov(0,0) = clus->getActsLocalError(0,0);
+  localCov(1,1) = clus->getActsLocalError(1,1);
   
   float x = globalPos.x();
   float y = globalPos.y();
@@ -1289,9 +1289,8 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey clusk
   // compute rho/z variance
   Acts::ActsVector<2> var = (jac * localCov * jac.transpose()).diagonal();
 
-
-  SpacePointPtr spPtr(new SpacePoint{cluskey, x, y, z, r, 
-	sl.geometryId(), var[0], var[1]});
+  SpacePointPtr spPtr(new SpacePoint{clus->getClusKey(), x, y, z, r, 
+	surf->geometryId(), var[0], var[1]});
 
   if(Verbosity() > 2)
     std::cout << "Space point has " 
@@ -1301,8 +1300,8 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey clusk
 	      << ", " << localCov(1,1) << " and rotated variances "
 	      << var[0] << ", " << var[1] 
 	      << " and cluster key "
-	      << cluskey << " and geo id "
-	      << sl.geometryId() << std::endl;
+	      << clus->getClusKey() << " and geo id "
+	      << surf->geometryId() << std::endl;
   
   return spPtr;
 
@@ -1312,7 +1311,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 {
   std::vector<const SpacePoint*> spVec;
   unsigned int numSiliconHits = 0;
-  
+ 
   auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::mvtxId);
   for (auto hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
@@ -1335,23 +1334,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 	  if(!surface)
 	    continue;
 
-	  Acts::BoundVector loc = Acts::BoundVector::Zero();
-	  loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
-	  loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
-	  
-	  Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
-	  cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
-	    cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
-	  cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
-	    cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
-	  cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
-	    cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
-	  cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
-	    cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
-
-	  SourceLink sl(surface->geometryId(), cluskey, loc, cov);
-	 
-	  auto sp = makeSpacePoint(cluskey, surface, sl).release();
+	  auto sp = makeSpacePoint(surface, cluster).release();
 	  spVec.push_back(sp);
 	  rRangeSPExtent.check({sp->x(), sp->y(), sp->z()});
 	  numSiliconHits++;
