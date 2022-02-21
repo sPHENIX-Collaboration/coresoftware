@@ -1294,7 +1294,8 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const TrkrDefs::cluskey clusk
 
   if(Verbosity() > 2)
     std::cout << "Space point has " 
-	      << x << ", " << y << ", " << z
+	      << x << ", " << y << ", " << z << " with local coords "
+	      << localPos.transpose() 
 	      << " with rphi/z variances " << localCov(0,0) 
 	      << ", " << localCov(1,1) << " and rotated variances "
 	      << var[0] << ", " << var[1] 
