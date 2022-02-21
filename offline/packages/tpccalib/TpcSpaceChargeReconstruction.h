@@ -7,6 +7,7 @@
  */
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <TString.h>
 
@@ -14,6 +15,9 @@
 #include <vector>
 
 // forward declaration
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
+
 class SvtxTrack;
 class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
@@ -57,7 +61,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// output file
   /**
-   * this is the file where space charge matrix container is stored 
+   * this is the file where space charge matrix container is stored
    */
   void set_outputfile( const std::string& filename )
   { m_outputfile = filename; }
@@ -78,11 +82,18 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// parameters
   void SetDefaultParameters() override;
-  
+
   private:
 
   /// load nodes
   int load_nodes( PHCompositeNode* );
+
+  /// get global position for a given cluster
+  /**
+   * uses ActsTransformation to convert cluster local position into global coordinates
+   * incorporates TPC distortion correction, if present
+   */
+  Acts::Vector3D get_global_position(TrkrCluster*);
 
   /// process tracks
   void process_tracks();
@@ -94,13 +105,29 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   void process_track( SvtxTrack* );
 
   /// get relevant cell for a given cluster
-  int get_cell_index( TrkrCluster* ) const;
+  int get_cell_index( TrkrCluster* );
 
+  /// local event counter
+  int m_event = 0;
+  
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
   /// true if only tracks with micromegas must be used
   bool m_use_micromegas = true;
+
+  /// acts transformation object
+  ActsTransformations m_transform;
+
+  /// acts geometry
+  ActsTrackingGeometry *m_tgeometry = nullptr;
+
+  /// acts surface map
+  ActsSurfaceMaps *m_surfmaps = nullptr;
+
+  /// map cluster keys to global position
+  using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3D>;
+  PositionMap m_globalPositions;
 
   ///@name selection parameters
   //@{
@@ -115,7 +142,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
-  
+
   ///@name counters
   //@{
   int m_total_tracks = 0;
@@ -124,7 +151,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   int m_total_clusters = 0;
   int m_accepted_clusters = 0;
   //@}
-  
+
   ///@name nodes
   //@{
   SvtxTrackMap* m_track_map = nullptr;

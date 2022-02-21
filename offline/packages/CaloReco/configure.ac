@@ -5,12 +5,11 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
+CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow"
+
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-c11-extensions -Wextra"
- ;;
- *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+  CXXFLAGS="$CXXFLAGS -Wno-c11-extensions"
  ;;
 esac
 
