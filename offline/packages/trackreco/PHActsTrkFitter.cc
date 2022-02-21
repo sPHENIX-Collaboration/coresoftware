@@ -217,7 +217,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         // make sure micromegas are in the tracks, if required
         if( m_useMicromegas &&
           std::none_of( surfaces.begin(), surfaces.end(), [this]( const auto& surface )
-          { return m_surfMaps->isMicromegasSurface( *surface ); } ) )
+          { return m_surfMaps->isMicromegasSurface( surface ); } ) )
         { continue; }
       }
 
@@ -450,14 +450,14 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
       cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
 	cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
     
-      SourceLink sl(surf->geometryId(),key, surf, loc, cov);
+      SourceLink sl(surf->geometryId(), key, loc, cov);
       if(Verbosity() > 3)
 	{
 	  std::cout << "source link " << sl.cluskey() << ", loc : " 
 		    << sl.location().transpose() << std::endl << ", cov : " << sl.covariance().transpose() << std::endl
-		    << " geo id " << sl.geoId() << std::endl;
+		    << " geo id " << sl.geometryId() << std::endl;
 	  std::cout << "Surface : " << std::endl;
-	  sl.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
+	  surf.get()->toStream(m_tGeometry->geoContext, std::cout);
 	  std::cout << std::endl;
 	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
 	  std::cout << "For key " << key << " with local pos " << std::endl
@@ -559,17 +559,17 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
   for(const auto& sl : sourceLinks)
     {
       if(Verbosity() > 1)
-	{ std::cout<<"SL available on : " << sl.get().referenceSurface().geometryId()<<std::endl; } 
-
+	{ std::cout << "SL available on : " << sl.get().geometryId() << std::endl; } 
+      const auto surf = m_tGeometry->tGeometry->findSurface(sl.get().geometryId());
       // skip TPC surfaces
-      if( m_surfMaps->isTpcSurface( sl.get().referenceSurface() ) ) continue;
+      if( m_surfMaps->isTpcSurface( surf ) ) continue;
       
       // also skip micromegas surfaces if not used
-      if( m_surfMaps->isMicromegasSurface( sl.get().referenceSurface() ) && !m_useMicromegas ) continue;
+      if( m_surfMaps->isMicromegasSurface( surf ) && !m_useMicromegas ) continue;
 
       // update vectors
       siliconMMSls.push_back(sl);
-      surfaces.push_back(&sl.get().referenceSurface());
+      surfaces.push_back(surf);
 
     }
 
