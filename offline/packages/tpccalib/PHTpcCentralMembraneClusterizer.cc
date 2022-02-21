@@ -89,9 +89,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 
   //local coord conversion below
   ActsTrackingGeometry *tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
-  std::cout << "got tgeom" << std::endl;
+  //std::cout << "got tgeom" << std::endl;
   ActsSurfaceMaps *surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
-  std::cout << "got surfmaps" << std::endl;
+  //std::cout << "got surfmaps" << std::endl;
   if(!tgeometry or !surfmaps)
     {
       std::cout << PHWHERE << "No Acts geometry on node tree. Can't  continue."
@@ -220,13 +220,16 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	}
       }
     }
-  if (allGood)
+  if(Verbosity() > 0)
     {
-      printf("All Good!\n");
-    } 
-  else 
-    {
-      printf("nGood=%d out of %d\n",nGood,nTpcClust/2);
+      if (allGood)
+	{
+	  printf("All Good!\n");
+	} 
+      else 
+	{
+	  printf("nGood=%d out of %d\n",nGood,nTpcClust/2);
+	}
     }
   
   //build the weighted cluster centers
@@ -281,27 +284,21 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 		}
 	      double rad_lyr_boundary = rad1 + layer_dr / 2.0;	 
 
-	      // Use radial width of stripe to determine where radius at center of distribution must be
-	      // We have to use distortion corrected cluster positions to determine which stripe this came from
+
+	      // We have to (temporarily) use distortion corrected cluster positions to determine which stripe this came from
 	      Acts::Vector3D dist_pos(pos[i].X(), pos[i].Y(), pos[i].Z());
 	      if( _dcc)  dist_pos = _distortionCorrection.get_corrected_position( dist_pos, _dcc ); 
 	      double dist_r = sqrt(dist_pos[0]*dist_pos[0] + dist_pos[1] * dist_pos[1]);
-	      double _cmclus_dr = 1.0;  // cm	
+	      double cmclus_dr = _cmclus_dr_outer; 
 	      if(dist_r < 41.0)
-		_cmclus_dr = 0.475;
-	      else if(dist_r > 41.0 && rad2 < 58.0)
-		_cmclus_dr = 0.9; 
-
-	      float below = efrac * _cmclus_dr;  // stripe length below boundary
-	      float above = (1-efrac) * _cmclus_dr;  // stripe length above boundary
-	      double aveR;
-	      if(efrac > 0.5) 
-		aveR = rad_lyr_boundary + above  - _cmclus_dr/2.0;
-	      else
-		aveR = rad_lyr_boundary - below  + _cmclus_dr/2.0;
+		cmclus_dr = _cmclus_dr_inner;
+	      else if(dist_r >= 41.0 && rad2 < 58.0)
+		cmclus_dr = _cmclus_dr_mid; 
+	      // Use radial width of stripe and efrac to determine where radius at center of distribution must be
+	      double aveR = rad_lyr_boundary - efrac * cmclus_dr + cmclus_dr/2.0;
 
 	      if(Verbosity() > 0)
-		std::cout << " efrac " << efrac << " _cmclus_dr "<< _cmclus_dr << " rad_lyr_boundary " << rad_lyr_boundary << " aveR " << aveR 
+		std::cout << " efrac " << efrac << " _cmclus_dr "<< cmclus_dr << " rad_lyr_boundary " << rad_lyr_boundary << " aveR " << aveR 
 			  << " layer i " << layer[i] << " R i " << rad1 << " layer i_pair " << layer[i_pair[i]] << " R i_pair " << rad2 << " layer_dr " << layer_dr << std::endl;	   
 	
 	      TVector3 temppos(aveR*cos(avePhi), aveR*sin(avePhi), aveZ);
@@ -470,21 +467,6 @@ int  PHTpcCentralMembraneClusterizer::GetNodes(PHCompositeNode* topNode)
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-float PHTpcCentralMembraneClusterizer::roughErfInverse(float x){
-  // Based on "A handy approximation for the error function and its inverse" by Sergei Winitzki.
-   float tt1, tt2, lnx, sgn;
-   sgn = (x < 0) ? -1.0f : 1.0f;
-
-   x = (1 - x)*(1 + x);        // x = 1 - x*x;
-   lnx = logf(x);
-
-   tt1 = 2/(M_PI*0.147) + 0.5f * lnx;
-   tt2 = 1/(0.147) * lnx;
-
-   return(sgn*sqrtf(-tt1 + sqrtf(tt1*tt1 - tt2)));
-}
-    
     
 
 

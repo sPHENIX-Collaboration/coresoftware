@@ -45,8 +45,10 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
   hrdphi = new TH2F("hrdphi","dphi vs r",800,0.0,80.0,800,-0.001,0.001);
   hrdphi->GetXaxis()->SetTitle("r");  
   hrdphi->GetYaxis()->SetTitle("dphi");  
-  hdr = new TH1F("hdr", "dr", 200,-0.2, 0.2);
-  hdrphi = new TH1F("hdrphi","r * dphi", 200, -0.1, 0.1);
+  hdr1 = new TH1F("hdr1", "innner dr", 200,-0.2, 0.2);
+  hdr2 = new TH1F("hdr2", "mid dr", 200,-0.2, 0.2);
+  hdr3 = new TH1F("hdr3", "outer dr", 200,-0.2, 0.2);
+  hdrphi = new TH1F("hdrphi","r * dphi", 200, -0.05, 0.05);
   
   // Get truth cluster positions
   //=====================
@@ -209,10 +211,13 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	  double r =  rad2;
 
 	  hdrphi->Fill(r * dphi);
-	  hdr->Fill(dr);	  
 	  hdrdphi->Fill(dr, dphi);
 	  hrdr->Fill(r,dr);
 	  hrdphi->Fill(r,dphi);
+
+	  if(r < 40.0) hdr1->Fill(dr); 
+	  if(r >= 40.0 && r < 58.0) hdr2->Fill(dr); 
+	  if(r >= 58.0) hdr3->Fill(dr); 	  
 	}
 
       // add to node tree
@@ -236,7 +241,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	{
 	  auto key = cmitr->first;
 	  auto cmreco = cmitr->second;
-
+	  
 	  std::cout << " key " << key << " truth X " << cmreco->getTruthX() << " reco X " << cmreco->getRecoX()
 		    << " truth Y " << cmreco->getTruthY() << " reco Y " << cmreco->getRecoY() 
 		    << " truth R " << sqrt( pow(cmreco->getTruthX(), 2) + pow(cmreco->getTruthY(), 2) ) 
@@ -261,8 +266,10 @@ int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
       hdrdphi->Write();
       hrdr->Write();
       hrdphi->Write();
-      hdr->Write();
       hdrphi->Write();
+      hdr1->Write();
+      hdr2->Write();
+      hdr3->Write();
             
       fout->Close();
     }
