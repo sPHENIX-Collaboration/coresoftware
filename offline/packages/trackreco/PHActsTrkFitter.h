@@ -47,7 +47,7 @@ using FitResult = Acts::KalmanFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices,2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
-using SourceLinkVec = std::vector<std::reference_wrapper<const SourceLink>>;
+using SourceLinkVec = std::vector<SourceLink>;
 
 class PHActsTrkFitter : public SubsysReco
 {
@@ -114,7 +114,7 @@ class PHActsTrkFitter : public SubsysReco
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
   ActsExamples::TrackFittingAlgorithm::TrackFitterResult fitTrack(
-           const SourceLinkVec& sourceLinks, 
+								  const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
 	   const ActsExamples::TrackParameters& seed,
 	   const ActsExamples::TrackFittingAlgorithm::TrackFitterOptions& 
 	     kfOptions,

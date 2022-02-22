@@ -202,8 +202,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       trackTimer.restart();
       ActsExamples::MeasurementContainer measurements;
       auto sourceLinks = getSourceLinks(track, measurements);
-     
-      if(sourceLinks.size() == 0) continue;
+  
+      if(sourceLinks.size() == 0) { continue; }
 
       /// If using directed navigation, collect surface list to navigate
       SurfacePtrVec surfaces;
@@ -240,6 +240,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if(m_fieldMap.find("3d") != std::string::npos)
 	{ charge *= -1; }
 
+      /// Acts requires a wrapped vector, so we need to replace the
+      /// std::vector contents with a wrapper vector to get the memory
+      /// access correct
+      std::vector<std::reference_wrapper<const SourceLink>>  wrappedSls;
+      for(const auto& sl : sourceLinks)
+	{ wrappedSls.push_back(std::cref(sl)); }
+           
       if(Verbosity() > 2)
 	{ printTrackSeed(track); }
 
@@ -280,7 +287,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       PHTimer fitTimer("FitTimer");
       fitTimer.stop();
       fitTimer.restart();
-      auto result = fitTrack(sourceLinks, seed, kfOptions,
+      auto result = fitTrack(wrappedSls, seed, kfOptions,
 			     surfaces);
       fitTimer.stop();
       auto fitTime = fitTimer.get_accumulated_time();
@@ -414,8 +421,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 				   ActsExamples::MeasurementContainer& measurements)
 {
 
-  SourceLinkVec sourcelinkwrappers;
-  std::vector<SourceLink> sourcelinks;
+  SourceLinkVec sourcelinks;
   int iter = 0;
   for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
        clusIter != track->end_cluster_keys();
@@ -472,16 +478,12 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 		    << std::endl;
 	}
     
-      /// We need to call a std::vector push_back first to allocate
-      /// the memory for the std::cref to access properly
       sourcelinks.push_back(sl);
-      sourcelinkwrappers.push_back(std::cref(sourcelinks.at(iter)));
       measurements.push_back(meas);
       iter++;
     }
-
-  return sourcelinkwrappers;
-
+ 
+  return sourcelinks;
 }
 
 void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
@@ -547,12 +549,12 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 }
 
 ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
-          const SourceLinkVec& sourceLinks, 
-	  const ActsExamples::TrackParameters& seed,
-	  const ActsExamples::TrackFittingAlgorithm::TrackFitterOptions& 
-	         kfOptions, 
-	  const SurfacePtrVec& surfSequence)
+    const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
+    const ActsExamples::TrackParameters& seed,
+    const ActsExamples::TrackFittingAlgorithm::TrackFitterOptions& kfOptions, 
+    const SurfacePtrVec& surfSequence)
 {
+
   if(m_fitSiliconMMs) 
     { return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence); }
 
@@ -562,7 +564,7 @@ ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack
 SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks,
 						SurfacePtrVec& surfaces) const
 {
-   SourceLinkVec siliconMMSls;
+  SourceLinkVec siliconMMSls;
 
   if(Verbosity() > 1)
     std::cout << "Sorting " << sourceLinks.size() << " SLs" << std::endl;
@@ -570,8 +572,8 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
   for(const auto& sl : sourceLinks)
     {
       if(Verbosity() > 1)
-	{ std::cout << "SL available on : " << sl.get().geometryId() << std::endl; } 
-      const auto surf = m_tGeometry->tGeometry->findSurface(sl.get().geometryId());
+	{ std::cout << "SL available on : " << sl.geometryId() << std::endl; } 
+      const auto surf = m_tGeometry->tGeometry->findSurface(sl.geometryId());
       // skip TPC surfaces
       if( m_surfMaps->isTpcSurface( surf ) ) continue;
       
@@ -581,7 +583,6 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
       // update vectors
       siliconMMSls.push_back(sl);
       surfaces.push_back(surf);
-
     }
 
   /// Surfaces need to be sorted in order, i.e. from smallest to
@@ -599,7 +600,6 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
     }
 
   return siliconMMSls;
-
 }
 
 void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces) const
