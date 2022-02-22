@@ -455,7 +455,7 @@ void MakeActsGeometry::buildActsSurfaces()
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)
     {
-      if(Verbosity() > -1)
+      if(Verbosity() > 1)
 	std::cout << argstr[i] << ", ";
       // need a copy, since .c_str() returns a const char * and process geometry will not take a const
       arg[i] = strdup(argstr[i].c_str());
@@ -592,7 +592,7 @@ void MakeActsGeometry::unpackVolumes()
     auto inttBarrel = find_volume_by_name( vol, "Silicon::Barrel" );
     assert( inttBarrel );
     makeInttMapPairs(inttBarrel);
-    if(Verbosity() > -1)
+    if(Verbosity() > 3)
       { std::cout << "After: INTT: m_clusterSurfaceMapSilicon size    " << m_clusterSurfaceMapSilicon.size() << std::endl; }
   }
 
@@ -672,11 +672,6 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
   { std::cout << "MakeActsGeometry::makeMmMapPairs - mmVolume: " << mmVolume->volumeName() << std::endl; }
   const auto mmLayerArray = mmVolume->confinedLayers();
   const auto mmLayerVector = mmLayerArray->arrayObjects();
-
-  std::cout << "MakeActsGeometry::makeMmMapPairs -"
-    << " mmVolume: " << mmVolume->volumeName() 
-    << " mmLayerVector size: " << mmLayerVector.size()
-    << std::endl;
   
   /// Need to unfold each layer that Acts builds
   for(unsigned int i = 0; i < mmLayerVector.size(); i++)
@@ -687,10 +682,6 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
     /// surfaceVector is a vector of surfaces corresponding to the micromegas layer
     /// that acts builds
     const auto surfaceVector = surfaceArray->surfaces();
-
-    std::cout << "MakeActsGeometry::makeMmMapPairs -"
-      << " surfaceVector size: " << surfaceVector.size()
-      << std::endl;
 
     for( unsigned int j = 0; j < surfaceVector.size(); j++)
     {
