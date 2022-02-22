@@ -38,7 +38,10 @@ libg4mvtx_la_SOURCES = \
   PHG4EICMvtxSteppingAction.cc \
   PHG4MvtxSubsystem.cc \
   PHG4EICMvtxSubsystem.cc \
-  PHG4MvtxDigitizer.cc
+  PHG4MvtxDigitizer.cc \
+  Cable.cc \
+  ServiceStructure.cc \
+  PHG4MvtxSupport.cc
 
 ################################################
 # linking tests

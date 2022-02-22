@@ -2,6 +2,7 @@
 
 #include "PHG4MvtxDefs.h"
 #include "PHG4MvtxDisplayAction.h"
+#include "PHG4MvtxSupport.h"
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 
@@ -186,7 +187,9 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
   // the tracking layers are placed directly in the world volume, since some layers are (touching) double layers
   // this reads in the ITS stave geometry from a file and constructs the layer from it
   ConstructMvtx(logicMVTX);
-  ConstructMvtxPassiveVol(logicMVTX);
+  //ConstructMvtxPassiveVol(logicMVTX);
+  PHG4MvtxSupport *mvtxSupportSystem = new PHG4MvtxSupport(m_DisplayAction);
+  mvtxSupportSystem->ConstructMvtxSupport(logicMVTX); 
 
   AddGeometryNode();
   return;
@@ -323,7 +326,8 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
     }
     G4Transform3D Tr(Ra, Ta);
 
-    av_ITSUStave->MakeImprint(trackerenvelope, Tr, 0, OverlapCheck());
+    bool makeImprint = true;
+    if (makeImprint) av_ITSUStave->MakeImprint(trackerenvelope, Tr, 0, OverlapCheck());
   }
 
   if (Verbosity() > 0)
@@ -375,6 +379,7 @@ int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume*& lv)
     G4AssemblyVolume* av_EW_N = reader->GetAssembly("EndWheelsSideC");
     av_EW_N->MakeImprint(lv, TrN, 0, OverlapCheck());
   }
+  
   return 0;
 }
 
