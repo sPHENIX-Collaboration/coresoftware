@@ -1,10 +1,12 @@
 AUTOMAKE_OPTIONS = foreign
 
+
+AM_CXXFLAGS = `geant4-config --cflags`
+
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I${G4_MAIN}/include \
-  -I`root-config --incdir`
+  -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
    libg4jets_io.la \
@@ -17,15 +19,17 @@ AM_LDFLAGS = \
 libg4jets_io_la_LIBADD = \
   -lphool
 
+libg4jets_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  `fastjet-config --libs`
+
 libg4jets_la_LIBADD = \
   libg4jets_io.la \
   -lfun4all \
   -lphg4hit \
   -lcalo_io \
   -lg4vertex_io \
-  -lCGAL \
-  -lfastjet \
-  -lfastjettools \
   -lRecursiveTools \
   -lphhepmc_io \
   -ltrackbase_historic_io

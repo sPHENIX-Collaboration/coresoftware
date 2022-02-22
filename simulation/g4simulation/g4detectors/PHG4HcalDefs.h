@@ -15,6 +15,6 @@ namespace PHG4HcalDefs
   static const std::string n_scinti_tiles = "n_scinti_tiles";
   static const std::string n_scinti_tiles_pos = "n_scinti_tiles_pos";
   static const std::string n_scinti_tiles_neg = "n_scinti_tiles_neg";
-}
+}  // namespace PHG4HcalDefs
 
 #endif

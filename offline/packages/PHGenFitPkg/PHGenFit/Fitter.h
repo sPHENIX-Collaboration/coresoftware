@@ -116,9 +116,9 @@ class Fitter
     return verbosity;
   }
 
-  void set_verbosity(int verbosity)
+  void set_verbosity(int v)
   {
-    this->verbosity = verbosity;
+    this->verbosity = v;
     if (verbosity >= 1)
       genfit::Exception::quiet(false);
     else

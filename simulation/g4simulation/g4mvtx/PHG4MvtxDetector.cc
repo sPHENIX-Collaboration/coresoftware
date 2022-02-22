@@ -23,8 +23,6 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4GDMLParser.hh>
-#include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
@@ -36,6 +34,13 @@
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4Tubs.hh>
+
+// xerces has some shadowed variables
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <Geant4/G4GDMLParser.hh>
+#include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
+#pragma GCC diagnostic pop
 
 #include <cmath>
 #include <cstdio>    // for sprintf
@@ -49,16 +54,16 @@ using namespace std;
 
 namespace mvtxGeomDef
 {
-  double mvtx_shell_inner_radius            =  4.8  * cm;
-  double skin_thickness                     =  0.01 * cm;
-  double foam_core_thickness                =  0.18 * cm;
-  double mvtx_shell_length                  = 50.   * cm;
+  double mvtx_shell_inner_radius            = 4.8  * cm;
+  double skin_thickness                     = 0.01 * cm;
+  double foam_core_thickness                = 0.18 * cm;
+  double mvtx_shell_length                  = 46.  * cm;
   double mvtx_shell_thickness =  skin_thickness + foam_core_thickness + skin_thickness;
 
   double wrap_rmin = 2.1 * cm;
   double wrap_rmax = mvtx_shell_inner_radius + mvtx_shell_thickness;
   double wrap_zlen = mvtx_shell_length;
-};
+}
 
 PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -348,9 +353,9 @@ int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume*& lv)
   //=======================================================
   // Add an outer shell for the MVTX - moved it from INTT PHG4InttDetector.cc
   //=======================================================
-  G4LogicalVolume *mvtx_shell_outer_skin_volume = GetMvtxOuterShell(lv);
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,
-                    "mvtx_shell_outer_skin_volume", lv, false, 0, OverlapCheck());
+  //G4LogicalVolume *mvtx_shell_outer_skin_volume = GetMvtxOuterShell(lv);
+  //new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,
+  //                  "mvtx_shell_outer_skin_volume", lv, false, 0, OverlapCheck());
 
   //===================================
   // Construct Services geometry

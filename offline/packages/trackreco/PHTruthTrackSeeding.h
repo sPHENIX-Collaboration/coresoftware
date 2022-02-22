@@ -8,6 +8,8 @@
 #define TRACKRECO_PHTRUTHTRACKSEEDING_H
 
 #include "PHTrackSeeding.h"
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrkrDefs.h>
 #include <string>  // for string
 #include <vector>
@@ -80,11 +82,11 @@ void helicalTrackFit(const bool helicalTrackFit)
   void circleFitSeed(std::vector<TrkrDefs::cluskey> clusters,
 		     double& x, double& y, double&z,
 		       double& px, double& py, double& pz, int charge);
-void circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clusters,
-			 double& R, double& X0, double& Y0);
+  std::vector<Acts::Vector3D> circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clusters,
+						double& R, double& X0, double& Y0);
   void findRoot(const double& R, const double& X0, const double& Y0,
 		double& x, double& y);
-  void lineFit(std::vector<TrkrDefs::cluskey>& clusters,
+  void lineFit(std::vector<Acts::Vector3D>& clusterPositions,
 	       double& A, double& B);
   PHG4TruthInfoContainer* _g4truth_container = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;
@@ -106,6 +108,10 @@ void circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clusters,
 
   //! minimal truth momentum cut (GeV)
   double _min_momentum = 50e-3;
+
+  ActsTrackingGeometry *tgeometry = nullptr;
+  ActsSurfaceMaps *surfmaps = nullptr;
+
 };
 
 #endif

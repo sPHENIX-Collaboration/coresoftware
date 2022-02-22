@@ -5,8 +5,6 @@
 #include <iostream>
 #include <utility>  // for pair, make_pair
 
-using namespace std;
-
 Fun4AllMemoryTracker *Fun4AllMemoryTracker::mInstance = nullptr;
 
 Fun4AllMemoryTracker::Fun4AllMemoryTracker()
@@ -27,9 +25,9 @@ Fun4AllMemoryTracker::~Fun4AllMemoryTracker()
   mStartMem.clear();
 }
 
-void Fun4AllMemoryTracker::Snapshot(const string &trackername, const string &group)
+void Fun4AllMemoryTracker::Snapshot(const std::string &trackername, const std::string &group)
 {
-  string name = CreateFullTrackerName(trackername, group);
+  std::string name = CreateFullTrackerName(trackername, group);
   auto iter = mMemoryTrackerMap.find(name);
   if (iter != mMemoryTrackerMap.end())
   {
@@ -37,20 +35,20 @@ void Fun4AllMemoryTracker::Snapshot(const string &trackername, const string &gro
   }
   else
   {
-    vector<int> mvec;
+    std::vector<int> mvec;
     mvec.push_back(GetRSSMemory());
     mMemoryTrackerMap.insert(make_pair(name, mvec));
   }
   if (Verbosity() > 0)
   {
-    cout << "Snapshot name: " << name << ", mem: " << GetRSSMemory() << endl;
+    std::cout << "Snapshot name: " << name << ", mem: " << GetRSSMemory() << std::endl;
   }
   return;
 }
 
-void Fun4AllMemoryTracker::Start(const string &trackername, const string &group)
+void Fun4AllMemoryTracker::Start(const std::string &trackername, const std::string &group)
 {
-  string name = CreateFullTrackerName(trackername, group);
+  std::string name = CreateFullTrackerName(trackername, group);
   auto iter = mStartMem.find(name);
   int RSSMemory = GetRSSMemory();
   if (iter != mStartMem.end())
@@ -63,13 +61,13 @@ void Fun4AllMemoryTracker::Start(const string &trackername, const string &group)
   }
   if (Verbosity() > 0)
   {
-    cout << "Start name: " << name << ", mem: " << RSSMemory << endl;
+    std::cout << "Start name: " << name << ", mem: " << RSSMemory << std::endl;
   }
 }
 
-void Fun4AllMemoryTracker::Stop(const string &trackername, const string &group)
+void Fun4AllMemoryTracker::Stop(const std::string &trackername, const std::string &group)
 {
-  string name = CreateFullTrackerName(trackername, group);
+  std::string name = CreateFullTrackerName(trackername, group);
   auto iter = mStartMem.find(name);
   int RSSMemory = GetRSSMemory();
   if (iter != mStartMem.end())
@@ -82,21 +80,21 @@ void Fun4AllMemoryTracker::Stop(const string &trackername, const string &group)
     }
     else
     {
-      vector<int> mvec;
+      std::vector<int> mvec;
       mvec.push_back(diff);
       mMemoryTrackerMap.insert(make_pair(name, mvec));
     }
     if (Verbosity() > 0)
     {
-      cout << "Stop name: " << name << ", mem: " << RSSMemory << ", diff: " << diff << endl;
+      std::cout << "Stop name: " << name << ", mem: " << RSSMemory << ", diff: " << diff << std::endl;
     }
   }
   return;
 }
 
-string Fun4AllMemoryTracker::CreateFullTrackerName(const string &trackername, const string &group)
+std::string Fun4AllMemoryTracker::CreateFullTrackerName(const std::string &trackername, const std::string &group)
 {
-  string name = trackername;
+  std::string name = trackername;
   if (!group.empty())
   {
     name = group + "_" + name;
@@ -104,20 +102,20 @@ string Fun4AllMemoryTracker::CreateFullTrackerName(const string &trackername, co
   return name;
 }
 
-void Fun4AllMemoryTracker::PrintMemoryTracker(const string &name) const
+void Fun4AllMemoryTracker::PrintMemoryTracker(const std::string &name) const
 {
-  map<string, std::vector<int>>::const_iterator iter;
+  std::map<std::string, std::vector<int>>::const_iterator iter;
   if (name.empty())
   {
     for (iter = mMemoryTrackerMap.begin(); iter != mMemoryTrackerMap.end(); ++iter)
     {
-      cout << iter->first << ": ";
-      vector<int> memvec = iter->second;
+      std::cout << iter->first << ": ";
+      std::vector<int> memvec = iter->second;
       for (auto vit = memvec.begin(); vit != memvec.end(); ++vit)
       {
-        cout << *vit << " ";
+        std::cout << *vit << " ";
       }
-      cout << endl;
+      std::cout << std::endl;
     }
   }
   else
@@ -125,30 +123,30 @@ void Fun4AllMemoryTracker::PrintMemoryTracker(const string &name) const
     iter = mMemoryTrackerMap.find(name);
     if (iter != mMemoryTrackerMap.end())
     {
-      cout << "SubsysReco/OutputManager: " << iter->first << endl;
-      vector<int> memvec = iter->second;
+      std::cout << "SubsysReco/OutputManager: " << iter->first << std::endl;
+      std::vector<int> memvec = iter->second;
       for (auto vit = memvec.begin(); vit != memvec.end(); ++vit)
       {
-        cout << *vit << " ";
+        std::cout << *vit << " ";
       }
-      cout << endl;
+      std::cout << std::endl;
     }
     else
     {
-      cout << "No Memory Tracker with name " << name << " found" << endl;
-      cout << "Existing Memory Trackers:" << endl;
+      std::cout << "No Memory Tracker with name " << name << " found" << std::endl;
+      std::cout << "Existing Memory Trackers:" << std::endl;
       for (iter = mMemoryTrackerMap.begin(); iter != mMemoryTrackerMap.end(); ++iter)
       {
-        cout << iter->first << endl;
+        std::cout << iter->first << std::endl;
       }
     }
   }
   return;
 }
 
-vector<int> Fun4AllMemoryTracker::GetMemoryVector(const std::string &name) const
+std::vector<int> Fun4AllMemoryTracker::GetMemoryVector(const std::string &name) const
 {
-  vector<int> memvec;
+  std::vector<int> memvec;
   auto iter = mMemoryTrackerMap.find(name);
   if (iter != mMemoryTrackerMap.end())
   {

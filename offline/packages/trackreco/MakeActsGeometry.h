@@ -86,8 +86,12 @@ class MakeActsGeometry : public SubsysReco
   double getSurfStepPhi() {return m_surfStepPhi;}
   double getSurfStepZ() {return m_surfStepZ;}
 
-  void add_fake_surfaces(bool add){fake_surfaces = add;}
+  void add_fake_surfaces(bool add)
+  {fake_surfaces = add;}
 
+  void build_mm_surfaces( bool value )
+  { m_buildMMs = value; }
+    
  private:
   /// Main function to build all acts geometry for use in the fitting modules
   int buildAllGeometry(PHCompositeNode *topNode);
@@ -103,12 +107,6 @@ class MakeActsGeometry : public SubsysReco
   void editTPCGeometry(PHCompositeNode *topNode);
   void addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, 
 			  TGeoManager *geoManager);
-
-  /// create relevant micromegas volumes relevant for ACTS
-  /**
-   * there is one volume per micromegas tile. It is a box included inside the main G4 Micromegas cylinder
-   */
-  void addActsMicromegasSurfaces(int mm_layer, TGeoVolume *micromegas_vol, TGeoManager *geoManager);
 
   /// Silicon layers made by BuildSiliconLayers and its helper functions
   void buildActsSurfaces();
@@ -141,11 +139,11 @@ class MakeActsGeometry : public SubsysReco
 						 std::vector<double> &world);
   TrkrDefs::hitsetkey getTpcHitSetKeyFromCoords(std::vector<double> &world);
 
-  /// Helper diagnostic function for identifying active layers in subdetectors
-  void isActive(TGeoNode *gnode, int nmax_print);
+//   /// Helper diagnostic function for identifying active layers in subdetectors
+//   void isActive(TGeoNode *gnode, int nmax_print);
 
-  /// Makes map of TrkrHitSetKey<-->TGeoNode
-  void makeTGeoNodeMap(PHCompositeNode *topNode);
+//   /// Makes map of TrkrHitSetKey<-->TGeoNode
+//   void makeTGeoNodeMap(PHCompositeNode *topNode);
   
   void unpackVolumes();
 
@@ -174,7 +172,9 @@ class MakeActsGeometry : public SubsysReco
 
   /// TPC Acts::Surface subdivisions
   double m_minSurfZ = 0.;
-  double m_maxSurfZ = 105.78;
+  /// This value must be less than the TPC gas volume in TGeo, which 
+  /// is 105.22 cm
+  double m_maxSurfZ = 105.219999;
   unsigned int m_nSurfZ = 1;
   unsigned int m_nSurfPhi = 12;
   double m_surfStepPhi = 0;

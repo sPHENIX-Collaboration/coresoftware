@@ -5,13 +5,12 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
+CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow"
+
 case $CXX in
- clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-range-loop-construct -Wextra -Wno-macro-redefined"
- ;;
- *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
- ;;
+  clang++)
+    CXXFLAGS="$CXXFLAGS -Wno-c11-extensions"
+  ;;
 esac
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "

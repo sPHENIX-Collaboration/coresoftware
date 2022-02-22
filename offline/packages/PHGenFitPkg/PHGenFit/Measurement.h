@@ -23,7 +23,7 @@ class Measurement
     , _clusterID(UINT_MAX){};
 
   //!dtor
-  ~Measurement() {}
+  virtual ~Measurement() {}
 
   //!
   genfit::AbsMeasurement* getMeasurement()

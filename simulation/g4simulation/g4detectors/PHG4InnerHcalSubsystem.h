@@ -60,7 +60,6 @@ class PHG4InnerHcalSubsystem : public PHG4DetectorSubsystem
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction* m_DisplayAction;
-
 };
 
 #endif  // G4DETECTORS_PHG4INNERHCALSUBSYSTEM_H

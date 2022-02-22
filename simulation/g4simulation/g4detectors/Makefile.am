@@ -5,14 +5,14 @@ lib_LTLIBRARIES = \
   libg4detectors_io.la \
   libg4detectors.la
 
-AM_CXXFLAGS = `geant4-config --cflags  | sed s/-Woverloaded-virtual// | sed s/-pedantic// | sed s/-Wshadow// | sed s/-W\ //`
+AM_CXXFLAGS = `geant4-config --cflags`
 
 AM_CPPFLAGS = \
   -DCGAL_DISABLE_ROUNDING_MATH_CHECK \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I$(G4_MAIN)/include \
+  -isystem$(ROOTSYS)/include \
+  -isystem$(XERCESROOT)/include \
   -I$(OPT_SPHENIX)/include
 
 # set in configure.in to check if gcc version >= 4.8
@@ -29,11 +29,15 @@ libg4detectors_io_la_LIBADD = \
   -lphparameter
 
 
+libg4detectors_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  `fastjet-config --libs`
+
 libg4detectors_la_LIBADD = \
   libg4detectors_io.la \
   -lphg4gdml \
   -lphool  \
-  -lCGAL \
   -lSubsysReco \
   -lg4testbench 
 

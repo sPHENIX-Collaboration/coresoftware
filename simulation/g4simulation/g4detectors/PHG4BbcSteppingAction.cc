@@ -166,8 +166,8 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     {
       m_Hit = new PHG4Hitv1();
     }
-    m_Hit->set_layer( tube_id );
-    m_Hit->set_scint_id( tube_id );
+    m_Hit->set_layer(tube_id);
+    m_Hit->set_scint_id(tube_id);
 
     //here we set the entrance values in cm
     m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
@@ -184,10 +184,10 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     if (whichactive > 0)
     {
       m_EionSum = 0;
-      m_Hit->set_eion( 0 );
+      m_Hit->set_eion(0);
 
       m_PathLen = 0.;
-      m_Hit->set_path_length( m_PathLen );
+      m_Hit->set_path_length(m_PathLen);
 
       m_SaveHitContainer = m_HitContainer;
     }

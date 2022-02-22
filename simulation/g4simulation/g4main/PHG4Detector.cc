@@ -13,7 +13,10 @@
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
 #include <Geant4/G4VisAttributes.hh>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/stacktrace.hpp>
+#pragma GCC diagnostic pop
 
 PHG4Detector::PHG4Detector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &nam)
   : m_topNode(Node)
@@ -103,4 +106,29 @@ G4Material *PHG4Detector::GetDetectorMaterial(const std::string &name, const boo
     exit(1); // so coverity gets it
   }
   return thismaterial;
+}
+
+
+G4Element *PHG4Detector::GetDetectorElement(const std::string &name, const bool quit)
+{
+  G4Element *thiselement =  G4Element::GetElement(name,false);
+  if (thiselement)
+  {
+    return thiselement;
+  }
+  thiselement = G4NistManager::Instance()->FindOrBuildElement(name);
+  if (!thiselement)
+  {
+    if (!quit)
+    {
+      return nullptr;
+    }
+    std::cout << "PHG4Detector::GetDetectorElement: Could not locate " << name << " in NIST DB or create it" << std::endl;
+    std::cout << boost::stacktrace::stacktrace();
+    std::cout << std::endl;
+    std::cout << "read the above stack trace who is calling this material" << std::endl;
+    gSystem->Exit(1);
+    exit(1); // so coverity gets it
+  }
+  return thiselement;
 }

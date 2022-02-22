@@ -1,10 +1,11 @@
 AUTOMAKE_OPTIONS = foreign
 
+AM_CXXFLAGS = `geant4-config --cflags`
+
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I$(G4_MAIN)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -19,11 +20,12 @@ lib_LTLIBRARIES = \
   libg4micromegas.la
 
 libg4micromegas_la_SOURCES = \
-  PHG4MicromegasSubsystem.cc \
   PHG4MicromegasDetector.cc \
   PHG4MicromegasDigitizer.cc \
+  PHG4MicromegasDisplayAction.cc \
   PHG4MicromegasHitReco.cc \
-  PHG4MicromegasSteppingAction.cc
+  PHG4MicromegasSteppingAction.cc \
+  PHG4MicromegasSubsystem.cc
 
 libg4micromegas_la_LIBADD = \
   -lphool \

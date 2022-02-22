@@ -7,23 +7,25 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
   libg4calo.la
 
+AM_CXXFLAGS = `geant4-config --cflags`
+
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I${G4_MAIN}/include
+  -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
   HcalRawTowerBuilder.h \
   RawTowerBuilder.h \
   RawTowerBuilderByHitIndex.h \
   RawTowerDigitizer.h 
+
 libg4calo_la_SOURCES = \
   HcalRawTowerBuilder.cc \
   RawTowerBuilder.cc \
   RawTowerBuilderByHitIndex.cc \
   RawTowerDigitizer.cc 
-  
+
 libg4calo_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
