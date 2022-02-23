@@ -1247,8 +1247,8 @@ void PHActsSiliconSeeding::circleFitByTaubin(const std::vector<Acts::Vector3>& g
 SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const Surface& surf,
 						   const TrkrCluster* clus)
 {
-  Acts::Vector2 localPos(clus->getLocalX(), 
-			 clus->getLocalY());
+  Acts::Vector2 localPos(clus->getLocalX() * Acts::UnitConstants::cm, 
+			 clus->getLocalY() * Acts::UnitConstants::cm);
   Acts::Vector3 globalPos(0,0,0);
   Acts::Vector3 mom(1,1,1);
 
@@ -1256,8 +1256,8 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const Surface& surf,
 				  localPos, mom);
 
   Acts::SymMatrix2 localCov = Acts::SymMatrix2::Zero();
-  localCov(0,0) = clus->getActsLocalError(0,0);
-  localCov(1,1) = clus->getActsLocalError(1,1);
+  localCov(0,0) = clus->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
+  localCov(1,1) = clus->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
   
   float x = globalPos.x();
   float y = globalPos.y();
