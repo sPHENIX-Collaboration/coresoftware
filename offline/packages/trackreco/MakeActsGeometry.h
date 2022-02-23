@@ -173,7 +173,7 @@ class MakeActsGeometry : public SubsysReco
   double m_minSurfZ = 0.;
   /// This value must be less than the TPC gas volume in TGeo, which 
   /// is 105.22 cm
-  double m_maxSurfZ = 105.219999;
+  double m_maxSurfZ = 105.42;
   unsigned int m_nSurfZ = 1;
   unsigned int m_nSurfPhi = 12;
   double m_surfStepPhi = 0;
@@ -195,7 +195,8 @@ class MakeActsGeometry : public SubsysReco
   // Spaces to prevent boxes from touching when placed
   const double half_width_clearance_thick = 0.4999;
   const double half_width_clearance_phi = 0.4999;
-  const double half_width_clearance_z = 0.4999;
+  /// z does not need spacing as the boxes are rotated around the z axis
+  const double half_width_clearance_z = 0.5;
 
   /// The acts geometry object
   ActsExamples::TGeoDetector m_detector;
