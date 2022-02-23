@@ -67,7 +67,7 @@ class CMFlashClusterv1 : public CMFlashCluster
   unsigned int m_cluskey;  //< unique identifier within container
   float m_pos[3];               //< mean position x,y,z
   unsigned int m_adc;           //< cluster sum adc 
-  unsigned int m_nclusters;
+  unsigned int m_nclusters = UINT_MAX;
 
   ClassDefOverride(CMFlashClusterv1, 1)
 };
