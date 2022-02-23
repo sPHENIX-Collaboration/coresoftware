@@ -52,15 +52,26 @@ class CMFlashDifference : public PHObject
   //
   // difference position
   //
-  virtual float getTruthX() const { return NAN; }
-  virtual void setTruthX(float) {}
-  virtual float getTruthY() const { return NAN; }
-  virtual void setTruthY(float) {}
+ virtual float getTruthPhi() const { return NAN; }
+  virtual  void setTruthPhi(float) {}
 
-  virtual float getRecoX() const { return NAN; }
-  virtual void setRecoX(float) {}
-  virtual float getRecoY() const { return NAN; }
-  virtual void setRecoY(float) {}
+  virtual float getRecoPhi() const { return NAN; }
+  virtual void setRecoPhi(float) {}
+
+  virtual float getTruthR() const { return NAN; }
+  virtual void setTruthR(float) {}
+
+  virtual float getRecoR() const { return NAN; }
+  virtual void setRecoR(float) {}
+
+  virtual float getTruthZ() const { return NAN; }
+  virtual void setTruthZ(float) {}
+
+  virtual float getRecoZ() const { return NAN; }
+  virtual void setRecoZ(float) {}
+
+  virtual unsigned int getNclusters() const { return UINT_MAX; }
+  virtual void setNclusters(unsigned int) {}
 
  protected:
   CMFlashDifference() = default;

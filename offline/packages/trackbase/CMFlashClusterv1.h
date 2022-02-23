@@ -53,6 +53,8 @@ class CMFlashClusterv1 : public CMFlashCluster
   void setY(float y) override { m_pos[1] = y; }
   float getZ() const override { return m_pos[2]; }
   void setZ(float z) override { m_pos[2] = z; }
+  unsigned int getNclusters() const override {return m_nclusters;}
+  void setNclusters(unsigned int n) override { m_nclusters = n;}
 
   //
   // cluster info
@@ -64,7 +66,8 @@ class CMFlashClusterv1 : public CMFlashCluster
 
   unsigned int m_cluskey;  //< unique identifier within container
   float m_pos[3];               //< mean position x,y,z
-  unsigned int m_adc;           //< cluster sum adc (D. McGlinchey - Do we need this?)
+  unsigned int m_adc;           //< cluster sum adc 
+  unsigned int m_nclusters;
 
   ClassDefOverride(CMFlashClusterv1, 1)
 };
