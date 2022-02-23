@@ -293,7 +293,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
   struct LayerStruct
   {
     // constructor
-    LayerStruct( float thickness, G4Material* material, G4Colour color, double dy, double dz, double y_offset, double z_offset ):
+    LayerStruct( float thickness, G4Material* material, const G4Colour &color, double dy, double dz, double y_offset, double z_offset ):
       m_thickness( thickness ),
       m_material( material ),
       m_color( color ),
@@ -479,7 +479,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_fee_board( int id )
   struct LayerStruct
   {
     // constructor
-    LayerStruct( const std::string& name, float thickness, G4Material* material, G4Colour color ):
+    LayerStruct( const std::string& name, float thickness, G4Material* material, const G4Colour &color ):
       m_name( name ),
       m_thickness( thickness ),
       m_material( material ),

@@ -15,6 +15,9 @@
 #include <TGraph.h>
 #include <cmath>
 
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>
 #include <tpc/TpcDefs.h>
@@ -83,12 +86,12 @@ int PHTpcCentralMembraneClusterizer::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 {
- 
+
   //local coord conversion below
   ActsTrackingGeometry *tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
-  std::cout << "got tgeom" << std::endl;
+  //std::cout << "got tgeom" << std::endl;
   ActsSurfaceMaps *surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
-  std::cout << "got surfmaps" << std::endl;
+  //std::cout << "got surfmaps" << std::endl;
   if(!tgeometry or !surfmaps)
     {
       std::cout << PHWHERE << "No Acts geometry on node tree. Can't  continue."
@@ -132,6 +135,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	    }
 	  
 	  if(cluster->getAdc() < _min_adc_value) continue;
+	  if(z < _min_z_value) continue;
 
 	  i_pair.push_back(-1);
 	  energy.push_back(cluster->getAdc());
@@ -216,19 +220,23 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	}
       }
     }
-  if (allGood)
+  if(Verbosity() > 0)
     {
-      printf("All Good!\n");
-    } 
-  else 
-    {
-      printf("nGood=%d out of %d\n",nGood,nTpcClust/2);
+      if (allGood)
+	{
+	  printf("All Good!\n");
+	} 
+      else 
+	{
+	  printf("nGood=%d out of %d\n",nGood,nTpcClust/2);
+	}
     }
   
   //build the weighted cluster centers
   //==========================
   vector<float>aveenergy;
   vector<TVector3> avepos;
+  vector <unsigned int> nclusters;
     
   for (int i=0;i<nTpcClust;++i)
     {
@@ -241,18 +249,78 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	      if(_histos)  hClustE[1]->Fill(energy[i]+energy[i_pair[i]]);
 
 	      aveenergy.push_back(energy[i]+energy[i_pair[i]]);
-	      TVector3 temppos=energy[i]*pos[i];
-	      temppos=temppos+(energy[i_pair[i]]*pos[i_pair[i]]);
-	      temppos=temppos*(1./(energy[i]+energy[i_pair[i]]));
+
+	      // The pads measure phi and z accurately
+	      // They do not measure R! It is taken as the center of the padrow
+	      // The x and y values are derived from phi and R. Not normally a problem, since tracks cross entire padrow
+	      // CM flash clusters have limited radial extent, do not necessarily cross padrows completely - then their nominal R is wrong.
+	      // So:
+	      //     Get phi from the energy weighted cluster phi values.
+	      //     Get R from the procedure below
+
+	      // Get phi and z centroid
+	      double avePhi = (pos[i].Phi() * energy[i] + pos[i_pair[i]].Phi() * energy[i_pair[i]]) * (1./(energy[i]+energy[i_pair[i]]));	      
+	      double aveZ = (pos[i].Z() * energy[i] + pos[i_pair[i]].Z() * energy[i_pair[i]]) * (1./(energy[i]+energy[i_pair[i]])); 	      
+
+	      // Single padrow CM flash clusters, R position is not well defined because cluster is smaller than padrow
+	      // 2-cluster case: Weighting by padrow center radius is not correct because distribution does not fill padrow (needs to be approximately linearly)
+	      //      Use ratio of component cluster energies to estimate number of sigmas at row boundary
+	      float efrac = energy[i] / (energy[i] + energy[i_pair[i]]);
+
+	      PHG4CylinderCellGeom *layergeom1 = _geom_container->GetLayerCellGeom(layer[i]);
+	      double rad1 = layergeom1->get_radius();
+	      PHG4CylinderCellGeom *layergeom2 = _geom_container->GetLayerCellGeom(layer[i_pair[i]]);
+	      double rad2 = layergeom2->get_radius();
+	      PHG4CylinderCellGeom *layergeom0;
+	      double layer_dr;
+	      if(layer[i] != 7 && layer[i] != 23 && layer[i] != 39)
+		{
+		  layergeom0 = _geom_container->GetLayerCellGeom(layer[i]-1);
+		  layer_dr = rad1 - layergeom0->get_radius();
+		}
+	      else
+		{
+		  layergeom0 = _geom_container->GetLayerCellGeom(layer[i]+1);
+		  layer_dr = layergeom0->get_radius() - rad1; 
+		}
+	      double rad_lyr_boundary = rad1 + layer_dr / 2.0;	 
+
+
+	      // We have to (temporarily) use distortion corrected cluster positions to determine which stripe this came from
+	      Acts::Vector3D dist_pos(pos[i].X(), pos[i].Y(), pos[i].Z());
+	      if( _dcc)  dist_pos = _distortionCorrection.get_corrected_position( dist_pos, _dcc ); 
+	      double dist_r = sqrt(dist_pos[0]*dist_pos[0] + dist_pos[1] * dist_pos[1]);
+	      double cmclus_dr = _cmclus_dr_outer; 
+	      if(dist_r < 41.0)
+		cmclus_dr = _cmclus_dr_inner;
+	      else if(dist_r >= 41.0 && rad2 < 58.0)
+		cmclus_dr = _cmclus_dr_mid; 
+	      // Use radial width of stripe and efrac to determine where radius at center of distribution must be
+	      double aveR = rad_lyr_boundary - efrac * cmclus_dr + cmclus_dr/2.0;
+
+	      if(Verbosity() > 0)
+		std::cout << " efrac " << efrac << " _cmclus_dr "<< cmclus_dr << " rad_lyr_boundary " << rad_lyr_boundary << " aveR " << aveR 
+			  << " layer i " << layer[i] << " R i " << rad1 << " layer i_pair " << layer[i_pair[i]] << " R i_pair " << rad2 << " layer_dr " << layer_dr << std::endl;	   
+	
+	      TVector3 temppos(aveR*cos(avePhi), aveR*sin(avePhi), aveZ);
 	      avepos.push_back(temppos);
+	      nclusters.push_back(2);
+
+	      if(Verbosity() > 0)
+		std::cout << " layer i " << layer[i] << " energy " << energy[i] << " pos i " << pos[i].X() << "  " << pos[i].Y() << "  " << pos[i].Z()
+			  << " layer i_pair " << layer[i_pair[i]] << " energy i_pair " << energy[i_pair[i]] 
+			  << " pos i_pair " << pos[i_pair[i]].X() << "  " <<  pos[i_pair[i]].Y() << "  " <<  pos[i_pair[i]].Z()
+			  << " reco pos " << temppos.x() << "  " << temppos.Y() << "  " << temppos.Z() 
+			  << std::endl;
 	    }
 	} 
       else 
 	{
 	  if(_histos)  hClustE[2]->Fill(energy[i]);
-
+	  // These single cluster cases have good phi, but do not have a good radius centroid estimate - may want to skip them, record nclusters
 	  aveenergy.push_back(energy[i]);
 	  avepos.push_back(pos[i]);
+	  nclusters.push_back(1);
 	}
     }      
       
@@ -268,6 +336,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       cmfc->setY(avepos[iv].Y());
       cmfc->setZ(avepos[iv].Z());
       cmfc->setAdc(aveenergy[iv]);
+      cmfc->setNclusters(nclusters[iv]);
       
       _corrected_CMcluster_map->addClusterSpecifyKey(iv, cmfc);
       
@@ -284,8 +353,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       auto cmclus = cmitr->second;
 
       if(Verbosity() > 0)
-	std::cout << "found cluster " << cmkey << " with adc " << cmclus->getAdc() 
+	std::cout << "found CM cluster " << cmkey << " with adc " << cmclus->getAdc() 
 		  << " x " << cmclus->getX() << " y " << cmclus->getY() << " z " << cmclus->getZ() 
+		  << " nclusters " << cmclus->getNclusters()
 		  << std::endl; 
 
       if(_histos)
@@ -357,11 +427,25 @@ int  PHTpcCentralMembraneClusterizer::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  _geom_container =
+      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!_geom_container)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  // tpc distortion correction
+  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  if( _dcc )
+    { 
+      std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container" << std::endl; 
+    }
+
   _corrected_CMcluster_map  = findNode::getClass<CMFlashClusterContainer>(topNode, "CORRECTED_CM_CLUSTER");
   if(!_corrected_CMcluster_map)
     {
       std::cout << "Creating node CORRECTED_CM_CLUSTER" << std::endl;
-      
       PHNodeIterator iter(topNode);
       
       // Looking for the DST node
@@ -388,5 +472,6 @@ int  PHTpcCentralMembraneClusterizer::GetNodes(PHCompositeNode* topNode)
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
+    
 
 
