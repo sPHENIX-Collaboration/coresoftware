@@ -234,7 +234,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       auto actsFourPos = Acts::Vector4(position(0), position(1),
 				       position(2),
 				       10 * Acts::UnitConstants::ns);
-      Acts::BoundSymMatrix cov = setDefaultCovariance();
+      Acts::BoundSymMatrix cov = setDefaultCovariance(track->get_p());
  
       int charge = track->get_charge();
       if(m_fieldMap.find("3d") != std::string::npos)
@@ -753,9 +753,9 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   
 }
 
-Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance() const
+Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance(const float p) const
 {
-  Acts::BoundSymMatrix cov;
+  Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
    
   /// Acts cares about the track covariance as it helps the KF
   /// know whether or not to trust the initial track seed or not.
@@ -778,12 +778,22 @@ Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance() const
     }
   else
     {
-      cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
-           0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
-           0., 0., 0.05, 0., 0., 0.,
-           0., 0., 0., 0.05, 0., 0.,
-           0., 0., 0., 0., 0.00005 , 0.,
-           0., 0., 0., 0., 0., 1.;
+      double sigmaD0 = 50 * Acts::UnitConstants::um;
+      double sigmaZ0 = 50 * Acts::UnitConstants::um;
+      double sigmaPhi = 1 * Acts::UnitConstants::degree;
+      double sigmaTheta = 1 * Acts::UnitConstants::degree;
+      /// Seed pt resolution is approximately 8%
+      double sigmaPRel = 0.08 * p;
+      double sigmaQOverP = sigmaPRel / (p*p);
+      double sigmaT = 1. * Acts::UnitConstants::ns;
+     
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = sigmaD0 * sigmaD0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = sigmaZ0 * sigmaZ0;
+      cov(Acts::eBoundTime, Acts::eBoundTime) = sigmaT * sigmaT;
+      cov(Acts::eBoundPhi, Acts::eBoundPhi) = sigmaPhi * sigmaPhi;
+      cov(Acts::eBoundTheta, Acts::eBoundTheta) = sigmaTheta * sigmaTheta;
+      cov(Acts::eBoundQOverP, Acts::eBoundQOverP) = sigmaQOverP * sigmaQOverP;
+      
     }
 
   return cov;
