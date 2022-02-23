@@ -62,13 +62,18 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   TH2F *hrdr;
   TH2F *hrdphi;
   TH1F *hdrphi;
-  TH1F *hdr1;
-  TH1F *hdr2;
-  TH1F *hdr3;
+  TH1F *hdr1_single;
+  TH1F *hdr2_single;
+  TH1F *hdr3_single;
+  TH1F *hdr1_double;
+  TH1F *hdr2_double;
+  TH1F *hdr3_double;
+  TH1F *hnclus;
 
    std::vector<TVector3> reco_pos;
    std::vector<TVector3> truth_pos;
-  
+   std::vector<unsigned int> reco_nclusters;
+
   int _process = 0;
   bool _histos = true;
 
