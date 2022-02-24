@@ -38,7 +38,8 @@ my %proddesc = (
     "7" => "HF pythia8 Charm",
     "8" => "HF pythia8 Bottom",
     "9" => "HF pythia8 Charm D0",
-    "10" => "HF pythia8 Bottom D0"
+    "10" => "HF pythia8 Bottom D0",
+    "11" => "JS pythia8 Jet R=4"
     );
 
 
@@ -117,6 +118,15 @@ if (defined $prodtype)
     elsif ($prodtype == 10)
     {
 	$filenamestring = "pythia8_BottomD0";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	}
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 11)
+    {
+	$filenamestring = "pythia8_Jet04";
 	if (! defined $nopileup)
 	{
 	    $filenamestring = sprintf("%s_3MHz",$filenamestring);

@@ -45,10 +45,14 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
   hrdphi = new TH2F("hrdphi","dphi vs r",800,0.0,80.0,800,-0.001,0.001);
   hrdphi->GetXaxis()->SetTitle("r");  
   hrdphi->GetYaxis()->SetTitle("dphi");  
-  hdr1 = new TH1F("hdr1", "innner dr", 200,-0.2, 0.2);
-  hdr2 = new TH1F("hdr2", "mid dr", 200,-0.2, 0.2);
-  hdr3 = new TH1F("hdr3", "outer dr", 200,-0.2, 0.2);
+  hdr1_single = new TH1F("hdr1_single", "innner dr single", 200,-0.2, 0.2);
+  hdr2_single = new TH1F("hdr2_single", "mid dr single", 200,-0.2, 0.2);
+  hdr3_single = new TH1F("hdr3_single", "outer dr single", 200,-0.2, 0.2);
+  hdr1_double = new TH1F("hdr1_double", "innner dr double", 200,-0.2, 0.2);
+  hdr2_double = new TH1F("hdr2_double", "mid dr double", 200,-0.2, 0.2);
+  hdr3_double = new TH1F("hdr3_double", "outer dr double", 200,-0.2, 0.2);
   hdrphi = new TH1F("hdrphi","r * dphi", 200, -0.05, 0.05);
+  hnclus = new TH1F("hnclus", " nclusters ", 100, 0., 3.);
   
   // Get truth cluster positions
   //=====================
@@ -146,9 +150,10 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 {
+  reco_pos.clear();
+  reco_nclusters.clear();
  
   // read the reconstructed CM clusters
-
   auto clusrange = _corrected_CMcluster_map->getClusters();
   for (auto cmitr = clusrange.first;
        cmitr !=clusrange.second;
@@ -156,13 +161,15 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     {
       auto cmkey = cmitr->first;
       auto cmclus = cmitr->second;
+      unsigned int nclus = cmclus->getNclusters();
 
       // Do the static + average distortion corrections if the container was found
       Acts::Vector3D pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
       if( _dcc)  pos = _distortionCorrection.get_corrected_position( pos, _dcc ); 
 
       TVector3 tmp_pos(pos[0], pos[1], pos[2]);
-      reco_pos.push_back(tmp_pos);
+      reco_pos.push_back(tmp_pos);      
+      reco_nclusters.push_back(nclus);
 
       if(Verbosity() > 0)
 	{
@@ -179,7 +186,10 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     }
 
   // Match reco and truth positions
-  std::map<unsigned int, unsigned int> matched_pair;
+  //std::map<unsigned int, unsigned int> matched_pair;
+  std::vector<std::pair<unsigned int, unsigned int>> matched_pair;
+  std::vector<unsigned int> matched_nclus;
+
   // loop over truth positions
   for(unsigned int i=0; i<truth_pos.size(); ++i)
     {
@@ -187,20 +197,28 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       double phi1 = truth_pos[i].Phi();
       for(unsigned int j = 0; j < reco_pos.size(); ++j)
 	{
+	  unsigned int nclus = reco_nclusters[j];
+
 	  double rad2=sqrt(reco_pos[j].X() * reco_pos[j].X() + reco_pos[j].Y() * reco_pos[j].Y());
 	  double phi2 = reco_pos[j].Phi();
 
 	  if(fabs(rad1-rad2) < _rad_cut && fabs(phi1-phi2) < _phi_cut)
 	    {
-	      matched_pair.insert(std::make_pair(i,j));
+	      //matched_pair.insert(std::make_pair(i,j));
+	      matched_pair.push_back(std::make_pair(i,j));
+	      matched_nclus.push_back(nclus);
 	      break;
 	    }
 	}      
     }
   
- 
-  for(const auto &p : matched_pair)
+  
+  //for(const auto &p : matched_pair)
+  for(unsigned int ip = 0; ip < matched_pair.size(); ++ip)
     {
+      std::pair<unsigned int, unsigned int> p = matched_pair[ip];
+      unsigned int nclus = matched_nclus[ip];
+      
       if(_histos)
 	{
 	  double rad1 = sqrt(reco_pos[p.second].X() * reco_pos[p.second].X() + reco_pos[p.second].Y() * reco_pos[p.second].Y());
@@ -214,20 +232,35 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	  hdrdphi->Fill(dr, dphi);
 	  hrdr->Fill(r,dr);
 	  hrdphi->Fill(r,dphi);
+	  hnclus->Fill( (float) nclus);
 
-	  if(r < 40.0) hdr1->Fill(dr); 
-	  if(r >= 40.0 && r < 58.0) hdr2->Fill(dr); 
-	  if(r >= 58.0) hdr3->Fill(dr); 	  
+	  if(nclus==1)
+	    {
+	      if(r < 40.0) hdr1_single->Fill(dr); 
+	      if(r >= 40.0 && r < 58.0) hdr2_single->Fill(dr); 
+	      if(r >= 58.0) hdr3_single->Fill(dr); 	  
+	    }
+	  else
+	    {
+	      if(r < 40.0) hdr1_double->Fill(dr); 
+	      if(r >= 40.0 && r < 58.0) hdr2_double->Fill(dr); 
+	      if(r >= 58.0) hdr3_double->Fill(dr); 	  
+	    }
 	}
 
       // add to node tree
       unsigned int key = p.first;
      auto cmdiff = new CMFlashDifferencev1();
-     cmdiff->setTruthX(truth_pos[p.first].X());
-     cmdiff->setTruthY(truth_pos[p.first].Y());      
-     cmdiff->setRecoX(reco_pos[p.second].X());
-     cmdiff->setRecoY(reco_pos[p.second].Y());
-     
+     cmdiff->setTruthPhi(truth_pos[p.first].Phi());
+     cmdiff->setTruthR(truth_pos[p.first].Perp());
+     cmdiff->setTruthZ(truth_pos[p.first].Z());
+
+     cmdiff->setRecoPhi(reco_pos[p.second].Phi());
+     cmdiff->setRecoR(reco_pos[p.second].Perp());
+     cmdiff->setRecoZ(reco_pos[p.second].Z());
+
+     cmdiff->setNclusters(nclus);
+
      _cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
     } 
   
@@ -242,10 +275,11 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	  auto key = cmitr->first;
 	  auto cmreco = cmitr->second;
 	  
-	  std::cout << " key " << key << " truth X " << cmreco->getTruthX() << " reco X " << cmreco->getRecoX()
-		    << " truth Y " << cmreco->getTruthY() << " reco Y " << cmreco->getRecoY() 
-		    << " truth R " << sqrt( pow(cmreco->getTruthX(), 2) + pow(cmreco->getTruthY(), 2) ) 
-		    << " reco R " << sqrt( pow(cmreco->getRecoX(), 2) + pow(cmreco->getRecoY(), 2) ) 
+	  std::cout << " key " << key 
+		    << " nclus " << cmreco->getNclusters() 
+		    << " truth Phi " << cmreco->getTruthPhi() << " reco Phi " << cmreco->getRecoPhi()
+		    << " truth R " << cmreco->getTruthR() << " reco R " << cmreco->getRecoR() 
+		    << " truth Z " << cmreco->getTruthZ() << " reco Z " << cmreco->getRecoZ() 
 		    << std::endl;
 	}
     }
@@ -267,9 +301,13 @@ int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
       hrdr->Write();
       hrdphi->Write();
       hdrphi->Write();
-      hdr1->Write();
-      hdr2->Write();
-      hdr3->Write();
+      hdr1_single->Write();
+      hdr2_single->Write();
+      hdr3_single->Write();
+      hdr1_double->Write();
+      hdr2_double->Write();
+      hdr3_double->Write();
+      hnclus->Write();
             
       fout->Close();
     }
