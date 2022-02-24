@@ -48,7 +48,7 @@ PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDisplayAction* dispAct)
 
 std::vector<float> PHG4MvtxSupport::get_thickness(ServiceStructure *object)
 {
-  std::vector<float> thickness = {object->get_thickness_copper(), object->get_thickness_carbon()};
+  std::vector<float> thickness = {object->get_thickness_copper(), object->get_thickness_carbon(), object->get_thickness_plastic()};
   return thickness;
 }
 
@@ -70,7 +70,7 @@ G4Material *PHG4MvtxSupport::supportMaterial()
   Epoxy->AddElement(elC, 15); // Carbon
 
   G4Material *G4_mat = new G4Material("CarbonFiber",  density =  1.987*g/cm3, natoms=2);
-  G4_mat->AddMaterial(G4Material::GetMaterial("G4_C"), 70*perCent);  // Carbon (NX-80-240)
+  G4_mat->AddMaterial(PHG4Detector::GetDetectorMaterial("G4_C"), 70*perCent);  // Carbon (NX-80-240)
   G4_mat->AddMaterial(Epoxy,                           30*perCent);  // Epoxy (EX-1515)
 
   return G4_mat;
@@ -371,7 +371,7 @@ G4AssemblyVolume *PHG4MvtxSupport::buildL0Cable()
   G4AssemblyVolume *av = new G4AssemblyVolume();
   float rInner = 2.297;
   float rOuter = 4.250;
-  float zMin = -19.680;
+  float zMin = -18.680;
   float zTransition1 = -17.079;
   float zTransition2 = -9.186;
   float zMax = -2;
@@ -387,7 +387,7 @@ G4AssemblyVolume *PHG4MvtxSupport::buildL1Cable()
   G4AssemblyVolume *av = new G4AssemblyVolume();
   float rInner = 3.299;
   float rOuter = 6.838;
-  float zMin = -18.970;
+  float zMin = -18.000;
   float zTransition1 = -15.851;
   float zTransition2 = -8.938;
   float zMax = -2;
@@ -403,7 +403,7 @@ G4AssemblyVolume *PHG4MvtxSupport::buildL2Cable()
   G4AssemblyVolume *av = new G4AssemblyVolume();
   float rInner = 4.074;
   float rOuter = 9.150;
-  float zMin = -23.300;
+  float zMin = -22.300;
   float zTransition1 = -15.206;
   float zTransition2 = -8.538;
   float zMax = -2;
@@ -428,41 +428,41 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   G4AssemblyVolume *avSupport = new G4AssemblyVolume();
 
   //Service Barrel
-  //cylinders.push_back(new ServiceStructure("MVTXServiceBarrel", 0, BarrelThickness, 0., -1. * (BarrelLength + BarrelOffset),
-  //                                        -1. * BarrelOffset, BarrelRadius, 0));
+  cylinders.push_back(new ServiceStructure("MVTXServiceBarrel", 0, BarrelThickness, 0., -1. * (BarrelLength + BarrelOffset),
+                                          -1. * BarrelOffset, BarrelRadius, 0));
 
 
   //CYSS
-  //cylinders.push_back(new ServiceStructure("CYSS_Cone_0", 0, CYSSConeThickness, 0., -26.208, -15.68, 10.55, 0));
-  //cones.push_back(new ServiceStructure("CYSS_Cone_1", 0, CYSSConeThickness, 0., -15.68, -8.619, 10.55, 5.302));
-  //cylinders.push_back(new ServiceStructure("CYSS_Cone_2", 0, CYSSConeThickness, 0., -8.619, -6.18, 5.302, 0));
+  cylinders.push_back(new ServiceStructure("CYSS_Cone_0", 0, CYSSConeThickness, 0., -26.208, -15.68, 10.55, 0));
+  cones.push_back(new ServiceStructure("CYSS_Cone_1", 0, CYSSConeThickness, 0., -15.68, -8.619, 10.55, 5.302));
+  cylinders.push_back(new ServiceStructure("CYSS_Cone_2", 0, CYSSConeThickness, 0., -8.619, -6.18, 5.302, 0));
 
-  //cylinders.push_back(new ServiceStructure("CYSS_Rib_0", 0, CYSSRibThickness, 0., -21.719, -20.949, 9.762, 0));
-  //cones.push_back(new ServiceStructure("CYSS_Rib_1", 0, CYSSRibThickness, 0., -20.949, -20.159, 9.762, 10.36));
-  //cylinders.push_back(new ServiceStructure("CYSS_Rib_2", 0, CYSSRibThickness, 0., -20.159, -17.749, 10.36, 0));
-  //cones.push_back(new ServiceStructure("CYSS_Rib_3", 0, CYSSRibThickness, 0., -17.749, -16.959, 10.36, 9.762));
-  //cylinders.push_back(new ServiceStructure("CYSS_Rib_4", 0, CYSSRibThickness, 0., -16.959, -16.196, 9.762, 0));
+  cylinders.push_back(new ServiceStructure("CYSS_Rib_0", 0, CYSSRibThickness, 0., -21.719, -20.949, 9.762, 0));
+  cones.push_back(new ServiceStructure("CYSS_Rib_1", 0, CYSSRibThickness, 0., -20.949, -20.159, 9.762, 10.36));
+  cylinders.push_back(new ServiceStructure("CYSS_Rib_2", 0, CYSSRibThickness, 0., -20.159, -17.749, 10.36, 0));
+  cones.push_back(new ServiceStructure("CYSS_Rib_3", 0, CYSSRibThickness, 0., -17.749, -16.959, 10.36, 9.762));
+  cylinders.push_back(new ServiceStructure("CYSS_Rib_4", 0, CYSSRibThickness, 0., -16.959, -16.196, 9.762, 0));
 
-  //cylinders.push_back(new ServiceStructure("CYSS_Cylinder", 0, 0.112, 0, -8.619, 36.153, 5.15, 0));
+  cylinders.push_back(new ServiceStructure("CYSS_Cylinder", 0, 0.112, 0, -8.619, 36.153, 5.15, 0));
  
-  ////MVTX Layers
-  //cylinders.push_back(new ServiceStructure("L0_0", 0, LayerThickness, 0., -18.680, -16.579, 5.050, 0));
-  //cones.push_back(new ServiceStructure("L0_1", 0, LayerThickness, 0., -16.579, -9.186, 5.050, 2.997));
-  //cylinders.push_back(new ServiceStructure("L0_2", 0, LayerThickness, 0., -9.186, 0, 2.997, 0));
-  //
-  //cylinders.push_back(new ServiceStructure("L1_0", 0, LayerThickness, 0., -17.970, -15.851, 7.338, 0));
-  //cones.push_back(new ServiceStructure("L1_1", 0, LayerThickness, 0., -15.851, -8.938, 7.338, 3.799));
-  //cylinders.push_back(new ServiceStructure("L1_2", 0, LayerThickness, 0., -8.938, 0, 3.799, 0));
-  //
-  //cylinders.push_back(new ServiceStructure("L2_0", 0, LayerThickness, 0., -22.300, -15.206, 9.650, 0));
-  //cones.push_back(new ServiceStructure("L2_1", 0, LayerThickness, 0., -15.206, -8.538, 9.650, 4.574));
-  //cylinders.push_back(new ServiceStructure("L2_2", 0, LayerThickness, 0., -8.538, 0, 4.574, 0));
+  //MVTX Layers
+  cylinders.push_back(new ServiceStructure("L0_0", 0, LayerThickness, 0., -18.680, -16.579, 5.050, 0));
+  cones.push_back(new ServiceStructure("L0_1", 0, LayerThickness, 0., -16.579, -9.186, 5.050, 2.997));
+  cylinders.push_back(new ServiceStructure("L0_2", 0, LayerThickness, 0., -9.186, 0, 2.997, 0));
+  
+  cylinders.push_back(new ServiceStructure("L1_0", 0, LayerThickness, 0., -17.970, -15.851, 7.338, 0));
+  cones.push_back(new ServiceStructure("L1_1", 0, LayerThickness, 0., -15.851, -8.938, 7.338, 3.799));
+  cylinders.push_back(new ServiceStructure("L1_2", 0, LayerThickness, 0., -8.938, 0, 3.799, 0));
+  
+  cylinders.push_back(new ServiceStructure("L2_0", 0, LayerThickness, 0., -22.300, -15.206, 9.650, 0));
+  cones.push_back(new ServiceStructure("L2_1", 0, LayerThickness, 0., -15.206, -8.538, 9.650, 4.574));
+  cylinders.push_back(new ServiceStructure("L2_2", 0, LayerThickness, 0., -8.538, 0, 4.574, 0));
 
-  ////Conenct copper from barrel to layers
-  ////Currently non-discrete cones as rotations are acting up
-  //cones.push_back(new ServiceStructure("connectL0", 0.005, 0., 0.066, -26.9, -18.680, 10.10, 5.050));
-  //cones.push_back(new ServiceStructure("connectL1", 0.004, 0., 0.061, -26.9, -18.000, 10.20, 7.338));
-  //cones.push_back(new ServiceStructure("connectL2", 0.004, 0., 0.058, -26.9, -22.300, 10.30, 9.580));
+  //Conenct copper from barrel to layers
+  //Currently non-discrete cones as rotations are acting up
+  cones.push_back(new ServiceStructure("connectL0", 0.005, 0., 0.066, -26.9, -18.680, 10.10, 5.050));
+  cones.push_back(new ServiceStructure("connectL1", 0.004, 0., 0.061, -26.9, -18.000, 10.20, 7.338));
+  cones.push_back(new ServiceStructure("connectL2", 0.004, 0., 0.058, -26.9, -22.300, 10.30, 9.580));
   
   for (ServiceStructure *cylinder : cylinders) TrackingServiceCylinder(cylinder, *avSupport);
   for (ServiceStructure *cone : cones) TrackingServiceCone(cone, *avSupport);
@@ -491,7 +491,7 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   endwheelCable.push_back(buildL0Cable());
   endwheelCable.push_back(buildL1Cable());
   endwheelCable.push_back(buildL2Cable());
-  for (unsigned int iLayer = 1; iLayer < PHG4MvtxDefs::kNLayers; ++iLayer)
+  for (unsigned int iLayer = 0; iLayer < PHG4MvtxDefs::kNLayers; ++iLayer)
   {
     for (unsigned int iStave = 0; iStave < nStaves[iLayer]; ++iStave)
     {

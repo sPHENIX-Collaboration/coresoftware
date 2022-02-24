@@ -192,7 +192,7 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
   // the tracking layers are placed directly in the world volume, since some layers are (touching) double layers
   // this reads in the ITS stave geometry from a file and constructs the layer from it
   ConstructMvtx(logicMVTX);
-  //ConstructMvtxPassiveVol(logicMVTX);
+  ConstructMvtxPassiveVol(logicMVTX);
   PHG4MvtxSupport *mvtxSupportSystem = new PHG4MvtxSupport(m_DisplayAction);
   mvtxSupportSystem->ConstructMvtxSupport(logicMVTX); 
 
