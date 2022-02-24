@@ -22,6 +22,8 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 
 #include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
 
 #include <cassert>
 #include <memory>
@@ -51,6 +53,15 @@ namespace
     return std::count_if( track->begin_cluster_keys(), track->end_cluster_keys(),
       []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
   }
+  
+  /// get sector median angle associated to a given index
+  /** this assumes that sector 0 is centered on phi=0, then numbered along increasing phi */
+  inline constexpr double get_sector_phi( int isec ) 
+  { return isec*M_PI/6; }
+
+  // specify bins for which one will save histograms
+  static const std::vector<float> phi_rec = { get_sector_phi(9) };
+  static const std::vector<float> z_rec = { 5. };
 
   // phi range
   static constexpr float m_phimin = 0;
@@ -89,6 +100,9 @@ int TpcSpaceChargeReconstruction::Init(PHCompositeNode* /*topNode*/ )
 
   m_total_clusters = 0;
   m_accepted_clusters = 0;
+
+  // histogram evaluation
+  if( m_savehistograms ) create_histograms();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -153,6 +167,17 @@ int TpcSpaceChargeReconstruction::End(PHCompositeNode* /*topNode*/ )
     outputfile->cd();
     m_matrix_container->Write( "TpcSpaceChargeMatrixContainer" );
   }
+  
+  // save histograms
+  if( m_savehistograms && m_histogramfile )
+  {
+    m_histogramfile->cd();    
+    for( const auto& [cell,h]:m_h_drphi ) { if(h) h->Write(); }
+    for( const auto& [cell,h]:m_h_dz ) { if(h) h->Write(); }
+    for( const auto& [cell,h]:m_h_drphi_alpha ) { if(h) h->Write(); }
+    for( const auto& [cell,h]:m_h_dz_beta ) { if(h) h->Write(); }
+    m_histogramfile->Close();
+  }
 
   // print counters
   std::cout
@@ -212,6 +237,72 @@ int TpcSpaceChargeReconstruction::load_nodes( PHCompositeNode* topNode )
 
   assert( m_cluster_map );
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//_____________________________________________________________________
+void TpcSpaceChargeReconstruction::create_histograms()
+{
+  std::cout << "TpcSpaceChargeReconstruction::create_histograms - writing evaluation histograms to: " << m_histogramfilename << std::endl;
+  m_histogramfile.reset( new TFile(m_histogramfilename.c_str(), "RECREATE") );
+  m_histogramfile->cd();
+
+  // get grid dimensions from matrix container
+  int phibins = 0;
+  int rbins = 0;
+  int zbins = 0;
+  m_matrix_container->get_grid_dimensions( phibins, rbins, zbins );
+  
+  // get bins corresponding to selected angles
+  std::set<int> phibin_rec;
+  std::transform( phi_rec.begin(), phi_rec.end(), std::inserter( phibin_rec, phibin_rec.end() ), [&]( const float& phi ) { return phibins*(phi-m_phimin)/(m_phimax-m_phimin); } );
+  
+  std::set<int> zbin_rec;
+  std::transform( z_rec.begin(), z_rec.end(), std::inserter( zbin_rec, zbin_rec.end() ), [&]( const float& z ) { return zbins*(z-m_zmin)/(m_zmax-m_zmin); } );
+  
+  // keep track of all cell ids that match selected histograms
+  for( int iphi = 0; iphi < phibins; ++iphi )
+    for( int ir = 0; ir < rbins; ++ir )
+    for( int iz = 0; iz < zbins; ++iz )
+  {
+    
+    if( phibin_rec.find( iphi ) == phibin_rec.end() || zbin_rec.find( iz ) == zbin_rec.end() ) continue;
+    const auto icell = m_matrix_container->get_cell_index( iphi, ir, iz );
+    
+    {
+      // rphi residuals
+      const auto hname = Form( "residual_drphi_p%i_r%i_z%i", iphi, ir, iz );
+      auto h = new TH1F( hname, hname, 100, -m_max_drphi, +m_max_drphi );
+      h->GetXaxis()->SetTitle( "r.#Delta#phi_{cluster-track} (cm)" );
+      m_h_drphi.insert( std::make_pair( icell, h ) );
+    }
+    
+    {
+      // 2D histograms
+      const auto hname = Form( "residual_2d_drphi_p%i_r%i_z%i", iphi, ir, iz );
+      auto h = new TH2F( hname, hname, 100, -m_max_talpha, m_max_talpha, 100, -m_max_drphi, +m_max_drphi );
+      h->GetXaxis()->SetTitle( "tan#alpha" );
+      h->GetYaxis()->SetTitle( "r.#Delta#phi_{cluster-track} (cm)" );
+      m_h_drphi_alpha.insert( std::make_pair( icell, h ) );
+    }
+    
+    {
+      // z residuals
+      const auto hname = Form( "residual_dz_p%i_r%i_z%i", iphi, ir, iz );
+      auto h = new TH1F( hname, hname, 100, -m_max_dz, +m_max_dz );
+      h->GetXaxis()->SetTitle( "#Deltaz_{cluster-track} (cm)" );
+      m_h_dz.insert( std::make_pair( icell, h ) );
+    }
+    
+    {
+      // 2D histograms
+      static constexpr double max_tbeta = 0.5;
+      const auto hname = Form( "residual_2d_dz_p%i_r%i_z%i", iphi, ir, iz );
+      auto h = new TH2F( hname, hname, 100, -max_tbeta, max_tbeta, 100, -m_max_dz, +m_max_dz );
+      h->GetXaxis()->SetTitle( "tan#beta" );
+      h->GetYaxis()->SetTitle( "#Deltaz_{cluster-track} (cm)" );
+      m_h_dz_beta.insert( std::make_pair( icell, h ) );
+    }     
+  }  
 }
 
 //_________________________________________________________________________________
@@ -386,10 +477,6 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       continue;
     }
 
-    // check against limits
-    if( std::abs( talpha ) > m_max_talpha ) continue;
-    if( std::abs( tbeta ) > m_max_tbeta ) continue;
-
     // track errors
     const auto track_rphi_error = state->get_rphi_error();
     const auto track_z_error = state->get_z_error();
@@ -410,10 +497,6 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       std::cout << "TpcSpaceChargeReconstruction::process_track - dz is nan" << std::endl;
       continue;
     }
-
-    // check against limits
-    if( std::abs( drp ) > m_max_drphi ) continue;
-    if( std::abs( dz ) > m_max_dz ) continue;
 
     // residual errors squared
     const auto erp = square(track_rphi_error) + square(cluster_rphi_error);
@@ -439,6 +522,22 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       std::cout << "TpcSpaceChargeReconstruction::process_track - invalid cell index" << std::endl;
       continue;
     }
+    
+    if( m_savehistograms )
+    {      
+      { const auto iter = m_h_drphi.find( i ); if( iter != m_h_drphi.end() ) iter->second->Fill( drp ); }
+      { const auto iter = m_h_drphi_alpha.find( i ); if( iter != m_h_drphi_alpha.end() ) iter->second->Fill( talpha, drp ); }
+      { const auto iter = m_h_dz.find( i ); if( iter != m_h_dz.end() ) iter->second->Fill( dz ); }
+      { const auto iter = m_h_dz_beta.find( i ); if( iter != m_h_dz_beta.end() ) iter->second->Fill( tbeta, dz ); }
+    }
+    
+    // check against limits
+    if( std::abs( talpha ) > m_max_talpha ) continue;
+    if( std::abs( tbeta ) > m_max_tbeta ) continue;
+
+    // check against limits
+    if( std::abs( drp ) > m_max_drphi ) continue;
+    if( std::abs( dz ) > m_max_dz ) continue;
 
     // update matrices
     // see https://indico.bnl.gov/event/7440/contributions/43328/attachments/31334/49446/talk.pdf for details

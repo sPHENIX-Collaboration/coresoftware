@@ -21,6 +21,10 @@ class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 
+class TFile;
+class TH1;
+class TH2;
+
 /**
  * \class TpcSpaceChargeReconstruction
  * \brief performs space charge distortion reconstruction using tracks
@@ -56,6 +60,13 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   */
   void set_grid_dimensions( int phibins, int rbins, int zbins );
 
+
+  /// set to true to store evaluation histograms and ntuples
+  void set_save_histograms( bool value ) { m_savehistograms = value; }
+    
+  /// output file name for evaluation histograms
+  void set_histogram_outputfile(const std::string &outputfile) {m_histogramfilename = outputfile;}
+
   /// output file
   /**
    * this is the file where space charge matrix container is stored
@@ -84,6 +95,9 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// load nodes
   int load_nodes( PHCompositeNode* );
+  
+  /// create evaluation histograms
+  void create_histograms();
 
   /// get global position for a given cluster
   /**
@@ -149,6 +163,25 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   int m_accepted_clusters = 0;
   //@}
 
+  
+  ///@name evaluation histograms
+  //@{
+  /// Output root histograms
+  bool m_savehistograms = false;
+
+  /// histogram output file name
+  std::string m_histogramfilename = "TpcSpaceChargeReconstruction.root";
+  std::unique_ptr<TFile> m_histogramfile;  
+  
+  using TH1_map_t = std::map<int,TH1*>;
+  using TH2_map_t = std::map<int,TH2*>;
+  
+  TH1_map_t m_h_drphi;
+  TH1_map_t m_h_dz;
+  TH2_map_t m_h_drphi_alpha;
+  TH2_map_t m_h_dz_beta;
+  //@}
+  
   ///@name nodes
   //@{
   SvtxTrackMap* m_track_map = nullptr;
