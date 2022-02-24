@@ -12,6 +12,7 @@
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
@@ -38,6 +39,7 @@ class PHG4MvtxSupport
   PHG4MvtxDisplayAction *m_DisplayAction;
 
   std::vector<float> get_thickness(ServiceStructure *object);
+  G4Material *supportMaterial();
   void TrackingServiceCone(ServiceStructure *object, G4AssemblyVolume &assemblyVolume);
   void TrackingServiceCylinder(ServiceStructure *object, G4AssemblyVolume &assemblyVolume);
   void CreateCable(Cable *object, G4AssemblyVolume &assemblyVolume);
@@ -48,7 +50,6 @@ G4AssemblyVolume *buildBarrelCable();
 G4AssemblyVolume *buildL0Cable();
 G4AssemblyVolume *buildL1Cable();
 G4AssemblyVolume *buildL2Cable();
-G4AssemblyVolume *connectBarrelToLayer();
 };
 
 #endif
