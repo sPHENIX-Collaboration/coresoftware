@@ -9,9 +9,10 @@
 
 namespace ServiceProperties
 {
-  std::string materials[] = {"G4_Cu", "CarbonFiber", "G4_POLYETHYLENE"};
+  std::string materials[] = {"G4_Cu", "MVTX_CarbonFiber$", "G4_POLYETHYLENE"};
   const int nMaterials = sizeof(materials) / sizeof(materials[0]);
 
+  float ServiceEnd = -7.21;
   float ServiceOffset = -15.0;
   float BarrelOffset = 18.679;
   float BarrelRadius = 10.33;     //Inner radious of service barrel
@@ -63,13 +64,13 @@ G4Material *PHG4MvtxSupport::supportMaterial()
   G4Element* elN  = new G4Element("Nitrogen",symbol="N" , 7., 14.01*g/mole);
   G4Element* elO  = new G4Element("Oxygen"  ,symbol="O" , 8., 16.00*g/mole);
 
-  G4Material *Epoxy = new G4Material("Epoxy",  density = 1.56*g/cm3, natoms=4);
+  G4Material *Epoxy = new G4Material("MVTX_Epoxy$",  density = 1.56*g/cm3, natoms=4);
   Epoxy->AddElement(elH, 32); // Hydrogen
   Epoxy->AddElement(elN,  2); // Nitrogen
   Epoxy->AddElement(elO,  4); // Oxygen
   Epoxy->AddElement(elC, 15); // Carbon
 
-  G4Material *G4_mat = new G4Material("CarbonFiber",  density =  1.987*g/cm3, natoms=2);
+  G4Material *G4_mat = new G4Material("MVTX_CarbonFiber$",  density =  1.987*g/cm3, natoms=2);
   G4_mat->AddMaterial(PHG4Detector::GetDetectorMaterial("G4_C"), 70*perCent);  // Carbon (NX-80-240)
   G4_mat->AddMaterial(Epoxy,                           30*perCent);  // Epoxy (EX-1515)
 
@@ -96,7 +97,7 @@ void PHG4MvtxSupport::TrackingServiceCone(ServiceStructure *object, G4AssemblyVo
     outerRadiusNorth = innerRadiusNorth + thickness[i];
 
     G4Material *trackerMaterial = NULL;
-    if (materials[i] == "CarbonFiber") trackerMaterial = supportMaterial();
+    if (materials[i] == "MVTX_CarbonFiber$") trackerMaterial = supportMaterial();
     else trackerMaterial = PHG4Detector::GetDetectorMaterial(materials[i]);
 
     G4VSolid *coneSolid = new G4Cons(G4String(object->get_name() + "_SOLID"),
@@ -108,7 +109,7 @@ void PHG4MvtxSupport::TrackingServiceCone(ServiceStructure *object, G4AssemblyVo
 
     G4VisAttributes *visAtt = new G4VisAttributes();
     if (materials[i] == "G4_Cu") visAtt->SetColour(copper[0], copper[1], copper[2], 1.);
-    if (materials[i] == "CarbonFiber") visAtt->SetColour(grey[0], grey[1], grey[2], 1.);
+    if (materials[i] == "MVTX_CarbonFiber$") visAtt->SetColour(grey[0], grey[1], grey[2], 1.);
     if (materials[i] == "G4_POLYETHYLENE") visAtt->SetColour(black[0], black[1], black[2], 1.);
     visAtt->SetVisibility(true);
     visAtt->SetForceSolid(true);
@@ -140,7 +141,7 @@ void PHG4MvtxSupport::TrackingServiceCylinder(ServiceStructure *object, G4Assemb
     outerRadius = innerRadius + thickness[i];
  
     G4Material *trackerMaterial = NULL;
-    if (materials[i] == "CarbonFiber") trackerMaterial = supportMaterial();
+    if (materials[i] == "MVTX_CarbonFiber$") trackerMaterial = supportMaterial();
     else trackerMaterial = PHG4Detector::GetDetectorMaterial(materials[i]);
 
     G4VSolid *cylinderSolid = new G4Tubs(G4String(object->get_name() + "_SOLID"),
@@ -151,7 +152,7 @@ void PHG4MvtxSupport::TrackingServiceCylinder(ServiceStructure *object, G4Assemb
 
     G4VisAttributes *visAtt = new G4VisAttributes();
     if (materials[i] == "G4_Cu") visAtt->SetColour(copper[0], copper[1], copper[2], 1.);
-    if (materials[i] == "CarbonFiber") visAtt->SetColour(grey[0], grey[1], grey[2], 1.);
+    if (materials[i] == "MVTX_CarbonFiber$") visAtt->SetColour(grey[0], grey[1], grey[2], 1.);
     if (materials[i] == "G4_POLYETHYLENE") visAtt->SetColour(black[0], black[1], black[2], 1.);
     visAtt->SetVisibility(true);
     visAtt->SetForceSolid(true);
@@ -266,13 +267,13 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
   if (enableSignal)
   {
     unsigned int nSamtecWires = 24;
-    unsigned int nRow = 6;
+    unsigned int nRow = 8;
     unsigned int nCol = nSamtecWires / nRow;
     for (unsigned int iRow = 0; iRow < nRow; ++iRow)
     {
       for (unsigned int iCol = 0; iCol < nCol; ++iCol)
       {
-        deltaX = samtecShiftX + ((iCol + 1) * (samtecSheathRadius * 2));
+        deltaX = samtecShiftX + ((iCol + 1) * (samtecSheathRadius * 2.6));
         deltaY = samtecShiftY - ((iRow + 1) * (samtecSheathRadius * 2.1));
         Cable *cable = new Cable(boost::str(boost::format("%s_samtec_%d_%d") % superName.c_str() % iRow % iCol), "G4_Cu", samtecCoreRadius, samtecSheathRadius,
                                  x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, blue);
@@ -306,7 +307,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
     powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_digiReturn") % superName.c_str()), "Large"), std::make_pair((-2.5 * powerLargeSheathRadius) + powerShiftX, (-2.5 * powerLargeSheathRadius) + powerShiftY)));
     powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_digiSupply") % superName.c_str()), "Large"), std::make_pair((-4.5 * powerLargeSheathRadius) + powerShiftX, (-1.5 * powerLargeSheathRadius) + powerShiftY)));
     powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_anaReturn") % superName.c_str()), "Medium"), std::make_pair((-4 * powerLargeSheathRadius) + powerShiftX, (-5.75 * powerMediumSheathRadius) + powerShiftY)));
-    powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_anaSupply") % superName.c_str()), "Medium"), std::make_pair((-5 * powerLargeSheathRadius) + powerShiftX, (-5.75 * powerMediumSheathRadius) + powerShiftY)));
+    powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_anaSupply") % superName.c_str()), "Medium"), std::make_pair((-5.1 * powerLargeSheathRadius) + powerShiftX, (-5.75 * powerMediumSheathRadius) + powerShiftY)));
     powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_digiSense") % superName.c_str()), "Small"), std::make_pair((-10 * powerSmallSheathRadius) + powerShiftX, (-1 * powerSmallSheathRadius) + powerShiftY)));
     powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_anaSense") % superName.c_str()), "Small"), std::make_pair((-8 * powerSmallSheathRadius) + powerShiftX, (-2 * powerSmallSheathRadius) + powerShiftY)));
     powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_bias") % superName.c_str()), "Small"), std::make_pair((-6 * powerSmallSheathRadius) + powerShiftX, (-3 * powerSmallSheathRadius) + powerShiftY)));
@@ -374,10 +375,10 @@ G4AssemblyVolume *PHG4MvtxSupport::buildL0Cable()
   float zMin = -18.680;
   float zTransition1 = -17.079;
   float zTransition2 = -9.186;
-  float zMax = -2;
-  CreateCableBundle(*av, "L0Cable_0", true, false, false, rOuter, rOuter, 0, 0, zMin, zTransition1);
-  CreateCableBundle(*av, "L0Cable_1", true, false, false, rOuter, rInner, 0, 0, zTransition1, zTransition2);
-  CreateCableBundle(*av, "L0Cable_2", true, false, false, rInner, rInner, 0, 0, zTransition2, zMax);
+  float zMax = ServiceEnd;
+  CreateCableBundle(*av, "MVTX_L0Cable_0", true, false, false, rOuter, rOuter, 0, 0, zMin, zTransition1);
+  CreateCableBundle(*av, "MVTX_L0Cable_1", true, false, false, rOuter, rInner, 0, 0, zTransition1 + 0.1, zTransition2);
+  CreateCableBundle(*av, "MVTX_L0Cable_2", true, false, false, rInner, rInner, 0, 0, zTransition2 + 0.1, zMax);
 
   return av;
 }
@@ -386,14 +387,14 @@ G4AssemblyVolume *PHG4MvtxSupport::buildL1Cable()
 {
   G4AssemblyVolume *av = new G4AssemblyVolume();
   float rInner = 3.299;
-  float rOuter = 6.838;
+  float rOuter = 6.738;
   float zMin = -18.000;
   float zTransition1 = -15.851;
   float zTransition2 = -8.938;
-  float zMax = -2;
-  CreateCableBundle(*av, "L1Cable_0", true, false, false, rOuter, rOuter, 0, 0, zMin, zTransition1);
-  CreateCableBundle(*av, "L1Cable_1", true, false, false, rOuter, rInner, 0, 0, zTransition1, zTransition2);
-  CreateCableBundle(*av, "L1Cable_2", true, false, false, rInner, rInner, 0, 0, zTransition2, zMax);
+  float zMax = ServiceEnd;
+  CreateCableBundle(*av, "MVTX_L1Cable_0", true, false, false, rOuter, rOuter, 0, 0, zMin, zTransition1);
+  CreateCableBundle(*av, "MVTX_L1Cable_1", true, false, false, rOuter, rInner, 0, 0, zTransition1 + 0.1, zTransition2);
+  CreateCableBundle(*av, "MVTX_L1Cable_2", true, false, false, rInner, rInner, 0, 0, zTransition2 + 0.1, zMax);
 
   return av;
 }
@@ -402,14 +403,14 @@ G4AssemblyVolume *PHG4MvtxSupport::buildL2Cable()
 {
   G4AssemblyVolume *av = new G4AssemblyVolume();
   float rInner = 4.074;
-  float rOuter = 9.150;
+  float rOuter = 9.080;
   float zMin = -22.300;
   float zTransition1 = -15.206;
   float zTransition2 = -8.538;
-  float zMax = -2;
-  CreateCableBundle(*av, "L2Cable_0", true, false, false, rOuter, rOuter, 0, 0, zMin, zTransition1);
-  CreateCableBundle(*av, "L2Cable_1", true, false, false, rOuter, rInner, 0, 0, zTransition1, zTransition2);
-  CreateCableBundle(*av, "L2Cable_2", true, false, false, rInner, rInner, 0, 0, zTransition2, zMax);
+  float zMax = ServiceEnd;
+  CreateCableBundle(*av, "MVTX_L2Cable_0", true, false, false, rOuter, rOuter, 0, 0, zMin, zTransition1);
+  CreateCableBundle(*av, "MVTX_L2Cable_1", true, false, false, rOuter, rInner, 0, 0, zTransition1 + 0.1, zTransition2);
+  CreateCableBundle(*av, "MVTX_L2Cable_2", true, false, false, rInner, rInner, 0, 0, zTransition2 + 0.1, zMax);
 
   return av;
 }
@@ -428,41 +429,40 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   G4AssemblyVolume *avSupport = new G4AssemblyVolume();
 
   //Service Barrel
-  cylinders.push_back(new ServiceStructure("MVTXServiceBarrel", 0, BarrelThickness, 0., -1. * (BarrelLength + BarrelOffset),
-                                          -1. * BarrelOffset, BarrelRadius, 0));
-
+  cylinders.push_back(new ServiceStructure("MVTX_serviceBarrel_0", 0, BarrelThickness, 0, -1. * (BarrelLength + BarrelOffset), -27.0, BarrelRadius, 0));
+  cylinders.push_back(new ServiceStructure("MVTX_serviceBarrel_1", 0, BarrelThickness, 0, -27.0, -1. * BarrelOffset, 10.70 + CYSSConeThickness, 0));
 
   //CYSS
-  cylinders.push_back(new ServiceStructure("CYSS_Cone_0", 0, CYSSConeThickness, 0., -26.208, -15.68, 10.55, 0));
-  cones.push_back(new ServiceStructure("CYSS_Cone_1", 0, CYSSConeThickness, 0., -15.68, -8.619, 10.55, 5.302));
-  cylinders.push_back(new ServiceStructure("CYSS_Cone_2", 0, CYSSConeThickness, 0., -8.619, -6.18, 5.302, 0));
+  cylinders.push_back(new ServiceStructure("MVTX_CYSS_Cone_0", 0, CYSSConeThickness, 0., -26.208, -15.68, 10.55, 0));
+  cones.push_back(new ServiceStructure("MVTX_CYSS_Cone_1", 0, CYSSConeThickness, 0., -15.679, -8.619, 10.55, 5.302));
+  cylinders.push_back(new ServiceStructure("MVTX_CYSS_Cone_2", 0, CYSSConeThickness, 0., -8.618, -6.18, 5.302, 0));
 
-  cylinders.push_back(new ServiceStructure("CYSS_Rib_0", 0, CYSSRibThickness, 0., -21.719, -20.949, 9.762, 0));
-  cones.push_back(new ServiceStructure("CYSS_Rib_1", 0, CYSSRibThickness, 0., -20.949, -20.159, 9.762, 10.36));
-  cylinders.push_back(new ServiceStructure("CYSS_Rib_2", 0, CYSSRibThickness, 0., -20.159, -17.749, 10.36, 0));
-  cones.push_back(new ServiceStructure("CYSS_Rib_3", 0, CYSSRibThickness, 0., -17.749, -16.959, 10.36, 9.762));
-  cylinders.push_back(new ServiceStructure("CYSS_Rib_4", 0, CYSSRibThickness, 0., -16.959, -16.196, 9.762, 0));
+  cylinders.push_back(new ServiceStructure("MVTX_CYSS_Rib_0", 0, CYSSRibThickness, 0., -21.719, -20.949, 9.762, 0));
+  cones.push_back(new ServiceStructure("MVTX_CYSS_Rib_1", 0, CYSSRibThickness, 0., -20.948, -20.159, 9.762, 10.36));
+  cylinders.push_back(new ServiceStructure("MVTX_CYSS_Rib_2", 0, CYSSRibThickness, 0., -20.158, -17.749, 10.36, 0));
+  cones.push_back(new ServiceStructure("MVTX_CYSS_Rib_3", 0, CYSSRibThickness, 0., -17.748, -16.959, 10.36, 9.762));
+  cylinders.push_back(new ServiceStructure("MVTX_CYSS_Rib_4", 0, CYSSRibThickness, 0., -16.958, -16.196, 9.762, 0));
 
-  cylinders.push_back(new ServiceStructure("CYSS_Cylinder", 0, 0.112, 0, -8.619, 36.153, 5.15, 0));
+  cylinders.push_back(new ServiceStructure("MVTX_CYSS_Cylinder", 0, 0.112, 0, -8.619, 36.153, 5.15, 0));
  
   //MVTX Layers
-  cylinders.push_back(new ServiceStructure("L0_0", 0, LayerThickness, 0., -18.680, -16.579, 5.050, 0));
-  cones.push_back(new ServiceStructure("L0_1", 0, LayerThickness, 0., -16.579, -9.186, 5.050, 2.997));
-  cylinders.push_back(new ServiceStructure("L0_2", 0, LayerThickness, 0., -9.186, 0, 2.997, 0));
+  cylinders.push_back(new ServiceStructure("MVTX_L0_0", 0, LayerThickness, 0., -18.680, -16.579, 5.050, 0));
+  cones.push_back(new ServiceStructure("MVTX_L0_1", 0, LayerThickness, 0., -16.578, -9.186, 5.050, 2.997));
+  cylinders.push_back(new ServiceStructure("MVTX_L0_2", 0, LayerThickness, 0., -9.185, ServiceEnd, 2.997, 0));
   
-  cylinders.push_back(new ServiceStructure("L1_0", 0, LayerThickness, 0., -17.970, -15.851, 7.338, 0));
-  cones.push_back(new ServiceStructure("L1_1", 0, LayerThickness, 0., -15.851, -8.938, 7.338, 3.799));
-  cylinders.push_back(new ServiceStructure("L1_2", 0, LayerThickness, 0., -8.938, 0, 3.799, 0));
+  cylinders.push_back(new ServiceStructure("MVTX_L1_0", 0, LayerThickness, 0., -17.970, -15.851, 7.338, 0));
+  cones.push_back(new ServiceStructure("MVTX_L1_1", 0, LayerThickness, 0., -15.850, -8.938, 7.338, 3.799));
+  cylinders.push_back(new ServiceStructure("MVTX_L1_2", 0, LayerThickness, 0., -8.937, ServiceEnd, 3.799, 0));
   
-  cylinders.push_back(new ServiceStructure("L2_0", 0, LayerThickness, 0., -22.300, -15.206, 9.650, 0));
-  cones.push_back(new ServiceStructure("L2_1", 0, LayerThickness, 0., -15.206, -8.538, 9.650, 4.574));
-  cylinders.push_back(new ServiceStructure("L2_2", 0, LayerThickness, 0., -8.538, 0, 4.574, 0));
+  cylinders.push_back(new ServiceStructure("MVTX_L2_0", 0, LayerThickness, 0., -22.300, -15.206, 9.580, 0));
+  cones.push_back(new ServiceStructure("MVTX_L2_1", 0, LayerThickness, 0., -15.205, -8.538, 9.580, 4.574));
+  cylinders.push_back(new ServiceStructure("MVTX_L2_2", 0, LayerThickness, 0., -8.537, ServiceEnd, 4.574, 0));
 
   //Conenct copper from barrel to layers
   //Currently non-discrete cones as rotations are acting up
-  cones.push_back(new ServiceStructure("connectL0", 0.005, 0., 0.066, -26.9, -18.680, 10.10, 5.050));
-  cones.push_back(new ServiceStructure("connectL1", 0.004, 0., 0.061, -26.9, -18.000, 10.20, 7.338));
-  cones.push_back(new ServiceStructure("connectL2", 0.004, 0., 0.058, -26.9, -22.300, 10.30, 9.580));
+  cones.push_back(new ServiceStructure("MVTX_sb_to_L0", 0.005, 0., 0.066, -26.9, -18.680, 10.10, 5.050));
+  cones.push_back(new ServiceStructure("MVTX_sb_to_L1", 0.004, 0., 0.061, -26.9, -18.000, 10.20, 7.338));
+  cones.push_back(new ServiceStructure("MVTX_sb_to_L2", 0.004, 0., 0.058, -26.9, -22.301, 10.30, 9.580));
   
   for (ServiceStructure *cylinder : cylinders) TrackingServiceCylinder(cylinder, *avSupport);
   for (ServiceStructure *cone : cones) TrackingServiceCone(cone, *avSupport);

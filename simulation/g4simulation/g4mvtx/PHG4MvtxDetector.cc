@@ -34,6 +34,8 @@
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Polycone.hh>
+
 
 // xerces has some shadowed variables
 #pragma GCC diagnostic push
@@ -61,7 +63,7 @@ namespace mvtxGeomDef
   double mvtx_shell_thickness =  skin_thickness + foam_core_thickness + skin_thickness;
 
   double wrap_rmin = 2.1 * cm;
-  double wrap_rmax = mvtx_shell_inner_radius + mvtx_shell_thickness;
+  double wrap_rmax = mvtx_shell_inner_radius + mvtx_shell_thickness + 0.8 * cm;
   double wrap_zlen = mvtx_shell_length;
 }
 
@@ -182,11 +184,13 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
          << "PHG4MvtxDetector::Construct called for Mvtx " << endl;
   }
 
-  //Create a wrapper volume
-  auto tube = new G4Tubs("sol_MVTX_Wrapper", mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmax,
-                         mvtxGeomDef::wrap_zlen / 2.0, -M_PI, 2.0 * M_PI);
+  const G4double zPlane[] = {-160*cm, -41*cm, -35*cm, -33*cm, -30*cm, -23.5*cm, mvtxGeomDef::wrap_zlen / 2.0};
+  const G4double rInner[] = {8*cm, 8*cm, 4.0*cm, 4.0*cm, 3*cm, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin};
+  const G4double rOuter[] = {11.5*cm, 11.5*cm, 11.5*cm, 11.5*cm, 11.5*cm, mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_rmax};
+  G4int numZPlanes = sizeof(zPlane) / sizeof(zPlane[0]);
+  auto polycone = new G4Polycone("sol_MVTX_Wrapper", 0, 2.0 * M_PI, numZPlanes, zPlane, rInner, rOuter);
   auto world_mat = logicWorld->GetMaterial();
-  auto logicMVTX = new G4LogicalVolume(tube, world_mat, "log_MVTX_Wrapper");
+  auto logicMVTX = new G4LogicalVolume(polycone, world_mat, "log_MVTX_Wrapper");
   new G4PVPlacement(new G4RotationMatrix(), G4ThreeVector(), logicMVTX, "MVTX_Wrapper", logicWorld, false, 0, false);
 
   // the tracking layers are placed directly in the world volume, since some layers are (touching) double layers
