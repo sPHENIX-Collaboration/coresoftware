@@ -1,54 +1,60 @@
-// $Id: $
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//  File:        ProtonPhysics.cc                                             //
-//  Description: Proton hadronic physics constructor for EICPhysicsList       //
-//                                                                            //
-//  Author:      Dennis H. Wright (SLAC)                                      //  
-//  Date:        22 June 2018                                                 //
-//                                                                            //
+//
+//  eASTProtonPhysics.cc
+//  Proton hadronic physics constructor for eASTPhysicsList
+//
+//    Jun.21.2018 : original implementation - Dennis H. Wright (SLAC)
+//    May.06.2021 : migration to eAST - Makoto Asai (SLAC)
+//    Dec.22.2021 : migration to Geant4 version 11.0 - Makoto Asai (JLab)
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#include "ProtonPhysics.hh"
+#include "eASTProtonPhysics.hh"
 
-#include <Geant4/G4ProcessManager.hh>
-#include <Geant4/G4ProtonInelasticProcess.hh>
-#include <Geant4/G4HadronElasticProcess.hh>
+#include "G4ProcessManager.hh"
+#include "G4Version.hh"
+#if G4VERSION_NUMBER < 1100
+#include "G4ProtonInelasticProcess.hh"
+#else
+#include "G4HadronInelasticProcess.hh"
+#endif
+#include "G4HadronElasticProcess.hh"
 
-#include <Geant4/G4CascadeInterface.hh>
-#include <Geant4/G4TheoFSGenerator.hh>
-#include <Geant4/G4FTFModel.hh>
-#include <Geant4/G4ExcitedStringDecay.hh>
-#include <Geant4/G4LundStringFragmentation.hh>
-#include <Geant4/G4GeneratorPrecompoundInterface.hh>
-#include <Geant4/G4ChipsElasticModel.hh>
+#include "G4CascadeInterface.hh"
+#include "G4TheoFSGenerator.hh"
+#include "G4FTFModel.hh"
+#include "G4ExcitedStringDecay.hh"
+#include "G4LundStringFragmentation.hh"
+#include "G4GeneratorPrecompoundInterface.hh"
+#include "G4ChipsElasticModel.hh"
 
-#include <Geant4/G4BGGNucleonInelasticXS.hh>
-#include <Geant4/G4ChipsProtonElasticXS.hh>
+#include "G4BGGNucleonInelasticXS.hh"
+#include "G4ChipsProtonElasticXS.hh"
 
-#include <Geant4/G4SystemOfUnits.hh>
+#include "G4SystemOfUnits.hh"
 
-
-ProtonPhysics::ProtonPhysics():
-  ftfp(nullptr),
-  stringModel(nullptr),
-  stringDecay(nullptr),
-  fragModel(nullptr),
-  preCompoundModel(nullptr)
+#if G4VERSION_NUMBER < 1100
+eASTProtonPhysics::eASTProtonPhysics()
 {}
 
-
-ProtonPhysics::~ProtonPhysics()
+eASTProtonPhysics::~eASTProtonPhysics()
 {
   delete stringDecay;
   delete stringModel;
   delete fragModel;
   delete preCompoundModel;
 }
+#else
+eASTProtonPhysics::eASTProtonPhysics()
+: G4VPhysicsConstructor("eASTProton")
+{;}
 
+eASTProtonPhysics::~eASTProtonPhysics()
+{;}
+#endif
 
-void ProtonPhysics::ConstructProcess()
+void eASTProtonPhysics::ConstructProcess()
 {
   // Low energy elastic model
   G4ChipsElasticModel* elMod = new G4ChipsElasticModel();
@@ -84,7 +90,12 @@ void ProtonPhysics::ConstructProcess()
   procMan->AddDiscreteProcess(pProcEl);
 
   // Inelastic process
+#if G4VERSION_NUMBER < 1100
   G4ProtonInelasticProcess* pProcInel = new G4ProtonInelasticProcess;
+#else
+  auto* pProcInel = new G4HadronInelasticProcess("ProtonInelasticProcess",
+                                G4Proton::Proton() );
+#endif
   pProcInel->RegisterMe(loInelModel);
   pProcInel->RegisterMe(ftfp);
   pProcInel->AddDataSet(inelCS);
@@ -93,6 +104,6 @@ void ProtonPhysics::ConstructProcess()
 }
 
 
-void ProtonPhysics::ConstructParticle()
+void eASTProtonPhysics::ConstructParticle()
 {}
 

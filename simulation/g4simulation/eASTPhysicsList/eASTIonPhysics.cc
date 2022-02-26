@@ -1,51 +1,43 @@
-// $Id: $
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//  File:        IonPhysics.cc                                                //
-//  Description: Ion hadronic physics constructor for EICPhysicsList          //
-//                                                                            //
-//  Author:      Dennis H. Wright (SLAC)                                      //  
-//  Date:        6 July 2018                                                  //
-//                                                                            //
+//
+//  eASTIonPhysics.cc
+//  Ion hadronic physics constructor for eASTPhysicsList
+//
+//    Jun.21.2018 : original implementation - Dennis H. Wright (SLAC)
+//    May.06.2021 : migration to eAST - Makoto Asai (SLAC)
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#include "IonPhysics.hh"
+#include "eASTIonPhysics.hh"
 
-#include <Geant4/G4ProcessManager.hh>
-#include <Geant4/G4HadronElasticProcess.hh>
-#include <Geant4/G4HadronInelasticProcess.hh>
+#include "G4ProcessManager.hh"
+#include "G4HadronElasticProcess.hh"
+#include "G4HadronInelasticProcess.hh"
 
-#include <Geant4/G4TheoFSGenerator.hh>
-#include <Geant4/G4FTFModel.hh>
-#include <Geant4/G4ExcitedStringDecay.hh>
-#include <Geant4/G4LundStringFragmentation.hh>
-#include <Geant4/G4GeneratorPrecompoundInterface.hh>
-#include <Geant4/G4QMDReaction.hh>
-#include <Geant4/G4HadronicInteractionRegistry.hh>
-#include <Geant4/G4PreCompoundModel.hh>
-#include <Geant4/G4BinaryLightIonReaction.hh>
-#include <Geant4/G4HadronElastic.hh>
-#include <Geant4/G4NuclNuclDiffuseElastic.hh>
+#include "G4TheoFSGenerator.hh"
+#include "G4FTFModel.hh"
+#include "G4ExcitedStringDecay.hh"
+#include "G4LundStringFragmentation.hh"
+#include "G4GeneratorPrecompoundInterface.hh"
+#include "G4QMDReaction.hh"
+#include "G4HadronicInteractionRegistry.hh"
+#include "G4PreCompoundModel.hh"
+#include "G4BinaryLightIonReaction.hh"
+#include "G4HadronElastic.hh"
+#include "G4NuclNuclDiffuseElastic.hh"
 
-#include <Geant4/G4CrossSectionElastic.hh>
-#include <Geant4/G4CrossSectionInelastic.hh>
-#include <Geant4/G4ComponentGGNuclNuclXsc.hh>
-#include <Geant4/G4SystemOfUnits.hh>
+#include "G4CrossSectionElastic.hh"
+#include "G4CrossSectionInelastic.hh"
+#include "G4ComponentGGNuclNuclXsc.hh"
+#include "G4SystemOfUnits.hh"
 
-
-IonPhysics::IonPhysics():
-  ftfp(nullptr),
-  stringModel(nullptr),
-  stringDecay(nullptr),
-  fragModel(nullptr),
-  preCompoundModel(nullptr),
-  theGGNuclNuclXS(nullptr),
-  ionGGXS(nullptr)
+#include "G4Version.hh"
+#if G4VERSION_NUMBER < 1100
+eASTIonPhysics::eASTIonPhysics()
 {}
 
-
-IonPhysics::~IonPhysics()
+eASTIonPhysics::~eASTIonPhysics()
 {
   delete stringDecay;
   delete stringModel;
@@ -55,13 +47,20 @@ IonPhysics::~IonPhysics()
   delete theGGNuclNuclXS;
   delete ionGGXS;
 }
+#else
+eASTIonPhysics::eASTIonPhysics()
+: G4VPhysicsConstructor("eASTIon")
+{;}
 
+eASTIonPhysics::~eASTIonPhysics()
+{;}
+#endif
 
-void IonPhysics::ConstructParticle()
+void eASTIonPhysics::ConstructParticle()
 {}
 
 
-void IonPhysics::ConstructProcess()
+void eASTIonPhysics::ConstructProcess()
 {
   G4ProcessManager* procMan = 0;
 
@@ -201,4 +200,7 @@ void IonPhysics::ConstructProcess()
   procMan->AddDiscreteProcess(genIonProcInel);
 
 }
+
+void eASTIonPhysics::TerminateWorker()
+{}
 
