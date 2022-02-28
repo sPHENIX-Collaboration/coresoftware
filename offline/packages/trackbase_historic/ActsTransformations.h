@@ -10,7 +10,6 @@
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-#include "SvtxTrack.h"
 
 #include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
 
@@ -20,6 +19,9 @@
 #include <memory>
 #include <utility>
 
+// forward declarations
+class SvtxTrack;
+class SvtxTrackState;
 class TrkrCluster;
 
 using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
@@ -44,7 +46,14 @@ class ActsTransformations
   Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrack *track,
 						Acts::GeometryContext geoCtxt) const;
   
-  /// Same as above, but rotate from Acts basis to global (x,y,z,px,py,pz)
+  /// Rotates an SvtxTrack state covariance matrix from (x,y,z,px,py,pz) global
+  /// cartesian coordinates to (d0, z0, phi, theta, q/p, time) coordinates for
+  /// Acts. The track fitter performs the fitting with respect to the nominal
+  /// origin of sPHENIX, so we rotate accordingly
+  Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrackState *track,
+						Acts::GeometryContext geoCtxt) const;
+
+          /// Same as above, but rotate from Acts basis to global (x,y,z,px,py,pz)
   Acts::BoundSymMatrix rotateActsCovToSvtxTrack(
                        const Acts::BoundTrackParameters params,
 		       Acts::GeometryContext geoCtxt) const;

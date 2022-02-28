@@ -17,6 +17,7 @@
 
 class PHCompositeNode;
 class SvtxTrack;
+class SvtxTrackState;
 class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
@@ -119,9 +120,14 @@ class PHTpcResiduals : public SubsysReco
   void makeHistograms();
   
   SourceLink makeSourceLink(TrkrCluster* cluster) const;
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track) const;
+  
+  //! create ACTS track parameters from Svtx track
+  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* ) const;
+  
+  //! create ACTS track parameters from Svtx track state
+  Acts::BoundTrackParameters makeTrackParams(SvtxTrack*, SvtxTrackState* ) const;
 
-  /// actis transformation
+  /// acts transformation
   ActsTransformations m_transformer;
   
   /// Node information for Acts tracking geometry and silicon+MM

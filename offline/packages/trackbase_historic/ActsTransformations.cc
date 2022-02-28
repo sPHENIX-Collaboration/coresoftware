@@ -1,5 +1,8 @@
 #include "ActsTransformations.h"
+#include "SvtxTrack.h"
+#include "SvtxTrackState.h"
 #include "SvtxTrackState_v1.h"
+
 #include <trackbase/TrkrCluster.h>
 
 #include <chrono>
@@ -13,8 +16,15 @@ namespace
   { return std::sqrt(square(x) + square(y));}
 }
 
+//_______________________________________________________________________________
 Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
-			        const SvtxTrack *track,
+  const SvtxTrack *track,
+  Acts::GeometryContext context ) const
+{ return rotateSvtxTrackCovToActs( track->find_state(0.0)->second, context ); }
+
+//_______________________________________________________________________________
+Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
+			        const SvtxTrackState *state,
 				Acts::GeometryContext /*geoCtxt*/) const
 {
   Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
@@ -23,7 +33,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
     {
       for(int j = 0; j < 6; ++j)
 	{
-	  svtxCovariance(i,j) = track->get_error(i,j);
+	  svtxCovariance(i,j) = state->get_error(i,j);
 	  /// Convert Svtx to mm and GeV units as Acts expects
 	  if(i < 3 && j < 3)
 	    svtxCovariance(i,j) *= Acts::UnitConstants::cm2;
@@ -37,9 +47,9 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 
   printMatrix("svtx covariance, acts units: ", svtxCovariance);
  
-  const double px = track->get_px();
-  const double py = track->get_py();
-  const double pz = track->get_pz();
+  const double px = state->get_px();
+  const double py = state->get_py();
+  const double pz = state->get_pz();
   const double p = sqrt(px*px + py*py + pz*pz);
   
   const double uPx = px / p;

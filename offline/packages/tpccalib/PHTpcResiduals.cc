@@ -270,12 +270,12 @@ PHTpcResiduals::SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster) 
 //___________________________________________________________________________________
 Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) const
 {
-  Acts::Vector3D momentum(track->get_px(), 
-			  track->get_py(), 
-			  track->get_pz());
+  // momentum and charge
+  Acts::Vector3D momentum(track->get_px(), track->get_py(), track->get_pz());
   double trackQ = track->get_charge() * Acts::UnitConstants::e;
   double p = track->get_p();
   
+  // covariance
   Acts::BoundSymMatrix cov;
   for(int i =0; i<6; i++)
     {
@@ -284,6 +284,8 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) con
 	  cov(i,j) = track->get_acts_covariance(i, j);
 	}
     }
+    
+  // position
   const Acts::Vector3D position(track->get_x() * Acts::UnitConstants::cm,
     track->get_y() * Acts::UnitConstants::cm,
     track->get_z() * Acts::UnitConstants::cm);
@@ -296,6 +298,32 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) con
  
   return seed;
 
+}
+
+//___________________________________________________________________________________
+Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track, SvtxTrackState* state) const
+{
+  // momentum and charge
+  const Acts::Vector3D momentum(state->get_px(), state->get_py(), state->get_pz());
+  double trackQ = track->get_charge() * Acts::UnitConstants::e;
+  double p = state->get_p();
+  
+  // covariance
+  const Acts::BoundSymMatrix cov = m_transformer.rotateSvtxTrackCovToActs( state,  m_tGeometry->geoContext );
+
+  // position
+  const Acts::Vector3D position(
+    state->get_x() * Acts::UnitConstants::cm,
+    state->get_y() * Acts::UnitConstants::cm,
+    state->get_z() * Acts::UnitConstants::cm);
+
+  const auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(position);
+  const auto actsFourPos = Acts::Vector4D(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
+  Acts::BoundTrackParameters seed(perigee, m_tGeometry->geoContext,
+				  actsFourPos, momentum,
+				  p, trackQ, cov);
+ 
+  return seed;
 }
 
 void PHTpcResiduals::processTrack(SvtxTrack* track)
