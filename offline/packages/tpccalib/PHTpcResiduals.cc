@@ -336,9 +336,8 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 	      << ", " << track->get_z() << " cm "
 	      << std::endl;
 
-  auto trackParams = makeTrackParams(track);
-
-  int initNBadProps = m_nBadProps;
+  // running track state
+  auto state_iter = track->begin_states();
   for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
        clusIter != track->end_cluster_keys();
        ++clusIter)
@@ -347,14 +346,35 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
       ++m_total_clusters;
 
-      // only propagate to tpc surfaces
-      if(TrkrDefs::getTrkrId(cluskey) != TrkrDefs::TrkrId::tpcId)
-      { continue; }
+      // make sure cluster is from TPC
+      const auto detId = TrkrDefs::getTrkrId(cluskey);
+      if(detId != TrkrDefs::tpcId) continue;
 
-      auto cluster = m_clusterContainer->findCluster(cluskey);
+      const auto cluster = m_clusterContainer->findCluster(cluskey);
+      const auto globClusPos = m_transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
+      const auto cluster_r = get_r(globClusPos(0),globClusPos(1));
 
-      auto sl = makeSourceLink(cluster);
-      
+      // find track state that is the closest to cluster
+      /* this assumes that both clusters and states are sorted along r */
+      float dr_min = -1;
+      for( auto iter = state_iter; iter != track->end_states(); ++iter )
+      {
+        const auto dr = std::abs( cluster_r - get_r( iter->second->get_x(), iter->second->get_y() ) );
+        if( dr_min < 0 || dr < dr_min )
+        {
+          state_iter = iter;
+          dr_min = dr;
+        } else break;
+      }
+
+      // create track parameters associated to this state
+      const auto state = state_iter->second;
+      const auto trackParams = makeTrackParams( track, state );
+
+      // create source link from cluster
+      const auto sl = makeSourceLink(cluster);
+
+      // extrapolate track parameters to cluster
       auto result = propagateTrackState(trackParams, sl);
 
       if(result.ok())
@@ -377,24 +397,25 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
       } else 	{
 
+        if( Verbosity() > 1 )
+        {
+          std::cout << "Starting track params position/momentum: "
+            << trackParams.position(m_tGeometry->geoContext).transpose()
+            << std::endl << trackParams.momentum().transpose()
+            << std::endl
+            << "Track params phi/eta "
+            << std::atan2(trackParams.momentum().y(),
+            trackParams.momentum().x())
+            << " and "
+            << std::atanh(trackParams.momentum().z() /
+            trackParams.momentum().norm())
+            << std::endl;
+        }
         m_nBadProps++;
         continue;
-        
+
       }
     } 
-
-  if(m_nBadProps > initNBadProps && Verbosity() > 1)
-    std::cout << "Starting track params position/momentum: "
-	      << trackParams.position(m_tGeometry->geoContext).transpose()
-	      << std::endl << trackParams.momentum().transpose() 
-	      << std::endl
-	      << "Track params phi/eta " 
-	      << std::atan2(trackParams.momentum().y(), 
-			    trackParams.momentum().x())
-	      << " and " 
-	      << std::atanh(trackParams.momentum().z() / 
-			    trackParams.momentum().norm())
-	      << std::endl;
         
 }
 
@@ -482,7 +503,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   cluskey = cluster->getClusKey();
   // Get all the relevant information for residual calculation
   const auto globClusPos = m_transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
-  clusR = std::sqrt(square(globClusPos(0)) + square(globClusPos(1)));
+  clusR = get_r(globClusPos(0),globClusPos(1));
   clusPhi = std::atan2(globClusPos(1), globClusPos(0));
   clusZ = globClusPos(2);
 
@@ -589,6 +610,19 @@ void PHTpcResiduals::calculateTpcResiduals(
   { std::cout << "Bin index found is " << index << std::endl; }
   
   if(index < 0 ) return;
+
+  std::cout << "PHTpcResiduals::addTrackState - layer: " << (int) TrkrDefs::getLayer(cluster->getClusKey()) << std::endl;
+  std::cout << "PHTpcResiduals::addTrackState -"
+    << " cluster: (" << clusR << ", " << clusR*clusPhi << ", " << clusZ << ")"
+    << " (" << clusRPhiErr << ", " << clusZErr << ")"
+    << std::endl;
+
+  std::cout << "PHTpcResiduals::addTrackState -"
+    << " track: (" << stateR << ", " << clusR*statePhi << ", " << stateZ << ")"
+    << " (" << tanAlpha << ", " << tanBeta << ")"
+    << " (" << stateRPhiErr << ", " << stateZErr << ")"
+    << std::endl;
+  std::cout << std::endl;
 
   if( m_savehistograms )
   {
