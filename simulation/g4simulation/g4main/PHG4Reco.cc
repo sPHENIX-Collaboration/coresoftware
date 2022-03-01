@@ -16,6 +16,8 @@
 #include "PHG4UIsession.h"
 #include "PHG4Utils.h"
 
+#include <eastphysicslist/eASTPhysicsList.hh>
+
 #include <g4decayer/EDecayType.hh>
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 
@@ -110,39 +112,10 @@ class PHG4EventAction;
 class PHG4StackingAction;
 class PHG4SteppingAction;
 
-using namespace std;
-
 //_________________________________________________________________
-PHG4Reco::PHG4Reco(const string &name)
+PHG4Reco::PHG4Reco(const std::string &name)
   : SubsysReco(name)
-  , m_MagneticFieldRescale(1.0)
-  , m_Field(nullptr)
-  , m_RunManager(nullptr)
-  , m_UISession(nullptr)
-  , m_Detector(nullptr)
-  , m_EventAction(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_TrackingAction(nullptr)
-  , m_DisplayAction(nullptr)
-  , m_GeneratorAction(nullptr)
-  , m_VisManager(nullptr)
   , m_Fun4AllMessenger(new Fun4AllMessenger(Fun4AllServer::instance()))
-  , m_UImanager(nullptr)
-  , m_EtaCoverage(1.0)
-  , m_FieldConfigType(PHFieldConfig::kFieldUniform)
-  , m_FieldMapFile("NONE")
-  , m_WorldShape("G4Tubs")
-  , m_WorldMaterial("G4_AIR")
-#if G4VERSION_NUMBER >= 1033
-  , m_PhysicsList("FTFP_BERT")
-#else
-  , m_PhysicsList("QGSP_BERT")
-#endif
-  , m_ActiveDecayerFlag(true)
-  , m_ActiveForceDecayFlag(false)
-  , m_ForceDecayType(kAll)
-  , m_SaveDstGeometryFlag(true)
-  , m_disableUserActions(false)
 {
   for (int i = 0; i < 3; i++)
   {
@@ -174,13 +147,13 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-    cout << "========================= PHG4Reco::Init() ================================" << endl;
+    std::cout << "========================= PHG4Reco::Init() ================================" << std::endl;
   }
   unsigned int iseed = PHRandomSeed();
   G4Seed(iseed);  // fixed seed handled in PHRandomSeed()
 
   // create GEANT run manager
-  if (Verbosity() > 1) cout << "PHG4Reco::Init - create run manager" << endl;
+  if (Verbosity() > 1) std::cout << "PHG4Reco::Init - create run manager" << std::endl;
 
   // redirect GEANT verbosity to nowhere
   //  if (Verbosity() < 1)
@@ -242,9 +215,13 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     setenv("AllowForHeavyElements", "1", 1);
     myphysicslist = new QGSP_INCLXX_HP(Verbosity());
   }
+  else if (m_PhysicsList == "EAST")
+  {
+    myphysicslist = new eASTPhysicsList(Verbosity());
+  }
   else
   {
-    cout << "Physics List " << m_PhysicsList << " not implemented" << endl;
+    std::cout << "Physics List " << m_PhysicsList << " not implemented" << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
@@ -269,7 +246,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   G4EmSaturation *emSaturation = G4LossTableManager::Instance()->EmSaturation();
   if (!emSaturation)
   {
-    cout << PHWHERE << "Could not initialize EmSaturation, Birks constants will fail" << endl;
+    std::cout << PHWHERE << "Could not initialize EmSaturation, Birks constants will fail" << std::endl;
   }
 #endif
   // initialize registered subsystems
@@ -280,16 +257,16 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "===========================================================================" << endl;
+    std::cout << "===========================================================================" << std::endl;
   }
   return 0;
 }
 
 int PHG4Reco::InitField(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 1) cout << "PHG4Reco::InitField - create magnetic field setup" << endl;
+  if (Verbosity() > 1) std::cout << "PHG4Reco::InitField - create magnetic field setup" << std::endl;
 
-  unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
+  std::unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
 
   if (m_FieldMapFile != "NONE")
   {
@@ -300,7 +277,7 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
     default_field_cfg.reset(new PHFieldConfigv2(0, 0, m_MagneticField * m_MagneticFieldRescale));
   }
 
-  if (Verbosity() > 1) cout << "PHG4Reco::InitField - create magnetic field setup" << endl;
+  if (Verbosity() > 1) std::cout << "PHG4Reco::InitField - create magnetic field setup" << std::endl;
 
   PHField *phfield = PHFieldUtility::GetFieldMapNode(default_field_cfg.get(), topNode, Verbosity() + 1);
   assert(phfield);
@@ -328,7 +305,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   InitRunDone = 1;
   if (Verbosity() > 0)
   {
-    cout << "========================= PHG4Reco::InitRun() ================================" << endl;
+    std::cout << "========================= PHG4Reco::InitRun() ================================" << std::endl;
   }
 
   recoConsts *rc = recoConsts::instance();
@@ -350,7 +327,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   const int field_ret = InitField(topNode);
   if (field_ret != Fun4AllReturnCodes::EVENT_OK)
   {
-    cout << "PHG4Reco::InitRun- Error - Failed field init with status = " << field_ret << endl;
+    std::cout << "PHG4Reco::InitRun- Error - Failed field init with status = " << field_ret << std::endl;
     return field_ret;
   }
 
@@ -359,7 +336,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   {
     if (Verbosity() >= 1)
     {
-      cout << "PHG4Reco::InitRun - " << reco->Name() << "->InitRun" << endl;
+      std::cout << "PHG4Reco::InitRun - " << reco->Name() << "->InitRun" << std::endl;
     }
     reco->InitRun(topNode);
   }
@@ -367,7 +344,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // create phenix detector, add subsystems, and register to GEANT
   // create display settings before detector
   m_DisplayAction = new PHG4PhenixDisplayAction(Name());
-  if (Verbosity() > 1) cout << "PHG4Reco::Init - create detector" << endl;
+  if (Verbosity() > 1) std::cout << "PHG4Reco::Init - create detector" << std::endl;
   m_Detector = new PHG4PhenixDetector(this);
   m_Detector->Verbosity(Verbosity());
   m_Detector->SetWorldSizeX(m_WorldSize[0] * cm);
@@ -387,9 +364,9 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   if (m_disableUserActions)
   {
-    cout << "PHG4Reco::InitRun - WARNING - event/track/stepping action disabled! "
+    std::cout << "PHG4Reco::InitRun - WARNING - event/track/stepping action disabled! "
          << "This is aimed to reduce resource consumption for G4 running only. E.g. dose analysis. "
-         << "Meanwhile, it will disable all Geant4 based analysis. Toggle this feature on/off with PHG4Reco::setDisableUserActions()" << endl;
+         << "Meanwhile, it will disable all Geant4 based analysis. Toggle this feature on/off with PHG4Reco::setDisableUserActions()" << std::endl;
   }
 
   setupInputEventNodeReader(topNode);
@@ -419,7 +396,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     {
       if (Verbosity() > 1)
       {
-        cout << "Adding steppingaction for " << g4sub->Name() << endl;
+        std::cout << "Adding steppingaction for " << g4sub->Name() << std::endl;
       }
       m_StackingAction->AddAction(g4sub->GetStackingAction());
     }
@@ -439,7 +416,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     {
       if (Verbosity() > 1)
       {
-        cout << "Adding steppingaction for " << g4sub->Name() << endl;
+        std::cout << "Adding steppingaction for " << g4sub->Name() << std::endl;
       }
 
       m_SteppingAction->AddAction(g4sub->GetSteppingAction());
@@ -477,9 +454,9 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   m_RunManager->Initialize();
 
   // add cerenkov and optical photon processes
-  // cout << endl << "Ignore the next message - we implemented this correctly" << endl;
+  // std::cout << std::endl << "Ignore the next message - we implemented this correctly" << std::endl;
   G4Cerenkov *theCerenkovProcess = new G4Cerenkov("Cerenkov");
-  // cout << "End of bogus warning message" << endl << endl;
+  // std::cout << "End of bogus warning message" << std::endl << std::endl;
   G4Scintillation* theScintillationProcess      = new G4Scintillation("Scintillation");
 
   /*
@@ -492,8 +469,9 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   theCerenkovProcess->SetMaxNumPhotonsPerStep(300);
   theCerenkovProcess->SetMaxBetaChangePerStep(10.0);
   theCerenkovProcess->SetTrackSecondariesFirst(false);  // current PHG4TruthTrackingAction does not support suspect active track and track secondary first
-
+#if G4VERSION_NUMBER < 1100
   theScintillationProcess->SetScintillationYieldFactor(1.0);
+#endif
   theScintillationProcess->SetTrackSecondariesFirst(false);
   // theScintillationProcess->SetScintillationExcitationRatio(1.0);
 
@@ -555,8 +533,8 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // Geometry export to DST
   if (m_SaveDstGeometryFlag)
   {
-    const string filename = PHGeomUtility::GenerateGeometryFileName("gdml");
-    cout << "PHG4Reco::InitRun - export geometry to DST via tmp file " << filename << endl;
+    const std::string filename = PHGeomUtility::GenerateGeometryFileName("gdml");
+    std::cout << "PHG4Reco::InitRun - export geometry to DST via tmp file " << filename << std::endl;
 
     Dump_GDML(filename);
 
@@ -567,7 +545,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "===========================================================================" << endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   // dump geometry to root file
@@ -608,7 +586,7 @@ int PHG4Reco::StartGui()
   // kludge, using boost::dll::program_location().string().c_str() for the
   // program name and putting it into args lead to invalid reads in G4String
   char *args[] = {(char *) ("root.exe")};
-  G4UIExecutive *ui = new G4UIExecutive(1, args);
+  G4UIExecutive *ui = new G4UIExecutive(1, args, "qt");
   InitUImanager();
   m_UImanager->ApplyCommand("/control/execute init_gui_vis.mac");
   ui->SessionStart();
@@ -639,17 +617,17 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
   for (SubsysReco *reco: m_SubsystemList)
   {
     if (Verbosity() >= 2)
-      cout << "PHG4Reco::process_event - " << reco->Name() << "->process_event" << endl;
+      std::cout << "PHG4Reco::process_event - " << reco->Name() << "->process_event" << std::endl;
 
     try
     {
       reco->process_event(topNode);
     }
-    catch (const exception &e)
+    catch (const std::exception &e)
     {
-      cout << PHWHERE << " caught exception thrown during process_event from "
-           << reco->Name() << endl;
-      cout << "error: " << e.what() << endl;
+      std::cout << PHWHERE << " caught exception thrown during process_event from "
+           << reco->Name() << std::endl;
+      std::cout << "error: " << e.what() << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
@@ -657,8 +635,8 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
   // run one event
   if (Verbosity() >= 2)
   {
-    cout << " PHG4Reco::process_event - "
-         << "run one event :" << endl;
+    std::cout << " PHG4Reco::process_event - "
+         << "run one event :" << std::endl;
     ineve->identify();
   }
   m_RunManager->BeamOn(1);
@@ -666,16 +644,16 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
   for (PHG4Subsystem *g4sub: m_SubsystemList)
   {
     if (Verbosity() >= 2)
-      cout << " PHG4Reco::process_event - " << g4sub->Name() << "->process_after_geant" << endl;
+      std::cout << " PHG4Reco::process_event - " << g4sub->Name() << "->process_after_geant" << std::endl;
     try
     {
       g4sub->process_after_geant(topNode);
     }
-    catch (const exception &e)
+    catch (const std::exception &e)
     {
-      cout << PHWHERE << " caught exception thrown during process_after_geant from "
-           << g4sub->Name() << endl;
-      cout << "error: " << e.what() << endl;
+      std::cout << PHWHERE << " caught exception thrown during process_after_geant from "
+           << g4sub->Name() << std::endl;
+      std::cout << "error: " << e.what() << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
@@ -695,11 +673,11 @@ void PHG4Reco::Print(const std::string &what) const
 {
   for (SubsysReco *reco: m_SubsystemList)
   {
-    if (what.empty() || what == "ALL" || (reco->Name()).find(what) != string::npos)
+    if (what.empty() || what == "ALL" || (reco->Name()).find(what) != std::string::npos)
     {
-      cout << "Printing " << reco->Name() << endl;
+      std::cout << "Printing " << reco->Name() << std::endl;
       reco->Print(what);
-      cout << "---------------------------" << endl;
+      std::cout << "---------------------------" << std::endl;
     }
   }
   return;
@@ -1067,11 +1045,13 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
   G4MaterialPropertiesTable *MPT_CF4 = new G4MaterialPropertiesTable();
 
-  MPT_CF4->AddProperty("RINDEX", PhotonEnergy_CF4, RefractiveIndex_CF4, nEntries_CF4)
-      ->SetSpline(true);
-  MPT_CF4->AddProperty("ABSLENGTH", PhotonEnergy_CF4, Absorption_CF4, nEntries_CF4)
-      ->SetSpline(true);
-
+#if G4VERSION_NUMBER >= 1100
+  MPT_CF4->AddProperty("RINDEX", PhotonEnergy_CF4, RefractiveIndex_CF4, nEntries_CF4,false,true);
+  MPT_CF4->AddProperty("ABSLENGTH", PhotonEnergy_CF4, Absorption_CF4, nEntries_CF4,false,true);
+#else
+  MPT_CF4->AddProperty("RINDEX", PhotonEnergy_CF4, RefractiveIndex_CF4, nEntries_CF4)->SetSpline(true);
+  MPT_CF4->AddProperty("ABSLENGTH", PhotonEnergy_CF4, Absorption_CF4, nEntries_CF4)->SetSpline(true);
+#endif
   CF4->SetMaterialPropertiesTable(MPT_CF4);
 
   //
@@ -1084,8 +1064,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
   if (Verbosity() > 1)
   {
-    cout << "g4_lif: " << g4_lif << endl;
-    cout << "LiF: " << LiF << endl;
+    std::cout << "g4_lif: " << g4_lif << std::endl;
+    std::cout << "LiF: " << LiF << std::endl;
   }
 
   const G4int nEntries_LiF = 50;
@@ -1128,11 +1108,13 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
   G4MaterialPropertiesTable *MPT_LiF = new G4MaterialPropertiesTable();
 
-  MPT_LiF->AddProperty("RINDEX", PhotonEnergy_LiF, RefractiveIndex_LiF, nEntries_LiF)
-      ->SetSpline(true);
-  MPT_LiF->AddProperty("ABSLENGTH", PhotonEnergy_LiF, Absorption_LiF, nEntries_LiF)
-      ->SetSpline(true);
-
+#if G4VERSION_NUMBER >= 1100
+  MPT_LiF->AddProperty("RINDEX", PhotonEnergy_LiF, RefractiveIndex_LiF, nEntries_LiF,false,true);
+  MPT_LiF->AddProperty("ABSLENGTH", PhotonEnergy_LiF, Absorption_LiF, nEntries_LiF,false,true);
+#else
+  MPT_LiF->AddProperty("RINDEX", PhotonEnergy_LiF, RefractiveIndex_LiF, nEntries_LiF)->SetSpline(true);
+  MPT_LiF->AddProperty("ABSLENGTH", PhotonEnergy_LiF, Absorption_LiF, nEntries_LiF)->SetSpline(true);
+#endif
   LiF->SetMaterialPropertiesTable(MPT_LiF);
 
   //
@@ -1178,8 +1160,13 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
   G4MaterialPropertiesTable *MPT_CsI = new G4MaterialPropertiesTable();
 
+#if G4VERSION_NUMBER >= 1100
+  MPT_CsI->AddProperty("RINDEX", PhotonEnergy_CsI, RefractiveIndex_CsI, nEntries_CsI,false,true);
+  MPT_CsI->AddProperty("ABSLENGTH", PhotonEnergy_CsI, Absorption_CsI, nEntries_CsI,false,true);
+#else
   MPT_CsI->AddProperty("RINDEX", PhotonEnergy_CsI, RefractiveIndex_CsI, nEntries_CsI)->SetSpline(true);
   MPT_CsI->AddProperty("ABSLENGTH", PhotonEnergy_CsI, Absorption_CsI, nEntries_CsI)->SetSpline(true);
+#endif
 
   CsI->SetMaterialPropertiesTable(MPT_CsI);
 
@@ -1431,7 +1418,7 @@ void PHG4Reco::DefineRegions()
 }
 
 PHG4Subsystem *
-PHG4Reco::getSubsystem(const string &name)
+PHG4Reco::getSubsystem(const std::string &name)
 {
   for (PHG4Subsystem *subsys: m_SubsystemList)
   {
@@ -1439,12 +1426,12 @@ PHG4Reco::getSubsystem(const string &name)
     {
       if (Verbosity() > 0)
       {
-        cout << "Found Subsystem " << name << endl;
+        std::cout << "Found Subsystem " << name << std::endl;
       }
       return subsys;
     }
   }
-  cout << "Could not find Subsystem " << name << endl;
+  std::cout << "Could not find Subsystem " << name << std::endl;
   return nullptr;
 }
 
@@ -1471,7 +1458,7 @@ void PHG4Reco::ApplyDisplayAction()
     {
       if (Verbosity() > 1)
       {
-        cout << "Adding steppingaction for " << g4sub->Name() << endl;
+        std::cout << "Adding steppingaction for " << g4sub->Name() << std::endl;
       }
       action->ApplyDisplayAction(physworld);
     }

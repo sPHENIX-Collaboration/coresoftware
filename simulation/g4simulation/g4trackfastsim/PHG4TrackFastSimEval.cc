@@ -491,9 +491,9 @@ void PHG4TrackFastSimEval::fill_vertex_tree(PHCompositeNode */*topNode*/)
     PHG4VtxPoint *best_vtx = nullptr;
     int best_n_match = -1;
     map<PHG4VtxPoint *, int> vertex_match_map;
-    for (auto iter = vertex->begin_tracks(); iter != vertex->end_tracks(); ++iter)
+    for (auto iterA = vertex->begin_tracks(); iterA != vertex->end_tracks(); ++iterA)
     {
-      const auto &trackid = *iter;
+      const auto &trackid = *iterA;
       const auto trackIter = m_TrackMap->find(trackid);
 
       if (trackIter == m_TrackMap->end()) continue;

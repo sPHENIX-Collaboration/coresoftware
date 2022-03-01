@@ -1,10 +1,12 @@
 AUTOMAKE_OPTIONS = foreign
 
+
+AM_CXXFLAGS = `geant4-config --cflags`
+
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I${G4_MAIN}/include \
-  -I`root-config --incdir`
+  -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
    libg4jets_io.la \

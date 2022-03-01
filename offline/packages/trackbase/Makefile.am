@@ -24,6 +24,10 @@ pkginclude_HEADERS = \
   CMFlashClusterv1.h \
   CMFlashClusterContainer.h \
   CMFlashClusterContainerv1.h \
+  CMFlashDifference.h \
+  CMFlashDifferencev1.h \
+  CMFlashDifferenceContainer.h \
+  CMFlashDifferenceContainerv1.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
   TrkrCluster.h \
@@ -57,6 +61,10 @@ ROOTDICTS = \
   CMFlashClusterv1_Dict.cc \
   CMFlashClusterContainer_Dict.cc \
   CMFlashClusterContainerv1_Dict.cc \
+  CMFlashDifference_Dict.cc \
+  CMFlashDifferencev1_Dict.cc \
+  CMFlashDifferenceContainer_Dict.cc \
+  CMFlashDifferenceContainerv1_Dict.cc \
   TrkrCluster_Dict.cc \
   TrkrClusterv1_Dict.cc \
   TrkrClusterv2_Dict.cc \
@@ -91,6 +99,10 @@ nobase_dist_pcm_DATA = \
   CMFlashClusterv1_Dict_rdict.pcm \
   CMFlashClusterContainer_Dict_rdict.pcm \
   CMFlashClusterContainerv1_Dict_rdict.pcm \
+  CMFlashDifference_Dict_rdict.pcm \
+  CMFlashDifferencev1_Dict_rdict.pcm \
+  CMFlashDifferenceContainer_Dict_rdict.pcm \
+  CMFlashDifferenceContainerv1_Dict_rdict.pcm \
   TrkrCluster_Dict_rdict.pcm \
   TrkrClusterv1_Dict_rdict.pcm \
   TrkrClusterv2_Dict_rdict.pcm \
@@ -124,6 +136,8 @@ libtrack_io_la_SOURCES = \
   ActsSurfaceMaps.cc \
   CMFlashClusterv1.cc \
   CMFlashClusterContainerv1.cc \
+  CMFlashDifferencev1.cc \
+  CMFlashDifferenceContainerv1.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
   TrkrClusterv3.cc \

@@ -6,12 +6,15 @@
 
 #include "PHG4MicromegasDetector.h"
 
+#include "PHG4MicromegasDisplayAction.h"
+
 #include <phparameter/PHParameters.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <g4main/PHG4Detector.h>
 #include <g4main/PHG4Subsystem.h>
+
 #include <micromegas/CylinderGeomMicromegas.h>
 
 #include <phool/getClass.h>
@@ -28,7 +31,6 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4String.hh>                       // for G4String
 #include <Geant4/G4ThreeVector.hh>                  // for G4ThreeVector
 #include <Geant4/G4Tubs.hh>
@@ -52,6 +54,7 @@ namespace
 //____________________________________________________________________________..
 PHG4MicromegasDetector::PHG4MicromegasDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
+  , m_DisplayAction(dynamic_cast<PHG4MicromegasDisplayAction*>(subsys->GetDisplayAction()))
   , m_Params(parameters)
 { setup_tiles(); }
 
@@ -290,7 +293,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
   struct LayerStruct
   {
     // constructor
-    LayerStruct( float thickness, G4Material* material, G4Colour color, double dy, double dz, double y_offset, double z_offset ):
+    LayerStruct( float thickness, G4Material* material, const G4Colour &color, double dy, double dz, double y_offset, double z_offset ):
       m_thickness( thickness ),
       m_material( material ),
       m_color( color ),
@@ -402,12 +405,8 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
   const auto tilename = GetName() + "_tile_" + std::to_string(tileid);
   
   auto tile_solid = new G4Box( tilename+"_solid", tile_thickness/2, tile_dy/2, tile_dz/2 );
-  auto tile_logic = new G4LogicalVolume( tile_solid, world_material, tilename+"_logic");
-  auto vis = new G4VisAttributes(G4Colour::Grey());
-  vis->SetForceSolid(true);
-  vis->SetVisibility(false);
-
-  tile_logic->SetVisAttributes(vis);
+  auto tile_logic = new G4LogicalVolume( tile_solid, world_material, "invisible_" + tilename + "_logic");
+  GetDisplayAction()->AddVolume(tile_logic,G4Colour::Grey());
 
   /* we loop over registered layers and create volumes for each as daughter of the tile volume */
   auto current_radius_local = -tile_thickness/2;
@@ -437,10 +436,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
     
     auto component_solid = new G4Box(cname+"_solid", thickness/2, dy/2, dz/2 );
     auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
-    auto vis = new G4VisAttributes( color );
-    vis->SetForceSolid(true);
-    vis->SetVisibility(true);
-    component_logic->SetVisAttributes(vis);
+    GetDisplayAction()->AddVolume(component_logic , color);
     
     const G4ThreeVector center( (current_radius_local + thickness/2), y_offset, z_offset );
     auto component_phys = new G4PVPlacement( nullptr, center, component_logic, cname+"_phys", tile_logic, false, 0, OverlapCheck() );
@@ -483,7 +479,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_fee_board( int id )
   struct LayerStruct
   {
     // constructor
-    LayerStruct( const std::string& name, float thickness, G4Material* material, G4Colour color ):
+    LayerStruct( const std::string& name, float thickness, G4Material* material, const G4Colour &color ):
       m_name( name ),
       m_thickness( thickness ),
       m_material( material ),
@@ -534,12 +530,8 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_fee_board( int id )
   const auto feename = GetName() + "_fee_" + std::to_string(id);
   
   auto fee_solid = new G4Box( feename+"_solid", fee_thickness/2, fee_dy/2, fee_dz/2 );
-  auto fee_logic = new G4LogicalVolume( fee_solid, world_material, feename+"_logic");
-  auto vis = new G4VisAttributes(G4Colour::Grey());
-  vis->SetForceSolid(true);
-  vis->SetVisibility(false);
-
-  fee_logic->SetVisAttributes(vis);
+  auto fee_logic = new G4LogicalVolume( fee_solid, world_material, "invisible_" + feename + "_logic");
+  GetDisplayAction()->AddVolume(fee_logic,G4Colour::Grey() );
 
   /* we loop over registered layers and create volumes for each as daughter of the fee volume */
   auto current_radius_local = -fee_thickness/2;
@@ -560,10 +552,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_fee_board( int id )
         
     auto component_solid = new G4Box(cname+"_solid", thickness/2, fee_dy/2, fee_dz/2 );
     auto component_logic = new G4LogicalVolume( component_solid, material, cname+"_logic");
-    auto vis = new G4VisAttributes( color );
-    vis->SetForceSolid(true);
-    vis->SetVisibility(true);
-    component_logic->SetVisAttributes(vis);
+    GetDisplayAction()->AddVolume(component_logic , color);
     
     const G4ThreeVector center( (current_radius_local + thickness/2), 0, 0);
     auto component_phys = new G4PVPlacement( nullptr, center, component_logic, cname+"_phys", fee_logic, false, 0, OverlapCheck() );

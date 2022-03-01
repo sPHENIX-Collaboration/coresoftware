@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-AM_CXXFLAGS = `geant4-config --cflags | sed s/-Woverloaded-virtual// | sed s/-W\ // | sed s/-Wshadow//`
+AM_CXXFLAGS = `geant4-config --cflags`
 
 # set in configure.in to check if gcc version >= 4.8
 #if GCC_GE_48
@@ -14,22 +14,10 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(XERCESCROOT)/include \
-  -isystem $(OFFLINE_MAIN)/include \
-  -isystem $(ROOTSYS)/include \
-  -isystem ${G4_MAIN}/include \
-  -I$(OPT_SPHENIX)/include
-
-# rootcint barfs on isystem
-RINCLUDES = \
-  -I$(includedir) \
-  -I$(XERCESCROOT)/include \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I${G4_MAIN}/include \
-  -I$(OFFLINE_MAIN)/include/eigen3 \
+  -isystem$(ROOTSYS)/include \
+  -isystem$(XERCESCROOT)/include \
   -I$(OPT_SPHENIX)/include
-
 
 libphg4hit_la_LDFLAGS = \
   -L$(libdir) \
@@ -47,6 +35,7 @@ libg4testbench_la_LDFLAGS = \
 libg4testbench_la_LIBADD = \
   libphg4hit.la \
   -lboost_filesystem \
+  -leASTPhysicsList \
   -leicsmear \
   -lfun4all \
   -lg4decayer \
@@ -256,7 +245,7 @@ testexternals.cc:
 	echo "}" >> $@
 
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(RINCLUDES) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

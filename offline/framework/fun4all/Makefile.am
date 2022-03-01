@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
+  -isystem$(ROOTSYS)/include \
   -I$(OPT_SPHENIX)/include
 
 AM_LDFLAGS = \

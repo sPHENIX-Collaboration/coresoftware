@@ -202,17 +202,17 @@ int RawClusterBuilderGraph::process_event(PHCompositeNode *topNode)
   for (const auto &cluster_pair : _clusters->getClustersMap())
   {
     RawClusterDefs::keytype clusterid = cluster_pair.first;
-    RawCluster *cluster = cluster_pair.second;
+    RawCluster *clusterA = cluster_pair.second;
 
-    assert(cluster);
-    assert(cluster->get_id() == clusterid);
+    assert(clusterA);
+    assert(clusterA->get_id() == clusterid);
 
     double sum_x(0);
     double sum_y(0);
     double sum_z(0);
     double sum_e(0);
 
-    for (const auto tower_pair : cluster->get_towermap())
+    for (const auto tower_pair : clusterA->get_towermap())
     {
       const RawTower *rawtower = towers->getTower(tower_pair.first);
       const RawTowerGeom *rawtowergeom = towergeom->get_tower_geometry(tower_pair.first);
@@ -229,9 +229,9 @@ int RawClusterBuilderGraph::process_event(PHCompositeNode *topNode)
         sum_y += e * rawtowergeom->get_center_y();
         sum_z += e * rawtowergeom->get_center_z();
       }
-    }  //     for (const auto tower_pair : cluster->get_towermap())
+    }  //     for (const auto tower_pair : clusterA->get_towermap())
 
-    cluster->set_energy(sum_e);
+    clusterA->set_energy(sum_e);
 
     if (sum_e > 0)
     {
@@ -239,15 +239,15 @@ int RawClusterBuilderGraph::process_event(PHCompositeNode *topNode)
       sum_y /= sum_e;
       sum_z /= sum_e;
 
-      cluster->set_r(sqrt(sum_y * sum_y + sum_x * sum_x));
-      cluster->set_phi(atan2(sum_y, sum_x));
-      cluster->set_z(sum_z);
+      clusterA->set_r(sqrt(sum_y * sum_y + sum_x * sum_x));
+      clusterA->set_phi(atan2(sum_y, sum_x));
+      clusterA->set_z(sum_z);
     }
 
     if (Verbosity() > 1)
     {
       cout << "RawClusterBuilderGraph constucted ";
-      cluster->identify();
+      clusterA->identify();
     }
   }  //  for (const auto & cluster_pair : _clusters->getClustersMap())
 

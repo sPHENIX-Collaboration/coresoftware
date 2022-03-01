@@ -30,6 +30,6 @@ namespace PHG4MvtxDefs
 
 // detid of support structures
 
-};  // namespace PHG4MvtxDefs
+}  // namespace PHG4MvtxDefs
 
 #endif

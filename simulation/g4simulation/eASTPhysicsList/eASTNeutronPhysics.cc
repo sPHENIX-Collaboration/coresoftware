@@ -1,62 +1,70 @@
-// $Id: $
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//  File:        NeutronPhysics.cc                                            //
-//  Description: Neutron hadronic physics constructor for EICPhysicsList      //
-//                                                                            //
-//  Author:      Dennis H. Wright (SLAC)                                      //  
-//  Date:        3 July 2018                                                  //
-//                                                                            //
+//
+//  eASTNeutronPhysics.cc
+//  Neutron hadronic physics constructor for eASTPhysicsList
+//
+//    Jun.21.2018 : original implementation - Dennis H. Wright (SLAC)
+//    May.06.2021 : migration to eAST - Makoto Asai (SLAC)
+//    Dec.22.2021 : migration to Geant4 version 11.0 - Makoto Asai (JLab)
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#include "NeutronPhysics.hh"
+#include "eASTNeutronPhysics.hh"
 
-#include <Geant4/G4ProcessManager.hh>
-#include <Geant4/G4NeutronInelasticProcess.hh>
-#include <Geant4/G4HadronElasticProcess.hh>
-#include <Geant4/G4HadronCaptureProcess.hh>
-#include <Geant4/G4NeutronKiller.hh>
+#include "G4ProcessManager.hh"
+#include "G4Version.hh"
+#if G4VERSION_NUMBER < 1100
+#include "G4NeutronInelasticProcess.hh"
+#include "G4HadronCaptureProcess.hh"
+#else
+#include "G4HadronInelasticProcess.hh"
+#include "G4NeutronCaptureProcess.hh"
+#endif
+#include "G4HadronElasticProcess.hh"
+#include "G4NeutronKiller.hh"
 
-#include <Geant4/G4CascadeInterface.hh>
-#include <Geant4/G4TheoFSGenerator.hh>
-#include <Geant4/G4FTFModel.hh>
-#include <Geant4/G4ExcitedStringDecay.hh>
-#include <Geant4/G4LundStringFragmentation.hh>
-#include <Geant4/G4GeneratorPrecompoundInterface.hh>
-#include <Geant4/G4ChipsElasticModel.hh>
-#include <Geant4/G4NeutronRadCapture.hh>
+#include "G4CascadeInterface.hh"
+#include "G4TheoFSGenerator.hh"
+#include "G4FTFModel.hh"
+#include "G4ExcitedStringDecay.hh"
+#include "G4LundStringFragmentation.hh"
+#include "G4GeneratorPrecompoundInterface.hh"
+#include "G4ChipsElasticModel.hh"
+#include "G4NeutronRadCapture.hh"
 
-#include <Geant4/G4BGGNucleonInelasticXS.hh>
-#include <Geant4/G4NeutronElasticXS.hh>
-#include <Geant4/G4NeutronCaptureXS.hh>
+#include "G4BGGNucleonInelasticXS.hh"
+#include "G4NeutronElasticXS.hh"
+#include "G4NeutronCaptureXS.hh"
 
-#include <Geant4/G4SystemOfUnits.hh>
+#include "G4SystemOfUnits.hh"
 
+#if G4VERSION_NUMBER < 1100
+eASTNeutronPhysics::eASTNeutronPhysics()
+{
+}
 
-NeutronPhysics::NeutronPhysics():
-  ftfp(nullptr),
-  stringModel(nullptr),
-  stringDecay(nullptr),
-  fragModel(nullptr),
-  preCompoundModel(nullptr)
-{}
-
-
-NeutronPhysics::~NeutronPhysics()
+eASTNeutronPhysics::~eASTNeutronPhysics()
 {
   delete stringDecay;
   delete stringModel;
   delete fragModel;
   delete preCompoundModel;
 }
+#else
+eASTNeutronPhysics::eASTNeutronPhysics()
+: G4VPhysicsConstructor("eASTNeutron")
+{;}
 
+eASTNeutronPhysics::~eASTNeutronPhysics()
+{;}
+#endif
 
-void NeutronPhysics::ConstructParticle()
+void eASTNeutronPhysics::ConstructParticle()
 {}
 
 
-void NeutronPhysics::ConstructProcess()
+void eASTNeutronPhysics::ConstructProcess()
 {
   // Low energy elastic model
   G4ChipsElasticModel* elMod = new G4ChipsElasticModel();
@@ -96,14 +104,23 @@ void NeutronPhysics::ConstructProcess()
   procMan->AddDiscreteProcess(nProcEl);
 
   // Inelastic process
+#if G4VERSION_NUMBER < 1100
   G4NeutronInelasticProcess* nProcInel = new G4NeutronInelasticProcess;
+#else
+  auto* nProcInel = new G4HadronInelasticProcess("NeutronInelasticProcess",
+                                G4Neutron::Neutron() );
+#endif
   nProcInel->RegisterMe(loInelModel);
   nProcInel->RegisterMe(ftfp);
   nProcInel->AddDataSet(inelCS);
   procMan->AddDiscreteProcess(nProcInel);
 
   // Capture process
+#if G4VERSION_NUMBER < 1100
   G4HadronCaptureProcess* nProcCap = new G4HadronCaptureProcess("nCapture");
+#else
+  auto* nProcCap = new G4NeutronCaptureProcess("nCapture");
+#endif
   nProcCap->RegisterMe(capModel);
   nProcCap->AddDataSet(capCS);
   procMan->AddDiscreteProcess(nProcCap);

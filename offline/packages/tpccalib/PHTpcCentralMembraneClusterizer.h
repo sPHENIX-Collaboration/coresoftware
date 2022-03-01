@@ -9,6 +9,8 @@
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <tpc/TpcDistortionCorrectionContainer.h>
+#include <tpc/TpcDistortionCorrection.h>
 
 class PHCompositeNode;
 class SvtxTrackMap;
@@ -17,6 +19,7 @@ class SvtxVertexMap;
 class TrkrClusterHitAssoc;
 class TrkrHitSetContainer;
 class CMFlashClusterContainer;
+class  PHG4CylinderCellGeomContainer;
 
 class TF1;
 class TNtuple;
@@ -35,6 +38,8 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   void set_process(const int proc)  { _process = proc;  }
   void set_histos_on(const bool val) {_histos = val;}
   void set_min_adc_value(const unsigned int val) {_min_adc_value = val;}
+  void set_min_z_value(const double val) {_min_z_value = val;}
+  void set_stripe_dr_values(const double dr1, const double dr2, const double dr3){ _cmclus_dr_inner = dr1; _cmclus_dr_mid = dr2; _cmclus_dr_outer = dr3;}
 
  //! run initialization
   int InitRun(PHCompositeNode *topNode);
@@ -53,10 +58,15 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
 
   std::string _track_map_name;
 
+ /// tpc distortion correction utility class
+  TpcDistortionCorrection _distortionCorrection;
+
   TrkrClusterContainer *_cluster_map{nullptr};
   CMFlashClusterContainer *_corrected_CMcluster_map{nullptr};
   TrkrClusterHitAssoc *_cluster_hit_map{nullptr};
   TrkrHitSetContainer *_hitset_map{nullptr};
+  PHG4CylinderCellGeomContainer *_geom_container{nullptr};
+ TpcDistortionCorrectionContainer* _dcc{nullptr};
 
   TH1F *henergy;
   TH1F *hz;
@@ -69,7 +79,12 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   TH1F *hClustE[3];
   
   int _process = 0;
-  unsigned int _min_adc_value = 180;
+  unsigned int _min_adc_value = 0;
+  double _min_z_value = 1.0;
+  double _cmclus_dr_inner = 0.51;  //cm
+  double _cmclus_dr_mid = 0.95;  //cm
+  double _cmclus_dr_outer = 1.025;  //cm
+
   bool _histos = false;
 
   TFile *fout;

@@ -71,6 +71,15 @@ PHGeomIOTGeo::
 {
   if (not isValid()) return nullptr;
 
+  // force TGeoManager to use the Fun4All unit of cm
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,23,2)
+  TGeoManager::LockDefaultUnits(kFALSE);
+  TGeoManager::SetDefaultUnits( TGeoManager::kRootUnits );
+  TGeoManager::LockDefaultUnits(kTRUE);
+#else
+  TGeoManager::SetDefaultRootUnits();
+#endif
+
   // build new TGeoManager
   TGeoManager* tgeo = new TGeoManager("PHGeometry", "");
   assert(tgeo);

@@ -36,9 +36,9 @@ class PHG4ZDCSubsystem : public PHG4DetectorSubsystem
   /** Accessors (reimplemented)
    */
   PHG4Detector* GetDetector() const override;
-  PHG4SteppingAction* GetSteppingAction() const  override { return m_SteppingAction; }
+  PHG4SteppingAction* GetSteppingAction() const override { return m_SteppingAction; }
 
-  PHG4DisplayAction* GetDisplayAction() const  override { return m_DisplayAction; }
+  PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
  private:
   void SetDefaultParameters() override;

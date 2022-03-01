@@ -1,5 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
+AM_CXXFLAGS = `geant4-config --cflags`
+
 lib_LTLIBRARIES = \
     libg4histos.la
 
@@ -12,15 +14,14 @@ libg4histos_la_LDFLAGS = \
    -L$(OFFLINE_MAIN)/lib \
    -lcalo_io \
    -lfun4all \
-   -lphg4hit \
-   -lg4detectors \
-   -lg4testbench
+   -lg4detectors_io \
+   -lphg4hit
+
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I$(G4_MAIN)/include
+  -isystem$(ROOTSYS)/include
 
 noinst_HEADERS = \
   G4RootHitContainer.h \
