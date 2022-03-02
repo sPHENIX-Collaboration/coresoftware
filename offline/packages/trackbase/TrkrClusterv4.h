@@ -14,10 +14,9 @@
 class PHObject;
 
 /**
- * @brief Version 3 of TrkrCluster
+ * @brief Version 4 of TrkrCluster
  *
- * This version of TrkrCluster contains Acts source link objects
- * as member variables, to join the Svtx and Acts worlds
+ * Added time field for v4
  */
 class TrkrClusterv4 : public TrkrCluster
 {

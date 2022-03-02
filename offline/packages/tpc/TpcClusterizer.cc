@@ -3,10 +3,10 @@
 #include "TpcDefs.h"
 
 #include <trackbase/TrkrClusterContainerv3.h>
-#include <trackbase/TrkrClusterv3.h>
+#include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
-#include <trackbase/TrkrHitv2.h>
+#include <trackbase/TrkrHitv3.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -74,7 +74,7 @@ namespace
     std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist = nullptr;
     //std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>  *clusterhitassoc = nullptr;
     std::vector<assoc> *association_vector = nullptr;
-    std::vector<TrkrClusterv3*> *cluster_vector = nullptr;
+    std::vector<TrkrClusterv4*> *cluster_vector = nullptr;
   };
   
   pthread_mutex_t mythreadlock;
@@ -389,8 +389,8 @@ namespace
       // create the cluster entry directly in the node tree
       
       const TrkrDefs::cluskey ckey = TpcDefs::genClusKey( my_data.hitset->getHitSetKey(), iclus );
-      TrkrClusterv3 *clus = new TrkrClusterv3();
-      //auto clus = std::make_unique<TrkrClusterv3>();
+      TrkrClusterv4 *clus = new TrkrClusterv4();
+      //auto clus = std::make_unique<TrkrClusterv4>();
       clus->setClusKey(ckey);
       
       // Estimate the errors
@@ -803,7 +803,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     // thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterMap(hitsetid);
     // thread_pair.data.clusterhitassoc = m_clusterhitassoc;
     thread_pair.data.association_vector  = new std::vector<assoc>;
-    thread_pair.data.cluster_vector  = new std::vector<TrkrClusterv3*>;
+    thread_pair.data.cluster_vector  = new std::vector<TrkrClusterv4*>;
     thread_pair.data.tGeometry = m_tGeometry;
     thread_pair.data.surfmaps = m_surfMaps;
     thread_pair.data.maxHalfSizeZ =  MaxClusterHalfSizeZ;

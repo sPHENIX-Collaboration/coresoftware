@@ -3,10 +3,10 @@
 #include "InttDefs.h"
 
 #include <trackbase/TrkrClusterContainerv3.h>
-#include <trackbase/TrkrClusterv3.h>
+#include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitv2.h>
+#include <trackbase/TrkrHitv3.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 
@@ -360,7 +360,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = InttDefs::genClusKey(hitset->getHitSetKey(), clusid);
-	auto clus = std::make_unique<TrkrClusterv3>();
+	auto clus = std::make_unique<TrkrClusterv4>();
 	clus->setClusKey(ckey);
 
 	if (Verbosity() > 2)
@@ -376,6 +376,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	double zlocalsum = 0.0;
 	unsigned int clus_adc = 0.0;
 	unsigned nhits = 0;
+	float timesum = 0;
 	
 	for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
 	  {
@@ -389,6 +390,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    // mapiter->second.second is the hit
 	    unsigned int hit_adc = (mapiter->second).second->getAdc();
 
+	    float hit_time = (mapiter->second).second->getTime();
+
 	    // now get the positions from the geometry
 	    double local_hit_location[3] = {0., 0., 0.};
 	    geom->find_strip_center_localcoords(ladder_z_index,
@@ -400,12 +403,14 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 		xlocalsum += local_hit_location[0] * (double) hit_adc;
 		ylocalsum += local_hit_location[1] * (double) hit_adc;
 		zlocalsum += local_hit_location[2] * (double) hit_adc;
+		timesum += hit_time * (double) hit_adc;
 	      }
 	    else
 	      {
 		xlocalsum += local_hit_location[0];
 		ylocalsum += local_hit_location[1];
 		zlocalsum += local_hit_location[2];
+		timesum += hit_time;
 	      }
 
 	    clus_adc += hit_adc;
@@ -443,20 +448,26 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 	double cluslocaly = NAN;
 	double cluslocalz = NAN;
+	double clustime = NAN;
 
 	if (_make_e_weights[layer])
 	  {
 	    cluslocaly = ylocalsum / (double) clus_adc;
 	    cluslocalz = zlocalsum / (double) clus_adc;
+	    clustime = timesum / (double) clus_adc;
 	  }
 	else
 	  {
 	    cluslocaly = ylocalsum / nhits;
 	    cluslocalz = zlocalsum / nhits;
+	    clustime = timesum / nhits;
 	  }
 	
 	// Fill the cluster fields
 	clus->setAdc(clus_adc);
+	clus->setTime(clustime);
+
+	std::cout << " cluster " << ckey << " time " <<  clustime << std::endl;
 	
 	if(Verbosity() > 10) clus->identify();
 

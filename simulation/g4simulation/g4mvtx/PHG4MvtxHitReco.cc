@@ -6,7 +6,7 @@
 #include <mvtx/MvtxDefs.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHitv2.h>  // for TrkrHit
+#include <trackbase/TrkrHitv3.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitTruthAssocv1.h>
@@ -518,7 +518,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         if (!hit)
         {
           // Otherwise, create a new one
-	  hit = new TrkrHitv2();
+	  hit = new TrkrHitv3();
           hitsetit->second->addHitSpecificKey(hitkey, hit);
         }
 

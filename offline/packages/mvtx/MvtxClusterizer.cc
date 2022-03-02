@@ -12,9 +12,9 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/TrkrClusterContainerv3.h>
-#include <trackbase/TrkrClusterv3.h>
+#include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrDefs.h>                     // for hitkey, getLayer
-#include <trackbase/TrkrHitv2.h>
+#include <trackbase/TrkrHitv3.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>

@@ -7,7 +7,7 @@
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>    // for TrkrHit
-#include <trackbase/TrkrHitv2.h>  // for TrkrHit
+#include <trackbase/TrkrHitv3.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
@@ -220,6 +220,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     const int sphxlayer = hiter->second->get_detid();
     CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(geo->GetLayerGeom(sphxlayer));
 
+    /*
     // checking ADC timing integration window cut
     // uses default values for now
     // these should depend on layer radius
@@ -227,6 +228,10 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       continue;
     if (hiter->second->get_t(1) < m_Tmin)
       continue;
+    */
+
+    float time = (hiter->second->get_t(0) + hiter->second->get_t(1)) / 2.0;
+    std::cout << PHWHERE << " Layer: " << sphxlayer << " INTT hit time is " << time << std::endl;
 
     // I made this (small) diffusion up for now, we will get actual values for the Intt later
     double diffusion_width = 5.0e-04;  // diffusion radius 5 microns, in cm
@@ -400,8 +405,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       if (!hit)
       {
         // Otherwise, create a new one
-        //hit = new InttHit();
-	hit = new TrkrHitv2();
+	hit = new TrkrHitv3();
         hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
 
@@ -409,6 +413,8 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       if (Verbosity() > 2)
         cout << "add energy " << venergy[i1].first << " to intthit " << endl;
       hit->addEnergy(venergy[i1].first * TrkrDefs::InttEnergyScaleup);
+      // Add the hit time
+      hit->setTime(time);
 
       // Add this hit to the association map
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);

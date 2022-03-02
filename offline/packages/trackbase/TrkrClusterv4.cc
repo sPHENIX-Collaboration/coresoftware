@@ -4,7 +4,7 @@
  * @date October 2021
  * @brief Implementation of TrkrClusterv3
  */
-#include "TrkrClusterv3.h"
+#include "TrkrClusterv4.h"
 
 #include <cmath>
 #include <utility>          // for swap
@@ -16,7 +16,7 @@ namespace
     { return x*x; }
 }
 
-TrkrClusterv3::TrkrClusterv3()
+TrkrClusterv4::TrkrClusterv4()
   : m_cluskey(TrkrDefs::CLUSKEYMAX)
   , m_subsurfkey(TrkrDefs::SUBSURFKEYMAX)
   , m_adc(0xFFFFFFFF)
@@ -31,9 +31,9 @@ TrkrClusterv3::TrkrClusterv3()
     }
 }
 
-void TrkrClusterv3::identify(std::ostream& os) const
+void TrkrClusterv4::identify(std::ostream& os) const
 {
-  os << "---TrkrClusterv3--------------------" << std::endl;
+  os << "---TrkrClusterv4--------------------" << std::endl;
   os << "clusid: " << getClusKey() << std::dec << std::endl;
 
   os << " (rphi,z) =  (" << getLocalX();
@@ -55,7 +55,7 @@ void TrkrClusterv3::identify(std::ostream& os) const
   return;
 }
 
-int TrkrClusterv3::isValid() const
+int TrkrClusterv4::isValid() const
 {
   if (m_cluskey == TrkrDefs::CLUSKEYMAX) { return 0; }
   for (int i = 0; i < 2; ++i)
@@ -69,7 +69,7 @@ int TrkrClusterv3::isValid() const
   return 1;
 }
 
-void TrkrClusterv3::CopyFrom( const TrkrCluster& source )
+void TrkrClusterv4::CopyFrom( const TrkrCluster& source )
 {
   // do nothing if copying onto oneself
   if( this == &source ) return;
@@ -89,13 +89,13 @@ void TrkrClusterv3::CopyFrom( const TrkrCluster& source )
   setAdc( source.getAdc() );
 }
 
-float TrkrClusterv3::getRPhiError() const
+float TrkrClusterv4::getRPhiError() const
 { return std::sqrt(m_actsLocalErr[0][0]); }
 
-float TrkrClusterv3::getZError() const
+float TrkrClusterv4::getZError() const
 { return std::sqrt(m_actsLocalErr[1][1]); }
 
-void TrkrClusterv3::setActsLocalError(unsigned int i, unsigned int j,
+void TrkrClusterv4::setActsLocalError(unsigned int i, unsigned int j,
 				      float value)
 {
   m_actsLocalErr[i][j] = value;
