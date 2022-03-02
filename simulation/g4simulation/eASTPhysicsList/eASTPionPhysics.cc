@@ -1,65 +1,69 @@
-// $Id: $
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//  File:        PionPhysics.cc                                               //
-//  Description: Pion hadronic physics constructor for EICPhysicsList         //
-//                                                                            //
-//  Author:      Dennis H. Wright (SLAC)                                      //  
-//  Date:        21 June 2018                                                 //
-//                                                                            //
+//
+//  eASTPionPhysics.hh
+//  Pion hadronic physics constructor for eASTPhysicsList
+//
+//    Jun.21.2018 : original implementation - Dennis H. Wright (SLAC)
+//    May.02.2021 : migration to Geant4 version 10.7 - Dennis H. Wright (SLAC)
+//    May.06.2021 : migration to eAST - Makoto Asai (SLAC)
+//    Dec.22.2021 : migration to Geant4 version 11.0 - Makoto Asai (JLab)
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#include "PionPhysics.hh"
+#include "eASTPionPhysics.hh"
+#include "G4MesonConstructor.hh"
 
-#include <Geant4/G4MesonConstructor.hh>
+#include "G4ProcessManager.hh"
+#include "G4Version.hh"
+#if G4VERSION_NUMBER < 1100
+#include "G4PionPlusInelasticProcess.hh"
+#include "G4PionMinusInelasticProcess.hh"
+#else
+#include "G4HadronInelasticProcess.hh"
+#endif
+#include "G4HadronElasticProcess.hh"
+#include "G4HadronicAbsorptionBertini.hh"
 
-#include <Geant4/G4ProcessManager.hh>
-#include <Geant4/G4PionPlusInelasticProcess.hh>
-#include <Geant4/G4PionMinusInelasticProcess.hh>
-#include <Geant4/G4HadronElasticProcess.hh>
-#include <Geant4/G4HadronicAbsorptionBertini.hh>
+#include "G4CascadeInterface.hh"
+#include "G4TheoFSGenerator.hh"
+#include "G4FTFModel.hh"
+#include "G4ExcitedStringDecay.hh"
+#include "G4LundStringFragmentation.hh"
+#include "G4GeneratorPrecompoundInterface.hh"
+#include "G4HadronElastic.hh"
+#include "G4ElasticHadrNucleusHE.hh"
 
-#include <Geant4/G4CascadeInterface.hh>
-#include <Geant4/G4TheoFSGenerator.hh>
-#include <Geant4/G4FTFModel.hh>
-#include <Geant4/G4ExcitedStringDecay.hh>
-#include <Geant4/G4LundStringFragmentation.hh>
-#include <Geant4/G4GeneratorPrecompoundInterface.hh>
-#include <Geant4/G4HadronElastic.hh>
-#include <Geant4/G4ElasticHadrNucleusHE.hh>
+#include "G4BGGPionElasticXS.hh"
+#include "G4BGGPionInelasticXS.hh"
 
-#include <Geant4/G4PiNuclearCrossSection.hh>
-#include <Geant4/G4CrossSectionPairGG.hh>
-#include <Geant4/G4BGGPionElasticXS.hh>
+#include "G4SystemOfUnits.hh"
 
-#include <Geant4/G4SystemOfUnits.hh>
-
-
-PionPhysics::PionPhysics():
-  ftfp(nullptr),
-  stringModel(nullptr),
-  stringDecay(nullptr),
-  fragModel(nullptr),
-  preCompoundModel(nullptr)
-
+#if G4VERSION_NUMBER < 1100
+eASTPionPhysics::eASTPionPhysics()
 {}
 
-
-PionPhysics::~PionPhysics()
+eASTPionPhysics::~eASTPionPhysics()
 {
   delete stringDecay;
   delete stringModel;
   delete fragModel;
   delete preCompoundModel;
 }
+#else
+eASTPionPhysics::eASTPionPhysics()
+: G4VPhysicsConstructor("eASTPion")
+{;}
 
+eASTPionPhysics::~eASTPionPhysics()
+{;}
+#endif
 
-void PionPhysics::ConstructParticle()
+void eASTPionPhysics::ConstructParticle()
 {}
 
 
-void PionPhysics::ConstructProcess()
+void eASTPionPhysics::ConstructProcess()
 {
   G4ProcessManager* procMan;
 
@@ -89,9 +93,6 @@ void PionPhysics::ConstructProcess()
   ftfp->SetMinEnergy(10*GeV);
   ftfp->SetMaxEnergy(100*TeV);
 
-  // Inelastic cross section
-  G4VCrossSectionDataSet* piCS = new G4CrossSectionPairGG(new G4PiNuclearCrossSection, 91*GeV);
-
   //////////////////////////////////////////////////////////////////////////////
   //   pi+                                                                    // 
   //////////////////////////////////////////////////////////////////////////////
@@ -106,10 +107,15 @@ void PionPhysics::ConstructProcess()
   procMan->AddDiscreteProcess(pipProcEl);
 
   // inelastic 
+#if G4VERSION_NUMBER < 1100
   G4PionPlusInelasticProcess* pipProcInel = new G4PionPlusInelasticProcess;
+#else
+  auto* pipProcInel = new G4HadronInelasticProcess("PionPlusInelasticProcess",
+                                  G4PionPlus::PionPlus() );
+#endif
   pipProcInel->RegisterMe(loInelModel);
   pipProcInel->RegisterMe(ftfp);
-  pipProcInel->AddDataSet(piCS);
+  pipProcInel->AddDataSet(new G4BGGPionInelasticXS(G4PionPlus::PionPlus() ) );
   procMan->AddDiscreteProcess(pipProcInel);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -126,10 +132,15 @@ void PionPhysics::ConstructProcess()
   procMan->AddDiscreteProcess(pimProcEl);
 
   // inelastic
+#if G4VERSION_NUMBER < 1100
   G4PionMinusInelasticProcess* pimProcInel = new G4PionMinusInelasticProcess;
+#else
+  auto* pimProcInel = new G4HadronInelasticProcess("PionMinusInelasticProcess",
+                                  G4PionMinus::PionMinus() );
+#endif
   pimProcInel->RegisterMe(loInelModel);
   pimProcInel->RegisterMe(ftfp);
-  pimProcInel->AddDataSet(piCS);
+  pimProcInel->AddDataSet(new G4BGGPionInelasticXS(G4PionMinus::PionMinus() ) );
   procMan->AddDiscreteProcess(pimProcInel);
 
   // stopping
