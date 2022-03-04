@@ -1,7 +1,9 @@
 AUTOMAKE_OPTIONS = foreign
 
+AM_CXXFLAGS = `geant4-config --cflags`
+
 lib_LTLIBRARIES = \
-  libEICPhysicsList.la
+  libeASTPhysicsList.la
 
 # set in configure.in to check if gcc version >= 4.8
 # leave this here to show how it can be done, -std=c++11 is now
@@ -12,30 +14,27 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
-  -I${G4_MAIN}/include
+  -I$(OFFLINE_MAIN)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   `geant4-config --libs`
 
-#libEICPhysicsList_la_LIBADD = \
-#  -lPythia6
-
-libEICPhysicsList_la_SOURCES = \
-  AntiBaryonPhysics.cc \
-  EICPhysicsList.cc \
-  GammaLeptoNuclearPhysics.cc \
-  HyperonPhysics.cc \
-  IonPhysics.cc \
-  KaonPhysics.cc \
-  NeutronPhysics.cc \
-  PionPhysics.cc \
-  ProtonPhysics.cc
+libeASTPhysicsList_la_SOURCES = \
+  eASTAntiBaryonPhysics.cc \
+  eASTGammaLeptoNuclearPhysics.cc \
+  eASTHyperonPhysics.cc \
+  eASTIonPhysics.cc \
+  eASTKaonPhysics.cc \
+  eASTNeutronPhysics.cc \
+  eASTPhysicsList.cc \
+  eASTPhysicsListMessenger.cc \
+  eASTPionPhysics.cc \
+  eASTProtonPhysics.cc
 
 pkginclude_HEADERS = \
-  EICPhysicsList.hh
+  eASTPhysicsList.hh
 
 ################################################
 # linking tests
@@ -43,11 +42,13 @@ pkginclude_HEADERS = \
 noinst_PROGRAMS = \
   testexternals
 
+BUILT_SOURCES = testexternals.cc
+
 testexternals_SOURCES = \
   testexternals.cc
 
 testexternals_LDADD = \
-  libEICPhysicsList.la
+  libeASTPhysicsList.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
@@ -57,4 +58,4 @@ testexternals.cc:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict*
+	rm -f $(BUILT_SOURCES)
