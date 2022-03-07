@@ -47,6 +47,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   void set_sc_calib_mode(const bool flag){_sc_calib_flag = flag;}
   void set_collision_rate(const double rate){_collision_rate = rate;}
   void set_pp_mode(const bool flag){_pp_mode = flag ;}
+  void set_use_intt_time(const bool flag){_use_intt_time = flag ;}
 
   int InitRun(PHCompositeNode* topNode) override;
 
@@ -89,8 +90,13 @@ class PHSiliconTpcTrackMatching : public SubsysReco
 		       std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map,
 		       std::map<unsigned int, int> &tpc_crossing_map );
    void copySiliconClustersToCorrectedMap( );
-
-
+   void correctTpcClusterZIntt(  std::map<unsigned int, int> &tpc_crossing_map );
+     void getMatchCrossingIntt(  
+			       std::multimap<unsigned int, unsigned int> &tpc_matches,
+			       std::set<int> &crossing_set,
+			       std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches,
+			       std::map<unsigned int, int> &tpc_crossing_map );
+     
   std::string _track_map_name_silicon;
 
   // default values, can be replaced from the macro
@@ -135,6 +141,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   bool _sc_calib_flag = false;
   bool _test_windows = false;
   bool _pp_mode = false;
+  bool _use_intt_time = false;
 
   std::string _field;
   int _fieldDir = -1;

@@ -231,7 +231,6 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     */
 
     float time = (hiter->second->get_t(0) + hiter->second->get_t(1)) / 2.0;
-    std::cout << PHWHERE << " Layer: " << sphxlayer << " INTT hit time is " << time << std::endl;
 
     // I made this (small) diffusion up for now, we will get actual values for the Intt later
     double diffusion_width = 5.0e-04;  // diffusion radius 5 microns, in cm

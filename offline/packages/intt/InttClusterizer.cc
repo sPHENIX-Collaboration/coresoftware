@@ -466,8 +466,6 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	// Fill the cluster fields
 	clus->setAdc(clus_adc);
 	clus->setTime(clustime);
-
-	std::cout << " cluster " << ckey << " time " <<  clustime << std::endl;
 	
 	if(Verbosity() > 10) clus->identify();
 
