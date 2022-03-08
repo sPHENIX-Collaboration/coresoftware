@@ -8,8 +8,8 @@
 
 #include <Acts/Surfaces/Surface.hpp>
 
-bool ActsSurfaceMaps::isTpcSurface( const Acts::Surface& surface ) const
-{ return tpcVolumeIds.find( surface.geometryId().volume() ) != tpcVolumeIds.end(); }
+bool ActsSurfaceMaps::isTpcSurface( const Acts::Surface* surface ) const
+{ return tpcVolumeIds.find( surface->geometryId().volume() ) != tpcVolumeIds.end(); }
   
-bool ActsSurfaceMaps::isMicromegasSurface( const Acts::Surface& surface ) const
-{ return micromegasVolumeIds.find( surface.geometryId().volume() ) != micromegasVolumeIds.end(); }
+bool ActsSurfaceMaps::isMicromegasSurface( const Acts::Surface* surface ) const
+{ return micromegasVolumeIds.find( surface->geometryId().volume() ) != micromegasVolumeIds.end(); }

@@ -82,7 +82,7 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   void process_track( SvtxTrack* );
 
   /// get relevant cell for a given cluster
-  int get_cell_index( const Acts::Vector3D& ) const;
+  int get_cell_index( const Acts::Vector3& ) const;
 
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";

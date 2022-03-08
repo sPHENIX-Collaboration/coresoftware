@@ -122,16 +122,16 @@ namespace
   // square
   template<class T> inline constexpr T square( const T& x ) { return x*x; }
   
-  /// phi angle of Acts::Vector3D
-  inline double get_phi( const Acts::Vector3F& position )
+  /// phi angle of Acts::Vector3
+  inline double get_phi( const Acts::Vector3& position )
   {
     double phi = std::atan2( position.y(), position.x() );
     if( phi < 0 ) phi += 2.*M_PI;
     return phi;
   } 
   
-  /// pseudo rapidity of Acts::Vector3D
-  inline double get_eta( const Acts::Vector3F& position )
+  /// pseudo rapidity of Acts::Vector3
+  inline double get_eta( const Acts::Vector3& position )
   {
     const double norm = std::sqrt( square(position.x()) + square(position.y()) + square(position.z()) );
     return std::log((norm+position.z())/(norm-position.z()))/2;
@@ -219,7 +219,7 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-Acts::Vector3D PHCASeeding::getGlobalPosition( TrkrCluster* cluster ) const
+Acts::Vector3 PHCASeeding::getGlobalPosition( TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
   auto globalpos = m_transform.getGlobalPosition(cluster,
@@ -269,8 +269,8 @@ PositionMap PHCASeeding::FillTree()
 	  continue; // skip hits used in a previous iteration
       }
 
-      // get global position, convert to Acts::Vector3F and store in map
-      const Acts::Vector3D globalpos_d = getGlobalPosition(cluster);
+      // get global position, convert to Acts::Vector3 and store in map
+      const Acts::Vector3 globalpos_d = getGlobalPosition(cluster);
 
       if(Verbosity() > 3)
 	{
@@ -284,7 +284,7 @@ PositionMap PHCASeeding::FillTree()
 	  std::cout << " Global after   : " << globalpos_d[0] << "  " << globalpos_d[1] << "  " << globalpos_d[2] << std::endl;
 	}
 
-      const Acts::Vector3F globalpos = { (float) globalpos_d.x(), (float) globalpos_d.y(), (float) globalpos_d.z()};
+      const Acts::Vector3 globalpos = { globalpos_d.x(), globalpos_d.y(), globalpos_d.z()};
       cachedPositions.insert(std::make_pair(ckey, globalpos));
 
       const double clus_phi = get_phi( globalpos );      

@@ -62,16 +62,16 @@ namespace
     return;
   }
   
-  void line_fit_clusters(std::vector<Acts::Vector3D>& globPos, double &a, double &b)
+  void line_fit_clusters(std::vector<Acts::Vector3>& globPos, double &a, double &b)
   {
     std::vector<std::pair<double,double>> points;
-    std::transform( globPos.begin(), globPos.end(), std::back_inserter( points ), []( const Acts::Vector3D& pos ) 
+    std::transform( globPos.begin(), globPos.end(), std::back_inserter( points ), []( const Acts::Vector3& pos ) 
       { return std::make_pair( get_r( pos(0), pos(1) ), pos(2)); } );
 
     line_fit(points, a, b);
   }
   
-  void CircleFitByTaubin (std::vector<Acts::Vector3D> points, double &R, double &X0, double &Y0)
+  void CircleFitByTaubin (std::vector<Acts::Vector3> points, double &R, double &X0, double &Y0)
     /*  
     Circle fit to a given set of data points (in 2D)
     This is an algebraic fit, due to Taubin, based on the journal article
@@ -312,10 +312,10 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode*)
       if(Verbosity() > 2) std::cout << "    TPC layers this track: " << nlayers << std::endl;
 
 
-      std::vector<Acts::Vector3D> globalClusterPositions;
+      std::vector<Acts::Vector3> globalClusterPositions;
       for (unsigned int i=0; i<clusters.size(); ++i)
 	{
-	  const Acts::Vector3D global = getGlobalPosition(clusters.at(i));
+	  const Acts::Vector3 global = getGlobalPosition(clusters.at(i));
 	  globalClusterPositions.push_back(global);
 
 	  if(Verbosity() > 3)
@@ -545,7 +545,7 @@ std::vector<TrkrCluster*> PHTpcTrackSeedCircleFit::getTrackClusters(SvtxTrack *t
     return clusters;
   }
   
-Acts::Vector3D PHTpcTrackSeedCircleFit::getGlobalPosition( TrkrCluster* cluster ) const
+Acts::Vector3 PHTpcTrackSeedCircleFit::getGlobalPosition( TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
   ActsTransformations transformer;

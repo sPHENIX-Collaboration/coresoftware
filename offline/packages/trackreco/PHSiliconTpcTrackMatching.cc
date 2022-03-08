@@ -612,7 +612,7 @@ void PHSiliconTpcTrackMatching::correctTpcClusterZ(
 		    corrected_clus_z = clus_z - crossing * z_bunch_separation;
 		  
 		  auto surface =  transformer.getSurface(tpc_clus,  _surfmaps);
-		  Acts::Vector3D center = surface->center(_tGeometry->geoContext)  / Acts::UnitConstants::cm;
+		  Acts::Vector3 center = surface->center(_tGeometry->geoContext)  / Acts::UnitConstants::cm;
 		  double surfZCenter = center[2];
 		  double local_z = corrected_clus_z - surfZCenter; 
 		  tpc_clus->setLocalY(local_z);

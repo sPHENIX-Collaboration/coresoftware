@@ -52,7 +52,7 @@ using pointKey = std::pair<point, TrkrDefs::cluskey>;
 using coordKey = std::pair<std::array<float,3>, TrkrDefs::cluskey>;
 using keylink = std::array<coordKey,2>;
 using keylist = std::vector<TrkrDefs::cluskey>;
-using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3F>;
+using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
 class PHCASeeding : public PHTrackSeeding
 {
@@ -111,7 +111,7 @@ class PHCASeeding : public PHTrackSeeding
    * uses ActsTransformation to convert cluster local position into global coordinates
    * incorporates TPC distortion correction, if present
    */
-  Acts::Vector3D getGlobalPosition(TrkrCluster*) const;
+  Acts::Vector3 getGlobalPosition(TrkrCluster*) const;
 
   PositionMap FillTree();
   int FindSeedsWithMerger(const PositionMap&);

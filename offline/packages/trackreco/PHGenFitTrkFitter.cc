@@ -827,7 +827,7 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 }
 
 //_________________________________________________________________________________
-Acts::Vector3D PHGenFitTrkFitter::getGlobalPosition( TrkrCluster* cluster )
+Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrCluster* cluster )
 {
 
   // get cluster key
