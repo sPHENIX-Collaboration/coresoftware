@@ -3,12 +3,13 @@
 #include "InttDefs.h"
 
 #include <trackbase/TrkrClusterContainerv3.h>
-#include <trackbase/TrkrClusterv4.h>
+#include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitv3.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
+#include <trackbase/TrkrClusterCrossingAssocv1.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -149,6 +150,21 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
       DetNode->addNode(newNode);
     }
 
+  // Add the multimap holding the INTT cluster-crossing associations
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+      dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+      {
+	DetNode = new PHCompositeNode("TRKR");
+	dstNode->addNode(DetNode);
+      }
+    
+    auto clustercrossingassoc = new TrkrClusterCrossingAssocv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(clustercrossingassoc, "TRKR_CLUSTERCROSSINGASSOC", "PHObject");
+    DetNode->addNode(newNode);
+  }
 
   //---------------------
   // Calculate Thresholds
@@ -212,6 +228,14 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
   if (!m_clusterhitassoc)
   {
     cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  // get node for cluster-crossing associations
+  m_clustercrossingassoc = findNode::getClass<TrkrClusterCrossingAssoc>(topNode, "TRKR_CLUSTERCROSSINGASSOC");
+  if (!m_clustercrossingassoc)
+  {
+    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERCROSINGASSOC" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   
@@ -360,7 +384,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = InttDefs::genClusKey(hitset->getHitSetKey(), clusid);
-	auto clus = std::make_unique<TrkrClusterv4>();
+	auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setClusKey(ckey);
 
 	if (Verbosity() > 2)
@@ -376,7 +400,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	double zlocalsum = 0.0;
 	unsigned int clus_adc = 0.0;
 	unsigned nhits = 0;
-	float timesum = 0;
+	//	float timesum = 0;
 	
 	for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
 	  {
@@ -390,7 +414,14 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    // mapiter->second.second is the hit
 	    unsigned int hit_adc = (mapiter->second).second->getAdc();
 
+	    // get the bunch crossing number from the hit time
+	    float dtbunch = 106.4;
 	    float hit_time = (mapiter->second).second->getTime();
+	    float dcrossing = round(hit_time / dtbunch);
+	    short int crossing = (short int) (dcrossing); 
+
+	    // Add clusterkey/bunch crossing to mmap
+	    m_clustercrossingassoc->addAssoc(ckey, crossing);
 
 	    // now get the positions from the geometry
 	    double local_hit_location[3] = {0., 0., 0.};
@@ -403,14 +434,14 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 		xlocalsum += local_hit_location[0] * (double) hit_adc;
 		ylocalsum += local_hit_location[1] * (double) hit_adc;
 		zlocalsum += local_hit_location[2] * (double) hit_adc;
-		timesum += hit_time * (double) hit_adc;
+		//		timesum += hit_time * (double) hit_adc;
 	      }
 	    else
 	      {
 		xlocalsum += local_hit_location[0];
 		ylocalsum += local_hit_location[1];
 		zlocalsum += local_hit_location[2];
-		timesum += hit_time;
+		//		timesum += hit_time;
 	      }
 
 	    clus_adc += hit_adc;
@@ -448,24 +479,24 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 	double cluslocaly = NAN;
 	double cluslocalz = NAN;
-	double clustime = NAN;
+	//	double clustime = NAN;
 
 	if (_make_e_weights[layer])
 	  {
 	    cluslocaly = ylocalsum / (double) clus_adc;
 	    cluslocalz = zlocalsum / (double) clus_adc;
-	    clustime = timesum / (double) clus_adc;
+	    //	    clustime = timesum / (double) clus_adc;
 	  }
 	else
 	  {
 	    cluslocaly = ylocalsum / nhits;
 	    cluslocalz = zlocalsum / nhits;
-	    clustime = timesum / nhits;
+	    //	    clustime = timesum / nhits;
 	  }
 	
 	// Fill the cluster fields
 	clus->setAdc(clus_adc);
-	clus->setTime(clustime);
+	//	clus->setTime(clustime);
 	
 	if(Verbosity() > 10) clus->identify();
 
@@ -490,6 +521,9 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
       cout << "After InttClusterizer, cluster-hit associations are:" << endl;
       m_clusterhitassoc->identify();
     }
+
+  std::cout << " Cluster-crossing associations are:" << std::endl;
+  m_clustercrossingassoc->identify();  
   
   return;
 }

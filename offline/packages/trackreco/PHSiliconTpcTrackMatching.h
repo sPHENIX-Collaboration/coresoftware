@@ -17,6 +17,7 @@ class TrkrClusterContainer;
 class TF1;
 class TpcSeedTrackMap;
 class AssocInfoContainer;
+class TrkrClusterCrossingAssoc;
 
 class PHSiliconTpcTrackMatching : public SubsysReco
 {
@@ -65,7 +66,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
 
   double getBunchCrossing(unsigned int trid, double z_mismatch);
   double getMedian(std::vector<double> &v);
-  void addSiliconClusters( std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches);
+  void addSiliconClusters( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches);
   void addSiliconClusters(  std::multimap<unsigned int, std::pair<unsigned int, unsigned int>> &vertex_map);
   void addSiliconClusters(  std::multimap<unsigned int, unsigned int> &tpc_matches);
   void correctTpcClusterZ( std::map<unsigned int, double> &vertex_crossings_map,
@@ -83,19 +84,19 @@ class PHSiliconTpcTrackMatching : public SubsysReco
 			 std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches,
 			 std::map<unsigned int, int> &tpc_crossing_map );
   void tagMatchCrossing( std::multimap<unsigned int, unsigned int> &tpc_matches,
-			 std::set<int> &crossing_set,
-			 std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches,
-			 std::map<unsigned int, int> &tpc_crossing_map );
+			 std::set<short int> &crossing_set,
+			 std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
+			 std::map<unsigned int, short int> &tpc_crossing_map );
   void cleanVertexMap( std::map<unsigned int, double> &vertex_crossings_map,
 		       std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map,
-		       std::map<unsigned int, int> &tpc_crossing_map );
+		       std::map<unsigned int, short int> &tpc_crossing_map );
    void copySiliconClustersToCorrectedMap( );
-   void correctTpcClusterZIntt(  std::map<unsigned int, int> &tpc_crossing_map );
-     void getMatchCrossingIntt(  
+   void correctTpcClusterZIntt(  std::map<unsigned int, short int> &tpc_crossing_map );
+   void getMatchCrossingIntt(  
 			       std::multimap<unsigned int, unsigned int> &tpc_matches,
-			       std::set<int> &crossing_set,
-			       std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches,
-			       std::map<unsigned int, int> &tpc_crossing_map );
+			       std::set<short int> &crossing_set,
+			       std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
+			       std::map<unsigned int, short int> &tpc_crossing_map );
      
   std::string _track_map_name_silicon;
 
@@ -115,7 +116,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   TrkrClusterContainer *_corrected_cluster_map{nullptr};
   ActsSurfaceMaps *_surfmaps{nullptr};
   ActsTrackingGeometry *_tGeometry{nullptr};
-
+  TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};
 
   TpcSeedTrackMap *_seed_track_map{nullptr};
   //std::multimap<unsigned int, unsigned int> _seed_track_map;
