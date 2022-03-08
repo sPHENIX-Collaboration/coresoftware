@@ -7,13 +7,13 @@
 
 #include <trackbase/ActsTrackingGeometry.h>
 
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Propagator/Propagator.hpp>
 #include <Acts/Utilities/Result.hpp>
 #include <Acts/Surfaces/CylinderSurface.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 
-#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/EventData/Trajectories.hpp>
 
 class PHCompositeNode;
 class RawClusterContainer;
@@ -31,7 +31,7 @@ using BoundTrackParamPtr =
   std::unique_ptr<const Acts::BoundTrackParameters>;
 using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
-using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
+using Trajectory = ActsExamples::Trajectories;
 
 
 /**
@@ -86,7 +86,7 @@ class PHActsTrackProjection : public SubsysReco
 			    double& minDeta, double& minE);
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
   double deltaPhi(const double& phi);
-  Acts::Vector3D getVertex(SvtxTrack* track);
+  Acts::Vector3 getVertex(SvtxTrack* track);
 
   /// Objects containing the Acts track fit results
   ActsTrackingGeometry *m_tGeometry = nullptr;

@@ -164,7 +164,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       unsigned int nclus = cmclus->getNclusters();
 
       // Do the static + average distortion corrections if the container was found
-      Acts::Vector3D pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
+      Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
       if( _dcc)  pos = _distortionCorrection.get_corrected_position( pos, _dcc ); 
 
       TVector3 tmp_pos(pos[0], pos[1], pos[2]);

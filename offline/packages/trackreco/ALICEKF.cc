@@ -50,7 +50,7 @@ double ALICEKF::get_Bz(double x, double y, double z) const
   return bfield[2]/tesla;
 }
 
-double ALICEKF::getClusterError(TrkrCluster* c, Acts::Vector3F global, int i, int j) const
+double ALICEKF::getClusterError(TrkrCluster* c, Acts::Vector3 global, int i, int j) const
 {
   if(_use_fixed_clus_error) 
   {

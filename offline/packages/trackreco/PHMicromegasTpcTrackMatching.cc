@@ -59,7 +59,7 @@ namespace
    * It provides a very good initial guess for a subsequent geometric fit.
    * Nikolai Chernov  (September 2012)
    */
-  void CircleFitByTaubin (std::vector<Acts::Vector3D>& clusters, double &R, double &X0, double &Y0)
+  void CircleFitByTaubin (std::vector<Acts::Vector3>& clusters, double &R, double &X0, double &Y0)
   {
     int iter,IterMAX=99;
 
@@ -146,7 +146,7 @@ namespace
   }
 
   // 2D linear fit
-void line_fit(std::vector<Acts::Vector3D>& clusters, double &a, double &b)
+void line_fit(std::vector<Acts::Vector3>& clusters, double &a, double &b)
   {
     // copied from: https://www.bragitoff.com
     // we want to fit z vs radius
@@ -359,7 +359,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     // Get the outermost TPC clusters for this tracklet
     std::map<unsigned int, TrkrCluster*> outer_clusters;
     std::vector<TrkrCluster*> clusters;
-    std::vector<Acts::Vector3D> clusGlobPos;
+    std::vector<Acts::Vector3> clusGlobPos;
     ActsTransformations transformer;
 
     for (SvtxTrack::ConstClusterKeyIter key_iter = tracklet_tpc->begin_cluster_keys(); key_iter != tracklet_tpc->end_cluster_keys(); ++key_iter)

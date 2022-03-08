@@ -36,7 +36,7 @@ class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
 class SvtxTrackMap;
 
-using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3F>;
+using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
 class PHSimpleKFProp : public SubsysReco
 {
@@ -113,7 +113,7 @@ class PHSimpleKFProp : public SubsysReco
    * uses ActsTransformation to convert cluster local position into global coordinates
    * incorporates TPC distortion correction, if present
    */
-  Acts::Vector3D getGlobalPosition(TrkrCluster*) const;
+  Acts::Vector3 getGlobalPosition(TrkrCluster*) const;
 
   PositionMap PrepareKDTrees();
 

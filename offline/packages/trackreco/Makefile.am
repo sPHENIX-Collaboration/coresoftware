@@ -121,8 +121,8 @@ ACTS_SOURCES = \
 
 $OFFLINE_MAIN/share:
 dist_data_DATA = \
-  tgeo-sphenix.response \
-  tgeo-sphenix-mms.response
+  tgeo-sphenix.json \
+  tgeo-sphenix-mms.json
 
 AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
 
@@ -132,7 +132,7 @@ ACTS_LIBS = \
   -lActsPluginTGeo \
   -lActsExamplesCommon \
   -lActsPluginJson \
-  -lActsExamplesFitting \
+  -lActsExamplesTrackFitting \
   -lActsExamplesTrackFinding \
   -lActsExamplesDetectorTGeo \
   -lActsExamplesFramework \

@@ -287,7 +287,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 
 
 	      // We have to (temporarily) use distortion corrected cluster positions to determine which stripe this came from
-	      Acts::Vector3D dist_pos(pos[i].X(), pos[i].Y(), pos[i].Z());
+	      Acts::Vector3 dist_pos(pos[i].X(), pos[i].Y(), pos[i].Z());
 	      if( _dcc)  dist_pos = _distortionCorrection.get_corrected_position( dist_pos, _dcc ); 
 	      double dist_r = sqrt(dist_pos[0]*dist_pos[0] + dist_pos[1] * dist_pos[1]);
 	      double cmclus_dr = _cmclus_dr_outer; 
