@@ -1,7 +1,7 @@
 #ifndef ALICEKF_H
 #define ALICEKF_H
 
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
@@ -36,10 +36,10 @@ class ALICEKF
     _v = verbosity;
     _min_clusters_per_track = min_clusters;
   }
-  std::vector<SvtxTrack_v2> ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions) const;
-  Eigen::Matrix<double,6,6> getEigenCov(const SvtxTrack_v2 &track) const;
-  bool covIsPosDef(const SvtxTrack_v2 &track) const;
-  void repairCovariance(SvtxTrack_v2 &track) const;
+  std::vector<SvtxTrack_v3> ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions) const;
+  Eigen::Matrix<double,6,6> getEigenCov(const SvtxTrack_v3 &track) const;
+  bool covIsPosDef(const SvtxTrack_v3 &track) const;
+  void repairCovariance(SvtxTrack_v3 &track) const;
   bool checknan(double val, const std::string &msg, int num) const;
   double get_Bz(double x, double y, double z) const;
   void CircleFitByTaubin(const std::vector<std::pair<double,double>>& pts, double &R, double &X0, double &Y0) const;

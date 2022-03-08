@@ -39,7 +39,7 @@ struct ActsSurfaceMaps;
 struct ActsTrackingGeometry;
 class PHCompositeNode;  
 class PHTimer;
-class SvtxTrack_v2;
+class SvtxTrack_v3;
 class TpcDistortionCorrectionContainer;
 class TrkrCluster;
 
@@ -121,7 +121,7 @@ class PHCASeeding : public PHTrackSeeding
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values) const;
   std::vector<keylist> RemoveBadClusters(const std::vector<keylist>& seeds, const PositionMap& globalPositions) const;
   
-  void publishSeeds(const std::vector<SvtxTrack_v2>& seeds);
+  void publishSeeds(const std::vector<SvtxTrack_v3>& seeds);
 
   //int _nlayers_all;
   //unsigned int _nlayers_seeding;

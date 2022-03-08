@@ -8,7 +8,7 @@
 #include <trackbase/TrkrClusterContainerv3.h>   
 #include <trackbase/TrkrClusterv3.h>   
 #include <trackbase/TrkrClusterCrossingAssoc.h>   
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -91,7 +91,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   // _track_map contains the TPC seed track stubs
   // _track_map_silicon contains the silicon seed track stubs
   // We will add the silicon clusters to the TPC tracks already on the node tree
-  // We will have to expand the number of tracks whenever we find multiple matches to the silicon
+  // We will have to expand the number of TPC tracks whenever we find multiple matches to the silicon
 
   _seed_track_map->Reset();
   _z_mismatch_map.clear();
@@ -139,18 +139,21 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
 	  // Use the INTT cluster time to assign the matched tracks to a bunch crossing
 	  getMatchCrossingIntt(tpc_matches, crossing_set, crossing_matches, tpc_crossing_map);
 
-	  // We have the final crossings in , 
+	  // We have the final crossings in tpc_crossing_map, etc. 
 	  // Correct the TPC cluster z values for the bunch crossing offset
 	  correctTpcClusterZIntt(tpc_crossing_map);
 	  
 	  // add silicon clusters to the surviving tracks
 	  addSiliconClusters(crossing_matches);
+
+	  // add the crossing to the combined track
+	  addTrackBunchCrossing(tpc_crossing_map);	  
+
 	}
       else
 	{
-
-	  // This section is to correct the TPC z positions of tracks for all bunch crossings.  
-	  //=================================================================================
+	  // This section is to correct the TPC z positions of tracks for all bunch crossings without relying on INTT time  
+	  //==================================================================================
 	  
 	  // All tracks treated as if we do not know the bunch crossing
 	  // The crossing estimate here is crude, for now
@@ -197,6 +200,9 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
 	  
 	  // add silicon clusters to the surviving tracks
 	  addSiliconClusters(vertex_map);
+
+	  // add the crossing to the combined track
+	  addTrackBunchCrossing(vertex_map);	  
 	  
 	  //===================================================
 	}
@@ -205,6 +211,9 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
     {
       // only crossing zero has been added to the tpc_matches map, just add silicon clusters
       addSiliconClusters(tpc_matches);
+
+      // add the crossing to the combined track
+      addTrackBunchCrossing(tpc_matches);	  
     }
 
   // loop over all tracks and copy the silicon clusters to the corrected cluster map
@@ -980,7 +989,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
 	  unsigned int si_id = it->second;	  
 	  auto this_track = _track_map->get(tpcid);
-	  auto newTrack = std::make_unique<SvtxTrack_v2>();
+	  auto newTrack = std::make_unique<SvtxTrack_v3>();
 	  const unsigned int lastTrackKey =  _track_map->empty() ? 0:std::prev(_track_map->end())->first; 
 	  if(Verbosity() > 1) cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey + 1 << endl;
 	  
@@ -1317,5 +1326,51 @@ void PHSiliconTpcTrackMatching::correctTpcClusterZIntt(  std::map<unsigned int, 
 	}
     }
 
+  return;
+}
+
+void PHSiliconTpcTrackMatching::addTrackBunchCrossing( std::map<unsigned int, short int> &tpc_crossing_map);	  
+{
+  if(tpc_crossing_map.size() == 0) return;
+  
+  for(auto [tpcid, crossing] : tpc_crossing_map)
+    {
+      //if(Verbosity() > 1) 
+      std::cout << PHWHERE << "  Add bunch crossing to track " << tpcid << " crossing " << crossing << std::endl;		  
+
+       SvtxTrack *tpc_track = _track_map->get(tpcid);
+       tpc_track->set_crossing(crossing);
+    }
+  return;
+}
+
+void PHSiliconTpcTrackMatching::addTrackBunchCrossing(std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);	  
+{
+  if(vertex_map.size() == 0) return;
+  
+  for(auto [tpcid, crossing] : tpc_crossing_map)
+    {
+      //if(Verbosity() > 1) 
+      std::cout << PHWHERE << "  Add bunch crossing to track " << tpcid << " crossing " << crossing << std::endl;		  
+
+       SvtxTrack *tpc_track = _track_map->get(tpcid);
+       tpc_track->set_crossing(crossing);
+    }
+  return;
+}
+
+void PHSiliconTpcTrackMatching::addTrackBunchCrossing(std::multimap<unsigned int, unsigned int> &tpc_matches);	  
+{
+  if(tpc_matches.size() == 0) return;
+  
+  for(auto [tpcid, si_id] : tpc_matches)
+    {
+      short int crossing = 0;
+      //if(Verbosity() > 1) 
+      std::cout << PHWHERE << "  Add bunch crossing to track " << tpcid << " crossing " << crossing << std::endl;		  
+
+       SvtxTrack *tpc_track = _track_map->get(tpcid);
+       tpc_track->set_crossing(crossing);
+    }
   return;
 }

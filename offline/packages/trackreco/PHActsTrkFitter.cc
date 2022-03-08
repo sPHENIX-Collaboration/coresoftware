@@ -12,7 +12,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
@@ -290,7 +290,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  
 	  if(m_fitSiliconMMs)
 	    {
-	      auto newTrack = (SvtxTrack_v2*)(track->CloneMe());
+	      auto newTrack = (SvtxTrack_v3*)(track->CloneMe());
 	      getTrackFitResult(fitOutput, newTrack);
 	      m_directedTrackMap->insert(newTrack);
 	    }

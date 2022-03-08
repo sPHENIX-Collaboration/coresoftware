@@ -25,7 +25,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase/TrkrCluster.h>            
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
@@ -335,7 +335,7 @@ void PHActsSiliconSeeding::createSvtxTrack(const double x,
       int nIntt = 0;
       numSeedsPerActsSeed++;
        
-      auto svtxTrack = std::make_unique<SvtxTrack_v2>(); 
+      auto svtxTrack = std::make_unique<SvtxTrack_v3>(); 
 
       svtxTrack->set_id(m_trackMap->size());
       

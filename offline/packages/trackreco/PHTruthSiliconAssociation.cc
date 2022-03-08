@@ -14,7 +14,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase/TpcSeedTrackMapv1.h>    
@@ -123,7 +123,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
       std::vector<SvtxTrack*> extraTrack; 
       for(unsigned int ig4=0;ig4 < g4particle_vec.size()-1; ++ig4)
 	{      
-	  SvtxTrack *newTrack = new SvtxTrack_v2();
+	  SvtxTrack *newTrack = new SvtxTrack_v3();
 	  // Not the first g4particle in the list, we need to add a new copy of the track to the track map and add the silicon clusters to that
 	  const unsigned int lastTrackKey = ( _track_map->empty() ? 0:std::prev(_track_map->end())->first ) + ig4;
 	  //std::cout << "   extra track key " << lastTrackKey + 1 << std::endl;
