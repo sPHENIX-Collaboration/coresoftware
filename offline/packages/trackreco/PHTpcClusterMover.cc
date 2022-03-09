@@ -94,8 +94,8 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	}
 
       // Get the TPC clusters for this track and correct them for distortions
-      std::vector<Acts::Vector3D> globalClusterPositions;
-      std::map<TrkrDefs::cluskey, Acts::Vector3D> tpc_clusters;
+      std::vector<Acts::Vector3> globalClusterPositions;
+      std::map<TrkrDefs::cluskey, Acts::Vector3> tpc_clusters;
 
       for (SvtxTrack::ConstClusterKeyIter key_iter = _track->begin_cluster_keys();
 	   key_iter != _track->end_cluster_keys();
@@ -167,7 +167,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	{
 	  TrkrDefs::cluskey cluskey = clus_iter->first;
 	  unsigned int layer = TrkrDefs::getLayer(cluskey);
-	  Acts::Vector3D global = clus_iter->second;
+	  Acts::Vector3 global = clus_iter->second;
 
 	  // get circle position at target surface radius 
 	  double target_radius = layer_radius[layer-7];
@@ -192,7 +192,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  // we keep the cluster key fixed, change the surface if necessary
 	  // write the new cluster position local coordinates on the surface
 
-	  Acts::Vector3D global_new(xnew, ynew, znew);
+	  Acts::Vector3 global_new(xnew, ynew, znew);
 	  
 	  TrkrDefs::subsurfkey subsurfkey;
 	  TrkrDefs::hitsetkey tpcHitSetKey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
@@ -228,12 +228,12 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	 newclus->setActsLocalError(1,1,cluster->getActsLocalError(1,1));
 
 	  // get local coordinates
-	  Acts::Vector3D normal = surface->normal(_tGeometry->geoContext);
+	  Acts::Vector3 normal = surface->normal(_tGeometry->geoContext);
 	  auto local = surface->globalToLocal(_tGeometry->geoContext,
 					      global * Acts::UnitConstants::cm,
 					      normal);
 
-	  Acts::Vector2D localPos;
+	  Acts::Vector2 localPos;
 	  if(local.ok())
 	    {
 	      localPos = local.value() / Acts::UnitConstants::cm;
@@ -241,7 +241,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  else
 	    {
 	      /// otherwise take the manual calculation
-	      Acts::Vector3D center = surface->center(_tGeometry->geoContext)/Acts::UnitConstants::cm;
+	      Acts::Vector3 center = surface->center(_tGeometry->geoContext)/Acts::UnitConstants::cm;
 	      double clusRadius = sqrt(xnew * xnew + ynew * ynew);
 	      double clusphi = atan2(ynew, xnew);
 	      double rClusPhi = clusRadius * clusphi;
@@ -387,7 +387,7 @@ int PHTpcClusterMover::get_circle_circle_intersection(double target_radius, doub
      }
    return Fun4AllReturnCodes::EVENT_OK;   
  }
-void PHTpcClusterMover::CircleFitByTaubin (std::vector<Acts::Vector3D> clusters, double &R, double &X0, double &Y0)
+void PHTpcClusterMover::CircleFitByTaubin (std::vector<Acts::Vector3> clusters, double &R, double &X0, double &Y0)
 /*  
       Circle fit to a given set of data points (in 2D)
       This is an algebraic fit, due to Taubin, based on the journal article
@@ -516,7 +516,7 @@ void PHTpcClusterMover::circle_circle_intersection(double r1, double r2, double 
 
 }
 
-void  PHTpcClusterMover::line_fit(std::vector<Acts::Vector3D> clusters, double &a, double &b)
+void  PHTpcClusterMover::line_fit(std::vector<Acts::Vector3> clusters, double &a, double &b)
 {
   // copied from: https://www.bragitoff.com
   // we want to fit z vs radius
@@ -539,7 +539,7 @@ void  PHTpcClusterMover::line_fit(std::vector<Acts::Vector3D> clusters, double &
 }   
 
 Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
-						       Acts::Vector3D world,
+						       Acts::Vector3 world,
 						       ActsSurfaceMaps *surfMaps,
 						       ActsTrackingGeometry *tGeometry,
 						       TrkrDefs::subsurfkey& subsurfkey)

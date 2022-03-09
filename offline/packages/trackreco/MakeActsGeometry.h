@@ -14,17 +14,16 @@
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
 
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                      
 #include <Acts/Utilities/Logger.hpp>                           
 #include <Acts/EventData/MeasurementHelpers.hpp> 
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
+#include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 #include <ActsExamples/TGeoDetector/TGeoDetector.hpp>
-#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
-#include <ActsExamples/Plugins/BField/BFieldOptions.hpp>
 
 #include <map>
 #include <memory>            
@@ -111,7 +110,7 @@ class MakeActsGeometry : public SubsysReco
   /// Silicon layers made by BuildSiliconLayers and its helper functions
   void buildActsSurfaces();
 
-  /// Function that mimics ActsFW::GeometryExampleBase
+  /// Function that mimics ActsExamples::GeometryExampleBase
   void makeGeometry(int argc, char* argv[], 
 		    ActsExamples::IBaseDetector& detector);
  
@@ -174,7 +173,7 @@ class MakeActsGeometry : public SubsysReco
   double m_minSurfZ = 0.;
   /// This value must be less than the TPC gas volume in TGeo, which 
   /// is 105.22 cm
-  double m_maxSurfZ = 105.219999;
+  double m_maxSurfZ = 105.42;
   unsigned int m_nSurfZ = 1;
   unsigned int m_nSurfPhi = 12;
   double m_surfStepPhi = 0;
@@ -196,14 +195,15 @@ class MakeActsGeometry : public SubsysReco
   // Spaces to prevent boxes from touching when placed
   const double half_width_clearance_thick = 0.4999;
   const double half_width_clearance_phi = 0.4999;
-  const double half_width_clearance_z = 0.4999;
+  /// z does not need spacing as the boxes are rotated around the z axis
+  const double half_width_clearance_z = 0.5;
 
   /// The acts geometry object
-  TGeoDetector m_detector;
+  ActsExamples::TGeoDetector m_detector;
 
   /// Acts geometry objects that are needed to create (for example) the fitter
   TrackingGeometry m_tGeometry;
-  ActsExamples::Options::BFieldVariant m_magneticField;
+  std::shared_ptr<Acts::MagneticFieldProvider> m_magneticField;
   Acts::GeometryContext  m_geoCtxt;  
   Acts::CalibrationContext m_calibContext;
   Acts::MagneticFieldContext m_magFieldContext;

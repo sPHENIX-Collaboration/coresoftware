@@ -58,12 +58,13 @@ class CMFlashCluster : public PHObject
   virtual void setY(float) {}
   virtual float getZ() const { return NAN; }
   virtual void setZ(float) {}
-
   //
   // cluster info
   //
   virtual void setAdc(unsigned int) {}
   virtual unsigned int getAdc() const { return UINT_MAX; }
+  virtual unsigned int getNclusters() const {return UINT_MAX;}
+  virtual void setNclusters( unsigned int) {}
 
  protected:
   CMFlashCluster() = default;

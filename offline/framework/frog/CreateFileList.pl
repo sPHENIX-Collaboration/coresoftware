@@ -38,7 +38,8 @@ my %proddesc = (
     "7" => "HF pythia8 Charm",
     "8" => "HF pythia8 Bottom",
     "9" => "HF pythia8 Charm D0",
-    "10" => "HF pythia8 Bottom D0"
+    "10" => "HF pythia8 Bottom D0",
+    "11" => "JS pythia8 Jet R=4"
     );
 
 
@@ -117,6 +118,15 @@ if (defined $prodtype)
     elsif ($prodtype == 10)
     {
 	$filenamestring = "pythia8_BottomD0";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	}
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 11)
+    {
+	$filenamestring = "pythia8_Jet04";
 	if (! defined $nopileup)
 	{
 	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
@@ -393,7 +403,7 @@ sub commonfiletypes
     $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD G4Hits";
     $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
     $filetypes{"DST_TRKR_G4HIT"} = "Pileup Tracking Detector G4 Hits";
-    $filetypes{"DST_TRUTH_G4HIT"} = "Pileup Truth info";
+    $filetypes{"DST_TRUTH_G4HIT"} = "temporary Pileup Truth info, use DST_TRUTH";
     $filetypes{"DST_VERTEX"} = "Pileup Simulated Smeared Vertex";
 # pass3 calo
     $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";

@@ -100,7 +100,7 @@ namespace
 //     line_fit(points, a, b);
 //   }
 
-  void CircleFitByTaubin ( const std::vector<Acts::Vector3F>& points, double &R, double &X0, double &Y0)
+  void CircleFitByTaubin ( const std::vector<Acts::Vector3>& points, double &R, double &X0, double &Y0)
   /*  
   Circle fit to a given set of data points (in 2D)
   This is an algebraic fit, due to Taubin, based on the journal article
@@ -382,7 +382,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-Acts::Vector3D PHSimpleKFProp::getGlobalPosition( TrkrCluster* cluster ) const
+Acts::Vector3 PHSimpleKFProp::getGlobalPosition( TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
   auto globalpos = m_transform.getGlobalPosition(cluster,
@@ -426,8 +426,8 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
         }
       }
 
-      const Acts::Vector3D globalpos_d = getGlobalPosition(cluster);
-      const Acts::Vector3F globalpos = { (float) globalpos_d.x(), (float) globalpos_d.y(), (float) globalpos_d.z()};
+      const Acts::Vector3 globalpos_d = getGlobalPosition(cluster);
+      const Acts::Vector3 globalpos = { (float) globalpos_d.x(), (float) globalpos_d.y(), (float) globalpos_d.z()};
       globalPositions.insert(std::make_pair(cluskey, globalpos));
 
       int layer = TrkrDefs::getLayer(cluskey);
@@ -481,7 +481,7 @@ void PHSimpleKFProp::MoveToFirstTPCCluster( const PositionMap& globalPositions )
       std::vector<TrkrDefs::cluskey> ckeys;
       std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
       
-      std::vector<Acts::Vector3F> trkGlobPos;
+      std::vector<Acts::Vector3> trkGlobPos;
       for(const auto& ckey : ckeys)
       {
         if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId )
@@ -793,7 +793,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
 	  double proj_radius = sqrt(tx*tx+ty*ty);
 	  if(proj_radius > 78.0 || abs(tz) > 105.5) continue;   // projection is bad, no cluster will be found
 
-	  Acts::Vector3D proj_pt(tx,ty,tz);
+	  Acts::Vector3 proj_pt(tx,ty,tz);
 	  if(Verbosity() > 2) 
 	    std::cout << " call distortion correction for layer " << l  << " tx " << tx << " ty " << ty << " tz " << tz << " radius " << proj_radius << std::endl;
 	  proj_pt = m_distortionCorrection.get_corrected_position( proj_pt, m_dcc ); 
@@ -852,7 +852,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
 	  // The distortion corrected cluster positions in globalPos are not at the layer radius
 	  // We want to project to the radius appropriate for the globalPos values
 	  // Get the radius from the nearest associated cluster found above
-	  Acts::Vector3D proj_pt(ccX, ccY, ccZ);
+	  Acts::Vector3 proj_pt(ccX, ccY, ccZ);
 	  double radius = sqrt(proj_pt[0]*proj_pt[0] + proj_pt[1]*proj_pt[1]);
 
 	  // now project the track to that radius
@@ -1019,7 +1019,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
 	  double proj_radius = sqrt(tx*tx+ty*ty);
 	  if(proj_radius > 78.0 || abs(tz) > 105.5) continue;   // projection is bad, no cluster will be found
 
-	  Acts::Vector3D proj_pt(tx,ty,tz);
+	  Acts::Vector3 proj_pt(tx,ty,tz);
 	  if(Verbosity() > 2)
 	    std::cout << " call distortion correction for layer " << l  << " tx " << tx << " ty " << ty << " tz " << tz << " radius " << proj_radius << std::endl;
 	  proj_pt = m_distortionCorrection.get_corrected_position( proj_pt, m_dcc ); 
@@ -1074,7 +1074,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
 	  // The distortion corrected cluster positions in globalPos are not at the layer radius
 	  // We want to project to the radius appropriate for the globalPos values
 	  // Get the radius from the global position of the nearest cluster found above 
-	  Acts::Vector3D proj_pt(ccX, ccY, ccZ);
+	  Acts::Vector3 proj_pt(ccX, ccY, ccZ);
 	  double radius = sqrt(proj_pt[0]*proj_pt[0] + proj_pt[1]*proj_pt[1]);
 
 	  // now project the track to that radius
@@ -1342,7 +1342,7 @@ void PHSimpleKFProp::publishSeeds(const std::vector<SvtxTrack>& seeds)
 // 
 //       // make circle fit 
 //       std::vector<std::pair<double, double>> cpoints;
-//       std::vector<Acts::Vector3F> globalpositions;
+//       std::vector<Acts::Vector3> globalpositions;
 //       ActsTransformations transformer;
 //       for (unsigned int i=0; i<clusters.size(); ++i)
 // 	{

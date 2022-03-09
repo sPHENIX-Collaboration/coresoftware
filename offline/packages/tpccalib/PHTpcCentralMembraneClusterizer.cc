@@ -236,6 +236,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   //==========================
   vector<float>aveenergy;
   vector<TVector3> avepos;
+  vector <unsigned int> nclusters;
     
   for (int i=0;i<nTpcClust;++i)
     {
@@ -261,9 +262,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	      double avePhi = (pos[i].Phi() * energy[i] + pos[i_pair[i]].Phi() * energy[i_pair[i]]) * (1./(energy[i]+energy[i_pair[i]]));	      
 	      double aveZ = (pos[i].Z() * energy[i] + pos[i_pair[i]].Z() * energy[i_pair[i]]) * (1./(energy[i]+energy[i_pair[i]])); 	      
 
-	      // Cannot use single padrow CM flash clusters, R position is not well defined because cluster is smaller than padrow
+	      // Single padrow CM flash clusters, R position is not well defined because cluster is smaller than padrow
 	      // 2-cluster case: Weighting by padrow center radius is not correct because distribution does not fill padrow (needs to be approximately linearly)
-	      // Use ratio of component cluster energies to estimate number of sigmas at row boundary
+	      //      Use ratio of component cluster energies to estimate number of sigmas at row boundary
 	      float efrac = energy[i] / (energy[i] + energy[i_pair[i]]);
 
 	      PHG4CylinderCellGeom *layergeom1 = _geom_container->GetLayerCellGeom(layer[i]);
@@ -286,7 +287,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 
 
 	      // We have to (temporarily) use distortion corrected cluster positions to determine which stripe this came from
-	      Acts::Vector3D dist_pos(pos[i].X(), pos[i].Y(), pos[i].Z());
+	      Acts::Vector3 dist_pos(pos[i].X(), pos[i].Y(), pos[i].Z());
 	      if( _dcc)  dist_pos = _distortionCorrection.get_corrected_position( dist_pos, _dcc ); 
 	      double dist_r = sqrt(dist_pos[0]*dist_pos[0] + dist_pos[1] * dist_pos[1]);
 	      double cmclus_dr = _cmclus_dr_outer; 
@@ -303,6 +304,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	
 	      TVector3 temppos(aveR*cos(avePhi), aveR*sin(avePhi), aveZ);
 	      avepos.push_back(temppos);
+	      nclusters.push_back(2);
 
 	      if(Verbosity() > 0)
 		std::cout << " layer i " << layer[i] << " energy " << energy[i] << " pos i " << pos[i].X() << "  " << pos[i].Y() << "  " << pos[i].Z()
@@ -315,9 +317,10 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       else 
 	{
 	  if(_histos)  hClustE[2]->Fill(energy[i]);
-	  // These single cluster cases do not have a good radius centroid estimate, skip them
-	  //aveenergy.push_back(energy[i]);
-	  //avepos.push_back(pos[i]);
+	  // These single cluster cases have good phi, but do not have a good radius centroid estimate - may want to skip them, record nclusters
+	  aveenergy.push_back(energy[i]);
+	  avepos.push_back(pos[i]);
+	  nclusters.push_back(1);
 	}
     }      
       
@@ -333,6 +336,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       cmfc->setY(avepos[iv].Y());
       cmfc->setZ(avepos[iv].Z());
       cmfc->setAdc(aveenergy[iv]);
+      cmfc->setNclusters(nclusters[iv]);
       
       _corrected_CMcluster_map->addClusterSpecifyKey(iv, cmfc);
       
@@ -349,8 +353,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       auto cmclus = cmitr->second;
 
       if(Verbosity() > 0)
-	std::cout << "found cluster " << cmkey << " with adc " << cmclus->getAdc() 
+	std::cout << "found CM cluster " << cmkey << " with adc " << cmclus->getAdc() 
 		  << " x " << cmclus->getX() << " y " << cmclus->getY() << " z " << cmclus->getZ() 
+		  << " nclusters " << cmclus->getNclusters()
 		  << std::endl; 
 
       if(_histos)

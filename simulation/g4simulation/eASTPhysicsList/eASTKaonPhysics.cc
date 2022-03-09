@@ -1,65 +1,71 @@
-// $Id: $
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//  File:        KaonPhysics.cc                                               //
-//  Description: Kaon hadronic physics constructor for EICPhysicsList         //
-//                                                                            //
-//  Author:      Dennis H. Wright (SLAC)                                      //  
-//  Date:        3 July 2018                                                  //
-//                                                                            //
+//
+//  eASTKaonPhysics.hh
+//  Kaon hadronic physics constructor for eASTPhysicsList
+//
+//    Jun.21.2018 : original implementation - Dennis H. Wright (SLAC)
+//    May.02.2021 : migration to Genat4 version 10.7 - Dennis H. Wright (SLAC)
+//    May.06.2021 : migration to eAST - Makoto Asai (SLAC)
+//    Dec.22.2021 : migration to Geant4 version 11.0 - Makoto Asai (JLab)
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#include "KaonPhysics.hh"
+#include "eASTKaonPhysics.hh"
 
-#include <Geant4/G4ProcessManager.hh>
-#include <Geant4/G4KaonPlusInelasticProcess.hh>
-#include <Geant4/G4KaonMinusInelasticProcess.hh>
-#include <Geant4/G4KaonZeroLInelasticProcess.hh>
-#include <Geant4/G4KaonZeroSInelasticProcess.hh>
-#include <Geant4/G4HadronElasticProcess.hh>
-#include <Geant4/G4HadronicAbsorptionBertini.hh>
+#include "G4ProcessManager.hh"
+#include "G4Version.hh"
+#if G4VERSION_NUMBER < 1100
+#include "G4KaonPlusInelasticProcess.hh"
+#include "G4KaonMinusInelasticProcess.hh"
+#include "G4KaonZeroLInelasticProcess.hh"
+#include "G4KaonZeroSInelasticProcess.hh"
+#else
+#include "G4HadronInelasticProcess.hh"
+#endif
+#include "G4HadronElasticProcess.hh"
+#include "G4HadronicAbsorptionBertini.hh"
 
-#include <Geant4/G4CascadeInterface.hh>
-#include <Geant4/G4TheoFSGenerator.hh>
-#include <Geant4/G4FTFModel.hh>
-#include <Geant4/G4ExcitedStringDecay.hh>
-#include <Geant4/G4LundStringFragmentation.hh>
-#include <Geant4/G4GeneratorPrecompoundInterface.hh>
-#include <Geant4/G4HadronElastic.hh>
+#include "G4CascadeInterface.hh"
+#include "G4TheoFSGenerator.hh"
+#include "G4FTFModel.hh"
+#include "G4ExcitedStringDecay.hh"
+#include "G4LundStringFragmentation.hh"
+#include "G4GeneratorPrecompoundInterface.hh"
+#include "G4HadronElastic.hh"
 
-#include <Geant4/G4ChipsKaonPlusInelasticXS.hh>
-#include <Geant4/G4ChipsKaonMinusInelasticXS.hh>
-#include <Geant4/G4ChipsKaonZeroInelasticXS.hh>
-#include <Geant4/G4CrossSectionPairGG.hh>
-#include <Geant4/G4CrossSectionElastic.hh>
-#include <Geant4/G4ComponentGGHadronNucleusXsc.hh>
-#include <Geant4/G4SystemOfUnits.hh>
+#include "G4ChipsKaonPlusInelasticXS.hh"
+#include "G4ChipsKaonMinusInelasticXS.hh"
+#include "G4ChipsKaonZeroInelasticXS.hh"
+#include "G4CrossSectionElastic.hh"
+#include "G4ComponentGGHadronNucleusXsc.hh"
+#include "G4SystemOfUnits.hh"
 
-
-KaonPhysics::KaonPhysics():
-  ftfp(nullptr),
-  stringModel(nullptr),
-  stringDecay(nullptr),
-  fragModel(nullptr),
-  preCompoundModel(nullptr)
+#if G4VERSION_NUMBER < 1100
+eASTKaonPhysics::eASTKaonPhysics()
 {}
 
-
-KaonPhysics::~KaonPhysics()
+eASTKaonPhysics::~eASTKaonPhysics()
 {
   delete stringDecay;
   delete stringModel;
   delete fragModel;
   delete preCompoundModel;
 }
+#else
+eASTKaonPhysics::eASTKaonPhysics()
+: G4VPhysicsConstructor("eASTKaon")
+{;}
 
+eASTKaonPhysics::~eASTKaonPhysics()
+{;}
+#endif
 
-void KaonPhysics::ConstructParticle()
+void eASTKaonPhysics::ConstructParticle()
 {}
 
 
-void KaonPhysics::ConstructProcess()
+void eASTKaonPhysics::ConstructProcess()
 {
   G4ProcessManager* procMan;
 
@@ -85,12 +91,9 @@ void KaonPhysics::ConstructProcess()
   ftfp->SetMaxEnergy(100*TeV);
 
   // Inelastic cross section sets
-  G4VCrossSectionDataSet* kpCS =
-    new G4CrossSectionPairGG(new G4ChipsKaonPlusInelasticXS, 91*GeV);
-  G4VCrossSectionDataSet* kmCS =
-    new G4CrossSectionPairGG(new G4ChipsKaonMinusInelasticXS, 91*GeV);
-  G4VCrossSectionDataSet* kzCS =
-    new G4CrossSectionPairGG(new G4ChipsKaonZeroInelasticXS, 91*GeV);
+  G4VCrossSectionDataSet* kpCS = new G4ChipsKaonPlusInelasticXS;
+  G4VCrossSectionDataSet* kmCS = new G4ChipsKaonMinusInelasticXS;
+  G4VCrossSectionDataSet* kzCS = new G4ChipsKaonZeroInelasticXS;
 
   // Elastic cross section
   G4VCrossSectionDataSet* kelCS =
@@ -109,7 +112,12 @@ void KaonPhysics::ConstructProcess()
   procMan->AddDiscreteProcess(kpProcEl);
 
   // inelastic 
+#if G4VERSION_NUMBER < 1100
   G4KaonPlusInelasticProcess* kpProcInel = new G4KaonPlusInelasticProcess;
+#else 
+  auto* kpProcInel = new G4HadronInelasticProcess("KaonPlusInelasticProcess",
+                                 G4KaonPlus::KaonPlus() );
+#endif
   kpProcInel->RegisterMe(loInelModel);
   kpProcInel->RegisterMe(ftfp);
   kpProcInel->AddDataSet(kpCS);
@@ -128,7 +136,12 @@ void KaonPhysics::ConstructProcess()
   procMan->AddDiscreteProcess(kmProcEl);
 
   // inelastic
+#if G4VERSION_NUMBER < 1100
   G4KaonMinusInelasticProcess* kmProcInel = new G4KaonMinusInelasticProcess;
+#else
+  auto* kmProcInel = new G4HadronInelasticProcess("KaonMinusInelasticProcess",
+                                 G4KaonMinus::KaonMinus() );
+#endif
   kmProcInel->RegisterMe(loInelModel);
   kmProcInel->RegisterMe(ftfp);
   kmProcInel->AddDataSet(kmCS);
@@ -151,7 +164,12 @@ void KaonPhysics::ConstructProcess()
   procMan->AddDiscreteProcess(k0LProcEl);
 
   // inelastic
+#if G4VERSION_NUMBER < 1100
   G4KaonZeroLInelasticProcess* k0LProcInel = new G4KaonZeroLInelasticProcess;
+#else
+  auto* k0LProcInel = new G4HadronInelasticProcess("Kaon0LongInelasticProcess",
+                                  G4KaonZeroLong::KaonZeroLong() );
+#endif
   k0LProcInel->RegisterMe(loInelModel);
   k0LProcInel->RegisterMe(ftfp);
   k0LProcInel->AddDataSet(kzCS);
@@ -170,9 +188,18 @@ void KaonPhysics::ConstructProcess()
   procMan->AddDiscreteProcess(k0SProcEl);
 
   // inelastic
+#if G4VERSION_NUMBER < 1100
   G4KaonZeroSInelasticProcess* k0SProcInel = new G4KaonZeroSInelasticProcess;
+#else
+  auto* k0SProcInel = new G4HadronInelasticProcess("Kaon0ShortInelasticProcess",
+                                  G4KaonZeroShort::KaonZeroShort() );
+#endif
   k0SProcInel->RegisterMe(loInelModel);
   k0SProcInel->RegisterMe(ftfp);
   k0SProcInel->AddDataSet(kzCS);
   procMan->AddDiscreteProcess(k0SProcInel);
 }
+
+void eASTKaonPhysics::TerminateWorker()
+{}
+

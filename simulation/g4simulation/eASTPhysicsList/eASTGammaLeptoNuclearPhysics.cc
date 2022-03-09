@@ -1,55 +1,63 @@
-// $Id: $
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//  File:        GammaLeptoNuclearPhysics.cc                                  //
-//  Description: Gamma-nuclear, electro-nuclear and muon-nuclear physics      // 
-//                 constructor for EICPhysicsList                             //
-//                                                                            //
-//  Author:      Dennis H. Wright (SLAC)                                      //  
-//  Date:        20 July 2018                                                 //
-//                                                                            //
+//
+//  eASTGammaLeptoNuclearPhysics.cc
+//  Description: Gamma-nuclear, electro-nuclear and muon-nuclear physics
+//                 constructor for eASTPhysicsList
+//
+//    Jun.21.2018 : original implementation - Dennis H. Wright (SLAC)
+//    May.06.2021 : migration to eAST - Makoto Asai (SLAC)
+//    Dec.22.2021 : migration to Geant4 version 11.0 - Makoto Asai (JLab)
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 
-#include "GammaLeptoNuclearPhysics.hh"
+#include "eASTGammaLeptoNuclearPhysics.hh"
 
-#include <Geant4/G4ProcessManager.hh>
-#include <Geant4/G4PhotoNuclearProcess.hh>
-#include <Geant4/G4ElectronNuclearProcess.hh>
-#include <Geant4/G4PositronNuclearProcess.hh>
-#include <Geant4/G4MuonNuclearProcess.hh>
+#include "G4ProcessManager.hh"
+#include "G4Version.hh"
+#if G4VERSION_NUMBER < 1100
+#include "G4PhotoNuclearProcess.hh"
+#else
+#include "G4HadronInelasticProcess.hh"
+#include "G4PhotoNuclearCrossSection.hh"
+#include "G4HadronicProcess.hh"
+#endif
+#include "G4ElectronNuclearProcess.hh"
+#include "G4PositronNuclearProcess.hh"
+#include "G4MuonNuclearProcess.hh"
 
-#include <Geant4/G4CascadeInterface.hh>
-#include <Geant4/G4ElectroVDNuclearModel.hh>
-#include <Geant4/G4MuonVDNuclearModel.hh>
+#include "G4CascadeInterface.hh"
+#include "G4ElectroVDNuclearModel.hh"
+#include "G4MuonVDNuclearModel.hh"
 
-#include <Geant4/G4TheoFSGenerator.hh>
-#include <Geant4/G4ExcitedStringDecay.hh>
-#include <Geant4/G4QGSMFragmentation.hh>
-#include <Geant4/G4GeneratorPrecompoundInterface.hh>
+#include "G4TheoFSGenerator.hh"
+#include "G4ExcitedStringDecay.hh"
+#include "G4QGSMFragmentation.hh"
+#include "G4GeneratorPrecompoundInterface.hh"
 
-#include <Geant4/G4SystemOfUnits.hh>
+#include "G4SystemOfUnits.hh"
 
-
-GammaLeptoNuclearPhysics::GammaLeptoNuclearPhysics():
-  qgsp(nullptr),
-  stringModel(nullptr),
-  stringDecay(nullptr),
-  fragModel(nullptr),
-  preCompoundModel(nullptr)
+#if G4VERSION_NUMBER < 1100
+eASTGammaLeptoNuclearPhysics::eASTGammaLeptoNuclearPhysics()
 {}
 
-
-GammaLeptoNuclearPhysics::~GammaLeptoNuclearPhysics()
+eASTGammaLeptoNuclearPhysics::~eASTGammaLeptoNuclearPhysics()
 {
   delete stringDecay;
   delete stringModel;
   delete fragModel;
   delete preCompoundModel;
 }
+#else
+eASTGammaLeptoNuclearPhysics::eASTGammaLeptoNuclearPhysics()
+: G4VPhysicsConstructor("eASTGammaLeptoNuclear")
+{;}
 
+eASTGammaLeptoNuclearPhysics::~eASTGammaLeptoNuclearPhysics()
+{;}
+#endif
 
-void GammaLeptoNuclearPhysics::ConstructProcess()
+void eASTGammaLeptoNuclearPhysics::ConstructProcess()
 {
   // Use Bertini cascade for low energies
   G4CascadeInterface* theGammaReaction = new G4CascadeInterface;
@@ -78,10 +86,23 @@ void GammaLeptoNuclearPhysics::ConstructProcess()
 
   // Gamma
   procMan = G4Gamma::Gamma()->GetProcessManager();
+#if G4VERSION_NUMBER < 1100
   G4PhotoNuclearProcess* pnProc = new G4PhotoNuclearProcess;
+#else
+  auto* pnProc = new G4HadronInelasticProcess("PhotoNuclearProcess",
+                             G4Gamma::Gamma() );
+  pnProc->AddDataSet(new G4PhotoNuclearCrossSection);
+#endif
   pnProc->RegisterMe(theGammaReaction);
   pnProc->RegisterMe(qgsp);
   procMan->AddDiscreteProcess(pnProc);
+
+//#if G4VERSION_NUMBER >= 1100
+//  auto* photonCapture = new G4HadronicProcess( "photonNuclear", fCapture );
+//  auto* photonFission = new G4HadronicProcess( "photonFission", fFission );
+//  procMan->AddDiscreteProcess(photonCapture);
+//  procMan->AddDiscreteProcess(photonFission);
+//#endif
 
   // Electron
   procMan = G4Electron::Electron()->GetProcessManager();
@@ -108,6 +129,6 @@ void GammaLeptoNuclearPhysics::ConstructProcess()
 }
 
 
-void GammaLeptoNuclearPhysics::ConstructParticle()
+void eASTGammaLeptoNuclearPhysics::ConstructParticle()
 {}
 

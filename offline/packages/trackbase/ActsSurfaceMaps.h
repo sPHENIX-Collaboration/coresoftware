@@ -25,10 +25,10 @@ struct ActsSurfaceMaps
   ActsSurfaceMaps() = default;
  
   //! true if given surface corresponds to TPC
-  bool isTpcSurface( const Acts::Surface& surface ) const;
+  bool isTpcSurface( const Acts::Surface* surface ) const;
     
   //! true if given surface corresponds to Micromegas
-  bool isMicromegasSurface( const Acts::Surface& surface ) const;
+  bool isMicromegasSurface( const Acts::Surface* surface ) const;
   
   //! map hitset to Surface for the silicon detectors (MVTX and INTT)
   std::map<TrkrDefs::hitsetkey, Surface> siliconSurfaceMap;

@@ -40,24 +40,50 @@ class CMFlashDifferencev1 : public CMFlashDifference
 
   void setKey(unsigned int id) override { m_key = id; }
   unsigned int getKey() const override { return m_key; }
+
+  void setNclusters(unsigned int n) override { m_nclusters = n; }
+  unsigned int getNclusters() const override { return m_nclusters; }
   //
   // difference position
   //
+  float getTruthPhi() const override { return m_Phi[0]; }
+  void setTruthPhi(float phi) override { m_Phi[0] = phi; }
+
+  float getRecoPhi() const override { return m_Phi[1]; }
+  void setRecoPhi(float phi) override { m_Phi[1] = phi; }
+
+  float getTruthR() const override { return m_R[0]; }
+  void setTruthR(float r) override { m_R[0] = r; }
+
+  float getRecoR() const override { return m_R[1]; }
+  void setRecoR(float r) override { m_R[1] = r; }
+
+  float getTruthZ() const override { return m_Z[0]; }
+  void setTruthZ(float z) override { m_Z[0] = z; }
+
+  float getRecoZ() const override { return m_Z[1]; }
+  void setRecoZ(float z) override { m_Z[1] = z; }
+
+
+  /*
   float getTruthX() const override { return m_pos_truth[0]; }
   void setTruthX(float x) override { m_pos_truth[0] = x; }
   float getTruthY() const override { return m_pos_truth[1]; }
   void setTruthY(float y) override { m_pos_truth[1] = y; }
-
   float getRecoX() const override { return m_pos_reco[0]; }
   void setRecoX(float x) override { m_pos_reco[0] = x; }
   float getRecoY() const override { return m_pos_reco[1]; }
   void setRecoY(float y) override { m_pos_reco[1] = y; }
-
+  */
 
  protected:
   unsigned int m_key;
-  float m_pos_truth[2];              //< truth x,y
-  float m_pos_reco[2];               //< reco x,y
+  unsigned int m_nclusters;
+
+  float m_Phi[2];  // (truth, reco)
+  float m_R[2];
+  float m_Z[2];
+
 
 
   ClassDefOverride(CMFlashDifferencev1, 1)
