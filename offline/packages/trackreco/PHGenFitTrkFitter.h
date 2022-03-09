@@ -261,7 +261,7 @@ class PHGenFitTrkFitter : public SubsysReco
    * uses ActsTransformation to convert cluster local position into global coordinates
    * incorporates TPC distortion correction, if present
    */
-  Acts::Vector3D getGlobalPosition(TrkrCluster*);
+  Acts::Vector3 getGlobalPosition(TrkrCluster*);
 
   /*
    * fit track with SvtxTrack as input seed.
@@ -326,7 +326,7 @@ class PHGenFitTrkFitter : public SubsysReco
   ActsSurfaceMaps *m_surfmaps = nullptr;
 
   /// map cluster keys to global position
-  using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3D>;
+  using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
   PositionMap m_globalPositions;
   
   //! Input Node pointers

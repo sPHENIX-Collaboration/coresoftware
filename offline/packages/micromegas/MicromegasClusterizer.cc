@@ -19,7 +19,7 @@
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase_historic/ActsTransformations.h>
 
-#include <Acts/Utilities/Units.hpp>
+#include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -52,14 +52,14 @@ namespace
     inline constexpr T square( const T& x ) { return x*x; }
 
   // streamers
-  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector3D& vector )
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector3& vector )
   {
     out << "( " << vector[0] << "," << vector[1] << "," << vector[2] << ")";
     return out;
   }
 
   // streamers
-  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector2D& vector )
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector2& vector )
   {
     out << "( " << vector[0] << "," << vector[1] << ")";
     return out;
@@ -363,7 +363,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
        */
       {
         const auto world_coordinates = layergeom->get_world_from_local_coords( tileid, local_coordinates);
-        const Acts::Vector3D world_coordinates_acts = {
+        const Acts::Vector3 world_coordinates_acts = {
           world_coordinates.x()*Acts::UnitConstants::cm,
           world_coordinates.y()*Acts::UnitConstants::cm,
           world_coordinates.z()*Acts::UnitConstants::cm };

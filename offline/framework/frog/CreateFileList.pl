@@ -403,7 +403,7 @@ sub commonfiletypes
     $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD G4Hits";
     $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
     $filetypes{"DST_TRKR_G4HIT"} = "Pileup Tracking Detector G4 Hits";
-    $filetypes{"DST_TRUTH_G4HIT"} = "Pileup Truth info";
+    $filetypes{"DST_TRUTH_G4HIT"} = "temporary Pileup Truth info, use DST_TRUTH";
     $filetypes{"DST_VERTEX"} = "Pileup Simulated Smeared Vertex";
 # pass3 calo
     $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";

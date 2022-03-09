@@ -306,7 +306,7 @@ void TpcSpaceChargeReconstruction::create_histograms()
 }
 
 //_________________________________________________________________________________
-Acts::Vector3D TpcSpaceChargeReconstruction::get_global_position( TrkrCluster* cluster )
+Acts::Vector3 TpcSpaceChargeReconstruction::get_global_position( TrkrCluster* cluster )
 {
 
   // get cluster key

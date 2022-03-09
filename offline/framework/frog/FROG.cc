@@ -325,7 +325,7 @@ bool FROG::MinIOSearch(const std::string &lname)
       exit(1);
 
     }
-    pfn.replace(pfn.begin(),pfn.begin()+toreplace.size(),"s3://dcsphst004.rcf.bnl.gov:9000");
+    pfn.replace(pfn.begin(),pfn.begin()+toreplace.size(),"s3://sphenixs3.rcf.bnl.gov:9000");
     bret = true;
   }
   delete rs;

@@ -7,7 +7,7 @@
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
 
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Propagator/Propagator.hpp>
 #include <Acts/Utilities/Result.hpp>
 
@@ -22,11 +22,6 @@ class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
-
-namespace ActsExamples
-{
-  class TrkrClusterSourceLink;
-}
 
 #include <memory>
 class TFile;
@@ -81,7 +76,6 @@ class PHTpcResiduals : public SubsysReco
   
  private:
 
-  using SourceLink = ActsExamples::TrkrClusterSourceLink;
   using BoundTrackParamPtr = 
     std::unique_ptr<const Acts::BoundTrackParameters>;
   
@@ -106,21 +100,20 @@ class PHTpcResiduals : public SubsysReco
   /// a TPC surface
   void calculateTpcResiduals(const Acts::BoundTrackParameters& params, TrkrCluster* cluster);
         
+
   /** \brief 
    * Propagates the silicon+MM track fit to the surface on which
    * an available source link in the TPC exists, added from the stub
    * matching propagation
    * returns the path lenght and the resulting parameters
    */
-  ExtrapolationResult propagateTrackState( const Acts::BoundTrackParameters& params, const SourceLink& sl ) const;
+  ExtrapolationResult propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surf ) const;
 
   /// Gets distortion cell for identifying bins in TPC
-  int getCell(const Acts::Vector3D& loc) const;
-  
+  int getCell(const Acts::Vector3& loc);
+
   void makeHistograms();
-  
-  SourceLink makeSourceLink(TrkrCluster* cluster) const;
-  
+    
   //! create ACTS track parameters from Svtx track
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack* ) const;
   

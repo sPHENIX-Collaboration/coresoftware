@@ -7,11 +7,12 @@
 
 /// Acts includes to create all necessary definitions
 #include <Acts/Utilities/BinnedArray.hpp>
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
+#include <ActsExamples/EventData/Trajectories.hpp>
 
-#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
+#include "SvtxTrack.h"
 
 /// std (and the like) includes
 #include <cmath>
@@ -23,9 +24,6 @@
 class SvtxTrack;
 class SvtxTrackState;
 class TrkrCluster;
-
-using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
-
 
 /**
  * This is a helper class for rotating track covariance matrices to and from
@@ -55,7 +53,7 @@ class ActsTransformations
 
           /// Same as above, but rotate from Acts basis to global (x,y,z,px,py,pz)
   Acts::BoundSymMatrix rotateActsCovToSvtxTrack(
-                       const Acts::BoundTrackParameters params,
+                       const ActsExamples::TrackParameters params,
 		       Acts::GeometryContext geoCtxt) const;
 
   void setVerbosity(int verbosity) {m_verbosity = verbosity;}
@@ -64,8 +62,8 @@ class ActsTransformations
 
   /// Calculate the DCA for a given Acts fitted track parameters and 
   /// vertex
-  void calculateDCA(const Acts::BoundTrackParameters param,
-		    Acts::Vector3D vertex,
+  void calculateDCA(const ActsExamples::TrackParameters param,
+		    Acts::Vector3 vertex,
 		    Acts::BoundSymMatrix cov,
 		    Acts::GeometryContext geoCtxt,
 		    float &dca3Dxy,
@@ -73,18 +71,18 @@ class ActsTransformations
 		    float &dca3DxyCov,
 		    float &dca3DzCov) const;
 
-  void fillSvtxTrackStates(const Trajectory& traj, 
-			   const size_t &trackTip,
+  void fillSvtxTrackStates(const Acts::MultiTrajectory& traj, 
+			   const size_t& trackTip,
 			   SvtxTrack *svtxTrack,
-			   Acts::GeometryContext geoContext) const;
+			   Acts::GeometryContext& geoContext) const;
   
-  Acts::Vector3F getGlobalPositionF(TrkrCluster* cluster,
-				    ActsSurfaceMaps* surfMaps,
-				    ActsTrackingGeometry *tGeometry) const;
+  Eigen::Matrix<float,3,1> getGlobalPositionF(TrkrCluster* cluster,
+					      ActsSurfaceMaps* surfMaps,
+					      ActsTrackingGeometry *tGeometry) const;
 
-  Acts::Vector3D getGlobalPosition(TrkrCluster* cluster,
-				   ActsSurfaceMaps* surfMaps,
-				   ActsTrackingGeometry *tGeometry) const;
+  Acts::Vector3 getGlobalPosition(TrkrCluster* cluster,
+				  ActsSurfaceMaps* surfMaps,
+				  ActsTrackingGeometry *tGeometry) const;
 
   Surface getSurface(TrkrCluster* cluster,
 		     ActsSurfaceMaps* surfMaps) const;
