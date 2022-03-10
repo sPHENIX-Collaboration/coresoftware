@@ -53,6 +53,16 @@ class PHActsTrackProjection : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
   
+  /// Set an arbitrary radius to project to, in cm
+  void setLayerRadius(SvtxTrack::CAL_LAYER layer,
+		      const float rad) { 
+
+    if(m_caloRadii.find(layer) != m_caloRadii.end())
+      m_caloRadii[layer] = rad;
+    else
+      m_caloRadii.insert(std::make_pair(layer, rad));
+  }
+
  private:
   
   int getNodes(PHCompositeNode *topNode);
@@ -101,13 +111,17 @@ class PHActsTrackProjection : public SubsysReco
   std::vector<std::string> m_caloNames;
   std::vector<SvtxTrack::CAL_LAYER> m_caloTypes;
   std::map<std::string, SurfacePtr> m_caloSurfaces;
-  
+  /// An optional map that allows projection to an arbitrary radius
+  /// Results are written to the SvtxTrack based on the provided CAL_LAYER
+  std::map<SvtxTrack::CAL_LAYER, float> m_caloRadii;
+
   RawTowerGeomContainer *m_towerGeomContainer = nullptr;
   RawTowerContainer *m_towerContainer = nullptr;
   RawClusterContainer *m_clusterContainer = nullptr;
 
   bool m_useCemcPosRecalib = false;
 
+  
   int m_event = 0;
 };
 
