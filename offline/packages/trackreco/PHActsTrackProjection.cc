@@ -402,8 +402,15 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
       if(setCaloContainerNodes(topNode, caloLayer) != Fun4AllReturnCodes::EVENT_OK)
 	return Fun4AllReturnCodes::ABORTEVENT;
       
-      const auto caloRadius = m_towerGeomContainer->get_radius() 
+      /// Default to using calo radius
+      double caloRadius = m_towerGeomContainer->get_radius() 
 	* Acts::UnitConstants::cm;
+      if(m_caloRadii.find(m_caloTypes.at(caloLayer)) != m_caloRadii.end())
+	{ 
+	  caloRadius = m_caloRadii.find(m_caloTypes.at(caloLayer))->second
+	    * Acts::UnitConstants::cm; 
+	}
+    
       /// Extend farther so that there is at least surface there, for high
       /// curling tracks. Can always reject later
       const auto eta = 2.5;
