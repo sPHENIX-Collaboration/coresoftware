@@ -133,7 +133,7 @@ class PHActsTrkFitter : public SubsysReco
   Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey) const;
   Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey) const;
 
-  Acts::BoundSymMatrix setDefaultCovariance(const float p) const;
+  Acts::BoundSymMatrix setDefaultCovariance() const;
   void printTrackSeed(const SvtxTrack* seed) const;
 
   /// Event counter
