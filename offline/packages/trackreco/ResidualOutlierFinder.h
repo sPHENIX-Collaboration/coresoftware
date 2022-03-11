@@ -4,11 +4,14 @@
 #include <Acts/EventData/Measurement.hpp>
 #include <Acts/EventData/MeasurementHelpers.hpp>
 
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsSurfaceMaps.h>
+
 
 struct ResidualOutlierFinder {
   int verbosity = 0;
-  std::vector<std::pair<long unsigned int, double>> chi2Cuts;
-
+  std::map<long unsigned int, float> chi2Cuts;
  
   bool operator()(Acts::MultiTrajectory::ConstTrackStateProxy state) const {
     // can't determine an outlier w/o a measurement or predicted parameters
@@ -18,7 +21,7 @@ struct ResidualOutlierFinder {
 
     const auto predicted = state.predicted();
     const auto predictedCovariance = state.predictedCovariance();
-    double chi2 = std::numeric_limits<double>::max();
+    double chi2 = std::numeric_limits<float>::max();
     
     Acts::visit_measurement(state.calibrated(), state.calibratedCovariance(),
 			    state.calibratedSize(), 
@@ -47,24 +50,19 @@ struct ResidualOutlierFinder {
 
 
     bool outlier = false;
-    for(auto& [vol, chi2cut] : chi2Cuts) 
+    float chi2cut = chi2Cuts.find(volume)->second;
+    if(chi2 > chi2cut)
+      { outlier = true; }
+
+    if(verbosity > 2)
       {
-	if(verbosity > -1)
-	  {
-	    std::cout << "Meas vol id and layer " << volume << ", " << layer 
-		      << " checking for volume " << vol << " and chi2cut "
-		      << chi2cut << std::endl;
-	  
-	  }
-
-	if(volume == vol and chi2 > chi2cut)
-	  {
-	    outlier = true;
-	  }
+	std::cout << "Meas vol id and layer " << volume << ", " << layer 
+		  << " and chi2cut "
+		  << chi2cut << " so returning outlier : " << outlier
+		  << std::endl;
       }
-
+    
     return outlier;
-  
   }
 };
 
