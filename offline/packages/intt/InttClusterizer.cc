@@ -401,7 +401,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	unsigned int clus_adc = 0.0;
 	unsigned nhits = 0;
 	//	float timesum = 0;
-	
+
+	std::cout << PHWHERE << " ckey " << ckey << ":" << std::endl;	
 	for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
 	  {
 	    // mapiter->second.first  is the hit key
@@ -420,6 +421,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    float dcrossing = round(hit_time / dtbunch);
 	    short int crossing = (short int) (dcrossing); 
 
+	    std::cout << PHWHERE <<  "                 hit time " << hit_time << " crossing " << crossing << std::endl;
 	    // Add clusterkey/bunch crossing to mmap
 	    m_clustercrossingassoc->addAssoc(ckey, crossing);
 
@@ -523,7 +525,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
     }
 
   std::cout << " Cluster-crossing associations are:" << std::endl;
-  m_clustercrossingassoc->identify();  
+  //  m_clustercrossingassoc->identify();  
   
   return;
 }

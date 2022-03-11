@@ -17,6 +17,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <micromegas/MicromegasDefs.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -225,6 +226,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 			     track->get_py(), 
 			     track->get_pz());
 
+      // z value of track is from silicon stub, so it is independent of bunch crossing
       Acts::Vector3 position(track->get_x() * Acts::UnitConstants::cm,
 			     track->get_y() * Acts::UnitConstants::cm,
 			     track->get_z() * Acts::UnitConstants::cm);
@@ -422,6 +424,12 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 {
 
   SourceLinkVec sourcelinks;
+
+  short int crossing = track->get_crossing();
+  if(crossing == SHRT_MAX) return sourcelinks;
+
+  std::cout << "Track " << track->get_id() << " crossing " << crossing << std::endl; 
+
   int iter = 0;
   for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
        clusIter != track->end_cluster_keys();
@@ -442,10 +450,19 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
       auto surf = getSurface(key, subsurfkey);
       if(!surf)
 	continue;
-  
+
+
+      float z = cluster->getLocalY();
+      unsigned int trkrid = TrkrDefs::getTrkrId(key);
+      if(trkrid ==  TrkrDefs::tpcId)
+	{
+	  z = m_clusterCrossingCorrection->correctZ(z, crossing);
+	}
+      
       Acts::ActsVector<2> loc;
       loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
-      loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
+      //loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
+      loc[Acts::eBoundLoc1] = z * Acts::UnitConstants::cm;
       std::array<Acts::BoundIndices,2> indices;
       indices[0] = Acts::BoundIndices::eBoundLoc0;
       indices[1] = Acts::BoundIndices::eBoundLoc1;

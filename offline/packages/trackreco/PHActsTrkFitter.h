@@ -41,6 +41,7 @@ class SvtxTrack;
 class SvtxTrackMap;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
+class TpcClusterZCrossingCorrection;
 
 using SourceLink = ActsExamples::IndexSourceLink;
 using FitResult = Acts::KalmanFitterResult;
@@ -167,6 +168,8 @@ class PHActsTrkFitter : public SubsysReco
   bool m_actsEvaluator = false;
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
   SvtxTrackMap *m_seedTracks = nullptr;
+
+  TpcClusterZCrossingCorrection *m_clusterCrossingCorrection = nullptr;
 
   std::string m_fieldMap = "";
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
