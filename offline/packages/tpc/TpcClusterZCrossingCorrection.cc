@@ -14,8 +14,7 @@ float TpcClusterZCrossingCorrection::correctZ(float zinit, short int crossing)
 {
   if(crossing == SHRT_MAX) return NAN;
 
-  double vdrift = 8.00;  // cm /microsecond
-  double z_bunch_separation = 0.1064 * vdrift;  // 106.4 ns bunch crossing interval
+  float z_bunch_separation = _time_between_crossings * _vdrift;  
 
   // assume measured z is in the correct TPC side
   // negative crossings/times are in the past
@@ -28,7 +27,7 @@ float TpcClusterZCrossingCorrection::correctZ(float zinit, short int crossing)
   else
     corrected_z = zinit + (float) crossing * z_bunch_separation;  
     
-  std::cout << "         crossing " << crossing << " zinit " << zinit << " corrected_z " << corrected_z << std::endl;
+  //std::cout << "         crossing " << crossing << " zinit " << zinit << " corrected_z " << corrected_z << std::endl;
 
   return corrected_z;
 }

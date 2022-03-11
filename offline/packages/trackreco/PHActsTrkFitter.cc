@@ -17,7 +17,6 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <micromegas/MicromegasDefs.h>
-#include <tpc/TpcClusterZCrossingCorrection.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -456,7 +455,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
       unsigned int trkrid = TrkrDefs::getTrkrId(key);
       if(trkrid ==  TrkrDefs::tpcId)
 	{
-	  z = m_clusterCrossingCorrection->correctZ(z, crossing);
+	  z = m_clusterCrossingCorrection.correctZ(z, crossing);
 	}
       
       Acts::ActsVector<2> loc;

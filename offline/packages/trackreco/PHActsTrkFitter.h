@@ -14,6 +14,8 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsSurfaceMaps.h>
 
+#include <tpc/TpcClusterZCrossingCorrection.h>
+
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
@@ -41,7 +43,6 @@ class SvtxTrack;
 class SvtxTrackMap;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
-class TpcClusterZCrossingCorrection;
 
 using SourceLink = ActsExamples::IndexSourceLink;
 using FitResult = Acts::KalmanFitterResult;
@@ -169,7 +170,7 @@ class PHActsTrkFitter : public SubsysReco
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
   SvtxTrackMap *m_seedTracks = nullptr;
 
-  TpcClusterZCrossingCorrection *m_clusterCrossingCorrection = nullptr;
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
   std::string m_fieldMap = "";
   TrkrClusterIterationMapv1* _iteration_map = nullptr;

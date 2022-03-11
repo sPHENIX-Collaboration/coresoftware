@@ -206,7 +206,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
       // only crossing zero has been added to the tpc_matches map, just add silicon clusters
       addSiliconClusters(tpc_matches);
 
-      // add the crossing to the combined track
+      // add the crossing number (0 in this case) to the combined track
       addTrackBunchCrossing(tpc_matches);	  
     }
 
@@ -328,7 +328,7 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_mismatch )
 {
   double vdrift = 8.00;  // cm /microsecond
-  double z_bunch_separation = 0.107 * vdrift;  // 107 ns bunch crossing interval
+  double z_bunch_separation = 0.106 * vdrift;  // 106 ns bunch crossing interval, as in pileup generator
 
   // The sign of z_mismatch will depend on which side of the TPC the tracklet is in
   SvtxTrack *track = _track_map->get(trid);
