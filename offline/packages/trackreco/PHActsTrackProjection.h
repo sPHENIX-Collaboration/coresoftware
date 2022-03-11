@@ -121,6 +121,7 @@ class PHActsTrackProjection : public SubsysReco
 
   bool m_useCemcPosRecalib = false;
 
+  bool m_calosAvailable = true;
   
   int m_event = 0;
 };
