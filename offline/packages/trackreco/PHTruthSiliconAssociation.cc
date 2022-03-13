@@ -285,7 +285,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
       std::vector<short int > intt_crossings = getInttCrossings(track);
       if(intt_crossings.size() == 0) 
 	{
-	  std::cout << " Silicon track " << track->get_id() << " has no INTT clusters" << std::endl;
+	  if(Verbosity() > 1) std::cout << " Silicon track " << track->get_id() << " has no INTT clusters" << std::endl;
 	  continue ;
 	}
 
@@ -295,15 +295,16 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 	{	  
 	  if(intt_crossings[ic] != crossing_keep)
 	    {
-	      std::cout << " INTT crossings not all the same for track " << track->get_id() << " crossing_keep " 
-			<< crossing_keep << " new crossing " << intt_crossings[ic] << "- dropping this match " << std::endl;
+	      if(Verbosity() > 1) 
+		std::cout << " INTT crossings not all the same for track " << track->get_id() << " crossing_keep " 
+			  << crossing_keep << " new crossing " << intt_crossings[ic] << "- dropping this match " << std::endl;
 	      keep_it = false;	      
 	    }
 	}
       if(keep_it)
 	{            
 	  track->set_crossing(crossing_keep);
-	  std::cout << "                    Combined track " << track->get_id()  << " bunch crossing " << crossing_keep  << std::endl;           
+	  if(Verbosity() > 1) std::cout << "                    Combined track " << track->get_id()  << " bunch crossing " << crossing_keep  << std::endl;           
 	}
     }
   

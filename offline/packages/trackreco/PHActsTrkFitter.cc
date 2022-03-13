@@ -427,7 +427,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
   short int crossing = track->get_crossing();
   if(crossing == SHRT_MAX) return sourcelinks;
 
-  std::cout << "Track " << track->get_id() << " crossing " << crossing << std::endl; 
+  if(Verbosity() > 3) std::cout << "Track " << track->get_id() << " crossing " << crossing << std::endl; 
 
   int iter = 0;
   for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();

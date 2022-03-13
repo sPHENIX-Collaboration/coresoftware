@@ -73,7 +73,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
 			     std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map );
   void getCrossingNumber( std::vector<double> &vertex_list,
 			    std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map, 
-			    std::map<unsigned int, double> &vertex_crossings_map);
+			    std::map<unsigned int, short int> &vertex_crossings_map);
   void getSiVertexList( std::multimap<double, std::pair<unsigned int, unsigned int>> &si_sorted_map,
 			  std::vector<double> &vertex_list,
 			  std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);
@@ -87,7 +87,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
 			 std::set<short int> &crossing_set,
 			 std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
 			 std::map<unsigned int, short int> &tpc_crossing_map );
-  void cleanVertexMap( std::map<unsigned int, double> &vertex_crossings_map,
+  void cleanVertexMap( std::map<unsigned int, short int> &vertex_crossings_map,
 		       std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map,
 		       std::map<unsigned int, short int> &tpc_crossing_map );
    void copySiliconClustersToCorrectedMap( );
@@ -98,7 +98,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
 			       std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
 			       std::map<unsigned int, short int> &tpc_crossing_map );
    void addTrackBunchCrossing(
-						   std::map<unsigned int, double> &vertex_crossings_map,
+						   std::map<unsigned int, short int> &vertex_crossings_map,
 						   std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);	  
    void addTrackBunchCrossing(std::multimap<unsigned int, unsigned int> &tpc_matches);	  
    void addTrackBunchCrossing( std::map<unsigned int, short int> &tpc_crossing_map);	  
