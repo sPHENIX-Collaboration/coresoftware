@@ -17,7 +17,6 @@
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
@@ -33,9 +32,9 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
-#include <map>
 #include <sstream>
 
+class G4Material;
 class G4VSolid;
 class PHCompositeNode;
 
