@@ -17,15 +17,11 @@
 #include <TSystem.h>
 
 // Root headers
-#include <TAxis.h>                             // for TAxis
 #include <TH2.h>
-#include <TH2F.h>
-#include <TNamed.h>                            // for TNamed
 #include <TSystem.h>
 #include <TFile.h>
 
 #include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
-#include <Geant4/G4PropagatorInField.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4StepPoint.hh>               // for G4StepPoint
@@ -41,7 +37,6 @@
 #include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
 #include <Geant4/G4VTouchable.hh>              // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
-#include <Geant4/G4Transform3D.hh>
 
 #include <cmath>                               // for isfinite
 #include <iostream>
@@ -51,9 +46,9 @@
 
 class PHCompositeNode;
 
-using namespace std;
+//using namespace std;
 
-TH2F *mapCorr = NULL;
+TH2F *mapCorr = nullptr;
 //____________________________________________________________________________..
 PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
@@ -102,7 +97,7 @@ int PHG4InnerHcalSteppingAction::Init()
  }
  
   ihcalmapname << "/HCALIN/tilemap/iHCALMapsNorm020922.root";
-  TFile *file = new TFile(ihcalmapname.str().data());
+  TFile *file = new TFile(ihcalmapname.str().c_str());
   mapCorr = (TH2F *)file->Get("ihcalmapcombined");
   if(!mapCorr){
     std::cout << "ERROR: mapCorr is NULL" << std::endl;
@@ -137,11 +132,11 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   int tower_id = -1;
   if (whichactive > 0)  // scintillator
   {
-    pair<int, int> layer_tower = m_Detector->GetLayerTowerId(volume);
+    std::pair<int, int> layer_tower = m_Detector->GetLayerTowerId(volume);
     layer_id = layer_tower.first;
     tower_id = layer_tower.second;
-    // cout << "name " << volume->GetName() << ", mid: " << layer_id
-    //  	   << ", twr: " << tower_id << endl;
+    // std::cout << "name " << volume->GetName() << ", mid: " << layer_id
+    //  	   << ", twr: " << tower_id << std::endl;
   }
   else
   {
@@ -170,15 +165,15 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // an expensive string compare for every track when we know
     // geantino or chargedgeantino has pid=0
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
     G4StepPoint* prePoint = aStep->GetPreStepPoint();
     G4StepPoint* postPoint = aStep->GetPostStepPoint();
-    //       cout << "track id " << aTrack->GetTrackID() << endl;
-    //       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
-    //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+    //       std::cout << "track id " << aTrack->GetTrackID() << std::endl;
+    //       std::cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
+    //       std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
     switch (prePoint->GetStepStatus())
     {
     case fPostStepDoItProc:
@@ -188,17 +183,17 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       }
       else
       {
-        cout << GetName() << ": New Hit for  " << endl;
-        cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+        std::cout << GetName() << ": New Hit for  " << std::endl;
+        std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
              << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
              << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-             << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
-        cout << "last track: " << m_SaveTrackId
-             << ", current trackid: " << aTrack->GetTrackID() << endl;
-        cout << "phys pre vol: " << volume->GetName()
-             << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-        cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-             << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
+             << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+        std::cout << "last track: " << m_SaveTrackId
+             << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+        std::cout << "phys pre vol: " << volume->GetName()
+             << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+        std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+             << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
       }
       [[fallthrough]];
     case fGeomBoundary:
@@ -249,28 +244,28 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // check if this hit was created, if not print out last post step status
     if (!m_Hit || !isfinite(m_Hit->get_x(0)))
     {
-      cout << GetName() << ": hit was not created" << endl;
-      cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+      std::cout << GetName() << ": hit was not created" << std::endl;
+      std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
            << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
            << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
-      cout << "last track: " << m_SaveTrackId
-           << ", current trackid: " << aTrack->GetTrackID() << endl;
-      cout << "phys pre vol: " << volume->GetName()
-           << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-      cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-           << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
+           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+      std::cout << "last track: " << m_SaveTrackId
+           << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+      std::cout << "phys pre vol: " << volume->GetName()
+           << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+      std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+           << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
       gSystem->Exit(1);
     }
     // check if track id matches the initial one when the hit was created
     if (aTrack->GetTrackID() != m_SaveTrackId)
     {
-      cout << GetName() << ": hits do not belong to the same track" << endl;
-      cout << "saved track: " << m_SaveTrackId
+      std::cout << GetName() << ": hits do not belong to the same track" << std::endl;
+      std::cout << "saved track: " << m_SaveTrackId
            << ", current trackid: " << aTrack->GetTrackID()
            << ", prestep status: " << prePoint->GetStepStatus()
            << ", previous post step status: " << m_SavePostStepStatus
-           << endl;
+           << std::endl;
 
       gSystem->Exit(1);
     }
@@ -387,8 +382,8 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
+  std::string hitnodename;
+  std::string absorbernodename;
   if (m_Detector->SuperDetector() != "NONE")
   {
     hitnodename = "G4HIT_" + m_Detector->SuperDetector();
@@ -413,7 +408,7 @@ void PHG4InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   {
     if (Verbosity() > 1)
     {
-      cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+      std::cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << std::endl;
     }
   }
 }
