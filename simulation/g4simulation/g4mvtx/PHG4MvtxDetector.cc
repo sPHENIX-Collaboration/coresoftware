@@ -62,7 +62,7 @@ namespace mvtxGeomDef
   double mvtx_shell_length                  = 46.  * cm;
   double mvtx_shell_thickness =  skin_thickness + foam_core_thickness + skin_thickness;
 
-  double wrap_rmin = 2.1 * cm;
+  double wrap_rmin = 2.2 * cm;
   double wrap_rmax = mvtx_shell_inner_radius + mvtx_shell_thickness + 0.8 * cm;
   double wrap_zlen = mvtx_shell_length;
 }
@@ -184,10 +184,11 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
          << "PHG4MvtxDetector::Construct called for Mvtx " << endl;
   }
 
-  const G4double zPlane[] = {-160*cm, -41*cm, -35*cm, -33*cm, -30*cm, -23.5*cm, mvtxGeomDef::wrap_zlen / 2.0};
-  const G4double rInner[] = {8*cm, 8*cm, 4.0*cm, 4.0*cm, 3*cm, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin};
-  const G4double rOuter[] = {11.5*cm, 11.5*cm, 11.5*cm, 11.5*cm, 11.5*cm, mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_rmax};
-  G4int numZPlanes = sizeof(zPlane) / sizeof(zPlane[0]);
+  const G4double rMax = (10.330 + 0.436 + 0.1)*cm;
+  const G4int numZPlanes = 4;
+  const G4double zPlane[numZPlanes] = {-160*cm, -30*cm, -23.5*cm, mvtxGeomDef::wrap_zlen / 2.0};
+  const G4double rInner[numZPlanes] = {mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin};
+  const G4double rOuter[numZPlanes] = {rMax, rMax, mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_rmax};
   auto polycone = new G4Polycone("sol_MVTX_Wrapper", 0, 2.0 * M_PI, numZPlanes, zPlane, rInner, rOuter);
   auto world_mat = logicWorld->GetMaterial();
   auto logicMVTX = new G4LogicalVolume(polycone, world_mat, "log_MVTX_Wrapper");
@@ -197,8 +198,6 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
   // this reads in the ITS stave geometry from a file and constructs the layer from it
   ConstructMvtx(logicMVTX);
   ConstructMvtxPassiveVol(logicMVTX);
-  PHG4MvtxSupport *mvtxSupportSystem = new PHG4MvtxSupport(m_DisplayAction);
-  mvtxSupportSystem->ConstructMvtxSupport(logicMVTX); 
 
   AddGeometryNode();
   return;
@@ -335,8 +334,7 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
     }
     G4Transform3D Tr(Ra, Ta);
 
-    bool makeImprint = true;
-    if (makeImprint) av_ITSUStave->MakeImprint(trackerenvelope, Tr, 0, OverlapCheck());
+    av_ITSUStave->MakeImprint(trackerenvelope, Tr, 0, OverlapCheck());
   }
 
   if (Verbosity() > 0)
@@ -388,6 +386,9 @@ int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume*& lv)
     G4AssemblyVolume* av_EW_N = reader->GetAssembly("EndWheelsSideC");
     av_EW_N->MakeImprint(lv, TrN, 0, OverlapCheck());
   }
+  //Now construct service barrel, CYSS, cones and cables
+  PHG4MvtxSupport *mvtxSupportSystem = new PHG4MvtxSupport(m_DisplayAction);
+  mvtxSupportSystem->ConstructMvtxSupport(lv); 
   
   return 0;
 }

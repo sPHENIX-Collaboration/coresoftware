@@ -1,8 +1,8 @@
 #include "PHG4MvtxSupport.h"
 
-#include "Cable.h"
+#include "PHG4MvtxCable.h"
 #include "PHG4MvtxDefs.h"
-#include "ServiceStructure.h"
+#include "PHG4MvtxServiceStructure.h"
 
 #include <boost/format.hpp>
 #include <Geant4/G4SystemOfUnits.hh>
@@ -23,7 +23,6 @@ namespace ServiceProperties
   float CYSSConeThickness = 0.216;
   float CYSSRibThickness = 0.170;
   float cableRotate[3] = {10., 5., 5.}; //Rotate the cables to line up with the staves
-  //float cm = 10.;
   float radToDeg = 180.0 / M_PI;
   float degToRad = 1./radToDeg;
 }  // namespace PHG4MvtxDefs
@@ -47,7 +46,7 @@ PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDisplayAction* dispAct)
   : m_DisplayAction(dispAct)
 {}
 
-std::vector<float> PHG4MvtxSupport::get_thickness(ServiceStructure *object)
+std::vector<float> PHG4MvtxSupport::get_thickness(PHG4MvtxServiceStructure *object)
 {
   std::vector<float> thickness = {object->get_thickness_copper(), object->get_thickness_carbon(), object->get_thickness_plastic()};
   return thickness;
@@ -77,7 +76,7 @@ G4Material *PHG4MvtxSupport::supportMaterial()
   return G4_mat;
 }
 
-void PHG4MvtxSupport::TrackingServiceCone(ServiceStructure *object, G4AssemblyVolume &assemblyVolume)
+void PHG4MvtxSupport::TrackingServiceCone(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume)
 {
   float length = std::abs(object->get_zNorth() - object->get_zSouth());
   std::vector<float> thickness = get_thickness(object);
@@ -124,7 +123,7 @@ void PHG4MvtxSupport::TrackingServiceCone(ServiceStructure *object, G4AssemblyVo
   }
 }
 
-void PHG4MvtxSupport::TrackingServiceCylinder(ServiceStructure *object, G4AssemblyVolume &assemblyVolume)
+void PHG4MvtxSupport::TrackingServiceCylinder(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume)
 {
   float length = std::abs(object->get_zNorth() - object->get_zSouth());
   std::vector<float> thickness = get_thickness(object);
@@ -166,7 +165,7 @@ void PHG4MvtxSupport::TrackingServiceCylinder(ServiceStructure *object, G4Assemb
   }
 }
 
-void PHG4MvtxSupport::CreateCable(Cable *object, G4AssemblyVolume &assemblyVolume)
+void PHG4MvtxSupport::CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assemblyVolume)
 {
   std::string cableMaterials[2] = {object->get_coreMaterial(), "G4_POLYETHYLENE"};
 
@@ -174,7 +173,6 @@ void PHG4MvtxSupport::CreateCable(Cable *object, G4AssemblyVolume &assemblyVolum
   float dY = object->get_yNorth() - object->get_ySouth();
   float dZ = object->get_zNorth() - object->get_zSouth();
 
-  //float rotX = dZ != 0. ? atan(dY/dZ) : 0.;
   float rotY = dZ != 0. ? atan(dX/dZ) : 0.;
   float rotZ = dX != 0. ? atan(dY/dX) : 0.;
 
@@ -186,8 +184,7 @@ void PHG4MvtxSupport::CreateCable(Cable *object, G4AssemblyVolume &assemblyVolum
   float IR[2] = {0, object->get_coreRadius()};
   float OR[2] = {object->get_coreRadius(), object->get_sheathRadius()};
  
-  G4RotationMatrix rot;// = new G4RotationMatrix();
-  //rot.rotateX(rotX);
+  G4RotationMatrix rot;
   rot.rotateY(rotY);
   rot.rotateZ(rotZ);
   G4ThreeVector place;
@@ -229,7 +226,6 @@ void PHG4MvtxSupport::CreateCable(Cable *object, G4AssemblyVolume &assemblyVolum
     visAtt->SetForceLineSegmentsPerCircle(200);
     cylinderLogic->SetVisAttributes(visAtt);
 
-    //ASSEMBLYVOLUME.ADDPLACEDVOLUME(CYLINDERLOGIC, PLACE, ROT);
     assemblyVolume.AddPlacedVolume(cylinderLogic, transform);
   }
 }
@@ -275,7 +271,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
       {
         deltaX = samtecShiftX + ((iCol + 1) * (samtecSheathRadius * 2.6));
         deltaY = samtecShiftY - ((iRow + 1) * (samtecSheathRadius * 2.1));
-        Cable *cable = new Cable(boost::str(boost::format("%s_samtec_%d_%d") % superName.c_str() % iRow % iCol), "G4_Cu", samtecCoreRadius, samtecSheathRadius,
+        PHG4MvtxCable *cable = new PHG4MvtxCable(boost::str(boost::format("%s_samtec_%d_%d") % superName.c_str() % iRow % iCol), "G4_Cu", samtecCoreRadius, samtecSheathRadius,
                                  x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, blue);
         CreateCable(cable, *cableAssemblyVolume);
       }
@@ -291,7 +287,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
     {
       deltaX = coolingShiftX + ((iCool + 1) * (coolingSheathRadius * 2));
       deltaY = coolingShiftY + (coolingSheathRadius * 2);
-      Cable *cable = new Cable(boost::str(boost::format("%s_cooling_%d") % superName.c_str() % iCool), "G4_WATER", coolingCoreRadius, coolingSheathRadius,
+      PHG4MvtxCable *cable = new PHG4MvtxCable(boost::str(boost::format("%s_cooling_%d") % superName.c_str() % iCool), "G4_WATER", coolingCoreRadius, coolingSheathRadius,
                                x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, cooling_RGB[iCool]);
       CreateCable(cable, *cableAssemblyVolume);
     }
@@ -344,7 +340,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
       if (cableName == boost::str(boost::format("%s_bias") % superName.c_str())) cableColor = white;
       if (cableName == boost::str(boost::format("%s_ground") % superName.c_str())) cableColor = green;
 
-      Cable *cable = new Cable(powerCable.first.first, "G4_Cu", coreRad, sheathRad,
+      PHG4MvtxCable *cable = new PHG4MvtxCable(powerCable.first.first, "G4_Cu", coreRad, sheathRad,
                                (x1 + powerCable.second.first), (x2 + powerCable.second.first),
                                (y1 + powerCable.second.second), (y2 + powerCable.second.second), z1, z2, cableColor);
       CreateCable(cable, *cableAssemblyVolume);
@@ -425,47 +421,46 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
     totStaves += nStaves[i];
   }
 
-  std::vector<ServiceStructure*> cylinders, cones;
+  std::vector<PHG4MvtxServiceStructure*> cylinders, cones;
   G4AssemblyVolume *avSupport = new G4AssemblyVolume();
 
   //Service Barrel
-  cylinders.push_back(new ServiceStructure("MVTX_serviceBarrel_0", 0, BarrelThickness, 0, -1. * (BarrelLength + BarrelOffset), -27.0, BarrelRadius, 0));
-  cylinders.push_back(new ServiceStructure("MVTX_serviceBarrel_1", 0, BarrelThickness, 0, -27.0, -1. * BarrelOffset, 10.70 + CYSSConeThickness, 0));
+  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_serviceBarrel_0", 0, BarrelThickness, 0, -1. * (BarrelLength + BarrelOffset), -26.209, BarrelRadius, 0));
 
   //CYSS
-  cylinders.push_back(new ServiceStructure("MVTX_CYSS_Cone_0", 0, CYSSConeThickness, 0., -26.208, -15.68, 10.55, 0));
-  cones.push_back(new ServiceStructure("MVTX_CYSS_Cone_1", 0, CYSSConeThickness, 0., -15.679, -8.619, 10.55, 5.302));
-  cylinders.push_back(new ServiceStructure("MVTX_CYSS_Cone_2", 0, CYSSConeThickness, 0., -8.618, -6.18, 5.302, 0));
+  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_CYSS_Cone_0", 0, CYSSConeThickness, 0., -26.208, -15.68, 10.55, 0));
+  cones.push_back(new PHG4MvtxServiceStructure("MVTX_CYSS_Cone_1", 0, CYSSConeThickness, 0., -15.679, -8.619, 10.55, 5.302));
+  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_CYSS_Cone_2", 0, CYSSConeThickness, 0., -8.618, -6.18, 5.302, 0));
 
-  cylinders.push_back(new ServiceStructure("MVTX_CYSS_Rib_0", 0, CYSSRibThickness, 0., -21.719, -20.949, 9.762, 0));
-  cones.push_back(new ServiceStructure("MVTX_CYSS_Rib_1", 0, CYSSRibThickness, 0., -20.948, -20.159, 9.762, 10.36));
-  cylinders.push_back(new ServiceStructure("MVTX_CYSS_Rib_2", 0, CYSSRibThickness, 0., -20.158, -17.749, 10.36, 0));
-  cones.push_back(new ServiceStructure("MVTX_CYSS_Rib_3", 0, CYSSRibThickness, 0., -17.748, -16.959, 10.36, 9.762));
-  cylinders.push_back(new ServiceStructure("MVTX_CYSS_Rib_4", 0, CYSSRibThickness, 0., -16.958, -16.196, 9.762, 0));
+  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_CYSS_Rib_0", 0, CYSSRibThickness, 0., -21.719, -20.949, 9.762, 0));
+  cones.push_back(new PHG4MvtxServiceStructure("MVTX_CYSS_Rib_1", 0, CYSSRibThickness, 0., -20.948, -20.159, 9.762, 10.36));
+  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_CYSS_Rib_2", 0, CYSSRibThickness, 0., -20.158, -17.749, 10.36, 0));
+  cones.push_back(new PHG4MvtxServiceStructure("MVTX_CYSS_Rib_3", 0, CYSSRibThickness, 0., -17.748, -16.959, 10.36, 9.762));
+  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_CYSS_Rib_4", 0, CYSSRibThickness, 0., -16.958, -16.196, 9.762, 0));
 
-  cylinders.push_back(new ServiceStructure("MVTX_CYSS_Cylinder", 0, 0.112, 0, -8.619, 36.153, 5.15, 0));
+  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_CYSS_Cylinder", 0, 0.112, 0, -8.619, 36.153, 5.15, 0));
  
   //MVTX Layers
-  cylinders.push_back(new ServiceStructure("MVTX_L0_0", 0, LayerThickness, 0., -18.680, -16.579, 5.050, 0));
-  cones.push_back(new ServiceStructure("MVTX_L0_1", 0, LayerThickness, 0., -16.578, -9.186, 5.050, 2.997));
-  cylinders.push_back(new ServiceStructure("MVTX_L0_2", 0, LayerThickness, 0., -9.185, ServiceEnd, 2.997, 0));
+  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L0_0", 0, LayerThickness, 0., -18.680, -16.579, 5.050, 0));
+  cones.push_back(new PHG4MvtxServiceStructure("MVTX_L0_1", 0, LayerThickness, 0., -16.578, -9.186, 5.050, 2.997));
+  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L0_2", 0, LayerThickness, 0., -9.185, ServiceEnd, 2.997, 0));
   
-  cylinders.push_back(new ServiceStructure("MVTX_L1_0", 0, LayerThickness, 0., -17.970, -15.851, 7.338, 0));
-  cones.push_back(new ServiceStructure("MVTX_L1_1", 0, LayerThickness, 0., -15.850, -8.938, 7.338, 3.799));
-  cylinders.push_back(new ServiceStructure("MVTX_L1_2", 0, LayerThickness, 0., -8.937, ServiceEnd, 3.799, 0));
+  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L1_0", 0, LayerThickness, 0., -17.970, -15.851, 7.338, 0));
+  cones.push_back(new PHG4MvtxServiceStructure("MVTX_L1_1", 0, LayerThickness, 0., -15.850, -8.938, 7.338, 3.799));
+  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L1_2", 0, LayerThickness, 0., -8.937, ServiceEnd, 3.799, 0));
   
-  cylinders.push_back(new ServiceStructure("MVTX_L2_0", 0, LayerThickness, 0., -22.300, -15.206, 9.580, 0));
-  cones.push_back(new ServiceStructure("MVTX_L2_1", 0, LayerThickness, 0., -15.205, -8.538, 9.580, 4.574));
-  cylinders.push_back(new ServiceStructure("MVTX_L2_2", 0, LayerThickness, 0., -8.537, ServiceEnd, 4.574, 0));
+  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L2_0", 0, LayerThickness, 0., -22.300, -15.206, 9.580, 0));
+  cones.push_back(new PHG4MvtxServiceStructure("MVTX_L2_1", 0, LayerThickness, 0., -15.205, -8.538, 9.580, 4.574));
+  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L2_2", 0, LayerThickness, 0., -8.537, ServiceEnd, 4.574, 0));
 
   //Conenct copper from barrel to layers
   //Currently non-discrete cones as rotations are acting up
-  cones.push_back(new ServiceStructure("MVTX_sb_to_L0", 0.005, 0., 0.066, -26.9, -18.680, 10.10, 5.050));
-  cones.push_back(new ServiceStructure("MVTX_sb_to_L1", 0.004, 0., 0.061, -26.9, -18.000, 10.20, 7.338));
-  cones.push_back(new ServiceStructure("MVTX_sb_to_L2", 0.004, 0., 0.058, -26.9, -22.301, 10.30, 9.580));
+  cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L0", 0.005, 0., 0.066, -26.9, -18.680, 10.10, 5.050));
+  cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L1", 0.004, 0., 0.061, -26.9, -18.000, 10.20, 7.338));
+  cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L2", 0.004, 0., 0.058, -26.9, -22.301, 10.27, 9.580));
   
-  for (ServiceStructure *cylinder : cylinders) TrackingServiceCylinder(cylinder, *avSupport);
-  for (ServiceStructure *cone : cones) TrackingServiceCone(cone, *avSupport);
+  for (PHG4MvtxServiceStructure *cylinder : cylinders) TrackingServiceCylinder(cylinder, *avSupport);
+  for (PHG4MvtxServiceStructure *cone : cones) TrackingServiceCone(cone, *avSupport);
 
   G4RotationMatrix rot;
   G4ThreeVector place;

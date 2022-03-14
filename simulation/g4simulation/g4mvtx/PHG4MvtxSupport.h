@@ -1,8 +1,8 @@
 #ifndef G4MVTX_PHG4MVTXSUPPORT_H
 #define G4MVTX_PHG4MVTXSUPPORT_H
 
-#include "ServiceStructure.h"
-#include "Cable.h"
+#include "PHG4MvtxServiceStructure.h"
+#include "PHG4MvtxCable.h"
 
 #include <PHG4MvtxDisplayAction.h>
 
@@ -38,11 +38,11 @@ class PHG4MvtxSupport
  private:
   PHG4MvtxDisplayAction *m_DisplayAction;
 
-  std::vector<float> get_thickness(ServiceStructure *object);
+  std::vector<float> get_thickness(PHG4MvtxServiceStructure *object);
   G4Material *supportMaterial();
-  void TrackingServiceCone(ServiceStructure *object, G4AssemblyVolume &assemblyVolume);
-  void TrackingServiceCylinder(ServiceStructure *object, G4AssemblyVolume &assemblyVolume);
-  void CreateCable(Cable *object, G4AssemblyVolume &assemblyVolume);
+  void TrackingServiceCone(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume);
+  void TrackingServiceCylinder(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume);
+  void CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assemblyVolume);
   void CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::string superName, 
                          bool enableSignal, bool enableCooling, bool enablePower,
                          float x1, float x2, float y1, float y2, float z1, float z2);//, float theta = 0);
