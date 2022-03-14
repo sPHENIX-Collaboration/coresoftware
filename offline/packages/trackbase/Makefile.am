@@ -34,7 +34,6 @@ pkginclude_HEADERS = \
   TrkrClusterv1.h \
   TrkrClusterv2.h \
   TrkrClusterv3.h \
-  TrkrClusterv4.h \
   TrkrClusterContainer.h \
   TrkrClusterContainerv1.h \
   TrkrClusterContainerv2.h \
@@ -72,8 +71,7 @@ ROOTDICTS = \
   TrkrClusterv1_Dict.cc \
   TrkrClusterv2_Dict.cc \
   TrkrClusterv3_Dict.cc \
-  TrkrClusterv4_Dict.cc \
-  TrkrClusterContainer_Dict.cc \
+   TrkrClusterContainer_Dict.cc \
   TrkrClusterContainerv1_Dict.cc \
   TrkrClusterContainerv2_Dict.cc \
   TrkrClusterContainerv3_Dict.cc \
@@ -113,8 +111,7 @@ nobase_dist_pcm_DATA = \
   TrkrClusterv1_Dict_rdict.pcm \
   TrkrClusterv2_Dict_rdict.pcm \
   TrkrClusterv3_Dict_rdict.pcm \
-  TrkrClusterv4_Dict_rdict.pcm \
-  TrkrClusterContainer_Dict_rdict.pcm \
+   TrkrClusterContainer_Dict_rdict.pcm \
   TrkrClusterContainerv1_Dict_rdict.pcm \
   TrkrClusterContainerv2_Dict_rdict.pcm \
   TrkrClusterContainerv3_Dict_rdict.pcm \
@@ -150,8 +147,7 @@ libtrack_io_la_SOURCES = \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
   TrkrClusterv3.cc \
-  TrkrClusterv4.cc \
-  TrkrClusterContainer.cc \
+    TrkrClusterContainer.cc \
   TrkrClusterContainerv1.cc \
   TrkrClusterContainerv2.cc \
   TrkrClusterContainerv3.cc \
