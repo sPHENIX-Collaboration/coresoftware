@@ -8,17 +8,15 @@
 #ifndef TRACKRECO_ACTSTRKFITTER_H
 #define TRACKRECO_ACTSTRKFITTER_H
 
+
 #include <fun4all/SubsysReco.h>
 
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include "ResidualOutlierFinder.h"
 
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-#include <Acts/EventData/MeasurementHelpers.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
@@ -26,8 +24,9 @@
 #include <ActsExamples/TrackFitting/TrackFittingAlgorithm.hpp>
 #include <ActsExamples/EventData/Trajectories.hpp>
 #include <ActsExamples/EventData/Track.hpp>
-#include <ActsExamples/EventData/Measurement.hpp>
 #include <ActsExamples/EventData/IndexSourceLink.hpp>
+
+
 
 #include <memory>
 #include <string>
@@ -91,6 +90,8 @@ class PHActsTrkFitter : public SubsysReco
 
   void setAbsPdgHypothesis(unsigned int pHypothesis)
   { m_pHypothesis = pHypothesis; }
+
+  void useOutlierFinder(bool outlier) { m_useOutlierFinder = outlier; }
 
   void SetIteration(int iter){_n_iteration = iter;}
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
@@ -163,6 +164,10 @@ class PHActsTrkFitter : public SubsysReco
   
   /// A bool to update the SvtxTrackState information (or not)
   bool m_fillSvtxTrackStates = true;
+
+  /// A bool to use the chi2 outlier finder in the track fitting
+  bool m_useOutlierFinder = false;
+  ResidualOutlierFinder m_outlierFinder;
 
   bool m_actsEvaluator = false;
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
