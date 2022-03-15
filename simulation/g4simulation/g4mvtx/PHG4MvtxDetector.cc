@@ -184,9 +184,9 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
          << "PHG4MvtxDetector::Construct called for Mvtx " << endl;
   }
 
-  const G4double rMax = (10.330 + 0.436 + 0.1)*cm;
+  const G4double rMax = (10.330 + 0.436 + 0.001)*cm;
   const G4int numZPlanes = 4;
-  const G4double zPlane[numZPlanes] = {-160*cm, -30*cm, -23.5*cm, mvtxGeomDef::wrap_zlen / 2.0};
+  const G4double zPlane[numZPlanes] = {-160*cm, -30.5*cm, -23.9*cm, mvtxGeomDef::wrap_zlen / 2.0};
   const G4double rInner[numZPlanes] = {mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin};
   const G4double rOuter[numZPlanes] = {rMax, rMax, mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_rmax};
   auto polycone = new G4Polycone("sol_MVTX_Wrapper", 0, 2.0 * M_PI, numZPlanes, zPlane, rInner, rOuter);

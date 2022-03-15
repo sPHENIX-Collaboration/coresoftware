@@ -457,7 +457,7 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   //Currently non-discrete cones as rotations are acting up
   cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L0", 0.005, 0., 0.066, -26.9, -18.680, 10.10, 5.050));
   cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L1", 0.004, 0., 0.061, -26.9, -18.000, 10.20, 7.338));
-  cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L2", 0.004, 0., 0.058, -26.9, -22.301, 10.27, 9.580));
+  cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L2", 0.004, 0., 0.058, -26.7, -22.301, 10.25, 9.580));
   
   for (PHG4MvtxServiceStructure *cylinder : cylinders) TrackingServiceCylinder(cylinder, *avSupport);
   for (PHG4MvtxServiceStructure *cone : cones) TrackingServiceCone(cone, *avSupport);
