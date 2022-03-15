@@ -39,7 +39,6 @@ class PHG4MvtxSupport
   PHG4MvtxDisplayAction *m_DisplayAction;
 
   std::vector<float> get_thickness(PHG4MvtxServiceStructure *object);
-  G4Material *supportMaterial();
   void TrackingServiceCone(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume);
   void TrackingServiceCylinder(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume);
   void CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assemblyVolume);

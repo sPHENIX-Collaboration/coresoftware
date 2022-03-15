@@ -52,29 +52,26 @@ std::vector<float> PHG4MvtxSupport::get_thickness(PHG4MvtxServiceStructure *obje
   return thickness;
 }
 
-G4Material *PHG4MvtxSupport::supportMaterial()
+G4Material *supportMaterial()
 {
   G4double density;
   G4int natoms;
   G4String symbol;
 
-  G4Element* elH  = new G4Element("Hydrogen",symbol="H" , 1., 1.01*g/mole);
-  G4Element* elC  = new G4Element("Carbon"  ,symbol="C" , 6., 12.01*g/mole);
-  G4Element* elN  = new G4Element("Nitrogen",symbol="N" , 7., 14.01*g/mole);
-  G4Element* elO  = new G4Element("Oxygen"  ,symbol="O" , 8., 16.00*g/mole);
-
   G4Material *Epoxy = new G4Material("MVTX_Epoxy$",  density = 1.56*g/cm3, natoms=4);
-  Epoxy->AddElement(elH, 32); // Hydrogen
-  Epoxy->AddElement(elN,  2); // Nitrogen
-  Epoxy->AddElement(elO,  4); // Oxygen
-  Epoxy->AddElement(elC, 15); // Carbon
+  Epoxy->AddElement(PHG4Detector::GetDetectorElement("H", true), 32); // Hydrogen
+  Epoxy->AddElement(PHG4Detector::GetDetectorElement("C", true),  2); // Nitrogen
+  Epoxy->AddElement(PHG4Detector::GetDetectorElement("N", true),  4); // Oxygen
+  Epoxy->AddElement(PHG4Detector::GetDetectorElement("O", true), 15); // Carbon
 
   G4Material *G4_mat = new G4Material("MVTX_CarbonFiber$",  density =  1.987*g/cm3, natoms=2);
   G4_mat->AddMaterial(PHG4Detector::GetDetectorMaterial("G4_C"), 70*perCent);  // Carbon (NX-80-240)
-  G4_mat->AddMaterial(Epoxy,                           30*perCent);  // Epoxy (EX-1515)
+  G4_mat->AddMaterial(Epoxy, 30*perCent);  // Epoxy (EX-1515)
 
   return G4_mat;
 }
+
+G4Material *carbonFibreMaterial = supportMaterial();
 
 void PHG4MvtxSupport::TrackingServiceCone(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume)
 {
@@ -96,7 +93,7 @@ void PHG4MvtxSupport::TrackingServiceCone(PHG4MvtxServiceStructure *object, G4As
     outerRadiusNorth = innerRadiusNorth + thickness[i];
 
     G4Material *trackerMaterial = NULL;
-    if (materials[i] == "MVTX_CarbonFiber$") trackerMaterial = supportMaterial();
+    if (materials[i] == "MVTX_CarbonFiber$") trackerMaterial = carbonFibreMaterial;
     else trackerMaterial = PHG4Detector::GetDetectorMaterial(materials[i]);
 
     G4VSolid *coneSolid = new G4Cons(G4String(object->get_name() + "_SOLID"),
@@ -140,7 +137,7 @@ void PHG4MvtxSupport::TrackingServiceCylinder(PHG4MvtxServiceStructure *object, 
     outerRadius = innerRadius + thickness[i];
  
     G4Material *trackerMaterial = NULL;
-    if (materials[i] == "MVTX_CarbonFiber$") trackerMaterial = supportMaterial();
+    if (materials[i] == "MVTX_CarbonFiber$") trackerMaterial = carbonFibreMaterial;
     else trackerMaterial = PHG4Detector::GetDetectorMaterial(materials[i]);
 
     G4VSolid *cylinderSolid = new G4Tubs(G4String(object->get_name() + "_SOLID"),
@@ -502,3 +499,4 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
     }
   }
 }
+
