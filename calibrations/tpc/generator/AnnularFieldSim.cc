@@ -2783,7 +2783,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int r
     side[0] = "posz";
     side[1] = "negz";
   }
-  TString sepAxis[] = {"X","Y","Z","R","P","RPhi");
+  TString sepAxis[] = {"X","Y","Z","R","P","RPhi"};
   float zlower, zupper;
   for (int i = 0; i < nSides; i++)
   {
