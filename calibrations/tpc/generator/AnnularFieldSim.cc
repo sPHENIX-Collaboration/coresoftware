@@ -2799,7 +2799,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int r
     }
     for (int j = 0; j < nMapComponents; j++)
     {
-      hSeparatedMapComponent[i][j] = new TH3F(Form("hIntDistortion%s_%s", sepAxis[j].Data,side[i].Data()),
+      hSeparatedMapComponent[i][j] = new TH3F(Form("hIntDistortion%s_%s", sepAxis[j].Data(),side[i].Data()),
                                               Form("Integrated %s Deflection drifting from (phi,r,z) to z=endcap);phi;r;z (%s side)", sepAxis[j].Data(), side[i].Data()),
                                               nph, pih, pfh, nrh, rih, rfh, nzh, zlower, zupper);
     }
