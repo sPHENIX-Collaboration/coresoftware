@@ -23,11 +23,13 @@ libcaloCalibDBFile_la_LIBADD = \
 
 pkginclude_HEADERS = \
   CaloCalibSimpleCorrFile.h \
-  HcalCaloCalibSimpleCorrFilev1.h
+  HcalCaloCalibSimpleCorrFilev1.h \
+  CEmcCaloCalibSimpleCorrFilev1.h
 
 
 libcaloCalibDBFile_la_SOURCES = \
-  HcalCaloCalibSimpleCorrFilev1.cc
+  HcalCaloCalibSimpleCorrFilev1.cc \
+  CEmcCaloCalibSimpleCorrFilev1.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
