@@ -47,7 +47,7 @@ class PHFlag
   virtual void PrintIntFlags() const;
   virtual void Printuint64Flags() const;
   virtual void PrintFloatFlags() const;
-  virtual void PrintStringFlags() const;// {PrintCharFlags();}
+  virtual void PrintStringFlags() const;
   virtual void ReadFromFile(const std::string &name);
   virtual void WriteToFile(const std::string &name);
 

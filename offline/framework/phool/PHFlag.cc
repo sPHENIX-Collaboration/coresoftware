@@ -197,7 +197,7 @@ void PHFlag::PrintIntFlags() const
 {
   // loop over the map and print out the content (name and location in memory)
   std::cout << std::endl
-       << "Integer Flags:" << std::endl;
+            << "Integer Flags:" << std::endl;
   std::map<std::string, int>::const_iterator intiter;
   for (intiter = m_IntFlagMap.begin(); intiter != m_IntFlagMap.end(); ++intiter)
   {
@@ -210,7 +210,7 @@ void PHFlag::Printuint64Flags() const
 {
   // loop over the map and print out the content (name and location in memory)
   std::cout << std::endl
-       << "uint64 Flags:" << std::endl;
+            << "uint64 Flags:" << std::endl;
   std::map<std::string, uint64_t>::const_iterator intiter;
   for (intiter = m_UInt64FlagMap.begin(); intiter != m_UInt64FlagMap.end(); ++intiter)
   {
@@ -223,7 +223,7 @@ void PHFlag::PrintDoubleFlags() const
 {
   // loop over the map and print out the content (name and location in memory)
   std::cout << std::endl
-       << "Double Flags:" << std::endl;
+            << "Double Flags:" << std::endl;
   std::map<std::string, double>::const_iterator doubleiter;
   for (doubleiter = m_DoubleFlagMap.begin(); doubleiter != m_DoubleFlagMap.end(); ++doubleiter)
   {
@@ -236,7 +236,7 @@ void PHFlag::PrintFloatFlags() const
 {
   // loop over the map and print out the content (name and location in memory)
   std::cout << std::endl
-       << "Float Flags:" << std::endl;
+            << "Float Flags:" << std::endl;
   std::map<std::string, float>::const_iterator floatiter;
   for (floatiter = m_FloatFlagMap.begin(); floatiter != m_FloatFlagMap.end(); ++floatiter)
   {
@@ -249,7 +249,7 @@ void PHFlag::PrintStringFlags() const
 {
   // loop over the map and print out the content (name and location in memory)
   std::cout << std::endl
-       << "char* Flags:" << std::endl;
+            << "String Flags:" << std::endl;
   std::map<std::string, std::string>::const_iterator chariter;
   for (chariter = m_StringFlagMap.begin(); chariter != m_StringFlagMap.end(); ++chariter)
   {
@@ -352,12 +352,12 @@ void PHFlag::ReadFromFile(const std::string &name)
   }
 
   std::cout << "Read StringFlags(" << cvaluecount
-       << ") FloatFlags(" << fvaluecount
-       << ") DoubleFlags(" << dvaluecount
-       << ") IntFlags(" << ivaluecount
-       << ") uint64Flags(" << uivaluecount
-       << ") JunkEntries(" << junkcount
-       << ") from file " << name << std::endl;
+            << ") FloatFlags(" << fvaluecount
+            << ") DoubleFlags(" << dvaluecount
+            << ") IntFlags(" << ivaluecount
+            << ") uint64Flags(" << uivaluecount
+            << ") JunkEntries(" << junkcount
+            << ") from file " << name << std::endl;
 
   infile.close();
 }
