@@ -61,7 +61,6 @@ class FlagSavev1 : public FlagSave
   std::map<std::string, uint64_t> m_uint64flag_map;
 
   ClassDefOverride(FlagSavev1, 2)
-
 };
 
 #endif
