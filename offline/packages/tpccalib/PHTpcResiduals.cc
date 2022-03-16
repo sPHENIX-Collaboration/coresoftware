@@ -292,18 +292,26 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track, Svt
 				  p, trackQ, cov).value();
 }
 
+//_____________________________________________________________________________________________
 void PHTpcResiduals::processTrack(SvtxTrack* track)
 {
 
   if(Verbosity() > 1)
+  {
     std::cout << "Propagating silicon+MM fit params momentum: " 
-	      << track->get_p() << " and position " 
-	      << track->get_x() << ", " << track->get_y() 
-	      << ", " << track->get_z() << " cm "
-	      << std::endl;
+      << track->get_p() << " and position " 
+      << track->get_x() << ", " << track->get_y() 
+      << ", " << track->get_z() << " cm "
+      << std::endl;
+  }
+  
+  // create ACTS parameters from track parameters at origin
+  auto trackParams = makeTrackParams(track);
+  std::cout << "PHTpcResiduals::processTrack -"
+    << " track momentum : "
+    << trackParams.momentum()
+    << std::endl;
 
-  // running track state
-  auto state_iter = track->begin_states();
   for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
        clusIter != track->end_cluster_keys();
        ++clusIter)
@@ -314,31 +322,29 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
       // make sure cluster is from TPC
       const auto detId = TrkrDefs::getTrkrId(cluskey);
-      if(detId != TrkrDefs::tpcId) continue;
+      if(detId != TrkrDefs::tpcId) continue;  
 
       const auto cluster = m_clusterContainer->findCluster(cluskey);
-      const auto globClusPos = m_transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
-      const auto cluster_r = get_r(globClusPos(0),globClusPos(1));
 
-      // find track state that is the closest to cluster
-      /* this assumes that both clusters and states are sorted along r */
-      float dr_min = -1;
-      for( auto iter = state_iter; iter != track->end_states(); ++iter )
-      {
-        const auto dr = std::abs( cluster_r - get_r( iter->second->get_x(), iter->second->get_y() ) );
-        if( dr_min < 0 || dr < dr_min )
-        {
-          state_iter = iter;
-          dr_min = dr;
-        } else break;
-      }
-
-      // create track parameters associated to this state
-      const auto state = state_iter->second;
-      const auto trackParams = makeTrackParams( track, state );
-
+//       {
+//         // Get all the relevant information for residual calculation
+//         const auto globClusPos = m_transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
+//         clusR = get_r(globClusPos(0),globClusPos(1));
+//         clusPhi = std::atan2(globClusPos(1), globClusPos(0));
+//         clusZ = globClusPos(2);
+//         
+//         clusRPhiErr = cluster->getRPhiError();
+//         clusZErr = cluster->getZError();
+//         
+//         std::cout << "PHTpcResiduals::processTrack -"
+//           << " layer: " << (int) TrkrDefs::getLayer(cluster->getClusKey())
+//           << " key: " << cluster->getClusKey()
+//           << " cluster: (" << clusR << ", " << clusR*clusPhi << ", " << clusZ << ")"
+//           << " (" << clusRPhiErr << ", " << clusZErr << ")"
+//           << std::endl;
+//       }
+      
       const auto surf = m_transformer.getSurface( cluster, m_surfMaps );
-
       auto result = propagateTrackState(trackParams, surf);
 
       if(result.ok())
@@ -360,7 +366,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
         calculateTpcResiduals(trackStateParams, cluster);
 
       } else 	{
-
+        
         if( Verbosity() > 1 )
         {
           std::cout << "Starting track params position/momentum: "
@@ -464,13 +470,13 @@ void PHTpcResiduals::calculateTpcResiduals(
   clusZErr = cluster->getZError();
  
   if(Verbosity() > 3)
-    {
-      std::cout << "cluster key is " << cluskey <<std::endl;
-      std::cout << "Cluster r phi and z " << clusR << "  " 
-		<< clusPhi << "+/-" << clusRPhiErr
-		<<" and " << clusZ << "+/-" << clusZErr << std::endl;
-    }
-  
+  {
+    std::cout << "cluster key is " << cluskey <<std::endl;
+    std::cout << "Cluster r phi and z " << clusR << "  " 
+      << clusPhi << "+/-" << clusRPhiErr
+      <<" and " << clusZ << "+/-" << clusZErr << std::endl;
+  }
+      
   if(clusRPhiErr < 0.015)
     return;
   if(clusZErr < 0.05)
@@ -564,18 +570,17 @@ void PHTpcResiduals::calculateTpcResiduals(
   
   if(index < 0 ) return;
 
-  std::cout << "PHTpcResiduals::addTrackState - layer: " << (int) TrkrDefs::getLayer(cluster->getClusKey()) << std::endl;
-  std::cout << "PHTpcResiduals::addTrackState -"
-    << " cluster: (" << clusR << ", " << clusR*clusPhi << ", " << clusZ << ")"
-    << " (" << clusRPhiErr << ", " << clusZErr << ")"
-    << std::endl;
-
-  std::cout << "PHTpcResiduals::addTrackState -"
-    << " track: (" << stateR << ", " << clusR*statePhi << ", " << stateZ << ")"
-    << " (" << tanAlpha << ", " << tanBeta << ")"
-    << " (" << stateRPhiErr << ", " << stateZErr << ")"
-    << std::endl;
-  std::cout << std::endl;
+//   std::cout << "PHTpcResiduals::calculateTpcResiduals - layer: " << (int) TrkrDefs::getLayer(cluster->getClusKey()) << std::endl;
+//   std::cout << "PHTpcResiduals::calculateTpcResiduals -"
+//     << " cluster: (" << clusR << ", " << clusR*clusPhi << ", " << clusZ << ")"
+//     << " (" << clusRPhiErr << ", " << clusZErr << ")"
+//     << std::endl;
+//   std::cout << "PHTpcResiduals::calculateTpcResiduals -"
+//     << " track: (" << stateR << ", " << clusR*statePhi << ", " << stateZ << ")"
+//     << " (" << tanAlpha << ", " << tanBeta << ")"
+//     << " (" << stateRPhiErr << ", " << stateZErr << ")"
+//     << std::endl;
+//   std::cout << std::endl;
 
   if( m_savehistograms )
   {
@@ -628,6 +633,9 @@ void PHTpcResiduals::calculateTpcResiduals(
   
   // update entries in cell
   m_matrix_container->add_to_entries(index);
+  
+  
+//   std::cout << "PHTpcResiduals::calculateTpcResiduals - key: " << cluster->getClusKey() << " accepted" << std::endl;
   
   // increment number of accepted clusters
   ++m_accepted_clusters;
