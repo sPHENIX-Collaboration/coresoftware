@@ -301,6 +301,9 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
     }
   }  //  for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
 
+
+
+  /*
   int towcount =0;
   RawTowerContainer::ConstRange begin_end2 = _calib_towers->getTowers();
   RawTowerContainer::ConstIterator rtiter2;
@@ -321,6 +324,7 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
 
   }
 
+  */
 
 
   if (Verbosity())
