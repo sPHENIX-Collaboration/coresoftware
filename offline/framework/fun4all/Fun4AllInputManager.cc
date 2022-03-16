@@ -37,7 +37,7 @@ int Fun4AllInputManager::AddFile(const std::string &filename)
   if (Verbosity() > 0)
   {
     std::cout << "Adding " << filename << " to list of input files for "
-         << Name() << std::endl;
+              << Name() << std::endl;
   }
   m_FileList.push_back(filename);
   m_FileListCopy.push_back(filename);
@@ -55,11 +55,11 @@ int Fun4AllInputManager::AddListFile(const std::string &filename, const int do_i
       if (fsize > 1000000 && !do_it)
       {
         std::cout << "size of " << filename
-             << " is suspiciously large for a text file: "
-             << fsize << " bytes" << std::endl;
+                  << " is suspiciously large for a text file: "
+                  << fsize << " bytes" << std::endl;
         std::cout << "if you really want to use " << filename
-             << " as list file (it will be used as a text file containing a list of input files), use AddListFile(\""
-             << filename << "\",1)" << std::endl;
+                  << " as list file (it will be used as a text file containing a list of input files), use AddListFile(\""
+                  << filename << "\",1)" << std::endl;
         return -1;
       }
     }
@@ -114,7 +114,7 @@ void Fun4AllInputManager::Print(const std::string &what) const
   if (what == "ALL" || what == "FILELIST")
   {
     std::cout << "--------------------------------------" << std::endl
-         << std::endl;
+              << std::endl;
     std::cout << "List of input files in Fun4AllInputManager " << Name() << ":" << std::endl;
 
     for (std::string file : m_FileList)
@@ -126,7 +126,7 @@ void Fun4AllInputManager::Print(const std::string &what) const
   {
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
-         << std::endl;
+              << std::endl;
     std::cout << "List of SubsysRecos in Fun4AllInputManager " << Name() << ":" << std::endl;
 
     for (SubsysReco *subsys : m_SubsystemsVector)
@@ -145,7 +145,7 @@ int Fun4AllInputManager::registerSubsystem(SubsysReco *subsystem)
   if (iret)
   {
     std::cout << PHWHERE << " Error initializing subsystem "
-         << subsystem->Name() << ", return code: " << iret << std::endl;
+              << subsystem->Name() << ", return code: " << iret << std::endl;
     return iret;
   }
   if (Verbosity() > 0)

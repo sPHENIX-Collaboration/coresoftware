@@ -49,8 +49,8 @@ int Fun4AllDstInputManager::fileopen(const std::string &filenam)
   if (IsOpen())
   {
     std::cout << "Closing currently open file "
-         << FileName()
-         << " and opening " << filenam << std::endl;
+              << FileName()
+              << " and opening " << filenam << std::endl;
     fileclose();
   }
   FileName(filenam);
@@ -65,11 +65,11 @@ int Fun4AllDstInputManager::fileopen(const std::string &filenam)
   if (IManager)
   {
     std::cout << PHWHERE << " IManager pointer is not nullptr but " << IManager
-         << std::endl;
+              << std::endl;
     std::cout << "Send mail to off-l with this printout and the macro you used"
-         << std::endl;
+              << std::endl;
     std::cout << "Trying to execute IManager->print() to display more info"
-         << std::endl;
+              << std::endl;
     std::cout << "Code will probably segfault now" << std::endl;
     IManager->print();
     std::cout << "Have someone look into this problem - Exiting now" << std::endl;
@@ -93,9 +93,9 @@ int Fun4AllDstInputManager::fileopen(const std::string &filenam)
       if (runNodeCopy)
       {
         std::cout << PHWHERE
-             << " The impossible happened, we have a valid copy of the run node "
-             << runNodeCopy->getName() << " which should be a nullptr"
-             << std::endl;
+                  << " The impossible happened, we have a valid copy of the run node "
+                  << runNodeCopy->getName() << " which should be a nullptr"
+                  << std::endl;
         gSystem->Exit(1);
       }
       runNodeCopy = new PHCompositeNode("RUNNODECOPY");
@@ -147,7 +147,7 @@ int Fun4AllDstInputManager::fileopen(const std::string &filenam)
   else
   {
     std::cout << PHWHERE << ": " << Name() << " Could not open file "
-         << FileName() << std::endl;
+              << FileName() << std::endl;
     delete IManager;
     IManager = nullptr;
     return -1;
@@ -257,13 +257,13 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
     std::cout << "opened by the Fun4AllDstInputManager with Name " << Name() << " has one" << std::endl;
     std::cout << "Change your macro and use the file opened by this input manager as first input" << std::endl;
     std::cout << "and you will be okay. Fun4All will not process the current configuration" << std::endl
-         << std::endl;
+              << std::endl;
     return Fun4AllReturnCodes::SYNC_FAIL;
   }
-  if (! syncobject)
+  if (!syncobject)
   {
     std::cout << Name() << " no sync object found in this manager but synchronization needed" << std::endl;
-    std::cout << "  Check if you have used an empty listfile. If this is not the case - please ask for help"  << std::endl;
+    std::cout << "  Check if you have used an empty listfile. If this is not the case - please ask for help" << std::endl;
     std::cout << "This may be a really bad internal problem and cannot continue, exiting now " << std::endl;
     gSystem->Exit(1);
     exit(1);
@@ -281,11 +281,11 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
       if (Verbosity() > 3)
       {
         std::cout << "Need to Resync, mastersync evt no: " << mastersync->EventNumber()
-             << ", this Event no: " << syncobject->EventNumber() << std::endl;
+                  << ", this Event no: " << syncobject->EventNumber() << std::endl;
         std::cout << "mastersync evt counter: " << mastersync->EventCounter()
-             << ", this Event counter: " << syncobject->EventCounter() << std::endl;
+                  << ", this Event counter: " << syncobject->EventCounter() << std::endl;
         std::cout << "mastersync run number: " << mastersync->RunNumber()
-             << ", this run number: " << syncobject->RunNumber() << std::endl;
+                  << ", this run number: " << syncobject->RunNumber() << std::endl;
       }
 
       while (syncobject->RunNumber() < mastersync->RunNumber())
@@ -294,8 +294,8 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
         if (Verbosity() > 2)
         {
           std::cout << Name() << " Run Number: " << syncobject->RunNumber()
-               << ", master: " << mastersync->RunNumber()
-               << std::endl;
+                    << ", master: " << mastersync->RunNumber()
+                    << std::endl;
         }
         iret = ReadNextEventSyncObject();
         if (iret)
@@ -315,8 +315,8 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
         if (Verbosity() > 2)
         {
           std::cout << Name() << " Segment Number: " << syncobject->SegmentNumber()
-               << ", master: " << mastersync->SegmentNumber()
-               << std::endl;
+                    << ", master: " << mastersync->SegmentNumber()
+                    << std::endl;
         }
         iret = ReadNextEventSyncObject();
         if (iret)
@@ -339,9 +339,9 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
         if (Verbosity() > 2)
         {
           std::cout << Name()
-               << ", EventCounter: " << syncobject->EventCounter()
-               << ", master: " << mastersync->EventCounter()
-               << std::endl;
+                    << ", EventCounter: " << syncobject->EventCounter()
+                    << ", master: " << mastersync->EventCounter()
+                    << std::endl;
         }
         iret = ReadNextEventSyncObject();
         if (iret)
@@ -378,7 +378,7 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
         return Fun4AllReturnCodes::SYNC_FAIL;
       }
       iret = syncobject->Different(mastersync);  // final check if they really agree
-      if (iret)                                      // if not things are severely wrong
+      if (iret)                                  // if not things are severely wrong
       {
         std::cout << PHWHERE << " MasterSync and SyncObject of " << Name() << " are different" << std::endl;
         std::cout << "This Event will not be processed further, here is some debugging info:" << std::endl;
@@ -514,7 +514,7 @@ int Fun4AllDstInputManager::BranchSelect(const std::string &branch, const int if
   if (IsOpen())
   {
     std::cout << "BranchSelect(\"" << branch << "\", " << iflag
-         << ") : Input branches can only selected for reading before fileopen is called proceeding without input branch selection" << std::endl;
+              << ") : Input branches can only selected for reading before fileopen is called proceeding without input branch selection" << std::endl;
     return -1;
   }
   // if iflag > 0 the branch is set to read
@@ -596,7 +596,7 @@ void Fun4AllDstInputManager::Print(const std::string &what) const
   {
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
-         << std::endl;
+              << std::endl;
     std::cout << "List of selected branches in Fun4AllDstInputManager " << Name() << ":" << std::endl;
 
     std::map<const std::string, int>::const_iterator iter;
@@ -618,7 +618,7 @@ void Fun4AllDstInputManager::Print(const std::string &what) const
   {
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
-         << std::endl;
+              << std::endl;
     std::cout << "PHNodeIOManager print in Fun4AllDstInputManager " << Name() << ":" << std::endl;
     IManager->print();
   }
@@ -636,7 +636,7 @@ int Fun4AllDstInputManager::PushBackEvents(const int i)
     return 0;
   }
   std::cout << PHWHERE << Name() << ": could not push back events, Imanager is NULL"
-       << " probably the dst is not open yet (you need to call fileopen or run 1 event for lists)" << std::endl;
+            << " probably the dst is not open yet (you need to call fileopen or run 1 event for lists)" << std::endl;
   return -1;
 }
 
