@@ -83,6 +83,7 @@ void PHG4MvtxSupport::TrackingServiceCone(PHG4MvtxServiceStructure *object, G4As
   float outerRadiusNorth;
 
   G4RotationMatrix *rot = new G4RotationMatrix();
+  rot->rotateZ(0.);
   G4ThreeVector place;
   place.setZ((object->get_zSouth() + length/2)*cm);
 
@@ -128,6 +129,7 @@ void PHG4MvtxSupport::TrackingServiceCylinder(PHG4MvtxServiceStructure *object, 
   float outerRadius;
 
   G4RotationMatrix *rot = new G4RotationMatrix();
+  rot->rotateZ(0.);
   G4ThreeVector place;
   place.setZ((object->get_zSouth() + length/2)*cm);
 
