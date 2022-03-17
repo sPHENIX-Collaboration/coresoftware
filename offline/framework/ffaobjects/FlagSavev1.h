@@ -40,13 +40,13 @@ class FlagSavev1 : public FlagSave
   int Filluint64FromPHFlag(const PHFlag *flags);
   int FillDoubleFromPHFlag(const PHFlag *flags);
   int FillFloatFromPHFlag(const PHFlag *flags);
-  int FillCharFromPHFlag(const PHFlag *flags);
+  int FillStringFromPHFlag(const PHFlag *flags);
 
   int PutIntToPHFlag(PHFlag *flags);
   int Putuint64ToPHFlag(PHFlag *flags);
   int PutDoubleToPHFlag(PHFlag *flags);
   int PutFloatToPHFlag(PHFlag *flags);
-  int PutCharToPHFlag(PHFlag *flags);
+  int PutStringToPHFlag(PHFlag *flags);
 
   void PrintIntFlag(std::ostream &os) const;
   void Printuint64Flag(std::ostream &os) const;

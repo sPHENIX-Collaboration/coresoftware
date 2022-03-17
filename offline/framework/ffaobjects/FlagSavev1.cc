@@ -50,7 +50,7 @@ int FlagSavev1::FillFromPHFlag(const PHFlag *flags)
   iret += Filluint64FromPHFlag(flags);
   iret += FillDoubleFromPHFlag(flags);
   iret += FillFloatFromPHFlag(flags);
-  iret += FillCharFromPHFlag(flags);
+  iret += FillStringFromPHFlag(flags);
   return iret;
 }
 
@@ -60,7 +60,7 @@ int FlagSavev1::PutFlagsBack(PHFlag *flags)
   iret += Putuint64ToPHFlag(flags);
   iret += PutDoubleToPHFlag(flags);
   iret += PutFloatToPHFlag(flags);
-  iret += PutCharToPHFlag(flags);
+  iret += PutStringToPHFlag(flags);
   return iret;
 }
 
@@ -108,10 +108,10 @@ int FlagSavev1::FillFloatFromPHFlag(const PHFlag *flags)
   return 0;
 }
 
-int FlagSavev1::FillCharFromPHFlag(const PHFlag *flags)
+int FlagSavev1::FillStringFromPHFlag(const PHFlag *flags)
 {
   std::map<std::string, std::string>::const_iterator iter;
-  const std::map<std::string, std::string> *intm = flags->CharMap();
+  const std::map<std::string, std::string> *intm = flags->StringMap();
   for (iter = intm->begin(); iter != intm->end(); ++iter)
   {
     std::string input(iter->second);
@@ -160,12 +160,12 @@ int FlagSavev1::PutFloatToPHFlag(PHFlag *flags)
   return 0;
 }
 
-int FlagSavev1::PutCharToPHFlag(PHFlag *flags)
+int FlagSavev1::PutStringToPHFlag(PHFlag *flags)
 {
   std::map<std::string, std::string>::const_iterator iter;
   for (iter = stringflag.begin(); iter != stringflag.end(); ++iter)
   {
-    flags->set_CharFlag(iter->first, iter->second);
+    flags->set_StringFlag(iter->first, iter->second);
   }
   return 0;
 }

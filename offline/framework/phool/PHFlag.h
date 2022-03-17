@@ -57,7 +57,7 @@ class PHFlag
   virtual const std::map<std::string, int> *IntMap() const { return &m_IntFlagMap; }
   virtual const std::map<std::string, float> *FloatMap() const { return &m_FloatFlagMap; }
   virtual const std::map<std::string, double> *DoubleMap() const { return &m_DoubleFlagMap; }
-  virtual const std::map<std::string, std::string> *CharMap() const { return &m_StringFlagMap; }
+  virtual const std::map<std::string, std::string> *StringMap() const { return &m_StringFlagMap; }
   virtual void PrintStackTrace() const;
 
   virtual void ClearFlag(const std::string &name);
