@@ -12,10 +12,10 @@
 #include <utility>  // for pair
 
 const std::string
-PHFlag::get_CharFlag(const std::string &name) const
+PHFlag::get_StringFlag(const std::string &name) const
 {
-  std::map<std::string, std::string>::const_iterator iter = charflag.find(name);
-  if (iter != charflag.end())
+  std::map<std::string, std::string>::const_iterator iter = m_StringFlagMap.find(name);
+  if (iter != m_StringFlagMap.end())
   {
     return iter->second;
   }
@@ -27,30 +27,30 @@ PHFlag::get_CharFlag(const std::string &name) const
 }
 
 const std::string
-PHFlag::get_CharFlag(const std::string &name, const std::string &defaultval)
+PHFlag::get_StringFlag(const std::string &name, const std::string &defaultval)
 {
-  std::map<std::string, std::string>::const_iterator iter = charflag.find(name);
-  if (iter != charflag.end())
+  std::map<std::string, std::string>::const_iterator iter = m_StringFlagMap.find(name);
+  if (iter != m_StringFlagMap.end())
   {
     return iter->second;
   }
   else
   {
-    set_CharFlag(name, defaultval);
-    return get_CharFlag(name);
+    set_StringFlag(name, defaultval);
+    return get_StringFlag(name);
   }
 }
 
-void PHFlag::set_CharFlag(const std::string &name, const std::string &charstr)
+void PHFlag::set_StringFlag(const std::string &name, const std::string &charstr)
 {
-  charflag[name] = charstr;
+  m_StringFlagMap[name] = charstr;
   return;
 }
 
 double PHFlag::get_DoubleFlag(const std::string &name) const
 {
-  std::map<std::string, double>::const_iterator iter = doubleflag.find(name);
-  if (iter != doubleflag.end())
+  std::map<std::string, double>::const_iterator iter = m_DoubleFlagMap.find(name);
+  if (iter != m_DoubleFlagMap.end())
   {
     return iter->second;
   }
@@ -63,8 +63,8 @@ double PHFlag::get_DoubleFlag(const std::string &name) const
 
 double PHFlag::get_DoubleFlag(const std::string &name, const double defaultval)
 {
-  std::map<std::string, double>::const_iterator iter = doubleflag.find(name);
-  if (iter != doubleflag.end())
+  std::map<std::string, double>::const_iterator iter = m_DoubleFlagMap.find(name);
+  if (iter != m_DoubleFlagMap.end())
   {
     return iter->second;
   }
@@ -77,14 +77,14 @@ double PHFlag::get_DoubleFlag(const std::string &name, const double defaultval)
 
 void PHFlag::set_DoubleFlag(const std::string &name, const double iflag)
 {
-  doubleflag[name] = iflag;
+  m_DoubleFlagMap[name] = iflag;
   return;
 }
 
 float PHFlag::get_FloatFlag(const std::string &name) const
 {
-  std::map<std::string, float>::const_iterator iter = floatflag.find(name);
-  if (iter != floatflag.end())
+  std::map<std::string, float>::const_iterator iter = m_FloatFlagMap.find(name);
+  if (iter != m_FloatFlagMap.end())
   {
     return iter->second;
   }
@@ -97,8 +97,8 @@ float PHFlag::get_FloatFlag(const std::string &name) const
 
 float PHFlag::get_FloatFlag(const std::string &name, const float defaultval)
 {
-  std::map<std::string, float>::const_iterator iter = floatflag.find(name);
-  if (iter != floatflag.end())
+  std::map<std::string, float>::const_iterator iter = m_FloatFlagMap.find(name);
+  if (iter != m_FloatFlagMap.end())
   {
     return iter->second;
   }
@@ -111,14 +111,14 @@ float PHFlag::get_FloatFlag(const std::string &name, const float defaultval)
 
 void PHFlag::set_FloatFlag(const std::string &name, const float iflag)
 {
-  floatflag[name] = iflag;
+  m_FloatFlagMap[name] = iflag;
   return;
 }
 
 int PHFlag::get_IntFlag(const std::string &name) const
 {
-  std::map<std::string, int>::const_iterator iter = intflag.find(name);
-  if (iter != intflag.end())
+  std::map<std::string, int>::const_iterator iter = m_IntFlagMap.find(name);
+  if (iter != m_IntFlagMap.end())
   {
     return iter->second;
   }
@@ -131,8 +131,8 @@ int PHFlag::get_IntFlag(const std::string &name) const
 
 int PHFlag::get_IntFlag(const std::string &name, int defaultval)
 {
-  std::map<std::string, int>::const_iterator iter = intflag.find(name);
-  if (iter != intflag.end())
+  std::map<std::string, int>::const_iterator iter = m_IntFlagMap.find(name);
+  if (iter != m_IntFlagMap.end())
   {
     return iter->second;
   }
@@ -145,16 +145,51 @@ int PHFlag::get_IntFlag(const std::string &name, int defaultval)
 
 void PHFlag::set_IntFlag(const std::string &name, const int iflag)
 {
-  intflag[name] = iflag;
+  m_IntFlagMap[name] = iflag;
+  return;
+}
+
+uint64_t PHFlag::get_uint64Flag(const std::string &name) const
+{
+  std::map<std::string, uint64_t>::const_iterator iter = m_UInt64FlagMap.find(name);
+  if (iter != m_UInt64FlagMap.end())
+  {
+    return iter->second;
+  }
+  std::cout << "PHFlag::getFlag: ERROR Unknown uint64 Flag " << name << std::endl;
+  PrintStackTrace();
+  std::cout << "The following flags are implemented: " << std::endl;
+  Print();
+  return 0;
+}
+
+uint64_t PHFlag::get_uint64Flag(const std::string &name, uint64_t defaultval)
+{
+  std::map<std::string, uint64_t>::const_iterator iter = m_UInt64FlagMap.find(name);
+  if (iter != m_UInt64FlagMap.end())
+  {
+    return iter->second;
+  }
+  else
+  {
+    set_uint64Flag(name, defaultval);
+    return get_uint64Flag(name);
+  }
+}
+
+void PHFlag::set_uint64Flag(const std::string &name, const uint64_t iflag)
+{
+  m_UInt64FlagMap[name] = iflag;
   return;
 }
 
 void PHFlag::Print() const
 {
   PrintIntFlags();
+  Printuint64Flags();
   PrintFloatFlags();
   PrintDoubleFlags();
-  PrintCharFlags();
+  PrintStringFlags();
   return;
 }
 
@@ -162,9 +197,22 @@ void PHFlag::PrintIntFlags() const
 {
   // loop over the map and print out the content (name and location in memory)
   std::cout << std::endl
-       << "Integer Flags:" << std::endl;
+            << "Integer Flags:" << std::endl;
   std::map<std::string, int>::const_iterator intiter;
-  for (intiter = intflag.begin(); intiter != intflag.end(); ++intiter)
+  for (intiter = m_IntFlagMap.begin(); intiter != m_IntFlagMap.end(); ++intiter)
+  {
+    std::cout << intiter->first << " is " << intiter->second << std::endl;
+  }
+  return;
+}
+
+void PHFlag::Printuint64Flags() const
+{
+  // loop over the map and print out the content (name and location in memory)
+  std::cout << std::endl
+            << "uint64 Flags:" << std::endl;
+  std::map<std::string, uint64_t>::const_iterator intiter;
+  for (intiter = m_UInt64FlagMap.begin(); intiter != m_UInt64FlagMap.end(); ++intiter)
   {
     std::cout << intiter->first << " is " << intiter->second << std::endl;
   }
@@ -175,9 +223,9 @@ void PHFlag::PrintDoubleFlags() const
 {
   // loop over the map and print out the content (name and location in memory)
   std::cout << std::endl
-       << "Double Flags:" << std::endl;
+            << "Double Flags:" << std::endl;
   std::map<std::string, double>::const_iterator doubleiter;
-  for (doubleiter = doubleflag.begin(); doubleiter != doubleflag.end(); ++doubleiter)
+  for (doubleiter = m_DoubleFlagMap.begin(); doubleiter != m_DoubleFlagMap.end(); ++doubleiter)
   {
     std::cout << doubleiter->first << " is " << doubleiter->second << std::endl;
   }
@@ -188,22 +236,22 @@ void PHFlag::PrintFloatFlags() const
 {
   // loop over the map and print out the content (name and location in memory)
   std::cout << std::endl
-       << "Float Flags:" << std::endl;
+            << "Float Flags:" << std::endl;
   std::map<std::string, float>::const_iterator floatiter;
-  for (floatiter = floatflag.begin(); floatiter != floatflag.end(); ++floatiter)
+  for (floatiter = m_FloatFlagMap.begin(); floatiter != m_FloatFlagMap.end(); ++floatiter)
   {
     std::cout << floatiter->first << " is " << floatiter->second << std::endl;
   }
   return;
 }
 
-void PHFlag::PrintCharFlags() const
+void PHFlag::PrintStringFlags() const
 {
   // loop over the map and print out the content (name and location in memory)
   std::cout << std::endl
-       << "char* Flags:" << std::endl;
+            << "String Flags:" << std::endl;
   std::map<std::string, std::string>::const_iterator chariter;
-  for (chariter = charflag.begin(); chariter != charflag.end(); ++chariter)
+  for (chariter = m_StringFlagMap.begin(); chariter != m_StringFlagMap.end(); ++chariter)
   {
     std::cout << chariter->first << " is " << chariter->second << std::endl;
   }
@@ -212,23 +260,28 @@ void PHFlag::PrintCharFlags() const
 
 int PHFlag::FlagExist(const std::string &name) const
 {
-  std::map<std::string, int>::const_iterator iter = intflag.find(name);
-  if (iter != intflag.end())
+  std::map<std::string, int>::const_iterator iter = m_IntFlagMap.find(name);
+  if (iter != m_IntFlagMap.end())
   {
     return 1;
   }
-  std::map<std::string, float>::const_iterator fiter = floatflag.find(name);
-  if (fiter != floatflag.end())
+  std::map<std::string, uint64_t>::const_iterator uiter = m_UInt64FlagMap.find(name);
+  if (uiter != m_UInt64FlagMap.end())
   {
     return 1;
   }
-  std::map<std::string, double>::const_iterator diter = doubleflag.find(name);
-  if (diter != doubleflag.end())
+  std::map<std::string, float>::const_iterator fiter = m_FloatFlagMap.find(name);
+  if (fiter != m_FloatFlagMap.end())
   {
     return 1;
   }
-  std::map<std::string, std::string>::const_iterator citer = charflag.find(name);
-  if (citer != charflag.end())
+  std::map<std::string, double>::const_iterator diter = m_DoubleFlagMap.find(name);
+  if (diter != m_DoubleFlagMap.end())
+  {
+    return 1;
+  }
+  std::map<std::string, std::string>::const_iterator citer = m_StringFlagMap.find(name);
+  if (citer != m_StringFlagMap.end())
   {
     return 1;
   }
@@ -244,6 +297,8 @@ void PHFlag::ReadFromFile(const std::string &name)
   int dvaluecount = 0;
   int ivalue;
   int ivaluecount = 0;
+  uint64_t uivalue = 0;
+  int uivaluecount = 0;
   std::string cvalue;
   int cvaluecount = 0;
   std::string junk;
@@ -252,34 +307,41 @@ void PHFlag::ReadFromFile(const std::string &name)
   std::ifstream infile(name);
   while (infile >> label)
   {
-    std::cout << "Label" << label;
-    if (label.substr(0, 1) == "C")
+    std::cout << "Label " << label;
+    if (label.substr(0, 1) == "S")
     {
       infile >> cvalue;
       cvaluecount++;
-      set_CharFlag(label.substr(1, label.size() - 1), cvalue);
-      std::cout << " C read " << cvalue << std::endl;
+      set_StringFlag(label.substr(1, label.size() - 1), cvalue);
+      std::cout << " type S read " << cvalue << std::endl;
     }
     else if (label.substr(0, 1) == "F")
     {
       infile >> fvalue;
       fvaluecount++;
       set_FloatFlag(label.substr(1, label.size() - 1), fvalue);
-      std::cout << " F read " << fvalue << std::endl;
+      std::cout << " type F read " << fvalue << std::endl;
     }
     else if (label.substr(0, 1) == "D")
     {
       infile >> dvalue;
       dvaluecount++;
       set_DoubleFlag(label.substr(1, label.size() - 1), dvalue);
-      std::cout << " D read " << dvalue << std::endl;
+      std::cout << " type D read " << dvalue << std::endl;
     }
     else if (label.substr(0, 1) == "I")
     {
       infile >> ivalue;
       ivaluecount++;
       set_IntFlag(label.substr(1, label.size() - 1), ivalue);
-      std::cout << " I read " << ivalue << std::endl;
+      std::cout << " type I read " << ivalue << std::endl;
+    }
+    else if (label.substr(0, 1) == "U")
+    {
+      infile >> uivalue;
+      uivaluecount++;
+      set_uint64Flag(label.substr(1, label.size() - 1), uivalue);
+      std::cout << " type U read " << uivalue << std::endl;
     }
     else
     {
@@ -289,12 +351,13 @@ void PHFlag::ReadFromFile(const std::string &name)
     }
   }
 
-  std::cout << "Read CharFlags(" << cvaluecount
-       << ") FloatFlags(" << fvaluecount
-       << ") DoubleFlags(" << dvaluecount
-       << ") IntFlags(" << ivaluecount
-       << ") JunkEntries(" << junkcount
-       << ") from file " << name << std::endl;
+  std::cout << "Read StringFlags(" << cvaluecount
+            << ") FloatFlags(" << fvaluecount
+            << ") DoubleFlags(" << dvaluecount
+            << ") IntFlags(" << ivaluecount
+            << ") uint64Flags(" << uivaluecount
+            << ") JunkEntries(" << junkcount
+            << ") from file " << name << std::endl;
 
   infile.close();
 }
@@ -304,29 +367,35 @@ void PHFlag::WriteToFile(const std::string &name)
   std::ofstream outFile(name);
   // loop over the map and write out the content
   std::map<std::string, int>::const_iterator intiter;
-  for (intiter = intflag.begin(); intiter != intflag.end(); ++intiter)
+  for (intiter = m_IntFlagMap.begin(); intiter != m_IntFlagMap.end(); ++intiter)
   {
     outFile << "I" << intiter->first << "\t" << intiter->second << std::endl;
   }
 
+  std::map<std::string, uint64_t>::const_iterator uintiter;
+  for (uintiter = m_UInt64FlagMap.begin(); uintiter != m_UInt64FlagMap.end(); ++uintiter)
+  {
+    outFile << "U" << uintiter->first << "\t" << uintiter->second << std::endl;
+  }
+
   std::map<std::string, float>::const_iterator floatiter;
-  for (floatiter = floatflag.begin(); floatiter != floatflag.end(); ++floatiter)
+  for (floatiter = m_FloatFlagMap.begin(); floatiter != m_FloatFlagMap.end(); ++floatiter)
   {
     outFile << "F" << floatiter->first << "\t" << floatiter->second << std::endl;
   }
 
   int oldprecision = outFile.precision(15);
   std::map<std::string, double>::const_iterator doubleiter;
-  for (doubleiter = doubleflag.begin(); doubleiter != doubleflag.end(); ++doubleiter)
+  for (doubleiter = m_DoubleFlagMap.begin(); doubleiter != m_DoubleFlagMap.end(); ++doubleiter)
   {
     outFile << "D" << doubleiter->first << "\t" << doubleiter->second << std::endl;
   }
   outFile.precision(oldprecision);
 
   std::map<std::string, std::string>::const_iterator chariter;
-  for (chariter = charflag.begin(); chariter != charflag.end(); ++chariter)
+  for (chariter = m_StringFlagMap.begin(); chariter != m_StringFlagMap.end(); ++chariter)
   {
-    outFile << "C" << chariter->first << "\t" << chariter->second << std::endl;
+    outFile << "S" << chariter->first << "\t" << chariter->second << std::endl;
   }
 
   outFile.close();
@@ -338,4 +407,43 @@ void PHFlag::PrintStackTrace() const
   std::cout << boost::stacktrace::stacktrace();
   std::cout << std::endl;
   std::cout << "DO NOT PANIC - this is not a segfault" << std::endl;
+}
+
+void PHFlag::ClearFlag(const std::string &name)
+{
+  std::map<std::string, int>::iterator iter = m_IntFlagMap.find(name);
+  if (iter != m_IntFlagMap.end())
+  {
+    m_IntFlagMap.erase(iter);
+  }
+  std::map<std::string, uint64_t>::iterator uiter = m_UInt64FlagMap.find(name);
+  if (uiter != m_UInt64FlagMap.end())
+  {
+    m_UInt64FlagMap.erase(uiter);
+  }
+  std::map<std::string, double>::iterator diter = m_DoubleFlagMap.find(name);
+  if (diter != m_DoubleFlagMap.end())
+  {
+    m_DoubleFlagMap.erase(diter);
+  }
+  std::map<std::string, float>::iterator fiter = m_FloatFlagMap.find(name);
+  if (fiter != m_FloatFlagMap.end())
+  {
+    m_FloatFlagMap.erase(fiter);
+  }
+  std::map<std::string, std::string>::iterator citer = m_StringFlagMap.find(name);
+  if (citer != m_StringFlagMap.end())
+  {
+    m_StringFlagMap.erase(citer);
+  }
+}
+
+void PHFlag::ClearAll()
+{
+  m_UInt64FlagMap.clear();
+  m_IntFlagMap.clear();
+  m_DoubleFlagMap.clear();
+  m_FloatFlagMap.clear();
+  m_StringFlagMap.clear();
+  return;
 }

@@ -37,16 +37,19 @@ class FlagSavev1 : public FlagSave
 
  private:
   int FillIntFromPHFlag(const PHFlag *flags);
+  int Filluint64FromPHFlag(const PHFlag *flags);
   int FillDoubleFromPHFlag(const PHFlag *flags);
   int FillFloatFromPHFlag(const PHFlag *flags);
-  int FillCharFromPHFlag(const PHFlag *flags);
+  int FillStringFromPHFlag(const PHFlag *flags);
 
   int PutIntToPHFlag(PHFlag *flags);
+  int Putuint64ToPHFlag(PHFlag *flags);
   int PutDoubleToPHFlag(PHFlag *flags);
   int PutFloatToPHFlag(PHFlag *flags);
-  int PutCharToPHFlag(PHFlag *flags);
+  int PutStringToPHFlag(PHFlag *flags);
 
   void PrintIntFlag(std::ostream &os) const;
+  void Printuint64Flag(std::ostream &os) const;
   void PrintDoubleFlag(std::ostream &os) const;
   void PrintFloatFlag(std::ostream &os) const;
   void PrintStringFlag(std::ostream &os) const;
@@ -55,9 +58,9 @@ class FlagSavev1 : public FlagSave
   std::map<std::string, double> doubleflag;
   std::map<std::string, float> floatflag;
   std::map<std::string, std::string> stringflag;
+  std::map<std::string, uint64_t> m_uint64flag_map;
 
-  ClassDefOverride(FlagSavev1, 1)
-
+  ClassDefOverride(FlagSavev1, 2)
 };
 
 #endif

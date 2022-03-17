@@ -12,6 +12,7 @@ FlagSavev1::CloneMe() const
   FlagSavev1 *ret = new FlagSavev1();
 
   ret->intflag = this->intflag;
+  ret->m_uint64flag_map = this->m_uint64flag_map;
   ret->doubleflag = this->doubleflag;
   ret->floatflag = this->floatflag;
   ret->stringflag = this->stringflag;
@@ -24,7 +25,8 @@ int FlagSavev1::isValid() const
   if (intflag.empty() &&
       doubleflag.empty() &&
       floatflag.empty() &&
-      stringflag.empty())
+      stringflag.empty() &&
+      m_uint64flag_map.empty())
   {
     return 0;
   }
@@ -35,6 +37,7 @@ void FlagSavev1::identify(std::ostream &out) const
 {
   out << "identify yourself: I am an FlagSavev1 Object" << std::endl;
   PrintIntFlag(out);
+  Printuint64Flag(out);
   PrintDoubleFlag(out);
   PrintFloatFlag(out);
   PrintStringFlag(out);
@@ -44,18 +47,20 @@ void FlagSavev1::identify(std::ostream &out) const
 int FlagSavev1::FillFromPHFlag(const PHFlag *flags)
 {
   int iret = FillIntFromPHFlag(flags);
+  iret += Filluint64FromPHFlag(flags);
   iret += FillDoubleFromPHFlag(flags);
   iret += FillFloatFromPHFlag(flags);
-  iret += FillCharFromPHFlag(flags);
+  iret += FillStringFromPHFlag(flags);
   return iret;
 }
 
 int FlagSavev1::PutFlagsBack(PHFlag *flags)
 {
   int iret = PutIntToPHFlag(flags);
+  iret += Putuint64ToPHFlag(flags);
   iret += PutDoubleToPHFlag(flags);
   iret += PutFloatToPHFlag(flags);
-  iret += PutCharToPHFlag(flags);
+  iret += PutStringToPHFlag(flags);
   return iret;
 }
 
@@ -66,6 +71,17 @@ int FlagSavev1::FillIntFromPHFlag(const PHFlag *flags)
   for (iter = intm->begin(); iter != intm->end(); ++iter)
   {
     intflag[iter->first] = iter->second;
+  }
+  return 0;
+}
+
+int FlagSavev1::Filluint64FromPHFlag(const PHFlag *flags)
+{
+  std::map<std::string, uint64_t>::const_iterator iter;
+  const std::map<std::string, uint64_t> *intm = flags->uint64Map();
+  for (iter = intm->begin(); iter != intm->end(); ++iter)
+  {
+    m_uint64flag_map[iter->first] = iter->second;
   }
   return 0;
 }
@@ -92,10 +108,10 @@ int FlagSavev1::FillFloatFromPHFlag(const PHFlag *flags)
   return 0;
 }
 
-int FlagSavev1::FillCharFromPHFlag(const PHFlag *flags)
+int FlagSavev1::FillStringFromPHFlag(const PHFlag *flags)
 {
   std::map<std::string, std::string>::const_iterator iter;
-  const std::map<std::string, std::string> *intm = flags->CharMap();
+  const std::map<std::string, std::string> *intm = flags->StringMap();
   for (iter = intm->begin(); iter != intm->end(); ++iter)
   {
     std::string input(iter->second);
@@ -110,6 +126,16 @@ int FlagSavev1::PutIntToPHFlag(PHFlag *flags)
   for (iter = intflag.begin(); iter != intflag.end(); ++iter)
   {
     flags->set_IntFlag(iter->first, iter->second);
+  }
+  return 0;
+}
+
+int FlagSavev1::Putuint64ToPHFlag(PHFlag *flags)
+{
+  std::map<std::string, uint64_t>::const_iterator iter;
+  for (iter = m_uint64flag_map.begin(); iter != m_uint64flag_map.end(); ++iter)
+  {
+    flags->set_uint64Flag(iter->first, iter->second);
   }
   return 0;
 }
@@ -134,12 +160,12 @@ int FlagSavev1::PutFloatToPHFlag(PHFlag *flags)
   return 0;
 }
 
-int FlagSavev1::PutCharToPHFlag(PHFlag *flags)
+int FlagSavev1::PutStringToPHFlag(PHFlag *flags)
 {
   std::map<std::string, std::string>::const_iterator iter;
   for (iter = stringflag.begin(); iter != stringflag.end(); ++iter)
   {
-    flags->set_CharFlag(iter->first, iter->second);
+    flags->set_StringFlag(iter->first, iter->second);
   }
   return 0;
 }
@@ -153,6 +179,21 @@ void FlagSavev1::PrintIntFlag(std::ostream &os) const
   std::map<std::string, int>::const_iterator iter;
   os << "Int Flags: " << std::endl;
   for (iter = intflag.begin(); iter != intflag.end(); ++iter)
+  {
+    os << iter->first << ": " << iter->second << std::endl;
+  }
+  return;
+}
+
+void FlagSavev1::Printuint64Flag(std::ostream &os) const
+{
+  if (m_uint64flag_map.empty())
+  {
+    return;
+  }
+  std::map<std::string, uint64_t>::const_iterator iter;
+  os << "UInt64 Flags: " << std::endl;
+  for (iter = m_uint64flag_map.begin(); iter != m_uint64flag_map.end(); ++iter)
   {
     os << iter->first << ": " << iter->second << std::endl;
   }
