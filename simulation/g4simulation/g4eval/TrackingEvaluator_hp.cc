@@ -774,6 +774,7 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
     << "TrackingEvaluator_hp::print_cluster -"
     << " layer: " << (int)TrkrDefs::getLayer(cluster_key)
     << " type: " << (int) trkrId
+    << " local: (" << cluster->getLocalX() << "," << cluster->getLocalY() << "," << (int) cluster->getSubSurfKey() << ")"
     << " position: (" << global.x() << "," << global.y() << "," << global.z() << ")"
     << " polar: (" << r << "," << std::atan2( global.y(), global.x()) << "," << global.z() << ")"
     << " errors: (" << cluster->getRPhiError()/r << ", " << cluster->getZError() << ")"
@@ -857,7 +858,7 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
 
   }
 
-  std::cout << std::endl;
+  // std::cout << std::endl;
 
 }
 
