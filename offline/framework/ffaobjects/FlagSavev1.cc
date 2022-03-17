@@ -60,11 +60,11 @@ int FlagSavev1::FillFromPHFlag(const PHFlag *flags, const bool clearold)
 
 int FlagSavev1::PutFlagsBack(PHFlag *flags, const bool overwrite)
 {
-  int iret = PutIntToPHFlag(flags,overwrite);
-  iret += Putuint64ToPHFlag(flags,overwrite);
-  iret += PutDoubleToPHFlag(flags,overwrite);
-  iret += PutFloatToPHFlag(flags,overwrite);
-  iret += PutStringToPHFlag(flags,overwrite);
+  int iret = PutIntToPHFlag(flags, overwrite);
+  iret += Putuint64ToPHFlag(flags, overwrite);
+  iret += PutDoubleToPHFlag(flags, overwrite);
+  iret += PutFloatToPHFlag(flags, overwrite);
+  iret += PutStringToPHFlag(flags, overwrite);
   return iret;
 }
 
@@ -132,11 +132,11 @@ int FlagSavev1::PutIntToPHFlag(PHFlag *flags, const bool overwrite)
   {
     if (overwrite)
     {
-    flags->set_IntFlag(iter->first, iter->second);
+      flags->set_IntFlag(iter->first, iter->second);
     }
     else
     {
-    flags->get_IntFlag(iter->first, iter->second);
+      flags->get_IntFlag(iter->first, iter->second);
     }
   }
   return 0;
@@ -149,13 +149,12 @@ int FlagSavev1::Putuint64ToPHFlag(PHFlag *flags, const bool overwrite)
   {
     if (overwrite)
     {
-    flags->set_uint64Flag(iter->first, iter->second);
+      flags->set_uint64Flag(iter->first, iter->second);
     }
     else
     {
-    flags->get_uint64Flag(iter->first, iter->second);
+      flags->get_uint64Flag(iter->first, iter->second);
     }
-
   }
   return 0;
 }
@@ -167,13 +166,12 @@ int FlagSavev1::PutDoubleToPHFlag(PHFlag *flags, const bool overwrite)
   {
     if (overwrite)
     {
-    flags->set_DoubleFlag(iter->first, iter->second);
+      flags->set_DoubleFlag(iter->first, iter->second);
     }
     else
     {
-    flags->get_DoubleFlag(iter->first, iter->second);
+      flags->get_DoubleFlag(iter->first, iter->second);
     }
-
   }
   return 0;
 }
@@ -185,11 +183,11 @@ int FlagSavev1::PutFloatToPHFlag(PHFlag *flags, const bool overwrite)
   {
     if (overwrite)
     {
-    flags->set_FloatFlag(iter->first, iter->second);
+      flags->set_FloatFlag(iter->first, iter->second);
     }
     else
     {
-    flags->get_FloatFlag(iter->first, iter->second);
+      flags->get_FloatFlag(iter->first, iter->second);
     }
   }
   return 0;
@@ -202,11 +200,11 @@ int FlagSavev1::PutStringToPHFlag(PHFlag *flags, const bool overwrite)
   {
     if (overwrite)
     {
-    flags->set_StringFlag(iter->first, iter->second);
+      flags->set_StringFlag(iter->first, iter->second);
     }
     else
     {
-    flags->get_StringFlag(iter->first, iter->second);
+      flags->get_StringFlag(iter->first, iter->second);
     }
   }
   return 0;

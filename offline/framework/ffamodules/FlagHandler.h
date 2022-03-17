@@ -12,7 +12,6 @@ class PHCompositeNode;
 class FlagHandler : public SubsysReco
 {
  public:
-
   FlagHandler(const std::string &name = "FlagHandler");
 
   ~FlagHandler() override {}
@@ -30,4 +29,4 @@ class FlagHandler : public SubsysReco
  private:
 };
 
-#endif // FFAMODULES_FLAGHANDLER_H
+#endif  // FFAMODULES_FLAGHANDLER_H
