@@ -32,21 +32,22 @@ class FlagSavev1 : public FlagSave
    */
   void identify(std::ostream &os = std::cout) const override;
 
-  int FillFromPHFlag(const PHFlag *flags) override;
-  int PutFlagsBack(PHFlag *flags) override;
+  int FillFromPHFlag(const PHFlag *flags, const bool clearold) override;
+  int PutFlagsBack(PHFlag *flags, const bool overwrite) override;
 
  private:
+  void ClearAll();
   int FillIntFromPHFlag(const PHFlag *flags);
   int Filluint64FromPHFlag(const PHFlag *flags);
   int FillDoubleFromPHFlag(const PHFlag *flags);
   int FillFloatFromPHFlag(const PHFlag *flags);
   int FillStringFromPHFlag(const PHFlag *flags);
 
-  int PutIntToPHFlag(PHFlag *flags);
-  int Putuint64ToPHFlag(PHFlag *flags);
-  int PutDoubleToPHFlag(PHFlag *flags);
-  int PutFloatToPHFlag(PHFlag *flags);
-  int PutStringToPHFlag(PHFlag *flags);
+  int PutIntToPHFlag(PHFlag *flags, const bool overwrite);
+  int Putuint64ToPHFlag(PHFlag *flags, const bool overwrite);
+  int PutDoubleToPHFlag(PHFlag *flags, const bool overwrite);
+  int PutFloatToPHFlag(PHFlag *flags, const bool overwrite);
+  int PutStringToPHFlag(PHFlag *flags, const bool overwrite);
 
   void PrintIntFlag(std::ostream &os) const;
   void Printuint64Flag(std::ostream &os) const;

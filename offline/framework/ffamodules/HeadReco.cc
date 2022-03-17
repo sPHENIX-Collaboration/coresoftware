@@ -2,8 +2,6 @@
 
 #include <ffaobjects/EventHeader.h>
 #include <ffaobjects/EventHeaderv1.h>
-#include <ffaobjects/FlagSave.h>
-#include <ffaobjects/FlagSavev1.h>
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/RunHeaderv1.h>
 
@@ -42,10 +40,6 @@ int HeadReco::Init(PHCompositeNode *topNode)
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   RunHeader *runheader = new RunHeaderv1();
   PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(runheader, "RunHeader", "PHObject");
-  runNode->addNode(newNode);
-
-  FlagSave *flgsv = new FlagSavev1();
-  newNode = new PHIODataNode<PHObject>(flgsv, "Flags", "PHObject");
   runNode->addNode(newNode);
 
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -102,19 +96,5 @@ int HeadReco::process_event(PHCompositeNode *topNode)
     evtheader->identify();
   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int HeadReco::EndRun(const int /*runno*/)
-{
-  Fun4AllServer *se = Fun4AllServer::instance();
-  FlagSave *flagsave = findNode::getClass<FlagSave>(se->topNode(), "Flags");
-  if (flagsave)
-  {
-    recoConsts *rc = recoConsts::instance();
-    std::cout << "Saving recoConst Flags: " << std::endl;
-    flagsave->FillFromPHFlag(rc);
-    flagsave->identify();
-  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
