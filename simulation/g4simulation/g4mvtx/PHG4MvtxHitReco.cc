@@ -198,6 +198,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         cout << " layer " << *layer << " t0 " << hiter->second->get_t(0) << " t1 " << hiter->second->get_t(1)
              << " tmin " << tmin_max[*layer].first << " tmax " << tmin_max[*layer].second
              << endl;
+
       if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
       if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
 

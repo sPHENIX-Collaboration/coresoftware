@@ -277,6 +277,7 @@ namespace
 	    }    
 	  else
 	    {
+	      /*
 	      std::cout << PHWHERE 
 			<< "Error: TPC surface index not defined, skipping cluster!" 
 			<< std::endl;
@@ -287,6 +288,7 @@ namespace
 	      std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
 	      std::cout << "     surfStepPhi " << surfStepPhi << " surfStepZ " << surfStepZ << std::endl; 
 	      std::cout << " number of surfaces " << surf_vec.size() << " nsurf: "  << nsurf << std::endl;
+	      */
 	      return nullptr;
 	    }
 	  	 
@@ -815,17 +817,19 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
     unsigned short NPhiBinsSector = NPhiBins/12;
     unsigned short NZBins = (unsigned short)layergeom->get_zbins();
-    unsigned short NZBinsSide = NZBins/2;
+    //unsigned short NZBinsSide = NZBins/2;
+    unsigned short NZBinsSide = NZBins;
     unsigned short NZBinsMin = 0;
     unsigned short PhiOffset = NPhiBinsSector * sector;
 
+    /*
     if (side == 0){
       NZBinsMin = 0;
     }
     else{
       NZBinsMin = NZBins / 2;
     }
-
+    */
     unsigned short ZOffset = NZBinsMin;
 
     thread_pair.data.phibins   = NPhiBinsSector;

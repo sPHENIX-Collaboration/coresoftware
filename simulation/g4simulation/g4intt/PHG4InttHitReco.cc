@@ -220,7 +220,6 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     const int sphxlayer = hiter->second->get_detid();
     CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(geo->GetLayerGeom(sphxlayer));
 
-    /*
     // checking ADC timing integration window cut
     // uses default values for now
     // these should depend on layer radius
@@ -228,7 +227,6 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       continue;
     if (hiter->second->get_t(1) < m_Tmin)
       continue;
-    */
 
     float time = (hiter->second->get_t(0) + hiter->second->get_t(1)) / 2.0;
 

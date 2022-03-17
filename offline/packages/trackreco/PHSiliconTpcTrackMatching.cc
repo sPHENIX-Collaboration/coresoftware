@@ -4,6 +4,7 @@
 
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
+#include <tpc/TpcDefs.h>
 #include <trackbase/TpcSeedTrackMapv1.h>     
 #include <trackbase/TrkrClusterContainerv3.h>   
 #include <trackbase/TrkrClusterv3.h>   
@@ -334,10 +335,8 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
 
   double crossings = z_mismatch / z_bunch_separation;
 
-  // Check the sign of z for the first cluster in the track
-  // loop over associated clusters to get hits for TPC only, add to new track copy
-  double clus_z = 0.0;
-  ActsTransformations transformer;
+  // Check the TPC side for the first cluster in the track
+  unsigned int side = 10;
   for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
        iter != track->end_cluster_keys();
        ++iter)
@@ -346,31 +345,20 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
       unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
       if(trkrid == TrkrDefs::tpcId)
 	{
-
-	  TrkrCluster *tpc_clus;
-	  if(_corrected_cluster_map)
-	    tpc_clus =  _corrected_cluster_map->findCluster(cluster_key);
-	  else
-	    tpc_clus =  _cluster_map->findCluster(cluster_key);
-
-	  auto global = transformer.getGlobalPosition(tpc_clus,
-						       _surfmaps,
-						       _tGeometry);
-	  clus_z = global[2];
+	  side = TpcDefs::getSide(cluster_key);
 	  break;   // we only need the first one  
 	}
     }
 
-  // if true z > 0, the z offset will be negative from a positive t0, so z_tpc - z_si will be negative for a positive crossing offset
-  //       -- reverse the sign of crossings to get a positive crossing for a positive t0
-  // if true z < 0, the z offset will be positive from a positive t0, z_tpc - z_si will be positive for a positive crossing offset
-  //       -- the sign of crossings is OK
-  // have to correct clus_z for the z_mismatch to see if it was really positive or negative
-  if(clus_z -z_mismatch > 0)
+  if(side == 10) return SHRT_MAX;
+
+  // if side = 1 (north, +ve z side), a positive t0 will make the cluster late relative to true z, so it will look like z is less positive
+  // so a negative z mismatch for side 1 means a positive t0, and positive crossing, so reverse the sign for side 1
+  if(side == 1)
     crossings *= -1.0;
   
   if(Verbosity() > 1) 
-    std::cout << "             trackid " << trid << " clus_z " << clus_z << " z_mismatch " << z_mismatch << " crossings " << crossings << std::endl;
+    std::cout << "             trackid " << trid << " side " << side << " z_mismatch " << z_mismatch << " crossings " << crossings << std::endl;
 
   return crossings;
 }

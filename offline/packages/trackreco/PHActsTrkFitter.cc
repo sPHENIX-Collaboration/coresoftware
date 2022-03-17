@@ -11,6 +11,7 @@
 /// Tracking includes
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
+#include <tpc/TpcDefs.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
@@ -453,9 +454,10 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 
       float z = cluster->getLocalY();
       unsigned int trkrid = TrkrDefs::getTrkrId(key);
+      unsigned int side = TpcDefs::getSide(key);
       if(trkrid ==  TrkrDefs::tpcId)
 	{
-	  z = m_clusterCrossingCorrection.correctZ(z, crossing);
+	  z = m_clusterCrossingCorrection.correctZ(z, side, crossing);
 	}
       
       Acts::ActsVector<2> loc;
