@@ -41,23 +41,20 @@ libcaloCalibDBFile_la_SOURCES = \
 ################################################
 # linking tests
 
-#noinst_PROGRAMS = \
-#  testexternals_calo
+noinst_PROGRAMS = \
+  testexternals
 
-#BUILT_SOURCES = testexternals.cc
+BUILT_SOURCES = testexternals.cc
 
-#testexternals_calo_io_SOURCES = testexternals.cc
-#testexternals_calo_io_LDADD = libcalo_io.la
+testexternals_SOURCES = testexternals.cc
+testexternals_LDADD = libcaloCalibDBFile.la
 
-#testexternals.cc:
-#	echo "//*** this is a generated file. Do not commit, do not edit" > $@
-#	echo "int main()" >> $@
-#	echo "{" >> $@
-#	echo "  return 0;" >> $@
-#	echo "}" >> $@
-
-##############################################
-# please add new classes in alphabetical order
+testexternals.cc:
+	echo "//*** this is a generated file. Do not commit, do not edit" > $@
+	echo "int main()" >> $@
+	echo "{" >> $@
+	echo "  return 0;" >> $@
+	echo "}" >> $@
 
 clean-local:
 	rm -f $(BUILT_SOURCES)
