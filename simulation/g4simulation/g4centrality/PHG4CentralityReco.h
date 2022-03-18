@@ -8,9 +8,11 @@
 //===========================================================
 
 #include <fun4all/SubsysReco.h>
+
 #include <phparameter/PHParameters.h>
 
 #include <cmath>
+#include <map>
 #include <string>
 
 class PHCompositeNode;

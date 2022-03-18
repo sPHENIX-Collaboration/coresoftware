@@ -1,5 +1,7 @@
 #include "BbcVertexMap.h"
 
+class BbcVertex;
+
 std::map<unsigned int, BbcVertex*> DummyBbcVertexMap;
 
 BbcVertexMap::ConstIter BbcVertexMap::begin() const
@@ -17,8 +19,7 @@ BbcVertexMap::ConstIter BbcVertexMap::end() const
   return DummyBbcVertexMap.end();
 }
 
-
-BbcVertexMap::Iter BbcVertexMap:: begin()
+BbcVertexMap::Iter BbcVertexMap::begin()
 {
   return DummyBbcVertexMap.end();
 }
