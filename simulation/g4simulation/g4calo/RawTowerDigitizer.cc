@@ -6,7 +6,6 @@
 #include <calobase/RawTowerDefs.h>  // for keytype
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTowerv1.h>
 #include <calobase/RawTowerv2.h>
 
 #include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBOSITY_MORE
