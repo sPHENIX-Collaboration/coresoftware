@@ -44,8 +44,12 @@ void FlagSavev1::identify(std::ostream &out) const
   return;
 }
 
-int FlagSavev1::FillFromPHFlag(const PHFlag *flags)
+int FlagSavev1::FillFromPHFlag(const PHFlag *flags, const bool clearold)
 {
+  if (clearold)
+  {
+    ClearAll();
+  }
   int iret = FillIntFromPHFlag(flags);
   iret += Filluint64FromPHFlag(flags);
   iret += FillDoubleFromPHFlag(flags);
@@ -54,13 +58,13 @@ int FlagSavev1::FillFromPHFlag(const PHFlag *flags)
   return iret;
 }
 
-int FlagSavev1::PutFlagsBack(PHFlag *flags)
+int FlagSavev1::PutFlagsBack(PHFlag *flags, const bool overwrite)
 {
-  int iret = PutIntToPHFlag(flags);
-  iret += Putuint64ToPHFlag(flags);
-  iret += PutDoubleToPHFlag(flags);
-  iret += PutFloatToPHFlag(flags);
-  iret += PutStringToPHFlag(flags);
+  int iret = PutIntToPHFlag(flags, overwrite);
+  iret += Putuint64ToPHFlag(flags, overwrite);
+  iret += PutDoubleToPHFlag(flags, overwrite);
+  iret += PutFloatToPHFlag(flags, overwrite);
+  iret += PutStringToPHFlag(flags, overwrite);
   return iret;
 }
 
@@ -119,53 +123,89 @@ int FlagSavev1::FillStringFromPHFlag(const PHFlag *flags)
   }
   return 0;
 }
-
-int FlagSavev1::PutIntToPHFlag(PHFlag *flags)
+// general procedure, if overwrite is set, just set the flag
+// if overwrite is false, call get flag with initialization which is used if it does not exist
+int FlagSavev1::PutIntToPHFlag(PHFlag *flags, const bool overwrite)
 {
   std::map<std::string, int>::const_iterator iter;
   for (iter = intflag.begin(); iter != intflag.end(); ++iter)
   {
-    flags->set_IntFlag(iter->first, iter->second);
+    if (overwrite)
+    {
+      flags->set_IntFlag(iter->first, iter->second);
+    }
+    else
+    {
+      flags->get_IntFlag(iter->first, iter->second);
+    }
   }
   return 0;
 }
 
-int FlagSavev1::Putuint64ToPHFlag(PHFlag *flags)
+int FlagSavev1::Putuint64ToPHFlag(PHFlag *flags, const bool overwrite)
 {
   std::map<std::string, uint64_t>::const_iterator iter;
   for (iter = m_uint64flag_map.begin(); iter != m_uint64flag_map.end(); ++iter)
   {
-    flags->set_uint64Flag(iter->first, iter->second);
+    if (overwrite)
+    {
+      flags->set_uint64Flag(iter->first, iter->second);
+    }
+    else
+    {
+      flags->get_uint64Flag(iter->first, iter->second);
+    }
   }
   return 0;
 }
 
-int FlagSavev1::PutDoubleToPHFlag(PHFlag *flags)
+int FlagSavev1::PutDoubleToPHFlag(PHFlag *flags, const bool overwrite)
 {
   std::map<std::string, double>::const_iterator iter;
   for (iter = doubleflag.begin(); iter != doubleflag.end(); ++iter)
   {
-    flags->set_DoubleFlag(iter->first, iter->second);
+    if (overwrite)
+    {
+      flags->set_DoubleFlag(iter->first, iter->second);
+    }
+    else
+    {
+      flags->get_DoubleFlag(iter->first, iter->second);
+    }
   }
   return 0;
 }
 
-int FlagSavev1::PutFloatToPHFlag(PHFlag *flags)
+int FlagSavev1::PutFloatToPHFlag(PHFlag *flags, const bool overwrite)
 {
   std::map<std::string, float>::const_iterator iter;
   for (iter = floatflag.begin(); iter != floatflag.end(); ++iter)
   {
-    flags->set_FloatFlag(iter->first, iter->second);
+    if (overwrite)
+    {
+      flags->set_FloatFlag(iter->first, iter->second);
+    }
+    else
+    {
+      flags->get_FloatFlag(iter->first, iter->second);
+    }
   }
   return 0;
 }
 
-int FlagSavev1::PutStringToPHFlag(PHFlag *flags)
+int FlagSavev1::PutStringToPHFlag(PHFlag *flags, const bool overwrite)
 {
   std::map<std::string, std::string>::const_iterator iter;
   for (iter = stringflag.begin(); iter != stringflag.end(); ++iter)
   {
-    flags->set_StringFlag(iter->first, iter->second);
+    if (overwrite)
+    {
+      flags->set_StringFlag(iter->first, iter->second);
+    }
+    else
+    {
+      flags->get_StringFlag(iter->first, iter->second);
+    }
   }
   return 0;
 }
@@ -243,4 +283,13 @@ void FlagSavev1::PrintStringFlag(std::ostream &os) const
     os << iter->first << ": " << iter->second << std::endl;
   }
   return;
+}
+
+void FlagSavev1::ClearAll()
+{
+  intflag.clear();
+  doubleflag.clear();
+  floatflag.clear();
+  stringflag.clear();
+  m_uint64flag_map.clear();
 }
