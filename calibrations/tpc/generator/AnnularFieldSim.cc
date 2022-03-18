@@ -2709,6 +2709,9 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, TVector3 pos, char w
 
 void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int r_subsamples, int p_subsamples, int z_subsamples, int /*z_substeps*/, bool andCartesian)
 {
+  //generates the distortion map for one or both sides of the detector, separating them so
+  //they do not try to interpolate across the CM.
+  
   //1) pick a map spacing ('s')
   TVector3 s(step.Perp() / r_subsamples, 0, step.Z() / z_subsamples);
   s.SetPhi(step.Phi() / p_subsamples);
@@ -2770,15 +2773,17 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int r
   TH3F *hIntDistortionX = new TH3F("hIntDistortionX", "Integrated X Distortion from (phi,r,z) to z=0 (centered in r,phi, and z);phi;r;z", nph, pih, pfh, nrh, rih, rfh, nzh, zih, zfh);
   TH3F *hIntDistortionY = new TH3F("hIntDistortionY", "Integrated Y Distortion from (phi,r,z) to z=0 (centered in r,phi, and z);phi;r;z", nph, pih, pfh, nrh, rih, rfh, nzh, zih, zfh);
 
-  TH3F *hSeparatedMapComponent[2][5];  //side, then xyzrp
+
+  const int nMapComponents=6;
+  TH3F *hSeparatedMapComponent[2][6];  //side, then xyzrp
   TString side[2];
-  side[0] = "Solo";
+  side[0] = "soloz";
   if (hasTwin)
   {
-    side[0] = "Pos";
-    side[1] = "Neg";
+    side[0] = "posz";
+    side[1] = "negz";
   }
-  char sepAxis[] = "XYZRP";
+  TString sepAxis[] = {"X","Y","Z","R","P","RPhi"};
   float zlower, zupper;
   for (int i = 0; i < nSides; i++)
   {
@@ -2792,10 +2797,10 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int r
       zlower = -1 * fmax(zih, zfh);
       zupper = -1 * fmin(zih, zfh);
     }
-    for (int j = 0; j < 5; j++)
+    for (int j = 0; j < nMapComponents; j++)
     {
-      hSeparatedMapComponent[i][j] = new TH3F(Form("hIntDistortion%s%c", side[i].Data(), sepAxis[j]),
-                                              Form("Integrated %c Deflection drifting from (phi,r,z) to z=endcap);phi;r;z (%s side)", sepAxis[j], side[i].Data()),
+      hSeparatedMapComponent[i][j] = new TH3F(Form("hIntDistortion%s_%s", sepAxis[j].Data(),side[i].Data()),
+                                              Form("Integrated %s Deflection drifting from (phi,r,z) to z=endcap);phi;r;z (%s side)", sepAxis[j].Data(), side[i].Data()),
                                               nph, pih, pfh, nrh, rih, rfh, nzh, zlower, zupper);
     }
   }
@@ -2962,14 +2967,15 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int r
           distortR = distort.X();          //and the r component is the x component
           distortZ = distort.Z();
 
-          float distComp[5];  //by components
+          float distComp[nMapComponents];  //by components
           distComp[0] = distortX;
           distComp[1] = distortY;
           distComp[2] = distortZ;
           distComp[3] = distortR;
-          distComp[4] = distortP;
+          distComp[4] = distortP/partR; // 'P' now refers to phi in radians, rather than unitful
+          distComp[5] = distortP; // 'RPhi' is the one that correponds to the []meter unitful phi-hat value 
 
-          for (int c = 0; c < 5; c++)
+          for (int c = 0; c < nMapComponents; c++)
           {
             hSeparatedMapComponent[side][c]->Fill(partP, partR, partZ, distComp[c]);
           }
@@ -3197,7 +3203,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int r
   for (int i = 0; i < nSides; i++)
   {
     printf("Saving side '%s'\n",side[i].Data());
-    for (int j = 0; j < 5; j++)
+    for (int j = 0; j < nMapComponents; j++)
     {
       hSeparatedMapComponent[i][j]->GetSumw2()->Set(0);
       hSeparatedMapComponent[i][j]->Write();
@@ -3240,6 +3246,12 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int r
 
 void AnnularFieldSim::GenerateDistortionMaps(const char *filebase, int r_subsamples, int p_subsamples, int z_subsamples, int /*z_substeps*/, bool andCartesian)
 {
+  //generates the distortion map for the full detector instead of one map per side.
+  //This produces wrong behavior when interpolating across the CM and should not be used
+  //unless you're doing some debugging/backward compatibility checking.  Eventually this should be removed  (said in early 2022)
+  printf("WARNING:  You called the version of the distortion generator that generates a unified map.  Are you sure you meant to do this?\n");
+
+  
   //1) pick a map spacing ('s')
   bool makeUnifiedMap = true;  //if true, generate a single map across the whole TPC.  if false, save two maps, one for each side.
 

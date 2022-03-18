@@ -84,7 +84,7 @@ G4VPhysicalVolume *PHG4PhenixDetector::Construct()
     cout << "implemented are G4BOX, G4Tubs" << endl;
     exit(1);
   }
-  rc->set_CharFlag("WorldShape", solidWorld->GetEntityType());  // needed for checks if a particle is inside or outside of our world
+  rc->set_StringFlag("WorldShape", solidWorld->GetEntityType());  // needed for checks if a particle is inside or outside of our world
   logicWorld = new G4LogicalVolume(solidWorld, G4Material::GetMaterial(worldmaterial), "World");
   m_DisplayAction->AddVolume(logicWorld, "World");
   physiWorld = new G4PVPlacement(0, G4ThreeVector(), logicWorld, "World", 0, false, 0);

@@ -21,9 +21,6 @@ class PHFlag
  public:
   PHFlag() {}
   virtual ~PHFlag() {}
-  virtual const std::string get_CharFlag(const std::string &name) const;
-  virtual const std::string get_CharFlag(const std::string &name, const std::string &defaultval);
-  virtual void set_CharFlag(const std::string &name, const std::string &flag);
 
   virtual double get_DoubleFlag(const std::string &name) const;
   virtual double get_DoubleFlag(const std::string &name, const double defaultval);
@@ -37,32 +34,41 @@ class PHFlag
   virtual int get_IntFlag(const std::string &name, const int defaultval);
   virtual void set_IntFlag(const std::string &name, const int flag);
 
-  virtual const std::string get_StringFlag(const std::string &name) const {return get_CharFlag(name);}
-  virtual const std::string get_StringFlag(const std::string &name, const std::string &defaultval) {return get_CharFlag(name, defaultval);}
-  virtual void set_StringFlag(const std::string &name, const std::string &flag) {set_CharFlag(name, flag);}
+  virtual uint64_t get_uint64Flag(const std::string &name) const;
+  virtual uint64_t get_uint64Flag(const std::string &name, const uint64_t defaultval);
+  virtual void set_uint64Flag(const std::string &name, const uint64_t flag);
+
+  virtual const std::string get_StringFlag(const std::string &name) const;
+  virtual const std::string get_StringFlag(const std::string &name, const std::string &defaultval);
+  virtual void set_StringFlag(const std::string &name, const std::string &flag);
 
   virtual void Print() const;
   virtual void PrintDoubleFlags() const;
   virtual void PrintIntFlags() const;
+  virtual void Printuint64Flags() const;
   virtual void PrintFloatFlags() const;
-  virtual void PrintCharFlags() const;
-  virtual void PrintStringFlags() const {PrintCharFlags();}
+  virtual void PrintStringFlags() const;
   virtual void ReadFromFile(const std::string &name);
   virtual void WriteToFile(const std::string &name);
 
   virtual int FlagExist(const std::string &name) const;
 
-  virtual const std::map<std::string, int> *IntMap() const { return &intflag; }
-  virtual const std::map<std::string, float> *FloatMap() const { return &floatflag; }
-  virtual const std::map<std::string, double> *DoubleMap() const { return &doubleflag; }
-  virtual const std::map<std::string, std::string> *CharMap() const { return &charflag; }
+  virtual const std::map<std::string, uint64_t> *uint64Map() const { return &m_UInt64FlagMap; }
+  virtual const std::map<std::string, int> *IntMap() const { return &m_IntFlagMap; }
+  virtual const std::map<std::string, float> *FloatMap() const { return &m_FloatFlagMap; }
+  virtual const std::map<std::string, double> *DoubleMap() const { return &m_DoubleFlagMap; }
+  virtual const std::map<std::string, std::string> *StringMap() const { return &m_StringFlagMap; }
   virtual void PrintStackTrace() const;
 
+  virtual void ClearFlag(const std::string &name);
+  virtual void ClearAll();
+
  protected:
-  std::map<std::string, int> intflag;
-  std::map<std::string, double> doubleflag;
-  std::map<std::string, float> floatflag;
-  std::map<std::string, std::string> charflag;
+  std::map<std::string, uint64_t> m_UInt64FlagMap;
+  std::map<std::string, int> m_IntFlagMap;
+  std::map<std::string, double> m_DoubleFlagMap;
+  std::map<std::string, float> m_FloatFlagMap;
+  std::map<std::string, std::string> m_StringFlagMap;
 };
 
 #endif

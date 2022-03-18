@@ -11,15 +11,8 @@
 #include <fstream>
 #include <iostream>
 
-using namespace std;
-
-Fun4AllInputManager::Fun4AllInputManager(const string &name, const string &nodename, const string &topnodename)
+Fun4AllInputManager::Fun4AllInputManager(const std::string &name, const std::string &nodename, const std::string &topnodename)
   : Fun4AllBase(name)
-  , m_MySyncManager(nullptr)
-  , m_IsOpen(0)
-  , m_Repeat(0)
-  , m_MyRunNumber(0)
-  , m_InitRun(0)
   , m_InputNode(nodename)
   , m_TopNodeName(topnodename)
 {
@@ -39,19 +32,19 @@ Fun4AllInputManager::~Fun4AllInputManager()
   }
 }
 
-int Fun4AllInputManager::AddFile(const string &filename)
+int Fun4AllInputManager::AddFile(const std::string &filename)
 {
   if (Verbosity() > 0)
   {
-    cout << "Adding " << filename << " to list of input files for "
-         << Name() << endl;
+    std::cout << "Adding " << filename << " to list of input files for "
+              << Name() << std::endl;
   }
   m_FileList.push_back(filename);
   m_FileListCopy.push_back(filename);
   return 0;
 }
 
-int Fun4AllInputManager::AddListFile(const string &filename, const int do_it)
+int Fun4AllInputManager::AddListFile(const std::string &filename, const int do_it)
 {
   // checking filesize to see if we have a text file
   if (boost::filesystem::exists(filename.c_str()))
@@ -61,80 +54,86 @@ int Fun4AllInputManager::AddListFile(const string &filename, const int do_it)
       uintmax_t fsize = boost::filesystem::file_size(filename.c_str());
       if (fsize > 1000000 && !do_it)
       {
-        cout << "size of " << filename
-             << " is suspiciously large for a text file: "
-             << fsize << " bytes" << endl;
-        cout << "if you really want to use " << filename
-             << " as list file (it will be used as a text file containing a list of input files), use AddListFile(\""
-             << filename << "\",1)" << endl;
+        std::cout << "size of " << filename
+                  << " is suspiciously large for a text file: "
+                  << fsize << " bytes" << std::endl;
+        std::cout << "if you really want to use " << filename
+                  << " as list file (it will be used as a text file containing a list of input files), use AddListFile(\""
+                  << filename << "\",1)" << std::endl;
         return -1;
       }
     }
     else
     {
-      cout << filename << " is not a regular file" << endl;
+      std::cout << filename << " is not a regular file" << std::endl;
       return -1;
     }
   }
   else
   {
-    cout << PHWHERE << "Could not open " << filename << endl;
+    std::cout << PHWHERE << "Could not open " << filename << std::endl;
     return -1;
   }
-  ifstream infile;
-  infile.open(filename.c_str(), ios_base::in);
+  std::ifstream infile;
+  infile.open(filename, std::ios_base::in);
   if (!infile)
   {
-    cout << PHWHERE << "Could not open " << filename << endl;
+    std::cout << PHWHERE << "Could not open " << filename << std::endl;
     return -1;
   }
-  string FullLine;
+  std::string FullLine;
+  int nfiles = 0;
   getline(infile, FullLine);
   while (!infile.eof())
   {
     if (FullLine.size() && FullLine[0] != '#')  // remove comments
     {
       AddFile(FullLine);
+      nfiles++;
     }
     else if (FullLine.size())
     {
       if (Verbosity() > 0)
       {
-        cout << "Found Comment: " << FullLine << endl;
+        std::cout << "Found Comment: " << FullLine << std::endl;
       }
     }
-
     getline(infile, FullLine);
   }
   infile.close();
+  if (nfiles == 0)
+  {
+    std::cout << Name() << " listfile " << filename << " does not contain filenames "
+              << "if this is the only list you load into this Input Manager your code will exit very soon" << std::endl;
+  }
   return 0;
 }
 
-void Fun4AllInputManager::Print(const string &what) const
+void Fun4AllInputManager::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "FILELIST")
   {
-    cout << "--------------------------------------" << endl
-         << endl;
-    cout << "List of input files in Fun4AllInputManager " << Name() << ":" << endl;
+    std::cout << "--------------------------------------" << std::endl
+              << std::endl;
+    std::cout << "List of input files in Fun4AllInputManager " << Name() << ":" << std::endl;
 
-    for (string file : m_FileList)
+    for (std::string file : m_FileList)
     {
-      cout << file << endl;
+      std::cout << file << std::endl;
     }
   }
   if (what == "ALL" || what == "SUBSYSTEMS")
   {
     // loop over the map and print out the content (name and location in memory)
-    cout << "--------------------------------------" << endl
-         << endl;
-    cout << "List of SubsysRecos in Fun4AllInputManager " << Name() << ":" << endl;
+    std::cout << "--------------------------------------" << std::endl
+              << std::endl;
+    std::cout << "List of SubsysRecos in Fun4AllInputManager " << Name() << ":" << std::endl;
 
     for (SubsysReco *subsys : m_SubsystemsVector)
     {
-      cout << subsys->Name() << endl;
+      std::cout << subsys->Name() << std::endl;
     }
-    cout << endl;
+    std::cout << std::endl;
   }
   return;
 }
@@ -145,13 +144,13 @@ int Fun4AllInputManager::registerSubsystem(SubsysReco *subsystem)
   int iret = subsystem->Init(se->topNode(m_TopNodeName));
   if (iret)
   {
-    cout << PHWHERE << " Error initializing subsystem "
-         << subsystem->Name() << ", return code: " << iret << endl;
+    std::cout << PHWHERE << " Error initializing subsystem "
+              << subsystem->Name() << ", return code: " << iret << std::endl;
     return iret;
   }
   if (Verbosity() > 0)
   {
-    cout << "Registering Subsystem " << subsystem->Name() << endl;
+    std::cout << "Registering Subsystem " << subsystem->Name() << std::endl;
   }
   m_SubsystemsVector.push_back(subsystem);
   return 0;
@@ -171,7 +170,7 @@ int Fun4AllInputManager::RejectEvent()
       }
       if (Verbosity() > 0)
       {
-        cout << Name() << ": Fun4AllInpuManager::EventReject processing " << subsys->Name() << endl;
+        std::cout << Name() << ": Fun4AllInpuManager::EventReject processing " << subsys->Name() << std::endl;
       }
       if (subsys->process_event(se->topNode(m_TopNodeName)) != Fun4AllReturnCodes::EVENT_OK)
       {
@@ -186,7 +185,7 @@ int Fun4AllInputManager::ResetFileList()
 {
   if (m_FileListCopy.empty())
   {
-    cout << Name() << ": ResetFileList can only be used with filelists" << endl;
+    std::cout << Name() << ": ResetFileList can only be used with filelists" << std::endl;
     return -1;
   }
   m_FileList.clear();
@@ -215,14 +214,14 @@ int Fun4AllInputManager::OpenNextFile()
 {
   while (!m_FileList.empty())
   {
-    list<string>::const_iterator iter = m_FileList.begin();
+    std::list<std::string>::const_iterator iter = m_FileList.begin();
     if (Verbosity())
     {
-      cout << PHWHERE << " opening next file: " << *iter << endl;
+      std::cout << PHWHERE << " opening next file: " << *iter << std::endl;
     }
     if (fileopen(*iter))
     {
-      cout << PHWHERE << " could not open file: " << *iter << endl;
+      std::cout << PHWHERE << " could not open file: " << *iter << std::endl;
       m_FileList.pop_front();
     }
     else

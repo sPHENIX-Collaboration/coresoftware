@@ -6,7 +6,6 @@
  */
 
 #include "PHActsTrkFitter.h"
-#include <trackbase_historic/ActsTransformations.h>
 
 /// Tracking includes
 #include <trackbase/TrkrClusterContainer.h>
@@ -17,6 +16,8 @@
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/ActsTransformations.h>
+
 #include <micromegas/MicromegasDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -44,6 +45,8 @@
 #include <iostream>
 #include <vector>
 
+
+
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
   , m_trajectories(nullptr)
@@ -66,6 +69,14 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
 
   m_fitCfg.dFit = ActsExamples::TrackFittingAlgorithm::makeTrackFitterFunction(
 	       m_tGeometry->magField);
+
+  m_outlierFinder.verbosity = Verbosity();
+  std::map<long unsigned int, float> chi2Cuts;
+  chi2Cuts.insert(std::make_pair(10,4));
+  chi2Cuts.insert(std::make_pair(12,4));
+  chi2Cuts.insert(std::make_pair(14,9));
+  chi2Cuts.insert(std::make_pair(16,4));
+  m_outlierFinder.chi2Cuts = chi2Cuts;
 
   if(m_timeAnalysis)
     {
@@ -236,7 +247,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       auto actsFourPos = Acts::Vector4(position(0), position(1),
 				       position(2),
 				       10 * Acts::UnitConstants::ns);
-      Acts::BoundSymMatrix cov = setDefaultCovariance(track->get_p());
+      Acts::BoundSymMatrix cov = setDefaultCovariance();
  
       int charge = track->get_charge();
       if(m_fieldMap.find("3d") != std::string::npos)
@@ -270,6 +281,12 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       Acts::KalmanFitterExtensions extensions;
       ActsExamples::MeasurementCalibrator calibrator{measurements};
       extensions.calibrator.connect<&ActsExamples::MeasurementCalibrator::calibrate>(&calibrator);
+     
+      if(m_useOutlierFinder)
+	{ 
+	  extensions.outlierFinder.connect<&ResidualOutlierFinder::operator()>(&m_outlierFinder);
+	}
+
       Acts::GainMatrixUpdater kfUpdater;
       Acts::GainMatrixSmoother kfSmoother;
       extensions.updater.connect<&Acts::GainMatrixUpdater::operator()>(&kfUpdater);
@@ -771,7 +788,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   
 }
 
-Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance(const float p) const
+Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance() const
 {
   Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
    
@@ -800,9 +817,6 @@ Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance(const float p) const
       double sigmaZ0 = 50 * Acts::UnitConstants::um;
       double sigmaPhi = 1 * Acts::UnitConstants::degree;
       double sigmaTheta = 1 * Acts::UnitConstants::degree;
-      /// Seed pt resolution is approximately 8%
-      double sigmaPRel = 0.08 * p;
-      double sigmaQOverP = sigmaPRel / (p*p);
       double sigmaT = 1. * Acts::UnitConstants::ns;
      
       cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = sigmaD0 * sigmaD0;
@@ -810,8 +824,9 @@ Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance(const float p) const
       cov(Acts::eBoundTime, Acts::eBoundTime) = sigmaT * sigmaT;
       cov(Acts::eBoundPhi, Acts::eBoundPhi) = sigmaPhi * sigmaPhi;
       cov(Acts::eBoundTheta, Acts::eBoundTheta) = sigmaTheta * sigmaTheta;
-      cov(Acts::eBoundQOverP, Acts::eBoundQOverP) = sigmaQOverP * sigmaQOverP;
-      
+      /// Acts takes this value very seriously - tuned to be in a "sweet spot"
+      cov(Acts::eBoundQOverP, Acts::eBoundQOverP) = 0.0001;
+
     }
 
   return cov;

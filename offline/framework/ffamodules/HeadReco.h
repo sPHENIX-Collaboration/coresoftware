@@ -13,11 +13,10 @@ class HeadReco : public SubsysReco
 {
  public:
   HeadReco(const std::string &name = "HeadReco");
-  virtual ~HeadReco() {}
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int EndRun(const int runno);
+  ~HeadReco() override {}
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
  protected:
 };
