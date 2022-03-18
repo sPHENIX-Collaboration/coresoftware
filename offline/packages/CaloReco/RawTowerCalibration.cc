@@ -10,6 +10,7 @@
 #include <calobase/RawTowerv2.h>
 
 #include <dbfile_calo_calib/HcalCaloCalibSimpleCorrFilev1.h>
+#include <dbfile_calo_calib/CEmcCaloCalibSimpleCorrFilev1.h>
 
 #include <phparameter/PHParameters.h>
 
@@ -139,8 +140,20 @@ int RawTowerCalibration::InitRun(PHCompositeNode *topNode)
 
   if (_calib_algorithm == kDbfile_tbt_gain_corr)
     {
-      _cal_dbfile = (CaloCalibSimpleCorrFile *)  new  HcalCaloCalibSimpleCorrFilev1();
+      if (detector.c_str()[0] == 'H')
+	_cal_dbfile = (CaloCalibSimpleCorrFile *)  new  HcalCaloCalibSimpleCorrFilev1();
+      else if (detector.c_str()[0] == 'C')
+	_cal_dbfile = (CaloCalibSimpleCorrFile *)  new  CEmcCaloCalibSimpleCorrFilev1();
+      else 
+	{
+	  std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+		    << "kDbfile_tbt_gain_corr  chosen but Detector Name not HCALOUT/IN or CEMC" 
+		    << std::endl;
+	  return -999;
+	}
+      
       _cal_dbfile->Open(m_CalibrationFileName.c_str());
+    
     }
     
   return Fun4AllReturnCodes::EVENT_OK;
@@ -248,6 +261,7 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
       calib_tower->set_energy(calib_energy);
       _calib_towers->AddTower(key, calib_tower);
     }
+    //else if  // eventally this will be done exclusively of tow_by_tow
     else if (_calib_algorithm == kDbfile_tbt_gain_corr)
     {
 
@@ -286,6 +300,32 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
       return Fun4AllReturnCodes::ABORTRUN;
     }
   }  //  for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+
+
+
+  /*
+  int towcount =0;
+  RawTowerContainer::ConstRange begin_end2 = _calib_towers->getTowers();
+  RawTowerContainer::ConstIterator rtiter2;
+  std::cout << "Etowers  ---------------------================---------" 
+	    << std::endl;
+
+  for (rtiter2 = begin_end2.first; rtiter2 != begin_end2.second; ++rtiter2)
+  {
+    const RawTowerDefs::keytype key = rtiter2->first;
+    const RawTower *aftcal_tower = rtiter2->second;
+
+    if (towcount++ < 10)
+      {
+	std::cout << "E tow: " << key << "   " << aftcal_tower->get_energy()
+                << std::endl;
+      }
+
+
+  }
+
+  */
+
 
   if (Verbosity())
   {

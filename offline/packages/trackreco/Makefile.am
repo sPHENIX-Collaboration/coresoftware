@@ -74,6 +74,7 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
+  ResidualOutlierFinder.h \
   VertexFitter.h
 
 ROOTDICTS = \

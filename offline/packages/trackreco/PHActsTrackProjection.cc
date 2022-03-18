@@ -54,6 +54,14 @@ int PHActsTrackProjection::InitRun(PHCompositeNode *topNode)
   if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     ret = Fun4AllReturnCodes::ABORTEVENT;
 
+  if(ret == Fun4AllReturnCodes::ABORTEVENT)
+    {
+      /// If calos aren't available, set a flag so that job doesn't
+      /// quit processing but the flag will skip process event
+      m_calosAvailable = false;
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+
   if(Verbosity() > 1)
     std::cout << "PHActsTrackProjection finished Init" << std::endl;
   
@@ -63,8 +71,12 @@ int PHActsTrackProjection::InitRun(PHCompositeNode *topNode)
 int PHActsTrackProjection::process_event(PHCompositeNode *topNode)
 {
   if(Verbosity() > 1)
-    std::cout << "PHActsTrackProjection : Starting process_event event "
+    {
+      std::cout << "PHActsTrackProjection : Starting process_event event "
 	      << m_event << std::endl;
+    }
+
+  if(!m_calosAvailable) { return Fun4AllReturnCodes::EVENT_OK; }
 
   for(int layer = 0; layer < m_nCaloLayers; layer++)
     {
@@ -387,8 +399,9 @@ int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode *topNode,
   if(!m_towerGeomContainer or !m_towerContainer or !m_clusterContainer)
     {
       std::cout << PHWHERE 
-		<< "Calo geometry and/or cluster container not found on node tree. Bailing."
+		<< "Calo geometry and/or cluster container not found on node tree. Track projections to calos won't be filled."
 		<< std::endl;
+      m_calosAvailable = false;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   
@@ -402,8 +415,15 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
       if(setCaloContainerNodes(topNode, caloLayer) != Fun4AllReturnCodes::EVENT_OK)
 	return Fun4AllReturnCodes::ABORTEVENT;
       
-      const auto caloRadius = m_towerGeomContainer->get_radius() 
+      /// Default to using calo radius
+      double caloRadius = m_towerGeomContainer->get_radius() 
 	* Acts::UnitConstants::cm;
+      if(m_caloRadii.find(m_caloTypes.at(caloLayer)) != m_caloRadii.end())
+	{ 
+	  caloRadius = m_caloRadii.find(m_caloTypes.at(caloLayer))->second
+	    * Acts::UnitConstants::cm; 
+	}
+    
       /// Extend farther so that there is at least surface there, for high
       /// curling tracks. Can always reject later
       const auto eta = 2.5;

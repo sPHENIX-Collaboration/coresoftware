@@ -20,10 +20,12 @@ libffamodules_la_LIBADD = \
 
 
 pkginclude_HEADERS = \
+  FlagHandler.h \
   HeadReco.h \
   SyncReco.h
 
 libffamodules_la_SOURCES = \
+  FlagHandler.cc \
   HeadReco.cc \
   SyncReco.cc
 
