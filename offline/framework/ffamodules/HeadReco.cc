@@ -25,6 +25,7 @@
 
 #include <iostream>
 #include <iterator>  // for operator!=, reverse_iterator
+#include <map>       // for _Rb_tree_iterator
 #include <utility>   // for pair
 
 HeadReco::HeadReco(const std::string &name)
