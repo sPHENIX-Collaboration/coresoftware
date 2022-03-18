@@ -96,10 +96,11 @@ namespace
 
 MakeActsGeometry::MakeActsGeometry(const std::string &name)
 : SubsysReco(name)
-{ setPlanarSurfaceDivisions(); }
+{}
 
 int MakeActsGeometry::Init(PHCompositeNode */*topNode*/)
 {  
+  setPlanarSurfaceDivisions();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -308,6 +309,9 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
   TGeoMedium *tpc_gas_medium = tpc_gas_vol->GetMedium();
   assert(tpc_gas_medium);
 
+  // printout
+  std::cout << "MakeActsGeometry::addActsTpcSurfaces - m_nSurfPhi: " << m_nSurfPhi << std::endl;
+  
   TGeoVolume *tpc_gas_measurement_vol[m_nTpcLayers];
   double tan_half_phi = tan(m_surfStepPhi / 2.0);
   int copy = 0;
