@@ -91,6 +91,9 @@ class MakeActsGeometry : public SubsysReco
   void build_mm_surfaces( bool value )
   { m_buildMMs = value; }
     
+  void set_nSurfPhi( unsigned int value )
+  { m_nSurfPhi = value; }
+  
  private:
   /// Main function to build all acts geometry for use in the fitting modules
   int buildAllGeometry(PHCompositeNode *topNode);
@@ -165,9 +168,9 @@ class MakeActsGeometry : public SubsysReco
   std::map<TrkrDefs::hitsetkey, Surface> m_clusterSurfaceMapMmEdit;
   
   /// These don't change, we are building the tpc this way!
-  const static unsigned int m_nTpcLayers = 48;
-  const unsigned int m_nTpcModulesPerLayer = 12;
-  const unsigned int m_nTpcSides = 2;
+  static constexpr unsigned int m_nTpcLayers = 48;
+  static constexpr unsigned int m_nTpcModulesPerLayer = 12;
+  static constexpr unsigned int m_nTpcSides = 2;
 
   /// TPC Acts::Surface subdivisions
   double m_minSurfZ = 0.;
