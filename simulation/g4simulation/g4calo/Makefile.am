@@ -40,6 +40,7 @@ libg4calo_la_LIBADD = \
   -lphparameter \
   -lgsl \
   -lgslcblas \
+  -lcaloCalibDBFile \
   -lcalo_io
 
 ################################################
