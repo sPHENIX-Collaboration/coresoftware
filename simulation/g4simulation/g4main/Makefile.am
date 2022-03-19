@@ -21,7 +21,8 @@ AM_CPPFLAGS = \
 
 libphg4hit_la_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 
 libphg4hit_la_LIBADD = \
@@ -30,6 +31,7 @@ libphg4hit_la_LIBADD = \
 libg4testbench_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64 \
   `geant4-config --libs`
 
 libg4testbench_la_LIBADD = \
@@ -47,7 +49,8 @@ libg4testbench_la_LIBADD = \
   -lphg4gdml \
   -lphhepmc \
   -lphparameter \
-  -lvararray
+  -lvararray \
+  -lxpload
 
 # I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
 # pcm files in addition. If someone can figure out how to make a list
