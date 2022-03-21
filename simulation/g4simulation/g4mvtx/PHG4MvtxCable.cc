@@ -7,7 +7,7 @@ PHG4MvtxCable::PHG4MvtxCable(const std::string &name,
              const float &xSouth, const float &xNorth,
              const float &ySouth, const float &yNorth,
              const float &zSouth, const float &zNorth,
-             const std::vector<float> &RGB)
+             const std::string &color)
   : m_name(name)
   , m_coreMaterial(coreMaterial)
   , m_coreRadius(coreRadius)
@@ -18,7 +18,7 @@ PHG4MvtxCable::PHG4MvtxCable(const std::string &name,
   , m_yNorth(yNorth)
   , m_zSouth(zSouth)
   , m_zNorth(zNorth)
-  , m_RGB(RGB)
+  , m_color(color)
 {
 }
 
@@ -32,4 +32,4 @@ float PHG4MvtxCable::get_ySouth() { return m_ySouth; }
 float PHG4MvtxCable::get_yNorth() { return m_yNorth; }
 float PHG4MvtxCable::get_zSouth() { return m_zSouth; }
 float PHG4MvtxCable::get_zNorth() { return m_zNorth; }
-std::vector<float> PHG4MvtxCable::get_RGB() { return m_RGB; }
+std::string PHG4MvtxCable::get_color() { return m_color; }

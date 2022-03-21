@@ -27,24 +27,20 @@ namespace ServiceProperties
   float degToRad = 1./radToDeg;
 }  // namespace PHG4MvtxDefs
 
-namespace ServiceColors
-{
-  std::vector<float> red = {1., 0., 0.};
-  std::vector<float> green = {0., 1., 0.};
-  std::vector<float> blue = {0., 0., 1.};
-  std::vector<float> white = {1., 1., 1.};
-  std::vector<float> grey = {0.4, 0.4, 0.4};
-  std::vector<float> black = {0., 0., 0.};
-  std::vector<float> copper = {0.886, 0.561, 0.};
-  std::vector<float> water = {0.275, 0.980, 1.};
-}  // namespace ServiceColors
-
 using namespace ServiceProperties;
-using namespace ServiceColors;
 
 PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDisplayAction* dispAct)
   : m_DisplayAction(dispAct)
+  , m_avSupport(nullptr)
+  , m_avBarrelCable(nullptr)
 {}
+
+PHG4MvtxSupport::~PHG4MvtxSupport()
+{
+  delete m_avSupport;
+  delete m_avBarrelCable;
+  std::vector<G4AssemblyVolume*>().swap(m_endwheelCable);
+}
 
 std::vector<float> PHG4MvtxSupport::get_thickness(PHG4MvtxServiceStructure *object)
 {
@@ -104,15 +100,7 @@ void PHG4MvtxSupport::TrackingServiceCone(PHG4MvtxServiceStructure *object, G4As
     G4LogicalVolume *coneLogic = new G4LogicalVolume(coneSolid, trackerMaterial,
                                                      G4String(object->get_name() + "_LOGIC"), 0, 0, 0);
 
-    G4VisAttributes *visAtt = new G4VisAttributes();
-    if (materials[i] == "G4_Cu") visAtt->SetColour(copper[0], copper[1], copper[2], 1.);
-    if (materials[i] == "MVTX_CarbonFiber$") visAtt->SetColour(grey[0], grey[1], grey[2], 1.);
-    if (materials[i] == "G4_POLYETHYLENE") visAtt->SetColour(black[0], black[1], black[2], 1.);
-    visAtt->SetVisibility(true);
-    visAtt->SetForceSolid(true);
-    visAtt->SetForceLineSegmentsPerCircle(200);
-    coneLogic->SetVisAttributes(visAtt);
-    m_DisplayAction->AddVolume(coneLogic, object->get_name());
+    m_DisplayAction->AddVolume(coneLogic, materials[i]);
 
     assemblyVolume.AddPlacedVolume(coneLogic, place, rot);
 
@@ -148,15 +136,7 @@ void PHG4MvtxSupport::TrackingServiceCylinder(PHG4MvtxServiceStructure *object, 
     G4LogicalVolume *cylinderLogic = new G4LogicalVolume(cylinderSolid, trackerMaterial,
                                                          G4String(object->get_name() + "_LOGIC"), 0, 0, 0);
 
-    G4VisAttributes *visAtt = new G4VisAttributes();
-    if (materials[i] == "G4_Cu") visAtt->SetColour(copper[0], copper[1], copper[2], 1.);
-    if (materials[i] == "MVTX_CarbonFiber$") visAtt->SetColour(grey[0], grey[1], grey[2], 1.);
-    if (materials[i] == "G4_POLYETHYLENE") visAtt->SetColour(black[0], black[1], black[2], 1.);
-    visAtt->SetVisibility(true);
-    visAtt->SetForceSolid(true);
-    visAtt->SetForceLineSegmentsPerCircle(200);
-    cylinderLogic->SetVisAttributes(visAtt);
-    m_DisplayAction->AddVolume(cylinderLogic, object->get_name());
+    m_DisplayAction->AddVolume(cylinderLogic, materials[i]);
 
     assemblyVolume.AddPlacedVolume(cylinderLogic, place, rot);
 
@@ -203,27 +183,15 @@ void PHG4MvtxSupport::CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assem
     G4LogicalVolume *cylinderLogic = new G4LogicalVolume(cylinderSolid, trackerMaterial, 
                                                          G4String(object->get_name() + "_LOGIC"), nullptr, nullptr, g4userLimits);
 
-    G4VisAttributes *visAtt = new G4VisAttributes();
+    //G4VisAttributes *visAtt = new G4VisAttributes();
     if (i == 0)
     {
-      if (cableMaterials[i] == "G4_Cu")
-      {
-        visAtt->SetColour(copper[0], copper[1], copper[2], 1.);
-      }
-      else
-      {
-        visAtt->SetColour(water[0], water[1], water[2], 1.);
-      }
+      m_DisplayAction->AddVolume(cylinderLogic, cableMaterials[i]);
     }
     else
     {
-      std::vector<float> cable_color = object->get_RGB();
-      visAtt->SetColour(cable_color[0], cable_color[1], cable_color[2], 1.);
+      m_DisplayAction->AddVolume(cylinderLogic, object->get_color());
     }
-    visAtt->SetVisibility(true);
-    visAtt->SetForceSolid(true);
-    visAtt->SetForceLineSegmentsPerCircle(200);
-    cylinderLogic->SetVisAttributes(visAtt);
 
     assemblyVolume.AddPlacedVolume(cylinderLogic, transform);
   }
@@ -271,7 +239,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
         deltaX = samtecShiftX + ((iCol + 1) * (samtecSheathRadius * 2.6));
         deltaY = samtecShiftY - ((iRow + 1) * (samtecSheathRadius * 2.1));
         PHG4MvtxCable *cable = new PHG4MvtxCable(boost::str(boost::format("%s_samtec_%d_%d") % superName.c_str() % iRow % iCol), "G4_Cu", samtecCoreRadius, samtecSheathRadius,
-                                 x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, blue);
+                                 x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, "blue");
         CreateCable(cable, *cableAssemblyVolume);
       }
     }
@@ -281,13 +249,13 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
   if (enableCooling)
   {
     unsigned int nCool = 2;
-    std::vector<float> cooling_RGB[2] = {red, white};
+    std::string cooling_color[2] = {"red", "white"};
     for (unsigned int iCool = 0; iCool < nCool; ++iCool)
     {
       deltaX = coolingShiftX + ((iCool + 1) * (coolingSheathRadius * 2));
       deltaY = coolingShiftY + (coolingSheathRadius * 2);
       PHG4MvtxCable *cable = new PHG4MvtxCable(boost::str(boost::format("%s_cooling_%d") % superName.c_str() % iCool), "G4_WATER", coolingCoreRadius, coolingSheathRadius,
-                               x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, cooling_RGB[iCool]);
+                               x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, cooling_color[iCool]);
       CreateCable(cable, *cableAssemblyVolume);
     }
   }
@@ -311,7 +279,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
     for (PowerCableParameters &powerCable : powerCables)
     {
       float coreRad, sheathRad;
-      std::vector<float> cableColor;
+      std::string cableColor;
       std::string cableType = powerCable.first.second;
       std::string cableName = powerCable.first.first;
       if (cableType == "Small")
@@ -330,14 +298,14 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
         sheathRad = powerLargeSheathRadius;
       }
 
-      if (cableName == boost::str(boost::format("%s_digiReturn") % superName.c_str())) cableColor = black;
-      if (cableName == boost::str(boost::format("%s_digiSupply") % superName.c_str())) cableColor = red;
-      if (cableName == boost::str(boost::format("%s_anaReturn") % superName.c_str())) cableColor = black;
-      if (cableName == boost::str(boost::format("%s_anaSupply") % superName.c_str())) cableColor = red;
-      if (cableName == boost::str(boost::format("%s_digiSense") % superName.c_str())) cableColor = white;
-      if (cableName == boost::str(boost::format("%s_anaSense") % superName.c_str())) cableColor = green;
-      if (cableName == boost::str(boost::format("%s_bias") % superName.c_str())) cableColor = white;
-      if (cableName == boost::str(boost::format("%s_ground") % superName.c_str())) cableColor = green;
+      if (cableName == boost::str(boost::format("%s_digiReturn") % superName.c_str())) cableColor = "black";
+      if (cableName == boost::str(boost::format("%s_digiSupply") % superName.c_str())) cableColor = "red";
+      if (cableName == boost::str(boost::format("%s_anaReturn") % superName.c_str())) cableColor = "black";
+      if (cableName == boost::str(boost::format("%s_anaSupply") % superName.c_str())) cableColor = "red";
+      if (cableName == boost::str(boost::format("%s_digiSense") % superName.c_str())) cableColor = "white";
+      if (cableName == boost::str(boost::format("%s_anaSense") % superName.c_str())) cableColor = "green";
+      if (cableName == boost::str(boost::format("%s_bias") % superName.c_str())) cableColor = "white";
+      if (cableName == boost::str(boost::format("%s_ground") % superName.c_str())) cableColor = "green";
 
       PHG4MvtxCable *cable = new PHG4MvtxCable(powerCable.first.first, "G4_Cu", coreRad, sheathRad,
                                (x1 + powerCable.second.first), (x2 + powerCable.second.first),
@@ -351,6 +319,8 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
   G4ThreeVector place;
   G4Transform3D transform(rot, place);
   assemblyVolume.AddPlacedAssembly(cableAssemblyVolume, transform);
+
+  //delete cableAssemblyVolume;
 }
 
 G4AssemblyVolume *PHG4MvtxSupport::buildBarrelCable()
@@ -421,7 +391,7 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   }
 
   std::vector<PHG4MvtxServiceStructure*> cylinders, cones;
-  G4AssemblyVolume *avSupport = new G4AssemblyVolume();
+  m_avSupport = new G4AssemblyVolume();
 
   //Service Barrel
   cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_serviceBarrel_0", 0, BarrelThickness, 0, -1. * (BarrelLength + BarrelOffset), -26.209, BarrelRadius, 0));
@@ -458,16 +428,16 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L1", 0.004, 0., 0.061, -26.9, -18.000, 10.20, 7.338));
   cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L2", 0.004, 0., 0.058, -26.7, -22.301, 10.25, 9.580));
   
-  for (PHG4MvtxServiceStructure *cylinder : cylinders) TrackingServiceCylinder(cylinder, *avSupport);
-  for (PHG4MvtxServiceStructure *cone : cones) TrackingServiceCone(cone, *avSupport);
+  for (PHG4MvtxServiceStructure *cylinder : cylinders) TrackingServiceCylinder(cylinder, *m_avSupport);
+  for (PHG4MvtxServiceStructure *cone : cones) TrackingServiceCone(cone, *m_avSupport);
 
   G4RotationMatrix rot;
   G4ThreeVector place;
   place.setZ(ServiceOffset*cm);
   G4Transform3D transform(rot, place);
-  avSupport->MakeImprint(lv, transform, 0, true);
+  m_avSupport->MakeImprint(lv, transform, 0, true);
 
-  G4AssemblyVolume *avBarrelCable = buildBarrelCable();
+  m_avBarrelCable = buildBarrelCable();
   G4ThreeVector placeBarrelCable;
   for (unsigned int i = 0; i < totStaves; ++i)
   {
@@ -478,13 +448,12 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
     G4RotationMatrix rotBarrelCable;
     rotBarrelCable.rotateZ(phi + (-90.*degToRad));
     G4Transform3D transformBarrelCable(rotBarrelCable, placeBarrelCable);
-    avBarrelCable->MakeImprint(lv, transformBarrelCable, 0, true);
+    m_avBarrelCable->MakeImprint(lv, transformBarrelCable, 0, true);
   }
 
-  std::vector<G4AssemblyVolume*> endwheelCable;
-  endwheelCable.push_back(buildL0Cable());
-  endwheelCable.push_back(buildL1Cable());
-  endwheelCable.push_back(buildL2Cable());
+  m_endwheelCable.push_back(buildL0Cable());
+  m_endwheelCable.push_back(buildL1Cable());
+  m_endwheelCable.push_back(buildL2Cable());
   for (unsigned int iLayer = 0; iLayer < PHG4MvtxDefs::kNLayers; ++iLayer)
   {
     for (unsigned int iStave = 0; iStave < nStaves[iLayer]; ++iStave)
@@ -497,7 +466,7 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
       placeCable.setZ((ServiceOffset)*cm);
       rotCable.rotateZ(phi + ((-90. + cableRotate[iLayer])*degToRad));
       G4Transform3D transformCable(rotCable, placeCable);
-      endwheelCable[iLayer]->MakeImprint(lv, transformCable, 0, true);
+      m_endwheelCable[iLayer]->MakeImprint(lv, transformCable, 0, true);
     }
   }
 }

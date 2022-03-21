@@ -16,7 +16,7 @@ class PHG4MvtxCable
                  const float &xSouth, const float &xNorth,
                  const float &ySouth, const float &yNorth,
                  const float &zSouth, const float &zNorth,
-                 const std::vector<float> &RGB);
+                 const std::string &color);
 
   virtual ~PHG4MvtxCable(){};
 
@@ -30,7 +30,7 @@ class PHG4MvtxCable
   float get_yNorth();
   float get_zSouth();
   float get_zNorth();
-  std::vector<float> get_RGB();
+  std::string get_color();
 
  private:
   const std::string m_name = "cable";
@@ -43,7 +43,7 @@ class PHG4MvtxCable
   const float m_yNorth = 1.;
   const float m_zSouth = 0.;
   const float m_zNorth = 1.;
-  const std::vector<float> m_RGB = {0, 255, 255};
+  const std::string m_color = "red";
 };
 
 #endif

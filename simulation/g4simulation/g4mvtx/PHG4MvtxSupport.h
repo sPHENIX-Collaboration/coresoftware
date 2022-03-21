@@ -31,7 +31,7 @@ class PHG4MvtxSupport
  public:
   PHG4MvtxSupport(PHG4MvtxDisplayAction* dispAct);
 
-  virtual ~PHG4MvtxSupport(){};
+  ~PHG4MvtxSupport();
 
   void ConstructMvtxSupport(G4LogicalVolume *&lv);
 
@@ -45,10 +45,15 @@ class PHG4MvtxSupport
   void CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::string superName, 
                          bool enableSignal, bool enableCooling, bool enablePower,
                          float x1, float x2, float y1, float y2, float z1, float z2);//, float theta = 0);
-G4AssemblyVolume *buildBarrelCable();
-G4AssemblyVolume *buildL0Cable();
-G4AssemblyVolume *buildL1Cable();
-G4AssemblyVolume *buildL2Cable();
+
+  G4AssemblyVolume *buildBarrelCable();
+  G4AssemblyVolume *buildL0Cable();
+  G4AssemblyVolume *buildL1Cable();
+  G4AssemblyVolume *buildL2Cable();
+  
+  G4AssemblyVolume *m_avSupport;
+  G4AssemblyVolume *m_avBarrelCable;
+  std::vector<G4AssemblyVolume*> m_endwheelCable;
 };
 
 #endif
