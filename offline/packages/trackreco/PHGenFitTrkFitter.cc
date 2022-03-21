@@ -177,6 +177,9 @@ int PHGenFitTrkFitter::Init(PHCompositeNode* /*topNode*/)
  */
 int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
 {
+  
+  std::cout << "PHGenFitTrkFitter::InitRun - _track_fitting_alg_name: " << _track_fitting_alg_name << std::endl;
+  
   CreateNodes(topNode);
 
   auto tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
