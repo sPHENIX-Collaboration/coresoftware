@@ -307,10 +307,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
   
   // create ACTS parameters from track parameters at origin
   auto trackParams = makeTrackParams(track);
-  std::cout << "PHTpcResiduals::processTrack -"
-    << " track momentum : "
-    << trackParams.momentum()
-    << std::endl;
+//   std::cout << "PHTpcResiduals::processTrack -"
+//     << " track momentum : "
+//     << trackParams.momentum()
+//     << std::endl;
 
   for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
        clusIter != track->end_cluster_keys();
