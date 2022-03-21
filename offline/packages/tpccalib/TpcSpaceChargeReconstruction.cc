@@ -534,17 +534,17 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     if( std::abs( drp ) > m_max_drphi ) continue;
     if( std::abs( dz ) > m_max_dz ) continue;
 
-    std::cout << "TpcSpaceChargeReconstruction::process_track - layer: " << (int) TrkrDefs::getLayer(cluster->getClusKey()) << std::endl;
-    std::cout << "TpcSpaceChargeReconstruction::process_track -"
-      << " cluster: (" << cluster_r << ", " << cluster_r*cluster_phi << ", " << cluster_z << ")"
-      << " (" << cluster_rphi_error << ", " << cluster_z_error << ")" 
-      << std::endl;
-    std::cout << "TpcSpaceChargeReconstruction::process_track -"
-      << " track: (" << track_r << ", " << cluster_r*track_phi << ", " << track_z << ")"
-      << " (" << talpha << ", " << tbeta << ")"
-      << " (" << track_rphi_error << ", " << track_z_error << ")"
-      << std::endl;
-    std::cout << std::endl;
+//     std::cout << "TpcSpaceChargeReconstruction::process_track - layer: " << (int) TrkrDefs::getLayer(cluster->getClusKey()) << std::endl;
+//     std::cout << "TpcSpaceChargeReconstruction::process_track -"
+//       << " cluster: (" << cluster_r << ", " << cluster_r*cluster_phi << ", " << cluster_z << ")"
+//       << " (" << cluster_rphi_error << ", " << cluster_z_error << ")" 
+//       << std::endl;
+//     std::cout << "TpcSpaceChargeReconstruction::process_track -"
+//       << " track: (" << track_r << ", " << cluster_r*track_phi << ", " << track_z << ")"
+//       << " (" << talpha << ", " << tbeta << ")"
+//       << " (" << track_rphi_error << ", " << track_z_error << ")"
+//       << std::endl;
+//     std::cout << std::endl;
 
     // update matrices
     // see https://indico.bnl.gov/event/7440/contributions/43328/attachments/31334/49446/talk.pdf for details
