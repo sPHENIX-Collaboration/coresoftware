@@ -257,8 +257,7 @@ class PHActsSiliconSeeding : public SubsysReco
   double m_maxSeedPCA = 2.;
   
   const static unsigned int m_nInttLayers = 4;
-  const double m_nInttLayerRadii[m_nInttLayers] = 
-    {7.188, 7.732, 9.680,10.262}; /// cm
+  double m_nInttLayerRadii[m_nInttLayers];
   
   /// Search window for phi to match intt clusters in cm
   double m_rPhiSearchWin = 0.1;

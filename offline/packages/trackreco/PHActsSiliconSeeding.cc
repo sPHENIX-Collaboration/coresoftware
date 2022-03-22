@@ -67,12 +67,21 @@ int PHActsSiliconSeeding::Init(PHCompositeNode */*topNode*/)
 }
 int PHActsSiliconSeeding::InitRun(PHCompositeNode *topNode)
 {
+
   if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
-    return Fun4AllReturnCodes::ABORTEVENT;
+    { return Fun4AllReturnCodes::ABORTEVENT; }
   
   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
-    return Fun4AllReturnCodes::ABORTEVENT;
+    { return Fun4AllReturnCodes::ABORTEVENT; }
   
+  auto beginend = m_geomContainerIntt->get_begin_end();
+  int i = 0;
+  for(auto iter = beginend.first; iter != beginend.second; ++iter)
+    {
+      m_nInttLayerRadii[i] = iter->second->get_radius();
+      i++;
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -213,10 +222,11 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       /// Loop over actual seeds in this grid volume
       for(auto& seed : seeds)
 	{
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 1) {
 	    std::cout << "Seed " << numSeeds << " has "
 		      << seed.sp().size() << " measurements " 
 		      << std::endl;
+	  }
 
 	  numSeeds++;
 
