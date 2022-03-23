@@ -274,6 +274,23 @@ namespace
 	    {
 	      surf_index = nsurf;
 	      subsurfkey = nsurf;
+
+	      /*
+	      unsigned int side = TpcDefs::getSide(hitsetkey) ;
+	      if(side == 0 && world[2] > 0)
+		std::cout << " z " << world[2] << " is positive on south side, surf index " << surf_index << std::endl;
+	      if(side == 1 && world[2] < 0)
+		std::cout << " z " << world[2] << " is negative on north side, surf index " << surf_index << std::endl;
+	      */
+	      /*
+	      std::cout << std::endl
+			<< "TPC surface index found: " << nsurf 	<< " hitsetkey side " << side << std::endl;
+	      std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
+			<< " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
+	      std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
+	      std::cout << "     surfStepPhi " << surfStepPhi << " surfStepZ " << surfStepZ << std::endl; 
+	      std::cout << std::endl;
+	      */
 	    }    
 	  else
 	    {

@@ -38,6 +38,7 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
 
   double m_Tmin;
   double m_Tmax;
+  double m_crossingPeriod;
 
   gsl_vector *m_LocalOutVec;
   gsl_vector *m_PathVec;

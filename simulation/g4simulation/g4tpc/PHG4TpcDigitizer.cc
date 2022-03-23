@@ -459,7 +459,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 		  
 		  for (int izup = 0; izup < 5; izup++)
 		    {
-		      if (iz - izup < nzbins && iz - izup >= nzbins / 2)
+		      if (iz - izup < nzbins && iz - izup >= 0)
 			{
 			  unsigned int adc_output = (unsigned int) (adc_input[iz - izup] * 1024.0 / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
 			  if (adc_input[iz - izup] < 0) adc_output = 0;

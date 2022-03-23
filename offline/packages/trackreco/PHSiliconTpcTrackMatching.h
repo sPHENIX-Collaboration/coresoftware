@@ -103,6 +103,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
    void addTrackBunchCrossing(std::multimap<unsigned int, unsigned int> &tpc_matches);	  
    void addTrackBunchCrossing( std::map<unsigned int, short int> &tpc_crossing_map);	  
    std::vector<short int> getInttCrossings(SvtxTrack *si_track);
+   void checkCrossingMatches( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,  std::map<unsigned int, short int> &tpc_crossing_map );
      
   std::string _track_map_name_silicon;
 

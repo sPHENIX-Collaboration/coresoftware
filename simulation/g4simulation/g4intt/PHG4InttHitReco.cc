@@ -176,6 +176,7 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
   PutOnParNode(ParDetNode, m_GeoNodeName);
   m_Tmin = get_double_param("tmin");
   m_Tmax = get_double_param("tmax");
+  m_crossingPeriod = get_double_param("beam_crossing_period");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -410,14 +411,15 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       if (Verbosity() > 2)
         cout << "add energy " << venergy[i1].first << " to intthit " << endl;
       hit->addEnergy(venergy[i1].first * TrkrDefs::InttEnergyScaleup);
-      // Add the hit time
-      hit->setTime(time);
+      // Add the hit crossing
+      short int crossing = (short int) (round( time / m_crossingPeriod) );
+      hit->setCrossing(crossing);
 
       // Add this hit to the association map
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
 
       if (Verbosity() > 2)
-        cout << "PHG4InttHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << " energy " << hit->getEnergy() << endl;
+        cout << "PHG4InttHitReco: added hit with hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << " energy " << hit->getEnergy() << endl;
     }
 
   }  // end loop over g4hits
@@ -439,5 +441,7 @@ void PHG4InttHitReco::SetDefaultParameters()
   // provides for multiple layers/detector types
   set_default_double_param("tmax", 80.0);   // FVTX NIM paper Fig 32
   set_default_double_param("tmin", -20.0);  // FVTX NIM paper Fig 32, collision has a timing spread around the triggered event. Accepting negative time too.
+  set_default_double_param("beam_crossing_period", 106.0);   
+
   return;
 }

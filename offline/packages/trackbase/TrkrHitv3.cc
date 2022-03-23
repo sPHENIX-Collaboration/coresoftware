@@ -39,10 +39,10 @@ unsigned int TrkrHitv3::getAdc() {
     return (unsigned int) m_adc;
   }
 
-void TrkrHitv3::setTime(const float time) { 
-    m_time = time;
+void TrkrHitv3::setCrossing(const short int crossing) { 
+    m_crossing = crossing;
   }
 
-float TrkrHitv3::getTime() { 
-    return m_time;
+short int TrkrHitv3::getCrossing() { 
+    return m_crossing;
   }

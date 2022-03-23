@@ -31,7 +31,7 @@ class TrkrHitv3 : public TrkrHit
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override
   {
-    os << "TrkrHitv3 class with adc = " << m_adc << " time = " << m_time << std::endl;
+    os << "TrkrHitv3 class with adc = " << m_adc << " crossing = " << m_crossing << std::endl;
   }
   void Reset() override {}
   int isValid() const override { return 0; }
@@ -44,13 +44,13 @@ class TrkrHitv3 : public TrkrHit
   void setAdc(const unsigned int adc) override;
   unsigned int getAdc() override ;
 
-  void setTime(const float time) override;
-  float getTime() override ;  
+  void setCrossing(const short int crossing) override;
+  short int getCrossing() override ;  
 
  protected:
 
   unsigned short m_adc = 0;
-  float m_time = 0;
+  short int m_crossing = 0;
 
   ClassDefOverride(TrkrHitv3, 1);
 };

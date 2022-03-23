@@ -414,13 +414,10 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    // mapiter->second.second is the hit
 	    unsigned int hit_adc = (mapiter->second).second->getAdc();
 
-	    // get the bunch crossing number from the hit time
-	    float dtbunch = 106;
-	    float hit_time = (mapiter->second).second->getTime();
-	    float dcrossing = round(hit_time / dtbunch);
-	    short int crossing = (short int) (dcrossing); 
+	    // get the bunch crossing number from the hit 
+	    short int crossing = (mapiter->second).second->getCrossing();
 
-	    //std::cout << PHWHERE <<  "                 hit time " << hit_time << " crossing " << crossing << std::endl;
+	    //std::cout << PHWHERE <<  "                 hit crossing " << crossing << std::endl;
 	    // Add clusterkey/bunch crossing to mmap
 	    m_clustercrossingassoc->addAssoc(ckey, crossing);
 
@@ -510,12 +507,15 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
   }  // end loop over hitsets
 
 
-  if(Verbosity() > 1)
+  if(Verbosity() > 2)
     {
       // check that the associations were written correctly
       cout << "After InttClusterizer, cluster-hit associations are:" << endl;
       m_clusterhitassoc->identify();
-  
+    }
+
+    if(Verbosity() > 0)
+    {
       std::cout << " Cluster-crossing associations are:" << std::endl;
       m_clustercrossingassoc->identify();  
     }
@@ -526,7 +526,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 void InttClusterizer::PrintClusters(PHCompositeNode* topNode)
 {
-  if (Verbosity() >= 1)
+  if (Verbosity() > 1)
   {
     TrkrClusterContainer *clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (!clusterlist) return;
