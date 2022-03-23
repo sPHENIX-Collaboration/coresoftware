@@ -389,6 +389,8 @@ int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume*& lv)
   //Now construct service barrel, CYSS, cones and cables
   PHG4MvtxSupport *mvtxSupportSystem = new PHG4MvtxSupport(m_DisplayAction);
   mvtxSupportSystem->ConstructMvtxSupport(lv); 
+
+  delete mvtxSupportSystem;
   
   return 0;
 }
