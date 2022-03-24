@@ -78,6 +78,13 @@ PHTpcResiduals::PHTpcResiduals(const std::string &name)
 int PHTpcResiduals::Init(PHCompositeNode */*topNode*/)
 {
   if( m_savehistograms ) makeHistograms();
+
+  // configuration printout
+  std::cout << "PHTpcResiduals::Init - m_maxTAlpha: " << m_maxTAlpha << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_maxTBeta: " << m_maxTBeta << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_maxResidualDrphi: " << m_maxResidualDrphi << " cm" << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_maxResidualDz: " << m_maxResidualDz << " cm" << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_minPt: " << m_minPt << " GeV/c" << std::endl;
   
   // reset counters
   m_total_tracks = 0;
@@ -195,8 +202,8 @@ int PHTpcResiduals::processTracks(PHCompositeNode */*topNode*/)
 bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
 {
  
-  if(track->get_pt() < 0.5)
-    return false;
+  if(track->get_pt() < m_minPt)
+  { return false; }
 
   if(Verbosity() > 2)
     std::cout << "Track has pt " << track->get_pt() << std::endl;
