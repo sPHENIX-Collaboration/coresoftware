@@ -15,7 +15,6 @@ class PHCompositeNode;
 class EventCombiner : public SubsysReco
 {
  public:
-
   EventCombiner(const std::string &name = "EventCombiner");
 
   ~EventCombiner() override {}
@@ -26,9 +25,9 @@ class EventCombiner : public SubsysReco
 
   int ResetEvent(PHCompositeNode *topNode) override;
 
-  void AddPrdfInputNodeFromManager(const Fun4AllInputManager *in); 
+  void AddPrdfInputNodeFromManager(const Fun4AllInputManager *in);
   void AddPrdfInputNodeName(const std::string &name);
-  
+
  private:
   Event *m_Event = nullptr;
   int *m_OutArray = nullptr;
@@ -37,4 +36,4 @@ class EventCombiner : public SubsysReco
   std::set<std::string> m_PrdfInputNodeNameSet;
 };
 
-#endif // FFARAWMODULES_EVENTCOMBINER_H
+#endif  // FFARAWMODULES_EVENTCOMBINER_H
