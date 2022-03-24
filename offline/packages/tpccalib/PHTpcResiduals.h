@@ -46,27 +46,40 @@ class PHTpcResiduals : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-  /// Option for setting distortion correction calculation limits
+  ///@name Option for setting distortion correction calculation limits
+  //@{
   void setMaxTrackAlpha(float maxTAlpha) 
-    { m_maxTAlpha = maxTAlpha;}
+  { m_maxTAlpha = maxTAlpha;}
+  
   void setMaxTrackBeta(float maxTBeta)
-    { m_maxTBeta = maxTBeta; }
+  { m_maxTBeta = maxTBeta; }
+  
   void setMaxTrackResidualDrphi(float maxResidualDrphi) 
-    { m_maxResidualDrphi = maxResidualDrphi;}
+  { m_maxResidualDrphi = maxResidualDrphi;}
   
   void setMaxTrackResidualDz(float maxResidualDz)
-    { m_maxResidualDz = maxResidualDz; }
+  { m_maxResidualDz = maxResidualDz; }
   
+  //@}
+
+  /// track min pT 
+  void setMinPt( double value ) 
+  { m_minPt = value; }
+  
+  /// Grid dimensions
   void setGridDimensions(const int phiBins, const int rBins, const int zBins);
 
   /// set to true to store evaluation histograms and ntuples
-  void setSavehistograms( bool value ) { m_savehistograms = value; }
+  void setSavehistograms( bool value )
+  { m_savehistograms = value; }
     
   /// output file name for evaluation histograms
-  void setHistogramOutputfile(const std::string &outputfile) {m_histogramfilename = outputfile;}
+  void setHistogramOutputfile(const std::string &outputfile) 
+  {m_histogramfilename = outputfile;}
 
   /// output file name for storing the space charge reconstruction matrices
-  void setOutputfile(const std::string &outputfile) {m_outputfile = outputfile;}
+  void setOutputfile(const std::string &outputfile)
+  {m_outputfile = outputfile;}
 
   /// require micromegas to be present when extrapolating tracks to the TPC
   void setUseMicromegas( bool value )
@@ -170,6 +183,10 @@ class PHTpcResiduals : public SubsysReco
   /// require micromegas to be present when extrapolating tracks to the TPC
   bool m_useMicromegas = true;
 
+  /// minimum pT required for track to be considered in residuals calculation (GeV/c)
+  double m_minPt = 0.5;
+  
+  /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
   /// running track crossing id

@@ -107,6 +107,13 @@ PHTpcResiduals::PHTpcResiduals(const std::string &name)
 int PHTpcResiduals::Init(PHCompositeNode */*topNode*/)
 {
   if( m_savehistograms ) makeHistograms();
+
+  // configuration printout
+  std::cout << "PHTpcResiduals::Init - m_maxTAlpha: " << m_maxTAlpha << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_maxTBeta: " << m_maxTBeta << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_maxResidualDrphi: " << m_maxResidualDrphi << " cm" << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_maxResidualDz: " << m_maxResidualDz << " cm" << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_minPt: " << m_minPt << " GeV/c" << std::endl;
   
   // reset counters
   m_total_tracks = 0;
@@ -215,8 +222,8 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
   if(Verbosity() > 2)
   { std::cout << "PHTpcResiduals::checkTrack - pt: " << track->get_pt() << std::endl; }
  
-  if(track->get_pt() < 0.5)
-    return false;
+  if(track->get_pt() < m_minPt)
+  { return false; }
 
   // ignore tracks with too few mvtx, intt and micromegas hits
   const auto cluster_keys( get_cluster_keys( track ) );
