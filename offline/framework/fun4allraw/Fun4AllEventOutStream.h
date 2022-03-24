@@ -10,7 +10,10 @@
 
 #include <Event/phenixTypes.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/numeric/interval.hpp>
+#pragma GCC diagnostic pop
 
 #include <map>
 #include <string>
