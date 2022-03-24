@@ -6,6 +6,7 @@
 
 #include <boost/format.hpp>
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4AssemblyStore.hh>
 
 namespace ServiceProperties
 {
@@ -33,13 +34,18 @@ PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDisplayAction* dispAct)
   : m_DisplayAction(dispAct)
   , m_avSupport(nullptr)
   , m_avBarrelCable(nullptr)
+  , m_avL0Cable(nullptr)
+  , m_avL1Cable(nullptr)
+  , m_avL2Cable(nullptr)
 {}
 
 PHG4MvtxSupport::~PHG4MvtxSupport()
 {
   delete m_avSupport;
   delete m_avBarrelCable;
-  std::vector<G4AssemblyVolume*>().swap(m_endwheelCable);
+  delete m_avL0Cable;
+  delete m_avL1Cable;
+  delete m_avL2Cable;
 }
 
 std::vector<float> PHG4MvtxSupport::get_thickness(PHG4MvtxServiceStructure *object)
@@ -183,7 +189,6 @@ void PHG4MvtxSupport::CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assem
     G4LogicalVolume *cylinderLogic = new G4LogicalVolume(cylinderSolid, trackerMaterial, 
                                                          G4String(object->get_name() + "_LOGIC"), nullptr, nullptr, g4userLimits);
 
-    //G4VisAttributes *visAtt = new G4VisAttributes();
     if (i == 0)
     {
       m_DisplayAction->AddVolume(cylinderLogic, cableMaterials[i]);
@@ -202,7 +207,6 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
                                         float x1, float x2, float y1, float y2, float z1, float z2)//, float theta)
 {
   PHG4MvtxCable *cable = nullptr;
-  G4AssemblyVolume *cableAssemblyVolume = new G4AssemblyVolume();
 
   //Set up basic MVTX cable bundle (24 Samtec cables, 1 power cable, 2 cooling cables)
   float samtecCoreRadius = 0.01275;
@@ -241,7 +245,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
         deltaY = samtecShiftY - ((iRow + 1) * (samtecSheathRadius * 2.1));
         cable = new PHG4MvtxCable(boost::str(boost::format("%s_samtec_%d_%d") % superName.c_str() % iRow % iCol), "G4_Cu", samtecCoreRadius, samtecSheathRadius,
                                  x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, "blue");
-        CreateCable(cable, *cableAssemblyVolume);
+        CreateCable(cable, assemblyVolume);
       }
     }
   }
@@ -257,7 +261,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
       deltaY = coolingShiftY + (coolingSheathRadius * 2);
       cable = new PHG4MvtxCable(boost::str(boost::format("%s_cooling_%d") % superName.c_str() % iCool), "G4_WATER", coolingCoreRadius, coolingSheathRadius,
                                x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, cooling_color[iCool]);
-      CreateCable(cable, *cableAssemblyVolume);
+      CreateCable(cable, assemblyVolume);
     }
   }
 
@@ -311,15 +315,9 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
       cable = new PHG4MvtxCable(powerCable.first.first, "G4_Cu", coreRad, sheathRad,
                                (x1 + powerCable.second.first), (x2 + powerCable.second.first),
                                (y1 + powerCable.second.second), (y2 + powerCable.second.second), z1, z2, cableColor);
-      CreateCable(cable, *cableAssemblyVolume);
+      CreateCable(cable, assemblyVolume);
     }
   }
-
-  G4RotationMatrix rot;
-  //rot.setTheta(theta);
-  G4ThreeVector place;
-  G4Transform3D transform(rot, place);
-  assemblyVolume.AddPlacedAssembly(cableAssemblyVolume, transform);
 
   delete cable;
 }
@@ -454,9 +452,10 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
     m_avBarrelCable->MakeImprint(lv, transformBarrelCable, 0, true);
   }
 
-  m_endwheelCable.push_back(buildL0Cable());
-  m_endwheelCable.push_back(buildL1Cable());
-  m_endwheelCable.push_back(buildL2Cable());
+  m_avL0Cable = buildL0Cable();
+  m_avL1Cable = buildL1Cable();
+  m_avL2Cable = buildL2Cable();
+
   for (unsigned int iLayer = 0; iLayer < PHG4MvtxDefs::kNLayers; ++iLayer)
   {
     for (unsigned int iStave = 0; iStave < nStaves[iLayer]; ++iStave)
@@ -469,8 +468,9 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
       placeCable.setZ((ServiceOffset)*cm);
       rotCable.rotateZ(phi + ((-90. + cableRotate[iLayer])*degToRad));
       G4Transform3D transformCable(rotCable, placeCable);
-      m_endwheelCable[iLayer]->MakeImprint(lv, transformCable, 0, true);
+      if (iLayer == 0) m_avL0Cable->MakeImprint(lv, transformCable, 0, true);
+      if (iLayer == 1) m_avL1Cable->MakeImprint(lv, transformCable, 0, true);
+      if (iLayer == 2) m_avL2Cable->MakeImprint(lv, transformCable, 0, true);
     }
   }
 }
-

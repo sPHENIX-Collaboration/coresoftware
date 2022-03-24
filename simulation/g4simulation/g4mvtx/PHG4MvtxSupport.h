@@ -53,7 +53,10 @@ class PHG4MvtxSupport
   
   G4AssemblyVolume *m_avSupport;
   G4AssemblyVolume *m_avBarrelCable;
-  std::vector<G4AssemblyVolume*> m_endwheelCable;
+  G4AssemblyVolume *m_avL0Cable;
+  G4AssemblyVolume *m_avL1Cable;
+  G4AssemblyVolume *m_avL2Cable;
+  //std::vector<G4AssemblyVolume*> m_endwheelCable;
 };
 
 #endif
