@@ -253,14 +253,20 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) con
   double p = track->get_p();
   
   // covariance
+  /* copy from ACTS specific track members */
   Acts::BoundSymMatrix cov;
   for(int i =0; i<6; i++)
-    {
-      for(int j =0; j<6; j++)
-	{
-	  cov(i,j) = track->get_acts_covariance(i, j);
-	}
-    }
+    for(int j =0; j<6; j++)
+  { cov(i,j) = track->get_acts_covariance(i, j); }
+
+  /* convert from track parameters */
+  const auto cov2 = m_transformer.rotateSvtxTrackCovToActs( track );
+  
+  // compare
+  for( int i = 0; i < 6; ++i )
+    for( int j = 0; j < 6; ++j )
+  { std::cout << "PHTpcResiduals::makeTrackParams - (" << i << ", " << j << ") cov: " << cov(i,j) << " cov2: " << cov2(i,j) << std::endl; }
+  
   const Acts::Vector3 position(track->get_x() * Acts::UnitConstants::cm,
     track->get_y() * Acts::UnitConstants::cm,
     track->get_z() * Acts::UnitConstants::cm);
@@ -272,7 +278,6 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) con
 					    actsFourPos, momentum,
 					    trackQ/p, cov).value();
  
-
 }
 
 //___________________________________________________________________________________
@@ -284,7 +289,7 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track, Svt
   double p = state->get_p();
   
   // covariance
-  const Acts::BoundSymMatrix cov = m_transformer.rotateSvtxTrackCovToActs( state,  m_tGeometry->geoContext );
+  const Acts::BoundSymMatrix cov = m_transformer.rotateSvtxTrackCovToActs(state);
 
   // position
   const Acts::Vector3 position(
@@ -453,7 +458,7 @@ void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Ac
   state.set_pz(momentum.z());
 
   // covariance
-  const auto globalCov = m_transformer.rotateActsCovToSvtxTrack(params, m_tGeometry->geoContext);
+  const auto globalCov = m_transformer.rotateActsCovToSvtxTrack(params);
   for (int i = 0; i < 6; ++i)
     for (int j = 0; j < 6; ++j)
   { state.set_error(i, j, globalCov(i,j)); }

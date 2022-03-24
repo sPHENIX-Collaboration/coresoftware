@@ -15,40 +15,34 @@ namespace
 }
 
 //_______________________________________________________________________________
-Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
-  const SvtxTrack *track,
-  Acts::GeometryContext context ) const
-{ return rotateSvtxTrackCovToActs( track->find_state(0.0)->second, context ); }
+Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs( const SvtxTrack *track ) const
+{ return rotateSvtxTrackCovToActs( track->find_state(0.0)->second ); }
 
 //_______________________________________________________________________________
-Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
-			        const SvtxTrackState *state,
-				Acts::GeometryContext /*geoCtxt*/) const
+Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs( const SvtxTrackState *state ) const
 {
   Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
 
   for(int i = 0; i < 6; ++i)
-    {
-      for(int j = 0; j < 6; ++j)
-	{
-	  svtxCovariance(i,j) = state->get_error(i,j);
-	  /// Convert Svtx to mm and GeV units as Acts expects
-	  if(i < 3 && j < 3)
-	    svtxCovariance(i,j) *= Acts::UnitConstants::cm2;
-	  else if (i < 3)
-	    svtxCovariance(i,j) *= Acts::UnitConstants::cm;
-	  else if (j < 3)
-	    svtxCovariance(i,j) *= Acts::UnitConstants::cm;
-	  
-	}
-    }
+    for(int j = 0; j < 6; ++j)
+  {
+    svtxCovariance(i,j) = state->get_error(i,j);
+    /// Convert Svtx to mm and GeV units as Acts expects
+    if(i < 3 && j < 3)
+      svtxCovariance(i,j) *= Acts::UnitConstants::cm2;
+    else if (i < 3)
+      svtxCovariance(i,j) *= Acts::UnitConstants::cm;
+    else if (j < 3)
+      svtxCovariance(i,j) *= Acts::UnitConstants::cm;
+    
+  }
 
   printMatrix("svtx covariance, acts units: ", svtxCovariance);
  
   const double px = state->get_px();
   const double py = state->get_py();
   const double pz = state->get_pz();
-  const double p = sqrt(px*px + py*py + pz*pz);
+  const double p = std::sqrt( square(px) + square(py) + square(pz));
   
   const double uPx = px / p;
   const double uPy = py / p;
@@ -56,7 +50,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 
   //Acts version
   const double cosTheta = uPz;
-  const double sinTheta = sqrt(uPx * uPx + uPy * uPy);
+  const double sinTheta = std::sqrt(square(uPx) + square(uPy));
   const double invSinTheta = 1. / sinTheta;
   const double cosPhi = uPx * invSinTheta; // equivalent to x/r
   const double sinPhi = uPy * invSinTheta; // equivalent to y/r
@@ -100,8 +94,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 
   /// Since we are using the local to global jacobian we do R^TCR instead of 
   /// RCR^T
-  Acts::BoundSymMatrix actsLocalCov = 
-  jacobianLocalToGlobal.transpose() * rotatedMatrix * jacobianLocalToGlobal;
+  auto actsLocalCov = jacobianLocalToGlobal.transpose() * rotatedMatrix * jacobianLocalToGlobal;
 
   printMatrix("Rotated to Acts local cov : ",actsLocalCov);
   return actsLocalCov;
@@ -109,9 +102,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 }
 
 
-Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
-			        const Acts::BoundTrackParameters params,
-				Acts::GeometryContext /*geoCtxt*/) const
+Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack( const Acts::BoundTrackParameters params ) const
 {
 
   auto covarianceMatrix = *params.covariance();
@@ -193,8 +184,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
 }
 
 
-void ActsTransformations::printMatrix(const std::string &message,
-					Acts::BoundSymMatrix matrix) const
+void ActsTransformations::printMatrix(const std::string &message, const Acts::BoundSymMatrix& matrix) const
 {
  
   if(m_verbosity > 10)
@@ -431,7 +421,7 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory& traj,
       out.set_pz(momentum.z());
       
       /// covariance    
-      const auto globalCov = rotateActsCovToSvtxTrack(params, geoContext);
+      const auto globalCov = rotateActsCovToSvtxTrack(params);
       for (int i = 0; i < 6; ++i)
         for (int j = 0; j < 6; ++j)
       { out.set_error(i, j, globalCov(i,j)); }

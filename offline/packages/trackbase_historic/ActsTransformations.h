@@ -41,24 +41,20 @@ class ActsTransformations
   /// cartesian coordinates to (d0, z0, phi, theta, q/p, time) coordinates for
   /// Acts. The track fitter performs the fitting with respect to the nominal
   /// origin of sPHENIX, so we rotate accordingly
-  Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrack *track,
-						Acts::GeometryContext geoCtxt) const;
+  Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrack* ) const;
   
   /// Rotates an SvtxTrack state covariance matrix from (x,y,z,px,py,pz) global
   /// cartesian coordinates to (d0, z0, phi, theta, q/p, time) coordinates for
   /// Acts. The track fitter performs the fitting with respect to the nominal
   /// origin of sPHENIX, so we rotate accordingly
-  Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrackState *track,
-						Acts::GeometryContext geoCtxt) const;
+  Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrackState* ) const;
 
-          /// Same as above, but rotate from Acts basis to global (x,y,z,px,py,pz)
-  Acts::BoundSymMatrix rotateActsCovToSvtxTrack(
-                       const ActsExamples::TrackParameters params,
-		       Acts::GeometryContext geoCtxt) const;
+  /// Same as above, but rotate from Acts basis to global (x,y,z,px,py,pz)
+  Acts::BoundSymMatrix rotateActsCovToSvtxTrack( const ActsExamples::TrackParameters ) const;
 
   void setVerbosity(int verbosity) {m_verbosity = verbosity;}
 
-  void printMatrix(const std::string &message, Acts::BoundSymMatrix matrix) const;
+  void printMatrix(const std::string &message, const Acts::BoundSymMatrix& matrix) const;
 
   /// Calculate the DCA for a given Acts fitted track parameters and 
   /// vertex
