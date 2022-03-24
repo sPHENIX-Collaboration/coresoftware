@@ -30,14 +30,14 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   std::string GetString(const std::string &what) const override;
 
  private:
-  int m_Segment;
-  int m_EventsTotal;
-  int m_EventsThisFile;
-  PHCompositeNode *m_topNode;
-  Event *m_Event;
-  Event *m_SaveEvent;
-  Eventiterator *m_EventIterator;
-  SyncObject *m_SyncObject;
+  int m_Segment = -999;
+  int m_EventsTotal = 0;
+  int m_EventsThisFile = 0;
+  PHCompositeNode *m_topNode = nullptr;
+  Event *m_Event = nullptr;
+  Event *m_SaveEvent = nullptr;
+  Eventiterator *m_EventIterator = nullptr;
+  SyncObject *m_SyncObject = nullptr;
   std::string m_PrdfNodeName;
 };
 
