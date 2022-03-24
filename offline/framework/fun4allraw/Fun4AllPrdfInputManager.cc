@@ -292,3 +292,12 @@ int Fun4AllPrdfInputManager::SyncIt(const SyncObject *mastersync)
   }
   return Fun4AllReturnCodes::SYNC_OK;
 }
+
+std::string Fun4AllPrdfInputManager::GetString(const std::string &what) const
+{
+  if (what == "PRDFNODENAME")
+  {
+    return m_PrdfNodeName;
+  }
+  return "";
+}

@@ -16,17 +16,18 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
 {
  public:
   Fun4AllPrdfInputManager(const std::string &name = "DUMMY", const std::string &prdfnodename = "PRDF", const std::string &topnodename = "TOP");
-  virtual ~Fun4AllPrdfInputManager();
-  int fileopen(const std::string &filenam);
-  int fileclose();
-  int run(const int nevents = 0);
+  ~Fun4AllPrdfInputManager() override;
+  int fileopen(const std::string &filenam) override;
+  int fileclose() override;
+  int run(const int nevents = 0) override;
 
-  void Print(const std::string &what = "ALL") const;
-  int ResetEvent();
-  int PushBackEvents(const int i);
-  int GetSyncObject(SyncObject **mastersync);
-  int SyncIt(const SyncObject *mastersync);
-  int HasSyncObject() const {return 1;}
+  void Print(const std::string &what = "ALL") const override;
+  int ResetEvent() override;
+  int PushBackEvents(const int i) override;
+  int GetSyncObject(SyncObject **mastersync) override;
+  int SyncIt(const SyncObject *mastersync) override;
+  int HasSyncObject() const  override {return 1;}
+  std::string GetString(const std::string &what) const override;
 
  private:
   int m_Segment;
