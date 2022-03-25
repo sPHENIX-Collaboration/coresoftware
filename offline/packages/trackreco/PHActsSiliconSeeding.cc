@@ -587,52 +587,21 @@ PHActsSiliconSeeding::makePossibleStubs(std::vector<TrkrCluster*>& allClusters,
 	}
     }
   
-  /// if we have no INTT matches, we can just return one track stub
-  /// with the mvtx hits
-  if(inttFirstLayerClusters.size() == 0 and 
-     inttSecondLayerClusters.size() == 0)
+  /// Add the INTT measurements to the track stub
+  std::vector<TrkrCluster*> dumVec = mvtxClusters;
+  std::vector<Acts::Vector3> dumclusVec = mvtxClusPos;
+  for(int i=0; i<inttFirstLayerClusters.size(); i++)
     {
-      stubs.insert(std::make_pair(combo, std::make_pair(mvtxClusters, mvtxClusPos)));
+      dumVec.push_back(inttFirstLayerClusters.at(i));
+      dumclusVec.push_back(inttFirstLayerClusPos.at(i));
     }
+  for(int i=0; i<inttSecondLayerClusters.size(); i++) {
+    dumVec.push_back(inttSecondLayerClusters.at(i));
+    dumclusVec.push_back(inttSecondLayerClusPos.at(i));
+  }
 
-  /// If we have only one matched INTT hit, 
-  /// make a single stub and return
-  else if(inttFirstLayerClusters.size() == 1 and 
-     inttSecondLayerClusters.size() == 0)
-    {
-      std::vector<TrkrCluster*> dumVec = mvtxClusters;
-      dumVec.push_back(inttFirstLayerClusters.at(0));
-      std::vector<Acts::Vector3> dumclusVec = mvtxClusPos;
-      dumclusVec.push_back(inttFirstLayerClusPos.at(0));
-      stubs.insert(std::make_pair(combo, std::make_pair(dumVec,dumclusVec)));
-    }
-  else if(inttFirstLayerClusters.size() == 0 and 
-     inttSecondLayerClusters.size() == 1)
-    {
-      std::vector<TrkrCluster*> dumVec = mvtxClusters;
-      dumVec.push_back(inttSecondLayerClusters.at(0));
-      std::vector<Acts::Vector3> dumclusVec = mvtxClusPos;
-      dumclusVec.push_back(inttSecondLayerClusPos.at(0));
-      stubs.insert(std::make_pair(combo, std::make_pair(dumVec,dumclusVec)));
-    }
-  else
-    {
-      /// Otherwise we have 2 or more INTT matched hits
-      std::vector<TrkrCluster*> dumVec = mvtxClusters;
-      std::vector<Acts::Vector3> dumclusVec = mvtxClusPos;
-      for(int i=0; i<inttFirstLayerClusters.size(); i++)
-	{
-	  dumVec.push_back(inttFirstLayerClusters.at(i));
-	  dumclusVec.push_back(inttFirstLayerClusPos.at(i));
-	}
-      for(int i=0; i<inttSecondLayerClusters.size(); i++) {
-	dumVec.push_back(inttSecondLayerClusters.at(i));
-	dumclusVec.push_back(inttSecondLayerClusPos.at(i));
-      }
-      stubs.insert(std::make_pair(combo, std::make_pair(dumVec, dumclusVec)));
-      
-    }
-
+  stubs.insert(std::make_pair(combo, std::make_pair(dumVec, dumclusVec)));
+  
   return stubs;
 }
 
