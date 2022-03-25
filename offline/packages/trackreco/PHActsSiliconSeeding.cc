@@ -59,7 +59,7 @@ int PHActsSiliconSeeding::Init(PHCompositeNode */*topNode*/)
 
   if(m_seedAnalysis)
     {    
-      m_file = new TFile("seedingOutfile.root","recreate");
+      m_file = new TFile(std::string(Name() + ".root").c_str(),"recreate");
       createHistograms();
     }  
   
@@ -618,24 +618,19 @@ PHActsSiliconSeeding::makePossibleStubs(std::vector<TrkrCluster*>& allClusters,
   else
     {
       /// Otherwise we have 2 or more INTT matched hits
-      /// Find combinations of INTT clusters that were within
-      /// the nominal matching windows if each INTT layer group
-      /// had at least one cluster
+      std::vector<TrkrCluster*> dumVec = mvtxClusters;
+      std::vector<Acts::Vector3> dumclusVec = mvtxClusPos;
       for(int i=0; i<inttFirstLayerClusters.size(); i++)
 	{
-	  for(int j=0; j<inttSecondLayerClusters.size(); j++)
-	    {
-	      /// Start with the mvtx clusters
-	      std::vector<TrkrCluster*> dumVec = mvtxClusters;
-	      dumVec.push_back(inttFirstLayerClusters.at(i));
-	      dumVec.push_back(inttSecondLayerClusters.at(j));
-	      std::vector<Acts::Vector3> dumclusVec = mvtxClusPos;
-	      dumclusVec.push_back(inttFirstLayerClusPos.at(i));
-	      dumclusVec.push_back(inttSecondLayerClusPos.at(j));
-	      stubs.insert(std::make_pair(combo, std::make_pair(dumVec,dumclusVec)));
-	      combo++;
-	    }
+	  dumVec.push_back(inttFirstLayerClusters.at(i));
+	  dumclusVec.push_back(inttFirstLayerClusPos.at(i));
 	}
+      for(int i=0; i<inttSecondLayerClusters.size(); i++) {
+	dumVec.push_back(inttSecondLayerClusters.at(i));
+	dumclusVec.push_back(inttSecondLayerClusPos.at(i));
+      }
+      stubs.insert(std::make_pair(combo, std::make_pair(dumVec, dumclusVec)));
+      
     }
 
   return stubs;
@@ -881,7 +876,6 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	  layerGeom->find_segment_center(ladderzindex, ladderphiindex, ladderLocation);
 	  const double ladderphi = atan2(ladderLocation[1], ladderLocation[0]) + layerGeom->get_strip_phi_tilt();
 	  const auto stripZSpacing = layerGeom->get_strip_z_spacing();
-	  
 	  float dphi = ladderphi - projPhi;
 	  if(dphi > M_PI)
 	    { dphi -= 2. * M_PI; }
@@ -905,7 +899,21 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	    {
 	      const auto cluskey = clusIter->first;
 	      const auto cluster = clusIter->second;
-      
+	      /// Diagnostic
+	      if(m_seedAnalysis)
+		{ 
+		  const auto globalP = transform.getGlobalPosition(cluster, m_surfMaps,
+								   m_tGeometry);
+		  h_nInttProj->Fill(projectionLocal[1] - cluster->getLocalX(),
+				    projectionLocal[2] - cluster->getLocalY()); 
+		  h_hits->Fill(globalP(0), globalP(1));
+		  h_zhits->Fill(globalP(2),
+				sqrt(pow(globalP(0),2)+pow(globalP(1),2)));
+		  
+		  h_resids->Fill(zProj[inttlayer] - cluster->getLocalY(),
+				 projRphi - cluster->getLocalX());
+		}
+	     
 	      /// Z strip spacing is the entire strip, so because we use fabs
 	      /// we divide by two
 	      if(fabs(projectionLocal[1] - cluster->getLocalX()) < m_rPhiSearchWin and
@@ -918,27 +926,15 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 								     m_tGeometry);
 		  clusters.push_back(globalPos);
 
-		  /// Diagnostic
-		  float inttClusRphi = sqrt(pow(globalPos(0),2)+pow(globalPos(1),2)) * atan2(globalPos(1),globalPos(0));
-		  if(m_seedAnalysis)
-		    { 
-		      h_nInttProj->Fill(projectionLocal[1] - cluster->getLocalX(),
-					projectionLocal[2] - cluster->getLocalY()); 
-		      h_hits->Fill(globalPos(0), globalPos(1));
-		      h_zhits->Fill(globalPos(2),
-				    sqrt(pow(globalPos(0),2)+pow(globalPos(1),2)));
-		  
-		      h_resids->Fill(zProj[inttlayer] - globalPos(2),
-				     projRphi - inttClusRphi);
-		    }		  	      
+		 		  	      
 		  if(Verbosity() > 4)
 		    {
 		      std::cout << "Matched INTT cluster with cluskey " << cluskey 
 				<< " and position " << globalPos.transpose() 
 				<< std::endl << " with projections rphi "
-				<< projRphi << " and inttclus rphi " << inttClusRphi
+				<< projRphi << " and inttclus rphi " << cluster->getLocalX()
 				<< " and proj z " << zProj[inttlayer] << " and inttclus z "
-				<< globalPos(2) << " in layer " << inttlayer 
+				<< cluster->getLocalY() << " in layer " << inttlayer 
 				<< " with search windows " << m_rPhiSearchWin 
 				<< " in rphi and strip z spacing " << stripZSpacing 
 				<< std::endl;
@@ -948,6 +944,10 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	}  
     }
   
+  if(m_seedAnalysis) {
+    h_nMatchedClusters->Fill(matchedClusters.size());
+  }
+
   return matchedClusters;
 }
 void PHActsSiliconSeeding::circleCircleIntersection(const double layerRadius,
@@ -1523,6 +1523,7 @@ void PHActsSiliconSeeding::writeHistograms()
 {
   m_file->cd();
   h_nInttProj->Write();
+  h_nMatchedClusters->Write();
   h_nMvtxHits->Write();
   h_nSeeds->Write();
   h_nActsSeeds->Write();
@@ -1543,6 +1544,7 @@ void PHActsSiliconSeeding::writeHistograms()
 
 void PHActsSiliconSeeding::createHistograms()
 {
+  h_nMatchedClusters = new TH1F("nMatchedClusters",";N_{matches}", 50,0,50);
   h_nInttProj = new TH2F("nInttProj",";l_{0}^{proj}-l_{0}^{clus} [cm]; l_{1}^{proj}-l_{1}^{clus} [cm]",
 			 10000,-10,10,10000,-50,50);
   h_nMvtxHits = new TH1I("nMvtxHits",";N_{MVTX}",6,0,6);
