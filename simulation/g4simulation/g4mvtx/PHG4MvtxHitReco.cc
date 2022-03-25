@@ -589,7 +589,7 @@ pair<double, double> PHG4MvtxHitReco::generate_alpide_pulse(const double energy_
 
 double PHG4MvtxHitReco::generate_strobe()
 {
-  double t_start = gsl_rng_uniform_pos(m_RandomGenerator)*(m_strobe_separation);
+  double t_start = gsl_rng_uniform_pos(m_RandomGenerator)*(m_strobe_separation + m_strobe_width);
   return t_start*1e3;
 }
 
