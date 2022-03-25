@@ -55,12 +55,14 @@ int listOfResonantPIDs[] = {111, 113, 213, 333, 310, 311, 313, 323, 413, 423, 51
                             4114, 4232, 4132, 4322, 4312, 4324, 4314, 4332, 4334, 4412, 4422, 4414, 4424, 4432, 4434, 4444};
 
 DecayFinder::DecayFinder()
-  : m_save_dst(false)
+  : SubsysReco("DECAYFINDER")
+  , m_save_dst(false)
 {
 }
 
-DecayFinder::DecayFinder(const std::string& /*name*/)
-  : m_save_dst(false)
+DecayFinder::DecayFinder(const std::string& name)
+  : SubsysReco(name)
+  , m_save_dst(false)
 {
 }
 
@@ -288,6 +290,7 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
       std::vector<int> correctMotherProducts;
       decayChain.push_back(std::make_pair((*p)->barcode(), (*p)->pdg_id()));
 
+      // Make sure that the mother has a decay in our record
       for (HepMC::GenVertex::particle_iterator children = (*p)->end_vertex()->particles_begin(HepMC::children);
            children != (*p)->end_vertex()->particles_end(HepMC::children); ++children)
       {
@@ -400,7 +403,6 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
 int DecayFinder::checkIfCorrectParticle(HepMC::GenParticle* particle, bool& trackFailedPT, bool& trackFailedETA)
 {
   bool acceptParticle = false;
-//  bool breakOut = false;
 
   std::vector<int> positive_intermediates_ID;
   for (unsigned int i = 0; i < m_intermediates_ID.size(); ++i) positive_intermediates_ID.push_back(abs(m_intermediates_ID[i]));
@@ -443,14 +445,12 @@ int DecayFinder::checkIfCorrectParticle(HepMC::GenParticle* particle, bool& trac
             continue;
           else if (!m_allowPhotons && (*greatgrandchildren)->pdg_id() == 22)
           {
-//            breakOut = true;
             break;
           }
           else if (m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111)
             continue;
           else if (!m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111)
           {
-//            breakOut = true;
             break;
           }
           else
@@ -466,14 +466,12 @@ int DecayFinder::checkIfCorrectParticle(HepMC::GenParticle* particle, bool& trac
         continue;
       else if (!m_allowPhotons && (*grandchildren)->pdg_id() == 22)
       {
-//        breakOut = true;
         break;
       }
       else if (m_allowPi0 && (*grandchildren)->pdg_id() == 111)
         continue;
       else if (!m_allowPi0 && (*grandchildren)->pdg_id() == 111)
       {
-//        breakOut = true;
         break;
       }
       else
@@ -615,7 +613,8 @@ int DecayFinder::createDecayNode(PHCompositeNode* topNode)
   std::string baseName;
 
   if (m_container_name.empty())
-    baseName = "decay";
+    //baseName = "decay";
+    baseName = Name();
   else
     baseName = m_container_name;
 

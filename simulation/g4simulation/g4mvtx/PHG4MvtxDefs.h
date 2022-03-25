@@ -3,6 +3,9 @@
 #ifndef G4MVTX_PHG4MVTXDEFS_H
 #define G4MVTX_PHG4MVTXDEFS_H
 
+#include <string>
+#include <vector>
+
 namespace PHG4MvtxDefs
 {
 
