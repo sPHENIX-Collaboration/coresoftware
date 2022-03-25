@@ -118,6 +118,7 @@ void P6DExtDecayerPhysics::ConstructProcess()
         // increment counter in case we want to print out stats
         // for whatever reason (non null means it is used and
         // must not be deleted)
+ 	particle->SetDecayTable(NULL);
         decay->SetExtDecayer(extDecayer);
         decayer_used++;
       }
