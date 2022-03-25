@@ -45,7 +45,7 @@ class Fun4AllEventOutStream : public Fun4AllBase
  private:
   PHDWORD *evtbuf = nullptr;
   Fun4AllEventOutputManager *m_MyManager = nullptr;  // pointer to my master
-  unsigned int evtbuf_size;
+  unsigned int evtbuf_size = 0;
   // flag to stear behavior, if 1 only add packets (drop all others), if 0 no filtering,
   // if -1 accept all, drop selected and afterwards add back selected ones
   int add_or_remove = 0;
