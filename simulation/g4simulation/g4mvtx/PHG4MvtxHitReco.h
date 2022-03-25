@@ -37,6 +37,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterContainerInterface
   std::string hitnodename;
   std::string geonodename;
   std::map<int, std::pair<double, double> > tmin_max;
+  double crossing_period = 106.0;
 };
 
 #endif

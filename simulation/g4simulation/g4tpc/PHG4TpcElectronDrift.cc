@@ -14,7 +14,7 @@
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitTruthAssoc.h>  // for TrkrHitTruthA...
 #include <trackbase/TrkrHitTruthAssocv1.h>
-#include <trackbase/TrkrHitv2.h>
+#include <trackbase/TrkrHitv3.h>
 
 #include <tpc/TpcDefs.h>
 
@@ -205,10 +205,9 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   diffusion_trans = get_double_param("diffusion_trans");
   added_smear_sigma_trans = get_double_param("added_smear_trans");
   drift_velocity = get_double_param("drift_velocity");
-  // min_time to max_time is the time window for accepting drifted electrons
+  // min_time to max_time is the time window for accepting drifted electrons after the trigger
   min_time = 0.0;
-  max_time = get_double_param("max_time");
-  max_time += get_double_param("extended_readout_time");
+  max_time = get_double_param("max_time") + get_double_param("extended_readout_time");
   electrons_per_gev = get_double_param("electrons_per_gev");
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
@@ -521,7 +520,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           if (!node_hit)
           {
             // Otherwise, create a new one
-            node_hit = new TrkrHitv2();
+            node_hit = new TrkrHitv3();
             node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
           }
 
@@ -662,7 +661,7 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
   set_default_double_param("max_active_radius", 78.);        // cm
   set_default_double_param("drift_velocity", 8.0 / 1000.0);  // cm/ns
   set_default_double_param("max_time", 13200.);  //ns
-  set_default_double_param("extended_readout_time", 0.);  //ns
+  set_default_double_param("extended_readout_time", 7000.);  //ns
 
   // These are purely fudge factors, used to increase the resolution to 150 microns and 500 microns, respectively
   // override them from the macro to get a different resolution

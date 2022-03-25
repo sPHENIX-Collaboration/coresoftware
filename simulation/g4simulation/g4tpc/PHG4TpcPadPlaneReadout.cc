@@ -14,7 +14,7 @@
 #include <trackbase/TrkrHit.h>   // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrHitv2.h>  // for TrkrHit
+#include <trackbase/TrkrHitv3.h>  // for TrkrHit
 
 #include <tpc/TpcDefs.h>
 
@@ -289,7 +289,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
       if (!hit)
       {
         // create a new one
-        hit = new TrkrHitv2();
+        hit = new TrkrHitv3();
         hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
       // Either way, add the energy to it  -- adc values will be added at digitization
@@ -303,7 +303,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
       if (!single_hit)
       {
         // create a new one
-        single_hit = new TrkrHitv2();
+        single_hit = new TrkrHitv3();
         single_hitsetit->second->addHitSpecificKey(hitkey, single_hit);
       }
       // Either way, add the energy to it  -- adc values will be added at digitization

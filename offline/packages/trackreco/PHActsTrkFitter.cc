@@ -445,8 +445,9 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
   short int crossing = track->get_crossing();
   if(crossing == SHRT_MAX) return sourcelinks;
 
-  if(Verbosity() > 0) 
+  //  if(Verbosity() > 0) 
     std::cout << "tpcid " << track->get_id() << " crossing " << crossing << std::endl; 
+    track->identify();
 
   int iter = 0;
   for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
@@ -469,6 +470,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
       if(!surf)
 	continue;
 
+      Acts::Vector2 localPos;
       unsigned int trkrid = TrkrDefs::getTrkrId(key);
       unsigned int side = TpcDefs::getSide(key);
       if(trkrid ==  TrkrDefs::tpcId)
@@ -479,20 +481,12 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 						      m_surfMaps,
 						      m_tGeometry);
 
-	  /*
-	  bool printout = false;
-	  if( (side == 0 && global[2] > 0) || (side == 1 && global[2] < 0) )
-	    {
-	      printout = true;
-	      std::cout << " *********** z / side mismatch" << std::endl;
-
-	      std::cout << " zinit " << global[2] << " side " << side << " crossing " << crossing 
-			<< " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
-	    }
-	  */
+	  {
+	    std::cout << " zinit " << global[2] << " side " << side << " crossing " << crossing 
+		      << " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
+	  }
 
 	  float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
-
 	  global[2] = z;
 	  
 	  // get the new surface corresponding to this global position
@@ -507,17 +501,16 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	    {
 	      /// If the surface can't be found, we can't track with it. So 
 	      /// just continue and don't add the cluster to the source links
-	      if(Verbosity() > 0) std::cout << PHWHERE << "Failed to find surface for cluster " << key << std::endl;
+	      //if(Verbosity() > 0) 
+		std::cout << PHWHERE << "Failed to find surface for cluster " << key << std::endl;
 	      continue;
 	    }
 
-	  /*
-	  if(printout)
 	    {
-	      std::cout << "      global zfinal " << z << " side " << side << " crossing " << crossing 
-			<< " cluskey " << key << " new subsurfkey " << subsurfkey << std::endl;
+	      std::cout << "      global z corrected " << z << " side " << side << " crossing " << crossing 
+			<< " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
 	    }
-	  */
+
 
 	  // get local coordinates
 	  Acts::Vector3 normal = surf->normal(m_tGeometry->geoContext);
@@ -525,7 +518,6 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 					      global * Acts::UnitConstants::cm,
 					      normal);
 
-	  Acts::Vector2 localPos;
 	  if(local.ok())
 	    {
 	      localPos = local.value() / Acts::UnitConstants::cm;
@@ -545,14 +537,16 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	      localPos(0) = rClusPhi - surfRphiCenter;
 	      localPos(1) = global[2] - surfZCenter; 
 	    }
-	  cluster->setSubSurfKey(subsurfkey);
-	  cluster->setLocalX(localPos(0));
-	  cluster->setLocalY(localPos(1));
+	  //cluster->setSubSurfKey(subsurfkey);
+	  //cluster->setLocalX(localPos(0));
+	  //cluster->setLocalY(localPos(1));
 	}
       
       Acts::ActsVector<2> loc;
-      loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
-      loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
+      //loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
+      //loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
+      loc[Acts::eBoundLoc0] = localPos(0) * Acts::UnitConstants::cm;
+      loc[Acts::eBoundLoc1] = localPos(1) * Acts::UnitConstants::cm;
       std::array<Acts::BoundIndices,2> indices;
       indices[0] = Acts::BoundIndices::eBoundLoc0;
       indices[1] = Acts::BoundIndices::eBoundLoc1;
@@ -581,7 +575,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	  std::cout << std::endl;
 	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
 	  std::cout << "For key " << key << " with local pos " << std::endl
-		    << cluster->getLocalX() << ", " << cluster->getLocalY()
+	    //		    << cluster->getLocalX() << ", " << cluster->getLocalY()
+		    << localPos(0) << ", " << localPos(1)
 		    << std::endl;
 	}
     

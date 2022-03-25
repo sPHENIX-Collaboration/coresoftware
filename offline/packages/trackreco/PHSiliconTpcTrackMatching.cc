@@ -900,21 +900,27 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
 	  unsigned int si_id = it->second;	  
 	  auto this_track = _track_map->get(tpcid);
-	  auto newTrack = std::make_unique<SvtxTrack_v3>();
+	  //auto newTrack = std::make_unique<SvtxTrack_v3>();
 	  const unsigned int lastTrackKey =  _track_map->empty() ? 0:std::prev(_track_map->end())->first; 
 	  if(Verbosity() > 1) 
 	    cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey + 1 << endl;
-	  
+
+	  auto newTrack = (SvtxTrack_v3*) this_track->CloneMe();
 	  newTrack->set_id(lastTrackKey+1);
-	  
+
+	  /*	  
 	  newTrack->set_x(this_track->get_x());
 	  newTrack->set_y(this_track->get_y());
 	  newTrack->set_z(this_track->get_z());
 	  
 	  newTrack->set_charge(this_track->get_charge());
+
 	  newTrack->set_px(this_track->get_px());
 	  newTrack->set_py(this_track->get_py());
 	  newTrack->set_pz(this_track->get_pz());
+
+	  newTrack->set_chisq(this_track->get_chisq());
+	  newTrack->set_ndf(this_track->get_ndf());
 	  
 	  for(int i = 0; i < 6; ++i)
 	    {
@@ -923,6 +929,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 		  newTrack->set_error(i,j, this_track->get_error(i,j));
 		}
 	    }
+	  */
 
 	  _seed_track_map->addAssoc(this_track->get_id(), newTrack->get_id());
 	  
@@ -942,7 +949,8 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	  
 	  //if(Verbosity() > 1) 
 	    cout << "  -- inserting new track with id " << newTrack->get_id() << " from TPC tracklet " << tpcid << " into trackmap " << endl;
-	  _track_map->insert(newTrack.get());
+	    //_track_map->insert(newTrack.get());
+	    _track_map->insert(newTrack);
 
 	  // add a map remove_tpc_matches so we can remove old matches with the same tpc id
 	  remove_tpc_matches.insert(std::make_pair(tpcid, si_id));
@@ -1305,11 +1313,10 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<short int, s
       float z_si = si_track->get_z();
       float z_tpc = tpc_track->get_z();
       float z_mismatch = z_tpc-z_si;
-      //float z_mismatch = z_si - z_tpc;
 
       float mag_crossing_z_mismatch = fabs(crossing) * crossing_period * vdrift;
 
-      // We do no know the sign  of the z mismatch for a given crossing unless we know the drift direction in the TPC
+      // We do not know the sign  of the z mismatch for a given crossing unless we know the drift direction in the TPC
       // could instead look up any TPC cluster key in the track to get side
       if( fabs( fabs(z_mismatch) - mag_crossing_z_mismatch ) < 2.0)
 	{ 
@@ -1325,7 +1332,7 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<short int, s
 
 	  bad_map.insert(std::make_pair(crossing, std::make_pair(tpcid, si_id)));
 
-	  // substitute a crossing from the z_mismatch
+	  // substitute a crossing estimate from the z_mismatch
 	  // for north side of TPC, negative crossing gives positive offset - opposite for south side
 	  short int crossing_guess = (short int) (round( z_mismatch/vdrift/crossing_period) );
 	  if(si_eta > 0) crossing_guess = -crossing_guess;	  
@@ -1350,11 +1357,11 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<short int, s
 	{
 	  if(it->second.first == tpcid && it->second.second == si_id)
 	    {
-	      if(Verbosity() > 0) std::cout <<  "   erasing tpc_crossing_map entry for crossing " << crossing << " tpcid " << tpcid  << std::endl;
+	      if(Verbosity() > 0) std::cout <<  "   checkCrossingMatches: erasing tpc_crossing_map entry for crossing " << crossing << " tpcid " << tpcid  << std::endl;
 	      tpc_crossing_map.erase(tpcid);
 
 	      if(Verbosity() > 1) 
-		std::cout << "   erasing crossing_matches entry for crossing " << crossing << " tpcid " << tpcid << " si_id " << si_id << std::endl;
+		std::cout << "                        erasing crossing_matches entry for crossing " << crossing << " tpcid " << tpcid << " si_id " << si_id << std::endl;
 	      crossing_matches.erase(it);
 	      break;  // the iterator is no longer valid
 	    }
@@ -1368,7 +1375,7 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<short int, s
       unsigned int si_id = id_pair.second;
 
       if(Verbosity() > 1) 
-	std::cout << "   adding crossing_matches and tpc_c rossing_map entry for crossing_guess " << crossing_guess << " tpcid " << tpcid 
+	std::cout << "  checkCrossingMatches:  adding crossing_matches and tpc_crossing_map entry for crossing_guess " << crossing_guess << " tpcid " << tpcid 
 		  << " si_id " << si_id << std::endl;
       crossing_matches.insert(std::make_pair(crossing_guess,std::make_pair(tpcid, si_id)));
       tpc_crossing_map.insert(std::make_pair(tpcid, crossing_guess));

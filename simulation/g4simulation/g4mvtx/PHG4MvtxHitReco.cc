@@ -201,6 +201,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
       if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
       if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
+      double hit_time = (hiter->second->get_t(0) + hiter->second->get_t(1)) / 2.0;
+      short int crossing = (short int) round(hit_time / crossing_period);
 
       // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
       int stave_number = hiter->second->get_property_int(PHG4Hit::prop_stave_index);
@@ -526,6 +528,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         // Either way, add the energy to it
         hit->addEnergy(venergy[i1].first * TrkrDefs::MvtxEnergyScaleup);
 
+	hit->setCrossing(crossing);
+
         // now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
         // There is only one TrkrHit per pixel, but there may be multiple g4hits
         // How do we know how much energy from PHG4Hit went into TrkrHit? We don't, have to sort it out in evaluator to save memory
@@ -567,7 +571,8 @@ void PHG4MvtxHitReco::SetDefaultParameters()
   cout << "PHG4MvtxHitReco: Setting Mvtx timing window defaults to tmin = -5000 and  tmax = 5000 ns" << endl;
   for (int ilayer = 0; ilayer < 3; ilayer++)
   {
-    tmin_max.insert(std::make_pair(ilayer, std::make_pair(-5000, 5000)));
+    tmin_max.insert(std::make_pair(ilayer, std::make_pair(-13200, 20200)));  // time window for extended range TPC readout
   }
+
   return;
 }
