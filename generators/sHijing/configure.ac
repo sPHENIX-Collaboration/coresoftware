@@ -15,11 +15,5 @@ dnl turn off warnings about unused functions in cfortran.h
    CXXFLAGS="$CXXFLAGS -Wall  -Wno-unused-function -Werror -Wextra"
 fi
 
-dnl test for root 6
-if test `root-config --version | awk '{print $1>=6.?"1":"0"}'` = 1; then
-CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
-AC_SUBST(CINTDEFS)
-fi
-
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
