@@ -20,6 +20,7 @@ libg4mvtx_la_LIBADD = \
   -lfun4all \
   -lphg4hit \
   -lg4detectors \
+  -lgsl \
   -ltrack_io \
   -lmvtx_io
 
