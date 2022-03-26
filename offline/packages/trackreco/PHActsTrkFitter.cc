@@ -445,9 +445,11 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
   short int crossing = track->get_crossing();
   if(crossing == SHRT_MAX) return sourcelinks;
 
-  //  if(Verbosity() > 0) 
-    std::cout << "tpcid " << track->get_id() << " crossing " << crossing << std::endl; 
-    track->identify();
+  if(Verbosity() > 0) 
+    {
+      std::cout << "tpcid " << track->get_id() << " crossing " << crossing << std::endl; 
+      track->identify();
+    }
 
   int iter = 0;
   for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
@@ -475,7 +477,10 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
       unsigned int side = TpcDefs::getSide(key);
       if(trkrid ==  TrkrDefs::tpcId)
 	{
-	  // transform to global coordinates for z correction
+	  // Fopr the TPC, clsuter z has to be corrected for the crossing z offset 
+	  // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
+
+	  // transform to global coordinates for z correction 
 	  ActsTransformations transformer;
 	  auto global = transformer.getGlobalPosition(cluster,
 						      m_surfMaps,
@@ -506,6 +511,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	      continue;
 	    }
 
+	  if(Verbosity() > 0)
 	    {
 	      std::cout << "      global z corrected " << z << " side " << side << " crossing " << crossing 
 			<< " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
@@ -537,14 +543,20 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	      localPos(0) = rClusPhi - surfRphiCenter;
 	      localPos(1) = global[2] - surfZCenter; 
 	    }
-	  //cluster->setSubSurfKey(subsurfkey);
-	  //cluster->setLocalX(localPos(0));
-	  //cluster->setLocalY(localPos(1));
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
+	      std::cout << " new      local X " << localPos(0) << " new       local Y " << localPos(1) << std::endl;
+	    }
 	}
-      
+      else
+	{
+	  // silicon cluster, take it as is
+	  localPos(0) = cluster->getLocalX();
+	  localPos(1) = cluster->getLocalY();
+	}
+
       Acts::ActsVector<2> loc;
-      //loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
-      //loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
       loc[Acts::eBoundLoc0] = localPos(0) * Acts::UnitConstants::cm;
       loc[Acts::eBoundLoc1] = localPos(1) * Acts::UnitConstants::cm;
       std::array<Acts::BoundIndices,2> indices;
@@ -575,7 +587,6 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	  std::cout << std::endl;
 	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
 	  std::cout << "For key " << key << " with local pos " << std::endl
-	    //		    << cluster->getLocalX() << ", " << cluster->getLocalY()
 		    << localPos(0) << ", " << localPos(1)
 		    << std::endl;
 	}

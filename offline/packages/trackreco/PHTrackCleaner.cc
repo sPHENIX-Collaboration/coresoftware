@@ -81,7 +81,7 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
       auto tpc_range =   _seed_track_map->getAssocTracks(tpc_id);
 
       unsigned int best_id = 99999;
-      double min_chisq = 99999.0;
+      double min_chisq_df = 99999.0;
       unsigned int best_ndf = 1;
       for (auto it = tpc_range.first; it !=tpc_range.second; ++it)
 	{
@@ -92,12 +92,12 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 	  if(_track)
 	    {
 	      if(Verbosity() > 1)	      
-		std::cout << "        track ID " << track_id << " chisq " << _track->get_chisq() << " ndf " << _track->get_ndf() << " min_chisq " << min_chisq << std::endl;
+		std::cout << "        track ID " << track_id << " chisq " << _track->get_chisq() << " ndf " << _track->get_ndf() << " min_chisq_df " << min_chisq_df << std::endl;
 
-	      // only accept tracks with nclus > min_clusters
-	      if(_track->get_chisq() < min_chisq && _track->size_cluster_keys() > min_clusters)
+	      // only accept tracks with ndf > min_ndf - very small ndf means something went wrong
+	      if(_track->get_chisq()/_track->get_ndf() < min_chisq_df && _track->get_ndf() > min_ndf)
 		{
-		  min_chisq = _track->get_chisq();
+		  min_chisq_df = _track->get_chisq() / _track->get_ndf();
 		  best_id = track_id;
 		  best_ndf = _track->get_ndf();
 		}
@@ -106,10 +106,10 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 
       if(best_id != 99999)
 	{
-	  double qual = min_chisq / best_ndf;
+	  double qual = min_chisq_df;
 
 	  if(Verbosity() > 1)
-	    std::cout << "        best track for tpc_id " << tpc_id << " has track_id " << best_id << " chisq " << min_chisq << " chisq/ndf " << qual << std::endl;
+	    std::cout << "        best track for tpc_id " << tpc_id << " has track_id " << best_id << " best_ndf " << best_ndf << " chisq/ndf " << qual << std::endl;
 
 	  if(qual < 30)
 	    {
