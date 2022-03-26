@@ -1,4 +1,4 @@
-AC_INIT(fun4allraw,[2.00])
+AC_INIT(ffarawmodules,[1.00])
 AC_CONFIG_SRCDIR([configure.ac])
 
 AM_INIT_AUTOMAKE
@@ -9,9 +9,8 @@ LT_INIT([disable-static])
 dnl   no point in suppressing warnings people should 
 dnl   at least see them, so here we go for g++: -Wall
 if test $ac_cv_prog_gxx = yes; then
-   CXXFLAGS="$CXXFLAGS -Wall -Wextra -Werror -Wno-unused-parameter -Wshadow"
+   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wshadow"
 fi
-
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

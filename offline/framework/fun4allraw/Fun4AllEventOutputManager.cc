@@ -14,9 +14,7 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
-
-Fun4AllEventOutputManager::Fun4AllEventOutputManager(const string &myname, const string &filerule, const unsigned int sizeInMB, const int offset, const int increment)
+Fun4AllEventOutputManager::Fun4AllEventOutputManager(const std::string &myname, const std::string &filerule, const unsigned int sizeInMB, const int offset, const int increment)
   : Fun4AllOutputManager(myname)
   , m_OutFileRule(filerule)
 {
@@ -31,9 +29,9 @@ Fun4AllEventOutputManager::~Fun4AllEventOutputManager()
   return;
 }
 
-void Fun4AllEventOutputManager::Print(const string &what) const
+void Fun4AllEventOutputManager::Print(const std::string &what) const
 {
-  cout << Name() << " writes " << m_OutFileRule << endl;
+  std::cout << Name() << " writes " << m_OutFileRule << std::endl;
   // base class print method
   Fun4AllOutputManager::Print(what);
 
@@ -47,7 +45,7 @@ int Fun4AllEventOutputManager::Write(PHCompositeNode * /*startNode*/)
   Event *evt = findNode::getClass<Event>(topNode, "PRDF");
   if (!evt)
   {
-    cout << PHWHERE << "0 Event Pointer" << endl;
+    std::cout << PHWHERE << "0 Event Pointer" << std::endl;
     return -1;
   }
   m_OutStream->WriteEvent(evt);
@@ -63,7 +61,7 @@ int Fun4AllEventOutputManager::AddPacket(const int ipkt)
   }
   else
   {
-    cout << PHWHERE << "Cannot add packet" << endl;
+    std::cout << PHWHERE << "Cannot add packet" << std::endl;
   }
   return iret;
 }
@@ -77,7 +75,7 @@ int Fun4AllEventOutputManager::AddPacketRange(const int ipktmin, const int ipktm
   }
   else
   {
-    cout << PHWHERE << "Cannot add packet" << endl;
+    std::cout << PHWHERE << "Cannot add packet" << std::endl;
   }
   return iret;
 }
@@ -91,7 +89,7 @@ int Fun4AllEventOutputManager::DropPacket(const int ipkt)
   }
   else
   {
-    cout << PHWHERE << "Cannot drop packet" << endl;
+    std::cout << PHWHERE << "Cannot drop packet" << std::endl;
   }
   return iret;
 }
@@ -105,7 +103,7 @@ int Fun4AllEventOutputManager::DropPacketRange(const int ipktmin, const int ipkt
   }
   else
   {
-    cout << PHWHERE << "Cannot drop packet" << endl;
+    std::cout << PHWHERE << "Cannot drop packet" << std::endl;
   }
   return iret;
 }
