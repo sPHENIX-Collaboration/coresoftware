@@ -260,7 +260,7 @@ class PHActsSiliconSeeding : public SubsysReco
   
   /// Doesn't change, we are building the INTT this way
   const static unsigned int m_nInttLayers = 4;
-  double m_nInttLayerRadii[m_nInttLayers];
+  double m_nInttLayerRadii[m_nInttLayers] = {0};;
   
   /// Search window for phi to match intt clusters in cm
   double m_rPhiSearchWin = 0.1;
