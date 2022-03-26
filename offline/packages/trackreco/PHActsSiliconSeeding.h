@@ -88,6 +88,8 @@ class PHActsSiliconSeeding : public SubsysReco
   void fieldMapName(const std::string& fieldmap)
     { m_fieldMapName = fieldmap; }
 
+  void setRPhiSearchWindow(const float win) { m_rPhiSearchWin = win; std::cout << "Search window is " << m_rPhiSearchWin<<std::endl;}
+
   /// For each MVTX+INTT seed, take the best INTT hits and form
   /// 1 silicon seed per MVTX seed
   void cleanSeeds(bool cleanSeeds)
@@ -256,9 +258,9 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Maximum allowed transverse PCA for seed, cm
   double m_maxSeedPCA = 2.;
   
+  /// Doesn't change, we are building the INTT this way
   const static unsigned int m_nInttLayers = 4;
-  const double m_nInttLayerRadii[m_nInttLayers] = 
-    {7.188, 7.732, 9.680,10.262}; /// cm
+  double m_nInttLayerRadii[m_nInttLayers] = {0};;
   
   /// Search window for phi to match intt clusters in cm
   double m_rPhiSearchWin = 0.1;
@@ -280,6 +282,7 @@ class PHActsSiliconSeeding : public SubsysReco
   TH2 *h_nInttProj = nullptr;
   TH1 *h_nMvtxHits = nullptr;
   TH1 *h_nInttHits = nullptr;
+  TH1 *h_nMatchedClusters = nullptr;
   TH2 *h_nHits = nullptr;
   TH1 *h_nSeeds = nullptr;
   TH1 *h_nActsSeeds = nullptr;
