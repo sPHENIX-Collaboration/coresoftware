@@ -947,10 +947,8 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 		}
 	    }
 	  
-	  //if(Verbosity() > 1) 
-	    cout << "  -- inserting new track with id " << newTrack->get_id() << " from TPC tracklet " << tpcid << " into trackmap " << endl;
-	    //_track_map->insert(newTrack.get());
-	    _track_map->insert(newTrack);
+	  if(Verbosity() > 1)  cout << "  -- inserting new track with id " << newTrack->get_id() << " from TPC tracklet " << tpcid << " into trackmap " << endl;
+	  _track_map->insert(newTrack);
 
 	  // add a map remove_tpc_matches so we can remove old matches with the same tpc id
 	  remove_tpc_matches.insert(std::make_pair(tpcid, si_id));
@@ -1132,10 +1130,8 @@ void PHSiliconTpcTrackMatching::getMatchCrossingIntt(
 		{
 		  if(Verbosity() > 0)
 		    {
-		      std::cout << " INTT crossings not all the same for tpc track " << tpcid << " silicon track " << si_id << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << std::endl;  
-		      //std::cout << "      Dropping this match " << std::endl;
+		      std::cout << " Warning: INTT crossings not all the same for tpc track " << tpcid << " silicon track " << si_id << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << " keep the first one in the list" << std::endl;  
 		    }
-		  //keep_it = false;	      // comment out to try to get crossing from z mismatch later
 		}
 	    }
 	}
@@ -1229,10 +1225,8 @@ void PHSiliconTpcTrackMatching::addTrackBunchCrossing(std::multimap<unsigned int
 		 {
 		   if(Verbosity() > 1)
 		   {
-		     std::cout << " INTT crossings not all the same for track " << tpcid << " silicon track " << si_id << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << std::endl;  
-		     std::cout << "      Dropping this match " << std::endl;
+		     std::cout << " Warning: INTT crossings not all the same for track " << tpcid << " silicon track " << si_id << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << " keep the first one in the list" << std::endl;  
 		   }
-		   //keep_it = false;	      
 		 }
 	     }
 	   
@@ -1266,8 +1260,6 @@ std::vector<short int> PHSiliconTpcTrackMatching::getInttCrossings(SvtxTrack *si
       const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
       if(trkrid == TrkrDefs::inttId)
 	{
-	  // std::cout << "      INTT cluster key " << cluster_key << std::endl; 
-	  
 	  TrkrCluster *cluster =  _cluster_map->findCluster(cluster_key);	
 	  if( !cluster ) continue;	  
 	  
@@ -1283,7 +1275,6 @@ std::vector<short int> PHSiliconTpcTrackMatching::getInttCrossings(SvtxTrack *si
 	    }
 	}
     }
-  //      std::cout << " intt_crossings size is " << intt_crossings.size() << std::endl;
   
   return intt_crossings;
 }

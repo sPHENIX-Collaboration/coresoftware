@@ -486,11 +486,12 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 						      m_surfMaps,
 						      m_tGeometry);
 
-	  {
-	    std::cout << " zinit " << global[2] << " side " << side << " crossing " << crossing 
-		      << " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
-	  }
-
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << " zinit " << global[2] << " side " << side << " crossing " << crossing 
+			<< " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
+	    }
+	  
 	  float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
 	  global[2] = z;
 	  

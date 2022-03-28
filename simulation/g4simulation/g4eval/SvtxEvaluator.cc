@@ -2936,8 +2936,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         SvtxTrack* track = iter->second;
         float trackID = track->get_id();
-	float crossing = track->get_crossing();
-	if(crossing == SHRT_MAX) crossing = NAN;
+	short int crossing_int = track->get_crossing();
+	float crossing;
+	if(crossing_int == SHRT_MAX) 
+	  crossing = NAN;
+	else
+	  crossing = (float) crossing_int;
         float charge = track->get_charge();
         float quality = track->get_quality();
         float chisq = track->get_chisq();
