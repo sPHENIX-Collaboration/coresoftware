@@ -3,19 +3,15 @@
 //
 // Inspired by code from ATLAS.  Thanks!
 //
-#include <iostream>
-#include <cstdlib>
-#include <string>
-#include <memory>
-#include <vector>
-#include <numeric>
-#include <cmath>
-
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
+
+#include <iostream>
+#include <string>
+
 
 #define f2cFortran
 #define gFortran

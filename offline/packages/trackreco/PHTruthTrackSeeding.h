@@ -82,11 +82,11 @@ void helicalTrackFit(const bool helicalTrackFit)
   void circleFitSeed(std::vector<TrkrDefs::cluskey> clusters,
 		     double& x, double& y, double&z,
 		       double& px, double& py, double& pz, int charge);
-  std::vector<Acts::Vector3D> circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clusters,
+  std::vector<Acts::Vector3> circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clusters,
 						double& R, double& X0, double& Y0);
   void findRoot(const double& R, const double& X0, const double& Y0,
 		double& x, double& y);
-  void lineFit(std::vector<Acts::Vector3D>& clusterPositions,
+  void lineFit(std::vector<Acts::Vector3>& clusterPositions,
 	       double& A, double& B);
   PHG4TruthInfoContainer* _g4truth_container = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;

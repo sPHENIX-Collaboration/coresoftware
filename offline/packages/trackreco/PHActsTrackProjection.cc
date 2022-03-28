@@ -24,13 +24,9 @@
 #include <phgeom/PHGeomUtility.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
-#include <Acts/MagneticField/ConstantBField.hpp>
-#include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
-#include <Acts/MagneticField/SharedBField.hpp>
 #include <Acts/Propagator/EigenStepper.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
-
-#include <ActsExamples/Plugins/BField/ScalableBField.hpp>
+#include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 #include <CLHEP/Vector/ThreeVector.h> 
 #include <math.h>
@@ -58,6 +54,14 @@ int PHActsTrackProjection::InitRun(PHCompositeNode *topNode)
   if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     ret = Fun4AllReturnCodes::ABORTEVENT;
 
+  if(ret == Fun4AllReturnCodes::ABORTEVENT)
+    {
+      /// If calos aren't available, set a flag so that job doesn't
+      /// quit processing but the flag will skip process event
+      m_calosAvailable = false;
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+
   if(Verbosity() > 1)
     std::cout << "PHActsTrackProjection finished Init" << std::endl;
   
@@ -67,8 +71,12 @@ int PHActsTrackProjection::InitRun(PHCompositeNode *topNode)
 int PHActsTrackProjection::process_event(PHCompositeNode *topNode)
 {
   if(Verbosity() > 1)
-    std::cout << "PHActsTrackProjection : Starting process_event event "
+    {
+      std::cout << "PHActsTrackProjection : Starting process_event event "
 	      << m_event << std::endl;
+    }
+
+  if(!m_calosAvailable) { return Fun4AllReturnCodes::EVENT_OK; }
 
   for(int layer = 0; layer < m_nCaloLayers; layer++)
     {
@@ -110,8 +118,9 @@ int PHActsTrackProjection::projectTracks(PHCompositeNode *topNode,
 
   for(const auto& [trackKey, traj] : *m_trajectories)
     {
-      const auto track = m_trackMap->get(trackKey);;
-      const auto& [trackTips, mj] = traj.trajectory();
+      const auto track = m_trackMap->get(trackKey);
+      const auto& trackTips = traj.tips();
+  
       if(trackTips.size() > 1 and Verbosity() > 0)
 	{ 
 	  std::cout << PHWHERE 
@@ -142,38 +151,38 @@ Acts::BoundTrackParameters
 PHActsTrackProjection::makeTrackParams(SvtxTrack* track)
 {
 
-  Acts::Vector3D momentum(track->get_px(), 
-			  track->get_py(), 
-			  track->get_pz());
+  Acts::Vector3 momentum(track->get_px(), 
+			 track->get_py(), 
+			 track->get_pz());
   
   auto actsVertex = getVertex(track);
   auto perigee = 
     Acts::Surface::makeShared<Acts::PerigeeSurface>(actsVertex);
   auto actsFourPos = 
-    Acts::Vector4D(track->get_x() * Acts::UnitConstants::cm,
-		   track->get_y() * Acts::UnitConstants::cm,
-		   track->get_z() * Acts::UnitConstants::cm,
-		   10 * Acts::UnitConstants::ns);
+    Acts::Vector4(track->get_x() * Acts::UnitConstants::cm,
+		  track->get_y() * Acts::UnitConstants::cm,
+		  track->get_z() * Acts::UnitConstants::cm,
+		  10 * Acts::UnitConstants::ns);
 
   Acts::BoundSymMatrix cov;
   for(int i = 0; i < 6; i++)
     for(int j = 0; j < 6; j++)
-      cov(i,j) = track->get_acts_covariance(i,j);
+      { cov(i,j) = track->get_acts_covariance(i,j); }
 
-  Acts::BoundTrackParameters param(perigee, m_tGeometry->geoContext,
-				   actsFourPos, momentum,
-				   track->get_p(), track->get_charge(),
-				   cov);
-  return param;
+  return ActsExamples::TrackParameters::create(perigee, m_tGeometry->geoContext,
+					       actsFourPos, momentum,
+					       track->get_charge() / track->get_p(),
+					       cov).value();
+
 }
-Acts::Vector3D PHActsTrackProjection::getVertex(SvtxTrack *track)
+Acts::Vector3 PHActsTrackProjection::getVertex(SvtxTrack *track)
 {
   auto vertexId = track->get_vertex_id();
   const SvtxVertex* svtxVertex = m_vertexMap->get(vertexId);
 
-  Acts::Vector3D vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
-			svtxVertex->get_y() * Acts::UnitConstants::cm, 
-			svtxVertex->get_z() * Acts::UnitConstants::cm);
+  Acts::Vector3 vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
+		       svtxVertex->get_y() * Acts::UnitConstants::cm, 
+		       svtxVertex->get_z() * Acts::UnitConstants::cm);
   return vertex;
 }
 
@@ -321,7 +330,7 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
 	const SurfacePtr& targetSurf)
 {
   
-  if(Verbosity() > 1)
+  if(Verbosity() > 1) {
     std::cout << "Propagating final track fit with momentum: " 
 	      << params.momentum() << " and position " 
 	      << params.position(m_tGeometry->geoContext)
@@ -333,39 +342,33 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
 	      << atanh(params.momentum()(2) 
 		       / params.momentum().norm())
 	      << std::endl;
+  }
 
-  return std::visit([params, targetSurf, this]
-		    (auto && inputField) -> BoundTrackParamPtrResult {
-      using InputMagneticField = 
-	typename std::decay_t<decltype(inputField)>::element_type;
-      using MagneticField      = Acts::SharedBField<InputMagneticField>;
-      using Stepper            = Acts::EigenStepper<MagneticField>;
-      using Propagator         = Acts::Propagator<Stepper>;
+  using Stepper = Acts::EigenStepper<>;
+  using Propagator = Acts::Propagator<Stepper>;
 
-      MagneticField field(inputField);
-      Stepper stepper(field);
-      Propagator propagator(stepper);
+  Stepper stepper(m_tGeometry->magField);
+  Propagator propagator(stepper);
 
-      Acts::Logging::Level logLevel = Acts::Logging::FATAL;
-      if(Verbosity() > 3)
-	logLevel = Acts::Logging::VERBOSE;
+  
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
+  if(Verbosity() > 3)
+    { logLevel = Acts::Logging::VERBOSE; }
+  
+  auto logger = Acts::getDefaultLogger("PHActsTrackProjection", 
+				       logLevel);
+  
+  Acts::PropagatorOptions<> options(m_tGeometry->geoContext,
+				    m_tGeometry->magFieldContext,
+				    Acts::LoggerWrapper{*logger});
+  
+  auto result = propagator.propagate(params, *targetSurf, 
+				     options);
 
-      auto logger = Acts::getDefaultLogger("PHActsTrackProjection", 
-					   logLevel);
-      
-      Acts::PropagatorOptions<> options(m_tGeometry->geoContext,
-					m_tGeometry->magFieldContext,
-					Acts::LoggerWrapper{*logger});
-     
-      auto result = propagator.propagate(params, *targetSurf, 
-					 options);
-   
-      if(result.ok())
-	return std::move((*result).endParameters);
-     
-      return result.error();
-   },
-     std::move(m_tGeometry->magField));
+  if(result.ok())
+    { return std::move((*result).endParameters); }
+  
+  return result.error();
 
 }
 
@@ -396,8 +399,9 @@ int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode *topNode,
   if(!m_towerGeomContainer or !m_towerContainer or !m_clusterContainer)
     {
       std::cout << PHWHERE 
-		<< "Calo geometry and/or cluster container not found on node tree. Bailing."
+		<< "Calo geometry and/or cluster container not found on node tree. Track projections to calos won't be filled."
 		<< std::endl;
+      m_calosAvailable = false;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   
@@ -411,8 +415,15 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
       if(setCaloContainerNodes(topNode, caloLayer) != Fun4AllReturnCodes::EVENT_OK)
 	return Fun4AllReturnCodes::ABORTEVENT;
       
-      const auto caloRadius = m_towerGeomContainer->get_radius() 
+      /// Default to using calo radius
+      double caloRadius = m_towerGeomContainer->get_radius() 
 	* Acts::UnitConstants::cm;
+      if(m_caloRadii.find(m_caloTypes.at(caloLayer)) != m_caloRadii.end())
+	{ 
+	  caloRadius = m_caloRadii.find(m_caloTypes.at(caloLayer))->second
+	    * Acts::UnitConstants::cm; 
+	}
+    
       /// Extend farther so that there is at least surface there, for high
       /// curling tracks. Can always reject later
       const auto eta = 2.5;
@@ -421,7 +432,7 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
 	* Acts::UnitConstants::cm;
       
       /// Make a cylindrical surface at (0,0,0) aligned along the z axis
-      auto transform = Acts::Transform3D::Identity();
+      auto transform = Acts::Transform3::Identity();
 
       std::shared_ptr<Acts::CylinderSurface> surf = 
 	Acts::Surface::makeShared<Acts::CylinderSurface>(transform,

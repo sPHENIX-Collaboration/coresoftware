@@ -2,8 +2,6 @@
 #include "SvtxTrackState_v1.h"
 #include <trackbase/TrkrCluster.h>
 
-#include <chrono>
-using namespace std::chrono;
 
 
 namespace
@@ -59,7 +57,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
   /// from the SvtxTrack cov
 
   /// This is going from Acts->Svtx, so we will take the transpose
-  Acts::ActsMatrixD<6,8> sphenixRot;
+  Acts::ActsMatrix<6,8> sphenixRot;
   sphenixRot.setZero();
   /// Make the xyz transform unity
   sphenixRot(0,0) = 1;
@@ -145,7 +143,7 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack(
 
   /// Now rotate to x,y,z, px,py,pz
   /// ActsMatrixD is an eigen matrix
-  Acts::ActsMatrixD<6,8> sphenixRot;
+  Acts::ActsMatrix<6,8> sphenixRot;
   sphenixRot.setZero();
   
   /// Make the xyz transform unity
@@ -208,7 +206,7 @@ void ActsTransformations::printMatrix(const std::string &message,
 
 
 void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
-				       Acts::Vector3D vertex,
+				       Acts::Vector3 vertex,
 				       Acts::BoundSymMatrix cov,
 				       Acts::GeometryContext geoCtxt,
 				       float &dca3Dxy,
@@ -216,13 +214,13 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 				       float &dca3DxyCov,
 				       float &dca3DzCov) const
 {
-  Acts::Vector3D pos = param.position(geoCtxt);
-  Acts::Vector3D mom = param.momentum();
+  Acts::Vector3 pos = param.position(geoCtxt);
+  Acts::Vector3 mom = param.momentum();
 
   /// Correct for initial vertex estimation
   pos -= vertex;
 
-  Acts::ActsSymMatrixD<3> posCov;
+  Acts::ActsSymMatrix<3> posCov;
   for(int i = 0; i < 3; ++i)
     {
       for(int j = 0; j < 3; ++j)
@@ -231,11 +229,11 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 	} 
     }
 
-  Acts::Vector3D r = mom.cross(Acts::Vector3D(0.,0.,1.));
+  Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
   float phi = atan2(r(1), r(0));
 
-  Acts::RotationMatrix3D rot;
-  Acts::RotationMatrix3D rot_T;
+  Acts::RotationMatrix3 rot;
+  Acts::RotationMatrix3 rot_T;
   rot(0,0) = cos(phi);
   rot(0,1) = -sin(phi);
   rot(0,2) = 0;
@@ -248,8 +246,8 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
   
   rot_T = rot.transpose();
 
-  Acts::Vector3D pos_R = rot * pos;
-  Acts::ActsSymMatrixD<3> rotCov = rot * posCov * rot_T;
+  Acts::Vector3 pos_R = rot * pos;
+  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
 
   dca3Dxy = pos_R(0);
   dca3Dz = pos_R(2);
@@ -258,40 +256,43 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
   
 }
 
-Acts::Vector3F ActsTransformations::getGlobalPositionF(TrkrCluster* cluster,
-						       ActsSurfaceMaps* surfMaps,
-						       ActsTrackingGeometry* tGeometry) const
+Eigen::Matrix<float,3,1> ActsTransformations::getGlobalPositionF(TrkrCluster* cluster,
+								 ActsSurfaceMaps* surfMaps,
+								 ActsTrackingGeometry* tGeometry) const
 {
-  const Acts::Vector3D doublePos = getGlobalPosition(cluster,surfMaps,tGeometry);
-  return Acts::Vector3F(doublePos(0), doublePos(1), doublePos(2));
+  const Acts::Vector3 doublePos = getGlobalPosition(cluster,surfMaps,tGeometry);
+  return Eigen::Matrix<float,3,1>(doublePos(0), doublePos(1), doublePos(2));
 }
-Acts::Vector3D ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
+Acts::Vector3 ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
 						      ActsSurfaceMaps* surfMaps,
 						      ActsTrackingGeometry *tGeometry) const
 {
-  Acts::Vector3D glob;
 
+  Acts::Vector3 glob;
+ 
   const auto trkrid = TrkrDefs::getTrkrId(cluster->getClusKey());
 
   auto surface = getSurface(cluster, surfMaps);
+
   if(!surface)
     {
+   
       std::cerr << "Couldn't identify cluster surface. Returning NAN"
 		<< std::endl;
       glob(0) = NAN;
       glob(1) = NAN;
       glob(2) = NAN;
       return glob;
-    }
+    } 
 
-  Acts::Vector2D local(cluster->getLocalX(), cluster->getLocalY());
-  Acts::Vector3D global;
+  Acts::Vector2 local(cluster->getLocalX(), cluster->getLocalY());
+  Acts::Vector3 global;
   /// If silicon/TPOT, the transform is one-to-one since the surface is planar
   if(trkrid != TrkrDefs::tpcId)
     {
       global = surface->localToGlobal(tGeometry->geoContext,
 				      local * Acts::UnitConstants::cm,
-				      Acts::Vector3D(1,1,1));
+				      Acts::Vector3(1,1,1));
       global /= Acts::UnitConstants::cm;
       return global;
     }
@@ -299,6 +300,7 @@ Acts::Vector3D ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
   /// Otherwise do the manual calculation
   /// Undo the manual calculation that is performed in TpcClusterizer
   auto surfCenter = surface->center(tGeometry->geoContext);
+
   surfCenter /= Acts::UnitConstants::cm;
   double surfPhiCenter = atan2(surfCenter(1), surfCenter(0));
   double surfRadius = radius(surfCenter(0), surfCenter(1));
@@ -310,6 +312,7 @@ Acts::Vector3D ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
   double clusphi = clusRPhi / surfRadius;
   double gclusx = surfRadius * cos(clusphi);
   double gclusy = surfRadius * sin(clusphi);
+
   global(0) = gclusx;
   global(1) = gclusy;
   global(2) = gclusz;
@@ -361,12 +364,13 @@ Surface ActsTransformations::getTpcSurface(TrkrDefs::hitsetkey hitsetkey,
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   const auto iter = maps->tpcSurfaceMap.find(layer);
+  
   if(iter != maps->tpcSurfaceMap.end())
   {
     auto surfvec = iter->second;
     return surfvec.at(surfkey);
   }
-  
+
   /// If it can't be found, return nullptr to skip this cluster
   return nullptr;
 }
@@ -379,15 +383,12 @@ Surface ActsTransformations::getMMSurface(TrkrDefs::hitsetkey hitsetkey,
   return (iter == maps->mmSurfaceMap.end()) ? nullptr:iter->second;
 }
 
-void ActsTransformations::fillSvtxTrackStates(const Trajectory& traj,
-					      const size_t &trackTip,
+void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory& traj,
+					      const size_t& trackTip,
 					      SvtxTrack *svtxTrack,
-					      Acts::GeometryContext geoContext) const
-{
-
- const auto &[trackTips, mj] = traj.trajectory();
-  
-  mj.visitBackwards(trackTip, [&](const auto &state) 
+					      Acts::GeometryContext& geoContext) const
+{ 
+  traj.visitBackwards(trackTip, [&](const auto &state) 
   {
     
       /// Only fill the track states with non-outlier measurement

@@ -25,10 +25,10 @@
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
 #include <Acts/MagneticField/SharedBField.hpp>
 #include <Acts/Propagator/EigenStepper.hpp>
+#include <Acts/Propagator/Navigator.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
-#include <ActsExamples/Plugins/BField/ScalableBField.hpp>
-#include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
+#include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 
 #include <cmath>
@@ -238,39 +238,10 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
 
 }
 
-PHTpcResiduals::SourceLink PHTpcResiduals::makeSourceLink(TrkrCluster* cluster) const
-{
-      
-  // get surface from clusters
-  const auto surf = m_transformer.getSurface( cluster, m_surfMaps );
-  if(!surf) return SourceLink();
-  
-  // local position in ACTS unit
-  Acts::BoundVector loc = Acts::BoundVector::Zero();
-  loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
-  loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
-  
-  // local covariance matrix in ACTS unit
-  Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
-  cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
-    cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
-  cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
-    cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
-  cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
-    cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
-  cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
-    cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
-  
-  const auto key = cluster->getClusKey();
-  SourceLink sl(key, surf, loc, cov);
-  
-  return sl;
-}
-
 //___________________________________________________________________________________
 Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) const
 {
-  Acts::Vector3D momentum(track->get_px(), 
+  Acts::Vector3 momentum(track->get_px(), 
 			  track->get_py(), 
 			  track->get_pz());
   double trackQ = track->get_charge() * Acts::UnitConstants::e;
@@ -284,17 +255,17 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) con
 	  cov(i,j) = track->get_acts_covariance(i, j);
 	}
     }
-  const Acts::Vector3D position(track->get_x() * Acts::UnitConstants::cm,
+  const Acts::Vector3 position(track->get_x() * Acts::UnitConstants::cm,
     track->get_y() * Acts::UnitConstants::cm,
     track->get_z() * Acts::UnitConstants::cm);
 
   const auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(position);
-  const auto actsFourPos = Acts::Vector4D(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
-  Acts::BoundTrackParameters seed(perigee, m_tGeometry->geoContext,
-				  actsFourPos, momentum,
-				  p, trackQ, cov);
+  const auto actsFourPos = Acts::Vector4(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
+
+  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geoContext,
+					    actsFourPos, momentum,
+					    trackQ/p, cov).value();
  
-  return seed;
 
 }
 
@@ -325,9 +296,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
       auto cluster = m_clusterContainer->findCluster(cluskey);
 
-      auto sl = makeSourceLink(cluster);
-      
-      auto result = propagateTrackState(trackParams, sl);
+      const auto surf = m_transformer.getSurface( m_clusterContainer->findCluster(cluskey), 
+						  m_surfMaps );
+
+      auto result = propagateTrackState(trackParams, surf);
 
       if(result.ok())
       {
@@ -372,49 +344,38 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
 PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState(
 			   const Acts::BoundTrackParameters& params,
-			   const SourceLink& sl) const
+			   const Surface& surf) const
 {
-  /*
-  std::cout << "Propagating to geo id " << sl.referenceSurface().geometryId() << std::endl;
-  if(sl.referenceSurface().associatedDetectorElement() != nullptr)
-    std::cout << " which has associated detector element " << sl.referenceSurface().associatedDetectorElement()->thickness() << std::endl;
-  */
-  return std::visit([params, sl, this]
-		    (auto && inputField) -> ExtrapolationResult {
-      using InputMagneticField = 
-	typename std::decay_t<decltype(inputField)>::element_type;
-      using MagneticField      = Acts::SharedBField<InputMagneticField>;
-      using Stepper            = Acts::EigenStepper<MagneticField>;
-      using Propagator         = Acts::Propagator<Stepper>;
+ 
 
-      MagneticField field(inputField);
-      Stepper stepper(field);
-      Propagator propagator(stepper);
+  using Stepper            = Acts::EigenStepper<>;
+  using Propagator         = Acts::Propagator<Stepper, Acts::Navigator>;
 
-      Acts::Logging::Level logLevel = Acts::Logging::FATAL;
-      if(Verbosity() > 10)
-	logLevel = Acts::Logging::VERBOSE;
+  Stepper stepper(m_tGeometry->magField);
+  Acts::Navigator::Config cfg{m_tGeometry->tGeometry};
+  Acts::Navigator navigator(cfg);
+  Propagator propagator(stepper, navigator);
 
-      auto logger = Acts::getDefaultLogger("PHTpcResiduals", logLevel);
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
+  if(Verbosity() > 10)
+    logLevel = Acts::Logging::VERBOSE;
+
+  auto logger = Acts::getDefaultLogger("PHTpcResiduals", logLevel);
       
-      Acts::PropagatorOptions<> options(m_tGeometry->geoContext,
-					m_tGeometry->magFieldContext,
-					Acts::LoggerWrapper{*logger});
+  Acts::PropagatorOptions<> options(m_tGeometry->geoContext,
+				    m_tGeometry->magFieldContext,
+				    Acts::LoggerWrapper{*logger});
      
-      auto result = propagator.propagate(params, sl.referenceSurface(), 
-					 options);
+  auto result = propagator.propagate(params, *surf, options);
    
         
-      if(result.ok())
-      {
-        // return both path length and extrapolated parameters
-        return std::make_pair( (*result).pathLength/Acts::UnitConstants::cm, std::move((*result).endParameters) );
-      } else {
-        return result.error();
-      }
-   },
-     std::move(m_tGeometry->magField));
-
+  if(result.ok())
+    {
+      // return both path length and extrapolated parameters
+      return std::make_pair( (*result).pathLength/Acts::UnitConstants::cm, std::move((*result).endParameters) );
+    } else {
+    return result.error();
+  }
 }
 
 void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Acts::BoundTrackParameters& params )
@@ -620,7 +581,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   return;
 }
 
-int PHTpcResiduals::getCell(const Acts::Vector3D& loc) const
+int PHTpcResiduals::getCell(const Acts::Vector3& loc)
 {
 
   // get grid dimensions from matrix container
@@ -812,3 +773,4 @@ void PHTpcResiduals::makeHistograms()
 
 void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins, const int zBins)
 { m_matrix_container->set_grid_dimensions( phiBins, rBins, zBins ); }
+

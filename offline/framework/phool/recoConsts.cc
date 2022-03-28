@@ -5,9 +5,10 @@ recoConsts* recoConsts::__instance = nullptr;
 void recoConsts::Print() const
 {
   // methods from PHFlag
-  PrintCharFlags();
+  PrintStringFlags();
   PrintFloatFlags();
   PrintIntFlags();
+  Printuint64Flags();
 
   return;
 }

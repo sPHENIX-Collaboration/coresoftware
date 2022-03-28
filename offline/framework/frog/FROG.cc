@@ -119,7 +119,7 @@ FROG::location(const std::string &logical_name)
       {
         if (Verbosity() > 1)
         {
-          std::cout << "Searching FileCatalog for Lustre file via MinIO"
+          std::cout << "Searching FileCatalog for Lustre file via MinIO "
                << logical_name << std::endl;
         }
         if (MinIOSearch(logical_name))
@@ -208,6 +208,11 @@ bool FROG::PGSearch(const std::string &lname)
   }
   std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name <> 'hpss' and full_host_name <> 'dcache' and full_host_name <> 'lustre'";
 
+  if (Verbosity() > 1)
+  {
+    std::cout << "sql query:" << std::endl
+	      << sqlquery << std::endl;
+  }
   odbc::Statement *stmt = m_OdbcConnection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
 
@@ -230,6 +235,11 @@ bool FROG::dCacheSearch(const std::string &lname)
   }
   std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'dcache'";
 
+  if (Verbosity() > 1)
+  {
+    std::cout << "sql query:" << std::endl
+	      << sqlquery << std::endl;
+  }
   odbc::Statement *stmt = m_OdbcConnection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
 
@@ -254,19 +264,20 @@ bool FROG::XRootDSearch(const std::string &lname)
   {
     return bret;
   }
-  std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'dcache'";
-
+  std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'lustre'";
+  if (Verbosity() > 1)
+  {
+    std::cout << "sql query:" << std::endl
+	      << sqlquery << std::endl;
+  }
   odbc::Statement *stmt = m_OdbcConnection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
 
   if (rs->next())
   {
     std::string xrootdfile = rs->getString(1);
-    if (std::ifstream(xrootdfile))
-    {
-      pfn = "root://dcsphdoor02.rcf.bnl.gov:1095" + xrootdfile;
-      bret = true;
-    }
+    pfn = "root://xrdsphenix.rcf.bnl.gov/"  + xrootdfile;
+    bret = true;
   }
   delete rs;
   delete stmt;
@@ -304,6 +315,11 @@ bool FROG::MinIOSearch(const std::string &lname)
   }
   std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'lustre'";
 
+  if (Verbosity() > 1)
+  {
+    std::cout << "sql query:" << std::endl
+	      << sqlquery << std::endl;
+  }
   odbc::Statement *stmt = m_OdbcConnection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
 

@@ -14,17 +14,16 @@
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
 
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                      
 #include <Acts/Utilities/Logger.hpp>                           
 #include <Acts/EventData/MeasurementHelpers.hpp> 
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
+#include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 #include <ActsExamples/TGeoDetector/TGeoDetector.hpp>
-#include <ActsExamples/Fitting/TrkrClusterFittingAlgorithm.hpp>
-#include <ActsExamples/Plugins/BField/BFieldOptions.hpp>
 
 #include <map>
 #include <memory>            
@@ -92,6 +91,9 @@ class MakeActsGeometry : public SubsysReco
   void build_mm_surfaces( bool value )
   { m_buildMMs = value; }
     
+  void set_nSurfPhi( unsigned int value )
+  { m_nSurfPhi = value; }
+  
  private:
   /// Main function to build all acts geometry for use in the fitting modules
   int buildAllGeometry(PHCompositeNode *topNode);
@@ -111,7 +113,7 @@ class MakeActsGeometry : public SubsysReco
   /// Silicon layers made by BuildSiliconLayers and its helper functions
   void buildActsSurfaces();
 
-  /// Function that mimics ActsFW::GeometryExampleBase
+  /// Function that mimics ActsExamples::GeometryExampleBase
   void makeGeometry(int argc, char* argv[], 
 		    ActsExamples::IBaseDetector& detector);
  
@@ -166,9 +168,9 @@ class MakeActsGeometry : public SubsysReco
   std::map<TrkrDefs::hitsetkey, Surface> m_clusterSurfaceMapMmEdit;
   
   /// These don't change, we are building the tpc this way!
-  const static unsigned int m_nTpcLayers = 48;
-  const unsigned int m_nTpcModulesPerLayer = 12;
-  const unsigned int m_nTpcSides = 2;
+  static constexpr unsigned int m_nTpcLayers = 48;
+  static constexpr unsigned int m_nTpcModulesPerLayer = 12;
+  static constexpr unsigned int m_nTpcSides = 2;
 
   /// TPC Acts::Surface subdivisions
   double m_minSurfZ = 0.;
@@ -200,11 +202,11 @@ class MakeActsGeometry : public SubsysReco
   const double half_width_clearance_z = 0.5;
 
   /// The acts geometry object
-  TGeoDetector m_detector;
+  ActsExamples::TGeoDetector m_detector;
 
   /// Acts geometry objects that are needed to create (for example) the fitter
   TrackingGeometry m_tGeometry;
-  ActsExamples::Options::BFieldVariant m_magneticField;
+  std::shared_ptr<Acts::MagneticFieldProvider> m_magneticField;
   Acts::GeometryContext  m_geoCtxt;  
   Acts::CalibrationContext m_calibContext;
   Acts::MagneticFieldContext m_magFieldContext;

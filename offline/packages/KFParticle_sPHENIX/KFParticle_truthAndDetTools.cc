@@ -53,11 +53,11 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack* thisTrack, P
   {
     m_svtx_evalstack = new SvtxEvalStack(topNode);
     clustereval = m_svtx_evalstack->get_cluster_eval();
-    hiteval = m_svtx_evalstack->get_hit_eval();
-    trackeval = m_svtx_evalstack->get_track_eval();
+    //hiteval = m_svtx_evalstack->get_hit_eval();
+    //trackeval = m_svtx_evalstack->get_track_eval();
     trutheval = m_svtx_evalstack->get_truth_eval();
     vertexeval = m_svtx_evalstack->get_vertex_eval();
-  }
+  }  
 
   m_svtx_evalstack->next_event(topNode);
 
@@ -199,6 +199,19 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   }
 }
 
+void KFParticle_truthAndDetTools::fillGeant4Branch(PHG4Particle* particle, int daughter_id)
+{ 
+  Float_t pT = sqrt(pow(particle->get_px(), 2) + pow(particle->get_py(), 2)); 
+
+  m_true_daughter_track_history_PDG_ID[daughter_id].push_back(particle->get_pid());
+  m_true_daughter_track_history_PDG_mass[daughter_id].push_back(0);
+  m_true_daughter_track_history_px[daughter_id].push_back((Float_t) particle->get_px());
+  m_true_daughter_track_history_py[daughter_id].push_back((Float_t) particle->get_py());
+  m_true_daughter_track_history_pz[daughter_id].push_back((Float_t) particle->get_pz());
+  m_true_daughter_track_history_pE[daughter_id].push_back((Float_t) particle->get_e());
+  m_true_daughter_track_history_pT[daughter_id].push_back((Float_t) pT);
+}
+
 void KFParticle_truthAndDetTools::fillHepMCBranch(HepMC::GenParticle *particle, int daughter_id)
 { 
   HepMC::FourVector myFourVector = particle->momentum();
@@ -261,6 +274,27 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree */
     fillHepMCBranch(dummyParticle, daughter_id);
     return 0;
   }
+
+  //Start by looking for our particle in the Geant record
+  //Any decay that Geant4 handles will not be in the HepMC record
+  //This can happen if you limit the decay volume in the generator
+  if (g4particle->get_parent_id() != 0)
+  {
+    PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst("G4TruthInfo"));
+    if (findNode)
+    {
+      m_truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+    }
+    else
+    {
+      std::cout << "KFParticle truth matching: G4TruthInfo does not exist" << std::endl;
+    }
+    while (g4particle->get_parent_id() != 0)
+    {
+      g4particle = m_truthinfo->GetParticle(g4particle->get_parent_id());
+      fillGeant4Branch(g4particle, daughter_id);
+    }
+  }  
 
   HepMC::GenEvent* theEvent = m_genevt->getEvent();
   HepMC::GenParticle* prevParticle = nullptr;
