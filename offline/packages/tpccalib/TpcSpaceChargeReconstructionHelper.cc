@@ -5,29 +5,34 @@
 
 namespace
 {
-
   /// square
   template<class T> T square( T x ) { return x*x; }
 
-  /// Micromegas geometry
-  /// TODO: should get those numbers from actual geometry configuration
-  // fully equiped sector
-  static constexpr double isec_ref = 3;
-  static constexpr double phi_ref = isec_ref*M_PI/6 + M_PI/12;
+  // sector from angle
+  constexpr double get_sector( double phi ) 
+  {
+    int isec = std::floor( phi/(M_PI/6) ); 
+    if( isec < 0 ) isec += 12;
+    if( isec >= 12 ) isec -= 12;
+    return isec;
+  }
+  
+  // angle from a given sector
+  constexpr double get_sector_phi( int isec ) { return isec*M_PI/6; }
 
-  // radius of the micromegas layer
-  static constexpr double r_ref = 82;
+  // Micromegas geometry
+  // TODO: should get those numbers from actual geometry configuration
+
+  // fully equiped sector
+  static constexpr double isec_ref = 9;
+  static constexpr double phi_ref = get_sector_phi(isec_ref);
+
+  // radius of the outermost micromegas layer
+  static constexpr double r_ref = 85.1;
 
   // z extrapolation window
-  static constexpr double zextrap_min = 48;
-  static constexpr double zextrap_max = 58;
-
-  // Micromegas acceptance in incomplete sectors
-  static constexpr double zref = 33.25;
-  static constexpr double length = 50 - 5;
-  static constexpr double zref_min = zref - length/2;
-  static constexpr double zref_max = zref + length/2;
-
+  static constexpr double zextrap_min = 53.2 - 2.0;
+  static constexpr double zextrap_max = 56.6 + 2.0;
 }
 
 //____________________________________________________________________________________
@@ -86,10 +91,6 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_z( TH3* hin )
 }
 
 //____________________________________________________________________________________
-std::tuple<double, double> TpcSpaceChargeReconstructionHelper::get_zref_range( double r )
-{ return std::make_tuple( zref_min * r/r_ref, zref_max * r/r_ref ); }
-
-//____________________________________________________________________________________
 void TpcSpaceChargeReconstructionHelper::extrapolate_phi1( TH3* hin )
 {
   if( !hin ) return;
@@ -105,41 +106,21 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1( TH3* hin )
     if( isec == isec_ref ) continue;
 
     // get relevant phi and corresponding bin
-    const double phi = isec*M_PI/6 + M_PI/12;
+    const double phi = get_sector_phi(isec);
     const int phibin = hin->GetXaxis()->FindBin( phi );
 
     // loop over radial bins
     for( int ir = 0; ir < hin->GetYaxis()->GetNbins(); ++ir )
     {
 
-      // get current radius
-      const auto r = hin->GetYaxis()->GetBinCenter( ir+1 );
-
-      // get z integration window for reference
-      double zref_min_loc, zref_max_loc;
-      std::tie( zref_min_loc, zref_max_loc ) = get_zref_range( r );
-
-      // get corresponding bins
-      const std::array<int,2> zbin_min = {{ hin->GetZaxis()->FindBin( -zref_max_loc ), hin->GetZaxis()->FindBin( zref_min_loc ) }};
-      const std::array<int,2> zbin_max = {{ hin->GetZaxis()->FindBin( -zref_min_loc ), hin->GetZaxis()->FindBin( zref_max_loc ) }};
-
-      // get corresponding normalizations
-      auto safe_ratio = []( double numerator, double denominator ) -> double { return denominator == 0 ? 1. : numerator / denominator; };
-      const std::array<double,2> scale_factor =
-      {{
-        safe_ratio( hin->Integral( phibin, phibin, ir+1, ir+1, zbin_min[0], zbin_max[0] ), hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, zbin_min[0], zbin_max[0] ) ),
-        safe_ratio( hin->Integral( phibin, phibin, ir+1, ir+1, zbin_min[1], zbin_max[1] ), hin->Integral( phibin_ref, phibin_ref, ir+1, ir+1, zbin_min[1], zbin_max[1] ) )
-      }};
-
-      // loop over z bins
+            // loop over z bins
       for( int iz = 0; iz < hin->GetZaxis()->GetNbins(); ++iz )
       {
         const auto content_ref = hin->GetBinContent( phibin_ref, ir+1, iz+1 );
         const auto error_ref = hin->GetBinError( phibin_ref, ir+1, iz+1 );
 
         // calculate scale factor
-        const auto z = hin->GetZaxis()->GetBinCenter( iz+1 );
-        const auto scale = (z > 0) ? scale_factor[1]:scale_factor[0];
+        const auto scale = 1;
 
         // assign to output histogram
         hin->SetBinContent( phibin, ir+1, iz+1, content_ref*scale );
@@ -159,7 +140,7 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi2( TH3* hin )
 
     // find nearest sector phi bins
     const auto phi = hin->GetXaxis()->GetBinCenter( iphi+1 );
-    const int isec = std::floor( (phi - M_PI/12)/(M_PI/6) );
+    const int isec = get_sector( phi );
     double phi_min =  isec*M_PI/6 + M_PI/12;
     double phi_max =  phi_min + M_PI/6;
 
