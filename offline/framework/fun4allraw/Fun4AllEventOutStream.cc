@@ -17,19 +17,8 @@
 #include <queue>
 #include <utility>  // for swap, pair
 
-using namespace std;
-
 Fun4AllEventOutStream::Fun4AllEventOutStream(const std::string &name)
   : Fun4AllBase(name)
-  , evtbuf(nullptr)
-  , m_MyManager(nullptr)
-  , evtbuf_size(0)
-  , add_or_remove(0)
-  , plist(nullptr)
-  , max_npackets(1000)
-  ,  // there shouldn't be more than this number of packets in a single event
-  npackets(0)
-  , default_addall(0)
 {
 }
 
@@ -73,7 +62,7 @@ int Fun4AllEventOutStream::WriteEvent(Event *evt)
       delete plist[i];
     }
     delete[] plist;
-    //      cout << "max_npackets " << max_npackets << " too small, take times 2" << endl;
+    //      std::cout << "max_npackets " << max_npackets << " too small, take times 2" << std::endl;
     max_npackets *= 2;
     plist = new Packet *[max_npackets];
   }
@@ -125,8 +114,8 @@ int Fun4AllEventOutStream::WriteEvent(Event *evt)
     {
       if (Verbosity() > 0)
       {
-        cout << "Fun4AllEventOutStream: dropping packet " << i
-             << " in list with id " << plist[i]->getIdentifier() << endl;
+        std::cout << "Fun4AllEventOutStream: dropping packet " << i
+             << " in list with id " << plist[i]->getIdentifier() << std::endl;
       }
     }
   }
@@ -175,24 +164,24 @@ int Fun4AllEventOutStream::AddPacketRange(const int minpacket, const int maxpack
   {
     newinterval.assign(minpacket, maxpacket);
   }
-  catch (exception &e)
+  catch (std::exception &e)
   {
-    cout << "Exception thrown: " << e.what() << endl;
-    cout << "for interval[" << minpacket << "," << maxpacket << "]" << endl;
-    cout << "exiting" << endl;
+    std::cout << "Exception thrown: " << e.what() << std::endl;
+    std::cout << "for interval[" << minpacket << "," << maxpacket << "]" << std::endl;
+    std::cout << "exiting" << std::endl;
     exit(1);
   }
   addpktrange[minpacket] = newinterval;
   if (!boost::numeric::in(minpacket, newinterval))
   {
-    cout << PHWHERE << " boost interval does not cover minpacket " << minpacket << endl;
-    cout << "that is seriously wrong, exiting" << endl;
+    std::cout << PHWHERE << " boost interval does not cover minpacket " << minpacket << std::endl;
+    std::cout << "that is seriously wrong, exiting" << std::endl;
     exit(1);
   }
   if (!boost::numeric::in(maxpacket, newinterval))
   {
-    cout << PHWHERE << " boost interval does not cover maxpacket " << maxpacket << endl;
-    cout << "that is seriously wrong, exiting" << endl;
+    std::cout << PHWHERE << " boost interval does not cover maxpacket " << maxpacket << std::endl;
+    std::cout << "that is seriously wrong, exiting" << std::endl;
     exit(1);
   }
   return 0;
@@ -207,24 +196,24 @@ int Fun4AllEventOutStream::DropPacketRange(const int minpacket, const int maxpac
   {
     newinterval.assign(minpacket, maxpacket);
   }
-  catch (exception &e)
+  catch (std::exception &e)
   {
-    cout << "Exception thrown: " << e.what() << endl;
-    cout << "for interval[" << minpacket << "," << maxpacket << "]" << endl;
-    cout << "exiting" << endl;
+    std::cout << "Exception thrown: " << e.what() << std::endl;
+    std::cout << "for interval[" << minpacket << "," << maxpacket << "]" << std::endl;
+    std::cout << "exiting" << std::endl;
     exit(1);
   }
   droppktrange[minpacket] = newinterval;
   if (!boost::numeric::in(minpacket, newinterval))
   {
-    cout << PHWHERE << " boost interval does not cover minpacket " << minpacket << endl;
-    cout << "that is seriously wrong, exiting" << endl;
+    std::cout << PHWHERE << " boost interval does not cover minpacket " << minpacket << std::endl;
+    std::cout << "that is seriously wrong, exiting" << std::endl;
     exit(1);
   }
   if (!boost::numeric::in(maxpacket, newinterval))
   {
-    cout << PHWHERE << " boost interval does not cover maxpacket " << maxpacket << endl;
-    cout << "that is seriously wrong, exiting" << endl;
+    std::cout << PHWHERE << " boost interval does not cover maxpacket " << maxpacket << std::endl;
+    std::cout << "that is seriously wrong, exiting" << std::endl;
     exit(1);
   }
   return 0;

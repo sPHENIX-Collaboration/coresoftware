@@ -30,7 +30,7 @@ class Fun4AllEventOutputManager : public Fun4AllOutputManager
 
  protected:
   std::string m_OutFileRule;
-  Fun4AllEventOutStream *m_OutStream;
+  Fun4AllEventOutStream *m_OutStream = nullptr;
 };
 
 #endif /* FUN4ALL_FUN4ALLEVENTOUTPUTMANAGER_H */
