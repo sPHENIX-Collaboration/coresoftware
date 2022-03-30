@@ -443,13 +443,13 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
   SourceLinkVec sourcelinks;
 
   short int crossing = track->get_crossing();
-  if(crossing == SHRT_MAX) return sourcelinks;
-
   if(Verbosity() > 0) 
     {
       std::cout << "tpcid " << track->get_id() << " crossing " << crossing << std::endl; 
       track->identify();
     }
+
+  if(crossing == SHRT_MAX) return sourcelinks;
 
   int iter = 0;
   for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
@@ -477,7 +477,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
       unsigned int side = TpcDefs::getSide(key);
       if(trkrid ==  TrkrDefs::tpcId)
 	{
-	  // Fopr the TPC, clsuter z has to be corrected for the crossing z offset 
+	  // For the TPC, clsuter z has to be corrected for the crossing z offset 
 	  // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
 
 	  // transform to global coordinates for z correction 
@@ -507,8 +507,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	    {
 	      /// If the surface can't be found, we can't track with it. So 
 	      /// just continue and don't add the cluster to the source links
-	      //if(Verbosity() > 0) 
-		std::cout << PHWHERE << "Failed to find surface for cluster " << key << std::endl;
+	      if(Verbosity() > 0) std::cout << PHWHERE << "Failed to find surface for cluster " << key << std::endl;
 	      continue;
 	    }
 

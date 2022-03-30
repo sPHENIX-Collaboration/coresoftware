@@ -86,16 +86,27 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
       for (auto it = tpc_range.first; it !=tpc_range.second; ++it)
 	{
 	  unsigned int track_id = it->second;
-	  
+
 	  // note that the track no longer exists if it failed in the Acts fitter
 	  _track = _track_map->get(track_id);
+
+	  // skip tracks with no crossing number
+	  if(_track->get_crossing() == SHRT_MAX)
+	    {
+	      std::cout << "     skip  track ID " << track_id << " crossing " << _track->get_crossing() <<  " chisq " << _track->get_chisq() 
+			<< " ndf " << _track->get_ndf() << std::endl;
+		continue;
+	    }
+
+	  //Find the remaining track with the best chisq/ndf
 	  if(_track)
 	    {
 	      if(Verbosity() > 1)	      
-		std::cout << "        track ID " << track_id << " chisq " << _track->get_chisq() << " ndf " << _track->get_ndf() << " min_chisq_df " << min_chisq_df << std::endl;
+		std::cout << "        track ID " << track_id << " crossing " << _track->get_crossing() 
+			  << " chisq " << _track->get_chisq() << " ndf " << _track->get_ndf() << " min_chisq_df " << min_chisq_df << std::endl;
 
-	      // only accept tracks with ndf > min_ndf - very small ndf means something went wrong
-	      if(_track->get_chisq()/_track->get_ndf() < min_chisq_df && _track->get_ndf() > min_ndf)
+	      // only accept tracks with ndf > min_ndf - very small ndf means something went wrong, as does ndf undefined
+	      if(_track->get_chisq()/_track->get_ndf() < min_chisq_df && _track->get_ndf() > min_ndf && _track->get_ndf() != UINT_MAX)
 		{
 		  min_chisq_df = _track->get_chisq() / _track->get_ndf();
 		  best_id = track_id;

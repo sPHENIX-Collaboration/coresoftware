@@ -1358,7 +1358,7 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<short int, s
 	    }
 	}
     }	  
-
+  /*
   // replace them with crossing guess
   for(auto [crossing_guess, id_pair] : good_map)
     {
@@ -1371,6 +1371,7 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<short int, s
       crossing_matches.insert(std::make_pair(crossing_guess,std::make_pair(tpcid, si_id)));
       tpc_crossing_map.insert(std::make_pair(tpcid, crossing_guess));
     }
+  */
     
   return;
 }	  
