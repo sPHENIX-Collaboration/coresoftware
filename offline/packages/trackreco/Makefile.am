@@ -60,6 +60,7 @@ pkginclude_HEADERS = \
   PHTrackCleaner.h \
   PHTrackSelector.h \
   PHRaveVertexing.h \
+  PHSiliconSeedMerger.h \
   PHSiliconTruthTrackSeeding.h \
   PHSimpleKFProp.h \
   PHTpcClusterMover.h \
@@ -157,6 +158,7 @@ libtrack_reco_la_SOURCES = \
   PHMicromegasTpcTrackMatching.cc \
   PHRaveVertexing.cc \
   PHRTreeSeeding.cc \
+  PHSiliconSeedMerger.cc \
   PHSiliconTpcTrackMatching.cc \
   PHSiliconTruthTrackSeeding.cc \
   PHSimpleKFProp.cc \
