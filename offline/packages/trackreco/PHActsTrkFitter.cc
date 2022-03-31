@@ -40,8 +40,7 @@
 
 #include <ActsExamples/EventData/Index.hpp>
 
-#include <Geant4/G4ParticleDefinition.hh>
-#include <Geant4/G4ParticleTable.hh>
+#include <TDatabasePDG.h>
 
 #include <cmath>
 #include <iostream>
@@ -275,11 +274,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Set host of propagator options for Acts to do e.g. material integration
       Acts::PropagatorPlainOptions ppPlainOptions;
       ppPlainOptions.absPdgCode = m_pHypothesis;
-      G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
-      G4ParticleDefinition *def = particleTable->FindParticle(m_pHypothesis);
-      if(def)
-	{ ppPlainOptions.mass = def->GetPDGMass() * Acts::UnitConstants::MeV; }
-
+      
+      ppPlainOptions.mass = 
+	TDatabasePDG::Instance()->GetParticle(m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
+       
       Acts::KalmanFitterExtensions extensions;
       ActsExamples::MeasurementCalibrator calibrator{measurements};
       extensions.calibrator.connect<&ActsExamples::MeasurementCalibrator::calibrate>(&calibrator);
