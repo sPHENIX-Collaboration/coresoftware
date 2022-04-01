@@ -67,7 +67,11 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 	    { mvtx1Keys.insert(ckey); }
 	}
 
-      for(auto iter2 = m_siliconTrackMap->begin();
+      /// We can speed up the code by only iterating over the track seeds
+      /// that are further in the map container from the current track,
+      /// since the comparison of e.g. track 1 with track 2 doesn't need
+      /// to be repeated with track 2 to track 1.
+      for(auto iter2 = m_siliconTrackMap->find(track1ID);
 	  iter2 != m_siliconTrackMap->end();
 	  ++iter2) 
 	{
