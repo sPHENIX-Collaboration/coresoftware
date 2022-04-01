@@ -84,12 +84,12 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 		{ mvtx2Keys.insert(ckey); }
 	    }
 
-	  std::vector<TrkrDefs::cluskey> intersection(mvtx1Keys.size() + mvtx2Keys.size());
+	  std::vector<TrkrDefs::cluskey> intersection;
 	  std::set_intersection(mvtx1Keys.begin(),
 				mvtx1Keys.end(),
 				mvtx2Keys.begin(),
 				mvtx2Keys.end(),
-				intersection.begin());
+				std::back_inserter(intersection));
 
 	  if(Verbosity() > 2) 
 	    {
@@ -99,9 +99,14 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 	      std::cout << "Track 2 keys " << std::endl;
 	      for(auto& key : mvtx2Keys) 
 		{ std::cout << "   ckey: " << key << std::endl; }
+	      std::cout << "Intersection keys " << std::endl;
+	      for(auto& key : intersection)
+		{ std::cout << "   ckey: " << key << std::endl; }
 	    }
 
-	  if(intersection.size() > 2) 
+	  /// If we have two clusters in common in the triplet, it is likely
+	  /// from the same track
+	  if(intersection.size() > 1) 
 	    {
 	      for(auto& key : mvtx2Keys)
 		{
@@ -120,6 +125,18 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 	      seedsToDelete.insert(track2ID);
 	    }
 	}
+    }
+
+  for(const auto& [trackKey, mvtxKeys] : matches)
+    {
+      auto track = m_siliconTrackMap->get(trackKey);
+     
+      for(auto& key : mvtxKeys) 
+	{
+	  if(track->find_cluster_key(key) == track->end_cluster_keys())
+	    { track->insert_cluster_key(key); }
+	}
+     
     }
 
   for(const auto& key : seedsToDelete) 
