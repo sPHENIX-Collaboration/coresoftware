@@ -415,7 +415,7 @@ int DecayFinder::checkIfCorrectParticle(HepMC::GenParticle* particle, bool& trac
     std::vector<int> actualIntermediateDecayProducts;
     //Which intermediate decay list to we need
     auto it = std::find(positive_intermediates_ID.begin(), positive_intermediates_ID.end(), abs(particle->pdg_id()));
-    int index = it - m_intermediates_ID.begin();
+    int index = std::distance(positive_intermediates_ID.begin(), it);
 
     unsigned int trackStart = 0, trackStop = 0;
     if (index == 0)
