@@ -277,11 +277,12 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Set host of propagator options for Acts to do e.g. material integration
       Acts::PropagatorPlainOptions ppPlainOptions;
       ppPlainOptions.absPdgCode = m_pHypothesis;
-      G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
+      /* 
+     G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
       G4ParticleDefinition *def = particleTable->FindParticle(m_pHypothesis);
       if(def)
 	{ ppPlainOptions.mass = def->GetPDGMass() * Acts::UnitConstants::MeV; }
-
+      */
       Acts::KalmanFitterExtensions extensions;
       ActsExamples::MeasurementCalibrator calibrator{measurements};
       extensions.calibrator.connect<&ActsExamples::MeasurementCalibrator::calibrate>(&calibrator);
@@ -450,7 +451,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
   if(Verbosity() > 0) 
     {
       std::cout << "tpcid " << track->get_id() << " crossing " << crossing << std::endl; 
-      track->identify();
+      //track->identify();
     }
 
   if(crossing == SHRT_MAX) return sourcelinks;

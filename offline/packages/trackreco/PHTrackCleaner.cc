@@ -90,17 +90,20 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 	  // note that the track no longer exists if it failed in the Acts fitter
 	  _track = _track_map->get(track_id);
 
-	  // skip tracks with no crossing number
-	  if(_track->get_crossing() == SHRT_MAX)
-	    {
-	      std::cout << "     skip  track ID " << track_id << " crossing " << _track->get_crossing() <<  " chisq " << _track->get_chisq() 
-			<< " ndf " << _track->get_ndf() << std::endl;
-		continue;
-	    }
-
-	  //Find the remaining track with the best chisq/ndf
 	  if(_track)
 	    {
+	      // skip tracks with no assigned crossing number
+	      if(_track->get_crossing() == SHRT_MAX)
+		{
+		  if(Verbosity() > 0) 
+		    std::cout << "     skip  track ID " << track_id << " crossing " << _track->get_crossing() <<  " chisq " << _track->get_chisq() 
+			      << " ndf " << _track->get_ndf() << std::endl;
+		  
+		  continue;
+		}
+	      
+	      //Find the remaining track with the best chisq/ndf
+
 	      if(Verbosity() > 1)	      
 		std::cout << "        track ID " << track_id << " crossing " << _track->get_crossing() 
 			  << " chisq " << _track->get_chisq() << " ndf " << _track->get_ndf() << " min_chisq_df " << min_chisq_df << std::endl;

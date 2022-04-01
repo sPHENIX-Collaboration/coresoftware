@@ -1117,9 +1117,8 @@ void PHSiliconTpcTrackMatching::getMatchCrossingIntt(
       short int crossing_keep = 0;
       if(intt_crossings.size() == 0) 
 	{
-	  if(Verbosity() > 0) 
-	    std::cout << " Silicon track " << si_id << " has no INTT clusters, arbitrarily assign crossing to 0 and get from z-mismatch later " << std::endl;
-	    //continue ;
+	  if(Verbosity() > 0)  std::cout << " Silicon track " << si_id << " has no INTT clusters, skip this combination " << std::endl;
+	  continue ;
 	}
       else
 	{
