@@ -31,7 +31,8 @@ libg4detectors_io_la_LIBADD = \
 
 libg4detectors_la_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 #libgmp comes in via CGAL which is now header only
 libg4detectors_la_LIBADD = \
