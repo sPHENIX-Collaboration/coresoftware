@@ -80,11 +80,11 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   void findEtaPhiMatches( std::set<unsigned int> &tpc_matched_set,
 			    std::multimap<unsigned int, unsigned int> &tpc_matches );
   void tagInTimeTracks(  std::multimap<unsigned int, unsigned int> &tpc_matches,
-			 std::set<int> &crossing_set,
+			 //std::set<int> &crossing_set,
 			 std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches,
 			 std::map<unsigned int, int> &tpc_crossing_map );
   void tagMatchCrossing( std::multimap<unsigned int, unsigned int> &tpc_matches,
-			 std::set<short int> &crossing_set,
+			 //std::set<short int> &crossing_set,
 			 std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
 			 std::map<unsigned int, short int> &tpc_crossing_map );
   void cleanVertexMap( std::map<unsigned int, short int> &vertex_crossings_map,
@@ -94,7 +94,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
    void correctTpcClusterZIntt(  std::map<unsigned int, short int> &tpc_crossing_map );
    void getMatchCrossingIntt(  
 			       std::multimap<unsigned int, unsigned int> &tpc_matches,
-			       std::set<short int> &crossing_set,
+			       //std::set<short int> &crossing_set,
 			       std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
 			       std::map<unsigned int, short int> &tpc_crossing_map );
    void addTrackBunchCrossing(
