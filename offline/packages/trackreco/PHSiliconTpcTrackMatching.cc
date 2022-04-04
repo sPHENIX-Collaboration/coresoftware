@@ -1292,7 +1292,7 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<short int, s
 
       // We do not know the sign  of the z mismatch for a given crossing unless we know the drift direction in the TPC, use mag
       // could instead look up any TPC cluster key in the track to get side
-      if( fabs( fabs(z_mismatch) - mag_crossing_z_mismatch ) < 2.0)
+      if( fabs( fabs(z_mismatch) - mag_crossing_z_mismatch ) < 3.0)
 	{ 
 	  if(Verbosity() > 0)	  
 	    std::cout << "  Success:  crossing " << crossing << " tpc_eta " << tpc_eta << " si eta " << si_eta << " tpcid " << tpcid << " si id " << si_id 
