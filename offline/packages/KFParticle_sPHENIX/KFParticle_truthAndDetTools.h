@@ -72,6 +72,8 @@ class KFParticle_truthAndDetTools
 
   void initializeTruthBranches(TTree *m_tree, int daughter_id, std::string daughter_number, bool m_constrain_to_vertex_truthMatch);
   void fillTruthBranch(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id, KFParticle vertex, bool m_constrain_to_vertex_truthMatch);
+
+  void fillGeant4Branch(PHG4Particle* particle, int daughter_id);
   void fillHepMCBranch(HepMC::GenParticle *particle, int daughter_id);
   int getHepMCInfo(PHCompositeNode *topNode, TTree *m_tree, KFParticle daughter, int daughter_id);
 
@@ -176,6 +178,7 @@ class KFParticle_truthAndDetTools
   std::vector<float> allPV_intermediates_IP[max_tracks];
   std::vector<float> allPV_intermediates_IPchi2[max_tracks];
 
+  PHG4TruthInfoContainer *m_truthinfo = nullptr;
   PHHepMCGenEventMap *m_geneventmap = NULL;
   PHHepMCGenEvent *m_genevt = NULL;
 };

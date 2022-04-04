@@ -40,11 +40,15 @@ void PHG4MvtxDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
     {
       visatt->SetColour(0.5, 0.5, 0.5, .25);
     }
+    else if (it.second == "MVTX_CarbonFiber$")
+    {
+      visatt->SetColour(0.4, 0.4, 0.4, 1);
+    }
     else if (it.second == "M60J3K")
     {
       visatt->SetColour(0.25, 0.25, 0.25, .25);
     }
-    else if (it.second == "WATER")
+    else if (it.second == "WATER" || it.second == "G4_WATER")
     {
       visatt->SetColour(0.0, 0.5, 0.0, .25);
     }
@@ -59,6 +63,34 @@ void PHG4MvtxDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
     else if (it.second == "ALUMINUM")
     {
       PHG4Utils::SetColour(visatt, "G4_Al");
+    }
+    else if (it.second == "G4_Cu")
+    {
+      PHG4Utils::SetColour(visatt, "G4_Cu");
+    }
+    else if (it.second == "G4_POLYETHYLENE")
+    {
+      visatt->SetColour(0., 0., 0., 1.);
+    }
+    else if (it.second == "red")
+    {
+      visatt->SetColour(1., 0., 0., 1.);
+    }
+    else if (it.second == "green")
+    {
+      visatt->SetColour(0., 1., 0., 1.);
+    }
+    else if (it.second == "blue")
+    {
+      visatt->SetColour(0., 0., 1., 1.);
+    }
+    else if (it.second == "black")
+    {
+      visatt->SetColour(0., 0., 0., 1.);
+    }
+    else if (it.second == "white")
+    {
+      visatt->SetColour(1., 1., 1., 1.);
     }
     else
     {

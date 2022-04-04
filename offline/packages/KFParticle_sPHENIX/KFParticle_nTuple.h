@@ -124,7 +124,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   //float *m_calculated_intermediate_cov[max_intermediates];
   float m_calculated_intermediate_cov[max_intermediates][21] = {{0},{0}};
 
-  static const int max_tracks = 20;
+  //static const int max_tracks = 20;
   float m_calculated_daughter_mass[max_tracks] = {0};
   float m_calculated_daughter_ip[max_tracks] = {0};
   float m_calculated_daughter_ip_xy[max_tracks] = {0};

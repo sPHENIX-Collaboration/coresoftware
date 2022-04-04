@@ -40,6 +40,8 @@
 
 #include <ActsExamples/EventData/Index.hpp>
 
+#include <TDatabasePDG.h>
+
 #include <cmath>
 #include <iostream>
 #include <vector>
@@ -261,8 +263,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if(Verbosity() > 2)
 	{ printTrackSeed(track); }
 
-      /// Reset the track seed with the dummy covariance and the 
-      /// primary vertex as the track position
+      /// Reset the track seed with the dummy covariance
       auto seed = ActsExamples::TrackParameters::create(pSurface,
 							m_tGeometry->geoContext,
 							actsFourPos,
@@ -270,12 +271,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 							charge / track->get_p(),
 							cov).value();
       
-      /// Call KF now. Have a vector of sourceLinks corresponding to clusters
-      /// associated to this track and the corresponding track seed which
-      /// corresponds to the PHGenFitTrkProp track seeds
+      /// Set host of propagator options for Acts to do e.g. material integration
       Acts::PropagatorPlainOptions ppPlainOptions;
       ppPlainOptions.absPdgCode = m_pHypothesis;
       
+      ppPlainOptions.mass = 
+	TDatabasePDG::Instance()->GetParticle(m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
+       
       Acts::KalmanFitterExtensions extensions;
       ActsExamples::MeasurementCalibrator calibrator{measurements};
       extensions.calibrator.connect<&ActsExamples::MeasurementCalibrator::calibrate>(&calibrator);
