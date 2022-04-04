@@ -61,8 +61,7 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack* thisTrack, P
 
   m_svtx_evalstack->next_event(topNode);
 
-  TrkrDefs::cluskey clusKey = *thisTrack->begin_cluster_keys();
-  PHG4Particle *particle = clustereval->max_truth_particle_by_cluster_energy(clusKey);
+  PHG4Particle *particle = trackeval->max_truth_particle_by_nclusters(thisTrack);
 
   return particle;
 }
