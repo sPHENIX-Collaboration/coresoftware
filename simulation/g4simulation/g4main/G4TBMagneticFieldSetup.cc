@@ -58,17 +58,11 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
-
 //////////////////////////////////////////////////////////////////////////
 //
 //  Constructors:
 
 G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(PHField* phfield)
-  : verbosity(0)
-  , fChordFinder(0)
-  , fStepper(0)
-  , fIntgrDriver(0)
 {
   assert(phfield);
 
@@ -88,10 +82,10 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(PHField* phfield)
   }
   if (verbosity > 0)
   {
-    cout << "field: x" << magfield_at_000[0]
+    std::cout << "field: x" << magfield_at_000[0]
          << ", y: " << magfield_at_000[1]
          << ", z: " << magfield_at_000[2]
-         << endl;
+         << std::endl;
   }
 }
 
@@ -137,7 +131,7 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(PHField* phfield)
 //      fEMfield = new PHG4Field3D(fieldmapname,0,magfield_rescale);
 //      break;
 //    default:
-//      cout << "Invalid dimension, valid is 2 for 2D, 3 for 3D" << endl;
+//      std::cout << "Invalid dimension, valid is 2 for 2D, 3 for 3D" << std::endl;
 //      exit(1);
 //    }
 //  fFieldMessenger = new G4TBFieldMessenger(this) ;
@@ -155,10 +149,10 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(PHField* phfield)
 //    }
 //  if (verbosity > 0)
 //    {
-//      cout << "field: x" << magfield_at_000[0]
+//      std::cout << "field: x" << magfield_at_000[0]
 //	   << ", y: " << magfield_at_000[1]
 //	   << ", z: " << magfield_at_000[2]
-//	   << endl;
+//	   << std::endl;
 //    }
 //}
 
@@ -258,14 +252,14 @@ void G4TBMagneticFieldSetup::SetStepper()
   if (verbosity > 0)
   {
     std::cout << " ---------- G4TBMagneticFieldSetup::SetStepper() -----------" << std::endl;
-    std::cout << "  " << message.str() << endl;
+    std::cout << "  " << message.str() << std::endl;
     std::cout << "  Minimum step size: " << fMinStep / mm << " mm" << std::endl;
     std::cout << " -----------------------------------------------------------" << std::endl;
   }
 
   if (!fStepper)
   {
-    cout << "no stepper set, edxiting now" << endl;
+    std::cout << "no stepper set, edxiting now" << std::endl;
     exit(1);
   }
 
