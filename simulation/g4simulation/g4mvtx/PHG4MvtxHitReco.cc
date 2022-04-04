@@ -31,9 +31,12 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <G4SystemOfUnits.hh>  // for microsecond
+
 #include <TVector3.h>  // for TVector3, ope...
 
 #include <cmath>
+#include <cassert>  // for assert
 #include <cstdlib>
 #include <iostream>
 #include <memory>  // for allocator_tra...
@@ -45,6 +48,8 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const string &name)
   : SubsysReco(name)
   , PHParameterContainerInterface(name)
   , detector(name)
+  , m_strobe_width(5. * microsecond)
+  , m_strobe_separation(0. * microsecond)
 {
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   SetDefaultParameters();  // sets default timing window
@@ -164,7 +169,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
   // loop over all of the layers in the g4hit container
   PHG4HitContainer::LayerIter layer;
   pair<PHG4HitContainer::LayerIter, PHG4HitContainer::LayerIter> layer_begin_end = g4hit->getLayers();
-  double strobe_time = generate_strobe();
+  double strobe_zero_tm_start = generate_strobe_zero_tm_start();
   for (layer = layer_begin_end.first; layer != layer_begin_end.second; ++layer)
   {
     //cout << "---------- PHG4MvtxHitReco:  Looping over layers " << endl;
@@ -202,18 +207,26 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         cout << PHWHERE << "Mvtx layers only go up to three! Quit." << endl;
         exit(1);
       }
+
+      int n_replica = 1;
       if (m_use_strobe)
       {
         std::pair<double, double> alpide_pulse = generate_alpide_pulse(hiter->second->get_edep()); //Function returns us, we need ns
+        double t0_strobe_frame = get_strobe_frame(hiter->second->get_t(0) * ns + alpide_pulse.first, strobe_zero_tm_start);
+        double t1_strobe_frame = get_strobe_frame(hiter->second->get_t(1) * ns + alpide_pulse.second, strobe_zero_tm_start);
+        n_replica += t1_strobe_frame - t0_strobe_frame;
+        assert( (n_replica>=0) );
         if (Verbosity() > 1)
         {
           cout << "MVTX is in strobed timing mode" << endl;
-          cout << " layer " << *layer << " t0 " << hiter->second->get_t(0) << " t1 " << hiter->second->get_t(1) << endl;
-          cout << "strobe_start: " << strobe_time << ", strobe width: " << m_strobe_width << ", strobe separation: " << m_strobe_separation << endl;
-          cout << "alpide pulse start: " << alpide_pulse.first << ", alpide pulse end: " << alpide_pulse.second << endl;
+          cout << " layer " << *layer << " t0(ns) " << hiter->second->get_t(0) << " t1(ns) " << hiter->second->get_t(1) << endl;
+          cout << "strobe_zero_start(us): " << strobe_zero_tm_start/microsecond << ", strobe width(us): " << m_strobe_width/microsecond << ", strobe separation(us): " << m_strobe_separation/microsecond << endl;
+          cout << "alpide pulse start(us): " << alpide_pulse.first/microsecond << ", alpide pulse end(us): " << alpide_pulse.second/microsecond << endl;
+          cout << "tm_zero_strobe_frame: " << t0_strobe_frame <<", tm_one_strobe_frame: " << t1_strobe_frame << endl;
+          cout << "number of hit replica: " << n_replica << endl;
         }
-        if (strobe_time + m_strobe_width < hiter->second->get_t(0) + alpide_pulse.first) continue;
-        if (strobe_time + m_strobe_width > hiter->second->get_t(0) + alpide_pulse.first + alpide_pulse.second) continue;
+       // if (strobe_time + m_strobe_width < hiter->second->get_t(0) + alpide_pulse.first) continue;
+       // if (strobe_time + m_strobe_width > hiter->second->get_t(0) + alpide_pulse.first + alpide_pulse.second) continue;
       }
       else
       {
@@ -579,18 +592,27 @@ pair<double, double> PHG4MvtxHitReco::generate_alpide_pulse(const double energy_
   // We need to translate energy deposited to num/ electrons released
   if (Verbosity() > 2) cout << "energy_deposited: " << energy_deposited << endl;
   //int silicon_band_gap = 1.12; //Band gap energy in eV
-  int Q_in = rand() % 5000 + 50;
-  int clipping_point = 110;
-  double ToT_start = Q_in < 200 ? 395.85*exp(-0.5*pow((Q_in+851.43)/286.91, 2)) : 0.5;
-  double ToT_end = Q_in < clipping_point ? 5.90*exp(-0.5*pow((Q_in-99.86)/54.80, 2)) : 5.8 - 6.4e-4 * Q_in;
+  //int Q_in = rand() % 5000 + 50;
+  //int clipping_point = 110;
+  //double ToT_start = Q_in < 200 ? 395.85*exp(-0.5*pow((Q_in+851.43)/286.91, 2)) : 0.5;
+  //double ToT_end = Q_in < clipping_point ? 5.90*exp(-0.5*pow((Q_in-99.86)/54.80, 2)) : 5.8 - 6.4e-4 * Q_in;
 
-  return make_pair(ToT_start*1e3, ToT_end*1e3);
+  //return make_pair(ToT_start*1e3, ToT_end*1e3);
+  // Using constant alpide pulse length
+  return make_pair<double, double>(1.5 * microsecond, 5.9 * microsecond);
 }
 
-double PHG4MvtxHitReco::generate_strobe()
+double PHG4MvtxHitReco::generate_strobe_zero_tm_start()
 {
-  double t_start = gsl_rng_uniform_pos(m_RandomGenerator)*(m_strobe_separation + m_strobe_width);
-  return t_start*1e3;
+  double t_start = -1. * gsl_rng_uniform_pos(m_RandomGenerator)*(m_strobe_separation + m_strobe_width);
+  return t_start;
+}
+
+int PHG4MvtxHitReco::get_strobe_frame(double alpide_time, double strobe_zero_tm_start)
+{
+  int strobe_frame = int( (alpide_time - strobe_zero_tm_start) / (m_strobe_width + m_strobe_separation) );
+  strobe_frame += (strobe_frame < 0) ? -1 : 0;
+  return strobe_frame;
 }
 
 void PHG4MvtxHitReco::set_timing_window(const int detid, const double tmin, const double tmax)
