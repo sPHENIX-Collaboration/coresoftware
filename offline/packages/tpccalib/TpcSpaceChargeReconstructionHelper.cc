@@ -3,6 +3,8 @@
 #include <TH3.h>
 #include <TString.h>
 
+#include <iostream>
+
 namespace
 {
   /// square
@@ -11,7 +13,7 @@ namespace
   // sector from angle
   constexpr double get_sector( double phi ) 
   {
-    int isec = std::floor( phi/(M_PI/6) ); 
+    int isec = std::floor( (phi+M_PI/12)/(M_PI/6) ); 
     if( isec < 0 ) isec += 12;
     if( isec >= 12 ) isec -= 12;
     return isec;
@@ -98,34 +100,49 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1( TH3* hin )
   // get reference phi bin
   const int phibin_ref = hin->GetXaxis()->FindBin( phi_ref );
 
-  // loop over sectors
-  for( int isec = 0; isec < 12; ++isec )
+  // copy all r and z bins from reference phi bin to destination
+  auto copy_phi_bin = []( TH3* hin, int phibin_ref, int phibin_dest )
   {
-
-    // skip reference sector
-    if( isec == isec_ref ) continue;
-
-    // get relevant phi and corresponding bin
-    const double phi = get_sector_phi(isec);
-    const int phibin = hin->GetXaxis()->FindBin( phi );
-
+    
     // loop over radial bins
     for( int ir = 0; ir < hin->GetYaxis()->GetNbins(); ++ir )
     {
-
-            // loop over z bins
+      
+      // loop over z bins
       for( int iz = 0; iz < hin->GetZaxis()->GetNbins(); ++iz )
       {
         const auto content_ref = hin->GetBinContent( phibin_ref, ir+1, iz+1 );
         const auto error_ref = hin->GetBinError( phibin_ref, ir+1, iz+1 );
-
+        
         // calculate scale factor
         const auto scale = 1;
-
+        
         // assign to output histogram
-        hin->SetBinContent( phibin, ir+1, iz+1, content_ref*scale );
-        hin->SetBinError( phibin, ir+1, iz+1, error_ref*std::abs(scale) );
+        hin->SetBinContent( phibin_dest, ir+1, iz+1, content_ref*scale );
+        hin->SetBinError( phibin_dest, ir+1, iz+1, error_ref*std::abs(scale) );
       }
+    }
+    
+  };
+  
+  // loop over sectors
+  for( int isec = 0; isec < 12; ++isec )
+  {
+    // skip reference sector
+    if( isec == isec_ref ) continue;
+
+    if( isec == 0 )
+    {
+      // special case for first sector due to how root handles phi_bin
+      copy_phi_bin( hin, phibin_ref, hin->GetXaxis()->GetNbins() );
+      copy_phi_bin( hin, phibin_ref+1, 1 );
+    } else {
+      // get relevant phi and corresponding bin
+      const double phi = get_sector_phi(isec);
+      const int phibin = hin->GetXaxis()->FindBin( phi );
+      
+      copy_phi_bin( hin, phibin_ref, phibin );
+      copy_phi_bin( hin, phibin_ref+1, phibin+1 );
     }
   }
 }
@@ -141,18 +158,31 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi2( TH3* hin )
     // find nearest sector phi bins
     const auto phi = hin->GetXaxis()->GetBinCenter( iphi+1 );
     const int isec = get_sector( phi );
-    double phi_min =  isec*M_PI/6 + M_PI/12;
-    double phi_max =  phi_min + M_PI/6;
+    
+//     std::cout 
+//       << "TpcSpaceChargeReconstructionHelper::extrapolate_phi2 -"
+//       << " bin: " << iphi+1
+//       << " phi: " << phi
+//       << " sector: " << isec << std::endl;
+    
+    // get center bin of previous and current sector and corresponding phi
+    const auto phi_min = get_sector_phi((isec > 0) ? (isec-1):11);
+    const auto phi_max = get_sector_phi(isec);
 
-    if( phi_min < 0 ) phi_min += 2*M_PI;
-    if( phi_max >= 2*M_PI ) phi_max -= 2*M_PI;
-
-    const auto phibin_min = hin->GetXaxis()->FindBin( phi_min );
+    const auto phibin_min = hin->GetXaxis()->FindBin( phi_min )+1;
     if( phibin_min == iphi+1 ) continue;
 
     const auto phibin_max = hin->GetXaxis()->FindBin( phi_max );
     if( phibin_max == iphi+1 ) continue;
 
+    // printout 
+    std::cout 
+      << "TpcSpaceChargeReconstructionHelper::extrapolate_phi2 -"
+      << " bin: " << iphi+1
+      << " phi: " << phi
+      << " sector: " << isec << std::endl;
+
+    
     // loop over radial bins
     for( int ir = 0; ir < hin->GetYaxis()->GetNbins(); ++ir )
     {
