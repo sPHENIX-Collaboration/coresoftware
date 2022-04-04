@@ -65,10 +65,6 @@ using namespace std;
 //  Constructors:
 
 G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(PHField* phfield)
-  : verbosity(0)
-  , fChordFinder(0)
-  , fStepper(0)
-  , fIntgrDriver(0)
 {
   assert(phfield);
 
