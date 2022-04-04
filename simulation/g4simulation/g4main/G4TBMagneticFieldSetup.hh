@@ -56,6 +56,10 @@ public:
   G4TBMagneticFieldSetup(PHField * phfield) ;
 //  G4TBMagneticFieldSetup(const float magfield) ;
 //  G4TBMagneticFieldSetup(const std::string &fieldmapfile, const int mapdim, const float magfield_rescale = 1.0) ;
+  // G4TBMagneticFieldSetup contains pointer to memory
+  // copy ctor and = operator need explicit implementation, do just delete it here
+  G4TBMagneticFieldSetup(const G4TBMagneticFieldSetup &) = delete;
+  G4TBMagneticFieldSetup& operator = (G4TBMagneticFieldSetup const &) = delete;
 
   virtual ~G4TBMagneticFieldSetup() ;  
 
@@ -80,26 +84,26 @@ protected:
   G4FieldManager*         GetGlobalFieldManager() ;
 
 private:
-  int verbosity;
+  int verbosity = 0;
   
-  G4FieldManager*         fFieldManager ;
+  G4FieldManager*         fFieldManager = nullptr;
 
-  G4ChordFinder*          fChordFinder ;
+  G4ChordFinder*          fChordFinder  = nullptr;
 
- G4Mag_UsualEqRhs*   fEquation ;
+ G4Mag_UsualEqRhs*   fEquation  = nullptr;
 
-  G4MagneticField*        fEMfield;
+  G4MagneticField*        fEMfield = nullptr;
  
   G4ThreeVector           fElFieldValue ; 
 
-  G4MagIntegratorStepper* fStepper ;
-  G4MagInt_Driver*        fIntgrDriver;
+  G4MagIntegratorStepper* fStepper  = nullptr;
+  G4MagInt_Driver*        fIntgrDriver = nullptr;
 
-  G4int                   fStepperType ;
+  G4int                   fStepperType;
 
-  G4double                fMinStep ;
+  G4double                fMinStep;
  
-  G4TBFieldMessenger*      fFieldMessenger;
+  G4TBFieldMessenger*      fFieldMessenger = nullptr;
 
   double magfield_at_000[3];
 };
