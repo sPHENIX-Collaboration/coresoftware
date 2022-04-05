@@ -5,7 +5,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase/TrkrHitv3.h>
+#include <trackbase/TrkrHitv2.h>
 
 #include <tpc/TpcDefs.h>
 
@@ -406,7 +406,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 			  // noise bins do not have TrkrHits associated with them, have to make one
 			  if (!hit)
 			    {
-			      hit = new TrkrHitv3();
+			      hit = new TrkrHitv2();
 			      hitset_iter->second->addHitSpecificKey(hitkey, hit);
 			      //hit->addEnergy(adc_input[iz+izup]);
 			      
@@ -478,7 +478,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 			  // noise bins do not have TrkrHits associated with them, have to make one
 			  if (!hit)
 			    {
-			      hit = new TrkrHitv3();
+			      hit = new TrkrHitv2();
 			      hitset_iter->second->addHitSpecificKey(hitkey, hit);
 			      //hit->addEnergy(adc_input[iz-izup]);
 			      

@@ -6,7 +6,7 @@
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
-#include <trackbase/TrkrHitv3.h>
+#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 

@@ -14,7 +14,7 @@
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitTruthAssoc.h>  // for TrkrHitTruthA...
 #include <trackbase/TrkrHitTruthAssocv1.h>
-#include <trackbase/TrkrHitv3.h>
+#include <trackbase/TrkrHitv2.h>
 
 #include <tpc/TpcDefs.h>
 
@@ -520,7 +520,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           if (!node_hit)
           {
             // Otherwise, create a new one
-            node_hit = new TrkrHitv3();
+            node_hit = new TrkrHitv2();
             node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
           }
 

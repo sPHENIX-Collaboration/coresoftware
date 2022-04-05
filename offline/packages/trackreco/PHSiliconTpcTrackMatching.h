@@ -33,8 +33,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   void set_x_search_window(const double win){_x_search_win = win;}
   void set_y_search_window(const double win){_y_search_win = win;}
   void set_z_search_window(const double win){_z_search_win = win;}
-  void set_search_par_values(const double p0, const double p1, const double p2){_par0 = p0; _par1 = p1; _par2 = p2; }
-  void set_seeder(const bool is_ca_seeder){_is_ca_seeder = is_ca_seeder;}
 
   void set_field_dir(const double rescale)
   {
@@ -45,8 +43,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   void set_field(const std::string &field) { _field = field;}
 
   void set_test_windows_printout(const bool test){_test_windows = test ;}
-  void set_sc_calib_mode(const bool flag){_sc_calib_flag = flag;}
-  void set_collision_rate(const double rate){_collision_rate = rate;}
   void set_pp_mode(const bool flag){_pp_mode = flag ;}
   void set_use_intt_time(const bool flag){_use_intt_time = flag ;}
 
@@ -67,44 +63,42 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   double getBunchCrossing(unsigned int trid, double z_mismatch);
   double getMedian(std::vector<double> &v);
   void addSiliconClusters( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches);
-  void addSiliconClusters(  std::multimap<unsigned int, std::pair<unsigned int, unsigned int>> &vertex_map);
   void addSiliconClusters(  std::multimap<unsigned int, unsigned int> &tpc_matches);
-  void correctTpcClusterZ( std::map<unsigned int, double> &vertex_crossings_map,
-			     std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map );
-  void getCrossingNumber( std::vector<double> &vertex_list,
-			    std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map, 
-			    std::map<unsigned int, short int> &vertex_crossings_map);
-  void getSiVertexList( std::multimap<double, std::pair<unsigned int, unsigned int>> &si_sorted_map,
-			  std::vector<double> &vertex_list,
-			  std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);
   void findEtaPhiMatches( std::set<unsigned int> &tpc_matched_set,
 			    std::multimap<unsigned int, unsigned int> &tpc_matches );
   void tagInTimeTracks(  std::multimap<unsigned int, unsigned int> &tpc_matches,
-			 //std::set<int> &crossing_set,
 			 std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches,
 			 std::map<unsigned int, int> &tpc_crossing_map );
   void tagMatchCrossing( std::multimap<unsigned int, unsigned int> &tpc_matches,
-			 //std::set<short int> &crossing_set,
 			 std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
 			 std::map<unsigned int, short int> &tpc_crossing_map );
-  void cleanVertexMap( std::map<unsigned int, short int> &vertex_crossings_map,
-		       std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map,
-		       std::map<unsigned int, short int> &tpc_crossing_map );
    void copySiliconClustersToCorrectedMap( );
    void correctTpcClusterZIntt(  std::map<unsigned int, short int> &tpc_crossing_map );
    void getMatchCrossingIntt(  
 			       std::multimap<unsigned int, unsigned int> &tpc_matches,
-			       //std::set<short int> &crossing_set,
 			       std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
 			       std::map<unsigned int, short int> &tpc_crossing_map );
-   void addTrackBunchCrossing(
-						   std::map<unsigned int, short int> &vertex_crossings_map,
-						   std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);	  
-   void addTrackBunchCrossing(std::multimap<unsigned int, unsigned int> &tpc_matches);	  
+    void addTrackBunchCrossing(std::multimap<unsigned int, unsigned int> &tpc_matches);	  
    void addTrackBunchCrossing( std::map<unsigned int, short int> &tpc_crossing_map);	  
    std::vector<short int> getInttCrossings(SvtxTrack *si_track);
    void checkCrossingMatches( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,  std::map<unsigned int, short int> &tpc_crossing_map );
-     
+ 
+  //  void addTrackBunchCrossing(
+   //						   std::map<unsigned int, short int> &vertex_crossings_map,
+   //						   std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);	  
+  //  void cleanVertexMap( std::map<unsigned int, short int> &vertex_crossings_map,
+  //		       std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map,
+  //		       std::map<unsigned int, short int> &tpc_crossing_map );
+  // void getCrossingNumber( std::vector<double> &vertex_list,
+  //			    std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map, 
+  //			    std::map<unsigned int, short int> &vertex_crossings_map);
+  //void getSiVertexList( std::multimap<double, std::pair<unsigned int, unsigned int>> &si_sorted_map,
+  //			  std::vector<double> &vertex_list,
+  //			  std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);
+  //  void addSiliconClusters(  std::multimap<unsigned int, std::pair<unsigned int, unsigned int>> &vertex_map);
+   //  void correctTpcClusterZ( std::map<unsigned int, double> &vertex_crossings_map,
+   //			     std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map );
+
   std::string _track_map_name_silicon;
 
   // default values, can be replaced from the macro
@@ -126,27 +120,13 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};
 
   TpcSeedTrackMap *_seed_track_map{nullptr};
-  //std::multimap<unsigned int, unsigned int> _seed_track_map;
   std::map<unsigned int, double> _z_mismatch_map;
- 
-  // correction function for PHTpcTracker track phi bias
-  TF1 *fdphi{nullptr};
-  // default values, can be replaced from the macro
-  double _par0 =  -0.000650;
-  double _par1 =  0.13373;
-  double _par2 =  0.98298;
-
-  // correction factor for TPC tracklet phi offset due to space charge in TPC
-  TF1 *fscdphi{nullptr};
-  double _parsc0 =  0.0366293;
-  double _parsc1 =   -0.0133073;
 
   double _collision_rate = 50e3;  // input rate for phi correction
   double _reference_collision_rate = 50e3;  // reference rate for phi correction
   double _si_vertex_dzmax = 0.25;  // mm
+  double crossing_period = 106.0;  // ns
 
-  bool _is_ca_seeder = true;
-  bool _sc_calib_flag = false;
   bool _test_windows = false;
   bool _pp_mode = false;
   bool _use_intt_time = false;
