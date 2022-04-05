@@ -59,8 +59,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
    */
   void printParticles(const KFParticle motherParticle,
                       const KFParticle chosenVertex,
-                      const std::vector<KFParticle> daughterParticles,
-                      const std::vector<KFParticle> intermediateParticles,
+                      const std::vector<KFParticle> &daughterParticles,
+                      const std::vector<KFParticle> &intermediateParticles,
                       const int numPVs, const int numTracks);
 
   int parseDecayDescriptor();
@@ -193,17 +193,17 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     for (unsigned int i = 0; i < intermediate_mass_range.size(); ++i) m_intermediate_mass_range.push_back(intermediate_mass_range[i]);
   }
 
-  void setIntermediateMinPT(const std::vector<float> intermediate_min_pt)
+  void setIntermediateMinPT(const std::vector<float> &intermediate_min_pt)
   {
     m_intermediate_min_pt = intermediate_min_pt;
   }
 
-  void setIntermediateMinIP(const std::vector<float> intermediate_min_IP)
+  void setIntermediateMinIP(const std::vector<float> &intermediate_min_IP)
   {
     for (unsigned int i = 0; i < intermediate_min_IP.size(); ++i) m_intermediate_min_ip.push_back(intermediate_min_IP[i]);
   }
 
-  void setIntermediateIPRange(const std::vector<std::pair<float, float>> intermediate_IP_range)
+  void setIntermediateIPRange(const std::vector<std::pair<float, float>> &intermediate_IP_range)
   {
     for (unsigned int i = 0; i < intermediate_IP_range.size(); ++i)
     {
@@ -212,12 +212,12 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     }
   }
 
-  void setIntermediateMinIPchi2(const std::vector<float> intermediate_min_IPchi2)
+  void setIntermediateMinIPchi2(const std::vector<float> &intermediate_min_IPchi2)
   {
     for (unsigned int i = 0; i < intermediate_min_IPchi2.size(); ++i) m_intermediate_min_ipchi2.push_back(intermediate_min_IPchi2[i]);
   }
 
-  void setIntermediateIPchi2Range(const std::vector<std::pair<float, float>> intermediate_IPchi2_range)
+  void setIntermediateIPchi2Range(const std::vector<std::pair<float, float>> &intermediate_IPchi2_range)
   {
     for (unsigned int i = 0; i < intermediate_IPchi2_range.size(); ++i)
     {
@@ -226,12 +226,12 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     }
   }
 
-  void setIntermediateMinDIRA(const std::vector<float> intermediate_min_DIRA)
+  void setIntermediateMinDIRA(const std::vector<float> &intermediate_min_DIRA)
   {
     for (unsigned int i = 0; i < intermediate_min_DIRA.size(); ++i) m_intermediate_min_dira.push_back(intermediate_min_DIRA[i]);
   }
 
-  void setIntermediateMinFDchi2(const std::vector<float> intermediate_min_FDchi2)
+  void setIntermediateMinFDchi2(const std::vector<float> &intermediate_min_FDchi2)
   {
     for (unsigned int i = 0; i < intermediate_min_FDchi2.size(); ++i) m_intermediate_min_fdchi2.push_back(intermediate_min_FDchi2[i]);
   }

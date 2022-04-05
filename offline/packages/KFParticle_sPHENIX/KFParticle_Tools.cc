@@ -189,7 +189,7 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, KFParticle v
   return associatedVertex->size_tracks();
 }
 
-/*const*/ bool KFParticle_Tools::isGoodTrack(KFParticle particle, const std::vector<KFParticle> primaryVertices)
+/*const*/ bool KFParticle_Tools::isGoodTrack(KFParticle particle, const std::vector<KFParticle> &primaryVertices)
 {
   bool goodTrack = false;
   
@@ -472,7 +472,6 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   bool daughterMassCheck = true;
   float unique_vertexID = 0;
-  float daughterMass = 0;
 
   //Figure out if the decay has reco. tracks mixed with resonances
   int num_tracks_used_by_intermediates = 0;
@@ -481,6 +480,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
   for (int i = 0; i < nTracks; ++i)
   {
+    float daughterMass = 0;
     daughterMass = constrainMass ? particleMasses.find(daughterOrder[i].c_str())->second.second : vDaughters[i].GetMass();
     if ((num_remaining_tracks > 0 && i >= m_num_intermediate_states) || isIntermediate) 
     { 

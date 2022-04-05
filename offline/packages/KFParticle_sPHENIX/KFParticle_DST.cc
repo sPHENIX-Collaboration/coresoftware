@@ -51,7 +51,6 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
     baseName = m_container_name;
 
   //Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  size_t pos;
   std::string undrscr = "_";
   std::string nothing = "";
   std::map<std::string, std::string> forbiddenStrings;
@@ -63,6 +62,7 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
   forbiddenStrings["*"] = "star";
   for (auto const& [badString, goodString] : forbiddenStrings)
   {
+    size_t pos;
     while ((pos = baseName.find(badString)) != std::string::npos) baseName.replace(pos, 1, goodString); 
   } 
 
@@ -122,7 +122,6 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFPa
     baseName = m_container_name;
 
   //Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  size_t pos;
   std::string undrscr = "_";
   std::string nothing = "";
   std::map<std::string, std::string> forbiddenStrings;
@@ -134,6 +133,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFPa
   forbiddenStrings["*"] = "star";
   for (auto const& [badString, goodString] : forbiddenStrings)
   {
+    size_t pos;
     while ((pos = baseName.find(badString)) != std::string::npos) baseName.replace(pos, 1, goodString); 
   } 
 
@@ -191,7 +191,6 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, const K
     baseName = m_container_name;
 
   //Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  size_t pos;
   std::string undrscr = "_";
   std::string nothing = "";
   std::map<std::string, std::string> forbiddenStrings;
@@ -203,6 +202,7 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, const K
   forbiddenStrings["*"] = "star";
   for (auto const& [badString, goodString] : forbiddenStrings)
   {
+    size_t pos;
     while ((pos = baseName.find(badString)) != std::string::npos) baseName.replace(pos, 1, goodString); 
   } 
 
@@ -261,7 +261,6 @@ void KFParticle_DST::printNode(PHCompositeNode* topNode)
     baseName = m_container_name;
 
   //Cant have forward slashes in DST or else you make a subdirectory on save!!!
-  size_t pos;
   std::string undrscr = "_";
   std::string nothing = "";
   std::map<std::string, std::string> forbiddenStrings;
@@ -273,6 +272,7 @@ void KFParticle_DST::printNode(PHCompositeNode* topNode)
   forbiddenStrings["*"] = "star";
   for (auto const& [badString, goodString] : forbiddenStrings)
   {
+    size_t pos;
     while ((pos = baseName.find(badString)) != std::string::npos) baseName.replace(pos, 1, goodString); 
   } 
 
