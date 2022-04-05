@@ -611,7 +611,7 @@ double PHG4MvtxHitReco::generate_strobe_zero_tm_start()
 int PHG4MvtxHitReco::get_strobe_frame(double alpide_time, double strobe_zero_tm_start)
 {
   int strobe_frame = int( (alpide_time - strobe_zero_tm_start) / (m_strobe_width + m_strobe_separation) );
-  strobe_frame += (strobe_frame < 0) ? -1 : 0;
+  strobe_frame += ( alpide_time < strobe_zero_tm_start ) ? -1 : 0;
   return strobe_frame;
 }
 
