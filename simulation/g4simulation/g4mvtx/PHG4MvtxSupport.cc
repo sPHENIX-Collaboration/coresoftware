@@ -30,14 +30,16 @@ namespace ServiceProperties
 
 using namespace ServiceProperties;
 
-PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDisplayAction* dispAct)
+PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDisplayAction* dispAct, bool overlapCheck)
   : m_DisplayAction(dispAct)
   , m_avSupport(nullptr)
   , m_avBarrelCable(nullptr)
   , m_avL0Cable(nullptr)
   , m_avL1Cable(nullptr)
   , m_avL2Cable(nullptr)
-{}
+{
+  m_overlapCheck = overlapCheck;
+}
 
 PHG4MvtxSupport::~PHG4MvtxSupport()
 {
@@ -436,7 +438,7 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   G4ThreeVector place;
   place.setZ(ServiceOffset*cm);
   G4Transform3D transform(rot, place);
-  m_avSupport->MakeImprint(lv, transform, 0, true);
+  m_avSupport->MakeImprint(lv, transform, 0, m_overlapCheck);
 
   m_avBarrelCable = buildBarrelCable();
   G4ThreeVector placeBarrelCable;
@@ -449,7 +451,7 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
     G4RotationMatrix rotBarrelCable;
     rotBarrelCable.rotateZ(phi + (-90.*degToRad));
     G4Transform3D transformBarrelCable(rotBarrelCable, placeBarrelCable);
-    m_avBarrelCable->MakeImprint(lv, transformBarrelCable, 0, true);
+    m_avBarrelCable->MakeImprint(lv, transformBarrelCable, 0, m_overlapCheck);
   }
 
   m_avL0Cable = buildL0Cable();
@@ -468,9 +470,9 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
       placeCable.setZ((ServiceOffset)*cm);
       rotCable.rotateZ(phi + ((-90. + cableRotate[iLayer])*degToRad));
       G4Transform3D transformCable(rotCable, placeCable);
-      if (iLayer == 0) m_avL0Cable->MakeImprint(lv, transformCable, 0, true);
-      if (iLayer == 1) m_avL1Cable->MakeImprint(lv, transformCable, 0, true);
-      if (iLayer == 2) m_avL2Cable->MakeImprint(lv, transformCable, 0, true);
+      if (iLayer == 0) m_avL0Cable->MakeImprint(lv, transformCable, 0, m_overlapCheck);
+      if (iLayer == 1) m_avL1Cable->MakeImprint(lv, transformCable, 0, m_overlapCheck);
+      if (iLayer == 2) m_avL2Cable->MakeImprint(lv, transformCable, 0, m_overlapCheck);
     }
   }
 }
