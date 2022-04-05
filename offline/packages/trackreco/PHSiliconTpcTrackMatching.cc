@@ -591,16 +591,13 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
 	  unsigned int si_id = it->second;	  
 	  auto this_track = _track_map->get(tpcid);
-	  //auto newTrack = std::make_unique<SvtxTrack_v3>();
+	  auto newTrack = std::make_unique<SvtxTrack_v3>();
 	  const unsigned int lastTrackKey =  _track_map->empty() ? 0:std::prev(_track_map->end())->first; 
 	  if(Verbosity() > 1) 
 	    cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey + 1 << endl;
 
-	  // Can this be made into aunique_ptr?
-	  auto newTrack = (SvtxTrack_v3*) this_track->CloneMe();
 	  newTrack->set_id(lastTrackKey+1);
 
-	  /*	  
 	  newTrack->set_x(this_track->get_x());
 	  newTrack->set_y(this_track->get_y());
 	  newTrack->set_z(this_track->get_z());
@@ -621,7 +618,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 		  newTrack->set_error(i,j, this_track->get_error(i,j));
 		}
 	    }
-	  */
+
 
 	  _seed_track_map->addAssoc(this_track->get_id(), newTrack->get_id());
 	  
@@ -640,7 +637,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	    }
 	  
 	  if(Verbosity() > 1)  cout << "  -- inserting new track with id " << newTrack->get_id() << " from TPC tracklet " << tpcid << " into trackmap " << endl;
-	  _track_map->insert(newTrack);
+	  _track_map->insert(newTrack.get());
 
 	  // add a map named remove_tpc_matches so we can remove old matches with the same tpc id
 	  remove_tpc_matches.insert(std::make_pair(tpcid, si_id));
