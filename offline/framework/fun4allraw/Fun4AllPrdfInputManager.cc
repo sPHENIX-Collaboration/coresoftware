@@ -29,14 +29,8 @@
 
 using namespace std;
 
-Fun4AllPrdfInputManager::Fun4AllPrdfInputManager(const string &name, const string &prdfnodename, const string &topnodename)
+Fun4AllPrdfInputManager::Fun4AllPrdfInputManager(const std::string &name, const std::string &prdfnodename, const std::string &topnodename)
   : Fun4AllInputManager(name, prdfnodename, topnodename)
-  , m_Segment(-999)
-  , m_EventsTotal(0)
-  , m_EventsThisFile(0)
-  , m_Event(nullptr)
-  , m_SaveEvent(nullptr)
-  , m_EventIterator(nullptr)
   , m_SyncObject(new SyncObjectv1())
   , m_PrdfNodeName(prdfnodename)
 {
@@ -61,21 +55,21 @@ Fun4AllPrdfInputManager::~Fun4AllPrdfInputManager()
   delete m_SyncObject;
 }
 
-int Fun4AllPrdfInputManager::fileopen(const string &filenam)
+int Fun4AllPrdfInputManager::fileopen(const std::string &filenam)
 {
   if (IsOpen())
   {
-    cout << "Closing currently open file "
+    std::cout << "Closing currently open file "
          << FileName()
-         << " and opening " << filenam << endl;
+         << " and opening " << filenam << std::endl;
     fileclose();
   }
   FileName(filenam);
   FROG frog;
-  string fname = frog.location(FileName());
+  std::string fname = frog.location(FileName());
   if (Verbosity() > 0)
   {
-    cout << Name() << ": opening file " << FileName() << endl;
+    std::cout << Name() << ": opening file " << FileName() << std::endl;
   }
   int status = 0;
   m_EventIterator = new fileEventiterator(fname.c_str(), status);
@@ -84,7 +78,7 @@ int Fun4AllPrdfInputManager::fileopen(const string &filenam)
   {
     delete m_EventIterator;
     m_EventIterator = nullptr;
-    cout << PHWHERE << Name() << ": could not open file " << fname << endl;
+    std::cout << PHWHERE << Name() << ": could not open file " << fname << std::endl;
     return -1;
   }
   pair<int, int> runseg = Fun4AllUtils::GetRunSegment(fname);
@@ -104,7 +98,7 @@ readagain:
     {
       if (Verbosity() > 0)
       {
-        cout << Name() << ": No Input file open" << endl;
+        std::cout << Name() << ": No Input file open" << std::endl;
       }
       return -1;
     }
@@ -112,16 +106,16 @@ readagain:
     {
       if (OpenNextFile())
       {
-        cout << Name() << ": No Input file from filelist opened" << endl;
+        std::cout << Name() << ": No Input file from filelist opened" << std::endl;
         return -1;
       }
     }
   }
   if (Verbosity() > 3)
   {
-    cout << "Getting Event from " << Name() << endl;
+    std::cout << "Getting Event from " << Name() << std::endl;
   }
-  //  cout << "running event " << nevents << endl;
+  //  std::cout << "running event " << nevents << std::endl;
   PHNodeIterator iter(m_topNode);
   PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
   if (m_SaveEvent)  // if an event was pushed back, copy saved pointer and reset m_SaveEvent pointer
@@ -143,7 +137,7 @@ readagain:
   }
   if (Verbosity() > 1)
   {
-    cout << Name() << " PRDF run " << m_Event->getRunNumber() << ", evt no: " << m_Event->getEvtSequence() << endl;
+    std::cout << Name() << " PRDF run " << m_Event->getRunNumber() << ", evt no: " << m_Event->getEvtSequence() << std::endl;
   }
   m_EventsTotal++;
   m_EventsThisFile++;
@@ -168,7 +162,7 @@ int Fun4AllPrdfInputManager::fileclose()
 {
   if (!IsOpen())
   {
-    cout << Name() << ": fileclose: No Input file open" << endl;
+    std::cout << Name() << ": fileclose: No Input file open" << std::endl;
     return -1;
   }
   delete m_EventIterator;
@@ -180,7 +174,7 @@ int Fun4AllPrdfInputManager::fileclose()
   return 0;
 }
 
-void Fun4AllPrdfInputManager::Print(const string &what) const
+void Fun4AllPrdfInputManager::Print(const std::string &what) const
 {
   Fun4AllInputManager::Print(what);
   return;
@@ -211,15 +205,15 @@ int Fun4AllPrdfInputManager::PushBackEvents(const int i)
       m_SaveEvent = m_Event;
       return 0;
     }
-    cout << PHWHERE << Name()
+    std::cout << PHWHERE << Name()
          << " Fun4AllPrdfInputManager cannot push back " << i << " events into file"
-         << endl;
+         << std::endl;
     return -1;
   }
   if (!m_EventIterator)
   {
-    cout << PHWHERE << Name()
-         << " no file open" << endl;
+    std::cout << PHWHERE << Name()
+         << " no file open" << std::endl;
     return -1;
   }
   // Skipping events is implemented as
@@ -232,8 +226,8 @@ int Fun4AllPrdfInputManager::PushBackEvents(const int i)
     m_Event = m_EventIterator->getNextEvent();
     if (!m_Event)
     {
-      cout << "Error after skipping " << i - nevents
-           << " file exhausted?" << endl;
+      std::cout << "Error after skipping " << i - nevents
+           << " file exhausted?" << std::endl;
       errorflag = -1;
       fileclose();
     }
@@ -241,7 +235,7 @@ int Fun4AllPrdfInputManager::PushBackEvents(const int i)
     {
       if (Verbosity() > 3)
       {
-        cout << "Skipping evt no: " << m_Event->getEvtSequence() << endl;
+        std::cout << "Skipping evt no: " << m_Event->getEvtSequence() << std::endl;
       }
     }
     delete m_Event;
@@ -276,19 +270,28 @@ int Fun4AllPrdfInputManager::SyncIt(const SyncObject *mastersync)
 {
   if (!mastersync)
   {
-    cout << PHWHERE << Name() << " No MasterSync object, cannot perform synchronization" << endl;
-    cout << "Most likely your first file does not contain a SyncObject and the file" << endl;
-    cout << "opened by the Fun4AllDstInputManager with Name " << Name() << " has one" << endl;
-    cout << "Change your macro and use the file opened by this input manager as first input" << endl;
-    cout << "and you will be okay. Fun4All will not process the current configuration" << endl
-         << endl;
+    std::cout << PHWHERE << Name() << " No MasterSync object, cannot perform synchronization" << std::endl;
+    std::cout << "Most likely your first file does not contain a SyncObject and the file" << std::endl;
+    std::cout << "opened by the Fun4AllDstInputManager with Name " << Name() << " has one" << std::endl;
+    std::cout << "Change your macro and use the file opened by this input manager as first input" << std::endl;
+    std::cout << "and you will be okay. Fun4All will not process the current configuration" << std::endl
+         << std::endl;
     return Fun4AllReturnCodes::SYNC_FAIL;
   }
   int iret = m_SyncObject->Different(mastersync);
   if (iret)
   {
-    cout << "big problem" << endl;
+    std::cout << "big problem" << std::endl;
     exit(1);
   }
   return Fun4AllReturnCodes::SYNC_OK;
+}
+
+std::string Fun4AllPrdfInputManager::GetString(const std::string &what) const
+{
+  if (what == "PRDFNODENAME")
+  {
+    return m_PrdfNodeName;
+  }
+  return "";
 }

@@ -15,8 +15,9 @@ class PHParameterContainerInterface
  public:
   PHParameterContainerInterface(const std::string &name);
   // PHParameterContainerInterface contains pointer to memory
-  // copy ctor needs explicit implementation, do just delete it here
+  // copy ctor and = operator need explicit implementation, do just delete it here
   PHParameterContainerInterface(const PHParameterContainerInterface &) = delete;
+  PHParameterContainerInterface& operator = (PHParameterContainerInterface const&) = delete;
 
   virtual ~PHParameterContainerInterface();
 

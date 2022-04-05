@@ -16,7 +16,10 @@ class Fun4AllDstOutputManager : public Fun4AllOutputManager
  public:
   Fun4AllDstOutputManager(const std::string &myname = "DSTOUT", const std::string &filename = "dstout.root");
   ~Fun4AllDstOutputManager() override;
-
+  // Fun4AllDstOutputManager contains pointer to memory
+  // copy ctor and = operator  need explicit implementation, do just delete it here
+  Fun4AllDstOutputManager(const Fun4AllDstOutputManager &) = delete;
+  Fun4AllDstOutputManager& operator = (Fun4AllDstOutputManager const &) = delete;
   int AddNode(const std::string &nodename) override;
   int AddRunNode(const std::string &nodename) override;
   int StripNode(const std::string &nodename) override;

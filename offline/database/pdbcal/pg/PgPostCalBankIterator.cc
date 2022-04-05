@@ -183,7 +183,7 @@ PgPostCalBankIterator::next()
     bw->setEndValTime(fSQLResultSet->GetLong(4));
     bw->setDescription(fSQLResultSet->GetString(5).Data());
     bw->setUserName(fSQLResultSet->GetString(6).Data());
-    bw->setTableName(fTableName.c_str());
+    bw->setTableName(fTableName);
     return bw;
   }
 
