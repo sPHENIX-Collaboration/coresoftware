@@ -152,7 +152,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
         {
           KFParticle candidate;
           bool isGood = false;
-          unsigned int matchIterators[4] = {a, b, c, d};
+          const unsigned int matchIterators[4] = {a, b, c, d};
 
           int num_mother_decay_products = m_num_intermediate_states + num_remaining_tracks;
           assert(num_mother_decay_products > 0);
@@ -314,10 +314,10 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
         std::tie(candidate, isGood) = getCombination(daughterTracks, names, primaryVerticesCand[i_pv], m_constrain_to_vertex,
                                                 isIntermediate, intermediateNumber, nTracks, constrainMass, required_unique_vertexID);
 
-        float min_ip = 0;
-        float min_ipchi2 = 0;
         if (isIntermediate && isGood)
         {
+          float min_ip = 0;
+          float min_ipchi2 = 0;
           calcMinIP(candidate, primaryVerticesCand, min_ip, min_ipchi2);
           if (!isInRange(m_intermediate_min_ip[intermediateNumber], min_ip, m_intermediate_max_ip[intermediateNumber])
            || !isInRange(m_intermediate_min_ipchi2[intermediateNumber], min_ipchi2, m_intermediate_max_ipchi2[intermediateNumber]))

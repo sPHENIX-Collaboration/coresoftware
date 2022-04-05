@@ -43,63 +43,64 @@ class G4FieldManager;
 class G4ChordFinder;
 class G4Mag_UsualEqRhs;
 class G4MagIntegratorStepper;
-class G4MagInt_Driver; 
+class G4MagInt_Driver;
 class G4MagneticField;
 class G4TBFieldMessenger;
 class PHField;
 
-class G4TBMagneticFieldSetup 
+class G4TBMagneticFieldSetup
 {
-public:
+ public:
+  G4TBMagneticFieldSetup(PHField* phfield);
+  //  G4TBMagneticFieldSetup(const float magfield) ;
+  //  G4TBMagneticFieldSetup(const std::string &fieldmapfile, const int mapdim, const float magfield_rescale = 1.0) ;
+  // G4TBMagneticFieldSetup contains pointer to memory
+  // copy ctor and = operator need explicit implementation, do just delete it here
+  G4TBMagneticFieldSetup(const G4TBMagneticFieldSetup&) = delete;
+  G4TBMagneticFieldSetup& operator=(G4TBMagneticFieldSetup const&) = delete;
 
+  virtual ~G4TBMagneticFieldSetup();
 
-  G4TBMagneticFieldSetup(PHField * phfield) ;
-//  G4TBMagneticFieldSetup(const float magfield) ;
-//  G4TBMagneticFieldSetup(const std::string &fieldmapfile, const int mapdim, const float magfield_rescale = 1.0) ;
+  void Verbosity(const int verb) { verbosity = verb; }
 
-  virtual ~G4TBMagneticFieldSetup() ;  
-
-  void Verbosity(const int verb) {verbosity = verb;}
-  
-  void SetStepperType( const G4int i) { fStepperType = i ; }
+  void SetStepperType(const G4int i) { fStepperType = i; }
 
   void SetStepper();
 
-  void SetMinStep(const G4double s) { fMinStep = s ; }
+  void SetMinStep(const G4double s) { fMinStep = s; }
 
   void UpdateField();
 
   void SetFieldValue(const G4ThreeVector fieldVector);
-  void SetFieldValue(const G4double      fieldValue);
+  void SetFieldValue(const G4double fieldValue);
 
-  double get_magfield_at_000(const int i) const {return magfield_at_000[i];}
+  double get_magfield_at_000(const int i) const { return magfield_at_000[i]; }
 
-protected:
+ protected:
+  // Find the global Field Manager
+  G4FieldManager* GetGlobalFieldManager();
 
-      // Find the global Field Manager
-  G4FieldManager*         GetGlobalFieldManager() ;
+ private:
+  int verbosity = 0;
 
-private:
-  int verbosity;
-  
-  G4FieldManager*         fFieldManager ;
+  G4FieldManager* fFieldManager = nullptr;
 
-  G4ChordFinder*          fChordFinder ;
+  G4ChordFinder* fChordFinder = nullptr;
 
- G4Mag_UsualEqRhs*   fEquation ;
+  G4Mag_UsualEqRhs* fEquation = nullptr;
 
-  G4MagneticField*        fEMfield;
- 
-  G4ThreeVector           fElFieldValue ; 
+  G4MagneticField* fEMfield = nullptr;
 
-  G4MagIntegratorStepper* fStepper ;
-  G4MagInt_Driver*        fIntgrDriver;
+  G4ThreeVector fElFieldValue;
 
-  G4int                   fStepperType ;
+  G4MagIntegratorStepper* fStepper = nullptr;
+  G4MagInt_Driver* fIntgrDriver = nullptr;
 
-  G4double                fMinStep ;
- 
-  G4TBFieldMessenger*      fFieldMessenger;
+  G4int fStepperType;
+
+  G4double fMinStep;
+
+  G4TBFieldMessenger* fFieldMessenger = nullptr;
 
   double magfield_at_000[3];
 };
