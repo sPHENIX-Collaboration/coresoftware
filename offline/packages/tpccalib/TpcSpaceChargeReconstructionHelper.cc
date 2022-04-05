@@ -27,16 +27,7 @@ namespace
     while( phi >= 2*M_PI ) phi -= 2*M_PI;
     return phi;
   }
-
-  // sector from angle
-  constexpr double get_sector( double phi ) 
-  {
-    int isec = std::floor( (phi+M_PI/12)/(M_PI/6) ); 
-    if( isec < 0 ) isec += 12;
-    if( isec >= 12 ) isec -= 12;
-    return isec;
-  }
-  
+ 
   // angle from a given sector
   constexpr double get_sector_phi( int isec ) { return isec*M_PI/6; }
 
