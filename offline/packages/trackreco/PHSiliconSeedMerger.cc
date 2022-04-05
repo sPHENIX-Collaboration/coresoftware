@@ -95,23 +95,23 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 				mvtx2Keys.end(),
 				std::back_inserter(intersection));
 
-	  if(Verbosity() > 2) 
-	    {
-	      std::cout << "Track 1 keys " << std::endl;
-	      for(auto& key : mvtx1Keys) 
-		{ std::cout << "   ckey: " << key << std::endl; }
-	      std::cout << "Track 2 keys " << std::endl;
-	      for(auto& key : mvtx2Keys) 
-		{ std::cout << "   ckey: " << key << std::endl; }
-	      std::cout << "Intersection keys " << std::endl;
-	      for(auto& key : intersection)
-		{ std::cout << "   ckey: " << key << std::endl; }
-	    }
-
 	  /// If we have two clusters in common in the triplet, it is likely
 	  /// from the same track
 	  if(intersection.size() > 1) 
 	    {
+	      if(Verbosity() > 2) 
+		{
+		  std::cout << "Track " << track1ID << " keys " << std::endl;
+		  for(auto& key : mvtx1Keys) 
+		    { std::cout << "   ckey: " << key << std::endl; }
+		  std::cout << "Track " << track2ID << " keys " << std::endl;
+		  for(auto& key : mvtx2Keys) 
+		    { std::cout << "   ckey: " << key << std::endl; }
+		  std::cout << "Intersection keys " << std::endl;
+		  for(auto& key : intersection)
+		    { std::cout << "   ckey: " << key << std::endl; }
+		}
+
 	      for(auto& key : mvtx2Keys)
 		{
 		  if(mvtx1Keys.find(key) == mvtx1Keys.end())
@@ -127,6 +127,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 
 	      matches.insert(std::make_pair(track1ID, mvtx1Keys)); 
 	      seedsToDelete.insert(track2ID);
+	      break;
 	    }
 	}
     }
@@ -134,17 +135,25 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
   for(const auto& [trackKey, mvtxKeys] : matches)
     {
       auto track = m_siliconTrackMap->get(trackKey);
-     
+      if(Verbosity() > 2)
+	{ std::cout << "original track: " << std::endl; track->identify(); }
+
       for(auto& key : mvtxKeys) 
 	{
 	  if(track->find_cluster_key(key) == track->end_cluster_keys())
-	    { track->insert_cluster_key(key); }
+	    { 
+	      track->insert_cluster_key(key); 
+	      if(Verbosity() > 2) 
+		std::cout << "adding " << key << std::endl;
+	    }
 	}
-     
+      
     }
 
   for(const auto& key : seedsToDelete) 
     {
+      if(Verbosity() > 2 )
+	{ std::cout << "Erasing track " << key << std::endl; }
       m_siliconTrackMap->erase(key);
     }
 
