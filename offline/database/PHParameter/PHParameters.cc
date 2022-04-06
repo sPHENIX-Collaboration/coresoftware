@@ -591,6 +591,7 @@ int PHParameters::ReadFromFile(const std::string &name, const std::string &exten
   {
     std::cout << "No calibration file like " << dir << "/" << fileprefix << " found" << std::endl;
     gSystem->Exit(1);
+    exit(1);
   }
   std::cout << "PHParameters::ReadFromFile - Reading from File: " << (calibfiles.rbegin())->second << " ... ";
   std::string fname = (calibfiles.rbegin())->second;
