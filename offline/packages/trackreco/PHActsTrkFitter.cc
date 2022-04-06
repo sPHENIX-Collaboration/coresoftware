@@ -721,9 +721,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
  
   if(params.covariance())
     {     
-      Acts::BoundSymMatrix rotatedCov = 
-	rotater.rotateActsCovToSvtxTrack(params,
-					  m_tGeometry->geoContext);
+      auto rotatedCov = rotater.rotateActsCovToSvtxTrack(params);
       
       for(int i = 0; i < 6; i++)
 	{
