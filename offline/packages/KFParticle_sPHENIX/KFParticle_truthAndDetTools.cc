@@ -54,7 +54,7 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack* thisTrack, P
     m_svtx_evalstack = new SvtxEvalStack(topNode);
     clustereval = m_svtx_evalstack->get_cluster_eval();
     //hiteval = m_svtx_evalstack->get_hit_eval();
-    //trackeval = m_svtx_evalstack->get_track_eval();
+    trackeval = m_svtx_evalstack->get_track_eval();
     trutheval = m_svtx_evalstack->get_truth_eval();
     vertexeval = m_svtx_evalstack->get_vertex_eval();
   }  
