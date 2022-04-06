@@ -160,11 +160,11 @@ int KFParticle_sPHENIX::End(PHCompositeNode */*topNode*/)
   return 0;
 }
 
-void KFParticle_sPHENIX::printParticles(KFParticle motherParticle,
-                                        KFParticle chosenVertex,
-                                        std::vector<KFParticle> daughterParticles,
-                                        std::vector<KFParticle> intermediateParticles,
-                                        int numPVs, int numTracks)
+void KFParticle_sPHENIX::printParticles(const KFParticle motherParticle,
+                                        const KFParticle chosenVertex,
+                                        const std::vector<KFParticle> &daughterParticles,
+                                        const std::vector<KFParticle> &intermediateParticles,
+                                        const int numPVs, const int numTracks)
 {
   std::cout << "\n---------------KFParticle candidate information---------------" << std::endl;
 
@@ -331,11 +331,10 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     nTracks += 1;
   }
 
-  int trackStart = 0;
   int trackEnd = 0;
   for (unsigned int i = 0; i < intermediates_name.size(); ++i)
   {
-    trackStart = trackEnd;
+    int trackStart = trackEnd;
     trackEnd = m_nTracksFromIntermediates[i] + trackStart;
 
     int vtxCharge = 0;
