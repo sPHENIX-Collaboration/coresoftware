@@ -46,16 +46,9 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const string &name)
   , PHParameterContainerInterface(name)
   , detector(name)
 {
-  m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   SetDefaultParameters();  // sets default timing window
   if (Verbosity() > 0)
     cout << "Creating PHG4MvtxHitReco for name = " << name << endl;
-}
-
-PHG4MvtxHitReco::~PHG4MvtxHitReco()
-{
-  gsl_rng_free(m_RandomGenerator);
-  return;
 }
 
 int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
@@ -164,7 +157,6 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
   // loop over all of the layers in the g4hit container
   PHG4HitContainer::LayerIter layer;
   pair<PHG4HitContainer::LayerIter, PHG4HitContainer::LayerIter> layer_begin_end = g4hit->getLayers();
-  double strobe_time = generate_strobe();
   for (layer = layer_begin_end.first; layer != layer_begin_end.second; ++layer)
   {
     //cout << "---------- PHG4MvtxHitReco:  Looping over layers " << endl;
@@ -202,31 +194,13 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         cout << PHWHERE << "Mvtx layers only go up to three! Quit." << endl;
         exit(1);
       }
-      if (m_use_strobe)
-      {
-        std::pair<double, double> alpide_pulse = generate_alpide_pulse(hiter->second->get_edep()); //Function returns us, we need ns
-        if (Verbosity() > 1)
-        {
-          cout << "MVTX is in strobed timing mode" << endl;
-          cout << " layer " << *layer << " t0 " << hiter->second->get_t(0) << " t1 " << hiter->second->get_t(1) << endl;
-          cout << "strobe_start: " << strobe_time << ", strobe width: " << m_strobe_width << ", strobe separation: " << m_strobe_separation << endl;
-          cout << "alpide pulse start: " << alpide_pulse.first << ", alpide pulse end: " << alpide_pulse.second << endl;
-        }
-        if (strobe_time + m_strobe_width < hiter->second->get_t(0) + alpide_pulse.first) continue;
-        if (strobe_time + m_strobe_width > hiter->second->get_t(0) + alpide_pulse.first + alpide_pulse.second) continue;
-      }
-      else
-      {
-        if (Verbosity() > 1)
-        {
-          cout << "MVTX is in default timing mode" << endl;
-          cout << " layer " << *layer << " t0 " << hiter->second->get_t(0) << " t1 " << hiter->second->get_t(1)
-               << " tmin " << tmin_max[*layer].first << " tmax " << tmin_max[*layer].second
-               << endl;
-        }
-        if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
-        if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
-      }
+      if (Verbosity() > 1)
+        cout << " layer " << *layer << " t0 " << hiter->second->get_t(0) << " t1 " << hiter->second->get_t(1)
+             << " tmin " << tmin_max[*layer].first << " tmax " << tmin_max[*layer].second
+             << endl;
+      if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
+      if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
+
       // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
       int stave_number = hiter->second->get_property_int(PHG4Hit::prop_stave_index);
       int half_stave_number = hiter->second->get_property_int(PHG4Hit::prop_half_stave_index);
@@ -572,25 +546,6 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-pair<double, double> PHG4MvtxHitReco::generate_alpide_pulse(const double energy_deposited)
-{
-  // We need to translate energy deposited to num/ electrons released
-  if (Verbosity() > 2) cout << "energy_deposited: " << energy_deposited << endl;
-  //int silicon_band_gap = 1.12; //Band gap energy in eV
-  int Q_in = rand() % 5000 + 50;
-  int clipping_point = 110;
-  double ToT_start = Q_in < 200 ? 395.85*exp(-0.5*pow((Q_in+851.43)/286.91, 2)) : 0.5;
-  double ToT_end = Q_in < clipping_point ? 5.90*exp(-0.5*pow((Q_in-99.86)/54.80, 2)) : 5.8 - 6.4e-4 * Q_in;
-
-  return make_pair(ToT_start*1e3, ToT_end*1e3);
-}
-
-double PHG4MvtxHitReco::generate_strobe()
-{
-  double t_start = gsl_rng_uniform_pos(m_RandomGenerator)*(m_strobe_separation + m_strobe_width);
-  return t_start*1e3;
 }
 
 void PHG4MvtxHitReco::set_timing_window(const int detid, const double tmin, const double tmax)
