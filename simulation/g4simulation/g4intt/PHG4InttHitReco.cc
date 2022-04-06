@@ -51,6 +51,7 @@ PHG4InttHitReco::PHG4InttHitReco(const std::string &name)
   , m_Detector("INTT")
   , m_Tmin(NAN)
   , m_Tmax(NAN)
+  , m_crossingPeriod(NAN)
 {
   InitializeParameters();
 

@@ -116,7 +116,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double max_active_radius = NAN;
   double min_time = NAN;
   double max_time = NAN;
-  double nominal_max_time = NAN;
 
   //! rng de-allocator
   class Deleter
