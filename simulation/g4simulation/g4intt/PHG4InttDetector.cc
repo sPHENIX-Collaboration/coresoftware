@@ -371,7 +371,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
       const double Rcmax = Rcmin + stave_thickness;  // outer radius of curved section, same at both ends
       double Rcavge = (Rcmax + Rcmin) / 2.0;
       double dphi_c = 23.19859051 * M_PI / 180.;  // phi of the curved section
-      const double stave_z = hdi_z;;
+      const double stave_z = hdi_z;
 
         // Make CFC structure
         //// Make curved sections
@@ -513,12 +513,12 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         m_DisplayAction->AddVolume(staveext_glue_volume, "StaveGlueBox");
 
         G4VSolid *stave_pipe_cons = new G4Tubs((boost::format("stave_pipe_cons_%d_%d") % inttlayer % itype).str(),
-                                               Rpmin, Rpmax, stave_z / 2., -M_PI, 2.0 * M_PI);
+                                               Rpmin, Rpmax, stave_z / 2., 0, 2.0 * M_PI);
         G4LogicalVolume *stave_pipe_volume = new G4LogicalVolume(stave_pipe_cons, GetDetectorMaterial("CFRP_INTT"),
                                                                  (boost::format("stave_pipe_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
         G4VSolid *staveext_pipe_cons = new G4Tubs((boost::format("staveext_pipe_cons_%d_%d") % inttlayer % itype).str(),
-                                                  Rpmin, Rpmax, hdiext_z / 2., -M_PI, 2.0 * M_PI);
+                                                  Rpmin, Rpmax, hdiext_z / 2., 0, 2.0 * M_PI);
         G4LogicalVolume *staveext_pipe_volume = new G4LogicalVolume(staveext_pipe_cons, GetDetectorMaterial("CFRP_INTT"),
                                                                     (boost::format("staveext_pipe_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
@@ -526,12 +526,12 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         m_DisplayAction->AddVolume(staveext_pipe_volume, "StavePipe");
 
         G4VSolid *stave_water_cons = new G4Tubs((boost::format("stave_water_cons_%d_%d") % inttlayer % itype).str(),
-                                                0., Rpmin, stave_z / 2., -M_PI, 2.0 * M_PI);
+                                                0., Rpmin, stave_z / 2., 0, 2.0 * M_PI);
         G4LogicalVolume *stave_water_volume = new G4LogicalVolume(stave_water_cons, GetDetectorMaterial("G4_WATER"),
                                                                   (boost::format("stave_water_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
         G4VSolid *staveext_water_cons = new G4Tubs((boost::format("staveext_water_cons_%d_%d") % inttlayer % itype).str(),
-                                                   0., Rpmin, hdiext_z / 2., -M_PI, 2.0 * M_PI);
+                                                   0., Rpmin, hdiext_z / 2., 0, 2.0 * M_PI);
         G4LogicalVolume *staveext_water_volume = new G4LogicalVolume(staveext_water_cons, GetDetectorMaterial("G4_WATER"),
                                                                      (boost::format("staveext_water_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
@@ -1087,7 +1087,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                                  supportparams->get_double_param("rail_inner_radius") * cm,
                                  supportparams->get_double_param("rail_outer_radius") * cm,
                                  supportparams->get_double_param("rail_length") * cm / 2.0,
-                                 -M_PI, 2.0 * M_PI);
+                                 0, 2.0 * M_PI);
   G4LogicalVolume *rail_volume = new G4LogicalVolume(rail_tube, GetDetectorMaterial("CFRP_INTT"),
                                                      "rail_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
@@ -1116,7 +1116,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   //                                            supportparams->get_double_param("outer_skin_cfcin_inner_radius") * cm,
   //                                            supportparams->get_double_param("outer_skin_cfcin_outer_radius") * cm,
   //                                            supportparams->get_double_param("outer_skin_cfcin_length") * cm / 2.,
-  //                                            -M_PI, 2.0 * M_PI);
+  //                                            0, 2.0 * M_PI);
   // G4LogicalVolume *outer_skin_cfcin_volume = new G4LogicalVolume(outer_skin_cfcin_tube, GetDetectorMaterial("CFRP_INTT"),
   //                                                                "outer_skin_cfcin_volume", 0, 0, 0);
 
@@ -1124,7 +1124,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   //                                           supportparams->get_double_param("outer_skin_foam_inner_radius") * cm,
   //                                           supportparams->get_double_param("outer_skin_foam_outer_radius") * cm,
   //                                           supportparams->get_double_param("outer_skin_foam_length") * cm / 2.,
-  //                                           -M_PI, 2.0 * M_PI);
+  //                                           0, 2.0 * M_PI);
   // G4LogicalVolume *outer_skin_foam_volume = new G4LogicalVolume(outer_skin_foam_tube, GetDetectorMaterial("ROHACELL_FOAM_110"),
   //                                                               "outer_skin_foam_volume", 0, 0, 0);
 
@@ -1132,7 +1132,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   //                                             supportparams->get_double_param("outer_skin_cfcout_inner_radius") * cm,
   //                                             supportparams->get_double_param("outer_skin_cfcout_outer_radius") * cm,
   //                                             supportparams->get_double_param("outer_skin_cfcout_length") * cm / 2.,
-  //                                             -M_PI, 2.0 * M_PI);
+  //                                             0, 2.0 * M_PI);
   // G4LogicalVolume *outer_skin_cfcout_volume = new G4LogicalVolume(outer_skin_cfcout_tube, GetDetectorMaterial("CFRP_INTT"),
   //                                                                 "outer_skin_cfcout_volume", 0, 0, 0);
 
@@ -1140,7 +1140,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 				       supportparams->get_double_param("outer_skin_inner_radius") * cm,
 				       supportparams->get_double_param("outer_skin_outer_radius") * cm,
 				       supportparams->get_double_param("outer_skin_length") * cm / 2.,
-				       -M_PI, 2.0 * M_PI);
+				       0, 2.0 * M_PI);
   G4LogicalVolume *outer_skin_volume = new G4LogicalVolume(outer_skin_tube, GetDetectorMaterial("CFRP_INTT"),
 							   "outer_skin_volume", 0, 0, 0);
 
@@ -1169,7 +1169,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                                        supportparams->get_double_param("inner_skin_inner_radius") * cm,
                                        supportparams->get_double_param("inner_skin_outer_radius") * cm,
                                        supportparams->get_double_param("inner_skin_length") * cm / 2.,
-                                       -M_PI, 2.0 * M_PI);
+                                       0, 2.0 * M_PI);
   G4LogicalVolume *inner_skin_volume = new G4LogicalVolume(inner_skin_tube, GetDetectorMaterial("CFRP_INTT"),
                                                            "inner_skin_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
@@ -1186,7 +1186,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                                        supportparams->get_double_param("service_barrel_outer_inner_radius") * cm,
                                        supportparams->get_double_param("service_barrel_outer_outer_radius") * cm,
                                        supportparams->get_double_param("service_barrel_outer_length") * cm / 2.,
-                                       -M_PI, 2.0 * M_PI);
+                                       0, 2.0 * M_PI);
   G4LogicalVolume *service_barrel_outer_volume = new G4LogicalVolume(service_barrel_outer_tube, GetDetectorMaterial("CFRP_INTT"),
                                                            "service_barrel_outer_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
@@ -1203,7 +1203,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                                        supportparams->get_double_param("support_tube_inner_radius") * cm,
                                        supportparams->get_double_param("support_tube_outer_radius") * cm,
                                        supportparams->get_double_param("support_tube_length") * cm / 2.,
-                                       -M_PI, 2.0 * M_PI);
+                                       0, 2.0 * M_PI);
   G4LogicalVolume *support_tube_volume = new G4LogicalVolume(support_tube_tube, GetDetectorMaterial("CFRP_INTT"),
                                                            "support_tube_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
@@ -1226,7 +1226,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                                       supportparams->get_double_param("endcap_CPring_inner_radius") * cm,
                                       supportparams->get_double_param("endcap_CPring_outer_radius") * cm,
                                       supportparams->get_double_param("endcap_CPring_length") * cm / 2.,
-                                      -M_PI, 2.0 * M_PI);
+                                      0, 2.0 * M_PI);
 
   G4LogicalVolume *endcap_CP_ring_volume = new G4LogicalVolume(endcap_CP_ring, GetDetectorMaterial("CF30_PEEK70"),
                                                                "endcap_CP_ring_volume", 0, 0, 0);
@@ -1238,7 +1238,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                                       supportparams->get_double_param("endcap_AlPEEK_Cring_1_outer_radius") * cm,
                                       supportparams->get_double_param("endcap_AlPEEK_Alring_1_outer_radius") * cm,
                                       supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2.,
-                                      -M_PI, 2.0 * M_PI);
+                                      0 , 2.0 * M_PI);
 
   G4LogicalVolume *endcap_AlPEEK_Alring_1_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_1, GetDetectorMaterial("G4_Al"),
 								     "endcap_AlPEEK_Alring_1_volume", 0, 0, 0);
@@ -1249,7 +1249,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                                       supportparams->get_double_param("endcap_AlPEEK_Alring_2_outer_radius") * cm,
                                       supportparams->get_double_param("endcap_AlPEEK_Cring_1_outer_radius") * cm,
                                       supportparams->get_double_param("endcap_AlPEEK_Cring_length") * cm / 2.,
-                                      -M_PI, 2.0 * M_PI);
+                                      0, 2.0 * M_PI);
 
   G4LogicalVolume *endcap_AlPEEK_Cring_1_volume = new G4LogicalVolume(endcap_AlPEEK_Cring_1, GetDetectorMaterial("CF30_PEEK70"),
 								     "endcap_AlPEEK_Cring_1_volume", 0, 0, 0);
@@ -1260,7 +1260,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                                       supportparams->get_double_param("endcap_AlPEEK_Cring_2_outer_radius") * cm,
                                       supportparams->get_double_param("endcap_AlPEEK_Alring_2_outer_radius") * cm,
                                       supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2.,
-                                      -M_PI, 2.0 * M_PI);
+                                      0, 2.0 * M_PI);
 
   G4LogicalVolume *endcap_AlPEEK_Alring_2_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_2, GetDetectorMaterial("G4_Al"),
 								     "endcap_AlPEEK_Alring_2_volume", 0, 0, 0);
@@ -1271,7 +1271,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                                       supportparams->get_double_param("endcap_AlPEEK_Alring_3_outer_radius") * cm,
                                       supportparams->get_double_param("endcap_AlPEEK_Cring_2_outer_radius") * cm,
                                       supportparams->get_double_param("endcap_AlPEEK_Cring_length") * cm / 2.,
-                                      -M_PI, 2.0 * M_PI);
+                                      0, 2.0 * M_PI);
 
   G4LogicalVolume *endcap_AlPEEK_Cring_2_volume = new G4LogicalVolume(endcap_AlPEEK_Cring_2, GetDetectorMaterial("CF30_PEEK70"),
 								     "endcap_AlPEEK_Cring_2_volume", 0, 0, 0);
@@ -1282,7 +1282,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
                                       supportparams->get_double_param("endcap_AlPEEK_Alring_3_inner_radius") * cm,
                                       supportparams->get_double_param("endcap_AlPEEK_Alring_3_outer_radius") * cm,
                                       supportparams->get_double_param("endcap_AlPEEK_Alring_length") * cm / 2.,
-                                      -M_PI, 2.0 * M_PI);
+                                      0, 2.0 * M_PI);
 
   G4LogicalVolume *endcap_AlPEEK_Alring_3_volume = new G4LogicalVolume(endcap_AlPEEK_Alring_3, GetDetectorMaterial("G4_Al"),
 								       "endcap_AlPEEK_Alring_3_volume", 0, 0, 0);
@@ -1299,7 +1299,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 					  supportparams->get_double_param("endcap_Alring_inner_radius") * cm,
 					  supportparams->get_double_param("endcap_Alring_outer_radius") * cm,
 					  supportparams->get_double_param("endcap_Alring_length") * cm / 2.,
-					  -M_PI, 2.0 * M_PI);
+					  0, 2.0 * M_PI);
 
       G4LogicalVolume *endcap_Al_ring_volume = new G4LogicalVolume(endcap_Al_ring, GetDetectorMaterial("Al6061T6"),
 								   "endcap_Al_ring_volume", 0, 0, 0);
@@ -1309,7 +1309,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 					  supportparams->get_double_param("endcap_SSring_inner_radius") * cm,
 					  supportparams->get_double_param("endcap_SSring_outer_radius") * cm,
 					  supportparams->get_double_param("endcap_SSring_length") * cm / 2.,
-					  -M_PI, 2.0 * M_PI);
+					  0, 2.0 * M_PI);
 
       G4LogicalVolume *endcap_SS_ring_volume = new G4LogicalVolume(endcap_SS_ring, GetDetectorMaterial("SS316"),
 								   "endcap_SS_ring_volume", 0, 0, 0);
@@ -1319,7 +1319,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
 					  supportparams->get_double_param("endcap_WGring_inner_radius") * cm,
 					  supportparams->get_double_param("endcap_WGring_outer_radius") * cm,
 					  supportparams->get_double_param("endcap_WGring_length") * cm / 2.,
-					  -M_PI, 2.0 * M_PI);
+					  0, 2.0 * M_PI);
 
       G4LogicalVolume *endcap_WG_ring_volume = new G4LogicalVolume(endcap_WG_ring, GetDetectorMaterial("WaterGlycol_INTT"),
 								   "endcap_WG_ring_volume", 0, 0, 0);
@@ -1435,7 +1435,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   double inner_radius = bus_extender_radius_innermost;
   G4Tubs *bus_extender_copper_inner = new G4Tubs("bus_extender_coppe_innerr",
 						 inner_radius, inner_radius + bus_extender_copper_x,
-						 bus_extender_length / 2.0, -M_PI, 2.0 * M_PI);
+						 bus_extender_length / 2.0, 0, 2.0 * M_PI);
 
   G4LogicalVolume *bus_extender_copper_inner_volume = new G4LogicalVolume(bus_extender_copper_inner, GetDetectorMaterial("G4_Cu"),
 									  "bus_extender_copper_inner_volume", 0, 0, 0);
@@ -1445,7 +1445,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   inner_radius += bus_extender_copper_x;
   G4Tubs *bus_extender_kapton_inner = new G4Tubs("bus_extender_kapton_inner",
 						 inner_radius, inner_radius + bus_extender_kapton_x,
-						 bus_extender_length / 2.0, -M_PI, 2.0 * M_PI);
+						 bus_extender_length / 2.0, 0, 2.0 * M_PI);
 
   G4LogicalVolume *bus_extender_kapton_inner_volume = new G4LogicalVolume(bus_extender_kapton_inner, GetDetectorMaterial("G4_KAPTON"),
 									  "bus_extender_kapton_inner_volume", 0, 0, 0);
@@ -1455,7 +1455,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   inner_radius += bus_extender_kapton_x;
   G4Tubs *bus_extender_copper_outer = new G4Tubs("bus_extender_copper_outer",
 					   inner_radius, inner_radius + bus_extender_copper_x,
-					   bus_extender_length / 2.0, -M_PI, 2.0 * M_PI);
+					   bus_extender_length / 2.0, 0, 2.0 * M_PI);
 
   G4LogicalVolume *bus_extender_copper_outer_volume = new G4LogicalVolume(bus_extender_copper_outer, GetDetectorMaterial("G4_Cu"),
 									  "bus_extender_copper_outer_volume", 0, 0, 0);
@@ -1465,7 +1465,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
   inner_radius += bus_extender_copper_x;
   G4Tubs *bus_extender_kapton_outer = new G4Tubs("bus_extender_kapton_outer",
 					   inner_radius, inner_radius + bus_extender_kapton_x,
-					   bus_extender_length / 2.0, -M_PI, 2.0 * M_PI);
+					   bus_extender_length / 2.0, 0, 2.0 * M_PI);
 
   G4LogicalVolume *bus_extender_kapton_outer_volume = new G4LogicalVolume(bus_extender_kapton_outer, GetDetectorMaterial("G4_KAPTON"),
 									  "bus_extender_kapton_outer_volume", 0, 0, 0);
