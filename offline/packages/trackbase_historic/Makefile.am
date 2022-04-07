@@ -21,6 +21,8 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsTransformations.h \
+  PHG4ParticleSvtxMap.h \
+  SvtxPHG4ParticleMap.h \
   SvtxTrack.h \
   SvtxTrack_v1.h \
   SvtxTrack_v2.h \
@@ -37,6 +39,8 @@ pkginclude_HEADERS = \
   SvtxVertexMap_v1.h 
 
 ROOTDICTS = \
+  PHG4ParticleSvtxMap_Dict.cc \
+  SvtxPHG4ParticleMap_Dict.cc \
   SvtxTrack_Dict.cc \
   SvtxTrackState_Dict.cc \
   SvtxTrackState_v1_Dict.cc \
@@ -54,6 +58,8 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  PHG4ParticleSvtxMap_Dict_rdict.pcm \
+  SvtxPHG4ParticleMap_Dict_rdict.pcm \
   SvtxTrack_Dict_rdict.pcm \
   SvtxTrackState_Dict_rdict.pcm \
   SvtxTrackState_v1_Dict_rdict.pcm \
@@ -73,6 +79,8 @@ nobase_dist_pcm_DATA = \
 libtrackbase_historic_io_la_SOURCES = \
   $(ROOTDICTS) \
   ActsTransformations.cc \
+  PHG4ParticleSvtxMap.cc \
+  SvtxPHG4ParticleMap.cc \
   SvtxTrackState_v1.cc \
   SvtxTrack.cc \
   SvtxTrack_v1.cc \
