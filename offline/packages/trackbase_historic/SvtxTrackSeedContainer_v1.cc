@@ -31,11 +31,6 @@ SvtxTrackSeedContainer_v1& SvtxTrackSeedContainer_v1::operator=(const SvtxTrackS
   return *this;
 }
 
-SvtxTrackSeedContainer_v1::~SvtxTrackSeedContainer_v1()
-{
-  Reset();
-}
-
 void SvtxTrackSeedContainer_v1::Reset() 
 {
   for(const SvtxTrackSeed* seed : m_seeds)
@@ -44,6 +39,12 @@ void SvtxTrackSeedContainer_v1::Reset()
     }
 
   m_seeds.clear();
+}
+
+// cppcheck-suppress virtualCallInConstructor
+SvtxTrackSeedContainer_v1::~SvtxTrackSeedContainer_v1()
+{
+  Reset();
 }
 
 void SvtxTrackSeedContainer_v1::identify(std::ostream& os) const

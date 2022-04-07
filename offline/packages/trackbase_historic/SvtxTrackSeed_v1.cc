@@ -7,6 +7,8 @@ SvtxTrackSeed_v1::SvtxTrackSeed_v1()
 SvtxTrackSeed_v1::SvtxTrackSeed_v1(const SvtxTrackSeed& seed)
 { SvtxTrackSeed_v1::CopyFrom( seed ); }
 
+// have to suppress uninitMenberVar from cppcheck since it triggers many false positive
+// cppcheck-suppress uninitMemberVar
 SvtxTrackSeed_v1::SvtxTrackSeed_v1(const SvtxTrackSeed_v1& seed)
 { SvtxTrackSeed_v1::CopyFrom( seed ); }
 
