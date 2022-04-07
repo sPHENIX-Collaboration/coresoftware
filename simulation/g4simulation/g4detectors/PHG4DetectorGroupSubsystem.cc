@@ -609,6 +609,19 @@ void PHG4DetectorGroupSubsystem::SetAbsorberActive(const int i)
   }
 }
 
+void PHG4DetectorGroupSubsystem::SetSupportActive(const int detid, const int i)
+{
+  set_int_param(detid, "supportactive", i);
+}
+
+void PHG4DetectorGroupSubsystem::SetSupportActive(const int i)
+{
+  for (auto &detid : m_LayerSet)
+  {
+    set_int_param(detid, "supportactive", i);
+  }
+}
+
 void PHG4DetectorGroupSubsystem::BlackHole(const int detid, const int i)
 {
   set_int_param(detid, "blackhole", i);
