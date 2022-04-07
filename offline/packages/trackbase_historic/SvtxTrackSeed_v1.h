@@ -25,27 +25,30 @@ class SvtxTrackSeed_v1 : public SvtxTrackSeed
   void CopyFrom( const SvtxTrackSeed&) override;
   void CopyFrom( SvtxTrackSeed* seed) override { CopyFrom( *seed ); }
 
-  int get_charge() const override { return (get_positive_charge()) ? 1 : -1; }
-  bool get_positive_charge() const override { return m_is_positive_charge; }
-  float get_px() const override { return m_px; }
-  float get_py() const override { return m_py; }
-  float get_pz() const override { return m_pz; }
-  float get_x() const override { return m_pcax; }
-  float get_y() const override { return m_pcay; }
-  float get_z() const override { return m_pcaz; }
-  float get_phi() const override { return atan2(m_py,m_px); }
-  float get_eta() const override { return asinh(m_pz/get_pt()); }
-  float get_pt() const override { return sqrt(m_px*m_px + m_py*m_py); }
-  float get_p() const override { return sqrt(m_px*m_px + m_py*m_py + m_pz*m_pz); }
+  int get_charge() const override;
+  float get_px() const override;
+  float get_py() const override;
+  float get_pz() const override;
+  float get_x() const override;
+  float get_y() const override;
+  float get_z() const override;
+  float get_phi() const override;
+  float get_eta() const override;
+  float get_theta() const override;
+  float get_pt() const override;
+  float get_p() const override;
   
-  void set_positive_charge(bool pos) override { m_is_positive_charge = pos; }
-  void set_charge(const int charge) override { (charge > 0) ? set_positive_charge(true) : set_positive_charge(false); }
-  void set_px(const float px) override { m_px = px; }
-  void set_py(const float py) override { m_py = py; }
-  void set_pz(const float pz) override { m_pz = pz; }
-  void set_x(const float pcax) override { m_pcax = pcax; }
-  void set_y(const float pcay) override { m_pcay = pcay; }
-  void set_z(const float pcaz) override { m_pcaz = pcaz; }
+  float get_qOverR() const override { return m_qOverR; }
+  float get_X0() const override { return m_X0; }
+  float get_Y0() const override { return m_Y0; }
+  float get_slope() const override { return m_slope; }
+  float get_B() const override { return m_B; }
+
+  void set_qOverR(const float qOverR) override { m_qOverR = qOverR; }
+  void set_X0(const float X0) override { m_X0 = X0; }
+  void set_Y0(const float Y0) override { m_Y0 = Y0; }
+  void set_slope(const float slope) override { m_slope = slope; }
+  void set_B(const float B) override { m_B = B; }
 
   void clear_cluster_keys() override { m_cluster_keys.clear(); }
   bool empty_cluster_keys() const override { return m_cluster_keys.empty(); }
@@ -60,18 +63,26 @@ class SvtxTrackSeed_v1 : public SvtxTrackSeed
   ClusterKeyIter begin_cluster_keys() override { return m_cluster_keys.begin(); }
   ClusterKeyIter end_cluster_keys() override { return m_cluster_keys.end(); }
 
-
- private:
+  /// Updates R, X0, Y0
+  void circleFitByTaubin(TrkrClusterContainer *clusters,
+			 ActsSurfaceMaps *surfMaps, 
+			 ActsTrackingGeometry *tGeometry) override;
+  /// Updates r-z slope and intercept B
+  void lineFit(TrkrClusterContainer *clusters,
+	       ActsSurfaceMaps *surfMaps, 
+	       ActsTrackingGeometry *tGeometry) override;
   
-  bool m_is_positive_charge = false;
+ private:
+  /// Returns transverse PCA to (0,0)
+  void findRoot(float& x ,float& y) const;
+  float findRoot(bool findX) const;
   ClusterKeySet m_cluster_keys;
   
-  float m_px = NAN;
-  float m_py = NAN;
-  float m_pz = NAN;
-  float m_pcax = NAN;
-  float m_pcay = NAN;
-  float m_pcaz = NAN;
+  float m_qOverR = NAN;
+  float m_X0 = NAN;
+  float m_Y0 = NAN;
+  float m_slope = NAN;
+  float m_B = NAN;
 
   ClassDefOverride(SvtxTrackSeed_v1,1);
 
