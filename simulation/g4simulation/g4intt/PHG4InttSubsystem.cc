@@ -33,9 +33,6 @@ using namespace std;
 //_______________________________________________________________________
 PHG4InttSubsystem::PHG4InttSubsystem(const std::string &detectorname, const vpair &layerconfig)
   : PHG4DetectorGroupSubsystem(detectorname)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
   , m_LayerConfigVector(layerconfig)
   , m_DetectorType(detectorname)
 {

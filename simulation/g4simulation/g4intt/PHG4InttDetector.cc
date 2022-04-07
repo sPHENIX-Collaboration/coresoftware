@@ -60,8 +60,6 @@ PHG4InttDetector::PHG4InttDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4InttDisplayAction *>(subsys->GetDisplayAction()))
   , m_ParamsContainer(parameters)
-  , m_IsSupportActive(0)
-  , m_IsEndcapActive(0)
   , m_LayerBeginEndIteratorPair(layer_b_e)
 {
   for (auto layeriter = m_LayerBeginEndIteratorPair.first; layeriter != m_LayerBeginEndIteratorPair.second; ++layeriter)
