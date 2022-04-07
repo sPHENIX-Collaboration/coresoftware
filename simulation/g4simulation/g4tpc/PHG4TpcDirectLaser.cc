@@ -223,6 +223,8 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode* topNode)
     if (!node) dstNode->addNode(node = new PHCompositeNode("SVTX"));
 
     // add track node
+    std::cout << "PHG4TpcDirectLaser::InitRun - creating track map " << m_track_map_name << std::endl;
+    
     m_track_map = new SvtxTrackMap_v1;
     node->addNode(new PHIODataNode<PHObject>(m_track_map, m_track_map_name, "PHObject"));
   }
@@ -335,39 +337,66 @@ void PHG4TpcDirectLaser::SetupLasers()
   // clear previous lasers
   m_lasers.clear();
 
-  // position of first laser at positive z
-
-  const TVector3 position_base(60 * cm, 0., halflength_tpc);
-
-  // add lasers
-  for (int i = 0; i < 8; ++i)
+//   /* nominal laser locations */  
+//   // position of first laser at positive z
+//   const TVector3 position_base(60 * cm, 0., halflength_tpc);
+// 
+//   // add lasers
+//   for (int i = 0; i < 8; ++i)
+//   {
+//     Laser laser;
+// 
+//     // set laser direction
+//     /*
+//      * first four lasers are on positive z readout plane, and shoot towards negative z
+//      * next four lasers are on negative z readout plane and shoot towards positive z
+//      */
+//     laser.m_position = position_base;
+//     if (i < 4)
+//     {
+//       laser.m_position.SetZ(position_base.z());
+//       laser.m_direction = -1;
+//     }
+//     else
+//     {
+//       laser.m_position.SetZ(-position_base.z());
+//       laser.m_direction = 1;
+//     }
+// 
+//     // rotate around z
+//     laser.m_phi = (M_PI/2)*i;
+//     laser.m_position.RotateZ(laser.m_phi);
+// 
+//     // append
+//     m_lasers.push_back(laser);
+//   }
+  
+  /* 
+   * put one laser on the inner field cage, close to the central membrane
+   * to mimick real particles
+   */
+  const TVector3 position_base( 0., 20.01*cm, 1 );
+  for( int i = 0; i < 16; ++i )
   {
     Laser laser;
-
-    // set laser direction
-    /*
-     * first four lasers are on positive z readout plane, and shoot towards negative z
-     * next four lasers are on negative z readout plane and shoot towards positive z
-     */
     laser.m_position = position_base;
-    if (i < 4)
+    if( i < 8 )
     {
-      laser.m_position.SetZ(position_base.z());
+      // positive z lasers 
+      laser.m_position.SetZ( position_base.z() );
+      laser.m_direction = 1;
+    } else {
+      // negative z lasers 
+      laser.m_position.SetZ( -position_base.z() );
       laser.m_direction = -1;
     }
-    else
-    {
-      laser.m_position.SetZ(-position_base.z());
-      laser.m_direction = 1;
-    }
 
-    // rotate around z
-    laser.m_phi = M_PI / 2 * i;
-    laser.m_position.RotateZ(laser.m_phi);
+    laser.m_phi = (M_PI/4)*i;
+    laser.m_position.RotateZ( laser.m_phi );
 
-    // append
-    m_lasers.push_back(laser);
+    m_lasers.push_back( laser );
   }
+  
 }
 
 //_____________________________________________________________
