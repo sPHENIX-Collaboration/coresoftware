@@ -4,6 +4,7 @@
 
 #include <trackbase/TrkrClusterContainerv3.h>
 #include <trackbase/TrkrClusterv3.h>
+#include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHitv2.h>
@@ -71,10 +72,11 @@ namespace
     double m_drift_velocity_scale = 1.0;
     double par0_neg = 0;
     double par0_pos = 0;
+    int cluster_version = 3;
     std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist = nullptr;
     //std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>  *clusterhitassoc = nullptr;
     std::vector<assoc> *association_vector = nullptr;
-    std::vector<TrkrClusterv3*> *cluster_vector = nullptr;
+    std::vector<TrkrCluster*> *cluster_vector = nullptr;
   };
   
   pthread_mutex_t mythreadlock;
@@ -389,9 +391,6 @@ namespace
       // create the cluster entry directly in the node tree
       
       const TrkrDefs::cluskey ckey = TpcDefs::genClusKey( my_data.hitset->getHitSetKey(), iclus );
-      TrkrClusterv3 *clus = new TrkrClusterv3();
-      //auto clus = std::make_unique<TrkrClusterv3>();
-      clus->setClusKey(ckey);
       
       // Estimate the errors
       const double phi_err_square = (phibinhi == phibinlo) ?
@@ -411,10 +410,6 @@ namespace
       // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
       clusz -= (clusz<0) ? my_data.par0_neg:my_data.par0_pos;
       
-      // Fill in the cluster details
-      //================
-      clus->setAdc(adc_sum);
-      
 
       TMatrixF ERR(3, 3);
       ERR[0][0] = 0.0;
@@ -428,9 +423,6 @@ namespace
       ERR[2][2] = z_err_square;
       
      
-      
-      clus->setSubSurfKey(subsurfkey);
-      
       Acts::Vector3 center = surface->center(my_data.tGeometry->geoContext)/Acts::UnitConstants::cm;
       
       // no conversion needed, only used in acts
@@ -458,37 +450,41 @@ namespace
 	  localPos(0) = rClusPhi - surfRphiCenter;
 	  localPos(1) = clusz - surfZCenter; 
 	}
-      clus->setLocalX(localPos(0));
-      clus->setLocalY(localPos(1));
-     
-      // clus->setLocalX(clusx);
-      // clus->setLocalY(clusy);
-      clus->setActsLocalError(0,0, ERR[1][1]);
-      clus->setActsLocalError(1,0, ERR[2][1]);
-      clus->setActsLocalError(0,1, ERR[1][2]);
-      clus->setActsLocalError(1,1, ERR[2][2]);
 
-      // Add the hit associations to the TrkrClusterHitAssoc node
+
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
       
       if(my_data.clusterlist)     
 	{
-	  my_data.cluster_vector->push_back(clus);
-	  /*
-	   * if cluster was properly inserted in the map, one should release the unique_ptr,
-	   * to make sure that the cluster is not deleted when going out-of-scope
-	   */
-	  /*
-	  if( inserted ) clus.release();
-	  else {
-	    // print error message. Duplicated cluster keys should not happen
-	    std::cout 
-	      << PHWHERE 
-	      << "Error: duplicated cluster key: " << ckey << " - new cluster not inserted in map"
-	      << std::endl;        
+	  if(my_data.cluster_version==3){
+	    
+	    // Fill in the cluster details
+	    //================
+	    TrkrClusterv3 *clus = new TrkrClusterv3();
+	    //auto clus = std::make_unique<TrkrClusterv3>();
+	    clus->setClusKey(ckey);
+	    clus->setAdc(adc_sum);      
+	    clus->setSubSurfKey(subsurfkey);      
+	    clus->setLocalX(localPos(0));
+	    clus->setLocalY(localPos(1));
+	    // clus->setLocalX(clusx);
+	    // clus->setLocalY(clusy);
+	    clus->setActsLocalError(0,0, ERR[1][1]);
+	    clus->setActsLocalError(1,0, ERR[2][1]);
+	    clus->setActsLocalError(0,1, ERR[1][2]);
+	    clus->setActsLocalError(1,1, ERR[2][2]);
+	    my_data.cluster_vector->push_back(clus);
+	  }else if(my_data.cluster_version==4){
+	    TrkrClusterv4 *clus = new TrkrClusterv4();
+	    //auto clus = std::make_unique<TrkrClusterv3>();
+	    clus->setClusKey(ckey);
+	    clus->setAdc(adc_sum);      
+	    clus->setSubSurfKey(subsurfkey);      
+	    clus->setLocalX(localPos(0));
+	    clus->setLocalY(localPos(1));
+	    my_data.cluster_vector->push_back(clus);
+	    
 	  }
-	  */
-	  
 	}
 
       //      if(my_data.do_assoc && my_data.clusterhitassoc){
@@ -803,7 +799,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     // thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterMap(hitsetid);
     // thread_pair.data.clusterhitassoc = m_clusterhitassoc;
     thread_pair.data.association_vector  = new std::vector<assoc>;
-    thread_pair.data.cluster_vector  = new std::vector<TrkrClusterv3*>;
+    thread_pair.data.cluster_vector  = new std::vector<TrkrCluster*>;
     thread_pair.data.tGeometry = m_tGeometry;
     thread_pair.data.surfmaps = m_surfMaps;
     thread_pair.data.maxHalfSizeZ =  MaxClusterHalfSizeZ;
@@ -811,6 +807,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.m_drift_velocity_scale = m_drift_velocity_scale;
     thread_pair.data.par0_neg = par0_neg;
     thread_pair.data.par0_pos = par0_pos;
+    thread_pair.data.cluster_version = cluster_version;
     
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
     unsigned short NPhiBinsSector = NPhiBins/12;
