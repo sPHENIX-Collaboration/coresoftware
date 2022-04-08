@@ -20,6 +20,11 @@
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 #include <Geant4/G4Vector3D.hh>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <boost/stacktrace.hpp>
+#pragma GCC diagnostic pop
+
 #include <cassert>  // for assert
 #include <cmath>    // for atan2, cos, sin, sqrt
 #include <cstdlib>  // for exit
@@ -84,6 +89,9 @@ void PHG4OuterHcalField::GetFieldValue(const double Point[4], double* Bfield) co
       std::cout << "layer_RdPhi: " << layer_RdPhi << std::endl;
       std::cout << "layer_width: " << layer_width << std::endl;
       std::cout << "tilt_angle: " << tilt_angle << std::endl;
+      std::cout << "And this is who called it:" << std::endl;
+      std::cout << boost::stacktrace::stacktrace();
+      std::cout << std::endl;
       gSystem->Exit(1);
       exit(1);
     }

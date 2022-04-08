@@ -8,8 +8,8 @@
 #include <gsl/gsl_rng.h>
 
 #include <map>
-#include <string>                              // for string
-#include <utility>                             // for pair
+#include <string>   // for string
+#include <utility>  // for pair
 #include <vector>
 
 class PHCompositeNode;
@@ -40,13 +40,14 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
 
   void DigitizeLadderCells(PHCompositeNode *topNode);
 
-  std::string detector;
   // noise electrons
   float added_noise();
 
-  float mNoiseMean;      // Mean of noise electron distribution
-  float mNoiseSigma;     // Sigma of noise electron distribution
-  float mEnergyPerPair;  // GeV/e-h pair
+  std::string detector = "INTT";
+
+  float mNoiseMean = 457.2;        // Mean of noise electron distribution
+  float mNoiseSigma = 166.6;       // Sigma of noise electron distribution
+  float mEnergyPerPair = 3.62e-9;  // GeV/e-h pair
 
   // settings
   std::map<int, unsigned int> _max_adc;
@@ -58,11 +59,11 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
   const unsigned int nadcbins = 8;
   std::map<int, std::vector<std::pair<double, double> > > _max_fphx_adc;
 
-  unsigned int m_nCells;
-  unsigned int m_nDeadCells;
+  unsigned int m_nCells = 0;
+  unsigned int m_nDeadCells = 0;
 
   //! random generator that conform with sPHENIX standard
-  gsl_rng *RandomGenerator;
+  gsl_rng *RandomGenerator = nullptr;
 };
 
 #endif
