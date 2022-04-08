@@ -31,12 +31,12 @@ namespace InttDefs
 //   8  - 16  ladder z id
 //   0  -  8  ladder phi id
 
-static const unsigned int kBitShiftLadderZIdOffset __attribute__((unused)) = 0;
-static const unsigned int kBitShiftLadderZIdWidth __attribute__((unused)) = 2;
-static const unsigned int kBitShiftLadderPhiIdOffset __attribute__((unused)) = 2;
-static const unsigned int kBitShiftLadderPhiIdWidth __attribute__((unused)) = 4;
 static const unsigned int kBitShiftTimeBucketIdOffset __attribute__((unused)) = 0;
-static const unsigned int kBitShiftTimeBucketIdWidth __attribute__((unused)) = 0;
+static const unsigned int kBitShiftTimeBucketIdWidth __attribute__((unused)) = 10;
+static const unsigned int kBitShiftLadderPhiIdOffset __attribute__((unused)) = 10;
+static const unsigned int kBitShiftLadderPhiIdWidth __attribute__((unused)) = 4;
+static const unsigned int kBitShiftLadderZIdOffset __attribute__((unused)) = 14;
+static const unsigned int kBitShiftLadderZIdWidth __attribute__((unused)) = 2;
 
 // bit shift for hitkey
 static const unsigned int kBitShiftCol __attribute__((unused)) = 16;
@@ -139,6 +139,13 @@ uint16_t getRow(TrkrDefs::hitkey key);
    * @param[out] cluskey
    */
 TrkrDefs::cluskey genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid);
+
+/**
+   * @brief Zero the crossing bits in a copy of the  hitsetkey
+   * @param[in] hitsetkey
+   * @param[out] hitsetkey
+   */
+TrkrDefs::hitsetkey resetCrossingHitSetKey(const TrkrDefs::hitsetkey hitsetkey);
 
 }  // namespace InttDefs
 

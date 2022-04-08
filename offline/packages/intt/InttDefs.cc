@@ -14,8 +14,8 @@ InttDefs::getLadderZId(TrkrDefs::hitsetkey key)
   TrkrDefs::hitsetkey tmp = (key >> InttDefs::kBitShiftLadderZIdOffset);
   // clear the bits not associated with the ladderZId
   uint8_t tmp1 = tmp;
-  tmp1 = (tmp1 <<  (InttDefs::kBitShiftLadderZIdWidth - InttDefs::kBitShiftLadderZIdOffset));
-  tmp1 = (tmp1 >>  (InttDefs::kBitShiftLadderZIdWidth - InttDefs::kBitShiftLadderZIdOffset));
+  tmp1 = (tmp1 <<  (8 - InttDefs::kBitShiftLadderZIdWidth));
+  tmp1 = (tmp1 >>  (8 - InttDefs::kBitShiftLadderZIdWidth));
   return tmp1;
 }
 
@@ -32,8 +32,8 @@ InttDefs::getLadderPhiId(TrkrDefs::hitsetkey key)
   TrkrDefs::hitsetkey tmp = (key >> InttDefs::kBitShiftLadderPhiIdOffset);
   // clear the bits not associated with the ladderPhiId
   uint8_t tmp1 = tmp;
-  tmp1 = (tmp1 <<  (InttDefs::kBitShiftLadderPhiIdWidth - InttDefs::kBitShiftLadderPhiIdOffset));
-  tmp1 = (tmp1 >>  (InttDefs::kBitShiftLadderPhiIdWidth - InttDefs::kBitShiftLadderPhiIdOffset));
+  tmp1 = (tmp1 <<  (8 - InttDefs::kBitShiftLadderPhiIdWidth));
+  tmp1 = (tmp1 >>  (8 - InttDefs::kBitShiftLadderPhiIdWidth));
   return tmp1;
 }
 
@@ -43,8 +43,8 @@ InttDefs::getTimeBucketId(TrkrDefs::hitsetkey key)
   TrkrDefs::hitsetkey tmp = (key >> InttDefs::kBitShiftTimeBucketIdOffset);
   // clear the bits not associated with the TimeBucketId
   uint16_t tmp1 = tmp;
-  tmp1 = (tmp1 <<  (InttDefs::kBitShiftTimeBucketIdWidth - InttDefs::kBitShiftTimeBucketIdOffset));
-  tmp1 = (tmp1 >>  (InttDefs::kBitShiftTimeBucketIdWidth - InttDefs::kBitShiftTimeBucketIdOffset));
+  tmp1 = (tmp1 <<  (16 - InttDefs::kBitShiftTimeBucketIdWidth));
+  tmp1 = (tmp1 >>  (16 - InttDefs::kBitShiftTimeBucketIdWidth));
   return tmp1;
 }
 
@@ -82,12 +82,14 @@ TrkrDefs::hitsetkey
 InttDefs::genHitSetKey(const uint8_t lyr, const uint8_t ladder_z_index, uint8_t ladder_phi_index, uint16_t crossing)
 {
   TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::inttId, lyr);
+
   TrkrDefs::hitsetkey tmp = ladder_z_index;
   key |= (tmp << InttDefs::kBitShiftLadderZIdOffset);
   tmp = ladder_phi_index;
   key |= (tmp << InttDefs::kBitShiftLadderPhiIdOffset);
   tmp = crossing;
   key |= (tmp << InttDefs::kBitShiftTimeBucketIdOffset);
+
   return key;
 }
 
@@ -107,4 +109,14 @@ InttDefs::genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid)
   TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
   key |= clusid;
   return key;
+}
+
+TrkrDefs::hitsetkey
+InttDefs::resetCrossingHitSetKey(const TrkrDefs::hitsetkey hitsetkey)
+{
+   TrkrDefs::hitsetkey tmp = hitsetkey;
+   // zero the crossing bits by shifting them out of the word, then shift back
+   tmp = (tmp >>  InttDefs::kBitShiftTimeBucketIdWidth);
+   tmp = (tmp << InttDefs::kBitShiftTimeBucketIdWidth);
+  return tmp;
 }

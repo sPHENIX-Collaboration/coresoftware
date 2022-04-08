@@ -1,8 +1,7 @@
 #include "ActsTransformations.h"
 #include "SvtxTrackState_v1.h"
 #include <trackbase/TrkrCluster.h>
-
-
+#include <intt/InttDefs.h>
 
 namespace
 {
@@ -341,16 +340,46 @@ Surface ActsTransformations::getSurface(TrkrCluster *cluster,
 Surface ActsTransformations::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey,
 					       ActsSurfaceMaps *maps) const
 {
+  unsigned int trkrid =  TrkrDefs::getTrkrId(hitsetkey);
+  TrkrDefs::hitsetkey tmpkey = hitsetkey;
+
+  if(trkrid == TrkrDefs::inttId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = InttDefs::resetCrossingHitSetKey(hitsetkey);
+      
+      /*
+      std::cout << "Find silicon surface for hitsetkey " << hitsetkey << " tmpkey " << tmpkey << std::endl;      
+      unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+      unsigned int ladder_z_id =  InttDefs::getLadderZId(hitsetkey) ;
+      unsigned int ladder_phi_id = InttDefs::getLadderPhiId(hitsetkey);
+      unsigned int crossing_back =  InttDefs::getTimeBucketId(hitsetkey);
+      std::cout << "   hitsetkey readback: trkrid " << trkrid << " layer " <<  layer << " ladder z id " 
+		<< ladder_z_id << " ladder phi id " << ladder_phi_id << " crossing " 
+		<<  crossing_back << std::endl; 
+      
+      trkrid =  TrkrDefs::getTrkrId(tmpkey);
+      layer = TrkrDefs::getLayer(tmpkey);
+      ladder_z_id =  InttDefs::getLadderZId(tmpkey) ;
+      ladder_phi_id = InttDefs::getLadderPhiId(tmpkey);
+      crossing_back =  InttDefs::getTimeBucketId(tmpkey);
+      std::cout << "   tmpkey readback: trkrid " << trkrid << " layer " <<  layer << " ladder z id " 
+		<< ladder_z_id << " ladder phi id " << ladder_phi_id << " crossing " 
+		<<  crossing_back << std::endl; 
+      */
+    }
+     
   auto surfMap = maps->siliconSurfaceMap;
-  auto iter = surfMap.find(hitsetkey);
+  auto iter = surfMap.find(tmpkey);
   if(iter != surfMap.end())
     {
       return iter->second;
     }
   
   /// If it can't be found, return nullptr
+  std::cout << "Failed to find silicon surface for hitsetkey " << hitsetkey << " tmpkey " << tmpkey << std::endl;
+  
   return nullptr;
-
 }
 
 Surface ActsTransformations::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, 
