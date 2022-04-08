@@ -13,9 +13,9 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/InttDefs.h>
 
 #include <tpc/TpcDefs.h>
-#include <intt/InttDefs.h>
 #include <mvtx/MvtxDefs.h>
 #include <micromegas/MicromegasDefs.h>
 

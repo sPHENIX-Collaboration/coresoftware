@@ -114,6 +114,7 @@ InttDefs::genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid)
 TrkrDefs::hitsetkey
 InttDefs::resetCrossingHitSetKey(const TrkrDefs::hitsetkey hitsetkey)
 {
+  // Note: this method uses the fact that the crossing is in the first 10 bits
    TrkrDefs::hitsetkey tmp = hitsetkey;
    // zero the crossing bits by shifting them out of the word, then shift back
    tmp = (tmp >>  InttDefs::kBitShiftTimeBucketIdWidth);

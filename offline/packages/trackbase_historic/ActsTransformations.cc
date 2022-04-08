@@ -1,7 +1,7 @@
 #include "ActsTransformations.h"
 #include "SvtxTrackState_v1.h"
 #include <trackbase/TrkrCluster.h>
-#include <intt/InttDefs.h>
+#include <trackbase/InttDefs.h>
 
 namespace
 {

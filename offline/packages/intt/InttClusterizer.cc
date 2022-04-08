@@ -1,6 +1,5 @@
 #include "InttClusterizer.h"
 #include "CylinderGeomIntt.h"
-#include "InttDefs.h"
 
 #include <trackbase/TrkrClusterContainerv3.h>
 #include <trackbase/TrkrClusterv3.h>
@@ -10,6 +9,7 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrClusterCrossingAssocv1.h>
+#include <trackbase/InttDefs.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>

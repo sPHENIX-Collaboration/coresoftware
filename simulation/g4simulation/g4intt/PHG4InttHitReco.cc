@@ -13,10 +13,9 @@
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrHitTruthAssocv1.h>
+#include <trackbase/InttDefs.h>
 
 #include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
-
-#include <intt/InttDefs.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -397,16 +396,6 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a sensor for the Intt ?
       // The hitset key includes the layer, the ladder_z_index (sensors numbered 0-3) and  ladder_phi_index (azimuthal location of ladder) for this hit
       TrkrDefs::hitsetkey hitsetkey = InttDefs::genHitSetKey(sphxlayer, ladder_z_index, ladder_phi_index, crossing);
-      std::cout << " hitsetkey " << hitsetkey << " layer " << sphxlayer << " ladder z " << ladder_z_index << " ladder phi " << ladder_phi_index 
-		<< " crossing " << crossing << std::endl;
-      unsigned trkrid =  TrkrDefs::getTrkrId(hitsetkey);
-      unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-      unsigned int ladder_z_id =  InttDefs::getLadderZId(hitsetkey) ;
-      unsigned int ladder_phi_id = InttDefs::getLadderPhiId(hitsetkey);
-      unsigned int crossing_back =  InttDefs::getTimeBucketId(hitsetkey);
-      std::cout << "   Readback: trkrid " << trkrid << " layer " <<  layer << " ladder z id " 
-		<< ladder_z_id << " ladder phi id " << ladder_phi_id << " crossing " 
-		<<  crossing_back << std::endl; 
 
       // Use existing hitset or add new one if needed
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);

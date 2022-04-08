@@ -20,7 +20,6 @@
 #include <g4main/PHG4VtxPoint.h>                    // for PHG4VtxPoint
 #include <g4main/PHG4VtxPointv1.h>
 
-#include <intt/InttDefs.h>
 #include <intt/CylinderGeomIntt.h>
 
 #include <micromegas/MicromegasDefs.h>
@@ -53,6 +52,7 @@
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/InttDefs.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>

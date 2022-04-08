@@ -10,9 +10,9 @@
 
 #include <trackbase/TrkrClusterv1.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/InttDefs.h>
 
 #include <tpc/TpcDefs.h>
-#include <intt/InttDefs.h>
 #include <mvtx/MvtxDefs.h>
 #include <micromegas/MicromegasDefs.h>
 

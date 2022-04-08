@@ -13,7 +13,6 @@
 #include <phool/PHTimer.h>
 
 #include <intt/CylinderGeomIntt.h>
-#include <intt/InttDefs.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -28,6 +27,7 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
+#include <trackbase/InttDefs.h>
  
 #include <Acts/Seeding/BinnedSPGroup.hpp>
 #include <Acts/Seeding/InternalSeed.hpp>

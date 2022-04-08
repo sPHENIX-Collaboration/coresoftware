@@ -8,9 +8,9 @@
 #include "MakeActsGeometry.h"
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/InttDefs.h>
 
 #include <intt/CylinderGeomIntt.h>
-#include <intt/InttDefs.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 #include <mvtx/MvtxDefs.h>
