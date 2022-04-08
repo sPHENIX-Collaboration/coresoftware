@@ -3,19 +3,19 @@
 SvtxPHG4ParticleMap::Map DummySvtxPHG4ParticleMap;
 SvtxPHG4ParticleMap::WeightedTruthTrackMap emptyTruthMap;
 
-const SvtxPHG4ParticleMap::WeightedTruthTrackMap SvtxPHG4ParticleMap::get(unsigned int) const 
+const SvtxPHG4ParticleMap::WeightedTruthTrackMap SvtxPHG4ParticleMap::get(const unsigned int) const 
 {
   return emptyTruthMap;
 }
 
-SvtxPHG4ParticleMap::WeightedTruthTrackMap SvtxPHG4ParticleMap::get(unsigned int) 
+SvtxPHG4ParticleMap::WeightedTruthTrackMap SvtxPHG4ParticleMap::get(const unsigned int) 
 {
   return emptyTruthMap;
 }
 
-SvtxPHG4ParticleMap::ConstIter SvtxPHG4ParticleMap::insert(const WeightedTruthTrackMap)
+SvtxPHG4ParticleMap::WeightedTruthTrackMap SvtxPHG4ParticleMap::insert(const unsigned int, const WeightedTruthTrackMap)
 {
-  return DummySvtxPHG4ParticleMap.end();
+  return emptyTruthMap;
 }
 
 SvtxPHG4ParticleMap::ConstIter SvtxPHG4ParticleMap::begin() const
@@ -23,7 +23,7 @@ SvtxPHG4ParticleMap::ConstIter SvtxPHG4ParticleMap::begin() const
   return DummySvtxPHG4ParticleMap.end();
 }
 
-SvtxPHG4ParticleMap::ConstIter SvtxPHG4ParticleMap::find(unsigned int /*idkey*/) const
+SvtxPHG4ParticleMap::ConstIter SvtxPHG4ParticleMap::find(const unsigned int) const
 {
   return DummySvtxPHG4ParticleMap.end();
 }
@@ -39,7 +39,7 @@ SvtxPHG4ParticleMap::Iter SvtxPHG4ParticleMap::begin()
   return DummySvtxPHG4ParticleMap.end();
 }
 
-SvtxPHG4ParticleMap::Iter SvtxPHG4ParticleMap::find(unsigned int /*idkey*/)
+SvtxPHG4ParticleMap::Iter SvtxPHG4ParticleMap::find(unsigned int)
 {
   return DummySvtxPHG4ParticleMap.end();
 }

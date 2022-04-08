@@ -28,20 +28,20 @@ class SvtxPHG4ParticleMap : public PHObject
   
   virtual bool empty() const { return true; }
   virtual std::size_t size() const { return 0; }
-  virtual std::size_t count() const { return 0; }
+  virtual std::size_t count(const unsigned int key) const { return 0; }
   virtual void clear() {}
 
-  virtual const WeightedTruthTrackMap get(unsigned int) const;
-  virtual WeightedTruthTrackMap get(unsigned int);
-  virtual ConstIter insert(const WeightedTruthTrackMap);
-  virtual std::size_t erase(unsigned int) { return 0; }
+  virtual const WeightedTruthTrackMap get(const unsigned int) const;
+  virtual WeightedTruthTrackMap get(const unsigned int);
+  virtual WeightedTruthTrackMap insert(const unsigned int, const WeightedTruthTrackMap);
+  virtual std::size_t erase(const unsigned int) { return 0; }
 
   virtual ConstIter begin() const;
-  virtual ConstIter find(unsigned int) const;
+  virtual ConstIter find(const unsigned int) const;
   virtual ConstIter end() const;
 
   virtual Iter begin();
-  virtual Iter find(unsigned int);
+  virtual Iter find(const unsigned int);
   virtual Iter end();
 
  protected:
