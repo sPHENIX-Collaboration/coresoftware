@@ -41,21 +41,13 @@
 #include <memory>                                   // for allocator_traits<...
 #include <type_traits>                              // for __decay_and_strip...
 
-using namespace std;
-
-PHG4InttDigitizer::PHG4InttDigitizer(const string &name)
+PHG4InttDigitizer::PHG4InttDigitizer(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-  , detector("INTT")
-  , mNoiseMean(457.2)
-  , mNoiseSigma(166.6)
-  , mEnergyPerPair(3.62e-9)  // GeV/e-h
-  , m_nCells(0)
-  , m_nDeadCells(0)
 {
   InitializeParameters();
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
-  cout << Name() << " random seed: " << seed << endl;
+  std::cout << Name() << " random seed: " << seed << std::endl;
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   gsl_rng_set(RandomGenerator, seed);
 }
@@ -67,7 +59,7 @@ PHG4InttDigitizer::~PHG4InttDigitizer()
 
 int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
 {
-  cout << "PHG4InttDigitizer::InitRun: detector = " << detector << endl;
+  std::cout << "PHG4InttDigitizer::InitRun: detector = " << detector << std::endl;
 
   //-------------
   // Add Hit Node
@@ -79,7 +71,7 @@ int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -89,8 +81,8 @@ int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
 
-  string paramnodename = "G4CELLPARAM_" + detector;
-  string geonodename = "G4CELLGEO_" + detector;
+  std::string paramnodename = "G4CELLPARAM_" + detector;
+  std::string geonodename = "G4CELLGEO_" + detector;
 
   UpdateParametersWithMacro();
   // save this to the run wise tree to store on DST
@@ -121,20 +113,20 @@ int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "====================== PHG4InttDigitizer::InitRun() =====================" << endl;
+    std::cout << "====================== PHG4InttDigitizer::InitRun() =====================" << std::endl;
     for (std::map<int, unsigned int>::iterator iter1 = _max_adc.begin();
          iter1 != _max_adc.end();
          ++iter1)
     {
-      cout << " Max ADC in Layer #" << iter1->first << " = " << iter1->second << endl;
+      std::cout << " Max ADC in Layer #" << iter1->first << " = " << iter1->second << std::endl;
     }
     for (std::map<int, float>::iterator iter2 = _energy_scale.begin();
          iter2 != _energy_scale.end();
          ++iter2)
     {
-      cout << " Energy per ADC in Layer #" << iter2->first << " = " << 1.0e6 * iter2->second << " keV" << endl;
+      std::cout << " Energy per ADC in Layer #" << iter2->first << " = " << 1.0e6 * iter2->second << " keV" << std::endl;
     }
-    cout << "===========================================================================" << endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -165,7 +157,7 @@ void PHG4InttDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
     int layer = layeriter->second->get_layer();
     if (_max_fphx_adc.find(layer) == _max_fphx_adc.end())
     {
-      cout << "Error: _max_fphx_adc is not available." << endl;
+      std::cout << "Error: _max_fphx_adc is not available." << std::endl;
       gSystem->Exit(1);
     }
     float thickness = (layeriter->second)->get_thickness();  // cm
@@ -186,12 +178,12 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
   {
     if (deadmap)
     {
-      cout << "PHG4InttDigitizer::DigitizeLadderCells - Use deadmap ";
+      std::cout << "PHG4InttDigitizer::DigitizeLadderCells - Use deadmap ";
       deadmap->identify();
     }
     else
     {
-      cout << "PHG4InttDigitizer::DigitizeLadderCells - Can not find deadmap, all channels enabled " << endl;
+      std::cout << "PHG4InttDigitizer::DigitizeLadderCells - Can not find deadmap, all channels enabled " << std::endl;
     }
   }
 
@@ -199,7 +191,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
   TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if(!trkrhitsetcontainer)
     {
-      cout << "Could not locate TRKR_HITSET node, quit! " << endl;
+      std::cout << "Could not locate TRKR_HITSET node, quit! " << std::endl;
       exit(1);
     }
 
@@ -224,8 +216,9 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       const int ladder_z = InttDefs::getLadderZId(hitsetkey);
 
       if(Verbosity() > 1) 
-	cout << "PHG4InttDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
-
+      {
+	std::cout << "PHG4InttDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << std::endl;
+      }
       // get all of the hits from this hitset      
       TrkrHitSet *hitset = hitset_iter->second;
       TrkrHitSet::ConstRange hit_range = hitset->getHits();
@@ -256,7 +249,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 
 		  if (Verbosity() >= VERBOSITY_MORE)
 		    {
-		      cout << "PHG4InttDigitizer::DigitizeLadderCells - dead strip at layer " << layer << ": ";
+		      std::cout << "PHG4InttDigitizer::DigitizeLadderCells - dead strip at layer " << layer << ": ";
 		      hit->identify();
 		    }
 
@@ -266,30 +259,36 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 	    }  //    if (deadmap)
 
 	  if (_energy_scale.count(layer) > 1)
+	  {
 	    assert(!"Error: _energy_scale has two or more keys.");
-
+	  }
 	  const float mip_e = _energy_scale[layer];
 
 	  std::vector<std::pair<double, double> > vadcrange = _max_fphx_adc[layer];
 
 	  int adc = 0;
 	  for (unsigned int irange = 0; irange < vadcrange.size(); ++irange)
+	  {
 	    if (hit->getEnergy() / TrkrDefs::InttEnergyScaleup >= vadcrange[irange].first * (double) mip_e && hit->getEnergy() / TrkrDefs::InttEnergyScaleup < vadcrange[irange].second * (double) mip_e)
+	    {
 	      adc = (unsigned short) irange;
-
+	    }
+	  }
 	  hit->setAdc(adc);	      
 
 	  if(Verbosity() > 2)
-	    cout << "PHG4InttDigitizer: found hit with layer "  << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi 
-		 << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << hit->getAdc() << endl;
- 
+	  {
+	    std::cout << "PHG4InttDigitizer: found hit with layer "  << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi 
+		 << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << hit->getAdc() << std::endl;
+	  } 
 	} // end loop over hits in this hitset
 
       // remove hits on dead channel in TRKR_HITSET and TRKR_HITTRUTHASSOC
       for(const auto& key:dead_hits) {
         if(Verbosity() > 2)
-          cout<<" PHG4InttDigitizer: remove hit with key: " << key << endl;
-
+	{
+          std::cout<<" PHG4InttDigitizer: remove hit with key: " << key << std::endl;
+	}
         hitset->removeHit(key);
 
         if( hittruthassoc ) hittruthassoc->removeAssoc(hitsetkey, key);
@@ -304,10 +303,10 @@ int PHG4InttDigitizer::End(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << "PHG4InttDigitizer::End - processed "
+    std::cout << "PHG4InttDigitizer::End - processed "
          << m_nCells << " cell with "
          << m_nDeadCells << " dead cells masked"
-         << " (" << 100. * m_nDeadCells / m_nCells << "%)" << endl;
+         << " (" << 100. * m_nDeadCells / m_nCells << "%)" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -338,7 +337,7 @@ void PHG4InttDigitizer::set_adc_scale(const int &layer, const std::vector<double
 {
   if (userrange.size() != nadcbins)
   {
-    cout << "Error: vector in set_fphx_adc_scale(vector) must have eight elements." << endl;
+    std::cout << "Error: vector in set_fphx_adc_scale(vector) must have eight elements." << std::endl;
     gSystem->Exit(1);
   }
   //sort(userrange.begin(), userrange.end()); // TODO, causes GLIBC error

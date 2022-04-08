@@ -12,8 +12,6 @@
 #include <iostream>
 #include <utility>                     // for pair
 
-using namespace std;
-
 PHG4InttDisplayAction::PHG4InttDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
 {
@@ -133,29 +131,29 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
       visatt->SetColour(G4Colour::Blue());
       visatt->SetVisibility( true );
     }
-    else if (it.second.find("Endcap") != string::npos ) // any Endcap
+    else if (it.second.find("Endcap") != std::string::npos ) // any Endcap
     {
-      if( it.second.find("_Al" ) != string::npos )
+      if( it.second.find("_Al" ) != std::string::npos )
 	visatt->SetColour( colour_endcap_Al );
-      else if( it.second.find("_C" ) != string::npos )
+      else if( it.second.find("_C" ) != std::string::npos )
 	visatt->SetColour( colour_endcap_C );
       else
 	visatt->SetColour( colour_endcap );
       visatt->SetVisibility( true );
     }
-    else if(it.second.find("Glue") != string::npos )
+    else if(it.second.find("Glue") != std::string::npos )
     {
       visatt->SetColour( G4Colour(0.1, 0.1, 0.1, 0.8) );
       visatt->SetVisibility( true  );
 
     }
-    else if( it.second.find( "Copper" ) != string::npos ) // any copper
+    else if( it.second.find( "Copper" ) != std::string::npos ) // any copper
     {
       visatt->SetColour( colour_copper );
       visatt->SetVisibility( true );
 
     }
-    else if (it.second.find("Kapton") != string::npos ) // any Kapton
+    else if (it.second.find("Kapton") != std::string::npos ) // any Kapton
     {
       visatt->SetColour( G4Colour(0.0, 0.590, 1.0, 0.5 ) ); // blue
       visatt->SetVisibility( true );
@@ -169,8 +167,8 @@ void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
     }
     else
     {
-      cout << "did not assign color to " << it.first->GetName()
-	   << " under " << it.second << endl;
+      std::cout << "did not assign color to " << it.first->GetName()
+		<< " under " << it.second << std::endl;
       gSystem->Exit(1);
     }
     logvol->SetVisAttributes(visatt);

@@ -5,8 +5,6 @@
 #include <map>       // for _Rb_tree_const_iterator
 #include <iostream>
 
-using namespace std;
-
 const InttDeadMapv1::Map&
 InttDeadMapv1::getDeadChannels(void) const
 {
