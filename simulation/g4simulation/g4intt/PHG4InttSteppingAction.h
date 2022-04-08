@@ -6,6 +6,7 @@
 #include <g4main/PHG4SteppingAction.h>
 
 #include <map>
+#include <string>
 #include <vector>
 #include <utility>                      // for pair
 

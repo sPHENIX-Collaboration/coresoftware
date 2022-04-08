@@ -39,6 +39,7 @@
 #include <cstdlib>                                 // for exit
 #include <iostream>
 #include <memory>                                   // for allocator_traits<...
+#include <set>
 #include <type_traits>                              // for __decay_and_strip...
 
 PHG4InttDigitizer::PHG4InttDigitizer(const std::string &name)
