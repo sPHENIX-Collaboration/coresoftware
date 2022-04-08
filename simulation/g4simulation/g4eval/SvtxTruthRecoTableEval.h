@@ -38,7 +38,6 @@ class SvtxTruthRecoTableEval : public SubsysReco
 
   PHG4ParticleSvtxMap *m_truthMap = nullptr;
   SvtxPHG4ParticleMap *m_recoMap = nullptr;
-  PHG4TruthInfoContainer *m_truthContainer = nullptr;
   SvtxEvalStack *m_svtxevalstack = nullptr;
 };
 
