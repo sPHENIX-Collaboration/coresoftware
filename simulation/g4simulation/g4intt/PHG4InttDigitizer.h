@@ -8,8 +8,8 @@
 #include <gsl/gsl_rng.h>
 
 #include <map>
-#include <string>                              // for string
-#include <utility>                             // for pair
+#include <string>   // for string
+#include <utility>  // for pair
 #include <vector>
 
 class PHCompositeNode;
@@ -45,8 +45,8 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
 
   std::string detector = "INTT";
 
-  float mNoiseMean = 457.2;      // Mean of noise electron distribution
-  float mNoiseSigma = 166.6;     // Sigma of noise electron distribution
+  float mNoiseMean = 457.2;        // Mean of noise electron distribution
+  float mNoiseSigma = 166.6;       // Sigma of noise electron distribution
   float mEnergyPerPair = 3.62e-9;  // GeV/e-h pair
 
   // settings

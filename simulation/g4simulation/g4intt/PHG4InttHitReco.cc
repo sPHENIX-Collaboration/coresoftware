@@ -6,13 +6,13 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>    // for TrkrHit
-#include <trackbase/TrkrHitv2.h>  // for TrkrHit
+#include <trackbase/TrkrHit.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrHitTruthAssocv1.h>
+#include <trackbase/TrkrHitv2.h>  // for TrkrHit
 
 #include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
@@ -304,19 +304,19 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
 
       if (Verbosity() > 5)
         std::cout << " segment " << i
-             << " interval " << interval
-             << " frac " << frac
-             << " local_in.X " << hiter->second->get_local_x(0)
-             << " local_in.Z " << hiter->second->get_local_z(0)
-             << " local_in.Y " << hiter->second->get_local_y(0)
-             << " pathvec.X " << gsl_vector_get(m_PathVec, 0)
-             << " pathvec.Z " << gsl_vector_get(m_PathVec, 2)
-             << " pathvec.Y " << gsl_vector_get(m_PathVec, 1)
-             << " segvec.X " << gsl_vector_get(m_SegmentVec, 0)
-             << " segvec.Z " << gsl_vector_get(m_SegmentVec, 2)
-             << " segvec.Y " << gsl_vector_get(m_SegmentVec, 1) << std::endl
-             << " diffusion_radius " << diffusion_radius
-             << std::endl;
+                  << " interval " << interval
+                  << " frac " << frac
+                  << " local_in.X " << hiter->second->get_local_x(0)
+                  << " local_in.Z " << hiter->second->get_local_z(0)
+                  << " local_in.Y " << hiter->second->get_local_y(0)
+                  << " pathvec.X " << gsl_vector_get(m_PathVec, 0)
+                  << " pathvec.Z " << gsl_vector_get(m_PathVec, 2)
+                  << " pathvec.Y " << gsl_vector_get(m_PathVec, 1)
+                  << " segvec.X " << gsl_vector_get(m_SegmentVec, 0)
+                  << " segvec.Z " << gsl_vector_get(m_SegmentVec, 2)
+                  << " segvec.Y " << gsl_vector_get(m_SegmentVec, 1) << std::endl
+                  << " diffusion_radius " << diffusion_radius
+                  << std::endl;
 
       // Now find the area of overlap of the diffusion circle with each pixel and apportion the energy
       for (int iz = minstrip_z; iz <= maxstrip_z; iz++)
@@ -344,8 +344,8 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
           if (Verbosity() > 5)
           {
             std::cout << "    strip y index " << iy << " strip z index  " << iz
-                 << " strip area fraction of circle " << striparea_frac << " accumulated pixel energy " << stripenergy[iy - minstrip_y][iz - minstrip_z]
-                 << std::endl;
+                      << " strip area fraction of circle " << striparea_frac << " accumulated pixel energy " << stripenergy[iy - minstrip_y][iz - minstrip_z]
+                      << std::endl;
           }
         }
       }
@@ -360,12 +360,12 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
         {
           vybin.push_back(iy);
           vzbin.push_back(iz);
-	  std::pair<double, double> tmppair = std::make_pair(stripenergy[iy - minstrip_y][iz - minstrip_z], stripeion[iy - minstrip_y][iz - minstrip_z]);
+          std::pair<double, double> tmppair = std::make_pair(stripenergy[iy - minstrip_y][iz - minstrip_z], stripeion[iy - minstrip_y][iz - minstrip_z]);
           venergy.push_back(tmppair);
           if (Verbosity() > 1)
-	  {
+          {
             std::cout << " Added ybin " << iy << " zbin " << iz << " to vectors with energy " << stripenergy[iy - minstrip_y][iz - minstrip_z] << std::endl;
-	  }
+          }
         }
       }
     }
@@ -392,7 +392,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       {
         // Otherwise, create a new one
         //hit = new InttHit();
-	hit = new TrkrHitv2();
+        hit = new TrkrHitv2();
         hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
 

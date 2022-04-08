@@ -10,19 +10,19 @@
 
 #include "PHG4InttDeadMapLoader.h"
 
-#include "InttDeadMap.h"                       // for InttDeadMap
+#include "InttDeadMap.h"  // for InttDeadMap
 #include "InttDeadMapv1.h"
 
 #include <phparameter/PHParameters.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                      // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                    // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 
 // boost headers
@@ -45,7 +45,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <utility>                             // for pair
+#include <utility>  // for pair
 
 PHG4InttDeadMapLoader::PHG4InttDeadMapLoader(const std::string &detector)
   : SubsysReco("PHG4InttDeadMapLoader_" + detector)
@@ -85,7 +85,7 @@ int PHG4InttDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
   assert(deadmap);
 
-  for (const auto& pathiter : m_deadMapPathMap)
+  for (const auto &pathiter : m_deadMapPathMap)
   {
     const unsigned int ilayer = pathiter.first;
     const std::string &deadMapPath = pathiter.second;
@@ -138,7 +138,7 @@ int PHG4InttDeadMapLoader::InitRun(PHCompositeNode *topNode)
           if (Verbosity())
           {
             std::cout << "add Intt dead channel ladder_phi" << ladder_phi << " ladder_z" << ladder_z
-                 << " strip_z" << strip_z << " strip_phi" << strip_phi;
+                      << " strip_z" << strip_z << " strip_phi" << strip_phi;
           }
         }  // if (*tokeniter == "INTT")
         else
@@ -159,7 +159,7 @@ int PHG4InttDeadMapLoader::InitRun(PHCompositeNode *topNode)
     }  //  for (const auto iter = in_par_ranges.first; iter != in_par_ranges.second; ++iter)
 
     std::cout << "PHG4InttDeadMapLoader::" << m_detector << "::InitRun - loading " << counter << " dead channel for layer "
-         << ilayer << " from " << deadMapPath << ". Total dead chan = " << deadmap->size() << std::endl;
+              << ilayer << " from " << deadMapPath << ". Total dead chan = " << deadmap->size() << std::endl;
   }
 
   if (Verbosity())

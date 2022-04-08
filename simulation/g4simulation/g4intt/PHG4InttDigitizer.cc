@@ -9,38 +9,38 @@
 
 // Move to new storage containers
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>                      // for TrkrHit
+#include <trackbase/TrkrHit.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
-#include <phparameter/PHParameterInterface.h>       // for PHParameterInterface
+#include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
 #include <intt/InttDefs.h>
 
-#include <fun4all/Fun4AllBase.h>                    // for Fun4AllBase::VERB...
+#include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERB...
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                     // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNode.h>                           // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
-#include <phool/phool.h>                            // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
 
 #include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>                            // for gsl_rng_alloc
+#include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
 #include <cassert>
 #include <cfloat>
-#include <cstdlib>                                 // for exit
+#include <cstdlib>  // for exit
 #include <iostream>
-#include <memory>                                   // for allocator_traits<...
+#include <memory>  // for allocator_traits<...
 #include <set>
-#include <type_traits>                              // for __decay_and_strip...
+#include <type_traits>  // for __decay_and_strip...
 
 PHG4InttDigitizer::PHG4InttDigitizer(const std::string &name)
   : SubsysReco(name)
@@ -190,16 +190,16 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 
   // Get the TrkrHitSetContainer node
   TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if(!trkrhitsetcontainer)
-    {
-      std::cout << "Could not locate TRKR_HITSET node, quit! " << std::endl;
-      exit(1);
-    }
+  if (!trkrhitsetcontainer)
+  {
+    std::cout << "Could not locate TRKR_HITSET node, quit! " << std::endl;
+    exit(1);
+  }
 
   // Get the TrkrHitTruthAssoc node
   auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
 
- //-------------
+  //-------------
   // Digitization
   //-------------
 
@@ -208,106 +208,106 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
   for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
        hitset_iter != hitset_range.second;
        ++hitset_iter)
+  {
+    // we have an itrator to one TrkrHitSet for the intt from the trkrHitSetContainer
+    // get the hitset key so we can find the layer
+    TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
+    const int layer = TrkrDefs::getLayer(hitsetkey);
+    const int ladder_phi = InttDefs::getLadderPhiId(hitsetkey);
+    const int ladder_z = InttDefs::getLadderZId(hitsetkey);
+
+    if (Verbosity() > 1)
     {
-     // we have an itrator to one TrkrHitSet for the intt from the trkrHitSetContainer
-      // get the hitset key so we can find the layer
-      TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
-      const int layer = TrkrDefs::getLayer(hitsetkey);
-      const int ladder_phi = InttDefs::getLadderPhiId(hitsetkey);
-      const int ladder_z = InttDefs::getLadderZId(hitsetkey);
+      std::cout << "PHG4InttDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << std::endl;
+    }
+    // get all of the hits from this hitset
+    TrkrHitSet *hitset = hitset_iter->second;
+    TrkrHitSet::ConstRange hit_range = hitset->getHits();
+    std::set<TrkrDefs::hitkey> dead_hits;  // hits on dead channel
+    for (TrkrHitSet::ConstIterator hit_iter = hit_range.first;
+         hit_iter != hit_range.second;
+         ++hit_iter)
+    {
+      ++m_nCells;
 
-      if(Verbosity() > 1) 
+      TrkrHit *hit = hit_iter->second;
+      TrkrDefs::hitkey hitkey = hit_iter->first;
+      int strip_col = InttDefs::getCol(hitkey);  // strip z index
+      int strip_row = InttDefs::getRow(hitkey);  // strip phi index
+
+      // Apply deadmap here if desired
+      if (deadmap)
       {
-	std::cout << "PHG4InttDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << std::endl;
+        if (deadmap->isDeadChannelIntt(
+                layer,
+                ladder_phi,
+                ladder_z,
+                strip_col,
+                strip_row))
+        {
+          ++m_nDeadCells;
+
+          if (Verbosity() >= VERBOSITY_MORE)
+          {
+            std::cout << "PHG4InttDigitizer::DigitizeLadderCells - dead strip at layer " << layer << ": ";
+            hit->identify();
+          }
+
+          dead_hits.insert(hit_iter->first);  // store hitkey of dead channels to be remove later
+          continue;
+        }
+      }  //    if (deadmap)
+
+      if (_energy_scale.count(layer) > 1)
+      {
+        assert(!"Error: _energy_scale has two or more keys.");
       }
-      // get all of the hits from this hitset      
-      TrkrHitSet *hitset = hitset_iter->second;
-      TrkrHitSet::ConstRange hit_range = hitset->getHits();
-      std::set<TrkrDefs::hitkey> dead_hits; // hits on dead channel
-      for(TrkrHitSet::ConstIterator hit_iter = hit_range.first;
-	  hit_iter != hit_range.second;
-	  ++hit_iter)
-	{
-	  ++m_nCells;
+      const float mip_e = _energy_scale[layer];
 
-	  TrkrHit *hit = hit_iter->second;
-	  TrkrDefs::hitkey hitkey = hit_iter->first;
-	  int strip_col =  InttDefs::getCol(hitkey);  // strip z index
-	  int strip_row =   InttDefs::getRow(hitkey);  // strip phi index
+      std::vector<std::pair<double, double> > vadcrange = _max_fphx_adc[layer];
 
-	  // Apply deadmap here if desired
-	  if (deadmap)
-	    {
-	      if (deadmap->isDeadChannelIntt(
-					     layer, 
-					     ladder_phi,
-					     ladder_z,
-					     strip_col,
-					     strip_row
-					     ))
-		{
-		  ++m_nDeadCells;
-
-		  if (Verbosity() >= VERBOSITY_MORE)
-		    {
-		      std::cout << "PHG4InttDigitizer::DigitizeLadderCells - dead strip at layer " << layer << ": ";
-		      hit->identify();
-		    }
-
-      dead_hits.insert(hit_iter->first);  // store hitkey of dead channels to be remove later
-		  continue;
-		}
-	    }  //    if (deadmap)
-
-	  if (_energy_scale.count(layer) > 1)
-	  {
-	    assert(!"Error: _energy_scale has two or more keys.");
-	  }
-	  const float mip_e = _energy_scale[layer];
-
-	  std::vector<std::pair<double, double> > vadcrange = _max_fphx_adc[layer];
-
-	  int adc = 0;
-	  for (unsigned int irange = 0; irange < vadcrange.size(); ++irange)
-	  {
-	    if (hit->getEnergy() / TrkrDefs::InttEnergyScaleup >= vadcrange[irange].first * (double) mip_e && hit->getEnergy() / TrkrDefs::InttEnergyScaleup < vadcrange[irange].second * (double) mip_e)
-	    {
-	      adc = (unsigned short) irange;
-	    }
-	  }
-	  hit->setAdc(adc);	      
-
-	  if(Verbosity() > 2)
-	  {
-	    std::cout << "PHG4InttDigitizer: found hit with layer "  << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi 
-		 << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << hit->getAdc() << std::endl;
-	  } 
-	} // end loop over hits in this hitset
-
-      // remove hits on dead channel in TRKR_HITSET and TRKR_HITTRUTHASSOC
-      for(const auto& key:dead_hits) {
-        if(Verbosity() > 2)
-	{
-          std::cout<<" PHG4InttDigitizer: remove hit with key: " << key << std::endl;
-	}
-        hitset->removeHit(key);
-
-        if( hittruthassoc ) hittruthassoc->removeAssoc(hitsetkey, key);
+      int adc = 0;
+      for (unsigned int irange = 0; irange < vadcrange.size(); ++irange)
+      {
+        if (hit->getEnergy() / TrkrDefs::InttEnergyScaleup >= vadcrange[irange].first * (double) mip_e && hit->getEnergy() / TrkrDefs::InttEnergyScaleup < vadcrange[irange].second * (double) mip_e)
+        {
+          adc = (unsigned short) irange;
+        }
       }
-    } // end loop over hitsets
-  
+      hit->setAdc(adc);
+
+      if (Verbosity() > 2)
+      {
+        std::cout << "PHG4InttDigitizer: found hit with layer " << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi
+                  << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << hit->getAdc() << std::endl;
+      }
+    }  // end loop over hits in this hitset
+
+    // remove hits on dead channel in TRKR_HITSET and TRKR_HITTRUTHASSOC
+    for (const auto &key : dead_hits)
+    {
+      if (Verbosity() > 2)
+      {
+        std::cout << " PHG4InttDigitizer: remove hit with key: " << key << std::endl;
+      }
+      hitset->removeHit(key);
+
+      if (hittruthassoc) hittruthassoc->removeAssoc(hitsetkey, key);
+    }
+  }  // end loop over hitsets
+
   return;
 }
 
 //! end of process
-int PHG4InttDigitizer::End(PHCompositeNode */*topNode*/)
+int PHG4InttDigitizer::End(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() >= VERBOSITY_SOME)
   {
     std::cout << "PHG4InttDigitizer::End - processed "
-         << m_nCells << " cell with "
-         << m_nDeadCells << " dead cells masked"
-         << " (" << 100. * m_nDeadCells / m_nCells << "%)" << std::endl;
+              << m_nCells << " cell with "
+              << m_nDeadCells << " dead cells masked"
+              << " (" << 100. * m_nDeadCells / m_nCells << "%)" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -323,8 +323,8 @@ void PHG4InttDigitizer::SetDefaultParameters()
 
 float PHG4InttDigitizer::added_noise()
 {
-//  float noise = gsl_ran_gaussian(RandomGenerator, mNoiseSigma) + mNoiseMean;
-//  noise = (noise < 0) ? 0 : noise;
+  //  float noise = gsl_ran_gaussian(RandomGenerator, mNoiseSigma) + mNoiseMean;
+  //  noise = (noise < 0) ? 0 : noise;
 
   // Note the noise is bi-polar, i.e. can make ths signal fluctuate up and down.
   // Much of the mNoiseSigma as extracted in https://github.com/sPHENIX-Collaboration/coresoftware/pull/580

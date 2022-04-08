@@ -65,7 +65,7 @@ bool InttDeadMap::isDeadChannelIntt(const int layer,
   {
     return true;
   }
-    return false;
+  return false;
 }
 
 int InttDeadMap::isValid() const

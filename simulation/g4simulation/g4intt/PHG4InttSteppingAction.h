@@ -7,8 +7,8 @@
 
 #include <map>
 #include <string>
+#include <utility>  // for pair
 #include <vector>
-#include <utility>                      // for pair
 
 class G4Step;
 class PHCompositeNode;
@@ -29,7 +29,7 @@ class PHG4InttSteppingAction : public PHG4SteppingAction
 
   void SetInterfacePointers(PHCompositeNode *) override;
 
-  void SetHitNodeName(const std::string& type, const std::string& name) override;
+  void SetHitNodeName(const std::string &type, const std::string &name) override;
 
  private:
   //! pointer to the detector
