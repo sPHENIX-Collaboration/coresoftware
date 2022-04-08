@@ -164,10 +164,6 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
     // The rest of this loop will construct and put in place a section of a ladder corresponding to the Z range of this sensor only
     for (int itype = 0; itype < 2; ++itype)
     {
-      if (!(itype >= 0 && itype <= 1))
-      {
-        assert(!"Error: check ladder type.");
-      }
       double strip_z;
       int nstrips_z_sensor;
       switch (itype)

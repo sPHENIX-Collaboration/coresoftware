@@ -226,10 +226,27 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     // What we have is a hit in the sensor. We have not yet assigned the strip(s) that were hit, we do that here
     //========================================================================
 
-    int strip_y_index_in, strip_z_index_in, strip_y_index_out, strip_z_index_out;
+// initialize them. In case find_strip_index_values does not set them we can pick this up
+    int strip_y_index_in = -99999;
+    int strip_z_index_in = -99999;
+    int strip_y_index_out = -99999;
+    int strip_z_index_out = -99999;
+
     layergeom->find_strip_index_values(ladder_z_index, hiter->second->get_local_y(0), hiter->second->get_local_z(0), strip_y_index_in, strip_z_index_in);
     layergeom->find_strip_index_values(ladder_z_index, hiter->second->get_local_y(1), hiter->second->get_local_z(1), strip_y_index_out, strip_z_index_out);
-
+    if (strip_y_index_in ==  -99999 ||
+        strip_z_index_in == -99999 ||
+        strip_y_index_out == -99999 ||
+	strip_z_index_out == -99999)
+    {
+      std::cout << "setting of strip indices failed" << std::endl;
+      std::cout << "strip_y_index_in: " << strip_y_index_in << std::endl;
+      std::cout << "strip_z_index_in: " << strip_z_index_in << std::endl;
+      std::cout << "strip_y_index_out: " << strip_y_index_out << std::endl;
+      std::cout << "strip_z_index_out: " << strip_y_index_out << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
     if (Verbosity() > 5)
     {
       // check to see if we get back the positions from these strip index values
