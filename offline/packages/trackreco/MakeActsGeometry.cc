@@ -1013,7 +1013,9 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
   double check_pos[3] = {0, 0, 0};
   layergeom->find_segment_center(segment_z_bin, segment_phi_bin, check_pos);
 
-  TrkrDefs::hitsetkey intt_hitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin);
+  //  TrkrDefs::hitsetkey intt_hitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin);
+  uint16_t crossing = 0;
+  TrkrDefs::hitsetkey intt_hitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin, crossing);
 
   return intt_hitsetkey;
 }
@@ -1167,8 +1169,8 @@ void MakeActsGeometry::getInttKeyFromNode(TGeoNode *gnode)
   }
 
   // unique key identifying this sensor
-  TrkrDefs::hitsetkey node_key = InttDefs::genHitSetKey(layer, ladder_z, 
-							ladder_phi);
+  uint16_t crossing = 0;
+  TrkrDefs::hitsetkey node_key = InttDefs::genHitSetKey(layer, ladder_z, ladder_phi, crossing);
 
   std::pair<TrkrDefs::hitsetkey, TGeoNode *> tmp = std::make_pair(
 					         node_key, sensor_node);
