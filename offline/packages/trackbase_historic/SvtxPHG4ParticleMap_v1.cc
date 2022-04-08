@@ -17,7 +17,7 @@ SvtxPHG4ParticleMap_v1::SvtxPHG4ParticleMap_v1(const SvtxPHG4ParticleMap_v1& map
 
 SvtxPHG4ParticleMap_v1& SvtxPHG4ParticleMap_v1::operator=(const SvtxPHG4ParticleMap_v1& map)
 {
-  clear();
+  Reset();
   
   for(ConstIter iter = map.begin(); iter != map.end(); ++iter)
     {
@@ -29,11 +29,24 @@ SvtxPHG4ParticleMap_v1& SvtxPHG4ParticleMap_v1::operator=(const SvtxPHG4Particle
 
 SvtxPHG4ParticleMap_v1::~SvtxPHG4ParticleMap_v1() 
 {
+  Reset();
 }
 
 void SvtxPHG4ParticleMap_v1::identify(std::ostream& os) const
 {
   os << "SvtxPHG4ParticleMap_v1 size = " << m_map.size() << std::endl;
+  
+   for(const auto& [trackID, matchedTruthTracks] : m_map)
+    {
+      os << "Reco track " << trackID << " has matched truth tracks " << std::endl;
+      for(const auto& [weight, partset] : matchedTruthTracks) 
+	{
+	  os << "  weight " << weight << " has truth tracks " << std::endl;
+	  for(const auto& g4part : partset)
+	    { os << "    g4id : " << g4part << std::endl; }
+	}
+    }
+
 }
 
 SvtxPHG4ParticleMap::WeightedTruthTrackMap SvtxPHG4ParticleMap_v1::insert(const unsigned int key, const SvtxPHG4ParticleMap::WeightedTruthTrackMap map)

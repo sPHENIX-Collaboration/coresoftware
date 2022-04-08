@@ -25,7 +25,8 @@ class PHG4ParticleSvtxMap : public PHObject
   
   int isValid() const override { return 0; }
   PHObject* CloneMe() const override { return nullptr; }
-  
+  void Reset() override {}
+
   virtual bool empty() const { return true; }
   virtual std::size_t size() const { return 0; }
   virtual std::size_t count(const int) const { return 0; }

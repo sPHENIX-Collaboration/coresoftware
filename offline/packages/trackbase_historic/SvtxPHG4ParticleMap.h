@@ -25,10 +25,10 @@ class SvtxPHG4ParticleMap : public PHObject
   
   int isValid() const override { return 0; }
   PHObject* CloneMe() const override { return nullptr; }
-  
+  void Reset() override {}
   virtual bool empty() const { return true; }
   virtual std::size_t size() const { return 0; }
-  virtual std::size_t count(const unsigned int key) const { return 0; }
+  virtual std::size_t count(const unsigned int) const { return 0; }
   virtual void clear() {}
 
   virtual const WeightedTruthTrackMap get(const unsigned int) const;
