@@ -46,11 +46,6 @@ using namespace std;
 PHG4InttSteppingAction::PHG4InttSteppingAction(PHG4InttDetector* detector, const PHParametersContainer* parameters, const pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator>& layer_begin_end)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
-  , m_Hits(nullptr)
-  , m_AbsorberHits(nullptr)
-  , m_Hit(nullptr)
-  , m_SaveHitContainer(nullptr)
-  , m_SaveShower(nullptr)
   , m_ParamsContainer(parameters)
 {
   // loop over layers to get laddertype nd active status for each layer
@@ -241,11 +236,11 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     if (whichactive > 0)  // return of IsInIntt, > 0 hit in si-strip, < 0 hit in absorber
     {
       // Now save the container we want to add this hit to
-      m_SaveHitContainer = m_Hits;
+      m_SaveHitContainer = m_HitContainer;
     }
     else
     {
-      m_SaveHitContainer = m_AbsorberHits;
+      m_SaveHitContainer = m_AbsorberHitContainer;
     }
 
     if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
@@ -361,18 +356,35 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4InttSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  const string detectorname = (m_Detector->SuperDetector() != "NONE") ? m_Detector->SuperDetector() : m_Detector->GetName();
-  const string hitnodename = "G4HIT_" + detectorname;
-  const string absorbernodename = "G4HIT_ABSORBER_" + detectorname;
-
-  //now look for the map and grab a pointer to it.
-  m_Hits = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_AbsorberNodeName);
 
   // if we do not find the node it's messed up.
-  if (!m_Hits)
-    cout << "PHG4InttSteppingAction::SetTopNode - unable to find " << hitnodename << endl;
+  if (!m_HitContainer)
+  {
+    cout << "PHG4InttSteppingAction::SetTopNode - unable to find " << m_HitNodeName << endl;
+    gSystem->Exit(1);
+  }
 
-  if (!m_AbsorberHits && Verbosity() > 1)
-    cout << "PHG4InttSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+  if (!m_AbsorberHitContainer && Verbosity() > 1)
+  {
+    cout << "PHG4InttSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << endl;
+  }
+}
+
+void PHG4InttSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_ABSORBER")
+  {
+    m_AbsorberNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }

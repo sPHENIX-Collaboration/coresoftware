@@ -68,6 +68,9 @@ class PHG4InttSubsystem : public PHG4DetectorGroupSubsystem
 
   vpair m_LayerConfigVector;
   std::string m_DetectorType;
+
+  std::string m_HitNodeName;
+  std::string m_AbsorberNodeName;
 };
 
 #endif

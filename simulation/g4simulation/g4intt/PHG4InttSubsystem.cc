@@ -84,7 +84,7 @@ int PHG4InttSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     {
       active = 1;
     }
-    if (absorberactive || GetParamsContainer()->GetParameters(*parcontaineriter)->get_int_param("absorberactive"))
+    if (absorberactive || GetParamsContainer()->GetParameters(*parcontaineriter)->get_int_param("absorberactive") || GetParamsContainer()->GetParameters(*parcontaineriter)->get_int_param("supportactive"))
     {
       absorberactive = 1;
     }
@@ -93,36 +93,48 @@ int PHG4InttSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       blackhole = 1;
     }
   }
+  set<string> nodes;
   if (active)
   {
     PHNodeIterator dstIter(dstNode);
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
-    if (!DetNode)
+    PHCompositeNode* DetNode = dstNode;
+    if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
-      DetNode = new PHCompositeNode(SuperDetector());
-      dstNode->addNode(DetNode);
-    }
-    std::string nodename = (SuperDetector() != "NONE") ? boost::str(boost::format("G4HIT_%s") % SuperDetector()) : boost::str(boost::format("G4HIT_%s") % m_DetectorType);
-
-    // create hit list
-    PHG4HitContainer *hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
-    if (!hitcontainer)
-      DetNode->addNode(new PHIODataNode<PHObject>(hitcontainer = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
-
-    if (absorberactive)
-    {
-      nodename = (SuperDetector() != "NONE") ? boost::str(boost::format("G4HIT_ABSORBER_%s") % SuperDetector()) : boost::str(boost::format("G4HIT_ABSORBER_%s") % m_DetectorType);
-
-      hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, nodename.c_str());
-      if (!hitcontainer)
+      PHNodeIterator iter_dst(dstNode);
+      DetNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+      if (!DetNode)
       {
-        DetNode->addNode(new PHIODataNode<PHObject>(hitcontainer = new PHG4HitContainer(nodename), nodename.c_str(), "PHObject"));
+        DetNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(DetNode);
       }
     }
-
+    // create hit output nodes
+    std::string detector_suffix = SuperDetector();
+    if (detector_suffix == "NONE" || detector_suffix.empty())
+    {
+      detector_suffix = Name();
+    }
+    m_HitNodeName = "G4HIT_" + detector_suffix;
+    nodes.insert(m_HitNodeName);
+    m_AbsorberNodeName = "G4HIT_ABSORBER_" + detector_suffix;
+    if (absorberactive)
+    {
+      nodes.insert(m_AbsorberNodeName);
+    }
+    for (auto nodename : nodes)
+    {
+      PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+      if (!g4_hits)
+      {
+        g4_hits = new PHG4HitContainer(nodename);
+        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, nodename, "PHObject"));
+      }
+    }
     // create stepping action
     m_SteppingAction = new PHG4InttSteppingAction(m_Detector, GetParamsContainer(), layer_begin_end);
     m_SteppingAction->Verbosity(Verbosity());
+    m_SteppingAction->SetHitNodeName("G4HIT", m_HitNodeName);
+    m_SteppingAction->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
   }
   else
   {
@@ -277,7 +289,7 @@ void PHG4InttSubsystem::SetDefaultParameters()
 
     // SUPPORTPARAMS //////////////////////////////////////
     // int param
-    set_default_int_param(SUPPORTPARAMS, "supportactive", 1);
+    set_default_int_param(SUPPORTPARAMS, "supportactive", 0);
 
     // double param
     // set_default_double_param(SUPPORTPARAMS, "inner_skin_inner_radius", 6.2416);
