@@ -29,6 +29,7 @@ pkginclude_HEADERS = \
   CMFlashDifferenceContainer.h \
   CMFlashDifferenceContainerv1.h \
   InttDefs.h \
+  MvtxDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
   TrkrCluster.h \
@@ -138,15 +139,16 @@ nobase_dist_pcm_DATA = \
 libtrack_io_la_SOURCES = \
   $(ROOTDICTS) \
   ActsSurfaceMaps.cc \
-  InttDefs.cc \
   CMFlashClusterv1.cc \
   CMFlashClusterContainerv1.cc \
   CMFlashDifferencev1.cc \
   CMFlashDifferenceContainerv1.cc \
+  InttDefs.cc \
+  MvtxDefs.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
   TrkrClusterv3.cc \
-    TrkrClusterContainer.cc \
+  TrkrClusterContainer.cc \
   TrkrClusterContainerv1.cc \
   TrkrClusterContainerv2.cc \
   TrkrClusterContainerv3.cc \

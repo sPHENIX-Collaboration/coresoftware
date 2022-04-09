@@ -23,9 +23,9 @@ namespace InttDefs
 //  Intt specific lower 16 bits
 //   24 - 31  tracker id  // 8 bits
 //   16 - 23  layer       // 8 bits
-//   6 - 15     time bucket  // 10 bits
-//   2 - 5       ladder phi id  // 4 bits
-//   0 - 1       ladder z id   // 2 bits
+//   14 - 15  ladder z id   // 2 bits
+//   10 - 13       ladder phi id  // 4 bits
+//   0 - 9     time bucket  // 10 bits
 
 // old
 //   8  - 16  ladder z id

@@ -11,9 +11,9 @@
 #include <trackbase/TrkrClusterv1.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
 
 #include <tpc/TpcDefs.h>
-#include <mvtx/MvtxDefs.h>
 #include <micromegas/MicromegasDefs.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -340,7 +340,8 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
 	{
 	  unsigned int stave = 0;
 	  unsigned int chip = 0;
-	  ckey = MvtxDefs::genClusKey(layer, stave, chip, iclus);
+	  unsigned int strobe = 0;
+	  ckey = MvtxDefs::genClusKey(layer, stave, chip, strobe, iclus);
 	}
       else if(layer >= _nlayers_maps && layer < _nlayers_maps  + _nlayers_intt)  // in INTT
 	{

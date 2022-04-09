@@ -3,9 +3,9 @@
 #include "PHG4MvtxHitReco.h"
 
 #include <mvtx/CylinderGeom_Mvtx.h>
-#include <mvtx/MvtxDefs.h>
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/MvtxDefs.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
@@ -202,7 +202,11 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
       if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
       double hit_time = (hiter->second->get_t(0) + hiter->second->get_t(1)) / 2.0;
-      short int crossing = (short int) round(hit_time / crossing_period);
+      int strobe = (int) round(hit_time / 5000.0);  // assume 5 microseconds cycle time temporarily  
+      // assume offset of 16 strobe cycles to fit in an unsigned 5 bit integer field in the hitsetkey
+      if(strobe < -16) strobe = -16;
+      if(strobe > 16) strobe = 15;
+      unsigned int strobe_id = strobe + 16;  // temporary place-holder for strobe id
 
       // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
       int stave_number = hiter->second->get_property_int(PHG4Hit::prop_stave_index);
@@ -509,7 +513,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         //====================================
 
         // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a chip for the Mvtx
-        TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(*layer, stave_number, chip_number);
+        TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(*layer, stave_number, chip_number, strobe_id);
         // Use existing hitset or add new one if needed
         TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
 
@@ -527,8 +531,6 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
         // Either way, add the energy to it
         hit->addEnergy(venergy[i1].first * TrkrDefs::MvtxEnergyScaleup);
-
-	hit->setCrossing(crossing);
 
         // now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
         // There is only one TrkrHit per pixel, but there may be multiple g4hits

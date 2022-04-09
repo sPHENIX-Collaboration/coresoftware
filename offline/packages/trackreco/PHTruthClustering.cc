@@ -14,9 +14,9 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
 
 #include <tpc/TpcDefs.h>
-#include <mvtx/MvtxDefs.h>
 #include <micromegas/MicromegasDefs.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -293,7 +293,8 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
 	{
 	  unsigned int stave = 0;
 	  unsigned int chip = 0;
-	  ckey = MvtxDefs::genClusKey(layer, stave, chip, iclus);
+	  unsigned int strobe = 0;
+	  ckey = MvtxDefs::genClusKey(layer, stave, chip, strobe, iclus);
 	}
       else if(layer >= _nlayers_maps && layer < _nlayers_maps  + _nlayers_intt)  // in INTT
 	{

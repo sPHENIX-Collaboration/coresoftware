@@ -2,6 +2,7 @@
 #include "SvtxTrackState_v1.h"
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
 
 namespace
 {
@@ -347,26 +348,12 @@ Surface ActsTransformations::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey,
     {
       // Set the hitsetkey crossing to zero
       tmpkey = InttDefs::resetCrossingHitSetKey(hitsetkey);
-      
-      /*
-      std::cout << "Find silicon surface for hitsetkey " << hitsetkey << " tmpkey " << tmpkey << std::endl;      
-      unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-      unsigned int ladder_z_id =  InttDefs::getLadderZId(hitsetkey) ;
-      unsigned int ladder_phi_id = InttDefs::getLadderPhiId(hitsetkey);
-      unsigned int crossing_back =  InttDefs::getTimeBucketId(hitsetkey);
-      std::cout << "   hitsetkey readback: trkrid " << trkrid << " layer " <<  layer << " ladder z id " 
-		<< ladder_z_id << " ladder phi id " << ladder_phi_id << " crossing " 
-		<<  crossing_back << std::endl; 
-      
-      trkrid =  TrkrDefs::getTrkrId(tmpkey);
-      layer = TrkrDefs::getLayer(tmpkey);
-      ladder_z_id =  InttDefs::getLadderZId(tmpkey) ;
-      ladder_phi_id = InttDefs::getLadderPhiId(tmpkey);
-      crossing_back =  InttDefs::getTimeBucketId(tmpkey);
-      std::cout << "   tmpkey readback: trkrid " << trkrid << " layer " <<  layer << " ladder z id " 
-		<< ladder_z_id << " ladder phi id " << ladder_phi_id << " crossing " 
-		<<  crossing_back << std::endl; 
-      */
+    }
+
+  if(trkrid == TrkrDefs::mvtxId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);
     }
      
   auto surfMap = maps->siliconSurfaceMap;

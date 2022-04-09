@@ -21,12 +21,18 @@ namespace MvtxDefs
 {
 // hitsetkey layout:
 //  Mvtx specific lower 16 bits
-//   24 - 32  tracker id
-//   16 - 24  layer
-//   8  - 16  stave id
-//   0  -  8  chip id
-static const unsigned int kBitShiftStaveId __attribute__((unused)) = 8;
-static const unsigned int kBitShiftChipId __attribute__((unused)) = 0;
+//   24 - 31  tracker id  // 8 bits
+//   16 - 23  layer   // 8 bits
+//     9 - 15  stave id // 7 bits
+//     5 - 8     chip  id // 4 bits
+//     0-4   strobe  id // 5 bits
+
+static const unsigned int kBitShiftStaveIdOffset __attribute__((unused)) = 9;
+static const unsigned int kBitShiftStaveIdWidth __attribute__((unused)) = 7;
+static const unsigned int kBitShiftChipIdOffset __attribute__((unused)) = 5;
+static const unsigned int kBitShiftChipIdWidth __attribute__((unused)) = 4;
+static const unsigned int kBitShiftStrobeIdOffset __attribute__((unused)) = 0;
+static const unsigned int kBitShiftStrobeIdWidth __attribute__((unused)) = 5;
 
 // bit shift for hitkey
 static const unsigned int kBitShiftCol __attribute__((unused)) = 16;
@@ -65,9 +71,23 @@ uint8_t getChipId(TrkrDefs::hitsetkey key);
 uint8_t getChipId(TrkrDefs::cluskey key);
 
 /**
-   * @brief Get the column index from hitkey
-   * @param[in] hitkey
-   * @param[out] column index
+   * @brief Get the chip id from hitsetkey
+   * @param[in] hitsetkey
+   * @param[out] chip id
+   */
+uint8_t getStrobeId(TrkrDefs::hitsetkey key);
+
+/**
+   * @brief Get the strobe id from hitsetkey
+   * @param[in] hitsetkey
+   * @param[out] strobe id
+   */
+uint8_t getStrobeId(TrkrDefs::cluskey key);
+
+/**
+   * @brief Get the strobe id from the cluskey
+   * @param[in] cluskey
+   * @param[out] strobe id
    */
 uint16_t getCol(TrkrDefs::hitkey key);
 
@@ -96,17 +116,16 @@ TrkrDefs::hitkey genHitKey(const uint16_t col, const uint16_t row);
    * Generate a hitsetkey for the mvtx. The tracker id is known
    * implicitly and used in the function.
    */
-TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip);
+ TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const uint8_t strobe);
 
 /**
    * @brief Generate a cluster key from indeces 
    * @param[in] lyr Layer index
    * @param[in] stave Stave index
    * @param[in] chip Chip index
-   * @param[in] clusid Cluster id
-   * @param[out] cluskey
+   * @param[in] strobe  strobe id
    */
-TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid);
+ TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const uint8_t strobe, const uint32_t clusid);
 
 /**
    * @brief Generate a cluster key using a hitsetkey and cluster id
@@ -115,6 +134,13 @@ TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t stave, const uint8
    * @param[out] cluskey
    */
 TrkrDefs::cluskey genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid);
+
+/**
+   * @brief Zero the strobe bits in the hitsetkey
+   * @param[in] hskey hitsetkey
+   * @param[out] hitsetkey with strobe bits set to zero
+   */
+ TrkrDefs::hitsetkey resetStrobeHitSetKey(const TrkrDefs::hitsetkey hitsetkey);
 
 }  // namespace MvtxDefs
 
