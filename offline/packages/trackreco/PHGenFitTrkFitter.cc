@@ -25,7 +25,6 @@
 #include <micromegas/MicromegasDefs.h>
 #include <micromegas/CylinderGeomMicromegas.h>
 
-#include <mvtx/MvtxDefs.h>
 #include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <phfield/PHFieldUtility.h>
@@ -53,6 +52,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
