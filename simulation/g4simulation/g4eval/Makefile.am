@@ -58,6 +58,7 @@ pkginclude_HEADERS = \
   SvtxClusterEval.h \
   SvtxTrackEval.h \
   SvtxTruthEval.h \
+  SvtxTruthRecoTableEval.h \
   SvtxVertexEval.h \
   TrackEvaluation.h \
   DSTEmulator.h \
@@ -100,6 +101,7 @@ libg4eval_la_SOURCES = \
   SvtxHitEval.cc \
   SvtxClusterEval.cc \
   SvtxTrackEval.cc \
+  SvtxTruthRecoTableEval.cc \
   SvtxVertexEval.cc \
   SvtxEvaluator.cc \
   TrackEvaluation.cc \
