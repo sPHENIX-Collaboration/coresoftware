@@ -7,8 +7,6 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
-#include <mvtx/MvtxDefs.h>
-
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrkrCluster.h>
@@ -17,6 +15,7 @@
 #include <trackbase/TrkrDefs.h>  // for getTrkrId, getHit...
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/MvtxDefs.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 
