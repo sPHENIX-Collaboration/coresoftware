@@ -6,8 +6,9 @@
 #include <g4main/PHG4SteppingAction.h>
 
 #include <map>
+#include <string>
+#include <utility>  // for pair
 #include <vector>
-#include <utility>                      // for pair
 
 class G4Step;
 class PHCompositeNode;
@@ -28,17 +29,19 @@ class PHG4InttSteppingAction : public PHG4SteppingAction
 
   void SetInterfacePointers(PHCompositeNode *) override;
 
+  void SetHitNodeName(const std::string &type, const std::string &name) override;
+
  private:
   //! pointer to the detector
-  PHG4InttDetector *m_Detector;
+  PHG4InttDetector *m_Detector = nullptr;
 
   //! pointer to hit container
-  PHG4HitContainer *m_Hits;
-  PHG4HitContainer *m_AbsorberHits;
-  PHG4Hit *m_Hit;
-  PHG4HitContainer *m_SaveHitContainer;
-  PHG4Shower *m_SaveShower;
-  const PHParametersContainer *m_ParamsContainer;
+  PHG4HitContainer *m_HitContainer = nullptr;
+  PHG4HitContainer *m_AbsorberHitContainer = nullptr;
+  PHG4Hit *m_Hit = nullptr;
+  PHG4HitContainer *m_SaveHitContainer = nullptr;
+  PHG4Shower *m_SaveShower = nullptr;
+  const PHParametersContainer *m_ParamsContainer = nullptr;
 
   std::map<int, int> m_InttToTrackerLayerMap;
   std::map<int, int> m_LadderTypeMap;
@@ -49,6 +52,8 @@ class PHG4InttSteppingAction : public PHG4SteppingAction
 
   std::map<int, int> m_IsActiveMap;
   std::map<int, int> m_IsBlackHoleMap;
+  std::string m_AbsorberNodeName;
+  std::string m_HitNodeName;
 };
 
 #endif  // G4INTT_PHG4INTTSTEPPINGACTION_H

@@ -60,6 +60,9 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   void SetAbsorberActive(const int i = 1);
   void SetAbsorberTruth(const int detid, const int i);
   void SetAbsorberTruth(const int i = 1);
+  void SetSupportActive(const int detid, const int i = 1);
+  void SetSupportActive(const int i = 1);
+
   void BlackHole(const int detid, const int i);
   void BlackHole(const int i = 1);
   void SuperDetector(const std::string &name);

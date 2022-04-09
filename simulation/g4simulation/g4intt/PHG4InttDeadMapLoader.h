@@ -26,7 +26,7 @@ class PHG4InttDeadMapLoader : public SubsysReco
  public:
   explicit PHG4InttDeadMapLoader(const std::string& detector = "SILICON_TRACKER");
 
-  ~PHG4InttDeadMapLoader() override;
+  ~PHG4InttDeadMapLoader() override {}
 
   int InitRun(PHCompositeNode* topNode) override;
 
