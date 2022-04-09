@@ -121,7 +121,6 @@ libtrackbase_historic_io_la_LIBADD = \
   -lActsCore \
   -lActsFatras \
   -ltrack_io \
-  -lintt_io \
   -lActsExamplesFramework
 
 # Rule for generating table CINT dictionaries.
