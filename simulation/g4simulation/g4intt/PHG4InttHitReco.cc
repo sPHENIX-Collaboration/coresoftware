@@ -7,7 +7,7 @@
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>    // for TrkrHit
-#include <trackbase/TrkrHitv3.h>  // for TrkrHit
+#include <trackbase/TrkrHitv2.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
@@ -407,7 +407,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       if (!hit)
       {
         // Otherwise, create a new one
-	hit = new TrkrHitv3();
+	hit = new TrkrHitv2();
         hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
 
@@ -415,8 +415,6 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       if (Verbosity() > 2)
         cout << "add energy " << venergy[i1].first << " to intthit " << endl;
       hit->addEnergy(venergy[i1].first * TrkrDefs::InttEnergyScaleup);
-      // Add the hit crossing
-      hit->setCrossing(crossing);
 
       // Add this hit to the association map
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);

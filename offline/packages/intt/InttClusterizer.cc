@@ -5,7 +5,7 @@
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitv3.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrClusterCrossingAssocv1.h>
@@ -383,13 +383,17 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator mapiter = clusrange.first;
 	
 	// make the cluster directly in the node tree
+	TrkrDefs::hitsetkey hitsetkey = hitset->getHitSetKey();
 	TrkrDefs::cluskey ckey = InttDefs::genClusKey(hitset->getHitSetKey(), clusid);
 	auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setClusKey(ckey);
 
 	if (Verbosity() > 2)
 	  cout << "Filling cluster with key " << ckey << endl;
-		
+
+	// get the bunch crossing number from the hitsetkey
+	short int crossing = InttDefs::getTimeBucketId(hitsetkey);
+
 	// determine the size of the cluster in phi and z, useful for track fitting the cluster
 	set<int> phibins;
 	set<int> zbins;
@@ -414,10 +418,6 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    // mapiter->second.second is the hit
 	    unsigned int hit_adc = (mapiter->second).second->getAdc();
 
-	    // get the bunch crossing number from the hit 
-	    short int crossing = (mapiter->second).second->getCrossing();
-
-	    //std::cout << PHWHERE <<  "                 hit crossing " << crossing << std::endl;
 	    // Add clusterkey/bunch crossing to mmap
 	    m_clustercrossingassoc->addAssoc(ckey, crossing);
 

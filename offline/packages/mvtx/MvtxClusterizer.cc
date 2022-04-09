@@ -14,7 +14,7 @@
 #include <trackbase/TrkrClusterContainerv3.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrDefs.h>                     // for hitkey, getLayer
-#include <trackbase/TrkrHitv3.h>
+#include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
