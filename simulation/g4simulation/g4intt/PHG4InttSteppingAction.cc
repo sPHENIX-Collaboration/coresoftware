@@ -9,48 +9,41 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-#include <g4main/PHG4SteppingAction.h>          // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
 #include <TSystem.h>
 
-#include <Geant4/G4ParticleDefinition.hh>       // for G4ParticleDefinition
-#include <Geant4/G4ReferenceCountedHandle.hh>   // for G4ReferenceCountedHandle
+#include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
+#include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh>                // for G4StepPoint
-#include <Geant4/G4StepStatus.hh>               // for fGeomBoundary, fAtRes...
-#include <Geant4/G4String.hh>                   // for G4String
+#include <Geant4/G4StepPoint.hh>   // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fAtRes...
+#include <Geant4/G4String.hh>      // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4TouchableHandle.hh>
-#include <Geant4/G4Track.hh>                    // for G4Track
-#include <Geant4/G4TrackStatus.hh>              // for fStopAndKill
-#include <Geant4/G4Types.hh>                    // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>          // for G4VPhysicalVolume
-#include <Geant4/G4VTouchable.hh>               // for G4VTouchable
-#include <Geant4/G4VUserTrackInformation.hh>    // for G4VUserTrackInformation
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4TrackStatus.hh>            // for fStopAndKill
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
-#include <cassert>                             // for assert
+#include <cassert>  // for assert
 #include <iostream>
-#include <set>                                  // for set
-#include <string>                               // for operator<<, string
-#include <tuple>                                // for tie, tuple
+#include <set>     // for set
+#include <string>  // for operator<<, string
+#include <tuple>   // for tie, tuple
 
 class PHCompositeNode;
 
-using namespace std;
-
 //____________________________________________________________________________..
-PHG4InttSteppingAction::PHG4InttSteppingAction(PHG4InttDetector* detector, const PHParametersContainer* parameters, const pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator>& layer_begin_end)
+PHG4InttSteppingAction::PHG4InttSteppingAction(PHG4InttDetector* detector, const PHParametersContainer* parameters, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator>& layer_begin_end)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
-  , m_Hits(nullptr)
-  , m_AbsorberHits(nullptr)
-  , m_Hit(nullptr)
-  , m_SaveHitContainer(nullptr)
-  , m_SaveShower(nullptr)
   , m_ParamsContainer(parameters)
 {
   // loop over layers to get laddertype nd active status for each layer
@@ -60,18 +53,18 @@ PHG4InttSteppingAction::PHG4InttSteppingAction(PHG4InttDetector* detector, const
     const PHParameters* par = m_ParamsContainer->GetParameters(layer);
     m_IsActiveMap[layer] = par->get_int_param("active");
     m_IsBlackHoleMap[layer] = par->get_int_param("blackhole");
-    m_LadderTypeMap.insert(make_pair(layer, par->get_int_param("laddertype")));
-    m_InttToTrackerLayerMap.insert(make_pair(layeriter->second, layeriter->first));
+    m_LadderTypeMap.insert(std::make_pair(layer, par->get_int_param("laddertype")));
+    m_InttToTrackerLayerMap.insert(std::make_pair(layeriter->second, layeriter->first));
   }
 
   // Get the parameters for each laddertype
   for (auto iter = PHG4InttDefs::m_SensorSegmentationSet.begin(); iter != PHG4InttDefs::m_SensorSegmentationSet.end(); ++iter)
   {
     const PHParameters* par = m_ParamsContainer->GetParameters(*iter);
-    m_StripYMap.insert(make_pair(*iter, par->get_double_param("strip_y") * cm));
-    m_StripZMap.insert(make_pair(*iter, make_pair(par->get_double_param("strip_z_0") * cm, par->get_double_param("strip_z_1") * cm)));
-    m_nStripsPhiCell.insert(make_pair(*iter, par->get_int_param("nstrips_phi_cell")));
-    m_nStripsZSensor.insert(make_pair(*iter, make_pair(par->get_int_param("nstrips_z_sensor_0"), par->get_int_param("nstrips_z_sensor_1"))));
+    m_StripYMap.insert(std::make_pair(*iter, par->get_double_param("strip_y") * cm));
+    m_StripZMap.insert(std::make_pair(*iter, std::make_pair(par->get_double_param("strip_z_0") * cm, par->get_double_param("strip_z_1") * cm)));
+    m_nStripsPhiCell.insert(std::make_pair(*iter, par->get_int_param("nstrips_phi_cell")));
+    m_nStripsZSensor.insert(std::make_pair(*iter, std::make_pair(par->get_int_param("nstrips_z_sensor_0"), par->get_int_param("nstrips_z_sensor_1"))));
   }
 }
 
@@ -103,11 +96,11 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
   if (Verbosity() > 0)
   {
-    cout << endl
-         << "PHG4SilicoTrackerSteppingAction::UserSteppingAction for volume name (pre) " << touch->GetVolume()->GetName()
-         << " volume name (1) " << touch->GetVolume(1)->GetName()
-         << " volume->GetTranslation " << touch->GetVolume()->GetTranslation()
-         << endl;
+    std::cout << std::endl
+              << "PHG4SilicoTrackerSteppingAction::UserSteppingAction for volume name (pre) " << touch->GetVolume()->GetName()
+              << " volume name (1) " << touch->GetVolume(1)->GetName()
+              << " volume->GetTranslation " << touch->GetVolume()->GetTranslation()
+              << std::endl;
   }
 
   // set ladder index
@@ -123,18 +116,20 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // the ladder also contains inactive volumes but we check in m_Detector->IsInIntt(volume)
     // if we are in an active logical volume whioch is located in this ladder
     auto iter = m_Detector->get_ActiveVolumeTuple(touch->GetVolume(1));
-    tie(inttlayer, ladderz, ladderphi, zposneg) = iter->second;
+    std::tie(inttlayer, ladderz, ladderphi, zposneg) = iter->second;
     if (Verbosity() > 0)
-      cout << "     inttlayer " << inttlayer << " ladderz_base " << ladderz << " ladderphi " << ladderphi << " zposneg " << zposneg << endl;
+    {
+      std::cout << "     inttlayer " << inttlayer << " ladderz_base " << ladderz << " ladderphi " << ladderphi << " zposneg " << zposneg << std::endl;
+    }
     if (inttlayer < 0 || inttlayer > 7)
     {
       assert(!"PHG4InttSteppingAction: check Intt ladder layer.");
     }
     sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
-    map<int, int>::const_iterator activeiter = m_IsActiveMap.find(inttlayer);
+    std::map<int, int>::const_iterator activeiter = m_IsActiveMap.find(inttlayer);
     if (activeiter == m_IsActiveMap.end())
     {
-      cout << "PHG4InttSteppingAction: could not find active flag for layer " << inttlayer << endl;
+      std::cout << "PHG4InttSteppingAction: could not find active flag for layer " << inttlayer << std::endl;
       gSystem->Exit(1);
     }
     if (activeiter->second == 0)
@@ -145,7 +140,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   else  // whichactive < 0, silicon inactive area, FPHX, stabe etc. as absorbers
   {
     auto iter = m_Detector->get_PassiveVolumeTuple(touch->GetVolume(0)->GetLogicalVolume());
-    tie(inttlayer, ladderz) = iter->second;
+    std::tie(inttlayer, ladderz) = iter->second;
     sphxlayer = inttlayer;  //for absorber we use the Intt layer, not the tracking layer in sPHENIX
   }                         // end of si inactive area block
 
@@ -166,17 +161,17 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   // the check for the pdg code speeds things up, I do not want to make
   // an expensive string compare for every track when we know
   // geantino or chargedgeantino has pid=0
-  if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 && aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+  if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 && aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
   {
     geantino = true;
   }
 
   if (Verbosity() > 1)
   {
-    cout << " aTrack->GetTrackID " << aTrack->GetTrackID() << " aTrack->GetParentID " << aTrack->GetParentID()
-         << " Intt layer " << inttlayer
-         << " prePoint step status = " << prePoint->GetStepStatus() << " postPoint step status = " << postPoint->GetStepStatus()
-         << endl;
+    std::cout << " aTrack->GetTrackID " << aTrack->GetTrackID() << " aTrack->GetParentID " << aTrack->GetParentID()
+              << " Intt layer " << inttlayer
+              << " prePoint step status = " << prePoint->GetStepStatus() << " postPoint step status = " << postPoint->GetStepStatus()
+              << std::endl;
   }
   switch (prePoint->GetStepStatus())
   {
@@ -185,8 +180,8 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     if (Verbosity() > 1)
     {
-      cout << "  start new g4hit for:  aTrack->GetParentID " << aTrack->GetParentID() << " aTrack->GetTrackID " << aTrack->GetTrackID() << " Intt layer " << inttlayer
-           << "   prePoint step status  = " << prePoint->GetStepStatus() << " postPoint->GetStepStatus = " << postPoint->GetStepStatus() << endl;
+      std::cout << "  start new g4hit for:  aTrack->GetParentID " << aTrack->GetParentID() << " aTrack->GetTrackID " << aTrack->GetTrackID() << " Intt layer " << inttlayer
+                << "   prePoint step status  = " << prePoint->GetStepStatus() << " postPoint->GetStepStatus = " << postPoint->GetStepStatus() << std::endl;
     }
     // if previous hit was saved, hit pointer was set to nullptr
     // and we have to make a new one
@@ -200,7 +195,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
     }
-    if(Verbosity() > 0) cout << "     ladderz = " << ladderz << endl;
+    if (Verbosity() > 0) std::cout << "     ladderz = " << ladderz << std::endl;
 
     m_Hit->set_ladder_z_index(ladderz);
 
@@ -223,10 +218,10 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     if (Verbosity() > 0)
     {
-      cout << "     prePoint hit position x,y,z = " << prePoint->GetPosition().x() / cm
-           << "    " << prePoint->GetPosition().y() / cm
-           << "     " << prePoint->GetPosition().z() / cm
-           << endl;
+      std::cout << "     prePoint hit position x,y,z = " << prePoint->GetPosition().x() / cm
+                << "    " << prePoint->GetPosition().y() / cm
+                << "     " << prePoint->GetPosition().z() / cm
+                << std::endl;
     }
 
     // time in ns
@@ -241,11 +236,11 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     if (whichactive > 0)  // return of IsInIntt, > 0 hit in si-strip, < 0 hit in absorber
     {
       // Now save the container we want to add this hit to
-      m_SaveHitContainer = m_Hits;
+      m_SaveHitContainer = m_HitContainer;
     }
     else
     {
-      m_SaveHitContainer = m_AbsorberHits;
+      m_SaveHitContainer = m_AbsorberHitContainer;
     }
 
     if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
@@ -263,7 +258,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     break;
   }
 
-  //cout << "  Update exit values for prePoint->GetStepStatus = " << prePoint->GetStepStatus() << " and postPoint->GetStepStatus = " << postPoint->GetStepStatus() << endl;
+  //std::cout << "  Update exit values for prePoint->GetStepStatus = " << prePoint->GetStepStatus() << " and postPoint->GetStepStatus = " << postPoint->GetStepStatus() << std::endl;
 
   // here we just update the exit values, it will be overwritten
   // for every step until we leave the volume or the particle
@@ -322,13 +317,13 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   {
     if (Verbosity() > 0)
     {
-      cout << " postPoint step status changed to " << postPoint->GetStepStatus() << " or aTrack status changed to "
-           << aTrack->GetTrackStatus() << endl;
-      cout << "  end g4hit for:  aTrack->GetParentID " << aTrack->GetParentID() << " aTrack->GetTrackID " << aTrack->GetTrackID() << " eion = " << eion << endl;
-      cout << "     end hit position x,y,z = " << postPoint->GetPosition().x() / cm
-           << "    " << postPoint->GetPosition().y() / cm
-           << "     " << postPoint->GetPosition().z() / cm
-           << endl;
+      std::cout << " postPoint step status changed to " << postPoint->GetStepStatus() << " or aTrack status changed to "
+                << aTrack->GetTrackStatus() << std::endl;
+      std::cout << "  end g4hit for:  aTrack->GetParentID " << aTrack->GetParentID() << " aTrack->GetTrackID " << aTrack->GetTrackID() << " eion = " << eion << std::endl;
+      std::cout << "     end hit position x,y,z = " << postPoint->GetPosition().x() / cm
+                << "    " << postPoint->GetPosition().y() / cm
+                << "     " << postPoint->GetPosition().z() / cm
+                << std::endl;
     }
 
     // save only hits with energy deposit (or -1 for geantino)
@@ -361,18 +356,35 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4InttSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  const string detectorname = (m_Detector->SuperDetector() != "NONE") ? m_Detector->SuperDetector() : m_Detector->GetName();
-  const string hitnodename = "G4HIT_" + detectorname;
-  const string absorbernodename = "G4HIT_ABSORBER_" + detectorname;
-
-  //now look for the map and grab a pointer to it.
-  m_Hits = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_AbsorberNodeName);
 
   // if we do not find the node it's messed up.
-  if (!m_Hits)
-    cout << "PHG4InttSteppingAction::SetTopNode - unable to find " << hitnodename << endl;
+  if (!m_HitContainer)
+  {
+    std::cout << "PHG4InttSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
+    gSystem->Exit(1);
+  }
 
-  if (!m_AbsorberHits && Verbosity() > 1)
-    cout << "PHG4InttSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+  if (!m_AbsorberHitContainer && Verbosity() > 1)
+  {
+    std::cout << "PHG4InttSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << std::endl;
+  }
+}
+
+void PHG4InttSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_ABSORBER")
+  {
+    m_AbsorberNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }

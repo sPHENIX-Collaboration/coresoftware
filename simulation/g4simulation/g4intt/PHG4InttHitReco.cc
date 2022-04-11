@@ -6,13 +6,13 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>    // for TrkrHit
-#include <trackbase/TrkrHitv2.h>  // for TrkrHit
+#include <trackbase/TrkrHit.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrHitTruthAssocv1.h>
+#include <trackbase/TrkrHitv2.h>  // for TrkrHit
 
 #include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
@@ -43,14 +43,9 @@
 #include <utility>  // for pair, swap, make_...
 #include <vector>   // for vector
 
-using namespace std;
-
 PHG4InttHitReco::PHG4InttHitReco(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-  , m_Detector("INTT")
-  , m_Tmin(NAN)
-  , m_Tmax(NAN)
 {
   InitializeParameters();
 
@@ -87,23 +82,21 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
   runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
-    cout << Name() << "RUN Node missing, exiting." << endl;
+    std::cout << Name() << "RUN Node missing, exiting." << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
   if (!parNode)
   {
-    cout << Name() << "PAR Node missing, exiting." << endl;
+    std::cout << Name() << "PAR Node missing, exiting." << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
-  string paramnodename = "G4CELLPARAM_" + m_Detector;
+  std::string paramnodename = "G4CELLPARAM_" + m_Detector;
 
   PHNodeIterator runiter(runNode);
-  PHCompositeNode *RunDetNode =
-      dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode",
-                                                        m_Detector));
+  PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode", m_Detector));
   if (!RunDetNode)
   {
     RunDetNode = new PHCompositeNode(m_Detector);
@@ -121,8 +114,7 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
   if (!hitsetcontainer)
   {
     PHNodeIterator dstiter(dstNode);
-    PHCompositeNode *DetNode =
-        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
     if (!DetNode)
     {
       DetNode = new PHCompositeNode("TRKR");
@@ -138,8 +130,7 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
   if (!hittruthassoc)
   {
     PHNodeIterator dstiter(dstNode);
-    PHCompositeNode *DetNode =
-        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
     if (!DetNode)
     {
       DetNode = new PHCompositeNode("TRKR");
@@ -193,7 +184,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
   auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hitsetcontainer)
   {
-    cout << "Could not locate TRKR_HITSET node, quit! " << endl;
+    std::cout << "Could not locate TRKR_HITSET node, quit! " << std::endl;
     exit(1);
   }
 
@@ -201,7 +192,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
   auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
   if (!hittruthassoc)
   {
-    cout << "Could not locate TRKR_HITTRUTHASSOC node, quit! " << endl;
+    std::cout << "Could not locate TRKR_HITTRUTHASSOC node, quit! " << std::endl;
     exit(1);
   }
 
@@ -213,7 +204,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
   }
   // loop over all of the layers in the hit container
   // we need the geometry object for this layer
-  if (Verbosity() > 2) cout << " PHG4InttHitReco: Loop over hits" << endl;
+  if (Verbosity() > 2) std::cout << " PHG4InttHitReco: Loop over hits" << std::endl;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   for (PHG4HitContainer::ConstIterator hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
@@ -223,10 +214,8 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     // checking ADC timing integration window cut
     // uses default values for now
     // these should depend on layer radius
-    if (hiter->second->get_t(0) > m_Tmax)
-      continue;
-    if (hiter->second->get_t(1) < m_Tmin)
-      continue;
+    if (hiter->second->get_t(0) > m_Tmax) continue;
+    if (hiter->second->get_t(1) < m_Tmin) continue;
 
     // I made this (small) diffusion up for now, we will get actual values for the Intt later
     double diffusion_width = 5.0e-04;  // diffusion radius 5 microns, in cm
@@ -237,37 +226,54 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     // What we have is a hit in the sensor. We have not yet assigned the strip(s) that were hit, we do that here
     //========================================================================
 
-    int strip_y_index_in, strip_z_index_in, strip_y_index_out, strip_z_index_out;
+// initialize them. In case find_strip_index_values does not set them we can pick this up
+    int strip_y_index_in = -99999;
+    int strip_z_index_in = -99999;
+    int strip_y_index_out = -99999;
+    int strip_z_index_out = -99999;
+
     layergeom->find_strip_index_values(ladder_z_index, hiter->second->get_local_y(0), hiter->second->get_local_z(0), strip_y_index_in, strip_z_index_in);
     layergeom->find_strip_index_values(ladder_z_index, hiter->second->get_local_y(1), hiter->second->get_local_z(1), strip_y_index_out, strip_z_index_out);
-
+    if (strip_y_index_in ==  -99999 ||
+        strip_z_index_in == -99999 ||
+        strip_y_index_out == -99999 ||
+	strip_z_index_out == -99999)
+    {
+      std::cout << "setting of strip indices failed" << std::endl;
+      std::cout << "strip_y_index_in: " << strip_y_index_in << std::endl;
+      std::cout << "strip_z_index_in: " << strip_z_index_in << std::endl;
+      std::cout << "strip_y_index_out: " << strip_y_index_out << std::endl;
+      std::cout << "strip_z_index_out: " << strip_y_index_out << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
     if (Verbosity() > 5)
     {
       // check to see if we get back the positions from these strip index values
       double check_location[3] = {-1, -1, -1};
       layergeom->find_strip_center_localcoords(ladder_z_index, strip_y_index_in, strip_z_index_in, check_location);
-      cout << " G4 entry location = " << hiter->second->get_local_x(0) << "  " << hiter->second->get_local_y(0) << "  " << hiter->second->get_local_z(0) << endl;
-      cout << " Check entry location = " << check_location[0] << "  " << check_location[1] << "  " << check_location[2] << endl;
+      std::cout << " G4 entry location = " << hiter->second->get_local_x(0) << "  " << hiter->second->get_local_y(0) << "  " << hiter->second->get_local_z(0) << std::endl;
+      std::cout << " Check entry location = " << check_location[0] << "  " << check_location[1] << "  " << check_location[2] << std::endl;
       layergeom->find_strip_center_localcoords(ladder_z_index, strip_y_index_out, strip_z_index_out, check_location);
-      cout << " G4 exit location = " << hiter->second->get_local_x(1) << " " << hiter->second->get_local_y(1) << "  " << hiter->second->get_local_z(1) << endl;
-      cout << " Check exit location = " << check_location[0] << "  " << check_location[1] << "  " << check_location[2] << endl;
+      std::cout << " G4 exit location = " << hiter->second->get_local_x(1) << " " << hiter->second->get_local_y(1) << "  " << hiter->second->get_local_z(1) << std::endl;
+      std::cout << " Check exit location = " << check_location[0] << "  " << check_location[1] << "  " << check_location[2] << std::endl;
     }
 
     // Now we find how many strips were crossed by this track, and divide the energy between them
     int minstrip_z = strip_z_index_in;
     int maxstrip_z = strip_z_index_out;
-    if (minstrip_z > maxstrip_z) swap(minstrip_z, maxstrip_z);
+    if (minstrip_z > maxstrip_z) std::swap(minstrip_z, maxstrip_z);
 
     int minstrip_y = strip_y_index_in;
     int maxstrip_y = strip_y_index_out;
-    if (minstrip_y > maxstrip_y) swap(minstrip_y, maxstrip_y);
+    if (minstrip_y > maxstrip_y) std::swap(minstrip_y, maxstrip_y);
 
     // Use an algorithm similar to the one for the MVTX pixels, since it facilitates adding charge diffusion
     // for now we assume small charge diffusion
-    vector<int> vybin;
-    vector<int> vzbin;
-    //vector<double> vlen;
-    vector<pair<double, double> > venergy;
+    std::vector<int> vybin;
+    std::vector<int> vzbin;
+    //std::vector<double> vlen;
+    std::vector<std::pair<double, double> > venergy;
 
     //====================================================
     // Beginning of charge sharing implementation
@@ -314,20 +320,20 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       double diffusion_radius = diffusion_width;
 
       if (Verbosity() > 5)
-        cout << " segment " << i
-             << " interval " << interval
-             << " frac " << frac
-             << " local_in.X " << hiter->second->get_local_x(0)
-             << " local_in.Z " << hiter->second->get_local_z(0)
-             << " local_in.Y " << hiter->second->get_local_y(0)
-             << " pathvec.X " << gsl_vector_get(m_PathVec, 0)
-             << " pathvec.Z " << gsl_vector_get(m_PathVec, 2)
-             << " pathvec.Y " << gsl_vector_get(m_PathVec, 1)
-             << " segvec.X " << gsl_vector_get(m_SegmentVec, 0)
-             << " segvec.Z " << gsl_vector_get(m_SegmentVec, 2)
-             << " segvec.Y " << gsl_vector_get(m_SegmentVec, 1) << endl
-             << " diffusion_radius " << diffusion_radius
-             << endl;
+        std::cout << " segment " << i
+                  << " interval " << interval
+                  << " frac " << frac
+                  << " local_in.X " << hiter->second->get_local_x(0)
+                  << " local_in.Z " << hiter->second->get_local_z(0)
+                  << " local_in.Y " << hiter->second->get_local_y(0)
+                  << " pathvec.X " << gsl_vector_get(m_PathVec, 0)
+                  << " pathvec.Z " << gsl_vector_get(m_PathVec, 2)
+                  << " pathvec.Y " << gsl_vector_get(m_PathVec, 1)
+                  << " segvec.X " << gsl_vector_get(m_SegmentVec, 0)
+                  << " segvec.Z " << gsl_vector_get(m_SegmentVec, 2)
+                  << " segvec.Y " << gsl_vector_get(m_SegmentVec, 1) << std::endl
+                  << " diffusion_radius " << diffusion_radius
+                  << std::endl;
 
       // Now find the area of overlap of the diffusion circle with each pixel and apportion the energy
       for (int iz = minstrip_z; iz <= maxstrip_z; iz++)
@@ -354,9 +360,9 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
           }
           if (Verbosity() > 5)
           {
-            cout << "    strip y index " << iy << " strip z index  " << iz
-                 << " strip area fraction of circle " << striparea_frac << " accumulated pixel energy " << stripenergy[iy - minstrip_y][iz - minstrip_z]
-                 << endl;
+            std::cout << "    strip y index " << iy << " strip z index  " << iz
+                      << " strip area fraction of circle " << striparea_frac << " accumulated pixel energy " << stripenergy[iy - minstrip_y][iz - minstrip_z]
+                      << std::endl;
           }
         }
       }
@@ -371,10 +377,12 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
         {
           vybin.push_back(iy);
           vzbin.push_back(iz);
-          pair<double, double> tmppair = make_pair(stripenergy[iy - minstrip_y][iz - minstrip_z], stripeion[iy - minstrip_y][iz - minstrip_z]);
+          std::pair<double, double> tmppair = std::make_pair(stripenergy[iy - minstrip_y][iz - minstrip_z], stripeion[iy - minstrip_y][iz - minstrip_z]);
           venergy.push_back(tmppair);
           if (Verbosity() > 1)
-            cout << " Added ybin " << iy << " zbin " << iz << " to vectors with energy " << stripenergy[iy - minstrip_y][iz - minstrip_z] << endl;
+          {
+            std::cout << " Added ybin " << iy << " zbin " << iz << " to vectors with energy " << stripenergy[iy - minstrip_y][iz - minstrip_z] << std::endl;
+          }
         }
       }
     }
@@ -401,20 +409,24 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       {
         // Otherwise, create a new one
         //hit = new InttHit();
-	hit = new TrkrHitv2();
+        hit = new TrkrHitv2();
         hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
 
       // Either way, add the energy to it
       if (Verbosity() > 2)
-        cout << "add energy " << venergy[i1].first << " to intthit " << endl;
+      {
+        std::cout << "add energy " << venergy[i1].first << " to intthit " << std::endl;
+      }
       hit->addEnergy(venergy[i1].first * TrkrDefs::InttEnergyScaleup);
 
       // Add this hit to the association map
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
 
       if (Verbosity() > 2)
-        cout << "PHG4InttHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << " energy " << hit->getEnergy() << endl;
+      {
+        std::cout << "PHG4InttHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << " energy " << hit->getEnergy() << std::endl;
+      }
     }
 
   }  // end loop over g4hits
@@ -422,7 +434,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
   // print the list of entries in the association table
   if (Verbosity() > 0)
   {
-    cout << "From PHG4InttHitReco: " << endl;
+    std::cout << "From PHG4InttHitReco: " << std::endl;
     hitsetcontainer->identify();
     hittruthassoc->identify();
   }

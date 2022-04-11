@@ -111,7 +111,7 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   rotater.setVerbosity(Verbosity());
   if(params.covariance())
     {
-      auto rotatedCov = rotater.rotateActsCovToSvtxTrack(params, m_tGeometry->geoContext);
+      auto rotatedCov = rotater.rotateActsCovToSvtxTrack(params);
       
       /// Update covariance
       for(int i = 0; i < 3; i++) {

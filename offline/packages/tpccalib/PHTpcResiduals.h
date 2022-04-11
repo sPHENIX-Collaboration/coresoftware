@@ -73,7 +73,7 @@ class PHTpcResiduals : public SubsysReco
   void setUseMicromegas( bool value )
   { m_useMicromegas = value; }
   
- private:
+  private:
 
   using BoundTrackParamPtr = 
     std::unique_ptr<const Acts::BoundTrackParameters>;

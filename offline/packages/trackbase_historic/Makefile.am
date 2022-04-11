@@ -25,6 +25,10 @@ pkginclude_HEADERS = \
   SvtxTrackSeed_v1.h \
   SvtxTrackSeedContainer.h \
   SvtxTrackSeedContainer_v1.h \
+  PHG4ParticleSvtxMap.h \
+  PHG4ParticleSvtxMap_v1.h \
+  SvtxPHG4ParticleMap.h \
+  SvtxPHG4ParticleMap_v1.h \
   SvtxTrack.h \
   SvtxTrack_v1.h \
   SvtxTrack_v2.h \
@@ -45,6 +49,10 @@ ROOTDICTS = \
   SvtxTrackSeed_v1_Dict.cc \
   SvtxTrackSeedContainer_Dict.cc \
   SvtxTrackSeedContainer_v1_Dict.cc \
+  PHG4ParticleSvtxMap_Dict.cc \
+  PHG4ParticleSvtxMap_v1_Dict.cc \
+  SvtxPHG4ParticleMap_Dict.cc \
+  SvtxPHG4ParticleMap_v1_Dict.cc \
   SvtxTrack_Dict.cc \
   SvtxTrackState_Dict.cc \
   SvtxTrackState_v1_Dict.cc \
@@ -66,6 +74,10 @@ nobase_dist_pcm_DATA = \
   SvtxTrackSeed_v1_Dict_rdict.pcm \
   SvtxTrackSeedContainer_Dict_rdict.pcm \
   SvtxTrackSeedContainer_v1_Dict_rdict.pcm \
+  PHG4ParticleSvtxMap_Dict_rdict.pcm \
+  PHG4ParticleSvtxMap_v1_Dict_rdict.pcm \
+  SvtxPHG4ParticleMap_Dict_rdict.pcm \
+  SvtxPHG4ParticleMap_v1_Dict_rdict.pcm \
   SvtxTrack_Dict_rdict.pcm \
   SvtxTrackState_Dict_rdict.pcm \
   SvtxTrackState_v1_Dict_rdict.pcm \
@@ -89,6 +101,10 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxTrackSeed_v1.cc \
   SvtxTrackSeedContainer.cc \
   SvtxTrackSeedContainer_v1.cc \
+  PHG4ParticleSvtxMap.cc \
+  PHG4ParticleSvtxMap_v1.cc \
+  SvtxPHG4ParticleMap.cc \
+  SvtxPHG4ParticleMap_v1.cc \
   SvtxTrackState_v1.cc \
   SvtxTrack.cc \
   SvtxTrack_v1.cc \

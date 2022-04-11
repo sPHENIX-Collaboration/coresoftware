@@ -5,8 +5,8 @@
 
 #include <g4detectors/PHG4DetectorGroupSubsystem.h>
 
-#include <string>                                    // for string
-#include <utility>                                   // for pair
+#include <string>   // for string
+#include <utility>  // for pair
 #include <vector>
 
 class PHCompositeNode;
@@ -47,7 +47,7 @@ class PHG4InttSubsystem : public PHG4DetectorGroupSubsystem
 
   PHG4SteppingAction *GetSteppingAction(void) const override { return m_SteppingAction; }
 
-  PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
+  PHG4DisplayAction *GetDisplayAction() const override { return m_DisplayAction; }
 
   void Print(const std::string &what = "ALL") const override;
 
@@ -56,18 +56,21 @@ class PHG4InttSubsystem : public PHG4DetectorGroupSubsystem
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4InttDetector *m_Detector;
+  PHG4InttDetector *m_Detector = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction *m_SteppingAction;
+  PHG4SteppingAction *m_SteppingAction = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction;
+  PHG4DisplayAction *m_DisplayAction = nullptr;
 
   vpair m_LayerConfigVector;
   std::string m_DetectorType;
+
+  std::string m_HitNodeName;
+  std::string m_AbsorberNodeName;
 };
 
 #endif
