@@ -21,6 +21,11 @@ TrkrClusterv4::TrkrClusterv4()
   , m_subsurfkey(TrkrDefs::SUBSURFKEYMAX)
   , m_adc(0)
   , m_valid(true)
+  , m_size(0)
+  , m_phisize(0)
+  , m_zsize(0)
+  , m_overlap(0)
+  , m_edge(0)
 {
   for (int i = 0; i < 2; i++)
     {

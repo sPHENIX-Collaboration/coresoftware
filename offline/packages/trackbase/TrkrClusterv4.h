@@ -97,10 +97,10 @@ class TrkrClusterv4 : public TrkrCluster
    char getSize() { return m_size; }
    void setSize(char size) { m_size = size; }
  
-   char getPhiSize() { return m_phisize; }
+   float getPhiSize() const override { return (float) m_phisize; }
    void setPhiSize(char phisize) { m_phisize = phisize; }
  
-   char getZSize() { return m_zsize; }
+   float getZSize() const override { return (float) m_zsize; }
    void setZSize(char zsize) { m_zsize = zsize; }
  
    char getOverlap() { return m_overlap; }
