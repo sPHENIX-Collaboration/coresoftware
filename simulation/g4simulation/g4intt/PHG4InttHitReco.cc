@@ -402,8 +402,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       // We add the Intt TrkrHitsets directly to the node using hitsetcontainer
 
       // Get the hit crossing
-      short int crossing = (short int) (round( time / m_crossingPeriod) );
-
+      int crossing = (int) (round( time / m_crossingPeriod) );
       // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a sensor for the Intt ?
       // The hitset key includes the layer, the ladder_z_index (sensors numbered 0-3) and  ladder_phi_index (azimuthal location of ladder) for this hit
       TrkrDefs::hitsetkey hitsetkey = InttDefs::genHitSetKey(sphxlayer, ladder_z_index, ladder_phi_index, crossing);

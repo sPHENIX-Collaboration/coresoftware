@@ -320,7 +320,7 @@ Surface ActsTransformations::getSurface(TrkrCluster *cluster,
 {
   const auto cluskey = cluster->getClusKey();
   const auto surfkey = cluster->getSubSurfKey();
-  const auto trkrid = TrkrDefs::getTrkrId(cluskey);
+  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
   const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
 
   switch( trkrid )
@@ -364,8 +364,9 @@ Surface ActsTransformations::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey,
     }
   
   /// If it can't be found, return nullptr
-  std::cout << "Failed to find silicon surface for hitsetkey " << hitsetkey << " tmpkey " << tmpkey << std::endl;
-  
+  {
+    std::cout << "Failed to find silicon surface for hitsetkey " << hitsetkey << " tmpkey " << tmpkey << std::endl;
+  }  
   return nullptr;
 }
 

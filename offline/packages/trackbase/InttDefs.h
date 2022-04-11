@@ -7,7 +7,7 @@
 #ifndef INTT_INTTDEFS_H
 #define INTT_INTTDEFS_H
 
-#include <trackbase/TrkrDefs.h>
+#include "TrkrDefs.h"
 
 #include <cstdint>              // for uint8_t, uint16_t, uint32_t
 
@@ -27,16 +27,13 @@ namespace InttDefs
 //   10 - 13       ladder phi id  // 4 bits
 //   0 - 9     time bucket  // 10 bits
 
-// old
-//   8  - 16  ladder z id
-//   0  -  8  ladder phi id
-
 static const unsigned int kBitShiftTimeBucketIdOffset __attribute__((unused)) = 0;
 static const unsigned int kBitShiftTimeBucketIdWidth __attribute__((unused)) = 10;
 static const unsigned int kBitShiftLadderPhiIdOffset __attribute__((unused)) = 10;
 static const unsigned int kBitShiftLadderPhiIdWidth __attribute__((unused)) = 4;
 static const unsigned int kBitShiftLadderZIdOffset __attribute__((unused)) = 14;
 static const unsigned int kBitShiftLadderZIdWidth __attribute__((unused)) = 2;
+ static const int crossingOffset __attribute__((unused)) = 512;
 
 // bit shift for hitkey
 static const unsigned int kBitShiftCol __attribute__((unused)) = 16;
@@ -77,7 +74,7 @@ uint8_t getLadderPhiId(TrkrDefs::cluskey key);
    * @param[out] hitkey
    */
 
-uint16_t getTimeBucketId(TrkrDefs::hitsetkey key);
+int getTimeBucketId(TrkrDefs::hitsetkey key);
 
 /**
    * @brief Get the time bucket id from the hitsetkey
@@ -85,7 +82,7 @@ uint16_t getTimeBucketId(TrkrDefs::hitsetkey key);
    * @param[out] time bucket id
    */
 
-uint16_t getTimeBucketId(TrkrDefs::cluskey key);
+int getTimeBucketId(TrkrDefs::cluskey key);
 
 /**
    * @brief Get the time bucket id from the cluskey
@@ -119,7 +116,7 @@ uint16_t getRow(TrkrDefs::hitkey key);
    * Generate a hitsetkey for the intt. The tracker id is known
    * implicitly and used in the function.
    */
- TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t ladder_z_index, const uint8_t ladder_phi_index, const uint16_t time_bucket);
+ TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t ladder_z_index, const uint8_t ladder_phi_index, const int time_bucket);
 
 /**
    * @brief Generate a cluster key from indices 
@@ -130,7 +127,7 @@ uint16_t getRow(TrkrDefs::hitkey key);
    * @param[out] hitsetkey
    */
 
- TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t LadderZId, const uint8_t LadderPhiId, const uint16_t time_bucket, const uint32_t clusid);
+ TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t LadderZId, const uint8_t LadderPhiId, const int time_bucket, const uint32_t clusid);
 
 /**
    * @brief Generate a cluster key using a hitsetkey and cluster id

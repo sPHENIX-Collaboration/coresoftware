@@ -43,9 +43,10 @@ class TrkrHit : public PHObject
   // after digitization, these are the adc values
   virtual void setAdc(const unsigned int) {}
   virtual unsigned int getAdc() { return 0;}
-
+  /*
   virtual void setCrossing(const short int) {}
   virtual short int getCrossing() { return 0;}
+  */
 
  protected:
 

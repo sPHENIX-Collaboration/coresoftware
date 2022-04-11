@@ -37,17 +37,20 @@ MvtxDefs::getChipId(TrkrDefs::cluskey key)
   return getChipId(tmp);
 }
 
-uint8_t
+int
 MvtxDefs::getStrobeId(TrkrDefs::hitsetkey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> MvtxDefs::kBitShiftStrobeIdOffset);
   uint8_t tmp1 = tmp;
   tmp1 = (tmp1 <<  (8 - MvtxDefs::kBitShiftStrobeIdWidth));
   tmp1 = (tmp1 >>  (8 - MvtxDefs::kBitShiftStrobeIdWidth));
-  return tmp1;
+
+  int tmp2 = (int) tmp1 - strobeOffset; // get back to the signed strobe
+
+  return tmp2;
 }
 
-uint8_t
+int
 MvtxDefs::getStrobeId(TrkrDefs::cluskey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
@@ -78,20 +81,27 @@ MvtxDefs::genHitKey(const uint16_t col, const uint16_t row)
 }
 
 TrkrDefs::hitsetkey
-MvtxDefs::genHitSetKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const uint8_t strobe)
+MvtxDefs::genHitSetKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const int strobe_in)
 {
   TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::mvtxId, lyr);
+
+ // offset strobe to make it positive, fit inside 5 bits
+  int strobe = strobe_in + strobeOffset;
+  if(strobe < 0) strobe = 0;  
+  if(strobe > 32) strobe = 32;
+  unsigned int ustrobe = (unsigned int) strobe;
+
   TrkrDefs::hitsetkey tmp = stave;
   key |= (tmp << MvtxDefs::kBitShiftStaveIdOffset);
   tmp = chip;
   key |= (tmp << MvtxDefs::kBitShiftChipIdOffset);
-  tmp = strobe;
+  tmp = ustrobe;
   key |= (tmp << MvtxDefs::kBitShiftStrobeIdOffset);
   return key;
 }
 
 TrkrDefs::cluskey
-MvtxDefs::genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const uint8_t strobe, const uint32_t clusid)
+MvtxDefs::genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const int strobe, const uint32_t clusid)
 {
   TrkrDefs::cluskey tmp = genHitSetKey(lyr, stave, chip,strobe);
   TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
@@ -116,5 +126,8 @@ MvtxDefs::resetStrobeHitSetKey(const TrkrDefs::hitsetkey hitsetkey)
    // zero the crossing bits by shifting them out of the word, then shift back
    tmp = (tmp >>  MvtxDefs::kBitShiftStrobeIdWidth);
    tmp = (tmp << MvtxDefs::kBitShiftStrobeIdWidth);
+   unsigned int zero_strobe = strobeOffset;
+   tmp |= (zero_strobe <<  MvtxDefs::kBitShiftStrobeIdOffset);
+
   return tmp;
 }

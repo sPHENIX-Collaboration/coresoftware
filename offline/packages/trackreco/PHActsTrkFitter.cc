@@ -8,9 +8,11 @@
 #include "PHActsTrkFitter.h"
 
 /// Tracking includes
+#include <tpc/TpcDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
-#include <tpc/TpcDefs.h>
+#include <trackbase/MvtxDefs.h>
+#include <trackbase/InttDefs.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
@@ -400,14 +402,33 @@ Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurf
 //___________________________________________________________________________________
 Surface PHActsTrkFitter::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
 {
+  unsigned int trkrid =  TrkrDefs::getTrkrId(hitsetkey);
+  TrkrDefs::hitsetkey tmpkey = hitsetkey;
+
+  if(trkrid == TrkrDefs::inttId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = InttDefs::resetCrossingHitSetKey(hitsetkey);
+    }
+
+  if(trkrid == TrkrDefs::mvtxId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);
+    }
+
   auto surfMap = m_surfMaps->siliconSurfaceMap;
-  auto iter = surfMap.find(hitsetkey);
+  auto iter = surfMap.find(tmpkey);
   if(iter != surfMap.end())
     {
       return iter->second;
     }
   
   /// If it can't be found, return nullptr
+  {
+    std::cout << PHWHERE << "Failed to find silicon surface for hitsetkey " << hitsetkey << " tmpkey " << tmpkey << std::endl;
+  }
+  
   return nullptr;
 
 }
@@ -478,7 +499,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
       unsigned int side = TpcDefs::getSide(key);
       if(trkrid ==  TrkrDefs::tpcId)
 	{
-	  // For the TPC, clsuter z has to be corrected for the crossing z offset 
+	  // For the TPC, cluster z has to be corrected for the crossing z offset 
 	  // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
 
 	  // transform to global coordinates for z correction 

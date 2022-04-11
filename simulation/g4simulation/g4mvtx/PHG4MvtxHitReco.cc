@@ -206,8 +206,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       // assume offset of 16 strobe cycles to fit in an unsigned 5 bit integer field in the hitsetkey
       if(strobe < -16) strobe = -16;
       if(strobe > 16) strobe = 15;
-      unsigned int strobe_id = strobe + 16;  // temporary place-holder for strobe id
-
+  
       // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
       int stave_number = hiter->second->get_property_int(PHG4Hit::prop_stave_index);
       int half_stave_number = hiter->second->get_property_int(PHG4Hit::prop_half_stave_index);
@@ -513,7 +512,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         //====================================
 
         // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a chip for the Mvtx
-        TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(*layer, stave_number, chip_number, strobe_id);
+        TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(*layer, stave_number, chip_number, strobe);
         // Use existing hitset or add new one if needed
         TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
 

@@ -37,7 +37,14 @@ InttDefs::getLadderPhiId(TrkrDefs::hitsetkey key)
   return tmp1;
 }
 
-uint16_t
+uint8_t
+InttDefs::getLadderPhiId(TrkrDefs::cluskey key)
+{
+  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  return getLadderPhiId(tmp);
+}
+
+int
 InttDefs::getTimeBucketId(TrkrDefs::hitsetkey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> InttDefs::kBitShiftTimeBucketIdOffset);
@@ -45,14 +52,17 @@ InttDefs::getTimeBucketId(TrkrDefs::hitsetkey key)
   uint16_t tmp1 = tmp;
   tmp1 = (tmp1 <<  (16 - InttDefs::kBitShiftTimeBucketIdWidth));
   tmp1 = (tmp1 >>  (16 - InttDefs::kBitShiftTimeBucketIdWidth));
-  return tmp1;
+
+  int tmp2 = (int) tmp1 - crossingOffset;   // get back to signed crossing
+
+  return tmp2;
 }
 
-uint8_t
-InttDefs::getLadderPhiId(TrkrDefs::cluskey key)
+int
+InttDefs::getTimeBucketId(TrkrDefs::cluskey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
-  return getLadderPhiId(tmp);
+  return getTimeBucketId(tmp);
 }
 
 uint16_t
@@ -79,22 +89,28 @@ InttDefs::genHitKey(const uint16_t col, const uint16_t row)
 }
 
 TrkrDefs::hitsetkey
-InttDefs::genHitSetKey(const uint8_t lyr, const uint8_t ladder_z_index, uint8_t ladder_phi_index, uint16_t crossing)
+InttDefs::genHitSetKey(const uint8_t lyr, const uint8_t ladder_z_index, uint8_t ladder_phi_index, const int crossing_in)
 {
   TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::inttId, lyr);
+
+  // offset crossing to make it positive, fit inside 10 bits
+  int crossing = crossing_in + crossingOffset;
+  if(crossing < 0) crossing = 0;  
+  if(crossing > 1023) crossing = 1023;
+  unsigned int ucrossing = (unsigned int) crossing;
 
   TrkrDefs::hitsetkey tmp = ladder_z_index;
   key |= (tmp << InttDefs::kBitShiftLadderZIdOffset);
   tmp = ladder_phi_index;
   key |= (tmp << InttDefs::kBitShiftLadderPhiIdOffset);
-  tmp = crossing;
+  tmp = ucrossing;
   key |= (tmp << InttDefs::kBitShiftTimeBucketIdOffset);
 
   return key;
 }
 
 TrkrDefs::cluskey
-InttDefs::genClusKey(const uint8_t lyr, const uint8_t ladder_z_index, const uint8_t ladder_phi_index, const uint16_t crossing, const uint32_t clusid)
+InttDefs::genClusKey(const uint8_t lyr, const uint8_t ladder_z_index, const uint8_t ladder_phi_index, const int crossing, const uint32_t clusid)
 {
   TrkrDefs::cluskey tmp = genHitSetKey(lyr, ladder_z_index, ladder_phi_index, crossing);
   TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
@@ -119,5 +135,8 @@ InttDefs::resetCrossingHitSetKey(const TrkrDefs::hitsetkey hitsetkey)
    // zero the crossing bits by shifting them out of the word, then shift back
    tmp = (tmp >>  InttDefs::kBitShiftTimeBucketIdWidth);
    tmp = (tmp << InttDefs::kBitShiftTimeBucketIdWidth);
+   unsigned int zero_crossing = crossingOffset;
+   tmp |= (zero_crossing << InttDefs::kBitShiftTimeBucketIdOffset);
+
   return tmp;
 }

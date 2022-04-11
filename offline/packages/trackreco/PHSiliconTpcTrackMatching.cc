@@ -115,7 +115,6 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   // now we need the crossing values
   std::multimap<short int, std::pair<unsigned int, unsigned int>> crossing_matches;
   std::map<unsigned int, short int> tpc_crossing_map;
-  //  std::set<short int> crossing_set;
 
   if(_pp_mode)
     {
@@ -677,7 +676,6 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
 void PHSiliconTpcTrackMatching::tagInTimeTracks(  
 						std::multimap<unsigned int, unsigned int> &tpc_matches,
-						//						std::set<int> &crossing_set,
 						std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches,
 						std::map<unsigned int, int> &tpc_crossing_map )
 {
@@ -704,7 +702,6 @@ void PHSiliconTpcTrackMatching::tagInTimeTracks(
 	  //track from  triggered event
 	  int crossing = 0;
 	  crossing_matches.insert(std::make_pair(crossing,std::make_pair(tpc_track->get_id(), si_track->get_id())));
-	  //crossing_set.insert(crossing);
 	  tpc_crossing_map.insert(std::make_pair(tpc_track->get_id(), crossing));
 	  if(Verbosity() > 1)
 	    std::cout << " triggered: tpc_trackid " << tpc_track->get_id() 
@@ -722,7 +719,6 @@ void PHSiliconTpcTrackMatching::tagInTimeTracks(
 
 void PHSiliconTpcTrackMatching::tagMatchCrossing(  
 						std::multimap<unsigned int, unsigned int> &tpc_matches,
-						//std::set<short int> &crossing_set,
 						std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
 						std::map<unsigned int, short int> &tpc_crossing_map )
 {
@@ -739,7 +735,6 @@ void PHSiliconTpcTrackMatching::tagMatchCrossing(
       // this is an initial estimate of the bunch crossing based on the z-mismatch for this track
       short int crossing = (short int) getBunchCrossing(tpc_track->get_id(), tpc_z - si_z);
       crossing_matches.insert(std::make_pair(crossing,std::make_pair(tpc_track->get_id(), si_track->get_id())));
-      //crossing_set.insert(crossing);
       tpc_crossing_map.insert(std::make_pair(tpc_track->get_id(), crossing));
       if(Verbosity() > 1)
 	std::cout << " pileup: tpc_trackid " << tpc_track->get_id() 
@@ -786,7 +781,6 @@ void PHSiliconTpcTrackMatching::copySiliconClustersToCorrectedMap( )
 // uses INTT time to get bunch crossing
 void PHSiliconTpcTrackMatching::getMatchCrossingIntt(  
 						std::multimap<unsigned int, unsigned int> &tpc_matches,
-						//std::set<short int> &crossing_set,
 						std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
 						std::map<unsigned int, short int> &tpc_crossing_map )
 {
@@ -819,7 +813,7 @@ void PHSiliconTpcTrackMatching::getMatchCrossingIntt(
 	    {	  
 	      if(intt_crossings[ic] != crossing_keep)
 		{
-		  if(Verbosity() > 0)
+		  if(Verbosity() > -1)
 		    {
 		      std::cout << " Warning: INTT crossings not all the same for tpc track " << tpcid << " silicon track " << si_id << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << " keep the first one in the list" << std::endl;  
 		    }
@@ -830,7 +824,6 @@ void PHSiliconTpcTrackMatching::getMatchCrossingIntt(
       if(keep_it)
 	{            
 	  crossing_matches.insert(std::make_pair(crossing_keep,std::make_pair(tpc_track->get_id(), si_track->get_id())));
-	  //crossing_set.insert(crossing_keep);
 	  tpc_crossing_map.insert(std::make_pair(tpc_track->get_id(), crossing_keep));
 	  
 	  if(Verbosity() > 0) 
