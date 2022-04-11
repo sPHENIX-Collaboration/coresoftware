@@ -105,55 +105,60 @@ namespace
     }
   }
   
-  void find_z_range(int phibin, int zbin, const thread_data& my_data, const std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup){
+  void find_z_range(int phibin, int zbin, const thread_data& my_data, const std::vector<std::vector<unsigned short>> &adcval, int& zdown, int& zup, int &touch, int &edge){
 	
     const int FitRangeZ = (int) my_data.maxHalfSizeZ;
     const int NZBinsMax = (int) my_data.zbins;
-	  zup = 0;
-	  zdown = 0;
-	  for(int iz=0; iz< FitRangeZ; iz++){
-	    int cz = zbin + iz;
-	
-	    if(cz <= 0 || cz >= NZBinsMax){
-	      // zup = iz;
-	      break; // truncate edge
-	    }
-	    
-	    if(adcval[phibin][cz] <= 0) {
-	      break;
-	    }
-	    //check local minima and break at minimum.
-	    if(cz<NZBinsMax-4){//make sure we stay clear from the edge
-	      if(adcval[phibin][cz]+adcval[phibin][cz+1] < 
-		 adcval[phibin][cz+2]+adcval[phibin][cz+3]){//rising again
-		zup = iz+1;
-		break;
+    zup = 0;
+    zdown = 0;
+    for(int iz=0; iz< FitRangeZ; iz++){
+      int cz = zbin + iz;
+      
+      if(cz <= 0 || cz >= NZBinsMax){
+	// zup = iz;
+	edge++;
+	break; // truncate edge
+      }
+      
+      if(adcval[phibin][cz] <= 0) {
+	break;
+      }
+      //check local minima and break at minimum.
+      if(cz<NZBinsMax-4){//make sure we stay clear from the edge
+	if(adcval[phibin][cz]+adcval[phibin][cz+1] < 
+	   adcval[phibin][cz+2]+adcval[phibin][cz+3]){//rising again
+	  zup = iz+1;
+	  touch++;
+	  break;
 	      }
-	    }
-	    zup = iz;
-	  }
-	  for(int iz=0; iz< FitRangeZ; iz++){
-	    int cz = zbin - iz;
-	    if(cz <= 0 || cz >= NZBinsMax){
-	      //      zdown = iz;
-	      break; // truncate edge
-	    }
-	    if(adcval[phibin][cz] <= 0) {
-	      break;
-	    }
-	
-	    if(cz>4){//make sure we stay clear from the edge
-	      if(adcval[phibin][cz]+adcval[phibin][cz-1] < 
-		 adcval[phibin][cz-2]+adcval[phibin][cz-3]){//rising again
-		zdown = iz+1;
-		break;
-	      }
-	    }
-	    zdown = iz;
-	  }
+      }
+      zup = iz;
+    }
+    for(int iz=0; iz< FitRangeZ; iz++){
+      int cz = zbin - iz;
+      if(cz <= 0 || cz >= NZBinsMax){
+	//      zdown = iz;
+	edge++;
+	break; // truncate edge
+      }
+      if(adcval[phibin][cz] <= 0) {
+	break;
+      }
+      
+      if(cz>4){//make sure we stay clear from the edge
+	if(adcval[phibin][cz]+adcval[phibin][cz-1] < 
+	   adcval[phibin][cz-2]+adcval[phibin][cz-3]){//rising again
+	  zdown = iz+1;
+	  touch++;
+	  break;
 	}
+      }
+      zdown = iz;
+    }
+    return;
+  }
 	
-  void find_phi_range(int phibin, int zbin, const thread_data& my_data, const std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup)
+  void find_phi_range(int phibin, int zbin, const thread_data& my_data, const std::vector<std::vector<unsigned short>> &adcval, int& phidown, int& phiup, int &touch, int &edge)
   {
 	
     int FitRangePHI = (int) my_data.maxHalfSizePhi;
@@ -164,6 +169,7 @@ namespace
 	    int cphi = phibin + iphi;
 	    if(cphi < 0 || cphi >= NPhiBinsMax){
 	      // phiup = iphi;
+	      edge++;
 	      break; // truncate edge
 	    }
 	    
@@ -177,6 +183,7 @@ namespace
 	      if(adcval[cphi][zbin]+adcval[cphi+1][zbin] < 
 		 adcval[cphi+2][zbin]+adcval[cphi+3][zbin]){//rising again
 		phiup = iphi+1;
+		touch++;
 		break;
 	      }
 	    }
@@ -187,6 +194,7 @@ namespace
 	    int cphi = phibin - iphi;
 	    if(cphi < 0 || cphi >= NPhiBinsMax){
 	      // phidown = iphi;
+	      edge++;
 	      break; // truncate edge
 	    }
 	    
@@ -199,32 +207,35 @@ namespace
 	      if(adcval[cphi][zbin]+adcval[cphi-1][zbin] < 
 		 adcval[cphi-2][zbin]+adcval[cphi-3][zbin]){//rising again
 		phidown = iphi+1;
+		touch++;
 		break;
 	      }
 	    }
 	    phidown = iphi;
 	  }
+	  return;
 	}
 	
-  void get_cluster(int phibin, int zbin, const thread_data& my_data, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list)
+  void get_cluster(int phibin, int zbin, const thread_data& my_data, const std::vector<std::vector<unsigned short>> &adcval, std::vector<ihit> &ihit_list, int &touch, int &edge)
 	{
 	  // search along phi at the peak in z
 	 
 	  int zup =0;
 	  int zdown =0;
-	  find_z_range(phibin, zbin, my_data, adcval, zdown, zup);
+	  find_z_range(phibin, zbin, my_data, adcval, zdown, zup, touch, edge);
 	  //now we have the z extent of the cluster, go find the phi edges
 	
 	  for(int iz=zbin - zdown ; iz<= zbin + zup; iz++){
 	    int phiup = 0;
 	    int phidown = 0;
-	    find_phi_range(phibin, iz, my_data, adcval, phidown, phiup);
+	    find_phi_range(phibin, iz, my_data, adcval, phidown, phiup, touch, edge);
 	    for (int iphi = phibin - phidown; iphi <= (phibin + phiup); iphi++){
 	      iphiz iCoord(std::make_pair(iphi,iz));
 	      ihit  thisHit(adcval[iphi][iz],iCoord);
 	      ihit_list.push_back(thisHit);
 	    }
 	  }
+	  return;
 	}
   
   	Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
@@ -296,7 +307,7 @@ namespace
 	
 	}
   
-    void calc_cluster_parameter(const std::vector<ihit> &ihit_list,int iclus, const thread_data& my_data )
+    void calc_cluster_parameter(const std::vector<ihit> &ihit_list,int iclus, const thread_data& my_data, int ntouch, int nedge )
     {
     
       // get z range from layer geometry
@@ -401,6 +412,8 @@ namespace
 	square(my_data.layergeom->get_zstep())/12:
 	z_cov/(adc_sum*0.14);
       
+      char zsize = zbinhi - zbinlo + 1;
+      char phisize = phibinhi - phibinlo + 1;
       // phi_cov = (weighted mean of dphi^2) - (weighted mean of dphi)^2,  which is essentially the weighted mean of dphi^2. The error is then:
       // e_phi = sigma_dphi/sqrt(N) = sqrt( sigma_dphi^2 / N )  -- where N is the number of samples of the distribution with standard deviation sigma_dphi
       //    - N is the number of electrons that drift to the readout plane
@@ -478,7 +491,12 @@ namespace
 	    TrkrClusterv4 *clus = new TrkrClusterv4();
 	    //auto clus = std::make_unique<TrkrClusterv3>();
 	    clus->setClusKey(ckey);
-	    clus->setAdc(adc_sum);      
+	    clus->setAdc(adc_sum);  
+	    clus->setOverlap(ntouch);
+	    clus->setEdge(nedge);
+	    clus->setPhiSize(phisize);
+	    clus->setZSize(zsize);
+	    clus->setSize((short int) (clus_size));
 	    clus->setSubSurfKey(subsurfkey);      
 	    clus->setLocalX(localPos(0));
 	    clus->setLocalY(localPos(1));
@@ -565,14 +583,16 @@ namespace
       //start with highest adc hit
       // -> cluster around it and get vector of hits
       std::vector<ihit> ihit_list;
-      get_cluster(iphi, iz, *my_data, adcval, ihit_list);
+      int ntouch = 0;
+      int nedge  =0;
+      get_cluster(iphi, iz, *my_data, adcval, ihit_list, ntouch, nedge );
       nclus++;
       
       // -> calculate cluster parameters
       // -> add hits to truth association
       // remove hits from all_hit_map
       // repeat untill all_hit_map empty
-      calc_cluster_parameter(ihit_list,nclus++, *my_data );
+      calc_cluster_parameter(ihit_list,nclus++, *my_data, ntouch, nedge );
       remove_hits(ihit_list,all_hit_map, adcval);
       ihit_list.clear();
     }
