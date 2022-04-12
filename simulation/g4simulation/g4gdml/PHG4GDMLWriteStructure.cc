@@ -368,7 +368,7 @@ PHG4GDMLWriteStructure::GetSkinSurface(const G4LogicalVolume* const lvol)
   return surf;
 }
 
-#if G4VERSION_NUMBER >= 1100
+#if G4VERSION_NUMBER >= 1007
 
 const G4LogicalBorderSurface* PHG4GDMLWriteStructure::GetBorderSurface(
     const G4VPhysicalVolume* const pvol)

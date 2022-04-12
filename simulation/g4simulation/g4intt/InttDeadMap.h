@@ -5,7 +5,7 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>                    // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <set>
 
 class InttDeadMap : public PHObject
@@ -21,9 +21,9 @@ class InttDeadMap : public PHObject
   void addDeadChannelIntt(const int layer,
                           const int ladder_phi, const int ladder_z,
                           const int strip_z, const int strip_phi);
-  virtual void addDeadChannel(PHG4CellDefs::keytype) {return;}
+  virtual void addDeadChannel(PHG4CellDefs::keytype) { return; }
 
-  virtual bool isDeadChannel(PHG4CellDefs::keytype) const {return false;}
+  virtual bool isDeadChannel(PHG4CellDefs::keytype) const { return false; }
   bool isDeadChannelIntt(const int layer,
                          const int ladder_phi, const int ladder_z,
                          const int strip_z, const int strip_phi) const;
