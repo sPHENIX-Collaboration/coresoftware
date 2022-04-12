@@ -41,8 +41,7 @@
 #include <utility>  // for pair
 #include <array>
 #include <vector>
-// Terra incognita....
-#include <pthread.h>
+#include <thread>
 
 namespace 
 {
@@ -76,8 +75,6 @@ namespace
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster*> cluster_vector;
   };
-  
-  pthread_mutex_t mythreadlock;
   
   void remove_hit(double adc, int phibin, int zbin, std::multimap<unsigned short, ihit> &all_hit_map, std::vector<std::vector<unsigned short>> &adcval)
   {
@@ -510,16 +507,16 @@ namespace
       hitkeyvec.clear();
     }
   
-  void *ProcessSector(void *threadarg) {
+  void ProcessSector(thread_data& my_data) 
+  {
 
-    auto my_data = static_cast<thread_data*>(threadarg);
-    const auto& pedestal  = my_data->pedestal;
-    const auto& phibins   = my_data->phibins;
-    const auto& phioffset = my_data->phioffset;
-    const auto& zbins     = my_data->zbins ;
-    const auto& zoffset   = my_data->zoffset ;
+    const auto& pedestal  = my_data.pedestal;
+    const auto& phibins   = my_data.phibins;
+    const auto& phioffset = my_data.phioffset;
+    const auto& zbins     = my_data.zbins ;
+    const auto& zoffset   = my_data.zoffset ;
 	
-    TrkrHitSet *hitset = my_data->hitset;
+    TrkrHitSet *hitset = my_data.hitset;
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
     
     // for convenience, create a 2D vector to store adc values in and initialize to zero
@@ -579,16 +576,15 @@ namespace
       std::vector<ihit> ihit_list;
       int ntouch = 0;
       int nedge  =0;
-      get_cluster(iphi, iz, *my_data, adcval, ihit_list, ntouch, nedge );
+      get_cluster(iphi, iz, my_data, adcval, ihit_list, ntouch, nedge );
       
       // -> calculate cluster parameters
       // -> add hits to truth association
       // remove hits from all_hit_map
       // repeat untill all_hit_map empty
-      calc_cluster_parameter(ihit_list, *my_data, ntouch, nedge );
+      calc_cluster_parameter(ihit_list, my_data, ntouch, nedge );
       remove_hits(ihit_list,all_hit_map, adcval);
     }
-    pthread_exit(nullptr);
   }
 }
 
@@ -756,7 +752,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   // create structure to store given thread and associated data
   struct thread_pair_t
   {
-    pthread_t thread;
+    std::thread thread;
     thread_data data;
   };
   
@@ -764,15 +760,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   std::vector<thread_pair_t> threads;
   threads.reserve( num_hitsets );
 
-  pthread_attr_t attr;
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-  
-  if (pthread_mutex_init(&mythreadlock, nullptr) != 0)
-    {
-      printf("\n mutex init failed\n");
-      return 1;
-    }
   int count = 0;
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
@@ -828,21 +815,15 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.zbins     = NZBinsSide;
     thread_pair.data.zoffset   = ZOffset ;
 
-    int rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *)&thread_pair.data);
-    if (rc) {
-      std::cout << "Error:unable to create thread," << rc << std::endl;
-    }
+    thread_pair.thread = std::thread( ProcessSector, std::ref( thread_pair.data ) );
     count++;
   }
   
-  pthread_attr_destroy(&attr);
   count =0;
   // wait for completion of all threads
-  for( const auto& thread_pair:threads )
+  for( auto&& thread_pair:threads )
   { 
-    int rc2 = pthread_join(thread_pair.thread, nullptr);
-    if (rc2) 
-    { std::cout << "Error:unable to join," << rc2 << std::endl; }
+    thread_pair.thread.join();
 
     // get the hitsetkey from thread data
     const auto& data( thread_pair.data );
