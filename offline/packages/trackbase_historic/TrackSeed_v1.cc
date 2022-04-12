@@ -1,34 +1,35 @@
-#include "SvtxTrackSeed_v1.h"
+#include "TrackSeed_v1.h"
 #include "ActsTransformations.h"
 
-SvtxTrackSeed_v1::SvtxTrackSeed_v1()
+TrackSeed_v1::TrackSeed_v1()
 {}
 
-SvtxTrackSeed_v1::SvtxTrackSeed_v1(const SvtxTrackSeed& seed)
-{ SvtxTrackSeed_v1::CopyFrom( seed ); }
+TrackSeed_v1::TrackSeed_v1(const TrackSeed& seed)
+{ TrackSeed_v1::CopyFrom( seed ); }
 
 // have to suppress uninitMenberVar from cppcheck since it triggers many false positive
 // cppcheck-suppress uninitMemberVar
-SvtxTrackSeed_v1::SvtxTrackSeed_v1(const SvtxTrackSeed_v1& seed)
-{ SvtxTrackSeed_v1::CopyFrom( seed ); }
+TrackSeed_v1::TrackSeed_v1(const TrackSeed_v1& seed)
+{ TrackSeed_v1::CopyFrom( seed ); }
 
-SvtxTrackSeed_v1& SvtxTrackSeed_v1::operator=(const SvtxTrackSeed_v1& seed)
+TrackSeed_v1& TrackSeed_v1::operator=(const TrackSeed_v1& seed)
 { if( this != &seed ) CopyFrom( seed ); return *this; }
 
-SvtxTrackSeed_v1::~SvtxTrackSeed_v1()
+TrackSeed_v1::~TrackSeed_v1()
 {}
 
-void SvtxTrackSeed_v1::CopyFrom( const SvtxTrackSeed& seed )
+void TrackSeed_v1::CopyFrom( const TrackSeed& seed )
 {
   if( this == &seed ) return;
-  SvtxTrackSeed::CopyFrom( seed );
+  TrackSeed::CopyFrom( seed );
 
   m_qOverR = seed.get_qOverR();
   m_X0 = seed.get_X0();
   m_Y0 = seed.get_Y0();
   m_slope = seed.get_slope();
-  m_B = seed.get_B();
-  
+  m_Z0 = seed.get_Z0();
+  m_crossing = seed.get_crossing();
+
   m_cluster_keys.clear();
   std::copy(seed.begin_cluster_keys(), seed.end_cluster_keys(), 
 	    std::inserter(m_cluster_keys, m_cluster_keys.begin() ) );
@@ -36,9 +37,9 @@ void SvtxTrackSeed_v1::CopyFrom( const SvtxTrackSeed& seed )
 }
 
 
-void SvtxTrackSeed_v1::identify(std::ostream& os) const
+void TrackSeed_v1::identify(std::ostream& os) const
 {
-  os << "SvtxTrackSeed_v1 object ";
+  os << "TrackSeed_v1 object ";
   os << "charge " << get_charge() << std::endl;
   os << "(px,py,pz) = (" << get_px() << ", " << get_py()
      << ", " << get_pz() << ")" << std::endl;
@@ -47,7 +48,7 @@ void SvtxTrackSeed_v1::identify(std::ostream& os) const
   os << "list of cluster keys ";
   if(m_cluster_keys.size() > 0) 
     {
-      for (SvtxTrackSeed::ConstClusterKeyIter iter = begin_cluster_keys();
+      for (TrackSeed::ConstClusterKeyIter iter = begin_cluster_keys();
 	   iter != end_cluster_keys();
 	   ++iter)
 	{
@@ -62,7 +63,7 @@ void SvtxTrackSeed_v1::identify(std::ostream& os) const
 
 
 
-void SvtxTrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
+void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
 					 ActsSurfaceMaps* surfmaps,
 					 ActsTrackingGeometry *tGeometry)
 {
@@ -178,7 +179,7 @@ void SvtxTrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
 
 }
 
-void SvtxTrackSeed_v1::lineFit(TrkrClusterContainer *clusters,
+void TrackSeed_v1::lineFit(TrkrClusterContainer *clusters,
 			       ActsSurfaceMaps *surfMaps, 
 			       ActsTrackingGeometry *tGeometry)
 {
@@ -204,11 +205,11 @@ void SvtxTrackSeed_v1::lineFit(TrkrClusterContainer *clusters,
   m_slope = (m_cluster_keys.size()*xysum-xsum*ysum) / (m_cluster_keys.size()*x2sum-xsum*xsum);
 
   /// calculate intercept
-  m_B = (x2sum*ysum-xsum*xysum) / (x2sum*m_cluster_keys.size()-xsum*xsum);
+  m_Z0 = (x2sum*ysum-xsum*xysum) / (x2sum*m_cluster_keys.size()-xsum*xsum);
   
 }   
 
-void SvtxTrackSeed_v1::findRoot(float& x, float& y) const
+void TrackSeed_v1::findRoot(float& x, float& y) const
 {
   /**
    * We need to determine the closest point on the circle to the origin
@@ -247,7 +248,7 @@ void SvtxTrackSeed_v1::findRoot(float& x, float& y) const
     { y = miny2; }
   
 }
-float SvtxTrackSeed_v1::findRoot(bool findX) const
+float TrackSeed_v1::findRoot(bool findX) const
 {
   float x=NAN, y=NAN;
   findRoot(x,y);
@@ -257,35 +258,35 @@ float SvtxTrackSeed_v1::findRoot(bool findX) const
   return y;
 }
 
-float SvtxTrackSeed_v1::get_x() const
+float TrackSeed_v1::get_x() const
 {
   return findRoot(true);
 }
 
-float SvtxTrackSeed_v1::get_y() const
+float TrackSeed_v1::get_y() const
 {
   return findRoot(false);
 }
 
-float SvtxTrackSeed_v1::get_z() const
+float TrackSeed_v1::get_z() const
 {
-  return m_B;
+  return get_Z0();
 }
 
-float SvtxTrackSeed_v1::get_pt() const
+float TrackSeed_v1::get_pt() const
 {
   /// Scaling factor for radius in 1.4T field
   return 0.3 * 1.4 / 100. * fabs(1./m_qOverR);
 }
 
-float SvtxTrackSeed_v1::get_phi() const
+float TrackSeed_v1::get_phi() const
 {
   float x=NAN, y=NAN;
   findRoot(x,y);
   return atan2(-1 * (m_X0-x), m_Y0-y);
 }
 
-float SvtxTrackSeed_v1::get_theta() const
+float TrackSeed_v1::get_theta() const
 {
   float theta = atan(1./m_slope);
   /// Normalize to 0<theta<pi
@@ -294,32 +295,32 @@ float SvtxTrackSeed_v1::get_theta() const
   return theta;
 }
 
-float SvtxTrackSeed_v1::get_eta() const
+float TrackSeed_v1::get_eta() const
 {
   return -log(tan(get_theta() / 2.));
 }
 
-float SvtxTrackSeed_v1::get_p() const
+float TrackSeed_v1::get_p() const
 {
   return get_pt() * cosh(get_eta());
 }
 
-float SvtxTrackSeed_v1::get_px() const
+float TrackSeed_v1::get_px() const
 {
   return get_p() * sin(get_theta()) * cos(get_phi());
 }
 
-float SvtxTrackSeed_v1::get_py() const
+float TrackSeed_v1::get_py() const
 {
   return get_p() * sin(get_theta()) * sin(get_phi());
 }
 
-float SvtxTrackSeed_v1::get_pz() const
+float TrackSeed_v1::get_pz() const
 {
   return get_p() * cos(get_theta());
 }
 
-int SvtxTrackSeed_v1::get_charge() const
+int TrackSeed_v1::get_charge() const
 {
   return ( m_qOverR < 0 ) ? -1 : 1;
 }

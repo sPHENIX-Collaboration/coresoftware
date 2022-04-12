@@ -21,10 +21,10 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsTransformations.h \
-  SvtxTrackSeed.h \
-  SvtxTrackSeed_v1.h \
-  SvtxTrackSeedContainer.h \
-  SvtxTrackSeedContainer_v1.h \
+  TrackSeed.h \
+  TrackSeed_v1.h \
+  TrackSeedContainer.h \
+  TrackSeedContainer_v1.h \
   PHG4ParticleSvtxMap.h \
   PHG4ParticleSvtxMap_v1.h \
   SvtxPHG4ParticleMap.h \
@@ -45,10 +45,10 @@ pkginclude_HEADERS = \
   SvtxVertexMap_v1.h 
 
 ROOTDICTS = \
-  SvtxTrackSeed_Dict.cc \
-  SvtxTrackSeed_v1_Dict.cc \
-  SvtxTrackSeedContainer_Dict.cc \
-  SvtxTrackSeedContainer_v1_Dict.cc \
+  TrackSeed_Dict.cc \
+  TrackSeed_v1_Dict.cc \
+  TrackSeedContainer_Dict.cc \
+  TrackSeedContainer_v1_Dict.cc \
   PHG4ParticleSvtxMap_Dict.cc \
   PHG4ParticleSvtxMap_v1_Dict.cc \
   SvtxPHG4ParticleMap_Dict.cc \
@@ -70,10 +70,10 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  SvtxTrackSeed_Dict_rdict.pcm \
-  SvtxTrackSeed_v1_Dict_rdict.pcm \
-  SvtxTrackSeedContainer_Dict_rdict.pcm \
-  SvtxTrackSeedContainer_v1_Dict_rdict.pcm \
+  TrackSeed_Dict_rdict.pcm \
+  TrackSeed_v1_Dict_rdict.pcm \
+  TrackSeedContainer_Dict_rdict.pcm \
+  TrackSeedContainer_v1_Dict_rdict.pcm \
   PHG4ParticleSvtxMap_Dict_rdict.pcm \
   PHG4ParticleSvtxMap_v1_Dict_rdict.pcm \
   SvtxPHG4ParticleMap_Dict_rdict.pcm \
@@ -97,10 +97,10 @@ nobase_dist_pcm_DATA = \
 libtrackbase_historic_io_la_SOURCES = \
   $(ROOTDICTS) \
   ActsTransformations.cc \
-  SvtxTrackSeed.cc \
-  SvtxTrackSeed_v1.cc \
-  SvtxTrackSeedContainer.cc \
-  SvtxTrackSeedContainer_v1.cc \
+  TrackSeed.cc \
+  TrackSeed_v1.cc \
+  TrackSeedContainer.cc \
+  TrackSeedContainer_v1.cc \
   PHG4ParticleSvtxMap.cc \
   PHG4ParticleSvtxMap_v1.cc \
   SvtxPHG4ParticleMap.cc \

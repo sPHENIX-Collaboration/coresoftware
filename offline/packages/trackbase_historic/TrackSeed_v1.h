@@ -1,7 +1,7 @@
-#ifndef TRACKBASEHISTORIC_SVTXTRACKSEEDV1_H
-#define TRACKBASEHISTORIC_SVTXTRACKSEEDV1_H
+#ifndef TRACKBASEHISTORIC_TRACKSEEDV1_H
+#define TRACKBASEHISTORIC_TRACKSEEDV1_H
 
-#include "SvtxTrackSeed.h"
+#include "TrackSeed.h"
 
 #include <trackbase/TrkrDefs.h>
 
@@ -9,21 +9,21 @@
 #include <cmath>
 #include <iostream>
 
-class SvtxTrackSeed_v1 : public SvtxTrackSeed
+class TrackSeed_v1 : public TrackSeed
 {
  public: 
-  SvtxTrackSeed_v1();
+  TrackSeed_v1();
   
   /// Copy constructors
-  SvtxTrackSeed_v1( const SvtxTrackSeed& );
-  SvtxTrackSeed_v1( const SvtxTrackSeed_v1& );
-  SvtxTrackSeed_v1& operator=(const SvtxTrackSeed_v1& seed);
-  ~SvtxTrackSeed_v1() override;
+  TrackSeed_v1( const TrackSeed& );
+  TrackSeed_v1( const TrackSeed_v1& );
+  TrackSeed_v1& operator=(const TrackSeed_v1& seed);
+  ~TrackSeed_v1() override;
 
   void identify(std::ostream& os = std::cout) const override;
-  void Reset() override { *this = SvtxTrackSeed_v1(); }
-  void CopyFrom( const SvtxTrackSeed&) override;
-  void CopyFrom( SvtxTrackSeed* seed) override { CopyFrom( *seed ); }
+  void Reset() override { *this = TrackSeed_v1(); }
+  void CopyFrom( const TrackSeed&) override;
+  void CopyFrom( TrackSeed* seed) override { CopyFrom( *seed ); }
 
   int get_charge() const override;
   float get_px() const override;
@@ -42,13 +42,15 @@ class SvtxTrackSeed_v1 : public SvtxTrackSeed
   float get_X0() const override { return m_X0; }
   float get_Y0() const override { return m_Y0; }
   float get_slope() const override { return m_slope; }
-  float get_B() const override { return m_B; }
+  float get_Z0() const override { return m_Z0; }
+  short int get_crossing() const override { return m_crossing; }
 
+  void set_crossing(const short int crossing) override { m_crossing = crossing; }
   void set_qOverR(const float qOverR) override { m_qOverR = qOverR; }
   void set_X0(const float X0) override { m_X0 = X0; }
   void set_Y0(const float Y0) override { m_Y0 = Y0; }
   void set_slope(const float slope) override { m_slope = slope; }
-  void set_B(const float B) override { m_B = B; }
+  void set_Z0(const float Z0) override { m_Z0 = Z0; }
 
   void clear_cluster_keys() override { m_cluster_keys.clear(); }
   bool empty_cluster_keys() const override { return m_cluster_keys.empty(); }
@@ -82,9 +84,11 @@ class SvtxTrackSeed_v1 : public SvtxTrackSeed
   float m_X0 = NAN;
   float m_Y0 = NAN;
   float m_slope = NAN;
-  float m_B = NAN;
+  float m_Z0 = NAN;
 
-  ClassDefOverride(SvtxTrackSeed_v1,1);
+  short int m_crossing = std::numeric_limits<short int>::max();
+
+  ClassDefOverride(TrackSeed_v1,1);
 
 };
 

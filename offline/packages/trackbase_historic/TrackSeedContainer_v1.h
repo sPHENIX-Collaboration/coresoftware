@@ -1,33 +1,33 @@
-#ifndef TRACKBASEHISTORIC_SVTXTRACKSEEDCONTAINERV1_H
-#define TRACKBASEHISTORIC_SVTXTRACKSEEDCONTAINERV1_H
+#ifndef TRACKBASEHISTORIC_TRACKSEEDCONTAINERV1_H
+#define TRACKBASEHISTORIC_TRACKSEEDCONTAINERV1_H
 
-#include "SvtxTrackSeed.h"
-#include "SvtxTrackSeedContainer.h"
+#include "TrackSeed.h"
+#include "TrackSeedContainer.h"
 
 #include <iostream>
 #include <vector>
 
-class SvtxTrackSeedContainer_v1 : public SvtxTrackSeedContainer
+class TrackSeedContainer_v1 : public TrackSeedContainer
 {
 
  public: 
-  SvtxTrackSeedContainer_v1();
-  SvtxTrackSeedContainer_v1(const SvtxTrackSeedContainer_v1& trackmap);
-  SvtxTrackSeedContainer_v1& operator=(const SvtxTrackSeedContainer_v1& seedContainer);
-  ~SvtxTrackSeedContainer_v1() override;
+  TrackSeedContainer_v1();
+  TrackSeedContainer_v1(const TrackSeedContainer_v1& trackmap);
+  TrackSeedContainer_v1& operator=(const TrackSeedContainer_v1& seedContainer);
+  ~TrackSeedContainer_v1() override;
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override;
   int isValid() const override { return 1; }
-  PHObject* CloneMe() const override { return new SvtxTrackSeedContainer_v1(*this); }
+  PHObject* CloneMe() const override { return new TrackSeedContainer_v1(*this); }
 
   bool empty() const override { return m_seeds.empty(); }
   std::size_t size() const override { return m_seeds.size(); }
   void clear() override { Reset(); }
 
-  const SvtxTrackSeed* get(const std::size_t key) const override;
-  SvtxTrackSeed* get(const std::size_t key) override;
-  SvtxTrackSeed* insert(const SvtxTrackSeed* seed) override;
+  const TrackSeed* get(const std::size_t key) const override;
+  TrackSeed* get(const std::size_t key) override;
+  TrackSeed* insert(const TrackSeed* seed) override;
   Iter erase(const std::size_t key) override
     {
       delete m_seeds.at(key);
@@ -44,9 +44,9 @@ class SvtxTrackSeedContainer_v1 : public SvtxTrackSeedContainer
   Iter end() override { return m_seeds.end(); }
 
  private:
-  TrackSeedContainer m_seeds;
+  Container m_seeds;
 
-  ClassDefOverride(SvtxTrackSeedContainer_v1, 1);
+  ClassDefOverride(TrackSeedContainer_v1, 1);
 
 };
 
