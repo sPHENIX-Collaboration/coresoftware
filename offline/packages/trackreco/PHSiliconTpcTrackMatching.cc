@@ -141,8 +141,8 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
     }
   else
     {
-      // Triggered only mode - tpc_matches contains only matches with no z-mismatch, i.e. crossing zero
-      // just add silicon clusters
+      // Triggered only mode - tpc_matches contains only matches with a tight cut on the nominal z-mismatch, 
+      // i.e. presumed crossing zer0 - just add silicon clusters
       addSiliconClusters(tpc_matches);
 
       // add the crossing number (assumed to be 0 in this case) to the combined track

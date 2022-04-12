@@ -203,7 +203,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
       double hit_time = (hiter->second->get_t(0) + hiter->second->get_t(1)) / 2.0;
       int strobe = (int) round(hit_time / 5000.0);  // assume 5 microseconds cycle time temporarily  
-      // assume offset of 16 strobe cycles to fit in an unsigned 5 bit integer field in the hitsetkey
+      // to fit in a 5 bit field in the hitsetkey
       if(strobe < -16) strobe = -16;
       if(strobe > 16) strobe = 15;
   
