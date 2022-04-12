@@ -38,8 +38,8 @@ class TpcClusterizer : public SubsysReco
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size ;}
   void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeZ = size ;}
-
   void set_drift_velocity_scale(double value) { m_drift_velocity_scale = value; }
+  void set_cluster_version(int value) { cluster_version = value; }
   
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const;
@@ -49,13 +49,12 @@ class TpcClusterizer : public SubsysReco
   TrkrClusterHitAssocv3 *m_clusterhitassoc = nullptr;
   ActsSurfaceMaps *m_surfMaps = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
-
   bool do_hit_assoc = true;
   double pedestal = 74.4;
   double SectorFiducialCut = 0.5;
   unsigned short MaxClusterHalfSizePhi = 3;
   unsigned short MaxClusterHalfSizeZ = 5;
-
+  int cluster_version = 3;
   /// drift velocity scale factor
   /** 
    * represents the ratio vdrift_measured/vdrift_true
