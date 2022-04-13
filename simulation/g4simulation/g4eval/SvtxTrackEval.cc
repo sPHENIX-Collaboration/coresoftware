@@ -4,17 +4,11 @@
 #include "SvtxTruthEval.h"
 
 #include <g4main/PHG4Hit.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
-
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack_FastSim.h>
-#include <trackbase_historic/SvtxPHG4ParticleMap.h>
-#include <trackbase_historic/PHG4ParticleSvtxMap.h>
-
 
 #include <phool/getClass.h>
 
@@ -28,9 +22,6 @@ using namespace std;
 SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
   : _clustereval(topNode)
   , _trackmap(nullptr)
-  , _truthinfo(nullptr)
-  , _truthRecoMap(nullptr)
-  , _recoTruthMap(nullptr)
   , _strict(false)
   , _verbosity(0)
   , _errors(0)
@@ -141,22 +132,6 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track)
     ++_errors;
     return std::set<PHG4Particle*>();
   }
-
-  if(_recoTruthMap != nullptr) 
-    {
-      SvtxPHG4ParticleMap::WeightedTruthTrackMap map = _recoTruthMap->get(track->get_id());
-      std::set<PHG4Particle*> returnset;
-      
-      for(const auto& [weight, truthTrackSet] : map)
-	{
-	  for(const int& g4partid : truthTrackSet)
-	    {
-	      returnset.insert(_truthinfo->GetParticle(g4partid));
-	    }
-	}
-      return returnset;
-    }
-
   if (_do_cache)
   {
     std::map<SvtxTrack*, std::set<PHG4Particle*> >::iterator iter =
@@ -223,16 +198,6 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track)
     return nullptr;
   }
 
-  if(_recoTruthMap != nullptr)
-    {
-      SvtxPHG4ParticleMap::WeightedTruthTrackMap map = _recoTruthMap->get(track->get_id());
-      auto itr = map.end();
-      --itr;
-      std::set<int> bestPartSet = itr->second;
-      int bestpart = *bestPartSet.begin();
-      return _truthinfo->GetParticle(bestpart);
-    }
-
   if (_do_cache)
   {
     std::map<SvtxTrack*, PHG4Particle*>::iterator iter =
@@ -289,22 +254,6 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
     ++_errors;
     return std::set<SvtxTrack*>();
   }
-
-  if(_truthRecoMap != nullptr)
-    {
-      std::set<SvtxTrack*> returnset;
- 
-      PHG4ParticleSvtxMap::WeightedRecoTrackMap map = _truthRecoMap->get(truthparticle->get_track_id());    
-      
-      for(const auto& [weight, recoTrackSet] : map)
-	{
-	  for(const unsigned int& trackid : recoTrackSet)
-	    {
-	      returnset.insert(_trackmap->get(trackid));
-	    }
-	}
-      return returnset;
-    }
 
   if (_do_cache)
   {
@@ -454,19 +403,6 @@ SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle)
     ++_errors;
     return nullptr;
   }
-  
-  if(_truthRecoMap != nullptr)
-    {
-      PHG4ParticleSvtxMap::WeightedRecoTrackMap map = _truthRecoMap->get(truthparticle->get_track_id());
-      /// No reco tracks found
-      if(map.size() == 0)
-	{ return nullptr; }
-      auto itr = map.end();
-      --itr;
-      std::set<unsigned int> bestPartSet = itr->second;
-      int bestpart = *bestPartSet.begin();
-      return _trackmap->get(bestpart);
-    }
 
   if (_do_cache)
   {
@@ -951,18 +887,6 @@ void SvtxTrackEval::get_node_pointers(PHCompositeNode* topNode)
 {
   // need things off of the DST...
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_TrackNodeName);
-
-  _truthRecoMap = findNode::getClass<PHG4ParticleSvtxMap>(topNode, "PHG4ParticleSvtxMap");
-
-  if(_truthRecoMap && _truthRecoMap->size() == 0)
-    { _truthRecoMap = nullptr; }
-
-  _recoTruthMap = findNode::getClass<SvtxPHG4ParticleMap>(topNode, "SvtxPHG4ParticleMap");
-  if(_recoTruthMap && _recoTruthMap->size() == 0)
-    { _recoTruthMap = nullptr; }
-
-  _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
- 
   return;
 }
 
@@ -975,4 +899,3 @@ bool SvtxTrackEval::has_node_pointers()
     return false;
   return true;
 }
-

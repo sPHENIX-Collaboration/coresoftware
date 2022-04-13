@@ -34,7 +34,7 @@ class SvtxTruthRecoTableEval : public SubsysReco
   void fillTruthMap(PHCompositeNode *topNode);
   void fillRecoMap(PHCompositeNode *topNode);
 
-  bool m_scanForPrimaries = false;
+  bool m_scanForPrimaries = true;
 
   PHG4ParticleSvtxMap *m_truthMap = nullptr;
   SvtxPHG4ParticleMap *m_recoMap = nullptr;
