@@ -263,8 +263,8 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) con
   const auto cov2 = m_transformer.rotateSvtxTrackCovToActs( track );
   
   // compare
-  for( int i = 0; i < 6; ++i )
-    for( int j = 0; j < 6; ++j )
+  for( int i = 0; i < cov.rows(); ++i )
+    for( int j = 0; j < cov.cols(); ++j )
   { std::cout << "PHTpcResiduals::makeTrackParams - (" << i << ", " << j << ") cov: " << cov(i,j) << " cov2: " << cov2(i,j) << std::endl; }
   
   const Acts::Vector3 position(track->get_x() * Acts::UnitConstants::cm,
@@ -277,7 +277,6 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) con
   return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geoContext,
 					    actsFourPos, momentum,
 					    trackQ/p, cov).value();
- 
 }
 
 //___________________________________________________________________________________
