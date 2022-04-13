@@ -111,8 +111,14 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
   jacobianGlobalToLocal(Acts::eBoundTheta, 6) = -sinTheta;
   jacobianGlobalToLocal(Acts::eBoundQOverP, 7) = 1.;
   
-  const auto actsLocalCov = jacobianGlobalToLocal * rotatedMatrix * jacobianGlobalToLocal.transpose();
+  Acts::BoundSymMatrix actsLocalCov = jacobianGlobalToLocal * rotatedMatrix * jacobianGlobalToLocal.transpose();
 
+  /*
+   * need to assign the covariance matrix diagonal element corresponding to the time coordinate manually, 
+   * since it is lost in the conversion to Svtx coordinates 
+   */
+  actsLocalCov( Acts::eBoundTime, Acts::eBoundTime ) = 1.;
+  
   printMatrix("Rotated to Acts local cov : ",actsLocalCov);
   return actsLocalCov;
 
