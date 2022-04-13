@@ -67,17 +67,7 @@ MvtxDefs::genHitSetKey(const uint8_t lyr, const uint8_t stave, const uint8_t chi
 TrkrDefs::cluskey
 MvtxDefs::genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid)
 {
-  TrkrDefs::cluskey tmp = genHitSetKey(lyr, stave, chip);
-  TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
-  key |= clusid;
-  return key;
+  const auto key = genHitSetKey(lyr, stave, chip);
+  return TrkrDefs::genClusKey( key, clusid );
 }
 
-TrkrDefs::cluskey
-MvtxDefs::genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid)
-{
-  TrkrDefs::cluskey tmp = hskey;
-  TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
-  key |= clusid;
-  return key;
-}

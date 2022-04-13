@@ -108,14 +108,6 @@ TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t stave, const u
    */
 TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid);
 
-/**
-   * @brief Generate a cluster key using a hitsetkey and cluster id
-   * @param[in] hskey hitsetkey
-   * @param[in] clusid Cluster id
-   * @param[out] cluskey
-   */
-TrkrDefs::cluskey genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid);
-
 }  // namespace MvtxDefs
 
 #endif  //MVTX_MVTXDEFUTIL_H

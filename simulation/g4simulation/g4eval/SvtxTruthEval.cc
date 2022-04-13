@@ -355,7 +355,7 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
 	  MicromegasDefs::SegmentationType segtype;
 	  segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
 	  TrkrDefs::hitsetkey hkey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
-  	  ckey = MicromegasDefs::genClusterKey(hkey, iclus);
+  	  ckey = TrkrDefs::genClusKey(hkey, iclus);
 	}
       else
 	{
