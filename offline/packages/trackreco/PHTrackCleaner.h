@@ -34,6 +34,8 @@ class PHTrackCleaner : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+ void set_pp_mode(const bool flag){_pp_mode = flag ;}
+
  private:
 
   int GetNodes(PHCompositeNode* topNode);
@@ -45,6 +47,8 @@ SvtxTrack *_track{nullptr};
  TpcSeedTrackMap *_seed_track_map{nullptr};
 
  double min_ndf = 25;
+ bool _pp_mode = false;
+
 };
 
 #endif // PHTRACKCLEANER_H

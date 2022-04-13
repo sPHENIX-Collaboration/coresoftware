@@ -387,7 +387,7 @@ int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume*& lv)
     av_EW_N->MakeImprint(lv, TrN, 0, OverlapCheck());
   }
   //Now construct service barrel, CYSS, cones and cables
-  PHG4MvtxSupport *mvtxSupportSystem = new PHG4MvtxSupport(m_DisplayAction);
+  PHG4MvtxSupport *mvtxSupportSystem = new PHG4MvtxSupport(m_DisplayAction, OverlapCheck());
   mvtxSupportSystem->ConstructMvtxSupport(lv); 
 
   delete mvtxSupportSystem;

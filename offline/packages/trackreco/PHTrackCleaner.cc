@@ -92,14 +92,17 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 
 	  if(_track)
 	    {
-	      // skip tracks with no assigned crossing number
-	      if(_track->get_crossing() == SHRT_MAX)
+	      if(_pp_mode)
 		{
-		  if(Verbosity() > 0) 
-		    std::cout << "     skip  track ID " << track_id << " crossing " << _track->get_crossing() <<  " chisq " << _track->get_chisq() 
-			      << " ndf " << _track->get_ndf() << std::endl;
-		  
-		  continue;
+		  // skip tracks with no assigned crossing number in pp mode
+		  if(_track->get_crossing() == SHRT_MAX)
+		    {
+		      if(Verbosity() > 0) 
+			std::cout << "     skip  track ID " << track_id << " crossing " << _track->get_crossing() <<  " chisq " << _track->get_chisq() 
+				  << " ndf " << _track->get_ndf() << std::endl;
+		      
+		      continue;
+		    }
 		}
 	      
 	      //Find the remaining track with the best chisq/ndf

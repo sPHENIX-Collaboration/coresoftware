@@ -461,6 +461,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       double tpc_eta = _tracklet_tpc->get_eta();
       double tpc_pt = sqrt( pow(_tracklet_tpc->get_px(),2) + pow(_tracklet_tpc->get_py(),2) );
 
+      /*
       // phi correction for PHTpcTracker tracklets is charge dependent
       double sign_phi_correction = _tracklet_tpc->get_charge();
 
@@ -473,6 +474,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	  if(_fieldDir > 0)
 	    sign_phi_correction *= -1;
 	}
+      */
 
       // this factor will increase the window size at low pT
       // otherwise the matching efficiency drops off at low pT
@@ -519,8 +521,6 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	  bool phi_match = false;
 	  bool position_match = false;
 	  if(  fabs(tpc_eta - si_eta) < _eta_search_win * mag) eta_match = true;
-
-	  // PHTpcTracker has a bias in the tracklet phi that depends on charge sign, PHCASeeding does not
 	  if(  fabs(tpc_phi - si_phi)  < _phi_search_win * mag) phi_match = true;
 	  
 	  if(_pp_mode)

@@ -29,7 +29,7 @@
 class PHG4MvtxSupport
 {
  public:
-  PHG4MvtxSupport(PHG4MvtxDisplayAction* dispAct);
+  PHG4MvtxSupport(PHG4MvtxDisplayAction* dispAct, bool overlapCheck);
 
   ~PHG4MvtxSupport();
 
@@ -57,6 +57,8 @@ class PHG4MvtxSupport
   G4AssemblyVolume *m_avL1Cable;
   G4AssemblyVolume *m_avL2Cable;
   //std::vector<G4AssemblyVolume*> m_endwheelCable;
+
+  bool m_overlapCheck = false;
 };
 
 #endif
