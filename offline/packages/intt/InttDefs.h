@@ -103,14 +103,6 @@ TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t ladder_z_index
    */
 TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t LadderZId, const uint8_t LadderPhiId, const uint32_t clusid);
 
-/**
-   * @brief Generate a cluster key using a hitsetkey and cluster id
-   * @param[in] hskey hitsetkey
-   * @param[in] clusid Cluster id
-   * @param[out] cluskey
-   */
-TrkrDefs::cluskey genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid);
-
 }  // namespace InttDefs
 
 #endif  //INTT_INTTDEFS_H

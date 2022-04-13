@@ -359,7 +359,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator mapiter = clusrange.first;
 	
 	// make the cluster directly in the node tree
-	TrkrDefs::cluskey ckey = InttDefs::genClusKey(hitset->getHitSetKey(), clusid);
+	TrkrDefs::cluskey ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 	auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setClusKey(ckey);
 

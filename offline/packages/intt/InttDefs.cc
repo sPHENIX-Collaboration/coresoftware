@@ -73,17 +73,6 @@ InttDefs::genHitSetKey(const uint8_t lyr, const uint8_t ladder_z_index, uint8_t 
 TrkrDefs::cluskey
 InttDefs::genClusKey(const uint8_t lyr, const uint8_t ladder_z_index, const uint8_t ladder_phi_index, const uint32_t clusid)
 {
-  TrkrDefs::cluskey tmp = genHitSetKey(lyr, ladder_z_index, ladder_phi_index);
-  TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
-  key |= clusid;
-  return key;
-}
-
-TrkrDefs::cluskey
-InttDefs::genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid)
-{
-  TrkrDefs::cluskey tmp = hskey;
-  TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
-  key |= clusid;
-  return key;
+  const auto key = genHitSetKey(lyr, ladder_z_index, ladder_phi_index);
+  return TrkrDefs::genClusKey( key, clusid );
 }
