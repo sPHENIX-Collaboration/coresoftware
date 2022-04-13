@@ -54,9 +54,9 @@ class ActsTransformations
   /// origin of sPHENIX, so we rotate accordingly
   Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrackState* ) const;
 
-          /// Same as above, but rotate from Acts basis to global (x,y,z,px,py,pz)
-  Acts::BoundSymMatrix rotateActsCovToSvtxTrack(
-                       const Acts::BoundTrackParameters params) const;
+  /// Rotates an Acts covariance matrix from (d0, z0, phi, theta, q/p, time) local curvilinear coordinates
+  /// to global cartesian coordinates (x,y,z,px,py,pz) coordinates
+  Acts::BoundSymMatrix rotateActsCovToSvtxTrack( const ActsExamples::TrackParameters& ) const;
 
   void setVerbosity(int verbosity) {m_verbosity = verbosity;}
 

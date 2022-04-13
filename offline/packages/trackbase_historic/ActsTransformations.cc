@@ -118,10 +118,10 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
 
 }
 
-Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack( const Acts::BoundTrackParameters params ) const
-{
-
-  const auto covarianceMatrix = *params.covariance();  
+//_______________________________________________________________________________
+Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack( const ActsExamples::TrackParameters& params ) const
+{ 
+  const auto covarianceMatrix = *params.covariance();
   printMatrix("Initial Acts covariance: ", covarianceMatrix);
 
   const double px = params.momentum().x();
