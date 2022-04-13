@@ -536,8 +536,10 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[],
 
   m_tGeometry = geometry.first;
   m_contextDecorators = geometry.second;
-
-  m_magneticField = ActsExamples::Options::readMagneticField(vm);
+  if(m_useField)
+    { m_magneticField = ActsExamples::Options::readMagneticField(vm); }
+  else
+    { m_magneticField = nullptr; }
 
   size_t ievt = 0;
   size_t ialg = 0;
