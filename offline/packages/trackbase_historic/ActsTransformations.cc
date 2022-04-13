@@ -5,13 +5,29 @@
 
 #include <trackbase/TrkrCluster.h>
 
-
-
 namespace
 {
+  /// square
   template<class T> inline constexpr T square(const T& x) {return x*x;}
+
+  /// get radius from coordinates
   template<class T> T radius(const T& x, const T& y)
   { return std::sqrt(square(x) + square(y));}
+
+  /// templatize print matrix method
+  template<class T>
+    void print_matrix( const std::string &message, const T& matrix)
+  {
+    std::cout << std::endl << message << std::endl;
+    for(int i = 0 ; i < matrix.rows(); ++i)
+    {
+      for(int j = 0; j < matrix.cols(); ++j)
+      { std::cout << matrix(i,j) << ", "; }
+      
+      std::cout << std::endl;
+    }
+  }
+    
 }
 
 //_______________________________________________________________________________
@@ -45,11 +61,13 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
   const double px = state->get_px();
   const double py = state->get_py();
   const double pz = state->get_pz();
-  const double p = sqrt(px*px + py*py + pz*pz);
+  const double p2 = square(px) + square(py) + square(pz);
+  const double p = std::sqrt(p2);
+  const double invp = 1./p;
   
-  const double uPx = px / p;
-  const double uPy = py / p;
-  const double uPz = pz / p;
+  const double uPx = px/p;
+  const double uPy = py/p;
+  const double uPz = pz/p;
 
   //Acts version
   const double cosTheta = uPz;
@@ -63,70 +81,67 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
   /// We basically go backwards from rotateActsCovToSvtxTrack to get the Acts cov 
   /// from the SvtxTrack cov
 
-  /// This is going from Acts->Svtx, so we will take the transpose
-  Acts::ActsMatrix<6,8> sphenixRot;
-  sphenixRot.setZero();
-  /// Make the xyz transform unity
+  // rotate to (x,y,z,t,upx,upy,upz,q/p)
+  Acts::ActsMatrix<8,6> sphenixRot = Acts::ActsMatrix<8,6>::Zero(); 
   sphenixRot(0,0) = 1;
   sphenixRot(1,1) = 1;
   sphenixRot(2,2) = 1;
-  sphenixRot(3,4) = 1./p;
-  sphenixRot(4,5) = 1./p;
-  sphenixRot(5,6) = 1./p;
-  sphenixRot(3,7) = uPx * p * p;
-  sphenixRot(4,7) = uPy * p * p;
-  sphenixRot(5,7) = uPz * p * p;
+  sphenixRot(4,3) = invp;
+  sphenixRot(5,4) = invp;
+  sphenixRot(6,5) = invp;
+  sphenixRot(7,3) = uPx/p2;
+  sphenixRot(7,4) = uPy/p2;
+  sphenixRot(7,5) = uPz/p2;
 
-  auto rotatedMatrix 
-    = sphenixRot.transpose() * svtxCovariance * sphenixRot;
+  const auto rotatedMatrix = sphenixRot*svtxCovariance*sphenixRot.transpose();
   
-  /// Now take the 8x8 matrix and rotate it to Acts basis
-  Acts::BoundToFreeMatrix jacobianLocalToGlobal = Acts::BoundToFreeMatrix::Zero();
-  jacobianLocalToGlobal(0, Acts::eBoundLoc0) = -sinPhi;
-  jacobianLocalToGlobal(0, Acts::eBoundLoc1) = -cosPhi * cosTheta;
-  jacobianLocalToGlobal(1, Acts::eBoundLoc0) = cosPhi;
-  jacobianLocalToGlobal(1, Acts::eBoundLoc1) = -sinPhi * cosTheta;
-  jacobianLocalToGlobal(2, Acts::eBoundLoc1) = sinTheta;
-  jacobianLocalToGlobal(3, Acts::eBoundTime) = 1;
-  jacobianLocalToGlobal(4, Acts::eBoundPhi) = -sinTheta * sinPhi;
-  jacobianLocalToGlobal(4, Acts::eBoundTheta) = cosTheta * cosPhi;
-  jacobianLocalToGlobal(5, Acts::eBoundPhi) = sinTheta * cosPhi;
-  jacobianLocalToGlobal(5, Acts::eBoundTheta) = cosTheta * sinPhi;
-  jacobianLocalToGlobal(6, Acts::eBoundTheta) = -sinTheta;
-  jacobianLocalToGlobal(7, Acts::eBoundQOverP) = 1;
-
-  /// Since we are using the local to global jacobian we do R^TCR instead of 
-  /// RCR^T
-  auto actsLocalCov = jacobianLocalToGlobal.transpose() * rotatedMatrix * jacobianLocalToGlobal;
+  // global to local transformation
+  /* from https://github.com/acts-project/acts/blob/394cfdb308956de93f90ab3162040bb6d835027d/Core/src/Propagator/detail/CovarianceEngine.cpp#L31 */
+  Acts::FreeToBoundMatrix jacobianGlobalToLocal = Acts::FreeToBoundMatrix::Zero();
+  jacobianGlobalToLocal(Acts::eBoundLoc0, 0) = -sinPhi;
+  jacobianGlobalToLocal(Acts::eBoundLoc0, 1) = cosPhi;
+  jacobianGlobalToLocal(Acts::eBoundLoc1, 0) = -cosPhi * cosTheta;
+  jacobianGlobalToLocal(Acts::eBoundLoc1, 1) = -sinPhi * cosTheta;
+  jacobianGlobalToLocal(Acts::eBoundLoc1, 2) = sinTheta;
+  jacobianGlobalToLocal(Acts::eBoundTime, 3) = 1.;
+  jacobianGlobalToLocal(Acts::eBoundPhi, 4) = -sinPhi * invSinTheta;
+  jacobianGlobalToLocal(Acts::eBoundPhi, 5) = cosPhi * invSinTheta;
+  jacobianGlobalToLocal(Acts::eBoundTheta, 4) = cosPhi * cosTheta;
+  jacobianGlobalToLocal(Acts::eBoundTheta, 5) = sinPhi * cosTheta;
+  jacobianGlobalToLocal(Acts::eBoundTheta, 6) = -sinTheta;
+  jacobianGlobalToLocal(Acts::eBoundQOverP, 7) = 1.;
+  
+  const auto actsLocalCov = jacobianGlobalToLocal * rotatedMatrix * jacobianGlobalToLocal.transpose();
 
   printMatrix("Rotated to Acts local cov : ",actsLocalCov);
   return actsLocalCov;
 
 }
 
-
 Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack( const Acts::BoundTrackParameters params ) const
 {
 
-  auto covarianceMatrix = *params.covariance();
-
+  const auto covarianceMatrix = *params.covariance();  
   printMatrix("Initial Acts covariance: ", covarianceMatrix);
 
-  const double px = params.momentum()(0);
-  const double py = params.momentum()(1);
-  const double pz = params.momentum()(2);
+  const double px = params.momentum().x();
+  const double py = params.momentum().y();
+  const double pz = params.momentum().z();
   const double p = params.momentum().norm();
+  const double p2 = square(p);
   
-  const double uPx = px / p;
-  const double uPy = py / p;
-  const double uPz = pz / p;
+  const double uPx = px/p;
+  const double uPy = py/p;
+  const double uPz = pz/p;
   
   const double cosTheta = uPz;
-  const double sinTheta = sqrt(uPx * uPx + uPy * uPy);
-  const double invSinTheta = 1. / sinTheta;
-  const double cosPhi = uPx * invSinTheta;
-  const double sinPhi = uPy * invSinTheta;
+  const double sinTheta = std::sqrt(square(uPx) + square(uPy));
+  const double invSinTheta = 1./sinTheta;
+  const double cosPhi = uPx*invSinTheta;
+  const double sinPhi = uPy*invSinTheta;
 
+  // local to global transformation
+  /* from https://github.com/acts-project/acts/blob/394cfdb308956de93f90ab3162040bb6d835027d/Core/src/Propagator/detail/CovarianceEngine.cpp#L222 */
   Acts::BoundToFreeMatrix jacobianLocalToGlobal = Acts::BoundToFreeMatrix::Zero();
   jacobianLocalToGlobal(0, Acts::eBoundLoc0) = -sinPhi;
   jacobianLocalToGlobal(0, Acts::eBoundLoc1) = -cosPhi * cosTheta;
@@ -137,33 +152,26 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack( const Acts::
   jacobianLocalToGlobal(4, Acts::eBoundPhi) = -sinTheta * sinPhi;
   jacobianLocalToGlobal(4, Acts::eBoundTheta) = cosTheta * cosPhi;
   jacobianLocalToGlobal(5, Acts::eBoundPhi) = sinTheta * cosPhi;
-  jacobianLocalToGlobal(5, Acts::eBoundTheta) = cosTheta * sinPhi;
+  jacobianLocalToGlobal(5, Acts::eBoundTheta) = cosTheta * sinPhi;  
   jacobianLocalToGlobal(6, Acts::eBoundTheta) = -sinTheta;
   jacobianLocalToGlobal(7, Acts::eBoundQOverP) = 1;
-
-  /// Covariance is now an 8x8 matrix in basis (x,y,z,time,Tx,Ty,Tz,q/p)
-  auto rotatedMatrix 
-    = jacobianLocalToGlobal * covarianceMatrix * jacobianLocalToGlobal.transpose();
-
-  /// Now rotate to x,y,z, px,py,pz
-  /// ActsMatrixD is an eigen matrix
-  Acts::ActsMatrix<6,8> sphenixRot;
-  sphenixRot.setZero();
   
-  /// Make the xyz transform unity
+  // Covariance is now an 8x8 matrix in basis (x,y,z,time,Tx,Ty,Tz,q/p)
+  const auto rotatedMatrix = jacobianLocalToGlobal * covarianceMatrix * jacobianLocalToGlobal.transpose();
+
+  // Now rotate to x,y,z, px,py,pz
+  Acts::ActsMatrix<6,8> sphenixRot = Acts::ActsMatrix<6,8>::Zero(); 
   sphenixRot(0,0) = 1;
   sphenixRot(1,1) = 1;
   sphenixRot(2,2) = 1;
   sphenixRot(3,4) = p;
   sphenixRot(4,5) = p;
   sphenixRot(5,6) = p;
-  sphenixRot(3,7) = uPx * p * p;
-  sphenixRot(4,7) = uPy * p * p;
-  sphenixRot(5,7) = uPz * p * p;
+  sphenixRot(3,7) = uPx*p2;
+  sphenixRot(4,7) = uPy*p2;
+  sphenixRot(5,7) = uPz*p2;
   
-  Acts::BoundSymMatrix globalCov = Acts::BoundSymMatrix::Zero();
-  globalCov = sphenixRot * rotatedMatrix * sphenixRot.transpose();
-
+  Acts::BoundSymMatrix globalCov = sphenixRot * rotatedMatrix * sphenixRot.transpose();
   printMatrix("Global sPHENIX cov : ", globalCov);
 
   /// Convert to sPHENIX units
@@ -186,27 +194,8 @@ Acts::BoundSymMatrix ActsTransformations::rotateActsCovToSvtxTrack( const Acts::
   return globalCov;
 }
 
-
 void ActsTransformations::printMatrix(const std::string &message, const Acts::BoundSymMatrix& matrix) const
-{
- 
-  if(m_verbosity > 10)
-    {
-      std::cout << std::endl << message.c_str() << std::endl;
-      for(int i = 0 ; i < matrix.rows(); ++i)
-	{
-	  std::cout << std::endl;
-	  for(int j = 0; j < matrix.cols(); ++j)
-	    {
-	      std::cout << matrix(i,j) << ", ";
-	    }
-	}
-    
-      std::cout << std::endl;
-    }
-}
-
-
+{ if(m_verbosity > 10) print_matrix( message, matrix ); }
 
 void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 				       Acts::Vector3 vertex,
