@@ -106,7 +106,6 @@ int MakeActsGeometry::Init(PHCompositeNode */*topNode*/)
 
 int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
-
   if(buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
