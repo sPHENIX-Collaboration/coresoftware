@@ -30,18 +30,16 @@ int DumpCentralityInfo::process_Node(PHNode *myNode)
     *fout << "CentralityInfo->isValid(): " << centralityinfo->isValid() << std::endl;
     if (centralityinfo->isValid())
     {
-      for (int i=0; i<100; i++)
+      for (int i = 0; i < 100; i++)
       {
-	if (centralityinfo->has_quantity(static_cast<CentralityInfo::PROP>(i)))
-	{
-
-	  *fout << "get_quantity(" << i << "): " << centralityinfo->get_quantity(static_cast<CentralityInfo::PROP> (i)) << std::endl;
-	}
-	if (centralityinfo->has_centile(static_cast<CentralityInfo::PROP>(i)))
-	{
-
-	  *fout << "get_centile(" << i << "): " << centralityinfo->get_centile(static_cast<CentralityInfo::PROP> (i)) << std::endl;
-	}
+        if (centralityinfo->has_quantity(static_cast<CentralityInfo::PROP>(i)))
+        {
+          *fout << "get_quantity(" << i << "): " << centralityinfo->get_quantity(static_cast<CentralityInfo::PROP>(i)) << std::endl;
+        }
+        if (centralityinfo->has_centile(static_cast<CentralityInfo::PROP>(i)))
+        {
+          *fout << "get_centile(" << i << "): " << centralityinfo->get_centile(static_cast<CentralityInfo::PROP>(i)) << std::endl;
+        }
       }
     }
   }

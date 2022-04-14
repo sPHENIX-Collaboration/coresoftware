@@ -29,7 +29,7 @@ int DumpTrkrClusterCrossingAssoc::process_Node(PHNode *myNode)
   {
     TrkrClusterCrossingAssoc::ConstRange begin_end = trkrclustercrossingassoc->getAll();
     *fout << "size " << trkrclustercrossingassoc->size() << std::endl;
-    for (auto iter = begin_end.first; iter != begin_end.second; ++ iter)
+    for (auto iter = begin_end.first; iter != begin_end.second; ++iter)
     {
       *fout << "cluster: " << std::hex << iter->first << std::dec << ", crossing: " << iter->second << std::endl;
     }

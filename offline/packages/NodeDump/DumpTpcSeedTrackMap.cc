@@ -29,7 +29,7 @@ int DumpTpcSeedTrackMap::process_Node(PHNode *myNode)
   {
     TpcSeedTrackMap::ConstRange begin_end = tpcseedtrackmap->getAll();
     *fout << "size " << tpcseedtrackmap->size() << std::endl;
-    for (auto iter = begin_end.first; iter != begin_end.second; ++ iter)
+    for (auto iter = begin_end.first; iter != begin_end.second; ++iter)
     {
       *fout << "original id: " << iter->first << ", duplicate id: " << iter->second << std::endl;
     }
