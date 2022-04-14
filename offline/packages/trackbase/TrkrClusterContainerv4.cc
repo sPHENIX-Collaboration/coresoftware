@@ -6,7 +6,6 @@
  */
 #include "TrkrClusterContainerv4.h"
 #include "TrkrCluster.h"
-#include "TrkrClusterv3.h"
 #include "TrkrDefs.h"
 
 #include <cstdlib>
