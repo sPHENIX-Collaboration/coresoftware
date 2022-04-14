@@ -6,7 +6,6 @@
  */
 #include "TrkrClusterContainerv1.h"
 #include "TrkrCluster.h"
-#include "TrkrClusterv2.h"
 
 #include <cstdlib>
 
@@ -35,24 +34,20 @@ void TrkrClusterContainerv1::identify(std::ostream& os) const
   return;
 }
 
-TrkrClusterContainerv1::ConstIterator
-TrkrClusterContainerv1::addCluster(TrkrCluster* newclus)
-{
-  return addClusterSpecifyKey(newclus->getClusKey(), newclus);
-}
+void TrkrClusterContainerv1::addCluster(TrkrCluster* newclus)
+{ addClusterSpecifyKey(newclus->getClusKey(), newclus); }
 
-TrkrClusterContainerv1::ConstIterator
+void
 TrkrClusterContainerv1::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster* newclus)
 {
-  auto ret = m_clusmap.insert(std::make_pair(key, newclus));
-  if ( !ret.second )
+  const auto [iter,success] = m_clusmap.insert(std::make_pair(key, newclus));
+  if ( !success )
   {
     std::cout << "TrkrClusterContainerv1::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
-  }
-  else
-  {
-    return ret.first;
+  } else {
+    // make sure that cluster key matches
+    iter->second->setClusKey( key );
   }
 }
 
@@ -61,19 +56,6 @@ void TrkrClusterContainerv1::removeCluster(TrkrDefs::cluskey key)
 
 void TrkrClusterContainerv1::removeCluster(TrkrCluster *clus)
 { removeCluster( clus->getClusKey() ); }
-
-TrkrClusterContainerv1::Iterator
-TrkrClusterContainerv1::findOrAddCluster(TrkrDefs::cluskey key)
-{
-  auto it = m_clusmap.lower_bound( key );
-  if (it == m_clusmap.end()|| (key < it->first ))
-  {
-    // add new cluster and set its key
-    it = m_clusmap.insert(it, std::make_pair(key, new TrkrClusterv2()));
-    it->second->setClusKey(key);
-  }
-  return it;
-}
 
 TrkrClusterContainer::ConstRange
 TrkrClusterContainerv1::getClusters() const
