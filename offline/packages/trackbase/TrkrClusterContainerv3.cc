@@ -114,11 +114,6 @@ TrkrClusterContainerv3::getClusters(TrkrDefs::hitsetkey hitsetkey) const
 }
 
 //_________________________________________________________________
-TrkrClusterContainerv3::Map*
-TrkrClusterContainerv3::getClusterMap(TrkrDefs::hitsetkey hitsetkey)
-{ return &m_clusmap[hitsetkey]; }
-
-//_________________________________________________________________
 TrkrCluster* TrkrClusterContainerv3::findCluster(TrkrDefs::cluskey key) const
 {
   

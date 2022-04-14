@@ -147,30 +147,6 @@ TrkrClusterContainerv2::getClusters(TrkrDefs::hitsetkey hitsetkey) const
     return std::make_pair( dummy_map.cbegin(), dummy_map.cend() );
   }
 }
-
-//_________________________________________________________________
-TrkrClusterContainerv2::Map*
-TrkrClusterContainerv2::getClusterMap(TrkrDefs::hitsetkey hitsetkey)
-{
-  const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-  const unsigned int sector= TrkrDefs::getPhiElement(hitsetkey);
-  const unsigned int side  = TrkrDefs::getZElement(hitsetkey);
-
-  // bound check
-  if( layer < max_layer && sector < max_phisegment && side < max_zsegment )
-  {
-    return &m_clusmap[layer][sector][side];
-  } else {
-    std::cout
-      << "TrkrClusterContainerv2::getClusterMap - out of range access."
-      << " layer: " << layer
-      << " sector: " << sector
-      << " side: " << side
-      << std::endl;
-
-    return nullptr;
-  }
-}
   
 //_________________________________________________________________
 TrkrCluster* TrkrClusterContainerv2::findCluster(TrkrDefs::cluskey key) const
