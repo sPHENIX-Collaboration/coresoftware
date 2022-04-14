@@ -40,17 +40,15 @@ void TrkrClusterContainerv3::identify(std::ostream& os) const
   os << "-----TrkrClusterContainerv3-----" << std::endl;
   os << "Number of clusters: " << size() << std::endl;
 
-  for( const auto& map_pair:m_clusmap )
+  for( const auto& [hitsetkey,map]:m_clusmap )
   {
-
-    const unsigned int layer = TrkrDefs::getLayer(map_pair.first);
-    std::cout << "layer: " << layer << " hitsetkey: " << map_pair.first << std::endl;
-
-    for( const auto& pair:map_pair.second )
+    const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+    std::cout << "layer: " << layer << " hitsetkey: " << hitsetkey << std::endl;
+    for( const auto& [cluskey,cluster]:map )
     {
-      int layer = TrkrDefs::getLayer(pair.first);
-      os << "clus key " << pair.first  << " layer " << layer << std::endl;
-      (pair.second)->identify();
+      const unsigned int layer = TrkrDefs::getLayer(cluskey);
+      os << "clus key " << cluskey  << " layer " << layer << std::endl;
+      cluster->identify();
     }
   }
 
