@@ -37,8 +37,6 @@ class TrkrClusterContainerv4 : public TrkrClusterContainer
 
   ConstRange getClusters(TrkrDefs::hitsetkey) override;
 
-  Vector* getClusterVector(TrkrDefs::hitsetkey) override;
-
   TrkrCluster* findCluster(TrkrDefs::cluskey) const override;
 
   unsigned int size(void) const override;
