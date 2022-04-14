@@ -3,8 +3,6 @@
 
 #include "KFParticle_Tools.h"
 
-#include <intt/InttDefs.h>
-#include <mvtx/MvtxDefs.h>
 #include <tpc/TpcDefs.h>
 
 #include <g4eval/SvtxClusterEval.h>
@@ -28,6 +26,8 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
 
 #include <TTree.h>
 #include <KFParticle.h>

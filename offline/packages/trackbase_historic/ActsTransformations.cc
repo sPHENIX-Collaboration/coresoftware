@@ -2,8 +2,9 @@
 #include "SvtxTrack.h"
 #include "SvtxTrackState.h"
 #include "SvtxTrackState_v1.h"
-
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
 
 namespace
 {
@@ -320,7 +321,7 @@ Surface ActsTransformations::getSurface(TrkrCluster *cluster,
 {
   const auto cluskey = cluster->getClusKey();
   const auto surfkey = cluster->getSubSurfKey();
-  const auto trkrid = TrkrDefs::getTrkrId(cluskey);
+  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
   const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
 
   switch( trkrid )
@@ -341,16 +342,33 @@ Surface ActsTransformations::getSurface(TrkrCluster *cluster,
 Surface ActsTransformations::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey,
 					       ActsSurfaceMaps *maps) const
 {
+  unsigned int trkrid =  TrkrDefs::getTrkrId(hitsetkey);
+  TrkrDefs::hitsetkey tmpkey = hitsetkey;
+
+  if(trkrid == TrkrDefs::inttId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = InttDefs::resetCrossingHitSetKey(hitsetkey);
+    }
+
+  if(trkrid == TrkrDefs::mvtxId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);
+    }
+     
   auto surfMap = maps->siliconSurfaceMap;
-  auto iter = surfMap.find(hitsetkey);
+  auto iter = surfMap.find(tmpkey);
   if(iter != surfMap.end())
     {
       return iter->second;
     }
   
   /// If it can't be found, return nullptr
+  {
+    std::cout << "Failed to find silicon surface for hitsetkey " << hitsetkey << " tmpkey " << tmpkey << std::endl;
+  }  
   return nullptr;
-
 }
 
 Surface ActsTransformations::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, 

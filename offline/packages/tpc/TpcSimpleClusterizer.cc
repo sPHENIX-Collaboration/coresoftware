@@ -237,7 +237,7 @@ namespace
 	
 	  // create the cluster entry directly in the node tree
 	
-	  TrkrDefs::cluskey ckey = TpcDefs::genClusKey(hitset->getHitSetKey(), iclus);
+	  TrkrDefs::cluskey ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), iclus);
 	
 	  TrkrClusterv2 *clus = new TrkrClusterv2();
 	  clus->setClusKey(ckey);

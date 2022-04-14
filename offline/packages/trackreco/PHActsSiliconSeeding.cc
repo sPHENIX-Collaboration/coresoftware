@@ -13,7 +13,6 @@
 #include <phool/PHTimer.h>
 
 #include <intt/CylinderGeomIntt.h>
-#include <intt/InttDefs.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -21,13 +20,15 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase/TrkrCluster.h>            
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
+#include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
  
 #include <Acts/Seeding/BinnedSPGroup.hpp>
 #include <Acts/Seeding/InternalSeed.hpp>
@@ -354,7 +355,7 @@ void PHActsSiliconSeeding::createSvtxTrack(const double x,
       int nIntt = 0;
       numSeedsPerActsSeed++;
        
-      auto svtxTrack = std::make_unique<SvtxTrack_v2>(); 
+      auto svtxTrack = std::make_unique<SvtxTrack_v3>(); 
 
       svtxTrack->set_id(m_trackMap->size());
       
@@ -1334,8 +1335,21 @@ Surface PHActsSiliconSeeding::getSurface(TrkrDefs::hitsetkey hitsetkey)
 {
   /// Only seed with the MVTX, so there is a 1-1 mapping between hitsetkey
   /// and acts surface
+  auto trkrid = TrkrDefs::getTrkrId(hitsetkey);
+
+  // surface map is for strobe = 0
+  TrkrDefs::hitsetkey tmp_hitsetkey = hitsetkey;
+  if(trkrid == TrkrDefs::mvtxId)
+    { 
+      tmp_hitsetkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);  
+    }
+  if(trkrid == TrkrDefs::inttId)
+    {
+      tmp_hitsetkey = InttDefs::resetCrossingHitSetKey(hitsetkey);
+    }
+  
   auto surfMap = m_surfMaps->siliconSurfaceMap;
-  auto iter = surfMap.find(hitsetkey);
+  auto iter = surfMap.find(tmp_hitsetkey);
   if(iter != surfMap.end())
     {
       return iter->second;
@@ -1343,7 +1357,7 @@ Surface PHActsSiliconSeeding::getSurface(TrkrDefs::hitsetkey hitsetkey)
   
   /// If it can't be found, return nullptr
   return nullptr;
-
+  
 }
 
 

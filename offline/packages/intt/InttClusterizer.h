@@ -15,6 +15,7 @@ class PHCompositeNode;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
+class TrkrClusterCrossingAssoc;
 class TrkrHit;
 
 class InttClusterizer : public SubsysReco
@@ -80,6 +81,7 @@ class InttClusterizer : public SubsysReco
   TrkrHitSetContainer *m_hits;
   TrkrClusterContainer *m_clusterlist; 
   TrkrClusterHitAssoc *m_clusterhitassoc;
+  TrkrClusterCrossingAssoc *m_clustercrossingassoc{nullptr};
 
   // settings
   float _fraction_of_mip;

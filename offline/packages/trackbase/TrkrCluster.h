@@ -67,6 +67,9 @@ class TrkrCluster : public PHObject
   virtual void setAdc(unsigned int) {}
   virtual unsigned int getAdc() const { return UINT_MAX; }
 
+  virtual void setTime(const float) {}
+  virtual float getTime() const { return NAN;}
+
   //
   // convenience interface
   //

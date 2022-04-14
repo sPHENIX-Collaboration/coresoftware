@@ -12,11 +12,10 @@
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrHitTruthAssocv1.h>
+#include <trackbase/InttDefs.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 
 #include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
-
-#include <intt/InttDefs.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -46,6 +45,10 @@
 PHG4InttHitReco::PHG4InttHitReco(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
+  , m_Detector("INTT")
+  , m_Tmin(NAN)
+  , m_Tmax(NAN)
+  , m_crossingPeriod(NAN)
 {
   InitializeParameters();
 
@@ -167,6 +170,7 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
   PutOnParNode(ParDetNode, m_GeoNodeName);
   m_Tmin = get_double_param("tmin");
   m_Tmax = get_double_param("tmax");
+  m_crossingPeriod = get_double_param("beam_crossing_period");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -216,6 +220,8 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     // these should depend on layer radius
     if (hiter->second->get_t(0) > m_Tmax) continue;
     if (hiter->second->get_t(1) < m_Tmin) continue;
+
+    float time = (hiter->second->get_t(0) + hiter->second->get_t(1)) / 2.0;
 
     // I made this (small) diffusion up for now, we will get actual values for the Intt later
     double diffusion_width = 5.0e-04;  // diffusion radius 5 microns, in cm
@@ -395,9 +401,15 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     {
       // We add the Intt TrkrHitsets directly to the node using hitsetcontainer
 
+      // Get the hit crossing
+      int crossing = (int) (round( time / m_crossingPeriod) );
+      // crossing has to fit into 5 bits
+      if(crossing < -512) crossing = -512;
+      if(crossing > 511) crossing = 511;
       // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a sensor for the Intt ?
       // The hitset key includes the layer, the ladder_z_index (sensors numbered 0-3) and  ladder_phi_index (azimuthal location of ladder) for this hit
-      TrkrDefs::hitsetkey hitsetkey = InttDefs::genHitSetKey(sphxlayer, ladder_z_index, ladder_phi_index);
+      TrkrDefs::hitsetkey hitsetkey = InttDefs::genHitSetKey(sphxlayer, ladder_z_index, ladder_phi_index, crossing);
+
       // Use existing hitset or add new one if needed
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
 
@@ -408,8 +420,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       if (!hit)
       {
         // Otherwise, create a new one
-        //hit = new InttHit();
-        hit = new TrkrHitv2();
+	hit = new TrkrHitv2();
         hitsetit->second->addHitSpecificKey(hitkey, hit);
       }
 
@@ -428,9 +439,9 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
         std::cout << "PHG4InttHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << " energy " << hit->getEnergy() << std::endl;
       }
     }
-
+    
   }  // end loop over g4hits
-
+  
   // print the list of entries in the association table
   if (Verbosity() > 0)
   {
@@ -446,7 +457,9 @@ void PHG4InttHitReco::SetDefaultParameters()
   // if we ever need separate timing windows, don't patch around here!
   // use PHParameterContainerInterface which
   // provides for multiple layers/detector types
-  set_default_double_param("tmax", 80.0);   // FVTX NIM paper Fig 32
-  set_default_double_param("tmin", -20.0);  // FVTX NIM paper Fig 32, collision has a timing spread around the triggered event. Accepting negative time too.
+  set_default_double_param("tmax", 20200.0);   // max upper time window for extended readout
+  set_default_double_param("tmin", -13200.0);  // min lower time window for extended readout
+  set_default_double_param("beam_crossing_period", 106.0);   
+
   return;
 }

@@ -18,7 +18,7 @@
 /**
  * @brief Base class for hit object
  *
- * This is the empyt virtual base class for a hit object.
+ * This is the empty virtual base class for a hit object.
  * Each subsystem should implement an inherited version
  * which contains the actual storage information.
  */
@@ -43,6 +43,10 @@ class TrkrHit : public PHObject
   // after digitization, these are the adc values
   virtual void setAdc(const unsigned int) {}
   virtual unsigned int getAdc() { return 0;}
+  /*
+  virtual void setCrossing(const short int) {}
+  virtual short int getCrossing() { return 0;}
+  */
 
  protected:
 

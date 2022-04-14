@@ -20,13 +20,11 @@
 #include <g4main/PHG4VtxPoint.h>                    // for PHG4VtxPoint
 #include <g4main/PHG4VtxPointv1.h>
 
-#include <intt/InttDefs.h>
 #include <intt/CylinderGeomIntt.h>
 
 #include <micromegas/MicromegasDefs.h>
 #include <micromegas/CylinderGeomMicromegas.h>
 
-#include <mvtx/MvtxDefs.h>
 #include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <phfield/PHFieldUtility.h>
@@ -54,12 +52,14 @@
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
 #include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
@@ -538,7 +538,7 @@ void PHGenFitTrkFitter::fill_eval_tree(PHCompositeNode* /*topNode*/)
   {
     int i = 0;
     for ( const auto& pair:*_trackmap )
-    { new ((*_tca_trackmap)[i++])(SvtxTrack_v2)( *pair.second ); }
+    { new ((*_tca_trackmap)[i++])(SvtxTrack_v3)( *pair.second ); }
   }
 
   if (_vertexmap)
@@ -552,14 +552,14 @@ void PHGenFitTrkFitter::fill_eval_tree(PHCompositeNode* /*topNode*/)
   {
     int i = 0;
     for (const auto& pair:*_trackmap_refit )
-    { new ((*_tca_trackmap_refit)[i++])(SvtxTrack_v2)(*pair.second); }
+    { new ((*_tca_trackmap_refit)[i++])(SvtxTrack_v3)(*pair.second); }
   }
 
   if (_fit_primary_tracks)
   {
     int i = 0;
     for ( const auto& pair:*_primary_trackmap )
-    { new ((*_tca_primtrackmap)[i++])(SvtxTrack_v2)(*pair.second); }
+    { new ((*_tca_primtrackmap)[i++])(SvtxTrack_v3)(*pair.second); }
   }
 
   if (_vertexmap_refit)
@@ -585,14 +585,14 @@ void PHGenFitTrkFitter::init_eval_tree()
     _tca_vtxmap = new TClonesArray("PHG4VtxPointv1");
 
   if (!_tca_trackmap)
-    _tca_trackmap = new TClonesArray("SvtxTrack_v2");
+    _tca_trackmap = new TClonesArray("SvtxTrack_v3");
   if (!_tca_vertexmap)
     _tca_vertexmap = new TClonesArray("SvtxVertex_v1");
   if (!_tca_trackmap_refit)
-    _tca_trackmap_refit = new TClonesArray("SvtxTrack_v2");
+    _tca_trackmap_refit = new TClonesArray("SvtxTrack_v3");
   if (_fit_primary_tracks)
     if (!_tca_primtrackmap)
-      _tca_primtrackmap = new TClonesArray("SvtxTrack_v2");
+      _tca_primtrackmap = new TClonesArray("SvtxTrack_v3");
   if (!_tca_vertexmap_refit)
     _tca_vertexmap_refit = new TClonesArray("SvtxVertex_v1");
 
@@ -1155,7 +1155,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   //delete gf_state_beam_line_ca;
 
   // create new track
-  auto out_track = std::make_shared<SvtxTrack_v2>(*svtx_track);
+  auto out_track = std::make_shared<SvtxTrack_v3>(*svtx_track);
 
   // clear states and insert empty one for vertex position
   out_track->clear_states();

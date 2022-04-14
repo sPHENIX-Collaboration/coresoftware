@@ -205,8 +205,9 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   diffusion_trans = get_double_param("diffusion_trans");
   added_smear_sigma_trans = get_double_param("added_smear_trans");
   drift_velocity = get_double_param("drift_velocity");
+  // min_time to max_time is the time window for accepting drifted electrons after the trigger
   min_time = 0.0;
-  max_time = (tpc_length / 1.75) / drift_velocity;
+  max_time = get_double_param("max_time") + get_double_param("extended_readout_time");
   electrons_per_gev = get_double_param("electrons_per_gev");
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
@@ -336,6 +337,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       const double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
       const double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
 
+      unsigned int side = 0;
+      if (z_start > 0) side = 1;
+
       const double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - std::abs(z_start));
       const double rantrans =
           gsl_ran_gaussian(RandomGenerator.get(), r_sigma) +
@@ -354,7 +358,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         z_final = -tpc_length / 2. + t_final * drift_velocity;
       else
         z_final = tpc_length / 2. - t_final * drift_velocity;
-
+	
       const double radstart = std::sqrt(square(x_start) + square(y_start));
       const double phistart = std::atan2(y_start, x_start);
       const double ranphi = gsl_ran_flat(RandomGenerator.get(), -M_PI, M_PI);
@@ -432,7 +436,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
       }
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
-      MapToPadPlane(x_final, y_final, z_final, hiter, ntpad, nthit);
+      MapToPadPlane(x_final, y_final, z_final, side, hiter, ntpad, nthit);
     }  // end loop over electrons for this g4hit
 
     // The hit-truth association has to be done for each g4hit
@@ -587,9 +591,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *padnt, TNtuple *hitnt)
+void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *padnt, TNtuple *hitnt)
 {
-  padplane->MapToPadPlane(single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, hiter, padnt, hitnt);
+  padplane->MapToPadPlane(single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, side, hiter, padnt, hitnt);
 }
 
 int PHG4TpcElectronDrift::End(PHCompositeNode * /*topNode*/)
@@ -656,6 +660,8 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
   set_default_double_param("min_active_radius", 30.);        // cm
   set_default_double_param("max_active_radius", 78.);        // cm
   set_default_double_param("drift_velocity", 8.0 / 1000.0);  // cm/ns
+  set_default_double_param("max_time", 13200.);  //ns
+  set_default_double_param("extended_readout_time", 7000.);  //ns
 
   // These are purely fudge factors, used to increase the resolution to 150 microns and 500 microns, respectively
   // override them from the macro to get a different resolution

@@ -3,9 +3,9 @@
 #include "PHG4MvtxHitReco.h"
 
 #include <mvtx/CylinderGeom_Mvtx.h>
-#include <mvtx/MvtxDefs.h>
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/MvtxDefs.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
@@ -198,9 +198,15 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         cout << " layer " << *layer << " t0 " << hiter->second->get_t(0) << " t1 " << hiter->second->get_t(1)
              << " tmin " << tmin_max[*layer].first << " tmax " << tmin_max[*layer].second
              << endl;
+
       if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
       if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
-
+      double hit_time = (hiter->second->get_t(0) + hiter->second->get_t(1)) / 2.0;
+      int strobe = (int) round(hit_time / 5000.0);  // assume 5 microseconds cycle time temporarily  
+      // to fit in a 5 bit field in the hitsetkey
+      if(strobe < -16) strobe = -16;
+      if(strobe > 16) strobe = 15;
+  
       // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
       int stave_number = hiter->second->get_property_int(PHG4Hit::prop_stave_index);
       int half_stave_number = hiter->second->get_property_int(PHG4Hit::prop_half_stave_index);
@@ -506,7 +512,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         //====================================
 
         // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a chip for the Mvtx
-        TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(*layer, stave_number, chip_number);
+        TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(*layer, stave_number, chip_number, strobe);
         // Use existing hitset or add new one if needed
         TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
 
@@ -566,7 +572,8 @@ void PHG4MvtxHitReco::SetDefaultParameters()
   cout << "PHG4MvtxHitReco: Setting Mvtx timing window defaults to tmin = -5000 and  tmax = 5000 ns" << endl;
   for (int ilayer = 0; ilayer < 3; ilayer++)
   {
-    tmin_max.insert(std::make_pair(ilayer, std::make_pair(-5000, 5000)));
+    tmin_max.insert(std::make_pair(ilayer, std::make_pair(-13200, 20200)));  // time window for extended range TPC readout
   }
+
   return;
 }
