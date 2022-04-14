@@ -54,7 +54,7 @@ void TrkrClusterCrossingAssocv1::addAssoc(TrkrDefs::cluskey ckey, short int hidx
 }
 
 //_________________________________________________________________________
-TrkrClusterCrossingAssocv1::ConstRange TrkrClusterCrossingAssocv1::getCrossings(TrkrDefs::cluskey ckey)
+TrkrClusterCrossingAssocv1::ConstRange TrkrClusterCrossingAssocv1::getCrossings(TrkrDefs::cluskey ckey) const
 {
   const auto range = m_map.equal_range(ckey);
   return range;    
@@ -67,4 +67,9 @@ unsigned int TrkrClusterCrossingAssocv1::size(void) const
   size = m_map.size();
 
   return size;
+}
+
+TrkrClusterCrossingAssocv1::ConstRange TrkrClusterCrossingAssocv1::getAll() const
+{
+  return std::make_pair(m_map.begin(), m_map.end());
 }

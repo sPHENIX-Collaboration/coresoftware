@@ -34,7 +34,9 @@ class TrkrClusterCrossingAssocv1 : public TrkrClusterCrossingAssoc
 
   void addAssoc(TrkrDefs::cluskey, short int) override;
 
-  ConstRange getCrossings(TrkrDefs::cluskey) override;
+  ConstRange getCrossings(TrkrDefs::cluskey) const override;
+
+  ConstRange getAll() const override;
 
   unsigned int size(void) const override;
 
@@ -45,4 +47,4 @@ private:
   ClassDefOverride(TrkrClusterCrossingAssocv1, 1);
 };
 
-#endif // TRACKBASE_TRKRCLUSTERHITASSOC_H
+#endif // TRACKBASE_TRKRCLUSTERCROSSINGASSOCV1_H
