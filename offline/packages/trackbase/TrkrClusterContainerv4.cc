@@ -151,11 +151,6 @@ TrkrClusterContainerv4::getClusters(TrkrDefs::hitsetkey hitsetkey)
   // return temporary map range
   return std::make_pair( m_tmpmap.cbegin(), m_tmpmap.cend() );
 }
-
-//_________________________________________________________________
-TrkrClusterContainerv4::Vector*
-TrkrClusterContainerv4::getClusterVector(TrkrDefs::hitsetkey hitsetkey)
-{ return &m_clusmap[hitsetkey]; }
   
 //_________________________________________________________________
 TrkrCluster* TrkrClusterContainerv4::findCluster(TrkrDefs::cluskey key) const
