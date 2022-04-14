@@ -10,8 +10,8 @@
 
 #include <trackbase/TrkrDefs.h>
 
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeed.h>
 
 
 #include <phool/PHCompositeNode.h>
@@ -47,18 +47,20 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
   std::multimap<unsigned int, std::set<TrkrDefs::cluskey>> matches;
   std::set<unsigned int> seedsToDelete;
 
-  for(auto iter1 = m_siliconTrackMap->begin();
-      iter1 != m_siliconTrackMap->end(); 
+  unsigned int track1ID = 0;
+ 
+
+  for(auto iter1 = m_siliconTracks->begin();
+      iter1 != m_siliconTracks->end(); 
       ++iter1)
     {
-      unsigned int track1ID = iter1->first;
-      SvtxTrack* track1 = iter1->second;
+      TrackSeed* track1 = *iter1;
 
       if(seedsToDelete.find(track1ID) != seedsToDelete.end())
 	{ continue; }
 
       std::set<TrkrDefs::cluskey> mvtx1Keys;
-      for (SvtxTrack::ConstClusterKeyIter iter = track1->begin_cluster_keys();
+      for (TrackSeed::ConstClusterKeyIter iter = track1->begin_cluster_keys();
            iter != track1->end_cluster_keys();
            ++iter)
 	{
@@ -66,20 +68,21 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 	  if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
 	    { mvtx1Keys.insert(ckey); }
 	}
-
+      
+      unsigned int track2ID = track1ID;
       /// We can speed up the code by only iterating over the track seeds
       /// that are further in the map container from the current track,
       /// since the comparison of e.g. track 1 with track 2 doesn't need
       /// to be repeated with track 2 to track 1.
-      for(auto iter2 = m_siliconTrackMap->find(track1ID);
-	  iter2 != m_siliconTrackMap->end();
+      for(auto iter2 = m_siliconTracks->find(track1ID);
+	  iter2 != m_siliconTracks->end();
 	  ++iter2) 
 	{
-	  unsigned int track2ID = iter2->first;
 	  if(track1ID == track2ID) { continue; }
-	  SvtxTrack* track2 = iter2->second;
+	  
+	  TrackSeed* track2 = *iter2;
 	  std::set<TrkrDefs::cluskey> mvtx2Keys;
-	  for (SvtxTrack::ConstClusterKeyIter iter = track2->begin_cluster_keys();
+	  for (TrackSeed::ConstClusterKeyIter iter = track2->begin_cluster_keys();
 	       iter != track2->end_cluster_keys();
 	       ++iter)
 	    {
@@ -129,12 +132,16 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 	      seedsToDelete.insert(track2ID);
 	      break;
 	    }
+
+	  track2ID++;
 	}
+
+      track1ID++;
     }
 
   for(const auto& [trackKey, mvtxKeys] : matches)
     {
-      auto track = m_siliconTrackMap->get(trackKey);
+      auto track = m_siliconTracks->get(trackKey);
       if(Verbosity() > 2)
 	{ std::cout << "original track: " << std::endl; track->identify(); }
 
@@ -154,13 +161,13 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
     {
       if(Verbosity() > 2 )
 	{ std::cout << "Erasing track " << key << std::endl; }
-      m_siliconTrackMap->erase(key);
+      m_siliconTracks->erase(key);
     }
 
   if(Verbosity() > 2)
     {
-      for(const auto& [key, track] : *m_siliconTrackMap)
-	{ track->identify(); }
+      for(const auto& seed : *m_siliconTracks)
+	{ seed->identify(); }
     }
 	  
   return Fun4AllReturnCodes::EVENT_OK;
@@ -184,10 +191,10 @@ int PHSiliconSeedMerger::End(PHCompositeNode *)
 
 int PHSiliconSeedMerger::getNodes(PHCompositeNode *topNode)
 {
-  m_siliconTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName.c_str());
-  if(!m_siliconTrackMap)
+  m_siliconTracks = findNode::getClass<TrackSeedContainer>(topNode, m_trackMapName.c_str());
+  if(!m_siliconTracks)
     {
-      std::cout << PHWHERE << "No silicon track map, can't merge seeds"
+      std::cout << PHWHERE << "No silicon track container, can't merge seeds"
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }

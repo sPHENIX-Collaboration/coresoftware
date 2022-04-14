@@ -10,7 +10,7 @@
 #include <algorithm>
 
 class PHCompositeNode;
-class SvtxTrackMap;
+class TrackSeedContainer;
 
 class PHSiliconSeedMerger : public SubsysReco
 {
@@ -32,7 +32,7 @@ class PHSiliconSeedMerger : public SubsysReco
 
   int getNodes(PHCompositeNode *topNode);
 
-  SvtxTrackMap *m_siliconTrackMap = nullptr;
+  TrackSeedContainer *m_siliconTracks = nullptr;
   std::string m_trackMapName = "SvtxSiliconTrackMap";
 
 };
