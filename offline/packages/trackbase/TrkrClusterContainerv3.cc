@@ -20,17 +20,16 @@ namespace
 void TrkrClusterContainerv3::Reset()
 {
   // delete all clusters
-  for( auto& map_pair:m_clusmap ){
-    for( auto& pair:map_pair.second ){ 
-      delete pair.second; 
-    }
-    Map empty_map;
-    empty_map.swap(map_pair.second);
-
+  for( auto&& [key, map]:m_clusmap )
+  {
+    for( auto&& [cluskey,cluster]:map )
+    { delete cluster; }
   }
 
   // clear the maps
-  m_clusmap.clear();
+  /* using swap ensures that the memory is properly de-allocated */
+  std::map<TrkrDefs::hitsetkey, Map> empty;
+  m_clusmap.swap( empty );
 
 }
 
