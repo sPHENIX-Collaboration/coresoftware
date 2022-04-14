@@ -145,7 +145,7 @@ TrkrClusterContainerv4::getClusters(TrkrDefs::hitsetkey hitsetkey)
   {
     // copy content in temporary map
     for( const auto& cluster:iter->second )
-    { if( cluster ) m_tmpmap.insert( m_tmpmap.end(), std::make_pair( cluster->getClusKey, cluster ) ); }
+    { if( cluster ) m_tmpmap.insert( m_tmpmap.end(), std::make_pair( cluster->getClusKey(), cluster ) ); }
   }
 
   // return temporary map range
@@ -170,7 +170,7 @@ TrkrCluster* TrkrClusterContainerv4::findCluster(TrkrDefs::cluskey key) const
     const auto& clus_vector = map_iter->second;
     
     // get cluster position in vector
-    const int index = TrkrDefs::getClusIndex( key );
+    const auto index = TrkrDefs::getClusIndex( key );
     
     // compare to vector size
     if( index < clus_vector.size() ) return clus_vector[index];
