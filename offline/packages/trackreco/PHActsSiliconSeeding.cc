@@ -17,10 +17,10 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrack_v3.h>
+#include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedContainer_v1.h>
+#include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase/TrkrCluster.h>            
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
@@ -231,60 +231,85 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
 	  numSeeds++;
 
-	  std::vector<TrkrCluster*> clusters;
 	  std::vector<Acts::Vector3> globalPositions;
 	  ActsTransformations transformer;
+
+	  auto trackSeed = std::make_unique<TrackSeed_v1>();
+
 	  for(auto& spacePoint : seed.sp())
 	    {
 	      auto cluskey = spacePoint->m_clusKey;
-	      clusters.push_back(m_clusterMap->findCluster(cluskey));
-
+	      trackSeed->insert_cluster_key(cluskey);
 	      globalPositions.push_back(transformer.getGlobalPosition(
 				        m_clusterMap->findCluster(cluskey),
-					m_surfMaps, m_tGeometry));			      
+					m_surfMaps, m_tGeometry));
 
-	      if(Verbosity() > 1) {
-		std::cout << "Adding cluster with x,y "
-			  << spacePoint->x() <<", " << spacePoint->y()
-			  << " mm in detector " 
-			  << TrkrDefs::getTrkrId(cluskey)
-			  << std::endl;
-	      }
+	      if(Verbosity() > 1) 
+		{
+		  std::cout << "Adding cluster with x,y "
+			    << spacePoint->x() <<", " << spacePoint->y()
+			    << " mm in detector " 
+			    << TrkrDefs::getTrkrId(cluskey)
+			    << std::endl;
+		}
 	    }
-	 
-	  double x = NAN, y = NAN, z = seed.z() / Acts::UnitConstants::cm;
-	  double px, py, pz;
+	  
+	  double z = seed.z() / Acts::UnitConstants::cm;
 	  
 	  auto fitTimer = std::make_unique<PHTimer>("trackfitTimer");
 	  fitTimer->stop();
 	  fitTimer->restart();
 
-	  /// Performs circle fit and extrapolates to INTT layers to
-	  /// to get additional clusters in this track seed
-	  int charge = circleFitSeed(clusters, globalPositions, 
-				     x, y, z,
-				     px, py, pz);
-	  fitTimer->stop();
-	  auto circlefittime = fitTimer->get_accumulated_time();
-	  fitTimer->restart();
-	  /// Bad seed, if x is nan so are y and z
-	  if(std::isnan(x))
-	    {
+	  trackSeed->circleFitByTaubin(m_clusterMap, m_surfMaps, m_tGeometry);
+	  if(fabs(trackSeed->get_X0()) > m_maxSeedPCA || 
+	     fabs(trackSeed->get_Y0()) > m_maxSeedPCA)
+	    { 
 	      m_nBadInitialFits++;
 	      continue;
 	    }
 
-	  numGoodSeeds++;
+	  trackSeed->lineFit(m_clusterMap, m_surfMaps, m_tGeometry);
 	  
-	  createSvtxTrack(x, y, seed.z() / Acts::UnitConstants::cm,
-			  px, py, pz, charge,
-			  clusters, globalPositions);
+	  fitTimer->stop();
+	  auto circlefittime = fitTimer->get_accumulated_time();
+	  fitTimer->restart();
+	  
+	  /// Project to INTT and find matches
+	  auto additionalClusters = findInttMatches(globalPositions, *trackSeed);
+	  
+	  /// Add possible matches to cluster list to be parsed when
+	  /// Svtx tracks are made
+	  for(auto& cluskey : additionalClusters)
+	    { trackSeed->insert_cluster_key(cluskey); }
+
+	  fitTimer->stop();
+	  auto addClusters = fitTimer->get_accumulated_time();
+	  fitTimer->restart();
+	  
+	  if(Verbosity() > 0)
+	    { std::cout << "find intt clusters time " << addClusters << std::endl; }
+
+	  numGoodSeeds++;
+		  
+	  /// We can refit the track to get a better R estimate with the INTT
+	  /// clusters. But the poor strip resolution degrades the estimate of 
+	  /// X0 and Y0. So cache them here and then reset them afterwards
+	  float X0 = trackSeed->get_X0();
+	  float Y0 = trackSeed->get_Y0();
+	  trackSeed->circleFitByTaubin(m_clusterMap, m_surfMaps, m_tGeometry);
+	  trackSeed->set_X0(X0);
+	  trackSeed->set_Y0(Y0);
+	  /// The Acts z projection has better resolution than the circle fit
+	  trackSeed->set_Z0(z);
+
+	  m_seedContainer->insert(trackSeed.get());
+
 	  fitTimer->stop();
 	  auto svtxtracktime = fitTimer->get_accumulated_time();
 	  if(Verbosity() > 0)
 	    {
-	      std::cout << "Circle fit time " << circlefittime << " and svtx time "
-		    << svtxtracktime << std::endl;
+	      std::cout << "Intt fit time " << circlefittime << " and svtx time "
+			<< svtxtracktime << std::endl;
 	    }
 	}
     }
@@ -305,432 +330,16 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
   
 }
  
-void PHActsSiliconSeeding::createSvtxTrack(const double x,
-					   const double y,
-					   const double z,
-					   const double px,
-					   const double py,
-					   const double pz,
-					   const int charge,
-					   std::vector<TrkrCluster*>& clusters,
-					   std::vector<Acts::Vector3>& clusGlobPos)
-{
-  auto fitTimer = std::make_unique<PHTimer>("trackfitTimer");
-  fitTimer->stop();
-  fitTimer->restart();
-
-  auto stubs = makePossibleStubs(clusters, clusGlobPos);
-
-  fitTimer->stop();
-  auto possibleStubs = fitTimer->get_accumulated_time();
-  fitTimer->restart();
-
-  int numSeedsPerActsSeed = 0;
-  
-  double trackX = x;
-  double trackY = y;
-  double trackZ = z;
-  double trackPx = px;
-  double trackPy = py;
-  double trackPz = pz;
-  double trackCharge = charge;
-  double trackPhi = atan2(py,px);
-  double trackEta = atanh(pz / sqrt(px * px + py * py + pz * pz));
-
-  /// Make a track for every stub that was constructed
-  /// We use the same xyz and pxpypz given by the mvtx circle
-  /// fit since that is the "anchor" for the stub
-
-  if(stubs.size() > 1 and  m_cleanSeeds)
-    {
-      stubs = identifyBestSeed(stubs);
-    }
-
-  for(const auto& [stub, stubClusterPairs] : stubs)
-    {
-      std::vector<TrkrCluster*> stubClusters = stubClusterPairs.first;
-      std::vector<Acts::Vector3> stubClusterPositions = stubClusterPairs.second;
-
-      int nMvtx = 0;
-      int nIntt = 0;
-      numSeedsPerActsSeed++;
-       
-      auto svtxTrack = std::make_unique<SvtxTrack_v3>(); 
-
-      svtxTrack->set_id(m_trackMap->size());
-      
-      for(const auto clus : stubClusters) 
-	{
-	  const auto cluskey = clus->getClusKey();
-	  svtxTrack->insert_cluster_key(cluskey);
-	  if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::mvtxId)
-	    { nMvtx++; }
-	  else if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::inttId)
-	    { nIntt++; }	 
-
-	  if(Verbosity() > 2)
-	    { std::cout << "Cluskey adding : " << cluskey << std::endl; }
-	}
- 
-      /// Get a less rough estimate of R, and thus, p
-      double R, X0, Y0;
-      circleFitByTaubin(stubClusterPositions, R, X0, Y0);
-      
-      /// 0.3 conversion factor, 1.4=B field, 
-      /// 100 convert R from cm to m
-      float pt = 0.3 * 1.4 * R / 100.;
-  
-      trackPx = pt * cos(trackPhi);
-      trackPy = pt * sin(trackPhi);
-      trackPz = pt * sinh(trackEta);
-      
-      /// Diagnostic
-      if(m_seedAnalysis)
-	{
-	  h_nInttHits->Fill(nIntt);
-	  h_nMvtxHits->Fill(nMvtx);
-	  h_nHits->Fill(nMvtx, nIntt);
-	}
-
-      if(Verbosity() > 1) {
-	std::cout << "Setting silicon seed with track id " 
-		  << m_trackMap->size()
-		  << " and (x,y,z) = " 
-		  << trackX << ", " << trackY << ", " << trackZ
-		  << std::endl << " and (px,py,pz) " << trackPx 
-		  << ", " << trackPy << ", " << trackPz << std::endl
-		  << " with charge " << trackCharge << std::endl;
-      }
-
-      svtxTrack->set_x(trackX);
-      svtxTrack->set_y(trackY);
-      svtxTrack->set_z(trackZ);
-      svtxTrack->set_px(trackPx);
-      svtxTrack->set_py(trackPy);
-      svtxTrack->set_pz(trackPz);
-      svtxTrack->set_charge(trackCharge);
-      
-      m_trackMap->insert(svtxTrack.get());
-  
-    }
-  
-  fitTimer->stop();
-  auto makeTracks = fitTimer->get_accumulated_time();
-  fitTimer->restart();
-
-
-  if(m_seedAnalysis)
-    { h_nTotSeeds->Fill(numSeedsPerActsSeed); }
-
-  if(Verbosity() > 0)
-    {
-      std::cout << "make stub time " << possibleStubs << " create track time "
-		<< makeTracks << std::endl;
-    }
-
-  if(Verbosity() > 1)
-    {
-      std::cout << "Found " << numSeedsPerActsSeed << " seeds for one Acts seed"
-		<< std::endl;
-    }
-}
-
-std::map<const unsigned int, std::pair<std::vector<TrkrCluster*>,
-				       std::vector<Acts::Vector3>>>
-     PHActsSiliconSeeding::identifyBestSeed(
-	  std::map<const unsigned int, 
-	  std::pair<std::vector<TrkrCluster*>,
-	            std::vector<Acts::Vector3>>> allSeeds)
-{
-  std::map<const unsigned int, std::pair<std::vector<TrkrCluster*>,
-					 std::vector<Acts::Vector3>>> returnStub;
-
-  double firstLayerBestResidual = std::numeric_limits<double>::max();
-  double secondLayerBestResidual = std::numeric_limits<double>::max();
-  TrkrDefs::cluskey firstlayerkey = std::numeric_limits<unsigned long long>::max();
-  TrkrDefs::cluskey secondlayerkey = std::numeric_limits<unsigned long long>::max();
-  Acts::Vector3 firstlayerpos, secondlayerpos;
-  
-  std::vector<Acts::Vector3> mvtxClusters;
-  std::vector<TrkrCluster*> mvtxTrkrClusters;
-  double R=NAN, X0=NAN, Y0=NAN;
-
-  /// Just need to fit the mvtx once since all seeds have the same mvtx hits
-  for(const auto& [key, clusterPairs] : allSeeds)
-    {
-      auto clusterVec = clusterPairs.first;
-      auto clusterPosVec = clusterPairs.second;
-
-      /// Circle fit the mvtx triplet only
-      for(int i=0; i<clusterVec.size(); i++)
-	{
-	  if(TrkrDefs::getTrkrId(clusterVec.at(i)->getClusKey()) == TrkrDefs::mvtxId)
-	    { 
-	      mvtxClusters.push_back(clusterPosVec.at(i)); 
-	      mvtxTrkrClusters.push_back(clusterVec.at(i));
-	    }
-	}
-
-      circleFitByTaubin(mvtxClusters, R, X0, Y0);
-         
-      break;
-    }
-      
-  /// If mvtx seed wasn't found, just return
-  if(mvtxClusters.size() == 0)
-    { return returnStub; }
-  
-  for(const auto& [key, clusterPairs] : allSeeds)
-    {
-      auto clusterVec = clusterPairs.first;
-      auto clusterPosVec = clusterPairs.second;
-      
-      for(int i=0; i<clusterVec.size(); i++)
-	{
-	  if(TrkrDefs::getTrkrId(clusterVec.at(i)->getClusKey()) != TrkrDefs::inttId)
-	    { continue; }
-
-	  Acts::Vector3 globalPos = clusterPosVec.at(i);
-
-	  double residual = sqrt( pow( globalPos(0) - X0, 2) +
-				  pow( globalPos(1) - Y0, 2)) - R;
-	  
-	  if(Verbosity() > 2) {
-	    std::cout << "Residual for cluster " << clusterVec.at(i)->getClusKey()
-		      << " and position " << globalPos(0) << ", " 
-		      << globalPos(1) << " is " << residual << std::endl;
-	  }
-
-	  double r = sqrt( pow(globalPos(0), 2) +
-	                   pow(globalPos(1), 2));
-	
-	  if(r < m_nInttLayerRadii[2] and residual < firstLayerBestResidual)
-	    {
-	      firstLayerBestResidual = residual;
-	      firstlayerkey = clusterVec.at(i)->getClusKey();
-	      firstlayerpos = clusterPosVec.at(i);
-	    }
-	  if( r > m_nInttLayerRadii[2] and residual < secondLayerBestResidual)
-	    {
-	      secondLayerBestResidual = residual;
-	      secondlayerkey = clusterVec.at(i)->getClusKey();
-	      secondlayerpos = clusterPosVec.at(i);
-	    }    
-	}
-    }
-
-  // Form the set of clusters that was identified as the smallest residuals
-  std::vector<TrkrCluster*> bestClusters = mvtxTrkrClusters;
-  std::vector<Acts::Vector3> bestClusterPos = mvtxClusters;
-  if(firstlayerkey < std::numeric_limits<unsigned long long>::max())
-    { 
-      bestClusters.push_back(m_clusterMap->findCluster(firstlayerkey)); 
-      bestClusterPos.push_back(firstlayerpos);
-    }
-  if(secondlayerkey < std::numeric_limits<unsigned long long>::max())
-    { 
-      bestClusters.push_back(m_clusterMap->findCluster(secondlayerkey)); 
-      bestClusterPos.push_back(secondlayerpos);
-    }
-
-  if(Verbosity() > 2)
-    {
-      std::cout << "Best cluster set is " << std::endl;
-      for(auto& cluster : bestClusters)
-	std::cout << cluster->getClusKey() << std::endl;
-    }
-
-  /// Just make it the 0th entry since it is the only one
-  returnStub.insert(std::make_pair(0, std::make_pair(bestClusters,bestClusterPos)));
-
-  return returnStub;
-}
-
-std::map<const unsigned int, std::pair<std::vector<TrkrCluster*>, std::vector<Acts::Vector3>>> 
-PHActsSiliconSeeding::makePossibleStubs(std::vector<TrkrCluster*>& allClusters,
-					std::vector<Acts::Vector3>& clusGlobPos)
-{
-
-  std::vector<TrkrCluster*> mvtxClusters;
-  std::vector<TrkrCluster*> inttFirstLayerClusters;
-  std::vector<TrkrCluster*> inttSecondLayerClusters;
-  std::vector<Acts::Vector3> mvtxClusPos;
-  std::vector<Acts::Vector3> inttFirstLayerClusPos;
-  std::vector<Acts::Vector3> inttSecondLayerClusPos;
-
-  std::map<const unsigned int, std::pair<std::vector<TrkrCluster*>,std::vector<Acts::Vector3>>> stubs;
-  unsigned int combo = 0;
-
-  for(int i = 0; i < allClusters.size(); i++)
-    {
-      const auto cluskey = allClusters.at(i)->getClusKey();
-      const auto globalPos = clusGlobPos.at(i);
-     
-      if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::mvtxId)
-	{ 
-	  mvtxClusters.push_back(allClusters.at(i)); 
-	  mvtxClusPos.push_back(globalPos);
-	}
-      else
-	{
-	  const double r = sqrt(pow(globalPos(0), 2) +
-				pow(globalPos(1), 2));
-	  if(r < 8.) 
-	    { 
-	      inttFirstLayerClusters.push_back(allClusters.at(i)); 
-	      inttFirstLayerClusPos.push_back(globalPos);
-	    }
-	  else
-	    { 
-	      inttSecondLayerClusters.push_back(allClusters.at(i)); 
-	      inttSecondLayerClusPos.push_back(globalPos);
-	    }
-	}
-    }
-  
-  /// Add the INTT measurements to the track stub
-  std::vector<TrkrCluster*> dumVec = mvtxClusters;
-  std::vector<Acts::Vector3> dumclusVec = mvtxClusPos;
-  for(int i=0; i<inttFirstLayerClusters.size(); i++)
-    {
-      dumVec.push_back(inttFirstLayerClusters.at(i));
-      dumclusVec.push_back(inttFirstLayerClusPos.at(i));
-    }
-  for(int i=0; i<inttSecondLayerClusters.size(); i++) {
-    dumVec.push_back(inttSecondLayerClusters.at(i));
-    dumclusVec.push_back(inttSecondLayerClusPos.at(i));
-  }
-
-  stubs.insert(std::make_pair(combo, std::make_pair(dumVec, dumclusVec)));
-  
-  return stubs;
-}
-
-int PHActsSiliconSeeding::circleFitSeed(std::vector<TrkrCluster*>& clusters,
-					std::vector<Acts::Vector3>& clusGlobPos,
-					double& x, double& y, double& z,
-					double& px, double& py, double& pz)
-{
-  if(Verbosity() > 2) {
-    for(const auto clus : clusters)
-      std::cout << "Evaluating cluster : " << clus->getClusKey()
-		<< std::endl;
-  }
-  
-
-  /// Circle radius at x,y center
-  /// Note - units are sPHENIX cm since we are using TrkrClusters
-  double R, X0, Y0;
-  circleFitByTaubin(clusGlobPos,R, X0, Y0);
-  
-  if(Verbosity() > 2)
-    std::cout << "Circle R, X0, Y0 : " << R << ", " << X0
-	      << ", " << Y0 << std::endl;
-
-  findRoot(R, X0, Y0, x, y);
-  
-  /// If the xy position is O(100s) microns, the initial vertex 
-  /// finder will throw an eigen stepper error trying to propagate 
-  /// from the PCA. These  are likely bad seeds anyway since the 
-  /// MVTX has position resolution O(5) microns. Units are cm
-  
-  if(fabs(x) > m_maxSeedPCA or fabs(y) > m_maxSeedPCA)
-    {
-      if(Verbosity() > 1)
-	std::cout << "x,y circle fit : " << x << ", " 
-		  << y << std::endl;
-
-      x = NAN;
-      y = NAN;
-      /// Return statement doesn't matter as x = nan will be caught
-      return 1;
-    }
-
-  int charge = getCharge(clusGlobPos, atan2(Y0,X0));
-  
-  /// Now determine the line tangent to the circle at this point to get phi
-  /// The slope of the line connecting the circle center and PCA is 
-  /// m = (y0-y)/(x0-x). So the perpendicular slope (i.e. phi) is then -1/m
-  /// For some reason the phi value comes back from atan2 off by 
-  /// a factor of pi for positive charged tracks, hence the check
-  
-  double phi = atan2(-1 * (X0-x), Y0-y);
-  if(charge > 0)
-    {
-      phi += M_PI;
-      if(phi > M_PI) 
-	phi -= 2. * M_PI;
-    }
- 
-  if(Verbosity() > 2)
-    std::cout << "track seed phi : " << phi <<  std::endl;
-
-  double m, B;
-  
-  /// m is slope as a function of radius, B is z intercept (vertex)
-  
-  lineFit(clusGlobPos, m, B);
-  z = B;
-  
-  double theta = atan(1./m);
-
-  /// normalize to 0 < theta < pi
-  if(theta < 0)
-    theta += M_PI;
-
-  if(Verbosity() > 2)
-    std::cout << "Track seed theta: " << theta << std::endl;
- 
-  /// 0.3 conversion factor, 1.4=B field, 100 convert R from cm to m
-  /// Get a very rough estimate of p
-  float pt = 0.3 * 1.4 * R / 100.;
-  float eta = -log(tan(theta/2.));
-  float p = pt * cosh(eta);
-
-  /// The only thing that is really needed for the propagation
-  /// is the direction
-  px = p * sin(theta) * cos(phi);
-  py = p * sin(theta) * sin(phi);
-  pz = p * cos(theta);
-  
-  if(Verbosity() > 2)
-    {
-      std::cout << "Momentum vector estimate: (" << px <<" , " 
-		<< py << ", " << pz << ") " << std::endl;
-    }
-  
-  auto fitTimer = std::make_unique<PHTimer>("inttMatchTimer");
-  fitTimer->stop();
-  fitTimer->restart();
-
-  /// Project to INTT and find matches
-  auto additionalClusters = findInttMatches(clusGlobPos, R, X0, Y0, z, m);
-  
-  /// Add possible matches to cluster list to be parsed when
-  /// Svtx tracks are made
-  for(auto& cluskey : additionalClusters)
-    { clusters.push_back(m_clusterMap->findCluster(cluskey)); }
-  
-  fitTimer->stop();
-  auto addClusters = fitTimer->get_accumulated_time();
-
-  if(Verbosity() > 0)
-    {
-      std::cout << "find intt clusters time " << addClusters << std::endl;
-    }
-  
-  return charge;
-
-}
 
 std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
 		               std::vector<Acts::Vector3>& clusters,
-			       const double R,
-			       const double X0,
-			       const double Y0,
-			       const double B,
-			       const double m)
+			       TrackSeed& seed)
 {
+  const float R = fabs(1. / seed.get_qOverR());
+  const float X0 = seed.get_X0();
+  const float Y0 = seed.get_Y0();
+  const float B = seed.get_Z0();
+  const float m = seed.get_slope();
 
   double xProj[m_nInttLayers];
   double yProj[m_nInttLayers];
@@ -956,273 +565,8 @@ void PHActsSiliconSeeding::circleCircleIntersection(const double layerRadius,
   yminus = -(2*circX0*xminus - D) / (2.0*circY0);
 }
 
-void PHActsSiliconSeeding::findRoot(const double R, const double X0,
-				    const double Y0, double& x,
-				    double& y)
-{
-  /**
-   * We need to determine the closest point on the circle to the origin
-   * since we can't assume that the track originates from the origin
-   * The eqn for the circle is (x-X0)^2+(y-Y0)^2=R^2 and we want to 
-   * minimize d = sqrt((0-x)^2+(0-y)^2), the distance between the 
-   * origin and some (currently, unknown) point on the circle x,y.
-   * 
-   * Solving the circle eqn for x and substituting into d gives an eqn for
-   * y. Taking the derivative and setting equal to 0 gives the following 
-   * two solutions. We take the smaller solution as the correct one, as 
-   * usually one solution is wildly incorrect (e.g. 1000 cm)
-   */
-  
-  double miny = (sqrt(pow(X0, 2) * pow(R, 2) * pow(Y0, 2) + pow(R, 2) 
-		      * pow(Y0,4)) + pow(X0,2) * Y0 + pow(Y0, 3)) 
-    / (pow(X0, 2) + pow(Y0, 2));
 
-  double miny2 = (-sqrt(pow(X0, 2) * pow(R, 2) * pow(Y0, 2) + pow(R, 2) 
-		      * pow(Y0,4)) + pow(X0,2) * Y0 + pow(Y0, 3)) 
-    / (pow(X0, 2) + pow(Y0, 2));
 
-  double minx = sqrt(pow(R, 2) - pow(miny - Y0, 2)) + X0;
-  double minx2 = -sqrt(pow(R, 2) - pow(miny2 - Y0, 2)) + X0;
-  
-  if(Verbosity() > 1)
-    std::cout << "minx1 and x2 : " << minx << ", " << minx2 << std::endl
-	      << "miny1 and y2 : " << miny << ", " << miny2 << std::endl;
-
-  /// Figure out which of the two roots is actually closer to the origin
-  if(fabs(minx) < fabs(minx2))
-    x = minx;
-  else
-    x = minx2;
-
-  if(fabs(miny) < fabs(miny2))
-    y = miny;
-  else
-    y = miny2;
-  
-  if(Verbosity() > 1)
-    {
-      std::cout << "Minimum x and y positions " << x << ",  " 
-		<< y << std::endl;
-    }
-
-}
-
-int PHActsSiliconSeeding::getCharge(const std::vector<Acts::Vector3>& globalPos,
-				    const double circPhi)
-{
-
-  /**
-   * If the circle center phi is positioned clockwise to the seed phi, 
-   * the seed is positively charged. If the circle center phi is positioned
-   * counter clockwise, the seed is negatively charged
-   */
-
-  int charge = 0;
-  
-  /// Get a crude estimate of the seed phi by taking the average of the
-  /// measurements
-  double trackPhi = 0;
-
-  for(const auto& pos : globalPos)
-    {
-      double clusPhi = atan2(pos(1), pos(0));
-
-      /// if it is close to the periodic boundary normalize to 
-      /// two pi to avoid -pi and pi issues
-      if(fabs(fabs(clusPhi) - M_PI) < 0.2)
-	clusPhi = normPhi2Pi(clusPhi);
-      trackPhi += clusPhi;
-    }
-
-  trackPhi /= globalPos.size();
-
-  /// normalize back
-  if(trackPhi > M_PI)
-    trackPhi -= 2. * M_PI;
-
-  float quadrants[5] = {-M_PI,-M_PI / 2., 0, M_PI/2., M_PI};
-  int quadrant = -1;
-  for(int i=0; i<4; i++)
-    {
-      if(trackPhi > quadrants[i] && trackPhi <= quadrants[i+1])
-	{
-	  quadrant = i;
-	  break;
-	}
-    }
-
-  if(quadrant == -1)
-    std::cout << "quadrant was not set... shouldn't be possible"
-	      << std::endl;
-
-  if(quadrant == 1 or quadrant == 2)
-    {
-      if(circPhi > trackPhi)
-	charge = -1;
-      else
-	charge = 1;
-    }
-  else
-    {
-      /// Shift the periodic boundary to make quadrants 0 and 3 away
-      /// from boundary
-      double normTrackPhi = normPhi2Pi(trackPhi);
-      double normCircPhi = normPhi2Pi(circPhi);
-  
-      if(normCircPhi > normTrackPhi)
-	charge = -1;
-      else
-	charge = 1;
-    }
-
-  if(Verbosity() > 1)
-    std::cout << "Track seed charge determined to be " 
-	      << charge << " in quadrant " << quadrant << std::endl;
-
-  return charge;
-
-}
-
-void PHActsSiliconSeeding::lineFit(const std::vector<Acts::Vector3>& globPos, 
-				   double &A, double &B)
-{
-  // copied from: https://www.bragitoff.com
-  // we want to fit z vs radius
-  double xsum = 0,x2sum = 0,ysum = 0,xysum = 0;    
-  for(const auto& pos : globPos)
-    {
-      double z = pos(2);
-      double r = sqrt(pow(pos(0),2) + pow(pos(1), 2));
-      
-      xsum=xsum+r;               // calculate sigma(xi)
-      ysum=ysum+z;               // calculate sigma(yi)
-      x2sum=x2sum+pow(r,2);      // calculate sigma(x^2i)
-      xysum=xysum+r*z;           // calculate sigma(xi*yi)
-    
-      if(Verbosity() > 4)
-	{
-	  double r = sqrt(pow(pos(0),2) + pow(pos(1), 2));          
-	  std::cout << " r " << r << " z " << pos(2)
-		    << std::endl; 
-	}    
-    }
-  
-  /// calculate slope
-  A = (globPos.size()*xysum-xsum*ysum) / (globPos.size()*x2sum-xsum*xsum);
-
-  /// calculate intercept
-  B = (x2sum*ysum-xsum*xysum) / (x2sum*globPos.size()-xsum*xsum);
-  
-  if(Verbosity() > 4)
-    {
-      for(int i =0; i <m_nInttLayers; i++)
-	{
-	  std::cout << "intt z_fit layer " << i << " is " 
-		    << A * m_nInttLayerRadii[i] + B << std::endl;
-	}
-    }
-  
-  return;
-}   
-
-void PHActsSiliconSeeding::circleFitByTaubin(const std::vector<Acts::Vector3>& globalPositions,
-					     double& R, double& X0, double& Y0)
-{
-  /**  
-   *   Circle fit to a given set of data points (in 2D)
-   *   This is an algebraic fit, due to Taubin, based on the journal article
-   *   G. Taubin, "Estimation Of Planar Curves, Surfaces And Nonplanar
-   *               Space Curves Defined By Implicit Equations, With 
-   *               Applications To Edge And Range Image Segmentation",
-   *               IEEE Trans. PAMI, Vol. 13, pages 1115-1138, (1991)
-   *  It works well whether data points are sampled along an entire circle 
-   *  or along a small arc. 
-   *  It still has a small bias and its statistical accuracy is slightly lower 
-   *  than that of the geometric fit (minimizing geometric distances),
-   *  It provides a very good initial guess for a subsequent geometric fit. 
-   *    Nikolai Chernov  (September 2012)
-   */
-  
-  int iter, IterMAX=99;
-  
-  double Mz, Mxy, Mxx, Myy, Mxz, Myz, Mzz, Cov_xy, Var_z;
-  double A0, A1, A2, A22, A3, A33;
-  double x, y;
-  double DET, Xcenter, Ycenter;
-  
-  // Compute x- and y- sample means   
-  double meanX = 0;
-  double meanY = 0;
-  double weight = 0;
-
-  for(auto& globalPos : globalPositions)
-    {
-      meanX += globalPos(0);
-      meanY += globalPos(1);
-      weight++;
-    }
-
-  meanX /= weight;
-  meanY /= weight;
-
-  Mxx=Myy=Mxy=Mxz=Myz=Mzz=0.;
-
-  for(auto& pos : globalPositions)
-    {
-      
-      double Xi = pos(0) - meanX;
-      double Yi = pos(1) - meanY;
-      double Zi = Xi * Xi + Yi * Yi;
-
-      Mxy += Xi*Yi;
-      Mxx += Xi*Xi;
-      Myy += Yi*Yi;
-      Mxz += Xi*Zi;
-      Myz += Yi*Zi;
-      Mzz += Zi*Zi;
-    }
-
-  Mxx /= weight;
-  Myy /= weight;
-  Mxy /= weight;
-  Mxz /= weight;
-  Myz /= weight;
-  Mzz /= weight;
-
-  Mz = Mxx + Myy;
-  Cov_xy = Mxx * Myy - Mxy * Mxy;
-  Var_z = Mzz - Mz * Mz;
-  A3 = 4 * Mz;
-  A2 = -3 * Mz * Mz - Mzz;
-  A1 = Var_z * Mz + 4 * Cov_xy * Mz - Mxz * Mxz - Myz * Myz;
-  A0 = Mxz * (Mxz * Myy - Myz * Mxy) + 
-    Myz * (Myz * Mxx - Mxz * Mxy) - Var_z * Cov_xy;
-  A22 = A2 + A2;
-  A33 = A3 + A3 + A3;
-
-  for (x=0., y=A0, iter=0; iter<IterMAX; iter++)  // usually, 4-6 iterations are enough
-    {
-      double Dy = A1 + x * (A22 + A33 * x);
-      double xnew = x - y / Dy;
-      if ((xnew == x)||(!std::isfinite(xnew))) break;
-      double ynew = A0 + xnew * (A1 + xnew * (A2 + xnew * A3));
-      if (fabs(ynew)>=fabs(y))  break;
-      x = xnew;  y = ynew;
-    }
-  
-  //  computing parameters of the fitting circle
-  
-  DET = x*x - x*Mz + Cov_xy;
-  Xcenter = (Mxz*(Myy - x) - Myz*Mxy)/DET/2;
-  Ycenter = (Myz*(Mxx - x) - Mxz*Mxy)/DET/2;
-  
-  //  assembling the output
-  
-  X0 = Xcenter + meanX;
-  Y0 = Ycenter + meanY;
-  R = sqrt(Xcenter*Xcenter + Ycenter*Ycenter + Mz);
-
-}
 
 SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(const Surface& surf,
 						   const TrkrCluster* clus)
@@ -1489,12 +833,12 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode,_track_map_name);
-  if(!m_trackMap)
+  m_seedContainer = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
+  if(!m_seedContainer)
     {
-      m_trackMap = new SvtxTrackMap_v1;
+      m_seedContainer = new TrackSeedContainer_v1;
       PHIODataNode<PHObject> *trackNode = 
-	new PHIODataNode<PHObject>(m_trackMap,_track_map_name,"PHObject");
+	new PHIODataNode<PHObject>(m_seedContainer, _track_map_name, "PHObject");
       svtxNode->addNode(trackNode);
 
     }

@@ -23,8 +23,8 @@
 
 class PHCompositeNode;
 class PHG4CylinderGeomContainer;
-class SvtxTrackMap;
-class SvtxVertexMap;
+class TrackSeed;
+class TrackSeedContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrHitSetContainer;
@@ -130,7 +130,7 @@ class PHActsSiliconSeeding : public SubsysReco
   Acts::SpacePointGridConfig configureSPGrid();
   Acts::SeedFilterConfig configureSeedFilter();
 
-  /// Take final seeds and fill the SvtxTrackMap
+  /// Take final seeds and fill the TrackSeedContainer
   void makeSvtxTracks(GridSeeds& seedVector);
   
   /// Create a seeding space point out of an Acts::SourceLink
@@ -140,31 +140,12 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Get all space points for the seeder
   std::vector<const SpacePoint*> getMvtxSpacePoints(Acts::Extent& rRangeSPExtent);
 
-  /// Perform circle/line fits with the final MVTX seed to get
-  /// initial point and momentum estimates for stub matching
-  int circleFitSeed(std::vector<TrkrCluster*>& clusters,
-		    std::vector<Acts::Vector3>& clusGlobPos,
-		    double& x, double& y, double& z,
-		    double& px, double& py, double& pz);
-
-  void circleFitByTaubin(const std::vector<Acts::Vector3>& globalPositions,
-			 double& R, double& X0, double& Y0);
-  void lineFit(const std::vector<Acts::Vector3>& globPos,
-	       double& A, double& B);
-  void findRoot(const double R, const double X0, const double Y0,
-		double& x, double& y);
-  int getCharge(const std::vector<Acts::Vector3>& globalPos,
-		const double circPhi);
 
   /// Projects circle fit to INTT radii to find possible INTT clusters
   /// belonging to MVTX track stub
   std::vector<TrkrDefs::cluskey> findInttMatches(
 		        std::vector<Acts::Vector3>& clusters,
-			const double R,
-			const double X0,
-			const double Y0,
-			const double B,
-			const double m);
+		        TrackSeed& seed);
 
   std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3>& clusters,
 						   const double xProj[],
@@ -179,32 +160,15 @@ class PHActsSiliconSeeding : public SubsysReco
 				double& xminus,
 				double& yminus);
 
-  void createSvtxTrack(const double x,
-		       const double y,
-		       const double z,
-		       const double px,
-		       const double py,
-		       const double pz,
-		       const int charge,
-		       std::vector<TrkrCluster*>& clusters,
-		       std::vector<Acts::Vector3>& clusGlobPos);
-  std::map<const unsigned int, std::pair<std::vector<TrkrCluster*>,std::vector<Acts::Vector3>>>
-    makePossibleStubs(std::vector<TrkrCluster*>& allClusters,
-		      std::vector<Acts::Vector3>& clusGlobPos);
 
   Surface getSurface(TrkrDefs::hitsetkey hitsetkey);
-
-  std::map<const unsigned int, std::pair<std::vector<TrkrCluster*>,std::vector<Acts::Vector3>>>
-    identifyBestSeed(std::map<const unsigned int, 
-		     std::pair<std::vector<TrkrCluster*>,
-		               std::vector<Acts::Vector3>>>);
 
   void createHistograms();
   void writeHistograms();
   double normPhi2Pi(const double phi);
 
   ActsTrackingGeometry *m_tGeometry = nullptr;
-  SvtxTrackMap *m_trackMap = nullptr;
+  TrackSeedContainer *m_seedContainer = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;
   TrkrHitSetContainer  *m_hitsets = nullptr;
   PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
@@ -260,7 +224,7 @@ class PHActsSiliconSeeding : public SubsysReco
   
   /// Doesn't change, we are building the INTT this way
   const static unsigned int m_nInttLayers = 4;
-  double m_nInttLayerRadii[m_nInttLayers] = {0};;
+  double m_nInttLayerRadii[m_nInttLayers] = {0};
   
   /// Search window for phi to match intt clusters in cm
   double m_rPhiSearchWin = 0.1;
