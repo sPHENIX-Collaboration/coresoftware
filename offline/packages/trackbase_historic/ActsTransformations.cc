@@ -36,23 +36,26 @@ Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs( const SvtxTr
 { return rotateSvtxTrackCovToActs( track->find_state(0.0)->second ); }
 
 //_______________________________________________________________________________
-Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs( const SvtxTrackState *state ) const
+Acts::BoundSymMatrix ActsTransformations::rotateSvtxTrackCovToActs(
+			        const SvtxTrackState *state) const
 {
   Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
 
   for(int i = 0; i < 6; ++i)
-    for(int j = 0; j < 6; ++j)
-  {
-    svtxCovariance(i,j) = state->get_error(i,j);
-    /// Convert Svtx to mm and GeV units as Acts expects
-    if(i < 3 && j < 3)
-      svtxCovariance(i,j) *= Acts::UnitConstants::cm2;
-    else if (i < 3)
-      svtxCovariance(i,j) *= Acts::UnitConstants::cm;
-    else if (j < 3)
-      svtxCovariance(i,j) *= Acts::UnitConstants::cm;
-    
-  }
+    {
+      for(int j = 0; j < 6; ++j)
+	{
+	  svtxCovariance(i,j) = state->get_error(i,j);
+	  /// Convert Svtx to mm and GeV units as Acts expects
+	  if(i < 3 && j < 3)
+	    svtxCovariance(i,j) *= Acts::UnitConstants::cm2;
+	  else if (i < 3)
+	    svtxCovariance(i,j) *= Acts::UnitConstants::cm;
+	  else if (j < 3)
+	    svtxCovariance(i,j) *= Acts::UnitConstants::cm;
+	  
+	}
+    }
 
   printMatrix("svtx covariance, acts units: ", svtxCovariance);
  
