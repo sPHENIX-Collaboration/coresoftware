@@ -119,23 +119,15 @@ uint16_t getRow(TrkrDefs::hitkey key);
  TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t ladder_z_index, const uint8_t ladder_phi_index, const int time_bucket);
 
 /**
-   * @brief Generate a cluster key from indices 
+   * @brief Generate a cluster key from indeces 
    * @param[in] lyr Layer index
    * @param[in] ladder_z_index z index of sensor in ladder
-   * @param[in] ladder_phi_index phi index of ladder in layer
-   * @param[in] time bunch index of time bucket
-   * @param[out] hitsetkey
-   */
-
- TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t LadderZId, const uint8_t LadderPhiId, const int time_bucket, const uint32_t clusid);
-
-/**
-   * @brief Generate a cluster key using a hitsetkey and cluster id
-   * @param[in] hskey hitsetkey
+   * @param[in] ladder_phi_ndex phi index of ladder in layer
+   * @param[in] crossing - bunch crossing
    * @param[in] clusid Cluster id
    * @param[out] cluskey
    */
-TrkrDefs::cluskey genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid);
+ TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t ladder_z_index, const uint8_t ladder_phi_index, const int crossing, const uint32_t clusid);
 
 /**
    * @brief Zero the crossing bits in a copy of the  hitsetkey

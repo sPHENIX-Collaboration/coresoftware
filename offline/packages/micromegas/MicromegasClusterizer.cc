@@ -263,7 +263,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     {
 
       // create cluster key and corresponding cluster
-      const auto cluster_key = MicromegasDefs::genClusterKey( hitsetkey, cluster_count++ );
+      const auto cluster_key = TrkrDefs::genClusKey( hitsetkey, cluster_count++ );
       auto cluster = std::make_unique<TrkrClusterv3>();
       cluster->setClusKey(cluster_key);
 

@@ -383,8 +383,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator mapiter = clusrange.first;
 	
 	// make the cluster directly in the node tree
-	TrkrDefs::hitsetkey hitsetkey = hitset->getHitSetKey();
-	TrkrDefs::cluskey ckey = InttDefs::genClusKey(hitset->getHitSetKey(), clusid);
+	TrkrDefs::cluskey ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 	auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setClusKey(ckey);
 
@@ -392,7 +391,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	  cout << "Filling cluster with key " << ckey << endl;
 
 	// get the bunch crossing number from the hitsetkey
-	short int crossing = InttDefs::getTimeBucketId(hitsetkey);
+	short int crossing = InttDefs::getTimeBucketId(hitset->getHitSetKey());
 
 	// determine the size of the cluster in phi and z, useful for track fitting the cluster
 	set<int> phibins;

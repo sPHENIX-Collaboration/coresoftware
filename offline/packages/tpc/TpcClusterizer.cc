@@ -420,7 +420,7 @@ namespace
 	}
       // create the cluster entry directly in the node tree
       
-      const TrkrDefs::cluskey ckey = TpcDefs::genClusKey( my_data.hitset->getHitSetKey(), iclus );
+      const TrkrDefs::cluskey ckey = TrkrDefs::genClusKey( my_data.hitset->getHitSetKey(), iclus );
       
       // Estimate the errors
       const double phi_err_square = (phibinhi == phibinlo) ?

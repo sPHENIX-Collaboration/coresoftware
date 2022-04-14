@@ -6,8 +6,6 @@
  */
 #include "InttDefs.h"
 
-#include <trackbase/TrkrDefs.h>
-
 uint8_t
 InttDefs::getLadderZId(TrkrDefs::hitsetkey key)
 {
@@ -112,19 +110,8 @@ InttDefs::genHitSetKey(const uint8_t lyr, const uint8_t ladder_z_index, uint8_t 
 TrkrDefs::cluskey
 InttDefs::genClusKey(const uint8_t lyr, const uint8_t ladder_z_index, const uint8_t ladder_phi_index, const int crossing, const uint32_t clusid)
 {
-  TrkrDefs::cluskey tmp = genHitSetKey(lyr, ladder_z_index, ladder_phi_index, crossing);
-  TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
-  key |= clusid;
-  return key;
-}
-
-TrkrDefs::cluskey
-InttDefs::genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid)
-{
-  TrkrDefs::cluskey tmp = hskey;
-  TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
-  key |= clusid;
-  return key;
+  TrkrDefs::cluskey key = genHitSetKey(lyr, ladder_z_index, ladder_phi_index, crossing);
+  return TrkrDefs::genClusKey( key, clusid );
 }
 
 TrkrDefs::hitsetkey

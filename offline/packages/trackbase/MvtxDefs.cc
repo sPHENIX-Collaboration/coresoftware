@@ -1,7 +1,5 @@
 #include "MvtxDefs.h"
 
-#include <trackbase/TrkrDefs.h>
-
 uint8_t
 MvtxDefs::getStaveId(TrkrDefs::hitsetkey key)
 {
@@ -100,22 +98,12 @@ MvtxDefs::genHitSetKey(const uint8_t lyr, const uint8_t stave, const uint8_t chi
   return key;
 }
 
-TrkrDefs::cluskey
+TrkrDefs::cluskey 
 MvtxDefs::genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const int strobe, const uint32_t clusid)
 {
-  TrkrDefs::cluskey tmp = genHitSetKey(lyr, stave, chip,strobe);
-  TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
-  key |= clusid;
-  return key;
-}
-
-TrkrDefs::cluskey
-MvtxDefs::genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid)
-{
-  TrkrDefs::cluskey tmp = hskey;
-  TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
-  key |= clusid;
-  return key;
+  TrkrDefs::hitsetkey key = genHitSetKey(lyr, stave, chip, strobe);
+  //return TrkrDefs::genClusKey( key, clusid );
+  return TrkrDefs::genClusKey(key,clusid);
 }
 
 TrkrDefs::hitsetkey

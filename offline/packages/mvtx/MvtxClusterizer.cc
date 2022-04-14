@@ -283,7 +283,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	if (Verbosity() > 2) cout << "Filling cluster id " << clusid << " of " << std::distance(cluster_ids.begin(),clusiter )<< endl;
 
 	// make the cluster directly in the node tree
-	auto ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);
+	auto ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 
 	auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setClusKey(ckey);

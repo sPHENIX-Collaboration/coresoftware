@@ -19,6 +19,9 @@ class SvtxHitEval;
 class SvtxTrack;
 class SvtxTrackMap;
 class SvtxTruthEval;
+class PHG4ParticleSvtxMap;
+class SvtxPHG4ParticleMap;
+class PHG4TruthInfoContainer;
 
 class SvtxTrackEval
 {
@@ -79,6 +82,9 @@ class SvtxTrackEval
 
   SvtxClusterEval _clustereval;
   SvtxTrackMap* _trackmap;
+  PHG4TruthInfoContainer* _truthinfo;
+  PHG4ParticleSvtxMap* _truthRecoMap;
+  SvtxPHG4ParticleMap* _recoTruthMap;
 
   bool _strict;
   int _verbosity;

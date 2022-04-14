@@ -7,7 +7,7 @@
 #ifndef MVTX_MVTXDEFUTIL_H
 #define MVTX_MVTXDEFUTIL_H
 
-#include <trackbase/TrkrDefs.h>
+#include "TrkrDefs.h"
 
 #include <cstdint>              // for uint8_t, uint16_t, uint32_t
 
@@ -124,17 +124,11 @@ TrkrDefs::hitkey genHitKey(const uint16_t col, const uint16_t row);
    * @param[in] lyr Layer index
    * @param[in] stave Stave index
    * @param[in] chip Chip index
-   * @param[in] strobe  strobe id
-   */
- TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const int strobe, const uint32_t clusid);
-
-/**
-   * @brief Generate a cluster key using a hitsetkey and cluster id
-   * @param[in] hskey hitsetkey
+   * @param[in] crossing bunch crossing
    * @param[in] clusid Cluster id
    * @param[out] cluskey
    */
-TrkrDefs::cluskey genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid);
+ TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const int strobe, const uint32_t clusid);
 
 /**
    * @brief Zero the strobe bits in the hitsetkey
