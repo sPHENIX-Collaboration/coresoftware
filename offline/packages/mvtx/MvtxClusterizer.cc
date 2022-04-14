@@ -5,7 +5,6 @@
  * @brief Implementation of MvtxClusterizer
  */
 #include "MvtxClusterizer.h"
-#include "MvtxDefs.h"
 #include "CylinderGeom_Mvtx.h"
 
 #include <g4detectors/PHG4CylinderGeom.h>
@@ -14,6 +13,7 @@
 #include <trackbase/TrkrClusterContainerv3.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrDefs.h>                     // for hitkey, getLayer
+#include <trackbase/MvtxDefs.h>                   
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
@@ -283,7 +283,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	if (Verbosity() > 2) cout << "Filling cluster id " << clusid << " of " << std::distance(cluster_ids.begin(),clusiter )<< endl;
 
 	// make the cluster directly in the node tree
-	auto ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);
+	auto ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 
 	auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setClusKey(ckey);
@@ -411,7 +411,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 void MvtxClusterizer::PrintClusters(PHCompositeNode *topNode)
 {
-  if (Verbosity() >= 1)
+  if (Verbosity() >= 3)
   {
     TrkrClusterContainer *clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (!clusterlist) return;

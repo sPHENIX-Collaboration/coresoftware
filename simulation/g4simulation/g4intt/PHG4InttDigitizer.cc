@@ -13,12 +13,12 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/InttDefs.h>
 
 #include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
-#include <intt/InttDefs.h>
 
-#include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERB...
+#include <fun4all/Fun4AllBase.h>                    // for Fun4AllBase::VERB...
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 

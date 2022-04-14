@@ -29,7 +29,7 @@ struct ActsTrackingGeometry;
 class PHCompositeNode;
 class PHField;
 class SvtxTrack;
-class SvtxTrack_v2;
+class SvtxTrack_v3;
 class TpcDistortionCorrectionContainer;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
@@ -156,7 +156,7 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z) const;
-  void publishSeeds(const std::vector<SvtxTrack_v2>&);
+  void publishSeeds(const std::vector<SvtxTrack_v3>&);
   void publishSeeds(const std::vector<SvtxTrack>&);
 //   void MoveToVertex();
 

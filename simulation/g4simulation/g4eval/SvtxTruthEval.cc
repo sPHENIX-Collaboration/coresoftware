@@ -10,10 +10,10 @@
 
 #include <trackbase/TrkrClusterv1.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
 
 #include <tpc/TpcDefs.h>
-#include <intt/InttDefs.h>
-#include <mvtx/MvtxDefs.h>
 #include <micromegas/MicromegasDefs.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -340,14 +340,16 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
 	{
 	  unsigned int stave = 0;
 	  unsigned int chip = 0;
-	  ckey = MvtxDefs::genClusKey(layer, stave, chip, iclus);
+	  unsigned int strobe = 0;
+	  ckey = MvtxDefs::genClusKey(layer, stave, chip, strobe, iclus);
 	}
       else if(layer >= _nlayers_maps && layer < _nlayers_maps  + _nlayers_intt)  // in INTT
 	{
 	  // dummy ladder and phi ID
 	  unsigned int ladderzid = 0;
 	  unsigned int ladderphiid = 0;
-	  ckey = InttDefs::genClusKey(layer, ladderzid, ladderphiid,iclus);
+	  uint16_t crossing = 0;
+	  ckey = InttDefs::genClusKey(layer, ladderzid, ladderphiid,crossing,iclus);
 	}
       else if(layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)    // in MICROMEGAS
 	{
@@ -355,7 +357,7 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
 	  MicromegasDefs::SegmentationType segtype;
 	  segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
 	  TrkrDefs::hitsetkey hkey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
-  	  ckey = MicromegasDefs::genClusterKey(hkey, iclus);
+  	  ckey = TrkrDefs::genClusKey(hkey, iclus);
 	}
       else
 	{

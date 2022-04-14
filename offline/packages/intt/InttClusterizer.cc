@@ -1,6 +1,5 @@
 #include "InttClusterizer.h"
 #include "CylinderGeomIntt.h"
-#include "InttDefs.h"
 
 #include <trackbase/TrkrClusterContainerv3.h>
 #include <trackbase/TrkrClusterv3.h>
@@ -9,6 +8,8 @@
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
+#include <trackbase/TrkrClusterCrossingAssocv1.h>
+#include <trackbase/InttDefs.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -149,6 +150,21 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
       DetNode->addNode(newNode);
     }
 
+  // Add the multimap holding the INTT cluster-crossing associations
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+      dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+      {
+	DetNode = new PHCompositeNode("TRKR");
+	dstNode->addNode(DetNode);
+      }
+    
+    auto clustercrossingassoc = new TrkrClusterCrossingAssocv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(clustercrossingassoc, "TRKR_CLUSTERCROSSINGASSOC", "PHObject");
+    DetNode->addNode(newNode);
+  }
 
   //---------------------
   // Calculate Thresholds
@@ -212,6 +228,14 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
   if (!m_clusterhitassoc)
   {
     cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  // get node for cluster-crossing associations
+  m_clustercrossingassoc = findNode::getClass<TrkrClusterCrossingAssoc>(topNode, "TRKR_CLUSTERCROSSINGASSOC");
+  if (!m_clustercrossingassoc)
+  {
+    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERCROSINGASSOC" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   
@@ -359,13 +383,16 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator mapiter = clusrange.first;
 	
 	// make the cluster directly in the node tree
-	TrkrDefs::cluskey ckey = InttDefs::genClusKey(hitset->getHitSetKey(), clusid);
+	TrkrDefs::cluskey ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 	auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setClusKey(ckey);
 
 	if (Verbosity() > 2)
 	  cout << "Filling cluster with key " << ckey << endl;
-		
+
+	// get the bunch crossing number from the hitsetkey
+	short int crossing = InttDefs::getTimeBucketId(hitset->getHitSetKey());
+
 	// determine the size of the cluster in phi and z, useful for track fitting the cluster
 	set<int> phibins;
 	set<int> zbins;
@@ -376,7 +403,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	double zlocalsum = 0.0;
 	unsigned int clus_adc = 0.0;
 	unsigned nhits = 0;
-	
+
+	//std::cout << PHWHERE << " ckey " << ckey << ":" << std::endl;	
 	for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
 	  {
 	    // mapiter->second.first  is the hit key
@@ -388,6 +416,9 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 	    // mapiter->second.second is the hit
 	    unsigned int hit_adc = (mapiter->second).second->getAdc();
+
+	    // Add clusterkey/bunch crossing to mmap
+	    m_clustercrossingassoc->addAssoc(ckey, crossing);
 
 	    // now get the positions from the geometry
 	    double local_hit_location[3] = {0., 0., 0.};
@@ -475,19 +506,26 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
   }  // end loop over hitsets
 
 
-  if(Verbosity() > 1)
+  if(Verbosity() > 2)
     {
       // check that the associations were written correctly
       cout << "After InttClusterizer, cluster-hit associations are:" << endl;
       m_clusterhitassoc->identify();
     }
-  
+
+    if(Verbosity() > 0)
+    {
+      std::cout << " Cluster-crossing associations are:" << std::endl;
+      m_clustercrossingassoc->identify();  
+    }
+
+    
   return;
 }
 
 void InttClusterizer::PrintClusters(PHCompositeNode* topNode)
 {
-  if (Verbosity() >= 1)
+  if (Verbosity() > 1)
   {
     TrkrClusterContainer *clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (!clusterlist) return;

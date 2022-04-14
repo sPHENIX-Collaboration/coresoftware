@@ -18,7 +18,6 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
-  MvtxDefs.h \
   MvtxClusterizer.h \
   CylinderGeom_Mvtx.h \
   SegmentationAlpide.h
@@ -45,7 +44,6 @@ libmvtx_la_LIBADD = \
 libmvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeom_Mvtx.cc \
-  MvtxDefs.cc \
   SegmentationAlpide.cc
 
 libmvtx_io_la_LIBADD = \

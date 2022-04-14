@@ -81,23 +81,40 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
       auto tpc_range =   _seed_track_map->getAssocTracks(tpc_id);
 
       unsigned int best_id = 99999;
-      double min_chisq = 99999.0;
+      double min_chisq_df = 99999.0;
       unsigned int best_ndf = 1;
       for (auto it = tpc_range.first; it !=tpc_range.second; ++it)
 	{
 	  unsigned int track_id = it->second;
-	  
+
 	  // note that the track no longer exists if it failed in the Acts fitter
 	  _track = _track_map->get(track_id);
+
 	  if(_track)
 	    {
-	      if(Verbosity() > 1)	      
-		std::cout << "        track ID " << track_id << " chisq " << _track->get_chisq() << " ndf " << _track->get_ndf() << " min_chisq " << min_chisq << std::endl;
-
-	      // only accept tracks with nclus > min_clusters
-	      if(_track->get_chisq() < min_chisq && _track->size_cluster_keys() > min_clusters)
+	      if(_pp_mode)
 		{
-		  min_chisq = _track->get_chisq();
+		  // skip tracks with no assigned crossing number in pp mode
+		  if(_track->get_crossing() == SHRT_MAX)
+		    {
+		      if(Verbosity() > 0) 
+			std::cout << "     skip  track ID " << track_id << " crossing " << _track->get_crossing() <<  " chisq " << _track->get_chisq() 
+				  << " ndf " << _track->get_ndf() << std::endl;
+		      
+		      continue;
+		    }
+		}
+	      
+	      //Find the remaining track with the best chisq/ndf
+
+	      if(Verbosity() > 1)	      
+		std::cout << "        track ID " << track_id << " crossing " << _track->get_crossing() 
+			  << " chisq " << _track->get_chisq() << " ndf " << _track->get_ndf() << " min_chisq_df " << min_chisq_df << std::endl;
+
+	      // only accept tracks with ndf > min_ndf - very small ndf means something went wrong, as does ndf undefined
+	      if(_track->get_chisq()/_track->get_ndf() < min_chisq_df && _track->get_ndf() > min_ndf && _track->get_ndf() != UINT_MAX)
+		{
+		  min_chisq_df = _track->get_chisq() / _track->get_ndf();
 		  best_id = track_id;
 		  best_ndf = _track->get_ndf();
 		}
@@ -106,10 +123,10 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 
       if(best_id != 99999)
 	{
-	  double qual = min_chisq / best_ndf;
+	  double qual = min_chisq_df;
 
 	  if(Verbosity() > 1)
-	    std::cout << "        best track for tpc_id " << tpc_id << " has track_id " << best_id << " chisq " << min_chisq << " chisq/ndf " << qual << std::endl;
+	    std::cout << "        best track for tpc_id " << tpc_id << " has track_id " << best_id << " best_ndf " << best_ndf << " chisq/ndf " << qual << std::endl;
 
 	  if(qual < 30)
 	    {
@@ -154,7 +171,7 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
       _track_map->erase(*it);
     }
 
-  if(Verbosity() > 0)
+  //if(Verbosity() > 0)
     std::cout << "Track map size after choosing best silicon match: " << _track_map->size() << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;

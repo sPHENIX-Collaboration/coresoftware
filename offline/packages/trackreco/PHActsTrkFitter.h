@@ -13,6 +13,8 @@
 
 #include "ResidualOutlierFinder.h"
 
+#include <tpc/TpcClusterZCrossingCorrection.h>
+
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
@@ -134,7 +136,13 @@ class PHActsTrkFitter : public SubsysReco
   Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey) const;
   Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey) const;
 
-  Acts::BoundSymMatrix setDefaultCovariance() const;
+  Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
+						       Acts::Vector3 world,
+						       ActsSurfaceMaps *surfMaps,
+						       ActsTrackingGeometry *tGeometry,
+						       TrkrDefs::subsurfkey& subsurfkey);
+
+    Acts::BoundSymMatrix setDefaultCovariance() const;
   void printTrackSeed(const SvtxTrack* seed) const;
 
   /// Event counter
@@ -172,6 +180,8 @@ class PHActsTrkFitter : public SubsysReco
   bool m_actsEvaluator = false;
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
   SvtxTrackMap *m_seedTracks = nullptr;
+
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
   std::string m_fieldMap = "";
   TrkrClusterIterationMapv1* _iteration_map = nullptr;

@@ -73,17 +73,6 @@ TpcDefs::genHitSetKey(const uint8_t lyr, const uint8_t sector, const uint8_t sid
 TrkrDefs::cluskey
 TpcDefs::genClusKey(const uint8_t lyr, const uint8_t sector, const uint8_t side, const uint32_t clusid)
 {
-  TrkrDefs::cluskey tmp = genHitSetKey(lyr, sector, side);
-  TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
-  key |= clusid;
-  return key;
-}
-
-TrkrDefs::cluskey
-TpcDefs::genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid)
-{
-  TrkrDefs::cluskey tmp = hskey;
-  TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
-  key |= clusid;
-  return key;
+  const auto key = genHitSetKey(lyr, sector, side);
+  return TrkrDefs::genClusKey( key, clusid );
 }

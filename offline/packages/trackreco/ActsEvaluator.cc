@@ -14,6 +14,8 @@
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase/MvtxDefs.h>
+#include <trackbase/InttDefs.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
@@ -838,8 +840,23 @@ Surface ActsEvaluator::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfke
 //___________________________________________________________________________________
 Surface ActsEvaluator::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
 {
+  unsigned int trkrid =  TrkrDefs::getTrkrId(hitsetkey);
+  TrkrDefs::hitsetkey tmpkey = hitsetkey;
+
+  if(trkrid == TrkrDefs::inttId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = InttDefs::resetCrossingHitSetKey(hitsetkey);
+    }
+
+  if(trkrid == TrkrDefs::mvtxId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);
+    }
+
   auto surfMap = m_surfMaps->siliconSurfaceMap;
-  auto iter = surfMap.find(hitsetkey);
+  auto iter = surfMap.find(tmpkey);
   if(iter != surfMap.end())
     {
       return iter->second;

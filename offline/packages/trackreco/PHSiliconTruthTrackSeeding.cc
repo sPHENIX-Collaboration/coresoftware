@@ -4,7 +4,7 @@
 
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTra...
 #include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, Svtx...
-#include <trackbase_historic/SvtxTrack_FastSim_v2.h>
+#include <trackbase_historic/SvtxTrack_FastSim_v3.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <trackbase/TrkrClusterv2.h>
@@ -262,7 +262,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
     if (layers.size() >=  _min_clusters_per_track)
     {
 
-      auto svtx_track = std::make_unique<SvtxTrack_FastSim_v2>();
+      auto svtx_track = std::make_unique<SvtxTrack_FastSim_v3>();
       svtx_track->set_id(_track_map->size());
       svtx_track->set_truth_track_id(trk_clusters_itr->first);
 

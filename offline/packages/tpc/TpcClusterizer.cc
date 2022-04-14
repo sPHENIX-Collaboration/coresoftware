@@ -7,7 +7,7 @@
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
-#include <trackbase/TrkrHitv2.h>
+#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -287,9 +287,27 @@ namespace
 	    {
 	      surf_index = nsurf;
 	      subsurfkey = nsurf;
+
+	      /*
+	      unsigned int side = TpcDefs::getSide(hitsetkey) ;
+	      if(side == 0 && world[2] > 0)
+		std::cout << " z " << world[2] << " is positive on south side, surf index " << surf_index << std::endl;
+	      if(side == 1 && world[2] < 0)
+		std::cout << " z " << world[2] << " is negative on north side, surf index " << surf_index << std::endl;
+	      */
+	      /*
+	      std::cout << std::endl
+			<< "TPC surface index found: " << nsurf 	<< " hitsetkey side " << side << std::endl;
+	      std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
+			<< " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
+	      std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
+	      std::cout << "     surfStepPhi " << surfStepPhi << " surfStepZ " << surfStepZ << std::endl; 
+	      std::cout << std::endl;
+	      */
 	    }    
 	  else
 	    {
+	      /*
 	      std::cout << PHWHERE 
 			<< "Error: TPC surface index not defined, skipping cluster!" 
 			<< std::endl;
@@ -300,6 +318,7 @@ namespace
 	      std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
 	      std::cout << "     surfStepPhi " << surfStepPhi << " surfStepZ " << surfStepZ << std::endl; 
 	      std::cout << " number of surfaces " << surf_vec.size() << " nsurf: "  << nsurf << std::endl;
+	      */
 	      return nullptr;
 	    }
 	  	 
@@ -401,7 +420,7 @@ namespace
 	}
       // create the cluster entry directly in the node tree
       
-      const TrkrDefs::cluskey ckey = TpcDefs::genClusKey( my_data.hitset->getHitSetKey(), iclus );
+      const TrkrDefs::cluskey ckey = TrkrDefs::genClusKey( my_data.hitset->getHitSetKey(), iclus );
       
       // Estimate the errors
       const double phi_err_square = (phibinhi == phibinlo) ?
@@ -832,17 +851,19 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
     unsigned short NPhiBinsSector = NPhiBins/12;
     unsigned short NZBins = (unsigned short)layergeom->get_zbins();
-    unsigned short NZBinsSide = NZBins/2;
+    //unsigned short NZBinsSide = NZBins/2;
+    unsigned short NZBinsSide = NZBins;
     unsigned short NZBinsMin = 0;
     unsigned short PhiOffset = NPhiBinsSector * sector;
 
+    /*
     if (side == 0){
       NZBinsMin = 0;
     }
     else{
       NZBinsMin = NZBins / 2;
     }
-
+    */
     unsigned short ZOffset = NZBinsMin;
 
     thread_pair.data.phibins   = NPhiBinsSector;

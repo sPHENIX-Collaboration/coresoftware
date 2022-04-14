@@ -189,7 +189,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                                                  "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_track_eval) _ntp_track = new TNtuple("ntp_track", "svtxtrack => max truth",
-                                               "event:seed:trackID:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:"
+                                               "event:seed:trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:"
                                                "quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:layers:"
                                                "dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:"
                                                "presdphi:presdeta:prese3x3:prese:"
@@ -2936,6 +2936,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         SvtxTrack* track = iter->second;
         float trackID = track->get_id();
+	short int crossing_int = track->get_crossing();
+	float crossing;
+	if(crossing_int == SHRT_MAX) 
+	  crossing = NAN;
+	else
+	  crossing = (float) crossing_int;
         float charge = track->get_charge();
         float quality = track->get_quality();
         float chisq = track->get_chisq();
@@ -3249,6 +3255,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         float track_data[] = {(float) _ievent,m_fSeed,
                               trackID,
+			      crossing,
                               px,
                               py,
                               pz,

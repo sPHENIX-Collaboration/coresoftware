@@ -126,7 +126,7 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
   return nelec;
 }
 
-void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)
+void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double z_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)
 {
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
@@ -271,9 +271,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
       // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a Tpc readout module
       // The hitset key includes the layer, sector, side
 
-      // Get the side - 0 for negative z, 1 for positive z
-      unsigned int side = 0;
-      if (zcenter > 0) side = 1;
+      // The side is an input parameter
+
       // get the Tpc readout sector - there are 12 sectors with how many pads each?
       unsigned int pads_per_sector = phibins / 12;
       unsigned int sector = pad_num / pads_per_sector;
@@ -569,7 +568,6 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("maxdriftlength", 105.5);         // cm
   set_default_double_param("drift_velocity", 8.0 / 1000.0);  // cm/ns
   set_default_double_param("tpc_adc_clock", 53.0);           // ns, for 18.8 MHz clock
-
   set_default_double_param("gem_cloud_sigma", 0.04);     // cm = 400 microns
   set_default_double_param("sampa_shaping_lead", 32.0);  // ns, for 80 ns SAMPA
   set_default_double_param("sampa_shaping_tail", 48.0);  // ns, for 80 ns SAMPA
@@ -625,6 +623,8 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   MaxZ = get_double_param("maxdriftlength");
   MinZ = -MaxZ;
   NZBins = (int) ((MaxZ - MinZ) / ZBinWidth) + 1;
+
+  std::cout << "MaxZ " << MaxZ << " NZBins = " << NZBins << std::endl;
 
   NPhiBins[0] = get_int_param("ntpc_phibins_inner");
   NPhiBins[1] = get_int_param("ntpc_phibins_mid");

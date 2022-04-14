@@ -80,28 +80,28 @@ TrkrDefs::getHitSetKeyHi(const TrkrDefs::TrkrId trkrId, const uint8_t lyr)
 TrkrDefs::cluskey
 TrkrDefs::getClusKeyLo(const TrkrDefs::TrkrId trkrId)
 {
-  TrkrDefs::cluskey tmp = genHitSetKey(trkrId, 0);
+  const TrkrDefs::cluskey tmp = genHitSetKey(trkrId, 0);
   return (tmp << kBitShiftClusId);
 }
 
 TrkrDefs::cluskey
 TrkrDefs::getClusKeyHi(const TrkrDefs::TrkrId trkrId)
 {
-  TrkrDefs::cluskey tmp = genHitSetKey(static_cast<TrkrDefs::TrkrId>(trkrId + 1), 0);
+  const TrkrDefs::cluskey tmp = genHitSetKey(static_cast<TrkrDefs::TrkrId>(trkrId + 1), 0);
   return (tmp << kBitShiftClusId) - 1;
 }
 
 TrkrDefs::cluskey
 TrkrDefs::getClusKeyLo(const TrkrDefs::TrkrId trkrId, const uint8_t lyr)
 {
-  TrkrDefs::cluskey tmp = genHitSetKey(trkrId, lyr);
+  const TrkrDefs::cluskey tmp = genHitSetKey(trkrId, lyr);
   return (tmp << kBitShiftClusId);
 }
 
 TrkrDefs::cluskey
 TrkrDefs::getClusKeyHi(const TrkrDefs::TrkrId trkrId, const uint8_t lyr)
 {
-  TrkrDefs::cluskey tmp = genHitSetKey(trkrId, lyr + 1);
+  const TrkrDefs::cluskey tmp = genHitSetKey(trkrId, lyr + 1);
   return (tmp << kBitShiftClusId) - 1;
 }
 
@@ -115,10 +115,18 @@ TrkrDefs::genHitSetKey(const TrkrDefs::TrkrId trkrId, const uint8_t lyr)
   return key;
 }
 
+TrkrDefs::cluskey
+TrkrDefs::genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid)
+{
+  const TrkrDefs::cluskey tmp = hskey;
+  TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
+  key |= clusid;
+  return key;
+}
 
 uint8_t TrkrDefs::getPhiElement(TrkrDefs::hitsetkey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftPhiElement);
+  const TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftPhiElement);
   return tmp;
 }
 
@@ -126,18 +134,18 @@ uint8_t TrkrDefs::getPhiElement(TrkrDefs::hitsetkey key)
 
 uint8_t TrkrDefs::getZElement(TrkrDefs::hitsetkey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftZElement);
+  const TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftZElement);
   return tmp;
 }
 
 uint8_t TrkrDefs::getPhiElement(TrkrDefs::cluskey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
   return getPhiElement(tmp);
 }
 
 uint8_t TrkrDefs::getZElement(TrkrDefs::cluskey key)//side
 {
-  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
   return getZElement(tmp);
 }
