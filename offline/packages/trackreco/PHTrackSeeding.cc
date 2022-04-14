@@ -2,8 +2,8 @@
 
 #include "AssocInfoContainerv1.h"
 
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <trackbase/TrkrClusterContainer.h>
@@ -95,10 +95,10 @@ int PHTrackSeeding::CreateNodes(PHCompositeNode* topNode)
   }
 
   
-  _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
+  _track_map = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
   if (!_track_map)
     {
-      _track_map = new SvtxTrackMap_v1;
+      _track_map = new TrackSeedContainer_v1;
       PHIODataNode<PHObject>* tracks_node = 
 	new PHIODataNode<PHObject>(_track_map, _track_map_name, "PHObject");
       tb_node->addNode(tracks_node);
@@ -141,7 +141,7 @@ int PHTrackSeeding::GetNodes(PHCompositeNode* topNode)
     cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTERHITASSOC" << endl;
   }
 
- _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
+ _track_map = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
   if (!_track_map)
   {
     cerr << PHWHERE << " ERROR: Can't find " << _track_map_name << endl;

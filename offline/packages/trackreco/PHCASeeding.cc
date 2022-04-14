@@ -23,8 +23,8 @@
 // trackbase_historic includes
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack_v3.h>
+#include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeed_v1.h>
 
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
@@ -365,7 +365,7 @@ int PHCASeeding::FindSeedsWithMerger(const PositionMap& globalPositions)
   std::vector<std::vector<keylink>> biLinks = FindBiLinks(links.first,links.second);
   std::vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks,globalPositions);
   std::vector<keylist> cleanSeedKeyLists = RemoveBadClusters(trackSeedKeyLists, globalPositions);
-  std::vector<SvtxTrack_v3> seeds = fitter->ALICEKalmanFilter(cleanSeedKeyLists,true, globalPositions);
+  std::vector<TrackSeed> seeds = fitter->ALICEKalmanFilter(cleanSeedKeyLists,true, globalPositions);
   publishSeeds(seeds);
   return seeds.size();
 }
@@ -776,10 +776,13 @@ std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& 
 }
 
 
-void PHCASeeding::publishSeeds(const std::vector<SvtxTrack_v3>& seeds)
+void PHCASeeding::publishSeeds(const std::vector<TrackSeed>& seeds)
 {
   for( const auto&  seed:seeds )
-  { _track_map->insert(&seed);}
+  {
+    auto pseed = std::make_unique<TrackSeed>(seed);
+    _track_map->insert(pseed.get());
+  }
 }
 
 int PHCASeeding::Setup(PHCompositeNode *topNode)

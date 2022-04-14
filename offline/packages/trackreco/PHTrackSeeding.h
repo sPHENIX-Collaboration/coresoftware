@@ -22,7 +22,7 @@ class TrkrClusterHitAssoc;
 class TrkrHitSetContainer;
 class TrkrClusterIterationMapv1;
 class SvtxVertexMap;
-class SvtxTrackMap;
+class TrackSeedContainer;
 class AssocInfoContainer;
 
 /// \class PHTrackSeeding
@@ -58,7 +58,7 @@ class PHTrackSeeding : public SubsysReco
   TrkrClusterIterationMapv1* _iteration_map;
   int _n_iteration;
   SvtxVertexMap *_vertex_map = nullptr;
-  SvtxTrackMap *_track_map = nullptr;
+  TrackSeedContainer *_track_map = nullptr;
   AssocInfoContainer *_assoc_container = nullptr;
   TrkrHitSetContainer  *_hitsets = nullptr;
   std::string _track_map_name = "SvtxTrackMap";
