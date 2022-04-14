@@ -1,6 +1,5 @@
 #include "PHMicromegasTpcTrackMatching.h"
 
-#include "AssocInfoContainer.h"
 //#include "PHTrackPropagating.h"     // for PHTrackPropagating
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -531,7 +530,6 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         if( std::abs(drphi) < _rphi_search_win[imm] && std::abs(dz) < _z_search_win[imm] )
         {
           tracklet_tpc->insert_cluster_key(key);
-          _assoc_container->SetClusterTrackAssoc(key, tracklet_tpc->get_id());
 
           // prints out a line that can be grep-ed from the output file to feed to a display macro
           if( _test_windows )
@@ -627,13 +625,6 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
   if (!_track_map)
   {
     std::cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
-  if (!_assoc_container)
-  {
-    std::cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

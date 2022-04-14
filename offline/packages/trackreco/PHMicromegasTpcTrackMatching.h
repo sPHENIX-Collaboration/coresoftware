@@ -14,7 +14,6 @@
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
 class SvtxTrackMap;
-class AssocInfoContainer;
 class PHCompositeNode;
 class PHG4CylinderGeomContainer;
 class SvtxTrack;
@@ -60,7 +59,6 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   TrkrClusterContainer *_corrected_cluster_map{nullptr};
 
   SvtxTrackMap *_track_map{nullptr};
-  AssocInfoContainer *_assoc_container{nullptr};
 
   //! default rphi search window for each layer
   std::array<double,_n_mm_layers> _rphi_search_win = {0.25, 13.0}; 
