@@ -116,7 +116,7 @@ TrkrDefs::genHitSetKey(const TrkrDefs::TrkrId trkrId, const uint8_t lyr)
 }
 
 TrkrDefs::cluskey
-  TrkrDefs::genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid)
+TrkrDefs::genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid)
 {
   const TrkrDefs::cluskey tmp = hskey;
   TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);

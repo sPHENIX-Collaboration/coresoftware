@@ -7,7 +7,7 @@
 #ifndef INTT_INTTDEFS_H
 #define INTT_INTTDEFS_H
 
-#include <trackbase/TrkrDefs.h>
+#include "TrkrDefs.h"
 
 #include <cstdint>              // for uint8_t, uint16_t, uint32_t
 
@@ -21,12 +21,20 @@ namespace InttDefs
 {
 // hitsetkey layout:
 //  Intt specific lower 16 bits
-//   24 - 32  tracker id
-//   16 - 24  layer
-//   8  - 16  ladder z id
-//   0  -  8  ladder phi id
-static const unsigned int kBitShiftLadderZId __attribute__((unused)) = 8;
-static const unsigned int kBitShiftLadderPhiId __attribute__((unused)) = 0;
+//   24 - 31  tracker id  // 8 bits
+//   16 - 23  layer       // 8 bits
+//   14 - 15  ladder z id   // 2 bits
+//   10 - 13       ladder phi id  // 4 bits
+//   0 - 9     time bucket  // 10 bits
+
+static const unsigned int kBitShiftTimeBucketIdOffset __attribute__((unused)) = 0;
+static const unsigned int kBitShiftTimeBucketIdWidth __attribute__((unused)) = 10;
+static const unsigned int kBitShiftLadderPhiIdOffset __attribute__((unused)) = 10;
+static const unsigned int kBitShiftLadderPhiIdWidth __attribute__((unused)) = 4;
+static const unsigned int kBitShiftLadderZIdOffset __attribute__((unused)) = 14;
+static const unsigned int kBitShiftLadderZIdWidth __attribute__((unused)) = 2;
+ static const int crossingOffset __attribute__((unused)) = 512;
+
 // bit shift for hitkey
 static const unsigned int kBitShiftCol __attribute__((unused)) = 16;
 static const unsigned int kBitShiftRow __attribute__((unused)) = 0;
@@ -57,12 +65,29 @@ uint8_t getLadderPhiId(TrkrDefs::hitsetkey key);
    * @param[in] cluskey
    * @param[out] sensor id
    */
+
 uint8_t getLadderPhiId(TrkrDefs::cluskey key);
 
 /**
    * @brief Generate a hitkey from a strip id
    * @param[in] strip Strip id
    * @param[out] hitkey
+   */
+
+int getTimeBucketId(TrkrDefs::hitsetkey key);
+
+/**
+   * @brief Get the time bucket id from the hitsetkey
+   * @param[in] hitsetkey
+   * @param[out] time bucket id
+   */
+
+int getTimeBucketId(TrkrDefs::cluskey key);
+
+/**
+   * @brief Get the time bucket id from the cluskey
+   * @param[in] cluskey
+   * @param[out] time bucket id
    */
 
 /**
@@ -91,17 +116,25 @@ uint16_t getRow(TrkrDefs::hitkey key);
    * Generate a hitsetkey for the intt. The tracker id is known
    * implicitly and used in the function.
    */
-TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t ladder_z_index, const uint8_t ladder_phi_index);
+ TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t ladder_z_index, const uint8_t ladder_phi_index, const int time_bucket);
 
 /**
    * @brief Generate a cluster key from indeces 
    * @param[in] lyr Layer index
    * @param[in] ladder_z_index z index of sensor in ladder
    * @param[in] ladder_phi_ndex phi index of ladder in layer
+   * @param[in] crossing - bunch crossing
    * @param[in] clusid Cluster id
    * @param[out] cluskey
    */
-TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t LadderZId, const uint8_t LadderPhiId, const uint32_t clusid);
+ TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t ladder_z_index, const uint8_t ladder_phi_index, const int crossing, const uint32_t clusid);
+
+/**
+   * @brief Zero the crossing bits in a copy of the  hitsetkey
+   * @param[in] hitsetkey
+   * @param[out] hitsetkey
+   */
+TrkrDefs::hitsetkey resetCrossingHitSetKey(const TrkrDefs::hitsetkey hitsetkey);
 
 }  // namespace InttDefs
 

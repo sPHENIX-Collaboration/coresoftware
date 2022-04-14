@@ -28,7 +28,7 @@
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrack_v3.h>
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -376,7 +376,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   
   _track_map->Reset();
   std::vector<std::vector<TrkrDefs::cluskey>> clean_chains = RemoveBadClusters(new_chains, globalPositions); 
-  std::vector<SvtxTrack_v2> ptracks = fitter->ALICEKalmanFilter(clean_chains,true, globalPositions);
+  std::vector<SvtxTrack_v3> ptracks = fitter->ALICEKalmanFilter(clean_chains,true, globalPositions);
   publishSeeds(ptracks);
   publishSeeds(unused_tracks);
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1196,7 +1196,7 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
 
 
 
-void PHSimpleKFProp::publishSeeds(const std::vector<SvtxTrack_v2>& seeds)
+void PHSimpleKFProp::publishSeeds(const std::vector<SvtxTrack_v3>& seeds)
 {
   for( const auto& seed:seeds )
   { _track_map->insert(&seed); }

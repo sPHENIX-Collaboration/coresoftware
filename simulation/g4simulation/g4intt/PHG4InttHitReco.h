@@ -37,8 +37,9 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
   std::string m_CellNodeName;
   std::string m_GeoNodeName;
 
-  double m_Tmin = NAN;
-  double m_Tmax = NAN;
+  double m_Tmin;
+  double m_Tmax;
+  double m_crossingPeriod;
 
   gsl_vector *m_LocalOutVec = nullptr;
   gsl_vector *m_PathVec = nullptr;

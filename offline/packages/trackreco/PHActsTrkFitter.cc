@@ -8,10 +8,13 @@
 #include "PHActsTrkFitter.h"
 
 /// Tracking includes
+#include <tpc/TpcDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/MvtxDefs.h>
+#include <trackbase/InttDefs.h>
 #include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
@@ -238,6 +241,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 			     track->get_py(), 
 			     track->get_pz());
 
+      // z value of track is from silicon stub, so it is independent of bunch crossing
       Acts::Vector3 position(track->get_x() * Acts::UnitConstants::cm,
 			     track->get_y() * Acts::UnitConstants::cm,
 			     track->get_z() * Acts::UnitConstants::cm);
@@ -274,7 +278,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Set host of propagator options for Acts to do e.g. material integration
       Acts::PropagatorPlainOptions ppPlainOptions;
       ppPlainOptions.absPdgCode = m_pHypothesis;
-      
       ppPlainOptions.mass = 
 	TDatabasePDG::Instance()->GetParticle(m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
        
@@ -329,7 +332,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  
 	  if(m_fitSiliconMMs)
 	    {
-	      auto newTrack = (SvtxTrack_v2*)(track->CloneMe());
+	      auto newTrack = (SvtxTrack_v3*)(track->CloneMe());
 	      getTrackFitResult(fitOutput, newTrack);
 	      m_directedTrackMap->insert(newTrack);
 	    }
@@ -399,14 +402,33 @@ Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurf
 //___________________________________________________________________________________
 Surface PHActsTrkFitter::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
 {
+  unsigned int trkrid =  TrkrDefs::getTrkrId(hitsetkey);
+  TrkrDefs::hitsetkey tmpkey = hitsetkey;
+
+  if(trkrid == TrkrDefs::inttId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = InttDefs::resetCrossingHitSetKey(hitsetkey);
+    }
+
+  if(trkrid == TrkrDefs::mvtxId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);
+    }
+
   auto surfMap = m_surfMaps->siliconSurfaceMap;
-  auto iter = surfMap.find(hitsetkey);
+  auto iter = surfMap.find(tmpkey);
   if(iter != surfMap.end())
     {
       return iter->second;
     }
   
   /// If it can't be found, return nullptr
+  {
+    std::cout << PHWHERE << "Failed to find silicon surface for hitsetkey " << hitsetkey << " tmpkey " << tmpkey << std::endl;
+  }
+  
   return nullptr;
 
 }
@@ -441,6 +463,16 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 {
 
   SourceLinkVec sourcelinks;
+
+  short int crossing = track->get_crossing();
+  if(Verbosity() > 0) 
+    {
+      std::cout << "tpcid " << track->get_id() << " crossing " << crossing << std::endl; 
+      //track->identify();
+    }
+
+  if(crossing == SHRT_MAX) return sourcelinks;
+
   int iter = 0;
   for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
        clusIter != track->end_cluster_keys();
@@ -461,10 +493,94 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
       auto surf = getSurface(key, subsurfkey);
       if(!surf)
 	continue;
-  
+
+      Acts::Vector2 localPos;
+      unsigned int trkrid = TrkrDefs::getTrkrId(key);
+      unsigned int side = TpcDefs::getSide(key);
+      if(trkrid ==  TrkrDefs::tpcId)
+	{
+	  // For the TPC, cluster z has to be corrected for the crossing z offset 
+	  // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
+
+	  // transform to global coordinates for z correction 
+	  ActsTransformations transformer;
+	  auto global = transformer.getGlobalPosition(cluster,
+						      m_surfMaps,
+						      m_tGeometry);
+
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << " zinit " << global[2] << " side " << side << " crossing " << crossing 
+			<< " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
+	    }
+	  
+	  float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
+	  global[2] = z;
+	  
+	  // get the new surface corresponding to this global position
+	  TrkrDefs::hitsetkey tpcHitSetKey = TrkrDefs::getHitSetKeyFromClusKey(key);
+	  surf = get_tpc_surface_from_coords(tpcHitSetKey,
+							global,
+							m_surfMaps,
+							m_tGeometry,
+							subsurfkey);
+	
+	  if(!surf)
+	    {
+	      /// If the surface can't be found, we can't track with it. So 
+	      /// just continue and don't add the cluster to the source links
+	      if(Verbosity() > 0) std::cout << PHWHERE << "Failed to find surface for cluster " << key << std::endl;
+	      continue;
+	    }
+
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << "      global z corrected " << z << " side " << side << " crossing " << crossing 
+			<< " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
+	    }
+
+
+	  // get local coordinates
+	  Acts::Vector3 normal = surf->normal(m_tGeometry->geoContext);
+	  auto local = surf->globalToLocal(m_tGeometry->geoContext,
+					      global * Acts::UnitConstants::cm,
+					      normal);
+
+	  if(local.ok())
+	    {
+	      localPos = local.value() / Acts::UnitConstants::cm;
+	    }
+	  else
+	    {
+	      /// otherwise take the manual calculation
+	      Acts::Vector3 center = surf->center(m_tGeometry->geoContext)/Acts::UnitConstants::cm;
+	      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+	      double clusphi = atan2(global[1], global[0]);
+	      double rClusPhi = clusRadius * clusphi;
+	      double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
+	      double surfPhiCenter = atan2(center[1], center[0]);
+	      double surfRphiCenter = surfPhiCenter * surfRadius;
+	      double surfZCenter = center[2];
+	      
+	      localPos(0) = rClusPhi - surfRphiCenter;
+	      localPos(1) = global[2] - surfZCenter; 
+	    }
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
+	      std::cout << " new      local X " << localPos(0) << " new       local Y " << localPos(1) << std::endl;
+	    }
+	}
+      else
+	{
+	  // silicon cluster, take it as is
+	  localPos(0) = cluster->getLocalX();
+	  localPos(1) = cluster->getLocalY();
+	}
+
       Acts::ActsVector<2> loc;
-      loc[Acts::eBoundLoc0] = cluster->getLocalX() * Acts::UnitConstants::cm;
-      loc[Acts::eBoundLoc1] = cluster->getLocalY() * Acts::UnitConstants::cm;
+      loc[Acts::eBoundLoc0] = localPos(0) * Acts::UnitConstants::cm;
+      loc[Acts::eBoundLoc1] = localPos(1) * Acts::UnitConstants::cm;
       std::array<Acts::BoundIndices,2> indices;
       indices[0] = Acts::BoundIndices::eBoundLoc0;
       indices[1] = Acts::BoundIndices::eBoundLoc1;
@@ -493,7 +609,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	  std::cout << std::endl;
 	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
 	  std::cout << "For key " << key << " with local pos " << std::endl
-		    << cluster->getLocalX() << ", " << cluster->getLocalY()
+		    << localPos(0) << ", " << localPos(1)
 		    << std::endl;
 	}
     
@@ -519,7 +635,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
        indexedParams.emplace(fitOutput.lastMeasurementIndex, 
 			     fitOutput.fittedParameters.value());
 
-      if (Verbosity() > 2)
+       if (Verbosity() > 2)
         {
 	  const auto& params = fitOutput.fittedParameters.value();
       
@@ -537,6 +653,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
     {
       /// Track fit failed in some way if there are no fit parameters. Remove
       m_trackMap->erase(track->get_id());
+      std::cout << " track fit failed for track " << track->get_id() << std::endl;
       return;
     }
 
@@ -938,3 +1055,77 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+Surface PHActsTrkFitter::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
+						       Acts::Vector3 world,
+						       ActsSurfaceMaps *surfMaps,
+						       ActsTrackingGeometry *tGeometry,
+						       TrkrDefs::subsurfkey& subsurfkey)
+{
+  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+  std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
+  mapIter = surfMaps->tpcSurfaceMap.find(layer);
+  
+  if(mapIter == surfMaps->tpcSurfaceMap.end())
+    {
+      std::cout << PHWHERE 
+		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
+		<< hitsetkey << std::endl;
+      return nullptr;
+    }
+  
+  double world_phi = atan2(world[1], world[0]);
+  double world_z = world[2];
+  
+  std::vector<Surface> surf_vec = mapIter->second;
+  unsigned int surf_index = 999;
+    
+  // Predict which surface index this phi and z will correspond to
+  // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
+  double fraction =  (world_phi + M_PI) / (2.0 * M_PI);
+  double rounded_nsurf = round( (double) (surf_vec.size()/2) * fraction  - 0.5);
+  unsigned int nsurf = (unsigned int) rounded_nsurf; 
+  if(world_z < 0)
+    nsurf += surf_vec.size()/2;
+
+  Surface this_surf = surf_vec[nsurf];
+      
+  auto vec3d = this_surf->center(tGeometry->geoContext);
+  std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
+  double surf_z = surf_center[2];
+  double surf_phi = atan2(surf_center[1], surf_center[0]);
+  double surfStepPhi = tGeometry->tpcSurfStepPhi;
+  double surfStepZ = tGeometry->tpcSurfStepZ;
+
+  if( (world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
+      (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )	
+    {
+      if(Verbosity() > 2)
+	std::cout <<  "     got it:  surf_phi " << surf_phi << " surf_z " << surf_z 
+		  << " surfStepPhi/2 " << surfStepPhi/2.0 << " surfStepZ/2 " << surfStepZ/2.0  
+		  << " world_phi " << world_phi << " world_z " << world_z 
+		  << " rounded_nsurf "<< rounded_nsurf << " surf_index " << nsurf
+		  << std::endl;        
+      
+      surf_index = nsurf;
+      subsurfkey = nsurf;
+    }    
+  else
+    {
+      if(Verbosity() > 1)
+	{
+	  std::cout << PHWHERE 
+		    << "Error: TPC surface index not defined, skipping cluster!" 
+		    << std::endl;
+	  std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
+		    << " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
+	  std::cout << "     world_phi " << world_phi << " world_z " << world_z << std::endl;
+	  std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
+	  std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
+	  std::cout << " number of surfaces " << surf_vec.size() << std::endl;
+	}
+      return nullptr;
+    }
+  
+  return surf_vec[surf_index];
+  
+}
