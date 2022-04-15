@@ -42,7 +42,10 @@ class TrkrClusterContainerv4 : public TrkrClusterContainer
   unsigned int size(void) const override;
 
   private:
-  
+
+  //! convenient alias
+  using Vector = std::vector<TrkrCluster*>;
+
   //! the actual container
   std::map<TrkrDefs::hitsetkey, Vector> m_clusmap;
 
