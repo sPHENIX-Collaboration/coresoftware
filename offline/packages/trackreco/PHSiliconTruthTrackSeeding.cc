@@ -2,9 +2,9 @@
 
 #include "AssocInfoContainer.h"
 
-#include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTra...
-#include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, Svtx...
-#include <trackbase_historic/SvtxTrack_FastSim_v3.h>
+#include <trackbase_historic/TrackSeed.h>     
+#include <trackbase_historic/TrackSeedContainer.h>  
+#include <trackbase_historic/TrackSeed_FastSim_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <trackbase/TrkrClusterv2.h>
@@ -262,8 +262,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
     if (layers.size() >=  _min_clusters_per_track)
     {
 
-      auto svtx_track = std::make_unique<SvtxTrack_FastSim_v3>();
-      svtx_track->set_id(_track_map->size());
+      auto svtx_track = std::make_unique<TrackSeed_FastSim_v1>();
       svtx_track->set_truth_track_id(trk_clusters_itr->first);
 
       // assign truth particle vertex ID to this silicon track stub
@@ -287,8 +286,6 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
       if(vertexId < 0)  // should not be possible
 	vertexId = 0;
 
-      svtx_track->set_vertex_id(vertexId);
-
       if(Verbosity() > 0)
 	std::cout << " truth track G4 point id " <<  particle->get_vtx_id() << " becomes SvtxMap id " << vertexId 
 		  << " gembed is " <<  _g4truth_container->isEmbeded(trk_clusters_itr->first) << " for truth particle " << trk_clusters_itr->first << std::endl;
@@ -300,9 +297,10 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
 	  std::cout << PHWHERE << "Failed to get vertex with ID " << vertexId << " from _vertex_map, cannot proceed - skipping this silicon track" << std::endl;
 	  continue;
 	}
-      svtx_track->set_x(svtxVertex->get_x());
-      svtx_track->set_y(svtxVertex->get_y());
-      svtx_track->set_z(svtxVertex->get_z()); 
+      
+      svtx_track->set_X0(svtxVertex->get_x());
+      svtx_track->set_Y0(svtxVertex->get_y());
+      svtx_track->set_Z0(svtxVertex->get_z()); 
 
       if(Verbosity() > 0)
 	{
@@ -311,9 +309,16 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
 	}
 
       // set momentum to the truth value
-      svtx_track->set_px(particle->get_px());
-      svtx_track->set_py(particle->get_py());
-      svtx_track->set_pz(particle->get_pz());
+
+      float px = particle->get_px();
+      float py = particle->get_py();
+      float pz = particle->get_pz();
+      float pt = sqrt(px*px+py*py);
+      int charge = particle->get_pid() < 0 ? -1 : 1;
+      float eta =  atanh(pz/sqrt(px*px+py*py+pz*pz));
+      float theta = 2*atan(exp(-1*eta));
+      svtx_track->set_qOverR(charge * 0.3*1.4/(100*pt));
+      svtx_track->set_slope(1./tan(theta));
 
       if(Verbosity() > 0)
 	std::cout << PHWHERE << "Truth track ID is " << svtx_track->get_truth_track_id() << " particle ID is " << particle->get_pid() <<  std::endl;
@@ -322,7 +327,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
       for (TrkrCluster* cluster : trk_clusters_itr->second)
       {
         svtx_track->insert_cluster_key(cluster->getClusKey());
-        _assoc_container->SetClusterTrackAssoc(cluster->getClusKey(), svtx_track->get_id());
+        _assoc_container->SetClusterTrackAssoc(cluster->getClusKey(), _track_map->size());
       }
 
       _track_map->insert(svtx_track.get());
@@ -340,23 +345,22 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
   if (Verbosity() >= 2)
   {
     cout << "Loop over SvtxSiliconTrackMap entries " << endl;
-    for (SvtxTrackMap::Iter iter = _track_map->begin();
+    int id = 0;
+    for (TrackSeedContainer::Iter iter = _track_map->begin();
          iter != _track_map->end(); ++iter)
     {
-      SvtxTrack* svtx_track = iter->second;
+      auto svtx_track = *iter;
 
-      //svtx_track->identify();
-      //continue;
-
-      cout << "Track ID: " << svtx_track->get_id() << ", Track pT: "
+      cout << "Track ID: " << id << ", Track pT: "
            << svtx_track->get_pt() << ", Truth Track/Particle ID: "
-           << svtx_track->get_truth_track_id() 
-	   << " vertex ID: " << svtx_track->get_vertex_id() << endl;
+           << svtx_track->get_truth_track_id() << endl;
       cout << "   (px, py, pz) = " << "("<< svtx_track->get_px() << ", " << svtx_track->get_py() << ", " << svtx_track->get_pz() << ")" << endl;
       cout << "   (x, y, z) = " << "("<< svtx_track->get_x() << ", " << svtx_track->get_y() << ", " << svtx_track->get_z() << ")" << endl;
 
+      id++;
+
       //Print associated clusters;
-      for (SvtxTrack::ConstClusterKeyIter iter =
+      for (TrackSeed::ConstClusterKeyIter iter =
                svtx_track->begin_cluster_keys();
            iter != svtx_track->end_cluster_keys(); ++iter)
       {
