@@ -14,8 +14,7 @@ class PHCompositeNode;
 class TrkrHitSet;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
-class TrkrClusterContainerv4;
-class TrkrClusterHitAssocv3;
+class TrkrClusterHitAssoc;
 class PHG4CylinderCellGeom;
 class PHG4CylinderCellGeomContainer;
 
@@ -45,8 +44,8 @@ class TpcClusterizer : public SubsysReco
   bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const;
 
   TrkrHitSetContainer *m_hits = nullptr;
-  TrkrClusterContainerv4 *m_clusterlist = nullptr;
-  TrkrClusterHitAssocv3 *m_clusterhitassoc = nullptr;
+  TrkrClusterContainer *m_clusterlist = nullptr;
+  TrkrClusterHitAssoc *m_clusterhitassoc = nullptr;
   ActsSurfaceMaps *m_surfMaps = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
   bool do_hit_assoc = true;
