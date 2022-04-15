@@ -6,7 +6,6 @@
  */
 #include "TrkrClusterContainerv2.h"
 #include "TrkrCluster.h"
-#include "TrkrClusterv2.h"
 #include "TrkrDefs.h"
 
 #include <cstdlib>
@@ -91,12 +90,12 @@ void TrkrClusterContainerv2::removeCluster(TrkrCluster *clus)
 { removeCluster( clus->getClusKey() ); }
 
 //_________________________________________________________________
-TrkrClusterContainerv2::ConstIterator
+void
 TrkrClusterContainerv2::addCluster(TrkrCluster* newclus)
-{ return addClusterSpecifyKey(newclus->getClusKey(), newclus); }
+{ addClusterSpecifyKey(newclus->getClusKey(), newclus); }
 
 //_________________________________________________________________
-TrkrClusterContainerv2::ConstIterator
+void
 TrkrClusterContainerv2::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster* newclus)
 {
   unsigned int layer = TrkrDefs::getLayer(key);
@@ -106,30 +105,23 @@ TrkrClusterContainerv2::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCl
   // bound check
   if( layer < max_layer && sector < max_phisegment && side < max_zsegment )
   {
-
-    auto ret = m_clusmap[layer][sector][side].insert(std::make_pair(key, newclus));
-    if ( !ret.second )
+    const auto [iter,success] = m_clusmap[layer][sector][side].insert(std::make_pair(key, newclus));
+    if ( !success )
     {
       std::cout << "TrkrClusterContainerv2::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
       exit(1);
     } else {
-      ret.first->second->setClusKey( key );
-      return ret.first;
+      // make sure that cluster key matches
+      iter->second->setClusKey( key );
     }
-
   } else {
-
     std::cout
       << "TrkrClusterContainerv2::addClusterSpecifyKey - out of range access."
       << " layer: " << layer
       << " sector: " << sector
       << " side: " << side
       << std::endl;
-
-    return dummy_map.begin();
-
   }
-
 }
 
 //_________________________________________________________________
@@ -155,63 +147,7 @@ TrkrClusterContainerv2::getClusters(TrkrDefs::hitsetkey hitsetkey) const
     return std::make_pair( dummy_map.cbegin(), dummy_map.cend() );
   }
 }
-
-//_________________________________________________________________
-TrkrClusterContainerv2::Map*
-TrkrClusterContainerv2::getClusterMap(TrkrDefs::hitsetkey hitsetkey)
-{
-  const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-  const unsigned int sector= TrkrDefs::getPhiElement(hitsetkey);
-  const unsigned int side  = TrkrDefs::getZElement(hitsetkey);
-
-  // bound check
-  if( layer < max_layer && sector < max_phisegment && side < max_zsegment )
-  {
-    return &m_clusmap[layer][sector][side];
-  } else {
-    std::cout
-      << "TrkrClusterContainerv2::getClusterMap - out of range access."
-      << " layer: " << layer
-      << " sector: " << sector
-      << " side: " << side
-      << std::endl;
-
-    return nullptr;
-  }
-}
   
-//_________________________________________________________________
-TrkrClusterContainerv2::Iterator
-TrkrClusterContainerv2::findOrAddCluster(TrkrDefs::cluskey key)
-{
-  const unsigned int layer = TrkrDefs::getLayer(key);
-  const unsigned int sector= TrkrDefs::getPhiElement(key);
-  const unsigned int side  = TrkrDefs::getZElement(key);
-
-  // bound check
-  if( layer < max_layer && sector < max_phisegment && side < max_zsegment )
-  {
-    auto it = m_clusmap[layer][sector][side].lower_bound(key);
-    if( it == m_clusmap[layer][sector][side].end() || (key < it->first) )
-    {
-      // add new cluster and set its key
-      it = m_clusmap[layer][sector][side].insert(it, std::make_pair(key, new TrkrClusterv2()));
-      it->second->setClusKey( key );
-    }
-    return it;
-  } else {
-    std::cout
-      << "TrkrClusterContainerv2::findOrAddCluster - out of range access."
-      << " layer: " << layer
-      << " sector: " << sector
-      << " side: " << side
-      << std::endl;
-
-    return dummy_map.begin();
-  }
-
-}
-
 //_________________________________________________________________
 TrkrCluster* TrkrClusterContainerv2::findCluster(TrkrDefs::cluskey key) const
 {

@@ -6,7 +6,6 @@
  */
 #include "TrkrClusterContainerv3.h"
 #include "TrkrCluster.h"
-#include "TrkrClusterv3.h"
 #include "TrkrDefs.h"
 
 #include <cstdlib>
@@ -20,17 +19,16 @@ namespace
 void TrkrClusterContainerv3::Reset()
 {
   // delete all clusters
-  for( auto& map_pair:m_clusmap ){
-    for( auto& pair:map_pair.second ){ 
-      delete pair.second; 
-    }
-    Map empty_map;
-    empty_map.swap(map_pair.second);
-
+  for( auto&& [key, map]:m_clusmap )
+  {
+    for( auto&& [cluskey,cluster]:map )
+    { delete cluster; }
   }
 
   // clear the maps
-  m_clusmap.clear();
+  /* using swap ensures that the memory is properly de-allocated */
+  std::map<TrkrDefs::hitsetkey, Map> empty;
+  m_clusmap.swap( empty );
 
 }
 
@@ -41,17 +39,15 @@ void TrkrClusterContainerv3::identify(std::ostream& os) const
   os << "-----TrkrClusterContainerv3-----" << std::endl;
   os << "Number of clusters: " << size() << std::endl;
 
-  for( const auto& map_pair:m_clusmap )
+  for( const auto& [hitsetkey,map]:m_clusmap )
   {
-
-    const unsigned int layer = TrkrDefs::getLayer(map_pair.first);
-    std::cout << "layer: " << layer << " hitsetkey: " << map_pair.first << std::endl;
-
-    for( const auto& pair:map_pair.second )
+    const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+    std::cout << "layer: " << layer << " hitsetkey: " << hitsetkey << std::endl;
+    for( const auto& [cluskey,cluster]:map )
     {
-      int layer = TrkrDefs::getLayer(pair.first);
-      os << "clus key " << pair.first  << " layer " << layer << std::endl;
-      (pair.second)->identify();
+      const unsigned int layer = TrkrDefs::getLayer(cluskey);
+      os << "clus key " << cluskey  << " layer " << layer << std::endl;
+      cluster->identify();
     }
   }
 
@@ -79,12 +75,12 @@ void TrkrClusterContainerv3::removeCluster(TrkrCluster *clus)
 { removeCluster( clus->getClusKey() ); }
 
 //_________________________________________________________________
-TrkrClusterContainerv3::ConstIterator
+void
 TrkrClusterContainerv3::addCluster(TrkrCluster* newclus)
-{ return addClusterSpecifyKey(newclus->getClusKey(), newclus); }
+{ addClusterSpecifyKey(newclus->getClusKey(), newclus); }
 
 //_________________________________________________________________
-TrkrClusterContainerv3::ConstIterator
+void
 TrkrClusterContainerv3::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster* newclus)
 {
   // get hitsetkey from cluster
@@ -92,14 +88,14 @@ TrkrClusterContainerv3::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCl
 
   // find relevant cluster map or create one if not found
   Map& map = m_clusmap[hitsetkey];
-  const auto ret = map.insert(std::make_pair(key, newclus));
-  if ( !ret.second )
+  const auto [iter,success] = map.insert(std::make_pair(key, newclus));
+  if ( !success )
   {
     std::cout << "TrkrClusterContainerv3::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
   } else {
-    ret.first->second->setClusKey( key );
-    return ret.first;
+    // make sure that cluster key matches
+    iter->second->setClusKey( key );
   }
 }
 
@@ -115,31 +111,6 @@ TrkrClusterContainerv3::getClusters(TrkrDefs::hitsetkey hitsetkey) const
   } else { 
     return std::make_pair( dummy_map.cbegin(), dummy_map.cend() );
   }
-}
-
-//_________________________________________________________________
-TrkrClusterContainerv3::Map*
-TrkrClusterContainerv3::getClusterMap(TrkrDefs::hitsetkey hitsetkey)
-{ return &m_clusmap[hitsetkey]; }
-  
-//_________________________________________________________________
-TrkrClusterContainerv3::Iterator
-TrkrClusterContainerv3::findOrAddCluster(TrkrDefs::cluskey key)
-{
-  // get hitsetkey from cluster
-  const TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey( key );
-
-  // find relevant cluster map or create one if not found
-  Map& map = m_clusmap[hitsetkey];
-  auto it = map.lower_bound(key);
-  if( it == map.end() || (key<it->first) )
-  {
-    // add new cluster and set its key
-    it = map.insert(it, std::make_pair(key, new TrkrClusterv3()));
-    it->second->setClusKey( key );
-  }
-  
-  return it;
 }
 
 //_________________________________________________________________
