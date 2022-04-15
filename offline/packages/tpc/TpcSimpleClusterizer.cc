@@ -227,18 +227,13 @@ namespace
 	  // This is the global position
 	  double clusphi = phi_sum / adc_sum;
 	  double clusz = z_sum / adc_sum;
-	  
+	  const double clusx = radius * std::cos(clusphi);
+	  const double clusy = radius * std::sin(clusphi);
+    
 	  const double phi_cov = phi2_sum/adc_sum - square(clusphi);
 	  const double z_cov = z2_sum/adc_sum - square(clusz);
 	
-	  // create the cluster entry directly in the node tree
-    TrkrClusterv2 *clus = new TrkrClusterv2();
-
-    //  int phi_nsize = phibinhi - phibinlo + 1;
-	  //  int z_nsize   = zbinhi   - zbinlo + 1;
-	  double phi_size = (double) (phibinhi - phibinlo + 1) * radius * my_data.layergeom->get_phistep();
-	  double z_size = (double) (zbinhi - zbinlo + 1) * my_data.layergeom->get_zstep();
-	
+	  // create the cluster entry directly in the node tree	
 	  // Estimate the errors
 	  const double phi_err_square = (phibinhi == phibinlo) ?
 	    square(radius*my_data.layergeom->get_phistep())/12:
@@ -259,81 +254,15 @@ namespace
     // cluster z correction
     clusz -= (clusz<0) ? my_data.par0_neg:my_data.par0_pos;
 	
-	  // Fill in the cluster details
-	  //================
-	  clus->setAdc(adc_sum);
-	  clus->setPosition(0, radius * cos(clusphi));
-	  clus->setPosition(1, radius * sin(clusphi));
-	  clus->setPosition(2, clusz);
-	  clus->setGlobal();
-	  
-	  TMatrixF DIM(3, 3);
-	  DIM[0][0] = 0.0;
-	  DIM[0][1] = 0.0;
-	  DIM[0][2] = 0.0;
-	  DIM[1][0] = 0.0;
-	  DIM[1][1] = pow(0.5 * phi_size,2);  //cluster_v1 expects 1/2 of actual size
-	  DIM[1][2] = 0.0;
-	  DIM[2][0] = 0.0;
-	  DIM[2][1] = 0.0;
-	  DIM[2][2] = pow(0.5 * z_size,2);
-	  
-	  TMatrixF ERR(3, 3);
-	  ERR[0][0] = 0.0;
-	  ERR[0][1] = 0.0;
-	  ERR[0][2] = 0.0;
-	  ERR[1][0] = 0.0;
-	  ERR[1][1] = phi_err_square;  //cluster_v1 expects rad, arc, z as elementsof covariance
-	  ERR[1][2] = 0.0;
-	  ERR[2][0] = 0.0;
-	  ERR[2][1] = 0.0;
-	  ERR[2][2] = z_err_square;
-	  
-	  TMatrixF ROT(3, 3);
-	  ROT[0][0] = cos(clusphi);
-	  ROT[0][1] = -sin(clusphi);
-	  ROT[0][2] = 0.0;
-	  ROT[1][0] = sin(clusphi);
-	  ROT[1][1] = cos(clusphi);
-	  ROT[1][2] = 0.0;
-	  ROT[2][0] = 0.0;
-	  ROT[2][1] = 0.0;
-	  ROT[2][2] = 1.0;
-	  
-	  TMatrixF ROT_T(3, 3);
-	  ROT_T.Transpose(ROT);
-	  
-	  TMatrixF COVAR_DIM(3, 3);
-	  COVAR_DIM = ROT * DIM * ROT_T;
-	  
-	  clus->setSize(0, 0, COVAR_DIM[0][0]);
-	  clus->setSize(0, 1, COVAR_DIM[0][1]);
-	  clus->setSize(0, 2, COVAR_DIM[0][2]);
-	  clus->setSize(1, 0, COVAR_DIM[1][0]);
-	  clus->setSize(1, 1, COVAR_DIM[1][1]);
-	  clus->setSize(1, 2, COVAR_DIM[1][2]);
-	  clus->setSize(2, 0, COVAR_DIM[2][0]);
-	  clus->setSize(2, 1, COVAR_DIM[2][1]);
-	  clus->setSize(2, 2, COVAR_DIM[2][2]);
-	  //std::cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << std::endl;
-	  
-	  TMatrixF COVAR_ERR(3, 3);
-	  COVAR_ERR = ROT * ERR * ROT_T;
-	  
-	  clus->setError(0, 0, COVAR_ERR[0][0]);
-	  clus->setError(0, 1, COVAR_ERR[0][1]);
-	  clus->setError(0, 2, COVAR_ERR[0][2]);
-	  clus->setError(1, 0, COVAR_ERR[1][0]);
-	  clus->setError(1, 1, COVAR_ERR[1][1]);
-	  clus->setError(1, 2, COVAR_ERR[1][2]);
-	  clus->setError(2, 0, COVAR_ERR[2][0]);
-	  clus->setError(2, 1, COVAR_ERR[2][1]);
-	  clus->setError(2, 2, COVAR_ERR[2][2]);
+
+    // create cluster and fill
+    auto clus = new TrkrClusterv3;
+    clus->setAdc(adc_sum);
 	  
 	  /// Get the surface key to find the surface from the map
 	  TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(my_data.layer, my_data.sector, my_data.side);
 	
-	  Acts::Vector3 global(clus->getX(), clus->getY(), clus->getZ());
+	  Acts::Vector3 global(clusx, clusy, clusz);
 	  
 	  TrkrDefs::subsurfkey subsurfkey;
 	  Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
@@ -355,16 +284,15 @@ namespace
 	    / Acts::UnitConstants::cm;
 	  
 	  /// no conversion needed, only used in acts
-	  Acts::Vector3 normal = surface->normal(my_data.tGeometry->geoContext);
-	  double clusRadius = sqrt(clus->getX() * clus->getX() + clus->getY() * clus->getY());
-	  double rClusPhi = clusRadius * clusphi;
-	  double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
-	  double surfPhiCenter = atan2(center[1], center[0]);
-	  double surfRphiCenter = surfPhiCenter * surfRadius;
-	  double surfZCenter = center[2];
-	    
-	  auto local = surface->globalToLocal(my_data.tGeometry->geoContext,
-					      global * Acts::UnitConstants::cm,
+   const Acts::Vector3 normal = surface->normal(my_data.tGeometry->geoContext);
+   const double clusRadius = std::sqrt(square(clusx) + square(clusy));
+	  const double rClusPhi = clusRadius * clusphi;
+   const double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
+   const double surfPhiCenter = atan2(center[1], center[0]);
+	  const double surfRphiCenter = surfPhiCenter * surfRadius;
+   const double surfZCenter = center[2];
+   auto local = surface->globalToLocal(my_data.tGeometry->geoContext,
+ 				      global * Acts::UnitConstants::cm,
 					      normal);
 	  Acts::Vector2 localPos;
 	  
@@ -382,10 +310,10 @@ namespace
 	      
 	  clus->setLocalX(localPos(0));
 	  clus->setLocalY(localPos(1));
-	  clus->setActsLocalError(0,0, ERR[1][1]);
-	  clus->setActsLocalError(1,0, ERR[2][1]);
-	  clus->setActsLocalError(0,1, ERR[1][2]);
-	  clus->setActsLocalError(1,1, ERR[2][2]);
+   clus->setActsLocalError(0,0, phi_err_square);
+   clus->setActsLocalError(1,0, 0);
+   clus->setActsLocalError(0,1, 0);
+   clus->setActsLocalError(1,1, z_err_square);
 
     my_data.cluster_vector->push_back(clus);
 
