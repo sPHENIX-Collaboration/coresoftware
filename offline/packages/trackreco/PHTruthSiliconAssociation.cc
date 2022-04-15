@@ -593,37 +593,31 @@ std::set<TrkrDefs::cluskey> PHTruthSiliconAssociation::getSiliconClustersFromPar
 void PHTruthSiliconAssociation::copySiliconClustersToCorrectedMap( )
 {
   // loop over final track map, copy silicon clusters to corrected cluster map
-  for (auto phtrk_iter = _track_map->begin();
-       phtrk_iter != _track_map->end(); 
-       ++phtrk_iter)
+  for( auto track_iter = _track_map->begin(); track_iter != _track_map->end(); ++track_iter )
+  {
+    SvtxTrack* track = track_iter->second;
+    // loop over associated clusters to get keys for micromegas cluster
+    for(auto iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
     {
-      SvtxTrack *track = phtrk_iter->second;
+      TrkrDefs::cluskey cluster_key = *iter;
+      const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
+      if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId)
+      {
+        // check if clusters has not been inserted already
+        if( _corrected_cluster_map->findCluster( cluster_key ) ) continue;
 
-      // loop over associated clusters to get keys for silicon cluster
-      for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-	   iter != track->end_cluster_keys();
-	   ++iter)
-	{
-	  TrkrDefs::cluskey cluster_key = *iter;
-	  unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
-	  if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId)
-	    {
-	      TrkrCluster *cluster =  _cluster_map->findCluster(cluster_key);	
-	      TrkrCluster *newclus = _corrected_cluster_map->findOrAddCluster(cluster_key)->second;
-	  
-	      newclus->setSubSurfKey(cluster->getSubSurfKey());
-	      newclus->setAdc(cluster->getAdc());
-	      
-	      newclus->setActsLocalError(0,0,cluster->getActsLocalError(0,0));
-	      newclus->setActsLocalError(1,0,cluster->getActsLocalError(1,0));
-	      newclus->setActsLocalError(0,1,cluster->getActsLocalError(0,1));
-	      newclus->setActsLocalError(1,1,cluster->getActsLocalError(1,1));
-	      
-	      newclus->setLocalX(cluster->getLocalX());
-	      newclus->setLocalY(cluster->getLocalY());
-	    }
-	}      
-    }
+        auto cluster = _cluster_map->findCluster(cluster_key);	
+        if( !cluster ) continue;
+        
+        // create a new cluster and copy from source
+        auto newclus = new TrkrClusterv3;
+        newclus->CopyFrom( cluster );
+
+        // insert in corrected map
+        _corrected_cluster_map->addCluster(newclus);
+      }
+    }      
+  }
 }
 
 std::vector<short int> PHTruthSiliconAssociation::getInttCrossings(SvtxTrack *si_track)
