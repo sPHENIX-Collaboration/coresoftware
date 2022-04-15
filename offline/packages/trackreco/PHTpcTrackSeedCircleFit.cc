@@ -1,7 +1,5 @@
 #include "PHTpcTrackSeedCircleFit.h"
 
-#include "AssocInfoContainer.h"
-
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>

@@ -27,8 +27,6 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include "AssocInfoContainer.h"
-
 using namespace std;
 
 //____________________________________________________________________________..
@@ -187,7 +185,6 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 	    {
 	      if (Verbosity() >= 1)  std::cout << "            cluster belongs to MVTX or INTT, add to track " << std::endl;
 	      _tracklet->insert_cluster_key(cluster_key);
-	      _assoc_container->SetClusterTrackAssoc(cluster_key, _tracklet->get_id());
 	    }
 	}
       
@@ -246,7 +243,6 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 		    {
 		      if (Verbosity() >= 1)  std::cout << "            cluster belongs to MVTX or INTT, add to track " << std::endl;
 		      extraTrack[ig4]->insert_cluster_key(cluster_key);
-		      _assoc_container->SetClusterTrackAssoc(cluster_key, extraTrack[ig4]->get_id());
 		    }
 		}
 
@@ -390,13 +386,6 @@ int  PHTruthSiliconAssociation::GetNodes(PHCompositeNode* topNode)
   if (!_track_map)
   {
     cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
-  if (!_assoc_container)
-  {
-    cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

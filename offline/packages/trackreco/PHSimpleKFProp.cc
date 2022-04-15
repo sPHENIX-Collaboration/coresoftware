@@ -7,7 +7,6 @@
 #include "PHSimpleKFProp.h"
 
 #include "ALICEKF.h"
-#include "AssocInfoContainer.h"
 #include "nanoflann.hpp"
 #include "GPUTPCTrackParam.h"
 #include "GPUTPCTrackLinearisation.h"

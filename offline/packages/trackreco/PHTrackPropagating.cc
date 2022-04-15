@@ -1,7 +1,5 @@
 #include "PHTrackPropagating.h"
 
-#include "AssocInfoContainer.h"
-
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
@@ -26,7 +24,6 @@ PHTrackPropagating::PHTrackPropagating(const std::string& name)
   , _hitsets(nullptr)
   , _vertex_map(nullptr)
   , _track_map(nullptr)
-  , _assoc_container(nullptr)
   , _track_map_name("SvtxTrackMap")
 {
 }
@@ -91,13 +88,6 @@ int PHTrackPropagating::GetNodes(PHCompositeNode* topNode)
   if (!_track_map)
   {
     cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << _track_map_name << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
-  if (!_assoc_container)
-  {
-    cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

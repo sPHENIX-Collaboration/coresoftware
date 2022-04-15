@@ -1,7 +1,5 @@
 #include "PHTrackSetCopyMerging.h"
 
-#include "AssocInfoContainerv1.h"
-
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>

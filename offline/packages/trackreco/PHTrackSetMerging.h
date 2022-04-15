@@ -20,7 +20,6 @@ class PHCompositeNode;
 class TrkrClusterContainer;
 class SvtxVertexMap;
 class SvtxTrackMap;
-class AssocInfoContainer;
 
 /// \class PHTrackSetMerging
 ///
@@ -59,7 +58,6 @@ class PHTrackSetMerging : public SubsysReco
   SvtxTrackMap *_track_map_in1 = nullptr;
   SvtxTrackMap *_track_map_in2 = nullptr;
   SvtxTrackMap *_track_map_out = nullptr;
-  AssocInfoContainer *_assoc_container = nullptr;
 
   std::string _track_map_name_in1 = "SvtxTrackMap1";
   std::string _track_map_name_in2 = "SvtxTrackMap2";
