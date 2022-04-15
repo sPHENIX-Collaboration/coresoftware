@@ -38,7 +38,9 @@ public:
    */
   virtual void addAssoc(TrkrDefs::cluskey ckey, short int hidx) = 0;
 
-  virtual ConstRange getCrossings(TrkrDefs::cluskey) = 0;
+  virtual ConstRange getCrossings(TrkrDefs::cluskey) const = 0;
+
+  virtual ConstRange getAll() const = 0;
 
   virtual unsigned int size() const {return 0;}
 
