@@ -1,7 +1,5 @@
 #include "PHTrackSeeding.h"
 
-#include "AssocInfoContainerv1.h"
-
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -109,13 +107,6 @@ int PHTrackSeeding::CreateNodes(PHCompositeNode* topNode)
   if(Verbosity() > 0)
     _track_map->identify();
 
-  _assoc_container = new AssocInfoContainerv1;
-  PHIODataNode<PHObject>* assoc_node = new PHIODataNode<PHObject>(
-      _assoc_container, "AssocInfoContainer", "PHObject");
-  tb_node->addNode(assoc_node);
-  if (Verbosity() > 0)
-    cout << PHWHERE << "Svtx/AssocInfoContainer node added" << endl;
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -145,13 +136,6 @@ int PHTrackSeeding::GetNodes(PHCompositeNode* topNode)
   if (!_track_map)
   {
     cerr << PHWHERE << " ERROR: Can't find " << _track_map_name << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
-  if (!_assoc_container)
-  {
-    cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

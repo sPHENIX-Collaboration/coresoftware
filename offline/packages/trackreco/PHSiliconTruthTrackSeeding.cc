@@ -1,7 +1,5 @@
 #include "PHSiliconTruthTrackSeeding.h"
 
-#include "AssocInfoContainer.h"
-
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTra...
 #include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, Svtx...
 #include <trackbase_historic/SvtxTrack_FastSim_v3.h>
@@ -322,7 +320,6 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
       for (TrkrCluster* cluster : trk_clusters_itr->second)
       {
         svtx_track->insert_cluster_key(cluster->getClusKey());
-        _assoc_container->SetClusterTrackAssoc(cluster->getClusKey(), svtx_track->get_id());
       }
 
       _track_map->insert(svtx_track.get());

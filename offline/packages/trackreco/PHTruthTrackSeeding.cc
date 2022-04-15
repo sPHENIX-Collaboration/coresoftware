@@ -1,7 +1,5 @@
 #include "PHTruthTrackSeeding.h"
 
-#include "AssocInfoContainer.h"
-
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTra...
 #include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, Svtx...
 #include <trackbase_historic/SvtxTrack_FastSim_v3.h>
@@ -159,7 +157,6 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
       
     for (TrkrDefs::cluskey cluskey : ClusterKeyList){
       svtx_track->insert_cluster_key(cluskey);
-      _assoc_container->SetClusterTrackAssoc(cluskey,svtx_track->get_id());
     }
 
     if(m_helicalTrackFit)

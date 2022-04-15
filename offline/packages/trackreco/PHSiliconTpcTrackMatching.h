@@ -16,7 +16,6 @@ class SvtxTrack;
 class TrkrClusterContainer;
 class TF1;
 class TpcSeedTrackMap;
-class AssocInfoContainer;
 class TrkrClusterCrossingAssoc;
 
 class PHSiliconTpcTrackMatching : public SubsysReco
@@ -108,7 +107,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   double _y_search_win = 0.3;
   double _z_search_win = 0.4;
   
-  AssocInfoContainer *_assoc_container{nullptr};
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrackMap *_track_map_silicon{nullptr};
   SvtxTrack *_tracklet_tpc{nullptr};

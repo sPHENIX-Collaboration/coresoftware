@@ -21,7 +21,6 @@ class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class SvtxVertexMap;
 class SvtxTrackMap;
-class AssocInfoContainer;
 
 /// \class PHTrackFitting
 ///
@@ -57,7 +56,6 @@ class PHTrackFitting : public SubsysReco
   TrkrHitSetContainer  *_hitsets = nullptr;
   SvtxVertexMap *_vertex_map;
   SvtxTrackMap *_track_map;
-  AssocInfoContainer *_assoc_container;
 
   std::string _track_map_name;
 

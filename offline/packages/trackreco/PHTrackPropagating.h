@@ -20,7 +20,6 @@ class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class SvtxVertexMap;
 class SvtxTrackMap;
-class AssocInfoContainer;
 
 /// \class PHTrackPropagating
 ///
@@ -56,7 +55,6 @@ class PHTrackPropagating : public SubsysReco
   TrkrHitSetContainer  *_hitsets;
   SvtxVertexMap *_vertex_map;
   SvtxTrackMap *_track_map;
-  AssocInfoContainer *_assoc_container;
 
   std::string _track_map_name;
 
