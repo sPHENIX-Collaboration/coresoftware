@@ -73,8 +73,8 @@ namespace
     double par0_neg = 0;
     double par0_pos = 0;
     int cluster_version = 3;
-    std::vector<assoc> *association_vector = nullptr;
-    std::vector<TrkrCluster*> *cluster_vector = nullptr;
+    std::vector<assoc> association_vector;
+    std::vector<TrkrCluster*> cluster_vector;
   };
   
   pthread_mutex_t mythreadlock;
@@ -324,7 +324,7 @@ namespace
 	
 	}
   
-    void calc_cluster_parameter(const std::vector<ihit> &ihit_list, const thread_data& my_data, int ntouch, int nedge )
+    void calc_cluster_parameter(const std::vector<ihit> &ihit_list, thread_data& my_data, int ntouch, int nedge )
     {
     
       // get z range from layer geometry
@@ -482,7 +482,7 @@ namespace
 	    clus->setActsLocalError(1,0, 0);
 	    clus->setActsLocalError(0,1, 0);
 	    clus->setActsLocalError(1,1, z_err_square);
-	    my_data.cluster_vector->push_back(clus);
+	    my_data.cluster_vector.push_back(clus);
 	  }else if(my_data.cluster_version==4){
 	    auto clus = new TrkrClusterv4;
 	    //auto clus = std::make_unique<TrkrClusterv3>();
@@ -495,16 +495,16 @@ namespace
 	    clus->setSubSurfKey(subsurfkey);      
 	    clus->setLocalX(localPos(0));
 	    clus->setLocalY(localPos(1));
-	    my_data.cluster_vector->push_back(clus);
+	    my_data.cluster_vector.push_back(clus);
 	  }
         
       //      if(my_data.do_assoc && my_data.clusterhitassoc){
       if(my_data.do_assoc)
       {
         // get cluster index in vector. It is used to store associations, and build relevant cluster keys when filling the containers
-        uint32_t index = my_data.cluster_vector->size()-1;
+        uint32_t index = my_data.cluster_vector.size()-1;
         for (unsigned int i = 0; i < hitkeyvec.size(); i++){
-          my_data.association_vector->emplace_back(index, hitkeyvec[i]);
+          my_data.association_vector.emplace_back(index, hitkeyvec[i]);
         }
       }
       hitkeyvec.clear();
@@ -796,8 +796,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.sector = sector;
     thread_pair.data.side = side;
     thread_pair.data.do_assoc = do_hit_assoc;
-    thread_pair.data.association_vector  = new std::vector<assoc>;
-    thread_pair.data.cluster_vector  = new std::vector<TrkrCluster*>;
     thread_pair.data.tGeometry = m_tGeometry;
     thread_pair.data.surfmaps = m_surfMaps;
     thread_pair.data.maxHalfSizeZ =  MaxClusterHalfSizeZ;
@@ -851,21 +849,20 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
 
     // copy clusters to map
-    for( uint32_t index = 0; index < data.cluster_vector->size(); ++index )
+    for( uint32_t index = 0; index < data.cluster_vector.size(); ++index )
     {
       // generate cluster key
       const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
 
       // get cluster
-      auto cluster = (*data.cluster_vector)[index];
+      auto cluster = data.cluster_vector[index];
 
       // insert in map
       m_clusterlist->addClusterSpecifyKey(ckey, cluster);
     }
-    delete thread_pair.data.cluster_vector;
 
     // copy hit associations to map
-    for( const auto& [index,hkey]:*thread_pair.data.association_vector)
+    for( const auto& [index,hkey]:thread_pair.data.association_vector)
     { 
       // generate cluster key
       const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
@@ -873,7 +870,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       // add to association table
       m_clusterhitassoc->addAssoc(ckey,hkey); 
     }
-    delete thread_pair.data.association_vector;
 
   }
 
