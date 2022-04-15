@@ -22,8 +22,10 @@ class TrackSeed_v1 : public TrackSeed
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override { *this = TrackSeed_v1(); }
+  int isValid() const override { return 1; }
   void CopyFrom( const TrackSeed&) override;
   void CopyFrom( TrackSeed* seed) override { CopyFrom( *seed ); }
+  PHObject* CloneMe() const override { return new TrackSeed_v1(*this); }
 
   int get_charge() const override;
   float get_px() const override;

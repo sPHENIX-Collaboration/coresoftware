@@ -2,10 +2,13 @@
 #define TRACKBASEHISTORIC_TRACKSEED_H
 
 #include <phool/PHObject.h>
+
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/TrkrClusterContainer.h>
+
+#include <g4main/PHG4HitDefs.h>
 
 #include <cmath>
 #include <iostream>
@@ -33,7 +36,7 @@ class TrackSeed : public PHObject
 
   virtual void CopyFrom( TrackSeed* ) {}
 
-  virtual int get_charge() const { return -99999; }
+  virtual int get_charge() const { return std::numeric_limits<int>::max(); }
   virtual float get_px() const { return NAN; }
   virtual float get_py() const { return NAN; }
   virtual float get_pz() const { return NAN; }
@@ -78,6 +81,34 @@ class TrackSeed : public PHObject
   virtual ClusterKeyIter begin_cluster_keys();
   virtual ClusterKeyIter find_cluster_keys(unsigned int);
   virtual ClusterKeyIter end_cluster_keys();
+
+
+  /* ---------------------------------------------------------
+   * Truth tracking interfaces
+   * ---------------------------------------------------------
+   */
+  typedef std::map<int, std::set<PHG4HitDefs::keytype> > HitIdMap;
+  typedef HitIdMap::iterator HitIdIter;
+  typedef HitIdMap::const_iterator HitIdConstIter;
+
+  virtual unsigned int get_truth_track_id() const { return std::numeric_limits<unsigned int>::max(); }
+  virtual void set_truth_track_id(unsigned int) {}
+  virtual void set_num_measurements(int) {}
+  virtual unsigned int get_num_measurements() const { return 0; }
+  virtual bool empty_g4hit_id() const { return true; }
+  virtual size_t size_g4hit_id() const { return 0; }
+  virtual void add_g4hit_id(int, PHG4HitDefs::keytype) {}
+  virtual HitIdIter begin_g4hit_id();
+  virtual HitIdConstIter begin_g4hit_id() const;
+  virtual HitIdIter find_g4hit_id(int);
+  virtual HitIdConstIter find_g4hit_id(int) const;
+  virtual HitIdIter end_g4hit_id();
+  virtual HitIdConstIter end_g4hit_id() const;
+  virtual size_t remove_g4hit_id(int, PHG4HitDefs::keytype) { return 0; }
+  virtual size_t remove_g4hit_volume(int) { return 0; }
+  virtual void clear_g4hit_id() {}
+  virtual const HitIdMap& g4hit_ids() const;
+
 
  protected:
   TrackSeed() {}
