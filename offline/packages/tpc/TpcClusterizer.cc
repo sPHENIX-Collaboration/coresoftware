@@ -2,7 +2,7 @@
 
 #include "TpcDefs.h"
 
-#include <trackbase/TrkrClusterContainerv3.h>
+#include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
@@ -435,20 +435,7 @@ namespace
       // Conversion gain is 20 mV/fC - relates total charge collected on pad to PEAK voltage out of ADC. The GEM gain is assumed to be 2000
       // To get equivalent charge per Z bin, so that summing ADC input voltage over all Z bins returns total input charge, divide voltages by 2.4 for 80 ns SAMPA
       // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
-      clusz -= (clusz<0) ? my_data.par0_neg:my_data.par0_pos;
-      
-
-      TMatrixF ERR(3, 3);
-      ERR[0][0] = 0.0;
-      ERR[0][1] = 0.0;
-      ERR[0][2] = 0.0;
-      ERR[1][0] = 0.0;
-      ERR[1][1] = phi_err_square;  //cluster_v1 expects rad, arc, z as elementsof covariance
-      ERR[1][2] = 0.0;
-      ERR[2][0] = 0.0;
-      ERR[2][1] = 0.0;
-      ERR[2][2] = z_err_square;
-      
+      clusz -= (clusz<0) ? my_data.par0_neg:my_data.par0_pos;   
      
       Acts::Vector3 center = surface->center(my_data.tGeometry->geoContext)/Acts::UnitConstants::cm;
       
@@ -491,13 +478,11 @@ namespace
 	    clus->setSubSurfKey(subsurfkey);      
 	    clus->setLocalX(localPos(0));
 	    clus->setLocalY(localPos(1));
-	    // clus->setLocalX(clusx);
-	    // clus->setLocalY(clusy);
-	    clus->setActsLocalError(0,0, ERR[1][1]);
-	    clus->setActsLocalError(1,0, ERR[2][1]);
-	    clus->setActsLocalError(0,1, ERR[1][2]);
-	    clus->setActsLocalError(1,1, ERR[2][2]);
-	    my_data.cluster_vector->push_back(clus);
+	    clus->setActsLocalError(0,0, phi_err_square);
+	    clus->setActsLocalError(1,0, 0);
+	    clus->setActsLocalError(0,1, 0);
+	    clus->setActsLocalError(1,1, z_err_square);
+	    my_data.cluster_vector.push_back(clus);
 	  }else if(my_data.cluster_version==4){
 	    auto clus = new TrkrClusterv4;
 	    //auto clus = std::make_unique<TrkrClusterv3>();
@@ -668,7 +653,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    trkrclusters = new TrkrClusterContainerv3;
+    trkrclusters = new TrkrClusterContainerv4;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
         new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);

@@ -5,7 +5,7 @@
 #include <trackbase_historic/SvtxVertex_v1.h>
 
 
-#include <trackbase/TrkrClusterContainerv3.h>
+#include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterv2.h>
 
@@ -308,7 +308,7 @@ std::map<TrkrDefs::cluskey, TrkrCluster* > PHTruthClustering::all_truth_clusters
 	  continue;
 	}
       
-      TrkrClusterv2 *clus(new TrkrClusterv2());
+      auto clus = new TrkrClusterv2;
       iclus++;
 
       // need to convert gedep to ADC value
@@ -1095,7 +1095,7 @@ int PHTruthClustering::GetNodes(PHCompositeNode* topNode)
       dstNode->addNode(DetNode);
     }
 
-    trkrclusters = new TrkrClusterContainerv3;
+    trkrclusters = new TrkrClusterContainerv4;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
         new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER_TRUTH", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);
