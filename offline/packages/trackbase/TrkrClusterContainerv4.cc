@@ -18,8 +18,6 @@ namespace
 //_________________________________________________________________
 void TrkrClusterContainerv4::Reset()
 {
-  std::cout << "TrkrClusterContainerv4::Reset" << std::endl;
-
   // delete all clusters
   for( auto&& [key,clus_vector]:m_clusmap )
   {
