@@ -24,12 +24,11 @@ PHG4HitContainer::PHG4HitContainer(const std::string &nodename)
 void
 PHG4HitContainer::Reset()
 {
-   while(hitmap.begin() != hitmap.end())
-     {
-       delete hitmap.begin()->second;
-       hitmap.erase(hitmap.begin());
-     }
-  return;
+  for( const auto& [key, hit]:hitmap )
+  { delete hit; }
+  
+  Map empty;
+  hitmap.swap( empty );
 }
 
 void
