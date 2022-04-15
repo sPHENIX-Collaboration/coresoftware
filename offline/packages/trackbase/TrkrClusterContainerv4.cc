@@ -8,7 +8,7 @@
 #include "TrkrCluster.h"
 #include "TrkrDefs.h"
 
-#include <cstdlib>
+#include <algorithm>
 
 namespace
 {
@@ -18,6 +18,8 @@ namespace
 //_________________________________________________________________
 void TrkrClusterContainerv4::Reset()
 {
+  std::cout << "TrkrClusterContainerv4::Reset" << std::endl;
+
   // delete all clusters
   for( auto&& [key,clus_vector]:m_clusmap )
   {
@@ -52,7 +54,7 @@ void TrkrClusterContainerv4::identify(std::ostream& os) const
     std::cout << "layer: " << layer << " hitsetkey: " << hitsetkey << std::endl;
 
     for( const auto& cluster:clus_vector )
-    { cluster->identify(); }
+    { if( cluster ) cluster->identify(); }
   }
 
   os << "------------------------------" << std::endl;
@@ -178,6 +180,6 @@ unsigned int TrkrClusterContainerv4::size(void) const
 {
   unsigned int size = 0;
   for( const auto& [hitsetkey,clus_vector]:m_clusmap )
-  { size += clus_vector.size(); }
+  { size += std::count_if( clus_vector.begin(), clus_vector.end(), [](TrkrCluster* cluster) { return cluster; } ); }
   return size;
 }
