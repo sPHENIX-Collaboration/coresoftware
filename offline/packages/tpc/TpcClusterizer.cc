@@ -703,7 +703,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   }
 
   // get node for clusters
-  m_clusterlist = findNode::getClass<TrkrClusterContainerv4>(topNode, "TRKR_CLUSTER");
+  m_clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_clusterlist)
   {
     std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER." << std::endl;
@@ -711,7 +711,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   }
 
   // get node for cluster hit associations
-  m_clusterhitassoc = findNode::getClass<TrkrClusterHitAssocv3>(topNode, "TRKR_CLUSTERHITASSOC");
+  m_clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   if (!m_clusterhitassoc)
   {
     std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTERHITASSOC" << std::endl;
