@@ -64,10 +64,12 @@ class TrackSeed : public PHObject
 
   virtual void circleFitByTaubin(TrkrClusterContainer*,
 				 ActsSurfaceMaps*,
-				 ActsTrackingGeometry*) {}
+				 ActsTrackingGeometry*,
+				 uint8_t, uint8_t) {}
   virtual void lineFit(TrkrClusterContainer*,
 		       ActsSurfaceMaps*,
-		       ActsTrackingGeometry*) {}
+		       ActsTrackingGeometry*,
+		       uint8_t, uint8_t) {}
   
 
   virtual void clear_cluster_keys() {}

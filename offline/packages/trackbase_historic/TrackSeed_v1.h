@@ -70,11 +70,15 @@ class TrackSeed_v1 : public TrackSeed
   /// Updates R, X0, Y0
   void circleFitByTaubin(TrkrClusterContainer *clusters,
 			 ActsSurfaceMaps *surfMaps, 
-			 ActsTrackingGeometry *tGeometry) override;
+			 ActsTrackingGeometry *tGeometry,
+			 uint8_t startLayer = 0,
+			 uint8_t endLayer = 58) override;
   /// Updates r-z slope and intercept B
   void lineFit(TrkrClusterContainer *clusters,
 	       ActsSurfaceMaps *surfMaps, 
-	       ActsTrackingGeometry *tGeometry) override;
+	       ActsTrackingGeometry *tGeometry,
+	       uint8_t startLayer = 0,
+	       uint8_t endLayer = 58) override;
   
  private:
   /// Returns transverse PCA to (0,0)

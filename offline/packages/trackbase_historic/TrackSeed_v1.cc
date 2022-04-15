@@ -64,8 +64,10 @@ void TrackSeed_v1::identify(std::ostream& os) const
 
 
 void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
-					 ActsSurfaceMaps* surfmaps,
-					 ActsTrackingGeometry *tGeometry)
+				     ActsSurfaceMaps* surfmaps,
+				     ActsTrackingGeometry *tGeometry,
+				     uint8_t startLayer,
+				     uint8_t endLayer)
 {
   /**  
    *   Circle fit to a given set of data points (in 2D)
@@ -98,6 +100,9 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
   std::vector<Acts::Vector3> globalPositions;
   for(const auto& key: m_cluster_keys)
     {
+      auto layer = TrkrDefs::getLayer(key);
+      if(layer < startLayer or layer > endLayer)
+	{ continue; }
       Acts::Vector3 globalPos = transformer.getGlobalPosition(
 			          clusters->findCluster(key),
 				  surfmaps, tGeometry);
@@ -180,15 +185,20 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
 }
 
 void TrackSeed_v1::lineFit(TrkrClusterContainer *clusters,
-			       ActsSurfaceMaps *surfMaps, 
-			       ActsTrackingGeometry *tGeometry)
+			   ActsSurfaceMaps *surfMaps, 
+			   ActsTrackingGeometry *tGeometry,
+			   uint8_t startLayer,
+			   uint8_t endLayer)
 {
   // copied from: https://www.bragitoff.com
   // we want to fit z vs radius
-  double xsum = 0,x2sum = 0,ysum = 0,xysum = 0;    
+  double xsum = 0, x2sum = 0, ysum = 0, xysum = 0;    
   ActsTransformations transformer;
   for(const auto& key : m_cluster_keys)
     {
+      auto layer = TrkrDefs::getLayer(key);
+      if(layer < startLayer or layer > endLayer)
+	{ continue; }
       Acts::Vector3 pos = transformer.getGlobalPosition(clusters->findCluster(key),
 							surfMaps, tGeometry);
       double z = pos(2);
