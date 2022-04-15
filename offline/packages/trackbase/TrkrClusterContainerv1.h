@@ -38,15 +38,13 @@ class TrkrClusterContainerv1 : public TrkrClusterContainer
 
   void identify(std::ostream &os = std::cout) const override;
 
-  ConstIterator addCluster(TrkrCluster *newClus) override;
+  void addCluster(TrkrCluster *newClus) override;
 
-  ConstIterator addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster *newClus) override;
+  void addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster *newClus) override;
 
   void removeCluster(TrkrDefs::cluskey) override;
 
   void removeCluster(TrkrCluster*) override;
-
-  Iterator findOrAddCluster(TrkrDefs::cluskey key) override;
   
   ConstRange getClusters() const override;
 

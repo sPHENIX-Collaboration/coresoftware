@@ -9,6 +9,7 @@
 
 /// Tracking includes
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
+#include <trackbase/TrkrClusterv3.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
@@ -641,29 +642,34 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 
 void PHMicromegasTpcTrackMatching::copyMicromegasClustersToCorrectedMap( )
 {
-  // loop over final track map, copy silicon clusters to corrected cluster map
-  for (auto phtrk_iter = _track_map->begin();
-       phtrk_iter != _track_map->end(); 
-       ++phtrk_iter)
+  // loop over final track map, copy micromegas clusters to corrected cluster map
+  for( auto track_iter = _track_map->begin(); track_iter != _track_map->end(); ++track_iter )
+  {    
+    SvtxTrack* track = track_iter->second;
+    // loop over associated clusters to get keys for micromegas cluster
+    for(auto iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
     {
-      SvtxTrack *track = phtrk_iter->second;
-
-      // loop over associated clusters to get keys for silicon cluster
-      for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-	   iter != track->end_cluster_keys();
-	   ++iter)
-	{
-	  TrkrDefs::cluskey cluster_key = *iter;
-   const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
-	  if(trkrid == TrkrDefs::micromegasId)
+      TrkrDefs::cluskey cluster_key = *iter;
+      const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
+      if(trkrid == TrkrDefs::micromegasId)
 	    {
-	      TrkrCluster *cluster =  _cluster_map->findCluster(cluster_key);	
-       if( !cluster ) continue;
-      
-       TrkrCluster *newclus = _corrected_cluster_map->findOrAddCluster(cluster_key)->second;
-       newclus->CopyFrom( cluster );
+
+        // check if clusters has not been inserted already
+        if( _corrected_cluster_map->findCluster( cluster_key ) ) continue;
+        
+        // get cluster from original map
+        auto cluster =  _cluster_map->findCluster(cluster_key);
+        if( !cluster ) continue;
+
+        // create a new cluster and copy from source
+        auto newclus = new TrkrClusterv3;
+        newclus->CopyFrom( cluster );
+
+        // insert in corrected map
+        _corrected_cluster_map->addCluster(newclus);
+
 	    }
-	}      
     }
+  }
 }
   

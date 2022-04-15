@@ -14,15 +14,17 @@ pkginclude_HEADERS = \
 
 libphnodedump_la_SOURCES = \
   Dumper.cc \
-  DumpAssocInfoContainer.cc \
   DumpBbcVertexMap.cc \
   DumpCaloTriggerInfo.cc \
+  DumpCentralityInfo.cc \
   DumpEventHeader.cc \
   DumpGlobalVertexMap.cc \
+  DumpInttDeadMap.cc \
   DumpJetMap.cc \
   DumpParticleFlowElementContainer.cc \
   DumpPdbParameterMap.cc \
   DumpPdbParameterMapContainer.cc \
+  DumpPHFieldConfig.cc \
   DumpPHG4BlockGeomContainer.cc \
   DumpPHG4BlockCellGeomContainer.cc \
   DumpPHG4CellContainer.cc \
@@ -30,6 +32,7 @@ libphnodedump_la_SOURCES = \
   DumpPHG4CylinderCellGeomContainer.cc \
   DumpPHG4CylinderGeomContainer.cc \
   DumpPHG4HitContainer.cc \
+  DumpPHG4ParticleSvtxMap.cc \
   DumpPHG4ScintillatorSlatContainer.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
@@ -38,13 +41,16 @@ libphnodedump_la_SOURCES = \
   DumpRawTowerContainer.cc \
   DumpRawTowerGeomContainer.cc \
   DumpRunHeader.cc \
+  DumpSvtxPHG4ParticleMap.cc \
   DumpSvtxTrackMap.cc \
   DumpSvtxVertexMap.cc \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
+  DumpTpcSeedTrackMap.cc \
   DumpTrkrClusterContainer.cc \
   DumpTrkrClusterHitAssoc.cc \
   DumpTrkrHitSetContainer.cc \
+  DumpTrkrClusterCrossingAssoc.cc \
   DumpTrkrHitTruthAssoc.cc \
   DumpVariableArray.cc \
   DumpObject.cc \
@@ -58,6 +64,7 @@ libphnodedump_la_LIBADD = \
   -lcalotrigger_io \
   -lffaobjects \
   -lg4detectors_io \
+  -lphfield_io \
   -lg4jets_io \
   -lHepMC \
   -lparticleflow_io \

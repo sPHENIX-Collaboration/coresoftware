@@ -48,20 +48,11 @@ class TpcSimpleClusterizer : public SubsysReco
   bool do_hit_assoc = true;
   double pedestal = 74.4;
   double SectorFiducialCut = 0.5;
-
+  
   // TPC shaping offset correction parameters
   // From Tony Frawley May 13, 2021
-//   std::pair<double,double> par0_neg = std::make_pair(0.0538913, 0.000252096);
-//   std::pair<double,double> par0_pos = std::make_pair(-0.0647731, 0.000296734);
-//   std::pair<double,double> par1_neg = std::make_pair(-0.000208279, 1.9205e-06);
-//   std::pair<double,double> par1_pos = std::make_pair(-0.000195514, 2.26467e-06);
-  
-  // revisited by Hugo May 28, 2021
-  // should check with Tony, in particular the inversion of the par0_pos layer slope
-  std::pair<double,double> par0_neg = std::make_pair(0.05465077, 0.000252096);
-  std::pair<double,double> par0_pos = std::make_pair(-0.05392444, -0.000296734);
-  std::pair<double,double> par1_neg = std::make_pair(-0.000208279, 1.9205e-06);
-  std::pair<double,double> par1_pos = std::make_pair(-0.000195514, 2.26467e-06);
+  double par0_neg = 0.0503;
+  double par0_pos = -0.0503;
 
 };
 

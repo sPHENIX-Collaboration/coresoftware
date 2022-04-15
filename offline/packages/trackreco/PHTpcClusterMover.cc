@@ -97,7 +97,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
       std::vector<Acts::Vector3> globalClusterPositions;
       std::map<TrkrDefs::cluskey, Acts::Vector3> tpc_clusters;
 
-      for (SvtxTrack::ConstClusterKeyIter key_iter = _track->begin_cluster_keys();
+      for (auto key_iter = _track->begin_cluster_keys();
 	   key_iter != _track->end_cluster_keys();
 	   ++key_iter)
 	{
@@ -109,18 +109,25 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  // This is needed for truth seeding case, where the tracks already have silicon clusters 
 	  if(trkrId != TrkrDefs::tpcId) 
 	    {
+        
+        // check if clusters has not been inserted already
+        if( _corrected_cluster_map->findCluster(cluster_key) ) continue;
+        
 	      // get cluster from original map
-	      auto cluster =  _cluster_map->findCluster(cluster_key);	
+	      auto cluster = _cluster_map->findCluster(cluster_key);	
 	      if( !cluster ) continue;
 	      
-	      // create in corrected map and copy content
-	      auto newclus = _corrected_cluster_map->findOrAddCluster(cluster_key)->second;
-	      newclus->CopyFrom( cluster );
+        // create a copy
+        auto newclus = new TrkrClusterv3;
+        newclus->CopyFrom( cluster );
+        
+        // insert in corrected map
+        _corrected_cluster_map->addCluster(newclus);
 	      continue;      
 	    }
 	  
 	  // get the cluster in 3D coordinates
-	  TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
+	  auto tpc_clus =  _cluster_map->findCluster(cluster_key);
 	  auto global = _transformer.getGlobalPosition(tpc_clus,
 						      _surfmaps,
 						      _tGeometry);
@@ -218,14 +225,14 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  // ghost tracks can have repeat clusters, so check if cluster already moved
 	  if(_corrected_cluster_map->findCluster(cluskey)) continue;
 
-	  TrkrCluster *newclus = _corrected_cluster_map->findOrAddCluster(cluskey)->second;
-	  newclus->setSubSurfKey(subsurfkey);
-	  newclus->setAdc(cluster->getAdc());
+    // create new cluster
+    auto newclus = new TrkrClusterv3;
 
-	  newclus->setActsLocalError(0,0,cluster->getActsLocalError(0,0));
-	  newclus->setActsLocalError(1,0,cluster->getActsLocalError(1,0));
-	  newclus->setActsLocalError(0,1,cluster->getActsLocalError(0,1));
-	 newclus->setActsLocalError(1,1,cluster->getActsLocalError(1,1));
+    // copy from source
+    newclus->CopyFrom( cluster );
+
+    // assign subsurface key
+    newclus->setSubSurfKey(subsurfkey);
 
 	  // get local coordinates
 	  Acts::Vector3 normal = surface->normal(_tGeometry->geoContext);
@@ -262,8 +269,12 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	      std::cout << "    moved_clus_radius " << target_radius << " final x,y,z: "<< xnew << "  " << ynew << "  " << znew << std::endl; 
 	    }
 
-	  newclus->setLocalX(localPos(0));
+    // assign to new cluster
+    newclus->setLocalX(localPos(0));
 	  newclus->setLocalY(localPos(1));
+
+    // insert in map
+    _corrected_cluster_map->addCluster(newclus);
 	}
 
       // For normal reconstruction, the silicon clusters  for this track will be copied over after the matching is done

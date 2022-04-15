@@ -77,6 +77,7 @@ class MakeActsGeometry : public SubsysReco
   std::vector<std::shared_ptr<ActsExamples::IContextDecorator>> getContextDecorators()
     { return m_contextDecorators; }
 
+  void loadMagField(const bool field) { m_useField = field; }
   void setMagField(const std::string &magField)
     {m_magField = magField;}
   void setMagFieldRescale(double magFieldRescale)
@@ -154,8 +155,9 @@ class MakeActsGeometry : public SubsysReco
   PHG4CylinderGeomContainer* m_geomContainerIntt = nullptr;
   PHG4CylinderGeomContainer* m_geomContainerMicromegas = nullptr;
   PHG4CylinderCellGeomContainer* m_geomContainerTpc = nullptr;
-
   TGeoManager* m_geoManager = nullptr;
+
+  bool m_useField = true;
 
   /// Acts Context decorators, which may contain e.g. calibration information
   std::vector<std::shared_ptr<ActsExamples::IContextDecorator> > 
