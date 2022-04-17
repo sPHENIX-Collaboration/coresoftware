@@ -49,6 +49,7 @@ namespace
   template<class T>
     inline constexpr T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
 
+  /*
   // calculate intersection between line and circle
   double line_circle_intersection( const TVector3& p, const TVector3& d, double radius )
   {
@@ -69,6 +70,7 @@ namespace
     // no valid extrapolation
     return -1;
   }
+  */
     
   /// TVector3 stream
   inline std::ostream& operator << (std::ostream& out, const TVector3& vector )
@@ -172,7 +174,7 @@ int TpcDirectLaserReconstruction::End(PHCompositeNode* )
   if( m_savehistograms && m_histogramfile )
   {
     m_histogramfile->cd();
-    for(const auto& o:std::initializer_list<TObject*>({ h_dca_layer, h_deltarphi_layer, h_deltaz_layer, h_entries }))
+    for(const auto& o:std::initializer_list<TObject*>({ h_dca_layer, h_deltarphi_layer, h_deltaz_layer, h_entries,h_xy,h_xz,h_xy_pca,h_xz_pca,h_dca_path,h_zr,h_zr_pca }))
     { if( o ) o->Write(); }
     m_histogramfile->Close();
   }
@@ -240,9 +242,19 @@ void TpcDirectLaserReconstruction::create_histograms()
   m_histogramfile->cd();
 
   // residuals vs layers
-  h_dca_layer = new TH2F( "dca_layer", ";layer; DCA (cm)", 57, 0, 57, 500, 0, 2 );
-  h_deltarphi_layer = new TH2F( "deltarphi_layer", ";layer; r.#Delta#phi_{track-cluster} (cm)", 57, 0, 57, 2000, -2, 2 );
-  h_deltaz_layer = new TH2F( "deltaz_layer", ";layer; #Deltaz_{track-cluster} (cm)", 57, 0, 57, 400, -2, 2 );
+  h_dca_layer = new TH2F( "dca_layer", ";radius; DCA (cm)", 78, 0, 78, 500, 0, 2 );
+  h_deltarphi_layer = new TH2F( "deltarphi_layer", ";radius; r.#Delta#phi_{track-cluster} (cm)", 78, 0, 78, 2000, -2, 2 );
+  h_deltaz_layer = new TH2F( "deltaz_layer", ";radius; #Deltaz_{track-cluster} (cm)", 78, 0, 78, 400, -2, 2 );
+
+  h_xy = new TH2F("h_xy"," x vs y", 320,-80,80,320,-80,80);
+  h_xz = new TH2F("h_xz"," x vs z", 320,-80,80,440,-110,110);
+  h_xy_pca = new TH2F("h_xy_pca"," x vs y pca", 320,-80,80,320,-80,80);
+  h_xz_pca = new TH2F("h_xz_pca"," x vs z pca", 320,-80,80,440,-110,110);
+  h_dca_path = new TH2F("h_dca_path"," dca vs pathlength", 440,0,110,100,0,1);
+  h_zr = new TH2F("h_zr"," z vs r", 440,-110,110,1000,28,80);
+  h_zr->GetXaxis()->SetTitle("z");
+  h_zr->GetYaxis()->SetTitle("rad");
+  h_zr_pca = new TH2F("h_zr_pca"," z vs r pca", 440,-110,110,1000,28,80);
 
   // entries vs cell grid
   /* histogram dimension and axis limits must match that of TpcSpaceChargeMatrixContainer */
@@ -278,6 +290,10 @@ void TpcDirectLaserReconstruction::process_tracks()
 //_____________________________________________________________________
 void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 {
+  std::multimap<unsigned int, std::pair<unsigned int, std::pair<Acts::Vector3, Acts::Vector3>>> residual_map;
+  std::set<unsigned int> path_bin_set;
+
+  std::cout << "----------  processing track " << track->get_id() << std::endl;
 
   // get track parameters
   const TVector3 origin( track->get_x(), track->get_y(), track->get_z() );
@@ -293,73 +309,117 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     // only check TPC hitsets
     if( TrkrDefs::getTrkrId( hitsetkey ) != TrkrDefs::tpcId ) continue;
 
-    // store layer
-    const auto layer = TrkrDefs::getLayer( hitsetkey );
-
-    // get corresponding clusters
+    // get corresponding clusters (these are single hit clusters)
     for( const auto& [key,cluster]:range_adaptor(m_cluster_map->getClusters(hitsetkey)))
+      {
+        // get cluster global coordinates
+	const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
+
+	unsigned int adc = cluster->getAdc();
+	
+	// calculate dca
+	// origin is track origin, direction is track direction
+	const TVector3 oc( global.x()-origin.x(), global.y()-origin.y(), global.z()-origin.z()  );  // vector from track origin to cluster
+	auto t = direction.Dot( oc )/square( direction.Mag() );
+	auto om = direction*t;     // vector from track origin to PCA
+	const auto dca = (oc-om).Mag();
+	
+	// do not associate if dca is too large
+	if( dca > m_max_dca ) continue;
+	
+	// path length - length along track to the PCA
+	const auto pathlength = om.Mag();
+	unsigned int path_bin = (unsigned int) (pathlength/path_bin_length);
+
+	// get vector pointing to the PCA
+	const auto projection = origin + om;
+	Acts::Vector3 pcaproj(projection.x(), projection.y(), projection.z());
+
+	std::pair<unsigned int, std::pair<Acts::Vector3, Acts::Vector3>> clus_pca_pair = std::make_pair(adc, std::make_pair(global, pcaproj)); 	
+
+	residual_map.insert(std::make_pair(path_bin, clus_pca_pair));	
+	path_bin_set.insert(path_bin);
+
+      }
+  }
+
+  // we have all of the residuals for this track added to the map, binned by path length at PCA
+  // now we calculate the centroid of the clusters in each bin, as well as the centroid of the PCA values
+
+  for(auto bin : path_bin_set)
     {
-      
-      // get cluster global coordinates
-      const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
+      auto bin_residual = residual_map.equal_range(bin);
 
-      // calculate dca
-      const TVector3 oc( global.x()-origin.x(), global.y()-origin.y(), global.z()-origin.z()  );
+      // get nominal pathlength along track for this bin
+      float pathlength = ((float) bin + 0.5) * path_bin_length;
+      // calculate the center position for this bin.
+      TVector3 bin_center = origin + direction * (pathlength/direction.Mag());
+
+      Acts::Vector3 clus_centroid(0,0,0);
+      Acts::Vector3 pca_centroid(0,0,0);
+      float wt = 0;
+
+      for( auto mit = bin_residual.first; mit != bin_residual.second; ++mit)
+	{
+	  float adc =  (float) mit->second.first;
+	  Acts::Vector3 cluspos =mit->second.second.first;
+	  Acts::Vector3 pcapos = mit->second.second.second;
+
+	  std::cout << "             adc " << adc 
+		    << " cluspos " << cluspos.x() << "  " << cluspos.y() << "  " << cluspos.z()
+		    << " pcapos " << pcapos.x() << "  " << pcapos.y() << "  " << pcapos.z() 
+		    << std::endl;
+
+	  clus_centroid += cluspos * adc;
+	  pca_centroid += pcapos * adc;
+	  wt += adc;
+	}
+
+      clus_centroid /= wt;
+      pca_centroid /= wt;
+
+      // get the dca of the cluster centroid to the track
+      const TVector3 oc( clus_centroid.x()-origin.x(), clus_centroid.y()-origin.y(), clus_centroid.z()-origin.z()  );  // vector from track origin to cluster
       auto t = direction.Dot( oc )/square( direction.Mag() );
-      auto om = direction*t;
+      auto om = direction*t;     // vector from track origin to PCA
       const auto dca = (oc-om).Mag();
-      
-      // do not associate if dca is too large
-      if( dca > m_max_dca ) continue;
-      
-      // calculate intersection to layer
-      t = line_circle_intersection(origin, direction, get_r( global.x(), global.y() ));
-      if( t < 0 ) continue;
-
-      // update position on track
-      om = direction*t;
-   
-      // path length
-      const auto pathlength = om.Mag();
-
-      // get projection to the track
+      // get vector pointing to the PCA
       const auto projection = origin + om;
+      
+      std::cout << "  bin " << bin << " wt " << wt << " dca " << dca << std::endl;
+      std::cout << "      bin center    " << bin_center.x() << "  "  << bin_center.y() << "  "  << bin_center.z() << std::endl;
+      std::cout << "      clus_centroid " << clus_centroid.x() << "  " << clus_centroid.y() << "  " << clus_centroid.z() << std::endl;
+      std::cout  << "      pca_centroid " << pca_centroid.x() << "  " << pca_centroid.y() << "  " << pca_centroid.z() << std::endl;
+      std::cout  << "      pca          " << projection.x() << "  " << projection.y() << "  " << projection.z() << std::endl;
 
       // create relevant state vector and assign to track
+	Acts::Vector3 pcaproj(projection.x(), projection.y(), projection.z());
       SvtxTrackState_v1 state( pathlength );
-      state.set_x( projection.x() );
-      state.set_y( projection.y() );
-      state.set_z( projection.z() );
-
+      state.set_x( pcaproj.x() );
+      state.set_y( pcaproj.y() );
+      state.set_z( pcaproj.z() );
+      
       state.set_px( direction.x());
       state.set_py( direction.y());
       state.set_pz( direction.z());
       track->insert_state( &state );
-
+      
       // also associate cluster to track
-      track->insert_cluster_key( key );
-
+      //track->insert_cluster_key( key );
+      
       // cluster r, phi and z
-      const auto cluster_r = get_r(global.x(), global.y());
-      const auto cluster_phi = std::atan2(global.y(),global.x());
-      const auto cluster_z = global.z();
-
+      const auto cluster_r = get_r(clus_centroid.x(), clus_centroid.y());
+      const auto cluster_phi = std::atan2(clus_centroid.y(),clus_centroid.x());
+      const auto cluster_z = clus_centroid.z();
+      
       // cluster errors
-      const auto cluster_rphi_error = cluster->getRPhiError();
-      const auto cluster_z_error = cluster->getZError();
-
-//       /*
-//       remove clusters with too small errors since they are likely pathological
-//       and have a large contribution to the chisquare
-//       TODO: make these cuts configurable
-//       */
-//       if( cluster_rphi_error < 0.015 ) continue;
-//       if( cluster_z_error < 0.05 ) continue;
-
+      const auto cluster_rphi_error = 0.015;
+      const auto cluster_z_error = 0.075;
+      
       // track position
-      const auto track_phi = std::atan2( projection.y(), projection.x() );
-      const auto track_z = projection.z();
-
+      const auto track_phi = std::atan2( pcaproj.y(), pcaproj.x() );
+      const auto track_z = pcaproj.z();
+      
       // track angles
       const auto cosphi( std::cos( track_phi ) );
       const auto sinphi( std::sin( track_phi ) );
@@ -368,116 +428,121 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       const auto track_pz = state.get_pz();
       const auto talpha = -track_pphi/track_pr;
       const auto tbeta = -track_pz/track_pr;
-
+      
       // sanity check
       if( std::isnan(talpha) )
-      {
-        std::cout << "TpcDirectLaserReconstruction::process_track - talpha is nan" << std::endl;
-        continue;
-      }
-
+	{
+	  std::cout << "TpcDirectLaserReconstruction::process_track - talpha is nan" << std::endl;
+	  continue;
+	}
+      
       if( std::isnan(tbeta) )
-      {
-        std::cout << "TpcDirectLaserReconstruction::process_track - tbeta is nan" << std::endl;
-        continue;
-      }
-
+	{
+	  std::cout << "TpcDirectLaserReconstruction::process_track - tbeta is nan" << std::endl;
+	  continue;
+	}
+      
       // residuals
       const auto drp = cluster_r*delta_phi( cluster_phi - track_phi );
       const auto dz = cluster_z - track_z;
-
+      
       // sanity checks
       if( std::isnan(drp) )
-      {
-        std::cout << "TpcDirectLaserReconstruction::process_track - drp is nan" << std::endl;
-        continue;
-      }
-
+	{
+	  std::cout << "TpcDirectLaserReconstruction::process_track - drp is nan" << std::endl;
+	  continue;
+	}
+      
       if( std::isnan(dz) )
-      {
-        std::cout << "TpcDirectLaserReconstruction::process_track - dz is nan" << std::endl;
-        continue;
-      }
-
+	{
+	  std::cout << "TpcDirectLaserReconstruction::process_track - dz is nan" << std::endl;
+	  continue;
+	}
+      
       if(m_savehistograms)
-      {
-        if(h_dca_layer) h_dca_layer->Fill(layer, dca);
-        if(h_deltarphi_layer) h_deltarphi_layer->Fill(layer, drp);
-        if(h_deltaz_layer) h_deltaz_layer->Fill(layer, dz);
-        if(h_entries)
-        {
-          auto phi = cluster_phi;
-          while( phi < m_phimin ) phi += 2.*M_PI;
-          while( phi >= m_phimax ) phi -= 2.*M_PI;
-          h_entries->Fill( phi, cluster_r, cluster_z );
-        }
-      }
-
-//       // check against limits
-//       if( std::abs( drp ) > m_max_drphi ) continue;
-//       if( std::abs( dz ) > m_max_dz ) continue;
-
+	{
+	  const float r = get_r( pcaproj.x(), pcaproj.y() );
+	  if(h_dca_layer) h_dca_layer->Fill(r, dca);
+	  if(h_deltarphi_layer) h_deltarphi_layer->Fill(r, drp);
+	  if(h_deltaz_layer) h_deltaz_layer->Fill(r, dz);
+	  if(h_entries)
+	    {
+	      auto phi = cluster_phi;
+	      while( phi < m_phimin ) phi += 2.*M_PI;
+	      while( phi >= m_phimax ) phi -= 2.*M_PI;
+	      h_entries->Fill( phi, cluster_r, cluster_z );
+	    }
+	  if(h_xy) h_xy->Fill(clus_centroid.x(), clus_centroid.y());
+	  if(h_xz) h_xz->Fill(clus_centroid.x(), clus_centroid.z());
+	  if(h_xy_pca) h_xy_pca->Fill(pcaproj.x(), pcaproj.y());
+	  if(h_xz_pca) h_xz_pca->Fill(pcaproj.x(), pcaproj.z());
+	  if(h_dca_path) h_dca_path->Fill(pathlength,dca);
+	  if(h_zr) h_zr->Fill(clus_centroid.z(), cluster_r);
+	  if(h_zr_pca) h_zr_pca->Fill(pcaproj.z(), r);
+	}
+      
+      //       // check against limits
+      //       if( std::abs( drp ) > m_max_drphi ) continue;
+      //       if( std::abs( dz ) > m_max_dz ) continue;
+      
       // residual errors squared
       const auto erp = square(cluster_rphi_error);
       const auto ez = square(cluster_z_error);
-
+      
       // sanity check
       if( std::isnan( erp ) )
-      {
-        std::cout << "TpcDirectLaserReconstruction::process_track - erp is nan" << std::endl;
-        continue;
-      }
-
+	{
+	  std::cout << "TpcDirectLaserReconstruction::process_track - erp is nan" << std::endl;
+	  continue;
+	}
+      
       if( std::isnan( ez ) )
-      {
-        std::cout << "TpcDirectLaserReconstruction::process_track - ez is nan" << std::endl;
-        continue;
-      }
-
+	{
+	  std::cout << "TpcDirectLaserReconstruction::process_track - ez is nan" << std::endl;
+	  continue;
+	}
+      
       // get cell
-      const auto i = get_cell_index( global );
+      const auto i = get_cell_index( clus_centroid );
       if( i < 0 )
-      {
-        if( Verbosity() )
-        {
-          std::cout << "TpcDirectLaserReconstruction::process_track - invalid cell index"
-            << " r: " << cluster_r
-            << " phi: " << cluster_phi
-            << " z: " << cluster_z
-            << std::endl;
-        }
-        continue;
-      }
-
+	{
+	  if( Verbosity() )
+	    {
+	      std::cout << "TpcDirectLaserReconstruction::process_track - invalid cell index"
+			<< " r: " << cluster_r
+			<< " phi: " << cluster_phi
+			<< " z: " << cluster_z
+			<< std::endl;
+	    }
+	  continue;
+	}
+      
       // update matrices
       // see https://indico.bnl.gov/event/7440/contributions/43328/attachments/31334/49446/talk.pdf for details
       m_matrix_container->add_to_lhs(i, 0, 0, 1./erp );
       m_matrix_container->add_to_lhs(i, 0, 1, 0 );
       m_matrix_container->add_to_lhs(i, 0, 2, talpha/erp );
-
+      
       m_matrix_container->add_to_lhs(i, 1, 0, 0 );
       m_matrix_container->add_to_lhs(i, 1, 1, 1./ez );
       m_matrix_container->add_to_lhs(i, 1, 2, tbeta/ez );
-
+      
       m_matrix_container->add_to_lhs(i, 2, 0, talpha/erp );
       m_matrix_container->add_to_lhs(i, 2, 1, tbeta/ez );
       m_matrix_container->add_to_lhs(i, 2, 2, square(talpha)/erp + square(tbeta)/ez );
-
+      
       m_matrix_container->add_to_rhs(i, 0, drp/erp );
       m_matrix_container->add_to_rhs(i, 1, dz/ez );
       m_matrix_container->add_to_rhs(i, 2, talpha*drp/erp + tbeta*dz/ez );
-
+      
       // update entries in cell
       m_matrix_container->add_to_entries(i);
-
+      
       // increment number of accepted clusters
-      ++m_accepted_clusters;
-
+      ++m_accepted_clusters;      
     }
-
-  }
-
 }
+
 
 //_____________________________________________________________________
 int TpcDirectLaserReconstruction::get_cell_index( const Acts::Vector3& global ) const

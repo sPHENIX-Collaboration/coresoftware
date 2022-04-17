@@ -26,6 +26,7 @@ class TFile;
 class TH1;
 class TH2;
 class TH3;
+class TH2;
 
 class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterface
 {
@@ -87,6 +88,8 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
+  float path_bin_length = 3.0; // cm
+
   ///@name selection parameters
   //@{
   // residual cuts in r, phi plane
@@ -147,6 +150,14 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// number of entries per cell
   TH3 *h_entries = nullptr;
+
+  TH2* h_xy = nullptr;
+  TH2* h_xz = nullptr;
+  TH2* h_xy_pca = nullptr;
+  TH2* h_xz_pca = nullptr;
+  TH2* h_dca_path = nullptr;
+  TH2* h_zr = nullptr;
+  TH2* h_zr_pca = nullptr;
 
   //@}
 

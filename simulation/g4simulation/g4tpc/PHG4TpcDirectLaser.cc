@@ -269,7 +269,9 @@ int PHG4TpcDirectLaser::process_event(PHCompositeNode* topNode)
   else
   {
     // use arbitrary direction
-    AimToThetaPhi(M_PI / 180. * 10., M_PI / 180. * 90);
+    //AimToThetaPhi(M_PI / 180. * -45., M_PI / 180. * -45.);
+    AimToThetaPhi(M_PI / 180. * -30., M_PI / 180. * -30.);
+    //AimToThetaPhi(M_PI / 180. * -50., M_PI / 180. * -50.);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
