@@ -8,7 +8,7 @@
 #include "TrkrCluster.h"
 #include "TrkrDefs.h"
 
-#include <cstdlib>
+#include <algorithm>
 
 namespace
 {
@@ -133,6 +133,17 @@ TrkrCluster* TrkrClusterContainerv3::findCluster(TrkrDefs::cluskey key) const
   } else {
     return nullptr;
   }
+}
+
+//_________________________________________________________________
+TrkrClusterContainer::HitSetKeyList TrkrClusterContainerv3::getHitSetKeys() const
+{
+  HitSetKeyList out;
+  out.reserve( m_clusmap.size() );
+  std::transform(
+    m_clusmap.begin(), m_clusmap.end(), std::back_inserter( out ),
+    []( const std::pair<TrkrDefs::hitsetkey, Map>& pair ) { return pair.first; } );
+  return out;  
 }
 
 //_________________________________________________________________
