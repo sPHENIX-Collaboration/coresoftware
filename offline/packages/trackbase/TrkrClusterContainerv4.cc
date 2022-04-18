@@ -174,6 +174,17 @@ TrkrCluster* TrkrClusterContainerv4::findCluster(TrkrDefs::cluskey key) const
 }
 
 //_________________________________________________________________
+TrkrClusterContainer::HitSetKeyList TrkrClusterContainerv4::getHitSetKeys() const
+{
+  HitSetKeyList out;
+  out.reserve( m_clusmap.size() );
+  std::transform(
+    m_clusmap.begin(), m_clusmap.end(), std::back_inserter( out ),
+    []( const std::pair<TrkrDefs::hitsetkey, Vector>& pair ) { return pair.first; } );
+  return out;  
+}
+
+//_________________________________________________________________
 unsigned int TrkrClusterContainerv4::size(void) const
 {
   unsigned int size = 0;
