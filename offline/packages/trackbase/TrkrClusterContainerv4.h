@@ -43,14 +43,19 @@ class TrkrClusterContainerv4 : public TrkrClusterContainer
 
   private:
 
-  //! convenient alias
+  /// convenient alias
   using Vector = std::vector<TrkrCluster*>;
 
-  //! the actual container
+  /// the actual container
   std::map<TrkrDefs::hitsetkey, Vector> m_clusmap;
 
-  // temporary map
-  Map m_tmpmap;
+  /// temporary map
+  /** 
+   * the map is transient. It must not be written to the output.
+   * To do this one adds //! after the declaration 
+   * see https://root.cern.ch/root/htmldoc/guides/users-guide/InputOutput.html for details
+   */
+  Map m_tmpmap; //! transient. The temporary map does not get written to the output
   
   ClassDefOverride(TrkrClusterContainerv4, 1)
 };
