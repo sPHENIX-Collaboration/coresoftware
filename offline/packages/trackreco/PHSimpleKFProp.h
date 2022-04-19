@@ -28,13 +28,10 @@ struct ActsSurfaceMaps;
 struct ActsTrackingGeometry;
 class PHCompositeNode;
 class PHField;
-class SvtxTrack;
-class SvtxTrack_v3;
 class TpcDistortionCorrectionContainer;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
-class SvtxTrackMap;
 
 using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
@@ -47,14 +44,12 @@ class PHSimpleKFProp : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
-  //void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
-  //void SetUseTruthClusters(bool setit){_use_truth_clusters = setit;}
+
   void set_field_dir(const double rescale)
   {
-    std::cout << "rescale: " << rescale << std::endl;
     _fieldDir = 1;
     if(rescale > 0)
-      _fieldDir = -1;
+      { _fieldDir = -1; }
   }
   void set_max_window(double s){_max_dist = s;}
   void useConstBField(bool opt){_use_const_field = opt;}
@@ -95,7 +90,7 @@ class PHSimpleKFProp : public SubsysReco
   double _xy_outlier_threshold = .1;
 
   TrkrClusterContainer *_cluster_map = nullptr;
-  SvtxTrackMap *_track_map = nullptr;
+  TrackSeedContainer* _track_map = nullptr;
   TrkrHitSetContainer *_hitsets = nullptr;
   PHField* _field_map = nullptr;
   
@@ -119,7 +114,7 @@ class PHSimpleKFProp : public SubsysReco
 
   void MoveToFirstTPCCluster(const PositionMap&);
 
-  std::vector<TrkrDefs::cluskey> PropagateTrack(SvtxTrack* track, const PositionMap& globalPositions) const;
+  std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, const PositionMap& globalPositions) const;
   std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(const std::vector<std::vector<TrkrDefs::cluskey>>& seeds, const PositionMap& globalPositions) const;
   template <typename T>
   struct KDPointCloud

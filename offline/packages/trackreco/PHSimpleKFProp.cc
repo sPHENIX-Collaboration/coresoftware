@@ -61,44 +61,6 @@ namespace
   // square
   template<class T> inline constexpr T square( const T& x ) { return x*x; }
 
-//   void line_fit(const std::vector<std::pair<double,double>>& points, double &a, double &b)
-//   {
-//     // copied from: https://www.bragitoff.com
-//     // we want to fit z vs radius
-//     
-//     double xsum=0,x2sum=0,ysum=0,xysum=0;                //variables for sums/sigma of xi,yi,xi^2,xiyi etc
-//     for( const auto& point:points )
-//     {
-//       double r = point.first;
-//       double z = point.second;
-//     
-//       xsum=xsum+r;                        //calculate sigma(xi)
-//       ysum=ysum+z;                        //calculate sigma(yi)
-//       x2sum=x2sum+square(r);                //calculate sigma(x^2i)
-//       xysum=xysum+r*z;                    //calculate sigma(xi*yi)
-//     }
-//     
-//     a=(points.size()*xysum-xsum*ysum)/(points.size()*x2sum-xsum*xsum);            //calculate slope
-//     b=(x2sum*ysum-xsum*xysum)/(x2sum*points.size()-xsum*xsum);            //calculate intercept
-//   
-//     return;
-//   }   
-
-//   void line_fit_clusters(const std::vector<TrkrCluster*>& clusters, double &a, double &b)
-//   {
-//     // convert to points
-//     std::vector<std::pair<double,double>> points;
-//     std::transform( clusters.begin(), clusters.end(), std::back_inserter( points ), []( TrkrCluster* cluster )
-//     { 
-//       double x = cluster->getX();
-//       double y = cluster->getY();
-//       double r = sqrt(square(x)+square(y));
-//       double z = cluster->getZ();
-//       return std::make_pair( r, z );
-//     } );
-//   
-//     line_fit(points, a, b);
-//   }
 
   void CircleFitByTaubin ( const std::vector<Acts::Vector3>& points, double &R, double &X0, double &Y0)
   /*  
@@ -247,25 +209,6 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   
   int ret = get_nodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-  
-  _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  if(!_surfmaps)
-    {
-      std::cout << "No Acts surface maps, exiting." << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  
-  _tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
-  if(!_tgeometry)
-    {
-      std::cout << "No Acts tracking geometry, exiting." << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-   
-  // tpc distortion correction
-  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
-  if( m_dcc )
-  { std::cout << "PHSimpleKFProp::InitRun - found TPC distortion correction container" << std::endl; }
 
   fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_fieldDir,
 				     _min_clusters_per_track,_max_sin_phi,Verbosity());
@@ -275,6 +218,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   fitter->setFixedClusterError(1,_fixed_clus_err.at(1));
   fitter->setFixedClusterError(2,_fixed_clus_err.at(2));
   _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -304,10 +248,10 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  _track_map = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackMap");
   if (!_track_map)
   {
-    std::cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap " << std::endl;
+    std::cerr << PHWHERE << " ERROR: Can't find TrackSeedContainer" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -326,6 +270,26 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
     std::cerr << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  
+  _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  if(!_surfmaps)
+    {
+      std::cout << "No Acts surface maps, exiting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
+  _tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  if(!_tgeometry)
+    {
+      std::cout << "No Acts tracking geometry, exiting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+   
+  // tpc distortion correction
+  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  if( m_dcc )
+  { std::cout << "PHSimpleKFProp::InitRun - found TPC distortion correction container" << std::endl; }
+
 
   for(int i=7;i<=54;i++)
   {
@@ -351,11 +315,12 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   MoveToFirstTPCCluster(globalPositions);
   if(Verbosity()>0) std::cout << "moved tracks into TPC" << std::endl;
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
-  std::vector<SvtxTrack> unused_tracks;
-  for(SvtxTrackMap::Iter track_it = _track_map->begin(); track_it != _track_map->end(); ++track_it )
+  std::vector<TrackSeed> unused_tracks;
+  for(TrackSeedContainer::Iter track_it = _track_map->begin(); 
+      track_it != _track_map->end(); ++track_it )
   {
     // if not a TPC track, ignore
-    SvtxTrack* track = track_it->second;
+    TrackSeed* track = *track_it;
     const bool is_tpc = std::any_of(
       track->begin_cluster_keys(),
       track->end_cluster_keys(),
@@ -467,7 +432,7 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
 
 void PHSimpleKFProp::MoveToFirstTPCCluster( const PositionMap& globalPositions )
 {
-  for(const auto& [key, track] : *_track_map)
+  for(const auto& seed : *_track_map)
   {
     double track_x = track->get_x();
     double track_y = track->get_y();
@@ -489,11 +454,10 @@ void PHSimpleKFProp::MoveToFirstTPCCluster( const PositionMap& globalPositions )
       }
 
       // get circle fit for TPC clusters plus vertex
-      double R = 0;
-      double xc = 0;
-      double yc = 0;
+      double R = 1. / fabs(track->get_qOverR());
+      double xc = track->get_X0();
+      double yc = track->get_Y0;
       
-      CircleFitByTaubin(trkGlobPos,R,xc,yc);
     // want angle of tangent to circle at innermost (i.e. last) cluster
       size_t inner_index;
       if(TrkrDefs::getLayer(ckeys[0])>TrkrDefs::getLayer(ckeys.back()))
@@ -532,7 +496,7 @@ void PHSimpleKFProp::MoveToFirstTPCCluster( const PositionMap& globalPositions )
 
 }
 
-std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, const PositionMap& globalPositions) const
+std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, const PositionMap& globalPositions) const
 {
   // extract cluster list
   std::vector<TrkrDefs::cluskey> ckeys;
@@ -551,14 +515,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
   kftrack.SetSignCosPhi(track_pX/track->get_pt());
   kftrack.SetSinPhi(track_pY/track->get_pt());
   kftrack.SetDzDs(-track->get_pz()/track->get_pt());
-  Eigen::Matrix<double,6,6> xyzCov;
-  for(int i=0;i<6;i++)
-  {
-     for(int j=0;j<6;j++)
-     {
-       xyzCov(i,j) = track->get_error(i,j);
-     }
-  }
+ 
   // Y = y
   // Z = z
   // SinPhi = py/sqrt(px^2+py^2)
@@ -571,57 +528,6 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(SvtxTrack* track, 
   const double track_pt = std::sqrt( square( track_py ) + square( track_px ) );
   const double track_pt3 = std::pow( track_pt, 3. );
   
-  Eigen::Matrix<double,6,5> Jrot;
-  Jrot(0,0) = 0; // dY/dx
-  Jrot(1,0) = 1; // dY/dy
-  Jrot(2,0) = 0; // dY/dz
-  Jrot(3,0) = 0; // dY/dpx
-  Jrot(4,0) = 0; // dY/dpy
-  Jrot(5,0) = 0; // dY/dpz
-  
-  Jrot(0,1) = 0; // dZ/dx
-  Jrot(1,1) = 0; // dZ/dy
-  Jrot(2,1) = 1; // dZ/dz
-  Jrot(3,1) = 0; // dZ/dpx
-  Jrot(4,1) = 0; // dZ/dpy
-  Jrot(5,1) = 0; // dZ/dpz
-
-  Jrot(0,2) = 0; // dSinPhi/dx
-  Jrot(1,2) = 0; // dSinPhi/dy
-  Jrot(2,2) = 0; // dSinPhi/dz
-  Jrot(3,2) = -track_py*track_px/track_pt3; // dSinPhi/dpx
-  Jrot(4,2) = track_px*track_px/track_pt3; // dSinPhi/dpy
-  Jrot(5,2) = 0; // dSinPhi/dpz
-
-  Jrot(0,3) = 0; // dDzDs/dx
-  Jrot(1,3) = 0; // dDzDs/dy
-  Jrot(2,3) = 0; // dDzDs/dz
-  Jrot(3,3) = -track_px*track_pz/track_pt3; // dDzDs/dpx
-  Jrot(4,3) = -track_py*track_pz/track_pt3; // dDzDs/dpy
-  Jrot(5,3) = 1./track_pt; // dDzDs/dpz
-
-  Jrot(0,4) = 0; // dQPt/dx
-  Jrot(1,4) = 0; // dQPt/dy
-  Jrot(2,4) = 0; // dQPt/dz
-  Jrot(3,4) = -track_px/track_pt3; // dQPt/dpx
-  Jrot(4,4) = -track_py/track_pt3; // dQPt/dpy
-  Jrot(5,4) = 0; // dQPt/dpz
-
-  Eigen::Matrix<double,5,5> kfCov = Jrot.transpose()*xyzCov*Jrot;
-
-  int ctr = 0;
-  for(int i=0;i<5;i++)
-  {
-    for(int j=0;j<5;j++)
-    {
-      if(i>=j)
-      {
-        kftrack.SetCov(ctr,kfCov(i,j));
-        ctr++;
-      }
-    }
-  }
-
   std::vector<TrkrDefs::cluskey> propagated_track;
 
   // setup ALICE track model on first cluster
