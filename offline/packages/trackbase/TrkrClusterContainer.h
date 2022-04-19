@@ -68,6 +68,14 @@ class TrkrClusterContainer : public PHObject
   virtual HitSetKeyList getHitSetKeys() const 
   { return HitSetKeyList(); }
 
+  //! get hitset key list for a given detector
+  virtual HitSetKeyList getHitSetKeys(const TrkrDefs::TrkrId) const 
+  { return HitSetKeyList(); }
+
+  //! get hitset key list for a given detector and layer
+  virtual HitSetKeyList getHitSetKeys(const TrkrDefs::TrkrId, const uint8_t /* layer */ ) const 
+  { return HitSetKeyList(); }
+
   //! total number of clusters
   virtual unsigned int size() const { return 0; }
 
