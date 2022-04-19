@@ -364,8 +364,8 @@ int PHCASeeding::FindSeedsWithMerger(const PositionMap& globalPositions)
   std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> links = CreateLinks(fromPointKey(allClusters), globalPositions);
   std::vector<std::vector<keylink>> biLinks = FindBiLinks(links.first,links.second);
   std::vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks,globalPositions);
-  std::vector<keylist> cleanSeedKeyLists = RemoveBadClusters(trackSeedKeyLists, globalPositions);
-  std::vector<TrackSeed> seeds = fitter->ALICEKalmanFilter(cleanSeedKeyLists,true, globalPositions);
+  std::vector<TrackSeed> seeds = RemoveBadClusters(trackSeedKeyLists, globalPositions);
+
   publishSeeds(seeds);
   return seeds.size();
 }
@@ -720,15 +720,17 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
   return trackSeedKeyLists;
 }
 
-std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
+std::vector<TrackSeed> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
 {
   if(Verbosity()>0) std::cout << "removing bad clusters" << std::endl;
-  std::vector<keylist> clean_chains;
+  std::vector<TrackSeed> clean_chains;
 
   for(const auto& chain : chains)
   {
     if(chain.size()<3) continue;
     keylist clean_chain;
+
+    TrackSeed_v1 trackseed;
 
     std::vector<std::pair<double,double>> xy_pts;
 //     std::vector<std::pair<double,double>> rz_pts;
@@ -766,10 +768,10 @@ std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& 
     for(size_t i=0;i<chain.size();i++)
     {
       if(xy_resid[i]>_xy_outlier_threshold) continue;
-      clean_chain.push_back(chain[i]);
+      trackseed.insert_cluster_key(chain.at(i));
     }
 
-    clean_chains.push_back(clean_chain);
+    clean_chains.push_back(trackseed);
     if(Verbosity()>0) std::cout << "pushed clean chain with " << clean_chain.size() << " clusters" << std::endl;
   }
   return clean_chains;

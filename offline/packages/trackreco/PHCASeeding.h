@@ -119,7 +119,7 @@ class PHCASeeding : public PHTrackSeeding
   std::vector<std::vector<keylink>> FindBiLinks(const std::vector<std::unordered_set<keylink>>& belowLinks, const std::vector<std::unordered_set<keylink>>& aboveLinks) const;
   std::vector<keylist> FollowBiLinks(const std::vector<std::vector<keylink>>& bidirectionalLinks, const PositionMap& globalPositions) const;
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values) const;
-  std::vector<keylist> RemoveBadClusters(const std::vector<keylist>& seeds, const PositionMap& globalPositions) const;
+  std::vector<TrackSeed> RemoveBadClusters(const std::vector<keylist>& seeds, const PositionMap& globalPositions) const;
   
   void publishSeeds(const std::vector<TrackSeed>& seeds);
 
