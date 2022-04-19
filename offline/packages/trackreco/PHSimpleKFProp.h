@@ -32,6 +32,8 @@ class TpcDistortionCorrectionContainer;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
+class TrackSeedContainer;
+class TrackSeed;
 
 using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
@@ -110,11 +112,12 @@ class PHSimpleKFProp : public SubsysReco
    */
   Acts::Vector3 getGlobalPosition(TrkrCluster*) const;
 
+  std::vector<std::vector<TrkrDefs::cluskey>> getKeyList();
   PositionMap PrepareKDTrees();
 
   void MoveToFirstTPCCluster(const PositionMap&);
 
-  std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, const PositionMap& globalPositions) const;
+  std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, GPUTPCTrackParam& kftrack, const PositionMap& globalPositions) const;
   std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(const std::vector<std::vector<TrkrDefs::cluskey>>& seeds, const PositionMap& globalPositions) const;
   template <typename T>
   struct KDPointCloud
@@ -151,8 +154,10 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z) const;
-  void publishSeeds(const std::vector<SvtxTrack_v3>&);
-  void publishSeeds(const std::vector<SvtxTrack>&);
+  void publishSeeds(const std::vector<std::vector<TrkrDefs::cluskey>>& chains,
+		    const std::vector<GPUTPCTrackParam>& seeds,
+		    const PositionMap& globalPositions);
+  void publishSeeds(const std::vector<TrackSeed>&);
 //   void MoveToVertex();
 
   bool _use_const_field = false;

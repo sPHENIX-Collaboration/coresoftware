@@ -1,8 +1,5 @@
 #include "PHSiliconTruthTrackSeeding.h"
 
-
-#include "AssocInfoContainer.h"
-
 #include <trackbase_historic/TrackSeed.h>     
 #include <trackbase_historic/TrackSeedContainer.h>  
 #include <trackbase_historic/TrackSeed_FastSim_v1.h>

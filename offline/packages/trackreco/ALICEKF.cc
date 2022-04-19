@@ -1,7 +1,6 @@
 #include "ALICEKF.h"
 
 #include "GPUTPCTrackLinearisation.h"
-#include "GPUTPCTrackParam.h"
 
 #include <trackbase/TrkrCluster.h>
 #include <Geant4/G4SystemOfUnits.hh>
@@ -90,11 +89,11 @@ double ALICEKF::getClusterError(TrkrCluster* c, Acts::Vector3 global, int i, int
     }
 }
 
-std::vector<TrackSeed> ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& trackSeedKeyLists,bool use_nhits_limit, const PositionMap& globalPositions) const
+std::vector<GPUTPCTrackParam> ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& trackSeedKeyLists,bool use_nhits_limit, const PositionMap& globalPositions) const
 {
 //  TFile* f = new TFile("/sphenix/u/mjpeters/macros_hybrid/detectors/sPHENIX/pull.root", "RECREATE");
 //  TNtuple* ntp = new TNtuple("pull","pull","cx:cy:cz:xerr:yerr:zerr:tx:ty:tz:layer:xsize:ysize:phisize:phierr:zsize");
-  std::vector<TrackSeed> seeds_vector;
+  std::vector<GPUTPCTrackParam> seeds_vector;
   int nseeds = 0;
  
   if(Verbosity()>0) std::cout << "min clusters per track: " << _min_clusters_per_track << "\n";
@@ -334,115 +333,9 @@ std::vector<TrackSeed> ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tr
   }
 //    if(aborted) continue;
     if(Verbosity()>0) std::cout << "finished track\n";
-/*
-    // transport to beamline
-//    float old_phi = atan2(y,x);
-    float trackX = trackSeed.GetX();
-    for(int i=99;i>=0;i--)
-    {
-      if(!trackSeed.TransportToX(i/100.*trackX,trackLine,_Bz,_max_sin_phi))
-      {
-        LogWarning("Transport failed! Aborting for this seed...\n");
-        aborted = true;
-        break;
-      }
-//      float new_phi = atan2(trackSeed.GetX()*sin(old_phi)+trackSeed.GetY()*cos(old_phi),trackSeed.GetX()*cos(old_phi)-trackSeed.GetY()*sin(old_phi));
-//      if(!trackSeed.Rotate(new_phi-old_phi,trackLine,_max_sin_phi))
-//      {
-//        LogWarning("Rotate failed! Aborting for this seed...\n");
-//        aborted = true;
-//        break;
-//      }
-//      old_phi = new_phi;
-    }
-    if(aborted) continue;
-    std::cout << "transported to beamline\n";
-    // find nearest vertex
-    double beamline_X = trackSeed.GetX();
-    double beamline_Y = trackSeed.GetY();
-*/
+
     double track_phi = atan2(y,x);
-/*
-    double beamline_x = beamline_X*cos(track_phi)-beamline_Y*sin(track_phi);
-    double beamline_y = beamline_X*sin(track_phi)+beamline_Y*cos(track_phi);
-    double beamline_z = trackSeed.GetZ();
-    double min_dist = 1e9;
-    int best_vtx = -1;
-    for(int i=0;i<_vertex_x.size();++i)
-    {
-      double delta_x = beamline_x-_vertex_x[i];
-      double delta_y = beamline_y-_vertex_y[i];
-      double delta_z = beamline_z-_vertex_z[i];
-      double dist = sqrt(delta_x*delta_x+delta_y*delta_y+delta_z*delta_z);
-      if(dist<min_dist)
-      {
-        min_dist = dist;
-        best_vtx = i;
-      }
-    }
-    std::cout << "best vtx:\n";
-    std::cout << "("<<_vertex_x[best_vtx]<<","<<_vertex_y[best_vtx]<<","<<_vertex_z[best_vtx]<<")\n";
-    // Fit to vertex point
-    double vertex_phi = atan2(_vertex_y[best_vtx],_vertex_x[best_vtx]);
-    std::cout << "vertex_phi: " << vertex_phi << "\n";
-    std::cout << "track_phi: " << track_phi << "\n";
-//    double alpha = vertex_phi - track_phi;
-    // Here's where we need to be careful about the vertex position.
-    // Most clusters are at roughly the same spatial phi, with only a little rotation required between them.
-    // This is no longer guaranteed for the vertex - its phi could be anywhere,
-    // including on the opposite side of the origin.
-    // If it ends up on the opposite side, then we need to transport to *negative* radius in order to get close to it.
-    // We will simplify this condition to abs(alpha)>pi/2, which assumes that (innermost TPC cluster R) >> (vertex R).
 
-    bool crosses_origin = false;
-    if(alpha<-M_PI/4)
-    {
-      while(alpha<-M_PI/4) alpha += M_PI/2;
-      crosses_origin = true;
-    }
-    if(alpha>M_PI/4)
-    {
-      while(alpha>M_PI/4) alpha -= M_PI/2;
-      crosses_origin = true;
-    }
-    if(crosses_origin) std::cout << "bad\n";
-    std::cout << "alpha: " << alpha << "\n";
-
-    if(!trackSeed.Rotate(alpha,trackLine,_max_sin_phi))
-    {
-      LogWarning("Rotate failed! Aborting for this seed...\n");
-      aborted = true;
-      continue;
-    }
-    LogDebug("ALICE coordinates after rotation: (" << trackSeed.GetX() << ", " << trackSeed.GetY() << ", " << trackSeed.GetZ() << ")\n");
-    std::cout << "rotated to vertex\n";
-
-    double vertex_X = sqrt(_vertex_x[best_vtx]*_vertex_x[best_vtx]+_vertex_y[best_vtx]*_vertex_y[best_vtx]);
-    if(crosses_origin) vertex_X = -vertex_X;
-    if(!trackSeed.TransportToX(vertex_X,trackLine,_Bz,_max_sin_phi))
-    {
-      LogWarning("Transport failed! Aborting for this seed...\n");
-      aborted = true;
-      continue;
-    }
-    LogDebug("Track transported to (x,y,z) = (" << trackSeed.GetX()*cos(vertex_phi)-trackSeed.GetY()*sin(vertex_phi) << "," << trackSeed.GetX()*sin(vertex_phi)+trackSeed.GetY()*cos(vertex_phi) << "," << trackSeed.GetZ() << ")" << std::endl);
-    LogDebug("Next cluster is at (x,y,z) = (" << _vertex_x[best_vtx] << "," << _vertex_y[best_vtx] << "," << _vertex_z[best_vtx] << ")" << std::endl);
-
-    double vertex_Y = -_vertex_x[best_vtx]*sin(vertex_phi)+_vertex_y[best_vtx]*cos(vertex_phi);
-    std::cout << "vertex Y: " << vertex_Y << "\n";
-    std::cout << "transported to vertex\n";
-    double vertex_Yerr = -_vertex_xerr[best_vtx]*sin(vertex_phi)+_vertex_yerr[best_vtx]*cos(vertex_phi);
-    std::cout << "vertex Y err: " << vertex_Yerr << "\n";
-
-    if(!trackSeed.Filter(vertex_Y,_vertex_z[best_vtx],vertex_Yerr*vertex_Yerr,_vertex_zerr[best_vtx]*_vertex_zerr[best_vtx],_max_sin_phi))
-    {
-      std::cout << "filter failed\n";
-      if (Verbosity() >= 1)
-        LogError("Kalman filter failed for seed " << nseeds << "! Aborting for this seed..." << std::endl);
-      aborted = true;
-      continue;
-    }
-*/
     double track_pt = fabs(1./trackSeed.GetQPt());
     #if defined(_DEBUG_)
     double track_pY = track_pt*trackSeed.GetSinPhi();
@@ -495,6 +388,10 @@ std::vector<TrackSeed> ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tr
     if(checknan(track_curvature,"curvature",nseeds)) continue;
     double track_curverr = sqrt(trackSeed.GetErr2QPt())*_Bzconst*get_Bz(track_x,track_y,track_z);
     if(checknan(track_curverr,"curvature error",nseeds)) continue;
+
+    /// fill container
+    seeds_vector.push_back(trackSeed);
+    /*
     TrackSeed_v1 track;
 
     for (unsigned int j = 0; j < trackKeyChain.size(); ++j)
@@ -536,8 +433,7 @@ std::vector<TrackSeed> ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tr
       if(checknan(cov[i],"covariance element "+std::to_string(i),nseeds)) cov_nan = true;
     }
     if(cov_nan) continue;
- 
-    seeds_vector.push_back(track);
+ */
     ++nseeds;
   }
 //  f->cd();

@@ -8,6 +8,8 @@
 #include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
 
+#include "GPUTPCTrackParam.h"
+
 #include <Acts/Definitions/Algebra.hpp>
 
 #include <Eigen/Core>
@@ -36,7 +38,7 @@ class ALICEKF
     _v = verbosity;
     _min_clusters_per_track = min_clusters;
   }
-  std::vector<TrackSeed> ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions) const;
+  std::vector<GPUTPCTrackParam> ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions) const;
 
   bool checknan(double val, const std::string &msg, int num) const;
   double get_Bz(double x, double y, double z) const;
@@ -48,6 +50,9 @@ class ALICEKF
   void line_fit(const std::vector<std::pair<double,double>>& pts, double& a, double& b) const;
   std::vector<double> GetCircleClusterResiduals(const std::vector<std::pair<double,double>>& pts, double R, double X0, double Y0) const;
   std::vector<double> GetLineClusterResiduals(const std::vector<std::pair<double,double>>& pts, double A, double B) const; 
+
+  double get_Bzconst() const { return _Bzconst; }
+
   private:
   PHField* _B = nullptr;
   size_t _min_clusters_per_track = 20;
