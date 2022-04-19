@@ -25,6 +25,8 @@
 #include <trackbase/CMFlashClusterContainerv1.h>
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 

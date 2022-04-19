@@ -16,6 +16,7 @@ class PHCompositeNode;
 class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
+class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class CMFlashClusterContainer;
 class  PHG4CylinderCellGeomContainer;
