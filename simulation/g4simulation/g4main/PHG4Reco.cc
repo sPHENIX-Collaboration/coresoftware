@@ -733,8 +733,7 @@ void PHG4Reco::G4Seed(const unsigned int i)
 {
   CLHEP::HepRandom::setTheSeed(i);
 
-
-  if (PHRandomSeed::Verbosity())
+  if (PHRandomSeed::Verbosity()>=2)
   {
     G4Random::showEngineStatus();
   }
