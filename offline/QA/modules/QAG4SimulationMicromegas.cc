@@ -257,10 +257,7 @@ int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
 
   m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!m_hitsets)
-  {
-    std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+  { std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl; }
 
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_cluster_map)
@@ -296,6 +293,9 @@ int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
 //________________________________________________________________________
 void QAG4SimulationMicromegas::evaluate_hits()
 {
+  // do nothing if hitsets are not there
+  if( !m_hitsets ) return;
+  
   // histogram manager
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -376,12 +376,8 @@ void QAG4SimulationMicromegas::evaluate_clusters()
   ActsTransformations transformer;
 
   // loop over hitsets
-  const auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::micromegasId);
-  for (auto hitsetiter = hitsetrange.first; hitsetiter != hitsetrange.second; ++hitsetiter)
+  for(const auto& hitsetkey:m_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::micromegasId))
   {
-    // get hitsetkey, layer and tileid
-    const auto hitsetkey = hitsetiter->first;
-
     // get layer
     const auto layer = TrkrDefs::getLayer(hitsetkey);
 
