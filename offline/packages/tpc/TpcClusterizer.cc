@@ -482,7 +482,7 @@ namespace
 	    clus->setActsLocalError(1,0, 0);
 	    clus->setActsLocalError(0,1, 0);
 	    clus->setActsLocalError(1,1, z_err_square);
-	    my_data.cluster_vector.push_back(clus);
+	    my_data.cluster_vector->push_back(clus);
 	  }else if(my_data.cluster_version==4){
 	    auto clus = new TrkrClusterv4;
 	    //auto clus = std::make_unique<TrkrClusterv3>();
@@ -703,7 +703,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   }
 
   // get node for clusters
-  m_clusterlist = findNode::getClass<TrkrClusterContainerv3>(topNode, "TRKR_CLUSTER");
+  m_clusterlist = findNode::getClass<TrkrClusterContainerv4>(topNode, "TRKR_CLUSTER");
   if (!m_clusterlist)
   {
     std::cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER." << std::endl;
