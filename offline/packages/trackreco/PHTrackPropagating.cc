@@ -5,7 +5,6 @@
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -20,13 +19,7 @@ using namespace std;
 
 PHTrackPropagating::PHTrackPropagating(const std::string& name)
   : SubsysReco(name)
-  , _cluster_map(nullptr)
-  , _hitsets(nullptr)
-  , _vertex_map(nullptr)
-  , _track_map(nullptr)
-  , _track_map_name("SvtxTrackMap")
-{
-}
+{}
 
 int PHTrackPropagating::InitRun(PHCompositeNode* topNode)
 {
@@ -68,14 +61,6 @@ int PHTrackPropagating::GetNodes(PHCompositeNode* topNode)
     cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
-  _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if(!_hitsets)
-    {
-      cerr << PHWHERE << "No hitset container on node tree. Bailing."
-		<< endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
 
   _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!_vertex_map)

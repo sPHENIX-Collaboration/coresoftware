@@ -17,7 +17,6 @@ class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
 class TrkrClusterHitAssoc;
-class TrkrHitSetContainer;
 class CMFlashClusterContainer;
 class  PHG4CylinderCellGeomContainer;
 
@@ -63,8 +62,6 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
 
   TrkrClusterContainer *_cluster_map{nullptr};
   CMFlashClusterContainer *_corrected_CMcluster_map{nullptr};
-  TrkrClusterHitAssoc *_cluster_hit_map{nullptr};
-  TrkrHitSetContainer *_hitset_map{nullptr};
   PHG4CylinderCellGeomContainer *_geom_container{nullptr};
  TpcDistortionCorrectionContainer* _dcc{nullptr};
 

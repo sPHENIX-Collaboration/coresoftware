@@ -433,32 +433,27 @@ void TrackEvaluation::evaluate_event()
 
   // create event struct
   TrackEvaluationContainerv1::EventStruct event;
-  if( m_hitsetcontainer )
+  if(m_cluster_map)
   {
-    // loop over hitsets
-    for(const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
+    for(const auto& hitsetkey:m_cluster_map->getHitSetKeys())
     {
       const auto trkrId = TrkrDefs::getTrkrId(hitsetkey);
       const auto layer = TrkrDefs::getLayer(hitsetkey);
       assert(layer<TrackEvaluationContainerv1::EventStruct::max_layer);
 
-      if(m_cluster_map)
+      // fill cluster related information
+      const auto clusters = m_cluster_map->getClusters(hitsetkey);
+      const int nclusters = std::distance( clusters.first, clusters.second );
+      
+      switch( trkrId )
       {
-
-        // fill cluster related information
-        const auto clusters = m_cluster_map->getClusters(hitsetkey);
-        const int nclusters = std::distance( clusters.first, clusters.second );
-
-        switch( trkrId )
-        {
-          case TrkrDefs::mvtxId: event.nclusters_mvtx += nclusters; break;
-          case TrkrDefs::inttId: event.nclusters_intt += nclusters; break;
-          case TrkrDefs::tpcId: event.nclusters_tpc += nclusters; break;
-          case TrkrDefs::micromegasId: event.nclusters_micromegas += nclusters; break;
-        }
-
-        event.nclusters[layer] += nclusters;
+        case TrkrDefs::mvtxId: event.nclusters_mvtx += nclusters; break;
+        case TrkrDefs::inttId: event.nclusters_intt += nclusters; break;
+        case TrkrDefs::tpcId: event.nclusters_tpc += nclusters; break;
+        case TrkrDefs::micromegasId: event.nclusters_micromegas += nclusters; break;
       }
+      
+      event.nclusters[layer] += nclusters;
     }
   }
 
@@ -476,7 +471,7 @@ void TrackEvaluation::evaluate_clusters()
   m_container->clearClusters();
 
   // first loop over hitsets
-  for( const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
+  for( const auto& hitsetkey:m_cluster_map->getHitSetKeys())
   {
     for( const auto& [key,cluster]:range_adaptor(m_cluster_map->getClusters(hitsetkey)))
     {
