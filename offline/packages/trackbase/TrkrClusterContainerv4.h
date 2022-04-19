@@ -40,6 +40,10 @@ class TrkrClusterContainerv4 : public TrkrClusterContainer
   TrkrCluster* findCluster(TrkrDefs::cluskey) const override;
 
   HitSetKeyList getHitSetKeys() const override;
+ 
+  HitSetKeyList getHitSetKeys(const TrkrDefs::TrkrId) const override;
+ 
+  HitSetKeyList getHitSetKeys(const TrkrDefs::TrkrId, const uint8_t /* layer */ ) const override;
 
   unsigned int size(void) const override;
 
