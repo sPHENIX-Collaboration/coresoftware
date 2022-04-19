@@ -7,8 +7,6 @@
 
 #include "PHGenFitTrkProp.h"
 
-#include "AssocInfoContainer.h"
-
 #include <trackbase/TrkrCluster.h>                      // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>                         // for cluskey, getL...
@@ -377,7 +375,7 @@ int PHGenFitTrkProp::check_track_exists(MapPHGenFitTrack::iterator iter, SvtxTra
     if(_gftrk_hitkey_map.count(iCluId)>0) n_clu_used++;
     if (Verbosity() >= 10){
       cout << " trk map size: " << _gftrk_hitkey_map.count(iCluId) << endl;
-      cout << "n: " << n << "#Clu_g = " << iCluId << " ntrack match: "  << _assoc_container->GetTracksFromCluster(cluster_ID).size()
+      cout << "n: " << n << "#Clu_g = " << iCluId 
 	   << " layer: " << (float)TrkrDefs::getLayer(cluster_ID)
 	   << " r: " << sqrt(_cluster_map->findCluster(cluster_ID)->getX()*_cluster_map->findCluster(cluster_ID)->getX() +_cluster_map->findCluster(cluster_ID)->getY()*_cluster_map->findCluster(cluster_ID)->getY() )
 	   << " used: " << n_clu_used
@@ -765,13 +763,6 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
     }
   }
   
-  // Add the cluster-track association to the association table for later use
-  for (TrkrDefs::cluskey cluster_key : gftrk_iter->second->get_cluster_keys())
-    {
-      //cout << "Add cluster key " << cluster_key << " to ClusterTrackAssoc " << track->get_id() << endl;
-      _assoc_container->SetClusterTrackAssoc(cluster_key, track->get_id());
-    }
-
   if (Verbosity() > 10)
     {
       cout << "Output propagared track " << track->get_id() << " vertex " << track->get_vertex_id()<< " quality = " << track->get_quality()

@@ -21,7 +21,6 @@ class TrkrHitTruthAssoc;
 class PHG4TruthInfoContainer;
 class PHG4HitContainer;
 class PHG4Particle;
-class AssocInfoContainer;
 class TpcSeedTrackMap;
 class TrkrClusterCrossingAssoc;
 
@@ -73,7 +72,6 @@ class PHTruthSiliconAssociation : public SubsysReco
   TrkrClusterHitAssoc *_cluster_hit_map{nullptr};
   TrkrHitTruthAssoc *_hit_truth_map{nullptr};
   SvtxTrackMap *_track_map{nullptr};
-  AssocInfoContainer *_assoc_container{nullptr};
   SvtxTrack *_tracklet{nullptr};
   SvtxVertexMap * _vertex_map{nullptr};
   TpcSeedTrackMap *_seed_track_map{nullptr};

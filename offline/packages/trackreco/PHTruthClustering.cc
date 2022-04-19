@@ -199,10 +199,8 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
 
 	  if(trkrId == TrkrDefs::tpcId)
 	    {
-	      // add the filled out cluster to the truth cluster node for the TPC (and MM's)
-	      TrkrClusterContainer::ConstIterator iter = m_clusterlist->addCluster(gclus);
-	      if(iter->first != ckey)
-		std::cout << PHWHERE << " -------  Problem:  ckey = " << ckey<< " returned key " << iter->first << std::endl;
+        // add the filled out cluster to the truth cluster node for the TPC (and MM's)
+        m_clusterlist->addCluster(gclus);
 	    }
 	}
     }
@@ -228,9 +226,7 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
 	  cluster->identify();
 	}
       
-      TrkrClusterContainer::ConstIterator iter = m_clusterlist->addCluster(cluster);    
-      if(iter->first != cluskey)
-	std::cout << PHWHERE << " -------  Problem:  cluskey = " << cluskey<< " returned key " << iter->first << std::endl;
+       m_clusterlist->addCluster(cluster);    
     }
   }
 

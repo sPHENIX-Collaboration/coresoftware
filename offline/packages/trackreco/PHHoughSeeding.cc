@@ -7,8 +7,6 @@
 
 #include "PHHoughSeeding.h"
 
-#include "AssocInfoContainer.h"                         // for AssocInfoCont...
-
 // Helix Hough includes
 #include <HelixHough/HelixKalmanState.h>                // for HelixKalmanState
 #include <HelixHough/HelixRange.h>
@@ -1662,7 +1660,6 @@ int PHHoughSeeding::export_output()
 	      
 	      //mark hits as used by iteration number n
 	      //_hit_used_map[track_hits.at(ihit).get_id()] = _n_iteration;
-	      _assoc_container->SetClusterTrackAssoc(clusterkey, track.get_id());
 	      
 #ifdef _DEBUG_
 	      TrkrCluster* cluster = _cluster_map->findCluster(clusterkey);

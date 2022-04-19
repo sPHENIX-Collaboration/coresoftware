@@ -22,7 +22,6 @@ class PHCompositeNode;
 
 class SvtxVertexMap;
 class SvtxTrackMap;
-class AssocInfoContainer;
 
 /// \class PH3DVertexing
 ///
@@ -55,7 +54,6 @@ class PH3DVertexing : public SubsysReco
 
   SvtxVertexMap *_vertex_map;
   SvtxTrackMap *_track_map;
-  AssocInfoContainer *_assoc_container;
 
  private:
   /// fetch node pointers

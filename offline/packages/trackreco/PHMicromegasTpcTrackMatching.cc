@@ -1,6 +1,5 @@
 #include "PHMicromegasTpcTrackMatching.h"
 
-#include "AssocInfoContainer.h"
 //#include "PHTrackPropagating.h"     // for PHTrackPropagating
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -10,6 +9,7 @@
 
 /// Tracking includes
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
+#include <trackbase/TrkrClusterv3.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
@@ -531,7 +531,6 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         if( std::abs(drphi) < _rphi_search_win[imm] && std::abs(dz) < _z_search_win[imm] )
         {
           tracklet_tpc->insert_cluster_key(key);
-          _assoc_container->SetClusterTrackAssoc(key, tracklet_tpc->get_id());
 
           // prints out a line that can be grep-ed from the output file to feed to a display macro
           if( _test_windows )
@@ -630,13 +629,6 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
-  if (!_assoc_container)
-  {
-    std::cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
   // micromegas geometry
   _geomContainerMicromegas = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );
   if(!_geomContainerMicromegas)
@@ -650,29 +642,34 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 
 void PHMicromegasTpcTrackMatching::copyMicromegasClustersToCorrectedMap( )
 {
-  // loop over final track map, copy silicon clusters to corrected cluster map
-  for (auto phtrk_iter = _track_map->begin();
-       phtrk_iter != _track_map->end(); 
-       ++phtrk_iter)
+  // loop over final track map, copy micromegas clusters to corrected cluster map
+  for( auto track_iter = _track_map->begin(); track_iter != _track_map->end(); ++track_iter )
+  {    
+    SvtxTrack* track = track_iter->second;
+    // loop over associated clusters to get keys for micromegas cluster
+    for(auto iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
     {
-      SvtxTrack *track = phtrk_iter->second;
-
-      // loop over associated clusters to get keys for silicon cluster
-      for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-	   iter != track->end_cluster_keys();
-	   ++iter)
-	{
-	  TrkrDefs::cluskey cluster_key = *iter;
-   const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
-	  if(trkrid == TrkrDefs::micromegasId)
+      TrkrDefs::cluskey cluster_key = *iter;
+      const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
+      if(trkrid == TrkrDefs::micromegasId)
 	    {
-	      TrkrCluster *cluster =  _cluster_map->findCluster(cluster_key);	
-       if( !cluster ) continue;
-      
-       TrkrCluster *newclus = _corrected_cluster_map->findOrAddCluster(cluster_key)->second;
-       newclus->CopyFrom( cluster );
+
+        // check if clusters has not been inserted already
+        if( _corrected_cluster_map->findCluster( cluster_key ) ) continue;
+        
+        // get cluster from original map
+        auto cluster =  _cluster_map->findCluster(cluster_key);
+        if( !cluster ) continue;
+
+        // create a new cluster and copy from source
+        auto newclus = new TrkrClusterv3;
+        newclus->CopyFrom( cluster );
+
+        // insert in corrected map
+        _corrected_cluster_map->addCluster(newclus);
+
 	    }
-	}      
     }
+  }
 }
   

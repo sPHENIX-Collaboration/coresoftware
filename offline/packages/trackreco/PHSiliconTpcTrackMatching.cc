@@ -1,7 +1,5 @@
 #include "PHSiliconTpcTrackMatching.h"
 
-#include "AssocInfoContainer.h"
-
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
 #include <tpc/TpcDefs.h>
@@ -182,13 +180,6 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-   _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
-  if (!_assoc_container)
-  {
-    cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
   _track_map_silicon = findNode::getClass<SvtxTrackMap>(topNode, _silicon_track_map_name);
   if (!_track_map_silicon)
   {
@@ -363,9 +354,7 @@ void PHSiliconTpcTrackMatching::addSiliconClusters( std::multimap<unsigned int, 
 	  if(Verbosity() > 1) 
 	    cout << "   inserting si cluster key " << si_cluster_key << " into existing TPC track " << tpc_track->get_id() << endl;
 	  
-	  tpc_track->insert_cluster_key(si_cluster_key);
-	  _assoc_container->SetClusterTrackAssoc(si_cluster_key, tpc_track->get_id());
-	  
+	  tpc_track->insert_cluster_key(si_cluster_key);	  
 	}
 
       // update the track position to the si one
@@ -408,7 +397,6 @@ void PHSiliconTpcTrackMatching::addSiliconClusters( std::multimap<short int, std
 	    cout << "   inserting si cluster key " << si_cluster_key << " into existing TPC track " << tpc_track->get_id() << endl;
 	  
 	  tpc_track->insert_cluster_key(si_cluster_key);
-	  _assoc_container->SetClusterTrackAssoc(si_cluster_key, tpc_track->get_id());
 	  
 	}
 
@@ -631,7 +619,6 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	      if(trkrid == TrkrDefs::tpcId)
 		{
 		  newTrack->insert_cluster_key(cluster_key);
-		  _assoc_container->SetClusterTrackAssoc(cluster_key, newTrack->get_id());
 		}
 	    }
 	  
@@ -753,29 +740,31 @@ return;
 void PHSiliconTpcTrackMatching::copySiliconClustersToCorrectedMap( )
 {
   // loop over final track map, copy silicon clusters to corrected cluster map
-  for (auto phtrk_iter = _track_map->begin();
-       phtrk_iter != _track_map->end(); 
-       ++phtrk_iter)
+  for( auto track_iter = _track_map->begin(); track_iter != _track_map->end(); ++track_iter )
+  {
+    SvtxTrack* track = track_iter->second;
+    // loop over associated clusters to get keys for micromegas cluster
+    for(auto iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
     {
-      SvtxTrack *track = phtrk_iter->second;
-
-      // loop over associated clusters to get keys for silicon cluster
-      for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-	   iter != track->end_cluster_keys();
-	   ++iter)
-	{
-	  TrkrDefs::cluskey cluster_key = *iter;
-	  const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
-	  if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId)
-	    {
-	      TrkrCluster *cluster =  _cluster_map->findCluster(cluster_key);	
-	      if( !cluster ) continue;
+      TrkrDefs::cluskey cluster_key = *iter;
+      const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
+      if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId)
+      {
+        // check if clusters has not been inserted already
+        if( _corrected_cluster_map->findCluster( cluster_key ) ) continue;
+        
+        auto cluster =  _cluster_map->findCluster(cluster_key);	
+        if( !cluster ) continue;
 	      
-	      TrkrCluster *newclus = _corrected_cluster_map->findOrAddCluster(cluster_key)->second;
-	      newclus->CopyFrom( cluster );
-	    }
-	}      
-    }
+        // create a new cluster and copy from source
+        auto newclus = new TrkrClusterv3;
+        newclus->CopyFrom( cluster );
+
+        // insert in corrected map
+        _corrected_cluster_map->addCluster(newclus);
+      }
+    }      
+  }
 }
 
 // uses INTT time to get bunch crossing
@@ -1164,7 +1153,6 @@ void PHSiliconTpcTrackMatching::addSiliconClusters(  std::multimap<unsigned int,
 	    cout << "   inserting si cluster key " << si_cluster_key << " into existing TPC track " << tpc_track->get_id() << endl;
 	  
 	  tpc_track->insert_cluster_key(si_cluster_key);
-	  _assoc_container->SetClusterTrackAssoc(si_cluster_key, tpc_track->get_id());
 	  
 	}
   
