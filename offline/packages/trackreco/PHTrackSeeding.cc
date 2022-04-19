@@ -1,10 +1,9 @@
 #include "PHTrackSeeding.h"
 
-
-#include "AssocInfoContainerv1.h"
-
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedContainer_v1.h>
 
 #include <trackbase_historic/SvtxVertexMap.h>
 

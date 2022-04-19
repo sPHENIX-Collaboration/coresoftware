@@ -3,8 +3,8 @@
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
-#include <trackbase_historic/SvtxTrack_v3.h>
-#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <tpc/TpcDistortionCorrectionContainer.h>
@@ -40,6 +40,7 @@ namespace
   // radius
   template<class T> T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
 
+}
 
 //____________________________________________________________________________..
 PHTpcTrackSeedCircleFit::PHTpcTrackSeedCircleFit(const std::string &name):
@@ -79,7 +80,7 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode*)
 	{
 	  std::cout
 	    << __LINE__
-	    << ": Processing seed itrack: " << phtrk_iter->first
+	    << ": Processing seed itrack: " << track_key
 	    << ": nhits: " << tracklet_tpc-> size_cluster_keys()
 	    << ": pT: " << tracklet_tpc->get_pt()
 	    << ": phi: " << tracklet_tpc->get_phi()
@@ -94,9 +95,8 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode*)
 	}
       
       /// Start at layer 7
-      tracklet_tpc->lineFit(_cluster_map, _surfmaps, _tGeometry, 7);
-      tracklet_tpc->circleFitByTaubin(_cluster_map, _surfmaps, _tGeometry, 7);
-
+      tracklet_tpc->lineFit(_cluster_map, _surfmaps, _tGeometry, 7, 58);
+      tracklet_tpc->circleFitByTaubin(_cluster_map, _surfmaps, _tGeometry, 7, 58);
    
       if(Verbosity() > 5)
       {
