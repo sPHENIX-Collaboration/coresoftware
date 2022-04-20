@@ -27,7 +27,6 @@ class SvtxTrackMap;
 class SvtxVertexMap;
 class TrkrCluster;
 class TrkrClusterContainer;
-class TrkrHitSetContainer;
 class TrkrClusterIterationMapv1;
 
 /**
@@ -206,7 +205,6 @@ class PHActsSiliconSeeding : public SubsysReco
   ActsTrackingGeometry *m_tGeometry = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;
-  TrkrHitSetContainer  *m_hitsets = nullptr;
   PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
   ActsSurfaceMaps *m_surfMaps = nullptr;
   

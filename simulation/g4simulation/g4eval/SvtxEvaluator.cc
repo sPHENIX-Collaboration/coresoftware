@@ -10,6 +10,7 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
@@ -18,7 +19,6 @@
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 
@@ -359,15 +359,11 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode* topNode)
     if(!clustermap)
       clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     
-    TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-    
-    if (clustermap!=nullptr&&hitsets!=nullptr){
+    if (clustermap!=nullptr){
       unsigned int icluster = 0;
-      auto hitsetrange = hitsets->getHitSets(TrkrDefs::TrkrId::inttId);
-      for (auto hitsetitr = hitsetrange.first;
-	   hitsetitr != hitsetrange.second;
-	   ++hitsetitr){
-	auto range = clustermap->getClusters(hitsetitr->first);
+      for(const auto& hitsetkey:clustermap->getHitSetKeys())
+      {
+	auto range = clustermap->getClusters(hitsetkey);
 	for( auto iter = range.first; iter != range.second; ++iter ){
 	  TrkrDefs::cluskey cluster_key = iter->first;
 	  cout << icluster << " with key " << cluster_key << " of " << clustermap->size();
@@ -905,19 +901,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	   << " occ316 = " << occ316
 	   << endl;
     }
-  TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-
   TrkrClusterContainer* clustermap_in = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
   if(!clustermap_in)
     clustermap_in = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
 
   nclus_all = clustermap_in->size();
 
-  auto hitsetrange = hitsets->getHitSets(TrkrDefs::TrkrId::inttId);
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = clustermap_in->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:clustermap_in->getHitSetKeys())
+  {
+    auto range = clustermap_in->getClusters(hitsetkey);
     for( auto iter_cin = range.first; iter_cin != range.second; ++iter_cin ){
       TrkrDefs::cluskey cluster_key = iter_cin->first;
       unsigned int layer = TrkrDefs::getLayer(cluster_key);
@@ -1759,20 +1751,18 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	cout << "got clusterhitmap" << endl;
       else
 	cout << "no clusterhitmap" << endl;
-      
       if (hitsets != nullptr)
-	cout << "got hitsets" << endl;
+       cout << "got hitsets" << endl;
       else
-	cout << "no hitsets" << endl;
+       cout << "no hitsets" << endl;
+     
     }
 
-    if (clustermap != nullptr && clusterhitmap != nullptr && hitsets != nullptr){
-      auto hitsetrange = hitsets->getHitSets();
-      for (auto hitsetitr = hitsetrange.first;
-	   hitsetitr != hitsetrange.second;
-	   ++hitsetitr){
-	int hitsetlayer = TrkrDefs::getLayer(hitsetitr->first);
-	auto range = clustermap->getClusters(hitsetitr->first);
+    if (clustermap && clusterhitmap && hitsets ){
+      for(const auto& hitsetkey:clustermap->getHitSetKeys())
+      {
+        int hitsetlayer = TrkrDefs::getLayer(hitsetkey);
+	auto range = clustermap->getClusters(hitsetkey);
 	for( auto iter = range.first; iter != range.second; ++iter ){
 	  TrkrDefs::cluskey cluster_key = iter->first;
 	  TrkrCluster *cluster = clustermap->findCluster(cluster_key);

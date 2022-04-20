@@ -13,7 +13,6 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -318,12 +317,9 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
   {
     // loop over clusters
-    auto hitsetrange = m_hitsets->getHitSets();
-    for (auto hitsetitr = hitsetrange.first;
-         hitsetitr != hitsetrange.second;
-         ++hitsetitr)
+    for(const auto& hitsetkey:m_cluster_map->getHitSetKeys())
     {
-      auto range = m_cluster_map->getClusters(hitsetitr->first);
+      auto range = m_cluster_map->getClusters(hitsetkey);
       for (auto clusterIter = range.first; clusterIter != range.second; ++clusterIter)
       {
         // store cluster key
@@ -641,13 +637,6 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
 int QAG4SimulationTracking::load_nodes(PHCompositeNode *topNode)
 {
-  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (!m_hitsets)
-  {
-    std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
   m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!m_truthContainer)
   {

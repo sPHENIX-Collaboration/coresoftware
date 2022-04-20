@@ -12,7 +12,6 @@ class PHCompositeNode;
 class PHG4Hit;
 class PHG4HitContainer;
 class TrkrClusterContainer;
-class TrkrHitSetContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
 
@@ -48,9 +47,6 @@ class QAG4SimulationMvtx : public SubsysReco
 
   /// cluster map
   TrkrClusterContainer* m_cluster_map = nullptr;
-
-  /// hitsets
-  TrkrHitSetContainer* m_hitsets = nullptr;
 
   /// clusters to hit association
   TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;

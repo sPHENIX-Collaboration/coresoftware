@@ -8,8 +8,6 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>  // for TrkrClusterContainer
-#include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <phool/PHLog.h>
@@ -21,7 +19,7 @@
 
 namespace PHTpcTrackerUtil
 {
-  std::vector<std::vector<double> > convert_clusters_to_hits(TrkrClusterContainer* cluster_map, TrkrHitSetContainer* hitsets )
+  std::vector<std::vector<double> > convert_clusters_to_hits(TrkrClusterContainer* cluster_map)
   {
     //***** convert clusters to kdhits
     std::vector<std::vector<double> > kdhits;
@@ -30,12 +28,10 @@ namespace PHTpcTrackerUtil
       LOG_WARN("tracking.PHTpcTrackerUtil.convert_clusters_to_hits") << "cluster map is not provided";
       return kdhits;
     }
-    auto hitsetrange = hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
-    for (auto hitsetitr = hitsetrange.first;
-	 hitsetitr != hitsetrange.second;
-	 ++hitsetitr){
+    for(const auto& hitsetkey:cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
+    {
       std::string separator = "";
-      auto range = cluster_map->getClusters(hitsetitr->first);
+      auto range = cluster_map->getClusters(hitsetkey);
       for( auto it = range.first; it != range.second; ++it )
 	{
 	  // TrkrDefs::cluskey cluskey = it->first;

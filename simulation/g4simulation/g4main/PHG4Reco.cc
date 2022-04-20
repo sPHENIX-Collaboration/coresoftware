@@ -562,7 +562,12 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     std::cout << "PHG4Reco::InitRun - writing geometry to " << m_ExportGeomFilename << std::endl;
     PHGeomUtility::ExportGeomtry(topNode, m_ExportGeomFilename);
   }
-  
+
+  if (PHRandomSeed::Verbosity()>=2)
+  {
+    // at high verbosity, to save the random number to file
+    G4RunManager::GetRunManager()->SetRandomNumberStore(true);
+  }
   return 0;
 }
 
@@ -618,6 +623,11 @@ int PHG4Reco::InitUImanager()
 //_________________________________________________________________
 int PHG4Reco::process_event(PHCompositeNode *topNode)
 {
+  if (PHRandomSeed::Verbosity()>=2)
+  {
+    G4Random::showEngineStatus();
+  }
+
   // make sure Actions and subsystems have the relevant pointers set
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   m_GeneratorAction->SetInEvent(ineve);
@@ -722,6 +732,12 @@ void PHG4Reco::set_rapidity_coverage(const double eta)
 void PHG4Reco::G4Seed(const unsigned int i)
 {
   CLHEP::HepRandom::setTheSeed(i);
+
+  if (PHRandomSeed::Verbosity()>=2)
+  {
+    G4Random::showEngineStatus();
+  }
+
   return;
 }
 

@@ -17,7 +17,6 @@
 class PHCompositeNode;
 
 class TrkrClusterContainer;
-class TrkrHitSetContainer;
 class SvtxVertexMap;
 class SvtxTrackMap;
 
@@ -29,7 +28,7 @@ class PHTrackPropagating : public SubsysReco
 {
  public:
   PHTrackPropagating(const std::string &name = "PHTrackPropagating");
-  ~PHTrackPropagating() override {}
+  ~PHTrackPropagating() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -51,12 +50,11 @@ class PHTrackPropagating : public SubsysReco
 
 
   //SvtxClusterMap *_cluster_map;
-  TrkrClusterContainer *_cluster_map;
-  TrkrHitSetContainer  *_hitsets;
-  SvtxVertexMap *_vertex_map;
-  SvtxTrackMap *_track_map;
+  TrkrClusterContainer *_cluster_map = nullptr;
+  SvtxVertexMap *_vertex_map = nullptr;
+  SvtxTrackMap *_track_map = nullptr;
 
-  std::string _track_map_name;
+  std::string _track_map_name = "SvtxTrackMap";
 
   bool _use_truth_clusters = false;
 
