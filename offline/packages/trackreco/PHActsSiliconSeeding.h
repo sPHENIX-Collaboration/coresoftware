@@ -239,7 +239,7 @@ class PHActsSiliconSeeding : public SubsysReco
   std::string m_fieldMapName = "";
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
-  std::string _track_map_name = "SvtxSiliconTrackMap";
+  std::string _track_map_name = "SiliconTrackSeedContainer";
 
   bool m_seedAnalysis = false;
   TFile *m_file = nullptr;

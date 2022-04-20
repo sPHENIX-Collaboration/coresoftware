@@ -106,6 +106,7 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
       Acts::Vector3 globalPos = transformer.getGlobalPosition(
 			          clusters->findCluster(key),
 				  surfmaps, tGeometry);
+ 
       globalPositions.push_back(globalPos);
       meanX += globalPos(0);
       meanY += globalPos(1);
@@ -169,7 +170,8 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
   //  Update the circle fit parameters
   m_X0 = Xcenter + meanX;
   m_Y0 = Ycenter + meanY;
-  m_qOverR = 1. / sqrt(Xcenter*Xcenter + Ycenter*Ycenter + Mz);
+  float R = sqrt(Xcenter*Xcenter + Ycenter*Ycenter + Mz);
+  m_qOverR = 1. / R;
 
   /// Set the charge
   Acts::Vector3 firstpos = globalPositions.at(0);
@@ -180,7 +182,7 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
   float dphi = secondphi - firstphi;
   if(dphi > M_PI) dphi = 2.*M_PI - dphi;
   if(dphi < -M_PI) dphi = 2*M_PI + dphi;
-  if(dphi<0) m_qOverR *= -1;
+  if(dphi < 0) m_qOverR *= -1;
 
 }
 
@@ -256,7 +258,7 @@ void TrackSeed_v1::findRoot(float& x, float& y) const
     { y = miny; }
   else
     { y = miny2; }
-  
+
 }
 float TrackSeed_v1::findRoot(bool findX) const
 {
@@ -293,7 +295,15 @@ float TrackSeed_v1::get_phi() const
 {
   float x=NAN, y=NAN;
   findRoot(x,y);
-  return atan2(-1 * (m_X0-x), m_Y0-y);
+  float phi = atan2(-1* (m_X0-x), (m_Y0-y));
+  if(m_qOverR > 0)
+    {
+      phi += M_PI;
+      if(phi > M_PI)
+	{ phi -= 2. * M_PI; }
+    }
+
+  return phi;
 }
 
 float TrackSeed_v1::get_theta() const

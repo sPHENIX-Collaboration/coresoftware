@@ -260,15 +260,15 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  fitTimer->stop();
 	  fitTimer->restart();
 
-	  trackSeed->circleFitByTaubin(m_clusterMap, m_surfMaps, m_tGeometry);
-	  if(fabs(trackSeed->get_X0()) > m_maxSeedPCA || 
-	     fabs(trackSeed->get_Y0()) > m_maxSeedPCA)
+	  trackSeed->circleFitByTaubin(m_clusterMap, m_surfMaps, m_tGeometry, 0, 8);
+	  if(fabs(trackSeed->get_x()) > m_maxSeedPCA || 
+	     fabs(trackSeed->get_y()) > m_maxSeedPCA)
 	    { 
 	      m_nBadInitialFits++;
 	      continue;
 	    }
-
-	  trackSeed->lineFit(m_clusterMap, m_surfMaps, m_tGeometry);
+        
+	  trackSeed->lineFit(m_clusterMap, m_surfMaps, m_tGeometry, 0, 8);
 	  
 	  fitTimer->stop();
 	  auto circlefittime = fitTimer->get_accumulated_time();
@@ -276,11 +276,15 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  
 	  /// Project to INTT and find matches
 	  auto additionalClusters = findInttMatches(globalPositions, *trackSeed);
-	  
+
 	  /// Add possible matches to cluster list to be parsed when
 	  /// Svtx tracks are made
 	  for(auto& cluskey : additionalClusters)
-	    { trackSeed->insert_cluster_key(cluskey); }
+	    { 
+	      trackSeed->insert_cluster_key(cluskey); 
+	      if(Verbosity() > 1)
+		{ std::cout << "adding additional intt key " << cluskey << std::endl; }
+	    }
 
 	  fitTimer->stop();
 	  auto addClusters = fitTimer->get_accumulated_time();
@@ -290,17 +294,19 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	    { std::cout << "find intt clusters time " << addClusters << std::endl; }
 
 	  numGoodSeeds++;
-		  
-	  /// We can refit the track to get a better R estimate with the INTT
-	  /// clusters. But the poor strip resolution degrades the estimate of 
-	  /// X0 and Y0. So cache them here and then reset them afterwards
-	  float X0 = trackSeed->get_X0();
-	  float Y0 = trackSeed->get_Y0();
-	  trackSeed->circleFitByTaubin(m_clusterMap, m_surfMaps, m_tGeometry);
-	  trackSeed->set_X0(X0);
-	  trackSeed->set_Y0(Y0);
+
 	  /// The Acts z projection has better resolution than the circle fit
 	  trackSeed->set_Z0(z);
+
+	  /// The Acts silicon charge is backwards due to field convention
+	  trackSeed->set_qOverR(trackSeed->get_qOverR() * -1);
+
+	  if(Verbosity() > 1)
+	    { 
+	      std::cout << trackSeed->get_phi() << ", " << trackSeed->get_theta()
+				   << ", " << trackSeed->get_eta() << std::endl;
+	      trackSeed->identify(); 
+	    }
 
 	  m_seedContainer->insert(trackSeed.get());
 
@@ -803,6 +809,7 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+
   m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if(!m_hitsets)
     {
@@ -810,7 +817,8 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  return Fun4AllReturnCodes::EVENT_OK;
+  
+return Fun4AllReturnCodes::EVENT_OK;
 }
 int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
 {
