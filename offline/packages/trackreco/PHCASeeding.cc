@@ -774,6 +774,7 @@ std::vector<TrackSeed> PHCASeeding::RemoveBadClusters(const std::vector<keylist>
     clean_chains.push_back(trackseed);
     if(Verbosity()>0) std::cout << "pushed clean chain with " << trackseed.size_cluster_keys() << " clusters" << std::endl;
   }
+  std::cout << "clean chains size " << clean_chains.size() << std::endl;
   return clean_chains;
 }
 
