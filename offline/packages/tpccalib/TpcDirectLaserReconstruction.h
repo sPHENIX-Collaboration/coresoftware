@@ -21,6 +21,7 @@ class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrHitSetContainer;
+class   PHG4CylinderCellGeomContainer;
 
 class TFile;
 class TH1;
@@ -68,6 +69,9 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   /// set grid dimensions
   void set_grid_dimensions( int phibins, int rbins, int zbins );
 
+  void set_path_bin_length(float length)
+  {path_bin_length = length;}
+
   private:
 
   /// load nodes
@@ -114,6 +118,8 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   ///@name nodes
   //@{
 
+  PHG4CylinderCellGeomContainer *m_geom_container = nullptr;
+
   /// Acts surface maps for surface lookup
   ActsSurfaceMaps* m_surfmaps = nullptr;
 
@@ -158,6 +164,7 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   TH2* h_dca_path = nullptr;
   TH2* h_zr = nullptr;
   TH2* h_zr_pca = nullptr;
+  TH2* h_dz_z = nullptr;
 
   //@}
 
