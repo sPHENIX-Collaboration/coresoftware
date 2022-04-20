@@ -33,7 +33,7 @@ class PHSiliconSeedMerger : public SubsysReco
   int getNodes(PHCompositeNode *topNode);
 
   TrackSeedContainer *m_siliconTracks = nullptr;
-  std::string m_trackMapName = "SvtxSiliconTrackMap";
+  std::string m_trackMapName = "SiliconTrackSeedContainer";
 
 };
 

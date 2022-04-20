@@ -39,12 +39,19 @@ int TrackSeedTrackMapConverter::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 {
-  
-  
+  unsigned int trackid = 0;
   for(const auto& trackSeed : *m_seedContainer)
     {
       auto svtxtrack = std::make_unique<SvtxTrack_v3>();
-      
+
+      if(Verbosity() > 0)
+	{
+	  std::cout << "iterating track seed " << trackid << std::endl;
+	  trackSeed->identify();
+	}
+
+      trackid++;
+
       svtxtrack->set_x(trackSeed->get_x());
       svtxtrack->set_y(trackSeed->get_y());
       svtxtrack->set_z(trackSeed->get_z());
@@ -58,6 +65,12 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 	  ++iter)
 	{
 	  svtxtrack->insert_cluster_key(*iter);
+	}
+      
+      if(Verbosity() > 0)
+	{
+	  std::cout << "Inserting svtxtrack into map " << std::endl;
+	  svtxtrack->identify();
 	}
 
       m_trackMap->insert(svtxtrack.get());

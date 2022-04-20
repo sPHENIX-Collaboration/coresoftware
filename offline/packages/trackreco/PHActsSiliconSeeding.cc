@@ -303,8 +303,9 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
 	  if(Verbosity() > 1)
 	    { 
-	      std::cout << trackSeed->get_phi() << ", " << trackSeed->get_theta()
-				   << ", " << trackSeed->get_eta() << std::endl;
+	      std::cout << "seed phi, theta, eta : " 
+			<< trackSeed->get_phi() << ", " << trackSeed->get_theta()
+			<< ", " << trackSeed->get_eta() << std::endl;
 	      trackSeed->identify(); 
 	    }
 
