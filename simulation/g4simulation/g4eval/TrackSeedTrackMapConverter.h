@@ -22,6 +22,8 @@ class TrackSeedTrackMapConverter : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void setTrackMapName(const std::string& name) { m_trackMapName = name; }
+  void setTrackSeedName(const std::string& name) { m_trackSeedName = name; }
 
  private:
 

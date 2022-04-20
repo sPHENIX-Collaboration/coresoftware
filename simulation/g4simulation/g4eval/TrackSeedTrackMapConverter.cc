@@ -120,7 +120,7 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode *topNode)
   m_seedContainer = findNode::getClass<TrackSeedContainer>(topNode, m_trackSeedName);
   if(!m_seedContainer)
     {
-      std::cout << PHWHERE << " Can't find track seed container, can't continue."
+      std::cout << PHWHERE << " Can't find track seed container " << m_trackSeedName << ", can't continue."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
