@@ -364,8 +364,8 @@ int PHCASeeding::FindSeedsWithMerger(const PositionMap& globalPositions)
   std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> links = CreateLinks(fromPointKey(allClusters), globalPositions);
   std::vector<std::vector<keylink>> biLinks = FindBiLinks(links.first,links.second);
   std::vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks,globalPositions);
-  std::vector<TrackSeed> seeds = RemoveBadClusters(trackSeedKeyLists, globalPositions);
-
+  std::vector<TrackSeed_v1> seeds = RemoveBadClusters(trackSeedKeyLists, globalPositions);
+   
   publishSeeds(seeds);
   return seeds.size();
 }
@@ -720,10 +720,10 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
   return trackSeedKeyLists;
 }
 
-std::vector<TrackSeed> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
+std::vector<TrackSeed_v1> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
 {
   if(Verbosity()>0) std::cout << "removing bad clusters" << std::endl;
-  std::vector<TrackSeed> clean_chains;
+  std::vector<TrackSeed_v1> clean_chains;
 
   for(const auto& chain : chains)
   {
@@ -774,16 +774,20 @@ std::vector<TrackSeed> PHCASeeding::RemoveBadClusters(const std::vector<keylist>
     clean_chains.push_back(trackseed);
     if(Verbosity()>0) std::cout << "pushed clean chain with " << trackseed.size_cluster_keys() << " clusters" << std::endl;
   }
-  std::cout << "clean chains size " << clean_chains.size() << std::endl;
+
   return clean_chains;
 }
 
 
-void PHCASeeding::publishSeeds(const std::vector<TrackSeed>& seeds)
+void PHCASeeding::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
 {
+ 
   for( const auto&  seed:seeds )
   {
-    auto pseed = std::make_unique<TrackSeed>(seed);
+    auto pseed = std::make_unique<TrackSeed_v1>(seed);
+    pseed->circleFitByTaubin(_cluster_map, surfMaps, tGeometry, 7,60);
+    pseed->lineFit(_cluster_map, surfMaps, tGeometry, 7, 60);
+
     if(Verbosity() > 4)
       { pseed->identify(); }
     _track_map->insert(pseed.get());

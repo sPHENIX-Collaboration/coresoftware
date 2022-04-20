@@ -182,7 +182,7 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
   float dphi = secondphi - firstphi;
   if(dphi > M_PI) dphi = 2.*M_PI - dphi;
   if(dphi < -M_PI) dphi = 2*M_PI + dphi;
-  if(dphi < 0) m_qOverR *= -1;
+  if(dphi > 0) m_qOverR *= -1;
 
 }
 

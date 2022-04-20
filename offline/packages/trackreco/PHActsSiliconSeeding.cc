@@ -298,9 +298,6 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  /// The Acts z projection has better resolution than the circle fit
 	  trackSeed->set_Z0(z);
 
-	  /// The Acts silicon charge is backwards due to field convention
-	  trackSeed->set_qOverR(trackSeed->get_qOverR() * -1);
-
 	  if(Verbosity() > 1)
 	    { 
 	      std::cout << "seed phi, theta, eta : " 
