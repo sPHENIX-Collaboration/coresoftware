@@ -9,7 +9,6 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <g4main/PHG4Hit.h>
@@ -35,7 +34,6 @@ using namespace std;
 SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
   : _hiteval(topNode)
   , _clustermap(nullptr)
-  , _hitsets(nullptr)
   , _truthinfo(nullptr)
   , _strict(false)
   , _verbosity(0)
@@ -922,11 +920,9 @@ void SvtxClusterEval::FillRecoClusterFromG4HitCache(){
 
   std::multimap<PHG4Particle*, TrkrDefs::cluskey> temp_clusters_from_particles;
   // loop over all the clusters
-  auto hitsetrange = _hitsets->getHitSets();
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _clustermap->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_clustermap->getHitSetKeys())
+  {
+    auto range = _clustermap->getClusters(hitsetkey);
     for( auto iter = range.first; iter != range.second; ++iter ){
       TrkrDefs::cluskey cluster_key = iter->first;
       
@@ -989,11 +985,9 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
       // get all reco clusters
       if(_verbosity > 1) cout << "all_clusters_from_g4hit: list all reco clusters " << endl;
     
-      auto hitsetrange = _hitsets->getHitSets();
-      for (auto hitsetitr = hitsetrange.first;
-	   hitsetitr != hitsetrange.second;
-	   ++hitsetitr){
-	auto range = _clustermap->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_clustermap->getHitSetKeys())
+  {
+    auto range = _clustermap->getClusters(hitsetkey);
 	for( auto iter = range.first; iter != range.second; ++iter ){
 	  TrkrDefs::cluskey cluster_key = iter->first;
 	  int layer = TrkrDefs::getLayer(cluster_key);
@@ -1110,12 +1104,9 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
     // cout << "cache size ==0" << endl;
     if(_verbosity > 1) cout << "all_clusters: found # " << _clustermap->size() << endl;
     
-    // loop over clusters and get all contributing hits
-    auto hitsetrange = _hitsets->getHitSets();
-    for (auto hitsetitr = hitsetrange.first;
-	 hitsetitr != hitsetrange.second;
-	 ++hitsetitr){
-      auto range = _clustermap->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_clustermap->getHitSetKeys())
+  {
+      auto range = _clustermap->getClusters(hitsetkey);
       for( auto iter = range.first; iter != range.second; ++iter ){
 	TrkrDefs::cluskey cluster_key = iter->first;
 	int layer_in = TrkrDefs::getLayer(cluster_key);
@@ -1315,7 +1306,6 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode* topNode)
     }
   
 
-  _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   _cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   _hit_truth_map = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
@@ -1334,11 +1324,9 @@ void SvtxClusterEval::fill_cluster_layer_map()
 {
   ActsTransformations transformer;
   // loop over all the clusters
-  auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::inttId);
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _clustermap->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_clustermap->getHitSetKeys())
+  {
+    auto range = _clustermap->getClusters(hitsetkey);
     for( auto iter = range.first; iter != range.second; ++iter ){
       TrkrDefs::cluskey cluster_key = iter->first;
       unsigned int ilayer = TrkrDefs::getLayer(cluster_key);

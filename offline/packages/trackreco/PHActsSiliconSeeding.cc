@@ -23,8 +23,6 @@
 #include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase/TrkrCluster.h>            
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/InttDefs.h>
@@ -35,6 +33,12 @@
 #include <Acts/Seeding/InternalSpacePoint.hpp>
 #include <Acts/Seeding/Seed.hpp>
 #include <Acts/Seeding/SeedFilter.hpp>
+
+namespace
+{
+  template<class T>
+    inline constexpr T square( const T& x ) { return x*x; }
+}
 
 PHActsSiliconSeeding::PHActsSiliconSeeding(const std::string& name)
   : SubsysReco(name)
@@ -824,18 +828,14 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 
   for(int inttlayer = 0; inttlayer < m_nInttLayers; inttlayer++)
     {
-      auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::inttId, inttlayer+3);
-      const double projR = sqrt(pow(xProj[inttlayer], 2) + 
-				pow(yProj[inttlayer], 2));
-      const double projPhi = atan2(yProj[inttlayer], xProj[inttlayer]);
+      const double projR = std::sqrt(square(xProj[inttlayer]) + square(yProj[inttlayer]));
+      const double projPhi = std::atan2(yProj[inttlayer], xProj[inttlayer]);
       const double projRphi = projR * projPhi;
 
-      for (auto hitsetitr = hitsetrange.first;
-	   hitsetitr != hitsetrange.second;
-	   ++hitsetitr)
-	{
-	  const int ladderzindex = InttDefs::getLadderZId(hitsetitr->first);
-	  const int ladderphiindex = InttDefs::getLadderPhiId(hitsetitr->first);
+      for( const auto& hitsetkey:m_clusterMap->getHitSetKeys(TrkrDefs::TrkrId::inttId, inttlayer+3))
+      {
+	  const int ladderzindex = InttDefs::getLadderZId(hitsetkey);
+	  const int ladderphiindex = InttDefs::getLadderPhiId(hitsetkey);
 	  double ladderLocation[3] = {0.,0.,0.};
 
 	  // Add three to skip the mvtx layers for comparison
@@ -864,7 +864,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 								   ladderphiindex,
 								   projectionGlobal);
 
-	  auto range = m_clusterMap->getClusters(hitsetitr->first);	
+	  auto range = m_clusterMap->getClusters(hitsetkey);	
 	  for(auto clusIter = range.first; clusIter != range.second; ++clusIter )
 	    {
 	      const auto cluskey = clusIter->first;
@@ -1292,12 +1292,9 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
   std::vector<const SpacePoint*> spVec;
   unsigned int numSiliconHits = 0;
  
-  auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::mvtxId);
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr)
+  for(const auto& hitsetkey:m_clusterMap->getHitSetKeys(TrkrDefs::TrkrId::mvtxId))
     {
-      auto range = m_clusterMap->getClusters(hitsetitr->first);
+      auto range = m_clusterMap->getClusters(hitsetkey);
       for( auto clusIter = range.first; clusIter != range.second; ++clusIter )
 	{
 	  const auto cluskey = clusIter->first;
@@ -1456,13 +1453,6 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
   if(!m_clusterMap)
     {
       std::cout << PHWHERE << "No cluster container on the node tree. Bailing."
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if(!m_hitsets)
-    {
-      std::cout << PHWHERE << "No hitset container on node tree. Bailing."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }

@@ -20,7 +20,6 @@ class SvtxTrack;
 class TrkrCluster;
 class TF1;
 class TH1;
-class TrkrHitSetContainer;
 
 class PHMicromegasTpcTrackMatching : public SubsysReco
 {

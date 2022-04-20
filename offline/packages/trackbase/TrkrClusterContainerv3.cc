@@ -8,7 +8,7 @@
 #include "TrkrCluster.h"
 #include "TrkrDefs.h"
 
-#include <cstdlib>
+#include <algorithm>
 
 namespace
 {
@@ -31,7 +31,6 @@ void TrkrClusterContainerv3::Reset()
   m_clusmap.swap( empty );
 
 }
-
 
 //_________________________________________________________________
 void TrkrClusterContainerv3::identify(std::ostream& os) const
@@ -133,6 +132,57 @@ TrkrCluster* TrkrClusterContainerv3::findCluster(TrkrDefs::cluskey key) const
   } else {
     return nullptr;
   }
+}
+
+//_________________________________________________________________
+TrkrClusterContainer::HitSetKeyList TrkrClusterContainerv3::getHitSetKeys() const
+{
+  HitSetKeyList out;
+  out.reserve( m_clusmap.size() );
+  std::transform(
+    m_clusmap.begin(), m_clusmap.end(), std::back_inserter( out ),
+    []( const std::pair<TrkrDefs::hitsetkey, Map>& pair ) { return pair.first; } );
+  return out;  
+}
+
+//_________________________________________________________________
+TrkrClusterContainer::HitSetKeyList TrkrClusterContainerv3::getHitSetKeys(const TrkrDefs::TrkrId trackerid) const
+{
+  /* copy the logic from TrkrHitSetContainerv1::getHitSets */
+  const TrkrDefs::hitsetkey keylo = TrkrDefs::getHitSetKeyLo(trackerid);
+  const TrkrDefs::hitsetkey keyhi = TrkrDefs::getHitSetKeyHi(trackerid);
+
+  // get relevant range in map
+  const auto begin = m_clusmap.lower_bound(keylo);
+  const auto end = m_clusmap.upper_bound(keyhi);
+  
+  // transform to a vector
+  HitSetKeyList out;
+  out.reserve( m_clusmap.size() );
+  std::transform(
+    begin, end, std::back_inserter( out ),
+    []( const std::pair<TrkrDefs::hitsetkey, Map>& pair ) { return pair.first; } );
+  return out;  
+}
+
+//_________________________________________________________________
+TrkrClusterContainer::HitSetKeyList TrkrClusterContainerv3::getHitSetKeys(const TrkrDefs::TrkrId trackerid, const uint8_t layer) const
+{
+  /* copy the logic from TrkrHitSetContainerv1::getHitSets */
+  TrkrDefs::hitsetkey keylo = TrkrDefs::getHitSetKeyLo(trackerid, layer);
+  TrkrDefs::hitsetkey keyhi = TrkrDefs::getHitSetKeyHi(trackerid, layer);
+
+  // get relevant range in map
+  const auto begin = m_clusmap.lower_bound(keylo);
+  const auto end = m_clusmap.upper_bound(keyhi);
+  
+  // transform to a vector
+  HitSetKeyList out;
+  out.reserve( m_clusmap.size() );
+  std::transform(
+    begin, end, std::back_inserter( out ),
+    []( const std::pair<TrkrDefs::hitsetkey, Map>& pair ) { return pair.first; } );
+  return out;  
 }
 
 //_________________________________________________________________

@@ -10,8 +10,6 @@
 #include <trackbase/TrkrCluster.h>                      // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>                         // for cluskey, getL...
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -1589,12 +1587,11 @@ int PHGenFitTrkProp::BuildLayerZPhiHitMap(unsigned int ivert)
   // make this map for each collision vertex
   std::multimap<unsigned int, TrkrDefs::cluskey> this_layer_thetaID_phiID_clusterID;
 
-  auto hitsetrange = _hitsets->getHitSets();
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _cluster_map->getClusters(hitsetitr->first);
-    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys())
+  {
+    auto range = _cluster_map->getClusters(hitsetkey);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter )
+    {
       TrkrCluster *cluster = clusIter->second;
       TrkrDefs::cluskey cluskey = clusIter->first;
       
