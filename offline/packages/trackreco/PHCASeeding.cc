@@ -772,7 +772,7 @@ std::vector<TrackSeed> PHCASeeding::RemoveBadClusters(const std::vector<keylist>
     }
 
     clean_chains.push_back(trackseed);
-    if(Verbosity()>0) std::cout << "pushed clean chain with " << clean_chain.size() << " clusters" << std::endl;
+    if(Verbosity()>0) std::cout << "pushed clean chain with " << trackseed.size_cluster_keys() << " clusters" << std::endl;
   }
   return clean_chains;
 }
@@ -783,6 +783,8 @@ void PHCASeeding::publishSeeds(const std::vector<TrackSeed>& seeds)
   for( const auto&  seed:seeds )
   {
     auto pseed = std::make_unique<TrackSeed>(seed);
+    if(Verbosity() > 4)
+      { pseed->identify(); }
     _track_map->insert(pseed.get());
   }
 }

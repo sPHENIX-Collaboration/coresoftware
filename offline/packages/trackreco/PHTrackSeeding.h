@@ -61,7 +61,7 @@ class PHTrackSeeding : public SubsysReco
   TrackSeedContainer *_track_map = nullptr;
   TrkrHitSetContainer  *_hitsets = nullptr;
 
-  std::string _track_map_name = "SvtxTrackMap";
+  std::string _track_map_name = "TpcTrackSeedContainer";
 
   bool _use_truth_clusters = false;
 
