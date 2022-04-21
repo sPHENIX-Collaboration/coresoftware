@@ -263,9 +263,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     {
 
       // create cluster key and corresponding cluster
-      const auto cluster_key = TrkrDefs::genClusKey( hitsetkey, cluster_count++ );
+      const auto ckey = TrkrDefs::genClusKey( hitsetkey, cluster_count++ );
       auto cluster = std::make_unique<TrkrClusterv3>();
-      cluster->setClusKey(cluster_key);
 
       TVector3 local_coordinates;
       double weight_sum = 0;
@@ -286,7 +285,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         const auto hit = hit_it->second;
 
         // associate cluster key to hit key
-        trkrClusterHitAssoc->addAssoc(cluster_key, hitkey );
+        trkrClusterHitAssoc->addAssoc(ckey, hitkey );
 
         // get strip number
         const auto strip = MicromegasDefs::getStrip( hitkey );
@@ -391,7 +390,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       cluster->setActsLocalError(1,1,error(2,2));
       
       // add to container
-      trkrClusterContainer->addCluster( cluster.release() );
+      trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
 
     }
 

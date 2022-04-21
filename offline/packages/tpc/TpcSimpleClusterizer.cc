@@ -49,7 +49,7 @@ namespace
 
   using iphiz = std::pair<unsigned short, unsigned short>;
   using ihit = std::pair<unsigned short, iphiz>;
-  using assoc = std::pair<TrkrDefs::cluskey, TrkrDefs::hitkey> ;
+  using assoc = std::pair<uint32_t, TrkrDefs::hitkey> ;
 	
   struct thread_data 
   {
@@ -175,7 +175,7 @@ namespace
 	
 	}
 	
-	void calc_cluster_parameter(std::vector<ihit> &ihit_list,int iclus, const thread_data& my_data)
+	void calc_cluster_parameter(std::vector<ihit> &ihit_list, const thread_data& my_data)
 	{
 	
 	  // loop over the hits in this cluster
@@ -232,12 +232,9 @@ namespace
 	  const double z_cov = z2_sum/adc_sum - square(clusz);
 	
 	  // create the cluster entry directly in the node tree
-	
-	  TrkrDefs::cluskey ckey = TrkrDefs::genClusKey(my_data.hitset->getHitSetKey(), iclus);
-	
-	  TrkrClusterv2 *clus = new TrkrClusterv2();
-	  clus->setClusKey(ckey);
-	  //  int phi_nsize = phibinhi - phibinlo + 1;
+    TrkrClusterv2 *clus = new TrkrClusterv2();
+
+    //  int phi_nsize = phibinhi - phibinlo + 1;
 	  //  int z_nsize   = zbinhi   - zbinlo + 1;
 	  double phi_size = (double) (phibinhi - phibinlo + 1) * radius * my_data.layergeom->get_phistep();
 	  double z_size = (double) (zbinhi - zbinlo + 1) * my_data.layergeom->get_zstep();
@@ -390,15 +387,17 @@ namespace
 	  clus->setActsLocalError(0,1, ERR[1][2]);
 	  clus->setActsLocalError(1,1, ERR[2][2]);
 
-    if(my_data.cluster_vector)     
-    { my_data.cluster_vector->push_back(clus); }
+    my_data.cluster_vector->push_back(clus);
 
 	  // Add the hit associations to the TrkrClusterHitAssoc node
 	  // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
 
-    if( my_data.do_assoc ) {
-	    for (unsigned int i = 0; i < hitkeyvec.size(); i++){
-        my_data.association_vector->push_back(std::make_pair(ckey, hitkeyvec[i]));
+    if( my_data.do_assoc ) 
+    {
+      // get cluster index in vector. It is used to store associations, and build relevant cluster keys when filling the containers
+      uint32_t index = my_data.cluster_vector->size()-1;
+      for (unsigned int i = 0; i < hitkeyvec.size(); i++){
+        my_data.association_vector->push_back(std::make_pair(index, hitkeyvec[i]));
 	    }
 	  }
 	}
@@ -450,7 +449,6 @@ namespace
 	     }
 	   }
 	
-	   int nclus = 0;
 	   while(all_hit_map.size()>0){
 	
 	     auto iter = all_hit_map.rbegin();
@@ -466,13 +464,12 @@ namespace
 	     // -> cluster around it and get vector of hits
 	     std::vector<ihit> ihit_list;
 	     get_cluster(iphi, iz, adcval, ihit_list);
-	     nclus++;
 	
 	     // -> calculate cluster parameters
 	     // -> add hits to truth association
 	     // remove hits from all_hit_map
 	     // repeat untill all_hit_map empty
-	     calc_cluster_parameter(ihit_list,nclus++, *my_data );
+	     calc_cluster_parameter(ihit_list, *my_data );
 	     remove_hits(ihit_list,all_hit_map, adcval);
 	   }
 	   pthread_exit(nullptr);
@@ -724,15 +721,34 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
     if (rc2) 
     { std::cout << "Error:unable to join," << rc2 << std::endl; }
 
-    // copy hit associations to map
-    for( const auto& [ckey,hkey]:*thread_pair.data.association_vector)
-    { m_clusterhitassoc->addAssoc(ckey,hkey); }
-    delete thread_pair.data.association_vector;
+    // get the hitsetkey from thread data
+    const auto& data( thread_pair.data );
+    const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
 
     // copy clusters to map
-    for( const auto& cluster:*thread_pair.data.cluster_vector )
-    { m_clusterlist->addCluster(cluster); }
+    for( uint32_t index = 0; index < data.cluster_vector->size(); ++index )
+    {
+      // generate cluster key
+      const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
+
+      // get cluster
+      auto cluster = (*data.cluster_vector)[index];
+
+      // insert in map
+      m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+    }
     delete thread_pair.data.cluster_vector;
+
+    // copy hit associations to map
+    for( const auto& [index,hkey]:*thread_pair.data.association_vector)
+    { 
+      // generate cluster key
+      const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
+
+      // add to association table
+      m_clusterhitassoc->addAssoc(ckey,hkey); 
+    }
+    delete thread_pair.data.association_vector;
     
   }
   
