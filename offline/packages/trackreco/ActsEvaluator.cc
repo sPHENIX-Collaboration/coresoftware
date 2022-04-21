@@ -789,7 +789,7 @@ Acts::Vector3 ActsEvaluator::getGlobalTruthHit(PHCompositeNode */*topNode*/,
 {
   SvtxClusterEval *clustereval = m_svtxEvalStack->get_cluster_eval();
 
-  std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(cluskey);
+  const auto [truth_ckey, truth_cluster] = clustereval->max_truth_cluster_by_energy(cluskey);
   
   float gx = -9999;
   float gy = -9999;
