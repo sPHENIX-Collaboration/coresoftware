@@ -7,7 +7,7 @@
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
-#include <trackbase/TrkrHitv2.h>
+#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
@@ -49,23 +49,10 @@ namespace
 {
   template<class T> inline constexpr T square( const T& x ) { return x*x; }
   
-  //  typedef std::pair<unsigned short, unsigned short> iphiz;
-  // typedef std::pair<unsigned short, iphiz> ihit;
-  typedef std::pair<TrkrDefs::cluskey, TrkrDefs::hitkey> assoc;
+  using assoc = std::pair<TrkrDefs::cluskey, TrkrDefs::hitkey>;
 
   struct ihit
   {
-    /*
-    public:
-    // constructor
-    ihit2()
-    {
-      iphi = 0;
-      iz = 0;
-      adc = 0;
-      edge = 0;
-    }
-    */
     unsigned short iphi = 0;
     unsigned short iz = 0;
     unsigned short adc = 0;
@@ -93,8 +80,6 @@ namespace
     double par0_neg = 0;
     double par0_pos = 0;
     int cluster_version = 3;
-    std::map<TrkrDefs::cluskey, TrkrCluster *> *clusterlist = nullptr;
-    //std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>  *clusterhitassoc = nullptr;
     std::vector<assoc> *association_vector = nullptr;
     std::vector<TrkrCluster*> *cluster_vector = nullptr;
   };
@@ -449,7 +434,7 @@ namespace
 	}
       // create the cluster entry directly in the node tree
       
-      const TrkrDefs::cluskey ckey = TpcDefs::genClusKey( my_data.hitset->getHitSetKey(), iclus );
+      const TrkrDefs::cluskey ckey = TrkrDefs::genClusKey( my_data.hitset->getHitSetKey(), iclus );
       
       // Estimate the errors
       const double phi_err_square = (phibinhi == phibinlo) ?
@@ -515,14 +500,13 @@ namespace
 
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
       
-      if(my_data.clusterlist)     
+      if(my_data.cluster_vector)     
 	{
 	  if(my_data.cluster_version==3){
 	    
 	    // Fill in the cluster details
 	    //================
-	    TrkrClusterv3 *clus = new TrkrClusterv3();
-	    //auto clus = std::make_unique<TrkrClusterv3>();
+	    auto clus = new TrkrClusterv3();
 	    clus->setClusKey(ckey);
 	    clus->setAdc(adc_sum);      
 	    clus->setSubSurfKey(subsurfkey);      
@@ -536,15 +520,13 @@ namespace
 	    clus->setActsLocalError(1,1, ERR[2][2]);
 	    my_data.cluster_vector->push_back(clus);
 	  }else if(my_data.cluster_version==4){
-	    TrkrClusterv4 *clus = new TrkrClusterv4();
-	    //auto clus = std::make_unique<TrkrClusterv3>();
+	    auto clus = new TrkrClusterv4();
 	    clus->setClusKey(ckey);
 	    clus->setAdc(adc_sum);  
 	    clus->setOverlap(ntouch);
 	    clus->setEdge(nedge);
 	    clus->setPhiSize(phisize);
 	    clus->setZSize(zsize);
-	    //	    clus->setSize((short int) (clus_size));
 	    clus->setSubSurfKey(subsurfkey);      
 	    clus->setLocalX(localPos(0));
 	    clus->setLocalY(localPos(1));
@@ -648,10 +630,6 @@ namespace
       remove_hits(ihit_list,all_hit_map, adcval);
       ihit_list.clear();
     }
-
-    //std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey> empty_map;
-    // empty_map.swap(*my_data.clusterhitassoc);
-    // my_data->clusterhitassoc->clear();//HERE
 
     adcval.clear();
     all_hit_map.clear();
@@ -849,7 +827,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
        ++hitsetitr)
   {
     //if(count>0)continue;
-    const auto hitsetid = hitsetitr->first;
+    //    const auto hitsetid = hitsetitr->first;
     // std::cout << " starting thread # " << count << std::endl;
     TrkrHitSet *hitset = hitsetitr->second;
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
@@ -867,9 +845,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.sector = sector;
     thread_pair.data.side = side;
     thread_pair.data.do_assoc = do_hit_assoc;
-    thread_pair.data.clusterlist = m_clusterlist->getClusterMap(hitsetid);
-    // thread_pair.data.clusterhitassoc = m_clusterhitassoc->getClusterMap(hitsetid);
-    // thread_pair.data.clusterhitassoc = m_clusterhitassoc;
     thread_pair.data.association_vector  = new std::vector<assoc>;
     thread_pair.data.cluster_vector  = new std::vector<TrkrCluster*>;
     thread_pair.data.tGeometry = m_tGeometry;
@@ -884,7 +859,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
     unsigned short NPhiBinsSector = NPhiBins/12;
     unsigned short NZBins = (unsigned short)layergeom->get_zbins();
-    unsigned short NZBinsSide = NZBins/2;
+    //    unsigned short NZBinsSide = NZBins/2;
+    unsigned short NZBinsSide = NZBins;
     unsigned short NZBinsMin = 0;
     unsigned short PhiOffset = NPhiBinsSector * sector;
 
@@ -917,28 +893,17 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     int rc2 = pthread_join(thread_pair.thread, nullptr);
     if (rc2) 
     { std::cout << "Error:unable to join," << rc2 << std::endl; }
-    for(auto iter = thread_pair.data.association_vector->begin(); iter != thread_pair.data.association_vector->end();++iter){
-      TrkrDefs::cluskey ckey = iter->first;
-      TrkrDefs::hitkey hkey = iter->second;
-      m_clusterhitassoc->addAssoc(ckey,hkey);
-    }
-    thread_pair.data.association_vector->clear();
+
+    // copy hit associations to map
+    for( const auto& [ckey,hkey]:*thread_pair.data.association_vector)
+    { m_clusterhitassoc->addAssoc(ckey,hkey); }
     delete thread_pair.data.association_vector;
 
-    for(auto citer = thread_pair.data.cluster_vector->begin(); citer != thread_pair.data.cluster_vector->end();++citer){
-      m_clusterlist->addCluster(*citer);
-      // m_clusterlist->addClusToVec(*citer);
-      
-      // delete *citer;
-      //      const auto [iter, inserted] = my_data.clusterlist->insert(std::make_pair(ckey, clus.get()));
-	  
-	  /*
-	   * if cluster was properly inserted in the map, one should release the unique_ptr,
-	   * to make sure that the cluster is not deleted when going out-of-scope
-	   */
-    }
-    thread_pair.data.cluster_vector->clear();
+    // copy clusters to map
+    for( const auto& cluster:*thread_pair.data.cluster_vector )
+    { m_clusterlist->addCluster(cluster); }
     delete thread_pair.data.cluster_vector;
+
   }
 
   if (Verbosity() > 0)
