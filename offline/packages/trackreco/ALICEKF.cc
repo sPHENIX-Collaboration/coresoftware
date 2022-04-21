@@ -181,6 +181,11 @@ std::vector<GPUTPCTrackParam> ALICEKF::ALICEKalmanFilter(const std::vector<keyli
     trackSeed.SetQPt(init_QPt);
 
   
+    std::cout << "Initial ALICEKF seed : " << trackSeed.GetX() << ", " 
+	      << trackSeed.GetY() << ", " << trackSeed.GetZ() << ", " 
+	      << trackSeed.GetQPt() << ", " << trackSeed.GetSinPhi() 
+	      << ", " << trackSeed.GetDzDs() << std::endl;
+
     GPUTPCTrackLinearisation trackLine(trackSeed);
 
     LogDebug(std::endl << std::endl << "------------------------" << std::endl << "seed size: " << trackKeyChain.size() << std::endl << std::endl << std::endl);
@@ -389,6 +394,11 @@ std::vector<GPUTPCTrackParam> ALICEKF::ALICEKalmanFilter(const std::vector<keyli
     double track_curverr = sqrt(trackSeed.GetErr2QPt())*_Bzconst*get_Bz(track_x,track_y,track_z);
     if(checknan(track_curverr,"curvature error",nseeds)) continue;
 
+    std::cout << "After ALICEKF seed : " << trackSeed.GetX() << ", " 
+	      << trackSeed.GetY() << ", " << trackSeed.GetZ() << ", " 
+	      << trackSeed.GetQPt() << ", " << trackSeed.GetSinPhi() 
+	      << ", " << trackSeed.GetDzDs() << std::endl;
+    
     /// fill container
     seeds_vector.push_back(trackSeed);
     /*

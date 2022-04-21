@@ -115,7 +115,7 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<std::vector<TrkrDefs::cluskey>> getKeyList();
   PositionMap PrepareKDTrees();
 
-  void MoveToFirstTPCCluster(const PositionMap&);
+  void MoveToFirstTPCCluster(const TrackSeed* track, const PositionMap&);
 
   std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, GPUTPCTrackParam& kftrack, const PositionMap& globalPositions) const;
   std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(const std::vector<std::vector<TrkrDefs::cluskey>>& seeds, const PositionMap& globalPositions) const;

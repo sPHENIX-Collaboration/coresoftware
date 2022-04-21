@@ -38,7 +38,7 @@ class ALICEKF
     _v = verbosity;
     _min_clusters_per_track = min_clusters;
   }
-  std::vector<GPUTPCTrackParam> ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions) const;
+  std::vector<TrackSeed_v1> ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions) const;
 
   bool checknan(double val, const std::string &msg, int num) const;
   double get_Bz(double x, double y, double z) const;
