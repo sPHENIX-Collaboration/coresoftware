@@ -389,7 +389,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       clus_centroid /= wt;
 
       double zrange =  zmax-zmin;
-      if(zrange > 4.0) continue;
+      if(zrange > max_zrange) continue;
 
       // get the distance of the cluster centroid to the track-layer intersection point
 

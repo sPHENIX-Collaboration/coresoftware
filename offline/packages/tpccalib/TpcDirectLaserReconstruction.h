@@ -69,8 +69,8 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   /// set grid dimensions
   void set_grid_dimensions( int phibins, int rbins, int zbins );
 
-  void set_path_bin_length(float length)
-  {path_bin_length = length;}
+  void set_max_zrange(float length)
+  {max_zrange = length;}
 
   private:
 
@@ -92,7 +92,7 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
-  float path_bin_length = 3.0; // cm
+  float max_zrange = 5.0; // cm
 
   ///@name selection parameters
   //@{

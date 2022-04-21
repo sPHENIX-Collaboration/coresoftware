@@ -64,6 +64,8 @@ class PHG4TpcDirectLaser : public SubsysReco, public PHParameterInterface
     m_autoAdvanceDirectLaser = value;
   };
 
+  void SetArbitraryThetaPhi(double theta, double phi) {arbitrary_theta = theta; arbitrary_phi = phi;}
+
  private:
   /// define lasers
   /* by default there are 4 lasers on each side of the TPC */
@@ -114,6 +116,9 @@ class PHG4TpcDirectLaser : public SubsysReco, public PHParameterInterface
    * inside PHG4TpcElectronDrift
    */
   double electrons_per_gev = NAN;
+
+  double arbitrary_theta = -30.0; // degrees
+  double arbitrary_phi = -30.0; // degrees
 
   ///@name default phi and theta steps
   //@{
