@@ -785,9 +785,6 @@ void PHCASeeding::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
   for( const auto&  seed:seeds )
   {
     auto pseed = std::make_unique<TrackSeed_v1>(seed);
-    pseed->circleFitByTaubin(_cluster_map, surfMaps, tGeometry, 7,60);
-    pseed->lineFit(_cluster_map, surfMaps, tGeometry, 7, 60);
-
     if(Verbosity() > 4)
       { pseed->identify(); }
     _track_map->insert(pseed.get());

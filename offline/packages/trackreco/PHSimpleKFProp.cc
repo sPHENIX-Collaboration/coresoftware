@@ -247,7 +247,7 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _track_map = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackMap");
+  _track_map = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if (!_track_map)
   {
     std::cerr << PHWHERE << " ERROR: Can't find TrackSeedContainer" << std::endl;
@@ -345,7 +345,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
     trackid++;
   }
-  
+  std::cout << "Finished tpc track loop"<<std::endl;
   _track_map->Reset();
   std::vector<std::vector<TrkrDefs::cluskey>> clean_chains = RemoveBadClusters(new_chains, globalPositions); 
   std::vector<GPUTPCTrackParam> ptracks = fitter->ALICEKalmanFilter(clean_chains,true, globalPositions);
@@ -446,6 +446,7 @@ void PHSimpleKFProp::MoveToFirstTPCCluster( const PositionMap& globalPositions )
     if(sqrt(track_x*track_x+track_y*track_y)>10.)
     {
       if(Verbosity()>0) std::cout << "WARNING: attempting to move track to TPC which is already in TPC! Aborting for this track." << std::endl;
+      std::cout << "Track x,y " << track_x << ", " << track_y << std::endl;
       continue;
     }
      
@@ -776,8 +777,10 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
          fabs(ty-ccY)<_max_dist*sqrt(tyerr*tyerr+cyerr*cyerr) &&
          fabs(tz-ccZ)<_max_dist*sqrt(tzerr*tzerr+czerr*czerr))
       {
+	std::cout << "pushing back"<<std::endl;
         propagated_track.push_back(closest_ckey);
         layers.push_back(TrkrDefs::getLayer(closest_ckey));
+	std::cout << "pushed back"<<std::endl;
 /*        TrkrCluster* cc = _cluster_map->findCluster(closest_ckey);
         double ccX = cc->getX();
         std::cout << "cluster X: " << ccX << std::endl;
@@ -788,13 +791,16 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 */ 
         
         double alpha = ccphi-old_phi;
+	std::cout << "rotating kftrack"<<std::endl;
         kftrack.Rotate(alpha,kfline,10.);
 //        kftrack.SetX(ccX*cos(ccphi)+ccY*sin(ccphi));
 //        kftrack.SetY(-ccX*sin(ccphi)+ccY*cos(ccphi));
 //        kftrack.SetZ(cc->getZ());
+	std::cout << "get cluserr"<<std::endl;
         double ccaY = -ccX*sin(ccphi)+ccY*cos(ccphi);
         double ccerrY = fitter->getClusterError(cc,ccglob,0,0)*sin(ccphi)*sin(ccphi)+fitter->getClusterError(cc,ccglob,0,1)*sin(ccphi)*cos(ccphi)+fitter->getClusterError(cc,ccglob,1,1)*cos(ccphi)*cos(ccphi);
         double ccerrZ = fitter->getClusterError(cc,ccglob,2,2);
+	std::cout << "kftrack filter"<<std::endl;
         kftrack.Filter(ccaY,ccZ,ccerrY,ccerrZ,_max_sin_phi);
         if(Verbosity()>0) std::cout << "added cluster" << std::endl;
         old_phi = ccphi;
