@@ -524,10 +524,10 @@ int DSTEmulator::End(PHCompositeNode* )
   return Fun4AllReturnCodes::EVENT_OK; 
 }
 
-Acts::Vector3 DSTEmulator::getGlobalPosition( TrkrCluster* cluster ) const
+Acts::Vector3 DSTEmulator::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
-  auto globalpos = m_transform.getGlobalPosition(cluster,
+  auto globalpos = m_transform.getGlobalPosition(key, cluster,
     m_surfMaps,
     m_tGeometry);
 
@@ -652,7 +652,7 @@ void DSTEmulator::evaluate_tracks()
       // find track state that is the closest to cluster
       /* this assumes that both clusters and states are sorted along r */
       //     const auto radius( cluster_struct.r );
-      const Acts::Vector3 globalpos_d = getGlobalPosition(cluster);
+      const Acts::Vector3 globalpos_d = getGlobalPosition(cluster_key, cluster);
       float radius = get_r( globalpos_d[0], globalpos_d[1] );
       float clu_phi = std::atan2( globalpos_d[0], globalpos_d[1] );
       std::cout << "radius " << radius << std::endl;
