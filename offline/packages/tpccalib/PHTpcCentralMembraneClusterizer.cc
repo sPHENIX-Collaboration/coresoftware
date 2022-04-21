@@ -23,20 +23,10 @@
 #include <tpc/TpcDefs.h>
 #include <trackbase/CMFlashClusterv1.h>
 #include <trackbase/CMFlashClusterContainerv1.h>
-#include <trackbase/TrkrClusterv3.h>
-#include <trackbase/TrkrClusterContainerv3.h>
-#include <trackbase/TrkrClusterHitAssocv2.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase/TrkrHitSetContainerv1.h>
-#include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrHitv2.h>
-#include <trackbase/TrkrHitSetv1.h>
-
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 
@@ -99,7 +89,6 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
     } 
   
   if(Verbosity() > 0) std::cout << std::endl << "original size of cluster map: " << _cluster_map->size() << std::endl;  
-  TrkrHitSetContainer::ConstRange hitsetrange = _hitset_map->getHitSets(TrkrDefs::TrkrId::tpcId);
   
   std::vector<TVector3>pos; //position vector in cartesian
   std::vector<int>layer; //cluster layer number
@@ -107,11 +96,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   std::vector<float>energy;//vector for energy values of clusters
   int nTpcClust = 0;
 
-  for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr)
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
     {
-      auto clusRange = _cluster_map->getClusters(hitsetitr->first);
+      auto clusRange = _cluster_map->getClusters(hitsetkey);
       for (auto clusiter = clusRange.first; 
 	   clusiter != clusRange.second; ++clusiter)
 	{
@@ -408,22 +395,6 @@ int  PHTpcCentralMembraneClusterizer::GetNodes(PHCompositeNode* topNode)
   if (!_cluster_map)
   {
     cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-
-  _cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
-  if (!_cluster_hit_map)
-  {
-    cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTERHITASSOC" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-
-  _hitset_map = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (!_hitset_map)
-  {
-    cerr << PHWHERE << " ERROR: Can't find node TRKR_HITSET" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

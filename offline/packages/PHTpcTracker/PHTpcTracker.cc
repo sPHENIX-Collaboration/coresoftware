@@ -23,7 +23,6 @@
 #include <phgeom/PHGeomUtility.h>
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey
 
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -130,11 +129,11 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
   // ----- Seed finding -----
   //TrkrClusterContainer* cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   std::vector<kdfinder::TrackCandidate<double>*> candidates;
-  candidates = mSeedFinder->findSeeds(_cluster_map, _hitsets, mB);
+  candidates = mSeedFinder->findSeeds(_cluster_map, mB);
   LOG_INFO("tracking.PHTpcTracker.process_event") << "SeedFinder produced " << candidates.size() << " track seeds";
 
   // ----- Track Following -----
-  mLookup->init(_cluster_map, _hitsets);
+  mLookup->init(_cluster_map);
   std::vector<PHGenFit2::Track*> gtracks;
   gtracks = mTrackFollower->followTracks(candidates, mField, mLookup, mFitter);
   LOG_INFO("tracking.PHTpcTracker.process_event") << "TrackFollower reconstructed " << gtracks.size() << " tracks";

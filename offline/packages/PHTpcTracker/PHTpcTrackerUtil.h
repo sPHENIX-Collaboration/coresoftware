@@ -10,11 +10,10 @@
 #include <vector>
 
 class TrkrClusterContainer;
-class TrkrHitSetContainer;
 
 namespace PHTpcTrackerUtil
 {
-  std::vector<std::vector<double> > convert_clusters_to_hits(TrkrClusterContainer* cluster_map, TrkrHitSetContainer *hitsets);
+  std::vector<std::vector<double> > convert_clusters_to_hits(TrkrClusterContainer* cluster_map);
 
 }  // namespace PHTpcTrackerUtil
 

@@ -22,7 +22,6 @@
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrHitSetContainer.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeom.h>
@@ -132,7 +131,6 @@ PHPatternReco::PHPatternReco(unsigned int nlayers,
       _vertex_list(),
       _bbc_vertexes(nullptr),
       _clustermap(nullptr),
-      _hitsets(nullptr),
       _trackmap(nullptr),
       _vertexmap(nullptr),
       _vertex_finder(),
@@ -727,13 +725,6 @@ int PHPatternReco::get_nodes(PHCompositeNode* topNode) {
 	    cerr << PHWHERE << " ERROR: Can't find node TrkrClusterContainer" << endl;
 	    return Fun4AllReturnCodes::ABORTEVENT;
 	  }
-	_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-	if(!_hitsets)
-	  {
-	    std::cout << PHWHERE << "No hitset container on node tree. Bailing."
-		      << std::endl;
-	    return Fun4AllReturnCodes::ABORTEVENT;
-	  }
 	// Pull the reconstructed track information off the node tree...
 	_trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 	if (!_trackmap) {
@@ -755,12 +746,9 @@ int PHPatternReco::translate_input(PHCompositeNode* topNode) {
 
   unsigned int clusid = 0;
   unsigned int ilayer = 0;
-
-  auto hitsetrange = _hitsets->getHitSets();
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _clustermap->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_clustermap->getHitSetKeys())
+  {
+    auto range = _clustermap->getClusters(hitsetkey);
     for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
       TrkrCluster *cluster = clusIter->second;
       TrkrDefs::cluskey cluskey = clusIter->first;

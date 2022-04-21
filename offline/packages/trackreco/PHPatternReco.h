@@ -28,7 +28,6 @@ class HelixHoughFuncs;
 class PHCompositeNode;
 class PHTimer;
 class TrkrClusterContainer;
-class TrkrHitSetContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
 
@@ -276,7 +275,6 @@ private:
 	// node pointers
 	BbcVertexMap* _bbc_vertexes;
 	TrkrClusterContainer* _clustermap;
-	TrkrHitSetContainer  *_hitsets;
 	SvtxTrackMap* _trackmap;
 	SvtxVertexMap* _vertexmap;
 	VertexFitter _vertex_finder;

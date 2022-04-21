@@ -28,7 +28,6 @@
 
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
@@ -250,11 +249,9 @@ PositionMap PHCASeeding::FillTree()
   PositionMap cachedPositions;
 
   for (int j = 0; j < 60; ++j) nlayer[j] = 0;
-  auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _cluster_map->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
+  {
+    auto range = _cluster_map->getClusters(hitsetkey);
     for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
 
       TrkrCluster *cluster = clusIter->second;

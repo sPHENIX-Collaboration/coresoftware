@@ -12,7 +12,6 @@
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 
@@ -206,15 +205,16 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
     }
 
   // For the other subsystems, we just copy over all of the the clusters from the reco map
-  auto hitsetrange = _hitsets->getHitSets();
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _reco_cluster_map->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_reco_cluster_map->getHitSetKeys())
+  {
+    auto range = _reco_cluster_map->getClusters(hitsetkey);
+    unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey);
+
+    // skip TPC
+    if(trkrid == TrkrDefs::tpcId)  continue;
+    
     for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
       TrkrDefs::cluskey cluskey = clusIter->first;
-      unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
-      if(trkrid == TrkrDefs::tpcId)  continue;
 
       // we have to make a copy of the cluster, to avoid problems later
       TrkrCluster* cluster = (TrkrCluster*) clusIter->second->CloneMe();

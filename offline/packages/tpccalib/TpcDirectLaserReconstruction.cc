@@ -18,7 +18,6 @@
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
@@ -231,9 +230,6 @@ int TpcDirectLaserReconstruction::load_nodes( PHCompositeNode* topNode )
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   assert(m_track_map);
 
-  // hitset container
-  m_hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-
   // clusters
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   assert(m_cluster_map);
@@ -281,10 +277,8 @@ void TpcDirectLaserReconstruction::process_tracks()
   if( !( m_track_map && m_cluster_map ) ) return;
 
   // count number of clusters in the TPC
-  for( const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
+  for(const auto& hitsetkey:m_cluster_map->getHitSetKeys(TrkrDefs::tpcId))
   {
-    if( TrkrDefs::getTrkrId( hitsetkey ) != TrkrDefs::tpcId ) continue;
-
     const auto range = m_cluster_map->getClusters(hitsetkey);
     m_total_clusters += std::distance( range.first, range.second );
   }
@@ -311,7 +305,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
   }
 
   // loop over hitsets
-  for( const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
+  for(const auto& hitsetkey:m_cluster_map->getHitSetKeys(TrkrDefs::tpcId))
   {
 
     // only check TPC hitsets

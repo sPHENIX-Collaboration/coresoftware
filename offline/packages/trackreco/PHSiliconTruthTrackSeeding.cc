@@ -10,8 +10,6 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
@@ -86,11 +84,9 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
   TrkClustersMap m_trackID_clusters;
 
   // loop over all clusters
-  auto hitsetrange = _hitsets->getHitSets();
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _cluster_map->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys())
+  {
+    auto range = _cluster_map->getClusters(hitsetkey);
     for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
     TrkrCluster* cluster = clusIter->second;
     TrkrDefs::cluskey cluskey = clusIter->first;

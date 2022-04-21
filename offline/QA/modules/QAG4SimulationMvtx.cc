@@ -13,7 +13,6 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for getTrkrId, getHit...
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/MvtxDefs.h>
 
@@ -162,13 +161,6 @@ std::string QAG4SimulationMvtx::get_histo_prefix() const
 //________________________________________________________________________
 int QAG4SimulationMvtx::load_nodes(PHCompositeNode* topNode)
 {
-  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (!m_hitsets)
-  {
-    std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
   m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
   if (!m_surfmaps)
   {
@@ -261,12 +253,9 @@ void QAG4SimulationMvtx::evaluate_clusters()
   }
 
   ActsTransformations transformer;
-  auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::mvtxId);
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr)
+  for(const auto& hitsetkey:m_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::mvtxId))
   {
-    auto range = m_cluster_map->getClusters(hitsetitr->first);
+    auto range = m_cluster_map->getClusters(hitsetkey);
     for (auto clusterIter = range.first; clusterIter != range.second; ++clusterIter)
     {
       // get cluster key, detector id and check

@@ -20,7 +20,6 @@ class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
-class TrkrHitSetContainer;
 class   PHG4CylinderCellGeomContainer;
 
 class TFile;
@@ -128,9 +127,6 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// acts transformation
   ActsTransformations m_transformer;
-
-  /// hitset containers
-  TrkrHitSetContainer* m_hitsetcontainer = nullptr;
 
   /// tracks
   SvtxTrackMap* m_track_map = nullptr;
