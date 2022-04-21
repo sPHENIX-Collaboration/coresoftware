@@ -310,10 +310,6 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   
   if(Verbosity()>0) std::cout << "starting Process" << std::endl;
   const auto globalPositions = PrepareKDTrees();
-
-  std::vector<std::vector<TrkrDefs::cluskey>> keylist = getKeyList();
-  std::vector<GPUTPCTrackParam> aliceSeeds = fitter->ALICEKalmanFilter(keylist, true, globalPositions);
-
   if(Verbosity()>0) std::cout << "prepared KD trees" << std::endl;
   
   if(Verbosity()>0) std::cout << "moved tracks into TPC" << std::endl;
@@ -332,8 +328,22 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
     if(is_tpc)
     {
-      MoveToFirstTPCCluster(track, globalPositions);
-      GPUTPCTrackParam kftrack = aliceSeeds.at(trackid);
+      std::vector<std::vector<TrkrDefs::cluskey>> keylist;
+      std::vector<TrkrDefs::cluskey> dumvec;
+      for(TrackSeed::ConstClusterKeyIter iter = track->begin_cluster_keys();
+	  iter != track->end_cluster_keys();
+	  ++iter)
+	{
+	  dumvec.push_back(*iter);
+	}
+
+      keylist.push_back(dumvec);
+
+      /// This will by definition return a single length vector with 
+      /// the GPUTPCTrackParam corresponding to this track seed
+      std::vector<GPUTPCTrackParam> aliceSeeds = fitter->ALICEKalmanFilter(keylist, true, globalPositions);
+
+      GPUTPCTrackParam kftrack = aliceSeeds.at(0);
       std::cout << "propagating track id " << trackid << std::endl;
       std::cout << "with track params : " <<kftrack.GetX() << ", " 
 	      << kftrack.GetY() << ", " << kftrack.GetZ() << ", " 
@@ -443,71 +453,6 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
   return globalPositions;
 }
 
-void PHSimpleKFProp::MoveToFirstTPCCluster( const TrackSeed* track, const PositionMap& globalPositions )
-{
-  double track_x = track->get_x();
-  double track_y = track->get_y();
-  if(sqrt(track_x*track_x+track_y*track_y)>10.)
-    {
-      if(Verbosity()>0) std::cout << "WARNING: attempting to move track to TPC which is already in TPC! Aborting for this track." << std::endl;
-      std::cout << "Track x,y " << track_x << ", " << track_y << std::endl;
-      continue;
-    }
-  
-  // get cluster keys
-  std::vector<TrkrDefs::cluskey> ckeys;
-  std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
-  
-  std::vector<Acts::Vector3> trkGlobPos;
-  for(const auto& ckey : ckeys)
-    {
-      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId )
-        { trkGlobPos.push_back(globalPositions.at(ckey)); }
-    }
-  
-  // get circle fit for TPC clusters plus vertex
-  //double R = 1. / fabs(track->get_qOverR());
-  float xc = track->get_X0();
-  float yc = track->get_Y0();
-  
-  // want angle of tangent to circle at innermost (i.e. last) cluster
-  size_t inner_index;
-  if(TrkrDefs::getLayer(ckeys[0])>TrkrDefs::getLayer(ckeys.back()))
-    {
-      inner_index = ckeys.size()-1;
-    }
-  else
-    {
-      inner_index = 0;
-    }
-  double cluster_x = trkGlobPos.at(inner_index)(0);
-  double cluster_y = trkGlobPos.at(inner_index)(1);
-  double dy = cluster_y-yc;
-  double dx = cluster_x-xc;
-  double phi = atan2(dy,dx);
-  double dx0 = trkGlobPos.at(0)(0) - xc;     
-  double dy0 = trkGlobPos.at(0)(1) - yc;
-  double phi0 = atan2(dy0, dx0);
-  double dx1 = trkGlobPos.at(1)(0) - xc;
-  double dy1 = trkGlobPos.at(1)(1) - yc;
-  double phi1 = atan2(dy1, dx1);
-  double dphi = phi1 - phi0;
-  if(dphi < 0)
-    phi += M_PI / 2.0;
-  else
-    phi -= M_PI / 2.0;
-  // rotate track momentum vector (pz stays the same)
-  //double pt = track->get_pt();
-  //track->set_px(pt*cos(phi));
-  //track->set_py(pt*sin(phi));
-  // set track position
-  //track->set_x(trkGlobPos.at(0)(0));
-  //track->set_y(trkGlobPos.at(0)(1));
-  //track->set_z(trkGlobPos.at(0)(2));
-  
-
-}
-
 std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, GPUTPCTrackParam& kftrack, const PositionMap& globalPositions) const
 {
   // extract cluster list
@@ -517,10 +462,73 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   {
     std::reverse(ckeys.begin(),ckeys.end());
   } 
+
+  double track_x = track->get_x();
+  double track_y = track->get_y();
+  double track_z = track->get_z();
+  double phi = atan2(track_y,track_x);
+  if(sqrt(track_x*track_x+track_y*track_y)<10.)
+    {
+      if(Verbosity()>0) std::cout << "WARNING: Moving track to TPC!" << std::endl;
+      std::cout << "Track x,y " << track_x << ", " << track_y << std::endl;
+
+       float xc = track->get_X0();
+       float yc = track->get_Y0();
+       // want angle of tangent to circle at innermost (i.e. last) cluster
+       size_t inner_index;
+       if(TrkrDefs::getLayer(ckeys[0])>TrkrDefs::getLayer(ckeys.back()))
+	 {
+	   inner_index = ckeys.size()-1;
+	 }
+       else
+	 {
+	   inner_index = 0;
+	 }
+
+       std::vector<Acts::Vector3> trkGlobPos;
+       for(const auto& ckey : ckeys)
+	 {
+	   if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId )
+	     { trkGlobPos.push_back(globalPositions.at(ckey)); }
+	 }
+       double cluster_x = trkGlobPos.at(inner_index)(0);
+       double cluster_y = trkGlobPos.at(inner_index)(1);
+       double dy = cluster_y-yc;
+       double dx = cluster_x-xc;
+       phi = atan2(dy,dx);
+       double dx0 = trkGlobPos.at(0)(0) - xc;     
+       double dy0 = trkGlobPos.at(0)(1) - yc;
+       double phi0 = atan2(dy0, dx0);
+       double dx1 = trkGlobPos.at(1)(0) - xc;
+       double dy1 = trkGlobPos.at(1)(1) - yc;
+       double phi1 = atan2(dy1, dx1);
+       double dphi = phi1 - phi0;
+       if(dphi < 0)
+	 phi += M_PI / 2.0;
+       else
+	 phi -= M_PI / 2.0;
+
+       track_x = trkGlobPos.at(0)(0);
+       track_y = trkGlobPos.at(0)(1);
+       track_z = trkGlobPos.at(0)(2);
+    }
+
   // get track parameters
-  
   float track_phi = atan2(track->get_py(),track->get_px());
- 
+  double trackpt = track->get_pt();
+  float trackpx = trackpt*cos(phi);
+  float trackpy = trackpt*sin(phi);
+  int charge = track->get_qOverR() < 0 ? -1 : 1;
+  kftrack.SetQPt(charge/track->get_pt());
+  float track_pX = trackpx*cos(track_phi)+trackpy*sin(track_phi);
+  float track_pY = -trackpx*sin(track_phi)+trackpy*cos(track_phi);
+  kftrack.SetSignCosPhi(track_pX/track->get_pt());
+  kftrack.SetSinPhi(track_pY/track->get_pt());
+  kftrack.SetDzDs(-track->get_pz()/track->get_pt());
+  kftrack.SetX(track_x*cos(track_phi)+track_y*sin(track_phi));
+  kftrack.SetY(-track_x*sin(track_phi)+track_y*cos(track_phi));
+  kftrack.SetZ(track_z);
+
   // Y = y
   // Z = z
   // SinPhi = py/sqrt(px^2+py^2)
@@ -538,6 +546,9 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     std::cout << "SinPhi: " << kftrack.GetSinPhi() << std::endl;
     std::cout << "DzDs: " << kftrack.GetDzDs() << std::endl;
     std::cout << "QPt: " << kftrack.GetQPt() << std::endl;  
+    std::cout << "cov: " << std::endl;
+    for(int i=0; i<15; i++) std::cout << kftrack.GetCov(i) << ", ";
+    std::cout << std::endl;
   }
 
   GPUTPCTrackLinearisation kfline(kftrack);
@@ -1149,21 +1160,3 @@ void PHSimpleKFProp::publishSeeds(const std::vector<TrackSeed>& seeds)
 }
 
 
-std::vector<std::vector<TrkrDefs::cluskey>> PHSimpleKFProp::getKeyList()
-{
-  std::vector<std::vector<TrkrDefs::cluskey>> keylist;
-  for(auto& seed : *_track_map)
-    {
-      std::vector<TrkrDefs::cluskey> dumvec;
-      for(TrackSeed::ConstClusterKeyIter iter = seed->begin_cluster_keys();
-	  iter != seed->end_cluster_keys();
-	  ++iter)
-	{
-	  dumvec.push_back(*iter);
-	}
-
-      keylist.push_back(dumvec);
-    }
-
-  return keylist;
-}
