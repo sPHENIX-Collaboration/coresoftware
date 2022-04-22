@@ -111,7 +111,7 @@ class PHCASeeding : public PHTrackSeeding
    * uses ActsTransformation to convert cluster local position into global coordinates
    * incorporates TPC distortion correction, if present
    */
-  Acts::Vector3 getGlobalPosition(TrkrCluster*) const;
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
 
   PositionMap FillTree();
   int FindSeedsWithMerger(const PositionMap&);
