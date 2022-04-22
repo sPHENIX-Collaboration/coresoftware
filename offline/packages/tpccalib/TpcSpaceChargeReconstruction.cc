@@ -215,18 +215,17 @@ int TpcSpaceChargeReconstruction::load_nodes( PHCompositeNode* topNode )
 }
 
 //_________________________________________________________________________________
-Acts::Vector3 TpcSpaceChargeReconstruction::get_global_position( TrkrCluster* cluster )
+Acts::Vector3 TpcSpaceChargeReconstruction::get_global_position(TrkrDefs::cluskey key, TrkrCluster* cluster )
 {
-
-  // get cluster key
-  const auto key = cluster->getClusKey();
 
   // find closest iterator in map
   auto it = m_globalPositions.lower_bound( key );
   if (it == m_globalPositions.end()|| (key < it->first ))
   {
     // get global position from Acts transform
-    const auto globalpos = m_transform.getGlobalPosition(cluster,
+    const auto globalpos = m_transform.getGlobalPosition(
+      key, 
+      cluster,
       m_surfmaps,
       m_tgeometry);
 
@@ -316,7 +315,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     if(detId != TrkrDefs::tpcId) continue;
 
     // cluster r, phi and z
-    const auto global_position = get_global_position( cluster );
+    const auto global_position = get_global_position( cluster_key, cluster );
     const auto cluster_r = get_r( global_position.x(), global_position.y() );
     const auto cluster_phi = std::atan2( global_position.y(), global_position.x() );
     const auto cluster_z = global_position.z();
@@ -434,7 +433,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     }
 
     // get cell
-    const auto i = get_cell_index( cluster );
+    const auto i = get_cell_index( cluster_key, cluster );
     if( i < 0 )
     {
       std::cout << "TpcSpaceChargeReconstruction::process_track - invalid cell index" << std::endl;
@@ -470,7 +469,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 }
 
 //_____________________________________________________________________
-int TpcSpaceChargeReconstruction::get_cell_index( TrkrCluster* cluster )
+int TpcSpaceChargeReconstruction::get_cell_index(TrkrDefs::cluskey key, TrkrCluster* cluster )
 {
   // get grid dimensions from matrix container
   int phibins = 0;
@@ -480,7 +479,7 @@ int TpcSpaceChargeReconstruction::get_cell_index( TrkrCluster* cluster )
 
 
   // get global position
-  const auto global_position = get_global_position( cluster );
+  const auto global_position = get_global_position( key, cluster );
 
   // phi
   // bound check
