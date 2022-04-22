@@ -96,13 +96,13 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   ///@name selection parameters
   //@{
   // residual cuts in r, phi plane
-  float m_max_dca = 1.5;
+  float m_max_dca = NAN;
 
   /// residual cuts in r, phi plane
-  float m_max_drphi = 0.5;
+  float m_max_drphi = NAN;
 
   /// residual cuts in r, z plane
-  float m_max_dz = 0.5;
+  float m_max_dz = NAN;
   //@}
 
   /// matrix container
@@ -145,10 +145,13 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   TH2* h_dca_layer = nullptr;
 
   /// delta rphi vs layer number
-  TH2 *h_deltarphi_layer = nullptr;
+  TH2 *h_deltarphi_layer_south = nullptr;
+  TH2 *h_deltarphi_layer_north = nullptr;
 
   /// delta z vs layer number
   TH2 *h_deltaz_layer = nullptr;
+
+  TH2 *h_deltar_r = nullptr;
 
   /// number of entries per cell
   TH3 *h_entries = nullptr;

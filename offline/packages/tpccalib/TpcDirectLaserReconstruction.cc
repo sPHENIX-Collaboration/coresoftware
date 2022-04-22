@@ -176,7 +176,7 @@ int TpcDirectLaserReconstruction::End(PHCompositeNode* )
   if( m_savehistograms && m_histogramfile )
   {
     m_histogramfile->cd();
-    for(const auto& o:std::initializer_list<TObject*>({ h_dca_layer, h_deltarphi_layer, h_deltaz_layer, h_entries,h_xy,h_xz,h_xy_pca,h_xz_pca,h_dca_path,h_zr,h_zr_pca, h_dz_z }))
+    for(const auto& o:std::initializer_list<TObject*>({ h_dca_layer, h_deltarphi_layer_south,h_deltarphi_layer_north, h_deltaz_layer, h_deltar_r, h_entries,h_xy,h_xz,h_xy_pca,h_xz_pca,h_dca_path,h_zr,h_zr_pca, h_dz_z }))
     { if( o ) o->Write(); }
     m_histogramfile->Close();
   }
@@ -197,7 +197,7 @@ void TpcDirectLaserReconstruction::SetDefaultParameters()
 {
 
   // DCA cut, to decide whether a cluster should be associated to a given laser track or not
-  set_default_double_param( "directlaser_max_dca", 1.5 );
+  set_default_double_param( "directlaser_max_dca", 5.0 );
 
   
 //   // residual cuts, used to decide if a given cluster is used to fill SC reconstruction matrices
@@ -244,20 +244,22 @@ void TpcDirectLaserReconstruction::create_histograms()
   m_histogramfile->cd();
 
   // residuals vs layers
-  h_dca_layer = new TH2F( "dca_layer", ";radius; DCA (cm)", 78, 0, 78, 500, 0, 2 );
-  h_deltarphi_layer = new TH2F( "deltarphi_layer", ";radius; r.#Delta#phi_{track-cluster} (cm)", 78, 0, 78, 2000, -1, 1 );
-  h_deltaz_layer = new TH2F( "deltaz_layer", ";radius; #Deltaz_{track-cluster} (cm)", 78, 0, 78, 2000, -1, 1 );
+  h_dca_layer = new TH2F( "dca_layer", ";radius; DCA (cm)", 78, 0, 78, 500, 0, 18 );
+  h_deltarphi_layer_north = new TH2F( "deltarphi_layer_north", ";radius; r.#Delta#phi_{track-cluster} (cm)", 78, 0, 78, 2000, -1, 1 );
+  h_deltarphi_layer_south = new TH2F( "deltarphi_layer_south", ";radius; r.#Delta#phi_{track-cluster} (cm)", 78, 0, 78, 2000, -1, 1 );
+  h_deltaz_layer = new TH2F( "deltaz_layer", ";radius; #Deltaz_{track-cluster} (cm)", 78, 0, 78, 2000, -18, 18 );
+  h_deltar_r = new TH2F("deltar_r",";radius;#Deltar_{track-cluster} (cm)", 78,0,78,2000,-3,3);
 
   h_xy = new TH2F("h_xy"," x vs y", 320,-80,80,320,-80,80);
   h_xz = new TH2F("h_xz"," x vs z", 320,-80,80,440,-110,110);
   h_xy_pca = new TH2F("h_xy_pca"," x vs y pca", 320,-80,80,320,-80,80);
   h_xz_pca = new TH2F("h_xz_pca"," x vs z pca", 320,-80,80,440,-110,110);
-  h_dca_path = new TH2F("h_dca_path"," dca vs pathlength", 440,0,110,100,0,1);
+  h_dca_path = new TH2F("h_dca_path"," dca vs pathlength", 440,0,110,100,0,18);
   h_zr = new TH2F("h_zr"," z vs r", 440,-110,110,1000,28,80);
   h_zr->GetXaxis()->SetTitle("z");
   h_zr->GetYaxis()->SetTitle("rad");
   h_zr_pca = new TH2F("h_zr_pca"," z vs r pca", 440,-110,110,1000,28,80);
-  h_dz_z = new TH2F("h_dz_z"," dz vs z", 440,-110,110, 1000, -.3, .3);
+  h_dz_z = new TH2F("h_dz_z"," dz vs z", 440,-110,110, 1000, -18, 18);
 
   // entries vs cell grid
   /* histogram dimension and axis limits must match that of TpcSpaceChargeMatrixContainer */
@@ -492,9 +494,12 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       if(m_savehistograms)
 	{
 	  const float r = get_r( projection.x(), projection.y() );
+	  const float dr = cluster_r - r;
 	  if(h_dca_layer) h_dca_layer->Fill(r, dca);
-	  if(h_deltarphi_layer) h_deltarphi_layer->Fill(r, drp);
+	  if(h_deltarphi_layer_south && clus_centroid.z() < 0) h_deltarphi_layer_south->Fill(r, drp);
+	  if(h_deltarphi_layer_north && clus_centroid.z() > 0) h_deltarphi_layer_north->Fill(r, drp);
 	  if(h_deltaz_layer) h_deltaz_layer->Fill(r, dz);
+	  if(h_deltar_r) h_deltar_r->Fill(r, dr);
 	  if(h_entries)
 	    {
 	      auto phi = cluster_phi;
