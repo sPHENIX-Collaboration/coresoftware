@@ -122,13 +122,13 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
         newclus->CopyFrom( cluster );
         
         // insert in corrected map
-        _corrected_cluster_map->addCluster(newclus);
+        _corrected_cluster_map->addClusterSpecifyKey(cluster_key, newclus);
 	      continue;      
 	    }
 	  
 	  // get the cluster in 3D coordinates
 	  auto tpc_clus =  _cluster_map->findCluster(cluster_key);
-	  auto global = _transformer.getGlobalPosition(tpc_clus,
+	  auto global = _transformer.getGlobalPosition(cluster_key, tpc_clus,
 						      _surfmaps,
 						      _tGeometry);
 
@@ -274,7 +274,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  newclus->setLocalY(localPos(1));
 
     // insert in map
-    _corrected_cluster_map->addCluster(newclus);
+    _corrected_cluster_map->addClusterSpecifyKey(cluskey, newclus);
 	}
 
       // For normal reconstruction, the silicon clusters  for this track will be copied over after the matching is done
