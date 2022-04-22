@@ -132,7 +132,7 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _track_map = findNode::getClass<TrackSeedContainer>(topNode, "TrackSeedContainer");
+  _track_map = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if (!_track_map)
   {
     std::cerr << PHWHERE << " ERROR: Can't find TrackSeedContainer " << std::endl;
@@ -437,6 +437,12 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   Jrot(3,4) = -track_px/track_pt3; // dQPt/dpx
   Jrot(4,4) = -track_py/track_pt3; // dQPt/dpy
   Jrot(5,4) = 0; // dQPt/dpz
+
+  std::cout << "J cov "<<std::endl;
+  std::cout << Jrot << std::endl;
+
+  std::cout << "xyzCov " << std::endl;
+  std::cout << xyzCov << std::endl;
 
   Eigen::Matrix<double,5,5> kfCov = Jrot.transpose()*xyzCov*Jrot;
 

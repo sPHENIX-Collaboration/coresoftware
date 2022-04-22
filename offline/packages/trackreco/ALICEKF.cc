@@ -182,7 +182,8 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     LogDebug("initial QPt: " << init_QPt << std::endl);
     trackSeed.SetQPt(init_QPt);
 
-  
+    std::cout << "BEFORE ALICE KF, track seed has : " << trackSeed.GetQPt() << ", " << trackSeed.GetSinPhi() << ", " << trackSeed.GetDzDs() << ", " << trackSeed.GetX() << ", " << trackSeed.GetY() << ", " << trackSeed.GetZ() << std::endl;
+
     GPUTPCTrackLinearisation trackLine(trackSeed);
 
     LogDebug(std::endl << std::endl << "------------------------" << std::endl << "seed size: " << trackKeyChain.size() << std::endl << std::endl << std::endl);
@@ -444,6 +445,12 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
       continue;
     }
 */
+
+    std::cout << "AFTER ALICE KF, track seed has : " << trackSeed.GetQPt() << ", " << trackSeed.GetSinPhi() << ", " << trackSeed.GetDzDs() << ", " << trackSeed.GetX() << ", " << trackSeed.GetY() << ", " << trackSeed.GetZ() << std::endl;
+    std::cout << "ALICE KF covariance ";
+    for(int i=0; i<15; i++) std::cout << trackSeed.GetCov(i) << ", ";
+    std::cout << std::endl;
+
     double track_pt = fabs(1./trackSeed.GetQPt());
     #if defined(_DEBUG_)
     double track_pY = track_pt*trackSeed.GetSinPhi();
@@ -632,7 +639,10 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
         //track.set_error(i, j, scov(i,j));
       }
     }
-    
+    std::cout << "j cov " << std::endl;
+    std::cout << J << std::endl;
+    std::cout << "sphenix cov " << std::endl;
+    std::cout << scov << std::endl;
 /*
     // Proceed with the absolutely hellish coordinate transformation of the covariance matrix.
     // Derived from:
