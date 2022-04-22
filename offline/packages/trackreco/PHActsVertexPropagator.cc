@@ -80,6 +80,8 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
 	    }
 	}
     }
+  
+  setVtxChi2();
 
   /// Erase the trajectories that were removed from the track cleaner
   for(auto& key : deletedKeys)
@@ -88,6 +90,44 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHActsVertexPropagator::setVtxChi2()
+{
+
+  for(const auto& [vtxid, vtx] : *m_vertexMap)
+    {
+      float xvtx = vtx->get_x();
+      float yvtx = vtx->get_y();
+      float zvtx = vtx->get_z();
+      float xchisqsum = 0;
+      float ychisqsum = 0;
+      float zchisqsum = 0;
+      
+      for(auto trackiter = vtx->begin_tracks(); trackiter != vtx->end_tracks();
+	  ++trackiter)
+	{
+	  SvtxTrack* track = m_trackMap->get(*trackiter);
+	  float trkx = track->get_x();
+	  float trky = track->get_y();
+	  float trkz = track->get_z();
+	  float trkcovx = track->get_error(0,0);
+	  float trkcovy = track->get_error(1,1);
+	  float trkcovz = track->get_error(2,2);
+	  
+	  xchisqsum += pow(trkx - xvtx, 2) / trkcovx;
+	  ychisqsum += pow(trky - yvtx, 2) / trkcovy;
+	  zchisqsum += pow(trkz - zvtx, 2) / trkcovz;
+
+	}
+
+      /// independent chisq sum additively
+      vtx->set_chisq(xchisqsum + ychisqsum + zchisqsum);
+      /// Each track contributes independently to x,y,z, so the total
+      /// ndf is total tracks * 3 minus 1*3 for each independent x,y,z
+      vtx->set_ndof(vtx->size_tracks() * 3 - 3);
+    
+    }
 }
 
 void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track, 
