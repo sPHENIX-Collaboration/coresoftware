@@ -5,10 +5,8 @@
 
 #include "Fun4AllBase.h"
 
-#include <map>
+#include <cstdint>
 #include <string>
-#include <tuple>
-#include <vector>
 
 class Fun4AllMonitoring : public Fun4AllBase
 {

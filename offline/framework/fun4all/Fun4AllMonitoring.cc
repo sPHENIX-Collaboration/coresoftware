@@ -1,20 +1,15 @@
 #include "Fun4AllMonitoring.h"
 
-#include <TSystem.h>
-
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <algorithm>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <regex>
 #include <sstream>
-
-using namespace std;
+#include <unistd.h>
+#include <vector>
 
 Fun4AllMonitoring *Fun4AllMonitoring::mInstance = nullptr;
 
@@ -36,12 +31,12 @@ void Fun4AllMonitoring::Snapshot(const std::string & /*what*/)
   Get_Memory();
   if (mEvent == 0)  // called for the first time, write header
   {
-    std::ofstream outfile(mOutFileName, ios_base::trunc);
-    outfile << "Event     HeapPss     OtherPss" << endl;
+    std::ofstream outfile(mOutFileName, std::ios_base::trunc);
+    outfile << "Event     HeapPss     OtherPss" << std::endl;
     outfile.close();
   }
-  std::ofstream outfile(mOutFileName, ios_base::app);
-  outfile << mEvent << " " << mHeapPss << " " << mOtherPss << endl;
+  std::ofstream outfile(mOutFileName, std::ios_base::app);
+  outfile << mEvent << " " << mHeapPss << " " << mOtherPss << std::endl;
   outfile.close();
   mHeapPss = 0;
   mOtherPss = 0;
@@ -52,8 +47,8 @@ void Fun4AllMonitoring::Snapshot(const std::string & /*what*/)
 void Fun4AllMonitoring::Get_Memory()
 {
   std::ifstream smap_stat("/proc/self/smaps");
-  string instring;
-  string libraryname;
+  std::string instring;
+  std::string libraryname;
   int i = 0;
   while (smap_stat)
   {
@@ -65,10 +60,10 @@ void Fun4AllMonitoring::Get_Memory()
     boost::trim(instring);  // remove leading + trailing spaces
     std::regex reg(R"(\s+)");
     instring = std::regex_replace(instring, reg, " ");  // replace multiple spaces with one space
-    string firststring = instring.substr(0, instring.find(" "));
-    if (firststring.find("-") != string::npos || (firststring.find("0000000") != string::npos && i == 0))
+    std::string firststring = instring.substr(0, instring.find(" "));
+    if (firststring.find("-") != std::string::npos || (firststring.find("0000000") != std::string::npos && i == 0))
     {
-      vector<string> tokens;
+      std::vector<std::string> tokens;
       boost::split(tokens, instring, boost::is_any_of(" "));
 
       if (tokens.size() == 6)
@@ -87,10 +82,10 @@ void Fun4AllMonitoring::Get_Memory()
       typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
       tokenizer tok(instring, sep);
       tokenizer::iterator tok_iter = tok.begin();
-      if ((*tok_iter).find("Pss") != string::npos)
+      if ((*tok_iter).find("Pss") != std::string::npos)
       {
         tok_iter++;
-        string number = *tok_iter;
+        std::string number = *tok_iter;
         boost::trim(number);
         if (libraryname.find("[heap]") != std::string::npos)
         {
