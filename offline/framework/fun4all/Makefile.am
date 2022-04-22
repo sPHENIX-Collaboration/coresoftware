@@ -19,6 +19,7 @@ pkginclude_HEADERS = \
   Fun4AllHistoManager.h \
   Fun4AllInputManager.h \
   Fun4AllMemoryTracker.h \
+  Fun4AllMonitoring.h \
   Fun4AllNoSyncDstInputManager.h \
   Fun4AllOutputManager.h \
   Fun4AllReturnCodes.h \
@@ -46,6 +47,7 @@ libfun4all_la_SOURCES = \
   Fun4AllDummyInputManager.cc \
   Fun4AllHistoManager.cc \
   Fun4AllInputManager.cc \
+  Fun4AllMonitoring.cc \
   Fun4AllMemoryTracker.cc \
   Fun4AllNoSyncDstInputManager.cc \
   Fun4AllOutputManager.cc \
