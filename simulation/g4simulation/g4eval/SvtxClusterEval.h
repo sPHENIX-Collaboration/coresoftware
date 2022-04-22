@@ -113,7 +113,7 @@ class SvtxClusterEval
   int _verbosity = 0;
   unsigned int _errors = 0;
 
-  bool _do_cache;
+  bool _do_cache = true;
   std::map<TrkrDefs::cluskey, std::set<PHG4Hit*> > _cache_all_truth_hits;
   std::map<TrkrDefs::cluskey, std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > > _cache_all_truth_clusters;
   std::map<TrkrDefs::cluskey, PHG4Hit*> _cache_max_truth_hit_by_energy;

@@ -116,7 +116,7 @@ std::pair<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxClusterEval::max_
   unsigned int cluster_layer = TrkrDefs::getLayer(cluster_key);
 
   PHG4Particle* max_particle = max_truth_particle_by_cluster_energy(cluster_key);
-  if(!max_particle) std::make_pair( 0, nullptr );
+  if(!max_particle) return std::make_pair( 0, nullptr );
 
   if(_verbosity > 0) 
     cout << "         max truth particle by cluster energy has  trackID  " << max_particle->get_track_id() << endl;      
