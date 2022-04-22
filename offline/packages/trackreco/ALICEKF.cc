@@ -687,9 +687,9 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     track.set_error(5, 4, track.get_error(4, 5));
 */
 
-    if(!covIsPosDef(track))
+    if(!covIsPosDef(scov))
     {
-      repairCovariance(track);
+      repairCovariance(scov);
     }
 /*
     for(int w=0;w<cx.size();w++)
@@ -725,37 +725,19 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
 
 }
 
-Eigen::Matrix<double,6,6> ALICEKF::getEigenCov(const TrackSeed_v1 &) const
+bool ALICEKF::covIsPosDef(Eigen::Matrix<double,6,6>& cov) const
 {
- 
-  Eigen::Matrix<double,6,6> cov;
-  cov(0,0) = 0;
-  for(int i=0;i<6;i++)
-  {
-    for(int j=0;j<6;j++)
-    {
-      //cov(i,j) = track.get_error(i,j);
-    }
-  }
-  return cov;
-}
-
-bool ALICEKF::covIsPosDef(const TrackSeed_v1 &track) const
-{
-  // put covariance matrix into Eigen container
-  Eigen::Matrix<double,6,6> cov = getEigenCov(track);
   // attempt Cholesky decomposition
   Eigen::LLT<Eigen::Matrix<double,6,6>> chDec(cov);
   // if Cholesky decomposition does not exist, matrix is not positive definite
   return (chDec.info() != Eigen::NumericalIssue);
 }
 
-void ALICEKF::repairCovariance(TrackSeed_v1 &) const
+void ALICEKF::repairCovariance(Eigen::Matrix<double,6,6>& cov) const
 {
-  /*
+  Eigen::Matrix<double,6,6> repaircov = cov;
   // find closest positive definite matrix
-  Eigen::Matrix<double,6,6> cov = getEigenCov(track);
-  Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,6,6>> solver(cov);
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,6,6>> solver(repaircov);
   Eigen::Matrix<double,6,1> D = solver.eigenvalues();
   Eigen::Matrix<double,6,6> Q = solver.eigenvectors();
   Eigen::Matrix<double,6,1> Dp = D.cwiseMax(1e-15);
@@ -765,10 +747,10 @@ void ALICEKF::repairCovariance(TrackSeed_v1 &) const
   {
     for(int j=0;j<6;j++)
     {
-      track.set_error(i,j,Z(i,j));
+      cov(i,j) = Z(i,j);
     }
   }
-  */
+  
 }
 void ALICEKF::CircleFitByTaubin (const std::vector<std::pair<double,double>>& points, double &R, double &X0, double &Y0) const
 /*  

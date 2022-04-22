@@ -40,9 +40,8 @@ class ALICEKF
     _min_clusters_per_track = min_clusters;
   }
   TrackSeedAliceSeedMap ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions) const;
-  Eigen::Matrix<double,6,6> getEigenCov(const TrackSeed_v1 &track) const;
-  bool covIsPosDef(const TrackSeed_v1 &track) const;
-  void repairCovariance(TrackSeed_v1 &track) const;
+  bool covIsPosDef(Eigen::Matrix<double,6,6>& cov) const;
+  void repairCovariance(Eigen::Matrix<double,6,6>& cov) const;
   bool checknan(double val, const std::string &msg, int num) const;
   double get_Bz(double x, double y, double z) const;
   void CircleFitByTaubin(const std::vector<std::pair<double,double>>& pts, double &R, double &X0, double &Y0) const;
