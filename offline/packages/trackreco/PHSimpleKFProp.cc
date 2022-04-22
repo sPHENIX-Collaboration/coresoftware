@@ -192,6 +192,8 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 	{
 	  dumvec.push_back(*iter);
 	}
+      if(dumvec.size() < _min_clusters_per_track)
+	{ continue; }
 
       keylist.push_back(dumvec);
       /// This will by definition return a single pair with each vector 
@@ -309,7 +311,9 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 {
   // extract cluster list
   std::vector<TrkrDefs::cluskey> ckeys;
+  std::cout << "copying ckeys"<<std::endl;
   std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
+  std::cout << "done copying"<<std::endl;
   if(ckeys.size()>1 && ((int)TrkrDefs::getLayer(ckeys.front()))>((int)TrkrDefs::getLayer(ckeys.back())))
   {
     std::reverse(ckeys.begin(),ckeys.end());
