@@ -36,12 +36,6 @@ PHTruthSiliconAssociation::PHTruthSiliconAssociation(const std::string &name):
 }
 
 //____________________________________________________________________________..
-PHTruthSiliconAssociation::~PHTruthSiliconAssociation()
-{
-
-}
-
-//____________________________________________________________________________..
 int PHTruthSiliconAssociation::Init(PHCompositeNode */*topNode*/)
 {
 
@@ -593,7 +587,7 @@ void PHTruthSiliconAssociation::copySiliconClustersToCorrectedMap( )
         newclus->CopyFrom( cluster );
 
         // insert in corrected map
-        _corrected_cluster_map->addCluster(newclus);
+        _corrected_cluster_map->addClusterSpecifyKey(cluster_key, newclus);
       }
     }      
   }

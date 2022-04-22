@@ -8,6 +8,7 @@
 #define TRACKRECO_PHTRUTHCLUSTERING_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/TrkrDefs.h>
 
 // rootcint barfs with this header so we need to hide it
 #include <gsl/gsl_rng.h>
@@ -47,7 +48,7 @@ private:
 /// fetch node pointers
 int GetNodes(PHCompositeNode *topNode);
 
-std::map<unsigned int, TrkrCluster* > all_truth_clusters(PHG4Particle* particle);
+std::map<TrkrDefs::cluskey, TrkrCluster* > all_truth_clusters(PHG4Particle* particle);
 std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);
 
   void LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &x, float &y, float &z,  float &t, float &e);

@@ -29,8 +29,6 @@ class PHTruthSiliconAssociation : public SubsysReco
 
   PHTruthSiliconAssociation(const std::string &name = "PHTruthSiliconAssociation");
 
-  ~PHTruthSiliconAssociation() override;
-
   int Init(PHCompositeNode *topNode) override;
 
   int InitRun(PHCompositeNode *topNode) override;
