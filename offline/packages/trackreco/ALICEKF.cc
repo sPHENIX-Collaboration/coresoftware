@@ -1,6 +1,7 @@
 #include "ALICEKF.h"
 
 #include "GPUTPCTrackLinearisation.h"
+#include "GPUTPCTrackParam.h"
 
 #include <trackbase/TrkrCluster.h>
 #include <Geant4/G4SystemOfUnits.hh>
@@ -89,11 +90,12 @@ double ALICEKF::getClusterError(TrkrCluster* c, Acts::Vector3 global, int i, int
     }
 }
 
-std::vector<GPUTPCTrackParam> ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& trackSeedKeyLists,bool use_nhits_limit, const PositionMap& globalPositions) const
+TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& trackSeedKeyLists,bool use_nhits_limit, const PositionMap& globalPositions) const
 {
 //  TFile* f = new TFile("/sphenix/u/mjpeters/macros_hybrid/detectors/sPHENIX/pull.root", "RECREATE");
 //  TNtuple* ntp = new TNtuple("pull","pull","cx:cy:cz:xerr:yerr:zerr:tx:ty:tz:layer:xsize:ysize:phisize:phierr:zsize");
-  std::vector<GPUTPCTrackParam> seeds_vector;
+  std::vector<TrackSeed_v1> seeds_vector;
+  std::vector<Eigen::Matrix<double,6,6>> alice_seeds_vector;
   int nseeds = 0;
  
   if(Verbosity()>0) std::cout << "min clusters per track: " << _min_clusters_per_track << "\n";
@@ -181,11 +183,6 @@ std::vector<GPUTPCTrackParam> ALICEKF::ALICEKalmanFilter(const std::vector<keyli
     trackSeed.SetQPt(init_QPt);
 
   
-    std::cout << "Initial ALICEKF seed : " << trackSeed.GetX() << ", " 
-	      << trackSeed.GetY() << ", " << trackSeed.GetZ() << ", " 
-	      << trackSeed.GetQPt() << ", " << trackSeed.GetSinPhi() 
-	      << ", " << trackSeed.GetDzDs() << std::endl;
-
     GPUTPCTrackLinearisation trackLine(trackSeed);
 
     LogDebug(std::endl << std::endl << "------------------------" << std::endl << "seed size: " << trackKeyChain.size() << std::endl << std::endl << std::endl);
@@ -335,12 +332,118 @@ std::vector<GPUTPCTrackParam> ALICEKF::ALICEKalmanFilter(const std::vector<keyli
         layer.push_back(TrkrDefs::getLayer(*clusterkey));
         phierr.push_back(nextclusphierr);     
       }
-  }
+    }
 //    if(aborted) continue;
     if(Verbosity()>0) std::cout << "finished track\n";
-
+/*
+    // transport to beamline
+//    float old_phi = atan2(y,x);
+    float trackX = trackSeed.GetX();
+    for(int i=99;i>=0;i--)
+    {
+      if(!trackSeed.TransportToX(i/100.*trackX,trackLine,_Bz,_max_sin_phi))
+      {
+        LogWarning("Transport failed! Aborting for this seed...\n");
+        aborted = true;
+        break;
+      }
+//      float new_phi = atan2(trackSeed.GetX()*sin(old_phi)+trackSeed.GetY()*cos(old_phi),trackSeed.GetX()*cos(old_phi)-trackSeed.GetY()*sin(old_phi));
+//      if(!trackSeed.Rotate(new_phi-old_phi,trackLine,_max_sin_phi))
+//      {
+//        LogWarning("Rotate failed! Aborting for this seed...\n");
+//        aborted = true;
+//        break;
+//      }
+//      old_phi = new_phi;
+    }
+    if(aborted) continue;
+    std::cout << "transported to beamline\n";
+    // find nearest vertex
+    double beamline_X = trackSeed.GetX();
+    double beamline_Y = trackSeed.GetY();
+*/
     double track_phi = atan2(y,x);
+/*
+    double beamline_x = beamline_X*cos(track_phi)-beamline_Y*sin(track_phi);
+    double beamline_y = beamline_X*sin(track_phi)+beamline_Y*cos(track_phi);
+    double beamline_z = trackSeed.GetZ();
+    double min_dist = 1e9;
+    int best_vtx = -1;
+    for(int i=0;i<_vertex_x.size();++i)
+    {
+      double delta_x = beamline_x-_vertex_x[i];
+      double delta_y = beamline_y-_vertex_y[i];
+      double delta_z = beamline_z-_vertex_z[i];
+      double dist = sqrt(delta_x*delta_x+delta_y*delta_y+delta_z*delta_z);
+      if(dist<min_dist)
+      {
+        min_dist = dist;
+        best_vtx = i;
+      }
+    }
+    std::cout << "best vtx:\n";
+    std::cout << "("<<_vertex_x[best_vtx]<<","<<_vertex_y[best_vtx]<<","<<_vertex_z[best_vtx]<<")\n";
+    // Fit to vertex point
+    double vertex_phi = atan2(_vertex_y[best_vtx],_vertex_x[best_vtx]);
+    std::cout << "vertex_phi: " << vertex_phi << "\n";
+    std::cout << "track_phi: " << track_phi << "\n";
+//    double alpha = vertex_phi - track_phi;
+    // Here's where we need to be careful about the vertex position.
+    // Most clusters are at roughly the same spatial phi, with only a little rotation required between them.
+    // This is no longer guaranteed for the vertex - its phi could be anywhere,
+    // including on the opposite side of the origin.
+    // If it ends up on the opposite side, then we need to transport to *negative* radius in order to get close to it.
+    // We will simplify this condition to abs(alpha)>pi/2, which assumes that (innermost TPC cluster R) >> (vertex R).
 
+    bool crosses_origin = false;
+    if(alpha<-M_PI/4)
+    {
+      while(alpha<-M_PI/4) alpha += M_PI/2;
+      crosses_origin = true;
+    }
+    if(alpha>M_PI/4)
+    {
+      while(alpha>M_PI/4) alpha -= M_PI/2;
+      crosses_origin = true;
+    }
+    if(crosses_origin) std::cout << "bad\n";
+    std::cout << "alpha: " << alpha << "\n";
+
+    if(!trackSeed.Rotate(alpha,trackLine,_max_sin_phi))
+    {
+      LogWarning("Rotate failed! Aborting for this seed...\n");
+      aborted = true;
+      continue;
+    }
+    LogDebug("ALICE coordinates after rotation: (" << trackSeed.GetX() << ", " << trackSeed.GetY() << ", " << trackSeed.GetZ() << ")\n");
+    std::cout << "rotated to vertex\n";
+
+    double vertex_X = sqrt(_vertex_x[best_vtx]*_vertex_x[best_vtx]+_vertex_y[best_vtx]*_vertex_y[best_vtx]);
+    if(crosses_origin) vertex_X = -vertex_X;
+    if(!trackSeed.TransportToX(vertex_X,trackLine,_Bz,_max_sin_phi))
+    {
+      LogWarning("Transport failed! Aborting for this seed...\n");
+      aborted = true;
+      continue;
+    }
+    LogDebug("Track transported to (x,y,z) = (" << trackSeed.GetX()*cos(vertex_phi)-trackSeed.GetY()*sin(vertex_phi) << "," << trackSeed.GetX()*sin(vertex_phi)+trackSeed.GetY()*cos(vertex_phi) << "," << trackSeed.GetZ() << ")" << std::endl);
+    LogDebug("Next cluster is at (x,y,z) = (" << _vertex_x[best_vtx] << "," << _vertex_y[best_vtx] << "," << _vertex_z[best_vtx] << ")" << std::endl);
+
+    double vertex_Y = -_vertex_x[best_vtx]*sin(vertex_phi)+_vertex_y[best_vtx]*cos(vertex_phi);
+    std::cout << "vertex Y: " << vertex_Y << "\n";
+    std::cout << "transported to vertex\n";
+    double vertex_Yerr = -_vertex_xerr[best_vtx]*sin(vertex_phi)+_vertex_yerr[best_vtx]*cos(vertex_phi);
+    std::cout << "vertex Y err: " << vertex_Yerr << "\n";
+
+    if(!trackSeed.Filter(vertex_Y,_vertex_z[best_vtx],vertex_Yerr*vertex_Yerr,_vertex_zerr[best_vtx]*_vertex_zerr[best_vtx],_max_sin_phi))
+    {
+      std::cout << "filter failed\n";
+      if (Verbosity() >= 1)
+        LogError("Kalman filter failed for seed " << nseeds << "! Aborting for this seed..." << std::endl);
+      aborted = true;
+      continue;
+    }
+*/
     double track_pt = fabs(1./trackSeed.GetQPt());
     #if defined(_DEBUG_)
     double track_pY = track_pt*trackSeed.GetSinPhi();
@@ -393,49 +496,37 @@ std::vector<GPUTPCTrackParam> ALICEKF::ALICEKalmanFilter(const std::vector<keyli
     if(checknan(track_curvature,"curvature",nseeds)) continue;
     double track_curverr = sqrt(trackSeed.GetErr2QPt())*_Bzconst*get_Bz(track_x,track_y,track_z);
     if(checknan(track_curverr,"curvature error",nseeds)) continue;
-
-    std::cout << "After ALICEKF seed : " << trackSeed.GetX() << ", " 
-	      << trackSeed.GetY() << ", " << trackSeed.GetZ() << ", " 
-	      << trackSeed.GetQPt() << ", " << trackSeed.GetSinPhi() 
-	      << ", " << trackSeed.GetDzDs() << std::endl;
-    
-    /// fill container
-    seeds_vector.push_back(trackSeed);
-    /*
     TrackSeed_v1 track;
-
+//    track.set_vertex_id(_vertex_ids[best_vtx]);
     for (unsigned int j = 0; j < trackKeyChain.size(); ++j)
     {
       track.insert_cluster_key(trackKeyChain.at(j));
     }
- 
+  
+
+    
+    int track_charge = 0;
+    if(trackSeed.GetQPt()<0) track_charge = -1 * _fieldDir;
+    else track_charge = 1 * _fieldDir;
+    
     double s = sin(track_phi);
     double c = cos(track_phi);
     double p = trackSeed.GetSinPhi();
     // TrkrCluster *cl = _cluster_map->findCluster(trackKeyChain.at(0));
-    track.set_X0(trackSeed.GetX()*c-trackSeed.GetY()*s);//_vertex_x[best_vtx]);  //track.set_x(cl->getX());
-    track.set_Y0(trackSeed.GetX()*s+trackSeed.GetY()*c);//_vertex_y[best_vtx]);  //track.set_y(cl->getY());
-    track.set_Z0(trackSeed.GetZ());//_vertex_z[best_vtx]);  //track.set_z(cl->getZ());
+    //track.set_x(trackSeed.GetX()*c-trackSeed.GetY()*s);//_vertex_x[best_vtx]);  //track.set_x(cl->getX());
+    //track.set_y(trackSeed.GetX()*s+trackSeed.GetY()*c);//_vertex_y[best_vtx]);  //track.set_y(cl->getY());
+    //track.set_z(trackSeed.GetZ());//_vertex_z[best_vtx]);  //track.set_z(cl->getZ());
     if(Verbosity()>0) std::cout << "x " << track.get_x() << "\n";
     if(Verbosity()>0) std::cout << "y " << track.get_y() << "\n";
     if(Verbosity()>0) std::cout << "z " << track.get_z() << "\n";
     if(checknan(p,"ALICE sinPhi",nseeds)) continue;
     double d = trackSeed.GetDzDs();
     if(checknan(d,"ALICE dz/ds",nseeds)) continue;
-    double pY = track_pt*p;
-    double pX = sqrt(track_pt*track_pt-pY*pY);
-    
-    double qpt = trackSeed.GetQPt();
-    /// transform to q/R
-    qpt *= 100/(0.3*get_Bz(track.get_X0(), track.get_Y0(), track.get_Z0()));
-    track.set_qOverR(qpt);
-    float tpx = pX*c-pY*s;
-    float tpy = pX*s+pY*c;
-    float tpz = track_pt * trackSeed.GetDzDs();
-    float eta = atanh(tpz/sqrt(tpx*tpx+tpy*tpy+tpz*tpz));
-    float theta = 2*atan(exp(-1*eta));
-    track.set_slope(1./tan(theta));
-    
+    //double pY = track_pt*p;
+    //double pX = sqrt(track_pt*track_pt-pY*pY);
+    //track.set_px(pX*c-pY*s);
+    //track.set_py(pX*s+pY*c);
+    //track.set_pz(track_pt * trackSeed.GetDzDs()); 
     const double* cov = trackSeed.GetCov();
     bool cov_nan = false;
     for(int i=0;i<15;i++)
@@ -443,16 +534,232 @@ std::vector<GPUTPCTrackParam> ALICEKF::ALICEKalmanFilter(const std::vector<keyli
       if(checknan(cov[i],"covariance element "+std::to_string(i),nseeds)) cov_nan = true;
     }
     if(cov_nan) continue;
- */
+    // make this into an actual Eigen matrix
+    Eigen::Matrix<double,5,5> ecov;
+    ecov(0,0)=cov[0];
+    ecov(0,1)=cov[1];
+    ecov(0,2)=cov[2];
+    ecov(0,3)=cov[3];
+    ecov(0,4)=cov[4];
+    ecov(1,1)=cov[5];
+    ecov(1,2)=cov[6];
+    ecov(1,3)=cov[7];
+    ecov(1,4)=cov[8];
+    ecov(2,2)=cov[9];
+    ecov(2,3)=cov[10];
+    ecov(2,4)=cov[11];
+    ecov(3,3)=cov[12];
+    ecov(3,4)=cov[13];
+    ecov(4,4)=cov[14];
+    // symmetrize
+    ecov(1,0)=ecov(0,1);
+    ecov(2,0)=ecov(0,2);
+    ecov(3,0)=ecov(0,3);
+    ecov(4,0)=ecov(0,4);
+    ecov(2,1)=ecov(1,2);
+    ecov(3,1)=ecov(1,3);
+    ecov(4,1)=ecov(1,4);
+    ecov(3,2)=ecov(2,3);
+    ecov(4,2)=ecov(2,4);
+    ecov(4,3)=ecov(3,4);
+    // make rotation matrix based on the following:
+    // x = X*cos(track_phi) - Y*sin(track_phi)
+    // y = X*sin(track_phi) + Y*cos(track_phi)
+    // z = Z
+    // pY = pt*sinphi
+    // pX = sqrt(pt**2 - pY**2)
+    // px = pX*cos(track_phi) - pY*sin(track_phi)
+    // py = pX*sin(track_phi) + pY*cos(track_phi)
+    // pz = pt*(dz/ds)
+    Eigen::Matrix<double,6,5> J;
+    J(0,0) = -s; // dx/dY
+    J(0,1) = 0.; // dx/dZ
+    J(0,2) = 0.; // dx/d(sinphi)
+    J(0,3) = 0.; // dx/d(dz/ds)
+    J(0,4) = 0.; // dx/d(Q/pt)
+
+    J(1,0) = c;  // dy/dY
+    J(1,1) = 0.; // dy/dZ
+    J(1,2) = 0.; // dy/d(sinphi)
+    J(1,3) = 0.; // dy/d(dz/ds)
+    J(1,4) = 0.; // dy/d(Q/pt)
+
+    J(2,0) = 0.; // dz/dY
+    J(2,1) = 1.; // dz/dZ
+    J(2,2) = 0.; // dz/d(sinphi)
+    J(2,3) = 0.; // dz/d(dz/ds)
+    J(2,4) = 0.; // dz/d(Q/pt)
+
+    J(3,0) = 0.; // dpx/dY
+    J(3,1) = 0.; // dpx/dZ
+    J(3,2) = -track_pt*(p*c/sqrt(1-p*p)+s); // dpx/d(sinphi)
+    J(3,3) = 0.; // dpx/d(dz/ds)
+    J(3,4) = track_pt*track_pt*track_charge*(p*s-c*sqrt(1-p*p)); // dpx/d(Q/pt)
+
+    J(4,0) = 0.; // dpy/dY
+    J(4,1) = 0.; // dpy/dZ
+    J(4,2) = track_pt*(c-p*s/sqrt(1-p*p)); // dpy/d(sinphi)
+    J(4,3) = 0.; // dpy/d(dz/ds)
+    J(4,4) = -track_pt*track_pt*track_charge*(p*c+s*sqrt(1-p*p)); // dpy/d(Q/pt)
+
+    J(5,0) = 0.; // dpz/dY
+    J(5,1) = 0.; // dpz/dZ
+    J(5,2) = 0.; // dpz/d(sinphi)
+    J(5,3) = track_pt; // dpz/d(dz/ds)
+    J(5,4) = -track_pt*track_pt*track_charge*d; // dpz/d(Q/pt)
+    bool cov_rot_nan = false;
+    for(int i=0;i<6;i++)
+    {
+      for(int j=0;j<5;j++)
+      {
+        if(checknan(J(i,j),"covariance rotator element ("+std::to_string(i)+","+std::to_string(j)+")",nseeds))
+        {
+          cov_rot_nan = true;
+          continue;
+        }
+      }
+    }
+    if(cov_rot_nan) continue;
+
+    // the heavy lifting happens here
+    Eigen::Matrix<double,6,6> scov = J*ecov*J.transpose();
+    
+    // fill SvtxTrack covariance matrix with results
+    for(int i=0;i<6;i++)
+    {
+      for(int j=0;j<6;j++)
+      {
+        //track.set_error(i, j, scov(i,j));
+      }
+    }
+    
+/*
+    // Proceed with the absolutely hellish coordinate transformation of the covariance matrix.
+    // Derived from:
+    // 1) Taking the Jacobian of the conversion from (Y,Z,SinPhi,DzDs,Q/Pt) to (x,y,z,px,py,pz)
+    // 2) Computing (Jacobian)*(ALICE covariance matrix)*(transpose of Jacobian)
+    track.set_error(0, 0, cov[0]*s*s);
+    track.set_error(0, 1, -cov[0]*c*s);
+    track.set_error(0, 2, -cov[1]*s);
+    track.set_error(0, 3, cov[2]*s*s/q-cov[4]*s*(-c/(q*q)+p*s/(q*q)));
+    track.set_error(0, 4, -cov[2]*c*s/q-cov[4]*s*(-c*p/(q*q)-s/(q*q)));
+    track.set_error(0, 5, cov[4]*d*s/(q*q)-cov[3]*s/q);
+    track.set_error(1, 1, cov[0]*c*c);
+    track.set_error(1, 2, cov[1]*c);
+    track.set_error(1, 3, -cov[2]*c*s/q+cov[4]*c*(-c/(q*q)+p*s/(q*q)));
+    track.set_error(1, 4, cov[2]*c*c/q+cov[4]*c*(-c*p/(q*q)-s/(q*q)));
+    track.set_error(1, 5, cov[4]*d*c/(q*q)+cov[3]*c/q);
+    track.set_error(2, 2, cov[5]);
+    track.set_error(2, 3, -cov[6]*s/q+cov[8]*(-c/(q*q)+p*s/(q*q)));
+    track.set_error(2, 4, cov[6]*c/q+cov[8]*(-c*p/(q*q)-s/(q*q)));
+    track.set_error(2, 5, -cov[8]*d/(q*q)+cov[7]/q);
+    track.set_error(3, 3, cov[9]*s*s/(q*q)-cov[11]*(-c/(q*q*q)+p*s/(q*q*q)) + (-c/(q*q)+p*s/(q*q))*(-cov[11]*s/q+cov[14]*(-c/(q*q)+p*s/(q*q))));
+    track.set_error(3, 4, -cov[9]*c*s/(q*q)+cov[11]*(-c/(q*q*q)+p*s/(q*q*q)) + (-c*p/(q*q)-s/(q*q))*(-cov[11]*s/q+cov[14]*(-c/(q*q)+p*s/(q*q))));
+    track.set_error(3, 5, -cov[10]*s/(q*q)+cov[13]/q*(-c/(q*q)+p*s/(q*q))-d/(q*q)*(-cov[11]*s/q+cov[14]*(-c/(q*q)+p*s/(q*q))));
+    track.set_error(4, 4, c/q*(c/q*cov[9]+cov[11]*(-c*p/(q*q)-s/(q*q)))+(-c*p/(q*q)-s/(q*q))*(c/q*cov[11]+cov[14]*(-c*p/(q*q)-s/(q*q))));
+    track.set_error(4, 5, cov[10]*c/(q*q)+cov[13]/q*(-c*p/(q*q)-s/(q*q))-d/(q*q)*(c/q*cov[11]+cov[14]*(-c*p/(q*q)-s/(q*q))));
+    track.set_error(5, 5, -d/(q*q)*(-d*cov[14]/(q*q)+cov[13]/q)-d*cov[13]/(q*q*q)+cov[12]/(q*q));
+    // symmetrize covariance
+    track.set_error(1, 0, track.get_error(0, 1));
+    track.set_error(2, 0, track.get_error(0, 2));
+    track.set_error(3, 0, track.get_error(0, 3));
+    track.set_error(4, 0, track.get_error(0, 4));
+    track.set_error(5, 0, track.get_error(0, 5));
+    track.set_error(2, 1, track.get_error(1, 2));
+    track.set_error(3, 1, track.get_error(1, 3));
+    track.set_error(4, 1, track.get_error(1, 4));
+    track.set_error(5, 1, track.get_error(1, 5));
+    track.set_error(3, 2, track.get_error(2, 3));
+    track.set_error(4, 2, track.get_error(2, 4));
+    track.set_error(5, 2, track.get_error(2, 5));
+    track.set_error(4, 3, track.get_error(3, 4));
+    track.set_error(5, 3, track.get_error(3, 5));
+    track.set_error(5, 4, track.get_error(4, 5));
+*/
+
+    if(!covIsPosDef(track))
+    {
+      repairCovariance(track);
+    }
+/*
+    for(int w=0;w<cx.size();w++)
+    {
+      ntp->Fill(cx[w],cy[w],cz[w],xerr[w],yerr[w],zerr[w],tx[w],ty[w],tz[w],layer[w],xsize[w],ysize[w],phisize[w],phierr[w],zsize[w]);
+    }
+    cx.clear();
+    cy.clear();
+    cz.clear();
+    tx.clear();
+    ty.clear();
+    tz.clear();
+    xerr.clear();
+    yerr.clear();
+    zerr.clear();
+    layer.clear();
+    xsize.clear();
+    ysize.clear();
+    phisize.clear();
+    phierr.clear();
+    zsize.clear();
+*/
+    seeds_vector.push_back(track);
+    alice_seeds_vector.push_back(scov);
     ++nseeds;
   }
 //  f->cd();
 //  ntp->Write();
 //  f->Close();
   if(Verbosity()>0) std::cout << "number of seeds: " << nseeds << "\n";
-  return seeds_vector;
+
+  return std::make_pair(seeds_vector, alice_seeds_vector);
+
 }
 
+Eigen::Matrix<double,6,6> ALICEKF::getEigenCov(const TrackSeed_v1 &) const
+{
+ 
+  Eigen::Matrix<double,6,6> cov;
+  cov(0,0) = 0;
+  for(int i=0;i<6;i++)
+  {
+    for(int j=0;j<6;j++)
+    {
+      //cov(i,j) = track.get_error(i,j);
+    }
+  }
+  return cov;
+}
+
+bool ALICEKF::covIsPosDef(const TrackSeed_v1 &track) const
+{
+  // put covariance matrix into Eigen container
+  Eigen::Matrix<double,6,6> cov = getEigenCov(track);
+  // attempt Cholesky decomposition
+  Eigen::LLT<Eigen::Matrix<double,6,6>> chDec(cov);
+  // if Cholesky decomposition does not exist, matrix is not positive definite
+  return (chDec.info() != Eigen::NumericalIssue);
+}
+
+void ALICEKF::repairCovariance(TrackSeed_v1 &) const
+{
+  /*
+  // find closest positive definite matrix
+  Eigen::Matrix<double,6,6> cov = getEigenCov(track);
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,6,6>> solver(cov);
+  Eigen::Matrix<double,6,1> D = solver.eigenvalues();
+  Eigen::Matrix<double,6,6> Q = solver.eigenvectors();
+  Eigen::Matrix<double,6,1> Dp = D.cwiseMax(1e-15);
+  Eigen::Matrix<double,6,6> Z = Q*Dp.asDiagonal()*Q.transpose();
+  // updates covariance matrix
+  for(int i=0;i<6;i++)
+  {
+    for(int j=0;j<6;j++)
+    {
+      track.set_error(i,j,Z(i,j));
+    }
+  }
+  */
+}
 void ALICEKF::CircleFitByTaubin (const std::vector<std::pair<double,double>>& points, double &R, double &X0, double &Y0) const
 /*  
       Circle fit to a given set of data points (in 2D)

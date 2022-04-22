@@ -29,9 +29,9 @@ struct ActsTrackingGeometry;
 class PHCompositeNode;
 class PHField;
 class TpcDistortionCorrectionContainer;
-class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
+class SvtxTrackMap;
 class TrackSeedContainer;
 class TrackSeed;
 
@@ -92,8 +92,7 @@ class PHSimpleKFProp : public SubsysReco
   double _xy_outlier_threshold = .1;
 
   TrkrClusterContainer *_cluster_map = nullptr;
-  TrackSeedContainer* _track_map = nullptr;
-  TrkrHitSetContainer *_hitsets = nullptr;
+  TrackSeedContainer *_track_map = nullptr;
   PHField* _field_map = nullptr;
   
   /// acts geometry
@@ -114,7 +113,7 @@ class PHSimpleKFProp : public SubsysReco
 
   PositionMap PrepareKDTrees();
 
-  std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, GPUTPCTrackParam& kftrack, const PositionMap& globalPositions) const;
+  std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, Eigen::Matrix<double,6,6>& xyzCov, const PositionMap& globalPositions) const;
   std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(const std::vector<std::vector<TrkrDefs::cluskey>>& seeds, const PositionMap& globalPositions) const;
   template <typename T>
   struct KDPointCloud
@@ -151,9 +150,7 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z) const;
-  void publishSeeds(const std::vector<std::vector<TrkrDefs::cluskey>>& chains,
-		    const std::vector<GPUTPCTrackParam>& seeds,
-		    const PositionMap& globalPositions);
+  void publishSeeds(const std::vector<TrackSeed_v1>&);
   void publishSeeds(const std::vector<TrackSeed>&);
 //   void MoveToVertex();
 

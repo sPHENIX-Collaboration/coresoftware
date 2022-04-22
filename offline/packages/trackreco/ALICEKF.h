@@ -1,14 +1,14 @@
 #ifndef ALICEKF_H
 #define ALICEKF_H
 
+#include "GPUTPCTrackParam.h"
+
 #include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
-
-#include "GPUTPCTrackParam.h"
 
 #include <Acts/Definitions/Algebra.hpp>
 
@@ -20,6 +20,7 @@
 #include <utility>
 
 using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
+using TrackSeedAliceSeedMap = std::pair<std::vector<TrackSeed_v1>, std::vector<Eigen::Matrix<double,6,6>>>;
 
 class ALICEKF
 {
@@ -38,8 +39,10 @@ class ALICEKF
     _v = verbosity;
     _min_clusters_per_track = min_clusters;
   }
-  std::vector<GPUTPCTrackParam> ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions) const;
-
+  TrackSeedAliceSeedMap ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions) const;
+  Eigen::Matrix<double,6,6> getEigenCov(const TrackSeed_v1 &track) const;
+  bool covIsPosDef(const TrackSeed_v1 &track) const;
+  void repairCovariance(TrackSeed_v1 &track) const;
   bool checknan(double val, const std::string &msg, int num) const;
   double get_Bz(double x, double y, double z) const;
   void CircleFitByTaubin(const std::vector<std::pair<double,double>>& pts, double &R, double &X0, double &Y0) const;
@@ -50,7 +53,6 @@ class ALICEKF
   void line_fit(const std::vector<std::pair<double,double>>& pts, double& a, double& b) const;
   std::vector<double> GetCircleClusterResiduals(const std::vector<std::pair<double,double>>& pts, double R, double X0, double Y0) const;
   std::vector<double> GetLineClusterResiduals(const std::vector<std::pair<double,double>>& pts, double A, double B) const; 
-
   double get_Bzconst() const { return _Bzconst; }
 
   private:
