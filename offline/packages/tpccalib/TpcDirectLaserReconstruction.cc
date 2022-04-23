@@ -208,7 +208,7 @@ void TpcDirectLaserReconstruction::SetDefaultParameters()
 {
 
   // DCA cut, to decide whether a cluster should be associated to a given laser track or not
-  set_default_double_param( "directlaser_max_dca", 5.0 );
+  set_default_double_param( "directlaser_max_dca", 20.0 );
 
   
 //   // residual cuts, used to decide if a given cluster is used to fill SC reconstruction matrices

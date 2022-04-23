@@ -94,7 +94,7 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
-  float m_max_zrange = 5.0; // cm
+  float m_max_zrange = 10.0; // cm
 
   ///@name selection parameters
   //@{
