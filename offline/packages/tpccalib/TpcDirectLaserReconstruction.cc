@@ -16,11 +16,14 @@
 
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitv2.h>  // for TrkrHit
+
+#include <tpc/TpcDefs.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -53,18 +56,25 @@ namespace
     inline constexpr T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
 
   // calculate intersection between line and circle
-  double line_circle_intersection( const TVector3& p, const TVector3& d, double radius )
+  std::pair<double, double> line_circle_intersection( const TVector3& p, const TVector3& d, double radius )
   {
+    std::pair<double,double> ret = std::make_pair(-1, -1);
+
     const double A = square(d.x()) + square(d.y());
     const double B = 2*p.x()*d.x() + 2*p.y()*d.y();
     const double C = square(p.x()) + square(p.y()) - square(radius);
     const double delta = square(B)-4*A*C;
-    if( delta < 0 ) return -1;
+    if( delta < 0 ) return ret;
 
     // we want the first intersection
     const double tup = (-B + std::sqrt(delta))/(2*A);
     const double tdn = (-B-sqrt(delta))/(2*A);
     // std::cout << " tup " << tup << " tdn " << tdn << std::endl;
+    ret = std::make_pair(tup, tdn);
+
+    return ret;
+
+    /*
     if( tup > 0 && tup < tdn) 
       return tup;
     if(tdn > 0 && tdn < tup)
@@ -72,6 +82,7 @@ namespace
 
     // no valid extrapolation
     return -1;
+    */
   }
     
   /// TVector3 stream
@@ -117,7 +128,7 @@ TpcDirectLaserReconstruction::TpcDirectLaserReconstruction( const std::string& n
 //_____________________________________________________________________
 int TpcDirectLaserReconstruction::Init(PHCompositeNode*)
 {
-  m_total_clusters = 0;
+  m_total_hits = 0;
   m_accepted_clusters = 0;
 
   if( m_savehistograms ) create_histograms();
@@ -184,9 +195,9 @@ int TpcDirectLaserReconstruction::End(PHCompositeNode* )
   // print counters
   std::cout
     << "TpcDirectLaserReconstruction::End -"
-    << " cluster statistics total: " << m_total_clusters
-    << " accepted: " << m_accepted_clusters << " fraction: "
-    << 100.*m_accepted_clusters/m_total_clusters << "%"
+    << " hit statistics total: " << m_total_hits
+    << " clusters found: " << m_accepted_clusters << " fraction: "
+    << 100.*m_accepted_clusters/m_total_hits << "%"
     << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -230,9 +241,10 @@ int TpcDirectLaserReconstruction::load_nodes( PHCompositeNode* topNode )
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   assert(m_track_map);
 
-  // clusters
-  m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  assert(m_cluster_map);
+ // get node containing the digitized hits
+  m_hit_map = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  assert(m_hit_map);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -244,22 +256,22 @@ void TpcDirectLaserReconstruction::create_histograms()
   m_histogramfile->cd();
 
   // residuals vs layers
-  h_dca_layer = new TH2F( "dca_layer", ";radius; DCA (cm)", 78, 0, 78, 500, 0, 18 );
-  h_deltarphi_layer_north = new TH2F( "deltarphi_layer_north", ";radius; r.#Delta#phi_{track-cluster} (cm)", 78, 0, 78, 2000, -1, 1 );
-  h_deltarphi_layer_south = new TH2F( "deltarphi_layer_south", ";radius; r.#Delta#phi_{track-cluster} (cm)", 78, 0, 78, 2000, -1, 1 );
-  h_deltaz_layer = new TH2F( "deltaz_layer", ";radius; #Deltaz_{track-cluster} (cm)", 78, 0, 78, 2000, -18, 18 );
+  h_dca_layer = new TH2F( "dca_layer", ";radius; DCA (cm)", 78, 0, 78, 500, 0, 20 );
+  h_deltarphi_layer_north = new TH2F( "deltarphi_layer_north", ";radius; r.#Delta#phi_{track-cluster} (cm)", 78, 0, 78, 2000, -5, 5 );
+  h_deltarphi_layer_south = new TH2F( "deltarphi_layer_south", ";radius; r.#Delta#phi_{track-cluster} (cm)", 78, 0, 78, 2000, -5, 5 );
+  h_deltaz_layer = new TH2F( "deltaz_layer", ";radius; #Deltaz_{track-cluster} (cm)", 78, 0, 78, 2000, -20, 20 );
   h_deltar_r = new TH2F("deltar_r",";radius;#Deltar_{track-cluster} (cm)", 78,0,78,2000,-3,3);
 
   h_xy = new TH2F("h_xy"," x vs y", 320,-80,80,320,-80,80);
   h_xz = new TH2F("h_xz"," x vs z", 320,-80,80,440,-110,110);
   h_xy_pca = new TH2F("h_xy_pca"," x vs y pca", 320,-80,80,320,-80,80);
   h_xz_pca = new TH2F("h_xz_pca"," x vs z pca", 320,-80,80,440,-110,110);
-  h_dca_path = new TH2F("h_dca_path"," dca vs pathlength", 440,0,110,100,0,18);
+  h_dca_path = new TH2F("h_dca_path"," dca vs pathlength", 440,0,110,100,0,20);
   h_zr = new TH2F("h_zr"," z vs r", 440,-110,110,1000,28,80);
   h_zr->GetXaxis()->SetTitle("z");
   h_zr->GetYaxis()->SetTitle("rad");
   h_zr_pca = new TH2F("h_zr_pca"," z vs r pca", 440,-110,110,1000,28,80);
-  h_dz_z = new TH2F("h_dz_z"," dz vs z", 440,-110,110, 1000, -18, 18);
+  h_dz_z = new TH2F("h_dz_z"," dz vs z", 440,-110,110, 1000, -20, 20);
 
   // entries vs cell grid
   /* histogram dimension and axis limits must match that of TpcSpaceChargeMatrixContainer */
@@ -276,14 +288,7 @@ void TpcDirectLaserReconstruction::create_histograms()
 //_____________________________________________________________________
 void TpcDirectLaserReconstruction::process_tracks()
 {
-  if( !( m_track_map && m_cluster_map ) ) return;
-
-  // count number of clusters in the TPC
-  for(const auto& hitsetkey:m_cluster_map->getHitSetKeys(TrkrDefs::tpcId))
-  {
-    const auto range = m_cluster_map->getClusters(hitsetkey);
-    m_total_clusters += std::distance( range.first, range.second );
-  }
+  if( !( m_track_map && m_hit_map ) ) return;
 
   // loop over tracks and process
   for( auto iter = m_track_map->begin(); iter != m_track_map->end(); ++iter )
@@ -293,7 +298,7 @@ void TpcDirectLaserReconstruction::process_tracks()
 //_____________________________________________________________________
 void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 {
-  std::multimap<unsigned int, std::pair<unsigned int, Acts::Vector3>> cluspos_map;
+  std::multimap<unsigned int, std::pair<float, TVector3>> cluspos_map;
   std::set<unsigned int> layer_bin_set;
 
   // get track parameters
@@ -306,27 +311,38 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     std::cout << "TpcDirectLaserReconstruction::process_track - position: " << origin << " direction: " << direction << std::endl; 
   }
 
-  // loop over hitsets
-  for(const auto& hitsetkey:m_cluster_map->getHitSetKeys(TrkrDefs::tpcId))
-  {
+  // loop over hits
+  TrkrHitSetContainer::ConstRange hitsetrange = m_hit_map->getHitSets(TrkrDefs::TrkrId::tpcId);
 
-    // only check TPC hitsets
-    if( TrkrDefs::getTrkrId( hitsetkey ) != TrkrDefs::tpcId ) continue;
+  for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
+       hitsetitr != hitsetrange.second;
+       ++hitsetitr)
+    {
+      TrkrDefs::hitsetkey hitsetkey = hitsetitr->first;
+      TrkrHitSet *hitset = hitsetitr->second;
+      unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+      PHG4CylinderCellGeom *layergeom = m_geom_container->GetLayerCellGeom(layer);
+      const auto layer_center_radius = layergeom->get_radius();
 
-    unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-    PHG4CylinderCellGeom *layergeom = m_geom_container->GetLayerCellGeom(layer);
-
-    const auto layer_center_radius = layergeom->get_radius();
-    const auto layer_inner_radius = layer_center_radius - layergeom->get_thickness() / 2.0;
-    const auto layer_outer_radius = layer_center_radius + layergeom->get_thickness() / 2.0;
-
-    // get corresponding clusters (these are single hit clusters)
-    for( const auto& [key,cluster]:range_adaptor(m_cluster_map->getClusters(hitsetkey)))
+    // get corresponding hits
+    TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+    
+    for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+	 hitr != hitrangei.second;
+	 ++hitr)
       {
-        // get cluster global coordinates
-	const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
+	m_total_hits += 1;
 
-	unsigned int adc = cluster->getAdc();
+	unsigned short phibin = TpcDefs::getPad(hitr->first);
+	unsigned short zbin = TpcDefs::getTBin(hitr->first);
+
+	double phi = layergeom->get_phicenter(phibin);
+	double x = layer_center_radius * cos(phi);
+	double y = layer_center_radius * sin(phi);
+	double z = layergeom->get_zcenter(zbin);
+	const TVector3 global(x,y,z);
+
+	float adc = (hitr->second->getAdc()) - m_pedestal; 
 	
 	// calculate dca
 	// origin is track origin, direction is track direction
@@ -334,18 +350,12 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 	auto t = direction.Dot( oc )/square( direction.Mag() );
 	auto om = direction*t;     // vector from track origin to PCA
 	const auto dca = (oc-om).Mag();
-	
+
 	// do not associate if dca is too large
 	if( dca > m_max_dca ) continue;
 
-	// does track pass completely through this layer? If not do not use the hits
-	t = line_circle_intersection(origin, direction, layer_outer_radius);
-	if( t < 0 ) continue;
-	t = line_circle_intersection(origin, direction, layer_inner_radius);
-	if( t < 0 ) continue;
-
 	// bin hits by layer
-	std::pair<unsigned int, Acts::Vector3> cluspos_pair = std::make_pair(adc, global); 	
+	std::pair<float, TVector3> cluspos_pair = std::make_pair(adc, global); 	
 	cluspos_map.insert(std::make_pair(layer, cluspos_pair));	
 	layer_bin_set.insert(layer);
       }
@@ -356,21 +366,67 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 
   for(auto layer : layer_bin_set)
     {
+      PHG4CylinderCellGeom *layergeom = m_geom_container->GetLayerCellGeom(layer);
+      const auto layer_center_radius = layergeom->get_radius();
+      const auto layer_inner_radius = layer_center_radius - layergeom->get_thickness() / 2.0;
+      const auto layer_outer_radius = layer_center_radius + layergeom->get_thickness() / 2.0;
+          
+      // does track pass completely through this layer? If not do not use the hits
+      auto tupdn = line_circle_intersection(origin, direction, layer_outer_radius);
+      if( tupdn.first <= 0 && tupdn.second <= 0)
+	{
+	  std::cout << " punt:  layer " << layer << " layer outer radius " << layer_outer_radius << " tup " << tupdn.first << " tdn " << tupdn.second << std::endl; 
+	  continue;
+	}
+      double layer_entry = tupdn.first;
+      if(tupdn.second >= 0 && tupdn.second < tupdn.first) layer_entry = tupdn.second; 
+
+      tupdn = line_circle_intersection(origin, direction, layer_inner_radius);
+      if( tupdn.first <= 0 && tupdn.second <= 0)
+	{
+	  std::cout << " punt:  layer " << layer << " layer inner radius " << layer_inner_radius << " tup " << tupdn.first << " tdn " << tupdn.second << std::endl; 
+	  continue;
+	}
+      double layer_exit = tupdn.first;
+      if(tupdn.second > 0 && tupdn.second < tupdn.first) layer_exit = tupdn.second;
+      if(Verbosity() > 2) std::cout << " layer " << layer << " layer entry " << layer_entry << " layer exit " << layer_exit << std::endl;     
+
+      // calculate track intersection with layer center
+      tupdn = line_circle_intersection(origin, direction, layer_center_radius);
+      double tup = tupdn.first;
+      double tdn = tupdn.second;
+      // take the first one if there are two intersections
+      double t = tup;
+      if(tdn > 0 && tdn < tup) t = tdn;
+      if( t < 0 )
+	{
+	  std::cout << " punt:  layer " << layer << " layer center radius " << layer_center_radius << " t " << t << " tup " << tupdn.first << " tdn " << tupdn.second << std::endl; 
+	  continue;
+	}
+
+      // get position of layer center on track
+      auto om = direction*t;      
+
+      // get vector pointing to the track intersection with layer center
+      const auto projection = origin + om;
+      
       double zmax = -999.;
       double zmin = 999.;
-
+      
       auto bin_residual = cluspos_map.equal_range(layer);
 
-      Acts::Vector3 clus_centroid(0,0,0);
+      TVector3 clus_centroid(0,0,0);
       float wt = 0;
       for( auto mit = bin_residual.first; mit != bin_residual.second; ++mit)
 	{
 	  float adc =  (float) mit->second.first;
-	  Acts::Vector3 cluspos =mit->second.second;
+	  TVector3 cluspos =mit->second.second;
 
+	  if(fabs(cluspos.z() - projection.z()) > m_max_zrange) continue;  // to reject clusters from possible second traverse of layer
+ 
 	  if(Verbosity() > 2)
 	    {
-	      std::cout << "   adc " << adc << std::endl;
+	      std::cout << "  layer " << layer << " adc " << adc << std::endl;
 	      std::cout << "            cluspos " << cluspos.x() << "  " << cluspos.y() << "  " << cluspos.z() 
 			<< " clus radius " << sqrt(pow(cluspos.x(),2) + pow(cluspos.y(),2)) << std::endl;
 	    }
@@ -382,30 +438,25 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 	  if(cluspos.z() > zmax) zmax = cluspos.z();
 	}
 
-      clus_centroid /= wt;
+      clus_centroid.SetX(clus_centroid.x()/ wt);
+      clus_centroid.SetY(clus_centroid.y()/ wt);
+      clus_centroid.SetZ(clus_centroid.z()/ wt);
 
       double zrange =  zmax-zmin;
-      if(zrange > max_zrange) continue;
+      if(zrange > m_max_zrange)
+	{
+	  std::cout << "    exeeded  max zrange:  zrange " << zrange << " max zrange " << m_max_zrange << std::endl; 
+	  continue;
+	}
 
       // get the distance of the cluster centroid to the track-layer intersection point
 
       const TVector3 oc( clus_centroid.x()-origin.x(), clus_centroid.y()-origin.y(), clus_centroid.z()-origin.z()  );  // vector from track origin to cluster
 
-      // calculate track intersection with layer center
-      PHG4CylinderCellGeom *layergeom = m_geom_container->GetLayerCellGeom(layer);
-      const auto layer_center_radius = layergeom->get_radius();
-      double t = line_circle_intersection(origin, direction, layer_center_radius);
-      if( t < 0 ) continue;
-
-      // get position of layer center on track
-      auto om = direction*t;      
       const auto dca = (oc-om).Mag();
 
       // path length
       const auto pathlength = om.Mag();
-
-      // get vector pointing to the track intersection with layer center
-      const auto projection = origin + om;
 
       // Correct cluster z for the track transit time using the pathlength 
       double ns_per_cm = 1e9 / 3e10;
@@ -413,9 +464,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       double vdrift = 8.0 / 1000.0;  // cm/ns
       double transit_dz = dt * vdrift;
       if(origin.z() > 0)
-	clus_centroid.z() += transit_dz;
+	clus_centroid.SetZ(clus_centroid.z() + transit_dz);
       else
-	clus_centroid.z() -= transit_dz;
+	clus_centroid.SetZ(clus_centroid.z() - transit_dz);
 
       if(Verbosity() > 0)
 	{
@@ -581,7 +632,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 
 
 //_____________________________________________________________________
-int TpcDirectLaserReconstruction::get_cell_index( const Acts::Vector3& global ) const
+int TpcDirectLaserReconstruction::get_cell_index( const TVector3& global ) const
 {
   // get grid dimensions from matrix container
   int phibins = 0;

@@ -18,8 +18,7 @@ struct ActsTrackingGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
-class TrkrCluster;
-class TrkrClusterContainer;
+class TrkrHitSetContainer;
 class   PHG4CylinderCellGeomContainer;
 
 class TFile;
@@ -27,6 +26,7 @@ class TH1;
 class TH2;
 class TH3;
 class TH2;
+class TVector3;
 
 class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterface
 {
@@ -69,7 +69,10 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   void set_grid_dimensions( int phibins, int rbins, int zbins );
 
   void set_max_zrange(float length)
-  {max_zrange = length;}
+  {m_max_zrange = length;}
+
+  void set_max_dca(float length)
+  {m_max_dca = length;}
 
   private:
 
@@ -85,13 +88,13 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   /// process track
   void process_track( SvtxTrack* );
 
-  /// get relevant cell for a given cluster
-  int get_cell_index( const Acts::Vector3& ) const;
+  /// get relevant cell for a given hit
+  int get_cell_index( const TVector3& ) const;
 
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
-  float max_zrange = 5.0; // cm
+  float m_max_zrange = 5.0; // cm
 
   ///@name selection parameters
   //@{
@@ -103,6 +106,10 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// residual cuts in r, z plane
   float m_max_dz = NAN;
+
+  float m_pedestal = 74.4;  // pedestal for hit ASDC values
+
+
   //@}
 
   /// matrix container
@@ -110,7 +117,7 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
 
   ///@name counters
   //@{
-  int m_total_clusters = 0;
+  int m_total_hits = 0;
   int m_accepted_clusters = 0;
   //@}
 
@@ -131,8 +138,8 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   /// tracks
   SvtxTrackMap* m_track_map = nullptr;
   
-  // clusters
-  TrkrClusterContainer* m_cluster_map = nullptr;
+  TrkrHitSetContainer* m_hit_map = nullptr;
+
   //@}
 
   ///@name evaluation
