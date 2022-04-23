@@ -262,9 +262,7 @@ void QAG4SimulationMvtx::evaluate_clusters()
       const auto& key = clusterIter->first;
       // get cluster
       const auto& cluster = clusterIter->second;
-
-      const auto global = transformer.getGlobalPosition(cluster, m_surfmaps,
-                                                        m_tGeometry);
+      const auto global = transformer.getGlobalPosition(key, cluster, m_surfmaps, m_tGeometry);
 
       // get relevant cluster information
       const auto r_cluster = QAG4Util::get_r(global(0), global(1));

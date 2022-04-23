@@ -58,7 +58,6 @@ TrkrClusterv1::TrkrClusterv1()
 void TrkrClusterv1::identify(std::ostream& os) const
 {
   os << "---TrkrClusterv1--------------------" << std::endl;
-  os << "clusid: " << getClusKey() << std::dec << std::endl;
 
   os << " (x,y,z) =  (" << getPosition(0);
   os << ", " << getPosition(1) << ", ";
@@ -133,7 +132,6 @@ void TrkrClusterv1::CopyFrom( const TrkrCluster& source )
   // parent class method
   TrkrCluster::CopyFrom( source );
 
-  setClusKey( source.getClusKey() );
   setX( source.getX() );
   setY( source.getY() );
   setZ( source.getZ() );

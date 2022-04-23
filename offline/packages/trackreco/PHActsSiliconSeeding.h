@@ -133,18 +133,21 @@ class PHActsSiliconSeeding : public SubsysReco
   void makeSvtxTracks(GridSeeds& seedVector);
   
   /// Create a seeding space point out of an Acts::SourceLink
-  SpacePointPtr makeSpacePoint(const Surface& surf,
-			       const TrkrCluster* clus);
+  SpacePointPtr makeSpacePoint(
+    const Surface& surf,
+    const TrkrDefs::cluskey,
+    const TrkrCluster* clus);
   
   /// Get all space points for the seeder
   std::vector<const SpacePoint*> getMvtxSpacePoints(Acts::Extent& rRangeSPExtent);
 
   /// Perform circle/line fits with the final MVTX seed to get
   /// initial point and momentum estimates for stub matching
-  int circleFitSeed(std::vector<TrkrCluster*>& clusters,
-		    std::vector<Acts::Vector3>& clusGlobPos,
-		    double& x, double& y, double& z,
-		    double& px, double& py, double& pz);
+  int circleFitSeed(
+    std::vector<TrkrDefs::cluskey>&,
+    std::vector<Acts::Vector3>& clusGlobPos,
+    double& x, double& y, double& z,
+    double& px, double& py, double& pz);
 
   void circleFitByTaubin(const std::vector<Acts::Vector3>& globalPositions,
 			 double& R, double& X0, double& Y0);
@@ -158,17 +161,19 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Projects circle fit to INTT radii to find possible INTT clusters
   /// belonging to MVTX track stub
   std::vector<TrkrDefs::cluskey> findInttMatches(
-		        std::vector<Acts::Vector3>& clusters,
-			const double R,
-			const double X0,
-			const double Y0,
-			const double B,
-			const double m);
+    std::vector<Acts::Vector3>& clusters,
+    const double R,
+    const double X0,
+    const double Y0,
+    const double B,
+    const double m);
 
-  std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3>& clusters,
-						   const double xProj[],
-						   const double yProj[],
-						   const double zProj[]);
+  std::vector<TrkrDefs::cluskey> matchInttClusters(
+    std::vector<Acts::Vector3>& clusters,
+    const double xProj[],
+    const double yProj[],
+    const double zProj[]);
+  
   void circleCircleIntersection(const double layerRadius, 
 				const double circRadius,
 				const double circX0,
@@ -179,23 +184,25 @@ class PHActsSiliconSeeding : public SubsysReco
 				double& yminus);
 
   void createSvtxTrack(const double x,
-		       const double y,
-		       const double z,
-		       const double px,
-		       const double py,
-		       const double pz,
-		       const int charge,
-		       std::vector<TrkrCluster*>& clusters,
-		       std::vector<Acts::Vector3>& clusGlobPos);
-  std::map<const unsigned int, std::pair<std::vector<TrkrCluster*>,std::vector<Acts::Vector3>>>
-    makePossibleStubs(std::vector<TrkrCluster*>& allClusters,
-		      std::vector<Acts::Vector3>& clusGlobPos);
+    const double y,
+    const double z,
+    const double px,
+    const double py,
+    const double pz,
+    const int charge,
+    const std::vector<TrkrDefs::cluskey>&,
+    const std::vector<Acts::Vector3>& clusGlobPos);
+        
+  std::map<const unsigned int, std::pair<std::vector<TrkrDefs::cluskey>,std::vector<Acts::Vector3>>>
+    makePossibleStubs(
+    const std::vector<TrkrDefs::cluskey>&,
+    const std::vector<Acts::Vector3>& clusGlobPos);
 
   Surface getSurface(TrkrDefs::hitsetkey hitsetkey);
 
-  std::map<const unsigned int, std::pair<std::vector<TrkrCluster*>,std::vector<Acts::Vector3>>>
+  std::map<const unsigned int, std::pair<std::vector<TrkrDefs::cluskey>,std::vector<Acts::Vector3>>>
     identifyBestSeed(std::map<const unsigned int, 
-		     std::pair<std::vector<TrkrCluster*>,
+		     std::pair<std::vector<TrkrDefs::cluskey>,
 		               std::vector<Acts::Vector3>>>);
 
   void createHistograms();

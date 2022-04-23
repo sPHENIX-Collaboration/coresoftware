@@ -41,8 +41,7 @@ class PHTpcTrackSeedCircleFit : public SubsysReco
  private:
 
   int GetNodes(PHCompositeNode* topNode);
-  std::vector<TrkrCluster*> getTrackClusters(SvtxTrack *);
-  Acts::Vector3 getGlobalPosition( TrkrCluster* cluster ) const;
+  Acts::Vector3 getGlobalPosition( TrkrDefs::cluskey, TrkrCluster* cluster ) const;
 						    
   ActsSurfaceMaps *_surfmaps{nullptr};
   ActsTrackingGeometry *_tGeometry{nullptr};

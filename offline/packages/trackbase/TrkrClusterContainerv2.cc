@@ -86,15 +86,6 @@ void TrkrClusterContainerv2::removeCluster(TrkrDefs::cluskey key)
 }
 
 //_________________________________________________________________
-void TrkrClusterContainerv2::removeCluster(TrkrCluster *clus)
-{ removeCluster( clus->getClusKey() ); }
-
-//_________________________________________________________________
-void
-TrkrClusterContainerv2::addCluster(TrkrCluster* newclus)
-{ addClusterSpecifyKey(newclus->getClusKey(), newclus); }
-
-//_________________________________________________________________
 void
 TrkrClusterContainerv2::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster* newclus)
 {
@@ -110,10 +101,7 @@ TrkrClusterContainerv2::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCl
     {
       std::cout << "TrkrClusterContainerv2::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
       exit(1);
-    } else {
-      // make sure that cluster key matches
-      iter->second->setClusKey( key );
-    }
+    } 
   } else {
     std::cout
       << "TrkrClusterContainerv2::addClusterSpecifyKey - out of range access."

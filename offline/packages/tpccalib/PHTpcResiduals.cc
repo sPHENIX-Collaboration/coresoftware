@@ -335,27 +335,8 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       const auto detId = TrkrDefs::getTrkrId(cluskey);
       if(detId != TrkrDefs::tpcId) continue;  
 
-      const auto cluster = m_clusterContainer->findCluster(cluskey);
-
-//       {
-//         // Get all the relevant information for residual calculation
-//         const auto globClusPos = m_transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
-//         clusR = get_r(globClusPos(0),globClusPos(1));
-//         clusPhi = std::atan2(globClusPos(1), globClusPos(0));
-//         clusZ = globClusPos(2);
-//         
-//         clusRPhiErr = cluster->getRPhiError();
-//         clusZErr = cluster->getZError();
-//         
-//         std::cout << "PHTpcResiduals::processTrack -"
-//           << " layer: " << (int) TrkrDefs::getLayer(cluster->getClusKey())
-//           << " key: " << cluster->getClusKey()
-//           << " cluster: (" << clusR << ", " << clusR*clusPhi << ", " << clusZ << ")"
-//           << " (" << clusRPhiErr << ", " << clusZErr << ")"
-//           << std::endl;
-//       }
-      
-      const auto surf = m_transformer.getSurface( cluster, m_surfMaps );
+      const auto cluster = m_clusterContainer->findCluster(cluskey);      
+      const auto surf = m_transformer.getSurface( cluskey, cluster, m_surfMaps );
       auto result = propagateTrackState(trackParams, surf);
 
       if(result.ok())
@@ -374,7 +355,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
         }
 
         addTrackState( track, pathLength, trackStateParams );
-        calculateTpcResiduals(trackStateParams, cluster);
+        calculateTpcResiduals(trackStateParams, cluskey, cluster);
 
       } else 	{
         
@@ -467,12 +448,19 @@ void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Ac
 
 void PHTpcResiduals::calculateTpcResiduals(
   const Acts::BoundTrackParameters &params,
+  TrkrDefs::cluskey key,
   TrkrCluster* cluster)
 {
   
-  cluskey = cluster->getClusKey();
+  // store cluster key in ntuple
+  cluskey = key;
+  
   // Get all the relevant information for residual calculation
+<<<<<<< HEAD
   const auto globClusPos = m_transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
+=======
+  const auto globClusPos = m_transformer.getGlobalPosition(key, cluster, m_surfMaps, m_tGeometry);
+>>>>>>> master
   clusR = get_r(globClusPos(0),globClusPos(1));
   clusPhi = std::atan2(globClusPos(1), globClusPos(0));
   clusZ = globClusPos(2);
@@ -604,7 +592,7 @@ void PHTpcResiduals::calculateTpcResiduals(
     h_zResidLayer->Fill(clusR , dz);
     h_etaResidLayer->Fill(clusR , clusEta - trackEta);
     
-    const auto layer =  TrkrDefs::getLayer(cluster->getClusKey());
+    const auto layer =  TrkrDefs::getLayer(key);
     h_deltarphi_layer->Fill( layer, drphi );
     h_deltaz_layer->Fill( layer, dz );
 

@@ -532,7 +532,7 @@ class PHGenFitTrkProp : public PHTrackPropagating
   
   //!
   //PHGenFit::Measurement* SvtxClusterToPHGenFitMeasurement(const SvtxCluster* cluster);
-  PHGenFit::Measurement* TrkrClusterToPHGenFitMeasurement(const TrkrCluster* cluster);
+  PHGenFit::Measurement* TrkrClusterToPHGenFitMeasurement(TrkrDefs::cluskey, const TrkrCluster* cluster);
 
   //! TrackPropPatRec Call.
   std::vector<TrkrDefs::cluskey> SearchHitsNearBy(const unsigned int ivert, const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
