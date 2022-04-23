@@ -504,7 +504,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 
 	  // transform to global coordinates for z correction 
 	  ActsTransformations transformer;
-	  auto global = transformer.getGlobalPosition(cluster,
+	  auto global = transformer.getGlobalPosition(key, cluster,
 						      m_surfMaps,
 						      m_tGeometry);
 

@@ -374,8 +374,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 
       outer_clusters.insert(std::make_pair(layer, tpc_clus));
       clusters.push_back(tpc_clus);
-      clusGlobPos.push_back(transformer.getGlobalPosition(tpc_clus,_surfmaps,
-							  _tGeometry));
+      clusGlobPos.push_back(transformer.getGlobalPosition(cluster_key, tpc_clus, _surfmaps, _tGeometry));
       if(Verbosity() > 10)
       {
         std::cout
@@ -516,7 +515,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 	}
         // store cluster and key
         const auto& [key, cluster] = *clusiter;
-        const auto glob = transformer.getGlobalPosition(cluster,_surfmaps,_tGeometry);
+        const auto glob = transformer.getGlobalPosition(key, cluster,_surfmaps,_tGeometry);
         const TVector3 world_cluster(glob(0), glob(1), glob(2));
         const TVector3 local_cluster = layergeom->get_local_from_world_coords( tileid, world_cluster );
 
@@ -664,7 +663,7 @@ void PHMicromegasTpcTrackMatching::copyMicromegasClustersToCorrectedMap( )
         newclus->CopyFrom( cluster );
 
         // insert in corrected map
-        _corrected_cluster_map->addCluster(newclus);
+        _corrected_cluster_map->addClusterSpecifyKey(cluster_key, newclus);
 
 	    }
     }

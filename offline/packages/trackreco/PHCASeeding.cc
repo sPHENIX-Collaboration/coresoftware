@@ -218,10 +218,10 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-Acts::Vector3 PHCASeeding::getGlobalPosition( TrkrCluster* cluster ) const
+Acts::Vector3 PHCASeeding::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
-  auto globalpos = m_transform.getGlobalPosition(cluster,
+  auto globalpos = m_transform.getGlobalPosition(key, cluster,
     surfMaps,
     tGeometry);
 
@@ -254,8 +254,8 @@ PositionMap PHCASeeding::FillTree()
     auto range = _cluster_map->getClusters(hitsetkey);
     for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
 
-      TrkrCluster *cluster = clusIter->second;
       TrkrDefs::cluskey ckey = clusIter->first;
+      TrkrCluster *cluster = clusIter->second;
       unsigned int layer = TrkrDefs::getLayer(ckey);
       if (layer < _start_layer || layer >= _end_layer){
 	if(Verbosity()>0) std::cout << "layer: " << layer << std::endl;
@@ -267,16 +267,14 @@ PositionMap PHCASeeding::FillTree()
       }
 
       // get global position, convert to Acts::Vector3 and store in map
-      const Acts::Vector3 globalpos_d = getGlobalPosition(cluster);
+      const Acts::Vector3 globalpos_d = getGlobalPosition(ckey, cluster);
 
       if(Verbosity() > 3)
 	{
-	  ActsTransformations transformer;
-	  auto global_before = transformer.getGlobalPosition(cluster,
+	  auto global_before = m_transform.getGlobalPosition(ckey, cluster,
 							     surfMaps,
 							     tGeometry);
-	  TrkrDefs::cluskey key = cluster->getClusKey();
-	  std::cout << "CaSeeder: Cluster: " << key << std::endl;
+	  std::cout << "CaSeeder: Cluster: " << ckey << std::endl;
 	  std::cout << " Global before: " << global_before[0] << "  " << global_before[1] << "  " << global_before[2] << std::endl;
 	  std::cout << " Global after   : " << globalpos_d[0] << "  " << globalpos_d[1] << "  " << globalpos_d[2] << std::endl;
 	}

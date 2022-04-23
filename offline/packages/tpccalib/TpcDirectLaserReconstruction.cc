@@ -292,7 +292,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     {
       
       // get cluster global coordinates
-      const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
+      const auto global = m_transformer.getGlobalPosition(key, cluster,m_surfmaps, m_tGeometry);
 
       // calculate dca
       const TVector3 oc( global.x()-origin.x(), global.y()-origin.y(), global.z()-origin.z()  );
