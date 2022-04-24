@@ -85,15 +85,6 @@ void TrkrClusterContainerv4::removeCluster(TrkrDefs::cluskey key)
 }
   
 //_________________________________________________________________
-void TrkrClusterContainerv4::removeCluster(TrkrCluster *clus)
-{ removeCluster( clus->getClusKey() ); }
-
-//_________________________________________________________________
-void
-TrkrClusterContainerv4::addCluster(TrkrCluster* newclus)
-{ return addClusterSpecifyKey(newclus->getClusKey(), newclus); }
-
-//_________________________________________________________________
 void
 TrkrClusterContainerv4::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster* newclus)
 {
@@ -144,8 +135,19 @@ TrkrClusterContainerv4::getClusters(TrkrDefs::hitsetkey hitsetkey)
   if( iter != m_clusmap.end() ) 
   {
     // copy content in temporary map
-    for( const auto& cluster:iter->second )
-    { if( cluster ) m_tmpmap.insert( m_tmpmap.end(), std::make_pair( cluster->getClusKey(), cluster ) ); }
+    const auto& clusters = iter->second;
+    for( size_t index = 0; index < clusters.size(); ++index )
+    {
+      const auto& cluster = clusters[index];
+      if( cluster ) 
+      {
+        // generate cluster key from hitset and index
+        const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
+        
+        // insert in map
+        m_tmpmap.insert( m_tmpmap.end(), std::make_pair( ckey, cluster ) );
+      }
+    }
   }
 
   // return temporary map range
