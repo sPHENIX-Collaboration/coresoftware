@@ -456,11 +456,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   cluskey = key;
   
   // Get all the relevant information for residual calculation
-<<<<<<< HEAD
-  const auto globClusPos = m_transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
-=======
   const auto globClusPos = m_transformer.getGlobalPosition(key, cluster, m_surfMaps, m_tGeometry);
->>>>>>> master
   clusR = get_r(globClusPos(0),globClusPos(1));
   clusPhi = std::atan2(globClusPos(1), globClusPos(0));
   clusZ = globClusPos(2);
