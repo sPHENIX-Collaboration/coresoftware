@@ -1,5 +1,8 @@
 
 #include "SvtxTruthRecoTableEval.h"
+#include "SvtxEvalStack.h"
+#include "SvtxTrackEval.h"
+#include "SvtxTruthEval.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -18,9 +21,7 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include "SvtxEvalStack.h"
-#include "SvtxTrackEval.h"
-#include "SvtxTruthEval.h"
+#include <CLHEP/Vector/ThreeVector.h>
 
 #include <phool/PHCompositeNode.h>
 
@@ -113,9 +114,21 @@ void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
   for (auto iter = range.first; iter != range.second; ++iter)
   {
     PHG4Particle *g4particle = iter->second;
+
+    const double momentum = CLHEP::
+                                Hep3Vector(g4particle->get_px(), g4particle->get_py(), g4particle->get_pz())
+                                    .mag();
+
+    // only record particle above minimal momentum requirement.
+    if (momentum < m_minMomentumTruthMap) continue;
+
     int gtrackID = g4particle->get_track_id();
 
     std::set<SvtxTrack *> alltracks = trackeval->all_tracks_from(g4particle);
+
+    // not to record zero associations
+    if (alltracks.size() == 0) continue;
+
     PHG4ParticleSvtxMap::WeightedRecoTrackMap recomap;
 
     for (const auto &track : alltracks)
@@ -123,6 +136,7 @@ void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
       /// We fill the map with a key corresponding to the ncluster contribution.
       /// This weight could in principle be anything we choose
       float clusCont = trackeval->get_nclusters_contribution(track, g4particle);
+
       auto iterator = recomap.find(clusCont);
       if (iterator == recomap.end())
       {
