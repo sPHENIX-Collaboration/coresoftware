@@ -422,7 +422,13 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     double d = trackSeed.GetDzDs();
     if(checknan(d,"ALICE dz/ds",nseeds)) continue;
     
-    track.set_qOverR((100./(0.3*1.4))* track_charge / track_pt);
+    double alicepy = track_pt * p;
+    double alicepx = sqrt(track_pt*track_pt - alicepy*alicepy);
+    double rotpy = alicepx * s + alicepy*c;
+    double rotpx = alicepx * c - alicepy *s;
+    double rotpt = sqrt(rotpx*rotpx+rotpy*rotpy);
+    track.set_qOverR((100./(0.3*1.4))* track_charge / rotpt);
+    std::cout << "Track qover r " << track.get_qOverR() << std::endl;
     //double pY = track_pt*p;
     //double pX = sqrt(track_pt*track_pt-pY*pY);
     //track.set_px(pX*c-pY*s);

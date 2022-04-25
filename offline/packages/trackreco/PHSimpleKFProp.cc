@@ -201,7 +201,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       auto seedpair = fitter->ALICEKalmanFilter(keylist, true, globalPositions);
 
       if(Verbosity()>0) std::cout << "is tpc track" << std::endl;
-      new_chains.push_back(PropagateTrack(track, seedpair.second.at(0), 
+      new_chains.push_back(PropagateTrack(track, seedpair, 
 					  globalPositions));
     }
     else
@@ -303,7 +303,7 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
 }
 
 
-std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, Eigen::Matrix<double,6,6>& xyzCov, const PositionMap& globalPositions) const
+std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, std::pair<std::vector<TrackSeed_v1>,std::vector<Eigen::Matrix<double,6,6>>>& seedpair, const PositionMap& globalPositions) const
 {
   // extract cluster list
   std::vector<TrkrDefs::cluskey> ckeys;
@@ -314,8 +314,12 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     std::reverse(ckeys.begin(),ckeys.end());
   } 
 
-  double alicekf_track_pt = track->get_pt();
+  auto xyzCov = seedpair.second.at(0);
 
+  double alicekf_track_pt = seedpair.first.at(0).get_pt();
+ 
+  std::cout << "alicekf track pt " << alicekf_track_pt << std::endl;
+ 
   /// circle fit back to update track parameters
   track->circleFitByTaubin(_cluster_map, _surfmaps, _tgeometry, 7, 55);
   track->lineFit(_cluster_map, _surfmaps, _tgeometry, 7, 55);
@@ -327,8 +331,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   double track_x = track->get_x();
   double track_y = track->get_y();
   double track_z = track->get_z();
-  double track_px = alicekf_track_pt * cos(track->get_phi());
-  double track_py = alicekf_track_pt * sin(track->get_phi());
+  double track_px = track->get_px();
+  double track_py = track->get_py();
 
   /// Move to first tpc cluster state if necessary
   if(sqrt(track_x*track_x+track_y*track_y)<10.)
@@ -372,9 +376,11 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 	phi += M_PI / 2.0;
       else
 	phi -= M_PI / 2.0;
+
+      double pt = track->get_pt();
       // rotate track momentum vector (pz stays the same)
-      track_px = alicekf_track_pt * cos(phi);
-      track_py = alicekf_track_pt * sin(phi);
+      track_px = pt * cos(phi);
+      track_py = pt * sin(phi);
       track_x = trkGlobPos.at(0)(0);
       track_y = trkGlobPos.at(0)(1);
       track_z = trkGlobPos.at(0)(2);
