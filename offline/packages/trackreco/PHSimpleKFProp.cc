@@ -192,14 +192,15 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 	{
 	  dumvec.push_back(*iter);
 	}
-      if(dumvec.size() < _min_clusters_per_track)
-	{ continue; }
+      //if(dumvec.size() < _min_clusters_per_track)
+      //{ continue; }
 
       keylist.push_back(dumvec);
       /// This will by definition return a single pair with each vector 
       /// in the pair length 1 corresponding to the seed
-      auto seedpair = fitter->ALICEKalmanFilter(keylist, true, globalPositions);
-
+      auto seedpair = fitter->ALICEKalmanFilter(keylist, false, globalPositions);
+      if(seedpair.first.size() == 0 || seedpair.second.size() == 0)
+	{ continue; }
       if(Verbosity()>0) std::cout << "is tpc track" << std::endl;
       new_chains.push_back(PropagateTrack(track, seedpair, 
 					  globalPositions));
@@ -214,7 +215,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   
   _track_map->Reset();
   std::vector<std::vector<TrkrDefs::cluskey>> clean_chains = RemoveBadClusters(new_chains, globalPositions); 
-  auto ptracks = fitter->ALICEKalmanFilter(clean_chains,true, globalPositions);
+  auto ptracks = fitter->ALICEKalmanFilter(new_chains,true, globalPositions);
   publishSeeds(ptracks.first);
   publishSeeds(unused_tracks);
   return Fun4AllReturnCodes::EVENT_OK;
@@ -306,6 +307,7 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
 std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, std::pair<std::vector<TrackSeed_v1>,std::vector<Eigen::Matrix<double,6,6>>>& seedpair, const PositionMap& globalPositions) const
 {
   // extract cluster list
+  std::cout << "get keys"<<std::endl;
   std::vector<TrkrDefs::cluskey> ckeys;
   std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
  
@@ -313,9 +315,9 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   {
     std::reverse(ckeys.begin(),ckeys.end());
   } 
-
+  std::cout << "done with keys "<< ckeys.size() << std::endl;
   auto xyzCov = seedpair.second.at(0);
-
+  std::cout << "get cov"<<std::endl;
   /// This track actually carries around the pT briefly
   double alicekf_track_pt = seedpair.first.at(0).get_qOverR();
   
@@ -442,8 +444,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   float track_phi = atan2(track_py,track_px);
   kftrack.SetQPt(track->get_charge()/track_pt);
   float track_pX = track_px*cos(track_phi)+track_py*sin(track_phi);
-  float track_pY = -track_px*sin(track_phi)+track_py*cos(track_phi);
-  std::cout << "WTF: " << track_phi << ", " << track_pX << ", " << track_pY << std::endl;
+  float track_pY = -track_px * sin(track_phi) + track_py * cos(track_phi);
+
   kftrack.SetSignCosPhi(track_pX/track_pt);
   kftrack.SetSinPhi(track_pY/track_pt);
   kftrack.SetDzDs(-track_pz/track_pt);
