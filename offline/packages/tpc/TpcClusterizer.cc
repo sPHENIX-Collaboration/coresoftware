@@ -760,17 +760,14 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   std::vector<thread_pair_t> threads;
   threads.reserve( num_hitsets );
 
-  int count = 0;
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
   {
-    //if(count>0)continue;
-    // std::cout << " starting thread # " << count << std::endl;
-    TrkrHitSet *hitset = hitsetitr->second;
-    unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
-    int side = TpcDefs::getSide(hitsetitr->first);
-    unsigned int sector= TpcDefs::getSectorId(hitsetitr->first);
+    const auto& [hitsetkey, hitset] = *hitsetitr;
+    unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+    int side = TpcDefs::getSide(hitsetkey);
+    unsigned int sector= TpcDefs::getSectorId(hitsetkey);
     PHG4CylinderCellGeom *layergeom = geom_container->GetLayerCellGeom(layer);
     
     // instanciate new thread pair, at the end of thread vector
@@ -815,41 +812,61 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.zbins     = NZBinsSide;
     thread_pair.data.zoffset   = ZOffset ;
 
-    thread_pair.thread = std::thread( ProcessSector, std::ref( thread_pair.data ) );
-    count++;
+    try
+    {
+      thread_pair.thread = std::thread( ProcessSector, std::ref( thread_pair.data ) );
+    } catch(const std::system_error& e) {      
+      std::cout 
+        << "TpcClusterizer::process_event -"
+        << " failed to create new thread for hitset " << hitsetkey 
+        << " caught system_error"
+        << " code: " << e.code() 
+        << " what: " << e.what()
+        << std::endl; 
+    }
   }
   
-  count =0;
   // wait for completion of all threads
   for( auto&& thread_pair:threads )
   { 
-    thread_pair.thread.join();
-
-    // get the hitsetkey from thread data
-    const auto& data( thread_pair.data );
-    const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
-
-    // copy clusters to map
-    for( uint32_t index = 0; index < data.cluster_vector.size(); ++index )
+    try
     {
-      // generate cluster key
-      const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
-
-      // get cluster
-      auto cluster = data.cluster_vector[index];
-
-      // insert in map
-      m_clusterlist->addClusterSpecifyKey(ckey, cluster);
-    }
-
-    // copy hit associations to map
-    for( const auto& [index,hkey]:thread_pair.data.association_vector)
-    { 
-      // generate cluster key
-      const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
-
-      // add to association table
-      m_clusterhitassoc->addAssoc(ckey,hkey); 
+      thread_pair.thread.join();
+      
+      // get the hitsetkey from thread data
+      const auto& data( thread_pair.data );
+      const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
+      
+      // copy clusters to map
+      for( uint32_t index = 0; index < data.cluster_vector.size(); ++index )
+      {
+        // generate cluster key
+        const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
+        
+        // get cluster
+        auto cluster = data.cluster_vector[index];
+        
+        // insert in map
+        m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+      }
+      
+      // copy hit associations to map
+      for( const auto& [index,hkey]:thread_pair.data.association_vector)
+      { 
+        // generate cluster key
+        const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
+        
+        // add to association table
+        m_clusterhitassoc->addAssoc(ckey,hkey); 
+      }
+    } catch(const std::system_error& e) {      
+      std::cout 
+        << "TpcClusterizer::process_event -"
+        << " failed to join thread"
+        << " caught system_error"
+        << " code: " << e.code() 
+        << " what: " << e.what()
+        << std::endl; 
     }
 
   }
