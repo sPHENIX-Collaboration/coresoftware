@@ -427,7 +427,9 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     double rotpy = alicepx * s + alicepy*c;
     double rotpx = alicepx * c - alicepy *s;
     double rotpt = sqrt(rotpx*rotpx+rotpy*rotpy);
-    track.set_qOverR((100./(0.3*1.4))* track_charge / rotpt);
+
+    /// Just use this to carry the pt briefly
+    track.set_qOverR(rotpt);
     std::cout << "Track qover r " << track.get_qOverR() << std::endl;
     //double pY = track_pt*p;
     //double pX = sqrt(track_pt*track_pt-pY*pY);

@@ -316,7 +316,9 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 
   auto xyzCov = seedpair.second.at(0);
 
-  double alicekf_track_pt = seedpair.first.at(0).get_pt();
+  /// This track actually carries around the pT briefly
+  double alicekf_track_pt = seedpair.first.at(0).get_qOverR();
+  
  
   std::cout << "alicekf track pt " << alicekf_track_pt << std::endl;
  
@@ -331,8 +333,45 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   double track_x = track->get_x();
   double track_y = track->get_y();
   double track_z = track->get_z();
+
   double track_px = track->get_px();
   double track_py = track->get_py();
+  double track_pz = track->get_pz();
+  {
+    double X0 = track->get_X0();
+    double Y0 = track->get_Y0();
+    double dx = X0 - track_x;
+    double dy = Y0 - track_y;
+    double phi= atan2(-dx,dy);
+    
+    // convert to the angle of the tangent to the circle
+    // we need to know if the track proceeds clockwise or CCW around the circle
+    double dx0 = globalPositions.at(0)(0) - X0;
+    double dy0 = globalPositions.at(0)(1) - Y0;
+    double phi0 = atan2(dy0, dx0);
+    double dx1 = globalPositions.at(1)(0) - X0;
+    double dy1 = globalPositions.at(1)(1) - Y0;
+    double phi1 = atan2(dy1, dx1);
+    double dphi = phi1 - phi0;
+    
+    // need to deal with the switch from -pi to +pi at phi = 180 degrees
+    // final phi - initial phi must be < 180 degrees for it to be a valid track
+    if(dphi > M_PI) dphi -= 2.0 * M_PI;
+    if(dphi < - M_PI) dphi += M_PI;
+    
+    // whether we add 180 degrees depends on the angle of the bend
+    if(dphi < 0)
+      { 
+	phi += M_PI; 
+	if(phi > M_PI)
+	  { phi -= 2. * M_PI; }	      
+      }
+
+    track_px = alicekf_track_pt * cos(phi);
+    track_py = alicekf_track_pt * sin(phi);
+    double trackpnew = alicekf_track_pt / cos(atan(track->get_slope()));
+    track_pz = trackpnew * sin(atan(track->get_slope()));
+  }
 
   /// Move to first tpc cluster state if necessary
   if(sqrt(track_x*track_x+track_y*track_y)<10.)
@@ -388,7 +427,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     }
 
   std::cout << "sphenix track x y z and px py pz before transform" << std::endl;
-  std::cout << track_x << ", " << track_y << ", " << track_z << ",       " << track_px << ", " << track_py << ", " << track->get_pz() << std::endl;
+  std::cout << track_x << ", " << track_y << ", " << track_z << ",       " << track_px << ", " << track_py << ", " << track_pz << std::endl;
 
   double track_pt = sqrt(track_px*track_px + track_py*track_py);
 
@@ -401,7 +440,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   float track_pY = -track_px*sin(track_phi)+track_py*cos(track_phi);
   kftrack.SetSignCosPhi(track_pX/track_pt);
   kftrack.SetSinPhi(track_pY/track_pt);
-  kftrack.SetDzDs(-track->get_pz()/track_pt);
+  kftrack.SetDzDs(-track_pz/track_pt);
 
   // Y = y
   // Z = z
@@ -409,7 +448,6 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   // DzDs = pz/sqrt(px^2+py^2)
   // QPt = 1/sqrt(px^2+py^2)
 
-  const double track_pz = track->get_pz();
   const double track_pt3 = std::pow( track_pt, 3. );
   
   Eigen::Matrix<double,6,5> Jrot;

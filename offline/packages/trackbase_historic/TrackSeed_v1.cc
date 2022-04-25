@@ -104,7 +104,7 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
   for(const auto& key: m_cluster_keys)
     {
       auto layer = TrkrDefs::getLayer(key);
-      if(layer < startLayer or layer > endLayer)
+      if(layer <= startLayer or layer >= endLayer)
 	{ continue; }
       Acts::Vector3 globalPos = transformer.getGlobalPosition(
         key,
@@ -202,7 +202,7 @@ void TrackSeed_v1::lineFit(TrkrClusterContainer *clusters,
   for(const auto& key : m_cluster_keys)
     {
       auto layer = TrkrDefs::getLayer(key);
-      if(layer < startLayer or layer > endLayer)
+      if(layer <= startLayer or layer >= endLayer)
 	{ continue; }
   
       Acts::Vector3 pos = transformer.getGlobalPosition(
