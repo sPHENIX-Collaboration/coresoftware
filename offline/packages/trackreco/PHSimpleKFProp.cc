@@ -337,6 +337,14 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   double track_px = track->get_px();
   double track_py = track->get_py();
   double track_pz = track->get_pz();
+
+  std::vector<Acts::Vector3> trkGlobPos;
+  for(const auto& ckey : ckeys)
+    {
+      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId )
+	{ trkGlobPos.push_back(globalPositions.at(ckey)); }
+    }
+  
   {
     double X0 = track->get_X0();
     double Y0 = track->get_Y0();
@@ -346,11 +354,11 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     
     // convert to the angle of the tangent to the circle
     // we need to know if the track proceeds clockwise or CCW around the circle
-    double dx0 = globalPositions.at(0)(0) - X0;
-    double dy0 = globalPositions.at(0)(1) - Y0;
+    double dx0 = trkGlobPos.at(0)(0) - X0;
+    double dy0 = trkGlobPos.at(0)(1) - Y0;
     double phi0 = atan2(dy0, dx0);
-    double dx1 = globalPositions.at(1)(0) - X0;
-    double dy1 = globalPositions.at(1)(1) - Y0;
+    double dx1 = trkGlobPos.at(1)(0) - X0;
+    double dy1 = trkGlobPos.at(1)(1) - Y0;
     double phi1 = atan2(dy1, dx1);
     double dphi = phi1 - phi0;
     
@@ -371,6 +379,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     track_py = alicekf_track_pt * sin(phi);
     double trackpnew = alicekf_track_pt / cos(atan(track->get_slope()));
     track_pz = trackpnew * sin(atan(track->get_slope()));
+    std::cout << "post tpc circle fit replica momentum " << track_px 
+	      <<", " << track_py << ", " << track_pz << std::endl;
   }
 
   /// Move to first tpc cluster state if necessary
@@ -378,12 +388,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     {
       if(Verbosity()>0) std::cout << "WARNING: moving track into TPC" << std::endl;
 
-      std::vector<Acts::Vector3> trkGlobPos;
-      for(const auto& ckey : ckeys)
-	{
-	  if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId )
-	    { trkGlobPos.push_back(globalPositions.at(ckey)); }
-	}
+    
 
       // want angle of tangent to circle at innermost (i.e. last) cluster
       size_t inner_index;
@@ -416,7 +421,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
       else
 	phi -= M_PI / 2.0;
 
-      double pt = track->get_pt();
+      double pt = sqrt(track_px*track_px+track_py*track_py);
       // rotate track momentum vector (pz stays the same)
       track_px = pt * cos(phi);
       track_py = pt * sin(phi);
@@ -438,6 +443,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   kftrack.SetQPt(track->get_charge()/track_pt);
   float track_pX = track_px*cos(track_phi)+track_py*sin(track_phi);
   float track_pY = -track_px*sin(track_phi)+track_py*cos(track_phi);
+  std::cout << "WTF: " << track_phi << ", " << track_pX << ", " << track_pY << std::endl;
   kftrack.SetSignCosPhi(track_pX/track_pt);
   kftrack.SetSinPhi(track_pY/track_pt);
   kftrack.SetDzDs(-track_pz/track_pt);
