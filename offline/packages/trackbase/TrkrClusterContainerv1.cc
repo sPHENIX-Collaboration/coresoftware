@@ -34,9 +34,6 @@ void TrkrClusterContainerv1::identify(std::ostream& os) const
   return;
 }
 
-void TrkrClusterContainerv1::addCluster(TrkrCluster* newclus)
-{ addClusterSpecifyKey(newclus->getClusKey(), newclus); }
-
 void
 TrkrClusterContainerv1::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster* newclus)
 {
@@ -45,17 +42,11 @@ TrkrClusterContainerv1::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCl
   {
     std::cout << "TrkrClusterContainerv1::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
-  } else {
-    // make sure that cluster key matches
-    iter->second->setClusKey( key );
   }
 }
 
 void TrkrClusterContainerv1::removeCluster(TrkrDefs::cluskey key)
 { m_clusmap.erase(key); }
-
-void TrkrClusterContainerv1::removeCluster(TrkrCluster *clus)
-{ removeCluster( clus->getClusKey() ); }
 
 TrkrClusterContainer::ConstRange
 TrkrClusterContainerv1::getClusters() const

@@ -1094,8 +1094,8 @@ int PHHoughSeeding::translate_input()
     auto range = _cluster_map->getClusters(hitsetkey);
     for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
       clusid += 1;
-      TrkrCluster *cluster = clusIter->second;
       TrkrDefs::cluskey cluskey = clusIter->first;
+      TrkrCluster *cluster = clusIter->second;
       unsigned int layer = TrkrDefs::getLayer(cluskey);
       
       count++;
@@ -1118,8 +1118,8 @@ int PHHoughSeeding::translate_input()
       
       if(Verbosity() > 40)
 	{
-	  unsigned int layer_tmp =   TrkrDefs::getLayer(cluster->getClusKey());
-	  cout << "     found in seeding layer # " << ilayer << " layer " << layer_tmp <<  " cluskey " << cluster->getClusKey() << " clusid " << clusid << endl;
+	  unsigned int layer_tmp =   TrkrDefs::getLayer(cluskey);
+	  cout << "     found in seeding layer # " << ilayer << " layer " << layer_tmp <<  " cluskey " << cluskey << " clusid " << clusid << endl;
 	}
       
       hit3d.set_layer(ilayer);

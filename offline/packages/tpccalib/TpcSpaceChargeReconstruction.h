@@ -93,7 +93,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
    * uses ActsTransformation to convert cluster local position into global coordinates
    * incorporates TPC distortion correction, if present
    */
-  Acts::Vector3 get_global_position(TrkrCluster*);
+  Acts::Vector3 get_global_position(TrkrDefs::cluskey, TrkrCluster*);
 
   /// process tracks
   void process_tracks();
@@ -105,7 +105,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   void process_track( SvtxTrack* );
 
   /// get relevant cell for a given cluster
-  int get_cell_index( TrkrCluster* );
+  int get_cell_index( TrkrDefs::cluskey, TrkrCluster* );
 
   /// local event counter
   int m_event = 0;

@@ -99,8 +99,9 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
   for(const auto& key: m_cluster_keys)
     {
       Acts::Vector3 globalPos = transformer.getGlobalPosition(
-			          clusters->findCluster(key),
-				  surfmaps, tGeometry);
+        key,
+        clusters->findCluster(key),
+        surfmaps, tGeometry);
       globalPositions.push_back(globalPos);
       meanX += globalPos(0);
       meanY += globalPos(1);
@@ -189,8 +190,10 @@ void TrackSeed_v1::lineFit(TrkrClusterContainer *clusters,
   ActsTransformations transformer;
   for(const auto& key : m_cluster_keys)
     {
-      Acts::Vector3 pos = transformer.getGlobalPosition(clusters->findCluster(key),
-							surfMaps, tGeometry);
+      Acts::Vector3 pos = transformer.getGlobalPosition(
+        key,
+        clusters->findCluster(key),
+        surfMaps, tGeometry);
       double z = pos(2);
       double r = sqrt(pow(pos(0),2) + pow(pos(1), 2));
       

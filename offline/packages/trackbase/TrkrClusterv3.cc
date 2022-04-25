@@ -34,7 +34,6 @@ TrkrClusterv3::TrkrClusterv3()
 void TrkrClusterv3::identify(std::ostream& os) const
 {
   os << "---TrkrClusterv3--------------------" << std::endl;
-  os << "clusid: " << getClusKey() << std::dec << std::endl;
 
   os << " (rphi,z) =  (" << getLocalX();
   os << ", " << getLocalY() << ") cm ";
@@ -77,7 +76,6 @@ void TrkrClusterv3::CopyFrom( const TrkrCluster& source )
   // parent class method
   TrkrCluster::CopyFrom( source );
  
-  setClusKey( source.getClusKey() );
   setLocalX( source.getLocalX() );
   setLocalY( source.getLocalY() );
   

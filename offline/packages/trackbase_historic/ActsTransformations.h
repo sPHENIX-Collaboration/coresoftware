@@ -78,16 +78,22 @@ class ActsTransformations
 			   SvtxTrack *svtxTrack,
 			   Acts::GeometryContext& geoContext) const;
   
-  Eigen::Matrix<float,3,1> getGlobalPositionF(TrkrCluster* cluster,
-					      ActsSurfaceMaps* surfMaps,
-					      ActsTrackingGeometry *tGeometry) const;
+  Eigen::Matrix<float,3,1> getGlobalPositionF(
+      TrkrDefs:: cluskey key,       
+      TrkrCluster* cluster,
+      ActsSurfaceMaps* surfMaps,
+      ActsTrackingGeometry *tGeometry) const;
 
-  Acts::Vector3 getGlobalPosition(TrkrCluster* cluster,
+  Acts::Vector3 getGlobalPosition(
+      TrkrDefs:: cluskey key,       
+      TrkrCluster* cluster,
 				  ActsSurfaceMaps* surfMaps,
 				  ActsTrackingGeometry *tGeometry) const;
 
-  Surface getSurface(TrkrCluster* cluster,
-		     ActsSurfaceMaps* surfMaps) const;
+  Surface getSurface(
+    TrkrDefs:: cluskey key,       
+    TrkrCluster* cluster,
+    ActsSurfaceMaps* surfMaps) const;
   
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey,
 			    ActsSurfaceMaps *maps) const;
