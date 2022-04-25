@@ -169,7 +169,6 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   const auto globalPositions = PrepareKDTrees();
   if(Verbosity()>0) std::cout << "prepared KD trees" << std::endl;
 
-  if(Verbosity()>0) std::cout << "moved tracks into TPC" << std::endl;
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed> unused_tracks;
   for(TrackSeedContainer::Iter track_it = _track_map->begin(); 
@@ -192,17 +191,21 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 	{
 	  dumvec.push_back(*iter);
 	}
-      //if(dumvec.size() < _min_clusters_per_track)
-      //{ continue; }
-
+    
       keylist.push_back(dumvec);
+    
       /// This will by definition return a single pair with each vector 
-      /// in the pair length 1 corresponding to the seed
+      /// in the pair length 1 corresponding to the seed info
       auto seedpair = fitter->ALICEKalmanFilter(keylist, false, globalPositions);
+
+      /// circle fit back to update track parameters
+      track->circleFitByTaubin(_cluster_map, _surfmaps, _tgeometry, 7, 55);
+      track->lineFit(_cluster_map, _surfmaps, _tgeometry, 7, 55);
+
       if(seedpair.first.size() == 0 || seedpair.second.size() == 0)
 	{ continue; }
       if(Verbosity()>0) std::cout << "is tpc track" << std::endl;
-      new_chains.push_back(PropagateTrack(track, seedpair, 
+      new_chains.push_back(PropagateTrack(track, seedpair.second.at(0), 
 					  globalPositions));
     }
     else
@@ -304,10 +307,10 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
 }
 
 
-std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, std::pair<std::vector<TrackSeed_v1>,std::vector<Eigen::Matrix<double,6,6>>>& seedpair, const PositionMap& globalPositions) const
+std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, Eigen::Matrix<double,6,6>& xyzCov, const PositionMap& globalPositions) const
 {
   // extract cluster list
-  std::cout << "get keys"<<std::endl;
+ 
   std::vector<TrkrDefs::cluskey> ckeys;
   std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
  
@@ -315,22 +318,6 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   {
     std::reverse(ckeys.begin(),ckeys.end());
   } 
-  std::cout << "done with keys "<< ckeys.size() << std::endl;
-  auto xyzCov = seedpair.second.at(0);
-  std::cout << "get cov"<<std::endl;
-  /// This track actually carries around the pT briefly
-  double alicekf_track_pt = seedpair.first.at(0).get_qOverR();
-  
- 
-  std::cout << "alicekf track pt " << alicekf_track_pt << std::endl;
- 
-  /// circle fit back to update track parameters
-  track->circleFitByTaubin(_cluster_map, _surfmaps, _tgeometry, 7, 55);
-  track->lineFit(_cluster_map, _surfmaps, _tgeometry, 7, 55);
-
-
-  std::cout << "track before move to first tpc cluster" << std::endl;
-  track->identify();
 
   double track_x = track->get_x();
   double track_y = track->get_y();
@@ -340,58 +327,16 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   double track_py = track->get_py();
   double track_pz = track->get_pz();
 
-  std::vector<Acts::Vector3> trkGlobPos;
-  for(const auto& ckey : ckeys)
-    {
-      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId )
-	{ trkGlobPos.push_back(globalPositions.at(ckey)); }
-    }
-  
-  {
-    double X0 = track->get_X0();
-    double Y0 = track->get_Y0();
-    double dx = X0 - track_x;
-    double dy = Y0 - track_y;
-    double phi= atan2(-dx,dy);
-    
-    // convert to the angle of the tangent to the circle
-    // we need to know if the track proceeds clockwise or CCW around the circle
-    double dx0 = trkGlobPos.at(0)(0) - X0;
-    double dy0 = trkGlobPos.at(0)(1) - Y0;
-    double phi0 = atan2(dy0, dx0);
-    double dx1 = trkGlobPos.at(1)(0) - X0;
-    double dy1 = trkGlobPos.at(1)(1) - Y0;
-    double phi1 = atan2(dy1, dx1);
-    double dphi = phi1 - phi0;
-    
-    // need to deal with the switch from -pi to +pi at phi = 180 degrees
-    // final phi - initial phi must be < 180 degrees for it to be a valid track
-    if(dphi > M_PI) dphi -= 2.0 * M_PI;
-    if(dphi < - M_PI) dphi += M_PI;
-    
-    // whether we add 180 degrees depends on the angle of the bend
-    if(dphi < 0)
-      { 
-	phi += M_PI; 
-	if(phi > M_PI)
-	  { phi -= 2. * M_PI; }	      
-      }
-
-    track_px = alicekf_track_pt * cos(phi);
-    track_py = alicekf_track_pt * sin(phi);
-    double trackpnew = alicekf_track_pt / cos(atan(track->get_slope()));
-    track_pz = trackpnew * sin(atan(track->get_slope()));
-    std::cout << "post tpc circle fit replica momentum " << track_px 
-	      <<", " << track_py << ", " << track_pz << std::endl;
-  }
-
-  /// Move to first tpc cluster state if necessary
+  /// Move to first tpc cluster layer if necessary
   if(sqrt(track_x*track_x+track_y*track_y)<10.)
     {
       if(Verbosity()>0) std::cout << "WARNING: moving track into TPC" << std::endl;
-
-    
-
+      std::vector<Acts::Vector3> trkGlobPos;
+      for(const auto& ckey : ckeys)
+	{
+	  if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::tpcId )
+	    { trkGlobPos.push_back(globalPositions.at(ckey)); }
+	}
       // want angle of tangent to circle at innermost (i.e. last) cluster
       size_t inner_index;
       if(TrkrDefs::getLayer(ckeys[0])>TrkrDefs::getLayer(ckeys.back()))
@@ -432,9 +377,6 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
       track_z = trkGlobPos.at(0)(2);
 
     }
-
-  std::cout << "sphenix track x y z and px py pz before transform" << std::endl;
-  std::cout << track_x << ", " << track_y << ", " << track_z << ",       " << track_px << ", " << track_py << ", " << track_pz << std::endl;
 
   double track_pt = sqrt(track_px*track_px + track_py*track_py);
 
@@ -494,12 +436,6 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   Jrot(4,4) = -track_py/track_pt3; // dQPt/dpy
   Jrot(5,4) = 0; // dQPt/dpz
 
-  std::cout << "J cov "<<std::endl;
-  std::cout << Jrot << std::endl;
-
-  std::cout << "xyzCov " << std::endl;
-  std::cout << xyzCov << std::endl;
-
   Eigen::Matrix<double,5,5> kfCov = Jrot.transpose()*xyzCov*Jrot;
 
   int ctr = 0;
@@ -517,18 +453,6 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 
   std::vector<TrkrDefs::cluskey> propagated_track;
 
-  // setup ALICE track model on first cluster
-//  TrkrCluster* firstclus = _cluster_map->findCluster(ckeys[0]);
-//  TrkrCluster* lastclus = _cluster_map->findCluster(ckeys.back());
-//  double fx = firstclus->getX();
-//  double fy = firstclus->getY();
-//  double fz = firstclus->getZ();
-//  double fphi = atan2(fy,fx);
-//  double lx = lastclus->getX();
-//  double ly = lastclus->getY();
-//  double lz = lastclus->getZ();
-//  double lphi = atan2(ly,lx);
-//  kftrack.Rotate(fphi,kfline,10.);
   kftrack.SetX(track_x*cos(track_phi)+track_y*sin(track_phi));
   kftrack.SetY(-track_x*sin(track_phi)+track_y*cos(track_phi));
   kftrack.SetZ(track_z);
@@ -548,17 +472,6 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   }
 
 
-//  kftrack.Rotate(fphi,kfline,10.);
-//  double fX = fx*cos(fphi)+fy*sin(fphi);
-//  double oldphi = track_phi;
-//  double track_x = kftrack.GetX()*cos(oldphi)-kftrack.GetY()*sin(oldphi);
-//  double track_y = kftrack.GetX()*sin(oldphi)+kftrack.GetX()*cos(oldphi);
-//  kftrack.TransportToX(fX,kfline,_Bzconst*get_Bz(track_x,track_y,kftrack.GetZ()),10.);
-//  double new_phi = atan2(track_y,track_x);
-//  kftrack.Rotate(new_phi-oldphi,kfline,10.);
-//  kftrack.SetX(fx*cos(fphi)+fy*sin(fphi));
-//  kftrack.SetY(-fx*sin(fphi)+fy*cos(fphi));
-//  kftrack.SetZ(fz);
   GPUTPCTrackLinearisation kfline(kftrack);
 
   // get layer for each cluster
@@ -1106,203 +1019,3 @@ void PHSimpleKFProp::publishSeeds(const std::vector<TrackSeed>& seeds)
   for( const auto& seed:seeds )
   { _track_map->insert(&seed); }
 }
-
-// void PHSimpleKFProp::MoveToVertex()
-// {
-//   // _track_map contains the TPC seed track stubs
-//   // We want to associate these TPC track seeds with a collision vertex
-//   // Then we add the collision vertex position as the track seed position
-// 
-//   // All we need is to project the TPC clusters in Z to the beam line.
-// 
-// 
-//   if(Verbosity() > 0)
-//     std::cout << PHWHERE << " TPC track map size " << _track_map->size()  << std::endl;
-//   /*
-//  // We remember the original size of the TPC track map here
-//   const unsigned int original_track_map_lastkey = _track_map->empty() ? 0:std::prev(_track_map->end())->first;
-//   */
-// 
-//   // loop over the TPC track seeds
-//   for (auto phtrk_iter = _track_map->begin();
-//        phtrk_iter != _track_map->end(); 
-//        ++phtrk_iter)
-//     {
-//       /*
-//       // we may add tracks to the map, so we stop at the last original track
-//       if(phtrk_iter->first >= original_track_map_lastkey)  break;
-//       */      
-//       SvtxTrack* _tracklet_tpc = phtrk_iter->second;
-//       
-//       if (Verbosity() >= 1)
-// 	{
-// 	  std::cout
-// 	    << __LINE__
-// 	    << ": Processing seed itrack: " << phtrk_iter->first
-// 	    << ": nhits: " << _tracklet_tpc-> size_cluster_keys()
-// 	    << ": phi: " << _tracklet_tpc->get_phi()
-// 	    << ": eta: " << _tracklet_tpc->get_eta()
-// 	    << std::endl;
-// 	}
-// 
-//       // get the tpc track seed cluster positions in z and r
-// 
-//       // Get the outermost TPC clusters for this tracklet
-//       std::map<unsigned int, TrkrCluster*> tpc_clusters_map;
-//       std::vector<TrkrCluster*> clusters;
-//       
-//       for (SvtxTrack::ConstClusterKeyIter key_iter = _tracklet_tpc->begin_cluster_keys();
-// 	   key_iter != _tracklet_tpc->end_cluster_keys();
-// 	   ++key_iter)
-// 	{
-// 	  TrkrDefs::cluskey cluster_key = *key_iter;
-// 	  unsigned int layer = TrkrDefs::getLayer(cluster_key);
-// 
-// 	  //if(layer < _min_tpc_layer) continue;
-// 	  //if(layer >= _max_tpc_layer) continue;
-// 
-// 	  // get the cluster
-// 	  TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
-// 
-// 	  tpc_clusters_map.insert(std::make_pair(layer, tpc_clus));
-// 	  clusters.push_back(tpc_clus);
-// 
-// 	  if(Verbosity() > 5) 
-// 	    std::cout << "  TPC cluster in layer " << layer << " with local position " << tpc_clus->getLocalX() 
-// 		      << "  " << tpc_clus->getLocalY() << " clusters.size() " << tpc_clusters_map.size() << std::endl;
-// 	}
-// 
-// 
-//       // need at least 3 clusters to fit a circle
-//       if(tpc_clusters_map.size() < 3)
-// 	{
-// 	  if(Verbosity() > 3) std::cout << PHWHERE << "  -- skip this tpc tracklet, not enough clusters " << std::endl; 
-// 	  continue;  // skip to the next TPC tracklet
-// 	}
-// 
-//       /*
-//       // fit a circle to the clusters
-//       double R, X0, Y0;
-//       CircleFitByTaubin(clusters, R, X0, Y0);
-//       if(Verbosity() > 10) std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
-//       // toss tracks for which the fitted circle could not have come from the vertex
-//       if(R < 40.0) continue;
-//       */
-// 
-//       // get the straight line representing the z trajectory in the form of z vs radius
-//       double A = 0; double B = 0;
-//       line_fit_clusters(clusters, A, B);
-//       if(Verbosity() > 5) std::cout << " Fitted line has A " << A << " B " << B << std::endl;
-// 
-//       // Project this TPC tracklet  to the beam line and store the projections
-//       //bool skip_tracklet = false;
-//       // z projection is unique
-//       double _z_proj = B;
-//       
-// //       // Now we modify the track parameters
-// //       // Repeat the z line fit including the vertex position, get theta, update pz
-// //       std::vector<std::pair<double, double>> points;
-// //       std::transform( clusters.begin(), clusters.end(), std::back_inserter( points ), []( TrkrCluster* cluster )
-// //       {
-// //         double z = cluster->getZ();
-// //         double r = std::sqrt(square(cluster->getX()) + square(cluster->getY()));	  
-// //         return std::make_pair(r,z);
-// //       } );
-// 
-//       // Now we modify the track parameters
-//       // Repeat the z line fit including the vertex position, get theta, update pz
-//       //TODO: check - I don't think the code does the above. Just redo the same fit a second time, in which case it can be commented
-//       std::vector<std::pair<double, double>> points;
-//       for (unsigned int i=0; i<clusters.size(); ++i)
-// 	{
-// 	  double z = clusters[i]->getZ();
-// 	  double r = std::sqrt(square(clusters[i]->getX()) + square(clusters[i]->getY()));	  
-// 	  points.push_back(std::make_pair(r,z));
-// 	}
-//       
-//       line_fit(points, A, B);
-// 
-//       if(Verbosity() > 5) 
-// 	std::cout << " Fitted line including vertex has A " << A << " B " << B << std::endl;      
-// 
-//       // extract the track theta
-//       double track_angle = atan(A);  // referenced to 90 degrees
-// 
-//       //  update pz of track
-//       double pt_track = _tracklet_tpc->get_pt();
-//       double ptrack = sqrt(pt_track*pt_track + _tracklet_tpc->get_pz()*_tracklet_tpc->get_pz());
-//       double pz_new = ptrack * sin(track_angle);
-//       if(Verbosity() > 5)
-// 	std::cout << " Original pz = " << _tracklet_tpc->get_pz() << " new pz " << pz_new << " track angle " << track_angle << std::endl;
-//       _tracklet_tpc->set_pz(pz_new);
-//       if(Verbosity() > 5)
-// 	std::cout << "       new eta " <<  _tracklet_tpc->get_eta() << std::endl;
-//       // total momentum is now a bit different because pt was not changed - OK - we measure pt from bend, pz from dz/dr
-// 
-//       // make circle fit 
-//       std::vector<std::pair<double, double>> cpoints;
-//       std::vector<Acts::Vector3> globalpositions;
-//       ActsTransformations transformer;
-//       for (unsigned int i=0; i<clusters.size(); ++i)
-// 	{
-// 	  auto glob = transformer.getGlobalPositionF(clusters.at(i),_surfmaps,_tgeometry);
-// 	  globalpositions.push_back(glob);
-// 	  cpoints.push_back(std::make_pair(glob(0),glob(1)));
-// 	}
-//       double R, X0, Y0;
-//       CircleFitByTaubin(globalpositions, R, X0, Y0);
-//       if(Verbosity() > 5) 
-// 	std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
-// 
-//        // set the track x and y positions to the circle PCA
-//       double dcax, dcay;
-//       findRoot(R, X0, Y0, dcax, dcay);
-//       _tracklet_tpc->set_x(dcax);
-//       _tracklet_tpc->set_y(dcay);
-//       _tracklet_tpc->set_z(_z_proj);
-// 
-//       //  could take new pT from radius of circle - we choose to keep the seed pT
-// 
-//       // We want the angle of the tangent relative to the positive x axis
-//       // start with the angle of the radial line from vertex to circle center
-//       double dx = X0 - dcax;
-//       double dy = Y0 - dcay;
-//       double phi= atan2(dy,dx);
-//       //std::cout << "x_vertex " << x_vertex << " y_vertex " << y_vertex << " X0 " << X0 << " Y0 " << Y0 << " angle " << phi * 180 / 3.14159 << std::endl; 
-//       // convert to the angle of the tangent to the circle
-//       // we need to know if the track proceeds clockwise or CCW around the circle
-//       double dx0 = cpoints[0].first - X0;
-//       double dy0 = cpoints[0].second - Y0;
-//       double phi0 = atan2(dy0, dx0);
-//       double dx1 = cpoints[1].first - X0;
-//       double dy1 = cpoints[1].second - Y0;
-//       double phi1 = atan2(dy1, dx1);
-//       double dphi = phi1 - phi0;
-// 
-//       if(Verbosity() > 5) 
-// 	{
-// 	  int charge = _tracklet_tpc->get_charge();   // needed for diagnostic output only
-// 	  std::cout << " charge " << charge << " phi0 " << phi0*180.0 / M_PI << " phi1 " << phi1*180.0 / M_PI << " dphi " << dphi*180.0 / M_PI << std::endl;
-// 	}
-// 
-//       // whether we add or subtract 90 degrees depends on the track propagation direction determined above
-//       if(dphi < 0)
-// 	phi += M_PI / 2.0;  
-//       else
-// 	phi -= M_PI / 2.0;  
-//       if(Verbosity() > 5) 
-// 	std::cout << " input track phi " << _tracklet_tpc->get_phi() * 180.0 / M_PI << " new phi " << phi * 180 / M_PI << std::endl;  
-// 
-//       // update px, py of track
-//       double px_new = pt_track * cos(phi);
-//       double py_new = pt_track * sin(phi);
-//       if(Verbosity() > 5)
-// 	std::cout << " input track px " << _tracklet_tpc->get_px()  << " new px " << px_new << " input py " << _tracklet_tpc->get_py() << " new py " << py_new << std::endl;
-// 
-//       // update track on node tree
-//       _tracklet_tpc->set_px(px_new);
-//       _tracklet_tpc->set_py(py_new);
-//       
-//     }  // end loop over TPC track seeds
-// }
-

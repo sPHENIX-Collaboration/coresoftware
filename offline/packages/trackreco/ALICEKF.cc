@@ -182,8 +182,6 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     LogDebug("initial QPt: " << init_QPt << std::endl);
     trackSeed.SetQPt(init_QPt);
 
-    std::cout << "BEFORE ALICE KF, track seed has : " << trackSeed.GetQPt() << ", " << trackSeed.GetSinPhi() << ", " << trackSeed.GetDzDs() << ", " << trackSeed.GetX() << ", " << trackSeed.GetY() << ", " << trackSeed.GetZ() << std::endl;
-
     GPUTPCTrackLinearisation trackLine(trackSeed);
 
     LogDebug(std::endl << std::endl << "------------------------" << std::endl << "seed size: " << trackKeyChain.size() << std::endl << std::endl << std::endl);
@@ -339,12 +337,6 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
 
     double track_phi = atan2(y,x);
 
-
-    std::cout << "AFTER ALICE KF, track seed has : " << trackSeed.GetQPt() << ", " << trackSeed.GetSinPhi() << ", " << trackSeed.GetDzDs() << ", " << trackSeed.GetX() << ", " << trackSeed.GetY() << ", " << trackSeed.GetZ() << std::endl;
-    std::cout << "ALICE KF covariance ";
-    for(int i=0; i<15; i++) std::cout << trackSeed.GetCov(i) << ", ";
-    std::cout << std::endl;
-
     double track_pt = fabs(1./trackSeed.GetQPt());
     #if defined(_DEBUG_)
     double track_pY = track_pt*trackSeed.GetSinPhi();
@@ -411,7 +403,8 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     double s = sin(track_phi);
     double c = cos(track_phi);
     double p = trackSeed.GetSinPhi();
-    // TrkrCluster *cl = _cluster_map->findCluster(trackKeyChain.at(0));
+    
+    /// Shows the transformation between ALICE and sPHENIX coordinates
     //track.set_x(trackSeed.GetX()*c-trackSeed.GetY()*s);//_vertex_x[best_vtx]);  //track.set_x(cl->getX());
     //track.set_y(trackSeed.GetX()*s+trackSeed.GetY()*c);//_vertex_y[best_vtx]);  //track.set_y(cl->getY());
     //track.set_z(trackSeed.GetZ());//_vertex_z[best_vtx]);  //track.set_z(cl->getZ());
@@ -421,16 +414,8 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     if(checknan(p,"ALICE sinPhi",nseeds)) continue;
     double d = trackSeed.GetDzDs();
     if(checknan(d,"ALICE dz/ds",nseeds)) continue;
-    
-    double alicepy = track_pt * p;
-    double alicepx = sqrt(track_pt*track_pt - alicepy*alicepy);
-    double rotpy = alicepx * s + alicepy*c;
-    double rotpx = alicepx * c - alicepy *s;
-    double rotpt = sqrt(rotpx*rotpx+rotpy*rotpy);
-
-    /// Just use this to carry the pt briefly
-    track.set_qOverR(rotpt);
-    std::cout << "Track qover r " << track.get_qOverR() << std::endl;
+     
+    /// Shows the transformation between ALICE and sPHENIX coordinates
     //double pY = track_pt*p;
     //double pX = sqrt(track_pt*track_pt-pY*pY);
     //track.set_px(pX*c-pY*s);
@@ -532,20 +517,11 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
 
     // the heavy lifting happens here
     Eigen::Matrix<double,6,6> scov = J*ecov*J.transpose();
-    
-    // fill SvtxTrack covariance matrix with results
-    for(int i=0;i<6;i++)
-    {
-      for(int j=0;j<6;j++)
+    if(!covIsPosDef(scov))
       {
-        //track.set_error(i, j, scov(i,j));
+	repairCovariance(scov);
       }
-    }
-    std::cout << "j cov " << std::endl;
-    std::cout << J << std::endl;
-    std::cout << "sphenix cov " << std::endl;
-    std::cout << scov << std::endl;
-/*
+    /*
     // Proceed with the absolutely hellish coordinate transformation of the covariance matrix.
     // Derived from:
     // 1) Taking the Jacobian of the conversion from (Y,Z,SinPhi,DzDs,Q/Pt) to (x,y,z,px,py,pz)
@@ -589,10 +565,6 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     track.set_error(5, 4, track.get_error(4, 5));
 */
 
-    if(!covIsPosDef(scov))
-    {
-      repairCovariance(scov);
-    }
 /*
     for(int w=0;w<cx.size();w++)
     {
