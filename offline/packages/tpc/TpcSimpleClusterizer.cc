@@ -33,15 +33,15 @@
 
 #include <TFile.h>  
 
-#include <array>
 #include <cmath>  // for sqrt, cos, sin
 #include <iostream>
 #include <map>  // for _Rb_tree_cons...
 #include <string>
-#include <thread>
 #include <utility>  // for pair
+#include <array>
 #include <vector>
-
+// Terra incognita....
+#include <pthread.h>
 
 namespace 
 {
@@ -72,6 +72,8 @@ namespace
     std::vector<TrkrCluster*> cluster_vector;
   };
   
+	pthread_mutex_t mythreadlock;
+	
 	void remove_hit(double adc, int phibin, int zbin, std::multimap<unsigned short, ihit> &all_hit_map, std::vector<std::vector<unsigned short>> &adcval)
 	{
 	  typedef std::multimap<unsigned short, ihit>::iterator hit_iterator;
@@ -328,42 +330,49 @@ namespace
 	  }
 	}
 	
-	void ProcessSector( thread_data& my_data) 
-  {
-    const auto& pedestal = my_data.pedestal;
-    const auto& phibins   = my_data.phibins;
-    const auto& phioffset = my_data.phioffset;
-    const auto& zbins     = my_data.zbins ;
-    const auto& zoffset   = my_data.zoffset ;
+	void *ProcessSector(void *threadarg) {
     
-	   TrkrHitSet *hitset = my_data.hitset;
-    TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-    
-    // for convenience, create a 2D vector to store adc values in and initialize to zero
-    std::vector<std::vector<unsigned short>> adcval(phibins, std::vector<unsigned short>(zbins, 0));
-    std::multimap<unsigned short, ihit> all_hit_map;
-    std::vector<ihit> hit_vect;
-    
-    for (TrkrHitSet::ConstIterator hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
-    {
+    auto my_data = (struct thread_data *) threadarg;
+
+    const auto& pedestal = my_data->pedestal;
+    const auto& phibins   = my_data->phibins;
+    const auto& phioffset = my_data->phioffset;
+    const auto& zbins     = my_data->zbins ;
+    const auto& zoffset   = my_data->zoffset ;
+
+	   TrkrHitSet *hitset = my_data->hitset;
+	   TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+	
+	   // for convenience, create a 2D vector to store adc values in and initialize to zero
+	   std::vector<std::vector<unsigned short>> adcval(phibins, std::vector<unsigned short>(zbins, 0));
+	   std::multimap<unsigned short, ihit> all_hit_map;
+	   std::vector<ihit> hit_vect;
+	
+	   for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+		hitr != hitrangei.second;
+		++hitr){
 	     unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
 	     unsigned short zbin = TpcDefs::getTBin(hitr->first) - zoffset;
 	     
 	     float_t fadc = (hitr->second->getAdc()) - pedestal; // proper int rounding +0.5
+	     //std::cout << " layer: " << my_data->layer  << " phibin " << phibin << " zbin " << zbin << " fadc " << hitr->second->getAdc() << " pedestal " << pedestal << " fadc " << std::endl
 	
 	     unsigned short adc = 0;
 	     if(fadc>0) 
 	       adc =  (unsigned short) fadc;
 	     
+	//     if(phibin < 0) continue; // phibin is unsigned int, <0 cannot happen
 	     if(phibin >= phibins) continue;
+	//     if(zbin   < 0) continue;
 	     if(zbin   >= zbins) continue; // zbin is unsigned int, <0 cannot happen
 	
 	     if(adc>0){
 	       iphiz iCoord(std::make_pair(phibin,zbin));
 	       ihit  thisHit(adc,iCoord);
 	       if(adc>5){
-          all_hit_map.insert(std::make_pair(adc, thisHit));
+		 all_hit_map.insert(std::make_pair(adc, thisHit));
 	       }
+	       //adcval[phibin][zbin] = (unsigned short) adc;
 	       adcval[phibin][zbin] = (unsigned short) adc;
 	     }
 	   }
@@ -388,9 +397,10 @@ namespace
 	     // -> add hits to truth association
 	     // remove hits from all_hit_map
 	     // repeat untill all_hit_map empty
-	     calc_cluster_parameter(ihit_list, my_data );
+	     calc_cluster_parameter(ihit_list, *my_data );
 	     remove_hits(ihit_list,all_hit_map, adcval);
 	   }
+	   pthread_exit(nullptr);
 	}
 }
 
@@ -558,14 +568,24 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
   // create structure to store given thread and associated data
   struct thread_pair_t
   {
-    std::thread thread;
+    pthread_t thread;
     thread_data data;
   };
   
   // create vector of thread pairs and reserve the right size upfront to avoid reallocation
   std::vector<thread_pair_t> threads;
   threads.reserve( num_hitsets );
-        
+    
+  pthread_attr_t attr;
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+  
+  if (pthread_mutex_init(&mythreadlock, nullptr) != 0)
+    {
+      printf("\n mutex init failed\n");
+      return 1;
+    }
+  
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
@@ -612,14 +632,20 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.zbins     = NZBinsSide;
     thread_pair.data.zoffset   = ZOffset ;
 
-    // create
-    thread_pair.thread = std::thread(ProcessSector, std::ref(thread_pair.data) );
+    int rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *)&thread_pair.data);
+    if (rc) {
+      std::cout << "Error:unable to create thread," << rc << std::endl;
+    }
   }
   
+  pthread_attr_destroy(&attr);
+
   // wait for completion of all threads
-  for( auto&& thread_pair:threads )
+  for( const auto& thread_pair:threads )
   { 
-    thread_pair.thread.join();
+    int rc2 = pthread_join(thread_pair.thread, nullptr);
+    if (rc2) 
+    { std::cout << "Error:unable to join," << rc2 << std::endl; }
 
     // get the hitsetkey from thread data
     const auto& data( thread_pair.data );
