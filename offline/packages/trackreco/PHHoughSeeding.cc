@@ -25,8 +25,6 @@
 #include <trackbase/TrkrCluster.h>                      // for TrkrCluster
 #include <trackbase/TrkrDefs.h>                         // for getLayer, clu...
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -1091,15 +1089,13 @@ int PHHoughSeeding::translate_input()
   int nhits3d = -1;
   unsigned int clusid = -1;
 
-  auto hitsetrange = _hitsets->getHitSets();
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _cluster_map->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys())
+  {
+    auto range = _cluster_map->getClusters(hitsetkey);
     for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
       clusid += 1;
-      TrkrCluster *cluster = clusIter->second;
       TrkrDefs::cluskey cluskey = clusIter->first;
+      TrkrCluster *cluster = clusIter->second;
       unsigned int layer = TrkrDefs::getLayer(cluskey);
       
       count++;
@@ -1122,8 +1118,8 @@ int PHHoughSeeding::translate_input()
       
       if(Verbosity() > 40)
 	{
-	  unsigned int layer_tmp =   TrkrDefs::getLayer(cluster->getClusKey());
-	  cout << "     found in seeding layer # " << ilayer << " layer " << layer_tmp <<  " cluskey " << cluster->getClusKey() << " clusid " << clusid << endl;
+	  unsigned int layer_tmp =   TrkrDefs::getLayer(cluskey);
+	  cout << "     found in seeding layer # " << ilayer << " layer " << layer_tmp <<  " cluskey " << cluskey << " clusid " << clusid << endl;
 	}
       
       hit3d.set_layer(ilayer);

@@ -761,7 +761,7 @@ void PHSiliconTpcTrackMatching::copySiliconClustersToCorrectedMap( )
         newclus->CopyFrom( cluster );
 
         // insert in corrected map
-        _corrected_cluster_map->addCluster(newclus);
+        _corrected_cluster_map->addClusterSpecifyKey(cluster_key, newclus);
       }
     }      
   }

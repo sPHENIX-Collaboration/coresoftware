@@ -3,6 +3,7 @@
 #include "Fun4AllHistoBinDefs.h"
 #include "Fun4AllHistoManager.h"  // for Fun4AllHistoManager
 #include "Fun4AllMemoryTracker.h"
+#include "Fun4AllMonitoring.h"
 #include "Fun4AllOutputManager.h"
 #include "Fun4AllReturnCodes.h"
 #include "Fun4AllSyncManager.h"
@@ -36,6 +37,8 @@
 #include <memory>  // for allocator_traits<>::value_type
 #include <sstream>
 
+//#define FFAMEMTRACKER
+
 using namespace std;
 
 Fun4AllServer *Fun4AllServer::__instance = nullptr;
@@ -52,7 +55,9 @@ Fun4AllServer *Fun4AllServer::instance()
 
 Fun4AllServer::Fun4AllServer(const std::string &name)
   : Fun4AllBase(name)
+#ifdef FFAMEMTRACKER
   , ffamemtracker(Fun4AllMemoryTracker::instance())
+#endif
 {
   InitAll();
   return;
@@ -124,6 +129,7 @@ void Fun4AllServer::InitAll()
   {
     gSystem->IgnoreSignal((ESignals) i);
   }
+  Fun4AllMonitoring::instance()->Snapshot("StartUp");
   string histomanagername;
   histomanagername = Name() + "HISTOS";
   ServerHistoManager = new Fun4AllHistoManager(histomanagername);
@@ -216,9 +222,13 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnod
   try
   {
     string memory_tracker_name = subsystem->Name() + "_" + topnodename;
+#ifdef FFAMEMTRACKER
     ffamemtracker->Start(memory_tracker_name, "SubsysReco");
+#endif
     iret = subsystem->Init(subsystopNode);
+#ifdef FFAMEMTRACKER
     ffamemtracker->Stop(memory_tracker_name, "SubsysReco");
+#endif
   }
   catch (const exception &e)
   {
@@ -557,10 +567,14 @@ int Fun4AllServer::process_event()
       {
         cout << "could not find timer for " << timer_name << endl;
       }
+#ifdef FFAMEMTRACKER
       ffamemtracker->Start(timer_name, "SubsysReco");
       ffamemtracker->Snapshot("Fun4AllServerProcessEvent");
+#endif
       int retcode = (*iter).first->process_event((*iter).second);
+#ifdef FFAMEMTRACKER
       ffamemtracker->Snapshot("Fun4AllServerProcessEvent");
+#endif
       // we have observed an index overflow in RetCodes. I assume it is some
       // memory corruption elsewhere which hits the icnt variable. Rather than
       // the previous [], use at() which does bounds checking and throws an
@@ -580,7 +594,9 @@ int Fun4AllServer::process_event()
       {
         titer->second.stop();
       }
+#ifdef FFAMEMTRACKER
       ffamemtracker->Stop(timer_name, "SubsysReco");
+#endif
     }
     catch (const exception &e)
     {
@@ -677,11 +693,15 @@ int Fun4AllServer::process_event()
           {
             cout << "Writing Event for " << (*iterOutMan)->Name() << endl;
           }
+#ifdef FFAMEMTRACKER
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
           ffamemtracker->Start((*iterOutMan)->Name(), "OutputManager");
+#endif
           (*iterOutMan)->WriteGeneric(dstNode);
+#ifdef FFAMEMTRACKER
           ffamemtracker->Stop((*iterOutMan)->Name(), "OutputManager");
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
+#endif
         }
         else
         {
@@ -709,6 +729,7 @@ int Fun4AllServer::process_event()
     }
     syncman->ResetEvent();
   }
+  Fun4AllMonitoring::instance()->Snapshot("Event");
   ResetNodeTree();
   return 0;
 }
@@ -769,7 +790,9 @@ int Fun4AllServer::BeginRunTimeStamp(PHTimeStamp &TimeStp)
 int Fun4AllServer::BeginRun(const int runno)
 {
   eventcounter = 0; // reset event counter for every new run
+#ifdef FFAMEMTRACKER
   ffamemtracker->Snapshot("Fun4AllServerBeginRun");
+#endif
   if (!bortime_override)
   {
     if (beginruntimestamp)
@@ -832,9 +855,13 @@ int Fun4AllServer::BeginRun(const int runno)
     }
     try
     {
+#ifdef FFAMEMTRACKER
       ffamemtracker->Start((*iter).first->Name(), "SubsysReco");
+#endif
       iret = (*iter).first->InitRun((*iter).second);
+#ifdef FFAMEMTRACKER
       ffamemtracker->Stop((*iter).first->Name(), "SubsysReco");
+#endif
     }
     catch (const exception &e)
     {
@@ -880,7 +907,9 @@ int Fun4AllServer::BeginRun(const int runno)
   }
   // print out all node trees
   Print("NODETREE");
+#ifdef FFAMEMTRACKER
   ffamemtracker->Snapshot("Fun4AllServerBeginRun");
+#endif
   return 0;
 }
 
@@ -1689,6 +1718,10 @@ void Fun4AllServer::PrintTimer(const string &name)
 
 void Fun4AllServer::PrintMemoryTracker(const string &name) const
 {
+#ifdef FFAMEMTRACKER
   ffamemtracker->PrintMemoryTracker(name);
+#else
+  std::cout << "PrintMemoryTracker called with " << name << " is disabled" << std::endl;
+#endif
   return;
 }

@@ -172,40 +172,12 @@ int  PHTpcTrackSeedCircleFit::GetNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-std::vector<TrkrCluster*> PHTpcTrackSeedCircleFit::getTrackClusters(TrackSeed *tracklet_tpc)
-{
-  std::vector<TrkrCluster*> clusters;
   
-  for(SvtxTrack::ConstClusterKeyIter key_iter = tracklet_tpc->begin_cluster_keys(); 
-    key_iter != tracklet_tpc->end_cluster_keys();
-    ++key_iter)
-  {
-    const TrkrDefs::cluskey& cluster_key = *key_iter;
-    
-    // only consider TPC clusters
-    if( TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::tpcId ) continue;
-    
-    // get the cluster
-    TrkrCluster *tpc_clus =  _cluster_map->findCluster(cluster_key);
-    
-    // insert in list
-    clusters.push_back(tpc_clus);
-    
-    if(Verbosity() > 5) 
-    {
-      unsigned int layer = TrkrDefs::getLayer(cluster_key);      
-      std::cout << "  TPC cluster in layer " << layer << " with local position " << tpc_clus->getLocalX() 
-        << "  " << tpc_clus->getLocalY() << " clusters.size() " << clusters.size() << std::endl;
-      }
-    }
-    return clusters;
-  }
-  
-Acts::Vector3 PHTpcTrackSeedCircleFit::getGlobalPosition( TrkrCluster* cluster ) const
+Acts::Vector3 PHTpcTrackSeedCircleFit::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
   ActsTransformations transformer;
-  auto globalpos = transformer.getGlobalPosition(cluster,
+  auto globalpos = transformer.getGlobalPosition(key, cluster,
     _surfmaps,
     _tGeometry);
 

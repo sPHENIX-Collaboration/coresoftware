@@ -284,9 +284,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 	// make the cluster directly in the node tree
 	auto ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
-
 	auto clus = std::make_unique<TrkrClusterv3>();
-	clus->setClusKey(ckey);
 
 	// determine the size of the cluster in phi and z
 	set<int> phibins;
@@ -395,7 +393,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	if (Verbosity() > 2)
 	  clus->identify();
 
-	m_clusterlist->addCluster(clus.release());
+	m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
 
       }  // clusitr
   }    // hitsetitr

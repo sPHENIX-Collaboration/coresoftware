@@ -71,7 +71,7 @@ class DSTEmulator : public SubsysReco
   // get geant hits associated to a cluster
   using G4HitSet = std::set<PHG4Hit*>;
   G4HitSet find_g4hits( TrkrDefs::cluskey ) const;
-  Acts::Vector3 getGlobalPosition(TrkrCluster*) const;
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
   //! get G4Particle id of max contributor to a given track
   std::pair<int,int> get_max_contributor( SvtxTrack* ) const;
 

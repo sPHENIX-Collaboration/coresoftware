@@ -32,6 +32,9 @@ class TrkrClusterContainer : public PHObject
   using ConstIterator = Map::const_iterator;
   using Range = std::pair<Iterator, Iterator>;
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
+
+  using HitSetKeyList = std::vector<TrkrDefs::hitsetkey>;
+  
   //@}
 
   //! reset method
@@ -40,17 +43,11 @@ class TrkrClusterContainer : public PHObject
   //! identify object
   void identify(std::ostream &/*os*/ = std::cout) const override {}
 
-  //! add a cluster
-  virtual void addCluster(TrkrCluster*) {}
-
   //! add a cluster with specific key
   virtual void addClusterSpecifyKey(const TrkrDefs::cluskey, TrkrCluster* ) {}
 
   //! remove cluster
   virtual void removeCluster(TrkrDefs::cluskey) {}
-
-  //! remove cluster
-  virtual void removeCluster(TrkrCluster* ) {}
   
   //! return all clusters
   virtual ConstRange getClusters() const;
@@ -60,6 +57,18 @@ class TrkrClusterContainer : public PHObject
 
   //! find cluster matching given key
   virtual TrkrCluster* findCluster(TrkrDefs::cluskey) const { return nullptr; }
+  
+  //! get hitset key list
+  virtual HitSetKeyList getHitSetKeys() const 
+  { return HitSetKeyList(); }
+
+  //! get hitset key list for a given detector
+  virtual HitSetKeyList getHitSetKeys(const TrkrDefs::TrkrId) const 
+  { return HitSetKeyList(); }
+
+  //! get hitset key list for a given detector and layer
+  virtual HitSetKeyList getHitSetKeys(const TrkrDefs::TrkrId, const uint8_t /* layer */ ) const 
+  { return HitSetKeyList(); }
 
   //! total number of clusters
   virtual unsigned int size() const { return 0; }

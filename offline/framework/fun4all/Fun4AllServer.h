@@ -121,12 +121,12 @@ class Fun4AllServer : public Fun4AllBase
   int unregisterSubsystemsNow();
   int setRun(const int runnumber);
   static Fun4AllServer *__instance;
-  TH1 *FrameWorkVars;
-  Fun4AllMemoryTracker *ffamemtracker;
-  Fun4AllHistoManager *ServerHistoManager;
+  TH1 *FrameWorkVars = nullptr;
+  Fun4AllMemoryTracker *ffamemtracker = nullptr;
+  Fun4AllHistoManager *ServerHistoManager = nullptr;
   PHTimeStamp *beginruntimestamp = nullptr;
-  PHCompositeNode *TopNode;
-  Fun4AllSyncManager *defaultSyncManager;
+  PHCompositeNode *TopNode = nullptr;
+  Fun4AllSyncManager *defaultSyncManager = nullptr;
 
   int OutNodeCount = 0;
   int bortime_override = 0;

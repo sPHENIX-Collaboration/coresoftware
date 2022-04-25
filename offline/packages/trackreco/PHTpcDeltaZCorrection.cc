@@ -162,7 +162,7 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, SvtxTrack* track )
     if(!cluster) continue;
 
     // get cluster global position
-    const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
+    const auto global = m_transformer.getGlobalPosition(cluster_key, cluster,m_surfmaps, m_tGeometry);
 
     // get delta z
     const double delta_z = global.z() - origin.z();

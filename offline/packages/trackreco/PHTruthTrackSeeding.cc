@@ -49,6 +49,9 @@ class PHCompositeNode;
 
 using namespace std;
 
+namespace
+{ template< class T> inline constexpr T square( const T& x ) { return x*x; } }
+
 PHTruthTrackSeeding::PHTruthTrackSeeding(const std::string& name)
   : PHTrackSeeding(name)
   , _clustereval(nullptr)
@@ -169,14 +172,17 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
            iter_clus != svtx_track->end_cluster_keys(); ++iter_clus)
       {
         TrkrDefs::cluskey cluster_key = *iter_clus;
-	cout << "Key: "  << cluster_key<< endl;
+        cout << "Key: "  << cluster_key<< endl;
         TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
-	Acts::Vector3 global = transformer.getGlobalPosition(cluster,
-							     surfmaps,
-							     tgeometry);
-        float radius = sqrt(global(0) * global(0) + global(1) * global(1));
+
+        Acts::Vector3 global = transformer.getGlobalPosition(
+          cluster_key, cluster,
+          surfmaps,
+          tgeometry);
+        float radius = std::sqrt(square(global(0)) + square(global(1)));
+
         cout << "       cluster ID: "
-             << cluster->getClusKey() << ", cluster radius: " << radius
+             << cluster_key << ", cluster radius: " << radius
              << endl;
       }
 
@@ -246,5 +252,4 @@ int PHTruthTrackSeeding::End()
 {
   return 0;
 }
-
 

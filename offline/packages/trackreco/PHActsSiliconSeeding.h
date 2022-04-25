@@ -27,7 +27,6 @@ class TrackSeed;
 class TrackSeedContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
-class TrkrHitSetContainer;
 class TrkrClusterIterationMapv1;
 
 /**
@@ -134,11 +133,14 @@ class PHActsSiliconSeeding : public SubsysReco
   void makeSvtxTracks(GridSeeds& seedVector);
   
   /// Create a seeding space point out of an Acts::SourceLink
-  SpacePointPtr makeSpacePoint(const Surface& surf,
-			       const TrkrCluster* clus);
+  SpacePointPtr makeSpacePoint(
+    const Surface& surf,
+    const TrkrDefs::cluskey,
+    const TrkrCluster* clus);
   
   /// Get all space points for the seeder
   std::vector<const SpacePoint*> getMvtxSpacePoints(Acts::Extent& rRangeSPExtent);
+
 
 
   /// Projects circle fit to INTT radii to find possible INTT clusters
@@ -151,6 +153,7 @@ class PHActsSiliconSeeding : public SubsysReco
 						   const double xProj[],
 						   const double yProj[],
 						   const double zProj[]);
+
   void circleCircleIntersection(const double layerRadius, 
 				const double circRadius,
 				const double circX0,
@@ -159,7 +162,6 @@ class PHActsSiliconSeeding : public SubsysReco
 				double& yplus,
 				double& xminus,
 				double& yminus);
-
 
   Surface getSurface(TrkrDefs::hitsetkey hitsetkey);
 
@@ -170,7 +172,6 @@ class PHActsSiliconSeeding : public SubsysReco
   ActsTrackingGeometry *m_tGeometry = nullptr;
   TrackSeedContainer *m_seedContainer = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;
-  TrkrHitSetContainer  *m_hitsets = nullptr;
   PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
   ActsSurfaceMaps *m_surfMaps = nullptr;
   

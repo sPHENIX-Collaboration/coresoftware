@@ -827,18 +827,16 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 }
 
 //_________________________________________________________________________________
-Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrCluster* cluster )
+Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster )
 {
-
-  // get cluster key
-  const auto key = cluster->getClusKey();
 
   // find closest iterator in map
   auto it = m_globalPositions.lower_bound( key );
   if (it == m_globalPositions.end()|| (key < it->first ))
   {
     // get global position from Acts transform
-    const auto globalpos = m_transform.getGlobalPosition(cluster,
+    const auto globalpos = m_transform.getGlobalPosition(
+      key, cluster,
       m_surfmaps,
       m_tgeometry);
 
@@ -936,7 +934,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
 
     // get global position
-    const auto globalPosition = getGlobalPosition( cluster );
+    const auto globalPosition = getGlobalPosition( cluster_key, cluster );
     float r = sqrt(square( globalPosition.x() ) + square( globalPosition.y() ));
     m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
     int layer_out = TrkrDefs::getLayer(cluster_key);
@@ -970,7 +968,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
         << endl;
 #endif
 
-    const auto globalPosition_acts = getGlobalPosition( cluster );
+    const auto globalPosition_acts = getGlobalPosition( cluster_key, cluster );
 
     const TVector3 pos(globalPosition_acts.x(), globalPosition_acts.y(), globalPosition_acts.z() );
     seed_mom.SetPhi(pos.Phi());
@@ -1394,7 +1392,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       { continue; }
 
       // get position
-      const auto globalPosition = getGlobalPosition( cluster );
+      const auto globalPosition = getGlobalPosition( cluster_key, cluster );
       const TVector3 pos(globalPosition.x(), globalPosition.y(), globalPosition.z() );
       const float r_cluster = std::sqrt( square(globalPosition.x()) + square(globalPosition.y()) );
 

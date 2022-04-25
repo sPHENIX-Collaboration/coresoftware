@@ -92,7 +92,9 @@ class PHSimpleKFProp : public SubsysReco
   double _xy_outlier_threshold = .1;
 
   TrkrClusterContainer *_cluster_map = nullptr;
+
   TrackSeedContainer *_track_map = nullptr;
+
   PHField* _field_map = nullptr;
   
   /// acts geometry
@@ -109,7 +111,7 @@ class PHSimpleKFProp : public SubsysReco
    * uses ActsTransformation to convert cluster local position into global coordinates
    * incorporates TPC distortion correction, if present
    */
-  Acts::Vector3 getGlobalPosition(TrkrCluster*) const;
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
 
   PositionMap PrepareKDTrees();
 

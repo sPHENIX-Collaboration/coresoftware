@@ -259,9 +259,8 @@ class PHGenFitTrkFitter : public SubsysReco
   /// get global position for a given cluster
   /**
    * uses ActsTransformation to convert cluster local position into global coordinates
-   * incorporates TPC distortion correction, if present
    */
-  Acts::Vector3 getGlobalPosition(TrkrCluster*);
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*);
 
   /*
    * fit track with SvtxTrack as input seed.
