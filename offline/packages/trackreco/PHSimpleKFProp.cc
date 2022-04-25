@@ -200,10 +200,6 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       /// in the pair length 1 corresponding to the seed
       auto seedpair = fitter->ALICEKalmanFilter(keylist, true, globalPositions);
 
-      /// circle fit back to beam line
-      track->circleFitByTaubin(_cluster_map, _surfmaps, _tgeometry, 7, 55);
-      track->lineFit(_cluster_map, _surfmaps, _tgeometry, 7, 55);
-
       if(Verbosity()>0) std::cout << "is tpc track" << std::endl;
       new_chains.push_back(PropagateTrack(track, seedpair.second.at(0), 
 					  globalPositions));
@@ -311,13 +307,19 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 {
   // extract cluster list
   std::vector<TrkrDefs::cluskey> ckeys;
-  std::cout << "copying ckeys"<<std::endl;
   std::copy(track->begin_cluster_keys(),track->end_cluster_keys(),std::back_inserter(ckeys));
-  std::cout << "done copying"<<std::endl;
+ 
   if(ckeys.size()>1 && ((int)TrkrDefs::getLayer(ckeys.front()))>((int)TrkrDefs::getLayer(ckeys.back())))
   {
     std::reverse(ckeys.begin(),ckeys.end());
   } 
+
+  double alicekf_track_pt = track->get_pt();
+
+  /// circle fit back to update track parameters
+  track->circleFitByTaubin(_cluster_map, _surfmaps, _tgeometry, 7, 55);
+  track->lineFit(_cluster_map, _surfmaps, _tgeometry, 7, 55);
+
 
   std::cout << "track before move to first tpc cluster" << std::endl;
   track->identify();
@@ -325,8 +327,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   double track_x = track->get_x();
   double track_y = track->get_y();
   double track_z = track->get_z();
-  double track_px = track->get_px();
-  double track_py = track->get_py();
+  double track_px = alicekf_track_pt * cos(track->get_phi());
+  double track_py = alicekf_track_pt * sin(track->get_phi());
 
   /// Move to first tpc cluster state if necessary
   if(sqrt(track_x*track_x+track_y*track_y)<10.)
@@ -371,10 +373,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
       else
 	phi -= M_PI / 2.0;
       // rotate track momentum vector (pz stays the same)
-      double pt = track->get_pt();
-      
-      track_px = pt * cos(phi);
-      track_py = pt * sin(phi);
+      track_px = alicekf_track_pt * cos(phi);
+      track_py = alicekf_track_pt * sin(phi);
       track_x = trkGlobPos.at(0)(0);
       track_y = trkGlobPos.at(0)(1);
       track_z = trkGlobPos.at(0)(2);
