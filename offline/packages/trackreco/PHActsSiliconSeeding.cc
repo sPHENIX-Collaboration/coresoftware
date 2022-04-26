@@ -272,6 +272,12 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  if(fabs(trackSeed->get_x()) > m_maxSeedPCA || 
 	     fabs(trackSeed->get_y()) > m_maxSeedPCA)
 	    { 
+	      if(Verbosity() > 1)
+		{ 
+		  std::cout << "Large PCA seed " << trackSeed->get_x()
+			    << ", " << trackSeed->get_y()
+			    << std::endl; 
+		}
 	      m_nBadInitialFits++;
 	      continue;
 	    }

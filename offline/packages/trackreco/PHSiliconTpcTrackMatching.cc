@@ -83,7 +83,9 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
 	   ++phtrk_iter_si)
 	{
 	  _tracklet_si = *phtrk_iter_si;	  
-	  
+	  if(!_tracklet_si) 
+	    { continue; }
+
 	  double si_phi = atan2(_tracklet_si->get_py(), _tracklet_si->get_px());
 	  double si_eta = _tracklet_si->get_eta();
 	  
@@ -419,7 +421,9 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(std::set<unsigned int> &tpc_ma
       // we may add tracks to the map, so we stop at the last original track
       
       _tracklet_tpc = *phtrk_iter;
-      
+      if(!_tracklet_tpc)
+	{ continue; }
+
       if (Verbosity() > 1)
 	{
 	  std::cout
@@ -481,6 +485,9 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(std::set<unsigned int> &tpc_ma
 	   ++phtrk_iter_si)
 	{
 	  _tracklet_si = *phtrk_iter_si;	  
+
+	  if(!_tracklet_si) 
+	    { continue; }
 
 	  double si_phi = atan2(_tracklet_si->get_py(), _tracklet_si->get_px());
 	  double si_eta = _tracklet_si->get_eta();
@@ -726,6 +733,9 @@ void PHSiliconTpcTrackMatching::copySiliconClustersToCorrectedMap( )
   // loop over final track map, copy silicon clusters to corrected cluster map
   for( auto& track : *_track_map)
   {
+    if(!track)
+      { continue; }
+
     // loop over associated clusters to get keys for micromegas cluster
     for(auto iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
     {
