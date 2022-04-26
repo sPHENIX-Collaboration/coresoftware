@@ -225,7 +225,7 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track)
 
   if(_recoTruthMap != nullptr)
     {
-      SvtxPHG4ParticleMap::WeightedTruthTrackMap map = _recoTruthMap->get(track->get_id());
+      const SvtxPHG4ParticleMap::WeightedTruthTrackMap map = _recoTruthMap->get(track->get_id());
       if (map.size() == 0) return nullptr;
       auto itr = map.end();
       --itr;
