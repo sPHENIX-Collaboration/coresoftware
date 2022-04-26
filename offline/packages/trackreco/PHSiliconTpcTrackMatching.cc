@@ -4,8 +4,8 @@
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
 #include <tpc/TpcDefs.h>
 #include <trackbase/TpcSeedTrackMapv1.h>     
-#include <trackbase/TrkrClusterContainerv3.h>   
 #include <trackbase/TrkrClusterv3.h>   
+#include <trackbase/TrkrClusterContainer.h>   
 #include <trackbase/TrkrClusterCrossingAssoc.h>   
 #include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase_historic/SvtxTrackMap.h>

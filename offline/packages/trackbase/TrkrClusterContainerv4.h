@@ -1,8 +1,8 @@
-#ifndef TRACKBASE_TRKRCLUSTERCONTAINERV3_H
-#define TRACKBASE_TRKRCLUSTERCONTAINERV3_H
+#ifndef TRACKBASE_TRKRCLUSTERCONTAINERV4_H
+#define TRACKBASE_TRKRCLUSTERCONTAINERV4_H
 
 /**
- * @file trackbase/TrkrClusterContainerv3.h
+ * @file trackbase/TrkrClusterContainerv4.h
  * @author D. McGlinchey, Hugo Pereira Da Costa
  * @date June 2018
  * @brief Cluster container object
@@ -17,11 +17,11 @@ class TrkrCluster;
 /**
  * @brief Cluster container object
  */
-class TrkrClusterContainerv3 : public TrkrClusterContainer
+class TrkrClusterContainerv4 : public TrkrClusterContainer
 {
   public:
 
-  TrkrClusterContainerv3() = default;
+  TrkrClusterContainerv4() = default;
 
   void Reset() override;
 
@@ -40,15 +40,26 @@ class TrkrClusterContainerv3 : public TrkrClusterContainer
   HitSetKeyList getHitSetKeys(const TrkrDefs::TrkrId) const override;
  
   HitSetKeyList getHitSetKeys(const TrkrDefs::TrkrId, const uint8_t /* layer */ ) const override;
-  
+
   unsigned int size(void) const override;
 
   private:
+
+  /// convenient alias
+  using Vector = std::vector<TrkrCluster*>;
+
+  /// the actual container
+  std::map<TrkrDefs::hitsetkey, Vector> m_clusmap;
+
+  /// temporary map
+  /** 
+   * the map is transient. It must not be written to the output.
+   * To do this one adds //! after the declaration 
+   * see https://root.cern.ch/root/htmldoc/guides/users-guide/InputOutput.html for details
+   */
+  Map m_tmpmap; //! transient. The temporary map does not get written to the output
   
-  std::map<TrkrDefs::hitsetkey, Map> m_clusmap;
-
-  ClassDefOverride(TrkrClusterContainerv3, 1)
-
+  ClassDefOverride(TrkrClusterContainerv4, 1)
 };
 
-#endif //TRACKBASE_TrkrClusterContainerv3_H
+#endif //TRACKBASE_TrkrClusterContainerv4_H

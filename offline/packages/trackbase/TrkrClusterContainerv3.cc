@@ -88,7 +88,7 @@ TrkrClusterContainerv3::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCl
 
 //_________________________________________________________________
 TrkrClusterContainerv3::ConstRange
-TrkrClusterContainerv3::getClusters(TrkrDefs::hitsetkey hitsetkey) const
+TrkrClusterContainerv3::getClusters(TrkrDefs::hitsetkey hitsetkey)
 {
   // find relevant association map
   const auto iter = m_clusmap.find(hitsetkey);

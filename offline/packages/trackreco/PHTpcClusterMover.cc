@@ -6,7 +6,7 @@
 
 #include <trackbase/TrkrClusterv3.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
-#include <trackbase/TrkrClusterContainerv3.h>
+#include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/ActsTransformations.h>
@@ -349,7 +349,7 @@ int  PHTpcClusterMover::GetNodes(PHCompositeNode* topNode)
 	  dstNode->addNode(DetNode);
 	}
       
-      _corrected_cluster_map = new TrkrClusterContainerv3;
+      _corrected_cluster_map = new TrkrClusterContainerv4;
       PHIODataNode<PHObject> *TrkrClusterContainerNode =
         new PHIODataNode<PHObject>(_corrected_cluster_map, "CORRECTED_TRKR_CLUSTER", "PHObject");
       DetNode->addNode(TrkrClusterContainerNode);

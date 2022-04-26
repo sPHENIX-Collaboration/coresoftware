@@ -8,10 +8,10 @@
 
 /// Tracking includes
 #include <trackbase/TrkrClusterv3.h>
-#include <trackbase/TrkrClusterContainerv3.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrClusterHitAssocv2.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -117,7 +117,7 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 	{      
 	  //	  float time = g4particle_vec[ig4]->
 
-	  SvtxTrack *newTrack = new SvtxTrack_v3();
+    auto newTrack = new SvtxTrack_v3;
 	  // Not the first g4particle in the list, we need to add a new copy of the track to the track map and add the silicon clusters to that
 	  const unsigned int lastTrackKey = ( _track_map->empty() ? 0:std::prev(_track_map->end())->first ) + ig4;
 	  //std::cout << "   extra track key " << lastTrackKey + 1 << std::endl;
@@ -411,7 +411,7 @@ int  PHTruthSiliconAssociation::GetNodes(PHCompositeNode* topNode)
       dstNode->addNode(svtxNode);
     }
   
-  _seed_track_map = new TpcSeedTrackMapv1();
+  _seed_track_map = new TpcSeedTrackMapv1;
   PHIODataNode<PHObject> *node
     = new PHIODataNode<PHObject>(_seed_track_map, _tpcseed_track_map_name);
   svtxNode->addNode(node);

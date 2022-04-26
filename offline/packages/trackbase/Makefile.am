@@ -41,6 +41,7 @@ pkginclude_HEADERS = \
   TrkrClusterContainerv1.h \
   TrkrClusterContainerv2.h \
   TrkrClusterContainerv3.h \
+  TrkrClusterContainerv4.h \
   TrkrClusterCrossingAssoc.h \
   TrkrClusterCrossingAssocv1.h \
   TrkrClusterHitAssoc.h \
@@ -78,6 +79,7 @@ ROOTDICTS = \
   TrkrClusterContainerv1_Dict.cc \
   TrkrClusterContainerv2_Dict.cc \
   TrkrClusterContainerv3_Dict.cc \
+  TrkrClusterContainerv4_Dict.cc \
   TrkrClusterCrossingAssoc_Dict.cc \
   TrkrClusterCrossingAssocv1_Dict.cc \
   TrkrClusterHitAssoc_Dict.cc \
@@ -118,6 +120,7 @@ nobase_dist_pcm_DATA = \
   TrkrClusterContainerv1_Dict_rdict.pcm \
   TrkrClusterContainerv2_Dict_rdict.pcm \
   TrkrClusterContainerv3_Dict_rdict.pcm \
+  TrkrClusterContainerv4_Dict_rdict.pcm \
   TrkrClusterCrossingAssoc_Dict_rdict.pcm \
   TrkrClusterCrossingAssocv1_Dict_rdict.pcm \
   TrkrClusterHitAssoc_Dict_rdict.pcm \
@@ -156,6 +159,7 @@ libtrack_io_la_SOURCES = \
   TrkrClusterContainerv1.cc \
   TrkrClusterContainerv2.cc \
   TrkrClusterContainerv3.cc \
+  TrkrClusterContainerv4.cc \
   TrkrClusterCrossingAssoc.cc \
   TrkrClusterCrossingAssocv1.cc \
   TrkrClusterHitAssoc.cc \

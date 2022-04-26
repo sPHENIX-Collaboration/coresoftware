@@ -31,7 +31,7 @@ class TrkrClusterContainerv2 : public TrkrClusterContainer
 
   void removeCluster(TrkrDefs::cluskey) override;
 
-  ConstRange getClusters(TrkrDefs::hitsetkey) const override;
+  ConstRange getClusters(TrkrDefs::hitsetkey) override;
 
   TrkrCluster* findCluster(TrkrDefs::cluskey) const override;
 
