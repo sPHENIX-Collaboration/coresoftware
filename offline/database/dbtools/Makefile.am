@@ -10,7 +10,8 @@ xclient_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 xclient_LDADD = \
-  -lxpload
+  -lxpload \
+  -lstdc++fs
 
 
 

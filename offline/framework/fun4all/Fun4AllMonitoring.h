@@ -30,6 +30,7 @@ class Fun4AllMonitoring : public Fun4AllBase
   static Fun4AllMonitoring *mInstance;
   uint64_t mEvent = 0;
   uint64_t mHeapPss = 0;
+  uint64_t mMMapPSS = 0;
   uint64_t mOtherPss = 0;
   std::string mOutFileName;
 };
