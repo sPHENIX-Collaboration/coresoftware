@@ -25,8 +25,8 @@ class TrackSeed;
 class PHGhostRejection 
 {
  public:
-
-  PHGhostRejection(unsigned int verbosity );
+  PHGhostRejection() {}
+  PHGhostRejection(unsigned int verbosity);
 
   ~PHGhostRejection();
 

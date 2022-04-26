@@ -32,7 +32,7 @@ class TrackSeedContainer : public PHObject
   virtual const TrackSeed* get(const std::size_t) const { return nullptr; }
   virtual TrackSeed* get(const std::size_t) { return nullptr; }
   virtual TrackSeed* insert(const TrackSeed*) { return nullptr; }
-  virtual Iter erase(const std::size_t);
+  virtual void erase(const std::size_t) {}
 
   virtual ConstIter begin() const;
   virtual ConstIter find(const std::size_t key) const;

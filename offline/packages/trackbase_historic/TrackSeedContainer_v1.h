@@ -28,11 +28,10 @@ class TrackSeedContainer_v1 : public TrackSeedContainer
   const TrackSeed* get(const std::size_t key) const override;
   TrackSeed* get(const std::size_t key) override;
   TrackSeed* insert(const TrackSeed* seed) override;
-  Iter erase(const std::size_t key) override
+  void erase(const std::size_t key) override
     {
       delete m_seeds.at(key);
-      Iter iter = m_seeds.begin() + key;
-      return m_seeds.erase(iter);
+      m_seeds.at(key) = nullptr;
     }
 
   ConstIter begin() const override { return m_seeds.begin(); }

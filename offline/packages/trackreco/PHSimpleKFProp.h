@@ -151,7 +151,7 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z) const;
-  void publishSeeds(const std::vector<TrackSeed_v1>& seeds);
+  void publishSeeds(std::vector<TrackSeed_v1>& seeds);
   void publishSeeds(const std::vector<TrackSeed>&);
 //   void MoveToVertex();
 

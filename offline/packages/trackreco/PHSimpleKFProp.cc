@@ -1016,10 +1016,13 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
 
 
 
-void PHSimpleKFProp::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
+void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v1>& seeds)
 {
-  for( const auto& seed: seeds )
+  for(auto& seed: seeds )
   { 
+    seed.circleFitByTaubin(_cluster_map,_surfmaps, _tgeometry,7,55);
+    seed.lineFit(_cluster_map, _surfmaps, _tgeometry,7,55);
+
     _track_map->insert(&seed); 
 
   }

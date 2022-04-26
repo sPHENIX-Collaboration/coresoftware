@@ -2,11 +2,6 @@
 
 TrackSeedContainer::Container container;
 
-TrackSeedContainer::Iter TrackSeedContainer::erase(const std::size_t)
-{
-  return container.end();
-}
-
 TrackSeedContainer::ConstIter TrackSeedContainer::begin() const
 {
   return container.end();

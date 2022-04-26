@@ -42,6 +42,9 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
   unsigned int trackid = 0;
   for(const auto& trackSeed : *m_seedContainer)
     {
+      /// If the seed was removed, skip it
+      if(!trackSeed)
+	{ continue; }
       auto svtxtrack = std::make_unique<SvtxTrack_v3>();
 
       if(Verbosity() > 0)
@@ -50,8 +53,10 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 	  trackSeed->identify();
 	}
 
-      trackid++;
+      svtxtrack->set_id(trackid);
 
+      trackid++;
+ 
       svtxtrack->set_x(trackSeed->get_x());
       svtxtrack->set_y(trackSeed->get_y());
       svtxtrack->set_z(trackSeed->get_z());
