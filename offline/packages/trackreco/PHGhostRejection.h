@@ -17,32 +17,26 @@
 #include <map>
 
 class PHCompositeNode;
-class SvtxTrack;
-class SvtxTrackMap;
+class TrackSeedContainer;
 class TrkrCluster;
 class TpcSeedTrackMap;
+class TrackSeed;
 
-class PHGhostRejection : public SubsysReco
+class PHGhostRejection 
 {
  public:
 
-  PHGhostRejection(const std::string &name = "PHGhostRejection");
+  PHGhostRejection(unsigned int verbosity );
 
-  ~PHGhostRejection() override;
+  ~PHGhostRejection();
 
-  int InitRun(PHCompositeNode *topNode) override;
-  int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
-  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
-  void SetIteration(int iter){_n_iteration = iter;}
+  void rejectGhostTracks(TrackSeedContainer *trackMap, std::vector<float>& trackChi2);
+  void setVerbosity(int verb) { m_verbosity = verb; }
 
  private:
 
-  int GetNodes(PHCompositeNode* topNode);
-  void findGhostTracks();
-  bool checkClusterSharing(SvtxTrack *tr1, SvtxTrack *tr2);
-
-SvtxTrackMap *_track_map{nullptr};
+  bool checkClusterSharing(TrackSeed *tr1, unsigned int trid1,
+			   TrackSeed *tr2, unsigned int trid2);
 
   double _phi_cut = 0.01;
   double _eta_cut = 0.004;
@@ -50,7 +44,7 @@ SvtxTrackMap *_track_map{nullptr};
   double _y_cut = 0.3;
   double _z_cut = 0.4;
   int _n_iteration = 0;
-  std::string _track_map_name = "SvtxTrackMap";
+  unsigned int m_verbosity = 0;
 
 };
 

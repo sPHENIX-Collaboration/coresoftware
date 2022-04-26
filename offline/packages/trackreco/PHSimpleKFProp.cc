@@ -5,7 +5,7 @@
  */
 
 #include "PHSimpleKFProp.h"
-
+#include "PHGhostRejection.h"
 #include "ALICEKF.h"
 #include "nanoflann.hpp"
 #include "GPUTPCTrackParam.h"
@@ -196,7 +196,8 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     
       /// This will by definition return a single pair with each vector 
       /// in the pair length 1 corresponding to the seed info
-      auto seedpair = fitter->ALICEKalmanFilter(keylist, false, globalPositions);
+      std::vector<float> trackChi2;
+      auto seedpair = fitter->ALICEKalmanFilter(keylist, false, globalPositions, trackChi2);
 
       /// circle fit back to update track parameters
       track->circleFitByTaubin(_cluster_map, _surfmaps, _tgeometry, 7, 55);
@@ -218,9 +219,16 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   
   _track_map->Reset();
   std::vector<std::vector<TrkrDefs::cluskey>> clean_chains = RemoveBadClusters(new_chains, globalPositions); 
-  auto ptracks = fitter->ALICEKalmanFilter(new_chains,true, globalPositions);
-  publishSeeds(ptracks.first);
+  std::vector<float> trackChi2;
+  auto seeds = fitter->ALICEKalmanFilter(clean_chains, true, globalPositions,
+					 trackChi2);
+  publishSeeds(seeds.first);
   publishSeeds(unused_tracks);
+
+  /// Remove tracks that are duplicates from the KFProp
+  PHGhostRejection rejector(Verbosity());
+  rejector.rejectGhostTracks(_track_map, trackChi2);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1010,8 +1018,11 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
 
 void PHSimpleKFProp::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
 {
-  for( const auto& seed:seeds )
-  { _track_map->insert(&seed); }
+  for( const auto& seed: seeds )
+  { 
+    _track_map->insert(&seed); 
+
+  }
 }
 
 void PHSimpleKFProp::publishSeeds(const std::vector<TrackSeed>& seeds)

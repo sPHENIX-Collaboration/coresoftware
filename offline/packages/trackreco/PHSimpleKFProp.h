@@ -59,7 +59,6 @@ class PHSimpleKFProp : public SubsysReco
   void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
   void use_truth_clusters(bool truth)
   { _use_truth_clusters = truth; }
-  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void SetIteration(int iter){_n_iteration = iter;}
 
  private:
@@ -152,7 +151,7 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z) const;
-  void publishSeeds(const std::vector<TrackSeed_v1>&);
+  void publishSeeds(const std::vector<TrackSeed_v1>& seeds);
   void publishSeeds(const std::vector<TrackSeed>&);
 //   void MoveToVertex();
 
@@ -161,7 +160,6 @@ class PHSimpleKFProp : public SubsysReco
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
-  std::string _track_map_name = "SvtxTrackMap";
 
 };
 

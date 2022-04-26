@@ -36,10 +36,12 @@ class TrackSeedContainer : public PHObject
 
   virtual ConstIter begin() const;
   virtual ConstIter find(const std::size_t key) const;
+  virtual std::size_t find(const TrackSeed*) const { return 0; }
   virtual ConstIter end() const;
   
   virtual Iter begin();
   virtual Iter find(const std::size_t key);
+  virtual std::size_t find(const TrackSeed*) { return 0; }
   virtual Iter end();
 
  protected:

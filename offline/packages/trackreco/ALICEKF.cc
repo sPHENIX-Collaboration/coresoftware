@@ -90,7 +90,7 @@ double ALICEKF::getClusterError(TrkrCluster* c, Acts::Vector3 global, int i, int
     }
 }
 
-TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& trackSeedKeyLists,bool use_nhits_limit, const PositionMap& globalPositions) const
+TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& trackSeedKeyLists,bool use_nhits_limit, const PositionMap& globalPositions, std::vector<float>& trackChi2) const
 {
 //  TFile* f = new TFile("/sphenix/u/mjpeters/macros_hybrid/detectors/sPHENIX/pull.root", "RECREATE");
 //  TNtuple* ntp = new TNtuple("pull","pull","cx:cy:cz:xerr:yerr:zerr:tx:ty:tz:layer:xsize:ysize:phisize:phierr:zsize");
@@ -588,6 +588,8 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
 */
     seeds_vector.push_back(track);
     alice_seeds_vector.push_back(scov);
+    trackChi2.push_back(trackSeed.GetChi2() / trackSeed.GetNDF());
+    
     ++nseeds;
   }
 //  f->cd();

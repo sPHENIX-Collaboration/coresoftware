@@ -37,10 +37,12 @@ class TrackSeedContainer_v1 : public TrackSeedContainer
 
   ConstIter begin() const override { return m_seeds.begin(); }
   ConstIter find(const std::size_t key) const override { return m_seeds.begin() + key; }
+  std::size_t find(const TrackSeed*) const override;
   ConstIter end() const override { return m_seeds.end(); }
   
   Iter begin() override { return m_seeds.begin(); }
   Iter find(const std::size_t key) override { return m_seeds.begin() + key; }
+  std::size_t find(const TrackSeed*) override;
   Iter end() override { return m_seeds.end(); }
 
  private:

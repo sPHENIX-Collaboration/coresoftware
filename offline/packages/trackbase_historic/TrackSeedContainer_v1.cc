@@ -73,3 +73,15 @@ TrackSeed* TrackSeedContainer_v1::insert(const TrackSeed* seed)
   Iter iter = m_seeds.end() - 1;
   return *iter;
 }
+
+std::size_t TrackSeedContainer_v1::find(const TrackSeed* seed) const
+{
+  auto it = std::find(m_seeds.begin(), m_seeds.end(), seed);
+  return std::distance(m_seeds.begin(), it);
+}
+
+std::size_t TrackSeedContainer_v1::find(const TrackSeed* seed) 
+{
+  auto it = std::find(m_seeds.begin(), m_seeds.end(), seed);
+  return std::distance(m_seeds.begin(), it);
+}
