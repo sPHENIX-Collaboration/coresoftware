@@ -3,10 +3,8 @@
 
 #include "SvtxPHG4ParticleMap.h"
 
-
 class SvtxPHG4ParticleMap_v1 : public SvtxPHG4ParticleMap
 {
-
  public:
   SvtxPHG4ParticleMap_v1();
   SvtxPHG4ParticleMap_v1(const SvtxPHG4ParticleMap_v1& map);
@@ -24,16 +22,32 @@ class SvtxPHG4ParticleMap_v1 : public SvtxPHG4ParticleMap
   void clear() override { m_map.clear(); }
 
   const WeightedTruthTrackMap get(const unsigned int key) const override
-    { return m_map.find(key)->second; }
+  {
+    const auto iter = m_map.find(key);
+    if (iter == m_map.end())
+    {
+      return SvtxPHG4ParticleMap::get(key);
+    }
+    else
+    {
+      return iter->second;
+    }
+  }
   WeightedTruthTrackMap get(const unsigned int key) override
-    { return m_map.find(key)->second; }
-  WeightedTruthTrackMap insert(const unsigned int key, const WeightedTruthTrackMap map) override;   
+  {
+    return m_map[key];
+  }
+  WeightedTruthTrackMap insert(const unsigned int key, const WeightedTruthTrackMap map) override;
   std::size_t erase(const unsigned int key) override
-    { return m_map.erase(key); }
+  {
+    return m_map.erase(key);
+  }
 
   ConstIter begin() const override { return m_map.begin(); }
-  ConstIter find(const unsigned int key) const override 
-    { return m_map.find(key); }
+  ConstIter find(const unsigned int key) const override
+  {
+    return m_map.find(key);
+  }
   ConstIter end() const override { return m_map.end(); }
 
   Iter begin() override { return m_map.begin(); }
@@ -45,6 +59,5 @@ class SvtxPHG4ParticleMap_v1 : public SvtxPHG4ParticleMap
 
   ClassDefOverride(SvtxPHG4ParticleMap_v1, 1);
 };
-
 
 #endif
