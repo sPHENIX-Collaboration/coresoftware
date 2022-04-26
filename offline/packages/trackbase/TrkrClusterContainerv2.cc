@@ -114,7 +114,7 @@ TrkrClusterContainerv2::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCl
 
 //_________________________________________________________________
 TrkrClusterContainerv2::ConstRange
-TrkrClusterContainerv2::getClusters(TrkrDefs::hitsetkey hitsetkey) const
+TrkrClusterContainerv2::getClusters(TrkrDefs::hitsetkey hitsetkey)
 {
   const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   const unsigned int sector= TrkrDefs::getPhiElement(hitsetkey);

@@ -21,6 +21,7 @@
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>
 #include <tpc/TpcDefs.h>
+#include <trackbase/TrkrCluster.h>
 #include <trackbase/CMFlashClusterv1.h>
 #include <trackbase/CMFlashClusterContainerv1.h>
 #include <trackbase/ActsTrackingGeometry.h>

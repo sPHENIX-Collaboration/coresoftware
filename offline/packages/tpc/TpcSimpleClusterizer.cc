@@ -2,8 +2,8 @@
 
 #include "TpcDefs.h"
 
-#include <trackbase/TrkrClusterContainerv3.h>
-#include <trackbase/TrkrClusterv2.h>
+#include <trackbase/TrkrClusterContainerv4.h>
+#include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHitv2.h>
@@ -68,8 +68,8 @@ namespace
     unsigned short zoffset = 0;
     double par0_neg = 0;
     double par0_pos = 0;
-    std::vector<assoc> *association_vector = nullptr;
-    std::vector<TrkrCluster*> *cluster_vector = nullptr;
+    std::vector<assoc> association_vector;
+    std::vector<TrkrCluster*> cluster_vector;
   };
   
 	pthread_mutex_t mythreadlock;
@@ -175,7 +175,7 @@ namespace
 	
 	}
 	
-	void calc_cluster_parameter(std::vector<ihit> &ihit_list, const thread_data& my_data)
+	void calc_cluster_parameter(std::vector<ihit> &ihit_list, thread_data& my_data)
 	{
 	
 	  // loop over the hits in this cluster
@@ -227,18 +227,13 @@ namespace
 	  // This is the global position
 	  double clusphi = phi_sum / adc_sum;
 	  double clusz = z_sum / adc_sum;
-	  
+	  const double clusx = radius * std::cos(clusphi);
+	  const double clusy = radius * std::sin(clusphi);
+    
 	  const double phi_cov = phi2_sum/adc_sum - square(clusphi);
 	  const double z_cov = z2_sum/adc_sum - square(clusz);
 	
-	  // create the cluster entry directly in the node tree
-    TrkrClusterv2 *clus = new TrkrClusterv2();
-
-    //  int phi_nsize = phibinhi - phibinlo + 1;
-	  //  int z_nsize   = zbinhi   - zbinlo + 1;
-	  double phi_size = (double) (phibinhi - phibinlo + 1) * radius * my_data.layergeom->get_phistep();
-	  double z_size = (double) (zbinhi - zbinlo + 1) * my_data.layergeom->get_zstep();
-	
+	  // create the cluster entry directly in the node tree	
 	  // Estimate the errors
 	  const double phi_err_square = (phibinhi == phibinlo) ?
 	    square(radius*my_data.layergeom->get_phistep())/12:
@@ -259,81 +254,15 @@ namespace
     // cluster z correction
     clusz -= (clusz<0) ? my_data.par0_neg:my_data.par0_pos;
 	
-	  // Fill in the cluster details
-	  //================
-	  clus->setAdc(adc_sum);
-	  clus->setPosition(0, radius * cos(clusphi));
-	  clus->setPosition(1, radius * sin(clusphi));
-	  clus->setPosition(2, clusz);
-	  clus->setGlobal();
-	  
-	  TMatrixF DIM(3, 3);
-	  DIM[0][0] = 0.0;
-	  DIM[0][1] = 0.0;
-	  DIM[0][2] = 0.0;
-	  DIM[1][0] = 0.0;
-	  DIM[1][1] = pow(0.5 * phi_size,2);  //cluster_v1 expects 1/2 of actual size
-	  DIM[1][2] = 0.0;
-	  DIM[2][0] = 0.0;
-	  DIM[2][1] = 0.0;
-	  DIM[2][2] = pow(0.5 * z_size,2);
-	  
-	  TMatrixF ERR(3, 3);
-	  ERR[0][0] = 0.0;
-	  ERR[0][1] = 0.0;
-	  ERR[0][2] = 0.0;
-	  ERR[1][0] = 0.0;
-	  ERR[1][1] = phi_err_square;  //cluster_v1 expects rad, arc, z as elementsof covariance
-	  ERR[1][2] = 0.0;
-	  ERR[2][0] = 0.0;
-	  ERR[2][1] = 0.0;
-	  ERR[2][2] = z_err_square;
-	  
-	  TMatrixF ROT(3, 3);
-	  ROT[0][0] = cos(clusphi);
-	  ROT[0][1] = -sin(clusphi);
-	  ROT[0][2] = 0.0;
-	  ROT[1][0] = sin(clusphi);
-	  ROT[1][1] = cos(clusphi);
-	  ROT[1][2] = 0.0;
-	  ROT[2][0] = 0.0;
-	  ROT[2][1] = 0.0;
-	  ROT[2][2] = 1.0;
-	  
-	  TMatrixF ROT_T(3, 3);
-	  ROT_T.Transpose(ROT);
-	  
-	  TMatrixF COVAR_DIM(3, 3);
-	  COVAR_DIM = ROT * DIM * ROT_T;
-	  
-	  clus->setSize(0, 0, COVAR_DIM[0][0]);
-	  clus->setSize(0, 1, COVAR_DIM[0][1]);
-	  clus->setSize(0, 2, COVAR_DIM[0][2]);
-	  clus->setSize(1, 0, COVAR_DIM[1][0]);
-	  clus->setSize(1, 1, COVAR_DIM[1][1]);
-	  clus->setSize(1, 2, COVAR_DIM[1][2]);
-	  clus->setSize(2, 0, COVAR_DIM[2][0]);
-	  clus->setSize(2, 1, COVAR_DIM[2][1]);
-	  clus->setSize(2, 2, COVAR_DIM[2][2]);
-	  //std::cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << std::endl;
-	  
-	  TMatrixF COVAR_ERR(3, 3);
-	  COVAR_ERR = ROT * ERR * ROT_T;
-	  
-	  clus->setError(0, 0, COVAR_ERR[0][0]);
-	  clus->setError(0, 1, COVAR_ERR[0][1]);
-	  clus->setError(0, 2, COVAR_ERR[0][2]);
-	  clus->setError(1, 0, COVAR_ERR[1][0]);
-	  clus->setError(1, 1, COVAR_ERR[1][1]);
-	  clus->setError(1, 2, COVAR_ERR[1][2]);
-	  clus->setError(2, 0, COVAR_ERR[2][0]);
-	  clus->setError(2, 1, COVAR_ERR[2][1]);
-	  clus->setError(2, 2, COVAR_ERR[2][2]);
+
+    // create cluster and fill
+    auto clus = new TrkrClusterv3;
+    clus->setAdc(adc_sum);
 	  
 	  /// Get the surface key to find the surface from the map
 	  TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(my_data.layer, my_data.sector, my_data.side);
 	
-	  Acts::Vector3 global(clus->getX(), clus->getY(), clus->getZ());
+	  Acts::Vector3 global(clusx, clusy, clusz);
 	  
 	  TrkrDefs::subsurfkey subsurfkey;
 	  Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
@@ -355,16 +284,15 @@ namespace
 	    / Acts::UnitConstants::cm;
 	  
 	  /// no conversion needed, only used in acts
-	  Acts::Vector3 normal = surface->normal(my_data.tGeometry->geoContext);
-	  double clusRadius = sqrt(clus->getX() * clus->getX() + clus->getY() * clus->getY());
-	  double rClusPhi = clusRadius * clusphi;
-	  double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
-	  double surfPhiCenter = atan2(center[1], center[0]);
-	  double surfRphiCenter = surfPhiCenter * surfRadius;
-	  double surfZCenter = center[2];
-	    
-	  auto local = surface->globalToLocal(my_data.tGeometry->geoContext,
-					      global * Acts::UnitConstants::cm,
+   const Acts::Vector3 normal = surface->normal(my_data.tGeometry->geoContext);
+   const double clusRadius = std::sqrt(square(clusx) + square(clusy));
+	  const double rClusPhi = clusRadius * clusphi;
+   const double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
+   const double surfPhiCenter = atan2(center[1], center[0]);
+	  const double surfRphiCenter = surfPhiCenter * surfRadius;
+   const double surfZCenter = center[2];
+   auto local = surface->globalToLocal(my_data.tGeometry->geoContext,
+ 				      global * Acts::UnitConstants::cm,
 					      normal);
 	  Acts::Vector2 localPos;
 	  
@@ -382,12 +310,12 @@ namespace
 	      
 	  clus->setLocalX(localPos(0));
 	  clus->setLocalY(localPos(1));
-	  clus->setActsLocalError(0,0, ERR[1][1]);
-	  clus->setActsLocalError(1,0, ERR[2][1]);
-	  clus->setActsLocalError(0,1, ERR[1][2]);
-	  clus->setActsLocalError(1,1, ERR[2][2]);
+   clus->setActsLocalError(0,0, phi_err_square);
+   clus->setActsLocalError(1,0, 0);
+   clus->setActsLocalError(0,1, 0);
+   clus->setActsLocalError(1,1, z_err_square);
 
-    my_data.cluster_vector->push_back(clus);
+    my_data.cluster_vector.push_back(clus);
 
 	  // Add the hit associations to the TrkrClusterHitAssoc node
 	  // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
@@ -395,9 +323,9 @@ namespace
     if( my_data.do_assoc ) 
     {
       // get cluster index in vector. It is used to store associations, and build relevant cluster keys when filling the containers
-      uint32_t index = my_data.cluster_vector->size()-1;
+      uint32_t index = my_data.cluster_vector.size()-1;
       for (unsigned int i = 0; i < hitkeyvec.size(); i++){
-        my_data.association_vector->push_back(std::make_pair(index, hitkeyvec[i]));
+        my_data.association_vector.push_back(std::make_pair(index, hitkeyvec[i]));
 	    }
 	  }
 	}
@@ -537,7 +465,7 @@ int TpcSimpleClusterizer::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    trkrclusters = new TrkrClusterContainerv3;
+    trkrclusters = new TrkrClusterContainerv4;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
         new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);
@@ -678,8 +606,6 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.sector = sector;
     thread_pair.data.side = side;
     thread_pair.data.do_assoc = do_hit_assoc;
-    thread_pair.data.association_vector  = new std::vector<assoc>;
-    thread_pair.data.cluster_vector  = new std::vector<TrkrCluster*>;
     thread_pair.data.tGeometry = m_tGeometry;
     thread_pair.data.surfmaps = m_surfMaps;
     thread_pair.data.par0_neg = par0_neg;
@@ -726,21 +652,20 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
     const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
 
     // copy clusters to map
-    for( uint32_t index = 0; index < data.cluster_vector->size(); ++index )
+    for( uint32_t index = 0; index < data.cluster_vector.size(); ++index )
     {
       // generate cluster key
       const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
 
       // get cluster
-      auto cluster = (*data.cluster_vector)[index];
+      auto cluster = data.cluster_vector[index];
 
       // insert in map
       m_clusterlist->addClusterSpecifyKey(ckey, cluster);
     }
-    delete thread_pair.data.cluster_vector;
 
     // copy hit associations to map
-    for( const auto& [index,hkey]:*thread_pair.data.association_vector)
+    for( const auto& [index,hkey]:thread_pair.data.association_vector)
     { 
       // generate cluster key
       const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
@@ -748,7 +673,6 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
       // add to association table
       m_clusterhitassoc->addAssoc(ckey,hkey); 
     }
-    delete thread_pair.data.association_vector;
     
   }
   
