@@ -17,6 +17,9 @@ class TpcDistortionCorrectionContainer
 
   //! constructor
   TpcDistortionCorrectionContainer() = default;
+
+  //! flag to tell us whether to read z data or just interpolate
+  int dimensions=3;
   
   //!@name space charge distortion histograms
   //@{
@@ -24,6 +27,7 @@ class TpcDistortionCorrectionContainer
   std::array<TH3*,2> m_hDPint = {{nullptr, nullptr}};
   std::array<TH3*,2> m_hDZint = {{nullptr, nullptr}};
   //@}
+
 
 };
 

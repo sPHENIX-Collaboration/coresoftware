@@ -3,7 +3,7 @@
 
 /*!
  * \file TpcDistortionCorrection.h
- * \brief applies provided distortion corrections to a cluster and returns corrected position
+ * \brief applies provided distortion corrections to a 3D point and returns corrected position
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
