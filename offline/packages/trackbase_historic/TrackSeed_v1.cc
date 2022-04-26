@@ -104,7 +104,7 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
   for(const auto& key: m_cluster_keys)
     {
       auto layer = TrkrDefs::getLayer(key);
-      if(layer <= startLayer or layer >= endLayer)
+      if(layer < startLayer or layer > endLayer)
 	{ continue; }
       Acts::Vector3 globalPos = transformer.getGlobalPosition(
         key,
@@ -187,8 +187,6 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
   if(dphi < -M_PI) dphi = 2*M_PI + dphi;
   if(dphi > 0) m_qOverR *= -1;
 
-  std::cout << "Values " << m_X0 << ", " << m_Y0 << ", " << m_qOverR << std::endl;
-
 }
 
 void TrackSeed_v1::lineFit(TrkrClusterContainer *clusters,
@@ -204,7 +202,7 @@ void TrackSeed_v1::lineFit(TrkrClusterContainer *clusters,
   for(const auto& key : m_cluster_keys)
     {
       auto layer = TrkrDefs::getLayer(key);
-      if(layer <= startLayer or layer >= endLayer)
+      if(layer < startLayer or layer > endLayer)
 	{ continue; }
   
       Acts::Vector3 pos = transformer.getGlobalPosition(
@@ -256,7 +254,6 @@ void TrackSeed_v1::findRoot(float& x, float& y) const
   double minx = sqrt(pow(R, 2) - pow(miny - m_Y0, 2)) + m_X0;
   double minx2 = -sqrt(pow(R, 2) - pow(miny2 - m_Y0, 2)) + m_X0;
   
-  std::cout << "minx,2 " << minx<<","<<minx2 << ", " << miny << ", " << miny2 << std::endl;
   /// Figure out which of the two roots is actually closer to the origin
   if(fabs(minx) < fabs(minx2))
     { x = minx; }

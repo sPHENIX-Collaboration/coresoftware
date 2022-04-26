@@ -246,6 +246,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	    {
 	      const auto& cluskey = spacePoint->m_clusKey;
 	      cluster_keys.push_back(cluskey);
+	  
 	      trackSeed->insert_cluster_key(cluskey);
 	  
 	      globalPositions.push_back(transformer.getGlobalPosition(
@@ -274,9 +275,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	    { 
 	      if(Verbosity() > 1)
 		{ 
-		  std::cout << "Large PCA seed " << trackSeed->get_x()
-			    << ", " << trackSeed->get_y()
-			    << std::endl; 
+		  std::cout << "Large PCA seed " <<std::endl;
+		  trackSeed->identify();
 		}
 	      m_nBadInitialFits++;
 	      continue;
