@@ -13,7 +13,7 @@ class PHG4MvtxServiceStructure;
 class PHG4MvtxSupport
 {
  public:
-  PHG4MvtxSupport(PHG4MvtxDisplayAction* dispAct, bool overlapCheck);
+  PHG4MvtxSupport(PHG4MvtxDisplayAction *dispAct, bool overlapCheck);
 
   ~PHG4MvtxSupport();
 
@@ -26,15 +26,15 @@ class PHG4MvtxSupport
   void TrackingServiceCone(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume);
   void TrackingServiceCylinder(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume);
   void CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assemblyVolume);
-  void CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::string superName, 
+  void CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::string superName,
                          bool enableSignal, bool enableCooling, bool enablePower,
-                         float x1, float x2, float y1, float y2, float z1, float z2);//, float theta = 0);
+                         float x1, float x2, float y1, float y2, float z1, float z2);  //, float theta = 0);
 
   G4AssemblyVolume *buildBarrelCable();
   G4AssemblyVolume *buildL0Cable();
   G4AssemblyVolume *buildL1Cable();
   G4AssemblyVolume *buildL2Cable();
-  
+
   G4AssemblyVolume *m_avSupport;
   G4AssemblyVolume *m_avBarrelCable;
   G4AssemblyVolume *m_avL0Cable;
