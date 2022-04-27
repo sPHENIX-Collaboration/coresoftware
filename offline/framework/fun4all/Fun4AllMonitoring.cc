@@ -32,14 +32,15 @@ void Fun4AllMonitoring::Snapshot(const std::string & /*what*/)
   if (mEvent == 0)  // called for the first time, write header
   {
     std::ofstream outfile(mOutFileName, std::ios_base::trunc);
-    outfile << "Event     HeapPss     OtherPss" << std::endl;
+    outfile << "Event     HeapPss     mmap   OtherPss" << std::endl;
     outfile.close();
   }
   std::ofstream outfile(mOutFileName, std::ios_base::app);
-  outfile << mEvent << " " << mHeapPss << " " << mOtherPss << std::endl;
+  outfile << mEvent << " " << mHeapPss << " " << mMMapPSS << " " << mOtherPss << std::endl;
   outfile.close();
   mHeapPss = 0;
   mOtherPss = 0;
+  mMMapPSS = 0;
   mEvent++;
   return;
 }
@@ -72,7 +73,7 @@ void Fun4AllMonitoring::Get_Memory()
       }
       else
       {
-        libraryname = "none";
+        libraryname = "mmap";
       }
       i++;
     }
@@ -91,6 +92,10 @@ void Fun4AllMonitoring::Get_Memory()
         {
           mHeapPss += std::stol(number);
         }
+	else if (libraryname == "mmap")
+	{
+          mMMapPSS += std::stol(number);
+	}
         else
         {
           mOtherPss += std::stol(number);
