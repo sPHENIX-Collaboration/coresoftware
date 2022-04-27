@@ -135,6 +135,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
     {
       // Triggered only mode - tpc_matches contains only matches with a tight cut on the nominal z-mismatch, 
       // i.e. presumed crossing zer0 - just add silicon clusters
+      
       addSiliconClusters(tpc_matches);
 
       // add the crossing number (assumed to be 0 in this case) to the combined track
@@ -332,11 +333,13 @@ void PHSiliconTpcTrackMatching::addSiliconClusters( std::multimap<unsigned int, 
     {
       unsigned int tpcid = it->first;
       TrackSeed *tpc_track = _track_map->get(tpcid);
+      if(!tpc_track) { continue; }
       if(Verbosity() > 1) std::cout << "  tpcid " << tpcid << " original z " << tpc_track->get_z() << std::endl;
       
       // add the silicon cluster keys to the track
       unsigned int si_id = it->second;
       TrackSeed *si_track = _track_map_silicon->get(si_id);
+      if (!si_track) { continue; }
       if(Verbosity() > 1) std::cout << "  si track id " << si_id << std::endl;
       for (SvtxTrack::ConstClusterKeyIter si_iter = si_track->begin_cluster_keys();
 	   si_iter != si_track->end_cluster_keys();
@@ -563,7 +566,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(std::set<unsigned int> &tpc_ma
   std::multimap<unsigned int, unsigned int> additional_tpc_matches;
   std::multimap<unsigned int, unsigned int> remove_tpc_matches;
   std::set<unsigned int> additional_tpc_matched_set;
-  for(const unsigned int& tpcid : tpc_matched_set)
+  for(const unsigned int tpcid : tpc_matched_set)
     {
       auto ret = tpc_matches.equal_range(tpcid);
       
@@ -617,14 +620,15 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(std::set<unsigned int> &tpc_ma
 
 	  // add a map named remove_tpc_matches so we can remove old matches with the same tpc id
 	  remove_tpc_matches.insert(std::make_pair(tpcid, si_id));
-
+	  std::cout << "inserting "<<tpcid << ", " << si_id << std::endl;
 	  additional_tpc_matches.insert(std::make_pair(newTrackKey, si_id));
+	  std::cout << "additional tpc matches adding"<< newTrackKey << ", " << si_id << std::endl;
 	  additional_tpc_matched_set.insert(newTrackKey);	  
 	}   
     }
 
   // insert the duplicated TPC track combinations intp tpc_matches
-  for(auto& [tpcid, si_id] : additional_tpc_matches)
+  for(auto [tpcid, si_id] : additional_tpc_matches)
     {
       tpc_matched_set.insert(tpcid);
       tpc_matches.insert(std::make_pair(tpcid, si_id));
@@ -632,7 +636,9 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(std::set<unsigned int> &tpc_ma
 	std::cout << "add to tpc_matches tpc_id " << tpcid << " si_id " << si_id << std::endl; 
     }
   // remove the corresponding obsolete entries
-  for(auto& [tpcid, si_id] : remove_tpc_matches)
+  std::cout << "obsolete entries"<<std::endl;
+  std::cout << "match size " << remove_tpc_matches.size() << std::endl;
+  for(auto [tpcid, si_id] : remove_tpc_matches)
     {
       if(Verbosity() > 1)  std::cout << "remove from tpc_matches tpc_id " << tpcid << " si_id " << si_id << std::endl; 
 
@@ -642,12 +648,13 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(std::set<unsigned int> &tpc_ma
 	{
 	  if(it->first == tpcid && it->second == si_id)
 	    {
+	      std::cout <<"erasing"<<std::endl;
 	      tpc_matches.erase(it);
 	      break;  // the iterator is no longer valid
 	    }
 	}
     }
-
+  std::cout << "returning"<<std::endl;
   return;
 }
 
