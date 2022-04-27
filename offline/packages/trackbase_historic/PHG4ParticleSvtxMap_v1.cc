@@ -56,7 +56,7 @@ PHG4ParticleSvtxMap::WeightedRecoTrackMap PHG4ParticleSvtxMap_v1::insert(const i
   return map;
 }
 
-const PHG4ParticleSvtxMap::WeightedRecoTrackMap PHG4ParticleSvtxMap::get(const int key) const
+const PHG4ParticleSvtxMap::WeightedRecoTrackMap & PHG4ParticleSvtxMap_v1::get(const int key) const
 {
   const auto iter = m_map.find(key);
   if (iter == m_map.end())

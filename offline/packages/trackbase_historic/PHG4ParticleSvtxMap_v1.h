@@ -3,6 +3,8 @@
 
 #include "PHG4ParticleSvtxMap.h"
 
+#include <iostream>
+
 class PHG4ParticleSvtxMap_v1 : public PHG4ParticleSvtxMap
 {
  public:
