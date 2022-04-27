@@ -21,19 +21,8 @@ class SvtxPHG4ParticleMap_v1 : public SvtxPHG4ParticleMap
   std::size_t count(const unsigned int key) const override { return m_map.count(key); }
   void clear() override { m_map.clear(); }
 
-  const WeightedTruthTrackMap get(const unsigned int key) const override
-  {
-    const auto iter = m_map.find(key);
-    if (iter == m_map.end())
-    {
-      return SvtxPHG4ParticleMap::get(key);
-    }
-    else
-    {
-      return iter->second;
-    }
-  }
-  WeightedTruthTrackMap get(const unsigned int key) override
+  const WeightedTruthTrackMap & get(const unsigned int key) const override;
+  WeightedTruthTrackMap & get(const unsigned int key) override
   {
     return m_map[key];
   }

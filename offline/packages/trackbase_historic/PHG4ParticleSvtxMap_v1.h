@@ -20,8 +20,8 @@ class PHG4ParticleSvtxMap_v1 : public PHG4ParticleSvtxMap
   std::size_t count(const int key) const override { return m_map.count(key); }
   void clear() override { m_map.clear(); }
 
-  const WeightedRecoTrackMap get(const int key) const override;
-  WeightedRecoTrackMap get(const int key) override
+  const WeightedRecoTrackMap & get(const int key) const override;
+  WeightedRecoTrackMap & get(const int key) override
   {
     return m_map[key];
   }
