@@ -2,7 +2,6 @@
 #define G4MVTX_CABLE_H
 
 #include <string>
-#include <vector>
 
 class PHG4MvtxCable
 {

@@ -2,11 +2,33 @@
 
 #include "PHG4MvtxCable.h"
 #include "PHG4MvtxDefs.h"
+#include "PHG4MvtxDisplayAction.h"
 #include "PHG4MvtxServiceStructure.h"
 
-#include <boost/format.hpp>
+#include <g4main/PHG4Detector.h> 
+
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4AssemblyStore.hh>
+#include <Geant4/G4AssemblyVolume.hh>
+#include <Geant4/G4Cons.hh>
+#include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4Material.hh>
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
+#include <Geant4/G4Tubs.hh>
+#include <Geant4/G4UserLimits.hh>
+#include <Geant4/G4String.hh>
+#include <Geant4/G4Transform3D.hh>
+#include <Geant4/G4Types.hh>
+
+#include <boost/format.hpp>
+
+#include <algorithm>                               // for max
+#include <cmath>                                  // for M_PI, atan, cos, sin
+#include <cstddef>                                // for NULL
+#include <iostream>                                // for operator<<, basic_...
+#include <utility>                                 // for pair, make_pair
+
+class G4VSolid;
 
 namespace ServiceProperties
 {

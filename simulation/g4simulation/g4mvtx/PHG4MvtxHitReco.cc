@@ -6,9 +6,12 @@
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/TrkrHit.h>  // // make iwyu happy
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h> // make iwyu happy
 #include <trackbase/TrkrHitSetContainerv1.h>
+#include <trackbase/TrkrHitTruthAssoc.h> // make iwyu happy
 #include <trackbase/TrkrHitTruthAssocv1.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
@@ -64,7 +67,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
   hitnodename = "G4HIT_" + detector;
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     cout << "Could not locate g4 hit node " << hitnodename << endl;
@@ -72,7 +75,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
   }
 
   geonodename = "CYLINDERGEOM_" + detector;
-  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
+  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
   if (!geo)
   {
     cout << "Could not locate geometry node " << geonodename << endl;
@@ -124,14 +127,14 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 {
   //cout << PHWHERE << "Entering process_event for PHG4MvtxHitReco" << endl;
 
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     cout << "Could not locate g4 hit node " << hitnodename << endl;
     exit(1);
   }
 
-  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
+  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
   if (!geo)
   {
     cout << "Could not locate geometry node " << geonodename << endl;

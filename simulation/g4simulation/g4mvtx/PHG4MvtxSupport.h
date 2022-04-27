@@ -1,30 +1,14 @@
 #ifndef G4MVTX_PHG4MVTXSUPPORT_H
 #define G4MVTX_PHG4MVTXSUPPORT_H
 
-#include "PHG4MvtxServiceStructure.h"
-#include "PHG4MvtxCable.h"
-
-#include <PHG4MvtxDisplayAction.h>
-
-#include <g4main/PHG4Detector.h>
-//#include <g4detectors/PHG4DetectorGroupSubsystem.h>
-
-#include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4Cons.hh>
-#include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
-#include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
-#include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
-#include <Geant4/G4Tubs.hh>
-#include <Geant4/G4UserLimits.hh>
-#include <Geant4/G4VSolid.hh>
-#include <Geant4/G4VisAttributes.hh>
-
-#include <cmath>
-#include <iostream>
 #include <string>
 #include <vector>
+
+class G4AssemblyVolume;
+class G4LogicalVolume;
+class PHG4MvtxCable;
+class PHG4MvtxDisplayAction;
+class PHG4MvtxServiceStructure;
 
 class PHG4MvtxSupport
 {

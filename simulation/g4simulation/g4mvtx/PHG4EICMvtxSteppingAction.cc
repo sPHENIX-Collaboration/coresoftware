@@ -43,7 +43,6 @@
 #include <boost/lexical_cast.hpp>
 #endif
 
-#include <cmath>                              // for NAN
 #include <cstdlib>                            // for exit
 #include <iostream>
 #include <string>                              // for operator<<, basic_string

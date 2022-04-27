@@ -8,8 +8,6 @@
 
 #include <utility>                     // for pair
 
-using namespace std;
-
 PHG4MvtxDisplayAction::PHG4MvtxDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
 {

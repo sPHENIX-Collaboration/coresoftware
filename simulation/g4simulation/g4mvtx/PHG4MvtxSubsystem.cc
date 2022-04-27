@@ -25,6 +25,7 @@
 
 #include <mvtx/SegmentationAlpide.h>                 // for Alpide constants
 
+#include <cstdlib>                                  // for getenv
 #include <iostream>                                  // for operator<<, basi...
 #include <set>                                       // for _Rb_tree_const_i...
 #include <sstream>
