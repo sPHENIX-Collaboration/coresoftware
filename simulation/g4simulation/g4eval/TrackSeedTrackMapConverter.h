@@ -9,6 +9,9 @@
 class PHCompositeNode;
 class SvtxTrackMap;
 class TrackSeedContainer;
+class ActsSurfaceMaps;
+class ActsTrackingGeometry;
+class TrkrClusterContainer;
 
 class TrackSeedTrackMapConverter : public SubsysReco
 {
@@ -34,6 +37,9 @@ class TrackSeedTrackMapConverter : public SubsysReco
 
   SvtxTrackMap *m_trackMap = nullptr;
   TrackSeedContainer *m_seedContainer = nullptr;
+  TrkrClusterContainer *m_clusters = nullptr;
+  ActsSurfaceMaps *m_surfmaps = nullptr;
+  ActsTrackingGeometry *m_tGeometry = nullptr;
 };
 
 #endif // TRACKSEEDTRACKMAPCONVERTER_H

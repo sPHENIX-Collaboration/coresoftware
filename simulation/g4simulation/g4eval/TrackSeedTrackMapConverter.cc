@@ -1,6 +1,10 @@
 
 #include "TrackSeedTrackMapConverter.h"
 
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/TrkrClusterContainer.h>
+
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -61,8 +65,8 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
       svtxtrack->set_y(trackSeed->get_y());
       svtxtrack->set_z(trackSeed->get_z());
       svtxtrack->set_charge( trackSeed->get_qOverR() > 0 ? 1 : -1);
-      svtxtrack->set_px(trackSeed->get_px());
-      svtxtrack->set_py(trackSeed->get_py());
+      svtxtrack->set_px(trackSeed->get_px(m_clusters,m_surfmaps,m_tGeometry));
+      svtxtrack->set_py(trackSeed->get_py(m_clusters,m_surfmaps,m_tGeometry));
       svtxtrack->set_pz(trackSeed->get_pz());
 
       for(TrackSeed::ConstClusterKeyIter iter = trackSeed->begin_cluster_keys();
@@ -143,5 +147,28 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
+  m_clusters = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTERS");
+  if(!m_clusters)
+    {
+      std::cout << PHWHERE << " Can't find cluster container, can't continue."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+   m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
+  if(!m_surfmaps)
+    {
+      std::cout << PHWHERE << " Can't find cluster container, can't continue."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  if(!m_tGeometry)
+    {
+      std::cout << PHWHERE << " Can't find ActsGeometry, can't continue."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
