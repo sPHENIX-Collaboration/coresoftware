@@ -1,20 +1,24 @@
 #ifndef G4MVTX_PHG4MVTXHITRECO_H
 #define G4MVTX_PHG4MVTXHITRECO_H
 
-#include <phparameter/PHParameterContainerInterface.h>
+#include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
 
+#include <gsl/gsl_rng.h>
+
 #include <map>
 #include <string>
-#include <utility>  // for pair
+#include <memory>  // for unique_ptr
 
 class PHCompositeNode;
 
-class PHG4MvtxHitReco : public SubsysReco, public PHParameterContainerInterface
+class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 {
  public:
-  explicit PHG4MvtxHitReco(const std::string &name = "PHG4MvtxRECO");
+  explicit PHG4MvtxHitReco(
+      const std::string &name = "PHG4MvtxHitReco",
+      const std::string &detector = "MVTX");
 
   ~PHG4MvtxHitReco() override {}
 
@@ -24,20 +28,31 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterContainerInterface
   //! event processing
   int process_event(PHCompositeNode *topNode) override;
 
-  void Detector(const std::string &d) { detector = d; }
+  void Detector(const std::string &d) { m_detector = d; }
 
-  double get_timing_window_min(const int i) { return tmin_max[i].first; }
-  double get_timing_window_max(const int i) { return tmin_max[i].second; }
+  //! TODO keep it for backward compatibily. remove after PR merged
+  //In the future use the relevant set parameter function
   void set_timing_window(const int detid, const double tmin, const double tmax);
 
+  //! parameters
   void SetDefaultParameters() override;
 
- protected:
-  std::string detector;
-  std::string hitnodename;
-  std::string geonodename;
-  std::map<int, std::pair<double, double> > tmin_max;
+ private:
+
+  std::string m_detector;
+
+  double m_tmin;
+  double m_tmax;
   double crossing_period = 106.0;
+
+  class Deleter
+  {
+    public:
+      //! delection operation
+      void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+  };
+
+  std::unique_ptr<gsl_rng, Deleter> m_rng;
 };
 
 #endif
