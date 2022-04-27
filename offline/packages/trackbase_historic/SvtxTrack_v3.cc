@@ -53,6 +53,7 @@ void SvtxTrack_v3::CopyFrom( const SvtxTrack& source )
   _is_positive_charge = source.get_positive_charge();
   _chisq = source.get_chisq();
   _ndf = source.get_ndf();
+  _track_crossing = source.get_crossing();
   _dca = source.get_dca();
   _dca_error = source.get_dca_error();
   _dca2d = source.get_dca2d();
