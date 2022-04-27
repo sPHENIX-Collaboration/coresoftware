@@ -56,7 +56,7 @@ class PHTruthSiliconAssociation : public SubsysReco
 
   std::vector<PHG4Particle*> getG4PrimaryParticle(SvtxTrack *track);
   std::set<TrkrDefs::cluskey> getSiliconClustersFromParticle(PHG4Particle* g4particle);
-  std::vector<short int> getInttCrossings(SvtxTrack *si_track);
+  std::set<short int> getInttCrossings(SvtxTrack *si_track) const;
 
   PHG4TruthInfoContainer* _g4truth_container{nullptr};
   PHG4HitContainer *_g4hits_tpc{nullptr};

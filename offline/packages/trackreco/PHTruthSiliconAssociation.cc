@@ -271,29 +271,22 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
        ++phtrk_iter)
     {
       SvtxTrack *track = phtrk_iter->second;
-      std::vector<short int > intt_crossings = getInttCrossings(track);
-      if(intt_crossings.size() == 0) 
+      const auto intt_crossings = getInttCrossings(track);
+      if(intt_crossings.empty()) 
 	{
 	  if(Verbosity() > 1) std::cout << " Silicon track " << track->get_id() << " has no INTT clusters" << std::endl;
 	  continue ;
-	}
-
-      short int crossing_keep = intt_crossings[0];
-      bool keep_it = true;
-      for(unsigned int ic=1; ic<intt_crossings.size(); ++ic)
-	{	  
-	  if(intt_crossings[ic] != crossing_keep)
-	    {
-	      if(Verbosity() > 1) 
-		std::cout << " INTT crossings not all the same for track " << track->get_id() << " crossing_keep " 
-			  << crossing_keep << " new crossing " << intt_crossings[ic] << "- dropping this match " << std::endl;
-	      keep_it = false;	      
-	    }
-	}
-      if(keep_it)
-	{            
-	  track->set_crossing(crossing_keep);
-	  if(Verbosity() > 1) std::cout << "                    Combined track " << track->get_id()  << " bunch crossing " << crossing_keep  << std::endl;           
+    
+	} else if( intt_crossings.size() > 1 ) {
+    
+    if(Verbosity() > 1) 
+    { std::cout << " INTT crossings not all the same for track " << track->get_id() << " crossing_keep - dropping this match " << std::endl; }
+    
+  } else {
+    
+    const auto& crossing = *intt_crossings.begin();
+	  track->set_crossing(crossing);
+	  if(Verbosity() > 1) std::cout << "                    Combined track " << track->get_id()  << " bunch crossing " << crossing << std::endl;           
 	}
     }
   
@@ -593,9 +586,9 @@ void PHTruthSiliconAssociation::copySiliconClustersToCorrectedMap( )
   }
 }
 
-std::vector<short int> PHTruthSiliconAssociation::getInttCrossings(SvtxTrack *si_track)
+std::set<short int> PHTruthSiliconAssociation::getInttCrossings(SvtxTrack *si_track) const
 {
-  std::vector<short int> intt_crossings;
+  std::set<short int> intt_crossings;
 
   // If the Si track contains an INTT hit, use it to get the bunch crossing offset
   // loop over associated clusters to get keys for silicon cluster
@@ -610,17 +603,16 @@ std::vector<short int> PHTruthSiliconAssociation::getInttCrossings(SvtxTrack *si
 	{
 	  // std::cout << "      INTT cluster key " << cluster_key << std::endl; 
 	  
-	  TrkrCluster *cluster =  _cluster_map->findCluster(cluster_key);	
-	  if( !cluster ) continue;	  
-	  
-	  unsigned int layer = TrkrDefs::getLayer(cluster_key);
+	  const unsigned int layer = TrkrDefs::getLayer(cluster_key);
 	  
 	  // get the bunch crossings for all hits in this cluster
 	  auto crossings = _cluster_crossing_map->getCrossings(cluster_key);
 	  for(auto iter = crossings.first; iter != crossings.second; ++iter)
 	    {
-	      std::cout << "      si Track " << si_track->get_id() << " cluster " << iter->first << " layer " << layer << " crossing " << iter->second  << std::endl;
-	      intt_crossings.push_back(iter->second);
+        const auto& [key, crossing] = *iter;
+        if( Verbosity() )
+        { std::cout << "PHTruthSiliconAssociation::getInttCrossings - si Track " << si_track->get_id() << " cluster " << key << " layer " << layer << " crossing " << crossing  << std::endl; }
+	      intt_crossings.insert(crossing);
 	    }
 	}
     }
