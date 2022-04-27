@@ -13,6 +13,7 @@
 #include <cmath>
 #include <iostream>
 #include <set>
+#include <iterator>
 
 class TrackSeed : public PHObject
 {
@@ -37,8 +38,16 @@ class TrackSeed : public PHObject
   virtual void CopyFrom( TrackSeed* ) {}
 
   virtual int get_charge() const { return std::numeric_limits<int>::max(); }
-  virtual float get_px() const { return NAN; }
-  virtual float get_py() const { return NAN; }
+  /// We need access to the first two clusters to get the phi angle right
+  virtual float get_px(TrkrClusterContainer*,
+		       ActsSurfaceMaps*,
+		       ActsTrackingGeometry*) const { return NAN; }
+  virtual float get_py(TrkrClusterContainer*,
+		       ActsSurfaceMaps*,
+		       ActsTrackingGeometry*) const { return NAN; }
+  virtual float get_phi(TrkrClusterContainer*,
+			ActsSurfaceMaps*,
+			ActsTrackingGeometry*) const { return NAN; }
   virtual float get_pz() const { return NAN; }
   virtual float get_x() const { return NAN; }
   virtual float get_y() const { return NAN; }
@@ -48,7 +57,6 @@ class TrackSeed : public PHObject
   virtual float get_Y0() const { return NAN; }
   virtual float get_slope() const { return NAN; }
   virtual float get_Z0() const { return NAN; }
-  virtual float get_phi() const { return NAN; }
   virtual float get_eta() const { return NAN; }
   virtual float get_theta() const { return NAN; }
   virtual float get_pt() const { return NAN; }

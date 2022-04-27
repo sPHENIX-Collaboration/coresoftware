@@ -83,7 +83,7 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode*)
 	    << ": Processing seed itrack: " << track_key
 	    << ": nhits: " << tracklet_tpc-> size_cluster_keys()
 	    << ": pT: " << tracklet_tpc->get_pt()
-	    << ": phi: " << tracklet_tpc->get_phi()
+	    << ": phi: " << tracklet_tpc->get_phi(_cluster_map, _surfmaps, _tGeometry)
 	    << ": eta: " << tracklet_tpc->get_eta()
 	    << std::endl;
 	}
@@ -101,7 +101,7 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode*)
       if(Verbosity() > 5)
       {
         std::cout << " new mom " <<  tracklet_tpc->get_p() <<  "  new eta " <<  tracklet_tpc->get_eta()
-          << " new phi " << tracklet_tpc->get_phi() * 180.0 / M_PI << std::endl;
+          << " new phi " << tracklet_tpc->get_phi(_cluster_map, _surfmaps, _tGeometry) * 180.0 / M_PI << std::endl;
       }
 
       track_key++;

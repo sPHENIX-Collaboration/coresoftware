@@ -227,7 +227,11 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
   /// Remove tracks that are duplicates from the KFProp
   PHGhostRejection rejector(Verbosity());
-  rejector.rejectGhostTracks(_track_map, trackChi2);
+  rejector.geometry(_tgeometry);
+  rejector.surfMaps(_surfmaps);
+  rejector.trackSeedContainer(_track_map);
+  rejector.clusterContainer(_cluster_map);
+  rejector.rejectGhostTracks(trackChi2);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -331,8 +335,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   double track_y = track->get_y();
   double track_z = track->get_z();
 
-  double track_px = track->get_px();
-  double track_py = track->get_py();
+  double track_px = track->get_px(_cluster_map,_surfmaps,_tgeometry);
+  double track_py = track->get_py(_cluster_map,_surfmaps,_tgeometry);
   double track_pz = track->get_pz();
 
   /// Move to first tpc cluster layer if necessary

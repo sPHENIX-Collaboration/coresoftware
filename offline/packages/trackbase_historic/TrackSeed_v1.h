@@ -28,13 +28,19 @@ class TrackSeed_v1 : public TrackSeed
   PHObject* CloneMe() const override { return new TrackSeed_v1(*this); }
 
   int get_charge() const override;
-  float get_px() const override;
-  float get_py() const override;
+  float get_px(TrkrClusterContainer *clusters,
+	       ActsSurfaceMaps *surfMaps, 
+	       ActsTrackingGeometry *tGeometry) const override;
+  float get_py(TrkrClusterContainer *clusters,
+	       ActsSurfaceMaps *surfMaps, 
+	       ActsTrackingGeometry *tGeometry) const override;
   float get_pz() const override;
   float get_x() const override;
   float get_y() const override;
   float get_z() const override;
-  float get_phi() const override;
+  float get_phi(TrkrClusterContainer *clusters,
+		ActsSurfaceMaps *surfMaps, 
+		ActsTrackingGeometry *tGeometry) const override;
   float get_eta() const override;
   float get_theta() const override;
   float get_pt() const override;

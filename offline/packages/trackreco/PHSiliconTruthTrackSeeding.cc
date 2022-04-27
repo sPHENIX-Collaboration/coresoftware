@@ -343,7 +343,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
       cout << "Track ID: " << id << ", Track pT: "
            << svtx_track->get_pt() << ", Truth Track/Particle ID: "
            << svtx_track->get_truth_track_id() << endl;
-      cout << "   (px, py, pz) = " << "("<< svtx_track->get_px() << ", " << svtx_track->get_py() << ", " << svtx_track->get_pz() << ")" << endl;
+      cout << "   (pt, pz) = " << "("<< svtx_track->get_pt() << ", " << svtx_track->get_pz() << ")" << endl;
       cout << "   (x, y, z) = " << "("<< svtx_track->get_x() << ", " << svtx_track->get_y() << ", " << svtx_track->get_z() << ")" << endl;
 
       id++;

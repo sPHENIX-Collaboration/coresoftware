@@ -8,6 +8,9 @@
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TpcSeedTrackMap.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 
 #include <trackbase_historic/TrackSeed.h>     
 #include <trackbase_historic/TrackSeedContainer.h>
@@ -30,33 +33,40 @@ PHGhostRejection::~PHGhostRejection()
 }
 
 //____________________________________________________________________________..
-void PHGhostRejection::rejectGhostTracks(TrackSeedContainer* trackMap,
-					std::vector<float> &trackChi2)
+void PHGhostRejection::rejectGhostTracks(std::vector<float> &trackChi2)
 {
 
+  if(!m_trackMap || !m_clusters || !m_surfmaps || !m_tGeometry)
+    {
+      std::cout << "Missing containers, will not run TPC seed ghost rejection"
+		<< std::endl;
+      return;
+    }
+
   if(m_verbosity > 0)
-    std::cout << "PHGhostRejection beginning track map size " << trackMap->size() << std::endl;
+    std::cout << "PHGhostRejection beginning track map size " << m_trackMap->size() << std::endl;
 
   // Try to eliminate repeated tracks
 
   std::set<unsigned int> matches_set;
   std::multimap<unsigned int, unsigned int>  matches;
-  unsigned int trid1 = 0;
-  for (auto tr1_iter = trackMap->begin();
-       tr1_iter != trackMap->end(); 
+  
+  for (auto tr1_iter = m_trackMap->begin();
+       tr1_iter != m_trackMap->end(); 
        ++tr1_iter)
     {
       auto track1 = *tr1_iter;
-      
-      unsigned int trid2 = 0;
+      unsigned int trid1 = m_trackMap->index(tr1_iter);
+
       for (auto tr2_iter = tr1_iter;
-	   tr2_iter != trackMap->end(); 
+	   tr2_iter != m_trackMap->end(); 
 	   ++tr2_iter)
 	{
+	  unsigned int trid2 = m_trackMap->index(tr2_iter);
 	  if(trid1  ==  trid2) continue;
 	  
 	  auto track2 = *tr2_iter;
-	  if(fabs( track1->get_phi() - track2->get_phi() ) < _phi_cut &&
+	  if(fabs( track1->get_phi(m_clusters, m_surfmaps, m_tGeometry) - track2->get_phi(m_clusters, m_surfmaps, m_tGeometry) ) < _phi_cut &&
 	     fabs( track1->get_eta() - track2->get_eta() ) < _eta_cut &&
 	     fabs( track1->get_x() - track2->get_x() ) < _x_cut &&
 	     fabs( track1->get_y() - track2->get_y() ) < _y_cut &&
@@ -69,11 +79,7 @@ void PHGhostRejection::rejectGhostTracks(TrackSeedContainer* trackMap,
 	      if(m_verbosity > 1)
 		std::cout << "Found match for tracks " << trid1 << " and " << trid2 << std::endl;
 	    }
-
-	  trid2++;
 	}
-
-      trid1++;
     }
 
   std::set<unsigned int> ghost_reject_list;
@@ -84,7 +90,7 @@ void PHGhostRejection::rejectGhostTracks(TrackSeedContainer* trackMap,
 
       auto match_list = matches.equal_range(set_it);
 
-      auto tr1 = trackMap->get(set_it);
+      auto tr1 = m_trackMap->get(set_it);
       double best_qual = trackChi2.at(set_it);
       unsigned int best_track = set_it;
 
@@ -96,7 +102,7 @@ void PHGhostRejection::rejectGhostTracks(TrackSeedContainer* trackMap,
 	  if(m_verbosity > 1)
 	    std::cout << "    match of track " << it->first << " to track " << it->second << std::endl;
 	  
-	  auto tr2 = trackMap->get(it->second);	  
+	  auto tr2 = m_trackMap->get(it->second);	  
 
 	  // Check that these two tracks actually share the same clusters, if not skip this pair
 
@@ -109,9 +115,9 @@ void PHGhostRejection::rejectGhostTracks(TrackSeedContainer* trackMap,
 	  if(m_verbosity > 1)
 	    {
 	      std::cout << "       Compare: best quality " << best_qual << " track 2 quality " << tr2_qual << std::endl;
-	      std::cout << "       tr1: phi " << tr1->get_phi() << " eta " << tr1->get_eta() 
+	      std::cout << "       tr1: phi " << tr1->get_phi(m_clusters, m_surfmaps, m_tGeometry) << " eta " << tr1->get_eta() 
 			<<  " x " << tr1->get_x() << " y " << tr1->get_y() << " z " << tr1->get_z() << std::endl;
-	      std::cout << "       tr2: phi " << tr2->get_phi() << " eta " << tr2->get_eta() 
+	      std::cout << "       tr2: phi " << tr2->get_phi(m_clusters, m_surfmaps, m_tGeometry) << " eta " << tr2->get_eta() 
 			<<  " x " << tr2->get_x() << " y " << tr2->get_y() << " z " << tr2->get_z() << std::endl;
 	    }
 
@@ -142,11 +148,11 @@ void PHGhostRejection::rejectGhostTracks(TrackSeedContainer* trackMap,
       if(m_verbosity > 1)
 	std::cout << " erasing track ID " << it << std::endl;
 
-      trackMap->erase(it);
+      m_trackMap->erase(it);
     }
   
   if(m_verbosity > 0)
-    std::cout << "Track map size after deleting ghost tracks: " << trackMap->size() << std::endl;
+    std::cout << "Track map size after deleting ghost tracks: " << m_trackMap->size() << std::endl;
 
 
   return;

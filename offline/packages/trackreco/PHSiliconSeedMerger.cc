@@ -47,8 +47,6 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
   std::multimap<unsigned int, std::set<TrkrDefs::cluskey>> matches;
   std::set<unsigned int> seedsToDelete;
 
-  unsigned int track1ID = 0;
-
   if(Verbosity() > 0)
     {
       std::cout << "Silicon seed track container has " << m_siliconTracks->size() << std::endl;
@@ -59,6 +57,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
       ++iter1)
     {
       TrackSeed* track1 = *iter1;
+      unsigned int track1ID = m_siliconTracks->index(iter1);
 
       if(seedsToDelete.find(track1ID) != seedsToDelete.end())
 	{ continue; }
@@ -73,18 +72,17 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 	    { mvtx1Keys.insert(ckey); }
 	}
    
-      unsigned int track2ID = track1ID;
       /// We can speed up the code by only iterating over the track seeds
       /// that are further in the map container from the current track,
       /// since the comparison of e.g. track 1 with track 2 doesn't need
       /// to be repeated with track 2 to track 1.
-      for(auto iter2 = m_siliconTracks->find(track1ID);
+      for(auto iter2 = iter1;
 	  iter2 != m_siliconTracks->end();
 	  ++iter2) 
 	{
+	  unsigned int track2ID = m_siliconTracks->index(iter2);
 	  if(track1ID == track2ID) 
 	    { 
-	      track2ID++;
 	      continue; 
 	    }
 	  
@@ -140,11 +138,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 	      seedsToDelete.insert(track2ID);
 	      break;
 	    }
-
-	  track2ID++;
 	}
-
-      track1ID++;
     }
 
   for(const auto& [trackKey, mvtxKeys] : matches)
@@ -175,7 +169,10 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
   if(Verbosity() > 2)
     {
       for(const auto& seed : *m_siliconTracks)
-	{ seed->identify(); }
+	{ 
+	  if (!seed) continue;
+	  seed->identify(); 
+	}
     }
 	  
   return Fun4AllReturnCodes::EVENT_OK;

@@ -21,6 +21,9 @@ class TrackSeedContainer;
 class TrkrCluster;
 class TpcSeedTrackMap;
 class TrackSeed;
+class ActsSurfaceMaps;
+class ActsTrackingGeometry;
+class TrkrClusterContainer;
 
 class PHGhostRejection 
 {
@@ -30,8 +33,12 @@ class PHGhostRejection
 
   ~PHGhostRejection();
 
-  void rejectGhostTracks(TrackSeedContainer *trackMap, std::vector<float>& trackChi2);
-  void setVerbosity(int verb) { m_verbosity = verb; }
+  void rejectGhostTracks(std::vector<float>& trackChi2);
+  void verbosity(int verb) { m_verbosity = verb; }
+  void trackSeedContainer(TrackSeedContainer *seeds){m_trackMap = seeds;}
+  void clusterContainer(TrkrClusterContainer *clus) {m_clusters = clus;}
+  void surfMaps(ActsSurfaceMaps *maps) {m_surfmaps = maps;}
+  void geometry(ActsTrackingGeometry *geom) {m_tGeometry = geom;}
 
  private:
 
@@ -45,6 +52,12 @@ class PHGhostRejection
   double _z_cut = 0.4;
   int _n_iteration = 0;
   unsigned int m_verbosity = 0;
+  
+  TrackSeedContainer *m_trackMap = nullptr;
+  TrkrClusterContainer *m_clusters = nullptr;
+  ActsSurfaceMaps *m_surfmaps = nullptr;
+  ActsTrackingGeometry *m_tGeometry = nullptr;
+
 
 };
 

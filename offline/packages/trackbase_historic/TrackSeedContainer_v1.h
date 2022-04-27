@@ -34,6 +34,9 @@ class TrackSeedContainer_v1 : public TrackSeedContainer
       m_seeds.at(key) = nullptr;
     }
 
+  std::size_t index(ConstIter it) const override { return it - m_seeds.begin(); }
+  std::size_t index(Iter it) const override { return it - m_seeds.begin(); }
+
   ConstIter begin() const override { return m_seeds.begin(); }
   ConstIter find(const std::size_t key) const override { return m_seeds.begin() + key; }
   std::size_t find(const TrackSeed*) const override;

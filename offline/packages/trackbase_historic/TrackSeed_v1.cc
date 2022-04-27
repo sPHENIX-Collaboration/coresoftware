@@ -41,7 +41,7 @@ void TrackSeed_v1::identify(std::ostream& os) const
 {
   os << "TrackSeed_v1 object ";
   os << "charge " << get_charge() << std::endl;
-  os << "(px,py,pz) = (" << get_px() << ", " << get_py()
+  os << "(pt,pz) = (" << get_pt()
      << ", " << get_pz() << ")" << std::endl;
   os << "(x,y,z) = (" << get_x() << ", " << get_y() << ", " << get_z() 
      << ")" << std::endl;
@@ -297,18 +297,48 @@ float TrackSeed_v1::get_pt() const
   return 0.3 * 1.4 / 100. * fabs(1./m_qOverR);
 }
 
-float TrackSeed_v1::get_phi() const
+float TrackSeed_v1::get_phi(TrkrClusterContainer *clusters,
+			    ActsSurfaceMaps *surfMaps, 
+			    ActsTrackingGeometry *tGeometry) const
 {
   float x=NAN, y=NAN;
   findRoot(x,y);
   float phi = atan2(-1* (m_X0-x), (m_Y0-y));
-  if(m_qOverR > 0)
-    {
-      phi += M_PI;
+
+  ActsTransformations transformer;
+  Acts::Vector3 pos0 = transformer.getGlobalPosition(
+		       *(m_cluster_keys.begin()),
+		       clusters->findCluster(*(m_cluster_keys.begin())),
+		       surfMaps, tGeometry);
+  auto nextit = m_cluster_keys.begin();
+  std::advance(nextit,1);
+  Acts::Vector3 pos1 = transformer.getGlobalPosition(
+						     *nextit,
+						     clusters->findCluster(*nextit),
+		       surfMaps, tGeometry);
+  /// convert to the angle of the tangent to the circle
+  // we need to know if the track proceeds clockwise or CCW around the circle
+  double dx0 = pos0(0) - m_X0;
+  double dy0 = pos1(1) - m_Y0;
+  double phi0 = atan2(dy0, dx0);
+  double dx1 = pos0(0) - m_X0;
+  double dy1 = pos1(1) - m_Y0;
+  double phi1 = atan2(dy1, dx1);
+  double dphi = phi1 - phi0;
+
+  // need to deal with the switch from -pi to +pi at phi = 180 degrees
+  // final phi - initial phi must be < 180 degrees for it to be a valid track
+  if(dphi > M_PI) dphi -= 2.0 * M_PI;
+  if(dphi < - M_PI) dphi += M_PI;
+
+  // whether we add 180 degrees depends on the angle of the bend
+  if(dphi < 0)
+    { 
+      phi += M_PI; 
       if(phi > M_PI)
 	{ phi -= 2. * M_PI; }
     }
-
+  
   return phi;
 }
 
@@ -331,14 +361,18 @@ float TrackSeed_v1::get_p() const
   return get_pt() * cosh(get_eta());
 }
 
-float TrackSeed_v1::get_px() const
+float TrackSeed_v1::get_px(TrkrClusterContainer *clusters,
+			   ActsSurfaceMaps *surfMaps, 
+			   ActsTrackingGeometry *tGeometry) const
 {
-  return get_p() * sin(get_theta()) * cos(get_phi());
+  return get_pt() * cos(get_phi(clusters, surfMaps, tGeometry));
 }
 
-float TrackSeed_v1::get_py() const
+float TrackSeed_v1::get_py(TrkrClusterContainer *clusters,
+			   ActsSurfaceMaps *surfMaps, 
+			   ActsTrackingGeometry *tGeometry) const
 {
-  return get_p() * sin(get_theta()) * sin(get_phi());
+  return get_pt() * sin(get_phi(clusters, surfMaps, tGeometry));
 }
 
 float TrackSeed_v1::get_pz() const

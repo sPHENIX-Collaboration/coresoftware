@@ -28,8 +28,6 @@
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/IndexSourceLink.hpp>
 
-
-
 #include <memory>
 #include <string>
 #include <TFile.h>
@@ -39,7 +37,10 @@
 
 class MakeActsGeometry;
 class SvtxTrack;
+class SvtxTrack_v3;
 class SvtxTrackMap;
+class TrackSeed;
+class TrackSeedContainer;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
 
@@ -108,11 +109,11 @@ class PHActsTrkFitter : public SubsysReco
   int createNodes(PHCompositeNode *topNode);
 
   void loopTracks(Acts::Logging::Level logLevel);
-  SourceLinkVec getSourceLinks(SvtxTrack *track, 
+  SourceLinkVec getSourceLinks(TrackSeed *track, 
 			       ActsExamples::MeasurementContainer& measurements);
 
   /// Convert the acts track fit result to an svtx track
-  void updateSvtxTrack(Trajectory traj, SvtxTrack* track);
+  void updateSvtxTrack(Trajectory traj, std::unique_ptr<SvtxTrack_v3>& track);
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
@@ -129,7 +130,7 @@ class PHActsTrkFitter : public SubsysReco
 				 SurfacePtrVec& surfaces) const;
   void checkSurfaceVec(SurfacePtrVec& surfaces) const;
   void getTrackFitResult(const FitResult& fitOutput, 
-			 SvtxTrack* track);
+			 std::unique_ptr<SvtxTrack_v3>& track);
 
   Surface getSurface(TrkrDefs::cluskey cluskey,TrkrDefs::subsurfkey surfkey) const;
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const;
@@ -143,7 +144,7 @@ class PHActsTrkFitter : public SubsysReco
 						       TrkrDefs::subsurfkey& subsurfkey);
 
     Acts::BoundSymMatrix setDefaultCovariance() const;
-  void printTrackSeed(const SvtxTrack* seed) const;
+  void printTrackSeed(const TrackSeed* seed) const;
 
   /// Event counter
   int m_event = 0;
@@ -159,6 +160,7 @@ class PHActsTrkFitter : public SubsysReco
   SvtxTrackMap *m_directedTrackMap = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
   ActsSurfaceMaps *m_surfMaps = nullptr;
+  TrackSeedContainer *m_seedMap = nullptr;
   
   /// Number of acts fits that returned an error
   int m_nBadFits = 0;
