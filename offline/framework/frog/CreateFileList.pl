@@ -47,12 +47,15 @@ my $nEvents;
 my $start_segment;
 my $randomize;
 my $prodtype;
-my $runnumber= 2;
+my $runnumber = 4;
 my $verbose;
 my $nopileup;
-GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, "nopileup" => \$nopileup, 'rand' => \$randomize, 's:i' => \$start_segment, 'run:i' => \$runnumber, "verbose" =>\$verbose);
+my $embed;
+
+GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, "nopileup" => \$nopileup, 'rand' => \$randomize, 's:i' => \$start_segment, 'run:i' => \$runnumber, "verbose" =>\$verbose, 'embed' => \$embed);
 my $filenamestring;
 my %filetypes = ();
+my %notlike = ();
 if (defined $prodtype)
 {
     if ($prodtype == 1)
@@ -75,6 +78,7 @@ if (defined $prodtype)
     elsif ($prodtype == 4)
     {
 	$filenamestring = "sHijing_0_20fm_50kHz_bkg_0_20fm";
+        $notlike{$filenamestring} = "pythia8";
 	&commonfiletypes();
     }
     elsif ($prodtype == 5)
@@ -131,6 +135,10 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
 	}
+	elsif (defined $embed)
+	{
+	    $filenamestring = sprintf("%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring);
+	}
 	&commonfiletypes();
     }
     else
@@ -140,7 +148,7 @@ if (defined $prodtype)
     }
     &fill_other_types();
 }
-$filenamestring = sprintf("%s\-%010d-",$filenamestring,$runnumber);
+my $filenamestring_with_runnumber = sprintf("%s\-%010d-",$filenamestring,$runnumber);
 if ($#ARGV < 0)
 {
     if (! defined $prodtype)
@@ -247,19 +255,24 @@ while($#ARGV >= 0)
 
 }
 print "This Can Take a While (a minute give or take)\n";
-my $conds = sprintf("dsttype = ? and filename like \'\%%%s\%\'",$filenamestring);
+my $conds = sprintf("dsttype = ? and filename like \'\%%%s\%\'",$filenamestring_with_runnumber);
+if (exists $notlike{$filenamestring})
+{
+  $conds = sprintf("%s and filename not like  \'\%%%s\%\'",$conds,$notlike{$filenamestring});
+}
 if (defined $start_segment)
 {
     $conds = sprintf("%s and segment >= %d",$conds,$start_segment);
 }
 my $getfilesql = sprintf("select filename,segment,events from datasets where %s order by segment",$conds);
+#my $getfilesql = sprintf("select filename,segment,events from datasets where %s ",$conds);
 
 my %getfiles = ();
 foreach  my $tp (keys %req_types)
 {
     if ($tp eq "G4Hits")
     {
-	my @sp1 = split(/_/,$filenamestring);
+	my @sp1 = split(/_/,$filenamestring_with_runnumber);
 	my $newfilenamestring;
 	if ($#sp1 == 3 ||$#sp1 == 6 )
 	{
@@ -271,11 +284,11 @@ foreach  my $tp (keys %req_types)
 	}
 	else
 	{
-	    print "splitting $filenamestring gave bad number of _: $#sp1\n";
+	    print "splitting $filenamestring_with_runnumber gave bad number of _: $#sp1\n";
 	    die;
 	}
 	my $newgetfilesql = $getfilesql;
-	$newgetfilesql =~ s/$filenamestring/$newfilenamestring/;
+	$newgetfilesql =~ s/$filenamestring_with_runnumber/$newfilenamestring/;
 	$getfiles{"G4Hits"} = $dbh->prepare($newgetfilesql);
 	if (defined $verbose)
 	{
