@@ -3,12 +3,12 @@
 PHG4ParticleSvtxMap::Map DummyPHG4ParticleSvtxMap;
 PHG4ParticleSvtxMap::WeightedRecoTrackMap emptyRecoMap;
 
-const PHG4ParticleSvtxMap::WeightedRecoTrackMap PHG4ParticleSvtxMap::get(const int) const 
+const PHG4ParticleSvtxMap::WeightedRecoTrackMap & PHG4ParticleSvtxMap::get(const int) const
 {
   return emptyRecoMap;
 }
 
-PHG4ParticleSvtxMap::WeightedRecoTrackMap PHG4ParticleSvtxMap::get(const int) 
+PHG4ParticleSvtxMap::WeightedRecoTrackMap & PHG4ParticleSvtxMap::get(const int)
 {
   return emptyRecoMap;
 }

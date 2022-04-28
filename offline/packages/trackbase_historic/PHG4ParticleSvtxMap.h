@@ -32,8 +32,8 @@ class PHG4ParticleSvtxMap : public PHObject
   virtual std::size_t count(const int) const { return 0; }
   virtual void clear() {}
 
-  virtual const WeightedRecoTrackMap get(const int) const;
-  virtual WeightedRecoTrackMap get(const int);
+  virtual const WeightedRecoTrackMap & get(const int) const;
+  virtual WeightedRecoTrackMap & get(const int);
   virtual WeightedRecoTrackMap insert(const int, const WeightedRecoTrackMap);
   virtual std::size_t erase(const int) { return 0; }
 

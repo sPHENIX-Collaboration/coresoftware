@@ -905,22 +905,25 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   if(!clustermap_in)
     clustermap_in = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
 
-  nclus_all = clustermap_in->size();
-
-  for(const auto& hitsetkey:clustermap_in->getHitSetKeys())
+  if (clustermap_in)
   {
-    auto range = clustermap_in->getClusters(hitsetkey);
-    for( auto iter_cin = range.first; iter_cin != range.second; ++iter_cin ){
-      TrkrDefs::cluskey cluster_key = iter_cin->first;
-      unsigned int layer = TrkrDefs::getLayer(cluster_key);
-      if (_nlayers_maps > 0)
-	if (layer < _nlayers_maps) nclus_maps++;
-      if (_nlayers_intt > 0)
-	if (layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt) nclus_intt++;
-      if (_nlayers_tpc > 0)
-	if (layer >= _nlayers_maps + _nlayers_intt && layer <  _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_tpc++;
-      if (_nlayers_mms > 0)
-	if (layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_mms++;
+    nclus_all = clustermap_in->size();
+
+    for(const auto& hitsetkey:clustermap_in->getHitSetKeys())
+    {
+      auto range = clustermap_in->getClusters(hitsetkey);
+      for( auto iter_cin = range.first; iter_cin != range.second; ++iter_cin ){
+        TrkrDefs::cluskey cluster_key = iter_cin->first;
+        unsigned int layer = TrkrDefs::getLayer(cluster_key);
+        if (_nlayers_maps > 0)
+    if (layer < _nlayers_maps) nclus_maps++;
+        if (_nlayers_intt > 0)
+    if (layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt) nclus_intt++;
+        if (_nlayers_tpc > 0)
+    if (layer >= _nlayers_maps + _nlayers_intt && layer <  _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_tpc++;
+        if (_nlayers_mms > 0)
+    if (layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_mms++;
+      }
     }
   }
   //-----------------------

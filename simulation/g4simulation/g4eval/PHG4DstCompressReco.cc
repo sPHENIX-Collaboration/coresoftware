@@ -10,6 +10,8 @@
 
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
+#include <trackbase_historic/PHG4ParticleSvtxMap.h>
+#include <trackbase_historic/SvtxPHG4ParticleMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -72,6 +74,27 @@ int PHG4DstCompressReco::InitRun(PHCompositeNode* topNode)
     }
   }
 
+  if (m_keepRecoTrackMatchedParticles)
+  {
+    _recoTruthMap = findNode::getClass<SvtxPHG4ParticleMap>(topNode, "SvtxPHG4ParticleMap");
+    if (_recoTruthMap == nullptr)
+    {
+      cout << __PRETTY_FUNCTION__ << " Fatal error: missing SvtxPHG4ParticleMap while m_keepRecoTrackMatchedParticles is set. "
+           << "Was PHG4DstCompressReco called before this module?"
+           << endl;
+      exit(1);
+    }
+
+    _truthRecoMap = findNode::getClass<PHG4ParticleSvtxMap>(topNode, "PHG4ParticleSvtxMap");
+    if (_truthRecoMap == nullptr)
+    {
+      cout << __PRETTY_FUNCTION__ << " Fatal error: missing PHG4ParticleSvtxMap while m_keepRecoTrackMatchedParticles is set. "
+           << "Was PHG4DstCompressReco called before this module?"
+           << endl;
+      exit(1);
+    }
+  }  //  if (m_keepRecoTrackMatchedParticles)
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -118,6 +141,32 @@ int PHG4DstCompressReco::process_event(PHCompositeNode* /*topNode*/)
       // the primary, but let's start here for now
     }
   }
+
+  //---tracker truth map, if set-----------------------------------------
+  if (_truthRecoMap)
+  {
+    for (const auto& [particle_id, map] : *_truthRecoMap)
+    {
+      keep_particle_ids.insert(particle_id);
+    }
+  }
+  if (_recoTruthMap)
+  {
+    for (const auto& [track_id, weighted_truth_track_map] : *_recoTruthMap)
+    {
+      for (const auto& [weight, particle_set] : weighted_truth_track_map)
+      {
+        if (weight > 0)
+        {
+          for (const auto& particle_id : particle_set)
+          {
+            keep_particle_ids.insert(particle_id);
+          }
+        }
+      }
+    }  //    for (const auto& [track_id, weighted_truth_track_map] : *_recoTruthMap)
+
+  }  //  if (_recoTruthMap)
 
   std::set<int> keep_vertex_ids;
   PHG4TruthInfoContainer::Range range = _truth_info->GetSecondaryParticleRange();

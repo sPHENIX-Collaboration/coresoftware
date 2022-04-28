@@ -29,17 +29,6 @@
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterCrossingAssoc.h> 
-#include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase_historic/ActsTransformations.h>
-#include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTra...
-#include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, Svtx...
-#include <trackbase_historic/SvtxTrack_FastSim_v3.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertex.h>
-
 #include <TDatabasePDG.h>
 #include <TParticlePDG.h>
 
@@ -52,6 +41,7 @@
 #include <map>       // for multimap, map<>::c...
 #include <memory>
 #include <set>
+#include <utility>  // for pair
 
 class PHCompositeNode;
 
