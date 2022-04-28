@@ -13,6 +13,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <string>  // for string
 #include <vector>
+#include <gsl/gsl_rng.h>
 
 // forward declarations
 class PHCompositeNode;
@@ -119,6 +120,18 @@ void helicalTrackFit(const bool helicalTrackFit)
 
   ActsTrackingGeometry *tgeometry = nullptr;
   ActsSurfaceMaps *surfmaps = nullptr;
+
+  //! rng de-allocator
+  class Deleter
+  {
+    public:
+    //! deletion operator
+    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+  };
+
+  //! random generator that conform with sPHENIX standard
+  /*! using a unique_ptr with custom Deleter ensures that the structure is properly freed when parent object is destroyed */
+  std::unique_ptr<gsl_rng, Deleter> m_rng;
 
 };
 
