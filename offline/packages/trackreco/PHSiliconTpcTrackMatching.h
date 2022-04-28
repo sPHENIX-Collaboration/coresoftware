@@ -104,6 +104,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   double _y_search_win = 0.3;
   double _z_search_win = 0.4;
   
+  TrackSeedContainer *_svtx_seed_map{nullptr};
   TrackSeedContainer *_track_map{nullptr};
   TrackSeedContainer *_track_map_silicon{nullptr};
   TrackSeed *_tracklet_tpc{nullptr};

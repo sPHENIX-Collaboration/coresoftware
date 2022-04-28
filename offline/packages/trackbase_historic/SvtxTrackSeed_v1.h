@@ -1,5 +1,5 @@
-#ifndef TRACKBASEHISTORIC_SVTXTRACKSEED_H
-#define TRACKBASEHISTORIC_SVTXTRACKSEED_H
+#ifndef TRACKBASEHISTORIC_SVTXTRACKSEED_V1_H
+#define TRACKBASEHISTORIC_SVTXTRACKSEED_V1_H
 
 #include <phool/PHObject.h>
 
@@ -26,7 +26,8 @@ class SvtxTrackSeed_v1 : public TrackSeed
 
   unsigned int get_silicon_seed_index() const override { return m_silicon_seed; }
   unsigned int get_tpc_seed_index() const override { return m_tpc_seed; }
-
+  void set_silicon_seed_index(const unsigned int index) { m_silicon_seed = index; }
+  void set_tpc_seed_index(const unsigned int index) { m_tpc_seed = index; }
 
  private:
 

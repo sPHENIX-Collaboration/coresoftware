@@ -43,6 +43,30 @@ int TrackSeedTrackMapConverter::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 {
+
+
+  if(Verbosity() > 1)
+    {
+      std::cout <<"silicon seed map size " << m_siContainer->size() << std::endl;
+      for(const auto& seed : *m_siContainer)
+	{
+	  if(!seed){
+	    std::cout << "no seed..."<<std::endl;
+	    continue;
+	  }
+	  seed->identify();
+	}
+      std::cout << "tpc seed map size " << m_tpcContainer->size() << std::endl;
+      for(const auto& seed : *m_tpcContainer)
+	{
+	  if(!seed) {
+	    std::cout << "no tpc seed..." << std::endl;
+	    continue;
+	  }
+	  seed->identify();
+	}
+    }
+
   unsigned int trackid = 0;
   for(const auto& trackSeed : *m_seedContainer)
     {
@@ -58,30 +82,53 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 	}
 
       svtxtrack->set_id(trackid);
-
       trackid++;
- 
-      svtxtrack->set_x(trackSeed->get_x());
-      svtxtrack->set_y(trackSeed->get_y());
-      svtxtrack->set_z(trackSeed->get_z());
-      svtxtrack->set_charge( trackSeed->get_qOverR() > 0 ? 1 : -1);
-      svtxtrack->set_px(trackSeed->get_px(m_clusters,m_surfmaps,m_tGeometry));
-      svtxtrack->set_py(trackSeed->get_py(m_clusters,m_surfmaps,m_tGeometry));
-      svtxtrack->set_pz(trackSeed->get_pz());
 
-      for(TrackSeed::ConstClusterKeyIter iter = trackSeed->begin_cluster_keys();
-	  iter != trackSeed->end_cluster_keys();
-	  ++iter)
+      /// If we've run the track matching
+      if(m_trackSeedName.find("SvtxTrackSeed") != std::string::npos)
 	{
-	  svtxtrack->insert_cluster_key(*iter);
-	}
-      
-      if(Verbosity() > 0)
-	{
-	  std::cout << "Inserting svtxtrack into map " << std::endl;
-	  svtxtrack->identify();
-	}
+	  std::cout << "seed indices " << trackSeed->get_tpc_seed_index() << ", " << trackSeed->get_silicon_seed_index() << std::endl;
 
+	  TrackSeed *tpcseed = m_tpcContainer->get(trackSeed->get_tpc_seed_index());
+	  TrackSeed *siseed = m_siContainer->get(trackSeed->get_silicon_seed_index());
+	  if(!siseed) 
+	    {
+	      /// Didn't find a match, so just use the tpc seed
+	      std::cout <<"missing seed..."<<std::endl;
+	      siseed = m_tpcContainer->get(trackSeed->get_tpc_seed_index());
+	    }
+	  svtxtrack->set_x(siseed->get_x());
+	  svtxtrack->set_y(siseed->get_y());
+	  svtxtrack->set_z(siseed->get_z());
+	  svtxtrack->set_charge( tpcseed->get_qOverR() > 0 ? 1 : -1);
+	  svtxtrack->set_px(tpcseed->get_px(m_clusters,m_surfmaps,m_tGeometry));
+	  svtxtrack->set_py(tpcseed->get_py(m_clusters,m_surfmaps,m_tGeometry));
+	  svtxtrack->set_pz(tpcseed->get_pz());
+	  
+	  addKeys(svtxtrack, siseed);
+
+	  addKeys(svtxtrack, tpcseed);
+	  
+	}
+      else
+	{
+	  /// Otherwise we are using an individual subdetectors container
+	  svtxtrack->set_x(trackSeed->get_x());
+	  svtxtrack->set_y(trackSeed->get_y());
+	  svtxtrack->set_z(trackSeed->get_z());
+	  svtxtrack->set_charge( trackSeed->get_qOverR() > 0 ? 1 : -1);
+	  svtxtrack->set_px(trackSeed->get_px(m_clusters,m_surfmaps,m_tGeometry));
+	  svtxtrack->set_py(trackSeed->get_py(m_clusters,m_surfmaps,m_tGeometry));
+	  svtxtrack->set_pz(trackSeed->get_pz());
+	  
+	  addKeys(svtxtrack, trackSeed);
+	  
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << "Inserting svtxtrack into map " << std::endl;
+	      svtxtrack->identify();
+	    }
+	}
       m_trackMap->insert(svtxtrack.get());
 
     }
@@ -95,6 +142,17 @@ int TrackSeedTrackMapConverter::End(PHCompositeNode*)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
+void TrackSeedTrackMapConverter::addKeys(std::unique_ptr<SvtxTrack_v3>& track, TrackSeed *seed)
+{
+  for(TrackSeed::ConstClusterKeyIter iter = seed->begin_cluster_keys();
+      iter != seed->end_cluster_keys();
+      ++iter)
+    {
+      track->insert_cluster_key(*iter);
+    }
+}
+
 
 int TrackSeedTrackMapConverter::getNodes(PHCompositeNode *topNode)
 {
@@ -145,6 +203,18 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode *topNode)
       std::cout << PHWHERE << " Can't find track seed container " << m_trackSeedName << ", can't continue."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_tpcContainer = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  if(!m_tpcContainer)
+    {
+      std::cout << PHWHERE << "WARNING, TrackSeedTrackMapConverter may seg fault depending on what seeding algorithm this is run after" << std::endl;
+    }
+
+  m_siContainer = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  if(!m_siContainer)
+    {
+        std::cout << PHWHERE << "WARNING, TrackSeedTrackMapConverter may seg fault depending on what seeding algorithm this is run after" << std::endl;
     }
 
   m_clusters = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");

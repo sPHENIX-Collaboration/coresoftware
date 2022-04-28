@@ -92,6 +92,8 @@ class TrackSeed : public PHObject
   virtual ClusterKeyIter find_cluster_keys(unsigned int);
   virtual ClusterKeyIter end_cluster_keys();
 
+  virtual void set_silicon_seed_index(const unsigned int) {}
+  virtual void set_tpc_seed_index(const unsigned int) {}
   virtual unsigned int get_silicon_seed_index() const { return 0; }
   virtual unsigned int get_tpc_seed_index() const { return 0; }
 

@@ -5,9 +5,12 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
+#include <memory>
 
 class PHCompositeNode;
 class SvtxTrackMap;
+class SvtxTrack_v3;
+class TrackSeed;
 class TrackSeedContainer;
 class ActsSurfaceMaps;
 class ActsTrackingGeometry;
@@ -32,11 +35,15 @@ class TrackSeedTrackMapConverter : public SubsysReco
 
   int getNodes(PHCompositeNode *topNode);
 
+  void addKeys(std::unique_ptr<SvtxTrack_v3>& track, TrackSeed *seed);
   std::string m_trackMapName = "SvtxTrackMap";
-  std::string m_trackSeedName = "TrackSeedContainer";
+  std::string m_trackSeedName = "TpcTrackSeedContainer";
 
   SvtxTrackMap *m_trackMap = nullptr;
   TrackSeedContainer *m_seedContainer = nullptr;
+  TrackSeedContainer *m_tpcContainer = nullptr;
+  TrackSeedContainer *m_siContainer = nullptr;
+
   TrkrClusterContainer *m_clusters = nullptr;
   ActsSurfaceMaps *m_surfmaps = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
