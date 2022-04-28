@@ -137,7 +137,7 @@ int CosmicSpray::process_event(PHCompositeNode *topNode)
   
     double L = 0;
     
-    while(y1 > 0 && L < _R){
+    while(y1 > -_y_fix && L < _R){
       L += 10;
       x1 += upx * 10;
       y1 += upy * 10;
