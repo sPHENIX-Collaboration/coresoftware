@@ -20,7 +20,9 @@ class PHG4TruthInfoContainer;
 class PHG4HitContainer;
 class TrkrHitTruthAssoc;
 class TrkrClusterContainer;
+class TrkrClusterCrossingAssoc;
 class SvtxClusterEval;
+class SvtxTrack;
 
 //class SvtxHitMap;
 //class PHG4CellContainer;
@@ -79,17 +81,23 @@ void helicalTrackFit(const bool helicalTrackFit)
   /// fetch node pointers
   int GetNodes(PHCompositeNode* topNode);
 
+  /// get crossing id from intt clusters associated to track
+  /* this is a copy of the code in PHTruthSiliconAssociation */
+  std::set<short int> getInttCrossings(SvtxTrack*) const;
+
   void circleFitSeed(std::vector<TrkrDefs::cluskey> clusters,
 		     double& x, double& y, double&z,
-		       double& px, double& py, double& pz, int charge);
+		       double& px, double& py, double& pz, int charge) const;
   std::vector<Acts::Vector3> circleFitByTaubin(std::vector<TrkrDefs::cluskey>& clusters,
-						double& R, double& X0, double& Y0);
+						double& R, double& X0, double& Y0) const ;
   void findRoot(const double& R, const double& X0, const double& Y0,
-		double& x, double& y);
+		double& x, double& y) const ;
   void lineFit(std::vector<Acts::Vector3>& clusterPositions,
-	       double& A, double& B);
-  PHG4TruthInfoContainer* _g4truth_container = nullptr;
+	       double& A, double& B) const ;
+      
+  PHG4TruthInfoContainer* m_g4truth_container = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;
+  TrkrClusterCrossingAssoc *m_cluster_crossing_map = nullptr;
   PHG4HitContainer* phg4hits_tpc = nullptr;
   PHG4HitContainer* phg4hits_intt = nullptr;
   PHG4HitContainer* phg4hits_mvtx = nullptr;
