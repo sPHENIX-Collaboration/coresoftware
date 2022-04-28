@@ -255,23 +255,28 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
   
 }
 
-Eigen::Matrix<float,3,1> ActsTransformations::getGlobalPositionF(TrkrCluster* cluster,
-								 ActsSurfaceMaps* surfMaps,
-								 ActsTrackingGeometry* tGeometry) const
+Eigen::Matrix<float,3,1> ActsTransformations::getGlobalPositionF(
+  TrkrDefs:: cluskey key,       
+  TrkrCluster* cluster,
+  ActsSurfaceMaps* surfMaps,
+  ActsTrackingGeometry* tGeometry) const
 {
-  const Acts::Vector3 doublePos = getGlobalPosition(cluster,surfMaps,tGeometry);
+  const Acts::Vector3 doublePos = getGlobalPosition(key, cluster,surfMaps,tGeometry);
   return Eigen::Matrix<float,3,1>(doublePos(0), doublePos(1), doublePos(2));
 }
-Acts::Vector3 ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
-						      ActsSurfaceMaps* surfMaps,
-						      ActsTrackingGeometry *tGeometry) const
+
+Acts::Vector3 ActsTransformations::getGlobalPosition(
+  TrkrDefs:: cluskey key,       
+  TrkrCluster* cluster,
+  ActsSurfaceMaps* surfMaps,
+  ActsTrackingGeometry *tGeometry) const
 {
 
   Acts::Vector3 glob;
  
-  const auto trkrid = TrkrDefs::getTrkrId(cluster->getClusKey());
+  const auto trkrid = TrkrDefs::getTrkrId(key);
 
-  auto surface = getSurface(cluster, surfMaps);
+  auto surface = getSurface(key, cluster, surfMaps);
 
   if(!surface)
     {
@@ -319,18 +324,27 @@ Acts::Vector3 ActsTransformations::getGlobalPosition(TrkrCluster* cluster,
   return global;
 }
 
-Surface ActsTransformations::getSurface(TrkrCluster *cluster,
-					ActsSurfaceMaps *surfMaps) const
+Surface ActsTransformations::getSurface(
+  TrkrDefs:: cluskey key,       
+  TrkrCluster *cluster,
+  ActsSurfaceMaps *surfMaps) const
 {
-  const auto cluskey = cluster->getClusKey();
-  const auto surfkey = cluster->getSubSurfKey();
-  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
-  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+  const auto trkrid = TrkrDefs::getTrkrId(key);
+  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(key);
 
   switch( trkrid )
   {
-  case TrkrDefs::TrkrId::micromegasId: return getMMSurface( hitsetkey, surfMaps );
-  case TrkrDefs::TrkrId::tpcId: return getTpcSurface(hitsetkey, surfkey, surfMaps);
+    case TrkrDefs::TrkrId::micromegasId: 
+    {
+      return getMMSurface( hitsetkey, surfMaps );
+    }
+    
+    case TrkrDefs::TrkrId::tpcId: 
+    {
+      const auto surfkey = cluster->getSubSurfKey();
+      return getTpcSurface(hitsetkey, surfkey, surfMaps);
+    }
+    
     case TrkrDefs::TrkrId::mvtxId:
     case TrkrDefs::TrkrId::inttId:
     {

@@ -2,11 +2,33 @@
 
 #include "PHG4MvtxCable.h"
 #include "PHG4MvtxDefs.h"
+#include "PHG4MvtxDisplayAction.h"
 #include "PHG4MvtxServiceStructure.h"
 
-#include <boost/format.hpp>
+#include <g4main/PHG4Detector.h>
+
+#include <Geant4/G4AssemblyVolume.hh>
+#include <Geant4/G4Cons.hh>
+#include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4Material.hh>
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4String.hh>
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4AssemblyStore.hh>
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>
+#include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Types.hh>
+#include <Geant4/G4UserLimits.hh>
+
+#include <boost/format.hpp>
+
+#include <algorithm>  // for max
+#include <cmath>      // for M_PI, atan, cos, sin
+#include <cstddef>    // for NULL
+#include <iostream>   // for operator<<, basic_...
+#include <utility>    // for pair, make_pair
+
+class G4VSolid;
 
 namespace ServiceProperties
 {
@@ -20,17 +42,17 @@ namespace ServiceProperties
   float BarrelThickness = 0.436;  //Thickness in cm
   float BarrelLength = 121.24;    //Length of cylinder in cm
   float BarrelCableStart = -1. * BarrelOffset - 25.;
-  float LayerThickness = 0.1;     //
+  float LayerThickness = 0.1;  //
   float CYSSConeThickness = 0.216;
   float CYSSRibThickness = 0.170;
-  float cableRotate[3] = {10., 5., 5.}; //Rotate the cables to line up with the staves
+  float cableRotate[3] = {10., 5., 5.};  //Rotate the cables to line up with the staves
   float radToDeg = 180.0 / M_PI;
-  float degToRad = 1./radToDeg;
-}  // namespace PHG4MvtxDefs
+  float degToRad = 1. / radToDeg;
+}  // namespace ServiceProperties
 
 using namespace ServiceProperties;
 
-PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDisplayAction* dispAct, bool overlapCheck)
+PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDisplayAction *dispAct, bool overlapCheck)
   : m_DisplayAction(dispAct)
   , m_avSupport(nullptr)
   , m_avBarrelCable(nullptr)
@@ -62,15 +84,15 @@ G4Material *supportMaterial()
   G4int natoms;
   G4String symbol;
 
-  G4Material *Epoxy = new G4Material("MVTX_Epoxy$",  density = 1.56*g/cm3, natoms=4);
-  Epoxy->AddElement(PHG4Detector::GetDetectorElement("H", true), 32); // Hydrogen
-  Epoxy->AddElement(PHG4Detector::GetDetectorElement("C", true),  2); // Nitrogen
-  Epoxy->AddElement(PHG4Detector::GetDetectorElement("N", true),  4); // Oxygen
-  Epoxy->AddElement(PHG4Detector::GetDetectorElement("O", true), 15); // Carbon
+  G4Material *Epoxy = new G4Material("MVTX_Epoxy$", density = 1.56 * g / cm3, natoms = 4);
+  Epoxy->AddElement(PHG4Detector::GetDetectorElement("H", true), 32);  // Hydrogen
+  Epoxy->AddElement(PHG4Detector::GetDetectorElement("C", true), 2);   // Nitrogen
+  Epoxy->AddElement(PHG4Detector::GetDetectorElement("N", true), 4);   // Oxygen
+  Epoxy->AddElement(PHG4Detector::GetDetectorElement("O", true), 15);  // Carbon
 
-  G4Material *G4_mat = new G4Material("MVTX_CarbonFiber$",  density =  1.987*g/cm3, natoms=2);
-  G4_mat->AddMaterial(PHG4Detector::GetDetectorMaterial("G4_C"), 70*perCent);  // Carbon (NX-80-240)
-  G4_mat->AddMaterial(Epoxy, 30*perCent);  // Epoxy (EX-1515)
+  G4Material *G4_mat = new G4Material("MVTX_CarbonFiber$", density = 1.987 * g / cm3, natoms = 2);
+  G4_mat->AddMaterial(PHG4Detector::GetDetectorMaterial("G4_C"), 70 * perCent);  // Carbon (NX-80-240)
+  G4_mat->AddMaterial(Epoxy, 30 * perCent);                                      // Epoxy (EX-1515)
 
   return G4_mat;
 }
@@ -89,7 +111,7 @@ void PHG4MvtxSupport::TrackingServiceCone(PHG4MvtxServiceStructure *object, G4As
   G4RotationMatrix *rot = new G4RotationMatrix();
   rot->rotateZ(0.);
   G4ThreeVector place;
-  place.setZ((object->get_zSouth() + length/2)*cm);
+  place.setZ((object->get_zSouth() + length / 2) * cm);
 
   for (int i = 0; i < nMaterials; ++i)
   {
@@ -98,12 +120,14 @@ void PHG4MvtxSupport::TrackingServiceCone(PHG4MvtxServiceStructure *object, G4As
     outerRadiusNorth = innerRadiusNorth + thickness[i];
 
     G4Material *trackerMaterial = NULL;
-    if (materials[i] == "MVTX_CarbonFiber$") trackerMaterial = carbonFibreMaterial;
-    else trackerMaterial = PHG4Detector::GetDetectorMaterial(materials[i]);
+    if (materials[i] == "MVTX_CarbonFiber$")
+      trackerMaterial = carbonFibreMaterial;
+    else
+      trackerMaterial = PHG4Detector::GetDetectorMaterial(materials[i]);
 
     G4VSolid *coneSolid = new G4Cons(G4String(object->get_name() + "_SOLID"),
-                                     innerRadiusSouth*cm, outerRadiusSouth*cm,
-                                     innerRadiusNorth*cm, outerRadiusNorth*cm, (length/2)*cm, 0, 2*M_PI);
+                                     innerRadiusSouth * cm, outerRadiusSouth * cm,
+                                     innerRadiusNorth * cm, outerRadiusNorth * cm, (length / 2) * cm, 0, 2 * M_PI);
 
     G4LogicalVolume *coneLogic = new G4LogicalVolume(coneSolid, trackerMaterial,
                                                      G4String(object->get_name() + "_LOGIC"), 0, 0, 0);
@@ -127,19 +151,21 @@ void PHG4MvtxSupport::TrackingServiceCylinder(PHG4MvtxServiceStructure *object, 
   G4RotationMatrix *rot = new G4RotationMatrix();
   rot->rotateZ(0.);
   G4ThreeVector place;
-  place.setZ((object->get_zSouth() + length/2)*cm);
+  place.setZ((object->get_zSouth() + length / 2) * cm);
 
   for (int i = 0; i < nMaterials; ++i)
   {
     if (thickness[i] == 0) continue;
     outerRadius = innerRadius + thickness[i];
- 
+
     G4Material *trackerMaterial = NULL;
-    if (materials[i] == "MVTX_CarbonFiber$") trackerMaterial = carbonFibreMaterial;
-    else trackerMaterial = PHG4Detector::GetDetectorMaterial(materials[i]);
+    if (materials[i] == "MVTX_CarbonFiber$")
+      trackerMaterial = carbonFibreMaterial;
+    else
+      trackerMaterial = PHG4Detector::GetDetectorMaterial(materials[i]);
 
     G4VSolid *cylinderSolid = new G4Tubs(G4String(object->get_name() + "_SOLID"),
-                                         innerRadius*cm, outerRadius*cm, (length/2)*cm, 0, 2*M_PI);
+                                         innerRadius * cm, outerRadius * cm, (length / 2) * cm, 0, 2 * M_PI);
 
     G4LogicalVolume *cylinderLogic = new G4LogicalVolume(cylinderSolid, trackerMaterial,
                                                          G4String(object->get_name() + "_LOGIC"), 0, 0, 0);
@@ -160,24 +186,24 @@ void PHG4MvtxSupport::CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assem
   float dY = object->get_yNorth() - object->get_ySouth();
   float dZ = object->get_zNorth() - object->get_zSouth();
 
-  float rotY = dZ != 0. ? atan(dX/dZ) : 0.;
-  float rotZ = dX != 0. ? atan(dY/dX) : 0.;
+  float rotY = dZ != 0. ? atan(dX / dZ) : 0.;
+  float rotZ = dX != 0. ? atan(dY / dX) : 0.;
 
   float setX = (object->get_xSouth() + object->get_xNorth()) / 2;
   float setY = (object->get_ySouth() + object->get_yNorth()) / 2;
   float setZ = (object->get_zSouth() + object->get_zNorth()) / 2;
 
-  float length = sqrt(dX*dX + dY*dY + dZ*dZ);
+  float length = sqrt(dX * dX + dY * dY + dZ * dZ);
   float IR[2] = {0, object->get_coreRadius()};
   float OR[2] = {object->get_coreRadius(), object->get_sheathRadius()};
- 
+
   G4RotationMatrix rot;
   rot.rotateY(rotY);
   rot.rotateZ(rotZ);
   G4ThreeVector place;
-  place.setX(setX*cm);
-  place.setY(setY*cm);
-  place.setZ(setZ*cm);
+  place.setX(setX * cm);
+  place.setY(setY * cm);
+  place.setZ(setZ * cm);
   G4Transform3D transform(rot, place);
 
   for (int i = 0; i < 2; ++i)
@@ -185,10 +211,10 @@ void PHG4MvtxSupport::CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assem
     G4Material *trackerMaterial = PHG4Detector::GetDetectorMaterial(cableMaterials[i]);
     G4UserLimits *g4userLimits = new G4UserLimits(0.01);
 
-    G4VSolid *cylinderSolid = new G4Tubs(G4String(object->get_name() + "_SOLID"), 
-						  IR[i]*cm, OR[i]*cm, (length/2.)*cm, 0, 2*M_PI);
+    G4VSolid *cylinderSolid = new G4Tubs(G4String(object->get_name() + "_SOLID"),
+                                         IR[i] * cm, OR[i] * cm, (length / 2.) * cm, 0, 2 * M_PI);
 
-    G4LogicalVolume *cylinderLogic = new G4LogicalVolume(cylinderSolid, trackerMaterial, 
+    G4LogicalVolume *cylinderLogic = new G4LogicalVolume(cylinderSolid, trackerMaterial,
                                                          G4String(object->get_name() + "_LOGIC"), nullptr, nullptr, g4userLimits);
 
     if (i == 0)
@@ -204,9 +230,9 @@ void PHG4MvtxSupport::CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assem
   }
 }
 
-void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::string superName, 
+void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::string superName,
                                         bool enableSignal, bool enableCooling, bool enablePower,
-                                        float x1, float x2, float y1, float y2, float z1, float z2)//, float theta)
+                                        float x1, float x2, float y1, float y2, float z1, float z2)  //, float theta)
 {
   PHG4MvtxCable *cable = nullptr;
 
@@ -246,7 +272,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
         deltaX = samtecShiftX + ((iCol + 1) * (samtecSheathRadius * 2.6));
         deltaY = samtecShiftY - ((iRow + 1) * (samtecSheathRadius * 2.1));
         cable = new PHG4MvtxCable(boost::str(boost::format("%s_samtec_%d_%d") % superName.c_str() % iRow % iCol), "G4_Cu", samtecCoreRadius, samtecSheathRadius,
-                                 x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, "blue");
+                                  x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, "blue");
         CreateCable(cable, assemblyVolume);
       }
     }
@@ -262,7 +288,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
       deltaX = coolingShiftX + ((iCool + 1) * (coolingSheathRadius * 2));
       deltaY = coolingShiftY + (coolingSheathRadius * 2);
       cable = new PHG4MvtxCable(boost::str(boost::format("%s_cooling_%d") % superName.c_str() % iCool), "G4_WATER", coolingCoreRadius, coolingSheathRadius,
-                               x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, cooling_color[iCool]);
+                                x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, cooling_color[iCool]);
       CreateCable(cable, assemblyVolume);
     }
   }
@@ -315,8 +341,8 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
       if (cableName == boost::str(boost::format("%s_ground") % superName.c_str())) cableColor = "green";
 
       cable = new PHG4MvtxCable(powerCable.first.first, "G4_Cu", coreRad, sheathRad,
-                               (x1 + powerCable.second.first), (x2 + powerCable.second.first),
-                               (y1 + powerCable.second.second), (y2 + powerCable.second.second), z1, z2, cableColor);
+                                (x1 + powerCable.second.first), (x2 + powerCable.second.first),
+                                (y1 + powerCable.second.second), (y2 + powerCable.second.second), z1, z2, cableColor);
       CreateCable(cable, assemblyVolume);
     }
   }
@@ -328,7 +354,7 @@ G4AssemblyVolume *PHG4MvtxSupport::buildBarrelCable()
 {
   G4AssemblyVolume *av = new G4AssemblyVolume();
 
-  CreateCableBundle(*av, "barrelCable", true, true, true, 0, 0, 0, 0,  -1. * (BarrelLength + BarrelOffset), BarrelCableStart);
+  CreateCableBundle(*av, "barrelCable", true, true, true, 0, 0, 0, 0, -1. * (BarrelLength + BarrelOffset), BarrelCableStart);
 
   return av;
 }
@@ -391,7 +417,7 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
     totStaves += nStaves[i];
   }
 
-  std::vector<PHG4MvtxServiceStructure*> cylinders, cones;
+  std::vector<PHG4MvtxServiceStructure *> cylinders, cones;
   m_avSupport = new G4AssemblyVolume();
 
   //Service Barrel
@@ -409,16 +435,16 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_CYSS_Rib_4", 0, CYSSRibThickness, 0., -16.958, -16.196, 9.762, 0));
 
   cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_CYSS_Cylinder", 0, 0.112, 0, -8.619, 36.153, 5.15, 0));
- 
+
   //MVTX Layers
   cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L0_0", 0, LayerThickness, 0., -18.680, -16.579, 5.050, 0));
   cones.push_back(new PHG4MvtxServiceStructure("MVTX_L0_1", 0, LayerThickness, 0., -16.578, -9.186, 5.050, 2.997));
   cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L0_2", 0, LayerThickness, 0., -9.185, ServiceEnd, 2.997, 0));
-  
+
   cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L1_0", 0, LayerThickness, 0., -17.970, -15.851, 7.338, 0));
   cones.push_back(new PHG4MvtxServiceStructure("MVTX_L1_1", 0, LayerThickness, 0., -15.850, -8.938, 7.338, 3.799));
   cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L1_2", 0, LayerThickness, 0., -8.937, ServiceEnd, 3.799, 0));
-  
+
   cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L2_0", 0, LayerThickness, 0., -22.300, -15.206, 9.580, 0));
   cones.push_back(new PHG4MvtxServiceStructure("MVTX_L2_1", 0, LayerThickness, 0., -15.205, -8.538, 9.580, 4.574));
   cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L2_2", 0, LayerThickness, 0., -8.537, ServiceEnd, 4.574, 0));
@@ -428,15 +454,15 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L0", 0.005, 0., 0.066, -26.9, -18.680, 10.10, 5.050));
   cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L1", 0.004, 0., 0.061, -26.9, -18.000, 10.20, 7.338));
   cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L2", 0.004, 0., 0.058, -26.7, -22.301, 10.25, 9.580));
-  
+
   for (PHG4MvtxServiceStructure *cylinder : cylinders) TrackingServiceCylinder(cylinder, *m_avSupport);
   for (PHG4MvtxServiceStructure *cone : cones) TrackingServiceCone(cone, *m_avSupport);
-  std::vector<PHG4MvtxServiceStructure*>().swap(cylinders);
-  std::vector<PHG4MvtxServiceStructure*>().swap(cones);
+  std::vector<PHG4MvtxServiceStructure *>().swap(cylinders);
+  std::vector<PHG4MvtxServiceStructure *>().swap(cones);
 
   G4RotationMatrix rot;
   G4ThreeVector place;
-  place.setZ(ServiceOffset*cm);
+  place.setZ(ServiceOffset * cm);
   G4Transform3D transform(rot, place);
   m_avSupport->MakeImprint(lv, transform, 0, m_overlapCheck);
 
@@ -444,12 +470,12 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   G4ThreeVector placeBarrelCable;
   for (unsigned int i = 0; i < totStaves; ++i)
   {
-    float phi = (2.0*M_PI/totStaves)*i;
-    placeBarrelCable.setX((BarrelRadius - 1)*cos(phi)*cm);
-    placeBarrelCable.setY((BarrelRadius - 1)*sin(phi)*cm);
+    float phi = (2.0 * M_PI / totStaves) * i;
+    placeBarrelCable.setX((BarrelRadius - 1) * cos(phi) * cm);
+    placeBarrelCable.setY((BarrelRadius - 1) * sin(phi) * cm);
     //placeBarrelCable.setZ((-1*(BarrelLength/2 - ServiceOffset))*cm);
     G4RotationMatrix rotBarrelCable;
-    rotBarrelCable.rotateZ(phi + (-90.*degToRad));
+    rotBarrelCable.rotateZ(phi + (-90. * degToRad));
     G4Transform3D transformBarrelCable(rotBarrelCable, placeBarrelCable);
     m_avBarrelCable->MakeImprint(lv, transformBarrelCable, 0, m_overlapCheck);
   }
@@ -464,11 +490,11 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
     {
       G4RotationMatrix rotCable;
       G4ThreeVector placeCable;
-      float phi = (2.0*M_PI/nStaves[iLayer])*iStave;
-      placeCable.setX(cos(phi)*cm);
-      placeCable.setY(sin(phi)*cm);
-      placeCable.setZ((ServiceOffset)*cm);
-      rotCable.rotateZ(phi + ((-90. + cableRotate[iLayer])*degToRad));
+      float phi = (2.0 * M_PI / nStaves[iLayer]) * iStave;
+      placeCable.setX(cos(phi) * cm);
+      placeCable.setY(sin(phi) * cm);
+      placeCable.setZ((ServiceOffset) *cm);
+      rotCable.rotateZ(phi + ((-90. + cableRotate[iLayer]) * degToRad));
       G4Transform3D transformCable(rotCable, placeCable);
       if (iLayer == 0) m_avL0Cable->MakeImprint(lv, transformCable, 0, m_overlapCheck);
       if (iLayer == 1) m_avL1Cable->MakeImprint(lv, transformCable, 0, m_overlapCheck);

@@ -31,7 +31,6 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 
@@ -310,14 +309,6 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if(!_hitsets)
-    {
-      std::cerr << PHWHERE << "No hitset container on node tree. Bailing."
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
   PHG4CylinderCellGeomContainer *geom_container =
       findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
@@ -381,10 +372,10 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-Acts::Vector3 PHSimpleKFProp::getGlobalPosition( TrkrCluster* cluster ) const
+Acts::Vector3 PHSimpleKFProp::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
-  auto globalpos = m_transform.getGlobalPosition(cluster,
+  auto globalpos = m_transform.getGlobalPosition(key, cluster,
     _surfmaps,
     _tgeometry);
 
@@ -406,10 +397,9 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
     return globalPositions;
   }
 
-  auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
-  for (auto hitsetitr = hitsetrange.first; hitsetitr != hitsetrange.second; ++hitsetitr)
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
   {
-    auto range = _cluster_map->getClusters(hitsetitr->first);
+    auto range = _cluster_map->getClusters(hitsetkey);
     for (TrkrClusterContainer::ConstIterator it = range.first; it != range.second; ++it)
     {
       TrkrDefs::cluskey cluskey = it->first;
@@ -425,7 +415,7 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
         }
       }
 
-      const Acts::Vector3 globalpos_d = getGlobalPosition(cluster);
+      const Acts::Vector3 globalpos_d = getGlobalPosition( cluskey, cluster);
       const Acts::Vector3 globalpos = { (float) globalpos_d.x(), (float) globalpos_d.y(), (float) globalpos_d.z()};
       globalPositions.insert(std::make_pair(cluskey, globalpos));
 
@@ -434,7 +424,7 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
       kdhit[0] = globalpos_d.x();
       kdhit[1] = globalpos_d.y();
       kdhit[2] = globalpos_d.z();
-      uint64_t key = cluster->getClusKey();
+      uint64_t key = cluskey;
       std::memcpy(&kdhit[3], &key, sizeof(key));
     
       //      HINT: way to get original uint64_t value from double:

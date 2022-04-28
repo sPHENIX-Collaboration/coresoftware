@@ -25,8 +25,10 @@
 class TrkrCluster : public PHObject
 {
  public:
+  
   //! dtor
-  ~TrkrCluster() override {}
+  ~TrkrCluster() override = default;
+
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override
   {
@@ -47,12 +49,6 @@ class TrkrCluster : public PHObject
   virtual void CopyFrom( TrkrCluster* ) 
   {}
 
-  //
-  // cluster id
-  //
-  virtual TrkrDefs::cluskey getClusKey() const { return TrkrDefs::CLUSKEYMAX; }
-  virtual void setClusKey(TrkrDefs::cluskey) {}
- 
   //
   // cluster position
   //

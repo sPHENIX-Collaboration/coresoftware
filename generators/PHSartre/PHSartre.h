@@ -66,24 +66,24 @@ class PHSartre : public SubsysReco, public PHHepMCGenHelper
   void randomlyReverseBeams(Event *myEvent);
   void ReverseBeams(Event *myEvent);
 
-  int _eventcount;
-  int _gencount;
+  int _eventcount = 0;
+  int _gencount = 0;
 
   // event selection
   std::vector<PHSartreGenTrigger *> _registeredTriggers;
-  bool _triggersOR;
-  bool _triggersAND;
+  bool _triggersOR = true;
+  bool _triggersAND = false;
 
   std::string _configFile;
   std::vector<std::string> _commands;
 
   // Sartre
-  Sartre *_sartre;
-  EventGeneratorSettings *settings;
-  TGenPhaseSpace *decay;
-  int daughterID;
-  double daughterMasses[2];
-  bool doPerformDecay;
+  Sartre *_sartre = nullptr;
+  EventGeneratorSettings *settings = nullptr;
+  TGenPhaseSpace *decay = nullptr;
+  int daughterID = -1;
+  double daughterMasses[2] = {};
+  bool doPerformDecay = false;
 };
 
 #endif /* __PHSARTRE_H__ */

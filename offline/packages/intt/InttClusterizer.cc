@@ -1,7 +1,7 @@
 #include "InttClusterizer.h"
 #include "CylinderGeomIntt.h"
 
-#include <trackbase/TrkrClusterContainerv3.h>
+#include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
@@ -127,7 +127,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
 	dstNode->addNode(DetNode);
       }
     
-    trkrclusters = new TrkrClusterContainerv3;
+    trkrclusters = new TrkrClusterContainerv4;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
       new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);
@@ -161,7 +161,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
 	dstNode->addNode(DetNode);
       }
     
-    auto clustercrossingassoc = new TrkrClusterCrossingAssocv1();
+    auto clustercrossingassoc = new TrkrClusterCrossingAssocv1;
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(clustercrossingassoc, "TRKR_CLUSTERCROSSINGASSOC", "PHObject");
     DetNode->addNode(newNode);
   }
@@ -385,7 +385,6 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 	auto clus = std::make_unique<TrkrClusterv3>();
-	clus->setClusKey(ckey);
 
 	if (Verbosity() > 2)
 	  cout << "Filling cluster with key " << ckey << endl;
@@ -500,7 +499,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	clus->setActsLocalError(0,1, 0.);
 	clus->setActsLocalError(1,0, 0.);
 	clus->setActsLocalError(1,1, square(zerror));
-	m_clusterlist->addCluster(clus.release());
+	m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
 
       } // end loop over cluster ID's
   }  // end loop over hitsets

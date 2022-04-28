@@ -264,12 +264,13 @@ void  SvtxTruthEval::FillTruthHitsFromParticleCache(){
 
 }
 
-std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_clusters(PHG4Particle* particle)
+std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_clusters(PHG4Particle* particle)
 {
+  using output_type_t = std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> >;
   if (!has_node_pointers())
   {
     ++_errors;
-    return std::map<unsigned int, std::shared_ptr<TrkrCluster> >();
+    return output_type_t();
   }
 
   if (_strict)
@@ -279,13 +280,12 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
   else if (!particle)
   {
     ++_errors;
-    return std::map<unsigned int, std::shared_ptr<TrkrCluster> >();
+    return output_type_t();
   }
 
   if (_do_cache)
   {
-    std::map<PHG4Particle*, std::map<unsigned int, std::shared_ptr<TrkrCluster> > >::iterator iter =
-        _cache_all_truth_clusters_g4particle.find(particle);
+    const auto iter = _cache_all_truth_clusters_g4particle.find(particle);
     if (iter != _cache_all_truth_clusters_g4particle.end())
     {
       return iter->second;
@@ -299,12 +299,10 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
   std::set<PHG4Hit*> g4hits = all_truth_hits(particle);
 
   float ng4hits = g4hits.size();
-  if(ng4hits == 0)
-    return std::map<unsigned int, std::shared_ptr<TrkrCluster> >();
+  if(ng4hits == 0) return output_type_t();
 
-  // container for storing truth clusters
-  //std::map<unsigned int, TrkrCluster*> truth_clusters;
-  std::map<unsigned int, std::shared_ptr<TrkrCluster>> truth_clusters;
+  // container for storing truth clusters  //std::map<unsigned int, TrkrCluster*> truth_clusters;
+  output_type_t truth_clusters;
 
   // convert truth hits for this particle to truth clusters in each layer
   // loop over layers
@@ -365,8 +363,7 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
 	  continue;
 	}
 
-      std::shared_ptr<TrkrClusterv1> clus(new TrkrClusterv1());
-      clus->setClusKey(ckey);
+      auto clus = std::make_shared<TrkrClusterv1>();
       iclus++;
 
       // estimate cluster ADC value
@@ -401,7 +398,7 @@ std::map<unsigned int, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_truth_c
       clus->setError(1, 1, g4phisize/sqrt(12));
       clus->setError(2, 2, g4zsize/sqrt(12.0));
 
-      truth_clusters.insert(make_pair(layer, clus));
+      truth_clusters.insert(std::make_pair(ckey, clus));
 
     }  // end loop over layers for this particle
 

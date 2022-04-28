@@ -31,7 +31,6 @@ class PHField;
 class SvtxTrack;
 class SvtxTrack_v3;
 class TpcDistortionCorrectionContainer;
-class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
 class SvtxTrackMap;
@@ -96,7 +95,6 @@ class PHSimpleKFProp : public SubsysReco
 
   TrkrClusterContainer *_cluster_map = nullptr;
   SvtxTrackMap *_track_map = nullptr;
-  TrkrHitSetContainer *_hitsets = nullptr;
   PHField* _field_map = nullptr;
   
   /// acts geometry
@@ -113,7 +111,7 @@ class PHSimpleKFProp : public SubsysReco
    * uses ActsTransformation to convert cluster local position into global coordinates
    * incorporates TPC distortion correction, if present
    */
-  Acts::Vector3 getGlobalPosition(TrkrCluster*) const;
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
 
   PositionMap PrepareKDTrees();
 

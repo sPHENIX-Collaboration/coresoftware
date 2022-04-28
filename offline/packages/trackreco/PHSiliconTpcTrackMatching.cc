@@ -4,8 +4,8 @@
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
 #include <tpc/TpcDefs.h>
 #include <trackbase/TpcSeedTrackMapv1.h>     
-#include <trackbase/TrkrClusterContainerv3.h>   
 #include <trackbase/TrkrClusterv3.h>   
+#include <trackbase/TrkrClusterContainer.h>   
 #include <trackbase/TrkrClusterCrossingAssoc.h>   
 #include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -761,7 +761,7 @@ void PHSiliconTpcTrackMatching::copySiliconClustersToCorrectedMap( )
         newclus->CopyFrom( cluster );
 
         // insert in corrected map
-        _corrected_cluster_map->addCluster(newclus);
+        _corrected_cluster_map->addClusterSpecifyKey(cluster_key, newclus);
       }
     }      
   }

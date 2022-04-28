@@ -3,10 +3,10 @@
 
 #include "PHG4ParticleSvtxMap.h"
 
+#include <iostream>
 
 class PHG4ParticleSvtxMap_v1 : public PHG4ParticleSvtxMap
 {
-
  public:
   PHG4ParticleSvtxMap_v1();
   PHG4ParticleSvtxMap_v1(const PHG4ParticleSvtxMap_v1& map);
@@ -22,17 +22,22 @@ class PHG4ParticleSvtxMap_v1 : public PHG4ParticleSvtxMap
   std::size_t count(const int key) const override { return m_map.count(key); }
   void clear() override { m_map.clear(); }
 
-  const WeightedRecoTrackMap get(const int key) const override
-    { return m_map.find(key)->second; }
-  WeightedRecoTrackMap get(const int key) override
-    { return m_map.find(key)->second; }
-  WeightedRecoTrackMap insert(const int key, const WeightedRecoTrackMap map) override;   
+  const WeightedRecoTrackMap & get(const int key) const override;
+  WeightedRecoTrackMap & get(const int key) override
+  {
+    return m_map[key];
+  }
+  WeightedRecoTrackMap insert(const int key, const WeightedRecoTrackMap map) override;
   std::size_t erase(const int key) override
-    { return m_map.erase(key); }
+  {
+    return m_map.erase(key);
+  }
 
   ConstIter begin() const override { return m_map.begin(); }
-  ConstIter find(const int key) const override 
-    { return m_map.find(key); }
+  ConstIter find(const int key) const override
+  {
+    return m_map.find(key);
+  }
   ConstIter end() const override { return m_map.end(); }
 
   Iter begin() override { return m_map.begin(); }
@@ -44,6 +49,5 @@ class PHG4ParticleSvtxMap_v1 : public PHG4ParticleSvtxMap
 
   ClassDefOverride(PHG4ParticleSvtxMap_v1, 1);
 };
-
 
 #endif
