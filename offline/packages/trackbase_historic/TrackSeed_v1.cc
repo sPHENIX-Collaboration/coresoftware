@@ -48,7 +48,7 @@ void TrackSeed_v1::identify(std::ostream& os) const
   os << "(X0,Y0,Z0) = (" << m_X0 << ", " << m_Y0 << ", " << m_Z0
      << ")" << std::endl;
   os << "R and slope " << fabs(1./m_qOverR) << ", " << m_slope << std::endl;
-  os << "list of cluster keys ";
+  os << "list of cluster keys size: " << m_cluster_keys.size() << std::endl;;
   if(m_cluster_keys.size() > 0) 
     {
       for (TrackSeed::ConstClusterKeyIter iter = begin_cluster_keys();
