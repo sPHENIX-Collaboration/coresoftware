@@ -258,14 +258,14 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) con
   for(int i =0; i<6; i++)
     for(int j =0; j<6; j++)
   { cov(i,j) = track->get_acts_covariance(i, j); }
-
-  /* convert from track parameters */
-  const auto cov2 = m_transformer.rotateSvtxTrackCovToActs( track );
-  
-  // compare
-  for( int i = 0; i < cov.rows(); ++i )
-    for( int j = 0; j < cov.cols(); ++j )
-  { std::cout << "PHTpcResiduals::makeTrackParams - (" << i << ", " << j << ") cov: " << cov(i,j) << " cov2: " << cov2(i,j) << std::endl; }
+// 
+//   /* convert from track parameters */
+//   const auto cov2 = m_transformer.rotateSvtxTrackCovToActs( track );
+//   
+//   // compare
+//   for( int i = 0; i < cov.rows(); ++i )
+//     for( int j = 0; j < cov.cols(); ++j )
+//   { std::cout << "PHTpcResiduals::makeTrackParams - (" << i << ", " << j << ") cov: " << cov(i,j) << " cov2: " << cov2(i,j) << std::endl; }
   
   const Acts::Vector3 position(track->get_x() * Acts::UnitConstants::cm,
     track->get_y() * Acts::UnitConstants::cm,
