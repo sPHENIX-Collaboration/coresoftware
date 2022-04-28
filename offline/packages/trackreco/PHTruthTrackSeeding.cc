@@ -16,6 +16,7 @@
 
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/PHRandomSeed.h>
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -31,13 +32,16 @@
 #include <TDatabasePDG.h>
 #include <TParticlePDG.h>
 
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>                            // for gsl_rng_alloc
+
+#include <cassert>
 #include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, std::endl 
 #include <map>       // for multimap, map<>::c...
 #include <memory>
-#include <utility>  // for pair
-#include <cassert>
 #include <set>
+#include <utility>  // for pair
 
 class PHCompositeNode;
 
@@ -47,7 +51,12 @@ namespace
 PHTruthTrackSeeding::PHTruthTrackSeeding(const std::string& name)
   : PHTrackSeeding(name)
   , _clustereval(nullptr)
-{}
+{
+  // initialize random generator
+  const uint seed = PHRandomSeed();
+  m_rng.reset( gsl_rng_alloc(gsl_rng_mt19937) );
+  gsl_rng_set( m_rng.get(), seed );
+}
 
 int PHTruthTrackSeeding::Setup(PHCompositeNode* topNode)
 {
@@ -130,22 +139,21 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
       if( particle ) svtx_track->set_charge(particle->Charge());
     }
 
-    // Smear the truth values out by 5% so that the seed momentum and
-    // position aren't completely exact
-    
-    double random = ((double) rand() / (RAND_MAX)) * 0.05;
-    // make it negative sometimes
-    if(rand() % 2)
-      random *= -1;
-    svtx_track->set_px(g4particle->get_px() * (1 + random));
-    svtx_track->set_py(g4particle->get_py() * (1 + random));
-    svtx_track->set_pz(g4particle->get_pz() * (1 + random));
+    /* 
+     * Smear the truth values out by +/-5% 
+     * so that the seed momentum and 
+     * position aren't completely exact
+     */
+    const auto random = gsl_ran_flat(m_rng.get(), 0.95, 1.05);
+    svtx_track->set_px(g4particle->get_px() * random);
+    svtx_track->set_py(g4particle->get_py() * random);
+    svtx_track->set_pz(g4particle->get_pz() * random);
 
     // assign the track position using the truth vertex for this track
     auto g4vertex = m_g4truth_container->GetVtx(vertexID);
-    svtx_track->set_x(g4vertex->get_x() * (1 + random));
-    svtx_track->set_y(g4vertex->get_y() * (1 + random));
-    svtx_track->set_z(g4vertex->get_z() * (1 + random));
+    svtx_track->set_x(g4vertex->get_x() * random);
+    svtx_track->set_y(g4vertex->get_y() * random);
+    svtx_track->set_z(g4vertex->get_z() * random);
     
     // associate all cluster keys to the track
     for( const auto& cluskey : ClusterKeyList){
