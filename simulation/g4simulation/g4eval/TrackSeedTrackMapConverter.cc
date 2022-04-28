@@ -147,7 +147,7 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_clusters = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTERS");
+  m_clusters = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
   if(!m_clusters)
     {
       std::cout << PHWHERE << " Can't find cluster container, can't continue."

@@ -313,15 +313,16 @@ float TrackSeed_v1::get_phi(TrkrClusterContainer *clusters,
   auto nextit = m_cluster_keys.begin();
   std::advance(nextit,1);
   Acts::Vector3 pos1 = transformer.getGlobalPosition(
-						     *nextit,
-						     clusters->findCluster(*nextit),
+		       *nextit,
+		       clusters->findCluster(*nextit),
 		       surfMaps, tGeometry);
+
   /// convert to the angle of the tangent to the circle
   // we need to know if the track proceeds clockwise or CCW around the circle
   double dx0 = pos0(0) - m_X0;
-  double dy0 = pos1(1) - m_Y0;
+  double dy0 = pos0(1) - m_Y0;
   double phi0 = atan2(dy0, dx0);
-  double dx1 = pos0(0) - m_X0;
+  double dx1 = pos1(0) - m_X0;
   double dy1 = pos1(1) - m_Y0;
   double phi1 = atan2(dy1, dx1);
   double dphi = phi1 - phi0;
