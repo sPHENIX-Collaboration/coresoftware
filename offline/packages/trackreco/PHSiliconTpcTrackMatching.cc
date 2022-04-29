@@ -480,6 +480,8 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       double tpc_y = _tracklet_tpc->get_y();
       double tpc_z = _tracklet_tpc->get_z();
 
+      bool silicon_match = false;
+
       // Now search the silicon track list for a match in eta and phi
       for (auto phtrk_iter_si = _track_map_silicon->begin();
 	   phtrk_iter_si != _track_map_silicon->end(); 
@@ -538,6 +540,8 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	      tpc_matches.insert(std::make_pair(tpcid, siid));
 	      tpc_matched_set.insert(tpcid);
 
+	      silicon_match = true;
+
 	      if(Verbosity() > 1)  
 		{
 		  cout << " found a match for TPC track " << tpcid << " with Si track " << siid << endl;
@@ -553,6 +557,15 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 		     << " dx " << tpc_x - si_x << " dy " << tpc_y - si_y << " dz " << tpc_z - si_z  
 		     << endl;
 	    }
+	}
+      if(!silicon_match)
+	{
+	  /// If no match found, we still want to add a SvtxTrackSeed to 
+	  /// the new SvtxTrackSeedContainer
+	  auto newseed = std::make_unique<SvtxTrackSeed_v1>();
+	  newseed->set_tpc_seed_index(tpcid);
+	  _svtx_seed_map->insert(newseed.get());
+	    
 	}
     }
   
