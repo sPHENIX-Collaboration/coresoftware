@@ -158,8 +158,11 @@ int PHActsTrkFitter::process_event(PHCompositeNode */*topNode*/)
 
   // put this in the output file
   if(Verbosity() > 0)
-    std::cout << " SvtxTrackMap size is now " << m_trackMap->size() 
+    {
+      std::cout << " SvtxTrackMap size is now " << m_trackMap->size() 
 	      << std::endl;
+
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -170,7 +173,6 @@ int PHActsTrkFitter::ResetEvent(PHCompositeNode */*topNode*/)
   if(Verbosity() > 1)
     {
       std::cout << "Reset PHActsTrkFitter" << std::endl;
-
     }
   
   m_trajectories->clear();
@@ -207,17 +209,54 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 {
   auto logger = Acts::getDefaultLogger("PHActsTrkFitter", logLevel);
 
-  for(const auto& track: *m_seedMap)
+  for(auto trackiter = m_seedMap->begin(); trackiter != m_seedMap->end();
+      ++trackiter)
     {
+      std::cout << "iterating"<<std::endl;
+      TrackSeed *track = *trackiter;
       if(!track)
-	{ std::cout << "empty track"<<std::endl; continue; }
+	{ continue; }
+      
+      unsigned int tpcid = track->get_tpc_seed_index();
+      unsigned int siid = track->get_silicon_seed_index();
+      
+      std::cout << "tpc and si id " << tpcid << ", " << siid << std::endl;
+
+      /// A track seed is made for every tpc seed. Not every tpc seed
+      /// has a silicon match, so we have to treat these specially
+      TrackSeed *tpcseed = m_tpcSeeds->get(tpcid);
+
+      /// Need to also check that the seed wasn't removed by the ghost finder
+      if(!tpcseed)
+	{ std::cout << "no tpc seed"<<std::endl; continue; }
 
       PHTimer trackTimer("TrackTimer");
       trackTimer.stop();
       trackTimer.restart();
       ActsExamples::MeasurementContainer measurements;
-      auto sourceLinks = getSourceLinks(track, measurements);
+      std::cout << "get tpc seed sls"<<std::endl;
+      auto sourceLinks = getSourceLinks(tpcseed, measurements);
   
+      Acts::Vector3 position(0,0,0);
+      if(siid != std::numeric_limits<unsigned int>::max())
+	{
+	  if(Verbosity() > 1)
+	    { std::cout << "si seed match found" << std::endl; }
+	  TrackSeed *siseed = m_siliconSeeds->get(siid);
+	  auto siSourceLinks = getSourceLinks(siseed, measurements);
+	  for(auto& siSL : siSourceLinks)
+	    { sourceLinks.push_back(siSL); }
+	  position(0) = siseed->get_x() * Acts::UnitConstants::cm;
+	  position(1) = siseed->get_y() * Acts::UnitConstants::cm;
+	  position(2) = siseed->get_z() * Acts::UnitConstants::cm;
+	}
+      else
+	{
+	  position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
+	  position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
+	  position(2) = tpcseed->get_z() * Acts::UnitConstants::cm;
+	}
+
       if(sourceLinks.size() == 0) { continue; }
 
       /// If using directed navigation, collect surface list to navigate
@@ -235,17 +274,12 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           { return m_surfMaps->isMicromegasSurface( surface ); } ) )
         { continue; }
       }
-      
-      Acts::Vector3 momentum(track->get_px(m_clusterContainer, m_surfMaps, m_tGeometry), 
-			     track->get_py(m_clusterContainer, m_surfMaps, m_tGeometry), 
-			     track->get_pz());
 
-      // z value of track is from silicon stub, so it is independent of bunch crossing
-      // The matching code sets the values explicitly from the silicon stub
-      Acts::Vector3 position(track->get_X0() * Acts::UnitConstants::cm,
-			     track->get_Y0() * Acts::UnitConstants::cm,
-			     track->get_Z0() * Acts::UnitConstants::cm);
-
+      Acts::Vector3 momentum(
+	       tpcseed->get_px(m_clusterContainer, m_surfMaps, m_tGeometry), 
+	       tpcseed->get_py(m_clusterContainer, m_surfMaps, m_tGeometry),
+	       tpcseed->get_pz());
+ 
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 					  position);
       auto actsFourPos = Acts::Vector4(position(0), position(1),
@@ -253,7 +287,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 				       10 * Acts::UnitConstants::ns);
       Acts::BoundSymMatrix cov = setDefaultCovariance();
  
-      int charge = track->get_charge();
+      int charge = tpcseed->get_charge();
       if(m_fieldMap.find("3d") != std::string::npos)
 	{ charge *= -1; }
 
@@ -264,17 +298,17 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       for(const auto& sl : sourceLinks)
 	{ wrappedSls.push_back(std::cref(sl)); }
            
-      if(Verbosity() > 2)
-	{ printTrackSeed(track); }
-
       /// Reset the track seed with the dummy covariance
       auto seed = ActsExamples::TrackParameters::create(pSurface,
 							m_tGeometry->geoContext,
 							actsFourPos,
 							momentum,
-							charge / track->get_p(),
+							charge / momentum.norm(),
 							cov).value();
       
+      if(Verbosity() > 2)
+	{ printTrackSeed(seed); }
+
       /// Set host of propagator options for Acts to do e.g. material integration
       Acts::PropagatorPlainOptions ppPlainOptions;
       ppPlainOptions.absPdgCode = m_pHypothesis;
@@ -459,8 +493,12 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
   SourceLinkVec sourcelinks;
 
   short int crossing = track->get_crossing();
-
-  if(crossing == SHRT_MAX) return sourcelinks;
+  std::cout << "crossing : " << crossing << std::endl;
+  if(crossing == SHRT_MAX) 
+    {
+      std::cout << "returning empty sls"<<std::endl;
+      return sourcelinks;
+    }
 
   int iter = 0;
   for (TrackSeed::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
@@ -788,7 +826,6 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       std::cout << " cluster keys size " << track->size_cluster_keys() << std::endl;  
     }
 
-  
   if(!m_fitSiliconMMs)
     { track->clear_states(); }
 
@@ -920,15 +957,15 @@ Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance() const
   return cov;
 }
 
-void PHActsTrkFitter::printTrackSeed(const TrackSeed* seed) const
+void PHActsTrkFitter::printTrackSeed(const ActsExamples::TrackParameters& seed) const
 {
-  std::cout << PHWHERE << " Processing proto track with position:" 
-	    << seed->get_x() << ", " << seed->get_y() << ", " 
-	    << seed->get_z() << std::endl 
-	    << "momentum: " << seed->get_pt()
-	    << ", " << seed->get_pz() << std::endl
-	    << "charge : " << seed->get_charge()
+  std::cout << PHWHERE << " Processing proto track:"
 	    << std::endl;  
+  std::cout << "position: " << seed.position(m_tGeometry->geoContext).transpose() << std::endl
+	    << "momentum: " << seed.momentum().transpose() << std::endl;
+
+  std::cout << "charge : " << seed.charge() << std::endl;
+  std::cout << "absolutemom : " << seed.absoluteMomentum() << std::endl;
 }
     
 int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
@@ -1005,6 +1042,23 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 
 int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 {
+
+  m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  if(!m_tpcSeeds)
+    {
+      std::cout << PHWHERE << "TpcTrackSeedContainer not on node tree. Bailing"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+    m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  if(!m_siliconSeeds)
+    {
+      std::cout << PHWHERE << "SiliconTrackSeedContainer not on node tree. Bailing"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
   if(!m_surfMaps)
     {
@@ -1040,10 +1094,10 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode,"TpcTrackSeedContainer");
+  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode,"SvtxTrackSeedContainer");
   if(!m_seedMap)
     {
-      std::cout << "No TPC seed map on node tree. Exiting."
+      std::cout << "No Svtx seed map on node tree. Exiting."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }

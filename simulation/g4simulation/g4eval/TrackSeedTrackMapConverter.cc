@@ -43,8 +43,6 @@ int TrackSeedTrackMapConverter::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 {
-
-
   if(Verbosity() > 1)
     {
       std::cout <<"silicon seed map size " << m_siContainer->size() << std::endl;
@@ -82,11 +80,9 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 
       if(m_trackSeedName.find("SvtxTrackSeed") != std::string::npos)
 	{
-	  std::cout << "What "<<std::endl;
-	  std::cout << "index " << trackSeed->get_tpc_seed_index() << std::endl;
 	  /// Catches entries in the vector removed by ghost finder
 	  if(!m_tpcContainer->get(trackSeed->get_tpc_seed_index()))
-	    { std::cout << "continuing"<<std::endl; continue; }
+	    { continue; }
 	}
 
       auto svtxtrack = std::make_unique<SvtxTrack_v3>();

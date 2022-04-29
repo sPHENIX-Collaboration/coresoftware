@@ -144,7 +144,7 @@ class PHActsTrkFitter : public SubsysReco
 						       TrkrDefs::subsurfkey& subsurfkey);
 
     Acts::BoundSymMatrix setDefaultCovariance() const;
-  void printTrackSeed(const TrackSeed* seed) const;
+  void printTrackSeed(const ActsExamples::TrackParameters& seed) const;
 
   /// Event counter
   int m_event = 0;
@@ -161,6 +161,8 @@ class PHActsTrkFitter : public SubsysReco
   TrkrClusterContainer *m_clusterContainer = nullptr;
   ActsSurfaceMaps *m_surfMaps = nullptr;
   TrackSeedContainer *m_seedMap = nullptr;
+  TrackSeedContainer *m_tpcSeeds = nullptr;
+  TrackSeedContainer *m_siliconSeeds = nullptr;
   
   /// Number of acts fits that returned an error
   int m_nBadFits = 0;

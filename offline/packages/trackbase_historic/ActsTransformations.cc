@@ -2,6 +2,7 @@
 #include "SvtxTrack.h"
 #include "SvtxTrackState.h"
 #include "SvtxTrackState_v1.h"
+
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
@@ -468,7 +469,12 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory& traj,
 		  << std::endl
           << "covariance " << globalCov << std::endl; 
       }
-	  
+
+      const auto& sourcelink = static_cast<const ActsExamples::IndexSourceLink&>(state.uncalibrated());
+      const TrkrDefs::cluskey& key = sourcelink.cluskey();
+
+      svtxTrack->insert_cluster_key(key);
+
       svtxTrack->insert_state(&out);      
   
       return true;      

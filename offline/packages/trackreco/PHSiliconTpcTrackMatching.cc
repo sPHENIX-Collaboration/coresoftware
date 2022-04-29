@@ -843,6 +843,7 @@ void PHSiliconTpcTrackMatching::addTrackBunchCrossing(std::multimap<unsigned int
       short int crossing = 0;
 
        TrackSeed *tpc_track = _track_map->get(tpcid);
+       TrackSeed *si_track = _track_map_silicon->get(si_id);
        if(!tpc_track)
 	 {
 	   std::cout << PHWHERE << "Did not find track " << tpcid << std::endl;
@@ -852,6 +853,7 @@ void PHSiliconTpcTrackMatching::addTrackBunchCrossing(std::multimap<unsigned int
        if(Verbosity() > 1) 
 	 std::cout << PHWHERE << "  Add bunch crossing to track " << tpcid << " crossing " << crossing << std::endl;		  
        
+       si_track->set_crossing(crossing);
        tpc_track->set_crossing(crossing);	 
     }
 
