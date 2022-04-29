@@ -48,19 +48,25 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
   if(Verbosity() > 1)
     {
       std::cout <<"silicon seed map size " << m_siContainer->size() << std::endl;
-      for(const auto& seed : *m_siContainer)
+      for(auto iter = m_siContainer->begin(); iter != m_siContainer->end();
+	  ++iter)
 	{
+	  auto seed = *iter;
 	  if(!seed){
-	    std::cout << "no seed..."<<std::endl;
+	    std::cout << "no seed at index "<< m_siContainer->index(iter) 
+		      << std::endl;
 	    continue;
 	  }
 	  seed->identify();
 	}
       std::cout << "tpc seed map size " << m_tpcContainer->size() << std::endl;
-      for(const auto& seed : *m_tpcContainer)
+      for(auto iter = m_tpcContainer->begin(); iter != m_tpcContainer->end();
+	  ++iter)
 	{
+	  auto seed = *iter;
 	  if(!seed) {
-	    std::cout << "no tpc seed..." << std::endl;
+	    std::cout << "no tpc seed at entry " << m_tpcContainer->index(iter) 
+		      << std::endl;
 	    continue;
 	  }
 	  seed->identify();
@@ -73,12 +79,21 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
       /// If the seed was removed, skip it
       if(!trackSeed)
 	{ continue; }
+
+      if(m_trackSeedName.find("SvtxTrackSeed") != std::string::npos)
+	{
+	  std::cout << "What "<<std::endl;
+	  std::cout << "index " << trackSeed->get_tpc_seed_index() << std::endl;
+	  /// Catches entries in the vector removed by ghost finder
+	  if(!m_tpcContainer->get(trackSeed->get_tpc_seed_index()))
+	    { std::cout << "continuing"<<std::endl; continue; }
+	}
+
       auto svtxtrack = std::make_unique<SvtxTrack_v3>();
 
       if(Verbosity() > 0)
 	{
 	  std::cout << "iterating track seed " << trackid << std::endl;
-	  trackSeed->identify();
 	}
 
       svtxtrack->set_id(trackid);
@@ -87,28 +102,36 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
       /// If we've run the track matching
       if(m_trackSeedName.find("SvtxTrackSeed") != std::string::npos)
 	{
-	  std::cout << "seed indices " << trackSeed->get_tpc_seed_index() << ", " << trackSeed->get_silicon_seed_index() << std::endl;
-
-	  TrackSeed *tpcseed = m_tpcContainer->get(trackSeed->get_tpc_seed_index());
-	  TrackSeed *siseed = m_siContainer->get(trackSeed->get_silicon_seed_index());
-	  if(!siseed) 
+	  if(Verbosity() > 0)
 	    {
-	      /// Didn't find a match, so just use the tpc seed
-	      std::cout <<"missing seed..."<<std::endl;
-	      siseed = m_tpcContainer->get(trackSeed->get_tpc_seed_index());
+	      std::cout << "tpc seed id " << trackSeed->get_tpc_seed_index() <<std::endl;
+	      std::cout << "si seed id " << trackSeed->get_silicon_seed_index() << std::endl;
 	    }
-	  svtxtrack->set_x(siseed->get_x());
-	  svtxtrack->set_y(siseed->get_y());
-	  svtxtrack->set_z(siseed->get_z());
+	  TrackSeed *tpcseed = m_tpcContainer->get(trackSeed->get_tpc_seed_index());
+	  if(trackSeed->get_silicon_seed_index() == std::numeric_limits<unsigned int>::max())
+	    {      
+	      /// Didn't find a match, so just use the tpc seed
+	      svtxtrack->set_x(tpcseed->get_x());
+	      svtxtrack->set_y(tpcseed->get_y());
+	      svtxtrack->set_z(tpcseed->get_z()); 
+	    }
+	  else
+	    {
+	      TrackSeed *siseed = m_siContainer->get(trackSeed->get_silicon_seed_index());
+	      svtxtrack->set_x(siseed->get_x());
+	      svtxtrack->set_y(siseed->get_y());
+	      svtxtrack->set_z(siseed->get_z());
+	      addKeys(svtxtrack, siseed);
+	    }
+
+
 	  svtxtrack->set_charge( tpcseed->get_qOverR() > 0 ? 1 : -1);
 	  svtxtrack->set_px(tpcseed->get_px(m_clusters,m_surfmaps,m_tGeometry));
 	  svtxtrack->set_py(tpcseed->get_py(m_clusters,m_surfmaps,m_tGeometry));
 	  svtxtrack->set_pz(tpcseed->get_pz());
 	  
-	  addKeys(svtxtrack, siseed);
-
 	  addKeys(svtxtrack, tpcseed);
-	  
+
 	}
       else
 	{
@@ -122,13 +145,14 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 	  svtxtrack->set_pz(trackSeed->get_pz());
 	  
 	  addKeys(svtxtrack, trackSeed);
-	  
-	  if(Verbosity() > 0)
-	    {
-	      std::cout << "Inserting svtxtrack into map " << std::endl;
-	      svtxtrack->identify();
-	    }
 	}
+
+      if(Verbosity() > 0)
+	{
+	  std::cout << "Inserting svtxtrack into map " << std::endl;
+	  svtxtrack->identify();
+	}
+      
       m_trackMap->insert(svtxtrack.get());
 
     }
