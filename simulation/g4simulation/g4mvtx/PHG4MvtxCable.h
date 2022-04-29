@@ -2,7 +2,6 @@
 #define G4MVTX_CABLE_H
 
 #include <string>
-#include <vector>
 
 class PHG4MvtxCable
 {
@@ -10,13 +9,13 @@ class PHG4MvtxCable
   PHG4MvtxCable();
 
   explicit PHG4MvtxCable(const std::string &name,
-                 const std::string &coreMaterial,
-                 const float &coreRadius,
-                 const float &sheathRadius,
-                 const float &xSouth, const float &xNorth,
-                 const float &ySouth, const float &yNorth,
-                 const float &zSouth, const float &zNorth,
-                 const std::string &color);
+                         const std::string &coreMaterial,
+                         const float &coreRadius,
+                         const float &sheathRadius,
+                         const float &xSouth, const float &xNorth,
+                         const float &ySouth, const float &yNorth,
+                         const float &zSouth, const float &zNorth,
+                         const std::string &color);
 
   virtual ~PHG4MvtxCable(){};
 

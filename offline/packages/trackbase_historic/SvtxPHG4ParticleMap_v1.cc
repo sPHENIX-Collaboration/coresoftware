@@ -54,3 +54,16 @@ SvtxPHG4ParticleMap::WeightedTruthTrackMap SvtxPHG4ParticleMap_v1::insert(const 
   m_map.insert(std::make_pair(key, map)); 
   return map;
 }
+
+const SvtxPHG4ParticleMap::WeightedTruthTrackMap & SvtxPHG4ParticleMap_v1::get(const unsigned int key) const
+{
+  const auto iter = m_map.find(key);
+  if (iter == m_map.end())
+  {
+    return SvtxPHG4ParticleMap::get(key);
+  }
+  else
+  {
+    return iter->second;
+  }
+}

@@ -13,6 +13,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <string>  // for string
 #include <vector>
+#include <gsl/gsl_rng.h>
 
 // forward declarations
 class PHCompositeNode;
@@ -20,10 +21,9 @@ class PHG4TruthInfoContainer;
 class PHG4HitContainer;
 class TrkrHitTruthAssoc;
 class TrkrClusterContainer;
+class TrkrClusterCrossingAssoc;
 class SvtxClusterEval;
-
-//class SvtxHitMap;
-//class PHG4CellContainer;
+class TrackSeed;
 
 /// \class PHTruthTrackSeeding
 ///
@@ -78,8 +78,15 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   /// fetch node pointers
   int GetNodes(PHCompositeNode* topNode);
 
-  PHG4TruthInfoContainer* _g4truth_container = nullptr;
+
+  PHG4TruthInfoContainer* m_g4truth_container = nullptr;
+
+  /// get crossing id from intt clusters associated to track
+  /* this is a copy of the code in PHTruthSiliconAssociation */
+  std::set<short int> getInttCrossings(TrackSeed*) const;
+
   TrkrClusterContainer *m_clusterMap = nullptr;
+  TrkrClusterCrossingAssoc *m_cluster_crossing_map = nullptr;
   PHG4HitContainer* phg4hits_tpc = nullptr;
   PHG4HitContainer* phg4hits_intt = nullptr;
   PHG4HitContainer* phg4hits_mvtx = nullptr;
@@ -97,6 +104,18 @@ class PHTruthTrackSeeding : public PHTrackSeeding
 
   ActsTrackingGeometry *tgeometry = nullptr;
   ActsSurfaceMaps *surfmaps = nullptr;
+
+  //! rng de-allocator
+  class Deleter
+  {
+    public:
+    //! deletion operator
+    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+  };
+
+  //! random generator that conform with sPHENIX standard
+  /*! using a unique_ptr with custom Deleter ensures that the structure is properly freed when parent object is destroyed */
+  std::unique_ptr<gsl_rng, Deleter> m_rng;
 
 };
 
