@@ -26,6 +26,7 @@
 //#include <math.h>
 #include <array>
 #include <random>
+#include <functional>
 
 //! Fast generation of random numbers
 //! This class is based on the xoroshiro128+ generator.
@@ -36,8 +37,8 @@ public:
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<uint64_t> dis(0, std::numeric_limits<uint64_t>::max());
-    s[0] = dis(gen);
-    s[1] = dis(gen);
+    s[0] = 12345.; //dis(gen);
+    s[1] = 12345; //dis(gen);
   };
 
   void SetSeed(uint64_t seed) {
@@ -282,7 +283,7 @@ private:
   double mCylinderRadius;
   std::array<double, 3> mCylinderCenterPosition;
   double mHSphereRadius;
-  double mMaxFuncSkyCylinder;
+//  double mMaxFuncSkyCylinder;
   std::array<double, 3> mHSphereCenterPosition;
   EMRandom mRandom;
   std::default_random_engine mEngineC;
@@ -303,7 +304,7 @@ public:
   mJPrime(0.), mN(0.), mRandAccRej(0.), mPhi0(0.), mTheta0(0.), mAccepted(false),
   mSkySize({{0., 0.}}), mSkyCenterPosition({{0., 0., 0.}}), mCylinderHeight(0.),
   mCylinderRadius(0.), mCylinderCenterPosition({{0., 0., 0.}}), mHSphereRadius(0.),
-  mMaxFuncSkyCylinder(5.3176), mHSphereCenterPosition({{0., 0., 0.}}),
+    /* mMaxFuncSkyCylinder(5.3176), */ mHSphereCenterPosition({{0., 0., 0.}}),
   mEngineC(std::random_device{}()) {
     mDiscDistC = std::discrete_distribution<int>({128, 100});
     mMaxJ = {-1., -1., -1.};

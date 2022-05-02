@@ -2,14 +2,16 @@
 // Author: Daniel Lis
 // Brief: Particel generator Class that sources a muon with a vertex and momentum that should mimic real life
 // modified by Shuhang on 03/2022: now this class serves as a wrapper class that drives "EcoMug" 
+
 #include "CosmicSpray.h"
 #include "EcoMug.h"
-#include <g4main/PHG4InEvent.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Particlev2.h>
-#include <g4main/PHG4Utils.h>
-#include <g4main/PHG4ParticleGeneratorBase.h>
+
+#include "PHG4InEvent.h"
+#include "PHG4Particle.h"
+#include "PHG4Particlev2.h"
+
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>      // for PHDataNode
@@ -17,43 +19,10 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>  // for PHWHERE
 
-#include <iostream>
-#include <TSystem.h>
-#include "TROOT.h"
-#include "TF3.h"
-#include "TMath.h"
-#include "TRandom.h"
-#include "TVector3.h"
-#include <cassert>
+#include <array>                         // for array
 #include <cmath>
-#include <cstdlib>
 #include <iostream>  // for operator<<, endl, basic_ostream
-#include <memory>    // for allocator_traits<>::value_type
-
-#include <vector>  // for vector, vector<>::const_iterator
-
-// Declarations
-// fixes y plane of cosmic spray here
-double CosmicSpray::_y_fix;
-// max and min for x spray plane geoemtry
-double CosmicSpray::_x_max;
-double CosmicSpray::_x_min;
-// max and min for z spray plane geometry
-double CosmicSpray::_z_max;
-double CosmicSpray::_z_min;
-// gun energy
-double CosmicSpray::_gun_e;
-
-
-
-
-
-class PHCompositeNode;
-class PHG4Particle;
-class PHG4ParticleGeneratorBase;
-
 
 bool CosmicSpray::InDetector(double x, double y, double z){
   double gap = 5;
@@ -67,8 +36,8 @@ bool CosmicSpray::InDetector(double x, double y, double z){
 }
 
 
-CosmicSpray::CosmicSpray(const std::string &name = "COSMICS", const double R = 650, const int &debug = 0)
-  : PHG4ParticleGeneratorBase(name)
+CosmicSpray::CosmicSpray(const std::string &name, const double R, const int &debug)
+  : SubsysReco(name)
 {
   _x_max = 264.71;
   _x_min = 183.3;
@@ -87,6 +56,21 @@ CosmicSpray::CosmicSpray(const std::string &name = "COSMICS", const double R = 6
   return;
 }
 
+int CosmicSpray::InitRun(PHCompositeNode *topNode)
+{
+  PHG4InEvent *inevent = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
+  if (!inevent)
+  {
+    PHNodeIterator iter(topNode);
+    PHCompositeNode *dstNode;
+    dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+
+    inevent = new PHG4InEvent();
+    PHDataNode<PHObject> *newNode = new PHDataNode<PHObject>(inevent, "PHG4INEVENT", "PHObject");
+    dstNode->addNode(newNode);
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
 
 int CosmicSpray::process_event(PHCompositeNode *topNode)
@@ -155,9 +139,9 @@ int CosmicSpray::process_event(PHCompositeNode *topNode)
   if(_debug) std::cout<<"Momentum: "<<gun_px<<" / "<<gun_py<<" / "<<gun_pz<<std::endl;
   if(_debug)std::cout<<"total mom: "<<_gun_e<<std::endl;
   if(_debug)std::cout<<"Before adding vertex"<<std::endl;
-  _InEvent = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
+  PHG4InEvent *inevent = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
 
-  int vtxindex = _InEvent->AddVtx(gun_x, gun_y ,gun_z,gun_t);
+  int vtxindex = inevent->AddVtx(gun_x, gun_y ,gun_z,gun_t);
   if(_debug)std::cout<<"After adding vertex"<<std::endl;
 
   PHG4Particle *particle = new PHG4Particlev2();
@@ -180,7 +164,7 @@ int CosmicSpray::process_event(PHCompositeNode *topNode)
   particle->set_e(_gun_e);
   if(_debug)std::cout<<"ene"<<std::endl;
 
-  _InEvent->AddParticle(vtxindex, particle);
+  inevent->AddParticle(vtxindex, particle);
   if(_debug)std::cout<<"left COSMICS"<<std::endl;
 
   return 0;
