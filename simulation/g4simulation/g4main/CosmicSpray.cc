@@ -3,6 +3,8 @@
 // Brief: Particel generator Class that sources a muon with a vertex and momentum that should mimic real life
 // modified by Shuhang on 03/2022: now this class serves as a wrapper class that drives "EcoMug"
 
+//For the muon rate calculation, if using the default setting: time(second) = nevents * 1.434e-4, then scale the histogram by 1/time to get the rate.
+
 #include "CosmicSpray.h"
 #include "EcoMug.h"
 
@@ -38,7 +40,7 @@ bool CosmicSpray::InDetector(double x, double y, double z)
   return true;
 }
 
-CosmicSpray::CosmicSpray(const std::string &name, const double R, const int &debug)
+CosmicSpray::CosmicSpray(const std::string &name, const double R)
   : SubsysReco(name)
 {
   _x_max = 264.71;
@@ -53,7 +55,6 @@ CosmicSpray::CosmicSpray(const std::string &name, const double R, const int &deb
   gen.SetHSphereRadius(R / 100);  // half-sphere radius
   gen.SetHSphereCenterPosition({{0., 0., -_y_fix / 100}});
   gen.SetMinimumMomentum(0.5);
-  _debug = debug;
   _R = R;
   return;
 }
@@ -77,7 +78,7 @@ int CosmicSpray::InitRun(PHCompositeNode *topNode)
 int CosmicSpray::process_event(PHCompositeNode *topNode)
 {
   // set_vertex
-  if (_debug) std::cout << "Processing Event" << std::endl;
+  if (Verbosity() > 0) std::cout << "Processing Event" << std::endl;
   std::string pdgname = "mu-";
   int pdgcode = 13;
   int trackid = 0;
@@ -138,36 +139,28 @@ int CosmicSpray::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (_debug) std::cout << "Momentum: " << gun_px << " / " << gun_py << " / " << gun_pz << std::endl;
-  if (_debug) std::cout << "total mom: " << _gun_e << std::endl;
-  if (_debug) std::cout << "Before adding vertex" << std::endl;
   PHG4InEvent *inevent = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
-
   int vtxindex = inevent->AddVtx(gun_x, gun_y, gun_z, gun_t);
-  if (_debug) std::cout << "After adding vertex" << std::endl;
-
+  
   PHG4Particle *particle = new PHG4Particlev2();
   particle->set_track_id(trackid);
-  if (_debug) std::cout << "track_id: " << trackid << std::endl;
   particle->set_vtx_id(vtxindex);
-  if (_debug) std::cout << "vtxindex: " << vtxindex << std::endl;
   particle->set_parent_id(0);
-  if (_debug) std::cout << "parent_id " << std::endl;
   particle->set_name(pdgname);
-  if (_debug) std::cout << "pdgname: " << pdgname << std::endl;
   particle->set_pid(pdgcode);
-  if (_debug) std::cout << "pdgcode: " << pdgcode << std::endl;
   particle->set_px(gun_px);
-  if (_debug) std::cout << "px" << std::endl;
   particle->set_py(gun_py);
-  if (_debug) std::cout << "py" << std::endl;
   particle->set_pz(gun_pz);
-  if (_debug) std::cout << "pz" << std::endl;
   particle->set_e(_gun_e);
-  if (_debug) std::cout << "ene" << std::endl;
-
   inevent->AddParticle(vtxindex, particle);
-  if (_debug) std::cout << "left COSMICS" << std::endl;
-
+  if (Verbosity() > 0)
+  {
+    std::cout << "Momentum: " << gun_px << " / " << gun_py << " / " << gun_pz << std::endl;
+    std::cout << "total mom: " << _gun_e << std::endl;
+    std::cout << "track_id: " << trackid << std::endl;
+    std::cout << "vtxindex: " << vtxindex << std::endl;
+    std::cout << "pdgname: " << pdgname << std::endl;
+    std::cout << "pdgcode: " << pdgcode << std::endl;
+  }
   return 0;
 }

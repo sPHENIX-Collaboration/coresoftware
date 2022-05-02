@@ -17,7 +17,7 @@ class CosmicSpray : public SubsysReco
 {
  public:
   bool InDetector(double x, double y, double z);
-  CosmicSpray(const std::string &name = "COSMICS", const double R = 650, const int &debug = 0);
+  CosmicSpray(const std::string &name = "COSMICS", const double R = 650);
   ~CosmicSpray() override {}
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -32,7 +32,6 @@ class CosmicSpray : public SubsysReco
   double _z_max = NAN;
   double _y_fix = NAN;
 
-  int _debug = 0;
   double _R = NAN;
 };
 #endif
