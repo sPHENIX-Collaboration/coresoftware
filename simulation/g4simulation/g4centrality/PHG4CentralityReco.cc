@@ -56,7 +56,7 @@ int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
     if (Verbosity() >= 1 ) {
       std::cout << "PHG4CentralityReco::InitRun : Centrality calibration description : " << std::endl << "    ";
       std::cout << _centrality_calibration_params.get_string_param("description") << std::endl;
-
+    }
       // search for possible centile definitions
       for (int n = 0; n < 101; n++) {
 	std::ostringstream s1; s1 << "epd_centile_" << n;
@@ -81,7 +81,7 @@ int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
 	  if (Verbosity() >= 2 ) 
 	    std::cout << "PHG4CentralityReco::InitRun : b (impact parameter) centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param( s3.str().c_str() ) << std::endl;
 	}
-      }
+      
 
     }
   } else {
@@ -95,7 +95,6 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
 {
 
   _bimp = 101;
-  
   auto event_header = findNode::getClass<EventHeaderv1>(topNode, "EventHeader" );
   if ( event_header ) {
     _bimp = event_header->get_floatval("bimp");
