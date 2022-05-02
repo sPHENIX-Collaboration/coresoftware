@@ -3,42 +3,36 @@
 #ifndef G4MAIN_COSMICSPRAY_H
 #define G4MAIN_COSMICSPRAY_H
 
-#include <g4main/PHG4ParticleGeneratorBase.h>
+#include "EcoMug.h"
+
+#include <fun4all/SubsysReco.h>
 
 #include <cmath>
-#include <map>
-#include <string>   // for string
-#include <utility>  // for pair
-#include <vector>
-#include "TF3.h"
-#include <g4main/PHG4InEvent.h>
-#include "EcoMug.h"
-class PHG4InEvent;
+#include <string>  // for string
+
 class PHCompositeNode;
 
-class CosmicSpray : public PHG4ParticleGeneratorBase
+//class CosmicSpray : public PHG4ParticleGeneratorBase
+class CosmicSpray : public SubsysReco
 {
-public:
+ public:
   bool InDetector(double x, double y, double z);
-  CosmicSpray(const std::string &name, const double R, const int &debug);
+  CosmicSpray(const std::string &name = "COSMICS", const double R = 650, const int &debug = 0);
   ~CosmicSpray() override {}
+  int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  
+
  private:
+  EcoMug gen;
 
- EcoMug gen;
- 
-  static double _gun_e;
-  static double _x_min;
-  static double _x_max;
-  static double _z_min;
-  static double _z_max;
-  static double _y_fix;
-  
-  int _debug;
-  double _R;
+  double _gun_e = NAN;
+  double _x_min = NAN;
+  double _x_max = NAN;
+  double _z_min = NAN;
+  double _z_max = NAN;
+  double _y_fix = NAN;
 
-  PHG4InEvent *_InEvent = nullptr;
- 
+  int _debug = 0;
+  double _R = NAN;
 };
 #endif
