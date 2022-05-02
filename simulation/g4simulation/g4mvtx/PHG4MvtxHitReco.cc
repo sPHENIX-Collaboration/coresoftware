@@ -33,6 +33,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <G4SystemOfUnits.hh>  // for microsecond
+
 #include <TVector3.h>  // for TVector3, ope...
 
 #include <cmath>
@@ -42,16 +44,15 @@
 #include <memory>  // for allocator_tra...
 #include <vector>  // for vector
 
-using namespace std;
 
-PHG4MvtxHitReco::PHG4MvtxHitReco(const string &name, const std::string& detector)
+PHG4MvtxHitReco::PHG4MvtxHitReco(const std::string& name, const std::string& detector)
   : SubsysReco(name)
   , PHParameterInterface(name)
   , m_detector(detector)
 {
 
-  if (Verbosity() > 0)
-    cout << "Creating PHG4MvtxHitReco for detector = " << detector << endl;
+  if (Verbosity())
+    std::cout << "Creating PHG4MvtxHitReco for detector = " << detector << std::endl;
 
   // initialize rng
   const uint seed = PHRandomSeed();
@@ -61,13 +62,16 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const string &name, const std::string& detector
   InitializeParameters();
 }
 
-int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
+int PHG4MvtxHitReco::InitRun(PHCompositeNode* topNode)
 {
 
   UpdateParametersWithMacro();
 
   m_tmin = get_double_param("mvtx_tmin");
   m_tmax = get_double_param("mvtx_tmax");
+  m_strobe_width = get_double_param("mvtx_strobe_width");
+  m_strobe_separation = get_double_param("mvtx_strobe_separation");
+  m_in_sphenix_srdo = (bool)get_int_param("mvtx_in_sphenix_srdo");
 
   // printout
   if (Verbosity())
@@ -75,6 +79,9 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
     std::cout
       << "PHG4MvtxHitReco::InitRun\n"
       << " m_tmin: " << m_tmin << "ns, m_tmax: " << m_tmax << "ns\n"
+      << " m_strobe_width: " << m_strobe_width << "\n"
+      << " m_strobe_separation: " << m_strobe_separation << "\n"
+      << " m_in_sphenix_srdo: " << (m_in_sphenix_srdo ? "true" : "false") << "\n"
       << std::endl;
   }
 
@@ -134,7 +141,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
+int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
 {
   //cout << PHWHERE << "Entering process_event for PHG4MvtxHitReco" << endl;
   ActsGeometry *tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
@@ -162,6 +169,15 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
   auto hitTruthAssoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
   assert(hitTruthAssoc);
 
+  // Generate strobe zero relative to trigger time
+  double strobe_zero_tm_start = generate_strobe_zero_tm_start();
+
+  m_tmin = (! m_in_sphenix_srdo) ? -1. * ( m_strobe_width + m_strobe_separation ) : m_tmin;
+  m_tmin += strobe_zero_tm_start;
+
+  m_tmax = (! m_in_sphenix_srdo) ? ( m_strobe_width + m_strobe_separation ) : m_tmax;
+  m_tmax += strobe_zero_tm_start;
+
   // loop over all of the layers in the g4hit container
   auto layer_range = g4hitContainer->getLayers();
   for (auto layer_it = layer_range.first; layer_it != layer_range.second; ++layer_it)
@@ -171,7 +187,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
     assert(layer < 3);
 
     // we need the geometry object for this layer
-    auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geoNode->GetLayerGeom(layer));
+    auto layergeom = dynamic_cast<CylinderGeom_Mvtx*>(geoNode->GetLayerGeom(layer));
     assert(layergeom);
 
     // loop over the hits in this layer
@@ -186,7 +202,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
     int maxNZ = layergeom->get_NZ();
 
     // Now loop over all g4 hits for this layer
-    for ( auto g4hit_it = g4hit_range.first; g4hit_it != g4hit_range.second; ++g4hit_it)
+    for (auto g4hit_it = g4hit_range.first; g4hit_it != g4hit_range.second; ++g4hit_it)
     {
       // get hit
       auto g4hit = g4hit_it->second;
@@ -195,18 +211,36 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       if (Verbosity() > 4)
         g4hit->print();
 
-      if (Verbosity() > 1)
-        cout << " layer " << layer << " t0 " << g4hit->get_t(0) << " t1 " << g4hit->get_t(1)
-             << " m_tmin " << m_tmin << " tmax " << m_tmax
-             << endl;
+      unsigned int n_replica = 1;
 
-      if (g4hit->get_t(0) > m_tmax) continue;
-      if (g4hit->get_t(1) < m_tmin) continue;
-      double hit_time = (g4hit->get_t(0) + g4hit->get_t(1)) / 2.0;
-      int strobe = (int) round(hit_time / 5000.0);  // assume 5 microseconds cycle time temporarily
-      // to fit in a 5 bit field in the hitsetkey
-      if(strobe < -16) strobe = -16;
-      if(strobe >= 16) strobe = 15;
+      //Function returns ns
+      std::pair<double, double> alpide_pulse = generate_alpide_pulse(g4hit->get_edep());
+
+      double lead_edge = g4hit->get_t(0) * ns + alpide_pulse.first;
+      double fall_edge = g4hit->get_t(1) * ns + alpide_pulse.second;
+
+      if (lead_edge > m_tmax or fall_edge < m_tmin) continue;
+
+      double t0_strobe_frame = get_strobe_frame(lead_edge, strobe_zero_tm_start);
+      double t1_strobe_frame = get_strobe_frame(fall_edge, strobe_zero_tm_start);
+      n_replica += t1_strobe_frame - t0_strobe_frame;
+      assert(n_replica >= 1);
+
+      if (Verbosity() > 1)
+      {
+        std::cout
+          << "MVTX is in strobed timing mode\n"
+          << "layer " << layer << " t0(ns) " << g4hit->get_t(0) << " t1(ns) " << g4hit->get_t(1) << "\n"
+          << "strobe_zero_tm_start(us): " << strobe_zero_tm_start/microsecond << "\n"
+          << "strobe width(us): " << m_strobe_width/microsecond << "\n"
+          << "strobe separation(us): " << m_strobe_separation/microsecond << "\n"
+          << "alpide pulse start(us): " << alpide_pulse.first/microsecond << "\n"
+          << "alpide pulse end(us): " << alpide_pulse.second/microsecond << "\n"
+          << "tm_zero_strobe_frame: " << t0_strobe_frame << "\n"
+          << "tm_one_strobe_frame: " << t1_strobe_frame << "\n"
+          << "number of hit replica: " << n_replica << "\n"
+          << std::endl;
+      }
 
       // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
       int stave_number = g4hit->get_property_int(PHG4Hit::prop_stave_index);
@@ -216,63 +250,74 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
       TVector3 local_in(g4hit->get_local_x(0), g4hit->get_local_y(0), g4hit->get_local_z(0));
       TVector3 local_out(g4hit->get_local_x(1), g4hit->get_local_y(1), g4hit->get_local_z(1));
-      TVector3 midpoint((local_in.X() + local_out.X()) / 2.0, (local_in.Y() + local_out.Y()) / 2.0, (local_in.Z() + local_out.Z()) / 2.0);
+      TVector3 midpoint((local_in.X() + local_out.X()) / 2.0
+          , (local_in.Y() + local_out.Y()) / 2.0
+          , (local_in.Z() + local_out.Z()) / 2.0
+      );
 
       if (Verbosity() > 2)
       {
         std::cout
-          << " world entry point position: " << g4hit->get_x(0) << " " << g4hit->get_y(0) << " " << g4hit->get_z(0) << "\n"
-          << " world exit  point position: " << g4hit->get_x(1) << " " << g4hit->get_y(1) << " " << g4hit->get_z(1) << "\n"
-          << " local coords of entry point from G4 " << g4hit->get_local_x(0) << " " << g4hit->get_local_y(0) << " " << g4hit->get_local_z(0) << "\n"
+          << " world entry point position: "
+          << g4hit->get_x(0) << " " << g4hit->get_y(0) << " " << g4hit->get_z(0) << "\n"
+          << " world exit  point position: "
+          << g4hit->get_x(1) << " " << g4hit->get_y(1) << " " << g4hit->get_z(1) << "\n"
+          << " local coords of entry point from G4 "
+          << g4hit->get_local_x(0) << " " << g4hit->get_local_y(0) << " " << g4hit->get_local_z(0)
           << std::endl;
 
         TVector3 world_in(g4hit->get_x(0), g4hit->get_y(0), g4hit->get_z(0));
-        TVector3 local_in_check = layergeom->get_local_from_world_coords(stave_number, half_stave_number, module_number, chip_number, world_in);
+        TVector3 local_in_check = layergeom->get_local_from_world_coords(
+            stave_number, half_stave_number, module_number, chip_number, world_in);
 
         std::cout
-          << " local coords of entry point from geom (a check) " << local_in_check.X() << " " << local_in_check.Y() << " " << local_in_check.Z() << "\n"
-          << " local coords of exit point from G4 " << g4hit->get_local_x(1) << " " << g4hit->get_local_y(1) << " " << g4hit->get_local_z(1) << "\n"
-          << " local coords of exit point from geom (a check) " << local_out.X() << " " << local_out.Y() << " " << local_out.Z() << "\n"
+          << " local coords of entry point from geom (a check) "
+          << local_in_check.X() << " " << local_in_check.Y() << " " << local_in_check.Z() << "\n"
+          << " local coords of exit point from G4 "
+          << g4hit->get_local_x(1) << " " << g4hit->get_local_y(1) << " " << g4hit->get_local_z(1)
+          << "\n"
+          << " local coords of exit point from geom (a check) "
+          << local_out.X() << " " << local_out.Y() << " " << local_out.Z()
           << std::endl;
       }
-
-      if (Verbosity() > 2)
+/*
+      if (Verbosity() > 4)
       {
         // As a check, get the positions of the hit pixels in world coordinates from the geo object
-	auto hskey = MvtxDefs::genHitSetKey(*layer,stave_number,chip_number,strobe);
-	auto surf = tgeometry->maps().getSiliconSurface(hskey);
+	      auto hskey = MvtxDefs::genHitSetKey(*layer,stave_number,chip_number,strobe);
+	      auto surf = tgeometry->maps().getSiliconSurface(hskey);
 
         TVector3 location_in = layergeom->get_world_from_local_coords(surf,tgeometry, local_in);
         TVector3 location_out = layergeom->get_world_from_local_coords(surf,tgeometry, local_out);
 
-        cout << endl
-             << "      PHG4MvtxHitReco:  Found world entry location from geometry for  "
-             << " stave number " << stave_number
-             << " half stave number " << half_stave_number
-             << " module number " << module_number
-             << " chip number " << chip_number
-             << endl
-             << " x = " << location_in.X()
-             << " y = " << location_in.Y()
-             << " z = " << location_in.Z()
-             << " radius " << sqrt(pow(location_in.X(), 2) + pow(location_in.Y(), 2))
-             << " angle " << atan(location_in.Y() / location_in.X())
-             << endl;
-        cout << "     PHG4MvtxHitReco: The world entry location from G4 was "
-             << endl
-             << " x = " << g4hit->get_x(0)
-             << " y = " << g4hit->get_y(0)
-             << " z = " << g4hit->get_z(0)
-             << " radius " << sqrt(pow(g4hit->get_x(0), 2) + pow(g4hit->get_y(0), 2))
-             << " angle " << atan(g4hit->get_y(0) / g4hit->get_x(0))
-             << endl;
-        cout << " difference in x = " << g4hit->get_x(0) - location_in.X()
-             << " difference in y = " << g4hit->get_y(0) - location_in.Y()
-             << " difference in z = " << g4hit->get_z(0) - location_in.Z()
-             << " difference in radius = " << sqrt(pow(g4hit->get_x(0), 2) + pow(g4hit->get_y(0), 2)) - sqrt(pow(location_in.X(), 2) + pow(location_in.Y(), 2))
-             << " in angle = " << atan(g4hit->get_y(0) / g4hit->get_x(0)) - atan(location_in.Y() / location_in.X())
-             << endl
-             << endl;
+        std::cout
+          << std::endl
+          << "      PHG4MvtxHitReco:  Found world entry location from geometry for  "
+          << " stave number " << stave_number
+          << " half stave number " << half_stave_number
+          << " module number " << module_number
+          << " chip number " << chip_number
+          << std::endl
+          << " x = " << location_in.X()
+          << " y = " << location_in.Y()
+          << " z = " << location_in.Z()
+          << " radius " << sqrt(pow(location_in.X(), 2) + pow(location_in.Y(), 2))
+          << " angle " << atan(location_in.Y() / location_in.X())
+          << std::endl;
+          << "     PHG4MvtxHitReco: The world entry location from G4 was "
+          << " x = " << g4hit->get_x(0)
+          << " y = " << g4hit->get_y(0)
+          << " z = " << g4hit->get_z(0)
+          << " radius " << sqrt(pow(g4hit->get_x(0), 2) + pow(g4hit->get_y(0), 2))
+          << " angle " << atan(g4hit->get_y(0) / g4hit->get_x(0))
+          << std::endl;
+          << " difference in x = " << g4hit->get_x(0) - location_in.X()
+          << " difference in y = " << g4hit->get_y(0) - location_in.Y()
+          << " difference in z = " << g4hit->get_z(0) - location_in.Z()
+          << " difference in radius = "
+          << sqrt(pow(g4hit->get_x(0), 2) + pow(g4hit->get_y(0), 2)) - sqrt(pow(location_in.X(), 2) + pow(location_in.Y(), 2))
+          << " in angle = " << atan(g4hit->get_y(0) / g4hit->get_x(0)) - atan(location_in.Y() / location_in.X())
+          << std::endl;
 
         cout << "      PHG4MvtxHitReco:  Found world exit location from geometry for  "
              << " stave number " << stave_number
@@ -298,7 +343,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
              << endl
              << endl;
       }
-
+*/
       // Get the pixel number of the entry location
       int pixel_number_in = layergeom->get_pixel_from_local_coords(local_in);
       // Get the pixel number of the exit location
@@ -306,21 +351,28 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
       if (pixel_number_in < 0 || pixel_number_out < 0)
       {
-        cout << "Oops!  got negative pixel number in layer " << layergeom->get_layer()
-             << " pixel_number_in " << pixel_number_in
-             << " pixel_number_out " << pixel_number_out
-             << " local_in = " << local_in.X() << " " << local_in.Y() << " " << local_in.Z()
-             << " local_out = " << local_out.X() << " " << local_out.Y() << " " << local_out.Z()
-             << endl;
+        std::cout
+          << "Oops!  got negative pixel number in layer " << layergeom->get_layer()
+          << " pixel_number_in " << pixel_number_in
+          << " pixel_number_out " << pixel_number_out
+          << " local_in = " << local_in.X() << " " << local_in.Y() << " " << local_in.Z()
+          << " local_out = " << local_out.X() << " " << local_out.Y() << " " << local_out.Z()
+          << std::endl;
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
 
-      if (Verbosity() > 0)
-        cout << "entry pixel number " << pixel_number_in << " exit pixel number " << pixel_number_out << endl;
+      if (Verbosity() > 3)
+      {
+        std::cout
+          << "entry pixel number " << pixel_number_in
+          << " exit pixel number " << pixel_number_out
+          << std::endl;
+      }
 
-      vector<int> vpixel;
-      vector<int> vxbin;
-      vector<int> vzbin;
-      vector<pair<double, double> > venergy;
+      std::vector<int> vpixel;
+      std::vector<int> vxbin;
+      std::vector<int> vzbin;
+      std::vector< std::pair<double, double> > venergy;
       //double trklen = 0.0;
 
       //===================================================
@@ -395,8 +447,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
       if (Verbosity() > 1)
       {
-        cout << " xbin_in " << xbin_in << " xbin_out " << xbin_out << " xbin_min " << xbin_min << " xbin_max " << xbin_max << endl;
-        cout << " zbin_in " << zbin_in << " zbin_out " << zbin_out << " zbin_min " << zbin_min << " zbin_max " << zbin_max << endl;
+        std::cout << " xbin_in " << xbin_in << " xbin_out " << xbin_out << " xbin_min " << xbin_min << " xbin_max " << xbin_max << std::endl;
+        std::cout << " zbin_in " << zbin_in << " zbin_out " << zbin_out << " zbin_min " << zbin_min << " zbin_max " << zbin_max << std::endl;
       }
 
       // skip this hit if it involves an unreasonable  number of pixels
@@ -428,23 +480,25 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         double ydiffusion_radius = diffusion_width_min + (ydrift / ydrift_max) * (diffusion_width_max - diffusion_width_min);
 
         if (Verbosity() > 5)
-          cout << " segment " << i
-               << " interval " << interval
-               << " frac " << frac
-               << " local_in.X " << local_in.X()
-               << " local_in.Z " << local_in.Z()
-               << " local_in.Y " << local_in.Y()
-               << " pathvec.X " << pathvec.X()
-               << " pathvec.Z " << pathvec.Z()
-               << " pathvec.Y " << pathvec.Y()
-               << " segvec.X " << segvec.X()
-               << " segvec.Z " << segvec.Z()
-               << " segvec.Y " << segvec.Y()
-               << " ydrift " << ydrift
-               << " ydrift_max " << ydrift_max
-               << " ydiffusion_radius " << ydiffusion_radius
-               << endl;
-
+        {
+          std::cout
+            << " segment " << i
+            << " interval " << interval
+            << " frac " << frac
+            << " local_in.X " << local_in.X()
+            << " local_in.Z " << local_in.Z()
+            << " local_in.Y " << local_in.Y()
+            << " pathvec.X " << pathvec.X()
+            << " pathvec.Z " << pathvec.Z()
+            << " pathvec.Y " << pathvec.Y()
+            << " segvec.X " << segvec.X()
+            << " segvec.Z " << segvec.Z()
+            << " segvec.Y " << segvec.Y()
+            << " ydrift " << ydrift
+            << " ydrift_max " << ydrift_max
+            << " ydiffusion_radius " << ydiffusion_radius
+            << std::endl;
+        }
         // Now find the area of overlap of the diffusion circle with each pixel and apportion the energy
         for (int ix = xbin_min; ix <= xbin_max; ix++)
         {
@@ -455,13 +509,13 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
             if (pixnum < 0)
             {
-              cout << " pixnum < 0 , pixnum = " << pixnum << endl;
-              cout << " ix " << ix << " iz " << iz << endl;
-              cout << " xbin_min " << xbin_min << " zbin_min " << zbin_min
-                   << " xbin_max " << xbin_max << " zbin_max " << zbin_max
-                   << endl;
-              cout << " maxNX " << maxNX << " maxNZ " << maxNZ
-                   << endl;
+              std::cout
+                << " pixnum < 0 , pixnum = " << pixnum << "\n"
+                << " ix " << ix << " iz " << iz << "\n"
+                << " xbin_min " << xbin_min << " zbin_min " << zbin_min << "\n"
+                << " xbin_max " << xbin_max << " zbin_max " << zbin_max << "\n"
+                << " maxNX " << maxNX << " maxNZ " << maxNZ
+                << std::endl;
             }
 
             TVector3 tmp = layergeom->get_local_coords_from_pixel(pixnum);
@@ -482,9 +536,10 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
             }
             if (Verbosity() > 5)
             {
-              cout << "    pixnum " << pixnum << " xbin " << ix << " zbin " << iz
-                   << " pixel_area fraction of circle " << pixarea_frac << " accumulated pixel energy " << pixenergy[ix - xbin_min][iz - zbin_min]
-                   << endl;
+              std::cout
+                << "    pixnum " << pixnum << " xbin " << ix << " zbin " << iz
+                << " pixel_area fraction of circle " << pixarea_frac << " accumulated pixel energy " << pixenergy[ix - xbin_min][iz - zbin_min]
+                << std::endl;
             }
           }
         }
@@ -501,10 +556,15 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
             vpixel.push_back(pixnum);
             vxbin.push_back(ix);
             vzbin.push_back(iz);
-            pair<double, double> tmppair = make_pair(pixenergy[ix - xbin_min][iz - zbin_min], pixeion[ix - xbin_min][iz - zbin_min]);
+            std::pair<double, double> tmppair = std::make_pair(pixenergy[ix - xbin_min][iz - zbin_min], pixeion[ix - xbin_min][iz - zbin_min]);
             venergy.push_back(tmppair);
             if (Verbosity() > 1)
-              cout << " Added pixel number " << pixnum << " xbin " << ix << " zbin " << iz << " to vectors with energy " << pixenergy[ix - xbin_min][iz - zbin_min] << endl;
+            {
+              std::cout
+                << " Added pixel number " << pixnum << " xbin " << ix
+                << " zbin " << iz << " to vectors with energy " << pixenergy[ix - xbin_min][iz - zbin_min]
+                << std::endl;
+            }
           }
         }
       }
@@ -518,35 +578,41 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       {
         // This is the new storage object version
         //====================================
-
-        // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a chip for the Mvtx
-        TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer, stave_number, chip_number, strobe);
-        // Use existing hitset or add new one if needed
-        TrkrHitSetContainer::Iterator hitsetit = trkrHitSetContainer->findOrAddHitSet(hitsetkey);
-
-        // generate the key for this hit
-        TrkrDefs::hitkey hitkey = MvtxDefs::genHitKey(vzbin[i1], vxbin[i1]);
-        // See if this hit already exists
-        TrkrHit *hit = nullptr;
-        hit = hitsetit->second->getHit(hitkey);
-        if (!hit)
+        for (unsigned int i_rep = 0; i_rep < n_replica; i_rep++)
         {
-          // Otherwise, create a new one
-          hit = new TrkrHitv2();
-          hitsetit->second->addHitSpecificKey(hitkey, hit);
+          int strobe = t0_strobe_frame + i_rep;
+          // to fit in a 5 bit field in the hitsetkey [-16,15]
+          if(strobe < -16) strobe = -16;
+          if(strobe >= 16) strobe = 15;
+
+          // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a chip for the Mvtx
+          TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer, stave_number, chip_number, strobe+i_rep);
+          // Use existing hitset or add new one if needed
+          TrkrHitSetContainer::Iterator hitsetit = trkrHitSetContainer->findOrAddHitSet(hitsetkey);
+
+          // generate the key for this hit
+          TrkrDefs::hitkey hitkey = MvtxDefs::genHitKey(vzbin[i1], vxbin[i1]);
+          // See if this hit already exists
+          TrkrHit *hit = nullptr;
+          hit = hitsetit->second->getHit(hitkey);
+          if (! hit)
+          {
+            // Otherwise, create a new one
+            hit = new TrkrHitv2();
+            hitsetit->second->addHitSpecificKey(hitkey, hit);
+          }
+
+          // Either way, add the energy to it
+          hit->addEnergy(venergy[i1].first * TrkrDefs::MvtxEnergyScaleup);
+
+          // now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
+          // There is only one TrkrHit per pixel, but there may be multiple g4hits
+          // How do we know how much energy from PHG4Hit went into TrkrHit? We don't, have to sort it out in evaluator to save memory
+
+          // How do we check if this association already exists?
+          //cout << "PHG4MvtxHitReco: adding association entry for hitkey " << hitkey << " and g4hitkey " << hiter->first << endl;
+          hitTruthAssoc->addAssoc(hitsetkey, hitkey, g4hit_it->first);
         }
-
-        // Either way, add the energy to it
-        hit->addEnergy(venergy[i1].first * TrkrDefs::MvtxEnergyScaleup);
-
-        // now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
-        // There is only one TrkrHit per pixel, but there may be multiple g4hits
-        // How do we know how much energy from PHG4Hit went into TrkrHit? We don't, have to sort it out in evaluator to save memory
-
-        // How do we check if this association already exists?
-        //cout << "PHG4MvtxHitReco: adding association entry for hitkey " << hitkey << " and g4hitkey " << hiter->first << endl;
-        hitTruthAssoc->addAssoc(hitsetkey, hitkey, g4hit_it->first);
-
       }  // end loop over hit cells
     }    // end loop over g4hits for this layer
 
@@ -555,18 +621,49 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
   // print the list of entries in the association table
   if (Verbosity() > 2)
   {
-    cout << "From PHG4MvtxHitReco: " << endl;
+    std::cout << "From PHG4MvtxHitReco: " << std::endl;
     hitTruthAssoc->identify();
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+std::pair<double, double> PHG4MvtxHitReco::generate_alpide_pulse(const double energy_deposited)
+{
+  // We need to translate energy deposited to num/ electrons released
+  if (Verbosity() > 2)
+    std::cout << "energy_deposited: " << energy_deposited << std::endl;
+  //int silicon_band_gap = 1.12; //Band gap energy in eV
+  //int Q_in = rand() % 5000 + 50;
+  //int clipping_point = 110;
+  //double ToT_start = Q_in < 200 ? 395.85*exp(-0.5*pow((Q_in+851.43)/286.91, 2)) : 0.5;
+  //double ToT_end = Q_in < clipping_point ? 5.90*exp(-0.5*pow((Q_in-99.86)/54.80, 2)) : 5.8 - 6.4e-4 * Q_in;
+
+  //return make_pair(ToT_start*1e3, ToT_end*1e3);
+  // Using constant alpide pulse length
+  return std::make_pair<double, double>(1.5 * microsecond, 5.9 * microsecond);
+}
+
+double PHG4MvtxHitReco::generate_strobe_zero_tm_start()
+{
+  return -1. * gsl_rng_uniform_pos(m_rng.get()) * (m_strobe_separation + m_strobe_width);
+}
+
+int PHG4MvtxHitReco::get_strobe_frame(double alpide_time, double strobe_zero_tm_start)
+{
+  int strobe_frame = int( (alpide_time - strobe_zero_tm_start) / (m_strobe_width + m_strobe_separation) );
+  strobe_frame += ( alpide_time < strobe_zero_tm_start ) ? -1 : 0;
+  return strobe_frame;
+}
+
 void PHG4MvtxHitReco::set_timing_window(const int detid, const double tmin, const double tmax)
 {
   if (0)
   {
-    cout << "PHG4MvtxHitReco: Set Mvtx timing window parameters from macro for layer = " << detid << " to tmin = " << tmin << " tmax = " << tmax << endl;
+    std::cout
+      << "PHG4MvtxHitReco: Set Mvtx timing window parameters from macro for layer = "
+      << detid << " to tmin = " << tmin << " tmax = " << tmax
+      << std::endl;
   }
 
   return;
@@ -577,5 +674,8 @@ void PHG4MvtxHitReco::SetDefaultParameters()
   //cout << "PHG4MvtxHitReco: Setting Mvtx timing window defaults to tmin = -5000 and  tmax = 5000 ns" << endl;
   set_default_double_param("mvtx_tmin", -13200);
   set_default_double_param("mvtx_tmax",  20200);
+  set_default_double_param("mvtx_strobe_width", 5*microsecond);
+  set_default_double_param("mvtx_strobe_separation", 0.);
+  set_default_int_param("mvtx_in_sphenix_srdo", (int)false);
   return;
 }
