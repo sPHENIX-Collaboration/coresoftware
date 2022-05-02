@@ -2,7 +2,7 @@
 #define TRACKBASE_TRKRHITTRUTHCLUSTERSV1_H
 
 /**
- * @file trackbase/TrkrHitCellAssoc
+ * @file trackbase/TrkrHitTruthClustersv1.h
  * @author D. STEWART
  * @date April 2022
  */
@@ -31,7 +31,7 @@ class TrkrHitTruthClustersv1 : public TrkrHitTruthClusters
   void print_clusters (std::ostream &os = std::cout) const override;
 
   void push_truth_cluster(const int track_id,
-          const std::array<double,6>& phi_eta_z_data, const double sum_E) override;
+          const std::array<double,8>& phi_eta_z_data, const double sum_E) override;
 
   private:
   
