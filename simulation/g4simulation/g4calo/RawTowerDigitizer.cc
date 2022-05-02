@@ -108,42 +108,6 @@ int RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  /*
-  // this is for getting the file from 
-  // the  conditions DB, it's reply is not used right now
-  if (m_UseConditionsDB)
-    {
-      recoConsts *rc = recoConsts::instance();
-      uint64_t timestamp = rc->get_IntFlag("RUNNUMBER");
-      std::string tag = "example_tag_1";
-      std::string cfg = "test";
-      xpload::Configurator config(cfg);
-      //std::vector<std::string> paths = xpload::fetch(tag, cfg, timestamp, config);
-      xpload::Result pathres = xpload::fetch(tag, cfg, timestamp, config);
-      if (pathres.paths.empty())
-	{
-      if (Verbosity())
-	{
-	  std::cout << "No paths in conditions DB found" << std::endl;
-	}
-	}
-      else
-	{
-	  if (Verbosity())
-	    {
-	      std::cout << "Found paths:" << std::endl;
-	      
-	      for (const std::string &path : pathres.paths)
-		{
-		  std::cout << path << std::endl;
-		}
-	    }
-	}
-    }
-*/
-
-
-
   if (m_DoDecal)
     {
       

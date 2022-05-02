@@ -315,6 +315,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   using ParticleMap = std::map<int, KeySet>;
   ParticleMap g4particle_map;
 
+  if (m_cluster_map)
   {
     // loop over clusters
     for(const auto& hitsetkey:m_cluster_map->getHitSetKeys())
@@ -648,15 +649,15 @@ int QAG4SimulationTracking::load_nodes(PHCompositeNode *topNode)
 
   // cluster map
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  assert(m_cluster_map);
+//  assert(m_cluster_map);
 
   // cluster hit association map
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
-  assert(m_cluster_hit_map);
+//  assert(m_cluster_hit_map);
 
   // cluster hit association map
   m_hit_truth_map = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
-  assert(m_hit_truth_map);
+//  assert(m_hit_truth_map);
 
   // g4hits
   m_g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
@@ -675,6 +676,8 @@ QAG4SimulationTracking::get_histo_prefix()
 
 QAG4SimulationTracking::G4HitSet QAG4SimulationTracking::find_g4hits(TrkrDefs::cluskey cluster_key) const
 {
+  assert(m_cluster_hit_map);
+
   // find hitset associated to cluster
   G4HitSet out;
   const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
@@ -699,18 +702,22 @@ QAG4SimulationTracking::G4HitSet QAG4SimulationTracking::find_g4hits(TrkrDefs::c
       switch (TrkrDefs::getTrkrId(hitset_key))
       {
       case TrkrDefs::mvtxId:
+        assert(m_g4hits_mvtx);
         if (m_g4hits_mvtx) g4hit = m_g4hits_mvtx->findHit(g4hit_key);
         break;
 
       case TrkrDefs::inttId:
+        assert(m_g4hits_intt);
         if (m_g4hits_intt) g4hit = m_g4hits_intt->findHit(g4hit_key);
         break;
 
       case TrkrDefs::tpcId:
+        assert(m_g4hits_tpc);
         if (m_g4hits_tpc) g4hit = m_g4hits_tpc->findHit(g4hit_key);
         break;
 
       case TrkrDefs::micromegasId:
+        assert(m_g4hits_micromegas);
         if (m_g4hits_micromegas) g4hit = m_g4hits_micromegas->findHit(g4hit_key);
         break;
 

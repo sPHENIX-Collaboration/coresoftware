@@ -351,7 +351,7 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
   Propagator propagator(stepper);
 
   
-  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
+  Acts::Logging::Level logLevel = Acts::Logging::INFO;
   if(Verbosity() > 3)
     { logLevel = Acts::Logging::VERBOSE; }
   

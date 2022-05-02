@@ -45,7 +45,7 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   TpcSpaceChargeMatrixContainer_Dict.cc \
-	 TpcSpaceChargeMatrixContainerv1_Dict.cc
+  TpcSpaceChargeMatrixContainerv1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
