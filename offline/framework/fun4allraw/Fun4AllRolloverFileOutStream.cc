@@ -56,9 +56,9 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
     if (static_cast<unsigned>(snprintfbytes) > filenamesize)
     {
       std::cout << PHWHERE << " " << Name() << ": filename exceeds length " << filenamesize
-           << ", tried " << snprintfbytes
-           << ". probably it is the filerule" << FileRule()
-           << " which uses other than %010d-%04d for runnumber/segment" << std::endl;
+                << ", tried " << snprintfbytes
+                << ". probably it is the filerule" << FileRule()
+                << " which uses other than %010d-%04d for runnumber/segment" << std::endl;
       exit(1);
     }
     m_CurrentSequence += m_Increment;
@@ -82,8 +82,8 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
   if (status)
   {
     std::cout << Name() << ": ERROR WRITING OUT FILTERED EVENT "
-         << evt->getEvtSequence() << " FOR RUN "
-         << evt->getRunNumber() << " Status: " << status << std::endl;
+              << evt->getEvtSequence() << " FOR RUN "
+              << evt->getRunNumber() << " Status: " << status << std::endl;
   }
   BytesWritten(GetoBuffer()->getBytesWritten());
   if (BytesWritten() >= m_MaxFileFize)

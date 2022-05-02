@@ -42,7 +42,7 @@ class Fun4AllFileOutStream : public Fun4AllEventOutStream
   PHDWORD m_xb[LENGTH];
   int m_OutFileDesc = -1;
   unsigned long long m_BytesWritten = 0;
-  unsigned long long m_MaxSize = 100000000000LL; // 100GB
+  unsigned long long m_MaxSize = 100000000000LL;  // 100GB
 };
 
 #endif
