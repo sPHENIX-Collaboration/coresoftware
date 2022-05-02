@@ -418,6 +418,9 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     /// Shows the transformation between ALICE and sPHENIX coordinates
     //double pY = track_pt*p;
     //double pX = sqrt(track_pt*track_pt-pY*pY);
+    /// We set the qoverR to get the good charge estimate from the KF
+    /// which helps the Acts fit
+    track.set_qOverR(trackSeed.GetQPt()*(0.3*1.4)/100.);
     //track.set_px(pX*c-pY*s);
     //track.set_py(pX*s+pY*c);
     //track.set_pz(track_pt * trackSeed.GetDzDs()); 
