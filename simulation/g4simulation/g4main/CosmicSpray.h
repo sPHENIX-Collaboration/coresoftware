@@ -8,33 +8,31 @@
 #include <fun4all/SubsysReco.h>
 
 #include <cmath>
-#include <string>   // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 
 //class CosmicSpray : public PHG4ParticleGeneratorBase
 class CosmicSpray : public SubsysReco
 {
-public:
+ public:
   bool InDetector(double x, double y, double z);
   CosmicSpray(const std::string &name = "COSMICS", const double R = 650, const int &debug = 0);
   ~CosmicSpray() override {}
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  
- private:
 
- EcoMug gen;
- 
+ private:
+  EcoMug gen;
+
   double _gun_e = NAN;
   double _x_min = NAN;
   double _x_max = NAN;
   double _z_min = NAN;
   double _z_max = NAN;
   double _y_fix = NAN;
-  
+
   int _debug = 0;
   double _R = NAN;
- 
 };
 #endif
