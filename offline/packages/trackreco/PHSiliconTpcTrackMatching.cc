@@ -564,6 +564,8 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	  /// the new SvtxTrackSeedContainer
 	  auto newseed = std::make_unique<SvtxTrackSeed_v1>();
 	  newseed->set_tpc_seed_index(tpcid);
+	  if(!_pp_mode)
+	    { _tracklet_tpc->set_crossing(0); }
 	  _svtx_seed_map->insert(newseed.get());
 	    
 	}

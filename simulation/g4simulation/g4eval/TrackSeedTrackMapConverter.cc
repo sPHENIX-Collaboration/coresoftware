@@ -57,17 +57,20 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 	  }
 	  seed->identify();
 	}
-      std::cout << "tpc seed map size " << m_tpcContainer->size() << std::endl;
-      for(auto iter = m_tpcContainer->begin(); iter != m_tpcContainer->end();
-	  ++iter)
+      if(m_tpcContainer)
 	{
-	  auto seed = *iter;
-	  if(!seed) {
-	    std::cout << "no tpc seed at entry " << m_tpcContainer->index(iter) 
-		      << std::endl;
-	    continue;
-	  }
-	  seed->identify();
+	  std::cout << "tpc seed map size " << m_tpcContainer->size() << std::endl;
+	  for(auto iter = m_tpcContainer->begin(); iter != m_tpcContainer->end();
+	      ++iter)
+	    {
+	      auto seed = *iter;
+	      if(!seed) {
+		std::cout << "no tpc seed at entry " << m_tpcContainer->index(iter) 
+			  << std::endl;
+		continue;
+	      }
+	      seed->identify();
+	    }
 	}
     }
 
