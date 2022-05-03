@@ -6,20 +6,8 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
-dnl leaving this here in case we want to play with different compiler 
-dnl specific flags
-dnl case $CXX in
-dnl  clang++)
-dnl   CXXFLAGS="$CXXFLAGS -Wall -Werror"
-dnl  ;;
-dnl  g++)
-dnl   CXXFLAGS="$CXXFLAGS -Wall -Werror"
-dnl  ;;
-dnl esac
+CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow"
 
-if test $ac_cv_prog_gxx = yes; then
-   CXXFLAGS="$CXXFLAGS -Wall -Werror"
-fi
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

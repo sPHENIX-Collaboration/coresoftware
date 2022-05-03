@@ -23,7 +23,6 @@
 #include <string>   // for string
 #include <utility>  // for pair
 
-class G4Tubs;
 class G4LogicalVolume;
 class G4UserLimits;
 class G4VPhysicalVolume;
@@ -42,10 +41,10 @@ class PHG4SpacalDetector : public PHG4Detector
   PHG4SpacalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam,
                      PHParameters* parameters, const int layer = 0, bool init_geom = true);
 
-  virtual ~PHG4SpacalDetector(void);
+  ~PHG4SpacalDetector(void) override;
 
-  virtual void
-  ConstructMe(G4LogicalVolume* world);
+  void
+  ConstructMe(G4LogicalVolume* world) override;
 
   virtual std::pair<G4LogicalVolume*, G4Transform3D>
   Construct_AzimuthalSeg();
@@ -90,8 +89,8 @@ class PHG4SpacalDetector : public PHG4Detector
     return layer;
   }
 
-  virtual void
-  Print(const std::string& what = "ALL") const;
+  void
+  Print(const std::string& what = "ALL") const override;
 
   const SpacalGeom_t*
   get_geom() const
@@ -115,13 +114,13 @@ class PHG4SpacalDetector : public PHG4Detector
 
   PHG4SpacalDisplayAction* GetDisplayAction() { return m_DisplayAction; }
 
+  void CosmicSetup(const int i) { m_CosmicSetupFlag = i; }
+  int CosmicSetup() { return m_CosmicSetupFlag; }
+
  private:
-  PHG4SpacalDisplayAction* m_DisplayAction;
+  PHG4SpacalDisplayAction* m_DisplayAction = nullptr;
 
  protected:
-  G4Tubs* cylinder_solid;
-  G4LogicalVolume* cylinder_logic;
-  G4VPhysicalVolume* cylinder_physi;
   std::map<const G4VPhysicalVolume*, int> fiber_core_vol;
 
   //! map for G4VPhysicalVolume -> fiber ID
@@ -133,21 +132,22 @@ class PHG4SpacalDetector : public PHG4Detector
   //! map for G4VPhysicalVolume -> towers ID
   std::map<const G4VPhysicalVolume*, int> block_vol;
 
-  int active;
-  int absorberactive;
-  int layer;
+  int active = 0;
+  int absorberactive = 0;
+  int layer = -9999;
+  int m_CosmicSetupFlag = 0;
   std::string detector_type;
   std::string superdetector;
 
   //  G4UserLimits * step_limits;
   //  G4UserLimits * clading_step_limits;
-  G4UserLimits* fiber_core_step_limits;
+  G4UserLimits* fiber_core_step_limits = nullptr;
 
   //! registry for volumes that should not be exported, i.e. fibers
-  PHG4GDMLConfig* gdml_config;
+  PHG4GDMLConfig* gdml_config = nullptr;
   //private:
 
-  SpacalGeom_t* _geom;
+  SpacalGeom_t* _geom = nullptr;
 };
 
 #endif

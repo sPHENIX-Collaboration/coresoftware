@@ -11,6 +11,7 @@
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSet.h>
 
 #include <phool/PHLog.h>
 
@@ -91,39 +92,41 @@ void PHTpcEventExporter::exportEvent(TrkrClusterContainer* cluster_map, std::vec
       << "  },\n"
       << " \"HITS\": {\n"
       << "   \"TPC\": [\n";
-
-  TrkrClusterContainer::ConstRange clusrange = cluster_map->getClusters();
-  std::string separator = "";
-  for (TrkrClusterContainer::ConstIterator it = clusrange.first; it != clusrange.second;)
-  {
-    TrkrCluster* cluster = it->second;
-    if ((std::pow((double) cluster->getPosition(0), 2) +
-         std::pow((double) cluster->getPosition(1), 2) +
-         std::pow((double) cluster->getPosition(2), 2)) > (25.0 * 25.0))
-    {
-      ofs << "[ " << cluster->getPosition(0) << "," << cluster->getPosition(1) << "," << cluster->getPosition(2) << " ]";
-      separator = ",";
-    }
-    else
-    {
-      separator = "";
-    }
-    ++it;
-    if (it != clusrange.second)
-    {
-      ofs << separator;
-    }
-    else
-    {
-      ofs << "\n";
-      break;
-    }
+  for(const auto& hitsetkey:cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
+  { 
+    std::string separator = "";
+    auto range = cluster_map->getClusters(hitsetkey);
+    for( auto it = range.first; it != range.second; ++it )
+      {
+	TrkrCluster* cluster = it->second;
+	if ((std::pow((double) cluster->getPosition(0), 2) +
+	     std::pow((double) cluster->getPosition(1), 2) +
+	     std::pow((double) cluster->getPosition(2), 2)) > (25.0 * 25.0))
+	  {
+	    ofs << "[ " << cluster->getPosition(0) << "," << cluster->getPosition(1) << "," << cluster->getPosition(2) << " ]";
+	    separator = ",";
+	  }
+	else
+	  {
+	    separator = "";
+	  }
+	++it;
+	if (it != range.second)
+	  {
+	    ofs << separator;
+	  }
+	else
+	  {
+	    ofs << "\n";
+	    break;
+	  }
+      }
   }
-
+  
   ofs << "  ]\n"
       << " }\n"
       << "}\n";
-
+  
   std::ofstream ofile;
   ofile.open(filename);
   ofile << ofs.str();
@@ -208,33 +211,35 @@ void PHTpcEventExporter::exportEvent(TrkrClusterContainer* cluster_map, std::vec
       << "  },\n"
       << " \"HITS\": {\n"
       << "   \"TPC\": [\n";
-
-  TrkrClusterContainer::ConstRange clusrange = cluster_map->getClusters();
-  std::string separator = "";
-  for (TrkrClusterContainer::ConstIterator it = clusrange.first; it != clusrange.second;)
+  for(const auto& hitsetkey:cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
   {
-    TrkrCluster* cluster = it->second;
-    if ((std::pow((double) cluster->getPosition(0), 2) +
-         std::pow((double) cluster->getPosition(1), 2) +
-         std::pow((double) cluster->getPosition(2), 2)) > (25.0 * 25.0))
-    {
-      ofs << "[ " << cluster->getPosition(0) << "," << cluster->getPosition(1) << "," << cluster->getPosition(2) << " ]";
-      separator = ",";
-    }
-    else
-    {
-      separator = "";
-    }
-    ++it;
-    if (it != clusrange.second)
-    {
-      ofs << separator;
-    }
-    else
-    {
-      ofs << "\n";
-      break;
-    }
+    std::string separator = "";
+    auto range = cluster_map->getClusters(hitsetkey);
+    for( auto it = range.first; it != range.second; ++it )
+      {
+	TrkrCluster* cluster = it->second;
+	if ((std::pow((double) cluster->getPosition(0), 2) +
+	     std::pow((double) cluster->getPosition(1), 2) +
+	     std::pow((double) cluster->getPosition(2), 2)) > (25.0 * 25.0))
+	  {
+	    ofs << "[ " << cluster->getPosition(0) << "," << cluster->getPosition(1) << "," << cluster->getPosition(2) << " ]";
+	    separator = ",";
+	  }
+	else
+	  {
+	    separator = "";
+	  }
+	++it;
+	if (it != range.second)
+	  {
+	    ofs << separator;
+	  }
+	else
+	  {
+	    ofs << "\n";
+	    break;
+	  }
+      }
   }
 
   ofs << "  ]\n"

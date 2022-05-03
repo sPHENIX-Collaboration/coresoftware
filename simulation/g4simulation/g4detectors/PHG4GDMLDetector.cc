@@ -15,12 +15,11 @@
 #include <g4main/PHG4Utils.h>
 
 #include <phparameter/PHParameters.h>
+
 #include <g4gdml/PHG4GDMLConfig.hh>
 #include <g4gdml/PHG4GDMLUtility.hh>
 
 #include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4GDMLParser.hh>
-#include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
@@ -30,6 +29,13 @@
 #include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 #include <Geant4/G4VisAttributes.hh>
+
+// Xerces has shadowed variables
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <Geant4/G4GDMLParser.hh>
+#include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
+#pragma GCC diagnostic pop
 
 #include <CLHEP/Units/SystemOfUnits.h>  // for cm, degree
 
@@ -67,7 +73,7 @@ PHG4GDMLDetector::~PHG4GDMLDetector()
 
 void
 
-PHG4GDMLDetector::Print(const std::string& what) const
+PHG4GDMLDetector::Print(const std::string& /*what*/) const
 {
   cout << "PHG4GDMLDetector::" << GetName() << " - import " << m_TopVolName << " from " << m_GDMPath << " with shift "
        << m_placeX << ","

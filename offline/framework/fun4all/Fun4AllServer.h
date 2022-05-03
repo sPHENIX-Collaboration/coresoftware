@@ -30,7 +30,7 @@ class Fun4AllServer : public Fun4AllBase
 {
  public:
   static Fun4AllServer *instance();
-  virtual ~Fun4AllServer();
+  ~Fun4AllServer() override;
 
   virtual bool registerHisto(const std::string &hname, TNamed *h1d, const int replace = 0);
   virtual bool registerHisto(TNamed *h1d, const int replace = 0);
@@ -51,7 +51,7 @@ class Fun4AllServer : public Fun4AllBase
   TNamed *getHisto(const std::string &hname) const;
   TNamed *getHisto(const unsigned int ihisto) const;
   std::string getHistoName(const unsigned int ihisto) const;
-  virtual void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
   void InitAll();
   int BeginRunTimeStamp(PHTimeStamp &TimeStp);
@@ -121,12 +121,12 @@ class Fun4AllServer : public Fun4AllBase
   int unregisterSubsystemsNow();
   int setRun(const int runnumber);
   static Fun4AllServer *__instance;
-  TH1 *FrameWorkVars;
-  Fun4AllMemoryTracker *ffamemtracker;
-  Fun4AllHistoManager *ServerHistoManager;
+  TH1 *FrameWorkVars = nullptr;
+  Fun4AllMemoryTracker *ffamemtracker = nullptr;
+  Fun4AllHistoManager *ServerHistoManager = nullptr;
   PHTimeStamp *beginruntimestamp = nullptr;
-  PHCompositeNode *TopNode;
-  Fun4AllSyncManager *defaultSyncManager;
+  PHCompositeNode *TopNode = nullptr;
+  Fun4AllSyncManager *defaultSyncManager = nullptr;
 
   int OutNodeCount = 0;
   int bortime_override = 0;

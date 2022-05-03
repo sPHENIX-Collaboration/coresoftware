@@ -26,9 +26,9 @@ class PHG4InttDetector : public PHG4Detector
   PHG4InttDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e);
 
   //! destructor
-  virtual ~PHG4InttDetector() {}
+  ~PHG4InttDetector() override {}
   //! construct
-  virtual void ConstructMe(G4LogicalVolume *world);
+  void ConstructMe(G4LogicalVolume *world) override;
 
   //!@name volume accessors
   //@{
@@ -59,14 +59,14 @@ class PHG4InttDetector : public PHG4Detector
   void AddGeometryNode();
   int ConstructIntt(G4LogicalVolume *sandwich);
 
-  PHG4InttDisplayAction *m_DisplayAction;
-  PHParametersContainer *m_ParamsContainer;
+  PHG4InttDisplayAction *m_DisplayAction = nullptr;
+  PHParametersContainer *m_ParamsContainer = nullptr;
 
   std::string m_DetectorType;
   std::string m_SuperDetector;
 
-  int m_IsSupportActive;
-  int m_IsEndcapActive;
+  int m_IsSupportActive = 0;
+  int m_IsEndcapActive = 0;
 
   double m_PosZ[8][2];
   double m_SensorRadius[8];

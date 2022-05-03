@@ -30,7 +30,7 @@ class PHTpcEventExporter
 {
  public:
   PHTpcEventExporter();
-  virtual ~PHTpcEventExporter() {}
+  virtual ~PHTpcEventExporter() = default;
 
   void exportEvent(TrkrClusterContainer* cluster_map, std::vector<kdfinder::TrackCandidate<double>*> candidates,
                    double B, const std::string& filename);

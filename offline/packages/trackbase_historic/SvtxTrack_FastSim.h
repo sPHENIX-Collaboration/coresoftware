@@ -12,36 +12,58 @@
 
 #include <iostream>        // for cout, ostream
 
-class SvtxTrack_FastSim : public SvtxTrack_v1
+class SvtxTrack_FastSim: public SvtxTrack_v1
 {
  public:
-  SvtxTrack_FastSim();
-  virtual ~SvtxTrack_FastSim();
 
-  unsigned int get_truth_track_id() const
-  {
-    return _truth_track_id;
-  }
+  //* constructor
+  SvtxTrack_FastSim() = default;
 
-  void set_truth_track_id(unsigned int truthTrackId)
-  {
-    _truth_track_id = truthTrackId;
-  }
+  //* destructor
+  ~SvtxTrack_FastSim() override = default;
+
+  //* base class copy constructor
+  SvtxTrack_FastSim( const SvtxTrack& );
+
+  // copy content from base class
+  using PHObject::CopyFrom; // avoid warning for not implemented CopyFrom methods
+  void CopyFrom( const SvtxTrack& ) override;
+  void CopyFrom( SvtxTrack* source ) override
+  { CopyFrom( *source ); }
 
   // The "standard PHObject response" functions...
-  void identify(std::ostream& os = std::cout) const;
-  void Reset() { *this = SvtxTrack_FastSim(); }
-  int isValid() const;
-  PHObject* CloneMe() const { return new SvtxTrack_FastSim(*this); }
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override { *this = SvtxTrack_FastSim(); }
+  int isValid() const override;
+  PHObject* CloneMe() const override { return new SvtxTrack_FastSim(*this); }
 
-  void set_num_measurements(int nmeas) { _nmeas = nmeas; }
-  unsigned int get_num_measurements() { return _nmeas; }
+  //!@name accessors
+  //@{
 
- private:
-  unsigned int _truth_track_id;
-  unsigned int _nmeas;
+  unsigned int get_truth_track_id() const override
+  { return _truth_track_id; }
 
-  ClassDef(SvtxTrack_FastSim, 1)
+  unsigned int get_num_measurements() const override
+  { return _nmeas; }
+
+  //@}
+
+  //!@name modifiers
+  //@{
+
+  void set_truth_track_id(unsigned int truthTrackId) override
+  { _truth_track_id = truthTrackId; }
+
+  void set_num_measurements(int nmeas) override
+  { _nmeas = nmeas; }
+
+  //@}
+
+  private:
+  unsigned int _truth_track_id = UINT_MAX;
+  unsigned int _nmeas = 0;
+
+  ClassDefOverride(SvtxTrack_FastSim, 1)
 };
 
 #endif /* __SVTXTRACK_FAST_SIM_H__ */

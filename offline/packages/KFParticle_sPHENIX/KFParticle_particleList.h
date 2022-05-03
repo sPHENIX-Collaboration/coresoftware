@@ -23,6 +23,7 @@
 #define KFPARTICLESPHENIX_KFPARTICLEPARTICLELIST_H
 
 #include <map>
+#include <string>
 
 typedef std::pair<int, float> particle_pair;
 

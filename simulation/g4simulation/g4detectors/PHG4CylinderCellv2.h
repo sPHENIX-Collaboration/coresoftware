@@ -6,33 +6,32 @@
 #include "PHG4CylinderCellv1.h"
 
 #include <iostream>
-#include <string>                // for string
+#include <string>  // for string
 
 class PHG4CylinderCellv2 : public PHG4CylinderCellv1
 {
  public:
-
   PHG4CylinderCellv2();
-  virtual ~PHG4CylinderCellv2(){}
+  ~PHG4CylinderCellv2() override {}
 
-  void identify(std::ostream& os = std::cout) const;
+  // from PHObject
+  void identify(std::ostream& os = std::cout) const override;
 
-  void set_sensor_index(const std::string &si) {sensor_index = si;}
-  std::string get_sensor_index() const  {return sensor_index;}
+  void set_sensor_index(const std::string& si) override { sensor_index = si; }
+  std::string get_sensor_index() const override { return sensor_index; }
 
-  void set_ladder_phi_index(const int i) {ladder_phi_index = i;}
-  int get_ladder_phi_index() const {return ladder_phi_index;}
+  void set_ladder_phi_index(const int i) override { ladder_phi_index = i; }
+  int get_ladder_phi_index() const override { return ladder_phi_index; }
 
-  void set_ladder_z_index(const int i) {ladder_z_index = i;}
-  int get_ladder_z_index() const {return ladder_z_index;}
-  
+  void set_ladder_z_index(const int i) override { ladder_z_index = i; }
+  int get_ladder_z_index() const override { return ladder_z_index; }
+
  protected:
-
   int ladder_phi_index;
-  int ladder_z_index; 
+  int ladder_z_index;
   std::string sensor_index;
-  
-  ClassDef(PHG4CylinderCellv2,1)
+
+  ClassDefOverride(PHG4CylinderCellv2, 1)
 };
 
 #endif

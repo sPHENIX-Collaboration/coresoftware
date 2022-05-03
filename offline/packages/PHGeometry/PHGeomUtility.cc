@@ -15,6 +15,9 @@
 
 #include <TGeoManager.h>
 
+#include <uuid/uuid.h>
+
+#include <unistd.h>  // for generate unique local file
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
@@ -22,7 +25,6 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include <unistd.h>  // for generate unique local file
 
 using namespace std;
 
@@ -43,6 +45,15 @@ PHGeomUtility::GetTGeoManager(PHCompositeNode *topNode)
   {
     // try to construct the geometry node
     dst_geom = LoadFromIONode(topNode);
+  }
+
+  if (TGeoManager::GetDefaultUnits() != TGeoManager::kRootUnits )
+  {
+    cout << __PRETTY_FUNCTION__ << " TGeoManager was not constructed with RootUnits, which potentially leads to unit mismatch with Fun4All. This is considered a fatal error."
+        <<endl;
+
+    exit(1);
+    return nullptr;
   }
 
   UpdateIONode(topNode);
@@ -69,6 +80,16 @@ int PHGeomUtility::ImportGeomFile(PHCompositeNode *topNode,
   dst_geom->Reset();
 
   TGeoManager::SetVerboseLevel(GetVerbosity());
+
+  // force TGeoManager to use the Fun4All unit of cm
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,23,2)
+  TGeoManager::LockDefaultUnits(kFALSE);
+  TGeoManager::SetDefaultUnits( TGeoManager::kRootUnits );
+  TGeoManager::LockDefaultUnits(kTRUE);
+#else
+  TGeoManager::SetDefaultRootUnits();
+#endif
+
   dst_geom->SetGeometry(TGeoManager::Import(geometry_file.c_str()));
 
   if (dst_geom->GetGeometry() == nullptr)
@@ -168,12 +189,20 @@ std::string
 PHGeomUtility::GenerateGeometryFileName(const std::string &filename_extension)
 {
   ostringstream file;
-  file << "/tmp/"
-       << "PHGeomUtility_geom_file_" << ::getpid() << "."
+
+  uuid_t uu;
+  uuid_generate(uu);
+  char uuid[50];
+  uuid_unparse(uu, uuid);
+
+  file << mg_GenerateGeometryFileNameBase << "/"
+       << "PHGeomUtility_geom_file_" << uuid << "."
        << filename_extension;
 
   return file.str();
 }
+
+std::string PHGeomUtility::mg_GenerateGeometryFileNameBase = "/tmp";
 
 //! delete the geometry file after use
 bool PHGeomUtility::RemoveGeometryFile(const std::string &file_name)

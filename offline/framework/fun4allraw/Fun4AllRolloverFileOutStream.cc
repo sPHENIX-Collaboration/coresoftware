@@ -4,7 +4,7 @@
 
 #include <Event/Event.h>
 #include <Event/oBuffer.h>  // for oBuffer
-#include <Event/ogzBuffer.h>
+#include <Event/ospBuffer.h>
 
 #include <phool/phool.h>
 
@@ -15,13 +15,11 @@
 #include <cstdlib>   // for exit
 #include <iostream>
 
-using namespace std;
-
-Fun4AllRolloverFileOutStream::Fun4AllRolloverFileOutStream(const string &frule,
+Fun4AllRolloverFileOutStream::Fun4AllRolloverFileOutStream(const std::string &frule,
                                                            const unsigned int sizeInMB,
                                                            const int offset,
                                                            const int increment,
-                                                           const string &name)
+                                                           const std::string &name)
   : Fun4AllFileOutStream(frule, name)
 
 {
@@ -34,7 +32,7 @@ Fun4AllRolloverFileOutStream::Fun4AllRolloverFileOutStream(const string &frule,
     if (m_MaxFileFize > MaxSize())
     {
       unsigned long long maxmb = MaxSize() / (1024 * 1024);
-      cout << "setting maximum size to current max (in MB): " << maxmb << endl;
+      std::cout << "setting maximum size to current max (in MB): " << maxmb << std::endl;
     }
     m_MaxFileFize = MaxSize();
   }
@@ -57,10 +55,10 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
     int snprintfbytes = snprintf(outfilename, filenamesize, FileRule().c_str(), irun, iSeq());
     if (static_cast<unsigned>(snprintfbytes) > filenamesize)
     {
-      cout << PHWHERE << " " << Name() << ": filename exceeds length " << filenamesize
-           << ", tried " << snprintfbytes
-           << ". probably it is the filerule" << FileRule()
-           << " which uses other than %010d-%04d for runnumber/segment" << endl;
+      std::cout << PHWHERE << " " << Name() << ": filename exceeds length " << filenamesize
+                << ", tried " << snprintfbytes
+                << ". probably it is the filerule" << FileRule()
+                << " which uses other than %010d-%04d for runnumber/segment" << std::endl;
       exit(1);
     }
     m_CurrentSequence += m_Increment;
@@ -68,26 +66,24 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
                            S_IRWXU | S_IROTH | S_IRGRP));
     if (OutFileDescriptor() == -1)  // failure to open
     {
-      cout << "could not open " << outfilename << " quitting" << endl;
+      std::cout << "could not open " << outfilename << " quitting" << std::endl;
       exit(1);
     }
     if (Verbosity() > 0)
     {
-      cout << "Fun4AllRolloverFileOutStream: opening new file " << outfilename << endl;
+      std::cout << "Fun4AllRolloverFileOutStream: opening new file " << outfilename << std::endl;
     }
     MyManager()->SetOutfileName(outfilename);
-    // compression level 6 is best compromize between speed and compression
-    // max is 9 which is much slower but only squeezes out a few more bytes
-    SetoBuffer(new ogzBuffer(OutFileDescriptor(), xb(), LENGTH, 6, irun, iSeq()));
+    SetoBuffer(new ospBuffer(OutFileDescriptor(), xb(), LENGTH, irun, iSeq()));
     delete[] outfilename;
   }
 
   int status = GetoBuffer()->addEvent(evt);
   if (status)
   {
-    cout << Name() << ": ERROR WRITING OUT FILTERED EVENT "
-         << evt->getEvtSequence() << " FOR RUN "
-         << evt->getRunNumber() << " Status: " << status << endl;
+    std::cout << Name() << ": ERROR WRITING OUT FILTERED EVENT "
+              << evt->getEvtSequence() << " FOR RUN "
+              << evt->getRunNumber() << " Status: " << status << std::endl;
   }
   BytesWritten(GetoBuffer()->getBytesWritten());
   if (BytesWritten() >= m_MaxFileFize)
@@ -100,9 +96,9 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
   return 0;
 }
 
-void Fun4AllRolloverFileOutStream::identify(ostream &os) const
+void Fun4AllRolloverFileOutStream::identify(std::ostream &os) const
 {
   os << "Fun4AllRolloverFileOutStream writing to " << FileRule()
-     << " current sequence " << m_CurrentSequence << endl;
+     << " current sequence " << m_CurrentSequence << std::endl;
   return;
 }

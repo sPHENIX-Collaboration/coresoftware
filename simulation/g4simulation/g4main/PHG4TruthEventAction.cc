@@ -21,7 +21,11 @@
 #include <Geant4/G4PrimaryVertex.hh>                    // for G4PrimaryVertex
 #include <Geant4/G4VUserPrimaryParticleInformation.hh>  // for G4VUserPrimar...
 
+// eigen has some shadowed variables
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <Eigen/Dense>
+#pragma GCC diagnostic pop
 
 #include <cmath>     // for isnan
 #include <cstdlib>   // for abs
@@ -45,7 +49,7 @@ PHG4TruthEventAction::PHG4TruthEventAction()
 }
 
 //___________________________________________________
-void PHG4TruthEventAction::BeginOfEventAction(const G4Event* evt)
+void PHG4TruthEventAction::BeginOfEventAction(const G4Event* /*evt*/)
 {
   // if we do not find the node we need to make it.
   if (!m_TruthInfoContainer)

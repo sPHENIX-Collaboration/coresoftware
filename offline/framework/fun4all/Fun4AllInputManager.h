@@ -20,7 +20,7 @@ class Fun4AllSyncManager;
 class Fun4AllInputManager : public Fun4AllBase
 {
  public:
-  virtual ~Fun4AllInputManager();
+  ~Fun4AllInputManager() override;
   virtual int fileopen(const std::string & /*filename*/) { return -1; }
   virtual int fileclose() { return -1; }
   virtual int run(const int /*nevents=0*/) { return -1; }
@@ -31,7 +31,7 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int SyncIt(const SyncObject * /*mastersync*/) { return Fun4AllReturnCodes::SYNC_FAIL; }
   virtual int BranchSelect(const std::string & /*branch*/, const int /*iflag*/) { return -1; }
   virtual int setBranches() { return -1; }  // publich bc needed by the sync manager
-  virtual void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
   virtual int PushBackEvents(const int /*nevt*/) { return -1; }
   // so people can use the skip they are used to instead of PushBackEvents
   // with negative arg
@@ -54,8 +54,9 @@ class Fun4AllInputManager : public Fun4AllBase
   std::string TopNodeName() const { return m_TopNodeName; }
   bool FileListEmpty() const { return m_FileList.empty(); }
   virtual int IsOpen() const { return m_IsOpen; }
-  virtual int SkipForThisManager(const int nevents) { return 0; }
+  virtual int SkipForThisManager(const int /*nevents*/) { return 0; }
   virtual int HasSyncObject() const { return 0; }
+  virtual std::string GetString(const std::string &) const {return "";}
 
  protected:
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
@@ -65,11 +66,11 @@ class Fun4AllInputManager : public Fun4AllBase
   Fun4AllSyncManager *MySyncManager() { return m_MySyncManager; }
 
  private:
-  Fun4AllSyncManager *m_MySyncManager;
-  int m_IsOpen;
-  int m_Repeat;
-  int m_MyRunNumber;
-  int m_InitRun;
+  Fun4AllSyncManager *m_MySyncManager = nullptr;
+  int m_IsOpen = 0;
+  int m_Repeat = 0;
+  int m_MyRunNumber = 0;
+  int m_InitRun = 0;
   std::vector<SubsysReco *> m_SubsystemsVector;
   std::string m_InputNode;
   std::string m_FileName;

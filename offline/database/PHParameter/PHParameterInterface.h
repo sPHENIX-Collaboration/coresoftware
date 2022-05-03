@@ -13,6 +13,11 @@ class PHParameterInterface
 {
  public:
   PHParameterInterface(const std::string &name);
+  // PHParameterInterface contains pointer to memory
+  // copy ctor and = operator need explicit implementation, do just delete it here
+  PHParameterInterface(const PHParameterInterface &) = delete;
+  PHParameterInterface& operator = (PHParameterInterface const &) = delete;
+
   virtual ~PHParameterInterface() {}
 
   void set_paramname(const std::string &name);
@@ -37,7 +42,7 @@ class PHParameterInterface
   void InitializeParameters();
 
  private:
-  PHParameters *m_Params;
+  PHParameters *m_Params = nullptr;
   std::map<const std::string, double> m_DoubleParMap;
   std::map<const std::string, int> m_IntParMap;
   std::map<const std::string, std::string> m_StringParMap;

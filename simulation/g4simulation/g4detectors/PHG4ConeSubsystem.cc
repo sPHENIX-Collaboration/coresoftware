@@ -8,7 +8,7 @@
 
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Subsystem.h>  // for PHG4Subsystem
+#include <g4main/PHG4SteppingAction.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -17,15 +17,10 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <Geant4/G4SystemOfUnits.hh>  // for cm
-
 #include <cmath>  // for tan, atan, exp, M_PI
 #include <sstream>
 
 class PHG4Detector;
-class PHG4SteppingAction;
-
-using namespace std;
 
 //_______________________________________________________________________
 PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string &name, const int lyr)
@@ -46,10 +41,10 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   // create display settings before detector
   PHG4ConeDisplayAction *disp_action = new PHG4ConeDisplayAction(Name(), GetParams());
-  if (isfinite(m_ColorArray[0]) &&
-      isfinite(m_ColorArray[1]) &&
-      isfinite(m_ColorArray[2]) &&
-      isfinite(m_ColorArray[3]))
+  if (std::isfinite(m_ColorArray[0]) &&
+      std::isfinite(m_ColorArray[1]) &&
+      std::isfinite(m_ColorArray[2]) &&
+      std::isfinite(m_ColorArray[3]))
   {
     disp_action->SetColor(m_ColorArray[0], m_ColorArray[1], m_ColorArray[2], m_ColorArray[3]);
   }
@@ -65,7 +60,7 @@ int PHG4ConeSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
     PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
 
-    string nodename;
+    std::string nodename;
     if (SuperDetector() != "NONE")
     {
       PHNodeIterator iter_dst(dstNode);
@@ -148,6 +143,8 @@ void PHG4ConeSubsystem::SetDefaultParameters()
   set_default_double_param("rmax2", NAN);
   set_default_double_param("sphi", 0.);
   set_default_double_param("dphi", 360.);  // degrees
+  set_default_double_param("rot_x", 0);
+  set_default_double_param("rot_y", 0);
   set_default_double_param("rot_z", 0);
 
   set_default_string_param("material", "WorldMaterial");

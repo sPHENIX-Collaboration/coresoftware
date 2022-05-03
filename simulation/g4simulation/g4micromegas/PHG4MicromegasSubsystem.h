@@ -16,6 +16,7 @@
 class PHCompositeNode;
 class PHG4Detector;
 class PHG4MicromegasDetector;
+class PHG4DisplayAction;
 class PHG4MicromegasSteppingAction;
 class PHG4SteppingAction;
 
@@ -31,6 +32,8 @@ class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
   public:
   //! constructor
   PHG4MicromegasSubsystem(const std::string& name = "MICROMEGAS", int layer = 0);
+
+  ~PHG4MicromegasSubsystem() override;
 
   /*!
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
@@ -53,7 +56,11 @@ class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
   //! Print info (from SubsysReco)
   void Print(const std::string& what = "ALL") const override;
 
-  protected:
+  //! get the display action if display is started
+  PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
+
+  private:
+  
   // \brief Set default parameter values
   void SetDefaultParameters() override;
 
@@ -66,6 +73,9 @@ class PHG4MicromegasSubsystem : public PHG4DetectorSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4MicromegasSteppingAction *m_SteppingAction = nullptr;
+
+  //! display attribute setting
+  PHG4DisplayAction* m_DisplayAction = nullptr;
 };
 
-#endif // MICROMEGASSUBSYSTEM_H
+#endif // G4MICROMEGAS_PHG4MICROMEGASSUBSYSTEM_H

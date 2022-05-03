@@ -7,8 +7,12 @@
 
 #include <Geant4/G4Types.hh>  // for G4double
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/point_generators_2.h>
+#pragma GCC diagnostic pop
 
 #include <map>
 #include <set>
@@ -35,12 +39,12 @@ class PHG4OuterHcalDetector : public PHG4Detector
   PHG4OuterHcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4OuterHcalDetector();
+  ~PHG4OuterHcalDetector() override;
 
   //! construct
-  virtual void ConstructMe(G4LogicalVolume *world);
+  void ConstructMe(G4LogicalVolume *world) override;
 
-  virtual void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
   //!@name volume accessors
   //@{

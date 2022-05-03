@@ -222,7 +222,7 @@ void PHParametersContainer::UpdatePdbParameterMapContainer(PdbParameterMapContai
   return;
 }
 
-void PHParametersContainer::Print(Option_t *option) const
+void PHParametersContainer::Print(Option_t */*option*/) const
 {
   cout << "Name: " << Name() << endl;
   map<int, PHParameters *>::const_iterator iter;

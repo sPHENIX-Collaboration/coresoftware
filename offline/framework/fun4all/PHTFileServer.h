@@ -78,7 +78,7 @@ class PHTFileServer
     }
 
     //! destructor
-    virtual ~SafeTFile(void);
+    ~SafeTFile(void) override;
 
     //! get reference to counter
     int& counter()

@@ -27,7 +27,7 @@ class PHNode
   const std::string getClass() const { return objectclass; }
   void setParent(PHNode *p) { parent = p; }
   void setName(const std::string &n) { name = n; }
-  void setObjectType(const std::string &type) { objecttype = type; }
+  void setObjectType(const std::string &n) { objecttype = n; }
   virtual void prune() = 0;
   virtual void print(const std::string &) = 0;
   virtual void forgetMe(PHNode *) = 0;
@@ -38,12 +38,12 @@ class PHNode
   void makeTransient() { persistent = false; }
 
  protected:
-  PHNode *parent;
-  bool persistent;
-  std::string type;
+  PHNode *parent = nullptr;
+  bool persistent = true;
+  std::string type = "PHNode";
   std::string objecttype;
   std::string name;
-  bool reset_able;
+  bool reset_able = true;
   std::string objectclass;
 
  private:

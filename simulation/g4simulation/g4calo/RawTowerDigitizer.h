@@ -4,6 +4,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <phparameter/PHParameters.h>
+#include <dbfile_calo_calib/CaloCalibSimpleCorrFile.h>
 
 #include <string>
 
@@ -23,10 +24,10 @@ class RawTowerDigitizer : public SubsysReco
 {
  public:
   RawTowerDigitizer(const std::string &name = "RawTowerDigitizer");
-  virtual ~RawTowerDigitizer();
+  ~RawTowerDigitizer() override;
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
   void Detector(const std::string &d) { m_Detector = d; _tower_params.set_name(d);}
   void TowerType(const int type) { m_TowerType = type; }
   void set_seed(const unsigned int iseed);
@@ -167,6 +168,26 @@ class RawTowerDigitizer : public SubsysReco
   // ! SiPM effective pixel per tower, only used with kSiPM_photon_digitalization
   unsigned int get_sipm_effective_pixel() { return m_SiPMEffectivePixel; }
 
+  // calo calib decal stuff JEF Feb 2022
+  void set_DoTowerDecal(const bool doTowerDecal, 
+			  const char * decalFileName = "", 
+			  const bool doInverse = false)
+  {
+    m_DoDecal = doTowerDecal;
+    m_DecalInverse = doInverse;
+    set_DecalFileName(decalFileName);
+  }
+  
+  void set_DecalFileName(const char * inCalFname) 
+  { 
+    m_DecalFileName = inCalFname;
+  }
+  
+  void set_UseConditionsDB(const bool setUseCondDB)
+  {
+    m_UseConditionsDB = setUseCondDB;
+  }
+
  private:
   void CreateNodes(PHCompositeNode *topNode);
 
@@ -223,6 +244,15 @@ class RawTowerDigitizer : public SubsysReco
   PHParameters _tower_params;
 
   gsl_rng *m_RandomGenerator;
+  
+  // calo calibs decal stuff JEF Feb 2022
+  bool m_DoDecal;
+  bool m_DecalInverse;
+  std::string m_DecalFileName;
+  bool m_UseConditionsDB; 
+  CaloCalibSimpleCorrFile * m_CalDBFile;
+
+  
 };
 
 #endif /* G4CALO_RAWTOWERDIGITIZER_H */

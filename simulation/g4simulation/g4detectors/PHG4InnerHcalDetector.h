@@ -5,9 +5,13 @@
 
 #include <g4main/PHG4Detector.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include <CGAL/Cartesian.h>  // for Cartesian_base_ref_count::...
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/Point_2.h>  // for Point_2
+#pragma GCC diagnostic pop
 
 #include <map>
 #include <set>
@@ -34,12 +38,12 @@ class PHG4InnerHcalDetector : public PHG4Detector
   PHG4InnerHcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4InnerHcalDetector();
+  ~PHG4InnerHcalDetector() override;
 
   //! construct
-  virtual void ConstructMe(G4LogicalVolume *world);
+  void ConstructMe(G4LogicalVolume *world) override;
 
-  virtual void Print(const std::string &what = "ALL") const;
+  void Print(const std::string &what = "ALL") const override;
 
   //!@name volume accessors
   //@{
@@ -86,7 +90,8 @@ class PHG4InnerHcalDetector : public PHG4Detector
   double m_VolumeScintillator;
 
   int m_NumScintiPlates;
-  int m_NumScintiTiles;
+  int m_NumScintiTilesPos;
+  int m_NumScintiTilesNeg;
 
   int m_Active;
   int m_AbsorberActive;

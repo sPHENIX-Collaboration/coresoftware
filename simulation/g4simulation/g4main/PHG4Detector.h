@@ -9,6 +9,8 @@
 #include <string>
 
 class G4LogicalVolume;
+class G4Material;
+class G4Element;
 class G4UserSteppingAction;
 class G4VSolid;
 class PHCompositeNode;
@@ -39,6 +41,9 @@ class PHG4Detector
 
   virtual void ConstructMe(G4LogicalVolume *mothervolume) = 0;
 
+  //! Optional PostConstruction call after all geometry is constructed
+  virtual void PostConstruction() {};
+
   virtual void Verbosity(const int v) { m_Verbosity = v; }
 
   virtual int Verbosity() const { return m_Verbosity; }
@@ -46,7 +51,7 @@ class PHG4Detector
   virtual std::string GetName() const { return m_Name; }
   virtual void OverlapCheck(const bool chk) { m_OverlapCheck = chk; }
   virtual bool OverlapCheck() const { return m_OverlapCheck; }
-  virtual void Print(const std::string &what = "ALL") const
+  virtual void Print(const std::string &/*what*/ = "ALL") const
   {
     std::cout << GetName() << ": Print method not implemented" << std::endl;
   }
@@ -54,13 +59,15 @@ class PHG4Detector
   virtual int DisplayVolume(G4LogicalVolume *checksolid, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
   virtual PHCompositeNode *topNode() { return m_topNode; }
   virtual PHG4Subsystem *GetMySubsystem() {return m_MySubsystem;}
+  static G4Material *GetDetectorMaterial(const std::string &name, const bool quit = true);
+  static G4Element *GetDetectorElement(const std::string &name, const bool quit = true);
 
  private:
-  PHCompositeNode *m_topNode;
-  PHG4Subsystem *m_MySubsystem;
-  int m_Verbosity;
-  bool m_OverlapCheck;
-  int m_ColorIndex;
+  PHCompositeNode *m_topNode = nullptr;
+  PHG4Subsystem *m_MySubsystem = nullptr;
+  int m_Verbosity = 0;
+  bool m_OverlapCheck = false;
+  int m_ColorIndex = 0;
   std::string m_Name;
 };
 

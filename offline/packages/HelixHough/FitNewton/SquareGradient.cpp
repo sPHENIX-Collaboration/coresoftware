@@ -90,7 +90,7 @@ namespace FitNewton
   }
   
   
-  bool SquareGradient::calcValGradHessian(const VectorXd& x, double& val, VectorXd& grad, MatrixXd& hessian)
+  bool SquareGradient::calcValGradHessian(const VectorXd& x, double& val, VectorXd& grad, MatrixXd& /*hessian*/)
   {
 //     verbose = false;
 //     

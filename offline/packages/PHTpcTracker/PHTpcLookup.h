@@ -31,6 +31,7 @@ class PHTpcLookup
   std::vector<std::vector<double>*> find(double x, double y, double z, double radius, size_t& nMatches);
 
  protected:
+
   TrkrClusterContainer* mClusterMap;
   std::vector<std::vector<double> > mKDhits;
   kdfinder::KDPointCloud<double> mCloud;

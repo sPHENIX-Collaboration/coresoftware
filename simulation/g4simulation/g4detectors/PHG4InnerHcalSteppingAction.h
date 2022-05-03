@@ -21,13 +21,15 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector *, const PHParameters *parameters);
 
   //! destructor
-  virtual ~PHG4InnerHcalSteppingAction();
+  ~PHG4InnerHcalSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step *, bool);
+  bool UserSteppingAction(const G4Step *, bool) override;
+
+  int Init() override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode *);
+  void SetInterfacePointers(PHCompositeNode *) override;
 
  private:
   //! pointer to the detector
@@ -54,3 +56,4 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
 };
 
 #endif  // G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
+

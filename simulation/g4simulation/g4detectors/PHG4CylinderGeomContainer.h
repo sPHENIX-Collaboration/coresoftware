@@ -5,37 +5,38 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>           // for make_pair, pair
+#include <utility>  // for make_pair, pair
 
 class PHG4CylinderGeom;
 
-class PHG4CylinderGeomContainer: public PHObject
+class PHG4CylinderGeomContainer : public PHObject
 {
  public:
-  typedef std::map<int,PHG4CylinderGeom *> Map;
-  typedef Map::iterator Iterator;
-  typedef Map::const_iterator ConstIterator;
-  typedef std::pair<Iterator, Iterator> Range;
-  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
+  using Map = std::map<int, PHG4CylinderGeom *>;
+  using Iterator = Map::iterator;
+  using ConstIterator = Map::const_iterator;
+  using Range = std::pair<Iterator, Iterator>;
+  using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
   PHG4CylinderGeomContainer();
-  virtual ~PHG4CylinderGeomContainer();
+  ~PHG4CylinderGeomContainer() override;
 
-  void identify(std::ostream& os = std::cout) const;
+  // from PHObject
+  void identify(std::ostream &os = std::cout) const override;
 
   int AddLayerGeom(const int i, PHG4CylinderGeom *mygeom);
   int AddLayerGeom(PHG4CylinderGeom *mygeom);
   PHG4CylinderGeom *GetLayerGeom(const int i);
   PHG4CylinderGeom *GetFirstLayerGeom();
-  int get_NLayers() const {return layergeoms.size();}
-  std::pair<std::map<int,PHG4CylinderGeom *>::const_iterator, std::map<int,PHG4CylinderGeom *>::const_iterator> get_begin_end() const {return std::make_pair(layergeoms.begin(), layergeoms.end());}
+  int get_NLayers() const { return layergeoms.size(); }
+  ConstRange get_begin_end() const { return std::make_pair(layergeoms.begin(), layergeoms.end()); }
 
  protected:
-  std::map<int,PHG4CylinderGeom *> layergeoms ;
+  Map layergeoms;
   float magfield;
-  ClassDef(PHG4CylinderGeomContainer,1)
+  ClassDefOverride(PHG4CylinderGeomContainer, 1)
 };
 
 #endif

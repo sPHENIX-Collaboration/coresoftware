@@ -37,7 +37,7 @@ class PHTpcTracker : public PHTrackSeeding
 {
  public:
   PHTpcTracker(const std::string& name = "PHTpcTracker");
-  ~PHTpcTracker();
+  ~PHTpcTracker() override;
 
   void set_seed_finder_options(double maxdistance1 = 3.0, double tripletangle1 = M_PI / 8, size_t minhits1 = 10,
                                double maxdistance2 = 6.0, double tripletangle2 = M_PI / 8, size_t minhits2 = 5, size_t nthreads = 1);
@@ -54,11 +54,11 @@ class PHTpcTracker : public PHTrackSeeding
   void enable_json_export(bool opt = false) { mEnableJsonExport = opt; }
 
  protected:
-  int Setup(PHCompositeNode* topNode);
+  int Setup(PHCompositeNode* topNode) override;
 
-  int Process(PHCompositeNode* topNode);
+  int Process(PHCompositeNode* topNode) override;
 
-  int End() {return 0;}
+  int End() override {return 0;}
 
   PHField* getMagField(PHCompositeNode* topNode, double& B);
 

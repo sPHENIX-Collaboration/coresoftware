@@ -232,78 +232,6 @@ int PHRTreeSeeding::InitializeGeometry(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-bool comparing(TrkrCluster *tc1, TrkrCluster *tc2)
-{
-  //TrkrCluster tca = *tc1;
-  //TrkrCluster tcb = *tc2;
-  TrkrDefs::cluskey ck1 = tc1->getClusKey();
-  TrkrDefs::cluskey ck2 = tc2->getClusKey();
-  if (TrkrDefs::getLayer(ck1) != TrkrDefs::getLayer(ck2)) return TrkrDefs::getLayer(ck1) < TrkrDefs::getLayer(ck2);
-  return ck1 < ck2;
-  //return ck1/16<ck2/16;
-}
-
-bool largeintersection(const vector<TrkrCluster *> &v1,
-                       const vector<TrkrCluster *> &v2)
-{
-  std::vector<TrkrCluster *> v3;
-  vector<TrkrCluster *> va(v1);
-  vector<TrkrCluster *> vb(v2);
-  //std::sort(v1.begin(), v1.end());
-  //std::sort(v2.begin(), v2.end());
-  std::set_intersection(va.begin(), va.end(),
-                        vb.begin(), vb.end(),
-                        back_inserter(v3), comparing);
-  //cout << "Got an intersection of size " << v3.size() << endl;
-  if (v3.size() < 3) return false;
-  //TrkrCluster *temp1 = new TrkrCluster;
-  //*temp1 = *va[0];
-
-  /*TrkrCluster *temp2 = vb[0];
-  unsigned int ii = va.size();
-  unsigned int jj = vb.size();
-  TrkrCluster *temp3 = va[ii-1];
-  TrkrCluster *temp4 = vb[jj-1];
-  TrkrDefs::cluskey ck1 = (va[0])->getClusKey();
-  TrkrDefs::cluskey ck2 = temp2->getClusKey();
-  TrkrDefs::cluskey ck3 = temp3->getClusKey();
-  TrkrDefs::cluskey ck4 = temp4->getClusKey();*/
-  /*bool to_ret = (TrkrDefs::getLayer(ck1)-TrkrDefs::getLayer(ck2))*(TrkrDefs::getLayer(ck3)-TrkrDefs::getLayer(ck4))>0;
-  cout << to_ret << endl;
-  return to_ret;*/
-  return (TrkrDefs::getLayer(va[0]->getClusKey()) - TrkrDefs::getLayer(vb[0]->getClusKey())) * (TrkrDefs::getLayer(va[va.size() - 1]->getClusKey()) - TrkrDefs::getLayer(vb[vb.size() - 1]->getClusKey())) > 0 && max(TrkrDefs::getLayer(va[va.size() - 1]->getClusKey()) - TrkrDefs::getLayer(vb[0]->getClusKey()), TrkrDefs::getLayer(vb[vb.size() - 1]->getClusKey()) - TrkrDefs::getLayer(va[0]->getClusKey())) + 1 == (int) (va.size() + vb.size() - v3.size());
-}
-
-vector<TrkrCluster *> yunion(const vector<TrkrCluster *> &v1, const vector<TrkrCluster *> &v2)
-{
-  std::vector<TrkrCluster *> v3;
-
-  //std::sort(v1.begin(), v1.end());
-  //std::sort(v2.begin(), v2.end());
-
-  std::set_union(v1.begin(), v1.end(),
-                 v2.begin(), v2.end(),
-                 back_inserter(v3), comparing);
-  return v3;
-}
-
-bool issuperset(const vector<TrkrCluster *> &larger,
-                const vector<TrkrCluster *> &smaller)
-{
-  for (unsigned int i = 0; i < smaller.size(); i++)
-  {
-    if (!binary_search(larger.begin(), larger.end(), smaller.at(i), comparing)) return false;
-  }
-  return true;
-}
-
-void changetounion(vector<TrkrCluster *> &v1,
-                   const vector<TrkrCluster *> &v2)
-{
-  vector<TrkrCluster *> temp(yunion(v1, v2));
-  v1 = temp;
-}
-
 double RosenBrock(const double *xx)
 {
   /* const Double_t x = xx[0];
@@ -445,40 +373,40 @@ void PHRTreeSeeding::FillTree()
   int nlayer[60];
   for (int j = 0; j < 60; j++) nlayer[j] = 0;
 
-  TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
-
-  for (TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
   {
-    TrkrCluster *cluster = iter->second;
-    TrkrDefs::cluskey ckey = iter->first;
-    unsigned int layer = TrkrDefs::getLayer(ckey);
-    if (layer < 39) continue;
-
-    TVector3 vec(cluster->getPosition(0) - _vertex->get_x(), cluster->getPosition(1) - _vertex->get_y(), cluster->getPosition(2) - _vertex->get_z());
-
-    double clus_phi = vec.Phi();
-    clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
-    double clus_eta = vec.Eta();
-    double clus_l = layer;  // _radii_all[layer];
-
-    vector<pointKey> testduplicate;
-    QueryTree(_rtree, clus_phi - 0.00001, clus_eta - 0.00001, layer - 0.5, clus_phi + 0.00001, clus_eta + 0.00001, layer + 0.5, testduplicate);
-    if (!testduplicate.empty())
-    {
-      n_dupli++;
-      continue;
+    auto range = _cluster_map->getClusters(hitsetkey);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
+      TrkrCluster *cluster = clusIter->second;
+      TrkrDefs::cluskey ckey = clusIter->first;
+      unsigned int layer = TrkrDefs::getLayer(ckey);
+      if (layer < 39) continue;
+      
+      TVector3 vec(cluster->getPosition(0) - _vertex->get_x(), cluster->getPosition(1) - _vertex->get_y(), cluster->getPosition(2) - _vertex->get_z());
+      
+      double clus_phi = vec.Phi();
+      clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
+      double clus_eta = vec.Eta();
+      double clus_l = layer;  // _radii_all[layer];
+      
+      vector<pointKey> testduplicate;
+      QueryTree(_rtree, clus_phi - 0.00001, clus_eta - 0.00001, layer - 0.5, clus_phi + 0.00001, clus_eta + 0.00001, layer + 0.5, testduplicate);
+      if (!testduplicate.empty())
+	{
+	  n_dupli++;
+	  continue;
+	}
+      nlayer[layer]++;
+      t_fill->restart();
+      _rtree.insert(std::make_pair(point(clus_phi, clus_eta, clus_l), ckey));
+      t_fill->stop();
     }
-    nlayer[layer]++;
-    t_fill->restart();
-    _rtree.insert(std::make_pair(point(clus_phi, clus_eta, clus_l), ckey));
-    t_fill->stop();
   }
-
   std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
   std::cout << "number of duplicates : " << n_dupli << std::endl;
 }
 
-int PHRTreeSeeding::Process(PHCompositeNode *topNode)
+int PHRTreeSeeding::Process(PHCompositeNode */*topNode*/)
 {
   TFile fpara("rtree_para.root", "RECREATE");
   TNtuple *NT = new TNtuple("NT", "NT", "pt:dpt:z:dz:phi:dphi:c:dc:nhit");

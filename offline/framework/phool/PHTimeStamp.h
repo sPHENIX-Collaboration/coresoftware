@@ -28,7 +28,7 @@ class PHTimeStamp : public PHObject
   PHTimeStamp(const time_t);
   void setBinTics(const phtime_t t);
 
-  virtual ~PHTimeStamp() {}
+  ~PHTimeStamp() override {}
 
  public:
   void set(const int, const int, const int, const int, const int, const int, const int = 0);
@@ -63,7 +63,7 @@ class PHTimeStamp : public PHObject
 
  protected:
   phtime_t binaryTime;
-  ClassDef(PHTimeStamp, 1)
+  ClassDefOverride(PHTimeStamp, 1)
 };
 
 PHTimeStamp operator+(const PHTimeStamp &, time_t);

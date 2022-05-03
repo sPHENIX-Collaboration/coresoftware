@@ -19,7 +19,7 @@ class PHPy6GenTrigger
  public:
   virtual ~PHPy6GenTrigger();
 
-  virtual bool Apply(const HepMC::GenEvent* evt)
+  virtual bool Apply(const HepMC::GenEvent* /*evt*/)
   {
     std::cout << "PHPy6GenTrigger::Apply - in virtual function" << std::endl;
     return false;

@@ -55,7 +55,7 @@ PHG4MicromegasSteppingAction::PHG4MicromegasSteppingAction(PHG4MicromegasDetecto
 
 //____________________________________________________________________________..
 // This is the implementation of the G4 UserSteppingAction
-bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool was_used)
+bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool /*was_used*/)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
@@ -125,6 +125,9 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
 
       // assign layer
       m_hit->set_layer(m_Detector->get_layer(volume));
+
+      const auto tileid = m_Detector->get_tileid(volume);
+      m_hit->set_property(PHG4Hit::prop_index_i, tileid);
 
       // here we set the entrance values in cm
       m_hit->set_x(0, prePoint->GetPosition().x() / cm);
@@ -229,7 +232,7 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
       m_hit->set_x(1, postPoint->GetPosition().x() / cm);
       m_hit->set_y(1, postPoint->GetPosition().y() / cm);
       m_hit->set_z(1, postPoint->GetPosition().z() / cm);
-      
+
       m_hit->set_px(1, postPoint->GetMomentum().x() / GeV);
       m_hit->set_py(1, postPoint->GetMomentum().y() / GeV);
       m_hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
@@ -244,7 +247,7 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep,bool w
       }
       if (geantino)
       {
-        m_hit->set_edep(-1);  
+        m_hit->set_edep(-1);
         m_hit->set_eion(-1);
       }
       else

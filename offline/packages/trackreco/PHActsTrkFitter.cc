@@ -6,14 +6,21 @@
  */
 
 #include "PHActsTrkFitter.h"
-#include "ActsTrack.h"
-#include "ActsTransformations.h"
 
 /// Tracking includes
+#include <tpc/TpcDefs.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/MvtxDefs.h>
+#include <trackbase/InttDefs.h>
 #include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/ActsTransformations.h>
 
+#include <micromegas/MicromegasDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -31,57 +38,49 @@
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
+#include <Acts/TrackFitting/GainMatrixSmoother.hpp>
+#include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 
-#include <ActsExamples/EventData/Track.hpp>
-#include <ActsExamples/Framework/AlgorithmContext.hpp>
+#include <ActsExamples/EventData/Index.hpp>
+
+#include <TDatabasePDG.h>
 
 #include <cmath>
 #include <iostream>
 #include <vector>
 
+
+
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
-  : PHTrackFitting(name)
-  , m_event(0)
-  , m_actsFitResults(nullptr)
-  , m_actsProtoTracks(nullptr)
-  , m_tGeometry(nullptr)
-  , m_trackMap(nullptr)
-  , m_hitIdClusKey(nullptr)
-  , m_nBadFits(0)
-  , m_fitSiliconMMs(false)
-  , m_fillSvtxTrackStates(true)
-  , m_timeAnalysis(false)
-  , m_timeFile(nullptr)
-  , h_eventTime(nullptr)
-  , h_fitTime(nullptr)
-  , h_updateTime(nullptr)
-  , h_stateTime(nullptr)
-  , h_rotTime(nullptr)
-{
-  Verbosity(0);
-}
+  : SubsysReco(name)
+  , m_trajectories(nullptr)
+{}
 
-PHActsTrkFitter::~PHActsTrkFitter()
-{
-}
-
-int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
+int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
 {
   if(Verbosity() > 1)
     std::cout << "Setup PHActsTrkFitter" << std::endl;
-  
-  if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+
+   if(createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
-  
+
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
-  m_fitCfg.fit = ActsExamples::TrkrClusterFittingAlgorithm::makeFitterFunction(
+  m_fitCfg.fit = ActsExamples::TrackFittingAlgorithm::makeTrackFitterFunction(
                m_tGeometry->tGeometry,
 	       m_tGeometry->magField);
 
-  m_fitCfg.dFit = ActsExamples::TrkrClusterFittingAlgorithm::makeFitterFunction(
+  m_fitCfg.dFit = ActsExamples::TrackFittingAlgorithm::makeTrackFitterFunction(
 	       m_tGeometry->magField);
+
+  m_outlierFinder.verbosity = Verbosity();
+  std::map<long unsigned int, float> chi2Cuts;
+  chi2Cuts.insert(std::make_pair(10,4));
+  chi2Cuts.insert(std::make_pair(12,4));
+  chi2Cuts.insert(std::make_pair(14,9));
+  chi2Cuts.insert(std::make_pair(16,4));
+  m_outlierFinder.chi2Cuts = chi2Cuts;
 
   if(m_timeAnalysis)
     {
@@ -106,15 +105,12 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrkFitter::Process()
+int PHActsTrkFitter::process_event(PHCompositeNode */*topNode*/)
 {
-  auto eventTimer = std::make_unique<PHTimer>("eventTimer");
-  eventTimer->stop();
-  eventTimer->restart();
+  PHTimer eventTimer("eventTimer");
+  eventTimer.stop();
+  eventTimer.restart();
   
-  /// Start fresh for this event and for this execution of the module
-  m_actsFitResults->clear();
-
   m_event++;
 
   auto logLevel = Acts::Logging::FATAL;
@@ -127,12 +123,25 @@ int PHActsTrkFitter::Process()
       logLevel = Acts::Logging::VERBOSE;
   }
 
-  loopTracks(logLevel);
-  
-  eventTimer->stop();
-  auto eventTime = eventTimer->get_accumulated_time();
+  /// Fill an additional track map if using the acts evaluator
+  /// for proto track comparison to fitted track
+  if(m_actsEvaluator)
+    {
+      /// wipe at the beginning of every new fit pass, so that the seeds 
+      /// are whatever is currently in SvtxTrackMap
+      m_seedTracks->clear();
+      for(const auto& [key, track] : *m_trackMap)
+	{
+	  m_seedTracks->insert(track);
+	}
+    }
 
-  if(Verbosity() > 0)
+  loopTracks(logLevel);
+
+  eventTimer.stop();
+  auto eventTime = eventTimer.get_accumulated_time();
+
+  if(Verbosity() > 1)
     std::cout << "PHActsTrkFitter total event time " 
 	      << eventTime << std::endl;
 
@@ -152,20 +161,22 @@ int PHActsTrkFitter::Process()
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrkFitter::ResetEvent(PHCompositeNode *topNode)
+int PHActsTrkFitter::ResetEvent(PHCompositeNode */*topNode*/)
 {
-
-  m_actsFitResults->clear();
-
+  
   if(Verbosity() > 1)
     {
       std::cout << "Reset PHActsTrkFitter" << std::endl;
 
     }
+  
+  m_trajectories->clear();
+    
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrkFitter::End(PHCompositeNode *topNode)
+int PHActsTrkFitter::End(PHCompositeNode */*topNode*/)
 {
   if(m_timeAnalysis)
     {
@@ -193,203 +204,438 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 {
   auto logger = Acts::getDefaultLogger("PHActsTrkFitter", logLevel);
 
-  std::map<unsigned int, ActsTrack>::iterator trackIter;
- 
-  for (trackIter = m_actsProtoTracks->begin();
-       trackIter != m_actsProtoTracks->end();
-       ++trackIter)
-  {
-    auto trackTimer = std::make_unique<PHTimer>("TrackTimer");
-    trackTimer->stop();
-    trackTimer->restart();
+  /// Store a vector of track fits that fail to erase, so that the
+  /// track map iterator doesn't crash
+  std::vector<unsigned int> badTracks;
 
-    ActsTrack track = trackIter->second;
-    /// Can correlate with the SvtxTrackMap with the key
-    const unsigned int trackKey = trackIter->first;
+  for(const auto& [trackKey, track] : *m_trackMap)
+    {
+      if(!track)
+	{ continue; }
 
-    std::vector<SourceLink> sourceLinks = track.getSourceLinks();
-    ActsExamples::TrackParameters trackSeed = track.getTrackParams();
+      PHTimer trackTimer("TrackTimer");
+      trackTimer.stop();
+      trackTimer.restart();
+      ActsExamples::MeasurementContainer measurements;
+      auto sourceLinks = getSourceLinks(track, measurements);
+  
+      if(sourceLinks.size() == 0) { continue; }
 
-    /// If using directed navigation, collect surface list to navigate
-    SurfacePtrVec surfaces;
-    if(m_fitSiliconMMs)
-      {	
-	sourceLinks = getSurfaceVector(sourceLinks, surfaces);
-	/// Check to see if there is a track to fit, if not skip it
-	if(surfaces.size() == 0)
-	  continue;
-	bool MMsurface = false;
-	for(auto surf : surfaces)
-	  {
-	    if(surf->geometryId().volume() == 16)
-	      {
-		MMsurface = true;
-		break;
-	      }
-	  }
-	/// If there's not a MM surface, we don't want to fit only
-	/// the silicon
-	if(!MMsurface)
-	  continue;
-
-      }
-
-    Acts::BoundSymMatrix cov = setDefaultCovariance();
-
-    ActsExamples::TrackParameters newTrackSeed(
-                  trackSeed.fourPosition(m_tGeometry->geoContext),
-		  trackSeed.momentum(),
-		  trackSeed.absoluteMomentum(),
-		  trackSeed.charge(),
-		  cov);
-
-    /// Construct a perigee surface as the target surface
-    /// This surface is what Acts fits with respect to, so we set it to
-    /// the initial vertex estimation
-    auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-		          track.getVertex());
-   
-    if(Verbosity() > 2)
-      {
-	std::cout << " Processing proto track with position:" 
-		  << newTrackSeed.position(m_tGeometry->geoContext) 
-		  << std::endl 
-		  << "momentum: " << newTrackSeed.momentum() 
-		  << std::endl
-		  << "charge : " << newTrackSeed.charge() 
-		  << std::endl
-		  << "initial vertex : " << track.getVertex()
-		  << " corresponding to SvtxTrack key " << trackKey
-		  << std::endl;
-	std::cout << "proto track covariance " << std::endl
-		  << newTrackSeed.covariance().value() << std::endl;
-     
-      }
-
-    /// Call KF now. Have a vector of sourceLinks corresponding to clusters
-    /// associated to this track and the corresponding track seed which
-    /// corresponds to the PHGenFitTrkProp track seeds
-    Acts::KalmanFitterOptions<Acts::VoidOutlierFinder> kfOptions(
-      m_tGeometry->geoContext,
-      m_tGeometry->magFieldContext,
-      m_tGeometry->calibContext,
-      Acts::VoidOutlierFinder(),
-      Acts::LoggerWrapper(*logger),
-      Acts::PropagatorPlainOptions(),
-      &(*pSurface));
-
-    auto fitTimer = std::make_unique<PHTimer>("FitTimer");
-    fitTimer->stop();
-    fitTimer->restart();
-    auto result = fitTrack(sourceLinks, newTrackSeed, kfOptions,
-			   surfaces);
-
-    fitTimer->stop();
-    auto fitTime = fitTimer->get_accumulated_time();
-
-    if(Verbosity() > 0)
-      std::cout << "PHActsTrkFitter Acts fit time "
-		<< fitTime << std::endl;
-
-    /// Check that the track fit result did not return an error
-    if (result.ok())
-    {  
-      const FitResult& fitOutput = result.value();
-    
-      if(m_timeAnalysis)
-	{
-	  h_fitTime->Fill(fitOutput.fittedParameters.value()
-			  .transverseMomentum(), 
-			  fitTime);
-	}
-   
+      /// If using directed navigation, collect surface list to navigate
+      SurfacePtrVec surfaces;
       if(m_fitSiliconMMs)
-	updateActsProtoTrack(fitOutput, trackIter);
-      else
-	getTrackFitResult(fitOutput, trackKey, track.getVertex());
-	
-    }
-    else
       {
-	if(Verbosity() > 10)
-	  std::cout<<"Track fit failed"<<std::endl;
-	/// Insert an empty track fit output into the map since the fit failed
-       	m_actsFitResults->insert(
-			  std::pair<const unsigned int, Trajectory>
-			  (trackKey, ActsExamples::TrkrClusterMultiTrajectory()));
-
-	// fit failed, delete the junk SvtxTrack from the node tree 
-	// so the evaluator does not waste time on it
-	m_trackMap->erase(trackKey);
-
-	m_nBadFits++;
+        sourceLinks = getSurfaceVector(sourceLinks, surfaces);
+        
+        // skip if there is no surfaces
+        if( surfaces.empty() ) continue;
+        
+        // make sure micromegas are in the tracks, if required
+        if( m_useMicromegas &&
+          std::none_of( surfaces.begin(), surfaces.end(), [this]( const auto& surface )
+          { return m_surfMaps->isMicromegasSurface( surface ); } ) )
+        { continue; }
       }
 
-    trackTimer->stop();
-    auto trackTime = trackTimer->get_accumulated_time();
+      Acts::Vector3 momentum(track->get_px(), 
+			     track->get_py(), 
+			     track->get_pz());
+
+      // z value of track is from silicon stub, so it is independent of bunch crossing
+      Acts::Vector3 position(track->get_x() * Acts::UnitConstants::cm,
+			     track->get_y() * Acts::UnitConstants::cm,
+			     track->get_z() * Acts::UnitConstants::cm);
+
+      auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
+					  position);
+      auto actsFourPos = Acts::Vector4(position(0), position(1),
+				       position(2),
+				       10 * Acts::UnitConstants::ns);
+      Acts::BoundSymMatrix cov = setDefaultCovariance();
+ 
+      int charge = track->get_charge();
+      if(m_fieldMap.find("3d") != std::string::npos)
+	{ charge *= -1; }
+
+      /// Acts requires a wrapped vector, so we need to replace the
+      /// std::vector contents with a wrapper vector to get the memory
+      /// access correct
+      std::vector<std::reference_wrapper<const SourceLink>>  wrappedSls;
+      for(const auto& sl : sourceLinks)
+	{ wrappedSls.push_back(std::cref(sl)); }
+           
+      if(Verbosity() > 2)
+	{ printTrackSeed(track); }
+
+      /// Reset the track seed with the dummy covariance
+      auto seed = ActsExamples::TrackParameters::create(pSurface,
+							m_tGeometry->geoContext,
+							actsFourPos,
+							momentum,
+							charge / track->get_p(),
+							cov).value();
+      
+      /// Set host of propagator options for Acts to do e.g. material integration
+      Acts::PropagatorPlainOptions ppPlainOptions;
+      ppPlainOptions.absPdgCode = m_pHypothesis;
+      ppPlainOptions.mass = 
+	TDatabasePDG::Instance()->GetParticle(m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
+       
+      Acts::KalmanFitterExtensions extensions;
+      ActsExamples::MeasurementCalibrator calibrator{measurements};
+      extensions.calibrator.connect<&ActsExamples::MeasurementCalibrator::calibrate>(&calibrator);
+     
+      if(m_useOutlierFinder)
+	{ 
+	  extensions.outlierFinder.connect<&ResidualOutlierFinder::operator()>(&m_outlierFinder);
+	}
+
+      Acts::GainMatrixUpdater kfUpdater;
+      Acts::GainMatrixSmoother kfSmoother;
+      extensions.updater.connect<&Acts::GainMatrixUpdater::operator()>(&kfUpdater);
+      extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()>(&kfSmoother);
+
+      Acts::KalmanFitterOptions kfOptions(m_tGeometry->geoContext,
+					  m_tGeometry->magFieldContext,
+					  m_tGeometry->calibContext,
+					  extensions,
+					  Acts::LoggerWrapper(*logger),
+					  ppPlainOptions,
+					  &(*pSurface));
+ 
+      kfOptions.multipleScattering = true;
+      kfOptions.energyLoss = true;
+
+      PHTimer fitTimer("FitTimer");
+      fitTimer.stop();
+      fitTimer.restart();
+      auto result = fitTrack(wrappedSls, seed, kfOptions,
+			     surfaces);
+      fitTimer.stop();
+      auto fitTime = fitTimer.get_accumulated_time();
+      
+      if(Verbosity() > 1)
+	std::cout << "PHActsTrkFitter Acts fit time "
+		  << fitTime << std::endl;
+
+      /// Check that the track fit result did not return an error
+      if (result.ok())
+	{  
+	  const FitResult& fitOutput = result.value();
+	  
+	  if(m_timeAnalysis)
+	    {
+	      h_fitTime->Fill(fitOutput.fittedParameters.value()
+			      .transverseMomentum(), 
+			      fitTime);
+	    }
+	  
+	  if(m_fitSiliconMMs)
+	    {
+	      auto newTrack = (SvtxTrack_v3*)(track->CloneMe());
+	      getTrackFitResult(fitOutput, newTrack);
+	      m_directedTrackMap->insert(newTrack);
+	    }
+	  else
+	    {
+	      getTrackFitResult(fitOutput, track);
+	    }
+	}
+      else if (!m_fitSiliconMMs)
+	{
+	  /// Track fit failed, get rid of the track from the map
+	  badTracks.push_back(trackKey);
+	  m_nBadFits++;
+	  if(Verbosity() > 1)
+	    { 
+	      std::cout << "Track fit failed for track " << trackKey 
+			<< " with Acts error message " 
+			<< result.error() << ", " << result.error().message()
+			<< std::endl;
+	    }
+	}
+
+      trackTimer.stop();
+      auto trackTime = trackTimer.get_accumulated_time();
+      
+      if(Verbosity() > 1)
+	std::cout << "PHActsTrkFitter total single track time "
+		  << trackTime << std::endl;
     
-    if(Verbosity() > 0)
-      std::cout << "PHActsTrkFitter total single track time "
-		<< trackTime << std::endl;
-  }
+    }
+
+  /// Now erase bad tracks from the track map
+  for(const auto& key : badTracks)
+    {
+      if(Verbosity() > 2)
+	{ std::cout << "Erasing bad track " << key << std::endl; }
+      m_trackMap->erase(key);
+    }
+
   return;
+
 }
 
-void PHActsTrkFitter::updateActsProtoTrack(const FitResult& fitOutput,
-		  std::map<unsigned int, ActsTrack>::iterator iter)
+
+//___________________________________________________________________________________
+Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfkey surfkey) const
+{
+  const auto trkrid = TrkrDefs::getTrkrId(cluskey);
+  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+
+  switch( trkrid )
+  {
+    case TrkrDefs::TrkrId::micromegasId: return getMMSurface( hitsetkey );
+    case TrkrDefs::TrkrId::tpcId: return getTpcSurface(hitsetkey, surfkey);
+    case TrkrDefs::TrkrId::mvtxId:
+    case TrkrDefs::TrkrId::inttId:
+    {
+      return getSiliconSurface(hitsetkey);
+    }
+  }
+  
+  // unreachable
+  return nullptr;
+  
+}
+
+//___________________________________________________________________________________
+Surface PHActsTrkFitter::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
+{
+  unsigned int trkrid =  TrkrDefs::getTrkrId(hitsetkey);
+  TrkrDefs::hitsetkey tmpkey = hitsetkey;
+
+  if(trkrid == TrkrDefs::inttId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = InttDefs::resetCrossingHitSetKey(hitsetkey);
+    }
+
+  if(trkrid == TrkrDefs::mvtxId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);
+    }
+
+  auto surfMap = m_surfMaps->siliconSurfaceMap;
+  auto iter = surfMap.find(tmpkey);
+  if(iter != surfMap.end())
+    {
+      return iter->second;
+    }
+  
+  /// If it can't be found, return nullptr
+  {
+    std::cout << PHWHERE << "Failed to find silicon surface for hitsetkey " << hitsetkey << " tmpkey " << tmpkey << std::endl;
+  }
+  
+  return nullptr;
+
+}
+
+//___________________________________________________________________________________
+Surface PHActsTrkFitter::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey) const
+{
+  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+  const auto iter = m_surfMaps->tpcSurfaceMap.find(layer);
+  if(iter != m_surfMaps->tpcSurfaceMap.end())
+  {
+    auto surfvec = iter->second;
+    return surfvec.at(surfkey);
+  }
+  
+  /// If it can't be found, return nullptr to skip this cluster
+  return nullptr;
+}
+
+//___________________________________________________________________________________
+Surface PHActsTrkFitter::getMMSurface(TrkrDefs::hitsetkey hitsetkey) const
+{
+  const auto iter = m_surfMaps->mmSurfaceMap.find( hitsetkey );
+  return (iter == m_surfMaps->mmSurfaceMap.end()) ? nullptr:iter->second;
+}
+
+
+
+//___________________________________________________________________________________
+SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
+				   ActsExamples::MeasurementContainer& measurements)
 {
 
-  const auto& params = fitOutput.fittedParameters.value();
-  
-  /// We give the track params the vertex position because sometimes
-  /// the fit returns a good momentum but bad position fit
-  Acts::Vector4D position = Acts::Vector4D::Zero();
-  position(0) = iter->second.getVertex()(0);
-  position(1) = iter->second.getVertex()(1);
-  position(2) = iter->second.getVertex()(2);
-  position(3) = params.fourPosition(m_tGeometry->geoContext)(3);
-  
-  auto momVec = params.momentum();
-  auto p = params.absoluteMomentum();
-  auto q = params.charge();
-  Acts::BoundSymMatrix cov;
-  cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
-           0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
-           0., 0., 0.05, 0., 0., 0.,
-           0., 0., 0., 0.05, 0., 0.,
-           0., 0., 0., 0., 0.00005 , 0.,
-           0., 0., 0., 0., 0., 1.;
+  SourceLinkVec sourcelinks;
 
-  if(params.covariance())
-    cov = params.covariance().value();
+  short int crossing = track->get_crossing();
+  if(Verbosity() > 0) 
+    {
+      std::cout << "tpcid " << track->get_id() << " crossing " << crossing << std::endl; 
+      //track->identify();
+    }
 
-  if(Verbosity() > 1)
-    std::cout << "Updating track seed with (" 
-	      << momVec.x() << ", " << momVec.y() << ", " 
-	      << momVec.z() << ")" << std::endl;
+  if(crossing == SHRT_MAX) return sourcelinks;
 
-  const ActsExamples::TrackParameters siliconMMFit(position, momVec, 
-						   p, q, cov);
+  int iter = 0;
+  for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
+       clusIter != track->end_cluster_keys();
+       ++clusIter)
+    {
+      auto key = *clusIter;
+      auto cluster = m_clusterContainer->findCluster(key);
+      if(!cluster)
+	{
+	  if(Verbosity() > 0) std::cout << "Failed to get cluster with key " << key << " for track " << track->get_id() << std::endl;
+	  continue;
+	}
+
+      auto subsurfkey = cluster->getSubSurfKey();
+      
+      /// Make a safety check for clusters that couldn't be attached
+      /// to a surface
+      auto surf = getSurface(key, subsurfkey);
+      if(!surf)
+	continue;
+
+      Acts::Vector2 localPos;
+      unsigned int trkrid = TrkrDefs::getTrkrId(key);
+      unsigned int side = TpcDefs::getSide(key);
+      if(trkrid ==  TrkrDefs::tpcId)
+	{
+	  // For the TPC, cluster z has to be corrected for the crossing z offset 
+	  // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
+
+	  // transform to global coordinates for z correction 
+	  ActsTransformations transformer;
+	  auto global = transformer.getGlobalPosition(key, cluster,
+						      m_surfMaps,
+						      m_tGeometry);
+
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << " zinit " << global[2] << " side " << side << " crossing " << crossing 
+			<< " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
+	    }
+	  
+	  float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
+	  global[2] = z;
+	  
+	  // get the new surface corresponding to this global position
+	  TrkrDefs::hitsetkey tpcHitSetKey = TrkrDefs::getHitSetKeyFromClusKey(key);
+	  surf = get_tpc_surface_from_coords(tpcHitSetKey,
+							global,
+							m_surfMaps,
+							m_tGeometry,
+							subsurfkey);
+	
+	  if(!surf)
+	    {
+	      /// If the surface can't be found, we can't track with it. So 
+	      /// just continue and don't add the cluster to the source links
+	      if(Verbosity() > 0) std::cout << PHWHERE << "Failed to find surface for cluster " << key << std::endl;
+	      continue;
+	    }
+
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << "      global z corrected " << z << " side " << side << " crossing " << crossing 
+			<< " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
+	    }
+
+
+	  // get local coordinates
+	  Acts::Vector3 normal = surf->normal(m_tGeometry->geoContext);
+	  auto local = surf->globalToLocal(m_tGeometry->geoContext,
+					      global * Acts::UnitConstants::cm,
+					      normal);
+
+	  if(local.ok())
+	    {
+	      localPos = local.value() / Acts::UnitConstants::cm;
+	    }
+	  else
+	    {
+	      /// otherwise take the manual calculation
+	      Acts::Vector3 center = surf->center(m_tGeometry->geoContext)/Acts::UnitConstants::cm;
+	      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+	      double clusphi = atan2(global[1], global[0]);
+	      double rClusPhi = clusRadius * clusphi;
+	      double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
+	      double surfPhiCenter = atan2(center[1], center[0]);
+	      double surfRphiCenter = surfPhiCenter * surfRadius;
+	      double surfZCenter = center[2];
+	      
+	      localPos(0) = rClusPhi - surfRphiCenter;
+	      localPos(1) = global[2] - surfZCenter; 
+	    }
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
+	      std::cout << " new      local X " << localPos(0) << " new       local Y " << localPos(1) << std::endl;
+	    }
+	}
+      else
+	{
+	  // silicon cluster, take it as is
+	  localPos(0) = cluster->getLocalX();
+	  localPos(1) = cluster->getLocalY();
+	}
+
+      Acts::ActsVector<2> loc;
+      loc[Acts::eBoundLoc0] = localPos(0) * Acts::UnitConstants::cm;
+      loc[Acts::eBoundLoc1] = localPos(1) * Acts::UnitConstants::cm;
+      std::array<Acts::BoundIndices,2> indices;
+      indices[0] = Acts::BoundIndices::eBoundLoc0;
+      indices[1] = Acts::BoundIndices::eBoundLoc1;
+      Acts::ActsSymMatrix<2> cov = Acts::ActsSymMatrix<2>::Zero();
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
+	cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
+	cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
+	cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
+	cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+      ActsExamples::Index index = measurements.size();
+
+      SourceLink sl(surf->geometryId(), index, key);
   
-  /// Update the track seed parameters
-  iter->second.setTrackParams(siliconMMFit);
+      Acts::Measurement<Acts::BoundIndices,2> meas(sl, indices, loc, cov);
+      if(Verbosity() > 3)
+	{
+	  std::cout << "source link " << sl.index() << ", loc : " 
+		    << loc.transpose() << std::endl 
+		    << ", cov : " << cov.transpose() << std::endl
+		    << " geo id " << sl.geometryId() << std::endl;
+	  std::cout << "Surface : " << std::endl;
+	  surf.get()->toStream(m_tGeometry->geoContext, std::cout);
+	  std::cout << std::endl;
+	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
+	  std::cout << "For key " << key << " with local pos " << std::endl
+		    << localPos(0) << ", " << localPos(1)
+		    << std::endl;
+	}
+    
+      sourcelinks.push_back(sl);
+      measurements.push_back(meas);
+      iter++;
+    }
+ 
+  return sourcelinks;
 }
 
 void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
-					const unsigned int trackKey,
-					const Acts::Vector3D vertex)
+				        SvtxTrack* track)
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
   std::vector<size_t> trackTips;
-  trackTips.push_back(fitOutput.trackTip);
-  ActsExamples::IndexedParams indexedParams;
+  trackTips.reserve(1);
+  trackTips.emplace_back(fitOutput.lastMeasurementIndex);
+  ActsExamples::Trajectories::IndexedParameters indexedParams;
   if (fitOutput.fittedParameters)
     {
-      indexedParams.emplace(fitOutput.trackTip, 
-			    fitOutput.fittedParameters.value());
+       indexedParams.emplace(fitOutput.lastMeasurementIndex, 
+			     fitOutput.fittedParameters.value());
 
-      if (Verbosity() > 2)
+       if (Verbosity() > 2)
         {
 	  const auto& params = fitOutput.fittedParameters.value();
       
@@ -400,95 +646,99 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 	  std::cout << "charge: "<<params.charge()<<std::endl;
           std::cout << " momentum : " << params.momentum().transpose()
                     << std::endl;
-	  std::cout << "For trackTip == " << fitOutput.trackTip << std::endl;
+	  std::cout << "For trackTip == " << fitOutput.lastMeasurementIndex << std::endl;
         }
     }
-  
-  Trajectory trajectory(fitOutput.fittedStates, 
+  else 
+    {
+      /// Track fit failed in some way if there are no fit parameters. Remove
+      m_trackMap->erase(track->get_id());
+      std::cout << " track fit failed for track " << track->get_id() << std::endl;
+      return;
+    }
+
+  Trajectory trajectory(fitOutput.fittedStates,
 			trackTips, indexedParams);
-  
+ 
+  m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
+    
+
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
-  
-  auto updateTrackTimer = std::make_unique<PHTimer>("UpdateTrackTimer");
-  updateTrackTimer->stop();
-  updateTrackTimer->restart();
+  PHTimer updateTrackTimer("UpdateTrackTimer");
+  updateTrackTimer.stop();
+  updateTrackTimer.restart();
   if(fitOutput.fittedParameters)
-    updateSvtxTrack(trajectory, trackKey, vertex);
+    { updateSvtxTrack(trajectory, track); }
   
-  updateTrackTimer->stop();
-  auto updateTime = updateTrackTimer->get_accumulated_time();
+  updateTrackTimer.stop();
+  auto updateTime = updateTrackTimer.get_accumulated_time();
   
-  if(Verbosity() > 0)
+  if(Verbosity() > 1)
     std::cout << "PHActsTrkFitter update SvtxTrack time "
 	      << updateTime << std::endl;
 
   if(m_timeAnalysis)
     h_updateTime->Fill(updateTime);
   
-  /// Insert a new entry into the map
-  m_actsFitResults->insert(
-        std::pair<const unsigned int, Trajectory>(trackKey, 
-						  trajectory));
-  
   return;
 }
 
-ActsExamples::TrkrClusterFittingAlgorithm::FitterResult PHActsTrkFitter::fitTrack(
-          const SourceLinkVec& sourceLinks, 
-	  const ActsExamples::TrackParameters& seed,
-	  const Acts::KalmanFitterOptions<Acts::VoidOutlierFinder>& 
-	         kfOptions, 
-	  const SurfacePtrVec& surfSequence)
+ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
+    const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
+    const ActsExamples::TrackParameters& seed,
+    const ActsExamples::TrackFittingAlgorithm::TrackFitterOptions& kfOptions, 
+    const SurfacePtrVec& surfSequence)
 {
+
   if(m_fitSiliconMMs) 
-    return m_fitCfg.dFit(sourceLinks, seed, kfOptions, surfSequence);  
-  else
-    return m_fitCfg.fit(sourceLinks, seed, kfOptions);
+    { return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence); }
+
+  return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions); 
 }
 
-SourceLinkVec PHActsTrkFitter::getSurfaceVector(SourceLinkVec sourceLinks,
-						SurfacePtrVec& surfaces)
+SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks,
+						SurfacePtrVec& surfaces) const
 {
-   SourceLinkVec siliconMMSls;
+  SourceLinkVec siliconMMSls;
 
   if(Verbosity() > 1)
     std::cout << "Sorting " << sourceLinks.size() << " SLs" << std::endl;
   
-  for(auto sl : sourceLinks)
+  for(const auto& sl : sourceLinks)
     {
-      auto volume = sl.referenceSurface().geometryId().volume();
-
       if(Verbosity() > 1)
-	std::cout<<"SL available on : " << sl.referenceSurface().geometryId()<<std::endl;
-    
-      /// If volume is not the TPC add the SL to the list
-      if(volume != 14)
-	{
-	  siliconMMSls.push_back(sl);	
-	  surfaces.push_back(&sl.referenceSurface());
-	}
+	{ std::cout << "SL available on : " << sl.geometryId() << std::endl; } 
+      const auto surf = m_tGeometry->tGeometry->findSurface(sl.geometryId());
+      // skip TPC surfaces
+      if( m_surfMaps->isTpcSurface( surf ) ) continue;
+      
+      // also skip micromegas surfaces if not used
+      if( m_surfMaps->isMicromegasSurface( surf ) && !m_useMicromegas ) continue;
+
+      // update vectors
+      siliconMMSls.push_back(sl);
+      surfaces.push_back(surf);
     }
 
   /// Surfaces need to be sorted in order, i.e. from smallest to
   /// largest radius extending from target surface
   /// Add a check to ensure this
-  if(surfaces.size() > 0)
-    checkSurfaceVec(surfaces);
+  if(!surfaces.empty())
+  { checkSurfaceVec(surfaces); }
 
   if(Verbosity() > 1)
     {
-      for(auto surf : surfaces)
+      for(const auto& surf : surfaces)
 	{
 	  std::cout << "Surface vector : " << surf->geometryId() << std::endl;
 	}
     }
 
   return siliconMMSls;
-
 }
 
-void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces)
+void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces) const
 {
   for(int i = 0; i < surfaces.size() - 1; i++)
     {
@@ -534,16 +784,14 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces)
 }
 
 void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, 
-				      const unsigned int trackKey,
-				      Acts::Vector3D vertex)
+				      SvtxTrack* track)
 {
-  const auto &[trackTips, mj] = traj.trajectory();
-  /// only one track tip in the track fit Trajectory
-  auto &trackTip = trackTips.front();
+  const auto& mj = traj.multiTrajectory();
+  const auto& tips = traj.tips();
 
-  SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
-  SvtxTrack *track = trackIter->second;
-  
+  /// only one track tip in the track fit Trajectory
+  auto &trackTip = tips.front();
+
   if(Verbosity() > 2)
     {
       std::cout << "Identify (proto) track before updating with acts results " << std::endl;
@@ -551,14 +799,14 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       std::cout << " cluster keys size " << track->size_cluster_keys() << std::endl;  
     }
 
-  // The number of associated clusters may have changed - start over
-  track->clear_states();
-  track->clear_cluster_keys();
+  
+  if(!m_fitSiliconMMs)
+    { track->clear_states(); }
 
   // create a state at pathlength = 0.0
   // This state holds the track parameters, which will be updated below
   float pathlength = 0.0;
-  SvtxTrackState_v1 out( pathlength);
+  SvtxTrackState_v1 out(pathlength);
   out.set_x(0.0);
   out.set_y(0.0);
   out.set_z(0.0);
@@ -585,65 +833,46 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   track->set_chisq(trajState.chi2Sum);
   track->set_ndf(trajState.NDF);
 
-  auto rotater = std::make_unique<ActsTransformations>();
-  rotater->setVerbosity(Verbosity());
-  
-  float dca3Dxy = NAN;
-  float dca3Dz = NAN;
-  float dca3DxyCov = NAN;
-  float dca3DzCov = NAN;
-      
+  ActsTransformations rotater;
+  rotater.setVerbosity(Verbosity());
+ 
   if(params.covariance())
-    {
-   
-      Acts::BoundSymMatrix rotatedCov = 
-	rotater->rotateActsCovToSvtxTrack(params,
-					  m_tGeometry->geoContext);
+    {     
+      auto rotatedCov = rotater.rotateActsCovToSvtxTrack(params);
       
       for(int i = 0; i < 6; i++)
 	{
 	  for(int j = 0; j < 6; j++)
 	    {
 	      track->set_error(i,j, rotatedCov(i,j));
+	      track->set_acts_covariance(i,j, 
+					 params.covariance().value()(i,j));
 	    }
-	}
-    
- 
-
-      rotater->calculateDCA(params, vertex, rotatedCov,
-			    m_tGeometry->geoContext, 
-			    dca3Dxy, dca3Dz, 
-			    dca3DxyCov, dca3DzCov);
+	} 
     }
- 
-  /// Set the DCA here. The DCA will be updated after the final
-  /// vertex fitting in PHActsVertexFinder
-  track->set_dca3d_xy(dca3Dxy / Acts::UnitConstants::cm);
-  track->set_dca3d_z(dca3Dz / Acts::UnitConstants::cm);
-  track->set_dca3d_xy_error(sqrt(dca3DxyCov) / Acts::UnitConstants::cm);
-  track->set_dca3d_z_error(sqrt(dca3DzCov) / Acts::UnitConstants::cm);
-  
+
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
 
-  auto trackStateTimer = std::make_unique<PHTimer>("TrackStateTimer");
-  trackStateTimer->stop();
-  trackStateTimer->restart();
-  
-  if(m_fillSvtxTrackStates)
-    rotater->fillSvtxTrackStates(traj, trackTip, track,
-				 m_tGeometry->geoContext,
-				 m_hitIdClusKey);  
+  PHTimer trackStateTimer("TrackStateTimer");
+  trackStateTimer.stop();
+  trackStateTimer.restart();
 
-  trackStateTimer->stop();
-  auto stateTime = trackStateTimer->get_accumulated_time();
+  if(m_fillSvtxTrackStates)
+    { 
+      rotater.fillSvtxTrackStates(mj, trackTip, track,
+				  m_tGeometry->geoContext);  
+    }
   
-  if(Verbosity() > 0)
+  trackStateTimer.stop();
+  auto stateTime = trackStateTimer.get_accumulated_time();
+  
+  if(Verbosity() > 1)
     std::cout << "PHActsTrkFitter update SvtxTrackStates time "
 	      << stateTime << std::endl;
 
   if(m_timeAnalysis)
-    h_stateTime->Fill(stateTime);
+    { h_stateTime->Fill(stateTime); }
 
   if(Verbosity() > 2)
     {  
@@ -658,9 +887,9 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   
 }
 
-Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance()
+Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance() const
 {
-  Acts::BoundSymMatrix cov;
+  Acts::BoundSymMatrix cov = Acts::BoundSymMatrix::Zero();
    
   /// Acts cares about the track covariance as it helps the KF
   /// know whether or not to trust the initial track seed or not.
@@ -673,24 +902,47 @@ Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance()
   /// If we are using distortions, then we need to blow up the covariance
   /// a bit since the seed was created with distorted TPC clusters
   if(m_fitSiliconMMs)
-    cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
+    {
+      cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
            0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
            0., 0., 0.1, 0., 0., 0.,
            0., 0., 0., 0.1, 0., 0.,
            0., 0., 0., 0., 0.005 , 0.,
            0., 0., 0., 0., 0., 1.;
+    }
   else
-    cov << 1000 * Acts::UnitConstants::um, 0., 0., 0., 0., 0.,
-           0., 1000 * Acts::UnitConstants::um, 0., 0., 0., 0.,
-           0., 0., 0.05, 0., 0., 0.,
-           0., 0., 0., 0.05, 0., 0.,
-           0., 0., 0., 0., 0.00005 , 0.,
-           0., 0., 0., 0., 0., 1.;
+    {
+      double sigmaD0 = 50 * Acts::UnitConstants::um;
+      double sigmaZ0 = 50 * Acts::UnitConstants::um;
+      double sigmaPhi = 1 * Acts::UnitConstants::degree;
+      double sigmaTheta = 1 * Acts::UnitConstants::degree;
+      double sigmaT = 1. * Acts::UnitConstants::ns;
+     
+      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = sigmaD0 * sigmaD0;
+      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = sigmaZ0 * sigmaZ0;
+      cov(Acts::eBoundTime, Acts::eBoundTime) = sigmaT * sigmaT;
+      cov(Acts::eBoundPhi, Acts::eBoundPhi) = sigmaPhi * sigmaPhi;
+      cov(Acts::eBoundTheta, Acts::eBoundTheta) = sigmaTheta * sigmaTheta;
+      /// Acts takes this value very seriously - tuned to be in a "sweet spot"
+      cov(Acts::eBoundQOverP, Acts::eBoundQOverP) = 0.0001;
+
+    }
 
   return cov;
 }
-    
 
+void PHActsTrkFitter::printTrackSeed(const SvtxTrack* seed) const
+{
+  std::cout << PHWHERE << " Processing proto track with id: " 
+	    << seed->get_id() << " and  position:" 
+	    << seed->get_x() << ", " << seed->get_y() << ", " 
+	    << seed->get_z() << std::endl 
+	    << "momentum: " << seed->get_px() << ", " << seed->get_py()
+	    << ", " << seed->get_pz() << std::endl
+	    << "charge : " << seed->get_charge()
+	    << std::endl;  
+}
+    
 int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 {
 
@@ -701,7 +953,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
   if (!dstNode)
   {
     std::cerr << "DST node is missing, quitting" << std::endl;
-    throw std::runtime_error("Failed to find DST node in PHActsTracks::createNodes");
+    throw std::runtime_error("Failed to find DST node in PHActsTrkFitter::createNodes");
   }
   
   PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
@@ -712,36 +964,75 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_actsFitResults = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsFitResults");
-  
-  if(!m_actsFitResults)
+  if(m_fitSiliconMMs)
     {
-      m_actsFitResults = new std::map<const unsigned int, Trajectory>;
+      m_directedTrackMap = findNode::getClass<SvtxTrackMap>(topNode,
+							    "SvtxSiliconMMTrackMap");
+      if(!m_directedTrackMap)
+	{
+	  /// Copy this trackmap, then use it for the rest of processing
+	  m_directedTrackMap = new SvtxTrackMap_v1;
 
-      PHDataNode<std::map<const unsigned int, 
-			  Trajectory>> *fitNode = 
-		 new PHDataNode<std::map<const unsigned int, 
-				    Trajectory>>
-		 (m_actsFitResults, "ActsFitResults");
-
-      svtxNode->addNode(fitNode);
-      
+	  PHIODataNode<PHObject> *trackNode = 
+	    new PHIODataNode<PHObject>(m_directedTrackMap,"SvtxSiliconMMTrackMap","PHObject");
+	  svtxNode->addNode(trackNode);
+	} 
     }
 
+  m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
+  if(!m_trajectories)
+    {
+      m_trajectories = new std::map<const unsigned int, Trajectory>;
+      PHDataNode<std::map<const unsigned int, Trajectory>> *node = 
+	new PHDataNode<std::map<const unsigned int, Trajectory>>(m_trajectories, "ActsTrajectories");
+      svtxNode->addNode(node);
+      
+    }
+  
+  if(m_actsEvaluator)
+    {
+      m_seedTracks = findNode::getClass<SvtxTrackMap>(topNode,_seed_track_map_name);
+      
+      if(!m_seedTracks)
+	{
+	  m_seedTracks = new SvtxTrackMap_v1;
+	  
+	  PHIODataNode<PHObject> *seedNode = 
+	    new PHIODataNode<PHObject>(m_seedTracks,_seed_track_map_name,"PHObject");
+	  svtxNode->addNode(seedNode);
+	}
+    }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 {
-  
-  m_actsProtoTracks = findNode::getClass<std::map<unsigned int, ActsTrack>>(topNode, "ActsTrackMap");
+  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
+  if(!m_surfMaps)
+    {
+      std::cout << PHWHERE << "ActsSurfaceMaps not on node tree, bailing."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
-  if (!m_actsProtoTracks)
-  {
-    std::cout << "Acts proto tracks not on node tree. Exiting."
-              << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
+  if(m_clusterContainer)
+    {
+      std::cout << " Using CORRECTED_TRKR_CLUSTER node " << std::endl;
+    }
+  else
+    {
+      std::cout << " CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl;
+      m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+    }
+
+  if(!m_clusterContainer)
+    {
+      std::cout << PHWHERE 
+		<< "No trkr cluster container, exiting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
   if(!m_tGeometry)
@@ -751,8 +1042,8 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+ 
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   
   if(!m_trackMap)
     {
@@ -761,17 +1052,80 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_hitIdClusKey = findNode::getClass<CluskeyBimap>(topNode, "HitIDClusIDActsMap");
-  
-  if (!m_hitIdClusKey)
-    {
-      std::cout << PHWHERE << "No HitID:ClusKey map on node tree. Bailing."
-		<< std::endl;
-      
-      return Fun4AllReturnCodes::EVENT_OK;
-    }
-
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+Surface PHActsTrkFitter::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
+						       Acts::Vector3 world,
+						       ActsSurfaceMaps *surfMaps,
+						       ActsTrackingGeometry *tGeometry,
+						       TrkrDefs::subsurfkey& subsurfkey)
+{
+  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+  std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
+  mapIter = surfMaps->tpcSurfaceMap.find(layer);
+  
+  if(mapIter == surfMaps->tpcSurfaceMap.end())
+    {
+      std::cout << PHWHERE 
+		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
+		<< hitsetkey << std::endl;
+      return nullptr;
+    }
+  
+  double world_phi = atan2(world[1], world[0]);
+  double world_z = world[2];
+  
+  std::vector<Surface> surf_vec = mapIter->second;
+  unsigned int surf_index = 999;
+    
+  // Predict which surface index this phi and z will correspond to
+  // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
+  double fraction =  (world_phi + M_PI) / (2.0 * M_PI);
+  double rounded_nsurf = round( (double) (surf_vec.size()/2) * fraction  - 0.5);
+  unsigned int nsurf = (unsigned int) rounded_nsurf; 
+  if(world_z < 0)
+    nsurf += surf_vec.size()/2;
+
+  Surface this_surf = surf_vec[nsurf];
+      
+  auto vec3d = this_surf->center(tGeometry->geoContext);
+  std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
+  double surf_z = surf_center[2];
+  double surf_phi = atan2(surf_center[1], surf_center[0]);
+  double surfStepPhi = tGeometry->tpcSurfStepPhi;
+  double surfStepZ = tGeometry->tpcSurfStepZ;
+
+  if( (world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
+      (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )	
+    {
+      if(Verbosity() > 2)
+	std::cout <<  "     got it:  surf_phi " << surf_phi << " surf_z " << surf_z 
+		  << " surfStepPhi/2 " << surfStepPhi/2.0 << " surfStepZ/2 " << surfStepZ/2.0  
+		  << " world_phi " << world_phi << " world_z " << world_z 
+		  << " rounded_nsurf "<< rounded_nsurf << " surf_index " << nsurf
+		  << std::endl;        
+      
+      surf_index = nsurf;
+      subsurfkey = nsurf;
+    }    
+  else
+    {
+      if(Verbosity() > 1)
+	{
+	  std::cout << PHWHERE 
+		    << "Error: TPC surface index not defined, skipping cluster!" 
+		    << std::endl;
+	  std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
+		    << " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
+	  std::cout << "     world_phi " << world_phi << " world_z " << world_z << std::endl;
+	  std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
+	  std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
+	  std::cout << " number of surfaces " << surf_vec.size() << std::endl;
+	}
+      return nullptr;
+    }
+  
+  return surf_vec[surf_index];
+  
+}

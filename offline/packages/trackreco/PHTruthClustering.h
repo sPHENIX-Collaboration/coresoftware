@@ -8,6 +8,7 @@
 #define TRACKRECO_PHTRUTHCLUSTERING_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/TrkrDefs.h>
 
 // rootcint barfs with this header so we need to hide it
 #include <gsl/gsl_rng.h>
@@ -20,7 +21,6 @@ class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
-
 
 #include <string>             // for string
 #include <vector>
@@ -36,11 +36,11 @@ class PHTruthClustering  : public SubsysReco
 {
 public:
   PHTruthClustering(const std::string &name = "PHTruthClustering");
-  virtual ~PHTruthClustering();
+  ~PHTruthClustering() override;
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
 
   void UsePrimaryTrackClustersOnly(bool flag) {_primary_clusters_only = flag;}
 
@@ -48,7 +48,7 @@ private:
 /// fetch node pointers
 int GetNodes(PHCompositeNode *topNode);
 
-std::map<unsigned int, TrkrCluster* > all_truth_clusters(PHG4Particle* particle);
+std::map<TrkrDefs::cluskey, TrkrCluster* > all_truth_clusters(PHG4Particle* particle);
 std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);
 
   void LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &x, float &y, float &z,  float &t, float &e);
@@ -63,7 +63,6 @@ std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);
   int iclus = 0;
 
   TrkrClusterContainer *_reco_cluster_map{nullptr};
-
   PHG4TruthInfoContainer *_g4truth_container{nullptr};
 
   PHG4HitContainer* _g4hits_svtx{nullptr};

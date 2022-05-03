@@ -7,16 +7,20 @@
  */
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
+#include <trackbase_historic/ActsTransformations.h>
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
+#include <TString.h>
 
+#include <memory>
 #include <vector>
 
 // forward declaration
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
+
 class SvtxTrack;
 class SvtxTrackMap;
-class TH3;
+class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 
@@ -31,7 +35,7 @@ class TrkrClusterContainer;
  The chisquare being quadratic in dr0, drphi0 and dz0, it can be minimized analytically.
  This results in a linear equation lhs[i].[corrections] = rhs[i], and thus [corrections] = lhs[i]**(-1).rhs[i]
  The lhs and rhs matrices are filled in TpcSpaceChargeReconstruction::process_track
- The inversion is performed in TpcSpaceChargeReconstruction::calculate_distortions
+ The actual inversion is performed in TpcSpaceChargeMatrixInversion::calculate_distortions
  */
 
 class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterface
@@ -57,10 +61,10 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// output file
   /**
-  for now only TGraphs of space charge corrections vs r are stored
-  ultimately one wants to save the data in a format that is suitable for use in the reconstruction
-  */
-  void set_outputfile( const std::string& filename );
+   * this is the file where space charge matrix container is stored
+   */
+  void set_outputfile( const std::string& filename )
+  { m_outputfile = filename; }
 
   //@}
 
@@ -84,6 +88,13 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   /// load nodes
   int load_nodes( PHCompositeNode* );
 
+  /// get global position for a given cluster
+  /**
+   * uses ActsTransformation to convert cluster local position into global coordinates
+   * incorporates TPC distortion correction, if present
+   */
+  Acts::Vector3 get_global_position(TrkrDefs::cluskey, TrkrCluster*);
+
   /// process tracks
   void process_tracks();
 
@@ -93,49 +104,30 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   /// process track
   void process_track( SvtxTrack* );
 
-  /// calculate distortions
-  void calculate_distortions( PHCompositeNode* );
-
-  /// get cell from phi, r and z index
-  int get_cell( int iphi, int ir, int iz ) const;
-
-  /// get cell from phi, r and z values
-  int get_cell( float phi, float r, float z ) const;
-
   /// get relevant cell for a given cluster
-  int get_cell( TrkrCluster* ) const;
+  int get_cell_index( TrkrDefs::cluskey, TrkrCluster* );
 
+  /// local event counter
+  int m_event = 0;
+  
   /// output file
-  std::string m_outputfile = "TpcSpaceChargeReconstruction.root";
+  std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
   /// true if only tracks with micromegas must be used
   bool m_use_micromegas = true;
 
-  ///@name grid dimensions
-  //@{
+  /// acts transformation object
+  ActsTransformations m_transform;
 
-  // phi range
-  static constexpr float m_phimin = 0;
-  static constexpr float m_phimax = 2.*M_PI;
+  /// acts geometry
+  ActsTrackingGeometry *m_tgeometry = nullptr;
 
-  // TODO: could try to get the r and z range from TPC geometry
-  // r range
-  static constexpr float m_rmin = 20;
-  static constexpr float m_rmax = 78;
+  /// acts surface map
+  ActsSurfaceMaps *m_surfmaps = nullptr;
 
-  // z range
-  static constexpr float m_zmin = -105.5;
-  static constexpr float m_zmax = 105.5;
-
-  //@}
-
-  ///@name grid size
-  //@{
-  int m_phibins = 36;
-  int m_rbins = 16;
-  int m_zbins = 80;
-  int m_totalbins = m_phibins*m_rbins*m_zbins;
-  //@}
+  /// map cluster keys to global position
+  using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
+  PositionMap m_globalPositions;
 
   ///@name selection parameters
   //@{
@@ -148,19 +140,8 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   float m_max_dz = 0.5;
   //@}
 
-  // shortcut for relevant eigen matrices
-  static constexpr int m_ncoord = 3;
-  using matrix_t = Eigen::Matrix<float, m_ncoord, m_ncoord >;
-  using column_t = Eigen::Matrix<float, m_ncoord, 1 >;
-
-  /// left hand side matrices for distortion inversions
-  std::vector<matrix_t> m_lhs;
-
-  /// right hand side matrices for distortion inversions
-  std::vector<column_t> m_rhs;
-
-  /// keep track of how many clusters are used per cell
-  std::vector<int> m_cluster_count;
+  /// matrix container
+  std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
 
   ///@name counters
   //@{
@@ -170,7 +151,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   int m_total_clusters = 0;
   int m_accepted_clusters = 0;
   //@}
-  
+
   ///@name nodes
   //@{
   SvtxTrackMap* m_track_map = nullptr;

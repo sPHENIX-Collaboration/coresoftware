@@ -15,37 +15,33 @@
 #include "PHG4CylinderGeom_Spacalv1.h"
 
 #include <cmath>
-#include <iostream>                     // for cout, ostream
+#include <iostream>  // for cout, ostream
 
 class PHParameters;
 
 class PHG4CylinderGeom_Spacalv2 : public PHG4CylinderGeom_Spacalv1
 {
-public:
+ public:
   PHG4CylinderGeom_Spacalv2();
 
-  virtual
-  ~PHG4CylinderGeom_Spacalv2()
+  ~PHG4CylinderGeom_Spacalv2() override
   {
   }
 
-  virtual void
-  identify(std::ostream& os = std::cout) const;
-  virtual void
-  Print(Option_t* option = "") const;
-  virtual void
-  SetDefault();
+  // from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+
+  // from TObject
+  void Print(Option_t* option = "") const override;
+
+  void SetDefault() override;
 
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
-  virtual void ImportParameters(const PHParameters & param);
+  void ImportParameters(const PHParameters& param) override;
 
-  virtual
-  int
-  get_azimuthal_n_sec() const;
+  int get_azimuthal_n_sec() const override;
 
-  virtual
-  void
-  set_azimuthal_n_sec(int azimuthalNSec);
+  virtual void set_azimuthal_n_sec(int azimuthalNSec);
 
   //! azimuthal tilt in rad
   double
@@ -61,16 +57,14 @@ public:
     azimuthal_tilt = azimuthalTilt;
   }
 
-  virtual
-  bool is_azimuthal_seg_visible() const;
+  bool is_azimuthal_seg_visible() const override;
 
-  virtual
-  void set_azimuthal_seg_visible(bool b = true);
+  virtual void set_azimuthal_seg_visible(bool b = true);
 
   double get_polar_taper_ratio() const
-    {
-      return polar_taper_ratio;
-    }
+  {
+    return polar_taper_ratio;
+  }
 
   void
   set_polar_taper_ratio(double polarTaperRatio)
@@ -86,17 +80,12 @@ public:
   double
   get_sec_depth() const
   {
-    const double available_depth = get_thickness()
-        - (sqrt(
-            (get_radius()) * (get_radius())
-                + (get_sec_azimuthal_width() / 2)
-                    * (get_sec_azimuthal_width() / 2)) - get_radius()) - get_assembly_spacing();
+    const double available_depth = get_thickness() - (sqrt((get_radius()) * (get_radius()) + (get_sec_azimuthal_width() / 2) * (get_sec_azimuthal_width() / 2)) - get_radius()) - get_assembly_spacing();
     if (available_depth < get_sec_azimuthal_width())
       return NAN;
     else
       return sqrt(
-          available_depth * available_depth
-              - get_sec_azimuthal_width() * get_sec_azimuthal_width());
+          available_depth * available_depth - get_sec_azimuthal_width() * get_sec_azimuthal_width());
   }
 
   double
@@ -108,14 +97,13 @@ public:
   double
   get_block_depth() const
   {
-    return sqrt(get_sec_depth()*get_sec_depth() - get_polar_taper_ratio()* get_polar_taper_ratio()* get_block_width()*get_block_width()) - get_assembly_spacing();
+    return sqrt(get_sec_depth() * get_sec_depth() - get_polar_taper_ratio() * get_polar_taper_ratio() * get_block_width() * get_block_width()) - get_assembly_spacing();
   }
 
-
   double get_assembly_spacing() const
-    {
-      return assembly_spacing;
-    }
+  {
+    return assembly_spacing;
+  }
 
   void
   set_assembly_spacing(double assemblySpacing)
@@ -131,9 +119,7 @@ public:
   double
   get_reg_fiber_grid_distance_nontaper() const;
 
-
-protected:
-
+ protected:
   int azimuthal_n_sec;
 
   //! azimuthal tilt in rad
@@ -142,9 +128,7 @@ protected:
   double polar_taper_ratio;
   double assembly_spacing;
 
-  ClassDef(PHG4CylinderGeom_Spacalv2,2)
-
-
+  ClassDefOverride(PHG4CylinderGeom_Spacalv2, 2)
 };
 
 #endif

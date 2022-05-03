@@ -48,7 +48,7 @@ PHG4CylinderCellReco::PHG4CylinderCellReco(const string &name)
   memset(nbins, 0, sizeof(nbins));
 }
 
-int PHG4CylinderCellReco::ResetEvent(PHCompositeNode *topNode)
+int PHG4CylinderCellReco::ResetEvent(PHCompositeNode * /*topNode*/)
 {
   sum_energy_before_cuts = 0.;
   sum_energy_g4hit = 0.;
@@ -171,21 +171,21 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       zmin_max[layer] = make_pair(etamin, etamax);
       double etastepsize = (sizeiter->second).first;
       double d_etabins;
-// if the eta cell size is larger than the eta range, make one bin
+      // if the eta cell size is larger than the eta range, make one bin
       if (etastepsize > etamax - etamin)
       {
-	d_etabins = 1;
+        d_etabins = 1;
       }
       else
       {
-	// it is unlikely that the eta range is a multiple of the eta cell size
-	// then fract is 0, if not - add 1 bin which makes the
-	// cells a tiny bit smaller but makes them fit
-	double fract = modf((etamax - etamin) / etastepsize, &d_etabins);
-	if (fract != 0)
-	{
-	  d_etabins++;
-	}
+        // it is unlikely that the eta range is a multiple of the eta cell size
+        // then fract is 0, if not - add 1 bin which makes the
+        // cells a tiny bit smaller but makes them fit
+        double fract = modf((etamax - etamin) / etastepsize, &d_etabins);
+        if (fract != 0)
+        {
+          d_etabins++;
+        }
       }
       etastepsize = (etamax - etamin) / d_etabins;
       (sizeiter->second).first = etastepsize;
@@ -205,20 +205,20 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       double phimax = M_PI;
       double phistepsize = (sizeiter->second).second;
       double d_phibins;
-      if (phistepsize >= phimax-phimin)
+      if (phistepsize >= phimax - phimin)
       {
-	d_phibins = 1;
+        d_phibins = 1;
       }
       else
       {
-	// it is unlikely that the phi range is a multiple of the phi cell size
-	// then fract is 0, if not - add 1 bin which makes the
-	// cells a tiny bit smaller but makes them fit
-	double fract = modf((phimax - phimin) / phistepsize, &d_phibins);
-	if (fract != 0)
-	{
-	  d_phibins++;
-	}
+        // it is unlikely that the phi range is a multiple of the phi cell size
+        // then fract is 0, if not - add 1 bin which makes the
+        // cells a tiny bit smaller but makes them fit
+        double fract = modf((phimax - phimin) / phistepsize, &d_phibins);
+        if (fract != 0)
+        {
+          d_phibins++;
+        }
       }
       phistepsize = (phimax - phimin) / d_phibins;
       (sizeiter->second).second = phistepsize;
@@ -254,18 +254,18 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       // if the size is larger than circumference, make it one bin
       if (size_r >= circumference)
       {
-	bins_r = 1;
+        bins_r = 1;
       }
       else
       {
-	// unlikely but if the circumference is a multiple of the cell size
-	// use result of division, if not - add 1 bin which makes the
-	// cells a tiny bit smaller but makes them fit
-	double fract = modf(circumference / size_r, &bins_r);
-	if (fract != 0)
-	{
-	  bins_r++;
-	}
+        // unlikely but if the circumference is a multiple of the cell size
+        // use result of division, if not - add 1 bin which makes the
+        // cells a tiny bit smaller but makes them fit
+        double fract = modf(circumference / size_r, &bins_r);
+        if (fract != 0)
+        {
+          bins_r++;
+        }
       }
       nbins[0] = bins_r;
       size_r = circumference / bins_r;
@@ -286,18 +286,18 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       // if the size is larger than length, make it one bin
       if (size_z >= length_in_z)
       {
-	bins_r = 1;
+        bins_r = 1;
       }
       else
       {
-	// unlikely but if the length is a multiple of the cell size
-	// use result of division, if not - add 1 bin which makes the
-	// cells a tiny bit smaller but makes them fit
-	double fract = modf(length_in_z / size_z, &bins_r);
-	if (fract != 0)
-	{
-	  bins_r++;
-	}
+        // unlikely but if the length is a multiple of the cell size
+        // use result of division, if not - add 1 bin which makes the
+        // cells a tiny bit smaller but makes them fit
+        double fract = modf(length_in_z / size_z, &bins_r);
+        if (fract != 0)
+        {
+          bins_r++;
+        }
       }
       nbins[1] = bins_r;
       pair<int, int> phi_z_bin = make_pair(nbins[0], nbins[1]);

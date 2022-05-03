@@ -26,7 +26,7 @@
 #include <trackbase/TrkrDefs.h>  // for cluskey
 
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <trackreco/PHTrackSeeding.h>
 
@@ -135,14 +135,14 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
   // ----- Track Following -----
   mLookup->init(_cluster_map);
   std::vector<PHGenFit2::Track*> gtracks;
-  gtracks = mTrackFollower->followTracks(_cluster_map, candidates, mField, mLookup, mFitter);
+  gtracks = mTrackFollower->followTracks(candidates, mField, mLookup, mFitter);
   LOG_INFO("tracking.PHTpcTracker.process_event") << "TrackFollower reconstructed " << gtracks.size() << " tracks";
   // write tracks to fun4all server
   //  cout<<  gtracks[1]->get_vertex_id() << endl;
   for (int i = 0, ilen = gtracks.size(); i < ilen; i++)
   {
     //  for (auto it = gtracks.begin(); it != gtracks.end(); ++it)
-    std::shared_ptr<SvtxTrack_v1> svtx_track(new SvtxTrack_v1());
+    std::shared_ptr<SvtxTrack_v2> svtx_track(new SvtxTrack_v2());
     ////// from here:
 
     svtx_track->Reset();

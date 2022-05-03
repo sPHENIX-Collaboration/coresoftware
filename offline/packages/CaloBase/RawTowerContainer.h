@@ -25,11 +25,11 @@ class RawTowerContainer : public PHObject
   {
   }
 
-  virtual ~RawTowerContainer() {}
+  ~RawTowerContainer() override {}
 
-  void Reset();
-  int isValid() const;
-  void identify(std::ostream &os = std::cout) const;
+  void Reset() override;
+  int isValid() const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   void setCalorimeterID(RawTowerDefs::CalorimeterId caloid) { _caloid = caloid; }
   RawTowerDefs::CalorimeterId getCalorimeterID() { return _caloid; }
@@ -43,6 +43,9 @@ class RawTowerContainer : public PHObject
   RawTower *getTower(const unsigned int ieta, const unsigned int iphi);
   const RawTower *getTower(const unsigned int ieta, const unsigned int iphi) const;
 
+  RawTower *getTower(const unsigned int ieta, const unsigned int iphi, const unsigned int il );
+  const RawTower *getTower(const unsigned int ieta, const unsigned int iphi, const unsigned int il) const;
+
   //! return all towers
   ConstRange getTowers(void) const;
   Range getTowers(void);
@@ -55,7 +58,7 @@ class RawTowerContainer : public PHObject
   RawTowerDefs::CalorimeterId _caloid;
   Map _towers;
 
-  ClassDef(RawTowerContainer, 1)
+  ClassDefOverride(RawTowerContainer, 1)
 };
 
 #endif

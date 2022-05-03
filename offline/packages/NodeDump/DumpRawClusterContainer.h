@@ -11,10 +11,10 @@ class DumpRawClusterContainer : public DumpObject
 {
  public:
   DumpRawClusterContainer(const std::string &NodeName);
-  virtual ~DumpRawClusterContainer() {}
+  ~DumpRawClusterContainer() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif

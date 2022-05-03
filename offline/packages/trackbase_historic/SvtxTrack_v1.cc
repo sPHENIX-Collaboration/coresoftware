@@ -10,95 +10,64 @@
 #include <map>
 #include <vector>                // for vector
 
-
-using namespace std;
-
 SvtxTrack_v1::SvtxTrack_v1()
-  : _track_id(UINT_MAX)
-  , _vertex_id(UINT_MAX)
-  , _is_positive_charge(false)
-  , _chisq(NAN)
-  , _ndf(0)
-  , _dca(NAN)
-  , _dca_error(NAN)
-  , _dca2d(NAN)
-  , _dca2d_error(NAN)
-  , _dca3d_xy(NAN)
-  , _dca3d_xy_error(NAN)
-  , _dca3d_z(NAN)
-  , _dca3d_z_error(NAN)
-  , _states()
-  , _cluster_ids()
-  , _cluster_keys()
-  , _cal_dphi()
-  , _cal_deta()
-  , _cal_energy_3x3()
-  , _cal_energy_5x5()
-  , _cal_cluster_id()
-  , _cal_cluster_key()
-  , _cal_cluster_e()
 {
   // always include the pca point
-  _states.insert(make_pair(0.0, new SvtxTrackState_v1(0.0)));
+  _states.insert(std::make_pair(0.0, new SvtxTrackState_v1(0.0)));
 }
 
-SvtxTrack_v1::SvtxTrack_v1(const SvtxTrack_v1& track)
+SvtxTrack_v1::SvtxTrack_v1(const SvtxTrack& source)
+{ SvtxTrack_v1::CopyFrom( source ); }
+
+// have to suppress uninitMenberVar from cppcheck since it triggers many false positive
+// cppcheck-suppress uninitMemberVar
+SvtxTrack_v1::SvtxTrack_v1(const SvtxTrack_v1& source)
+{ SvtxTrack_v1::CopyFrom( source ); }
+
+SvtxTrack_v1& SvtxTrack_v1::operator=(const SvtxTrack_v1& source)
+{ if( this != &source ) CopyFrom( source ); return *this; }
+
+SvtxTrack_v1::~SvtxTrack_v1()
 {
-  *this = track;
-  return;
+  clear_states();
 }
 
-SvtxTrack_v1& SvtxTrack_v1::operator=(const SvtxTrack_v1& track)
+void SvtxTrack_v1::CopyFrom( const SvtxTrack& source )
 {
-  _track_id = track.get_id();
-  _vertex_id = track.get_vertex_id();
-  _is_positive_charge = track.get_positive_charge();
-  _chisq = track.get_chisq();
-  _ndf = track.get_ndf();
-  _dca = track.get_dca();
-  _dca_error = track.get_dca_error();
-  _dca2d = track.get_dca2d();
-  _dca2d_error = track.get_dca2d_error();
-  _dca3d_xy = track.get_dca3d_xy();
-  _dca3d_xy_error = track.get_dca3d_xy_error();
-  _dca3d_z = track.get_dca3d_z();
-  _dca3d_z_error = track.get_dca3d_z_error();
+  // do nothing if copying onto oneself
+  if( this == &source ) return;
+ 
+  // parent class method
+  SvtxTrack::CopyFrom( source );
 
+  _track_id = source.get_id();
+  _vertex_id = source.get_vertex_id();
+  _is_positive_charge = source.get_positive_charge();
+  _chisq = source.get_chisq();
+  _ndf = source.get_ndf();
+  _dca = source.get_dca();
+  _dca_error = source.get_dca_error();
+  _dca2d = source.get_dca2d();
+  _dca2d_error = source.get_dca2d_error();
+  _dca3d_xy = source.get_dca3d_xy();
+  _dca3d_xy_error = source.get_dca3d_xy_error();
+  _dca3d_z = source.get_dca3d_z();
+  _dca3d_z_error = source.get_dca3d_z_error();
+  
   // copy the states over into new state objects stored here
   clear_states();
-  for (ConstStateIter iter = track.begin_states();
-       iter != track.end_states();
-       ++iter)
-  {
-    SvtxTrackState* state = dynamic_cast< SvtxTrackState*> (iter->second->CloneMe());
-    _states.insert(make_pair(state->get_pathlength(), state));
-  }
+  for( auto iter = source.begin_states(); iter != source.end_states(); ++iter )
+  { _states.insert( std::make_pair(iter->first, static_cast<SvtxTrackState*>(iter->second->CloneMe() ) ) ); }
 
   // copy over cluster ID set
   _cluster_ids.clear();
-  for (ConstClusterIter iter = track.begin_clusters();
-       iter != track.end_clusters();
-       ++iter)
-  {
-    _cluster_ids.insert(*iter);
-  }
-
+  std::copy( source.begin_clusters(), source.end_clusters(), std::inserter( _cluster_ids, _cluster_ids.begin() ) );
+  
   // copy over cluster key set
   _cluster_keys.clear();
-  for (ConstClusterKeyIter iter = track.begin_cluster_keys();
-       iter != track.end_cluster_keys();
-       ++iter)
-  {
-    _cluster_keys.insert(*iter);
-  }
+  std::copy( source.begin_cluster_keys(), source.end_cluster_keys(), std::inserter( _cluster_keys, _cluster_keys.begin() ) );
 
   // copy over calorimeter projections
-  std::vector<CAL_LAYER> types;
-  types.push_back(SvtxTrack::PRES);
-  types.push_back(SvtxTrack::CEMC);
-  types.push_back(SvtxTrack::HCALIN);
-  types.push_back(SvtxTrack::HCALOUT);
-
   _cal_dphi.clear();
   _cal_deta.clear();
   _cal_energy_3x3.clear();
@@ -107,24 +76,19 @@ SvtxTrack_v1& SvtxTrack_v1::operator=(const SvtxTrack_v1& track)
   _cal_cluster_key.clear();
   _cal_cluster_e.clear();
 
-  for (unsigned int i = 0; i < types.size(); ++i)
+  for( const auto& type: { SvtxTrack::PRES, SvtxTrack::CEMC, SvtxTrack::HCALIN, SvtxTrack::HCALOUT } )
   {
-    if (!isnan(track.get_cal_dphi(types[i]))) set_cal_dphi(types[i], track.get_cal_dphi(types[i]));
-    if (!isnan(track.get_cal_deta(types[i]))) set_cal_deta(types[i], track.get_cal_deta(types[i]));
-    if (!isnan(track.get_cal_energy_3x3(types[i]))) set_cal_energy_3x3(types[i], track.get_cal_energy_3x3(types[i]));
-    if (!isnan(track.get_cal_energy_5x5(types[i]))) set_cal_energy_5x5(types[i], track.get_cal_energy_5x5(types[i]));
-    if (track.get_cal_cluster_id(types[i]) != UINT_MAX) set_cal_cluster_id(types[i], track.get_cal_cluster_id(types[i]));
-    if (track.get_cal_cluster_key(types[i]) != UINT_MAX) set_cal_cluster_key(types[i], track.get_cal_cluster_key(types[i]));
-    if (!isnan(track.get_cal_cluster_e(types[i]))) set_cal_cluster_e(types[i], track.get_cal_cluster_e(types[i]));
+    if(!std::isnan(source.get_cal_dphi(type))) set_cal_dphi(type, source.get_cal_dphi(type));
+    if(!std::isnan(source.get_cal_deta(type))) set_cal_deta(type, source.get_cal_deta(type));
+    if(!std::isnan(source.get_cal_energy_3x3(type))) set_cal_energy_3x3(type, source.get_cal_energy_3x3(type));
+    if(!std::isnan(source.get_cal_energy_5x5(type))) set_cal_energy_5x5(type, source.get_cal_energy_5x5(type));
+    if(source.get_cal_cluster_id(type) != UINT_MAX) set_cal_cluster_id(type, source.get_cal_cluster_id(type));
+    if(source.get_cal_cluster_key(type) != UINT_MAX) set_cal_cluster_key(type, source.get_cal_cluster_key(type));
+    if(!std::isnan(source.get_cal_cluster_e(type))) set_cal_cluster_e(type, source.get_cal_cluster_e(type));
   }
 
-  return *this;
 }
 
-SvtxTrack_v1::~SvtxTrack_v1()
-{
-  clear_states();
-}
 
 void SvtxTrack_v1::identify(std::ostream& os) const
 {
@@ -133,14 +97,14 @@ void SvtxTrack_v1::identify(std::ostream& os) const
   os << "vertex id: " << get_vertex_id() << " ";
   os << "charge: " << get_charge() << " ";
   os << "chisq: " << get_chisq() << " ndf:" << get_ndf() << " ";
-  os << endl;
+  os << std::endl;
 
   os << "(px,py,pz) = ("
      << get_px() << ","
      << get_py() << ","
-     << get_pz() << ")" << endl;
+     << get_pz() << ")" << std::endl;
 
-  os << "(x,y,z) = (" << get_x() << "," << get_y() << "," << get_z() << ")" << endl;
+  os << "(x,y,z) = (" << get_x() << "," << get_y() << "," << get_z() << ")" << std::endl;
 
   if ( _cluster_ids.size() > 0 || _cluster_keys.size() > 0 )
   {
@@ -163,22 +127,18 @@ void SvtxTrack_v1::identify(std::ostream& os) const
     }
   }
   else
-    os << " track has no clusters " << endl;
+    os << " track has no clusters " << std::endl;
   
-  os << endl;
+  os << std::endl;
 
   return;
 }
 
 void SvtxTrack_v1::clear_states()
 {
-  for (StateIter iter = _states.begin();
-       iter != _states.end();
-       ++iter)
-  {
-    SvtxTrackState* state = iter->second;
-    delete state;
-  }
+  for( const auto& pair:_states )
+  { delete pair.second; }
+  
   _states.clear();
 }
 
@@ -203,8 +163,10 @@ SvtxTrackState* SvtxTrack_v1::get_state(float pathlength)
 
 SvtxTrackState* SvtxTrack_v1::insert_state(const SvtxTrackState* state)
 {
-  _states.insert(make_pair(state->get_pathlength(), dynamic_cast< SvtxTrackState*> (state->CloneMe())));
-  return _states[state->get_pathlength()];
+  const auto copy =  static_cast<SvtxTrackState*> (state->CloneMe());
+  const auto [iterator, inserted] = _states.insert(std::make_pair(state->get_pathlength(),copy));
+  if( !inserted ) delete copy;
+  return iterator->second;  
 }
 
 size_t SvtxTrack_v1::erase_state(float pathlength)

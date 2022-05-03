@@ -1,11 +1,11 @@
 #include "PHTrackPropagating.h"
 
-#include "AssocInfoContainer.h"
-
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                // for SubsysReco
@@ -19,25 +19,19 @@ using namespace std;
 
 PHTrackPropagating::PHTrackPropagating(const std::string& name)
   : SubsysReco(name)
-  , _cluster_map(nullptr)
-  , _vertex_map(nullptr)
-  , _track_map(nullptr)
-  , _assoc_container(nullptr)
-  , _track_map_name("SvtxTrackMap")
-{
-}
+{}
 
 int PHTrackPropagating::InitRun(PHCompositeNode* topNode)
 {
   return Setup(topNode);
 }
 
-int PHTrackPropagating::process_event(PHCompositeNode* topNode)
+int PHTrackPropagating::process_event(PHCompositeNode* /*topNode*/)
 {
   return Process();
 }
 
-int PHTrackPropagating::End(PHCompositeNode* topNode)
+int PHTrackPropagating::End(PHCompositeNode* /*topNode*/)
 {
   End();
   return Fun4AllReturnCodes::EVENT_OK;
@@ -56,7 +50,7 @@ int PHTrackPropagating::GetNodes(PHCompositeNode* topNode)
   //---------------------------------
   // Get Objects off of the Node Tree
   //---------------------------------
-
+  std::cout << "" << _use_truth_clusters << std::endl;
   if(_use_truth_clusters)
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
   else
@@ -79,13 +73,6 @@ int PHTrackPropagating::GetNodes(PHCompositeNode* topNode)
   if (!_track_map)
   {
     cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << _track_map_name << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
-  if (!_assoc_container)
-  {
-    cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

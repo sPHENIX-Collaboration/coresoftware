@@ -7,18 +7,17 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>                // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
 #include <set>
-#include <utility>                 // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 class PHG4CylinderCell;
 
-class PHG4CylinderCellContainer: public PHObject
+class PHG4CylinderCellContainer : public PHObject
 {
-
-  public:
-  typedef std::map<PHG4CylinderCellDefs::keytype,PHG4CylinderCell *> Map;
+ public:
+  typedef std::map<PHG4CylinderCellDefs::keytype, PHG4CylinderCell *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
@@ -26,19 +25,20 @@ class PHG4CylinderCellContainer: public PHObject
   typedef std::set<int>::const_iterator LayerIter;
   typedef std::pair<LayerIter, LayerIter> LayerRange;
 
-  PHG4CylinderCellContainer(){}
+  PHG4CylinderCellContainer() {}
 
-  virtual ~PHG4CylinderCellContainer() {}
+  ~PHG4CylinderCellContainer() override {}
 
-  void Reset();
-
-  void identify(std::ostream& os = std::cout) const;
+  // from PHObject
+  void identify(std::ostream &os = std::cout) const override;
+  void Reset() override;
 
   ConstIterator AddCylinderCell(const unsigned int detid, PHG4CylinderCell *newcylinderCell);
   ConstIterator AddCylinderCellSpecifyKey(const PHG4CylinderCellDefs::keytype key, PHG4CylinderCell *newcylinderCell);
-  
+
   //! preferred removal method, key is currently the cell id
-  void RemoveCylinderCell(PHG4CylinderCellDefs::keytype key) {
+  void RemoveCylinderCell(PHG4CylinderCellDefs::keytype key)
+  {
     cellmap.erase(key);
   }
 
@@ -48,18 +48,17 @@ class PHG4CylinderCellContainer: public PHObject
     Iterator its = cellmap.begin();
     Iterator last = cellmap.end();
     for (; its != last;)
+    {
+      if (its->second == cell)
       {
-	if (its->second == cell)
-	  {
-	    cellmap.erase(its++);
-	  }
-	else
-	  {
-	    ++its;
-	  }
+        cellmap.erase(its++);
       }
+      else
+      {
+        ++its;
+      }
+    }
   }
-
 
   Iterator findOrAddCylinderCell(PHG4CylinderCellDefs::keytype key);
 
@@ -69,24 +68,30 @@ class PHG4CylinderCellContainer: public PHObject
   ConstRange getCylinderCells(const unsigned int detid) const;
 
   //! return all hist
-  ConstRange getCylinderCells( void ) const;
+  ConstRange getCylinderCells(void) const;
 
-  PHG4CylinderCell* findCylinderCell(PHG4CylinderCellDefs::keytype key);
+  PHG4CylinderCell *findCylinderCell(PHG4CylinderCellDefs::keytype key);
 
-  unsigned int size( void ) const
-  { return cellmap.size(); }
+  unsigned int size(void) const
+  {
+    return cellmap.size();
+  }
   unsigned int num_layers(void) const
-  { return layers.size(); }
+  {
+    return layers.size();
+  }
   LayerRange getLayers() const
-  { return make_pair(layers.begin(), layers.end());}
+  {
+    return make_pair(layers.begin(), layers.end());
+  }
 
   double getTotalEdep() const;
 
  protected:
   Map cellmap;
-  std::set<int> layers; // layers is not reset since layers must not change event by event
+  std::set<int> layers;  // layers is not reset since layers must not change event by event
 
-  ClassDef(PHG4CylinderCellContainer,1)
+  ClassDefOverride(PHG4CylinderCellContainer, 1)
 };
 
 #endif

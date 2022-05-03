@@ -5,7 +5,9 @@
 
 #include <phparameter/PHParameterInterface.h>
 
+#include <cmath>
 #include <string>
+#include <vector>
 
 class PHCompositeNode;
 class RawTowerContainer;
@@ -15,10 +17,10 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 {
  public:
   HcalRawTowerBuilder(const std::string &name = "HcalRawTowerBuilder");
-  virtual ~HcalRawTowerBuilder() {}
+  ~HcalRawTowerBuilder() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
   void Detector(const std::string &d) { m_Detector = d; }
   void EminCut(const double e) { m_Emin = e; }
   void checkenergy(const int i = 1) { m_ChkEnergyConservationFlag = i; }
@@ -56,24 +58,34 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 
   short get_tower_row(const short cellrow) const;
 
-  void SetDefaultParameters();
+  void set_decal_filename(const std::string &fname) {m_DeCalibrationFileName = fname;}
+
+  void SetDefaultParameters() override;
+
+  void set_cell_decal_factor(const int etabin, const int phibin, const double d);
+  void set_tower_decal_factor(const int etabin, const int phibin, const double d);
 
  private:
   void CreateNodes(PHCompositeNode *topNode);
   void ReadParamsFromNodeTree(PHCompositeNode *topNode);
+  void SetTowerDecalFactors();
+  void set_tower_decal_factor_real(const int etabin, const int phibin, const double d);
 
-  RawTowerContainer *m_Towers;
-  RawTowerGeomContainer *m_RawTowerGeom;
+  RawTowerContainer *m_Towers = nullptr;
+  RawTowerGeomContainer *m_RawTowerGeom = nullptr;
 
-  std::string m_Detector;
+  double m_Emin = NAN;
+  int m_ChkEnergyConservationFlag = 0;
+  int m_TowerEnergySrc = enu_tower_energy_src::unknown;
+  int m_NcellToTower = -1;
+
+  std::string m_Detector = "NONE";
   std::string m_TowerNodeName;
   std::string m_TowerGeomNodeName;
   std::string m_SimTowerNodePrefix;
-
-  double m_Emin;
-  int m_ChkEnergyConservationFlag;
-  int m_TowerEnergySrc;
-  int m_NcellToTower;
+  std::string m_DeCalibrationFileName;
+  std::vector<std::vector <double> > m_DecalArray;  
+  std::map<std::pair<int,int>,double> m_TowerDecalFactors;
 };
 
 #endif /* G4CALO_HCALRAWTOWERBUILDER_H */

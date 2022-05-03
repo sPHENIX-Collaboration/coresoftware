@@ -4,6 +4,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrCluster.h>
 
 #include <climits>
 #include <map>
@@ -14,6 +15,7 @@ class PHCompositeNode;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
+class TrkrClusterCrossingAssoc;
 class TrkrHit;
 
 class InttClusterizer : public SubsysReco
@@ -21,19 +23,19 @@ class InttClusterizer : public SubsysReco
  public:
   InttClusterizer(const std::string &name = "InttClusterizer",
                   unsigned int min_layer = 0, unsigned int max_layer = UINT_MAX);
-  virtual ~InttClusterizer() {}
+  ~InttClusterizer() override {}
 
   //! module initialization
-  int Init(PHCompositeNode *topNode) { return 0; }
+  int Init(PHCompositeNode */*topNode*/) override { return 0; }
 
   //! run initialization
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
   //! end of process
-  int End(PHCompositeNode *topNode) { return 0; }
+  int End(PHCompositeNode */*topNode*/) override { return 0; }
 
   //! set an energy requirement relative to the thickness MIP expectation
   void set_threshold(const float fraction_of_mip)
@@ -73,14 +75,13 @@ class InttClusterizer : public SubsysReco
 
   void CalculateLadderThresholds(PHCompositeNode *topNode);
   void ClusterLadderCells(PHCompositeNode *topNode);
-
   void PrintClusters(PHCompositeNode *topNode);
 
   // node tree storage pointers
   TrkrHitSetContainer *m_hits;
   TrkrClusterContainer *m_clusterlist; 
   TrkrClusterHitAssoc *m_clusterhitassoc;
-
+  TrkrClusterCrossingAssoc *m_clustercrossingassoc{nullptr};
 
   // settings
   float _fraction_of_mip;

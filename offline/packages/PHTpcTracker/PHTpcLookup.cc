@@ -30,7 +30,6 @@ PHTpcLookup::~PHTpcLookup()
 void PHTpcLookup::init(TrkrClusterContainer* cluster_map)
 {
   mClusterMap = cluster_map;
-
   // convert cluster_map to kdhits
   mKDhits = PHTpcTrackerUtil::convert_clusters_to_hits(mClusterMap);
 

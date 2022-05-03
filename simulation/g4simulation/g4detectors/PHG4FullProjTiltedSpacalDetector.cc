@@ -13,8 +13,11 @@
 
 #include <g4gdml/PHG4GDMLConfig.hh>
 
+#include <phool/recoConsts.h>
+
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4DisplacedSolid.hh>
+#include <Geant4/G4Exception.hh>  // for G4Exception
 #include <Geant4/G4ExceptionSeverity.hh>  // for FatalException
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
@@ -27,7 +30,6 @@
 #include <Geant4/G4Trap.hh>
 #include <Geant4/G4Types.hh>  // for G4double
 #include <Geant4/G4Vector3D.hh>
-#include <Geant4/globals.hh>  // for G4Exception, G4ExceptionDe...
 
 #include <TSystem.h>
 
@@ -142,9 +144,9 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   const G4double block_edge1_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm + 2.0 * get_geom_v3()->get_assembly_spacing() * cm) / cos(edge1_tilt_angle);
   const G4double block_edge2_half_width = enclosure_half_height_half_width - (get_geom_v3()->get_sidewall_thickness() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm + 2.0 * get_geom_v3()->get_assembly_spacing() * cm) / cos(edge2_tilt_angle);
   G4double block_width_ratio = 0;
-  for (int s = 0; s < phi_bin_in_sec; ++s)
+  for (int sa = 0; sa < phi_bin_in_sec; ++sa)
   {
-    block_width_ratio += 1 / cos(block_azimuth_angle * (0.5 + s) + edge1_tilt_angle);
+    block_width_ratio += 1 / cos(block_azimuth_angle * (0.5 + sa) + edge1_tilt_angle);
   }
   const G4double block_half_height_width = (block_edge1_half_width + block_edge2_half_width) / block_width_ratio;
   assert(block_half_height_width > 0);
@@ -165,11 +167,11 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
                                                      numeric_limits<double>::signaling_NaN(),
                                                      numeric_limits<double>::signaling_NaN()});  // [phi-bin in sector] -> azimuth geometry
   G4double block_x_edge1 = block_edge1_half_width;
-  for (int s = 0; s < phi_bin_in_sec; ++s)
+  for (int sa = 0; sa < phi_bin_in_sec; ++sa)
   {
-    block_azimuth_geom& geom = block_azimuth_geoms[s];
+    block_azimuth_geom& geom = block_azimuth_geoms[sa];
 
-    geom.angle = block_azimuth_angle * (0.5 + s) + edge1_tilt_angle;
+    geom.angle = block_azimuth_angle * (0.5 + sa) + edge1_tilt_angle;
     const G4double block_x_size = block_half_height_width / cos(geom.angle);
     assert(block_x_size > 0);
     const G4double x_center = block_x_edge1 - 0.5 * block_x_size;
@@ -206,14 +208,14 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
   if (get_geom_v3()->get_sidewall_thickness() > 0)
   {
-    for (int s = 0; s < phi_bin_in_sec - 1; ++s)
+    for (int sa = 0; sa < phi_bin_in_sec - 1; ++sa)
     {
-      block_divider_azimuth_geom& geom = divider_azimuth_geoms[s];
+      block_divider_azimuth_geom& geom = divider_azimuth_geoms[sa];
 
-      geom.angle = 0.5 * (block_azimuth_geoms[s].angle + block_azimuth_geoms[s + 1].angle);
-      geom.projection_center_y = 0.5 * (block_azimuth_geoms[s].projection_center_y + block_azimuth_geoms[s + 1].projection_center_y);
-      geom.projection_center_x = 0.5 * (block_azimuth_geoms[s].projection_center_x + block_azimuth_geoms[s + 1].projection_center_x);
-      geom.radial_displacement = 0.5 * (block_azimuth_geoms[s].projection_length + block_azimuth_geoms[s + 1].projection_length);
+      geom.angle = 0.5 * (block_azimuth_geoms[sa].angle + block_azimuth_geoms[sa + 1].angle);
+      geom.projection_center_y = 0.5 * (block_azimuth_geoms[sa].projection_center_y + block_azimuth_geoms[sa + 1].projection_center_y);
+      geom.projection_center_x = 0.5 * (block_azimuth_geoms[sa].projection_center_x + block_azimuth_geoms[sa + 1].projection_center_x);
+      geom.radial_displacement = 0.5 * (block_azimuth_geoms[sa].projection_length + block_azimuth_geoms[sa + 1].projection_length);
 
       geom.thickness = 2.0 * get_geom_v3()->get_assembly_spacing() * cm * cos(block_azimuth_angle / 2.) - 2 * um;
       geom.width = get_geom_v3()->get_divider_width() * cm;
@@ -247,20 +249,20 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
          << "\t block_width_ratio = " << block_width_ratio << endl
          << "\t block_half_height_width = " << block_half_height_width << endl;
 
-    for (int s = 0; s < phi_bin_in_sec; ++s)
+    for (int sa = 0; sa < phi_bin_in_sec; ++sa)
     {
-      cout << "\t block[" << s << "].angle = " << block_azimuth_geoms[s].angle << endl;
-      cout << "\t block[" << s << "].projection_center_y = " << block_azimuth_geoms[s].projection_center_y << endl;
-      cout << "\t block[" << s << "].projection_center_x = " << block_azimuth_geoms[s].projection_center_x << endl;
+      cout << "\t block[" << sa << "].angle = " << block_azimuth_geoms[sa].angle << endl;
+      cout << "\t block[" << sa << "].projection_center_y = " << block_azimuth_geoms[sa].projection_center_y << endl;
+      cout << "\t block[" << sa << "].projection_center_x = " << block_azimuth_geoms[sa].projection_center_x << endl;
     }
-    for (int s = 0; s < phi_bin_in_sec - 1; ++s)
+    for (int sa = 0; sa < phi_bin_in_sec - 1; ++sa)
     {
-      cout << "\t divider[" << s << "].angle = " << divider_azimuth_geoms[s].angle << endl;
-      cout << "\t divider[" << s << "].projection_center_x = " << divider_azimuth_geoms[s].projection_center_x << endl;
-      cout << "\t divider[" << s << "].projection_center_y = " << divider_azimuth_geoms[s].projection_center_y << endl;
-      cout << "\t divider[" << s << "].radial_displacement = " << divider_azimuth_geoms[s].radial_displacement << endl;
-      cout << "\t divider[" << s << "].thickness = " << divider_azimuth_geoms[s].thickness << endl;
-      cout << "\t divider[" << s << "].width = " << divider_azimuth_geoms[s].width << endl;
+      cout << "\t divider[" << sa << "].angle = " << divider_azimuth_geoms[sa].angle << endl;
+      cout << "\t divider[" << sa << "].projection_center_x = " << divider_azimuth_geoms[sa].projection_center_x << endl;
+      cout << "\t divider[" << sa << "].projection_center_y = " << divider_azimuth_geoms[sa].projection_center_y << endl;
+      cout << "\t divider[" << sa << "].radial_displacement = " << divider_azimuth_geoms[sa].radial_displacement << endl;
+      cout << "\t divider[" << sa << "].thickness = " << divider_azimuth_geoms[sa].thickness << endl;
+      cout << "\t divider[" << sa << "].width = " << divider_azimuth_geoms[sa].width << endl;
     }
   }
 
@@ -275,12 +277,11 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       outter_half_width, get_geom_v3()->get_length() * cm / 2.0, get_geom_v3()->get_length() * cm / 2.0,  // G4double pDy2, G4double pDx3, G4double pDx4,
       0                                                                                                   // G4double pAlp2 //
   );
-  G4Transform3D sec_solid_transform =
-      G4TranslateY3D(enclosure_center) * G4RotateY3D(halfpi) * G4RotateX3D(-halfpi);
-  G4VSolid* sec_solid_place = new G4DisplacedSolid(
-      G4String(GetName() + string("_sec")), sec_solid, sec_solid_transform);
+  G4Transform3D sec_solid_transform = G4TranslateY3D(enclosure_center) * G4RotateY3D(halfpi) * G4RotateX3D(-halfpi);
+  G4VSolid* sec_solid_place = new G4DisplacedSolid(G4String(GetName() + string("_sec")), sec_solid, sec_solid_transform);
 
-  G4Material* cylinder_mat = G4Material::GetMaterial("G4_AIR");
+  recoConsts* rc = recoConsts::instance();
+  G4Material* cylinder_mat = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   assert(cylinder_mat);
 
   G4LogicalVolume* sec_logic = new G4LogicalVolume(sec_solid_place, cylinder_mat,
@@ -290,7 +291,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
   // construct walls
 
-  G4Material* wall_mat = G4Material::GetMaterial(get_geom_v3()->get_sidewall_mat());
+  G4Material* wall_mat = GetDetectorMaterial(get_geom_v3()->get_sidewall_mat());
   assert(wall_mat);
 
   if (get_geom_v3()->get_sidewall_thickness() > 0)
@@ -316,8 +317,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
                                       outter_half_width, side_wall_half_thickness, side_wall_half_thickness,  // G4double pDy2, G4double pDx3, G4double pDx4,
                                       0                                                                       // G4double pAlp2 //
     );
-    G4VSolid* wall_solid_place = new G4DisplacedSolid(
-        G4String(GetName() + string("_EndWall")), wall_solid, sec_solid_transform);
+    G4VSolid* wall_solid_place = new G4DisplacedSolid(G4String(GetName() + string("_EndWall")), wall_solid, sec_solid_transform);
 
     G4LogicalVolume* wall_logic = new G4LogicalVolume(wall_solid_place, wall_mat,
                                                       G4String(G4String(GetName() + string("_EndWall"))), 0, 0,
@@ -334,10 +334,11 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     BOOST_FOREACH (z_locations_t::value_type& val, z_locations)
     {
       if (get_geom_v3()->get_construction_verbose() >= 2)
+      {
         cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg::"
              << GetName() << " - constructed End Wall ID " << val.first
              << " @ Z = " << val.second << endl;
-
+      }
       G4Transform3D wall_trans = G4TranslateZ3D(val.second);
 
       G4PVPlacement* wall_phys = new G4PVPlacement(wall_trans, wall_logic,
@@ -372,6 +373,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       const int sign_azimuth = val.second.second;
 
       if (get_geom_v3()->get_construction_verbose() >= 2)
+      {
         cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg::"
              << GetName() << " - constructed Side Wall ID " << val.first
              << " with"
@@ -381,11 +383,9 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
              << sign_azimuth * pi / get_geom_v3()->get_azimuthal_n_sec()
              << " Shift Z = " << sign_z * (get_geom_v3()->get_length() * cm / 4)
              << endl;
-
-      const G4double azimuth_roate =
-          sign_azimuth > 0 ? edge1_tilt_angle : edge2_tilt_angle;
-      const G4double edge_half_depth = -get_geom_v3()->get_sidewall_thickness() * cm - get_geom_v3()->get_sidewall_outer_torr() * cm +
-                                       (sign_azimuth > 0 ? edge1_half_depth : edge2_half_depth);
+      }
+      const G4double azimuth_roate = sign_azimuth > 0 ? edge1_tilt_angle : edge2_tilt_angle;
+      const G4double edge_half_depth = -get_geom_v3()->get_sidewall_thickness() * cm - get_geom_v3()->get_sidewall_outer_torr() * cm + (sign_azimuth > 0 ? edge1_half_depth : edge2_half_depth);
 
       G4Box* wall_solid = new G4Box(G4String(GetName() + G4String("_SideWall_") + to_string(val.first)),
                                     get_geom_v3()->get_sidewall_thickness() * cm / 2.0,
@@ -423,7 +423,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
            << " - construct dividers" << endl;
     }
 
-    G4Material* divider_mat = G4Material::GetMaterial(get_geom_v3()->get_divider_mat());
+    G4Material* divider_mat = GetDetectorMaterial(get_geom_v3()->get_divider_mat());
     assert(divider_mat);
 
     int ID = 300;
@@ -788,7 +788,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
       g_tower.pAlp2 * rad                                       // G4double pAlp2 //
   );
 
-  G4Material* cylinder_mat = G4Material::GetMaterial(get_geom_v3()->get_absorber_mat());
+  G4Material* cylinder_mat = GetDetectorMaterial(get_geom_v3()->get_absorber_mat());
   assert(cylinder_mat);
 
   G4LogicalVolume* block_logic = new G4LogicalVolume(block_solid, cylinder_mat,
@@ -900,8 +900,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_LightGuide(
                                          + G4ThreeVector(0, 0, -0.5 * g_tower.LightguideHeight * cm)  //shift in the light guide height
   );
 
-  G4Material* cylinder_mat = G4Material::GetMaterial(
-      g_tower.LightguideMaterial);
+  G4Material* cylinder_mat = GetDetectorMaterial(g_tower.LightguideMaterial);
   assert(cylinder_mat);
 
   G4LogicalVolume* block_logic = new G4LogicalVolume(block_solid, cylinder_mat,
@@ -914,7 +913,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_LightGuide(
   return block_logic;
 }
 
-void PHG4FullProjTiltedSpacalDetector::Print(const std::string& what) const
+void PHG4FullProjTiltedSpacalDetector::Print(const std::string& /*what*/) const
 {
   cout << "PHG4FullProjTiltedSpacalDetector::Print::" << GetName()
        << " - Print Geometry:" << endl;

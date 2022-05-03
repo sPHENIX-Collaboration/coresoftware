@@ -40,19 +40,6 @@ using namespace std;
 
 PHSartre::PHSartre(const std::string &name)
   : SubsysReco(name)
-  , _eventcount(0)
-  , _gencount(0)
-  , _registeredTriggers()
-  , _triggersOR(true)
-  , _triggersAND(false)
-  , _configFile("")
-  , _commands()
-  , _sartre(nullptr)
-  , settings(nullptr)
-  , decay(nullptr)
-  , daughterID(-1)
-  , daughterMasses{0., 0.}
-  , doPerformDecay(false)
 {
   char *charPath = getenv("SARTRE_DIR");
   if (!charPath)
@@ -68,7 +55,7 @@ PHSartre::PHSartre(const std::string &name)
   //
   _sartre = new Sartre();
 
-  hepmc_helper.set_embedding_id(1);  // default embedding ID to 1
+  PHHepMCGenHelper::set_embedding_id(1);  // default embedding ID to 1
 }
 
 PHSartre::~PHSartre()
@@ -122,7 +109,7 @@ int PHSartre::Init(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHSartre::End(PHCompositeNode *topNode)
+int PHSartre::End(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 1) cout << "PHSartre::End - I'm here!" << endl;
 
@@ -151,7 +138,7 @@ void PHSartre::print_config() const
   settings->list();
 }
 
-int PHSartre::process_event(PHCompositeNode *topNode)
+int PHSartre::process_event(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 1) cout << "PHSartre::process_event - event: " << _eventcount << endl;
 
@@ -458,7 +445,7 @@ int PHSartre::process_event(PHCompositeNode *topNode)
 
   // pass HepMC to PHNode
 
-  PHHepMCGenEvent *success = hepmc_helper.insert_event(genevent);
+  PHHepMCGenEvent *success = PHHepMCGenHelper::insert_event(genevent);
   if (!success)
   {
     cout << "PHSartre::process_event - Failed to add event to HepMC record!" << endl;
@@ -473,14 +460,9 @@ int PHSartre::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHSartre::create_node_tree(PHCompositeNode *topNode)
-{
-  hepmc_helper.create_node_tree(topNode);
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
-int PHSartre::ResetEvent(PHCompositeNode *topNode)
+int PHSartre::ResetEvent(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -494,7 +476,7 @@ void PHSartre::register_trigger(PHSartreGenTrigger *theTrigger)
 // UPC only
 void PHSartre::randomlyReverseBeams(Event *myEvent)
 {
-  if (gsl_rng_uniform(hepmc_helper.get_random_generator()) > 0.5)
+  if (gsl_rng_uniform(PHHepMCGenHelper::get_random_generator()) > 0.5)
   {
     for (unsigned int i = 0; i < myEvent->particles.size(); i++)
       myEvent->particles.at(i).p.RotateX(M_PI);

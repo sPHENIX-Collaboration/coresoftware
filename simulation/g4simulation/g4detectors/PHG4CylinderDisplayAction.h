@@ -5,7 +5,7 @@
 
 #include <g4main/PHG4DisplayAction.h>
 
-#include <string>                      // for string
+#include <string>  // for string
 
 class G4Colour;
 class G4LogicalVolume;
@@ -18,11 +18,11 @@ class PHG4CylinderDisplayAction : public PHG4DisplayAction
  public:
   PHG4CylinderDisplayAction(const std::string &name, PHParameters *parameters);
 
-  virtual ~PHG4CylinderDisplayAction();
+  ~PHG4CylinderDisplayAction() override;
 
-  void ApplyDisplayAction(G4VPhysicalVolume *physvol);
+  void ApplyDisplayAction(G4VPhysicalVolume *physvol) override;
   void SetMyVolume(G4LogicalVolume *vol) { m_MyVolume = vol; }
-  void SetColor(const double red, const double green, const double blue, const double alpha=1.);
+  void SetColor(const double red, const double green, const double blue, const double alpha = 1.);
 
  private:
   PHParameters *m_Params;

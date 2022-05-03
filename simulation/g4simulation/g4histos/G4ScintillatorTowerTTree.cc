@@ -83,7 +83,7 @@ int G4ScintillatorTowerTTree::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4ScintillatorTowerTTree::End(PHCompositeNode *topNode)
+int G4ScintillatorTowerTTree::End(PHCompositeNode */*topNode*/)
 {
   hm->dumpHistos(_histofilename);
   delete hm;

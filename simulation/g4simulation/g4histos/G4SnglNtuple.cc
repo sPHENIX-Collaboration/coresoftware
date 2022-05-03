@@ -120,7 +120,7 @@ int G4SnglNtuple::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-int G4SnglNtuple::End(PHCompositeNode *topNode)
+int G4SnglNtuple::End(PHCompositeNode */*topNode*/)
 {
   outfile->cd();
   ntup->Write();

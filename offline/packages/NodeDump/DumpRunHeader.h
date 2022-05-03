@@ -11,10 +11,10 @@ class DumpRunHeader : public DumpObject
 {
  public:
   DumpRunHeader(const std::string &NodeName);
-  virtual ~DumpRunHeader() {}
+  ~DumpRunHeader() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
   int node_written = 0;
 };
 

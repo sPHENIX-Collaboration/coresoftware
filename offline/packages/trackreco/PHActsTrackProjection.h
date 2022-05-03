@@ -5,13 +5,15 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/SvtxTrack.h>
 
-#include "ActsTrack.h"
-#include "ActsTrackingGeometry.h"
+#include <trackbase/ActsTrackingGeometry.h>
 
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Propagator/Propagator.hpp>
 #include <Acts/Utilities/Result.hpp>
 #include <Acts/Surfaces/CylinderSurface.hpp>
+#include <Acts/EventData/TrackParameters.hpp>
+
+#include <ActsExamples/EventData/Trajectories.hpp>
 
 class PHCompositeNode;
 class RawClusterContainer;
@@ -19,6 +21,7 @@ class RawTowerContainer;
 class RawTowerGeomContainer;
 class SvtxTrackMap;
 class SvtxTrack;
+class SvtxVertexMap;
 
 #include <memory>
 #include <map>
@@ -28,9 +31,7 @@ using BoundTrackParamPtr =
   std::unique_ptr<const Acts::BoundTrackParameters>;
 using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
-using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
-
-using FitParameters = Acts::SingleBoundTrackParameters<Acts::SinglyCharged>;
+using Trajectory = ActsExamples::Trajectories;
 
 
 /**
@@ -47,11 +48,21 @@ class PHActsTrackProjection : public SubsysReco
   PHActsTrackProjection(const std::string& name 
 			= "PHActsTrackProjection");
   
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
   
+  /// Set an arbitrary radius to project to, in cm
+  void setLayerRadius(SvtxTrack::CAL_LAYER layer,
+		      const float rad) { 
+
+    if(m_caloRadii.find(layer) != m_caloRadii.end())
+      m_caloRadii[layer] = rad;
+    else
+      m_caloRadii.insert(std::make_pair(layer, rad));
+  }
+
  private:
   
   int getNodes(PHCompositeNode *topNode);
@@ -59,7 +70,7 @@ class PHActsTrackProjection : public SubsysReco
 
   /// Propagate the fitted track parameters to a surface with Acts
   BoundTrackParamPtrResult propagateTrack(
-	const FitParameters& params, 
+        const Acts::BoundTrackParameters& params, 
 	const SurfacePtr &targetSurf);
 
   /// Set the particular calo nodes depending on which layer
@@ -71,7 +82,7 @@ class PHActsTrackProjection : public SubsysReco
 
   /// Update the SvtxTrack object with the track-cluster match
   void updateSvtxTrack(const Acts::BoundTrackParameters& params,
-		       const unsigned int trackKey,
+		       SvtxTrack* svtxTrack,
 		       const int caloLayer);
 
   /// Get 3x3 and 5x5 tower sums matched to a track
@@ -83,27 +94,35 @@ class PHActsTrackProjection : public SubsysReco
   void getClusterProperties(double phi, double eta,
 			    double& minIndex, double& minDphi,
 			    double& minDeta, double& minE);
-
+  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
   double deltaPhi(const double& phi);
+  Acts::Vector3 getVertex(SvtxTrack* track);
 
   /// Objects containing the Acts track fit results
   ActsTrackingGeometry *m_tGeometry = nullptr;
-  std::map<const unsigned int, Trajectory> *m_actsFitResults;
   SvtxTrackMap *m_trackMap = nullptr;
-  
+  SvtxVertexMap *m_vertexMap = nullptr;
+  std::map<const unsigned int, Trajectory> *m_trajectories{nullptr};
+
+
   /// Objects to hold calorimeter information. There are 
   /// only 3 calo layers
   const static int m_nCaloLayers = 3;
   std::vector<std::string> m_caloNames;
   std::vector<SvtxTrack::CAL_LAYER> m_caloTypes;
   std::map<std::string, SurfacePtr> m_caloSurfaces;
-  
+  /// An optional map that allows projection to an arbitrary radius
+  /// Results are written to the SvtxTrack based on the provided CAL_LAYER
+  std::map<SvtxTrack::CAL_LAYER, float> m_caloRadii;
+
   RawTowerGeomContainer *m_towerGeomContainer = nullptr;
   RawTowerContainer *m_towerContainer = nullptr;
   RawClusterContainer *m_clusterContainer = nullptr;
 
   bool m_useCemcPosRecalib = false;
 
+  bool m_calosAvailable = true;
+  
   int m_event = 0;
 };
 

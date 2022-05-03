@@ -13,10 +13,10 @@ class FlagSave : public PHObject
 {
  public:
   /// dtor
-  virtual ~FlagSave() {}
+  ~FlagSave() override {}
 
   /// Clear Flag
-  virtual void Reset()
+  void Reset() override
   {
     std::cout << PHWHERE << "ERROR Reset() not implemented by daughter class" << std::endl;
     return;
@@ -25,24 +25,29 @@ class FlagSave : public PHObject
   /** identify Function from PHObject
       @param os Output Stream 
    */
-  virtual void identify(std::ostream& os = std::cout) const
+  void identify(std::ostream& os = std::cout) const override
   {
     os << "identify yourself: virtual FlagSave Object" << std::endl;
     return;
   }
 
   /// isValid returns non zero if object contains valid data
-  virtual int isValid() const
+  int isValid() const override
   {
     std::cout << PHWHERE << "isValid not implemented by daughter class" << std::endl;
     return 0;
   }
 
-  virtual int FillFromPHFlag(const PHFlag* /*flags*/) { return -1; }
-  virtual int PutFlagsBack(PHFlag* /*flags*/) { return -1; }
+  /// Flags are read during InitRun() and written during End()
+  /// Fills DST object with flags, if clearold is set, old flags from previous files
+  /// which were deleted will not be saved
+  virtual int FillFromPHFlag(const PHFlag* /*flags*/, const bool /* clearold */) { return -1; }
+  /// Read back flags from the DST, if overwrite is set: flags from DST object will overwrite
+  /// flag values set in the macro
+  virtual int PutFlagsBack(PHFlag* /*flags*/, const bool /* overwrite */) { return -1; }
 
  private:
-  ClassDef(FlagSave, 1)
+  ClassDefOverride(FlagSave, 1)
 };
 
 #endif

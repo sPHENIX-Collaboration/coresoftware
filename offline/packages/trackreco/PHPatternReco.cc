@@ -76,8 +76,8 @@ PHPatternReco::PHPatternReco(unsigned int nlayers,
                                        unsigned int min_nlayers,
                                        const string& name)
     : SubsysReco(name),
-	  _t_output_io(nullptr),
-	  _seeding_layer(),
+      _t_output_io(nullptr),
+      _seeding_layer(),
       _nlayers(nlayers),
       _min_nlayers(min_nlayers),
       _ca_nlayers(nlayers),
@@ -725,7 +725,6 @@ int PHPatternReco::get_nodes(PHCompositeNode* topNode) {
 	    cerr << PHWHERE << " ERROR: Can't find node TrkrClusterContainer" << endl;
 	    return Fun4AllReturnCodes::ABORTEVENT;
 	  }
-
 	// Pull the reconstructed track information off the node tree...
 	_trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 	if (!_trackmap) {
@@ -747,11 +746,12 @@ int PHPatternReco::translate_input(PHCompositeNode* topNode) {
 
   unsigned int clusid = 0;
   unsigned int ilayer = 0;
-  TrkrClusterContainer::ConstRange clusrange = _clustermap->getClusters();
-  for(TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
-    {
-      TrkrCluster *cluster = iter->second;
-      TrkrDefs::cluskey cluskey = iter->first;
+  for(const auto& hitsetkey:_clustermap->getHitSetKeys())
+  {
+    auto range = _clustermap->getClusters(hitsetkey);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
+      TrkrCluster *cluster = clusIter->second;
+      TrkrDefs::cluskey cluskey = clusIter->first;
       unsigned int layer = TrkrDefs::getLayer(cluskey);
       //cout << "  cluster with layer " << layer << " _nlayers = " << _nlayers << endl;
       std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(layer);
@@ -785,10 +785,11 @@ int PHPatternReco::translate_input(PHCompositeNode* topNode) {
 	  hits_map.insert(std::pair<unsigned int, SimpleHit3D>(hit3d.get_id(),hit3d));
 	  hits_used.insert(std::pair<unsigned int, bool>(hit3d.get_id(),false));
 	  
-      clusid += 1;
+	  clusid += 1;
 	}
     }
-	
+  }
+  
   if (Verbosity() > 10) {
     cout << "-------------------------------------------------------------------"
 	 << endl;

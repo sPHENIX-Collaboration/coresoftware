@@ -5,6 +5,8 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+#include <string>  // for string
+
 class G4Step;
 class G4VPhysicalVolume;
 class PHCompositeNode;
@@ -20,30 +22,38 @@ class BeamLineMagnetSteppingAction : public PHG4SteppingAction
   BeamLineMagnetSteppingAction(BeamLineMagnetDetector*, const PHParameters* parameters);
 
   //! destructor
-  virtual ~BeamLineMagnetSteppingAction();
+  ~BeamLineMagnetSteppingAction() override;
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  bool UserSteppingAction(const G4Step*, bool) override;
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode*);
+  void SetInterfacePointers(PHCompositeNode*) override;
+
+  void SetHitNodeName(const std::string& type, const std::string& name) override;
 
  private:
   //! pointer to the detector
-  BeamLineMagnetDetector* m_Detector;
+  BeamLineMagnetDetector* m_Detector = nullptr;
+  const PHParameters* m_Params = nullptr;
   //! pointer to hit container
-  PHG4HitContainer* m_HitContainer;
-  PHG4HitContainer* m_AbsorberHitContainer;
-  PHG4Hit* m_Hit;
-  PHG4HitContainer* m_SaveHitContainer;
+  PHG4HitContainer* m_HitContainer = nullptr;
+  PHG4HitContainer* m_AbsorberHitContainer = nullptr;
+  PHG4Hit* m_Hit = nullptr;
+  PHG4HitContainer* m_SaveHitContainer = nullptr;
 
-  G4VPhysicalVolume* m_SaveVolPre;
-  G4VPhysicalVolume* m_SaveVolPost;
-  int m_SaveTrackId;
-  int m_SavePreStepStatus;
-  int m_SavePostStepStatus;
-  double m_EdepSum;
-  double m_EionSum;
+  G4VPhysicalVolume* m_SaveVolPre = nullptr;
+  G4VPhysicalVolume* m_SaveVolPost = nullptr;
+  int m_SaveTrackId = -1;
+  int m_SavePreStepStatus = -1;
+  int m_SavePostStepStatus = -1;
+  double m_EdepSum = 0.;
+  int m_ActiveFlag = 0;
+  int m_AbsorberActiveFlag = 0;
+  int m_BlackHoleFlag = 0;
+
+  std::string m_HitNodeName;
+  std::string m_AbsorberNodeName;
 };
 
 #endif  // G4DETECTORS_BEAMLINEMAGNETSTEPPINGACTION_H

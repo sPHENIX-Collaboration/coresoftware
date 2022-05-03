@@ -25,7 +25,7 @@ class PHG4ParticleGeneratorVectorMeson : public PHG4ParticleGeneratorBase
   };
 
   explicit PHG4ParticleGeneratorVectorMeson(const std::string &name = "VMESON");
-  virtual ~PHG4ParticleGeneratorVectorMeson();
+  ~PHG4ParticleGeneratorVectorMeson() override;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;

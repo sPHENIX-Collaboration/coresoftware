@@ -382,12 +382,12 @@ void HelixHough::vote_pairs(unsigned int zoomlevel) {
 }
 
 void HelixHough::fillBins(
-    unsigned int total_bins, unsigned int pair_counter,
+  unsigned int /*total_bins*/, unsigned int pair_counter,
     unsigned int* pair_index, float* min_phi, float* max_phi, float* min_d,
     float* max_d, float* min_dzdl, float* max_dzdl, float* min_z0,
-    float* max_z0, vector<vector<SimpleHit3D> >& four_pairs, unsigned int n_d,
+    float* max_z0, vector<vector<SimpleHit3D> >& /*four_pairs*/, unsigned int n_d,
     unsigned int n_k, unsigned int n_dzdl, unsigned int n_z0,
-    unsigned int k_bin, unsigned int n_phi, unsigned int zoomlevel,
+    unsigned int k_bin, unsigned int n_phi, unsigned int /*zoomlevel*/,
     float low_phi, float high_phi, float low_d, float high_d, float low_z0,
     float high_z0, float low_dzdl, float high_dzdl, float inv_phi_range,
     float inv_d_range, float inv_z0_range, float inv_dzdl_range,

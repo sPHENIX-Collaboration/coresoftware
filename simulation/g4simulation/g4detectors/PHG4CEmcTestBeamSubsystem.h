@@ -7,7 +7,7 @@
 
 #include <Geant4/G4Types.hh>
 
-#include <string>                  // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4CEmcTestBeamDetector;
@@ -16,17 +16,16 @@ class PHG4Detector;
 class PHG4EventAction;
 class PHG4SteppingAction;
 
-class PHG4CEmcTestBeamSubsystem: public PHG4Subsystem
+class PHG4CEmcTestBeamSubsystem : public PHG4Subsystem
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4CEmcTestBeamSubsystem( const std::string &name = "BLOCK", const int layer = 0 );
+  PHG4CEmcTestBeamSubsystem(const std::string& name = "BLOCK", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4CEmcTestBeamSubsystem( void )
-  {}
+  ~PHG4CEmcTestBeamSubsystem(void) override
+  {
+  }
 
   //! init
   /*!
@@ -34,36 +33,39 @@ class PHG4CEmcTestBeamSubsystem: public PHG4Subsystem
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int Init(PHCompositeNode *);
+  int Init(PHCompositeNode*) override;
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode*) override;
 
   //! accessors (reimplemented)
-  virtual PHG4Detector* GetDetector( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4Detector* GetDetector(void) const override;
+  PHG4SteppingAction* GetSteppingAction(void) const override;
 
   void SetSize(const G4double sizex, const G4double sizey, const G4double sizez)
-     {dimension[0] = sizex; dimension[1] = sizey; dimension[2] = sizez;}
+  {
+    dimension[0] = sizex;
+    dimension[1] = sizey;
+    dimension[2] = sizez;
+  }
   void SetPlaceZ(const G4double dbl);
   void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z);
   void SetXRot(const G4double dbl);
   void SetYRot(const G4double dbl);
   void SetZRot(const G4double dbl);
-  PHG4EventAction* GetEventAction() const {return eventAction_;}
-  void SetActive(const int i = 1) {active = i;}
-  void SetAbsorberActive(const int i = 1) {absorberactive = i;}
-  void SuperDetector(const std::string &name) {superdetector = name;}
-  const std::string SuperDetector() {return superdetector;}
+  PHG4EventAction* GetEventAction() const override { return eventAction_; }
+  void SetActive(const int i = 1) { active = i; }
+  void SetAbsorberActive(const int i = 1) { absorberactive = i; }
+  void SuperDetector(const std::string& name) { superdetector = name; }
+  const std::string SuperDetector() { return superdetector; }
 
-  void BlackHole(const int i=1) {blackhole = i;}
+  void BlackHole(const int i = 1) { blackhole = i; }
 
-  private:
-
+ private:
   //! detector geometry
   /*! defives from PHG4Detector */
   PHG4CEmcTestBeamDetector* detector_;
@@ -71,7 +73,7 @@ class PHG4CEmcTestBeamSubsystem: public PHG4Subsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4CEmcTestBeamSteppingAction* steppingAction_;
-  PHG4EventAction *eventAction_;
+  PHG4EventAction* eventAction_;
   G4double dimension[3];
   G4double place_in_x;
   G4double place_in_y;

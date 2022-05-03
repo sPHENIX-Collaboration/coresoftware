@@ -33,9 +33,9 @@ namespace FitNewton
       //create a new instance of this class from the current instance
       virtual FunctionGradHessian* Clone() const = 0;
       
-      virtual void computeCovariance(const double& val, const Eigen::MatrixXd& hessian){}
+      virtual void computeCovariance(const double& /*val*/, const Eigen::MatrixXd& /*hessian*/){}
       
-      virtual void rescaleMove(const Eigen::VectorXd& pars, Eigen::VectorXd& move){}
+      virtual void rescaleMove(const Eigen::VectorXd& /*pars*/, Eigen::VectorXd& /*move*/){}
       
       
       

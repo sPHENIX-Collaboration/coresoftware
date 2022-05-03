@@ -15,19 +15,22 @@ class Fun4AllDstOutputManager : public Fun4AllOutputManager
 {
  public:
   Fun4AllDstOutputManager(const std::string &myname = "DSTOUT", const std::string &filename = "dstout.root");
-  virtual ~Fun4AllDstOutputManager();
+  ~Fun4AllDstOutputManager() override;
+  // Fun4AllDstOutputManager contains pointer to memory
+  // copy ctor and = operator  need explicit implementation, do just delete it here
+  Fun4AllDstOutputManager(const Fun4AllDstOutputManager &) = delete;
+  Fun4AllDstOutputManager& operator = (Fun4AllDstOutputManager const &) = delete;
+  int AddNode(const std::string &nodename) override;
+  int AddRunNode(const std::string &nodename) override;
+  int StripNode(const std::string &nodename) override;
+  int StripRunNode(const std::string &nodename) override;
+  void SaveRunNode(const int i) override {m_SaveRunNodeFlag = i;}
+  int outfileopen(const std::string &fname) override;
 
-  int AddNode(const std::string &nodename);
-  int AddRunNode(const std::string &nodename);
-  int StripNode(const std::string &nodename);
-  int StripRunNode(const std::string &nodename);
-  void SaveRunNode(const int i) {m_SaveRunNodeFlag = i;}
-  int outfileopen(const std::string &fname);
+  void Print(const std::string &what = "ALL") const override;
 
-  void Print(const std::string &what = "ALL") const;
-
-  int Write(PHCompositeNode *startNode);
-  int WriteNode(PHCompositeNode *thisNode);
+  int Write(PHCompositeNode *startNode) override;
+  int WriteNode(PHCompositeNode *thisNode) override;
 
  private:
   PHNodeIOManager *dstOut = nullptr;

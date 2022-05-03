@@ -29,48 +29,54 @@ class TrkrClusterv1 : public TrkrCluster
   TrkrClusterv1();
 
   //!dtor
-  virtual ~TrkrClusterv1() {}
+  ~TrkrClusterv1() override = default;
   // PHObject virtual overloads
-  virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Reset() {}
-  virtual int isValid() const;
-  virtual PHObject* CloneMe() const { return new TrkrClusterv1(*this); }
-  virtual void setClusKey(TrkrDefs::cluskey id) { m_cluskey = id; }
-  virtual TrkrDefs::cluskey getClusKey() const { return m_cluskey; }
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override {}
+  int isValid() const override;
+  PHObject* CloneMe() const override { return new TrkrClusterv1(*this); }
+ 
+  //! copy content from base class
+  void CopyFrom( const TrkrCluster& ) override;
+
+  //! copy content from base class
+  void CopyFrom( TrkrCluster* source ) override
+  { CopyFrom( *source ); }
+
   //
   // cluster position
   //
-  virtual float getX() const { return m_pos[0]; }
-  virtual void setX(float x) { m_pos[0] = x; }
-  virtual float getY() const { return m_pos[1]; }
-  virtual void setY(float y) { m_pos[1] = y; }
-  virtual float getZ() const { return m_pos[2]; }
-  virtual void setZ(float z) { m_pos[2] = z; }
-  virtual float getPosition(int coor) const { return m_pos[coor]; }
-  virtual void setPosition(int coor, float xi) { m_pos[coor] = xi; }
-  virtual void setGlobal() { m_isGlobal = true; }
-  virtual void setLocal() { m_isGlobal = false; }
-  virtual bool isGlobal() { return m_isGlobal; }
+  float getX() const override { return m_pos[0]; }
+  void setX(float x) override { m_pos[0] = x; }
+  float getY() const override { return m_pos[1]; }
+  void setY(float y) override { m_pos[1] = y; }
+  float getZ() const override { return m_pos[2]; }
+  void setZ(float z) override { m_pos[2] = z; }
+  float getPosition(int coor) const override { return m_pos[coor]; }
+  void setPosition(int coor, float xi) override { m_pos[coor] = xi; }
+  void setGlobal() override { m_isGlobal = true; }
+  void setLocal() override { m_isGlobal = false; }
+  bool isGlobal() const override { return m_isGlobal; }
   //
   // cluster info
   //
-  virtual unsigned int getAdc() const { return m_adc; }
-  virtual void setAdc(unsigned int adc) { m_adc = adc; }
-  virtual float getSize(unsigned int i, unsigned int j) const;        //< get cluster dimension covar
-  virtual void setSize(unsigned int i, unsigned int j, float value);  //< set cluster dimension covar
+  unsigned int getAdc() const override { return m_adc; }
+  void setAdc(unsigned int adc) override { m_adc = adc; }
+  float getSize(unsigned int i, unsigned int j) const override;        //< get cluster dimension covar
+  void setSize(unsigned int i, unsigned int j, float value) override;  //< set cluster dimension covar
 
-  virtual float getError(unsigned int i, unsigned int j) const;        //< get cluster error covar
-  virtual void setError(unsigned int i, unsigned int j, float value);  //< set cluster error covar
+  float getError(unsigned int i, unsigned int j) const override;        //< get cluster error covar
+  void setError(unsigned int i, unsigned int j, float value) override;  //< set cluster error covar
 
   //
   // convenience interface
   //
-  virtual float getPhiSize() const;
-  virtual float getZSize() const;
+  float getPhiSize() const override;
+  float getZSize() const override;
 
-  virtual float getRPhiError() const;
-  virtual float getPhiError() const;
-  virtual float getZError() const;
+  float getRPhiError() const override;
+  float getPhiError() const override;
+  float getZError() const override;
 
  protected:
 
@@ -81,7 +87,7 @@ class TrkrClusterv1 : public TrkrCluster
   float m_size[6];              //< size covariance matrix (packed storage) (+/- cm^2)
   float m_err[6];               //< covariance matrix: rad, arc and z
 
-  ClassDef(TrkrClusterv1, 1)
+  ClassDefOverride(TrkrClusterv1, 1)
 };
 
 #endif //TRACKBASE_TRKRCLUSTERV1_H

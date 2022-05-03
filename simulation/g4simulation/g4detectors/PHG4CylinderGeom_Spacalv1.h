@@ -14,7 +14,7 @@
 
 #include "PHG4CylinderGeomv2.h"
 
-#include <iostream>              // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
 #include <string>
 
@@ -28,22 +28,21 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
   ///@{
   PHG4CylinderGeom_Spacalv1();
 
-  virtual ~PHG4CylinderGeom_Spacalv1()
+  ~PHG4CylinderGeom_Spacalv1() override
   {
     sector_map.clear();
   }
 
-  virtual void
-  identify(std::ostream &os = std::cout) const;
+  // from PHObject
+  void identify(std::ostream &os = std::cout) const override;
 
-  virtual void
-  Print(Option_t *option = "") const;
+  // from TObject
+  void Print(Option_t *option = "") const override;
 
-  virtual void
-  SetDefault();
+  virtual void SetDefault();
 
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
-  virtual void ImportParameters(const PHParameters &param);
+  void ImportParameters(const PHParameters &param) override;
 
   ///@}
 
@@ -75,9 +74,9 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
   }
 
   void
-  set_xpos(double xpos)
+  set_xpos(double x)
   {
-    this->xpos = xpos;
+    this->xpos = x;
   }
 
   double
@@ -87,9 +86,9 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
   }
 
   void
-  set_ypos(double ypos)
+  set_ypos(double y)
   {
-    this->ypos = ypos;
+    this->ypos = y;
   }
 
   double
@@ -99,9 +98,9 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
   }
 
   void
-  set_zpos(double zpos)
+  set_zpos(double z)
   {
-    this->zpos = zpos;
+    this->zpos = z;
   }
 
   ///@}
@@ -273,9 +272,9 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
   }
 
   void
-  set_config(config_t config)
+  set_config(config_t c)
   {
-    this->config = config;
+    this->config = c;
   }
 
   bool
@@ -325,7 +324,7 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
   //! sector map sector_ID -> azimuthal rotation.
   sector_map_t sector_map;
 
-  ClassDef(PHG4CylinderGeom_Spacalv1, 2)
+  ClassDefOverride(PHG4CylinderGeom_Spacalv1, 2)
 };
 
 #endif

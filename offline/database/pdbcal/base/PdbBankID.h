@@ -19,7 +19,7 @@
 class PdbBankID : public PHObject {
 public:
    PdbBankID(const int val = 0);
-   virtual ~PdbBankID(){}
+   ~PdbBankID() override{}
 
    void print() const;
 
@@ -31,7 +31,7 @@ public:
 private:
   int bankID;
 
-  ClassDef(PdbBankID, 1)
+  ClassDefOverride(PdbBankID, 1)
 
 };
 

@@ -10,7 +10,6 @@
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
 #include <Geant4/G4String.hh>          // for G4String
@@ -21,10 +20,10 @@
 #include <CLHEP/Units/SystemOfUnits.h>  // for cm, deg
 
 #include <cmath>     // for isfinite
-#include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, endl, basic_ostream
 #include <sstream>
 
+class G4Material;
 class G4VSolid;
 class PHCompositeNode;
 
@@ -53,13 +52,7 @@ bool PHG4BlockDetector::IsInBlock(G4VPhysicalVolume *volume) const
 //_______________________________________________________________
 void PHG4BlockDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  G4Material *TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
-
-  if (!TrackerMaterial)
-  {
-    std::cout << "Error: Can not set material" << std::endl;
-    exit(-1);
-  }
+  G4Material *TrackerMaterial = GetDetectorMaterial(m_Params->get_string_param("material"));
 
   G4VSolid *block_solid = new G4Box(G4String(GetName()),
                                     m_Params->get_double_param("size_x") / 2. * cm,
@@ -82,7 +75,33 @@ void PHG4BlockDetector::ConstructMe(G4LogicalVolume *logicWorld)
   mysys->SetLogicalVolume(block_logic);
 
   G4RotationMatrix *rotm = new G4RotationMatrix();
-  rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
+  int nRotation(0);
+  if (m_Params->get_double_param("rot_x") != 0)
+  {
+    ++nRotation;
+    rotm->rotateX(m_Params->get_double_param("rot_x") * deg);
+  }
+  if (m_Params->get_double_param("rot_y") != 0)
+  {
+    ++nRotation;
+    rotm->rotateY(m_Params->get_double_param("rot_y") * deg);
+  }
+  if (m_Params->get_double_param("rot_z") != 0)
+  {
+    ++nRotation;
+    rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
+  }
+
+  if (nRotation >= 2)
+  {
+    cout << __PRETTY_FUNCTION__ << ": Warning : " << GetName() << " is configured with more than one of the x-y-z rotations of "
+         << "(" << m_Params->get_double_param("rot_x") << ", "
+         << m_Params->get_double_param("rot_x") << ", "
+         << m_Params->get_double_param("rot_x") << ") degrees. "
+         << "The rotation is instruction is ambiguous and they are performed in the order of X->Y->Z rotations with result rotation matrix of:";
+    rotm->print(cout);
+  }
+
   m_BlockPhysi = new G4PVPlacement(rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
                                    block_logic,
                                    G4String(GetName()),

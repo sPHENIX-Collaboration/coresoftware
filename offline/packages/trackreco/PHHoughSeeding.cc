@@ -7,8 +7,6 @@
 
 #include "PHHoughSeeding.h"
 
-#include "AssocInfoContainer.h"                         // for AssocInfoCont...
-
 // Helix Hough includes
 #include <HelixHough/HelixKalmanState.h>                // for HelixKalmanState
 #include <HelixHough/HelixRange.h>
@@ -360,7 +358,7 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode)
   return ret;
 }
 
-int PHHoughSeeding::Process(PHCompositeNode *topNode)
+int PHHoughSeeding::Process(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() > 1)
   {
@@ -1090,18 +1088,20 @@ int PHHoughSeeding::translate_input()
   //cout << "_clusters size " << _clusters.size() << endl;  
   int nhits3d = -1;
   unsigned int clusid = -1;
-  TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
-  for(TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
-    {
+
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys())
+  {
+    auto range = _cluster_map->getClusters(hitsetkey);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
       clusid += 1;
-      TrkrCluster *cluster = iter->second;
-      TrkrDefs::cluskey cluskey = iter->first;
+      TrkrDefs::cluskey cluskey = clusIter->first;
+      TrkrCluster *cluster = clusIter->second;
       unsigned int layer = TrkrDefs::getLayer(cluskey);
-
+      
       count++;
-
+      
       nhits_all[layer]++;
-
+      
       unsigned int ilayer = UINT_MAX;      
       std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(layer);
       if (it != _layer_ilayer_map.end())
@@ -1118,8 +1118,8 @@ int PHHoughSeeding::translate_input()
       
       if(Verbosity() > 40)
 	{
-	  unsigned int layer_tmp =   TrkrDefs::getLayer(cluster->getClusKey());
-	  cout << "     found in seeding layer # " << ilayer << " layer " << layer_tmp <<  " cluskey " << cluster->getClusKey() << " clusid " << clusid << endl;
+	  unsigned int layer_tmp =   TrkrDefs::getLayer(cluskey);
+	  cout << "     found in seeding layer # " << ilayer << " layer " << layer_tmp <<  " cluskey " << cluskey << " clusid " << clusid << endl;
 	}
       
       hit3d.set_layer(ilayer);
@@ -1148,6 +1148,7 @@ int PHHoughSeeding::translate_input()
       _clusters.push_back(hit3d);
       //cout << "     ilayer " << ilayer << " nhits " << nhits[ilayer] << " _clusters size now " << _clusters.size() << endl;
     }
+  }
   //cout << "_clusters size " << _clusters.size() << endl;  
 
   if (Verbosity() > 10)
@@ -1655,7 +1656,6 @@ int PHHoughSeeding::export_output()
 	      
 	      //mark hits as used by iteration number n
 	      //_hit_used_map[track_hits.at(ihit).get_id()] = _n_iteration;
-	      _assoc_container->SetClusterTrackAssoc(clusterkey, track.get_id());
 	      
 #ifdef _DEBUG_
 	      TrkrCluster* cluster = _cluster_map->findCluster(clusterkey);
@@ -1807,7 +1807,7 @@ float PHHoughSeeding::ptToKappa(float pt)
 }
 
 void PHHoughSeeding::convertHelixCovarianceToEuclideanCovariance(float B,
-                                                                 float phi, float d, float kappa, float z0, float dzdl,
+                                                                 float phi, float d, float kappa, float /*z0*/, float dzdl,
                                                                  Eigen::Matrix<float, 5, 5> const& input,
                                                                  Eigen::Matrix<float, 6, 6>& output)
 {

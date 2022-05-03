@@ -17,6 +17,7 @@
 
 #include <string>
 #include <vector>
+#include <utility>
 
 class Fun4AllHistoManager;
 class PHCompositeNode;
@@ -33,16 +34,16 @@ class PHG4ScoringManager : public SubsysReco
  public:
   PHG4ScoringManager();
 
-  virtual ~PHG4ScoringManager() {}
+  ~PHG4ScoringManager() override {}
 
   //! full initialization
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   //! end of run method
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode *) override;
 
   //! Output result to a ROOT file with this name
   void setOutputFileName(const std::string &outputfilename) { m_outputFileName = outputfilename; };
@@ -65,6 +66,9 @@ class PHG4ScoringManager : public SubsysReco
    */
   void G4Command(const std::string &cmd);
 
+  void setVertexHistRange(double min, double max) {m_vertexHistRange.first = min; m_vertexHistRange.second = max;}
+  void setVertexAcceptanceRange(double min, double max) {m_vertexAcceptanceRange.first = min; m_vertexAcceptanceRange.second = max;}
+
  private:
   Fun4AllHistoManager *getHistoManager();
   void makeScoringHistograms();
@@ -72,6 +76,9 @@ class PHG4ScoringManager : public SubsysReco
   std::vector<std::string> m_commands;
 
   std::string m_outputFileName;
+
+  std::pair<double, double> m_vertexHistRange {-5e2 ,5e2 };
+  std::pair<double, double> m_vertexAcceptanceRange {-5e2 ,5e2 };
 };
 
 #endif /* PHG4SCORINGMANAGER_H_ */

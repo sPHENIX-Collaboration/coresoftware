@@ -2,29 +2,19 @@
 
 #include <phparameter/PHParameters.h>
 
-using namespace std;
-
-PHG4CylinderGeomv2::PHG4CylinderGeomv2():
-  nscint(-9999)
+void PHG4CylinderGeomv2::identify(std::ostream& os) const
 {
-  return;
-}
-
-void
-PHG4CylinderGeomv2::identify(std::ostream& os) const
-{
-  os << "PHG4CylinderGeomv2: layer: " << layer 
-     << ", radius: " << radius 
+  os << "PHG4CylinderGeomv2: layer: " << layer
+     << ", radius: " << radius
      << ", thickness: " << thickness
-     << ", zmin: " << zmin 
-     << ", zmax: " << zmax 
+     << ", zmin: " << zmin
+     << ", zmax: " << zmax
      << ", num scint: " << nscint
-     << endl;
+     << std::endl;
   return;
 }
 
-void
-PHG4CylinderGeomv2::ImportParameters(const PHParameters & param)
+void PHG4CylinderGeomv2::ImportParameters(const PHParameters& param)
 {
   PHG4CylinderGeomv1::ImportParameters(param);
 

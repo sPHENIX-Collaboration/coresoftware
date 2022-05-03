@@ -6,6 +6,7 @@
 #include "PHG4MicromegasSubsystem.h"
 
 #include "PHG4MicromegasDetector.h"
+#include "PHG4MicromegasDisplayAction.h"
 #include "PHG4MicromegasSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
@@ -21,8 +22,8 @@
 #include <phool/getClass.h>
 
 //_______________________________________________________________________
-PHG4MicromegasSubsystem::PHG4MicromegasSubsystem(const std::string &name, int layer)
-  : PHG4DetectorSubsystem(name, layer)
+PHG4MicromegasSubsystem::PHG4MicromegasSubsystem(const std::string &name, int layerno)
+  : PHG4DetectorSubsystem(name, layerno)
 {
   // call base class method which will set up parameter infrastructure
   // and call our SetDefaultParameters() method
@@ -30,6 +31,13 @@ PHG4MicromegasSubsystem::PHG4MicromegasSubsystem(const std::string &name, int la
 
   SuperDetector(name);
 }
+
+//_______________________________________________________________________
+PHG4MicromegasSubsystem::~PHG4MicromegasSubsystem()
+{
+  delete m_DisplayAction;
+}
+
 
 //_______________________________________________________________________
 int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
@@ -57,13 +65,14 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   }
 
   // create detector
+  m_DisplayAction = new PHG4MicromegasDisplayAction(Name());
   m_Detector = new PHG4MicromegasDetector(this, topNode, GetParams(), Name());
   m_Detector->set_first_layer( GetLayer() );
 
   m_Detector->Verbosity(Verbosity());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
-
+  
   // create stepping action if detector is active
   if (GetParams()->get_int_param("active"))
   { m_SteppingAction = new PHG4MicromegasSteppingAction(m_Detector, GetParams()); }
@@ -82,10 +91,7 @@ int PHG4MicromegasSubsystem::process_event(PHCompositeNode *topNode)
 
 //_______________________________________________________________________
 void PHG4MicromegasSubsystem::Print(const std::string &what) const
-{
-  if (m_Detector) m_Detector->Print(what);
-  return;
-}
+{ if (m_Detector) m_Detector->Print(what); }
 
 //_______________________________________________________________________
 PHG4Detector* PHG4MicromegasSubsystem::GetDetector(void) const
@@ -97,7 +103,4 @@ PHG4SteppingAction* PHG4MicromegasSubsystem::GetSteppingAction() const
 
 //_______________________________________________________________________
 void PHG4MicromegasSubsystem::SetDefaultParameters()
-{
-  set_default_double_param("mm_length", 220);
-  set_default_double_param("mm_radius", 82);
-}
+{}

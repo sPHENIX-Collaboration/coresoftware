@@ -69,7 +69,7 @@ void PHG4IonGun::UpdateParticle()
   return;
 }
 
-void PHG4IonGun::Print(const string &what) const
+void PHG4IonGun::Print(const string &/*what*/) const
 {
   cout << "PHG4IonGun, using ions of" << endl;
   cout << "A: " << A << ", Z: " << Z << ", charge: " << ioncharge

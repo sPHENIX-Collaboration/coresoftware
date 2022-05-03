@@ -10,13 +10,11 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
-
 void PHNodeIntegrate::perform(PHNode *node)
 {
   if (verbosity > 0)
   {
-    cout << "PHNodeIntegrate: Integrating " << node->getName() << endl;
+    std::cout << "PHNodeIntegrate: Integrating " << node->getName() << std::endl;
   }
   if (node->getType() == "PHDataNode" || node->getType() == "PHIODataNode")
   {

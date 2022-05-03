@@ -3,21 +3,20 @@
 #ifndef G4DETECTORS_PHG4CELLCONTAINER_H
 #define G4DETECTORS_PHG4CELLCONTAINER_H
 
-#include "PHG4CellDefs.h"    // for keytype
+#include "PHG4CellDefs.h"  // for keytype
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 class PHG4Cell;
 
-class PHG4CellContainer: public PHObject
+class PHG4CellContainer : public PHObject
 {
-
-  public:
-  typedef std::map<PHG4CellDefs::keytype,PHG4Cell *> Map;
+ public:
+  typedef std::map<PHG4CellDefs::keytype, PHG4Cell *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
@@ -25,17 +24,18 @@ class PHG4CellContainer: public PHObject
 
   PHG4CellContainer();
 
-  virtual ~PHG4CellContainer() {}
+  ~PHG4CellContainer() override {}
 
-  void Reset();
-
-  void identify(std::ostream& os = std::cout) const;
+  // from PHObject
+  void Reset() override;
+  void identify(std::ostream &os = std::cout) const override;
 
   ConstIterator AddCell(PHG4Cell *newCell);
   ConstIterator AddCellSpecifyKey(const PHG4CellDefs::keytype key, PHG4Cell *newCell);
-  
+
   //! preferred removal method, key is currently the cell id
-  void RemoveCell(PHG4CellDefs::keytype key) {
+  void RemoveCell(PHG4CellDefs::keytype key)
+  {
     cellmap.erase(key);
   }
 
@@ -45,18 +45,17 @@ class PHG4CellContainer: public PHObject
     Iterator its = cellmap.begin();
     Iterator last = cellmap.end();
     for (; its != last;)
+    {
+      if (its->second == cell)
       {
-	if (its->second == cell)
-	  {
-	    cellmap.erase(its++);
-	  }
-	else
-	  {
-	    ++its;
-	  }
+        cellmap.erase(its++);
       }
+      else
+      {
+        ++its;
+      }
+    }
   }
-
 
   Iterator findOrAddCell(PHG4CellDefs::keytype key);
 
@@ -64,18 +63,20 @@ class PHG4CellContainer: public PHObject
   ConstRange getCells(const unsigned short int detid) const;
 
   //! return all hist
-  ConstRange getCells( void ) const;
+  ConstRange getCells(void) const;
 
-  PHG4Cell* findCell(PHG4CellDefs::keytype key);
+  PHG4Cell *findCell(PHG4CellDefs::keytype key);
 
-  unsigned int size( void ) const
-  { return cellmap.size(); }
+  unsigned int size(void) const
+  {
+    return cellmap.size();
+  }
 
   double getTotalEdep() const;
 
  protected:
   Map cellmap;
-  ClassDef(PHG4CellContainer,1)
+  ClassDefOverride(PHG4CellContainer, 1)
 };
 
 #endif

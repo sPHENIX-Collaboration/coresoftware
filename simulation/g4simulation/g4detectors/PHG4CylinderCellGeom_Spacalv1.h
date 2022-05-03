@@ -1,6 +1,6 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-// $Id: $                                                                                             
+// $Id: $
 
 /*!
  * \file PHG4CylinderCellGeomSpacalv1.h
@@ -15,46 +15,43 @@
 
 #include "PHG4CylinderCellGeom.h"
 
-#include <iostream>                // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>                 // for pair
+#include <utility>  // for pair
 
 /*!
  * \brief PHG4CylinderCellGeom_Spacalv1
  */
 class PHG4CylinderCellGeom_Spacalv1 : public PHG4CylinderCellGeom
 {
-public:
+ public:
   PHG4CylinderCellGeom_Spacalv1();
-  virtual
-  ~PHG4CylinderCellGeom_Spacalv1();
-  void
-  identify(std::ostream& os = std::cout) const;
+  ~PHG4CylinderCellGeom_Spacalv1() override;
 
-  virtual std::pair<double, double>
-  get_zbounds(const int ibin) const;
-  virtual std::pair<double, double>
-  get_etabounds(const int ibin) const;
+  void identify(std::ostream& os = std::cout) const override;
 
-  virtual double
-  get_etacenter(const int ibin) const;
-  virtual double
-  get_zcenter(const int ibin) const;
+  std::pair<double, double>
+  get_zbounds(const int ibin) const override;
+  std::pair<double, double>
+  get_etabounds(const int ibin) const override;
 
-  virtual int
-  get_etabin(const double eta) const;
-  virtual int
-  get_zbin(const double z) const;
+  double
+  get_etacenter(const int ibin) const override;
+  double
+  get_zcenter(const int ibin) const override;
+
+  int get_etabin(const double eta) const override;
+  int get_zbin(const double z) const override;
 
   void
-  set_zbounds(const int ibin, const std::pair<double, double> & bounds);
+  set_zbounds(const int ibin, const std::pair<double, double>& bounds);
   void
-  set_etabounds(const int ibin, const std::pair<double, double> & bounds);
+  set_etabounds(const int ibin, const std::pair<double, double>& bounds);
 
   typedef std::pair<double, double> bound_t;
   typedef std::map<int, bound_t> bound_map_t;
 
-  const bound_map_t &
+  const bound_map_t&
   get_eta_bound_map() const
   {
     map_consistency_check();
@@ -62,12 +59,12 @@ public:
   }
 
   void
-  set_eta_bound_map(const bound_map_t & etaBoundMap)
+  set_eta_bound_map(const bound_map_t& etaBoundMap)
   {
     eta_bound_map = etaBoundMap;
   }
 
-  const bound_map_t &
+  const bound_map_t&
   get_z_bound_map() const
   {
     map_consistency_check();
@@ -75,7 +72,7 @@ public:
   }
 
   void
-  set_z_bound_map(const bound_map_t & boundMap)
+  set_z_bound_map(const bound_map_t& boundMap)
   {
     z_bound_map = boundMap;
   }
@@ -84,7 +81,7 @@ public:
   typedef std::map<int, int> tower_z_ID_eta_bin_map_t;
 
   //! map tower_z_ID -> eta_bin number
-  const tower_z_ID_eta_bin_map_t &
+  const tower_z_ID_eta_bin_map_t&
   get_tower_z_ID_eta_bin_map() const
   {
     return tower_z_ID_eta_bin_map;
@@ -95,13 +92,12 @@ public:
 
   //! map tower_z_ID -> eta_bin number for blocks
   void
-  set_tower_z_ID_eta_bin_map(const tower_z_ID_eta_bin_map_t & m)
+  set_tower_z_ID_eta_bin_map(const tower_z_ID_eta_bin_map_t& m)
   {
     tower_z_ID_eta_bin_map = m;
   }
 
-protected:
-
+ protected:
   void
   map_consistency_check() const;
 
@@ -111,8 +107,7 @@ protected:
   //! map tower_z_ID -> eta_bin number for blocks
   tower_z_ID_eta_bin_map_t tower_z_ID_eta_bin_map;
 
-ClassDef(PHG4CylinderCellGeom_Spacalv1,2)
-
+  ClassDefOverride(PHG4CylinderCellGeom_Spacalv1, 2)
 };
 
 #endif /* PHG4CYLINDERCELLGEOMSPACALV1_H_ */

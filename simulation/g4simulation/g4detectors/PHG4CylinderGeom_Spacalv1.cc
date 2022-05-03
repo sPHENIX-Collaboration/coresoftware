@@ -14,11 +14,11 @@
 
 #include <Geant4/G4PhysicalConstants.hh>
 
-#include <CLHEP/Units/SystemOfUnits.h>    // for twopi
+#include <CLHEP/Units/SystemOfUnits.h>  // for twopi
 
 #include <cmath>
 #include <sstream>
-#include <utility>                        // for pair
+#include <utility>  // for pair
 
 using namespace std;
 

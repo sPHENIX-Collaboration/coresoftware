@@ -1,6 +1,8 @@
 #ifndef CALORECO_RAWTOWERCALIBRATION_H
 #define CALORECO_RAWTOWERCALIBRATION_H
 
+#include <dbfile_calo_calib/CaloCalibSimpleCorrFile.h>
+
 #include <fun4all/SubsysReco.h>
 
 #include <phparameter/PHParameters.h>
@@ -12,6 +14,7 @@ class PHCompositeNode;
 class RawTowerContainer;
 class RawTowerGeomContainer;
 
+
 //! calibrate ADC value to measured energy deposition in calorimeter towers
 //! default input DST node is TOWER_RAW_DETECTOR
 //! default output DST node is TOWER_CALIB_DETECTOR
@@ -19,13 +22,13 @@ class RawTowerCalibration : public SubsysReco
 {
  public:
   RawTowerCalibration(const std::string &name = "RawTowerCalibration");
-  virtual ~RawTowerCalibration()
+  ~RawTowerCalibration() override
   {
   }
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
+  int End(PHCompositeNode *topNode) override;
   void
   Detector(const std::string &d)
   {
@@ -47,7 +50,10 @@ class RawTowerCalibration : public SubsysReco
     kSimple_linear_calibration = 1,
 
     //! input calibration file for tower by tower calibration. Use GetCalibrationParameters() to set the calibration parameters
-    kTower_by_tower_calibration = 2
+    kTower_by_tower_calibration = 2,
+
+    // use conditions DB file/wrapper (non-xml) file for most gain tracing correction factors 
+    kDbfile_tbt_gain_corr = 3
   };
 
   enu_calib_algorithm
@@ -137,6 +143,16 @@ class RawTowerCalibration : public SubsysReco
     return _tower_calib_params;
   }
 
+  void set_CalibrationFileName(const char * inCalFname) 
+  { 
+    m_CalibrationFileName = inCalFname;
+  }
+  void set_UseConditionsDB(const bool setUseCondDB)
+  {
+    m_UseConditionsDB = setUseCondDB;
+  }
+
+
  protected:
   void
   CreateNodes(PHCompositeNode *topNode);
@@ -172,6 +188,12 @@ class RawTowerCalibration : public SubsysReco
 
   //! Tower by tower calibration parameters
   PHParameters _tower_calib_params;
+
+  std::string m_CalibrationFileName;
+  bool m_UseConditionsDB;
+
+  CaloCalibSimpleCorrFile * _cal_dbfile;
+
 };
 
 #endif

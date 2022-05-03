@@ -15,32 +15,20 @@ class AssocInfoContainer : public PHObject
  public:
   typedef std::multimap<TrkrDefs::cluskey, unsigned int> ClusterTrackMap;
 
-  AssocInfoContainer();
-  virtual ~AssocInfoContainer();
+  ~AssocInfoContainer() override{}
 
-  void Reset();
-  void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream& os = std::cout) const override;
 
-  void SetClusterTrackAssoc(const TrkrDefs::cluskey& cluster_id, const unsigned int& track_id)
-  {
-    _map_cluster_id_track_id.insert(ClusterTrackMap::value_type(cluster_id, track_id));
-  }
+  virtual void SetClusterTrackAssoc(const TrkrDefs::cluskey& /*cluster_id*/, const unsigned int& /*track_id*/) {return;}
 
-  std::vector<unsigned int> GetTracksFromCluster(const TrkrDefs::cluskey& cluster_id) const
-  {
-    std::vector<unsigned int> ret;
-    for (auto iter = _map_cluster_id_track_id.lower_bound(cluster_id);
-         iter != _map_cluster_id_track_id.upper_bound(cluster_id); ++iter)
-    {
-      ret.push_back(iter->second);
-    }
-    return ret;
-  }
+  virtual std::vector<unsigned int> GetTracksFromCluster(const TrkrDefs::cluskey& /*cluster_id*/) const { std::vector<unsigned int> emptyvec; return emptyvec;}
+
+ protected:
+  AssocInfoContainer(){};
 
  private:
-  ClusterTrackMap _map_cluster_id_track_id;
 
-  ClassDef(AssocInfoContainer, 1)
+  ClassDefOverride(AssocInfoContainer, 1)
 };
 
 #endif

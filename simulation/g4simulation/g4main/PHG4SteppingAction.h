@@ -39,13 +39,16 @@ class PHG4SteppingAction
   virtual void StoreLocalCoordinate(PHG4Hit* hit, const G4Step* step, const bool do_prepoint, const bool do_postpoint);
 
   virtual void SetInterfacePointers(PHCompositeNode*) { return; }
-  virtual void Print(const std::string& what) const { return; }
+  virtual void Print(const std::string& /*what*/) const { return; }
   std::string GetName() const { return m_Name; }
   void SetName(const std::string& name) { m_Name = name; }
   virtual void SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr);
   virtual double GetLightCorrection(const double r) const;
   virtual double GetLightCorrection(const double xpos, const double ypos) const;
   virtual bool ValidCorrection() const;
+
+  //! Set the G4HIT node names from Subsystem rather than constructing your own
+  virtual void SetHitNodeName(const std::string &, const std::string &) {return;}
 
  private:
   int m_Verbosity;

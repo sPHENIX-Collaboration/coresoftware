@@ -36,34 +36,34 @@ static inline void setClusterRange(HelixRange& range1, HelixRange& range2,
   range2.max_z0 = range1.min_z0 + z0_size * ((float)(prange.max_z0 + 1));
 }
 
-static inline void setRange(const BinEntryPair5D& bp, HelixRange& range1,
-                            HelixRange& range2, unsigned int n_phi,
-                            unsigned int n_d, unsigned int n_k,
-                            unsigned int n_dzdl, unsigned int n_z0) {
-  float dzdl_size = (range1.max_dzdl - range1.min_dzdl) / ((float)n_dzdl);
-  float z0_size = (range1.max_z0 - range1.min_z0) / ((float)n_z0);
-  float phi_size = (range1.max_phi - range1.min_phi) / ((float)n_phi);
-  float d_size = (range1.max_d - range1.min_d) / ((float)n_d);
-  float k_size = (range1.max_k - range1.min_k) / ((float)n_k);
+// static inline void setRange(const BinEntryPair5D& bp, HelixRange& range1,
+//                             HelixRange& range2, unsigned int n_phi,
+//                             unsigned int n_d, unsigned int n_k,
+//                             unsigned int n_dzdl, unsigned int n_z0) {
+//   float dzdl_size = (range1.max_dzdl - range1.min_dzdl) / ((float)n_dzdl);
+//   float z0_size = (range1.max_z0 - range1.min_z0) / ((float)n_z0);
+//   float phi_size = (range1.max_phi - range1.min_phi) / ((float)n_phi);
+//   float d_size = (range1.max_d - range1.min_d) / ((float)n_d);
+//   float k_size = (range1.max_k - range1.min_k) / ((float)n_k);
 
-  unsigned int z0_bin = 0;
-  unsigned int dzdl_bin = 0;
-  unsigned int k_bin = 0;
-  unsigned int d_bin = 0;
-  unsigned int phi_bin = 0;
+//   unsigned int z0_bin = 0;
+//   unsigned int dzdl_bin = 0;
+//   unsigned int k_bin = 0;
+//   unsigned int d_bin = 0;
+//   unsigned int phi_bin = 0;
 
-  bp.bin5D(n_d, n_k, n_dzdl, n_z0, phi_bin, d_bin, k_bin, dzdl_bin, z0_bin);
-  range2.min_phi = range1.min_phi + phi_size * ((float)(phi_bin));
-  range2.max_phi = range2.min_phi + phi_size;
-  range2.min_d = range1.min_d + d_size * ((float)(d_bin));
-  range2.max_d = range2.min_d + d_size;
-  range2.min_k = range1.min_k + k_size * ((float)(k_bin));
-  range2.max_k = range2.min_k + k_size;
-  range2.min_dzdl = range1.min_dzdl + dzdl_size * ((float)(dzdl_bin));
-  range2.max_dzdl = range2.min_dzdl + dzdl_size;
-  range2.min_z0 = range1.min_z0 + z0_size * ((float)(z0_bin));
-  range2.max_z0 = range2.min_z0 + z0_size;
-}
+//   bp.bin5D(n_d, n_k, n_dzdl, n_z0, phi_bin, d_bin, k_bin, dzdl_bin, z0_bin);
+//   range2.min_phi = range1.min_phi + phi_size * ((float)(phi_bin));
+//   range2.max_phi = range2.min_phi + phi_size;
+//   range2.min_d = range1.min_d + d_size * ((float)(d_bin));
+//   range2.max_d = range2.min_d + d_size;
+//   range2.min_k = range1.min_k + k_size * ((float)(k_bin));
+//   range2.max_k = range2.min_k + k_size;
+//   range2.min_dzdl = range1.min_dzdl + dzdl_size * ((float)(dzdl_bin));
+//   range2.max_dzdl = range2.min_dzdl + dzdl_size;
+//   range2.min_z0 = range1.min_z0 + z0_size * ((float)(z0_bin));
+//   range2.max_z0 = range2.min_z0 + z0_size;
+// }
 
 void HelixHough::findHelicesByPairsBegin(unsigned int min_hits,
                                          unsigned int max_hits,
@@ -98,7 +98,7 @@ void HelixHough::findHelicesByPairs(unsigned int min_hits,
   if ((maxtracks != 0) && (tracks.size() >= max_tracks)) {
     return;
   }
-  unsigned int tracks_at_start = tracks.size();
+//  unsigned int tracks_at_start = tracks.size();
 
   timeval t1, t2;
   double time1 = 0.;

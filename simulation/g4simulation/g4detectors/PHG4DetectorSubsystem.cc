@@ -23,15 +23,7 @@ using namespace std;
 PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int lyr)
   : PHG4Subsystem(name)
   , params(new PHParameters(Name()))
-  , paramscontainer(nullptr)
-  , savetopNode(nullptr)
-  , overlapcheck(false)
   , layer(lyr)
-  , usedb(0)
-  , beginrunexecuted(0)
-  , filetype(PHG4DetectorSubsystem::none)
-  , superdetector("NONE")
-  , calibfiledir("./")
 {
   // put the layer into the name so we get unique names
   // for multiple layers
@@ -126,6 +118,10 @@ int PHG4DetectorSubsystem::InitRun(PHCompositeNode *topNode)
   }
   // put parameters on the node tree so the subsystem can read them from there (it does not have to)
   params->SaveToNodeTree(RunDetNode, paramnodename, layer);
+  // define the materials for the detector
+  // at this point all flags are known so materials set in the macro can
+  // be implemented here
+  DefineMaterials();
   int iret = InitRunSubsystem(topNode);
   // update parameters on node tree in case the subsystem has changed them
   // In the end the parameters on the node tree must reflect what was actually used
@@ -276,6 +272,7 @@ void PHG4DetectorSubsystem::InitializeParameters()
   set_default_int_param("absorbertruth", 0);
   set_default_int_param("active", 0);
   set_default_int_param("blackhole", 0);
+  set_default_int_param("supportactive", 0);
 
   SetDefaultParameters();  // call method from specific subsystem
   // now load those parameters to our params class
@@ -391,6 +388,11 @@ void PHG4DetectorSubsystem::SetActive(const int i)
 void PHG4DetectorSubsystem::SetAbsorberActive(const int i)
 {
   iparams["absorberactive"] = i;
+}
+
+void PHG4DetectorSubsystem::SetSupportActive(const int i)
+{
+  iparams["supportactive"] = i;
 }
 
 void PHG4DetectorSubsystem::BlackHole(const int i)

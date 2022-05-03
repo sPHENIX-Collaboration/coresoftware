@@ -104,6 +104,7 @@ int PHG4InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
     // create stepping action
     m_SteppingAction = new PHG4InnerHcalSteppingAction(m_Detector, GetParams());
+    m_SteppingAction->Init();
   }
   else
   {
@@ -111,6 +112,7 @@ int PHG4InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     if (GetParams()->get_int_param("blackhole"))
     {
       m_SteppingAction = new PHG4InnerHcalSteppingAction(m_Detector, GetParams());
+      m_SteppingAction->Init();
     }
   }
   return 0;
@@ -165,6 +167,8 @@ void PHG4InnerHcalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
   set_default_double_param("scinti_eta_coverage", 1.1);
+  set_default_double_param("scinti_eta_coverage_pos", 1.1);
+  set_default_double_param("scinti_eta_coverage_neg", 1.1);
   set_default_double_param("scinti_gap_neighbor", 0.1);
   set_default_double_param("scinti_inner_gap", 0.85);
   set_default_double_param("scinti_outer_gap", 1.22 * (5.0 / 4.0));
@@ -185,6 +189,8 @@ void PHG4InnerHcalSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4HcalDefs::n_towers, 64);
   set_default_int_param(PHG4HcalDefs::scipertwr, 4);
   set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
+  set_default_int_param(PHG4HcalDefs::n_scinti_tiles_pos, 12);
+  set_default_int_param(PHG4HcalDefs::n_scinti_tiles_neg, 12);
 
   set_default_string_param("material", "G4_Al");
 }
@@ -197,3 +203,4 @@ void PHG4InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const
   set_double_param("light_balance_outer_radius", outer_radius);
   return;
 }
+

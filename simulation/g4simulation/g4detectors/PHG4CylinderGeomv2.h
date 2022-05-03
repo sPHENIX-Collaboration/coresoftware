@@ -5,32 +5,35 @@
 
 #include "PHG4CylinderGeomv1.h"
 
-#include <iostream>              // for cout, ostream
+#include <iostream>  // for cout, ostream
 
 class PHParameters;
 
-class PHG4CylinderGeomv2: public PHG4CylinderGeomv1
+class PHG4CylinderGeomv2 : public PHG4CylinderGeomv1
 {
  public:
-  PHG4CylinderGeomv2();
-  PHG4CylinderGeomv2(const double r, const double zmi, const double zma, const double thickn, const int n_scint):
-    PHG4CylinderGeomv1(r,zmi,zma,thickn),
-    nscint(n_scint)
-      {}
+  PHG4CylinderGeomv2() {}
+  PHG4CylinderGeomv2(const double r, const double zmi, const double zma, const double thickn, const int n_scint)
+    : PHG4CylinderGeomv1(r, zmi, zma, thickn)
+    , nscint(n_scint)
+  {
+  }
 
-  virtual ~PHG4CylinderGeomv2() {}
+  ~PHG4CylinderGeomv2() override {}
 
-  void identify(std::ostream& os = std::cout) const;
-  void set_nscint(const int i) {nscint = i;}
-  int get_nscint() const {return nscint;}
+  // from PHObject
+  void identify(std::ostream& os = std::cout) const override;
+
+  void set_nscint(const int i) override { nscint = i; }
+  int get_nscint() const override { return nscint; }
 
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
-  virtual void ImportParameters(const PHParameters & param);
+  void ImportParameters(const PHParameters& param) override;
 
  protected:
-  int nscint;
+  int nscint = -9999;
 
-  ClassDef(PHG4CylinderGeomv2,1)
+  ClassDefOverride(PHG4CylinderGeomv2, 1)
 };
 
 #endif

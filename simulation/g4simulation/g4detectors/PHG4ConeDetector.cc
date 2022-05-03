@@ -3,26 +3,23 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4Detector.h>  // for PHG4Detector
+#include <g4main/PHG4Detector.h>       // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
-#include <g4main/PHG4Utils.h>
 
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
 #include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>   // for cm
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
-#include <Geant4/G4VisAttributes.hh>
 
-#include <cmath>     // for M_PI
-#include <cstdlib>   // for exit
 #include <iostream>  // for operator<<, endl, basic_ostream
 #include <sstream>
 
-using namespace std;
+class G4Material;
+class G4VSolid;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
@@ -48,13 +45,7 @@ bool PHG4ConeDetector::IsInConeActive(G4VPhysicalVolume *volume)
 //_______________________________________________________________
 void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  G4Material *TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
-
-  if (!TrackerMaterial)
-  {
-    std::cout << "Error: Can not set material" << std::endl;
-    exit(-1);
-  }
+  G4Material *TrackerMaterial = GetDetectorMaterial(m_Params->get_string_param("material"));
 
   G4VSolid *cone_solid = new G4Cons((GetName() + "_SOLID"),
                                     m_Params->get_double_param("rmin1") * cm,
@@ -73,7 +64,34 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
   mysys->SetLogicalVolume(cone_logic);
 
   G4RotationMatrix *rotm = new G4RotationMatrix();
-  rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
+
+  int nRotation(0);
+  if (m_Params->get_double_param("rot_x") != 0)
+  {
+    ++nRotation;
+    rotm->rotateX(m_Params->get_double_param("rot_x") * deg);
+  }
+  if (m_Params->get_double_param("rot_y") != 0)
+  {
+    ++nRotation;
+    rotm->rotateY(m_Params->get_double_param("rot_y") * deg);
+  }
+  if (m_Params->get_double_param("rot_z") != 0)
+  {
+    ++nRotation;
+    rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
+  }
+
+  if (nRotation >= 2)
+  {
+    std::cout << __PRETTY_FUNCTION__ << ": Warning : " << GetName() << " is configured with more than one of the x-y-z rotations of "
+              << "(" << m_Params->get_double_param("rot_x") << ", "
+              << m_Params->get_double_param("rot_x") << ", "
+              << m_Params->get_double_param("rot_x") << ") degrees. "
+              << "The rotation is instruction is ambiguous and they are performed in the order of X->Y->Z rotations with result rotation matrix of:";
+    rotm->print(std::cout);
+  }
+
   m_ConePhysVol = new G4PVPlacement(rotm,
                                     G4ThreeVector(m_Params->get_double_param("place_x") * cm,
                                                   m_Params->get_double_param("place_y") * cm,

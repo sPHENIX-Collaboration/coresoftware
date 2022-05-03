@@ -14,10 +14,11 @@ class G4RootScintillatorTower : public PHObject
  public:
   G4RootScintillatorTower();
   G4RootScintillatorTower(const RawTower& tower);
-  virtual ~G4RootScintillatorTower() {}
-  void Reset();
-  int isValid() const;
-  void identify(std::ostream& os = std::cout) const;
+  ~G4RootScintillatorTower() override {}
+
+  void Reset() override;
+  int isValid() const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   int get_row() const { return row; }
   int get_column() const { return column; }
@@ -28,7 +29,7 @@ class G4RootScintillatorTower : public PHObject
   short column;
   double energy;
 
-  ClassDef(G4RootScintillatorTower, 1)
+  ClassDefOverride(G4RootScintillatorTower, 1)
 };
 
 #endif  // G4HISTOS_G4ROOTSCINTILLATORTOWER_H

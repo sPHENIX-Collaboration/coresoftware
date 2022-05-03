@@ -16,14 +16,16 @@ AM_LDFLAGS = \
 libjetbackground_io_la_LIBADD = \
   -lphool
 
+libjetbackground_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  `fastjet-config --libs`
+
 libjetbackground_la_LIBADD = \
   libjetbackground_io.la \
   -lcalo_io \
   -lConstituentSubtractor \
   -lg4jets_io \
-  -lCGAL \
-  -lfastjet \
-  -lfastjettools \
   -lphg4hit \
   -lSubsysReco
 

@@ -1,15 +1,14 @@
 #!/usr/bin/perl
 
+#located in offline/framework/frog/
+
 use DBI;
 use strict;
 use Getopt::Long;
 use Data::Dumper;
 use List::Util qw(shuffle);
 
-sub hijingfiletypes;
-sub charmfiletypes;
-sub bottomfiletypes;
-sub pythiambfiletypes;
+sub commonfiletypes;
 sub fill_nocombine_files;
 
 my $dbh = DBI->connect("dbi:ODBC:FileCatalog","argouser") || die $DBI::error;
@@ -30,14 +29,17 @@ while(my @res = $getdsttypes->fetchrow_array())
 }
 
 my %proddesc = (
-    "1" => "hijing (0-12fm) pileup 0-12fm",
-    "2" => "hijing (0-4.88fm) pileup 0-12fm",
+    "1" => "hijing (0-12fm) pileup 0-12fm DELETED",
+    "2" => "hijing (0-4.88fm) pileup 0-12fm DELETED",
     "3" => "pythia8 pp MB",
     "4" => "hijing (0-20fm) pileup 0-20fm",
-    "5" => "hijing (0-12fm) pileup 0-20fm",
+    "5" => "hijing (0-12fm) pileup 0-20fm DELETED",
     "6" => "hijing (0-4.88fm) pileup 0-20fm",
     "7" => "HF pythia8 Charm",
-    "8" => "HF pythia8 Bottom"
+    "8" => "HF pythia8 Bottom",
+    "9" => "HF pythia8 Charm D0",
+    "10" => "HF pythia8 Bottom D0",
+    "11" => "JS pythia8 Jet R=4"
     );
 
 
@@ -45,70 +47,124 @@ my $nEvents;
 my $start_segment;
 my $randomize;
 my $prodtype;
-GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, 'r' => \$randomize, 's:i' => \$start_segment);
+my $runnumber = 4;
+my $verbose;
+my $nopileup;
+my $embed;
 
+GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, "nopileup" => \$nopileup, 'rand' => \$randomize, 's:i' => \$start_segment, 'run:i' => \$runnumber, "verbose" =>\$verbose, 'embed' => \$embed);
 my $filenamestring;
 my %filetypes = ();
+my %notlike = ();
 if (defined $prodtype)
 {
     if ($prodtype == 1)
     {
-	$filenamestring = "sHijing_0_12fm_50kHz_bkg_0_12fm-";
-	&hijingfiletypes();
+	$filenamestring = "sHijing_0_12fm_50kHz_bkg_0_12fm";
+        die "This dataset has been deleted\n";
+	&commonfiletypes();
     }
     elsif ($prodtype == 2)
     {
-	$filenamestring = "sHijing_0_488fm_50kHz_bkg_0_12fm-";
-	&hijingfiletypes();
+	$filenamestring = "sHijing_0_488fm_50kHz_bkg_0_12fm";
+        die "Dataset $prodtype has been deleted\n";
+	&commonfiletypes();
     }
     elsif ($prodtype == 3)
     {
-	$filenamestring = "pythia8_mb";
-	&pythiambfiletypes();
+	$filenamestring = "pythia8_pp_mb_3MHz";
+	&commonfiletypes();
     }
     elsif ($prodtype == 4)
     {
-	$filenamestring = "sHijing_0_20fm_50kHz_bkg_0_20fm-";
-	&hijingfiletypes();
+	$filenamestring = "sHijing_0_20fm_50kHz_bkg_0_20fm";
+        $notlike{$filenamestring} = "pythia8";
+	&commonfiletypes();
     }
     elsif ($prodtype == 5)
     {
-	$filenamestring = "sHijing_0_12fm_50kHz_bkg_0_20fm-";
-	&hijingfiletypes();
+	$filenamestring = "sHijing_0_12fm_50kHz_bkg_0_20fm";
+        die "Dataset $prodtype has been deleted\n";
+	&commonfiletypes();
     }
     elsif ($prodtype == 6)
     {
-	$filenamestring = "sHijing_0_488fm_50kHz_bkg_0_20fm-";
-	&hijingfiletypes();
+	$filenamestring = "sHijing_0_488fm_50kHz_bkg_0_20fm";
+	&commonfiletypes();
     }
     elsif ($prodtype == 7)
     {
-	$filenamestring = "DST_HF_CHARM";
-	&charmfiletypes();
+	$filenamestring = "pythia8_Charm";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	}
+	&commonfiletypes();
     }
     elsif ($prodtype == 8)
     {
-	$filenamestring = "DST_HF_BOTTOM";
-	&bottomfiletypes();
+	$filenamestring = "pythia8_Bottom";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	}
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 9)
+    {
+	$filenamestring = "pythia8_CharmD0";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	}
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 10)
+    {
+	$filenamestring = "pythia8_BottomD0";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	}
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 11)
+    {
+	$filenamestring = "pythia8_Jet04";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		$filenamestring = sprintf("%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring);
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_3MHz",$filenamestring);
+	    }
+	}
+	&commonfiletypes();
     }
     else
     {
-	print "no file substring for production type $prodtype\n";
+	print "no production type $prodtype\n";
 	exit(1);
     }
+    &fill_other_types();
 }
-
+my $filenamestring_with_runnumber = sprintf("%s\-%010d-",$filenamestring,$runnumber);
 if ($#ARGV < 0)
 {
     if (! defined $prodtype)
     {
 	print "usage: CreateFileLists.pl -type <production type> <filetypes>\n";
 	print "parameters:\n";
-	print "-n  : <number of events>\n";
-	print "-r  : randomize segments used\n";
-	print "-s  : <starting segment>\n";
+	print "-n    : <number of events>\n";
+	print "-nopileup : without pileup\n";
+	print "-rand : randomize segments used\n";
+	print "-run  : runnumber\n";
+	print "-s    : <starting segment>\n";
 	print "-type : production type\n";
-	foreach my $pd (sort keys %proddesc)
+	foreach my $pd (sort { $a <=> $b } keys %proddesc)
 	{
 	    print "    $pd : $proddesc{$pd}\n";
 	}
@@ -201,34 +257,62 @@ while($#ARGV >= 0)
     shift (@ARGV);
 
 }
-print "This Can Take a While (a minute give or take)\n";
-my $conds = sprintf("dsttype = ? and filename like \'\%%%s\%\'",$filenamestring);
+print "This Can Take a While (10 minutes depending on the amount of events and the number of file types you want)\n";
+my $conds = sprintf("dsttype = ? and filename like \'\%%%s\%\'",$filenamestring_with_runnumber);
+if (exists $notlike{$filenamestring})
+{
+    $conds = sprintf("%s and filename not like  \'\%%%s\%\'",$conds,$notlike{$filenamestring});
+}
 if (defined $start_segment)
 {
     $conds = sprintf("%s and segment >= %d",$conds,$start_segment);
 }
 my $getfilesql = sprintf("select filename,segment,events from datasets where %s order by segment",$conds);
-
-#print "sql: $getfilesql\n";
+#my $getfilesql = sprintf("select filename,segment,events from datasets where %s ",$conds);
 
 my %getfiles = ();
 foreach  my $tp (keys %req_types)
 {
     if ($tp eq "G4Hits")
     {
-	my @sp1 = split(/_/,$filenamestring);
-	my $newfilenamestring = sprintf("%s_%s_%s",$sp1[0],$sp1[1],$sp1[2]);
+	my @sp1 = split(/_/,$filenamestring_with_runnumber);
+	my $newfilenamestring;
+	if ($#sp1 == 3 ||$#sp1 == 6 )
+	{
+	    $newfilenamestring = sprintf("%s_%s_%s",$sp1[0],$sp1[1],$sp1[2]);
+	}
+	elsif ($#sp1 == 2)
+	{
+	    $newfilenamestring = sprintf("%s_%s",$sp1[0],$sp1[1]);
+	}
+	else
+	{
+	    print "splitting $filenamestring_with_runnumber gave bad number of _: $#sp1\n";
+	    die;
+	}
 	my $newgetfilesql = $getfilesql;
-	$newgetfilesql =~ s/$filenamestring/$newfilenamestring/;
+	$newgetfilesql =~ s/$filenamestring_with_runnumber/$newfilenamestring/;
 	$getfiles{"G4Hits"} = $dbh->prepare($newgetfilesql);
+	if (defined $verbose)
+	{
+	    print "sql: $newgetfilesql\n";
+	}
     }
     else
     {
 	$getfiles{$tp} = $dbh->prepare($getfilesql);
+	if (defined $verbose)
+	{
+	    print "sql: $getfilesql\n";
+	}
     }
 }
 #die;
 # here we fill the big hash with all segments/files for all requested filetypes
+if (defined $verbose)
+{
+    print "fetching files from DB done, hashing all of them\n";
+}
 foreach my $tp (sort keys %req_types)
 {
     my %dsthash = ();
@@ -253,6 +337,10 @@ my $entries = 100000; # given that we have 1000 files max, this value is always 
 my $lowtype;
 # here we find the dst type with the smallest number of entries (segments)
 # so we do not loop too much when finding matches for the other types
+if (defined $verbose)
+{
+    print "hashing done, finding hash with lowest number of entries\n";
+}
 foreach my $tp (sort keys %allfilehash)
 {
     if ($entries > keys %{$allfilehash{$tp}})
@@ -264,6 +352,10 @@ foreach my $tp (sort keys %allfilehash)
 # here $lowtype is the dst type with the smallest number of segments
 #print "lowest entries: $entries, type: $lowtype\n";
 #print Dumper(%allevthash);
+if (defined $verbose)
+{
+    print "matching hashes\n";
+}
 
 my @segarray = ();
 foreach my $seg (sort keys %{$allfilehash{$lowtype}})
@@ -317,7 +409,7 @@ foreach my $seg (sort @segarray)
     }
 
 }
-print "wrote the following list files containing $nSelectedEvents events:\n";
+print "wrote the following list files containing >= $nSelectedEvents events:\n";
 foreach my $tp (sort keys %allfilehash)
 {
     print "$dsttype{$tp}\n";
@@ -331,7 +423,7 @@ foreach my $tp (keys %getfiles)
 }
 $dbh->disconnect;
 
-sub hijingfiletypes
+sub commonfiletypes
 {
 # pass1
     $filetypes{"G4Hits"} = "G4 Hits";
@@ -339,40 +431,17 @@ sub hijingfiletypes
     $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD G4Hits";
     $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
     $filetypes{"DST_TRKR_G4HIT"} = "Pileup Tracking Detector G4 Hits";
-    $filetypes{"DST_TRUTH_G4HIT"} = "Pileup Truth info";
+    $filetypes{"DST_TRUTH_G4HIT"} = "temporary Pileup Truth info, use DST_TRUTH";
     $filetypes{"DST_VERTEX"} = "Pileup Simulated Smeared Vertex";
 # pass3 calo
     $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
 #pass3 trk
-    $filetypes{"DST_TRKR_CLUSTER"} = "TPC/Silicon Clusters";
+    $filetypes{"DST_TRKR_HIT"} = "TPC and Silicon Hits";
+    $filetypes{"DST_TRUTH"} = "Truth Info (updated with Clusters)";
 #pass4 tracks
     $filetypes{"DST_TRACKS"} = "Reconstructed Tracks";
 }
 
-sub charmfiletypes
-{
-    $filetypes{"DST_HF_CHARM"} = "Charm DST";
-    $filetypes{"QA_DST_HF_CHARM"} = "Charm QA";
-    $filetypes{"JET_EVAL_DST_HF_CHARM"} = "Charm Jet Eval";
-}
-
-sub bottomfiletypes
-{
-    $filetypes{"DST_HF_BOTTOM"} = "Bottom DST";
-    $filetypes{"QA_DST_HF_BOTTOM"} = "Bottom QA";
-    $filetypes{"JET_EVAL_DST_HF_BOTTOM"} = "Bottom Jet Eval";
-}
-
-sub pythiambfiletypes
-{
-    $filetypes{"G4Hits"} = "G4 Hits";
-# pass2
-    $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD G4Hits";
-    $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
-    $filetypes{"DST_TRKR_G4HIT"} = "Pileup Tracking Detector G4 Hits";
-    $filetypes{"DST_TRUTH_G4HIT"} = "Pileup Truth info";
-    $filetypes{"DST_VERTEX"} = "Pileup Simulated Smeared Vertex";
-}
 
 # here are filetypes which are ntuples or cannot be combined
 # with other files for any other reason
@@ -382,4 +451,19 @@ sub fill_nocombine_files
     $nocombine{"JET_EVAL_DST_HF_BOTTOM"} = 1;
     $nocombine{"QA_DST_HF_CHARM"} = 1;
     $nocombine{"QA_DST_HF_BOTTOM"} = 1;
+}
+
+sub fill_other_types
+{
+    my $sqlstring = sprintf("select distinct(dsttype) from datasets where filename like '%%%s%%'",$filenamestring);
+    my $getalltypes = $dbh->prepare($sqlstring);
+    $getalltypes->execute();
+    while (my @res = $getalltypes->fetchrow_array())
+    {
+	if (! exists $filetypes{$res[0]})
+	{
+	    $filetypes{$res[0]} = "No Description";
+	}
+    }
+    $getalltypes->finish();
 }

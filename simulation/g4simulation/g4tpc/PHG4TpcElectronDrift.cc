@@ -9,13 +9,14 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHit.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrHitSetContainerv1.h>
+#include <trackbase/TrkrHitTruthAssoc.h>  // for TrkrHitTruthA...
+#include <trackbase/TrkrHitTruthAssocv1.h>
+#include <trackbase/TrkrHitv2.h>
 
 #include <tpc/TpcDefs.h>
-#include <tpc/TpcHit.h>
 
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
@@ -42,14 +43,12 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TH3.h>
 #include <TNtuple.h>
 #include <TSystem.h>
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
-#include <bitset>
 #include <cassert>
 #include <cmath>    // for sqrt, abs, NAN
 #include <cstdlib>  // for exit
@@ -69,13 +68,12 @@ namespace
 PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-  , temp_hitsetcontainer(new TrkrHitSetContainer)
-  , single_hitsetcontainer(new TrkrHitSetContainer)
+  , temp_hitsetcontainer(new TrkrHitSetContainerv1)
+  , single_hitsetcontainer(new TrkrHitSetContainerv1)
 {
   InitializeParameters();
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
   set_seed(PHRandomSeed());
-  return;
 }
 
 //_____________________________________________________________
@@ -104,7 +102,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   const std::string geonodename = "G4CELLPAR_" + detector;
   const std::string tpcgeonodename = "G4GEO_" + detector;
   hitnodename = "G4HIT_" + detector;
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     std::cout << Name() << " Could not locate G4HIT node " << hitnodename << std::endl;
@@ -125,7 +123,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    hitsetcontainer = new TrkrHitSetContainer();
+    hitsetcontainer = new TrkrHitSetContainerv1;
     auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
     DetNode->addNode(newNode);
   }
@@ -141,18 +139,17 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    hittruthassoc = new TrkrHitTruthAssoc();
+    hittruthassoc = new TrkrHitTruthAssocv1;
     auto newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
     DetNode->addNode(newNode);
   }
 
   seggeonodename = "CYLINDERCELLGEOM_SVTX";  // + detector;
-  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename.c_str());
+  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename);
   if (!seggeo)
   {
     seggeo = new PHG4CylinderCellGeomContainer();
-    auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-    auto newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str(), "PHObject");
+    auto newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
     runNode->addNode(newNode);
   }
 
@@ -208,8 +205,9 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   diffusion_trans = get_double_param("diffusion_trans");
   added_smear_sigma_trans = get_double_param("added_smear_trans");
   drift_velocity = get_double_param("drift_velocity");
+  // min_time to max_time is the time window for accepting drifted electrons after the trigger
   min_time = 0.0;
-  max_time = (tpc_length / 1.75) / drift_velocity;
+  max_time = get_double_param("max_time") + get_double_param("extended_readout_time");
   electrons_per_gev = get_double_param("electrons_per_gev");
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
@@ -257,7 +255,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
-  unsigned int print_layer = 18;
+  static constexpr unsigned int print_layer = 18;
 
   // tells m_distortionMap which event to look at
   if (m_distortionMap)
@@ -266,14 +264,13 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   }
 
   // g4hits
-  auto g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  auto g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     std::cout << "Could not locate g4 hit node " << hitnodename << std::endl;
     gSystem->Exit(1);
   }
 
-  PHG4HitContainer::ConstIterator hiter;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   //std::cout << "g4hits size " << g4hit->size() << std::endl;
   unsigned int count_g4hits = 0;
@@ -284,7 +281,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   double ihit = 0;
   unsigned int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
   unsigned int dump_counter = 0;
-  for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
+  for (auto hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     count_g4hits++;
     dump_counter++;
@@ -340,6 +337,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       const double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
       const double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
 
+      unsigned int side = 0;
+      if (z_start > 0) side = 1;
+
       const double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - std::abs(z_start));
       const double rantrans =
           gsl_ran_gaussian(RandomGenerator.get(), r_sigma) +
@@ -358,7 +358,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         z_final = -tpc_length / 2. + t_final * drift_velocity;
       else
         z_final = tpc_length / 2. - t_final * drift_velocity;
-
+	
       const double radstart = std::sqrt(square(x_start) + square(y_start));
       const double phistart = std::atan2(y_start, x_start);
       const double ranphi = gsl_ran_flat(RandomGenerator.get(), -M_PI, M_PI);
@@ -378,24 +378,21 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       if (m_distortionMap)
       {
-        const double x_distortion = m_distortionMap->get_x_distortion(x_start, y_start, z_start);
-        const double y_distortion = m_distortionMap->get_y_distortion(x_start, y_start, z_start);
-        const double z_distortion = m_distortionMap->get_z_distortion(x_start, y_start, z_start);
+	const double r_distortion = m_distortionMap->get_r_distortion(radstart, phistart, z_start);
+	const double phi_distortion = m_distortionMap->get_rphi_distortion(radstart, phistart, z_start)/radstart;
+	const double z_distortion = m_distortionMap->get_z_distortion(radstart, phistart, z_start);
 
-        x_final += x_distortion;
-        y_final += y_distortion;
+	rad_final+=r_distortion;
+	phi_final+=phi_distortion;
+	z_final += z_distortion;
 
-        // TODO: should check again against TPC acceptance
-        z_final += z_distortion;
-
-        // re-calculate rad and phi final, including distortions
-        rad_final = sqrt(square(x_final) + square(y_final));
-        phi_final = atan2(y_final, x_final);
+	x_final=rad_final*std::cos(phi_final);
+	y_final=rad_final*std::sin(phi_final);
 
         if (do_ElectronDriftQAHistos)
         {
-          const double phi_final_nodiff = atan2(y_start + y_distortion, x_start + x_distortion);
-          const double rad_final_nodiff = sqrt(pow(x_start + x_distortion, 2) + pow(y_start + y_distortion, 2));
+          const double phi_final_nodiff = phistart+phi_distortion;
+          const double rad_final_nodiff = radstart+r_distortion;
           deltarnodiff->Fill(radstart, rad_final_nodiff - radstart);    //delta r no diffusion, just distortion
           deltaphinodiff->Fill(phistart, phi_final_nodiff - phistart);  //delta phi no diffusion, just distortion
           deltaphivsRnodiff->Fill(radstart, phi_final_nodiff - phistart);
@@ -439,7 +436,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
       }
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
-      MapToPadPlane(x_final, y_final, z_final, hiter, ntpad, nthit);
+      MapToPadPlane(x_final, y_final, z_final, side, hiter, ntpad, nthit);
     }  // end loop over electrons for this g4hit
 
     // The hit-truth association has to be done for each g4hit
@@ -447,110 +444,110 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
     TrkrHitSetContainer::ConstRange single_hitset_range = single_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
     for (TrkrHitSetContainer::ConstIterator single_hitset_iter = single_hitset_range.first;
-	 single_hitset_iter != single_hitset_range.second;
-	 ++single_hitset_iter)
+         single_hitset_iter != single_hitset_range.second;
+         ++single_hitset_iter)
+    {
+      // we have an itrator to one TrkrHitSet for the Tpc from the single_hitsetcontainer
+      TrkrDefs::hitsetkey node_hitsetkey = single_hitset_iter->first;
+      const unsigned int layer = TrkrDefs::getLayer(node_hitsetkey);
+      const int sector = TpcDefs::getSectorId(node_hitsetkey);
+      const int side = TpcDefs::getSide(node_hitsetkey);
+
+      if (Verbosity() > 2)
+        std::cout << " hitsetkey " << node_hitsetkey << " layer " << layer << " sector " << sector << " side " << side << std::endl;
+      // get all of the hits from the single hitset
+      TrkrHitSet::ConstRange single_hit_range = single_hitset_iter->second->getHits();
+      for (TrkrHitSet::ConstIterator single_hit_iter = single_hit_range.first;
+           single_hit_iter != single_hit_range.second;
+           ++single_hit_iter)
       {
-	// we have an itrator to one TrkrHitSet for the Tpc from the single_hitsetcontainer
-	TrkrDefs::hitsetkey node_hitsetkey = single_hitset_iter->first;
-	const unsigned int layer = TrkrDefs::getLayer(node_hitsetkey);
-	const int sector = TpcDefs::getSectorId(node_hitsetkey);
-	const int side = TpcDefs::getSide(node_hitsetkey);	
+        TrkrDefs::hitkey single_hitkey = single_hit_iter->first;
 
-	if(Verbosity() > 2) 
-	  std::cout << " hitsetkey " << node_hitsetkey << " layer " << layer << " sector " << sector << " side " << side << std::endl; 	
-	// get all of the hits from the single hitset
-	TrkrHitSet::ConstRange single_hit_range = single_hitset_iter->second->getHits();
-	for (TrkrHitSet::ConstIterator single_hit_iter = single_hit_range.first;
-	     single_hit_iter != single_hit_range.second;
-	     ++single_hit_iter)
-	  {
-	    TrkrDefs::hitkey single_hitkey = single_hit_iter->first;
-    
-	    // Add the hit-g4hit association
-	    // no need to check for duplicates, since the hit is new
-	    hittruthassoc->addAssoc(node_hitsetkey, single_hitkey, hiter->first);
-	    if(Verbosity() > 2) 
-	      std::cout << "        adding assoc for node_hitsetkey " << node_hitsetkey << " single_hitkey " << single_hitkey << " g4hitkey " << hiter->first << std::endl;
-	  }
+        // Add the hit-g4hit association
+        // no need to check for duplicates, since the hit is new
+        hittruthassoc->addAssoc(node_hitsetkey, single_hitkey, hiter->first);
+        if (Verbosity() > 100)
+          std::cout << "        adding assoc for node_hitsetkey " << node_hitsetkey << " single_hitkey " << single_hitkey << " g4hitkey " << hiter->first << std::endl;
       }
+    }
 
-    // Dump the temp_hitsetcontainer to the node tree and reset it 
+    // Dump the temp_hitsetcontainer to the node tree and reset it
     //    - after every "dump_interval" g4hits
     //    - if this is the last g4hit
-    if( dump_counter >= dump_interval || count_g4hits == g4hit->size() )
+    if (dump_counter >= dump_interval || count_g4hits == g4hit->size())
+    {
+      //std::cout << " dump_counter " << dump_counter << " count_g4hits " << count_g4hits << std::endl;
+
+      double eg4hit = 0.0;
+      TrkrHitSetContainer::ConstRange temp_hitset_range = temp_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
+      for (TrkrHitSetContainer::ConstIterator temp_hitset_iter = temp_hitset_range.first;
+           temp_hitset_iter != temp_hitset_range.second;
+           ++temp_hitset_iter)
       {
-	//std::cout << " dump_counter " << dump_counter << " count_g4hits " << count_g4hits << std::endl; 
+        // we have an itrator to one TrkrHitSet for the Tpc from the temp_hitsetcontainer
+        TrkrDefs::hitsetkey node_hitsetkey = temp_hitset_iter->first;
+        const unsigned int layer = TrkrDefs::getLayer(node_hitsetkey);
+        const int sector = TpcDefs::getSectorId(node_hitsetkey);
+        const int side = TpcDefs::getSide(node_hitsetkey);
+        if (Verbosity() > 100)
+          std::cout << "PHG4TpcElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer
+                    << " with sector " << sector << " side " << side << std::endl;
 
-	double eg4hit = 0.0;
-	TrkrHitSetContainer::ConstRange temp_hitset_range = temp_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
-	for (TrkrHitSetContainer::ConstIterator temp_hitset_iter = temp_hitset_range.first;
-	     temp_hitset_iter != temp_hitset_range.second;
-	     ++temp_hitset_iter)
-	  {
-	    // we have an itrator to one TrkrHitSet for the Tpc from the temp_hitsetcontainer
-	    TrkrDefs::hitsetkey node_hitsetkey = temp_hitset_iter->first;
-	    const unsigned int layer = TrkrDefs::getLayer(node_hitsetkey);
-	    const int sector = TpcDefs::getSectorId(node_hitsetkey);
-	    const int side = TpcDefs::getSide(node_hitsetkey);
-	    if (Verbosity() > 100)
-	      std::cout << "PHG4TpcElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer 
-			<< " with sector " << sector << " side " << side << std::endl;
-	    
-	    // find or add this hitset on the node tree
-	    TrkrHitSetContainer::Iterator node_hitsetit = hitsetcontainer->findOrAddHitSet(node_hitsetkey);
-	    
-	    // get all of the hits from the temporary hitset
-	    TrkrHitSet::ConstRange temp_hit_range = temp_hitset_iter->second->getHits();
-	    for (TrkrHitSet::ConstIterator temp_hit_iter = temp_hit_range.first;
-		 temp_hit_iter != temp_hit_range.second;
-		 ++temp_hit_iter)
-	      {
-		TrkrDefs::hitkey temp_hitkey = temp_hit_iter->first;
-		TrkrHit *temp_tpchit = temp_hit_iter->second;
-		if (Verbosity() > 100 && layer == print_layer)
-		  {
-		    std::cout << "      temp_hitkey " << temp_hitkey << " l;ayer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
-			      << " z bin " << TpcDefs::getTBin(temp_hitkey)
-			      << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
-		    
-		    eg4hit += temp_tpchit->getEnergy();
-		    ecollectedhits += temp_tpchit->getEnergy();
-		    ncollectedhits++;
-		  }
-		
-		// find or add this hit to the node tree
-		TrkrHit *node_hit = node_hitsetit->second->getHit(temp_hitkey);
-		if (!node_hit)
-		  {
-		    // Otherwise, create a new one
-		    node_hit = new TpcHit();
-		    node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
-		  }
+        // find or add this hitset on the node tree
+        TrkrHitSetContainer::Iterator node_hitsetit = hitsetcontainer->findOrAddHitSet(node_hitsetkey);
 
-		// Either way, add the energy to it
-		node_hit->addEnergy(temp_tpchit->getEnergy());
-		
-	      }  // end loop over temp hits
-	    
-	    if (Verbosity() > 100 && layer == print_layer)
-	      std::cout << "  ihit " << ihit << " collected energy = " << eg4hit << std::endl;
-	    
-	  }  // end loop over temp hitsets
-	
-	// erase all entries in the temp hitsetcontainer
-	temp_hitsetcontainer->Reset();
+        // get all of the hits from the temporary hitset
+        TrkrHitSet::ConstRange temp_hit_range = temp_hitset_iter->second->getHits();
+        for (TrkrHitSet::ConstIterator temp_hit_iter = temp_hit_range.first;
+             temp_hit_iter != temp_hit_range.second;
+             ++temp_hit_iter)
+        {
+          TrkrDefs::hitkey temp_hitkey = temp_hit_iter->first;
+          TrkrHit *temp_tpchit = temp_hit_iter->second;
+          if (Verbosity() > 10 && layer == print_layer)
+          {
+            std::cout << "      temp_hitkey " << temp_hitkey << " l;ayer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
+                      << " z bin " << TpcDefs::getTBin(temp_hitkey)
+                      << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
 
-	// reset the dump counter
-	dump_counter = 0;
-      }  // end copy of temp hitsetcontainer to node tree hitsetcontainer
-    
+            eg4hit += temp_tpchit->getEnergy();
+            ecollectedhits += temp_tpchit->getEnergy();
+            ncollectedhits++;
+          }
+
+          // find or add this hit to the node tree
+          TrkrHit *node_hit = node_hitsetit->second->getHit(temp_hitkey);
+          if (!node_hit)
+          {
+            // Otherwise, create a new one
+            node_hit = new TrkrHitv2();
+            node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
+          }
+
+          // Either way, add the energy to it
+          node_hit->addEnergy(temp_tpchit->getEnergy());
+
+        }  // end loop over temp hits
+
+        if (Verbosity() > 100 && layer == print_layer)
+          std::cout << "  ihit " << ihit << " collected energy = " << eg4hit << std::endl;
+
+      }  // end loop over temp hitsets
+
+      // erase all entries in the temp hitsetcontainer
+      temp_hitsetcontainer->Reset();
+
+      // reset the dump counter
+      dump_counter = 0;
+    }  // end copy of temp hitsetcontainer to node tree hitsetcontainer
+
     ++ihit;
 
-    // we are done with this until the next g4hit 
+    // we are done with this until the next g4hit
     single_hitsetcontainer->Reset();
 
   }  // end loop over g4hits
-  
+
   if (Verbosity() > 2)
   {
     std::cout << "From PHG4TpcElectronDrift: hitsetcontainer printout at end:" << std::endl;
@@ -578,9 +575,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       {
         TrkrDefs::hitkey hitkey = hit_iter->first;
         TrkrHit *tpchit = hit_iter->second;
-
         std::cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey)
-                  << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << std::endl;
+                  << "  energy " << tpchit->getEnergy() << std::endl;
       }
     }
   }
@@ -595,12 +591,12 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
+void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *padnt, TNtuple *hitnt)
 {
-  padplane->MapToPadPlane(single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
+  padplane->MapToPadPlane(single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, side, hiter, padnt, hitnt);
 }
 
-int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
+int PHG4TpcElectronDrift::End(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() > 0)
   {
@@ -664,6 +660,8 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
   set_default_double_param("min_active_radius", 30.);        // cm
   set_default_double_param("max_active_radius", 78.);        // cm
   set_default_double_param("drift_velocity", 8.0 / 1000.0);  // cm/ns
+  set_default_double_param("max_time", 13200.);  //ns
+  set_default_double_param("extended_readout_time", 7000.);  //ns
 
   // These are purely fudge factors, used to increase the resolution to 150 microns and 500 microns, respectively
   // override them from the macro to get a different resolution

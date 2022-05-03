@@ -5,7 +5,7 @@
 
 #include <g4detectors/PHG4CellDefs.h>
 
-#include <iostream>                    // for cout, ostream
+#include <iostream>  // for cout, ostream
 
 class InttDeadMapv1 : public InttDeadMap
 {
@@ -13,24 +13,26 @@ class InttDeadMapv1 : public InttDeadMap
   InttDeadMapv1()
   {
   }
-  virtual ~InttDeadMapv1() {}
-  virtual void Reset();
-  virtual int isValid() const;
+  ~InttDeadMapv1() override {}
 
-  virtual void identify(std::ostream &os = std::cout) const;
-  void addDeadChannel(PHG4CellDefs::keytype key);
+  void Reset() override;
+  int isValid() const override;
 
-  bool isDeadChannel(PHG4CellDefs::keytype key) const;
+  void identify(std::ostream &os = std::cout) const override;
+
+  void addDeadChannel(PHG4CellDefs::keytype key) override;
+
+  bool isDeadChannel(PHG4CellDefs::keytype key) const override;
   //! return all towers
-  virtual const Map &getDeadChannels(void) const;
-  virtual Map &getDeadChannels(void);
+  const Map &getDeadChannels(void) const override;
+  Map &getDeadChannels(void) override;
 
-  virtual unsigned int size() const { return m_DeadChannels.size(); }
+  unsigned int size() const override { return m_DeadChannels.size(); }
 
  private:
   Map m_DeadChannels;
 
-  ClassDef(InttDeadMapv1, 1)
+  ClassDefOverride(InttDeadMapv1, 1)
 };
 
 #endif /* G4INTT_INTTDEADMAPV1_H */

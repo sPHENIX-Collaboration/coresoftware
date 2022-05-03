@@ -29,9 +29,10 @@
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4VisAttributes.hh>
 
-#include <cmath>     // for sin, cos, sqrt, M_PI, asin
-#include <cstdlib>   // for exit
-#include <iostream>  // for operator<<, basic_ostream
+#include <algorithm>  // for max
+#include <cmath>      // for sin, cos, sqrt, M_PI, asin
+#include <cstdlib>    // for exit
+#include <iostream>   // for operator<<, basic_ostream
 #include <sstream>
 #include <utility>  // for pair
 #include <vector>   // for vector
@@ -89,13 +90,7 @@ int PHG4HcalDetector::IsInCylinderActive(const G4VPhysicalVolume* volume)
 //_______________________________________________________________
 void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
-  TrackerMaterial = G4Material::GetMaterial(material);
-
-  if (!TrackerMaterial)
-  {
-    std::cout << "Error: Can not set material" << std::endl;
-    exit(-1);
-  }
+  TrackerMaterial = GetDetectorMaterial(material);
 
   G4Tubs* _cylinder_solid = new G4Tubs(G4String(GetName().c_str()),
                                        radius,
@@ -204,7 +199,7 @@ void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   //  double boxlen_half = GetLength(_sciTilt * M_PI / 180.);
   //  G4Box* _box_solid = new G4Box("_BOX", boxlen_half, _sciWidth / 2.0, length / 2.0);
 
-  G4Material* boxmat = G4Material::GetMaterial("G4_POLYSTYRENE");
+  G4Material* boxmat = GetDetectorMaterial("G4_POLYSTYRENE");
   G4SubtractionSolid* subtractionbox_tmp =
       new G4SubtractionSolid("Box-Cone", _box_solid, cone1, 0, zTransneg);
   G4SubtractionSolid* subtractionbox =
@@ -274,7 +269,7 @@ PHG4HcalDetector::GetLength(const double phi) const
   return a;
 }
 
-void PHG4HcalDetector::Print(const std::string& what) const
+void PHG4HcalDetector::Print(const std::string& /*what*/) const
 {
   cout << "radius: " << radius << endl;
   return;

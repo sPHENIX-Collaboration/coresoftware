@@ -15,15 +15,15 @@ class PHDataNode : public PHNode
  public:
   PHDataNode(T*, const std::string&);
   PHDataNode(T*, const std::string&, const std::string&);
-  virtual ~PHDataNode();
+  ~PHDataNode() override;
 
  public:
   T* getData() { return data.data; }
   void setData(T* d) { data.data = d; }
-  virtual void prune() {}
-  virtual void forgetMe(PHNode*) {}
-  virtual void print(const std::string&);
-  virtual bool write(PHIOManager*, const std::string& = "")
+  void prune() override {}
+  void forgetMe(PHNode*) override {}
+  void print(const std::string&) override;
+  bool write(PHIOManager*, const std::string& = "") override
   {
     return true;
   }
@@ -39,8 +39,8 @@ class PHDataNode : public PHNode
 
 template <class T>
 PHDataNode<T>::PHDataNode(T* d,
-                          const std::string& name)
-  : PHNode(name)
+                          const std::string& n)
+  : PHNode(n)
 {
   type = "PHDataNode";
   setData(d);
@@ -48,9 +48,9 @@ PHDataNode<T>::PHDataNode(T* d,
 
 template <class T>
 PHDataNode<T>::PHDataNode(T* d,
-                          const std::string& name,
+                          const std::string& n,
                           const std::string& objtype)
-  : PHNode(name, objtype)
+  : PHNode(n, objtype)
 {
   type = "PHDataNode";
   setData(d);

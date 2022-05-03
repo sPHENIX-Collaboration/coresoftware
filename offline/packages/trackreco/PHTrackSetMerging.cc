@@ -1,7 +1,5 @@
 #include "PHTrackSetMerging.h"
 
-#include "AssocInfoContainer.h"
-
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -28,7 +26,7 @@ PHTrackSetMerging::PHTrackSetMerging(const std::string& name)
 {
 }
 
-int PHTrackSetMerging::Init(PHCompositeNode* topNode)
+int PHTrackSetMerging::Init(PHCompositeNode* /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -40,12 +38,12 @@ int PHTrackSetMerging::InitRun(PHCompositeNode* topNode)
 
 int PHTrackSetMerging::process_event(PHCompositeNode* topNode)
 {
-  return Process();
+  return Process(topNode);
 }
 
-int PHTrackSetMerging::End(PHCompositeNode* topNode)
+int PHTrackSetMerging::End(PHCompositeNode* /*topNode*/)
 {
-  return End();
+  return Fun4AllReturnCodes::EVENT_OK;//End();
 }
 
 int PHTrackSetMerging::Setup(PHCompositeNode* topNode)
@@ -86,23 +84,17 @@ int PHTrackSetMerging::CreateNodes(PHCompositeNode* topNode)
   }
 
   _track_map_out = new SvtxTrackMap_v1;
-  //  PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
-  //    _track_map, _track_map_name, "PHObject");
-
   PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
-      _track_map_out, "SvtxTrackMapOut", "PHObject");
+      _track_map_out, _track_map_name_out, "PHObject");
+
+  //  PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
+  //   _track_map_out, "SvtxTrackMapOut", "PHObject");
 
   tb_node->addNode(tracks_node);
   if (Verbosity() > 0){
     cout << "Svtx/SvtxTrackMapOut node added" << endl;
     // cout << "Svtx/" << _track_map_name << " node added" << endl;
   }
-  _assoc_container = new AssocInfoContainer;
-  PHIODataNode<PHObject>* assoc_node = new PHIODataNode<PHObject>(
-      _assoc_container, "AssocInfoContainer", "PHObject");
-  tb_node->addNode(assoc_node);
-  if (Verbosity() > 0)
-    cout << "Svtx/AssocInfoContainer node added" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -146,13 +138,6 @@ int PHTrackSetMerging::GetNodes(PHCompositeNode* topNode)
   if (!_track_map_out)
   {
     cerr << PHWHERE << " ERROR: Can't find " << _track_map_name_out << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
-
-  {
-    cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

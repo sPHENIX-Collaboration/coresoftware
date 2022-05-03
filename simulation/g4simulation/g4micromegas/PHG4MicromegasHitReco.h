@@ -9,7 +9,6 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-#include <micromegas/MicromegasTile.h>
 #include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
@@ -17,7 +16,7 @@
 #include <gsl/gsl_rng.h>
 #include <memory>
 #include <string>
-#include <utility>  
+#include <utility>
 #include <vector>
 
 class CylinderGeomMicromegas;
@@ -42,14 +41,11 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! parameters
   void SetDefaultParameters() override;
 
-  //! set micromegas tiles
-  void set_tiles( const MicromegasTile::List& tiles )
-  { m_tiles = tiles; }
-
   private:
 
-  //! setup tiles definition in CylinderGeom
-  void setup_tiles(PHCompositeNode*);
+  //! return full geo node name, that also contains tile information
+  std::string full_geonodename() const
+  { return "CYLINDERGEOM_" + m_detector + "_FULL"; }
 
   //! get total number of electrons collected for a give g4hit
   /*! this accounts for the number of primary electrons, the detector gain, and fluctuations */
@@ -60,12 +56,12 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
 
   //! stores strip number and corresponding charge fraction
   using charge_pair_t = std::pair<int, double>;
-  
+
   //! map strip number to charge fraction
   using charge_list_t = std::vector<charge_pair_t>;
 
   //! distribute a Gaussian charge across adjacent strips
-  charge_list_t distribute_charge( CylinderGeomMicromegas*, uint tileid, const TVector3& position, double sigma ) const;
+  charge_list_t distribute_charge( CylinderGeomMicromegas*, uint tileid, const TVector3& local_position, double sigma ) const;
 
   //! detector name
   std::string m_detector;
@@ -78,21 +74,18 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
 
   //! number of primary electrons per GeV
   double m_electrons_per_gev = 0;
-  
+
   //! min gain
   double m_gain = 0;
-  
+
   //! electron cloud sigma (cm) after avalanche
   double m_cloud_sigma = 0.04;
 
   //! electron transverse diffusion (cm/sqrt(cm))
   double m_diffusion_trans = 0.03;
-  
+
   //! use zig zag pads
   bool m_zigzag_strips = true;
-  
-  //! micromegas tiles
-  MicromegasTile::List m_tiles;
 
   //! rng de-allocator
   class Deleter

@@ -13,9 +13,9 @@ class PHG4HeadReco: public SubsysReco
 {
  public:
   PHG4HeadReco(const std::string &name="PHG4HeadReco");
-  virtual ~PHG4HeadReco(){}
-  int Init(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  ~PHG4HeadReco() override{}
+  int Init(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
  protected:
 

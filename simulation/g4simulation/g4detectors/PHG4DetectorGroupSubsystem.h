@@ -23,7 +23,7 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
     root = 2
   };
 
-  virtual ~PHG4DetectorGroupSubsystem() {}
+  ~PHG4DetectorGroupSubsystem() override {}
   int Init(PHCompositeNode *) final;
   int InitRun(PHCompositeNode *) final;
 
@@ -60,6 +60,9 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   void SetAbsorberActive(const int i = 1);
   void SetAbsorberTruth(const int detid, const int i);
   void SetAbsorberTruth(const int i = 1);
+  void SetSupportActive(const int detid, const int i = 1);
+  void SetSupportActive(const int i = 1);
+
   void BlackHole(const int detid, const int i);
   void BlackHole(const int i = 1);
   void SuperDetector(const std::string &name);

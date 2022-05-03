@@ -6,8 +6,6 @@
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4VisAttributes.hh>
 
-using namespace std;
-
 PHG4OuterHcalDisplayAction::PHG4OuterHcalDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
   , m_MyTopVolume(nullptr)
@@ -17,7 +15,7 @@ PHG4OuterHcalDisplayAction::PHG4OuterHcalDisplayAction(const std::string &name)
 
 PHG4OuterHcalDisplayAction::~PHG4OuterHcalDisplayAction()
 {
-  for (auto &it:m_VisAttVec)
+  for (auto &it : m_VisAttVec)
   {
     delete it;
   }
@@ -25,9 +23,9 @@ PHG4OuterHcalDisplayAction::~PHG4OuterHcalDisplayAction()
   m_ScintiLogVolSet.clear();
 }
 
-void PHG4OuterHcalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4OuterHcalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
-  for (auto &it:m_ScintiLogVolSet)
+  for (auto &it : m_ScintiLogVolSet)
   {
     if (it->GetVisAttributes())
     {

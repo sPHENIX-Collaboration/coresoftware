@@ -5,7 +5,7 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>                    // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <set>
 
 class InttDeadMap : public PHObject
@@ -13,18 +13,17 @@ class InttDeadMap : public PHObject
  public:
   typedef std::set<PHG4CellDefs::keytype> Map;
 
-  virtual ~InttDeadMap() {}
-  virtual void Reset() {}
-  virtual int isValid() const;
+  ~InttDeadMap() override {}
 
-  virtual void identify(std::ostream &os = std::cout) const;
+  int isValid() const override;
+  void identify(std::ostream &os = std::cout) const override;
 
   void addDeadChannelIntt(const int layer,
                           const int ladder_phi, const int ladder_z,
                           const int strip_z, const int strip_phi);
-  virtual void addDeadChannel(PHG4CellDefs::keytype key) {return;}
+  virtual void addDeadChannel(PHG4CellDefs::keytype) { return; }
 
-  virtual bool isDeadChannel(PHG4CellDefs::keytype key) const {return false;}
+  virtual bool isDeadChannel(PHG4CellDefs::keytype) const { return false; }
   bool isDeadChannelIntt(const int layer,
                          const int ladder_phi, const int ladder_z,
                          const int strip_z, const int strip_phi) const;
@@ -49,7 +48,7 @@ class InttDeadMap : public PHObject
  private:
   static int s_wildCardID;
 
-  ClassDef(InttDeadMap, 1)
+  ClassDefOverride(InttDeadMap, 1)
 };
 
 #endif /* G4INTT_INTTDEADMAP_H */

@@ -1,11 +1,9 @@
 #include "PH3DVertexing.h"
 
-#include "AssocInfoContainer.h"
-
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
-#include <trackbase/TrkrClusterContainer.h>
+//#include <trackbase/TrkrClusterContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                // for SubsysReco
@@ -19,10 +17,9 @@ using namespace std;
 
 PH3DVertexing::PH3DVertexing(const std::string& name)
   : SubsysReco(name)
-  , _cluster_map(nullptr)
+    //  , _cluster_map(nullptr)
   , _vertex_map(nullptr)
   , _track_map(nullptr)
-  , _assoc_container(nullptr)
 {
 }
 
@@ -31,7 +28,7 @@ int PH3DVertexing::InitRun(PHCompositeNode* topNode)
   return Setup(topNode);
 }
 
-int PH3DVertexing::process_event(PHCompositeNode* topNode)
+int PH3DVertexing::process_event(PHCompositeNode* /*topNode*/)
 {
   return Process();
 }
@@ -51,13 +48,13 @@ int PH3DVertexing::GetNodes(PHCompositeNode* topNode)
   //---------------------------------
 
   //  _cluster_map = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
-  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTERS");
+  /*_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTERS");
   if (!_cluster_map)
   {
     cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTERS" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
+  */
   _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!_vertex_map)
   {
@@ -69,13 +66,6 @@ int PH3DVertexing::GetNodes(PHCompositeNode* topNode)
   if (!_track_map)
   {
     cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
-  if (!_assoc_container)
-  {
-    cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

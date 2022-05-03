@@ -17,7 +17,12 @@
 #include <TSystem.h>
 
 #include <boost/format.hpp>
+
+// boost stacktrace has shadowed variables
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/stacktrace.hpp>
+#pragma GCC diagnostic pop
 
 #include <cassert>  // for assert
 #include <cstdlib>  // for exit
@@ -94,9 +99,9 @@ int PHG4DetectorGroupSubsystem::InitRun(PHCompositeNode *topNode)
   }
 
   PHParametersContainer::ConstRange begin_end = m_ParamsContainerDefault->GetAllParameters();
-  for (PHParametersContainer::ConstIterator iter = begin_end.first; iter != begin_end.second; ++iter)
+  for (PHParametersContainer::ConstIterator piter = begin_end.first; piter != begin_end.second; ++piter)
   {
-    m_ParamsContainer->AddPHParameters(iter->first, iter->second);
+    m_ParamsContainer->AddPHParameters(piter->first, piter->second);
   }
   // the content has been handed off to the param container on the node tree
   // clear our internal map of parameters and delete it to avoid it being used accidentally
@@ -146,6 +151,10 @@ int PHG4DetectorGroupSubsystem::InitRun(PHCompositeNode *topNode)
     }
   }
   m_ParamsContainer->SaveToNodeTree(RunDetNode, paramnodename);
+  // define the materials for the detector
+  // at this point all flags are known so materials set in the macro can
+  // be implemented here
+  DefineMaterials();
   int iret = InitRunSubsystem(topNode);
   m_ParamsContainer->UpdateNodeTree(RunDetNode, paramnodename);
   if (Verbosity() > 0)
@@ -439,6 +448,7 @@ void PHG4DetectorGroupSubsystem::InitializeParameters()
     set_default_int_param(iter, "absorberactive", 0);
     set_default_int_param(iter, "absorbertruth", 0);
     set_default_int_param(iter, "blackhole", 0);
+    set_default_int_param(iter, "supportactive", 0);
   }
   SetDefaultParameters();  // call method from specific subsystem
   // now load those parameters to our params class
@@ -497,7 +507,7 @@ int PHG4DetectorGroupSubsystem::SaveParamsToDB()
   return iret;
 }
 
-int PHG4DetectorGroupSubsystem::ReadParamsFromDB(const string &name, const int issuper)
+int PHG4DetectorGroupSubsystem::ReadParamsFromDB(const string & /*name*/, const int /*issuper*/)
 {
   int iret = 1;
   // if (issuper)
@@ -545,7 +555,7 @@ int PHG4DetectorGroupSubsystem::SaveParamsToFile(const PHG4DetectorGroupSubsyste
   return iret;
 }
 
-int PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string &name, const PHG4DetectorGroupSubsystem::FILE_TYPE ftyp, const int issuper)
+int PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string & /*name*/, const PHG4DetectorGroupSubsystem::FILE_TYPE ftyp, const int /*issuper*/)
 {
   string extension;
   switch (ftyp)
@@ -596,6 +606,19 @@ void PHG4DetectorGroupSubsystem::SetAbsorberActive(const int i)
   for (auto &detid : m_LayerSet)
   {
     set_int_param(detid, "absorberactive", i);
+  }
+}
+
+void PHG4DetectorGroupSubsystem::SetSupportActive(const int detid, const int i)
+{
+  set_int_param(detid, "supportactive", i);
+}
+
+void PHG4DetectorGroupSubsystem::SetSupportActive(const int i)
+{
+  for (auto &detid : m_LayerSet)
+  {
+    set_int_param(detid, "supportactive", i);
   }
 }
 

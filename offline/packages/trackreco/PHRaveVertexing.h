@@ -43,19 +43,19 @@ class PHRaveVertexing : public SubsysReco
   PHRaveVertexing(const std::string& name = "PHRaveVertexing");
 
   //! dtor
-  ~PHRaveVertexing();
+  ~PHRaveVertexing() override;
 
   //!Initialization, called for initialization
-  int Init(PHCompositeNode*);
+  int Init(PHCompositeNode*) override;
 
   //!Initialization Run, called for initialization of a run
-  int InitRun(PHCompositeNode*);
+  int InitRun(PHCompositeNode*) override;
 
   //!Process Event, called for each event
-  int process_event(PHCompositeNode*);
+  int process_event(PHCompositeNode*) override;
 
   //!End, write and close files
-  int End(PHCompositeNode*);
+  int End(PHCompositeNode*) override;
 
   const std::string& get_vertexing_method() const
   {
@@ -99,6 +99,11 @@ class PHRaveVertexing : public SubsysReco
     _vertex_min_ndf = vertexMinPT;
   }
 
+  void set_nmvtx_clusters_required(unsigned int n)
+  {
+    _nmvtx_required = n;
+  }
+
  private:
   //! Event counter
   int _event;
@@ -123,6 +128,8 @@ class PHRaveVertexing : public SubsysReco
 
   int _primary_pid_guess;
   double _vertex_min_ndf;
+
+  unsigned int _nmvtx_required = 3;  // require 3 or more mvtx clusters for track to be used in vertexing
 
   genfit::GFRaveVertexFactory* _vertex_finder;
 

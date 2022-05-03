@@ -165,10 +165,10 @@ PHInitZVertexing::PHInitZVertexing(unsigned int nlayers,
 PHInitZVertexing::
 ~PHInitZVertexing()
 {
-  if (_t_output_io)  delete _t_output_io;
-  if (_hough_space) delete _hough_space;
-  if (_hough_funcs) delete _hough_funcs;
-//  delete ca;
+  delete _t_output_io;
+  delete _hough_space;
+  delete _hough_funcs;
+//
 }
 
 void PHInitZVertexing::set_min_zvtx_tracks(unsigned int min_zvtx_tracks)
@@ -717,7 +717,7 @@ int PHInitZVertexing::initialize_geometry(PHCompositeNode *topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
+int PHInitZVertexing::translate_input(PHCompositeNode* /*topNode*/) {
 
   unsigned int clusid = 0;
   unsigned int ilayer = 0;
@@ -728,16 +728,17 @@ int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
       cout << " _layer_ilayer_map has " << _layer_ilayer_map.size() << " entries" << endl;
     }
 
-  TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
-  for(TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
+    for(const auto& hitsetkey:_cluster_map->getHitSetKeys())
     {
-      TrkrCluster *cluster = iter->second;
-      TrkrDefs::cluskey cluskey = iter->first;
+      auto range = _cluster_map->getClusters(hitsetkey);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
+      TrkrCluster *cluster = clusIter->second;
+      TrkrDefs::cluskey cluskey = clusIter->first;
       unsigned int layer = TrkrDefs::getLayer(cluskey);
 
       if(layer < 3) 
 	_nclus_mvtx++;
-
+      
       std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(layer);
       if(it != _layer_ilayer_map.end())
 	{
@@ -771,6 +772,7 @@ int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
 	  clusid += 1;	
 	}
     }
+  }
 
   // estimate the minimum number of tracks per vertex requirement from the number of clusters in the MVTX layers
   if(!_override_min_zvtx_tracks)
@@ -2327,7 +2329,7 @@ int PHInitZVertexing::fit_vertex(){
 } 
 
 void PHInitZVertexing::convertHelixCovarianceToEuclideanCovariance(float B,
-		float phi, float d, float kappa, float z0, float dzdl,
+								   float phi, float d, float kappa, float /*z0*/, float dzdl,
 		Eigen::Matrix<float, 5, 5> const& input,
 		Eigen::Matrix<float, 6, 6>& output) {
 

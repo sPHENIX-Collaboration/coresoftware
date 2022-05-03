@@ -11,10 +11,10 @@ class DumpPHG4HitContainer : public DumpObject
 {
  public:
   DumpPHG4HitContainer(const std::string &NodeName);
-  virtual ~DumpPHG4HitContainer() {}
+  ~DumpPHG4HitContainer() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif

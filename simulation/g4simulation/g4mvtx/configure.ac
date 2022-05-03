@@ -6,13 +6,12 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
+CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow"
+
 case $CXX in
- clang++)
-  CXXFLAGS="$CXXFLAGS -Wall  -Werror -Wno-undefined-var-template"
- ;;
- g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror"
- ;;
+  clang++)
+    CXXFLAGS="$CXXFLAGS -Wno-c11-extensions"
+  ;;
 esac
 
 AC_CONFIG_FILES([Makefile])

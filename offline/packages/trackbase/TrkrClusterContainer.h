@@ -1,11 +1,12 @@
-/**
- * @file trackbase/TrkrClusterContainer.h
- * @author D. McGlinchey
- * @date June 2018
- * @brief Cluster container object
- */
 #ifndef TRACKBASE_TRKRCLUSTERCONTAINER_H
 #define TRACKBASE_TRKRCLUSTERCONTAINER_H
+
+/**
+ * @file trackbase/TrkrClusterContainer.h
+ * @author D. McGlinchey, Hugo Pereira Da Costa
+ * @date June 2018
+ * @brief Cluster container base class
+ */
 
 #include "TrkrDefs.h"
 
@@ -19,73 +20,67 @@ class TrkrCluster;
 
 /**
  * @brief Cluster container object
- *
- * Container for TrkrCluster objects
  */
 class TrkrClusterContainer : public PHObject
 {
  public:
-  typedef std::map<TrkrDefs::cluskey, TrkrCluster *> Map;
-  typedef Map::iterator Iterator;
-  typedef Map::const_iterator ConstIterator;
-  typedef std::pair<Iterator, Iterator> Range;
-  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  TrkrClusterContainer(){}
+  //!@name convenient shortuts
+  //@{
+  using Map = std::map<TrkrDefs::cluskey, TrkrCluster *>;
+  using Iterator = Map::iterator;
+  using ConstIterator = Map::const_iterator;
+  using Range = std::pair<Iterator, Iterator>;
+  using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
-  virtual ~TrkrClusterContainer() {}
-  void Reset();
+  using HitSetKeyList = std::vector<TrkrDefs::hitsetkey>;
+  
+  //@}
 
-  void identify(std::ostream &os = std::cout) const;
+  //! reset method
+  void Reset() override {}
 
-  ConstIterator addCluster(TrkrCluster *newClus);
-  ConstIterator addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster *newClus);
+  //! identify object
+  void identify(std::ostream &/*os*/ = std::cout) const override {}
 
-  //! preferred removal method, key is currently the clus id
-  void removeCluster(TrkrDefs::cluskey key)
-  {
-    m_clusmap.erase(key);
-  }
+  //! add a cluster with specific key
+  virtual void addClusterSpecifyKey(const TrkrDefs::cluskey, TrkrCluster* ) {}
 
-  //! inefficent, use key where possible instead
-  void removeCluster(TrkrCluster *clus)
-  {
-    Iterator its = m_clusmap.begin();
-    Iterator last = m_clusmap.end();
-    for (; its != last;)
-    {
-      if (its->second == clus)
-      {
-        m_clusmap.erase(its++);
-      }
-      else
-      {
-        ++its;
-      }
-    }
-  }
-
-  Iterator findOrAddCluster(TrkrDefs::cluskey key);
-
-  //! return all Clusters matching a given detid
-  ConstRange getClusters(const TrkrDefs::TrkrId trackerid) const;
-
-  //! return all Clusters matching a given detid and layer
-  ConstRange getClusters(const TrkrDefs::TrkrId trackerid, const char layer) const;
-
+  //! remove cluster
+  virtual void removeCluster(TrkrDefs::cluskey) {}
+  
   //! return all clusters
-  ConstRange getClusters(void) const;
+  virtual ConstRange getClusters() const;
 
-  TrkrCluster *findCluster(TrkrDefs::cluskey key);
+  //! get all clusters matching hitset
+  virtual ConstRange getClusters(TrkrDefs::hitsetkey);
 
-  unsigned int size(void) const
-  {
-    return m_clusmap.size();
-  }
+  //! find cluster matching given key
+  virtual TrkrCluster* findCluster(TrkrDefs::cluskey) const { return nullptr; }
+  
+  //! get hitset key list
+  virtual HitSetKeyList getHitSetKeys() const 
+  { return HitSetKeyList(); }
 
- protected:
-  Map m_clusmap;
-  ClassDef(TrkrClusterContainer, 1)
+  //! get hitset key list for a given detector
+  virtual HitSetKeyList getHitSetKeys(const TrkrDefs::TrkrId) const 
+  { return HitSetKeyList(); }
+
+  //! get hitset key list for a given detector and layer
+  virtual HitSetKeyList getHitSetKeys(const TrkrDefs::TrkrId, const uint8_t /* layer */ ) const 
+  { return HitSetKeyList(); }
+
+  //! total number of clusters
+  virtual unsigned int size() const { return 0; }
+
+  protected:
+  //! constructor
+  TrkrClusterContainer() = default;
+
+  private:
+
+  ClassDefOverride(TrkrClusterContainer, 1)
+
 };
 
 #endif //TRACKBASE_TRKRCLUSTERCONTAINER_H

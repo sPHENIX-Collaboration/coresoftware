@@ -8,18 +8,18 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4DisplayAction.h>   // for PHG4DisplayAction
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
-#include <phool/PHIODataNode.h>         // for PHIODataNode
-#include <phool/PHNode.h>               // for PHNode
-#include <phool/PHNodeIterator.h>       // for PHNodeIterator
-#include <phool/PHObject.h>             // for PHObject
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
+#include <phool/getClass.h>
 
-#include <cmath>                       // for NAN
+#include <cmath>  // for NAN
 #include <sstream>
 
 class PHG4BlockGeom;
@@ -34,6 +34,7 @@ PHG4BlockSubsystem::PHG4BlockSubsystem(const std::string &name, const int lyr)
   , m_SteppingAction(nullptr)
   , m_DisplayAction(nullptr)
 {
+  m_ColorArray.fill(NAN);
   InitializeParameters();
 }
 
@@ -51,12 +52,12 @@ int PHG4BlockSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
   // create display settings before detector (detector adds its volumes to it)
   PHG4BlockDisplayAction *disp_action = new PHG4BlockDisplayAction(Name(), GetParams());
-   if (isfinite(m_ColorArray[0]) &&
+  if (isfinite(m_ColorArray[0]) &&
       isfinite(m_ColorArray[1]) &&
       isfinite(m_ColorArray[2]) &&
       isfinite(m_ColorArray[3]))
   {
-    disp_action->SetColor(m_ColorArray[0], m_ColorArray[1],m_ColorArray[2],m_ColorArray[3]);
+    disp_action->SetColor(m_ColorArray[0], m_ColorArray[1], m_ColorArray[2], m_ColorArray[3]);
   }
   m_DisplayAction = disp_action;
   // create detector

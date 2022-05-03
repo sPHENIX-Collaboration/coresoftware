@@ -11,10 +11,10 @@ class DumpPHHepMCGenEventMap : public DumpObject
 {
  public:
   DumpPHHepMCGenEventMap(const std::string &NodeName);
-  virtual ~DumpPHHepMCGenEventMap() {}
+  ~DumpPHHepMCGenEventMap() override {}
 
  protected:
-  int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode) override;
 };
 
 #endif

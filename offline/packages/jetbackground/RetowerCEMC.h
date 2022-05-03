@@ -27,10 +27,10 @@ class RetowerCEMC : public SubsysReco
 {
  public:
   RetowerCEMC(const std::string &name = "RetowerCEMC");
-  virtual ~RetowerCEMC() {}
+  ~RetowerCEMC() override {}
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
  private:
   int CreateNode(PHCompositeNode *topNode);

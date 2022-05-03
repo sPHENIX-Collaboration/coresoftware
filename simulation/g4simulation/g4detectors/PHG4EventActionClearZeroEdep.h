@@ -5,34 +5,30 @@
 
 #include <g4main/PHG4EventAction.h>
 
-#include <string>
 #include <set>
+#include <string>
 
 class G4Event;
 class PHCompositeNode;
 
-class PHG4EventActionClearZeroEdep: public PHG4EventAction
+class PHG4EventActionClearZeroEdep : public PHG4EventAction
 {
-
-public:
-
+ public:
   //! constructor
-  PHG4EventActionClearZeroEdep( PHCompositeNode *topNode, const std::string &name);
+  PHG4EventActionClearZeroEdep(PHCompositeNode *topNode, const std::string &name);
 
   void AddNode(const std::string &name);
 
   //! destuctor
-  virtual ~PHG4EventActionClearZeroEdep()
-  {}
+  ~PHG4EventActionClearZeroEdep() override
+  {
+  }
 
-  void EndOfEventAction(const G4Event*);
-  
+  void EndOfEventAction(const G4Event *) override;
+
  private:
-  
   std::set<std::string> nodename_set;
   PHCompositeNode *topNode;
-  
 };
-
 
 #endif

@@ -65,15 +65,6 @@ namespace MicromegasDefs
   }
 
   //________________________________________________________________
-  TrkrDefs::cluskey genClusterKey(TrkrDefs::hitsetkey hitsetkey, uint32_t clusid)
-  {
-    TrkrDefs::cluskey tmp = hitsetkey;
-    TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
-    key |= clusid;
-    return key;
-  }
-
-  //________________________________________________________________
   SegmentationType getSegmentationType(TrkrDefs::cluskey key)
   {
     TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);

@@ -19,7 +19,7 @@ class PHPy8GenTrigger
  public:
   virtual ~PHPy8GenTrigger(){}
 
-  virtual bool Apply(Pythia8::Pythia *pythia)
+  virtual bool Apply(Pythia8::Pythia */*pythia*/)
   {
     std::cout << "PHPy8GenTrigger::Apply - in virtual function" << std::endl;
     return false;

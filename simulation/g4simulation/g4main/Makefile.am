@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-AM_CXXFLAGS = `geant4-config --cflags | sed s/-Woverloaded-virtual// | sed s/-W\ // | sed s/-Wshadow//`
+AM_CXXFLAGS = `geant4-config --cflags`
 
 # set in configure.in to check if gcc version >= 4.8
 #if GCC_GE_48
@@ -14,27 +14,15 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(XERCESCROOT)/include \
-  -isystem $(OFFLINE_MAIN)/include \
-  -isystem $(ROOTSYS)/include \
-  -isystem ${G4_MAIN}/include \
-  -I$(OFFLINE_MAIN)/include/eigen3 \
-  -I$(OPT_SPHENIX)/include
-
-# rootcint barfs on isystem
-RINCLUDES = \
-  -I$(includedir) \
-  -I$(XERCESCROOT)/include \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I${G4_MAIN}/include \
-  -I$(OFFLINE_MAIN)/include/eigen3 \
+  -isystem$(ROOTSYS)/include \
+  -isystem$(XERCESCROOT)/include \
   -I$(OPT_SPHENIX)/include
-
 
 libphg4hit_la_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 
 libphg4hit_la_LIBADD = \
@@ -43,12 +31,13 @@ libphg4hit_la_LIBADD = \
 libg4testbench_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64 \
   `geant4-config --libs`
 
 libg4testbench_la_LIBADD = \
   libphg4hit.la \
   -lboost_filesystem \
-  -lEICPhysicsList \
+  -leASTPhysicsList \
   -leicsmear \
   -lfun4all \
   -lg4decayer \
@@ -60,7 +49,8 @@ libg4testbench_la_LIBADD = \
   -lphg4gdml \
   -lphhepmc \
   -lphparameter \
-  -lvararray
+  -lvararray \
+  -lxpload
 
 # I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
 # pcm files in addition. If someone can figure out how to make a list
@@ -125,6 +115,7 @@ libphg4hit_la_SOURCES = \
   PHG4Particlev1.cc \
   PHG4Particlev2.cc \
   PHG4Particlev3.cc \
+  PHG4Shower.cc \
   PHG4Showerv1.cc \
   PHG4TruthInfoContainer.cc \
   PHG4VtxPoint.cc \
@@ -158,6 +149,7 @@ libg4testbench_la_SOURCES = \
   PHG4PhenixDetector.cc \
   PHG4PhenixDisplayAction.cc \
   PHG4PhenixEventAction.cc \
+  PHG4PhenixStackingAction.cc \
   PHG4PhenixSteppingAction.cc \
   PHG4PhenixTrackingAction.cc \
   PHG4PileupGenerator.cc \
@@ -166,6 +158,7 @@ libg4testbench_la_SOURCES = \
   PHG4RegionInformation.cc \
   PHG4ScoringManager.cc \
   PHG4SimpleEventGenerator.cc \
+  PHG4StackingAction.cc \
   PHG4SteppingAction.cc \
   PHG4Subsystem.cc \
   PHG4TrackUserInfoV1.cc \
@@ -175,7 +168,8 @@ libg4testbench_la_SOURCES = \
   PHG4UIsession.cc \
   PHG4Utils.cc \
   PHG4VertexSelection.cc \
-  ReadEICFiles.cc
+  ReadEICFiles.cc \
+  CosmicSpray.cc
 
 
 ##############################################
@@ -218,6 +212,7 @@ pkginclude_HEADERS = \
   PHG4SimpleEventGenerator.h \
   PHG4Shower.h \
   PHG4Showerv1.h \
+  PHG4StackingAction.h \
   PHG4SteppingAction.h \
   PHG4Subsystem.h \
   PHG4TrackingAction.h \
@@ -229,7 +224,9 @@ pkginclude_HEADERS = \
   PHG4VertexSelection.h \
   PHG4VtxPoint.h \
   PHG4VtxPointv1.h \
-  ReadEICFiles.h
+  ReadEICFiles.h \
+  CosmicSpray.h \
+  EcoMug.h
 
 ################################################
 # linking tests
@@ -254,7 +251,7 @@ testexternals.cc:
 	echo "}" >> $@
 
 %_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(RINCLUDES) $^
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;

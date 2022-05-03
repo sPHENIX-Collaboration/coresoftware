@@ -7,12 +7,12 @@ AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
 if test $ac_cv_prog_gxx = yes; then
-   CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic"
+   CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wextra"
 fi
 
 dnl test for root 6
 if test `root-config --version | awk '{print $1>=6.?"1":"0"}'` = 1; then
-CINTDEFS=" -noIncludePaths  -inlineInputHeader "
+CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
 AC_SUBST(CINTDEFS)
 fi
 

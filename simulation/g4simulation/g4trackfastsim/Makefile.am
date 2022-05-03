@@ -1,14 +1,14 @@
 AUTOMAKE_OPTIONS = foreign
 
+AM_CXXFLAGS = `geant4-config --cflags`
+
 lib_LTLIBRARIES = \
   libg4trackfastsim.la 
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(OFFLINE_MAIN)/include/eigen3  \
-  -I$(G4_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 
 AM_LDFLAGS = \
@@ -23,7 +23,8 @@ libg4trackfastsim_la_LIBADD = \
   -lPHGenFit \
   -lphgeom \
   -lphg4hit \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -lphparameter
 
 pkginclude_HEADERS = \
   PHG4TrackFastSim.h \

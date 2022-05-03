@@ -16,10 +16,10 @@ class PHG4InEvent: public PHObject
 {
  public:
   PHG4InEvent() {}
-  virtual ~PHG4InEvent();
+  ~PHG4InEvent() override;
 
-  virtual void identify(std::ostream& os = std::cout) const;
-  void Reset();
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override;
   // this one is for HepMC records where we want to keep the HepMC vertex numbering
   int AddVtxHepMC(const int id, const double x, const double y, const double z, const double t);
   int AddVtx(const double x, const double y, const double z, const double t);
@@ -46,7 +46,7 @@ class PHG4InEvent: public PHObject
   std::multimap<int,PHG4Particle *> particlelist;
   std::map<PHG4Particle *,int> embedded_particlelist;
 
-  ClassDef(PHG4InEvent,1)
+  ClassDefOverride(PHG4InEvent,1)
 };
 
 #endif

@@ -44,7 +44,7 @@ GlobalVertexReco::GlobalVertexReco(const string &name)
 
 GlobalVertexReco::~GlobalVertexReco() {}
 
-int GlobalVertexReco::Init(PHCompositeNode *topNode)
+int GlobalVertexReco::Init(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -245,7 +245,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int GlobalVertexReco::End(PHCompositeNode *topNode)
+int GlobalVertexReco::End(PHCompositeNode */*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
