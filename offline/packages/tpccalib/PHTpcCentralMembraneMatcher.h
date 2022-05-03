@@ -3,14 +3,20 @@
 #ifndef PHTPCCENTRALMEMBRANEMATCHER_H
 #define PHTPCCENTRALMEMBRANEMATCHER_H
 
-#include <string>
+/**
+ * \file PHTpcCentralMembraneMatcher.h
+ * \brief match reconstructed CM clusters to CM pads, calculate differences, store on the node tree and compute distortion reconstruction maps
+ * \author Tony Frawley <frawley@fsunuc.physics.fsu.edu>, Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
+ */
 
 #include <fun4all/SubsysReco.h>
-
-#include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrClusterContainer.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDistortionCorrection.h>
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrClusterContainer.h>
+
+#include <memory>
+#include <string>
 
 class PHCompositeNode;
 class CMFlashClusterContainer;
@@ -29,37 +35,45 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
  PHTpcCentralMembraneMatcher(const std::string &name = "PHTpcCentralMembraneMatcher");
 
-  virtual ~PHTpcCentralMembraneMatcher() = default;
+  ~PHTpcCentralMembraneMatcher() override = default;
 
   void set_process(const int proc)  { _process = proc;  }
   void set_histos_on(const bool val) {_histos = val;}
+  void set_grid_dimensions( int phibins, int rbins );
 
  //! run initialization
-  int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
   //! end of process
-  int End(PHCompositeNode * topNode);
+  int End(PHCompositeNode * topNode) override;
 
  private:
 
   int GetNodes(PHCompositeNode* topNode);
 
   /// tpc distortion correction utility class
-  TpcDistortionCorrection _distortionCorrection;
+  TpcDistortionCorrection m_distortionCorrection;
 
-  CMFlashClusterContainer *_corrected_CMcluster_map{nullptr};
-  CMFlashDifferenceContainer *_cm_flash_diffs{nullptr};
+  CMFlashClusterContainer *m_corrected_CMcluster_map{nullptr};
+  CMFlashDifferenceContainer *m_cm_flash_diffs{nullptr};
 
   /// static distortion container
   /** used in input to correct CM clusters before calculating residuals */
-  TpcDistortionCorrectionContainer* _dcc_in{nullptr};
+  TpcDistortionCorrectionContainer* m_dcc_in{nullptr};
 
-  // fluctuation distortion container
+  /// fluctuation distortion container
   /** used in output to write fluctuation distortions */
-  TpcDistortionCorrectionContainer* _dcc_out{nullptr};
+  TpcDistortionCorrectionContainer* m_dcc_out{nullptr};
+  
+  /// local fluctuation distortion container
+  /*
+   * this one is used to aggregate multple CM events in a single map 
+   * it is not stored on the node tree but saved to a dedicated file at the end of the run
+   */
+  std::unique_ptr<TpcDistortionCorrectionContainer> m_dcc_out_internal;
   
   ///@name evaluation histograms
   //@{
@@ -87,14 +101,21 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   
   /// radius cut for matching clusters to pad
   /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
-  double _rad_cut= 0.2;
+  double m_rad_cut= 0.2;
   
   /// phi cut for matching clusters to pad
   /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
-  double _phi_cut= 0.01;
+  double m_phi_cut= 0.01;
   
   ///@name distortion correction histograms
   //@{
+
+  /// distortion correction grid size along phi
+  int m_phibins = 36;
+
+  /// distortion correction grid size along r
+  int m_rbins = 16;
+  //@}
   
   
   //@} 
