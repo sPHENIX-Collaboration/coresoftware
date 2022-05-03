@@ -18,6 +18,13 @@ class TpcDistortionCorrection
   //! constructor
   TpcDistortionCorrection() = default;
 
+  enum DistortionType
+  {
+    StaticOnly=0,
+    BeamInducedAverage=1,
+    BeamInducedFluctuation=2
+  };
+  
   enum CoordMask
   {
     COORD_PHI = 1<<0,
@@ -29,7 +36,10 @@ class TpcDistortionCorrection
   
   //! get cluster corrected 3D position using given DistortionCorrectionObject
   Acts::Vector3D get_corrected_position( const Acts::Vector3D&, const TpcDistortionCorrectionContainer*, unsigned int mask = COORD_ALL ) const;
-  
+
+    //! get cluster corrected 3D position using given DistortionCorrectionObject
+  TVector3 get_corrected_position( const TVector3&, const TpcDistortionCorrectionContainer*, unsigned int mask = COORD_ALL ) const;
+
 };
 
 #endif

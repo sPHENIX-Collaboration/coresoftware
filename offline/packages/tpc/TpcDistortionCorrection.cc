@@ -46,9 +46,15 @@ Acts::Vector3D TpcDistortionCorrection::get_corrected_position( const Acts::Vect
     //crash?
   }
   
-  // update cluster
+    // update cluster
   const auto x_new = r_new*std::cos( phi_new );
   const auto y_new = r_new*std::sin( phi_new );
 
   return {x_new, y_new, z_new};
+}
+
+TVector3 TpcDistortionCorrection::get_corrected_position( const TVector3& source, const TpcDistortionCorrectionContainer* dcc, unsigned int mask) const
+{ ACTS::Vector3D v={source.X(),source.Y(),source.Z()};
+  ACTS::Vector3D vout=get_corrected_position(v,dcc,mask);
+  return TVector3(vout[0],vout[1],vout[2]);
 }

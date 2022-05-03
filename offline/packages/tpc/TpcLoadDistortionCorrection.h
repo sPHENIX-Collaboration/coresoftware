@@ -41,7 +41,9 @@ class TpcLoadDistortionCorrection : public SubsysReco
 
   //! node name
   void set_node_name( const std::string& value )
-  { m_node_name = value; }
+  { m_node_name[0] = value; }
+  void set_node_name(int i, const std::string& value )
+  { m_node_name[i] = value; }
   
   private:
 
