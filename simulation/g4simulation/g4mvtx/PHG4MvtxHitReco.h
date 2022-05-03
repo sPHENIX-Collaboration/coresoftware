@@ -51,7 +51,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   double m_tmax;
   double m_strobe_width;
   double m_strobe_separation;
-  double crossing_period = 106.0;
+  //double crossing_period = 106.0;
 
   bool m_in_sphenix_srdo = false;
 

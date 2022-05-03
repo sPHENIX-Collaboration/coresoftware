@@ -49,11 +49,16 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const std::string& name, const std::string& det
   : SubsysReco(name)
   , PHParameterInterface(name)
   , m_detector(detector)
+  , m_tmin(-5000.)
+  , m_tmax(5000.)
+  , m_strobe_width(5.)
+  , m_strobe_separation(0.)
 {
 
   if (Verbosity())
+  {
     std::cout << "Creating PHG4MvtxHitReco for detector = " << detector << std::endl;
-
+  }
   // initialize rng
   const uint seed = PHRandomSeed();
   m_rng.reset(gsl_rng_alloc(gsl_rng_mt19937));
@@ -322,7 +327,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
           << sqrt(pow(g4hit->get_x(0), 2) + pow(g4hit->get_y(0), 2)) - sqrt(pow(location_in.X(), 2) + pow(location_in.Y(), 2))
           << " in angle = " << atan(g4hit->get_y(0) / g4hit->get_x(0)) - atan(location_in.Y() / location_in.X())
           << std::endl;
-
+      }
+  */
       // Get the pixel number of the entry location
       int pixel_number_in = layergeom->get_pixel_from_local_coords(local_in);
       // Get the pixel number of the exit location
@@ -432,8 +438,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
 
       // skip this hit if it involves an unreasonable  number of pixels
       // this skips it if either the xbin or ybin range traversed is greater than 8 (for 8 adding two pixels at each end makes the range 12)
-      if (xbin_max - xbin_min > 12 || zbin_max - zbin_min > 12)
-        continue;
+      if (xbin_max - xbin_min > 12 || zbin_max - zbin_min > 12) continue;
 
       // this hit is skipped earlier if this dimensioning would be exceeded
       double pixenergy[12][12] = {};  // init to 0
@@ -611,7 +616,9 @@ std::pair<double, double> PHG4MvtxHitReco::generate_alpide_pulse(const double en
 {
   // We need to translate energy deposited to num/ electrons released
   if (Verbosity() > 2)
+  {
     std::cout << "energy_deposited: " << energy_deposited << std::endl;
+  }
   //int silicon_band_gap = 1.12; //Band gap energy in eV
   //int Q_in = rand() % 5000 + 50;
   //int clipping_point = 110;
