@@ -664,7 +664,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 	      
 	      TrkrCluster *cluster = clustermap->findCluster(cluster_key);
 	      ActsTransformations transformer;
-	      auto glob = transformer.getGlobalPosition(cluster,surfmaps,tgeometry);
+	      auto glob = transformer.getGlobalPosition(cluster_key, cluster,surfmaps,tgeometry);
 	      float x = glob(0);
 	      float y = glob(1);
 	      float z = glob(2);
@@ -722,7 +722,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 	      TrkrDefs::cluskey cluster_key = *iter;
               TrkrCluster *cluster = clustermap->findCluster(cluster_key);
 	      ActsTransformations transformer;
-	      auto glob = transformer.getGlobalPosition(cluster,surfmaps,tgeometry);
+	      auto glob = transformer.getGlobalPosition(cluster_key, cluster,surfmaps,tgeometry);
               float x = glob(0);
               float y = glob(1);
               float z = glob(2);
@@ -905,22 +905,25 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   if(!clustermap_in)
     clustermap_in = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
 
-  nclus_all = clustermap_in->size();
-
-  for(const auto& hitsetkey:clustermap_in->getHitSetKeys())
+  if (clustermap_in)
   {
-    auto range = clustermap_in->getClusters(hitsetkey);
-    for( auto iter_cin = range.first; iter_cin != range.second; ++iter_cin ){
-      TrkrDefs::cluskey cluster_key = iter_cin->first;
-      unsigned int layer = TrkrDefs::getLayer(cluster_key);
-      if (_nlayers_maps > 0)
-	if (layer < _nlayers_maps) nclus_maps++;
-      if (_nlayers_intt > 0)
-	if (layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt) nclus_intt++;
-      if (_nlayers_tpc > 0)
-	if (layer >= _nlayers_maps + _nlayers_intt && layer <  _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_tpc++;
-      if (_nlayers_mms > 0)
-	if (layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_mms++;
+    nclus_all = clustermap_in->size();
+
+    for(const auto& hitsetkey:clustermap_in->getHitSetKeys())
+    {
+      auto range = clustermap_in->getClusters(hitsetkey);
+      for( auto iter_cin = range.first; iter_cin != range.second; ++iter_cin ){
+        TrkrDefs::cluskey cluster_key = iter_cin->first;
+        unsigned int layer = TrkrDefs::getLayer(cluster_key);
+        if (_nlayers_maps > 0)
+    if (layer < _nlayers_maps) nclus_maps++;
+        if (_nlayers_intt > 0)
+    if (layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt) nclus_intt++;
+        if (_nlayers_tpc > 0)
+    if (layer >= _nlayers_maps + _nlayers_intt && layer <  _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_tpc++;
+        if (_nlayers_mms > 0)
+    if (layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc) nclus_mms++;
+      }
     }
   }
   //-----------------------
@@ -1429,7 +1432,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       if (cluster)
       {
         clusID = cluster_key;
-	auto global = actsTransformer.getGlobalPosition(cluster,surfmaps,tgeometry);
+	auto global = actsTransformer.getGlobalPosition(cluster_key, cluster,surfmaps,tgeometry);
         x = global(0);
         y = global(1);
         z = global(2);
@@ -1772,7 +1775,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  if(_iteration_map!=NULL)
 	    niter = _iteration_map->getIteration(cluster_key);
 	  float hitID = (float) cluster_key;
-	  auto cglob = actsTransformer.getGlobalPosition(cluster,surfmaps,tgeometry);
+	  auto cglob = actsTransformer.getGlobalPosition(cluster_key, cluster,surfmaps,tgeometry);
 	  float x = cglob(0);
 	  float y = cglob(1);
 	  float z = cglob(2);
@@ -1853,20 +1856,18 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  
 	  if(Verbosity() > 1)
 	    {
-	      TrkrDefs::cluskey reco_cluskey = cluster->getClusKey();		  
 	      std::cout << PHWHERE << "  ****   reco: layer " << layer << std::endl;
-	      cout << "              reco cluster key " << reco_cluskey << "  r " << r << "  x " << x << "  y " << y << "  z " << z << "  phi " << phi  << " adc " << adc << endl;
+	      cout << "              reco cluster key " << cluster_key << "  r " << r << "  x " << x << "  y " << y << "  z " << z << "  phi " << phi  << " adc " << adc << endl;
 	    }
 	  float nparticles = NAN;
 
 	  // get best matching truth cluster from clustereval
-	  std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(cluster_key);
+	  const auto [truth_ckey, truth_cluster] = clustereval->max_truth_cluster_by_energy(cluster_key);
 	  if(truth_cluster)
 	    {
 	      if(Verbosity() > 1)
 		{
-		  TrkrDefs::cluskey truth_cluskey = truth_cluster->getClusKey();
-		  cout << "Found matching truth cluster with key " << truth_cluskey << " for reco cluster key " << cluster_key << " in layer " << layer << endl;
+		  cout << "Found matching truth cluster with key " << truth_ckey << " for reco cluster key " << cluster_key << " in layer " << layer << endl;
 		}
 	      
 	      g4hitID = 0;
@@ -1916,8 +1917,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      
 	      if(Verbosity() > 1)
 		{
-		  TrkrDefs::cluskey ckey = truth_cluster->getClusKey();		  
-		  cout << "             truth cluster key " << ckey << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz << " gphi " << gphi << " efromtruth " << efromtruth << endl;
+		  cout << "             truth cluster key " << truth_ckey << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz << " gphi " << gphi << " efromtruth " << efromtruth << endl;
 		}
 	    }    //  if (truth_cluster) {
 	  
@@ -2036,7 +2036,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      if(_iteration_map!=NULL)
 		niter = _iteration_map->getIteration(cluster_key);
 	      float hitID = (float) TrkrDefs::getClusIndex(cluster_key);
-	      auto glob = actsTransformer.getGlobalPosition(cluster,surfmaps,tgeometry);
+	      auto glob = actsTransformer.getGlobalPosition(cluster_key, cluster,surfmaps,tgeometry);
 	      float x = glob(0);
 	      float y = glob(1);
 	      float z = glob(2);
@@ -2110,13 +2110,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      //cout << "Look for truth cluster to match reco cluster " << cluster_key << endl;
 	      
 	      // get best matching truth cluster from clustereval
-	      std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(cluster_key);
+        const auto [truth_ckey, truth_cluster] = clustereval->max_truth_cluster_by_energy(cluster_key);
 	      if(truth_cluster)
 		{
 		  if(Verbosity() > 1)
 		    {
-		      TrkrDefs::cluskey truth_cluskey = truth_cluster->getClusKey();
-		      cout << "         Found matching truth cluster with key " << truth_cluskey << " for reco cluster key " << cluster_key << " in layer " << layer << endl;
+		      cout << "         Found matching truth cluster with key " << truth_ckey << " for reco cluster key " << cluster_key << " in layer " << layer << endl;
 		    }
 		  
 		  g4hitID = 0;
@@ -2268,13 +2267,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gflavor " << gflavor << " gprimary " << gprimary << endl;
 
 	  // Get the truth clusters from this particle
-	  std::map<unsigned int, std::shared_ptr<TrkrCluster> > truth_clusters =   trutheval->all_truth_clusters(g4particle);
+	  std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > truth_clusters =   trutheval->all_truth_clusters(g4particle);
 
 	  // loop over layers and add to ntuple
-	  for ( auto it = truth_clusters.begin(); it != truth_clusters.end(); ++it  )
+	  for ( const auto& [ckey, gclus]: truth_clusters)
 	    {
-	      unsigned int layer = it->first;
-	      std::shared_ptr<TrkrCluster> gclus = it->second;
+	      unsigned int layer = TrkrDefs::getLayer(ckey);
 
 	      float gx = gclus->getX();
 	      float gy = gclus->getY();
@@ -2290,7 +2288,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 	      if(Verbosity() > 1)
 		{
-		  TrkrDefs::cluskey ckey = gclus->getClusKey();		  
 		  std::cout << PHWHERE << "  ****   truth: layer " << layer << std::endl;
 		  cout << "             truth cluster key " << ckey << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz 
 		       << " gphi " << gphi << " gedep " << gedep << " gadc " << gadc << endl;
@@ -2315,11 +2312,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 	      float nreco = 0;
 
-	      TrkrCluster *reco_cluster = clustereval->reco_cluster_from_truth_cluster(gclus);
+        const auto [reco_ckey,reco_cluster] = clustereval->reco_cluster_from_truth_cluster(ckey, gclus);
 	      if(reco_cluster)
 		{
 		  nreco = 1;
-		  auto glob = actsTransformer.getGlobalPosition(reco_cluster,surfmaps,tgeometry);
+		  auto glob = actsTransformer.getGlobalPosition(reco_ckey, reco_cluster,surfmaps,tgeometry);
 		  x = glob(0);
 		  y = glob(1);
 		  z = glob(2);
@@ -2338,8 +2335,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 		  if(Verbosity() > 1)
 		    {
-		      TrkrDefs::cluskey reco_cluskey = reco_cluster->getClusKey();		  
-		      cout << "              reco cluster key " << reco_cluskey << "  r " << r << "  x " << x << "  y " << y << "  z " << z << "  phi " << phi  << " adc " << adc << endl;
+		      cout << "              reco cluster key " << reco_ckey << "  r " << r << "  x " << x << "  y " << y << "  z " << z << "  phi " << phi  << " adc " << adc << endl;
 		    }
 		}
 	      if(nreco == 0 && Verbosity() > 1)

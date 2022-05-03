@@ -401,9 +401,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
       // get cluster
       const auto& cluster = clusterIter->second;
-
-      const auto global = transformer.getGlobalPosition(cluster, m_surfmaps,
-                                                        m_tGeometry);
+      const auto global = transformer.getGlobalPosition(key, cluster, m_surfmaps, m_tGeometry);
 
       // get segmentation type
       const auto segmentation_type = MicromegasDefs::getSegmentationType(key);

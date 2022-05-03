@@ -97,7 +97,7 @@ class PHTpcResiduals : public SubsysReco
   
   /// Calculates TPC residuals given an Acts::Propagation result to
   /// a TPC surface
-  void calculateTpcResiduals(const Acts::BoundTrackParameters& params, TrkrCluster* cluster);
+  void calculateTpcResiduals(const Acts::BoundTrackParameters& params, TrkrDefs::cluskey, TrkrCluster* cluster);
         
 
   /** \brief 

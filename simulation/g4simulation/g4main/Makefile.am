@@ -168,7 +168,8 @@ libg4testbench_la_SOURCES = \
   PHG4UIsession.cc \
   PHG4Utils.cc \
   PHG4VertexSelection.cc \
-  ReadEICFiles.cc
+  ReadEICFiles.cc \
+  CosmicSpray.cc
 
 
 ##############################################
@@ -223,7 +224,9 @@ pkginclude_HEADERS = \
   PHG4VertexSelection.h \
   PHG4VtxPoint.h \
   PHG4VtxPointv1.h \
-  ReadEICFiles.h
+  ReadEICFiles.h \
+  CosmicSpray.h \
+  EcoMug.h
 
 ################################################
 # linking tests

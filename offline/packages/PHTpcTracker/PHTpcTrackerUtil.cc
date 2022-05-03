@@ -19,6 +19,8 @@
 
 namespace PHTpcTrackerUtil
 {
+  template< class T> inline constexpr T square( const T& x ) { return x*x; }
+  
   std::vector<std::vector<double> > convert_clusters_to_hits(TrkrClusterContainer* cluster_map)
   {
     //***** convert clusters to kdhits
@@ -34,17 +36,17 @@ namespace PHTpcTrackerUtil
       auto range = cluster_map->getClusters(hitsetkey);
       for( auto it = range.first; it != range.second; ++it )
 	{
-	  // TrkrDefs::cluskey cluskey = it->first;
+   TrkrDefs::cluskey cluskey = it->first;
 	  TrkrCluster* cluster = it->second;
-	  if ((std::pow((double) cluster->getPosition(0), 2) +
-	       std::pow((double) cluster->getPosition(1), 2) +
-	       std::pow((double) cluster->getPosition(2), 2)) > (25.0 * 25.0))
+	  if ((square( cluster->getPosition(0)) +
+	       square( cluster->getPosition(1)) +
+	       square( cluster->getPosition(2))) > (25.0 * 25.0))
 	    {
 	      std::vector<double> kdhit(4);
 	      kdhit[0] = cluster->getPosition(0);
 	      kdhit[1] = cluster->getPosition(1);
 	      kdhit[2] = cluster->getPosition(2);
-	      uint64_t key = cluster->getClusKey();
+	      uint64_t key = cluskey;
 	      std::memcpy(&kdhit[3], &key, sizeof(key));
 	      
 	      //	HINT: way to get original uint64_t value from double:

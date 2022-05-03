@@ -21,6 +21,7 @@
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>
 #include <tpc/TpcDefs.h>
+#include <trackbase/TrkrCluster.h>
 #include <trackbase/CMFlashClusterv1.h>
 #include <trackbase/CMFlashClusterContainerv1.h>
 #include <trackbase/ActsTrackingGeometry.h>
@@ -108,7 +109,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 
 	  TrkrCluster *cluster = clusiter->second;
 	  ActsTransformations transformer;
-	  auto glob = transformer.getGlobalPosition(cluster,surfmaps,tgeometry);
+	  auto glob = transformer.getGlobalPosition(cluskey, cluster,surfmaps,tgeometry);
 
 	  float x = glob(0);
 	  float y = glob(1);

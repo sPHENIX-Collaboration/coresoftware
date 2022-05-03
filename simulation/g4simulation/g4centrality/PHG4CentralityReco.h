@@ -27,14 +27,16 @@ class PHG4CentralityReco : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-  void DoCentralityCalibration(bool do_centrality_calibration ) {
+  void DoCentralityCalibration(bool do_centrality_calibration)
+  {
     _do_centrality_calibration = do_centrality_calibration;
   }
 
-  PHParameters& GetCalibrationParameters() {
-    return  _centrality_calibration_params;
+  PHParameters &GetCalibrationParameters()
+  {
+    return _centrality_calibration_params;
   }
-  
+
  private:
   void CreateNode(PHCompositeNode *topNode);
   void FillNode(PHCompositeNode *topNode);
@@ -43,9 +45,9 @@ class PHG4CentralityReco : public SubsysReco
 
   bool _do_centrality_calibration = true;
 
-  std::map<float,int> _cent_cal_bimp;
-  std::map<float,int> _cent_cal_epd;
-  std::map<float,int> _cent_cal_mbd;
+  std::map<float, int> _cent_cal_bimp;
+  std::map<float, int> _cent_cal_epd;
+  std::map<float, int> _cent_cal_mbd;
 
   float _bimp = NAN;
   float _bimp_cent = NAN;

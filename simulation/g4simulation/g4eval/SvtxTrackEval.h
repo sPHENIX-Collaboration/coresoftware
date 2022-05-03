@@ -83,8 +83,8 @@ class SvtxTrackEval
   SvtxClusterEval _clustereval;
   SvtxTrackMap* _trackmap;
   PHG4TruthInfoContainer* _truthinfo;
-  PHG4ParticleSvtxMap* _truthRecoMap;
-  SvtxPHG4ParticleMap* _recoTruthMap;
+  const PHG4ParticleSvtxMap* _truthRecoMap;
+  const SvtxPHG4ParticleMap* _recoTruthMap;
 
   bool _strict;
   int _verbosity;

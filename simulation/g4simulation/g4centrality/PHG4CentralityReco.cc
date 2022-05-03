@@ -18,14 +18,15 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
-#include <iostream>   // for operator<<, basic_ostream
-#include <map>        // for _Rb_tree_const_iterator
+#include <iostream>  // for operator<<, basic_ostream
+#include <map>       // for _Rb_tree_const_iterator
+#include <sstream>
 #include <stdexcept>  // for runtime_error
 #include <utility>    // for pair
-#include <sstream>
 
 PHG4CentralityReco::PHG4CentralityReco(const std::string &name)
-  : SubsysReco(name), _centrality_calibration_params(name)
+  : SubsysReco(name)
+  , _centrality_calibration_params(name)
 {
 }
 
@@ -51,40 +52,52 @@ int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
   auto ehits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_EPD");
   if (!ehits)
     std::cout << "PHG4CentralityReco::InitRun : cannot find G4HIT_EPD, will not use sEPD centrality" << std::endl;
-  
-  if ( _centrality_calibration_params.exist_string_param("description") ) {
-    if (Verbosity() >= 1 ) {
-      std::cout << "PHG4CentralityReco::InitRun : Centrality calibration description : " << std::endl << "    ";
+
+  if (_centrality_calibration_params.exist_string_param("description"))
+  {
+    if (Verbosity() >= 1)
+    {
+      std::cout << "PHG4CentralityReco::InitRun : Centrality calibration description : " << std::endl
+                << "    ";
       std::cout << _centrality_calibration_params.get_string_param("description") << std::endl;
-
-      // search for possible centile definitions
-      for (int n = 0; n < 101; n++) {
-	std::ostringstream s1; s1 << "epd_centile_" << n;
-	if ( _centrality_calibration_params.exist_double_param( s1.str().c_str() ) ) {
-	  _cent_cal_epd[ _centrality_calibration_params.get_double_param( s1.str().c_str() ) ] = n;
-	  if (Verbosity() >= 2 ) 
-	    std::cout << "PHG4CentralityReco::InitRun : sEPD centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param( s1.str().c_str() ) << std::endl;
-	}
-      }
-      for (int n = 0; n < 101; n++) {
-	std::ostringstream s2; s2 << "mbd_centile_" << n;
-	if ( _centrality_calibration_params.exist_double_param( s2.str().c_str() ) ) {
-	  _cent_cal_mbd[ _centrality_calibration_params.get_double_param( s2.str().c_str() ) ] = n;
-	  if (Verbosity() >= 2 ) 
-	    std::cout << "PHG4CentralityReco::InitRun : MBD centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param( s2.str().c_str() ) << std::endl;
-	}
-      }
-      for (int n = 0; n < 101; n++) {
-	std::ostringstream s3; s3 << "bimp_centile_" << n;
-	if ( _centrality_calibration_params.exist_double_param( s3.str().c_str() ) ) {
-	  _cent_cal_bimp[ _centrality_calibration_params.get_double_param( s3.str().c_str() ) ] = n;
-	  if (Verbosity() >= 2 ) 
-	    std::cout << "PHG4CentralityReco::InitRun : b (impact parameter) centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param( s3.str().c_str() ) << std::endl;
-	}
-      }
-
     }
-  } else {
+    // search for possible centile definitions
+    for (int n = 0; n < 101; n++)
+    {
+      std::ostringstream s1;
+      s1 << "epd_centile_" << n;
+      if (_centrality_calibration_params.exist_double_param(s1.str().c_str()))
+      {
+        _cent_cal_epd[_centrality_calibration_params.get_double_param(s1.str().c_str())] = n;
+        if (Verbosity() >= 2)
+          std::cout << "PHG4CentralityReco::InitRun : sEPD centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param(s1.str().c_str()) << std::endl;
+      }
+    }
+    for (int n = 0; n < 101; n++)
+    {
+      std::ostringstream s2;
+      s2 << "mbd_centile_" << n;
+      if (_centrality_calibration_params.exist_double_param(s2.str().c_str()))
+      {
+        _cent_cal_mbd[_centrality_calibration_params.get_double_param(s2.str().c_str())] = n;
+        if (Verbosity() >= 2)
+          std::cout << "PHG4CentralityReco::InitRun : MBD centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param(s2.str().c_str()) << std::endl;
+      }
+    }
+    for (int n = 0; n < 101; n++)
+    {
+      std::ostringstream s3;
+      s3 << "bimp_centile_" << n;
+      if (_centrality_calibration_params.exist_double_param(s3.str().c_str()))
+      {
+        _cent_cal_bimp[_centrality_calibration_params.get_double_param(s3.str().c_str())] = n;
+        if (Verbosity() >= 2)
+          std::cout << "PHG4CentralityReco::InitRun : b (impact parameter) centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param(s3.str().c_str()) << std::endl;
+      }
+    }
+  }
+  else
+  {
     std::cout << "PHG4CentralityReco::InitRun : no centrality calibration found!" << std::endl;
   }
 
@@ -93,23 +106,21 @@ int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
 
 int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
 {
-
   _bimp = 101;
-  
-  auto event_header = findNode::getClass<EventHeaderv1>(topNode, "EventHeader" );
-  if ( event_header ) {
+  auto event_header = findNode::getClass<EventHeaderv1>(topNode, "EventHeader");
+  if (event_header)
+  {
     _bimp = event_header->get_floatval("bimp");
 
     if (Verbosity() >= 5)
       std::cout << "PHG4CentralityReco::process_event : Hijing impact parameter b = " << _bimp << std::endl;
   }
   else
-    {
-      if (Verbosity() >= 5)
-	std::cout << "PHG4CentralityReco::process_event : No Hijing impact parameter info, setting b = 101" << std::endl;
-    }
+  {
+    if (Verbosity() >= 5)
+      std::cout << "PHG4CentralityReco::process_event : No Hijing impact parameter info, setting b = 101" << std::endl;
+  }
 
-  
   _mbd_N = 0;
   _mbd_S = 0;
   _mbd_NS = 0;
@@ -173,37 +184,43 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
   if (Verbosity() >= 1)
     std::cout << "PHG4CentralityReco::process_event : summary MBD (N, S, N+S) = (" << _mbd_N << ", " << _mbd_S << ", " << _mbd_NS << "), sEPD (N, S, N+S) = (" << _epd_N << ", " << _epd_S << ", " << _epd_NS << ")" << std::endl;
 
-  if (_do_centrality_calibration) {
-
+  if (_do_centrality_calibration)
+  {
     // sEPD centrality
     float low_epd_val = -10000;
     float high_epd_val = 10000;
     int low_epd_centile = -1;
     int high_epd_centile = -1;
-    
-    for(std::map<float,int>::iterator it = _cent_cal_epd.begin(); it != _cent_cal_epd.end(); ++it) {
+
+    for (std::map<float, int>::iterator it = _cent_cal_epd.begin(); it != _cent_cal_epd.end(); ++it)
+    {
       float signal = it->first;
       int cent = it->second;
 
-      if (signal < _epd_NS && signal > low_epd_val) {
-	low_epd_val = signal;
-	low_epd_centile = cent;
+      if (signal < _epd_NS && signal > low_epd_val)
+      {
+        low_epd_val = signal;
+        low_epd_centile = cent;
       }
-      if (signal > _epd_NS && signal < high_epd_val) {
-	high_epd_val = signal;
-	high_epd_centile = cent;
+      if (signal > _epd_NS && signal < high_epd_val)
+      {
+        high_epd_val = signal;
+        high_epd_centile = cent;
       }
-      
-    } // close iterate through sEPD cuts
-    
-    if ( low_epd_centile >= 0 && high_epd_centile >= 0 ) {
-      _epd_cent = ( low_epd_centile + high_epd_centile ) / 2.0;
+
+    }  // close iterate through sEPD cuts
+
+    if (low_epd_centile >= 0 && high_epd_centile >= 0)
+    {
+      _epd_cent = (low_epd_centile + high_epd_centile) / 2.0;
       if (Verbosity() >= 10)
-	std::cout << "PHG4CentralityReco::process_event : lower EPD value is " << low_epd_val << " (" << low_epd_centile << "%), higher is " << high_epd_val << " (" << high_epd_centile << "%), assigning " << _epd_cent << "%" << std::endl;
-    } else {
+        std::cout << "PHG4CentralityReco::process_event : lower EPD value is " << low_epd_val << " (" << low_epd_centile << "%), higher is " << high_epd_val << " (" << high_epd_centile << "%), assigning " << _epd_cent << "%" << std::endl;
+    }
+    else
+    {
       _epd_cent = 101;
       if (Verbosity() >= 5)
-	std::cout << "PHG4CentralityReco::process_event : not able to map EPD value to a centrality. debug info = " << low_epd_val << "/" << low_epd_centile << "/" << high_epd_val << "/" << high_epd_centile << std::endl;      
+        std::cout << "PHG4CentralityReco::process_event : not able to map EPD value to a centrality. debug info = " << low_epd_val << "/" << low_epd_centile << "/" << high_epd_val << "/" << high_epd_centile << std::endl;
     }
 
     // MBD centrality
@@ -211,30 +228,36 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
     float high_mbd_val = 10000;
     int low_mbd_centile = -1;
     int high_mbd_centile = -1;
-    
-    for(std::map<float,int>::iterator it = _cent_cal_mbd.begin(); it != _cent_cal_mbd.end(); ++it) {
+
+    for (std::map<float, int>::iterator it = _cent_cal_mbd.begin(); it != _cent_cal_mbd.end(); ++it)
+    {
       float signal = it->first;
       int cent = it->second;
-      
-      if (signal < _mbd_NS && signal > low_mbd_val) {
-	low_mbd_val = signal;
-	low_mbd_centile = cent;
+
+      if (signal < _mbd_NS && signal > low_mbd_val)
+      {
+        low_mbd_val = signal;
+        low_mbd_centile = cent;
       }
-      if (signal > _mbd_NS && signal < high_mbd_val) {
-	high_mbd_val = signal;
-	high_mbd_centile = cent;
+      if (signal > _mbd_NS && signal < high_mbd_val)
+      {
+        high_mbd_val = signal;
+        high_mbd_centile = cent;
       }
-      
-    } // close iterate through MBD cuts
-    
-    if ( low_mbd_centile >= 0 && high_mbd_centile >= 0 ) {
-      _mbd_cent = ( low_mbd_centile + high_mbd_centile ) / 2.0;
+
+    }  // close iterate through MBD cuts
+
+    if (low_mbd_centile >= 0 && high_mbd_centile >= 0)
+    {
+      _mbd_cent = (low_mbd_centile + high_mbd_centile) / 2.0;
       if (Verbosity() >= 10)
-	std::cout << "PHG4CentralityReco::process_event : lower MBD value is " << low_mbd_val << " (" << low_mbd_centile << "%), higher is " << high_mbd_val << " (" << high_mbd_centile << "%), assigning " << _mbd_cent << "%" << std::endl;
-    } else {
+        std::cout << "PHG4CentralityReco::process_event : lower MBD value is " << low_mbd_val << " (" << low_mbd_centile << "%), higher is " << high_mbd_val << " (" << high_mbd_centile << "%), assigning " << _mbd_cent << "%" << std::endl;
+    }
+    else
+    {
       _mbd_cent = 101;
       if (Verbosity() >= 5)
-	std::cout << "PHG4CentralityReco::process_event : not able to map MBD value to a centrality. debug info = " << low_mbd_val << "/" << low_mbd_centile << "/" << high_mbd_val << "/" << high_mbd_centile << std::endl;      
+        std::cout << "PHG4CentralityReco::process_event : not able to map MBD value to a centrality. debug info = " << low_mbd_val << "/" << low_mbd_centile << "/" << high_mbd_val << "/" << high_mbd_centile << std::endl;
     }
 
     // b (impact parameter) centrality
@@ -242,34 +265,39 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
     float high_bimp_val = 10000;
     int low_bimp_centile = -1;
     int high_bimp_centile = -1;
-    
-    for(std::map<float,int>::iterator it = _cent_cal_bimp.begin(); it != _cent_cal_bimp.end(); ++it) {
+
+    for (std::map<float, int>::iterator it = _cent_cal_bimp.begin(); it != _cent_cal_bimp.end(); ++it)
+    {
       float signal = it->first;
       int cent = it->second;
-      
-      if (signal < _bimp && signal > low_bimp_val) {
-	low_bimp_val = signal;
-	low_bimp_centile = cent;
+
+      if (signal < _bimp && signal > low_bimp_val)
+      {
+        low_bimp_val = signal;
+        low_bimp_centile = cent;
       }
-      if (signal > _bimp && signal < high_bimp_val) {
-	high_bimp_val = signal;
-	high_bimp_centile = cent;
+      if (signal > _bimp && signal < high_bimp_val)
+      {
+        high_bimp_val = signal;
+        high_bimp_centile = cent;
       }
-      
-    } // close iterate through bimp cuts
-    
-    if ( low_bimp_centile >= 0 && high_bimp_centile >= 0 ) {
-      _bimp_cent = ( low_bimp_centile + high_bimp_centile ) / 2.0;
+
+    }  // close iterate through bimp cuts
+
+    if (low_bimp_centile >= 0 && high_bimp_centile >= 0)
+    {
+      _bimp_cent = (low_bimp_centile + high_bimp_centile) / 2.0;
       if (Verbosity() >= 10)
-	std::cout << "PHG4CentralityReco::process_event : lower b value is " << low_bimp_val << " (" << low_bimp_centile << "%), higher is " << high_bimp_val << " (" << high_bimp_centile << "%), assigning " << _bimp_cent << "%" << std::endl;
-    } else {
+        std::cout << "PHG4CentralityReco::process_event : lower b value is " << low_bimp_val << " (" << low_bimp_centile << "%), higher is " << high_bimp_val << " (" << high_bimp_centile << "%), assigning " << _bimp_cent << "%" << std::endl;
+    }
+    else
+    {
       _bimp_cent = 101;
       if (Verbosity() >= 5)
-	std::cout << "PHG4CentralityReco::process_event : not able to map b value to a centrality. debug info = " << low_bimp_val << "/" << low_bimp_centile << "/" << high_bimp_val << "/" << high_bimp_centile << std::endl;      
+        std::cout << "PHG4CentralityReco::process_event : not able to map b value to a centrality. debug info = " << low_bimp_val << "/" << low_bimp_centile << "/" << high_bimp_val << "/" << high_bimp_centile << std::endl;
     }
 
-  } // close centrality calibration
-    
+  }  // close centrality calibration
 
   FillNode(topNode);
 
@@ -298,7 +326,7 @@ void PHG4CentralityReco::FillNode(PHCompositeNode *topNode)
     cent->set_quantity(CentralityInfo::PROP::epd_S, _epd_S);
     cent->set_quantity(CentralityInfo::PROP::epd_NS, _epd_NS);
     cent->set_quantity(CentralityInfo::PROP::bimp, _bimp);
-    
+
     cent->set_centile(CentralityInfo::PROP::epd_NS, _epd_cent);
     cent->set_centile(CentralityInfo::PROP::mbd_NS, _mbd_cent);
     cent->set_centile(CentralityInfo::PROP::bimp, _bimp_cent);

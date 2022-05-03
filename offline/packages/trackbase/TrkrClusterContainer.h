@@ -43,23 +43,17 @@ class TrkrClusterContainer : public PHObject
   //! identify object
   void identify(std::ostream &/*os*/ = std::cout) const override {}
 
-  //! add a cluster
-  virtual void addCluster(TrkrCluster*) {}
-
   //! add a cluster with specific key
   virtual void addClusterSpecifyKey(const TrkrDefs::cluskey, TrkrCluster* ) {}
 
   //! remove cluster
   virtual void removeCluster(TrkrDefs::cluskey) {}
-
-  //! remove cluster
-  virtual void removeCluster(TrkrCluster* ) {}
   
   //! return all clusters
   virtual ConstRange getClusters() const;
 
   //! get all clusters matching hitset
-  virtual ConstRange getClusters(TrkrDefs::hitsetkey) const;
+  virtual ConstRange getClusters(TrkrDefs::hitsetkey);
 
   //! find cluster matching given key
   virtual TrkrCluster* findCluster(TrkrDefs::cluskey) const { return nullptr; }
