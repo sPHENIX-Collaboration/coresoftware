@@ -38,9 +38,6 @@ class TpcDistortionCorrection
  Acts::Vector3 get_corrected_position( const Acts::Vector3&, const TpcDistortionCorrectionContainer*, 
 					unsigned int mask = COORD_ALL ) const;
 
- //! get cluster corrected 3D position using given DistortionCorrectionObject
- TVector3 get_corrected_position( const TVector3&, const TpcDistortionCorrectionContainer*, unsigned int mask = COORD_ALL ) const;
-
 };
 
 #endif
