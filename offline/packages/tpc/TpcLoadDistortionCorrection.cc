@@ -19,18 +19,21 @@ namespace
 {
 
   // print histogram
-  void print_histogram( TH3* h )
+  void print_histogram( TH1* h )
   {
 
     std::cout << "TpcLoadDistortionCorrection::InitRun - name: " << h->GetName() << std::endl;
     for( const auto& axis:{h->GetXaxis(), h->GetYaxis(), h->GetZaxis() } )
     {
-      std::cout
-        << "  " << axis->GetName()
-        << " bins: " << axis->GetNbins()
-        << " min: " << axis->GetXmin()
-        << " max: " << axis->GetXmax()
-        << std::endl;
+      if( axis ) 
+      {
+        std::cout
+          << "  " << axis->GetName()
+          << " bins: " << axis->GetNbins()
+          << " min: " << axis->GetXmin()
+          << " max: " << axis->GetXmax()
+          << std::endl;
+      }
     }
     std::cout << std::endl;
   }
