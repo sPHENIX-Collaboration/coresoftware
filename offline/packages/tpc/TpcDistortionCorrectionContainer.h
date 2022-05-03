@@ -9,7 +9,7 @@
 
 #include <array>
 
-class TH3;
+class TH1;
 
 class TpcDistortionCorrectionContainer
 {
@@ -23,9 +23,9 @@ class TpcDistortionCorrectionContainer
   
   //!@name space charge distortion histograms
   //@{
-  std::array<TH3*,2> m_hDRint = {{nullptr, nullptr}};
-  std::array<TH3*,2> m_hDPint = {{nullptr, nullptr}};
-  std::array<TH3*,2> m_hDZint = {{nullptr, nullptr}};
+  std::array<TH1*,2> m_hDRint = {{nullptr, nullptr}};
+  std::array<TH1*,2> m_hDPint = {{nullptr, nullptr}};
+  std::array<TH1*,2> m_hDZint = {{nullptr, nullptr}};
   //@}
 
 
