@@ -16,7 +16,7 @@ class G4VPhysicalVolume;
 class PHG4OHCalDisplayAction : public PHG4DisplayAction
 {
  public:
-  PHG4OHCalDisplayAction(const std::string &name);
+  explicit PHG4OHCalDisplayAction(const std::string &name);
 
   ~PHG4OHCalDisplayAction() override;
 
@@ -27,9 +27,9 @@ class PHG4OHCalDisplayAction : public PHG4DisplayAction
   void AddChimSteelVolume(G4LogicalVolume *vol) { m_ChimSteelVol = vol; }
 
  private:
-  G4VPhysicalVolume *m_MyTopVolume;
-  G4LogicalVolume *m_SteelVol;
-  G4LogicalVolume *m_ChimSteelVol;
+  G4VPhysicalVolume *m_MyTopVolume = nullptr;
+  G4LogicalVolume *m_SteelVol = nullptr;
+  G4LogicalVolume *m_ChimSteelVol = nullptr;
   std::vector<G4VisAttributes *> m_VisAttVec;
   std::vector<G4VisAttributes *> m_VisAttVec2;
   std::set<G4LogicalVolume *> m_ScintiLogVolSet;

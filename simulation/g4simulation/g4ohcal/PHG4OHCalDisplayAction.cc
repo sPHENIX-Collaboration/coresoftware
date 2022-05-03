@@ -8,9 +8,6 @@
 
 PHG4OHCalDisplayAction::PHG4OHCalDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
-  , m_MyTopVolume(nullptr)
-  , m_SteelVol(nullptr)
-  //-m/s-, m_ChimSteelVol(nullptr)
 {
 }
 
