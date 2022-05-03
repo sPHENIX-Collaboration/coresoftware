@@ -16,16 +16,9 @@
 #include <cstring>
 #include <iostream>
 
-using namespace std;
-
-Fun4AllFileOutStream::Fun4AllFileOutStream(const string &frule, const string &name)
+Fun4AllFileOutStream::Fun4AllFileOutStream(const std::string &frule, const std::string &name)
   : Fun4AllEventOutStream(name)
   , m_FileRule(frule)
-  , m_ob(nullptr)
-  , m_iSeq(0)
-  , m_OutFileDesc(-1)
-  , m_BytesWritten(0)
-  , m_MaxSize(10000000000LL)
 {
   memset(m_xb, 0, sizeof(m_xb));
 }
@@ -53,20 +46,20 @@ int Fun4AllFileOutStream::WriteEventOut(Event *evt)
     int snprintfbytes = snprintf(outfilename, filenamesize, m_FileRule.c_str(), irun, m_iSeq);
     if (static_cast<unsigned>(snprintfbytes) > filenamesize)
     {
-      cout << PHWHERE << " " << Name() << ": filename exceeds length " << filenamesize
-           << ", tried " << snprintfbytes
-           << ". probably it is the filerule" << m_OutFileDesc
-           << " which uses other than %010d-%04d for runnumber/segment" << endl;
+      std::cout << PHWHERE << " " << Name() << ": filename exceeds length " << filenamesize
+                << ", tried " << snprintfbytes
+                << ". probably it is the filerule" << m_OutFileDesc
+                << " which uses other than %010d-%04d for runnumber/segment" << std::endl;
       exit(1);
     }
     m_OutFileDesc = open(outfilename, O_WRONLY | O_CREAT | O_TRUNC | O_LARGEFILE,
                          S_IRWXU | S_IROTH | S_IRGRP);
     if (m_OutFileDesc == -1)  // failure to open
     {
-      cout << "could not open " << outfilename << " quitting" << endl;
+      std::cout << "could not open " << outfilename << " quitting" << std::endl;
       exit(1);
     }
-    cout << "opening new file " << outfilename << endl;
+    std::cout << "opening new file " << outfilename << std::endl;
     m_ob = new olzoBuffer(m_OutFileDesc, m_xb, LENGTH, irun, m_iSeq);
     delete[] outfilename;
   }
@@ -74,9 +67,9 @@ int Fun4AllFileOutStream::WriteEventOut(Event *evt)
   int status = m_ob->addEvent(evt);
   if (status)
   {
-    cout << Name() << ": ERROR WRITING OUT FILTERED EVENT "
-         << evt->getEvtSequence() << " FOR RUN "
-         << evt->getRunNumber() << " Status: " << status << endl;
+    std::cout << Name() << ": ERROR WRITING OUT FILTERED EVENT "
+              << evt->getEvtSequence() << " FOR RUN "
+              << evt->getRunNumber() << " Status: " << status << std::endl;
   }
   //  m_BytesWritten += 4*evt->getEvtLength(); // evtlength is in 32bit words
   m_BytesWritten = m_ob->getBytesWritten();
@@ -97,9 +90,9 @@ int Fun4AllFileOutStream::CloseOutStream()
   return 0;
 }
 
-void Fun4AllFileOutStream::identify(ostream &os) const
+void Fun4AllFileOutStream::identify(std::ostream &os) const
 {
-  os << "Fun4AllFileOutStream writing to " << m_OutFileDesc << endl;
+  os << "Fun4AllFileOutStream writing to " << m_OutFileDesc << std::endl;
   return;
 }
 
