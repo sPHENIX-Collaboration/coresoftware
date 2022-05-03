@@ -2,10 +2,8 @@
 
 #include <g4detectors/PHG4CellDefs.h>  // for keytype
 
-#include <map>       // for _Rb_tree_const_iterator
 #include <iostream>
-
-using namespace std;
+#include <map>  // for _Rb_tree_const_iterator
 
 const InttDeadMapv1::Map&
 InttDeadMapv1::getDeadChannels(void) const

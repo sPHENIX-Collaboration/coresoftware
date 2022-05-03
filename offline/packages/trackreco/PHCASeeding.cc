@@ -24,11 +24,10 @@
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrack_v3.h>
 
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
@@ -122,16 +121,16 @@ namespace
   // square
   template<class T> inline constexpr T square( const T& x ) { return x*x; }
   
-  /// phi angle of Acts::Vector3D
-  inline double get_phi( const Acts::Vector3F& position )
+  /// phi angle of Acts::Vector3
+  inline double get_phi( const Acts::Vector3& position )
   {
     double phi = std::atan2( position.y(), position.x() );
     if( phi < 0 ) phi += 2.*M_PI;
     return phi;
   } 
   
-  /// pseudo rapidity of Acts::Vector3D
-  inline double get_eta( const Acts::Vector3F& position )
+  /// pseudo rapidity of Acts::Vector3
+  inline double get_eta( const Acts::Vector3& position )
   {
     const double norm = std::sqrt( square(position.x()) + square(position.y()) + square(position.z()) );
     return std::log((norm+position.z())/(norm-position.z()))/2;
@@ -219,10 +218,10 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-Acts::Vector3D PHCASeeding::getGlobalPosition( TrkrCluster* cluster ) const
+Acts::Vector3 PHCASeeding::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
-  auto globalpos = m_transform.getGlobalPosition(cluster,
+  auto globalpos = m_transform.getGlobalPosition(key, cluster,
     surfMaps,
     tGeometry);
 
@@ -250,15 +249,13 @@ PositionMap PHCASeeding::FillTree()
   PositionMap cachedPositions;
 
   for (int j = 0; j < 60; ++j) nlayer[j] = 0;
-  auto hitsetrange = _hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _cluster_map->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
+  {
+    auto range = _cluster_map->getClusters(hitsetkey);
     for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
 
-      TrkrCluster *cluster = clusIter->second;
       TrkrDefs::cluskey ckey = clusIter->first;
+      TrkrCluster *cluster = clusIter->second;
       unsigned int layer = TrkrDefs::getLayer(ckey);
       if (layer < _start_layer || layer >= _end_layer){
 	if(Verbosity()>0) std::cout << "layer: " << layer << std::endl;
@@ -269,9 +266,20 @@ PositionMap PHCASeeding::FillTree()
 	  continue; // skip hits used in a previous iteration
       }
 
-      // get global position, convert to Acts::Vector3F and store in map
-      const Acts::Vector3D globalpos_d = getGlobalPosition(cluster);
-      const Acts::Vector3F globalpos = { (float) globalpos_d.x(), (float) globalpos_d.y(), (float) globalpos_d.z()};
+      // get global position, convert to Acts::Vector3 and store in map
+      const Acts::Vector3 globalpos_d = getGlobalPosition(ckey, cluster);
+
+      if(Verbosity() > 3)
+	{
+	  auto global_before = m_transform.getGlobalPosition(ckey, cluster,
+							     surfMaps,
+							     tGeometry);
+	  std::cout << "CaSeeder: Cluster: " << ckey << std::endl;
+	  std::cout << " Global before: " << global_before[0] << "  " << global_before[1] << "  " << global_before[2] << std::endl;
+	  std::cout << " Global after   : " << globalpos_d[0] << "  " << globalpos_d[1] << "  " << globalpos_d[2] << std::endl;
+	}
+
+      const Acts::Vector3 globalpos = { globalpos_d.x(), globalpos_d.y(), globalpos_d.z()};
       cachedPositions.insert(std::make_pair(ckey, globalpos));
 
       const double clus_phi = get_phi( globalpos );      
@@ -352,7 +360,7 @@ int PHCASeeding::FindSeedsWithMerger(const PositionMap& globalPositions)
   std::vector<std::vector<keylink>> biLinks = FindBiLinks(links.first,links.second);
   std::vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks,globalPositions);
   std::vector<keylist> cleanSeedKeyLists = RemoveBadClusters(trackSeedKeyLists, globalPositions);
-  std::vector<SvtxTrack_v2> seeds = fitter->ALICEKalmanFilter(cleanSeedKeyLists,true, globalPositions);
+  std::vector<SvtxTrack_v3> seeds = fitter->ALICEKalmanFilter(cleanSeedKeyLists,true, globalPositions);
   publishSeeds(seeds);
   return seeds.size();
 }
@@ -718,32 +726,44 @@ std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& 
     keylist clean_chain;
 
     std::vector<std::pair<double,double>> xy_pts;
-    std::vector<std::pair<double,double>> rz_pts;
+//     std::vector<std::pair<double,double>> rz_pts;
 
     for(const TrkrDefs::cluskey& ckey : chain)
     {
       const auto &global = globalPositions.at(ckey);
       double x = global(0);
       double y = global(1);
-      double z = global(2);
       xy_pts.push_back(std::make_pair(x,y));
-      rz_pts.push_back(std::make_pair(std::sqrt(square(x)+square(y)),z));
+//       double z = global(2);
+//       rz_pts.push_back(std::make_pair(std::sqrt(square(x)+square(y)),z));
     }
     if(Verbosity()>0) std::cout << "chain size: " << chain.size() << std::endl;
-    double A;
-    double B;
-    double R;
-    double X0;
-    double Y0;
+
+//     double A = 0;
+//     double B = 0;
+//     fitter->line_fit(rz_pts,A,B);
+//     const std::vector<double> rz_resid = fitter->GetLineClusterResiduals(rz_pts,A,B);
+    double R = 0;
+    double X0 = 0;
+    double Y0 = 0;
     fitter->CircleFitByTaubin(xy_pts,R,X0,Y0);
-    fitter->line_fit(rz_pts,A,B);
+
+    // skip chain entirely if fit fails
+    /*
+     * note: this is consistent with what the code was doing before
+     * but in principle we could also keep the seed unchanged instead
+     * this is to be studied independently
+     */
+    if( std::isnan( R ) ) continue;
+
+    // calculate residuals
     const std::vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
-    const std::vector<double> rz_resid = fitter->GetLineClusterResiduals(rz_pts,A,B);
     for(size_t i=0;i<chain.size();i++)
     {
       if(xy_resid[i]>_xy_outlier_threshold) continue;
       clean_chain.push_back(chain[i]);
     }
+
     clean_chains.push_back(clean_chain);
     if(Verbosity()>0) std::cout << "pushed clean chain with " << clean_chain.size() << " clusters" << std::endl;
   }
@@ -751,7 +771,7 @@ std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& 
 }
 
 
-void PHCASeeding::publishSeeds(const std::vector<SvtxTrack_v2>& seeds)
+void PHCASeeding::publishSeeds(const std::vector<SvtxTrack_v3>& seeds)
 {
   for( const auto&  seed:seeds )
   { _track_map->insert(&seed);}

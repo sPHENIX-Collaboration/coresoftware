@@ -26,6 +26,7 @@ class SvtxTrack_FastSim: public SvtxTrack_v1
   SvtxTrack_FastSim( const SvtxTrack& );
 
   // copy content from base class
+  using PHObject::CopyFrom; // avoid warning for not implemented CopyFrom methods
   void CopyFrom( const SvtxTrack& ) override;
   void CopyFrom( SvtxTrack* source ) override
   { CopyFrom( *source ); }

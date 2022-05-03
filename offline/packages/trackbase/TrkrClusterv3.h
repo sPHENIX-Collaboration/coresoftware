@@ -27,7 +27,8 @@ class TrkrClusterv3 : public TrkrCluster
   TrkrClusterv3();
 
   //!dtor
-  ~TrkrClusterv3() override {}
+  ~TrkrClusterv3() override = default;
+  
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override {}
@@ -39,11 +40,7 @@ class TrkrClusterv3 : public TrkrCluster
 
   //! copy content from base class
   void CopyFrom( TrkrCluster* source ) override
-  { CopyFrom( *source ); }
-
-  void setClusKey(TrkrDefs::cluskey id) override { m_cluskey = id; }
-  TrkrDefs::cluskey getClusKey() const override { return m_cluskey; }
-  
+  { CopyFrom( *source ); } 
   
   //
   // cluster position
@@ -98,6 +95,8 @@ class TrkrClusterv3 : public TrkrCluster
    { std::cout << "Deprecated size function"<< std::endl; return NAN;}
    float getZSize() const override 
    {std::cout << "Deprecated size function" << std::endl; return NAN;}
+   float getPhiError() const override 
+   { std::cout << "Deprecated getPhiError function"<< std::endl; return NAN;}
 
  protected:
 

@@ -63,7 +63,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
  private:
   //! map a given x,y,z coordinates to plane hits
-  void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
+  void MapToPadPlane(const double x, const double y, const double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
 
   TrkrHitSetContainer *hitsetcontainer = nullptr;
   TrkrHitTruthAssoc *hittruthassoc = nullptr;

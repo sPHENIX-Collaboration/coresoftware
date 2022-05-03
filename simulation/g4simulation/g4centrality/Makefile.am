@@ -3,8 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I${G4_MAIN}/include \
-  -I`root-config --incdir`
+  -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
    libg4centrality.la
@@ -14,12 +13,10 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libg4centrality_la_LIBADD = \
+  -lcentrality_io \
   -lfun4all \
   -lphg4hit \
-  -lphparameter \
-  -lcentrality_io \
-  -lCGAL \
-  -ltrackbase_historic_io
+  -lphparameter
 
 pkginclude_HEADERS = \
   PHG4CentralityReco.h

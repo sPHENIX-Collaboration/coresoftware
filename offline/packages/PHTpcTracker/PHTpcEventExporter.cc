@@ -12,7 +12,6 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
 
 #include <phool/PHLog.h>
 
@@ -29,7 +28,7 @@ PHTpcEventExporter::PHTpcEventExporter()
 {
 }
 
-void PHTpcEventExporter::exportEvent(TrkrClusterContainer* cluster_map, TrkrHitSetContainer* hitsets,std::vector<kdfinder::TrackCandidate<double>*> candidates,
+void PHTpcEventExporter::exportEvent(TrkrClusterContainer* cluster_map, std::vector<kdfinder::TrackCandidate<double>*> candidates,
                                      double B, const std::string& filename)
 {
   // export hits + seeds to json for checks
@@ -93,13 +92,10 @@ void PHTpcEventExporter::exportEvent(TrkrClusterContainer* cluster_map, TrkrHitS
       << "  },\n"
       << " \"HITS\": {\n"
       << "   \"TPC\": [\n";
-  
-  auto hitsetrange = hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
+  for(const auto& hitsetkey:cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
+  { 
     std::string separator = "";
-    auto range = cluster_map->getClusters(hitsetitr->first);
+    auto range = cluster_map->getClusters(hitsetkey);
     for( auto it = range.first; it != range.second; ++it )
       {
 	TrkrCluster* cluster = it->second;
@@ -137,7 +133,7 @@ void PHTpcEventExporter::exportEvent(TrkrClusterContainer* cluster_map, TrkrHitS
   ofile.close();
 }
 
-void PHTpcEventExporter::exportEvent(TrkrClusterContainer* cluster_map, TrkrHitSetContainer* hitsets, std::vector<PHGenFit2::Track*> gtracks,
+void PHTpcEventExporter::exportEvent(TrkrClusterContainer* cluster_map, std::vector<PHGenFit2::Track*> gtracks,
                                      double B, const std::string& filename)
 {
   // export hits + reco-d tracks to json for checks
@@ -215,12 +211,10 @@ void PHTpcEventExporter::exportEvent(TrkrClusterContainer* cluster_map, TrkrHitS
       << "  },\n"
       << " \"HITS\": {\n"
       << "   \"TPC\": [\n";
-  auto hitsetrange = hitsets->getHitSets(TrkrDefs::TrkrId::tpcId);
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
+  for(const auto& hitsetkey:cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
+  {
     std::string separator = "";
-    auto range = cluster_map->getClusters(hitsetitr->first);
+    auto range = cluster_map->getClusters(hitsetkey);
     for( auto it = range.first; it != range.second; ++it )
       {
 	TrkrCluster* cluster = it->second;

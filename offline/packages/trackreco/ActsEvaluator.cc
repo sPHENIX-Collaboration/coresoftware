@@ -14,6 +14,8 @@
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase/MvtxDefs.h>
+#include <trackbase/InttDefs.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
@@ -26,8 +28,8 @@
 #include <g4main/PHG4VtxPoint.h>
 
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
-#include <Acts/Utilities/Definitions.hpp>
-#include <Acts/Utilities/Units.hpp>
+#include <Acts/Definitions/Algebra.hpp>
+#include <Acts/Definitions/Units.hpp>
 
 #include <TFile.h>
 #include <TTree.h>
@@ -116,7 +118,9 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 		<< " with trackKey corresponding to track seed "
 		<< trackKey << std::endl;
 
-    const auto &[trackTips, mj] = traj.trajectory();
+    const auto& trackTips = traj.tips();
+    const auto& mj = traj.multiTrajectory();
+
     m_trajNr = iTraj;
 
     /// Skip failed fits
@@ -173,7 +177,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	if(vertexId == UINT_MAX)
 	  vertexId = 0;
 	const SvtxVertex *svtxVertex = m_vertexMap->get(vertexId);
-	Acts::Vector3D vertex;
+	Acts::Vector3 vertex;
 	vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm;
 	vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm;
 	vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
@@ -213,6 +217,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	m_nMeasurements = trajState.nMeasurements;
 	m_nStates = trajState.nStates;
 	m_nOutliers = trajState.nOutliers;
+	m_nSharedHits = trajState.nSharedHits;
 	m_nHoles = trajState.nHoles;
 	m_chi2_fit = trajState.chi2Sum;
 	m_ndf_fit = trajState.NDF;
@@ -221,7 +226,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	fillG4Particle(g4particle);
 	fillProtoTrack(actsProtoTrack, topNode);
 	fillFittedTrackParams(traj, trackTip, vertex);
-	visitTrackStates(traj,trackTip, topNode);
+	visitTrackStates(mj,trackTip, topNode);
 	
 	m_trackTree->Fill();
 	
@@ -267,7 +272,7 @@ int ActsEvaluator::ResetEvent(PHCompositeNode */*topNode*/)
 
 
 
-void ActsEvaluator::visitTrackStates(const Trajectory traj, 
+void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory& traj, 
 				     const size_t &trackTip,
 				     PHCompositeNode *topNode)
 {
@@ -275,9 +280,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
   if(Verbosity() > 2)
     std::cout << "Begin visit track states" << std::endl;
 
-  const auto &[trackTips, mj] = traj.trajectory();
-
-  mj.visitBackwards(trackTip, [&](const auto &state) {
+  traj.visitBackwards(trackTip, [&](const auto &state) {
     /// Only fill the track states with non-outlier measurement
     auto typeFlags = state.typeFlags();
     if (not typeFlags.test(Acts::TrackStateFlag::MeasurementFlag))
@@ -285,8 +288,10 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
       return true;
     }
 
+    const auto& surface = state.referenceSurface();
+
     /// Get the geometry ID
-    auto geoID = state.referenceSurface().geometryId();
+    auto geoID = surface.geometryId();
     m_volumeID.push_back(geoID.volume());
     m_layerID.push_back(geoID.layer());
     m_moduleID.push_back(geoID.sensitive());
@@ -296,21 +301,24 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
 		<< " : " << geoID.layer() << " : " 
 		<< geoID.sensitive() << std::endl;
 
-    auto meas = std::get<Measurement>(*state.uncalibrated());
-
+    const auto& sourceLink = static_cast<const SourceLink&>(state.uncalibrated());
+    const auto& cluskey = sourceLink.cluskey();
+    const auto& params = state.projector().transpose() * state.calibrated();
     /// Get local position
-    Acts::Vector2D local(meas.parameters()[Acts::eBoundLoc0],
-                         meas.parameters()[Acts::eBoundLoc1]);
+    Acts::Vector2 local(params[Acts::eBoundLoc0],
+                        params[Acts::eBoundLoc1]);
     
     /// Get global position
     /// This is an arbitrary vector. Doesn't matter in coordinate transformation
     /// in Acts code
-    Acts::Vector3D mom(1, 1, 1);
-    Acts::Vector3D global = meas.referenceObject().localToGlobal(m_tGeometry->geoContext,
-                                          local, mom);
+    Acts::Vector3 mom(1, 1, 1);
+    Acts::Vector3 global = surface.localToGlobal(m_tGeometry->geoContext,
+						 local, mom);
 
     /// Get measurement covariance
-    auto cov = meas.covariance();
+    /// These are the same
+    //auto slcov = sourceLink.covariance();
+    auto cov = state.effectiveCalibratedCovariance();
 
     m_lx_hit.push_back(local.x());
     m_ly_hit.push_back(local.y());
@@ -321,18 +329,17 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     /// Get the truth hit corresponding to this trackState
     /// We go backwards from hitID -> TrkrDefs::cluskey to g4hit with
     /// the map created in PHActsSourceLinks
-    TrkrDefs::cluskey cluskey = state.uncalibrated().cluskey();
     float gt = -9999;
-    Acts::Vector3D globalTruthPos = getGlobalTruthHit(topNode, cluskey, gt);
+    Acts::Vector3 globalTruthPos = getGlobalTruthHit(topNode, cluskey, gt);
     float gx = globalTruthPos(0);
     float gy = globalTruthPos(1);
     float gz = globalTruthPos(2);
 
     /// Get local truth position
     const float r = sqrt(gx * gx + gy * gy + gz * gz);
-    Acts::Vector3D globalTruthUnitDir(gx / r, gy / r, gz / r);
+    Acts::Vector3 globalTruthUnitDir(gx / r, gy / r, gz / r);
 
-    auto vecResult = meas.referenceObject().globalToLocal(
+    auto vecResult = surface.globalToLocal(
         m_tGeometry->geoContext,
         globalTruthPos,
         globalTruthUnitDir);
@@ -359,7 +366,7 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
     
     if(vecResult.ok())
       {
-	Acts::Vector2D truthLocVec = vecResult.value();
+	Acts::Vector2 truthLocVec = vecResult.value();
 	truthLOC0 = truthLocVec.x();
 	truthLOC1 = truthLocVec.y();
       }
@@ -393,9 +400,9 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
       auto covariance = state.predictedCovariance();
 
       /// Local hit residual info
-      auto H = meas.projector();
+      auto H = state.effectiveProjector();
       auto resCov = cov + H * covariance * H.transpose();
-      auto residual = meas.residual(parameters);
+      auto residual = state.effectiveCalibrated() - H * parameters;
       m_res_x_hit.push_back(residual(Acts::eBoundLoc0));
       m_res_y_hit.push_back(residual(Acts::eBoundLoc1));
       m_err_x_hit.push_back(
@@ -533,31 +540,27 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
       filtered = true;
       m_nFiltered++;
 
-      Acts::BoundTrackParameters parameter(
-	    state.referenceSurface().getSharedPtr(),
-	    state.filtered(),
-	    state.filteredCovariance());
-
+      auto parameter = state.filtered();
       auto covariance = state.filteredCovariance();
 
-      m_eLOC0_flt.push_back(parameter.parameters()[Acts::eBoundLoc0]);
-      m_eLOC1_flt.push_back(parameter.parameters()[Acts::eBoundLoc1]);
-      m_ePHI_flt.push_back(parameter.parameters()[Acts::eBoundPhi]);
-      m_eTHETA_flt.push_back(parameter.parameters()[Acts::eBoundTheta]);
-      m_eQOP_flt.push_back(parameter.parameters()[Acts::eBoundQOverP]);
-      m_eT_flt.push_back(parameter.parameters()[Acts::eBoundTime]);
+      m_eLOC0_flt.push_back(parameter[Acts::eBoundLoc0]);
+      m_eLOC1_flt.push_back(parameter[Acts::eBoundLoc1]);
+      m_ePHI_flt.push_back(parameter[Acts::eBoundPhi]);
+      m_eTHETA_flt.push_back(parameter[Acts::eBoundTheta]);
+      m_eQOP_flt.push_back(parameter[Acts::eBoundQOverP]);
+      m_eT_flt.push_back(parameter[Acts::eBoundTime]);
 
-      m_res_eLOC0_flt.push_back(parameter.parameters()[Acts::eBoundLoc0] -
+      m_res_eLOC0_flt.push_back(parameter[Acts::eBoundLoc0] -
                                 truthLOC0);
-      m_res_eLOC1_flt.push_back(parameter.parameters()[Acts::eBoundLoc1] -
+      m_res_eLOC1_flt.push_back(parameter[Acts::eBoundLoc1] -
                                 truthLOC1);
-      m_res_ePHI_flt.push_back(parameter.parameters()[Acts::eBoundPhi] -
+      m_res_ePHI_flt.push_back(parameter[Acts::eBoundPhi] -
                                truthPHI);
-      m_res_eTHETA_flt.push_back(parameter.parameters()[Acts::eBoundTheta] -
+      m_res_eTHETA_flt.push_back(parameter[Acts::eBoundTheta] -
                                  truthTHETA);
-      m_res_eQOP_flt.push_back(parameter.parameters()[Acts::eBoundQOverP] -
+      m_res_eQOP_flt.push_back(parameter[Acts::eBoundQOverP] -
                                truthQOP);
-      m_res_eT_flt.push_back(parameter.parameters()[Acts::eBoundTime] -
+      m_res_eT_flt.push_back(parameter[Acts::eBoundTime] -
                              truthTIME);
 
       /// Filtered parameter uncertainties
@@ -576,34 +579,37 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
 
       /// Filtered parameter pulls
       m_pull_eLOC0_flt.push_back(
-          (parameter.parameters()[Acts::eBoundLoc0] - truthLOC0) /
+          (parameter[Acts::eBoundLoc0] - truthLOC0) /
           sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_pull_eLOC1_flt.push_back(
-          (parameter.parameters()[Acts::eBoundLoc1] - truthLOC1) /
+          (parameter[Acts::eBoundLoc1] - truthLOC1) /
           sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_pull_ePHI_flt.push_back(
-          (parameter.parameters()[Acts::eBoundPhi] - truthPHI) /
+          (parameter[Acts::eBoundPhi] - truthPHI) /
           sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_pull_eTHETA_flt.push_back(
-          (parameter.parameters()[Acts::eBoundTheta] - truthTHETA) /
+          (parameter[Acts::eBoundTheta] - truthTHETA) /
           sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_pull_eQOP_flt.push_back(
-          (parameter.parameters()[Acts::eBoundQOverP] - truthQOP) /
+          (parameter[Acts::eBoundQOverP] - truthQOP) /
           sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_pull_eT_flt.push_back(
-          (parameter.parameters()[Acts::eBoundTime] - truthTIME) /
+          (parameter[Acts::eBoundTime] - truthTIME) /
           sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
+      Acts::FreeVector freeparams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geoContext, parameter);
+
       /// Other filtered parameter info
-      m_x_flt.push_back(parameter.position(m_tGeometry->geoContext).x());
-      m_y_flt.push_back(parameter.position(m_tGeometry->geoContext).y());
-      m_z_flt.push_back(parameter.position(m_tGeometry->geoContext).z());
-      m_px_flt.push_back(parameter.momentum().x());
-      m_py_flt.push_back(parameter.momentum().y());
-      m_pz_flt.push_back(parameter.momentum().z());
-      m_pT_flt.push_back(sqrt(parameter.momentum().x() * parameter.momentum().x()
-			      + parameter.momentum().y() * parameter.momentum().y()));
-      m_eta_flt.push_back(eta(parameter.position(m_tGeometry->geoContext)));
+      m_x_flt.push_back(freeparams[Acts::eFreePos0]);
+      m_y_flt.push_back(freeparams[Acts::eFreePos1]);
+      m_z_flt.push_back(freeparams[Acts::eFreePos2]);
+      auto p = std::abs(1/freeparams[Acts::eFreeQOverP]);
+      m_px_flt.push_back(p * freeparams[Acts::eFreeDir0]);
+      m_py_flt.push_back(p * freeparams[Acts::eFreeDir1]);
+      m_pz_flt.push_back(p * freeparams[Acts::eFreeDir2]);
+      m_pT_flt.push_back(sqrt(p * std::hypot(freeparams[Acts::eFreeDir0],
+					     freeparams[Acts::eFreeDir1])));
+      m_eta_flt.push_back(eta(freeparams.segment<3>(Acts::eFreeDir0)));
       m_chi2.push_back(state.chi2());
       
     }
@@ -650,31 +656,27 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
       smoothed = true;
       m_nSmoothed++;
 
-      Acts::BoundTrackParameters parameter(
-	    state.referenceSurface().getSharedPtr(),
-	    state.smoothed(),
-	    state.smoothedCovariance());
-
+      auto parameter = state.smoothed();
       auto covariance = state.smoothedCovariance();
 
-      m_eLOC0_smt.push_back(parameter.parameters()[Acts::eBoundLoc0]);
-      m_eLOC1_smt.push_back(parameter.parameters()[Acts::eBoundLoc1]);
-      m_ePHI_smt.push_back(parameter.parameters()[Acts::eBoundPhi]);
-      m_eTHETA_smt.push_back(parameter.parameters()[Acts::eBoundTheta]);
-      m_eQOP_smt.push_back(parameter.parameters()[Acts::eBoundQOverP]);
-      m_eT_smt.push_back(parameter.parameters()[Acts::eBoundTime]);
+      m_eLOC0_smt.push_back(parameter[Acts::eBoundLoc0]);
+      m_eLOC1_smt.push_back(parameter[Acts::eBoundLoc1]);
+      m_ePHI_smt.push_back(parameter[Acts::eBoundPhi]);
+      m_eTHETA_smt.push_back(parameter[Acts::eBoundTheta]);
+      m_eQOP_smt.push_back(parameter[Acts::eBoundQOverP]);
+      m_eT_smt.push_back(parameter[Acts::eBoundTime]);
 
-      m_res_eLOC0_smt.push_back(parameter.parameters()[Acts::eBoundLoc0] -
+      m_res_eLOC0_smt.push_back(parameter[Acts::eBoundLoc0] -
                                 truthLOC0);
-      m_res_eLOC1_smt.push_back(parameter.parameters()[Acts::eBoundLoc1] -
+      m_res_eLOC1_smt.push_back(parameter[Acts::eBoundLoc1] -
                                 truthLOC1);
-      m_res_ePHI_smt.push_back(parameter.parameters()[Acts::eBoundPhi] -
+      m_res_ePHI_smt.push_back(parameter[Acts::eBoundPhi] -
                                truthPHI);
-      m_res_eTHETA_smt.push_back(parameter.parameters()[Acts::eBoundTheta] -
+      m_res_eTHETA_smt.push_back(parameter[Acts::eBoundTheta] -
                                  truthTHETA);
-      m_res_eQOP_smt.push_back(parameter.parameters()[Acts::eBoundQOverP] -
+      m_res_eQOP_smt.push_back(parameter[Acts::eBoundQOverP] -
                                truthQOP);
-      m_res_eT_smt.push_back(parameter.parameters()[Acts::eBoundTime] -
+      m_res_eT_smt.push_back(parameter[Acts::eBoundTime] -
                              truthTIME);
 
       /// Smoothed parameter uncertainties
@@ -693,33 +695,38 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
 
       /// Smoothed parameter pulls
       m_pull_eLOC0_smt.push_back(
-          (parameter.parameters()[Acts::eBoundLoc0] - truthLOC0) /
+          (parameter[Acts::eBoundLoc0] - truthLOC0) /
           sqrt(covariance(Acts::eBoundLoc0, Acts::eBoundLoc0)));
       m_pull_eLOC1_smt.push_back(
-          (parameter.parameters()[Acts::eBoundLoc1] - truthLOC1) /
+          (parameter[Acts::eBoundLoc1] - truthLOC1) /
           sqrt(covariance(Acts::eBoundLoc1, Acts::eBoundLoc1)));
       m_pull_ePHI_smt.push_back(
-          (parameter.parameters()[Acts::eBoundPhi] - truthPHI) /
+          (parameter[Acts::eBoundPhi] - truthPHI) /
           sqrt(covariance(Acts::eBoundPhi, Acts::eBoundPhi)));
       m_pull_eTHETA_smt.push_back(
-          (parameter.parameters()[Acts::eBoundTheta] - truthTHETA) /
+          (parameter[Acts::eBoundTheta] - truthTHETA) /
           sqrt(covariance(Acts::eBoundTheta, Acts::eBoundTheta)));
       m_pull_eQOP_smt.push_back(
-          (parameter.parameters()[Acts::eBoundQOverP] - truthQOP) /
+          (parameter[Acts::eBoundQOverP] - truthQOP) /
           sqrt(covariance(Acts::eBoundQOverP, Acts::eBoundQOverP)));
       m_pull_eT_smt.push_back(
-          (parameter.parameters()[Acts::eBoundTime] - truthTIME) /
+          (parameter[Acts::eBoundTime] - truthTIME) /
           sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
-      m_x_smt.push_back(parameter.position(m_tGeometry->geoContext).x());
-      m_y_smt.push_back(parameter.position(m_tGeometry->geoContext).y());
-      m_z_smt.push_back(parameter.position(m_tGeometry->geoContext).z());
-      m_px_smt.push_back(parameter.momentum().x());
-      m_py_smt.push_back(parameter.momentum().y());
-      m_pz_smt.push_back(parameter.momentum().z());
-      m_pT_smt.push_back(sqrt(parameter.momentum().x() * parameter.momentum().x() 
-			      + parameter.momentum().y() * parameter.momentum().y()));
-      m_eta_smt.push_back(eta(parameter.position(m_tGeometry->geoContext)));
+      Acts::FreeVector freeparams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geoContext, parameter);
+      
+      /// Other smoothed parameter info
+      m_x_smt.push_back(freeparams[Acts::eFreePos0]);
+      m_y_smt.push_back(freeparams[Acts::eFreePos1]);
+      m_z_smt.push_back(freeparams[Acts::eFreePos2]);
+      auto p = std::abs(1/freeparams[Acts::eFreeQOverP]);
+      m_px_smt.push_back(p * freeparams[Acts::eFreeDir0]);
+      m_py_smt.push_back(p * freeparams[Acts::eFreeDir1]);
+      m_pz_smt.push_back(p * freeparams[Acts::eFreeDir2]);
+      m_pT_smt.push_back(sqrt(p * std::hypot(freeparams[Acts::eFreeDir0],
+					     freeparams[Acts::eFreeDir1])));
+      m_eta_smt.push_back(eta(freeparams.segment<3>(Acts::eFreeDir0)));
+
     }
     else
     {
@@ -776,13 +783,13 @@ void ActsEvaluator::visitTrackStates(const Trajectory traj,
 
 
 
-Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode */*topNode*/,
+Acts::Vector3 ActsEvaluator::getGlobalTruthHit(PHCompositeNode */*topNode*/,
 						TrkrDefs::cluskey cluskey,
 						float &_gt)
 {
   SvtxClusterEval *clustereval = m_svtxEvalStack->get_cluster_eval();
 
-  std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(cluskey);
+  const auto [truth_ckey, truth_cluster] = clustereval->max_truth_cluster_by_energy(cluskey);
   
   float gx = -9999;
   float gy = -9999;
@@ -801,7 +808,7 @@ Acts::Vector3D ActsEvaluator::getGlobalTruthHit(PHCompositeNode */*topNode*/,
   gy *= Acts::UnitConstants::cm;
   gz *= Acts::UnitConstants::cm;
   
-  Acts::Vector3D globalPos(gx, gy, gz);
+  Acts::Vector3 globalPos(gx, gy, gz);
   _gt = gt;
   return globalPos;
   
@@ -833,8 +840,23 @@ Surface ActsEvaluator::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfke
 //___________________________________________________________________________________
 Surface ActsEvaluator::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
 {
+  unsigned int trkrid =  TrkrDefs::getTrkrId(hitsetkey);
+  TrkrDefs::hitsetkey tmpkey = hitsetkey;
+
+  if(trkrid == TrkrDefs::inttId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = InttDefs::resetCrossingHitSetKey(hitsetkey);
+    }
+
+  if(trkrid == TrkrDefs::mvtxId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);
+    }
+
   auto surfMap = m_surfMaps->siliconSurfaceMap;
-  auto iter = surfMap.find(hitsetkey);
+  auto iter = surfMap.find(tmpkey);
   if(iter != surfMap.end())
     {
       return iter->second;
@@ -848,7 +870,8 @@ Surface ActsEvaluator::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
 //___________________________________________________________________________________
 Surface ActsEvaluator::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey)
 {
-  const auto iter = m_surfMaps->tpcSurfaceMap.find(hitsetkey);
+  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+  const auto iter = m_surfMaps->tpcSurfaceMap.find(layer);
   if(iter != m_surfMaps->tpcSurfaceMap.end())
   {
     auto surfvec = iter->second;
@@ -873,10 +896,10 @@ void ActsEvaluator::fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode)
   if(Verbosity() > 2)
     std::cout << "Filling proto track seed quantities" << std::endl;
 
-  Acts::Vector3D position(track->get_x() * 10, track->get_y() * 10,
+  Acts::Vector3 position(track->get_x() * 10, track->get_y() * 10,
 			  track->get_z() * 10);
  
-  Acts::Vector3D momentum(track->get_px(), 
+  Acts::Vector3 momentum(track->get_px(), 
 			  track->get_py(),
 			  track->get_pz());
 
@@ -895,11 +918,11 @@ void ActsEvaluator::fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode)
       auto cluster = m_clusterContainer->findCluster(key);
       
       /// Get source link global position
-      Acts::Vector2D loc(cluster->getLocalX() * 10,
+      Acts::Vector2 loc(cluster->getLocalX() * 10,
 			 cluster->getLocalY() * 10);
    
-      Acts::Vector3D mom(0,0,0);
-      Acts::Vector3D globalPos(cluster->getX() * 10,
+      Acts::Vector3 mom(0,0,0);
+      Acts::Vector3 globalPos(cluster->getX() * 10,
 			       cluster->getY() * 10,
 			       cluster->getZ() * 10);
    
@@ -912,7 +935,7 @@ void ActsEvaluator::fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode)
       /// Get corresponding truth hit position
       float gt = -9999;
   
-      Acts::Vector3D globalTruthPos = getGlobalTruthHit(topNode, key, gt);
+      Acts::Vector3 globalTruthPos = getGlobalTruthHit(topNode, key, gt);
  
       float gx = globalTruthPos(0);
       float gy = globalTruthPos(1);
@@ -920,7 +943,7 @@ void ActsEvaluator::fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode)
       
       /// Get local truth position
       const float r = sqrt(gx * gx + gy * gy + gz * gz);
-      Acts::Vector3D globalTruthUnitDir(gx / r, gy / r, gz / r);
+      Acts::Vector3 globalTruthUnitDir(gx / r, gy / r, gz / r);
       
       auto surf = getSurface(key, cluster->getSubSurfKey());
 
@@ -930,7 +953,7 @@ void ActsEvaluator::fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode)
     
       if(truthLocal.ok())
 	{
-	  Acts::Vector2D truthLocalVec = truthLocal.value();
+	  Acts::Vector2 truthLocalVec = truthLocal.value();
 	  
 	  m_t_SL_lx.push_back(truthLocalVec(0));
 	  m_t_SL_ly.push_back(truthLocalVec(1));
@@ -955,7 +978,7 @@ void ActsEvaluator::fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode)
 
 void ActsEvaluator::fillFittedTrackParams(const Trajectory traj, 
 					  const size_t &trackTip,
-					  const Acts::Vector3D vertex)
+					  const Acts::Vector3 vertex)
 {
   m_hasFittedParams = false;
 
@@ -1026,11 +1049,11 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
 }
 
 void ActsEvaluator::calculateDCA(const Acts::BoundTrackParameters param,
-				 const Acts::Vector3D vertex)
+				 const Acts::Vector3 vertex)
 {
 
-  Acts::Vector3D pos = param.position(m_tGeometry->geoContext);
-  Acts::Vector3D mom = param.momentum();
+  Acts::Vector3 pos = param.position(m_tGeometry->geoContext);
+  Acts::Vector3 mom = param.momentum();
   
   /// Correct for vertex position
   pos -= vertex;
@@ -1039,7 +1062,7 @@ void ActsEvaluator::calculateDCA(const Acts::BoundTrackParameters param,
   if(param.covariance())
     cov = param.covariance().value();
 
-  Acts::ActsSymMatrixD<3> posCov;
+  Acts::ActsSymMatrix<3> posCov;
   for(int i = 0; i < 3; ++i)
     {
       for(int j = 0; j < 3; ++j)
@@ -1048,11 +1071,11 @@ void ActsEvaluator::calculateDCA(const Acts::BoundTrackParameters param,
 	} 
     }
 
-  Acts::Vector3D r = mom.cross(Acts::Vector3D(0.,0.,1.));
+  Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
   float phi = atan2(r(1), r(0));
 
-  Acts::RotationMatrix3D rot;
-  Acts::RotationMatrix3D rot_T;
+  Acts::RotationMatrix3 rot;
+  Acts::RotationMatrix3 rot_T;
   rot(0,0) = cos(phi);
   rot(0,1) = -sin(phi);
   rot(0,2) = 0;
@@ -1065,8 +1088,8 @@ void ActsEvaluator::calculateDCA(const Acts::BoundTrackParameters param,
   
   rot_T = rot.transpose();
 
-  Acts::Vector3D pos_R = rot * pos;
-  Acts::ActsSymMatrixD<3> rotCov = rot * posCov * rot_T;
+  Acts::Vector3 pos_R = rot * pos;
+  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
 
   m_dca3Dxy = pos_R(0);
   m_dca3Dz = pos_R(2);
@@ -1461,6 +1484,7 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("t_SL_gy", &m_t_SL_gy);
   m_trackTree->Branch("t_SL_gz", &m_t_SL_gz);
 
+  m_trackTree->Branch("nSharedHits",&m_nSharedHits);
   m_trackTree->Branch("nHoles", &m_nHoles);
   m_trackTree->Branch("nOutliers", &m_nOutliers);
   m_trackTree->Branch("nStates", &m_nStates);

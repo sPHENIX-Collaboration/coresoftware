@@ -39,7 +39,7 @@ struct ActsSurfaceMaps;
 struct ActsTrackingGeometry;
 class PHCompositeNode;  
 class PHTimer;
-class SvtxTrack_v2;
+class SvtxTrack_v3;
 class TpcDistortionCorrectionContainer;
 class TrkrCluster;
 
@@ -52,7 +52,7 @@ using pointKey = std::pair<point, TrkrDefs::cluskey>;
 using coordKey = std::pair<std::array<float,3>, TrkrDefs::cluskey>;
 using keylink = std::array<coordKey,2>;
 using keylist = std::vector<TrkrDefs::cluskey>;
-using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3F>;
+using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
 class PHCASeeding : public PHTrackSeeding
 {
@@ -111,7 +111,7 @@ class PHCASeeding : public PHTrackSeeding
    * uses ActsTransformation to convert cluster local position into global coordinates
    * incorporates TPC distortion correction, if present
    */
-  Acts::Vector3D getGlobalPosition(TrkrCluster*) const;
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
 
   PositionMap FillTree();
   int FindSeedsWithMerger(const PositionMap&);
@@ -121,7 +121,7 @@ class PHCASeeding : public PHTrackSeeding
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values) const;
   std::vector<keylist> RemoveBadClusters(const std::vector<keylist>& seeds, const PositionMap& globalPositions) const;
   
-  void publishSeeds(const std::vector<SvtxTrack_v2>& seeds);
+  void publishSeeds(const std::vector<SvtxTrack_v3>& seeds);
 
   //int _nlayers_all;
   //unsigned int _nlayers_seeding;

@@ -2,6 +2,7 @@
 
 #include "PHG4MvtxDefs.h"
 #include "PHG4MvtxDisplayAction.h"
+#include "PHG4MvtxSupport.h"
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 
@@ -22,8 +23,6 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4GDMLParser.hh>
-#include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
@@ -35,6 +34,15 @@
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Polycone.hh>
+
+
+// xerces has some shadowed variables
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <Geant4/G4GDMLParser.hh>
+#include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
+#pragma GCC diagnostic pop
 
 #include <cmath>
 #include <cstdio>    // for sprintf
@@ -48,16 +56,16 @@ using namespace std;
 
 namespace mvtxGeomDef
 {
-  double mvtx_shell_inner_radius            =  4.8  * cm;
-  double skin_thickness                     =  0.01 * cm;
-  double foam_core_thickness                =  0.18 * cm;
-  double mvtx_shell_length                  = 50.   * cm;
+  double mvtx_shell_inner_radius            = 4.8  * cm;
+  double skin_thickness                     = 0.01 * cm;
+  double foam_core_thickness                = 0.18 * cm;
+  double mvtx_shell_length                  = 46.  * cm;
   double mvtx_shell_thickness =  skin_thickness + foam_core_thickness + skin_thickness;
 
-  double wrap_rmin = 2.1 * cm;
-  double wrap_rmax = mvtx_shell_inner_radius + mvtx_shell_thickness;
+  double wrap_rmin = 2.2 * cm;
+  double wrap_rmax = mvtx_shell_inner_radius + mvtx_shell_thickness + 0.8 * cm;
   double wrap_zlen = mvtx_shell_length;
-};
+}
 
 PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -176,11 +184,14 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
          << "PHG4MvtxDetector::Construct called for Mvtx " << endl;
   }
 
-  //Create a wrapper volume
-  auto tube = new G4Tubs("sol_MVTX_Wrapper", mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmax,
-                         mvtxGeomDef::wrap_zlen / 2.0, -M_PI, 2.0 * M_PI);
+  const G4double rMax = (10.330 + 0.436 + 0.001)*cm;
+  const G4int numZPlanes = 4;
+  const G4double zPlane[numZPlanes] = {-160*cm, -30.65*cm, -23.95*cm, mvtxGeomDef::wrap_zlen / 2.0};
+  const G4double rInner[numZPlanes] = {mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin};
+  const G4double rOuter[numZPlanes] = {rMax, rMax, mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_rmax};
+  auto polycone = new G4Polycone("sol_MVTX_Wrapper", 0, 2.0 * M_PI, numZPlanes, zPlane, rInner, rOuter);
   auto world_mat = logicWorld->GetMaterial();
-  auto logicMVTX = new G4LogicalVolume(tube, world_mat, "log_MVTX_Wrapper");
+  auto logicMVTX = new G4LogicalVolume(polycone, world_mat, "log_MVTX_Wrapper");
   new G4PVPlacement(new G4RotationMatrix(), G4ThreeVector(), logicMVTX, "MVTX_Wrapper", logicWorld, false, 0, false);
 
   // the tracking layers are placed directly in the world volume, since some layers are (touching) double layers
@@ -344,9 +355,9 @@ int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume*& lv)
   //=======================================================
   // Add an outer shell for the MVTX - moved it from INTT PHG4InttDetector.cc
   //=======================================================
-  G4LogicalVolume *mvtx_shell_outer_skin_volume = GetMvtxOuterShell(lv);
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,
-                    "mvtx_shell_outer_skin_volume", lv, false, 0, OverlapCheck());
+  //G4LogicalVolume *mvtx_shell_outer_skin_volume = GetMvtxOuterShell(lv);
+  //new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,
+  //                  "mvtx_shell_outer_skin_volume", lv, false, 0, OverlapCheck());
 
   //===================================
   // Construct Services geometry
@@ -375,6 +386,12 @@ int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume*& lv)
     G4AssemblyVolume* av_EW_N = reader->GetAssembly("EndWheelsSideC");
     av_EW_N->MakeImprint(lv, TrN, 0, OverlapCheck());
   }
+  //Now construct service barrel, CYSS, cones and cables
+  PHG4MvtxSupport *mvtxSupportSystem = new PHG4MvtxSupport(m_DisplayAction, OverlapCheck());
+  mvtxSupportSystem->ConstructMvtxSupport(lv); 
+
+  delete mvtxSupportSystem;
+  
   return 0;
 }
 

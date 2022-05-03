@@ -16,7 +16,7 @@ namespace
 }
 
 //________________________________________________________
-Acts::Vector3D TpcDistortionCorrection::get_corrected_position( const Acts::Vector3D& source, const TpcDistortionCorrectionContainer* dcc, unsigned int mask) const
+Acts::Vector3 TpcDistortionCorrection::get_corrected_position( const Acts::Vector3& source, const TpcDistortionCorrectionContainer* dcc, unsigned int mask) const
 {
   // get cluster radius, phi and z
   const auto r = std::sqrt( square( source.x() ) + square( source.y() ) );

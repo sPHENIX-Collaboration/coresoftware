@@ -38,8 +38,13 @@ class FlagSave : public PHObject
     return 0;
   }
 
-  virtual int FillFromPHFlag(const PHFlag* /*flags*/) { return -1; }
-  virtual int PutFlagsBack(PHFlag* /*flags*/) { return -1; }
+  /// Flags are read during InitRun() and written during End()
+  /// Fills DST object with flags, if clearold is set, old flags from previous files
+  /// which were deleted will not be saved
+  virtual int FillFromPHFlag(const PHFlag* /*flags*/, const bool /* clearold */) { return -1; }
+  /// Read back flags from the DST, if overwrite is set: flags from DST object will overwrite
+  /// flag values set in the macro
+  virtual int PutFlagsBack(PHFlag* /*flags*/, const bool /* overwrite */) { return -1; }
 
  private:
   ClassDefOverride(FlagSave, 1)

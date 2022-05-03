@@ -1,6 +1,6 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-// $Id: $                                                                                             
+// $Id: $
 
 /*!
  * \file PHG4OuterHcalFieldSetup.h
@@ -26,11 +26,10 @@ class G4MagneticField;
  */
 class PHG4OuterHcalFieldSetup
 {
-public:
+ public:
   PHG4OuterHcalFieldSetup(G4int steelPlates, G4double scintiGap,
-      G4double tiltAngle);
-  virtual
-    ~PHG4OuterHcalFieldSetup(){}
+                          G4double tiltAngle);
+  virtual ~PHG4OuterHcalFieldSetup() {}
 
   G4FieldManager*
   get_Field_Manager_Gap() const
@@ -104,8 +103,7 @@ public:
     tilt_angle = tiltAngle;
   }
 
-private:
-
+ private:
   G4FieldManager* fFieldManagerIron;
   G4FieldManager* fFieldManagerGap;
   G4Mag_UsualEqRhs* fEquationIron;

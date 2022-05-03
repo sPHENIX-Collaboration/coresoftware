@@ -38,7 +38,8 @@ my %proddesc = (
     "7" => "HF pythia8 Charm",
     "8" => "HF pythia8 Bottom",
     "9" => "HF pythia8 Charm D0",
-    "10" => "HF pythia8 Bottom D0"
+    "10" => "HF pythia8 Bottom D0",
+    "11" => "JS pythia8 Jet R=4"
     );
 
 
@@ -46,12 +47,15 @@ my $nEvents;
 my $start_segment;
 my $randomize;
 my $prodtype;
-my $runnumber= 2;
+my $runnumber = 4;
 my $verbose;
 my $nopileup;
-GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, "nopileup" => \$nopileup, 'rand' => \$randomize, 's:i' => \$start_segment, 'run:i' => \$runnumber, "verbose" =>\$verbose);
+my $embed;
+
+GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, "nopileup" => \$nopileup, 'rand' => \$randomize, 's:i' => \$start_segment, 'run:i' => \$runnumber, "verbose" =>\$verbose, 'embed' => \$embed);
 my $filenamestring;
 my %filetypes = ();
+my %notlike = ();
 if (defined $prodtype)
 {
     if ($prodtype == 1)
@@ -74,6 +78,7 @@ if (defined $prodtype)
     elsif ($prodtype == 4)
     {
 	$filenamestring = "sHijing_0_20fm_50kHz_bkg_0_20fm";
+        $notlike{$filenamestring} = "pythia8";
 	&commonfiletypes();
     }
     elsif ($prodtype == 5)
@@ -123,6 +128,22 @@ if (defined $prodtype)
 	}
 	&commonfiletypes();
     }
+    elsif ($prodtype == 11)
+    {
+	$filenamestring = "pythia8_Jet04";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		$filenamestring = sprintf("%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring);
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_3MHz",$filenamestring);
+	    }
+	}
+	&commonfiletypes();
+    }
     else
     {
 	print "no production type $prodtype\n";
@@ -130,7 +151,7 @@ if (defined $prodtype)
     }
     &fill_other_types();
 }
-$filenamestring = sprintf("%s\-%010d-",$filenamestring,$runnumber);
+my $filenamestring_with_runnumber = sprintf("%s\-%010d-",$filenamestring,$runnumber);
 if ($#ARGV < 0)
 {
     if (! defined $prodtype)
@@ -236,20 +257,25 @@ while($#ARGV >= 0)
     shift (@ARGV);
 
 }
-print "This Can Take a While (a minute give or take)\n";
-my $conds = sprintf("dsttype = ? and filename like \'\%%%s\%\'",$filenamestring);
+print "This Can Take a While (10 minutes depending on the amount of events and the number of file types you want)\n";
+my $conds = sprintf("dsttype = ? and filename like \'\%%%s\%\'",$filenamestring_with_runnumber);
+if (exists $notlike{$filenamestring})
+{
+    $conds = sprintf("%s and filename not like  \'\%%%s\%\'",$conds,$notlike{$filenamestring});
+}
 if (defined $start_segment)
 {
     $conds = sprintf("%s and segment >= %d",$conds,$start_segment);
 }
 my $getfilesql = sprintf("select filename,segment,events from datasets where %s order by segment",$conds);
+#my $getfilesql = sprintf("select filename,segment,events from datasets where %s ",$conds);
 
 my %getfiles = ();
 foreach  my $tp (keys %req_types)
 {
     if ($tp eq "G4Hits")
     {
-	my @sp1 = split(/_/,$filenamestring);
+	my @sp1 = split(/_/,$filenamestring_with_runnumber);
 	my $newfilenamestring;
 	if ($#sp1 == 3 ||$#sp1 == 6 )
 	{
@@ -261,11 +287,11 @@ foreach  my $tp (keys %req_types)
 	}
 	else
 	{
-	    print "splitting $filenamestring gave bad number of _: $#sp1\n";
+	    print "splitting $filenamestring_with_runnumber gave bad number of _: $#sp1\n";
 	    die;
 	}
 	my $newgetfilesql = $getfilesql;
-	$newgetfilesql =~ s/$filenamestring/$newfilenamestring/;
+	$newgetfilesql =~ s/$filenamestring_with_runnumber/$newfilenamestring/;
 	$getfiles{"G4Hits"} = $dbh->prepare($newgetfilesql);
 	if (defined $verbose)
 	{
@@ -283,6 +309,10 @@ foreach  my $tp (keys %req_types)
 }
 #die;
 # here we fill the big hash with all segments/files for all requested filetypes
+if (defined $verbose)
+{
+    print "fetching files from DB done, hashing all of them\n";
+}
 foreach my $tp (sort keys %req_types)
 {
     my %dsthash = ();
@@ -307,6 +337,10 @@ my $entries = 100000; # given that we have 1000 files max, this value is always 
 my $lowtype;
 # here we find the dst type with the smallest number of entries (segments)
 # so we do not loop too much when finding matches for the other types
+if (defined $verbose)
+{
+    print "hashing done, finding hash with lowest number of entries\n";
+}
 foreach my $tp (sort keys %allfilehash)
 {
     if ($entries > keys %{$allfilehash{$tp}})
@@ -318,6 +352,10 @@ foreach my $tp (sort keys %allfilehash)
 # here $lowtype is the dst type with the smallest number of segments
 #print "lowest entries: $entries, type: $lowtype\n";
 #print Dumper(%allevthash);
+if (defined $verbose)
+{
+    print "matching hashes\n";
+}
 
 my @segarray = ();
 foreach my $seg (sort keys %{$allfilehash{$lowtype}})
@@ -393,7 +431,7 @@ sub commonfiletypes
     $filetypes{"DST_BBC_G4HIT"} = "Pileup BBC/MBD G4Hits";
     $filetypes{"DST_CALO_G4HIT"} = "Pileup Calorimeter G4Hits";
     $filetypes{"DST_TRKR_G4HIT"} = "Pileup Tracking Detector G4 Hits";
-    $filetypes{"DST_TRUTH_G4HIT"} = "Pileup Truth info";
+    $filetypes{"DST_TRUTH_G4HIT"} = "temporary Pileup Truth info, use DST_TRUTH";
     $filetypes{"DST_VERTEX"} = "Pileup Simulated Smeared Vertex";
 # pass3 calo
     $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";

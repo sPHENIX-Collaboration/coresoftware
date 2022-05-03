@@ -20,16 +20,30 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
   ActsTrackingGeometry.h \
+  CMFlashCluster.h \
+  CMFlashClusterv1.h \
+  CMFlashClusterContainer.h \
+  CMFlashClusterContainerv1.h \
+  CMFlashDifference.h \
+  CMFlashDifferencev1.h \
+  CMFlashDifferenceContainer.h \
+  CMFlashDifferenceContainerv1.h \
+  InttDefs.h \
+  MvtxDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
   TrkrCluster.h \
   TrkrClusterv1.h \
   TrkrClusterv2.h \
   TrkrClusterv3.h \
+  TrkrClusterv4.h \
   TrkrClusterContainer.h \
   TrkrClusterContainerv1.h \
   TrkrClusterContainerv2.h \
   TrkrClusterContainerv3.h \
+  TrkrClusterContainerv4.h \
+  TrkrClusterCrossingAssoc.h \
+  TrkrClusterCrossingAssocv1.h \
   TrkrClusterHitAssoc.h \
   TrkrClusterHitAssocv1.h \
   TrkrClusterHitAssocv2.h \
@@ -48,14 +62,26 @@ pkginclude_HEADERS = \
   TrkrHitSetContainerv1.h
 
 ROOTDICTS = \
+  CMFlashCluster_Dict.cc \
+  CMFlashClusterv1_Dict.cc \
+  CMFlashClusterContainer_Dict.cc \
+  CMFlashClusterContainerv1_Dict.cc \
+  CMFlashDifference_Dict.cc \
+  CMFlashDifferencev1_Dict.cc \
+  CMFlashDifferenceContainer_Dict.cc \
+  CMFlashDifferenceContainerv1_Dict.cc \
   TrkrCluster_Dict.cc \
   TrkrClusterv1_Dict.cc \
   TrkrClusterv2_Dict.cc \
   TrkrClusterv3_Dict.cc \
-  TrkrClusterContainer_Dict.cc \
+   TrkrClusterContainer_Dict.cc \
+  TrkrClusterv4_Dict.cc \
   TrkrClusterContainerv1_Dict.cc \
   TrkrClusterContainerv2_Dict.cc \
   TrkrClusterContainerv3_Dict.cc \
+  TrkrClusterContainerv4_Dict.cc \
+  TrkrClusterCrossingAssoc_Dict.cc \
+  TrkrClusterCrossingAssocv1_Dict.cc \
   TrkrClusterHitAssoc_Dict.cc \
   TrkrClusterHitAssocv1_Dict.cc \
   TrkrClusterHitAssocv2_Dict.cc \
@@ -77,14 +103,26 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  CMFlashCluster_Dict_rdict.pcm \
+  CMFlashClusterv1_Dict_rdict.pcm \
+  CMFlashClusterContainer_Dict_rdict.pcm \
+  CMFlashClusterContainerv1_Dict_rdict.pcm \
+  CMFlashDifference_Dict_rdict.pcm \
+  CMFlashDifferencev1_Dict_rdict.pcm \
+  CMFlashDifferenceContainer_Dict_rdict.pcm \
+  CMFlashDifferenceContainerv1_Dict_rdict.pcm \
   TrkrCluster_Dict_rdict.pcm \
   TrkrClusterv1_Dict_rdict.pcm \
   TrkrClusterv2_Dict_rdict.pcm \
   TrkrClusterv3_Dict_rdict.pcm \
-  TrkrClusterContainer_Dict_rdict.pcm \
+   TrkrClusterContainer_Dict_rdict.pcm \
+  TrkrClusterv4_Dict_rdict.pcm \
   TrkrClusterContainerv1_Dict_rdict.pcm \
   TrkrClusterContainerv2_Dict_rdict.pcm \
   TrkrClusterContainerv3_Dict_rdict.pcm \
+  TrkrClusterContainerv4_Dict_rdict.pcm \
+  TrkrClusterCrossingAssoc_Dict_rdict.pcm \
+  TrkrClusterCrossingAssocv1_Dict_rdict.pcm \
   TrkrClusterHitAssoc_Dict_rdict.pcm \
   TrkrClusterHitAssocv1_Dict_rdict.pcm \
   TrkrClusterHitAssocv2_Dict_rdict.pcm \
@@ -107,13 +145,23 @@ nobase_dist_pcm_DATA = \
 libtrack_io_la_SOURCES = \
   $(ROOTDICTS) \
   ActsSurfaceMaps.cc \
+  CMFlashClusterv1.cc \
+  CMFlashClusterContainerv1.cc \
+  CMFlashDifferencev1.cc \
+  CMFlashDifferenceContainerv1.cc \
+  InttDefs.cc \
+  MvtxDefs.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
   TrkrClusterv3.cc \
+  TrkrClusterv4.cc \
   TrkrClusterContainer.cc \
   TrkrClusterContainerv1.cc \
   TrkrClusterContainerv2.cc \
   TrkrClusterContainerv3.cc \
+  TrkrClusterContainerv4.cc \
+  TrkrClusterCrossingAssoc.cc \
+  TrkrClusterCrossingAssocv1.cc \
   TrkrClusterHitAssoc.cc \
   TrkrClusterHitAssocv1.cc \
   TrkrClusterHitAssocv2.cc \

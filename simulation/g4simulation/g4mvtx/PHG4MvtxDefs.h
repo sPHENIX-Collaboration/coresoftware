@@ -3,6 +3,9 @@
 #ifndef G4MVTX_PHG4MVTXDEFS_H
 #define G4MVTX_PHG4MVTXDEFS_H
 
+#include <string>
+#include <vector>
+
 namespace PHG4MvtxDefs
 {
 
@@ -30,6 +33,6 @@ namespace PHG4MvtxDefs
 
 // detid of support structures
 
-};  // namespace PHG4MvtxDefs
+}  // namespace PHG4MvtxDefs
 
 #endif

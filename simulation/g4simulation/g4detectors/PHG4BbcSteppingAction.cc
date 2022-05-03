@@ -125,7 +125,8 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
   //       std::cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
   //       std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
 
-  int detector_id = touch->GetCopyNumber();
+  //int detector_id = touch->GetCopyNumber(); // not used
+  int tube_id = touch->GetCopyNumber(1);
 
   // Create a new hit if a G4 Track enters a new volume or is freshly created
   // For this we look at the step status of the prePoint (beginning of the G4 Step).
@@ -165,7 +166,9 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     {
       m_Hit = new PHG4Hitv1();
     }
-    m_Hit->set_layer(detector_id);
+    m_Hit->set_layer(tube_id);
+    m_Hit->set_scint_id(tube_id);
+
     //here we set the entrance values in cm
     m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
     m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
@@ -306,7 +309,7 @@ bool PHG4BbcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
         m_Hit->set_eion(m_EionSum);
         m_Hit->set_path_length(m_PathLen);
       }
-      m_SaveHitContainer->AddHit(detector_id, m_Hit);
+      m_SaveHitContainer->AddHit(tube_id, m_Hit);
       // ownership has been transferred to container, set to null
       // so we will create a new hit for the next track
       m_Hit = nullptr;

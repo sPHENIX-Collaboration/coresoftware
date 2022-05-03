@@ -7,13 +7,13 @@
 
 #include <trackbase/ActsTrackingGeometry.h>
 
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Propagator/Propagator.hpp>
 #include <Acts/Utilities/Result.hpp>
 #include <Acts/Surfaces/CylinderSurface.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 
-#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/EventData/Trajectories.hpp>
 
 class PHCompositeNode;
 class RawClusterContainer;
@@ -31,7 +31,7 @@ using BoundTrackParamPtr =
   std::unique_ptr<const Acts::BoundTrackParameters>;
 using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
-using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
+using Trajectory = ActsExamples::Trajectories;
 
 
 /**
@@ -53,6 +53,16 @@ class PHActsTrackProjection : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
   
+  /// Set an arbitrary radius to project to, in cm
+  void setLayerRadius(SvtxTrack::CAL_LAYER layer,
+		      const float rad) { 
+
+    if(m_caloRadii.find(layer) != m_caloRadii.end())
+      m_caloRadii[layer] = rad;
+    else
+      m_caloRadii.insert(std::make_pair(layer, rad));
+  }
+
  private:
   
   int getNodes(PHCompositeNode *topNode);
@@ -86,7 +96,7 @@ class PHActsTrackProjection : public SubsysReco
 			    double& minDeta, double& minE);
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
   double deltaPhi(const double& phi);
-  Acts::Vector3D getVertex(SvtxTrack* track);
+  Acts::Vector3 getVertex(SvtxTrack* track);
 
   /// Objects containing the Acts track fit results
   ActsTrackingGeometry *m_tGeometry = nullptr;
@@ -101,13 +111,18 @@ class PHActsTrackProjection : public SubsysReco
   std::vector<std::string> m_caloNames;
   std::vector<SvtxTrack::CAL_LAYER> m_caloTypes;
   std::map<std::string, SurfacePtr> m_caloSurfaces;
-  
+  /// An optional map that allows projection to an arbitrary radius
+  /// Results are written to the SvtxTrack based on the provided CAL_LAYER
+  std::map<SvtxTrack::CAL_LAYER, float> m_caloRadii;
+
   RawTowerGeomContainer *m_towerGeomContainer = nullptr;
   RawTowerContainer *m_towerContainer = nullptr;
   RawClusterContainer *m_clusterContainer = nullptr;
 
   bool m_useCemcPosRecalib = false;
 
+  bool m_calosAvailable = true;
+  
   int m_event = 0;
 };
 

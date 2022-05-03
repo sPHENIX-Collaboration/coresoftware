@@ -148,7 +148,7 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
-  set_default_double_param("tpc_length", 211.);
+  set_default_double_param("tpc_length", 211.);  
 
   set_default_double_param("steplimits", NAN);
 

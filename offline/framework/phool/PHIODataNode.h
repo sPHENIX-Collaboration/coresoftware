@@ -29,15 +29,15 @@ class PHIODataNode : public PHDataNode<T>
   void SplitLevel(int split) {splitlevel = split;}
 
  protected:
-  virtual bool write(PHIOManager *, const std::string & = "");
+  bool write(PHIOManager *, const std::string & = "") override;
   PHIODataNode() = delete;
   int buffersize;
   int splitlevel;
 };
 
 template <class T>
-PHIODataNode<T>::PHIODataNode(T *d, const std::string &name)
-  : PHDataNode<T>(d, name)
+PHIODataNode<T>::PHIODataNode(T *d, const std::string &n)
+  : PHDataNode<T>(d, n)
   , buffersize(32000)
   , splitlevel(99)
 {
@@ -47,9 +47,9 @@ PHIODataNode<T>::PHIODataNode(T *d, const std::string &name)
 }
 
 template <class T>
-PHIODataNode<T>::PHIODataNode(T *d, const std::string &name,
+PHIODataNode<T>::PHIODataNode(T *d, const std::string &n,
                               const std::string &objtype)
-  : PHDataNode<T>(d, name, objtype)
+  : PHDataNode<T>(d, n, objtype)
   , buffersize(32000)
   , splitlevel(99)
 {

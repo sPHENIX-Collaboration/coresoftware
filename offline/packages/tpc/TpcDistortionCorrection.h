@@ -7,7 +7,7 @@
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 
 class TpcDistortionCorrectionContainer;
 
@@ -35,10 +35,11 @@ class TpcDistortionCorrection
   };
   
   //! get cluster corrected 3D position using given DistortionCorrectionObject
-  Acts::Vector3D get_corrected_position( const Acts::Vector3D&, const TpcDistortionCorrectionContainer*, unsigned int mask = COORD_ALL ) const;
+ Acts::Vector3 get_corrected_position( const Acts::Vector3&, const TpcDistortionCorrectionContainer*, 
+					unsigned int mask = COORD_ALL ) const;
 
-    //! get cluster corrected 3D position using given DistortionCorrectionObject
-  TVector3 get_corrected_position( const TVector3&, const TpcDistortionCorrectionContainer*, unsigned int mask = COORD_ALL ) const;
+ //! get cluster corrected 3D position using given DistortionCorrectionObject
+ TVector3 get_corrected_position( const TVector3&, const TpcDistortionCorrectionContainer*, unsigned int mask = COORD_ALL ) const;
 
 };
 

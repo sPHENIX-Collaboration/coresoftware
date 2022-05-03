@@ -1,9 +1,6 @@
 #include "PHG4TpcPadPlaneReadout.h"
 
-#include <g4detectors/PHG4Cell.h>  // for PHG4Cell
-#include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CellDefs.h>  // for genkey, keytype
-#include <g4detectors/PHG4Cellv1.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
@@ -113,191 +110,6 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/,
   return 0;
 }
 
-// This is obsolete, it uses the old PHG4Cell containers
-void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)
-{
-  // One electron per call of this method
-  // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
-  // The z_gem value already reflects the drift time of the primary electron from the production point, and is randomized within the longitudinal diffusion witdth
-
-  double phi = atan2(y_gem, x_gem);
-  if (phi > +M_PI) phi -= 2 * M_PI;
-  if (phi < -M_PI) phi += 2 * M_PI;
-
-  rad_gem = sqrt(x_gem * x_gem + y_gem * y_gem);
-  //std::cout << "Enter old MapToPadPlane with rad_gem " << rad_gem << std::endl;
-
-  unsigned int layernum = 0;
-
-  // Find which readout layer this electron ends up in
-
-  PHG4CylinderCellGeomContainer::ConstRange layerrange = GeomContainer->get_begin_end();
-  for (PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
-       layeriter != layerrange.second;
-       ++layeriter)
-  {
-    double rad_low = layeriter->second->get_radius() - layeriter->second->get_thickness() / 2.0;
-    double rad_high = layeriter->second->get_radius() + layeriter->second->get_thickness() / 2.0;
-
-    if (rad_gem > rad_low && rad_gem < rad_high)
-    {
-      // capture the layer where this electron hits sthe gem stack
-      LayerGeom = layeriter->second;
-      layernum = LayerGeom->get_layer();
-      if (Verbosity() > 1000 && layernum == print_layer)
-        std::cout << " g4hit id " << hiter->first << " rad_gem " << rad_gem << " rad_low " << rad_low << " rad_high " << rad_high
-                  << " layer  " << hiter->second->get_layer() << " want to change to " << layernum << std::endl;
-      hiter->second->set_layer(layernum);  // have to set here, since the stepping action knows nothing about layers
-    }
-  }
-
-  if (layernum == 0)
-  {
-    return;
-  }
-
-  // store phi bins and zbins upfront to avoid repetitive checks on the phi methods
-  const auto phibins = LayerGeom->get_phibins();
-  const auto zbins = LayerGeom->get_zbins();
-
-  // Create the distribution function of charge on the pad plane around the electron position
-
-  // The resolution due to pad readout includes the charge spread during GEM multiplication.
-  // this now defaults to 400 microns during construction from Tom (see 8/11 email).
-  // Use the setSigmaT(const double) method to update...
-  // We use a double gaussian to represent the smearing due to the SAMPA chip shaping time - default values of fShapingLead and fShapingTail are for 80 ns SAMPA
-
-  // amplify the single electron in the gem stack
-  //===============================
-
-  double nelec = getSingleEGEMAmplification();
-
-  // Distribute the charge between the pads in phi
-  //====================================
-
-  if (Verbosity() > 200)
-    std::cout << "  populate phi bins for "
-              << " layernum " << layernum
-              << " phi " << phi
-              << " sigmaT " << sigmaT
-              << " zigzag_pads " << zigzag_pads
-              << std::endl;
-
-  pad_phibin.clear();
-  pad_phibin_share.clear();
-  if (zigzag_pads)
-    populate_zigzag_phibins(layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
-  else
-    populate_rectangular_phibins(layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
-
-  // Normalize the shares so they add up to 1
-  double norm1 = 0.0;
-  for (unsigned int ipad = 0; ipad < pad_phibin.size(); ++ipad)
-  {
-    double pad_share = pad_phibin_share[ipad];
-    norm1 += pad_share;
-  }
-  for (unsigned int iphi = 0; iphi < pad_phibin.size(); ++iphi)
-    pad_phibin_share[iphi] /= norm1;
-
-  // Distribute the charge between the pads in z
-  //====================================
-  if (Verbosity() > 100 && layernum == print_layer)
-    std::cout << "  populate z bins for layernum " << layernum
-              << " with z_gem " << z_gem << " sigmaL[0] " << sigmaL[0] << " sigmaL[1] " << sigmaL[1] << std::endl;
-
-  adc_zbin.clear();
-  adc_zbin_share.clear();
-  populate_zbins(z_gem, sigmaL, adc_zbin, adc_zbin_share);
-
-  // Normalize the shares so that they add up to 1
-  double znorm = 0.0;
-  for (unsigned int iz = 0; iz < adc_zbin.size(); ++iz)
-  {
-    double bin_share = adc_zbin_share[iz];
-    znorm += bin_share;
-  }
-  for (unsigned int iz = 0; iz < adc_zbin.size(); ++iz)
-    adc_zbin_share[iz] /= znorm;
-
-  // Fill cells
-  //========
-  // These are used to do a quick clustering for checking
-  double phi_integral = 0.0;
-  double z_integral = 0.0;
-  double weight = 0.0;
-
-  for (unsigned int ipad = 0; ipad < pad_phibin.size(); ++ipad)
-  {
-    int pad_num = pad_phibin[ipad];
-    double pad_share = pad_phibin_share[ipad];
-
-    for (unsigned int iz = 0; iz < adc_zbin.size(); ++iz)
-    {
-      int zbin_num = adc_zbin[iz];
-      double adc_bin_share = adc_zbin_share[iz];
-
-      // Divide electrons from avalanche between bins
-      float neffelectrons = nelec * (pad_share) * (adc_bin_share);
-      if (neffelectrons < neffelectrons_threshold) continue;  // skip signals that will be below the noise suppression threshold
-
-      if (zbin_num >= zbins) std::cout << " Error making key: adc_zbin " << zbin_num << " nzbins " << zbins << std::endl;
-      if (pad_num >= phibins) std::cout << " Error making key: pad_phibin " << pad_num << " nphibins " << phibins << std::endl;
-
-      // collect information to do simple clustering. Checks operation of PHG4CylinderCellTpcReco, and
-      // is also useful for comparison with PHG4TpcClusterizer result when running single track events.
-      // The only information written to the cell other than neffelectrons is zbin and pad number, so get those from geometry
-      double zcenter = LayerGeom->get_zcenter(zbin_num);
-      double phicenter = LayerGeom->get_phicenter(pad_num);
-      phi_integral += phicenter * neffelectrons;
-      z_integral += zcenter * neffelectrons;
-      weight += neffelectrons;
-      if (Verbosity() > 1000 && layernum == print_layer)
-        std::cout << "   zbin_num " << zbin_num << " zcenter " << zcenter << " pad_num " << pad_num << " phicenter " << phicenter
-                  << " neffelectrons " << neffelectrons << " neffelectrons_threshold " << neffelectrons_threshold << std::endl;
-
-      // Add edep from this electron for this zbin and phi bin combination to the appropriate cell
-      PHG4CellDefs::keytype key = PHG4CellDefs::SizeBinning::genkey(layernum, zbin_num, pad_num);
-      PHG4Cell *cell = g4cells->findCell(key);
-      if (!cell)
-      {
-        cell = new PHG4Cellv1(key);
-        g4cells->AddCell(cell);
-      }
-      cell->add_edep(neffelectrons);
-      cell->add_edep(hiter->first, neffelectrons);  // associates g4hit with this edep
-      if (Verbosity() > 100 && layernum == 50) cell->identify();
-    }  // end of loop over adc Z bins
-  }    // end of loop over zigzag pads
-
-  /*
-  // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
-  if (Verbosity() > 0)
-  {
-    assert(ntpad);
-    ntpad->Fill(layernum, phi, phi_integral / weight, z_gem, z_integral / weight);
-  }
-  */
-
-  if (Verbosity() > 100)
-    if (layernum == print_layer)
-    {
-      std::cout << " hit " << hit << " quick centroid for this electron " << std::endl;
-      std::cout << "      phi centroid = " << phi_integral / weight << " phi in " << phi << " phi diff " << phi_integral / weight - phi << std::endl;
-      std::cout << "      z centroid = " << z_integral / weight << " z in " << z_gem << " z diff " << z_integral / weight - z_gem << std::endl;
-      // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer print_layer.
-      // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer print_layer, if everything is working
-      //   - matches to < .01 cm for a few cases that I checked
-      /*
-      assert(nthit);
-      nthit->Fill(hit, layernum, phi, phi_integral / weight, z_gem, z_integral / weight, weight);
-      */
-    }
-
-  hit++;
-
-  return;
-}
 
 double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
 {
@@ -314,7 +126,7 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
   return nelec;
 }
 
-void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)
+void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double z_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)
 {
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
@@ -380,16 +192,13 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
               << " layernum " << layernum
               << " phi " << phi
               << " sigmaT " << sigmaT
-              << " zigzag_pads " << zigzag_pads
+      //<< " zigzag_pads " << zigzag_pads
               << std::endl;
 
   pad_phibin.clear();
   pad_phibin_share.clear();
-  if (zigzag_pads)
-    populate_zigzag_phibins(layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
-  else
-    populate_rectangular_phibins(layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
-
+  populate_zigzag_phibins(layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
+  
   // Normalize the shares so they add up to 1
   double norm1 = 0.0;
   for (unsigned int ipad = 0; ipad < pad_phibin.size(); ++ipad)
@@ -462,9 +271,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
       // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a Tpc readout module
       // The hitset key includes the layer, sector, side
 
-      // Get the side - 0 for negative z, 1 for positive z
-      unsigned int side = 0;
-      if (zcenter > 0) side = 1;
+      // The side is an input parameter
+
       // get the Tpc readout sector - there are 12 sectors with how many pads each?
       unsigned int pads_per_sector = phibins / 12;
       unsigned int sector = pad_num / pads_per_sector;
@@ -524,7 +332,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
   if (Verbosity() > 100)
     if (layernum == print_layer)
     {
-      std::cout << " hit " << hit << " quick centroid for this electron " << std::endl;
+      std::cout << " hit " << m_NHits << " quick centroid for this electron " << std::endl;
       std::cout << "      phi centroid = " << phi_integral / weight << " phi in " << phi << " phi diff " << phi_integral / weight - phi << std::endl;
       std::cout << "      z centroid = " << z_integral / weight << " z in " << z_gem << " z diff " << z_integral / weight - z_gem << std::endl;
       // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer print_layer.
@@ -537,50 +345,12 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
       */
     }
 
-  hit++;
+  m_NHits++;
 
   return;
 }
 
-void PHG4TpcPadPlaneReadout::populate_rectangular_phibins(const unsigned int /*layernum*/, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share)
-{
-  double cloud_sig_rp_inv = 1. / cloud_sig_rp;
-
-  const int phibin = LayerGeom->get_phibin(phi);
-  const int nphibins = LayerGeom->get_phibins();
-
-  double radius = LayerGeom->get_radius();
-  double phidisp = phi - LayerGeom->get_phicenter(phibin);
-  double phistepsize = LayerGeom->get_phistep();
-
-  // bin the charge in phi - consider phi bins up and down 3 sigma in r-phi
-  int n_rp = int(3 * cloud_sig_rp / (radius * phistepsize) + 1);
-  for (int iphi = -n_rp; iphi != n_rp + 1; ++iphi)
-  {
-    int cur_phi_bin = phibin + iphi;
-    // correcting for continuity in phi
-    if (cur_phi_bin < 0)
-      cur_phi_bin += nphibins;
-    else if (cur_phi_bin >= nphibins)
-      cur_phi_bin -= nphibins;
-    if ((cur_phi_bin < 0) || (cur_phi_bin >= nphibins))
-    {
-      std::cout << "PHG4CylinderCellTpcReco => error in phi continuity. Skipping" << std::endl;
-      continue;
-    }
-    // Get the integral of the charge probability distribution in phi inside the current phi step
-    double phiLim1 = 0.5 * M_SQRT2 * ((iphi + 0.5) * phistepsize * radius - phidisp * radius) * cloud_sig_rp_inv;
-    double phiLim2 = 0.5 * M_SQRT2 * ((iphi - 0.5) * phistepsize * radius - phidisp * radius) * cloud_sig_rp_inv;
-    double phi_integral = 0.5 * (erf(phiLim1) - erf(phiLim2));
-
-    pad_phibin.push_back(cur_phi_bin);
-    pad_phibin_share.push_back(phi_integral);
-  }
-
-  return;
-}
-
-void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share)
+void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &phibin_pad, std::vector<double> &phibin_pad_share)
 {
   const double radius = LayerGeom->get_radius();
   const double phistepsize = LayerGeom->get_phistep();
@@ -657,15 +427,15 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   // now we have the overlap for each pad
   for (int ipad = 0; ipad <= npads; ipad++)
   {
-    pad_phibin.push_back(pad_keep[ipad]);
-    pad_phibin_share.push_back(overlap[ipad]);
+    phibin_pad.push_back(pad_keep[ipad]);
+    phibin_pad_share.push_back(overlap[ipad]);
     if (rad_gem < output_radius) std::cout << "         zigzags: for pad " << ipad << " integral is " << overlap[ipad] << std::endl;
   }
 
   return;
 }
 
-void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const std::array<double, 2> &cloud_sig_zz, std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share)
+void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const std::array<double, 2> &cloud_sig_zz, std::vector<int> &zbin_adc, std::vector<double> &zbin_adc_share)
 {
   int zbin = LayerGeom->get_zbin(z);
   if (zbin < 0 || zbin > LayerGeom->get_zbins())
@@ -771,8 +541,8 @@ void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const std::array<dou
                     << " index " << index << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral " << z_integral << std::endl;
     }
 
-    adc_zbin.push_back(cur_z_bin);
-    adc_zbin_share.push_back(z_integral);
+    zbin_adc.push_back(cur_z_bin);
+    zbin_adc_share.push_back(z_integral);
   }
 
   return;
@@ -798,7 +568,6 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("maxdriftlength", 105.5);         // cm
   set_default_double_param("drift_velocity", 8.0 / 1000.0);  // cm/ns
   set_default_double_param("tpc_adc_clock", 53.0);           // ns, for 18.8 MHz clock
-
   set_default_double_param("gem_cloud_sigma", 0.04);     // cm = 400 microns
   set_default_double_param("sampa_shaping_lead", 32.0);  // ns, for 80 ns SAMPA
   set_default_double_param("sampa_shaping_tail", 48.0);  // ns, for 80 ns SAMPA
@@ -806,8 +575,6 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_int_param("ntpc_phibins_inner", 1152);
   set_default_int_param("ntpc_phibins_mid", 1536);
   set_default_int_param("ntpc_phibins_outer", 2304);
-
-  set_default_int_param("zigzag_pads", 1);
 
   // GEM Gain
   /*
@@ -857,6 +624,8 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   MinZ = -MaxZ;
   NZBins = (int) ((MaxZ - MinZ) / ZBinWidth) + 1;
 
+  std::cout << "MaxZ " << MaxZ << " NZBins = " << NZBins << std::endl;
+
   NPhiBins[0] = get_int_param("ntpc_phibins_inner");
   NPhiBins[1] = get_int_param("ntpc_phibins_mid");
   NPhiBins[2] = get_int_param("ntpc_phibins_outer");
@@ -864,8 +633,6 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   PhiBinWidth[0] = 2.0 * M_PI / (double) NPhiBins[0];
   PhiBinWidth[1] = 2.0 * M_PI / (double) NPhiBins[1];
   PhiBinWidth[2] = 2.0 * M_PI / (double) NPhiBins[2];
-
-  zigzag_pads = get_int_param("zigzag_pads");
 
   averageGEMGain = get_double_param("gem_amplification");
 }

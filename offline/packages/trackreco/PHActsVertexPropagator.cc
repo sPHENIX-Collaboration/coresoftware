@@ -17,13 +17,10 @@
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
-#include <Acts/MagneticField/ConstantBField.hpp>
-#include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
-#include <Acts/MagneticField/SharedBField.hpp>
+#include <Acts/Propagator/Navigator.hpp>
 #include <Acts/Propagator/EigenStepper.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
-
-#include <ActsExamples/Plugins/BField/ScalableBField.hpp>
+#include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 PHActsVertexPropagator::PHActsVertexPropagator(const std::string& name)
   : SubsysReco(name)
@@ -60,9 +57,9 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
 
       if(Verbosity() > 2)
 	{ svtxTrack->identify(); }
-
-      const auto &[trackTips, mj] = trajectory.trajectory();
-
+      
+      const auto& trackTips = trajectory.tips();
+     
       if(trackTips.size() > 1 and Verbosity() > 0)
 	{ 
 	  std::cout << PHWHERE 
@@ -83,6 +80,8 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
 	    }
 	}
     }
+  
+  setVtxChi2();
 
   /// Erase the trajectories that were removed from the track cleaner
   for(auto& key : deletedKeys)
@@ -91,6 +90,44 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHActsVertexPropagator::setVtxChi2()
+{
+
+  for(const auto& [vtxid, vtx] : *m_vertexMap)
+    {
+      float xvtx = vtx->get_x();
+      float yvtx = vtx->get_y();
+      float zvtx = vtx->get_z();
+      float xchisqsum = 0;
+      float ychisqsum = 0;
+      float zchisqsum = 0;
+      
+      for(auto trackiter = vtx->begin_tracks(); trackiter != vtx->end_tracks();
+	  ++trackiter)
+	{
+	  SvtxTrack* track = m_trackMap->get(*trackiter);
+	  float trkx = track->get_x();
+	  float trky = track->get_y();
+	  float trkz = track->get_z();
+	  float trkcovx = track->get_error(0,0);
+	  float trkcovy = track->get_error(1,1);
+	  float trkcovz = track->get_error(2,2);
+	  
+	  xchisqsum += pow(trkx - xvtx, 2) / trkcovx;
+	  ychisqsum += pow(trky - yvtx, 2) / trkcovy;
+	  zchisqsum += pow(trkz - zvtx, 2) / trkcovz;
+
+	}
+
+      /// independent chisq sum additively
+      vtx->set_chisq(xchisqsum + ychisqsum + zchisqsum);
+      /// Each track contributes independently to x,y,z, so the total
+      /// ndf is total tracks * 3 minus 1*3 for each independent x,y,z
+      vtx->set_ndof(vtx->size_tracks() * 3 - 3);
+    
+    }
 }
 
 void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track, 
@@ -114,7 +151,7 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   rotater.setVerbosity(Verbosity());
   if(params.covariance())
     {
-      auto rotatedCov = rotater.rotateActsCovToSvtxTrack(params, m_tGeometry->geoContext);
+      auto rotatedCov = rotater.rotateActsCovToSvtxTrack(params);
       
       /// Update covariance
       for(int i = 0; i < 3; i++) {
@@ -132,22 +169,22 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
 
 void PHActsVertexPropagator::updateTrackDCA(SvtxTrack* track)
 {
-  Acts::Vector3D pos(track->get_x(),
-		     track->get_y(),
-		     track->get_z());
-  Acts::Vector3D mom(track->get_px(),
-		     track->get_py(),
-		     track->get_pz());
+  Acts::Vector3 pos(track->get_x(),
+		    track->get_y(),
+		    track->get_z());
+  Acts::Vector3 mom(track->get_px(),
+		    track->get_py(),
+		    track->get_pz());
 
   auto vtxid = track->get_vertex_id();
   auto svtxVertex = m_vertexMap->get(vtxid);
-  Acts::Vector3D vertex(svtxVertex->get_x(),
-			svtxVertex->get_y(),
-			svtxVertex->get_z());
+  Acts::Vector3 vertex(svtxVertex->get_x(),
+		       svtxVertex->get_y(),
+		       svtxVertex->get_z());
 
   pos -= vertex;
 
-  Acts::ActsSymMatrixD<3> posCov;
+  Acts::ActsSymMatrix<3> posCov;
   for(int i = 0; i < 3; ++i)
     {
       for(int j = 0; j < 3; ++j)
@@ -156,11 +193,11 @@ void PHActsVertexPropagator::updateTrackDCA(SvtxTrack* track)
 	} 
     }
   
-  Acts::Vector3D r = mom.cross(Acts::Vector3D(0.,0.,1.));
+  Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
   float phi = atan2(r(1), r(0));
   
-  Acts::RotationMatrix3D rot;
-  Acts::RotationMatrix3D rot_T;
+  Acts::RotationMatrix3 rot;
+  Acts::RotationMatrix3 rot_T;
   rot(0,0) = cos(phi);
   rot(0,1) = -sin(phi);
   rot(0,2) = 0;
@@ -173,8 +210,8 @@ void PHActsVertexPropagator::updateTrackDCA(SvtxTrack* track)
   
   rot_T = rot.transpose();
 
-  Acts::Vector3D pos_R = rot * pos;
-  Acts::ActsSymMatrixD<3> rotCov = rot * posCov * rot_T;
+  Acts::Vector3 pos_R = rot * pos;
+  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
 
   const auto dca3Dxy = pos_R(0);
   const auto dca3Dz = pos_R(2);
@@ -196,46 +233,40 @@ BoundTrackParamPtrResult PHActsVertexPropagator::propagateTrack(
   auto actsVertex = getVertex(vtxid);
   auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(actsVertex);
 
-  return std::visit(
-      [params, perigee, this]
-      (auto && inputField) ->BoundTrackParamPtrResult {
-	using InputMagneticField = 
-	  typename std::decay_t<decltype(inputField)>::element_type;
-	using MagneticField      = Acts::SharedBField<InputMagneticField>;
-	using Stepper            = Acts::EigenStepper<MagneticField>;
-	using Propagator         = Acts::Propagator<Stepper>;
-	
-	MagneticField field(inputField);
-	Stepper stepper(field);
-	Propagator propagator(stepper);
-	
-	Acts::Logging::Level logLevel = Acts::Logging::FATAL;
-	if(Verbosity() > 3)
-	  { logLevel = Acts::Logging::VERBOSE; }
-	
-	auto logger = Acts::getDefaultLogger("PHActsVertexPropagator", 
-					     logLevel);
-	
-	Acts::PropagatorOptions<> options(m_tGeometry->geoContext,
-					  m_tGeometry->magFieldContext,
-					  Acts::LoggerWrapper{*logger});
-	
-	auto result = propagator.propagate(params, *perigee, 
-					   options);
-	if(result.ok())
-	  { return std::move((*result).endParameters); }
-	
-	return result.error();
-      },
-      m_tGeometry->magField);
+  using Stepper = Acts::EigenStepper<>;
+  using Propagator = Acts::Propagator<Stepper, Acts::Navigator>;
+  
+  Stepper stepper(m_tGeometry->magField);
+  Acts::Navigator::Config cfg{m_tGeometry->tGeometry};
+  Acts::Navigator navigator(cfg);
+  Propagator propagator(stepper, navigator);
+  
+  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
+  if(Verbosity() > 3)
+    { logLevel = Acts::Logging::VERBOSE; }
+  
+  auto logger = Acts::getDefaultLogger("PHActsVertexPropagator", 
+				       logLevel);
+
+  Acts::PropagatorOptions<> options(m_tGeometry->geoContext,
+				    m_tGeometry->magFieldContext,
+				    Acts::LoggerWrapper{*logger});
+  
+  auto result = propagator.propagate(params, *perigee, 
+				     options);
+  if(result.ok())
+    { return std::move((*result).endParameters); }
+  
+  return result.error();
+
 }
 
-Acts::Vector3D PHActsVertexPropagator::getVertex(const unsigned int vtxid)
+Acts::Vector3 PHActsVertexPropagator::getVertex(const unsigned int vtxid)
 {
   auto svtxVertex = m_vertexMap->get(vtxid);
-  return Acts::Vector3D(svtxVertex->get_x() * Acts::UnitConstants::cm,
-			svtxVertex->get_y() * Acts::UnitConstants::cm,
-			svtxVertex->get_z() * Acts::UnitConstants::cm);
+  return Acts::Vector3(svtxVertex->get_x() * Acts::UnitConstants::cm,
+		       svtxVertex->get_y() * Acts::UnitConstants::cm,
+		       svtxVertex->get_z() * Acts::UnitConstants::cm);
 }
 
 void PHActsVertexPropagator::setTrackVertexTo0()

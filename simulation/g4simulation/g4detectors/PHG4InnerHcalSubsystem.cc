@@ -104,6 +104,7 @@ int PHG4InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
     // create stepping action
     m_SteppingAction = new PHG4InnerHcalSteppingAction(m_Detector, GetParams());
+    m_SteppingAction->Init();
   }
   else
   {
@@ -111,6 +112,7 @@ int PHG4InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     if (GetParams()->get_int_param("blackhole"))
     {
       m_SteppingAction = new PHG4InnerHcalSteppingAction(m_Detector, GetParams());
+      m_SteppingAction->Init();
     }
   }
   return 0;
@@ -201,3 +203,4 @@ void PHG4InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const
   set_double_param("light_balance_outer_radius", outer_radius);
   return;
 }
+

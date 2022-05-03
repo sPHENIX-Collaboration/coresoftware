@@ -5,13 +5,13 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsTrackingGeometry.h>
 
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Propagator/Propagator.hpp>
 #include <Acts/Utilities/Result.hpp>
 #include <Acts/Surfaces/CylinderSurface.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 
-#include <ActsExamples/EventData/TrkrClusterMultiTrajectory.hpp>
+#include <ActsExamples/EventData/Trajectories.hpp>
 
 class SvtxTrackMap;
 class SvtxVertexMap;
@@ -21,7 +21,7 @@ using BoundTrackParamPtr =
   std::unique_ptr<const Acts::BoundTrackParameters>;
 using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
-using Trajectory = ActsExamples::TrkrClusterMultiTrajectory;
+using Trajectory = ActsExamples::Trajectories;
 
 class PHActsVertexPropagator : public SubsysReco
 {
@@ -40,9 +40,11 @@ class PHActsVertexPropagator : public SubsysReco
   void setTrackVertexTo0();
   BoundTrackParamPtrResult propagateTrack(const Acts::BoundTrackParameters& params,
 					  const unsigned int vtxid);
-  Acts::Vector3D getVertex(const unsigned int vtxid);
+  Acts::Vector3 getVertex(const unsigned int vtxid);
   void updateSvtxTrack(SvtxTrack* track, const Acts::BoundTrackParameters& params);
   void updateTrackDCA(SvtxTrack* track);
+  void setVtxChi2();
+  
   ActsTrackingGeometry *m_tGeometry = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;

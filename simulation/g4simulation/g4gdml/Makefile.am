@@ -1,23 +1,17 @@
 AUTOMAKE_OPTIONS = foreign
 
-AM_CXXFLAGS = `geant4-config --cflags | sed s/-Woverloaded-virtual// | sed s/-W\ // |  sed s/-Wshadow//`
-
-# set in configure.in to check if gcc version >= 4.8
-#if GCC_GE_48
-#  AM_CXXFLAGS += -std=c++11
-#endif
+AM_CXXFLAGS = `geant4-config --cflags`
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
     libphg4gdml.la 
 
 AM_CPPFLAGS = \
-    -I$(includedir) \
-    -I$(XERCESCROOT)/include \
-    -isystem $(OFFLINE_MAIN)/include \
-    -isystem $(ROOTSYS)/include \
-    -isystem ${G4_MAIN}/include \
-    -I$(OPT_SPHENIX)/include
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
+  -isystem$(ROOTSYS)/include \
+  -isystem$(XERCESCROOT)/include \
+  -I$(OPT_SPHENIX)/include
 
 libphg4gdml_la_LDFLAGS = \
   -L$(libdir) \
@@ -52,6 +46,9 @@ pkginclude_HEADERS = \
 
 ################################################
 # linking tests
+
+BUILT_SOURCES = \
+  testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals_g4gdml 

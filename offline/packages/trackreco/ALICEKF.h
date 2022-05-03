@@ -1,14 +1,14 @@
 #ifndef ALICEKF_H
 #define ALICEKF_H
 
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
 
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -17,7 +17,7 @@
 #include <string>
 #include <utility>
 
-using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3F>;
+using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
 class ALICEKF
 {
@@ -36,17 +36,17 @@ class ALICEKF
     _v = verbosity;
     _min_clusters_per_track = min_clusters;
   }
-  std::vector<SvtxTrack_v2> ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions) const;
-  Eigen::Matrix<double,6,6> getEigenCov(const SvtxTrack_v2 &track) const;
-  bool covIsPosDef(const SvtxTrack_v2 &track) const;
-  void repairCovariance(SvtxTrack_v2 &track) const;
+  std::vector<SvtxTrack_v3> ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions) const;
+  Eigen::Matrix<double,6,6> getEigenCov(const SvtxTrack_v3 &track) const;
+  bool covIsPosDef(const SvtxTrack_v3 &track) const;
+  void repairCovariance(SvtxTrack_v3 &track) const;
   bool checknan(double val, const std::string &msg, int num) const;
   double get_Bz(double x, double y, double z) const;
   void CircleFitByTaubin(const std::vector<std::pair<double,double>>& pts, double &R, double &X0, double &Y0) const;
   void useConstBField(bool opt) {_use_const_field = opt;}
   void useFixedClusterError(bool opt) {_use_fixed_clus_error = opt;}
   void setFixedClusterError(int i,double val) {_fixed_clus_error.at(i)=val;}
-  double getClusterError(TrkrCluster* c, Acts::Vector3F global, int i, int j) const;
+  double getClusterError(TrkrCluster* c, Acts::Vector3 global, int i, int j) const;
   void line_fit(const std::vector<std::pair<double,double>>& pts, double& a, double& b) const;
   std::vector<double> GetCircleClusterResiduals(const std::vector<std::pair<double,double>>& pts, double R, double X0, double Y0) const;
   std::vector<double> GetLineClusterResiduals(const std::vector<std::pair<double,double>>& pts, double A, double B) const; 

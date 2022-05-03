@@ -6,7 +6,7 @@
  *  \author Tony Frawley <afrawley@fsu.edu>, Joe Osborn <osbornjd@ornl.gov>, Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
-#include <trackbase/TrkrDefs.h>
+#include "TrkrDefs.h"
 
 namespace Acts{ class Surface; }
 class TGeoNode;
@@ -25,16 +25,16 @@ struct ActsSurfaceMaps
   ActsSurfaceMaps() = default;
  
   //! true if given surface corresponds to TPC
-  bool isTpcSurface( const Acts::Surface& surface ) const;
+  bool isTpcSurface( const Acts::Surface* surface ) const;
     
   //! true if given surface corresponds to Micromegas
-  bool isMicromegasSurface( const Acts::Surface& surface ) const;
+  bool isMicromegasSurface( const Acts::Surface* surface ) const;
   
   //! map hitset to Surface for the silicon detectors (MVTX and INTT)
   std::map<TrkrDefs::hitsetkey, Surface> siliconSurfaceMap;
 
   //! map hitset to surface vector for the TPC
-  std::map<TrkrDefs::hitsetkey, SurfaceVec> tpcSurfaceMap;
+  std::map<unsigned int, SurfaceVec> tpcSurfaceMap;   // uses layer as key
 
   //! map hitset to surface vector for the micromegas
   std::map<TrkrDefs::hitsetkey, Surface> mmSurfaceMap;

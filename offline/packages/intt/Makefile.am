@@ -19,7 +19,6 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
-  InttDefs.h \
   InttClusterizer.h \
   CylinderGeomIntt.h
 
@@ -43,8 +42,7 @@ libintt_la_LIBADD = \
 # sources for io library
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
-  CylinderGeomIntt.cc \
-  InttDefs.cc
+  CylinderGeomIntt.cc
 
 libintt_io_la_LIBADD = \
   -lCLHEP \

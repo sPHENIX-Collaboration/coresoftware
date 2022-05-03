@@ -4,17 +4,16 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   `geant4-config --libs-without-gui` \
+  `fastjet-config --libs` \
   -lHepMC \
   -lhijing \
   -lhijing_dummy \
-  -lfastjet \
-  -lCGAL \
   -lgfortran \
   -lpthread
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -isystem$(OFFLINE_MAIN)/include 
+  -I$(OFFLINE_MAIN)/include
 
 AM_FFLAGS="-DFVOIDP=INTEGER*8"
 
@@ -33,7 +32,7 @@ bin_PROGRAMS = sHijing
 
 noinst_PROGRAMS = xml_test
 
-xml_test_SOURCES = xml_test.C
+xml_test_SOURCES = xml_test.cc
 
 sHijing_SOURCES = \
   Hijing.cxx \
@@ -51,4 +50,3 @@ sHijing_SOURCES = \
 
 clean-local:
 	rm -f $(BUILT_SOURCES)
-

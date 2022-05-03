@@ -13,7 +13,6 @@ class ArgParser
  public:
   ArgParser(int &argc, char **argv);
   string get_value(const string &option) const;
-  int verify() const;
  private:
    vector<string> args;
 };
@@ -25,13 +24,14 @@ int main(int argc, char **argv)
 
   string cfg = arg_parser.get_value("-c");
   string tag = arg_parser.get_value("-t");
+  string domain = arg_parser.get_value("-d");
   uint64_t timestamp = std::stoul(arg_parser.get_value("-s"));
 
   xpload::Configurator config(cfg);
 
-  vector<string> paths = xpload::fetch(tag, timestamp, config);
+  xpload::Result result = xpload::fetch(tag, domain, timestamp, config);
 
-  if (paths.empty())
+  if (result.paths.empty())
   {
     cout << "No paths found\n";
   }
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
   {
     cout << "Found paths:\n";
 
-    for (const string& path : paths) 
+    for (const string path : result.paths)
       cout << path << '\n';
   }
 
@@ -66,7 +66,8 @@ string ArgParser::get_value(const string &option) const
   // Default values
   if (value.empty() && option == "-c") return "test";
   if (value.empty() && option == "-t") return "example_tag_1";
-  if (value.empty() && option == "-s") return "9999999999";
+  if (value.empty() && option == "-d") return "CEMC";
+  if (value.empty() && option == "-s") return std::to_string(UINT64_MAX);
 
   return value;
 }

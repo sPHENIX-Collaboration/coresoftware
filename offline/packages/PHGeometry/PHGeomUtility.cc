@@ -47,6 +47,15 @@ PHGeomUtility::GetTGeoManager(PHCompositeNode *topNode)
     dst_geom = LoadFromIONode(topNode);
   }
 
+  if (TGeoManager::GetDefaultUnits() != TGeoManager::kRootUnits )
+  {
+    cout << __PRETTY_FUNCTION__ << " TGeoManager was not constructed with RootUnits, which potentially leads to unit mismatch with Fun4All. This is considered a fatal error."
+        <<endl;
+
+    exit(1);
+    return nullptr;
+  }
+
   UpdateIONode(topNode);
 
   return dst_geom->GetGeometry();
@@ -71,6 +80,16 @@ int PHGeomUtility::ImportGeomFile(PHCompositeNode *topNode,
   dst_geom->Reset();
 
   TGeoManager::SetVerboseLevel(GetVerbosity());
+
+  // force TGeoManager to use the Fun4All unit of cm
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,23,2)
+  TGeoManager::LockDefaultUnits(kFALSE);
+  TGeoManager::SetDefaultUnits( TGeoManager::kRootUnits );
+  TGeoManager::LockDefaultUnits(kTRUE);
+#else
+  TGeoManager::SetDefaultRootUnits();
+#endif
+
   dst_geom->SetGeometry(TGeoManager::Import(geometry_file.c_str()));
 
   if (dst_geom->GetGeometry() == nullptr)

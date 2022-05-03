@@ -53,16 +53,15 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack* thisTrack, P
   {
     m_svtx_evalstack = new SvtxEvalStack(topNode);
     clustereval = m_svtx_evalstack->get_cluster_eval();
-    hiteval = m_svtx_evalstack->get_hit_eval();
+    //hiteval = m_svtx_evalstack->get_hit_eval();
     trackeval = m_svtx_evalstack->get_track_eval();
     trutheval = m_svtx_evalstack->get_truth_eval();
     vertexeval = m_svtx_evalstack->get_vertex_eval();
-  }
+  }  
 
   m_svtx_evalstack->next_event(topNode);
 
-  TrkrDefs::cluskey clusKey = *thisTrack->begin_cluster_keys();
-  PHG4Particle *particle = clustereval->max_truth_particle_by_cluster_energy(clusKey);
+  PHG4Particle *particle = trackeval->max_truth_particle_by_nclusters(thisTrack);
 
   return particle;
 }
@@ -70,8 +69,11 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack* thisTrack, P
 void KFParticle_truthAndDetTools::initializeTruthBranches(TTree *m_tree, int daughter_id, std::string daughter_number, bool m_constrain_to_vertex_truthMatch)
 {
   m_tree->Branch(TString(daughter_number) + "_true_ID", &m_true_daughter_id[daughter_id], TString(daughter_number) + "_true_ID/I");
-  if (m_constrain_to_vertex_truthMatch) m_tree->Branch(TString(daughter_number) + "_true_IP", &m_true_daughter_ip[daughter_id], TString(daughter_number) + "_true_IP/F");
-  if (m_constrain_to_vertex_truthMatch) m_tree->Branch(TString(daughter_number) + "_true_IP_xy", &m_true_daughter_ip_xy[daughter_id], TString(daughter_number) + "_true_IP_xy/F");
+  if (m_constrain_to_vertex_truthMatch)
+  {
+    m_tree->Branch(TString(daughter_number) + "_true_IP", &m_true_daughter_ip[daughter_id], TString(daughter_number) + "_true_IP/F");
+    m_tree->Branch(TString(daughter_number) + "_true_IP_xy", &m_true_daughter_ip_xy[daughter_id], TString(daughter_number) + "_true_IP_xy/F");
+  }
   m_tree->Branch(TString(daughter_number) + "_true_px", &m_true_daughter_px[daughter_id], TString(daughter_number) + "_true_px/F");
   m_tree->Branch(TString(daughter_number) + "_true_py", &m_true_daughter_py[daughter_id], TString(daughter_number) + "_true_py/F");
   m_tree->Branch(TString(daughter_number) + "_true_pz", &m_true_daughter_pz[daughter_id], TString(daughter_number) + "_true_pz/F");
@@ -199,6 +201,19 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   }
 }
 
+void KFParticle_truthAndDetTools::fillGeant4Branch(PHG4Particle* particle, int daughter_id)
+{ 
+  Float_t pT = sqrt(pow(particle->get_px(), 2) + pow(particle->get_py(), 2)); 
+
+  m_true_daughter_track_history_PDG_ID[daughter_id].push_back(particle->get_pid());
+  m_true_daughter_track_history_PDG_mass[daughter_id].push_back(0);
+  m_true_daughter_track_history_px[daughter_id].push_back((Float_t) particle->get_px());
+  m_true_daughter_track_history_py[daughter_id].push_back((Float_t) particle->get_py());
+  m_true_daughter_track_history_pz[daughter_id].push_back((Float_t) particle->get_pz());
+  m_true_daughter_track_history_pE[daughter_id].push_back((Float_t) particle->get_e());
+  m_true_daughter_track_history_pT[daughter_id].push_back((Float_t) pT);
+}
+
 void KFParticle_truthAndDetTools::fillHepMCBranch(HepMC::GenParticle *particle, int daughter_id)
 { 
   HepMC::FourVector myFourVector = particle->momentum();
@@ -261,6 +276,27 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree */
     fillHepMCBranch(dummyParticle, daughter_id);
     return 0;
   }
+
+  //Start by looking for our particle in the Geant record
+  //Any decay that Geant4 handles will not be in the HepMC record
+  //This can happen if you limit the decay volume in the generator
+  if (g4particle->get_parent_id() != 0)
+  {
+    PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst("G4TruthInfo"));
+    if (findNode)
+    {
+      m_truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+    }
+    else
+    {
+      std::cout << "KFParticle truth matching: G4TruthInfo does not exist" << std::endl;
+    }
+    while (g4particle->get_parent_id() != 0)
+    {
+      g4particle = m_truthinfo->GetParticle(g4particle->get_parent_id());
+      fillGeant4Branch(g4particle, daughter_id);
+    }
+  }  
 
   HepMC::GenEvent* theEvent = m_genevt->getEvent();
   HepMC::GenParticle* prevParticle = nullptr;

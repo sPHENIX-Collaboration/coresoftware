@@ -7,12 +7,13 @@
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
 
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Propagator/Propagator.hpp>
 #include <Acts/Utilities/Result.hpp>
 
 #include <Acts/EventData/TrackParameters.hpp>
 #include <ActsExamples/EventData/Track.hpp>
+#include <trackbase_historic/ActsTransformations.h>
 
 class PHCompositeNode;
 class SvtxTrack;
@@ -20,11 +21,6 @@ class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
-
-namespace ActsExamples
-{
-  class TrkrClusterSourceLink;
-}
 
 #include <memory>
 class TFile;
@@ -77,9 +73,8 @@ class PHTpcResiduals : public SubsysReco
   void setUseMicromegas( bool value )
   { m_useMicromegas = value; }
   
- private:
+  private:
 
-  using SourceLink = ActsExamples::TrkrClusterSourceLink;
   using BoundTrackParamPtr = 
     std::unique_ptr<const Acts::BoundTrackParameters>;
   
@@ -94,7 +89,7 @@ class PHTpcResiduals : public SubsysReco
 
   int processTracks(PHCompositeNode *topNode);
 
-  bool checkTrack(SvtxTrack* track);
+  bool checkTrack(SvtxTrack* track) const;
   void processTrack(SvtxTrack* track);
 
   /// fill track state from bound track parameters
@@ -102,31 +97,27 @@ class PHTpcResiduals : public SubsysReco
   
   /// Calculates TPC residuals given an Acts::Propagation result to
   /// a TPC surface
-  void calculateTpcResiduals(const Acts::BoundTrackParameters& params, TrkrCluster* cluster);
+  void calculateTpcResiduals(const Acts::BoundTrackParameters& params, TrkrDefs::cluskey, TrkrCluster* cluster);
         
+
   /** \brief 
    * Propagates the silicon+MM track fit to the surface on which
    * an available source link in the TPC exists, added from the stub
    * matching propagation
    * returns the path lenght and the resulting parameters
    */
-  ExtrapolationResult propagateTrackState(
-  const Acts::BoundTrackParameters& params, 
-		     const SourceLink& sl);
+  ExtrapolationResult propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surf ) const;
 
   /// Gets distortion cell for identifying bins in TPC
-  int getCell(const Acts::Vector3D& loc);
-  
-  void makeHistograms();
-  SourceLink makeSourceLink(TrkrCluster* cluster);
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
-  Surface getSurface(TrkrDefs::cluskey cluskey,
-		     TrkrDefs::subsurfkey);
-      
-  Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey);
-  Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey);
-  Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey);
+  int getCell(const Acts::Vector3& loc);
 
+  void makeHistograms();
+  
+  Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track) const;
+
+  /// actis transformation
+  ActsTransformations m_transformer;
+  
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
   SvtxTrackMap *m_trackMap = nullptr;
@@ -166,6 +157,15 @@ class PHTpcResiduals : public SubsysReco
 
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
+  ///@name counters
+  //@{
+  int m_total_tracks = 0;
+  int m_accepted_tracks = 0;
+
+  int m_total_clusters = 0;
+  int m_accepted_clusters = 0;
+  //@}
+
   /// Output root histograms
   bool m_savehistograms = false;
   TH2 *h_rphiResid = nullptr;
@@ -176,6 +176,18 @@ class PHTpcResiduals : public SubsysReco
   TH1 *h_index = nullptr;
   TH2 *h_alpha = nullptr;
   TH2 *h_beta = nullptr;
+  
+  //@name additional histograms that copy the per-cell data used to extract the distortions
+  //@{
+  using TH1_map_t = std::map<int,TH1*>;
+  using TH2_map_t = std::map<int,TH2*>;
+  
+  TH1_map_t h_drphi;
+  TH1_map_t h_dz;
+  TH2_map_t h_drphi_alpha;
+  TH2_map_t h_dz_beta;
+  //@}
+  
   TTree *residTup = nullptr;
 
   /// delta rphi vs layer number

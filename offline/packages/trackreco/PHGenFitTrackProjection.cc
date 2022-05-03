@@ -210,17 +210,17 @@ int PHGenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 		for (SvtxTrackMap::Iter iter = _g4tracks->begin();
 				iter != _g4tracks->end(); ++iter) {
 			SvtxTrack *track = iter->second;
+			if(!track) {
+				if(Verbosity() >= 2) LogWarning("!track");
+				continue;
+			}
+
 #ifdef DEBUG
 			cout
 			<<__LINE__
 			<<": track->get_charge(): "<<track->get_charge()
 			<<endl;
 #endif
-			if(!track) {
-				if(Verbosity() >= 2) LogWarning("!track");
-				continue;
-			}
-
 			if (Verbosity() > 1)
 				cout << "projecting track id " << track->get_id() << endl;
 

@@ -3,14 +3,13 @@
 
 #include <memory>
 #include <Acts/Utilities/BinnedArray.hpp>
-#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
-
-#include <ActsExamples/Plugins/BField/BFieldOptions.hpp>
+#include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 /**
  * A struct to carry around Acts geometry on node tree, so as to not put 
@@ -19,7 +18,7 @@
 struct ActsTrackingGeometry{
   ActsTrackingGeometry(){}
   ActsTrackingGeometry(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
-		       ActsExamples::Options::BFieldVariant mag,
+		       std::shared_ptr<Acts::MagneticFieldProvider> mag,
 		       Acts::CalibrationContext calib,
 		       Acts::GeometryContext geoCtxt,
 		       Acts::MagneticFieldContext magFieldCtxt)
@@ -33,16 +32,14 @@ struct ActsTrackingGeometry{
   /// Tracking geometry and magnetic field, for fitter function
   std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
 
-  ActsExamples::Options::BFieldVariant magField;
+  std::shared_ptr<Acts::MagneticFieldProvider> magField;
 
   /// Acts context, for Kalman options
   Acts::CalibrationContext calibContext;
   Acts::GeometryContext geoContext;
   Acts::MagneticFieldContext magFieldContext;
-  double tpcSurfStepPhi;
-  double tpcSurfStepZ;
-  double mmSurfStepPhi;
-  double mmSurfStepZ;
+  double tpcSurfStepPhi = 0;
+  double tpcSurfStepZ = 0;
 };
 
 

@@ -18,7 +18,7 @@ template <class T>
 T *getClass(PHCompositeNode *top, const std::string &name)
 {
   PHNodeIterator iter(top);
-  PHNode *FoundNode = iter.findFirst(name.c_str());  // returns pointer to PHNode
+  PHNode *FoundNode = iter.findFirst(name);  // returns pointer to PHNode
   if (!FoundNode)
   {
     return nullptr;

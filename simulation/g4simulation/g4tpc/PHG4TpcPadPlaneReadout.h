@@ -14,7 +14,7 @@
 #include <vector>
 
 class PHCompositeNode;
-class PHG4CellContainer;
+//class PHG4CellContainer;
 class PHG4CylinderCellGeomContainer;
 class PHG4CylinderCellGeom;
 class TNtuple;
@@ -30,15 +30,18 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo) override;
 
-  void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit) override;
+  //  void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit) override;
 
-  void MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit) override;
+// otherwise warning of inconsistent overload since only one MapToPadPlane methow is overridden
+  using PHG4TpcPadPlane::MapToPadPlane; 
+
+  void MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit) override;
 
   void SetDefaultParameters() override;
   void UpdateInternalParameters() override;
 
  private:
-  void populate_rectangular_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
+  //  void populate_rectangular_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_zbins(const double z, const std::array<double, 2> &cloud_sig_zz, std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share);
 
@@ -70,8 +73,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   int NZBins = INT_MAX;
   std::array<int, 3> NPhiBins;
   std::array<int, 3> NTpcLayers;
-  int zigzag_pads = INT_MAX;
-  int hit = 0;
+  int m_NHits = 0;
 
   // gaussian sampling
   static constexpr double _nsigmas = 5;

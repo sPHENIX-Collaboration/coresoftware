@@ -10,15 +10,16 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 
-#include <trackbase/TrkrClusterContainerv3.h>        // for TrkrCluster
+#include <trackbase/TrkrClusterContainerv4.h>        // for TrkrCluster
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
+#include <trackbase_historic/ActsTransformations.h>
 
-#include <Acts/Utilities/Units.hpp>
+#include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -51,14 +52,14 @@ namespace
     inline constexpr T square( const T& x ) { return x*x; }
 
   // streamers
-  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector3D& vector )
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector3& vector )
   {
     out << "( " << vector[0] << "," << vector[1] << "," << vector[2] << ")";
     return out;
   }
 
   // streamers
-  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector2D& vector )
+  [[maybe_unused]] inline std::ostream& operator << (std::ostream& out, const Acts::Vector2& vector )
   {
     out << "( " << vector[0] << "," << vector[1] << ")";
     return out;
@@ -100,7 +101,7 @@ int MicromegasClusterizer::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(trkrNode);
     }
 
-    trkrClusterContainer = new TrkrClusterContainerv3;
+    trkrClusterContainer = new TrkrClusterContainerv4;
     auto TrkrClusterContainerNode = new PHIODataNode<PHObject>(trkrClusterContainer, "TRKR_CLUSTER", "PHObject");
     trkrNode->addNode(TrkrClusterContainerNode);
   }
@@ -146,6 +147,9 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   auto trkrClusterHitAssoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   assert( trkrClusterHitAssoc );
 
+  // acts transformation
+  ActsTransformations transform;
+  
   // geometry
   auto acts_geometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
   assert( acts_geometry );
@@ -169,8 +173,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     assert(layergeom);
 
     // get micromegas acts surface
-    const auto acts_surface_iter = acts_surface_map->mmSurfaceMap.find( hitsetkey );
-    if( acts_surface_iter == acts_surface_map->mmSurfaceMap.end() )
+    const auto acts_surface = transform.getMMSurface( hitsetkey, acts_surface_map );
+    if( !acts_surface )
     {
       std::cout
         << "MicromegasClusterizer::process_event -"
@@ -180,9 +184,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       continue;
     }
 
-    // surface, surface center and normal director
-    const auto acts_surface( acts_surface_iter->second );
-    Acts::Vector3D normal = acts_surface->normal(acts_geometry->geoContext);
+    // get normal to acts surface
+    const auto normal = acts_surface->normal(acts_geometry->geoContext);
    
     if( Verbosity() )
     {
@@ -260,9 +263,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     {
 
       // create cluster key and corresponding cluster
-      const auto cluster_key = MicromegasDefs::genClusterKey( hitsetkey, cluster_count++ );
+      const auto ckey = TrkrDefs::genClusKey( hitsetkey, cluster_count++ );
       auto cluster = std::make_unique<TrkrClusterv3>();
-      cluster->setClusKey(cluster_key);
 
       TVector3 local_coordinates;
       double weight_sum = 0;
@@ -283,7 +285,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         const auto hit = hit_it->second;
 
         // associate cluster key to hit key
-        trkrClusterHitAssoc->addAssoc(cluster_key, hitkey );
+        trkrClusterHitAssoc->addAssoc(ckey, hitkey );
 
         // get strip number
         const auto strip = MicromegasDefs::getStrip( hitkey );
@@ -322,7 +324,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       }
 
       local_coordinates *= (1./weight_sum);
-      const auto world_coordinates = layergeom->get_world_from_local_coords( tileid, local_coordinates);
       cluster->setAdc( adc_sum );
 
       // dimension and error in r, rphi and z coordinates
@@ -354,17 +355,42 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         break;
       }
 
-      /// local_coordinates rdphi is sign opposite Acts definition
-      cluster->setLocalX(-1*local_coordinates[0]);
-      cluster->setLocalY(local_coordinates[2]);
+      /*
+       * convert CylinderGeom coordinates to world
+       * use acts surfaces to convert back to local coordinates,
+       * this is to accomodate possible discrepencies between the two
+       */
+      {
+        const auto world_coordinates = layergeom->get_world_from_local_coords( tileid, local_coordinates);
+        const Acts::Vector3 world_coordinates_acts = {
+          world_coordinates.x()*Acts::UnitConstants::cm,
+          world_coordinates.y()*Acts::UnitConstants::cm,
+          world_coordinates.z()*Acts::UnitConstants::cm };
+        
+        auto local = acts_surface->globalToLocal( acts_geometry->geoContext, world_coordinates_acts, normal );
+        if( local.ok() )
+        {
+          const auto local_coordinates = local.value()/ Acts::UnitConstants::cm;
+          cluster->setLocalX(local_coordinates.x());
+          cluster->setLocalY(local_coordinates.y());
+        } else {
+          std::cout
+            << "MicromegasClusterizer::process_event -"
+            << " failed convert cluster coordinates to local surface."
+            << " skipping cluster"
+            << std::endl;
+          continue;
+        }
+      } 
       
+      // assign errors
       cluster->setActsLocalError(0,0, error(1,1));
       cluster->setActsLocalError(0,1, error(1,2));
       cluster->setActsLocalError(1,0, error(2,1));
       cluster->setActsLocalError(1,1,error(2,2));
       
       // add to container
-      trkrClusterContainer->addCluster( cluster.release() );
+      trkrClusterContainer->addClusterSpecifyKey( ckey, cluster.release() );
 
     }
 

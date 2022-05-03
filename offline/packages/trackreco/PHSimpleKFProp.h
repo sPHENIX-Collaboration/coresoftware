@@ -29,14 +29,13 @@ struct ActsTrackingGeometry;
 class PHCompositeNode;
 class PHField;
 class SvtxTrack;
-class SvtxTrack_v2;
+class SvtxTrack_v3;
 class TpcDistortionCorrectionContainer;
-class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
 class SvtxTrackMap;
 
-using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3F>;
+using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
 class PHSimpleKFProp : public SubsysReco
 {
@@ -96,7 +95,6 @@ class PHSimpleKFProp : public SubsysReco
 
   TrkrClusterContainer *_cluster_map = nullptr;
   SvtxTrackMap *_track_map = nullptr;
-  TrkrHitSetContainer *_hitsets = nullptr;
   PHField* _field_map = nullptr;
   
   /// acts geometry
@@ -113,7 +111,7 @@ class PHSimpleKFProp : public SubsysReco
    * uses ActsTransformation to convert cluster local position into global coordinates
    * incorporates TPC distortion correction, if present
    */
-  Acts::Vector3D getGlobalPosition(TrkrCluster*) const;
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
 
   PositionMap PrepareKDTrees();
 
@@ -156,7 +154,7 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z) const;
-  void publishSeeds(const std::vector<SvtxTrack_v2>&);
+  void publishSeeds(const std::vector<SvtxTrack_v3>&);
   void publishSeeds(const std::vector<SvtxTrack>&);
 //   void MoveToVertex();
 

@@ -27,7 +27,9 @@
 
 #include <CLHEP/Vector/RotationZ.h>
 
+
 #include <boost/format.hpp>
+
 
 #include <algorithm>  // for max, copy
 #include <cassert>
@@ -220,7 +222,7 @@ void PHG4TpcEndCapDetector ::CreateCompositeMaterial(
 void PHG4TpcEndCapDetector ::AddLayer(  //
     G4AssemblyVolume *assemblyvol,
     G4double &z_start,
-    std::string _name,         //! name base for this layer
+    const std::string &_name,  //! name base for this layer
     std::string _material,     //! material name in G4
     G4double _depth,           //! depth in G4 units
     double _percentage_filled  //! percentage filled//

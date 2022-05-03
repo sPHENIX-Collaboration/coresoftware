@@ -11,11 +11,11 @@ class SyncReco : public SubsysReco
 {
  public:
   SyncReco(const std::string &name = "SYNC");
-  virtual ~SyncReco() {}
+  ~SyncReco() override {}
 
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
  protected:
   int CreateNodeTree(PHCompositeNode *topNode);

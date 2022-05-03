@@ -77,14 +77,6 @@ namespace MicromegasDefs
   //! get strip from hit key
   uint16_t getStrip(TrkrDefs::hitkey);
 
-  /**
-   * @brief Generate a cluster key using a hitsetkey and cluster id
-   * @param[in] hskey hitsetkey
-   * @param[in] clusid Cluster id
-   * @param[out] cluskey
-   */
-  TrkrDefs::cluskey genClusterKey(TrkrDefs::hitsetkey hskey, uint32_t clusid);
-
   /*!
    * @brief Get the segmentation type from cluster key
    * @param[in] cluskey

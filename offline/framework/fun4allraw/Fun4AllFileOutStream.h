@@ -37,12 +37,12 @@ class Fun4AllFileOutStream : public Fun4AllEventOutStream
 
  private:
   std::string m_FileRule;
-  oBuffer *m_ob;
-  int m_iSeq;
+  oBuffer *m_ob = nullptr;
+  int m_iSeq = 0;
   PHDWORD m_xb[LENGTH];
-  int m_OutFileDesc;
-  unsigned long long m_BytesWritten;
-  unsigned long long m_MaxSize;
+  int m_OutFileDesc = -1;
+  unsigned long long m_BytesWritten = 0;
+  unsigned long long m_MaxSize = 100000000000LL;  // 100GB
 };
 
 #endif

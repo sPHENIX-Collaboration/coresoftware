@@ -1,9 +1,8 @@
 #ifndef TRACKRECO_TPCSEEDTRACKMAPV1_H
 #define TRACKRECO_TPCSEEDTRACKMAPV1_H
 
-#include <trackbase/TrkrDefs.h>
-
 #include  "TpcSeedTrackMap.h"
+#include "TrkrDefs.h"
 
 #include <map>
 #include <vector>

@@ -5,12 +5,17 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
+CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow"
+
 case $CXX in
+ *analyzer)
+   CXXFLAGS="$CXXFLAGS -Wno-vla"
+ ;;
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-misleading-indentation -Wextra"
+   CXXFLAGS="$CXXFLAGS -Wno-vla-extension -Wno-c11-extensions -Wno-deprecated-copy"
  ;;
  *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+   CXXFLAGS="$CXXFLAGS -Wno-vla"
  ;;
 esac
 

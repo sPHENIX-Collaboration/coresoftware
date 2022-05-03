@@ -119,7 +119,7 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, SvtxTrack* track )
 {
 
   // keep track of the global position of previous cluster on track
-  const Acts::Vector3D origin = {track->get_x(), track->get_y(), track->get_z()};
+  const Acts::Vector3 origin = {track->get_x(), track->get_y(), track->get_z()};
 
   // pt
   const double pt = std::sqrt(square(track->get_px())+square(track->get_py()));
@@ -132,7 +132,7 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, SvtxTrack* track )
   const double center_y = (track->get_positive_charge() ? origin.y()-radius*track->get_px():origin.y()+radius*track->get_px())/pt;
 
   // origin to center 2D vector
-  const Acts::Vector2D orig_vect = {origin.x()-center_x, origin.y()-center_y };
+  const Acts::Vector2 orig_vect = {origin.x()-center_x, origin.y()-center_y };
 
   // print
   if( Verbosity() )
@@ -162,13 +162,13 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, SvtxTrack* track )
     if(!cluster) continue;
 
     // get cluster global position
-    const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
+    const auto global = m_transformer.getGlobalPosition(cluster_key, cluster,m_surfmaps, m_tGeometry);
 
     // get delta z
     const double delta_z = global.z() - origin.z();
 
     // cluster position to center
-    const Acts::Vector2D cluster_vect = {global.x()-center_x, global.y()-center_y};
+    const Acts::Vector2 cluster_vect = {global.x()-center_x, global.y()-center_y};
 
     // delta phi
     const double delta_phi = std::atan2(

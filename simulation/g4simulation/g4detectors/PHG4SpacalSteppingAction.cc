@@ -10,23 +10,23 @@
 #include "PHG4CylinderGeom_Spacalv3.h"
 #include "PHG4SpacalDetector.h"
 
+#include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hit.h>                   // for PHG4Hit
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-#include <g4main/PHG4SteppingAction.h>        // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
-#include <Geant4/G4IonisParamMat.hh>          // for G4IonisParamMat
-#include <Geant4/G4Material.hh>               // for G4Material
+#include <Geant4/G4IonisParamMat.hh>  // for G4IonisParamMat
+#include <Geant4/G4Material.hh>       // for G4Material
 #include <Geant4/G4MaterialCutsCouple.hh>
-#include <Geant4/G4ParticleDefinition.hh>     // for G4ParticleDefinition
+#include <Geant4/G4ParticleDefinition.hh>  // for G4ParticleDefinition
 #include <Geant4/G4Step.hh>
-#include <Geant4/G4StepPoint.hh>              // for G4StepPoint
-#include <Geant4/G4StepStatus.hh>             // for fGeomBoundary, fAtRestD...
-#include <Geant4/G4String.hh>                 // for G4String
+#include <Geant4/G4StepPoint.hh>   // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>  // for fGeomBoundary, fAtRestD...
+#include <Geant4/G4String.hh>      // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
 #include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
@@ -36,25 +36,26 @@
 #include <Geant4/G4VTouchable.hh>             // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
-#include <cmath>                              // for isfinite
-#include <cstdlib>                           // for exit
+#include <cmath>    // for isfinite
+#include <cstdlib>  // for exit
 #include <iostream>
-#include <string>                             // for operator<<, char_traits
+#include <string>  // for operator<<, char_traits
 
 class G4VPhysicalVolume;
 class PHCompositeNode;
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4SpacalSteppingAction::PHG4SpacalSteppingAction(PHG4SpacalDetector* detector) : PHG4SteppingAction(detector->GetName()),
-                                                                                   detector_(detector),
-                                                                                   hits_(nullptr),
-                                                                                   absorberhits_(nullptr),
-                                                                                   hit(nullptr),
-                                                                                   savehitcontainer(nullptr),
-                                                                                   saveshower(nullptr),
-                                                                                   savetrackid(-1),
-                                                                                   savepoststepstatus(-1)
+PHG4SpacalSteppingAction::PHG4SpacalSteppingAction(PHG4SpacalDetector* detector)
+  : PHG4SteppingAction(detector->GetName())
+  , detector_(detector)
+  , hits_(nullptr)
+  , absorberhits_(nullptr)
+  , hit(nullptr)
+  , savehitcontainer(nullptr)
+  , saveshower(nullptr)
+  , savetrackid(-1)
+  , savepoststepstatus(-1)
 {
 }
 
@@ -99,15 +100,15 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     G4StepPoint* postPoint = aStep->GetPostStepPoint();
     int scint_id = -1;
 
-    if (                                                                                                                          //
-        detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper                          //
-        or                                                                                                                        //
-        detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower  //
-        or                                                                                                                        //
-        detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted  //
-        or                                                                                                                        //
+    if (                                                                                                                                 //
+        detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper                                 //
+        or                                                                                                                               //
+        detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower         //
+        or                                                                                                                               //
+        detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted                          //
+        or                                                                                                                               //
         detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower  //
-        )
+    )
     {
       //SPACAL ID that is associated with towers
       int sector_ID = 0;
@@ -138,9 +139,9 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         tower_ID = prePoint->GetTouchable()->GetReplicaNumber(0);
         sector_ID = prePoint->GetTouchable()->GetReplicaNumber(1);
-        fiber_ID =  (1 << (PHG4CylinderGeom_Spacalv3::scint_id_coder::kfiber_bit)) - 1; // use max fiber ID to flag for support strucrtures.
+        fiber_ID = (1 << (PHG4CylinderGeom_Spacalv3::scint_id_coder::kfiber_bit)) - 1;  // use max fiber ID to flag for support strucrtures.
 
-//        cout <<"PHG4SpacalSteppingAction::UserSteppingAction - SUPPORT tower_ID = "<<tower_ID<<endl;
+        //        cout <<"PHG4SpacalSteppingAction::UserSteppingAction - SUPPORT tower_ID = "<<tower_ID<<endl;
       }
 
       // compact the tower/sector/fiber ID into 32 bit scint_id, so we could save some space for SPACAL hits
@@ -187,8 +188,8 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       // Now add the hit
       if (isactive == PHG4SpacalDetector::FIBER_CORE)  // the slat ids start with zero
       {
-          // store all pre local coordinates
-          StoreLocalCoordinate(hit, aStep, true, false);
+        // store all pre local coordinates
+        StoreLocalCoordinate(hit, aStep, true, false);
         hit->set_eion(0);  // only implemented for v5 otherwise empty
         hit->set_light_yield(0);
         savehitcontainer = hits_;
@@ -249,8 +250,8 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     if (isactive == PHG4SpacalDetector::FIBER_CORE)  // only for active areas
     {
-        // store all pre local coordinates
-        StoreLocalCoordinate(hit, aStep, false, true);
+      // store all pre local coordinates
+      StoreLocalCoordinate(hit, aStep, false, true);
 
       hit->set_eion(hit->get_eion() + eion);
 
