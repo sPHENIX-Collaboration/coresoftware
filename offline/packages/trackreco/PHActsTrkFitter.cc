@@ -373,7 +373,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  else
 	    {
 	      auto newTrack = std::make_unique<SvtxTrack_v3>();
-	      newTrack->set_id(m_seedMap->find(track));
+	      newTrack->set_id(m_seedMap->index(trackiter));
+	      addKeys(newTrack, tpcseed);
+	      if(siid != std::numeric_limits<unsigned int>::max())
+		{ addKeys(newTrack, m_siliconSeeds->get(siid)); }
 	      getTrackFitResult(fitOutput, newTrack);
 	      m_trackMap->insert(newTrack.get());
 	    }
@@ -1103,6 +1106,16 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHActsTrkFitter::addKeys(std::unique_ptr<SvtxTrack_v3>& svtxtrack,
+			      TrackSeed* seed)
+{
+  for(auto citer = seed->begin_cluster_keys();
+      citer != seed->end_cluster_keys(); ++citer)
+    {
+      svtxtrack->insert_cluster_key(*citer);
+    }
 }
 
 Surface PHActsTrkFitter::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,

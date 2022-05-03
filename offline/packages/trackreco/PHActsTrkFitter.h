@@ -132,6 +132,9 @@ class PHActsTrkFitter : public SubsysReco
   void getTrackFitResult(const FitResult& fitOutput, 
 			 std::unique_ptr<SvtxTrack_v3>& track);
 
+  void addKeys(std::unique_ptr<SvtxTrack_v3>& svtxtrack,
+	       TrackSeed* seed);
+
   Surface getSurface(TrkrDefs::cluskey cluskey,TrkrDefs::subsurfkey surfkey) const;
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const;
   Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey) const;

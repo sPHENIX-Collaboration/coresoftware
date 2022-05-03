@@ -470,11 +470,6 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory& traj,
           << "covariance " << globalCov << std::endl; 
       }
 
-      const auto& sourcelink = static_cast<const ActsExamples::IndexSourceLink&>(state.uncalibrated());
-      const TrkrDefs::cluskey& key = sourcelink.cluskey();
-
-      svtxTrack->insert_cluster_key(key);
-
       svtxTrack->insert_state(&out);      
   
       return true;      
