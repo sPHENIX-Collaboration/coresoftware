@@ -221,6 +221,10 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
 
       if (lead_edge > m_tmax or fall_edge < m_tmin) continue;
 
+      // chop alpide pulse into the readout time window
+      lead_edge = (lead_edge < m_tmin) ? m_tmin : lead_edge;
+      fall_edge = (fall_edge > m_tmax) ? m_tmax : fall_edge;
+
       double t0_strobe_frame = get_strobe_frame(lead_edge, strobe_zero_tm_start);
       double t1_strobe_frame = get_strobe_frame(fall_edge, strobe_zero_tm_start);
       n_replica += t1_strobe_frame - t0_strobe_frame;
