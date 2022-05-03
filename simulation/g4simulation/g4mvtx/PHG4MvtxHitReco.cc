@@ -323,31 +323,6 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
           << " in angle = " << atan(g4hit->get_y(0) / g4hit->get_x(0)) - atan(location_in.Y() / location_in.X())
           << std::endl;
 
-        cout << "      PHG4MvtxHitReco:  Found world exit location from geometry for  "
-             << " stave number " << stave_number
-             << " half stave number " << half_stave_number
-             << " module number" << module_number
-             << endl
-             << " x = " << location_out.X()
-             << " y = " << location_out.Y()
-             << " z = " << location_out.Z()
-             << " radius " << sqrt(pow(location_out.X(), 2) + pow(location_out.Y(), 2))
-             << " angle " << atan(location_out.Y() / location_out.X())
-             << endl;
-        cout << "     PHG4MvtxHitReco: The world exit location from G4 was "
-             << endl
-             << " x = " << g4hit->get_x(1)
-             << " y = " << g4hit->get_y(1)
-             << " z = " << g4hit->get_z(1)
-             << " radius " << sqrt(pow(g4hit->get_x(1), 2) + pow(g4hit->get_y(1), 2))
-             << " angle " << atan(g4hit->get_y(1) / g4hit->get_x(1))
-             << endl;
-        cout << " difference in radius = " << sqrt(pow(g4hit->get_x(1), 2) + pow(g4hit->get_y(1), 2)) - sqrt(pow(location_out.X(), 2) + pow(location_out.Y(), 2))
-             << " in angle = " << atan(g4hit->get_y(1) / g4hit->get_x(1)) - atan(location_out.Y() / location_out.X())
-             << endl
-             << endl;
-      }
-*/
       // Get the pixel number of the entry location
       int pixel_number_in = layergeom->get_pixel_from_local_coords(local_in);
       // Get the pixel number of the exit location
