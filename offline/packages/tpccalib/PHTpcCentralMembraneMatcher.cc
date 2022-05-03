@@ -1,3 +1,9 @@
+/**
+ * \file PHTpcCentralMembraneMatcher.cc
+ * \brief match reconstructed CM clusters to CM pads, calculate differences, store on the node tree and compute distortion reconstruction maps
+ * \author Tony Frawley <frawley@fsunuc.physics.fsu.edu>, Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
+ */
+
 #include "PHTpcCentralMembraneMatcher.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -148,7 +154,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   std::vector<unsigned int> reco_nclusters;
  
   // read the reconstructed CM clusters
-  auto clusrange = _corrected_CMcluster_map->getClusters();
+  auto clusrange = m_corrected_CMcluster_map->getClusters();
   for (auto cmitr = clusrange.first;
        cmitr !=clusrange.second;
        ++cmitr)
@@ -159,7 +165,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 
       // Do the static + average distortion corrections if the container was found
       Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
-      if( _dcc_in) pos = _distortionCorrection.get_corrected_position( pos, _dcc_in ); 
+      if( m_dcc_in) pos = m_distortionCorrection.get_corrected_position( pos, m_dcc_in ); 
 
       TVector3 tmp_pos(pos[0], pos[1], pos[2]);
       reco_pos.push_back(tmp_pos);      
@@ -196,7 +202,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	  double rad2=sqrt(reco_pos[j].X() * reco_pos[j].X() + reco_pos[j].Y() * reco_pos[j].Y());
 	  double phi2 = reco_pos[j].Phi();
 
-	  if(fabs(rad1-rad2) < _rad_cut && fabs(phi1-phi2) < _phi_cut)
+	  if(fabs(rad1-rad2) < m_rad_cut && fabs(phi1-phi2) < m_phi_cut)
 	    {
 	      //matched_pair.insert(std::make_pair(i,j));
 	      matched_pair.push_back(std::make_pair(i,j));
@@ -253,13 +259,13 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 
      cmdiff->setNclusters(nclus);
 
-     _cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
+     m_cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
     } 
   
   if(Verbosity() > 0)
     {	
       // read back differences from node tree as a check
-      auto diffrange = _cm_flash_diffs->getDifferences();
+      auto diffrange = m_cm_flash_diffs->getDifferences();
       for (auto cmitr = diffrange.first;
 	   cmitr !=diffrange.second;
 	   ++cmitr)
@@ -315,19 +321,68 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
   // Get Objects off of the Node Tree
   //---------------------------------
 
-  _corrected_CMcluster_map  = findNode::getClass<CMFlashClusterContainer>(topNode, "CORRECTED_CM_CLUSTER");
-  if(!_corrected_CMcluster_map)
+  m_corrected_CMcluster_map  = findNode::getClass<CMFlashClusterContainer>(topNode, "CORRECTED_CM_CLUSTER");
+  if(!m_corrected_CMcluster_map)
     {
       std::cout << PHWHERE << "CORRECTED_CM_CLUSTER Node missing, abort." << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }      
 
-  // tpc distortion correction
-  _dcc_in = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
-  if( _dcc_in )
+  // input tpc distortion correction
+  m_dcc_in = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  if( m_dcc_in )
     { 
       std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container" << std::endl; 
     }
+
+   // output tpc fluctuation distortion container
+   /* 
+    * this one is filled on the fly on a per-CM-event basis, and applied in the tracking chain
+    */ 
+  const std::string dcc_out_node_name = "TpcDistortionCorrectionContainerFluctuation";
+  m_dcc_out = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,dcc_out_node_name);
+  if( !m_dcc_out )
+  { 
+  
+    // look for distortion calibration object
+    PHNodeIterator iter(topNode);
+
+    /// Get the DST node and check
+    auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+    if (!dstNode)
+    {
+      std::cout << "PHTpcCentralMembraneMatcher::InitRun - DST Node missing, quitting" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    
+    // Get the tracking subnode and create if not found
+    auto svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+    if (!svtxNode)
+    {
+      svtxNode = new PHCompositeNode("SVTX");
+      dstNode->addNode(svtxNode);
+    }
+
+    std::cout << "PHTpcCentralMembraneMatcher::GetNodes - creating TpcDistortionCorrectionContainer in node " << dcc_out_node_name << std::endl;
+    m_dcc_out = new TpcDistortionCorrectionContainer;
+    auto node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
+    svtxNode->addNode(node);
+  }
+
+  // also prepare the local distortion container, used to aggregate multple events 
+  m_dcc_out_internal.reset( new TpcDistortionCorrectionContainer );
+
+//   // reset all output distortion container so that they match the requested grid size
+//   const std::array<const std::string,2> extension = {{ "_negz", "_posz" }};
+//   for( auto&& dcc:{m_dcc_out, m_dcc_out_internal.get()} )
+//   {
+//     for( int i =0; i < 2; ++i )
+//     {
+//       dcc->m_hDPint[i] = new TH2F( Form("hIntDistortionP%s", extension[i].c_str()), Form("hIntDistortionP%s", extension[i].c_str()), );
+//       dcc->m_hDRint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionR%s", extension[i].c_str())));
+//       dcc->m_hDZint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionZ%s", extension[i].c_str()))); 
+//     }
+//   }
 
   // create node for results of matching
   std::cout << "Creating node CM_FLASH_DIFFERENCES" << std::endl;  
@@ -349,9 +404,9 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
       dstNode->addNode(DetNode);
     }
   
-  _cm_flash_diffs = new CMFlashDifferenceContainerv1;
+  m_cm_flash_diffs = new CMFlashDifferenceContainerv1;
   PHIODataNode<PHObject> *CMFlashDifferenceNode =
-    new PHIODataNode<PHObject>(_cm_flash_diffs, "CM_FLASH_DIFFERENCES", "PHObject");
+    new PHIODataNode<PHObject>(m_cm_flash_diffs, "CM_FLASH_DIFFERENCES", "PHObject");
   DetNode->addNode(CMFlashDifferenceNode);
   
   
