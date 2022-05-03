@@ -29,7 +29,7 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
  PHTpcCentralMembraneMatcher(const std::string &name = "PHTpcCentralMembraneMatcher");
 
-  virtual ~PHTpcCentralMembraneMatcher();
+  virtual ~PHTpcCentralMembraneMatcher() = default;
 
   void set_process(const int proc)  { _process = proc;  }
   void set_histos_on(const bool val) {_histos = val;}
@@ -43,32 +43,30 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   //! end of process
   int End(PHCompositeNode * topNode);
 
- protected:
-  
  private:
 
   int GetNodes(PHCompositeNode* topNode);
 
- /// tpc distortion correction utility class
+  /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;
 
   CMFlashClusterContainer *_corrected_CMcluster_map{nullptr};
   CMFlashDifferenceContainer *_cm_flash_diffs{nullptr};
   TpcDistortionCorrectionContainer* _dcc{nullptr};
 
-  TH2F *hxy_reco;
-  TH2F *hxy_truth;
-  TH2F *hdrdphi;
-  TH2F *hrdr;
-  TH2F *hrdphi;
-  TH1F *hdrphi;
-  TH1F *hdr1_single;
-  TH1F *hdr2_single;
-  TH1F *hdr3_single;
-  TH1F *hdr1_double;
-  TH1F *hdr2_double;
-  TH1F *hdr3_double;
-  TH1F *hnclus;
+  TH2F *hxy_reco = nullptr;
+  TH2F *hxy_truth = nullptr;
+  TH2F *hdrdphi = nullptr;
+  TH2F *hrdr = nullptr;
+  TH2F *hrdphi = nullptr;
+  TH1F *hdrphi = nullptr;
+  TH1F *hdr1_single = nullptr;
+  TH1F *hdr2_single = nullptr;
+  TH1F *hdr3_single = nullptr;
+  TH1F *hdr1_double = nullptr;
+  TH1F *hdr2_double = nullptr;
+  TH1F *hdr3_double = nullptr;
+  TH1F *hnclus = nullptr;
 
    std::vector<TVector3> reco_pos;
    std::vector<TVector3> truth_pos;
@@ -77,9 +75,12 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   int _process = 0;
   bool _histos = true;
 
-  TFile *fout;
+  TFile *fout = nullptr;
 
-/// check if coords are in a stripe
+  double _rad_cut= 0.2;
+  double _phi_cut= 0.01;
+  
+  /// check if coords are in a stripe
   //int getSearchResult(double xcheck, double ycheck) const;
 
   //  int getStripeID(double xcheck, double ycheck) const;
@@ -87,19 +88,10 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   /// adjust central membrane hits delay with respect to trigger time
   //void setCentralMembraneDelay(int ns) { m_centralMembraneDelay = ns; };
 
- private:
-  /// detector name
-  std::string detector = "TPC";
-
-
+  ///@name central membrane pads definitions
+  //@{
   static constexpr double mm = 1.0;
   static constexpr double cm = 10.0;
-
-  /// inner radius of CM
-  static constexpr double begin_CM = 221.4019814 * mm;
-
-  /// outer radius of CM
-  static constexpr double end_CM = 759.2138 * mm;
 
   static constexpr int nRadii = 8;
   static constexpr int nStripes_R1 = 6;
@@ -156,11 +148,8 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   static constexpr int nStripesPerPetal = 213;
   static constexpr int nPetals = 18;
   static constexpr int nTotStripes = nStripesPerPetal * nPetals;
-
-  double _rad_cut= 0.2;
-  double _phi_cut= 0.01;
-
-void CalculateCenters(
+  
+  void CalculateCenters(
     int nPads,
     const std::array<double, nRadii>& R,
     std::array<int, nRadii>& nGoodStripes,
@@ -168,7 +157,8 @@ void CalculateCenters(
     std::array<int, nRadii>& nStripesIn,
     std::array<int, nRadii>& nStripesBefore,
     double cx[][nRadii], double cy[][nRadii] );
-
+  
+  //@}
 
 };
 
