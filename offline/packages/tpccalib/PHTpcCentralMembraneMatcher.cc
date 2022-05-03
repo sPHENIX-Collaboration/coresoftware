@@ -135,12 +135,6 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
 }
 
 //____________________________________________________________________________..
-PHTpcCentralMembraneMatcher::~PHTpcCentralMembraneMatcher()
-{
-
-}
-
-//____________________________________________________________________________..
 int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 {
   int ret = GetNodes(topNode);
@@ -150,8 +144,8 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 {
-  reco_pos.clear();
-  reco_nclusters.clear();
+  std::vector<TVector3> reco_pos;
+  std::vector<unsigned int> reco_nclusters;
  
   // read the reconstructed CM clusters
   auto clusrange = _corrected_CMcluster_map->getClusters();
@@ -165,7 +159,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 
       // Do the static + average distortion corrections if the container was found
       Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
-      if( _dcc)  pos = _distortionCorrection.get_corrected_position( pos, _dcc ); 
+      if( _dcc_in) pos = _distortionCorrection.get_corrected_position( pos, _dcc_in ); 
 
       TVector3 tmp_pos(pos[0], pos[1], pos[2]);
       reco_pos.push_back(tmp_pos);      
@@ -212,9 +206,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	}      
     }
   
-  
-  //for(const auto &p : matched_pair)
-  for(unsigned int ip = 0; ip < matched_pair.size(); ++ip)
+    for(unsigned int ip = 0; ip < matched_pair.size(); ++ip)
     {
       std::pair<unsigned int, unsigned int> p = matched_pair[ip];
       unsigned int nclus = matched_nclus[ip];
@@ -331,8 +323,8 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
     }      
 
   // tpc distortion correction
-  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
-  if( _dcc )
+  _dcc_in = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  if( _dcc_in )
     { 
       std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container" << std::endl; 
     }

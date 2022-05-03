@@ -52,8 +52,18 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
   CMFlashClusterContainer *_corrected_CMcluster_map{nullptr};
   CMFlashDifferenceContainer *_cm_flash_diffs{nullptr};
-  TpcDistortionCorrectionContainer* _dcc{nullptr};
 
+  /// static distortion container
+  /** used in input to correct CM clusters before calculating residuals */
+  TpcDistortionCorrectionContainer* _dcc_in{nullptr};
+
+  // fluctuation distortion container
+  /** used in output to write fluctuation distortions */
+  TpcDistortionCorrectionContainer* _dcc_out{nullptr};
+  
+  ///@name evaluation histograms
+  //@{
+  
   TH2F *hxy_reco = nullptr;
   TH2F *hxy_truth = nullptr;
   TH2F *hdrdphi = nullptr;
@@ -67,27 +77,28 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   TH1F *hdr2_double = nullptr;
   TH1F *hdr3_double = nullptr;
   TH1F *hnclus = nullptr;
-
-   std::vector<TVector3> reco_pos;
-   std::vector<TVector3> truth_pos;
-   std::vector<unsigned int> reco_nclusters;
-
+  
   int _process = 0;
   bool _histos = true;
 
   TFile *fout = nullptr;
 
+  //@}
+  
+  /// radius cut for matching clusters to pad
+  /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
   double _rad_cut= 0.2;
+  
+  /// phi cut for matching clusters to pad
+  /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
   double _phi_cut= 0.01;
   
-  /// check if coords are in a stripe
-  //int getSearchResult(double xcheck, double ycheck) const;
-
-  //  int getStripeID(double xcheck, double ycheck) const;
-
-  /// adjust central membrane hits delay with respect to trigger time
-  //void setCentralMembraneDelay(int ns) { m_centralMembraneDelay = ns; };
-
+  ///@name distortion correction histograms
+  //@{
+  
+  
+  //@} 
+  
   ///@name central membrane pads definitions
   //@{
   static constexpr double mm = 1.0;
@@ -158,6 +169,9 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
     std::array<int, nRadii>& nStripesBefore,
     double cx[][nRadii], double cy[][nRadii] );
   
+  /// store centers of all central membrane pads
+  std::vector<TVector3> truth_pos;
+
   //@}
 
 };
