@@ -381,10 +381,10 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
      */
     for( const auto& dcc:{m_dcc_out, m_dcc_out_internal.get()} )
     {
-      static_cast<TH2*>(dcc->m_hDRint[side])->Fill( clus_r, clus_phi, dr );
-      static_cast<TH2*>(dcc->m_hDPint[side])->Fill( clus_r, clus_phi, rdphi );
-      static_cast<TH2*>(dcc->m_hDZint[side])->Fill( clus_r, clus_phi, dz );
-      static_cast<TH2*>(dcc->m_hentries[side])->Fill( clus_r, clus_phi );
+      static_cast<TH2*>(dcc->m_hDRint[side])->Fill( clus_phi, clus_r, dr );
+      static_cast<TH2*>(dcc->m_hDPint[side])->Fill( clus_phi, clus_r, rdphi );
+      static_cast<TH2*>(dcc->m_hDZint[side])->Fill( clus_phi, clus_r, dz );
+      static_cast<TH2*>(dcc->m_hentries[side])->Fill( clus_phi, clus_r );
     }
     
   }
