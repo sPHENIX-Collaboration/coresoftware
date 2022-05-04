@@ -27,7 +27,23 @@
 #include <trackbase/CMFlashDifferencev1.h>
 #include <trackbase/CMFlashDifferenceContainerv1.h>
 
-using namespace std;
+namespace 
+{
+  template<class T> inline constexpr T delta_phi(const T& phi)
+  {
+    if (phi > M_PI) return phi - 2. * M_PI;
+    else if (phi <= -M_PI) return phi + 2.* M_PI;
+    else return phi;
+  }
+  
+  // stream acts vector3
+  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const Acts::Vector3& v )
+  { 
+    out << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
+    return out;
+  }
+  
+}
 
 //____________________________________________________________________________..
 PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name):
@@ -106,7 +122,7 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
 		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
 	  if(_histos) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}  
-  
+
   for(int j = 0; j < nRadii; ++j)
     for(int i=0; i < nGoodStripes_R2[j]; ++i)
       for(int k =0; k<18; ++k)
@@ -161,6 +177,10 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   std::vector<TVector3> reco_pos;
   std::vector<unsigned int> reco_nclusters;
  
+  // reset output distortion correction container histograms
+  for( const auto& harray:{m_dcc_out->m_hDRint, m_dcc_out->m_hDPint, m_dcc_out->m_hDZint, m_dcc_out->m_hentries} )
+  { for( const auto& h:harray ) { h->Reset(); } }
+  
   // read the reconstructed CM clusters
   auto clusrange = m_corrected_CMcluster_map->getClusters();
   for (auto cmitr = clusrange.first;
@@ -170,11 +190,11 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       auto cmkey = cmitr->first;
       auto cmclus = cmitr->second;
       unsigned int nclus = cmclus->getNclusters();
-
+      
       // Do the static + average distortion corrections if the container was found
       Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
       if( m_dcc_in) pos = m_distortionCorrection.get_corrected_position( pos, m_dcc_in ); 
-
+      
       TVector3 tmp_pos(pos[0], pos[1], pos[2]);
       reco_pos.push_back(tmp_pos);      
       reco_nclusters.push_back(nclus);
@@ -254,21 +274,43 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	    }
 	}
 
-      // add to node tree
-      unsigned int key = p.first;
-     auto cmdiff = new CMFlashDifferencev1();
-     cmdiff->setTruthPhi(truth_pos[p.first].Phi());
-     cmdiff->setTruthR(truth_pos[p.first].Perp());
-     cmdiff->setTruthZ(truth_pos[p.first].Z());
-
-     cmdiff->setRecoPhi(reco_pos[p.second].Phi());
-     cmdiff->setRecoR(reco_pos[p.second].Perp());
-     cmdiff->setRecoZ(reco_pos[p.second].Z());
-
-     cmdiff->setNclusters(nclus);
-
-     m_cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
-    } 
+    // add to node tree
+    unsigned int key = p.first;
+    auto cmdiff = new CMFlashDifferencev1();
+    cmdiff->setTruthPhi(truth_pos[p.first].Phi());
+    cmdiff->setTruthR(truth_pos[p.first].Perp());
+    cmdiff->setTruthZ(truth_pos[p.first].Z());
+    
+    cmdiff->setRecoPhi(reco_pos[p.second].Phi());
+    cmdiff->setRecoR(reco_pos[p.second].Perp());
+    cmdiff->setRecoZ(reco_pos[p.second].Z());
+    
+    cmdiff->setNclusters(nclus);
+    
+    m_cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
+    
+//     // store cluster position
+//     const double clus_r = reco_pos[p.second].Perp();
+//     double clus_phi = reco_pos[p.second].Phi();
+//     if ( clus_phi < 0 ) clus_phi += 2*M_PI;
+//     
+//     // calculate residuals (cluster - truth)
+//     const double dr = reco_pos[p.second].Perp() - truth_pos[p.first].Perp();
+//     const double dphi = delta_phi( reco_pos[p.second].Phi() - truth_pos[p.first].Phi() );
+//     const double rdphi = reco_pos[p.second].Perp() * dphi;
+//     
+//     /*
+//      * TODO: truth_pos.z() will not be zero. It has to account from the width of the central membrane 
+//      * and the fact that there are central membrane clusters on both sides on the TPC
+//      * easiest is probably to account for that when calculating dz residual for a given cluster,
+//      * taking into consideration the side at which the cluster was produced
+//      */
+//     const double dz = reco_pos[p.second].z() - truth_pos[p.first].z();
+// 
+//     // fill distortion correction histograms
+    
+    
+  } 
   
   if(Verbosity() > 0)
     {	
@@ -469,8 +511,9 @@ void PHTpcCentralMembraneMatcher::CalculateCenters(
         cy[i_out][j] = R[j] * sin(theta) / cm;
       }
 
-      std::cout << " j " << j << " i " << i << " i_out " << i_out << " theta " << theta << " cx " << cx[i_out][j] << " cy " << cy[i_out][j] 
-		<< " radius " << sqrt(pow(cx[i_out][j],2)+pow(cy[i_out][j],2)) << std::endl; 
+      if( Verbosity() > 2 )
+        std::cout << " j " << j << " i " << i << " i_out " << i_out << " theta " << theta << " cx " << cx[i_out][j] << " cy " << cy[i_out][j] 
+        << " radius " << sqrt(pow(cx[i_out][j],2)+pow(cy[i_out][j],2)) << std::endl; 
 
       i_out++;
 
