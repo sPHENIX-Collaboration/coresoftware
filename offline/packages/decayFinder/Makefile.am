@@ -47,7 +47,8 @@ libdecayfinder_io_la_LIBADD = \
 libdecayfinder_la_LIBADD = \
   libdecayfinder_io.la \
   -lfun4all \
-  -lphhepmc
+  -lphhepmc \
+  -lphg4hit
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
