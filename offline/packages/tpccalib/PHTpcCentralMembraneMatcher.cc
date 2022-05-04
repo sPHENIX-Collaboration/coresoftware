@@ -140,6 +140,14 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
 	}      	  
 }
 
+
+//___________________________________________________________
+void PHTpcCentralMembraneMatcher::set_grid_dimensions( int phibins, int rbins )
+{
+  m_phibins = phibins;
+  m_rbins = rbins;
+}
+
 //____________________________________________________________________________..
 int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 {
@@ -335,55 +343,6 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
       std::cout << "PHTpcCentralMembraneMatcher:   found TPC distortion correction container" << std::endl; 
     }
 
-   // output tpc fluctuation distortion container
-   /* 
-    * this one is filled on the fly on a per-CM-event basis, and applied in the tracking chain
-    */ 
-  const std::string dcc_out_node_name = "TpcDistortionCorrectionContainerFluctuation";
-  m_dcc_out = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,dcc_out_node_name);
-  if( !m_dcc_out )
-  { 
-  
-    // look for distortion calibration object
-    PHNodeIterator iter(topNode);
-
-    /// Get the DST node and check
-    auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-    if (!dstNode)
-    {
-      std::cout << "PHTpcCentralMembraneMatcher::InitRun - DST Node missing, quitting" << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-    
-    // Get the tracking subnode and create if not found
-    auto svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
-    if (!svtxNode)
-    {
-      svtxNode = new PHCompositeNode("SVTX");
-      dstNode->addNode(svtxNode);
-    }
-
-    std::cout << "PHTpcCentralMembraneMatcher::GetNodes - creating TpcDistortionCorrectionContainer in node " << dcc_out_node_name << std::endl;
-    m_dcc_out = new TpcDistortionCorrectionContainer;
-    auto node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
-    svtxNode->addNode(node);
-  }
-
-  // also prepare the local distortion container, used to aggregate multple events 
-  m_dcc_out_internal.reset( new TpcDistortionCorrectionContainer );
-
-//   // reset all output distortion container so that they match the requested grid size
-//   const std::array<const std::string,2> extension = {{ "_negz", "_posz" }};
-//   for( auto&& dcc:{m_dcc_out, m_dcc_out_internal.get()} )
-//   {
-//     for( int i =0; i < 2; ++i )
-//     {
-//       dcc->m_hDPint[i] = new TH2F( Form("hIntDistortionP%s", extension[i].c_str()), Form("hIntDistortionP%s", extension[i].c_str()), );
-//       dcc->m_hDRint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionR%s", extension[i].c_str())));
-//       dcc->m_hDZint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionZ%s", extension[i].c_str()))); 
-//     }
-//   }
-
   // create node for results of matching
   std::cout << "Creating node CM_FLASH_DIFFERENCES" << std::endl;  
   PHNodeIterator iter(topNode);
@@ -409,6 +368,57 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
     new PHIODataNode<PHObject>(m_cm_flash_diffs, "CM_FLASH_DIFFERENCES", "PHObject");
   DetNode->addNode(CMFlashDifferenceNode);
   
+  // output tpc fluctuation distortion container
+  // this one is filled on the fly on a per-CM-event basis, and applied in the tracking chain
+  const std::string dcc_out_node_name = "TpcDistortionCorrectionContainerFluctuation";
+  m_dcc_out = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,dcc_out_node_name);
+  if( !m_dcc_out )
+  { 
+  
+    /// Get the DST node and check
+    auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+    if (!dstNode)
+    {
+      std::cout << "PHTpcCentralMembraneMatcher::InitRun - DST Node missing, quitting" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    
+    // Get the tracking subnode and create if not found
+    auto svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+    if (!svtxNode)
+    {
+      svtxNode = new PHCompositeNode("SVTX");
+      dstNode->addNode(svtxNode);
+    }
+
+    std::cout << "PHTpcCentralMembraneMatcher::GetNodes - creating TpcDistortionCorrectionContainer in node " << dcc_out_node_name << std::endl;
+    m_dcc_out = new TpcDistortionCorrectionContainer;
+    auto node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
+    svtxNode->addNode(node);
+  }
+
+  // also prepare the local distortion container, used to aggregate multple events 
+  m_dcc_out_internal.reset( new TpcDistortionCorrectionContainer );
+
+  // compute axis limits to include guarding bins, needed for TH2::Interpolate to work
+  const float phiMin = m_phiMin - (m_phiMin-m_phiMax)/m_phibins;
+  const float phiMax = m_phiMax + (m_phiMin-m_phiMax)/m_phibins;
+  
+  const float rMin = m_rMin - (m_rMin-m_rMax)/m_rbins;
+  const float rMax = m_rMax + (m_rMin-m_rMax)/m_rbins;
+
+  // reset all output distortion container so that they match the requested grid size
+  const std::array<const std::string,2> extension = {{ "_negz", "_posz" }};
+  for( auto&& dcc:{m_dcc_out, m_dcc_out_internal.get()} )
+  {
+    for( int i =0; i < 2; ++i )
+    {
+      delete dcc->m_hDPint[i]; dcc->m_hDPint[i] = new TH2F( Form("hIntDistortionP%s", extension[i].c_str()), Form("hIntDistortionP%s", extension[i].c_str()), m_phibins+2, phiMin, phiMax, m_rbins, rMin, rMax );
+      delete dcc->m_hDRint[i]; dcc->m_hDRint[i] = new TH2F( Form("hIntDistortionR%s", extension[i].c_str()), Form("hIntDistortionR%s", extension[i].c_str()), m_phibins+2, phiMin, phiMax, m_rbins, rMin, rMax );
+      delete dcc->m_hDZint[i]; dcc->m_hDZint[i] = new TH2F( Form("hIntDistortionZ%s", extension[i].c_str()), Form("hIntDistortionZ%s", extension[i].c_str()), m_phibins+2, phiMin, phiMax, m_rbins, rMin, rMax );
+      delete dcc->m_hentries[i]; dcc->m_hentries[i] = new TH2I( Form("hEntries%s", extension[i].c_str()), Form("hEntries%s", extension[i].c_str()), m_phibins+2, phiMin, phiMax, m_rbins, rMin, rMax );
+    }
+  }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
