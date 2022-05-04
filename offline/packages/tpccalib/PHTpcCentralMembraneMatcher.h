@@ -45,6 +45,10 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   /// output file name for evaluation histograms
   void setHistogramOutputfile(const std::string &outputfile) 
   {m_histogramfilename = outputfile;}
+
+  /// output file name for storing the space charge reconstruction matrices
+  void setOutputfile(const std::string &outputfile)
+  {m_outputfile = outputfile;}
   
   void set_grid_dimensions( int phibins, int rbins );
 
@@ -81,6 +85,9 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
    * it is not stored on the node tree but saved to a dedicated file at the end of the run
    */
   std::unique_ptr<TpcDistortionCorrectionContainer> m_dcc_out_internal;
+ 
+  /// output file, to which aggregated central membrane distortion corrections are stored
+  std::string m_outputfile = "CMDistortionCorrections.root";
   
   ///@name evaluation histograms
   //@{

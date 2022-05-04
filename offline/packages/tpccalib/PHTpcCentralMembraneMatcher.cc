@@ -374,6 +374,11 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     const double dz = reco_pos[p.second].z() - truth_pos[p.first].z();
 
     // fill distortion correction histograms
+    /* 
+     * TODO: 
+     * - we might need to only fill the histograms for cm clusters that have 2 clusters only
+     * - we might need a smoothing procedure to fill the bins that have no entries using neighbors
+     */
     for( const auto& dcc:{m_dcc_out, m_dcc_out_internal.get()} )
     {
       static_cast<TH2*>(dcc->m_hDRint[side])->Fill( clus_r, clus_phi, dr );
@@ -415,6 +420,27 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
 {
 
+  // write distortion corrections
+  if( m_dcc_out_internal )
+  {
+ 
+    // normalize aggregated distortion correction histograms and fill guarding bins
+    normalize_distortions( m_dcc_out_internal.get() );
+    fill_guarding_bins( m_dcc_out_internal.get() );
+
+    // create TFile and write all histograms
+    std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
+    outputfile->cd();
+
+    // loop over side
+    for( unsigned int i = 0; i<2; ++i )
+    {
+      for( const auto& h:{m_dcc_out_internal->m_hDRint[i], m_dcc_out_internal->m_hDPint[i], m_dcc_out_internal->m_hDZint[i], m_dcc_out_internal->m_hentries[i]} )
+      { if( h ) h->Write(); }
+    }
+  }
+  
+  // write evaluation histograms
   if(m_savehistograms && fout)
   {
     fout->cd();
