@@ -48,7 +48,7 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   
   void set_grid_dimensions( int phibins, int rbins );
 
- //! run initialization
+  //! run initialization
   int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
