@@ -42,29 +42,76 @@ namespace
     out << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
     return out;
   }
-  
-  // normalize distortions based on the number of entries in each cell, as recorded in the m_hentries histogram
+
+  /// normalize distortions based on the number of entries in each cell, as recorded in the m_hentries histogram
   void normalize_distortions( TpcDistortionCorrectionContainer* dcc )
   {
     // loop over side
     for( unsigned int i = 0; i<2; ++i )
     {
-      
+
       // loop over bins in entries
-      for( int ix = 0; ix < dcc->m_hentries[i]->GetNbinsX(); ++ix )
-        for( int iy = 0; iy < dcc->m_hentries[i]->GetNbinsY(); ++iy )
+      for( int ip = 0; ip < dcc->m_hentries[i]->GetNbinsX(); ++ip )
+        for( int ir = 0; ir < dcc->m_hentries[i]->GetNbinsY(); ++ir )
       {
         // count number of times a given cell was filled
-        const auto entries = dcc->m_hentries[i]->GetBinContent( ix+1, iy+1 );
+        const auto entries = dcc->m_hentries[i]->GetBinContent( ip+1, ir+1 );
         if( entries <= 1 ) continue;
-        
+
         // normalize histograms
         for( const auto& h:{dcc->m_hDRint[i], dcc->m_hDPint[i], dcc->m_hDZint[i]} )
-        { h->SetBinContent( ix+1, iy+1, h->GetBinContent( ix+1, iy+1 )/entries ); }
+        {
+          h->SetBinContent( ip+1, ir+1, h->GetBinContent( ip+1, ir+1 )/entries );
+          h->SetBinError( ip+1, ir+1, h->GetBinError( ip+1, ir+1 )/entries );
+        }
       }
     }
-  } 
-  
+  }
+
+  /// fill distortion correction histograms' guarding bins, to allow ::Interpolate to work over the full acceptance
+  void fill_guarding_bins( TpcDistortionCorrectionContainer* dcc )
+  {
+
+    // loop over side
+    for( unsigned int i = 0; i<2; ++i )
+    {
+      for( const auto& h:{dcc->m_hDRint[i], dcc->m_hDPint[i], dcc->m_hDZint[i], dcc->m_hentries[i]} )
+      {
+
+        // fill guarding phi bins
+        /*
+        * we use 2pi periodicity to do that:
+        * - last valid bin is copied to first guarding bin;
+        * - first valid bin is copied to last guarding bin
+        */
+        const auto phibins = h->GetNbinsX();
+        const auto rbins = h->GetNbinsY();
+        for( int ir = 0; ir < rbins; ++ir )
+        {
+          // copy last valid bin to first guarding bin
+          h->SetBinContent( 1, ir+1, h->GetBinContent( phibins-1, ir+1 ) );
+          h->SetBinError( 1, ir+1, h->GetBinError( phibins-1, ir+1 ) );
+
+          // copy first valid bin to last guarding bin
+          h->SetBinContent( phibins, ir+1, h->GetBinContent( 2, ir+1 ) );
+          h->SetBinError( phibins, ir+1, h->GetBinError( 2, ir+1 ) );
+        }
+
+        // fill guarding r bins
+        for( int iphi = 0; iphi < phibins; ++iphi )
+        {
+          // copy first valid bin to first guarding bin
+          h->SetBinContent( iphi+1, 1, h->GetBinContent( iphi+1, 2 ) );
+          h->SetBinError( iphi+1, 1, h->GetBinError( iphi+1, 2 ) );
+
+          // copy last valid bin to last guarding bin
+          h->SetBinContent( iphi+1, rbins, h->GetBinContent( iphi+1, rbins-1 ) );
+          h->SetBinError( iphi+1, rbins, h->GetBinError( iphi+1, rbins-1 ) );
+        }
+      }
+    }
+  }
+
 }
 
 //____________________________________________________________________________..
@@ -339,6 +386,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   
   // normalize per-event distortion correction histograms and fill guarding bins
   normalize_distortions( m_dcc_out );
+  fill_guarding_bins( m_dcc_out );
   
   if(Verbosity() > 0)
     {	
