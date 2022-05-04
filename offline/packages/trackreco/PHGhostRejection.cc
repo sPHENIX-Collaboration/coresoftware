@@ -7,7 +7,6 @@
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TpcSeedTrackMap.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>

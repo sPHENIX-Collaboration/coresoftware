@@ -442,7 +442,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       if(Verbosity() > 1) 
 	std::cout << " TPC seed ID " << tpcid << " original nclus " << _tracklet_tpc->size_cluster_keys() << std::endl;
       _seed_track_map->addAssoc(tpcid, tpcid);
-
+   
       double tpc_phi = _tracklet_tpc->get_phi(_cluster_map,_surfmaps,_tGeometry);
       double tpc_eta = _tracklet_tpc->get_eta();
       double tpc_pt = _tracklet_tpc->get_pt();
@@ -608,7 +608,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	  newTrack->set_slope(this_track->get_slope());
 	  unsigned int newtrackkey = lastTrackKey+1;
 	  _seed_track_map->addAssoc(tpcid, newtrackkey);
-	  
+	 
 	  // loop over associated clusters to get hits for TPC only, add to new track copy
 	  for (TrackSeed::ConstClusterKeyIter iter = this_track->begin_cluster_keys();
 	       iter != this_track->end_cluster_keys();

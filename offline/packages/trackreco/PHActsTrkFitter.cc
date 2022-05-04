@@ -20,7 +20,7 @@
 #include <trackbase_historic/SvtxTrack_v3.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <micromegas/MicromegasDefs.h>
@@ -212,7 +212,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   for(auto trackiter = m_seedMap->begin(); trackiter != m_seedMap->end();
       ++trackiter)
     {
-      std::cout << "iterating"<<std::endl;
       TrackSeed *track = *trackiter;
       if(!track)
 	{ continue; }
@@ -234,7 +233,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       trackTimer.stop();
       trackTimer.restart();
       ActsExamples::MeasurementContainer measurements;
-      std::cout << "get tpc seed sls"<<std::endl;
+     
       auto sourceLinks = getSourceLinks(tpcseed, measurements);
   
       Acts::Vector3 position(0,0,0);
@@ -373,12 +372,22 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  else
 	    {
 	      auto newTrack = std::make_unique<SvtxTrack_v3>();
-	      newTrack->set_id(m_seedMap->index(trackiter));
+	      /// We want to set the ID to the tpc track seed id so that
+	      /// the ghost rejection finds the right track
+	      newTrack->set_id(tpcid);
 	      addKeys(newTrack, tpcseed);
 	      if(siid != std::numeric_limits<unsigned int>::max())
-		{ addKeys(newTrack, m_siliconSeeds->get(siid)); }
+		{ 
+		  addKeys(newTrack, m_siliconSeeds->get(siid)); 
+		  newTrack->set_crossing(m_siliconSeeds->get(siid)->get_crossing());
+		}
+	      else
+		{
+		  newTrack->set_crossing(tpcseed->get_crossing());
+		}
+
 	      getTrackFitResult(fitOutput, newTrack);
-	      m_trackMap->insert(newTrack.get());
+	      m_trackMap->insert(newTrack.get(), tpcid);
 	    }
 	}
       else if (!m_fitSiliconMMs)
@@ -999,7 +1008,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
       if(!m_directedTrackMap)
 	{
 	  /// Copy this trackmap, then use it for the rest of processing
-	  m_directedTrackMap = new SvtxTrackMap_v1;
+	  m_directedTrackMap = new SvtxTrackMap_v2;
 
 	  PHIODataNode<PHObject> *trackNode = 
 	    new PHIODataNode<PHObject>(m_directedTrackMap,"SvtxSiliconMMTrackMap","PHObject");
@@ -1021,7 +1030,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
   
   if(!m_trackMap)
     {
-      m_trackMap = new SvtxTrackMap_v1;
+      m_trackMap = new SvtxTrackMap_v2;
       PHIODataNode<PHObject>* node = new PHIODataNode<PHObject>(m_trackMap,_track_map_name,"PHObject");
       svtxNode->addNode(node);
     }
@@ -1032,7 +1041,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
       
       if(!m_seedTracks)
 	{
-	  m_seedTracks = new SvtxTrackMap_v1;
+	  m_seedTracks = new SvtxTrackMap_v2;
 	  
 	  PHIODataNode<PHObject> *seedNode = 
 	    new PHIODataNode<PHObject>(m_seedTracks,_seed_track_map_name,"PHObject");

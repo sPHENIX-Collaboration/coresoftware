@@ -19,7 +19,6 @@
 class PHCompositeNode;
 class TrackSeedContainer;
 class TrkrCluster;
-class TpcSeedTrackMap;
 class TrackSeed;
 class ActsSurfaceMaps;
 class ActsTrackingGeometry;
