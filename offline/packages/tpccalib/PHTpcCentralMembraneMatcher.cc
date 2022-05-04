@@ -44,7 +44,7 @@ namespace
   }
 
   /// normalize distortions based on the number of entries in each cell, as recorded in the m_hentries histogram
-  void normalize_distortions( TpcDistortionCorrectionContainer* dcc )
+  [[maybe_unused]] void normalize_distortions( TpcDistortionCorrectionContainer* dcc )
   {
     // loop over side
     for( unsigned int i = 0; i<2; ++i )
@@ -69,7 +69,7 @@ namespace
   }
 
   /// fill distortion correction histograms' guarding bins, to allow ::Interpolate to work over the full acceptance
-  void fill_guarding_bins( TpcDistortionCorrectionContainer* dcc )
+  [[maybe_unused]] void fill_guarding_bins( TpcDistortionCorrectionContainer* dcc )
   {
 
     // loop over side
@@ -264,7 +264,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       reco_pos.push_back(tmp_pos);      
       reco_nclusters.push_back(nclus);
 
-      if(Verbosity() > 0)
+      if(Verbosity())
 	{
 	  double raw_rad = sqrt( cmclus->getX()*cmclus->getX() + cmclus->getY()*cmclus->getY() );
 	  double corr_rad = sqrt( tmp_pos.X()*tmp_pos.X() + tmp_pos.Y()*tmp_pos.Y() );
@@ -379,7 +379,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
      * - we might need to only fill the histograms for cm clusters that have 2 clusters only
      * - we might need a smoothing procedure to fill the bins that have no entries using neighbors
      */
-    for( const auto& dcc:{m_dcc_out, m_dcc_out_internal.get()} )
+    for( const auto& dcc:{m_dcc_out, m_dcc_out_aggregated.get()} )
     {
       static_cast<TH2*>(dcc->m_hDRint[side])->Fill( clus_phi, clus_r, dr );
       static_cast<TH2*>(dcc->m_hDPint[side])->Fill( clus_phi, clus_r, rdphi );
@@ -389,11 +389,19 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     
   }
   
+  if(Verbosity())
+  {
+    std::cout << "PHTpcCentralMembraneMatcher::process_events - cmclusters: " << m_corrected_CMcluster_map->size() << std::endl;
+    std::cout << "PHTpcCentralMembraneMatcher::process_events - matched pairs: " << matched_pair.size() << std::endl;
+    std::cout << "PHTpcCentralMembraneMatcher::process_events - differences: " << m_cm_flash_diffs->size() << std::endl;
+    std::cout << "PHTpcCentralMembraneMatcher::process_events - entries: " << m_dcc_out->m_hentries[0]->GetEntries() << ", " << m_dcc_out->m_hentries[1]->GetEntries() << std::endl;  
+  }
+
   // normalize per-event distortion correction histograms and fill guarding bins
   normalize_distortions( m_dcc_out );
   fill_guarding_bins( m_dcc_out );
-  
-  if(Verbosity() > 0)
+    
+  if(Verbosity())
     {	
       // read back differences from node tree as a check
       auto diffrange = m_cm_flash_diffs->getDifferences();
@@ -421,12 +429,12 @@ int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
 {
 
   // write distortion corrections
-  if( m_dcc_out_internal )
+  if( m_dcc_out_aggregated )
   {
  
     // normalize aggregated distortion correction histograms and fill guarding bins
-    normalize_distortions( m_dcc_out_internal.get() );
-    fill_guarding_bins( m_dcc_out_internal.get() );
+    normalize_distortions( m_dcc_out_aggregated.get() );
+    fill_guarding_bins( m_dcc_out_aggregated.get() );
 
     // create TFile and write all histograms
     std::unique_ptr<TFile> outputfile( TFile::Open( m_outputfile.c_str(), "RECREATE" ) );
@@ -435,7 +443,7 @@ int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
     // loop over side
     for( unsigned int i = 0; i<2; ++i )
     {
-      for( const auto& h:{m_dcc_out_internal->m_hDRint[i], m_dcc_out_internal->m_hDPint[i], m_dcc_out_internal->m_hDZint[i], m_dcc_out_internal->m_hentries[i]} )
+      for( const auto& h:{m_dcc_out_aggregated->m_hDRint[i], m_dcc_out_aggregated->m_hDPint[i], m_dcc_out_aggregated->m_hDZint[i], m_dcc_out_aggregated->m_hentries[i]} )
       { if( h ) h->Write(); }
     }
   }
@@ -542,7 +550,7 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
   }
 
   // also prepare the local distortion container, used to aggregate multple events 
-  m_dcc_out_internal.reset( new TpcDistortionCorrectionContainer );
+  m_dcc_out_aggregated.reset( new TpcDistortionCorrectionContainer );
 
   // compute axis limits to include guarding bins, needed for TH2::Interpolate to work
   const float phiMin = m_phiMin - (m_phiMin-m_phiMax)/m_phibins;
@@ -553,7 +561,7 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
 
   // reset all output distortion container so that they match the requested grid size
   const std::array<const std::string,2> extension = {{ "_negz", "_posz" }};
-  for( auto&& dcc:{m_dcc_out, m_dcc_out_internal.get()} )
+  for( const auto& dcc:{m_dcc_out, m_dcc_out_aggregated.get()} )
   {
     for( int i =0; i < 2; ++i )
     {

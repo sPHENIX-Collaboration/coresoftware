@@ -84,7 +84,7 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
    * this one is used to aggregate multple CM events in a single map 
    * it is not stored on the node tree but saved to a dedicated file at the end of the run
    */
-  std::unique_ptr<TpcDistortionCorrectionContainer> m_dcc_out_internal;
+  std::unique_ptr<TpcDistortionCorrectionContainer> m_dcc_out_aggregated;
  
   /// output file, to which aggregated central membrane distortion corrections are stored
   std::string m_outputfile = "CMDistortionCorrections.root";
