@@ -54,10 +54,7 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
 
   /// g4hitnode name
   std::string hitnodename;
-
   std::vector<PHG4Hit*> PHG4Hits;
-  std::vector<PHG4Hit*> BotVertices;
-  std::vector<PHG4Hit*> TopVertices;
 
   static constexpr double mm = 1.0;
   static constexpr double cm = 10.0;
@@ -201,9 +198,6 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
       const std::array<int, nRadii>& keepUntil,
       std::array<int, nRadii>& nStripesIn,
       std::array<int, nRadii>& nStripesBefore);
-
-  PHG4Hit* GetBotVerticesFromStripe(int moduleID, int radiusID, int stripeID) const;
-  PHG4Hit* GetTopVerticesFromStripe(int moduleID, int radiusID, int stripeID) const;
 
   int SearchModule(int nStripes,
                    const double x1a[][nRadii], const double x1b[][nRadii],

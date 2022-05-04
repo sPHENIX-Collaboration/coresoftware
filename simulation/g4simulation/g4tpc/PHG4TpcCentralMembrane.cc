@@ -64,17 +64,7 @@ PHG4TpcCentralMembrane::PHG4TpcCentralMembrane(const std::string& name)
 PHG4TpcCentralMembrane::~PHG4TpcCentralMembrane()
 {
   for (auto&& hit : PHG4Hits)
-  {
-    delete hit;
-  }
-  for (auto&& hit : BotVertices)
-  {
-    delete hit;
-  }
-  for (auto&& hit : TopVertices)
-  {
-    delete hit;
-  }
+  { delete hit; }
 }
 
 //_____________________________________________________________
@@ -99,50 +89,38 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* topNode)
 
   // reset vertices and g4hits
   for (auto&& hit : PHG4Hits)
-  {
-    delete hit;
-  }
+  { delete hit; }
+  
   PHG4Hits.clear();
-
-  for (auto&& hit : BotVertices)
-  {
-    delete hit;
-  }
-  BotVertices.clear();
-
-  for (auto&& hit : TopVertices)
-  {
-    delete hit;
-  }
-  TopVertices.clear();
-
+  
+  // loop over petalID
   for (int i = 0; i < 18; i++)
-  {  // loop over petalID
+  {  
+    // loop over radiusID
     for (int j = 0; j < 8; j++)
-    {  // loop over radiusID
+    {
+      // loop over stripeID
       for (int k = 0; k < nGoodStripes_R1_e[j]; k++)
-      {  // loop over stripeID
+      { 
         PHG4Hits.push_back(GetPHG4HitFromStripe(i, 0, j, k, electrons_per_stripe));
-        BotVertices.push_back(GetBotVerticesFromStripe(0, j, k));
-        TopVertices.push_back(GetTopVerticesFromStripe(0, j, k));
       }
+      
+      // loop over stripeID
       for (int k = 0; k < nGoodStripes_R1[j]; k++)
-      {  // loop over stripeID
+      { 
         PHG4Hits.push_back(GetPHG4HitFromStripe(i, 1, j, k, electrons_per_stripe));
-        BotVertices.push_back(GetBotVerticesFromStripe(1, j, k));
-        TopVertices.push_back(GetTopVerticesFromStripe(1, j, k));
       }
+
+      // loop over stripeID
       for (int k = 0; k < nGoodStripes_R2[j]; k++)
-      {  // loop over stripeID
+      {  
         PHG4Hits.push_back(GetPHG4HitFromStripe(i, 2, j, k, electrons_per_stripe));
-        BotVertices.push_back(GetBotVerticesFromStripe(2, j, k));
-        TopVertices.push_back(GetTopVerticesFromStripe(2, j, k));
       }
+      
+      // loop over stripeID
       for (int k = 0; k < nGoodStripes_R3[j]; k++)
-      {  // loop over stripeID
+      { 
         PHG4Hits.push_back(GetPHG4HitFromStripe(i, 3, j, k, electrons_per_stripe));
-        BotVertices.push_back(GetBotVerticesFromStripe(3, j, k));
-        TopVertices.push_back(GetTopVerticesFromStripe(3, j, k));
       }
     }
   }
@@ -350,90 +328,6 @@ void PHG4TpcCentralMembrane::CalculateVertices(
     }
     nGoodStripes[j] = i_out;
   }
-}
-
-PHG4Hit* PHG4TpcCentralMembrane::GetBotVerticesFromStripe(int moduleID, int radiusID, int stripeID) const
-{
-  PHG4Hit* botvert;
-  TVector3 dummyPos0, dummyPos1;
-
-  //0 - left, 1 - right
-
-  botvert = new PHG4Hitv1();
-  botvert->set_layer(-2);
-  if (moduleID == 0)
-  {
-    botvert->set_x(0, x1a_R1_e[stripeID][radiusID]);
-    botvert->set_y(0, y1a_R1_e[stripeID][radiusID]);
-    botvert->set_x(1, x1b_R1_e[stripeID][radiusID]);
-    botvert->set_y(1, y1b_R1_e[stripeID][radiusID]);
-  }
-  else if (moduleID == 1)
-  {
-    botvert->set_x(0, x1a_R1[stripeID][radiusID]);
-    botvert->set_y(0, y1a_R1[stripeID][radiusID]);
-    botvert->set_x(1, x1b_R1[stripeID][radiusID]);
-    botvert->set_y(1, y1b_R1[stripeID][radiusID]);
-  }
-  else if (moduleID == 2)
-  {
-    botvert->set_x(0, x1a_R2[stripeID][radiusID]);
-    botvert->set_y(0, y1a_R2[stripeID][radiusID]);
-    botvert->set_x(1, x1b_R2[stripeID][radiusID]);
-    botvert->set_y(1, y1b_R2[stripeID][radiusID]);
-  }
-  else if (moduleID == 3)
-  {
-    botvert->set_x(0, x1a_R3[stripeID][radiusID]);
-    botvert->set_y(0, y1a_R3[stripeID][radiusID]);
-    botvert->set_x(1, x1b_R3[stripeID][radiusID]);
-    botvert->set_y(1, y1b_R3[stripeID][radiusID]);
-  }
-  botvert->set_z(0, 0.0);
-
-  return botvert;
-}
-
-PHG4Hit* PHG4TpcCentralMembrane::GetTopVerticesFromStripe(int moduleID, int radiusID, int stripeID) const
-{
-  PHG4Hit* topvert = nullptr;
-  TVector3 dummyPos0, dummyPos1;
-
-  //0 - left, 1 - right
-
-  topvert = new PHG4Hitv1();
-  topvert->set_layer(-3);
-  if (moduleID == 0)
-  {
-    topvert->set_x(0, x2a_R1_e[stripeID][radiusID]);
-    topvert->set_y(0, y2a_R1_e[stripeID][radiusID]);
-    topvert->set_x(1, x2b_R1_e[stripeID][radiusID]);
-    topvert->set_y(1, y2b_R1_e[stripeID][radiusID]);
-  }
-  else if (moduleID == 1)
-  {
-    topvert->set_x(0, x2a_R1[stripeID][radiusID]);
-    topvert->set_y(0, y2a_R1[stripeID][radiusID]);
-    topvert->set_x(1, x2b_R1[stripeID][radiusID]);
-    topvert->set_y(1, y2b_R1[stripeID][radiusID]);
-  }
-  else if (moduleID == 2)
-  {
-    topvert->set_x(0, x2a_R2[stripeID][radiusID]);
-    topvert->set_y(0, y2a_R2[stripeID][radiusID]);
-    topvert->set_x(1, x2b_R2[stripeID][radiusID]);
-    topvert->set_y(1, y2b_R2[stripeID][radiusID]);
-  }
-  else if (moduleID == 3)
-  {
-    topvert->set_x(0, x2a_R3[stripeID][radiusID]);
-    topvert->set_y(0, y2a_R3[stripeID][radiusID]);
-    topvert->set_x(1, x2b_R3[stripeID][radiusID]);
-    topvert->set_y(1, y2b_R3[stripeID][radiusID]);
-  }
-  topvert->set_z(0, 0.0);
-
-  return topvert;
 }
 
 int PHG4TpcCentralMembrane::SearchModule(int /*nStripes*/,
