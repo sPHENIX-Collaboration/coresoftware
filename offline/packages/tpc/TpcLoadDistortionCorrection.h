@@ -29,21 +29,32 @@ class TpcLoadDistortionCorrection : public SubsysReco
   //! event processing
   int process_event(PHCompositeNode*) override;
 
-  //! distortion filename
+  //! distortion filename //deprecated
   void set_distortion_filename( const std::string& value )
-  { m_distortion_filename = value; }
+  { set_correction_filename(0,value);}
+
+  //! correction filename
+  void set_correction_filename(int i, const std::string& value )
+  { if (i<0 || i>=3) return;
+    m_correction_filename[i] = value;
+    m_correction_in_use[i]=true;}
 
   //! node name
   void set_node_name( const std::string& value )
-  { m_node_name = value; }
+  { m_node_name[0] = value; }
+  void set_node_name(int i, const std::string& value )
+  { m_node_name[i] = value; }
   
   private:
 
-  //! distortion filename
-  std::string m_distortion_filename;
+  //! correction filename
+  std::string m_correction_filename[3]={"","",""};
+
+  //! flag to indicate correction in use
+  bool m_correction_in_use[3]={false,false,false};
 
   //! distortion object node name
-  std::string m_node_name = "TpcDistortionCorrectionContainer";
+  std::string m_node_name[3] = {"TpcDistortionCorrectionContainerStatic","TpcDistortionCorrectionContainerAverage","TpcDistortionCorrectionContainerFluctuation"};
 
 };
 

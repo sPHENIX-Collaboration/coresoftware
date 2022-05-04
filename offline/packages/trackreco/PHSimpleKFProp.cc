@@ -261,7 +261,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
     }
    
   // tpc distortion correction
-  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( m_dcc )
   { std::cout << "PHSimpleKFProp::InitRun - found TPC distortion correction container" << std::endl; }
 
