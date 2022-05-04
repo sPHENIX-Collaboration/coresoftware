@@ -93,6 +93,31 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* topNode)
   
   PHG4Hits.clear();
   
+  /*
+   * utility function to
+   * - duplicate generated G4Hit to cover both sides of the central membrane
+   * - adjust hit time and z,
+   * - insert in container
+   */
+  auto adjust_hits = [&]( PHG4Hit* source ) 
+  {
+    // adjust time to account for central membrane delay
+    source->set_t(0, m_centralMembraneDelay);  
+    source->set_t(1, m_centralMembraneDelay);  
+
+    // assign to positive side
+    source->set_z(0, 1.);
+    source->set_z(1, 1.);
+    PHG4Hits.push_back( source );
+   
+    // clone
+    // assign to negative side and insert in list
+    auto copy = new PHG4Hitv1(source);
+    copy->set_z(0, -1.);
+    copy->set_z(1, -1.);
+    PHG4Hits.push_back( copy );
+  };
+  
   // loop over petalID
   for (int i = 0; i < 18; i++)
   {  
@@ -102,38 +127,27 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* topNode)
       // loop over stripeID
       for (int k = 0; k < nGoodStripes_R1_e[j]; k++)
       { 
-        PHG4Hits.push_back(GetPHG4HitFromStripe(i, 0, j, k, electrons_per_stripe));
+        adjust_hits(GetPHG4HitFromStripe(i, 0, j, k, electrons_per_stripe));
       }
       
       // loop over stripeID
       for (int k = 0; k < nGoodStripes_R1[j]; k++)
       { 
-        PHG4Hits.push_back(GetPHG4HitFromStripe(i, 1, j, k, electrons_per_stripe));
+        adjust_hits(GetPHG4HitFromStripe(i, 1, j, k, electrons_per_stripe));
       }
 
       // loop over stripeID
       for (int k = 0; k < nGoodStripes_R2[j]; k++)
       {  
-        PHG4Hits.push_back(GetPHG4HitFromStripe(i, 2, j, k, electrons_per_stripe));
+        adjust_hits(GetPHG4HitFromStripe(i, 2, j, k, electrons_per_stripe));
       }
       
       // loop over stripeID
       for (int k = 0; k < nGoodStripes_R3[j]; k++)
       { 
-        PHG4Hits.push_back(GetPHG4HitFromStripe(i, 3, j, k, electrons_per_stripe));
+        adjust_hits(GetPHG4HitFromStripe(i, 3, j, k, electrons_per_stripe));
       }
     }
-  }
-
-  // adjust G4Hits position and time
-  for (const auto& hit : PHG4Hits)
-  {
-    hit->set_t(0, m_centralMembraneDelay);  //real hit delay
-    hit->set_t(1, m_centralMembraneDelay);  //real hit delay.
-
-    // TODO: check. There should be electrons on both sides on the central membrane
-    hit->set_z(0, 1.);
-    hit->set_z(1, 1.);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
