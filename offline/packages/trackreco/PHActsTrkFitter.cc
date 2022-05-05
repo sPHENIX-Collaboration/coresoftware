@@ -219,7 +219,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       unsigned int tpcid = track->get_tpc_seed_index();
       unsigned int siid = track->get_silicon_seed_index();
       
-      std::cout << "tpc and si id " << tpcid << ", " << siid << std::endl;
+      if(Verbosity() >1)
+	{ std::cout << "tpc and si id " << tpcid << ", " << siid << std::endl; }
 
       /// A track seed is made for every tpc seed. Not every tpc seed
       /// has a silicon match, so we have to treat these specially
@@ -505,12 +506,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
   SourceLinkVec sourcelinks;
 
   short int crossing = track->get_crossing();
-  std::cout << "crossing : " << crossing << std::endl;
   if(crossing == SHRT_MAX) 
-    {
-      std::cout << "returning empty sls"<<std::endl;
-      return sourcelinks;
-    }
+    { return sourcelinks; }
 
   int iter = 0;
   for (TrackSeed::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
