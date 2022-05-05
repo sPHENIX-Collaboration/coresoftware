@@ -65,42 +65,45 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
     svtxNode = new PHCompositeNode("SVTX");
     dstNode->addNode(svtxNode);
   }
+
+  //create and populate the nodes for each distortion, if present:
+  for (int i=0;i<3;i++){
+    // get distortion correction object and create if not found
+    auto distortion_correction_object = findNode::getClass<TpcDistortionCorrectionContainer>( topNode, m_node_name[i] );
+    if( !distortion_correction_object )
+      { 
+	std::cout << "TpcLoadDistortionCorrection::InitRun - creating TpcDistortionCorrectionContainer in node " << m_node_name[i] << std::endl;
+	distortion_correction_object = new TpcDistortionCorrectionContainer;
+	auto node = new PHDataNode<TpcDistortionCorrectionContainer>(distortion_correction_object, m_node_name[i]);
+	svtxNode->addNode(node);
+      }
   
-  // get distortion correction object and create if not found
-  auto distortion_correction_object = findNode::getClass<TpcDistortionCorrectionContainer>( topNode, m_node_name );
-  if( !distortion_correction_object )
-  { 
-    std::cout << "TpcLoadDistortionCorrection::InitRun - creating TpcDistortionCorrectionContainer in node " << m_node_name << std::endl;
-    distortion_correction_object = new TpcDistortionCorrectionContainer;
-    auto node = new PHDataNode<TpcDistortionCorrectionContainer>(distortion_correction_object, m_node_name);
-    svtxNode->addNode(node);
-  }
-  
-  std::cout << "TpcLoadDistortionCorrection::InitRun - reading distortions from " << m_distortion_filename << std::endl;
-  auto distortion_tfile = TFile::Open( m_distortion_filename.c_str());
-  if( !distortion_tfile )
-  {
-    std::cout << "TpcLoadDistortionCorrection::InitRun - cannot open " << m_distortion_filename << std::endl;
-    exit(1);
-  }
+    std::cout << "TpcLoadDistortionCorrection::InitRun - reading corrections from " << m_correction_filename[i] << std::endl;
+    auto distortion_tfile = TFile::Open( m_correction_filename[i].c_str());
+    if( !distortion_tfile )
+      {
+	std::cout << "TpcLoadDistortionCorrection::InitRun - cannot open " << m_correction_filename[i] << std::endl;
+	exit(1);
+      }
 
-  const std::array<const std::string,2> extension = {{ "_negz", "_posz" }};
-  for( int i =0; i < 2; ++i )
-  {
-    distortion_correction_object->m_hDPint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionP%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDPint[i] );
-    distortion_correction_object->m_hDRint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionR%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDRint[i] );
-    distortion_correction_object->m_hDZint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionZ%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDZint[i] );
-  }
+    const std::array<const std::string,2> extension = {{ "_negz", "_posz" }};
+    for( int i =0; i < 2; ++i )
+      {
+	distortion_correction_object->m_hDPint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionP%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDPint[i] );
+	distortion_correction_object->m_hDRint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionR%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDRint[i] );
+	distortion_correction_object->m_hDZint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionZ%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDZint[i] );
+      }
 
-  if( Verbosity() )
-  {
-    for( const auto& h:{
-      distortion_correction_object->m_hDPint[0], distortion_correction_object->m_hDPint[1],
-      distortion_correction_object->m_hDRint[0], distortion_correction_object->m_hDRint[1],
-      distortion_correction_object->m_hDZint[0], distortion_correction_object->m_hDZint[1] } )
-    { print_histogram( h ); }
-  }
+    if( Verbosity() )
+    {
+      for( const auto& h:{
+        distortion_correction_object->m_hDPint[0], distortion_correction_object->m_hDPint[1],
+        distortion_correction_object->m_hDRint[0], distortion_correction_object->m_hDRint[1],
+        distortion_correction_object->m_hDZint[0], distortion_correction_object->m_hDZint[1] } )
+      { print_histogram( h ); }
+    }
 
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
