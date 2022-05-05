@@ -314,6 +314,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
 	  if(Verbosity() > 1)
 	    { 
+	      std::cout << "Silicon seed id " << m_seedContainer->size() << std::endl;
 	      std::cout << "seed phi, theta, eta : " 
 			<< trackSeed->get_phi(m_clusterMap, m_surfMaps, m_tGeometry) << ", " << trackSeed->get_theta()
 			<< ", " << trackSeed->get_eta() << std::endl;
