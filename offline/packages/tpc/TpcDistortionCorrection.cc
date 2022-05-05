@@ -7,7 +7,7 @@
 #include "TpcDistortionCorrection.h"
 #include "TpcDistortionCorrectionContainer.h"
 
-#include <TH3.h>
+#include <TH1.h>
 #include <cmath>
 
 namespace

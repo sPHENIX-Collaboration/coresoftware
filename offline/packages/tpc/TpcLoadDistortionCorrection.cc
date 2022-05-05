@@ -13,7 +13,7 @@
 #include <phool/PHDataNode.h>               
 
 #include <TFile.h>
-#include <TH3.h>
+#include <TH1.h>
 
 namespace
 {
