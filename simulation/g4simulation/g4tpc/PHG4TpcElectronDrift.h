@@ -26,6 +26,7 @@ class TNtuple;
 class TFile;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
+class TrkrHitTruthClusters;
 class DistortedTrackContainer;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
@@ -67,6 +68,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
   TrkrHitSetContainer *hitsetcontainer = nullptr;
   TrkrHitTruthAssoc *hittruthassoc = nullptr;
+  TrkrHitTruthClusters *hittruthclusters = nullptr;
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<TrkrHitSetContainer> single_hitsetcontainer;
   std::unique_ptr<PHG4TpcPadPlane> padplane;
