@@ -43,38 +43,69 @@ namespace
     return out;
   }
   
+  // normalize distortions based on the number of entries in each cell, as recorded in the m_hentries histogram
+  void normalize_distortions( TpcDistortionCorrectionContainer* dcc )
+  {
+    // loop over side
+    for( unsigned int i = 0; i<2; ++i )
+    {
+      
+      // loop over bins in entries
+      for( int ix = 0; ix < dcc->m_hentries[i]->GetNbinsX(); ++ix )
+        for( int iy = 0; iy < dcc->m_hentries[i]->GetNbinsY(); ++iy )
+      {
+        // count number of times a given cell was filled
+        const auto entries = dcc->m_hentries[i]->GetBinContent( ix+1, iy+1 );
+        if( entries <= 1 ) continue;
+        
+        // normalize histograms
+        for( const auto& h:{dcc->m_hDRint[i], dcc->m_hDPint[i], dcc->m_hDZint[i]} )
+        { h->SetBinContent( ix+1, iy+1, h->GetBinContent( ix+1, iy+1 )/entries ); }
+      }
+    }
+  } 
+  
 }
 
 //____________________________________________________________________________..
 PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name):
   SubsysReco(name)
-{
+{}
 
-  // Make some histograms on an output file for diagnostics
-  char temp[500];
-  sprintf(temp,
-	  "./eval_output/Matcher_Histograms_%i.root", _process);
-  fout = new TFile(temp,"RECREATE");
-  
-  hxy_reco = new TH2F("hxy_reco","reco cluster x:y",800,-100,100,800,-80,80);
-  hxy_truth = new TH2F("hxy_truth","truth cluster x:y",800,-100,100,800,-80,80);
-  hdrdphi = new TH2F("hdrdphi","dr vs dphi",800,-0.5,0.5,800,-0.001,0.001);
-  hdrdphi->GetXaxis()->SetTitle("dr");  
-  hdrdphi->GetYaxis()->SetTitle("dphi");  
-  hrdr = new TH2F("hrdr","dr vs r",800,0.0,80.0,800,-0.5,0.5);
-  hrdr->GetXaxis()->SetTitle("r");  
-  hrdr->GetYaxis()->SetTitle("dr");  
-  hrdphi = new TH2F("hrdphi","dphi vs r",800,0.0,80.0,800,-0.001,0.001);
-  hrdphi->GetXaxis()->SetTitle("r");  
-  hrdphi->GetYaxis()->SetTitle("dphi");  
-  hdr1_single = new TH1F("hdr1_single", "innner dr single", 200,-0.2, 0.2);
-  hdr2_single = new TH1F("hdr2_single", "mid dr single", 200,-0.2, 0.2);
-  hdr3_single = new TH1F("hdr3_single", "outer dr single", 200,-0.2, 0.2);
-  hdr1_double = new TH1F("hdr1_double", "innner dr double", 200,-0.2, 0.2);
-  hdr2_double = new TH1F("hdr2_double", "mid dr double", 200,-0.2, 0.2);
-  hdr3_double = new TH1F("hdr3_double", "outer dr double", 200,-0.2, 0.2);
-  hdrphi = new TH1F("hdrphi","r * dphi", 200, -0.05, 0.05);
-  hnclus = new TH1F("hnclus", " nclusters ", 100, 0., 3.);
+
+//___________________________________________________________
+void PHTpcCentralMembraneMatcher::set_grid_dimensions( int phibins, int rbins )
+{
+  m_phibins = phibins;
+  m_rbins = rbins;
+}
+
+//____________________________________________________________________________..
+int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
+{
+  if( m_savehistograms )
+  { 
+    fout.reset( new TFile(m_histogramfilename.c_str(),"RECREATE") ); 
+    hxy_reco = new TH2F("hxy_reco","reco cluster x:y",800,-100,100,800,-80,80);
+    hxy_truth = new TH2F("hxy_truth","truth cluster x:y",800,-100,100,800,-80,80);
+    hdrdphi = new TH2F("hdrdphi","dr vs dphi",800,-0.5,0.5,800,-0.001,0.001);
+    hdrdphi->GetXaxis()->SetTitle("dr");  
+    hdrdphi->GetYaxis()->SetTitle("dphi");  
+    hrdr = new TH2F("hrdr","dr vs r",800,0.0,80.0,800,-0.5,0.5);
+    hrdr->GetXaxis()->SetTitle("r");  
+    hrdr->GetYaxis()->SetTitle("dr");  
+    hrdphi = new TH2F("hrdphi","dphi vs r",800,0.0,80.0,800,-0.001,0.001);
+    hrdphi->GetXaxis()->SetTitle("r");  
+    hrdphi->GetYaxis()->SetTitle("dphi");  
+    hdr1_single = new TH1F("hdr1_single", "innner dr single", 200,-0.2, 0.2);
+    hdr2_single = new TH1F("hdr2_single", "mid dr single", 200,-0.2, 0.2);
+    hdr3_single = new TH1F("hdr3_single", "outer dr single", 200,-0.2, 0.2);
+    hdr1_double = new TH1F("hdr1_double", "innner dr double", 200,-0.2, 0.2);
+    hdr2_double = new TH1F("hdr2_double", "mid dr double", 200,-0.2, 0.2);
+    hdr3_double = new TH1F("hdr3_double", "outer dr double", 200,-0.2, 0.2);
+    hdrphi = new TH1F("hdrphi","r * dphi", 200, -0.05, 0.05);
+    hnclus = new TH1F("hnclus", " nclusters ", 100, 0., 3.);
+  }
   
   // Get truth cluster positions
   //=====================
@@ -103,7 +134,7 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
 	    std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
 		      <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
 		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
-	  if(_histos) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
+	  if(m_savehistograms) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}  
   
   // inner region is the 8 layers outside 30 cm  
@@ -120,7 +151,7 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
 	    std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
 		      <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
 		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
-	  if(_histos) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
+	  if(m_savehistograms) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}  
 
   for(int j = 0; j < nRadii; ++j)
@@ -136,7 +167,7 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
 	    std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
 		      <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
 		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
-	  if(_histos) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
+	  if(m_savehistograms) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}      	  
   
   for(int j = 0; j < nRadii; ++j)
@@ -152,21 +183,9 @@ PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name
 	    std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
 		      <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
 		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
-	  if(_histos) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
-	}      	  
-}
-
-
-//___________________________________________________________
-void PHTpcCentralMembraneMatcher::set_grid_dimensions( int phibins, int rbins )
-{
-  m_phibins = phibins;
-  m_rbins = rbins;
-}
-
-//____________________________________________________________________________..
-int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
-{
+	  if(m_savehistograms) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
+	}   
+  
   int ret = GetNodes(topNode);
   return ret;
 }
@@ -187,9 +206,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
        cmitr !=clusrange.second;
        ++cmitr)
     {
-      auto cmkey = cmitr->first;
-      auto cmclus = cmitr->second;
-      unsigned int nclus = cmclus->getNclusters();
+      const auto& [cmkey, cmclus] = *cmitr;
+      const unsigned int nclus = cmclus->getNclusters();
       
       // Do the static + average distortion corrections if the container was found
       Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
@@ -207,7 +225,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	  std::cout << "                --- corrected positions: " << tmp_pos.X() << "  " << tmp_pos.Y() << "  " << tmp_pos.Z() << " radius " << corr_rad << std::endl; 
 	}
 
-      if(_histos)
+      if(m_savehistograms)
 	{      
 	  hxy_reco->Fill(tmp_pos.X(), tmp_pos.Y());
 	}
@@ -232,9 +250,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 
 	  if(fabs(rad1-rad2) < m_rad_cut && fabs(phi1-phi2) < m_phi_cut)
 	    {
-	      //matched_pair.insert(std::make_pair(i,j));
-	      matched_pair.push_back(std::make_pair(i,j));
-	      matched_nclus.push_back(nclus);
+	      matched_pair.emplace_back(i,j);
+        matched_nclus.push_back(nclus);
 	      break;
 	    }
 	}      
@@ -242,10 +259,9 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   
     for(unsigned int ip = 0; ip < matched_pair.size(); ++ip)
     {
-      std::pair<unsigned int, unsigned int> p = matched_pair[ip];
-      unsigned int nclus = matched_nclus[ip];
-      
-      if(_histos)
+      const std::pair<unsigned int, unsigned int>& p = matched_pair[ip];
+      const unsigned int& nclus = matched_nclus[ip];
+      if(m_savehistograms)
 	{
 	  double rad1 = sqrt(reco_pos[p.second].X() * reco_pos[p.second].X() + reco_pos[p.second].Y() * reco_pos[p.second].Y());
 	  double rad2 = sqrt(truth_pos[p.first].X() * truth_pos[p.first].X() + truth_pos[p.first].Y() * truth_pos[p.first].Y());
@@ -289,28 +305,40 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     
     m_cm_flash_diffs->addDifferenceSpecifyKey(key, cmdiff);
     
-//     // store cluster position
-//     const double clus_r = reco_pos[p.second].Perp();
-//     double clus_phi = reco_pos[p.second].Phi();
-//     if ( clus_phi < 0 ) clus_phi += 2*M_PI;
-//     
-//     // calculate residuals (cluster - truth)
-//     const double dr = reco_pos[p.second].Perp() - truth_pos[p.first].Perp();
-//     const double dphi = delta_phi( reco_pos[p.second].Phi() - truth_pos[p.first].Phi() );
-//     const double rdphi = reco_pos[p.second].Perp() * dphi;
-//     
-//     /*
-//      * TODO: truth_pos.z() will not be zero. It has to account from the width of the central membrane 
-//      * and the fact that there are central membrane clusters on both sides on the TPC
-//      * easiest is probably to account for that when calculating dz residual for a given cluster,
-//      * taking into consideration the side at which the cluster was produced
-//      */
-//     const double dz = reco_pos[p.second].z() - truth_pos[p.first].z();
-// 
-//     // fill distortion correction histograms
+    // store cluster position
+    const double clus_r = reco_pos[p.second].Perp();
+    double clus_phi = reco_pos[p.second].Phi();
+    if ( clus_phi < 0 ) clus_phi += 2*M_PI;
+
+    const double clus_z = reco_pos[p.second].z();
+    const unsigned int side = (clus_z<0) ? 0:1;
     
+    // calculate residuals (cluster - truth)
+    const double dr = reco_pos[p.second].Perp() - truth_pos[p.first].Perp();
+    const double dphi = delta_phi( reco_pos[p.second].Phi() - truth_pos[p.first].Phi() );
+    const double rdphi = reco_pos[p.second].Perp() * dphi;
     
-  } 
+    /*
+     * TODO: truth_pos.z() will not be zero. It has to account from the width of the central membrane 
+     * and the fact that there are central membrane clusters on both sides on the TPC
+     * easiest is probably to account for that when calculating dz residual for a given cluster,
+     * taking into consideration the side at which the cluster was produced
+     */
+    const double dz = reco_pos[p.second].z() - truth_pos[p.first].z();
+
+    // fill distortion correction histograms
+    for( const auto& dcc:{m_dcc_out, m_dcc_out_internal.get()} )
+    {
+      static_cast<TH2*>(dcc->m_hDRint[side])->Fill( clus_r, clus_phi, dr );
+      static_cast<TH2*>(dcc->m_hDPint[side])->Fill( clus_r, clus_phi, rdphi );
+      static_cast<TH2*>(dcc->m_hDZint[side])->Fill( clus_r, clus_phi, dz );
+      static_cast<TH2*>(dcc->m_hentries[side])->Fill( clus_r, clus_phi );
+    }
+    
+  }
+  
+  // normalize per-event distortion correction histograms and fill guarding bins
+  normalize_distortions( m_dcc_out );
   
   if(Verbosity() > 0)
     {	
@@ -339,26 +367,26 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
 {
 
-  if(_histos)
-    {
-      fout->cd();
-      
-      hxy_reco->Write();
-      hxy_truth->Write();
-      hdrdphi->Write();
-      hrdr->Write();
-      hrdphi->Write();
-      hdrphi->Write();
-      hdr1_single->Write();
-      hdr2_single->Write();
-      hdr3_single->Write();
-      hdr1_double->Write();
-      hdr2_double->Write();
-      hdr3_double->Write();
-      hnclus->Write();
-            
-      fout->Close();
-    }
+  if(m_savehistograms && fout)
+  {
+    fout->cd();
+    
+    hxy_reco->Write();
+    hxy_truth->Write();
+    hdrdphi->Write();
+    hrdr->Write();
+    hrdphi->Write();
+    hdrphi->Write();
+    hdr1_single->Write();
+    hdr2_single->Write();
+    hdr3_single->Write();
+    hdr1_double->Write();
+    hdr2_double->Write();
+    hdr3_double->Write();
+    hnclus->Write();
+    
+    fout->Close();
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
