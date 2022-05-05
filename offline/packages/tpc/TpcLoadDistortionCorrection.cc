@@ -92,11 +92,17 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
     const std::array<const std::string,2> extension = {{ "_negz", "_posz" }};
     for( int i =0; i < 2; ++i )
       {
-	distortion_correction_object->m_hDPint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionP%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDPint[i] );
-	distortion_correction_object->m_hDRint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionR%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDRint[i] );
-	distortion_correction_object->m_hDZint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionZ%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDZint[i] );
+	distortion_correction_object->m_hDPint[i] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionP%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDPint[i] );
+	distortion_correction_object->m_hDRint[i] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionR%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDRint[i] );
+	distortion_correction_object->m_hDZint[i] = dynamic_cast<TH1*>(distortion_tfile->Get(Form("hIntDistortionZ%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDZint[i] );
       }
 
+      // assign correction object dimension from histograms dimention, assuming all histograms have the same
+      distortion_correction_object->dimensions = distortion_correction_object->m_hDPint[0]->GetDimension();
+      
+      // only dimensions 2 or 3 are supported
+      assert( distortion_correction_object->dimensions == 2 || distortion_correction_object->dimensions == 3 );
+      
     if( Verbosity() )
     {
       for( const auto& h:{
