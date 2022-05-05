@@ -17,8 +17,7 @@ namespace
 }
 
 TrkrClusterv4::TrkrClusterv4()
-  : m_cluskey(TrkrDefs::CLUSKEYMAX)
-  , m_subsurfkey(TrkrDefs::SUBSURFKEYMAX)
+  : m_subsurfkey(TrkrDefs::SUBSURFKEYMAX)
   , m_adc(0)
   , m_phisize(0)
   , m_zsize(0)
@@ -48,8 +47,6 @@ void TrkrClusterv4::identify(std::ostream& os) const
 
 int TrkrClusterv4::isValid() const
 {
-  if (m_cluskey == TrkrDefs::CLUSKEYMAX) { return 0; }
-
   for (int i = 0; i < 2; ++i)
   {
     if (std::isnan(getPosition(i))) { return 0; }

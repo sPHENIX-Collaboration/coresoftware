@@ -610,9 +610,6 @@ namespace
       ihit_list.clear();
     }
 
-    adcval.clear();
-    all_hit_map.clear();
-    hit_vect.clear();
     pthread_exit(nullptr);
   }
 }
