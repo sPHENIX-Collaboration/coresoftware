@@ -14,6 +14,9 @@
 #include "ResidualOutlierFinder.h"
 
 #include <tpc/TpcClusterZCrossingCorrection.h>
+#include <tpc/TpcDistortionCorrectionContainer.h>
+#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcClusterMover.h>
 
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
@@ -182,6 +185,13 @@ class PHActsTrkFitter : public SubsysReco
   SvtxTrackMap *m_seedTracks = nullptr;
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+  TpcDistortionCorrectionContainer* _dcc{nullptr};
+
+ /// tpc distortion correction utility class
+  TpcDistortionCorrection _distortionCorrection;
+
+  // cluster mover utility class
+  TpcClusterMover _clusterMover;
 
   std::string m_fieldMap = "";
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
