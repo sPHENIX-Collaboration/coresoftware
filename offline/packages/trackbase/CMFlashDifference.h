@@ -42,12 +42,6 @@ class CMFlashDifference : public PHObject
 
   //! copy content from base class
   virtual void CopyFrom( CMFlashDifference* )  {}
-
-  //
-  // difference id
-  //
-  virtual unsigned int getKey() const { return UINT_MAX; }
-  virtual void setKey(unsigned int) {}
  
   //
   // difference position
