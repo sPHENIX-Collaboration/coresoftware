@@ -33,6 +33,18 @@
 
 using namespace std;
 
+namespace 
+{
+  
+  // stream acts vector3
+  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const TVector3& v )
+  { 
+    out << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
+    return out;
+  }
+  
+}
+
 //____________________________________________________________________________..
 PHTpcCentralMembraneClusterizer::PHTpcCentralMembraneClusterizer(const std::string &name):
  SubsysReco(name)
@@ -93,6 +105,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   
   std::vector<TVector3>pos; //position vector in cartesian
   std::vector<int>layer; //cluster layer number
+  std::vector<unsigned int> side; // cluster side
   std::vector<int>i_pair; //vector for pair matching
   std::vector<float>energy;//vector for energy values of clusters
   int nTpcClust = 0;
@@ -103,36 +116,34 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       for (auto clusiter = clusRange.first; 
 	   clusiter != clusRange.second; ++clusiter)
 	{
-	  TrkrDefs::cluskey cluskey = clusiter->first;
-	  auto trkrid = TrkrDefs::getTrkrId(cluskey);
-	  if(trkrid != TrkrDefs::tpcId) continue;
-
-	  TrkrCluster *cluster = clusiter->second;
-	  ActsTransformations transformer;
-	  auto glob = transformer.getGlobalPosition(cluskey, cluster,surfmaps,tgeometry);
-
-	  float x = glob(0);
-	  float y = glob(1);
-	  float z = glob(2);
-
-	  if(Verbosity() > 0)
-	    {
-	      unsigned int lyr = TrkrDefs::getLayer(cluskey);
-	      unsigned short  side = TpcDefs::getSide(cluskey);
-	      std::cout << " z " << z << " side " << side << " layer " << lyr << " Adc " << cluster->getAdc() << " x " << x << " y " << y << std::endl;
-	    }
-	  
-	  if(cluster->getAdc() < _min_adc_value) continue;
-	  if(z < _min_z_value) continue;
-
-	  i_pair.push_back(-1);
-	  energy.push_back(cluster->getAdc());
-	  nTpcClust++;
-	  pos.push_back(TVector3(x,y,z));
-	  layer.push_back((int)(TrkrDefs::getLayer(cluskey)));
-	  if(Verbosity() > 0)
-	      std::cout << ":\t" << x << "\t" << y << "\t" << z <<std::endl;
-	}
+    const auto& [cluskey, cluster] = *clusiter;
+    ActsTransformations transformer;
+    auto glob = transformer.getGlobalPosition(cluskey, cluster,surfmaps,tgeometry);
+    
+    float x = glob(0);
+    float y = glob(1);
+    float z = glob(2);
+    
+    if(Verbosity() > 0)
+    {
+      unsigned int lyr = TrkrDefs::getLayer(cluskey);
+      unsigned short  side = TpcDefs::getSide(cluskey);
+      std::cout << " z " << z << " side " << side << " layer " << lyr << " Adc " << cluster->getAdc() << " x " << x << " y " << y << std::endl;
+    }
+    
+    if(cluster->getAdc() < _min_adc_value) continue;
+    if( std::abs(z) < _min_z_value) continue;
+    
+    i_pair.push_back(-1);
+    energy.push_back(cluster->getAdc());
+    nTpcClust++;
+    pos.push_back(TVector3(x,y,z));
+    layer.push_back((int)(TrkrDefs::getLayer(cluskey)));
+    side.push_back(TpcDefs::getSide(cluskey));
+    
+    if(Verbosity() > 0)
+      std::cout << ":\t" << x << "\t" << y << "\t" << z <<std::endl;
+  }
     }
 
   TVector3 delta;
@@ -142,7 +153,11 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   for (int i=0; i<nTpcClust;  ++i)
     {
       for (int j=i+1;  j<nTpcClust;  j++)
-	{      //redundant to the 'adjacent row' check:  if (i==j) continue; //can't match yourself.
+	{ 
+    // must match clusters that are on the same side
+    if( side[i] != side[j] ) continue;
+    
+    //redundant to the 'adjacent row' check:  if (i==j) continue; //can't match yourself.
 	  if (abs(layer[i]-layer[j])==0)
 	    {
 	      delta=pos[i]-pos[j];
@@ -175,11 +190,13 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       float bestphidist=maxphidist;
       for (int j=0;j<nTpcClust;j++)
 	{
-	  //redundant to the 'adjacent row' check:  if (i==j) continue; //can't match yourself.
-	  if (abs(layer[i]-layer[j])!=1)
-	    {
-	      continue; //must match to an ADJACENT row.
-	    }
+    // redundant to the 'adjacent row' check:  if (i==j) continue; //can't match yourself.
+    // must match to an adjacent row.
+    if (abs(layer[i]-layer[j])!=1) continue;
+    
+    // must match clusters that are on the same side
+    if( side[i] != side[j] ) continue;
+      
 	  float newphidist=abs(pos[i].DeltaPhi(pos[j]));
 	  if (newphidist<bestphidist)
 	    {
@@ -222,10 +239,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   
   //build the weighted cluster centers
   //==========================
-  vector<float>aveenergy;
-  vector<TVector3> avepos;
-  vector <unsigned int> nclusters;
-    
+  std::vector<float>aveenergy;
+  std::vector<TVector3> avepos;
+  std::vector<unsigned int> nclusters;
   for (int i=0;i<nTpcClust;++i)
     {
       if(_histos)  hClustE[0]->Fill(energy[i]);
@@ -292,7 +308,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	
 	      TVector3 temppos(aveR*cos(avePhi), aveR*sin(avePhi), aveZ);
 	      avepos.push_back(temppos);
-	      nclusters.push_back(2);
+        nclusters.push_back(2);
 
 	      if(Verbosity() > 0)
 		std::cout << " layer i " << layer[i] << " energy " << energy[i] << " pos i " << pos[i].X() << "  " << pos[i].Y() << "  " << pos[i].Z()
