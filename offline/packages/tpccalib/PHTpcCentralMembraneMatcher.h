@@ -37,8 +37,15 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
   ~PHTpcCentralMembraneMatcher() override = default;
 
-  void set_process(const int proc)  { _process = proc;  }
-  void set_histos_on(const bool val) {_histos = val;}
+
+  /// set to true to store evaluation histograms and ntuples
+  void setSavehistograms( bool value )
+  {m_savehistograms = value;}
+    
+  /// output file name for evaluation histograms
+  void setHistogramOutputfile(const std::string &outputfile) 
+  {m_histogramfilename = outputfile;}
+  
   void set_grid_dimensions( int phibins, int rbins );
 
  //! run initialization
@@ -77,6 +84,8 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   
   ///@name evaluation histograms
   //@{
+  bool m_savehistograms = false;
+  std::string m_histogramfilename = "PHTpcCentralMembraneMatcher.root";
   
   TH2F *hxy_reco = nullptr;
   TH2F *hxy_truth = nullptr;
@@ -92,10 +101,7 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   TH1F *hdr3_double = nullptr;
   TH1F *hnclus = nullptr;
   
-  int _process = 0;
-  bool _histos = true;
-
-  TFile *fout = nullptr;
+  std::unique_ptr<TFile> fout;
 
   //@}
   
