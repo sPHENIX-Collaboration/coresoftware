@@ -42,54 +42,56 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
     svtxNode = new PHCompositeNode("SVTX");
     dstNode->addNode(svtxNode);
   }
-  
-  // get distortion correction object and create if not found
-  auto distortion_correction_object = findNode::getClass<TpcDistortionCorrectionContainer>( topNode, m_node_name );
-  if( !distortion_correction_object )
-  { 
-    std::cout << "TpcLoadDistortionCorrection::InitRun - creating TpcDistortionCorrectionContainer in node " << m_node_name << std::endl;
-    distortion_correction_object = new TpcDistortionCorrectionContainer;
-    auto node = new PHDataNode<TpcDistortionCorrectionContainer>(distortion_correction_object, m_node_name);
-    svtxNode->addNode(node);
-  }
-  
-  std::cout << "TpcLoadDistortionCorrection::InitRun - reading distortions from " << m_distortion_filename << std::endl;
-  auto distortion_tfile = TFile::Open( m_distortion_filename.c_str());
-  if( !distortion_tfile )
-  {
-    std::cout << "TpcLoadDistortionCorrection::InitRun - cannot open " << m_distortion_filename << std::endl;
-    exit(1);
-  }
 
-  const std::array<const std::string,2> extension = {{ "_negz", "_posz" }};
-  for( int i =0; i < 2; ++i )
-  {
-    distortion_correction_object->m_hDPint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionP%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDPint[i] );
-    distortion_correction_object->m_hDRint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionR%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDRint[i] );
-    distortion_correction_object->m_hDZint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionZ%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDZint[i] );
-  }
-
-  // dump axis limits
-  if( Verbosity() )
-  {
-    for( int i =0; i < 2; ++i )
-    {
-      std::cout << "TpcLoadDistortionCorrection::InitRun - histogram: " << distortion_correction_object->m_hDPint[i]->GetName() << std::endl;
-      for(const auto& axis:{ 
-        distortion_correction_object->m_hDPint[i]->GetXaxis(), 
-        distortion_correction_object->m_hDPint[i]->GetYaxis(), 
-        distortion_correction_object->m_hDPint[i]->GetZaxis() })
-      {
-        std::cout
-          << "TpcLoadDistortionCorrection::InitRun -"
-          << " axis: " << axis->GetTitle()
-          << " bins: " << axis->GetNbins()
-          << " limits: " << axis->GetXmin() << " " << axis->GetXmax()
-          << std::endl;
+  //create and populate the nodes for each distortion, if present:
+  for (int i=0;i<3;i++){
+    // get distortion correction object and create if not found
+    auto distortion_correction_object = findNode::getClass<TpcDistortionCorrectionContainer>( topNode, m_node_name[i] );
+    if( !distortion_correction_object )
+      { 
+	std::cout << "TpcLoadDistortionCorrection::InitRun - creating TpcDistortionCorrectionContainer in node " << m_node_name[i] << std::endl;
+	distortion_correction_object = new TpcDistortionCorrectionContainer;
+	auto node = new PHDataNode<TpcDistortionCorrectionContainer>(distortion_correction_object, m_node_name[i]);
+	svtxNode->addNode(node);
       }
-    }
-  }
+  
+    std::cout << "TpcLoadDistortionCorrection::InitRun - reading corrections from " << m_correction_filename[i] << std::endl;
+    auto distortion_tfile = TFile::Open( m_correction_filename[i].c_str());
+    if( !distortion_tfile )
+      {
+	std::cout << "TpcLoadDistortionCorrection::InitRun - cannot open " << m_correction_filename[i] << std::endl;
+	exit(1);
+      }
 
+    const std::array<const std::string,2> extension = {{ "_negz", "_posz" }};
+    for( int i =0; i < 2; ++i )
+      {
+	distortion_correction_object->m_hDPint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionP%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDPint[i] );
+	distortion_correction_object->m_hDRint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionR%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDRint[i] );
+	distortion_correction_object->m_hDZint[i] = dynamic_cast<TH3*>(distortion_tfile->Get(Form("hIntDistortionZ%s", extension[i].c_str()))); assert( distortion_correction_object->m_hDZint[i] );
+      }
+
+    // dump axis limits
+    if( Verbosity() )
+      {
+	for( int i =0; i < 2; ++i )
+	  {
+	    std::cout << "TpcLoadDistortionCorrection::InitRun - histogram: " << distortion_correction_object->m_hDPint[i]->GetName() << std::endl;
+	    for(const auto& axis:{ 
+		distortion_correction_object->m_hDPint[i]->GetXaxis(), 
+		  distortion_correction_object->m_hDPint[i]->GetYaxis(), 
+		  distortion_correction_object->m_hDPint[i]->GetZaxis() })
+	      {
+		std::cout
+		  << "TpcLoadDistortionCorrection::InitRun -"
+		  << " axis: " << axis->GetTitle()
+		  << " bins: " << axis->GetNbins()
+		  << " limits: " << axis->GetXmin() << " " << axis->GetXmax()
+		  << std::endl;
+	      }
+	  }
+      }
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

@@ -27,11 +27,26 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position( const Acts::Vecto
   const int index = z > 0 ? 1:0;
 
   // apply corrections
-  const auto phi_new = (dcc->m_hDPint[index] && (mask&COORD_PHI)) ? phi - dcc->m_hDPint[index]->Interpolate(phi,r,z)/r : phi;
-  const auto r_new = (dcc->m_hDRint[index] && (mask&COORD_R)) ? r - dcc->m_hDRint[index]->Interpolate(phi,r,z) : r;
-  const auto z_new = (dcc->m_hDZint[index] && (mask&COORD_Z)) ? z - dcc->m_hDZint[index]->Interpolate(phi,r,z) : z;
+  auto phi_new=phi;
+  auto r_new=r;
+  auto z_new=z;
+  if (dcc->dimensions==3){
+    phi_new = (dcc->m_hDPint[index] && (mask&COORD_PHI)) ? phi - dcc->m_hDPint[index]->Interpolate(phi,r,z)/r : phi;
+    r_new = (dcc->m_hDRint[index] && (mask&COORD_R)) ? r - dcc->m_hDRint[index]->Interpolate(phi,r,z) : r;
+    z_new = (dcc->m_hDZint[index] && (mask&COORD_Z)) ? z - dcc->m_hDZint[index]->Interpolate(phi,r,z) : z;
+  }
+  else if (dcc->dimensions==2){
+    const auto bin=dcc->m_hDPint[index]->FindBin(phi,r,z);
+    const auto zterm=(1-z/105.5); //where to get the official z position limits?
+    phi_new = (dcc->m_hDPint[index] && (mask&COORD_PHI)) ? phi - dcc->m_hDPint[index]->GetBinContent(bin)/r*zterm : phi;
+    r_new = (dcc->m_hDRint[index] && (mask&COORD_R)) ? r - dcc->m_hDRint[index]->GetBinContent(bin)*zterm : r;
+    z_new = (dcc->m_hDZint[index] && (mask&COORD_Z)) ? z - dcc->m_hDZint[index]->GetBinContent(bin)*zterm : z;
+  }
+  else {
+    //crash?
+  }
   
-  // update cluster
+    // update cluster
   const auto x_new = r_new*std::cos( phi_new );
   const auto y_new = r_new*std::sin( phi_new );
 
