@@ -32,7 +32,9 @@ class ALICEKF
   {
     PHFieldConfigv1 fcfg;
     fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
-    fcfg.set_filename("/phenix/u/bogui/data/Field/sphenix3dtrackingmapxyz.root");
+    auto magField = std::string(getenv("CALIBRATIONROOT")) +
+      std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
+    fcfg.set_filename(magField);
     //  fcfg.set_rescale(1);
     if(!topNode) std::cout << "no topnode, too bad..." << std::endl;
     _B = PHFieldUtility::BuildFieldMap(&fcfg);

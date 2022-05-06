@@ -278,7 +278,9 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   fitter->setFixedClusterError(2,_fixed_clus_err.at(2));
   PHFieldConfigv1 fcfg;
   fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
-  fcfg.set_filename("/phenix/u/bogui/data/Field/sphenix3dtrackingmapxyz.root");
+  auto magField = std::string(getenv("CALIBRATIONROOT")) +
+    std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
+  fcfg.set_filename(magField);
   //  fcfg.set_rescale(1);
   _field_map = PHFieldUtility::BuildFieldMap(&fcfg);
   //  _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
