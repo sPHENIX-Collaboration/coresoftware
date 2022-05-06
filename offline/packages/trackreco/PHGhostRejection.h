@@ -11,6 +11,8 @@
 #define PHGHOSTREJECTION_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 
 #include <string>
 #include <vector>
@@ -20,8 +22,6 @@ class PHCompositeNode;
 class TrackSeedContainer;
 class TrkrCluster;
 class TrackSeed;
-class ActsSurfaceMaps;
-class ActsTrackingGeometry;
 class TrkrClusterContainer;
 
 class PHGhostRejection 
