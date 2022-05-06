@@ -37,21 +37,12 @@ class CMFlashClusterContainer : public PHObject
 
   //! identify object
   void identify(std::ostream &/*os*/ = std::cout) const override {}
-
-  //! add a cluster
-  virtual ConstIterator addCluster(CMFlashCluster*) = 0;
-
+  
   //! add a cluster with specific key
-  virtual ConstIterator addClusterSpecifyKey(const unsigned int, CMFlashCluster* ) = 0;
+  virtual void addClusterSpecifyKey(const unsigned int, CMFlashCluster* ) = 0;
 
   //! remove cluster
   virtual void removeCluster(unsigned int) {}
-
-  //! remove cluster
-  virtual void removeCluster(CMFlashCluster* ) {}
-
-  //! find cluster matching key if any, add a new one otherwise and return cluster
-  virtual Iterator findOrAddCluster(unsigned int) = 0;
   
   //! return all clusters
   virtual ConstRange getClusters() const = 0;
