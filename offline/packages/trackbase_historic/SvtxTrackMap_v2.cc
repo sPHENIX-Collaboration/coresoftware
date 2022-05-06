@@ -88,7 +88,7 @@ SvtxTrack* SvtxTrackMap_v2::insert(const SvtxTrack* track)
   return _map[index];
 }
 
-SvtxTrack* SvtxTrackMap_v2::insert(const SvtxTrack* track, unsigned int index)
+SvtxTrack* SvtxTrackMap_v2::insertWithKey(const SvtxTrack* track, unsigned int index)
 {
   _map.insert(make_pair(index, dynamic_cast<SvtxTrack*> (track->CloneMe())));
   _map[index]->set_id(index);

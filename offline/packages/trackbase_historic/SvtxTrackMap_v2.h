@@ -30,7 +30,7 @@ class SvtxTrackMap_v2 : public SvtxTrackMap
   const SvtxTrack* get(unsigned int idkey) const override;
   SvtxTrack* get(unsigned int idkey) override;
   SvtxTrack* insert(const SvtxTrack* track) override;
-  SvtxTrack* insert(const SvtxTrack* track, unsigned int index) override;
+  SvtxTrack* insertWithKey(const SvtxTrack* track, unsigned int index) override;
   size_t erase(unsigned int idkey) override
   {
     delete _map[idkey];

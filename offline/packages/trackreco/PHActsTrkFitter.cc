@@ -388,7 +388,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 		}
 
 	      getTrackFitResult(fitOutput, newTrack);
-	      m_trackMap->insert(newTrack.get(), tpcid);
+	      m_trackMap->insertWithKey(newTrack.get(), tpcid);
 	    }
 	}
       else if (!m_fitSiliconMMs)
