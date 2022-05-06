@@ -138,13 +138,13 @@ int PHTrackSeeding::GetNodes(PHCompositeNode* topNode)
     cerr << PHWHERE << " ERROR: Can't find " << _track_map_name << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
+  /*
   _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!_hitsets)
   {
     cerr << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
+  */
   return Fun4AllReturnCodes::EVENT_OK;
 }
