@@ -15,6 +15,7 @@
 #include <tpc/TpcDistortionCorrection.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/ActsTransformations.h>
+#include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 #include <Eigen/Core>
 
@@ -26,6 +27,7 @@
 // forward declarations
 struct ActsSurfaceMaps;
 struct ActsTrackingGeometry;
+
 class PHCompositeNode;
 class PHField;
 class TpcDistortionCorrectionContainer;
