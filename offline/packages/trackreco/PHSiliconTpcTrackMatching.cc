@@ -147,9 +147,11 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
       addTrackBunchCrossing(tpc_matches);	  
     }
 
+  /*
   // loop over all tracks and copy the silicon clusters to the corrected cluster map
   if(_corrected_cluster_map)
     copySiliconClustersToCorrectedMap();
+  */
   
   if(Verbosity() > 0)  
     cout << " Final track map size " << _track_map->size() 
@@ -225,13 +227,15 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 	= new PHIODataNode<PHObject>(_seed_track_map, _tpcseed_track_map_name);
       svtxNode->addNode(node);
     }
-  
+
+  /*  
   _corrected_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
   if(_corrected_cluster_map)
     {
       std::cout << " Found CORRECTED_TRKR_CLUSTER node " << std::endl;
     }
-  
+  */
+
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (!_cluster_map)
       {
@@ -737,6 +741,7 @@ void PHSiliconTpcTrackMatching::tagMatchCrossing(
 return;
 }
 
+/*
 void PHSiliconTpcTrackMatching::copySiliconClustersToCorrectedMap( )
 {
   // loop over final track map, copy silicon clusters to corrected cluster map
@@ -766,6 +771,7 @@ void PHSiliconTpcTrackMatching::copySiliconClustersToCorrectedMap( )
     }      
   }
 }
+*/
 
 // uses INTT time to get bunch crossing
 void PHSiliconTpcTrackMatching::getMatchCrossingIntt(  

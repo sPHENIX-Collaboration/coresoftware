@@ -71,7 +71,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   void tagMatchCrossing( std::multimap<unsigned int, unsigned int> &tpc_matches,
 			 std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
 			 std::map<unsigned int, short int> &tpc_crossing_map );
-   void copySiliconClustersToCorrectedMap( );
+  //   void copySiliconClustersToCorrectedMap( );
    void correctTpcClusterZIntt(  std::map<unsigned int, short int> &tpc_crossing_map );
    void getMatchCrossingIntt(  
 			       std::multimap<unsigned int, unsigned int> &tpc_matches,
@@ -112,7 +112,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   SvtxTrack *_tracklet_tpc{nullptr};
   SvtxTrack *_tracklet_si{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};
-  TrkrClusterContainer *_corrected_cluster_map{nullptr};
+  //TrkrClusterContainer *_corrected_cluster_map{nullptr};
   ActsSurfaceMaps *_surfmaps{nullptr};
   ActsTrackingGeometry *_tGeometry{nullptr};
   TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};

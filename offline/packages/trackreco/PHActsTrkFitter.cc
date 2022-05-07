@@ -500,7 +500,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
       unsigned int trkrid = TrkrDefs::getTrkrId(key);
       unsigned int side = TpcDefs::getSide(key);
 
-      // For the TPC, cluster z has to be corrected for the crossing z offset 
+      // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset 
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
       
       // transform to global coordinates for z correction 
@@ -524,7 +524,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	  
 	  // apply distortion corrections
 	  if(_dcc) { global = _distortionCorrection.get_corrected_position( global, _dcc ); }
-	  
+	 
 	  // add the global positions to a vector to give to the cluster mover
 	  global_raw.push_back(std::make_pair(key, global));
 	}
@@ -537,6 +537,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
     }	  // end loop over clusters here
   
   // move the cluster positions back to the original readout surface
+  // NOTE: should apply TOF correction to z before cluster mover call
   std::vector<std::pair<TrkrDefs::cluskey,Acts::Vector3>> global_moved = _clusterMover.processTrack(global_raw);
   
   // loop over global positions returned by cluster mover
@@ -1056,17 +1057,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
-  if(m_clusterContainer)
-    {
-      std::cout << " Using CORRECTED_TRKR_CLUSTER node " << std::endl;
-    }
-  else
-    {
-      std::cout << " CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl;
-      m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
-    }
-
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
   if(!m_clusterContainer)
     {
       std::cout << PHWHERE 
