@@ -358,7 +358,7 @@ TH3* TpcSpaceChargeReconstructionHelper::copy_histogram( TH3* hin, const TString
     hout->SetBinError( iphi+1, 1, iz+1, hout->GetBinError( iphi+1, 2, iz+1 ) );
 
     hout->SetBinContent( iphi+1, rbins+2, iz+1, hout->GetBinContent( iphi+1, rbins+1, iz+1 ) );
-    hout->SetBinError( iphi+1, rbins+1, iz+1, hout->GetBinError( iphi+1, rbins+1, iz+1 ) );
+    hout->SetBinError( iphi+1, rbins+2, iz+1, hout->GetBinError( iphi+1, rbins+1, iz+1 ) );
   }
 
   // fill guarding z bins

@@ -21,10 +21,8 @@ class CMFlashDifferencev1 : public CMFlashDifference
 {
  public:
   //! ctor
-  CMFlashDifferencev1();
+  CMFlashDifferencev1() = default;
 
-  //!dtor
-  ~CMFlashDifferencev1() override {}
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override {}
@@ -37,9 +35,6 @@ class CMFlashDifferencev1 : public CMFlashDifference
   //! copy content from base class
   void CopyFrom( CMFlashDifference* source ) override
   { CopyFrom( *source ); }
-
-  void setKey(unsigned int id) override { m_key = id; }
-  unsigned int getKey() const override { return m_key; }
 
   void setNclusters(unsigned int n) override { m_nclusters = n; }
   unsigned int getNclusters() const override { return m_nclusters; }
@@ -77,14 +72,11 @@ class CMFlashDifferencev1 : public CMFlashDifference
   */
 
  protected:
-  unsigned int m_key;
-  unsigned int m_nclusters;
+  unsigned int m_nclusters = UINT_MAX;
 
-  float m_Phi[2];  // (truth, reco)
-  float m_R[2];
-  float m_Z[2];
-
-
+  float m_Phi[2] = {NAN, NAN};  // (truth, reco)
+  float m_R[2] = {NAN, NAN};
+  float m_Z[2] = {NAN, NAN};
 
   ClassDefOverride(CMFlashDifferencev1, 1)
 };

@@ -3,14 +3,20 @@
 #ifndef PHTPCCENTRALMEMBRANEMATCHER_H
 #define PHTPCCENTRALMEMBRANEMATCHER_H
 
-#include <string>
+/**
+ * \file PHTpcCentralMembraneMatcher.h
+ * \brief match reconstructed CM clusters to CM pads, calculate differences, store on the node tree and compute distortion reconstruction maps
+ * \author Tony Frawley <frawley@fsunuc.physics.fsu.edu>, Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
+ */
 
 #include <fun4all/SubsysReco.h>
-
-#include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrClusterContainer.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDistortionCorrection.h>
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrClusterContainer.h>
+
+#include <memory>
+#include <string>
 
 class PHCompositeNode;
 class CMFlashClusterContainer;
@@ -29,77 +35,112 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
  PHTpcCentralMembraneMatcher(const std::string &name = "PHTpcCentralMembraneMatcher");
 
-  virtual ~PHTpcCentralMembraneMatcher();
+  ~PHTpcCentralMembraneMatcher() override = default;
 
-  void set_process(const int proc)  { _process = proc;  }
-  void set_histos_on(const bool val) {_histos = val;}
 
- //! run initialization
-  int InitRun(PHCompositeNode *topNode);
+  /// set to true to store evaluation histograms and ntuples
+  void setSavehistograms( bool value )
+  {m_savehistograms = value;}
+    
+  /// output file name for evaluation histograms
+  void setHistogramOutputfile(const std::string &outputfile) 
+  {m_histogramfilename = outputfile;}
+
+  /// output file name for storing the space charge reconstruction matrices
+  void setOutputfile(const std::string &outputfile)
+  {m_outputfile = outputfile;}
+  
+  void set_grid_dimensions( int phibins, int rbins );
+
+  //! run initialization
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
-  int process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode) override;
 
   //! end of process
-  int End(PHCompositeNode * topNode);
+  int End(PHCompositeNode * topNode) override;
 
- protected:
-  
  private:
 
   int GetNodes(PHCompositeNode* topNode);
 
- /// tpc distortion correction utility class
-  TpcDistortionCorrection _distortionCorrection;
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection m_distortionCorrection;
 
-  CMFlashClusterContainer *_corrected_CMcluster_map{nullptr};
-  CMFlashDifferenceContainer *_cm_flash_diffs{nullptr};
-  TpcDistortionCorrectionContainer* _dcc{nullptr};
+  CMFlashClusterContainer *m_corrected_CMcluster_map{nullptr};
+  CMFlashDifferenceContainer *m_cm_flash_diffs{nullptr};
 
-  TH2F *hxy_reco;
-  TH2F *hxy_truth;
-  TH2F *hdrdphi;
-  TH2F *hrdr;
-  TH2F *hrdphi;
-  TH1F *hdrphi;
-  TH1F *hdr1_single;
-  TH1F *hdr2_single;
-  TH1F *hdr3_single;
-  TH1F *hdr1_double;
-  TH1F *hdr2_double;
-  TH1F *hdr3_double;
-  TH1F *hnclus;
+  /// static distortion container
+  /** used in input to correct CM clusters before calculating residuals */
+  TpcDistortionCorrectionContainer* m_dcc_in{nullptr};
 
-   std::vector<TVector3> reco_pos;
-   std::vector<TVector3> truth_pos;
-   std::vector<unsigned int> reco_nclusters;
+  /// fluctuation distortion container
+  /** used in output to write fluctuation distortions */
+  TpcDistortionCorrectionContainer* m_dcc_out{nullptr};
+  
+  /// local fluctuation distortion container
+  /*
+   * this one is used to aggregate multple CM events in a single map 
+   * it is not stored on the node tree but saved to a dedicated file at the end of the run
+   */
+  std::unique_ptr<TpcDistortionCorrectionContainer> m_dcc_out_aggregated;
+ 
+  /// output file, to which aggregated central membrane distortion corrections are stored
+  std::string m_outputfile = "CMDistortionCorrections.root";
+  
+  ///@name evaluation histograms
+  //@{
+  bool m_savehistograms = false;
+  std::string m_histogramfilename = "PHTpcCentralMembraneMatcher.root";
+  
+  TH2F *hxy_reco = nullptr;
+  TH2F *hxy_truth = nullptr;
+  TH2F *hdrdphi = nullptr;
+  TH2F *hrdr = nullptr;
+  TH2F *hrdphi = nullptr;
+  TH1F *hdrphi = nullptr;
+  TH1F *hdr1_single = nullptr;
+  TH1F *hdr2_single = nullptr;
+  TH1F *hdr3_single = nullptr;
+  TH1F *hdr1_double = nullptr;
+  TH1F *hdr2_double = nullptr;
+  TH1F *hdr3_double = nullptr;
+  TH1F *hnclus = nullptr;
+  
+  std::unique_ptr<TFile> fout;
 
-  int _process = 0;
-  bool _histos = true;
+  //@}
+  
+  /// radius cut for matching clusters to pad
+  /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
+  double m_rad_cut= 0.2;
+  
+  /// phi cut for matching clusters to pad
+  /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
+  double m_phi_cut= 0.01;
+  
+  ///@name distortion correction histograms
+  //@{
 
-  TFile *fout;
+  /// distortion correction grid size along phi
+  int m_phibins = 36;
 
-/// check if coords are in a stripe
-  //int getSearchResult(double xcheck, double ycheck) const;
+  static constexpr float m_phiMin = 0;
+  static constexpr float m_phiMax = 2.*M_PI;
 
-  //  int getStripeID(double xcheck, double ycheck) const;
+  /// distortion correction grid size along r
+  int m_rbins = 16;
 
-  /// adjust central membrane hits delay with respect to trigger time
-  //void setCentralMembraneDelay(int ns) { m_centralMembraneDelay = ns; };
-
- private:
-  /// detector name
-  std::string detector = "TPC";
-
-
+  static constexpr float m_rMin = 20; // cm
+  static constexpr float m_rMax = 78; // cm
+  
+  //@} 
+  
+  ///@name central membrane pads definitions
+  //@{
   static constexpr double mm = 1.0;
   static constexpr double cm = 10.0;
-
-  /// inner radius of CM
-  static constexpr double begin_CM = 221.4019814 * mm;
-
-  /// outer radius of CM
-  static constexpr double end_CM = 759.2138 * mm;
 
   static constexpr int nRadii = 8;
   static constexpr int nStripes_R1 = 6;
@@ -156,11 +197,8 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   static constexpr int nStripesPerPetal = 213;
   static constexpr int nPetals = 18;
   static constexpr int nTotStripes = nStripesPerPetal * nPetals;
-
-  double _rad_cut= 0.2;
-  double _phi_cut= 0.01;
-
-void CalculateCenters(
+  
+  void CalculateCenters(
     int nPads,
     const std::array<double, nRadii>& R,
     std::array<int, nRadii>& nGoodStripes,
@@ -168,7 +206,11 @@ void CalculateCenters(
     std::array<int, nRadii>& nStripesIn,
     std::array<int, nRadii>& nStripesBefore,
     double cx[][nRadii], double cy[][nRadii] );
+  
+  /// store centers of all central membrane pads
+  std::vector<TVector3> truth_pos;
 
+  //@}
 
 };
 

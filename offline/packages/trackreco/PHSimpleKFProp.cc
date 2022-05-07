@@ -18,6 +18,8 @@
 
 #include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfig.h>
+#include <phfield/PHFieldConfigv1.h>
 
 #include <phool/getClass.h>
 #include <phool/phool.h>                       // for PHWHERE
@@ -34,6 +36,8 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 
+#include <Acts/MagneticField/MagneticFieldProvider.hpp>
+#include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <Eigen/Core>
@@ -272,7 +276,15 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   fitter->setFixedClusterError(0,_fixed_clus_err.at(0));
   fitter->setFixedClusterError(1,_fixed_clus_err.at(1));
   fitter->setFixedClusterError(2,_fixed_clus_err.at(2));
-  _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
+  PHFieldConfigv1 fcfg;
+  fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
+  auto magField = std::string(getenv("CALIBRATIONROOT")) +
+    std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
+  fcfg.set_filename(magField);
+  //  fcfg.set_rescale(1);
+  _field_map = PHFieldUtility::BuildFieldMap(&fcfg);
+  //  _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
+  // m_Cache = magField->makeCache(m_tGeometry->magFieldContext);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -282,6 +294,18 @@ double PHSimpleKFProp::get_Bz(double x, double y, double z) const
   double p[4] = {x*cm,y*cm,z*cm,0.*cm};
   double bfield[3];
   _field_map->GetFieldValue(p,bfield);
+  /*  Acts::Vector3 loc(0,0,0);
+  int mfex = (magField != nullptr);
+  int tgex = (m_tGeometry != nullptr);
+  std::cout << " getting acts field " << mfex << " " << tgex << std::endl;
+  auto Cache =  m_tGeometry->magField->makeCache(m_tGeometry->magFieldContext);
+  auto bf = m_tGeometry->magField->getField(loc,Cache);
+  if(bf.ok())
+    {
+      Acts::Vector3 val = bf.value();
+      std::cout << "bz big: " <<  bfield[2]/tesla << " bz acts: " << val(2) << std::endl;
+    }
+  */
   return bfield[2]/tesla;
 }
 
@@ -321,7 +345,16 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
   {
     radii.push_back(geom_container->GetLayerCellGeom(i)->get_radius());
   }
-
+  /*
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  if(!m_tGeometry)
+    {
+      std::cout << "ActsTrackingGeometry not on node tree. Exiting."
+		<< std::endl;
+      
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  */
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

@@ -38,20 +38,11 @@ class CMFlashDifferenceContainer : public PHObject
   //! identify object
   void identify(std::ostream &/*os*/ = std::cout) const override {}
 
-  //! add a difference
-  virtual ConstIterator addDifference(CMFlashDifference*) = 0;
-
   //! add a differences with specific key
-  virtual ConstIterator addDifferenceSpecifyKey(const unsigned int, CMFlashDifference* ) = 0;
+  virtual void addDifferenceSpecifyKey(const unsigned int, CMFlashDifference* ) = 0;
 
   //! remove differences
   virtual void removeDifference(unsigned int) {}
-
-  //! remove differences
-  virtual void removeDifference(CMFlashDifference* ) {}
-
-  //! find differences matching key if any, add a new one otherwise and return differences
-  virtual Iterator findOrAddDifference(unsigned int) = 0;
   
   //! return all differences
   virtual ConstRange getDifferences() const = 0;

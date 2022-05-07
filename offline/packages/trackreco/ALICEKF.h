@@ -7,6 +7,7 @@
 #include <trackbase/TrkrCluster.h>
 #include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfigv1.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 
@@ -29,7 +30,15 @@ class ALICEKF
           double max_sin_phi,
           int verbosity)
   {
-    _B = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
+    PHFieldConfigv1 fcfg;
+    fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
+    auto magField = std::string(getenv("CALIBRATIONROOT")) +
+      std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
+    fcfg.set_filename(magField);
+    //  fcfg.set_rescale(1);
+    if(!topNode) std::cout << "no topnode, too bad..." << std::endl;
+    _B = PHFieldUtility::BuildFieldMap(&fcfg);
+    //    _B = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
     _cluster_map = cmap;
     _fieldDir = fieldDir;
     _max_sin_phi = max_sin_phi;
