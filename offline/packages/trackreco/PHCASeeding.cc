@@ -789,7 +789,7 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
     { return ret; }
     
   // tpc distortion correction
-  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( m_dcc )
   { std::cout << "PHCASeeding::Setup - found TPC distortion correction container" << std::endl; }
   

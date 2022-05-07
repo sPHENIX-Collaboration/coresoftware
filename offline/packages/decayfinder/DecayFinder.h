@@ -4,6 +4,8 @@
 //sPHENIX stuff
 #include <fun4all/SubsysReco.h>
 
+#include <g4main/PHG4Particle.h>
+
 #include <cstddef>              // for NULL
 #include <string>
 #include <vector>
@@ -11,6 +13,7 @@
 
 class DecayFinderContainer_v1;
 class PHCompositeNode;
+class PHG4TruthInfoContainer;
 class PHHepMCGenEvent;
 class PHHepMCGenEventMap;
 namespace HepMC { class GenParticle; }
@@ -38,7 +41,19 @@ class DecayFinder : public SubsysReco
 
   bool findParticle(std::string particle);
 
-  int checkIfCorrectParticle(HepMC::GenParticle *particle, bool &trackFailedPT, bool &trackFailedETA);
+  void searchHepMCRecord(HepMC::GenParticle* particle, std::vector<int> decayProducts, 
+                         bool &breakLoop, bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA, 
+                         std::vector<int> &correctDecayProducts);
+
+  void searchGeant4Record(int barcode, int pid, std::vector<int> decayProducts,
+          		 bool &breakLoop, bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA, 
+			 std::vector<int> &correctDecayProducts);
+
+  bool checkIfCorrectHepMCParticle(HepMC::GenParticle *particle, bool &trackFailedPT, bool &trackFailedETA);
+
+  bool checkIfCorrectGeant4Particle(PHG4Particle *particle, bool& hasPhoton, bool& hasPi0, bool& trackFailedPT, bool& trackFailedETA);
+
+  bool compareDecays(std::vector<int> required, std::vector<int> actual);
 
   int deleteElement(int arr[], int n, int x);
 
@@ -47,6 +62,8 @@ class DecayFinder : public SubsysReco
   int get_pdgcode(std::string name);
 
   int get_charge(std::string name);
+
+  bool isInRange(float min, float value, float max);
 
   int createDecayNode(PHCompositeNode *topNode);
 
@@ -107,12 +124,21 @@ class DecayFinder : public SubsysReco
  private:
   PHHepMCGenEventMap *m_geneventmap = nullptr;
   PHHepMCGenEvent *m_genevt = nullptr;
+  PHG4TruthInfoContainer *m_truthinfo = nullptr;
+
+  double m_eta_req = 1.1;
+  double m_eta_low_req = -1.1;
+  double m_pt_req = 0.2;
 
   int m_counter = 0;
   int m_nCandFail_pT = 0;
   int m_nCandFail_eta = 0;
   int m_nCandFail_pT_and_eta = 0;
   int m_nCandReconstructable = 0;
+  int m_nCandHas_Photon = 0;
+  int m_nCandHas_Pi0 = 0;
+  int m_nCandHas_Photon_and_Pi0 = 0;
+  int m_nCandHas_noPhoton_and_noPi0 = 0;
 
   bool m_getChargeConjugate = false;
 

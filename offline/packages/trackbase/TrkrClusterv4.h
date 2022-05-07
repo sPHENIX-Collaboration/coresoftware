@@ -91,8 +91,8 @@ class TrkrClusterv4 : public TrkrCluster
    void setError(unsigned int, unsigned int, float) override 
    { std::cout << "Deprecated seterr trkrcluster function!" << std::endl; }
 
-   char getSize() { return m_size; }
-   void setSize(char size) { m_size = size; }
+   char getSize() { return m_phisize * m_zsize; }
+   //   void setSize(char size) { m_size = size; }
  
    float getPhiSize() const override { return (float) m_phisize; }
    void setPhiSize(char phisize) { m_phisize = phisize; }
@@ -115,18 +115,13 @@ class TrkrClusterv4 : public TrkrCluster
 
  protected:
 
-  TrkrDefs::cluskey m_cluskey;  //< unique identifier within container
-  TrkrDefs::subsurfkey m_subsurfkey; //< unique identifier for hitsetkey-surface maps
-
-  unsigned short int m_adc;           //< cluster sum adc
-  
-  float m_local[2];          //< 2D local position [cm]
-  bool m_valid;
-  char m_size;
-  char m_phisize;
-  char m_zsize;
-  char m_overlap;
-  char m_edge;
+  float m_local[2];          //< 2D local position [cm] 2 * 32 64bit  - cumul 1*64
+  TrkrDefs::subsurfkey m_subsurfkey; //< unique identifier for hitsetkey-surface maps 16 bit
+  unsigned short int m_adc;           //< cluster sum adc 16
+  char m_phisize; // 8bit
+  char m_zsize;   // 8bit
+  char m_overlap; // 8bit 
+  char m_edge;    // 8bit - cumul 2*64
 
   ClassDefOverride(TrkrClusterv4, 2)
 };

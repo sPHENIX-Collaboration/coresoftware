@@ -319,7 +319,7 @@ int  PHTpcClusterMover::GetNodes(PHCompositeNode* topNode)
     }
 
   // tpc distortion correction
-  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( _dcc )
     { 
       std::cout << "PHTpcClusterMover:   found TPC distortion correction container" << std::endl; 
