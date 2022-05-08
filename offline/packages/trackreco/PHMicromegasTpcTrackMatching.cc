@@ -383,12 +383,16 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       unsigned int side = TpcDefs::getSide(cluster_key);
       const Acts::Vector3 global = getGlobalPosition(cluster_key, tpc_clus, crossing, side);
       clusGlobPos.push_back(global);
-      //      clusGlobPos.push_back(transformer.getGlobalPosition(cluster_key, tpc_clus, _surfmaps, _tGeometry));
+      
       if(Verbosity() > 10)
       {
+	auto global_raw = transformer.getGlobalPosition(cluster_key, tpc_clus, _surfmaps, _tGeometry);
         std::cout
-          << "  TPC cluster in layer " << layer << " with position " << tpc_clus->getLocalX()
-          << "  " << tpc_clus->getLocalY() << "  " << " outer_clusters.size() " << outer_clusters.size() << std::endl;
+          << "  TPC cluster key " << cluster_key << " in layer " << layer 
+	  << " with local position " << tpc_clus->getLocalX()  << "  " << tpc_clus->getLocalY() << std::endl;
+	std::cout << " raw global position " << global_raw[0] << " " << global_raw[1] << " " << global_raw[2]
+	  << " corrected global position " << global[0] << " " << global[1] << " " << global[2]
+	  << std::endl;
       }
     }
 
@@ -647,9 +651,9 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
   }
 
  // tpc distortion correction
-  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( _dcc )
-  { std::cout << "PHMicromegasTpcTrackMatching::get_Nodes  - found TPC distortion correction container" << std::endl; }
+  { std::cout << "PHMicromegasTpcTrackMatching::get_Nodes  - found static TPC distortion correction container" << std::endl; }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -490,9 +490,9 @@ int  PHTpcTrackSeedCircleFit::GetNodes(PHCompositeNode* topNode)
   }
 
   // tpc distortion correction
-  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( _dcc )
-  { std::cout << "PHTpcTrackSeedCircleFit::get_Nodes  - found TPC distortion correction container" << std::endl; }
+  { std::cout << "PHTpcTrackSeedCircleFit::get_Nodes  - found static TPC distortion correction container" << std::endl; }
 
   _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   if (!_track_map)
@@ -514,7 +514,7 @@ Acts::Vector3 PHTpcTrackSeedCircleFit::getGlobalPosition( TrkrDefs::cluskey key,
     _tGeometry);
 
   // ADF: in streaming mode we need to add a step here to take care of the fact that we do not know the crossing yet
-  // possibly move the track to point at z=0 to make distortion corrections (circularize the track) then move it back?
+  // possibly move the track to point at z=0 to make distortion corrections (circularize the track) then move it back after the fit?
 
   // check if TPC distortion correction are in place and apply
   if(_dcc) { globalpos = _distortionCorrection.get_corrected_position( globalpos, _dcc ); }

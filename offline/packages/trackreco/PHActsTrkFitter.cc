@@ -511,7 +511,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
       
       if(Verbosity() > 0)
 	{
-	  std::cout << " zinit " << global[2] << " side " << side << " crossing " << crossing 
+	  std::cout << " zinit " << global[2] << " xinit " << global[0] << " yinit " << global[1] << " side " << side << " crossing " << crossing 
 		    << " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
 	}
       
@@ -537,7 +537,6 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
     }	  // end loop over clusters here
   
   // move the cluster positions back to the original readout surface
-  // NOTE: should apply TOF correction to z before cluster mover call
   std::vector<std::pair<TrkrDefs::cluskey,Acts::Vector3>> global_moved = _clusterMover.processTrack(global_raw);
   
   // loop over global positions returned by cluster mover
@@ -571,7 +570,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	  if(Verbosity() > 0)
 	    {
 	      unsigned int side = TpcDefs::getSide(cluskey);       
-	      std::cout << "      global z corrected " << global[2] << " side " << side << " crossing " << crossing 
+	      std::cout << "      global z corrected " << global[2] << " xcorr " << global[0] << " ycorr " << global[1] << " side " << side << " crossing " << crossing 
 			<< " cluskey " << cluskey << " subsurfkey " << subsurfkey << std::endl;
 	    }
 	}
@@ -1084,10 +1083,11 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
     }
 
  // tpc distortion correction
-  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  // Eventually have to add average and fluctuation corrections here too
+  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( _dcc )
     { 
-      std::cout << PHWHERE << "  found TPC distortion correction container" << std::endl; 
+      std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl; 
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
