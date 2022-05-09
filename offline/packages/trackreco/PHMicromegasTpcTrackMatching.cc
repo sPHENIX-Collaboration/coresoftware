@@ -347,6 +347,8 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     auto tracklet_tpc = phtrk_iter->second;
     short int crossing = tracklet_tpc->get_crossing();
 
+    if (crossing == SHRT_MAX) continue;   // not matched to silicon, skip it
+
     if (Verbosity() >= 1)
     {
       std::cout << std::endl
@@ -388,7 +390,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       {
 	auto global_raw = transformer.getGlobalPosition(cluster_key, tpc_clus, _surfmaps, _tGeometry);
         std::cout
-          << "  TPC cluster key " << cluster_key << " in layer " << layer 
+          << "  TPC cluster key " << cluster_key << " in layer " << layer << " side " << side << " crossing " << crossing
 	  << " with local position " << tpc_clus->getLocalX()  << "  " << tpc_clus->getLocalY() << std::endl;
 	std::cout << " raw global position " << global_raw[0] << " " << global_raw[1] << " " << global_raw[2]
 	  << " corrected global position " << global[0] << " " << global[1] << " " << global[2]
@@ -707,8 +709,6 @@ void PHMicromegasTpcTrackMatching::copyMicromegasClustersToCorrectedMap( )
 
   // check if TPC distortion correction are in place and apply
   if(_dcc) { globalpos = _distortionCorrection.get_corrected_position( globalpos, _dcc ); }
-
-  // should add a TOF correction to the z here also
 
   return globalpos;
 }
