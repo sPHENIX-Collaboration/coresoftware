@@ -416,17 +416,17 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 			std::multimap<unsigned int, unsigned int> &tpc_matches )
 {
   // loop over the original TPC tracks
-  for (auto phtrk_iter = _track_map->begin();
-       phtrk_iter != _track_map->end(); 
+  for (unsigned int phtrk_iter = 0;
+       phtrk_iter < _track_map->size();
        ++phtrk_iter)
     {
       // we may add tracks to the map, so we stop at the last original track
       
-      _tracklet_tpc = *phtrk_iter;
+      _tracklet_tpc = _track_map->get(phtrk_iter);
       if(!_tracklet_tpc) 
 	{ continue; }
       
-      unsigned int tpcid = _track_map->index(phtrk_iter);
+      unsigned int tpcid = phtrk_iter;
       if (Verbosity() > 1)
 	{
 	  std::cout
@@ -483,15 +483,15 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       bool silicon_match = false;
 
       // Now search the silicon track list for a match in eta and phi
-      for (auto phtrk_iter_si = _track_map_silicon->begin();
-	   phtrk_iter_si != _track_map_silicon->end(); 
+      for (unsigned int phtrk_iter_si = 0;
+	   phtrk_iter_si < _track_map_silicon->size(); 
 	   ++phtrk_iter_si)
 	{
-	  _tracklet_si = *phtrk_iter_si;	  
+	  _tracklet_si = _track_map_silicon->get(phtrk_iter_si);	  
 	  if(!_tracklet_si)
 	    { continue; }
 
-	  unsigned int siid = _track_map_silicon->index(phtrk_iter_si);
+	  unsigned int siid = phtrk_iter_si;
 
 	  double si_phi = _tracklet_si->get_phi(_cluster_map,_surfmaps,_tGeometry);
 	  double si_eta = _tracklet_si->get_eta();

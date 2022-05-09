@@ -108,12 +108,12 @@ int PHTpcDeltaZCorrection::load_nodes( PHCompositeNode* topNode )
 void PHTpcDeltaZCorrection::process_tracks()
 {
   if( !( m_track_map && m_cluster_map ) ) return;
-  for( auto iter = m_track_map->begin(); iter != m_track_map->end(); ++iter )
+  for( unsigned int iter = 0; iter != m_track_map->size(); ++iter )
     {
-      TrackSeed *seed = *iter;
+      TrackSeed *seed = m_track_map->get(iter);
       if(!seed)
 	{ continue; }
-      process_track( m_track_map->index(iter), seed ); 
+      process_track( iter, seed ); 
     }
 
   m_corrected_clusters.clear();

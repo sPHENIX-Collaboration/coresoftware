@@ -50,21 +50,19 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float> &trackChi2)
   std::set<unsigned int> matches_set;
   std::multimap<unsigned int, unsigned int>  matches;
   
-  for (auto tr1_iter = m_trackMap->begin();
-       tr1_iter != m_trackMap->end(); 
-       ++tr1_iter)
+  for (unsigned int trid1 = 0;
+       trid1 != m_trackMap->size(); 
+       ++trid1)
     {
-      auto track1 = *tr1_iter;
-      unsigned int trid1 = m_trackMap->index(tr1_iter);
+      auto track1 = m_trackMap->get(trid1);
 
-      for (auto tr2_iter = tr1_iter;
-	   tr2_iter != m_trackMap->end(); 
-	   ++tr2_iter)
+      for (unsigned int trid2 = 0;
+	   trid2 != m_trackMap->size(); 
+	   ++trid2)
 	{
-	  unsigned int trid2 = m_trackMap->index(tr2_iter);
 	  if(trid1  ==  trid2) continue;
 	  
-	  auto track2 = *tr2_iter;
+	  auto track2 = m_trackMap->get(trid2);
 	  if(fabs( track1->get_phi(m_clusters, m_surfmaps, m_tGeometry) - track2->get_phi(m_clusters, m_surfmaps, m_tGeometry) ) < _phi_cut &&
 	     fabs( track1->get_eta() - track2->get_eta() ) < _eta_cut &&
 	     fabs( track1->get_x() - track2->get_x() ) < _x_cut &&

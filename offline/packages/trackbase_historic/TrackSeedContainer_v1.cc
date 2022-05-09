@@ -55,16 +55,14 @@ void TrackSeedContainer_v1::identify(std::ostream& os) const
 
 const TrackSeed* TrackSeedContainer_v1::get(const std::size_t key) const
 {
-  ConstIter iter = m_seeds.begin() + key;
-  if(iter == m_seeds.end()) { return nullptr; }
-  return *iter;
+  if(key > m_seeds.size()) { return nullptr; }
+  return m_seeds.at(key);
 }
 
 TrackSeed* TrackSeedContainer_v1::get(const std::size_t key) 
 {
-  Iter iter = m_seeds.begin() + key;
-  if(iter == m_seeds.end()) { return nullptr; }
-  return *iter;
+  if(key > m_seeds.size()) { return nullptr; }
+  return m_seeds.at(key);
 }
 
 TrackSeed* TrackSeedContainer_v1::insert(const TrackSeed* seed)

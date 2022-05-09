@@ -52,12 +52,11 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
       std::cout << "Silicon seed track container has " << m_siliconTracks->size() << std::endl;
     }
   
-  for(auto iter1 = m_siliconTracks->begin();
-      iter1 != m_siliconTracks->end(); 
-      ++iter1)
+  for(unsigned int track1ID = 0;
+      track1ID != m_siliconTracks->size(); 
+      ++track1ID)
     {
-      TrackSeed* track1 = *iter1;
-      unsigned int track1ID = m_siliconTracks->index(iter1);
+      TrackSeed* track1 = m_siliconTracks->get(track1ID);
 
       if(seedsToDelete.find(track1ID) != seedsToDelete.end())
 	{ continue; }
@@ -76,17 +75,12 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
       /// that are further in the map container from the current track,
       /// since the comparison of e.g. track 1 with track 2 doesn't need
       /// to be repeated with track 2 to track 1.
-      for(auto iter2 = iter1;
-	  iter2 != m_siliconTracks->end();
-	  ++iter2) 
+      for(unsigned int track2ID = track1ID;
+	  track2ID != m_siliconTracks->size();
+	  ++track2ID) 
 	{
-	  unsigned int track2ID = m_siliconTracks->index(iter2);
-	  if(track1ID == track2ID) 
-	    { 
-	      continue; 
-	    }
-	  
-	  TrackSeed* track2 = *iter2;
+
+	  TrackSeed* track2 = m_siliconTracks->get(track2ID);
 	  std::set<TrkrDefs::cluskey> mvtx2Keys;
 	  for (TrackSeed::ConstClusterKeyIter iter = track2->begin_cluster_keys();
 	       iter != track2->end_cluster_keys();
