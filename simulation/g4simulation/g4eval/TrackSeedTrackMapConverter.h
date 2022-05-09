@@ -12,8 +12,8 @@ class SvtxTrackMap;
 class SvtxTrack_v3;
 class TrackSeed;
 class TrackSeedContainer;
-class ActsSurfaceMaps;
-class ActsTrackingGeometry;
+struct ActsSurfaceMaps;
+struct ActsTrackingGeometry;
 class TrkrClusterContainer;
 
 class TrackSeedTrackMapConverter : public SubsysReco
