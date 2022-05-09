@@ -352,8 +352,7 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
 
   if(m_constField)
     {
-      std::cout << "use const field"<<std::endl;
-      Acts::Vector3 fieldVec(0,0,-1.4*Acts::UnitConstants::T);
+      Acts::Vector3 fieldVec(0,0,1.4*Acts::UnitConstants::T);
       field = std::make_shared<Acts::ConstantBField>(fieldVec);
     }
 
