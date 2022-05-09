@@ -25,23 +25,6 @@ namespace
   {
     return x * x;
   }
-
-//   // print histogram
-//   void print_histogram( TH3* h )
-//   {
-// 
-//     std::cout << "PHG4TpcDistortion::print_histogram - name: " << h->GetName() << std::endl;
-//     for( const auto& axis:{h->GetXaxis(), h->GetYaxis(), h->GetZaxis() } )
-//     {
-//       std::cout
-//         << "  " << axis->GetName()
-//         << " bins: " << axis->GetNbins()
-//         << " min: " << axis->GetXmin()
-//         << " max: " << axis->GetXmax()
-//         << std::endl;
-//     }
-//     std::cout << std::endl;
-//   }
   
 }  // namespace
 

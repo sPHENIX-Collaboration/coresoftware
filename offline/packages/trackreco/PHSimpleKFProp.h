@@ -15,6 +15,7 @@
 #include <tpc/TpcDistortionCorrection.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/ActsTransformations.h>
+#include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 #include <Eigen/Core>
 
@@ -26,6 +27,7 @@
 // forward declarations
 struct ActsSurfaceMaps;
 struct ActsTrackingGeometry;
+
 class PHCompositeNode;
 class PHField;
 class SvtxTrack;
@@ -164,7 +166,8 @@ class PHSimpleKFProp : public SubsysReco
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
-
+  //  std::shared_ptr<Acts::MagneticFieldProvider> magField;
+  //  ActsTrackingGeometry *m_tGeometry = nullptr;
 };
 
 #endif

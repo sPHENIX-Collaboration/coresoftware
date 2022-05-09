@@ -409,8 +409,8 @@ void MakeActsGeometry::buildActsSurfaces()
   // define int argc and char* argv to provide options to processGeometry
   const int argc = 20;
   char* arg[argc];
- 
-  if(Verbosity() > 0)
+  m_magFieldRescale = 1;
+  // if(Verbosity() > 0)
     std::cout << PHWHERE << "Magnetic field " << m_magField 
 	      << " with rescale " << m_magFieldRescale << std::endl;
 
@@ -438,7 +438,9 @@ void MakeActsGeometry::buildActsSurfaces()
 	}
       
       m_magField = std::string(getenv("CALIBRATIONROOT")) +
-	std::string("/Field/Map/sphenix3dbigmapxyz.root");
+      	std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
+      //m_magField = std::string("/phenix/u/bogui/data/Field/sphenix3dtrackingmapxyz.root");
+      //m_magField = std::string("/phenix/u/bogui/data/Field/sphenix3dbigmapxyz.root");
       
       argstr[7] = "--bf-map-file";
       argstr[8] = m_magField;
@@ -451,7 +453,7 @@ void MakeActsGeometry::buildActsSurfaces()
       
     }
 
-  if(Verbosity() > 0)
+  //  if(Verbosity() > 0)
     std::cout << "Mag field now " << m_magField << " with rescale "
 	      << m_magFieldRescale << std::endl;
 

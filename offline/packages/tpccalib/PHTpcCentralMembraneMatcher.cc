@@ -117,7 +117,13 @@ namespace
 //____________________________________________________________________________..
 PHTpcCentralMembraneMatcher::PHTpcCentralMembraneMatcher(const std::string &name):
   SubsysReco(name)
-{}
+{
+  // calculate stripes center positions
+  CalculateCenters(nPads_R1, R1_e, nGoodStripes_R1_e, keepUntil_R1_e, nStripesIn_R1_e, nStripesBefore_R1_e, cx1_e, cy1_e);
+  CalculateCenters(nPads_R1, R1, nGoodStripes_R1, keepUntil_R1, nStripesIn_R1, nStripesBefore_R1, cx1, cy1);
+  CalculateCenters(nPads_R2, R2, nGoodStripes_R2, keepUntil_R2, nStripesIn_R2, nStripesBefore_R2, cx2, cy2);
+  CalculateCenters(nPads_R3, R3, nGoodStripes_R3, keepUntil_R3, nStripesIn_R3, nStripesBefore_R3, cx3, cy3);
+}
 
 
 //___________________________________________________________
@@ -156,11 +162,6 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
   
   // Get truth cluster positions
   //=====================
-  
-  CalculateCenters(nPads_R1, R1_e, nGoodStripes_R1_e, keepUntil_R1_e, nStripesIn_R1_e, nStripesBefore_R1_e, cx1_e, cy1_e);
-  CalculateCenters(nPads_R1, R1, nGoodStripes_R1, keepUntil_R1, nStripesIn_R1, nStripesBefore_R1, cx1, cy1);
-  CalculateCenters(nPads_R2, R2, nGoodStripes_R2, keepUntil_R2, nStripesIn_R2, nStripesBefore_R2, cx2, cy2);
-  CalculateCenters(nPads_R3, R3, nGoodStripes_R3, keepUntil_R3, nStripesIn_R3, nStripesBefore_R3, cx3, cy3);
   
   TVector3 dummyPos;
   const double phi_petal = M_PI / 9.0;  // angle span of one petal

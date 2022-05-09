@@ -71,6 +71,9 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
 
   //create and populate the nodes for each distortion, if present:
   for (int i=0;i<3;i++){
+
+    if( !m_correction_in_use[i]) continue;
+
     // get distortion correction object and create if not found
     auto distortion_correction_object = findNode::getClass<TpcDistortionCorrectionContainer>( topNode, m_node_name[i] );
     if( !distortion_correction_object )
@@ -83,7 +86,7 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   
     std::cout << "TpcLoadDistortionCorrection::InitRun - reading corrections from " << m_correction_filename[i] << std::endl;
     auto distortion_tfile = TFile::Open( m_correction_filename[i].c_str());
-    if( !distortion_tfile )
+    if( !distortion_tfile && m_correction_in_use[i])
       {
 	std::cout << "TpcLoadDistortionCorrection::InitRun - cannot open " << m_correction_filename[i] << std::endl;
 	exit(1);
