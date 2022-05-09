@@ -185,7 +185,9 @@ class PHActsTrkFitter : public SubsysReco
   SvtxTrackMap *m_seedTracks = nullptr;
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
-  TpcDistortionCorrectionContainer* _dcc{nullptr};
+  TpcDistortionCorrectionContainer* _dcc_static{nullptr};
+  TpcDistortionCorrectionContainer* _dcc_average{nullptr};
+  TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
 
  /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;

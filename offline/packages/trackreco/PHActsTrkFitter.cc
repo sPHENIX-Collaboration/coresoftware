@@ -523,7 +523,9 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	  global[2] = z;
 	  
 	  // apply distortion corrections
-	  if(_dcc) { global = _distortionCorrection.get_corrected_position( global, _dcc ); }
+	  if(_dcc_static) { global = _distortionCorrection.get_corrected_position( global, _dcc_static ); }
+	  if(_dcc_average) { global = _distortionCorrection.get_corrected_position( global, _dcc_average ); }
+	  if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
 	 
 	  // add the global positions to a vector to give to the cluster mover
 	  global_raw.push_back(std::make_pair(key, global));
@@ -570,7 +572,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	  if(Verbosity() > 0)
 	    {
 	      unsigned int side = TpcDefs::getSide(cluskey);       
-	      std::cout << "      global z corrected " << global[2] << " xcorr " << global[0] << " ycorr " << global[1] << " side " << side << " crossing " << crossing 
+	      std::cout << "      global z corrected and moved " << global[2] << " xcorr " << global[0] << " ycorr " << global[1] << " side " << side << " crossing " << crossing 
 			<< " cluskey " << cluskey << " subsurfkey " << subsurfkey << std::endl;
 	    }
 	}
@@ -1082,12 +1084,21 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
- // tpc distortion correction
-  // Eventually have to add average and fluctuation corrections here too
-  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
-  if( _dcc )
+ // tpc distortion corrections
+  _dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
+  if( _dcc_static )
     { 
       std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl; 
+    }
+  _dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
+  if( _dcc_average )
+    { 
+      std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl; 
+    }
+  _dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerFluctuation");
+  if( _dcc_fluctuation )
+    { 
+      std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl; 
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
