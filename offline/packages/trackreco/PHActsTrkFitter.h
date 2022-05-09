@@ -128,8 +128,7 @@ class PHActsTrkFitter : public SubsysReco
   SourceLinkVec getSurfaceVector(const SourceLinkVec& sourceLinks, 
 				 SurfacePtrVec& surfaces) const;
   void checkSurfaceVec(SurfacePtrVec& surfaces) const;
-  void getTrackFitResult(const FitResult& fitOutput, 
-			 SvtxTrack* track);
+  bool getTrackFitResult(const FitResult& fitOutput, SvtxTrack* track);
 
   Surface getSurface(TrkrDefs::cluskey cluskey,TrkrDefs::subsurfkey surfkey) const;
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const;
