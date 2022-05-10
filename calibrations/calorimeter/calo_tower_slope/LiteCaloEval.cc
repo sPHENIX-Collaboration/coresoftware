@@ -21,9 +21,11 @@
 #include <TH3.h>
 #include <TStyle.h>
 #include <TSystem.h>
+#include <TTree.h>
 
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include <cmath>                            // for abs
 #include <map>                               // for _Rb_tree_const_iterator
 #include <memory>
@@ -689,6 +691,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
     max_iphi = 64;
 
   TH2F * corrPat = new TH2F("corrPat","",max_ieta,0,max_ieta,max_iphi,0,max_iphi);
+
   int minbin=0,maxbin=max_ieta;
 
   //  if (calotype == LiteCaloEval::CEMC)
@@ -875,8 +878,77 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
    g1.Write();
 
    corrPat->Write();
+
+   if (calotype == LiteCaloEval::CEMC)
+     {
+       std::cout << "TowerSlope module:  writing emcal correction tree into output file" 
+		 << std::endl;
+       TTree * t1 = new TTree("emc_corr_tree", "a tree of simple emcal calib corrections");
+       int  towid;
+       float corr;
+       t1->Branch("corr",&corr,"corr/F");
+       t1->Branch("towid",&towid,"towid/I");
+       
+       for (int mjl = 0; mjl < max_ieta; mjl++) 
+	 {
+	   for (int mjk = 0; mjk < max_iphi; mjk++) 
+	     {
+	       towid = mjl*1000 + mjk;
+	       corr = corrPat->GetBinContent(mjl+1,mjk+1);
+	       if (!(corr > 0.0))
+	     corr = 1.0;
+	       else 
+		 corr = 1.0/corr;
+	       t1->Fill();
+	     }
+	 }
+       t1->Write();
+     }
+   
+
+   if (calotype == LiteCaloEval::HCALOUT ||
+       calotype == LiteCaloEval::HCALIN )
+     {
+       std::string hcal_corr_file_name = "HCAL_CORR_TXTFILE";
+       if (f_temp)
+	 {
+	   hcal_corr_file_name += f_temp->GetName();
+	   hcal_corr_file_name += ".txt";
+	 }
+
+       std::cout << "TowerSlope module:  writing hcal corrections into output file "
+		 << hcal_corr_file_name
+		 << std::endl;
+       
+      
+       std::ofstream out_hcal_corrF(hcal_corr_file_name.c_str());
+       for (int mjl = 0; mjl < max_ieta; mjl++) 
+	 {
+	   for (int mjk = 0; mjk < max_iphi; mjk++) 
+	     {
+	       float corr = corrPat->GetBinContent(mjl+1,mjk+1);
+	       if (!(corr > 0.))
+		 corr = 1.0;
+	       else 
+		 corr = 1.0/corr;
+
+	       out_hcal_corrF << mjl << " " 
+			      << mjk << " " 
+			      <<  corr << std::endl;
+
+	     }
+	 }
+
+       out_hcal_corrF.close();
+
+     }
+   
+       
    if (f_temp)
      f_temp->Write();
    f_temp->Close();
+
+
+
 
 }
