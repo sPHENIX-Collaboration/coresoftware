@@ -6,6 +6,8 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
+#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 
 #include <array>
 #include <string>
@@ -49,6 +51,7 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   int GetNodes(PHCompositeNode* topNode);
 
   void copyMicromegasClustersToCorrectedMap( );
+  Acts::Vector3 getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing, unsigned int side);
     
   //! number of layers in the micromegas
   static constexpr unsigned int _n_mm_layers = 2;
@@ -92,6 +95,12 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
 
   ActsTrackingGeometry *_tGeometry = nullptr;
   ActsSurfaceMaps *_surfmaps = nullptr;
+
+  /// distortion correction container
+  TpcDistortionCorrectionContainer* _dcc = nullptr;
+ /// tpc distortion correction utility class
+  TpcDistortionCorrection _distortionCorrection;
+  TpcClusterZCrossingCorrection _clusterCrossingCorrection;
 
   //! coarse SC correction function
   TF1 *fdrphi{nullptr};
