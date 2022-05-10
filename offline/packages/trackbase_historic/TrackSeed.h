@@ -79,6 +79,12 @@ class TrackSeed : public PHObject
 		       ActsTrackingGeometry*,
 		       uint8_t, uint8_t) {}
   
+  /// In case the global cluster positions have already been obtained, 
+  /// these can be called to avoid performing transformations twice
+  virtual void circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>&, 
+				 uint8_t, uint8_t) {}
+  virtual void lineFit(std::map<TrkrDefs::cluskey, Acts::Vector3>&, 
+		       uint8_t, uint8_t) {}
 
   virtual void clear_cluster_keys() {}
   virtual bool empty_cluster_keys() const { return false; }

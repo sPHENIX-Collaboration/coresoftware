@@ -335,13 +335,13 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
   const unsigned int original_track_map_lastkey = _track_map->empty() ? 0 : _track_map->size() - 1;
 
   // loop over the original TPC tracks
-  for (auto phtrk_iter = _track_map->begin(); phtrk_iter != _track_map->end(); ++phtrk_iter)
+  for (unsigned int tpcID = 0; 
+       tpcID != _track_map->size(); ++tpcID)
   {
-    unsigned int tpcID = _track_map->index(phtrk_iter);
     // we may add tracks to the map, so we stop at the last original track
     if(tpcID > original_track_map_lastkey)  break;
 
-    auto tracklet_tpc = *phtrk_iter;
+    auto tracklet_tpc = _track_map->get(tpcID);
     if(!tracklet_tpc) { continue; }
 
     if (Verbosity() >= 1)

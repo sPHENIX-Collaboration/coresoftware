@@ -239,7 +239,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
 	  std::vector<Acts::Vector3> globalPositions;
 	  ActsTransformations transformer;
-
+	  std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
 	  auto trackSeed = std::make_unique<TrackSeed_v1>();
 
 	  for(auto& spacePoint : seed.sp())
@@ -248,12 +248,13 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	      cluster_keys.push_back(cluskey);
 	  
 	      trackSeed->insert_cluster_key(cluskey);
-	  
-	      globalPositions.push_back(transformer.getGlobalPosition(
+	      auto globalPosition = transformer.getGlobalPosition(
                      cluskey,
 		     m_clusterMap->findCluster(cluskey),
-		     m_surfMaps, m_tGeometry));			      
+		     m_surfMaps, m_tGeometry);
+	      globalPositions.push_back(globalPosition);      
 
+	      positions.insert(std::make_pair(cluskey, globalPosition));
 	      if(Verbosity() > 1) {
 		std::cout << "Adding cluster with x,y "
 			  << spacePoint->x() <<", " << spacePoint->y()
@@ -269,7 +270,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  fitTimer->stop();
 	  fitTimer->restart();
 
-	  trackSeed->circleFitByTaubin(m_clusterMap, m_surfMaps, m_tGeometry, 0, 8);
+	  trackSeed->circleFitByTaubin(positions, 0, 8);
 	  if(fabs(trackSeed->get_x()) > m_maxSeedPCA || 
 	     fabs(trackSeed->get_y()) > m_maxSeedPCA)
 	    { 
@@ -282,7 +283,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	      continue;
 	    }
         
-	  trackSeed->lineFit(m_clusterMap, m_surfMaps, m_tGeometry, 0, 8);
+	  trackSeed->lineFit(positions, 0, 8);
 	  
 	  fitTimer->stop();
 	  auto circlefittime = fitTimer->get_accumulated_time();

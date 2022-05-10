@@ -190,7 +190,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   }
 
   if(Verbosity()>0) std::cout << "starting Process" << std::endl;
-  const auto globalPositions = PrepareKDTrees();
+  PositionMap globalPositions = PrepareKDTrees();
   if(Verbosity()>0) std::cout << "prepared KD trees" << std::endl;
 
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
@@ -224,8 +224,8 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       auto seedpair = fitter->ALICEKalmanFilter(keylist, false, globalPositions, trackChi2);
 
       /// circle fit back to update track parameters
-      track->circleFitByTaubin(_cluster_map, _surfmaps, _tgeometry, 7, 55);
-      track->lineFit(_cluster_map, _surfmaps, _tgeometry, 7, 55);
+      track->circleFitByTaubin(globalPositions, 7, 55);
+      track->lineFit(globalPositions, 7, 55);
 
       if(seedpair.first.size() == 0 || seedpair.second.size() == 0)
 	{ continue; }
@@ -246,7 +246,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   std::vector<float> trackChi2;
   auto seeds = fitter->ALICEKalmanFilter(clean_chains, true, globalPositions,
 					 trackChi2);
-  publishSeeds(seeds.first);
+  publishSeeds(seeds.first, globalPositions);
   publishSeeds(unused_tracks);
 
   /// Remove tracks that are duplicates from the KFProp
@@ -1044,15 +1044,15 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
 
 
 
-void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v1>& seeds)
+void PHSimpleKFProp::publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap& positions)
 {
   for(auto& seed: seeds )
   { 
     /// The ALICEKF gives a better charge determination at high pT
     int q = seed.get_charge();
 
-    seed.circleFitByTaubin(_cluster_map,_surfmaps, _tgeometry,7,55);
-    seed.lineFit(_cluster_map, _surfmaps, _tgeometry,7,55);
+    seed.circleFitByTaubin(positions,7,55);
+    seed.lineFit(positions,7,55);
     seed.set_qOverR(fabs(seed.get_qOverR()) * q);
     _track_map->insert(&seed); 
 

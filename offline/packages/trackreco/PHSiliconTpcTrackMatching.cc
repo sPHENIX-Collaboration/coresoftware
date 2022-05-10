@@ -13,7 +13,6 @@
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/ActsTransformations.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4Particle.h>  // for PHG4Particle
