@@ -21,6 +21,7 @@
 #include <phfield/PHFieldConfig.h>
 #include <phfield/PHFieldConfigv1.h>
 
+#include <phool/PHTimer.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>                       // for PHWHERE
 
@@ -188,18 +189,28 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
+  
+  PHTimer timer("KFPropTimer");
+  
+  timer.stop();
+  timer.restart();
 
   if(Verbosity()>0) std::cout << "starting Process" << std::endl;
   PositionMap globalPositions = PrepareKDTrees();
   if(Verbosity()>0) std::cout << "prepared KD trees" << std::endl;
 
+  timer.stop();
+
+  auto kdtime = timer.get_accumulated_time();
+  std::cout << "KDTime " << kdtime << std::endl;
+  timer.restart();
+
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed> unused_tracks;
-  for(TrackSeedContainer::Iter track_it = _track_map->begin(); 
-      track_it != _track_map->end(); ++track_it )
+  for(int track_it = 0; track_it != _track_map->size(); ++track_it )
   {
     // if not a TPC track, ignore
-    TrackSeed* track = *track_it;
+    TrackSeed* track = _track_map->get(track_it);
     const bool is_tpc = std::any_of(
       track->begin_cluster_keys(),
       track->end_cluster_keys(),
@@ -209,11 +220,14 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     {
       std::vector<std::vector<TrkrDefs::cluskey>> keylist;
       std::vector<TrkrDefs::cluskey> dumvec;
+      std::map<TrkrDefs::cluskey, Acts::Vector3> trackClusPositions;
       for(TrackSeed::ConstClusterKeyIter iter = track->begin_cluster_keys();
 	  iter != track->end_cluster_keys();
 	  ++iter)
 	{
 	  dumvec.push_back(*iter);
+	  auto pos = globalPositions.at(*iter);
+	  trackClusPositions.insert(std::make_pair(*iter,pos));
 	}
     
       keylist.push_back(dumvec);
@@ -221,17 +235,33 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       /// This will by definition return a single pair with each vector 
       /// in the pair length 1 corresponding to the seed info
       std::vector<float> trackChi2;
-      auto seedpair = fitter->ALICEKalmanFilter(keylist, false, globalPositions, trackChi2);
+      timer.stop();
+      timer.restart();
+      
+      auto seedpair = fitter->ALICEKalmanFilter(keylist, false, 
+						trackClusPositions, trackChi2);
 
+      timer.stop();
+      std::cout << "single track ALICEKF time " << timer.get_accumulated_time()
+		<< std::endl;
+      timer.restart();
       /// circle fit back to update track parameters
-      track->circleFitByTaubin(globalPositions, 7, 55);
-      track->lineFit(globalPositions, 7, 55);
-
+      track->circleFitByTaubin(trackClusPositions, 7, 55);
+      track->lineFit(trackClusPositions, 7, 55);
+      timer.stop();
+      std::cout << "single track circle fit time " << timer.get_accumulated_time() << std::endl;
       if(seedpair.first.size() == 0 || seedpair.second.size() == 0)
 	{ continue; }
       if(Verbosity()>0) std::cout << "is tpc track" << std::endl;
+
+      timer.stop();
+      timer.restart();
+
       new_chains.push_back(PropagateTrack(track, seedpair.second.at(0), 
 					  globalPositions));
+      timer.stop();
+      auto propagatetime = timer.get_accumulated_time();
+      std::cout << "propagate track time " << propagatetime << std::endl;
     }
     else
     {
@@ -242,11 +272,28 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   }
   
   _track_map->Reset();
+  timer.stop();
+  timer.restart();
+
   std::vector<std::vector<TrkrDefs::cluskey>> clean_chains = RemoveBadClusters(new_chains, globalPositions); 
+  timer.stop();
+  auto removetime = timer.get_accumulated_time();
+  std::cout << "remove bad clusters time " << removetime << std::endl;
+  timer.stop();
+  timer.restart();
   std::vector<float> trackChi2;
   auto seeds = fitter->ALICEKalmanFilter(clean_chains, true, globalPositions,
 					 trackChi2);
+  timer.stop();
+  auto alicekftime = timer.get_accumulated_time();
+  std::cout << "full alice kf time all tracks " << alicekftime << std::endl;
+  timer.stop();
+  timer.restart();
   publishSeeds(seeds.first, globalPositions);
+
+  timer.stop();
+  auto circlefittime = timer.get_accumulated_time();
+  std::cout << "circle fit all tracks time " << circlefittime << std::endl;
   publishSeeds(unused_tracks);
 
   /// Remove tracks that are duplicates from the KFProp
@@ -255,8 +302,11 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   rejector.surfMaps(_surfmaps);
   rejector.trackSeedContainer(_track_map);
   rejector.clusterContainer(_cluster_map);
+  timer.stop();
+  timer.restart();
   rejector.rejectGhostTracks(trackChi2);
-
+  timer.stop();
+  std::cout << "ghost rejection time " << timer.get_accumulated_time() << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
