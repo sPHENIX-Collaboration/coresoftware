@@ -332,9 +332,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  
 	  if(m_fitSiliconMMs)
 	    {
-	      auto newTrack = (SvtxTrack_v3*)(track->CloneMe());
-	      getTrackFitResult(fitOutput, newTrack);
-	      m_directedTrackMap->insert(newTrack);
+        std::unique_ptr<SvtxTrack_v3> newTrack( static_cast<SvtxTrack_v3*>(track->CloneMe()) );
+	      if( getTrackFitResult(fitOutput, newTrack.get()) )
+        { m_directedTrackMap->insert(newTrack.release()); } 
 	    }
 	  else
 	    {
@@ -621,7 +621,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
   return sourcelinks;
 }
 
-void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
+bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 				        SvtxTrack* track)
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
@@ -654,7 +654,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
       /// Track fit failed in some way if there are no fit parameters. Remove
       m_trackMap->erase(track->get_id());
       std::cout << " track fit failed for track " << track->get_id() << std::endl;
-      return;
+      return false;
     }
 
   Trajectory trajectory(fitOutput.fittedStates,
@@ -681,7 +681,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   if(m_timeAnalysis)
     h_updateTime->Fill(updateTime);
   
-  return;
+  return true;
 }
 
 ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
