@@ -332,9 +332,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  
 	  if(m_fitSiliconMMs)
 	    {
-	      auto newTrack = (SvtxTrack_v3*)(track->CloneMe());
-	      getTrackFitResult(fitOutput, newTrack);
-	      m_directedTrackMap->insert(newTrack);
+        std::unique_ptr<SvtxTrack_v3> newTrack( static_cast<SvtxTrack_v3*>(track->CloneMe()) );
+	      if( getTrackFitResult(fitOutput, newTrack.get()) )
+        { m_directedTrackMap->insert(newTrack.release()); } 
 	    }
 	  else
 	    {
@@ -473,7 +473,10 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 
   if(crossing == SHRT_MAX) return sourcelinks;
 
-  int iter = 0;
+  // loop over all clusters
+  std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
+
+  //int iter = 0;
   for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
        clusIter != track->end_cluster_keys();
        ++clusIter)
@@ -494,90 +497,128 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
       if(!surf)
 	continue;
 
-      Acts::Vector2 localPos;
       unsigned int trkrid = TrkrDefs::getTrkrId(key);
       unsigned int side = TpcDefs::getSide(key);
-      if(trkrid ==  TrkrDefs::tpcId)
+
+      // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset 
+      // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
+      
+      // transform to global coordinates for z correction 
+      ActsTransformations transformer;
+      auto global = transformer.getGlobalPosition(key, cluster,
+						  m_surfMaps,
+						  m_tGeometry);
+      
+      if(Verbosity() > 0)
 	{
-	  // For the TPC, cluster z has to be corrected for the crossing z offset 
-	  // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
+	  std::cout << " zinit " << global[2] << " xinit " << global[0] << " yinit " << global[1] << " side " << side << " crossing " << crossing 
+		    << " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
+	}
+      
+      if(trkrid ==  TrkrDefs::tpcId)
+	{	  
+	  // make all corrections to global position of TPC cluster
 
-	  // transform to global coordinates for z correction 
-	  ActsTransformations transformer;
-	  auto global = transformer.getGlobalPosition(key, cluster,
-						      m_surfMaps,
-						      m_tGeometry);
-
-	  if(Verbosity() > 0)
-	    {
-	      std::cout << " zinit " << global[2] << " side " << side << " crossing " << crossing 
-			<< " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
-	    }
-	  
 	  float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
 	  global[2] = z;
 	  
+	  // apply distortion corrections
+	  if(_dcc_static) { global = _distortionCorrection.get_corrected_position( global, _dcc_static ); }
+	  if(_dcc_average) { global = _distortionCorrection.get_corrected_position( global, _dcc_average ); }
+	  if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
+	 
+	  // add the global positions to a vector to give to the cluster mover
+	  global_raw.push_back(std::make_pair(key, global));
+	}
+      else
+	{
+	  // silicon cluster, no corrections needed
+	  global_raw.push_back(std::make_pair(key, global));
+	}
+      
+    }	  // end loop over clusters here
+  
+  // move the cluster positions back to the original readout surface
+  std::vector<std::pair<TrkrDefs::cluskey,Acts::Vector3>> global_moved = _clusterMover.processTrack(global_raw);
+  
+  // loop over global positions returned by cluster mover
+  for(int i=0; i<global_moved.size(); ++i)
+    {
+      TrkrDefs::cluskey cluskey = global_moved[i].first;
+      Acts::Vector3 global = global_moved[i].second;
+
+      Surface surf;
+      TrkrDefs::subsurfkey subsurfkey;
+
+      unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
+      if(trkrid ==  TrkrDefs::tpcId)
+	{      
 	  // get the new surface corresponding to this global position
-	  TrkrDefs::hitsetkey tpcHitSetKey = TrkrDefs::getHitSetKeyFromClusKey(key);
+	  TrkrDefs::hitsetkey tpcHitSetKey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
 	  surf = get_tpc_surface_from_coords(tpcHitSetKey,
-							global,
-							m_surfMaps,
-							m_tGeometry,
-							subsurfkey);
-	
+					     global,
+					     m_surfMaps,
+					     m_tGeometry,
+					     subsurfkey);
+	  
 	  if(!surf)
 	    {
 	      /// If the surface can't be found, we can't track with it. So 
 	      /// just continue and don't add the cluster to the source links
-	      if(Verbosity() > 0) std::cout << PHWHERE << "Failed to find surface for cluster " << key << std::endl;
+	      if(Verbosity() > 0) std::cout << PHWHERE << "Failed to find surface for cluster " << cluskey << std::endl;
 	      continue;
 	    }
-
+	  
 	  if(Verbosity() > 0)
 	    {
-	      std::cout << "      global z corrected " << z << " side " << side << " crossing " << crossing 
-			<< " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
-	    }
-
-
-	  // get local coordinates
-	  Acts::Vector3 normal = surf->normal(m_tGeometry->geoContext);
-	  auto local = surf->globalToLocal(m_tGeometry->geoContext,
-					      global * Acts::UnitConstants::cm,
-					      normal);
-
-	  if(local.ok())
-	    {
-	      localPos = local.value() / Acts::UnitConstants::cm;
-	    }
-	  else
-	    {
-	      /// otherwise take the manual calculation
-	      Acts::Vector3 center = surf->center(m_tGeometry->geoContext)/Acts::UnitConstants::cm;
-	      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-	      double clusphi = atan2(global[1], global[0]);
-	      double rClusPhi = clusRadius * clusphi;
-	      double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
-	      double surfPhiCenter = atan2(center[1], center[0]);
-	      double surfRphiCenter = surfPhiCenter * surfRadius;
-	      double surfZCenter = center[2];
-	      
-	      localPos(0) = rClusPhi - surfRphiCenter;
-	      localPos(1) = global[2] - surfZCenter; 
-	    }
-	  if(Verbosity() > 0)
-	    {
-	      std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
-	      std::cout << " new      local X " << localPos(0) << " new       local Y " << localPos(1) << std::endl;
+	      unsigned int side = TpcDefs::getSide(cluskey);       
+	      std::cout << "      global z corrected and moved " << global[2] << " xcorr " << global[0] << " ycorr " << global[1] << " side " << side << " crossing " << crossing 
+			<< " cluskey " << cluskey << " subsurfkey " << subsurfkey << std::endl;
 	    }
 	}
       else
 	{
-	  // silicon cluster, take it as is
-	  localPos(0) = cluster->getLocalX();
-	  localPos(1) = cluster->getLocalY();
+	  // silicon cluster, no changes possible
+	  auto cluster = m_clusterContainer->findCluster(cluskey);
+	  subsurfkey = cluster->getSubSurfKey();
+	  surf = getSurface(cluskey, subsurfkey);	  
 	}
 
+      // get local coordinates
+      Acts::Vector2 localPos;
+      Acts::Vector3 normal = surf->normal(m_tGeometry->geoContext);
+      auto local = surf->globalToLocal(m_tGeometry->geoContext,
+				       global * Acts::UnitConstants::cm,
+				       normal);
+      
+      if(local.ok())
+	{
+	  localPos = local.value() / Acts::UnitConstants::cm;
+	}
+      else
+	{
+	  /// otherwise take the manual calculation
+	  Acts::Vector3 center = surf->center(m_tGeometry->geoContext)/Acts::UnitConstants::cm;
+	  double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+	  double clusphi = atan2(global[1], global[0]);
+	  double rClusPhi = clusRadius * clusphi;
+	  double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
+	  double surfPhiCenter = atan2(center[1], center[0]);
+	  double surfRphiCenter = surfPhiCenter * surfRadius;
+	  double surfZCenter = center[2];
+	  
+	  localPos(0) = rClusPhi - surfRphiCenter;
+	  localPos(1) = global[2] - surfZCenter; 
+	}
+      
+      auto cluster = m_clusterContainer->findCluster(cluskey);
+      if(Verbosity() > 0)
+	{
+	  std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
+	  std::cout << " new      local X " << localPos(0) << " new       local Y " << localPos(1) << std::endl;
+	}
+      
+      
       Acts::ActsVector<2> loc;
       loc[Acts::eBoundLoc0] = localPos(0) * Acts::UnitConstants::cm;
       loc[Acts::eBoundLoc1] = localPos(1) * Acts::UnitConstants::cm;
@@ -594,9 +635,9 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
       cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
 	cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
       ActsExamples::Index index = measurements.size();
-
-      SourceLink sl(surf->geometryId(), index, key);
-  
+      
+      SourceLink sl(surf->geometryId(), index, cluskey);
+      
       Acts::Measurement<Acts::BoundIndices,2> meas(sl, indices, loc, cov);
       if(Verbosity() > 3)
 	{
@@ -608,20 +649,21 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(SvtxTrack* track,
 	  surf.get()->toStream(m_tGeometry->geoContext, std::cout);
 	  std::cout << std::endl;
 	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
-	  std::cout << "For key " << key << " with local pos " << std::endl
+	  std::cout << "For key " << cluskey << " with local pos " << std::endl
 		    << localPos(0) << ", " << localPos(1)
 		    << std::endl;
 	}
-    
+      
       sourcelinks.push_back(sl);
       measurements.push_back(meas);
-      iter++;
+      //iter++;
     }
- 
+  
+    
   return sourcelinks;
 }
 
-void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
+bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 				        SvtxTrack* track)
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
@@ -654,7 +696,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
       /// Track fit failed in some way if there are no fit parameters. Remove
       m_trackMap->erase(track->get_id());
       std::cout << " track fit failed for track " << track->get_id() << std::endl;
-      return;
+      return false;
     }
 
   Trajectory trajectory(fitOutput.fittedStates,
@@ -681,7 +723,7 @@ void PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
   if(m_timeAnalysis)
     h_updateTime->Fill(updateTime);
   
-  return;
+  return true;
 }
 
 ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
@@ -1016,17 +1058,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
-  if(m_clusterContainer)
-    {
-      std::cout << " Using CORRECTED_TRKR_CLUSTER node " << std::endl;
-    }
-  else
-    {
-      std::cout << " CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl;
-      m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
-    }
-
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
   if(!m_clusterContainer)
     {
       std::cout << PHWHERE 
@@ -1050,6 +1082,23 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
       std::cout << PHWHERE << "SvtxTrackMap not found on node tree. Exiting."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+ // tpc distortion corrections
+  _dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
+  if( _dcc_static )
+    { 
+      std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl; 
+    }
+  _dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
+  if( _dcc_average )
+    { 
+      std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl; 
+    }
+  _dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerFluctuation");
+  if( _dcc_fluctuation )
+    { 
+      std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl; 
     }
 
   return Fun4AllReturnCodes::EVENT_OK;

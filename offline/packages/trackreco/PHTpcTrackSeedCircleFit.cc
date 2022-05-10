@@ -312,7 +312,7 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode*)
       std::vector<Acts::Vector3> globalClusterPositions;
       for( const auto& key:cluster_keys )
 	{
-    const auto cluster = _cluster_map->findCluster( key );
+	  const auto cluster = _cluster_map->findCluster( key );
 	  const Acts::Vector3 global = getGlobalPosition(key, cluster);
 	  globalClusterPositions.push_back(global);
 
@@ -320,10 +320,10 @@ int PHTpcTrackSeedCircleFit::process_event(PHCompositeNode*)
 	    {
 	      ActsTransformations transformer;
 	      auto global_before = transformer.getGlobalPosition(
-          key, cluster,
-          _surfmaps,
-          _tGeometry);
-	      std::cout << "CircleFit: Cluster: " << key << " _corrected_clusters " << _are_clusters_corrected << std::endl;
+								 key, cluster,
+								 _surfmaps,
+								 _tGeometry);
+	      std::cout << "CircleFit: Cluster: " << key  << std::endl;
 	      std::cout << " Global before: " << global_before[0] << "  " << global_before[1] << "  " << global_before[2] << std::endl;
 	      std::cout << " Global after   : " << global[0] << "  " << global[1] << "  " << global[2] << std::endl;
 	    }
@@ -481,17 +481,7 @@ int  PHTpcTrackSeedCircleFit::GetNodes(PHCompositeNode* topNode)
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER_TRUTH");
   else
     {
-      _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
-      if(_cluster_map)
-	{
-	  std::cout << " using CORRECTED_TRKR_CLUSTER node  "<< std::endl;
-	}
-      else
-	{
-	  std::cout << " CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER " << std::endl;
-	  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-	  _are_clusters_corrected = false;
-	}
+      _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     }
   if (!_cluster_map)
   {
@@ -500,9 +490,9 @@ int  PHTpcTrackSeedCircleFit::GetNodes(PHCompositeNode* topNode)
   }
 
   // tpc distortion correction
-  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( _dcc )
-  { std::cout << "PHTpcTrackSeedCircleFit::get_Nodes  - found TPC distortion correction container" << std::endl; }
+  { std::cout << "PHTpcTrackSeedCircleFit::get_Nodes  - found static TPC distortion correction container" << std::endl; }
 
   _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   if (!_track_map)
@@ -523,9 +513,11 @@ Acts::Vector3 PHTpcTrackSeedCircleFit::getGlobalPosition( TrkrDefs::cluskey key,
     _surfmaps,
     _tGeometry);
 
-  // check if TPC distortion correction are in place and apply if clusters are not from the corrected node
-  if( !_are_clusters_corrected)
-    if(_dcc) { globalpos = _distortionCorrection.get_corrected_position( globalpos, _dcc ); }
+  // ADF: in streaming mode we need to add a step here to take care of the fact that we do not know the crossing yet
+  // possibly move the track to point at z=0 to make distortion corrections (circularize the track) then move it back after the fit?
+
+  // check if TPC distortion correction are in place and apply
+  if(_dcc) { globalpos = _distortionCorrection.get_corrected_position( globalpos, _dcc ); }
 
   return globalpos;
 }

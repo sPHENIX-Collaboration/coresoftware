@@ -791,7 +791,7 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   // tpc distortion correction
   m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( m_dcc )
-  { std::cout << "PHCASeeding::Setup - found TPC distortion correction container" << std::endl; }
+  { std::cout << "PHCASeeding::Setup - found static TPC distortion correction container" << std::endl; }
   
   t_fill = std::make_unique<PHTimer>("t_fill");
   t_seed = std::make_unique<PHTimer>("t_seed");

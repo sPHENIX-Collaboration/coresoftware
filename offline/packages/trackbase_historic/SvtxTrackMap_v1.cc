@@ -87,3 +87,17 @@ SvtxTrack* SvtxTrackMap_v1::insert(const SvtxTrack* track)
   _map[index]->set_id(index);
   return _map[index];
 }
+
+size_t SvtxTrackMap_v1::erase(unsigned int idkey)
+{
+  const auto iter = _map.find(idkey);
+  if( iter != _map.end() ) 
+  { 
+  
+    delete iter->second;
+    _map.erase( iter );
+    return 1;
+  
+  } else return 0;
+}
+
