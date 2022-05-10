@@ -201,7 +201,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
   timer.stop();
 
-  auto kdtime = timer.get_accumulated_time();
+  auto kdtime = timer.elapsed();
   std::cout << "KDTime " << kdtime << std::endl;
   timer.restart();
 
@@ -242,14 +242,14 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 						trackClusPositions, trackChi2);
 
       timer.stop();
-      std::cout << "single track ALICEKF time " << timer.get_accumulated_time()
+      std::cout << "single track ALICEKF time " << timer.elapsed()
 		<< std::endl;
       timer.restart();
       /// circle fit back to update track parameters
       track->circleFitByTaubin(trackClusPositions, 7, 55);
       track->lineFit(trackClusPositions, 7, 55);
       timer.stop();
-      std::cout << "single track circle fit time " << timer.get_accumulated_time() << std::endl;
+      std::cout << "single track circle fit time " << timer.elapsed() << std::endl;
       if(seedpair.first.size() == 0 || seedpair.second.size() == 0)
 	{ continue; }
       if(Verbosity()>0) std::cout << "is tpc track" << std::endl;
@@ -260,7 +260,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       new_chains.push_back(PropagateTrack(track, seedpair.second.at(0), 
 					  globalPositions));
       timer.stop();
-      auto propagatetime = timer.get_accumulated_time();
+      auto propagatetime = timer.elapsed();
       std::cout << "propagate track time " << propagatetime << std::endl;
     }
     else
@@ -277,7 +277,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
   std::vector<std::vector<TrkrDefs::cluskey>> clean_chains = RemoveBadClusters(new_chains, globalPositions); 
   timer.stop();
-  auto removetime = timer.get_accumulated_time();
+  auto removetime = timer.elapsed();
   std::cout << "remove bad clusters time " << removetime << std::endl;
   timer.stop();
   timer.restart();
@@ -285,14 +285,14 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   auto seeds = fitter->ALICEKalmanFilter(clean_chains, true, globalPositions,
 					 trackChi2);
   timer.stop();
-  auto alicekftime = timer.get_accumulated_time();
+  auto alicekftime = timer.elapsed();
   std::cout << "full alice kf time all tracks " << alicekftime << std::endl;
   timer.stop();
   timer.restart();
   publishSeeds(seeds.first, globalPositions);
 
   timer.stop();
-  auto circlefittime = timer.get_accumulated_time();
+  auto circlefittime = timer.elapsed();
   std::cout << "circle fit all tracks time " << circlefittime << std::endl;
   publishSeeds(unused_tracks);
 
@@ -306,7 +306,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   timer.restart();
   rejector.rejectGhostTracks(trackChi2);
   timer.stop();
-  std::cout << "ghost rejection time " << timer.get_accumulated_time() << std::endl;
+  std::cout << "ghost rejection time " << timer.elapsed() << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
