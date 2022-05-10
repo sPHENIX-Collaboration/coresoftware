@@ -14,6 +14,9 @@
 #include "ResidualOutlierFinder.h"
 
 #include <tpc/TpcClusterZCrossingCorrection.h>
+#include <tpc/TpcDistortionCorrectionContainer.h>
+#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcClusterMover.h>
 
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
@@ -128,8 +131,7 @@ class PHActsTrkFitter : public SubsysReco
   SourceLinkVec getSurfaceVector(const SourceLinkVec& sourceLinks, 
 				 SurfacePtrVec& surfaces) const;
   void checkSurfaceVec(SurfacePtrVec& surfaces) const;
-  void getTrackFitResult(const FitResult& fitOutput, 
-			 SvtxTrack* track);
+  bool getTrackFitResult(const FitResult& fitOutput, SvtxTrack* track);
 
   Surface getSurface(TrkrDefs::cluskey cluskey,TrkrDefs::subsurfkey surfkey) const;
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const;
@@ -182,6 +184,15 @@ class PHActsTrkFitter : public SubsysReco
   SvtxTrackMap *m_seedTracks = nullptr;
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+  TpcDistortionCorrectionContainer* _dcc_static{nullptr};
+  TpcDistortionCorrectionContainer* _dcc_average{nullptr};
+  TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
+
+ /// tpc distortion correction utility class
+  TpcDistortionCorrection _distortionCorrection;
+
+  // cluster mover utility class
+  TpcClusterMover _clusterMover;
 
   std::string m_fieldMap = "";
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
