@@ -248,6 +248,7 @@ class RawTowerDigitizer : public SubsysReco
   // calo calibs decal stuff JEF Feb 2022
   bool m_DoDecal;
   bool m_DecalInverse;
+  bool m_Decal;
   std::string m_DecalFileName;
   bool m_UseConditionsDB; 
   CaloCalibSimpleCorrFile * m_CalDBFile;
