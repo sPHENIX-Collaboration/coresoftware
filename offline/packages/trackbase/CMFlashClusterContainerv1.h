@@ -37,15 +37,9 @@ class CMFlashClusterContainerv1 : public CMFlashClusterContainer
 
   void identify(std::ostream &os = std::cout) const override;
 
-  ConstIterator addCluster(CMFlashCluster *newClus) override;
-
-  ConstIterator addClusterSpecifyKey(const unsigned int, CMFlashCluster *newClus) override;
+  void addClusterSpecifyKey(const unsigned int, CMFlashCluster *newClus) override;
 
   void removeCluster(unsigned int) override;
-
-  void removeCluster(CMFlashCluster*) override;
-
-  Iterator findOrAddCluster(unsigned int  key) override;
   
   ConstRange getClusters() const override;
 

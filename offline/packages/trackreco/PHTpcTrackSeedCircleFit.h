@@ -49,7 +49,6 @@ class PHTpcTrackSeedCircleFit : public SubsysReco
   TrackSeedContainer *_track_map{nullptr};
   
   bool _use_truth_clusters = false;
-  bool _are_clusters_corrected = true;
   TrkrClusterContainer *_cluster_map = nullptr;
   /// distortion correction container
   TpcDistortionCorrectionContainer* _dcc = nullptr;

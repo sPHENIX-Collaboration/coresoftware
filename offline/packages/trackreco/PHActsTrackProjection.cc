@@ -23,6 +23,7 @@
 #include <calobase/RawClusterUtility.h>
 #include <phgeom/PHGeomUtility.h>
 
+#include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/Propagator/EigenStepper.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
@@ -347,7 +348,15 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
   using Stepper = Acts::EigenStepper<>;
   using Propagator = Acts::Propagator<Stepper>;
 
-  Stepper stepper(m_tGeometry->magField);
+  auto field = m_tGeometry->magField;
+
+  if(m_constField)
+    {
+      Acts::Vector3 fieldVec(0,0,1.4*Acts::UnitConstants::T);
+      field = std::make_shared<Acts::ConstantBField>(fieldVec);
+    }
+
+  Stepper stepper(field);
   Propagator propagator(stepper);
 
   

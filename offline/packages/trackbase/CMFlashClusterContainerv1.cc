@@ -12,12 +12,10 @@
 
 void CMFlashClusterContainerv1::Reset()
 {
-  while (m_clusmap.begin() != m_clusmap.end())
-  {
-    delete m_clusmap.begin()->second;
-    m_clusmap.erase(m_clusmap.begin());
-  }
-  return;
+  for( auto&& [key, cluster]:m_clusmap )
+  { delete cluster; }
+  
+  m_clusmap.clear();
 }
 
 void CMFlashClusterContainerv1::identify(std::ostream& os) const
@@ -34,14 +32,7 @@ void CMFlashClusterContainerv1::identify(std::ostream& os) const
   return;
 }
 
-CMFlashClusterContainerv1::ConstIterator
-CMFlashClusterContainerv1::addCluster(CMFlashCluster* newclus)
-{
-  return addClusterSpecifyKey(newclus->getClusKey(), newclus);
-}
-
-CMFlashClusterContainerv1::ConstIterator
-CMFlashClusterContainerv1::addClusterSpecifyKey(const unsigned int key, CMFlashCluster* newclus)
+void CMFlashClusterContainerv1::addClusterSpecifyKey(const unsigned int key, CMFlashCluster* newclus)
 {
   auto ret = m_clusmap.insert(std::make_pair(key, newclus));
   if ( !ret.second )
@@ -49,29 +40,14 @@ CMFlashClusterContainerv1::addClusterSpecifyKey(const unsigned int key, CMFlashC
     std::cout << "CMFlashClusterContainerv1::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
   }
-  else
-  {
-    return ret.first;
-  }
 }
 
 void CMFlashClusterContainerv1::removeCluster(unsigned int key)
-{ m_clusmap.erase(key); }
+{ 
+  auto clus = findCluster(key);
+  delete clus;
 
-void CMFlashClusterContainerv1::removeCluster(CMFlashCluster *clus)
-{ removeCluster( clus->getClusKey() ); }
-
-CMFlashClusterContainerv1::Iterator
-CMFlashClusterContainerv1::findOrAddCluster(unsigned int key)
-{
-  auto it = m_clusmap.lower_bound( key );
-  if (it == m_clusmap.end()|| (key < it->first ))
-  {
-    // add new cluster and set its key
-    it = m_clusmap.insert(it, std::make_pair(key, new CMFlashClusterv1()));
-    it->second->setClusKey(key);
-  }
-  return it;
+  m_clusmap.erase(key); 
 }
 
 CMFlashClusterContainer::ConstRange

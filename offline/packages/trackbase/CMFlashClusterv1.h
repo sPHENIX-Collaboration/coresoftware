@@ -25,10 +25,8 @@ class CMFlashClusterv1 : public CMFlashCluster
 {
  public:
   //! ctor
-  CMFlashClusterv1();
+  CMFlashClusterv1() = default;
 
-  //!dtor
-  ~CMFlashClusterv1() override {}
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override {}
@@ -42,8 +40,6 @@ class CMFlashClusterv1 : public CMFlashCluster
   void CopyFrom( CMFlashCluster* source ) override
   { CopyFrom( *source ); }
 
-  void setClusKey(unsigned int id) override { m_cluskey = id; }
-  unsigned int getClusKey() const override { return m_cluskey; }
   //
   // cluster position
   //
@@ -64,9 +60,13 @@ class CMFlashClusterv1 : public CMFlashCluster
 
  protected:
 
-  unsigned int m_cluskey;  //< unique identifier within container
-  float m_pos[3];               //< mean position x,y,z
-  unsigned int m_adc;           //< cluster sum adc 
+  /// mean cluster position
+  float m_pos[3] = {NAN, NAN, NAN};          
+
+  /// cluster sum adc
+  unsigned int m_adc = 0xFFFFFFFF;
+
+  /// number of TPC clusters used to create this central mebrane cluster
   unsigned int m_nclusters = UINT_MAX;
 
   ClassDefOverride(CMFlashClusterv1, 1)

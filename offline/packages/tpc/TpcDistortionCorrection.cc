@@ -7,7 +7,7 @@
 #include "TpcDistortionCorrection.h"
 #include "TpcDistortionCorrectionContainer.h"
 
-#include <TH3.h>
+#include <TH1.h>
 #include <cmath>
 
 namespace
@@ -36,14 +36,10 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position( const Acts::Vecto
     z_new = (dcc->m_hDZint[index] && (mask&COORD_Z)) ? z - dcc->m_hDZint[index]->Interpolate(phi,r,z) : z;
   }
   else if (dcc->dimensions==2){
-    const auto bin=dcc->m_hDPint[index]->FindBin(phi,r,z);
-    const auto zterm=(1-z/105.5); //where to get the official z position limits?
-    phi_new = (dcc->m_hDPint[index] && (mask&COORD_PHI)) ? phi - dcc->m_hDPint[index]->GetBinContent(bin)/r*zterm : phi;
-    r_new = (dcc->m_hDRint[index] && (mask&COORD_R)) ? r - dcc->m_hDRint[index]->GetBinContent(bin)*zterm : r;
-    z_new = (dcc->m_hDZint[index] && (mask&COORD_Z)) ? z - dcc->m_hDZint[index]->GetBinContent(bin)*zterm : z;
-  }
-  else {
-    //crash?
+    const double zterm = (1.- std::abs(z)/105.5);
+    phi_new = (dcc->m_hDPint[index] && (mask&COORD_PHI)) ? phi - dcc->m_hDPint[index]->Interpolate(phi,r)*zterm/r : phi;
+    r_new = (dcc->m_hDRint[index] && (mask&COORD_R)) ? r - dcc->m_hDRint[index]->Interpolate(phi,r)*zterm : r;
+    z_new = (dcc->m_hDZint[index] && (mask&COORD_Z)) ? z - dcc->m_hDZint[index]->Interpolate(phi,r)*zterm : z;
   }
   
     // update cluster
