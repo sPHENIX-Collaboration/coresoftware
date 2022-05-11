@@ -35,7 +35,7 @@ PHGhostRejection::~PHGhostRejection()
 void PHGhostRejection::rejectGhostTracks(std::vector<float> &trackChi2)
 {
 
-  if(!m_trackMap || !m_clusters || !m_surfmaps || !m_tGeometry)
+  if(!m_trackMap || m_positions.size() == 0)
     {
       std::cout << "Missing containers, will not run TPC seed ghost rejection"
 		<< std::endl;
@@ -55,19 +55,23 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float> &trackChi2)
        ++trid1)
     {
       auto track1 = m_trackMap->get(trid1);
-
-      for (unsigned int trid2 = 0;
+      float track1phi = track1->get_phi(m_positions); 
+      float track1x = track1->get_x();
+      float track1y = track1->get_y();
+      float track1z = track1->get_z();
+      float track1eta = track1->get_eta();
+      for (unsigned int trid2 = trid1;
 	   trid2 != m_trackMap->size(); 
 	   ++trid2)
 	{
 	  if(trid1  ==  trid2) continue;
 	  
 	  auto track2 = m_trackMap->get(trid2);
-	  if(fabs( track1->get_phi(m_clusters, m_surfmaps, m_tGeometry) - track2->get_phi(m_clusters, m_surfmaps, m_tGeometry) ) < _phi_cut &&
-	     fabs( track1->get_eta() - track2->get_eta() ) < _eta_cut &&
-	     fabs( track1->get_x() - track2->get_x() ) < _x_cut &&
-	     fabs( track1->get_y() - track2->get_y() ) < _y_cut &&
-	     fabs( track1->get_z() - track2->get_z() ) < _z_cut
+	  if(fabs( track1phi - track2->get_phi(m_positions)) < _phi_cut &&
+	     fabs( track1eta - track2->get_eta() ) < _eta_cut &&
+	     fabs( track1x - track2->get_x() ) < _x_cut &&
+	     fabs( track1y - track2->get_y() ) < _y_cut &&
+	     fabs( track1z - track2->get_z() ) < _z_cut
 	      )
 	    {
 	      matches_set.insert(trid1);
@@ -112,9 +116,9 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float> &trackChi2)
 	  if(m_verbosity > 1)
 	    {
 	      std::cout << "       Compare: best quality " << best_qual << " track 2 quality " << tr2_qual << std::endl;
-	      std::cout << "       tr1: phi " << tr1->get_phi(m_clusters, m_surfmaps, m_tGeometry) << " eta " << tr1->get_eta() 
+	      std::cout << "       tr1: phi " << tr1->get_phi(m_positions) << " eta " << tr1->get_eta() 
 			<<  " x " << tr1->get_x() << " y " << tr1->get_y() << " z " << tr1->get_z() << std::endl;
-	      std::cout << "       tr2: phi " << tr2->get_phi(m_clusters, m_surfmaps, m_tGeometry) << " eta " << tr2->get_eta() 
+	      std::cout << "       tr2: phi " << tr2->get_phi(m_positions) << " eta " << tr2->get_eta() 
 			<<  " x " << tr2->get_x() << " y " << tr2->get_y() << " z " << tr2->get_z() << std::endl;
 	    }
 

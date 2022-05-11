@@ -48,6 +48,7 @@ class TrackSeed : public PHObject
   virtual float get_phi(TrkrClusterContainer*,
 			ActsSurfaceMaps*,
 			ActsTrackingGeometry*) const { return NAN; }
+  virtual float get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>&) const { return NAN; }
   virtual float get_pz() const { return NAN; }
   virtual float get_x() const { return NAN; }
   virtual float get_y() const { return NAN; }

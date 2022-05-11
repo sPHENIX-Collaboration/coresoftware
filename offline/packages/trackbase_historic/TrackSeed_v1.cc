@@ -353,27 +353,13 @@ float TrackSeed_v1::get_pt() const
   /// Scaling factor for radius in 1.4T field
   return 0.3 * 1.4 / 100. * fabs(1./m_qOverR);
 }
-
-float TrackSeed_v1::get_phi(TrkrClusterContainer *clusters,
-			    ActsSurfaceMaps *surfMaps, 
-			    ActsTrackingGeometry *tGeometry) const
+float TrackSeed_v1::get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const
 {
   float x=NAN, y=NAN;
   findRoot(x,y);
   float phi = atan2(-1* (m_X0-x), (m_Y0-y));
-
-  ActsTransformations transformer;
-  Acts::Vector3 pos0 = transformer.getGlobalPosition(
-		       *(m_cluster_keys.begin()),
-		       clusters->findCluster(*(m_cluster_keys.begin())),
-		       surfMaps, tGeometry);
-  auto nextit = m_cluster_keys.begin();
-  std::advance(nextit,1);
-  Acts::Vector3 pos1 = transformer.getGlobalPosition(
-		       *nextit,
-		       clusters->findCluster(*nextit),
-		       surfMaps, tGeometry);
-
+  Acts::Vector3 pos0 = positions.find(*(m_cluster_keys.begin()))->second;
+  Acts::Vector3 pos1 = positions.find(*(std::next(m_cluster_keys.begin(), 1)))->second;
   /// convert to the angle of the tangent to the circle
   // we need to know if the track proceeds clockwise or CCW around the circle
   double dx0 = pos0(0) - m_X0;
@@ -398,6 +384,27 @@ float TrackSeed_v1::get_phi(TrkrClusterContainer *clusters,
     }
   
   return phi;
+}
+float TrackSeed_v1::get_phi(TrkrClusterContainer *clusters,
+			    ActsSurfaceMaps *surfMaps, 
+			    ActsTrackingGeometry *tGeometry) const
+{
+  ActsTransformations transformer;
+  Acts::Vector3 pos0 = transformer.getGlobalPosition(
+		       *(m_cluster_keys.begin()),
+		       clusters->findCluster(*(m_cluster_keys.begin())),
+		       surfMaps, tGeometry);
+
+  auto key = *std::next(m_cluster_keys.begin(), 1);
+  Acts::Vector3 pos1 = transformer.getGlobalPosition(
+		       key,
+		       clusters->findCluster(key),
+		       surfMaps, tGeometry);
+  std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
+  positions.insert(std::make_pair(*(m_cluster_keys.begin()), pos0));
+  positions.insert(std::make_pair(key, pos1));
+  return get_phi(positions);
+ 
 }
 
 float TrackSeed_v1::get_theta() const

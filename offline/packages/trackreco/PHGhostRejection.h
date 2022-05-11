@@ -35,9 +35,7 @@ class PHGhostRejection
   void rejectGhostTracks(std::vector<float>& trackChi2);
   void verbosity(int verb) { m_verbosity = verb; }
   void trackSeedContainer(TrackSeedContainer *seeds){m_trackMap = seeds;}
-  void clusterContainer(TrkrClusterContainer *clus) {m_clusters = clus;}
-  void surfMaps(ActsSurfaceMaps *maps) {m_surfmaps = maps;}
-  void geometry(ActsTrackingGeometry *geom) {m_tGeometry = geom;}
+  void positionMap(std::map<TrkrDefs::cluskey, Acts::Vector3>& map) { m_positions = map; }
 
  private:
 
@@ -53,11 +51,8 @@ class PHGhostRejection
   unsigned int m_verbosity = 0;
   
   TrackSeedContainer *m_trackMap = nullptr;
-  TrkrClusterContainer *m_clusters = nullptr;
-  ActsSurfaceMaps *m_surfmaps = nullptr;
-  ActsTrackingGeometry *m_tGeometry = nullptr;
-
-
+ 
+  std::map<TrkrDefs::cluskey, Acts::Vector3> m_positions;
 };
 
 #endif // PHGHOSTREJECTION_H

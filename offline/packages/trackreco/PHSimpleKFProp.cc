@@ -199,12 +199,6 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   PositionMap globalPositions = PrepareKDTrees();
   if(Verbosity()>0) std::cout << "prepared KD trees" << std::endl;
 
-  timer.stop();
-
-  auto kdtime = timer.elapsed();
-  std::cout << "KDTime " << kdtime << std::endl;
-  timer.restart();
-
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed> unused_tracks;
   for(int track_it = 0; track_it != _track_map->size(); ++track_it )
@@ -242,14 +236,17 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 						trackClusPositions, trackChi2);
 
       timer.stop();
-      std::cout << "single track ALICEKF time " << timer.elapsed()
+      if(Verbosity() > 3)
+	{ std::cout << "single track ALICEKF time " << timer.elapsed()
 		<< std::endl;
+	}
       timer.restart();
       /// circle fit back to update track parameters
       track->circleFitByTaubin(trackClusPositions, 7, 55);
       track->lineFit(trackClusPositions, 7, 55);
       timer.stop();
-      std::cout << "single track circle fit time " << timer.elapsed() << std::endl;
+      if(Verbosity() > 3)
+	{ std::cout << "single track circle fit time " << timer.elapsed() << std::endl; }
       if(seedpair.first.size() == 0 || seedpair.second.size() == 0)
 	{ continue; }
       if(Verbosity()>0) std::cout << "is tpc track" << std::endl;
@@ -261,7 +258,8 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 					  globalPositions));
       timer.stop();
       auto propagatetime = timer.elapsed();
-      std::cout << "propagate track time " << propagatetime << std::endl;
+      if(Verbosity() > 3)
+	{ std::cout << "propagate track time " << propagatetime << std::endl; }
     }
     else
     {
@@ -277,8 +275,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
   std::vector<std::vector<TrkrDefs::cluskey>> clean_chains = RemoveBadClusters(new_chains, globalPositions); 
   timer.stop();
-  auto removetime = timer.elapsed();
-  std::cout << "remove bad clusters time " << removetime << std::endl;
+
   timer.stop();
   timer.restart();
   std::vector<float> trackChi2;
@@ -286,27 +283,29 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 					 trackChi2);
   timer.stop();
   auto alicekftime = timer.elapsed();
-  std::cout << "full alice kf time all tracks " << alicekftime << std::endl;
+  if(Verbosity() > 0 )
+    { std::cout << "full alice kf time all tracks " << alicekftime << std::endl; }
   timer.stop();
   timer.restart();
   publishSeeds(seeds.first, globalPositions);
 
   timer.stop();
   auto circlefittime = timer.elapsed();
-  std::cout << "circle fit all tracks time " << circlefittime << std::endl;
+  if(Verbosity() > 0)
+    { std::cout << "circle fit all tracks time " << circlefittime << std::endl; }
   publishSeeds(unused_tracks);
 
   /// Remove tracks that are duplicates from the KFProp
   PHGhostRejection rejector(Verbosity());
-  rejector.geometry(_tgeometry);
-  rejector.surfMaps(_surfmaps);
+  rejector.positionMap(globalPositions);
   rejector.trackSeedContainer(_track_map);
-  rejector.clusterContainer(_cluster_map);
   timer.stop();
   timer.restart();
   rejector.rejectGhostTracks(trackChi2);
   timer.stop();
-  std::cout << "ghost rejection time " << timer.elapsed() << std::endl;
+  if(Verbosity() > 2)
+    { std::cout << "ghost rejection time " << timer.elapsed() << std::endl; }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

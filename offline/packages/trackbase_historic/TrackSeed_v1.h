@@ -41,6 +41,7 @@ class TrackSeed_v1 : public TrackSeed
   float get_phi(TrkrClusterContainer *clusters,
 		ActsSurfaceMaps *surfMaps, 
 		ActsTrackingGeometry *tGeometry) const override;
+  float get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;
   float get_eta() const override;
   float get_theta() const override;
   float get_pt() const override;
