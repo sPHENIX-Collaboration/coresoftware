@@ -82,6 +82,7 @@ namespace
     int cluster_version = 3;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster*> cluster_vector;
+    int verbosity = 0;
   };
   
   pthread_mutex_t mythreadlock;
@@ -275,7 +276,8 @@ namespace
 					    Acts::Vector3 world,
 					    ActsSurfaceMaps *surfMaps,
 					    ActsTrackingGeometry *tGeometry,
-					    TrkrDefs::subsurfkey& subsurfkey)
+					    TrkrDefs::subsurfkey& subsurfkey,
+					    int verbosity)
 	{
 
 	  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
@@ -323,7 +325,7 @@ namespace
 	    }    
 	  else
 	    {
-	      if(Verbosity() > 2)
+	      if(verbosity > 2)
 		{
 		  std::cout << PHWHERE 
 			    << "Error: TPC surface index not defined, skipping cluster!" 
@@ -426,7 +428,8 @@ namespace
 						    global,
 						    my_data.surfmaps,
 						    my_data.tGeometry,
-						    subsurfkey);
+						    subsurfkey,
+						    my_data.verbosity);
       
       if(!surface)
 	{
@@ -830,6 +833,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.par0_neg = par0_neg;
     thread_pair.data.par0_pos = par0_pos;
     thread_pair.data.cluster_version = cluster_version;
+    thread_pair.data.verbosity = Verbosity();
     
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
     unsigned short NPhiBinsSector = NPhiBins/12;
