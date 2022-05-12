@@ -323,16 +323,19 @@ namespace
 	    }    
 	  else
 	    {
-	      std::cout << PHWHERE 
-			<< "Error: TPC surface index not defined, skipping cluster!" 
-			<< std::endl;
-	      std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
-			<< " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
-	      std::cout << "     world_phi " << world_phi << " world_z " << world_z << std::endl;
-	      std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
-	      std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
-	      std::cout << "     surfStepPhi " << surfStepPhi << " surfStepZ " << surfStepZ << std::endl; 
-	      std::cout << " number of surfaces " << surf_vec.size() << " nsurf: "  << nsurf << std::endl;
+	      if(Verbosity() > 2)
+		{
+		  std::cout << PHWHERE 
+			    << "Error: TPC surface index not defined, skipping cluster!" 
+			    << std::endl;
+		  std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
+			    << " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
+		  std::cout << "     world_phi " << world_phi << " world_z " << world_z << std::endl;
+		  std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
+		  std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
+		  std::cout << "     surfStepPhi " << surfStepPhi << " surfStepZ " << surfStepZ << std::endl; 
+		  std::cout << " number of surfaces " << surf_vec.size() << " nsurf: "  << nsurf << std::endl;
+		}
 	      return nullptr;
 	    }
 	  	 
