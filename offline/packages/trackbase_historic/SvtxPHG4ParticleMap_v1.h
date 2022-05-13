@@ -15,12 +15,15 @@ class SvtxPHG4ParticleMap_v1 : public SvtxPHG4ParticleMap
   void identify(std::ostream& os = std::cout) const override;
   int isValid() const override { return 1; }
   PHObject* CloneMe() const override { return new SvtxPHG4ParticleMap_v1(*this); }
-  void Reset() override { clear(); }
+  void Reset() override { clear(); m_processed = false; }
 
   bool empty() const override { return m_map.empty(); }
   std::size_t size() const override { return m_map.size(); }
   std::size_t count(const unsigned int key) const override { return m_map.count(key); }
   void clear() override { m_map.clear(); }
+
+  bool processed() const override { return m_processed; }
+  void setProcessed(const bool process) override { m_processed = process; }
 
   const WeightedTruthTrackMap & get(const unsigned int key) const override;
   WeightedTruthTrackMap & get(const unsigned int key) override
@@ -46,6 +49,7 @@ class SvtxPHG4ParticleMap_v1 : public SvtxPHG4ParticleMap
 
  private:
   SvtxPHG4ParticleMap::Map m_map;
+  bool m_processed = false;
 
   ClassDefOverride(SvtxPHG4ParticleMap_v1, 1);
 };
