@@ -335,9 +335,9 @@ namespace
 	      std::cout << " number of surfaces " << surf_vec.size() << " nsurf: "  << nsurf << std::endl;
 	      return nullptr;
 	    }
-	  	 
+
 	  return surf_vec[surf_index];
-	
+
 	}
   
     void calc_cluster_parameter(const std::vector<ihit> &ihit_list, thread_data& my_data, int ntouch, int nedge )
