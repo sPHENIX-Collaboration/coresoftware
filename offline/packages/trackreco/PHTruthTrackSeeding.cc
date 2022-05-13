@@ -153,25 +153,34 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 			_min_layer, _max_layer);
 
     // set intt crossing
-    /* inspired from PHtruthSiliconAssociation */
-    const auto intt_crossings = getInttCrossings(svtx_track.get());
-    if(intt_crossings.empty()) 
-    {
-      if(Verbosity() > 1)  std::cout << "PHTruthTrackSeeding::Process - Silicon track " << gtrackID << " has no INTT clusters" << std::endl;
-      continue ;
-    } else if( intt_crossings.size() > 1 ) {
-    
-      if(Verbosity() > 1) 
-      { std::cout << "PHTruthTrackSeeding::Process - INTT crossings not all the same for track " << gtrackID << " crossing_keep - dropping this match " << std::endl; }
-      
-    } else {
-      
-      const auto& crossing = *intt_crossings.begin();
-      svtx_track->set_crossing(crossing);
-      if(Verbosity() > 1)
-        std::cout << "PHTruthTrackSeeding::Process - Combined track " << gtrackID  << " bunch crossing " << crossing << std::endl;           
-    }
-    
+    if(_min_layer < 7)
+      {
+	// silicon tracklet
+	/* inspired from PHtruthSiliconAssociation */
+	const auto intt_crossings = getInttCrossings(svtx_track.get());
+	if(intt_crossings.empty()) 
+	  {
+	    if(Verbosity() > 1)  std::cout << "PHTruthTrackSeeding::Process - Silicon track " << gtrackID << " has no INTT clusters" << std::endl;
+	    continue ;
+	  } else if( intt_crossings.size() > 1 ) {
+	  
+	  if(Verbosity() > 1) 
+	    { std::cout << "PHTruthTrackSeeding::Process - INTT crossings not all the same for track " << gtrackID << " crossing_keep - dropping this match " << std::endl; }
+	  
+	} else {
+	  
+	  const auto& crossing = *intt_crossings.begin();
+	  svtx_track->set_crossing(crossing);
+	  if(Verbosity() > 1)
+	    std::cout << "PHTruthTrackSeeding::Process - Combined track " << gtrackID  << " bunch crossing " << crossing << std::endl;           
+	}
+      }  // end if _min_layer
+    else
+      {
+	// no INTT layers, crossing is unknown
+	svtx_track->set_crossing(SHRT_MAX);	
+      }
+ 
     _track_map->insert(svtx_track.get());
   }
 

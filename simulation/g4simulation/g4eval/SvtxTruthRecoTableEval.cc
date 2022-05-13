@@ -152,6 +152,9 @@ void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
 
     m_truthMap->insert(gtrackID, recomap);
   }
+  
+  m_truthMap->setProcessed(true);
+
 }
 
 void SvtxTruthRecoTableEval::fillRecoMap(PHCompositeNode *topNode)
@@ -185,6 +188,9 @@ void SvtxTruthRecoTableEval::fillRecoMap(PHCompositeNode *topNode)
 
     m_recoMap->insert(key, truthmap);
   }
+
+  m_recoMap->setProcessed(true);
+
 }
 
 int SvtxTruthRecoTableEval::createNodes(PHCompositeNode *topNode)

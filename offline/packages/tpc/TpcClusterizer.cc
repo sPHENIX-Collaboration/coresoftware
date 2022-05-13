@@ -82,6 +82,7 @@ namespace
     int cluster_version = 3;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster*> cluster_vector;
+    int verbosity = 0;
   };
   
   pthread_mutex_t mythreadlock;
@@ -275,7 +276,8 @@ namespace
 					    Acts::Vector3 world,
 					    ActsSurfaceMaps *surfMaps,
 					    ActsTrackingGeometry *tGeometry,
-					    TrkrDefs::subsurfkey& subsurfkey)
+					    TrkrDefs::subsurfkey& subsurfkey,
+					    int verbosity)
 	{
 
 	  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
@@ -323,21 +325,24 @@ namespace
 	    }    
 	  else
 	    {
-	      std::cout << PHWHERE 
-			<< "Error: TPC surface index not defined, skipping cluster!" 
-			<< std::endl;
-	      std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
-			<< " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
-	      std::cout << "     world_phi " << world_phi << " world_z " << world_z << std::endl;
-	      std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
-	      std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
-	      std::cout << "     surfStepPhi " << surfStepPhi << " surfStepZ " << surfStepZ << std::endl; 
-	      std::cout << " number of surfaces " << surf_vec.size() << " nsurf: "  << nsurf << std::endl;
+	      if(verbosity > 2)
+		{
+		  std::cout << PHWHERE 
+			    << "Error: TPC surface index not defined, skipping cluster!" 
+			    << std::endl;
+		  std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
+			    << " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
+		  std::cout << "     world_phi " << world_phi << " world_z " << world_z << std::endl;
+		  std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
+		  std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
+		  std::cout << "     surfStepPhi " << surfStepPhi << " surfStepZ " << surfStepZ << std::endl; 
+		  std::cout << " number of surfaces " << surf_vec.size() << " nsurf: "  << nsurf << std::endl;
+		}
 	      return nullptr;
 	    }
-	  	 
+
 	  return surf_vec[surf_index];
-	
+
 	}
   
     void calc_cluster_parameter(const std::vector<ihit> &ihit_list, thread_data& my_data, int ntouch, int nedge )
@@ -423,7 +428,8 @@ namespace
 						    global,
 						    my_data.surfmaps,
 						    my_data.tGeometry,
-						    subsurfkey);
+						    subsurfkey,
+						    my_data.verbosity);
       
       if(!surface)
 	{
@@ -827,6 +833,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.par0_neg = par0_neg;
     thread_pair.data.par0_pos = par0_pos;
     thread_pair.data.cluster_version = cluster_version;
+    thread_pair.data.verbosity = Verbosity();
     
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
     unsigned short NPhiBinsSector = NPhiBins/12;

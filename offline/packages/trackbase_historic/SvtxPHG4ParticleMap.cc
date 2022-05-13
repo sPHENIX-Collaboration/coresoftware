@@ -33,7 +33,6 @@ SvtxPHG4ParticleMap::ConstIter SvtxPHG4ParticleMap::end() const
   return DummySvtxPHG4ParticleMap.end();
 }
 
-
 SvtxPHG4ParticleMap::Iter SvtxPHG4ParticleMap::begin()
 {
   return DummySvtxPHG4ParticleMap.end();
