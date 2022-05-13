@@ -558,7 +558,7 @@ namespace
 	zbinmin = etacut;
 	zbinmax -= etacut;
       }
-      std::cout << " layer: " << layer << " zbin limit " << zbinmin << " | " << zbinmax <<std::endl;
+      // std::cout << " layer: " << layer << " zbin limit " << zbinmin << " | " << zbinmax <<std::endl;
     }
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
 	 hitr != hitrangei.second;
