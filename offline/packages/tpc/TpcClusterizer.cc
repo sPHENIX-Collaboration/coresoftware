@@ -340,9 +340,9 @@ namespace
 		}
 	      return nullptr;
 	    }
-	  	 
+
 	  return surf_vec[surf_index];
-	
+
 	}
   
     void calc_cluster_parameter(const std::vector<ihit> &ihit_list, thread_data& my_data, int ntouch, int nedge )
