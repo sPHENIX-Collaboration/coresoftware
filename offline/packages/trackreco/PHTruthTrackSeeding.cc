@@ -144,16 +144,17 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
      * so that the seed momentum and 
      * position aren't completely exact
      */
-    const auto random = gsl_ran_flat(m_rng.get(), 0.95, 1.05);
-    svtx_track->set_px(g4particle->get_px() * random);
-    svtx_track->set_py(g4particle->get_py() * random);
-    svtx_track->set_pz(g4particle->get_pz() * random);
+    const auto random1 = gsl_ran_flat(m_rng.get(), 0.95, 1.05);
+    svtx_track->set_px(g4particle->get_px() * random1);
+    svtx_track->set_py(g4particle->get_py() * random1);
+    svtx_track->set_pz(g4particle->get_pz() * random1);
 
     // assign the track position using the truth vertex for this track
+    const auto random2 = gsl_ran_flat(m_rng.get(), -0.002, 0.002);   // 20 microns
     auto g4vertex = m_g4truth_container->GetVtx(vertexID);
-    svtx_track->set_x(g4vertex->get_x() * random);
-    svtx_track->set_y(g4vertex->get_y() * random);
-    svtx_track->set_z(g4vertex->get_z() * random);
+    svtx_track->set_x(g4vertex->get_x() + random2);
+    svtx_track->set_y(g4vertex->get_y() + random2);
+    svtx_track->set_z(g4vertex->get_z() + random2);
     
     // associate all cluster keys to the track
     for( const auto& cluskey : ClusterKeyList){
