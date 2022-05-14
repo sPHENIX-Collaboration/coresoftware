@@ -35,6 +35,7 @@ class TpcClusterizer : public SubsysReco
 
   void set_sector_fiducial_cut(const double cut){SectorFiducialCut = cut; }
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
+  void set_do_wedge_emulation(bool do_wedge){ do_wedge_emulation = do_wedge;}
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size ;}
   void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeZ = size ;}
   void set_drift_velocity_scale(double value) { m_drift_velocity_scale = value; }
@@ -49,6 +50,7 @@ class TpcClusterizer : public SubsysReco
   ActsSurfaceMaps *m_surfMaps = nullptr;
   ActsTrackingGeometry *m_tGeometry = nullptr;
   bool do_hit_assoc = true;
+  bool do_wedge_emulation = false;
   double pedestal = 74.4;
   double SectorFiducialCut = 0.5;
   unsigned short MaxClusterHalfSizePhi = 3;
