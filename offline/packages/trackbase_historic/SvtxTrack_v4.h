@@ -48,8 +48,8 @@ class SvtxTrack_v4: public SvtxTrack
   // basic track information ---------------------------------------------------
   //
 
-  unsigned int get_id() const override { return _track_id; }
-  void set_id(unsigned int id) override { _track_id = id; }
+  unsigned int get_id() const override { return _tpc_id; }
+  void set_id(unsigned int id) override { _tpc_id = id; }
 
   unsigned int get_tpc_id() const override { return _tpc_id; }
   void set_tpc_id(unsigned int id) override { _tpc_id = id; }
@@ -131,10 +131,9 @@ class SvtxTrack_v4: public SvtxTrack
  private:
 
   // track information
-  unsigned int _track_id = UINT_MAX;
+  unsigned int _tpc_id = UINT_MAX;
   unsigned int _vertex_id = UINT_MAX;
   unsigned int _silicon_id = UINT_MAX;
-  unsigned int _tpc_id = UINT_MAX;
   bool _is_positive_charge = false;
   float _chisq = NAN;
   unsigned int _ndf = 0;

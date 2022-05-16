@@ -14,6 +14,8 @@
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerContainer.h>
@@ -193,70 +195,26 @@ void PHActsTrackProjection::updateSvtxTrack(
 	       SvtxTrack* svtxTrack,
 	       const int caloLayer)
 {
+  float pathlength = m_caloRadii.find(m_caloTypes.at(caloLayer))->second;
+  SvtxTrackState_v1 out(pathlength);
+
   auto projectionPos = params.position(m_tGeometry->geoContext);
-
-  auto projectionPhi = atan2(projectionPos(1), projectionPos(0));
-  auto projectionEta = asinh(projectionPos(2) / 
-			     sqrt(projectionPos(0) * projectionPos(0)
-				  + projectionPos(1) * projectionPos(1)));
-
-
-  if(Verbosity() > 2)
-    {
-      double radius = sqrt(projectionPos(0) * projectionPos(0)
-			   + projectionPos(1) * projectionPos(1));
-      std::cout << "Track projection phi/eta " << projectionPhi
-		<< " and " << projectionEta << std::endl
-		<< " projection position " << projectionPos.transpose()
-		<< " and radius is " << radius << std::endl;
-	}
-
-  if(fabs(projectionEta) >= 1.1)
-    return;
-
-  auto phiBin = m_towerGeomContainer->get_phibin(projectionPhi);
-  auto etaBin = m_towerGeomContainer->get_etabin(projectionEta);
+  const auto momentum = params.momentum();
+  out.set_x(projectionPos.x() / Acts::UnitConstants::cm);
+  out.set_y(projectionPos.y() / Acts::UnitConstants::cm);
+  out.set_z(projectionPos.z() / Acts::UnitConstants::cm);
+  out.set_px(momentum.x());
+  out.set_py(momentum.y());
+  out.set_pz(momentum.z());
   
-  double energy3x3 = 0.0;
-  double energy5x5 = 0.0;
+  ActsTransformations transformer;
+  const auto globalCov = transformer.rotateActsCovToSvtxTrack(params);
+  for (int i = 0; i < 6; ++i) {
+    for (int j = 0; j < 6; ++j)
+      { out.set_error(i, j, globalCov(i,j)); }
+  }
 
-  getSquareTowerEnergies(phiBin, etaBin, energy3x3, energy5x5);
-
-  if(Verbosity() > 2)
-    std::cout << "3x3/5x5 energy sums " << energy3x3 
-	      << " and " << energy5x5 << std::endl;
-
-  svtxTrack->set_cal_energy_3x3(m_caloTypes.at(caloLayer),
-				energy3x3);
-  svtxTrack->set_cal_energy_5x5(m_caloTypes.at(caloLayer),
-				energy5x5);
-
-  double minIndex = NAN;
-  double minDphi = NAN;
-  double minDeta = NAN;
-  double minE = NAN;
-  
-  getClusterProperties(projectionPhi, projectionEta,
-		       minIndex, minDphi, minDeta, minE);
-
-  if(!std::isnan(minIndex))
-    {
-      svtxTrack->set_cal_dphi(m_caloTypes.at(caloLayer),
-			      minDphi);
-      svtxTrack->set_cal_deta(m_caloTypes.at(caloLayer),
-			      minDeta);
-      svtxTrack->set_cal_cluster_id(m_caloTypes.at(caloLayer),
-				    minIndex);
-      svtxTrack->set_cal_cluster_e(m_caloTypes.at(caloLayer),
-				   minE);
-      if(Verbosity() > 2)
-	std::cout << "Calo cluster has dphi " << minDphi
-		  << " and deta " << minDeta << " and clusID "
-		  << minIndex << " and energy " << minE 
-		  << std::endl;
-
-    }
-
+  svtxTrack->insert_state(&out);
   return;
 }
 

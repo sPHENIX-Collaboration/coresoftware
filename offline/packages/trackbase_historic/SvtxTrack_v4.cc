@@ -39,8 +39,7 @@ void SvtxTrack_v4::CopyFrom( const SvtxTrack& source )
   // parent class method
   SvtxTrack::CopyFrom( source );
   
-  _track_id = source.get_id();
-  _tpc_id = source.get_tpc_id();
+  _tpc_id = source.get_id();
   _silicon_id = source.get_silicon_id();
   _vertex_id = source.get_vertex_id();
   _is_positive_charge = source.get_positive_charge();
