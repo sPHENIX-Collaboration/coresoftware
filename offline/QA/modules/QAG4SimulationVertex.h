@@ -15,6 +15,8 @@ class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
+class TrackSeed;
+class TrackSeedContainer;
 
 class QAG4SimulationVertex : public SubsysReco
 {
@@ -46,6 +48,8 @@ class QAG4SimulationVertex : public SubsysReco
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
   PHG4TruthInfoContainer *m_truthInfo = nullptr;
+  TrackSeedContainer *m_tpcSeeds = nullptr;
+  TrackSeedContainer *m_silSeeds = nullptr;
 
   std::set<int> m_embeddingIDs;
 

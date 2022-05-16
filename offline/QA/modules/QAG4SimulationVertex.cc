@@ -16,6 +16,8 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeed.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -68,6 +70,19 @@ int QAG4SimulationVertex::InitRun(PHCompositeNode *topNode)
     std::cout << __PRETTY_FUNCTION__ << " Fatal Error : missing G4TruthInfo" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+
+  m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode,"TpcTrackSeedContainer");
+  m_silSeeds = findNode::getClass<TrackSeedContainer>(topNode,"SiliconTrackSeedContainer");
+  if(!m_tpcSeeds)
+    { 
+      std::cout << __PRETTY_FUNCTION__ << "Fatal Error: missing tpc track seed container" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    if(!m_silSeeds)
+    { 
+      std::cout << __PRETTY_FUNCTION__ << "Fatal Error: missing silicon track seed container" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -343,7 +358,14 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
         int INTT_hits = 0;
         int TPC_hits = 0;
 
-        for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+	const unsigned int tpcid = track->get_tpc_id();
+	const unsigned int silid = track->get_silicon_id();
+	
+	TrackSeed* siliconSeed = m_silSeeds->get(silid);
+	TrackSeed* tpcSeed = m_tpcSeeds->get(tpcid);
+
+        for (auto cluster_iter = siliconSeed->begin_cluster_keys(); 
+	     cluster_iter != siliconSeed->end_cluster_keys(); ++cluster_iter)
         {
           const auto &cluster_key = *cluster_iter;
           const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
@@ -352,14 +374,21 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
             ++MVTX_hits;
           else if (trackerID == TrkrDefs::inttId)
             ++INTT_hits;
-          else if (trackerID == TrkrDefs::tpcId)
-            ++TPC_hits;
           else
           {
             if (Verbosity())
               std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
           }
         }
+	for (auto cluster_iter = tpcSeed->begin_cluster_keys(); 
+	     cluster_iter != tpcSeed->end_cluster_keys(); ++cluster_iter)
+        {
+	  const auto &cluster_key = *cluster_iter;
+          const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+
+          if (trackerID == TrkrDefs::tpcId)
+            ++TPC_hits;
+	}
         if (MVTX_hits >= 2)
         {
           ++ntracks_with_cuts;
