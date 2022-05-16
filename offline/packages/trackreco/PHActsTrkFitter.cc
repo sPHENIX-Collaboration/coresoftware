@@ -376,10 +376,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	      /// We want to set the ID to the tpc track seed id so that
 	      /// the ghost rejection finds the right track
 	      newTrack->set_id(tpcid);
-	      newTrack->set_silicon_id(siid);
+	      newTrack->set_tpc_seed(tpcseed);
 	      if(siid != std::numeric_limits<unsigned int>::max())
 		{ 
 		  newTrack->set_crossing(m_siliconSeeds->get(siid)->get_crossing());
+		  newTrack->set_silicon_seed(m_siliconSeeds->get(siid));
 		}
 	      else
 		{

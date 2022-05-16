@@ -20,7 +20,6 @@ class PHG4TruthInfoContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
-class TrackSeedContainer;
 class SvtxVertexMap;
 
 /// \class QAG4SimulationTracking
@@ -77,8 +76,6 @@ class QAG4SimulationTracking : public SubsysReco
   PHG4TruthInfoContainer *m_truthContainer = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap* m_vertexMap = nullptr;
-  TrackSeedContainer *m_silSeeds = nullptr;
-  TrackSeedContainer *m_tpcSeeds = nullptr;
 
   TrkrClusterContainer *m_cluster_map = nullptr;
   TrkrClusterHitAssoc *m_cluster_hit_map = nullptr;

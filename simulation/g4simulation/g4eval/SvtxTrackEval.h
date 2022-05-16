@@ -80,6 +80,8 @@ class SvtxTrackEval
   void get_node_pointers(PHCompositeNode* topNode);
   bool has_node_pointers();
 
+  std::vector<TrkrDefs::cluskey> get_track_ckeys(SvtxTrack* track);
+
   SvtxClusterEval _clustereval;
   SvtxTrackMap* _trackmap;
   PHG4TruthInfoContainer* _truthinfo;

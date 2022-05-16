@@ -16,7 +16,6 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeed.h>
 
 #include <g4main/PHG4Particle.h>
@@ -70,19 +69,6 @@ int QAG4SimulationVertex::InitRun(PHCompositeNode *topNode)
     std::cout << __PRETTY_FUNCTION__ << " Fatal Error : missing G4TruthInfo" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode,"TpcTrackSeedContainer");
-  m_silSeeds = findNode::getClass<TrackSeedContainer>(topNode,"SiliconTrackSeedContainer");
-  if(!m_tpcSeeds)
-    { 
-      std::cout << __PRETTY_FUNCTION__ << "Fatal Error: missing tpc track seed container" << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-    if(!m_silSeeds)
-    { 
-      std::cout << __PRETTY_FUNCTION__ << "Fatal Error: missing silicon track seed container" << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -358,11 +344,8 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
         int INTT_hits = 0;
         int TPC_hits = 0;
 
-	const unsigned int tpcid = track->get_tpc_id();
-	const unsigned int silid = track->get_silicon_id();
-	
-	TrackSeed* siliconSeed = m_silSeeds->get(silid);
-	TrackSeed* tpcSeed = m_tpcSeeds->get(tpcid);
+	TrackSeed* siliconSeed = track->get_tpc_seed();
+	TrackSeed* tpcSeed = track->get_silicon_seed();
 
         for (auto cluster_iter = siliconSeed->begin_cluster_keys(); 
 	     cluster_iter != siliconSeed->end_cluster_keys(); ++cluster_iter)

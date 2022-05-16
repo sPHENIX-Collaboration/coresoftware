@@ -39,8 +39,8 @@ void SvtxTrack_v4::CopyFrom( const SvtxTrack& source )
   // parent class method
   SvtxTrack::CopyFrom( source );
   
-  _tpc_id = source.get_id();
-  _silicon_id = source.get_silicon_id();
+  _tpc_seed = source.get_tpc_seed();
+  _silicon_seed = source.get_silicon_seed();
   _vertex_id = source.get_vertex_id();
   _is_positive_charge = source.get_positive_charge();
   _chisq = source.get_chisq();
@@ -58,8 +58,6 @@ void SvtxTrack_v4::identify(std::ostream& os) const
 {
   os << "SvtxTrack_v4 Object ";
   os << "id: " << get_id() << " ";
-  os << "silicon tracklet id : " << get_silicon_id() << " ";
-  os << "tpc tracklet id : " << get_tpc_id() << " ";
   os << "vertex id: " << get_vertex_id() << " ";
   os << "charge: " << get_charge() << " ";
   os << "chisq: " << get_chisq() << " ndf:" << get_ndf() << " ";
@@ -72,6 +70,21 @@ void SvtxTrack_v4::identify(std::ostream& os) const
 
   os << "(x,y,z) = (" << get_x() << "," << get_y() << "," << get_z() << ")" << std::endl;
 
+  os << "Silicon clusters " << std::endl;
+  for(auto iter = _silicon_seed->begin_cluster_keys(); 
+      iter != _silicon_seed->end_cluster_keys();
+      ++iter)
+    {
+      std::cout << *iter << ", ";
+    }
+  os << std::endl << "Tpc + TPOT clusters " << std::endl;
+    for(auto iter = _tpc_seed->begin_cluster_keys(); 
+      iter != _tpc_seed->end_cluster_keys();
+      ++iter)
+    {
+      std::cout << *iter << ", ";
+    }
+    
   os << std::endl;
 
   return;

@@ -17,7 +17,6 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeed.h>
-#include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -59,10 +58,8 @@ int QAG4SimulationTracking::InitRun(PHCompositeNode *topNode)
 
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  m_silSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
-  m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
 
-  if(!m_trackMap or !m_silSeeds or !m_tpcSeeds or !m_vertexMap)
+  if(!m_trackMap or !m_vertexMap)
     {
       std::cout << PHWHERE << " missing track related container(s). Quitting"
 		<< std::endl;
@@ -378,11 +375,8 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       int INTT_hits = 0;
       int TPC_hits = 0;
       
-      const unsigned int tpcid = track->get_tpc_id();
-      const unsigned int silid = track->get_silicon_id();
-      
-      TrackSeed *tpcseed = m_tpcSeeds->get(tpcid);
-      TrackSeed *silseed = m_silSeeds->get(silid);
+      TrackSeed *tpcseed = track->get_tpc_seed();
+      TrackSeed *silseed = track->get_silicon_seed();
 
       for (auto cluster_iter = silseed->begin_cluster_keys(); 
 	   cluster_iter != silseed->end_cluster_keys(); ++cluster_iter)
@@ -599,10 +593,9 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         int MVTX_hits = 0;
         int INTT_hits = 0;
         int TPC_hits = 0;
-	const unsigned int tpcid = track->get_tpc_id();
-	const unsigned int silid = track->get_silicon_id();
-	TrackSeed* tpcSeed = m_tpcSeeds->get(tpcid);
-	TrackSeed* silSeed = m_silSeeds->get(silid);
+
+	TrackSeed* tpcSeed = track->get_tpc_seed();
+	TrackSeed* silSeed = track->get_silicon_seed();
 	
         for (auto cluster_iter = silSeed->begin_cluster_keys(); 
 	     cluster_iter != silSeed->end_cluster_keys(); ++cluster_iter)

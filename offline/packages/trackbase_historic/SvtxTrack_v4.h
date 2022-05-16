@@ -3,6 +3,7 @@
 
 #include "SvtxTrack.h"
 #include "SvtxTrackState.h"
+#include "TrackSeed.h"
 
 #include <trackbase/TrkrDefs.h>
 
@@ -48,14 +49,14 @@ class SvtxTrack_v4: public SvtxTrack
   // basic track information ---------------------------------------------------
   //
 
-  unsigned int get_id() const override { return _tpc_id; }
-  void set_id(unsigned int id) override { _tpc_id = id; }
+  unsigned int get_id() const override { return _track_id; }
+  void set_id(unsigned int id) override { _track_id = id; }
 
-  unsigned int get_tpc_id() const override { return _tpc_id; }
-  void set_tpc_id(unsigned int id) override { _tpc_id = id; }
+  TrackSeed* get_tpc_seed() const override { return _tpc_seed; }
+  void set_tpc_seed(TrackSeed* seed) override { _tpc_seed = seed; }
 
-  unsigned int get_silicon_id() const override { return _silicon_id; }
-  void set_silicon_id(unsigned int id) override { _silicon_id = id; }
+  TrackSeed* get_silicon_seed() const override { return _silicon_seed; }
+  void set_silicon_seed(TrackSeed* seed) override {_silicon_seed = seed; }
 
   short int get_crossing() const override { return _track_crossing; }
   void set_crossing(short int cross) override { _track_crossing = cross; }
@@ -131,9 +132,10 @@ class SvtxTrack_v4: public SvtxTrack
  private:
 
   // track information
-  unsigned int _tpc_id = UINT_MAX;
+  TrackSeed* _tpc_seed = nullptr;
+  TrackSeed* _silicon_seed = nullptr;
+  unsigned int _track_id = UINT_MAX;
   unsigned int _vertex_id = UINT_MAX;
-  unsigned int _silicon_id = UINT_MAX;
   bool _is_positive_charge = false;
   float _chisq = NAN;
   unsigned int _ndf = 0;
