@@ -223,7 +223,11 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 	  auto pos = globalPositions.at(*iter);
 	  trackClusPositions.insert(std::make_pair(*iter,pos));
 	}
-    
+
+      /// Can't circle fit a seed with less than 3 clusters, skip it
+      if(dumvec.size() < 3)
+	{ continue; }
+
       keylist.push_back(dumvec);
     
       /// This will by definition return a single pair with each vector 
