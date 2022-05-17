@@ -71,11 +71,14 @@ void SvtxTrack_v4::identify(std::ostream& os) const
   os << "(x,y,z) = (" << get_x() << "," << get_y() << "," << get_z() << ")" << std::endl;
 
   os << "Silicon clusters " << std::endl;
-  for(auto iter = _silicon_seed->begin_cluster_keys(); 
-      iter != _silicon_seed->end_cluster_keys();
-      ++iter)
+  if(_silicon_seed)
     {
-      std::cout << *iter << ", ";
+      for(auto iter = _silicon_seed->begin_cluster_keys(); 
+	  iter != _silicon_seed->end_cluster_keys();
+	  ++iter)
+	{
+	  std::cout << *iter << ", ";
+	}
     }
   os << std::endl << "Tpc + TPOT clusters " << std::endl;
     for(auto iter = _tpc_seed->begin_cluster_keys(); 

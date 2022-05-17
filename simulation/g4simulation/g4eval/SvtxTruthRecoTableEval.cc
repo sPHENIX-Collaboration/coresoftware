@@ -69,9 +69,13 @@ int SvtxTruthRecoTableEval::process_event(PHCompositeNode *topNode)
   {
     m_svtxevalstack->next_event(topNode);
   }
-
+  
+  if(Verbosity() > 1)
+    {std::cout << "Fill truth map "<< std::endl; }
   fillTruthMap(topNode);
 
+  if(Verbosity() > 1)
+    { std::cout << "Fill reco map "<< std::endl; }
   fillRecoMap(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -103,8 +107,9 @@ void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
   assert(truthinfo);
 
   SvtxTrackEval *trackeval = m_svtxevalstack->get_track_eval();
+  trackeval->set_verbosity(Verbosity());
   assert(trackeval);
-
+  
   PHG4TruthInfoContainer::ConstRange range = truthinfo->GetParticleRange();
   if (m_scanForPrimaries)
   {
@@ -123,7 +128,6 @@ void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
     if (momentum < m_minMomentumTruthMap) continue;
 
     int gtrackID = g4particle->get_track_id();
-
     std::set<SvtxTrack *> alltracks = trackeval->all_tracks_from(g4particle);
 
     // not to record zero associations
@@ -149,7 +153,9 @@ void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
         iterator->second.insert(track->get_id());
       }
     }
-
+    
+    if(Verbosity() > 1)
+      { std::cout << " Inserting gtrack id " << gtrackID << " with map size " << recomap.size() << std::endl; }
     m_truthMap->insert(gtrackID, recomap);
   }
   
@@ -185,7 +191,8 @@ void SvtxTruthRecoTableEval::fillRecoMap(PHCompositeNode *topNode)
         iterator->second.insert(g4particle->get_track_id());
       }
     }
-
+    if(Verbosity() > 1)
+      { std::cout << " Inserting track id " << key << " with truth map size " << truthmap.size() << std::endl; }
     m_recoMap->insert(key, truthmap);
   }
 
