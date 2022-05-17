@@ -84,7 +84,9 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
       if(m_trackSeedName.find("SvtxTrackSeed") != std::string::npos)
 	{
 	  /// Catches entries in the vector removed by ghost finder
-	  if(!m_tpcContainer->get(trackSeed->get_tpc_seed_index()))
+	  unsigned int tpcindex = trackSeed->get_tpc_seed_index();
+	  TrackSeed* seed = m_tpcContainer->get(tpcindex);
+	  if(!seed)
 	    { continue; }
 	}
 
@@ -106,7 +108,9 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 	      std::cout << "tpc seed id " << trackSeed->get_tpc_seed_index() <<std::endl;
 	      std::cout << "si seed id " << trackSeed->get_silicon_seed_index() << std::endl;
 	    }
-	  TrackSeed *tpcseed = m_tpcContainer->get(trackSeed->get_tpc_seed_index());
+
+	  unsigned int seedindex = trackSeed->get_tpc_seed_index();
+	  TrackSeed *tpcseed = m_tpcContainer->get(seedindex);
 	  if(trackSeed->get_silicon_seed_index() == std::numeric_limits<unsigned int>::max())
 	    {      
 	      /// Didn't find a match, so just use the tpc seed
