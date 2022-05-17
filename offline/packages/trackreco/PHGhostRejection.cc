@@ -54,7 +54,9 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float> &trackChi2)
        trid1 != m_trackMap->size(); 
        ++trid1)
     {
-      auto track1 = m_trackMap->get(trid1);
+      TrackSeed* track1 = m_trackMap->get(trid1);
+      if(!track1) 
+	{ continue; }
       float track1phi = track1->get_phi(m_positions); 
       float track1x = track1->get_x();
       float track1y = track1->get_y();
@@ -66,7 +68,9 @@ void PHGhostRejection::rejectGhostTracks(std::vector<float> &trackChi2)
 	{
 	  if(trid1  ==  trid2) continue;
 	  
-	  auto track2 = m_trackMap->get(trid2);
+	  TrackSeed* track2 = m_trackMap->get(trid2);
+	  if(!track2)
+	    { continue; }
 	  if(fabs( track1phi - track2->get_phi(m_positions)) < _phi_cut &&
 	     fabs( track1eta - track2->get_eta() ) < _eta_cut &&
 	     fabs( track1x - track2->get_x() ) < _x_cut &&
