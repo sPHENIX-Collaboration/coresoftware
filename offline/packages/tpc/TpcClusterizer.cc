@@ -70,6 +70,7 @@ namespace
     unsigned int sector = 0;
     float pedestal = 0;
     bool do_assoc = true;
+    bool do_wedge_emulation = true;
     unsigned short phibins = 0;
     unsigned short phioffset = 0;
     unsigned short zbins = 0;
@@ -82,6 +83,7 @@ namespace
     int cluster_version = 3;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster*> cluster_vector;
+    int verbosity = 0;
   };
   
   pthread_mutex_t mythreadlock;
@@ -275,7 +277,8 @@ namespace
 					    Acts::Vector3 world,
 					    ActsSurfaceMaps *surfMaps,
 					    ActsTrackingGeometry *tGeometry,
-					    TrkrDefs::subsurfkey& subsurfkey)
+					    TrkrDefs::subsurfkey& subsurfkey,
+					    int verbosity)
 	{
 
 	  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
@@ -323,21 +326,24 @@ namespace
 	    }    
 	  else
 	    {
-	      std::cout << PHWHERE 
-			<< "Error: TPC surface index not defined, skipping cluster!" 
-			<< std::endl;
-	      std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
-			<< " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
-	      std::cout << "     world_phi " << world_phi << " world_z " << world_z << std::endl;
-	      std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
-	      std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
-	      std::cout << "     surfStepPhi " << surfStepPhi << " surfStepZ " << surfStepZ << std::endl; 
-	      std::cout << " number of surfaces " << surf_vec.size() << " nsurf: "  << nsurf << std::endl;
+	      if(verbosity > 2)
+		{
+		  std::cout << PHWHERE 
+			    << "Error: TPC surface index not defined, skipping cluster!" 
+			    << std::endl;
+		  std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
+			    << " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
+		  std::cout << "     world_phi " << world_phi << " world_z " << world_z << std::endl;
+		  std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
+		  std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
+		  std::cout << "     surfStepPhi " << surfStepPhi << " surfStepZ " << surfStepZ << std::endl; 
+		  std::cout << " number of surfaces " << surf_vec.size() << " nsurf: "  << nsurf << std::endl;
+		}
 	      return nullptr;
 	    }
-	  	 
+
 	  return surf_vec[surf_index];
-	
+
 	}
   
     void calc_cluster_parameter(const std::vector<ihit> &ihit_list, thread_data& my_data, int ntouch, int nedge )
@@ -423,7 +429,8 @@ namespace
 						    global,
 						    my_data.surfmaps,
 						    my_data.tGeometry,
-						    subsurfkey);
+						    subsurfkey,
+						    my_data.verbosity);
       
       if(!surface)
 	{
@@ -534,6 +541,7 @@ namespace
     const auto& phioffset = my_data->phioffset;
     const auto& zbins     = my_data->zbins ;
     const auto& zoffset   = my_data->zoffset ;
+    const auto& layer   = my_data->layer ;
 	
     TrkrHitSet *hitset = my_data->hitset;
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
@@ -542,7 +550,22 @@ namespace
     std::vector<std::vector<unsigned short>> adcval(phibins, std::vector<unsigned short>(zbins, 0));
     std::multimap<unsigned short, ihit> all_hit_map;
     std::vector<ihit> hit_vect;
-    
+
+    int zbinmax = 498;
+    int zbinmin = 0;
+    if(my_data->do_wedge_emulation){
+      if(layer>=7 && layer <22){
+	int etacut = 249 - ((50+(layer-7))/105.5)*249;
+	zbinmin = etacut;
+	zbinmax -= etacut;
+      }
+      if(layer>=22 && layer <=48){
+	int etacut = 249 - ((65+((40.5/26)*(layer-22)))/105.5)*249;
+	zbinmin = etacut;
+	zbinmax -= etacut;
+      }
+      // std::cout << " layer: " << layer << " zbin limit " << zbinmin << " | " << zbinmax <<std::endl;
+    }
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
 	 hitr != hitrangei.second;
 	 ++hitr){
@@ -555,6 +578,7 @@ namespace
       }
       unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
       unsigned short zbin = TpcDefs::getTBin(hitr->first) - zoffset;
+      unsigned short zbinorg = TpcDefs::getTBin(hitr->first);
       if(phibin>=phibins){
 	//std::cout << "WARNING phibin out of range: " << phibin << " | " << phibins << std::endl;
 	continue;
@@ -563,6 +587,8 @@ namespace
 	//std::cout << "WARNING z bin out of range: " << zbin << " | " << zbins << std::endl;
 	continue;
       }
+      if(zbinorg>zbinmax||zbinorg<zbinmin)
+	continue;
       float_t fadc = (hitr->second->getAdc()) - pedestal; // proper int rounding +0.5
       unsigned short adc = 0;
       if(fadc>0) adc =  (unsigned short) fadc;
@@ -819,6 +845,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.sector = sector;
     thread_pair.data.side = side;
     thread_pair.data.do_assoc = do_hit_assoc;
+    thread_pair.data.do_wedge_emulation = do_wedge_emulation;
     thread_pair.data.tGeometry = m_tGeometry;
     thread_pair.data.surfmaps = m_surfMaps;
     thread_pair.data.maxHalfSizeZ =  MaxClusterHalfSizeZ;
@@ -827,6 +854,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.par0_neg = par0_neg;
     thread_pair.data.par0_pos = par0_pos;
     thread_pair.data.cluster_version = cluster_version;
+    thread_pair.data.verbosity = Verbosity();
     
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
     unsigned short NPhiBinsSector = NPhiBins/12;

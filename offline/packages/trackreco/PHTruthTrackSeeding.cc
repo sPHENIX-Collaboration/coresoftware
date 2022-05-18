@@ -144,16 +144,17 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
      * so that the seed momentum and 
      * position aren't completely exact
      */
-    const auto random = gsl_ran_flat(m_rng.get(), 0.95, 1.05);
-    svtx_track->set_px(g4particle->get_px() * random);
-    svtx_track->set_py(g4particle->get_py() * random);
-    svtx_track->set_pz(g4particle->get_pz() * random);
+    const auto random1 = gsl_ran_flat(m_rng.get(), 0.95, 1.05);
+    svtx_track->set_px(g4particle->get_px() * random1);
+    svtx_track->set_py(g4particle->get_py() * random1);
+    svtx_track->set_pz(g4particle->get_pz() * random1);
 
     // assign the track position using the truth vertex for this track
+    const auto random2 = gsl_ran_flat(m_rng.get(), -0.002, 0.002);   // 20 microns
     auto g4vertex = m_g4truth_container->GetVtx(vertexID);
-    svtx_track->set_x(g4vertex->get_x() * random);
-    svtx_track->set_y(g4vertex->get_y() * random);
-    svtx_track->set_z(g4vertex->get_z() * random);
+    svtx_track->set_x(g4vertex->get_x() + random2);
+    svtx_track->set_y(g4vertex->get_y() + random2);
+    svtx_track->set_z(g4vertex->get_z() + random2);
     
     // associate all cluster keys to the track
     for( const auto& cluskey : ClusterKeyList){
@@ -161,25 +162,34 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
     }
 
     // set intt crossing
-    /* inspired from PHtruthSiliconAssociation */
-    const auto intt_crossings = getInttCrossings(svtx_track.get());
-    if(intt_crossings.empty()) 
-    {
-      if(Verbosity() > 1)  std::cout << "PHTruthTrackSeeding::Process - Silicon track " << svtx_track->get_id() << " has no INTT clusters" << std::endl;
-      continue ;
-    } else if( intt_crossings.size() > 1 ) {
-    
-      if(Verbosity() > 1) 
-      { std::cout << "PHTruthTrackSeeding::Process - INTT crossings not all the same for track " << svtx_track->get_id() << " crossing_keep - dropping this match " << std::endl; }
-      
-    } else {
-      
-      const auto& crossing = *intt_crossings.begin();
-      svtx_track->set_crossing(crossing);
-      if(Verbosity() > 1)
-        std::cout << "PHTruthTrackSeeding::Process - Combined track " << svtx_track->get_id()  << " bunch crossing " << crossing << std::endl;           
-    }
-    
+    if(_min_layer < 7)
+      {
+	// silicon tracklet
+	/* inspired from PHtruthSiliconAssociation */
+	const auto intt_crossings = getInttCrossings(svtx_track.get());
+	if(intt_crossings.empty()) 
+	  {
+	    if(Verbosity() > 1)  std::cout << "PHTruthTrackSeeding::Process - Silicon track " << svtx_track->get_id() << " has no INTT clusters" << std::endl;
+	    continue ;
+	  } else if( intt_crossings.size() > 1 ) {
+	  
+	  if(Verbosity() > 1) 
+	    { std::cout << "PHTruthTrackSeeding::Process - INTT crossings not all the same for track " << svtx_track->get_id() << " crossing_keep - dropping this match " << std::endl; }
+	  
+	} else {
+	  
+	  const auto& crossing = *intt_crossings.begin();
+	  svtx_track->set_crossing(crossing);
+	  if(Verbosity() > 1)
+	    std::cout << "PHTruthTrackSeeding::Process - Combined track " << svtx_track->get_id()  << " bunch crossing " << crossing << std::endl;           
+	}
+      }  // end if _min_layer
+    else
+      {
+	// no INTT layers, crossing is unknown
+	svtx_track->set_crossing(SHRT_MAX);	
+      }
+
     // track fit
     if(m_helicalTrackFit)
     {

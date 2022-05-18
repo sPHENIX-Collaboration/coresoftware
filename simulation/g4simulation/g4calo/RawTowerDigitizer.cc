@@ -63,6 +63,7 @@ RawTowerDigitizer::RawTowerDigitizer(const std::string &name)
   , _tower_params(name)
   , m_DoDecal(false)
   , m_DecalInverse(false)
+  , m_Decal(true)
   , m_DecalFileName("")
   , m_UseConditionsDB(false)
   , m_CalDBFile(0)
@@ -108,6 +109,42 @@ int RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  /*
+  // this is for getting the file from 
+  // the  conditions DB, it's reply is not used right now
+  if (m_UseConditionsDB)
+    {
+      recoConsts *rc = recoConsts::instance();
+      uint64_t timestamp = rc->get_IntFlag("RUNNUMBER");
+      std::string tag = "example_tag_1";
+      std::string cfg = "test";
+      xpload::Configurator config(cfg);
+      //std::vector<std::string> paths = xpload::fetch(tag, cfg, timestamp, config);
+      xpload::Result pathres = xpload::fetch(tag, cfg, timestamp, config);
+      if (pathres.paths.empty())
+	{
+      if (Verbosity())
+	{
+	  std::cout << "No paths in conditions DB found" << std::endl;
+	}
+	}
+      else
+	{
+	  if (Verbosity())
+	    {
+	      std::cout << "Found paths:" << std::endl;
+	      
+	      for (const std::string &path : pathres.paths)
+		{
+		  std::cout << path << std::endl;
+		}
+	    }
+	}
+    }
+*/
+
+
+
   if (m_DoDecal)
     {
       
@@ -123,7 +160,10 @@ int RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
 	  return -999;
 	}
       
-      m_CalDBFile->Open(m_DecalFileName.c_str());
+      if (!(m_DecalFileName == ""))
+	m_CalDBFile->Open(m_DecalFileName.c_str());
+      else
+	m_Decal = false;
       //warnings for bad file names handled inside Open
       
     }   
@@ -263,10 +303,10 @@ int RawTowerDigitizer::process_event(PHCompositeNode */*topNode*/)
     if (digi_tower)
     {
 
-      if (m_DoDecal)
+      if (m_DoDecal && m_Decal)
 	{
-	  
 	  float decal_fctr = m_CalDBFile->getCorr(eta,phi);
+	  
 	  if (m_DecalInverse)
 	    decal_fctr = 1.0/decal_fctr;
 	  float e_dec = digi_tower->get_energy();
@@ -308,10 +348,26 @@ RawTowerDigitizer::simple_photon_digitization(RawTower *sim_tower)
   }
   const double photon_count_mean = energy * m_PhotonElecYieldVisibleGeV;
   const int photon_count = gsl_ran_poisson(m_RandomGenerator, photon_count_mean);
-  const int signal_ADC = floor(photon_count / m_PhotonElecADC);
 
-  const double pedstal = m_PedstalCentralADC + ((m_PedstalWidthADC > 0) ? gsl_ran_gaussian(m_RandomGenerator, m_PedstalWidthADC) : 0);
-  const int sum_ADC = signal_ADC + (int) pedstal;
+  const int signal_ADC = floor(photon_count / m_PhotonElecADC);
+  const double pedestal = m_PedstalCentralADC + ((m_PedstalWidthADC > 0) ? gsl_ran_gaussian(m_RandomGenerator, m_PedstalWidthADC) : 0);
+
+  const int sum_ADC = signal_ADC + (int) pedestal;
+
+  double  sum_ADC_d = (double) sum_ADC; 
+
+  // temporary fix to remove digitization
+  // for decalibration tests
+  // to be replaced permanently for all cases 
+  // with sim of pulse extraction/fitting  
+  if (m_DoDecal)
+    {
+  
+      double signal_ADC_d = 1.*photon_count;
+      signal_ADC_d /= m_PhotonElecADC;
+    
+      sum_ADC_d  = signal_ADC_d + pedestal;
+    }
 
   if (sum_ADC > m_ZeroSuppressionADC)
   {
@@ -324,7 +380,7 @@ RawTowerDigitizer::simple_photon_digitization(RawTower *sim_tower)
     {
       digi_tower = new RawTowerv2();
     }
-    digi_tower->set_energy((double) sum_ADC);
+    digi_tower->set_energy(sum_ADC_d);
   }
 
   if (Verbosity() >= 2)
