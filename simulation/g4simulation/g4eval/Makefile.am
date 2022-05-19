@@ -61,6 +61,7 @@ pkginclude_HEADERS = \
   SvtxTruthRecoTableEval.h \
   SvtxVertexEval.h \
   TrackEvaluation.h \
+  TrackSeedTrackMapConverter.h \
   DSTEmulator.h \
   TrackEvaluationContainer.h \
   TrackEvaluationContainerv1.h  \
@@ -105,6 +106,7 @@ libg4eval_la_SOURCES = \
   SvtxVertexEval.cc \
   SvtxEvaluator.cc \
   TrackEvaluation.cc \
+  TrackSeedTrackMapConverter.cc \
   DSTEmulator.cc
 
 # Rule for generating table CINT dictionaries.

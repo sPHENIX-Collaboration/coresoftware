@@ -6,8 +6,8 @@
 
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
-#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/TrackSeed.h>    
+#include <trackbase_historic/TrackSeedContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -87,7 +87,7 @@ int PHTpcDeltaZCorrection::load_nodes( PHCompositeNode* topNode )
   assert( m_tGeometry );
 
   // get necessary nodes
-  m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_track_map = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   assert(m_track_map);
 
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
@@ -108,28 +108,30 @@ int PHTpcDeltaZCorrection::load_nodes( PHCompositeNode* topNode )
 void PHTpcDeltaZCorrection::process_tracks()
 {
   if( !( m_track_map && m_cluster_map ) ) return;
-  for( auto iter = m_track_map->begin(); iter != m_track_map->end(); ++iter )
-  { process_track( iter->first, iter->second ); }
+  for( unsigned int iter = 0; iter != m_track_map->size(); ++iter )
+    {
+      TrackSeed *seed = m_track_map->get(iter);
+      if(!seed)
+	{ continue; }
+      process_track( iter, seed ); 
+    }
 
   m_corrected_clusters.clear();
 }
 
 //_____________________________________________________________________
-void PHTpcDeltaZCorrection::process_track( unsigned int key, SvtxTrack* track )
+void PHTpcDeltaZCorrection::process_track( unsigned int key, TrackSeed* track )
 {
 
   // keep track of the global position of previous cluster on track
   const Acts::Vector3 origin = {track->get_x(), track->get_y(), track->get_z()};
 
-  // pt
-  const double pt = std::sqrt(square(track->get_px())+square(track->get_py()));
-
   // radius
-  const double radius = (pt/(0.3*m_bz_const))*1e2; // cm
+  const double radius = fabs(1./track->get_qOverR()); // cm
 
   // helix center
-  const double center_x = (track->get_positive_charge() ? origin.x()+radius*track->get_py():origin.x()-radius*track->get_py())/pt;
-  const double center_y = (track->get_positive_charge() ? origin.y()-radius*track->get_px():origin.y()+radius*track->get_px())/pt;
+  const double center_x = track->get_X0();
+  const double center_y = track->get_Y0();
 
   // origin to center 2D vector
   const Acts::Vector2 orig_vect = {origin.x()-center_x, origin.y()-center_y };
@@ -139,7 +141,7 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, SvtxTrack* track )
   {
     std::cout << "PHTpcDeltaZCorrection -"
       << " track: " << key
-      << " positive: " << track->get_positive_charge()
+      << " positive: " << track->get_charge()
       << " center: " << center_x << ", " << center_y
       << " radius: " << radius
       << std::endl;

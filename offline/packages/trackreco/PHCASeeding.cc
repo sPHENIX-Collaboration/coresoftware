@@ -23,8 +23,8 @@
 // trackbase_historic includes
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack_v3.h>
+#include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeed_v1.h>
 
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
@@ -359,8 +359,8 @@ int PHCASeeding::FindSeedsWithMerger(const PositionMap& globalPositions)
   std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> links = CreateLinks(fromPointKey(allClusters), globalPositions);
   std::vector<std::vector<keylink>> biLinks = FindBiLinks(links.first,links.second);
   std::vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks,globalPositions);
-  std::vector<keylist> cleanSeedKeyLists = RemoveBadClusters(trackSeedKeyLists, globalPositions);
-  std::vector<SvtxTrack_v3> seeds = fitter->ALICEKalmanFilter(cleanSeedKeyLists,true, globalPositions);
+  std::vector<TrackSeed_v1> seeds = RemoveBadClusters(trackSeedKeyLists, globalPositions);
+   
   publishSeeds(seeds);
   return seeds.size();
 }
@@ -715,15 +715,17 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
   return trackSeedKeyLists;
 }
 
-std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
+std::vector<TrackSeed_v1> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
 {
   if(Verbosity()>0) std::cout << "removing bad clusters" << std::endl;
-  std::vector<keylist> clean_chains;
+  std::vector<TrackSeed_v1> clean_chains;
 
   for(const auto& chain : chains)
   {
     if(chain.size()<3) continue;
     keylist clean_chain;
+
+    TrackSeed_v1 trackseed;
 
     std::vector<std::pair<double,double>> xy_pts;
 //     std::vector<std::pair<double,double>> rz_pts;
@@ -761,20 +763,27 @@ std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& 
     for(size_t i=0;i<chain.size();i++)
     {
       if(xy_resid[i]>_xy_outlier_threshold) continue;
-      clean_chain.push_back(chain[i]);
+      trackseed.insert_cluster_key(chain.at(i));
     }
 
-    clean_chains.push_back(clean_chain);
-    if(Verbosity()>0) std::cout << "pushed clean chain with " << clean_chain.size() << " clusters" << std::endl;
+    clean_chains.push_back(trackseed);
+    if(Verbosity()>0) std::cout << "pushed clean chain with " << trackseed.size_cluster_keys() << " clusters" << std::endl;
   }
+
   return clean_chains;
 }
 
 
-void PHCASeeding::publishSeeds(const std::vector<SvtxTrack_v3>& seeds)
+void PHCASeeding::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
 {
+ 
   for( const auto&  seed:seeds )
-  { _track_map->insert(&seed);}
+  {
+    auto pseed = std::make_unique<TrackSeed_v1>(seed);
+    if(Verbosity() > 4)
+      { pseed->identify(); }
+    _track_map->insert(pseed.get());
+  }
 }
 
 int PHCASeeding::Setup(PHCompositeNode *topNode)

@@ -23,6 +23,8 @@ pkginclude_HEADERS = \
   ActsTransformations.h \
   TrackSeed.h \
   TrackSeed_v1.h \
+  SvtxTrackSeed_v1.h \
+  TrackSeed_FastSim_v1.h \
   TrackSeedContainer.h \
   TrackSeedContainer_v1.h \
   PHG4ParticleSvtxMap.h \
@@ -39,6 +41,7 @@ pkginclude_HEADERS = \
   SvtxTrack_FastSim_v3.h \
   SvtxTrackMap.h \
   SvtxTrackMap_v1.h \
+  SvtxTrackMap_v2.h \
   SvtxTrackState.h \
   SvtxTrackState_v1.h \
   SvtxVertex.h \
@@ -49,6 +52,8 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   TrackSeed_Dict.cc \
   TrackSeed_v1_Dict.cc \
+  SvtxTrackSeed_v1_Dict.cc \
+  TrackSeed_FastSim_v1_Dict.cc \
   TrackSeedContainer_Dict.cc \
   TrackSeedContainer_v1_Dict.cc \
   PHG4ParticleSvtxMap_Dict.cc \
@@ -67,6 +72,7 @@ ROOTDICTS = \
   SvtxTrack_FastSim_v3_Dict.cc \
   SvtxTrackMap_Dict.cc \
   SvtxTrackMap_v1_Dict.cc \
+  SvtxTrackMap_v2_Dict.cc \
   SvtxVertex_Dict.cc \
   SvtxVertex_v1_Dict.cc \
   SvtxVertexMap_Dict.cc \
@@ -76,6 +82,8 @@ pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   TrackSeed_Dict_rdict.pcm \
   TrackSeed_v1_Dict_rdict.pcm \
+  SvtxTrackSeed_v1_Dict_rdict.pcm \
+  TrackSeed_FastSim_v1_Dict_rdict.pcm \
   TrackSeedContainer_Dict_rdict.pcm \
   TrackSeedContainer_v1_Dict_rdict.pcm \
   PHG4ParticleSvtxMap_Dict_rdict.pcm \
@@ -94,6 +102,7 @@ nobase_dist_pcm_DATA = \
   SvtxTrack_FastSim_v3_Dict_rdict.pcm \
   SvtxTrackMap_Dict_rdict.pcm \
   SvtxTrackMap_v1_Dict_rdict.pcm \
+  SvtxTrackMap_v2_Dict_rdict.pcm \
   SvtxVertex_Dict_rdict.pcm \
   SvtxVertex_v1_Dict_rdict.pcm \
   SvtxVertexMap_Dict_rdict.pcm \
@@ -105,6 +114,8 @@ libtrackbase_historic_io_la_SOURCES = \
   ActsTransformations.cc \
   TrackSeed.cc \
   TrackSeed_v1.cc \
+  SvtxTrackSeed_v1.cc \
+  TrackSeed_FastSim_v1.cc \
   TrackSeedContainer.cc \
   TrackSeedContainer_v1.cc \
   PHG4ParticleSvtxMap.cc \
@@ -122,6 +133,7 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxTrack_FastSim_v3.cc \
   SvtxTrackMap.cc \
   SvtxTrackMap_v1.cc \
+  SvtxTrackMap_v2.cc \
   SvtxVertex.cc \
   SvtxVertex_v1.cc \
   SvtxVertexMap.cc \

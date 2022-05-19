@@ -32,14 +32,21 @@ class TrackSeedContainer : public PHObject
   virtual const TrackSeed* get(const std::size_t) const { return nullptr; }
   virtual TrackSeed* get(const std::size_t) { return nullptr; }
   virtual TrackSeed* insert(const TrackSeed*) { return nullptr; }
-  virtual Iter erase(const std::size_t);
+  virtual void erase(const std::size_t) {}
+
+  /// Interface to return the index corresponding to the 
+  /// track id of the container
+  virtual std::size_t index(ConstIter) const { return 0; }
+  virtual std::size_t index(Iter) const { return 0; }
 
   virtual ConstIter begin() const;
   virtual ConstIter find(const std::size_t key) const;
+  virtual std::size_t find(const TrackSeed*) const { return 0; }
   virtual ConstIter end() const;
   
   virtual Iter begin();
   virtual Iter find(const std::size_t key);
+  virtual std::size_t find(const TrackSeed*) { return 0; }
   virtual Iter end();
 
  protected:

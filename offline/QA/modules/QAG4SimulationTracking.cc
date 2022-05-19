@@ -352,7 +352,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
          ++iter)
     {
       SvtxTrack *track = iter->second;
-      assert(track);
+      if(!track) { continue; }
 
       const double px = track->get_px();
       const double py = track->get_py();

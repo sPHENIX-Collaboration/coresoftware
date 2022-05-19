@@ -15,10 +15,10 @@
 
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
-class SvtxTrackMap;
+class TrackSeedContainer;
 class PHCompositeNode;
 class PHG4CylinderGeomContainer;
-class SvtxTrack;
+class TrackSeed;
 class TrkrCluster;
 class TF1;
 class TH1;
@@ -60,7 +60,7 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   TrkrClusterContainer *_cluster_map{nullptr};
   TrkrClusterContainer *_corrected_cluster_map{nullptr};
 
-  SvtxTrackMap *_track_map{nullptr};
+  TrackSeedContainer *_track_map{nullptr};
 
   //! default rphi search window for each layer
   std::array<double,_n_mm_layers> _rphi_search_win = {0.25, 13.0}; 
@@ -91,7 +91,7 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   PHG4CylinderGeomContainer* _geomContainerMicromegas = nullptr;
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
-  std::string _track_map_name = "SvtxTrackMap";
+  std::string _track_map_name = "TpcTrackSeedContainer";
 
   ActsTrackingGeometry *_tGeometry = nullptr;
   ActsSurfaceMaps *_surfmaps = nullptr;

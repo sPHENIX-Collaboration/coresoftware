@@ -11,8 +11,8 @@
 #include <map>
 
 class PHCompositeNode;
-class SvtxTrackMap;
-class SvtxTrack;
+class TrackSeedContainer;
+class TrackSeed;
 class TrkrClusterContainer;
 class TF1;
 class TpcSeedTrackMap;
@@ -26,7 +26,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco
 
   ~PHSiliconTpcTrackMatching() override;
 
-  void set_track_map_name_silicon(const std::string &map_name) { _track_map_name_silicon = map_name; }
   void set_phi_search_window(const double win){_phi_search_win = win;}
   void set_eta_search_window(const double win){_eta_search_win = win;}
   void set_x_search_window(const double win){_x_search_win = win;}
@@ -79,7 +78,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
 			       std::map<unsigned int, short int> &tpc_crossing_map );
     void addTrackBunchCrossing(std::multimap<unsigned int, unsigned int> &tpc_matches);	  
    void addTrackBunchCrossing( std::map<unsigned int, short int> &tpc_crossing_map);	  
-   std::vector<short int> getInttCrossings(SvtxTrack *si_track);
+   std::vector<short int> getInttCrossings(TrackSeed *si_track);
    void checkCrossingMatches( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,  std::map<unsigned int, short int> &tpc_crossing_map );
  
   //  void addTrackBunchCrossing(
@@ -98,8 +97,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco
    //  void correctTpcClusterZ( std::map<unsigned int, double> &vertex_crossings_map,
    //			     std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map );
 
-  std::string _track_map_name_silicon;
-
   // default values, can be replaced from the macro
   double _phi_search_win = 0.01;
   double _eta_search_win = 0.004;
@@ -107,10 +104,11 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   double _y_search_win = 0.3;
   double _z_search_win = 0.4;
   
-  SvtxTrackMap *_track_map{nullptr};
-  SvtxTrackMap *_track_map_silicon{nullptr};
-  SvtxTrack *_tracklet_tpc{nullptr};
-  SvtxTrack *_tracklet_si{nullptr};
+  TrackSeedContainer *_svtx_seed_map{nullptr};
+  TrackSeedContainer *_track_map{nullptr};
+  TrackSeedContainer *_track_map_silicon{nullptr};
+  TrackSeed *_tracklet_tpc{nullptr};
+  TrackSeed *_tracklet_si{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};
   //TrkrClusterContainer *_corrected_cluster_map{nullptr};
   ActsSurfaceMaps *_surfmaps{nullptr};
@@ -133,9 +131,9 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   int _fieldDir = -1;
 
   int _n_iteration = 0;
-  std::string _track_map_name = "SvtxTrackMap";
+  std::string _track_map_name = "TpcTrackSeedContainer";
   std::string _tpcseed_track_map_name = "TpcSeedTrackMap";
-  std::string _silicon_track_map_name = "SvtxSiliconTrackMap";
+  std::string _silicon_track_map_name = "SiliconTrackSeedContainer";
 };
 
 #endif // PHTRUTHSILICONASSOCIATION_H

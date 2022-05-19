@@ -1,5 +1,5 @@
-#ifndef TRACKBASEHISTORIC_TRACKSEEDV1_H
-#define TRACKBASEHISTORIC_TRACKSEEDV1_H
+#ifndef TRACKBASEHISTORIC_TRACKSEED_V1_H
+#define TRACKBASEHISTORIC_TRACKSEED_V1_H
 
 #include "TrackSeed.h"
 
@@ -22,17 +22,26 @@ class TrackSeed_v1 : public TrackSeed
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override { *this = TrackSeed_v1(); }
+  int isValid() const override { return 1; }
   void CopyFrom( const TrackSeed&) override;
   void CopyFrom( TrackSeed* seed) override { CopyFrom( *seed ); }
+  PHObject* CloneMe() const override { return new TrackSeed_v1(*this); }
 
   int get_charge() const override;
-  float get_px() const override;
-  float get_py() const override;
+  float get_px(TrkrClusterContainer *clusters,
+	       ActsSurfaceMaps *surfMaps, 
+	       ActsTrackingGeometry *tGeometry) const override;
+  float get_py(TrkrClusterContainer *clusters,
+	       ActsSurfaceMaps *surfMaps, 
+	       ActsTrackingGeometry *tGeometry) const override;
   float get_pz() const override;
   float get_x() const override;
   float get_y() const override;
   float get_z() const override;
-  float get_phi() const override;
+  float get_phi(TrkrClusterContainer *clusters,
+		ActsSurfaceMaps *surfMaps, 
+		ActsTrackingGeometry *tGeometry) const override;
+  float get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;
   float get_eta() const override;
   float get_theta() const override;
   float get_pt() const override;
@@ -68,12 +77,24 @@ class TrackSeed_v1 : public TrackSeed
   /// Updates R, X0, Y0
   void circleFitByTaubin(TrkrClusterContainer *clusters,
 			 ActsSurfaceMaps *surfMaps, 
-			 ActsTrackingGeometry *tGeometry) override;
+			 ActsTrackingGeometry *tGeometry,
+			 uint8_t startLayer = 0,
+			 uint8_t endLayer = 58) override;
   /// Updates r-z slope and intercept B
   void lineFit(TrkrClusterContainer *clusters,
 	       ActsSurfaceMaps *surfMaps, 
-	       ActsTrackingGeometry *tGeometry) override;
+	       ActsTrackingGeometry *tGeometry,
+	       uint8_t startLayer = 0,
+	       uint8_t endLayer = 58) override;
   
+  void circleFitByTaubin(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
+			 uint8_t startLayer = 0,
+			 uint8_t endLayer = 58) override;
+
+  void lineFit(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
+	       uint8_t startLayer = 0,
+	       uint8_t endLayer = 58) override;
+
  private:
   /// Returns transverse PCA to (0,0)
   void findRoot(float& x ,float& y) const;

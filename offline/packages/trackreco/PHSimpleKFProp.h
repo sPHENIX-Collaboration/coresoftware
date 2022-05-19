@@ -30,12 +30,12 @@ struct ActsTrackingGeometry;
 
 class PHCompositeNode;
 class PHField;
-class SvtxTrack;
-class SvtxTrack_v3;
 class TpcDistortionCorrectionContainer;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
 class SvtxTrackMap;
+class TrackSeedContainer;
+class TrackSeed;
 
 using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
 
@@ -48,14 +48,12 @@ class PHSimpleKFProp : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
-  //void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
-  //void SetUseTruthClusters(bool setit){_use_truth_clusters = setit;}
+
   void set_field_dir(const double rescale)
   {
-    std::cout << "rescale: " << rescale << std::endl;
     _fieldDir = 1;
     if(rescale > 0)
-      _fieldDir = -1;
+      { _fieldDir = -1; }
   }
   void set_max_window(double s){_max_dist = s;}
   void useConstBField(bool opt){_use_const_field = opt;}
@@ -63,7 +61,6 @@ class PHSimpleKFProp : public SubsysReco
   void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
   void use_truth_clusters(bool truth)
   { _use_truth_clusters = truth; }
-  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void SetIteration(int iter){_n_iteration = iter;}
 
  private:
@@ -96,7 +93,9 @@ class PHSimpleKFProp : public SubsysReco
   double _xy_outlier_threshold = .1;
 
   TrkrClusterContainer *_cluster_map = nullptr;
-  SvtxTrackMap *_track_map = nullptr;
+
+  TrackSeedContainer *_track_map = nullptr;
+
   PHField* _field_map = nullptr;
   
   /// acts geometry
@@ -117,9 +116,7 @@ class PHSimpleKFProp : public SubsysReco
 
   PositionMap PrepareKDTrees();
 
-  void MoveToFirstTPCCluster(const PositionMap&);
-
-  std::vector<TrkrDefs::cluskey> PropagateTrack(SvtxTrack* track, const PositionMap& globalPositions) const;
+  std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, Eigen::Matrix<double,6,6>& xyzCov, const PositionMap& globalPositions) const;
   std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(const std::vector<std::vector<TrkrDefs::cluskey>>& seeds, const PositionMap& globalPositions) const;
   template <typename T>
   struct KDPointCloud
@@ -156,8 +153,8 @@ class PHSimpleKFProp : public SubsysReco
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>,3>>> _kdtrees;
   std::unique_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z) const;
-  void publishSeeds(const std::vector<SvtxTrack_v3>&);
-  void publishSeeds(const std::vector<SvtxTrack>&);
+  void publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap &positions);
+  void publishSeeds(const std::vector<TrackSeed>&);
 //   void MoveToVertex();
 
   bool _use_const_field = false;
@@ -165,9 +162,7 @@ class PHSimpleKFProp : public SubsysReco
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
-  std::string _track_map_name = "SvtxTrackMap";
-  //  std::shared_ptr<Acts::MagneticFieldProvider> magField;
-  //  ActsTrackingGeometry *m_tGeometry = nullptr;
+
 };
 
 #endif

@@ -556,7 +556,7 @@ void PHSimpleVertexFinder::removeOutlierTrackPairs()
       pca_median_x = getMedian(vx);
       pca_median_y = getMedian(vy);
       pca_median_z = getMedian(vz);
-      if(Verbosity() > 1) std::cout << "Median values: x " << pca_median_x << " y " << pca_median_y << std::endl;
+      if(Verbosity() > 1) std::cout << "Median values: x " << pca_median_x << " y " << pca_median_y << " z : " << pca_median_z << std::endl;
       
       // Make the average vertex position with outlier rejection wrt the median
       for (auto cit=ret.first; cit!=ret.second; ++cit)

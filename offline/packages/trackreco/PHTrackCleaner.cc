@@ -171,7 +171,7 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
       _track_map->erase(*it);
     }
 
-  //if(Verbosity() > 0)
+  if(Verbosity() > 0)
     std::cout << "Track map size after choosing best silicon match: " << _track_map->size() << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;

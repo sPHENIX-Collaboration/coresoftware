@@ -14,11 +14,12 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 
+#include <trackbase_historic/TrackSeed.h>     
+#include <trackbase_historic/TrackSeedContainer.h>
+
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDefs.h>
 
-#include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
-#include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -335,29 +336,32 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     std::cout << PHWHERE << " Event " << _event << " TPC track map size " << _track_map->size() << std::endl;
   
   // We remember the original size of the TPC track map here
-  const unsigned int original_track_map_lastkey = _track_map->empty() ? 0:std::prev(_track_map->end())->first;
+  const unsigned int original_track_map_lastkey = _track_map->empty() ? 0 : _track_map->size() - 1;
 
   // loop over the original TPC tracks
-  for (auto phtrk_iter = _track_map->begin(); phtrk_iter != _track_map->end(); ++phtrk_iter)
+  for (unsigned int tpcID = 0; 
+       tpcID != _track_map->size(); ++tpcID)
   {
-    
     // we may add tracks to the map, so we stop at the last original track
-    if(phtrk_iter->first > original_track_map_lastkey)  break;
+    if(tpcID > original_track_map_lastkey)  break;
 
-    auto tracklet_tpc = phtrk_iter->second;
+    auto tracklet_tpc = _track_map->get(tpcID);
+    if(!tracklet_tpc) { continue; }
+
     short int crossing = tracklet_tpc->get_crossing();
 
     if (crossing == SHRT_MAX) continue;   // not matched to silicon, skip it
+
 
     if (Verbosity() >= 1)
     {
       std::cout << std::endl
         << __LINE__
-        << ": Processing seed itrack: " << phtrk_iter->first
+        << ": Processing seed itrack: " << tpcID
         << ": crossing: " << crossing
         << ": nhits: " << tracklet_tpc-> size_cluster_keys()
         << ": Total tracks: " << _track_map->size()
-        << ": phi: " << tracklet_tpc->get_phi()
+        << ": phi: " << tracklet_tpc->get_phi(_cluster_map,_surfmaps,_tGeometry)
         << std::endl;
     }
 
@@ -637,10 +641,10 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  _track_map = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
   if (!_track_map)
   {
-    std::cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap" << std::endl;
+    std::cerr << PHWHERE << " ERROR: Can't find "<< _track_map_name.c_str() << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -666,7 +670,7 @@ void PHMicromegasTpcTrackMatching::copyMicromegasClustersToCorrectedMap( )
   // loop over final track map, copy micromegas clusters to corrected cluster map
   for( auto track_iter = _track_map->begin(); track_iter != _track_map->end(); ++track_iter )
   {    
-    SvtxTrack* track = track_iter->second;
+    TrackSeed* track = *track_iter;
     // loop over associated clusters to get keys for micromegas cluster
     for(auto iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
     {
