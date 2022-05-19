@@ -303,12 +303,10 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
 
   if (_do_cache)
   {
-    std::cout << "do cache"<<std::endl;
     std::map<PHG4Particle*, std::set<SvtxTrack*> >::iterator iter =
         _cache_all_tracks_from_particle.find(truthparticle);
     if (iter != _cache_all_tracks_from_particle.end())
     {
-      std::cout << "returning iter"<<std::endl;
       return iter->second;
     }
   }
@@ -321,11 +319,9 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
        ++iter)
   {
     SvtxTrack* track = iter->second;
-    std::cout << "is there a problem here"<<std::endl;
     std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
     for (const auto& cluster_key : cluster_keys)
     {
-      std::cout << "ckey is " << cluster_key << std::endl;
       // remove this check as cluster key = 0 is MVTX layer 0 cluster #0.
       //      if (_strict)
       //      {

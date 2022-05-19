@@ -346,23 +346,25 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
 
 	TrackSeed* siliconSeed = track->get_tpc_seed();
 	TrackSeed* tpcSeed = track->get_silicon_seed();
-
-        for (auto cluster_iter = siliconSeed->begin_cluster_keys(); 
-	     cluster_iter != siliconSeed->end_cluster_keys(); ++cluster_iter)
-        {
-          const auto &cluster_key = *cluster_iter;
-          const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
-
-          if (trackerID == TrkrDefs::mvtxId)
-            ++MVTX_hits;
-          else if (trackerID == TrkrDefs::inttId)
-            ++INTT_hits;
-          else
-          {
-            if (Verbosity())
-              std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
-          }
-        }
+	if(siliconSeed)
+	  {
+	    for (auto cluster_iter = siliconSeed->begin_cluster_keys(); 
+		 cluster_iter != siliconSeed->end_cluster_keys(); ++cluster_iter)
+	      {
+		const auto &cluster_key = *cluster_iter;
+		const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+		
+		if (trackerID == TrkrDefs::mvtxId)
+		  ++MVTX_hits;
+		else if (trackerID == TrkrDefs::inttId)
+		  ++INTT_hits;
+		else
+		  {
+		    if (Verbosity())
+		      std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
+		  }
+	      }
+	  }
 	for (auto cluster_iter = tpcSeed->begin_cluster_keys(); 
 	     cluster_iter != tpcSeed->end_cluster_keys(); ++cluster_iter)
         {

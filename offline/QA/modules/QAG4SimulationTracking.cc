@@ -377,20 +377,21 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       
       TrackSeed *tpcseed = track->get_tpc_seed();
       TrackSeed *silseed = track->get_silicon_seed();
-
-      for (auto cluster_iter = silseed->begin_cluster_keys(); 
-	   cluster_iter != silseed->end_cluster_keys(); ++cluster_iter)
-      {
-        const auto &cluster_key = *cluster_iter;
-        const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
-
-        if (trackerID == TrkrDefs::mvtxId)
-          ++MVTX_hits;
-        else if (trackerID == TrkrDefs::inttId)
-          ++INTT_hits;
-      }
-
-        for (auto cluster_iter = tpcseed->begin_cluster_keys(); 
+      if(silseed)
+	{
+	  for (auto cluster_iter = silseed->begin_cluster_keys(); 
+	       cluster_iter != silseed->end_cluster_keys(); ++cluster_iter)
+	    {
+	      const auto &cluster_key = *cluster_iter;
+	      const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+	      
+	      if (trackerID == TrkrDefs::mvtxId)
+		++MVTX_hits;
+	      else if (trackerID == TrkrDefs::inttId)
+		++INTT_hits;
+	    }
+	}
+      for (auto cluster_iter = tpcseed->begin_cluster_keys(); 
 	   cluster_iter != tpcseed->end_cluster_keys(); ++cluster_iter)
       {
         const auto &cluster_key = *cluster_iter;
@@ -597,19 +598,22 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 	TrackSeed* tpcSeed = track->get_tpc_seed();
 	TrackSeed* silSeed = track->get_silicon_seed();
 	
-        for (auto cluster_iter = silSeed->begin_cluster_keys(); 
-	     cluster_iter != silSeed->end_cluster_keys(); ++cluster_iter)
-        {
-          const auto &cluster_key = *cluster_iter;
-          const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
-	  const auto layer = TrkrDefs::getLayer(cluster_key);
+	if(silSeed)
+	  {
+	    for (auto cluster_iter = silSeed->begin_cluster_keys(); 
+		 cluster_iter != silSeed->end_cluster_keys(); ++cluster_iter)
+	      {
+		const auto &cluster_key = *cluster_iter;
+		const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+		const auto layer = TrkrDefs::getLayer(cluster_key);
 		
-	  h_nClus_layer->Fill(layer);
-          if (trackerID == TrkrDefs::mvtxId)
-            ++MVTX_hits;
-          else if (trackerID == TrkrDefs::inttId)
-            ++INTT_hits;
-	}
+		h_nClus_layer->Fill(layer);
+		if (trackerID == TrkrDefs::mvtxId)
+		  ++MVTX_hits;
+		else if (trackerID == TrkrDefs::inttId)
+		  ++INTT_hits;
+	      }
+	  }
 	for (auto cluster_iter = tpcSeed->begin_cluster_keys(); 
 	     cluster_iter != tpcSeed->end_cluster_keys(); ++cluster_iter)
         {
