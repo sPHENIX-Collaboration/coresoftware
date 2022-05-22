@@ -34,8 +34,16 @@ class CentralityInfo : public PHObject
     //! sEPD North+South energy sum
     epd_NS = 5,
 
-    //! Impact parameter (b) in HIJING event
-    bimp = 6
+     //! Impact parameter (b) in HIJING event
+    bimp = 6,
+
+    //North sEPD Ep info
+    epd_N_EP = 7,
+    epd_N_trunc_EP = 8,
+    
+    //South sEPD Ep info
+    epd_S_EP = 9,
+    epd_S_trunc_EP = 10
 
   };
 
