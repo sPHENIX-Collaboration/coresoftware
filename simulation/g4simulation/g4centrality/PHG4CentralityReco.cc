@@ -24,10 +24,16 @@
 #include <stdexcept>  // for runtime_error
 #include <utility>    // for pair
 
+#include "EpFinder.h"
+
 PHG4CentralityReco::PHG4CentralityReco(const std::string &name)
   : SubsysReco(name)
   , _centrality_calibration_params(name)
 {
+    EPD_EpFinderN = NULL; //north Epd
+    EPD_EpFinderS = NULL;
+    EPD_EpFinderN_Trunc = NULL; //north Epd with truncation applied
+    EPD_EpFinderS_Trunc = NULL;
 }
 
 int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
@@ -100,12 +106,66 @@ int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
   {
     std::cout << "PHG4CentralityReco::InitRun : no centrality calibration found!" << std::endl;
   }
+    
+    //binning (x,y); (eta, phi) : (16, 24)
+    EPD_EpFinderN = new EpFinder(1,"EPD_OUTPUT.root", "EPD_INPUT.root", 16, 24);
+    EPD_EpFinderS = new EpFinder(1, "EPDS_OUTPUT.root", "EPDS_INPUT.root", 16, 24);
+    EPD_EpFinderN_Trunc = new EpFinder(1, "EPD_Trunc_OUTPUT.root", "EPD_Trunc_INPUT.root", 16, 24);
+    EPD_EpFinderS_Trunc = new EpFinder(1, "EPDS_Trunc_OUTPUT.root", "EPDS_Trunc_INPUT.root", 16, 24);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+int PHG4CentralityReco::GetPhiBin(float tphi, float numPhiDivisions)
+{
+
+  float sphi = ((2.0*M_PI)/numPhiDivisions);
+
+  if(tphi>=(2.0*M_PI))
+  {
+    tphi -= (2.0*M_PI);
+  }
+  else if(tphi<0.0)
+  {
+    tphi += (2.0*M_PI);
+  }
+       
+  return (int)(tphi/sphi);
+
+}
+
+float PHG4CentralityReco::GetMeanPhi(int iphi, float numPhiDivisions)
+{
+
+  float sphi = ((2.0*M_PI)/numPhiDivisions);
+  float tphi = ((float)iphi + 0.5)*sphi;
+
+  if(tphi>=(2.0*M_PI))
+  {
+    tphi -= (2.0*M_PI);
+  }
+
+  else if(tphi<0.0)
+  {
+    tphi += (2.0*M_PI);
+  }
+       
+  return tphi;
+
+}
+ 
+int PHG4CentralityReco::GetEtaBin(float teta, float eta_low, float eta_high, float numEtaDivisions)
+{
+
+   float seta = fabs((eta_high-eta_low)/numEtaDivisions);
+   int ieta = ((teta-eta_low)/seta);
+   return fabs(ieta);
+}
+
+
 int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
 {
+  
   _bimp = 101;
   auto event_header = findNode::getClass<EventHeaderv1>(topNode, "EventHeader");
   if (event_header)
@@ -299,18 +359,403 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
 
   }  // close centrality calibration
 
-  FillNode(topNode);
+GetEventPlanes(topNode);
+FillNode(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
+void PHG4CentralityReco::GetEventPlanes(PHCompositeNode *topNode)
+{
+    
+    //Read the detector geometry and set up arrays for phi weighting
+          
+      static bool first = true;
+
+      if(first){
+
+
+       for(int i=0; i<24; i++)
+       {
+          Nepd_phi_list[i].clear();
+          Sepd_phi_list[i].clear();
+          TNepd_phi_list[i].clear();
+          TSepd_phi_list[i].clear();
+        }
+
+
+    //generate a list of all towers in the same phi range
+    //all eta bins are at the same phi
+
+    for(int i=0; i<24; i++)
+     {
+        for(int j=0; j<16; j++)
+        {
+          std::pair<int,int> newPair(j,i);
+          Nepd_phi_list[i].push_back(newPair);
+          Sepd_phi_list[i].push_back(newPair);
+          TNepd_phi_list[i].push_back(newPair);
+          TSepd_phi_list[i].push_back(newPair);
+        }
+     }
+
+        first = false;
+    }
+
+    int thisphibin = -1;
+    int thisetabin = -1;
+    int iarm = -1;
+    float EPDEnergy[2][16][24] = {{{0.0}}};
+    float EPDEnergyTrunc[2][16][24] = {{{0.0}}};
+    float thisMip = 0.;
+    
+    _epd_N_ep = 0.;
+    _epd_S_ep = 0.;
+    _epd_t_N_ep = 0.;
+    _epd_t_S_ep = 0.;
+    
+    
+    //array for Nmip cut off (per centrality, per ring)
+    float Nmipcutoff[10][16] =
+    {
+           { 8., 8., 8., 8., 8., 8., 8., 8., 8., 10., 10., 10., 10., 10., 10., 10., },
+           { 7., 7., 7., 7., 7., 7., 7., 7., 7., 9., 9., 9., 9., 10., 10.,10., },
+           { 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5., 5., 7., 7., 7., 7., 7., 7., 6., },
+           { 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4., 4., 5., 5., 5., 5., 5., 5., 8., },
+           { 3.,  3.,  3.,  3.,  3.,  3.,  3.,  3., 3., 4., 4., 4., 4., 4., 4., 4., },
+           { 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2., 2., 3., 3., 3., 3., 2., 2., 2., },
+           { 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2., 2., 2., 2., 2., 2., 2., 2., 2., },
+           { 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2., 2., 2., 2., 2., 2., 2., 2., 2., },
+           { 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2., 2., 2., 2., 2., 2., 2., 2., 2., },
+           { 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2., 2., 2., 2., 2., 2., 2., 2., 2., },
+    };
+
+  
+  //get centrality info
+  int _b = -1;
+  
+  if( (_epd_cent>=0) && (_epd_cent <10)) _b = 0;
+  if( (_epd_cent>=10) && (_epd_cent <20)) _b = 1;
+  if( (_epd_cent>=20) && (_epd_cent <30)) _b = 2;
+  if( (_epd_cent>=30) && (_epd_cent <40)) _b = 3;
+  if( (_epd_cent>=40) && (_epd_cent <50)) _b = 4;
+  if( (_epd_cent>=50) && (_epd_cent <60)) _b = 5;
+  if( (_epd_cent>=60) && (_epd_cent <70)) _b = 6;
+  if( (_epd_cent>=70) && (_epd_cent <80)) _b = 7;
+  if( (_epd_cent>=80) && (_epd_cent <90)) _b = 8;
+  if( (_epd_cent>=90) && (_epd_cent <100)) _b = 9;
+
+  if(_b < 0) _b = 9;
+    
+    auto _epd_hit_container = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_EPD");
+    if (!_epd_hit_container)
+      std::cout << "PHG4CentralityReco::InitRun : cannot find G4HIT_EPD" << std::endl;
+
+   PHG4HitContainer::ConstRange e_range = _epd_hit_container->getHits();
+   for(PHG4HitContainer::ConstIterator e_itr = e_range.first; e_itr != e_range.second; e_itr++)
+   {
+
+    PHG4Hit *this_epdhit = e_itr->second;
+    if(!this_epdhit){ continue;}
+
+    if(this_epdhit->get_light_yield()>0.0)
+    {
+
+       TVector3 hitPos(this_epdhit->get_avg_x(), this_epdhit->get_avg_y(), this_epdhit->get_avg_z());
+
+       if(this_epdhit->get_z(0) > 0) {iarm = 1; }
+       else{iarm = 0;}
+
+       if(TMath::Abs(hitPos.Eta()) < 2.01) continue;
+       if(TMath::Abs(hitPos.Eta()) > 4.96) continue;
+
+      //Tile segmentation in eta/phi
+
+       if(iarm==1)
+       {
+
+       if((hitPos.Eta() >= 2.01) && (hitPos.Eta() < 4.29))
+       {
+
+       thisphibin = GetPhiBin(hitPos.Phi(), 24.0);
+
+       if((hitPos.Eta() >= 2.01) && (hitPos.Eta() < 2.07))
+       {thisetabin = 0;}
+
+       if((hitPos.Eta() >= 2.07) && (hitPos.Eta() < 2.14))
+       {thisetabin = 1;}
+
+       if((hitPos.Eta() >= 2.14) && (hitPos.Eta() < 2.21))
+       {thisetabin = 2;}
+
+       if((hitPos.Eta() >= 2.21) && (hitPos.Eta() < 2.28))
+       {thisetabin = 3;}
+
+       if((hitPos.Eta() >= 2.28) && (hitPos.Eta() < 2.37))
+       {thisetabin = 4;}
+
+       if((hitPos.Eta() >= 2.37) && (hitPos.Eta() < 2.46))
+       {thisetabin = 5;}
+
+       if((hitPos.Eta() >= 2.46) && (hitPos.Eta() < 2.56))
+       {thisetabin = 6;}
+
+       if((hitPos.Eta() >= 2.56) && (hitPos.Eta() < 2.68))
+       {thisetabin = 7;}
+
+       if((hitPos.Eta() >= 2.68) && (hitPos.Eta() < 2.81))
+       {thisetabin = 8;}
+
+       if((hitPos.Eta() >= 2.81) && (hitPos.Eta() < 2.95))
+       {thisetabin = 9;}
+
+       if((hitPos.Eta() >= 2.95) && (hitPos.Eta() < 3.13))
+       {thisetabin = 10;}
+
+       if((hitPos.Eta() >= 3.13) && (hitPos.Eta() < 3.34))
+       {thisetabin = 11;}
+
+       if((hitPos.Eta() >= 3.34) && (hitPos.Eta() < 3.61))
+       {thisetabin = 12;}
+
+       if((hitPos.Eta() >= 3.61) && (hitPos.Eta() < 3.9))
+       {thisetabin = 13;}
+
+       if((hitPos.Eta() >= 3.9) && (hitPos.Eta() < 4.29))
+       {thisetabin = 14;}
+
+       }
+       //innermost ring
+       if ((hitPos.Eta() >= 4.29) && (hitPos.Eta() < 4.96))
+       {
+        thisetabin = 15;
+        thisphibin = GetPhiBin(hitPos.Phi(), 12.0);
+       }
+
+       }//north
+
+
+       if(iarm==0)
+       {
+
+       if((hitPos.Eta() <= -2.01) && (hitPos.Eta() > -4.29))
+       {
+
+       thisphibin = GetPhiBin(hitPos.Phi(), 24.0);
+
+       if((hitPos.Eta() <= -2.01) && (hitPos.Eta() > -2.07))
+       {thisetabin = 0;}
+
+       if((hitPos.Eta() <= -2.07) && (hitPos.Eta() > -2.14))
+       {thisetabin = 1;}
+
+       if((hitPos.Eta() <= -2.14) && (hitPos.Eta() > -2.21))
+       {thisetabin = 2;}
+
+       if((hitPos.Eta() <= - 2.21) && (hitPos.Eta() > -2.28))
+       {thisetabin = 3;}
+
+       if((hitPos.Eta() <= -2.28) && (hitPos.Eta() > -2.37))
+       {thisetabin = 4;}
+
+       if((hitPos.Eta() <= -2.37) && (hitPos.Eta() > -2.46))
+       {thisetabin = 5;}
+
+       if((hitPos.Eta() <= -2.46) && (hitPos.Eta() > -2.56))
+       {thisetabin = 6;}
+
+       if((hitPos.Eta() <= -2.56) && (hitPos.Eta() > -2.68))
+       {thisetabin = 7;}
+
+       if((hitPos.Eta() <= -2.68) && (hitPos.Eta() > -2.81))
+       {thisetabin = 8;}
+
+       if((hitPos.Eta() <= -2.81) && (hitPos.Eta() > -2.95))
+       {thisetabin = 9;}
+
+       if((hitPos.Eta() <= -2.95) && (hitPos.Eta() > -3.13))
+       {thisetabin = 10;}
+
+       if((hitPos.Eta() <= -3.13) && (hitPos.Eta() > -3.34))
+       {thisetabin = 11;}
+
+       if((hitPos.Eta() <= -3.34) && (hitPos.Eta() > -3.61))
+       {thisetabin = 12;}
+
+       if((hitPos.Eta() <= -3.61) && (hitPos.Eta() > -3.9))
+       {thisetabin = 13;}
+
+       if((hitPos.Eta() <= -3.9) && (hitPos.Eta() > -4.29))
+       {thisetabin = 14;}
+       }
+
+       //innermost ring
+       if ((hitPos.Eta() <= -4.29) && (hitPos.Eta() > -4.96))
+       {
+       thisphibin = GetPhiBin(hitPos.Phi(), 12.0);
+       thisetabin = 15;
+       }
+      }//south
+
+        //normalized by MPV
+       thisMip = this_epdhit->get_light_yield()/2.05924e-6;
+
+
+       if((thisphibin >= 0) && (thisetabin >= 0)) EPDEnergy[iarm][thisetabin][thisphibin] += this_epdhit->get_light_yield();
+       if((thisphibin >= 0) && (thisetabin >= 0)) EPDEnergyTrunc[iarm][thisetabin][thisphibin] += thisMip;
+
+    }//energy
+   }//end loop over hits
+    
+    
+    // -------------------------------------
+    // Run the EPD Event Plane Finder
+    // -------------------------------------
+
+
+    std::vector<EpHit> Nepdsimhits;
+    Nepdsimhits.clear();
+  
+    
+    //NORTH
+    /*******************************************************************/
+    
+         for(int i=0; i<16; i++){
+            for(int j=0; j<24; j++){
+    
+              if(EPDEnergy[1][i][j]>0.0){
+              float meanPhi = GetMeanPhi(j, 24.0);
+              if(i==15) meanPhi = GetMeanPhi(j, 12.0);
+    
+              EpHit newepdHit;
+              newepdHit.phi = meanPhi;
+              newepdHit.nMip = EPDEnergy[1][i][j];
+              newepdHit.iy = j;
+              newepdHit.ix = i;
+              newepdHit.samePhi = &Nepd_phi_list[newepdHit.iy];
+              Nepdsimhits.push_back(newepdHit);}
+        }
+          }
+
+        
+     EpInfo EPDN_EpResult = EPD_EpFinderN->Results(&Nepdsimhits,0);
+     _epd_N_ep = EPDN_EpResult.RawPsi(2);
+    
+    
+    std::vector<EpHit> Sepdsimhits;
+    Sepdsimhits.clear();
+    
+    //SOUTH
+    /*******************************************************************/
+
+         for(int i=0; i<16; i++){
+            for(int j=0; j<24; j++){
+             if(EPDEnergy[0][i][j]>0.0){
+             
+              float meanPhi = GetMeanPhi(j, 24.0);
+               if(i==15) meanPhi = GetMeanPhi(j, 12.0);
+              
+              EpHit newepdHit;
+              newepdHit.phi = meanPhi;
+              newepdHit.nMip = EPDEnergy[0][i][j];
+              newepdHit.iy = j;
+              newepdHit.ix = i;
+              newepdHit.samePhi = &Sepd_phi_list[newepdHit.iy];
+              Sepdsimhits.push_back(newepdHit);}
+        }
+      }
+           
+       EpInfo SEPD_EpResult = EPD_EpFinderS->Results(&Sepdsimhits,0);
+       _epd_S_ep = SEPD_EpResult.RawPsi(2);
+
+    
+    
+    std::vector<EpHit> TNepdsimhits;
+    TNepdsimhits.clear();
+    
+    //NORTH-MIP CALIB
+    /*******************************************************************/
+    
+        float thisCalE = 0.0;
+         for(int i=0; i<16; i++){
+            for(int j=0; j<24; j++){
+          
+             if(EPDEnergyTrunc[1][i][j]>0.0){
+     
+              float meanPhi = GetMeanPhi(j, 24.0);
+              if(i==15) meanPhi = GetMeanPhi(j, 12.0);
+              
+              if (EPDEnergyTrunc[1][i][j]<0.2) continue;
+              thisCalE = (EPDEnergyTrunc[1][i][j]<Nmipcutoff[_b][i])?EPDEnergyTrunc[1][i][j]:Nmipcutoff[_b][i];
+              
+              EpHit newepdHit;
+              newepdHit.phi = meanPhi;
+              newepdHit.nMip = thisCalE;
+              newepdHit.iy = j;
+              newepdHit.ix = i;
+              newepdHit.samePhi = &TNepd_phi_list[newepdHit.iy];
+              TNepdsimhits.push_back(newepdHit);}
+        }
+      }
+     
+      EpInfo EPDN_Trunc_EpResult = EPD_EpFinderN_Trunc->Results(&TNepdsimhits,0);
+      _epd_t_N_ep = EPDN_Trunc_EpResult.RawPsi(2);
+
+
+    std::vector<EpHit> TSepdsimhits;
+    TSepdsimhits.clear();
+    
+    //SOUTH-MIP CALIB
+    /*******************************************************************/
+
+    for(int i=0; i<16; i++){
+       for(int j=0; j<24; j++){
+        if(EPDEnergyTrunc[0][i][j]>0.0){
+        
+         float meanPhi = GetMeanPhi(j, 24.0);
+          if(i==15) meanPhi = GetMeanPhi(j, 12.0);
+
+
+         if (EPDEnergyTrunc[0][i][j]<0.2) continue;
+         thisCalE = (EPDEnergyTrunc[0][i][j]<Nmipcutoff[_b][i])?EPDEnergyTrunc[0][i][j]:Nmipcutoff[_b][i];
+        
+         EpHit newepdHit;
+         newepdHit.phi = meanPhi;
+         newepdHit.nMip = thisCalE;
+         newepdHit.iy = j;
+         newepdHit.ix = i;
+         newepdHit.samePhi = &TSepd_phi_list[newepdHit.iy];
+         TSepdsimhits.push_back(newepdHit);}
+   }
+}
+
+  EpInfo SEPD_Trunc_EpResult = EPD_EpFinderS_Trunc->Results(&TSepdsimhits,0);
+ _epd_t_S_ep = SEPD_Trunc_EpResult.RawPsi(2);
+
+  return;
+
+}
+
+
 int PHG4CentralityReco::End(PHCompositeNode * /*topNode*/)
 {
+    EPD_EpFinderN->Finish();
+    EPD_EpFinderS->Finish();
+    EPD_EpFinderN_Trunc->Finish();
+    EPD_EpFinderS_Trunc->Finish();
+
+    delete EPD_EpFinderN;
+    delete EPD_EpFinderS;
+    delete EPD_EpFinderN_Trunc;
+    delete EPD_EpFinderS_Trunc;
+    
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void PHG4CentralityReco::FillNode(PHCompositeNode *topNode)
 {
+ 
   CentralityInfo *cent = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
   if (!cent)
   {
@@ -326,12 +771,24 @@ void PHG4CentralityReco::FillNode(PHCompositeNode *topNode)
     cent->set_quantity(CentralityInfo::PROP::epd_S, _epd_S);
     cent->set_quantity(CentralityInfo::PROP::epd_NS, _epd_NS);
     cent->set_quantity(CentralityInfo::PROP::bimp, _bimp);
+      
+    cent->set_quantity(CentralityInfo::PROP::epd_N_EP, _epd_N_ep);
+    cent->set_quantity(CentralityInfo::PROP::epd_S_EP, _epd_S_ep);
+    cent->set_quantity(CentralityInfo::PROP::epd_N_trunc_EP, _epd_t_N_ep);
+    cent->set_quantity(CentralityInfo::PROP::epd_S_trunc_EP, _epd_t_S_ep);
 
     cent->set_centile(CentralityInfo::PROP::epd_NS, _epd_cent);
     cent->set_centile(CentralityInfo::PROP::mbd_NS, _mbd_cent);
     cent->set_centile(CentralityInfo::PROP::bimp, _bimp_cent);
+
+    cent->set_centile(CentralityInfo::PROP::epd_NS, _epd_cent);
+    cent->set_centile(CentralityInfo::PROP::mbd_NS, _mbd_cent);
+    cent->set_centile(CentralityInfo::PROP::bimp, _bimp_cent);
+    cent->set_centile(CentralityInfo::PROP::bimp, _bimp_cent);
+
   }
 }
+
 
 void PHG4CentralityReco::CreateNode(PHCompositeNode *topNode)
 {
@@ -353,7 +810,8 @@ void PHG4CentralityReco::CreateNode(PHCompositeNode *topNode)
   }
 
   CentralityInfo *cent = new CentralityInfov1();
-
   PHIODataNode<PHObject> *centNode = new PHIODataNode<PHObject>(cent, "CentralityInfo", "PHObject");
   DetNode->addNode(centNode);
+ 
+ 
 }
