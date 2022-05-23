@@ -2,6 +2,7 @@
 #define TRACKBASEHISTORIC_SVTXTRACK_H
 
 #include "SvtxTrackState.h"
+#include "TrackSeed.h"
 
 #include <trackbase/TrkrDefs.h>
 
@@ -65,6 +66,12 @@ class SvtxTrack : public PHObject
 
   virtual unsigned int get_id() const { return UINT_MAX; }
   virtual void set_id(unsigned int) {}
+
+  virtual TrackSeed* get_tpc_seed() const { return nullptr; }
+  virtual void set_tpc_seed(TrackSeed*) {}
+  
+  virtual TrackSeed* get_silicon_seed() const { return nullptr; }
+  virtual void set_silicon_seed(TrackSeed*) {}
 
   virtual short int get_crossing() const { return SHRT_MAX; }
   virtual void set_crossing(short int) {}

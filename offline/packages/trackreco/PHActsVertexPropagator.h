@@ -42,7 +42,6 @@ class PHActsVertexPropagator : public SubsysReco
 					  const unsigned int vtxid);
   Acts::Vector3 getVertex(const unsigned int vtxid);
   void updateSvtxTrack(SvtxTrack* track, const Acts::BoundTrackParameters& params);
-  void updateTrackDCA(SvtxTrack* track);
   void setVtxChi2();
   
   ActsTrackingGeometry *m_tGeometry = nullptr;

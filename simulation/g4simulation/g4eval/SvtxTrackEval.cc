@@ -85,14 +85,11 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track)
   }
 
   std::set<PHG4Hit*> truth_hits;
-
+  std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
+ 
   // loop over all clusters...
-  for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-       iter != track->end_cluster_keys();
-       ++iter)
-  {
-    TrkrDefs::cluskey cluster_key = *iter;
-
+  for (const auto& cluster_key : cluster_keys)
+    {
     //    if (_strict)
     //    {
     //      assert(cluster_key);
@@ -167,12 +164,9 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track)
   }
   else{                
     // loop over all clusters...
-    for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-        iter != track->end_cluster_keys();
-        ++iter)
+    std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
+    for (const auto& cluster_key : cluster_keys)
     {
-      TrkrDefs::cluskey cluster_key = *iter;
-
       //    if (_strict)
       //    {
       //      assert(cluster_key);
@@ -315,13 +309,9 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
        ++iter)
   {
     SvtxTrack* track = iter->second;
-
-    for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-         iter != track->end_cluster_keys();
-         ++iter)
+    std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
+    for (const auto& cluster_key : cluster_keys)
     {
-      TrkrDefs::cluskey cluster_key = *iter;
-
       // remove this check as cluster key = 0 is MVTX layer 0 cluster #0.
       //      if (_strict)
       //      {
@@ -389,13 +379,10 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit)
        ++iter)
   {
     SvtxTrack* track = iter->second;
-
+    std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
     // loop over all clusters
-    for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-         iter != track->end_cluster_keys();
-         ++iter)
+    for (const auto& cluster_key : cluster_keys)
     {
-      TrkrDefs::cluskey cluster_key = *iter;
 
       //      if (_strict)
       //      {
@@ -504,12 +491,11 @@ void SvtxTrackEval::create_cache_track_from_cluster()
        ++iter)
   {
     SvtxTrack* track = iter->second;
+    std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
+
     // loop over all clusters
-    for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-         iter != track->end_cluster_keys();
-         ++iter)
+    for (const auto& candidate_key : cluster_keys)
     {
-      TrkrDefs::cluskey candidate_key = *iter;
       // unsigned int cluster_layer = TrkrDefs::getLayer(candidate_key);
       //      if (_strict)
       //      {
@@ -582,13 +568,11 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(TrkrDefs::cluskey cluster_ke
        ++iter)
   {
     SvtxTrack* track = iter->second;
+    std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
 
     // loop over all clusters
-    for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-         iter != track->end_cluster_keys();
-         ++iter)
+    for (const auto& candidate : cluster_keys)
     {
-      TrkrDefs::cluskey candidate = *iter;
 
       //      if (_strict)
       //      {
@@ -757,12 +741,9 @@ void SvtxTrackEval::calc_cluster_contribution(SvtxTrack* track, PHG4Particle* pa
   unsigned int nclusters = 0;
   unsigned int nwrong = 0;
   // loop over all clusters
-  for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-       iter != track->end_cluster_keys();
-       ++iter)
+  std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
+  for (const auto& cluster_key : cluster_keys)
   {
-    TrkrDefs::cluskey cluster_key = *iter;
-
     //    if (_strict)
     //    {
     //      assert(cluster_key);
@@ -829,11 +810,9 @@ unsigned int SvtxTrackEval::get_nclusters_contribution_by_layer(SvtxTrack* track
   for (int i = 0; i < 100; i++) layer_occupied[i] = 0;
 
   // loop over all clusters
-  for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-       iter != track->end_cluster_keys();
-       ++iter)
+  std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
+  for (const auto& cluster_key : cluster_keys)
   {
-    TrkrDefs::cluskey cluster_key = *iter;
     unsigned int cluster_layer = TrkrDefs::getLayer(cluster_key);
 
     //    if (_strict)
@@ -897,11 +876,9 @@ unsigned int SvtxTrackEval::get_layer_range_contribution(SvtxTrack* track, PHG4P
     layers[i] = 0;
   }
   // loop over all clusters
-  for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-       iter != track->end_cluster_keys();
-       ++iter)
+  std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
+  for (const auto& cluster_key : cluster_keys)
   {
-    TrkrDefs::cluskey cluster_key = *iter;
     unsigned int cluster_layer = TrkrDefs::getLayer(cluster_key);
     if (cluster_layer >= end_layer) continue;
     if (cluster_layer < start_layer) continue;
@@ -962,3 +939,22 @@ bool SvtxTrackEval::has_node_pointers()
   return true;
 }
 
+std::vector<TrkrDefs::cluskey> SvtxTrackEval::get_track_ckeys(SvtxTrack* track)
+{
+  std::vector<TrkrDefs::cluskey> cluster_keys;
+  TrackSeed *tpcseed = track->get_tpc_seed();
+  TrackSeed *silseed = track->get_silicon_seed();
+  if(silseed)
+    {
+      for(auto iter = silseed->begin_cluster_keys();
+	  iter!= silseed->end_cluster_keys();
+	  ++iter)
+	{ cluster_keys.push_back(*iter); }
+    }
+  for(auto iter = tpcseed->begin_cluster_keys();
+      iter!= tpcseed->end_cluster_keys();
+      ++iter)
+    { cluster_keys.push_back(*iter); }
+  
+  return cluster_keys;
+}

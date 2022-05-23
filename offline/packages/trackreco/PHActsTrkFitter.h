@@ -40,7 +40,7 @@
 
 class MakeActsGeometry;
 class SvtxTrack;
-class SvtxTrack_v3;
+class SvtxTrack_v4;
 class SvtxTrackMap;
 class TrackSeed;
 class TrackSeedContainer;
@@ -116,12 +116,12 @@ class PHActsTrkFitter : public SubsysReco
 			       ActsExamples::MeasurementContainer& measurements);
 
   /// Convert the acts track fit result to an svtx track
-  void updateSvtxTrack(Trajectory traj, std::unique_ptr<SvtxTrack_v3>& track);
+  void updateSvtxTrack(Trajectory traj, std::unique_ptr<SvtxTrack_v4>& track);
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
   ActsExamples::TrackFittingAlgorithm::TrackFitterResult fitTrack(
-								  const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
+           const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
 	   const ActsExamples::TrackParameters& seed,
 	   const ActsExamples::TrackFittingAlgorithm::TrackFitterOptions& 
 	     kfOptions,
@@ -133,10 +133,7 @@ class PHActsTrkFitter : public SubsysReco
 				 SurfacePtrVec& surfaces) const;
   void checkSurfaceVec(SurfacePtrVec& surfaces) const;
 
-  void addKeys(std::unique_ptr<SvtxTrack_v3>& svtxtrack,
-	       TrackSeed* seed);
-
-  bool getTrackFitResult(const FitResult& fitOutput, std::unique_ptr<SvtxTrack_v3>& track);
+  bool getTrackFitResult(const FitResult& fitOutput, std::unique_ptr<SvtxTrack_v4>& track);
 
   Surface getSurface(TrkrDefs::cluskey cluskey,TrkrDefs::subsurfkey surfkey) const;
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const;
