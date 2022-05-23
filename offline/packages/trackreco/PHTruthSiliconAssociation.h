@@ -11,8 +11,8 @@
 #include <vector>
 
 class PHCompositeNode;
-class SvtxTrackMap;
-class SvtxTrack;
+class TrackSeedContainer;
+class TrackSeed;
 class SvtxVertexMap;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
@@ -22,6 +22,8 @@ class PHG4HitContainer;
 class PHG4Particle;
 class TpcSeedTrackMap;
 class TrkrClusterCrossingAssoc;
+struct ActsTrackingGeometry;
+struct ActsSurfaceMaps;
 
 class PHTruthSiliconAssociation : public SubsysReco
 {
@@ -53,10 +55,11 @@ class PHTruthSiliconAssociation : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
   void copySiliconClustersToCorrectedMap( );
+  void makeSvtxSeedMap();
 
-  std::vector<PHG4Particle*> getG4PrimaryParticle(SvtxTrack *track);
+  std::vector<PHG4Particle*> getG4PrimaryParticle(TrackSeed *track);
   std::set<TrkrDefs::cluskey> getSiliconClustersFromParticle(PHG4Particle* g4particle);
-  std::set<short int> getInttCrossings(SvtxTrack *si_track) const;
+  std::set<short int> getInttCrossings(TrackSeed *si_track) const;
 
   PHG4TruthInfoContainer* _g4truth_container{nullptr};
   PHG4HitContainer *_g4hits_tpc{nullptr};
@@ -67,13 +70,16 @@ class PHTruthSiliconAssociation : public SubsysReco
   TrkrClusterContainer *_corrected_cluster_map{nullptr};
   TrkrClusterHitAssoc *_cluster_hit_map{nullptr};
   TrkrHitTruthAssoc *_hit_truth_map{nullptr};
-  SvtxTrackMap *_track_map{nullptr};
-  SvtxTrack *_tracklet{nullptr};
+  TrackSeedContainer *_track_map{nullptr};
+  TrackSeedContainer *_svtx_seed_map{nullptr};
+  TrackSeed *_tracklet{nullptr};
   SvtxVertexMap * _vertex_map{nullptr};
   TpcSeedTrackMap *_seed_track_map{nullptr};
- TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};
+  TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};
+  ActsTrackingGeometry *_tgeometry{nullptr};
+  ActsSurfaceMaps *_surfmaps{nullptr};
 
- std::string _tpcseed_track_map_name = "TpcSeedTrackMap";
+  std::string _tpcseed_track_map_name = "TpcSeedTrackMap";
 
 };
 

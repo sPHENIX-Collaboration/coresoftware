@@ -514,7 +514,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
   // loop over all clusters
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
 
-  for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
+  for (auto clusIter = track->begin_cluster_keys();
        clusIter != track->end_cluster_keys();
        ++clusIter)
     {
@@ -555,7 +555,6 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       if(trkrid ==  TrkrDefs::tpcId)
 	{	  
 	  // make all corrections to global position of TPC cluster
-
 	  float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
 	  global[2] = z;
 	  
