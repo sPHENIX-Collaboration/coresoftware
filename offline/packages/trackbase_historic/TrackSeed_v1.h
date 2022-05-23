@@ -95,10 +95,13 @@ class TrackSeed_v1 : public TrackSeed
 	       uint8_t startLayer = 0,
 	       uint8_t endLayer = 58) override;
 
- private:
+ protected:
   /// Returns transverse PCA to (0,0)
   void findRoot(float& x ,float& y) const;
   float findRoot(bool findX) const;
+
+ private:
+
   ClusterKeySet m_cluster_keys;
   
   float m_qOverR = NAN;

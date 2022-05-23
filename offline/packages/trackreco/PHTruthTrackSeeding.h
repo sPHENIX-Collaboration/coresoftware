@@ -24,6 +24,8 @@ class TrkrClusterContainer;
 class TrkrClusterCrossingAssoc;
 class SvtxClusterEval;
 class TrackSeed;
+class TrackSeedContainer;
+class PHG4Particle;
 
 /// \class PHTruthTrackSeeding
 ///
@@ -77,8 +79,12 @@ class PHTruthTrackSeeding : public PHTrackSeeding
  private:
   /// fetch node pointers
   int GetNodes(PHCompositeNode* topNode);
+  int CreateNodes(PHCompositeNode* topNode);
 
-
+  void buildFullTrack(std::vector<TrkrDefs::cluskey>& clusters, 
+		      PHG4Particle *g4particle);
+  void buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters, 
+		      PHG4Particle *g4particle, TrackSeedContainer* container);
   PHG4TruthInfoContainer* m_g4truth_container = nullptr;
 
   /// get crossing id from intt clusters associated to track
@@ -102,8 +108,13 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   //! minimal truth momentum cut (GeV)
   double _min_momentum = 50e-3;
 
+  TrackSeedContainer *_tpc_seeds = nullptr;
+  TrackSeedContainer *_silicon_seeds = nullptr;
+
   ActsTrackingGeometry *tgeometry = nullptr;
   ActsSurfaceMaps *surfmaps = nullptr;
+
+  bool _circle_fit_seed = false;
 
   //! rng de-allocator
   class Deleter

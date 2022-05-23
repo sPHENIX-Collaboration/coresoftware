@@ -27,6 +27,11 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                 
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>  
 #include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/PHRandomSeed.h>
@@ -35,10 +40,11 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterCrossingAssoc.h> 
 #include <trackbase/TrkrHitTruthAssoc.h>
+
 #include <trackbase_historic/ActsTransformations.h>
-#include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTra...
-#include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, Svtx...
-#include <trackbase_historic/SvtxTrack_FastSim_v3.h>
+#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/SvtxTrackSeed_v1.h>
+#include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 
@@ -80,6 +86,11 @@ int PHTruthTrackSeeding::Setup(PHCompositeNode* topNode)
 
   ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+
+  if(_track_map_name.find("Svtx") != std::string::npos)
+    { ret = CreateNodes(topNode); }
+  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+
   _clustereval = new  SvtxClusterEval(topNode);
   _clustereval->do_caching(true);
   return Fun4AllReturnCodes::EVENT_OK;
@@ -133,55 +144,14 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
     if(ClusterKeyList.size()< _min_clusters_per_track)
       continue;
 
-    auto svtx_track = std::make_unique<TrackSeed_FastSim_v1>();
-    svtx_track->set_truth_track_id(gtrackID);
-      
-    // Smear the truth values out by 5% so that the seed momentum and
-    // position aren't completely exact
-    auto random = gsl_ran_flat(m_rng.get(), 0.95, 1.05);
-    // make it negative sometimes
-    if(rand() % 2)
-      random *= -1;
-
-    for (const auto& cluskey : ClusterKeyList){
-      svtx_track->insert_cluster_key(cluskey);
-    }
-
-    svtx_track->circleFitByTaubin(m_clusterMap, surfmaps, tgeometry,
-				  _min_layer, _max_layer);
-    svtx_track->lineFit(m_clusterMap, surfmaps, tgeometry,
-			_min_layer, _max_layer);
-
-    // set intt crossing
-    if(_min_layer < 7)
+    if(_track_map_name.find("Svtx") != std::string::npos)
       {
-	// silicon tracklet
-	/* inspired from PHtruthSiliconAssociation */
-	const auto intt_crossings = getInttCrossings(svtx_track.get());
-	if(intt_crossings.empty()) 
-	  {
-	    if(Verbosity() > 1)  std::cout << "PHTruthTrackSeeding::Process - Silicon track " << gtrackID << " has no INTT clusters" << std::endl;
-	    continue ;
-	  } else if( intt_crossings.size() > 1 ) {
-	  
-	  if(Verbosity() > 1) 
-	    { std::cout << "PHTruthTrackSeeding::Process - INTT crossings not all the same for track " << gtrackID << " crossing_keep - dropping this match " << std::endl; }
-	  
-	} else {
-	  
-	  const auto& crossing = *intt_crossings.begin();
-	  svtx_track->set_crossing(crossing);
-	  if(Verbosity() > 1)
-	    std::cout << "PHTruthTrackSeeding::Process - Combined track " << gtrackID  << " bunch crossing " << crossing << std::endl;           
-	}
-      }  // end if _min_layer
+	buildFullTrack(ClusterKeyList, g4particle);
+      }
     else
       {
-	// no INTT layers, crossing is unknown
-	svtx_track->set_crossing(SHRT_MAX);	
+	buildTrackSeed(ClusterKeyList, g4particle, _track_map);
       }
- 
-    _track_map->insert(svtx_track.get());
   }
 
   if (Verbosity() >= 5)
@@ -230,7 +200,199 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+void PHTruthTrackSeeding::buildFullTrack(std::vector<TrkrDefs::cluskey>& clusters,
+					 PHG4Particle *g4particle)
+{
+  auto track = std::make_unique<SvtxTrackSeed_v1>();
 
+  buildTrackSeed(clusters, g4particle, _tpc_seeds);
+
+  /// The ids will by definition be the last entry in the container because
+  /// the seeds were just added
+  track->set_tpc_seed_index(_tpc_seeds->size()-1); 
+ 
+  if(Verbosity() > 2)
+    {
+      std::cout << "adding svtxtrackseed " << std::endl;
+      track->identify();
+      auto tpcseed = _tpc_seeds->get(track->get_tpc_seed_index());
+      tpcseed->identify();
+ 
+    }
+
+  _track_map->insert(track.get());
+
+}
+void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters, PHG4Particle *g4particle, TrackSeedContainer* container)
+{
+  auto track = std::make_unique<TrackSeed_FastSim_v1>();
+  bool silicon = false;
+  for (const auto& cluskey : clusters){
+    if( TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::mvtxId || 
+	TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::inttId)
+      { silicon = true; }
+    track->insert_cluster_key(cluskey);
+  }
+  
+  auto random = gsl_ran_flat(m_rng.get(), 0.95, 1.05);
+  
+  const auto particle = TDatabasePDG::Instance()->GetParticle(g4particle->get_pid());
+  int charge = 1;
+  if(particle) 
+    { 
+      if(particle->Charge() < 0)
+	{ charge = -1; }
+    }
+  
+  float px = g4particle->get_px() * random;
+  float py = g4particle->get_py() * random;
+  float pz = g4particle->get_pz() * random;
+  const auto g4vertex = m_g4truth_container->GetVtx(g4particle->get_vtx_id());
+  float x = g4vertex->get_x() * random; 
+  float y = g4vertex->get_y() * random;
+  float z = g4vertex->get_z() * random;
+
+  float pt = sqrt(px*px+py*py);
+  float phi = atan2(py,px);
+  float R = 100 * pt / (0.3*1.4);
+  float theta = atan2(pt,pz);
+  if(theta < 0)
+    { theta += M_PI; }
+  if(theta > M_PI)
+    { theta -= M_PI; }
+  
+  float eta = -log(tan(theta/2.));
+
+  // We have two equations, phi = atan2(-(X0-x),y-Y0) and 
+  //R^2 = (x-X0)^2 + (y-Y0)^2. Solve for X0 and Y0 knowing R and phi
+  float tanphisq = square(tan(phi));
+  float a = tanphisq + 1;
+  float b =-2*y*(tanphisq+1);
+  float c = (tanphisq+1)*square(y)-square(R);
+  
+  float Y0_1 = (-b + sqrt(square(b)-4*a*c)) / (2.*a);
+  float Y0_2 = (-b - sqrt(square(b)-4*a*c)) / (2.*a);
+  float X0_1 = sqrt(pow(R, 2) - pow(Y0_1 - y, 2)) + x;
+  float X0_2 = -sqrt(pow(R, 2) - pow(Y0_2 - y, 2)) + x;
+  track->set_X0(X0_1);
+  track->set_Y0(Y0_1);
+  track->set_qOverR(charge / R);
+  track->set_slope(1. / tan(theta));
+  track->set_Z0(z);
+  
+  /// Need to find the right one for the bend angle
+  
+  float newphi = track->get_phi(m_clusterMap, surfmaps, tgeometry);
+  /// We have to pick the right one based on the bend angle, so iterate
+  /// through until you find the closest phi match
+  if( fabs(newphi-phi) > 0.03)
+    {
+      track->set_X0(X0_2);
+      newphi = track->get_phi(m_clusterMap, surfmaps, tgeometry);
+  
+      if( fabs(newphi-phi) > 0.03)
+	{
+	  track->set_Y0(Y0_2);
+	  newphi = track->get_phi(m_clusterMap, surfmaps, tgeometry);
+
+	  if( fabs(newphi-phi) > 0.03)
+	    {
+	      track->set_X0(X0_1);
+	      newphi = track->get_phi(m_clusterMap, surfmaps, tgeometry);
+	    }
+	}
+    }
+  
+  if(Verbosity() > 2)
+    {
+      std::cout << "Charge is " << charge << std::endl;
+      std::cout << "truth/reco px " << px << ", " << track->get_px(m_clusterMap, surfmaps, tgeometry) << std::endl;
+      std::cout << "truth/reco py " << py << ", " << track->get_py(m_clusterMap, surfmaps, tgeometry) << std::endl;
+      std::cout << "truth/reco pz " << pz << ", " << track->get_pz() << std::endl;
+      std::cout << "truth/reco pt " << pt << ", " << track->get_pt() << std::endl;
+      std::cout << "truth/reco phi " << phi << ", " << track->get_phi(m_clusterMap, surfmaps, tgeometry) << std::endl;
+      std::cout << "truth/reco eta " << eta << ", " << track->get_eta() << std::endl;
+      std::cout << "truth/reco x " << x << ", " << track->get_x() << std::endl;
+      std::cout << "truth/reco y " << y << ", " << track->get_y() << std::endl;
+      std::cout << "truth/reco z " << z << ", " << track->get_z() << std::endl;
+	
+    }
+  
+  // set intt crossing
+  if(silicon)
+    {
+      // silicon tracklet
+      /* inspired from PHtruthSiliconAssociation */
+      const auto intt_crossings = getInttCrossings(track.get());
+      if(intt_crossings.empty()) 
+	{
+	  if(Verbosity() > 1)  std::cout << "PHTruthTrackSeeding::Process - Silicon track " << container->size() - 1 << " has no INTT clusters" << std::endl;
+	  return ;
+	} else if( intt_crossings.size() > 1 ) {
+	if(Verbosity() > 1) 
+	  { std::cout << "PHTruthTrackSeeding::Process - INTT crossings not all the same for track " << container->size() - 1 << " crossing_keep - dropping this match " << std::endl; }
+	
+      } else {
+	const auto& crossing = *intt_crossings.begin();
+	track->set_crossing(crossing);
+	if(Verbosity() > 1)
+	  std::cout << "PHTruthTrackSeeding::Process - Combined track " << container->size() - 1  << " bunch crossing " << crossing << std::endl;           
+      }
+    }  // end if _min_layer
+  else
+    {
+      // no INTT layers, crossing is unknown
+      track->set_crossing(SHRT_MAX);	
+    }
+
+  container->insert(track.get());
+}
+int PHTruthTrackSeeding::CreateNodes(PHCompositeNode* topNode)
+{
+   // create nodes...
+  PHNodeIterator iter(topNode);
+
+  PHCompositeNode* dstNode = static_cast<PHCompositeNode*>(iter.findFirst(
+      "PHCompositeNode", "DST"));
+  if (!dstNode)
+  {
+    std::cerr << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+  PHNodeIterator iter_dst(dstNode);
+
+  // Create the SVTX node
+  PHCompositeNode* tb_node =
+      dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode",
+                                                        "SVTX"));
+  if (!tb_node)
+  {
+    tb_node = new PHCompositeNode("SVTX");
+    dstNode->addNode(tb_node);
+    if (Verbosity() > 0)
+      std::cout << PHWHERE << "SVTX node added" << std::endl;
+  }
+
+  _tpc_seeds = findNode::getClass<TrackSeedContainer>(topNode,"TpcTrackSeedContainer");
+  if(!_tpc_seeds)
+    {
+      _tpc_seeds = new TrackSeedContainer_v1;
+      PHIODataNode<PHObject>* tracks_node = 
+	new PHIODataNode<PHObject>(_tpc_seeds, "TpcTrackSeedContainer", "PHObject");
+      tb_node->addNode(tracks_node);
+    }
+
+  _silicon_seeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+   if(!_silicon_seeds)
+    {
+      _silicon_seeds = new TrackSeedContainer_v1;
+      PHIODataNode<PHObject>* tracks_node = 
+	new PHIODataNode<PHObject>(_silicon_seeds, "SiliconTrackSeedContainer", "PHObject");
+      tb_node->addNode(tracks_node);
+    }
+
+   return Fun4AllReturnCodes::EVENT_OK;
+}
 int PHTruthTrackSeeding::GetNodes(PHCompositeNode* topNode)
 {
 
