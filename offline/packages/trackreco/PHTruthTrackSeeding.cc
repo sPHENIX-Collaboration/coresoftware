@@ -216,13 +216,8 @@ void PHTruthTrackSeeding::buildFullTrack(std::vector<TrkrDefs::cluskey>& cluster
       std::cout << "adding svtxtrackseed " << std::endl;
       track->identify();
       auto tpcseed = _tpc_seeds->get(track->get_tpc_seed_index());
-      auto silseed = _silicon_seeds->get(track->get_silicon_seed_index());
-      std::cout << "tpc seed " << std::endl;
-      if(tpcseed)
-	tpcseed->identify();
-      std::cout << "sil seed" << std::endl;
-      if(silseed)
-      silseed->identify();
+      tpcseed->identify();
+ 
     }
 
   _track_map->insert(track.get());
@@ -240,8 +235,6 @@ void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters
   }
   
   auto random = gsl_ran_flat(m_rng.get(), 0.95, 1.05);
-  if(rand() % 2)
-    { random *= -1; }
   
   const auto particle = TDatabasePDG::Instance()->GetParticle(g4particle->get_pid());
   int charge = 1;
