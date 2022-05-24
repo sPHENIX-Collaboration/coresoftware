@@ -63,7 +63,7 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
   // need at least 3 clusters to fit a circle
   if(tpc_global_vec.size() < 3)
     {
-      if(Verbosity() > 0)
+      if(_verbosity > 0)
 	{ std::cout << "  -- skip this tpc track, not enough clusters: " << tpc_global_vec.size() << std::endl; }
       return global_in;
     }
