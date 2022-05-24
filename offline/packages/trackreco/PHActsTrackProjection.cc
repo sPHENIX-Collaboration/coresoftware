@@ -383,14 +383,16 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
 	return Fun4AllReturnCodes::ABORTEVENT;
       
       /// Default to using calo radius
-      double caloRadius = m_towerGeomContainer->get_radius() 
-	* Acts::UnitConstants::cm;
+      double caloRadius = m_towerGeomContainer->get_radius();
       if(m_caloRadii.find(m_caloTypes.at(caloLayer)) != m_caloRadii.end())
 	{ 
-	  caloRadius = m_caloRadii.find(m_caloTypes.at(caloLayer))->second
-	    * Acts::UnitConstants::cm; 
+	  caloRadius = m_caloRadii.find(m_caloTypes.at(caloLayer))->second;
 	}
+      else
+	{ m_caloRadii.insert(std::make_pair(m_caloTypes.at(caloLayer), caloRadius)); }
     
+      caloRadius *= Acts::UnitConstants::cm;
+
       /// Extend farther so that there is at least surface there, for high
       /// curling tracks. Can always reject later
       const auto eta = 2.5;
@@ -405,7 +407,10 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
 	Acts::Surface::makeShared<Acts::CylinderSurface>(transform,
 							 caloRadius,
 							 halfZ);
-  
+      if(Verbosity() > 1)
+	{
+	  std::cout << "Creating  cylindrical surface at " << caloRadius << std::endl;
+	}
       m_caloSurfaces.insert(std::make_pair(m_caloNames.at(caloLayer),
 					   surf));
     }
@@ -415,7 +420,7 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
       for(const auto& [name, surfPtr] : m_caloSurfaces)
 	{
 	  std::cout << "Cylinder " << name << " has center "
-		    << surfPtr.get()->center(m_tGeometry->geoContext)
+		    << surfPtr.get()->center(m_tGeometry->geoContext).transpose()
 		    << std::endl;
 	}
     }
