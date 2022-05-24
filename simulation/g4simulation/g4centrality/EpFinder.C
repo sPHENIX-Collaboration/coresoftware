@@ -70,19 +70,18 @@ EpFinder::EpFinder(int nEventTypeBins, char const* OutFileName, char const* Corr
   if(pbinsx<=0) pbinsx = 1; 
   if(pbinsy<=0) pbinsy = 1; 
   
+  // just for normalization. discard after use
+  mPhiAveraged       = new TH2D(Form("PhiAveraged"),Form("Phi Average"),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5)); 
   // binning tuned for FEMC, to be made generic in future JGL 8/28/2019
   // bins are ix,iy 
   mPhiWeightOutput   = new TH2D(Form("PhiWeight"),Form("Phi Weight"),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5));
-  // just for normalization. discard after use
-  mPhiAveraged       = new TH2D(Form("PhiAveraged"),Form("Phi Average"),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5)); 
- 
 }
 
 void EpFinder::Finish(){
 
   mPhiWeightOutput->Divide(mPhiAveraged);
   delete mPhiAveraged;
-  delete mPhiWeightOutput;
+  
 
   //PHTFileServer::get().cd(OutFileNameString.data());
   //PHTFileServer::get().write(OutFileNameString.data());
