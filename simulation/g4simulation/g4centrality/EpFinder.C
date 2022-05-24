@@ -40,6 +40,7 @@ EpFinder::EpFinder(int nEventTypeBins, char const* OutFileName, char const* Corr
     for (int order=1; order<_EpOrderMax+1; order++){
       mEpShiftInput_sin[order-1] = NULL;
       mEpShiftInput_cos[order-1] = NULL;
+      mAveCosDeltaPsi[order-1] = NULL;
     }
     mPhiWeightInput = NULL;
   }
@@ -51,8 +52,8 @@ EpFinder::EpFinder(int nEventTypeBins, char const* OutFileName, char const* Corr
     mPhiWeightInput = (TH2D*)mCorrectionInputFile->Get(Form("PhiWeight"));
   }
 
-  //mCorrectionInputFile->Close();
-  //delete mCorrectionInputFile; 
+  mCorrectionInputFile->Close();
+  delete mCorrectionInputFile;
 
   // ----------------------------------- Stuff written to the "Correction File" -----------------------------------------                                                   
   // "Shift correction" histograms that we produce and OUTPUT                                                                                                               
@@ -81,6 +82,7 @@ void EpFinder::Finish(){
 
   mPhiWeightOutput->Divide(mPhiAveraged);
   delete mPhiAveraged;
+  delete mPhiWeightOutput;
 
   //PHTFileServer::get().cd(OutFileNameString.data());
   //PHTFileServer::get().write(OutFileNameString.data());
