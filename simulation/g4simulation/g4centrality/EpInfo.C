@@ -19,6 +19,8 @@ void EpInfo::Reset()
     PsiRaw[iorder] = -999.0;
     PsiPhiWeighted[iorder] = -999.0;
     PsiPhiWeightedAndShifted[iorder] = -999.0;
+    WheelSumWeightsRaw[iorder] = -999.0;
+    WheelSumWeightsPhiWeighted[iorder] = -999.0;
   }
 }
 
