@@ -70,18 +70,19 @@ EpFinder::EpFinder(int nEventTypeBins, char const* OutFileName, char const* Corr
   if(pbinsx<=0) pbinsx = 1; 
   if(pbinsy<=0) pbinsy = 1; 
   
-  // just for normalization. discard after use
-  mPhiAveraged       = new TH2D(Form("PhiAveraged"),Form("Phi Average"),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5)); 
   // binning tuned for FEMC, to be made generic in future JGL 8/28/2019
   // bins are ix,iy 
-  mPhiWeightOutput   = new TH2D(Form("PhiWeight"),Form("Phi Weight"),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5));
+//  mPhiWeightOutput   = new TH2D(Form("PhiWeight"),Form("Phi Weight"),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5));
+    
+  // just for normalization. discard after use
+  mPhiAveraged       = new TH2D(Form("PhiAveraged"),Form("Phi Average"),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5)); 
+ 
 }
 
 void EpFinder::Finish(){
 
-  mPhiWeightOutput->Divide(mPhiAveraged);
+//  mPhiWeightOutput->Divide(mPhiAveraged);
   delete mPhiAveraged;
-  
 
   //PHTFileServer::get().cd(OutFileNameString.data());
   //PHTFileServer::get().write(OutFileNameString.data());
@@ -99,7 +100,7 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId){
 
   EpInfo result;
 
-  double pi = TMath::Pi();
+  double pi = M_PI;
 
   // This below is for normalizing Q-vectors
   double TotalWeight4Side[_EpOrderMax][2];       // for normalizing Q-vector: order, (nonPhiWeighted or PhiWeighted)  ** depends on Order because eta-weight depends on order
@@ -125,7 +126,7 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId){
     //---------------------------------
 
     if(EpdHits->at(hit).samePhi){
-      mPhiWeightOutput->Fill(idx_x,idx_y,TileWeight);
+//      mPhiWeightOutput->Fill(idx_x,idx_y,TileWeight);
       for(unsigned int i = 0; i<EpdHits->at(hit).samePhi->size(); i++){
 	float x = EpdHits->at(hit).samePhi->at(i).first; 
 	float y = EpdHits->at(hit).samePhi->at(i).second; 
@@ -227,7 +228,7 @@ double EpFinder::GetPsiInRange(double Qx, double Qy, int order){
   if ((Qx==0.0)||(Qy==0.0)) temp=-999;
   else{
     temp = atan2(Qy,Qx)/((double)order);
-    double AngleWrapAround = 2.0*TMath::Pi()/(double)order;
+    double AngleWrapAround = 2.0*M_PI/(double)order;
     if (temp<0.0) temp+= AngleWrapAround;
     else if (temp>AngleWrapAround) temp -= AngleWrapAround;
   }
