@@ -75,14 +75,14 @@ EpFinder::EpFinder(int nEventTypeBins, char const* OutFileName, char const* Corr
 //  mPhiWeightOutput   = new TH2D(Form("PhiWeight"),Form("Phi Weight"),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5));
     
   // just for normalization. discard after use
-  mPhiAveraged       = new TH2D(Form("PhiAveraged"),Form("Phi Average"),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5)); 
+//  mPhiAveraged       = new TH2D(Form("PhiAveraged"),Form("Phi Average"),pbinsx,-0.5,(pbinsx-0.5),pbinsy,-0.5,(pbinsy-0.5));
  
 }
 
 void EpFinder::Finish(){
 
 //  mPhiWeightOutput->Divide(mPhiAveraged);
-  delete mPhiAveraged;
+//  delete mPhiAveraged;
 
   //PHTFileServer::get().cd(OutFileNameString.data());
   //PHTFileServer::get().write(OutFileNameString.data());
@@ -130,7 +130,7 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId){
       for(unsigned int i = 0; i<EpdHits->at(hit).samePhi->size(); i++){
 	float x = EpdHits->at(hit).samePhi->at(i).first; 
 	float y = EpdHits->at(hit).samePhi->at(i).second; 
-	mPhiAveraged->Fill(x,y,TileWeight/EpdHits->at(hit).samePhi->size());
+//	mPhiAveraged->Fill(x,y,TileWeight/EpdHits->at(hit).samePhi->size());
       }
     }
     
