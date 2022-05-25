@@ -166,8 +166,8 @@ class EpFinder {
   TProfile2D* mEpShiftInput_cos[_EpOrderMax];     
   //   these are the phi weights
   TH2D* mPhiWeightInput;
-  TH2D* mPhiWeightOutput;
-  TH2D* mPhiAveraged;
+//  TH2D* mPhiWeightOutput;
+//  TH2D* mPhiAveraged;
 
 };
 
