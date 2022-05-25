@@ -125,6 +125,7 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId){
     // Obviously, do this BEFORE phi weighting!
     //---------------------------------
 
+  /*
     if(EpdHits->at(hit).samePhi){
 //      mPhiWeightOutput->Fill(idx_x,idx_y,TileWeight);
       for(unsigned int i = 0; i<EpdHits->at(hit).samePhi->size(); i++){
@@ -133,6 +134,7 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId){
 //	mPhiAveraged->Fill(x,y,TileWeight/EpdHits->at(hit).samePhi->size());
       }
     }
+    */
     
     //--------------------------------
     // now calculate Q-vectors
