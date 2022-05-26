@@ -19,10 +19,14 @@ libg4centrality_la_LIBADD = \
   -lphparameter
 
 pkginclude_HEADERS = \
-  PHG4CentralityReco.h
+  PHG4CentralityReco.h \
+  EpFinder.h \
+  EpInfo.h
 
 libg4centrality_la_SOURCES = \
-  PHG4CentralityReco.cc
+  PHG4CentralityReco.cc \
+  EpFinder.C \
+  EpInfo.C
 
 ################################################
 # linking tests
