@@ -9,7 +9,7 @@
 
 #include "PHTrackSeeding.h"
 
-#include <string>  // for string
+#include <string>  
 
 // forward declarations
 class PHCompositeNode;
@@ -18,8 +18,6 @@ class PHG4HitContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
 
-//class SvtxHitMap;
-//class PHG4CellContainer;
 
 /// \class PHSiliconTruthTrackSeeding
 ///

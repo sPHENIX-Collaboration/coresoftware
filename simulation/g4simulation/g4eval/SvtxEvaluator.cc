@@ -27,6 +27,7 @@
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/ActsTransformations.h>
+#include <trackbase_historic/TrackSeed.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
@@ -192,11 +193,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                                                "event:seed:trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:"
                                                "quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:layers:"
                                                "dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:"
-                                               "presdphi:presdeta:prese3x3:prese:"
-                                               "cemcdphi:cemcdeta:cemce3x3:cemce:"
-                                               "hcalindphi:hcalindeta:hcaline3x3:hcaline:"
-                                               "hcaloutdphi:hcaloutdeta:hcaloute3x3:hcaloute:"
-                                               "gtrackID:gflavor:gnhits:gnmaps:gnintt:gntpc:gnmms:gnlmaps:gnlintt:gnltpc:gnlmms:"
+					       "gtrackID:gflavor:gnhits:gnmaps:gnintt:gntpc:gnmms:gnlmaps:gnlintt:gnltpc:gnlmms:"
                                                "gpx:gpy:gpz:gpt:geta:gphi:"
                                                "gvx:gvy:gvz:gvt:"
                                                "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
@@ -2397,6 +2394,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+    SvtxVertexMap *vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+
     if (truthinfo)
     {
 
@@ -2579,7 +2578,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float quality = NAN;
         float chisq = NAN;
         float ndf = NAN;
-        float nhits = NAN;
+        float nhits = 0;
         float nmaps = 0;
         float nintt = 0;
         float ntpc = 0;
@@ -2635,7 +2634,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             quality = track->get_quality();
             chisq =   track->get_chisq();
             ndf =     track->get_ndf();
-            nhits =   track->size_cluster_keys();
+	    TrackSeed *silseed = track->get_silicon_seed();
+	    TrackSeed *tpcseed = track->get_tpc_seed();
+	    if(tpcseed)
+	      { nhits += tpcseed->size_cluster_keys(); }
+	    if(silseed)
+	      { nhits += silseed->size_cluster_keys(); }
 
             vector <int> maps(_nlayers_maps, 0);
             vector <int> intt(_nlayers_intt, 0);
@@ -2658,9 +2662,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             {
               for (unsigned int i = 0; i < _nlayers_mms; i++) mms[i] = 0;
             }
-
-            for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-                 iter != track->end_cluster_keys();
+	    
+	    if(tpcseed)
+	      {
+            for (TrackSeed::ConstClusterKeyIter iter = tpcseed->begin_cluster_keys();
+                 iter != tpcseed->end_cluster_keys();
                  ++iter)
             {
 	      TrkrDefs::cluskey cluster_key = *iter;
@@ -2700,12 +2706,68 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  ntpc3++;
 		}
               }
+	    
               if (_nlayers_mms > 0 && layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
               {
                 mms[layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
                 nmms++;
               }
             }
+	      }
+	    
+	    if(silseed)
+	      {
+            for (TrackSeed::ConstClusterKeyIter iter = silseed->begin_cluster_keys();
+                 iter != silseed->end_cluster_keys();
+                 ++iter)
+            {
+	      TrkrDefs::cluskey cluster_key = *iter;
+              //TrkrCluster* cluster = clustermap->findCluster(cluster_key);
+              unsigned int layer = TrkrDefs::getLayer(cluster_key);
+              if (_nlayers_maps > 0 && layer < _nlayers_maps)
+              {
+                maps[layer] = 1;
+                nmaps++;
+              }
+              if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+              {
+                intt[layer - _nlayers_maps] = 1;
+                nintt++;
+              }
+              if (_nlayers_tpc > 0 &&
+                  layer >= (_nlayers_maps + _nlayers_intt) &&
+                  layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
+              {
+                tpc[layer - (_nlayers_maps + _nlayers_intt)] = 1;
+                ntpc++;
+
+		if((layer - (_nlayers_maps + _nlayers_intt))<8){
+		  ntpc11++;
+		}
+
+		if((layer - (_nlayers_maps + _nlayers_intt))<16){
+		  //std::cout << " tpc1: layer " << layer << std::endl;
+		  ntpc1++;
+		}
+		else if((layer - (_nlayers_maps + _nlayers_intt))<32){
+		  //std::cout << " tpc2: layer " << layer << std::endl;
+		  ntpc2++;
+		}
+		else if((layer - (_nlayers_maps + _nlayers_intt))<48){
+		  //std::cout << " tpc3: layer " << layer << std::endl;
+		  ntpc3++;
+		}
+              }
+	    
+              if (_nlayers_mms > 0 && layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+              {
+                mms[layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
+                nmms++;
+              }
+            }
+	      }
+
+
             if (_nlayers_maps > 0)
               for (unsigned int i = 0; i < _nlayers_maps; i++) nlmaps += maps[i];
             if (_nlayers_intt > 0)
@@ -2725,12 +2787,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		 << " nltpc  " << nltpc
 		 << endl;
 	    */
-            dca2d = track->get_dca2d();
-            dca2dsigma = track->get_dca2d_error();
-            dca3dxy = track->get_dca3d_xy();
-            dca3dxysigma = track->get_dca3d_xy_error();
-            dca3dz = track->get_dca3d_z();
-            dca3dzsigma = track->get_dca3d_z_error();
+	  
+	    get_dca(track, vertexmap, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma);
+	    
             px = track->get_px();
             py = track->get_py();
             pz = track->get_pz();
@@ -2914,6 +2973,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
     // need things off of the DST...
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
+    SvtxVertexMap *vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+
     if (trackmap)
     {
       for (SvtxTrackMap::Iter iter = trackmap->begin();
@@ -2922,6 +2983,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         SvtxTrack* track = iter->second;
         float trackID = track->get_id();
+	TrackSeed* tpcseed = track->get_tpc_seed();
+	TrackSeed* silseed = track->get_silicon_seed();
 	short int crossing_int = track->get_crossing();
 	float crossing;
 	if(crossing_int == SHRT_MAX) 
@@ -2968,8 +3031,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float nltpc = 0;
         float nlmms = 0;
 
-        for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-             iter != track->end_cluster_keys();
+	if(tpcseed) 
+	  {
+        for (SvtxTrack::ConstClusterKeyIter iter = tpcseed->begin_cluster_keys();
+             iter != tpcseed->end_cluster_keys();
              ++iter)
         {
 	  TrkrDefs::cluskey cluster_key = *iter;
@@ -3010,6 +3075,54 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    }
           }
         }
+	  }
+
+	if(silseed) 
+	  {
+        for (SvtxTrack::ConstClusterKeyIter iter = silseed->begin_cluster_keys();
+             iter != silseed->end_cluster_keys();
+             ++iter)
+        {
+	  TrkrDefs::cluskey cluster_key = *iter;
+          //TrkrCluster* cluster = clustermap->findCluster(cluster_key);
+          unsigned int layer = TrkrDefs::getLayer(cluster_key);
+
+          if (_nlayers_maps > 0 && layer < _nlayers_maps)
+          {
+            maps[layer] = 1;
+            nmaps++;
+          }
+          if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+          {
+            intt[layer - _nlayers_maps] = 1;
+            nintt++;
+          }
+          if (_nlayers_mms > 0 && layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms)
+          {
+            mms[layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
+            nmms++;
+          }
+          if (_nlayers_tpc > 0 && layer >= (_nlayers_maps + _nlayers_intt) && layer < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
+          {
+            tpc[layer - (_nlayers_maps + _nlayers_intt)] = 1;
+            ntpc++;
+	    if((layer - (_nlayers_maps + _nlayers_intt))<8){
+	      ntpc11++;
+	    }
+
+	    if((layer - (_nlayers_maps + _nlayers_intt))<16){
+	      ntpc1++;
+	    }
+	    else if((layer - (_nlayers_maps + _nlayers_intt))<32){
+	      ntpc2++;
+	    }
+	    else if((layer - (_nlayers_maps + _nlayers_intt))<48){
+	      ntpc3++;
+	    }
+          }
+        }
+	  }
+
         if (_nlayers_maps > 0)
           for (unsigned int i = 0; i < _nlayers_maps; i++) nlmaps += maps[i];
         if (_nlayers_intt > 0)
@@ -3019,12 +3132,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         if (_nlayers_mms > 0)
           for (unsigned int i = 0; i < _nlayers_mms; i++) nlmms += mms[i];
         layers = nlmaps + nlintt + nltpc + nlmms;
-        float dca2d = track->get_dca2d();
-        float dca2dsigma = track->get_dca2d_error();
-        float dca3dxy = track->get_dca3d_xy();
-        float dca3dxysigma = track->get_dca3d_xy_error();
-        float dca3dz = track->get_dca3d_z();
-        float dca3dzsigma = track->get_dca3d_z_error();
+
+	float dca3dxy = NAN, dca3dz = NAN,
+	  dca3dxysigma = NAN, dca3dzsigma = NAN;
+	float dca2d = NAN, dca2dsigma = NAN;
+	get_dca(track, vertexmap, dca3dxy, dca3dz,
+		dca3dxysigma, dca3dzsigma);
+
         float px = track->get_px();
         float py = track->get_py();
         float pz = track->get_pz();
@@ -3045,27 +3159,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float pcay = track->get_y();
         float pcaz = track->get_z();
 
-        float presdphi = track->get_cal_dphi(SvtxTrack::PRES);
-        float presdeta = track->get_cal_deta(SvtxTrack::PRES);
-        float prese3x3 = track->get_cal_energy_3x3(SvtxTrack::PRES);
-        float prese = track->get_cal_cluster_e(SvtxTrack::PRES);
-
-        float cemcdphi = track->get_cal_dphi(SvtxTrack::CEMC);
-        float cemcdeta = track->get_cal_deta(SvtxTrack::CEMC);
-        float cemce3x3 = track->get_cal_energy_3x3(SvtxTrack::CEMC);
-        float cemce = track->get_cal_cluster_e(SvtxTrack::CEMC);
-
-        float hcalindphi = track->get_cal_dphi(SvtxTrack::HCALIN);
-        float hcalindeta = track->get_cal_deta(SvtxTrack::HCALIN);
-        float hcaline3x3 = track->get_cal_energy_3x3(SvtxTrack::HCALIN);
-        float hcaline = track->get_cal_cluster_e(SvtxTrack::HCALIN);
-
-        float hcaloutdphi = track->get_cal_dphi(SvtxTrack::HCALOUT);
-        float hcaloutdeta = track->get_cal_deta(SvtxTrack::HCALOUT);
-        float hcaloute3x3 = track->get_cal_energy_3x3(SvtxTrack::HCALOUT);
-        float hcaloute = track->get_cal_cluster_e(SvtxTrack::HCALOUT);
-
-        float gtrackID = NAN;
+	float gtrackID = NAN;
         float gflavor = NAN;
         float ng4hits = NAN;
         unsigned int ngmaps = 0;
@@ -3268,23 +3362,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                               pcax,
                               pcay,
                               pcaz,
-                              presdphi,
-                              presdeta,
-                              prese3x3,
-                              prese,
-                              cemcdphi,
-                              cemcdeta,
-                              cemce3x3,
-                              cemce,
-                              hcalindphi,
-                              hcalindeta,
-                              hcaline3x3,
-                              hcaline,
-                              hcaloutdphi,
-                              hcaloutdeta,
-                              hcaloute3x3,
-                              hcaloute,
-                              gtrackID,
+			      gtrackID,
                               gflavor,
                               ng4hits,
                               (float) ngmaps,
@@ -3540,4 +3618,60 @@ TMatrixF SvtxEvaluator::calculateClusterError(TrkrCluster* c, float& clusphi)
    TMatrixF err(3,3);
    err = ROT * localErr * ROT_T;
    return err;
+}
+    
+
+void SvtxEvaluator::get_dca(SvtxTrack* track, SvtxVertexMap* vertexmap,
+			    float& dca3dxy, float& dca3dz,
+			    float& dca3dxysigma, float& dca3dzsigma)
+{
+  Acts::Vector3 pos(track->get_x(),
+		    track->get_y(),
+		    track->get_z());
+  Acts::Vector3 mom(track->get_px(),
+		    track->get_py(),
+		    track->get_pz());
+
+  auto vtxid = track->get_vertex_id();
+  auto svtxVertex = vertexmap->get(vtxid);
+  Acts::Vector3 vertex(svtxVertex->get_x(),
+		       svtxVertex->get_y(),
+		       svtxVertex->get_z());
+
+  pos -= vertex;
+
+  Acts::ActsSymMatrix<3> posCov;
+  for(int i = 0; i < 3; ++i)
+    {
+      for(int j = 0; j < 3; ++j)
+	{
+	  posCov(i, j) = track->get_error(i, j);
+	} 
+    }
+  
+  Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
+  float phi = atan2(r(1), r(0));
+  
+  Acts::RotationMatrix3 rot;
+  Acts::RotationMatrix3 rot_T;
+  rot(0,0) = cos(phi);
+  rot(0,1) = -sin(phi);
+  rot(0,2) = 0;
+  rot(1,0) = sin(phi);
+  rot(1,1) = cos(phi);
+  rot(1,2) = 0;
+  rot(2,0) = 0;
+  rot(2,1) = 0;
+  rot(2,2) = 1;
+  
+  rot_T = rot.transpose();
+
+  Acts::Vector3 pos_R = rot * pos;
+  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
+
+  dca3dxy = pos_R(0);
+  dca3dz = pos_R(2);
+  dca3dxysigma = sqrt(rotCov(0,0));
+  dca3dzsigma = sqrt(rotCov(2,2));
+  
 }

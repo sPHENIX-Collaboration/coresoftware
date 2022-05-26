@@ -1,7 +1,9 @@
 #ifndef ALICEKF_H
 #define ALICEKF_H
 
-#include <trackbase_historic/SvtxTrack_v3.h>
+#include "GPUTPCTrackParam.h"
+
+#include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
@@ -19,6 +21,7 @@
 #include <utility>
 
 using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
+using TrackSeedAliceSeedMap = std::pair<std::vector<TrackSeed_v1>, std::vector<Eigen::Matrix<double,6,6>>>;
 
 class ALICEKF
 {
@@ -45,10 +48,9 @@ class ALICEKF
     _v = verbosity;
     _min_clusters_per_track = min_clusters;
   }
-  std::vector<SvtxTrack_v3> ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions) const;
-  Eigen::Matrix<double,6,6> getEigenCov(const SvtxTrack_v3 &track) const;
-  bool covIsPosDef(const SvtxTrack_v3 &track) const;
-  void repairCovariance(SvtxTrack_v3 &track) const;
+  TrackSeedAliceSeedMap ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions, std::vector<float>& trackChi2) const;
+  bool covIsPosDef(Eigen::Matrix<double,6,6>& cov) const;
+  void repairCovariance(Eigen::Matrix<double,6,6>& cov) const;
   bool checknan(double val, const std::string &msg, int num) const;
   double get_Bz(double x, double y, double z) const;
   void CircleFitByTaubin(const std::vector<std::pair<double,double>>& pts, double &R, double &X0, double &Y0) const;
@@ -59,6 +61,8 @@ class ALICEKF
   void line_fit(const std::vector<std::pair<double,double>>& pts, double& a, double& b) const;
   std::vector<double> GetCircleClusterResiduals(const std::vector<std::pair<double,double>>& pts, double R, double X0, double Y0) const;
   std::vector<double> GetLineClusterResiduals(const std::vector<std::pair<double,double>>& pts, double A, double B) const; 
+  double get_Bzconst() const { return _Bzconst; }
+
   private:
   PHField* _B = nullptr;
   size_t _min_clusters_per_track = 20;

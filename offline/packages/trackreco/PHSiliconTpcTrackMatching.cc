@@ -7,11 +7,12 @@
 #include <trackbase/TrkrClusterv3.h>   
 #include <trackbase/TrkrClusterContainer.h>   
 #include <trackbase/TrkrClusterCrossingAssoc.h>   
-#include <trackbase_historic/SvtxTrack_v3.h>
-#include <trackbase_historic/SvtxTrackMap.h>
+
+#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeedContainer_v1.h>
+#include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/ActsTransformations.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4Particle.h>  // for PHG4Particle
@@ -22,11 +23,6 @@
 #include <phool/phool.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
-
-
-#if __cplusplus < 201402L
-#include <boost/make_unique.hpp>
-#endif
 
 #include <TF1.h>
 
@@ -42,9 +38,7 @@ using namespace std;
 //____________________________________________________________________________..
 PHSiliconTpcTrackMatching::PHSiliconTpcTrackMatching(const std::string &name):
   SubsysReco(name)
- , _track_map_name_silicon("SvtxSiliconTrackMap")
 {
-  //cout << "PHSiliconTpcTrackMatching::PHSiliconTpcTrackMatching(const std::string &name) Calling ctor" << endl;
 }
 
 //____________________________________________________________________________..
@@ -78,7 +72,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   _z_mismatch_map.clear();
 
   if(Verbosity() > 0)
-    cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << endl;
+    cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << " full seed track map size " << _svtx_seed_map->size() << endl;
 
   if(_track_map->size() == 0)
     return Fun4AllReturnCodes::EVENT_OK;
@@ -90,12 +84,13 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
 	   phtrk_iter_si != _track_map_silicon->end(); 
 	   ++phtrk_iter_si)
 	{
-	  _tracklet_si = phtrk_iter_si->second;	  
-	  
-	  double si_phi = atan2(_tracklet_si->get_py(), _tracklet_si->get_px());
+	  _tracklet_si = *phtrk_iter_si;	  
+	  if(!_tracklet_si) 
+	    { continue; }
+	  double si_phi = _tracklet_si->get_phi(_cluster_map,_surfmaps,_tGeometry);
 	  double si_eta = _tracklet_si->get_eta();
 	  
-	  cout << " Si track " << _tracklet_si->get_id()  << " si_phi " << si_phi  << " si_eta " << si_eta << endl;
+	  cout << " Si track " << _track_map_silicon->index(phtrk_iter_si) << " si_phi " << si_phi  << " si_eta " << si_eta << endl;
 	  std::vector<short int> intt_crossings = getInttCrossings(_tracklet_si);
 	  std::cout << "      intt_crossings length " << intt_crossings.size() << std::endl;
 	}  
@@ -154,12 +149,17 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   */
   
   if(Verbosity() > 0)  
-    cout << " Final track map size " << _track_map->size() 
+    { 
+      cout << " Final track map size " << _track_map->size() 
 	 << " seed-track map size " << _seed_track_map->size() << endl;
-  
-  if (Verbosity() > 0)
-    cout << "PHSiliconTpcTrackMatching::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;  
-  
+      
+      std::cout << "final svtx seed map size " << _svtx_seed_map->size() << std::endl;
+      for(const auto& seed : *_svtx_seed_map)
+	seed->identify();
+
+      cout << "PHSiliconTpcTrackMatching::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;  
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 
  }
@@ -182,19 +182,51 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _track_map_silicon = findNode::getClass<SvtxTrackMap>(topNode, _silicon_track_map_name);
+  _track_map_silicon = findNode::getClass<TrackSeedContainer>(topNode, _silicon_track_map_name);
   if (!_track_map_silicon)
   {
     cerr << PHWHERE << " ERROR: Can't find SvtxSiliconTrackMap: " << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
+  _track_map = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
   if (!_track_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap " << endl;
+    cerr << PHWHERE << " ERROR: Can't find " << _track_map_name.c_str() << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  _svtx_seed_map = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+  if(!_svtx_seed_map)
+    {
+      std::cout << "Creating node SvtxTrackSeedContainer" << std::endl;
+        /// Get the DST Node
+      PHNodeIterator iter(topNode);
+      PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  
+      /// Check that it is there
+      if (!dstNode)
+	{
+	  std::cerr << "DST Node missing, quitting" << std::endl;
+	  throw std::runtime_error("failed to find DST node in PHActsSourceLinks::createNodes");
+	}
+
+      /// Get the tracking subnode
+      PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+      
+      /// Check that it is there
+      if (!svtxNode)
+	{
+	  svtxNode = new PHCompositeNode("SVTX");
+	  dstNode->addNode(svtxNode);
+	}
+      
+      _svtx_seed_map = new TrackSeedContainer_v1();
+      PHIODataNode<PHObject> *node
+	= new PHIODataNode<PHObject>(_svtx_seed_map, "SvtxTrackSeedContainer","PHObject");
+      svtxNode->addNode(node);
+
+    }
 
    _seed_track_map  = findNode::getClass<TpcSeedTrackMap>(topNode, _tpcseed_track_map_name);
   if(!_seed_track_map)
@@ -267,13 +299,13 @@ double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_m
   double z_bunch_separation = (crossing_period/1000.0) * vdrift;  // 106 ns bunch crossing interval, as in pileup generator
 
   // The sign of z_mismatch will depend on which side of the TPC the tracklet is in
-  SvtxTrack *track = _track_map->get(trid);
+  TrackSeed *track = _track_map->get(trid);
 
   double crossings = z_mismatch / z_bunch_separation;
 
   // Check the TPC side for the first cluster in the track
   unsigned int side = 10;
-  for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
+  for (TrackSeed::ConstClusterKeyIter iter = track->begin_cluster_keys();
        iter != track->end_cluster_keys();
        ++iter)
     {
@@ -342,36 +374,18 @@ void PHSiliconTpcTrackMatching::addSiliconClusters( std::multimap<unsigned int, 
   for(auto it = tpc_matches.begin(); it != tpc_matches.end(); ++it)
     {
       unsigned int tpcid = it->first;
-      SvtxTrack *tpc_track = _track_map->get(tpcid);
-      if(Verbosity() > 1) std::cout << "  tpcid " << tpcid << " original z " << tpc_track->get_z() << std::endl;
+      if(Verbosity() > 1) std::cout << "  tpcid " << tpcid << " original z " << _track_map->get(tpcid)->get_z() << std::endl;
       
       // add the silicon cluster keys to the track
       unsigned int si_id = it->second;
-      SvtxTrack *si_track = _track_map_silicon->get(si_id);
+     
+      auto svtxseed = std::make_unique<SvtxTrackSeed_v1>();
+      svtxseed->set_silicon_seed_index(si_id);
+      svtxseed->set_tpc_seed_index(tpcid);
+      _svtx_seed_map->insert(svtxseed.get());
+
       if(Verbosity() > 1) std::cout << "  si track id " << si_id << std::endl;
-      for (SvtxTrack::ConstClusterKeyIter si_iter = si_track->begin_cluster_keys();
-	   si_iter != si_track->end_cluster_keys();
-	   ++si_iter)
-	{
-	  TrkrDefs::cluskey si_cluster_key = *si_iter;
-	  
-	  if(Verbosity() > 1) 
-	    cout << "   inserting si cluster key " << si_cluster_key << " into existing TPC track " << tpc_track->get_id() << endl;
-	  
-	  tpc_track->insert_cluster_key(si_cluster_key);	  
-	}
-
-      // update the track position to the si one
-      tpc_track->set_x(si_track->get_x());
-      tpc_track->set_y(si_track->get_y());
-      tpc_track->set_z(si_track->get_z());
-      
-      if(Verbosity() > 2)
-	std::cout << " TPC seed track ID " << tpc_track->get_id() << " si track id " << si_track->get_id()
-		  << " new nclus " << tpc_track->size_cluster_keys() << std::endl;
-
-      if(Verbosity() > 2)
-	tpc_track->identify(); 
+     
     }
 
   return;
@@ -384,74 +398,57 @@ void PHSiliconTpcTrackMatching::addSiliconClusters( std::multimap<short int, std
   for(auto it = crossing_matches.begin(); it != crossing_matches.end(); ++it)
     {
       unsigned int tpcid = it->second.first;
-      SvtxTrack *tpc_track = _track_map->get(tpcid);
-      if(Verbosity() > 1) std::cout << "  tpcid " << tpcid << " original z " << tpc_track->get_z() << std::endl;
+      if(Verbosity() > 1) std::cout << "  tpcid " << tpcid << " original z " << _track_map->get(tpcid)->get_z() << std::endl;
       
       // add the silicon cluster keys to the track
       unsigned int si_id = it->second.second;
-      SvtxTrack *si_track = _track_map_silicon->get(si_id);
       if(Verbosity() > 1) std::cout << "  si track id " << si_id << std::endl;
-      for (SvtxTrack::ConstClusterKeyIter si_iter = si_track->begin_cluster_keys();
-	   si_iter != si_track->end_cluster_keys();
-	   ++si_iter)
-	{
-	  TrkrDefs::cluskey si_cluster_key = *si_iter;
-	  
-	  if(Verbosity() > 1) 
-	    cout << "   inserting si cluster key " << si_cluster_key << " into existing TPC track " << tpc_track->get_id() << endl;
-	  
-	  tpc_track->insert_cluster_key(si_cluster_key);
-	  
-	}
-
-      // update the track position to the si one
-      tpc_track->set_x(si_track->get_x());
-      tpc_track->set_y(si_track->get_y());
-      tpc_track->set_z(si_track->get_z());
+    
+      auto seed = std::make_unique<SvtxTrackSeed_v1>();
+      seed->set_silicon_seed_index(si_id);
+      seed->set_tpc_seed_index(tpcid);
+      _svtx_seed_map->insert(seed.get());
       
-      if(Verbosity() > 2)
-	std::cout << " TPC seed track ID " << tpc_track->get_id() << " si track id " << si_track->get_id()
-		  << " new nclus " << tpc_track->size_cluster_keys() << std::endl;
-
-      if(Verbosity() > 2)
-	tpc_track->identify();      
     }
   
   return;
 }	  
 
 void PHSiliconTpcTrackMatching::findEtaPhiMatches(  
-						  std::set<unsigned int> &tpc_matched_set,
-						  std::multimap<unsigned int, unsigned int> &tpc_matches )
+		        std::set<unsigned int> &tpc_matched_set,
+			std::multimap<unsigned int, unsigned int> &tpc_matches )
 {
   // loop over the original TPC tracks
-  for (auto phtrk_iter = _track_map->begin();
-       phtrk_iter != _track_map->end(); 
+  for (unsigned int phtrk_iter = 0;
+       phtrk_iter < _track_map->size();
        ++phtrk_iter)
     {
       // we may add tracks to the map, so we stop at the last original track
       
-      _tracklet_tpc = phtrk_iter->second;
+      _tracklet_tpc = _track_map->get(phtrk_iter);
+      if(!_tracklet_tpc) 
+	{ continue; }
       
+      unsigned int tpcid = phtrk_iter;
       if (Verbosity() > 1)
 	{
 	  std::cout
 	    << __LINE__
-	    << ": Processing seed itrack: " << phtrk_iter->first
+	    << ": Processing seed itrack: " << tpcid
 	    << ": nhits: " << _tracklet_tpc-> size_cluster_keys()
 	    << ": Total tracks: " << _track_map->size()
-	    << ": phi: " << _tracklet_tpc->get_phi()
+	    << ": phi: " << _tracklet_tpc->get_phi(_cluster_map,_surfmaps,_tGeometry)
 	    << endl;
 	}
 
       // This will always end up as a final track, no matter what - add it to the seed-track-map
       if(Verbosity() > 1) 
-	std::cout << " TPC seed ID " << _tracklet_tpc->get_id() << " original nclus " << _tracklet_tpc->size_cluster_keys() << std::endl;
-      _seed_track_map->addAssoc(_tracklet_tpc->get_id(), _tracklet_tpc->get_id());
-
-      double tpc_phi = atan2(_tracklet_tpc->get_py(), _tracklet_tpc->get_px());
+	std::cout << " TPC seed ID " << tpcid << " original nclus " << _tracklet_tpc->size_cluster_keys() << std::endl;
+      _seed_track_map->addAssoc(tpcid, tpcid);
+   
+      double tpc_phi = _tracklet_tpc->get_phi(_cluster_map,_surfmaps,_tGeometry);
       double tpc_eta = _tracklet_tpc->get_eta();
-      double tpc_pt = sqrt( pow(_tracklet_tpc->get_px(),2) + pow(_tracklet_tpc->get_py(),2) );
+      double tpc_pt = _tracklet_tpc->get_pt();
 
       /*
       // phi correction for PHTpcTracker tracklets is charge dependent
@@ -486,14 +483,20 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       double tpc_y = _tracklet_tpc->get_y();
       double tpc_z = _tracklet_tpc->get_z();
 
+      bool silicon_match = false;
+
       // Now search the silicon track list for a match in eta and phi
-      for (auto phtrk_iter_si = _track_map_silicon->begin();
-	   phtrk_iter_si != _track_map_silicon->end(); 
+      for (unsigned int phtrk_iter_si = 0;
+	   phtrk_iter_si < _track_map_silicon->size(); 
 	   ++phtrk_iter_si)
 	{
-	  _tracklet_si = phtrk_iter_si->second;	  
+	  _tracklet_si = _track_map_silicon->get(phtrk_iter_si);	  
+	  if(!_tracklet_si)
+	    { continue; }
 
-	  double si_phi = atan2(_tracklet_si->get_py(), _tracklet_si->get_px());
+	  unsigned int siid = phtrk_iter_si;
+
+	  double si_phi = _tracklet_si->get_phi(_cluster_map,_surfmaps,_tGeometry);
 	  double si_eta = _tracklet_si->get_eta();
 	  double si_x = _tracklet_si->get_x();
 	  double si_y = _tracklet_si->get_y();
@@ -501,8 +504,8 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
 	  if(Verbosity() > 2)
 	    {
-	      cout << " testing for a match for TPC track " << _tracklet_tpc->get_id() << " with pT " << _tracklet_tpc->get_pt() 
-		   << " and eta " << _tracklet_tpc->get_eta() << " with Si track " << _tracklet_si->get_id() << endl;	  
+	      cout << " testing for a match for TPC track " << tpcid << " with pT " << _tracklet_tpc->get_pt() 
+		   << " and eta " << _tracklet_tpc->get_eta() << " with Si track " << siid << endl;	  
 	      cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " <<   tpc_phi-si_phi << " phi search " << _phi_search_win*mag  << " tpc_eta " << tpc_eta 
 		   << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << " eta search " << _eta_search_win*mag << endl;
 	      std::cout << "      tpc x " << tpc_x << " si x " << si_x << " tpc y " << tpc_y << " si y " << si_y << " tpc_z " << tpc_z  << " si z " << si_z << std::endl;
@@ -537,12 +540,14 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	    {
 	      // got a match, add to the list
 	      // These stubs are matched in eta, phi, x and y already
-	      tpc_matches.insert(std::make_pair(_tracklet_tpc->get_id(), _tracklet_si->get_id()));
-	      tpc_matched_set.insert(_tracklet_tpc->get_id());
+	      tpc_matches.insert(std::make_pair(tpcid, siid));
+	      tpc_matched_set.insert(tpcid);
+
+	      silicon_match = true;
 
 	      if(Verbosity() > 1)  
 		{
-		  cout << " found a match for TPC track " << _tracklet_tpc->get_id() << " with Si track " << _tracklet_si->get_id() << endl;
+		  cout << " found a match for TPC track " << tpcid << " with Si track " << siid << endl;
 		  cout << "          tpc_phi " << tpc_phi << " si_phi " <<  si_phi << " phi_match " << phi_match 
 		       << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " eta_match " << eta_match << endl;
 		  std::cout << "      tpc x " << tpc_x << " si x " << si_x << " tpc y " << tpc_y << " si y " << si_y << " tpc_z " << tpc_z  << " si z " << si_z << std::endl;
@@ -555,6 +560,17 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 		     << " dx " << tpc_x - si_x << " dy " << tpc_y - si_y << " dz " << tpc_z - si_z  
 		     << endl;
 	    }
+	}
+      if(!silicon_match)
+	{
+	  /// If no match found, we still want to add a SvtxTrackSeed to 
+	  /// the new SvtxTrackSeedContainer
+	  auto newseed = std::make_unique<SvtxTrackSeed_v1>();
+	  newseed->set_tpc_seed_index(tpcid);
+	  if(!_pp_mode)
+	    { _tracklet_tpc->set_crossing(0); }
+	  _svtx_seed_map->insert(newseed.get());
+	    
 	}
     }
   
@@ -582,39 +598,22 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
 	  unsigned int si_id = it->second;	  
 	  auto this_track = _track_map->get(tpcid);
-	  auto newTrack = std::make_unique<SvtxTrack_v3>();
-	  const unsigned int lastTrackKey =  _track_map->empty() ? 0:std::prev(_track_map->end())->first; 
+	  auto newTrack = std::make_unique<TrackSeed_v1>();
+	  const unsigned int lastTrackKey =  _track_map->empty() ? 0 : _track_map->size() - 1; 
 	  if(Verbosity() > 1) 
 	    cout << "Extra match, add a new track to node tree with key " <<  lastTrackKey + 1 << endl;
 
-	  newTrack->set_id(lastTrackKey+1);
-
-	  newTrack->set_x(this_track->get_x());
-	  newTrack->set_y(this_track->get_y());
-	  newTrack->set_z(this_track->get_z());
+	  newTrack->set_X0(this_track->get_X0());
+	  newTrack->set_Y0(this_track->get_Y0());
+	  newTrack->set_Z0(this_track->get_Z0());
 	  
-	  newTrack->set_charge(this_track->get_charge());
-
-	  newTrack->set_px(this_track->get_px());
-	  newTrack->set_py(this_track->get_py());
-	  newTrack->set_pz(this_track->get_pz());
-
-	  newTrack->set_chisq(this_track->get_chisq());
-	  newTrack->set_ndf(this_track->get_ndf());
-	  
-	  for(int i = 0; i < 6; ++i)
-	    {
-	      for(int j = 0; j < 6; ++j)
-		{
-		  newTrack->set_error(i,j, this_track->get_error(i,j));
-		}
-	    }
-
-
-	  _seed_track_map->addAssoc(this_track->get_id(), newTrack->get_id());
-	  
+	  newTrack->set_qOverR(this_track->get_qOverR());
+	  newTrack->set_slope(this_track->get_slope());
+	  unsigned int newtrackkey = lastTrackKey+1;
+	  _seed_track_map->addAssoc(tpcid, newtrackkey);
+	 
 	  // loop over associated clusters to get hits for TPC only, add to new track copy
-	  for (SvtxTrack::ConstClusterKeyIter iter = this_track->begin_cluster_keys();
+	  for (TrackSeed::ConstClusterKeyIter iter = this_track->begin_cluster_keys();
 	       iter != this_track->end_cluster_keys();
 	       ++iter)
 	    {
@@ -626,14 +625,14 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 		}
 	    }
 	  
-	  if(Verbosity() > 1)  cout << "  -- inserting new track with id " << newTrack->get_id() << " from TPC tracklet " << tpcid << " into trackmap " << endl;
+	  if(Verbosity() > 1)  cout << "  -- inserting new track with id " << newtrackkey << " from TPC tracklet " << tpcid << " into trackmap " << endl;
 	  _track_map->insert(newTrack.get());
 
 	  // add a map named remove_tpc_matches so we can remove old matches with the same tpc id
 	  remove_tpc_matches.insert(std::make_pair(tpcid, si_id));
 
-	  additional_tpc_matches.insert(std::make_pair(newTrack->get_id(), si_id));
-	  additional_tpc_matched_set.insert(newTrack->get_id());	  
+	  additional_tpc_matches.insert(std::make_pair(newtrackkey, si_id));
+	  additional_tpc_matched_set.insert(newtrackkey);	  
 	}   
     }
 
@@ -673,11 +672,11 @@ void PHSiliconTpcTrackMatching::tagInTimeTracks(
 
   for(auto [tpcid, si_id] : tpc_matches)
     {
-      SvtxTrack *tpc_track = _track_map->get(tpcid);
+      TrackSeed *tpc_track = _track_map->get(tpcid);
       double tpc_z = tpc_track->get_z();
       double tpc_pt = tpc_track->get_pt();
 
-      SvtxTrack *si_track =_track_map_silicon->get(si_id);
+      TrackSeed *si_track =_track_map_silicon->get(si_id);
       double si_z = si_track->get_z();
 
       // this factor will increase the window size at low pT
@@ -692,13 +691,13 @@ void PHSiliconTpcTrackMatching::tagInTimeTracks(
 	{
 	  //track from  triggered event
 	  int crossing = 0;
-	  crossing_matches.insert(std::make_pair(crossing,std::make_pair(tpc_track->get_id(), si_track->get_id())));
-	  tpc_crossing_map.insert(std::make_pair(tpc_track->get_id(), crossing));
+	  crossing_matches.insert(std::make_pair(crossing,std::make_pair(tpcid, si_id)));
+	  tpc_crossing_map.insert(std::make_pair(tpcid, crossing));
 	  if(Verbosity() > 1)
-	    std::cout << " triggered: tpc_trackid " << tpc_track->get_id() 
+	    std::cout << " triggered: tpc_trackid " << tpcid
 		      << " eta " << tpc_track->get_eta()
 		      << " pT " << tpc_track->get_pt() 
-		      << " si_trackid " << si_track->get_id() 
+		      << " si_trackid " << si_id 
 		      << " z_tpc " << tpc_track->get_z() 
 		      << " z_si " << si_track->get_z() 
 		      << " crossing " << crossing 
@@ -716,22 +715,21 @@ void PHSiliconTpcTrackMatching::tagMatchCrossing(
 
   for(auto [tpcid, si_id] : tpc_matches)
     {
-      SvtxTrack *tpc_track = _track_map->get(tpcid);
+      TrackSeed *tpc_track = _track_map->get(tpcid);
       double tpc_z = tpc_track->get_z();
-      //double tpc_pt = tpc_track->get_pt();
 
-      SvtxTrack *si_track =_track_map_silicon->get(si_id);
+      TrackSeed *si_track =_track_map_silicon->get(si_id);
       double si_z = si_track->get_z();
 
       // this is an initial estimate of the bunch crossing based on the z-mismatch for this track
-      short int crossing = (short int) getBunchCrossing(tpc_track->get_id(), tpc_z - si_z);
-      crossing_matches.insert(std::make_pair(crossing,std::make_pair(tpc_track->get_id(), si_track->get_id())));
-      tpc_crossing_map.insert(std::make_pair(tpc_track->get_id(), crossing));
+      short int crossing = (short int) getBunchCrossing(tpcid, tpc_z - si_z);
+      crossing_matches.insert(std::make_pair(crossing,std::make_pair(tpcid, si_id)));
+      tpc_crossing_map.insert(std::make_pair(tpcid, crossing));
       if(Verbosity() > 1)
-	std::cout << " pileup: tpc_trackid " << tpc_track->get_id() 
+	std::cout << " pileup: tpc_trackid " << tpcid
 		  << " eta " << tpc_track->get_eta()
 		  << " pT " << tpc_track->get_pt() 
-		  << " si_trackid " << si_track->get_id() 
+		  << " si_trackid " << si_id
 		  << " z_tpc " << tpc_track->get_z() 
 		  << " z_si " << si_track->get_z() 
 		  << " crossing " << crossing 
@@ -747,7 +745,7 @@ void PHSiliconTpcTrackMatching::copySiliconClustersToCorrectedMap( )
   // loop over final track map, copy silicon clusters to corrected cluster map
   for( auto track_iter = _track_map->begin(); track_iter != _track_map->end(); ++track_iter )
   {
-    SvtxTrack* track = track_iter->second;
+    TrackSeed* track = *track_iter;
     // loop over associated clusters to get keys for micromegas cluster
     for(auto iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
     {
@@ -783,16 +781,14 @@ void PHSiliconTpcTrackMatching::getMatchCrossingIntt(
 
   for(auto [tpcid, si_id] : tpc_matches)
     {
-      SvtxTrack *tpc_track = _track_map->get(tpcid);
-      SvtxTrack *si_track =_track_map_silicon->get(si_id);
+      TrackSeed *si_track =_track_map_silicon->get(si_id);
 
       if(Verbosity() > 0) 
-	std::cout << "TPC track " << tpc_track->get_id() << " si track " << si_track->get_id() << std::endl;
+	std::cout << "TPC track " << tpcid << " si track " << si_id << std::endl;
 
       // If the Si track contains an INTT hit, use it to get the bunch crossing offset
 
       std::vector<short int> intt_crossings = getInttCrossings(si_track);      
-
 
       bool keep_it = true;
       short int crossing_keep = 0;
@@ -818,8 +814,8 @@ void PHSiliconTpcTrackMatching::getMatchCrossingIntt(
       
       if(keep_it)
 	{            
-	  crossing_matches.insert(std::make_pair(crossing_keep,std::make_pair(tpc_track->get_id(), si_track->get_id())));
-	  tpc_crossing_map.insert(std::make_pair(tpc_track->get_id(), crossing_keep));
+	  crossing_matches.insert(std::make_pair(crossing_keep,std::make_pair(tpcid, si_id)));
+	  tpc_crossing_map.insert(std::make_pair(tpcid, crossing_keep));
 	  
 	  if(Verbosity() > 0) 
 	    std::cout << "                    tpc track " << tpcid << " si Track " << si_id << " final crossing " << crossing_keep  << std::endl;           
@@ -837,7 +833,7 @@ void PHSiliconTpcTrackMatching::addTrackBunchCrossing( std::map<unsigned int, sh
      if(Verbosity() > 1) 
       std::cout << PHWHERE << "  Add bunch crossing to track " << tpcid << " crossing " << crossing << std::endl;		  
 
-       SvtxTrack *tpc_track = _track_map->get(tpcid);
+       TrackSeed *tpc_track = _track_map->get(tpcid);
        tpc_track->set_crossing(crossing);
     }
   return;
@@ -853,7 +849,8 @@ void PHSiliconTpcTrackMatching::addTrackBunchCrossing(std::multimap<unsigned int
     {
       short int crossing = 0;
 
-       SvtxTrack *tpc_track = _track_map->get(tpcid);
+       TrackSeed *tpc_track = _track_map->get(tpcid);
+       TrackSeed *si_track = _track_map_silicon->get(si_id);
        if(!tpc_track)
 	 {
 	   std::cout << PHWHERE << "Did not find track " << tpcid << std::endl;
@@ -863,19 +860,20 @@ void PHSiliconTpcTrackMatching::addTrackBunchCrossing(std::multimap<unsigned int
        if(Verbosity() > 1) 
 	 std::cout << PHWHERE << "  Add bunch crossing to track " << tpcid << " crossing " << crossing << std::endl;		  
        
+       si_track->set_crossing(crossing);
        tpc_track->set_crossing(crossing);	 
     }
 
   return;
 }
 
-std::vector<short int> PHSiliconTpcTrackMatching::getInttCrossings(SvtxTrack *si_track)
+std::vector<short int> PHSiliconTpcTrackMatching::getInttCrossings(TrackSeed *si_track)
 {
   std::vector<short int> intt_crossings;
 
   // If the Si track contains an INTT hit, use it to get the bunch crossing offset
   // loop over associated clusters to get keys for silicon cluster
-  for (SvtxTrack::ConstClusterKeyIter iter = si_track->begin_cluster_keys();
+  for (TrackSeed::ConstClusterKeyIter iter = si_track->begin_cluster_keys();
        iter != si_track->end_cluster_keys();
        ++iter)
     {
@@ -894,7 +892,7 @@ std::vector<short int> PHSiliconTpcTrackMatching::getInttCrossings(SvtxTrack *si
 	  for(auto iter = crossings.first; iter != crossings.second; ++iter)
 	    {
 	      if(Verbosity() > 1) 
-		std::cout << "      si Track " << si_track->get_id() << " cluster " << iter->first << " layer " << layer << " crossing " << iter->second  << std::endl;
+		std::cout << "      si Track " << _track_map_silicon->find(si_track) << " cluster " << iter->first << " layer " << layer << " crossing " << iter->second  << std::endl;
 	      intt_crossings.push_back(iter->second);
 	    }
 	}
@@ -919,10 +917,10 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<short int, s
       short int crossing = it->first;
 
       unsigned int tpcid = it->second.first;
-      SvtxTrack *tpc_track = _track_map->get(tpcid);
+      TrackSeed *tpc_track = _track_map->get(tpcid);
       
       unsigned int si_id = it->second.second;
-      SvtxTrack *si_track = _track_map_silicon->get(si_id);
+      TrackSeed *si_track = _track_map_silicon->get(si_id);
 
       float tpc_eta = tpc_track->get_eta();
       float si_eta = si_track->get_eta();
@@ -953,7 +951,7 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<short int, s
 	  if(make_crossing_guess)
 	    {
 	      // substitute a crossing estimate from the z_mismatch
-	      short int crossing_guess = (short int) getBunchCrossing(tpc_track->get_id(), z_mismatch);
+	      short int crossing_guess = (short int) getBunchCrossing(tpcid, z_mismatch);
 	      
 	      if(Verbosity() > 0) std::cout << "         substitute crossing guess " << crossing_guess << " for crossing " << crossing << std::endl; 	      
 	      good_map.insert(std::make_pair(crossing_guess, std::make_pair(tpcid, si_id)));

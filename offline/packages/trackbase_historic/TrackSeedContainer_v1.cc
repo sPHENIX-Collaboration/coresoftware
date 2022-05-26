@@ -55,16 +55,14 @@ void TrackSeedContainer_v1::identify(std::ostream& os) const
 
 const TrackSeed* TrackSeedContainer_v1::get(const std::size_t key) const
 {
-  ConstIter iter = m_seeds.begin() + key;
-  if(iter == m_seeds.end()) { return nullptr; }
-  return *iter;
+  if(key > m_seeds.size()) { return nullptr; }
+  return m_seeds.at(key);
 }
 
 TrackSeed* TrackSeedContainer_v1::get(const std::size_t key) 
 {
-  Iter iter = m_seeds.begin() + key;
-  if(iter == m_seeds.end()) { return nullptr; }
-  return *iter;
+  if(key > m_seeds.size()) { return nullptr; }
+  return m_seeds.at(key);
 }
 
 TrackSeed* TrackSeedContainer_v1::insert(const TrackSeed* seed)
@@ -72,4 +70,16 @@ TrackSeed* TrackSeedContainer_v1::insert(const TrackSeed* seed)
   m_seeds.push_back(dynamic_cast<TrackSeed*>(seed->CloneMe()));
   Iter iter = m_seeds.end() - 1;
   return *iter;
+}
+
+std::size_t TrackSeedContainer_v1::find(const TrackSeed* seed) const
+{
+  auto it = std::find(m_seeds.begin(), m_seeds.end(), seed);
+  return std::distance(m_seeds.begin(), it);
+}
+
+std::size_t TrackSeedContainer_v1::find(const TrackSeed* seed) 
+{
+  auto it = std::find(m_seeds.begin(), m_seeds.end(), seed);
+  return std::distance(m_seeds.begin(), it);
 }

@@ -17,6 +17,7 @@ class TpcClusterMover
   //! constructor
   TpcClusterMover();
 
+  void set_verbosity(int verb) { _verbosity = verb; }
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> processTrack(std::vector<std::pair<TrkrDefs::cluskey,Acts::Vector3>> global_in );
   void CircleFitByTaubin (std::vector<Acts::Vector3> clusters, double &R, double &X0, double &Y0);
   void  line_fit(std::vector<Acts::Vector3> clusters, double &a, double &b);
@@ -41,6 +42,7 @@ class TpcClusterMover
   double mid_tpc_spacing = 0.0;
   double outer_tpc_spacing = 0.0;
 
+  int _verbosity = 0;
 };
 
 #endif

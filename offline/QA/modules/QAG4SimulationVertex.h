@@ -15,6 +15,7 @@ class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
+class TrackSeed;
 
 class QAG4SimulationVertex : public SubsysReco
 {

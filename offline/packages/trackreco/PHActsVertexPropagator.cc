@@ -157,73 +157,11 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
       for(int i = 0; i < 3; i++) {
 	for(int j = 0; j < 3; j++) {
 	  track->set_error(i,j, rotatedCov(i,j));
-	  if(i < 2 and j < 2)
-	    { track->set_acts_covariance(i,j, params.covariance().value()(i,j)); }
 	}
       }
     }
-
-  updateTrackDCA(track);
-
 }
 
-void PHActsVertexPropagator::updateTrackDCA(SvtxTrack* track)
-{
-  Acts::Vector3 pos(track->get_x(),
-		    track->get_y(),
-		    track->get_z());
-  Acts::Vector3 mom(track->get_px(),
-		    track->get_py(),
-		    track->get_pz());
-
-  auto vtxid = track->get_vertex_id();
-  auto svtxVertex = m_vertexMap->get(vtxid);
-  Acts::Vector3 vertex(svtxVertex->get_x(),
-		       svtxVertex->get_y(),
-		       svtxVertex->get_z());
-
-  pos -= vertex;
-
-  Acts::ActsSymMatrix<3> posCov;
-  for(int i = 0; i < 3; ++i)
-    {
-      for(int j = 0; j < 3; ++j)
-	{
-	  posCov(i, j) = track->get_error(i, j);
-	} 
-    }
-  
-  Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
-  float phi = atan2(r(1), r(0));
-  
-  Acts::RotationMatrix3 rot;
-  Acts::RotationMatrix3 rot_T;
-  rot(0,0) = cos(phi);
-  rot(0,1) = -sin(phi);
-  rot(0,2) = 0;
-  rot(1,0) = sin(phi);
-  rot(1,1) = cos(phi);
-  rot(1,2) = 0;
-  rot(2,0) = 0;
-  rot(2,1) = 0;
-  rot(2,2) = 1;
-  
-  rot_T = rot.transpose();
-
-  Acts::Vector3 pos_R = rot * pos;
-  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
-
-  const auto dca3Dxy = pos_R(0);
-  const auto dca3Dz = pos_R(2);
-  const auto dca3DxyCov = rotCov(0,0);
-  const auto dca3DzCov = rotCov(2,2);
-
-  track->set_dca3d_xy(dca3Dxy);
-  track->set_dca3d_z(dca3Dz);
-  track->set_dca3d_xy_error(sqrt(dca3DxyCov));
-  track->set_dca3d_z_error(sqrt(dca3DzCov));
-
-}
 BoundTrackParamPtrResult PHActsVertexPropagator::propagateTrack(
 		         const Acts::BoundTrackParameters& params,
 			 const unsigned int vtxid)
