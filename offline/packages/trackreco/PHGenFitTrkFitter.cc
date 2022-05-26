@@ -148,6 +148,18 @@ namespace {
 
   }
 
+  //! get cluster keys from a given track
+  std::vector<TrkrDefs::cluskey> get_cluster_keys( const SvtxTrack* track )
+  {
+    std::vector<TrkrDefs::cluskey> out;
+    for( const auto& seed: { track->get_silicon_seed(), track->get_tpc_seed() } )
+    {
+      if( seed )
+      { std::copy( seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter( out ) ); }
+    }
+    return out;
+  }
+
 }
 
 /*
@@ -928,10 +940,10 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   // sort clusters with radius before fitting
   if(Verbosity() > 10)   intrack->identify();
   std::map<float, TrkrDefs::cluskey> m_r_cluster_id;
-  for (auto iter = intrack->begin_cluster_keys();
-       iter != intrack->end_cluster_keys(); ++iter){
-    TrkrDefs::cluskey cluster_key = *iter;
-    TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
+  for( const auto& cluster_key:get_cluster_keys( intrack ) )
+  {
+    
+    const auto cluster = _clustermap->findCluster(cluster_key);
 
     // get global position
     const auto globalPosition = getGlobalPosition( cluster_key, cluster );
@@ -1380,12 +1392,10 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   {
 
     unsigned int id_min = 0;
-    for (auto iter = svtx_track->begin_cluster_keys(); iter != svtx_track->end_cluster_keys(); ++iter)
+    for( const auto& cluster_key:get_cluster_keys( svtx_track ) )
     {
-
-      auto cluster_key = *iter;
-      auto cluster = _clustermap->findCluster(cluster_key);
-      const int layer = TrkrDefs::getLayer(cluster_key);
+      const auto cluster = _clustermap->findCluster(cluster_key);
+      const auto layer = TrkrDefs::getLayer(cluster_key);
 
       // skip enabled layers
       if( _disabled_layers.find( layer ) == _disabled_layers.end() )
