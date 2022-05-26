@@ -13,6 +13,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <string>  // for string
 #include <vector>
+#include <memory>
 #include <gsl/gsl_rng.h>
 
 // forward declarations
