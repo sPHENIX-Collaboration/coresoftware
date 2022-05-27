@@ -109,8 +109,9 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   //! minimal truth momentum cut (GeV)
   double _min_momentum = 50e-3;
 
-  TrackSeedContainer *_tpc_seeds = nullptr;
-  TrackSeedContainer *_silicon_seeds = nullptr;
+  TrackSeedContainer *_tpc_seed_map = nullptr;
+  TrackSeedContainer *_silicon_seed_map = nullptr;
+  TrackSeedContainer* _track_map;
 
   ActsTrackingGeometry *tgeometry = nullptr;
   ActsSurfaceMaps *surfmaps = nullptr;

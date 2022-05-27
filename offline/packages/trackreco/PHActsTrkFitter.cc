@@ -871,12 +871,8 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       track->identify();      
     }
 
-  std::cout << "Here 1" << std::endl;
-
   if(!m_fitSiliconMMs)
     { track->clear_states(); }
-
-  std::cout << "Here 2" << std::endl;
 
   // create a state at pathlength = 0.0
   // This state holds the track parameters, which will be updated below
@@ -887,28 +883,18 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   out.set_z(0.0);
   track->insert_state(&out);   
 
-  std::cout << "Here 3" << std::endl;
-
   auto trajState =
     Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
 
-  std::cout << "Here 3a" << std::endl;
- 
   const auto& params = traj.trackParameters(trackTip);
-
-  std::cout << "Here 3b" << std::endl;
 
   /// Acts default unit is mm. So convert to cm
   track->set_x(params.position(m_tGeometry->geoContext)(0)
 	       / Acts::UnitConstants::cm);
- std::cout << "Here 3c" << std::endl;
   track->set_y(params.position(m_tGeometry->geoContext)(1)
 	       / Acts::UnitConstants::cm);
- std::cout << "Here 3d" << std::endl;
   track->set_z(params.position(m_tGeometry->geoContext)(2)
 	       / Acts::UnitConstants::cm);
-
-  std::cout << "Here 4" << std::endl;
 
   track->set_px(params.momentum()(0));
   track->set_py(params.momentum()(1));
@@ -932,8 +918,6 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 	} 
     }
 
-  std::cout << "Here 5" << std::endl;
-
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
 
@@ -947,8 +931,6 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 				  m_tGeometry->geoContext);  
     }
 
-  std::cout << "Here 6" << std::endl;
-  
   trackStateTimer.stop();
   auto stateTime = trackStateTimer.get_accumulated_time();
   
