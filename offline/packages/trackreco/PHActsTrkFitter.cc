@@ -221,7 +221,20 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	{ std::cout << "tpc and si id " << tpcid << ", " << siid << std::endl; }
 
       /// A track seed is made for every tpc seed. Not every tpc seed
-      /// has a silicon match, so we have to treat these specially
+      /// has a silicon match, we skip those cases completely
+      if(siid == std::numeric_limits<unsigned int>::max()) 
+	{
+	  if(Verbosity() > 0) std::cout << "SvtxSeedTrack has no silicon match, skip it" << std::endl;
+	  continue;
+	}
+
+      // get the crossing number
+      TrackSeed *siseed = m_siliconSeeds->get(siid);
+      auto crossing = siseed->get_crossing();
+
+      // if the crossing was not determined, skip this case completely
+      if(crossing == SHRT_MAX) continue;
+
       TrackSeed *tpcseed = m_tpcSeeds->get(tpcid);
 
       /// Need to also check that the seed wasn't removed by the ghost finder
@@ -233,27 +246,17 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       trackTimer.restart();
       ActsExamples::MeasurementContainer measurements;
      
-      auto sourceLinks = getSourceLinks(tpcseed, measurements);
+      auto sourceLinks = getSourceLinks(tpcseed, measurements, crossing);
   
+      auto siSourceLinks = getSourceLinks(siseed, measurements, crossing);
+      for(auto& siSL : siSourceLinks)
+	{ sourceLinks.push_back(siSL); }
+
+      // position comes from the silicon seed
       Acts::Vector3 position(0,0,0);
-      if(siid != std::numeric_limits<unsigned int>::max())
-	{
-	  if(Verbosity() > 1)
-	    { std::cout << "si seed match found" << std::endl; }
-	  TrackSeed *siseed = m_siliconSeeds->get(siid);
-	  auto siSourceLinks = getSourceLinks(siseed, measurements);
-	  for(auto& siSL : siSourceLinks)
-	    { sourceLinks.push_back(siSL); }
-	  position(0) = siseed->get_x() * Acts::UnitConstants::cm;
-	  position(1) = siseed->get_y() * Acts::UnitConstants::cm;
-	  position(2) = siseed->get_z() * Acts::UnitConstants::cm;
-	}
-      else
-	{
-	  position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
-	  position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
-	  position(2) = tpcseed->get_z() * Acts::UnitConstants::cm;
-	}
+      position(0) = siseed->get_x() * Acts::UnitConstants::cm;
+      position(1) = siseed->get_y() * Acts::UnitConstants::cm;
+      position(2) = siseed->get_z() * Acts::UnitConstants::cm;
 
       if(sourceLinks.size() == 0) { continue; }
 
@@ -377,16 +380,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	      /// the ghost rejection finds the right track
 	      newTrack->set_id(tpcid);
 	      newTrack->set_tpc_seed(tpcseed);
-	      if(siid != std::numeric_limits<unsigned int>::max())
-		{ 
-		  newTrack->set_crossing(m_siliconSeeds->get(siid)->get_crossing());
-		  newTrack->set_silicon_seed(m_siliconSeeds->get(siid));
-		}
-	      else
-		{
-		  newTrack->set_crossing(tpcseed->get_crossing());
-		}
-
+	      newTrack->set_crossing(m_siliconSeeds->get(siid)->get_crossing());
+	      newTrack->set_silicon_seed(m_siliconSeeds->get(siid));
+	
 	      if( getTrackFitResult(fitOutput, newTrack))
 		{ m_trackMap->insertWithKey(newTrack.get(), tpcid); }
 	    }
@@ -500,12 +496,12 @@ Surface PHActsTrkFitter::getMMSurface(TrkrDefs::hitsetkey hitsetkey) const
 
 //___________________________________________________________________________________
 SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
-				   ActsExamples::MeasurementContainer& measurements)
+					      ActsExamples::MeasurementContainer& measurements,
+				   short int crossing )
 {
 
   SourceLinkVec sourcelinks;
 
-  short int crossing = track->get_crossing();
   if(crossing == SHRT_MAX) 
     { return sourcelinks; }
 
@@ -872,12 +868,15 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   if(Verbosity() > 2)
     {
       std::cout << "Identify (proto) track before updating with acts results " << std::endl;
-      track->identify();
-      std::cout << " cluster keys size " << track->size_cluster_keys() << std::endl;  
+      track->identify();      
     }
+
+  std::cout << "Here 1" << std::endl;
 
   if(!m_fitSiliconMMs)
     { track->clear_states(); }
+
+  std::cout << "Here 2" << std::endl;
 
   // create a state at pathlength = 0.0
   // This state holds the track parameters, which will be updated below
@@ -888,18 +887,28 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   out.set_z(0.0);
   track->insert_state(&out);   
 
+  std::cout << "Here 3" << std::endl;
+
   auto trajState =
     Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
+
+  std::cout << "Here 3a" << std::endl;
  
   const auto& params = traj.trackParameters(trackTip);
+
+  std::cout << "Here 3b" << std::endl;
 
   /// Acts default unit is mm. So convert to cm
   track->set_x(params.position(m_tGeometry->geoContext)(0)
 	       / Acts::UnitConstants::cm);
+ std::cout << "Here 3c" << std::endl;
   track->set_y(params.position(m_tGeometry->geoContext)(1)
 	       / Acts::UnitConstants::cm);
+ std::cout << "Here 3d" << std::endl;
   track->set_z(params.position(m_tGeometry->geoContext)(2)
 	       / Acts::UnitConstants::cm);
+
+  std::cout << "Here 4" << std::endl;
 
   track->set_px(params.momentum()(0));
   track->set_py(params.momentum()(1));
@@ -923,6 +932,8 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 	} 
     }
 
+  std::cout << "Here 5" << std::endl;
+
   // Also need to update the state list and cluster ID list for all measurements associated with the acts track  
   // loop over acts track states, copy over to SvtxTrackStates, and add to SvtxTrack
 
@@ -935,6 +946,8 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       rotater.fillSvtxTrackStates(mj, trackTip, track.get(),
 				  m_tGeometry->geoContext);  
     }
+
+  std::cout << "Here 6" << std::endl;
   
   trackStateTimer.stop();
   auto stateTime = trackStateTimer.get_accumulated_time();
@@ -951,8 +964,6 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       std::cout << " Identify fitted track after updating track states:" 
 		<< std::endl;
       track->identify();
-      std::cout << " cluster keys size " << track->size_cluster_keys() 
-		<< std::endl;  
     }
  
  return;

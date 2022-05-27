@@ -123,15 +123,21 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 	  // Make a silicon track seed 
 	  unsigned int silicon_seed_index = buildTrackSeed(clusters, g4particle, _silicon_track_map);
 
+
 	  // Add this entry to the SvtxTrackSeedContainer	  
 	  auto seed = std::make_unique<SvtxTrackSeed_v1>();
 	  seed->set_tpc_seed_index(phtrk_iter);
 	  seed->set_silicon_seed_index(silicon_seed_index);
 	  _svtx_seed_map->insert(seed.get());
 
+	  unsigned int combined_seed_index = _svtx_seed_map->size()-1;
+
 	  if (Verbosity() >= 1)
 	    {
-	      std::cout << " Created SvtxTrackSeed  with tpcid " << seed->get_tpc_seed_index() << " and silicon ID " << seed->get_silicon_seed_index() << std::endl;
+	      std::cout << " Created SvtxTrackSeed  " << combined_seed_index 
+			<< " with tpcid " << _svtx_seed_map->get(combined_seed_index)->get_tpc_seed_index()  
+			<< " and silicon ID " << _svtx_seed_map->get(combined_seed_index)->get_silicon_seed_index() 
+			<< std::endl;
 	    }
 	}
     }
@@ -149,12 +155,20 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 	  auto tpc_index =  seed->get_tpc_seed_index();
 	  auto silicon_index =  seed->get_silicon_seed_index();
 	  
-	  std::cout << "SvtxSeedTrack " << phtrk_iter << " tpc_index " <<  tpc_index << " silicon_index " << silicon_index << std::endl;
+	  std::cout << "SvtxSeedTrack: " << phtrk_iter 
+		    << " tpc_index " <<  tpc_index 
+		    << " silicon_index " << silicon_index 
+		    << std::endl;
 	  
-	  std::cout << " silicon tracklet " << silicon_index << std::endl;
+	  std::cout << " ----------  silicon tracklet " << silicon_index << std::endl;
 	  auto silicon_tracklet = _silicon_track_map->get(silicon_index);
 	  if(!silicon_tracklet) continue;
 	  silicon_tracklet->identify();
+
+	  std::cout << " ---------- tpc tracklet " << tpc_index << std::endl;
+	  auto tpc_tracklet = _tpc_track_map->get(tpc_index);
+	  if(!tpc_tracklet) continue;
+	  tpc_tracklet->identify();
 	}
     }
 
@@ -530,7 +544,7 @@ unsigned int PHTruthSiliconAssociation::buildTrackSeed(std::set<TrkrDefs::cluske
   float pz = g4particle->get_pz() * random1;
 
   const auto g4vertex = _g4truth_container->GetVtx(g4particle->get_vtx_id());
-  auto random2 = gsl_ran_flat(m_rng.get(), -0.02, 0.02);
+  auto random2 = gsl_ran_flat(m_rng.get(), -0.002, 0.002);
   float x = g4vertex->get_x() + random2; 
   float y = g4vertex->get_y() + random2;
   float z = g4vertex->get_z() + random2;

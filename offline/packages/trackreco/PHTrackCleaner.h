@@ -20,7 +20,8 @@ class PHCompositeNode;
 class SvtxTrack;
 class SvtxTrackMap;
 class TrkrCluster;
-class TpcSeedTrackMap;
+//class TpcSeedTrackMap;
+class TrackSeedContainer;
 
 class PHTrackCleaner : public SubsysReco
 {
@@ -43,8 +44,9 @@ class PHTrackCleaner : public SubsysReco
 
 SvtxTrackMap *_track_map{nullptr};
 SvtxTrack *_track{nullptr};
+ TrackSeedContainer *_tpc_seed_map{nullptr};
 
- TpcSeedTrackMap *_seed_track_map{nullptr};
+// TpcSeedTrackMap *_seed_track_map{nullptr};
 
  double min_ndf = 25;
  bool _pp_mode = false;
