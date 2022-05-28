@@ -80,7 +80,9 @@ class PHSiliconTpcTrackMatching : public SubsysReco
    void addTrackBunchCrossing( std::map<unsigned int, short int> &tpc_crossing_map);	  
    std::vector<short int> getInttCrossings(TrackSeed *si_track);
    void checkCrossingMatches( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,  std::map<unsigned int, short int> &tpc_crossing_map );
- 
+   void checkCrossingMatches( std::multimap<unsigned int, unsigned int> &tpc_matches);
+   short int getCrossingIntt(TrackSeed *_tracklet_si);
+
   //  void addTrackBunchCrossing(
    //						   std::map<unsigned int, short int> &vertex_crossings_map,
    //						   std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);	  
