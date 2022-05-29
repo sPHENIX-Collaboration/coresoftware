@@ -232,8 +232,12 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       TrackSeed *siseed = m_siliconSeeds->get(siid);
       auto crossing = siseed->get_crossing();
 
-      // if the crossing was not determined, skip this case completely
-      if(crossing == SHRT_MAX) continue;
+      // if the crossing was not determined, skip this case completely?
+      if(crossing == SHRT_MAX) 
+	{
+	  // Eventually need to skip this in the pp case. For now, arbitrarily assign crossing 0
+	  crossing = 0;
+	}
 
       TrackSeed *tpcseed = m_tpcSeeds->get(tpcid);
 
@@ -376,15 +380,14 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  else
 	    {
 	      auto newTrack = std::make_unique<SvtxTrack_v4>();
-	      /// We want to set the ID to the tpc track seed id so that
-	      /// the ghost rejection finds the right track
-	      newTrack->set_id(tpcid);
+	      unsigned int trid = m_trackMap->size();
+	      newTrack->set_id(trid);
 	      newTrack->set_tpc_seed(tpcseed);
 	      newTrack->set_crossing(m_siliconSeeds->get(siid)->get_crossing());
 	      newTrack->set_silicon_seed(m_siliconSeeds->get(siid));
 	
 	      if( getTrackFitResult(fitOutput, newTrack))
-		{ m_trackMap->insertWithKey(newTrack.get(), tpcid); }
+		{ m_trackMap->insertWithKey(newTrack.get(), trid); }
 	    }
 	}
       else if (!m_fitSiliconMMs)
@@ -503,7 +506,11 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
   SourceLinkVec sourcelinks;
 
   if(crossing == SHRT_MAX) 
-    { return sourcelinks; }
+    {
+      // Eventually need to skip this in the pp case, for now we assign crossing zero
+      crossing == 0;
+      // return sourcelinks; 
+    }
 
   // loop over all clusters
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;

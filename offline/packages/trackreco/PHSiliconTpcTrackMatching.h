@@ -58,31 +58,31 @@ class PHSiliconTpcTrackMatching : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
 
-  double getBunchCrossing(unsigned int trid, double z_mismatch);
-  double getMedian(std::vector<double> &v);
-  void addSiliconClusters( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches);
-  void addSiliconClusters(  std::multimap<unsigned int, unsigned int> &tpc_matches);
   void findEtaPhiMatches( std::set<unsigned int> &tpc_matched_set,
 			    std::multimap<unsigned int, unsigned int> &tpc_matches );
-  void tagInTimeTracks(  std::multimap<unsigned int, unsigned int> &tpc_matches,
-			 std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches,
-			 std::map<unsigned int, int> &tpc_crossing_map );
-  void tagMatchCrossing( std::multimap<unsigned int, unsigned int> &tpc_matches,
-			 std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
-			 std::map<unsigned int, short int> &tpc_crossing_map );
-  //   void copySiliconClustersToCorrectedMap( );
-   void correctTpcClusterZIntt(  std::map<unsigned int, short int> &tpc_crossing_map );
-   void getMatchCrossingIntt(  
-			       std::multimap<unsigned int, unsigned int> &tpc_matches,
-			       std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
-			       std::map<unsigned int, short int> &tpc_crossing_map );
-    void addTrackBunchCrossing(std::multimap<unsigned int, unsigned int> &tpc_matches);	  
-   void addTrackBunchCrossing( std::map<unsigned int, short int> &tpc_crossing_map);	  
-   std::vector<short int> getInttCrossings(TrackSeed *si_track);
-   void checkCrossingMatches( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,  std::map<unsigned int, short int> &tpc_crossing_map );
+  std::vector<short int> getInttCrossings(TrackSeed *si_track);
    void checkCrossingMatches( std::multimap<unsigned int, unsigned int> &tpc_matches);
    short int getCrossingIntt(TrackSeed *_tracklet_si);
 
+   //   void checkCrossingMatches( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,  std::map<unsigned int, short int> &tpc_crossing_map );
+  //double getBunchCrossing(unsigned int trid, double z_mismatch);
+  //double getMedian(std::vector<double> &v);
+  //void addSiliconClusters( std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches);
+  //void addSiliconClusters(  std::multimap<unsigned int, unsigned int> &tpc_matches);
+  //void tagInTimeTracks(  std::multimap<unsigned int, unsigned int> &tpc_matches,
+  //			 std::multimap<int, std::pair<unsigned int, unsigned int>> &crossing_matches,
+  //			 std::map<unsigned int, int> &tpc_crossing_map );
+  //void tagMatchCrossing( std::multimap<unsigned int, unsigned int> &tpc_matches,
+  //			 std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
+  //			 std::map<unsigned int, short int> &tpc_crossing_map );
+  //   void copySiliconClustersToCorrectedMap( );
+  //void correctTpcClusterZIntt(  std::map<unsigned int, short int> &tpc_crossing_map );
+   //void getMatchCrossingIntt(  
+   //			       std::multimap<unsigned int, unsigned int> &tpc_matches,
+   //			       std::multimap<short int, std::pair<unsigned int, unsigned int>> &crossing_matches,
+   //			       std::map<unsigned int, short int> &tpc_crossing_map );
+   //  void addTrackBunchCrossing(std::multimap<unsigned int, unsigned int> &tpc_matches);	  
+    //  void addTrackBunchCrossing( std::map<unsigned int, short int> &tpc_crossing_map);	  
   //  void addTrackBunchCrossing(
    //						   std::map<unsigned int, short int> &vertex_crossings_map,
    //						   std::multimap<unsigned int, std::pair<unsigned int, unsigned int>>  &vertex_map);	  
