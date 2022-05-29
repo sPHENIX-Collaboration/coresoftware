@@ -232,19 +232,24 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       TrackSeed *siseed = m_siliconSeeds->get(siid);
       auto crossing = siseed->get_crossing();
 
-      // if the crossing was not determined, skip this case completely?
+      // if the crossing was not determined, skip this case completely
       if(crossing == SHRT_MAX) 
 	{
-	  // Eventually need to skip this in the pp case. For now, arbitrarily assign crossing 0
-	  crossing = 0;
+	  // Skip this in the pp case. For AuAu it should not happen
+	  continue;
 	}
 
       TrackSeed *tpcseed = m_tpcSeeds->get(tpcid);
 
-      /// Need to also check that the seed wasn't removed by the ghost finder
+      /// Need to also check that the tpc seed wasn't removed by the ghost finder
       if(!tpcseed)
 	{ std::cout << "no tpc seed"<<std::endl; continue; }
 
+      if(Verbosity() > 0) 
+	{
+	  std::cout << " silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
+	  std::cout << " tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
+	}
       PHTimer trackTimer("TrackTimer");
       trackTimer.stop();
       trackTimer.restart();
@@ -507,9 +512,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 
   if(crossing == SHRT_MAX) 
     {
-      // Eventually need to skip this in the pp case, for now we assign crossing zero
-      crossing == 0;
-      // return sourcelinks; 
+      // Need to skip this in the pp case, for AuAu it should not happen
+      return sourcelinks; 
     }
 
   // loop over all clusters

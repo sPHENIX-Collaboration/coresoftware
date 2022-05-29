@@ -3,7 +3,6 @@
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
 #include <tpc/TpcDefs.h>
-#include <trackbase/TpcSeedTrackMapv1.h>     
 #include <trackbase/TrkrClusterv3.h>   
 #include <trackbase/TrkrClusterContainer.h>   
 #include <trackbase/TrkrClusterCrossingAssoc.h>   
@@ -65,10 +64,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
 {
   // _track_map contains the TPC seed track stubs
   // _track_map_silicon contains the silicon seed track stubs
-  // _seed_track_map contains the combined silicon and tpc track seeds
-
-  _seed_track_map->Reset();
-  //_z_mismatch_map.clear();
+  // _svtx_seed_map contains the combined silicon and tpc track seeds
 
   if(Verbosity() > 0)
     cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << " full seed track map size " << _svtx_seed_map->size() << endl;
@@ -87,7 +83,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
       short int crossing= getCrossingIntt(_tracklet_si);
       _tracklet_si->set_crossing(crossing);
 
-      if(Verbosity() > 1) cout << " Si track " << _track_map_silicon->index(phtrk_iter_si) << " crossing " << crossing << endl;
+      if(Verbosity() > 0) cout << " Si track " << _track_map_silicon->index(phtrk_iter_si) << " crossing " << crossing << endl;
     }  
   
   // Find all matches of tpc and si tracklets in eta and phi, x and y
@@ -97,7 +93,8 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   findEtaPhiMatches(tpc_matched_set, tpc_matches);
 
   // Check that the crossing number is consistent with the tracklet z mismatch, discard the match otherwise
-  checkCrossingMatches(tpc_matches);
+  // Enabling this requires a change to truth seeding, so that it does not set the TPC seed z0 to the truth value
+  //checkCrossingMatches(tpc_matches);
   
   // We have a complete list of all eta/phi matched tracks in the map "tpc_matches"
   // make the combined track seeds from tpc_matches
@@ -112,14 +109,14 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
     }
 
   /*
-  // Future development: use the z-mismatch between the silicon and TPC tracklets to assign the crossing in case INTT is off
+  // Future development: use the z-mismatch between the silicon and TPC tracklets to assign the crossing in case INTT clusters are missing
+  // this will reuse some of the commented out methods at the end of this file
   tagMatchCrossing(tpc_matches, crossing_matches, tpc_crossing_map);
   */
 
   if(Verbosity() > 0)  
     { 
-      cout << " Final track map size " << _track_map->size() 
-	 << " seed-track map size " << _seed_track_map->size() << endl;
+      cout << " Final track map size " << _track_map->size()  << endl;
       
       std::cout << "final svtx seed map size " << _svtx_seed_map->size() << std::endl;
       for(const auto& seed : *_svtx_seed_map)
@@ -196,38 +193,6 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 
     }
 
-   _seed_track_map  = findNode::getClass<TpcSeedTrackMap>(topNode, _tpcseed_track_map_name);
-  if(!_seed_track_map)
-    {
-      std::cout << "Creating node TpcSeedTrackMap" << std::endl;
-
-      /// Get the DST Node
-      PHNodeIterator iter(topNode);
-      PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  
-      /// Check that it is there
-      if (!dstNode)
-	{
-	  std::cerr << "DST Node missing, quitting" << std::endl;
-	  throw std::runtime_error("failed to find DST node in PHActsSourceLinks::createNodes");
-	}
-
-      /// Get the tracking subnode
-      PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
-      
-      /// Check that it is there
-      if (!svtxNode)
-	{
-	  svtxNode = new PHCompositeNode("SVTX");
-	  dstNode->addNode(svtxNode);
-	}
-      
-      _seed_track_map = new TpcSeedTrackMapv1();
-      PHIODataNode<PHObject> *node
-	= new PHIODataNode<PHObject>(_seed_track_map, _tpcseed_track_map_name);
-      svtxNode->addNode(node);
-    }
-
     _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (!_cluster_map)
       {
@@ -299,7 +264,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       double tpc_y = _tracklet_tpc->get_y();
       double tpc_z = _tracklet_tpc->get_z();
 
-      bool silicon_match = false;
+      //      bool silicon_match = false;
 
       // Now search the silicon track list for a match in eta and phi
       for (unsigned int phtrk_iter_si = 0;
@@ -360,7 +325,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	      tpc_matches.insert(std::make_pair(tpcid, siid));
 	      tpc_matched_set.insert(tpcid);
 
-	      silicon_match = true;
+	      //	      silicon_match = true;
 
 	      if(Verbosity() > 1)  
 		{
@@ -378,6 +343,8 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 		     << endl;
 	    }
 	}
+
+      /*      
       if(!silicon_match)
 	{
 	  /// If no match found, we still want to add a SvtxTrackSeed to 
@@ -389,8 +356,9 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	  _svtx_seed_map->insert(newseed.get());
 	    
 	}
+      */
     }
-
+  
   return;
 }
 
@@ -413,7 +381,7 @@ short int PHSiliconTpcTrackMatching::getCrossingIntt(TrackSeed *si_track)
 	{	  
 	  if(intt_crossings[ic] != crossing_keep)
 	    {
-	      if(Verbosity() > -1)
+	      if(Verbosity() > 0)
 		{
 		  std::cout << " Warning: INTT crossings not all the same " << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << " keep the first one in the list" << std::endl;  
 		}
@@ -465,6 +433,9 @@ std::vector<short int> PHSiliconTpcTrackMatching::getInttCrossings(TrackSeed *si
 
 void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<unsigned int, unsigned int> &tpc_matches )
 {
+  // if the  crossing was assigned correctly, the (crossing corrected) track position should satisfy the Z matching cut
+  // this is a rough check that this is the case
+
   float vdrift = 8.0e-3;
   std::multimap<unsigned int, unsigned int> bad_map;
 
@@ -497,7 +468,7 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<unsigned int
 	    std::cout << "  FAILURE:  crossing " << crossing << " tpcid " << tpcid << " si id " << si_id 
 		      << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << std::endl;
 
-	  bad_map.insert(std::make_pair(tpcid, si_id));
+	  //bad_map.insert(std::make_pair(tpcid, si_id));
 	}
     }
 

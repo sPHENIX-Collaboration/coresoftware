@@ -7,7 +7,6 @@
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TpcSeedTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeedContainer.h>
@@ -207,15 +206,6 @@ int  PHTrackCleaner::GetNodes(PHCompositeNode* topNode)
     std::cout << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
-  /*
-  _tpc_seed_map = findNode::getClass<TpcSeedTrackMap>(topNode, "TpcSeedTrackMap");
-  if (!_tpc_seed_map)
-  {
-    std::cout << PHWHERE << " ERROR: Can't find node TpcSeedTrackMap: " << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  */
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -20,7 +20,6 @@
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase/TpcSeedTrackMapv1.h>    
 #include <trackbase/TrkrClusterCrossingAssoc.h> 
 #include <trackbase_historic/TrackSeed_FastSim_v1.h>
 
@@ -97,9 +96,6 @@ int PHTruthSiliconAssociation::process_event(PHCompositeNode */*topNode*/)
 	    << ": Total tracks: " << _tpc_track_map->size()
 	    << endl;
 	}
-
-      // this one is always there
-      _seed_track_map->addAssoc(phtrk_iter, phtrk_iter );
 
       // identify the best truth track match(es) for this seed track       
       std::vector<PHG4Particle*> g4particle_vec = getG4PrimaryParticle(_tracklet);
@@ -316,11 +312,6 @@ int  PHTruthSiliconAssociation::GetNodes(PHCompositeNode* topNode)
 	new PHIODataNode<PHObject>(_silicon_track_map, "SiliconTrackSeedContainer", "PHObject");
       svtxNode->addNode(si_tracks_node);
     }
-
-  _seed_track_map = new TpcSeedTrackMapv1;
-  PHIODataNode<PHObject> *node
-    = new PHIODataNode<PHObject>(_seed_track_map, _tpcseed_track_map_name);
-  svtxNode->addNode(node);
 
   _tpc_track_map = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if (!_tpc_track_map)

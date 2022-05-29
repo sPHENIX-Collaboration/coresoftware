@@ -15,7 +15,6 @@ class TrackSeedContainer;
 class TrackSeed;
 class TrkrClusterContainer;
 class TF1;
-class TpcSeedTrackMap;
 class TrkrClusterCrossingAssoc;
 
 class PHSiliconTpcTrackMatching : public SubsysReco
@@ -51,7 +50,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   int End(PHCompositeNode*) override;
 
   void set_silicon_track_map_name(const std::string &map_name) { _silicon_track_map_name = map_name; }
-  void set_tpcseed_track_map_name(const std::string &map_name) { _tpcseed_track_map_name = map_name; }
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void SetIteration(int iter){_n_iteration = iter;}
  private:
@@ -112,12 +110,10 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   TrackSeed *_tracklet_tpc{nullptr};
   TrackSeed *_tracklet_si{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};
-  //TrkrClusterContainer *_corrected_cluster_map{nullptr};
   ActsSurfaceMaps *_surfmaps{nullptr};
   ActsTrackingGeometry *_tGeometry{nullptr};
   TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};
 
-  TpcSeedTrackMap *_seed_track_map{nullptr};
   std::map<unsigned int, double> _z_mismatch_map;
 
   double _collision_rate = 50e3;  // input rate for phi correction
@@ -134,7 +130,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco
 
   int _n_iteration = 0;
   std::string _track_map_name = "TpcTrackSeedContainer";
-  std::string _tpcseed_track_map_name = "TpcSeedTrackMap";
   std::string _silicon_track_map_name = "SiliconTrackSeedContainer";
 };
 

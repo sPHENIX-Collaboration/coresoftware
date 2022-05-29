@@ -282,10 +282,13 @@ void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters
 {
   auto track = std::make_unique<TrackSeed_FastSim_v1>();
   bool silicon = false;
+  bool tpc = false;  
   for (const auto& cluskey : clusters){
     if( TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::mvtxId || 
 	TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::inttId)
       { silicon = true; }
+    if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::tpcId)
+      { tpc = true; }
     track->insert_cluster_key(cluskey);
   }
     
@@ -334,6 +337,13 @@ void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters
   track->set_qOverR(charge / R);
   track->set_slope(1. / tan(theta));
   track->set_Z0(z);
+
+  if(tpc)
+    {
+      // if this is the TPC, the track Z0 depends on the crossing
+      // we should determine it from the clusters instead of the truth - not implemented yet
+      
+    }
   
   /// Need to find the right one for the bend angle
   
