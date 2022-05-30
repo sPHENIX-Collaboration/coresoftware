@@ -98,7 +98,7 @@ int PHTruthTrackSeeding::Setup(PHCompositeNode* topNode)
 int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 {
   _clustereval->next_event(topNode);
-  _track_map->Clear();
+  _track_map_combined->Clear();
 
   using TrkClustersMap = std::map<int, std::set<TrkrCluster*> >;
   TrkClustersMap m_trackID_clusters;
@@ -157,11 +157,11 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
     
     if(nsi > 0)
       {
-	buildTrackSeed(ClusterKeyListSilicon, g4particle, _silicon_seed_map);
+	buildTrackSeed(ClusterKeyListSilicon, g4particle, _track_map_silicon);
       }    
     if(ntpc > 0)
       {
-	buildTrackSeed(ClusterKeyListTpc, g4particle, _tpc_seed_map);
+	buildTrackSeed(ClusterKeyListTpc, g4particle, _track_map);
       }
 
     if(nsi > 0 && ntpc > 0)
@@ -170,10 +170,10 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 	auto track = std::make_unique<SvtxTrackSeed_v1>();
 	/// The ids will by definition be the last entry in the container because
 	/// the seeds were just added
-	track->set_tpc_seed_index(_tpc_seed_map->size()-1); 
-	track->set_silicon_seed_index(_silicon_seed_map->size()-1); 
+	track->set_tpc_seed_index(_track_map->size()-1); 
+	track->set_silicon_seed_index(_track_map_silicon->size()-1); 
 	
-	_track_map->insert(track.get());
+	_track_map_combined->insert(track.get());
       }
   }
 
@@ -181,10 +181,10 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
     {
       // loop over the assembled tracks
       for (unsigned int phtrk_iter = 0;
-	   phtrk_iter < _track_map->size();
+	   phtrk_iter < _track_map_combined->size();
 	   ++phtrk_iter)
 	{
-	  auto seed = _track_map->get(phtrk_iter);
+	  auto seed = _track_map_combined->get(phtrk_iter);
 	  if(!seed) continue;
 	  
 	  auto tpc_index =  seed->get_tpc_seed_index();
@@ -196,12 +196,12 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 		    << std::endl;
 	  
 	  std::cout << " ----------  silicon tracklet " << silicon_index << std::endl;
-	  auto silicon_tracklet = _silicon_seed_map->get(silicon_index);
+	  auto silicon_tracklet = _track_map_silicon->get(silicon_index);
 	  if(!silicon_tracklet) continue;
 	  silicon_tracklet->identify();
 
 	  std::cout << " ---------- tpc tracklet " << tpc_index << std::endl;
-	  auto tpc_tracklet = _tpc_seed_map->get(tpc_index);
+	  auto tpc_tracklet = _track_map->get(tpc_index);
 	  if(!tpc_tracklet) continue;
 	  tpc_tracklet->identify();
 	}
@@ -255,29 +255,32 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+/*
 void PHTruthTrackSeeding::buildFullTrack(std::vector<TrkrDefs::cluskey>& clusters,
 					 PHG4Particle *g4particle)
 {
   auto track = std::make_unique<SvtxTrackSeed_v1>();
 
-  buildTrackSeed(clusters, g4particle, _tpc_seed_map);
+  buildTrackSeed(clusters, g4particle, _track_map);
 
   /// The ids will by definition be the last entry in the container because
   /// the seeds were just added
-  track->set_tpc_seed_index(_tpc_seed_map->size()-1); 
+  track->set_tpc_seed_index(_track_map->size()-1); 
  
   if(Verbosity() > 2)
     {
       std::cout << "adding svtxtrackseed " << std::endl;
       track->identify();
-      auto tpcseed = _tpc_seed_map->get(track->get_tpc_seed_index());
+      auto tpcseed = _track_map->get(track->get_tpc_seed_index());
       tpcseed->identify();
  
     }
 
-  _track_map->insert(track.get());
+  _track_map_combined->insert(track.get());
 
 }
+*/
+
 void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters, PHG4Particle *g4particle, TrackSeedContainer* container)
 {
   auto track = std::make_unique<TrackSeed_FastSim_v1>();
@@ -438,29 +441,29 @@ int PHTruthTrackSeeding::CreateNodes(PHCompositeNode* topNode)
       std::cout << PHWHERE << "SVTX node added" << std::endl;
   }
 
-  _tpc_seed_map = findNode::getClass<TrackSeedContainer>(topNode,"TpcTrackSeedContainer");
-  if(!_tpc_seed_map)
-    {
-      _tpc_seed_map = new TrackSeedContainer_v1;
-      PHIODataNode<PHObject>* tracks_node = 
-	new PHIODataNode<PHObject>(_tpc_seed_map, "TpcTrackSeedContainer", "PHObject");
-      tb_node->addNode(tracks_node);
-    }
-
-  _silicon_seed_map = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
-   if(!_silicon_seed_map)
-    {
-      _silicon_seed_map = new TrackSeedContainer_v1;
-      PHIODataNode<PHObject>* tracks_node = 
-	new PHIODataNode<PHObject>(_silicon_seed_map, "SiliconTrackSeedContainer", "PHObject");
-      tb_node->addNode(tracks_node);
-    }
-
-  _track_map = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+  _track_map = findNode::getClass<TrackSeedContainer>(topNode,"TpcTrackSeedContainer");
   if(!_track_map)
     {
       _track_map = new TrackSeedContainer_v1;
-      PHIODataNode<PHObject> *node2 = new PHIODataNode<PHObject>(_track_map, "SvtxTrackSeedContainer","PHObject");
+      PHIODataNode<PHObject>* tracks_node = 
+	new PHIODataNode<PHObject>(_track_map, "TpcTrackSeedContainer", "PHObject");
+      tb_node->addNode(tracks_node);
+    }
+
+  _track_map_silicon = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+   if(!_track_map_silicon)
+    {
+      _track_map_silicon = new TrackSeedContainer_v1;
+      PHIODataNode<PHObject>* tracks_node = 
+	new PHIODataNode<PHObject>(_track_map_silicon, "SiliconTrackSeedContainer", "PHObject");
+      tb_node->addNode(tracks_node);
+    }
+
+  _track_map_combined = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+  if(!_track_map_combined)
+    {
+      _track_map_combined = new TrackSeedContainer_v1;
+      PHIODataNode<PHObject> *node2 = new PHIODataNode<PHObject>(_track_map_combined, "SvtxTrackSeedContainer","PHObject");
       tb_node->addNode(node2);
     }
 
