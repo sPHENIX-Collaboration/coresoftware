@@ -118,13 +118,28 @@ namespace
     return swx/sw;
   }
 
+  //! get cluster keys from a given track
+  std::vector<TrkrDefs::cluskey> get_cluster_keys( SvtxTrack* track )
+  {
+    std::vector<TrkrDefs::cluskey> out;
+    for( const auto& seed: { track->get_silicon_seed(), track->get_tpc_seed() } )
+    {
+      if( seed )
+      { std::copy( seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter( out ) ); }
+    }
+    
+    return out;
+  }
+
   //! true if a track is a primary
   inline int is_primary( PHG4Particle* particle )
   { return particle->get_parent_id() == 0; }
 
   //! get mask from track clusters
   int64_t get_mask( SvtxTrack* track )
-  { return std::accumulate( track->begin_cluster_keys(), track->end_cluster_keys(), int64_t(0),
+  { 
+    const auto cluster_keys = get_cluster_keys( track );
+    return std::accumulate( cluster_keys.begin(), cluster_keys.end(), int64_t(0),
       []( int64_t value, const TrkrDefs::cluskey& key ) {
         return TrkrDefs::getLayer(key)<64 ? value|(1LL<<TrkrDefs::getLayer(key)) : value;
       } );
@@ -134,7 +149,8 @@ namespace
   template<int type>
     int get_clusters( SvtxTrack* track )
   {
-    return std::count_if( track->begin_cluster_keys(), track->end_cluster_keys(),
+    const auto cluster_keys = get_cluster_keys( track );
+    return std::count_if( cluster_keys.begin(), cluster_keys.end(),
       []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
   }
 
@@ -525,10 +541,8 @@ void TrackEvaluation::evaluate_tracks()
     auto state_iter = track->begin_states();
 
     // loop over clusters
-    for( auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter )
+    for( const auto& cluster_key:get_cluster_keys( track ) )
     {
-
-      const auto& cluster_key = *key_iter;
       auto cluster = m_cluster_map->findCluster( cluster_key );
       if( !cluster )
       {
@@ -653,9 +667,8 @@ std::pair<int,int> TrackEvaluation::get_max_contributor( SvtxTrack* track ) cons
   IdMap contributor_map;
 
   // loop over clusters
-  for( auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter )
+  for( const auto& cluster_key:get_cluster_keys( track ) )
   {
-    const auto& cluster_key = *key_iter;
     for( const auto& hit:find_g4hits( cluster_key ) )
     {
       const int trkid = hit->get_trkid();
