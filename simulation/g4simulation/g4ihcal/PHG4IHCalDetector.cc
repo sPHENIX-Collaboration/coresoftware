@@ -38,11 +38,6 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wpedantic"
-#include <CGAL/Boolean_set_operations_2.h>
-#include <CGAL/Circular_kernel_intersections.h>
-#include <CGAL/Exact_circular_kernel_2.h>
-#include <CGAL/Object.h>
-#include <CGAL/point_generators_2.h>
 #include <Geant4/G4GDMLParser.hh>
 #include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
 #include <Geant4/G4GDMLReadParamvol.hh>
@@ -71,36 +66,22 @@ PHG4IHCalDetector::PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4IHCalDisplayAction *>(subsys->GetDisplayAction()))
   , m_Params(parameters)
-  , m_ScintiMotherAssembly(nullptr)
   , m_InnerRadius(m_Params->get_double_param("inner_radius") * cm)
   , m_OuterRadius(m_Params->get_double_param("outer_radius") * cm)
   , m_SizeZ(m_Params->get_double_param("size_z") * cm)
-  , m_ScintiTileX(NAN)
-  , m_ScintiTileXLower(NAN)
-  , m_ScintiTileXUpper(NAN)
   , m_ScintiTileZ(m_SizeZ)
-  , m_ScintiTileThickness(m_Params->get_double_param("scinti_tile_thickness") * cm)
-  , m_ScintiInnerGap(m_Params->get_double_param("scinti_inner_gap") * cm)
-  , m_ScintiOuterGap(m_Params->get_double_param("scinti_outer_gap") * cm)
-  , m_ScintiOuterRadius(m_Params->get_double_param("scinti_outer_radius") * cm)
-  , m_TiltAngle(m_Params->get_double_param("tilt_angle") * deg)
   , m_EnvelopeInnerRadius(m_InnerRadius)
   , m_EnvelopeOuterRadius(m_OuterRadius)
   , m_EnvelopeZ(m_SizeZ)
-  , m_VolumeEnvelope(NAN)
-  , m_VolumeSteel(NAN)
-  , m_VolumeScintillator(NAN)
   , m_NumScintiPlates(m_Params->get_int_param(PHG4HcalDefs::scipertwr) * m_Params->get_int_param("n_towers"))
   , m_NumScintiTilesPos(m_Params->get_int_param("n_scinti_tiles_pos"))
   , m_NumScintiTilesNeg(m_Params->get_int_param("n_scinti_tiles_neg"))
   , m_Active(m_Params->get_int_param("active"))
   , m_AbsorberActive(m_Params->get_int_param("absorberactive"))
-  , m_Layer(0)
-  , m_ScintiLogicNamePrefix("HcalInnerScinti")
   , m_GDMPath(m_Params->get_string_param("GDMPath"))
 {
   // n_scinti_tiles takes precedence
-
+/*
   int nTiles = 2 * m_Params->get_int_param(PHG4HcalDefs::n_scinti_tiles);
   if (nTiles <= 0)
   {
@@ -116,6 +97,7 @@ PHG4IHCalDetector::PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
 
   // allocate memory for scintillator plates
   m_ScintiTilesVec.assign(nTiles, static_cast<G4VSolid *>(nullptr));
+*/
 }
 
 PHG4IHCalDetector::~PHG4IHCalDetector()
@@ -149,10 +131,10 @@ int PHG4IHCalDetector::IsInIHCal(G4VPhysicalVolume *volume) const
 void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   recoConsts *rc = recoConsts::instance();
-  G4Material *Air = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
+  G4Material *worldmat = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4VSolid *hcal_envelope_cylinder = new G4Tubs("IHCal_envelope_solid", m_EnvelopeInnerRadius, m_EnvelopeOuterRadius, m_EnvelopeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
-  G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("Hcal_envelope"), 0, 0, 0);
+  G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder,worldmat , "Hcal_envelope", 0, 0, 0);
 
   G4RotationMatrix hcal_rotm;
   hcal_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);

@@ -5,6 +5,7 @@
 
 #include <g4main/PHG4Detector.h>
 
+#include <cmath>
 #include <map>
 #include <set>
 #include <string>   // for string
@@ -54,41 +55,42 @@ class PHG4IHCalDetector : public PHG4Detector
   int ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope);
 
   int ConstructIHCal(G4LogicalVolume *sandwich);
-  PHG4IHCalDisplayAction *m_DisplayAction;
-  PHParameters *m_Params;
-  G4AssemblyVolume *m_ScintiMotherAssembly;
-  double m_InnerRadius;
-  double m_OuterRadius;
-  double m_SizeZ;
-  double m_ScintiTileX;
-  double m_ScintiTileXLower;
-  double m_ScintiTileXUpper;
-  double m_ScintiTileZ;
-  double m_ScintiTileThickness;
-  double m_ScintiInnerGap;
-  double m_ScintiOuterGap;
-  double m_ScintiOuterRadius;
-  double m_TiltAngle;
-  double m_EnvelopeInnerRadius;
-  double m_EnvelopeOuterRadius;
-  double m_EnvelopeZ;
-  double m_VolumeEnvelope;
-  double m_VolumeSteel;
-  double m_VolumeScintillator;
+  PHG4IHCalDisplayAction *m_DisplayAction = nullptr;
+  PHParameters *m_Params = nullptr;
+  G4AssemblyVolume *m_ScintiMotherAssembly = nullptr;
+  double m_InnerRadius = NAN;
+  double m_OuterRadius = NAN;
+  double m_SizeZ = NAN;
+  double m_ScintiTileZ = NAN;
+/*
+  double m_ScintiTileXLower = NAN;
+  double m_ScintiTileXUpper = NAN;
+  double m_ScintiTileThickness = NAN;
+  double m_ScintiInnerGap = NAN;
+  double m_ScintiOuterGap = NAN;
+  double m_ScintiOuterRadius = NAN;
+  double m_TiltAngle = NAN;
+*/
+  double m_EnvelopeInnerRadius = NAN;
+  double m_EnvelopeOuterRadius = NAN;
+  double m_EnvelopeZ = NAN;
+  double m_VolumeEnvelope = NAN;
+  double m_VolumeSteel = NAN;
+  double m_VolumeScintillator = NAN;
 
-  int m_NumScintiPlates;
-  int m_NumScintiTilesPos;
-  int m_NumScintiTilesNeg;
+  int m_NumScintiPlates = -9999;
+  int m_NumScintiTilesPos = -9999;
+  int m_NumScintiTilesNeg = -9999;
 
-  int m_Active;
-  int m_AbsorberActive;
+  int m_Active = 0;
+  int m_AbsorberActive = 0;
 
-  int m_Layer;
+  int m_Layer = 0;
   std::string m_SuperDetector;
   std::set<G4VPhysicalVolume *> m_SteelAbsorberPhysVolSet;
   std::map<G4VPhysicalVolume *, std::pair<int, int>> m_ScintiTilePhysVolMap;
   std::vector<G4VSolid *> m_ScintiTilesVec;
-  std::string m_ScintiLogicNamePrefix;
+  std::string m_ScintiLogicNamePrefix = "HcalInnerScinti";
 
   std::string m_GDMPath;
 };
