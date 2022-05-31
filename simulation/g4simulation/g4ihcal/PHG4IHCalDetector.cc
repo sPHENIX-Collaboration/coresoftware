@@ -10,7 +10,6 @@
 #include <g4main/PHG4Detector.h>
 #include <g4main/PHG4DisplayAction.h>
 #include <g4main/PHG4Subsystem.h>
-#include <g4main/PHG4Utils.h>
 
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
@@ -18,11 +17,7 @@
 #include <TSystem.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4Box.hh>
-#include <Geant4/G4ExtrudedSolid.hh>
-#include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4String.hh>
@@ -30,37 +25,30 @@
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Transform3D.hh>
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4UserLimits.hh>
+#include <Geant4/G4VPhysicalVolume.hh>                // for G4VPhysicalVolume
 #include <Geant4/G4VSolid.hh>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wpedantic"
 #include <Geant4/G4GDMLParser.hh>
-#include <Geant4/G4GDMLReadParamvol.hh>
 #include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
 #pragma GCC diagnostic pop
 
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 
-#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <iterator>
-#include <sstream>
+#include <memory>                              // for unique_ptr
+#include <type_traits>                         // for __decay_and_strip<>::_...
+#include <vector>                              // for vector, vector<>::iter...
 
+class G4Material;
 class PHCompositeNode;
 
-using namespace std;
-
-// there is still a minute problem for very low tilt angles where the scintillator
-// face touches the boundary instead of the corner, subtracting 1 permille from the total
-// scintilator length takes care of this
-//-m/s-static double subtract_from_scinti_x = 0.1 * mm;
+//using namespace std;
 
 PHG4IHCalDetector::PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -124,7 +112,7 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
 int PHG4IHCalDetector::ConstructAbsorber(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope)
 {
-  vector<G4VPhysicalVolume *>::iterator it = avol->GetVolumesIterator();
+  std::vector<G4VPhysicalVolume *>::iterator it = avol->GetVolumesIterator();
   for (unsigned int i = 0; i < avol->TotalImprintedVolumes(); i++)
   {
     m_DisplayAction->AddSteelVolume((*it)->GetLogicalVolume());
@@ -139,7 +127,7 @@ int PHG4IHCalDetector::ConstructAbsorber(G4AssemblyVolume *avol, G4LogicalVolume
 
 int PHG4IHCalDetector::ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope)
 {
-  vector<G4VPhysicalVolume *>::iterator it = avol->GetVolumesIterator();
+  std::vector<G4VPhysicalVolume *>::iterator it = avol->GetVolumesIterator();
   for (unsigned int i = 0; i < avol->TotalImprintedVolumes(); i++)
   {
     m_DisplayAction->AddScintiVolume((*it)->GetLogicalVolume());
@@ -156,7 +144,7 @@ int PHG4IHCalDetector::ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolum
 int PHG4IHCalDetector::ConstructIHCal(G4LogicalVolume *hcalenvelope)
 {
   // import the staves from the geometry file
-  unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
+  std::unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
   gdmlParser.SetOverlapCheck(OverlapCheck());
   gdmlParser.Read(m_GDMPath, false);
@@ -175,23 +163,23 @@ int PHG4IHCalDetector::ConsistencyCheck() const
   // just make sure the parameters make a bit of sense
   if (m_InnerRadius >= m_OuterRadius)
   {
-    cout << PHWHERE << ": Inner Radius " << m_InnerRadius / cm
+    std::cout << PHWHERE << ": Inner Radius " << m_InnerRadius / cm
          << " cm larger than Outer Radius " << m_OuterRadius / cm
-         << " cm" << endl;
+         << " cm" << std::endl;
     gSystem->Exit(1);
   }
   return 0;
 }
 
-void PHG4IHCalDetector::Print(const string &what) const
+void PHG4IHCalDetector::Print(const std::string &what) const
 {
-  cout << "Inner Hcal Detector:" << endl;
+  std::cout << "Inner Hcal Detector:" << std::endl;
   if (what == "ALL" || what == "VOLUME")
   {
-    cout << "Volume Envelope: " << m_VolumeEnvelope / cm3 << " cm^3" << endl;
-    cout << "Volume Steel: " << m_VolumeSteel / cm3 << " cm^3" << endl;
-    cout << "Volume Scintillator: " << m_VolumeScintillator / cm3 << " cm^3" << endl;
-    cout << "Volume Air: " << (m_VolumeEnvelope - m_VolumeSteel - m_VolumeScintillator) / cm3 << " cm^3" << endl;
+    std::cout << "Volume Envelope: " << m_VolumeEnvelope / cm3 << " cm^3" << std::endl;
+    std::cout << "Volume Steel: " << m_VolumeSteel / cm3 << " cm^3" << std::endl;
+    std::cout << "Volume Scintillator: " << m_VolumeScintillator / cm3 << " cm^3" << std::endl;
+    std::cout << "Volume Air: " << (m_VolumeEnvelope - m_VolumeSteel - m_VolumeScintillator) / cm3 << " cm^3" << std::endl;
   }
   return;
 }
@@ -203,8 +191,8 @@ std::pair<int, int> PHG4IHCalDetector::GetLayerTowerId(G4VPhysicalVolume *volume
   {
     return it->second;
   }
-  cout << "could not locate volume " << volume->GetName()
-       << " in Inner Hcal scintillator map" << endl;
+  std::cout << "could not locate volume " << volume->GetName()
+       << " in Inner Hcal scintillator map" << std::endl;
   gSystem->Exit(1);
   // that's dumb but code checkers do not know that gSystem->Exit()
   // terminates, so using the standard exit() makes them happy
@@ -228,15 +216,15 @@ std::pair<int, int>  PHG4IHCalDetector::ExtractLayerTowerId(G4VPhysicalVolume *v
           layer_id--;
           if (layer_id < 0 || layer_id >= m_NumScintiPlates)
           {
-            cout << "invalid scintillator row " << layer_id
-                 << ", valid range 0 < row < " << m_NumScintiPlates << endl;
+            std::cout << "invalid scintillator row " << layer_id
+                 << ", valid range 0 < row < " << m_NumScintiPlates << std::endl;
             gSystem->Exit(1);
           }
         }
         else
         {
-          cout << PHWHERE << " Error parsing " << volume->GetName()
-               << " for mother volume number " << endl;
+          std::cout << PHWHERE << " Error parsing " << volume->GetName()
+               << " for mother volume number " << std::endl;
           gSystem->Exit(1);
         }
         break;
@@ -253,5 +241,5 @@ std::pair<int, int>  PHG4IHCalDetector::ExtractLayerTowerId(G4VPhysicalVolume *v
         }
       }
     }
-    return make_pair(layer_id, tower_id);
+    return std::make_pair(layer_id, tower_id);
 }

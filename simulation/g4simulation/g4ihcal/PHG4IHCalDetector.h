@@ -10,12 +10,10 @@
 #include <set>
 #include <string>   // for string
 #include <utility>  // for pair
-#include <vector>
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class G4VSolid;
 class PHCompositeNode;
 class PHG4IHCalDisplayAction;
 class PHParameters;
