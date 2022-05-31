@@ -50,17 +50,7 @@ TH2F* mapCorr = nullptr;
 PHG4IHCalSteppingAction::PHG4IHCalSteppingAction(PHG4IHCalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
-  , m_Hits(nullptr)
-  , m_AbsorberHits(nullptr)
-  , m_Hit(nullptr)
   , m_Params(parameters)
-  , m_SaveHitContainer(nullptr)
-  , m_SaveShower(nullptr)
-  , m_SaveVolPre(nullptr)
-  , m_SaveVolPost(nullptr)
-  , m_SaveTrackId(-1)
-  , m_SavePreStepStatus(-1)
-  , m_SavePostStepStatus(-1)
   , m_IsActive(m_Params->get_int_param("active"))
   , m_IsBlackHole(m_Params->get_int_param("blackhole"))
   , m_LightScintModel(m_Params->get_int_param("light_scint_model"))
@@ -222,11 +212,11 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         m_Hit->set_eion(0);             // only implemented for v5 otherwise empty
         m_Hit->set_light_yield(0);      // for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
-        m_SaveHitContainer = m_Hits;
+        m_SaveHitContainer = m_HitContainer;
       }
       else
       {
-        m_SaveHitContainer = m_AbsorberHits;
+        m_SaveHitContainer = m_AbsorberHitContainer;
       }
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
@@ -382,33 +372,36 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4IHCalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  std::string hitnodename;
-  std::string absorbernodename;
-  if (m_Detector->SuperDetector() != "NONE")
-  {
-    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->SuperDetector();
-  }
-  else
-  {
-    hitnodename = "G4HIT_" + m_Detector->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
-  }
-
-  //now look for the map and grab a pointer to it.
-  m_Hits = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_AbsorberNodeName);
 
   // if we do not find the node it's messed up.
-  if (!m_Hits)
+  if (!m_HitContainer)
   {
-    std::cout << "PHG4IHCalSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    std::cout << "PHG4IHCalSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
   }
-  if (!m_AbsorberHits)
+  if (!m_AbsorberHitContainer)
   {
     if (Verbosity() > 1)
     {
-      std::cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << std::endl;
+      std::cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << std::endl;
     }
   }
+}
+
+void PHG4IHCalSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_ABSORBER")
+  {
+    m_AbsorberNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }

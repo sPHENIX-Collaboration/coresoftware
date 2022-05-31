@@ -51,15 +51,18 @@ class PHG4IHCalSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! derives from PHG4Detector */
-  PHG4IHCalDetector* m_Detector;
+  PHG4IHCalDetector* m_Detector = nullptr;
 
   //! detector "stepping" action, executes after every G4 step
   /*! derives from PHG4SteppingAction */
-  PHG4SteppingAction* m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction;
+  PHG4DisplayAction* m_DisplayAction = nullptr;
+
+  std::string m_HitNodeName;
+  std::string m_AbsorberNodeName;
 };
 
 #endif  // G4DETECTORS_PHG4INNERHCALSUBSYSTEM_H
