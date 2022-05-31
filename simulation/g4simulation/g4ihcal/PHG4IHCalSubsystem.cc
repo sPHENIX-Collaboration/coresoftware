@@ -177,24 +177,24 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   // some math issue in the code subtracts 0.4mm so the scintillator
   // does not end at 133.09 as per drawing but at 133.05
   // adding 0.4mm compensates for this (so 133.13 gives the desired 133.09
-  set_default_double_param("scinti_outer_radius", 133.13);
-  set_default_double_param("scinti_tile_thickness", 0.7);
+//  set_default_double_param("scinti_outer_radius", 133.13);
+//  set_default_double_param("scinti_tile_thickness", 0.7);
   set_default_double_param("size_z", 175.94 * 2);
-  set_default_double_param("steplimits", NAN);
+//  set_default_double_param("steplimits", NAN);
   set_default_double_param("tilt_angle", 36.15);  // engineering drawing
 //                                                  // corresponds very closely to 4 crossinge (35.5497 deg)
 
   set_default_int_param("light_scint_model", 1);
   // if ncross is set (and tilt_angle is NAN) tilt_angle is calculated
   // from number of crossings
-  set_default_int_param("ncross", 0);
+//  set_default_int_param("ncross", 0);
   set_default_int_param(PHG4HcalDefs::n_towers, 64);
   set_default_int_param(PHG4HcalDefs::scipertwr, 4);
   set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
-  set_default_int_param(PHG4HcalDefs::n_scinti_tiles_pos, 12);
-  set_default_int_param(PHG4HcalDefs::n_scinti_tiles_neg, 12);
+  // set_default_int_param(PHG4HcalDefs::n_scinti_tiles_pos, 12);
+  // set_default_int_param(PHG4HcalDefs::n_scinti_tiles_neg, 12);
 
-  set_default_string_param("material", "G4_Al");
+//  set_default_string_param("material", "G4_Al");
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
 }
 
