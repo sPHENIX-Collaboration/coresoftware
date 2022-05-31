@@ -1,9 +1,10 @@
 #include "PHG4IHCalSubsystem.h"
 
-#include "g4detectors/PHG4HcalDefs.h"
 #include "PHG4IHCalDetector.h"
 #include "PHG4IHCalDisplayAction.h"
 #include "PHG4IHCalSteppingAction.h"
+
+#include <g4detectors/PHG4HcalDefs.h>
 
 #include <phparameter/PHParameters.h>
 

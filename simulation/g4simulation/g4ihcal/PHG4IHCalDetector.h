@@ -5,14 +5,6 @@
 
 #include <g4main/PHG4Detector.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wpedantic"
-#include <CGAL/Cartesian.h>  // for Cartesian_base_ref_count::...
-#include <CGAL/Exact_circular_kernel_2.h>
-#include <CGAL/Point_2.h>  // for Point_2
-#pragma GCC diagnostic pop
-
 #include <map>
 #include <set>
 #include <string>   // for string
@@ -31,8 +23,6 @@ class PHG4Subsystem;
 class PHG4IHCalDetector : public PHG4Detector
 {
  public:
-  typedef CGAL::Exact_circular_kernel_2 Circular_k;
-  typedef CGAL::Point_2<Circular_k> Point_2;
 
   //! constructor
   PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
@@ -64,7 +54,6 @@ class PHG4IHCalDetector : public PHG4Detector
   int ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope);
 
   int ConstructIHCal(G4LogicalVolume *sandwich);
-  double x_at_y(Point_2 &p0, Point_2 &p1, double yin);
   PHG4IHCalDisplayAction *m_DisplayAction;
   PHParameters *m_Params;
   G4AssemblyVolume *m_ScintiMotherAssembly;

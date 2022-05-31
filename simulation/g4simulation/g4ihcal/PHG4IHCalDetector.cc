@@ -1,9 +1,9 @@
 #include "PHG4IHCalDetector.h"
 
-#include "g4detectors/PHG4HcalDefs.h"
 #include "PHG4IHCalDisplayAction.h"
 #include "PHG4IHCalSubsystem.h"
 
+#include <g4detectors/PHG4HcalDefs.h>
 
 #include <phparameter/PHParameters.h>
 
@@ -59,11 +59,6 @@
 #include <sstream>
 
 class PHCompositeNode;
-
-typedef CGAL::Circle_2<PHG4IHCalDetector::Circular_k> Circle_2;
-typedef CGAL::Circular_arc_point_2<PHG4IHCalDetector::Circular_k> Circular_arc_point_2;
-typedef CGAL::Line_2<PHG4IHCalDetector::Circular_k> Line_2;
-typedef CGAL::Segment_2<PHG4IHCalDetector::Circular_k> Segment_2;
 
 using namespace std;
 
@@ -239,7 +234,7 @@ int PHG4IHCalDetector::ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolum
 int PHG4IHCalDetector::ConstructIHCal(G4LogicalVolume *hcalenvelope)
 {
 
-  // import the staves from the gemetry file
+  // import the staves from the geometry file
   unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
   gdmlParser.SetOverlapCheck(OverlapCheck());
