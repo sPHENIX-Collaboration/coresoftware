@@ -87,7 +87,7 @@ int PHG4IHCalDetector::IsInIHCal(G4VPhysicalVolume *volume) const
 {
   if (m_AbsorberActive)
   {
-    if (m_SteelAbsorberPhysVolSet.find(volume) != m_SteelAbsorberPhysVolSet.end())
+    if (m_SteelAbsorberLogVolSet.find(volume->GetLogicalVolume()) != m_SteelAbsorberLogVolSet.end())
     {
       return -1;
     }
@@ -178,6 +178,7 @@ int PHG4IHCalDetector::ConstructAbsorber(G4AssemblyVolume *avol, G4LogicalVolume
   for (unsigned int i = 0; i < avol->TotalImprintedVolumes(); i++)
   {
     m_DisplayAction->AddSteelVolume((*it)->GetLogicalVolume());
+    m_SteelAbsorberLogVolSet.insert((*it)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it));
     ++it;
   }

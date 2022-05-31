@@ -69,11 +69,11 @@ class PHG4IHCalDetector : public PHG4Detector
   int m_AbsorberActive = 0;
 
   int m_Layer = 0;
+
   std::string m_SuperDetector;
-  std::set<G4VPhysicalVolume *> m_SteelAbsorberPhysVolSet;
+  std::set<G4LogicalVolume *> m_SteelAbsorberLogVolSet;
   std::map<G4VPhysicalVolume *, std::pair<int, int>> m_ScintiTilePhysVolMap;
   std::vector<G4VSolid *> m_ScintiTilesVec;
-  std::string m_ScintiLogicNamePrefix = "HcalInnerScinti";
 
   std::string m_GDMPath;
 };
