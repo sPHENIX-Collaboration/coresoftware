@@ -167,12 +167,13 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
-  set_default_double_param("scinti_eta_coverage", 1.1);
-  set_default_double_param("scinti_eta_coverage_pos", 1.1);
-  set_default_double_param("scinti_eta_coverage_neg", 1.1);
-  set_default_double_param("scinti_gap_neighbor", 0.1);
-  set_default_double_param("scinti_inner_gap", 0.85);
-  set_default_double_param("scinti_outer_gap", 1.22 * (5.0 / 4.0));
+  // set_default_double_param("scinti_eta_coverage", 1.1);
+  // set_default_double_param("scinti_eta_coverage_pos", 1.1);
+  // set_default_double_param("scinti_eta_coverage_neg", 1.1);
+  // set_default_double_param("scinti_gap_neighbor", 0.1);
+  // set_default_double_param("scinti_inner_gap", 0.85);
+  // set_default_double_param("scinti_outer_gap", 1.22 * (5.0 / 4.0));
+
   // some math issue in the code subtracts 0.4mm so the scintillator
   // does not end at 133.09 as per drawing but at 133.05
   // adding 0.4mm compensates for this (so 133.13 gives the desired 133.09
@@ -181,7 +182,7 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_double_param("size_z", 175.94 * 2);
   set_default_double_param("steplimits", NAN);
   set_default_double_param("tilt_angle", 36.15);  // engineering drawing
-                                                  // corresponds very closely to 4 crossinge (35.5497 deg)
+//                                                  // corresponds very closely to 4 crossinge (35.5497 deg)
 
   set_default_int_param("light_scint_model", 1);
   // if ncross is set (and tilt_angle is NAN) tilt_angle is calculated
