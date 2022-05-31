@@ -39,8 +39,8 @@
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wpedantic"
 #include <Geant4/G4GDMLParser.hh>
-#include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
 #include <Geant4/G4GDMLReadParamvol.hh>
+#include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
 #pragma GCC diagnostic pop
 
 #include <boost/lexical_cast.hpp>
@@ -74,30 +74,10 @@ PHG4IHCalDetector::PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   , m_EnvelopeOuterRadius(m_OuterRadius)
   , m_EnvelopeZ(m_SizeZ)
   , m_NumScintiPlates(m_Params->get_int_param(PHG4HcalDefs::scipertwr) * m_Params->get_int_param("n_towers"))
-  , m_NumScintiTilesPos(m_Params->get_int_param("n_scinti_tiles_pos"))
-  , m_NumScintiTilesNeg(m_Params->get_int_param("n_scinti_tiles_neg"))
   , m_Active(m_Params->get_int_param("active"))
   , m_AbsorberActive(m_Params->get_int_param("absorberactive"))
   , m_GDMPath(m_Params->get_string_param("GDMPath"))
 {
-  // n_scinti_tiles takes precedence
-/*
-  int nTiles = 2 * m_Params->get_int_param(PHG4HcalDefs::n_scinti_tiles);
-  if (nTiles <= 0)
-  {
-    nTiles = m_NumScintiTilesPos + m_NumScintiTilesNeg;
-  }
-  else
-  {
-    m_NumScintiTilesPos = nTiles / 2;
-    m_Params->set_int_param("n_scinti_tiles_pos", nTiles / 2);
-    m_NumScintiTilesNeg = nTiles / 2;
-    m_Params->set_int_param("n_scinti_tiles_neg", nTiles / 2);
-  }
-
-  // allocate memory for scintillator plates
-  m_ScintiTilesVec.assign(nTiles, static_cast<G4VSolid *>(nullptr));
-*/
 }
 
 PHG4IHCalDetector::~PHG4IHCalDetector()
@@ -134,7 +114,7 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Material *worldmat = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4VSolid *hcal_envelope_cylinder = new G4Tubs("IHCal_envelope_solid", m_EnvelopeInnerRadius, m_EnvelopeOuterRadius, m_EnvelopeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
-  G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder,worldmat , "Hcal_envelope", 0, 0, 0);
+  G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, worldmat, "Hcal_envelope", 0, 0, 0);
 
   G4RotationMatrix hcal_rotm;
   hcal_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
@@ -145,24 +125,30 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   ConstructIHCal(hcal_envelope_log);
 
   vector<G4VPhysicalVolume *>::iterator it = m_ScintiMotherAssembly->GetVolumesIterator();
-  for (unsigned int i = 0; i < m_ScintiMotherAssembly->TotalImprintedVolumes(); i++){
-
+  for (unsigned int i = 0; i < m_ScintiMotherAssembly->TotalImprintedVolumes(); i++)
+  {
     boost::char_separator<char> sep("_");
     boost::tokenizer<boost::char_separator<char>> tok((*it)->GetName(), sep);
     boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
     int layer_id = -1, tower_id = -1;
-    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter){
-      if (*tokeniter == "impr"){
+    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+    {
+      if (*tokeniter == "impr")
+      {
         ++tokeniter;
-        if (tokeniter != tok.end()){
-          layer_id = boost::lexical_cast<int>(*tokeniter)/2;
-	  layer_id--;
-          if (layer_id < 0 || layer_id >= m_NumScintiPlates){
+        if (tokeniter != tok.end())
+        {
+          layer_id = boost::lexical_cast<int>(*tokeniter) / 2;
+          layer_id--;
+          if (layer_id < 0 || layer_id >= m_NumScintiPlates)
+          {
             cout << "invalid scintillator row " << layer_id
                  << ", valid range 0 < row < " << m_NumScintiPlates << endl;
             gSystem->Exit(1);
           }
-        } else {
+        }
+        else
+        {
           cout << PHWHERE << " Error parsing " << (*it)->GetName()
                << " for mother volume number " << endl;
           gSystem->Exit(1);
@@ -170,12 +156,15 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
         break;
       }
     }
-    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter){
-      if (*tokeniter == "pv"){
+    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+    {
+      if (*tokeniter == "pv")
+      {
         ++tokeniter;
-        if (tokeniter != tok.end()){
+        if (tokeniter != tok.end())
+        {
           tower_id = boost::lexical_cast<int>(*tokeniter);
-	}
+        }
       }
     }
     pair<int, int> layer_twr = make_pair(layer_id, tower_id);
@@ -189,9 +178,9 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
 int PHG4IHCalDetector::ConstructAbsorber(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope)
 {
-
   vector<G4VPhysicalVolume *>::iterator it = avol->GetVolumesIterator();
-  for (unsigned int i = 0; i < avol->TotalImprintedVolumes(); i++){
+  for (unsigned int i = 0; i < avol->TotalImprintedVolumes(); i++)
+  {
     m_DisplayAction->AddSteelVolume((*it)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it));
     ++it;
@@ -202,9 +191,9 @@ int PHG4IHCalDetector::ConstructAbsorber(G4AssemblyVolume *avol, G4LogicalVolume
 
 int PHG4IHCalDetector::ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope)
 {
-
   vector<G4VPhysicalVolume *>::iterator it = avol->GetVolumesIterator();
-  for (unsigned int i = 0; i < avol->TotalImprintedVolumes(); i++){
+  for (unsigned int i = 0; i < avol->TotalImprintedVolumes(); i++)
+  {
     m_DisplayAction->AddScintiVolume((*it)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it));
     ++it;
@@ -215,15 +204,14 @@ int PHG4IHCalDetector::ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolum
 
 int PHG4IHCalDetector::ConstructIHCal(G4LogicalVolume *hcalenvelope)
 {
-
   // import the staves from the geometry file
   unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
   gdmlParser.SetOverlapCheck(OverlapCheck());
   gdmlParser.Read(m_GDMPath, false);
 
-  G4AssemblyVolume* abs_asym = reader->GetAssembly("InnerSector"); //absorber
-  m_ScintiMotherAssembly = reader->GetAssembly("InnerTileAssembly90"); // scintillator
+  G4AssemblyVolume *abs_asym = reader->GetAssembly("InnerSector");      //absorber
+  m_ScintiMotherAssembly = reader->GetAssembly("InnerTileAssembly90");  // scintillator
 
   ConstructAbsorber(abs_asym, hcalenvelope);
   ConstructScinTiles(m_ScintiMotherAssembly, hcalenvelope);
@@ -254,7 +242,7 @@ void PHG4IHCalDetector::Print(const string &what) const
     cout << "Volume Scintillator: " << m_VolumeScintillator / cm3 << " cm^3" << endl;
     cout << "Volume Air: " << (m_VolumeEnvelope - m_VolumeSteel - m_VolumeScintillator) / cm3 << " cm^3" << endl;
   }
-  cout<<"******\tm_GDMPath : "<<m_GDMPath<<endl;
+  cout << "******\tm_GDMPath : " << m_GDMPath << endl;
 
   return;
 }

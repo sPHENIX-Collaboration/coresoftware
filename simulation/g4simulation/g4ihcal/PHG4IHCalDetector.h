@@ -24,7 +24,6 @@ class PHG4Subsystem;
 class PHG4IHCalDetector : public PHG4Detector
 {
  public:
-
   //! constructor
   PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
@@ -50,7 +49,6 @@ class PHG4IHCalDetector : public PHG4Detector
   std::pair<int, int> GetLayerTowerId(G4VPhysicalVolume *volume) const;
 
  protected:
-
   int ConstructAbsorber(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope);
   int ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope);
 
@@ -62,15 +60,6 @@ class PHG4IHCalDetector : public PHG4Detector
   double m_OuterRadius = NAN;
   double m_SizeZ = NAN;
   double m_ScintiTileZ = NAN;
-/*
-  double m_ScintiTileXLower = NAN;
-  double m_ScintiTileXUpper = NAN;
-  double m_ScintiTileThickness = NAN;
-  double m_ScintiInnerGap = NAN;
-  double m_ScintiOuterGap = NAN;
-  double m_ScintiOuterRadius = NAN;
-  double m_TiltAngle = NAN;
-*/
   double m_EnvelopeInnerRadius = NAN;
   double m_EnvelopeOuterRadius = NAN;
   double m_EnvelopeZ = NAN;
@@ -79,8 +68,6 @@ class PHG4IHCalDetector : public PHG4Detector
   double m_VolumeScintillator = NAN;
 
   int m_NumScintiPlates = -9999;
-  int m_NumScintiTilesPos = -9999;
-  int m_NumScintiTilesNeg = -9999;
 
   int m_Active = 0;
   int m_AbsorberActive = 0;
