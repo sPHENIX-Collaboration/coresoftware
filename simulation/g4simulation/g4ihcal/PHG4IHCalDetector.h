@@ -59,10 +59,6 @@ class PHG4IHCalDetector : public PHG4Detector
   double m_InnerRadius = NAN;
   double m_OuterRadius = NAN;
   double m_SizeZ = NAN;
-  double m_ScintiTileZ = NAN;
-  double m_EnvelopeInnerRadius = NAN;
-  double m_EnvelopeOuterRadius = NAN;
-  double m_EnvelopeZ = NAN;
   double m_VolumeEnvelope = NAN;
   double m_VolumeSteel = NAN;
   double m_VolumeScintillator = NAN;

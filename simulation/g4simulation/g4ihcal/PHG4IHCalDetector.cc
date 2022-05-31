@@ -69,10 +69,6 @@ PHG4IHCalDetector::PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   , m_InnerRadius(m_Params->get_double_param("inner_radius") * cm)
   , m_OuterRadius(m_Params->get_double_param("outer_radius") * cm)
   , m_SizeZ(m_Params->get_double_param("size_z") * cm)
-  , m_ScintiTileZ(m_SizeZ)
-  , m_EnvelopeInnerRadius(m_InnerRadius)
-  , m_EnvelopeOuterRadius(m_OuterRadius)
-  , m_EnvelopeZ(m_SizeZ)
   , m_NumScintiPlates(m_Params->get_int_param(PHG4HcalDefs::scipertwr) * m_Params->get_int_param("n_towers"))
   , m_Active(m_Params->get_int_param("active"))
   , m_AbsorberActive(m_Params->get_int_param("absorberactive"))
@@ -112,7 +108,7 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   recoConsts *rc = recoConsts::instance();
   G4Material *worldmat = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
-  G4VSolid *hcal_envelope_cylinder = new G4Tubs("IHCal_envelope_solid", m_EnvelopeInnerRadius, m_EnvelopeOuterRadius, m_EnvelopeZ / 2., 0, 2 * M_PI);
+  G4VSolid *hcal_envelope_cylinder = new G4Tubs("IHCal_envelope_solid", m_InnerRadius, m_OuterRadius, m_SizeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, worldmat, "Hcal_envelope", 0, 0, 0);
 
