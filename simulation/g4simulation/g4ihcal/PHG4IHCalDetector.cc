@@ -94,7 +94,7 @@ int PHG4IHCalDetector::IsInIHCal(G4VPhysicalVolume *volume) const
   }
   if (m_Active)
   {
-    if (m_ScintiTilePhysVolMap.find(volume) != m_ScintiTilePhysVolMap.end())
+    if (m_ScintiTileLogVolSet.find(volume->GetLogicalVolume()) != m_ScintiTileLogVolSet.end())
     {
       return 1;
     }
@@ -119,56 +119,6 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4VPhysicalVolume *mothervol = new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "IHCalEnvelope", logicWorld, 0, false, OverlapCheck());
   m_DisplayAction->SetMyTopVolume(mothervol);
   ConstructIHCal(hcal_envelope_log);
-
-  vector<G4VPhysicalVolume *>::iterator it = m_ScintiMotherAssembly->GetVolumesIterator();
-  for (unsigned int i = 0; i < m_ScintiMotherAssembly->TotalImprintedVolumes(); i++)
-  {
-    boost::char_separator<char> sep("_");
-    boost::tokenizer<boost::char_separator<char>> tok((*it)->GetName(), sep);
-    boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
-    int layer_id = -1, tower_id = -1;
-    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
-    {
-      if (*tokeniter == "impr")
-      {
-        ++tokeniter;
-        if (tokeniter != tok.end())
-        {
-          layer_id = boost::lexical_cast<int>(*tokeniter) / 2;
-          layer_id--;
-          if (layer_id < 0 || layer_id >= m_NumScintiPlates)
-          {
-            cout << "invalid scintillator row " << layer_id
-                 << ", valid range 0 < row < " << m_NumScintiPlates << endl;
-            gSystem->Exit(1);
-          }
-        }
-        else
-        {
-          cout << PHWHERE << " Error parsing " << (*it)->GetName()
-               << " for mother volume number " << endl;
-          gSystem->Exit(1);
-        }
-        break;
-      }
-    }
-    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
-    {
-      if (*tokeniter == "pv")
-      {
-        ++tokeniter;
-        if (tokeniter != tok.end())
-        {
-          tower_id = boost::lexical_cast<int>(*tokeniter);
-        }
-      }
-    }
-    pair<int, int> layer_twr = make_pair(layer_id, tower_id);
-    m_ScintiTilePhysVolMap.insert(pair<G4VPhysicalVolume *, pair<int, int>>(*it, layer_twr));
-
-    ++it;
-  }
-
   return;
 }
 
@@ -180,6 +130,7 @@ int PHG4IHCalDetector::ConstructAbsorber(G4AssemblyVolume *avol, G4LogicalVolume
     m_DisplayAction->AddSteelVolume((*it)->GetLogicalVolume());
     m_SteelAbsorberLogVolSet.insert((*it)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it));
+    m_VolumeSteel += (*it)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
     ++it;
   }
 
@@ -192,7 +143,10 @@ int PHG4IHCalDetector::ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolum
   for (unsigned int i = 0; i < avol->TotalImprintedVolumes(); i++)
   {
     m_DisplayAction->AddScintiVolume((*it)->GetLogicalVolume());
+    m_ScintiTileLogVolSet.insert((*it)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it));
+    m_ScintiTilePhysVolMap.insert(std::make_pair(*it,ExtractLayerTowerId(*it)));
+    m_VolumeScintillator += (*it)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
     ++it;
   }
 
@@ -239,8 +193,6 @@ void PHG4IHCalDetector::Print(const string &what) const
     cout << "Volume Scintillator: " << m_VolumeScintillator / cm3 << " cm^3" << endl;
     cout << "Volume Air: " << (m_VolumeEnvelope - m_VolumeSteel - m_VolumeScintillator) / cm3 << " cm^3" << endl;
   }
-  cout << "******\tm_GDMPath : " << m_GDMPath << endl;
-
   return;
 }
 
@@ -257,4 +209,49 @@ std::pair<int, int> PHG4IHCalDetector::GetLayerTowerId(G4VPhysicalVolume *volume
   // that's dumb but code checkers do not know that gSystem->Exit()
   // terminates, so using the standard exit() makes them happy
   exit(1);
+}
+
+std::pair<int, int>  PHG4IHCalDetector::ExtractLayerTowerId(G4VPhysicalVolume *volume)
+{
+    boost::char_separator<char> sep("_");
+    boost::tokenizer<boost::char_separator<char>> tok(volume->GetName(), sep);
+    boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
+    int layer_id = -1, tower_id = -1;
+    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+    {
+      if (*tokeniter == "impr")
+      {
+        ++tokeniter;
+        if (tokeniter != tok.end())
+        {
+          layer_id = boost::lexical_cast<int>(*tokeniter) / 2;
+          layer_id--;
+          if (layer_id < 0 || layer_id >= m_NumScintiPlates)
+          {
+            cout << "invalid scintillator row " << layer_id
+                 << ", valid range 0 < row < " << m_NumScintiPlates << endl;
+            gSystem->Exit(1);
+          }
+        }
+        else
+        {
+          cout << PHWHERE << " Error parsing " << volume->GetName()
+               << " for mother volume number " << endl;
+          gSystem->Exit(1);
+        }
+        break;
+      }
+    }
+    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+    {
+      if (*tokeniter == "pv")
+      {
+        ++tokeniter;
+        if (tokeniter != tok.end())
+        {
+          tower_id = boost::lexical_cast<int>(*tokeniter);
+        }
+      }
+    }
+    return make_pair(layer_id, tower_id);
 }

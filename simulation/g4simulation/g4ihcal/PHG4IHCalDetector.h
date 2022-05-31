@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4INNERHCALDETECTOR_H
-#define G4DETECTORS_PHG4INNERHCALDETECTOR_H
+#ifndef G4DETECTORS_PHG4IHCALDETECTOR_H
+#define G4DETECTORS_PHG4IHCALDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
@@ -53,6 +53,7 @@ class PHG4IHCalDetector : public PHG4Detector
   int ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope);
 
   int ConstructIHCal(G4LogicalVolume *sandwich);
+  std::pair<int, int> ExtractLayerTowerId(G4VPhysicalVolume *volume);
   PHG4IHCalDisplayAction *m_DisplayAction = nullptr;
   PHParameters *m_Params = nullptr;
   G4AssemblyVolume *m_ScintiMotherAssembly = nullptr;
@@ -60,8 +61,8 @@ class PHG4IHCalDetector : public PHG4Detector
   double m_OuterRadius = NAN;
   double m_SizeZ = NAN;
   double m_VolumeEnvelope = NAN;
-  double m_VolumeSteel = NAN;
-  double m_VolumeScintillator = NAN;
+  double m_VolumeSteel = 0.;
+  double m_VolumeScintillator = 0;
 
   int m_NumScintiPlates = -9999;
 
@@ -72,10 +73,10 @@ class PHG4IHCalDetector : public PHG4Detector
 
   std::string m_SuperDetector;
   std::set<G4LogicalVolume *> m_SteelAbsorberLogVolSet;
+  std::set<G4LogicalVolume *> m_ScintiTileLogVolSet;
   std::map<G4VPhysicalVolume *, std::pair<int, int>> m_ScintiTilePhysVolMap;
-  std::vector<G4VSolid *> m_ScintiTilesVec;
 
   std::string m_GDMPath;
 };
 
-#endif  // G4DETECTORS_PHG4INNERHCALDETECTOR_H
+#endif  // G4DETECTORS_PHG4IHCALDETECTOR_H
