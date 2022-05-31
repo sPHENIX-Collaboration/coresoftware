@@ -255,31 +255,6 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-/*
-void PHTruthTrackSeeding::buildFullTrack(std::vector<TrkrDefs::cluskey>& clusters,
-					 PHG4Particle *g4particle)
-{
-  auto track = std::make_unique<SvtxTrackSeed_v1>();
-
-  buildTrackSeed(clusters, g4particle, _track_map);
-
-  /// The ids will by definition be the last entry in the container because
-  /// the seeds were just added
-  track->set_tpc_seed_index(_track_map->size()-1); 
- 
-  if(Verbosity() > 2)
-    {
-      std::cout << "adding svtxtrackseed " << std::endl;
-      track->identify();
-      auto tpcseed = _track_map->get(track->get_tpc_seed_index());
-      tpcseed->identify();
- 
-    }
-
-  _track_map_combined->insert(track.get());
-
-}
-*/
 
 void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters, PHG4Particle *g4particle, TrackSeedContainer* container)
 {
