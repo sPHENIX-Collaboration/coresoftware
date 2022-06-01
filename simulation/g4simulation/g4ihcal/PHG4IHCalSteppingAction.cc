@@ -2,7 +2,7 @@
 
 #include "PHG4IHCalDetector.h"
 
-#include <g4detectors/PHG4StepStatusDecode.h>//-m/s-
+#include <g4detectors/PHG4StepStatusDecode.h>  //-m/s-
 
 #include <phparameter/PHParameters.h>
 
@@ -38,8 +38,8 @@
 #include <Geant4/G4VTouchable.hh>             // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
-#include <cmath>  // for isfinite
-#include <cstdlib>                            // for getenv
+#include <cmath>    // for isfinite
+#include <cstdlib>  // for getenv
 #include <iostream>
 #include <string>   // for operator<<, operator+
 #include <utility>  // for pair
@@ -111,7 +111,6 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   //  1 is inside scintillator
   // -1 is steel absorber
 
-
   int whichactive = m_Detector->IsInIHCal(volume);
 
   if (!whichactive)
@@ -126,11 +125,11 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     layer_id = layer_tower.first;
     tower_id = layer_tower.second;
 
-//    std::cout<<"******** Inner HCal\t"<<volume->GetName()<<"\t"<<layer_id<<"\t"<<tower_id<<std::endl;
+    //    std::cout<<"******** Inner HCal\t"<<volume->GetName()<<"\t"<<layer_id<<"\t"<<tower_id<<std::endl;
   }
   else
   {
-    layer_id = volume->GetCopyNo(); // absorber sector id
+    layer_id = volume->GetCopyNo();  // absorber sector id
   }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;

@@ -24,7 +24,7 @@
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Transform3D.hh>
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4VPhysicalVolume.hh>                // for G4VPhysicalVolume
+#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 #include <Geant4/G4VSolid.hh>
 
 #pragma GCC diagnostic push
@@ -40,9 +40,9 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <memory>                              // for unique_ptr
-#include <type_traits>                         // for __decay_and_strip<>::_...
-#include <vector>                              // for vector, vector<>::iter...
+#include <memory>       // for unique_ptr
+#include <type_traits>  // for __decay_and_strip<>::_...
+#include <vector>       // for vector, vector<>::iter...
 
 class G4Material;
 class PHCompositeNode;
@@ -130,7 +130,7 @@ int PHG4IHCalDetector::ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolum
     m_DisplayAction->AddScintiVolume((*it)->GetLogicalVolume());
     m_ScintiTileLogVolSet.insert((*it)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it));
-    m_ScintiTilePhysVolMap.insert(std::make_pair(*it,ExtractLayerTowerId(*it)));
+    m_ScintiTilePhysVolMap.insert(std::make_pair(*it, ExtractLayerTowerId(*it)));
     m_VolumeScintillator += (*it)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
     ++it;
   }
@@ -161,8 +161,8 @@ int PHG4IHCalDetector::ConsistencyCheck() const
   if (m_InnerRadius >= m_OuterRadius)
   {
     std::cout << PHWHERE << ": Inner Radius " << m_InnerRadius / cm
-         << " cm larger than Outer Radius " << m_OuterRadius / cm
-         << " cm" << std::endl;
+              << " cm larger than Outer Radius " << m_OuterRadius / cm
+              << " cm" << std::endl;
     gSystem->Exit(1);
   }
   return 0;
@@ -189,54 +189,54 @@ std::pair<int, int> PHG4IHCalDetector::GetLayerTowerId(G4VPhysicalVolume *volume
     return it->second;
   }
   std::cout << "could not locate volume " << volume->GetName()
-       << " in Inner Hcal scintillator map" << std::endl;
+            << " in Inner Hcal scintillator map" << std::endl;
   gSystem->Exit(1);
   // that's dumb but code checkers do not know that gSystem->Exit()
   // terminates, so using the standard exit() makes them happy
   exit(1);
 }
 
-std::pair<int, int>  PHG4IHCalDetector::ExtractLayerTowerId(G4VPhysicalVolume *volume)
+std::pair<int, int> PHG4IHCalDetector::ExtractLayerTowerId(G4VPhysicalVolume *volume)
 {
-    boost::char_separator<char> sep("_");
-    boost::tokenizer<boost::char_separator<char>> tok(volume->GetName(), sep);
-    boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
-    int layer_id = -1, tower_id = -1;
-    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+  boost::char_separator<char> sep("_");
+  boost::tokenizer<boost::char_separator<char>> tok(volume->GetName(), sep);
+  boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
+  int layer_id = -1, tower_id = -1;
+  for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+  {
+    if (*tokeniter == "impr")
     {
-      if (*tokeniter == "impr")
+      ++tokeniter;
+      if (tokeniter != tok.end())
       {
-        ++tokeniter;
-        if (tokeniter != tok.end())
+        layer_id = boost::lexical_cast<int>(*tokeniter) / 2;
+        layer_id--;
+        if (layer_id < 0 || layer_id >= m_NumScintiPlates)
         {
-          layer_id = boost::lexical_cast<int>(*tokeniter) / 2;
-          layer_id--;
-          if (layer_id < 0 || layer_id >= m_NumScintiPlates)
-          {
-            std::cout << "invalid scintillator row " << layer_id
-                 << ", valid range 0 < row < " << m_NumScintiPlates << std::endl;
-            gSystem->Exit(1);
-          }
-        }
-        else
-        {
-          std::cout << PHWHERE << " Error parsing " << volume->GetName()
-               << " for mother volume number " << std::endl;
+          std::cout << "invalid scintillator row " << layer_id
+                    << ", valid range 0 < row < " << m_NumScintiPlates << std::endl;
           gSystem->Exit(1);
         }
-        break;
       }
-    }
-    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
-    {
-      if (*tokeniter == "pv")
+      else
       {
-        ++tokeniter;
-        if (tokeniter != tok.end())
-        {
-          tower_id = boost::lexical_cast<int>(*tokeniter);
-        }
+        std::cout << PHWHERE << " Error parsing " << volume->GetName()
+                  << " for mother volume number " << std::endl;
+        gSystem->Exit(1);
+      }
+      break;
+    }
+  }
+  for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+  {
+    if (*tokeniter == "pv")
+    {
+      ++tokeniter;
+      if (tokeniter != tok.end())
+      {
+        tower_id = boost::lexical_cast<int>(*tokeniter);
       }
     }
-    return std::make_pair(layer_id, tower_id);
+  }
+  return std::make_pair(layer_id, tower_id);
 }
