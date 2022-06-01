@@ -10,7 +10,7 @@ class PHNode;
 class DumpRawTowerGeomContainer : public DumpObject
 {
  public:
-  DumpRawTowerGeomContainer(const std::string &NodeName);
+  explicit DumpRawTowerGeomContainer(const std::string &NodeName);
   ~DumpRawTowerGeomContainer() override {}
 
  protected:

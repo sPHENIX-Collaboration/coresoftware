@@ -2,7 +2,7 @@
 
 #include "PHG4IHCalDetector.h"
 
-#include <g4detectors/PHG4StepStatusDecode.h>  //-m/s-
+#include <g4detectors/PHG4StepStatusDecode.h>
 
 #include <phparameter/PHParameters.h>
 

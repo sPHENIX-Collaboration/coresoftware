@@ -10,7 +10,7 @@ class PHNode;
 class DumpPHG4CylinderCellGeomContainer : public DumpObject
 {
  public:
-  DumpPHG4CylinderCellGeomContainer(const std::string &NodeName);
+  explicit DumpPHG4CylinderCellGeomContainer(const std::string &NodeName);
   ~DumpPHG4CylinderCellGeomContainer() override {}
 
  protected:

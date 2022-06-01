@@ -10,7 +10,7 @@ class PHNode;
 class DumpVariableArray : public DumpObject
 {
  public:
-  DumpVariableArray(const std::string &NodeName);
+  explicit DumpVariableArray(const std::string &NodeName);
   ~DumpVariableArray() override {}
 
  protected:

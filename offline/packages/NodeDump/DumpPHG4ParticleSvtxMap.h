@@ -10,7 +10,7 @@ class PHNode;
 class DumpPHG4ParticleSvtxMap : public DumpObject
 {
  public:
-  DumpPHG4ParticleSvtxMap(const std::string &NodeName);
+  explicit DumpPHG4ParticleSvtxMap(const std::string &NodeName);
   ~DumpPHG4ParticleSvtxMap() override {}
 
  protected:

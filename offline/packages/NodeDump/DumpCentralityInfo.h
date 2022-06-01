@@ -10,7 +10,7 @@ class PHNode;
 class DumpCentralityInfo : public DumpObject
 {
  public:
-  DumpCentralityInfo(const std::string &NodeName);
+  explicit DumpCentralityInfo(const std::string &NodeName);
   ~DumpCentralityInfo() override {}
 
  protected:
