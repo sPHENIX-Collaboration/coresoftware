@@ -19,16 +19,11 @@
 #include <phool/PHObject.h>               // for PHObject
 #include <phool/getClass.h>
 
-#include <boost/foreach.hpp>
-
 #include <cmath>                         // for NAN
 #include <iostream>                       // for operator<<, basic_ostream
 #include <set>
-#include <sstream>
 
 class PHG4Detector;
-
-using namespace std;
 
 //_______________________________________________________________________
 PHG4IHCalSubsystem::PHG4IHCalSubsystem(const std::string &name, const int lyr)
@@ -56,7 +51,7 @@ int PHG4IHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector = new PHG4IHCalDetector(this, topNode, GetParams(), Name());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
-  set<string> nodes;
+  std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
@@ -125,9 +120,9 @@ int PHG4IHCalSubsystem::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-void PHG4IHCalSubsystem::Print(const string &what) const
+void PHG4IHCalSubsystem::Print(const std::string &what) const
 {
-  cout << Name() << " Parameters: " << endl;
+  std::cout << Name() << " Parameters: " << std::endl;
   GetParams()->Print();
   if (m_Detector)
   {
@@ -161,34 +156,13 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
-  // set_default_double_param("scinti_eta_coverage", 1.1);
-  // set_default_double_param("scinti_eta_coverage_pos", 1.1);
-  // set_default_double_param("scinti_eta_coverage_neg", 1.1);
-  // set_default_double_param("scinti_gap_neighbor", 0.1);
-  // set_default_double_param("scinti_inner_gap", 0.85);
-  // set_default_double_param("scinti_outer_gap", 1.22 * (5.0 / 4.0));
-
-  // some math issue in the code subtracts 0.4mm so the scintillator
-  // does not end at 133.09 as per drawing but at 133.05
-  // adding 0.4mm compensates for this (so 133.13 gives the desired 133.09
-//  set_default_double_param("scinti_outer_radius", 133.13);
-//  set_default_double_param("scinti_tile_thickness", 0.7);
   set_default_double_param("size_z", 175.94 * 2);
-//  set_default_double_param("steplimits", NAN);
-//  set_default_double_param("tilt_angle", 36.15);  // engineering drawing
-//                                                  // corresponds very closely to 4 crossinge (35.5497 deg)
 
   set_default_int_param("light_scint_model", 1);
-  // if ncross is set (and tilt_angle is NAN) tilt_angle is calculated
-  // from number of crossings
-//  set_default_int_param("ncross", 0);
   set_default_int_param(PHG4HcalDefs::n_towers, 64);
   set_default_int_param(PHG4HcalDefs::scipertwr, 4);
   set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
-  // set_default_int_param(PHG4HcalDefs::n_scinti_tiles_pos, 12);
-  // set_default_int_param(PHG4HcalDefs::n_scinti_tiles_neg, 12);
 
-//  set_default_string_param("material", "G4_Al");
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
 }
 

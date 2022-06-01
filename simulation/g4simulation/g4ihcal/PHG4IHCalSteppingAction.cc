@@ -1,7 +1,8 @@
 #include "PHG4IHCalSteppingAction.h"
 
 #include "PHG4IHCalDetector.h"
-#include "g4detectors/PHG4StepStatusDecode.h"//-m/s-
+
+#include <g4detectors/PHG4StepStatusDecode.h>//-m/s-
 
 #include <phparameter/PHParameters.h>
 
@@ -19,7 +20,6 @@
 // Root headers
 #include <TFile.h>
 #include <TH2.h>
-#include <TSystem.h>
 
 #include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
@@ -39,6 +39,7 @@
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <cmath>  // for isfinite
+#include <cstdlib>                            // for getenv
 #include <iostream>
 #include <string>   // for operator<<, operator+
 #include <utility>  // for pair
@@ -93,7 +94,6 @@ int PHG4IHCalSteppingAction::Init()
     std::cout << "ERROR: mapCorr is NULL" << std::endl;
     gSystem->Exit(1);
   }
-
   return 0;
 }
 
