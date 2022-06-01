@@ -1,9 +1,11 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
-#define G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
+#ifndef G4DETECTORS_PHG4IHCALSTEPPINGACTION_H
+#define G4DETECTORS_PHG4IHCALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
+
+#include <string>  // for string
 
 class G4Step;
 class G4VPhysicalVolume;
@@ -31,29 +33,32 @@ class PHG4IHCalSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   void SetInterfacePointers(PHCompositeNode *) override;
 
+  void SetHitNodeName(const std::string &type, const std::string &name) override;
+
  private:
   //! pointer to the detector
-  PHG4IHCalDetector *m_Detector;
+  PHG4IHCalDetector *m_Detector = nullptr;
 
   //! pointer to hit container
-  PHG4HitContainer *m_Hits;
-  PHG4HitContainer *m_AbsorberHits;
-  PHG4Hit *m_Hit;
-  const PHParameters *m_Params;
-  PHG4HitContainer *m_SaveHitContainer;
-  PHG4Shower *m_SaveShower;
-  G4VPhysicalVolume *m_SaveVolPre;
-  G4VPhysicalVolume *m_SaveVolPost;
-  int m_SaveTrackId;
-  int m_SavePreStepStatus;
-  int m_SavePostStepStatus;
+  PHG4HitContainer *m_HitContainer = nullptr;
+  PHG4HitContainer *m_AbsorberHitContainer = nullptr;
+  PHG4Hit *m_Hit = nullptr;
+  const PHParameters *m_Params = nullptr;
+  PHG4HitContainer *m_SaveHitContainer = nullptr;
+  PHG4Shower *m_SaveShower = nullptr;
+  G4VPhysicalVolume *m_SaveVolPre = nullptr;
+  G4VPhysicalVolume *m_SaveVolPost = nullptr;
+  int m_SaveTrackId = -1;
+  int m_SavePreStepStatus = -1;
+  int m_SavePostStepStatus = -1;
   // since getting parameters is a map search we do not want to
   // do this in every step, the parameters used are cached
   // in the following variables
-  int m_IsActive;
-  int m_IsBlackHole;
-  int m_LightScintModel;
+  int m_IsActive = 0;
+  int m_IsBlackHole = 0;
+  int m_LightScintModel = 0;
+  std::string m_AbsorberNodeName;
+  std::string m_HitNodeName;
 };
 
-#endif  // G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
-
+#endif  // G4DETECTORS_PHG4IHCALSTEPPINGACTION_H

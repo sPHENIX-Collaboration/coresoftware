@@ -10,7 +10,7 @@ class PHNode;
 class DumpPHG4InEvent : public DumpObject
 {
  public:
-  DumpPHG4InEvent(const std::string &NodeName);
+  explicit DumpPHG4InEvent(const std::string &NodeName);
   ~DumpPHG4InEvent() override {}
 
  protected:
