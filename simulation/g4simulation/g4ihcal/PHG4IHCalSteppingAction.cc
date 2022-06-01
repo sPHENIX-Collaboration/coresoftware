@@ -130,9 +130,8 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   }
   else
   {
-    layer_id = touch->GetCopyNumber();  // steel plate id
+    layer_id = volume->GetCopyNo(); // absorber sector id
   }
-  //std::cout<<"\tsteel plate id : "<<touch->GetCopyNumber() <<std::endl;
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
