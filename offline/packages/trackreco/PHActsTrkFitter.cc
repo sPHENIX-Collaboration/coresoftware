@@ -221,39 +221,51 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	{ std::cout << "tpc and si id " << tpcid << ", " << siid << std::endl; }
 
       /// A track seed is made for every tpc seed. Not every tpc seed
-      /// has a silicon match, so we have to treat these specially
+      /// has a silicon match, we skip those cases completely
+      if(siid == std::numeric_limits<unsigned int>::max()) 
+	{
+	  if(Verbosity() > 0) std::cout << "SvtxSeedTrack has no silicon match, skip it" << std::endl;
+	  continue;
+	}
+
+      // get the crossing number
+      TrackSeed *siseed = m_siliconSeeds->get(siid);
+      auto crossing = siseed->get_crossing();
+
+      // if the crossing was not determined, skip this case completely
+      if(crossing == SHRT_MAX) 
+	{
+	  // Skip this in the pp case. For AuAu it should not happen
+	  continue;
+	}
+
       TrackSeed *tpcseed = m_tpcSeeds->get(tpcid);
 
-      /// Need to also check that the seed wasn't removed by the ghost finder
+      /// Need to also check that the tpc seed wasn't removed by the ghost finder
       if(!tpcseed)
 	{ std::cout << "no tpc seed"<<std::endl; continue; }
 
+      if(Verbosity() > 0) 
+	{
+	  std::cout << " silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
+	  std::cout << " tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
+	}
       PHTimer trackTimer("TrackTimer");
       trackTimer.stop();
       trackTimer.restart();
       ActsExamples::MeasurementContainer measurements;
      
-      auto sourceLinks = getSourceLinks(tpcseed, measurements);
+      auto sourceLinks = getSourceLinks(tpcseed, measurements, crossing);
   
+      auto siSourceLinks = getSourceLinks(siseed, measurements, crossing);
+      for(auto& siSL : siSourceLinks)
+	{ sourceLinks.push_back(siSL); }
+
+      // position comes from the silicon seed
       Acts::Vector3 position(0,0,0);
-      if(siid != std::numeric_limits<unsigned int>::max())
-	{
-	  if(Verbosity() > 1)
-	    { std::cout << "si seed match found" << std::endl; }
-	  TrackSeed *siseed = m_siliconSeeds->get(siid);
-	  auto siSourceLinks = getSourceLinks(siseed, measurements);
-	  for(auto& siSL : siSourceLinks)
-	    { sourceLinks.push_back(siSL); }
-	  position(0) = siseed->get_x() * Acts::UnitConstants::cm;
-	  position(1) = siseed->get_y() * Acts::UnitConstants::cm;
-	  position(2) = siseed->get_z() * Acts::UnitConstants::cm;
-	}
-      else
-	{
-	  position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
-	  position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
-	  position(2) = tpcseed->get_z() * Acts::UnitConstants::cm;
-	}
+      position(0) = siseed->get_x() * Acts::UnitConstants::cm;
+      position(1) = siseed->get_y() * Acts::UnitConstants::cm;
+      position(2) = siseed->get_z() * Acts::UnitConstants::cm;
 
       if(sourceLinks.size() == 0) { continue; }
 
@@ -373,22 +385,14 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  else
 	    {
 	      auto newTrack = std::make_unique<SvtxTrack_v4>();
-	      /// We want to set the ID to the tpc track seed id so that
-	      /// the ghost rejection finds the right track
-	      newTrack->set_id(tpcid);
+	      unsigned int trid = m_trackMap->size();
+	      newTrack->set_id(trid);
 	      newTrack->set_tpc_seed(tpcseed);
-	      if(siid != std::numeric_limits<unsigned int>::max())
-		{ 
-		  newTrack->set_crossing(m_siliconSeeds->get(siid)->get_crossing());
-		  newTrack->set_silicon_seed(m_siliconSeeds->get(siid));
-		}
-	      else
-		{
-		  newTrack->set_crossing(tpcseed->get_crossing());
-		}
-
+	      newTrack->set_crossing(m_siliconSeeds->get(siid)->get_crossing());
+	      newTrack->set_silicon_seed(m_siliconSeeds->get(siid));
+	
 	      if( getTrackFitResult(fitOutput, newTrack))
-		{ m_trackMap->insertWithKey(newTrack.get(), tpcid); }
+		{ m_trackMap->insertWithKey(newTrack.get(), trid); }
 	    }
 	}
       else if (!m_fitSiliconMMs)
@@ -500,14 +504,17 @@ Surface PHActsTrkFitter::getMMSurface(TrkrDefs::hitsetkey hitsetkey) const
 
 //___________________________________________________________________________________
 SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
-				   ActsExamples::MeasurementContainer& measurements)
+					      ActsExamples::MeasurementContainer& measurements,
+				   short int crossing )
 {
 
   SourceLinkVec sourcelinks;
 
-  short int crossing = track->get_crossing();
   if(crossing == SHRT_MAX) 
-    { return sourcelinks; }
+    {
+      // Need to skip this in the pp case, for AuAu it should not happen
+      return sourcelinks; 
+    }
 
   // loop over all clusters
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
@@ -872,8 +879,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
   if(Verbosity() > 2)
     {
       std::cout << "Identify (proto) track before updating with acts results " << std::endl;
-      track->identify();
-      std::cout << " cluster keys size " << track->size_cluster_keys() << std::endl;  
+      track->identify();      
     }
 
   if(!m_fitSiliconMMs)
@@ -890,7 +896,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 
   auto trajState =
     Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
- 
+
   const auto& params = traj.trackParameters(trackTip);
 
   /// Acts default unit is mm. So convert to cm
@@ -935,7 +941,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       rotater.fillSvtxTrackStates(mj, trackTip, track.get(),
 				  m_tGeometry->geoContext);  
     }
-  
+
   trackStateTimer.stop();
   auto stateTime = trackStateTimer.get_accumulated_time();
   
@@ -951,8 +957,6 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
       std::cout << " Identify fitted track after updating track states:" 
 		<< std::endl;
       track->identify();
-      std::cout << " cluster keys size " << track->size_cluster_keys() 
-		<< std::endl;  
     }
  
  return;

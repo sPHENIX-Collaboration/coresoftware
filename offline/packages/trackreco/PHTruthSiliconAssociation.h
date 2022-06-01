@@ -9,6 +9,8 @@
 #include <string>
 #include <set>
 #include <vector>
+#include <memory>
+#include <gsl/gsl_rng.h>
 
 class PHCompositeNode;
 class TrackSeedContainer;
@@ -20,7 +22,6 @@ class TrkrHitTruthAssoc;
 class PHG4TruthInfoContainer;
 class PHG4HitContainer;
 class PHG4Particle;
-class TpcSeedTrackMap;
 class TrkrClusterCrossingAssoc;
 struct ActsTrackingGeometry;
 struct ActsSurfaceMaps;
@@ -54,8 +55,10 @@ class PHTruthSiliconAssociation : public SubsysReco
  private:
 
   int GetNodes(PHCompositeNode* topNode);
-  void copySiliconClustersToCorrectedMap( );
-  void makeSvtxSeedMap();
+  //  void copySiliconClustersToCorrectedMap( );
+  //void makeSvtxSeedMap();
+
+  unsigned int buildTrackSeed(std::set<TrkrDefs::cluskey> clusters, PHG4Particle *g4particle, TrackSeedContainer* container);
 
   std::vector<PHG4Particle*> getG4PrimaryParticle(TrackSeed *track);
   std::set<TrkrDefs::cluskey> getSiliconClustersFromParticle(PHG4Particle* g4particle);
@@ -70,16 +73,26 @@ class PHTruthSiliconAssociation : public SubsysReco
   TrkrClusterContainer *_corrected_cluster_map{nullptr};
   TrkrClusterHitAssoc *_cluster_hit_map{nullptr};
   TrkrHitTruthAssoc *_hit_truth_map{nullptr};
-  TrackSeedContainer *_track_map{nullptr};
+  TrackSeedContainer *_tpc_track_map{nullptr};
+  TrackSeedContainer *_silicon_track_map{nullptr};
   TrackSeedContainer *_svtx_seed_map{nullptr};
   TrackSeed *_tracklet{nullptr};
   SvtxVertexMap * _vertex_map{nullptr};
-  TpcSeedTrackMap *_seed_track_map{nullptr};
   TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};
   ActsTrackingGeometry *_tgeometry{nullptr};
   ActsSurfaceMaps *_surfmaps{nullptr};
 
-  std::string _tpcseed_track_map_name = "TpcSeedTrackMap";
+  //! rng de-allocator
+  class Deleter
+  {
+    public:
+    //! deletion operator
+    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+  };
+
+ //! random generator that conform with sPHENIX standard
+  /*! using a unique_ptr with custom Deleter ensures that the structure is properly freed when parent object is destroyed */
+  std::unique_ptr<gsl_rng, Deleter> m_rng;
 
 };
 
