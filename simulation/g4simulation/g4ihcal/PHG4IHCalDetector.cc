@@ -238,5 +238,117 @@ std::pair<int, int> PHG4IHCalDetector::ExtractLayerTowerId(G4VPhysicalVolume *vo
       }
     }
   }
-  return std::make_pair(layer_id, tower_id);
+  int column = map_towerid(tower_id);
+  return std::make_pair(layer_id, column);
+}
+
+// map gdml tower ids to our columns
+int PHG4IHCalDetector::map_towerid(const int  tower_id)
+{
+  if (tower_id == 23)
+  {
+    return 0;
+  }
+  else if (tower_id == 21)
+  {
+    return 1;
+  }
+  else if (tower_id ==19 )
+  {
+    return 2;
+  }
+  else if (tower_id == 17)
+  {
+    return 3;
+  }
+  else if (tower_id == 15)
+  {
+    return 4;
+  }
+  else if (tower_id == 13)
+  {
+    return 5;
+  }
+  else if (tower_id == 11)
+  {
+    return 6;
+  }
+  else if (tower_id == 9)
+  {
+    return 7;
+  }
+  else if (tower_id == 7)
+  {
+    return 8;
+  }
+  else if (tower_id == 5)
+  {
+    return 9;
+  }
+  else if (tower_id == 3)
+  {
+    return 10;
+  }
+  else if (tower_id == 1)
+  {
+    return 11;
+  }
+  else if (tower_id == 0)
+  {
+    return 12;
+  }
+  else if (tower_id == 2)
+  {
+    return 13;
+  }
+  else if (tower_id == 4)
+  {
+    return 14;
+  }
+  else if (tower_id == 6)
+  {
+    return 15;
+  }
+  else if (tower_id == 8)
+  {
+    return 16;
+  }
+  else if (tower_id == 10)
+  {
+    return 17;
+  }
+  else if (tower_id == 12)
+  {
+    return 18;
+  }
+  else if (tower_id == 14)
+  {
+    return 19;
+  }
+  else if (tower_id == 16)
+  {
+    return 20;
+  }
+  else if (tower_id == 18)
+  {
+    return 21;
+  }
+  else if (tower_id == 20)
+  {
+    return 22;
+  }
+  else if (tower_id == 22)
+  {
+    return 23;
+  }
+  else if (tower_id == 24)
+  {
+    return 24;
+  }
+  else 
+  {
+    std::cout << PHWHERE << " cannot map tower " << tower_id << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
 }
