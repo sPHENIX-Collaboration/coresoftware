@@ -34,7 +34,7 @@ class PHG4OHCalField : public G4MagneticField
   PHG4OHCalField() = delete;
 
   PHG4OHCalField(bool isInIron, G4int steelPlates,
-                     G4double scintiGap, G4double tiltAngle);
+                 G4double scintiGap, G4double tiltAngle);
 
   ~PHG4OHCalField() override {}
 

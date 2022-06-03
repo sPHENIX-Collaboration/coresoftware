@@ -10,7 +10,6 @@
 #include <g4main/PHG4Detector.h>
 #include <g4main/PHG4DisplayAction.h>
 #include <g4main/PHG4Subsystem.h>
-#include <g4main/PHG4Utils.h>
 
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
@@ -18,35 +17,22 @@
 #include <TSystem.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4Box.hh>
-#include <Geant4/G4ExtrudedSolid.hh>
-#include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4String.hh>
-#include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Transform3D.hh>
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4UserLimits.hh>
 #include <Geant4/G4VPhysicalVolume.hh>
 #include <Geant4/G4VSolid.hh>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wpedantic"
-#include <CGAL/Boolean_set_operations_2.h>
-#include <CGAL/Circular_kernel_intersections.h>
-#include <CGAL/Exact_circular_kernel_2.h>
-#include <CGAL/Object.h>
-#include <CGAL/point_generators_2.h>
 #include <Geant4/G4GDMLParser.hh>
 #include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
-#include <Geant4/G4GDMLReadParamvol.hh>
 #pragma GCC diagnostic pop
 
 #include <boost/lexical_cast.hpp>
@@ -56,9 +42,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <iterator>
-#include <sstream>
 
+class G4Material;
 class PHCompositeNode;
 
 using namespace std;
@@ -144,26 +129,31 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   m_DisplayAction->SetMyTopVolume(mothervol);
   ConstructOHCal(hcal_envelope_log);
 
-  cout<<"ScintiMotherAssembly: "<<m_ScintiMotherAssembly->TotalImprintedVolumes()
-      <<"\tChimScintiMotherAssembly: "<<m_ChimScintiMotherAssembly->TotalImprintedVolumes()<<endl;
   vector<G4VPhysicalVolume *>::iterator it = m_ScintiMotherAssembly->GetVolumesIterator();
-  for (unsigned int i = 0; i < m_ScintiMotherAssembly->TotalImprintedVolumes(); i++){
+  for (unsigned int i = 0; i < m_ScintiMotherAssembly->TotalImprintedVolumes(); i++)
+  {
     boost::char_separator<char> sep("_");
     boost::tokenizer<boost::char_separator<char>> tok((*it)->GetName(), sep);
     boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
     int layer_id = -1, tower_id = -1;
-    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter){
-      if (*tokeniter == "impr"){
+    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+    {
+      if (*tokeniter == "impr")
+      {
         ++tokeniter;
-        if (tokeniter != tok.end()){
-          layer_id = boost::lexical_cast<int>(*tokeniter)/2;
-	  layer_id--;
-          if (layer_id < 0 || layer_id >= m_NumScintiPlates){
+        if (tokeniter != tok.end())
+        {
+          layer_id = boost::lexical_cast<int>(*tokeniter) / 2;
+          layer_id--;
+          if (layer_id < 0 || layer_id >= m_NumScintiPlates)
+          {
             cout << "invalid scintillator row " << layer_id
                  << ", valid range 0 < row < " << m_NumScintiPlates << endl;
             gSystem->Exit(1);
           }
-        } else {
+        }
+        else
+        {
           cout << PHWHERE << " Error parsing " << (*it)->GetName()
                << " for mother volume number " << endl;
           gSystem->Exit(1);
@@ -171,12 +161,15 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
         break;
       }
     }
-    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter){
-      if (*tokeniter == "pv"){
+    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+    {
+      if (*tokeniter == "pv")
+      {
         ++tokeniter;
-        if (tokeniter != tok.end()){
+        if (tokeniter != tok.end())
+        {
           tower_id = boost::lexical_cast<int>(*tokeniter);
-	}
+        }
       }
     }
     pair<int, int> layer_twr = make_pair(layer_id, tower_id);
@@ -185,23 +178,30 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   }
 
   vector<G4VPhysicalVolume *>::iterator chim_it = m_ChimScintiMotherAssembly->GetVolumesIterator();
-  for (unsigned int i = 0; i < m_ChimScintiMotherAssembly->TotalImprintedVolumes(); i++){
+  for (unsigned int i = 0; i < m_ChimScintiMotherAssembly->TotalImprintedVolumes(); i++)
+  {
     boost::char_separator<char> sep("_");
     boost::tokenizer<boost::char_separator<char>> tok((*chim_it)->GetName(), sep);
     boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
     int layer_id = -1, tower_id = -1;
-    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter){
-      if (*tokeniter == "impr"){
+    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+    {
+      if (*tokeniter == "impr")
+      {
         ++tokeniter;
-        if (tokeniter != tok.end()){
-          layer_id = boost::lexical_cast<int>(*tokeniter)/2;
-	  layer_id--;
-          if (layer_id < 0 || layer_id >= m_NumScintiPlates){
+        if (tokeniter != tok.end())
+        {
+          layer_id = boost::lexical_cast<int>(*tokeniter) / 2;
+          layer_id--;
+          if (layer_id < 0 || layer_id >= m_NumScintiPlates)
+          {
             cout << "invalid scintillator row " << layer_id
                  << ", valid range 0 < row < " << m_NumScintiPlates << endl;
             gSystem->Exit(1);
           }
-        } else {
+        }
+        else
+        {
           cout << PHWHERE << " Error parsing " << (*chim_it)->GetName()
                << " for mother volume number " << endl;
           gSystem->Exit(1);
@@ -209,12 +209,15 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
         break;
       }
     }
-    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter){
-      if (*tokeniter == "pv"){
+    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+    {
+      if (*tokeniter == "pv")
+      {
         ++tokeniter;
-        if (tokeniter != tok.end()){
+        if (tokeniter != tok.end())
+        {
           tower_id = boost::lexical_cast<int>(*tokeniter);
-	}
+        }
       }
     }
     pair<int, int> layer_twr = make_pair(layer_id, tower_id);
@@ -227,42 +230,45 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
 int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
 {
-
   // import the staves from the gemetry file
   unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
   gdmlParser.SetOverlapCheck(OverlapCheck());
   gdmlParser.Read(m_GDMPath, false);
 
-  G4AssemblyVolume* abs_asym = reader->GetAssembly("sector"); //absorber
-  G4AssemblyVolume* chimAbs_asym = reader->GetAssembly("sectorChimney"); //absorber
+  G4AssemblyVolume *abs_asym = reader->GetAssembly("sector");             //absorber
+  G4AssemblyVolume *chimAbs_asym = reader->GetAssembly("sectorChimney");  //absorber
 
   vector<G4VPhysicalVolume *>::iterator it1 = abs_asym->GetVolumesIterator();
-  for (unsigned int i = 0; i < abs_asym->TotalImprintedVolumes(); i++){
+  for (unsigned int i = 0; i < abs_asym->TotalImprintedVolumes(); i++)
+  {
     m_DisplayAction->AddSteelVolume((*it1)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it1));
     ++it1;
   }
 
   vector<G4VPhysicalVolume *>::iterator it2 = chimAbs_asym->GetVolumesIterator();
-  for (unsigned int i = 0; i < chimAbs_asym->TotalImprintedVolumes(); i++){
+  for (unsigned int i = 0; i < chimAbs_asym->TotalImprintedVolumes(); i++)
+  {
     m_DisplayAction->AddChimSteelVolume((*it2)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it2));
     ++it2;
   }
 
-  m_ScintiMotherAssembly = reader->GetAssembly("tileAssembly24_90"); //tiles
-  m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90"); //chimeny tiles
+  m_ScintiMotherAssembly = reader->GetAssembly("tileAssembly24_90");             //tiles
+  m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90");  //chimeny tiles
 
   vector<G4VPhysicalVolume *>::iterator it3 = m_ScintiMotherAssembly->GetVolumesIterator();
-  for (unsigned int i = 0; i < m_ScintiMotherAssembly->TotalImprintedVolumes(); i++){
+  for (unsigned int i = 0; i < m_ScintiMotherAssembly->TotalImprintedVolumes(); i++)
+  {
     m_DisplayAction->AddScintiVolume((*it3)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it3));
     ++it3;
   }
 
   vector<G4VPhysicalVolume *>::iterator it4 = m_ChimScintiMotherAssembly->GetVolumesIterator();
-  for (unsigned int i = 0; i < m_ChimScintiMotherAssembly->TotalImprintedVolumes(); i++){
+  for (unsigned int i = 0; i < m_ChimScintiMotherAssembly->TotalImprintedVolumes(); i++)
+  {
     m_DisplayAction->AddScintiVolume((*it4)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it4));
     ++it4;
@@ -280,9 +286,8 @@ void PHG4OHCalDetector::Print(const string &what) const
     cout << "Volume Steel: " << m_VolumeSteel / cm / cm / cm << " cm^3" << endl;
     cout << "Volume Scintillator: " << m_VolumeScintillator / cm / cm / cm << " cm^3" << endl;
     cout << "Volume Air: " << (m_VolumeEnvelope - m_VolumeSteel - m_VolumeScintillator) / cm / cm / cm << " cm^3" << endl;
-
   }
-  cout<<"******\tm_GDMPath : "<<m_GDMPath<<endl;
+  cout << "******\tm_GDMPath : " << m_GDMPath << endl;
 
   return;
 }

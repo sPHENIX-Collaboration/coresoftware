@@ -5,8 +5,7 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/G4Types.hh>  // for G4double
-
+#include <cmath>  // for NAN
 #include <map>
 #include <set>
 #include <string>   // for string
@@ -49,7 +48,6 @@ class PHG4OHCalDetector : public PHG4Detector
   std::pair<int, int> GetLayerTowerId(G4VPhysicalVolume *volume) const;
 
  protected:
-
   int ConstructOHCal(G4LogicalVolume *hcalenvelope);
   PHG4OHCalDisplayAction *m_DisplayAction = nullptr;
   PHG4OHCalFieldSetup *m_FieldSetup = nullptr;
@@ -92,4 +90,4 @@ class PHG4OHCalDetector : public PHG4Detector
   std::string m_GDMPath;
 };
 
-#endif // G4OHCAL_PHG4OHCALDETECTOR_H
+#endif  // G4OHCAL_PHG4OHCALDETECTOR_H

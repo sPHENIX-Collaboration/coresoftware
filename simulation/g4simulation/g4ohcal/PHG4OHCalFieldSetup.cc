@@ -21,7 +21,7 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 PHG4OHCalFieldSetup::PHG4OHCalFieldSetup(G4int steelPlates,
-                                                 G4double scintiGap, G4double tiltAngle)
+                                         G4double scintiGap, G4double tiltAngle)
   : fMinStep(0.005 * mm)
   , n_steel_plates(steelPlates) /*G4int*/
   , scinti_gap(scintiGap)       /*G4double*/
@@ -31,7 +31,7 @@ PHG4OHCalFieldSetup::PHG4OHCalFieldSetup(G4int steelPlates,
 
   {
     fEMfieldIron = new PHG4OHCalField(true, n_steel_plates, scinti_gap,
-                                          tilt_angle);
+                                      tilt_angle);
 
     fEquationIron = new G4Mag_UsualEqRhs(fEMfieldIron);
 
@@ -48,7 +48,7 @@ PHG4OHCalFieldSetup::PHG4OHCalFieldSetup(G4int steelPlates,
 
   {
     fEMfieldGap = new PHG4OHCalField(false, n_steel_plates, scinti_gap,
-                                         tilt_angle);
+                                     tilt_angle);
 
     fEquationGap = new G4Mag_UsualEqRhs(fEMfieldGap);
 

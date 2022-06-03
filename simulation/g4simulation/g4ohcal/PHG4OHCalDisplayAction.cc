@@ -58,5 +58,4 @@ void PHG4OHCalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
   m_VisAtt2->SetColor(G4Colour::Yellow());
   m_ChimSteelVol->SetVisAttributes(m_VisAtt2);
   m_VisAttVec2.push_back(m_VisAtt2);
-
 }

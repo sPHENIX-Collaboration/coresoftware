@@ -61,4 +61,4 @@ class PHG4OHCalSubsystem : public PHG4DetectorSubsystem
   PHG4DisplayAction* m_DisplayAction;
 };
 
-#endif // G4OHCAL_PHG4OHCALSUBSYSTEM_H
+#endif  // G4OHCAL_PHG4OHCALSUBSYSTEM_H

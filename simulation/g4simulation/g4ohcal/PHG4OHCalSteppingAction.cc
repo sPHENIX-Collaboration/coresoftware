@@ -1,11 +1,12 @@
 // local headers in quotes (that is important when using include subdirs!)
 #include "PHG4OHCalSteppingAction.h"
 
-#include "g4detectors/PHG4HcalDefs.h"
 #include "PHG4OHCalDetector.h"
-#include "g4detectors/PHG4StepStatusDecode.h"
 
 // our own headers in alphabetical order
+
+#include <g4detectors/PHG4HcalDefs.h>
+#include <g4detectors/PHG4StepStatusDecode.h>
 
 #include <phparameter/PHParameters.h>
 
@@ -24,14 +25,15 @@
 #include <TAxis.h>  // for TAxis
 #include <TFile.h>
 #include <TH2.h>
-#include <TH2F.h>
 #include <TNamed.h>  // for TNamed
 #include <TSystem.h>
 
 // Geant4 headers
 
+#include <Geant4/G4AffineTransform.hh>  // for G4AffineTransform
 #include <Geant4/G4Field.hh>
 #include <Geant4/G4FieldManager.hh>
+#include <Geant4/G4NavigationHistory.hh>   // for G4NavigationHistory
 #include <Geant4/G4ParticleDefinition.hh>  // for G4ParticleDefinition
 #include <Geant4/G4PropagatorInField.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
@@ -44,7 +46,6 @@
 #include <Geant4/G4TouchableHandle.hh>  // for G4TouchableHandle
 #include <Geant4/G4Track.hh>            // for G4Track
 #include <Geant4/G4TrackStatus.hh>      // for fStopAndKill
-#include <Geant4/G4Transform3D.hh>
 #include <Geant4/G4TransportationManager.hh>
 #include <Geant4/G4Types.hh>                  // for G4double
 #include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
@@ -54,6 +55,7 @@
 // finally system headers
 #include <cassert>
 #include <cmath>  // for isfinite, sqrt
+#include <cstdlib>
 #include <iostream>
 #include <string>   // for operator<<, string
 #include <utility>  // for pair
@@ -62,7 +64,7 @@ class PHCompositeNode;
 
 using namespace std;
 
-TH2F* MapCorr = NULL;
+TH2F* MapCorr = nullptr;
 
 //____________________________________________________________________________..
 PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, const PHParameters* parameters)
@@ -169,7 +171,7 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     layer_id = touch->GetCopyNumber();  // steel plate id
   }
 
-  std::cout<<"**78987** Outer HCal\t"<<volume->GetName()<<"\t"<<layer_id<<"\t"<<tower_id<<std::endl;
+  std::cout << "**78987** Outer HCal\t" << volume->GetName() << "\t" << layer_id << "\t" << tower_id << std::endl;
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;

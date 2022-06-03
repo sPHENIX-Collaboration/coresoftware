@@ -28,11 +28,11 @@ class PHG4OHCalFieldSetup
 {
  public:
   PHG4OHCalFieldSetup(G4int steelPlates, G4double scintiGap,
-                          G4double tiltAngle);
+                      G4double tiltAngle);
 
-// delete copy ctor and assignment opertor (cppcheck)
-  explicit PHG4OHCalFieldSetup(const PHG4OHCalFieldSetup &) = delete;
-  PHG4OHCalFieldSetup& operator = (const PHG4OHCalFieldSetup&) = delete;
+  // delete copy ctor and assignment opertor (cppcheck)
+  explicit PHG4OHCalFieldSetup(const PHG4OHCalFieldSetup&) = delete;
+  PHG4OHCalFieldSetup& operator=(const PHG4OHCalFieldSetup&) = delete;
 
   virtual ~PHG4OHCalFieldSetup() {}
 
