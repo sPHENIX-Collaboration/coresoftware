@@ -725,7 +725,7 @@ Acts::SpacePointGridConfig PHActsSiliconSeeding::configureSPGrid()
   config.deltaRMax = m_deltaRMax;
   config.cotThetaMax = m_cotThetaMax;
   config.impactMax = m_impactMax;
-  config.numPhiNeighbors = m_numPhiNeighbors;
+  config.phiBinDeflectionCoverage = m_numPhiNeighbors;
 
 
   return config;

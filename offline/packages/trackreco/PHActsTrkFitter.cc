@@ -68,12 +68,12 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
-  m_fitCfg.fit = ActsExamples::TrackFittingAlgorithm::makeTrackFitterFunction(
+  m_fitCfg.fit = ActsExamples::TrackFittingAlgorithm::makeKalmanFitterFunction(
                m_tGeometry->tGeometry,
-	       m_tGeometry->magField);
+	       m_tGeometry->magField, true, true);
 
-  m_fitCfg.dFit = ActsExamples::TrackFittingAlgorithm::makeTrackFitterFunction(
-	       m_tGeometry->magField);
+  m_fitCfg.dFit = ActsExamples::TrackFittingAlgorithm::makeKalmanFitterFunction(
+				m_tGeometry->magField, true, true);
 
   m_outlierFinder.verbosity = Verbosity();
   std::map<long unsigned int, float> chi2Cuts;
@@ -327,17 +327,14 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       extensions.updater.connect<&Acts::GainMatrixUpdater::operator()>(&kfUpdater);
       extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()>(&kfSmoother);
 
-      Acts::KalmanFitterOptions kfOptions(m_tGeometry->geoContext,
-					  m_tGeometry->magFieldContext,
-					  m_tGeometry->calibContext,
-					  extensions,
-					  Acts::LoggerWrapper(*logger),
-					  ppPlainOptions,
-					  &(*pSurface));
- 
-      kfOptions.multipleScattering = true;
-      kfOptions.energyLoss = true;
-
+      ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions 
+	kfOptions{m_tGeometry->geoContext,
+		  m_tGeometry->magFieldContext,
+		  m_tGeometry->calibContext,
+		  calibrator,
+		  &(*pSurface),
+	  Acts::LoggerWrapper(*logger),};
+      
       PHTimer fitTimer("FitTimer");
       fitTimer.stop();
       fitTimer.restart();
@@ -764,7 +761,7 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
 ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
     const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
     const ActsExamples::TrackParameters& seed,
-    const ActsExamples::TrackFittingAlgorithm::TrackFitterOptions& kfOptions, 
+    const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
     const SurfacePtrVec& surfSequence)
 {
 
