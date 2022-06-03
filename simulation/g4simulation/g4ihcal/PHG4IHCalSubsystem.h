@@ -3,7 +3,7 @@
 #ifndef G4IHCAL_PHG4IHCALSUBSYSTEM_H
 #define G4IHCAL_PHG4IHCALSUBSYSTEM_H
 
-#include "g4detectors/PHG4DetectorSubsystem.h"
+#include <g4detectors/PHG4DetectorSubsystem.h>
 
 #include <string>
 
