@@ -10,7 +10,7 @@ class PHNode;
 class DumpBbcVertexMap : public DumpObject
 {
  public:
-  DumpBbcVertexMap(const std::string &NodeName);
+  explicit DumpBbcVertexMap(const std::string &NodeName);
   ~DumpBbcVertexMap() override {}
 
  protected:

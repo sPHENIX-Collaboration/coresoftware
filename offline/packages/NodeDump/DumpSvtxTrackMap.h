@@ -10,7 +10,7 @@ class PHNode;
 class DumpSvtxTrackMap : public DumpObject
 {
  public:
-  DumpSvtxTrackMap(const std::string &NodeName);
+  explicit DumpSvtxTrackMap(const std::string &NodeName);
   ~DumpSvtxTrackMap() override {}
 
  protected:

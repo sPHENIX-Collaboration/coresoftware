@@ -10,7 +10,7 @@ class PHNode;
 class DumpRunHeader : public DumpObject
 {
  public:
-  DumpRunHeader(const std::string &NodeName);
+  explicit DumpRunHeader(const std::string &NodeName);
   ~DumpRunHeader() override {}
 
  protected:

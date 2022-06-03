@@ -2,7 +2,7 @@
  *  \file		PHActsTrkFitter.h
  *  \brief		Refit SvtxTracks with Acts.
  *  \details	Refit SvtxTracks with Acts
- *  \author		Tony Frawley <afrawley@fsu.edu>
+ *  \author		Joe Osborn, Tony Frawley <afrawley@fsu.edu>
  */
 
 #ifndef TRACKRECO_ACTSTRKFITTER_H
@@ -113,7 +113,8 @@ class PHActsTrkFitter : public SubsysReco
 
   void loopTracks(Acts::Logging::Level logLevel);
   SourceLinkVec getSourceLinks(TrackSeed *track, 
-			       ActsExamples::MeasurementContainer& measurements);
+			       ActsExamples::MeasurementContainer& measurements,
+			       short int crossing);
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(Trajectory traj, std::unique_ptr<SvtxTrack_v4>& track);

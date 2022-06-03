@@ -67,7 +67,19 @@ namespace
   // specify bins for which one will save histograms
   static const std::vector<float> phi_rec = { get_sector_phi(9) };
   static const std::vector<float> z_rec = { 5. };
-  
+
+  //! get cluster keys from a given track
+  std::vector<TrkrDefs::cluskey> get_cluster_keys( SvtxTrack* track )
+  {
+    std::vector<TrkrDefs::cluskey> out;
+    for( const auto& seed: { track->get_silicon_seed(), track->get_tpc_seed() } )
+    {
+      if( seed )
+      { std::copy( seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter( out ) ); }
+    }
+    return out;
+  }
+
 }
 
 PHTpcResiduals::PHTpcResiduals(const std::string &name)
@@ -205,19 +217,13 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
   int nInttHits = 0;
   int nMMHits = 0;
 
-  for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
-       clusIter != track->end_cluster_keys();
-       ++clusIter)
-    {
-      auto key = *clusIter;
-      auto trkrId = TrkrDefs::getTrkrId(key);
-      if(trkrId == TrkrDefs::TrkrId::mvtxId)
-        ++nMvtxHits;
-      else if(trkrId == TrkrDefs::TrkrId::inttId)
-        ++nInttHits;
-      else if(trkrId == TrkrDefs::TrkrId::micromegasId)
-        ++nMMHits;
-    }
+  for( const auto& key:get_cluster_keys( track ) )
+  {
+    auto trkrId = TrkrDefs::getTrkrId(key);
+    if(trkrId == TrkrDefs::TrkrId::mvtxId) ++nMvtxHits;
+    else if(trkrId == TrkrDefs::TrkrId::inttId) ++nInttHits;
+    else if(trkrId == TrkrDefs::TrkrId::micromegasId) ++nMMHits;
+  }
 
   if(Verbosity() > 2)
     std::cout << "Number of mvtx/intt/MM hits "
@@ -286,12 +292,8 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
   auto trackParams = makeTrackParams(track);
 
   int initNBadProps = m_nBadProps;
-  for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
-       clusIter != track->end_cluster_keys();
-       ++clusIter)
-    {
-      auto cluskey = *clusIter;
-
+  for( const auto& cluskey:get_cluster_keys( track ) )
+  {
       ++m_total_clusters;
 
       // make sure cluster is from TPC

@@ -87,8 +87,7 @@ int PHTruthTrackSeeding::Setup(PHCompositeNode* topNode)
   ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  if(_track_map_name.find("Svtx") != std::string::npos)
-    { ret = CreateNodes(topNode); }
+  ret = CreateNodes(topNode); 
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   _clustereval = new  SvtxClusterEval(topNode);
@@ -99,18 +98,20 @@ int PHTruthTrackSeeding::Setup(PHCompositeNode* topNode)
 int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 {
   _clustereval->next_event(topNode);
-  _track_map->Clear();
+  _track_map_combined->Clear();
 
   using TrkClustersMap = std::map<int, std::set<TrkrCluster*> >;
   TrkClustersMap m_trackID_clusters;
 
-  std::vector<TrkrDefs::cluskey> ClusterKeyList; 
+  std::vector<TrkrDefs::cluskey> ClusterKeyListSilicon; 
+  std::vector<TrkrDefs::cluskey> ClusterKeyListTpc; 
 
   PHG4TruthInfoContainer::ConstRange range = m_g4truth_container->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
        iter != range.second;
        ++iter){
-    ClusterKeyList.clear();
+    ClusterKeyListSilicon.clear();
+    ClusterKeyListTpc.clear();
     PHG4Particle* g4particle = iter->second;
 
     if (g4particle==NULL){
@@ -120,7 +121,7 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
     const float gtrackID = g4particle->get_track_id();
     
-    // monentum cut-off
+    // momentum cut-off
     if (_min_momentum>0){
       const double monentum2 =
 	g4particle->get_px() * g4particle->get_px()+
@@ -135,27 +136,80 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 	continue;
       }
     }
-
+    
     for(unsigned int layer = _min_layer;layer < _max_layer;layer++){
       TrkrDefs::cluskey cluskey = _clustereval->best_cluster_by_nhit(gtrackID, layer);
-      if(cluskey!=0) 
-	ClusterKeyList.push_back(cluskey);
+      if(cluskey!=0)
+	{ 
+	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
+	  if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId)
+	    ClusterKeyListSilicon.push_back(cluskey);
+	  else
+	    ClusterKeyListTpc.push_back(cluskey);
+	}
     }
-    if(ClusterKeyList.size()< _min_clusters_per_track)
-      continue;
+    
+    unsigned int nsi =  ClusterKeyListSilicon.size();
+    unsigned int ntpc =  ClusterKeyListTpc.size();
 
-    if(_track_map_name.find("Svtx") != std::string::npos)
+    if( nsi+ntpc < _min_clusters_per_track)
+      continue;
+    
+    if(nsi > 0)
       {
-	buildFullTrack(ClusterKeyList, g4particle);
+	buildTrackSeed(ClusterKeyListSilicon, g4particle, _track_map_silicon);
+      }    
+    if(ntpc > 0)
+      {
+	buildTrackSeed(ClusterKeyListTpc, g4particle, _track_map);
       }
-    else
+
+    if(nsi > 0 && ntpc > 0)
       {
-	buildTrackSeed(ClusterKeyList, g4particle, _track_map);
+	// Create the SvtxTrackSeed for the full track
+	auto track = std::make_unique<SvtxTrackSeed_v1>();
+	/// The ids will by definition be the last entry in the container because
+	/// the seeds were just added
+	track->set_tpc_seed_index(_track_map->size()-1); 
+	track->set_silicon_seed_index(_track_map_silicon->size()-1); 
+	
+	_track_map_combined->insert(track.get());
       }
   }
 
+ if(Verbosity() > 0)
+    {
+      // loop over the assembled tracks
+      for (unsigned int phtrk_iter = 0;
+	   phtrk_iter < _track_map_combined->size();
+	   ++phtrk_iter)
+	{
+	  auto seed = _track_map_combined->get(phtrk_iter);
+	  if(!seed) continue;
+	  
+	  auto tpc_index =  seed->get_tpc_seed_index();
+	  auto silicon_index =  seed->get_silicon_seed_index();
+	  
+	  std::cout << "SvtxSeedTrack: " << phtrk_iter 
+		    << " tpc_index " <<  tpc_index 
+		    << " silicon_index " << silicon_index 
+		    << std::endl;
+	  
+	  std::cout << " ----------  silicon tracklet " << silicon_index << std::endl;
+	  auto silicon_tracklet = _track_map_silicon->get(silicon_index);
+	  if(!silicon_tracklet) continue;
+	  silicon_tracklet->identify();
+
+	  std::cout << " ---------- tpc tracklet " << tpc_index << std::endl;
+	  auto tpc_tracklet = _track_map->get(tpc_index);
+	  if(!tpc_tracklet) continue;
+	  tpc_tracklet->identify();
+	}
+    }
+
+ /*  
   if (Verbosity() >= 5)
-  {
+    {
     std::cout << "Loop over TrackMap " << _track_map_name << " entries " << _track_map->size() << std::endl;
     for (TrackSeedContainer::Iter iter = _track_map->begin();
          iter != _track_map->end(); ++iter)
@@ -195,47 +249,27 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
       trackid++;
     }
   }
+ */
 
   //==================================
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-void PHTruthTrackSeeding::buildFullTrack(std::vector<TrkrDefs::cluskey>& clusters,
-					 PHG4Particle *g4particle)
-{
-  auto track = std::make_unique<SvtxTrackSeed_v1>();
 
-  buildTrackSeed(clusters, g4particle, _tpc_seeds);
-
-  /// The ids will by definition be the last entry in the container because
-  /// the seeds were just added
-  track->set_tpc_seed_index(_tpc_seeds->size()-1); 
- 
-  if(Verbosity() > 2)
-    {
-      std::cout << "adding svtxtrackseed " << std::endl;
-      track->identify();
-      auto tpcseed = _tpc_seeds->get(track->get_tpc_seed_index());
-      tpcseed->identify();
- 
-    }
-
-  _track_map->insert(track.get());
-
-}
 void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters, PHG4Particle *g4particle, TrackSeedContainer* container)
 {
   auto track = std::make_unique<TrackSeed_FastSim_v1>();
   bool silicon = false;
+  bool tpc = false;  
   for (const auto& cluskey : clusters){
     if( TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::mvtxId || 
 	TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::inttId)
       { silicon = true; }
+    if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::tpcId)
+      { tpc = true; }
     track->insert_cluster_key(cluskey);
   }
-  
-  auto random = gsl_ran_flat(m_rng.get(), 0.95, 1.05);
-  
+    
   const auto particle = TDatabasePDG::Instance()->GetParticle(g4particle->get_pid());
   int charge = 1;
   if(particle) 
@@ -243,14 +277,16 @@ void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters
       if(particle->Charge() < 0)
 	{ charge = -1; }
     }
-  
-  float px = g4particle->get_px() * random;
-  float py = g4particle->get_py() * random;
-  float pz = g4particle->get_pz() * random;
+
+  auto random1 = gsl_ran_flat(m_rng.get(), 0.95, 1.05);
+  float px = g4particle->get_px() * random1;
+  float py = g4particle->get_py() * random1;
+  float pz = g4particle->get_pz() * random1;
   const auto g4vertex = m_g4truth_container->GetVtx(g4particle->get_vtx_id());
-  float x = g4vertex->get_x() * random; 
-  float y = g4vertex->get_y() * random;
-  float z = g4vertex->get_z() * random;
+  auto random2 = gsl_ran_flat(m_rng.get(), -0.02, 0.02);
+  float x = g4vertex->get_x() + random2; 
+  float y = g4vertex->get_y() + random2;
+  float z = g4vertex->get_z() + random2;
 
   float pt = sqrt(px*px+py*py);
   float phi = atan2(py,px);
@@ -279,6 +315,13 @@ void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters
   track->set_qOverR(charge / R);
   track->set_slope(1. / tan(theta));
   track->set_Z0(z);
+
+  if(tpc)
+    {
+      // if this is the TPC, the track Z0 depends on the crossing
+      // we should determine it from the clusters instead of the truth - not implemented yet
+      
+    }
   
   /// Need to find the right one for the bend angle
   
@@ -373,22 +416,30 @@ int PHTruthTrackSeeding::CreateNodes(PHCompositeNode* topNode)
       std::cout << PHWHERE << "SVTX node added" << std::endl;
   }
 
-  _tpc_seeds = findNode::getClass<TrackSeedContainer>(topNode,"TpcTrackSeedContainer");
-  if(!_tpc_seeds)
+  _track_map = findNode::getClass<TrackSeedContainer>(topNode,"TpcTrackSeedContainer");
+  if(!_track_map)
     {
-      _tpc_seeds = new TrackSeedContainer_v1;
+      _track_map = new TrackSeedContainer_v1;
       PHIODataNode<PHObject>* tracks_node = 
-	new PHIODataNode<PHObject>(_tpc_seeds, "TpcTrackSeedContainer", "PHObject");
+	new PHIODataNode<PHObject>(_track_map, "TpcTrackSeedContainer", "PHObject");
       tb_node->addNode(tracks_node);
     }
 
-  _silicon_seeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
-   if(!_silicon_seeds)
+  _track_map_silicon = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+   if(!_track_map_silicon)
     {
-      _silicon_seeds = new TrackSeedContainer_v1;
+      _track_map_silicon = new TrackSeedContainer_v1;
       PHIODataNode<PHObject>* tracks_node = 
-	new PHIODataNode<PHObject>(_silicon_seeds, "SiliconTrackSeedContainer", "PHObject");
+	new PHIODataNode<PHObject>(_track_map_silicon, "SiliconTrackSeedContainer", "PHObject");
       tb_node->addNode(tracks_node);
+    }
+
+  _track_map_combined = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+  if(!_track_map_combined)
+    {
+      _track_map_combined = new TrackSeedContainer_v1;
+      PHIODataNode<PHObject> *node2 = new PHIODataNode<PHObject>(_track_map_combined, "SvtxTrackSeedContainer","PHObject");
+      tb_node->addNode(node2);
     }
 
    return Fun4AllReturnCodes::EVENT_OK;

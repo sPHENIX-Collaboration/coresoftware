@@ -10,7 +10,7 @@ class PHNode;
 class DumpTrkrClusterHitAssoc : public DumpObject
 {
  public:
-  DumpTrkrClusterHitAssoc(const std::string &NodeName);
+  explicit DumpTrkrClusterHitAssoc(const std::string &NodeName);
   ~DumpTrkrClusterHitAssoc() override {}
 
  protected:
