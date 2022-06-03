@@ -238,5 +238,153 @@ std::pair<int, int> PHG4IHCalDetector::ExtractLayerTowerId(G4VPhysicalVolume *vo
       }
     }
   }
-  return std::make_pair(layer_id, tower_id);
+  int column = map_towerid(tower_id);
+  int row = map_layerid(layer_id);
+  return std::make_pair(row, column);
+}
+
+// map gdml tower ids to our columns
+int PHG4IHCalDetector::map_towerid(const int tower_id)
+{
+  // odd id's go in one direction, even id's in the other one
+  // this is a shortcut to derive the observed dependency
+  // commented out after this code
+  int itwr = -1;
+  int itmp = tower_id / 2;
+  if (tower_id % 2)
+  {
+    itwr = 11 - itmp;
+  }
+  else
+  {
+    itwr = 12 + itmp;
+  }
+  return itwr;
+  // here is the mapping in long form
+  // if (tower_id == 23)
+  // {
+  //   itwr = 0;
+  // }
+  // else if (tower_id == 21)
+  // {
+  //   itwr = 1;
+  // }
+  // else if (tower_id ==19 )
+  // {
+  //   itwr = 2;
+  // }
+  // else if (tower_id == 17)
+  // {
+  //   itwr = 3;
+  // }
+  // else if (tower_id == 15)
+  // {
+  //   itwr = 4;
+  // }
+  // else if (tower_id == 13)
+  // {
+  //   itwr = 5;
+  // }
+  // else if (tower_id == 11)
+  // {
+  //   itwr = 6;
+  // }
+  // else if (tower_id == 9)
+  // {
+  //   itwr = 7;
+  // }
+  // else if (tower_id == 7)
+  // {
+  //   itwr = 8;
+  // }
+  // else if (tower_id == 5)
+  // {
+  //   itwr = 9;
+  // }
+  // else if (tower_id == 3)
+  // {
+  //   itwr = 10;
+  // }
+  // else if (tower_id == 1)
+  // {
+  //   itwr = 11;
+  // }
+  // else if (tower_id == 0)
+  // {
+  //   itwr = 12;
+  // }
+  // else if (tower_id == 2)
+  // {
+  //   itwr = 13;
+  // }
+  // else if (tower_id == 4)
+  // {
+  //   itwr = 14;
+  // }
+  // else if (tower_id == 6)
+  // {
+  //   itwr = 15;
+  // }
+  // else if (tower_id == 8)
+  // {
+  //   itwr = 16;
+  // }
+  // else if (tower_id == 10)
+  // {
+  //   itwr = 17;
+  // }
+  // else if (tower_id == 12)
+  // {
+  //   itwr = 18;
+  // }
+  // else if (tower_id == 14)
+  // {
+  //   itwr = 19;
+  // }
+  // else if (tower_id == 16)
+  // {
+  //   itwr = 20;
+  // }
+  // else if (tower_id == 18)
+  // {
+  //   itwr = 21;
+  // }
+  // else if (tower_id == 20)
+  // {
+  //   itwr = 22;
+  // }
+  // else if (tower_id == 22)
+  // {
+  //   itwr = 23;
+  // }
+  // else
+  // {
+  //   std::cout << PHWHERE << " cannot map tower " << tower_id << std::endl;
+  //   gSystem->Exit(1);
+  //   exit(1);
+  // }
+}
+
+int PHG4IHCalDetector::map_layerid(const int layer_id)
+{
+  int rowid = -1;
+  if (layer_id <= 60)
+  {
+    rowid = 60 - layer_id;
+  }
+  else if (layer_id > 60 && layer_id <= 191)
+  {
+    rowid = 191 - layer_id + 125;
+  }
+  else if (layer_id > 191)
+  {
+    rowid = 255 - layer_id + 61;
+  }
+  else
+  {
+    std::cout << PHWHERE << " cannot map layer " << layer_id << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+  return rowid;
 }
