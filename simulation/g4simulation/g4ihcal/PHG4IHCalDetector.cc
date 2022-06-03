@@ -246,12 +246,12 @@ std::pair<int, int> PHG4IHCalDetector::ExtractLayerTowerId(G4VPhysicalVolume *vo
 // map gdml tower ids to our columns
 int PHG4IHCalDetector::map_towerid(const int tower_id)
 {
-// odd id's go in one direction, even id's in the other one
-// this is a shortcut to derive the observed dependency
-// commented out after this code
+  // odd id's go in one direction, even id's in the other one
+  // this is a shortcut to derive the observed dependency
+  // commented out after this code
   int itwr = -1;
-  int itmp = tower_id/2;
-  if (tower_id%2)
+  int itmp = tower_id / 2;
+  if (tower_id % 2)
   {
     itwr = 11 - itmp;
   }
@@ -260,7 +260,7 @@ int PHG4IHCalDetector::map_towerid(const int tower_id)
     itwr = 12 + itmp;
   }
   return itwr;
-// here is the mapping in long form
+  // here is the mapping in long form
   // if (tower_id == 23)
   // {
   //   itwr = 0;
@@ -357,7 +357,7 @@ int PHG4IHCalDetector::map_towerid(const int tower_id)
   // {
   //   itwr = 23;
   // }
-  // else 
+  // else
   // {
   //   std::cout << PHWHERE << " cannot map tower " << tower_id << std::endl;
   //   gSystem->Exit(1);
@@ -374,13 +374,13 @@ int PHG4IHCalDetector::map_layerid(const int layer_id)
   }
   else if (layer_id > 60 && layer_id <= 191)
   {
-    rowid = 191 -layer_id + 125;
+    rowid = 191 - layer_id + 125;
   }
   else if (layer_id > 191)
   {
     rowid = 255 - layer_id + 61;
   }
-  else 
+  else
   {
     std::cout << PHWHERE << " cannot map layer " << layer_id << std::endl;
     gSystem->Exit(1);
