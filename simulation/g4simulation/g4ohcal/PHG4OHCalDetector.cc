@@ -48,13 +48,6 @@ class PHCompositeNode;
 
 using namespace std;
 
-// just for debugging if you want a single layer of scintillators at the center of the world
-//#define SCINTITEST
-
-// face touches the boundary instead of the corner, subtracting 1 permille from the total
-// scintilator length takes care of this
-//-m/s-static double subtract_from_scinti_x = 0.1 * mm;
-
 PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parames, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4OHCalDisplayAction *>(subsys->GetDisplayAction()))
@@ -83,14 +76,14 @@ int PHG4OHCalDetector::IsInOHCal(G4VPhysicalVolume *volume) const
 {
   if (m_AbsorberActiveFlag)
   {
-    if (m_SteelAbsorberVec.find(volume) != m_SteelAbsorberVec.end())
+    if (m_SteelAbsorberLogVolSet.find(volume->GetLogicalVolume()) != m_SteelAbsorberLogVolSet.end())
     {
       return -1;
     }
   }
   if (m_ActiveFlag)
   {
-    if (m_ScintiTilePhysVolMap.find(volume) != m_ScintiTilePhysVolMap.end())
+    if (m_ScintiTileLogVolSet.find(volume->GetLogicalVolume()) != m_ScintiTileLogVolSet.end())
     {
       return 1;
     }
@@ -100,10 +93,6 @@ int PHG4OHCalDetector::IsInOHCal(G4VPhysicalVolume *volume) const
 
 void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-#ifdef SCINTITEST
-  ConstructOHCal(logicWorld);
-  return;
-#endif
   recoConsts *rc = recoConsts::instance();
   G4Material *Air = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4VSolid *hcal_envelope_cylinder = new G4Tubs("OHCal_envelope_solid", m_InnerRadius, m_OuterRadius, m_SizeZ / 2., 0, 2 * M_PI);
@@ -231,6 +220,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   for (unsigned int i = 0; i < abs_asym->TotalImprintedVolumes(); i++)
   {
     m_DisplayAction->AddSteelVolume((*it1)->GetLogicalVolume());
+    m_SteelAbsorberLogVolSet.insert((*it1)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it1));
     ++it1;
   }
@@ -239,6 +229,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   for (unsigned int i = 0; i < chimAbs_asym->TotalImprintedVolumes(); i++)
   {
     m_DisplayAction->AddChimSteelVolume((*it2)->GetLogicalVolume());
+    m_SteelAbsorberLogVolSet.insert((*it2)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it2));
     ++it2;
   }
@@ -250,6 +241,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   for (unsigned int i = 0; i < m_ScintiMotherAssembly->TotalImprintedVolumes(); i++)
   {
     m_DisplayAction->AddScintiVolume((*it3)->GetLogicalVolume());
+    m_ScintiTileLogVolSet.insert((*it3)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it3));
     ++it3;
   }
@@ -258,6 +250,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   for (unsigned int i = 0; i < m_ChimScintiMotherAssembly->TotalImprintedVolumes(); i++)
   {
     m_DisplayAction->AddScintiVolume((*it4)->GetLogicalVolume());
+    m_ScintiTileLogVolSet.insert((*it4)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it4));
     ++it4;
   }

@@ -56,7 +56,6 @@ class PHG4OHCalDetector : public PHG4Detector
   double m_InnerRadius = NAN;
   double m_OuterRadius = NAN;
   double m_SizeZ = NAN;
-  double m_EnvelopeZ = NAN;
   double m_VolumeEnvelope = NAN;
   double m_VolumeSteel = NAN;
   double m_VolumeScintillator = NAN;
@@ -68,7 +67,8 @@ class PHG4OHCalDetector : public PHG4Detector
 
   int m_Layer = 0;
   std::string m_SuperDetector;
-  std::set<G4VPhysicalVolume *> m_SteelAbsorberVec;
+  std::set<G4LogicalVolume *> m_SteelAbsorberLogVolSet;
+  std::set<G4LogicalVolume *> m_ScintiTileLogVolSet;
   std::map<G4VPhysicalVolume *, std::pair<int, int>> m_ScintiTilePhysVolMap;
 
   std::string m_GDMPath;
