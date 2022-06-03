@@ -46,8 +46,11 @@ class PHG4OHCalDetector : public PHG4Detector
   int ConsistencyCheck() const;
   std::pair<int, int> GetLayerTowerId(G4VPhysicalVolume *volume) const;
 
- protected:
+ private:
   int ConstructOHCal(G4LogicalVolume *hcalenvelope);
+  int map_towerid(const int tower_id);
+  int map_layerid(const int layer_id);
+  std::pair<int, int> ExtractLayerTowerId(G4VPhysicalVolume *volume);
   PHG4OHCalDisplayAction *m_DisplayAction = nullptr;
   PHG4OHCalFieldSetup *m_FieldSetup = nullptr;
   PHParameters *m_Params = nullptr;
@@ -57,8 +60,8 @@ class PHG4OHCalDetector : public PHG4Detector
   double m_OuterRadius = NAN;
   double m_SizeZ = NAN;
   double m_VolumeEnvelope = NAN;
-  double m_VolumeSteel = NAN;
-  double m_VolumeScintillator = NAN;
+  double m_VolumeSteel = 0;
+  double m_VolumeScintillator = 0;
 
   int m_NumScintiPlates = -9999;
 

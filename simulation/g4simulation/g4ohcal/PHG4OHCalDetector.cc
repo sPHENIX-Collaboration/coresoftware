@@ -222,6 +222,8 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     m_DisplayAction->AddSteelVolume((*it1)->GetLogicalVolume());
     m_SteelAbsorberLogVolSet.insert((*it1)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it1));
+    m_VolumeSteel += (*it1)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
+
     ++it1;
   }
 
@@ -231,6 +233,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     m_DisplayAction->AddChimSteelVolume((*it2)->GetLogicalVolume());
     m_SteelAbsorberLogVolSet.insert((*it2)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it2));
+    m_VolumeSteel += (*it2)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
     ++it2;
   }
 
@@ -243,6 +246,9 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     m_DisplayAction->AddScintiVolume((*it3)->GetLogicalVolume());
     m_ScintiTileLogVolSet.insert((*it3)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it3));
+//    m_ScintiTilePhysVolMap.insert(std::make_pair(*it3, ExtractLayerTowerId(*it3)));
+    m_VolumeScintillator += (*it3)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
+
     ++it3;
   }
 
@@ -252,6 +258,8 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     m_DisplayAction->AddScintiVolume((*it4)->GetLogicalVolume());
     m_ScintiTileLogVolSet.insert((*it4)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it4));
+//    m_ScintiTilePhysVolMap.insert(std::make_pair(*it4, ExtractLayerTowerId(*it4)));
+    m_VolumeScintillator += (*it4)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
     ++it4;
   }
 
@@ -286,4 +294,197 @@ std::pair<int, int> PHG4OHCalDetector::GetLayerTowerId(G4VPhysicalVolume *volume
   // that's dumb but code checkers do not know that gSystem->Exit()
   // terminates, so using the standard exit() makes them happy
   exit(1);
+}
+
+std::pair<int, int> PHG4OHCalDetector::ExtractLayerTowerId(G4VPhysicalVolume *volume)
+{
+  boost::char_separator<char> sep("_");
+  boost::tokenizer<boost::char_separator<char>> tok(volume->GetName(), sep);
+  boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
+  int layer_id = -1, tower_id = -1;
+  for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+  {
+    if (*tokeniter == "impr")
+    {
+      ++tokeniter;
+      if (tokeniter != tok.end())
+      {
+        layer_id = boost::lexical_cast<int>(*tokeniter) / 2;
+        layer_id--;
+        if (layer_id < 0 || layer_id >= m_NumScintiPlates)
+        {
+          std::cout << "invalid scintillator row " << layer_id
+                    << ", valid range 0 < row < " << m_NumScintiPlates << std::endl;
+          gSystem->Exit(1);
+        }
+      }
+      else
+      {
+        std::cout << PHWHERE << " Error parsing " << volume->GetName()
+                  << " for mother volume number " << std::endl;
+        gSystem->Exit(1);
+      }
+      break;
+    }
+  }
+  for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+  {
+    if (*tokeniter == "pv")
+    {
+      ++tokeniter;
+      if (tokeniter != tok.end())
+      {
+        tower_id = boost::lexical_cast<int>(*tokeniter);
+      }
+    }
+  }
+  int column = map_towerid(tower_id);
+  int row = map_layerid(layer_id);
+  return std::make_pair(row, column);
+}
+
+// map gdml tower ids to our columns
+int PHG4OHCalDetector::map_towerid(const int tower_id)
+{
+  // odd id's go in one direction, even id's in the other one
+  // this is a shortcut to derive the observed dependency
+  // commented out after this code
+  int itwr = -1;
+  int itmp = tower_id / 2;
+  if (tower_id % 2)
+  {
+    itwr = 11 - itmp;
+  }
+  else
+  {
+    itwr = 12 + itmp;
+  }
+  return itwr;
+  // here is the mapping in long form
+  // if (tower_id == 23)
+  // {
+  //   itwr = 0;
+  // }
+  // else if (tower_id == 21)
+  // {
+  //   itwr = 1;
+  // }
+  // else if (tower_id ==19 )
+  // {
+  //   itwr = 2;
+  // }
+  // else if (tower_id == 17)
+  // {
+  //   itwr = 3;
+  // }
+  // else if (tower_id == 15)
+  // {
+  //   itwr = 4;
+  // }
+  // else if (tower_id == 13)
+  // {
+  //   itwr = 5;
+  // }
+  // else if (tower_id == 11)
+  // {
+  //   itwr = 6;
+  // }
+  // else if (tower_id == 9)
+  // {
+  //   itwr = 7;
+  // }
+  // else if (tower_id == 7)
+  // {
+  //   itwr = 8;
+  // }
+  // else if (tower_id == 5)
+  // {
+  //   itwr = 9;
+  // }
+  // else if (tower_id == 3)
+  // {
+  //   itwr = 10;
+  // }
+  // else if (tower_id == 1)
+  // {
+  //   itwr = 11;
+  // }
+  // else if (tower_id == 0)
+  // {
+  //   itwr = 12;
+  // }
+  // else if (tower_id == 2)
+  // {
+  //   itwr = 13;
+  // }
+  // else if (tower_id == 4)
+  // {
+  //   itwr = 14;
+  // }
+  // else if (tower_id == 6)
+  // {
+  //   itwr = 15;
+  // }
+  // else if (tower_id == 8)
+  // {
+  //   itwr = 16;
+  // }
+  // else if (tower_id == 10)
+  // {
+  //   itwr = 17;
+  // }
+  // else if (tower_id == 12)
+  // {
+  //   itwr = 18;
+  // }
+  // else if (tower_id == 14)
+  // {
+  //   itwr = 19;
+  // }
+  // else if (tower_id == 16)
+  // {
+  //   itwr = 20;
+  // }
+  // else if (tower_id == 18)
+  // {
+  //   itwr = 21;
+  // }
+  // else if (tower_id == 20)
+  // {
+  //   itwr = 22;
+  // }
+  // else if (tower_id == 22)
+  // {
+  //   itwr = 23;
+  // }
+  // else
+  // {
+  //   std::cout << PHWHERE << " cannot map tower " << tower_id << std::endl;
+  //   gSystem->Exit(1);
+  //   exit(1);
+  // }
+}
+
+int PHG4OHCalDetector::map_layerid(const int layer_id)
+{
+  int rowid = -1;
+  if (layer_id <= 60)
+  {
+    rowid = 60 - layer_id;
+  }
+  else if (layer_id > 60 && layer_id <= 191)
+  {
+    rowid = 191 - layer_id + 125;
+  }
+  else if (layer_id > 191)
+  {
+    rowid = 255 - layer_id + 61;
+  }
+  else
+  {
+    std::cout << PHWHERE << " cannot map layer " << layer_id << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+  return rowid;
 }
