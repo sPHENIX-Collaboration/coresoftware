@@ -49,7 +49,8 @@ class PHG4IHCalDetector : public PHG4Detector
  private:
   int ConstructAbsorber(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope);
   int ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope);
-  int map_towerid(const int  tower_id);
+  int map_towerid(const int tower_id);
+  int map_layerid(const int layer_id);
   int ConstructIHCal(G4LogicalVolume *sandwich);
   std::pair<int, int> ExtractLayerTowerId(G4VPhysicalVolume *volume);
   PHG4IHCalDisplayAction *m_DisplayAction = nullptr;
