@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4OHCALSTEPPINGACTION_H
-#define G4DETECTORS_PHG4OHCALSTEPPINGACTION_H
+#ifndef G4OHCAL_PHG4OHCALSTEPPINGACTION_H
+#define G4OHCAL_PHG4OHCALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
@@ -61,4 +61,4 @@ class PHG4OHCalSteppingAction : public PHG4SteppingAction
   int m_LightScintModelFlag;
 };
 
-#endif  // G4DETECTORS_PHG4OHCALSTEPPINGACTION_H
+#endif  // G4OHCAL_PHG4OHCALSTEPPINGACTION_H

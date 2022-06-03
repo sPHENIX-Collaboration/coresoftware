@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4IHCALSTEPPINGACTION_H
-#define G4DETECTORS_PHG4IHCALSTEPPINGACTION_H
+#ifndef G4IHCAL_PHG4IHCALSTEPPINGACTION_H
+#define G4IHCAL_PHG4IHCALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
@@ -61,4 +61,4 @@ class PHG4IHCalSteppingAction : public PHG4SteppingAction
   std::string m_HitNodeName;
 };
 
-#endif  // G4DETECTORS_PHG4IHCALSTEPPINGACTION_H
+#endif  // G4IHCAL_PHG4IHCALSTEPPINGACTION_H
