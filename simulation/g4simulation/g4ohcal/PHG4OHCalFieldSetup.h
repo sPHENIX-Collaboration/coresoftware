@@ -10,8 +10,8 @@
  * \date $Date: $
  */
 
-#ifndef G4DETECTORS_PHG4OUTERHCALFIELDSETUP_H
-#define G4DETECTORS_PHG4OUTERHCALFIELDSETUP_H
+#ifndef G4DETECTORS_PHG4OHCALFIELDSETUP_H
+#define G4DETECTORS_PHG4OHCALFIELDSETUP_H
 
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 
@@ -127,4 +127,4 @@ class PHG4OHCalFieldSetup
   G4double tilt_angle;
 };
 
-#endif /* PHG4OUTERHCALFIELDSETUP_H_ */
+#endif /* G4DETECTORS_PHG4OHCALFIELDSETUP_H_ */

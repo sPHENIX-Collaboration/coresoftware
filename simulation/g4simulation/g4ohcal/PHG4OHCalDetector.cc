@@ -1,8 +1,9 @@
 #include "PHG4OHCalDetector.h"
 
-#include "g4detectors/PHG4HcalDefs.h"
 #include "PHG4OHCalDisplayAction.h"
 #include "PHG4OHCalFieldSetup.h"
+
+#include <g4detectors/PHG4HcalDefs.h>
 
 #include <phparameter/PHParameters.h>
 
@@ -60,11 +61,6 @@
 
 class PHCompositeNode;
 
-typedef CGAL::Circle_2<PHG4OHCalDetector::Circular_k> Circle_2;
-typedef CGAL::Circular_arc_point_2<PHG4OHCalDetector::Circular_k> Circular_arc_point_2;
-typedef CGAL::Line_2<PHG4OHCalDetector::Circular_k> Line_2;
-typedef CGAL::Segment_2<PHG4OHCalDetector::Circular_k> Segment_2;
-
 using namespace std;
 
 // just for debugging if you want a single layer of scintillators at the center of the world
@@ -79,15 +75,9 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   , m_DisplayAction(dynamic_cast<PHG4OHCalDisplayAction *>(subsys->GetDisplayAction()))
   , m_FieldSetup(nullptr)
   , m_Params(parames)
-  , m_ScintiMotherAssembly(nullptr)
-  , m_ChimScintiMotherAssembly(nullptr)
-  , m_SteelCutoutForMagnetG4Solid(nullptr)
   , m_InnerRadius(m_Params->get_double_param("inner_radius") * cm)
   , m_OuterRadius(m_Params->get_double_param("outer_radius") * cm)
   , m_SizeZ(m_Params->get_double_param("size_z") * cm)
-  , m_ScintiTileX(NAN)
-  , m_ScintiTileXLower(NAN)
-  , m_ScintiTileXUpper(NAN)
   , m_ScintiTileZ(m_SizeZ)
   , m_ScintiTileThickness(m_Params->get_double_param("scinti_tile_thickness") * cm)
   , m_ScintiGap(m_Params->get_double_param("scinti_gap") * cm)
@@ -97,14 +87,10 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   , m_EnvelopeInnerRadius(m_InnerRadius)
   , m_EnvelopeOuterRadius(m_OuterRadius)
   , m_EnvelopeZ(m_SizeZ)
-  , m_VolumeEnvelope(NAN)
-  , m_VolumeSteel(NAN)
-  , m_VolumeScintillator(NAN)
   , m_NumScintiPlates(m_Params->get_int_param(PHG4HcalDefs::scipertwr) * m_Params->get_int_param("n_towers"))
   , m_NumScintiTiles(m_Params->get_int_param("n_scinti_tiles"))
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
-  , m_Layer(0)
   , m_ScintiLogicNamePrefix("HcalOuterScinti")
   , m_GDMPath(m_Params->get_string_param("GDMPath"))
 {

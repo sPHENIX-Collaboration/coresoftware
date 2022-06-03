@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4OUTERHCALSUBSYSTEM_H
-#define G4DETECTORS_PHG4OUTERHCALSUBSYSTEM_H
+#ifndef G4DETECTORS_PHG4OHCALSUBSYSTEM_H
+#define G4DETECTORS_PHG4OHCALSUBSYSTEM_H
 
 #include "g4detectors/PHG4DetectorSubsystem.h"
 
@@ -61,4 +61,4 @@ class PHG4OHCalSubsystem : public PHG4DetectorSubsystem
   PHG4DisplayAction* m_DisplayAction;
 };
 
-#endif
+#endif // G4DETECTORS_PHG4OHCALSUBSYSTEM_H
