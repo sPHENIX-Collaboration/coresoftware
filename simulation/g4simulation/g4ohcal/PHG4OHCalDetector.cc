@@ -63,23 +63,11 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   , m_InnerRadius(m_Params->get_double_param("inner_radius") * cm)
   , m_OuterRadius(m_Params->get_double_param("outer_radius") * cm)
   , m_SizeZ(m_Params->get_double_param("size_z") * cm)
-  , m_ScintiTileZ(m_SizeZ)
-  , m_ScintiTileThickness(m_Params->get_double_param("scinti_tile_thickness") * cm)
-  , m_ScintiGap(m_Params->get_double_param("scinti_gap") * cm)
-  , m_ScintiInnerRadius(m_Params->get_double_param("scinti_inner_radius") * cm)
-  , m_ScintiOuterRadius(m_Params->get_double_param("scinti_outer_radius") * cm)
-  , m_TiltAngle(m_Params->get_double_param("tilt_angle") * deg)
-  , m_EnvelopeInnerRadius(m_InnerRadius)
-  , m_EnvelopeOuterRadius(m_OuterRadius)
-  , m_EnvelopeZ(m_SizeZ)
   , m_NumScintiPlates(m_Params->get_int_param(PHG4HcalDefs::scipertwr) * m_Params->get_int_param("n_towers"))
-  , m_NumScintiTiles(m_Params->get_int_param("n_scinti_tiles"))
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
-  , m_ScintiLogicNamePrefix("HcalOuterScinti")
   , m_GDMPath(m_Params->get_string_param("GDMPath"))
 {
-  m_ScintiTilesVec.assign(2 * m_NumScintiTiles, static_cast<G4VSolid *>(nullptr));
 }
 
 PHG4OHCalDetector::~PHG4OHCalDetector()
@@ -118,7 +106,7 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 #endif
   recoConsts *rc = recoConsts::instance();
   G4Material *Air = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
-  G4VSolid *hcal_envelope_cylinder = new G4Tubs("OHCal_envelope_solid", m_EnvelopeInnerRadius, m_EnvelopeOuterRadius, m_EnvelopeZ / 2., 0, 2 * M_PI);
+  G4VSolid *hcal_envelope_cylinder = new G4Tubs("OHCal_envelope_solid", m_InnerRadius, m_OuterRadius, m_SizeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("OHCal_envelope"), 0, 0, 0);
   G4RotationMatrix hcal_rotm;

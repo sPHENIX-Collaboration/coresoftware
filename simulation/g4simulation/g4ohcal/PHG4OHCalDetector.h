@@ -15,7 +15,6 @@
 class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class G4VSolid;
 class PHCompositeNode;
 class PHG4OHCalDisplayAction;
 class PHG4OHCalFieldSetup;
@@ -54,36 +53,21 @@ class PHG4OHCalDetector : public PHG4Detector
   PHParameters *m_Params = nullptr;
   G4AssemblyVolume *m_ScintiMotherAssembly = nullptr;
   G4AssemblyVolume *m_ChimScintiMotherAssembly = nullptr;
-  G4VSolid *m_SteelCutoutForMagnetG4Solid = nullptr;
   double m_InnerRadius = NAN;
   double m_OuterRadius = NAN;
   double m_SizeZ = NAN;
-  double m_ScintiTileX = NAN;
-  double m_ScintiTileXLower = NAN;
-  double m_ScintiTileXUpper = NAN;
-  double m_ScintiTileZ = NAN;
-  double m_ScintiTileThickness = NAN;
-  double m_ScintiGap = NAN;
-  double m_ScintiInnerRadius = NAN;
-  double m_ScintiOuterRadius = NAN;
-  double m_TiltAngle = NAN;
-  double m_EnvelopeInnerRadius = NAN;
-  double m_EnvelopeOuterRadius = NAN;
   double m_EnvelopeZ = NAN;
   double m_VolumeEnvelope = NAN;
   double m_VolumeSteel = NAN;
   double m_VolumeScintillator = NAN;
 
   int m_NumScintiPlates = -9999;
-  int m_NumScintiTiles = -9999;
 
   int m_ActiveFlag = 0;
   int m_AbsorberActiveFlag = 0;
 
   int m_Layer = 0;
   std::string m_SuperDetector;
-  std::string m_ScintiLogicNamePrefix;
-  std::vector<G4VSolid *> m_ScintiTilesVec;
   std::set<G4VPhysicalVolume *> m_SteelAbsorberVec;
   std::map<G4VPhysicalVolume *, std::pair<int, int>> m_ScintiTilePhysVolMap;
 
