@@ -378,8 +378,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	    {
 
 	      std::unique_ptr<SvtxTrack_v4> newTrack( static_cast<SvtxTrack_v4*>(track->CloneMe()) );
-	      if( getTrackFitResult(fitOutput, newTrack) )
-		{ m_directedTrackMap->insert(newTrack.release()); } 
+	      if( getTrackFitResult(fitOutput, newTrack.get()) )
+        { m_directedTrackMap->insert(newTrack.get()); } 
 	      
 	    }
 	  else
@@ -391,7 +391,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	      newTrack->set_crossing(m_siliconSeeds->get(siid)->get_crossing());
 	      newTrack->set_silicon_seed(m_siliconSeeds->get(siid));
 	
-	      if( getTrackFitResult(fitOutput, newTrack))
+	      if( getTrackFitResult(fitOutput, newTrack.get()))
 		{ m_trackMap->insertWithKey(newTrack.get(), trid); }
 	    }
 	}
@@ -703,8 +703,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
   return sourcelinks;
 }
 
-bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput,
-				        std::unique_ptr<SvtxTrack_v4>& track)
+bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* track)
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
@@ -867,8 +866,7 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec &surfaces) const
 
 }
 
-void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, 
-				      std::unique_ptr<SvtxTrack_v4>& track)
+void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
 {
   const auto& mj = traj.multiTrajectory();
   const auto& tips = traj.tips();
@@ -938,7 +936,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj,
 
   if(m_fillSvtxTrackStates)
     { 
-      rotater.fillSvtxTrackStates(mj, trackTip, track.get(),
+      rotater.fillSvtxTrackStates(mj, trackTip, track,
 				  m_tGeometry->geoContext);  
     }
 
@@ -1058,7 +1056,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
   if(!m_trajectories)
     {
       m_trajectories = new std::map<const unsigned int, Trajectory>;
-      PHDataNode<std::map<const unsigned int, Trajectory>> *node = 
+      auto node = 
 	new PHDataNode<std::map<const unsigned int, Trajectory>>(m_trajectories, "ActsTrajectories");
       svtxNode->addNode(node);
       

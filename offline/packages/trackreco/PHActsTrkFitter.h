@@ -117,7 +117,7 @@ class PHActsTrkFitter : public SubsysReco
 			       short int crossing);
 
   /// Convert the acts track fit result to an svtx track
-  void updateSvtxTrack(Trajectory traj, std::unique_ptr<SvtxTrack_v4>& track);
+  void updateSvtxTrack(Trajectory traj, SvtxTrack* track);
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
@@ -134,7 +134,7 @@ class PHActsTrkFitter : public SubsysReco
 				 SurfacePtrVec& surfaces) const;
   void checkSurfaceVec(SurfacePtrVec& surfaces) const;
 
-  bool getTrackFitResult(const FitResult& fitOutput, std::unique_ptr<SvtxTrack_v4>& track);
+  bool getTrackFitResult(const FitResult& fitOutput, SvtxTrack* track);
 
   Surface getSurface(TrkrDefs::cluskey cluskey,TrkrDefs::subsurfkey surfkey) const;
   Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const;
