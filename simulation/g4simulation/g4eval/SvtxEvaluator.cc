@@ -2995,7 +2995,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float quality = track->get_quality();
         float chisq = track->get_chisq();
         float ndf = track->get_ndf();
-        float nhits = track->size_cluster_keys();
+	float nhits = 0;
+	if(tpcseed)
+	  { nhits += tpcseed->size_cluster_keys(); }
+	if(silseed)
+	  { nhits += silseed->size_cluster_keys(); }
         unsigned int layers = 0x0;
         int maps[_nlayers_maps];
         int intt[_nlayers_intt];

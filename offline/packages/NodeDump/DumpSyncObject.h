@@ -10,7 +10,7 @@ class PHNode;
 class DumpSyncObject : public DumpObject
 {
  public:
-  DumpSyncObject(const std::string &NodeName);
+  explicit DumpSyncObject(const std::string &NodeName);
   ~DumpSyncObject() override {}
 
  protected:

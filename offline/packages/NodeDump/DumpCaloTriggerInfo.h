@@ -9,7 +9,7 @@ class PHNode;
 class DumpCaloTriggerInfo : public DumpObject
 {
  public:
-  DumpCaloTriggerInfo(const std::string &NodeName);
+  explicit DumpCaloTriggerInfo(const std::string &NodeName);
   ~DumpCaloTriggerInfo() override {}
 
  protected:

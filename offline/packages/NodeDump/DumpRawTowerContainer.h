@@ -10,7 +10,7 @@ class PHNode;
 class DumpRawTowerContainer : public DumpObject
 {
  public:
-  DumpRawTowerContainer(const std::string &NodeName);
+  explicit DumpRawTowerContainer(const std::string &NodeName);
   ~DumpRawTowerContainer() override {}
 
  protected:

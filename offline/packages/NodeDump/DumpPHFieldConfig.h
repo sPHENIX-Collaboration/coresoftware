@@ -10,7 +10,7 @@ class PHNode;
 class DumpPHFieldConfig : public DumpObject
 {
  public:
-  DumpPHFieldConfig(const std::string &NodeName);
+  explicit DumpPHFieldConfig(const std::string &NodeName);
   ~DumpPHFieldConfig() override {}
 
  protected:
