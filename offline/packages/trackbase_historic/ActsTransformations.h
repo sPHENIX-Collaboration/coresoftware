@@ -105,6 +105,12 @@ class ActsTransformations
   Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey,
     ActsSurfaceMaps *maps) const;
 
+  Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
+				      Acts::Vector3 world,
+				      ActsSurfaceMaps *surfMaps,
+				      ActsTrackingGeometry *tGeometry,
+				      TrkrDefs::subsurfkey& subsurfkey) const;
+    
   private:
   int m_verbosity = 0;
   
