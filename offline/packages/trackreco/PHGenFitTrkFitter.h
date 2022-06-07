@@ -49,12 +49,13 @@ class Fitter;
 struct ActsSurfaceMaps;
 struct ActsTrackingGeometry;
 
+class PHCompositeNode;
+class PHG4TruthInfoContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
 class SvtxVertex;
-class PHCompositeNode;
-class PHG4TruthInfoContainer;
 class TrkrClusterContainer;
+class TrackSeedContainer;
 class TTree;
 
 //! \brief		Refit SvtxTracks with PHGenFit.
@@ -330,14 +331,20 @@ class PHGenFitTrkFitter : public SubsysReco
   
   //! Input Node pointers
   PHG4TruthInfoContainer* _truth_container = nullptr;
-  TrkrClusterContainer* _clustermap = nullptr;
-  SvtxTrackMap* _trackmap = nullptr;
+  TrkrClusterContainer* m_clustermap = nullptr;
+  
+  // track seeds
+  TrackSeedContainer *m_seedMap = nullptr;
+  TrackSeedContainer *m_tpcSeeds = nullptr;
+  TrackSeedContainer *m_siliconSeeds = nullptr;
+
   SvtxVertexMap* _vertexmap = nullptr;
 
   //! Output Node pointers
-  SvtxTrackMap* _trackmap_refit = nullptr;
-  SvtxTrackMap* _primary_trackmap = nullptr;
-  SvtxVertexMap* _vertexmap_refit = nullptr;
+  SvtxTrackMap* m_trackMap = nullptr;
+  SvtxTrackMap* m_trackMap_refit = nullptr;
+  SvtxTrackMap* m_primary_trackMap = nullptr;
+  SvtxVertexMap* m_vertexMap_refit = nullptr;
 
   //! Evaluation
   //! switch eval out
@@ -353,7 +360,7 @@ class PHGenFitTrkFitter : public SubsysReco
   TClonesArray* _tca_vertexmap = nullptr;
   TClonesArray* _tca_trackmap_refit = nullptr;
   TClonesArray* _tca_primtrackmap = nullptr;
-  TClonesArray* _tca_vertexmap_refit = nullptr;
+  TClonesArray* _tcam_vertexMap_refit = nullptr;
 
   TTree* _cluster_eval_tree = nullptr;
   float _cluster_eval_tree_x = 0;
