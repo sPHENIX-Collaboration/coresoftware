@@ -4,6 +4,7 @@
 
 /// Tracking includes
 
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrClusterv3.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainerv4.h>
@@ -29,15 +30,7 @@
 //____________________________________________________________________________..
 PHTpcClusterMover::PHTpcClusterMover(const std::string &name)
   : SubsysReco(name)
-{
-
-}
-
-//____________________________________________________________________________..
-PHTpcClusterMover::~PHTpcClusterMover()
-{
-
-}
+{}
 
 //____________________________________________________________________________..
 int PHTpcClusterMover::InitRun(PHCompositeNode *topNode)
@@ -150,31 +143,23 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  continue;  // skip to the next TPC track
 	}
 
-      // fit a circle to the clusters
-      double R = 0;
-      double X0 = 0;
-      double Y0 = 0;
-      CircleFitByTaubin(globalClusterPositions, R, X0, Y0);
-      if(Verbosity() > 10) 
-	std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
+  // fit a circle to the clusters
+  const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin( globalClusterPositions );
+  if(Verbosity() > 10) 
+  { std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl; }
 
-      // toss tracks for which the fitted circle could not have come from the vertex
-      //if(R < 30.0) continue;
+  // toss tracks for which the fitted circle could not have come from the vertex
+  //if(R < 30.0) continue;
+  
+  // get the straight line representing the z trajectory in the form of z vs radius
+  const auto [A, B] = TrackFitUtils::line_fit( globalClusterPositions );
+  if(Verbosity() > 10)  
+  { std::cout << " Fitted line has A " << A << " B " << B << std::endl; }
 
-      // get the straight line representing the z trajectory in the form of z vs radius
-      double A = 0; double B = 0;
-      line_fit(globalClusterPositions, A, B);
-      if(Verbosity() > 10) 
-	std::cout << " Fitted line has A " << A << " B " << B << std::endl;
-
-      // Now we need to move each cluster associated with this track to the readout layer radius
-      for (auto clus_iter = tpc_clusters.begin();
-	   clus_iter != tpc_clusters.end(); 
-	   ++clus_iter)
-	{
-	  TrkrDefs::cluskey cluskey = clus_iter->first;
-	  unsigned int layer = TrkrDefs::getLayer(cluskey);
-	  Acts::Vector3 global = clus_iter->second;
+  // Now we need to move each cluster associated with this track to the readout layer radius
+  for( const auto& [cluskey, global]:tpc_clusters )
+  {
+    const unsigned int layer = TrkrDefs::getLayer(cluskey);
 
 	  // get circle position at target surface radius 
 	  double target_radius = layer_radius[layer-7];
@@ -398,103 +383,6 @@ int PHTpcClusterMover::get_circle_circle_intersection(double target_radius, doub
      }
    return Fun4AllReturnCodes::EVENT_OK;   
  }
-void PHTpcClusterMover::CircleFitByTaubin (std::vector<Acts::Vector3> clusters, double &R, double &X0, double &Y0)
-/*  
-      Circle fit to a given set of data points (in 2D)
-      This is an algebraic fit, due to Taubin, based on the journal article
-      G. Taubin, "Estimation Of Planar Curves, Surfaces And Nonplanar
-                  Space Curves Defined By Implicit Equations, With 
-                  Applications To Edge And Range Image Segmentation",
-                  IEEE Trans. PAMI, Vol. 13, pages 1115-1138, (1991)
-     It works well whether data points are sampled along an entire circle or along a small arc. 
-     It still has a small bias and its statistical accuracy is slightly lower than that of the geometric fit (minimizing geometric distances),
-     It provides a very good initial guess for a subsequent geometric fit. 
-       Nikolai Chernov  (September 2012)
-*/
-{
-  int iter,IterMAX=99;
-  
-  double Mz,Mxy,Mxx,Myy,Mxz,Myz,Mzz,Cov_xy,Var_z;
-  double A0,A1,A2,A22,A3,A33;
-  double x,y;
-  double DET,Xcenter,Ycenter;
-  
-  // Compute x- and y- sample means   
-  double meanX = 0;
-  double meanY = 0;
-  double weight = 0;
-  for(unsigned int iclus = 0; iclus < clusters.size(); ++iclus)
-    {
-      if(Verbosity() > 3)  std::cout << "    add cluster with x " << clusters[iclus][0] << " and y " << clusters[iclus][1] << std::endl;
-      meanX += clusters[iclus][0];
-      meanY += clusters[iclus][1];
-      weight++;
-    }
-  meanX /= weight;
-  meanY /= weight;
-
-  //     computing moments 
-  
-  Mxx=Myy=Mxy=Mxz=Myz=Mzz=0.;
-  
-  for (unsigned int i=0; i<clusters.size(); i++)
-    {
-      double Xi = clusters[i][0] - meanX;   //  centered x-coordinates
-      double Yi = clusters[i][1] - meanY;   //  centered y-coordinates
-      double Zi = Xi*Xi + Yi*Yi;
-      
-      Mxy += Xi*Yi;
-      Mxx += Xi*Xi;
-      Myy += Yi*Yi;
-      Mxz += Xi*Zi;
-      Myz += Yi*Zi;
-      Mzz += Zi*Zi;
-    }
-  Mxx /= weight;
-  Myy /= weight;
-  Mxy /= weight;
-  Mxz /= weight;
-  Myz /= weight;
-  Mzz /= weight;
-  
-  //  computing coefficients of the characteristic polynomial
-  
-  Mz = Mxx + Myy;
-  Cov_xy = Mxx*Myy - Mxy*Mxy;
-  Var_z = Mzz - Mz*Mz;
-  A3 = 4*Mz;
-  A2 = -3*Mz*Mz - Mzz;
-  A1 = Var_z*Mz + 4*Cov_xy*Mz - Mxz*Mxz - Myz*Myz;
-  A0 = Mxz*(Mxz*Myy - Myz*Mxy) + Myz*(Myz*Mxx - Mxz*Mxy) - Var_z*Cov_xy;
-  A22 = A2 + A2;
-  A33 = A3 + A3 + A3;
-  
-  //    finding the root of the characteristic polynomial
-  //    using Newton's method starting at x=0  
-  //    (it is guaranteed to converge to the right root)
-  
-  for (x=0.,y=A0,iter=0; iter<IterMAX; iter++)  // usually, 4-6 iterations are enough
-    {
-      double Dy = A1 + x*(A22 + A33*x);
-      double xnew = x - y/Dy;
-      if ((xnew == x)||(!std::isfinite(xnew))) break;
-      double ynew = A0 + xnew*(A1 + xnew*(A2 + xnew*A3));
-      if (fabs(ynew)>=fabs(y))  break;
-      x = xnew;  y = ynew;
-    }
-  
-  //  computing parameters of the fitting circle
-  
-  DET = x*x - x*Mz + Cov_xy;
-  Xcenter = (Mxz*(Myy - x) - Myz*Mxy)/DET/2;
-  Ycenter = (Myz*(Mxx - x) - Mxz*Mxy)/DET/2;
-  
-  //  assembling the output
-  
-  X0 = Xcenter + meanX;
-  Y0 = Ycenter + meanY;
-  R = sqrt(Xcenter*Xcenter + Ycenter*Ycenter + Mz);
-}
 
 void PHTpcClusterMover::circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus)
 {
@@ -526,28 +414,6 @@ void PHTpcClusterMover::circle_circle_intersection(double r1, double r2, double 
   yminus = -(2*x2*xminus - D) / (2.0*y2);
 
 }
-
-void  PHTpcClusterMover::line_fit(std::vector<Acts::Vector3> clusters, double &a, double &b)
-{
-  // copied from: https://www.bragitoff.com
-  // we want to fit z vs radius
-
-   double xsum=0,x2sum=0,ysum=0,xysum=0;                //variables for sums/sigma of xi,yi,xi^2,xiyi etc
-   for (unsigned int i=0; i<clusters.size(); ++i)
-    {
-      double z = clusters[i][2];
-      double r = sqrt(pow(clusters[i][0],2) + pow(clusters[i][1], 2));
-
-      xsum=xsum+r;                        //calculate sigma(xi)
-      ysum=ysum+z;                        //calculate sigma(yi)
-      x2sum=x2sum+pow(r,2);                //calculate sigma(x^2i)
-      xysum=xysum+r*z;                    //calculate sigma(xi*yi)
-    }
-   a=(clusters.size()*xysum-xsum*ysum)/(clusters.size()*x2sum-xsum*xsum);            //calculate slope
-   b=(x2sum*ysum-xsum*xysum)/(x2sum*clusters.size()-xsum*xsum);            //calculate intercept
-
-    return;
-}   
 
 Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
 						       Acts::Vector3 world,

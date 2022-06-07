@@ -1,18 +1,20 @@
 #ifndef TRACKBASE_TRACKFITUTILS_H
 #define TRACKBASE_TRACKFITUTILS_H
 
+#include <Acts/Definitions/Algebra.hpp>
+
 #include <tuple>
 #include <utility>
 #include <vector>
 
 class TrackFitUtils
 {
-  
+
   public:
 
   using position_t = std::pair<double, double>;
   using position_vector_t = std::vector<position_t>;
-  
+
   /// circle fit output [R, x0, y0]
   using circle_fit_output_t = std::tuple<double, double, double>;
 
@@ -30,15 +32,21 @@ class TrackFitUtils
    */
   static circle_fit_output_t circle_fit_by_taubin(const position_vector_t&);
 
+  /// convenient overload
+  static circle_fit_output_t circle_fit_by_taubin(const std::vector<Acts::Vector3>& );
+
   /// line fit output [slope, intercept]
   using line_fit_output_t = std::tuple<double,double>;
-  
+
   /// line_fit
   /**
    * copied from: https://www.bragitoff.com
    * typically used to fit we want to fit z vs radius
    */
   static line_fit_output_t line_fit(const position_vector_t&);
+
+  /// convenient overload
+  static line_fit_output_t line_fit(const std::vector<Acts::Vector3>& );
 
 };
 

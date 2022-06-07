@@ -3,11 +3,11 @@
 #include "GPUTPCTrackLinearisation.h"
 #include "GPUTPCTrackParam.h"
 
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
-#include <Geant4/G4SystemOfUnits.hh>
 #include <trackbase_historic/ActsTransformations.h>
-#include "TFile.h"
-#include "TNtuple.h"
+
+#include <Geant4/G4SystemOfUnits.hh>
 
 #include <TMatrixFfwd.h>
 #include <TMatrixT.h>   
@@ -157,10 +157,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
       return std::make_pair(clpos(0),clpos(1));
     });
     
-    double R = 0;
-    double x_center = 0;
-    double y_center = 0;
-    CircleFitByTaubin(pts,R,x_center,y_center);
+    const auto [R, x_center, y_center] = TrackFitUtils::circle_fit_by_taubin( pts );
     if(Verbosity()>1) std::cout << "circle fit parameters: R=" << R << ", X0=" << x_center << ", Y0=" << y_center << std::endl;
     
     // check circle fit success
@@ -631,127 +628,6 @@ void ALICEKF::repairCovariance(Eigen::Matrix<double,6,6>& cov) const
   }
   
 }
-void ALICEKF::CircleFitByTaubin (const std::vector<std::pair<double,double>>& points, double &R, double &X0, double &Y0) const
-/*  
-      Circle fit to a given set of data points (in 2D)
-      This is an algebraic fit, due to Taubin, based on the journal article
-      G. Taubin, "Estimation Of Planar Curves, Surfaces And Nonplanar
-                  Space Curves Defined By Implicit Equations, With 
-                  Applications To Edge And Range Image Segmentation",
-                  IEEE Trans. PAMI, Vol. 13, pages 1115-1138, (1991)
-*/
-{
-  // Compute x- and y- sample means   
-  double meanX = 0;
-  double meanY = 0;
-  double weight = 0;
-  for( const auto& point:points )
-  {
-    meanX += point.first;
-    meanY += point.second;
-    weight++;
-  }
-  meanX /= weight;
-  meanY /= weight;
-
-  //     computing moments 
-  double Mxy = 0;
-  double Mxx = 0;
-  double Myy = 0;
-  double Mxz = 0;
-  double Myz = 0;
-  double Mzz = 0;
-  for( const auto& point:points )
-  {
-    double Xi = point.first - meanX;   //  centered x-coordinates
-    double Yi = point.second - meanY;   //  centered y-coordinates
-    double Zi = Xi*Xi + Yi*Yi;
-    
-    Mxy += Xi*Yi;
-    Mxx += Xi*Xi;
-    Myy += Yi*Yi;
-    Mxz += Xi*Zi;
-    Myz += Yi*Zi;
-    Mzz += Zi*Zi;
-  }
-  Mxx /= weight;
-  Myy /= weight;
-  Mxy /= weight;
-  Mxz /= weight;
-  Myz /= weight;
-  Mzz /= weight;
-  
-  //  computing coefficients of the characteristic polynomial
-  const double Mz = Mxx + Myy;
-  const double Cov_xy = Mxx*Myy - Mxy*Mxy;
-  const double Var_z = Mzz - Mz*Mz;
-  const double A3 = 4*Mz;
-  const double A2 = -3*Mz*Mz - Mzz;
-  const double A1 = Var_z*Mz + 4*Cov_xy*Mz - Mxz*Mxz - Myz*Myz;
-  const double A0 = Mxz*(Mxz*Myy - Myz*Mxy) + Myz*(Myz*Mxx - Mxz*Mxy) - Var_z*Cov_xy;
-  const double A22 = A2 + A2;
-  const double A33 = A3 + A3 + A3;
-  
-  //    finding the root of the characteristic polynomial
-  //    using Newton's method starting at x=0  
-  //    (it is guaranteed to converge to the right root)
-  double x = 0;
-  double y = A0;  
-  static constexpr int IterMAX=99;
-  for (int iter=0; iter<IterMAX; ++iter)  // usually, 4-6 iterations are enough
-  {
-    double Dy = A1 + x*(A22 + A33*x);
-    double xnew = x - y/Dy;
-    if ((xnew == x)||(!std::isfinite(xnew))) break;
-    double ynew = A0 + xnew*(A1 + xnew*(A2 + xnew*A3));
-    if (fabs(ynew)>=fabs(y))  break;
-    x = xnew;  y = ynew;
-  }
-  
-  //  computing parameters of the fitting circle
-  const double DET = x*x - x*Mz + Cov_xy;
-    
-  const double Xcenter = (Mxz*(Myy - x) - Myz*Mxy)/DET/2;
-  const double Ycenter = (Myz*(Mxx - x) - Mxz*Mxy)/DET/2;
-  
-  //  assembling the output
-  
-  X0 = Xcenter + meanX;
-  Y0 = Ycenter + meanY;
-  R = sqrt(Xcenter*Xcenter + Ycenter*Ycenter + Mz);
-}
-
-void  ALICEKF::line_fit(const std::vector<std::pair<double,double>>& points, double &a, double &b) const
-{
-  // copied from: https://www.bragitoff.com
-  // we want to fit z vs radius
-  
-    double xsum=0,x2sum=0,ysum=0,xysum=0;                //variables for sums/sigma of xi,yi,xi^2,xiyi etc
-    for( const auto& point:points )
-    {
-      double r = point.first;
-      double z = point.second;
-
-      xsum=xsum+r;                        //calculate sigma(xi)
-      ysum=ysum+z;                        //calculate sigma(yi)
-      x2sum=x2sum+square(r);                //calculate sigma(x^2i)
-      xysum=xysum+r*z;                    //calculate sigma(xi*yi)
-    }
-   a=(points.size()*xysum-xsum*ysum)/(points.size()*x2sum-xsum*xsum);            //calculate slope
-   b=(x2sum*ysum-xsum*xysum)/(x2sum*points.size()-xsum*xsum);            //calculate intercept
-
-   if(Verbosity() > 10)
-     {
-       for (unsigned int i=0;i<points.size(); ++i)
-	 {
-	   double r = points[i].first;
-	   double z_fit = a * r + b;                    //to calculate z(fitted) at given r points
-	   std::cout << " r " << r << " z " << points[i].second << " z_fit " << z_fit << std::endl; 
-	 } 
-     }
-
-    return;
-}   
 
 std::vector<double> ALICEKF::GetCircleClusterResiduals(const std::vector<std::pair<double,double>>& points, double R, double X0, double Y0) const
 {
