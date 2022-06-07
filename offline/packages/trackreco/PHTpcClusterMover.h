@@ -41,8 +41,6 @@ class PHTpcClusterMover : public SubsysReco
  private:
 
   int GetNodes(PHCompositeNode* topNode);
-
-  void circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus);
   int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xref, double yref, double &x, double &y);
 
   Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,

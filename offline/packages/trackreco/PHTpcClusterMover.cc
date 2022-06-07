@@ -352,12 +352,7 @@ int  PHTpcClusterMover::GetNodes(PHCompositeNode* topNode)
 int PHTpcClusterMover::get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xclus, double yclus, double &x, double &y)
 {
   // finds the intersection of the fitted circle with the cylinder having radius = target_radius
-  double xplus = 0;
-  double yplus = 0; 
-   double xminus = 0;
-   double yminus = 0;
-   
-   circle_circle_intersection(target_radius, R, X0, Y0, xplus, yplus, xminus, yminus);
+  const auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(target_radius, R, X0, Y0 );
    
    // We only need to check xplus for failure, skip this TPC cluster in that case
    if(std::isnan(xplus)) 
@@ -383,37 +378,6 @@ int PHTpcClusterMover::get_circle_circle_intersection(double target_radius, doub
      }
    return Fun4AllReturnCodes::EVENT_OK;   
  }
-
-void PHTpcClusterMover::circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus)
-{
-  // r1 is radius of sPHENIX layer
-  // r2, x2 and y2 are parameters of circle fitted to TPC clusters
-  // the solutions are xplus, xminus, yplus, yminus
-
-  // The intersection of two circles occurs when
-  // (x-x1)^2 + (y-y1)^2 = r1^2,  / (x-x2)^2 + (y-y2)^2 = r2^2
-  // Here we assume that circle 1 is an sPHENIX layer centered on x1=y1=0, and circle 2 is arbitrary
-  //  x^2 +y^2 = r1^2,   (x-x2)^2 + (y-y2)^2 = r2^2
-  // expand the equations and subtract to eliminate the x^2 and y^2 terms, gives the radical line connecting the intersection points
-  // iy = - (2*x2*x - D) / 2*y2, 
-  // then substitute for y in equation of circle 1
-
-  double D = r1*r1 - r2*r2 + x2*x2 + y2*y2;
-  double a = 1.0 + (x2*x2) / (y2*y2);
-  double b = - D * x2/( y2*y2);
-  double c = D*D / (4.0*y2*y2) - r1*r1;
-
-  xplus = (-b + sqrt(b*b - 4.0* a * c) ) / (2.0 * a);
-  xminus = (-b - sqrt(b*b - 4.0* a * c) ) / (2.0 * a);
-
-  // both values of x are valid
-  // but for each of those values, there are two possible y values on circle 1
-  // but only one of those falls on the radical line:
-
-  yplus = - (2*x2*xplus - D) / (2.0*y2); 
-  yminus = -(2*x2*xminus - D) / (2.0*y2);
-
-}
 
 Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
 						       Acts::Vector3 world,

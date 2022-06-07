@@ -50,44 +50,6 @@ namespace
   template<class T>
     inline constexpr T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
 
-  /**
-   * r1 is radius of sPHENIX layer
-   * r2, x2 and y2 are parameters of circle fitted to TPC clusters
-   * the solutions are xplus, xminus, yplus, yminus
-
-   * The intersection of two circles occurs when
-   * (x-x1)^2 + (y-y1)^2 = r1^2,  / (x-x2)^2 + (y-y2)^2 = r2^2
-   * Here we assume that circle 1 is an sPHENIX layer centered on x1=y1=0, and circle 2 is arbitrary
-   * x^2 +y^2 = r1^2,   (x-x2)^2 + (y-y2)^2 = r2^2
-   * expand the equations and subtract to eliminate the x^2 and y^2 terms, gives the radical line connecting the intersection points
-   * iy = - (2*x2*x - D) / 2*y2,
-   * then substitute for y in equation of circle 1
-   */
-  bool circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus)
-  {
-
-    const double D = square(r1) - square(r2) + square(x2) + square(y2);
-    const double a = 1.0 + square(x2/y2);
-    const double b = - D * x2/square(y2);
-    const double c = square(D/(2.*y2)) - square(r1);
-    const double delta = square(b)-4.*a*c;
-    if( delta < 0 ) return false;
-
-    const double sqdelta = std::sqrt( delta );
-
-    xplus = (-b + sqdelta ) / (2. * a);
-    xminus = (-b - sqdelta ) / (2. * a);
-
-    // both values of x are valid
-    // but for each of those values, there are two possible y values on circle 1
-    // but only one of those falls on the radical line:
-
-    yplus  = -(2*x2*xplus - D) / (2.*y2);
-    yminus = -(2*x2*xminus - D) / (2.*y2);
-    return true;
-
-  }
-
   /// calculate intersection from circle to line, in 2d. return true on success
   /**
    * circle is defined as (x-xc)**2 + (y-yc)**2 = r**2
@@ -307,13 +269,10 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       const auto layer_radius = layergeom->get_radius();
 
       // method to find where fitted circle intersects this layer
-      double xplus = 0;
-      double xminus = 0;
-      double yplus = 0;
-      double yminus = 0;
+      auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(	layer_radius, R, X0, Y0 );
 
       // finds the intersection of the fitted circle with the micromegas layer
-      if( !circle_circle_intersection(	layer_radius, R, X0, Y0, xplus, yplus, xminus, yminus) )
+      if( !std::isfinite(xplus) )
       {
         if(Verbosity() > 10)
         {

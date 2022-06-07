@@ -144,3 +144,26 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit( const std::vector<Acts
 
   return line_fit( positions_2d );
 }
+
+//_________________________________________________________________________________
+TrackFitUtils::circle_circle_intersection_output_t TrackFitUtils::circle_circle_intersection(double r1, double r2, double x2, double y2 )
+{
+  
+  const double D = square(r1) - square(r2) + square(x2) + square(y2);
+  const double a = 1.0 + square(x2/y2);
+  const double b = - D * x2/square(y2);
+  const double c = square(D/(2.*y2)) - square(r1);
+  const double delta = square(b)-4.*a*c;
+  
+  const double sqdelta = std::sqrt( delta );
+  
+  const double xplus = (-b + sqdelta ) / (2. * a);
+  const double xminus = (-b - sqdelta ) / (2. * a);
+  
+  const double yplus  = -(2*x2*xplus - D) / (2.*y2);
+  const double yminus = -(2*x2*xminus - D) / (2.*y2);
+
+  
+  return std::make_tuple( xplus, yplus, xminus, yminus );
+
+}

@@ -48,6 +48,25 @@ class TrackFitUtils
   /// convenient overload
   static line_fit_output_t line_fit(const std::vector<Acts::Vector3>& );
 
+  /// circle-circle intersection output. (xplus, yplus, xminus, yminus)
+  using circle_circle_intersection_output_t = std::tuple<double, double, double, double>;
+
+  
+  /**
+   * r1 is radius of sPHENIX layer
+   * r2, x2 and y2 are parameters of circle fitted to TPC clusters
+   * the solutions are xplus, xminus, yplus, yminus
+
+   * The intersection of two circles occurs when
+   * (x-x1)^2 + (y-y1)^2 = r1^2,  / (x-x2)^2 + (y-y2)^2 = r2^2
+   * Here we assume that circle 1 is an sPHENIX layer centered on x1=y1=0, and circle 2 is arbitrary
+   * x^2 +y^2 = r1^2,   (x-x2)^2 + (y-y2)^2 = r2^2
+   * expand the equations and subtract to eliminate the x^2 and y^2 terms, gives the radical line connecting the intersection points
+   * iy = - (2*x2*x - D) / 2*y2,
+   * then substitute for y in equation of circle 1
+   */
+  static circle_circle_intersection_output_t circle_circle_intersection( double r1, double r2, double x2, double y2 );  
+  
 };
 
 #endif
