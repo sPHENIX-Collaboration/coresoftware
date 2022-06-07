@@ -16,7 +16,7 @@
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackState.h>
+#include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
@@ -358,12 +358,75 @@ ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsGSF::fitTrack(
 
 void PHActsGSF::updateTrack(const FitResult& result, SvtxTrack* track)
 {
+  std::vector<size_t> trackTips;
+  trackTips.reserve(1);
+  trackTips.emplace_back(result.lastMeasurementIndex);
+  ActsExamples::Trajectories::IndexedParameters indexedParams;
+  if(result.fittedParameters)
+    {
+      indexedParams.emplace(result.lastMeasurementIndex,
+			    result.fittedParameters.value());
+      Trajectory traj(result.fittedStates, trackTips, indexedParams);
+  
+      updateSvtxTrack(traj, track);
+    }
+}
 
+void PHActsGSF::updateSvtxTrack(const Trajectory& traj, SvtxTrack* track)
+{
+
+  const auto& mj = traj.multiTrajectory();
+  const auto& tips = traj.tips();
+  const auto& tracktip = tips.front();
+
+  const auto& params = traj.trackParameters(tracktip);
+  const auto trajState =
+    Acts::MultiTrajectoryHelpers::trajectoryState(mj, tracktip);
+
+  /// Will create new states
+  track->clear_states();
+
+  // create a state at pathlength = 0.0
+  // This state holds the track parameters, which will be updated below
+  float pathlength = 0.0;
+  SvtxTrackState_v1 out(pathlength);
+  out.set_x(0.0);
+  out.set_y(0.0);
+  out.set_z(0.0);
+  track->insert_state(&out); 
+  
+  track->set_x(params.position(m_tGeometry->geoContext)(0) / Acts::UnitConstants::cm);
+  track->set_y(params.position(m_tGeometry->geoContext)(1) / Acts::UnitConstants::cm);
+  track->set_z(params.position(m_tGeometry->geoContext)(2) / Acts::UnitConstants::cm);
+
+  track->set_px(params.momentum()(0));
+  track->set_py(params.momentum()(1));
+  track->set_pz(params.momentum()(2));
+  track->set_charge(params.charge());
+  track->set_chisq(trajState.chi2Sum);
+  track->set_ndf(trajState.NDF);
+  
+  ActsTransformations transformer;
+  transformer.setVerbosity(Verbosity());
+
+  if(params.covariance())
+    {
+      auto rotatedCov = transformer.rotateActsCovToSvtxTrack(params);
+      for(int i=0; i<6; i++)
+	{
+	  for(int j=0; j<6; j++)
+	    {
+	      track->set_error(i,j, rotatedCov(i,j)); 
+	    }
+	}	
+    }
+
+  transformer.fillSvtxTrackStates(mj, tracktip, track, m_tGeometry->geoContext);
 
 }
 
 //____________________________________________________________________________..
-int PHActsGSF::End(PHCompositeNode *topNode)
+int PHActsGSF::End(PHCompositeNode*)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

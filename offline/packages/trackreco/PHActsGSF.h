@@ -65,7 +65,7 @@ class PHActsGSF : public SubsysReco
       const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& options);
 
   void updateTrack(const FitResult& result, SvtxTrack *track);
-
+  void updateSvtxTrack(const Trajectory& traj, SvtxTrack* track);
   ActsTrackingGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
