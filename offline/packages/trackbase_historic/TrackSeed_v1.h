@@ -96,9 +96,9 @@ class TrackSeed_v1 : public TrackSeed
 	       uint8_t endLayer = 58) override;
 
  protected:
+
   /// Returns transverse PCA to (0,0)
-  void findRoot(float& x ,float& y) const;
-  float findRoot(bool findX) const;
+  std::pair<float,float> findRoot() const;
 
  private:
 
