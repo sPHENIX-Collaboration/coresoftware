@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4IHCALDETECTOR_H
-#define G4DETECTORS_PHG4IHCALDETECTOR_H
+#ifndef G4IHCAL_PHG4IHCALDETECTOR_H
+#define G4IHCAL_PHG4IHCALDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
@@ -78,4 +78,4 @@ class PHG4IHCalDetector : public PHG4Detector
   std::string m_GDMPath;
 };
 
-#endif  // G4DETECTORS_PHG4IHCALDETECTOR_H
+#endif  // G4IHCAL_PHG4IHCALDETECTOR_H
