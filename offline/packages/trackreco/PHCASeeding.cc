@@ -23,14 +23,14 @@
 // trackbase_historic includes
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase_historic/TrackSeedContainer.h>
-#include <trackbase_historic/TrackSeed_v1.h>
-
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
+#include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeed_v1.h>
 
 //ROOT includes for debugging
 #include <TFile.h>
@@ -723,43 +723,26 @@ std::vector<TrackSeed_v1> PHCASeeding::RemoveBadClusters(const std::vector<keyli
   for(const auto& chain : chains)
   {
     if(chain.size()<3) continue;
-    keylist clean_chain;
-
-    TrackSeed_v1 trackseed;
-
-    std::vector<std::pair<double,double>> xy_pts;
-//     std::vector<std::pair<double,double>> rz_pts;
-
-    for(const TrkrDefs::cluskey& ckey : chain)
-    {
-      const auto &global = globalPositions.at(ckey);
-      double x = global(0);
-      double y = global(1);
-      xy_pts.push_back(std::make_pair(x,y));
-//       double z = global(2);
-//       rz_pts.push_back(std::make_pair(std::sqrt(square(x)+square(y)),z));
-    }
     if(Verbosity()>0) std::cout << "chain size: " << chain.size() << std::endl;
 
-//     double A = 0;
-//     double B = 0;
-//     fitter->line_fit(rz_pts,A,B);
-//     const std::vector<double> rz_resid = fitter->GetLineClusterResiduals(rz_pts,A,B);
-    double R = 0;
-    double X0 = 0;
-    double Y0 = 0;
-    fitter->CircleFitByTaubin(xy_pts,R,X0,Y0);
+    TrackFitUtils::position_vector_t xy_pts;
+    for( const auto& ckey:chain )
+    {
+      const auto &global = globalPositions.at(ckey);
+      xy_pts.emplace_back( global.x(), global.y() );
+    } 
+
+    // fit a circle through x,y coordinates
+    const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin( xy_pts );
 
     // skip chain entirely if fit fails
-    /*
-     * note: this is consistent with what the code was doing before
-     * but in principle we could also keep the seed unchanged instead
-     * this is to be studied independently
-     */
     if( std::isnan( R ) ) continue;
 
     // calculate residuals
     const std::vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
+    
+    // assign clusters to seed
+    TrackSeed_v1 trackseed;
     for(size_t i=0;i<chain.size();i++)
     {
       if(xy_resid[i]>_xy_outlier_threshold) continue;

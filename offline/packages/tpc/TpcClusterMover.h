@@ -19,12 +19,11 @@ class TpcClusterMover
 
   void set_verbosity(int verb) { _verbosity = verb; }
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> processTrack(std::vector<std::pair<TrkrDefs::cluskey,Acts::Vector3>> global_in );
-  void CircleFitByTaubin (std::vector<Acts::Vector3> clusters, double &R, double &X0, double &Y0);
-  void  line_fit(std::vector<Acts::Vector3> clusters, double &a, double &b);
- void circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus);
- int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xclus, double yclus, double &x, double &y);
+  
+  private:
+  int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xclus, double yclus, double &x, double &y);
 
- double _z_start=0.0; 
+  double _z_start=0.0; 
   double _y_start=0.0; 
   double _x_start=0.0; 
 
