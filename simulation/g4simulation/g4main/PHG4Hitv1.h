@@ -63,6 +63,7 @@ class PHG4Hitv1 : public PHG4Hit
   unsigned int get_layer() const override { return get_property_uint(prop_layer); }
   int get_scint_id() const override { return get_property_int(prop_scint_id); }
   int get_row() const override { return get_property_int(prop_row); }
+  int get_sector() const override { return get_property_int(prop_sector); }
   int get_strip_z_index() const override { return get_property_int(prop_strip_z_index); }
   int get_strip_y_index() const override { return get_property_int(prop_strip_y_index); }
   int get_ladder_z_index() const override { return get_property_int(prop_ladder_z_index); }
@@ -85,6 +86,7 @@ class PHG4Hitv1 : public PHG4Hit
   void set_layer(const unsigned int i) override { set_property(prop_layer, i); }
   void set_scint_id(const int i) override { set_property(prop_scint_id, i); }
   void set_row(const int i) override { set_property(prop_row, i); }
+  void set_sector(const int i) override { set_property(prop_sector, i); }
   void set_strip_z_index(const int i) override { set_property(prop_strip_z_index, i); }
   void set_strip_y_index(const int i) override { set_property(prop_strip_y_index, i); }
   void set_ladder_z_index(const int i) override { set_property(prop_ladder_z_index, i); }
