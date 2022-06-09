@@ -44,13 +44,13 @@ class PHG4OHCalDetector : public PHG4Detector
   const std::string SuperDetector() const { return m_SuperDetector; }
   int get_Layer() const { return m_Layer; }
   int ConsistencyCheck() const;
-  std::pair< int, int> GetRowColumnId(G4VPhysicalVolume *volume) const;
+  std::tuple<int, int, int> GetRowColumnId(G4VPhysicalVolume *volume) const;
 
  private:
   int ConstructOHCal(G4LogicalVolume *hcalenvelope);
   int map_towerid(const int tower_id);
   int map_layerid(const unsigned int isector, const int layer_id);
-  std::pair< int, int> ExtractLayerTowerId(const unsigned int isector, G4VPhysicalVolume *volume);
+  std::tuple<int, int, int> ExtractLayerTowerId(const unsigned int isector, G4VPhysicalVolume *volume);
   PHG4OHCalDisplayAction *m_DisplayAction = nullptr;
   PHG4OHCalFieldSetup *m_FieldSetup = nullptr;
   PHParameters *m_Params = nullptr;
@@ -72,7 +72,7 @@ class PHG4OHCalDetector : public PHG4Detector
   std::string m_SuperDetector;
   std::set<G4LogicalVolume *> m_SteelAbsorberLogVolSet;
   std::set<G4LogicalVolume *> m_ScintiTileLogVolSet;
-  std::map<G4VPhysicalVolume *, std::pair< int, int>> m_ScintiTilePhysVolMap;
+  std::map<G4VPhysicalVolume *, std::tuple< int, int, int>> m_ScintiTilePhysVolMap;
 
   std::string m_GDMPath;
 };
