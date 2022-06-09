@@ -116,50 +116,110 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   gdmlParser.SetOverlapCheck(OverlapCheck());
   gdmlParser.Read(m_GDMPath, false);
 
-  G4AssemblyVolume *abs_asym = reader->GetAssembly("sector");             //absorber
-  G4AssemblyVolume *chimAbs_asym = reader->GetAssembly("sectorChimney");  //absorber
 
+
+//  G4AssemblyVolume *abs_asym = reader->GetAssembly("sector");             //absorber
+  m_ScintiMotherAssembly = reader->GetAssembly("tileAssembly24_90");             //tiles
+/*
+// this loop is inefficient but the assignment of the scintillator id's is much simpler when having the hcal sector
   vector<G4VPhysicalVolume *>::iterator it1 = abs_asym->GetVolumesIterator();
-  for (unsigned int i = 0; i < abs_asym->TotalImprintedVolumes(); i++)
+  for (unsigned int isector = 0; isector < abs_asym->TotalImprintedVolumes(); isector++)
   {
     m_DisplayAction->AddSteelVolume((*it1)->GetLogicalVolume());
     m_SteelAbsorberLogVolSet.insert((*it1)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it1));
     m_VolumeSteel += (*it1)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
+    vector<G4VPhysicalVolume *>::iterator it3 = m_ScintiMotherAssembly->GetVolumesIterator();
+    unsigned int ncnt = 24*5*2;
+    unsigned int ioff = isector*ncnt;
+    // ok we always have to skip to the scintillators we want to add for every hcal sector
+    for (unsigned int j = 0; j < ioff; j++)
+    {
+      ++it3;
+    }
+    for (unsigned int j = ioff; j < ioff+ncnt; j++)
+    {
+      m_DisplayAction->AddScintiVolume((*it3)->GetLogicalVolume());
+      m_ScintiTileLogVolSet.insert((*it3)->GetLogicalVolume());
+      hcalenvelope->AddDaughter((*it3));
+      m_ScintiTilePhysVolMap.insert(std::make_pair(*it3, ExtractLayerTowerId(isector, *it3)));
+      m_VolumeScintillator += (*it3)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
+      ++it3;
+    }
+
     ++it1;
   }
-
+*/
+  G4AssemblyVolume *chimAbs_asym = reader->GetAssembly("sectorChimney");  //absorber
+  m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90");  //chimney tiles
   vector<G4VPhysicalVolume *>::iterator it2 = chimAbs_asym->GetVolumesIterator();
-  for (unsigned int i = 0; i < chimAbs_asym->TotalImprintedVolumes(); i++)
+  for (unsigned int isector = 0; isector < chimAbs_asym->TotalImprintedVolumes(); isector++)
   {
     m_DisplayAction->AddChimSteelVolume((*it2)->GetLogicalVolume());
     m_SteelAbsorberLogVolSet.insert((*it2)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it2));
     m_VolumeSteel += (*it2)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
+    vector<G4VPhysicalVolume *>::iterator it4 = m_ChimScintiMotherAssembly->GetVolumesIterator();
+    unsigned int ncnt = 24*5*2;
+    unsigned int ioff = isector*ncnt;
+    // ok we always have to skip to the scintillators we want to add for every hcal sector
+    for (unsigned int j = 0; j < ioff; j++)
+    {
+      ++it4;
+    }
+    for (unsigned int j = ioff; j < ioff+ncnt; j++)
+    {
+      m_DisplayAction->AddScintiVolume((*it4)->GetLogicalVolume());
+      m_ScintiTileLogVolSet.insert((*it4)->GetLogicalVolume());
+      hcalenvelope->AddDaughter((*it4));
+      m_ScintiTilePhysVolMap.insert(std::make_pair(*it4, ExtractLayerTowerId(isector+29, *it4))); // chimney sectors 29-32
+//    std::pair<int, int> bla = ExtractLayerTowerId(*it4);
+//    m_ScintiTilePhysVolMap.insert(std::make_pair(*it4,make_pair(255,std::get<2>(bla)) ));
+      m_VolumeScintillator += (*it4)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
+      ++it4;
+    }
     ++it2;
   }
-
-  m_ScintiMotherAssembly = reader->GetAssembly("tileAssembly24_90");             //tiles
-  m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90");  //chimeny tiles
+  return 0;
 
   vector<G4VPhysicalVolume *>::iterator it3 = m_ScintiMotherAssembly->GetVolumesIterator();
-  for (unsigned int i = 0; i < m_ScintiMotherAssembly->TotalImprintedVolumes(); i++)
+  for (unsigned int isector = 0; isector < m_ScintiMotherAssembly->TotalImprintedVolumes(); isector++)
+/*
+   unsigned int ncnt = 24*5*2;
+   unsigned int ioff = sectorno*ncnt;
+   for (unsigned int i = 0; i < ioff; i++)
+   {
+     ++it3;
+   }
+   for (unsigned int i = ioff; i < ioff+ncnt; i++)
+*/
   {
+//    std::cout << "phys vol " <<  (*it3)->GetName() << ", logvol: " << (*it3)->GetLogicalVolume() ->GetName()
+//	      << ", row: " <<  ExtractLayerTowerId(*it3).first << ", column: " << ExtractLayerTowerId(*it3).second << std::endl;
     m_DisplayAction->AddScintiVolume((*it3)->GetLogicalVolume());
     m_ScintiTileLogVolSet.insert((*it3)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it3));
-    m_ScintiTilePhysVolMap.insert(std::make_pair(*it3, ExtractLayerTowerId(*it3)));
+    m_ScintiTilePhysVolMap.insert(std::make_pair(*it3, ExtractLayerTowerId(isector,*it3)));
     m_VolumeScintillator += (*it3)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
+    // auto bla = ExtractLayerTowerId(*it3);
+    // if (std::get<2>(bla) == 0)
+    // {
+    //   cout << "sector " << std::get<0>(bla) << ", row: " << std::get<1>(bla) << std::endl;
+    // }
     ++it3;
   }
 
+  return 0;
+  m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90");  //chimney tiles
   vector<G4VPhysicalVolume *>::iterator it4 = m_ChimScintiMotherAssembly->GetVolumesIterator();
-  for (unsigned int i = 0; i < m_ChimScintiMotherAssembly->TotalImprintedVolumes(); i++)
+  for (unsigned int isector = 0; isector < m_ChimScintiMotherAssembly->TotalImprintedVolumes(); isector++)
   {
     m_DisplayAction->AddScintiVolume((*it4)->GetLogicalVolume());
     m_ScintiTileLogVolSet.insert((*it4)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it4));
-    m_ScintiTilePhysVolMap.insert(std::make_pair(*it4, ExtractLayerTowerId(*it4)));
+    m_ScintiTilePhysVolMap.insert(std::make_pair(*it4, ExtractLayerTowerId(isector, *it4)));
+//    std::pair<int, int> bla = ExtractLayerTowerId(*it4);
+//    m_ScintiTilePhysVolMap.insert(std::make_pair(*it4,make_pair(255,std::get<2>(bla)) ));
     m_VolumeScintillator += (*it4)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
     ++it4;
   }
@@ -182,7 +242,7 @@ void PHG4OHCalDetector::Print(const string &what) const
   return;
 }
 
-std::pair<int, int> PHG4OHCalDetector::GetLayerTowerId(G4VPhysicalVolume *volume) const
+std::pair< int, int> PHG4OHCalDetector::GetRowColumnId(G4VPhysicalVolume *volume) const
 {
   auto it = m_ScintiTilePhysVolMap.find(volume);
   if (it != m_ScintiTilePhysVolMap.end())
@@ -190,19 +250,20 @@ std::pair<int, int> PHG4OHCalDetector::GetLayerTowerId(G4VPhysicalVolume *volume
     return it->second;
   }
   cout << "could not locate volume " << volume->GetName()
-       << " in Inner Hcal scintillator map" << endl;
+       << " in Outer Hcal scintillator map" << endl;
   gSystem->Exit(1);
   // that's dumb but code checkers do not know that gSystem->Exit()
   // terminates, so using the standard exit() makes them happy
   exit(1);
 }
 
-std::pair<int, int> PHG4OHCalDetector::ExtractLayerTowerId(G4VPhysicalVolume *volume)
+std::pair<int, int> PHG4OHCalDetector::ExtractLayerTowerId(const unsigned int isector, G4VPhysicalVolume *volume)
 {
   boost::char_separator<char> sep("_");
   boost::tokenizer<boost::char_separator<char>> tok(volume->GetName(), sep);
   boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
-  int layer_id = -1, tower_id = -1;
+  int layer_id = -1;
+  int tower_id = -1;
   for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
   {
     if (*tokeniter == "impr")
@@ -239,10 +300,11 @@ std::pair<int, int> PHG4OHCalDetector::ExtractLayerTowerId(G4VPhysicalVolume *vo
       }
     }
   }
-  // int column = map_towerid(tower_id);
-  // int row = map_layerid(layer_id);
-  // return std::make_pair(row, column);
-  return std::make_pair(layer_id, tower_id);
+  int column = map_towerid(tower_id);
+  int row = map_layerid(isector, layer_id);
+  cout << "name: " << volume->GetName() << ", sector: " << isector << ", layer id: " << layer_id << ", row: " << row << endl;
+return std::make_pair(row, column);
+//  return std::make_pair(layer_id, column);
 }
 
 // map gdml tower ids to our columns
@@ -367,13 +429,86 @@ int PHG4OHCalDetector::map_towerid(const int tower_id)
   // }
 }
 
-int PHG4OHCalDetector::map_layerid(const int layer_id)
+int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_id)
 {
-  int rowid = -1;
-  if (layer_id <= 60)
+  int tmp_layer = layer_id - 10*isector; // normalize to 0-9
+  if (isector>=29)
   {
-    rowid = 60 - layer_id;
+    tmp_layer = layer_id - 10*(isector-29);
   }
+  int rowid = 4 - tmp_layer; // lower half
+  if (rowid >= 0)
+  {
+    if (isector <= 6)
+    {
+      rowid += 10*(6-isector);
+    }
+    else if (isector <= 28)
+    {
+      rowid += 10*(38-isector);
+    }
+    else if (isector == 29)
+    {
+      rowid += 10*(7);
+    }
+    else
+    {
+      rowid = -1;
+    }
+  }
+  else
+  { // upper half
+    rowid += 10;
+    if (isector <= 5)
+    {
+      rowid += 10*(5-isector);
+    }
+    else if (isector <= 28)
+    {
+      rowid += 10*(37-isector);
+    }
+    else if (isector == 29)
+    {
+//      rowid = -1;
+      rowid += 10*(7);
+    }
+    else
+    {
+      rowid = -1;
+    }
+
+  }
+  // if (isector != 6)
+  // {
+  //   rowid = -1;
+  // }
+  // switch(isector)
+  // {
+  // case 6:
+  //   break;
+  // case 5:
+  //   rowid += 10;
+  //   break;
+  // case 4:
+  //   rowid += 20;
+  //   break;
+  // case 3:
+  //   rowid += 30;
+  //   break;
+  // default:
+  //   rowid = -1;
+  //   break;
+  // }
+  if (rowid < 0 || rowid > 319)
+  {
+    cout << "bad rowid for sector " << isector << ", layer_id " << layer_id << endl;
+    rowid = 255;
+  }
+  // if (layer_id <= 61)
+  // {
+  //   rowid = 61 - layer_id;
+  // }
+/*
   else if (layer_id > 60 && layer_id <= 191)
   {
     rowid = 191 - layer_id + 125;
@@ -388,5 +523,6 @@ int PHG4OHCalDetector::map_layerid(const int layer_id)
     gSystem->Exit(1);
     exit(1);
   }
+*/
   return rowid;
 }

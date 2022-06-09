@@ -152,7 +152,7 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   int tower_id = -1;
   if (whichactive > 0)  // scintillator
   {
-    pair<int, int> layer_tower = m_Detector->GetLayerTowerId(volume);
+    std::pair<int, int> layer_tower = m_Detector->GetRowColumnId(volume);
     layer_id = layer_tower.first;
     tower_id = layer_tower.second;
   }
