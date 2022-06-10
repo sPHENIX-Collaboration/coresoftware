@@ -73,7 +73,7 @@ class PHG4IHCalDetector : public PHG4Detector
   std::set<G4LogicalVolume *> m_SteelAbsorberLogVolSet;
   std::set<G4LogicalVolume *> m_ScintiTileLogVolSet;
   std::map<G4VPhysicalVolume *, std::tuple<int, int, int>> m_ScintiTilePhysVolMap;
-  std::map<G4VPhysicalVolume *, int > m_AbsorberPhysVolMap;
+  std::map<G4VPhysicalVolume *, int> m_AbsorberPhysVolMap;
 
   std::string m_GDMPath;
 };

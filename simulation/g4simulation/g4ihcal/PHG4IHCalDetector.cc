@@ -118,30 +118,30 @@ int PHG4IHCalDetector::ConstructIHCal(G4LogicalVolume *hcalenvelope)
   G4AssemblyVolume *abs_asym = reader->GetAssembly("InnerSector");      //absorber
   m_ScintiMotherAssembly = reader->GetAssembly("InnerTileAssembly90");  // scintillator
   std::vector<G4VPhysicalVolume *>::iterator it = abs_asym->GetVolumesIterator();
-  static const unsigned int tilepersec = 24*4*2;
+  static const unsigned int tilepersec = 24 * 4 * 2;
   for (unsigned int isector = 0; isector < abs_asym->TotalImprintedVolumes(); isector++)
   {
     m_DisplayAction->AddSteelVolume((*it)->GetLogicalVolume());
     m_SteelAbsorberLogVolSet.insert((*it)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it));
-    m_AbsorberPhysVolMap.insert(std::make_pair(*it,isector));
+    m_AbsorberPhysVolMap.insert(std::make_pair(*it, isector));
     m_VolumeSteel += (*it)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
-  std::vector<G4VPhysicalVolume *>::iterator its = m_ScintiMotherAssembly->GetVolumesIterator();
-    unsigned int ioff = isector*tilepersec;
+    std::vector<G4VPhysicalVolume *>::iterator its = m_ScintiMotherAssembly->GetVolumesIterator();
+    unsigned int ioff = isector * tilepersec;
     for (unsigned int j = 0; j < ioff; j++)
     {
       ++its;
     }
-    for (unsigned int j = ioff; j < ioff+tilepersec; j++)
+    for (unsigned int j = ioff; j < ioff + tilepersec; j++)
     {
-    m_DisplayAction->AddScintiVolume((*its)->GetLogicalVolume());
-    m_ScintiTileLogVolSet.insert((*its)->GetLogicalVolume());
-    hcalenvelope->AddDaughter((*its));
-    std::cout << "sector " << isector << std::endl;
-    m_ScintiTilePhysVolMap.insert(std::make_pair(*its, ExtractLayerTowerId(isector, *its)));
-    m_VolumeScintillator += (*its)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
-    ++its;
-  }
+      m_DisplayAction->AddScintiVolume((*its)->GetLogicalVolume());
+      m_ScintiTileLogVolSet.insert((*its)->GetLogicalVolume());
+      hcalenvelope->AddDaughter((*its));
+      std::cout << "sector " << isector << std::endl;
+      m_ScintiTilePhysVolMap.insert(std::make_pair(*its, ExtractLayerTowerId(isector, *its)));
+      m_VolumeScintillator += (*its)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
+      ++its;
+    }
 
     ++it;
   }

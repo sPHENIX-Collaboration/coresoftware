@@ -131,7 +131,7 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   }
   else
   {
-    layer_id =  m_Detector->GetSectorId(volume); // absorber sector id
+    layer_id = m_Detector->GetSectorId(volume);  // absorber sector id
   }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -208,7 +208,7 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_Hit->set_edep(0);
       if (whichactive > 0)  // return of IsInIHCalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
-        m_Hit->set_sector(sector_id);  // the slat id
+        m_Hit->set_sector(sector_id);   // the slat id
         m_Hit->set_scint_id(tower_id);  // the slat id
         m_Hit->set_eion(0);             // only implemented for v5 otherwise empty
         m_Hit->set_light_yield(0);      // for scintillator only, initialize light yields
