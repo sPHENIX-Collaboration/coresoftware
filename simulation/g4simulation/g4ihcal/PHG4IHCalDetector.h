@@ -8,7 +8,8 @@
 #include <cmath>
 #include <map>
 #include <set>
-#include <string>   // for string
+#include <string>  // for string
+#include <tuple>
 #include <utility>  // for pair
 
 class G4AssemblyVolume;
