@@ -33,8 +33,6 @@ class PHTpcClusterMover : public SubsysReco
 
   PHTpcClusterMover(const std::string &name = "PHTpcClusterMover");
 
-  ~PHTpcClusterMover() override;
-
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
@@ -43,10 +41,6 @@ class PHTpcClusterMover : public SubsysReco
  private:
 
   int GetNodes(PHCompositeNode* topNode);
-
-void CircleFitByTaubin (std::vector<Acts::Vector3> clusters, double &R, double &X0, double &Y0);
-  void circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus);
-void  line_fit(std::vector<Acts::Vector3> clusters, double &a, double &b);
   int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xref, double yref, double &x, double &y);
 
   Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,

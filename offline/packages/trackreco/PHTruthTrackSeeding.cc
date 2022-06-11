@@ -258,6 +258,8 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
 void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters, PHG4Particle *g4particle, TrackSeedContainer* container)
 {
+  // This method is called separately for silicon and tpc seeds
+
   auto track = std::make_unique<TrackSeed_FastSim_v1>();
   bool silicon = false;
   bool tpc = false;  
@@ -319,8 +321,11 @@ void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters
   if(tpc)
     {
       // if this is the TPC, the track Z0 depends on the crossing
-      // we should determine it from the clusters instead of the truth - not implemented yet
-      
+      // we must determine Z0 from the clusters instead of the truth for the TPC
+      // this method calculates the Z0 and z slope from a fit to the clusters and overwrites them
+      unsigned int start_layer = 7;
+      unsigned int end_layer = 54;
+      track->lineFit(m_clusterMap, surfmaps, tgeometry, start_layer, end_layer);      
     }
   
   /// Need to find the right one for the bend angle

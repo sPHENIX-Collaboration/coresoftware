@@ -93,8 +93,8 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
   findEtaPhiMatches(tpc_matched_set, tpc_matches);
 
   // Check that the crossing number is consistent with the tracklet z mismatch, discard the match otherwise
-  // Enabling this requires a change to truth seeding, so that it does not set the TPC seed z0 to the truth value
-  //checkCrossingMatches(tpc_matches);
+  // Enabling this required a change to truth seeding, so that it sets the TPC seed z0 to the line fit value, not the truth
+  checkCrossingMatches(tpc_matches);
   
   // We have a complete list of all eta/phi matched tracks in the map "tpc_matches"
   // make the combined track seeds from tpc_matches
@@ -460,15 +460,17 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<unsigned int
 	{ 
 	  if(Verbosity() > 0)	  
 	    std::cout << "  Success:  crossing " << crossing << " tpcid " << tpcid << " si id " << si_id 
-		      << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << std::endl;
+		      << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch 
+		      << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << std::endl;
 	}
       else
 	{
 	  if(Verbosity() > 0)
 	    std::cout << "  FAILURE:  crossing " << crossing << " tpcid " << tpcid << " si id " << si_id 
-		      << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << std::endl;
+		      << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch 
+		      << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << std::endl;
 
-	  //bad_map.insert(std::make_pair(tpcid, si_id));
+	  bad_map.insert(std::make_pair(tpcid, si_id));
 	}
     }
 
