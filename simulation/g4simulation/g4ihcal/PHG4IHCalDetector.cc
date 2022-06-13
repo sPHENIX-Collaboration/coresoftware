@@ -42,6 +42,7 @@
 #include <iostream>
 #include <memory>       // for unique_ptr
 #include <type_traits>  // for __decay_and_strip<>::_...
+#include <utility>      // for pair, make_pair
 #include <vector>       // for vector, vector<>::iter...
 
 class G4Material;
@@ -107,37 +108,6 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   return;
 }
 
-int PHG4IHCalDetector::ConstructAbsorber(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope)
-{
-  std::vector<G4VPhysicalVolume *>::iterator it = avol->GetVolumesIterator();
-  for (unsigned int i = 0; i < avol->TotalImprintedVolumes(); i++)
-  {
-    m_DisplayAction->AddSteelVolume((*it)->GetLogicalVolume());
-    m_SteelAbsorberLogVolSet.insert((*it)->GetLogicalVolume());
-    hcalenvelope->AddDaughter((*it));
-    m_VolumeSteel += (*it)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
-    ++it;
-  }
-
-  return 0;
-}
-
-int PHG4IHCalDetector::ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope)
-{
-  std::vector<G4VPhysicalVolume *>::iterator it = avol->GetVolumesIterator();
-  for (unsigned int i = 0; i < avol->TotalImprintedVolumes(); i++)
-  {
-    m_DisplayAction->AddScintiVolume((*it)->GetLogicalVolume());
-    m_ScintiTileLogVolSet.insert((*it)->GetLogicalVolume());
-    hcalenvelope->AddDaughter((*it));
-    m_ScintiTilePhysVolMap.insert(std::make_pair(*it, ExtractLayerTowerId(*it)));
-    m_VolumeScintillator += (*it)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
-    ++it;
-  }
-
-  return 0;
-}
-
 int PHG4IHCalDetector::ConstructIHCal(G4LogicalVolume *hcalenvelope)
 {
   // import the staves from the geometry file
@@ -148,10 +118,34 @@ int PHG4IHCalDetector::ConstructIHCal(G4LogicalVolume *hcalenvelope)
 
   G4AssemblyVolume *abs_asym = reader->GetAssembly("InnerSector");      //absorber
   m_ScintiMotherAssembly = reader->GetAssembly("InnerTileAssembly90");  // scintillator
+  std::vector<G4VPhysicalVolume *>::iterator it = abs_asym->GetVolumesIterator();
+  static const unsigned int tilepersec = 24 * 4 * 2;
+  for (unsigned int isector = 0; isector < abs_asym->TotalImprintedVolumes(); isector++)
+  {
+    m_DisplayAction->AddSteelVolume((*it)->GetLogicalVolume());
+    m_SteelAbsorberLogVolSet.insert((*it)->GetLogicalVolume());
+    hcalenvelope->AddDaughter((*it));
+    m_AbsorberPhysVolMap.insert(std::make_pair(*it, isector));
+    m_VolumeSteel += (*it)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
+    std::vector<G4VPhysicalVolume *>::iterator its = m_ScintiMotherAssembly->GetVolumesIterator();
+    unsigned int ioff = isector * tilepersec;
+    for (unsigned int j = 0; j < ioff; j++)
+    {
+      ++its;
+    }
+    for (unsigned int j = ioff; j < ioff + tilepersec; j++)
+    {
+      m_DisplayAction->AddScintiVolume((*its)->GetLogicalVolume());
+      m_ScintiTileLogVolSet.insert((*its)->GetLogicalVolume());
+      hcalenvelope->AddDaughter((*its));
+      std::cout << "sector " << isector << std::endl;
+      m_ScintiTilePhysVolMap.insert(std::make_pair(*its, ExtractLayerTowerId(isector, *its)));
+      m_VolumeScintillator += (*its)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
+      ++its;
+    }
 
-  ConstructAbsorber(abs_asym, hcalenvelope);
-  ConstructScinTiles(m_ScintiMotherAssembly, hcalenvelope);
-
+    ++it;
+  }
   return 0;
 }
 
@@ -181,7 +175,7 @@ void PHG4IHCalDetector::Print(const std::string &what) const
   return;
 }
 
-std::pair<int, int> PHG4IHCalDetector::GetLayerTowerId(G4VPhysicalVolume *volume) const
+std::tuple<int, int, int> PHG4IHCalDetector::GetLayerTowerId(G4VPhysicalVolume *volume) const
 {
   auto it = m_ScintiTilePhysVolMap.find(volume);
   if (it != m_ScintiTilePhysVolMap.end())
@@ -196,7 +190,22 @@ std::pair<int, int> PHG4IHCalDetector::GetLayerTowerId(G4VPhysicalVolume *volume
   exit(1);
 }
 
-std::pair<int, int> PHG4IHCalDetector::ExtractLayerTowerId(G4VPhysicalVolume *volume)
+int PHG4IHCalDetector::GetSectorId(G4VPhysicalVolume *volume) const
+{
+  auto it = m_AbsorberPhysVolMap.find(volume);
+  if (it != m_AbsorberPhysVolMap.end())
+  {
+    return it->second;
+  }
+  std::cout << "could not locate volume " << volume->GetName()
+            << " in Inner Hcal Absorber map" << std::endl;
+  gSystem->Exit(1);
+  // that's dumb but code checkers do not know that gSystem->Exit()
+  // terminates, so using the standard exit() makes them happy
+  exit(1);
+}
+
+std::tuple<int, int, int> PHG4IHCalDetector::ExtractLayerTowerId(const int isector, G4VPhysicalVolume *volume)
 {
   boost::char_separator<char> sep("_");
   boost::tokenizer<boost::char_separator<char>> tok(volume->GetName(), sep);
@@ -240,7 +249,7 @@ std::pair<int, int> PHG4IHCalDetector::ExtractLayerTowerId(G4VPhysicalVolume *vo
   }
   int column = map_towerid(tower_id);
   int row = map_layerid(layer_id);
-  return std::make_pair(row, column);
+  return std::make_tuple(isector, row, column);
 }
 
 // map gdml tower ids to our columns

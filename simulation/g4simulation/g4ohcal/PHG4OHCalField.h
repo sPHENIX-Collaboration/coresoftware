@@ -10,8 +10,8 @@
  * \date $Date: $
  */
 
-#ifndef G4DETECTORS_PHG4OUTERHCALFIELD_H
-#define G4DETECTORS_PHG4OUTERHCALFIELD_H
+#ifndef G4OHCAL_PHG4OHCALFIELD_H
+#define G4OHCAL_PHG4OHCALFIELD_H
 
 #include <Geant4/G4MagneticField.hh>
 #include <Geant4/G4Types.hh>  // for G4double, G4int
@@ -34,7 +34,7 @@ class PHG4OHCalField : public G4MagneticField
   PHG4OHCalField() = delete;
 
   PHG4OHCalField(bool isInIron, G4int steelPlates,
-                     G4double scintiGap, G4double tiltAngle);
+                 G4double scintiGap, G4double tiltAngle);
 
   ~PHG4OHCalField() override {}
 
@@ -124,4 +124,4 @@ class PHG4OHCalField : public G4MagneticField
   G4double tilt_angle;
 };
 
-#endif /* G4DETECTORS_PHG4OUTERHCALFIELD_H */
+#endif /* G4OHCAL_PHG4OHCALFIELD_H */

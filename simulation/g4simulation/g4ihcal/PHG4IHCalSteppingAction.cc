@@ -119,17 +119,19 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   }
   int layer_id = -1;
   int tower_id = -1;
+  int sector_id = -1;
   if (whichactive > 0)  // scintillator
   {
-    std::pair<int, int> layer_tower = m_Detector->GetLayerTowerId(volume);
-    layer_id = layer_tower.first;
-    tower_id = layer_tower.second;
+    std::tuple<int, int, int> layer_tower = m_Detector->GetLayerTowerId(volume);
+    sector_id = std::get<0>(layer_tower);
+    layer_id = std::get<1>(layer_tower);
+    tower_id = std::get<2>(layer_tower);
 
     //    std::cout<<"******** Inner HCal\t"<<volume->GetName()<<"\t"<<layer_id<<"\t"<<tower_id<<std::endl;
   }
   else
   {
-    layer_id = volume->GetCopyNo();  // absorber sector id
+    layer_id = m_Detector->GetSectorId(volume);  // absorber sector id
   }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -206,6 +208,7 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_Hit->set_edep(0);
       if (whichactive > 0)  // return of IsInIHCalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
+        m_Hit->set_sector(sector_id);   // the slat id
         m_Hit->set_scint_id(tower_id);  // the slat id
         m_Hit->set_eion(0);             // only implemented for v5 otherwise empty
         m_Hit->set_light_yield(0);      // for scintillator only, initialize light yields
@@ -382,7 +385,7 @@ void PHG4IHCalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   {
     if (Verbosity() > 1)
     {
-      std::cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << std::endl;
+      std::cout << "PHG4IHcalSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << std::endl;
     }
   }
 }

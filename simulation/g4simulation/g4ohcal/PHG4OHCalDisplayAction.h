@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4OUTERHCALDISPLAYACTION_H
-#define G4DETECTORS_PHG4OUTERHCALDISPLAYACTION_H
+#ifndef G4OHCAL_PHG4OHCALDISPLAYACTION_H
+#define G4OHCAL_PHG4OHCALDISPLAYACTION_H
 
 #include <g4main/PHG4DisplayAction.h>
 
@@ -35,4 +35,4 @@ class PHG4OHCalDisplayAction : public PHG4DisplayAction
   std::set<G4LogicalVolume *> m_ScintiLogVolSet;
 };
 
-#endif  // G4DETECTORS_PHG4OUTERHCALDISPLAYACTION_H
+#endif  // G4OHCAL_PHG4OHCALDISPLAYACTION_H

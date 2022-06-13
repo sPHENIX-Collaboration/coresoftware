@@ -53,12 +53,10 @@ class ALICEKF
   void repairCovariance(Eigen::Matrix<double,6,6>& cov) const;
   bool checknan(double val, const std::string &msg, int num) const;
   double get_Bz(double x, double y, double z) const;
-  void CircleFitByTaubin(const std::vector<std::pair<double,double>>& pts, double &R, double &X0, double &Y0) const;
   void useConstBField(bool opt) {_use_const_field = opt;}
   void useFixedClusterError(bool opt) {_use_fixed_clus_error = opt;}
   void setFixedClusterError(int i,double val) {_fixed_clus_error.at(i)=val;}
   double getClusterError(TrkrCluster* c, Acts::Vector3 global, int i, int j) const;
-  void line_fit(const std::vector<std::pair<double,double>>& pts, double& a, double& b) const;
   std::vector<double> GetCircleClusterResiduals(const std::vector<std::pair<double,double>>& pts, double R, double X0, double Y0) const;
   std::vector<double> GetLineClusterResiduals(const std::vector<std::pair<double,double>>& pts, double A, double B) const; 
   double get_Bzconst() const { return _Bzconst; }

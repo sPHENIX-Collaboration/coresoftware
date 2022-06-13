@@ -1,14 +1,15 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4IHCALDETECTOR_H
-#define G4DETECTORS_PHG4IHCALDETECTOR_H
+#ifndef G4IHCAL_PHG4IHCALDETECTOR_H
+#define G4IHCAL_PHG4IHCALDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
 #include <cmath>
 #include <map>
 #include <set>
-#include <string>   // for string
+#include <string>  // for string
+#include <tuple>
 #include <utility>  // for pair
 
 class G4AssemblyVolume;
@@ -44,15 +45,14 @@ class PHG4IHCalDetector : public PHG4Detector
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalenvelope);
   void ConstructHcalSingleScintillators(G4LogicalVolume *hcalenvelope);
   int ConsistencyCheck() const;
-  std::pair<int, int> GetLayerTowerId(G4VPhysicalVolume *volume) const;
+  std::tuple<int, int, int> GetLayerTowerId(G4VPhysicalVolume *volume) const;
+  int GetSectorId(G4VPhysicalVolume *volume) const;
 
  private:
-  int ConstructAbsorber(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope);
-  int ConstructScinTiles(G4AssemblyVolume *avol, G4LogicalVolume *hcalenvelope);
   int map_towerid(const int tower_id);
   int map_layerid(const int layer_id);
   int ConstructIHCal(G4LogicalVolume *sandwich);
-  std::pair<int, int> ExtractLayerTowerId(G4VPhysicalVolume *volume);
+  std::tuple<int, int, int> ExtractLayerTowerId(const int isector, G4VPhysicalVolume *volume);
   PHG4IHCalDisplayAction *m_DisplayAction = nullptr;
   PHParameters *m_Params = nullptr;
   G4AssemblyVolume *m_ScintiMotherAssembly = nullptr;
@@ -73,9 +73,10 @@ class PHG4IHCalDetector : public PHG4Detector
   std::string m_SuperDetector;
   std::set<G4LogicalVolume *> m_SteelAbsorberLogVolSet;
   std::set<G4LogicalVolume *> m_ScintiTileLogVolSet;
-  std::map<G4VPhysicalVolume *, std::pair<int, int>> m_ScintiTilePhysVolMap;
+  std::map<G4VPhysicalVolume *, std::tuple<int, int, int>> m_ScintiTilePhysVolMap;
+  std::map<G4VPhysicalVolume *, int> m_AbsorberPhysVolMap;
 
   std::string m_GDMPath;
 };
 
-#endif  // G4DETECTORS_PHG4IHCALDETECTOR_H
+#endif  // G4IHCAL_PHG4IHCALDETECTOR_H
