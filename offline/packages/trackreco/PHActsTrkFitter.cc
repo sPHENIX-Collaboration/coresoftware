@@ -51,7 +51,6 @@
 #include <vector>
 
 
-
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
   , m_trajectories(nullptr)
@@ -82,6 +81,10 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   chi2Cuts.insert(std::make_pair(14,9));
   chi2Cuts.insert(std::make_pair(16,4));
   m_outlierFinder.chi2Cuts = chi2Cuts;
+  if(m_useOutlierFinder)
+    {
+      m_fitCfg.fit->outlierFinder(m_outlierFinder);
+    }
 
   if(m_timeAnalysis)
     {
@@ -325,20 +328,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       ppPlainOptions.mass = 
 	TDatabasePDG::Instance()->GetParticle(m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
        
-      Acts::KalmanFitterExtensions extensions;
       ActsExamples::MeasurementCalibrator calibrator{measurements};
-      extensions.calibrator.connect<&ActsExamples::MeasurementCalibrator::calibrate>(&calibrator);
-     
-      if(m_useOutlierFinder)
-	{ 
-	  extensions.outlierFinder.connect<&ResidualOutlierFinder::operator()>(&m_outlierFinder);
-	}
-
-      Acts::GainMatrixUpdater kfUpdater;
-      Acts::GainMatrixSmoother kfSmoother;
-      extensions.updater.connect<&Acts::GainMatrixUpdater::operator()>(&kfUpdater);
-      extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()>(&kfSmoother);
-
+    
       ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions 
 	kfOptions{m_tGeometry->geoContext,
 		  m_tGeometry->magFieldContext,

@@ -18,7 +18,7 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
+  -L$(MYINSTALL)/lib64
 
 pkginclude_HEADERS = \
   ../PHTpcTracker/PHTpcTrackerUtil.h \
@@ -41,6 +41,7 @@ pkginclude_HEADERS = \
   HelixKalmanFilter.h \
   MakeActsGeometry.h \
   nanoflann.hpp \
+  PHActsGSF.h \
   PHActsSiliconSeeding.h \
   PHActsVertexPropagator.h \
   PHActsTrkFitter.h \
@@ -73,7 +74,6 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
-  ResidualOutlierFinder.h \
   VertexFitter.h
 
 ROOTDICTS = \
@@ -114,6 +114,7 @@ if MAKE_ACTS
 ACTS_SOURCES = \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
+  PHActsGSF.cc \
   PHActsSiliconSeeding.cc \
   PHActsTrkFitter.cc \
   PHActsVertexPropagator.cc \

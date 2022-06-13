@@ -87,8 +87,8 @@ int PHActsGSF::process_event(PHCompositeNode*)
       if(crossing == SHRT_MAX)
 	{ continue; }
 
-      auto sourceLinks = getSourceLinks(tpcseed, measurements);
-      auto silSourceLinks = getSourceLinks(silseed, measurements);
+      auto sourceLinks = getSourceLinks(tpcseed, measurements, crossing);
+      auto silSourceLinks = getSourceLinks(silseed, measurements, crossing);
 
       for(auto& siSL : silSourceLinks)
 	{ sourceLinks.push_back(siSL); }
@@ -105,8 +105,15 @@ int PHActsGSF::process_event(PHCompositeNode*)
 	  m_tGeometry->magFieldContext,
 	  m_tGeometry->calibContext,
 	  calibrator, &(*pSurface), Acts::LoggerWrapper(*logger)};
-
+      if(Verbosity() > 2)
+	{
+	  std::cout << "calling gsf with position " 
+		    << seed.position(m_tGeometry->geoContext).transpose() 
+		    << " and momentum " << seed.momentum().transpose() 
+		    << std::endl;
+	}
       auto result = fitTrack(wrappedSls, seed, options);
+      std::cout << "result returned"<<std::endl;
       if(result.ok())
 	{
 	  const FitResult& output = result.value();
@@ -158,7 +165,8 @@ ActsExamples::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
 }
 
 SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
-					ActsExamples::MeasurementContainer& measurements)
+					ActsExamples::MeasurementContainer& measurements,
+					const short int& crossing)
 {
   SourceLinkVec sls;
   // loop over all clusters
@@ -194,22 +202,23 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
       
       // transform to global coordinates for z correction 
       ActsTransformations transformer;
+   
       auto global = transformer.getGlobalPosition(key, cluster,
 						  m_surfMaps,
 						  m_tGeometry);
       
       if(Verbosity() > 0)
 	{
-	  std::cout << " zinit " << global[2] << " xinit " << global[0] << " yinit " << global[1] << " side " << side << " crossing " << track->get_crossing() 
+	  std::cout << " zinit " << global[2] << " xinit " << global[0] << " yinit " << global[1] << " side " << side << " crossing " << crossing 
 		    << " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
 	}
       
       if(trkrid ==  TrkrDefs::tpcId)
 	{	  
 	  // make all corrections to global position of TPC cluster
-	  float z = m_clusterCrossingCorrection.correctZ(global[2], side, track->get_crossing());
+	  float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
 	  global[2] = z;
-	  
+
 	  // apply distortion corrections
 	  if(m_dccStatic) { global = m_distortionCorrection.get_corrected_position( global, m_dccStatic ); }
 	  if(m_dccAverage) { global = m_distortionCorrection.get_corrected_position( global, m_dccAverage ); }
@@ -247,7 +256,7 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
 							 m_surfMaps,
 							 m_tGeometry,
 							 subsurfkey);
-	  
+
 	  if(!surf)
 	    {
 	      /// If the surface can't be found, we can't track with it. So 
@@ -259,7 +268,7 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
 	  if(Verbosity() > 0)
 	    {
 	      unsigned int side = TpcDefs::getSide(cluskey);       
-	      std::cout << "      global z corrected and moved " << global[2] << " xcorr " << global[0] << " ycorr " << global[1] << " side " << side << " crossing " << track->get_crossing()
+	      std::cout << "      global z corrected and moved " << global[2] << " xcorr " << global[0] << " ycorr " << global[1] << " side " << side << " crossing " << crossing
 			<< " cluskey " << cluskey << " subsurfkey " << subsurfkey << std::endl;
 	    }
 	}
@@ -362,19 +371,20 @@ void PHActsGSF::updateTrack(const FitResult& result, SvtxTrack* track)
   trackTips.reserve(1);
   trackTips.emplace_back(result.lastMeasurementIndex);
   ActsExamples::Trajectories::IndexedParameters indexedParams;
+  std::cout << "fitted params"<<std::endl;
   if(result.fittedParameters)
     {
       indexedParams.emplace(result.lastMeasurementIndex,
 			    result.fittedParameters.value());
       Trajectory traj(result.fittedStates, trackTips, indexedParams);
-  
+      std::cout << "Created trajectory"<<std::endl;
       updateSvtxTrack(traj, track);
     }
 }
 
 void PHActsGSF::updateSvtxTrack(const Trajectory& traj, SvtxTrack* track)
 {
-
+  std::cout << "updating svtxtrack"<<std::endl;
   const auto& mj = traj.multiTrajectory();
   const auto& tips = traj.tips();
   const auto& tracktip = tips.front();
@@ -382,6 +392,21 @@ void PHActsGSF::updateSvtxTrack(const Trajectory& traj, SvtxTrack* track)
   const auto& params = traj.trackParameters(tracktip);
   const auto trajState =
     Acts::MultiTrajectoryHelpers::trajectoryState(mj, tracktip);
+
+  if(Verbosity() > 1)
+    {
+      std::cout << "Old track parameters: " << std::endl
+		<< "   (" << track->get_x()
+		<< ", " << track->get_y() << ", " << track->get_z() 
+		<< ")" << std::endl
+		<< "   (" << track->get_px() << ", " << track->get_py()
+		<< ", " << track->get_pz() << ")" << std::endl;
+      std::cout << "New GSF track parameters: " << std::endl
+		<< "   " << params.position(m_tGeometry->geoContext).transpose()
+		<< std::endl << "   " << params.momentum().transpose()
+		<< std::endl;
+
+    }
 
   /// Will create new states
   track->clear_states();

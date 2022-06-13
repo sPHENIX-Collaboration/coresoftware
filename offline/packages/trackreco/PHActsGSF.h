@@ -58,7 +58,8 @@ class PHActsGSF : public SubsysReco
 		        SvtxTrack* track,
 			std::shared_ptr<Acts::PerigeeSurface> psurf) const;
   SourceLinkVec getSourceLinks(TrackSeed* track, 
-			       ActsExamples::MeasurementContainer& measurements);
+			       ActsExamples::MeasurementContainer& measurements,
+			       const short int& crossing);
   ActsExamples::TrackFittingAlgorithm::TrackFitterResult fitTrack(
       const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks,
       const ActsExamples::TrackParameters& seed,

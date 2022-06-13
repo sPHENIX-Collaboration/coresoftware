@@ -11,8 +11,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include "ResidualOutlierFinder.h"
-
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDistortionCorrection.h>
