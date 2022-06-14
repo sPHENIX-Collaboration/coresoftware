@@ -73,17 +73,15 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
     return Fun4AllReturnCodes::EVENT_OK;
  
   // loop over the silicon seeds and add the crossing to them
-  for (auto phtrk_iter_si = _track_map_silicon->begin();
-       phtrk_iter_si != _track_map_silicon->end(); 
-       ++phtrk_iter_si)
+  for (unsigned int trackid = 0; trackid != _track_map_silicon->size(); ++trackid) 
     {
-      _tracklet_si = *phtrk_iter_si;	  
+      _tracklet_si = _track_map_silicon->get(trackid);	  
       if(!_tracklet_si) { continue; }
 
       short int crossing= getCrossingIntt(_tracklet_si);
       _tracklet_si->set_crossing(crossing);
 
-      if(Verbosity() > 1) cout << " Si track " << _track_map_silicon->index(phtrk_iter_si) << " crossing " << crossing << endl;
+      if(Verbosity() > 1) cout << " Si track " << trackid << " crossing " << crossing << endl;
     }  
   
   // Find all matches of tpc and si tracklets in eta and phi, x and y
