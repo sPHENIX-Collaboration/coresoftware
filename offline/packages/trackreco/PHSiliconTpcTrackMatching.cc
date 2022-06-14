@@ -279,26 +279,10 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	  if(  fabs(tpc_eta - si_eta) < _eta_search_win * mag)  eta_match = true;
 	  if(!eta_match) continue;
 
-	  bool phi_match = false;
-	  double si_phi = _tracklet_si->get_phi(_cluster_map,_surfmaps,_tGeometry);
-	  if(  fabs(tpc_phi - si_phi)  < _phi_search_win * mag) phi_match = true;
-	  if(  fabs( fabs(tpc_phi - si_phi)  - 2.0 * M_PI)  < _phi_search_win * mag ) phi_match = true;
-	  if(!phi_match) continue;
-
 	  unsigned int siid = phtrk_iter_si;
 	  double si_x = _tracklet_si->get_x();
 	  double si_y = _tracklet_si->get_y();
 	  double si_z = _tracklet_si->get_z();
-
-	  if(Verbosity() > 3)
-	    {
-	      cout << " testing for a match for TPC track " << tpcid << " with pT " << _tracklet_tpc->get_pt() 
-		   << " and eta " << _tracklet_tpc->get_eta() << " with Si track " << siid << endl;	  
-	      cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " <<   tpc_phi-si_phi << " phi search " << _phi_search_win*mag  << " tpc_eta " << tpc_eta 
-		   << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << " eta search " << _eta_search_win*mag << endl;
-	      std::cout << "      tpc x " << tpc_x << " si x " << si_x << " tpc y " << tpc_y << " si y " << si_y << " tpc_z " << tpc_z  << " si z " << si_z << std::endl;
-	      std::cout << "      x search " << _x_search_win*mag << " y search " << _y_search_win*mag << " z search " << _z_search_win*mag  << std::endl;
-	    }
 
 	  bool position_match = false;
 	  if(_pp_mode)
@@ -317,6 +301,25 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 		 && fabs(tpc_z - si_z) < _z_search_win * mag 
 		 )
 		position_match = true;	    
+	    }
+	  
+	  if(!position_match)
+	    { continue; }
+
+	  bool phi_match = false;
+	  double si_phi = _tracklet_si->get_phi(_cluster_map,_surfmaps,_tGeometry);
+	  if(  fabs(tpc_phi - si_phi)  < _phi_search_win * mag) phi_match = true;
+	  if(  fabs( fabs(tpc_phi - si_phi)  - 2.0 * M_PI)  < _phi_search_win * mag ) phi_match = true;
+	  if(!phi_match) continue;
+
+	  if(Verbosity() > 3)
+	    {
+	      cout << " testing for a match for TPC track " << tpcid << " with pT " << _tracklet_tpc->get_pt() 
+		   << " and eta " << _tracklet_tpc->get_eta() << " with Si track " << siid << endl;	  
+	      cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " <<   tpc_phi-si_phi << " phi search " << _phi_search_win*mag  << " tpc_eta " << tpc_eta 
+		   << " si_eta " << si_eta << " deta " << tpc_eta-si_eta << " eta search " << _eta_search_win*mag << endl;
+	      std::cout << "      tpc x " << tpc_x << " si x " << si_x << " tpc y " << tpc_y << " si y " << si_y << " tpc_z " << tpc_z  << " si z " << si_z << std::endl;
+	      std::cout << "      x search " << _x_search_win*mag << " y search " << _y_search_win*mag << " z search " << _z_search_win*mag  << std::endl;
 	    }
 
 	  if(eta_match && phi_match && position_match)
