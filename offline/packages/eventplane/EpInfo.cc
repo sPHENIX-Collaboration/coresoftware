@@ -16,6 +16,7 @@ void EpInfo::Reset()
 
   for (int iorder=0; iorder<_EpOrderMax; iorder++){
     PsiRaw[iorder] = -999.0;
+    WheelSumWeightsRaw[iorder] = -999.0;
   }
 }
 
