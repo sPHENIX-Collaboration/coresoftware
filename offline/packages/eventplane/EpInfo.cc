@@ -1,5 +1,9 @@
 #include "EpInfo.h"
-#include "TMath.h"
+
+#include <TVector2.h>  // for TVector2
+
+
+#include <cmath>      // for fabs, M_PI
 #include <iostream>
 
 EpInfo::EpInfo(){

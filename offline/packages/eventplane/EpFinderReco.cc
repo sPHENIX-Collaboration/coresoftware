@@ -1,37 +1,45 @@
 #include "EpFinderReco.h"
+
+#include "EpInfo.h"                          // for EpInfo
 #include "EpFinder.h"
 
-#include <phool/phool.h>
-#include <phool/getClass.h>
-
-#include <TSystem.h>
-#include <TH1.h>
-#include <TFile.h>
-
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
-#include <fun4all/Fun4AllServer.h>
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>
 #include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerGeom.h>
-#include <calobase/RawClusterContainer.h>
-#include <calobase/RawCluster.h>
 
 #include <centrality/CentralityInfo.h>
 #include <centrality/CentralityInfov1.h>
 
-#include <fstream>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>              // for SubsysReco
+
+#include <phool/phool.h>
+#include <phool/getClass.h>
+#include <phool/PHNodeIterator.h>            // for PHNodeIterator
+#include <phool/PHObject.h>                  // for PHObject
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
+
+#include <TSystem.h>
+#include <TH1.h>
+#include <TH2.h>                             // for TH2F
+#include <TFile.h>
+#include <TVector3.h>                        // for TVector3
+
+#include <algorithm>                         // for max
+#include <cmath>                            // for M_PI
+#include <cstdlib>                          // for NULL, exit, getenv
 #include <iostream>
+#include <map>                               // for _Rb_tree_const_iterator
 #include <utility>
+#include <vector>                            // for vector
 
 TH2F* mapCalib = nullptr;
 
@@ -100,12 +108,12 @@ int EpFinderReco::Init(PHCompositeNode *topNode)
             
             hcent = new TH1D("hcent", "cent hist", 10, centrange);
             
-            std::ostringstream sepdmapname;
+            std::string sepdmapname;
            
             const char* Calibroot = getenv("CALIBRATIONROOT");
             if (Calibroot)
             {
-                sepdmapname << Calibroot;
+                sepdmapname = Calibroot;
             }
             else
             {
@@ -113,9 +121,9 @@ int EpFinderReco::Init(PHCompositeNode *topNode)
                 gSystem->Exit(1);
             }
             
-            sepdmapname << "/EPD/Calibmap/sEPDCalibMap.root";
+            sepdmapname += "/EPD/Calibmap/sEPDCalibMap.root";
                
-            TFile* file = new TFile(sepdmapname.str().c_str());
+            TFile* file = new TFile(sepdmapname.c_str());
             mapCalib = (TH2F*) file->Get("epdcalib");
             if (!mapCalib)
             {
@@ -796,7 +804,3 @@ float EpFinderReco::GetMeanPhi(int iphi, int numPhiDivisions)
   return mphi;
 
 }
-
-
-
-

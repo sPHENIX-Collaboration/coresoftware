@@ -3,19 +3,11 @@
 #ifndef EPFINDER_H
 #define EPFINDER_H
 
-#include <fun4all/SubsysReco.h>
-
-#include <string>
-#include "TH2D.h"
-#include "TVector3.h"
 #include "EpInfo.h"
-#include <vector>
-#include <utility>
 
-class TVector3;
-class TProfile;
-class TProfile2D;
-class PHCompositeNode;
+#include <TString.h>
+
+#include <vector>
 
 /*
 \author Mike Lisa

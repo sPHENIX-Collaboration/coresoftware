@@ -1,10 +1,11 @@
 #include "EpFinder.h"
-#include "TVector3.h"
+
 #include <cassert>
+#include <cmath>
 #include <iostream>
+#include <memory>
 #include <vector>
 
-#include <fun4all/PHTFileServer.h>
 
 using namespace std;
 

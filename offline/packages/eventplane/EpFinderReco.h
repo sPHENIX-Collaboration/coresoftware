@@ -2,15 +2,13 @@
 #define __EpFinderReco_H__
 
 #include <fun4all/SubsysReco.h>
-#include <string>
-#include <vector>
-#include <iostream>
 
-//Forward declerations
+#include <string>
+
+//Forward declarations
 class PHCompositeNode;
 class EpFinder;
 class EpInfo;
-class PHG4TruthInfoContainer;
 class RawTowerContainer;
 class RawTowerGeomContainer;
 class PHG4HitContainer;
