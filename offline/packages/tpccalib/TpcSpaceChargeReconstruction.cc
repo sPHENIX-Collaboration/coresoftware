@@ -223,10 +223,9 @@ Acts::Vector3 TpcSpaceChargeReconstruction::get_global_position(TrkrDefs::cluske
   if (it == m_globalPositions.end()|| (key < it->first ))
   {
     // get global position from Acts transform
-    const auto globalpos = m_transform.getGlobalPosition(
+    const auto globalpos = m_surfmaps->getGlobalPosition(
       key, 
       cluster,
-      m_surfmaps,
       m_tgeometry);
 
     /*

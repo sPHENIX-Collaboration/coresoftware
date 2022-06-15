@@ -10,8 +10,10 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase_historic/ActsTransformations.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 
+#include <trackbase_historic/SvtxTrackState.h>
 #include <map>
 #include <set>
 #include <string>
@@ -121,9 +123,6 @@ class TrackEvaluation : public SubsysReco
 
   /// Acts tracking geometry for surface lookup
   ActsTrackingGeometry *m_tGeometry = nullptr;
-
-  /// acts transformation
-  ActsTransformations m_transformer;
 
   //! hits
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;

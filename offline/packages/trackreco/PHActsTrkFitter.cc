@@ -421,87 +421,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
 }
 
-
-//___________________________________________________________________________________
-Surface PHActsTrkFitter::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfkey surfkey) const
-{
-  const auto trkrid = TrkrDefs::getTrkrId(cluskey);
-  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-
-  switch( trkrid )
-  {
-    case TrkrDefs::TrkrId::micromegasId: return getMMSurface( hitsetkey );
-    case TrkrDefs::TrkrId::tpcId: return getTpcSurface(hitsetkey, surfkey);
-    case TrkrDefs::TrkrId::mvtxId:
-    case TrkrDefs::TrkrId::inttId:
-    {
-      return getSiliconSurface(hitsetkey);
-    }
-  }
-  
-  // unreachable
-  return nullptr;
-  
-}
-
-//___________________________________________________________________________________
-Surface PHActsTrkFitter::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
-{
-  unsigned int trkrid =  TrkrDefs::getTrkrId(hitsetkey);
-  TrkrDefs::hitsetkey tmpkey = hitsetkey;
-
-  if(trkrid == TrkrDefs::inttId)
-    {
-      // Set the hitsetkey crossing to zero
-      tmpkey = InttDefs::resetCrossingHitSetKey(hitsetkey);
-    }
-
-  if(trkrid == TrkrDefs::mvtxId)
-    {
-      // Set the hitsetkey crossing to zero
-      tmpkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);
-    }
-
-  auto surfMap = m_surfMaps->siliconSurfaceMap;
-  auto iter = surfMap.find(tmpkey);
-  if(iter != surfMap.end())
-    {
-      return iter->second;
-    }
-  
-  /// If it can't be found, return nullptr
-  {
-    std::cout << PHWHERE << "Failed to find silicon surface for hitsetkey " << hitsetkey << " tmpkey " << tmpkey << std::endl;
-  }
-  
-  return nullptr;
-
-}
-
-//___________________________________________________________________________________
-Surface PHActsTrkFitter::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey) const
-{
-  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-  const auto iter = m_surfMaps->tpcSurfaceMap.find(layer);
-  if(iter != m_surfMaps->tpcSurfaceMap.end())
-  {
-    auto surfvec = iter->second;
-    return surfvec.at(surfkey);
-  }
-  
-  /// If it can't be found, return nullptr to skip this cluster
-  return nullptr;
-}
-
-//___________________________________________________________________________________
-Surface PHActsTrkFitter::getMMSurface(TrkrDefs::hitsetkey hitsetkey) const
-{
-  const auto iter = m_surfMaps->mmSurfaceMap.find( hitsetkey );
-  return (iter == m_surfMaps->mmSurfaceMap.end()) ? nullptr:iter->second;
-}
-
-
-
 //___________________________________________________________________________________
 SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 					      ActsExamples::MeasurementContainer& measurements,
@@ -535,9 +454,9 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       
       /// Make a safety check for clusters that couldn't be attached
       /// to a surface
-      auto surf = getSurface(key, subsurfkey);
+      auto surf = m_surfMaps->getSurface(key, cluster);
       if(!surf)
-	continue;
+	{ continue; }
 
       unsigned int trkrid = TrkrDefs::getTrkrId(key);
       unsigned int side = TpcDefs::getSide(key);
@@ -546,9 +465,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
       
       // transform to global coordinates for z correction 
-      ActsTransformations transformer;
-      auto global = transformer.getGlobalPosition(key, cluster,
-						  m_surfMaps,
+      auto global = m_surfMaps->getGlobalPosition(key, cluster,
 						  m_tGeometry);
       
       if(Verbosity() > 0)
@@ -587,44 +504,20 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
     {
       TrkrDefs::cluskey cluskey = global_moved[i].first;
       Acts::Vector3 global = global_moved[i].second;
-
+  
+      auto cluster = m_clusterContainer->findCluster(cluskey);
       Surface surf;
-      TrkrDefs::subsurfkey subsurfkey;
-
-      unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
-      if(trkrid ==  TrkrDefs::tpcId)
-	{      
-	  // get the new surface corresponding to this global position
-	  TrkrDefs::hitsetkey tpcHitSetKey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-	  surf = get_tpc_surface_from_coords(tpcHitSetKey,
-					     global,
-					     m_surfMaps,
-					     m_tGeometry,
-					     subsurfkey);
-	  
-	  if(!surf)
-	    {
-	      /// If the surface can't be found, we can't track with it. So 
-	      /// just continue and don't add the cluster to the source links
-	      if(Verbosity() > 0) std::cout << PHWHERE << "Failed to find surface for cluster " << cluskey << std::endl;
-	      continue;
-	    }
-	  
-	  if(Verbosity() > 0)
-	    {
-	      unsigned int side = TpcDefs::getSide(cluskey);       
-	      std::cout << "      global z corrected and moved " << global[2] << " xcorr " << global[0] << " ycorr " << global[1] << " side " << side << " crossing " << crossing 
-			<< " cluskey " << cluskey << " subsurfkey " << subsurfkey << std::endl;
-	    }
+      if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::tpcId)
+	{ 
+	  /// Take into account any movement from distortions
+	  auto subsurfkey = cluster->getSubSurfKey();
+	  surf = get_tpc_surface_from_coords(TrkrDefs::getHitSetKeyFromClusKey(cluskey), global, m_surfMaps, m_tGeometry, subsurfkey);
 	}
       else
 	{
-	  // silicon cluster, no changes possible
-	  auto cluster = m_clusterContainer->findCluster(cluskey);
-	  subsurfkey = cluster->getSubSurfKey();
-	  surf = getSurface(cluskey, subsurfkey);	  
+	  surf = m_surfMaps->getSurface(cluskey, cluster);
 	}
-
+      
       // get local coordinates
       Acts::Vector2 localPos;
       Acts::Vector3 normal = surf->normal(m_tGeometry->geoContext);
@@ -652,7 +545,6 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	  localPos(1) = global[2] - surfZCenter; 
 	}
       
-      auto cluster = m_clusterContainer->findCluster(cluskey);
       if(Verbosity() > 0)
 	{
 	  std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
@@ -1168,9 +1060,9 @@ Surface PHActsTrkFitter::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetk
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
-  mapIter = surfMaps->tpcSurfaceMap.find(layer);
+  mapIter = surfMaps->getTpcMap().find(layer);
   
-  if(mapIter == surfMaps->tpcSurfaceMap.end())
+  if(mapIter == surfMaps->getTpcMap().end())
     {
       std::cout << PHWHERE 
 		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
@@ -1190,7 +1082,7 @@ Surface PHActsTrkFitter::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetk
   double rounded_nsurf = round( (double) (surf_vec.size()/2) * fraction  - 0.5);
   unsigned int nsurf = (unsigned int) rounded_nsurf; 
   if(world_z < 0)
-    nsurf += surf_vec.size()/2;
+    { nsurf += surf_vec.size()/2; }
 
   Surface this_surf = surf_vec[nsurf];
       

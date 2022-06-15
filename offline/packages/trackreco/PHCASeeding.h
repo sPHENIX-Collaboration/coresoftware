@@ -16,7 +16,6 @@
 #include <tpc/TpcDistortionCorrection.h>
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
-#include <trackbase_historic/ActsTransformations.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -99,9 +98,6 @@ class PHCASeeding : public PHTrackSeeding
  private:
   
   enum skip_layers {on, off};
-
-  /// acts transformation object
-  ActsTransformations m_transform;
   
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;

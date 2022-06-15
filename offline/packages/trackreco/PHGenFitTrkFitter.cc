@@ -923,9 +923,8 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
   if (it == m_globalPositions.end()|| (key < it->first ))
   {
     // get global position from Acts transform
-    const auto globalpos = m_transform.getGlobalPosition(
+    const auto globalpos = m_surfmaps->getGlobalPosition(
       key, cluster,
-      m_surfmaps,
       m_tgeometry);
 
     /*

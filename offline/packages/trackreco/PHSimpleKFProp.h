@@ -14,7 +14,6 @@
 #include <fun4all/SubsysReco.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase_historic/ActsTransformations.h>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 #include <Eigen/Core>
@@ -64,9 +63,6 @@ class PHSimpleKFProp : public SubsysReco
   void SetIteration(int iter){_n_iteration = iter;}
 
  private:
-
-  /// acts transformation object
-  ActsTransformations m_transform;
 
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;

@@ -117,8 +117,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	   clusiter != clusRange.second; ++clusiter)
 	{
     const auto& [cluskey, cluster] = *clusiter;
-    ActsTransformations transformer;
-    auto glob = transformer.getGlobalPosition(cluskey, cluster,surfmaps,tgeometry);
+    auto glob = surfmaps->getGlobalPosition(cluskey, cluster, tgeometry);
     
     float x = glob(0);
     float y = glob(1);

@@ -7,7 +7,14 @@
  */
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
-#include <trackbase_historic/ActsTransformations.h>
+
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
+
+/// Acts includes to create all necessary definitions
+#include <Acts/Utilities/BinnedArray.hpp>
+#include <Acts/Definitions/Algebra.hpp>
+#include <Acts/Utilities/Logger.hpp>
 
 #include <TString.h>
 
@@ -115,9 +122,6 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// true if only tracks with micromegas must be used
   bool m_use_micromegas = true;
-
-  /// acts transformation object
-  ActsTransformations m_transform;
 
   /// acts geometry
   ActsTrackingGeometry *m_tgeometry = nullptr;

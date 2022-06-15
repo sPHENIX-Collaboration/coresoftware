@@ -238,7 +238,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	  std::vector<TrkrDefs::cluskey> cluster_keys;
 
 	  std::vector<Acts::Vector3> globalPositions;
-	  ActsTransformations transformer;
+
 	  std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
 	  auto trackSeed = std::make_unique<TrackSeed_v1>();
 
@@ -248,10 +248,9 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	      cluster_keys.push_back(cluskey);
 	  
 	      trackSeed->insert_cluster_key(cluskey);
-	      auto globalPosition = transformer.getGlobalPosition(
+	      auto globalPosition = m_surfMaps->getGlobalPosition(
                      cluskey,
-		     m_clusterMap->findCluster(cluskey),
-		     m_surfMaps, m_tGeometry);
+		     m_clusterMap->findCluster(cluskey), m_tGeometry);
 	      globalPositions.push_back(globalPosition);      
 
 	      positions.insert(std::make_pair(cluskey, globalPosition));
@@ -448,7 +447,6 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
   const double zProj[])
 {
   std::vector<TrkrDefs::cluskey> matchedClusters;
-  ActsTransformations transform;
 
   for(int inttlayer = 0; inttlayer < m_nInttLayers; inttlayer++)
     {
@@ -496,7 +494,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	      /// Diagnostic
 	      if(m_seedAnalysis)
 		{ 
-		  const auto globalP = transform.getGlobalPosition(cluskey, cluster, m_surfMaps, m_tGeometry);
+		  const auto globalP = m_surfMaps->getGlobalPosition(
+                        cluskey, cluster,  m_tGeometry);
 		  h_nInttProj->Fill(projectionLocal[1] - cluster->getLocalX(),
 				    projectionLocal[2] - cluster->getLocalY()); 
 		  h_hits->Fill(globalP(0), globalP(1));
@@ -515,7 +514,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	
 		  matchedClusters.push_back(cluskey);
 		  /// Cache INTT global positions with seed
-		  const auto globalPos = transform.getGlobalPosition(cluskey, cluster, m_surfMaps, m_tGeometry);
+		  const auto globalPos = m_surfMaps->getGlobalPosition(
+                    cluskey, cluster, m_tGeometry);
 		  clusters.push_back(globalPos);
 
 		 		  	      
@@ -662,7 +662,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 	  }
 
 	  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-	  const auto surface = getSurface(hitsetkey);
+	  const auto surface = m_surfMaps->getSiliconSurface(hitsetkey);
 	  if(!surface)
 	    continue;
 
@@ -683,35 +683,6 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 
   return spVec;
 }
-Surface PHActsSiliconSeeding::getSurface(TrkrDefs::hitsetkey hitsetkey)
-{
-  /// Only seed with the MVTX, so there is a 1-1 mapping between hitsetkey
-  /// and acts surface
-  auto trkrid = TrkrDefs::getTrkrId(hitsetkey);
-
-  // surface map is for strobe = 0
-  TrkrDefs::hitsetkey tmp_hitsetkey = hitsetkey;
-  if(trkrid == TrkrDefs::mvtxId)
-    { 
-      tmp_hitsetkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);  
-    }
-  if(trkrid == TrkrDefs::inttId)
-    {
-      tmp_hitsetkey = InttDefs::resetCrossingHitSetKey(hitsetkey);
-    }
-  
-  auto surfMap = m_surfMaps->siliconSurfaceMap;
-  auto iter = surfMap.find(tmp_hitsetkey);
-  if(iter != surfMap.end())
-    {
-      return iter->second;
-    }
-  
-  /// If it can't be found, return nullptr
-  return nullptr;
-  
-}
-
 
 Acts::SpacePointGridConfig PHActsSiliconSeeding::configureSPGrid()
 {

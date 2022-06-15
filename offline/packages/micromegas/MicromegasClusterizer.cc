@@ -17,7 +17,6 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
-#include <trackbase_historic/ActsTransformations.h>
 
 #include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
@@ -146,9 +145,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   // cluster-hit association
   auto trkrClusterHitAssoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   assert( trkrClusterHitAssoc );
-
-  // acts transformation
-  ActsTransformations transform;
   
   // geometry
   auto acts_geometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
@@ -173,7 +169,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     assert(layergeom);
 
     // get micromegas acts surface
-    const auto acts_surface = transform.getMMSurface( hitsetkey, acts_surface_map );
+    const auto acts_surface = acts_surface_map->getMMSurface( hitsetkey);
     if( !acts_surface )
     {
       std::cout
