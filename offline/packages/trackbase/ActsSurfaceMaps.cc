@@ -92,7 +92,7 @@ Surface ActsSurfaceMaps::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
 }
 
 Surface ActsSurfaceMaps::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, 
-					   TrkrDefs::subsurfkey surfkey) const
+				       TrkrDefs::subsurfkey surfkey) const
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   const auto iter = m_tpcSurfaceMap.find(layer);

@@ -119,27 +119,27 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->tpcSurfStepZ = m_surfStepZ;
 
   // fill ActsSurfaceMap content
-  m_surfMaps->setSiliconMap( m_clusterSurfaceMapSilicon );
-  m_surfMaps->setTpcMap( m_clusterSurfaceMapTpcEdit );
-  m_surfMaps->setMMMap( m_clusterSurfaceMapMmEdit );
-  m_surfMaps->setTGeoNodeMap( m_clusterNodeMap );
+  m_surfMaps->m_siliconSurfaceMap = m_clusterSurfaceMapSilicon;
+  m_surfMaps->m_tpcSurfaceMap = m_clusterSurfaceMapTpcEdit;
+  m_surfMaps->m_mmSurfaceMap = m_clusterSurfaceMapMmEdit ;
+  m_surfMaps->m_tGeoNodeMap = m_clusterNodeMap;
 
   // fill TPC volume ids
   for( const auto& [hitsetid, surfaceVector]:m_clusterSurfaceMapTpcEdit )
     for( const auto& surface:surfaceVector )
-      { m_surfMaps->getTpcVolumeIds().insert( surface->geometryId().volume() ); }
+      { m_surfMaps->m_tpcVolumeIds.insert( surface->geometryId().volume() ); }
   
   // fill Micromegas volume ids
   for( const auto& [hitsetid, surface]:m_clusterSurfaceMapMmEdit )
-    { m_surfMaps->getMMVolumeIds().insert( surface->geometryId().volume() ); } 
+    { m_surfMaps->m_micromegasVolumeIds.insert( surface->geometryId().volume() ); } 
 
   // print
   if( Verbosity() )
   {
-    for( const auto& id:m_surfMaps->getTpcVolumeIds() )
+    for( const auto& id:m_surfMaps->m_tpcVolumeIds )
     { std::cout << "MakeActsGeometry::InitRun - TPC volume id: " << id << std::endl; }
   
-    for( const auto& id:m_surfMaps->getMMVolumeIds() )
+    for( const auto& id:m_surfMaps->m_micromegasVolumeIds )
     { std::cout << "MakeActsGeometry::InitRun - Micromegas volume id: " << id << std::endl; }
   }
   

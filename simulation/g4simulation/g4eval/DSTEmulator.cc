@@ -735,9 +735,9 @@ void DSTEmulator::evaluate_tracks()
 
     //    std::cout << " subsurfkey: " << subsurfkey << std::endl;
     std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
-    mapIter = m_surfMaps->getTpcMap().find(layer);
+    mapIter = m_surfMaps->m_tpcSurfaceMap.find(layer);
     
-    if(mapIter == m_surfMaps->getTpcMap().end()){
+    if(mapIter == m_surfMaps->m_tpcSurfaceMap.end()){
       std::cout << PHWHERE 
 		<< "Error: hitsetkey not found in clusterSurfaceMap, layer = " << 
 	trk_r//layer 

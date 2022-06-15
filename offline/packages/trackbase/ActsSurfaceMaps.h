@@ -26,7 +26,7 @@ class TrkrCluster;
 using Surface = std::shared_ptr<const Acts::Surface>;
 using SurfaceVec = std::vector<Surface>;
 
-class ActsSurfaceMaps
+struct ActsSurfaceMaps
 {
  public:
   ActsSurfaceMaps() = default;
@@ -56,24 +56,6 @@ class ActsSurfaceMaps
       TrkrCluster* cluster,
       ActsTrackingGeometry *tGeometry) const;
 
-  std::map<TrkrDefs::hitsetkey, Surface> getSiliconMap() const { return m_siliconSurfaceMap; }
-  std::map<unsigned int, SurfaceVec> getTpcMap() const { return m_tpcSurfaceMap; }
-  std::map<TrkrDefs::hitsetkey, Surface> getMMMap() const { return m_mmSurfaceMap; }
-
-  std::set<int> getTpcVolumeIds() const { return m_tpcVolumeIds; }
-  std::set<int> getMMVolumeIds() const { return m_micromegasVolumeIds; }
-
-  void setSiliconMap(const std::map<TrkrDefs::hitsetkey, Surface> map)
-  { m_siliconSurfaceMap = map; }
-  void setTpcMap(const std::map<unsigned int, SurfaceVec> map)
-  { m_tpcSurfaceMap = map; }
-  void setMMMap(const std::map<TrkrDefs::hitsetkey, Surface> map)
-  { m_mmSurfaceMap = map; }
-  void setTGeoNodeMap(const std::map<TrkrDefs::hitsetkey, TGeoNode*> map)
-  { m_tGeoNodeMap = map; }
-  
-
- private:
   //! map hitset to Surface for the silicon detectors (MVTX and INTT)
   std::map<TrkrDefs::hitsetkey, Surface> m_siliconSurfaceMap;
 

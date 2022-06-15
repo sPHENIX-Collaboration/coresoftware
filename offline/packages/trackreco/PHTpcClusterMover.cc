@@ -386,9 +386,9 @@ Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitse
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
-  mapIter = surfMaps->getTpcMap().find(layer);
+  mapIter = surfMaps->m_tpcSurfaceMap.find(layer);
   
-  if(mapIter == surfMaps->getTpcMap().end())
+  if(mapIter == surfMaps->m_tpcSurfaceMap.end())
     {
       std::cout << PHWHERE 
 		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
