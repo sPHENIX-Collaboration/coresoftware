@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef EVENTPLANE_EPFINDERRECO_H
 #define EVENTPLANE_EPFINDERRECO_H
 
