@@ -1,11 +1,12 @@
-#ifndef EpInfo_H
-#define EpInfo_H
+#ifndef EVENTPLANE_EPINFO_H
+#define EVENTPLANE_EPINFO_H
 
 #define _EpOrderMax 3
 
-#include "TVector2.h"
 
 #include <phool/PHObject.h>
+
+#include <TVector2.h>
 
 class EpInfo : public PHObject {
 
@@ -44,6 +45,4 @@ class EpInfo : public PHObject {
 
 };
 
-#endif
-
-
+#endif // EVENTPLANE_EPINFO_H

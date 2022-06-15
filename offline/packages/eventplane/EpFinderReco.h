@@ -1,5 +1,5 @@
-#ifndef __EpFinderReco_H__
-#define __EpFinderReco_H__
+#ifndef EVENTPLANE_EPFINDERRECO_H
+#define EVENTPLANE_EPFINDERRECO_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -99,6 +99,6 @@ class EpFinderReco: public SubsysReco
     
 };
 
-#endif //* __EpFinderReco_H__ *//
+#endif //* EVENTPLANE_EPFINDERRECO_H *//
 
 

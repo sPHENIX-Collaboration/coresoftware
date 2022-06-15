@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef EPFINDER_H
-#define EPFINDER_H
+#ifndef EVENTPLANE_EPFINDER_H
+#define EVENTPLANE_EPFINDER_H
 
 #include "EpInfo.h"
 
@@ -49,6 +49,6 @@ class EpFinder {
   int mNumberOfEventTypeBins;
 };
 
-#endif // EPFINDER_H
+#endif // EVENTPLANE_EPFINDER_H
 
 
