@@ -3,14 +3,13 @@
 
 #define _EpOrderMax 3
 
-
 #include <phool/PHObject.h>
 
 #include <TVector2.h>
 
-class EpInfo : public PHObject {
-
- friend class EpFinder;
+class EpInfo : public PHObject
+{
+  friend class EpFinder;
 
  public:
   EpInfo();
@@ -18,9 +17,8 @@ class EpInfo : public PHObject {
 
   void Reset();
 
-
   TVector2 RawQ(int order);
- 
+
   TVector2 PhiWeightedQ(int order);
 
   double RawPsi(int order);
@@ -31,18 +29,15 @@ class EpInfo : public PHObject {
 
   double SWRaw(int order);
 
-
   double PsiRaw[_EpOrderMax];
- 
- private:
 
+ private:
   bool ArgumentOutOfBounds(int order);
 
-  double Range(double psi, int order);           /// puts angle psi into range (0,2pi/n)
+  double Range(double psi, int order);  /// puts angle psi into range (0,2pi/n)
 
-  double QrawOneSide[_EpOrderMax][2];           /// indices: [order][x,y]
-  double WheelSumWeightsRaw[_EpOrderMax];       /// indices: [order]
-
+  double QrawOneSide[_EpOrderMax][2];      /// indices: [order][x,y]
+  double WheelSumWeightsRaw[_EpOrderMax];  /// indices: [order]
 };
 
-#endif // EVENTPLANE_EPINFO_H
+#endif  // EVENTPLANE_EPINFO_H

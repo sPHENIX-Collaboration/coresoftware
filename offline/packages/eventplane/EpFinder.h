@@ -21,27 +21,26 @@
 
 #define _EpTermsMax 6
 
-typedef struct{
-    
- float nMip;
- double phi;
- 
+typedef struct
+{
+  float nMip;
+  double phi;
+
 } EpHit;
 
-class EpFinder {
-  public:
-  
-  EpFinder(int nEventTypeBins=10);
-  ~EpFinder() {};
+class EpFinder
+{
+ public:
+  EpFinder(int nEventTypeBins = 10);
+  ~EpFinder(){};
 
-  void SetnMipThreshold(double thresh){mThresh=thresh;};
-  void SetMaxTileWeight(double MAX){mMax=MAX;};
+  void SetnMipThreshold(double thresh) { mThresh = thresh; };
+  void SetMaxTileWeight(double MAX) { mMax = MAX; };
   void Finish();
   EpInfo Results(std::vector<EpHit> *EpdHits, int EventTypeID);
   TString Report();
 
  private:
-    
   bool OrderOutsideRange(int order);
   double GetPsiInRange(double Qx, double Qy, int order);
   double mThresh;
@@ -49,6 +48,4 @@ class EpFinder {
   int mNumberOfEventTypeBins;
 };
 
-#endif // EVENTPLANE_EPFINDER_H
-
-
+#endif  // EVENTPLANE_EPFINDER_H
