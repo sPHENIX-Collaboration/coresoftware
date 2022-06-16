@@ -12,7 +12,7 @@ EpInfo::EpInfo()
 
 void EpInfo::Reset()
 {
-  for (int iorder = 0; iorder < _EpOrderMax; iorder++)
+  for (unsigned int iorder = 0; iorder < MaxOrder(); iorder++)
   {
     for (int xy = 0; xy < 2; xy++)
     {
@@ -20,7 +20,7 @@ void EpInfo::Reset()
     }
   }
 
-  for (int iorder = 0; iorder < _EpOrderMax; iorder++)
+  for (unsigned int iorder = 0; iorder < MaxOrder(); iorder++)
   {
     PsiRaw[iorder] = -999.0;
     WheelSumWeightsRaw[iorder] = -999.0;
@@ -30,19 +30,17 @@ void EpInfo::Reset()
 // ===================== Access to Q-vectors ==========================
 
 //------------------------------ Raw Q --------------------------------
-TVector2 EpInfo::RawQ(int order)
+std::pair<double, double> EpInfo::RawQ(unsigned int order)
 {
   if (ArgumentOutOfBounds(order))
   {
-    TVector2 crap(-999, -999);
-    return crap;
+    return std::make_pair(NAN,NAN);
   }
-  TVector2 q(QrawOneSide[order - 1][0], QrawOneSide[order - 1][1]);
-  return q;
+  return std::make_pair(QrawOneSide[order - 1][0], QrawOneSide[order - 1][1]);
 }
 
 // --------------------- Wheel sum-of-weights, raw ----------------------
-double EpInfo::SWRaw(int order)
+double EpInfo::SWRaw(unsigned int order)
 {
   if (ArgumentOutOfBounds(order)) return -999;
   return WheelSumWeightsRaw[order - 1];
@@ -51,7 +49,7 @@ double EpInfo::SWRaw(int order)
 // ===================== Access to Event-plane angles ====================
 
 //------------------------- raw EP angles --------------------------------
-double EpInfo::RawPsi(int order)
+double EpInfo::RawPsi(unsigned int order)
 {
   if (ArgumentOutOfBounds(order)) return -999;
   return Range(PsiRaw[order - 1], order);
@@ -59,7 +57,7 @@ double EpInfo::RawPsi(int order)
 //-----------------------------------------------------------------------
 
 //----- Simple method to put angles in a convenient range: (0,2pi/n) ----
-double EpInfo::Range(double psi, int order)
+double EpInfo::Range(double psi, unsigned int order)
 {
   if (ArgumentOutOfBounds(order)) return -999;
   double wrap = (2.0 * M_PI) / (double) order;
@@ -73,12 +71,12 @@ double EpInfo::Range(double psi, int order)
 }
 
 //--------- protection against argument out-of-bounds -------
-bool EpInfo::ArgumentOutOfBounds(int order)
+bool EpInfo::ArgumentOutOfBounds(unsigned int order)
 {
-  if ((order < 1) || (order > _EpOrderMax))
+  if ((order < 1) || ((unsigned int)order > MaxOrder()))
   {
     std::cout << "\n *** Invalid order requested ***\n";
-    std::cout << "  order must be between 1 (for first-order EP) and " << _EpOrderMax
+    std::cout << "  order must be between 1 (for first-order EP) and " << MaxOrder()
               << ".    To change the upuper limit, edit StEpdUtil/EpInfo.h\n";
     std::cout << "  I will now return you an invalid result.  Have a nice day\n";
     return true;

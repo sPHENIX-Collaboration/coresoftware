@@ -5,7 +5,7 @@
 
 #include <phool/PHObject.h>
 
-#include <TVector2.h>
+#include <map>
 
 class EpInfo : public PHObject
 {
@@ -17,24 +17,20 @@ class EpInfo : public PHObject
 
   void Reset() override;
 
-  TVector2 RawQ(int order);
+  virtual double RawPsi(unsigned int order);
 
-  TVector2 PhiWeightedQ(int order);
-
-  double RawPsi(int order);
-
-  double PhiWeightedPsi(int order);
-
-  double PhiWeightedAndShiftedPsi(int order);
-
-  double SWRaw(int order);
+  virtual double SWRaw(unsigned int order);
 
   double PsiRaw[_EpOrderMax];
 
- private:
-  bool ArgumentOutOfBounds(int order);
+  virtual std::pair<double, double> RawQ(unsigned int order);
 
-  double Range(double psi, int order);  /// puts angle psi into range (0,2pi/n)
+  virtual unsigned int MaxOrder() const {return  _EpOrderMax;}
+
+ private:
+  bool ArgumentOutOfBounds(unsigned int order);
+
+  double Range(double psi, unsigned int order);  /// puts angle psi into range (0,2pi/n)
 
   double QrawOneSide[_EpOrderMax][2];      /// indices: [order][x,y]
   double WheelSumWeightsRaw[_EpOrderMax];  /// indices: [order]
