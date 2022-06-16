@@ -13,6 +13,7 @@ EpFinder::EpFinder(int nEventTypeBins)
   , mMax(100.0)
 {
   mNumberOfEventTypeBins = nEventTypeBins;
+  TotalWeight4Side.resize(_EpOrderMax);
 }
 
 void EpFinder::Finish()
@@ -21,7 +22,7 @@ void EpFinder::Finish()
 }
 
 //==================================================================================================================
-EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId)
+EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *epinfo)
 {
   if ((EventTypeId < 0) || (EventTypeId >= mNumberOfEventTypeBins))
   {
@@ -30,19 +31,24 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId)
   }
 
   EpInfo result;
-
+  if (epinfo)
+  epinfo->InitializeToZero();
   // For normalizing Q-vectors
   //phi weighting not implemented --Ejiro
-
-  double TotalWeight4Side[_EpOrderMax][1];
-
-  for (int phiWeightedOrNo = 0; phiWeightedOrNo < 1; phiWeightedOrNo++)
+//  std::fill(TotalWeight4Side.begin(), TotalWeight4Side.end(), 0);
+  for (auto &vec: TotalWeight4Side)
   {
-    for (int order = 1; order < _EpOrderMax + 1; order++)
-    {
-      TotalWeight4Side[order - 1][phiWeightedOrNo] = 0;
-    }
+    vec.fill(0);
   }
+//  double TotalWeight4Side[_EpOrderMax][1];
+//  TotalWeight4Side.resize(_EpOrderMax);
+  // for (int phiWeightedOrNo = 0; phiWeightedOrNo < 1; phiWeightedOrNo++)
+  // {
+  //   for (int order = 1; order < _EpOrderMax + 1; order++)
+  //   {
+  //     TotalWeight4Side.at([order - 1]).at(phiWeightedOrNo) = 0;
+  //   }
+  // }
 
   //--------------------------------
   // begin loop over hits
@@ -68,7 +74,11 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId)
 
       double Cosine = cos(phi * (double) order);
       double Sine = sin(phi * (double) order);
-
+      if (epinfo)
+      {
+      epinfo->AddToQraw(order - 1, 0, etaWeight * TileWeight * Cosine);
+      epinfo->AddToQraw(order - 1, 1, etaWeight * TileWeight * Sine);
+      }
       result.QrawOneSide[order - 1][0] += etaWeight * TileWeight * Cosine;
       result.QrawOneSide[order - 1][1] += etaWeight * TileWeight * Sine;
     }
@@ -78,6 +88,10 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId)
   for (int order = 1; order < _EpOrderMax + 1; order++)
   {
     result.WheelSumWeightsRaw[order - 1] = TotalWeight4Side[order - 1][0];
+    if (epinfo)
+    {
+    epinfo->SetWheelSumWeightsRaw(order - 1, TotalWeight4Side[order - 1][0]);
+    }
   }
 
   // at this point, we are finished with the detector hits, and deal only with the Q-vectors,

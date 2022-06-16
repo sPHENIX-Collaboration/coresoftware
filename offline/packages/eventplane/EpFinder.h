@@ -37,7 +37,7 @@ class EpFinder
   void SetnMipThreshold(double thresh) { mThresh = thresh; };
   void SetMaxTileWeight(double MAX) { mMax = MAX; };
   void Finish();
-  EpInfo Results(std::vector<EpHit> *EpdHits, int EventTypeID);
+  EpInfo Results(std::vector<EpHit> *EpdHits, int EventTypeID, EpInfo *epinfo = nullptr);
   TString Report();
 
  private:
@@ -46,6 +46,7 @@ class EpFinder
   double mThresh;
   double mMax;
   int mNumberOfEventTypeBins;
+  std::vector<std::array<double,2>> TotalWeight4Side;
 };
 
 #endif  // EVENTPLANE_EPFINDER_H

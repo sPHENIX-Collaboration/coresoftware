@@ -26,6 +26,9 @@ class EpInfo : public PHObject
   virtual std::pair<double, double> RawQ(unsigned int order);
 
   virtual unsigned int MaxOrder() const {return  _EpOrderMax;}
+  virtual void InitializeToZero();
+  virtual void AddToQraw(unsigned int order, unsigned int index, double val) {QrawOneSide[order][index] += val;}
+  virtual void SetWheelSumWeightsRaw(unsigned int order, double val) {WheelSumWeightsRaw[order] = val;}
 
  private:
   bool ArgumentOutOfBounds(unsigned int order);

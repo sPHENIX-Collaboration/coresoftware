@@ -27,6 +27,11 @@ void EpInfo::Reset()
   }
 }
 
+void EpInfo::InitializeToZero()
+{
+  std::fill(std::begin(WheelSumWeightsRaw), std::end(WheelSumWeightsRaw), 0.);
+}
+
 // ===================== Access to Q-vectors ==========================
 
 //------------------------------ Raw Q --------------------------------
@@ -75,7 +80,7 @@ bool EpInfo::ArgumentOutOfBounds(unsigned int order)
 {
   if ((order < 1) || ((unsigned int)order > MaxOrder()))
   {
-    std::cout << "\n *** Invalid order requested ***\n";
+    std::cout << "\n *** Invalid order requested " << order << "***\n";
     std::cout << "  order must be between 1 (for first-order EP) and " << MaxOrder()
               << ".    To change the upuper limit, edit StEpdUtil/EpInfo.h\n";
     std::cout << "  I will now return you an invalid result.  Have a nice day\n";
