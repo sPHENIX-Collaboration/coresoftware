@@ -18,6 +18,7 @@ libphnodedump_la_SOURCES = \
   DumpCaloTriggerInfo.cc \
   DumpCentralityInfo.cc \
   DumpEventHeader.cc \
+  DumpEpInfo.cc \
   DumpGlobalVertexMap.cc \
   DumpInttDeadMap.cc \
   DumpJetMap.cc \
@@ -62,6 +63,7 @@ libphnodedump_la_LIBADD = \
   -lg4bbc_io \
   -lcalo_io \
   -lcalotrigger_io \
+  -leventplane_io \
   -lffaobjects \
   -lg4detectors_io \
   -lphfield_io \

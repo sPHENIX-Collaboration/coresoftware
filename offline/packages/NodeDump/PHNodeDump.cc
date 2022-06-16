@@ -4,6 +4,7 @@
 #include "DumpBbcVertexMap.h"
 #include "DumpCaloTriggerInfo.h"
 #include "DumpCentralityInfo.h"
+#include "DumpEpInfo.h"
 #include "DumpEventHeader.h"
 #include "DumpGlobalVertexMap.h"
 #include "DumpInttDeadMap.h"
@@ -189,6 +190,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("CentralityInfo"))
       {
         newdump = new DumpCentralityInfo(NodeName);
+      }
+      else if (tmp->InheritsFrom("EpInfo"))
+      {
+        newdump = new DumpEpInfo(NodeName);
       }
       else if (tmp->InheritsFrom("EventHeader"))
       {
