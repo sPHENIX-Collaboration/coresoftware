@@ -7,11 +7,9 @@
 #include <ostream>
 #include <string>
 
-using namespace std;
-
 typedef PHIODataNode<EpInfo> MyNode_t;
 
-DumpEpInfo::DumpEpInfo(const string &NodeName)
+DumpEpInfo::DumpEpInfo(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -27,13 +25,12 @@ int DumpEpInfo::process_Node(PHNode *myNode)
   }
   if (epinfo)
   {
-    // *fout << "EpInfo->isValid(): " << epinfo->isValid() << endl;
-    // if (epinfo->isValid())
-    *fout << "Max Order: " <<  epinfo->MaxOrder() << endl;
-    for (unsigned int i = 0; i < epinfo->MaxOrder(); ++i)
+    *fout << "Max Order: " <<  epinfo->MaxOrder() << std::endl;
+    // order starts at 1
+    for (unsigned int i = 1; i < epinfo->MaxOrder(); ++i)
     {
-      std::pair<double, double> tmp = epinfo->ARawQ(i);
-      *fout << "RawQ( " << i << "): " << tmp.first << ", " << tmp.second << endl;
+      std::pair<double, double> tmp = epinfo->RawQ(i);
+      *fout << "RawQ( " << i << "): " << tmp.first << ", " << tmp.second << std::endl;
       *fout << "SWRaw( " << i << "): " << epinfo->SWRaw(i) << std::endl;
       *fout << "RawPsi( " << i << "): " << epinfo->RawPsi(i) << std::endl;
 
