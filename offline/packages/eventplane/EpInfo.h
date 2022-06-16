@@ -13,9 +13,9 @@ class EpInfo : public PHObject
 
  public:
   EpInfo();
-  ~EpInfo(){/* no op */};
+  ~EpInfo() override {/* no op */};
 
-  void Reset();
+  void Reset() override;
 
   TVector2 RawQ(int order);
 
@@ -38,6 +38,8 @@ class EpInfo : public PHObject
 
   double QrawOneSide[_EpOrderMax][2];      /// indices: [order][x,y]
   double WheelSumWeightsRaw[_EpOrderMax];  /// indices: [order]
+
+  ClassDefOverride(EpInfo, 1);
 };
 
 #endif  // EVENTPLANE_EPINFO_H
