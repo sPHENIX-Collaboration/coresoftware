@@ -373,8 +373,6 @@ void QAG4SimulationMicromegas::evaluate_clusters()
     histograms.insert(std::make_pair(layer, h));
   }
 
-  ActsTransformations transformer;
-
   // loop over hitsets
   for(const auto& hitsetkey:m_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::micromegasId))
   {
@@ -401,7 +399,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
       // get cluster
       const auto& cluster = clusterIter->second;
-      const auto global = transformer.getGlobalPosition(key, cluster, m_surfmaps, m_tGeometry);
+      const auto global = m_surfmaps->getGlobalPosition(key, cluster, m_tGeometry);
 
       // get segmentation type
       const auto segmentation_type = MicromegasDefs::getSegmentationType(key);

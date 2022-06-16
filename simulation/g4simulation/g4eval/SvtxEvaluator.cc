@@ -786,8 +786,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       return;
     }
 
-  ActsTransformations actsTransformer;
-
   SvtxVertexEval* vertexeval = _svtxevalstack->get_vertex_eval();
   SvtxClusterEval* clustereval = _svtxevalstack->get_cluster_eval();
   SvtxTrackEval* trackeval = _svtxevalstack->get_track_eval();
