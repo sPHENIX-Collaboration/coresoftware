@@ -6,6 +6,7 @@
 #include "DumpCentralityInfo.h"
 #include "DumpEpInfo.h"
 #include "DumpEventHeader.h"
+#include "DumpFlagSave.h"
 #include "DumpGlobalVertexMap.h"
 #include "DumpInttDeadMap.h"
 #include "DumpJetMap.h"
@@ -56,8 +57,6 @@
 #include <iostream>
 #include <string>
 #include <utility>
-
-using namespace std;
 
 PHNodeDump::~PHNodeDump()
 {
@@ -197,6 +196,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("EventHeader"))
       {
         newdump = new DumpEventHeader(NodeName);
+      }
+      else if (tmp->InheritsFrom("FlagSave"))
+      {
+        newdump = new DumpFlagSave(NodeName);
       }
       else if (tmp->InheritsFrom("GlobalVertexMap"))
       {
@@ -351,6 +354,7 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       newdump = new DumpObject(NodeName);
     }
   }
+  newdump->PrintEvtSeq(print_evtseq);
 
 initdump:
   newdump->SetParentNodeDump(this);
