@@ -12,6 +12,7 @@ EpInfo::EpInfo()
   {
     vec.resize(2);
   }
+  WheelSumWeightsRaw.resize(_EpOrderMax);
   Reset();
 }
 
@@ -19,7 +20,7 @@ void EpInfo::Reset()
 {
   for (auto &vec: QrawOneSide)
   {
-    std::fill(vec.begin(),vec.end(),0);
+    std::fill(vec.begin(),vec.end(),NAN);
   }
 /*
   for (unsigned int iorder = 0; iorder < MaxOrder(); iorder++)

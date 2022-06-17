@@ -30,6 +30,7 @@ class EpInfo : public PHObject
   virtual void AddToQraw(unsigned int order, unsigned int index, double val) {QrawOneSide[order][index] += val;}
   virtual void SetWheelSumWeightsRaw(unsigned int order, double val) {WheelSumWeightsRaw[order] = val;}
   virtual void CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec) {QrawOneSide = vecvec;}
+  virtual void CopyWheelSumWeightsRaw(const std::vector<double> &vec) {WheelSumWeightsRaw = vec;}
 
  private:
   bool ArgumentOutOfBounds(unsigned int order);
@@ -37,7 +38,7 @@ class EpInfo : public PHObject
   double Range(double psi, unsigned int order);  /// puts angle psi into range (0,2pi/n)
 
   std::vector<std::vector<double>> QrawOneSide;
-  double WheelSumWeightsRaw[_EpOrderMax];  /// indices: [order]
+  std::vector<double> WheelSumWeightsRaw; // [_EpOrderMax];  /// indices: [order]
 
   ClassDefOverride(EpInfo, 1);
 };
