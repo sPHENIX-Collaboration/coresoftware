@@ -233,6 +233,15 @@ int EpFinderReco::End(PHCompositeNode * /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+int EpFinderReco::ResetEvent(PHCompositeNode * /*topNode*/)
+{
+  EpFinder_1->ResetEvent();
+  EpFinder_2->ResetEvent();
+  EpFinder_3->ResetEvent();
+  EpFinder_4->ResetEvent();
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
 //----------------------------------------------------------------------------//
 
 void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)

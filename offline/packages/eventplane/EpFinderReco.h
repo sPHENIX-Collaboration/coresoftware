@@ -20,12 +20,15 @@ class EpFinderReco : public SubsysReco
 {
  public:
   EpFinderReco(const std::string &name = "EpFinderReco");
+  ~EpFinderReco() override {}
 
-  int Init(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
 
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode *) override;
+
+  int ResetEvent(PHCompositeNode * /*topNode*/) override;
 
   void set_algo_node(const std::string &algonode) { _algonode = algonode; }
 

@@ -22,14 +22,14 @@ std::pair<double, double> EpInfo::RawQ(unsigned int order)
   {
     return std::make_pair(NAN,NAN);
   }
-  return std::make_pair(QrawOneSide[order - 1][0], QrawOneSide[order - 1][1]);
+  return std::make_pair(QrawOneSide.at(order - 1).at(0), QrawOneSide.at(order - 1).at(1));
 }
 
 // --------------------- Wheel sum-of-weights, raw ----------------------
 double EpInfo::SWRaw(unsigned int order)
 {
   if (ArgumentOutOfBounds(order)) return NAN;
-  return WheelSumWeightsRaw[order - 1];
+  return WheelSumWeightsRaw.at(order - 1);
 }
 
 // ===================== Access to Event-plane angles ====================

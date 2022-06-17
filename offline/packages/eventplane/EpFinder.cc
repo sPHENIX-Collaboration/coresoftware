@@ -73,20 +73,13 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
       double Sine = sin(phi * (double) order);
       QrawOneSide[order - 1][0] += etaWeight * TileWeight * Cosine;
       QrawOneSide[order - 1][1] += etaWeight * TileWeight * Sine;
-      // result.QrawOneSide[order - 1][0] += etaWeight * TileWeight * Cosine;
-      // result.QrawOneSide[order - 1][1] += etaWeight * TileWeight * Sine;
     }
   }  // loop over hits
 
   // Weights used, so you can "un-normalize" the ring-by-ring Q-vectors.
   for (int order = 1; order < _EpOrderMax + 1; order++)
   {
-    //result.WheelSumWeightsRaw[order - 1] = TotalWeight4Side[order - 1][0];
     WheelSumWeightsRaw[order - 1] = TotalWeight4Side[order - 1][0];
-    // if (epinfo)
-    // {
-    // epinfo->SetWheelSumWeightsRaw(order - 1, TotalWeight4Side[order - 1][0]);
-    // }
   }
 
   // at this point, we are finished with the detector hits, and deal only with the Q-vectors,
@@ -164,4 +157,16 @@ TString EpFinder::Report()
   rep += Form("Number of EventType bins = %d\n", mNumberOfEventTypeBins);
   rep += Form("Threshold (in MipMPV units) = %f  and MAX weight = %f\n", mThresh, mMax);
   return rep;
+}
+
+void EpFinder::ResetEvent()
+{
+  for (auto &vec: TotalWeight4Side)
+  {
+    vec.fill(0);
+  }
+  for (auto &vec: QrawOneSide)
+  {
+    std::fill(vec.begin(),vec.end(),0);
+  }
 }

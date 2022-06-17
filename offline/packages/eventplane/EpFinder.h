@@ -39,6 +39,7 @@ class EpFinder
   void Finish();
   EpInfo Results(std::vector<EpHit> *EpdHits, int EventTypeID, EpInfo *epinfo = nullptr);
   TString Report();
+  void ResetEvent(); // clear current event for safety
 
  private:
   bool OrderOutsideRange(int order);
