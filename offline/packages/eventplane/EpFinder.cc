@@ -32,16 +32,6 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
   }
 
   EpInfo result;
-  // For normalizing Q-vectors
-  //phi weighting not implemented --Ejiro
-  // for (auto &vec: TotalWeight4Side)
-  // {
-  //   vec.fill(0);
-  // }
-  // for (auto &vec: QrawOneSide)
-  // {
-  //   std::fill(vec.begin(),vec.end(),0);
-  // }
 
   //--------------------------------
   // begin loop over hits
@@ -106,7 +96,11 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
   }  // loop over order
 // copy results to i/o object
     if (epinfo)
+    {
       epinfo->CopyQrawOneSide(QrawOneSide);
+      epinfo->CopyWheelSumWeightsRaw(WheelSumWeightsRaw);
+      epinfo->CopyPsiRaw(PsiRaw);
+    }
     result.CopyWheelSumWeightsRaw(WheelSumWeightsRaw);
   result.CopyQrawOneSide(QrawOneSide);
   result.CopyPsiRaw(PsiRaw);
