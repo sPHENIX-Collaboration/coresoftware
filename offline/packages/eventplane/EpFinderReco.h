@@ -20,7 +20,7 @@ class EpFinderReco : public SubsysReco
 {
  public:
   EpFinderReco(const std::string &name = "EpFinderReco");
-  ~EpFinderReco() override {}
+  ~EpFinderReco() override;
 
   int Init(PHCompositeNode *) override;
 

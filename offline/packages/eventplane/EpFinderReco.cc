@@ -76,12 +76,20 @@ EpFinderReco::EpFinderReco(const std::string &name)
   _EPD_EpInfoN_calib = NULL;
 }
 
+EpFinderReco::~EpFinderReco()
+{
+  delete EpFinder_1;
+  delete EpFinder_2;
+  delete EpFinder_3;
+  delete EpFinder_4;
+}
+
 int EpFinderReco::Init(PHCompositeNode *topNode)
 {
-  EpFinder_1 = new EpFinder(1);
-  EpFinder_2 = new EpFinder(1);
-  EpFinder_3 = new EpFinder(1);
-  EpFinder_4 = new EpFinder(1);
+  EpFinder_1 = new EpFinder(1,3);
+  EpFinder_2 = new EpFinder(1,3);
+  EpFinder_3 = new EpFinder(1,3);
+  EpFinder_4 = new EpFinder(1,3);
 
   if (detector == "EPD")
   {
@@ -217,19 +225,6 @@ int EpFinderReco::process_event(PHCompositeNode *topNode)
 
 int EpFinderReco::End(PHCompositeNode * /*topNode*/)
 {
-  if (Verbosity() >= 1)
-  {
-    EpFinder_1->Finish();
-    EpFinder_2->Finish();
-    EpFinder_3->Finish();
-    EpFinder_4->Finish();
-  }
-
-  delete EpFinder_1;
-  delete EpFinder_2;
-  delete EpFinder_3;
-  delete EpFinder_4;
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -267,7 +262,8 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
       }
     }
 
-    EpInfo _EpResult = EpFinder_1->Results(&hits, 0);
+    EpInfo _EpResult = EpFinder_1->Results(&hits, 0, _CALO_EpInfo);
+//    EpFinder_1->Results(&hits, 0, _CALO_EpInfo);
     *_CALO_EpInfo = _EpResult;
     hits.clear();
   }

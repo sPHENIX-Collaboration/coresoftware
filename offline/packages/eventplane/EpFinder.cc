@@ -8,22 +8,18 @@
 
 using namespace std;
 
-EpFinder::EpFinder(int nEventTypeBins)
+EpFinder::EpFinder(int nEventTypeBins, unsigned int maxorder)
+  : mNumberOfEventTypeBins(nEventTypeBins)
+  , m_MaxOrder(maxorder)
 {
-  mNumberOfEventTypeBins = nEventTypeBins;
-  TotalWeight4Side.resize(_EpOrderMax);
-  WheelSumWeightsRaw.resize(_EpOrderMax);
-  PsiRaw.resize(_EpOrderMax);
-  QrawOneSide.resize(_EpOrderMax);
+  TotalWeight4Side.resize(m_MaxOrder);
+  WheelSumWeightsRaw.resize(m_MaxOrder);
+  PsiRaw.resize(m_MaxOrder);
+  QrawOneSide.resize(m_MaxOrder);
   for (auto &vec: QrawOneSide)
   {
     vec.resize(2);
   }
-}
-
-void EpFinder::Finish()
-{
-  cout << "EpFinder is finished!\n\n";
 }
 
 //==================================================================================================================
@@ -38,14 +34,14 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
   EpInfo result;
   // For normalizing Q-vectors
   //phi weighting not implemented --Ejiro
-  for (auto &vec: TotalWeight4Side)
-  {
-    vec.fill(0);
-  }
-  for (auto &vec: QrawOneSide)
-  {
-    std::fill(vec.begin(),vec.end(),0);
-  }
+  // for (auto &vec: TotalWeight4Side)
+  // {
+  //   vec.fill(0);
+  // }
+  // for (auto &vec: QrawOneSide)
+  // {
+  //   std::fill(vec.begin(),vec.end(),0);
+  // }
 
   //--------------------------------
   // begin loop over hits
