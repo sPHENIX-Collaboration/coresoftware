@@ -1,9 +1,9 @@
-#include "EpInfo.h"
+#include "EpInfov1.h"
 
 #include <cmath>  // for fabs, M_PI
 #include <iostream>
 
-void EpInfo::Reset()
+void EpInfov1::Reset()
 {
   for (auto &vec: QrawOneSide)
   {
@@ -16,7 +16,7 @@ void EpInfo::Reset()
 // ===================== Access to Q-vectors ==========================
 
 //------------------------------ Raw Q --------------------------------
-std::pair<double, double> EpInfo::RawQ(unsigned int order)
+std::pair<double, double> EpInfov1::RawQ(unsigned int order) const
 {
   if (ArgumentOutOfBounds(order))
   {
@@ -26,7 +26,7 @@ std::pair<double, double> EpInfo::RawQ(unsigned int order)
 }
 
 // --------------------- Wheel sum-of-weights, raw ----------------------
-double EpInfo::SWRaw(unsigned int order)
+double EpInfov1::SWRaw(unsigned int order) const
 {
   if (ArgumentOutOfBounds(order)) return NAN;
   return WheelSumWeightsRaw.at(order - 1);
@@ -35,7 +35,7 @@ double EpInfo::SWRaw(unsigned int order)
 // ===================== Access to Event-plane angles ====================
 
 //------------------------- raw EP angles --------------------------------
-double EpInfo::RawPsi(unsigned int order)
+double EpInfov1::RawPsi(unsigned int order) const
 {
   if (ArgumentOutOfBounds(order)) return NAN;
   return Range(PsiRaw.at(order - 1), order);
@@ -43,7 +43,7 @@ double EpInfo::RawPsi(unsigned int order)
 //-----------------------------------------------------------------------
 
 //----- Simple method to put angles in a convenient range: (0,2pi/n) ----
-double EpInfo::Range(double psi, unsigned int order)
+double EpInfov1::Range(double psi, unsigned int order) const
 {
   if (ArgumentOutOfBounds(order)) return NAN;
   double wrap = (2.0 * M_PI) / (double) order;
@@ -59,7 +59,7 @@ double EpInfo::Range(double psi, unsigned int order)
 }
 
 //--------- protection against argument out-of-bounds -------
-bool EpInfo::ArgumentOutOfBounds(unsigned int order)
+bool EpInfov1::ArgumentOutOfBounds(unsigned int order) const
 {
   if ((order < 1) || ((unsigned int)order > MaxOrder()))
   {
@@ -72,7 +72,7 @@ bool EpInfo::ArgumentOutOfBounds(unsigned int order)
   return false;
 }
 
-void EpInfo::CopyPsiRaw(const std::vector<double> &vec)
+void EpInfov1::CopyPsiRaw(const std::vector<double> &vec)
 {
   if (PsiRaw.size() != vec.size())
   {
@@ -81,7 +81,7 @@ void EpInfo::CopyPsiRaw(const std::vector<double> &vec)
 PsiRaw = vec;
 }
 
-void EpInfo::CopyWheelSumWeightsRaw(const std::vector<double> &vec)
+void EpInfov1::CopyWheelSumWeightsRaw(const std::vector<double> &vec)
 {
   if (WheelSumWeightsRaw.size() != vec.size())
   {
@@ -90,7 +90,7 @@ void EpInfo::CopyWheelSumWeightsRaw(const std::vector<double> &vec)
 WheelSumWeightsRaw = vec;
 }
 
-void EpInfo::CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec)
+void EpInfov1::CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec)
 {
   if (QrawOneSide.size() != vecvec.size())
   {
