@@ -3,15 +3,14 @@
 
 #include "EpInfo.h"
 
-#include <utility>   // for pair
-#include <vector>    // for vector
+#include <utility>  // for pair
+#include <vector>   // for vector
 
 class EpInfov1 : public EpInfo
 {
-
  public:
   EpInfov1() {}
-  ~EpInfov1() override {/* no op */};
+  ~EpInfov1() override{/* no op */};
 
   void Reset() override;
 
@@ -19,13 +18,12 @@ class EpInfov1 : public EpInfo
 
   virtual double SWRaw(unsigned int order) const override;
 
-
   virtual std::pair<double, double> RawQ(unsigned int order) const override;
 
-  virtual unsigned int MaxOrder() const  override {return  QrawOneSide.size();}
-  virtual void CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec) override; // {QrawOneSide = vecvec;}
-  virtual void CopyWheelSumWeightsRaw(const std::vector<double> &vec) override; // {WheelSumWeightsRaw = vec;}
-  virtual void CopyPsiRaw(const std::vector<double> &vec) override;// {PsiRaw = vec;}
+  virtual unsigned int MaxOrder() const override { return QrawOneSide.size(); }
+  virtual void CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec) override;  // {QrawOneSide = vecvec;}
+  virtual void CopyWheelSumWeightsRaw(const std::vector<double> &vec) override;           // {WheelSumWeightsRaw = vec;}
+  virtual void CopyPsiRaw(const std::vector<double> &vec) override;                       // {PsiRaw = vec;}
 
  private:
   bool ArgumentOutOfBounds(unsigned int order) const;

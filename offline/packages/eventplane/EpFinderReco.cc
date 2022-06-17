@@ -1,7 +1,7 @@
 #include "EpFinderReco.h"
 
 #include "EpFinder.h"
-#include "EpInfo.h"  // for EpInfo
+#include "EpInfo.h"    // for EpInfo
 #include "EpInfov1.h"  // for EpInfo
 
 #include <g4main/PHG4Hit.h>
@@ -61,10 +61,10 @@ EpFinderReco::~EpFinderReco()
 
 int EpFinderReco::Init(PHCompositeNode *topNode)
 {
-  EpFinder_1 = new EpFinder(1,3);
-  EpFinder_2 = new EpFinder(1,3);
-  EpFinder_3 = new EpFinder(1,3);
-  EpFinder_4 = new EpFinder(1,3);
+  EpFinder_1 = new EpFinder(1, 3);
+  EpFinder_2 = new EpFinder(1, 3);
+  EpFinder_3 = new EpFinder(1, 3);
+  EpFinder_4 = new EpFinder(1, 3);
 
   if (detector == "EPD")
   {
@@ -334,9 +334,9 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
       }
     }
 
-    EpFinder_1->Results(nbhits,0, _BBC_EpInfoN );
+    EpFinder_1->Results(nbhits, 0, _BBC_EpInfoN);
 
-    EpFinder_2->Results(sbhits, 0,_BBC_EpInfoS );
+    EpFinder_2->Results(sbhits, 0, _BBC_EpInfoS);
 
     nbhits.clear();
     sbhits.clear();

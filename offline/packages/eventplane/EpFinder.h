@@ -5,7 +5,7 @@
 
 #include <TString.h>
 
-#include <array>      // for array
+#include <array>  // for array
 #include <vector>
 
 class EpInfo;
@@ -37,7 +37,7 @@ class EpFinder
   void SetMaxTileWeight(const double MAX) { mMax = MAX; };
   void Results(const std::vector<EpHit> &EpdHits, int EventTypeID, EpInfo *epinfo);
   TString Report();
-  void ResetEvent(); // clear current event for safety
+  void ResetEvent();  // clear current event for safety
 
  private:
   double GetPsiInRange(const double Qx, const double Qy, const unsigned int order) const;
@@ -46,11 +46,10 @@ class EpFinder
   int mNumberOfEventTypeBins = 0;
   unsigned int m_MaxOrder = 0;
 
-  std::vector<std::array<double,1>> TotalWeight4Side;
+  std::vector<std::array<double, 1>> TotalWeight4Side;
   std::vector<std::vector<double>> QrawOneSide;
   std::vector<double> WheelSumWeightsRaw;
   std::vector<double> PsiRaw;
-
 };
 
 #endif  // EVENTPLANE_EPFINDER_H

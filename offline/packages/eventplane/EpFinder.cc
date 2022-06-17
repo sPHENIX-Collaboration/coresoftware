@@ -1,8 +1,8 @@
 #include "EpFinder.h"
 
-#include "EpInfo.h"            // for EpInfo
+#include "EpInfo.h"  // for EpInfo
 
-#include <algorithm>           // for fill
+#include <algorithm>  // for fill
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -19,7 +19,7 @@ EpFinder::EpFinder(int nEventTypeBins, unsigned int maxorder)
   WheelSumWeightsRaw.resize(m_MaxOrder);
   PsiRaw.resize(m_MaxOrder);
   QrawOneSide.resize(m_MaxOrder);
-  for (auto &vec: QrawOneSide)
+  for (auto &vec : QrawOneSide)
   {
     vec.resize(2);
   }
@@ -90,13 +90,13 @@ void EpFinder::Results(const std::vector<EpHit> &EpdHits, int EventTypeId, EpInf
   {
     PsiRaw[order - 1] = GetPsiInRange(QrawOneSide[order - 1][0], QrawOneSide[order - 1][1], order);
   }  // loop over order
-// copy results to i/o object
-    if (epinfo)
-    {
-      epinfo->CopyQrawOneSide(QrawOneSide);
-      epinfo->CopyWheelSumWeightsRaw(WheelSumWeightsRaw);
-      epinfo->CopyPsiRaw(PsiRaw);
-    }
+     // copy results to i/o object
+  if (epinfo)
+  {
+    epinfo->CopyQrawOneSide(QrawOneSide);
+    epinfo->CopyWheelSumWeightsRaw(WheelSumWeightsRaw);
+    epinfo->CopyPsiRaw(PsiRaw);
+  }
   return;
 }
 
@@ -127,12 +127,12 @@ TString EpFinder::Report()
 
 void EpFinder::ResetEvent()
 {
-  for (auto &vec: TotalWeight4Side)
+  for (auto &vec : TotalWeight4Side)
   {
     vec.fill(0);
   }
-  for (auto &vec: QrawOneSide)
+  for (auto &vec : QrawOneSide)
   {
-    std::fill(vec.begin(),vec.end(),0);
+    std::fill(vec.begin(), vec.end(), 0);
   }
 }

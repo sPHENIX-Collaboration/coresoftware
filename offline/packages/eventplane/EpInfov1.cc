@@ -1,19 +1,19 @@
 #include "EpInfov1.h"
 
-#include <algorithm>    // for fill
-#include <cmath>  // for fabs, M_PI
+#include <algorithm>  // for fill
+#include <cmath>      // for fabs, M_PI
 #include <iostream>
 #include <memory>       // for allocator_traits<>::value_type
 #include <type_traits>  // for __decay_and_strip<>::__type
 
 void EpInfov1::Reset()
 {
-  for (auto &vec: QrawOneSide)
+  for (auto &vec : QrawOneSide)
   {
-    std::fill(vec.begin(),vec.end(),NAN);
+    std::fill(vec.begin(), vec.end(), NAN);
   }
-  std::fill(PsiRaw.begin(),PsiRaw.end(),NAN);
-  std::fill(WheelSumWeightsRaw.begin(),WheelSumWeightsRaw.end(),NAN);
+  std::fill(PsiRaw.begin(), PsiRaw.end(), NAN);
+  std::fill(WheelSumWeightsRaw.begin(), WheelSumWeightsRaw.end(), NAN);
 }
 
 // ===================== Access to Q-vectors ==========================
@@ -23,7 +23,7 @@ std::pair<double, double> EpInfov1::RawQ(unsigned int order) const
 {
   if (ArgumentOutOfBounds(order))
   {
-    return std::make_pair(NAN,NAN);
+    return std::make_pair(NAN, NAN);
   }
   return std::make_pair(QrawOneSide.at(order - 1).at(0), QrawOneSide.at(order - 1).at(1));
 }
@@ -64,7 +64,7 @@ double EpInfov1::Range(double psi, unsigned int order) const
 //--------- protection against argument out-of-bounds -------
 bool EpInfov1::ArgumentOutOfBounds(unsigned int order) const
 {
-  if ((order < 1) || ((unsigned int)order > MaxOrder()))
+  if ((order < 1) || ((unsigned int) order > MaxOrder()))
   {
     std::cout << "\n *** Invalid order requested " << order << "***\n";
     std::cout << "  order must be between 1 (for first-order EP) and " << MaxOrder()
@@ -81,7 +81,7 @@ void EpInfov1::CopyPsiRaw(const std::vector<double> &vec)
   {
     PsiRaw.resize(vec.size());
   }
-PsiRaw = vec;
+  PsiRaw = vec;
 }
 
 void EpInfov1::CopyWheelSumWeightsRaw(const std::vector<double> &vec)
@@ -90,20 +90,20 @@ void EpInfov1::CopyWheelSumWeightsRaw(const std::vector<double> &vec)
   {
     WheelSumWeightsRaw.resize(vec.size());
   }
-WheelSumWeightsRaw = vec;
+  WheelSumWeightsRaw = vec;
 }
 
 void EpInfov1::CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec)
 {
   if (QrawOneSide.size() != vecvec.size())
   {
-  QrawOneSide.resize(vecvec.size());
-  int i = 0;
-  for (auto &vec: vecvec)
-  {
-    QrawOneSide.at(i).resize(vec.size());
-    i++;
+    QrawOneSide.resize(vecvec.size());
+    int i = 0;
+    for (auto &vec : vecvec)
+    {
+      QrawOneSide.at(i).resize(vec.size());
+      i++;
+    }
   }
-  }
-QrawOneSide = vecvec;
+  QrawOneSide = vecvec;
 }
