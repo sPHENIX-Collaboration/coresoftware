@@ -46,34 +46,8 @@ using namespace std;
 
 EpFinderReco::EpFinderReco(const std::string &name)
   : SubsysReco(name)
-  , _algonode("EVENT_PLANE")
-  , _do_ep(0)
-  , _do_sepd_calib(false)
-  , _sepdmpv(1)
-  , _calib_towers(nullptr)
-  , rawtowergeom(nullptr)
-  , cemctowers(nullptr)
-  , cemctowergeom(nullptr)
-  , hcalotowers(nullptr)
-  , hcalotowergeom(nullptr)
-  , hcalitowers(nullptr)
-  , hcalitowergeom(nullptr)
-  , e_hit_container(nullptr)
-  , b_hit_container(nullptr)
   , detector("CEMC")
 {
-  EpFinder_1 = NULL;
-  EpFinder_2 = NULL;
-  EpFinder_3 = NULL;
-  EpFinder_4 = NULL;
-  _CALO_EpInfo = NULL;
-  _BBC_EpInfoS = NULL;
-  _BBC_EpInfoN = NULL;
-  _EPD_EpInfoS = NULL;
-  _EPD_EpInfoN = NULL;
-  _CEMCHCAL_EpInfo = NULL;
-  _EPD_EpInfoS_calib = NULL;
-  _EPD_EpInfoN_calib = NULL;
 }
 
 EpFinderReco::~EpFinderReco()
@@ -142,17 +116,17 @@ int EpFinderReco::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHCompositeNode *AlgoNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", _algonode.c_str()));
+  PHCompositeNode *AlgoNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", _algonode));
   if (!AlgoNode)
   {
-    AlgoNode = new PHCompositeNode(_algonode.c_str());
+    AlgoNode = new PHCompositeNode(_algonode);
     dstNode->addNode(AlgoNode);
   }
 
@@ -170,7 +144,7 @@ int EpFinderReco::CreateNodes(PHCompositeNode *topNode)
   if (_do_ep == 1)
   {
     EpInfo *CEMCHCAL_EpInfo = new EpInfo();
-    PHIODataNode<PHObject> *CEMCHCAL_EpInfo_node = new PHIODataNode<PHObject>(CEMCHCAL_EpInfo, "CEMCHCAL_EpInfo", "PHObject");
+    PHIODataNode<PHObject> *CEMCHCAL_EpInfo_node = new PHIODataNode<PHObject>(CEMCHCAL_EpInfo, "EPINFO_CEMCHCAL", "PHObject");
     AlgoNode->addNode(CEMCHCAL_EpInfo_node);
   }
 
@@ -609,10 +583,10 @@ int EpFinderReco::GetNodes(PHCompositeNode *topNode)
 
   else if (_do_ep == 1)
   {
-    _CEMCHCAL_EpInfo = findNode::getClass<EpInfo>(topNode, "CEMCHCAL_EpInfo");
+    _CEMCHCAL_EpInfo = findNode::getClass<EpInfo>(topNode, "EPINFO_CEMCHCAL");
     if (!_CEMCHCAL_EpInfo)
     {
-      std::cout << PHWHERE << " _CEMCHCAL_EpInfo node not found on node tree" << std::endl;
+      std::cout << PHWHERE << " EPINFO_CEMCHCAL node not found on node tree" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 

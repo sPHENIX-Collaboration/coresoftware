@@ -63,37 +63,37 @@ class EpFinderReco : public SubsysReco
   int GetPhiBin(float tphi, int numPhiDivisions);
   float GetMeanPhi(int iphi, int numPhiDivisions);
 
-  std::string _algonode;
-  int _do_ep;
-  bool _do_sepd_calib;
-  double _sepdmpv;
+  std::string _algonode = "EVENT_PLANE";
+  int _do_ep = 0;
+  bool _do_sepd_calib = false;
+  double _sepdmpv = 1.;
 
-  RawTowerContainer *_calib_towers;
-  RawTowerGeomContainer *rawtowergeom;
-  RawTowerContainer *cemctowers;
-  RawTowerGeomContainer *cemctowergeom;
-  RawTowerContainer *hcalotowers;
-  RawTowerGeomContainer *hcalotowergeom;
-  RawTowerContainer *hcalitowers;
-  RawTowerGeomContainer *hcalitowergeom;
-  PHG4HitContainer *e_hit_container;
-  PHG4HitContainer *b_hit_container;
+  RawTowerContainer *_calib_towers = nullptr;
+  RawTowerGeomContainer *rawtowergeom = nullptr;
+  RawTowerContainer *cemctowers = nullptr;
+  RawTowerGeomContainer *cemctowergeom = nullptr;
+  RawTowerContainer *hcalotowers = nullptr;
+  RawTowerGeomContainer *hcalotowergeom = nullptr;
+  RawTowerContainer *hcalitowers = nullptr;
+  RawTowerGeomContainer *hcalitowergeom = nullptr;
+  PHG4HitContainer *e_hit_container = nullptr;
+  PHG4HitContainer *b_hit_container = nullptr;
 
-  std::string detector;
+  std::string detector = "CEMC";
 
-  EpFinder *EpFinder_1;
-  EpFinder *EpFinder_2;
-  EpFinder *EpFinder_3;
-  EpFinder *EpFinder_4;
+  EpFinder *EpFinder_1 = nullptr;
+  EpFinder *EpFinder_2 = nullptr;
+  EpFinder *EpFinder_3 = nullptr;
+  EpFinder *EpFinder_4 = nullptr;
 
-  EpInfo *_CALO_EpInfo;
-  EpInfo *_BBC_EpInfoS;
-  EpInfo *_BBC_EpInfoN;
-  EpInfo *_EPD_EpInfoS;
-  EpInfo *_EPD_EpInfoN;
-  EpInfo *_CEMCHCAL_EpInfo;
-  EpInfo *_EPD_EpInfoS_calib;
-  EpInfo *_EPD_EpInfoN_calib;
+  EpInfo *_CALO_EpInfo = nullptr;
+  EpInfo *_BBC_EpInfoS = nullptr;
+  EpInfo *_BBC_EpInfoN = nullptr;
+  EpInfo *_EPD_EpInfoS = nullptr;
+  EpInfo *_EPD_EpInfoN = nullptr;
+  EpInfo *_CEMCHCAL_EpInfo = nullptr;
+  EpInfo *_EPD_EpInfoS_calib = nullptr;
+  EpInfo *_EPD_EpInfoN_calib = nullptr;
 
   std::string CaliTowerNodeName;
   std::string TowerGeomNodeName;
