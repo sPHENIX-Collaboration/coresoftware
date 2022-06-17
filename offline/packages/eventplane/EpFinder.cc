@@ -117,23 +117,6 @@ double EpFinder::GetPsiInRange(double Qx, double Qy, unsigned int order) const
   return temp;
 }
 
-bool EpFinder::OrderOutsideRange(unsigned int order) const
-{
-  if (order < 1)
-  {
-    cout << "\n*** Invalid order specified ***\n";
-    cout << "order must be 1 (for first-order plane) or higher\n";
-    return true;
-  }
-  if (order > m_MaxOrder)
-  {
-    cout << "\n*** Invalid order specified ***\n";
-    cout << "Maximum order=" << m_MaxOrder << ". To change, call ctor of EpFinder with " << order << " as max order argument" << endl;
-    return true;
-  }
-  return false;
-}
-
 TString EpFinder::Report()
 {
   TString rep = Form("This is the EpFinder Report:\n");

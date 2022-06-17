@@ -40,7 +40,6 @@ class EpFinder
   void ResetEvent(); // clear current event for safety
 
  private:
-  bool OrderOutsideRange(const unsigned int order) const;
   double GetPsiInRange(const double Qx, const double Qy, const unsigned int order) const;
   double mThresh = 0.;
   double mMax = 100.;

@@ -356,7 +356,6 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
     int num_phi = 24;
     int num_eta = 16;
     float meanPhi = 0.;
-    float calib_e = 0.;
     float nmips = 0.;
 
     double _epd_e[2][16][24] = {{{0.0}}};
@@ -496,7 +495,7 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
 
             if (_epd_e_calib[1][i][j] < 0.2) continue;
 
-            calib_e = (_epd_e_calib[1][i][j] < mapCalib->GetBinContent(_b + 1, i + 1)) ? _epd_e_calib[1][i][j] : mapCalib->GetBinContent(_b + 1, i + 1);
+            float calib_e = (_epd_e_calib[1][i][j] < mapCalib->GetBinContent(_b + 1, i + 1)) ? _epd_e_calib[1][i][j] : mapCalib->GetBinContent(_b + 1, i + 1);
 
             EpHit newHit;
             newHit.nMip = calib_e;
@@ -520,7 +519,7 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
 
             if (_epd_e_calib[0][i][j] < 0.2) continue;
 
-            calib_e = (_epd_e_calib[0][i][j] < mapCalib->GetBinContent(_b + 1, i + 1)) ? _epd_e_calib[0][i][j] : mapCalib->GetBinContent(_b + 1, i + 1);
+            float calib_e = (_epd_e_calib[0][i][j] < mapCalib->GetBinContent(_b + 1, i + 1)) ? _epd_e_calib[0][i][j] : mapCalib->GetBinContent(_b + 1, i + 1);
 
             EpHit newHit;
             newHit.nMip = calib_e;
