@@ -17,18 +17,21 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   EpFinder.h \
   EpInfo.h \
+  EpInfov1.h \
   EpFinderReco.h
 
 ROOTDICTS = \
-  EpInfo_Dict.cc
+  EpInfo_Dict.cc \
+  EpInfov1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  EpInfo_Dict_rdict.pcm
+  EpInfo_Dict_rdict.pcm \
+  EpInfov1_Dict_rdict.pcm
 
 libeventplane_io_la_SOURCES = \
   $(ROOTDICTS) \
-  EpInfo.cc
+  EpInfov1.cc
 
 libeventplane_la_SOURCES = \
   EpFinder.cc \

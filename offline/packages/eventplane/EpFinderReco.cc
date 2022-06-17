@@ -2,6 +2,7 @@
 
 #include "EpFinder.h"
 #include "EpInfo.h"  // for EpInfo
+#include "EpInfov1.h"  // for EpInfo
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -134,7 +135,7 @@ int EpFinderReco::CreateNodes(PHCompositeNode *topNode)
 
   if (_do_ep == 0)
   {
-    EpInfo *EpInfo_Calo = new EpInfo();
+    EpInfo *EpInfo_Calo = new EpInfov1();
     PHIODataNode<PHObject> *EpInfo_calo_node = new PHIODataNode<PHObject>(EpInfo_Calo, "EPINFO_" + detector, "PHObject");
     AlgoNode->addNode(EpInfo_calo_node);
   }
@@ -143,7 +144,7 @@ int EpFinderReco::CreateNodes(PHCompositeNode *topNode)
 
   if (_do_ep == 1)
   {
-    EpInfo *CEMCHCAL_EpInfo = new EpInfo();
+    EpInfo *CEMCHCAL_EpInfo = new EpInfov1();
     PHIODataNode<PHObject> *CEMCHCAL_EpInfo_node = new PHIODataNode<PHObject>(CEMCHCAL_EpInfo, "EPINFO_CEMCHCAL", "PHObject");
     AlgoNode->addNode(CEMCHCAL_EpInfo_node);
   }
@@ -152,11 +153,11 @@ int EpFinderReco::CreateNodes(PHCompositeNode *topNode)
 
   else if (_do_ep == 2)
   {
-    EpInfo *EpInfo_BBC_North = new EpInfo();
+    EpInfo *EpInfo_BBC_North = new EpInfov1();
     PHIODataNode<PHObject> *EpInfo_BBC_North_node = new PHIODataNode<PHObject>(EpInfo_BBC_North, "EPINFO_BBC_North", "PHObject");
     AlgoNode->addNode(EpInfo_BBC_North_node);
 
-    EpInfo *EpInfo_BBC_South = new EpInfo();
+    EpInfo *EpInfo_BBC_South = new EpInfov1();
     PHIODataNode<PHObject> *EpInfo_BBC_South_node = new PHIODataNode<PHObject>(EpInfo_BBC_South, "EPINFO_BBC_South", "PHObject");
     AlgoNode->addNode(EpInfo_BBC_South_node);
   }
@@ -165,21 +166,21 @@ int EpFinderReco::CreateNodes(PHCompositeNode *topNode)
 
   else if (_do_ep == 3)
   {
-    EpInfo *EpInfo_EPD_North = new EpInfo();
+    EpInfo *EpInfo_EPD_North = new EpInfov1();
     PHIODataNode<PHObject> *EpInfo_EPD_North_node = new PHIODataNode<PHObject>(EpInfo_EPD_North, "EPINFO_EPD_North", "PHObject");
     AlgoNode->addNode(EpInfo_EPD_North_node);
 
-    EpInfo *EpInfo_EPD_South = new EpInfo();
+    EpInfo *EpInfo_EPD_South = new EpInfov1();
     PHIODataNode<PHObject> *EpInfo_EPD_South_node = new PHIODataNode<PHObject>(EpInfo_EPD_South, "EPINFO_EPD_South", "PHObject");
     AlgoNode->addNode(EpInfo_EPD_South_node);
 
     if (_do_sepd_calib)
     {
-      EpInfo *EpInfo_EPD_North_calib = new EpInfo();
+      EpInfo *EpInfo_EPD_North_calib = new EpInfov1();
       PHIODataNode<PHObject> *EpInfo_EPD_North_calib_node = new PHIODataNode<PHObject>(EpInfo_EPD_North_calib, "EPINFO_EPD_North_calib", "PHObject");
       AlgoNode->addNode(EpInfo_EPD_North_calib_node);
 
-      EpInfo *EpInfo_EPD_South_calib = new EpInfo();
+      EpInfo *EpInfo_EPD_South_calib = new EpInfov1();
       PHIODataNode<PHObject> *EpInfo_EPD_South_calib_node = new PHIODataNode<PHObject>(EpInfo_EPD_South_calib, "EPINFO_EPD_South_calib", "PHObject");
       AlgoNode->addNode(EpInfo_EPD_South_calib_node);
     }

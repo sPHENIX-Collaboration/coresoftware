@@ -3,6 +3,7 @@
 
 #include <phool/PHObject.h>
 
+#include <cmath>
 #include <map>
 
 class EpInfo : public PHObject
@@ -10,30 +11,23 @@ class EpInfo : public PHObject
 
  public:
   EpInfo() {}
-  ~EpInfo() override {/* no op */};
+  ~EpInfo() override {}
 
-  void Reset() override;
+  void Reset() override {return;}
 
-  virtual double RawPsi(unsigned int order);
+  virtual double RawPsi(unsigned int /* order */) const {return NAN;}
 
-  virtual double SWRaw(unsigned int order);
+  virtual double SWRaw(unsigned int /* order */) const {return NAN;}
 
 
-  virtual std::pair<double, double> RawQ(unsigned int order);
+  virtual std::pair<double, double> RawQ(unsigned int /* order */) const {return std::make_pair(NAN,NAN);}
 
-  virtual unsigned int MaxOrder() const {return  QrawOneSide.size();}
-  virtual void CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec); // {QrawOneSide = vecvec;}
-  virtual void CopyWheelSumWeightsRaw(const std::vector<double> &vec); // {WheelSumWeightsRaw = vec;}
-  virtual void CopyPsiRaw(const std::vector<double> &vec);// {PsiRaw = vec;}
+  virtual unsigned int MaxOrder() const {return 0;}
+  virtual void CopyQrawOneSide(const std::vector<std::vector<double>> & /*vecvec */) {return;}
+  virtual void CopyWheelSumWeightsRaw(const std::vector<double> & /*vec */) {return;}
+  virtual void CopyPsiRaw(const std::vector<double> & /*vec */) {return;}
 
  private:
-  bool ArgumentOutOfBounds(unsigned int order);
-
-  double Range(double psi, unsigned int order);  /// puts angle psi into range (0,2pi/n)
-
-  std::vector<std::vector<double>> QrawOneSide;
-  std::vector<double> WheelSumWeightsRaw;
-  std::vector<double> PsiRaw;
 
   ClassDefOverride(EpInfo, 1);
 };
