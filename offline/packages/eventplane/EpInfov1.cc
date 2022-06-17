@@ -1,7 +1,10 @@
 #include "EpInfov1.h"
 
+#include <algorithm>    // for fill
 #include <cmath>  // for fabs, M_PI
 #include <iostream>
+#include <memory>       // for allocator_traits<>::value_type
+#include <type_traits>  // for __decay_and_strip<>::__type
 
 void EpInfov1::Reset()
 {

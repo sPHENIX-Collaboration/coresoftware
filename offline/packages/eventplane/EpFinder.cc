@@ -1,5 +1,8 @@
 #include "EpFinder.h"
 
+#include "EpInfo.h"            // for EpInfo
+
+#include <algorithm>           // for fill
 #include <cassert>
 #include <cmath>
 #include <iostream>

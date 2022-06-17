@@ -3,9 +3,8 @@
 
 #include "EpInfo.h"
 
-#include <phool/PHObject.h>
-
-#include <map>
+#include <utility>   // for pair
+#include <vector>    // for vector
 
 class EpInfov1 : public EpInfo
 {

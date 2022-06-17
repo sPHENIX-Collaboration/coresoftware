@@ -3,11 +3,12 @@
 #ifndef EVENTPLANE_EPFINDER_H
 #define EVENTPLANE_EPFINDER_H
 
-#include "EpInfo.h"
-
 #include <TString.h>
 
+#include <array>      // for array
 #include <vector>
+
+class EpInfo;
 
 /*
 \author Mike Lisa
@@ -18,8 +19,6 @@
 \detectors by Ejiro
 \04 June 2022
 */
-
-#define _EpTermsMax 6
 
 typedef struct
 {
