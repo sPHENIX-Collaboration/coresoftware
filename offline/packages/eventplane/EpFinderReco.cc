@@ -262,7 +262,7 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
       }
     }
 
-    EpFinder_1->Results(&hits, 0, _CALO_EpInfo);
+    EpFinder_1->Results(hits, 0, _CALO_EpInfo);
     hits.clear();
   }
 
@@ -319,9 +319,7 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
       }
     }
 
-    EpInfo CEMCHCAL_EpResult = EpFinder_1->Results(&cemchcalhits, 0, _CEMCHCAL_EpInfo);
-    // EpInfo CEMCHCAL_EpResult = EpFinder_1->Results(&cemchcalhits, 0);
-    // *_CEMCHCAL_EpInfo = CEMCHCAL_EpResult;
+    EpFinder_1->Results(cemchcalhits, 0, _CEMCHCAL_EpInfo);
   }
   else if (_do_ep == 2)
   {
@@ -361,9 +359,9 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
       }
     }
 
-    EpFinder_1->Results(&nbhits,0, _BBC_EpInfoN );
+    EpFinder_1->Results(nbhits,0, _BBC_EpInfoN );
 
-    EpFinder_2->Results(&sbhits, 0,_BBC_EpInfoS );
+    EpFinder_2->Results(sbhits, 0,_BBC_EpInfoS );
 
     nbhits.clear();
     sbhits.clear();
@@ -470,9 +468,7 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
       }
     }
 
-    EpFinder_1->Results(&nehits, 0, _EPD_EpInfoN);
-    // EpInfo ne_EpResult = EpFinder_1->Results(&nehits, 0);
-    // *_EPD_EpInfoN = ne_EpResult;
+    EpFinder_1->Results(nehits, 0, _EPD_EpInfoN);
     nehits.clear();
 
     for (int i = 0; i < num_eta; i++)
@@ -492,9 +488,7 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
       }
     }
 
-    EpFinder_2->Results(&sehits, 0, _EPD_EpInfoS);
-    // EpInfo se_EpResult = EpFinder_2->Results(&sehits, 0);
-    // *_EPD_EpInfoS = se_EpResult;
+    EpFinder_2->Results(sehits, 0, _EPD_EpInfoS);
     sehits.clear();
 
     if (_do_sepd_calib)
@@ -537,9 +531,7 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
         }
       }
 
-      EpFinder_3->Results(&tnehits, 0, _EPD_EpInfoN_calib);
-      // EpInfo calib_ne_EpResult = EpFinder_3->Results(&tnehits, 0);
-      // *_EPD_EpInfoN_calib = calib_ne_EpResult;
+      EpFinder_3->Results(tnehits, 0, _EPD_EpInfoN_calib);
       tnehits.clear();
 
       for (int i = 0; i < num_eta; i++)
@@ -563,9 +555,7 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
         }
       }
 
-      EpFinder_4->Results(&tsehits, 0, _EPD_EpInfoS_calib);
-      // EpInfo calib_se_EpResult = EpFinder_4->Results(&tsehits, 0);
-      // *_EPD_EpInfoS_calib = calib_se_EpResult;
+      EpFinder_4->Results(tsehits, 0, _EPD_EpInfoS_calib);
       tsehits.clear();
     }
   }

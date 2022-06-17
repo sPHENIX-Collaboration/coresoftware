@@ -36,7 +36,7 @@ class EpFinder
 
   void SetnMipThreshold(double thresh) { mThresh = thresh; };
   void SetMaxTileWeight(double MAX) { mMax = MAX; };
-  EpInfo Results(std::vector<EpHit> *EpdHits, int EventTypeID, EpInfo *epinfo = nullptr);
+  void Results(const std::vector<EpHit> &EpdHits, int EventTypeID, EpInfo *epinfo);
   TString Report();
   void ResetEvent(); // clear current event for safety
 

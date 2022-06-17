@@ -23,7 +23,7 @@ EpFinder::EpFinder(int nEventTypeBins, unsigned int maxorder)
 }
 
 //==================================================================================================================
-EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *epinfo)
+void EpFinder::Results(const std::vector<EpHit> &EpdHits, int EventTypeId, EpInfo *epinfo)
 {
   if ((EventTypeId < 0) || (EventTypeId >= mNumberOfEventTypeBins))
   {
@@ -31,18 +31,16 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
     assert(0);
   }
 
-  EpInfo result;
-
   //--------------------------------
   // begin loop over hits
   //--------------------------------
 
-  for (unsigned int hit = 0; hit < EpdHits->size(); hit++)
+  for (unsigned int hit = 0; hit < EpdHits.size(); hit++)
   {
-    float nMip = EpdHits->at(hit).nMip;
+    float nMip = EpdHits.at(hit).nMip;
     if (nMip < mThresh) continue;
     double TileWeight = (nMip < mMax) ? nMip : mMax;
-    double phi = EpdHits->at(hit).phi;
+    double phi = EpdHits.at(hit).phi;
 
     //--------------------------------
     // now calculate Q-vectors
@@ -77,9 +75,6 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
     {
       QrawOneSide[order - 1][0] /= TotalWeight4Side[order - 1][0];
       QrawOneSide[order - 1][1] /= TotalWeight4Side[order - 1][0];
-
-//      result.QrawOneSide[order - 1][0] /= TotalWeight4Side[order - 1][0];
-//      result.QrawOneSide[order - 1][1] /= TotalWeight4Side[order - 1][0];
     }
   }
 
@@ -92,7 +87,6 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
   {
 
     PsiRaw[order - 1] = GetPsiInRange(QrawOneSide[order - 1][0], QrawOneSide[order - 1][1], order);
-    //result.PsiRaw[order - 1] = GetPsiInRange(QrawOneSide[order - 1][0], QrawOneSide[order - 1][1], order);
   }  // loop over order
 // copy results to i/o object
     if (epinfo)
@@ -101,10 +95,7 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
       epinfo->CopyWheelSumWeightsRaw(WheelSumWeightsRaw);
       epinfo->CopyPsiRaw(PsiRaw);
     }
-    result.CopyWheelSumWeightsRaw(WheelSumWeightsRaw);
-  result.CopyQrawOneSide(QrawOneSide);
-  result.CopyPsiRaw(PsiRaw);
-  return result;
+  return;
 }
 
 double EpFinder::GetPsiInRange(double Qx, double Qy, int order)
