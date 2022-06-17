@@ -1,8 +1,6 @@
 #ifndef EVENTPLANE_EPINFO_H
 #define EVENTPLANE_EPINFO_H
 
-#define _EpOrderMax 3
-
 #include <phool/PHObject.h>
 
 #include <map>
@@ -34,8 +32,8 @@ class EpInfo : public PHObject
   double Range(double psi, unsigned int order);  /// puts angle psi into range (0,2pi/n)
 
   std::vector<std::vector<double>> QrawOneSide;
-  std::vector<double> WheelSumWeightsRaw; // [_EpOrderMax];  /// indices: [order]
-  std::vector<double> PsiRaw; // [_EpOrderMax];
+  std::vector<double> WheelSumWeightsRaw;
+  std::vector<double> PsiRaw;
 
   ClassDefOverride(EpInfo, 1);
 };

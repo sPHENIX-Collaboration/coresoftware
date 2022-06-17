@@ -46,7 +46,7 @@ void EpFinder::Results(const std::vector<EpHit> &EpdHits, int EventTypeId, EpInf
     // now calculate Q-vectors
     //--------------------------------
 
-    for (int order = 1; order < _EpOrderMax + 1; order++)
+    for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
     {
       double etaWeight = 1.0;  // not implemented - JGL 8/27/2019
 
@@ -61,7 +61,7 @@ void EpFinder::Results(const std::vector<EpHit> &EpdHits, int EventTypeId, EpInf
   }  // loop over hits
 
   // Weights used, so you can "un-normalize" the ring-by-ring Q-vectors.
-  for (int order = 1; order < _EpOrderMax + 1; order++)
+  for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
   {
     WheelSumWeightsRaw[order - 1] = TotalWeight4Side[order - 1][0];
   }
@@ -69,7 +69,7 @@ void EpFinder::Results(const std::vector<EpHit> &EpdHits, int EventTypeId, EpInf
   // at this point, we are finished with the detector hits, and deal only with the Q-vectors,
 
   // first, normalize the Q's...
-  for (int order = 1; order < _EpOrderMax + 1; order++)
+  for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
   {
     if (TotalWeight4Side[order - 1][0] > 0.0001)
     {
@@ -83,9 +83,8 @@ void EpFinder::Results(const std::vector<EpHit> &EpdHits, int EventTypeId, EpInf
   //---------------------------------
   // Calculate unshifted EP angles
   //---------------------------------
-  for (int order = 1; order < _EpOrderMax + 1; order++)
+  for (unsigned int order = 1; order < m_MaxOrder + 1; order++)
   {
-
     PsiRaw[order - 1] = GetPsiInRange(QrawOneSide[order - 1][0], QrawOneSide[order - 1][1], order);
   }  // loop over order
 // copy results to i/o object
@@ -98,7 +97,7 @@ void EpFinder::Results(const std::vector<EpHit> &EpdHits, int EventTypeId, EpInf
   return;
 }
 
-double EpFinder::GetPsiInRange(double Qx, double Qy, int order)
+double EpFinder::GetPsiInRange(double Qx, double Qy, unsigned int order) const
 {
   double temp;
   if ((Qx == 0.0) || (Qy == 0.0))
@@ -115,7 +114,7 @@ double EpFinder::GetPsiInRange(double Qx, double Qy, int order)
   return temp;
 }
 
-bool EpFinder::OrderOutsideRange(int order)
+bool EpFinder::OrderOutsideRange(unsigned int order) const
 {
   if (order < 1)
   {
@@ -123,10 +122,10 @@ bool EpFinder::OrderOutsideRange(int order)
     cout << "order must be 1 (for first-order plane) or higher\n";
     return true;
   }
-  if (order > _EpOrderMax)
+  if (order > m_MaxOrder)
   {
     cout << "\n*** Invalid order specified ***\n";
-    cout << "Maximum order=" << _EpOrderMax << ". To change, edit StEpdUtil/StEpdEpInfo.h\n";
+    cout << "Maximum order=" << m_MaxOrder << ". To change, call ctor of EpFinder with " << order << " as max order argument" << endl;
     return true;
   }
   return false;
