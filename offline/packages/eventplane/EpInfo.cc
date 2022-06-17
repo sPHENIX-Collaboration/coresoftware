@@ -13,6 +13,7 @@ EpInfo::EpInfo()
     vec.resize(2);
   }
   WheelSumWeightsRaw.resize(_EpOrderMax);
+  PsiRaw.resize(_EpOrderMax);
   Reset();
 }
 
@@ -22,6 +23,8 @@ void EpInfo::Reset()
   {
     std::fill(vec.begin(),vec.end(),NAN);
   }
+  std::fill(PsiRaw.begin(),PsiRaw.end(),NAN);
+  std::fill(WheelSumWeightsRaw.begin(),WheelSumWeightsRaw.end(),NAN);
 /*
   for (unsigned int iorder = 0; iorder < MaxOrder(); iorder++)
   {
@@ -31,11 +34,11 @@ void EpInfo::Reset()
     }
   }
 */
-  for (unsigned int iorder = 0; iorder < MaxOrder(); iorder++)
-  {
-    PsiRaw[iorder] = -999.0;
-    WheelSumWeightsRaw[iorder] = -999.0;
-  }
+  // for (unsigned int iorder = 0; iorder < MaxOrder(); iorder++)
+  // {
+  //   PsiRaw[iorder] = -999.0;
+  //   WheelSumWeightsRaw[iorder] = -999.0;
+  // }
 }
 
 void EpInfo::InitializeToZero()

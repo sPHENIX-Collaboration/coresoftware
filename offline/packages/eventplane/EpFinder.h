@@ -49,6 +49,7 @@ class EpFinder
   std::vector<std::array<double,1>> TotalWeight4Side;
   std::vector<std::vector<double>> QrawOneSide;
   std::vector<double> WheelSumWeightsRaw;
+  std::vector<double> PsiRaw; // [_EpOrderMax];
 
 };
 

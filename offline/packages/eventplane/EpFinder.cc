@@ -13,6 +13,7 @@ EpFinder::EpFinder(int nEventTypeBins)
   mNumberOfEventTypeBins = nEventTypeBins;
   TotalWeight4Side.resize(_EpOrderMax);
   WheelSumWeightsRaw.resize(_EpOrderMax);
+  PsiRaw.resize(_EpOrderMax);
   QrawOneSide.resize(_EpOrderMax);
   for (auto &vec: QrawOneSide)
   {
@@ -110,13 +111,16 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
   //---------------------------------
   for (int order = 1; order < _EpOrderMax + 1; order++)
   {
-    result.PsiRaw[order - 1] = GetPsiInRange(QrawOneSide[order - 1][0], QrawOneSide[order - 1][1], order);
+
+    PsiRaw[order - 1] = GetPsiInRange(QrawOneSide[order - 1][0], QrawOneSide[order - 1][1], order);
+    //result.PsiRaw[order - 1] = GetPsiInRange(QrawOneSide[order - 1][0], QrawOneSide[order - 1][1], order);
   }  // loop over order
 // copy results to i/o object
     if (epinfo)
       epinfo->CopyQrawOneSide(QrawOneSide);
     result.CopyWheelSumWeightsRaw(WheelSumWeightsRaw);
   result.CopyQrawOneSide(QrawOneSide);
+  result.CopyPsiRaw(PsiRaw);
   return result;
 }
 
