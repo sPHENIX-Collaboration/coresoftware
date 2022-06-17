@@ -43,10 +43,12 @@ class EpFinder
  private:
   bool OrderOutsideRange(int order);
   double GetPsiInRange(double Qx, double Qy, int order);
-  double mThresh;
-  double mMax;
+  double mThresh = 0.;
+  double mMax = 100.;
   int mNumberOfEventTypeBins;
-  std::vector<std::array<double,2>> TotalWeight4Side;
+  std::vector<std::array<double,1>> TotalWeight4Side;
+  std::vector<std::vector<double>> QrawOneSide;
+
 };
 
 #endif  // EVENTPLANE_EPFINDER_H

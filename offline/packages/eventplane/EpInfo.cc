@@ -7,11 +7,21 @@
 
 EpInfo::EpInfo()
 {
+  QrawOneSide.resize(_EpOrderMax);
+  for (auto &vec: QrawOneSide)
+  {
+    vec.resize(2);
+  }
   Reset();
 }
 
 void EpInfo::Reset()
 {
+  for (auto &vec: QrawOneSide)
+  {
+    std::fill(vec.begin(),vec.end(),0);
+  }
+/*
   for (unsigned int iorder = 0; iorder < MaxOrder(); iorder++)
   {
     for (int xy = 0; xy < 2; xy++)
@@ -19,7 +29,7 @@ void EpInfo::Reset()
       QrawOneSide[iorder][xy] = 0.0;
     }
   }
-
+*/
   for (unsigned int iorder = 0; iorder < MaxOrder(); iorder++)
   {
     PsiRaw[iorder] = -999.0;

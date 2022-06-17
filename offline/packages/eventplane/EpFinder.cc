@@ -9,11 +9,14 @@
 using namespace std;
 
 EpFinder::EpFinder(int nEventTypeBins)
-  : mThresh(0.0)
-  , mMax(100.0)
 {
   mNumberOfEventTypeBins = nEventTypeBins;
   TotalWeight4Side.resize(_EpOrderMax);
+  QrawOneSide.resize(_EpOrderMax);
+  for (auto &vec: QrawOneSide)
+  {
+    vec.resize(2);
+  }
 }
 
 void EpFinder::Finish()
@@ -35,20 +38,14 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
   epinfo->InitializeToZero();
   // For normalizing Q-vectors
   //phi weighting not implemented --Ejiro
-//  std::fill(TotalWeight4Side.begin(), TotalWeight4Side.end(), 0);
   for (auto &vec: TotalWeight4Side)
   {
     vec.fill(0);
   }
-//  double TotalWeight4Side[_EpOrderMax][1];
-//  TotalWeight4Side.resize(_EpOrderMax);
-  // for (int phiWeightedOrNo = 0; phiWeightedOrNo < 1; phiWeightedOrNo++)
-  // {
-  //   for (int order = 1; order < _EpOrderMax + 1; order++)
-  //   {
-  //     TotalWeight4Side.at([order - 1]).at(phiWeightedOrNo) = 0;
-  //   }
-  // }
+  for (auto &vec: QrawOneSide)
+  {
+    std::fill(vec.begin(),vec.end(),0);
+  }
 
   //--------------------------------
   // begin loop over hits
@@ -79,6 +76,8 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
       epinfo->AddToQraw(order - 1, 0, etaWeight * TileWeight * Cosine);
       epinfo->AddToQraw(order - 1, 1, etaWeight * TileWeight * Sine);
       }
+      QrawOneSide[order - 1][0] += etaWeight * TileWeight * Cosine;
+      QrawOneSide[order - 1][1] += etaWeight * TileWeight * Sine;
       result.QrawOneSide[order - 1][0] += etaWeight * TileWeight * Cosine;
       result.QrawOneSide[order - 1][1] += etaWeight * TileWeight * Sine;
     }
@@ -101,6 +100,9 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
   {
     if (TotalWeight4Side[order - 1][0] > 0.0001)
     {
+      QrawOneSide[order - 1][0] /= TotalWeight4Side[order - 1][0];
+      QrawOneSide[order - 1][1] /= TotalWeight4Side[order - 1][0];
+
       result.QrawOneSide[order - 1][0] /= TotalWeight4Side[order - 1][0];
       result.QrawOneSide[order - 1][1] /= TotalWeight4Side[order - 1][0];
     }
@@ -115,7 +117,10 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
   {
     result.PsiRaw[order - 1] = GetPsiInRange(result.QrawOneSide[order - 1][0], result.QrawOneSide[order - 1][1], order);
   }  // loop over order
-
+// copy results to i/o object
+    if (epinfo)
+      epinfo->CopyQrawOneSide(QrawOneSide);
+  result.CopyQrawOneSide(QrawOneSide);
   return result;
 }
 

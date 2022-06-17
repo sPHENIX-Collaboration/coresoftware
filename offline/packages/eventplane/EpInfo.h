@@ -29,13 +29,14 @@ class EpInfo : public PHObject
   virtual void InitializeToZero();
   virtual void AddToQraw(unsigned int order, unsigned int index, double val) {QrawOneSide[order][index] += val;}
   virtual void SetWheelSumWeightsRaw(unsigned int order, double val) {WheelSumWeightsRaw[order] = val;}
+  virtual void CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec) {QrawOneSide = vecvec;}
 
  private:
   bool ArgumentOutOfBounds(unsigned int order);
 
   double Range(double psi, unsigned int order);  /// puts angle psi into range (0,2pi/n)
 
-  double QrawOneSide[_EpOrderMax][2];      /// indices: [order][x,y]
+  std::vector<std::vector<double>> QrawOneSide;
   double WheelSumWeightsRaw[_EpOrderMax];  /// indices: [order]
 
   ClassDefOverride(EpInfo, 1);
