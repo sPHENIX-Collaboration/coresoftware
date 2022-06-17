@@ -9,10 +9,9 @@
 
 class EpInfo : public PHObject
 {
-//  friend class EpFinder;
 
  public:
-  EpInfo();
+  EpInfo() {}
   ~EpInfo() override {/* no op */};
 
   void Reset() override;
@@ -24,13 +23,10 @@ class EpInfo : public PHObject
 
   virtual std::pair<double, double> RawQ(unsigned int order);
 
-  virtual unsigned int MaxOrder() const {return  _EpOrderMax;}
-  virtual void InitializeToZero();
-  virtual void AddToQraw(unsigned int order, unsigned int index, double val) {QrawOneSide[order][index] += val;}
-  virtual void SetWheelSumWeightsRaw(unsigned int order, double val) {WheelSumWeightsRaw[order] = val;}
-  virtual void CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec) {QrawOneSide = vecvec;}
-  virtual void CopyWheelSumWeightsRaw(const std::vector<double> &vec) {WheelSumWeightsRaw = vec;}
-  virtual void CopyPsiRaw(const std::vector<double> &vec) {PsiRaw = vec;}
+  virtual unsigned int MaxOrder() const {return  QrawOneSide.size();}
+  virtual void CopyQrawOneSide(const std::vector<std::vector<double>> &vecvec); // {QrawOneSide = vecvec;}
+  virtual void CopyWheelSumWeightsRaw(const std::vector<double> &vec); // {WheelSumWeightsRaw = vec;}
+  virtual void CopyPsiRaw(const std::vector<double> &vec);// {PsiRaw = vec;}
 
  private:
   bool ArgumentOutOfBounds(unsigned int order);

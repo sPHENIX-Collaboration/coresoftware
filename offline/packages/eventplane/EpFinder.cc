@@ -83,10 +83,10 @@ EpInfo EpFinder::Results(std::vector<EpHit> *EpdHits, int EventTypeId, EpInfo *e
   {
     //result.WheelSumWeightsRaw[order - 1] = TotalWeight4Side[order - 1][0];
     WheelSumWeightsRaw[order - 1] = TotalWeight4Side[order - 1][0];
-    if (epinfo)
-    {
-    epinfo->SetWheelSumWeightsRaw(order - 1, TotalWeight4Side[order - 1][0]);
-    }
+    // if (epinfo)
+    // {
+    // epinfo->SetWheelSumWeightsRaw(order - 1, TotalWeight4Side[order - 1][0]);
+    // }
   }
 
   // at this point, we are finished with the detector hits, and deal only with the Q-vectors,
