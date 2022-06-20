@@ -208,7 +208,6 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     std::map<unsigned int, TrkrCluster*> outer_clusters;
     std::vector<TrkrCluster*> clusters;
     std::vector<Acts::Vector3> clusGlobPos;
-    ActsTransformations transformer;
 
     for (SvtxTrack::ConstClusterKeyIter key_iter = tracklet_tpc->begin_cluster_keys(); key_iter != tracklet_tpc->end_cluster_keys(); ++key_iter)
     {
