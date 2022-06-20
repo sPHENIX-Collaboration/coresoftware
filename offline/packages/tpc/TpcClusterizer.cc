@@ -282,35 +282,37 @@ namespace
 	{
 
 	  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-	  std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
-	  mapIter = surfMaps->tpcSurfaceMap.find(layer);
-	  
-	  if(mapIter == surfMaps->tpcSurfaceMap.end())
+        
+	  auto mapIter = surfMaps->m_tpcSurfaceMap.find(layer);
+
+	  if(mapIter == surfMaps->m_tpcSurfaceMap.end())
 	    {
 	      std::cout << PHWHERE 
 			<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
 			<< hitsetkey << std::endl;
 	      return nullptr;
 	    }
-	
+
 	  double world_phi = atan2(world[1], world[0]);
 	  double world_z = world[2];
 	  
 	  std::vector<Surface> surf_vec = mapIter->second;
 	  unsigned int surf_index = 999;
-
+	  
 	  // Predict which surface index this phi and z will correspond to
 	  // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
 	  double fraction =  (world_phi + M_PI) / (2.0 * M_PI);
 	  double rounded_nsurf = round( (double) (surf_vec.size()/2) * fraction  - 0.5);
+
 	  unsigned int nsurf = (unsigned int) rounded_nsurf; 
 	  if(world_z < 0)
-	    nsurf += surf_vec.size()/2;
+	    { nsurf += surf_vec.size()/2; }
 
 	  double surfStepPhi = tGeometry->tpcSurfStepPhi;
 	  double surfStepZ = tGeometry->tpcSurfStepZ;
 
 	  Surface this_surf = surf_vec[nsurf];
+
 	  auto vec3d = this_surf->center(tGeometry->geoContext);
 	  std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
 	  double surf_z = surf_center[2];

@@ -316,9 +316,6 @@ class PHGenFitTrkFitter : public SubsysReco
   //! https://rave.hepforge.org/trac/wiki/RaveMethods
   std::string _vertexing_method = "avr-smoothing:1-minweight:0.5-primcut:9-seccut:9";
 
-  /// acts transformation object
-  ActsTransformations m_transform;
-
   /// acts geometry
   ActsTrackingGeometry *m_tgeometry = nullptr;
 

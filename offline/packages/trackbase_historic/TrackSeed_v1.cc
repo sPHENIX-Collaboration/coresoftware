@@ -1,5 +1,4 @@
 #include "TrackSeed_v1.h"
-#include "ActsTransformations.h"
 
 #include <trackbase/TrackFitUtils.h>
 
@@ -83,7 +82,6 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
 				     uint8_t startLayer,
 				     uint8_t endLayer)
 {
-  ActsTransformations transformer;
   std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
 
   for(const auto& key: m_cluster_keys)
@@ -92,10 +90,9 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
       if(layer < startLayer or layer > endLayer)
 	{ continue; }
       
-      Acts::Vector3 pos = transformer.getGlobalPosition(
+      Acts::Vector3 pos = surfMaps->getGlobalPosition(
            key,
-	   clusters->findCluster(key),
-	   surfMaps, tGeometry);
+	   clusters->findCluster(key), tGeometry);
 
       positions.insert(std::make_pair(key, pos));
     }
@@ -110,7 +107,6 @@ void TrackSeed_v1::lineFit(TrkrClusterContainer *clusters,
 			   uint8_t startLayer,
 			   uint8_t endLayer)
 {
-  ActsTransformations transformer;
   std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
 
   for(const auto& key: m_cluster_keys)
@@ -119,10 +115,9 @@ void TrackSeed_v1::lineFit(TrkrClusterContainer *clusters,
       if(layer < startLayer or layer > endLayer)
 	{ continue; }
       
-      Acts::Vector3 pos = transformer.getGlobalPosition(
+      Acts::Vector3 pos = surfMaps->getGlobalPosition(
            key,
-	   clusters->findCluster(key),
-	   surfMaps, tGeometry);
+	   clusters->findCluster(key), tGeometry);
 
       positions.insert(std::make_pair(key, pos));
     }
@@ -288,17 +283,15 @@ float TrackSeed_v1::get_phi(TrkrClusterContainer *clusters,
 			    ActsSurfaceMaps *surfMaps, 
 			    ActsTrackingGeometry *tGeometry) const
 {
-  ActsTransformations transformer;
-  Acts::Vector3 pos0 = transformer.getGlobalPosition(
+  Acts::Vector3 pos0 = surfMaps->getGlobalPosition(
 		       *(m_cluster_keys.begin()),
 		       clusters->findCluster(*(m_cluster_keys.begin())),
-		       surfMaps, tGeometry);
+		       tGeometry);
 
   auto key = *std::next(m_cluster_keys.begin(), 1);
-  Acts::Vector3 pos1 = transformer.getGlobalPosition(
-		       key,
-		       clusters->findCluster(key),
-		       surfMaps, tGeometry);
+  Acts::Vector3 pos1 = surfMaps->getGlobalPosition(key,
+						   clusters->findCluster(key),
+						   tGeometry);
   std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
   positions.insert(std::make_pair(*(m_cluster_keys.begin()), pos0));
   positions.insert(std::make_pair(key, pos1));

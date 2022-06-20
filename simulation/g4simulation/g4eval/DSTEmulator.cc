@@ -527,9 +527,8 @@ int DSTEmulator::End(PHCompositeNode* )
 Acts::Vector3 DSTEmulator::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
-  auto globalpos = m_transform.getGlobalPosition(key, cluster,
-    m_surfMaps,
-    m_tGeometry);
+  auto globalpos = m_surfMaps->getGlobalPosition(key, cluster,
+						 m_tGeometry);
 
   // check if TPC distortion correction are in place and apply
   // if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
@@ -736,9 +735,9 @@ void DSTEmulator::evaluate_tracks()
 
     //    std::cout << " subsurfkey: " << subsurfkey << std::endl;
     std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
-    mapIter = m_surfMaps->tpcSurfaceMap.find(layer);
+    mapIter = m_surfMaps->m_tpcSurfaceMap.find(layer);
     
-    if(mapIter == m_surfMaps->tpcSurfaceMap.end()){
+    if(mapIter == m_surfMaps->m_tpcSurfaceMap.end()){
       std::cout << PHWHERE 
 		<< "Error: hitsetkey not found in clusterSurfaceMap, layer = " << 
 	trk_r//layer 

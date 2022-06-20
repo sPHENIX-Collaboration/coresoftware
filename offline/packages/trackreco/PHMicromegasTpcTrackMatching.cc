@@ -208,7 +208,6 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     std::map<unsigned int, TrkrCluster*> outer_clusters;
     std::vector<TrkrCluster*> clusters;
     std::vector<Acts::Vector3> clusGlobPos;
-    ActsTransformations transformer;
 
     for (SvtxTrack::ConstClusterKeyIter key_iter = tracklet_tpc->begin_cluster_keys(); key_iter != tracklet_tpc->end_cluster_keys(); ++key_iter)
     {
@@ -231,7 +230,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       
       if(Verbosity() > 10)
       {
-	auto global_raw = transformer.getGlobalPosition(cluster_key, tpc_clus, _surfmaps, _tGeometry);
+	auto global_raw = _surfmaps->getGlobalPosition(cluster_key, tpc_clus,  _tGeometry);
         std::cout
           << "  TPC cluster key " << cluster_key << " in layer " << layer << " side " << side << " crossing " << crossing
 	  << " with local position " << tpc_clus->getLocalX()  << "  " << tpc_clus->getLocalY() << std::endl;
@@ -366,7 +365,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 	}
         // store cluster and key
         const auto& [key, cluster] = *clusiter;
-        const auto glob = transformer.getGlobalPosition(key, cluster,_surfmaps,_tGeometry);
+        const auto glob = _surfmaps->getGlobalPosition(key, cluster,_tGeometry);
         const TVector3 world_cluster(glob(0), glob(1), glob(2));
         const TVector3 local_cluster = layergeom->get_local_from_world_coords( tileid, world_cluster );
 
@@ -533,11 +532,8 @@ void PHMicromegasTpcTrackMatching::copyMicromegasClustersToCorrectedMap( )
 
  Acts::Vector3 PHMicromegasTpcTrackMatching::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing, unsigned int side)
 {
-  // get global position from Acts transform
-  ActsTransformations transformer;
-  auto globalpos = transformer.getGlobalPosition(key, cluster,
-    _surfmaps,
-    _tGeometry);
+
+  auto globalpos = _surfmaps->getGlobalPosition(key, cluster, _tGeometry);
 
   // ADF: for streaming mode, will need a crossing z correction here
   float z = _clusterCrossingCorrection.correctZ(globalpos[2], side, crossing);

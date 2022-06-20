@@ -252,7 +252,6 @@ void QAG4SimulationMvtx::evaluate_clusters()
     histograms.insert(std::make_pair(layer, h));
   }
 
-  ActsTransformations transformer;
   for(const auto& hitsetkey:m_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::mvtxId))
   {
     auto range = m_cluster_map->getClusters(hitsetkey);
@@ -262,7 +261,7 @@ void QAG4SimulationMvtx::evaluate_clusters()
       const auto& key = clusterIter->first;
       // get cluster
       const auto& cluster = clusterIter->second;
-      const auto global = transformer.getGlobalPosition(key, cluster, m_surfmaps, m_tGeometry);
+      const auto global = m_surfmaps->getGlobalPosition(key, cluster, m_tGeometry);
 
       // get relevant cluster information
       const auto r_cluster = QAG4Util::get_r(global(0), global(1));

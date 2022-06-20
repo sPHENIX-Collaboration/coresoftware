@@ -115,9 +115,9 @@ namespace
 					    TrkrDefs::subsurfkey& subsurfkey)
 	{
     const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-    const auto mapIter = surfMaps->tpcSurfaceMap.find(layer);
+    const auto mapIter = surfMaps->m_tpcSurfaceMap.find(layer);
 	  
-	  if(mapIter == surfMaps->tpcSurfaceMap.end())
+    if(mapIter == surfMaps->m_tpcSurfaceMap.end())
 	    {
 	      std::cout << PHWHERE 
 			<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "

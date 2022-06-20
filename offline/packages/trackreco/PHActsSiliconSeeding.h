@@ -163,8 +163,6 @@ class PHActsSiliconSeeding : public SubsysReco
 				double& xminus,
 				double& yminus);
 
-  Surface getSurface(TrkrDefs::hitsetkey hitsetkey);
-
   void createHistograms();
   void writeHistograms();
   double normPhi2Pi(const double phi);

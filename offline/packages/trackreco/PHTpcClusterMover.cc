@@ -121,9 +121,8 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  
 	  // get the cluster in 3D coordinates
 	  auto tpc_clus =  _cluster_map->findCluster(cluster_key);
-	  auto global = _transformer.getGlobalPosition(cluster_key, tpc_clus,
-						      _surfmaps,
-						      _tGeometry);
+	  auto global = _surfmaps->getGlobalPosition(cluster_key, tpc_clus,
+						     _tGeometry);
 
 	  // check if TPC distortion correction are in place and apply
 	  if(Verbosity() > 2)  std::cout << "  layer " << layer << " distorted cluster position: " << global[0] << "  " << global[1] << "  " << global[2];
@@ -387,9 +386,9 @@ Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitse
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
-  mapIter = surfMaps->tpcSurfaceMap.find(layer);
+  mapIter = surfMaps->m_tpcSurfaceMap.find(layer);
   
-  if(mapIter == surfMaps->tpcSurfaceMap.end())
+  if(mapIter == surfMaps->m_tpcSurfaceMap.end())
     {
       std::cout << PHWHERE 
 		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "

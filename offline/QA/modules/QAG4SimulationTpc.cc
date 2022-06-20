@@ -329,8 +329,6 @@ void QAG4SimulationTpc::evaluate_clusters()
   //PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetParticleRange();  // all truth cluters
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();  // only from primary particles
 
-  ActsTransformations transformer;
-
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
        iter != range.second;
        ++iter)
@@ -379,7 +377,7 @@ void QAG4SimulationTpc::evaluate_clusters()
         // fill the matched cluster histo
         h_eff1->Fill(layer);
 
-        const auto global = transformer.getGlobalPosition(rkey, rclus, m_surfmaps, m_tGeometry);
+        const auto global = m_surfmaps->getGlobalPosition(rkey, rclus, m_tGeometry);
 
         // get relevant cluster information
         const auto r_cluster = QAG4Util::get_r(global(0), global(1));

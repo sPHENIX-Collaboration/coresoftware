@@ -660,8 +660,8 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 	      TrkrDefs::cluskey cluster_key = *kter;
 	      
 	      TrkrCluster *cluster = clustermap->findCluster(cluster_key);
-	      ActsTransformations transformer;
-	      auto glob = transformer.getGlobalPosition(cluster_key, cluster,surfmaps,tgeometry);
+        
+	      auto glob = surfmaps->getGlobalPosition(cluster_key, cluster,tgeometry);
 	      float x = glob(0);
 	      float y = glob(1);
 	      float z = glob(2);
@@ -718,8 +718,8 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
             {
 	      TrkrDefs::cluskey cluster_key = *iter;
               TrkrCluster *cluster = clustermap->findCluster(cluster_key);
-	      ActsTransformations transformer;
-	      auto glob = transformer.getGlobalPosition(cluster_key, cluster,surfmaps,tgeometry);
+
+	      auto glob = surfmaps->getGlobalPosition(cluster_key, cluster,tgeometry);
               float x = glob(0);
               float y = glob(1);
               float z = glob(2);
@@ -785,8 +785,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		<< std::endl;
       return;
     }
-
-  ActsTransformations actsTransformer;
 
   SvtxVertexEval* vertexeval = _svtxevalstack->get_vertex_eval();
   SvtxClusterEval* clustereval = _svtxevalstack->get_cluster_eval();
@@ -1429,7 +1427,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       if (cluster)
       {
         clusID = cluster_key;
-	auto global = actsTransformer.getGlobalPosition(cluster_key, cluster,surfmaps,tgeometry);
+	auto global = surfmaps->getGlobalPosition(cluster_key, cluster,tgeometry);
         x = global(0);
         y = global(1);
         z = global(2);
@@ -1772,7 +1770,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  if(_iteration_map!=NULL)
 	    niter = _iteration_map->getIteration(cluster_key);
 	  float hitID = (float) cluster_key;
-	  auto cglob = actsTransformer.getGlobalPosition(cluster_key, cluster,surfmaps,tgeometry);
+	  auto cglob = surfmaps->getGlobalPosition(cluster_key, cluster,tgeometry);
 	  float x = cglob(0);
 	  float y = cglob(1);
 	  float z = cglob(2);
@@ -2033,7 +2031,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      if(_iteration_map!=NULL)
 		niter = _iteration_map->getIteration(cluster_key);
 	      float hitID = (float) TrkrDefs::getClusIndex(cluster_key);
-	      auto glob = actsTransformer.getGlobalPosition(cluster_key, cluster,surfmaps,tgeometry);
+	      auto glob = surfmaps->getGlobalPosition(cluster_key, cluster,tgeometry);
 	      float x = glob(0);
 	      float y = glob(1);
 	      float z = glob(2);
@@ -2313,7 +2311,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      if(reco_cluster)
 		{
 		  nreco = 1;
-		  auto glob = actsTransformer.getGlobalPosition(reco_ckey, reco_cluster,surfmaps,tgeometry);
+		  auto glob = surfmaps->getGlobalPosition(reco_ckey, reco_cluster,tgeometry);
 		  x = glob(0);
 		  y = glob(1);
 		  z = glob(2);

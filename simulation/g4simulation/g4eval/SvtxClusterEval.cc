@@ -122,8 +122,8 @@ std::pair<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxClusterEval::max_
     cout << "         max truth particle by cluster energy has  trackID  " << max_particle->get_track_id() << endl;      
 
   TrkrCluster* reco_cluster = _clustermap->findCluster(cluster_key);
-  ActsTransformations transformer;
-  auto global = transformer.getGlobalPosition(cluster_key, reco_cluster,_surfmaps,_tgeometry);
+
+  auto global = _surfmaps->getGlobalPosition(cluster_key, reco_cluster,_tgeometry);
   double reco_x = global(0);
   double reco_y = global(1);
   double reco_z = global(2);
@@ -253,12 +253,11 @@ std::pair<TrkrDefs::cluskey, TrkrCluster*> SvtxClusterEval::reco_cluster_from_tr
   if(nreco > 0)
     {
       // Find a matching reco cluster with position inside 4 sigmas, and replace reco_cluskey
-      ActsTransformations transform;
       for( const auto& this_ckey:reco_cluskeys )
 	{
 	  // get the cluster
 	  TrkrCluster* this_cluster = _clustermap->findCluster(this_ckey);
-	  auto global = transform.getGlobalPosition(this_ckey,this_cluster,_surfmaps,_tgeometry);
+	  auto global = _surfmaps->getGlobalPosition(this_ckey,this_cluster,_tgeometry);
 	  double this_x = global(0);
 	  double this_y = global(1);
 	  double this_z = global(2);
@@ -419,9 +418,8 @@ PHG4Hit* SvtxClusterEval::all_truth_hits_by_nhit(TrkrDefs::cluskey cluster_key)
 	}
     }
   */
-  ActsTransformations transformer;
   TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
-  auto glob = transformer.getGlobalPosition(cluster_key, cluster,_surfmaps,_tgeometry);
+  auto glob = _surfmaps->getGlobalPosition(cluster_key, cluster,_tgeometry);
   TVector3 cvec(glob(0), glob(1), glob(2));
   unsigned int layer = TrkrDefs::getLayer(cluster_key);
   std::set<PHG4Hit*> truth_hits;
@@ -541,10 +539,9 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
   std::pair<int, int> out_pair;
   out_pair.first = 0;
   out_pair.second = -1;
-  ActsTransformations transform;
 
   TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
-  auto global = transform.getGlobalPosition(cluster_key, cluster,_surfmaps,_tgeometry);
+  auto global = _surfmaps->getGlobalPosition(cluster_key, cluster,_tgeometry);
   TVector3 cvec(global(0), global(1), global(2));
   unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
@@ -1285,7 +1282,6 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode* topNode)
 
 void SvtxClusterEval::fill_cluster_layer_map()
 {
-  ActsTransformations transformer;
   // loop over all the clusters
   for(const auto& hitsetkey:_clustermap->getHitSetKeys())
   {
@@ -1294,7 +1290,7 @@ void SvtxClusterEval::fill_cluster_layer_map()
       TrkrDefs::cluskey cluster_key = iter->first;
       unsigned int ilayer = TrkrDefs::getLayer(cluster_key);
       TrkrCluster *cluster = iter->second;
-      auto glob = transformer.getGlobalPosition(cluster_key, cluster, _surfmaps,_tgeometry);
+      auto glob = _surfmaps->getGlobalPosition(cluster_key, cluster,_tgeometry);
       float clus_phi = atan2(glob(1), glob(0));
       
       multimap<unsigned int, innerMap>::iterator it = _clusters_per_layer.find(ilayer);
