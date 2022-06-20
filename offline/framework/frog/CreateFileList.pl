@@ -107,7 +107,14 @@ if (defined $prodtype)
     }
     elsif ($prodtype == 4)
     {
-	$filenamestring = sprintf("sHijing_0_20fm_%s_bkg_0_20fm",$pileupstring);
+	if (defined $nopileup)
+	{
+	    $filenamestring = sprintf("sHijing_0_20fm");
+	}
+	else
+	{
+	    $filenamestring = sprintf("sHijing_0_20fm_%s_bkg_0_20fm",$pileupstring);
+	}
         $notlike{$filenamestring} = "pythia8";
 	&commonfiletypes();
     }
