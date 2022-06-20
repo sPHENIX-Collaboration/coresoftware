@@ -518,6 +518,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	  surf = m_surfMaps->getSurface(cluskey, cluster);
 	}
       
+      if(!surf)
+	{ continue; }
       // get local coordinates
       Acts::Vector2 localPos;
       Acts::Vector3 normal = surf->normal(m_tGeometry->geoContext);
@@ -1053,10 +1055,10 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 }
 
 Surface PHActsTrkFitter::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
-						       Acts::Vector3 world,
-						       ActsSurfaceMaps *surfMaps,
-						       ActsTrackingGeometry *tGeometry,
-						       TrkrDefs::subsurfkey& subsurfkey)
+						     Acts::Vector3 world,
+						     ActsSurfaceMaps *surfMaps,
+						     ActsTrackingGeometry *tGeometry,
+						     TrkrDefs::subsurfkey& subsurfkey)
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
