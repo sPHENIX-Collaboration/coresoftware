@@ -29,10 +29,8 @@ bool ActsSurfaceMaps::isTpcSurface( const Acts::Surface* surface ) const
 bool ActsSurfaceMaps::isMicromegasSurface( const Acts::Surface* surface ) const
 { return m_micromegasVolumeIds.find( surface->geometryId().volume() ) != m_micromegasVolumeIds.end(); }
 
-
-
 Surface ActsSurfaceMaps::getSurface(TrkrDefs::cluskey key,       
-					TrkrCluster *cluster) const
+				    TrkrCluster *cluster) const
 {
   const auto trkrid = TrkrDefs::getTrkrId(key);
   const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(key);

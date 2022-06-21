@@ -3,6 +3,9 @@
 
 #include <g4detectors/PHG4CylinderGeom.h>
 
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
+
 #include <cmath>
 #include <iostream>
 
@@ -98,7 +101,8 @@ class CylinderGeomIntt : public PHG4CylinderGeom
   bool load_geometry();
   void find_strip_center_localcoords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[]);
   void find_indices_from_segment_center(int &segment_z_bin, int &segment_phi_bin, double location[]);
-  TVector3 get_local_from_world_coords(const int segment_z_bin, const int segment_phi_bin, TVector3 world);
+  TVector3 get_world_from_local_coords(Surface surface, ActsTrackingGeometry* tGeometry, TVector2 local);
+  TVector3 get_local_from_world_coords(Surface surface, ActsTrackingGeometry* tGeometry, TVector3 world);
   void find_indices_from_world_location(int &segment_z_bin, int &segment_phi_bin, double location[]);
 
   double get_strip_phi_tilt() const

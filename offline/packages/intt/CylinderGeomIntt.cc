@@ -3,6 +3,7 @@
 #include <CLHEP/Vector/ThreeVector.h>
 #include <CLHEP/Vector/Rotation.h>
 
+#include <Acts/Definitions/Units.hpp>
 #include <algorithm>
 #include <cmath>
 
@@ -36,24 +37,60 @@ bool CylinderGeomIntt::load_geometry()
 {
   return true;
 }
-
-TVector3 CylinderGeomIntt::get_local_from_world_coords(const int segment_z_bin, const int segment_phi_bin, TVector3 world)
+TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsTrackingGeometry* tGeometry, TVector2 local)
 {
-  TVector3 local(0,0,0);
+  Acts::Vector2 actslocal;
+  actslocal(0) = local.X();
+  actslocal(1) = local.Y();
+  actslocal *= Acts::UnitConstants::cm;
+  
+  /// Acts requires a dummy vector to be passed in the arg list
+  auto global = surface->localToGlobal(tGeometry->geoContext,
+				       actslocal,
+				       Acts::Vector3(1,1,1));
 
-  double center[3] = {0,0,0};
-  find_segment_center(segment_z_bin, segment_phi_bin, center);
-  TVector3 cent(center[0], center[1], center[2]);
+  global /= Acts::UnitConstants::cm;
+  
+  TVector3 ret;
+  ret[0] = global(0);
+  ret[1] = global(1);
+  ret[2] = global(2);
+  
+  return ret;
 
-  // subtract center location of sensor from world coords
-  local = world - cent;
+}
+TVector3 CylinderGeomIntt::get_local_from_world_coords(Surface surface, ActsTrackingGeometry* tGeometry, TVector3 world)
+{
+  Acts::Vector2 local;
+  Acts::Vector3 global;
+  global(0) = world[0];
+  global(1) = world[1];
+  global(2) = world[2];
+  global *= Acts::UnitConstants::cm;
 
-  // rotate the residual into local coords
-  const double phi = m_OffsetPhi + m_dPhi * segment_phi_bin;
-  const double rotate = phi + m_OffsetRot;
-  local.RotateZ(-rotate);
+  /// Acts requires a dummy vector to be passed in the arg list
+  auto localResult = surface->globalToLocal(tGeometry->geoContext,
+					    global,
+					    Acts::Vector3(1,1,1));
+  TVector3 localR;
+  if(localResult.ok())
+    {
+      local = localResult.value();
+      local /= Acts::UnitConstants::cm;
+      localR[0] = local(0);
+      localR[1] = 0;
+      localR[2] = local(1);
+    }
+  else
+    {
+      std::cout << "Could not perform transform on Acts::Surface. Returning NAN" 
+		<< std::endl;
+      localR[0] = NAN;
+      localR[1] = NAN;
+      localR[2] = NAN;
+    }
 
-  return local;
+  return localR;
 }
 
 void CylinderGeomIntt::find_segment_center(const int segment_z_bin, const int segment_phi_bin, double location[])
