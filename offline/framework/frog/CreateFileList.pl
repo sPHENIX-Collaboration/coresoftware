@@ -102,7 +102,11 @@ if (defined $prodtype)
     }
     elsif ($prodtype == 3)
     {
-	$filenamestring = "pythia8_pp_mb_3MHz";
+	$filenamestring = "pythia8_pp_mb";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	}
 	&commonfiletypes();
     }
     elsif ($prodtype == 4)
