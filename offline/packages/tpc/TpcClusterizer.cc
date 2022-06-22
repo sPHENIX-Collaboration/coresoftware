@@ -63,8 +63,7 @@ namespace
   {
     PHG4CylinderCellGeom *layergeom = nullptr;
     TrkrHitSet *hitset = nullptr;
-    ActsSurfaceMaps *surfmaps = nullptr;
-    ActsTrackingGeometry *tGeometry = nullptr;
+    ActsGeometry *tGeometry = nullptr;
     unsigned int layer = 0;
     int side = 0;
     unsigned int sector = 0;
@@ -275,17 +274,16 @@ namespace
   
   	Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
 					    Acts::Vector3 world,
-					    ActsSurfaceMaps *surfMaps,
-					    ActsTrackingGeometry *tGeometry,
+					    ActsGeometry *tGeometry,
 					    TrkrDefs::subsurfkey& subsurfkey,
 					    int verbosity)
 	{
 
 	  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-        
-	  auto mapIter = surfMaps->m_tpcSurfaceMap.find(layer);
+	  
+	  auto mapIter = tGeometry->maps().m_tpcSurfaceMap.find(layer);
 
-	  if(mapIter == surfMaps->m_tpcSurfaceMap.end())
+	  if(mapIter == tGeometry->maps().m_tpcSurfaceMap.end())
 	    {
 	      std::cout << PHWHERE 
 			<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
@@ -308,12 +306,12 @@ namespace
 	  if(world_z < 0)
 	    { nsurf += surf_vec.size()/2; }
 
-	  double surfStepPhi = tGeometry->tpcSurfStepPhi;
-	  double surfStepZ = tGeometry->tpcSurfStepZ;
+	  double surfStepPhi = tGeometry->geometry().tpcSurfStepPhi;
+	  double surfStepZ = tGeometry->geometry().tpcSurfStepZ;
 
 	  Surface this_surf = surf_vec[nsurf];
 
-	  auto vec3d = this_surf->center(tGeometry->geoContext);
+	  auto vec3d = this_surf->center(tGeometry->geometry().geoContext);
 	  std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
 	  double surf_z = surf_center[2];
 	  double surf_phi = atan2(surf_center[1], surf_center[0]);
@@ -429,7 +427,6 @@ namespace
       TrkrDefs::subsurfkey subsurfkey = 0;
       Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
 						    global,
-						    my_data.surfmaps,
 						    my_data.tGeometry,
 						    subsurfkey,
 						    my_data.verbosity);
@@ -462,10 +459,10 @@ namespace
       // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
       clusz -= (clusz<0) ? my_data.par0_neg:my_data.par0_pos;
 
-      Acts::Vector3 center = surface->center(my_data.tGeometry->geoContext)/Acts::UnitConstants::cm;
+      Acts::Vector3 center = surface->center(my_data.tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
       
       // no conversion needed, only used in acts
-      Acts::Vector3 normal = surface->normal(my_data.tGeometry->geoContext);
+      Acts::Vector3 normal = surface->normal(my_data.tGeometry->geometry().geoContext);
       double clusRadius = sqrt(clusx * clusx + clusy * clusy);
       double rClusPhi = clusRadius * clusphi;
       double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
@@ -473,7 +470,7 @@ namespace
       double surfRphiCenter = surfPhiCenter * surfRadius;
       double surfZCenter = center[2];
       
-      auto local = surface->globalToLocal(my_data.tGeometry->geoContext,
+      auto local = surface->globalToLocal(my_data.tGeometry->geometry().geoContext,
 					  global * Acts::UnitConstants::cm,
 					  normal);
       Acts::Vector2 localPos;
@@ -776,22 +773,12 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,
-							 "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode,
+						 "ActsGeometry");
   if(!m_tGeometry)
     {
       std::cout << PHWHERE
-		<< "ActsTrackingGeometry not found on node tree. Exiting"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-
-  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
-						   "ActsSurfaceMaps");
-  if(!m_surfMaps)
-    {
-      std::cout << PHWHERE 
-		<< "ActsSurfaceMaps not found on node tree. Exiting"
+		<< "ActsGeometry not found on node tree. Exiting"
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
@@ -849,7 +836,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.do_assoc = do_hit_assoc;
     thread_pair.data.do_wedge_emulation = do_wedge_emulation;
     thread_pair.data.tGeometry = m_tGeometry;
-    thread_pair.data.surfmaps = m_surfMaps;
     thread_pair.data.maxHalfSizeZ =  MaxClusterHalfSizeZ;
     thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
     thread_pair.data.m_drift_velocity_scale = m_drift_velocity_scale;
