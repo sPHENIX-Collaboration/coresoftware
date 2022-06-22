@@ -63,7 +63,6 @@ pkginclude_HEADERS = \
   PHSimpleKFProp.h \
   PHTpcClusterMover.h \
   PHTpcDeltaZCorrection.h \
-  PHTpcTrackSeedCircleFit.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
@@ -161,7 +160,6 @@ libtrack_reco_la_SOURCES = \
   PHSimpleVertexFinder.cc \
   PHTpcClusterMover.cc \
   PHTpcDeltaZCorrection.cc \
-  PHTpcTrackSeedCircleFit.cc \
   PHTrackCleaner.cc \
   PHTrackSeeding.cc \
   PHTrackSelector.cc \

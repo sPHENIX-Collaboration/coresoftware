@@ -45,8 +45,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
@@ -286,8 +284,8 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
     
     // track momentum comes from tpc seed
     svtxtrack->set_charge( tpcseed->get_qOverR() > 0 ? 1 : -1);
-    svtxtrack->set_px(tpcseed->get_px(m_clustermap,m_surfmaps,m_tgeometry));
-    svtxtrack->set_py(tpcseed->get_py(m_clustermap,m_surfmaps,m_tgeometry));
+    svtxtrack->set_px(tpcseed->get_px(m_clustermap,m_tgeometry));
+    svtxtrack->set_py(tpcseed->get_py(m_clustermap,m_tgeometry));
     svtxtrack->set_pz(tpcseed->get_pz());
     
     // insert in map
@@ -793,18 +791,10 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 {
 
   // acts geometry
-  m_tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  m_tgeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
   if(!m_tgeometry)
   {
     std::cout << "PHGenFitTrkFitter::GetNodes - No acts tracking geometry, can't proceed" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  // acts surfaces
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
-  if(!m_surfmaps)
-  {
-    std::cout << "PHGenFitTrkFitter::GetNodes - No acts surface maps, can't proceed" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -923,9 +913,8 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
   if (it == m_globalPositions.end()|| (key < it->first ))
   {
     // get global position from Acts transform
-    const auto globalpos = m_surfmaps->getGlobalPosition(
-      key, cluster,
-      m_tgeometry);
+    const auto globalpos = m_tgeometry->getGlobalPosition(
+      key, cluster);
 
     /*
      * todo: should also either apply distortion corrections

@@ -123,7 +123,7 @@ std::pair<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxClusterEval::max_
 
   TrkrCluster* reco_cluster = _clustermap->findCluster(cluster_key);
 
-  auto global = _surfmaps->getGlobalPosition(cluster_key, reco_cluster,_tgeometry);
+  auto global = _tgeometry->getGlobalPosition(cluster_key, reco_cluster);
   double reco_x = global(0);
   double reco_y = global(1);
   double reco_z = global(2);
@@ -257,7 +257,7 @@ std::pair<TrkrDefs::cluskey, TrkrCluster*> SvtxClusterEval::reco_cluster_from_tr
 	{
 	  // get the cluster
 	  TrkrCluster* this_cluster = _clustermap->findCluster(this_ckey);
-	  auto global = _surfmaps->getGlobalPosition(this_ckey,this_cluster,_tgeometry);
+	  auto global = _tgeometry->getGlobalPosition(this_ckey,this_cluster);
 	  double this_x = global(0);
 	  double this_y = global(1);
 	  double this_z = global(2);
@@ -419,7 +419,7 @@ PHG4Hit* SvtxClusterEval::all_truth_hits_by_nhit(TrkrDefs::cluskey cluster_key)
     }
   */
   TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
-  auto glob = _surfmaps->getGlobalPosition(cluster_key, cluster,_tgeometry);
+  auto glob = _tgeometry->getGlobalPosition(cluster_key, cluster);
   TVector3 cvec(glob(0), glob(1), glob(2));
   unsigned int layer = TrkrDefs::getLayer(cluster_key);
   std::set<PHG4Hit*> truth_hits;
@@ -541,7 +541,7 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
   out_pair.second = -1;
 
   TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
-  auto global = _surfmaps->getGlobalPosition(cluster_key, cluster,_tgeometry);
+  auto global = _tgeometry->getGlobalPosition(cluster_key, cluster);
   TVector3 cvec(global(0), global(1), global(2));
   unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
@@ -1274,8 +1274,7 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode* topNode)
   _g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
   _g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
   _g4hits_mms = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
-  _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  _tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  _tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   
   return;
 }
@@ -1290,7 +1289,7 @@ void SvtxClusterEval::fill_cluster_layer_map()
       TrkrDefs::cluskey cluster_key = iter->first;
       unsigned int ilayer = TrkrDefs::getLayer(cluster_key);
       TrkrCluster *cluster = iter->second;
-      auto glob = _surfmaps->getGlobalPosition(cluster_key, cluster,_tgeometry);
+      auto glob = _tgeometry->getGlobalPosition(cluster_key, cluster);
       float clus_phi = atan2(glob(1), glob(0));
       
       multimap<unsigned int, innerMap>::iterator it = _clusters_per_layer.find(ilayer);

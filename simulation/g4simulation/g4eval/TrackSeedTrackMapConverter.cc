@@ -1,8 +1,7 @@
 
 #include "TrackSeedTrackMapConverter.h"
 
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrClusterContainer.h>
 
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -129,8 +128,8 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 
 
 	  svtxtrack->set_charge( tpcseed->get_qOverR() > 0 ? 1 : -1);
-	  svtxtrack->set_px(tpcseed->get_px(m_clusters,m_surfmaps,m_tGeometry));
-	  svtxtrack->set_py(tpcseed->get_py(m_clusters,m_surfmaps,m_tGeometry));
+	  svtxtrack->set_px(tpcseed->get_px(m_clusters,m_tGeometry));
+	  svtxtrack->set_py(tpcseed->get_py(m_clusters,m_tGeometry));
 	  svtxtrack->set_pz(tpcseed->get_pz());
 	  
 	  addKeys(svtxtrack, tpcseed);
@@ -143,8 +142,8 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 	  svtxtrack->set_y(trackSeed->get_y());
 	  svtxtrack->set_z(trackSeed->get_z());
 	  svtxtrack->set_charge( trackSeed->get_qOverR() > 0 ? 1 : -1);
-	  svtxtrack->set_px(trackSeed->get_px(m_clusters,m_surfmaps,m_tGeometry));
-	  svtxtrack->set_py(trackSeed->get_py(m_clusters,m_surfmaps,m_tGeometry));
+	  svtxtrack->set_px(trackSeed->get_px(m_clusters,m_tGeometry));
+	  svtxtrack->set_py(trackSeed->get_py(m_clusters,m_tGeometry));
 	  svtxtrack->set_pz(trackSeed->get_pz());
 	  
 	  addKeys(svtxtrack, trackSeed);
@@ -251,16 +250,8 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode *topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-
-   m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
-  if(!m_surfmaps)
-    {
-      std::cout << PHWHERE << " Can't find cluster container, can't continue."
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
   
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
   if(!m_tGeometry)
     {
       std::cout << PHWHERE << " Can't find ActsGeometry, can't continue."

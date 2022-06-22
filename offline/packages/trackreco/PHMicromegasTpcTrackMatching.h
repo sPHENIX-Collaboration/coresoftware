@@ -4,8 +4,7 @@
 #define PHMICROMEGASTPCTRACKMATCHING_H
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
 
@@ -93,8 +92,7 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   int _n_iteration = 0;
   std::string _track_map_name = "TpcTrackSeedContainer";
 
-  ActsTrackingGeometry *_tGeometry = nullptr;
-  ActsSurfaceMaps *_surfmaps = nullptr;
+  ActsGeometry *_tGeometry = nullptr;
 
   /// distortion correction container
   TpcDistortionCorrectionContainer* _dcc = nullptr;

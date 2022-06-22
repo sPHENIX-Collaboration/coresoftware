@@ -22,8 +22,7 @@
 #include <vector>
 
 // forward declaration
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
+class ActsGeometry;
 
 class SvtxTrack;
 class SvtxTrackMap;
@@ -124,10 +123,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   bool m_use_micromegas = true;
 
   /// acts geometry
-  ActsTrackingGeometry *m_tgeometry = nullptr;
-
-  /// acts surface map
-  ActsSurfaceMaps *m_surfmaps = nullptr;
+  ActsGeometry *m_tgeometry = nullptr;
 
   /// map cluster keys to global position
   using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;

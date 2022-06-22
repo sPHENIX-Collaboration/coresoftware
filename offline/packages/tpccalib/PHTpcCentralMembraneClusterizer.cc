@@ -24,8 +24,7 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/CMFlashClusterv1.h>
 #include <trackbase/CMFlashClusterContainerv1.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/ActsTransformations.h>
@@ -91,11 +90,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 {
 
   //local coord conversion below
-  ActsTrackingGeometry *tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
-  //std::cout << "got tgeom" << std::endl;
-  ActsSurfaceMaps *surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
-  //std::cout << "got surfmaps" << std::endl;
-  if(!tgeometry or !surfmaps)
+  ActsGeometry *tgeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
+  
+  if(!tgeometry)
     {
       std::cout << PHWHERE << "No Acts geometry on node tree. Can't  continue."
 		<< std::endl;
@@ -117,7 +114,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	   clusiter != clusRange.second; ++clusiter)
 	{
     const auto& [cluskey, cluster] = *clusiter;
-    auto glob = surfmaps->getGlobalPosition(cluskey, cluster, tgeometry);
+    auto glob = tgeometry->getGlobalPosition(cluskey, cluster);
     
     float x = glob(0);
     float y = glob(1);

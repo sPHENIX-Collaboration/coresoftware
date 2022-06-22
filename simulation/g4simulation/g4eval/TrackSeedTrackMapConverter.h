@@ -12,8 +12,7 @@ class SvtxTrackMap;
 class SvtxTrack_v3;
 class TrackSeed;
 class TrackSeedContainer;
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
+class ActsGeometry;
 class TrkrClusterContainer;
 
 class TrackSeedTrackMapConverter : public SubsysReco
@@ -45,8 +44,7 @@ class TrackSeedTrackMapConverter : public SubsysReco
   TrackSeedContainer *m_siContainer = nullptr;
 
   TrkrClusterContainer *m_clusters = nullptr;
-  ActsSurfaceMaps *m_surfmaps = nullptr;
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
 };
 
 #endif // TRACKSEEDTRACKMAPCONVERTER_H

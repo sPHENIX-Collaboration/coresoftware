@@ -248,9 +248,9 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	      cluster_keys.push_back(cluskey);
 	  
 	      trackSeed->insert_cluster_key(cluskey);
-	      auto globalPosition = m_surfMaps->getGlobalPosition(
+	      auto globalPosition = m_tGeometry->getGlobalPosition(
                      cluskey,
-		     m_clusterMap->findCluster(cluskey), m_tGeometry);
+		     m_clusterMap->findCluster(cluskey));
 	      globalPositions.push_back(globalPosition);      
 
 	      positions.insert(std::make_pair(cluskey, globalPosition));
@@ -316,7 +316,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	    { 
 	      std::cout << "Silicon seed id " << m_seedContainer->size() << std::endl;
 	      std::cout << "seed phi, theta, eta : " 
-			<< trackSeed->get_phi(m_clusterMap, m_surfMaps, m_tGeometry) << ", " << trackSeed->get_theta()
+			<< trackSeed->get_phi(m_clusterMap, m_tGeometry) << ", " << trackSeed->get_theta()
 			<< ", " << trackSeed->get_eta() << std::endl;
 	      trackSeed->identify(); 
 	    }
@@ -494,8 +494,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	      /// Diagnostic
 	      if(m_seedAnalysis)
 		{ 
-		  const auto globalP = m_surfMaps->getGlobalPosition(
-                        cluskey, cluster,  m_tGeometry);
+		  const auto globalP = m_tGeometry->getGlobalPosition(
+                        cluskey, cluster);
 		  h_nInttProj->Fill(projectionLocal[1] - cluster->getLocalX(),
 				    projectionLocal[2] - cluster->getLocalY()); 
 		  h_hits->Fill(globalP(0), globalP(1));
@@ -514,8 +514,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	
 		  matchedClusters.push_back(cluskey);
 		  /// Cache INTT global positions with seed
-		  const auto globalPos = m_surfMaps->getGlobalPosition(
-                    cluskey, cluster, m_tGeometry);
+		  const auto globalPos = m_tGeometry->getGlobalPosition(
+                    cluskey, cluster);
 		  clusters.push_back(globalPos);
 
 		 		  	      
@@ -588,7 +588,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   Acts::Vector3 globalPos(0,0,0);
   Acts::Vector3 mom(1,1,1);
 
-  globalPos = surf->localToGlobal(m_tGeometry->geoContext,
+  globalPos = surf->localToGlobal(m_tGeometry->geometry().geoContext,
 				  localPos, mom);
 
   Acts::SymMatrix2 localCov = Acts::SymMatrix2::Zero();
@@ -612,7 +612,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   ///       dz/dz = 1 
 
   Acts::RotationMatrix3 rotLocalToGlobal =
-    surf->referenceFrame(m_tGeometry->geoContext, globalPos, mom);
+    surf->referenceFrame(m_tGeometry->geometry().geoContext, globalPos, mom);
   auto scale = 2 / std::hypot(x,y);
   Acts::ActsMatrix<2, 3> jacXyzToRhoZ = Acts::ActsMatrix<2, 3>::Zero();
   jacXyzToRhoZ(0, Acts::ePos0) = scale * x;
@@ -662,7 +662,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 	  }
 
 	  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-	  const auto surface = m_surfMaps->getSiliconSurface(hitsetkey);
+	  const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey);
 	  if(!surface)
 	    continue;
 
@@ -743,13 +743,6 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
 
 int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
 {
-  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  if(!m_surfMaps)
-    {
-      std::cout << PHWHERE << "Acts surface maps not on node tree, can't continue."
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
 
   m_geomContainerIntt = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   if(!m_geomContainerIntt)
@@ -760,10 +753,10 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode *topNode)
     }
 
 
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_tGeometry)
     {
-      std::cout << PHWHERE << "No ActsTrackingGeometry on node tree. Bailing."
+      std::cout << PHWHERE << "No ActsGeometry on node tree. Bailing."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }

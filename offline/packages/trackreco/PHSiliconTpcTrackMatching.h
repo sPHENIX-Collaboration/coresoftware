@@ -4,8 +4,7 @@
 #define PHSILICONTPCTRACKMATCHING_H
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <string>
 #include <map>
@@ -110,8 +109,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   TrackSeed *_tracklet_tpc{nullptr};
   TrackSeed *_tracklet_si{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};
-  ActsSurfaceMaps *_surfmaps{nullptr};
-  ActsTrackingGeometry *_tGeometry{nullptr};
+  ActsGeometry *_tGeometry{nullptr};
   TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};
 
   std::map<unsigned int, double> _z_mismatch_map;

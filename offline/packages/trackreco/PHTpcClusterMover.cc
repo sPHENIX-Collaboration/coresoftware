@@ -121,8 +121,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  
 	  // get the cluster in 3D coordinates
 	  auto tpc_clus =  _cluster_map->findCluster(cluster_key);
-	  auto global = _surfmaps->getGlobalPosition(cluster_key, tpc_clus,
-						     _tGeometry);
+	  auto global = _tGeometry->getGlobalPosition(cluster_key, tpc_clus);
 
 	  // check if TPC distortion correction are in place and apply
 	  if(Verbosity() > 2)  std::cout << "  layer " << layer << " distorted cluster position: " << global[0] << "  " << global[1] << "  " << global[2];
@@ -189,7 +188,6 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  TrkrDefs::hitsetkey tpcHitSetKey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
 	  Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
 							global_new,
-							_surfmaps,
 							_tGeometry,
 							subsurfkey);
 	
@@ -219,10 +217,10 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
     newclus->setSubSurfKey(subsurfkey);
 
 	  // get local coordinates
-	  Acts::Vector3 normal = surface->normal(_tGeometry->geoContext);
-	  auto local = surface->globalToLocal(_tGeometry->geoContext,
-					      global * Acts::UnitConstants::cm,
-					      normal);
+    Acts::Vector3 normal = surface->normal(_tGeometry->geometry().geoContext);
+    auto local = surface->globalToLocal(_tGeometry->geometry().geoContext,
+					global * Acts::UnitConstants::cm,
+					normal);
 
 	  Acts::Vector2 localPos;
 	  if(local.ok())
@@ -232,7 +230,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  else
 	    {
 	      /// otherwise take the manual calculation
-	      Acts::Vector3 center = surface->center(_tGeometry->geoContext)/Acts::UnitConstants::cm;
+	      Acts::Vector3 center = surface->center(_tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
 	      double clusRadius = sqrt(xnew * xnew + ynew * ynew);
 	      double clusphi = atan2(ynew, xnew);
 	      double rClusPhi = clusRadius * clusphi;
@@ -288,14 +286,7 @@ int  PHTpcClusterMover::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
-  if(!_surfmaps)
-    {
-      std::cout << PHWHERE << "Error, can't find acts surface maps" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  _tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  _tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
   if(!_tGeometry)
     {
       std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
@@ -380,15 +371,14 @@ int PHTpcClusterMover::get_circle_circle_intersection(double target_radius, doub
 
 Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
 						       Acts::Vector3 world,
-						       ActsSurfaceMaps *surfMaps,
-						       ActsTrackingGeometry *tGeometry,
+						       ActsGeometry *tGeometry,
 						       TrkrDefs::subsurfkey& subsurfkey)
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
-  mapIter = surfMaps->m_tpcSurfaceMap.find(layer);
+  mapIter = tGeometry->maps().m_tpcSurfaceMap.find(layer);
   
-  if(mapIter == surfMaps->m_tpcSurfaceMap.end())
+  if(mapIter == tGeometry->maps().m_tpcSurfaceMap.end())
     {
       std::cout << PHWHERE 
 		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
@@ -412,12 +402,12 @@ Surface PHTpcClusterMover::get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitse
 
   Surface this_surf = surf_vec[nsurf];
       
-  auto vec3d = this_surf->center(tGeometry->geoContext);
+  auto vec3d = this_surf->center(tGeometry->geometry().geoContext);
   std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
   double surf_z = surf_center[2];
   double surf_phi = atan2(surf_center[1], surf_center[0]);
-  double surfStepPhi = tGeometry->tpcSurfStepPhi;
-  double surfStepZ = tGeometry->tpcSurfStepZ;
+  double surfStepPhi = tGeometry->geometry().tpcSurfStepPhi;
+  double surfStepZ = tGeometry->geometry().tpcSurfStepZ;
 
   if( (world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
       (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )	
