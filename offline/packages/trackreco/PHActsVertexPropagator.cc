@@ -133,7 +133,7 @@ void PHActsVertexPropagator::setVtxChi2()
 void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track, 
 					     const Acts::BoundTrackParameters& params)
 {
-  auto position = params.position(m_tGeometry->geoContext);
+  auto position = params.position(m_tGeometry->geometry().geoContext);
   
   if(Verbosity() > 2)
     {
@@ -174,8 +174,8 @@ BoundTrackParamPtrResult PHActsVertexPropagator::propagateTrack(
   using Stepper = Acts::EigenStepper<>;
   using Propagator = Acts::Propagator<Stepper, Acts::Navigator>;
   
-  Stepper stepper(m_tGeometry->magField);
-  Acts::Navigator::Config cfg{m_tGeometry->tGeometry};
+  Stepper stepper(m_tGeometry->geometry().magField);
+  Acts::Navigator::Config cfg{m_tGeometry->geometry().tGeometry};
   Acts::Navigator navigator(cfg);
   Propagator propagator(stepper, navigator);
   
@@ -186,8 +186,8 @@ BoundTrackParamPtrResult PHActsVertexPropagator::propagateTrack(
   auto logger = Acts::getDefaultLogger("PHActsVertexPropagator", 
 				       logLevel);
 
-  Acts::PropagatorOptions<> options(m_tGeometry->geoContext,
-				    m_tGeometry->magFieldContext,
+  Acts::PropagatorOptions<> options(m_tGeometry->geometry().geoContext,
+				    m_tGeometry->geometry().magFieldContext,
 				    Acts::LoggerWrapper{*logger});
   
   auto result = propagator.propagate(params, *perigee, 
@@ -241,7 +241,7 @@ int PHActsVertexPropagator::End(PHCompositeNode*)
 
 int PHActsVertexPropagator::getNodes(PHCompositeNode *topNode)
 {
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_tGeometry)
     {
       std::cout << PHWHERE << "Acts tracking geometry not on node tree, exiting." 
