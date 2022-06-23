@@ -272,82 +272,6 @@ namespace
 	  return;
 	}
   
-  	Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
-					    Acts::Vector3 world,
-					    ActsGeometry *tGeometry,
-					    TrkrDefs::subsurfkey& subsurfkey,
-					    int verbosity)
-	{
-
-	  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-
-	  auto surfmaps = tGeometry->maps();
-	  auto tpcmap = surfmaps.m_tpcSurfaceMap;
-	  auto mapIter = tpcmap.find(layer);
-
-	  if(mapIter == tpcmap.end())
-	    {
-	      std::cout << PHWHERE 
-			<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
-			<< hitsetkey << std::endl;
-	      return nullptr;
-	    }
-
-	  double world_phi = atan2(world[1], world[0]);
-	  double world_z = world[2];
-	  
-	  std::vector<Surface> surf_vec = mapIter->second;
-	  unsigned int surf_index = 999;
-	  
-	  // Predict which surface index this phi and z will correspond to
-	  // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
-	  double fraction =  (world_phi + M_PI) / (2.0 * M_PI);
-	  double rounded_nsurf = round( (double) (surf_vec.size()/2) * fraction  - 0.5);
-
-	  unsigned int nsurf = (unsigned int) rounded_nsurf; 
-	  if(world_z < 0)
-	    { nsurf += surf_vec.size()/2; }
-
-	  double surfStepPhi = tGeometry->geometry().tpcSurfStepPhi;
-	  double surfStepZ = tGeometry->geometry().tpcSurfStepZ;
-
-	  Surface this_surf = surf_vec[nsurf];
-
-	  auto vec3d = this_surf->center(tGeometry->geometry().geoContext);
-	  std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
-	  double surf_z = surf_center[2];
-	  double surf_phi = atan2(surf_center[1], surf_center[0]);
-
-	  if( ((world_phi >= (surf_phi - (surfStepPhi / 2.0))) && 
-	       (world_phi <= (surf_phi + (surfStepPhi / 2.0)))) &&
-	      ((world_z >= (surf_z - (surfStepZ / 2.0))) 
-	       && (world_z <= (surf_z + (surfStepZ / 2.0)))) )	
-	    {
-	      surf_index = nsurf;
-	      subsurfkey = nsurf;
-	    }    
-	  else
-	    {
-	      if(verbosity > 2)
-		{
-		  std::cout << PHWHERE 
-			    << "Error: TPC surface index not defined, skipping cluster!" 
-			    << std::endl;
-		  std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
-			    << " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
-		  std::cout << "     world_phi " << world_phi << " world_z " << world_z << std::endl;
-		  std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
-		  std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
-		  std::cout << "     surfStepPhi " << surfStepPhi << " surfStepZ " << surfStepZ << std::endl; 
-		  std::cout << " number of surfaces " << surf_vec.size() << " nsurf: "  << nsurf << std::endl;
-		}
-	      return nullptr;
-	    }
-
-	  return surf_vec[surf_index];
-
-	}
-  
     void calc_cluster_parameter(const std::vector<ihit> &ihit_list, thread_data& my_data, int ntouch, int nedge )
     {
     
@@ -428,11 +352,10 @@ namespace
       Acts::Vector3 global(clusx, clusy, clusz);
       TrkrDefs::subsurfkey subsurfkey = 0;
     
-      Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
-						    global,
-						    my_data.tGeometry,
-						    subsurfkey,
-						    my_data.verbosity);
+      Surface surface = my_data.tGeometry->get_tpc_surface_from_coords(
+         tpcHitSetKey,
+	 global,
+	 subsurfkey);
     
       if(!surface)
 	{

@@ -31,6 +31,11 @@ class ActsGeometry {
       TrkrDefs:: cluskey key,       
       TrkrCluster* cluster) const;
 
+  Surface get_tpc_surface_from_coords(
+      TrkrDefs::hitsetkey hitsetkey,
+      Acts::Vector3 world,
+      TrkrDefs::subsurfkey& subsurfkey) const;
+
  private:
   ActsTrackingGeometry m_tGeometry;
   ActsSurfaceMaps m_surfMaps;

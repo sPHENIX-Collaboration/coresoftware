@@ -514,7 +514,9 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	  /// Take into account any movement from distortions
 	  auto subsurfkey = cluster->getSubSurfKey();
         
-	  surf = get_tpc_surface_from_coords(TrkrDefs::getHitSetKeyFromClusKey(cluskey), global, m_tGeometry, subsurfkey);
+	  surf = m_tGeometry->get_tpc_surface_from_coords(
+            TrkrDefs::getHitSetKeyFromClusKey(cluskey), 
+	    global, subsurfkey);
 	}
       else
 	{
@@ -1052,80 +1054,4 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-Surface PHActsTrkFitter::get_tpc_surface_from_coords(
-  TrkrDefs::hitsetkey hitsetkey,
-  Acts::Vector3 world,
-  ActsGeometry *tGeometry,
-  TrkrDefs::subsurfkey& subsurfkey)
-{
-  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-  auto surfmaps = tGeometry->maps();
-  auto tpcmap = surfmaps.m_tpcSurfaceMap;
-  auto mapIter = tpcmap.find(layer);
-  
-  if(mapIter == tpcmap.end())
-    {
-      std::cout << PHWHERE 
-		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
-		<< hitsetkey << std::endl;
-      return nullptr;
-    }
-  
-  double world_phi = atan2(world[1], world[0]);
-  double world_z = world[2];
-  
-  std::vector<Surface> surf_vec = mapIter->second;
-  unsigned int surf_index = 999;
-    
-  // Predict which surface index this phi and z will correspond to
-  // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
-  double fraction =  (world_phi + M_PI) / (2.0 * M_PI);
-  double rounded_nsurf = round( (double) (surf_vec.size()/2) * fraction  - 0.5);
-  unsigned int nsurf = (unsigned int) rounded_nsurf; 
-  if(world_z < 0)
-    { nsurf += surf_vec.size()/2; }
-
-  Surface this_surf = surf_vec[nsurf];
-      
-  auto vec3d = this_surf->center(tGeometry->geometry().geoContext);
-  std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
-  double surf_z = surf_center[2];
-  double surf_phi = atan2(surf_center[1], surf_center[0]);
-  double surfStepPhi = tGeometry->geometry().tpcSurfStepPhi;
-  double surfStepZ = tGeometry->geometry().tpcSurfStepZ;
-
-  if( (world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
-      (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )	
-    {
-      if(Verbosity() > 2)
-	std::cout <<  "     got it:  surf_phi " << surf_phi << " surf_z " << surf_z 
-		  << " surfStepPhi/2 " << surfStepPhi/2.0 << " surfStepZ/2 " << surfStepZ/2.0  
-		  << " world_phi " << world_phi << " world_z " << world_z 
-		  << " rounded_nsurf "<< rounded_nsurf << " surf_index " << nsurf
-		  << std::endl;        
-      
-      surf_index = nsurf;
-      subsurfkey = nsurf;
-    }    
-  else
-    {
-      if(Verbosity() > 1)
-	{
-	  std::cout << PHWHERE 
-		    << "Error: TPC surface index not defined, skipping cluster!" 
-		    << std::endl;
-	  std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
-		    << " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
-	  std::cout << "     world_phi " << world_phi << " world_z " << world_z << std::endl;
-	  std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
-	  std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
-	  std::cout << " number of surfaces " << surf_vec.size() << std::endl;
-	}
-      return nullptr;
-    }
-  
-  return surf_vec[surf_index];
-  
 }

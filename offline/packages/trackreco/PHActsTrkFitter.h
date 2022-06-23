@@ -133,11 +133,6 @@ class PHActsTrkFitter : public SubsysReco
 
   bool getTrackFitResult(const FitResult& fitOutput, SvtxTrack* track);
 
-  Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
-				      Acts::Vector3 world,
-				      ActsGeometry *tGeometry,
-				      TrkrDefs::subsurfkey& subsurfkey);
-
   Acts::BoundSymMatrix setDefaultCovariance() const;
   void printTrackSeed(const ActsExamples::TrackParameters& seed) const;
 

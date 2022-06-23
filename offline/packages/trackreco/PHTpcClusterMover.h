@@ -42,12 +42,6 @@ class PHTpcClusterMover : public SubsysReco
   int GetNodes(PHCompositeNode* topNode);
   int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xref, double yref, double &x, double &y);
 
-  Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
-				      Acts::Vector3 world,
-				      ActsGeometry *tGeometry,
-				      TrkrDefs::subsurfkey& subsurfkey);
-
-
  /// acts transformation object
   ActsTransformations _transformer;
   
