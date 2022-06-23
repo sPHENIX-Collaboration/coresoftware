@@ -142,6 +142,7 @@ int TpcDirectLaserReconstruction::InitRun(PHCompositeNode* )
   m_max_dca = get_double_param( "directlaser_max_dca" );
   m_max_drphi = get_double_param( "directlaser_max_drphi" );
   m_max_dz = get_double_param( "directlaser_max_dz" );
+  m_vdrift = get_double_param( "drift_velocity");
 
   // print
   if( Verbosity() )
@@ -152,6 +153,7 @@ int TpcDirectLaserReconstruction::InitRun(PHCompositeNode* )
       << " m_max_dca: " << m_max_dca << "\n"
       << " m_max_drphi: " << m_max_drphi << "\n"
       << " m_max_dz: " << m_max_dz << "\n"
+      << " m_vdrift: " << m_vdrift << "\n"
       << std::endl;
 
     // also identify the matrix container
@@ -217,6 +219,7 @@ void TpcDirectLaserReconstruction::SetDefaultParameters()
 
   set_default_double_param( "directlaser_max_drphi", 2. );
   set_default_double_param( "directlaser_max_dz", 2. );
+  set_default_double_param( "drift_velocity", 8.0 / 1000.0 );  // cm/nanosecond
 }
 
 //_____________________________________________________________________
@@ -461,8 +464,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       // Correct cluster z for the track transit time using the pathlength 
       double ns_per_cm = 1e9 / 3e10;
       double dt = pathlength * ns_per_cm;
-      double vdrift = 8.0 / 1000.0;  // cm/ns
-      double transit_dz = dt * vdrift;
+      double transit_dz = dt * m_vdrift;
       if(origin.z() > 0)
 	clus_centroid.SetZ(clus_centroid.z() + transit_dz);
       else
