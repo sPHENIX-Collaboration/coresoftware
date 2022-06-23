@@ -10,6 +10,11 @@
 #include <iostream>
 #include <climits>
 
+float TpcClusterZCrossingCorrection::_vdrift = 8.0e-03;  // default value, override from macro
+
+TpcClusterZCrossingCorrection::TpcClusterZCrossingCorrection()
+{ }
+
 float TpcClusterZCrossingCorrection::correctZ(float zinit, unsigned int side, short int crossing)
 {
   if(crossing == SHRT_MAX) return NAN;
@@ -25,7 +30,7 @@ float TpcClusterZCrossingCorrection::correctZ(float zinit, unsigned int side, sh
   else
     corrected_z = zinit + (float) crossing * z_bunch_separation;  
     
-  //std::cout << "         crossing " << crossing << " zinit " << zinit << " side " << side << " corrected_z " << corrected_z << std::endl;
+  //  std::cout << "         crossing " << crossing << " _vdrift " << _vdrift << " zinit " << zinit << " side " << side << " corrected_z " << corrected_z << std::endl;
 
   return corrected_z;
 }
