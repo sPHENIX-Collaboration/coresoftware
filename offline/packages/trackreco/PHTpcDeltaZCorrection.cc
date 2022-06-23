@@ -139,6 +139,7 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, TrackSeed* track )
       << " positive: " << track->get_charge()
       << " center: " << center_x << ", " << center_y
       << " radius: " << radius
+      << " drift_velocity " << m_drift_velocity 
       << std::endl;
   }
 
@@ -175,17 +176,17 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, TrackSeed* track )
     // helical path length
     const double pathlength = std::sqrt( square( delta_z ) + square( radius*delta_phi ) );
     if( Verbosity() )
-    { std::cout << "PHTpcDeltaZCorrection::process_track - cluster: " << cluster_key << " path length: " << pathlength << std::endl; }
-
+      { std::cout << "PHTpcDeltaZCorrection::process_track - cluster: " << cluster_key << " path length: " << pathlength << std::endl; }
+    
     // adjust cluster position to account for particles propagation time
     /*
-    * accounting for particles finite velocity results in reducing the electron drift time by pathlenght/c
-    * this in turn affects the cluster z, so that it is always closer to the readout plane
-    */
+     * accounting for particles finite velocity results in reducing the electron drift time by pathlenght/c
+     * this in turn affects the cluster z, so that it is always closer to the readout plane
+     */
     const double z_correction = pathlength * m_drift_velocity/speed_of_light;
     if( global.z() > 0 ) cluster->setLocalY( cluster->getLocalY()+z_correction);
     else cluster->setLocalY( cluster->getLocalY()-z_correction);
-
-  }
-
+    
+	}
+  
 }

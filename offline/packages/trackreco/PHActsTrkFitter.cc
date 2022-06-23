@@ -99,7 +99,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
       h_stateTime = new TH1F("h_stateTime", ";time [ms]",
 			     100000, 0, 1000);			     
     }		 
-  
+
   if(Verbosity() > 1)
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
 
