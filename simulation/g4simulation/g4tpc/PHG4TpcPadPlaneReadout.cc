@@ -15,6 +15,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
+#include <phool/phool.h>  // for PHWHERE
 
 #include <tpc/TpcDefs.h>
 
@@ -566,7 +567,6 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 
   set_default_double_param("neffelectrons_threshold", 1.0);
   set_default_double_param("maxdriftlength", 105.5);         // cm
-  set_default_double_param("drift_velocity", 8.0 / 1000.0);  // cm/ns
   set_default_double_param("tpc_adc_clock", 53.0);           // ns, for 18.8 MHz clock
   set_default_double_param("gem_cloud_sigma", 0.04);     // cm = 400 microns
   set_default_double_param("sampa_shaping_lead", 32.0);  // ns, for 80 ns SAMPA
@@ -614,17 +614,16 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   MaxRadius[2] = get_double_param("tpc_maxradius_outer");
 
   sigmaT = get_double_param("gem_cloud_sigma");
-  sigmaL[0] = get_double_param("sampa_shaping_lead") * get_double_param("drift_velocity");
-  sigmaL[1] = get_double_param("sampa_shaping_tail") * get_double_param("drift_velocity");
+  sigmaL[0] = get_double_param("sampa_shaping_lead") * drift_velocity;
+  sigmaL[1] = get_double_param("sampa_shaping_tail") * drift_velocity;
 
-  tpc_drift_velocity = get_double_param("drift_velocity");
   tpc_adc_clock = get_double_param("tpc_adc_clock");
-  ZBinWidth = tpc_adc_clock * tpc_drift_velocity;
+  ZBinWidth = tpc_adc_clock * drift_velocity;
   MaxZ = get_double_param("maxdriftlength");
   MinZ = -MaxZ;
   NZBins = (int) ((MaxZ - MinZ) / ZBinWidth) + 1;
 
-  std::cout << "MaxZ " << MaxZ << " NZBins = " << NZBins << std::endl;
+  std::cout << PHWHERE << "MaxZ " << MaxZ << " NZBins = " << NZBins << " drift velocity " << drift_velocity << std::endl;
 
   NPhiBins[0] = get_int_param("ntpc_phibins_inner");
   NPhiBins[1] = get_int_param("ntpc_phibins_mid");

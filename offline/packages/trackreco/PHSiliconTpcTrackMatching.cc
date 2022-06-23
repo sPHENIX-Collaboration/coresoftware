@@ -37,7 +37,9 @@ using namespace std;
 //____________________________________________________________________________..
 PHSiliconTpcTrackMatching::PHSiliconTpcTrackMatching(const std::string &name):
   SubsysReco(name)
+  , PHParameterInterface(name)
 {
+  InitializeParameters();
 }
 
 //____________________________________________________________________________..
@@ -49,6 +51,8 @@ PHSiliconTpcTrackMatching::~PHSiliconTpcTrackMatching()
 //____________________________________________________________________________..
 int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
 {
+  UpdateParametersWithMacro();
+
   // put these in the output file
   cout << PHWHERE << " Search windows: phi " << _phi_search_win << " eta " 
        << _eta_search_win << " _pp_mode " << _pp_mode << " _use_intt_time " << _use_intt_time << endl;
@@ -57,6 +61,18 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   return ret;
+}
+
+//_____________________________________________________________________
+void PHSiliconTpcTrackMatching::SetDefaultParameters()
+{
+  // Data on gasses @20 C and 760 Torr from the following source:
+  // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
+  // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
+  // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
+  set_default_double_param("drift_velocity", 8.0 / 1000.0);  // cm/ns
+
+  return;
 }
 
 //____________________________________________________________________________..
@@ -425,7 +441,8 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<unsigned int
   // if the  crossing was assigned correctly, the (crossing corrected) track position should satisfy the Z matching cut
   // this is a rough check that this is the case
 
-  float vdrift = 8.0e-3;
+  float vdrift = get_double_param("drift_velocity");
+
   std::multimap<unsigned int, unsigned int> bad_map;
 
   for(auto [tpcid, si_id] : tpc_matches)
@@ -450,7 +467,7 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<unsigned int
 	  if(Verbosity() > 1)	  
 	    std::cout << "  Success:  crossing " << crossing << " tpcid " << tpcid << " si id " << si_id 
 		      << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch 
-		      << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << std::endl;
+		      << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << " drift velocity " << vdrift << std::endl;
 	}
       else
 	{
