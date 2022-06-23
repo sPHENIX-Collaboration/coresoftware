@@ -506,20 +506,21 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
     {
       TrkrDefs::cluskey cluskey = global_moved[i].first;
       Acts::Vector3 global = global_moved[i].second;
-  
+   
       auto cluster = m_clusterContainer->findCluster(cluskey);
       Surface surf;
       if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::tpcId)
 	{ 
 	  /// Take into account any movement from distortions
 	  auto subsurfkey = cluster->getSubSurfKey();
+        
 	  surf = get_tpc_surface_from_coords(TrkrDefs::getHitSetKeyFromClusKey(cluskey), global, m_tGeometry, subsurfkey);
 	}
       else
 	{
 	  surf = m_tGeometry->maps().getSurface(cluskey, cluster);
 	}
-      
+   
       if(!surf)
 	{ continue; }
 
@@ -529,7 +530,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       auto local = surf->globalToLocal(m_tGeometry->geometry().geoContext,
 				       global * Acts::UnitConstants::cm,
 				       normal);
-      
+     
       if(local.ok())
 	{
 	  localPos = local.value() / Acts::UnitConstants::cm;
@@ -538,6 +539,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	{
 	  /// otherwise take the manual calculation
 	  Acts::Vector3 center = surf->center(m_tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
+	 
 	  double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
 	  double clusphi = atan2(global[1], global[0]);
 	  double rClusPhi = clusRadius * clusphi;
@@ -594,6 +596,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       
       sourcelinks.push_back(sl);
       measurements.push_back(meas);
+ 
     }
   
     
@@ -1058,10 +1061,11 @@ Surface PHActsTrkFitter::get_tpc_surface_from_coords(
   TrkrDefs::subsurfkey& subsurfkey)
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-  std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
-  mapIter = tGeometry->maps().m_tpcSurfaceMap.find(layer);
+  auto surfmaps = tGeometry->maps();
+  auto tpcmap = surfmaps.m_tpcSurfaceMap;
+  auto mapIter = tpcmap.find(layer);
   
-  if(mapIter == tGeometry->maps().m_tpcSurfaceMap.end())
+  if(mapIter == tpcmap.end())
     {
       std::cout << PHWHERE 
 		<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "

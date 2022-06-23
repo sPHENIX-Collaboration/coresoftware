@@ -280,10 +280,12 @@ namespace
 	{
 
 	  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-	  
-	  auto mapIter = tGeometry->maps().m_tpcSurfaceMap.find(layer);
 
-	  if(mapIter == tGeometry->maps().m_tpcSurfaceMap.end())
+	  auto surfmaps = tGeometry->maps();
+	  auto tpcmap = surfmaps.m_tpcSurfaceMap;
+	  auto mapIter = tpcmap.find(layer);
+
+	  if(mapIter == tpcmap.end())
 	    {
 	      std::cout << PHWHERE 
 			<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
@@ -425,12 +427,13 @@ namespace
       TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey( my_data.layer, my_data.sector, my_data.side );      
       Acts::Vector3 global(clusx, clusy, clusz);
       TrkrDefs::subsurfkey subsurfkey = 0;
+    
       Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
 						    global,
 						    my_data.tGeometry,
 						    subsurfkey,
 						    my_data.verbosity);
-      
+    
       if(!surface)
 	{
 	  /// If the surface can't be found, we can't track with it. So 
@@ -458,9 +461,9 @@ namespace
       // To get equivalent charge per Z bin, so that summing ADC input voltage over all Z bins returns total input charge, divide voltages by 2.4 for 80 ns SAMPA
       // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
       clusz -= (clusz<0) ? my_data.par0_neg:my_data.par0_pos;
-
-      Acts::Vector3 center = surface->center(my_data.tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
       
+      Acts::Vector3 center = surface->center(my_data.tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
+  
       // no conversion needed, only used in acts
       Acts::Vector3 normal = surface->normal(my_data.tGeometry->geometry().geoContext);
       double clusRadius = sqrt(clusx * clusx + clusy * clusy);
@@ -469,12 +472,12 @@ namespace
       double surfPhiCenter = atan2(center[1], center[0]);
       double surfRphiCenter = surfPhiCenter * surfRadius;
       double surfZCenter = center[2];
-      
+     
       auto local = surface->globalToLocal(my_data.tGeometry->geometry().geoContext,
 					  global * Acts::UnitConstants::cm,
 					  normal);
       Acts::Vector2 localPos;
-      
+
       // Prefer Acts transformation since we build the TPC surfaces manually
       if(local.ok())
 	{

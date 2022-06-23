@@ -1406,8 +1406,7 @@ int MakeActsGeometry::createNodes(PHCompositeNode *topNode)
       dstNode->addNode(svtxNode);
     }
 
-  m_actsGeometry = findNode::getClass<ActsGeometry>(topNode,
-						    "ActsTrackingGeometry");
+  m_actsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_actsGeometry)
     {
       m_actsGeometry = new ActsGeometry();

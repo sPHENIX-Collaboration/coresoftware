@@ -31,9 +31,7 @@ class ActsGeometry {
       TrkrDefs:: cluskey key,       
       TrkrCluster* cluster) const;
 
-
  private:
-
   ActsTrackingGeometry m_tGeometry;
   ActsSurfaceMaps m_surfMaps;
 
