@@ -21,8 +21,6 @@
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
 // trackbase_historic includes
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
@@ -201,19 +199,13 @@ PHCASeeding::PHCASeeding(
 
 int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
 {
-  tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
   if(!tGeometry)
     {
       std::cout << PHWHERE << "No acts tracking geometry, can't proceed" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   
-  surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
-  if(!surfMaps)
-    {
-      std::cout << PHWHERE << "No acts surface maps, can't proceed" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
     
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -221,7 +213,7 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
 Acts::Vector3 PHCASeeding::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
-  auto globalpos = surfMaps->getGlobalPosition(key, cluster, tGeometry);
+  auto globalpos = tGeometry->getGlobalPosition(key, cluster);
 
   // check if TPC distortion correction are in place and apply
   if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
@@ -269,8 +261,7 @@ PositionMap PHCASeeding::FillTree()
 
       if(Verbosity() > 3)
 	{
-	  auto global_before = surfMaps->getGlobalPosition(ckey, cluster,
-							   tGeometry);
+	  auto global_before = tGeometry->getGlobalPosition(ckey, cluster);
 	  std::cout << "CaSeeder: Cluster: " << ckey << std::endl;
 	  std::cout << " Global before: " << global_before[0] << "  " << global_before[1] << "  " << global_before[2] << std::endl;
 	  std::cout << " Global after   : " << globalpos_d[0] << "  " << globalpos_d[1] << "  " << globalpos_d[2] << std::endl;

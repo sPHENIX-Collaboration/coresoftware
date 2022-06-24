@@ -13,6 +13,8 @@
 
 #include "ResidualOutlierFinder.h"
 
+#include <trackbase/ActsGeometry.h>
+
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDistortionCorrection.h>
@@ -21,10 +23,6 @@
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
-
-#include <Acts/Geometry/TrackingGeometry.hpp>
-#include <Acts/MagneticField/MagneticFieldContext.hpp>
-#include <Acts/Utilities/CalibrationContext.hpp>
 
 #include <ActsExamples/TrackFitting/TrackFittingAlgorithm.hpp>
 #include <ActsExamples/EventData/Trajectories.hpp>
@@ -135,12 +133,6 @@ class PHActsTrkFitter : public SubsysReco
 
   bool getTrackFitResult(const FitResult& fitOutput, SvtxTrack* track);
 
-  Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
-				      Acts::Vector3 world,
-				      ActsSurfaceMaps *surfMaps,
-				      ActsTrackingGeometry *tGeometry,
-				      TrkrDefs::subsurfkey& subsurfkey);
-
   Acts::BoundSymMatrix setDefaultCovariance() const;
   void printTrackSeed(const ActsExamples::TrackParameters& seed) const;
 
@@ -148,7 +140,7 @@ class PHActsTrkFitter : public SubsysReco
   int m_event = 0;
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
 
   /// Configuration containing the fitting function instance
   ActsExamples::TrackFittingAlgorithm::Config m_fitCfg;
@@ -157,7 +149,6 @@ class PHActsTrkFitter : public SubsysReco
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxTrackMap *m_directedTrackMap = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
-  ActsSurfaceMaps *m_surfMaps = nullptr;
   TrackSeedContainer *m_seedMap = nullptr;
   TrackSeedContainer *m_tpcSeeds = nullptr;
   TrackSeedContainer *m_siliconSeeds = nullptr;

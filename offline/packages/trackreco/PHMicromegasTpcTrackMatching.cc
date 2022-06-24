@@ -200,7 +200,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         << ": crossing: " << crossing
         << ": nhits: " << tracklet_tpc-> size_cluster_keys()
         << ": Total tracks: " << _track_map->size()
-        << ": phi: " << tracklet_tpc->get_phi(_cluster_map,_surfmaps,_tGeometry)
+        << ": phi: " << tracklet_tpc->get_phi(_cluster_map,_tGeometry)
         << std::endl;
     }
 
@@ -230,7 +230,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       
       if(Verbosity() > 10)
       {
-	auto global_raw = _surfmaps->getGlobalPosition(cluster_key, tpc_clus,  _tGeometry);
+	auto global_raw = _tGeometry->getGlobalPosition(cluster_key, tpc_clus);
         std::cout
           << "  TPC cluster key " << cluster_key << " in layer " << layer << " side " << side << " crossing " << crossing
 	  << " with local position " << tpc_clus->getLocalX()  << "  " << tpc_clus->getLocalY() << std::endl;
@@ -365,7 +365,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 	}
         // store cluster and key
         const auto& [key, cluster] = *clusiter;
-        const auto glob = _surfmaps->getGlobalPosition(key, cluster,_tGeometry);
+        const auto glob = _tGeometry->getGlobalPosition(key, cluster);
         const TVector3 world_cluster(glob(0), glob(1), glob(2));
         const TVector3 local_cluster = layergeom->get_local_from_world_coords( tileid, world_cluster );
 
@@ -455,19 +455,10 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
     
-
-  _tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  _tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!_tGeometry)
     {
       std::cerr << PHWHERE << "No acts tracking geometry, can't continue."
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  if(!_surfmaps)
-    {
-      std::cerr << PHWHERE << "No acts surface son node tree, exiting." 
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -533,7 +524,7 @@ void PHMicromegasTpcTrackMatching::copyMicromegasClustersToCorrectedMap( )
  Acts::Vector3 PHMicromegasTpcTrackMatching::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing, unsigned int side)
 {
 
-  auto globalpos = _surfmaps->getGlobalPosition(key, cluster, _tGeometry);
+  auto globalpos = _tGeometry->getGlobalPosition(key, cluster);
 
   // ADF: for streaming mode, will need a crossing z correction here
   float z = _clusterCrossingCorrection.correctZ(globalpos[2], side, crossing);

@@ -77,13 +77,8 @@ void PHTpcDeltaZCorrection::SetDefaultParameters()
 //_____________________________________________________________________
 int PHTpcDeltaZCorrection::load_nodes( PHCompositeNode* topNode )
 {
-
-  // acts surface map
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  assert( m_surfmaps );
-
   // acts geometry
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   assert( m_tGeometry );
 
   // get necessary nodes
@@ -165,8 +160,7 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, TrackSeed* track )
     if(!cluster) continue;
 
     // get cluster global position
-    const auto global = m_surfmaps->getGlobalPosition(cluster_key, cluster,
-						      m_tGeometry);
+    const auto global = m_tGeometry->getGlobalPosition(cluster_key, cluster);
 
     // get delta z
     const double delta_z = global.z() - origin.z();

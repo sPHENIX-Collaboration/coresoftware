@@ -10,8 +10,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <trackbase_historic/SvtxTrackState.h>
 #include <map>
@@ -19,8 +18,7 @@
 #include <string>
 #include <vector>
 
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
+
 class PHG4CylinderCellGeomContainer;
 class PHG4CylinderGeomContainer;
 class PHG4Hit;
@@ -118,11 +116,8 @@ class TrackEvaluation : public SubsysReco
   //! flags
   int m_flags = EvalEvent | EvalClusters | EvalTracks;
 
-  /// Acts surface maps for surface lookup
-  ActsSurfaceMaps *m_surfmaps = nullptr;
-
   /// Acts tracking geometry for surface lookup
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
 
   //! hits
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;

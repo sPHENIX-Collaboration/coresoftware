@@ -147,12 +147,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   assert( trkrClusterHitAssoc );
   
   // geometry
-  auto acts_geometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  auto acts_geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   assert( acts_geometry );
-
-  // surface map
-  auto acts_surface_map = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  assert( acts_surface_map );
 
   // loop over micromegas hitsets
   const auto hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::micromegasId);
@@ -169,7 +165,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     assert(layergeom);
 
     // get micromegas acts surface
-    const auto acts_surface = acts_surface_map->getMMSurface( hitsetkey);
+    const auto acts_surface = acts_geometry->maps().getMMSurface( hitsetkey);
     if( !acts_surface )
     {
       std::cout
@@ -181,7 +177,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     }
 
     // get normal to acts surface
-    const auto normal = acts_surface->normal(acts_geometry->geoContext);
+    const auto normal = acts_surface->normal(acts_geometry->geometry().geoContext);
    
     if( Verbosity() )
     {
@@ -363,7 +359,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
           world_coordinates.y()*Acts::UnitConstants::cm,
           world_coordinates.z()*Acts::UnitConstants::cm };
         
-        auto local = acts_surface->globalToLocal( acts_geometry->geoContext, world_coordinates_acts, normal );
+        auto local = acts_surface->globalToLocal( acts_geometry->geometry().geoContext, world_coordinates_acts, normal );
         if( local.ok() )
         {
           const auto local_coordinates = local.value()/ Acts::UnitConstants::cm;

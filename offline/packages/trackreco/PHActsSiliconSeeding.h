@@ -1,11 +1,9 @@
 #ifndef TRACKRECO_PHACTSSILICONSEEDING_H
 #define TRACKRECO_PHACTSSILICONSEEDING_H
 
-#include <trackbase/ActsTrackingGeometry.h>
-
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
@@ -167,11 +165,10 @@ class PHActsSiliconSeeding : public SubsysReco
   void writeHistograms();
   double normPhi2Pi(const double phi);
 
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
   TrackSeedContainer *m_seedContainer = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;
   PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
-  ActsSurfaceMaps *m_surfMaps = nullptr;
   
   /// Configuration classes for Acts seeding
   Acts::SeedfinderConfig<SpacePoint> m_seedFinderCfg;

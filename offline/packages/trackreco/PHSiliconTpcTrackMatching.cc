@@ -217,21 +217,14 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 	return Fun4AllReturnCodes::ABORTEVENT;
       }
 
-   _tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+   _tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
   if(!_tGeometry)
     {
       std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-
-  _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
-   if(!_surfmaps)
-     {
-       std::cout << PHWHERE << "Error, can't find acts surface maps" << std::endl;
-       return Fun4AllReturnCodes::ABORTEVENT;
-     }
- 
-     return Fun4AllReturnCodes::EVENT_OK;
+  
+  return Fun4AllReturnCodes::EVENT_OK;
 } 
 
 void PHSiliconTpcTrackMatching::findEtaPhiMatches(  
@@ -255,11 +248,11 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	    << ": Processing seed itrack: " << tpcid
 	    << ": nhits: " << _tracklet_tpc-> size_cluster_keys()
 	    << ": Total tracks: " << _track_map->size()
-	    << ": phi: " << _tracklet_tpc->get_phi(_cluster_map,_surfmaps,_tGeometry)
+	    << ": phi: " << _tracklet_tpc->get_phi(_cluster_map,_tGeometry)
 	    << endl;
 	}
 
-      double tpc_phi = _tracklet_tpc->get_phi(_cluster_map,_surfmaps,_tGeometry);
+      double tpc_phi = _tracklet_tpc->get_phi(_cluster_map,_tGeometry);
       double tpc_eta = _tracklet_tpc->get_eta();
       double tpc_pt = _tracklet_tpc->get_pt();
 
@@ -323,7 +316,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 	    { continue; }
 
 	  bool phi_match = false;
-	  double si_phi = _tracklet_si->get_phi(_cluster_map,_surfmaps,_tGeometry);
+	  double si_phi = _tracklet_si->get_phi(_cluster_map,_tGeometry);
 	  if(  fabs(tpc_phi - si_phi)  < _phi_search_win * mag) phi_match = true;
 	  if(  fabs( fabs(tpc_phi - si_phi)  - 2.0 * M_PI)  < _phi_search_win * mag ) phi_match = true;
 	  if(!phi_match) continue;

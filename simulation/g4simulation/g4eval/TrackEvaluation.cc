@@ -20,8 +20,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <tpc/TpcDefs.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/TrkrCluster.h>
@@ -394,12 +393,8 @@ int TrackEvaluation::End(PHCompositeNode* )
 int TrackEvaluation::load_nodes( PHCompositeNode* topNode )
 {
 
-  // acts surface map
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  assert( m_surfmaps );
-
   // acts geometry
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   assert( m_tGeometry );
 
   // get necessary nodes
@@ -696,7 +691,7 @@ int TrackEvaluation::get_embed( PHG4Particle* particle ) const
 TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global coordinates
-  const auto global = m_surfmaps->getGlobalPosition(key, cluster, m_tGeometry);
+  const auto global = m_tGeometry->getGlobalPosition(key, cluster);
 
   TrackEvaluationContainerv1::ClusterStruct cluster_struct;
   cluster_struct.layer = TrkrDefs::getLayer(key);

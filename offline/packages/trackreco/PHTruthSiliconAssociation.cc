@@ -8,8 +8,7 @@
 #include <phool/PHRandomSeed.h>
 
 /// Tracking includes
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -269,17 +268,10 @@ int  PHTruthSiliconAssociation::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
       
-  _tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  _tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!_tgeometry)
     {
       std::cerr << PHWHERE << "ERROR: can't find acts tracking geometry" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  if(!_surfmaps)
-    {
-      std::cerr << PHWHERE << "ERROR: can't find acts surface maps" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
@@ -570,23 +562,23 @@ unsigned int PHTruthSiliconAssociation::buildTrackSeed(std::set<TrkrDefs::cluske
   
   /// Need to find the right one for the bend angle
   
-  float newphi = track->get_phi(_cluster_map, _surfmaps, _tgeometry);
+  float newphi = track->get_phi(_cluster_map, _tgeometry);
   /// We have to pick the right one based on the bend angle, so iterate
   /// through until you find the closest phi match
   if( fabs(newphi-phi) > 0.03)
     {
       track->set_X0(X0_2);
-      newphi = track->get_phi(_cluster_map, _surfmaps, _tgeometry);
+      newphi = track->get_phi(_cluster_map, _tgeometry);
   
       if( fabs(newphi-phi) > 0.03)
 	{
 	  track->set_Y0(Y0_2);
-	  newphi = track->get_phi(_cluster_map, _surfmaps, _tgeometry);
+	  newphi = track->get_phi(_cluster_map, _tgeometry);
 
 	  if( fabs(newphi-phi) > 0.03)
 	    {
 	      track->set_X0(X0_1);
-	      newphi = track->get_phi(_cluster_map, _surfmaps, _tgeometry);
+	      newphi = track->get_phi(_cluster_map, _tgeometry);
 	    }
 	}
     }
@@ -594,11 +586,11 @@ unsigned int PHTruthSiliconAssociation::buildTrackSeed(std::set<TrkrDefs::cluske
   if(Verbosity() > 2)
     {
       std::cout << "Charge is " << charge << std::endl;
-      std::cout << "truth/reco px " << px << ", " << track->get_px(_cluster_map, _surfmaps, _tgeometry) << std::endl;
-      std::cout << "truth/reco py " << py << ", " << track->get_py(_cluster_map, _surfmaps, _tgeometry) << std::endl;
+      std::cout << "truth/reco px " << px << ", " << track->get_px(_cluster_map, _tgeometry) << std::endl;
+      std::cout << "truth/reco py " << py << ", " << track->get_py(_cluster_map, _tgeometry) << std::endl;
       std::cout << "truth/reco pz " << pz << ", " << track->get_pz() << std::endl;
       std::cout << "truth/reco pt " << pt << ", " << track->get_pt() << std::endl;
-      std::cout << "truth/reco phi " << phi << ", " << track->get_phi(_cluster_map, _surfmaps, _tgeometry) << std::endl;
+      std::cout << "truth/reco phi " << phi << ", " << track->get_phi(_cluster_map, _tgeometry) << std::endl;
       std::cout << "truth/reco eta " << eta << ", " << track->get_eta() << std::endl;
       std::cout << "truth/reco x " << x << ", " << track->get_x() << std::endl;
       std::cout << "truth/reco y " << y << ", " << track->get_y() << std::endl;

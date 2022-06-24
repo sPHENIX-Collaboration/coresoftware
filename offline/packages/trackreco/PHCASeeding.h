@@ -20,6 +20,8 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
+#include <trackbase/ActsGeometry.h>
+
 #include <boost/geometry/geometries/box.hpp>    // for box
 #include <boost/geometry/geometries/point.hpp>  // for point
 #include <boost/geometry/index/rtree.hpp>       // for ca
@@ -34,8 +36,6 @@
 #include <unordered_set>
 #include <vector>    // for vector
 
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
 class PHCompositeNode;  
 class PHTimer;
 class SvtxTrack_v3;
@@ -144,10 +144,7 @@ class PHCASeeding : public PHTrackSeeding
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
 
   /// acts geometry
-  ActsTrackingGeometry *tGeometry{nullptr};
-
-  /// acts surface map
-  ActsSurfaceMaps *surfMaps{nullptr};
+  ActsGeometry *tGeometry{nullptr};
 
   /// distortion correction container
   TpcDistortionCorrectionContainer* m_dcc = nullptr;

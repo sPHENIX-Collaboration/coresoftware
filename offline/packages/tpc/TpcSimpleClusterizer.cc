@@ -55,8 +55,7 @@ namespace
   {
     PHG4CylinderCellGeom *layergeom = nullptr;
     TrkrHitSet *hitset = nullptr;
-    ActsSurfaceMaps *surfmaps = nullptr;
-    ActsTrackingGeometry *tGeometry = nullptr;
+    ActsGeometry *tGeometry = nullptr;
     unsigned int layer = 0;
     int side = 0;
     unsigned int sector = 0;
@@ -107,74 +106,7 @@ namespace
 	  ihit  thisHit(adcval[iphi][iz],iCoord);
 	  ihit_list.push_back(thisHit);
 	}
-	
-	Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
-					    Acts::Vector3 world,
-					    ActsSurfaceMaps *surfMaps,
-					    ActsTrackingGeometry *tGeometry,
-					    TrkrDefs::subsurfkey& subsurfkey)
-	{
-    const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-    const auto mapIter = surfMaps->m_tpcSurfaceMap.find(layer);
-	  
-    if(mapIter == surfMaps->m_tpcSurfaceMap.end())
-	    {
-	      std::cout << PHWHERE 
-			<< "Error: hitsetkey not found in clusterSurfaceMap, hitsetkey = "
-			<< hitsetkey << std::endl;
-	      return nullptr;
-	    }
-	
-	  double world_phi = atan2(world[1], world[0]);
-	  double world_z = world[2];
-	  
-	  std::vector<Surface> surf_vec = mapIter->second;
-	  unsigned int surf_index = 999;
-
-	  // Predict which surface index this phi and z will correspond to
-	  // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
-	  double fraction =  (world_phi + M_PI) / (2.0 * M_PI);
-	  double rounded_nsurf = round( (double) (surf_vec.size()/2) * fraction  - 0.5);
-	  unsigned int nsurf = (unsigned int) rounded_nsurf; 
-	  if(world_z < 0)
-	    nsurf += surf_vec.size()/2;
-
-	  double surfStepPhi = tGeometry->tpcSurfStepPhi;
-	  double surfStepZ = tGeometry->tpcSurfStepZ;
-
-	  Surface this_surf = surf_vec[nsurf];
-	  auto vec3d = this_surf->center(tGeometry->geoContext);
-	  std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
-	  double surf_z = surf_center[2];
-	  double surf_phi = atan2(surf_center[1], surf_center[0]);
-
-	  if( ((world_phi >= (surf_phi - (surfStepPhi / 2.0))) && 
-	       (world_phi <= (surf_phi + (surfStepPhi / 2.0)))) &&
-	      ((world_z >= (surf_z - (surfStepZ / 2.0))) 
-	       && (world_z <= (surf_z + (surfStepZ / 2.0)))) )	
-	    {
-	      surf_index = nsurf;
-	      subsurfkey = nsurf;
-	    }    
-	  else
-	    {
-	      std::cout << PHWHERE 
-			<< "Error: TPC surface index not defined, skipping cluster!" 
-			<< std::endl;
-	      std::cout << "     coordinates: " << world[0] << "  " << world[1] << "  " << world[2] 
-			<< " radius " << sqrt(world[0]*world[0]+world[1]*world[1]) << std::endl;
-	      std::cout << "     world_phi " << world_phi << " world_z " << world_z << std::endl;
-	      std::cout << "     surf coords: " << surf_center[0] << "  " << surf_center[1] << "  " << surf_center[2] << std::endl;
-	      std::cout << "     surf_phi " << surf_phi << " surf_z " << surf_z << std::endl; 
-	      std::cout << "     surfStepPhi " << surfStepPhi << " surfStepZ " << surfStepZ << std::endl; 
-	      std::cout << " number of surfaces " << surf_vec.size() << " nsurf: "  << nsurf << std::endl;
-	      return nullptr;
-	    }
-	  	 
-	  return surf_vec[surf_index];
-	
-	}
-	
+		
 	void calc_cluster_parameter(std::vector<ihit> &ihit_list, thread_data& my_data)
 	{
 	
@@ -265,11 +197,10 @@ namespace
 	  Acts::Vector3 global(clusx, clusy, clusz);
 	  
 	  TrkrDefs::subsurfkey subsurfkey;
-	  Surface surface = get_tpc_surface_from_coords(tpcHitSetKey,
-							global,
-              my_data.surfmaps,
-							my_data.tGeometry,
-							subsurfkey);
+	  Surface surface = my_data.tGeometry->get_tpc_surface_from_coords(
+            tpcHitSetKey,
+	    global,
+	    subsurfkey);
 	
 	  if(!surface)
 	    {
@@ -280,20 +211,20 @@ namespace
 	
 	  clus->setSubSurfKey(subsurfkey);
 	
-	  Acts::Vector3 center = surface->center(my_data.tGeometry->geoContext) 
+	  Acts::Vector3 center = surface->center(my_data.tGeometry->geometry().geoContext) 
 	    / Acts::UnitConstants::cm;
 	  
 	  /// no conversion needed, only used in acts
-   const Acts::Vector3 normal = surface->normal(my_data.tGeometry->geoContext);
+	  const Acts::Vector3 normal = surface->normal(my_data.tGeometry->geometry().geoContext);
    const double clusRadius = std::sqrt(square(clusx) + square(clusy));
 	  const double rClusPhi = clusRadius * clusphi;
    const double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
    const double surfPhiCenter = atan2(center[1], center[0]);
 	  const double surfRphiCenter = surfPhiCenter * surfRadius;
    const double surfZCenter = center[2];
-   auto local = surface->globalToLocal(my_data.tGeometry->geoContext,
- 				      global * Acts::UnitConstants::cm,
-					      normal);
+   auto local = surface->globalToLocal(my_data.tGeometry->geometry().geoContext,
+				       global * Acts::UnitConstants::cm,
+				       normal);
 	  Acts::Vector2 localPos;
 	  
 	  /// Prefer Acts transformation since we build the TPC surfaces manually
@@ -538,22 +469,12 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,
-							 "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode,
+						 "ActsGeometry");
   if(!m_tGeometry)
     {
       std::cout << PHWHERE
-		<< "ActsTrackingGeometry not found on node tree. Exiting"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-
-  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
-						   "ActsSurfaceMaps");
-  if(!m_surfMaps)
-    {
-      std::cout << PHWHERE 
-		<< "ActsSurfaceMaps not found on node tree. Exiting"
+		<< "ActsGeometry not found on node tree. Exiting"
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
@@ -607,7 +528,6 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.side = side;
     thread_pair.data.do_assoc = do_hit_assoc;
     thread_pair.data.tGeometry = m_tGeometry;
-    thread_pair.data.surfmaps = m_surfMaps;
     thread_pair.data.par0_neg = par0_neg;
     thread_pair.data.par0_pos = par0_pos;
 

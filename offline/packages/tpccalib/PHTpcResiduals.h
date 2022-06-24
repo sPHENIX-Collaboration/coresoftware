@@ -4,8 +4,7 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Propagator/Propagator.hpp>
@@ -121,9 +120,8 @@ class PHTpcResiduals : public SubsysReco
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
   SvtxTrackMap *m_trackMap = nullptr;
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
-  ActsSurfaceMaps *m_surfMaps = nullptr;
 
   float m_maxTAlpha = 0.6;
   float m_maxResidualDrphi = 0.5; // cm

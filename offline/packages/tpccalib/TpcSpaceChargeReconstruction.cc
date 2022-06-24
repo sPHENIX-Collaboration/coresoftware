@@ -11,13 +11,15 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
+
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
@@ -186,11 +188,8 @@ void TpcSpaceChargeReconstruction::SetDefaultParameters()
 int TpcSpaceChargeReconstruction::load_nodes( PHCompositeNode* topNode )
 {
   // get necessary nodes
-  m_tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  m_tgeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
   assert( m_tgeometry );
-
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
-  assert( m_surfmaps );
 
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   assert(m_track_map);
@@ -223,10 +222,9 @@ Acts::Vector3 TpcSpaceChargeReconstruction::get_global_position(TrkrDefs::cluske
   if (it == m_globalPositions.end()|| (key < it->first ))
   {
     // get global position from Acts transform
-    const auto globalpos = m_surfmaps->getGlobalPosition(
+    const auto globalpos = m_tgeometry->getGlobalPosition(
       key, 
-      cluster,
-      m_tgeometry);
+      cluster);
 
     /*
      * todo: should also either apply distortion corrections

@@ -3,7 +3,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Propagator/Propagator.hpp>
@@ -44,7 +44,7 @@ class PHActsVertexPropagator : public SubsysReco
   void updateSvtxTrack(SvtxTrack* track, const Acts::BoundTrackParameters& params);
   void setVtxChi2();
   
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;

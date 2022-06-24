@@ -110,36 +110,41 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
 
   /// Set the actsGeometry struct to be put on the node tree
-  m_actsGeometry->tGeometry = m_tGeometry;
-  m_actsGeometry->magField = m_magneticField;
-  m_actsGeometry->calibContext = m_calibContext;
-  m_actsGeometry->magFieldContext = m_magFieldContext;
-  m_actsGeometry->geoContext = m_geoCtxt;
-  m_actsGeometry->tpcSurfStepPhi = m_surfStepPhi;
-  m_actsGeometry->tpcSurfStepZ = m_surfStepZ;
+  ActsTrackingGeometry trackingGeometry;
+  trackingGeometry.tGeometry = m_tGeometry;
+  trackingGeometry.magField = m_magneticField;
+  trackingGeometry.calibContext = m_calibContext;
+  trackingGeometry.magFieldContext = m_magFieldContext;
+  trackingGeometry.geoContext = m_geoCtxt;
+  trackingGeometry.tpcSurfStepPhi = m_surfStepPhi;
+  trackingGeometry.tpcSurfStepZ = m_surfStepZ;
 
   // fill ActsSurfaceMap content
-  m_surfMaps->m_siliconSurfaceMap = m_clusterSurfaceMapSilicon;
-  m_surfMaps->m_tpcSurfaceMap = m_clusterSurfaceMapTpcEdit;
-  m_surfMaps->m_mmSurfaceMap = m_clusterSurfaceMapMmEdit ;
-  m_surfMaps->m_tGeoNodeMap = m_clusterNodeMap;
+  ActsSurfaceMaps surfMaps;
+  surfMaps.m_siliconSurfaceMap = m_clusterSurfaceMapSilicon;
+  surfMaps.m_tpcSurfaceMap = m_clusterSurfaceMapTpcEdit;
+  surfMaps.m_mmSurfaceMap = m_clusterSurfaceMapMmEdit ;
+  surfMaps.m_tGeoNodeMap = m_clusterNodeMap;
 
   // fill TPC volume ids
   for( const auto& [hitsetid, surfaceVector]:m_clusterSurfaceMapTpcEdit )
     for( const auto& surface:surfaceVector )
-      { m_surfMaps->m_tpcVolumeIds.insert( surface->geometryId().volume() ); }
+      { surfMaps.m_tpcVolumeIds.insert( surface->geometryId().volume() ); }
   
   // fill Micromegas volume ids
   for( const auto& [hitsetid, surface]:m_clusterSurfaceMapMmEdit )
-    { m_surfMaps->m_micromegasVolumeIds.insert( surface->geometryId().volume() ); } 
+    { surfMaps.m_micromegasVolumeIds.insert( surface->geometryId().volume() ); } 
+  
+  m_actsGeometry->setGeometry(trackingGeometry);
+  m_actsGeometry->setSurfMaps(surfMaps);
 
   // print
   if( Verbosity() )
   {
-    for( const auto& id:m_surfMaps->m_tpcVolumeIds )
+    for( const auto& id:surfMaps.m_tpcVolumeIds )
     { std::cout << "MakeActsGeometry::InitRun - TPC volume id: " << id << std::endl; }
   
-    for( const auto& id:m_surfMaps->m_micromegasVolumeIds )
+    for( const auto& id:surfMaps.m_micromegasVolumeIds )
     { std::cout << "MakeActsGeometry::InitRun - Micromegas volume id: " << id << std::endl; }
   }
   
@@ -1401,24 +1406,12 @@ int MakeActsGeometry::createNodes(PHCompositeNode *topNode)
       dstNode->addNode(svtxNode);
     }
 
-  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
-						   "ActsSurfaceMaps");
-  if(!m_surfMaps)
-    {
-      m_surfMaps = new ActsSurfaceMaps();
-      PHDataNode<ActsSurfaceMaps> *node
-	= new PHDataNode<ActsSurfaceMaps>(m_surfMaps, "ActsSurfaceMaps");
-      svtxNode->addNode(node);
-
-    }
-
-  m_actsGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,
-							    "ActsTrackingGeometry");
+  m_actsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_actsGeometry)
     {
-      m_actsGeometry = new ActsTrackingGeometry();
-      PHDataNode<ActsTrackingGeometry> *tGeoNode 
-	= new PHDataNode<ActsTrackingGeometry>(m_actsGeometry, "ActsTrackingGeometry");
+      m_actsGeometry = new ActsGeometry();
+      PHDataNode<ActsGeometry> *tGeoNode 
+	= new PHDataNode<ActsGeometry>(m_actsGeometry, "ActsGeometry");
       svtxNode->addNode(tGeoNode);
     }
   

@@ -23,10 +23,7 @@
 #include <string>
 #include <vector>
 
-// forward declarations
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
-
+class ActsGeometry;
 class PHCompositeNode;
 class PHField;
 class TpcDistortionCorrectionContainer;
@@ -95,10 +92,7 @@ class PHSimpleKFProp : public SubsysReco
   PHField* _field_map = nullptr;
   
   /// acts geometry
-  ActsTrackingGeometry *_tgeometry = nullptr;
-
-  /// acts surface map
-  ActsSurfaceMaps *_surfmaps = nullptr;
+  ActsGeometry *_tgeometry = nullptr;
 
   /// distortion correction container
   TpcDistortionCorrectionContainer* m_dcc = nullptr;

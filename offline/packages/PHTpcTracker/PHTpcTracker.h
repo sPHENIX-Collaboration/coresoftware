@@ -23,8 +23,7 @@ class PHTpcTrackFollower;
 class PHTpcVertexFinder;
 class PHTpcEventExporter;
 class PHTpcLookup;
-struct ActsTrackingGeometry;
-struct ActsSurfaceMaps;
+class ActsGeometry;
 
 namespace PHGenFit2
 {
@@ -71,8 +70,7 @@ class PHTpcTracker : public PHTrackSeeding
   PHTpcEventExporter* mEventExporter;
   PHTpcLookup* mLookup;
 
-  ActsSurfaceMaps* mSurfMaps = nullptr;
-  ActsTrackingGeometry* mGeometry = nullptr;
+  ActsGeometry* mGeometry = nullptr;
 
   PHGenFit2::Fitter* mFitter;
   TGeoManager* mTGeoManager;

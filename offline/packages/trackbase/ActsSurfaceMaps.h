@@ -1,5 +1,5 @@
-#ifndef TRACKRECO_ACTSSURFACEMAPS_H
-#define TRACKRECO_ACTSSURFACEMAPS_H
+#ifndef TRACKBASE_ACTSSURFACEMAPS_H
+#define TRACKBASE_ACTSSURFACEMAPS_H
 /*!
  *  \file		ActsSurfaceMaps.h
  *  \brief		maps hitsetids to Acts Surfaces
@@ -45,16 +45,6 @@ struct ActsSurfaceMaps
     TrkrDefs::subsurfkey surfkey) const;
 
   Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey) const;
-
-   Eigen::Matrix<float,3,1> getGlobalPositionF(
-      TrkrDefs:: cluskey key,       
-      TrkrCluster* cluster,
-      ActsTrackingGeometry *tGeometry) const;
-
-  Acts::Vector3 getGlobalPosition(
-      TrkrDefs:: cluskey key,       
-      TrkrCluster* cluster,
-      ActsTrackingGeometry *tGeometry) const;
 
   //! map hitset to Surface for the silicon detectors (MVTX and INTT)
   std::map<TrkrDefs::hitsetkey, Surface> m_siliconSurfaceMap;

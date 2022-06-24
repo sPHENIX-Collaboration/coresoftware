@@ -12,8 +12,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 
 class TrackSeedContainer;
@@ -46,11 +45,8 @@ class PHTpcDeltaZCorrection : public SubsysReco, public PHParameterInterface
   /// process track
   void process_track( unsigned int, TrackSeed* );
 
-  /// Acts surface maps for surface lookup
-  ActsSurfaceMaps *m_surfmaps = nullptr;
-
   /// Acts tracking geometry for surface lookup
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
 
   /// track map
   TrackSeedContainer *m_track_map = nullptr;

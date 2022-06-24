@@ -9,6 +9,7 @@
 #define TRACKRECO_PHGENFITTRKFITTER_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #if defined(__CLING__)
@@ -45,9 +46,6 @@ namespace PHGenFit
 {
 class Fitter;
 } /* namespace PHGenFit */
-
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
 
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
@@ -317,10 +315,7 @@ class PHGenFitTrkFitter : public SubsysReco
   std::string _vertexing_method = "avr-smoothing:1-minweight:0.5-primcut:9-seccut:9";
 
   /// acts geometry
-  ActsTrackingGeometry *m_tgeometry = nullptr;
-
-  /// acts surface map
-  ActsSurfaceMaps *m_surfmaps = nullptr;
+  ActsGeometry *m_tgeometry = nullptr;
 
   /// map cluster keys to global position
   using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
