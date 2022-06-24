@@ -109,6 +109,8 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
 
   float m_pedestal = 74.4;  // pedestal for hit ASDC values
 
+  // TPC drift velocity
+  float m_vdrift = NAN;
 
   //@}
 
