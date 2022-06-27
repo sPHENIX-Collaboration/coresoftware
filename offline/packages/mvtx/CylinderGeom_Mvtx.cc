@@ -74,7 +74,7 @@ CylinderGeom_Mvtx::CylinderGeom_Mvtx(
 
 TVector3
 CylinderGeom_Mvtx::get_local_from_world_coords(Surface surface,
-					       ActsTrackingGeometry* tGeometry,
+					       ActsGeometry* tGeometry,
 					       TVector3 world)
 {
   Acts::Vector2 local;
@@ -85,7 +85,7 @@ CylinderGeom_Mvtx::get_local_from_world_coords(Surface surface,
   global *= Acts::UnitConstants::cm;
 
   /// Acts requires a dummy vector to be passed in the arg list
-  auto localResult = surface->globalToLocal(tGeometry->geoContext,
+  auto localResult = surface->globalToLocal(tGeometry->geometry().geoContext,
 					    global,
 					    Acts::Vector3(1,1,1));
   
@@ -132,7 +132,7 @@ CylinderGeom_Mvtx::get_sensor_indices_from_world_coords(std::vector<double> &wor
 }
 
 TVector3
-CylinderGeom_Mvtx::get_world_from_local_coords(Surface surface, ActsTrackingGeometry* tGeometry, TVector2 local)
+CylinderGeom_Mvtx::get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector2 local)
 {
   Acts::Vector2 actslocal;
   actslocal(0) = local.X();
@@ -141,7 +141,7 @@ CylinderGeom_Mvtx::get_world_from_local_coords(Surface surface, ActsTrackingGeom
 
   Acts::Vector3 global;
   /// Acts requires a dummy vector to be passed in the arg list
-  global = surface->localToGlobal(tGeometry->geoContext,
+  global = surface->localToGlobal(tGeometry->geometry().geoContext,
 				  actslocal, Acts::Vector3(1,1,1));
   global /= Acts::UnitConstants::cm;
 
@@ -230,7 +230,7 @@ void CylinderGeom_Mvtx::identify(std::ostream& os) const
   return;
 }
 
-void CylinderGeom_Mvtx::find_sensor_center(Surface surface, ActsTrackingGeometry* tGeometry, double location[])
+void CylinderGeom_Mvtx::find_sensor_center(Surface surface, ActsGeometry* tGeometry, double location[])
 {
   TVector2 sensor_local(0.0, 0.0);
 

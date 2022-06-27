@@ -4,8 +4,7 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <TVector3.h>
 
@@ -50,8 +49,8 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   double get_pixel_thickness() const override { return pixel_thickness; }
 
 // our own - no override
-  TVector3 get_local_from_world_coords(Surface surface, ActsTrackingGeometry *tGeometry, TVector3 world);
-  TVector3 get_world_from_local_coords(Surface surface, ActsTrackingGeometry *tGeometry, TVector2 local);
+  TVector3 get_local_from_world_coords(Surface surface, ActsGeometry *tGeometry, TVector3 world);
+  TVector3 get_world_from_local_coords(Surface surface, ActsGeometry *tGeometry, TVector2 local);
 
   void get_sensor_indices_from_world_coords(std::vector<double> &world, unsigned int &stave, unsigned int &chip);
 
@@ -73,7 +72,7 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   int get_ladder_phi_index(int stave, int /*half_stave*/, int /*chip*/) {return stave; }
   int get_ladder_z_index(int /*module*/, int chip) { return chip; }
 
-  void find_sensor_center(Surface surface, ActsTrackingGeometry* tGeometry, double location[]);
+  void find_sensor_center(Surface surface, ActsGeometry* tGeometry, double location[]);
 
   int get_N_staves() const { return N_staves; }
   int get_N_half_staves() const { return N_half_staves; }

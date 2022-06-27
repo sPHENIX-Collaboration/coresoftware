@@ -37,7 +37,7 @@ bool CylinderGeomIntt::load_geometry()
 {
   return true;
 }
-TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsTrackingGeometry* tGeometry, TVector2 local)
+TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector2 local)
 {
   Acts::Vector2 actslocal;
   actslocal(0) = local.X();
@@ -45,7 +45,7 @@ TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsTrac
   actslocal *= Acts::UnitConstants::cm;
   
   /// Acts requires a dummy vector to be passed in the arg list
-  auto global = surface->localToGlobal(tGeometry->geoContext,
+  auto global = surface->localToGlobal(tGeometry->geometry().geoContext,
 				       actslocal,
 				       Acts::Vector3(1,1,1));
 
@@ -59,7 +59,7 @@ TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsTrac
   return ret;
 
 }
-TVector3 CylinderGeomIntt::get_local_from_world_coords(Surface surface, ActsTrackingGeometry* tGeometry, TVector3 world)
+TVector3 CylinderGeomIntt::get_local_from_world_coords(Surface surface, ActsGeometry* tGeometry, TVector3 world)
 {
   Acts::Vector2 local;
   Acts::Vector3 global;
@@ -69,7 +69,7 @@ TVector3 CylinderGeomIntt::get_local_from_world_coords(Surface surface, ActsTrac
   global *= Acts::UnitConstants::cm;
 
   /// Acts requires a dummy vector to be passed in the arg list
-  auto localResult = surface->globalToLocal(tGeometry->geoContext,
+  auto localResult = surface->globalToLocal(tGeometry->geometry().geoContext,
 					    global,
 					    Acts::Vector3(1,1,1));
   TVector3 localR;
