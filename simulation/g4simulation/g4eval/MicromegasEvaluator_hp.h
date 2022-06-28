@@ -10,6 +10,7 @@
 #include <map>
 #include <memory>
 
+class ActsGeometry;
 class PHG4CylinderGeomContainer;
 class PHG4HitContainer;
 class TrkrHitSetContainer;
@@ -227,6 +228,9 @@ class MicromegasEvaluator_hp : public SubsysReco
 
   // flags
   int m_flags = EvalG4Hits | EvalHits;
+
+  /// Acts tracking geometry for surface lookup
+  ActsGeometry *m_tGeometry = nullptr;
 
   //! gemometry
   PHG4CylinderGeomContainer* m_geonode = nullptr;

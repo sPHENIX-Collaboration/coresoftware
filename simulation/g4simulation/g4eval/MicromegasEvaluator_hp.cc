@@ -12,6 +12,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/PHRandomSeed.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
@@ -170,6 +171,11 @@ int MicromegasEvaluator_hp::End(PHCompositeNode* )
 //_____________________________________________________________________
 int MicromegasEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 {
+
+  // acts geometry
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  assert( m_tGeometry );
+
   // geometry
   const std::string geonodename = "CYLINDERGEOM_MICROMEGAS_FULL";
   m_geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
@@ -222,15 +228,14 @@ void MicromegasEvaluator_hp::evaluate_g4hits()
       // get hit
       auto g4hit = g4hit_it->second;
 
+      const auto tileid = g4hit->get_property_int( PHG4Hit::prop_index_i );
+      if( tileid < 0 ) continue;
+
       // get world coordinates
       TVector3 world_in( g4hit->get_x(0), g4hit->get_y(0), g4hit->get_z(0) );
       TVector3 world_out( g4hit->get_x(1), g4hit->get_y(1), g4hit->get_z(1) );
 
-      // get tile
-      const int tileid = layergeom->find_tile_planar( (world_in+world_out)*0.5 );
-      if( tileid < 0 ) continue;
-
-      const int stripnum = layergeom->find_strip_from_world_coords( tileid, (world_in + world_out)*0.5  );
+      const int stripnum = layergeom->find_strip_from_world_coords( tileid, m_tGeometry, (world_in + world_out)*0.5  );
       if( stripnum < 0 ) continue;
 
       // create G4Hit struct
