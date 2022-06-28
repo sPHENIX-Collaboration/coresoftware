@@ -8,6 +8,7 @@
 #include <micromegas/MicromegasDefs.h>
 
 /// Tracking includes
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrClusterv3.h>            // for TrkrCluster
@@ -15,13 +16,12 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 
+#include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/TrackSeed.h>     
 #include <trackbase_historic/TrackSeedContainer.h>
 
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDefs.h>
-
-#include <trackbase_historic/ActsTransformations.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                // for SubsysReco
@@ -209,7 +209,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     std::vector<TrkrCluster*> clusters;
     std::vector<Acts::Vector3> clusGlobPos;
 
-    for (SvtxTrack::ConstClusterKeyIter key_iter = tracklet_tpc->begin_cluster_keys(); key_iter != tracklet_tpc->end_cluster_keys(); ++key_iter)
+    for (auto key_iter = tracklet_tpc->begin_cluster_keys(); key_iter != tracklet_tpc->end_cluster_keys(); ++key_iter)
     {
       TrkrDefs::cluskey cluster_key = *key_iter;
       unsigned int layer = TrkrDefs::getLayer(cluster_key);
@@ -337,7 +337,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       const TVector3 world_intersection_planar( x, y, z );
 
       // convert to tile local reference frame, apply SC correction
-      TVector3 local_intersection_planar = layergeom->get_local_from_world_coords( tileid, world_intersection_planar );
+      auto local_intersection_planar = layergeom->get_local_from_world_coords( tileid, _tGeometry, world_intersection_planar );
       if(_sc_calib_mode)
       {
         /*
@@ -358,21 +358,25 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       // convert to tile local coordinate and compare
       for(auto clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
       {
-	TrkrDefs::cluskey ckey = clusiter->first;
-	if(_iteration_map != NULL ){
-	  if( _iteration_map->getIteration(ckey) > 0) 
-	    continue; // skip hits used in a previous iteration
-	}
+        TrkrDefs::cluskey ckey = clusiter->first;
+        if(_iteration_map)
+        {
+          if( _iteration_map->getIteration(ckey) > 0) 
+          { continue; }
+        }
+        
         // store cluster and key
         const auto& [key, cluster] = *clusiter;
         const auto glob = _tGeometry->getGlobalPosition(key, cluster);
-        const TVector3 world_cluster(glob(0), glob(1), glob(2));
-        const TVector3 local_cluster = layergeom->get_local_from_world_coords( tileid, world_cluster );
+        const TVector3 world_cluster(glob.x(), glob.y(), glob.z());
+        
+        // TODO: it is probably enough to use the cluster local coordinates directly
+        const auto local_cluster = layergeom->get_local_from_world_coords( tileid, _tGeometry, world_cluster );
 
         // compute residuals and store
-        /* in local tile coordinate, x is along rphi, and z is along z) */
+        /* in local tile coordinate, x is along rphi, and z is along y) */
         const double drphi = local_intersection_planar.x() - local_cluster.x();
-        const double dz = local_intersection_planar.z() - local_cluster.z();
+        const double dz = local_intersection_planar.y() - local_cluster.y();
 
         // compare to cuts and add to track if matching
         if( std::abs(drphi) < _rphi_search_win[imm] && std::abs(dz) < _z_search_win[imm] )
@@ -383,7 +387,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
           if( _test_windows )
           {
             // cluster rphi and z
-            const double mm_clus_rphi = get_r( glob(0), glob(1) ) * std::atan2( glob(1),  glob(0) );
+            const double mm_clus_rphi = get_r( glob.x(), glob.y() ) * std::atan2( glob.y(),  glob.x() );
             const double mm_clus_z = glob(2);
 
             // projection phi and z, without correction

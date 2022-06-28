@@ -4,14 +4,16 @@
 #define PHMICROMEGASTPCTRACKMATCHING_H
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/ActsGeometry.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
+
+#include <trackbase/TrkrDefs.h>
 
 #include <array>
 #include <string>
 #include <vector>
 
+class ActsGeometry;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
 class TrackSeedContainer;
