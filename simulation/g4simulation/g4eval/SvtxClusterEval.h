@@ -4,8 +4,7 @@
 #include "SvtxHitEval.h"
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <map>
 #include <memory>                // for shared_ptr, less
@@ -106,8 +105,7 @@ class SvtxClusterEval
   PHG4HitContainer * _g4hits_intt = nullptr;
   PHG4HitContainer * _g4hits_mvtx = nullptr;
   PHG4HitContainer * _g4hits_mms = nullptr;
-  ActsSurfaceMaps *_surfmaps = nullptr;
-  ActsTrackingGeometry *_tgeometry = nullptr;
+  ActsGeometry *_tgeometry = nullptr;
 
   bool _strict = false ;
   int _verbosity = 0;

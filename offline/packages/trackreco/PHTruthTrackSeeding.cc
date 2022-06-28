@@ -325,28 +325,28 @@ void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters
       // this method calculates the Z0 and z slope from a fit to the clusters and overwrites them
       unsigned int start_layer = 7;
       unsigned int end_layer = 54;
-      track->lineFit(m_clusterMap, surfmaps, tgeometry, start_layer, end_layer);      
+      track->lineFit(m_clusterMap, tgeometry, start_layer, end_layer);      
     }
   
   /// Need to find the right one for the bend angle
   
-  float newphi = track->get_phi(m_clusterMap, surfmaps, tgeometry);
+  float newphi = track->get_phi(m_clusterMap, tgeometry);
   /// We have to pick the right one based on the bend angle, so iterate
   /// through until you find the closest phi match
   if( fabs(newphi-phi) > 0.03)
     {
       track->set_X0(X0_2);
-      newphi = track->get_phi(m_clusterMap, surfmaps, tgeometry);
+      newphi = track->get_phi(m_clusterMap, tgeometry);
   
       if( fabs(newphi-phi) > 0.03)
 	{
 	  track->set_Y0(Y0_2);
-	  newphi = track->get_phi(m_clusterMap, surfmaps, tgeometry);
+	  newphi = track->get_phi(m_clusterMap, tgeometry);
 
 	  if( fabs(newphi-phi) > 0.03)
 	    {
 	      track->set_X0(X0_1);
-	      newphi = track->get_phi(m_clusterMap, surfmaps, tgeometry);
+	      newphi = track->get_phi(m_clusterMap, tgeometry);
 	    }
 	}
     }
@@ -354,11 +354,11 @@ void PHTruthTrackSeeding::buildTrackSeed(std::vector<TrkrDefs::cluskey> clusters
   if(Verbosity() > 2)
     {
       std::cout << "Charge is " << charge << std::endl;
-      std::cout << "truth/reco px " << px << ", " << track->get_px(m_clusterMap, surfmaps, tgeometry) << std::endl;
-      std::cout << "truth/reco py " << py << ", " << track->get_py(m_clusterMap, surfmaps, tgeometry) << std::endl;
+      std::cout << "truth/reco px " << px << ", " << track->get_px(m_clusterMap, tgeometry) << std::endl;
+      std::cout << "truth/reco py " << py << ", " << track->get_py(m_clusterMap, tgeometry) << std::endl;
       std::cout << "truth/reco pz " << pz << ", " << track->get_pz() << std::endl;
       std::cout << "truth/reco pt " << pt << ", " << track->get_pt() << std::endl;
-      std::cout << "truth/reco phi " << phi << ", " << track->get_phi(m_clusterMap, surfmaps, tgeometry) << std::endl;
+      std::cout << "truth/reco phi " << phi << ", " << track->get_phi(m_clusterMap, tgeometry) << std::endl;
       std::cout << "truth/reco eta " << eta << ", " << track->get_eta() << std::endl;
       std::cout << "truth/reco x " << x << ", " << track->get_x() << std::endl;
       std::cout << "truth/reco y " << y << ", " << track->get_y() << std::endl;
@@ -452,10 +452,8 @@ int PHTruthTrackSeeding::CreateNodes(PHCompositeNode* topNode)
 int PHTruthTrackSeeding::GetNodes(PHCompositeNode* topNode)
 {
 
-  tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
-  surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  
-  if(!tgeometry or !surfmaps) 
+  tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if(!tgeometry) 
     {
       std::cerr << PHWHERE << "Error, can' find needed Acts nodes " << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;

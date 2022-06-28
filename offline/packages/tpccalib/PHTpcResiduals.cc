@@ -280,7 +280,7 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) con
   const auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(position);
   const auto actsFourPos = Acts::Vector4(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
 
-  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geoContext,
+  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geometry().geoContext,
 					    actsFourPos, momentum,
 					    trackQ/p, cov).value();
 }
@@ -304,9 +304,9 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track, Svt
 
   const auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(position);
   const auto actsFourPos = Acts::Vector4(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
-  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geoContext,
-				  actsFourPos, momentum,
-				  p, trackQ, cov).value();
+  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geometry().geoContext,
+    actsFourPos, momentum,
+    p, trackQ, cov).value();
 }
 
 //_____________________________________________________________________________________________
@@ -338,7 +338,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       if(detId != TrkrDefs::tpcId) continue;  
 
       const auto cluster = m_clusterContainer->findCluster(cluskey);      
-      const auto surf = m_transformer.getSurface( cluskey, cluster, m_surfMaps );
+      const auto surf = m_tGeometry->maps().getSurface( cluskey, cluster );
       auto result = propagateTrackState(trackParams, surf);
 
       if(result.ok())
@@ -364,8 +364,8 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
         if( Verbosity() > 1 )
         {
           std::cout << "Starting track params position/momentum: "
-            << trackParams.position(m_tGeometry->geoContext).transpose()
-            << std::endl << trackParams.momentum().transpose()
+            << trackParams.position(m_tGeometry->geometry().geoContext).transpose()
+            << std::endl
             << std::endl
             << "Track params phi/eta "
             << std::atan2(trackParams.momentum().y(),
@@ -392,8 +392,8 @@ PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState(
   using Stepper            = Acts::EigenStepper<>;
   using Propagator         = Acts::Propagator<Stepper, Acts::Navigator>;
 
-  Stepper stepper(m_tGeometry->magField);
-  Acts::Navigator::Config cfg{m_tGeometry->tGeometry};
+  Stepper stepper(m_tGeometry->geometry().magField);
+  Acts::Navigator::Config cfg{m_tGeometry->geometry().tGeometry};
   Acts::Navigator navigator(cfg);
   Propagator propagator(stepper, navigator);
 
@@ -403,8 +403,8 @@ PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState(
 
   auto logger = Acts::getDefaultLogger("PHTpcResiduals", logLevel);
       
-  Acts::PropagatorOptions<> options(m_tGeometry->geoContext,
-				    m_tGeometry->magFieldContext,
+  Acts::PropagatorOptions<> options(m_tGeometry->geometry().geoContext,
+				    m_tGeometry->geometry().magFieldContext,
 				    Acts::LoggerWrapper{*logger});
      
   auto result = propagator.propagate(params, *surf, options);
@@ -428,7 +428,7 @@ void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Ac
   SvtxTrackState_v1 state( pathlength );
 
   // save global position
-  const auto global = params.position(m_tGeometry->geoContext);
+  const auto global = params.position(m_tGeometry->geometry().geoContext);
   state.set_x(global.x() / Acts::UnitConstants::cm);
   state.set_y(global.y() / Acts::UnitConstants::cm);
   state.set_z(global.z() / Acts::UnitConstants::cm);
@@ -458,7 +458,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   cluskey = key;
   
   // Get all the relevant information for residual calculation
-  const auto globClusPos = m_transformer.getGlobalPosition(key, cluster, m_surfMaps, m_tGeometry);
+  const auto globClusPos = m_tGeometry->getGlobalPosition(key, cluster);
   clusR = get_r(globClusPos(0),globClusPos(1));
   clusPhi = std::atan2(globClusPos(1), globClusPos(0));
   clusZ = globClusPos(2);
@@ -479,7 +479,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   if(clusZErr < 0.05)
     return;
 
-  const auto globalStatePos = params.position(m_tGeometry->geoContext);
+  const auto globalStatePos = params.position(m_tGeometry->geometry().geoContext);
   const auto globalStateMom = params.momentum();
   const auto globalStateCov = *params.covariance();
 
@@ -678,16 +678,6 @@ int PHTpcResiduals::createNodes(PHCompositeNode */*topNode*/)
 
 int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 {
-
-  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
-						   "ActsSurfaceMaps");
-  if(!m_surfMaps)
-    {
-      std::cout << PHWHERE << "No Acts surface maps, exiting"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
- 
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,
 								"TRKR_CLUSTER");
   if(!m_clusterContainer)
@@ -697,7 +687,7 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_tGeometry)
     {
       std::cout << "ActsTrackingGeometry not on node tree. Exiting."

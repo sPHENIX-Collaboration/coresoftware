@@ -440,12 +440,8 @@ int TrackingEvaluator_hp::End(PHCompositeNode* )
 int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 {
 
-  // acts surface map
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  assert( m_surfmaps );
-
   // acts geometry
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   assert( m_tGeometry );
 
   // get necessary nodes
@@ -783,7 +779,7 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
 {
   // get detector type
   const auto trkrId = TrkrDefs::getTrkrId( cluster_key );
-  const auto global = m_transformer.getGlobalPosition(cluster_key, cluster,m_surfmaps, m_tGeometry);
+  const auto global = m_tGeometry->getGlobalPosition(cluster_key, cluster);
   const auto r = get_r( global.x(), global.y());
   std::cout
     << "TrackingEvaluator_hp::print_cluster -"
@@ -903,7 +899,7 @@ void TrackingEvaluator_hp::print_track(SvtxTrack* track) const
       }
 
       // get global coordinates
-      const auto global = m_transformer.getGlobalPosition(cluster_key, cluster,m_surfmaps, m_tGeometry);
+      const auto global = m_tGeometry->getGlobalPosition(cluster_key, cluster);
 
       std::cout
         << "TrackingEvaluator_hp::print_track -"
@@ -1041,7 +1037,7 @@ int TrackingEvaluator_hp::get_embed( PHG4Particle* particle ) const
 TrackingEvaluator_hp::ClusterStruct TrackingEvaluator_hp::create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global coordinates
-  const auto global = m_transformer.getGlobalPosition(key, cluster,m_surfmaps, m_tGeometry);
+  const auto global = m_tGeometry->getGlobalPosition(key, cluster);
 
   TrackingEvaluator_hp::ClusterStruct cluster_struct;
   cluster_struct._layer = TrkrDefs::getLayer(key);

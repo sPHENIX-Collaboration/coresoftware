@@ -102,12 +102,23 @@ if (defined $prodtype)
     }
     elsif ($prodtype == 3)
     {
-	$filenamestring = "pythia8_pp_mb_3MHz";
+	$filenamestring = "pythia8_pp_mb";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	}
 	&commonfiletypes();
     }
     elsif ($prodtype == 4)
     {
-	$filenamestring = sprintf("sHijing_0_20fm_%s_bkg_0_20fm",$pileupstring);
+	if (defined $nopileup)
+	{
+	    $filenamestring = sprintf("sHijing_0_20fm");
+	}
+	else
+	{
+	    $filenamestring = sprintf("sHijing_0_20fm_%s_bkg_0_20fm",$pileupstring);
+	}
         $notlike{$filenamestring} = "pythia8";
 	&commonfiletypes();
     }

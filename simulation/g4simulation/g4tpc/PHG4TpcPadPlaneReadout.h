@@ -28,6 +28,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   ~PHG4TpcPadPlaneReadout() override;
 
+  void SetDriftVelocity(double vd) override {drift_velocity = vd;}
+
   int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo) override;
 
   // otherwise warning of inconsistent overload since only one MapToPadPlane methow is overridden
@@ -65,7 +67,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<double, 2> sigmaL;
   std::array<double, 3> PhiBinWidth;
   double ZBinWidth = NAN;
-  double tpc_drift_velocity = NAN;
+  double drift_velocity = 8.0e-03;  // default value, override from macro
   double tpc_adc_clock = NAN;
 
   int NZBins = INT_MAX;

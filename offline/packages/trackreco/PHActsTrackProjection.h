@@ -5,7 +5,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/SvtxTrack.h>
 
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Propagator/Propagator.hpp>
@@ -101,7 +101,7 @@ class PHActsTrackProjection : public SubsysReco
   Acts::Vector3 getVertex(SvtxTrack* track);
 
   /// Objects containing the Acts track fit results
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
   std::map<const unsigned int, Trajectory> *m_trajectories{nullptr};

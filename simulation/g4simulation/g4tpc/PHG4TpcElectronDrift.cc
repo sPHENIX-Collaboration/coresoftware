@@ -233,6 +233,8 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
+  std::cout << PHWHERE << " drift velocity " << drift_velocity << std::endl;
+
   auto se = Fun4AllServer::instance();
   dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
   se->registerHisto(dlong);
@@ -268,6 +270,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     se->registerHisto(nthit);
     se->registerHisto(ntpad);
   }
+
   padplane->InitRun(topNode);
   padplane->CreateReadoutGeometry(topNode, seggeo);
 

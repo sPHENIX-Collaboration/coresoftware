@@ -855,7 +855,7 @@ Surface ActsEvaluator::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
       tmpkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);
     }
 
-  auto surfMap = m_surfMaps->siliconSurfaceMap;
+  auto surfMap = m_surfMaps->m_siliconSurfaceMap;
   auto iter = surfMap.find(tmpkey);
   if(iter != surfMap.end())
     {
@@ -871,8 +871,8 @@ Surface ActsEvaluator::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
 Surface ActsEvaluator::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey)
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-  const auto iter = m_surfMaps->tpcSurfaceMap.find(layer);
-  if(iter != m_surfMaps->tpcSurfaceMap.end())
+  const auto iter = m_surfMaps->m_tpcSurfaceMap.find(layer);
+  if(iter != m_surfMaps->m_tpcSurfaceMap.end())
   {
     auto surfvec = iter->second;
     return surfvec.at(surfkey);
@@ -885,8 +885,8 @@ Surface ActsEvaluator::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::su
 //___________________________________________________________________________________
 Surface ActsEvaluator::getMMSurface(TrkrDefs::hitsetkey hitsetkey)
 {
-  const auto iter = m_surfMaps->mmSurfaceMap.find( hitsetkey );
-  return (iter == m_surfMaps->mmSurfaceMap.end()) ? nullptr:iter->second;
+  const auto iter = m_surfMaps->m_mmSurfaceMap.find( hitsetkey );
+  return (iter == m_surfMaps->m_mmSurfaceMap.end()) ? nullptr:iter->second;
 }
 
 

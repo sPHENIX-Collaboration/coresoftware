@@ -4,8 +4,8 @@
 #define PHSILICONTPCTRACKMATCHING_H
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
+#include <phparameter/PHParameterInterface.h>
 
 #include <string>
 #include <map>
@@ -17,13 +17,15 @@ class TrkrClusterContainer;
 class TF1;
 class TrkrClusterCrossingAssoc;
 
-class PHSiliconTpcTrackMatching : public SubsysReco
+class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 {
  public:
 
   PHSiliconTpcTrackMatching(const std::string &name = "PHSiliconTpcTrackMatching");
 
   ~PHSiliconTpcTrackMatching() override;
+
+ void SetDefaultParameters() override;
 
   void set_phi_search_window(const double win){_phi_search_win = win;}
   void set_eta_search_window(const double win){_eta_search_win = win;}
@@ -110,8 +112,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco
   TrackSeed *_tracklet_tpc{nullptr};
   TrackSeed *_tracklet_si{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};
-  ActsSurfaceMaps *_surfmaps{nullptr};
-  ActsTrackingGeometry *_tGeometry{nullptr};
+  ActsGeometry *_tGeometry{nullptr};
   TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};
 
   std::map<unsigned int, double> _z_mismatch_map;

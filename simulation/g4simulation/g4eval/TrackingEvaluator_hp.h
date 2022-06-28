@@ -11,8 +11,7 @@
 #include <string>
 #include <vector>
 
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
+class ActsGeometry;
 class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
 class PHG4Hit;
@@ -546,14 +545,8 @@ class TrackingEvaluator_hp : public SubsysReco
   //! flags
   int m_flags = EvalEvent | EvalClusters | EvalTracks | EvalTrackPairs;
 
-  /// Acts surface maps for surface lookup
-  ActsSurfaceMaps *m_surfmaps = nullptr;
-
   /// Acts tracking geometry for surface lookup
-  ActsTrackingGeometry *m_tGeometry = nullptr;
-
-  /// acts transformation
-  ActsTransformations m_transformer;
+  ActsGeometry *m_tGeometry = nullptr;
   
   //! hits
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;
