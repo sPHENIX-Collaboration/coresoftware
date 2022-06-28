@@ -124,34 +124,6 @@ int CylinderGeomMicromegas::find_tile_cylindrical( const TVector3& world_coordin
 }
 
 //________________________________________________________________________________
-int CylinderGeomMicromegas::find_tile_planar( const TVector3& world_coordinates ) const
-{
-
-  for( size_t itile = 0; itile < m_tiles.size(); ++itile )
-  {
-
-    // get local coordinates
-    const auto local_coordinates = get_local_from_world_coords( itile, world_coordinates );
-
-    // store tile struct locally
-    const auto& tile = m_tiles.at(itile);
-
-    // check against thickness
-    if( std::abs( local_coordinates.y() ) > m_thickness/2 ) continue;
-
-    // check azimuth
-    if( std::abs( local_coordinates.x() ) > tile.m_sizePhi*reference_radius/2 ) continue;
-
-    // check z extend
-    if( std::abs( local_coordinates.z() ) > tile.m_sizeZ/2 ) continue;
-
-    return itile;
-  }
-
-  return -1;
-}
-
-//________________________________________________________________________________
 int CylinderGeomMicromegas::find_strip_from_world_coords( uint tileid, const TVector3& world_coordinates ) const
 {
   // convert to local coordinates

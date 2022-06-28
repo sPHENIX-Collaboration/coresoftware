@@ -729,7 +729,7 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
       }
 
       // get matching tile
-      int tileid = layergeom->find_tile_planar( world_center );
+      int tileid = layergeom->find_tile_cylindrical( world_center );
       if( tileid < 0 ) 
       {
         std::cout << "MakeActsGeometry::makeMmMapPairs - could not file Micromegas tile matching ACTS surface" << std::endl;

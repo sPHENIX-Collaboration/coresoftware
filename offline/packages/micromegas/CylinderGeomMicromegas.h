@@ -89,9 +89,6 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
    */
   int find_tile_cylindrical( const TVector3& ) const;
 
-  //! get tile for a given world location assuming tiles are planes centered on tile center and tengent to local cylinder
-  int find_tile_planar( const TVector3& ) const;
-
   //! get number of tiles
   size_t get_tiles_count() const { return m_tiles.size(); }
 
