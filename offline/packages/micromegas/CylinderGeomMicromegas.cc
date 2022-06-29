@@ -7,6 +7,9 @@
 
 #include <g4main/PHG4Hit.h>
 #include <trackbase/ActsGeometry.h>
+
+#include <Acts/Surfaces/RectangleBounds.hpp>
+#include <Acts/Surfaces/SurfaceBounds.hpp>
 #include <TVector3.h>
 
 #include <cassert>
@@ -157,13 +160,17 @@ int CylinderGeomMicromegas::find_tile_cylindrical( const TVector3& world_coordin
 //________________________________________________________________________________
 int CylinderGeomMicromegas::find_strip_from_world_coords( uint tileid, ActsGeometry* geometry, const TVector3& world_coordinates ) const
 {
-
-  // check point is on surface
-  if( !check_radius(world_coordinates) ) return -1;
-
   // convert to local coordinates
   const auto local_coordinates = get_local_from_world_coords( tileid, geometry, world_coordinates );
-  return find_strip_from_local_coords( tileid, geometry, { local_coordinates.x(), local_coordinates.y() } );
+  
+  // check against thickness
+  if( std::abs(local_coordinates.z() ) >= m_thickness/2 )
+  {
+    std::cout << " CylinderGeomMicromegas::find_strip_from_world_coords - invalid world coordinates" << std::endl;
+    return -1;
+  } else {
+    return find_strip_from_local_coords( tileid, geometry, { local_coordinates.x(), local_coordinates.y() } );
+  }
 }
 
 //________________________________________________________________________________
@@ -173,26 +180,31 @@ int CylinderGeomMicromegas::find_strip_from_local_coords( uint tileid, ActsGeome
   const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
   const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
-  // todo rely on surface boundaries to define strip
+  // get boundaries and corresponding dimension
+  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );  
+  auto rectangle_bounds = static_cast<const Acts::RectangleBounds*>( &surface->bounds() );
+  const auto half_length_x = rectangle_bounds->halfLengthX()/Acts::UnitConstants::cm;
+  const auto half_length_y = rectangle_bounds->halfLengthY()/Acts::UnitConstants::cm;
 
-  // get tile
-  const auto& tile = m_tiles.at(tileid);
+  std::cout << "CylinderGeomMicromegas::find_strip_from_local_coords -"
+    << " halfLengthX " << half_length_x
+    << " halfLengthX " << half_length_y
+    << std::endl;
 
   // check azimuth
-  if( std::abs( local_coordinates.X() ) > tile.m_sizePhi*reference_radius/2 ) return -1;
+  if( std::abs( local_coordinates.X() ) >  half_length_x ) return -1;
 
   // check z extend
-  if( std::abs( local_coordinates.Y() ) > tile.m_sizeZ/2 ) return -1;
+  if( std::abs( local_coordinates.Y() ) > half_length_y ) return -1;
 
-  // we found a tile to which the hit belong
-  // calculate strip index, depending on cylinder direction
+  // calculate strip index, depending on segmentation
   switch( m_segmentation_type )
   {
     case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-    return (int) std::floor( (local_coordinates.X() + tile.m_sizePhi*reference_radius/2)/m_pitch );
+    return (int) std::floor((local_coordinates.X() + half_length_x)/m_pitch);
 
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-    return (int) std::floor( (local_coordinates.Y() + tile.m_sizeZ/2)/m_pitch );
+    return (int) std::floor((local_coordinates.Y() + half_length_y)/m_pitch);
   }
 
   // unreachable
@@ -206,16 +218,16 @@ double CylinderGeomMicromegas::get_strip_length( uint tileid, ActsGeometry* geom
   const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
   const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
-  // todo rely on surface boundaries to define strip
-
-  assert( tileid < m_tiles.size() );
+  // get boundaries and return corresponding dimension
+  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );  
+  auto rectangle_bounds = static_cast<const Acts::RectangleBounds*>( &surface->bounds() );
   switch( m_segmentation_type )
   {
     case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-    return m_tiles[tileid].m_sizeZ;
+    return 2.*rectangle_bounds->halfLengthY()/Acts::UnitConstants::cm;
 
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-    return m_tiles[tileid].m_sizePhi*reference_radius;
+    return 2.*rectangle_bounds->halfLengthX()/Acts::UnitConstants::cm;
   }
 
   // unreachable
@@ -229,14 +241,16 @@ uint CylinderGeomMicromegas::get_strip_count( uint tileid, ActsGeometry* geometr
   const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
   const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
-  // todo rely on surface boundaries to define strip
+  // get boundaries and corresponding dimension
+  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );  
+  auto rectangle_bounds = static_cast<const Acts::RectangleBounds*>( &surface->bounds() );
   switch( m_segmentation_type )
   {
     case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-    return std::floor( m_tiles[tileid].m_sizePhi*reference_radius/m_pitch );
+    return std::floor( (2.*rectangle_bounds->halfLengthX()/Acts::UnitConstants::cm)/m_pitch );
 
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-    return std::floor( m_tiles[tileid].m_sizeZ/m_pitch );
+    return std::floor( (2.*rectangle_bounds->halfLengthY()/Acts::UnitConstants::cm)/m_pitch );
   }
 
   // unreachable
@@ -250,17 +264,17 @@ TVector2 CylinderGeomMicromegas::get_local_coordinates( uint tileid, ActsGeometr
   const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
   const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
-  // todo rely on surface boundaries to define strip
-  // get tile
-  const auto& tile = m_tiles[tileid];
+  // get boundaries and return corresponding dimension
+  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );  
+  auto rectangle_bounds = static_cast<const Acts::RectangleBounds*>( &surface->bounds() );
 
   switch( m_segmentation_type )
   {
     case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-    return TVector2( (0.5+stripnum)*m_pitch - tile.m_sizePhi*reference_radius/2, 0 );
+    return TVector2( (0.5+stripnum)*m_pitch-rectangle_bounds->halfLengthX()/Acts::UnitConstants::cm, 0 );
 
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-    return TVector2( 0, (0.5+stripnum)*m_pitch - tile.m_sizeZ/2 );
+    return TVector2( 0, (0.5+stripnum)*m_pitch-rectangle_bounds->halfLengthY()/Acts::UnitConstants::cm );
   }
 
   // unreachable

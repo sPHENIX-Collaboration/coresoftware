@@ -166,6 +166,10 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   double m_pitch = 0.1;
 
   //! tiles
+  /** 
+   * \brief tiles are only used in "find_tile_cylindrical". 
+   * For all other methods we use ACTS surfaces instead 
+   */
   MicromegasTile::List m_tiles;
 
   ClassDefOverride(CylinderGeomMicromegas, 1)
