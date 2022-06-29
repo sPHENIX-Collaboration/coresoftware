@@ -354,8 +354,8 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 
       // generate tilesetid and get corresponding clusters
       const auto tilesetid = MicromegasDefs::genHitSetKey(layer, segmentation_type, tileid);
-      const auto mm_clusrange = _cluster_map->getClusters(tilesetid);
-
+      const auto mm_clusrange = _cluster_map->getClusters(tilesetid);      
+      
       // convert to tile local coordinate and compare
       for(auto clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
       {
@@ -368,16 +368,11 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         
         // store cluster and key
         const auto& [key, cluster] = *clusiter;
-        const auto glob = _tGeometry->getGlobalPosition(key, cluster);
-        const TVector3 world_cluster(glob.x(), glob.y(), glob.z());
         
-        // TODO: it is probably enough to use the cluster local coordinates directly
-        const auto local_cluster = layergeom->get_local_from_world_coords( tileid, _tGeometry, world_cluster );
-
         // compute residuals and store
         /* in local tile coordinate, x is along rphi, and z is along y) */
-        const double drphi = local_intersection_planar.x() - local_cluster.x();
-        const double dz = local_intersection_planar.y() - local_cluster.y();
+        const double drphi = local_intersection_planar.x() - cluster->getLocalX();
+        const double dz = local_intersection_planar.y() - cluster->getLocalY();
 
         // compare to cuts and add to track if matching
         if( std::abs(drphi) < _rphi_search_win[imm] && std::abs(dz) < _z_search_win[imm] )
