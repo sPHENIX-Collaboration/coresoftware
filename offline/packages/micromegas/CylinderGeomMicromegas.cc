@@ -121,8 +121,8 @@ TVector3 CylinderGeomMicromegas::get_world_from_local_vect( uint tileid, ActsGeo
 
   Acts::Vector3 local(
     local_vect.x()*Acts::UnitConstants::cm,
-    local_vect.x()*Acts::UnitConstants::cm,
-    local_vect.x()*Acts::UnitConstants::cm );
+    local_vect.y()*Acts::UnitConstants::cm,
+    local_vect.z()*Acts::UnitConstants::cm );
 
   const auto global = surface->referenceFrame(geometry->geometry().geoContext, Acts::Vector3(), Acts::Vector3())*local;
   return TVector3(
@@ -173,8 +173,6 @@ int CylinderGeomMicromegas::find_strip_from_local_coords( uint tileid, ActsGeome
   const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
   const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
-  std::cout << "CylinderGeomMicromegas::find_strip_from_local_coords - bound: " << surface->bounds().type() << std::endl;
-
   // todo rely on surface boundaries to define strip
 
   // get tile
@@ -208,8 +206,6 @@ double CylinderGeomMicromegas::get_strip_length( uint tileid, ActsGeometry* geom
   const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
   const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
-  std::cout << "CylinderGeomMicromegas::get_strip_length - bound: " << surface->bounds().type() << std::endl;
-
   // todo rely on surface boundaries to define strip
 
   assert( tileid < m_tiles.size() );
@@ -233,8 +229,6 @@ uint CylinderGeomMicromegas::get_strip_count( uint tileid, ActsGeometry* geometr
   const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
   const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
-  std::cout << "CylinderGeomMicromegas::get_strip_count - bound: " << surface->bounds().type() << std::endl;
-
   // todo rely on surface boundaries to define strip
   switch( m_segmentation_type )
   {
@@ -255,8 +249,6 @@ TVector2 CylinderGeomMicromegas::get_local_coordinates( uint tileid, ActsGeometr
   assert( tileid < m_tiles.size() );
   const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
   const auto surface = geometry->maps().getMMSurface(hitsetkey);
-
-  std::cout << "CylinderGeomMicromegas::get_local_coordinates - bound: " << surface->bounds().type() << std::endl;
 
   // todo rely on surface boundaries to define strip
   // get tile
