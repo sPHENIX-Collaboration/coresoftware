@@ -186,11 +186,6 @@ int CylinderGeomMicromegas::find_strip_from_local_coords( uint tileid, ActsGeome
   const auto half_length_x = rectangle_bounds->halfLengthX()/Acts::UnitConstants::cm;
   const auto half_length_y = rectangle_bounds->halfLengthY()/Acts::UnitConstants::cm;
 
-  std::cout << "CylinderGeomMicromegas::find_strip_from_local_coords -"
-    << " halfLengthX " << half_length_x
-    << " halfLengthX " << half_length_y
-    << std::endl;
-
   // check azimuth
   if( std::abs( local_coordinates.X() ) >  half_length_x ) return -1;
 
