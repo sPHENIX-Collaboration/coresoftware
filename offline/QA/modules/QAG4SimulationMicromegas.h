@@ -8,6 +8,7 @@
 #include <set>
 #include <string>
 
+class ActsGeometry;
 class PHCompositeNode;
 class PHG4CylinderGeomContainer;
 class PHG4Hit;
@@ -16,7 +17,6 @@ class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
-class ActsGeometry;
 
 /// \class QAG4SimulationMicromegas
 class QAG4SimulationMicromegas : public SubsysReco
