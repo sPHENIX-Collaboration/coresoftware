@@ -344,6 +344,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
          * apply SC correction to the local intersection,
          * to make sure that the corrected intersection is still in the micromegas plane
          * in local tile coordinates, the rphi direction, to which the correction is applied, corresponds to the x direction
+         * TODO: this is probably completely obsolete. Check/Remove
          */
         local_intersection_planar.SetX( local_intersection_planar.x() - fdrphi->Eval(z) );
       }
@@ -388,7 +389,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
           {
             // cluster rphi and z
             const double mm_clus_rphi = get_r( glob.x(), glob.y() ) * std::atan2( glob.y(),  glob.x() );
-            const double mm_clus_z = glob(2);
+            const double mm_clus_z = glob.z();
 
             // projection phi and z, without correction
             const double rphi_proj = get_r( world_intersection_planar.x(), world_intersection_planar.y() ) * std::atan2( world_intersection_planar.y(), world_intersection_planar.x() );
