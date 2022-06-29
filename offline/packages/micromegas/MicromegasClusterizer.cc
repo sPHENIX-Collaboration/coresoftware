@@ -178,20 +178,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       continue;
     }
 
-    // if( Verbosity() )
-    {
-      
-      const auto normal = acts_surface->normal(acts_geometry->geometry().geoContext);
-
-      const auto geo_normal = layergeom->get_world_from_local_vect( tileid, acts_geometry, {0, 0, 1} );
-      std::cout << "MicromegasClusterizer::process_event -"
-        << " layer: " << (int) layer
-        << " tile: " << (int) tileid
-        << " normal (acts): " << normal
-        << " geo: " << geo_normal
-        << std::endl;
-    }
-
     /*
      * get segmentation type, layer thickness, strip length and pitch.
      * They are used to calculate cluster errors
