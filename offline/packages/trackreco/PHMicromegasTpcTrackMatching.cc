@@ -303,13 +303,14 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       int tileid = layergeom->find_tile_cylindrical( world_intersection_cylindrical );
       if( tileid < 0 ) continue;
 
-      // get tile coordinates
-      const auto tile_center_phi = layergeom->get_center_phi( tileid );
-      const double x0 = r*std::cos( tile_center_phi );
-      const double y0 = r*std::sin( tile_center_phi );
+      // get tile center and norm vector
+      const auto tile_center = layergeom->get_world_from_local_coords( tileid, _tGeometry, {0, 0} );
+      const double x0 = tile_center.x();
+      const double y0 = tile_center.y();
 
-      const double nx = x0;
-      const double ny = y0;
+      const auto tile_norm = layergeom->get_world_from_local_vect( tileid, _tGeometry, {0, 0, 1 } );
+      const double nx = tile_norm.x();
+      const double ny = tile_norm.y();
 
       // calculate intersection to tile
       if( !circle_line_intersection( R, X0, Y0, x0, y0, nx, ny, xplus, yplus, xminus, yminus) )
