@@ -25,8 +25,7 @@
 #include <ActsExamples/EventData/IndexSourceLink.hpp>
 
 class PHCompositeNode;
-struct ActsTrackingGeometry;
-struct ActsSurfaceMaps;
+class ActsGeometry;
 class TrkrClusterContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
@@ -67,11 +66,10 @@ class PHActsGSF : public SubsysReco
 
   void updateTrack(const FitResult& result, SvtxTrack *track);
   void updateSvtxTrack(const Trajectory& traj, SvtxTrack* track);
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
-  ActsSurfaceMaps *m_surfMaps = nullptr;
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
   TpcDistortionCorrectionContainer* m_dccStatic = nullptr;
