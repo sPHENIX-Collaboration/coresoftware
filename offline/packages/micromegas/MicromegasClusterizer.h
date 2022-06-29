@@ -11,8 +11,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <string>                // for string
 
@@ -35,11 +34,13 @@ class MicromegasClusterizer : public SubsysReco
   //! event processing
   int process_event(PHCompositeNode*) override;
 
+  void set_cluster_version(int value) { m_cluster_version = value; }
+
   private:
 
   //! detector name
   std::string m_detector;
-
+  int m_cluster_version = 3;
 };
 
 #endif

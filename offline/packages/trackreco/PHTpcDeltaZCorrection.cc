@@ -77,13 +77,8 @@ void PHTpcDeltaZCorrection::SetDefaultParameters()
 //_____________________________________________________________________
 int PHTpcDeltaZCorrection::load_nodes( PHCompositeNode* topNode )
 {
-
-  // acts surface map
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  assert( m_surfmaps );
-
   // acts geometry
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   assert( m_tGeometry );
 
   // get necessary nodes
@@ -144,6 +139,7 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, TrackSeed* track )
       << " positive: " << track->get_charge()
       << " center: " << center_x << ", " << center_y
       << " radius: " << radius
+      << " drift_velocity " << m_drift_velocity 
       << std::endl;
   }
 
@@ -164,7 +160,7 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, TrackSeed* track )
     if(!cluster) continue;
 
     // get cluster global position
-    const auto global = m_transformer.getGlobalPosition(cluster_key, cluster,m_surfmaps, m_tGeometry);
+    const auto global = m_tGeometry->getGlobalPosition(cluster_key, cluster);
 
     // get delta z
     const double delta_z = global.z() - origin.z();
@@ -180,17 +176,17 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, TrackSeed* track )
     // helical path length
     const double pathlength = std::sqrt( square( delta_z ) + square( radius*delta_phi ) );
     if( Verbosity() )
-    { std::cout << "PHTpcDeltaZCorrection::process_track - cluster: " << cluster_key << " path length: " << pathlength << std::endl; }
-
+      { std::cout << "PHTpcDeltaZCorrection::process_track - cluster: " << cluster_key << " path length: " << pathlength << std::endl; }
+    
     // adjust cluster position to account for particles propagation time
     /*
-    * accounting for particles finite velocity results in reducing the electron drift time by pathlenght/c
-    * this in turn affects the cluster z, so that it is always closer to the readout plane
-    */
+     * accounting for particles finite velocity results in reducing the electron drift time by pathlenght/c
+     * this in turn affects the cluster z, so that it is always closer to the readout plane
+     */
     const double z_correction = pathlength * m_drift_velocity/speed_of_light;
     if( global.z() > 0 ) cluster->setLocalY( cluster->getLocalY()+z_correction);
     else cluster->setLocalY( cluster->getLocalY()-z_correction);
-
-  }
-
+    
+	}
+  
 }

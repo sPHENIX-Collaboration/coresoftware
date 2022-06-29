@@ -23,8 +23,7 @@ class PHG4TruthInfoContainer;
 class PHG4HitContainer;
 class PHG4Particle;
 class TrkrClusterCrossingAssoc;
-struct ActsTrackingGeometry;
-struct ActsSurfaceMaps;
+class ActsGeometry;
 
 class PHTruthSiliconAssociation : public SubsysReco
 {
@@ -79,8 +78,7 @@ class PHTruthSiliconAssociation : public SubsysReco
   TrackSeed *_tracklet{nullptr};
   SvtxVertexMap * _vertex_map{nullptr};
   TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};
-  ActsTrackingGeometry *_tgeometry{nullptr};
-  ActsSurfaceMaps *_surfmaps{nullptr};
+  ActsGeometry *_tgeometry{nullptr};
 
   //! rng de-allocator
   class Deleter

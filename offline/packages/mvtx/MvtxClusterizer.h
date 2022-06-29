@@ -51,6 +51,8 @@ class MvtxClusterizer : public SubsysReco
   {
     return m_makeZClustering;
   }
+  void set_cluster_version(int value) { m_cluster_version = value; }
+  void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
 
  private:
   //bool are_adjacent(const pixel lhs, const pixel rhs);
@@ -65,10 +67,10 @@ class MvtxClusterizer : public SubsysReco
 
   TrkrClusterHitAssoc *m_clusterhitassoc;
 
-
-
   // settings
   bool m_makeZClustering;  // z_clustering_option
+  bool do_hit_assoc = true;
+  int m_cluster_version = 3;
 };
 
 #endif  // MVTX_MVTXCLUSTERIZER_H

@@ -22,8 +22,7 @@
 
 #include <phgeom/PHGeomUtility.h>
 
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey
 
@@ -102,9 +101,7 @@ int PHTpcTracker::Setup(PHCompositeNode* topNode)
   int ret = PHTrackSeeding::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  mSurfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
-  assert(mSurfMaps);
-  mGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  mGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   assert(mGeometry);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -157,8 +154,8 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
       svtx_track->insert_cluster_key(cluster_key);
     }
   
-    svtx_track->circleFitByTaubin(_cluster_map, mSurfMaps, mGeometry, 7, 55);
-    svtx_track->lineFit(_cluster_map, mSurfMaps, mGeometry, 7, 55);
+    svtx_track->circleFitByTaubin(_cluster_map, mGeometry, 7, 55);
+    svtx_track->lineFit(_cluster_map, mGeometry, 7, 55);
 
 
     if(Verbosity() > 0) 

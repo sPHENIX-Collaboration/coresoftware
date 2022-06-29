@@ -11,8 +11,7 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                      
@@ -214,8 +213,7 @@ class MakeActsGeometry : public SubsysReco
   Acts::MagneticFieldContext m_magFieldContext;
 
   /// Structs to put on the node tree which carry around ActsGeom info
-  ActsTrackingGeometry *m_actsGeometry = nullptr;
-  ActsSurfaceMaps *m_surfMaps = nullptr;
+  ActsGeometry *m_actsGeometry = nullptr;
 
   /// Verbosity value handed from PHActsSourceLinks
   int m_verbosity = 0;

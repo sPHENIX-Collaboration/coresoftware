@@ -8,8 +8,7 @@
 #define TRACKRECO_PHTRUTHTRACKSEEDING_H
 
 #include "PHTrackSeeding.h"
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 #include <string>  // for string
 #include <vector>
@@ -110,8 +109,7 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   TrackSeedContainer *_track_map_silicon = nullptr;
   TrackSeedContainer *_track_map_combined = nullptr;
 
-  ActsTrackingGeometry *tgeometry = nullptr;
-  ActsSurfaceMaps *surfmaps = nullptr;
+  ActsGeometry *tgeometry = nullptr;
 
   bool _circle_fit_seed = false;
 

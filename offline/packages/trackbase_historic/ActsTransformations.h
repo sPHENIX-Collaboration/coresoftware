@@ -2,8 +2,7 @@
 #define TRACKRECO_ACTSTRANSFORMATIONS_H
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 
 /// Acts includes to create all necessary definitions
 #include <Acts/Utilities/BinnedArray.hpp>
@@ -11,7 +10,6 @@
 #include <Acts/Utilities/Logger.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
-
 #include <ActsExamples/EventData/Track.hpp>
 
 #include "SvtxTrack.h"
@@ -78,40 +76,7 @@ class ActsTransformations
 			   SvtxTrack *svtxTrack,
 			   Acts::GeometryContext& geoContext) const;
   
-  Eigen::Matrix<float,3,1> getGlobalPositionF(
-      TrkrDefs:: cluskey key,       
-      TrkrCluster* cluster,
-      ActsSurfaceMaps* surfMaps,
-      ActsTrackingGeometry *tGeometry) const;
-
-  Acts::Vector3 getGlobalPosition(
-      TrkrDefs:: cluskey key,       
-      TrkrCluster* cluster,
-				  ActsSurfaceMaps* surfMaps,
-				  ActsTrackingGeometry *tGeometry) const;
-
-  Surface getSurface(
-    TrkrDefs:: cluskey key,       
-    TrkrCluster* cluster,
-    ActsSurfaceMaps* surfMaps) const;
-  
-  Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey,
-			    ActsSurfaceMaps *maps) const;
-
-  Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey,
-    TrkrDefs::subsurfkey surfkey,
-    ActsSurfaceMaps *maps) const;
-
-  Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey,
-    ActsSurfaceMaps *maps) const;
-
-  Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
-				      Acts::Vector3 world,
-				      ActsSurfaceMaps *surfMaps,
-				      ActsTrackingGeometry *tGeometry,
-				      TrkrDefs::subsurfkey& subsurfkey) const;
-    
-  private:
+ private:
   int m_verbosity = 0;
   
 

@@ -11,13 +11,15 @@ class TpcClusterZCrossingCorrection
 {
   public:
   
-  //! constructor
-  TpcClusterZCrossingCorrection() = default;
+TpcClusterZCrossingCorrection();
 
   float correctZ(float zinit, unsigned int side, short int crossing);
 
-  float _time_between_crossings = 106;  // ns, same value as in pileup generator  
-  float _vdrift = 8.00e-03;  // cm / ns
+  static float _vdrift;
+
+private:
+
+  float _time_between_crossings = 106; // ns, same value as in pileup generator  
 };
 
 #endif

@@ -4,8 +4,7 @@
 #include <phool/PHObject.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrClusterContainer.h>
 
 #include <g4main/PHG4HitDefs.h>
@@ -40,14 +39,11 @@ class TrackSeed : public PHObject
   virtual int get_charge() const { return std::numeric_limits<int>::max(); }
   /// We need access to the first two clusters to get the phi angle right
   virtual float get_px(TrkrClusterContainer*,
-		       ActsSurfaceMaps*,
-		       ActsTrackingGeometry*) const { return NAN; }
+		       ActsGeometry*) const { return NAN; }
   virtual float get_py(TrkrClusterContainer*,
-		       ActsSurfaceMaps*,
-		       ActsTrackingGeometry*) const { return NAN; }
+		       ActsGeometry*) const { return NAN; }
   virtual float get_phi(TrkrClusterContainer*,
-			ActsSurfaceMaps*,
-			ActsTrackingGeometry*) const { return NAN; }
+			ActsGeometry*) const { return NAN; }
   virtual float get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>&) const { return NAN; }
   virtual float get_pz() const { return NAN; }
   virtual float get_x() const { return NAN; }
@@ -72,12 +68,10 @@ class TrackSeed : public PHObject
   virtual void set_Z0(const float) {}
 
   virtual void circleFitByTaubin(TrkrClusterContainer*,
-				 ActsSurfaceMaps*,
-				 ActsTrackingGeometry*,
+				 ActsGeometry*,
 				 uint8_t, uint8_t) {}
   virtual void lineFit(TrkrClusterContainer*,
-		       ActsSurfaceMaps*,
-		       ActsTrackingGeometry*,
+		       ActsGeometry*,
 		       uint8_t, uint8_t) {}
   
   /// In case the global cluster positions have already been obtained, 

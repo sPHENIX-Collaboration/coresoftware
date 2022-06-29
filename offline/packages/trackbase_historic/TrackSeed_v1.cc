@@ -1,5 +1,4 @@
 #include "TrackSeed_v1.h"
-#include "ActsTransformations.h"
 
 #include <trackbase/TrackFitUtils.h>
 
@@ -78,12 +77,10 @@ void TrackSeed_v1::identify(std::ostream& os) const
 
 
 void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
-				     ActsSurfaceMaps* surfMaps,
-				     ActsTrackingGeometry *tGeometry,
+				     ActsGeometry *tGeometry,
 				     uint8_t startLayer,
 				     uint8_t endLayer)
 {
-  ActsTransformations transformer;
   std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
 
   for(const auto& key: m_cluster_keys)
@@ -92,10 +89,8 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
       if(layer < startLayer or layer > endLayer)
 	{ continue; }
       
-      Acts::Vector3 pos = transformer.getGlobalPosition(
-           key,
-	   clusters->findCluster(key),
-	   surfMaps, tGeometry);
+      Acts::Vector3 pos = tGeometry->getGlobalPosition(
+           key, clusters->findCluster(key));
 
       positions.insert(std::make_pair(key, pos));
     }
@@ -105,12 +100,10 @@ void TrackSeed_v1::circleFitByTaubin(TrkrClusterContainer *clusters,
 }
 
 void TrackSeed_v1::lineFit(TrkrClusterContainer *clusters,
-			   ActsSurfaceMaps* surfMaps,
-			   ActsTrackingGeometry *tGeometry,
+			   ActsGeometry *tGeometry,
 			   uint8_t startLayer,
 			   uint8_t endLayer)
 {
-  ActsTransformations transformer;
   std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
 
   for(const auto& key: m_cluster_keys)
@@ -119,10 +112,8 @@ void TrackSeed_v1::lineFit(TrkrClusterContainer *clusters,
       if(layer < startLayer or layer > endLayer)
 	{ continue; }
       
-      Acts::Vector3 pos = transformer.getGlobalPosition(
-           key,
-	   clusters->findCluster(key),
-	   surfMaps, tGeometry);
+      Acts::Vector3 pos = tGeometry->getGlobalPosition(
+           key, clusters->findCluster(key));
 
       positions.insert(std::make_pair(key, pos));
     }
@@ -285,20 +276,15 @@ float TrackSeed_v1::get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& position
   return phi;
 }
 float TrackSeed_v1::get_phi(TrkrClusterContainer *clusters,
-			    ActsSurfaceMaps *surfMaps, 
-			    ActsTrackingGeometry *tGeometry) const
+			    ActsGeometry *tGeometry) const
 {
-  ActsTransformations transformer;
-  Acts::Vector3 pos0 = transformer.getGlobalPosition(
+  Acts::Vector3 pos0 = tGeometry->getGlobalPosition(
 		       *(m_cluster_keys.begin()),
-		       clusters->findCluster(*(m_cluster_keys.begin())),
-		       surfMaps, tGeometry);
+		       clusters->findCluster(*(m_cluster_keys.begin())));
 
   auto key = *std::next(m_cluster_keys.begin(), 1);
-  Acts::Vector3 pos1 = transformer.getGlobalPosition(
-		       key,
-		       clusters->findCluster(key),
-		       surfMaps, tGeometry);
+  Acts::Vector3 pos1 = tGeometry->getGlobalPosition(key,
+					     clusters->findCluster(key));
   std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
   positions.insert(std::make_pair(*(m_cluster_keys.begin()), pos0));
   positions.insert(std::make_pair(key, pos1));
@@ -326,17 +312,15 @@ float TrackSeed_v1::get_p() const
 }
 
 float TrackSeed_v1::get_px(TrkrClusterContainer *clusters,
-			   ActsSurfaceMaps *surfMaps, 
-			   ActsTrackingGeometry *tGeometry) const
+			   ActsGeometry *tGeometry) const
 {
-  return get_pt() * cos(get_phi(clusters, surfMaps, tGeometry));
+  return get_pt() * cos(get_phi(clusters, tGeometry));
 }
 
 float TrackSeed_v1::get_py(TrkrClusterContainer *clusters,
-			   ActsSurfaceMaps *surfMaps, 
-			   ActsTrackingGeometry *tGeometry) const
+			   ActsGeometry *tGeometry) const
 {
-  return get_pt() * sin(get_phi(clusters, surfMaps, tGeometry));
+  return get_pt() * sin(get_phi(clusters, tGeometry));
 }
 
 float TrackSeed_v1::get_pz() const

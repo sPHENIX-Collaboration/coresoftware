@@ -15,8 +15,7 @@
 #include <string>
 #include <vector>
 
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase_historic/ActsTransformations.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDistortionCorrection.h>
@@ -43,13 +42,6 @@ class PHTpcClusterMover : public SubsysReco
   int GetNodes(PHCompositeNode* topNode);
   int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xref, double yref, double &x, double &y);
 
-  Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
-					Acts::Vector3 world,
-					ActsSurfaceMaps *surfMaps,
-					ActsTrackingGeometry *tGeometry,
-					TrkrDefs::subsurfkey& subsurfkey);
-
-
  /// acts transformation object
   ActsTransformations _transformer;
   
@@ -70,8 +62,7 @@ class PHTpcClusterMover : public SubsysReco
   SvtxTrack *_track{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};						    
   TrkrClusterContainer *_corrected_cluster_map{nullptr};						    
-  ActsSurfaceMaps *_surfmaps{nullptr};
-  ActsTrackingGeometry *_tGeometry{nullptr};
+  ActsGeometry *_tGeometry{nullptr};
   TpcDistortionCorrectionContainer* _dcc{nullptr};
 
   double layer_radius[48] = {0};
