@@ -625,7 +625,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   // compute rho/z variance
   Acts::ActsVector<2> var = (jac * localCov * jac.transpose()).diagonal();
 
-  SpacePointPtr spPtr(new SpacePoint{key, x, y, z, r,  surf->geometryId(), var[0], var[1]});
+  SpacePointPtr spPtr(new SpacePoint{key, x, y, z, r,  surf->geometryId(), var[0]*1.04606, var[1]*1.04606});
 
   if(Verbosity() > 2)
     std::cout << "Space point has " 
