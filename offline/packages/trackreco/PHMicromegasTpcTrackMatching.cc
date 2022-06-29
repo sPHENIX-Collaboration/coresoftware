@@ -382,7 +382,9 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
           // prints out a line that can be grep-ed from the output file to feed to a display macro
           if( _test_windows )
           {
+            
             // cluster rphi and z
+            const auto glob = _tGeometry->getGlobalPosition(key, cluster);
             const double mm_clus_rphi = get_r( glob.x(), glob.y() ) * std::atan2( glob.y(),  glob.x() );
             const double mm_clus_z = glob.z();
 
