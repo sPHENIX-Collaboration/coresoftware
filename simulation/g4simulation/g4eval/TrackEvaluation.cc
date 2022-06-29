@@ -20,7 +20,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <tpc/TpcDefs.h>
-
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/TrkrCluster.h>
@@ -237,7 +237,6 @@ namespace
       cluster.z_size = zbins.size();
     }
   }
-
 
   //! hit energy for a given cluster
   void add_cluster_energy( TrackEvaluationContainerv1::ClusterStruct& cluster, TrkrDefs::cluskey clus_key,
@@ -756,25 +755,25 @@ void TrackEvaluation::add_trk_information_micromegas( TrackEvaluationContainerv1
 
   // convert cluster position to local tile coordinates
   const TVector3 cluster_world( cluster.x, cluster.y, cluster.z );
-  const TVector3 cluster_local = layergeom->get_local_from_world_coords( tileid, cluster_world );
-
+  const auto cluster_local = layergeom->get_local_from_world_coords( tileid, m_tGeometry, cluster_world );
+  
   // convert track position to local tile coordinates
   TVector3 track_world( state->get_x(), state->get_y(), state->get_z() );
-  TVector3 track_local = layergeom->get_local_from_world_coords( tileid, track_world );
+  TVector3 track_local = layergeom->get_local_from_world_coords( tileid, m_tGeometry, track_world );
 
   // convert direction to local tile coordinates
   const TVector3 direction_world( state->get_px(), state->get_py(), state->get_pz() );
-  const TVector3 direction_local = layergeom->get_local_from_world_vect( tileid, direction_world );
+  const TVector3 direction_local = layergeom->get_local_from_world_vect( tileid, m_tGeometry, direction_world );
 
-  // extrapolate to same local y (should be zero) as cluster
-  const auto delta_y = cluster_local.y() - track_local.y();
+  // extrapolate to same local z (should be zero) as cluster
+  const auto delta_z = cluster_local.z() - track_local.z();
   track_local += TVector3(
-    delta_y*direction_local.x()/direction_local.y(),
-    delta_y,
-    delta_y*direction_local.z()/direction_local.y() );
+    delta_z*direction_local.x()/direction_local.z(),
+    delta_z*direction_local.y()/direction_local.z(),
+    delta_z );
 
   // convert back to global coordinates
-  track_world = layergeom->get_world_from_local_coords( tileid, track_local );
+  track_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, track_local );
 
   // store state position
   cluster.trk_x = track_world.x();
@@ -919,7 +918,7 @@ void TrackEvaluation::add_truth_information_micromegas( TrackEvaluationContainer
 
   // convert cluster position to local tile coordinates
   const TVector3 cluster_world( cluster.x, cluster.y, cluster.z );
-  const TVector3 cluster_local = layergeom->get_local_from_world_coords( tileid, cluster_world );
+  const auto cluster_local = layergeom->get_local_from_world_coords( tileid, m_tGeometry, cluster_world );
 
   // convert hits to list of interpolation_data_t
   interpolation_data_t::list hits;
@@ -931,11 +930,11 @@ void TrackEvaluation::add_truth_information_micromegas( TrackEvaluationContainer
 
       // convert position to local
       TVector3 g4hit_world(g4hit->get_x(i), g4hit->get_y(i), g4hit->get_z(i));
-      TVector3 g4hit_local = layergeom->get_local_from_world_coords( tileid, g4hit_world );
+      auto g4hit_local = layergeom->get_local_from_world_coords( tileid, m_tGeometry, g4hit_world );
 
       // convert momentum to local
       TVector3 momentum_world(g4hit->get_px(i), g4hit->get_py(i), g4hit->get_pz(i));
-      TVector3 momentum_local = layergeom->get_local_from_world_vect( tileid, momentum_world );
+      TVector3 momentum_local = layergeom->get_local_from_world_vect( tileid, m_tGeometry, momentum_world );
 
       hits.push_back( {.position = g4hit_local, .momentum = momentum_local, .weight = weight } );
     }
@@ -947,7 +946,8 @@ void TrackEvaluation::add_truth_information_micromegas( TrackEvaluationContainer
     average<&interpolation_data_t::y>(hits),
     average<&interpolation_data_t::z>(hits) );
 
-  const TVector3 interpolation_world = layergeom->get_world_from_local_coords( tileid, interpolation_local );
+  // convert back to global
+  const TVector3 interpolation_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, interpolation_local );
 
   // do momentum interpolation
   const TVector3 momentum_local(
@@ -955,7 +955,8 @@ void TrackEvaluation::add_truth_information_micromegas( TrackEvaluationContainer
     average<&interpolation_data_t::py>(hits),
     average<&interpolation_data_t::pz>(hits));
 
-  const TVector3 momentum_world = layergeom->get_world_from_local_vect( tileid, momentum_local );
+  // convert back to global
+  const TVector3 momentum_world = layergeom->get_world_from_local_vect( tileid, m_tGeometry, momentum_local );
 
   cluster.truth_x = interpolation_world.x();
   cluster.truth_y = interpolation_world.y();
