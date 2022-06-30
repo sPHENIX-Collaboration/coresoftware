@@ -236,12 +236,12 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
 
     /*
      * get the position of the detector mesh in local coordinates
-     * in local coordinate the mesh is a plane perpendicular to the y axis
+     * in local coordinate the mesh is a plane perpendicular to the z axis
      * Its position along z depends on the drift direction
      * it is used to calculate the drift distance of the primary electrons, and the
      * corresponding transverse diffusion
      */
-    const auto mesh_local_y = layergeom->get_drift_direction() == MicromegasDefs::DriftDirection::OUTWARD ?
+    const auto mesh_local_z = layergeom->get_drift_direction() == MicromegasDefs::DriftDirection::OUTWARD ?
       layergeom->get_thickness()/2:
       -layergeom->get_thickness()/2;
 
@@ -295,7 +295,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
       for( uint ie = 0; ie < nprimary; ++ie )
       {
         // put the electron at a random position along the g4hit path
-        // in local reference frame, drift occurs along the y axis, from local y to mesh_local_y
+        // in local reference frame, drift occurs along the y axis, from local y to mesh_local_z
 
         const auto t = gsl_ran_flat(m_rng.get(), 0.0, 1.0);
         auto local = local_in*t + local_out*(1.0-t);
@@ -304,8 +304,8 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
         {
           // add transeverse diffusion
           // first convert to polar coordinates
-          const double y = local.y();
-          const double drift_distance = std::abs(y - mesh_local_y);
+          const double z = local.z();
+          const double drift_distance = std::abs(z - mesh_local_z);
           const double diffusion = gsl_ran_gaussian(m_rng.get(), m_diffusion_trans*std::sqrt(drift_distance));
           const double diffusion_angle = gsl_ran_flat(m_rng.get(), -M_PI, M_PI);
 
