@@ -463,8 +463,8 @@ PHG4MicromegasHitReco::charge_list_t PHG4MicromegasHitReco::distribute_charge(
      * in local coordinate, z segmented view has strips along phi and measures along z
      */
     const auto xloc = layergeom->get_segmentation_type() == MicromegasDefs::SegmentationType::SEGMENTATION_PHI ?
-      strip_location.X() - local_coords.X():
-      strip_location.Y() - local_coords.Y();
+      (strip_location.X() - local_coords.X()):
+      (strip_location.Y() - local_coords.Y());
 
     // calculate charge fraction
     const auto fraction = m_zigzag_strips ?
