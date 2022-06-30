@@ -1,6 +1,6 @@
 #include "TpcSimpleClusterizer.h"
 
-#include "TpcDefs.h"
+#include <trackbase/TpcDefs.h>
 
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv3.h>

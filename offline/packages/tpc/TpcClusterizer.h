@@ -36,8 +36,9 @@ class TpcClusterizer : public SubsysReco
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
   void set_do_wedge_emulation(bool do_wedge){ do_wedge_emulation = do_wedge;}
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size ;}
-  void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeZ = size ;}
+  void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeT = size ;}
   void set_drift_velocity_scale(double value) { m_drift_velocity_scale = value; }
+  void set_drift_velocity(double value) { m_drift_velocity = value; }
   void set_cluster_version(int value) { cluster_version = value; }
   
  private:
@@ -52,9 +53,13 @@ class TpcClusterizer : public SubsysReco
   double pedestal = 74.4;
   double SectorFiducialCut = 0.5;
   unsigned short MaxClusterHalfSizePhi = 3;
-  unsigned short MaxClusterHalfSizeZ = 5;
+  unsigned short MaxClusterHalfSizeT = 5;
   int cluster_version = 3;
-  /// drift velocity scale factor
+  double m_drift_velocity = 8.0 / 1000.0;       // cm/ns
+  double m_tdriftmax = 0;
+  double AdcClockPeriod = 53.0;   // ns 
+
+  /// drift velocity scale factor  -- not used
   /** 
    * represents the ratio vdrift_measured/vdrift_true
    * it is used to get cluster z from its timebin

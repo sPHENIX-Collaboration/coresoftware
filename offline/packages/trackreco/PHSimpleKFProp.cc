@@ -312,7 +312,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 Acts::Vector3 PHSimpleKFProp::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
-  auto globalpos = _tgeometry->getGlobalPosition(key, cluster);
+  auto globalpos = _tgeometry->getGlobalPositionTpc(key, cluster, _drift_velocity);
 
   // check if TPC distortion correction are in place and apply
   if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }

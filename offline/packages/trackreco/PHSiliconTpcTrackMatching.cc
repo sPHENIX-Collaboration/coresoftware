@@ -55,7 +55,8 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
 
   // put these in the output file
   cout << PHWHERE << " Search windows: phi " << _phi_search_win << " eta " 
-       << _eta_search_win << " _pp_mode " << _pp_mode << " _use_intt_time " << _use_intt_time << endl;
+       << _eta_search_win << " _pp_mode " << _pp_mode << " _use_intt_time " << _use_intt_time << " drift_velocity " 
+       <<  get_double_param("drift_velocity") << endl;
 
    int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;

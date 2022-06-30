@@ -23,6 +23,7 @@ class ActsGeometry {
   ActsSurfaceMaps maps() const 
     { return m_surfMaps; }
 
+
   Eigen::Matrix<float,3,1> getGlobalPositionF(
       TrkrDefs:: cluskey key,       
       TrkrCluster* cluster) const;
@@ -30,6 +31,16 @@ class ActsGeometry {
   Acts::Vector3 getGlobalPosition(
       TrkrDefs:: cluskey key,       
       TrkrCluster* cluster) const;
+
+  Eigen::Matrix<float,3,1> getGlobalPositionTpcF(
+      TrkrDefs:: cluskey key,       
+      TrkrCluster* cluster,
+      double drift_velocity) const;
+
+  Acts::Vector3 getGlobalPositionTpc(
+      TrkrDefs:: cluskey key,       
+      TrkrCluster* cluster,
+      double drift_velocity) const;
 
   Surface get_tpc_surface_from_coords(
       TrkrDefs::hitsetkey hitsetkey,
@@ -40,6 +51,8 @@ class ActsGeometry {
   ActsTrackingGeometry m_tGeometry;
   ActsSurfaceMaps m_surfMaps;
 
+  double AdcClockPeriod = 53.0;  // ns
+  unsigned int MaxTBins = 498;
 };
 
 #endif

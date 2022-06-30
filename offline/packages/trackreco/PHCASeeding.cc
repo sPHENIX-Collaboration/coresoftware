@@ -213,7 +213,7 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
 Acts::Vector3 PHCASeeding::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
-  auto globalpos = tGeometry->getGlobalPosition(key, cluster);
+  auto globalpos = tGeometry->getGlobalPositionTpc(key, cluster, _drift_velocity);
 
   // check if TPC distortion correction are in place and apply
   if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
@@ -261,7 +261,7 @@ PositionMap PHCASeeding::FillTree()
 
       if(Verbosity() > 3)
 	{
-	  auto global_before = tGeometry->getGlobalPosition(ckey, cluster);
+	  auto global_before = tGeometry->getGlobalPositionTpc(ckey, cluster, _drift_velocity);
 	  std::cout << "CaSeeder: Cluster: " << ckey << std::endl;
 	  std::cout << " Global before: " << global_before[0] << "  " << global_before[1] << "  " << global_before[2] << std::endl;
 	  std::cout << " Global after   : " << globalpos_d[0] << "  " << globalpos_d[1] << "  " << globalpos_d[2] << std::endl;

@@ -87,6 +87,7 @@ class PHCASeeding : public PHTrackSeeding
   void useConstBField(bool opt){_use_const_field = opt;}
   void useFixedClusterError(bool opt){_use_fixed_clus_err = opt;}
   void setFixedClusterError(int i, double val){_fixed_clus_err.at(i) = val;}
+  void setDriftVelocity(double vd) {_drift_velocity = vd;}
 
  protected:
   int Setup(PHCompositeNode *topNode) override;
@@ -142,6 +143,7 @@ class PHCASeeding : public PHTrackSeeding
   bool _use_const_field = false;
   bool _use_fixed_clus_err = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
+  double _drift_velocity = 8.0 / 1000.0; // cm/ns default value, override from macro
 
   /// acts geometry
   ActsGeometry *tGeometry{nullptr};
