@@ -992,9 +992,6 @@ TrkrDefs::hitsetkey MakeActsGeometry::getMvtxHitSetKeyFromCoords(unsigned int la
   unsigned int chip = 0;
   layergeom->get_sensor_indices_from_world_coords(world, stave, chip);
 
-  double check_pos[3] = {0, 0, 0};
-  layergeom->find_sensor_center(stave, 0, 0, chip, check_pos);
-
   unsigned int strobe = 0;
   TrkrDefs::hitsetkey mvtx_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, strobe);
 
@@ -1018,9 +1015,6 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
   int segment_phi_bin = 0;
   layergeom->find_indices_from_segment_center(segment_z_bin, 
 					      segment_phi_bin, location);
-
-  double check_pos[3] = {0, 0, 0};
-  layergeom->find_segment_center(segment_z_bin, segment_phi_bin, check_pos);
 
   int crossing = 0;
   TrkrDefs::hitsetkey intt_hitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin, crossing);

@@ -84,18 +84,15 @@ TVector3 CylinderGeomIntt::get_local_from_world_coords(Surface surface, ActsGeom
   return TVector3(local(0), local(1), local(2));
 }
 
-void CylinderGeomIntt::find_segment_center(const int segment_z_bin, const int segment_phi_bin, double location[])
+void CylinderGeomIntt::find_segment_center(Surface surface, ActsGeometry* tGeometry, double location[])
 {
-  const double signz = (segment_z_bin > 1) ? 1. : -1.;
-  const int itype = segment_z_bin % 2;
+  TVector2 local(0.0,0.0);
 
-  // Ladder
-  const double phi = m_OffsetPhi + m_dPhi * segment_phi_bin;
-  location[0] = m_SensorRadius * cos(phi);
-  location[1] = m_SensorRadius * sin(phi);
-  location[2] = signz * m_LadderZ[itype];
-
-  //cout << "radius " << m_SensorRadius << " offsetphi " << m_OffsetPhi << " rad  dphi_ " << m_dPhi << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << " rad " << endl;
+  TVector3 global = get_world_from_local_coords(surface, tGeometry, local);
+  location[0] = global.X();
+  location[1] = global.Y();
+  location[2] = global.Z();
+  return;
 }
 
 void CylinderGeomIntt::find_indices_from_world_location(int &segment_z_bin, int &segment_phi_bin, double location[])
@@ -147,10 +144,10 @@ void CylinderGeomIntt::find_indices_from_segment_center(int &segment_z_bin, int 
   //cout << "radius " << m_SensorRadius << " offsetphi " << m_OffsetPhi << " rad  dphi_ " << m_dPhi << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << endl;
 }
 
-void CylinderGeomIntt::find_strip_center(const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
+void CylinderGeomIntt::find_strip_center(Surface surface, ActsGeometry *tGeometry, const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
 {
   // Ladder
-  find_segment_center(segment_z_bin, segment_phi_bin, location);
+  find_segment_center(surface, tGeometry, location);
   CLHEP::Hep3Vector ladder(location[0], location[1], location[2]);
 
   // Strip

@@ -21,6 +21,7 @@ class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
+class ActsGeometry;
 
 #include <string>             // for string
 #include <vector>
@@ -74,7 +75,7 @@ std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);
   PHG4CylinderGeomContainer *_intt_geom_container{nullptr};
   PHG4CylinderGeomContainer* _mvtx_geom_container{nullptr};
   PHG4CylinderGeomContainer* _mms_geom_container{nullptr};
-
+  ActsGeometry* _tgeometry{nullptr};
  const unsigned int _nlayers_maps = 3;
   const unsigned int _nlayers_intt = 4;
   const unsigned int _nlayers_tpc = 48;

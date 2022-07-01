@@ -454,10 +454,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
       const double projPhi = std::atan2(yProj[inttlayer], xProj[inttlayer]);
       const double projRphi = projR * projPhi;
 
-      for( const auto& hitsetkey:m_clusterMap->getHitSetKeys(TrkrDefs::TrkrId::inttId, inttlayer+3))
+      for( const auto& hitsetkey : m_clusterMap->getHitSetKeys(TrkrDefs::TrkrId::inttId, inttlayer+3))
       {
-	  const int ladderzindex = InttDefs::getLadderZId(hitsetkey);
-	  const int ladderphiindex = InttDefs::getLadderPhiId(hitsetkey);
 	  double ladderLocation[3] = {0.,0.,0.};
 
 	  // Add three to skip the mvtx layers for comparison
@@ -465,7 +463,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	  auto layerGeom = dynamic_cast<CylinderGeomIntt*>
 	    (m_geomContainerIntt->GetLayerGeom(inttlayer+3));
 	  
-	  layerGeom->find_segment_center(ladderzindex, ladderphiindex, ladderLocation);
+	  auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
+	  layerGeom->find_segment_center(surf, m_tGeometry, ladderLocation);
 	  const double ladderphi = atan2(ladderLocation[1], ladderLocation[0]) + layerGeom->get_strip_phi_tilt();
 	  const auto stripZSpacing = layerGeom->get_strip_z_spacing();
 	  float dphi = ladderphi - projPhi;
@@ -482,8 +481,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 
 	  TVector3 projectionLocal(0,0,0);
 	  TVector3 projectionGlobal(xProj[inttlayer],yProj[inttlayer],zProj[inttlayer]);
-	  projectionLocal = layerGeom->get_local_from_world_coords(ladderzindex, 
-								   ladderphiindex,
+	  projectionLocal = layerGeom->get_local_from_world_coords(surf, 
+								   m_tGeometry,
 								   projectionGlobal);
 
 	  auto range = m_clusterMap->getClusters(hitsetkey);	
