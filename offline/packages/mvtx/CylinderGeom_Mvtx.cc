@@ -77,38 +77,16 @@ CylinderGeom_Mvtx::get_local_from_world_coords(Surface surface,
 					       ActsGeometry* tGeometry,
 					       TVector3 world)
 {
-  Acts::Vector2 local;
   Acts::Vector3 global;
   global(0) = world[0];
   global(1) = world[1];
   global(2) = world[2];
   global *= Acts::UnitConstants::cm;
 
-  /// Acts requires a dummy vector to be passed in the arg list
-  auto localResult = surface->globalToLocal(tGeometry->geometry().geoContext,
-					    global,
-					    Acts::Vector3(1,1,1));
-  
-  TVector3 res;
-  if(localResult.ok())
-    {
-      local = localResult.value();
-      local /= Acts::UnitConstants::cm;
-      
-      res[0] = local(0);
-      res[1] = 0;
-      res[2] = local(1);
-    }
-  else 
-    {
-      std::cout << "Could not perform transform on Acts::Surface. Returning NAN" 
-		<< std::endl;
-      res[0] = NAN;
-      res[1] = NAN;
-      res[2] = NAN;
-    }
+  Acts::Vector3 local = surface->transform(tGeometry->geometry().geoContext).inverse() * global;
+  local /= Acts::UnitConstants::cm;
 
-  return res;
+  return TVector3(local(0), local(1), local(2));
 }
 
 void
@@ -153,6 +131,18 @@ CylinderGeom_Mvtx::get_world_from_local_coords(Surface surface, ActsGeometry* tG
   return res;
 }
 
+TVector3
+CylinderGeom_Mvtx::get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector3 local)
+{
+  Acts::Vector3 loc(local.x(), local.y(), local.z());
+  loc *= Acts::UnitConstants::cm;
+  
+  Acts::Vector3 glob = surface->transform(tGeometry->geometry().geoContext)*loc;
+  glob /= Acts::UnitConstants::cm;
+
+  return TVector3(glob(0), glob(1), glob(2));
+
+}
 bool CylinderGeom_Mvtx::get_pixel_from_local_coords(TVector3 sensor_local, int& iRow, int& iCol)
 {
   //YCM (2020-01-02): It seems that due some round issues, local coords of hits at the edge of the sensor volume

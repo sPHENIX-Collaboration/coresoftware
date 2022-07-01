@@ -101,6 +101,7 @@ class CylinderGeomIntt : public PHG4CylinderGeom
   void find_strip_center_localcoords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[]);
   void find_indices_from_segment_center(int &segment_z_bin, int &segment_phi_bin, double location[]);
   TVector3 get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector2 local);
+  TVector3 get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector3 local);
   TVector3 get_local_from_world_coords(Surface surface, ActsGeometry* tGeometry, TVector3 world);
   void find_indices_from_world_location(int &segment_z_bin, int &segment_phi_bin, double location[]);
 

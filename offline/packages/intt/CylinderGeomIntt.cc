@@ -37,6 +37,16 @@ bool CylinderGeomIntt::load_geometry()
 {
   return true;
 }
+
+TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector3 local)
+{
+  Acts::Vector3 loc(local.x(), local.y(), local.z());
+  loc *= Acts::UnitConstants::cm;
+  
+  Acts::Vector3 glob = surface->transform(tGeometry->geometry().geoContext) * loc;
+  glob /= Acts::UnitConstants::cm;
+  return TVector3(glob(0), glob(1), glob(2));
+}
 TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector2 local)
 {
   Acts::Vector2 actslocal;
@@ -61,36 +71,17 @@ TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsGeom
 }
 TVector3 CylinderGeomIntt::get_local_from_world_coords(Surface surface, ActsGeometry* tGeometry, TVector3 world)
 {
-  Acts::Vector2 local;
   Acts::Vector3 global;
   global(0) = world[0];
   global(1) = world[1];
   global(2) = world[2];
   global *= Acts::UnitConstants::cm;
 
-  /// Acts requires a dummy vector to be passed in the arg list
-  auto localResult = surface->globalToLocal(tGeometry->geometry().geoContext,
-					    global,
-					    Acts::Vector3(1,1,1));
-  TVector3 localR;
-  if(localResult.ok())
-    {
-      local = localResult.value();
-      local /= Acts::UnitConstants::cm;
-      localR[0] = local(0);
-      localR[1] = 0;
-      localR[2] = local(1);
-    }
-  else
-    {
-      std::cout << "Could not perform transform on Acts::Surface. Returning NAN" 
-		<< std::endl;
-      localR[0] = NAN;
-      localR[1] = NAN;
-      localR[2] = NAN;
-    }
+  Acts::Vector3 local = surface->transform(tGeometry->geometry().geoContext).inverse() * global;
 
-  return localR;
+  local /= Acts::UnitConstants::cm;
+
+  return TVector3(local(0), local(1), local(2));
 }
 
 void CylinderGeomIntt::find_segment_center(const int segment_z_bin, const int segment_phi_bin, double location[])

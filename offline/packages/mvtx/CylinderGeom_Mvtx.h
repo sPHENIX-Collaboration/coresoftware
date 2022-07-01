@@ -51,6 +51,7 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
 // our own - no override
   TVector3 get_local_from_world_coords(Surface surface, ActsGeometry *tGeometry, TVector3 world);
   TVector3 get_world_from_local_coords(Surface surface, ActsGeometry *tGeometry, TVector2 local);
+  TVector3 get_world_from_local_coords(Surface surface, ActsGeometry *tGeometry, TVector3 local);
 
   void get_sensor_indices_from_world_coords(std::vector<double> &world, unsigned int &stave, unsigned int &chip);
 
