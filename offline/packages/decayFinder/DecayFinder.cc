@@ -86,10 +86,7 @@ int DecayFinder::process_event(PHCompositeNode* topNode)
 {
   bool decayFound = findDecay(topNode);
 
-  if (decayFound)
-  {
-    if (m_save_dst && Verbosity() >= VERBOSITY_MORE) printNode(topNode);
-  }
+  if (decayFound && m_save_dst && Verbosity() >= VERBOSITY_MORE) printNode(topNode);
 
   if (m_triggerOnDecay && !decayFound)
   {
@@ -354,13 +351,12 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
           {
             m_nCandReconstructable += 1;
             reconstructableDecayWasFound = true;
+            if (m_save_dst) fillDecayNode(topNode, decayChain);
             if (aMotherHasPhoton && !aMotherHasPi0) m_nCandHas_Photon += 1;
             else if (!aMotherHasPhoton && aMotherHasPi0) m_nCandHas_Pi0 += 1;
             else if (aMotherHasPhoton && aMotherHasPi0) m_nCandHas_Photon_and_Pi0 += 1;
             else m_nCandHas_noPhoton_and_noPi0 += 1;
           }
-
-          if (m_save_dst) fillDecayNode(topNode, decayChain);
         }
       }
     }
@@ -592,7 +588,7 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
             actualIntermediateDecayProducts.push_back((*greatgrandchildren)->pdg_id());
             HepMC::FourVector myFourVector = (*greatgrandchildren)->momentum();
             if (myFourVector.perp() < m_pt_req) trackFailedPT = true;
-            if (!isInRange(m_eta_low_req, myFourVector.eta(), m_eta_req)) trackFailedETA = true;
+            if (!isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req)) trackFailedETA = true;
           }
         }
       }
@@ -605,7 +601,7 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
         actualIntermediateDecayProducts.push_back((*grandchildren)->pdg_id());
         HepMC::FourVector myFourVector = (*grandchildren)->momentum();
         if (myFourVector.perp() < m_pt_req) trackFailedPT = true;
-        if (!isInRange(m_eta_low_req, myFourVector.eta(), m_eta_req)) trackFailedETA = true;
+        if (!isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req)) trackFailedETA = true;
       }
     }
 
@@ -619,7 +615,7 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
     if (Verbosity() >= VERBOSITY_MAX) std::cout << "This is a final state track" << std::endl;
     HepMC::FourVector myFourVector = particle->momentum();
     if (myFourVector.perp() < m_pt_req) trackFailedPT = true;
-    if (!isInRange(m_eta_low_req, myFourVector.eta(), m_eta_req)) trackFailedETA = true;
+    if (!isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req)) trackFailedETA = true;
     acceptParticle = true;
   }
 
@@ -682,7 +678,7 @@ bool DecayFinder::checkIfCorrectGeant4Particle(PHG4Particle *particle, bool& has
     double eta = 0.5*std::log((p + pz)/(p - pz));
 
     if (pt < m_pt_req) trackFailedPT = true;
-    if (!isInRange(m_eta_low_req, eta, m_eta_req)) trackFailedETA = true;
+    if (!isInRange(m_eta_low_req, eta, m_eta_high_req)) trackFailedETA = true;
 
     acceptParticle = true;
   }
