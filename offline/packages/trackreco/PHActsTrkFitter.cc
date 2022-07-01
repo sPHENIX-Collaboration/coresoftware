@@ -492,7 +492,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	}
       else
 	{
-	  // silicon cluster, no corrections needed
+	  // silicon cluster or MM's cluster, no corrections needed
 	  global_raw.push_back(std::make_pair(key, global));
 	}
       

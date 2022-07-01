@@ -165,41 +165,44 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
-  // _track_map contains the TPC seed track stubs
+
   // We will add the micromegas cluster to the TPC tracks already on the node tree
-  // We will have to expand the number of tracks whenever we find multiple matches to the silicon
 
   _event++;
 
   if(Verbosity() > 0)
-    std::cout << PHWHERE << " Event " << _event << " TPC track map size " << _track_map->size() << std::endl;
+    std::cout << PHWHERE << " Event " << _event << " Seed track map size " << _svtx_seed_map->size() << std::endl;
   
-  // We remember the original size of the TPC track map here
-  const unsigned int original_track_map_lastkey = _track_map->empty() ? 0 : _track_map->size() - 1;
-
-  // loop over the original TPC tracks
-  for (unsigned int tpcID = 0; 
-       tpcID != _track_map->size(); ++tpcID)
+  // loop over the seed tracks - these are the seeds formed from matched tpc and silicon track seeds
+  for (unsigned int seedID = 0; 
+       seedID != _svtx_seed_map->size(); ++seedID)
   {
-    // we may add tracks to the map, so we stop at the last original track
-    if(tpcID > original_track_map_lastkey)  break;
+    auto seed = _svtx_seed_map->get(seedID);
+    auto siID = seed->get_silicon_seed_index();
+    auto tracklet_si = _si_track_map->get(siID);
+    if(!tracklet_si) continue;  // cannot use tracks not matched to silicon because crossing is unknown
 
-    auto tracklet_tpc = _track_map->get(tpcID);
+    short int crossing = tracklet_si->get_crossing();
+    if (crossing == SHRT_MAX) 
+      {
+	if(Verbosity() > 0) 
+	  std::cout  << " svtx seed " << seedID << " with si seed " << siID << " crossing not defined: crossing = " << crossing << " skip this track" << std::endl;
+	continue;
+      }
+
+    auto tpcID = seed->get_tpc_seed_index();
+
+    auto tracklet_tpc = _tpc_track_map->get(tpcID);
     if(!tracklet_tpc) { continue; }
-
-    short int crossing = tracklet_tpc->get_crossing();
-
-    if (crossing == SHRT_MAX) continue;   // not matched to silicon, skip it
-
 
     if (Verbosity() >= 1)
     {
       std::cout << std::endl
         << __LINE__
-        << ": Processing seed itrack: " << tpcID
+        << ": Processing TPC seed track: " << tpcID
         << ": crossing: " << crossing
         << ": nhits: " << tracklet_tpc-> size_cluster_keys()
-        << ": Total tracks: " << _track_map->size()
+        << ": Total TPC tracks: " << _tpc_track_map->size()
         << ": phi: " << tracklet_tpc->get_phi(_cluster_map,_tGeometry)
         << std::endl;
     }
@@ -379,6 +382,9 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         {
           tracklet_tpc->insert_cluster_key(key);
 
+	  if(Verbosity() > 0)
+	    std::cout << " Match to MM's found for seedID " << seedID << " tpcID " << tpcID << " siID " << siID  << std::endl;
+
           // prints out a line that can be grep-ed from the output file to feed to a display macro
           if( _test_windows )
           {
@@ -413,14 +419,9 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     { tracklet_tpc->identify(); }
 
   }
-  /*
-  // loop over all tracks and copy the silicon clusters to the corrected cluster map
-  if(_corrected_cluster_map)
-  { copyMicromegasClustersToCorrectedMap(); }
-  */
 
   if(Verbosity() > 0)
-  { std::cout << " Final track map size " << _track_map->size() << std::endl; }
+  { std::cout << " Final seed map size " << _svtx_seed_map->size() << std::endl; }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -432,14 +433,6 @@ int PHMicromegasTpcTrackMatching::End(PHCompositeNode*)
 //_________________________________________________________________________________________________
 int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 {
-  /*
-  // tpc-distortion-corrected clusters
-  _corrected_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
-  if(_corrected_cluster_map)
-    {
-      std::cout << " Found CORRECTED_TRKR_CLUSTER node " << std::endl;
-    }
-  */
     
   // all clusters
   if(_use_truth_clusters)
@@ -463,10 +456,24 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  _track_map = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
-  if (!_track_map)
+  _svtx_seed_map = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+  if(!_svtx_seed_map)
+    {
+      std::cerr << PHWHERE << " ERROR: Can't find "<<  "SvtxTrackSeedContainer" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  _tpc_track_map = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  if (!_tpc_track_map)
   {
-    std::cerr << PHWHERE << " ERROR: Can't find "<< _track_map_name.c_str() << std::endl;
+    std::cerr << PHWHERE << " ERROR: Can't find "<< "TpcTrackSeedContainer" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _si_track_map = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  if (!_si_track_map)
+  {
+    std::cerr << PHWHERE << " ERROR: Can't find "<< "SiliconTrackSeedContainer" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -485,41 +492,6 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-/*
-void PHMicromegasTpcTrackMatching::copyMicromegasClustersToCorrectedMap( )
-{
-  // loop over final track map, copy micromegas clusters to corrected cluster map
-  for( auto track_iter = _track_map->begin(); track_iter != _track_map->end(); ++track_iter )
-  {    
-    TrackSeed* track = *track_iter;
-    // loop over associated clusters to get keys for micromegas cluster
-    for(auto iter = track->begin_cluster_keys(); iter != track->end_cluster_keys(); ++iter)
-    {
-      TrkrDefs::cluskey cluster_key = *iter;
-      const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
-      if(trkrid == TrkrDefs::micromegasId)
-	    {
-
-        // check if clusters has not been inserted already
-        if( _corrected_cluster_map->findCluster( cluster_key ) ) continue;
-        
-        // get cluster from original map
-        auto cluster =  _cluster_map->findCluster(cluster_key);
-        if( !cluster ) continue;
-
-        // create a new cluster and copy from source
-        auto newclus = new TrkrClusterv3;
-        newclus->CopyFrom( cluster );
-
-        // insert in corrected map
-        _corrected_cluster_map->addClusterSpecifyKey(cluster_key, newclus);
-
-	    }
-    }
-  }
-}
-*/
 
  Acts::Vector3 PHMicromegasTpcTrackMatching::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing, unsigned int side)
 {

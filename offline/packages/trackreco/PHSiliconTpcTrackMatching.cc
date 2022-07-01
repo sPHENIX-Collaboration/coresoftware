@@ -167,7 +167,7 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
   _track_map_silicon = findNode::getClass<TrackSeedContainer>(topNode, _silicon_track_map_name);
   if (!_track_map_silicon)
   {
-    cerr << PHWHERE << " ERROR: Can't find SvtxSiliconTrackMap: " << endl;
+    cerr << PHWHERE << " ERROR: Can't find SiliconTrackSeedContainer " << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
