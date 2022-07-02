@@ -421,7 +421,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       //      phi = 0;
       //      if (phi > M_PI) phi -= 2. * M_PI;  // convert to [-pi,pi]]
 
-      prob = -1;
+      //      prob = -1;
       chi2 = 0;
       ndf = 0;
       prob = pp->GetProb(chi2, ndf);

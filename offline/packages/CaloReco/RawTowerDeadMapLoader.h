@@ -23,7 +23,7 @@ class PHCompositeNode;
 class RawTowerDeadMapLoader : public SubsysReco
 {
  public:
-  RawTowerDeadMapLoader(const std::string& detector);
+  explicit RawTowerDeadMapLoader(const std::string& detector);
 
   ~RawTowerDeadMapLoader() override {}
 

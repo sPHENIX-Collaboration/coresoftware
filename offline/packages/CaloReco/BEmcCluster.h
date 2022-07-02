@@ -49,7 +49,7 @@ class EmcCluster : public TObject
   {
   }
 
-  EmcCluster(BEmcRec* sector)
+  explicit EmcCluster(BEmcRec* sector)
     : fOwner(sector)
   {
   }
