@@ -28,6 +28,9 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
+
+#include <xpload/xpload.h>
 
 #include <cmath>
 #include <exception>
@@ -42,19 +45,6 @@ using namespace std;
 
 RawClusterBuilderTemplate::RawClusterBuilderTemplate(const std::string &name)
   : SubsysReco(name)
-  , _clusters(nullptr)
-  , bemc(nullptr)
-  , fEnergyNorm(1.)
-  , _min_tower_e(0.020)
-  , chkenergyconservation(0)
-  , detector("NONE")
-  , BINX0(0)
-  , NBINX(0)
-  , BINY0(0)
-  , NBINY(0)
-  , bPrintGeom(false)
-  , bProfProb(false)
-  , fProbNoiseParam(0.04)
 {
 }
 
@@ -109,7 +99,14 @@ void RawClusterBuilderTemplate::Detector(const std::string &d)
 void RawClusterBuilderTemplate::LoadProfile(const string &fname)
 {
   //  _emcprof = new BEmcProfile(fname);
-  bemc->LoadProfile(fname);
+  std::string tmpfname = fname;
+  if (tmpfname == "CDB")
+  {
+      recoConsts *rc = recoConsts::instance();
+      xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), "EMCPROFILE", rc->get_uint64Flag("TIMESTAMP"), xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
+      tmpfname = result.payload;
+  }
+  bemc->LoadProfile(tmpfname);
 }
 
 void RawClusterBuilderTemplate::SetCylindricalGeometry()
@@ -378,8 +375,6 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
 
   std::vector<EmcCluster> PList;
   std::vector<EmcModule> Peaks;
-  std::vector<EmcCluster> *pPList = &PList;
-  std::vector<EmcModule> *pPeaks = &Peaks;
 
   float prob, chi2;
   int ndf;
@@ -394,13 +389,13 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     //    ecl = pc->GetTotalEnergy();
     //    pc->GetMoments( &xcg, &ycg, &xx, &xy, &yy );
 
-    int npk = pc->GetSubClusters(pPList, pPeaks);
+    int npk = pc->GetSubClusters(PList, Peaks);
     if (npk < 0) return Fun4AllReturnCodes::ABORTEVENT;
 
     //    cout << "  iCl = " << ncl << " (" << npk << "): E ="
     //         << ecl << "  x = " << xcg << "  y = " << ycg << endl;
 
-    for (pp = pPList->begin(); pp != pPList->end(); ++pp)
+    for (pp = PList.begin(); pp != PList.end(); ++pp)
     {
       // Cluster energy
       ecl = pp->GetTotalEnergy();
