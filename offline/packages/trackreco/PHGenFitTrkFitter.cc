@@ -913,8 +913,13 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
   if (it == m_globalPositions.end()|| (key < it->first ))
   {
     // get global position from Acts transform
-    const auto globalpos = m_tgeometry->getGlobalPosition(
-      key, cluster);
+    const auto trkrid = TrkrDefs::getTrkrId(key);
+
+    Acts::Vector3 globalPosition;
+    if(trkrid == TrkrDefs::tpcId)
+      globalPosition = m_tgeometry->getGlobalPositionTpc( key, cluster, m_drift_velocity);
+    else
+      globalPosition = m_tgeometry->getGlobalPosition(key, cluster);
 
     /*
      * todo: should also either apply distortion corrections
@@ -922,7 +927,7 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
      */
 
     // add new cluster and set its key
-    it = m_globalPositions.insert(it, std::make_pair(key, globalpos));
+    it = m_globalPositions.insert(it, std::make_pair(key, globalPosition));
   }
   return it->second;
 }
@@ -1009,8 +1014,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     
     const auto cluster = m_clustermap->findCluster(cluster_key);
 
-    // get global position
     const auto globalPosition = getGlobalPosition( cluster_key, cluster );
+
     float r = sqrt(square( globalPosition.x() ) + square( globalPosition.y() ));
     m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
     int layer_out = TrkrDefs::getLayer(cluster_key);

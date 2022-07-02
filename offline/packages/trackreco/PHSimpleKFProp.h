@@ -58,7 +58,7 @@ class PHSimpleKFProp : public SubsysReco
   void use_truth_clusters(bool truth)
   { _use_truth_clusters = truth; }
   void SetIteration(int iter){_n_iteration = iter;}
-  void setDriftVelocity(double vd){_drift_velocity = vd;}
+  void set_drift_velocity(double vd){_drift_velocity = vd;}
 
  private:
 

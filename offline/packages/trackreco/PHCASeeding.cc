@@ -261,7 +261,7 @@ PositionMap PHCASeeding::FillTree()
 
       if(Verbosity() > 3)
 	{
-	  auto global_before = tGeometry->getGlobalPositionTpc(ckey, cluster, _drift_velocity);
+	  auto global_before = tGeometry->getGlobalPositionTpc(ckey, cluster, _drift_velocity);  // no corrections
 	  std::cout << "CaSeeder: Cluster: " << ckey << std::endl;
 	  std::cout << " Global before: " << global_before[0] << "  " << global_before[1] << "  " << global_before[2] << std::endl;
 	  std::cout << " Global after   : " << globalpos_d[0] << "  " << globalpos_d[1] << "  " << globalpos_d[2] << std::endl;

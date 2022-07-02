@@ -89,6 +89,8 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   /// parameters
   void SetDefaultParameters() override;
 
+  void set_drift_velocity(double vd) {_drift_velocity = vd;}
+
   private:
 
   /// load nodes
@@ -139,6 +141,8 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   float m_max_tbeta = 1.5;
   float m_max_dz = 0.5;
   //@}
+
+  double _drift_velocity = 8.0e-03; // cm/ns default, override from macro
 
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;

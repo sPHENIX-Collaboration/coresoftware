@@ -58,8 +58,12 @@ class DSTEmulator : public SubsysReco
   //! end of processing
   int End(PHCompositeNode*) override;
 
+  void set_drift_velocity(double vd) {_drift_velocity = vd;};
+
   private:
 
+  double _drift_velocity = 8.0e-03;  // cm/ns, override from macro
+ 
   //! load nodes
   int load_nodes( PHCompositeNode* );
 

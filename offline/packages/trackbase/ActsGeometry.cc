@@ -35,7 +35,11 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
   Acts::Vector3 glob;
  
   const auto trkrid = TrkrDefs::getTrkrId(key);
-  if(trkrid != TrkrDefs::tpcId) return glob;
+  if(trkrid == TrkrDefs::tpcId)
+    {
+      std::cout << "ActsGeometry::getGlobalPosition - this is the wrong global transfor for TPC clusters! Returning zero" << std::endl;
+      return glob;
+    }
 
   auto surface = maps().getSurface(key, cluster);
 
@@ -69,7 +73,11 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
 
   // This method is for the TPC only 
   const auto trkrid = TrkrDefs::getTrkrId(key);
-  if(trkrid != TrkrDefs::tpcId) return glob;
+  if(trkrid != TrkrDefs::tpcId)
+    {
+      std::cout << "ActsGeometry::getGlobalPositionTpc -  this is the wrong global transform for silicon or MM's clusters! Returning zero" << std::endl;
+      return glob;
+    }
 
   auto surface = maps().getSurface(key, cluster);
 

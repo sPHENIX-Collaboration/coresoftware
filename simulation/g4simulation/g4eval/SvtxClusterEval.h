@@ -85,6 +85,8 @@ class SvtxClusterEval
 
   unsigned int get_errors() { return _errors + _hiteval.get_errors(); }
 
+  void set_drift_velocity(double vd) {_drift_velocity = vd;}
+
  private:
   void get_node_pointers(PHCompositeNode* topNode);
   void fill_cluster_layer_map();
@@ -110,6 +112,10 @@ class SvtxClusterEval
   bool _strict = false ;
   int _verbosity = 0;
   unsigned int _errors = 0;
+
+  double _drift_velocity = 8.0e-03;  // cm/ns
+
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
 
   bool _do_cache = true;
   std::map<TrkrDefs::cluskey, std::set<PHG4Hit*> > _cache_all_truth_hits;

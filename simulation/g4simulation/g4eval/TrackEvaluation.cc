@@ -691,8 +691,12 @@ int TrackEvaluation::get_embed( PHG4Particle* particle ) const
 TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global coordinates
-  const auto global = m_tGeometry->getGlobalPosition(key, cluster);
-
+  auto trkrid = TrkrDefs::getTrkrId(key);
+  Acts::Vector3 global;
+  if(trkrid == TrkrDefs::tpcId)
+    global = m_tGeometry->getGlobalPositionTpc(key, cluster, _drift_velocity);
+  else
+    global = m_tGeometry->getGlobalPosition(key, cluster);
   TrackEvaluationContainerv1::ClusterStruct cluster_struct;
   cluster_struct.layer = TrkrDefs::getLayer(key);
   cluster_struct.x = global.x();

@@ -110,6 +110,8 @@ class TrackEvaluation : public SubsysReco
    */
   void add_truth_information_micromegas( TrackEvaluationContainerv1::ClusterStruct&, int /* tileid */, std::set<PHG4Hit*> ) const;
 
+  void set_drift_velocity(double vd) {_drift_velocity = vd;}
+
   //! evaluation node
   TrackEvaluationContainerv1* m_container = nullptr;
 
@@ -155,6 +157,7 @@ class TrackEvaluation : public SubsysReco
   using G4HitMap = std::map<TrkrDefs::cluskey,G4HitSet>;
   mutable G4HitMap m_g4hit_map;
 
+  double _drift_velocity = 8.0e-03;  // cm/ns default, override from macro
 };
 
 #endif  // G4EVAL_TrackEvaluation_H

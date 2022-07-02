@@ -207,50 +207,6 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 	}
     }
 
- /*  
-  if (Verbosity() >= 5)
-    {
-    std::cout << "Loop over TrackMap " << _track_map_name << " entries " << _track_map->size() << std::endl;
-    for (TrackSeedContainer::Iter iter = _track_map->begin();
-         iter != _track_map->end(); ++iter)
-    {
-      TrackSeed* svtx_track = *iter;
-      unsigned int trackid = _track_map->index(iter);
-      svtx_track->identify();
-    
-
-      std::cout << "Track ID: " << trackid << ", Dummy Track pT: "
-           << svtx_track->get_pt() << ", Truth Track/Particle ID: "
-           << svtx_track->get_truth_track_id() 
-	   << " (X,Y,Z) " << svtx_track->get_x() << ", " << svtx_track->get_y() << ", " << svtx_track->get_z()  
-	   << std::endl ;
-      std::cout << " nhits: " << svtx_track->size_cluster_keys()<< std::endl ;
-      //Print associated clusters;
-      ActsTransformations transformer;
-      for (TrackSeed::ConstClusterKeyIter iter_clus =
-               svtx_track->begin_cluster_keys();
-           iter_clus != svtx_track->end_cluster_keys(); ++iter_clus)
-      {
-        TrkrDefs::cluskey cluster_key = *iter_clus;
-	std::cout << "Key: "  << cluster_key<< std::endl;
-        TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
-
-        Acts::Vector3 global = transformer.getGlobalPosition(
-          cluster_key, cluster,
-          surfmaps,
-          tgeometry);
-        float radius = std::sqrt(square(global(0)) + square(global(1)));
-
-        std::cout << "       cluster ID: "
-		  << cluster_key << ", cluster radius: " << radius
-		  << std::endl ;
-      }
-
-      trackid++;
-    }
-  }
- */
-
   //==================================
 
   return Fun4AllReturnCodes::EVENT_OK;

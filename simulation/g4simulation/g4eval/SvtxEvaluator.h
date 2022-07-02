@@ -70,7 +70,7 @@ class SvtxEvaluator : public SubsysReco
   void do_vtx_eval_light(bool b) { _do_vtx_eval_light = b;}
   void scan_for_embedded(bool b) { _scan_for_embedded = b; }
   void scan_for_primaries(bool b) { _scan_for_primaries = b; }
-
+  void set_drift_velocity(double vd) { _drift_velocity = vd;}
 
  private:
   unsigned int _ievent;
@@ -84,6 +84,8 @@ class SvtxEvaluator : public SubsysReco
 	       float& dca3dxy, float& dca3dz,
 	       float& dca3dxysigma, float& dca3dzsigma);
   //TrkrClusterContainer *cluster_map{nullptr};
+
+  double _drift_velocity = 8.0e-03; // cm/ns default value, override from macro
 
   //----------------------------------
   // evaluator output ntuples

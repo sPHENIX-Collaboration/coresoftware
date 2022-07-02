@@ -523,16 +523,23 @@ void PHMicromegasTpcTrackMatching::copyMicromegasClustersToCorrectedMap( )
 
  Acts::Vector3 PHMicromegasTpcTrackMatching::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing, unsigned int side)
 {
+  auto trkrid = TrkrDefs::getTrkrId(key);
 
-  auto globalpos = _tGeometry->getGlobalPosition(key, cluster);
-
-  // ADF: for streaming mode, will need a crossing z correction here
-  float z = _clusterCrossingCorrection.correctZ(globalpos[2], side, crossing);
-  globalpos[2] = z;
-
-  // check if TPC distortion correction are in place and apply
-  if(_dcc) { globalpos = _distortionCorrection.get_corrected_position( globalpos, _dcc ); }
-
+  Acts::Vector3 globalpos; 
+  if(trkrid == TrkrDefs::tpcId)
+    {
+      globalpos = _tGeometry->getGlobalPositionTpc(key, cluster, _drift_velocity);
+      
+      // ADF: for streaming mode, will need a crossing z correction here
+      float z = _clusterCrossingCorrection.correctZ(globalpos[2], side, crossing);
+      globalpos[2] = z;
+      
+      // check if TPC distortion correction are in place and apply
+      if(_dcc) { globalpos = _distortionCorrection.get_corrected_position( globalpos, _dcc ); }
+    }
+  else
+    globalpos = _tGeometry->getGlobalPosition(key, cluster);
+  
   return globalpos;
 }
   

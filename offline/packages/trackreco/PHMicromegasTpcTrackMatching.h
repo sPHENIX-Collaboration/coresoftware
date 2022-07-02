@@ -39,6 +39,7 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   void set_collision_rate(const double rate){_collision_rate = rate;}
   void SetIteration(int iter){_n_iteration = iter;}
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  void set_drift_velocity(double vd) {_drift_velocity = vd;}
   
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode*) override;
@@ -82,6 +83,8 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   
   //! reference rate for phi correction
   double _reference_collision_rate = 50e3;  
+
+  double _drift_velocity = 8.0e-03; // cm/ns default value; override from macro
 
   //! internal event number
   int _event = -1;

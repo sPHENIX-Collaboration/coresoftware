@@ -517,8 +517,13 @@ int DSTEmulator::End(PHCompositeNode* )
 Acts::Vector3 DSTEmulator::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
-  auto globalpos = m_tGeometry->getGlobalPosition(key, cluster);
-
+  auto trkrid = TrkrDefs::getTrkrId(key);
+  Acts::Vector3 globalpos;
+  if(trkrid == TrkrDefs::tpcId)
+    globalpos = m_tGeometry->getGlobalPositionTpc(key, cluster, _drift_velocity);
+  else
+    globalpos = m_tGeometry->getGlobalPosition(key, cluster);
+  
   // check if TPC distortion correction are in place and apply
   // if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
 
