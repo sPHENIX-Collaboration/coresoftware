@@ -472,7 +472,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       if(trkrid ==  TrkrDefs::tpcId)
 	{	  
 	  // transform to global coordinates for z correction 
-	  global = m_tGeometry->getGlobalPositionTpc(key, cluster, _drift_velocity);
+	  global = m_tGeometry->getGlobalPosition(key, cluster);
       
 	  // make all corrections to global position of TPC cluster
 	  float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);

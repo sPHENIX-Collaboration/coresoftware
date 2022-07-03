@@ -350,7 +350,7 @@ namespace
       float clusz = (clust - my_data.m_tdriftmax) * my_data.m_drift_velocity;  // for north side
       if(my_data.side == 0) 
 	clusz -= clusz;
-      
+
       const double phi_cov = phi2_sum/adc_sum - square(clusphi);
       const double t_cov = t2_sum/adc_sum - square(clust);
 

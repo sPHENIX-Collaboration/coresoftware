@@ -40,7 +40,6 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   void set_min_adc_value(const unsigned int val) {_min_adc_value = val;}
   void set_min_z_value(const double val) {_min_z_value = val;}
   void set_stripe_dr_values(const double dr1, const double dr2, const double dr3){ _cmclus_dr_inner = dr1; _cmclus_dr_mid = dr2; _cmclus_dr_outer = dr3;}
-  void set_drift_velocity(double vd) {_drift_velocity = vd;}
 
  //! run initialization
   int InitRun(PHCompositeNode *topNode);
@@ -83,7 +82,6 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   double _cmclus_dr_inner = 0.51;  //cm
   double _cmclus_dr_mid = 0.95;  //cm
   double _cmclus_dr_outer = 1.025;  //cm
-  double _drift_velocity = 8.0e-03; // cm/ns default, override from macro
 
   bool _histos = false;
 

@@ -30,7 +30,6 @@ class SvtxEvalStack
   void set_use_initial_vertex(bool use_init_vtx) { _vertexeval.set_use_initial_vertex(use_init_vtx); }
   void set_use_genfit_vertex(bool use_genfit_vtx) { _vertexeval.set_use_genfit_vertex(use_genfit_vtx); }
   void set_verbosity(int verbosity) { _vertexeval.set_verbosity(verbosity); }
-  void  set_drift_velocity(double vd) {_vertexeval.set_drift_velocity(vd);}
 
   SvtxVertexEval* get_vertex_eval() { return &_vertexeval; }
   SvtxTrackEval* get_track_eval() { return _vertexeval.get_track_eval(); }
@@ -44,8 +43,6 @@ class SvtxEvalStack
 
  private:
   SvtxVertexEval _vertexeval;  // right now this is the top-level eval
-
-  double _drift_velocity = 8.0e-03; // cm/ns
 
 };
 

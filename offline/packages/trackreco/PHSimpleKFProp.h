@@ -58,7 +58,6 @@ class PHSimpleKFProp : public SubsysReco
   void use_truth_clusters(bool truth)
   { _use_truth_clusters = truth; }
   void SetIteration(int iter){_n_iteration = iter;}
-  void set_drift_velocity(double vd){_drift_velocity = vd;}
 
  private:
 
@@ -85,7 +84,6 @@ class PHSimpleKFProp : public SubsysReco
   double _max_sin_phi = 1.;
   double _rz_outlier_threshold = .1;
   double _xy_outlier_threshold = .1;
-  double _drift_velocity = 8.0 / 1000.0;  //cm/ns defaults value, override from macro
 
   TrkrClusterContainer *_cluster_map = nullptr;
 

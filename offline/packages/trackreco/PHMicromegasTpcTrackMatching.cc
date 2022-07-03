@@ -528,7 +528,7 @@ void PHMicromegasTpcTrackMatching::copyMicromegasClustersToCorrectedMap( )
   Acts::Vector3 globalpos; 
   if(trkrid == TrkrDefs::tpcId)
     {
-      globalpos = _tGeometry->getGlobalPositionTpc(key, cluster, _drift_velocity);
+      globalpos = _tGeometry->getGlobalPosition(key, cluster);
       
       // ADF: for streaming mode, will need a crossing z correction here
       float z = _clusterCrossingCorrection.correctZ(globalpos[2], side, crossing);

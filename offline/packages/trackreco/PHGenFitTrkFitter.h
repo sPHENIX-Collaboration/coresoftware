@@ -314,8 +314,6 @@ class PHGenFitTrkFitter : public SubsysReco
   //! https://rave.hepforge.org/trac/wiki/RaveMethods
   std::string _vertexing_method = "avr-smoothing:1-minweight:0.5-primcut:9-seccut:9";
 
-  double m_drift_velocity = 8.0e-03; // cm/ns default value, override from macro
-
   /// acts geometry
   ActsGeometry *m_tgeometry = nullptr;
 

@@ -160,7 +160,7 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, TrackSeed* track )
     if(!cluster) continue;
 
     // get cluster global position
-    const auto global = m_tGeometry->getGlobalPositionTpc(cluster_key, cluster, m_drift_velocity);
+    const auto global = m_tGeometry->getGlobalPosition(cluster_key, cluster);
 
     // get delta z
     const double delta_z = global.z() - origin.z();

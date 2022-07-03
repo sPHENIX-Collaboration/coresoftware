@@ -222,8 +222,8 @@ Acts::Vector3 TpcSpaceChargeReconstruction::get_global_position(TrkrDefs::cluske
   if (it == m_globalPositions.end()|| (key < it->first ))
   {
     // get global position from Acts transform
-    const auto globalpos = m_tgeometry->getGlobalPositionTpc(
-							     key,  cluster, _drift_velocity);
+    const auto globalpos = m_tgeometry->getGlobalPosition(
+							     key,  cluster);
 
     /*
      * todo: should also apply distortion corrections

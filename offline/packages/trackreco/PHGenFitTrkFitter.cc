@@ -913,13 +913,8 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
   if (it == m_globalPositions.end()|| (key < it->first ))
   {
     // get global position from Acts transform
-    const auto trkrid = TrkrDefs::getTrkrId(key);
-
     Acts::Vector3 globalPosition;
-    if(trkrid == TrkrDefs::tpcId)
-      globalPosition = m_tgeometry->getGlobalPositionTpc( key, cluster, m_drift_velocity);
-    else
-      globalPosition = m_tgeometry->getGlobalPosition(key, cluster);
+    globalPosition = m_tgeometry->getGlobalPosition(key, cluster);
 
     /*
      * todo: should also either apply distortion corrections

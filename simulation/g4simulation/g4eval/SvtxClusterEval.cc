@@ -1386,12 +1386,7 @@ float SvtxClusterEval::fast_approx_atan2(float z)
 Acts::Vector3 SvtxClusterEval::getGlobalPosition(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster)
 {
   Acts::Vector3 glob;
-
-  auto trkrid = TrkrDefs::getTrkrId(cluster_key);
-  if(trkrid == TrkrDefs::tpcId)
-    glob = _tgeometry->getGlobalPositionTpc(cluster_key, cluster, _drift_velocity);
-  else
-    glob = _tgeometry->getGlobalPosition(cluster_key, cluster);
+  glob = _tgeometry->getGlobalPosition(cluster_key, cluster);
 
   return glob;
 }

@@ -46,12 +46,6 @@ class SvtxTrackEval
     _clustereval.set_verbosity(verbosity);
   }
 
-  void set_drift_velocity(double vd)
-  {
-    _clustereval.set_drift_velocity(vd);
-  }
-
-
   // access the clustereval (and its cached values)
   SvtxClusterEval* get_cluster_eval() { return &_clustereval; }
   SvtxHitEval* get_hit_eval() { return _clustereval.get_hit_eval(); }

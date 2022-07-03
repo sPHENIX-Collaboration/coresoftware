@@ -114,7 +114,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	   clusiter != clusRange.second; ++clusiter)
 	{
     const auto& [cluskey, cluster] = *clusiter;
-    auto glob = tgeometry->getGlobalPositionTpc(cluskey, cluster, _drift_velocity);
+    auto glob = tgeometry->getGlobalPosition(cluskey, cluster);
     
     float x = glob(0);
     float y = glob(1);

@@ -420,7 +420,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   cluskey = key;
   
   // Get all the relevant information for residual calculation
-  const auto globClusPos = m_tGeometry->getGlobalPositionTpc(key, cluster, _drift_velocity);
+  const auto globClusPos = m_tGeometry->getGlobalPosition(key, cluster);
   clusR = get_r(globClusPos(0),globClusPos(1));
   clusPhi = std::atan2(globClusPos(1), globClusPos(0));
   clusZ = globClusPos(2);

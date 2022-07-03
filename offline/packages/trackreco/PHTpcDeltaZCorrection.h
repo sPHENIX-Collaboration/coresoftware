@@ -64,7 +64,6 @@ class PHTpcDeltaZCorrection : public SubsysReco, public PHParameterInterface
 
   /// electron drift velocity in gas
   double m_drift_velocity = NAN;
-
 };
 
 #endif // PHTpcDeltaZCorrection_H

@@ -72,8 +72,6 @@ class PHTpcResiduals : public SubsysReco
   void setUseMicromegas( bool value )
   { m_useMicromegas = value; }
 
-  void set_drift_velocity(double vd) {_drift_velocity = vd;}
-  
   private:
 
   using BoundTrackParamPtr = 
@@ -215,8 +213,6 @@ class PHTpcResiduals : public SubsysReco
   double clusZErr = 0;
   double stateR = 0;
   TrkrDefs::cluskey cluskey = 0;
-
-  double _drift_velocity = 8.0e-03; // cm/ns default value, override from macro
 };
 
 #endif

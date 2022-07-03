@@ -137,6 +137,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   
   m_actsGeometry->setGeometry(trackingGeometry);
   m_actsGeometry->setSurfMaps(surfMaps);
+  m_actsGeometry->set_drift_velocity(m_drift_velocity);
 
   // print
   if( Verbosity() )

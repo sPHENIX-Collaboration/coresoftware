@@ -99,7 +99,6 @@ class PHActsTrkFitter : public SubsysReco
   void SetIteration(int iter){_n_iteration = iter;}
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void set_seed_track_map_name(const std::string &map_name) { _seed_track_map_name = map_name; }
-  void set_drift_velocity(double vd) {_drift_velocity = vd;}
 
  private:
 
@@ -185,8 +184,6 @@ class PHActsTrkFitter : public SubsysReco
 
   // cluster mover utility class
   TpcClusterMover _clusterMover;
-
-  double _drift_velocity = 8.0e-03;  // cm/ns default value, override from macro
 
   std::string m_fieldMap = "";
   TrkrClusterIterationMap* _iteration_map = nullptr;
