@@ -20,6 +20,7 @@ Eigen::Matrix<float,3,1> ActsGeometry::getGlobalPositionF(
   return Eigen::Matrix<float,3,1>(doublePos(0), doublePos(1), doublePos(2));
 }
 
+/*
 Eigen::Matrix<float,3,1> ActsGeometry::getGlobalPositionTpcF(
   TrkrDefs:: cluskey key,       
   TrkrCluster* cluster) const
@@ -27,6 +28,7 @@ Eigen::Matrix<float,3,1> ActsGeometry::getGlobalPositionTpcF(
   const Acts::Vector3 doublePos = getGlobalPositionTpc(key, cluster);
   return Eigen::Matrix<float,3,1>(doublePos(0), doublePos(1), doublePos(2));
 }
+*/
 
 Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
 					      TrkrCluster* cluster) const
@@ -94,17 +96,17 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
 
   Acts::Vector3 global;
 
+  double maxdriftlength =  AdcClockPeriod*MaxTBins*_drift_velocity / 2.0;  // MaxTBins covers 2 x 13.2 microseconds
+
   /// Undo the manual calculation that is performed in TpcClusterizer
   
-  // must convert local Y from cluster average time to cluster z position in local coords
-  // MaxTBins covers 2 x 13.2 microseconds
-  double local_pos_Y = (AdcClockPeriod * MaxTBins / 2.0 - cluster->getLocalY()) * _drift_velocity;
+  // must convert local Y from cluster average time of arival to cluster z position
+   // t = 0 corresponds to zdriftlength = 0, t = +MaxT corresponds to zdriftlength = 105.5, t = 2* MaxT corresponds to zdriftlength = 2*105.5
+  double zdriftlength = cluster->getLocalY() * _drift_velocity;
+  double zpos  = maxdriftlength -zdriftlength;   // convert z drift length to z position in the TPC
   unsigned int side = TpcDefs::getSide(key);
-  if(side == 0) local_pos_Y = -local_pos_Y;
-  local(1) = local_pos_Y;
+  if(side == 0) zpos = -zpos;
 
-  std::cout << " drift velocity " << _drift_velocity << " side " << side << " AdcClockPeriod " << AdcClockPeriod << " MaxTBins " << MaxTBins 
-	    << " clusterlocal Y ns " << cluster->getLocalY() << " cluster local Y cm " << local(1) << std::endl ;
   auto surfCenter = surface->center(geometry().geoContext);
 
   surfCenter /= Acts::UnitConstants::cm;
@@ -114,7 +116,7 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
   
   double clusRPhi = local(0) + surfRPhiCenter;
   //double gclusz = local(1) + surfCenter(2);
-  double gclusz = local(1);
+  double gclusz = zpos;
   
   double clusphi = clusRPhi / surfRadius;
   double gclusx = surfRadius * cos(clusphi);
@@ -124,7 +126,6 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
   global(1) = gclusy;
   global(2) = gclusz;
 
-  std::cout << "              global " << global(0) << "  " << global(1) << "  " << global(2) << std::endl ;
   return global;
 }
 

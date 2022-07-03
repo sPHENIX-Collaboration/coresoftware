@@ -614,9 +614,7 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   MaxRadius[2] = get_double_param("tpc_maxradius_outer");
 
   sigmaT = get_double_param("gem_cloud_sigma");
-  //sigmaL[0] = get_double_param("sampa_shaping_lead") * drift_velocity;
   sigmaL[0] = get_double_param("sampa_shaping_lead");
-  //sigmaL[1] = get_double_param("sampa_shaping_tail") * drift_velocity;
   sigmaL[1] = get_double_param("sampa_shaping_tail");
 
   tpc_adc_clock = get_double_param("tpc_adc_clock");
@@ -624,8 +622,8 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   MaxZ = get_double_param("maxdriftlength");
   TBinWidth = tpc_adc_clock;
   ZBinWidth = TBinWidth * drift_velocity;
-  MaxT = MaxZ / drift_velocity;
-  MinT = - MaxT;
+  MaxT = 2.0 * MaxZ / drift_velocity;   // allows for extended time readout
+  MinT = 0;
   NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
 
   std::cout << PHWHERE << "MaxT " << MaxT << " NTBins = " << NTBins << " drift velocity " << drift_velocity << std::endl;

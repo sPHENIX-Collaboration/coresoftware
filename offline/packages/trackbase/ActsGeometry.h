@@ -24,6 +24,7 @@ class ActsGeometry {
     { return m_surfMaps; }
 
   void set_drift_velocity(double vd) {_drift_velocity = vd;}
+  double get_drift_velocity() {return _drift_velocity;}
 
   Eigen::Matrix<float,3,1> getGlobalPositionF(
       TrkrDefs:: cluskey key,       
@@ -33,9 +34,11 @@ class ActsGeometry {
       TrkrDefs:: cluskey key,       
       TrkrCluster* cluster) const;
 
+  /*
   Eigen::Matrix<float,3,1> getGlobalPositionTpcF(
       TrkrDefs:: cluskey key,       
       TrkrCluster* cluster) const;
+  */
 
   Acts::Vector3 getGlobalPositionTpc(
       TrkrDefs:: cluskey key,       

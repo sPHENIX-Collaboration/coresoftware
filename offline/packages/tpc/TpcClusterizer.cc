@@ -318,15 +318,6 @@ namespace
 	
 	// update t sums
 	double t = my_data.layergeom->get_zcenter(it);
-
-	/*	
-	// apply drift velocity scale
-	//this formula ensures that z remains unchanged when located on one of the readout plane, at either z_max or z_min 
-	z =
-	  z*my_data.m_drift_velocity_scale +
-	  (z>0 ? z_max:z_min)*(1.-my_data.m_drift_velocity_scale);
-	*/
-
 	t_sum += t*adc;
 	t2_sum += square(t)*adc;
 	
@@ -347,9 +338,11 @@ namespace
       float clusy = radius * sin(clusphi);
       double clust = t_sum / adc_sum;
       // needed for surface identification
-      float clusz = (clust - my_data.m_tdriftmax) * my_data.m_drift_velocity;  // for north side
+      double zdriftlength = clust * my_data.m_drift_velocity;
+      // convert z drift length to z position in the TPC
+      double clusz  =  my_data.m_tdriftmax * my_data.m_drift_velocity - zdriftlength; 
       if(my_data.side == 0) 
-	clusz -= clusz;
+	clusz = -clusz;
 
       const double phi_cov = phi2_sum/adc_sum - square(clusphi);
       const double t_cov = t2_sum/adc_sum - square(clust);
@@ -502,11 +495,11 @@ namespace
 	tbinmin = etacut;
 	tbinmax -= etacut;
       }
-      // std::cout << " layer: " << layer << " tbin limit " << tbinmin << " | " << tbinmax <<std::endl;
     }
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
 	 hitr != hitrangei.second;
 	 ++hitr){
+
       if( TpcDefs::getPad(hitr->first) - phioffset < 0 ){
 	//std::cout << "WARNING phibin out of range: " << TpcDefs::getPad(hitr->first) - phioffset << " | " << phibins << std::endl;
 	continue;
@@ -764,7 +757,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     int side = TpcDefs::getSide(hitsetitr->first);
     unsigned int sector= TpcDefs::getSectorId(hitsetitr->first);
     PHG4CylinderCellGeom *layergeom = geom_container->GetLayerCellGeom(layer);
-    
+
     // instanciate new thread pair, at the end of thread vector
     thread_pair_t& thread_pair = threads.emplace_back();
     
