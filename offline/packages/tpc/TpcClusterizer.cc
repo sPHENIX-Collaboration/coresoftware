@@ -75,8 +75,6 @@ namespace
     unsigned short toffset = 0;
     unsigned short maxHalfSizeT = 0;
     unsigned short maxHalfSizePhi = 0;
-    double m_drift_velocity = 0.0;
-    double m_drift_velocity_scale = 1.0;
     double m_tdriftmax = 0;
     double par0_neg = 0;
     double par0_pos = 0;
@@ -338,9 +336,9 @@ namespace
       float clusy = radius * sin(clusphi);
       double clust = t_sum / adc_sum;
       // needed for surface identification
-      double zdriftlength = clust * my_data.m_drift_velocity;
+      double zdriftlength = clust * my_data.tGeometry->get_drift_velocity();
       // convert z drift length to z position in the TPC
-      double clusz  =  my_data.m_tdriftmax * my_data.m_drift_velocity - zdriftlength; 
+      double clusz  =  my_data.m_tdriftmax * my_data.tGeometry->get_drift_velocity() - zdriftlength; 
       if(my_data.side == 0) 
 	clusz = -clusz;
 
@@ -387,9 +385,9 @@ namespace
       // SAMPA shaping bias correction
       //clusz -= (clusz<0) ? my_data.par0_neg:my_data.par0_pos;
       if(my_data.side == 0) 
-	clust -= my_data.par0_neg / my_data.m_drift_velocity;
+	clust -= my_data.par0_neg / my_data.tGeometry->get_drift_velocity();
       else
-	clust -= my_data.par0_pos / my_data.m_drift_velocity;
+	clust -= my_data.par0_pos / my_data.tGeometry->get_drift_velocity();
 
       Acts::Vector3 center = surface->center(my_data.tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
   
@@ -609,7 +607,6 @@ bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderC
 
 int TpcClusterizer::InitRun(PHCompositeNode *topNode)
 {
-  std::cout << " drift_velocity " << m_drift_velocity << std::endl;
 
   PHNodeIterator iter(topNode);
 
@@ -772,8 +769,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.tGeometry = m_tGeometry;
     thread_pair.data.maxHalfSizeT =  MaxClusterHalfSizeT;
     thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
-    thread_pair.data.m_drift_velocity = m_drift_velocity;
-    thread_pair.data.m_drift_velocity_scale = m_drift_velocity_scale;
     thread_pair.data.par0_neg = par0_neg;
     thread_pair.data.par0_pos = par0_pos;
     thread_pair.data.cluster_version = cluster_version;

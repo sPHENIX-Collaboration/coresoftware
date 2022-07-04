@@ -63,7 +63,7 @@ class PHTpcDeltaZCorrection : public SubsysReco, public PHParameterInterface
   double m_bz_const = 1.4; // Tesla
 
   /// electron drift velocity in gas
-  double m_drift_velocity = NAN;
+  //  double m_drift_velocity = NAN;
 };
 
 #endif // PHTpcDeltaZCorrection_H
