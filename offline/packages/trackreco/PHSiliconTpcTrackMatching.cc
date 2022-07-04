@@ -71,7 +71,6 @@ void PHSiliconTpcTrackMatching::SetDefaultParameters()
   // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
   // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
   // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
-  set_default_double_param("drift_velocity", 8.0 / 1000.0);  // cm/ns
 
   return;
 }
@@ -131,7 +130,6 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode*)
 
   if(Verbosity() > 0)  
     {
-      cout << " Final track map size " << _track_map->size()  << endl;
       std::cout << "final svtx seed map size " << _svtx_seed_map->size() << std::endl;
     }
 
@@ -435,7 +433,7 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<unsigned int
   // if the  crossing was assigned correctly, the (crossing corrected) track position should satisfy the Z matching cut
   // this is a rough check that this is the case
 
-  float vdrift = get_double_param("drift_velocity");
+  float vdrift = _tGeometry->get_drift_velocity();
 
   std::multimap<unsigned int, unsigned int> bad_map;
 
