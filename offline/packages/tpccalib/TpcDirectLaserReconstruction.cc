@@ -234,8 +234,11 @@ int TpcDirectLaserReconstruction::load_nodes( PHCompositeNode* topNode )
   assert( m_surfmaps );
 
   // acts geometry
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   assert( m_tGeometry );
+
+  //  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  // assert( m_tGeometry );
 
   // tracks
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");

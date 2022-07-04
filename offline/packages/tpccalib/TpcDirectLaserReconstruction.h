@@ -129,7 +129,8 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   ActsSurfaceMaps* m_surfmaps = nullptr;
 
   /// Acts tracking geometry for surface lookup
-  ActsTrackingGeometry* m_tGeometry = nullptr;
+  //  ActsTrackingGeometry* m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
 
   /// acts transformation
   ActsTransformations m_transformer;
