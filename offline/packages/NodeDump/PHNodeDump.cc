@@ -4,7 +4,9 @@
 #include "DumpBbcVertexMap.h"
 #include "DumpCaloTriggerInfo.h"
 #include "DumpCentralityInfo.h"
+#include "DumpEpInfo.h"
 #include "DumpEventHeader.h"
+#include "DumpFlagSave.h"
 #include "DumpGlobalVertexMap.h"
 #include "DumpInttDeadMap.h"
 #include "DumpJetMap.h"
@@ -41,28 +43,20 @@
 #include "DumpTrkrHitTruthAssoc.h"
 #include "DumpVariableArray.h"
 
+#include <ffaobjects/RunHeader.h>
+#include <ffaobjects/EventHeader.h>
+
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <ffaobjects/RunHeader.h>
 
 #include <TObject.h>
 
 #include <iostream>
 #include <string>
 #include <utility>
-
-using namespace std;
-
-PHNodeDump::PHNodeDump()
-  : runnumber(-9999)
-  , evtsequence(-9999)
-  , fp_precision(-1)
-  , outdir("./")
-{
-}
 
 PHNodeDump::~PHNodeDump()
 {
@@ -76,24 +70,24 @@ PHNodeDump::~PHNodeDump()
   return;
 }
 
-int PHNodeDump::AddIgnore(const string &name)
+int PHNodeDump::AddIgnore(const std::string &name)
 {
   if (ignore.find(name) != ignore.end())
   {
-    cout << PHWHERE << " "
-         << name << "already in ignore list" << endl;
+    std::cout << PHWHERE << " "
+         << name << "already in ignore list" << std::endl;
     return -1;
   }
   ignore.insert(name);
   return 0;
 }
 
-int PHNodeDump::Select(const string &name)
+int PHNodeDump::Select(const std::string &name)
 {
   if (exclusive.find(name) != exclusive.end())
   {
-    cout << PHWHERE << " "
-         << name << "already in exclusive list" << endl;
+    std::cout << PHWHERE << " "
+         << name << "already in exclusive list" << std::endl;
     return -1;
   }
   exclusive.insert(name);
@@ -107,19 +101,24 @@ int PHNodeDump::GetGlobalVars(PHCompositeNode *topNode)
   {
     runnumber = runheader->get_RunNumber();
   }
+  EventHeader *eventheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  if (eventheader)
+  {
+    evtsequence = eventheader->get_EvtSequence();
+  }
   return 0;
 }
 
 void PHNodeDump::perform(PHNode *node)
 {
-  map<string, DumpObject *>::iterator iter;
+  std::map<std::string, DumpObject *>::iterator iter;
   if (node->getType() == "PHIODataNode")
   {
-    string NodeName = node->getName();
+    std::string NodeName = node->getName();
     iter = dumpthis.find(NodeName);
     if (iter == dumpthis.end())
     {
-      cout << "Adding Dump Object for " << NodeName << endl;
+      std::cout << "Adding Dump Object for " << NodeName << std::endl;
       AddDumpObject(NodeName, node);
       iter = dumpthis.find(NodeName);  // update iterator
     }
@@ -132,10 +131,10 @@ void PHNodeDump::perform(PHNode *node)
     {
       //           for (iter = dumpthis.begin(); iter != dumpthis.end(); iter++)
       //             {
-      //               cout << "registered: " << iter->second->Name() << endl;
+      //               std::cout << "registered: " << iter->second->Name() << std::endl;
       //             }
-      cout << "Something went wrong with adding Dump Object for " << NodeName
-           << ", it should exist !! Trying to create it again" << endl;
+      std::cout << "Something went wrong with adding Dump Object for " << NodeName
+           << ", it should exist !! Trying to create it again" << std::endl;
       AddDumpObject(NodeName, node);
     }
   }
@@ -144,7 +143,7 @@ void PHNodeDump::perform(PHNode *node)
 
 int PHNodeDump::CloseOutputFiles()
 {
-  map<string, DumpObject *>::iterator iter;
+  std::map<std::string, DumpObject *>::iterator iter;
   for (iter = dumpthis.begin(); iter != dumpthis.end(); ++iter)
   {
     iter->second->CloseOutputFile();
@@ -152,15 +151,15 @@ int PHNodeDump::CloseOutputFiles()
   return 0;
 }
 
-int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
+int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
 {
   DumpObject *newdump;
-  string newnode = NodeName;
+  std::string newnode = NodeName;
   if (!exclusive.empty())
   {
     if (exclusive.find(NodeName) == exclusive.end())
     {
-      cout << "Exclusive find: Ignoring " << NodeName << endl;
+      std::cout << "Exclusive find: Ignoring " << NodeName << std::endl;
       newdump = new DumpObject(NodeName);
       newdump->NoOutput();
       goto initdump;
@@ -168,7 +167,7 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
   }
   if (ignore.find(NodeName) != ignore.end())
   {
-    cout << "Ignoring " << NodeName << endl;
+    std::cout << "Ignoring " << NodeName << std::endl;
     newdump = new DumpObject(NodeName);
   }
   else
@@ -190,9 +189,17 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       {
         newdump = new DumpCentralityInfo(NodeName);
       }
+      else if (tmp->InheritsFrom("EpInfo"))
+      {
+        newdump = new DumpEpInfo(NodeName);
+      }
       else if (tmp->InheritsFrom("EventHeader"))
       {
         newdump = new DumpEventHeader(NodeName);
+      }
+      else if (tmp->InheritsFrom("FlagSave"))
+      {
+        newdump = new DumpFlagSave(NodeName);
       }
       else if (tmp->InheritsFrom("GlobalVertexMap"))
       {
@@ -336,17 +343,18 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       }
       else
       {
-        cout << "Registering Dummy for " << NodeName
-             << ", Class: " << tmp->ClassName() << endl;
+        std::cout << "Registering Dummy for " << NodeName
+             << ", Class: " << tmp->ClassName() << std::endl;
         newdump = new DumpObject(NodeName);
       }
     }
     else
     {
-      cout << "ignoring PHDataNode: " << NodeName << endl;
+      std::cout << "ignoring PHDataNode: " << NodeName << std::endl;
       newdump = new DumpObject(NodeName);
     }
   }
+  newdump->PrintEvtSeq(print_evtseq);
 
 initdump:
   newdump->SetParentNodeDump(this);
@@ -354,11 +362,5 @@ initdump:
   newdump->SetPrecision(fp_precision);
   newdump->Init();
   dumpthis[newnode] = newdump;
-  return 0;
-}
-
-int PHNodeDump::SetOutDir(const string &dirname)
-{
-  outdir = dirname;
   return 0;
 }

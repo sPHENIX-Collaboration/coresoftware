@@ -9,13 +9,7 @@
 using namespace std;
 
 DumpObject::DumpObject(const string &NodeName)
-  : fout(nullptr)
-  , ThisName(NodeName)
-  , write_run_event(1)
-  , OutDir("./")
-  , fp_precision(-1)
-  , myNodeDump(nullptr)
-  , no_output(0)
+  : ThisName(NodeName)
 {
   return;
 }
@@ -55,9 +49,12 @@ int DumpObject::process_event(PHNode *myNode)
       (*fout).precision(fp_precision);
     }
     *fout << endl
-          << "RunNumber: " << myNodeDump->RunNumber()
-          << ", Event Sequence: " << myNodeDump->EvtSequence()
-          << endl;
+          << "RunNumber: " << myNodeDump->RunNumber();
+    if (print_evtseq)
+    {
+      *fout << ", Event Sequence: " << myNodeDump->EvtSequence();
+    }
+     *fout << endl;
   }
   process_Node(myNode);
   //  cout << ThisName << " did not implement process_event method" << endl;
