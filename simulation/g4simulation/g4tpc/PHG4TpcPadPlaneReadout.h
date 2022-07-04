@@ -63,7 +63,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<double, 3> MinRadius;
   std::array<double, 3> MaxRadius;
   std::array<double, 3> Thickness;
-  double MinZ = NAN;
   double MaxZ = NAN;
   double MinT = NAN;
   double MaxT = NAN;
@@ -75,7 +74,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   double drift_velocity = 8.0e-03;  // default value, override from macro
   double tpc_adc_clock = NAN;
 
-  int NZBins = INT_MAX;
   int NTBins = INT_MAX;
   std::array<int, 3> NPhiBins;
   std::array<int, 3> NTpcLayers;
