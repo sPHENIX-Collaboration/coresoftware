@@ -6,8 +6,7 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrHitv2.h>
-
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>

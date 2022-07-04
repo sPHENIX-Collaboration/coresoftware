@@ -14,12 +14,12 @@
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
+#include <trackbase/TpcDefs.h>
 
 #include <trackbase_historic/TrackSeed.h>     
 #include <trackbase_historic/TrackSeedContainer.h>
 
 #include <tpc/TpcDistortionCorrectionContainer.h>
-#include <tpc/TpcDefs.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 

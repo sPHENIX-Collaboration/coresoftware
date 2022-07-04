@@ -53,17 +53,9 @@ class TpcClusterizer : public SubsysReco
   unsigned short MaxClusterHalfSizePhi = 3;
   unsigned short MaxClusterHalfSizeT = 5;
   int cluster_version = 3;
-  double m_drift_velocity = 8.0 / 1000.0;       // cm/ns
   double m_tdriftmax = 0;
   double AdcClockPeriod = 53.0;   // ns 
 
-  /// drift velocity scale factor  -- not used
-  /** 
-   * represents the ratio vdrift_measured/vdrift_true
-   * it is used to get cluster z from its timebin
-   **/
-  double m_drift_velocity_scale = 1.0;
-  
   // TPC shaping offset correction parameters
   // From Tony Frawley May 13, 2021
   double par0_neg = 0.0503;

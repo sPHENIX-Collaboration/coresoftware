@@ -15,8 +15,7 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
-
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>

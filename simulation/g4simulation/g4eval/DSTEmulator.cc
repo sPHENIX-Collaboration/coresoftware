@@ -17,7 +17,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/recoConsts.h>
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrClusterContainer.h>

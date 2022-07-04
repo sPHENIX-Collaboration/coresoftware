@@ -22,8 +22,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
-
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #include <TFile.h>
 #include <TH1.h>

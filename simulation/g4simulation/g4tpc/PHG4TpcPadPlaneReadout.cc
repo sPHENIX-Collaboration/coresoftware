@@ -15,9 +15,9 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
-#include <phool/phool.h>  // for PHWHERE
+#include <trackbase/TpcDefs.h>
 
-#include <tpc/TpcDefs.h>
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
 

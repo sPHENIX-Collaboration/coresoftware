@@ -19,8 +19,8 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
-#include <tpc/TpcDefs.h>
 
+#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/TrkrCluster.h>

@@ -2,7 +2,7 @@
 
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrClusterv3.h>   
 #include <trackbase/TrkrClusterContainer.h>   
 #include <trackbase/TrkrClusterCrossingAssoc.h>   

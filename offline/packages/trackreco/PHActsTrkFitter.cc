@@ -8,11 +8,11 @@
 #include "PHActsTrkFitter.h"
 
 /// Tracking includes
-#include <tpc/TpcDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/InttDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack_v4.h>

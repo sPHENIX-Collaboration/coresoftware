@@ -19,8 +19,7 @@
 
 #include <trackbase/TrkrHitTruthClusters.h>
 #include <trackbase/TrkrHitTruthClustersv1.h>
-
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 

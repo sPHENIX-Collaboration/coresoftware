@@ -10,14 +10,13 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #include <intt/CylinderGeomIntt.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <micromegas/CylinderGeomMicromegas.h>
-
-#include <tpc/TpcDefs.h>
 
 #include <micromegas/MicromegasDefs.h>
 
