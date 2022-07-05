@@ -59,14 +59,14 @@ class PHG4InttDetector : public PHG4Detector
   void AddGeometryNode();
   int ConstructIntt(G4LogicalVolume *sandwich);
 
-  PHG4InttDisplayAction *m_DisplayAction;
-  PHParametersContainer *m_ParamsContainer;
+  PHG4InttDisplayAction *m_DisplayAction = nullptr;
+  PHParametersContainer *m_ParamsContainer = nullptr;
 
   std::string m_DetectorType;
   std::string m_SuperDetector;
 
-  int m_IsSupportActive;
-  int m_IsEndcapActive;
+  int m_IsSupportActive = 0;
+  int m_IsEndcapActive = 0;
 
   double m_PosZ[8][2];
   double m_SensorRadius[8];

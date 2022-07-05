@@ -2,8 +2,7 @@
 #define TRACKRECO_ACTSTRANSFORMATIONS_H
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 
 /// Acts includes to create all necessary definitions
 #include <Acts/Utilities/BinnedArray.hpp>
@@ -11,7 +10,6 @@
 #include <Acts/Utilities/Logger.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
-
 #include <ActsExamples/EventData/Track.hpp>
 
 #include "SvtxTrack.h"
@@ -22,6 +20,9 @@
 #include <memory>
 #include <utility>
 
+// forward declarations
+class SvtxTrack;
+class SvtxTrackState;
 class TrkrCluster;
 
 using Trajectory = ActsExamples::Trajectories;
@@ -43,17 +44,21 @@ class ActsTransformations
   /// cartesian coordinates to (d0, z0, phi, theta, q/p, time) coordinates for
   /// Acts. The track fitter performs the fitting with respect to the nominal
   /// origin of sPHENIX, so we rotate accordingly
-  Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrack *track,
-						Acts::GeometryContext geoCtxt) const;
+  Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrack* ) const;
   
-  /// Same as above, but rotate from Acts basis to global (x,y,z,px,py,pz)
-  Acts::BoundSymMatrix rotateActsCovToSvtxTrack(
-                       const ActsExamples::TrackParameters params,
-		       Acts::GeometryContext geoCtxt) const;
+  /// Rotates an SvtxTrack state covariance matrix from (x,y,z,px,py,pz) global
+  /// cartesian coordinates to (d0, z0, phi, theta, q/p, time) coordinates for
+  /// Acts. The track fitter performs the fitting with respect to the nominal
+  /// origin of sPHENIX, so we rotate accordingly
+  Acts::BoundSymMatrix rotateSvtxTrackCovToActs(const SvtxTrackState* ) const;
+
+  /// Rotates an Acts covariance matrix from (d0, z0, phi, theta, q/p, time) local curvilinear coordinates
+  /// to global cartesian coordinates (x,y,z,px,py,pz) coordinates
+  Acts::BoundSymMatrix rotateActsCovToSvtxTrack( const ActsExamples::TrackParameters& ) const;
 
   void setVerbosity(int verbosity) {m_verbosity = verbosity;}
 
-  void printMatrix(const std::string &message, Acts::BoundSymMatrix matrix) const;
+  void printMatrix(const std::string &message, const Acts::BoundSymMatrix& matrix) const;
 
   /// Calculate the DCA for a given Acts fitted track parameters and 
   /// vertex
@@ -71,27 +76,7 @@ class ActsTransformations
 			   SvtxTrack *svtxTrack,
 			   Acts::GeometryContext& geoContext) const;
   
-  Eigen::Matrix<float,3,1> getGlobalPositionF(TrkrCluster* cluster,
-					      ActsSurfaceMaps* surfMaps,
-					      ActsTrackingGeometry *tGeometry) const;
-
-  Acts::Vector3 getGlobalPosition(TrkrCluster* cluster,
-				  ActsSurfaceMaps* surfMaps,
-				  ActsTrackingGeometry *tGeometry) const;
-
-  Surface getSurface(TrkrCluster* cluster,
-		     ActsSurfaceMaps* surfMaps) const;
-  
-  Surface getSiliconSurface(TrkrDefs::hitsetkey hitsetkey,
-			    ActsSurfaceMaps *maps) const;
-
-  Surface getTpcSurface(TrkrDefs::hitsetkey hitsetkey,
-    TrkrDefs::subsurfkey surfkey,
-    ActsSurfaceMaps *maps) const;
-
-  Surface getMMSurface(TrkrDefs::hitsetkey hitsetkey,
-    ActsSurfaceMaps *maps) const;
-
+ 
   private:
   int m_verbosity = 0;
   

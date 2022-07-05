@@ -12,8 +12,8 @@
 #include <vector>
 
 class PHCompositeNode;
-class SvtxTrackMap;
-class SvtxTrack;
+class TrackSeed;
+class TrackSeedContainer;
 class TrkrCluster;
 class TF1;
 class TrkrClusterContainer;
@@ -41,15 +41,14 @@ class PHTpcTrackSeedCircleFit : public SubsysReco
  private:
 
   int GetNodes(PHCompositeNode* topNode);
-  std::vector<TrkrCluster*> getTrackClusters(SvtxTrack *);
-  Acts::Vector3 getGlobalPosition( TrkrCluster* cluster ) const;
+
+  Acts::Vector3 getGlobalPosition( TrkrDefs::cluskey, TrkrCluster* cluster ) const;
 						    
   ActsSurfaceMaps *_surfmaps{nullptr};
   ActsTrackingGeometry *_tGeometry{nullptr};
-  SvtxTrackMap *_track_map{nullptr};
+  TrackSeedContainer *_track_map{nullptr};
   
   bool _use_truth_clusters = false;
-  bool _are_clusters_corrected = true;
   TrkrClusterContainer *_cluster_map = nullptr;
   /// distortion correction container
   TpcDistortionCorrectionContainer* _dcc = nullptr;

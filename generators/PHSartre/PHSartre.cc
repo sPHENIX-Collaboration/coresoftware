@@ -40,19 +40,6 @@ using namespace std;
 
 PHSartre::PHSartre(const std::string &name)
   : SubsysReco(name)
-  , _eventcount(0)
-  , _gencount(0)
-  , _registeredTriggers()
-  , _triggersOR(true)
-  , _triggersAND(false)
-  , _configFile("")
-  , _commands()
-  , _sartre(nullptr)
-  , settings(nullptr)
-  , decay(nullptr)
-  , daughterID(-1)
-  , daughterMasses{0., 0.}
-  , doPerformDecay(false)
 {
   char *charPath = getenv("SARTRE_DIR");
   if (!charPath)

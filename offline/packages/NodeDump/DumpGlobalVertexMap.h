@@ -10,7 +10,7 @@ class PHNode;
 class DumpGlobalVertexMap : public DumpObject
 {
  public:
-  DumpGlobalVertexMap(const std::string &NodeName);
+  explicit DumpGlobalVertexMap(const std::string &NodeName);
   ~DumpGlobalVertexMap() override {}
 
  protected:

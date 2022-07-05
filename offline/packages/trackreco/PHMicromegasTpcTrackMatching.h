@@ -4,24 +4,25 @@
 #define PHMICROMEGASTPCTRACKMATCHING_H
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
+
+#include <trackbase/TrkrDefs.h>
 
 #include <array>
 #include <string>
 #include <vector>
 
+class ActsGeometry;
 class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
-class SvtxTrackMap;
-class AssocInfoContainer;
+class TrackSeedContainer;
 class PHCompositeNode;
 class PHG4CylinderGeomContainer;
-class SvtxTrack;
+class TrackSeed;
 class TrkrCluster;
 class TF1;
 class TH1;
-class TrkrHitSetContainer;
 
 class PHMicromegasTpcTrackMatching : public SubsysReco
 {
@@ -39,7 +40,7 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   void set_sc_calib_mode(const bool mode){_sc_calib_mode = mode;}
   void set_collision_rate(const double rate){_collision_rate = rate;}
   void SetIteration(int iter){_n_iteration = iter;}
-  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  //  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode*) override;
@@ -51,6 +52,7 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   int GetNodes(PHCompositeNode* topNode);
 
   void copyMicromegasClustersToCorrectedMap( );
+  Acts::Vector3 getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing, unsigned int side);
     
   //! number of layers in the micromegas
   static constexpr unsigned int _n_mm_layers = 2;
@@ -59,8 +61,9 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   TrkrClusterContainer *_cluster_map{nullptr};
   TrkrClusterContainer *_corrected_cluster_map{nullptr};
 
-  SvtxTrackMap *_track_map{nullptr};
-  AssocInfoContainer *_assoc_container{nullptr};
+  TrackSeedContainer *_svtx_seed_map{nullptr};
+  TrackSeedContainer *_tpc_track_map{nullptr};
+  TrackSeedContainer *_si_track_map{nullptr};
 
   //! default rphi search window for each layer
   std::array<double,_n_mm_layers> _rphi_search_win = {0.25, 13.0}; 
@@ -91,10 +94,15 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   PHG4CylinderGeomContainer* _geomContainerMicromegas = nullptr;
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
-  std::string _track_map_name = "SvtxTrackMap";
+  //  std::string _track_map_name = "TpcTrackSeedContainer";
 
-  ActsTrackingGeometry *_tGeometry = nullptr;
-  ActsSurfaceMaps *_surfmaps = nullptr;
+  ActsGeometry *_tGeometry = nullptr;
+
+  /// distortion correction container
+  TpcDistortionCorrectionContainer* _dcc = nullptr;
+ /// tpc distortion correction utility class
+  TpcDistortionCorrection _distortionCorrection;
+  TpcClusterZCrossingCorrection _clusterCrossingCorrection;
 
   //! coarse SC correction function
   TF1 *fdrphi{nullptr};

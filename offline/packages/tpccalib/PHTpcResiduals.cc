@@ -67,7 +67,19 @@ namespace
   // specify bins for which one will save histograms
   static const std::vector<float> phi_rec = { get_sector_phi(9) };
   static const std::vector<float> z_rec = { 5. };
-  
+
+  //! get cluster keys from a given track
+  std::vector<TrkrDefs::cluskey> get_cluster_keys( SvtxTrack* track )
+  {
+    std::vector<TrkrDefs::cluskey> out;
+    for( const auto& seed: { track->get_silicon_seed(), track->get_tpc_seed() } )
+    {
+      if( seed )
+      { std::copy( seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter( out ) ); }
+    }
+    return out;
+  }
+
 }
 
 PHTpcResiduals::PHTpcResiduals(const std::string &name)
@@ -205,19 +217,13 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
   int nInttHits = 0;
   int nMMHits = 0;
 
-  for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
-       clusIter != track->end_cluster_keys();
-       ++clusIter)
-    {
-      auto key = *clusIter;
-      auto trkrId = TrkrDefs::getTrkrId(key);
-      if(trkrId == TrkrDefs::TrkrId::mvtxId)
-        ++nMvtxHits;
-      else if(trkrId == TrkrDefs::TrkrId::inttId)
-        ++nInttHits;
-      else if(trkrId == TrkrDefs::TrkrId::micromegasId)
-        ++nMMHits;
-    }
+  for( const auto& key:get_cluster_keys( track ) )
+  {
+    auto trkrId = TrkrDefs::getTrkrId(key);
+    if(trkrId == TrkrDefs::TrkrId::mvtxId) ++nMvtxHits;
+    else if(trkrId == TrkrDefs::TrkrId::inttId) ++nInttHits;
+    else if(trkrId == TrkrDefs::TrkrId::micromegasId) ++nMMHits;
+  }
 
   if(Verbosity() > 2)
     std::cout << "Number of mvtx/intt/MM hits "
@@ -249,12 +255,17 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) con
   
   Acts::BoundSymMatrix cov;
   for(int i =0; i<6; i++)
-    {
-      for(int j =0; j<6; j++)
-	{
-	  cov(i,j) = track->get_acts_covariance(i, j);
-	}
-    }
+    for(int j =0; j<6; j++)
+  { cov(i,j) = track->get_acts_covariance(i, j); }
+
+  /* convert from track parameters */
+  const auto cov2 = m_transformer.rotateSvtxTrackCovToActs( track );
+  
+  // compare
+  for( int i = 0; i < 6; ++i )
+    for( int j = 0; j < 6; ++j )
+  { std::cout << "PHTpcResiduals::makeTrackParams - (" << i << ", " << j << ") cov: " << cov(i,j) << " cov2: " << cov2(i,j) << std::endl; }
+  
   const Acts::Vector3 position(track->get_x() * Acts::UnitConstants::cm,
     track->get_y() * Acts::UnitConstants::cm,
     track->get_z() * Acts::UnitConstants::cm);
@@ -262,11 +273,10 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) con
   const auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(position);
   const auto actsFourPos = Acts::Vector4(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
 
-  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geoContext,
+  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geometry().geoContext,
 					    actsFourPos, momentum,
 					    trackQ/p, cov).value();
  
-
 }
 
 void PHTpcResiduals::processTrack(SvtxTrack* track)
@@ -282,23 +292,16 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
   auto trackParams = makeTrackParams(track);
 
   int initNBadProps = m_nBadProps;
-  for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
-       clusIter != track->end_cluster_keys();
-       ++clusIter)
-    {
-      auto cluskey = *clusIter;
-
+  for( const auto& cluskey:get_cluster_keys( track ) )
+  {
       ++m_total_clusters;
 
-      // only propagate to tpc surfaces
-      if(TrkrDefs::getTrkrId(cluskey) != TrkrDefs::TrkrId::tpcId)
-      { continue; }
+      // make sure cluster is from TPC
+      const auto detId = TrkrDefs::getTrkrId(cluskey);
+      if(detId != TrkrDefs::tpcId) continue;  
 
-      auto cluster = m_clusterContainer->findCluster(cluskey);
-
-      const auto surf = m_transformer.getSurface( m_clusterContainer->findCluster(cluskey), 
-						  m_surfMaps );
-
+      const auto cluster = m_clusterContainer->findCluster(cluskey);      
+      const auto surf = m_tGeometry->maps().getSurface( cluskey, cluster );
       auto result = propagateTrackState(trackParams, surf);
 
       if(result.ok())
@@ -317,7 +320,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
         }
 
         addTrackState( track, pathLength, trackStateParams );
-        calculateTpcResiduals(trackStateParams, cluster);
+        calculateTpcResiduals(trackStateParams, cluskey, cluster);
 
       } else 	{
 
@@ -329,7 +332,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
   if(m_nBadProps > initNBadProps && Verbosity() > 1)
     std::cout << "Starting track params position/momentum: "
-	      << trackParams.position(m_tGeometry->geoContext).transpose()
+	      << trackParams.position(m_tGeometry->geometry().geoContext).transpose()
 	      << std::endl << trackParams.momentum().transpose() 
 	      << std::endl
 	      << "Track params phi/eta " 
@@ -351,8 +354,8 @@ PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState(
   using Stepper            = Acts::EigenStepper<>;
   using Propagator         = Acts::Propagator<Stepper, Acts::Navigator>;
 
-  Stepper stepper(m_tGeometry->magField);
-  Acts::Navigator::Config cfg{m_tGeometry->tGeometry};
+  Stepper stepper(m_tGeometry->geometry().magField);
+  Acts::Navigator::Config cfg{m_tGeometry->geometry().tGeometry};
   Acts::Navigator navigator(cfg);
   Propagator propagator(stepper, navigator);
 
@@ -362,8 +365,8 @@ PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState(
 
   auto logger = Acts::getDefaultLogger("PHTpcResiduals", logLevel);
       
-  Acts::PropagatorOptions<> options(m_tGeometry->geoContext,
-				    m_tGeometry->magFieldContext,
+  Acts::PropagatorOptions<> options(m_tGeometry->geometry().geoContext,
+				    m_tGeometry->geometry().magFieldContext,
 				    Acts::LoggerWrapper{*logger});
      
   auto result = propagator.propagate(params, *surf, options);
@@ -387,7 +390,7 @@ void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Ac
   SvtxTrackState_v1 state( pathlength );
 
   // save global position
-  const auto global = params.position(m_tGeometry->geoContext);
+  const auto global = params.position(m_tGeometry->geometry().geoContext);
   state.set_x(global.x() / Acts::UnitConstants::cm);
   state.set_y(global.y() / Acts::UnitConstants::cm);
   state.set_z(global.z() / Acts::UnitConstants::cm);
@@ -399,7 +402,7 @@ void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Ac
   state.set_pz(momentum.z());
 
   // covariance
-  const auto globalCov = m_transformer.rotateActsCovToSvtxTrack(params, m_tGeometry->geoContext);
+  const auto globalCov = m_transformer.rotateActsCovToSvtxTrack(params);
   for (int i = 0; i < 6; ++i)
     for (int j = 0; j < 6; ++j)
   { state.set_error(i, j, globalCov(i,j)); }
@@ -409,13 +412,16 @@ void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Ac
 
 void PHTpcResiduals::calculateTpcResiduals(
   const Acts::BoundTrackParameters &params,
+  TrkrDefs::cluskey key,
   TrkrCluster* cluster)
 {
   
-  cluskey = cluster->getClusKey();
+  // store cluster key in ntuple
+  cluskey = key;
+  
   // Get all the relevant information for residual calculation
-  const auto globClusPos = m_transformer.getGlobalPosition(cluster, m_surfMaps, m_tGeometry);
-  clusR = std::sqrt(square(globClusPos(0)) + square(globClusPos(1)));
+  const auto globClusPos = m_tGeometry->getGlobalPosition(key, cluster);
+  clusR = get_r(globClusPos(0),globClusPos(1));
   clusPhi = std::atan2(globClusPos(1), globClusPos(0));
   clusZ = globClusPos(2);
 
@@ -435,7 +441,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   if(clusZErr < 0.05)
     return;
 
-  const auto globalStatePos = params.position(m_tGeometry->geoContext);
+  const auto globalStatePos = params.position(m_tGeometry->geometry().geoContext);
   const auto globalStateMom = params.momentum();
   const auto globalStateCov = *params.covariance();
 
@@ -534,7 +540,7 @@ void PHTpcResiduals::calculateTpcResiduals(
     h_zResidLayer->Fill(clusR , dz);
     h_etaResidLayer->Fill(clusR , clusEta - trackEta);
     
-    const auto layer =  TrkrDefs::getLayer(cluster->getClusKey());
+    const auto layer =  TrkrDefs::getLayer(key);
     h_deltarphi_layer->Fill( layer, drphi );
     h_deltaz_layer->Fill( layer, dz );
 
@@ -619,16 +625,6 @@ int PHTpcResiduals::createNodes(PHCompositeNode */*topNode*/)
 
 int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 {
-
-  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
-						   "ActsSurfaceMaps");
-  if(!m_surfMaps)
-    {
-      std::cout << PHWHERE << "No Acts surface maps, exiting"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
- 
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode,
 								"TRKR_CLUSTER");
   if(!m_clusterContainer)
@@ -638,7 +634,7 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_tGeometry)
     {
       std::cout << "ActsTrackingGeometry not on node tree. Exiting."

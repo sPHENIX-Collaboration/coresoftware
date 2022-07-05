@@ -1,9 +1,10 @@
 #include "PHTrackSeeding.h"
 
-#include "AssocInfoContainerv1.h"
+#include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeed_v1.h>
+#include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeedContainer_v1.h>
 
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <trackbase/TrkrClusterContainer.h>
@@ -95,10 +96,10 @@ int PHTrackSeeding::CreateNodes(PHCompositeNode* topNode)
   }
 
   
-  _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
+  _track_map = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
   if (!_track_map)
     {
-      _track_map = new SvtxTrackMap_v1;
+      _track_map = new TrackSeedContainer_v1;
       PHIODataNode<PHObject>* tracks_node = 
 	new PHIODataNode<PHObject>(_track_map, _track_map_name, "PHObject");
       tb_node->addNode(tracks_node);
@@ -108,13 +109,6 @@ int PHTrackSeeding::CreateNodes(PHCompositeNode* topNode)
     }
   if(Verbosity() > 0)
     _track_map->identify();
-
-  _assoc_container = new AssocInfoContainerv1;
-  PHIODataNode<PHObject>* assoc_node = new PHIODataNode<PHObject>(
-      _assoc_container, "AssocInfoContainer", "PHObject");
-  tb_node->addNode(assoc_node);
-  if (Verbosity() > 0)
-    cout << PHWHERE << "Svtx/AssocInfoContainer node added" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -141,26 +135,19 @@ int PHTrackSeeding::GetNodes(PHCompositeNode* topNode)
     cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTERHITASSOC" << endl;
   }
 
- _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
+ _track_map = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
   if (!_track_map)
   {
     cerr << PHWHERE << " ERROR: Can't find " << _track_map_name << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
-  _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
-  if (!_assoc_container)
-  {
-    cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
+  /*
   _hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!_hitsets)
   {
     cerr << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
+  */
   return Fun4AllReturnCodes::EVENT_OK;
 }

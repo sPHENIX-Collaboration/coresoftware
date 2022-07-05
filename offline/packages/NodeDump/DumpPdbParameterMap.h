@@ -10,7 +10,7 @@ class PHNode;
 class DumpPdbParameterMap : public DumpObject
 {
  public:
-  DumpPdbParameterMap(const std::string &NodeName);
+  explicit DumpPdbParameterMap(const std::string &NodeName);
   ~DumpPdbParameterMap() override {}
 
  protected:

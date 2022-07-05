@@ -22,12 +22,12 @@
 
 #include <phgeom/PHGeomUtility.h>
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey
 
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeed_v1.h>
 
 #include <trackreco/PHTrackSeeding.h>
 
@@ -101,6 +101,9 @@ int PHTpcTracker::Setup(PHCompositeNode* topNode)
   int ret = PHTrackSeeding::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
+  mGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  assert(mGeometry);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -130,11 +133,11 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
   // ----- Seed finding -----
   //TrkrClusterContainer* cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   std::vector<kdfinder::TrackCandidate<double>*> candidates;
-  candidates = mSeedFinder->findSeeds(_cluster_map, _hitsets, mB);
+  candidates = mSeedFinder->findSeeds(_cluster_map, mB);
   LOG_INFO("tracking.PHTpcTracker.process_event") << "SeedFinder produced " << candidates.size() << " track seeds";
 
   // ----- Track Following -----
-  mLookup->init(_cluster_map, _hitsets);
+  mLookup->init(_cluster_map);
   std::vector<PHGenFit2::Track*> gtracks;
   gtracks = mTrackFollower->followTracks(candidates, mField, mLookup, mFitter);
   LOG_INFO("tracking.PHTpcTracker.process_event") << "TrackFollower reconstructed " << gtracks.size() << " tracks";
@@ -143,42 +146,17 @@ int PHTpcTracker::Process(PHCompositeNode* topNode)
   for (int i = 0, ilen = gtracks.size(); i < ilen; i++)
   {
     //  for (auto it = gtracks.begin(); it != gtracks.end(); ++it)
-    std::shared_ptr<SvtxTrack_v2> svtx_track(new SvtxTrack_v2());
+    std::shared_ptr<TrackSeed_v1> svtx_track(new TrackSeed_v1());
     ////// from here:
-
-    svtx_track->Reset();
-    svtx_track->set_id(1);
-    // cout << gtracks[i]->get_vertex_id() << endl;
-    TVectorD state = gtracks[i]->getGenFitTrack()->getStateSeed();
-    TVector3 pos(state(0), state(1), state(2));
-    TVector3 mom(state(3), state(4), state(5));
-    TMatrixDSym cov = gtracks[i]->getGenFitTrack()->getCovSeed();
-    //cout<< "pt: " << pos.Perp() << endl;
-
-    double charge = gtracks[i]->get_charge();
-   
-    svtx_track->set_charge(charge);
-
-    for (int k = 0; k < 6; k++)
-    {
-      for (int j = 0; j < 6; j++)
-      {
-        svtx_track->set_error(k, j, cov[k][j]);
-      }
-    }
-
-    svtx_track->set_px(mom.Px());
-    svtx_track->set_py(mom.Py());
-    svtx_track->set_pz(mom.Pz());
-
-    svtx_track->set_x(pos.X());
-    svtx_track->set_y(pos.Y());
-    svtx_track->set_z(pos.Z());
 
     for (TrkrDefs::cluskey cluster_key : gtracks[i]->get_cluster_keys())
     {
       svtx_track->insert_cluster_key(cluster_key);
     }
+  
+    svtx_track->circleFitByTaubin(_cluster_map, mGeometry, 7, 55);
+    svtx_track->lineFit(_cluster_map, mGeometry, 7, 55);
+
 
     if(Verbosity() > 0) 
       {

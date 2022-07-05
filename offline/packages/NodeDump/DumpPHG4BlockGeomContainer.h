@@ -10,7 +10,7 @@ class PHNode;
 class DumpPHG4BlockGeomContainer : public DumpObject
 {
  public:
-  DumpPHG4BlockGeomContainer(const std::string &NodeName);
+  explicit DumpPHG4BlockGeomContainer(const std::string &NodeName);
   ~DumpPHG4BlockGeomContainer() override {}
 
  protected:

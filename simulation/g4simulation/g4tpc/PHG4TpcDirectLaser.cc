@@ -21,7 +21,7 @@
 #include <phool/phool.h>  // for PHWHERE
 
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <TVector3.h>  // for TVector3, operator*
@@ -223,7 +223,7 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode* topNode)
     if (!node) dstNode->addNode(node = new PHCompositeNode("SVTX"));
 
     // add track node
-    m_track_map = new SvtxTrackMap_v1;
+    m_track_map = new SvtxTrackMap_v2;
     node->addNode(new PHIODataNode<PHObject>(m_track_map, m_track_map_name, "PHObject"));
   }
 
@@ -269,7 +269,7 @@ int PHG4TpcDirectLaser::process_event(PHCompositeNode* topNode)
   else
   {
     // use arbitrary direction
-    AimToThetaPhi(M_PI / 180. * 10., M_PI / 180. * 90);
+    AimToThetaPhi(M_PI / 180. * arbitrary_theta, M_PI / 180. * arbitrary_phi);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

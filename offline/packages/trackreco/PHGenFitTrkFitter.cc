@@ -20,13 +20,11 @@
 #include <g4main/PHG4VtxPoint.h>                    // for PHG4VtxPoint
 #include <g4main/PHG4VtxPointv1.h>
 
-#include <intt/InttDefs.h>
 #include <intt/CylinderGeomIntt.h>
 
 #include <micromegas/MicromegasDefs.h>
 #include <micromegas/CylinderGeomMicromegas.h>
 
-#include <mvtx/MvtxDefs.h>
 #include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <phfield/PHFieldUtility.h>
@@ -47,23 +45,26 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxTrack_v2.h>
+#include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
 #include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
 #include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
 #include <trackbase_historic/SvtxVertexMap.h>       // for SvtxVertexMap
+#include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeedContainer.h>
 
 #include <GenFit/AbsMeasurement.h>                  // for AbsMeasurement
 #include <GenFit/EventDisplay.h>                    // for EventDisplay
@@ -146,6 +147,18 @@ namespace {
 
     return out;
 
+  }
+
+  // get cluster keys from a given track
+  std::vector<TrkrDefs::cluskey> get_cluster_keys( const SvtxTrack* track )
+  {
+    std::vector<TrkrDefs::cluskey> out;
+    for( const auto& seed: { track->get_silicon_seed(), track->get_tpc_seed() } )
+    {
+      if( seed )
+      { std::copy( seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter( out ) ); }
+    }
+    return out;
   }
 
 }
@@ -234,33 +247,79 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
   GetNodes(topNode);
 
-  //! stands for Refit_GenFit_Tracks
+  // clear default track map, fill with seeds
+  m_trackMap->Reset();
+
+  unsigned int trackid = 0;
+  for(auto trackiter = m_seedMap->begin(); trackiter != m_seedMap->end(); ++trackiter)
+  {
+    TrackSeed *track = *trackiter;
+    if(!track) continue;
+    
+    // get silicon seed and check
+    const auto siid = track->get_silicon_seed_index();    
+    if(siid == std::numeric_limits<unsigned int>::max()) continue;
+    const auto siseed = m_siliconSeeds->get(siid);
+    if( !siseed ) continue;
+    
+    // get crossing number and check
+    const auto crossing = siseed->get_crossing();
+    if(crossing == SHRT_MAX) continue;
+
+    // get tpc seed and check
+    const auto tpcid = track->get_tpc_seed_index();
+    const auto tpcseed = m_tpcSeeds->get(tpcid);
+    if( !tpcseed ) continue;
+    
+    // build track
+    auto svtxtrack = std::make_unique<SvtxTrack_v4>();
+    svtxtrack->set_id( trackid++ );
+    svtxtrack->set_silicon_seed( siseed );
+    svtxtrack->set_tpc_seed( tpcseed );
+    svtxtrack->set_crossing( crossing );
+    
+    // track position comes from silicon seed
+    svtxtrack->set_x(siseed->get_x());
+    svtxtrack->set_y(siseed->get_y());
+    svtxtrack->set_z(siseed->get_z()); 
+    
+    // track momentum comes from tpc seed
+    svtxtrack->set_charge( tpcseed->get_qOverR() > 0 ? 1 : -1);
+    svtxtrack->set_px(tpcseed->get_px(m_clustermap,m_tgeometry));
+    svtxtrack->set_py(tpcseed->get_py(m_clustermap,m_tgeometry));
+    svtxtrack->set_pz(tpcseed->get_pz());
+    
+    // insert in map
+    m_trackMap->insert(svtxtrack.get());
+    
+  }
+    
+  // stands for Refit_GenFit_Tracks
   vector<genfit::Track*> rf_gf_tracks;
   vector<std::shared_ptr<PHGenFit::Track> > rf_phgf_tracks;
   
   map<unsigned int, unsigned int> svtxtrack_genfittrack_map;
   
-  if (_trackmap_refit)
-    _trackmap_refit->empty();
-  
-  // _trackmap is SvtxTrackMap from the node tree
-  for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
-       ++iter)
-    {
-      SvtxTrack* svtx_track = iter->second;
-      if(Verbosity() > 10){
-	cout << "   process SVTXTrack " << iter->first << endl;
-	svtx_track->identify();
-      }
-      if (!svtx_track)
-	continue;
-      if (!(svtx_track->get_pt() > _fit_min_pT))
-	continue;
+  // clear refit trackmap
+  if (m_trackMap_refit) m_trackMap_refit->Reset();
 
-      // This is the final track (re)fit. It does not include the collision vertex. If fit_primary_track is set, a refit including the vertex is done below.
-      //! rf_phgf_track stands for Refit_PHGenFit_Track
-      std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
-      if (rf_phgf_track)
+  // m_trackMap is SvtxTrackMap from the node tree
+  for ( auto iter = m_trackMap->begin(); iter != m_trackMap->end(); ++iter)
+  {
+    auto svtx_track = iter->second;
+    if (!svtx_track) continue;
+    
+    if(Verbosity() > 10){
+      cout << "   process SVTXTrack " << iter->first << endl;
+      svtx_track->identify();
+    }
+
+    if (!(svtx_track->get_pt() > _fit_min_pT)) continue;
+
+    // This is the final track (re)fit. It does not include the collision vertex. If fit_primary_track is set, a refit including the vertex is done below.
+    // rf_phgf_track stands for Refit_PHGenFit_Track
+    std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
+    if (rf_phgf_track)
 	{
 	  svtxtrack_genfittrack_map[svtx_track->get_id()] =  rf_phgf_tracks.size();
 	  rf_phgf_tracks.push_back(rf_phgf_track);
@@ -290,7 +349,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
     _fitter->getEventDisplay()->addEvent(copy);
   }
 
-  //! find vertices using final tracks
+  // find vertices using final tracks
   std::vector<genfit::GFRaveVertex*> rave_vertices;
 
   if (rf_gf_tracks.size() >= 2)
@@ -328,7 +387,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
   // MakeSvtxTrack takes a vertex that it gets from the map made in FillSvtxVertex
   // If the refit was succesful, the track on the node tree is replaced with the new one
   // If not, the track is erased from the node tree
-  for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();)
+  for (SvtxTrackMap::Iter iter = m_trackMap->begin(); iter != m_trackMap->end();)
   {
     std::shared_ptr<PHGenFit::Track> rf_phgf_track;
 
@@ -348,11 +407,11 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
       unsigned int ivert = 0;
       ivert = _rave_vertex_gf_track_map[itrack];
 
-      if (_vertexmap_refit->size() > 0)
+      if (m_vertexMap_refit->size() > 0)
   {
-    vertex = _vertexmap_refit->get(ivert);
+    vertex = m_vertexMap_refit->get(ivert);
 
-    if(Verbosity() > 20) cout << PHWHERE << "     gf track " << itrack << " will add to track: _vertexmap_refit vertex " << ivert
+    if(Verbosity() > 20) cout << PHWHERE << "     gf track " << itrack << " will add to track: m_vertexMap_refit vertex " << ivert
             << " with position x,y,z = " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
   }
       std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
@@ -371,7 +430,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
       {
         auto key = iter->first;
         ++iter;
-        _trackmap->erase(key);
+        m_trackMap->erase(key);
         continue;
       } else {
         ++iter;
@@ -385,8 +444,8 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
       //			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
 
       if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode)
-        if (_trackmap_refit)
-      { _trackmap_refit->insert(rf_track.get()); }
+        if (m_trackMap_refit)
+      { m_trackMap_refit->insert(rf_track.get()); }
 
       if (_over_write_svtxtrackmap || _output_mode == DebugMode)
       { iter->second->CopyFrom( rf_track.get() ); }
@@ -397,7 +456,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
       {
         auto key = iter->first;
         ++iter;
-        _trackmap->erase(key);
+        m_trackMap->erase(key);
         continue;
       }
     }
@@ -424,19 +483,19 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
    */
   if (_fit_primary_tracks && rave_vertices.size() > 0)
   {
-    _primary_trackmap->empty();
+    m_primary_trackMap->empty();
 
     //FIXME figure out which vertex to use.
     SvtxVertex* vertex = nullptr;
-    if (_vertexmap_refit->size() > 0)
-      vertex = _vertexmap_refit->get(0);
+    if (m_vertexMap_refit->size() > 0)
+      vertex = m_vertexMap_refit->get(0);
 
     // fix this, have to get vertex ID from track
 
     if (vertex)
     {
-      for (SvtxTrackMap::ConstIter iter = _trackmap->begin();
-           iter != _trackmap->end(); ++iter)
+      for (SvtxTrackMap::ConstIter iter = m_trackMap->begin();
+           iter != m_trackMap->end(); ++iter)
       {
         SvtxTrack* svtx_track = iter->second;
         if (!svtx_track)
@@ -452,8 +511,8 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
         {
           //					//FIXME figure out which vertex to use.
           //					SvtxVertex* vertex = nullptr;
-          //					if (_vertexmap_refit->size() > 0)
-          //						vertex = _vertexmap_refit->get(0);
+          //					if (m_vertexMap_refit->size() > 0)
+          //						vertex = m_vertexMap_refit->get(0);
 
           std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(svtx_track,
                                                               rf_phgf_track, vertex);
@@ -465,7 +524,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 #endif
             continue;
           }
-          _primary_trackmap->insert(rf_track.get());
+          m_primary_trackMap->insert(rf_track.get());
         }
       }
     }
@@ -519,7 +578,7 @@ int PHGenFitTrkFitter::End(PHCompositeNode* /*topNode*/)
  */
 void PHGenFitTrkFitter::fill_eval_tree(PHCompositeNode* /*topNode*/)
 {
-  //! Make sure to reset all the TTree variables before trying to set them.
+  // Make sure to reset all the TTree variables before trying to set them.
   reset_eval_variables();
 
   if( _truth_container )
@@ -537,11 +596,11 @@ void PHGenFitTrkFitter::fill_eval_tree(PHCompositeNode* /*topNode*/)
     { new ((*_tca_vtxmap)[i])(PHG4VtxPointv1)(*dynamic_cast<PHG4VtxPointv1*>(itr->second)); }
   }
 
-  if( _trackmap )
+  if( m_trackMap )
   {
     int i = 0;
-    for ( const auto& pair:*_trackmap )
-    { new ((*_tca_trackmap)[i++])(SvtxTrack_v2)( *pair.second ); }
+    for ( const auto& pair:*m_trackMap )
+    { new ((*_tca_trackmap)[i++])(SvtxTrack_v4)( *pair.second ); }
   }
 
   if (_vertexmap)
@@ -551,25 +610,25 @@ void PHGenFitTrkFitter::fill_eval_tree(PHCompositeNode* /*topNode*/)
     { new ((*_tca_vertexmap)[i++])(SvtxVertex_v1)( *dynamic_cast<SvtxVertex_v1*>(pair.second) ); }
   }
 
-  if (_trackmap_refit)
+  if (m_trackMap_refit)
   {
     int i = 0;
-    for (const auto& pair:*_trackmap_refit )
-    { new ((*_tca_trackmap_refit)[i++])(SvtxTrack_v2)(*pair.second); }
+    for (const auto& pair:*m_trackMap_refit )
+    { new ((*_tca_trackmap_refit)[i++])(SvtxTrack_v4)(*pair.second); }
   }
 
   if (_fit_primary_tracks)
   {
     int i = 0;
-    for ( const auto& pair:*_primary_trackmap )
-    { new ((*_tca_primtrackmap)[i++])(SvtxTrack_v2)(*pair.second); }
+    for ( const auto& pair:*m_primary_trackMap )
+    { new ((*_tca_primtrackmap)[i++])(SvtxTrack_v4)(*pair.second); }
   }
 
-  if (_vertexmap_refit)
+  if (m_vertexMap_refit)
   {
     int i = 0;
-    for( const auto& pair:*_vertexmap_refit )
-    { new ((*_tca_vertexmap_refit)[i++])(SvtxVertex_v1)( *dynamic_cast<SvtxVertex_v1*>(pair.second)); }
+    for( const auto& pair:*m_vertexMap_refit )
+    { new ((*_tcam_vertexMap_refit)[i++])(SvtxVertex_v1)( *dynamic_cast<SvtxVertex_v1*>(pair.second)); }
   }
 
   _eval_tree->Fill();
@@ -588,18 +647,18 @@ void PHGenFitTrkFitter::init_eval_tree()
     _tca_vtxmap = new TClonesArray("PHG4VtxPointv1");
 
   if (!_tca_trackmap)
-    _tca_trackmap = new TClonesArray("SvtxTrack_v2");
+    _tca_trackmap = new TClonesArray("SvtxTrack_v4");
   if (!_tca_vertexmap)
     _tca_vertexmap = new TClonesArray("SvtxVertex_v1");
   if (!_tca_trackmap_refit)
-    _tca_trackmap_refit = new TClonesArray("SvtxTrack_v2");
+    _tca_trackmap_refit = new TClonesArray("SvtxTrack_v4");
   if (_fit_primary_tracks)
     if (!_tca_primtrackmap)
-      _tca_primtrackmap = new TClonesArray("SvtxTrack_v2");
-  if (!_tca_vertexmap_refit)
-    _tca_vertexmap_refit = new TClonesArray("SvtxVertex_v1");
+      _tca_primtrackmap = new TClonesArray("SvtxTrack_v4");
+  if (!_tcam_vertexMap_refit)
+    _tcam_vertexMap_refit = new TClonesArray("SvtxVertex_v1");
 
-  //! create TTree
+  // create TTree
   _eval_tree = new TTree("T", "PHGenFitTrkFitter Evaluation");
 
   _eval_tree->Branch("PrimaryParticle", _tca_particlemap);
@@ -610,7 +669,7 @@ void PHGenFitTrkFitter::init_eval_tree()
   _eval_tree->Branch("SvtxTrackRefit", _tca_trackmap_refit);
   if (_fit_primary_tracks)
     _eval_tree->Branch("PrimSvtxTrack", _tca_primtrackmap);
-  _eval_tree->Branch("SvtxVertexRefit", _tca_vertexmap_refit);
+  _eval_tree->Branch("SvtxVertexRefit", _tcam_vertexMap_refit);
 
   _cluster_eval_tree = new TTree("cluster_eval", "cluster eval tree");
   _cluster_eval_tree->Branch("x", &_cluster_eval_tree_x, "x/F");
@@ -636,7 +695,7 @@ void PHGenFitTrkFitter::reset_eval_variables()
   _tca_trackmap_refit->Clear();
   if (_fit_primary_tracks)
     _tca_primtrackmap->Clear();
-  _tca_vertexmap_refit->Clear();
+  _tcam_vertexMap_refit->Clear();
 
   _cluster_eval_tree_x = WILD_FLOAT;
   _cluster_eval_tree_y = WILD_FLOAT;
@@ -651,7 +710,7 @@ int PHGenFitTrkFitter::CreateNodes(PHCompositeNode* topNode)
   // create nodes...
   PHNodeIterator iter(topNode);
 
-  PHCompositeNode* dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  auto dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     cerr << PHWHERE << "DST Node missing, doing nothing." << endl;
@@ -660,43 +719,48 @@ int PHGenFitTrkFitter::CreateNodes(PHCompositeNode* topNode)
   PHNodeIterator iter_dst(dstNode);
 
   // Create the SVTX node
-  PHCompositeNode* tb_node = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst( "PHCompositeNode", "SVTX"));
-  if (!tb_node)
+  auto svtx_node = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst( "PHCompositeNode", "SVTX"));
+  if (!svtx_node)
   {
-    tb_node = new PHCompositeNode("SVTX");
-    dstNode->addNode(tb_node);
-    if (Verbosity() > 0)
+    svtx_node = new PHCompositeNode("SVTX");
+    dstNode->addNode(svtx_node);
+    if (Verbosity())
       cout << "SVTX node added" << endl;
   }
 
-  if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode)
+  // default track map
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");  
+  if(!m_trackMap)
   {
-    _trackmap_refit = new SvtxTrackMap_v1;
-    PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
-        _trackmap_refit, "SvtxTrackMapRefit", "PHObject");
-    tb_node->addNode(tracks_node);
-    if (Verbosity() > 0)
-      cout << "Svtx/SvtxTrackMapRefit node added" << endl;
+    m_trackMap = new SvtxTrackMap_v2;
+    auto node = new PHIODataNode<PHObject>(m_trackMap,"SvtxTrackMap","PHObject");
+    svtx_node->addNode(node);
   }
 
-  if (_fit_primary_tracks)
+  if (!_over_write_svtxtrackmap || _output_mode == DebugMode)
   {
-    _primary_trackmap = new SvtxTrackMap_v1;
-    PHIODataNode<PHObject>* primary_tracks_node =
-        new PHIODataNode<PHObject>(_primary_trackmap, "PrimaryTrackMap",
-                                   "PHObject");
-    tb_node->addNode(primary_tracks_node);
-    if (Verbosity() > 0)
-      cout << "Svtx/PrimaryTrackMap node added" << endl;
+    m_trackMap_refit = new SvtxTrackMap_v2;
+    auto tracks_node = new PHIODataNode<PHObject>( m_trackMap_refit, "SvtxTrackMapRefit", "PHObject");
+    svtx_node->addNode(tracks_node);
+    if (Verbosity())
+    { std::cout << "Svtx/SvtxTrackMapRefit node added" << std::endl; }
+  }
+
+  if( _fit_primary_tracks )
+  {
+    m_primary_trackMap = new SvtxTrackMap_v2;
+    auto primary_tracks_node = new PHIODataNode<PHObject>(m_primary_trackMap, "PrimaryTrackMap", "PHObject");
+    svtx_node->addNode(primary_tracks_node);
+    if (Verbosity())
+    { std::cout << "Svtx/PrimaryTrackMap node added" << std::endl; }
   }
 
   // always write final vertex results to SvtxVertexMapRefit
-  _vertexmap_refit = new SvtxVertexMap_v1;
-  PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
-                     _vertexmap_refit, "SvtxVertexMapRefit", "PHObject");
-  tb_node->addNode(vertexes_node);
-  if (Verbosity() > 0)
-    cout << "Svtx/SvtxVertexMapRefit node added" << endl;
+  m_vertexMap_refit = new SvtxVertexMap_v1;
+  auto vertexes_node = new PHIODataNode<PHObject>( m_vertexMap_refit, "SvtxVertexMapRefit", "PHObject");
+  svtx_node->addNode(vertexes_node);
+  if (Verbosity())
+  { cout << "Svtx/SvtxVertexMapRefit node added" << endl; }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -728,18 +792,10 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 {
 
   // acts geometry
-  m_tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  m_tgeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
   if(!m_tgeometry)
   {
-    std::cout << PHWHERE << "No acts tracking geometry, can't proceed" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  // acts surfaces
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
-  if(!m_surfmaps)
-  {
-    std::cout << PHWHERE << "No acts surface maps, can't proceed" << std::endl;
+    std::cout << "PHGenFitTrkFitter::GetNodes - No acts tracking geometry, can't proceed" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -748,8 +804,8 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
   _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   // clusters
-  _clustermap = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
-  if(_clustermap)
+  m_clustermap = findNode::getClass<TrkrClusterContainer>(topNode,"CORRECTED_TRKR_CLUSTER");
+  if(m_clustermap)
   {
 
     if( _event < 2 )
@@ -759,22 +815,45 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 
     if( _event < 2 )
     { std::cout << "PHGenFitTrkFitter::GetNodes - CORRECTED_TRKR_CLUSTER node not found, using TRKR_CLUSTER" << std::endl; }
-    _clustermap = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
+    m_clustermap = findNode::getClass<TrkrClusterContainer>(topNode,"TRKR_CLUSTER");
 
   }
 
-  if(!_clustermap)
+  if(!m_clustermap)
   {
-    cout << PHWHERE << " TRKR_CLUSTER node not found on node tree" << endl;
+    cout << PHWHERE << "PHGenFitTrkFitter::GetNodes - TRKR_CLUSTER node not found on node tree" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  // Input Svtx Tracks
-  _trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  if (!_trackmap && _event < 2)
+  // seeds  
+  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode,"SvtxTrackSeedContainer");
+  if(!m_seedMap)
   {
-    cout << PHWHERE << " SvtxTrackMap node not found on node tree"
-         << endl;
+    std::cout << "PHGenFitTrkFitter::GetNodes - No Svtx seed map on node tree. Exiting." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  if(!m_tpcSeeds)
+  {
+    std::cout << "PHGenFitTrkFitter::GetNodes - TpcTrackSeedContainer not on node tree. Bailing"
+      << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  if(!m_siliconSeeds)
+  {
+    std::cout << "PHGenFitTrkFitter::GetNodes - SiliconTrackSeedContainer not on node tree. Bailing"
+      << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  // Svtx Tracks
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  if (!m_trackMap && _event < 2)
+  {
+    cout << "PHGenFitTrkFitter::GetNodes - SvtxTrackMap node not found on node tree" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -790,9 +869,9 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
   // Output Svtx Tracks
   if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode)
   {
-    _trackmap_refit = findNode::getClass<SvtxTrackMap>(topNode,
+    m_trackMap_refit = findNode::getClass<SvtxTrackMap>(topNode,
                                                        "SvtxTrackMapRefit");
-    if (!_trackmap_refit && _event < 2)
+    if (!m_trackMap_refit && _event < 2)
     {
       cout << PHWHERE << " SvtxTrackMapRefit node not found on node tree"
            << endl;
@@ -803,9 +882,9 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
   // Output Primary Svtx Tracks
   if (_fit_primary_tracks)
   {
-    _primary_trackmap = findNode::getClass<SvtxTrackMap>(topNode,
+    m_primary_trackMap = findNode::getClass<SvtxTrackMap>(topNode,
                                                          "PrimaryTrackMap");
-    if (!_primary_trackmap && _event < 2)
+    if (!m_primary_trackMap && _event < 2)
     {
       cout << PHWHERE << " PrimaryTrackMap node not found on node tree"
            << endl;
@@ -814,9 +893,9 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
   }
 
   // Output Svtx Vertices
-  _vertexmap_refit = findNode::getClass<SvtxVertexMap>(topNode,
+  m_vertexMap_refit = findNode::getClass<SvtxVertexMap>(topNode,
                    "SvtxVertexMapRefit");
-  if (!_vertexmap_refit && _event < 2)
+  if (!m_vertexMap_refit && _event < 2)
     {
       cout << PHWHERE << " SvtxVertexMapRefit node not found on node tree"
            << endl;
@@ -827,20 +906,16 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 }
 
 //_________________________________________________________________________________
-Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrCluster* cluster )
+Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster )
 {
-
-  // get cluster key
-  const auto key = cluster->getClusKey();
 
   // find closest iterator in map
   auto it = m_globalPositions.lower_bound( key );
   if (it == m_globalPositions.end()|| (key < it->first ))
   {
     // get global position from Acts transform
-    const auto globalpos = m_transform.getGlobalPosition(cluster,
-      m_surfmaps,
-      m_tgeometry);
+    const auto globalpos = m_tgeometry->getGlobalPosition(
+      key, cluster);
 
     /*
      * todo: should also either apply distortion corrections
@@ -893,7 +968,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   // Create measurements
   std::vector<PHGenFit::Measurement*> measurements;
 
-  //! 1000 is a arbitrary number for now
+  // 1000 is a arbitrary number for now
   const double vertex_chi2_over_dnf_cut = 1000;
   const double vertex_cov_element_cut = 10000;  //arbitrary cut cm*cm
 
@@ -930,13 +1005,13 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   // sort clusters with radius before fitting
   if(Verbosity() > 10)   intrack->identify();
   std::map<float, TrkrDefs::cluskey> m_r_cluster_id;
-  for (auto iter = intrack->begin_cluster_keys();
-       iter != intrack->end_cluster_keys(); ++iter){
-    TrkrDefs::cluskey cluster_key = *iter;
-    TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
+  for( const auto& cluster_key:get_cluster_keys( intrack ) )
+  {
+    
+    const auto cluster = m_clustermap->findCluster(cluster_key);
 
     // get global position
-    const auto globalPosition = getGlobalPosition( cluster );
+    const auto globalPosition = getGlobalPosition( cluster_key, cluster );
     float r = sqrt(square( globalPosition.x() ) + square( globalPosition.y() ));
     m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
     int layer_out = TrkrDefs::getLayer(cluster_key);
@@ -954,7 +1029,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     if( _disabled_layers.find( layer ) != _disabled_layers.end() )
     { continue; }
 
-    TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
+    TrkrCluster* cluster = m_clustermap->findCluster(cluster_key);
     if (!cluster)
     {
       LogError("No cluster Found!");
@@ -970,7 +1045,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
         << endl;
 #endif
 
-    const auto globalPosition_acts = getGlobalPosition( cluster );
+    const auto globalPosition_acts = getGlobalPosition( cluster_key, cluster );
 
     const TVector3 pos(globalPosition_acts.x(), globalPosition_acts.y(), globalPosition_acts.z() );
     seed_mom.SetPhi(pos.Phi());
@@ -1023,9 +1098,9 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
         auto geom = static_cast<CylinderGeomMicromegas*>(geom_container_micromegas->GetLayerGeom(layer));
         const auto tileid = MicromegasDefs::getTileId( cluster_key );
 
-        // in local coordinate, n is along y axis
+        // in local coordinate, n is along z axis
         // convert to global coordinates
-        n = geom->get_world_from_local_vect( tileid, TVector3( 0, 1, 0 ) );
+        n = geom->get_world_from_local_vect( tileid, m_tgeometry, TVector3( 0, 0, 1 ) );
       }
 
       default: break;
@@ -1159,7 +1234,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   //delete gf_state_beam_line_ca;
 
   // create new track
-  auto out_track = std::make_shared<SvtxTrack_v2>(*svtx_track);
+  auto out_track = std::make_shared<SvtxTrack_v4>(*svtx_track);
 
   // clear states and insert empty one for vertex position
   out_track->clear_states();
@@ -1287,7 +1362,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   }
   catch (...)
   {
-    if (Verbosity() > 0)
+    if (Verbosity())
       LogWarning("DCA calculationfailed!");
   }
 
@@ -1382,19 +1457,17 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   {
 
     unsigned int id_min = 0;
-    for (auto iter = svtx_track->begin_cluster_keys(); iter != svtx_track->end_cluster_keys(); ++iter)
+    for( const auto& cluster_key:get_cluster_keys( svtx_track ) )
     {
-
-      auto cluster_key = *iter;
-      auto cluster = _clustermap->findCluster(cluster_key);
-      const int layer = TrkrDefs::getLayer(cluster_key);
+      const auto cluster = m_clustermap->findCluster(cluster_key);
+      const auto layer = TrkrDefs::getLayer(cluster_key);
 
       // skip enabled layers
       if( _disabled_layers.find( layer ) == _disabled_layers.end() )
       { continue; }
 
       // get position
-      const auto globalPosition = getGlobalPosition( cluster );
+      const auto globalPosition = getGlobalPosition( cluster_key, cluster );
       const TVector3 pos(globalPosition.x(), globalPosition.y(), globalPosition.z() );
       const float r_cluster = std::sqrt( square(globalPosition.x()) + square(globalPosition.y()) );
 
@@ -1509,7 +1582,7 @@ bool PHGenFitTrkFitter::FillSvtxVertexMap(
     const std::vector<genfit::Track*>& gf_tracks)
 {
 
-  if(Verbosity() > 0) cout << "Rave vertices size " << rave_vertices.size() << endl;
+  if(Verbosity()) cout << "Rave vertices size " << rave_vertices.size() << endl;
   if(rave_vertices.size() > 0)
     {
       for (unsigned int ivtx = 0; ivtx < rave_vertices.size(); ++ivtx)
@@ -1522,7 +1595,7 @@ bool PHGenFitTrkFitter::FillSvtxVertexMap(
         return false;
       }
 
-    if(Verbosity() > 0) cout << "   ivtx " << ivtx << " has  Z = " << rave_vtx->getPos().Z() << endl;
+    if(Verbosity()) cout << "   ivtx " << ivtx << " has  Z = " << rave_vtx->getPos().Z() << endl;
 
     SvtxVertex_v1 svtx_vtx;
     svtx_vtx.set_chisq(rave_vtx->getChi2());
@@ -1537,7 +1610,7 @@ bool PHGenFitTrkFitter::FillSvtxVertexMap(
 
     for (unsigned int i = 0; i < rave_vtx->getNTracks(); i++)
       {
-        //TODO Assume id's are sync'ed between _trackmap_refit and gf_tracks, need to change?
+        //TODO Assume id's are sync'ed between m_trackMap_refit and gf_tracks, need to change?
         const genfit::Track* rave_track =
     rave_vtx->getParameters(i)->getTrack();
         for (unsigned int j = 0; j < gf_tracks.size(); j++)
@@ -1546,20 +1619,20 @@ bool PHGenFitTrkFitter::FillSvtxVertexMap(
         {
           svtx_vtx.insert_track(j);
           _rave_vertex_gf_track_map.insert(std::pair<unsigned int, unsigned int>(j, ivtx));
-          if(Verbosity() > 0) cout << " rave vertex " << ivtx << " at Z " << svtx_vtx.get_position(2) << " rave track " << i  << " genfit track ID " << j << endl;
+          if(Verbosity()) cout << " rave vertex " << ivtx << " at Z " << svtx_vtx.get_position(2) << " rave track " << i  << " genfit track ID " << j << endl;
         }
     }
       }
 
-    if (_vertexmap_refit)
+    if (m_vertexMap_refit)
       {
-        if(Verbosity() > 0) cout << "insert svtx_vtx into _vertexmap_refit " << endl;
-        _vertexmap_refit->insert_clone( &svtx_vtx );
-        if(Verbosity() > 10) _vertexmap_refit->identify();
+        if(Verbosity()) cout << "insert svtx_vtx into m_vertexMap_refit " << endl;
+        m_vertexMap_refit->insert_clone( &svtx_vtx );
+        if(Verbosity() > 10) m_vertexMap_refit->identify();
       }
     else
       {
-        LogError("!_vertexmap_refit");
+        LogError("!m_vertexMap_refit");
       }
   }  //loop over RAVE vertices
     }
@@ -1573,13 +1646,13 @@ bool PHGenFitTrkFitter::pos_cov_XYZ_to_RZ(
 {
   if (pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3)
   {
-    if (Verbosity() > 0) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
+    if (Verbosity()) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
     return false;
   }
 
   if (cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3)
   {
-    if (Verbosity() > 0) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
+    if (Verbosity()) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
     return false;
   }
 
@@ -1588,7 +1661,7 @@ bool PHGenFitTrkFitter::pos_cov_XYZ_to_RZ(
   TVector3 r = n.Cross(TVector3(0., 0., 1.));
   if (r.Mag() < 0.00001)
   {
-    if (Verbosity() > 0) LogWarning("n is parallel to z");
+    if (Verbosity()) LogWarning("n is parallel to z");
     return false;
   }
 
@@ -1614,7 +1687,7 @@ bool PHGenFitTrkFitter::pos_cov_XYZ_to_RZ(
   }
   catch (...)
   {
-    if (Verbosity() > 0)
+    if (Verbosity())
       LogWarning("Can't get rotation matrix");
 
     return false;

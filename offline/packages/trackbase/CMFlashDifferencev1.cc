@@ -9,24 +9,9 @@
 #include <cmath>
 #include <utility>          // for swap
 
-namespace
-{
-
-}
-
-CMFlashDifferencev1::CMFlashDifferencev1()
-  : m_key(UINT_MAX)
-{
-  m_nclusters = UINT_MAX;
-  for (int i = 0; i < 2; ++i) m_Phi[i] = NAN;
-  for (int i = 0; i < 2; ++i) m_R[i] = NAN;
-  for (int i = 0; i < 2; ++i) m_Z[i] = NAN;
- }
-
 void CMFlashDifferencev1::identify(std::ostream& os) const
 {
   os << "---CMFlashDifferencev1--------------------" << std::endl;
-  os << "key: " << getKey() << std::dec << std::endl;
 
   os << "nclusters: " << m_nclusters << std::dec << std::endl;
 
@@ -47,7 +32,6 @@ void CMFlashDifferencev1::identify(std::ostream& os) const
 
 int CMFlashDifferencev1::isValid() const
 {
-  if (m_key == UINT_MAX) return 0;
   if (m_nclusters == UINT_MAX) return 0;
 
   if(std::isnan(getTruthPhi())) return 0;
@@ -70,7 +54,6 @@ void CMFlashDifferencev1::CopyFrom( const CMFlashDifference& source )
   // parent class method
   CMFlashDifference::CopyFrom( source );
 
-  setKey( source.getKey() );
   setNclusters( source.getNclusters() );
 
   setTruthPhi( source.getTruthPhi() );

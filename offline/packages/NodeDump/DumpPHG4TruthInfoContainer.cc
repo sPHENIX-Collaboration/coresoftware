@@ -12,11 +12,9 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 typedef PHIODataNode<PHG4TruthInfoContainer> MyNode_t;
 
-DumpPHG4TruthInfoContainer::DumpPHG4TruthInfoContainer(const string &NodeName)
+DumpPHG4TruthInfoContainer::DumpPHG4TruthInfoContainer(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -32,15 +30,15 @@ int DumpPHG4TruthInfoContainer::process_Node(PHNode *myNode)
   }
   if (truthcontainer)
   {
-    *fout << "number of G4 tracks: " << truthcontainer->size() << endl;
-    *fout << "min trk index: " << truthcontainer->mintrkindex() << endl;
-    *fout << "max trk index: " << truthcontainer->maxtrkindex() << endl;
-    *fout << "number of G4 Vertices: " << truthcontainer->GetNumVertices() << endl;
-    *fout << "min vtx index: " << truthcontainer->minvtxindex() << endl;
-    *fout << "max vtx index: " << truthcontainer->maxvtxindex() << endl;
-    *fout << "number of Showers: " << truthcontainer->shower_size() << endl;
-    *fout << "min shower index: " << truthcontainer->minshowerindex() << endl;
-    *fout << "max shower index: " << truthcontainer->maxshowerindex() << endl;
+    *fout << "number of G4 tracks: " << truthcontainer->size() << std::endl;
+    *fout << "min trk index: " << truthcontainer->mintrkindex() << std::endl;
+    *fout << "max trk index: " << truthcontainer->maxtrkindex() << std::endl;
+    *fout << "number of G4 Vertices: " << truthcontainer->GetNumVertices() << std::endl;
+    *fout << "min vtx index: " << truthcontainer->minvtxindex() << std::endl;
+    *fout << "max vtx index: " << truthcontainer->maxvtxindex() << std::endl;
+    *fout << "number of Showers: " << truthcontainer->shower_size() << std::endl;
+    *fout << "min shower index: " << truthcontainer->minshowerindex() << std::endl;
+    *fout << "max shower index: " << truthcontainer->maxshowerindex() << std::endl;
 
     PHG4TruthInfoContainer::ConstVtxIterator vtxiter;
     //      std::pair< std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator > vtxbegin_end = truthcontainer->GetVtxRange();
@@ -48,27 +46,39 @@ int DumpPHG4TruthInfoContainer::process_Node(PHNode *myNode)
 
     for (vtxiter = vtxbegin_end.first; vtxiter != vtxbegin_end.second; vtxiter++)
     {
-      *fout << "vtx number: " << vtxiter->first << endl;
+      *fout << "vtx number: " << vtxiter->first << std::endl;
       (*vtxiter->second).identify(*fout);
     }
     PHG4TruthInfoContainer::ConstIterator particle_iter;
     PHG4TruthInfoContainer::ConstRange particlebegin_end = truthcontainer->GetParticleRange();
     for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; particle_iter++)
     {
-      *fout << "particle number: " << particle_iter->first << endl;
+      *fout << "particle number: " << particle_iter->first << std::endl;
       (particle_iter->second)->identify(*fout);
     }
     PHG4TruthInfoContainer::ConstShowerIterator shower_iter;
     PHG4TruthInfoContainer::ConstShowerRange showerbegin_end = truthcontainer->GetShowerRange();
     for (shower_iter = showerbegin_end.first; shower_iter != showerbegin_end.second; ++shower_iter)
     {
-      *fout << "shower " << shower_iter->first << endl;
-      *fout << "get_id(): " << shower_iter->second->get_id() << endl;
-      *fout << "get_parent_particle_id(): " << shower_iter->second->get_parent_particle_id() << endl;
-      *fout << "get_parent_shower_id(): " << shower_iter->second->get_parent_shower_id() << endl;
-      *fout << "get_x(): " << shower_iter->second->get_x() << endl;
-      *fout << "get_y(): " << shower_iter->second->get_y() << endl;
-      *fout << "get_z(): " << shower_iter->second->get_z() << endl;
+      *fout << "shower " << shower_iter->first << std::endl;
+      *fout << "get_id(): " << shower_iter->second->get_id() << std::endl;
+      *fout << "get_parent_particle_id(): " << shower_iter->second->get_parent_particle_id() << std::endl;
+      *fout << "get_parent_shower_id(): " << shower_iter->second->get_parent_shower_id() << std::endl;
+      *fout << "get_x(): " << shower_iter->second->get_x() << std::endl;
+      *fout << "get_y(): " << shower_iter->second->get_y() << std::endl;
+      *fout << "get_z(): " << shower_iter->second->get_z() << std::endl;
+    }
+    const std::pair<std::map<int, int>::const_iterator,
+	      std::map<int, int>::const_iterator> embed_begin_end = truthcontainer->GetEmbeddedVtxIds();
+    for (auto  embed_iter = embed_begin_end.first; embed_iter !=  embed_begin_end.second; ++embed_iter)
+    {
+      *fout <<  "vtx id " << embed_iter->first << ", embed id: " << embed_iter->second << std::endl;
+    }
+    const std::pair<std::map<int, int>::const_iterator,
+	      std::map<int, int>::const_iterator> embed_begin_end1 = truthcontainer->GetEmbeddedTrkIds();
+    for (auto embed_iter = embed_begin_end1.first; embed_iter !=  embed_begin_end1.second; ++embed_iter)
+    {
+      *fout <<  "track id " << embed_iter->first << ", embed id: " << embed_iter->second << std::endl;
     }
   }
   return 0;

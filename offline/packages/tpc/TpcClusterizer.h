@@ -3,8 +3,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <map> 
 #include <vector>
@@ -14,8 +13,7 @@ class PHCompositeNode;
 class TrkrHitSet;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
-class TrkrClusterContainerv3;
-class TrkrClusterHitAssocv3;
+class TrkrClusterHitAssoc;
 class PHG4CylinderCellGeom;
 class PHG4CylinderCellGeomContainer;
 
@@ -36,26 +34,26 @@ class TpcClusterizer : public SubsysReco
 
   void set_sector_fiducial_cut(const double cut){SectorFiducialCut = cut; }
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
+  void set_do_wedge_emulation(bool do_wedge){ do_wedge_emulation = do_wedge;}
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size ;}
   void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeZ = size ;}
-
   void set_drift_velocity_scale(double value) { m_drift_velocity_scale = value; }
+  void set_cluster_version(int value) { cluster_version = value; }
   
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const;
 
   TrkrHitSetContainer *m_hits = nullptr;
-  TrkrClusterContainerv3 *m_clusterlist = nullptr;
-  TrkrClusterHitAssocv3 *m_clusterhitassoc = nullptr;
-  ActsSurfaceMaps *m_surfMaps = nullptr;
-  ActsTrackingGeometry *m_tGeometry = nullptr;
-
+  TrkrClusterContainer *m_clusterlist = nullptr;
+  TrkrClusterHitAssoc *m_clusterhitassoc = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
   bool do_hit_assoc = true;
+  bool do_wedge_emulation = false;
   double pedestal = 74.4;
   double SectorFiducialCut = 0.5;
   unsigned short MaxClusterHalfSizePhi = 3;
   unsigned short MaxClusterHalfSizeZ = 5;
-
+  int cluster_version = 3;
   /// drift velocity scale factor
   /** 
    * represents the ratio vdrift_measured/vdrift_true

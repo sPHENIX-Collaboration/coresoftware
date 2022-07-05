@@ -12,11 +12,12 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
-#include <trackbase_historic/ActsTransformations.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 
-class SvtxTrackMap;
+class TrackSeedContainer;
 class TrkrClusterContainer;
+class TrackSeed;
 
 class PHTpcDeltaZCorrection : public SubsysReco, public PHParameterInterface
 {
@@ -42,19 +43,13 @@ class PHTpcDeltaZCorrection : public SubsysReco, public PHParameterInterface
   void process_tracks();
 
   /// process track
-  void process_track( unsigned int, SvtxTrack* );
-
-  /// Acts surface maps for surface lookup
-  ActsSurfaceMaps *m_surfmaps = nullptr;
+  void process_track( unsigned int, TrackSeed* );
 
   /// Acts tracking geometry for surface lookup
-  ActsTrackingGeometry *m_tGeometry = nullptr;
-
-  /// acts transformation
-  ActsTransformations m_transformer;
+  ActsGeometry *m_tGeometry = nullptr;
 
   /// track map
-  SvtxTrackMap *m_track_map = nullptr;
+  TrackSeedContainer *m_track_map = nullptr;
 
   /// cluster map
   TrkrClusterContainer *m_cluster_map = nullptr;

@@ -15,6 +15,7 @@ class PHCompositeNode;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
+class TrkrClusterCrossingAssoc;
 class TrkrHit;
 
 class InttClusterizer : public SubsysReco
@@ -68,7 +69,8 @@ class InttClusterizer : public SubsysReco
     if (_make_e_weights.find(layer) == _make_e_weights.end()) return false;
     return _make_e_weights.find(layer)->second;
   }
-
+  void set_cluster_version(int value) { m_cluster_version = value; }
+  void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
  private:
   bool ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs, const int layer);
 
@@ -80,13 +82,15 @@ class InttClusterizer : public SubsysReco
   TrkrHitSetContainer *m_hits;
   TrkrClusterContainer *m_clusterlist; 
   TrkrClusterHitAssoc *m_clusterhitassoc;
+  TrkrClusterCrossingAssoc *m_clustercrossingassoc{nullptr};
 
   // settings
   float _fraction_of_mip;
   std::map<int, float> _thresholds_by_layer;  // layer->threshold
   std::map<int, bool> _make_z_clustering;     // layer->z_clustering_option
   std::map<int, bool> _make_e_weights;        // layer->energy_weighting_option
-
+  bool do_hit_assoc = true;
+  int m_cluster_version = 3;
 };
 
 #endif

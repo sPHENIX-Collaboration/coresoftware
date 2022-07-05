@@ -25,8 +25,10 @@
 class TrkrCluster : public PHObject
 {
  public:
+  
   //! dtor
-  ~TrkrCluster() override {}
+  ~TrkrCluster() override = default;
+
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override
   {
@@ -48,12 +50,6 @@ class TrkrCluster : public PHObject
   {}
 
   //
-  // cluster id
-  //
-  virtual TrkrDefs::cluskey getClusKey() const { return TrkrDefs::CLUSKEYMAX; }
-  virtual void setClusKey(TrkrDefs::cluskey) {}
- 
-  //
   // cluster position
   //
   virtual float getLocalX() const { return NAN; }
@@ -66,6 +62,9 @@ class TrkrCluster : public PHObject
   //
   virtual void setAdc(unsigned int) {}
   virtual unsigned int getAdc() const { return UINT_MAX; }
+
+  virtual void setTime(const float) {}
+  virtual float getTime() const { return NAN;}
 
   //
   // convenience interface

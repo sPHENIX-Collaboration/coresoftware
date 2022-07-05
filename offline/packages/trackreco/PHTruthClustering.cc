@@ -5,18 +5,17 @@
 #include <trackbase_historic/SvtxVertex_v1.h>
 
 
-#include <trackbase/TrkrClusterContainerv3.h>
+#include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterv2.h>
 
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
 
 #include <tpc/TpcDefs.h>
-#include <intt/InttDefs.h>
-#include <mvtx/MvtxDefs.h>
 #include <micromegas/MicromegasDefs.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -165,15 +164,12 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
 	     << " gembed " << gembed << endl;
 
       // Get the truth clusters from this particle
-      std::map<unsigned int, TrkrCluster* > truth_clusters =  all_truth_clusters(g4particle);
+      auto truth_clusters =  all_truth_clusters(g4particle);
 
       // output the results
       if(Verbosity() > 0) std::cout << " Truth cluster summary for g4particle " << g4particle->get_track_id() << " by layer: " << std::endl;
-      for ( auto it = truth_clusters.begin(); it != truth_clusters.end(); ++it  )
-	{
-	  unsigned int layer = it->first;
-	  TrkrCluster *gclus = it->second;
-	  
+      for ( const auto& [ckey, gclus]:truth_clusters )
+	{	  
 	  float gx = gclus->getX();
 	  float gy = gclus->getY();
 	  float gz = gclus->getZ();
@@ -187,11 +183,11 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
 	  float gphisize = gclus->getSize(1,1);
 	  float gzsize = gclus->getSize(2,2);
 
-	  TrkrDefs::cluskey ckey = gclus->getClusKey();		  
 	  const unsigned int trkrId = TrkrDefs::getTrkrId(ckey);
 
 	  if(Verbosity() > 0)
 	    {
+        const unsigned int layer = TrkrDefs::getLayer( ckey );
 	      std::cout << PHWHERE << "  ****   truth: layer " << layer << "  truth cluster key " << ckey << " ng4hits " << ng4hits << std::endl;
 	      std::cout << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz 
 			<< " gphi " << gphi << " geta " << geta << " gphisize " << gphisize << " gzsize " << gzsize << endl;
@@ -199,24 +195,23 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
 
 	  if(trkrId == TrkrDefs::tpcId)
 	    {
-	      // add the filled out cluster to the truth cluster node for the TPC (and MM's)
-	      TrkrClusterContainer::ConstIterator iter = m_clusterlist->addCluster(gclus);
-	      if(iter->first != ckey)
-		std::cout << PHWHERE << " -------  Problem:  ckey = " << ckey<< " returned key " << iter->first << std::endl;
+        // add the filled out cluster to the truth cluster node for the TPC (and MM's)
+        m_clusterlist->addClusterSpecifyKey(ckey, gclus);
 	    }
 	}
     }
 
   // For the other subsystems, we just copy over all of the the clusters from the reco map
-  auto hitsetrange = _hitsets->getHitSets();
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _reco_cluster_map->getClusters(hitsetitr->first);
+  for(const auto& hitsetkey:_reco_cluster_map->getHitSetKeys())
+  {
+    auto range = _reco_cluster_map->getClusters(hitsetkey);
+    unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey);
+
+    // skip TPC
+    if(trkrid == TrkrDefs::tpcId)  continue;
+    
     for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
       TrkrDefs::cluskey cluskey = clusIter->first;
-      unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
-      if(trkrid == TrkrDefs::tpcId)  continue;
 
       // we have to make a copy of the cluster, to avoid problems later
       TrkrCluster* cluster = (TrkrCluster*) clusIter->second->CloneMe();
@@ -228,9 +223,7 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
 	  cluster->identify();
 	}
       
-      TrkrClusterContainer::ConstIterator iter = m_clusterlist->addCluster(cluster);    
-      if(iter->first != cluskey)
-	std::cout << PHWHERE << " -------  Problem:  cluskey = " << cluskey<< " returned key " << iter->first << std::endl;
+       m_clusterlist->addClusterSpecifyKey(cluskey, cluster);    
     }
   }
 
@@ -244,21 +237,18 @@ int PHTruthClustering::process_event(PHCompositeNode* topNode)
 }
 
 
-std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4Particle* particle)
+std::map<TrkrDefs::cluskey, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4Particle* particle)
 {
   // get all g4hits for this particle
   std::set<PHG4Hit*> g4hits = all_truth_hits(particle);
 
   if(Verbosity() > 3)
     std::cout << PHWHERE << " Truth clustering for particle " << particle->get_track_id() << " with ng4hits " << g4hits.size() << std::endl;;
-	  
-  float ng4hits = g4hits.size();
-  if(ng4hits == 0) 
-    return std::map<unsigned int, TrkrCluster* >();
 
   // container for storing truth clusters
   //std::map<unsigned int, TrkrCluster*> truth_clusters;
-  std::map<unsigned int, TrkrCluster*> truth_clusters;
+  std::map<TrkrDefs::cluskey, TrkrCluster*> truth_clusters;
+  if(g4hits.empty()) return truth_clusters;
 
   // convert truth hits for this particle to truth clusters in each layer
   // loop over layers
@@ -293,14 +283,16 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
 	{
 	  unsigned int stave = 0;
 	  unsigned int chip = 0;
-	  ckey = MvtxDefs::genClusKey(layer, stave, chip, iclus);
+	  unsigned int strobe = 0;
+	  ckey = MvtxDefs::genClusKey(layer, stave, chip, strobe, iclus);
 	}
       else if(layer >= _nlayers_maps && layer < _nlayers_maps  + _nlayers_intt)  // in INTT
 	{
 	  // dummy ladder and phi ID
 	  unsigned int ladderzid = 0;
 	  unsigned int ladderphiid = 0;
-	  ckey = InttDefs::genClusKey(layer, ladderzid, ladderphiid,iclus); 
+	  int crossing = 0;
+	  ckey = InttDefs::genClusKey(layer, ladderzid, ladderphiid,crossing,iclus); 
 	}
       else if(layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)    // in MICROMEGAS
 	{
@@ -308,7 +300,7 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
 	  MicromegasDefs::SegmentationType segtype;
 	  segtype  =  MicromegasDefs::SegmentationType::SEGMENTATION_PHI;
 	  TrkrDefs::hitsetkey hkey = MicromegasDefs::genHitSetKey(layer, segtype, tile);
-  	  ckey = MicromegasDefs::genClusterKey(hkey, iclus);
+    ckey = TrkrDefs::genClusKey(hkey, iclus);
 	}
       else
 	{
@@ -316,8 +308,7 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
 	  continue;
 	}
       
-      TrkrClusterv2 *clus(new TrkrClusterv2());
-      clus->setClusKey(ckey);
+      auto clus = new TrkrClusterv2;
       iclus++;
 
       // need to convert gedep to ADC value
@@ -429,7 +420,7 @@ std::map<unsigned int, TrkrCluster* > PHTruthClustering::all_truth_clusters(PHG4
 	    }
 	}
 		
-      truth_clusters.insert(make_pair(layer, clus));
+      truth_clusters.insert(std::make_pair(ckey, clus));
 
     }  // end loop over layers for this particle
 
@@ -1104,7 +1095,7 @@ int PHTruthClustering::GetNodes(PHCompositeNode* topNode)
       dstNode->addNode(DetNode);
     }
 
-    trkrclusters = new TrkrClusterContainerv3;
+    trkrclusters = new TrkrClusterContainerv4;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
         new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER_TRUTH", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);

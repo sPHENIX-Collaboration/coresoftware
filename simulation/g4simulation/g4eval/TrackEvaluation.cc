@@ -14,17 +14,15 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-#include <intt/InttDefs.h>
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
-#include <mvtx/MvtxDefs.h>
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <tpc/TpcDefs.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/InttDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -32,6 +30,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/MvtxDefs.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
@@ -118,13 +117,28 @@ namespace
     return swx/sw;
   }
 
+  //! get cluster keys from a given track
+  std::vector<TrkrDefs::cluskey> get_cluster_keys( SvtxTrack* track )
+  {
+    std::vector<TrkrDefs::cluskey> out;
+    for( const auto& seed: { track->get_silicon_seed(), track->get_tpc_seed() } )
+    {
+      if( seed )
+      { std::copy( seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter( out ) ); }
+    }
+    
+    return out;
+  }
+
   //! true if a track is a primary
   inline int is_primary( PHG4Particle* particle )
   { return particle->get_parent_id() == 0; }
 
   //! get mask from track clusters
   int64_t get_mask( SvtxTrack* track )
-  { return std::accumulate( track->begin_cluster_keys(), track->end_cluster_keys(), int64_t(0),
+  { 
+    const auto cluster_keys = get_cluster_keys( track );
+    return std::accumulate( cluster_keys.begin(), cluster_keys.end(), int64_t(0),
       []( int64_t value, const TrkrDefs::cluskey& key ) {
         return TrkrDefs::getLayer(key)<64 ? value|(1LL<<TrkrDefs::getLayer(key)) : value;
       } );
@@ -134,7 +148,8 @@ namespace
   template<int type>
     int get_clusters( SvtxTrack* track )
   {
-    return std::count_if( track->begin_cluster_keys(), track->end_cluster_keys(),
+    const auto cluster_keys = get_cluster_keys( track );
+    return std::count_if( cluster_keys.begin(), cluster_keys.end(),
       []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
   }
 
@@ -222,7 +237,6 @@ namespace
       cluster.z_size = zbins.size();
     }
   }
-
 
   //! hit energy for a given cluster
   void add_cluster_energy( TrackEvaluationContainerv1::ClusterStruct& cluster, TrkrDefs::cluskey clus_key,
@@ -378,12 +392,8 @@ int TrackEvaluation::End(PHCompositeNode* )
 int TrackEvaluation::load_nodes( PHCompositeNode* topNode )
 {
 
-  // acts surface map
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  assert( m_surfmaps );
-
   // acts geometry
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   assert( m_tGeometry );
 
   // get necessary nodes
@@ -433,32 +443,27 @@ void TrackEvaluation::evaluate_event()
 
   // create event struct
   TrackEvaluationContainerv1::EventStruct event;
-  if( m_hitsetcontainer )
+  if(m_cluster_map)
   {
-    // loop over hitsets
-    for(const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
+    for(const auto& hitsetkey:m_cluster_map->getHitSetKeys())
     {
       const auto trkrId = TrkrDefs::getTrkrId(hitsetkey);
       const auto layer = TrkrDefs::getLayer(hitsetkey);
       assert(layer<TrackEvaluationContainerv1::EventStruct::max_layer);
 
-      if(m_cluster_map)
+      // fill cluster related information
+      const auto clusters = m_cluster_map->getClusters(hitsetkey);
+      const int nclusters = std::distance( clusters.first, clusters.second );
+      
+      switch( trkrId )
       {
-
-        // fill cluster related information
-        const auto clusters = m_cluster_map->getClusters(hitsetkey);
-        const int nclusters = std::distance( clusters.first, clusters.second );
-
-        switch( trkrId )
-        {
-          case TrkrDefs::mvtxId: event.nclusters_mvtx += nclusters; break;
-          case TrkrDefs::inttId: event.nclusters_intt += nclusters; break;
-          case TrkrDefs::tpcId: event.nclusters_tpc += nclusters; break;
-          case TrkrDefs::micromegasId: event.nclusters_micromegas += nclusters; break;
-        }
-
-        event.nclusters[layer] += nclusters;
+        case TrkrDefs::mvtxId: event.nclusters_mvtx += nclusters; break;
+        case TrkrDefs::inttId: event.nclusters_intt += nclusters; break;
+        case TrkrDefs::tpcId: event.nclusters_tpc += nclusters; break;
+        case TrkrDefs::micromegasId: event.nclusters_micromegas += nclusters; break;
       }
+      
+      event.nclusters[layer] += nclusters;
     }
   }
 
@@ -476,7 +481,7 @@ void TrackEvaluation::evaluate_clusters()
   m_container->clearClusters();
 
   // first loop over hitsets
-  for( const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
+  for( const auto& hitsetkey:m_cluster_map->getHitSetKeys())
   {
     for( const auto& [key,cluster]:range_adaptor(m_cluster_map->getClusters(hitsetkey)))
     {
@@ -530,10 +535,8 @@ void TrackEvaluation::evaluate_tracks()
     auto state_iter = track->begin_states();
 
     // loop over clusters
-    for( auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter )
+    for( const auto& cluster_key:get_cluster_keys( track ) )
     {
-
-      const auto& cluster_key = *key_iter;
       auto cluster = m_cluster_map->findCluster( cluster_key );
       if( !cluster )
       {
@@ -658,9 +661,8 @@ std::pair<int,int> TrackEvaluation::get_max_contributor( SvtxTrack* track ) cons
   IdMap contributor_map;
 
   // loop over clusters
-  for( auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter )
+  for( const auto& cluster_key:get_cluster_keys( track ) )
   {
-    const auto& cluster_key = *key_iter;
     for( const auto& hit:find_g4hits( cluster_key ) )
     {
       const int trkid = hit->get_trkid();
@@ -688,7 +690,7 @@ int TrackEvaluation::get_embed( PHG4Particle* particle ) const
 TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global coordinates
-  const auto global = m_transformer.getGlobalPosition(cluster,m_surfmaps, m_tGeometry);
+  const auto global = m_tGeometry->getGlobalPosition(key, cluster);
 
   TrackEvaluationContainerv1::ClusterStruct cluster_struct;
   cluster_struct.layer = TrkrDefs::getLayer(key);
@@ -753,25 +755,25 @@ void TrackEvaluation::add_trk_information_micromegas( TrackEvaluationContainerv1
 
   // convert cluster position to local tile coordinates
   const TVector3 cluster_world( cluster.x, cluster.y, cluster.z );
-  const TVector3 cluster_local = layergeom->get_local_from_world_coords( tileid, cluster_world );
-
+  const auto cluster_local = layergeom->get_local_from_world_coords( tileid, m_tGeometry, cluster_world );
+  
   // convert track position to local tile coordinates
   TVector3 track_world( state->get_x(), state->get_y(), state->get_z() );
-  TVector3 track_local = layergeom->get_local_from_world_coords( tileid, track_world );
+  TVector3 track_local = layergeom->get_local_from_world_coords( tileid, m_tGeometry, track_world );
 
   // convert direction to local tile coordinates
   const TVector3 direction_world( state->get_px(), state->get_py(), state->get_pz() );
-  const TVector3 direction_local = layergeom->get_local_from_world_vect( tileid, direction_world );
+  const TVector3 direction_local = layergeom->get_local_from_world_vect( tileid, m_tGeometry, direction_world );
 
-  // extrapolate to same local y (should be zero) as cluster
-  const auto delta_y = cluster_local.y() - track_local.y();
+  // extrapolate to same local z (should be zero) as cluster
+  const auto delta_z = cluster_local.z() - track_local.z();
   track_local += TVector3(
-    delta_y*direction_local.x()/direction_local.y(),
-    delta_y,
-    delta_y*direction_local.z()/direction_local.y() );
+    delta_z*direction_local.x()/direction_local.z(),
+    delta_z*direction_local.y()/direction_local.z(),
+    delta_z );
 
   // convert back to global coordinates
-  track_world = layergeom->get_world_from_local_coords( tileid, track_local );
+  track_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, track_local );
 
   // store state position
   cluster.trk_x = track_world.x();
@@ -916,7 +918,7 @@ void TrackEvaluation::add_truth_information_micromegas( TrackEvaluationContainer
 
   // convert cluster position to local tile coordinates
   const TVector3 cluster_world( cluster.x, cluster.y, cluster.z );
-  const TVector3 cluster_local = layergeom->get_local_from_world_coords( tileid, cluster_world );
+  const auto cluster_local = layergeom->get_local_from_world_coords( tileid, m_tGeometry, cluster_world );
 
   // convert hits to list of interpolation_data_t
   interpolation_data_t::list hits;
@@ -928,11 +930,11 @@ void TrackEvaluation::add_truth_information_micromegas( TrackEvaluationContainer
 
       // convert position to local
       TVector3 g4hit_world(g4hit->get_x(i), g4hit->get_y(i), g4hit->get_z(i));
-      TVector3 g4hit_local = layergeom->get_local_from_world_coords( tileid, g4hit_world );
+      auto g4hit_local = layergeom->get_local_from_world_coords( tileid, m_tGeometry, g4hit_world );
 
       // convert momentum to local
       TVector3 momentum_world(g4hit->get_px(i), g4hit->get_py(i), g4hit->get_pz(i));
-      TVector3 momentum_local = layergeom->get_local_from_world_vect( tileid, momentum_world );
+      TVector3 momentum_local = layergeom->get_local_from_world_vect( tileid, m_tGeometry, momentum_world );
 
       hits.push_back( {.position = g4hit_local, .momentum = momentum_local, .weight = weight } );
     }
@@ -944,7 +946,8 @@ void TrackEvaluation::add_truth_information_micromegas( TrackEvaluationContainer
     average<&interpolation_data_t::y>(hits),
     average<&interpolation_data_t::z>(hits) );
 
-  const TVector3 interpolation_world = layergeom->get_world_from_local_coords( tileid, interpolation_local );
+  // convert back to global
+  const TVector3 interpolation_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, interpolation_local );
 
   // do momentum interpolation
   const TVector3 momentum_local(
@@ -952,7 +955,8 @@ void TrackEvaluation::add_truth_information_micromegas( TrackEvaluationContainer
     average<&interpolation_data_t::py>(hits),
     average<&interpolation_data_t::pz>(hits));
 
-  const TVector3 momentum_world = layergeom->get_world_from_local_vect( tileid, momentum_local );
+  // convert back to global
+  const TVector3 momentum_world = layergeom->get_world_from_local_vect( tileid, m_tGeometry, momentum_local );
 
   cluster.truth_x = interpolation_world.x();
   cluster.truth_y = interpolation_world.y();

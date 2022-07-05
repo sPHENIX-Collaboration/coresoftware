@@ -1,10 +1,9 @@
 #include "PHSiliconTruthTrackSeeding.h"
 
-#include "AssocInfoContainer.h"
+#include <trackbase_historic/TrackSeed.h>     
+#include <trackbase_historic/TrackSeedContainer.h>  
+#include <trackbase_historic/TrackSeed_FastSim_v1.h>
 
-#include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTra...
-#include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, Svtx...
-#include <trackbase_historic/SvtxTrack_FastSim_v2.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <trackbase/TrkrClusterv2.h>
@@ -12,8 +11,6 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
@@ -44,6 +41,11 @@
 #define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
 
 class PHCompositeNode;
+
+namespace
+{
+  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+}
 
 using namespace std;
 
@@ -84,17 +86,17 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
   // add clusters to it 
  // Add the track to SvtxSiliconTrackMap
 
-  typedef std::map<int, std::set<TrkrCluster*> > TrkClustersMap;
+  using TrkrClusterSet = std::set<TrkrDefs::cluskey>;
+  using TrkClustersMap = std::map<int, TrkrClusterSet>;
   TrkClustersMap m_trackID_clusters;
 
   // loop over all clusters
-  auto hitsetrange = _hitsets->getHitSets();
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _cluster_map->getClusters(hitsetitr->first);
-    for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
-    TrkrCluster* cluster = clusIter->second;
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys())
+  {
+    auto range = _cluster_map->getClusters(hitsetkey);
+    for( auto clusIter = range.first; clusIter != range.second; ++clusIter )
+    {
+    // TrkrCluster* cluster = clusIter->second;
     TrkrDefs::cluskey cluskey = clusIter->first;
     unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
 
@@ -106,21 +108,18 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
 
     if (Verbosity() >= 3)
     {
-      cout << PHWHERE <<" process cluster ";
-      cluster->identify();
+      std::cout << PHWHERE <<" process cluster " << cluskey << std::endl;
     }
 
     // get the hits for this cluster
-    std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator> 
-      hitrange = clusterhitassoc->getHits(cluskey);  // returns range of pairs {cluster key, hit key} for this cluskey
+    const auto hitrange = clusterhitassoc->getHits(cluskey);  // returns range of pairs {cluster key, hit key} for this cluskey
     //for (TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
-    for (std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator
-	   clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
-      {
-	TrkrDefs::hitkey hitkey = clushititer->second;
-	// TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
-	TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-
+    for (auto clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+  {
+    TrkrDefs::hitkey hitkey = clushititer->second;
+    // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
+    TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+    
       if (Verbosity() >= 3)
 	{
 	  cout << PHWHERE <<"      --- process hit with hitkey  " << hitkey << "  hitsetkey " << hitsetkey  << std::endl;
@@ -129,7 +128,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
       // get all of the g4hits for this hitkey
       std::multimap<TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;
       hittruthassoc->getG4Hits(hitsetkey, hitkey, temp_map);  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
-      for (std::multimap<TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter = temp_map.begin(); htiter != temp_map.end(); ++htiter)
+      for( auto htiter = temp_map.begin(); htiter != temp_map.end(); ++htiter)
       {
         // extract the g4 hit key here and add the hits to the set
         PHG4HitDefs::keytype g4hitkey = htiter->second.second;
@@ -169,12 +168,9 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
             exit(1);
           }
           const double monentum2 =
-              particle->get_px() * particle->get_px()
-              +
-              particle->get_py() * particle->get_py()
-              +
-              particle->get_pz() * particle->get_pz()
-              ;
+            square( particle->get_px() )
+            + square( particle->get_py() )
+            + square( particle->get_pz() );
 
           if (Verbosity() >= 10)
           {
@@ -200,7 +196,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
         if (it != m_trackID_clusters.end())
         {
 	  // the clusters are stored in a set, no need to check if it is in there already
-          it->second.insert(cluster);
+          it->second.insert(cluskey);
           if (Verbosity() >= 3)
           {
             cout << PHWHERE <<"                  --- appended to g4particle"<<particle_id<<" new cluster "<<cluskey<<endl;;
@@ -209,10 +205,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
         }
         else
         {
-          std::set<TrkrCluster*> clusters;
-          clusters.insert(cluster);
-          m_trackID_clusters.insert(std::pair<int, std::set<TrkrCluster*> >(particle_id, clusters));
-
+          m_trackID_clusters.insert(std::make_pair(particle_id, TrkrClusterSet({cluskey})));
 
           if (Verbosity() >= 3)
           {
@@ -237,24 +230,21 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
   }
 
   // Build tracks, looping over assembled list of truth track ID's and associated reco clusters
-  for (TrkClustersMap::const_iterator trk_clusters_itr = m_trackID_clusters.begin();
-       trk_clusters_itr != m_trackID_clusters.end(); ++trk_clusters_itr)
+  for (const auto& [id, cluster_keyset] : m_trackID_clusters )
   {
-    if (trk_clusters_itr->second.size() <  _min_clusters_per_track)
-      continue;
+    if( cluster_keyset.size() <  _min_clusters_per_track) continue;
 
     // check number of layers also pass the _min_clusters_per_track cut to avoid tight loopers
     set<uint8_t> layers;
-    for (TrkrCluster* cluster : trk_clusters_itr->second)
+    for( const auto& key : cluster_keyset)
     {
-      assert(cluster);
-      const uint8_t layer = TrkrDefs::getLayer(cluster->getClusKey());
+      const uint8_t layer = TrkrDefs::getLayer(key);
       layers.insert(layer);
     }
     if (Verbosity()>2)
     {
-      cout <<__PRETTY_FUNCTION__<<" particle "<<trk_clusters_itr->first<<" -> "
-          <<trk_clusters_itr->second.size()<<" clusters covering "<<layers.size()<<" layers."
+      cout <<__PRETTY_FUNCTION__<<" particle "<<id<<" -> "
+          <<cluster_keyset.size()<<" clusters covering "<<layers.size()<<" layers."
           <<" Layer/clusters cuts are > "<<_min_clusters_per_track
           <<endl;
     }
@@ -262,17 +252,16 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
     if (layers.size() >=  _min_clusters_per_track)
     {
 
-      auto svtx_track = std::make_unique<SvtxTrack_FastSim_v2>();
-      svtx_track->set_id(_track_map->size());
-      svtx_track->set_truth_track_id(trk_clusters_itr->first);
+      auto svtx_track = std::make_unique<TrackSeed_FastSim_v1>();
+      svtx_track->set_truth_track_id(id);
 
       // assign truth particle vertex ID to this silicon track stub
-      PHG4Particle* particle = _g4truth_container->GetParticle(trk_clusters_itr->first);
+      PHG4Particle* particle = _g4truth_container->GetParticle(id);
       int vertexId = particle->get_vtx_id() - 1;  // Geant likes to count from 1 for both vertex and g4particle ID, _vertex_map counts from 0
       if(vertexId < 0)
 	{
 	  // Secondary particle, will have the same gembed value as the corresponding primary vertex
-	  int track_embed = _g4truth_container->isEmbeded(trk_clusters_itr->first);
+	  int track_embed = _g4truth_container->isEmbeded(id);
 	  auto vrange =  _g4truth_container->GetPrimaryVtxRange();
 	  for (auto iter = vrange.first; iter != vrange.second; ++iter)  // all primary vertexes
 	    {
@@ -287,11 +276,9 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
       if(vertexId < 0)  // should not be possible
 	vertexId = 0;
 
-      svtx_track->set_vertex_id(vertexId);
-
       if(Verbosity() > 0)
 	std::cout << " truth track G4 point id " <<  particle->get_vtx_id() << " becomes SvtxMap id " << vertexId 
-		  << " gembed is " <<  _g4truth_container->isEmbeded(trk_clusters_itr->first) << " for truth particle " << trk_clusters_itr->first << std::endl;
+		  << " gembed is " <<  _g4truth_container->isEmbeded(id) << " for truth particle " << id << std::endl;
 
       // set the track position to the vertex position
       const SvtxVertex *svtxVertex = _vertex_map->get(vertexId);
@@ -300,37 +287,44 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
 	  std::cout << PHWHERE << "Failed to get vertex with ID " << vertexId << " from _vertex_map, cannot proceed - skipping this silicon track" << std::endl;
 	  continue;
 	}
-      svtx_track->set_x(svtxVertex->get_x());
-      svtx_track->set_y(svtxVertex->get_y());
-      svtx_track->set_z(svtxVertex->get_z()); 
+      
+      svtx_track->set_X0(svtxVertex->get_x());
+      svtx_track->set_Y0(svtxVertex->get_y());
+      svtx_track->set_Z0(svtxVertex->get_z()); 
 
       if(Verbosity() > 0)
 	{
-	  std::cout << " truth track SvtxMap vertexid is " << vertexId << " for truth particle " << trk_clusters_itr->first << std::endl;
+	  std::cout << " truth track SvtxMap vertexid is " << vertexId << " for truth particle " << id << std::endl;
 	  std::cout << "    track position x,y,z = " << svtxVertex->get_x() << ", " << svtxVertex->get_y() << ", " << svtxVertex->get_z() << std::endl;	  
 	}
 
       // set momentum to the truth value
-      svtx_track->set_px(particle->get_px());
-      svtx_track->set_py(particle->get_py());
-      svtx_track->set_pz(particle->get_pz());
+
+      float px = particle->get_px();
+      float py = particle->get_py();
+      float pz = particle->get_pz();
+      float pt = sqrt(px*px+py*py);
+      int charge = particle->get_pid() < 0 ? -1 : 1;
+      float eta =  atanh(pz/sqrt(px*px+py*py+pz*pz));
+      float theta = 2*atan(exp(-1*eta));
+      svtx_track->set_qOverR(charge * 0.3*1.4/(100*pt));
+      svtx_track->set_slope(1./tan(theta));
 
       if(Verbosity() > 0)
 	std::cout << PHWHERE << "Truth track ID is " << svtx_track->get_truth_track_id() << " particle ID is " << particle->get_pid() <<  std::endl;
     
       // add the silicon clusters
-      for (TrkrCluster* cluster : trk_clusters_itr->second)
+      for(const auto& key:cluster_keyset)
       {
-        svtx_track->insert_cluster_key(cluster->getClusKey());
-        _assoc_container->SetClusterTrackAssoc(cluster->getClusKey(), svtx_track->get_id());
+        svtx_track->insert_cluster_key(key);
       }
 
       _track_map->insert(svtx_track.get());
 
       if (Verbosity() >= 2)
       {
-        cout <<__PRETTY_FUNCTION__<<" particle "<<trk_clusters_itr->first<<" -> "
-            <<trk_clusters_itr->second.size()<<" clusters"
+        cout <<__PRETTY_FUNCTION__<<" particle "<<id<<" -> "
+            <<cluster_keyset.size()<<" clusters"
             <<" _track_map->size = "<< (_track_map->size()) <<": ";
         _track_map->identify();
       }
@@ -340,23 +334,22 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
   if (Verbosity() >= 2)
   {
     cout << "Loop over SvtxSiliconTrackMap entries " << endl;
-    for (SvtxTrackMap::Iter iter = _track_map->begin();
+    int id = 0;
+    for (TrackSeedContainer::Iter iter = _track_map->begin();
          iter != _track_map->end(); ++iter)
     {
-      SvtxTrack* svtx_track = iter->second;
+      auto svtx_track = *iter;
 
-      //svtx_track->identify();
-      //continue;
-
-      cout << "Track ID: " << svtx_track->get_id() << ", Track pT: "
+      cout << "Track ID: " << id << ", Track pT: "
            << svtx_track->get_pt() << ", Truth Track/Particle ID: "
-           << svtx_track->get_truth_track_id() 
-	   << " vertex ID: " << svtx_track->get_vertex_id() << endl;
-      cout << "   (px, py, pz) = " << "("<< svtx_track->get_px() << ", " << svtx_track->get_py() << ", " << svtx_track->get_pz() << ")" << endl;
+           << svtx_track->get_truth_track_id() << endl;
+      cout << "   (pt, pz) = " << "("<< svtx_track->get_pt() << ", " << svtx_track->get_pz() << ")" << endl;
       cout << "   (x, y, z) = " << "("<< svtx_track->get_x() << ", " << svtx_track->get_y() << ", " << svtx_track->get_z() << ")" << endl;
 
+      id++;
+
       //Print associated clusters;
-      for (SvtxTrack::ConstClusterKeyIter iter =
+      for (TrackSeed::ConstClusterKeyIter iter =
                svtx_track->begin_cluster_keys();
            iter != svtx_track->end_cluster_keys(); ++iter)
       {
@@ -365,7 +358,7 @@ int PHSiliconTruthTrackSeeding::Process(PHCompositeNode* /*topNode*/)
         float radius = sqrt(
             cluster->getX() * cluster->getX() + cluster->getY() * cluster->getY());
         cout << "       cluster ID: "
-             << cluster->getClusKey() << ", cluster radius: " << radius
+             << cluster_key << ", cluster radius: " << radius
              << endl;
       }
     }

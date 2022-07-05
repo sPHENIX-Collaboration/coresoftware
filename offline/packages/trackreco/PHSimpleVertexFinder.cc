@@ -5,7 +5,6 @@
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TpcSeedTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -283,7 +282,11 @@ void PHSimpleVertexFinder::checkDCAs()
       if(_require_mvtx)
 	{
 	  unsigned int nmvtx = 0;
-	  for(auto clusit = tr1->begin_cluster_keys(); clusit != tr1->end_cluster_keys(); ++clusit)
+	  TrackSeed *siliconseed = tr1->get_silicon_seed();
+	  if(!siliconseed)
+	    { continue; }
+
+	  for(auto clusit = siliconseed->begin_cluster_keys(); clusit != siliconseed->end_cluster_keys(); ++clusit)
 	    {
 	      if(TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId )
 		{
@@ -304,7 +307,11 @@ void PHSimpleVertexFinder::checkDCAs()
 	  if(_require_mvtx)
 	    {
 	      unsigned int nmvtx = 0;
-	      for(auto clusit = tr2->begin_cluster_keys(); clusit != tr2->end_cluster_keys(); ++clusit)
+	      TrackSeed *siliconseed = tr2->get_silicon_seed();
+	      if(!siliconseed)
+		{ continue; }
+	     
+	      for(auto clusit = siliconseed->begin_cluster_keys(); clusit != siliconseed->end_cluster_keys(); ++clusit)
 		{
 		  if(TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId)
 		    {
@@ -347,7 +354,7 @@ void PHSimpleVertexFinder::findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2)
   double dca = dcaTwoLines(a1, b1, a2,  b2, PCA1, PCA2);
 
   // check dca cut is satisfied, and that PCA is close to beam line
-if( fabs(dca) < _dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut) )
+  if( fabs(dca) < _dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut) )
     {
       if(Verbosity() > 3)
 	{
@@ -556,7 +563,7 @@ void PHSimpleVertexFinder::removeOutlierTrackPairs()
       pca_median_x = getMedian(vx);
       pca_median_y = getMedian(vy);
       pca_median_z = getMedian(vz);
-      if(Verbosity() > 1) std::cout << "Median values: x " << pca_median_x << " y " << pca_median_y << std::endl;
+      if(Verbosity() > 1) std::cout << "Median values: x " << pca_median_x << " y " << pca_median_y << " z : " << pca_median_z << std::endl;
       
       // Make the average vertex position with outlier rejection wrt the median
       for (auto cit=ret.first; cit!=ret.second; ++cit)

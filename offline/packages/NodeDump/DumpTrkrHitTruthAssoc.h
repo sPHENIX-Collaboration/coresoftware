@@ -10,7 +10,7 @@ class PHNode;
 class DumpTrkrHitTruthAssoc : public DumpObject
 {
  public:
-  DumpTrkrHitTruthAssoc(const std::string &NodeName);
+  explicit DumpTrkrHitTruthAssoc(const std::string &NodeName);
   ~DumpTrkrHitTruthAssoc() override {}
 
  protected:

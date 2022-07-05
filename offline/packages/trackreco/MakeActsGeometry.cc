@@ -8,12 +8,12 @@
 #include "MakeActsGeometry.h"
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
 
 #include <intt/CylinderGeomIntt.h>
-#include <intt/InttDefs.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
-#include <mvtx/MvtxDefs.h>
 
 #include <micromegas/CylinderGeomMicromegas.h>
 
@@ -106,41 +106,45 @@ int MakeActsGeometry::Init(PHCompositeNode */*topNode*/)
 
 int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
-
   if(buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
   /// Set the actsGeometry struct to be put on the node tree
-  m_actsGeometry->tGeometry = m_tGeometry;
-  m_actsGeometry->magField = m_magneticField;
-  m_actsGeometry->calibContext = m_calibContext;
-  m_actsGeometry->magFieldContext = m_magFieldContext;
-  m_actsGeometry->geoContext = m_geoCtxt;
-  m_actsGeometry->tpcSurfStepPhi = m_surfStepPhi;
-  m_actsGeometry->tpcSurfStepZ = m_surfStepZ;
+  ActsTrackingGeometry trackingGeometry;
+  trackingGeometry.tGeometry = m_tGeometry;
+  trackingGeometry.magField = m_magneticField;
+  trackingGeometry.calibContext = m_calibContext;
+  trackingGeometry.magFieldContext = m_magFieldContext;
+  trackingGeometry.geoContext = m_geoCtxt;
+  trackingGeometry.tpcSurfStepPhi = m_surfStepPhi;
+  trackingGeometry.tpcSurfStepZ = m_surfStepZ;
 
   // fill ActsSurfaceMap content
-  m_surfMaps->siliconSurfaceMap = m_clusterSurfaceMapSilicon;
-  m_surfMaps->tpcSurfaceMap = m_clusterSurfaceMapTpcEdit;
-  m_surfMaps->mmSurfaceMap = m_clusterSurfaceMapMmEdit;
-  m_surfMaps->tGeoNodeMap = m_clusterNodeMap;
+  ActsSurfaceMaps surfMaps;
+  surfMaps.m_siliconSurfaceMap = m_clusterSurfaceMapSilicon;
+  surfMaps.m_tpcSurfaceMap = m_clusterSurfaceMapTpcEdit;
+  surfMaps.m_mmSurfaceMap = m_clusterSurfaceMapMmEdit ;
+  surfMaps.m_tGeoNodeMap = m_clusterNodeMap;
 
   // fill TPC volume ids
   for( const auto& [hitsetid, surfaceVector]:m_clusterSurfaceMapTpcEdit )
     for( const auto& surface:surfaceVector )
-  { m_surfMaps->tpcVolumeIds.insert( surface->geometryId().volume() ); }
+      { surfMaps.m_tpcVolumeIds.insert( surface->geometryId().volume() ); }
   
   // fill Micromegas volume ids
   for( const auto& [hitsetid, surface]:m_clusterSurfaceMapMmEdit )
-  { m_surfMaps->micromegasVolumeIds.insert( surface->geometryId().volume() ); } 
+    { surfMaps.m_micromegasVolumeIds.insert( surface->geometryId().volume() ); } 
+  
+  m_actsGeometry->setGeometry(trackingGeometry);
+  m_actsGeometry->setSurfMaps(surfMaps);
 
   // print
   if( Verbosity() )
   {
-    for( const auto& id:m_surfMaps->tpcVolumeIds )
+    for( const auto& id:surfMaps.m_tpcVolumeIds )
     { std::cout << "MakeActsGeometry::InitRun - TPC volume id: " << id << std::endl; }
   
-    for( const auto& id:m_surfMaps->micromegasVolumeIds )
+    for( const auto& id:surfMaps.m_micromegasVolumeIds )
     { std::cout << "MakeActsGeometry::InitRun - Micromegas volume id: " << id << std::endl; }
   }
   
@@ -410,8 +414,8 @@ void MakeActsGeometry::buildActsSurfaces()
   // define int argc and char* argv to provide options to processGeometry
   const int argc = 20;
   char* arg[argc];
- 
-  if(Verbosity() > 0)
+  m_magFieldRescale = 1;
+  // if(Verbosity() > 0)
     std::cout << PHWHERE << "Magnetic field " << m_magField 
 	      << " with rescale " << m_magFieldRescale << std::endl;
 
@@ -439,7 +443,9 @@ void MakeActsGeometry::buildActsSurfaces()
 	}
       
       m_magField = std::string(getenv("CALIBRATIONROOT")) +
-	std::string("/Field/Map/sphenix3dbigmapxyz.root");
+      	std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
+      //m_magField = std::string("/phenix/u/bogui/data/Field/sphenix3dtrackingmapxyz.root");
+      //m_magField = std::string("/phenix/u/bogui/data/Field/sphenix3dbigmapxyz.root");
       
       argstr[7] = "--bf-map-file";
       argstr[8] = m_magField;
@@ -452,7 +458,7 @@ void MakeActsGeometry::buildActsSurfaces()
       
     }
 
-  if(Verbosity() > 0)
+  //  if(Verbosity() > 0)
     std::cout << "Mag field now " << m_magField << " with rescale "
 	      << m_magFieldRescale << std::endl;
 
@@ -536,8 +542,10 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[],
 
   m_tGeometry = geometry.first;
   m_contextDecorators = geometry.second;
-
-  m_magneticField = ActsExamples::Options::readMagneticField(vm);
+  if(m_useField)
+    { m_magneticField = ActsExamples::Options::readMagneticField(vm); }
+  else
+    { m_magneticField = nullptr; }
 
   size_t ievt = 0;
   size_t ialg = 0;
@@ -721,7 +729,7 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
       }
 
       // get matching tile
-      int tileid = layergeom->find_tile_planar( world_center );
+      int tileid = layergeom->find_tile_cylindrical( world_center );
       if( tileid < 0 ) 
       {
         std::cout << "MakeActsGeometry::makeMmMapPairs - could not file Micromegas tile matching ACTS surface" << std::endl;
@@ -987,7 +995,8 @@ TrkrDefs::hitsetkey MakeActsGeometry::getMvtxHitSetKeyFromCoords(unsigned int la
   double check_pos[3] = {0, 0, 0};
   layergeom->find_sensor_center(stave, 0, 0, chip, check_pos);
 
-  TrkrDefs::hitsetkey mvtx_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip);
+  unsigned int strobe = 0;
+  TrkrDefs::hitsetkey mvtx_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, strobe);
 
   return mvtx_hitsetkey;
 }
@@ -1013,7 +1022,8 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
   double check_pos[3] = {0, 0, 0};
   layergeom->find_segment_center(segment_z_bin, segment_phi_bin, check_pos);
 
-  TrkrDefs::hitsetkey intt_hitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin);
+  int crossing = 0;
+  TrkrDefs::hitsetkey intt_hitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin, crossing);
 
   return intt_hitsetkey;
 }
@@ -1167,8 +1177,8 @@ void MakeActsGeometry::getInttKeyFromNode(TGeoNode *gnode)
   }
 
   // unique key identifying this sensor
-  TrkrDefs::hitsetkey node_key = InttDefs::genHitSetKey(layer, ladder_z, 
-							ladder_phi);
+  int crossing = 0;
+  TrkrDefs::hitsetkey node_key = InttDefs::genHitSetKey(layer, ladder_z, ladder_phi, crossing);
 
   std::pair<TrkrDefs::hitsetkey, TGeoNode *> tmp = std::make_pair(
 					         node_key, sensor_node);
@@ -1247,8 +1257,9 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
 		  << module_node->GetDaughter(i)->GetName() << std::endl;
 
       // Make key for this chip
+      unsigned int strobe = 0;
       TrkrDefs::hitsetkey node_key = MvtxDefs::genHitSetKey(layer, 
-							    stave, i);
+							    stave, i, strobe);
 
       // add sensor node to map
       TGeoNode *sensor_node = module_node->GetDaughter(i)->GetDaughter(0);
@@ -1395,24 +1406,12 @@ int MakeActsGeometry::createNodes(PHCompositeNode *topNode)
       dstNode->addNode(svtxNode);
     }
 
-  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
-						   "ActsSurfaceMaps");
-  if(!m_surfMaps)
-    {
-      m_surfMaps = new ActsSurfaceMaps();
-      PHDataNode<ActsSurfaceMaps> *node
-	= new PHDataNode<ActsSurfaceMaps>(m_surfMaps, "ActsSurfaceMaps");
-      svtxNode->addNode(node);
-
-    }
-
-  m_actsGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,
-							    "ActsTrackingGeometry");
+  m_actsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_actsGeometry)
     {
-      m_actsGeometry = new ActsTrackingGeometry();
-      PHDataNode<ActsTrackingGeometry> *tGeoNode 
-	= new PHDataNode<ActsTrackingGeometry>(m_actsGeometry, "ActsTrackingGeometry");
+      m_actsGeometry = new ActsGeometry();
+      PHDataNode<ActsGeometry> *tGeoNode 
+	= new PHDataNode<ActsGeometry>(m_actsGeometry, "ActsGeometry");
       svtxNode->addNode(tGeoNode);
     }
   

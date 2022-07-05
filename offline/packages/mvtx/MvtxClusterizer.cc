@@ -5,15 +5,16 @@
  * @brief Implementation of MvtxClusterizer
  */
 #include "MvtxClusterizer.h"
-#include "MvtxDefs.h"
 #include "CylinderGeom_Mvtx.h"
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
-#include <trackbase/TrkrClusterContainerv3.h>
+#include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv3.h>
+#include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrDefs.h>                     // for hitkey, getLayer
+#include <trackbase/MvtxDefs.h>                   
 #include <trackbase/TrkrHitv2.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
@@ -132,7 +133,7 @@ int MvtxClusterizer::InitRun(PHCompositeNode *topNode)
 	dstNode->addNode(DetNode);
       }
 
-    trkrclusters = new TrkrClusterContainerv3;
+    trkrclusters = new TrkrClusterContainerv4;
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
       new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
     DetNode->addNode(TrkrClusterContainerNode);
@@ -283,10 +284,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	if (Verbosity() > 2) cout << "Filling cluster id " << clusid << " of " << std::distance(cluster_ids.begin(),clusiter )<< endl;
 
 	// make the cluster directly in the node tree
-	auto ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);
-
-	auto clus = std::make_unique<TrkrClusterv3>();
-	clus->setClusKey(ckey);
+	auto ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 
 	// determine the size of the cluster in phi and z
 	set<int> phibins;
@@ -336,10 +334,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	locclusx = locxsum / nhits;
 	locclusz = loczsum / nhits;
 
-	clus->setAdc(nhits);
-
 	const double pitch = layergeom->get_pixel_x();
+	std::cout << " pitch: " <<  pitch << std::endl;
 	const double length = layergeom->get_pixel_z();
+	std::cout << " length: " << length << std::endl;
 	const double phisize = phibins.size() * pitch;
 	const double zsize = zbins.size() * length;
 
@@ -380,23 +378,42 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  cout << " MvtxClusterizer: layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize
 	       << " zbins " << zbins.size() << " length " << length << " zsize " << zsize << endl;
 	
-	clus->setLocalX(locclusx);
-	clus->setLocalY(locclusz);
-	/// Take the rphi and z uncertainty of the cluster
-	clus->setActsLocalError(0,0,square(phierror));
-	clus->setActsLocalError(0,1,0.);
-	clus->setActsLocalError(1,0,0.);
-	clus->setActsLocalError(1,1,square(zerror));
-	
-	/// All silicon surfaces have a 1-1 map to hitsetkey. 
-	/// So set subsurface key to 0
-	clus->setSubSurfKey(0);
+	if(m_cluster_version==3){
+	  auto clus = std::make_unique<TrkrClusterv3>();
+	  clus->setAdc(nhits);
+	  clus->setLocalX(locclusx);
+	  clus->setLocalY(locclusz);
+	  // Take the rphi and z uncertainty of the cluster
+	  clus->setActsLocalError(0,0,square(phierror));
+	  clus->setActsLocalError(0,1,0.);
+	  clus->setActsLocalError(1,0,0.);
+	  clus->setActsLocalError(1,1,square(zerror));
+	  
+	  // All silicon surfaces have a 1-1 map to hitsetkey. 
+	  // So set subsurface key to 0
+	  clus->setSubSurfKey(0);
+	  
+	  if (Verbosity() > 2)
+	    clus->identify();
+	  
+	  m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+	}else if(m_cluster_version==4){
+	  auto clus = std::make_unique<TrkrClusterv4>();
+	  clus->setAdc(nhits);
+	  clus->setLocalX(locclusx);
+	  clus->setLocalY(locclusz);
 
-	if (Verbosity() > 2)
-	  clus->identify();
-
-	m_clusterlist->addCluster(clus.release());
-
+	  clus->setPhiSize(phibins.size());
+	  clus->setZSize(zbins.size());
+	  // All silicon surfaces have a 1-1 map to hitsetkey. 
+	  // So set subsurface key to 0
+	  clus->setSubSurfKey(0);
+	  
+	  if (Verbosity() > 2)
+	    clus->identify();
+	  
+	  m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
+	}
       }  // clusitr
   }    // hitsetitr
 
@@ -411,7 +428,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 void MvtxClusterizer::PrintClusters(PHCompositeNode *topNode)
 {
-  if (Verbosity() >= 1)
+  if (Verbosity() >= 3)
   {
     TrkrClusterContainer *clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (!clusterlist) return;

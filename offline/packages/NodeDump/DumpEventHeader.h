@@ -10,7 +10,7 @@ class PHNode;
 class DumpEventHeader : public DumpObject
 {
  public:
-  DumpEventHeader(const std::string &NodeName);
+  explicit DumpEventHeader(const std::string &NodeName);
   ~DumpEventHeader() override {}
 
  protected:

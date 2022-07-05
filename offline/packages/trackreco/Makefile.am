@@ -50,11 +50,9 @@ pkginclude_HEADERS = \
   PHGenFitTrkFitter.h \
   PHGenFitTrkProp.h \
   PHGhostRejection.h \
-  PHHoughSeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
   PHMicromegasTpcTrackMatching.h \
-  PHRTreeSeeding.h \
   PHSiliconTpcTrackMatching.h \
   PHSimpleVertexFinder.h \
   PHTrackCleaner.h \
@@ -65,7 +63,6 @@ pkginclude_HEADERS = \
   PHSimpleKFProp.h \
   PHTpcClusterMover.h \
   PHTpcDeltaZCorrection.h \
-  PHTpcTrackSeedCircleFit.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
@@ -152,12 +149,10 @@ libtrack_reco_la_SOURCES = \
   PHGenFitTrkFitter.cc \
   PHGenFitTrkProp.cc \
   PHGhostRejection.cc \
-  PHHoughSeeding.cc \
   PHInitVertexing.cc \
   PHInitZVertexing.cc \
   PHMicromegasTpcTrackMatching.cc \
   PHRaveVertexing.cc \
-  PHRTreeSeeding.cc \
   PHSiliconSeedMerger.cc \
   PHSiliconTpcTrackMatching.cc \
   PHSiliconTruthTrackSeeding.cc \
@@ -165,7 +160,6 @@ libtrack_reco_la_SOURCES = \
   PHSimpleVertexFinder.cc \
   PHTpcClusterMover.cc \
   PHTpcDeltaZCorrection.cc \
-  PHTpcTrackSeedCircleFit.cc \
   PHTrackCleaner.cc \
   PHTrackSeeding.cc \
   PHTrackSelector.cc \

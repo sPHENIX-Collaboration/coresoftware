@@ -7,16 +7,13 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
-#include <mvtx/MvtxDefs.h>
-
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for getTrkrId, getHit...
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/MvtxDefs.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 
@@ -163,22 +160,7 @@ std::string QAG4SimulationMvtx::get_histo_prefix() const
 //________________________________________________________________________
 int QAG4SimulationMvtx::load_nodes(PHCompositeNode* topNode)
 {
-  m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (!m_hitsets)
-  {
-    std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  if (!m_surfmaps)
-  {
-    std::cout << PHWHERE << "Error: can't find Acts surface maps"
-              << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
     std::cout << PHWHERE << "No acts tracking geometry, exiting."
@@ -261,22 +243,16 @@ void QAG4SimulationMvtx::evaluate_clusters()
     histograms.insert(std::make_pair(layer, h));
   }
 
-  ActsTransformations transformer;
-  auto hitsetrange = m_hitsets->getHitSets(TrkrDefs::TrkrId::mvtxId);
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr)
+  for(const auto& hitsetkey:m_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::mvtxId))
   {
-    auto range = m_cluster_map->getClusters(hitsetitr->first);
+    auto range = m_cluster_map->getClusters(hitsetkey);
     for (auto clusterIter = range.first; clusterIter != range.second; ++clusterIter)
     {
       // get cluster key, detector id and check
       const auto& key = clusterIter->first;
       // get cluster
       const auto& cluster = clusterIter->second;
-
-      const auto global = transformer.getGlobalPosition(cluster, m_surfmaps,
-                                                        m_tGeometry);
+      const auto global = m_tGeometry->getGlobalPosition(key, cluster);
 
       // get relevant cluster information
       const auto r_cluster = QAG4Util::get_r(global(0), global(1));

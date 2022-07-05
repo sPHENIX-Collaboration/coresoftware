@@ -42,6 +42,7 @@ int Dumper::End(PHCompositeNode *topNode)
   std::vector<std::string> DumpNodeList;
   DumpNodeList.push_back("RUN");
   DumpNodeList.push_back("PAR");
+  nodedump->PrintEvtSeq(0);
   for (std::vector<std::string>::const_iterator iter = DumpNodeList.begin();
        iter != DumpNodeList.end(); ++iter)
   {

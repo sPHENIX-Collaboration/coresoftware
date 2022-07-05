@@ -37,15 +37,9 @@ class CMFlashDifferenceContainerv1 : public CMFlashDifferenceContainer
 
   void identify(std::ostream &os = std::cout) const override;
 
-  ConstIterator addDifference(CMFlashDifference *newClus) override;
-
-  ConstIterator addDifferenceSpecifyKey(const unsigned int, CMFlashDifference *newClus) override;
+  void addDifferenceSpecifyKey(const unsigned int, CMFlashDifference *newClus) override;
 
   void removeDifference(unsigned int) override;
-
-  void removeDifference(CMFlashDifference*) override;
-
-  Iterator findOrAddDifference(unsigned int  key) override;
   
   ConstRange getDifferences() const override;
 

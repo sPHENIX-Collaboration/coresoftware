@@ -6,8 +6,6 @@
 #include <iostream>
 #include <limits>
 
-using namespace std;
-
 int InttDeadMap::s_wildCardID = -1;
 
 const InttDeadMap::Map&
@@ -40,25 +38,34 @@ bool InttDeadMap::isDeadChannelIntt(const int layer,
   if (isDeadChannel(getInttKey(layer,
                                ladder_phi, ladder_z,
                                strip_z, strip_phi)))
+  {
     return true;
+  }
   else if (isDeadChannel(getInttKey(layer,
                                     ladder_phi, ladder_z,
                                     strip_z, s_wildCardID)))
+  {
     return true;
+  }
   else if (isDeadChannel(getInttKey(layer,
                                     ladder_phi, ladder_z,
                                     s_wildCardID, s_wildCardID)))
+  {
     return true;
+  }
   else if (isDeadChannel(getInttKey(layer,
                                     ladder_phi, s_wildCardID,
                                     s_wildCardID, s_wildCardID)))
+  {
     return true;
+  }
   else if (isDeadChannel(getInttKey(layer,
                                     s_wildCardID, s_wildCardID,
                                     s_wildCardID, s_wildCardID)))
+  {
     return true;
-  else
-    return false;
+  }
+  return false;
 }
 
 int InttDeadMap::isValid() const
@@ -99,7 +106,7 @@ PHG4CellDefs::keytype InttDeadMap::getInttKey(int layer,
   if (wildcard) strip_phi = (1 << strip_phi_bit) - 1;
 
   //  bit sum check
-  assert(layer_bit + ladder_phi_bit + ladder_z_bit + strip_z_bit + strip_phi_bit == numeric_limits<PHG4CellDefs::keytype>::digits);
+  assert(layer_bit + ladder_phi_bit + ladder_z_bit + strip_z_bit + strip_phi_bit == std::numeric_limits<PHG4CellDefs::keytype>::digits);
 
   //max range check
   assert(layer < (1 << layer_bit));

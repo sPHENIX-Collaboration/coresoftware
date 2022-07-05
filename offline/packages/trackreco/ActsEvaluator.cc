@@ -14,6 +14,8 @@
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase/MvtxDefs.h>
+#include <trackbase/InttDefs.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
@@ -787,7 +789,7 @@ Acts::Vector3 ActsEvaluator::getGlobalTruthHit(PHCompositeNode */*topNode*/,
 {
   SvtxClusterEval *clustereval = m_svtxEvalStack->get_cluster_eval();
 
-  std::shared_ptr<TrkrCluster> truth_cluster = clustereval->max_truth_cluster_by_energy(cluskey);
+  const auto [truth_ckey, truth_cluster] = clustereval->max_truth_cluster_by_energy(cluskey);
   
   float gx = -9999;
   float gy = -9999;
@@ -838,8 +840,23 @@ Surface ActsEvaluator::getSurface(TrkrDefs::cluskey cluskey, TrkrDefs::subsurfke
 //___________________________________________________________________________________
 Surface ActsEvaluator::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
 {
-  auto surfMap = m_surfMaps->siliconSurfaceMap;
-  auto iter = surfMap.find(hitsetkey);
+  unsigned int trkrid =  TrkrDefs::getTrkrId(hitsetkey);
+  TrkrDefs::hitsetkey tmpkey = hitsetkey;
+
+  if(trkrid == TrkrDefs::inttId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = InttDefs::resetCrossingHitSetKey(hitsetkey);
+    }
+
+  if(trkrid == TrkrDefs::mvtxId)
+    {
+      // Set the hitsetkey crossing to zero
+      tmpkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);
+    }
+
+  auto surfMap = m_surfMaps->m_siliconSurfaceMap;
+  auto iter = surfMap.find(tmpkey);
   if(iter != surfMap.end())
     {
       return iter->second;
@@ -854,8 +871,8 @@ Surface ActsEvaluator::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey)
 Surface ActsEvaluator::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::subsurfkey surfkey)
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-  const auto iter = m_surfMaps->tpcSurfaceMap.find(layer);
-  if(iter != m_surfMaps->tpcSurfaceMap.end())
+  const auto iter = m_surfMaps->m_tpcSurfaceMap.find(layer);
+  if(iter != m_surfMaps->m_tpcSurfaceMap.end())
   {
     auto surfvec = iter->second;
     return surfvec.at(surfkey);
@@ -868,8 +885,8 @@ Surface ActsEvaluator::getTpcSurface(TrkrDefs::hitsetkey hitsetkey, TrkrDefs::su
 //___________________________________________________________________________________
 Surface ActsEvaluator::getMMSurface(TrkrDefs::hitsetkey hitsetkey)
 {
-  const auto iter = m_surfMaps->mmSurfaceMap.find( hitsetkey );
-  return (iter == m_surfMaps->mmSurfaceMap.end()) ? nullptr:iter->second;
+  const auto iter = m_surfMaps->m_mmSurfaceMap.find( hitsetkey );
+  return (iter == m_surfMaps->m_mmSurfaceMap.end()) ? nullptr:iter->second;
 }
 
 

@@ -10,7 +10,7 @@ class PHNode;
 class DumpTrkrClusterContainer : public DumpObject
 {
  public:
-  DumpTrkrClusterContainer(const std::string &NodeName);
+  explicit DumpTrkrClusterContainer(const std::string &NodeName);
   ~DumpTrkrClusterContainer() override {}
 
  protected:

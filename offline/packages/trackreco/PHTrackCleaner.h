@@ -20,7 +20,7 @@ class PHCompositeNode;
 class SvtxTrack;
 class SvtxTrackMap;
 class TrkrCluster;
-class TpcSeedTrackMap;
+class TrackSeedContainer;
 
 class PHTrackCleaner : public SubsysReco
 {
@@ -34,6 +34,8 @@ class PHTrackCleaner : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+ void set_pp_mode(const bool flag){_pp_mode = flag ;}
+
  private:
 
   int GetNodes(PHCompositeNode* topNode);
@@ -41,10 +43,10 @@ class PHTrackCleaner : public SubsysReco
 
 SvtxTrackMap *_track_map{nullptr};
 SvtxTrack *_track{nullptr};
+ TrackSeedContainer *_tpc_seed_map{nullptr};
 
- TpcSeedTrackMap *_seed_track_map{nullptr};
-
- unsigned int min_clusters = 20;
+ double min_ndf = 25;
+ bool _pp_mode = false;
 
 };
 

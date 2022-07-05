@@ -22,8 +22,6 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrDefs.h>                         // for getLayer, clu...
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
@@ -167,10 +165,10 @@ PHInitZVertexing::PHInitZVertexing(unsigned int nlayers,
 PHInitZVertexing::
 ~PHInitZVertexing()
 {
-  if (_t_output_io)  delete _t_output_io;
-  if (_hough_space) delete _hough_space;
-  if (_hough_funcs) delete _hough_funcs;
-//  delete ca;
+  delete _t_output_io;
+  delete _hough_space;
+  delete _hough_funcs;
+//
 }
 
 void PHInitZVertexing::set_min_zvtx_tracks(unsigned int min_zvtx_tracks)
@@ -730,11 +728,9 @@ int PHInitZVertexing::translate_input(PHCompositeNode* /*topNode*/) {
       cout << " _layer_ilayer_map has " << _layer_ilayer_map.size() << " entries" << endl;
     }
 
-  auto hitsetrange = _hitsets->getHitSets();
-  for (auto hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr){
-    auto range = _cluster_map->getClusters(hitsetitr->first);
+    for(const auto& hitsetkey:_cluster_map->getHitSetKeys())
+    {
+      auto range = _cluster_map->getClusters(hitsetkey);
     for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
       TrkrCluster *cluster = clusIter->second;
       TrkrDefs::cluskey cluskey = clusIter->first;

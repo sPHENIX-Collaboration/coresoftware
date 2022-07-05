@@ -11,8 +11,7 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                      
@@ -77,6 +76,7 @@ class MakeActsGeometry : public SubsysReco
   std::vector<std::shared_ptr<ActsExamples::IContextDecorator>> getContextDecorators()
     { return m_contextDecorators; }
 
+  void loadMagField(const bool field) { m_useField = field; }
   void setMagField(const std::string &magField)
     {m_magField = magField;}
   void setMagFieldRescale(double magFieldRescale)
@@ -154,8 +154,9 @@ class MakeActsGeometry : public SubsysReco
   PHG4CylinderGeomContainer* m_geomContainerIntt = nullptr;
   PHG4CylinderGeomContainer* m_geomContainerMicromegas = nullptr;
   PHG4CylinderCellGeomContainer* m_geomContainerTpc = nullptr;
-
   TGeoManager* m_geoManager = nullptr;
+
+  bool m_useField = true;
 
   /// Acts Context decorators, which may contain e.g. calibration information
   std::vector<std::shared_ptr<ActsExamples::IContextDecorator> > 
@@ -212,8 +213,7 @@ class MakeActsGeometry : public SubsysReco
   Acts::MagneticFieldContext m_magFieldContext;
 
   /// Structs to put on the node tree which carry around ActsGeom info
-  ActsTrackingGeometry *m_actsGeometry = nullptr;
-  ActsSurfaceMaps *m_surfMaps = nullptr;
+  ActsGeometry *m_actsGeometry = nullptr;
 
   /// Verbosity value handed from PHActsSourceLinks
   int m_verbosity = 0;

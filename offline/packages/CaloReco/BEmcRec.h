@@ -30,9 +30,10 @@ class BEmcRec
 {
  public:
   BEmcRec();
+  BEmcRec& operator=(const BEmcRec&) = delete;
   virtual ~BEmcRec();
 
-  void SetVertex(float *vv)
+  void SetVertex(const float *vv)
   {
     fVx = vv[0];
     fVy = vv[1];
@@ -69,7 +70,7 @@ class BEmcRec
   void SetTowerThreshold(float Thresh) { fgTowerThresh = Thresh; }
   float GetTowerThreshold() { return fgTowerThresh; }
 
-  void SetModules(std::vector<EmcModule> const *modules) { *fModules = *modules; }
+  void SetModules(const std::vector<EmcModule> *modules) { *fModules = *modules; }
   std::vector<EmcModule> *GetModules() { return fModules; }
   std::vector<EmcCluster> *GetClusters() { return fClusters; }
 
@@ -119,8 +120,8 @@ class BEmcRec
   // Auxiliary static functions
   static int HitNCompare(const void *, const void *);
   static int HitACompare(const void *, const void *);
-  static void CopyVector(int *, int *, int);
-  static void CopyVector(EmcModule *, EmcModule *, int);
+  static void CopyVector(const int *, int *, int);
+  static void CopyVector(const EmcModule *, EmcModule *, int);
   static void ZeroVector(int *, int);
   static void ZeroVector(float *, int);
   static void ZeroVector(EmcModule *, int);

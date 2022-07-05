@@ -21,10 +21,13 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   TpcClusterCleaner.h \
   TpcClusterizer.h \
+  TpcClusterMover.h \
+  TpcClusterZCrossingCorrection.h \
   TpcDefs.h \
   TpcDistortionCorrection.h \
   TpcDistortionCorrectionContainer.h \
-  TpcLoadDistortionCorrection.h
+  TpcLoadDistortionCorrection.h \
+	 TpcSimpleClusterizer.h
 
 pcmdir = $(libdir)
 
@@ -32,7 +35,8 @@ pcmdir = $(libdir)
 libtpc_la_SOURCES = \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
-  TpcLoadDistortionCorrection.cc
+  TpcLoadDistortionCorrection.cc \
+	 TpcSimpleClusterizer.cc
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
@@ -44,7 +48,9 @@ libtpc_la_LIBADD = \
 libtpc_io_la_SOURCES = \
   $(ROOTDICTS) \
   TpcDefs.cc \
-  TpcDistortionCorrection.cc
+  TpcDistortionCorrection.cc \
+  TpcClusterMover.cc \
+  TpcClusterZCrossingCorrection.cc
 
 libtpc_io_la_LIBADD = \
   -ltrack_io \

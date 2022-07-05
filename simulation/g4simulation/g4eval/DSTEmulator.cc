@@ -12,9 +12,7 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-#include <intt/InttDefs.h>
 #include <micromegas/MicromegasDefs.h>
-#include <mvtx/MvtxDefs.h>
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
@@ -26,8 +24,10 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
+#include <trackbase/InttDefs.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/MvtxDefs.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
@@ -484,22 +484,12 @@ int DSTEmulator::process_event(PHCompositeNode* topNode)
   auto res =  load_nodes(topNode);
   if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
 
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,
-							 "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode,
+						 "ActsGeometry");
   if(!m_tGeometry)
     {
       std::cout << PHWHERE
 		<< "ActsTrackingGeometry not found on node tree. Exiting"
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-  
-  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
-						   "ActsSurfaceMaps");
-  if(!m_surfMaps)
-    {
-      std::cout << PHWHERE 
-		<< "ActsSurfaceMaps not found on node tree. Exiting"
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
@@ -524,12 +514,10 @@ int DSTEmulator::End(PHCompositeNode* )
   return Fun4AllReturnCodes::EVENT_OK; 
 }
 
-Acts::Vector3 DSTEmulator::getGlobalPosition( TrkrCluster* cluster ) const
+Acts::Vector3 DSTEmulator::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
-  auto globalpos = m_transform.getGlobalPosition(cluster,
-    m_surfMaps,
-    m_tGeometry);
+  auto globalpos = m_tGeometry->getGlobalPosition(key, cluster);
 
   // check if TPC distortion correction are in place and apply
   // if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
@@ -652,7 +640,7 @@ void DSTEmulator::evaluate_tracks()
       // find track state that is the closest to cluster
       /* this assumes that both clusters and states are sorted along r */
       //     const auto radius( cluster_struct.r );
-      const Acts::Vector3 globalpos_d = getGlobalPosition(cluster);
+      const Acts::Vector3 globalpos_d = getGlobalPosition(cluster_key, cluster);
       float radius = get_r( globalpos_d[0], globalpos_d[1] );
       float clu_phi = std::atan2( globalpos_d[0], globalpos_d[1] );
       std::cout << "radius " << radius << std::endl;
@@ -736,9 +724,9 @@ void DSTEmulator::evaluate_tracks()
 
     //    std::cout << " subsurfkey: " << subsurfkey << std::endl;
     std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
-    mapIter = m_surfMaps->tpcSurfaceMap.find(layer);
+    mapIter = m_tGeometry->maps().m_tpcSurfaceMap.find(layer);
     
-    if(mapIter == m_surfMaps->tpcSurfaceMap.end()){
+    if(mapIter == m_tGeometry->maps().m_tpcSurfaceMap.end()){
       std::cout << PHWHERE 
 		<< "Error: hitsetkey not found in clusterSurfaceMap, layer = " << 
 	trk_r//layer 
@@ -767,7 +755,7 @@ void DSTEmulator::evaluate_tracks()
     
     Surface surface = surf_vec[nsurf];
 
-    Acts::Vector3 center = surface->center(m_tGeometry->geoContext) 
+    Acts::Vector3 center = surface->center(m_tGeometry->geometry().geoContext) 
       / Acts::UnitConstants::cm;
   
     // no conversion needed, only used in acts

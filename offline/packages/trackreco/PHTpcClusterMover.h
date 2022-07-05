@@ -15,8 +15,7 @@
 #include <string>
 #include <vector>
 
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase_historic/ActsTransformations.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDistortionCorrection.h>
@@ -33,8 +32,6 @@ class PHTpcClusterMover : public SubsysReco
 
   PHTpcClusterMover(const std::string &name = "PHTpcClusterMover");
 
-  ~PHTpcClusterMover() override;
-
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
@@ -43,18 +40,7 @@ class PHTpcClusterMover : public SubsysReco
  private:
 
   int GetNodes(PHCompositeNode* topNode);
-
-void CircleFitByTaubin (std::vector<Acts::Vector3> clusters, double &R, double &X0, double &Y0);
-  void circle_circle_intersection(double r1, double r2, double x2, double y2, double &xplus, double &yplus, double &xminus, double &yminus);
-void  line_fit(std::vector<Acts::Vector3> clusters, double &a, double &b);
   int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xref, double yref, double &x, double &y);
-
-  Surface get_tpc_surface_from_coords(TrkrDefs::hitsetkey hitsetkey,
-					Acts::Vector3 world,
-					ActsSurfaceMaps *surfMaps,
-					ActsTrackingGeometry *tGeometry,
-					TrkrDefs::subsurfkey& subsurfkey);
-
 
  /// acts transformation object
   ActsTransformations _transformer;
@@ -76,8 +62,7 @@ void  line_fit(std::vector<Acts::Vector3> clusters, double &a, double &b);
   SvtxTrack *_track{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};						    
   TrkrClusterContainer *_corrected_cluster_map{nullptr};						    
-  ActsSurfaceMaps *_surfmaps{nullptr};
-  ActsTrackingGeometry *_tGeometry{nullptr};
+  ActsGeometry *_tGeometry{nullptr};
   TpcDistortionCorrectionContainer* _dcc{nullptr};
 
   double layer_radius[48] = {0};
