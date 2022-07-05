@@ -482,10 +482,12 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 
 	  TVector3 projectionLocal(0,0,0);
 	  TVector3 projectionGlobal(xProj[inttlayer],yProj[inttlayer],zProj[inttlayer]);
+	  std::cout << "global " << projectionGlobal.x() << ", " << projectionGlobal.y() << ", " << projectionGlobal.z() << std::endl;
+	 
 	  projectionLocal = layerGeom->get_local_from_world_coords(surf, 
 								   m_tGeometry,
 								   projectionGlobal);
-
+	  std::cout << "local " << projectionLocal.x() << ", " << projectionLocal.y() << ", " << projectionLocal.z() << std::endl;
 	  auto range = m_clusterMap->getClusters(hitsetkey);	
 	  for(auto clusIter = range.first; clusIter != range.second; ++clusIter )
 	    {
