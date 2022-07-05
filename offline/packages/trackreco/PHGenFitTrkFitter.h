@@ -9,7 +9,6 @@
 #define TRACKRECO_PHGENFITTRKFITTER_H
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/ActsGeometry.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #if defined(__CLING__)
@@ -47,6 +46,7 @@ namespace PHGenFit
 class Fitter;
 } /* namespace PHGenFit */
 
+class ActsGeometry;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class SvtxTrackMap;

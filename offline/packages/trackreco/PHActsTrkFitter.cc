@@ -467,13 +467,10 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset 
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
 
-      Acts::Vector3 global; 
+      Acts::Vector3 global  = m_tGeometry->getGlobalPosition(key, cluster);
      
       if(trkrid ==  TrkrDefs::tpcId)
 	{	  
-	  // transform to global coordinates for z correction 
-	  global = m_tGeometry->getGlobalPosition(key, cluster);
-      
 	  // make all corrections to global position of TPC cluster
 	  float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
 	  global[2] = z;
@@ -485,8 +482,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	}
       else
 	{
-	  // silicon cluster, no corrections needed
-	  global = m_tGeometry->getGlobalPosition(key, cluster);      
+	  // silicon cluster or MM's cluster, no corrections needed
 	}
 
       if(Verbosity() > 0)

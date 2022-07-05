@@ -45,6 +45,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
@@ -1097,9 +1098,9 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
         auto geom = static_cast<CylinderGeomMicromegas*>(geom_container_micromegas->GetLayerGeom(layer));
         const auto tileid = MicromegasDefs::getTileId( cluster_key );
 
-        // in local coordinate, n is along y axis
+        // in local coordinate, n is along z axis
         // convert to global coordinates
-        n = geom->get_world_from_local_vect( tileid, TVector3( 0, 1, 0 ) );
+        n = geom->get_world_from_local_vect( tileid, m_tgeometry, TVector3( 0, 0, 1 ) );
       }
 
       default: break;
