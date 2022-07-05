@@ -94,7 +94,7 @@ class CylinderGeomIntt : public PHG4CylinderGeom
 
 // our own
   void find_segment_center(Surface surface, ActsGeometry* tGeometry, double location[]);
-  void find_strip_center(Surface surface, ActsGeometry *tGeometry, const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[]);
+  void find_strip_center(Surface surface, ActsGeometry *tGeometry, const int segment_z_bin,  const int segment_phi_bin, const int strip_column, const int strip_index, double location[]);
   void find_strip_index_values(const int segment_z_bin, const double ypos, const double zpos, int &strip_y_index, int &strip_z_index) override;
 
   bool load_geometry();
@@ -104,6 +104,12 @@ class CylinderGeomIntt : public PHG4CylinderGeom
   TVector3 get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector3 local);
   TVector3 get_local_from_world_coords(Surface surface, ActsGeometry* tGeometry, TVector3 world);
   void find_indices_from_world_location(int &segment_z_bin, int &segment_phi_bin, double location[]);
+
+  void find_strip_center(int, int, int, int, double*) override
+  { std::cout << "find_strip_center(int, int, int, int, double[]) is deprecated" << std::endl;
+  }
+  void find_segment_center(const int, const int, double*) override
+  { std::cout << "find_segment_center(const int, const int, double*) is deprecated" << std::endl; }
 
   double get_strip_phi_tilt() const
   {
