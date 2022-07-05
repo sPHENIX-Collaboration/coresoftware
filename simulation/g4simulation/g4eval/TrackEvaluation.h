@@ -10,7 +10,6 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsGeometry.h>
 
 #include <trackbase_historic/SvtxTrackState.h>
 #include <map>
@@ -18,7 +17,7 @@
 #include <string>
 #include <vector>
 
-
+class ActsGeometry;
 class PHG4CylinderCellGeomContainer;
 class PHG4CylinderGeomContainer;
 class PHG4Hit;

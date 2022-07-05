@@ -8,6 +8,7 @@
 #include <micromegas/MicromegasDefs.h>
 
 /// Tracking includes
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrClusterv3.h>            // for TrkrCluster
@@ -15,13 +16,12 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 
+#include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/TrackSeed.h>     
 #include <trackbase_historic/TrackSeedContainer.h>
 
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDefs.h>
-
-#include <trackbase_historic/ActsTransformations.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                // for SubsysReco
@@ -212,7 +212,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     std::vector<TrkrCluster*> clusters;
     std::vector<Acts::Vector3> clusGlobPos;
 
-    for (SvtxTrack::ConstClusterKeyIter key_iter = tracklet_tpc->begin_cluster_keys(); key_iter != tracklet_tpc->end_cluster_keys(); ++key_iter)
+    for (auto key_iter = tracklet_tpc->begin_cluster_keys(); key_iter != tracklet_tpc->end_cluster_keys(); ++key_iter)
     {
       TrkrDefs::cluskey cluster_key = *key_iter;
       unsigned int layer = TrkrDefs::getLayer(cluster_key);
@@ -306,13 +306,14 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       int tileid = layergeom->find_tile_cylindrical( world_intersection_cylindrical );
       if( tileid < 0 ) continue;
 
-      // get tile coordinates
-      const auto tile_center_phi = layergeom->get_center_phi( tileid );
-      const double x0 = r*std::cos( tile_center_phi );
-      const double y0 = r*std::sin( tile_center_phi );
+      // get tile center and norm vector
+      const auto tile_center = layergeom->get_world_from_local_coords( tileid, _tGeometry, {0, 0} );
+      const double x0 = tile_center.x();
+      const double y0 = tile_center.y();
 
-      const double nx = x0;
-      const double ny = y0;
+      const auto tile_norm = layergeom->get_world_from_local_vect( tileid, _tGeometry, {0, 0, 1 } );
+      const double nx = tile_norm.x();
+      const double ny = tile_norm.y();
 
       // calculate intersection to tile
       if( !circle_line_intersection( R, X0, Y0, x0, y0, nx, ny, xplus, yplus, xminus, yminus) )
@@ -340,13 +341,14 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       const TVector3 world_intersection_planar( x, y, z );
 
       // convert to tile local reference frame, apply SC correction
-      TVector3 local_intersection_planar = layergeom->get_local_from_world_coords( tileid, world_intersection_planar );
+      auto local_intersection_planar = layergeom->get_local_from_world_coords( tileid, _tGeometry, world_intersection_planar );
       if(_sc_calib_mode)
       {
         /*
          * apply SC correction to the local intersection,
          * to make sure that the corrected intersection is still in the micromegas plane
          * in local tile coordinates, the rphi direction, to which the correction is applied, corresponds to the x direction
+         * TODO: this is probably completely obsolete. Check/Remove
          */
         local_intersection_planar.SetX( local_intersection_planar.x() - fdrphi->Eval(z) );
       }
@@ -356,26 +358,25 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 
       // generate tilesetid and get corresponding clusters
       const auto tilesetid = MicromegasDefs::genHitSetKey(layer, segmentation_type, tileid);
-      const auto mm_clusrange = _cluster_map->getClusters(tilesetid);
-
+      const auto mm_clusrange = _cluster_map->getClusters(tilesetid);      
+      
       // convert to tile local coordinate and compare
       for(auto clusiter = mm_clusrange.first; clusiter != mm_clusrange.second; ++clusiter)
       {
-	TrkrDefs::cluskey ckey = clusiter->first;
-	if(_iteration_map != NULL ){
-	  if( _iteration_map->getIteration(ckey) > 0) 
-	    continue; // skip hits used in a previous iteration
-	}
+        TrkrDefs::cluskey ckey = clusiter->first;
+        if(_iteration_map)
+        {
+          if( _iteration_map->getIteration(ckey) > 0) 
+          { continue; }
+        }
+        
         // store cluster and key
         const auto& [key, cluster] = *clusiter;
-        const auto glob = _tGeometry->getGlobalPosition(key, cluster);
-        const TVector3 world_cluster(glob(0), glob(1), glob(2));
-        const TVector3 local_cluster = layergeom->get_local_from_world_coords( tileid, world_cluster );
-
+        
         // compute residuals and store
-        /* in local tile coordinate, x is along rphi, and z is along z) */
-        const double drphi = local_intersection_planar.x() - local_cluster.x();
-        const double dz = local_intersection_planar.z() - local_cluster.z();
+        /* in local tile coordinate, x is along rphi, and z is along y) */
+        const double drphi = local_intersection_planar.x() - cluster->getLocalX();
+        const double dz = local_intersection_planar.y() - cluster->getLocalY();
 
         // compare to cuts and add to track if matching
         if( std::abs(drphi) < _rphi_search_win[imm] && std::abs(dz) < _z_search_win[imm] )
@@ -388,9 +389,11 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
           // prints out a line that can be grep-ed from the output file to feed to a display macro
           if( _test_windows )
           {
+            
             // cluster rphi and z
-            const double mm_clus_rphi = get_r( glob(0), glob(1) ) * std::atan2( glob(1),  glob(0) );
-            const double mm_clus_z = glob(2);
+            const auto glob = _tGeometry->getGlobalPosition(key, cluster);
+            const double mm_clus_rphi = get_r( glob.x(), glob.y() ) * std::atan2( glob.y(),  glob.x() );
+            const double mm_clus_z = glob.z();
 
             // projection phi and z, without correction
             const double rphi_proj = get_r( world_intersection_planar.x(), world_intersection_planar.y() ) * std::atan2( world_intersection_planar.y(), world_intersection_planar.x() );

@@ -401,12 +401,13 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
       // convert cluster position to local tile coordinates
       const TVector3 cluster_world(global(0), global(1), global(2));
-      const TVector3 cluster_local = layergeom->get_local_from_world_coords(tileid, cluster_world);
+      const auto cluster_local = layergeom->get_local_from_world_coords(tileid, m_tGeometry, cluster_world);
 
       // find associated g4hits
       const auto g4hits = find_g4hits(key);
 
       // convert hits to list of interpolation_data_t
+      /* TODO: should actually use the same code as in TrackEvaluation */
       interpolation_data_t::list hits;
       for (const auto& g4hit : g4hits)
       {
@@ -415,11 +416,11 @@ void QAG4SimulationMicromegas::evaluate_clusters()
         {
           // convert position to local
           TVector3 g4hit_world(g4hit->get_x(i), g4hit->get_y(i), g4hit->get_z(i));
-          TVector3 g4hit_local = layergeom->get_local_from_world_coords(tileid, g4hit_world);
+          TVector3 g4hit_local = layergeom->get_local_from_world_coords(tileid, m_tGeometry, g4hit_world);
 
           // convert momentum to local
           TVector3 momentum_world(g4hit->get_px(i), g4hit->get_py(i), g4hit->get_pz(i));
-          TVector3 momentum_local = layergeom->get_local_from_world_vect(tileid, momentum_world);
+          TVector3 momentum_local = layergeom->get_local_from_world_vect(tileid, m_tGeometry, momentum_world);
 
           hits.push_back({.position = g4hit_local, .momentum = momentum_local, .weight = weight});
         }
@@ -436,23 +437,23 @@ void QAG4SimulationMicromegas::evaluate_clusters()
       auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
       switch (segmentation_type)
       {
-      case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-      {
-        const auto drphi = cluster_local.x() - interpolation_local.x();
-        fill(hiter->second.residual, drphi);
-        fill(hiter->second.residual_error, rphi_error);
-        fill(hiter->second.pulls, drphi / rphi_error);
-        break;
-      }
-
-      case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-      {
-        const auto dz = cluster_local.z() - interpolation_local.z();
-        fill(hiter->second.residual, dz);
-        fill(hiter->second.residual_error, z_error);
-        fill(hiter->second.pulls, dz / z_error);
-        break;
-      }
+        case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+        {
+          const auto drphi = cluster_local.x() - interpolation_local.x();
+          fill(hiter->second.residual, drphi);
+          fill(hiter->second.residual_error, rphi_error);
+          fill(hiter->second.pulls, drphi / rphi_error);
+          break;
+        }
+        
+        case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+        {
+          const auto dz = cluster_local.z() - interpolation_local.z();
+          fill(hiter->second.residual, dz);
+          fill(hiter->second.residual_error, z_error);
+          fill(hiter->second.pulls, dz / z_error);
+          break;
+        }
       }
 
       // cluster size
