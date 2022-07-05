@@ -465,6 +465,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	  
 	  auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
 	  layerGeom->find_segment_center(surf, m_tGeometry, ladderLocation);
+	  std::cout << "segment center for hitsetkey " << hitsetkey << ", " << ladderLocation[0] << ", " << ladderLocation[1] << ", " << ladderLocation[2] << std::endl;
 	  const double ladderphi = atan2(ladderLocation[1], ladderLocation[0]) + layerGeom->get_strip_phi_tilt();
 	  const auto stripZSpacing = layerGeom->get_strip_z_spacing();
 	  float dphi = ladderphi - projPhi;
