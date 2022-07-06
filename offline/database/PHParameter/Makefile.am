@@ -17,13 +17,15 @@ libphparameter_la_SOURCES = \
 
 libphparameter_la_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 libphparameter_la_LIBADD = \
-  -lphool \
+  -lboost_system \
   -lpdbcalBase \
+  -lphool \
   -lstdc++fs \
-  -lboost_system 
+  -lxpload
 
 
 ##############################################
