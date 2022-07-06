@@ -81,12 +81,14 @@ CylinderGeom_Mvtx::get_local_from_world_coords(Surface surface,
   global(0) = world[0];
   global(1) = world[1];
   global(2) = world[2];
+
   global *= Acts::UnitConstants::cm;
 
   Acts::Vector3 local = surface->transform(tGeometry->geometry().geoContext).inverse() * global;
   local /= Acts::UnitConstants::cm;
-  std::cout << "local mvtx pos is " << local.transpose() << std::endl;
-  return TVector3(local(2), local(0), local(1));
+
+  /// The Acts transform swaps a few of the coordinates
+  return TVector3(local(0), local(2) * -1, local(1));
 }
 
 void
