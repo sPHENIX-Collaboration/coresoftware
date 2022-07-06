@@ -68,7 +68,6 @@ void PHTpcDeltaZCorrection::SetDefaultParameters()
   // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
   // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
   // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
-  //  set_default_double_param("drift_velocity", 8.0 / 1000.0);  // cm/ns
   set_default_double_param("bz_const", 1.4);  // Tesla
   return;
 }
