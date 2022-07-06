@@ -85,7 +85,7 @@ void PHParametersContainer::AddPHParameters(const int detid, PHParameters *param
   if (parametermap.find(detid) != parametermap.end())
   {
     std::cout << PHWHERE << " detector id " << detid << " already exists for "
-         << (parametermap.find(detid))->second->Name() << std::endl;
+              << (parametermap.find(detid))->second->Name() << std::endl;
     gSystem->Exit(1);
   }
   parametermap[detid] = params;
@@ -98,11 +98,11 @@ PHParametersContainer::GetParameters(const int detid) const
   if (iter == parametermap.end())
   {
     std::cout << "could not find parameters for detector id " << detid
-         << std::endl;
+              << std::endl;
     std::cout << "Here is the stacktrace: " << std::endl;
     std::cout << boost::stacktrace::stacktrace();
     std::cout << std::endl
-         << "DO NOT PANIC - this is not a segfault" << std::endl;
+              << "DO NOT PANIC - this is not a segfault" << std::endl;
     std::cout << "Check the stacktrace for the guilty party (typically #2)" << std::endl;
     gSystem->Exit(1);
     exit(1);
@@ -220,7 +220,7 @@ void PHParametersContainer::UpdatePdbParameterMapContainer(PdbParameterMapContai
   return;
 }
 
-void PHParametersContainer::Print(Option_t */*option*/) const
+void PHParametersContainer::Print(Option_t * /*option*/) const
 {
   std::cout << "Name: " << Name() << std::endl;
   std::map<int, PHParameters *>::const_iterator iter;
@@ -256,7 +256,7 @@ void PHParametersContainer::UpdateNodeTree(PHCompositeNode *topNode, const std::
   if (!myparmap)
   {
     std::cout << PHWHERE << " could not find PdbParameterMapContainer " << nodename
-         << " which must exist" << std::endl;
+              << " which must exist" << std::endl;
     gSystem->Exit(1);
   }
   UpdatePdbParameterMapContainer(myparmap);

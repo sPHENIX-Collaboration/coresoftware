@@ -132,7 +132,7 @@ bool PHParameters::exist_double_param(const std::string &name) const
   return false;
 }
 
-void PHParameters::Print(Option_t */*option*/) const
+void PHParameters::Print(Option_t * /*option*/) const
 {
   std::cout << "Parameters for " << m_Detector << std::endl;
   printint();
@@ -486,7 +486,7 @@ int PHParameters::ReadFromDB()
   PHTimeStamp TSearch(10);
 
   std::string tablename = m_Detector + "_geoparams";
-  std::transform(tablename.begin(), tablename.end(), tablename.begin(),::tolower);
+  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
   PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapBank", bankID,
                                                tablename, TSearch);
   if (NewBank)
@@ -513,7 +513,7 @@ int PHParameters::ReadFromCDB(const std::string &domain)
     gSystem->Exit(1);
   }
   TFile *f = TFile::Open(result.payload.c_str());
-  if (! f)
+  if (!f)
   {
     std::cout << "could not open " << result.payload << std::endl;
     gSystem->Exit(1);
@@ -675,12 +675,12 @@ int PHParameters::ReadFromFile(const std::string &name, const std::string &exten
 
 int PHParameters::ReadFromCDBFile(const std::string &url)
 {
-    TFile *f = TFile::Open(url.c_str());
-    PdbParameterMap *myparm = static_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
-    FillFrom(myparm);
-    delete myparm;
-    delete f;
-    return 0;
+  TFile *f = TFile::Open(url.c_str());
+  PdbParameterMap *myparm = static_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
+  FillFrom(myparm);
+  delete myparm;
+  delete f;
+  return 0;
 }
 
 void PHParameters::CopyToPdbParameterMap(PdbParameterMap *myparm)
