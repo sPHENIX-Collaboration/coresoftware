@@ -331,7 +331,7 @@ std::map<TrkrDefs::cluskey, TrkrCluster* > PHTruthClustering::all_truth_clusters
       // Estimate the size of the truth cluster
       float g4phisize = NAN;
       float g4zsize = NAN;
-      G4ClusterSize(layer, contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
+      G4ClusterSize(ckey, layer, contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
 
       /*
       std::cout << PHWHERE << " g4trackID " << particle->get_track_id() << " gedep " << gedep << " adc value " << adc_output 
@@ -710,7 +710,7 @@ void PHTruthClustering::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::v
   return;
 }
 
-void PHTruthClustering::G4ClusterSize(unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize)
+void PHTruthClustering::G4ClusterSize(TrkrDefs::cluskey& ckey,unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize)
 {
 
   // sort the contributing g4hits in radius
@@ -821,7 +821,7 @@ void PHTruthClustering::G4ClusterSize(unsigned int layer, std::vector<std::vecto
 
       int segment_z_bin, segment_phi_bin;
       layergeom->find_indices_from_world_location(segment_z_bin, segment_phi_bin, world_inner);
-      auto hitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin,0);
+      auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
       auto surf = _tgeometry->maps().getSiliconSurface(hitsetkey);
       TVector3 local_inner_vec =  layergeom->get_local_from_world_coords(surf,_tgeometry, world_inner_vec);
       double yin = local_inner_vec[1];
@@ -834,7 +834,7 @@ void PHTruthClustering::G4ClusterSize(unsigned int layer, std::vector<std::vecto
       TVector3 world_outer_vec = {outer_x, outer_y, outer_z};
 
       layergeom->find_indices_from_world_location(segment_z_bin, segment_phi_bin, world_outer);
-      auto outerhitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin, 0);
+      auto outerhitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
       auto outersurf = _tgeometry->maps().getSiliconSurface(outerhitsetkey);
       TVector3 local_outer_vec =  layergeom->get_local_from_world_coords(outersurf,_tgeometry, world_outer_vec);
       double yout = local_outer_vec[1];
@@ -880,14 +880,14 @@ void PHTruthClustering::G4ClusterSize(unsigned int layer, std::vector<std::vecto
       TVector3 world_inner = {inner_x, inner_y, inner_z};
       std::vector<double> world_inner_vec = { world_inner[0], world_inner[1], world_inner[2] };
       layergeom->get_sensor_indices_from_world_coords(world_inner_vec, stave, chip);
-      auto ihitsetkey = MvtxDefs::genHitSetKey(layer,stave,chip,0);
+      auto ihitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
       auto isurf = _tgeometry->maps().getSiliconSurface(ihitsetkey);
       TVector3 local_inner = layergeom->get_local_from_world_coords(isurf,_tgeometry, world_inner);
 
       TVector3 world_outer = {outer_x, outer_y, outer_z};
       std::vector<double> world_outer_vec = { world_outer[0], world_outer[1], world_outer[2] };
       layergeom->get_sensor_indices_from_world_coords(world_outer_vec, stave_outer, chip_outer);
-      auto ohitsetkey = MvtxDefs::genHitSetKey(layer,stave_outer, chip_outer,0);
+      auto ohitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
       auto osurf = _tgeometry->maps().getSiliconSurface(ohitsetkey);
       TVector3 local_outer = layergeom->get_local_from_world_coords(osurf,_tgeometry, world_outer);
 
