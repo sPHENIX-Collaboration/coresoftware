@@ -19,7 +19,7 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/InttDefs.h>
@@ -690,8 +690,8 @@ int TrackEvaluation::get_embed( PHG4Particle* particle ) const
 TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global coordinates
-  const auto global = m_tGeometry->getGlobalPosition(key, cluster);
-
+  Acts::Vector3 global;
+  global = m_tGeometry->getGlobalPosition(key, cluster);
   TrackEvaluationContainerv1::ClusterStruct cluster_struct;
   cluster_struct.layer = TrkrDefs::getLayer(key);
   cluster_struct.x = global.x();

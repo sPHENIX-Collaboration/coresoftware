@@ -12,8 +12,8 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/TpcDefs.h>
 
-#include <tpc/TpcDefs.h>
 #include <micromegas/MicromegasDefs.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>

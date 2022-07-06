@@ -14,8 +14,8 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/TpcDefs.h>
 
-#include <tpc/TpcDefs.h>
 #include <micromegas/MicromegasDefs.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>

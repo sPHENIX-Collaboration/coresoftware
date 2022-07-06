@@ -17,7 +17,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/recoConsts.h>
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterv2.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -517,8 +517,9 @@ int DSTEmulator::End(PHCompositeNode* )
 Acts::Vector3 DSTEmulator::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
-  auto globalpos = m_tGeometry->getGlobalPosition(key, cluster);
-
+  Acts::Vector3 globalpos;
+  globalpos = m_tGeometry->getGlobalPosition(key, cluster);
+  
   // check if TPC distortion correction are in place and apply
   // if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
 

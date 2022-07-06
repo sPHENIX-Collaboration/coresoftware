@@ -8,11 +8,11 @@
 #include "PHActsTrkFitter.h"
 
 /// Tracking includes
-#include <tpc/TpcDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/InttDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
@@ -466,16 +466,9 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 
       // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset 
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
-      
-      // transform to global coordinates for z correction 
-      auto global = m_tGeometry->getGlobalPosition(key, cluster);
-      
-      if(Verbosity() > 0)
-	{
-	  std::cout << " zinit " << global[2] << " xinit " << global[0] << " yinit " << global[1] << " side " << side << " crossing " << crossing 
-		    << " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
-	}
-      
+
+      Acts::Vector3 global  = m_tGeometry->getGlobalPosition(key, cluster);
+     
       if(trkrid ==  TrkrDefs::tpcId)
 	{	  
 	  // make all corrections to global position of TPC cluster
@@ -486,15 +479,20 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	  if(_dcc_static) { global = _distortionCorrection.get_corrected_position( global, _dcc_static ); }
 	  if(_dcc_average) { global = _distortionCorrection.get_corrected_position( global, _dcc_average ); }
 	  if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
-	 
-	  // add the global positions to a vector to give to the cluster mover
-	  global_raw.push_back(std::make_pair(key, global));
 	}
       else
 	{
 	  // silicon cluster or MM's cluster, no corrections needed
-	  global_raw.push_back(std::make_pair(key, global));
 	}
+
+      if(Verbosity() > 0)
+	{
+	  std::cout << " zinit " << global[2] << " xinit " << global[0] << " yinit " << global[1] << " side " << side << " crossing " << crossing 
+		    << " cluskey " << key << " subsurfkey " << subsurfkey << std::endl;
+	}
+
+      // add the global positions to a vector to give to the cluster mover
+      global_raw.push_back(std::make_pair(key, global));
       
     }	  // end loop over clusters here
   

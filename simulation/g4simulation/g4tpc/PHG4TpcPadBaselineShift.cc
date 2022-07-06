@@ -1,6 +1,6 @@
 #include "PHG4TpcPadBaselineShift.h"
 
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"

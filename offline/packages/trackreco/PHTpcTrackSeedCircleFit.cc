@@ -168,7 +168,7 @@ Acts::Vector3 PHTpcTrackSeedCircleFit::getGlobalPosition( TrkrDefs::cluskey key,
   // get global position from Acts transform
   auto globalpos = _surfmaps->getGlobalPosition(key, cluster, _tGeometry);
 
-  // ADF: in streaming mode we need to add a step here to take care of the fact that we do not know the crossing yet
+    // ADF: in streaming mode we need to add a step here to take care of the fact that we do not know the crossing yet
   // possibly move the track to point at z=0 to make distortion corrections (circularize the track) then move it back after the fit?
 
   // check if TPC distortion correction are in place and apply

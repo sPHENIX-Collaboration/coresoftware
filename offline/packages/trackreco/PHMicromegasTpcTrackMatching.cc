@@ -15,13 +15,13 @@
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
+#include <trackbase/TpcDefs.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/TrackSeed.h>     
 #include <trackbase_historic/TrackSeedContainer.h>
 
 #include <tpc/TpcDistortionCorrectionContainer.h>
-#include <tpc/TpcDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                // for SubsysReco
@@ -498,16 +498,23 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 
  Acts::Vector3 PHMicromegasTpcTrackMatching::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing, unsigned int side)
 {
+  auto trkrid = TrkrDefs::getTrkrId(key);
 
-  auto globalpos = _tGeometry->getGlobalPosition(key, cluster);
-
-  // ADF: for streaming mode, will need a crossing z correction here
-  float z = _clusterCrossingCorrection.correctZ(globalpos[2], side, crossing);
-  globalpos[2] = z;
-
-  // check if TPC distortion correction are in place and apply
-  if(_dcc) { globalpos = _distortionCorrection.get_corrected_position( globalpos, _dcc ); }
-
+  Acts::Vector3 globalpos; 
+  if(trkrid == TrkrDefs::tpcId)
+    {
+      globalpos = _tGeometry->getGlobalPosition(key, cluster);
+      
+      // ADF: for streaming mode, will need a crossing z correction here
+      float z = _clusterCrossingCorrection.correctZ(globalpos[2], side, crossing);
+      globalpos[2] = z;
+      
+      // check if TPC distortion correction are in place and apply
+      if(_dcc) { globalpos = _distortionCorrection.get_corrected_position( globalpos, _dcc ); }
+    }
+  else
+    globalpos = _tGeometry->getGlobalPosition(key, cluster);
+  
   return globalpos;
 }
   
