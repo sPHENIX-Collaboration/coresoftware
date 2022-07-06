@@ -803,7 +803,7 @@ void SvtxTruthEval::G4ClusterSize(unsigned int layer, std::vector<std::vector<do
       int segment_z_bin, segment_phi_bin;
       layergeom->find_indices_from_world_location(segment_z_bin, segment_phi_bin, world_inner);
       
-      auto hitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin,0);
+      TrkrDefs::hitsetkey hitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin,0);
       auto surf = _tgeometry->maps().getSiliconSurface(hitsetkey);
       TVector3 local_inner_vec =  layergeom->get_local_from_world_coords(surf, _tgeometry, world_inner);
       double yin = local_inner_vec[1];
@@ -816,7 +816,7 @@ void SvtxTruthEval::G4ClusterSize(unsigned int layer, std::vector<std::vector<do
       TVector3 world_outer_vec = {outer_x, outer_y, outer_z};
 
       layergeom->find_indices_from_world_location(segment_z_bin, segment_phi_bin, world_outer);
-      auto ohitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin,0);
+      TrkrDefs::hitsetkey ohitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin,0);
       auto osurf = _tgeometry->maps().getSiliconSurface(ohitsetkey);
       TVector3 local_outer_vec =  layergeom->get_local_from_world_coords(osurf,_tgeometry, world_outer_vec);
       double yout = local_outer_vec[1];
@@ -862,14 +862,14 @@ void SvtxTruthEval::G4ClusterSize(unsigned int layer, std::vector<std::vector<do
       TVector3 world_inner = {inner_x, inner_y, inner_z};
       std::vector<double> world_inner_vec = { world_inner[0], world_inner[1], world_inner[2] };
       layergeom->get_sensor_indices_from_world_coords(world_inner_vec, stave, chip);
-      auto ihitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, 0);
+      TrkrDefs::hitsetkey ihitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, 0);
       auto isurf = _tgeometry->maps().getSiliconSurface(ihitsetkey);
       TVector3 local_inner = layergeom->get_local_from_world_coords(isurf,_tgeometry, world_inner);
 
       TVector3 world_outer = {outer_x, outer_y, outer_z};
       std::vector<double> world_outer_vec = { world_outer[0], world_outer[1], world_outer[2] };
       layergeom->get_sensor_indices_from_world_coords(world_outer_vec, stave_outer, chip_outer);
-      auto ohitsetkey = MvtxDefs::genHitSetKey(layer, stave_outer, chip_outer,0);
+      TrkrDefs::hitsetkey ohitsetkey = MvtxDefs::genHitSetKey(layer, stave_outer, chip_outer,0);
       auto osurf = _tgeometry->maps().getSiliconSurface(ohitsetkey);
       TVector3 local_outer = layergeom->get_local_from_world_coords(osurf,_tgeometry,world_outer);
 
