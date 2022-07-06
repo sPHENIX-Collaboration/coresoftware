@@ -43,6 +43,7 @@ class SvtxEvalStack
 
  private:
   SvtxVertexEval _vertexeval;  // right now this is the top-level eval
+
 };
 
 #endif  // G4EVAL_SVTXEVALSTACK_H

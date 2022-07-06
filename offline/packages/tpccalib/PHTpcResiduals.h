@@ -71,7 +71,7 @@ class PHTpcResiduals : public SubsysReco
   /// require micromegas to be present when extrapolating tracks to the TPC
   void setUseMicromegas( bool value )
   { m_useMicromegas = value; }
-  
+
   private:
 
   using BoundTrackParamPtr = 
@@ -213,7 +213,6 @@ class PHTpcResiduals : public SubsysReco
   double clusZErr = 0;
   double stateR = 0;
   TrkrDefs::cluskey cluskey = 0;
-
 };
 
 #endif

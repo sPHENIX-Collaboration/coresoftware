@@ -1,5 +1,5 @@
 /**
- * @file tpc/TpcDefs.cc
+ * @file trackbase/TpcDefs.cc
  * @author D. McGlinchey
  * @date June 2018
  * @brief Implementation file for TpcDefs.h
