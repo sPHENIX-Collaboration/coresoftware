@@ -666,7 +666,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 	  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
 	  const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey);
 	  if(!surface)
-	    continue;
+	    { continue; }
 
 	  auto sp = makeSpacePoint(surface, cluskey, cluster).release();
 	  spVec.push_back(sp);

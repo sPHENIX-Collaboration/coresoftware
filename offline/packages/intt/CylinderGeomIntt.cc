@@ -81,7 +81,8 @@ TVector3 CylinderGeomIntt::get_local_from_world_coords(Surface surface, ActsGeom
 
   local /= Acts::UnitConstants::cm;
 
-  return TVector3(local(0), local(1), local(2));
+  /// The acts transform is offset by one element
+  return TVector3(local(2), local(0), local(1));
 }
 
 void CylinderGeomIntt::find_segment_center(Surface surface, ActsGeometry* tGeometry, double location[])

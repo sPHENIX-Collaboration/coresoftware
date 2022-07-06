@@ -226,7 +226,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       TVector3 local_out(hiter->second->get_local_x(1), hiter->second->get_local_y(1), hiter->second->get_local_z(1));
       TVector3 midpoint((local_in.X() + local_out.X()) / 2.0, (local_in.Y() + local_out.Y()) / 2.0, (local_in.Z() + local_out.Z()) / 2.0);
 
-      if (Verbosity() > 4)
+      if (Verbosity() > -1)
       {
         cout << endl
              << "  world entry point position: " << hiter->second->get_x(0) << " " << hiter->second->get_y(0) << " " << hiter->second->get_z(0) << endl;
@@ -235,7 +235,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         TVector3 world_in(hiter->second->get_x(0), hiter->second->get_y(0), hiter->second->get_z(0));
 	auto hskey = MvtxDefs::genHitSetKey(*layer,stave_number,chip_number,strobe);
 	auto surf = tgeometry->maps().getSiliconSurface(hskey);
-
+	std::cout << "Global is " << world_in.X() << ", " << world_in.Y() << ", " << world_in.Z() << std::endl;
         TVector3 local_in_check = layergeom->get_local_from_world_coords(surf, tgeometry, world_in);
         cout << "  local coords of entry point from geom (a check) " << local_in_check.X() << " " << local_in_check.Y() << " " << local_in_check.Z() << endl;
         cout << "  local coords of exit point from G4 " << hiter->second->get_local_x(1) << " " << hiter->second->get_local_y(1) << " " << hiter->second->get_local_z(1) << endl;
