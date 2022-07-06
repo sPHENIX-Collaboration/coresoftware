@@ -6,7 +6,10 @@
 #include "CylinderGeomMicromegas.h"
 
 #include <g4main/PHG4Hit.h>
+#include <trackbase/ActsGeometry.h>
 
+#include <Acts/Surfaces/RectangleBounds.hpp>
+#include <Acts/Surfaces/SurfaceBounds.hpp>
 #include <TVector3.h>
 
 #include <cassert>
@@ -33,71 +36,102 @@ namespace
 }
 
 //________________________________________________________________________________
-TVector3 CylinderGeomMicromegas::get_local_from_world_coords( uint tileid, const TVector3& world_coordinates ) const
+TVector3 CylinderGeomMicromegas::get_local_from_world_coords( uint tileid, ActsGeometry* geometry, const TVector3& world_coordinates ) const
 {
   assert( tileid < m_tiles.size() );
+  const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
+  const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
-  // store world coordinates in array
-  std::array<double,3> master;
-  world_coordinates.GetXYZ( &master[0] );
+  const Acts::Vector3 global(
+    world_coordinates.x()*Acts::UnitConstants::cm,
+    world_coordinates.y()*Acts::UnitConstants::cm,
+    world_coordinates.z()*Acts::UnitConstants::cm );
 
-  // convert to local coordinate
-  std::array<double,3> local;
-  transformation_matrix(tileid).MasterToLocal( &master[0], &local[0] );
-
-  return TVector3( &local[0] );
-
+  // convert to local
+  /* this is equivalent to calling surface->globalToLocal but without the "on surface" check, and while returning a full Acts::Vector3 */
+  const auto local = surface->transform(geometry->geometry().geoContext).inverse()*global;
+  return TVector3(
+    local.x()/Acts::UnitConstants::cm,
+    local.y()/Acts::UnitConstants::cm,
+    local.z()/Acts::UnitConstants::cm );
 }
 
 //________________________________________________________________________________
-TVector3 CylinderGeomMicromegas::get_world_from_local_coords( uint tileid, const TVector3& local_coordinates ) const
+TVector3 CylinderGeomMicromegas::get_local_from_world_vect( uint tileid, ActsGeometry* geometry, const TVector3& world_vect ) const
 {
   assert( tileid < m_tiles.size() );
+  const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
+  const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
-  // store world coordinates in array
-  std::array<double,3> local;
-  local_coordinates.GetXYZ( &local[0] );
+  const Acts::Vector3 global(
+    world_vect.x()*Acts::UnitConstants::cm,
+    world_vect.y()*Acts::UnitConstants::cm,
+    world_vect.z()*Acts::UnitConstants::cm );
 
-  // convert to local coordinate
-  std::array<double,3> master;
-  transformation_matrix(tileid).LocalToMaster( &local[0], &master[0] );
-
-  return TVector3( &master[0] );
-
+  const auto local = surface->referenceFrame(geometry->geometry().geoContext, Acts::Vector3(), Acts::Vector3()).inverse()*global;
+  return TVector3(
+    local.x()/Acts::UnitConstants::cm,
+    local.y()/Acts::UnitConstants::cm,
+    local.z()/Acts::UnitConstants::cm );
 }
 
 //________________________________________________________________________________
-TVector3 CylinderGeomMicromegas::get_world_from_local_vect( uint tileid, const TVector3& local_vect ) const
+TVector3 CylinderGeomMicromegas::get_world_from_local_coords( uint tileid, ActsGeometry* geometry, const TVector2& local_coordinates ) const
 {
   assert( tileid < m_tiles.size() );
+  const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
+  const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
-  // store world vect in array
-  std::array<double,3> local;
-  local_vect.GetXYZ( &local[0] );
+  const Acts::Vector2 local(
+    local_coordinates.X()*Acts::UnitConstants::cm,
+    local_coordinates.Y()*Acts::UnitConstants::cm );
 
-  // convert to local coordinate
-  std::array<double,3> master;
-  transformation_matrix(tileid).LocalToMasterVect( &local[0], &master[0] );
-
-  return TVector3( &master[0] );
-
+  // convert to global
+  const auto global =  surface->localToGlobal(geometry->geometry().geoContext, local, Acts::Vector3());
+  return TVector3(
+    global.x()/Acts::UnitConstants::cm,
+    global.y()/Acts::UnitConstants::cm,
+    global.z()/Acts::UnitConstants::cm );
 }
 
 //________________________________________________________________________________
-TVector3 CylinderGeomMicromegas::get_local_from_world_vect( uint tileid, const TVector3& world_vect ) const
+TVector3 CylinderGeomMicromegas::get_world_from_local_coords( uint tileid, ActsGeometry* geometry, const TVector3& local_coordinates ) const
 {
   assert( tileid < m_tiles.size() );
+  const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
+  const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
-  // store world vect in array
-  std::array<double,3> master;
-  world_vect.GetXYZ( &master[0] );
+  const Acts::Vector3 local(
+    local_coordinates.x()*Acts::UnitConstants::cm,
+    local_coordinates.y()*Acts::UnitConstants::cm,
+    local_coordinates.z()*Acts::UnitConstants::cm );
 
-  // convert to local coordinate
-  std::array<double,3> local;
-  transformation_matrix(tileid).MasterToLocalVect( &master[0], &local[0] );
+  // convert to global
+  /* this is equivalent to calling surface->localToGlobal but without assuming that the local point is on surface */
+  const auto global =  surface->transform(geometry->geometry().geoContext)*local;
+  return TVector3(
+    global.x()/Acts::UnitConstants::cm,
+    global.y()/Acts::UnitConstants::cm,
+    global.z()/Acts::UnitConstants::cm );
+}
 
-  return TVector3( &local[0] );
+//________________________________________________________________________________
+TVector3 CylinderGeomMicromegas::get_world_from_local_vect( uint tileid, ActsGeometry* geometry, const TVector3& local_vect ) const
+{
+  assert( tileid < m_tiles.size() );
+  const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
+  const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
+  Acts::Vector3 local(
+    local_vect.x()*Acts::UnitConstants::cm,
+    local_vect.y()*Acts::UnitConstants::cm,
+    local_vect.z()*Acts::UnitConstants::cm );
+
+  const auto global = surface->referenceFrame(geometry->geometry().geoContext, Acts::Vector3(), Acts::Vector3())*local;
+  return TVector3(
+    global.x()/Acts::UnitConstants::cm,
+    global.y()/Acts::UnitConstants::cm,
+    global.z()/Acts::UnitConstants::cm );
 }
 
 //________________________________________________________________________________
@@ -124,66 +158,48 @@ int CylinderGeomMicromegas::find_tile_cylindrical( const TVector3& world_coordin
 }
 
 //________________________________________________________________________________
-int CylinderGeomMicromegas::find_tile_planar( const TVector3& world_coordinates ) const
-{
-
-  for( size_t itile = 0; itile < m_tiles.size(); ++itile )
-  {
-
-    // get local coordinates
-    const auto local_coordinates = get_local_from_world_coords( itile, world_coordinates );
-
-    // store tile struct locally
-    const auto& tile = m_tiles.at(itile);
-
-    // check against thickness
-    if( std::abs( local_coordinates.y() ) > m_thickness/2 ) continue;
-
-    // check azimuth
-    if( std::abs( local_coordinates.x() ) > tile.m_sizePhi*reference_radius/2 ) continue;
-
-    // check z extend
-    if( std::abs( local_coordinates.z() ) > tile.m_sizeZ/2 ) continue;
-
-    return itile;
-  }
-
-  return -1;
-}
-
-//________________________________________________________________________________
-int CylinderGeomMicromegas::find_strip_from_world_coords( uint tileid, const TVector3& world_coordinates ) const
+int CylinderGeomMicromegas::find_strip_from_world_coords( uint tileid, ActsGeometry* geometry, const TVector3& world_coordinates ) const
 {
   // convert to local coordinates
-  const auto local_coordinates = get_local_from_world_coords( tileid, world_coordinates );
-  return find_strip_from_local_coords( tileid, local_coordinates );
+  const auto local_coordinates = get_local_from_world_coords( tileid, geometry, world_coordinates );
+  
+  // check against thickness
+  if( std::abs(local_coordinates.z() ) >= m_thickness/2 )
+  {
+    std::cout << " CylinderGeomMicromegas::find_strip_from_world_coords - invalid world coordinates" << std::endl;
+    return -1;
+  } else {
+    return find_strip_from_local_coords( tileid, geometry, { local_coordinates.x(), local_coordinates.y() } );
+  }
 }
 
 //________________________________________________________________________________
-int CylinderGeomMicromegas::find_strip_from_local_coords( uint tileid, const TVector3& local_coordinates ) const
+int CylinderGeomMicromegas::find_strip_from_local_coords( uint tileid, ActsGeometry* geometry, const TVector2& local_coordinates ) const
 {
+  assert( tileid < m_tiles.size() );
+  const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
+  const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
-  // check against thickness
-  if( std::abs( local_coordinates.y() ) > m_thickness/2 ) return -1;
-
-  // get tile
-  const auto& tile = m_tiles.at(tileid);
+  // get boundaries and corresponding dimension
+  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );  
+  auto rectangle_bounds = static_cast<const Acts::RectangleBounds*>( &surface->bounds() );
+  const auto half_length_x = rectangle_bounds->halfLengthX()/Acts::UnitConstants::cm;
+  const auto half_length_y = rectangle_bounds->halfLengthY()/Acts::UnitConstants::cm;
 
   // check azimuth
-  if( std::abs( local_coordinates.x() ) > tile.m_sizePhi*reference_radius/2 ) return -1;
-  
-  // check z extend
-  if( std::abs( local_coordinates.z() ) > tile.m_sizeZ/2 ) return -1;
+  if( std::abs( local_coordinates.X() ) >  half_length_x ) return -1;
 
-  // we found a tile to which the hit belong
-  // calculate strip index, depending on cylinder direction
+  // check z extend
+  if( std::abs( local_coordinates.Y() ) > half_length_y ) return -1;
+
+  // calculate strip index, depending on segmentation
   switch( m_segmentation_type )
   {
     case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-    return (int) std::floor( (local_coordinates.x() + tile.m_sizePhi*reference_radius/2)/m_pitch );
+    return (int) std::floor((local_coordinates.X() + half_length_x)/m_pitch);
 
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-    return (int) std::floor( (local_coordinates.z() + tile.m_sizeZ/2)/m_pitch );
+    return (int) std::floor((local_coordinates.Y() + half_length_y)/m_pitch);
   }
 
   // unreachable
@@ -191,16 +207,22 @@ int CylinderGeomMicromegas::find_strip_from_local_coords( uint tileid, const TVe
 }
 
 //________________________________________________________________________________
-double CylinderGeomMicromegas::get_strip_length( uint tileid ) const
+double CylinderGeomMicromegas::get_strip_length( uint tileid, ActsGeometry* geometry ) const
 {
   assert( tileid < m_tiles.size() );
+  const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
+  const auto surface = geometry->maps().getMMSurface(hitsetkey);
+
+  // get boundaries and return corresponding dimension
+  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );  
+  auto rectangle_bounds = static_cast<const Acts::RectangleBounds*>( &surface->bounds() );
   switch( m_segmentation_type )
   {
     case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-    return m_tiles[tileid].m_sizeZ;
+    return 2.*rectangle_bounds->halfLengthY()/Acts::UnitConstants::cm;
 
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-    return m_tiles[tileid].m_sizePhi*reference_radius;
+    return 2.*rectangle_bounds->halfLengthX()/Acts::UnitConstants::cm;
   }
 
   // unreachable
@@ -208,16 +230,22 @@ double CylinderGeomMicromegas::get_strip_length( uint tileid ) const
 }
 
 //________________________________________________________________________________
-uint CylinderGeomMicromegas::get_strip_count( uint tileid ) const
+uint CylinderGeomMicromegas::get_strip_count( uint tileid, ActsGeometry* geometry ) const
 {
   assert( tileid < m_tiles.size() );
+  const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
+  const auto surface = geometry->maps().getMMSurface(hitsetkey);
+
+  // get boundaries and corresponding dimension
+  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );  
+  auto rectangle_bounds = static_cast<const Acts::RectangleBounds*>( &surface->bounds() );
   switch( m_segmentation_type )
   {
     case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-    return std::floor( m_tiles[tileid].m_sizePhi*reference_radius/m_pitch );
+    return std::floor( (2.*rectangle_bounds->halfLengthX()/Acts::UnitConstants::cm)/m_pitch );
 
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-    return std::floor( m_tiles[tileid].m_sizeZ/m_pitch );
+    return std::floor( (2.*rectangle_bounds->halfLengthY()/Acts::UnitConstants::cm)/m_pitch );
   }
 
   // unreachable
@@ -225,33 +253,33 @@ uint CylinderGeomMicromegas::get_strip_count( uint tileid ) const
 }
 
 //________________________________________________________________________________
-TVector3 CylinderGeomMicromegas::get_local_coordinates( uint tileid, uint stripnum ) const
+TVector2 CylinderGeomMicromegas::get_local_coordinates( uint tileid, ActsGeometry* geometry, uint stripnum ) const
 {
   assert( tileid < m_tiles.size() );
-  
-  // get tile
-  const auto& tile = m_tiles[tileid];
-  
+  const auto hitsetkey = MicromegasDefs::genHitSetKey(get_layer(), get_segmentation_type(), tileid);
+  const auto surface = geometry->maps().getMMSurface(hitsetkey);
+
+  // get boundaries and return corresponding dimension
+  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );  
+  auto rectangle_bounds = static_cast<const Acts::RectangleBounds*>( &surface->bounds() );
+
   switch( m_segmentation_type )
   {
     case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-    return TVector3( (0.5+stripnum)*m_pitch - tile.m_sizePhi*reference_radius/2, 0, 0 );
-    
+    return TVector2( (0.5+stripnum)*m_pitch-rectangle_bounds->halfLengthX()/Acts::UnitConstants::cm, 0 );
+
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-    return TVector3( 0, 0, (0.5+stripnum)*m_pitch - tile.m_sizeZ/2 );
+    return TVector2( 0, (0.5+stripnum)*m_pitch-rectangle_bounds->halfLengthY()/Acts::UnitConstants::cm );
   }
-  
+
   // unreachable
-  return TVector3();
+  return TVector2();
 }
 
 //________________________________________________________________________________
-TVector3 CylinderGeomMicromegas::get_world_coordinates( uint tileid, uint stripnum ) const
-{
-  assert( tileid < m_tiles.size() );
-  return get_world_from_local_coords( tileid, get_local_coordinates( tileid, stripnum ) );
-}
- 
+TVector3 CylinderGeomMicromegas::get_world_coordinates( uint tileid, ActsGeometry* geometry, uint stripnum ) const
+{ return get_world_from_local_coords( tileid, geometry, get_local_coordinates( tileid, geometry, stripnum ) ); }
+
 //________________________________________________________________________________
 void CylinderGeomMicromegas::identify( std::ostream& out ) const
 {
@@ -272,24 +300,4 @@ bool  CylinderGeomMicromegas::check_radius( const TVector3& world_coordinates ) 
 {
   const auto radius = get_r( world_coordinates.x(), world_coordinates.y() );
   return std::abs( radius - m_radius ) <= m_thickness/2;
-}
-
-//________________________________________________________________________________
-TGeoHMatrix CylinderGeomMicromegas::transformation_matrix( uint tileid ) const
-{
-  assert( tileid < m_tiles.size() );
-  const auto& tile = m_tiles[tileid];
-
-  // local to master transformation matrix
-  TGeoHMatrix matrix;
-
-  // rotate around z axis
-  matrix.RotateZ( tile.m_centerPhi*180./M_PI - 90 );
-
-  // translate to tile center
-  matrix.SetDx( m_radius*std::cos( tile.m_centerPhi ) );
-  matrix.SetDy( m_radius*std::sin( tile.m_centerPhi ) );
-  matrix.SetDz( tile.m_centerZ );
-
-  return matrix;
 }

@@ -335,9 +335,9 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	locclusz = loczsum / nhits;
 
 	const double pitch = layergeom->get_pixel_x();
-	std::cout << " pitch: " <<  pitch << std::endl;
+//	std::cout << " pitch: " <<  pitch << std::endl;
 	const double length = layergeom->get_pixel_z();
-	std::cout << " length: " << length << std::endl;
+//	std::cout << " length: " << length << std::endl;
 	const double phisize = phibins.size() * pitch;
 	const double zsize = zbins.size() * length;
 
