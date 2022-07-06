@@ -56,11 +56,9 @@ class TpcClusterizer : public SubsysReco
   double m_tdriftmax = 0;
   double AdcClockPeriod = 53.0;   // ns 
 
-  // TPC shaping offset correction parameters
-  // From Tony Frawley May 13, 2021
-  double par0_neg = 0.0503;
-  double par0_pos = -0.0503;
-  
+  // TPC shaping offset correction parameter
+  // From Tony Frawley July 5, 2022
+  double m_sampa_tbias = 13.5;  // ns  
 };
 
 #endif

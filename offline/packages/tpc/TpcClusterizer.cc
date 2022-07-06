@@ -76,9 +76,8 @@ namespace
     unsigned short maxHalfSizeT = 0;
     unsigned short maxHalfSizePhi = 0;
     double m_tdriftmax = 0;
-    double par0_neg = 0;
-    double par0_pos = 0;
-    int cluster_version = 3;
+    double sampa_tbias = 0;
+     int cluster_version = 3;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster*> cluster_vector;
     int verbosity = 0;
@@ -383,11 +382,7 @@ namespace
       // Equivalent charge per T bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
 
       // SAMPA shaping bias correction
-      //clusz -= (clusz<0) ? my_data.par0_neg:my_data.par0_pos;
-      if(my_data.side == 0) 
-	clust -= my_data.par0_neg / my_data.tGeometry->get_drift_velocity();
-      else
-	clust -= my_data.par0_pos / my_data.tGeometry->get_drift_velocity();
+      clust = clust + my_data.sampa_tbias;
 
       Acts::Vector3 center = surface->center(my_data.tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
   
@@ -769,8 +764,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     thread_pair.data.tGeometry = m_tGeometry;
     thread_pair.data.maxHalfSizeT =  MaxClusterHalfSizeT;
     thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
-    thread_pair.data.par0_neg = par0_neg;
-    thread_pair.data.par0_pos = par0_pos;
+    thread_pair.data.sampa_tbias = m_sampa_tbias;
     thread_pair.data.cluster_version = cluster_version;
     thread_pair.data.verbosity = Verbosity();
     
