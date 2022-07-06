@@ -16,11 +16,14 @@ class PHG4ParticleSvtxMap_v1 : public PHG4ParticleSvtxMap
   void identify(std::ostream& os = std::cout) const override;
   int isValid() const override { return 1; }
   PHObject* CloneMe() const override { return new PHG4ParticleSvtxMap_v1(*this); }
-  void Reset() override { clear(); }
+  void Reset() override { clear(); m_processed = false; }
   bool empty() const override { return m_map.empty(); }
   std::size_t size() const override { return m_map.size(); }
   std::size_t count(const int key) const override { return m_map.count(key); }
   void clear() override { m_map.clear(); }
+
+  bool processed() const override { return m_processed; }
+  void setProcessed(const bool process) override { m_processed = process; }
 
   const WeightedRecoTrackMap & get(const int key) const override;
   WeightedRecoTrackMap & get(const int key) override
@@ -46,6 +49,7 @@ class PHG4ParticleSvtxMap_v1 : public PHG4ParticleSvtxMap
 
  private:
   PHG4ParticleSvtxMap::Map m_map;
+  bool m_processed = false;
 
   ClassDefOverride(PHG4ParticleSvtxMap_v1, 1);
 };

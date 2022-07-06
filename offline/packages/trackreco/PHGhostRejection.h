@@ -11,38 +11,36 @@
 #define PHGHOSTREJECTION_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 
 #include <string>
 #include <vector>
 #include <map>
 
 class PHCompositeNode;
-class SvtxTrack;
-class SvtxTrackMap;
+class TrackSeedContainer;
 class TrkrCluster;
-class TpcSeedTrackMap;
+class TrackSeed;
+class TrkrClusterContainer;
 
-class PHGhostRejection : public SubsysReco
+class PHGhostRejection 
 {
  public:
+  PHGhostRejection() {}
+  PHGhostRejection(unsigned int verbosity);
 
-  PHGhostRejection(const std::string &name = "PHGhostRejection");
+  ~PHGhostRejection();
 
-  ~PHGhostRejection() override;
-
-  int InitRun(PHCompositeNode *topNode) override;
-  int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
-  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
-  void SetIteration(int iter){_n_iteration = iter;}
+  void rejectGhostTracks(std::vector<float>& trackChi2);
+  void verbosity(int verb) { m_verbosity = verb; }
+  void trackSeedContainer(TrackSeedContainer *seeds){m_trackMap = seeds;}
+  void positionMap(std::map<TrkrDefs::cluskey, Acts::Vector3>& map) { m_positions = map; }
 
  private:
 
-  int GetNodes(PHCompositeNode* topNode);
-  void findGhostTracks();
-  bool checkClusterSharing(SvtxTrack *tr1, SvtxTrack *tr2);
-
-SvtxTrackMap *_track_map{nullptr};
+  bool checkClusterSharing(TrackSeed *tr1, unsigned int trid1,
+			   TrackSeed *tr2, unsigned int trid2);
 
   double _phi_cut = 0.01;
   double _eta_cut = 0.004;
@@ -50,8 +48,11 @@ SvtxTrackMap *_track_map{nullptr};
   double _y_cut = 0.3;
   double _z_cut = 0.4;
   int _n_iteration = 0;
-  std::string _track_map_name = "SvtxTrackMap";
-
+  unsigned int m_verbosity = 0;
+  
+  TrackSeedContainer *m_trackMap = nullptr;
+ 
+  std::map<TrkrDefs::cluskey, Acts::Vector3> m_positions;
 };
 
 #endif // PHGHOSTREJECTION_H

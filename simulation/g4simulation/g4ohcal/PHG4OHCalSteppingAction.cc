@@ -1,11 +1,12 @@
 // local headers in quotes (that is important when using include subdirs!)
 #include "PHG4OHCalSteppingAction.h"
 
-#include "g4detectors/PHG4HcalDefs.h"
 #include "PHG4OHCalDetector.h"
-#include "g4detectors/PHG4StepStatusDecode.h"
 
 // our own headers in alphabetical order
+
+#include <g4detectors/PHG4HcalDefs.h>
+#include <g4detectors/PHG4StepStatusDecode.h>
 
 #include <phparameter/PHParameters.h>
 
@@ -24,14 +25,15 @@
 #include <TAxis.h>  // for TAxis
 #include <TFile.h>
 #include <TH2.h>
-#include <TH2F.h>
 #include <TNamed.h>  // for TNamed
 #include <TSystem.h>
 
 // Geant4 headers
 
+#include <Geant4/G4AffineTransform.hh>  // for G4AffineTransform
 #include <Geant4/G4Field.hh>
 #include <Geant4/G4FieldManager.hh>
+#include <Geant4/G4NavigationHistory.hh>   // for G4NavigationHistory
 #include <Geant4/G4ParticleDefinition.hh>  // for G4ParticleDefinition
 #include <Geant4/G4PropagatorInField.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
@@ -44,7 +46,6 @@
 #include <Geant4/G4TouchableHandle.hh>  // for G4TouchableHandle
 #include <Geant4/G4Track.hh>            // for G4Track
 #include <Geant4/G4TrackStatus.hh>      // for fStopAndKill
-#include <Geant4/G4Transform3D.hh>
 #include <Geant4/G4TransportationManager.hh>
 #include <Geant4/G4Types.hh>                  // for G4double
 #include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
@@ -54,6 +55,7 @@
 // finally system headers
 #include <cassert>
 #include <cmath>  // for isfinite, sqrt
+#include <cstdlib>
 #include <iostream>
 #include <string>   // for operator<<, string
 #include <utility>  // for pair
@@ -62,23 +64,13 @@ class PHCompositeNode;
 
 using namespace std;
 
-TH2F* MapCorr = NULL;
+TH2F* MapCorr = nullptr;
 
 //____________________________________________________________________________..
 PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
-  , m_Hits(nullptr)
-  , m_AbsorberHits(nullptr)
-  , m_Hit(nullptr)
   , m_Params(parameters)
-  , m_SaveHitContainer(nullptr)
-  , m_SaveShower(nullptr)
-  , m_SaveVolPre(nullptr)
-  , m_SaveVolPost(nullptr)
-  , m_SaveTrackId(-1)
-  , m_SavePreStepStatus(-1)
-  , m_SavePostStepStatus(-1)
   , m_EnableFieldCheckerFlag(m_Params->get_int_param("field_check"))
   , m_IsActiveFlag(m_Params->get_int_param("active"))
   , m_IsBlackHoleFlag(m_Params->get_int_param("blackhole"))
@@ -158,18 +150,19 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
   int layer_id = -1;
   int tower_id = -1;
+  int sector_id = -1;
   if (whichactive > 0)  // scintillator
   {
-    pair<int, int> layer_tower = m_Detector->GetLayerTowerId(volume);
-    layer_id = layer_tower.first;
-    tower_id = layer_tower.second;
+    std::tuple<int, int, int> layer_tower = m_Detector->GetRowColumnId(volume);
+    sector_id = std::get<0>(layer_tower); //.first;
+    layer_id = std::get<1>(layer_tower); //.first;
+    tower_id = std::get<2>(layer_tower); //.second;
   }
   else
   {
     layer_id = touch->GetCopyNumber();  // steel plate id
   }
 
-  std::cout<<"**78987** Outer HCal\t"<<volume->GetName()<<"\t"<<layer_id<<"\t"<<tower_id<<std::endl;
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
@@ -262,15 +255,16 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_Hit->set_edep(0);
       if (whichactive > 0)  // return of IsInOHCalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
+        m_Hit->set_sector(sector_id);  // the sector id
         m_Hit->set_scint_id(tower_id);  // the slat id
         m_Hit->set_eion(0);
         m_Hit->set_light_yield(0);  //  for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
-        m_SaveHitContainer = m_Hits;
+        m_SaveHitContainer = m_HitContainer;
       }
       else
       {
-        m_SaveHitContainer = m_AbsorberHits;
+        m_SaveHitContainer = m_AbsorberHitContainer;
       }
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
@@ -448,33 +442,19 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4OHCalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
-  if (m_Detector->SuperDetector() != "NONE")
-  {
-    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->SuperDetector();
-  }
-  else
-  {
-    hitnodename = "G4HIT_" + m_Detector->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
-  }
-
-  //now look for the map and grab a pointer to it.
-  m_Hits = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_AbsorberNodeName);
 
   // if we do not find the node it's messed up.
-  if (!m_Hits)
+  if (!m_HitContainer)
   {
-    std::cout << "PHG4OHCalSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    std::cout << "PHG4OHCalSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
   }
-  if (!m_AbsorberHits)
+  if (!m_AbsorberHitContainer)
   {
     if (Verbosity() > 1)
     {
-      cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+      std::cout << "PHG4OHcalSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << std::endl;
     }
   }
 }
@@ -551,4 +531,21 @@ void PHG4OHCalSteppingAction::FieldChecker(const G4Step* aStep)
          << ", " << biny << " := " << B << " Tesla @ x,y = " << globPosVec[0] / cm
          << "," << globPosVec[1] / cm << " cm" << endl;
   }
+}
+
+void PHG4OHCalSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_ABSORBER")
+  {
+    m_AbsorberNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }

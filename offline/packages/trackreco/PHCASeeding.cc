@@ -21,16 +21,14 @@
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
 // trackbase_historic includes
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrack_v3.h>
-
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
+#include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeed_v1.h>
 
 //ROOT includes for debugging
 #include <TFile.h>
@@ -201,19 +199,13 @@ PHCASeeding::PHCASeeding(
 
 int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
 {
-  tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
   if(!tGeometry)
     {
       std::cout << PHWHERE << "No acts tracking geometry, can't proceed" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   
-  surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,"ActsSurfaceMaps");
-  if(!surfMaps)
-    {
-      std::cout << PHWHERE << "No acts surface maps, can't proceed" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
     
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -221,9 +213,7 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
 Acts::Vector3 PHCASeeding::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
-  auto globalpos = m_transform.getGlobalPosition(key, cluster,
-    surfMaps,
-    tGeometry);
+  auto globalpos = tGeometry->getGlobalPosition(key, cluster);
 
   // check if TPC distortion correction are in place and apply
   if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
@@ -271,9 +261,7 @@ PositionMap PHCASeeding::FillTree()
 
       if(Verbosity() > 3)
 	{
-	  auto global_before = m_transform.getGlobalPosition(ckey, cluster,
-							     surfMaps,
-							     tGeometry);
+	  auto global_before = tGeometry->getGlobalPosition(ckey, cluster);  // no corrections
 	  std::cout << "CaSeeder: Cluster: " << ckey << std::endl;
 	  std::cout << " Global before: " << global_before[0] << "  " << global_before[1] << "  " << global_before[2] << std::endl;
 	  std::cout << " Global after   : " << globalpos_d[0] << "  " << globalpos_d[1] << "  " << globalpos_d[2] << std::endl;
@@ -359,8 +347,8 @@ int PHCASeeding::FindSeedsWithMerger(const PositionMap& globalPositions)
   std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> links = CreateLinks(fromPointKey(allClusters), globalPositions);
   std::vector<std::vector<keylink>> biLinks = FindBiLinks(links.first,links.second);
   std::vector<keylist> trackSeedKeyLists = FollowBiLinks(biLinks,globalPositions);
-  std::vector<keylist> cleanSeedKeyLists = RemoveBadClusters(trackSeedKeyLists, globalPositions);
-  std::vector<SvtxTrack_v3> seeds = fitter->ALICEKalmanFilter(cleanSeedKeyLists,true, globalPositions);
+  std::vector<TrackSeed_v1> seeds = RemoveBadClusters(trackSeedKeyLists, globalPositions);
+   
   publishSeeds(seeds);
   return seeds.size();
 }
@@ -715,66 +703,58 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
   return trackSeedKeyLists;
 }
 
-std::vector<keylist> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
+std::vector<TrackSeed_v1> PHCASeeding::RemoveBadClusters(const std::vector<keylist>& chains, const PositionMap& globalPositions) const
 {
   if(Verbosity()>0) std::cout << "removing bad clusters" << std::endl;
-  std::vector<keylist> clean_chains;
+  std::vector<TrackSeed_v1> clean_chains;
 
   for(const auto& chain : chains)
   {
     if(chain.size()<3) continue;
-    keylist clean_chain;
-
-    std::vector<std::pair<double,double>> xy_pts;
-//     std::vector<std::pair<double,double>> rz_pts;
-
-    for(const TrkrDefs::cluskey& ckey : chain)
-    {
-      const auto &global = globalPositions.at(ckey);
-      double x = global(0);
-      double y = global(1);
-      xy_pts.push_back(std::make_pair(x,y));
-//       double z = global(2);
-//       rz_pts.push_back(std::make_pair(std::sqrt(square(x)+square(y)),z));
-    }
     if(Verbosity()>0) std::cout << "chain size: " << chain.size() << std::endl;
 
-//     double A = 0;
-//     double B = 0;
-//     fitter->line_fit(rz_pts,A,B);
-//     const std::vector<double> rz_resid = fitter->GetLineClusterResiduals(rz_pts,A,B);
-    double R = 0;
-    double X0 = 0;
-    double Y0 = 0;
-    fitter->CircleFitByTaubin(xy_pts,R,X0,Y0);
+    TrackFitUtils::position_vector_t xy_pts;
+    for( const auto& ckey:chain )
+    {
+      const auto &global = globalPositions.at(ckey);
+      xy_pts.emplace_back( global.x(), global.y() );
+    } 
+
+    // fit a circle through x,y coordinates
+    const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin( xy_pts );
 
     // skip chain entirely if fit fails
-    /*
-     * note: this is consistent with what the code was doing before
-     * but in principle we could also keep the seed unchanged instead
-     * this is to be studied independently
-     */
     if( std::isnan( R ) ) continue;
 
     // calculate residuals
     const std::vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
+    
+    // assign clusters to seed
+    TrackSeed_v1 trackseed;
     for(size_t i=0;i<chain.size();i++)
     {
       if(xy_resid[i]>_xy_outlier_threshold) continue;
-      clean_chain.push_back(chain[i]);
+      trackseed.insert_cluster_key(chain.at(i));
     }
 
-    clean_chains.push_back(clean_chain);
-    if(Verbosity()>0) std::cout << "pushed clean chain with " << clean_chain.size() << " clusters" << std::endl;
+    clean_chains.push_back(trackseed);
+    if(Verbosity()>0) std::cout << "pushed clean chain with " << trackseed.size_cluster_keys() << " clusters" << std::endl;
   }
+
   return clean_chains;
 }
 
 
-void PHCASeeding::publishSeeds(const std::vector<SvtxTrack_v3>& seeds)
+void PHCASeeding::publishSeeds(const std::vector<TrackSeed_v1>& seeds)
 {
+ 
   for( const auto&  seed:seeds )
-  { _track_map->insert(&seed);}
+  {
+    auto pseed = std::make_unique<TrackSeed_v1>(seed);
+    if(Verbosity() > 4)
+      { pseed->identify(); }
+    _track_map->insert(pseed.get());
+  }
 }
 
 int PHCASeeding::Setup(PHCompositeNode *topNode)
@@ -789,9 +769,9 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
     { return ret; }
     
   // tpc distortion correction
-  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainer");
+  m_dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( m_dcc )
-  { std::cout << "PHCASeeding::Setup - found TPC distortion correction container" << std::endl; }
+  { std::cout << "PHCASeeding::Setup - found static TPC distortion correction container" << std::endl; }
   
   t_fill = std::make_unique<PHTimer>("t_fill");
   t_seed = std::make_unique<PHTimer>("t_seed");

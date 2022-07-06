@@ -1,9 +1,9 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4OUTERHCALSUBSYSTEM_H
-#define G4DETECTORS_PHG4OUTERHCALSUBSYSTEM_H
+#ifndef G4OHCAL_PHG4OHCALSUBSYSTEM_H
+#define G4OHCAL_PHG4OHCALSUBSYSTEM_H
 
-#include "g4detectors/PHG4DetectorSubsystem.h"
+#include <g4detectors/PHG4DetectorSubsystem.h>
 
 #include <string>
 
@@ -50,15 +50,18 @@ class PHG4OHCalSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4OHCalDetector* m_Detector;
+  PHG4OHCalDetector* m_Detector = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction;
+  PHG4DisplayAction* m_DisplayAction = nullptr;
+
+  std::string m_HitNodeName;
+  std::string m_AbsorberNodeName;
 };
 
-#endif
+#endif  // G4OHCAL_PHG4OHCALSUBSYSTEM_H

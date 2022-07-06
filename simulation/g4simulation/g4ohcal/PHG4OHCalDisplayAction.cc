@@ -37,6 +37,8 @@ void PHG4OHCalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     m_VisAttVec.push_back(m_VisAtt);
   }
 
+  if (m_SteelVol)
+  {
   if (m_SteelVol->GetVisAttributes())
   {
     return;
@@ -47,7 +49,10 @@ void PHG4OHCalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
   m_VisAtt->SetColor(G4Colour::Grey());
   m_SteelVol->SetVisAttributes(m_VisAtt);
   m_VisAttVec.push_back(m_VisAtt);
+  }
 
+  if (m_ChimSteelVol)
+  {
   if (m_ChimSteelVol->GetVisAttributes())
   {
     return;
@@ -58,5 +63,5 @@ void PHG4OHCalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
   m_VisAtt2->SetColor(G4Colour::Yellow());
   m_ChimSteelVol->SetVisAttributes(m_VisAtt2);
   m_VisAttVec2.push_back(m_VisAtt2);
-
+  }
 }

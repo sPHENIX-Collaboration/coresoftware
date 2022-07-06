@@ -10,7 +10,7 @@ class PHNode;
 class DumpPHHepMCGenEventMap : public DumpObject
 {
  public:
-  DumpPHHepMCGenEventMap(const std::string &NodeName);
+  explicit DumpPHHepMCGenEventMap(const std::string &NodeName);
   ~DumpPHHepMCGenEventMap() override {}
 
  protected:

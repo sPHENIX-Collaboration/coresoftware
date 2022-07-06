@@ -42,12 +42,6 @@ class CMFlashCluster : public PHObject
 
   //! copy content from base class
   virtual void CopyFrom( CMFlashCluster* )  {}
-
-  //
-  // cluster id
-  //
-  virtual unsigned int getClusKey() const { return UINT_MAX; }
-  virtual void setClusKey(unsigned int) {}
  
   //
   // cluster position

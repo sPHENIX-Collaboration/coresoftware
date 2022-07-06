@@ -39,9 +39,15 @@ my %proddesc = (
     "8" => "HF pythia8 Bottom",
     "9" => "HF pythia8 Charm D0",
     "10" => "HF pythia8 Bottom D0",
-    "11" => "JS pythia8 Jet R=4"
+    "11" => "JS pythia8 Jet R=4",
+    "12" => "JS pythia8 Jet 15GeV"
     );
 
+my %pileupdesc = (
+    "1" => "default (50kHz for Au+Au, 3MHz for p+p)",
+    "2" => "25kHz for Au+Au",
+    "3" => "10kHz for Au+Au"
+    );
 
 my $nEvents;
 my $start_segment;
@@ -51,45 +57,80 @@ my $runnumber = 4;
 my $verbose;
 my $nopileup;
 my $embed;
+my $pileup = 1;
 
-GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, "nopileup" => \$nopileup, 'rand' => \$randomize, 's:i' => \$start_segment, 'run:i' => \$runnumber, "verbose" =>\$verbose, 'embed' => \$embed);
+GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, "nopileup" => \$nopileup, 'pileup:i' => \$pileup, 'rand' => \$randomize, 's:i' => \$start_segment, 'run:i' => \$runnumber, "verbose" =>\$verbose, 'embed' => \$embed);
 my $filenamestring;
 my %filetypes = ();
 my %notlike = ();
+
+my $pileupstring;
+my $pp_pileupstring;
+
+if ($pileup == 1)
+{
+    $pileupstring = sprintf("50kHz");
+    $pp_pileupstring = sprintf("3MHz");
+}
+elsif ($pileup == 2)
+{
+    $pileupstring = sprintf("25kHz");
+}
+elsif ($pileup == 3)
+{
+    $pileupstring = sprintf("10kHz");
+}
+else
+{
+    print "invalid pileup option $pileup\n";
+    exit(1);
+}
+
 if (defined $prodtype)
 {
     if ($prodtype == 1)
     {
-	$filenamestring = "sHijing_0_12fm_50kHz_bkg_0_12fm";
+	$filenamestring = sprintf("sHijing_0_12fm_%s_bkg_0_12fm",$pileupstring);
         die "This dataset has been deleted\n";
 	&commonfiletypes();
     }
     elsif ($prodtype == 2)
     {
-	$filenamestring = "sHijing_0_488fm_50kHz_bkg_0_12fm";
+	$filenamestring = sprintf("sHijing_0_488fm_%s_bkg_0_12fm",$pileupstring);
         die "Dataset $prodtype has been deleted\n";
 	&commonfiletypes();
     }
     elsif ($prodtype == 3)
     {
-	$filenamestring = "pythia8_pp_mb_3MHz";
+	$filenamestring = "pythia8_pp_mb";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	}
 	&commonfiletypes();
     }
     elsif ($prodtype == 4)
     {
-	$filenamestring = "sHijing_0_20fm_50kHz_bkg_0_20fm";
+	if (defined $nopileup)
+	{
+	    $filenamestring = sprintf("sHijing_0_20fm");
+	}
+	else
+	{
+	    $filenamestring = sprintf("sHijing_0_20fm_%s_bkg_0_20fm",$pileupstring);
+	}
         $notlike{$filenamestring} = "pythia8";
 	&commonfiletypes();
     }
     elsif ($prodtype == 5)
     {
-	$filenamestring = "sHijing_0_12fm_50kHz_bkg_0_20fm";
+	$filenamestring = sprintf("sHijing_0_12fm_%s_bkg_0_20fm",$pileupstring);
         die "Dataset $prodtype has been deleted\n";
 	&commonfiletypes();
     }
     elsif ($prodtype == 6)
     {
-	$filenamestring = "sHijing_0_488fm_50kHz_bkg_0_20fm";
+	$filenamestring = sprintf("sHijing_0_488fm_%s_bkg_0_20fm",$pileupstring);
 	&commonfiletypes();
     }
     elsif ($prodtype == 7)
@@ -97,7 +138,7 @@ if (defined $prodtype)
 	$filenamestring = "pythia8_Charm";
 	if (! defined $nopileup)
 	{
-	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
 	&commonfiletypes();
     }
@@ -106,7 +147,7 @@ if (defined $prodtype)
 	$filenamestring = "pythia8_Bottom";
 	if (! defined $nopileup)
 	{
-	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
 	&commonfiletypes();
     }
@@ -115,7 +156,7 @@ if (defined $prodtype)
 	$filenamestring = "pythia8_CharmD0";
 	if (! defined $nopileup)
 	{
-	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
 	&commonfiletypes();
     }
@@ -124,7 +165,7 @@ if (defined $prodtype)
 	$filenamestring = "pythia8_BottomD0";
 	if (! defined $nopileup)
 	{
-	    $filenamestring = sprintf("%s_3MHz",$filenamestring);
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	}
 	&commonfiletypes();
     }
@@ -135,11 +176,27 @@ if (defined $prodtype)
 	{
 	    if (defined $embed)
 	    {
-		$filenamestring = sprintf("%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring);
+		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $pileupstring);
 	    }
 	    else
 	    {
-		$filenamestring = sprintf("%s_3MHz",$filenamestring);
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 12)
+    {
+	$filenamestring = "pythia8_Jet15";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $pileupstring);
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
 	    }
 	}
 	&commonfiletypes();
@@ -167,6 +224,11 @@ if ($#ARGV < 0)
 	foreach my $pd (sort { $a <=> $b } keys %proddesc)
 	{
 	    print "    $pd : $proddesc{$pd}\n";
+	}
+	print "\n-pileup : pileup rate selection\n";
+	foreach my $pd (sort { $a <=> $b } keys %pileupdesc)
+	{
+	    print "    $pd : $pileupdesc{$pd}\n";
 	}
 	print "\navailable file types (choose at least one, --> means: written to):\n";
 	foreach my $tp (sort keys %dsttype)

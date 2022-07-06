@@ -31,7 +31,7 @@
 #include <iostream>
 
 PHG4OHCalField::PHG4OHCalField(bool isInIron, G4int steelPlates,
-                                       G4double scintiGap, G4double tiltAngle)
+                               G4double scintiGap, G4double tiltAngle)
   : is_in_iron(isInIron)
   , n_steel_plates(steelPlates)
   , scinti_gap(scintiGap)

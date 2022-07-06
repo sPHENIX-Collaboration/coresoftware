@@ -80,18 +80,20 @@ class SvtxTrackEval
   void get_node_pointers(PHCompositeNode* topNode);
   bool has_node_pointers();
 
+  std::vector<TrkrDefs::cluskey> get_track_ckeys(SvtxTrack* track);
+
   SvtxClusterEval _clustereval;
-  SvtxTrackMap* _trackmap;
-  PHG4TruthInfoContainer* _truthinfo;
-  const PHG4ParticleSvtxMap* _truthRecoMap;
-  const SvtxPHG4ParticleMap* _recoTruthMap;
+  SvtxTrackMap* _trackmap = nullptr;
+  PHG4TruthInfoContainer* _truthinfo = nullptr;
+  const PHG4ParticleSvtxMap* _truthRecoMap = nullptr;
+  const SvtxPHG4ParticleMap* _recoTruthMap = nullptr;
 
-  bool _strict;
-  int _verbosity;
-  unsigned int _errors;
+  bool _strict = false;
+  int _verbosity = 0;
+  unsigned int _errors = 0;
 
-  bool _do_cache;
-  bool _cache_track_from_cluster_exists;
+  bool _do_cache = true;
+  bool _cache_track_from_cluster_exists = false;
   std::map<SvtxTrack*, std::set<PHG4Hit*> > _cache_all_truth_hits;
   std::map<SvtxTrack*, std::set<PHG4Particle*> > _cache_all_truth_particles;
   std::map<SvtxTrack*, PHG4Particle*> _cache_max_truth_particle_by_nclusters;
@@ -103,7 +105,7 @@ class SvtxTrackEval
   std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int> _cache_get_nclusters_contribution;
   std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int> _cache_get_nclusters_contribution_by_layer;
   std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int> _cache_get_nwrongclusters_contribution;
-  std::string m_TrackNodeName;
+  std::string m_TrackNodeName = "SvtxTrackMap";
 };
 
 #endif  // G4EVAL_SVTXTRACKEVAL_H

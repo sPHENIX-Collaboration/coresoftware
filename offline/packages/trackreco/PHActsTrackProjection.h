@@ -5,7 +5,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/SvtxTrack.h>
 
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Propagator/Propagator.hpp>
@@ -53,6 +53,8 @@ class PHActsTrackProjection : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
   
+  void useConstField(bool field) { m_constField = field; }
+
   /// Set an arbitrary radius to project to, in cm
   void setLayerRadius(SvtxTrack::CAL_LAYER layer,
 		      const float rad) { 
@@ -99,7 +101,7 @@ class PHActsTrackProjection : public SubsysReco
   Acts::Vector3 getVertex(SvtxTrack* track);
 
   /// Objects containing the Acts track fit results
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
   std::map<const unsigned int, Trajectory> *m_trajectories{nullptr};
@@ -118,6 +120,8 @@ class PHActsTrackProjection : public SubsysReco
   RawTowerGeomContainer *m_towerGeomContainer = nullptr;
   RawTowerContainer *m_towerContainer = nullptr;
   RawClusterContainer *m_clusterContainer = nullptr;
+
+  bool m_constField = true;
 
   bool m_useCemcPosRecalib = false;
 

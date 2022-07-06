@@ -7,7 +7,14 @@
  */
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
-#include <trackbase_historic/ActsTransformations.h>
+
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
+
+/// Acts includes to create all necessary definitions
+#include <Acts/Utilities/BinnedArray.hpp>
+#include <Acts/Definitions/Algebra.hpp>
+#include <Acts/Utilities/Logger.hpp>
 
 #include <TString.h>
 
@@ -15,8 +22,7 @@
 #include <vector>
 
 // forward declaration
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
+class ActsGeometry;
 
 class SvtxTrack;
 class SvtxTrackMap;
@@ -116,14 +122,8 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   /// true if only tracks with micromegas must be used
   bool m_use_micromegas = true;
 
-  /// acts transformation object
-  ActsTransformations m_transform;
-
   /// acts geometry
-  ActsTrackingGeometry *m_tgeometry = nullptr;
-
-  /// acts surface map
-  ActsSurfaceMaps *m_surfmaps = nullptr;
+  ActsGeometry *m_tgeometry = nullptr;
 
   /// map cluster keys to global position
   using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;

@@ -31,6 +31,9 @@ class SvtxPHG4ParticleMap : public PHObject
   virtual std::size_t count(const unsigned int) const { return 0; }
   virtual void clear() {}
 
+  virtual bool processed() const { return false; }
+  virtual void setProcessed(const bool) {}
+
   virtual const WeightedTruthTrackMap & get(const unsigned int) const;
   virtual WeightedTruthTrackMap & get(const unsigned int);
   virtual WeightedTruthTrackMap insert(const unsigned int, const WeightedTruthTrackMap);

@@ -37,7 +37,7 @@ BEmcProfile::BEmcProfile(const string& fname)
 
   gROOT->cd();
 
-  TH1F* hen = (TH1F*) f->Get("hen");
+  TH1F* hen = static_cast<TH1F*> (f->Get("hen"));
   if (!hen)
   {
     cout << "BEmcProfile: Error when loading profile data: hen" << endl;
@@ -45,7 +45,7 @@ BEmcProfile::BEmcProfile(const string& fname)
     return;
   }
 
-  TH1F* hth = (TH1F*) f->Get("hth");
+  TH1F* hth = static_cast<TH1F*> (f->Get("hth"));
   if (!hth)
   {
     cout << "BEmcProfile: Error when loading profile data: hth" << endl;
@@ -94,7 +94,7 @@ BEmcProfile::BEmcProfile(const string& fname)
       for (int ip = 0; ip < NP; ip++)
       {
         hname = boost::str(boost::format("hmean%d_en%d_t%d") % (ip + 1) % ie % it);
-        hh = (TH1F*) f->Get(hname.c_str());
+        hh = static_cast<TH1F*> (f->Get(hname.c_str()));
         if (!hh)
         {
           cout << "BEmcProfile: Could not load histogram " << hname
@@ -103,10 +103,10 @@ BEmcProfile::BEmcProfile(const string& fname)
           f->Close();
           return;
         }
-        hmean[ii] = (TH1F*) hh->Clone();
+        hmean[ii] = static_cast<TH1F*> (hh->Clone());
 
         hname = boost::str(boost::format("hsigma%d_en%d_t%d") % (ip + 1) % ie % it);
-        hh = (TH1F*) f->Get(hname.c_str());
+        hh = static_cast<TH1F*> (f->Get(hname.c_str()));
         if (!hh)
         {
           cout << "BEmcProfile: Could not load histogram " << hname
@@ -115,13 +115,13 @@ BEmcProfile::BEmcProfile(const string& fname)
           f->Close();
           return;
         }
-        hsigma[ii] = (TH1F*) hh->Clone();
+        hsigma[ii] = static_cast<TH1F*> (hh->Clone());
 
         ii++;
       }
 
       hname = boost::str(boost::format("hr4_en%d_t%d") % ie % it);
-      hh = (TH1F*) f->Get(hname.c_str());
+      hh = static_cast<TH1F*> (f->Get(hname.c_str()));
 
       if (!hh)
       {
@@ -130,7 +130,7 @@ BEmcProfile::BEmcProfile(const string& fname)
 	f->Close();
 	return;
       }
-      hr4[ii2] = (TH1F*) hh->Clone();
+      hr4[ii2] = static_cast<TH1F*> (hh->Clone());
       ii2++;
 
     }
@@ -178,7 +178,7 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   // z coordinate below means x coordinate
 
   float ee;
-  int ich, iy, iz;
+  int ich;// iy, iz;
 
   int iy0 = -1, iz0 = -1;
   float emax = 0;
@@ -202,8 +202,8 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   {
     ee = (*plist)[i].amp;
     ich = (*plist)[i].ich;
-    iy = ich / NX;
-    iz = ich % NX;
+    int iy = ich / NX;
+    int iz = ich % NX;
     if (ee > thresh && abs(iz - iz0) <= 3 && abs(iy - iy0) <= 3)
     {
       etot += ee;

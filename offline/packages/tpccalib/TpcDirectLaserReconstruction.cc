@@ -22,8 +22,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
-
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -234,8 +233,11 @@ int TpcDirectLaserReconstruction::load_nodes( PHCompositeNode* topNode )
   assert( m_surfmaps );
 
   // acts geometry
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   assert( m_tGeometry );
+
+  //  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  // assert( m_tGeometry );
 
   // tracks
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
@@ -461,8 +463,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       // Correct cluster z for the track transit time using the pathlength 
       double ns_per_cm = 1e9 / 3e10;
       double dt = pathlength * ns_per_cm;
-      double vdrift = 8.0 / 1000.0;  // cm/ns
-      double transit_dz = dt * vdrift;
+      double transit_dz = dt * m_tGeometry->get_drift_velocity();
       if(origin.z() > 0)
 	clus_centroid.SetZ(clus_centroid.z() + transit_dz);
       else

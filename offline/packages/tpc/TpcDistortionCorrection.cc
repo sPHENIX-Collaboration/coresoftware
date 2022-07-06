@@ -7,7 +7,7 @@
 #include "TpcDistortionCorrection.h"
 #include "TpcDistortionCorrectionContainer.h"
 
-#include <TH3.h>
+#include <TH1.h>
 #include <cmath>
 
 namespace
@@ -27,11 +27,22 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position( const Acts::Vecto
   const int index = z > 0 ? 1:0;
 
   // apply corrections
-  const auto phi_new = (dcc->m_hDPint[index] && (mask&COORD_PHI)) ? phi - dcc->m_hDPint[index]->Interpolate(phi,r,z)/r : phi;
-  const auto r_new = (dcc->m_hDRint[index] && (mask&COORD_R)) ? r - dcc->m_hDRint[index]->Interpolate(phi,r,z) : r;
-  const auto z_new = (dcc->m_hDZint[index] && (mask&COORD_Z)) ? z - dcc->m_hDZint[index]->Interpolate(phi,r,z) : z;
+  auto phi_new=phi;
+  auto r_new=r;
+  auto z_new=z;
+  if (dcc->dimensions==3){
+    phi_new = (dcc->m_hDPint[index] && (mask&COORD_PHI)) ? phi - dcc->m_hDPint[index]->Interpolate(phi,r,z)/r : phi;
+    r_new = (dcc->m_hDRint[index] && (mask&COORD_R)) ? r - dcc->m_hDRint[index]->Interpolate(phi,r,z) : r;
+    z_new = (dcc->m_hDZint[index] && (mask&COORD_Z)) ? z - dcc->m_hDZint[index]->Interpolate(phi,r,z) : z;
+  }
+  else if (dcc->dimensions==2){
+    const double zterm = (1.- std::abs(z)/105.5);
+    phi_new = (dcc->m_hDPint[index] && (mask&COORD_PHI)) ? phi - dcc->m_hDPint[index]->Interpolate(phi,r)*zterm/r : phi;
+    r_new = (dcc->m_hDRint[index] && (mask&COORD_R)) ? r - dcc->m_hDRint[index]->Interpolate(phi,r)*zterm : r;
+    z_new = (dcc->m_hDZint[index] && (mask&COORD_Z)) ? z - dcc->m_hDZint[index]->Interpolate(phi,r)*zterm : z;
+  }
   
-  // update cluster
+    // update cluster
   const auto x_new = r_new*std::cos( phi_new );
   const auto y_new = r_new*std::sin( phi_new );
 

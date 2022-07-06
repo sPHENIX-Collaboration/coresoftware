@@ -10,8 +10,8 @@
  * \date $Date: $
  */
 
-#ifndef G4DETECTORS_PHG4OUTERHCALFIELDSETUP_H
-#define G4DETECTORS_PHG4OUTERHCALFIELDSETUP_H
+#ifndef G4OHCAL_PHG4OHCALFIELDSETUP_H
+#define G4OHCAL_PHG4OHCALFIELDSETUP_H
 
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 
@@ -28,11 +28,11 @@ class PHG4OHCalFieldSetup
 {
  public:
   PHG4OHCalFieldSetup(G4int steelPlates, G4double scintiGap,
-                          G4double tiltAngle);
+                      G4double tiltAngle);
 
-// delete copy ctor and assignment opertor (cppcheck)
-  explicit PHG4OHCalFieldSetup(const PHG4OHCalFieldSetup &) = delete;
-  PHG4OHCalFieldSetup& operator = (const PHG4OHCalFieldSetup&) = delete;
+  // delete copy ctor and assignment opertor (cppcheck)
+  explicit PHG4OHCalFieldSetup(const PHG4OHCalFieldSetup&) = delete;
+  PHG4OHCalFieldSetup& operator=(const PHG4OHCalFieldSetup&) = delete;
 
   virtual ~PHG4OHCalFieldSetup() {}
 
@@ -127,4 +127,4 @@ class PHG4OHCalFieldSetup
   G4double tilt_angle;
 };
 
-#endif /* PHG4OUTERHCALFIELDSETUP_H_ */
+#endif /* G4OHCAL_PHG4OHCALFIELDSETUP_H_ */

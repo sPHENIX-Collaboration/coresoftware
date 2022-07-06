@@ -55,10 +55,6 @@ class PHG4MicromegasDetector : public PHG4Detector
   //! super detector name
   const std::string SuperDetector() const { return m_SuperDetector; }
 
-//   //! set micromegas tiles
-//   void set_tiles( const MicromegasTile::List& tiles )
-//   { m_tiles = tiles; }
-
   //! access the display action
   PHG4MicromegasDisplayAction* GetDisplayAction() { return m_DisplayAction; }
 

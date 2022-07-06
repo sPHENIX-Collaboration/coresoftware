@@ -2,6 +2,7 @@
 #define TRACKBASEHISTORIC_SVTXTRACK_H
 
 #include "SvtxTrackState.h"
+#include "TrackSeed.h"
 
 #include <trackbase/TrkrDefs.h>
 
@@ -66,6 +67,12 @@ class SvtxTrack : public PHObject
   virtual unsigned int get_id() const { return UINT_MAX; }
   virtual void set_id(unsigned int) {}
 
+  virtual TrackSeed* get_tpc_seed() const { return nullptr; }
+  virtual void set_tpc_seed(TrackSeed*) {}
+  
+  virtual TrackSeed* get_silicon_seed() const { return nullptr; }
+  virtual void set_silicon_seed(TrackSeed*) {}
+
   virtual short int get_crossing() const { return SHRT_MAX; }
   virtual void set_crossing(short int) {}
 
@@ -85,30 +92,6 @@ class SvtxTrack : public PHObject
   virtual void set_ndf(int) {}
 
   virtual float get_quality() const { return NAN; }
-
-  virtual float get_dca() const { return NAN; }
-  virtual void set_dca(float) {}
-
-  virtual float get_dca_error() const { return NAN; }
-  virtual void set_dca_error(float) {}
-
-  virtual float get_dca2d() const { return NAN; }
-  virtual void set_dca2d(float) {}
-
-  virtual float get_dca2d_error() const { return NAN; }
-  virtual void set_dca2d_error(float) {}
-
-  virtual float get_dca3d_xy() const { return NAN; }
-  virtual void set_dca3d_xy(float) {}
-
-  virtual float get_dca3d_xy_error() const { return NAN; }
-  virtual void set_dca3d_xy_error(float) {}
-
-  virtual float get_dca3d_z() const { return NAN; }
-  virtual void set_dca3d_z(float) {}
-
-  virtual float get_dca3d_z_error() const { return NAN; }
-  virtual void set_dca3d_z_error(float) {}
 
   virtual float get_x() const { return NAN; }
   virtual void set_x(float) {}
@@ -160,38 +143,12 @@ class SvtxTrack : public PHObject
   virtual StateIter begin_states();
   virtual StateIter find_state(float pathlength);
   virtual StateIter end_states();
-
+  
   //
-  // associated cluster ids methods --------------------------------------------
+  // The folllowing functions are deprecated as of SvtxTrack_v4
+  // This includes the cluster key getters/setters, 
+  // any DCA getters/setters, and any calo projection getters/setters
   //
-
-  // needed by old tracking
-
-  //! deprecated - please use cluster keys instead
-  virtual void clear_clusters() {}
-  //! deprecated - please use cluster keys instead
-  virtual bool empty_clusters() const { return false; }
-  //! deprecated - please use cluster keys instead
-  virtual size_t size_clusters() const { return 0; }
-
-  //! deprecated - please use cluster keys instead
-  virtual void insert_cluster(unsigned int /*clusterid*/) {}
-  //! deprecated - please use cluster keys instead
-  virtual size_t erase_cluster(unsigned int /*clusterid*/) { return 0; }
-  //! deprecated - please use cluster keys instead
-  virtual ConstClusterIter begin_clusters() const;
-  //! deprecated - please use cluster keys instead
-  virtual ConstClusterIter find_cluster(unsigned int /*clusterid*/) const;
-  //! deprecated - please use cluster keys instead
-  virtual ConstClusterIter end_clusters() const;
-  //! deprecated - please use cluster keys instead
-  virtual ClusterIter begin_clusters();
-  //! deprecated - please use cluster keys instead
-  virtual ClusterIter find_cluster(unsigned int clusterid);
-  //! deprecated - please use cluster keys instead
-  virtual ClusterIter end_clusters();
-
-  // needed by new tracking
   virtual void clear_cluster_keys() {}
   virtual bool empty_cluster_keys() const { return false; }
   virtual size_t size_cluster_keys() const { return 0; }
@@ -204,36 +161,53 @@ class SvtxTrack : public PHObject
   virtual ClusterKeyIter begin_cluster_keys();
   virtual ClusterKeyIter find_cluster_keys(unsigned int clusterid);
   virtual ClusterKeyIter end_cluster_keys();
+  virtual void clear_clusters() {}
+  virtual bool empty_clusters() const { return false; }
+  virtual size_t size_clusters() const { return 0; }
+  virtual void insert_cluster(unsigned int /*clusterid*/) {}
+  virtual size_t erase_cluster(unsigned int /*clusterid*/) { return 0; }
+  virtual ConstClusterIter begin_clusters() const;
+  virtual ConstClusterIter find_cluster(unsigned int /*clusterid*/) const;
+  virtual ConstClusterIter end_clusters() const;
+  virtual ClusterIter begin_clusters();
+  virtual ClusterIter find_cluster(unsigned int clusterid);
+  virtual ClusterIter end_clusters();
 
-  //
-  // calo projection methods ---------------------------------------------------
-  //
   virtual float get_cal_dphi(CAL_LAYER /*layer*/) const { return 0.; }
   virtual void set_cal_dphi(CAL_LAYER /*layer*/, float /*dphi*/) {}
-
   virtual float get_cal_deta(CAL_LAYER /*layer*/) const { return 0.; }
   virtual void set_cal_deta(CAL_LAYER /*layer*/, float /*deta*/) {}
-
   virtual float get_cal_energy_3x3(CAL_LAYER /*layer*/) const { return 0.; }
   virtual void set_cal_energy_3x3(CAL_LAYER /*layer*/, float /*energy_3x3*/) {}
-
   virtual float get_cal_energy_5x5(CAL_LAYER /*layer*/) const { return 0.; }
   virtual void set_cal_energy_5x5(CAL_LAYER /*layer*/, float /*energy_5x5*/) {}
-
   virtual unsigned int get_cal_cluster_id(CAL_LAYER /*layer*/) const { return 0; }
   virtual void set_cal_cluster_id(CAL_LAYER /*layer*/, unsigned int /*id*/) {}
-
   virtual TrkrDefs::cluskey get_cal_cluster_key(CAL_LAYER /*layer*/) const { return 0; }
   virtual void set_cal_cluster_key(CAL_LAYER /*layer*/, TrkrDefs::cluskey /*key*/) {}
-
   virtual float get_cal_cluster_e(CAL_LAYER /*layer*/) const { return 0.; }
   virtual void set_cal_cluster_e(CAL_LAYER /*layer*/, float /*e*/) {}
 
-  // Acts methods for use by Acts modules only
   virtual float get_acts_covariance(unsigned int /*i*/, unsigned int /*j*/) const { return NAN;}
   virtual void set_acts_covariance(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
  
-  
+  virtual float get_dca() const { return NAN; }
+  virtual void set_dca(float) {}
+  virtual float get_dca_error() const { return NAN; }
+  virtual void set_dca_error(float) {}
+  virtual float get_dca2d() const { return NAN; }
+  virtual void set_dca2d(float) {}
+  virtual float get_dca2d_error() const { return NAN; }
+  virtual void set_dca2d_error(float) {}
+  virtual float get_dca3d_xy() const { return NAN; }
+  virtual void set_dca3d_xy(float) {}
+  virtual float get_dca3d_xy_error() const { return NAN; }
+  virtual void set_dca3d_xy_error(float) {}
+  virtual float get_dca3d_z() const { return NAN; }
+  virtual void set_dca3d_z(float) {}
+  virtual float get_dca3d_z_error() const { return NAN; }
+  virtual void set_dca3d_z_error(float) {}
+
 
   //
   // truth track interface ---------------------------------------------------

@@ -32,6 +32,7 @@ class SvtxTrackMap : public PHObject
   virtual const SvtxTrack* get(unsigned int /*idkey*/) const { return nullptr; }
   virtual SvtxTrack* get(unsigned int /*idkey*/) { return nullptr; }
   virtual SvtxTrack* insert(const SvtxTrack* /*cluster*/) { return nullptr; }
+  virtual SvtxTrack* insertWithKey(const SvtxTrack*, unsigned int) { return nullptr; }
   virtual size_t erase(unsigned int /*idkey*/) { return 0; }
 
   virtual ConstIter begin() const;

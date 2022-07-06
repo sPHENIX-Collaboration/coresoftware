@@ -16,6 +16,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/TrackSeed.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -343,23 +344,36 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
         int INTT_hits = 0;
         int TPC_hits = 0;
 
-        for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+	TrackSeed* siliconSeed = track->get_tpc_seed();
+	TrackSeed* tpcSeed = track->get_silicon_seed();
+	if(siliconSeed)
+	  {
+	    for (auto cluster_iter = siliconSeed->begin_cluster_keys(); 
+		 cluster_iter != siliconSeed->end_cluster_keys(); ++cluster_iter)
+	      {
+		const auto &cluster_key = *cluster_iter;
+		const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+		
+		if (trackerID == TrkrDefs::mvtxId)
+		  ++MVTX_hits;
+		else if (trackerID == TrkrDefs::inttId)
+		  ++INTT_hits;
+		else
+		  {
+		    if (Verbosity())
+		      std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
+		  }
+	      }
+	  }
+	for (auto cluster_iter = tpcSeed->begin_cluster_keys(); 
+	     cluster_iter != tpcSeed->end_cluster_keys(); ++cluster_iter)
         {
-          const auto &cluster_key = *cluster_iter;
+	  const auto &cluster_key = *cluster_iter;
           const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
 
-          if (trackerID == TrkrDefs::mvtxId)
-            ++MVTX_hits;
-          else if (trackerID == TrkrDefs::inttId)
-            ++INTT_hits;
-          else if (trackerID == TrkrDefs::tpcId)
+          if (trackerID == TrkrDefs::tpcId)
             ++TPC_hits;
-          else
-          {
-            if (Verbosity())
-              std::cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << std::endl;
-          }
-        }
+	}
         if (MVTX_hits >= 2)
         {
           ++ntracks_with_cuts;

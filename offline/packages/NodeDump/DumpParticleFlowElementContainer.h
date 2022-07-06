@@ -10,7 +10,7 @@ class PHNode;
 class DumpParticleFlowElementContainer : public DumpObject
 {
  public:
-  DumpParticleFlowElementContainer(const std::string &NodeName);
+  explicit DumpParticleFlowElementContainer(const std::string &NodeName);
   ~DumpParticleFlowElementContainer() override {}
 
  protected:

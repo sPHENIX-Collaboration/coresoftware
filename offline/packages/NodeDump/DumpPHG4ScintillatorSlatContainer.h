@@ -10,7 +10,7 @@ class PHNode;
 class DumpPHG4ScintillatorSlatContainer : public DumpObject
 {
  public:
-  DumpPHG4ScintillatorSlatContainer(const std::string &NodeName);
+  explicit DumpPHG4ScintillatorSlatContainer(const std::string &NodeName);
   ~DumpPHG4ScintillatorSlatContainer() override {}
 
  protected:
