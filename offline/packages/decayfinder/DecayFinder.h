@@ -121,12 +121,25 @@ class DecayFinder : public SubsysReco
    */
   void setNodeName(const std::string &name) { m_container_name = name; }
 
+  /**
+   * @param[in] min The minimum eta threshold for track acceptance
+   * @param[in] min The maximum eta threshold for track acceptance
+   * @note Set a pseudorapidity threshold range for tracking
+   */
+  void setEtaRange(float min, float max) { m_eta_low_req = min; m_eta_high_req = max; }
+
+  /**
+   * @param[in] pt The minimum pT threshold for track acceptance
+   * @note Set a minimum pT threshold for tracking
+   */
+  void setPTmin(float pt) { m_pt_req = pt; }
+
  private:
   PHHepMCGenEventMap *m_geneventmap = nullptr;
   PHHepMCGenEvent *m_genevt = nullptr;
   PHG4TruthInfoContainer *m_truthinfo = nullptr;
 
-  double m_eta_req = 1.1;
+  double m_eta_high_req = 1.1;
   double m_eta_low_req = -1.1;
   double m_pt_req = 0.2;
 
