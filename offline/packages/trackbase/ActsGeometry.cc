@@ -41,7 +41,7 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
       return getGlobalPositionTpc(key, cluster);
     }
 
-  auto surface = maps().getSurface(key, cluster);
+  auto surface = m_surfMaps.getSurface(key, cluster);
 
   if(!surface)
     {
@@ -59,7 +59,7 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
   Acts::Vector3 global;
   /// If silicon/TPOT, the transform is one-to-one since the surface is planar
 
-  global = surface->localToGlobal(geometry().geoContext,
+  global = surface->localToGlobal(m_tGeometry.geoContext,
 				  local * Acts::UnitConstants::cm,
 				  Acts::Vector3(1,1,1));
   global /= Acts::UnitConstants::cm;
@@ -79,7 +79,7 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
       return glob;
     }
 
-  auto surface = maps().getSurface(key, cluster);
+  auto surface = m_surfMaps.getSurface(key, cluster);
 
   if(!surface)
     {
@@ -107,7 +107,7 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
   unsigned int side = TpcDefs::getSide(key);
   if(side == 0) zpos = -zpos;
 
-  auto surfCenter = surface->center(geometry().geoContext);
+  auto surfCenter = surface->center(m_tGeometry.geoContext);
 
   surfCenter /= Acts::UnitConstants::cm;
   double surfPhiCenter = atan2(surfCenter(1), surfCenter(0));
@@ -136,7 +136,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   TrkrDefs::subsurfkey& subsurfkey) const
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-  auto tpcmap = maps().m_tpcSurfaceMap;
+  auto tpcmap = m_surfMaps.m_tpcSurfaceMap;
   auto mapIter = tpcmap.find(layer);
   
   if(mapIter == tpcmap.end())
@@ -162,12 +162,12 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
 
   Surface this_surf = surf_vec[nsurf];
       
-  auto vec3d = this_surf->center(geometry().geoContext);
+  auto vec3d = this_surf->center(m_tGeometry.geoContext);
   std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
   double surf_z = surf_center[2];
   double surf_phi = atan2(surf_center[1], surf_center[0]);
-  double surfStepPhi = geometry().tpcSurfStepPhi;
-  double surfStepZ = geometry().tpcSurfStepZ;
+  double surfStepPhi = m_tGeometry.tpcSurfStepPhi;
+  double surfStepZ = m_tGeometry.tpcSurfStepZ;
 
   if( (world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0 ) &&
       (world_z > surf_z - surfStepZ / 2.0 && world_z < surf_z + surfStepZ / 2.0) )	

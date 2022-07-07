@@ -172,7 +172,7 @@ PHActsTrackProjection::makeTrackParams(SvtxTrack* track)
     for(int j = 0; j < 6; j++)
       { cov(i,j) = track->get_acts_covariance(i,j); }
 
-  return ActsExamples::TrackParameters::create(perigee, m_tGeometry->geometry().geoContext,
+  return ActsExamples::TrackParameters::create(perigee, m_tGeometry->m_tGeometry.geoContext,
 					       actsFourPos, momentum,
 					       track->get_charge() / track->get_p(),
 					       cov).value();
@@ -198,7 +198,7 @@ void PHActsTrackProjection::updateSvtxTrack(
   float pathlength = m_caloRadii.find(m_caloTypes.at(caloLayer))->second;
   SvtxTrackState_v1 out(pathlength);
 
-  auto projectionPos = params.position(m_tGeometry->geometry().geoContext);
+  auto projectionPos = params.position(m_tGeometry->m_tGeometry.geoContext);
   const auto momentum = params.momentum();
   out.set_x(projectionPos.x() / Acts::UnitConstants::cm);
   out.set_y(projectionPos.y() / Acts::UnitConstants::cm);
@@ -292,7 +292,7 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
   if(Verbosity() > 1) {
     std::cout << "Propagating final track fit with momentum: " 
 	      << params.momentum() << " and position " 
-	      << params.position(m_tGeometry->geometry().geoContext)
+	      << params.position(m_tGeometry->m_tGeometry.geoContext)
 	      << std::endl
 	      << "track fit phi/eta "
 	      << atan2(params.momentum()(1), 
@@ -306,7 +306,7 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
   using Stepper = Acts::EigenStepper<>;
   using Propagator = Acts::Propagator<Stepper>;
 
-  auto field = m_tGeometry->geometry().magField;
+  auto field = m_tGeometry->m_tGeometry.magField;
 
   if(m_constField)
     {
@@ -325,8 +325,8 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
   auto logger = Acts::getDefaultLogger("PHActsTrackProjection", 
 				       logLevel);
   
-  Acts::PropagatorOptions<> options(m_tGeometry->geometry().geoContext,
-				    m_tGeometry->geometry().magFieldContext,
+  Acts::PropagatorOptions<> options(m_tGeometry->m_tGeometry.geoContext,
+				    m_tGeometry->m_tGeometry.magFieldContext,
 				    Acts::LoggerWrapper{*logger});
   
   auto result = propagator.propagate(params, *targetSurf, 
@@ -420,7 +420,7 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
       for(const auto& [name, surfPtr] : m_caloSurfaces)
 	{
 	  std::cout << "Cylinder " << name << " has center "
-		    << surfPtr.get()->center(m_tGeometry->geometry().geoContext).transpose()
+		    << surfPtr.get()->center(m_tGeometry->m_tGeometry.geoContext).transpose()
 		    << std::endl;
 	}
     }

@@ -725,9 +725,9 @@ void DSTEmulator::evaluate_tracks()
 
     //    std::cout << " subsurfkey: " << subsurfkey << std::endl;
     std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
-    mapIter = m_tGeometry->maps().m_tpcSurfaceMap.find(layer);
+    mapIter = m_tGeometry->m_surfMaps.m_tpcSurfaceMap.find(layer);
     
-    if(mapIter == m_tGeometry->maps().m_tpcSurfaceMap.end()){
+    if(mapIter == m_tGeometry->m_surfMaps.m_tpcSurfaceMap.end()){
       std::cout << PHWHERE 
 		<< "Error: hitsetkey not found in clusterSurfaceMap, layer = " << 
 	trk_r//layer 
@@ -756,7 +756,7 @@ void DSTEmulator::evaluate_tracks()
     
     Surface surface = surf_vec[nsurf];
 
-    Acts::Vector3 center = surface->center(m_tGeometry->geometry().geoContext) 
+    Acts::Vector3 center = surface->center(m_tGeometry->m_tGeometry.geoContext) 
       / Acts::UnitConstants::cm;
   
     // no conversion needed, only used in acts

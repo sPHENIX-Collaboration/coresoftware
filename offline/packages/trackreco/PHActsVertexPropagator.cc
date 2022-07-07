@@ -133,7 +133,7 @@ void PHActsVertexPropagator::setVtxChi2()
 void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track, 
 					     const Acts::BoundTrackParameters& params)
 {
-  auto position = params.position(m_tGeometry->geometry().geoContext);
+  auto position = params.position(m_tGeometry->m_tGeometry.geoContext);
   
   if(Verbosity() > 2)
     {
@@ -174,8 +174,8 @@ BoundTrackParamPtrResult PHActsVertexPropagator::propagateTrack(
   using Stepper = Acts::EigenStepper<>;
   using Propagator = Acts::Propagator<Stepper, Acts::Navigator>;
   
-  Stepper stepper(m_tGeometry->geometry().magField);
-  Acts::Navigator::Config cfg{m_tGeometry->geometry().tGeometry};
+  Stepper stepper(m_tGeometry->m_tGeometry.magField);
+  Acts::Navigator::Config cfg{m_tGeometry->m_tGeometry.tGeometry};
   Acts::Navigator navigator(cfg);
   Propagator propagator(stepper, navigator);
   
@@ -186,8 +186,8 @@ BoundTrackParamPtrResult PHActsVertexPropagator::propagateTrack(
   auto logger = Acts::getDefaultLogger("PHActsVertexPropagator", 
 				       logLevel);
 
-  Acts::PropagatorOptions<> options(m_tGeometry->geometry().geoContext,
-				    m_tGeometry->geometry().magFieldContext,
+  Acts::PropagatorOptions<> options(m_tGeometry->m_tGeometry.geoContext,
+				    m_tGeometry->m_tGeometry.magFieldContext,
 				    Acts::LoggerWrapper{*logger});
   
   auto result = propagator.propagate(params, *perigee, 

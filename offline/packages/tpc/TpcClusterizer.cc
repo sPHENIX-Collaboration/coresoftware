@@ -384,10 +384,10 @@ namespace
       // SAMPA shaping bias correction
       clust = clust + my_data.sampa_tbias;
 
-      Acts::Vector3 center = surface->center(my_data.tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
+      Acts::Vector3 center = surface->center(my_data.tGeometry->m_tGeometry.geoContext)/Acts::UnitConstants::cm;
   
       // no conversion needed, only used in acts
-      Acts::Vector3 normal = surface->normal(my_data.tGeometry->geometry().geoContext);
+      Acts::Vector3 normal = surface->normal(my_data.tGeometry->m_tGeometry.geoContext);
       double clusRadius = sqrt(clusx * clusx + clusy * clusy);
       double rClusPhi = clusRadius * clusphi;
       double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
@@ -395,7 +395,7 @@ namespace
       double surfRphiCenter = surfPhiCenter * surfRadius;
       double surfZCenter = center[2];
      
-      auto local = surface->globalToLocal(my_data.tGeometry->geometry().geoContext,
+      auto local = surface->globalToLocal(my_data.tGeometry->m_tGeometry.geoContext,
 					  global * Acts::UnitConstants::cm,
 					  normal);
       Acts::Vector2 localPos;

@@ -69,11 +69,11 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
     { return Fun4AllReturnCodes::ABORTEVENT; }
   
   m_fitCfg.fit = ActsExamples::TrackFittingAlgorithm::makeTrackFitterFunction(
-    m_tGeometry->geometry().tGeometry,
-    m_tGeometry->geometry().magField);
+    m_tGeometry->m_tGeometry.tGeometry,
+    m_tGeometry->m_tGeometry.magField);
 
   m_fitCfg.dFit = ActsExamples::TrackFittingAlgorithm::makeTrackFitterFunction(
-    m_tGeometry->geometry().magField);
+    m_tGeometry->m_tGeometry.magField);
 
   m_outlierFinder.verbosity = Verbosity();
   std::map<long unsigned int, float> chi2Cuts;
@@ -281,7 +281,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         // make sure micromegas are in the tracks, if required
         if( m_useMicromegas &&
           std::none_of( surfaces.begin(), surfaces.end(), [this]( const auto& surface )
-          { return m_tGeometry->maps().isMicromegasSurface( surface ); } ) )
+          { return m_tGeometry->m_surfMaps.isMicromegasSurface( surface ); } ) )
         { continue; }
       }
 
@@ -311,7 +311,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Reset the track seed with the dummy covariance
       auto seed = ActsExamples::TrackParameters::create(
         pSurface,
-	m_tGeometry->geometry().geoContext,
+	m_tGeometry->m_tGeometry.geoContext,
 	actsFourPos,
 	momentum,
 	charge / momentum.norm(),
@@ -339,9 +339,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       Acts::GainMatrixSmoother kfSmoother;
       extensions.updater.connect<&Acts::GainMatrixUpdater::operator()>(&kfUpdater);
       extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()>(&kfSmoother);
-      auto geocontext = m_tGeometry->geometry().geoContext;
-      auto magcontext = m_tGeometry->geometry().magFieldContext;
-      auto calibcontext = m_tGeometry->geometry().calibContext;
+      auto geocontext = m_tGeometry->m_tGeometry.geoContext;
+      auto magcontext = m_tGeometry->m_tGeometry.magFieldContext;
+      auto calibcontext = m_tGeometry->m_tGeometry.calibContext;
       Acts::KalmanFitterOptions kfOptions(geocontext,
 					  magcontext,
 					  calibcontext,
@@ -457,7 +457,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       
       /// Make a safety check for clusters that couldn't be attached
       /// to a surface
-      auto surf = m_tGeometry->maps().getSurface(key, cluster);
+      auto surf = m_tGeometry->m_surfMaps.getSurface(key, cluster);
       if(!surf)
 	{ continue; }
 
@@ -518,7 +518,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	}
       else
 	{
-	  surf = m_tGeometry->maps().getSurface(cluskey, cluster);
+	  surf = m_tGeometry->m_surfMaps.getSurface(cluskey, cluster);
 	}
    
       if(!surf)
@@ -526,8 +526,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 
       // get local coordinates
       Acts::Vector2 localPos;
-      Acts::Vector3 normal = surf->normal(m_tGeometry->geometry().geoContext);
-      auto local = surf->globalToLocal(m_tGeometry->geometry().geoContext,
+      Acts::Vector3 normal = surf->normal(m_tGeometry->m_tGeometry.geoContext);
+      auto local = surf->globalToLocal(m_tGeometry->m_tGeometry.geoContext,
 				       global * Acts::UnitConstants::cm,
 				       normal);
      
@@ -538,7 +538,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       else
 	{
 	  /// otherwise take the manual calculation
-	  Acts::Vector3 center = surf->center(m_tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
+	  Acts::Vector3 center = surf->center(m_tGeometry->m_tGeometry.geoContext)/Acts::UnitConstants::cm;
 	 
 	  double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
 	  double clusphi = atan2(global[1], global[0]);
@@ -586,7 +586,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 		    << ", cov : " << cov.transpose() << std::endl
 		    << " geo id " << sl.geometryId() << std::endl;
 	  std::cout << "Surface : " << std::endl;
-	  surf.get()->toStream(m_tGeometry->geometry().geoContext, std::cout);
+	  surf.get()->toStream(m_tGeometry->m_tGeometry.geoContext, std::cout);
 	  std::cout << std::endl;
 	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
 	  std::cout << "For key " << cluskey << " with local pos " << std::endl
@@ -621,7 +621,7 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
 	  const auto& params = fitOutput.fittedParameters.value();
       
           std::cout << "Fitted parameters for track" << std::endl;
-          std::cout << " position : " << params.position(m_tGeometry->geometry().geoContext).transpose()
+          std::cout << " position : " << params.position(m_tGeometry->m_tGeometry.geoContext).transpose()
 	    
                     << std::endl;
 	  std::cout << "charge: "<<params.charge()<<std::endl;
@@ -693,12 +693,12 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
       if(Verbosity() > 1)
 	{ std::cout << "SL available on : " << sl.geometryId() << std::endl; }
       
-      const auto surf = m_tGeometry->geometry().tGeometry->findSurface(sl.geometryId());
+      const auto surf = m_tGeometry->m_tGeometry.tGeometry->findSurface(sl.geometryId());
       // skip TPC surfaces
-      if( m_tGeometry->maps().isTpcSurface( surf ) ) continue;
+      if( m_tGeometry->m_surfMaps.isTpcSurface( surf ) ) continue;
       
       // also skip micromegas surfaces if not used
-      if( m_tGeometry->maps().isMicromegasSurface( surf ) && !m_useMicromegas ) continue;
+      if( m_tGeometry->m_surfMaps.isMicromegasSurface( surf ) && !m_useMicromegas ) continue;
 
       // update vectors
       siliconMMSls.push_back(sl);
@@ -799,11 +799,11 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
   const auto& params = traj.trackParameters(trackTip);
 
   /// Acts default unit is mm. So convert to cm
-  track->set_x(params.position(m_tGeometry->geometry().geoContext)(0)
+  track->set_x(params.position(m_tGeometry->m_tGeometry.geoContext)(0)
 	       / Acts::UnitConstants::cm);
-  track->set_y(params.position(m_tGeometry->geometry().geoContext)(1)
+  track->set_y(params.position(m_tGeometry->m_tGeometry.geoContext)(1)
 	       / Acts::UnitConstants::cm);
-  track->set_z(params.position(m_tGeometry->geometry().geoContext)(2)
+  track->set_z(params.position(m_tGeometry->m_tGeometry.geoContext)(2)
 	       / Acts::UnitConstants::cm);
 
   track->set_px(params.momentum()(0));
@@ -837,7 +837,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
 
   if(m_fillSvtxTrackStates)
     { 
-      auto geocontext = m_tGeometry->geometry().geoContext;
+      auto geocontext = m_tGeometry->m_tGeometry.geoContext;
       rotater.fillSvtxTrackStates(mj, trackTip, track,
 				  geocontext);  
     }
@@ -911,7 +911,7 @@ void PHActsTrkFitter::printTrackSeed(const ActsExamples::TrackParameters& seed) 
 {
   std::cout << PHWHERE << " Processing proto track:"
 	    << std::endl;  
-  std::cout << "position: " << seed.position(m_tGeometry->geometry().geoContext).transpose() << std::endl
+  std::cout << "position: " << seed.position(m_tGeometry->m_tGeometry.geoContext).transpose() << std::endl
 	    << "momentum: " << seed.momentum().transpose() << std::endl;
 
   std::cout << "charge : " << seed.charge() << std::endl;

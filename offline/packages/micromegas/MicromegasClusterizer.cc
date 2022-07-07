@@ -174,7 +174,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     assert(layergeom);
 
     // get micromegas acts surface
-    const auto acts_surface = acts_geometry->maps().getMMSurface( hitsetkey);
+    const auto acts_surface = acts_geometry->m_surfMaps.getMMSurface( hitsetkey);
     if( !acts_surface )
     {
       std::cout

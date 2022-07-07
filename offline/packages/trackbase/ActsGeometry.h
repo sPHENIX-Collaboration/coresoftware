@@ -12,17 +12,6 @@ class ActsGeometry {
   ActsGeometry() = default;
   ~ActsGeometry() {} 
 
-  void setGeometry(const ActsTrackingGeometry tGeometry) 
-    { m_tGeometry = tGeometry; }
-
-  void setSurfMaps(const ActsSurfaceMaps surfMaps)
-    { m_surfMaps = surfMaps; }
-  
-  ActsTrackingGeometry geometry() const 
-    { return m_tGeometry; }
-  ActsSurfaceMaps maps() const 
-    { return m_surfMaps; }
-
   void set_drift_velocity(double vd) {_drift_velocity = vd;}
   double get_drift_velocity() {return _drift_velocity;}
 
@@ -49,7 +38,6 @@ class ActsGeometry {
       Acts::Vector3 world,
       TrkrDefs::subsurfkey& subsurfkey) const;
 
- private:
   ActsTrackingGeometry m_tGeometry;
   ActsSurfaceMaps m_surfMaps;
 

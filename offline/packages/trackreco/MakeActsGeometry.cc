@@ -134,8 +134,8 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   for( const auto& [hitsetid, surface]:m_clusterSurfaceMapMmEdit )
     { surfMaps.m_micromegasVolumeIds.insert( surface->geometryId().volume() ); } 
   
-  m_actsGeometry->setGeometry(trackingGeometry);
-  m_actsGeometry->setSurfMaps(surfMaps);
+  m_actsGeometry->m_tGeometry = trackingGeometry;
+  m_actsGeometry->m_surfMaps = surfMaps;
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
 
   // print

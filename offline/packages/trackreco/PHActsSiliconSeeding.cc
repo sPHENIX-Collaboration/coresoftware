@@ -588,7 +588,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   Acts::Vector3 globalPos(0,0,0);
   Acts::Vector3 mom(1,1,1);
 
-  globalPos = surf->localToGlobal(m_tGeometry->geometry().geoContext,
+  globalPos = surf->localToGlobal(m_tGeometry->m_tGeometry.geoContext,
 				  localPos, mom);
 
   Acts::SymMatrix2 localCov = Acts::SymMatrix2::Zero();
@@ -612,7 +612,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   ///       dz/dz = 1 
 
   Acts::RotationMatrix3 rotLocalToGlobal =
-    surf->referenceFrame(m_tGeometry->geometry().geoContext, globalPos, mom);
+    surf->referenceFrame(m_tGeometry->m_tGeometry.geoContext, globalPos, mom);
   auto scale = 2 / std::hypot(x,y);
   Acts::ActsMatrix<2, 3> jacXyzToRhoZ = Acts::ActsMatrix<2, 3>::Zero();
   jacXyzToRhoZ(0, Acts::ePos0) = scale * x;
@@ -662,7 +662,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 	  }
 
 	  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
-	  const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey);
+	  const auto surface = m_tGeometry->m_surfMaps.getSiliconSurface(hitsetkey);
 	  if(!surface)
 	    continue;
 
