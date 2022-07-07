@@ -2029,32 +2029,46 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
            ++iter)
 	{
 	  SvtxTrack* track = iter->second;
-	  
+
 	  PHG4Particle* truth = trackeval->max_truth_particle_by_nclusters(track);
 	  if (truth)
 	    {
 	      if (trutheval->get_embed(truth) <= 0) continue;
 	    }
-	  
-	  for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-	       iter != track->end_cluster_keys();
+
+	  std::vector<TrkrDefs::cluskey> clusters;
+	  auto siseed = track->get_silicon_seed();
+	  for (auto iter = siseed->begin_cluster_keys();
+	       iter != siseed->end_cluster_keys();
 	       ++iter)
 	    {
 	      TrkrDefs::cluskey cluster_key = *iter;
+	      clusters.push_back(cluster_key);
+	    }
+	  auto tpcseed = track->get_tpc_seed();
+	  for (auto iter = tpcseed->begin_cluster_keys();
+	       iter != tpcseed->end_cluster_keys();
+	       ++iter)
+	    {
+	      TrkrDefs::cluskey cluster_key = *iter;
+	      clusters.push_back(cluster_key);
+	    }
+
+	  // loop over all cluster keys and build ntuple
+	  for(unsigned int iclus = 0; iclus < clusters.size(); ++iclus)
+	    {
+	      TrkrDefs::cluskey cluster_key = clusters[iclus];	      
 	      TrkrCluster* cluster = clustermap->findCluster(cluster_key);
 	      if(!cluster) continue;   // possible to be missing from corrected clusters if cluster mover fails
 	      
 	      PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster_key);
 	      PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 	      
-	      //float hitID = cluster_key;
 	      float niter = 0;
 	      if(_iteration_map!=NULL)
 		niter = _iteration_map->getIteration(cluster_key);
 	      float hitID = (float) TrkrDefs::getClusIndex(cluster_key);
-	      //auto trkrid = TrkrDefs::getTrkrId(cluster_key);
-	      Acts::Vector3 glob;
-	      glob = tgeometry->getGlobalPosition(cluster_key, cluster);
+	      Acts::Vector3 glob = tgeometry->getGlobalPosition(cluster_key, cluster);
 	      float x = glob(0);
 	      float y = glob(1);
 	      float z = glob(2);
@@ -2063,7 +2077,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float phi = pos.Phi();
 	      float eta = pos.Eta();
 	      float theta = pos.Theta();
-
 	      float ex = 0;
 	      float ey = 0;
 	      float ez = 0;
@@ -2136,10 +2149,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      
 	      float efromtruth = NAN;
 	      
-	      //cout << "Look for truth cluster to match reco cluster " << cluster_key << endl;
-	      
 	      // get best matching truth cluster from clustereval
-        const auto [truth_ckey, truth_cluster] = clustereval->max_truth_cluster_by_energy(cluster_key);
+	      const auto [truth_ckey, truth_cluster] = clustereval->max_truth_cluster_by_energy(cluster_key);
 	      if(truth_cluster)
 		{
 		  if(Verbosity() > 1)
