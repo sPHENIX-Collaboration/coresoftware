@@ -32,6 +32,7 @@ pkginclude_HEADERS = \
   CMFlashDifferenceContainerv1.h \
   InttDefs.h \
   MvtxDefs.h \
+  TpcDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
   TrackFitUtils.h \
@@ -162,6 +163,7 @@ libtrack_io_la_SOURCES = \
   CMFlashDifferenceContainerv1.cc \
   InttDefs.cc \
   MvtxDefs.cc \
+  TpcDefs.cc \
   TrackFitUtils.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \

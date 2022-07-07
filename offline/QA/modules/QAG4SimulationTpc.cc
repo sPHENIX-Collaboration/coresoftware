@@ -9,10 +9,9 @@
 
 #include <g4main/PHG4HitContainer.h>
 
-#include <tpc/TpcDefs.h>
-
 #include <trackbase_historic/ActsTransformations.h>
 
+#include <trackbase/TpcDefs.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>

@@ -37,7 +37,7 @@ TpcClusterMover::TpcClusterMover()
 std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::processTrack(std::vector<std::pair<TrkrDefs::cluskey,Acts::Vector3>> global_in )
 {
 
-  // Get the TPC clusters for this track and correct them for distortions
+  // Get the global positions of the TPC clusters for this track, already corrected for distortions, and move them to the surfaces
   // The input object contains all clusters for the track
     
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_moved;

@@ -60,7 +60,7 @@ class PHG4TpcDigitizer : public SubsysReco
   float ADCNoiseConversionGain;
 
   std::vector<std::vector<TrkrHitSet::ConstIterator> > phi_sorted_hits;
-  std::vector<std::vector<TrkrHitSet::ConstIterator> > z_sorted_hits;
+  std::vector<std::vector<TrkrHitSet::ConstIterator> > t_sorted_hits;
 
   std::vector<float> adc_input;
   std::vector<TrkrDefs::hitkey> adc_hitid;

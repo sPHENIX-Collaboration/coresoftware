@@ -3,7 +3,7 @@
 
 #include "KFParticle_Tools.h"
 
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>

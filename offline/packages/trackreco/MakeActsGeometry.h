@@ -85,6 +85,8 @@ class MakeActsGeometry : public SubsysReco
   double getSurfStepPhi() {return m_surfStepPhi;}
   double getSurfStepZ() {return m_surfStepZ;}
 
+  void set_drift_velocity(double vd){m_drift_velocity = vd;}
+
   void add_fake_surfaces(bool add)
   {fake_surfaces = add;}
 
@@ -217,6 +219,8 @@ class MakeActsGeometry : public SubsysReco
 
   /// Verbosity value handed from PHActsSourceLinks
   int m_verbosity = 0;
+
+  double m_drift_velocity = 8.0e-03;  // cm/ns, override from macro
 
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField ="1.4" ;

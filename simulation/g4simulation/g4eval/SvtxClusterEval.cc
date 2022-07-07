@@ -123,7 +123,7 @@ std::pair<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxClusterEval::max_
 
   TrkrCluster* reco_cluster = _clustermap->findCluster(cluster_key);
 
-  auto global = _tgeometry->getGlobalPosition(cluster_key, reco_cluster);
+  auto global = getGlobalPosition(cluster_key, reco_cluster);
   double reco_x = global(0);
   double reco_y = global(1);
   double reco_z = global(2);
@@ -257,7 +257,7 @@ std::pair<TrkrDefs::cluskey, TrkrCluster*> SvtxClusterEval::reco_cluster_from_tr
 	{
 	  // get the cluster
 	  TrkrCluster* this_cluster = _clustermap->findCluster(this_ckey);
-	  auto global = _tgeometry->getGlobalPosition(this_ckey,this_cluster);
+	  auto global = getGlobalPosition(this_ckey,this_cluster);
 	  double this_x = global(0);
 	  double this_y = global(1);
 	  double this_z = global(2);
@@ -419,7 +419,7 @@ PHG4Hit* SvtxClusterEval::all_truth_hits_by_nhit(TrkrDefs::cluskey cluster_key)
     }
   */
   TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
-  auto glob = _tgeometry->getGlobalPosition(cluster_key, cluster);
+  auto glob = getGlobalPosition(cluster_key, cluster);
   TVector3 cvec(glob(0), glob(1), glob(2));
   unsigned int layer = TrkrDefs::getLayer(cluster_key);
   std::set<PHG4Hit*> truth_hits;
@@ -541,7 +541,7 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
   out_pair.second = -1;
 
   TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
-  auto global = _tgeometry->getGlobalPosition(cluster_key, cluster);
+  auto global = getGlobalPosition(cluster_key, cluster);
   TVector3 cvec(global(0), global(1), global(2));
   unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
@@ -1289,7 +1289,7 @@ void SvtxClusterEval::fill_cluster_layer_map()
       TrkrDefs::cluskey cluster_key = iter->first;
       unsigned int ilayer = TrkrDefs::getLayer(cluster_key);
       TrkrCluster *cluster = iter->second;
-      auto glob = _tgeometry->getGlobalPosition(cluster_key, cluster);
+      auto glob = getGlobalPosition(cluster_key, cluster);
       float clus_phi = atan2(glob(1), glob(0));
       
       multimap<unsigned int, innerMap>::iterator it = _clusters_per_layer.find(ilayer);
@@ -1381,4 +1381,12 @@ float SvtxClusterEval::fast_approx_atan2(float z)
   const float n1 = 0.97239411f;
   const float n2 = -0.19194795f;
   return (n1 + n2 * z * z) * z;
+}
+
+Acts::Vector3 SvtxClusterEval::getGlobalPosition(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster)
+{
+  Acts::Vector3 glob;
+  glob = _tgeometry->getGlobalPosition(cluster_key, cluster);
+
+  return glob;
 }

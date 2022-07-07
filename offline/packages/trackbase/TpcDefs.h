@@ -1,5 +1,5 @@
 /**
- * @file tpc/TpcDefs.h
+ * @file trackbase/TpcDefs.h
  * @author D. McGlinchey
  * @date June 2018
  * @brief Utility functions for TPC

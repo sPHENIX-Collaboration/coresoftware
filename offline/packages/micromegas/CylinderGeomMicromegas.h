@@ -19,6 +19,8 @@
 #include <cmath>
 #include <iostream>
 
+class ActsGeometry;
+class TVector2;
 class TVector3;
 class PHG4Hit;
 
@@ -57,40 +59,26 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   bool check_radius( const TVector3& ) const;
 
   //! convert world to local position coordinates in (planar) tile reference frame
-  /**
-   * each (planar) tile has a local ref system defined as:
-   * - origin at center of the tile
-   * - z axis same as phenix,
-   * - y axis perpendicular to the surface, outward,
-   * - x axis perpendicular to y and z to have a direct ref. frame
-   **/
-  TVector3 get_local_from_world_coords( uint tileid, const TVector3& ) const;
+  TVector3 get_local_from_world_coords( uint tileid, ActsGeometry*, const TVector3& ) const;
 
   //! convert world to local direction coordinates in (planar) tile reference frame
-  TVector3 get_local_from_world_vect( uint tileid, const TVector3& ) const;
+  TVector3 get_local_from_world_vect( uint tileid, ActsGeometry*, const TVector3& ) const;
 
   //! convert local to world position coordinates in (planar) tile reference frame
-  /**
-   * each (planar) tile has a local ref system defined as:
-   * - origin at center of the tile
-   * - z axis same as phenix,
-   * - y axis perpendicular to the surface, outward,
-   * - x axis perpendicular to y and z to have a direct ref. system
-   **/
-  TVector3 get_world_from_local_coords( uint tileid, const TVector3& ) const;
+  TVector3 get_world_from_local_coords( uint tileid, ActsGeometry*, const TVector2& ) const;
+
+  //! convert local to world position coordinates in (planar) tile reference frame
+  TVector3 get_world_from_local_coords( uint tileid, ActsGeometry*, const TVector3& ) const;
 
   //! convert local to world direction coordinates in (planar) tile reference frame
-  TVector3 get_world_from_local_vect( uint tileid, const TVector3& ) const;
+  TVector3 get_world_from_local_vect( uint tileid, ActsGeometry*, const TVector3& ) const;
 
   //! get tile for a given world location assuming tiles are portion of cylinder centered around tile center
-  /** it is used to find the tile hit by a given track. 
+  /** it is used to find the tile hit by a given track.
    * The track is first extrapolated to the layer cylinder, the relevant tile is found, if any
    * the track is then extrapolated a second time to the correct tile plane
    */
   int find_tile_cylindrical( const TVector3& ) const;
-
-  //! get tile for a given world location assuming tiles are planes centered on tile center and tengent to local cylinder
-  int find_tile_planar( const TVector3& ) const;
 
   //! get number of tiles
   size_t get_tiles_count() const { return m_tiles.size(); }
@@ -103,29 +91,22 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   }
 
   //! get strip for a give world location and tile
-  int find_strip_from_world_coords( uint tileid, const TVector3& ) const;
+  int find_strip_from_world_coords( uint tileid, ActsGeometry*, const TVector3& ) const;
 
   //! get strip for a give world location and tile
-  int find_strip_from_local_coords( uint tileid, const TVector3& ) const;
+  int find_strip_from_local_coords( uint tileid, ActsGeometry*, const TVector2& ) const;
 
   //! get strip length for a given tile
-  double get_strip_length( uint tileid ) const;
+  double get_strip_length( uint tileid, ActsGeometry* ) const;
 
   //! get number of strips
-  uint get_strip_count( uint tileid ) const;
+  uint get_strip_count( uint tileid, ActsGeometry* ) const;
 
   //! get local coordinates for a given tile and strip
-  TVector3 get_local_coordinates( uint tileid, uint stripnum ) const;
+  TVector2 get_local_coordinates( uint tileid, ActsGeometry*, uint stripnum ) const;
 
   //! get world coordinates for a given tile and strip
-  TVector3 get_world_coordinates( uint tileid, uint stripnum ) const;
-
-  //! get phi angle at center of tile
-  double get_center_phi( uint tileid ) const
-  {
-    assert( tileid < m_tiles.size() );
-    return m_tiles[tileid].m_centerPhi;
-  }
+  TVector3 get_world_coordinates( uint tileid, ActsGeometry*, uint stripnum ) const;
 
   /// reference radius used in macro to convert tile size in azimuth into a angle range (cm)
   static constexpr double reference_radius = 82;
@@ -153,9 +134,6 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
 
   private:
 
-  // get local to master transformation matrix for a given tile
-  TGeoHMatrix transformation_matrix( uint tileid ) const;
-
   //! layer id
   int m_layer = 0;
 
@@ -181,6 +159,10 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   double m_pitch = 0.1;
 
   //! tiles
+  /** 
+   * \brief tiles are only used in "find_tile_cylindrical". 
+   * For all other methods we use ACTS surfaces instead 
+   */
   MicromegasTile::List m_tiles;
 
   ClassDefOverride(CylinderGeomMicromegas, 1)
