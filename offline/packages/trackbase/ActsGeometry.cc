@@ -136,10 +136,9 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   TrkrDefs::subsurfkey& subsurfkey) const
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-  auto tpcmap = m_surfMaps.m_tpcSurfaceMap;
-  auto mapIter = tpcmap.find(layer);
+  auto mapIter = m_surfMaps.m_tpcSurfaceMap.find(layer);
   
-  if(mapIter == tpcmap.end())
+  if(mapIter == m_surfMaps.m_tpcSurfaceMap.end())
     {
       std::cout << "Error: hitsetkey not found in ActsGeometry::get_tpc_surface_from_coords, hitsetkey = "
 		<< hitsetkey << std::endl;
