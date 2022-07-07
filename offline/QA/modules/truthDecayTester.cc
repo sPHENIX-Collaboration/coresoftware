@@ -451,8 +451,7 @@ int truthDecayTester::process_event(PHCompositeNode *topNode)
       if (candidateCounter == 1) initializeBranches();
       m_tree->Fill();
     }
-    //if (m_write_QAHists)
-    if (true)
+    if (m_write_QAHists)
     {
       h_mother_PDG_ID->Fill(m_mother_pdg_id);
       std::cout << m_mother_pdg_id << " is the mother PDG ID" << std::endl;
