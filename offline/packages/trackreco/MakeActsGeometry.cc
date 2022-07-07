@@ -30,6 +30,8 @@
 #include <phgeom/PHGeomTGeo.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHNode.h>
@@ -148,15 +150,6 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
     { std::cout << "MakeActsGeometry::InitRun - Micromegas volume id: " << id << std::endl; }
   }
   
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int MakeActsGeometry::process_event(PHCompositeNode */*topNode*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-int MakeActsGeometry::End(PHCompositeNode */*topNode*/)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1384,26 +1377,28 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
 
 int MakeActsGeometry::createNodes(PHCompositeNode *topNode)
 {
-  PHNodeIterator iter(topNode);
 
+  PHNodeIterator iter(topNode);
   /// Get the DST Node
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
   
   /// Check that it is there
-  if (!dstNode)
+  if (!parNode)
     {
-      std::cerr << "DST Node missing, quitting" << std::endl;
-      throw std::runtime_error("failed to find DST node in PHActsSourceLinks::createNodes");
+      std::cout << "PAR Node missing, creating it" << std::endl;
+      parNode = new PHCompositeNode("PAR");
+      topNode->addNode(parNode);
     }
   
+  PHNodeIterator pariter(parNode);
   /// Get the tracking subnode
-  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(pariter.findFirst("PHCompositeNode", "SVTX"));
   
   /// Check that it is there
   if (!svtxNode)
     {
       svtxNode = new PHCompositeNode("SVTX");
-      dstNode->addNode(svtxNode);
+      parNode->addNode(svtxNode);
     }
 
   m_actsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
@@ -1449,6 +1444,9 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
     std::cout << PHWHERE 
 	      << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" 
 	      << std::endl;
+    topNode->print();
+    auto se = Fun4AllServer::instance();
+    se->Print();
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
