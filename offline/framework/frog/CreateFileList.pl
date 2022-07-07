@@ -40,7 +40,8 @@ my %proddesc = (
     "9" => "HF pythia8 Charm D0",
     "10" => "HF pythia8 Bottom D0",
     "11" => "JS pythia8 Jet R=4",
-    "12" => "JS pythia8 Jet 15GeV"
+    "12" => "JS pythia8 Jet 15GeV",
+    "13" => "JS pythia8 Photon Jet"
     );
 
 my %pileupdesc = (
@@ -188,6 +189,22 @@ if (defined $prodtype)
     elsif ($prodtype == 12)
     {
 	$filenamestring = "pythia8_Jet15";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		$filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $pileupstring);
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 13)
+    {
+	$filenamestring = "pythia8_PhotonJet";
 	if (! defined $nopileup)
 	{
 	    if (defined $embed)

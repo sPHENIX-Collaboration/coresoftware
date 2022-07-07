@@ -17,7 +17,7 @@ class PHParameterContainerInterface
   // PHParameterContainerInterface contains pointer to memory
   // copy ctor and = operator need explicit implementation, do just delete it here
   PHParameterContainerInterface(const PHParameterContainerInterface &) = delete;
-  PHParameterContainerInterface& operator = (PHParameterContainerInterface const&) = delete;
+  PHParameterContainerInterface &operator=(PHParameterContainerInterface const &) = delete;
 
   virtual ~PHParameterContainerInterface();
 
