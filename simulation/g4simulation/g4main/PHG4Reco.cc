@@ -275,7 +275,7 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
     if (m_FieldMapFile == "CDB")
     {
       recoConsts *rc = recoConsts::instance();
-      xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), "FieldMap", rc->get_uint64Flag("TIMESTAMP"), xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
+      xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), "FIELDMAPBIG", rc->get_uint64Flag("TIMESTAMP"), xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
       m_FieldMapFile = result.payload;
     }
     default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, m_FieldMapFile, m_MagneticFieldRescale));

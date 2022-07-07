@@ -287,7 +287,7 @@ float EmcCluster::GetProb(float& chi2, int& ndf)
 
 // ///////////////////////////////////////////////////////////////////////////
 
-int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* ppeaks)
+int EmcCluster::GetSubClusters(vector<EmcCluster> &PkList, vector<EmcModule> &ppeaks)
 {
   // Splits the cluster onto subclusters
   // The number of subclusters is equal to the number of Local Maxima in a cluster.
@@ -315,8 +315,8 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
   vector<EmcModule>::iterator ph;
   vector<EmcModule> hl;
 
-  PkList->clear();
-  ppeaks->clear();
+  PkList.clear();
+  ppeaks.clear();
 
   nhit = fHitList.size();
 
@@ -394,12 +394,12 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
     hl.clear();
     for (int ich = 0; ich < nhit; ich++) hl.push_back(hlist[ich]);
     peak.ReInitialize(hl);
-    PkList->push_back(peak);
+    PkList.push_back(peak);
 
     if (npk == 1)
-      ppeaks->push_back(hlist[PeakCh[0]]);
+      ppeaks.push_back(hlist[PeakCh[0]]);
     else
-      ppeaks->push_back(GetMaxTower());
+      ppeaks.push_back(GetMaxTower());
 
     delete[] hlist;
     return 1;
@@ -630,11 +630,11 @@ int EmcCluster::GetSubClusters(vector<EmcCluster>* PkList, vector<EmcModule>* pp
     if (nh > 0)
     {
       //      *ip++ = hlist[PeakCh[ipk]];
-      ppeaks->push_back(hlist[PeakCh[ipk]]);
+      ppeaks.push_back(hlist[PeakCh[ipk]]);
       hl.clear();
       for (in = 0; in < nh; in++) hl.push_back(phit[in]);
       peak.ReInitialize(hl);
-      PkList->push_back(peak);
+      PkList.push_back(peak);
       nn++;
     }
   }  // for( ipk

@@ -7,7 +7,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
