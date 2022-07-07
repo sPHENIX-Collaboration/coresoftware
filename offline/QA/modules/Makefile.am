@@ -44,7 +44,7 @@ pkginclude_HEADERS = \
   QAG4SimulationVertex.h \
   QAG4SimulationUpsilon.h \
   QAHistManagerDef.h \
-  truthDecayTester.h
+  QAG4SimulationTruthDecay.h
 
 libqa_kfparticle_la_SOURCES = \
   QAG4SimulationKFParticle.cc
@@ -61,7 +61,7 @@ libqa_modules_la_SOURCES = \
   QAG4SimulationVertex.cc \
   QAG4SimulationUpsilon.cc \
   QAHistManagerDef.cc \
-  truthDecayTester.cc
+  QAG4SimulationTruthDecay.cc
 
 ################################################
 # linking tests
