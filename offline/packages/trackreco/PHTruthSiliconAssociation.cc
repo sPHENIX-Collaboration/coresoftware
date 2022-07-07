@@ -286,8 +286,9 @@ int  PHTruthSiliconAssociation::GetNodes(PHCompositeNode* topNode)
       throw std::runtime_error("failed to find DST node in PHTruthSiliconAssociation::createNodes");
     }
   
-  /// Get the tracking subnode
-  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+  /// Get the tracking subnode under DST
+  PHNodeIterator dstIter(dstNode);
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", "SVTX"));
   
   /// Check that it is there
   if (!svtxNode)

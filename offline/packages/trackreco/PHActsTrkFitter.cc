@@ -931,7 +931,8 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
     throw std::runtime_error("Failed to find DST node in PHActsTrkFitter::createNodes");
   }
   
-  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+  PHNodeIterator dstIter(topNode);
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", "SVTX"));
 
   if (!svtxNode)
   {
