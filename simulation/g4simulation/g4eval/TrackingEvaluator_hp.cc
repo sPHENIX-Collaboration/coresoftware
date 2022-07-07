@@ -1109,12 +1109,10 @@ void TrackingEvaluator_hp::add_trk_information_micromegas( TrackingEvaluator_hp:
   // convert cluster position to local tile coordinates
   const TVector3 cluster_world( cluster._x, cluster._y, cluster._z );
   const auto cluster_local = layergeom->get_local_from_world_coords( tileid, m_tGeometry, cluster_world );
-  std::cout << "TrackingEvaluator_hp::add_trk_information_micromegas - cluster local: " << cluster_local << std::endl;
   
   // convert track position to local tile coordinates
   TVector3 track_world( state->get_x(), state->get_y(), state->get_z() );
   auto track_local = layergeom->get_local_from_world_coords( tileid, m_tGeometry, track_world );
-  std::cout << "TrackingEvaluator_hp::add_trk_information_micromegas - track local: " << track_local << std::endl;
 
   // convert direction to local tile coordinates
   const TVector3 direction_world( state->get_px(), state->get_py(), state->get_pz() );
