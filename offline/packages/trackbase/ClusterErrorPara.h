@@ -17,6 +17,10 @@ class ClusterErrorPara
 
   public:
   ClusterErrorPara();
+ // delete copy ctor and assignment operator (cppcheck)
+  explicit ClusterErrorPara(const ClusterErrorPara&) = delete;
+  ClusterErrorPara& operator=(const ClusterErrorPara&) = delete;
+
   /*
   ~ClusterErrorPara(){
     delete f0;
