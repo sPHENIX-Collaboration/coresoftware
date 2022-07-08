@@ -3,6 +3,7 @@
 #include <CLHEP/Vector/ThreeVector.h>
 #include <CLHEP/Vector/Rotation.h>
 
+#include <Acts/Definitions/Units.hpp>
 #include <algorithm>
 #include <cmath>
 
@@ -37,37 +38,62 @@ bool CylinderGeomIntt::load_geometry()
   return true;
 }
 
-TVector3 CylinderGeomIntt::get_local_from_world_coords(const int segment_z_bin, const int segment_phi_bin, TVector3 world)
+TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector3 local)
 {
-  TVector3 local(0,0,0);
+  Acts::Vector3 loc(local.x(), local.y(), local.z());
+  loc *= Acts::UnitConstants::cm;
+  
+  Acts::Vector3 glob = surface->transform(tGeometry->geometry().geoContext) * loc;
+  glob /= Acts::UnitConstants::cm;
+  return TVector3(glob(0), glob(1), glob(2));
+}
+TVector3 CylinderGeomIntt::get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector2 local)
+{
+  Acts::Vector2 actslocal;
+  actslocal(0) = local.X();
+  actslocal(1) = local.Y();
+  actslocal *= Acts::UnitConstants::cm;
+  
+  /// Acts requires a dummy vector to be passed in the arg list
+  auto global = surface->localToGlobal(tGeometry->geometry().geoContext,
+				       actslocal,
+				       Acts::Vector3(1,1,1));
 
-  double center[3] = {0,0,0};
-  find_segment_center(segment_z_bin, segment_phi_bin, center);
-  TVector3 cent(center[0], center[1], center[2]);
+  global /= Acts::UnitConstants::cm;
+  
+  TVector3 ret;
+  ret[0] = global(0);
+  ret[1] = global(1);
+  ret[2] = global(2);
+  
+  return ret;
 
-  // subtract center location of sensor from world coords
-  local = world - cent;
+}
+TVector3 CylinderGeomIntt::get_local_from_world_coords(Surface surface, ActsGeometry* tGeometry, TVector3 world)
+{
+  Acts::Vector3 global;
+  global(0) = world[0];
+  global(1) = world[1];
+  global(2) = world[2];
+  global *= Acts::UnitConstants::cm;
 
-  // rotate the residual into local coords
-  const double phi = m_OffsetPhi + m_dPhi * segment_phi_bin;
-  const double rotate = phi + m_OffsetRot;
-  local.RotateZ(-rotate);
+  Acts::Vector3 local = surface->transform(tGeometry->geometry().geoContext).inverse() * global;
 
-  return local;
+  local /= Acts::UnitConstants::cm;
+
+  /// The acts transform is offset by one element
+  return TVector3(local(2), local(0), local(1));
 }
 
-void CylinderGeomIntt::find_segment_center(const int segment_z_bin, const int segment_phi_bin, double location[])
+void CylinderGeomIntt::find_segment_center(Surface surface, ActsGeometry* tGeometry, double location[])
 {
-  const double signz = (segment_z_bin > 1) ? 1. : -1.;
-  const int itype = segment_z_bin % 2;
+  TVector2 local(0.0,0.0);
 
-  // Ladder
-  const double phi = m_OffsetPhi + m_dPhi * segment_phi_bin;
-  location[0] = m_SensorRadius * cos(phi);
-  location[1] = m_SensorRadius * sin(phi);
-  location[2] = signz * m_LadderZ[itype];
-
-  //cout << "radius " << m_SensorRadius << " offsetphi " << m_OffsetPhi << " rad  dphi_ " << m_dPhi << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << " rad " << endl;
+  TVector3 global = get_world_from_local_coords(surface, tGeometry, local);
+  location[0] = global.X();
+  location[1] = global.Y();
+  location[2] = global.Z();
+  return;
 }
 
 void CylinderGeomIntt::find_indices_from_world_location(int &segment_z_bin, int &segment_phi_bin, double location[])
@@ -119,10 +145,10 @@ void CylinderGeomIntt::find_indices_from_segment_center(int &segment_z_bin, int 
   //cout << "radius " << m_SensorRadius << " offsetphi " << m_OffsetPhi << " rad  dphi_ " << m_dPhi << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << endl;
 }
 
-void CylinderGeomIntt::find_strip_center(const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
+void CylinderGeomIntt::find_strip_center(Surface surface, ActsGeometry *tGeometry, const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
 {
   // Ladder
-  find_segment_center(segment_z_bin, segment_phi_bin, location);
+  find_segment_center(surface, tGeometry, location);
   CLHEP::Hep3Vector ladder(location[0], location[1], location[2]);
 
   // Strip

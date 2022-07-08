@@ -126,6 +126,12 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
 int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 {
   //cout << PHWHERE << "Entering process_event for PHG4MvtxHitReco" << endl;
+  ActsGeometry *tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if(!tgeometry)
+    {
+      std::cout << "Could not locate acts geometry" << std::endl;
+      exit(1);
+    }
 
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
@@ -220,14 +226,17 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       TVector3 local_out(hiter->second->get_local_x(1), hiter->second->get_local_y(1), hiter->second->get_local_z(1));
       TVector3 midpoint((local_in.X() + local_out.X()) / 2.0, (local_in.Y() + local_out.Y()) / 2.0, (local_in.Z() + local_out.Z()) / 2.0);
 
-      if (Verbosity() > 4)
+      if (Verbosity() > 2)
       {
         cout << endl
              << "  world entry point position: " << hiter->second->get_x(0) << " " << hiter->second->get_y(0) << " " << hiter->second->get_z(0) << endl;
         cout << "  world exit  point position: " << hiter->second->get_x(1) << " " << hiter->second->get_y(1) << " " << hiter->second->get_z(1) << endl;
         cout << "  local coords of entry point from G4 " << hiter->second->get_local_x(0) << " " << hiter->second->get_local_y(0) << " " << hiter->second->get_local_z(0) << endl;
         TVector3 world_in(hiter->second->get_x(0), hiter->second->get_y(0), hiter->second->get_z(0));
-        TVector3 local_in_check = layergeom->get_local_from_world_coords(stave_number, half_stave_number, module_number, chip_number, world_in);
+	auto hskey = MvtxDefs::genHitSetKey(*layer,stave_number,chip_number,strobe);
+	auto surf = tgeometry->maps().getSiliconSurface(hskey);
+
+        TVector3 local_in_check = layergeom->get_local_from_world_coords(surf, tgeometry, world_in);
         cout << "  local coords of entry point from geom (a check) " << local_in_check.X() << " " << local_in_check.Y() << " " << local_in_check.Z() << endl;
         cout << "  local coords of exit point from G4 " << hiter->second->get_local_x(1) << " " << hiter->second->get_local_y(1) << " " << hiter->second->get_local_z(1) << endl;
         cout << "  local coords of exit point from geom (a check) " << local_out.X() << " " << local_out.Y() << " " << local_out.Z() << endl;
@@ -237,8 +246,11 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       if (Verbosity() > 2)
       {
         // As a check, get the positions of the hit pixels in world coordinates from the geo object
-        TVector3 location_in = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_in);
-        TVector3 location_out = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_out);
+	auto hskey = MvtxDefs::genHitSetKey(*layer,stave_number,chip_number,strobe);
+	auto surf = tgeometry->maps().getSiliconSurface(hskey);
+
+        TVector3 location_in = layergeom->get_world_from_local_coords(surf,tgeometry, local_in);
+        TVector3 location_out = layergeom->get_world_from_local_coords(surf,tgeometry, local_out);
 
         cout << endl
              << "      PHG4MvtxHitReco:  Found world entry location from geometry for  "

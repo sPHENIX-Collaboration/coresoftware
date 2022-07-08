@@ -1059,15 +1059,13 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     {
 
       case TrkrDefs::mvtxId:
-      {
-        int stave_index = MvtxDefs::getStaveId(cluster_key);
-        int chip_index = MvtxDefs::getChipId(cluster_key);
-
+	{
         double ladder_location[3] = {0.0, 0.0, 0.0};
         auto geom = static_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
+	auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+	auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
         // returns the center of the sensor in world coordinates - used to get the ladder phi location
-        geom->find_sensor_center(stave_index, 0,
-          0, chip_index, ladder_location);
+        geom->find_sensor_center(surf, m_tgeometry, ladder_location);
 
         //cout << " MVTX stave phi tilt = " <<  geom->get_stave_phi_tilt()
         //   << " seg.X " << ladder_location[0] << " seg.Y " << ladder_location[1] << " seg.Z " << ladder_location[2] << endl;
@@ -1080,8 +1078,9 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       {
         auto geom = static_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
         double hit_location[3] = {0.0, 0.0, 0.0};
-        geom->find_segment_center(InttDefs::getLadderZId(cluster_key),
-          InttDefs::getLadderPhiId(cluster_key), hit_location);
+	auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+	auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
+        geom->find_segment_center(surf, m_tgeometry, hit_location);
 
         //cout << " Intt strip phi tilt = " <<  geom->get_strip_phi_tilt()
         //   << " seg.X " << hit_location[0] << " seg.Y " << hit_location[1] << " seg.Z " << hit_location[2] << endl;

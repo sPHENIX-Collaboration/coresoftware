@@ -224,7 +224,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// has a silicon match, we skip those cases completely
       if(siid == std::numeric_limits<unsigned int>::max()) 
 	{
-	  if(Verbosity() > 0) std::cout << "SvtxSeedTrack has no silicon match, skip it" << std::endl;
+	  if(Verbosity() > 1) std::cout << "SvtxSeedTrack has no silicon match, skip it" << std::endl;
 	  continue;
 	}
 
@@ -236,6 +236,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if(crossing == SHRT_MAX) 
 	{
 	  // Skip this in the pp case. For AuAu it should not happen
+	  if(Verbosity() > 1) std::cout << "Crossing not determined, skipping track" << std::endl;
 	  continue;
 	}
 
