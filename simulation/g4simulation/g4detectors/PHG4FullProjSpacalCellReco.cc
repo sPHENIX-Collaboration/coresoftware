@@ -30,14 +30,16 @@
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+#include <phool/recoConsts.h>
+
+#include <xpload/xpload.h>
 
 #include <TAxis.h>  // for TAxis
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
 #include <TObject.h>  // for TObject
-
-#include <boost/foreach.hpp>
+#include <TSystem.h>
 
 #include <cassert>
 #include <cmath>
@@ -177,7 +179,7 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
   map_z_tower_z_ID_t map_z_tower_z_ID;
   double phi_min = NAN;
 
-  BOOST_FOREACH (const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type &tower_pair, tower_map)
+  for (const auto &tower_pair: tower_map)
   {
     const int &tower_ID = tower_pair.first;
     const PHG4CylinderGeom_Spacalv3::geom_tower &tower =
@@ -202,7 +204,7 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       map_z_tower_z_ID[tower.centralZ] = tower_ID_z;
     }
     // ...
-  }  //       BOOST_FOREACH(const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type& tower_pair, tower_map)
+  }  //       const auto &tower_pair: tower_map
 
   assert(!std::isnan(phi_min));
   layerseggeo->set_phimin(phi_min);
@@ -211,7 +213,7 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
 
   PHG4CylinderCellGeom_Spacalv1::tower_z_ID_eta_bin_map_t tower_z_ID_eta_bin_map;
   int eta_bin = 0;
-  BOOST_FOREACH (map_z_tower_z_ID_t::value_type &z_tower_z_ID, map_z_tower_z_ID)
+  for (auto &z_tower_z_ID: map_z_tower_z_ID)
   {
     tower_z_ID_eta_bin_map[z_tower_z_ID.second] = eta_bin;
     eta_bin++;
@@ -222,7 +224,7 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
   layerseggeo->set_etastep(NAN);
 
   //build eta bin maps
-  BOOST_FOREACH (const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type &tower_pair, tower_map)
+  for (const auto &tower_pair: tower_map)
   {
     const int &tower_ID = tower_pair.first;
     const PHG4CylinderGeom_Spacalv3::geom_tower &tower =
@@ -281,7 +283,7 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       }
     }
     // ...
-  }  //       BOOST_FOREACH(const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type& tower_pair, tower_map)
+  }  //       const auto &tower_pair: tower_map
 
   // add geo object filled by different binning methods
   seggeo->AddLayerCellGeom(layerseggeo);
@@ -547,6 +549,35 @@ PHG4FullProjSpacalCellReco::LightCollectionModel::~LightCollectionModel()
 {
   delete data_grid_light_guide_efficiency;
   delete data_grid_fiber_trans;
+}
+
+void PHG4FullProjSpacalCellReco::LightCollectionModel::load_data_from_CDB(
+    const std::string &domain,
+    const std::string &histogram_light_guide_model,
+    const std::string &histogram_fiber_model)
+{
+  recoConsts *rc = recoConsts::instance();
+  xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), domain, rc->get_uint64Flag("TIMESTAMP"), xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
+  if (result.payload.empty())
+  {
+    std::cout << "No calibration for domain " << domain << " for timestamp " << rc->get_uint64Flag("TIMESTAMP") << std::endl;
+    gSystem->Exit(1);
+  }
+  TFile *fin = TFile::Open(result.payload.c_str());
+  if (!fin)
+  {
+    std::cout << "could not open " << result.payload << std::endl;
+    gSystem->Exit(1);
+  }
+  if (data_grid_light_guide_efficiency) delete data_grid_light_guide_efficiency;
+  data_grid_light_guide_efficiency = dynamic_cast<TH2 *>(fin->Get(histogram_light_guide_model.c_str()));
+  assert(data_grid_light_guide_efficiency);
+  data_grid_light_guide_efficiency->SetDirectory(nullptr);
+  if (data_grid_fiber_trans) delete data_grid_fiber_trans;
+  data_grid_fiber_trans = dynamic_cast<TH1 *>(fin->Get(histogram_fiber_model.c_str()));
+  assert(data_grid_fiber_trans);
+  data_grid_fiber_trans->SetDirectory(nullptr);
+  delete fin;
 }
 
 void PHG4FullProjSpacalCellReco::LightCollectionModel::load_data_file(

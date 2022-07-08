@@ -48,6 +48,9 @@ class PHG4FullProjSpacalCellReco : public SubsysReco, public PHParameterInterfac
     //! input data file
     void load_data_file(const std::string &input_file, const std::string &histogram_light_guide_model, const std::string &histogram_fiber_model);
 
+    //! load from CDB
+    void load_data_from_CDB(const std::string &domain, const std::string &histogram_light_guide_model, const std::string &histogram_fiber_model);
+
     //! Whether use light collection model
     bool use_light_guide_model() const { return data_grid_light_guide_efficiency != nullptr; }
 
