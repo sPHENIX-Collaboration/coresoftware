@@ -10,14 +10,13 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #include <intt/CylinderGeomIntt.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <micromegas/CylinderGeomMicromegas.h>
-
-#include <tpc/TpcDefs.h>
 
 #include <micromegas/MicromegasDefs.h>
 
@@ -137,6 +136,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   
   m_actsGeometry->setGeometry(trackingGeometry);
   m_actsGeometry->setSurfMaps(surfMaps);
+  m_actsGeometry->set_drift_velocity(m_drift_velocity);
 
   // print
   if( Verbosity() )
@@ -729,7 +729,7 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
       }
 
       // get matching tile
-      int tileid = layergeom->find_tile_planar( world_center );
+      int tileid = layergeom->find_tile_cylindrical( world_center );
       if( tileid < 0 ) 
       {
         std::cout << "MakeActsGeometry::makeMmMapPairs - could not file Micromegas tile matching ACTS surface" << std::endl;
@@ -992,9 +992,6 @@ TrkrDefs::hitsetkey MakeActsGeometry::getMvtxHitSetKeyFromCoords(unsigned int la
   unsigned int chip = 0;
   layergeom->get_sensor_indices_from_world_coords(world, stave, chip);
 
-  double check_pos[3] = {0, 0, 0};
-  layergeom->find_sensor_center(stave, 0, 0, chip, check_pos);
-
   unsigned int strobe = 0;
   TrkrDefs::hitsetkey mvtx_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, strobe);
 
@@ -1018,9 +1015,6 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
   int segment_phi_bin = 0;
   layergeom->find_indices_from_segment_center(segment_z_bin, 
 					      segment_phi_bin, location);
-
-  double check_pos[3] = {0, 0, 0};
-  layergeom->find_segment_center(segment_z_bin, segment_phi_bin, check_pos);
 
   int crossing = 0;
   TrkrDefs::hitsetkey intt_hitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin, crossing);

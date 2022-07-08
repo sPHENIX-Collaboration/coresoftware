@@ -45,6 +45,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
@@ -913,8 +914,8 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
   if (it == m_globalPositions.end()|| (key < it->first ))
   {
     // get global position from Acts transform
-    const auto globalpos = m_tgeometry->getGlobalPosition(
-      key, cluster);
+    Acts::Vector3 globalPosition;
+    globalPosition = m_tgeometry->getGlobalPosition(key, cluster);
 
     /*
      * todo: should also either apply distortion corrections
@@ -922,7 +923,7 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
      */
 
     // add new cluster and set its key
-    it = m_globalPositions.insert(it, std::make_pair(key, globalpos));
+    it = m_globalPositions.insert(it, std::make_pair(key, globalPosition));
   }
   return it->second;
 }
@@ -1009,8 +1010,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     
     const auto cluster = m_clustermap->findCluster(cluster_key);
 
-    // get global position
     const auto globalPosition = getGlobalPosition( cluster_key, cluster );
+
     float r = sqrt(square( globalPosition.x() ) + square( globalPosition.y() ));
     m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
     int layer_out = TrkrDefs::getLayer(cluster_key);
@@ -1058,15 +1059,13 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     {
 
       case TrkrDefs::mvtxId:
-      {
-        int stave_index = MvtxDefs::getStaveId(cluster_key);
-        int chip_index = MvtxDefs::getChipId(cluster_key);
-
+	{
         double ladder_location[3] = {0.0, 0.0, 0.0};
         auto geom = static_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
+	auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+	auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
         // returns the center of the sensor in world coordinates - used to get the ladder phi location
-        geom->find_sensor_center(stave_index, 0,
-          0, chip_index, ladder_location);
+        geom->find_sensor_center(surf, m_tgeometry, ladder_location);
 
         //cout << " MVTX stave phi tilt = " <<  geom->get_stave_phi_tilt()
         //   << " seg.X " << ladder_location[0] << " seg.Y " << ladder_location[1] << " seg.Z " << ladder_location[2] << endl;
@@ -1079,8 +1078,9 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       {
         auto geom = static_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
         double hit_location[3] = {0.0, 0.0, 0.0};
-        geom->find_segment_center(InttDefs::getLadderZId(cluster_key),
-          InttDefs::getLadderPhiId(cluster_key), hit_location);
+	auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+	auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
+        geom->find_segment_center(surf, m_tgeometry, hit_location);
 
         //cout << " Intt strip phi tilt = " <<  geom->get_strip_phi_tilt()
         //   << " seg.X " << hit_location[0] << " seg.Y " << hit_location[1] << " seg.Z " << hit_location[2] << endl;
@@ -1097,9 +1097,9 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
         auto geom = static_cast<CylinderGeomMicromegas*>(geom_container_micromegas->GetLayerGeom(layer));
         const auto tileid = MicromegasDefs::getTileId( cluster_key );
 
-        // in local coordinate, n is along y axis
+        // in local coordinate, n is along z axis
         // convert to global coordinates
-        n = geom->get_world_from_local_vect( tileid, TVector3( 0, 1, 0 ) );
+        n = geom->get_world_from_local_vect( tileid, m_tgeometry, TVector3( 0, 0, 1 ) );
       }
 
       default: break;

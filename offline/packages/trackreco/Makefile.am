@@ -49,7 +49,6 @@ pkginclude_HEADERS = \
   PHCASeeding.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
-  PHGenFitTrkProp.h \
   PHGhostRejection.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
@@ -148,7 +147,6 @@ libtrack_reco_la_SOURCES = \
   PHCASeeding.cc \
   PHGenFitTrackProjection.cc \
   PHGenFitTrkFitter.cc \
-  PHGenFitTrkProp.cc \
   PHGhostRejection.cc \
   PHInitVertexing.cc \
   PHInitZVertexing.cc \

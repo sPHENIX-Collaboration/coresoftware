@@ -36,8 +36,7 @@ class TpcClusterizer : public SubsysReco
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
   void set_do_wedge_emulation(bool do_wedge){ do_wedge_emulation = do_wedge;}
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size ;}
-  void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeZ = size ;}
-  void set_drift_velocity_scale(double value) { m_drift_velocity_scale = value; }
+  void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeT = size ;}
   void set_cluster_version(int value) { cluster_version = value; }
   
  private:
@@ -52,20 +51,14 @@ class TpcClusterizer : public SubsysReco
   double pedestal = 74.4;
   double SectorFiducialCut = 0.5;
   unsigned short MaxClusterHalfSizePhi = 3;
-  unsigned short MaxClusterHalfSizeZ = 5;
+  unsigned short MaxClusterHalfSizeT = 5;
   int cluster_version = 3;
-  /// drift velocity scale factor
-  /** 
-   * represents the ratio vdrift_measured/vdrift_true
-   * it is used to get cluster z from its timebin
-   **/
-  double m_drift_velocity_scale = 1.0;
-  
-  // TPC shaping offset correction parameters
-  // From Tony Frawley May 13, 2021
-  double par0_neg = 0.0503;
-  double par0_pos = -0.0503;
-  
+  double m_tdriftmax = 0;
+  double AdcClockPeriod = 53.0;   // ns 
+
+  // TPC shaping offset correction parameter
+  // From Tony Frawley July 5, 2022
+  double m_sampa_tbias = 13.5;  // ns  
 };
 
 #endif

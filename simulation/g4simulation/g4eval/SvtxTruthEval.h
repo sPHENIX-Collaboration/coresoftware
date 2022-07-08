@@ -15,7 +15,7 @@ class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
 class PHG4VtxPoint;
 class TrkrCluster;
-
+class ActsGeometry;
 
 #include <map>
 #include <set>
@@ -72,7 +72,7 @@ class SvtxTruthEval
 
   float line_circle_intersection(float x[], float y[], float z[], float radius);
 
-  void G4ClusterSize(unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize);
+  void G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize);
 
   unsigned int getAdcValue(double gedep);
 
@@ -88,12 +88,13 @@ class SvtxTruthEval
   PHG4CylinderGeomContainer *_intt_geom_container;
   PHG4CylinderGeomContainer* _mvtx_geom_container;
   PHG4CylinderGeomContainer* _mms_geom_container;
+  ActsGeometry* _tgeometry{nullptr};
 
   bool _strict;
   int _verbosity;
   unsigned int _errors;
   unsigned long iclus;
-
+  
   const unsigned int _nlayers_maps = 3;
   const unsigned int _nlayers_intt = 4;
   const unsigned int _nlayers_tpc = 48;

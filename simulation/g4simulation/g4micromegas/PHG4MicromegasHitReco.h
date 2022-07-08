@@ -19,10 +19,12 @@
 #include <utility>
 #include <vector>
 
+class ActsGeometry;
+
 class CylinderGeomMicromegas;
 class PHCompositeNode;
 class PHG4Hit;
-class TVector3;
+class TVector2;
 
 class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
 {
@@ -61,8 +63,11 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   using charge_list_t = std::vector<charge_pair_t>;
 
   //! distribute a Gaussian charge across adjacent strips
-  charge_list_t distribute_charge( CylinderGeomMicromegas*, uint tileid, const TVector3& local_position, double sigma ) const;
+  charge_list_t distribute_charge( CylinderGeomMicromegas*, uint tileid, const TVector2& local_position, double sigma ) const;
 
+  //! acts geometry
+  ActsGeometry* m_acts_geometry = nullptr;
+  
   //! detector name
   std::string m_detector;
 

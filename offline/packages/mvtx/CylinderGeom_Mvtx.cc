@@ -2,6 +2,8 @@
 
 #include "SegmentationAlpide.h"
 
+#include <Acts/Definitions/Units.hpp>
+
 #include <TRotation.h>
 #include <TVector3.h>
 
@@ -71,53 +73,22 @@ CylinderGeom_Mvtx::CylinderGeom_Mvtx(
 }
 
 TVector3
-CylinderGeom_Mvtx::get_local_from_world_coords(int stave, int /*half_stave*/, int /*module*/, int chip, TVector3 world_location)
+CylinderGeom_Mvtx::get_local_from_world_coords(Surface surface,
+					       ActsGeometry* tGeometry,
+					       TVector3 world)
 {
-  double stave_phi = stave_phi_0 + stave_phi_step * (double) stave;
-  double stave_phi_offset = M_PI / 2.0;  // stave initially points so that sensor faces upward in y
+  Acts::Vector3 global;
+  global(0) = world[0];
+  global(1) = world[1];
+  global(2) = world[2];
 
-  // Starting from its location in the world
-  TVector3 res = world_location;
+  global *= Acts::UnitConstants::cm;
 
-  // transform location of stave from its location in the world - this is just a translation
-  TVector3 tr4(layer_radius * cos(stave_phi), layer_radius * sin(stave_phi), 0.0);
-  res -= tr4;
+  Acts::Vector3 local = surface->transform(tGeometry->geometry().geoContext).inverse() * global;
+  local /= Acts::UnitConstants::cm;
 
-  // Rotate stave from its angle in the world
-  // This requires rotating it by:
-  //   removing the tilt
-  //   removing the offsetfor first layer
-  //   removing the angle that makes it point at the origin when it was at it's location in the world
-  //   rotating it by -90 degrees to make the face point vertically up in y
-  TRotation R;
-  R.RotateZ(-stave_phi - stave_phi_offset - stave_phi_tilt);
-  res = R * res;  // rotates res using R
-
-  // transform location in stave to location in half stave
-  TVector3 tr3(inner_loc_halfstave_in_stave[0],
-               inner_loc_halfstave_in_stave[1],
-               inner_loc_halfstave_in_stave[2]);
-  res -= tr3;
-
-  // transfor from half stave to location in module
-  TVector3 tr2a(inner_loc_module_in_halfstave[0],
-                inner_loc_module_in_halfstave[1],
-                inner_loc_module_in_halfstave[2]);
-  res -= tr2a;
-
-  // transform location in module to location in chip
-  TVector3 tr2(inner_loc_chip_in_module[chip][0],
-               inner_loc_chip_in_module[chip][1],
-               inner_loc_chip_in_module[chip][2]);
-  res -= tr2;
-
-  // transform location in chip to location in sensor
-  TVector3 tr1(loc_sensor_in_chip[0],
-               loc_sensor_in_chip[1],
-               loc_sensor_in_chip[2]);
-  res -= tr1;
-
-  return res;
+  /// The Acts transform swaps a few of the coordinates
+  return TVector3(local(0), local(2) * -1, local(1));
 }
 
 void
@@ -141,58 +112,39 @@ CylinderGeom_Mvtx::get_sensor_indices_from_world_coords(std::vector<double> &wor
 }
 
 TVector3
-CylinderGeom_Mvtx::get_world_from_local_coords(int stave, int /*half_stave*/, int /*module*/, int chip, TVector3 sensor_local)
+CylinderGeom_Mvtx::get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector2 local)
 {
-  double stave_phi = stave_phi_0 + stave_phi_step * (double) stave;
-  double stave_phi_offset = M_PI / 2.0;  // stave initially points so that sensor faces upward in y
+  Acts::Vector2 actslocal;
+  actslocal(0) = local.X();
+  actslocal(1) = local.Y();
+  actslocal *= Acts::UnitConstants::cm;
 
-  // Start with the point in sensor local coords
-  TVector3 res = sensor_local;
+  Acts::Vector3 global;
+  /// Acts requires a dummy vector to be passed in the arg list
+  global = surface->localToGlobal(tGeometry->geometry().geoContext,
+				  actslocal, Acts::Vector3(1,1,1));
+  global /= Acts::UnitConstants::cm;
 
-  // transform sensor location to location in chip
-  TVector3 tr1(loc_sensor_in_chip[0],
-               loc_sensor_in_chip[1],
-               loc_sensor_in_chip[2]);
-  res += tr1;
-
-  // transform location in chip to location in module
-  TVector3 tr2(inner_loc_chip_in_module[chip][0],
-               inner_loc_chip_in_module[chip][1],
-               inner_loc_chip_in_module[chip][2]);
-  res += tr2;
-
-  // module to half stave
-  TVector3 tr2a(inner_loc_module_in_halfstave[0],
-                inner_loc_module_in_halfstave[1],
-                inner_loc_module_in_halfstave[2]);
-  res += tr2a;
-
-  // transform location in half stave to location in stave
-  TVector3 tr3(inner_loc_halfstave_in_stave[0],
-               inner_loc_halfstave_in_stave[1],
-               inner_loc_halfstave_in_stave[2]);
-  res += tr3;
-
-  // Rotate stave to its angle in the world
-  // This requires rotating it by
-  //    90 degrees to make the face point to the origin instead of vertically up in y when it is at phi = 0 - stave_phi_offset is 90 degrees in CCW direction
-  //    Rotating it fiurther so that it points at the origin after being translated to the x and y coords of the stave phi location - stave_phi derived from
-  //    stave_phi_step  and stave (number), both constructor parameters
-  //    Adding the tilt (for layers 0-2) - stave_phi_tilt is a constructor parameter provided by PHG4MvtxDetector
-  // for a rotation
-  TRotation R;
-  R.RotateZ(stave_phi + stave_phi_offset + stave_phi_tilt);
-  res = R * res;  // rotates res using R
-
-  // transform location of stave to its location in the world
-  TVector3 tr4(layer_radius * cos(stave_phi),
-               layer_radius * sin(stave_phi),
-               0.0);
-  res += tr4;
+  TVector3 res;
+  res[0] = global(0);
+  res[1] = global(1);
+  res[2] = global(2);
 
   return res;
 }
 
+TVector3
+CylinderGeom_Mvtx::get_world_from_local_coords(Surface surface, ActsGeometry* tGeometry, TVector3 local)
+{
+  Acts::Vector3 loc(local.x(), local.y(), local.z());
+  loc *= Acts::UnitConstants::cm;
+  
+  Acts::Vector3 glob = surface->transform(tGeometry->geometry().geoContext)*loc;
+  glob /= Acts::UnitConstants::cm;
+
+  return TVector3(glob(0), glob(1), glob(2));
+
+}
 bool CylinderGeom_Mvtx::get_pixel_from_local_coords(TVector3 sensor_local, int& iRow, int& iCol)
 {
   //YCM (2020-01-02): It seems that due some round issues, local coords of hits at the edge of the sensor volume
@@ -270,11 +222,11 @@ void CylinderGeom_Mvtx::identify(std::ostream& os) const
   return;
 }
 
-void CylinderGeom_Mvtx::find_sensor_center(int stave, int half_stave, int module, int chip, double location[])
+void CylinderGeom_Mvtx::find_sensor_center(Surface surface, ActsGeometry* tGeometry, double location[])
 {
-  TVector3 sensor_local(0.0, 0.0, 0.0);
+  TVector2 sensor_local(0.0, 0.0);
 
-  TVector3 sensor_world = get_world_from_local_coords(stave, half_stave, module, chip, sensor_local);
+  TVector3 sensor_world = get_world_from_local_coords(surface, tGeometry, sensor_local);
 
   location[0] = sensor_world.X();
   location[1] = sensor_world.Y();

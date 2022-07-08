@@ -45,7 +45,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
  private:
   //  void populate_rectangular_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
-  void populate_zbins(const double z, const std::array<double, 2> &cloud_sig_zz, std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share);
+  void populate_tbins(const double t, const std::array<double, 2> &cloud_sig_tt, std::vector<int> &adc_tbin, std::vector<double> &adc_tbin_share);
 
   std::string seggeonodename;
 
@@ -63,16 +63,18 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<double, 3> MinRadius;
   std::array<double, 3> MaxRadius;
   std::array<double, 3> Thickness;
-  double MinZ = NAN;
   double MaxZ = NAN;
+  double MinT = NAN;
+  double MaxT = NAN;
   double sigmaT = NAN;
   std::array<double, 2> sigmaL;
   std::array<double, 3> PhiBinWidth;
   double ZBinWidth = NAN;
+  double TBinWidth = NAN;
   double drift_velocity = 8.0e-03;  // default value, override from macro
   double tpc_adc_clock = NAN;
 
-  int NZBins = INT_MAX;
+  int NTBins = INT_MAX;
   std::array<int, 3> NPhiBins;
   std::array<int, 3> NTpcLayers;
   int m_NHits = 0;
@@ -82,10 +84,10 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   double averageGEMGain = NAN;
 
-  std::vector<int> adc_zbin;
+  std::vector<int> adc_tbin;
   std::vector<int> pad_phibin;
   std::vector<double> pad_phibin_share;
-  std::vector<double> adc_zbin_share;
+  std::vector<double> adc_tbin_share;
 
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();

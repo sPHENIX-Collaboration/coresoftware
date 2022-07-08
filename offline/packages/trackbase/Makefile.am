@@ -21,6 +21,7 @@ pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
   ActsTrackingGeometry.h \
   ActsGeometry.h \
+  ClusterErrorPara.h \
   CMFlashCluster.h \
   CMFlashClusterv1.h \
   CMFlashClusterContainer.h \
@@ -31,6 +32,7 @@ pkginclude_HEADERS = \
   CMFlashDifferenceContainerv1.h \
   InttDefs.h \
   MvtxDefs.h \
+  TpcDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
   TrackFitUtils.h \
@@ -78,7 +80,7 @@ ROOTDICTS = \
   TrkrClusterv1_Dict.cc \
   TrkrClusterv2_Dict.cc \
   TrkrClusterv3_Dict.cc \
-   TrkrClusterContainer_Dict.cc \
+  TrkrClusterContainer_Dict.cc \
   TrkrClusterv4_Dict.cc \
   TrkrClusterContainerv1_Dict.cc \
   TrkrClusterContainerv2_Dict.cc \
@@ -154,12 +156,14 @@ libtrack_io_la_SOURCES = \
   $(ROOTDICTS) \
   ActsSurfaceMaps.cc \
   ActsGeometry.cc \
+  ClusterErrorPara.cc \
   CMFlashClusterv1.cc \
   CMFlashClusterContainerv1.cc \
   CMFlashDifferencev1.cc \
   CMFlashDifferenceContainerv1.cc \
   InttDefs.cc \
   MvtxDefs.cc \
+  TpcDefs.cc \
   TrackFitUtils.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
