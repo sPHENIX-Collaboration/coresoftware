@@ -72,15 +72,15 @@ namespace
 
   //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
   template <double (interpolation_data_t::*accessor)() const>
-  double interpolate(const interpolation_data_t::list& hits, double y_extrap)
+  double interpolate(const interpolation_data_t::list& hits, double z_extrap)
   {
     // calculate all terms needed for the interpolation
     // need to use double everywhere here due to numerical divergences
     double sw = 0;
-    double swy = 0;
-    double swy2 = 0;
+    double swz = 0;
+    double swz2 = 0;
     double swx = 0;
-    double swyx = 0;
+    double swzx = 0;
 
     bool valid(false);
     for (const auto& hit : hits)
@@ -90,22 +90,22 @@ namespace
       if (w <= 0) continue;
 
       valid = true;
-      const double y = hit.y();
+      const double z = hit.z();
 
       sw += w;
-      swy += w * y;
-      swy2 += w * square(y);
+      swz += w * z;
+      swz2 += w * square(z);
       swx += w * x;
-      swyx += w * x * y;
+      swzx += w * x * z;
     }
 
     if (!valid) return NAN;
 
-    const auto alpha = (sw * swyx - swy * swx);
-    const auto beta = (swy2 * swx - swy * swyx);
-    const auto denom = (sw * swy2 - square(swy));
+    const auto alpha = (sw * swzx - swz * swx);
+    const auto beta = (swz2 * swx - swz * swzx);
+    const auto denom = (sw * swz2 - square(swz));
 
-    return (alpha * y_extrap + beta) / denom;
+    return (alpha * z_extrap + beta) / denom;
   }
 
 }  // namespace
@@ -426,12 +426,12 @@ void QAG4SimulationMicromegas::evaluate_clusters()
         }
       }
 
-      // do position interpolation
-      const auto y_extrap = cluster_local.y();
+      // do position interpolation along z
+      const auto z_extrap = cluster_local.z();
       const TVector3 interpolation_local(
-          interpolate<&interpolation_data_t::x>(hits, y_extrap),
-          interpolate<&interpolation_data_t::y>(hits, y_extrap),
-          interpolate<&interpolation_data_t::z>(hits, y_extrap));
+          interpolate<&interpolation_data_t::x>(hits, z_extrap),
+          interpolate<&interpolation_data_t::y>(hits, z_extrap),
+          interpolate<&interpolation_data_t::z>(hits, z_extrap));
 
       // fill phi residuals, errors and pulls
       auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
@@ -448,7 +448,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
         
         case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
         {
-          const auto dz = cluster_local.z() - interpolation_local.z();
+          const auto dz = cluster_local.y() - interpolation_local.y();
           fill(hiter->second.residual, dz);
           fill(hiter->second.residual_error, z_error);
           fill(hiter->second.pulls, dz / z_error);
