@@ -70,8 +70,6 @@ class MakeActsGeometry : public SubsysReco
 
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
-  int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
   std::vector<std::shared_ptr<ActsExamples::IContextDecorator>> getContextDecorators()
     { return m_contextDecorators; }

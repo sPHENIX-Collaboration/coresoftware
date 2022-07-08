@@ -792,8 +792,9 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
     std::cerr << "DST node is missing, quitting" << std::endl;
     throw std::runtime_error("Failed to find DST node in PHActsSiliconSeeding::createNodes");
   }
-  
-  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+
+  PHNodeIterator dstIter(dstNode);
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", "SVTX"));
 
   if (!svtxNode)
   {
