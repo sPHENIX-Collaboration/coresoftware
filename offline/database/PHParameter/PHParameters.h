@@ -31,9 +31,12 @@ class PHParameters : public PHObject
     : m_Detector(name)
   {
   }
+
   PHParameters(const PHParameters &params, const std::string &name);
 
   ~PHParameters() override;
+
+  void Reset() override;
 
   void Print(Option_t *option = "") const override;
 
@@ -72,7 +75,9 @@ class PHParameters : public PHObject
 
   int WriteToDB();
   int ReadFromDB();
+  int ReadFromCDB(const std::string &domain);
   int ReadFromDB(const std::string &name, const int layer);
+  int WriteToCDBFile(const std::string &filename);
   int WriteToFile(const std::string &extension, const std::string &dir = ".");
 
   //! simple read without super detector and layer structures
@@ -80,7 +85,7 @@ class PHParameters : public PHObject
   {
     return ReadFromFile(name, extension, 0, 0, dir);
   }
-
+  int ReadFromCDBFile(const std::string &name);
   //! Fully fledged read
   int ReadFromFile(const std::string &name, const std::string &extension, const int layer, const int issuper, const std::string &dir = ".");
   void CopyToPdbParameterMap(PdbParameterMap *myparm);

@@ -724,8 +724,7 @@ void DSTEmulator::evaluate_tracks()
     //    TrkrDefs::subsurfkey subsurfkey = cluster->getSubSurfKey();
 
     //    std::cout << " subsurfkey: " << subsurfkey << std::endl;
-    std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
-    mapIter = m_tGeometry->maps().m_tpcSurfaceMap.find(layer);
+    auto mapIter = m_tGeometry->maps().m_tpcSurfaceMap.find(layer);
     
     if(mapIter == m_tGeometry->maps().m_tpcSurfaceMap.end()){
       std::cout << PHWHERE 

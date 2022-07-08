@@ -36,11 +36,13 @@
 #include "DumpSyncObject.h"
 #include "DumpTowerBackground.h"
 #include "DumpTpcSeedTrackMap.h"
+#include "DumpTrackSeedContainer.h"
 #include "DumpTrkrClusterContainer.h"
 #include "DumpTrkrClusterCrossingAssoc.h"
 #include "DumpTrkrClusterHitAssoc.h"
 #include "DumpTrkrHitSetContainer.h"
 #include "DumpTrkrHitTruthAssoc.h"
+#include "DumpTrkrHitTruthClusters.h"
 #include "DumpVariableArray.h"
 
 #include <ffaobjects/RunHeader.h>
@@ -317,6 +319,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       {
         newdump = new DumpTpcSeedTrackMap(NodeName);
       }
+      else if (tmp->InheritsFrom("TrackSeedContainer"))
+      {
+        newdump = new DumpTrackSeedContainer(NodeName);
+      }
       else if (tmp->InheritsFrom("TrkrClusterContainer"))
       {
         newdump = new DumpTrkrClusterContainer(NodeName);
@@ -336,6 +342,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("TrkrHitTruthAssoc"))
       {
         newdump = new DumpTrkrHitTruthAssoc(NodeName);
+      }
+      else if (tmp->InheritsFrom("TrkrHitTruthClusters"))
+      {
+        newdump = new DumpTrkrHitTruthClusters(NodeName);
       }
       else if (tmp->InheritsFrom("VariableArray"))
       {

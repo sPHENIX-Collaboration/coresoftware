@@ -12,6 +12,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TpcDefs.h>
 
 #include <micromegas/MicromegasDefs.h>
@@ -384,7 +385,7 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster> > SvtxTruthEval::all_tr
       // Estimate the size of the truth cluster
       float g4phisize = NAN;
       float g4zsize = NAN;
-      G4ClusterSize(layer, contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
+      G4ClusterSize(ckey,layer, contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
 
       for(int i1=0;i1<3;++i1)
 	for(int i2=0;i2<3;++i2)
@@ -690,7 +691,7 @@ void SvtxTruthEval::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vecto
   return;
 }
 
-void SvtxTruthEval::G4ClusterSize(unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize)
+void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize)
 {
 
   // sort the contributing g4hits in radius
@@ -801,8 +802,10 @@ void SvtxTruthEval::G4ClusterSize(unsigned int layer, std::vector<std::vector<do
 
       int segment_z_bin, segment_phi_bin;
       layergeom->find_indices_from_world_location(segment_z_bin, segment_phi_bin, world_inner);
-
-      TVector3 local_inner_vec =  layergeom->get_local_from_world_coords(segment_z_bin, segment_phi_bin, world_inner_vec);
+      
+      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
+      auto surf = _tgeometry->maps().getSiliconSurface(hitsetkey);
+      TVector3 local_inner_vec =  layergeom->get_local_from_world_coords(surf, _tgeometry, world_inner);
       double yin = local_inner_vec[1];
       double zin = local_inner_vec[2];
       int strip_y_index, strip_z_index;
@@ -813,8 +816,9 @@ void SvtxTruthEval::G4ClusterSize(unsigned int layer, std::vector<std::vector<do
       TVector3 world_outer_vec = {outer_x, outer_y, outer_z};
 
       layergeom->find_indices_from_world_location(segment_z_bin, segment_phi_bin, world_outer);
-
-      TVector3 local_outer_vec =  layergeom->get_local_from_world_coords(segment_z_bin, segment_phi_bin, world_outer_vec);
+      TrkrDefs::hitsetkey ohitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
+      auto osurf = _tgeometry->maps().getSiliconSurface(ohitsetkey);
+      TVector3 local_outer_vec =  layergeom->get_local_from_world_coords(osurf,_tgeometry, world_outer_vec);
       double yout = local_outer_vec[1];
       double zout = local_outer_vec[2];
       int strip_y_index_out, strip_z_index_out;
@@ -858,12 +862,16 @@ void SvtxTruthEval::G4ClusterSize(unsigned int layer, std::vector<std::vector<do
       TVector3 world_inner = {inner_x, inner_y, inner_z};
       std::vector<double> world_inner_vec = { world_inner[0], world_inner[1], world_inner[2] };
       layergeom->get_sensor_indices_from_world_coords(world_inner_vec, stave, chip);
-      TVector3 local_inner = layergeom->get_local_from_world_coords(stave, chip, world_inner);
+      TrkrDefs::hitsetkey ihitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
+      auto isurf = _tgeometry->maps().getSiliconSurface(ihitsetkey);
+      TVector3 local_inner = layergeom->get_local_from_world_coords(isurf,_tgeometry, world_inner);
 
       TVector3 world_outer = {outer_x, outer_y, outer_z};
       std::vector<double> world_outer_vec = { world_outer[0], world_outer[1], world_outer[2] };
       layergeom->get_sensor_indices_from_world_coords(world_outer_vec, stave_outer, chip_outer);
-      TVector3 local_outer = layergeom->get_local_from_world_coords(stave_outer, chip_outer, world_outer);
+      TrkrDefs::hitsetkey ohitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
+      auto osurf = _tgeometry->maps().getSiliconSurface(ohitsetkey);
+      TVector3 local_outer = layergeom->get_local_from_world_coords(osurf,_tgeometry,world_outer);
 
       double diff =  max_diffusion_radius * 0.6;  // factor of 0.6 gives decent agreement with low occupancy reco clusters
       if(local_outer[0] < local_inner[0])
@@ -1096,6 +1104,7 @@ bool SvtxTruthEval::are_same_vertex(PHG4VtxPoint* vtx1, PHG4VtxPoint* vtx2)
 
 void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode)
 {
+  _tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   _g4hits_mms = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");

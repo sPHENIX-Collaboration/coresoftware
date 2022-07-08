@@ -193,7 +193,8 @@ int  PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
 	}
 
       /// Get the tracking subnode
-      PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+      PHNodeIterator dstIter(dstNode);
+      PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", "SVTX"));
       
       /// Check that it is there
       if (!svtxNode)
