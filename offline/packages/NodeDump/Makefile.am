@@ -36,6 +36,7 @@ libphnodedump_la_SOURCES = \
   DumpPHG4HitContainer.cc \
   DumpPHG4ParticleSvtxMap.cc \
   DumpPHG4ScintillatorSlatContainer.cc \
+  DumpTrkrHitTruthClusters.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
   DumpPHHepMCGenEventMap.cc \
@@ -49,6 +50,7 @@ libphnodedump_la_SOURCES = \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
   DumpTpcSeedTrackMap.cc \
+  DumpTrackSeedContainer.cc \
   DumpTrkrClusterContainer.cc \
   DumpTrkrClusterHitAssoc.cc \
   DumpTrkrHitSetContainer.cc \
