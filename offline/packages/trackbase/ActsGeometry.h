@@ -12,15 +12,15 @@ class ActsGeometry {
   ActsGeometry() = default;
   ~ActsGeometry() {} 
 
-  void setGeometry(const ActsTrackingGeometry tGeometry) 
+  void setGeometry(const ActsTrackingGeometry& tGeometry) 
     { m_tGeometry = tGeometry; }
 
-  void setSurfMaps(const ActsSurfaceMaps surfMaps)
+  void setSurfMaps(const ActsSurfaceMaps& surfMaps)
     { m_surfMaps = surfMaps; }
   
-  ActsTrackingGeometry geometry() const 
+  const ActsTrackingGeometry& geometry() const 
     { return m_tGeometry; }
-  ActsSurfaceMaps maps() const 
+  const ActsSurfaceMaps& maps() const 
     { return m_surfMaps; }
 
   void set_drift_velocity(double vd) {_drift_velocity = vd;}

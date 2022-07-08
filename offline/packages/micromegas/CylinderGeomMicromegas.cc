@@ -68,7 +68,7 @@ TVector3 CylinderGeomMicromegas::get_local_from_world_vect( uint tileid, ActsGeo
     world_vect.y()*Acts::UnitConstants::cm,
     world_vect.z()*Acts::UnitConstants::cm );
 
-  const auto local = surface->referenceFrame(geometry->geometry().geoContext, Acts::Vector3(), Acts::Vector3()).inverse()*global;
+  const Acts::Vector3 local = surface->referenceFrame(geometry->geometry().geoContext, Acts::Vector3(), Acts::Vector3()).inverse()*global;
   return TVector3(
     local.x()/Acts::UnitConstants::cm,
     local.y()/Acts::UnitConstants::cm,
@@ -127,7 +127,7 @@ TVector3 CylinderGeomMicromegas::get_world_from_local_vect( uint tileid, ActsGeo
     local_vect.y()*Acts::UnitConstants::cm,
     local_vect.z()*Acts::UnitConstants::cm );
 
-  const auto global = surface->referenceFrame(geometry->geometry().geoContext, Acts::Vector3(), Acts::Vector3())*local;
+  const Acts::Vector3 global = surface->referenceFrame(geometry->geometry().geoContext, Acts::Vector3(), Acts::Vector3())*local;
   return TVector3(
     global.x()/Acts::UnitConstants::cm,
     global.y()/Acts::UnitConstants::cm,
