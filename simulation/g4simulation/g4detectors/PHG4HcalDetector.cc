@@ -92,7 +92,7 @@ void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   TrackerMaterial = GetDetectorMaterial(material);
 
-  G4Tubs* _cylinder_solid = new G4Tubs(G4String(GetName().c_str()),
+  G4Tubs* _cylinder_solid = new G4Tubs(G4String(GetName()),
                                        radius,
                                        radius + TrackerThickness,
                                        length / 2.0, 0, twopi);
@@ -119,7 +119,7 @@ void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
       new G4SubtractionSolid("Cylinder-Cone-Cone", subtraction_tmp, cone2, 0, zTranspos);
   cylinder_logic = new G4LogicalVolume(subtraction,
                                        TrackerMaterial,
-                                       G4String(GetName().c_str()),
+                                       G4String(GetName()),
                                        0, 0, 0);
   G4VisAttributes* VisAtt = new G4VisAttributes();
   VisAtt->SetColour(G4Colour::Grey());
@@ -129,7 +129,7 @@ void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   cylinder_physi = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos),
                                      cylinder_logic,
-                                     G4String(GetName().c_str()),
+                                     G4String(GetName()),
                                      logicWorld, 0, false, OverlapCheck());
   // Figure out corners of scintillator inside the containing G4Tubs.
   // Work our way around the scintillator cross section in a counter
@@ -240,13 +240,13 @@ void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
     {
       geonode << "CYLINDERGEOM_" << detector_type << "_" << layer;
     }
-    PHG4CylinderGeomContainer* geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode.str().c_str());
+    PHG4CylinderGeomContainer* geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode.str());
     if (!geo)
     {
       geo = new PHG4CylinderGeomContainer();
       PHNodeIterator iter(topNode());
       PHCompositeNode* runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
-      PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(geo, geonode.str().c_str(), "PHObject");
+      PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(geo, geonode.str(), "PHObject");
       runNode->addNode(newNode);
     }
     // here in the detector class we have internal units, convert to cm

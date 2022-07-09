@@ -44,11 +44,11 @@ int PHG4EnvelopeSubsystem::Init(PHCompositeNode* topNode)
     ostringstream nodename;
     nodename << "G4HIT_ENVELOPE_" << detector_type;
 
-    PHG4HitContainer* crystal_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    PHG4HitContainer* crystal_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!crystal_hits)
     {
       crystal_hits = new PHG4HitContainer(nodename.str());
-      PHIODataNode<PHObject>* hitNode = new PHIODataNode<PHObject>(crystal_hits, nodename.str().c_str(), "PHObject");
+      PHIODataNode<PHObject>* hitNode = new PHIODataNode<PHObject>(crystal_hits, nodename.str(), "PHObject");
       dstNode->addNode(hitNode);
     }
 

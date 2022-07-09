@@ -396,8 +396,8 @@ void PHG4InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   }
 
   //now look for the map and grab a pointer to it.
-  m_Hits = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_Hits = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
+  m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
 
   // if we do not find the node it's messed up.
   if (!m_Hits)

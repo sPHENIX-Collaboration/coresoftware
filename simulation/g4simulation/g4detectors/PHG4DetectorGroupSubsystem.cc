@@ -48,7 +48,7 @@ PHG4DetectorGroupSubsystem::PHG4DetectorGroupSubsystem(const std::string &name, 
   // for multiple layers
   ostringstream nam;
   nam << name << "_" << lyr;
-  Name(nam.str().c_str());
+  Name(nam.str());
 }
 
 int PHG4DetectorGroupSubsystem::Init(PHCompositeNode *topNode)

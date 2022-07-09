@@ -46,8 +46,8 @@ class PHG4FullProjSpacalCellReco : public SubsysReco, public PHParameterInterfac
     LightCollectionModel();
 
     //! delete copy ctor and assignment opertor (cppcheck)
-    explicit LightCollectionModel(const LightCollectionModel&) = delete;
-    LightCollectionModel& operator=(const LightCollectionModel&) = delete;
+    explicit LightCollectionModel(const LightCollectionModel &) = delete;
+    LightCollectionModel &operator=(const LightCollectionModel &) = delete;
 
     virtual ~LightCollectionModel();
 
@@ -76,11 +76,11 @@ class PHG4FullProjSpacalCellReco : public SubsysReco, public PHParameterInterfac
     //! 1-D data grid for the light transmission efficiency in the fiber as function of distance to location in the fiber. Z=0 is at the middle of the fiber
     TH1 *data_grid_fiber_trans = nullptr;
 
-// These two histograms are handed off to Fun4All and will be deleted there
-// this suppresses the cppcheck warning
-// cppcheck-suppress unsafeClassCanLeak
+    // These two histograms are handed off to Fun4All and will be deleted there
+    // this suppresses the cppcheck warning
+    // cppcheck-suppress unsafeClassCanLeak
     TH2 *data_grid_light_guide_efficiency_verify = nullptr;
-// cppcheck-suppress unsafeClassCanLeak
+    // cppcheck-suppress unsafeClassCanLeak
     TH1 *data_grid_fiber_trans_verify = nullptr;
   };
 

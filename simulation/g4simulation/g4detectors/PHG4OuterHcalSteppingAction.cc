@@ -61,7 +61,7 @@ class PHCompositeNode;
 
 using namespace std;
 
-TH2 *MapCorr = nullptr;
+TH2* MapCorr = nullptr;
 
 //____________________________________________________________________________..
 PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector* detector, const PHParameters* parameters)
@@ -459,8 +459,8 @@ void PHG4OuterHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   }
 
   //now look for the map and grab a pointer to it.
-  m_Hits = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_Hits = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
+  m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
 
   // if we do not find the node it's messed up.
   if (!m_Hits)
@@ -485,7 +485,7 @@ void PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
 
   if (not se->isHistoRegistered(h_field_name))
   {
-    TH2F* h = new TH2F(h_field_name.c_str(), "Magnetic field (Tesla) in HCal;X (cm);Y (cm)", 2400,
+    TH2* h = new TH2F(h_field_name.c_str(), "Magnetic field (Tesla) in HCal;X (cm);Y (cm)", 2400,
                        -300, 300, 2400, -300, 300);
 
     se->registerHisto(h, 1);
@@ -494,7 +494,7 @@ void PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
          << " Saved to Fun4AllServer Histo with name " << h_field_name << endl;
   }
 
-  TH2F* h = dynamic_cast<TH2F*>(se->getHisto(h_field_name));
+  TH2* h = dynamic_cast<TH2F*>(se->getHisto(h_field_name));
   assert(h);
 
   assert(aStep);

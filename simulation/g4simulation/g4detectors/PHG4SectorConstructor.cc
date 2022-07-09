@@ -229,7 +229,7 @@ PHG4Sector::PHG4SectorConstructor::Construct_Sectors_Plane(  //
   G4VSolid *Sol_Place = new G4DisplacedSolid(name + "_Place", Sol_Raw, 0,
                                              G4ThreeVector(0, 0, start_z + thickness / 2));
 
-  G4VSolid *Sol = new G4IntersectionSolid(name.c_str(), Sol_Place,
+  G4VSolid *Sol = new G4IntersectionSolid(name, Sol_Place,
                                           SecConeBoundary_Det);
 
   return Sol;

@@ -59,7 +59,7 @@ PHG4HcalSubsystem::PHG4HcalSubsystem(const std::string& na, const int lyr)
   // for multiple SVX layers
   ostringstream nam;
   nam << na << "_" << lyr;
-  Name(nam.str().c_str());
+  Name(nam.str());
 }
 
 //_______________________________________________________________________
