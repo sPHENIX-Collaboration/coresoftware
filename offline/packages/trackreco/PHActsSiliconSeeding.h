@@ -73,6 +73,7 @@ class PHActsSiliconSeeding : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void setunc(float unc) { m_uncfactor = unc; }
   /// Set seeding with truth clusters
   void useTruthClusters(bool useTruthClusters)
     { m_useTruthClusters = useTruthClusters; }
@@ -116,6 +117,8 @@ class PHActsSiliconSeeding : public SubsysReco
 
  private:
 
+  float m_uncfactor = 3.175;
+    
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 

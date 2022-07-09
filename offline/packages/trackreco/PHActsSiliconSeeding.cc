@@ -626,7 +626,13 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   // compute rho/z variance
   Acts::ActsVector<2> var = (jac * localCov * jac.transpose()).diagonal();
 
-  SpacePointPtr spPtr(new SpacePoint{key, x, y, z, r,  surf->geometryId(), var[0]*1.04606, var[1]*1.04606});
+  /*
+   * From Acts v17 to v19 the scattering uncertainty value allowed was changed.
+   * This led to a decrease in efficiency. To offset this, we scale the 
+   * uncertainties by a tuned factor that gives the v17 performance
+   * Track reconstruction is an art as much as it is a science...
+   */
+  SpacePointPtr spPtr(new SpacePoint{key, x, y, z, r,  surf->geometryId(), var[0]*m_uncfactor, var[1]*m_uncfactor});
 
   if(Verbosity() > 2)
     std::cout << "Space point has " 
