@@ -68,6 +68,12 @@ my %notlike = ();
 my $pileupstring;
 my $pp_pileupstring;
 
+if (defined $embed && defined $nopileup)
+{
+    print "--embed and --nopileup flags do not work together, it does not make sense\n";
+    exit(1);
+}
+
 if ($pileup == 1)
 {
     $pileupstring = sprintf("50kHz");
