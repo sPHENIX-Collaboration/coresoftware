@@ -27,7 +27,7 @@ class PHG4CylinderCellv1 : public PHG4CylinderCell
     return std::make_pair(edeps.begin(), edeps.end());
   }
 
-  using PHG4Cell::add_edep; // avoid warning for not including all overrides of add_edep
+  using PHG4Cell::add_edep;  // avoid warning for not including all overrides of add_edep
   void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep) override;
   void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep, const float light_yield) override;
 

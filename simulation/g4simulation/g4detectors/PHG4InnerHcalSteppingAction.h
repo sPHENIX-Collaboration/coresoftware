@@ -56,4 +56,3 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
 };
 
 #endif  // G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
-

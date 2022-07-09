@@ -31,13 +31,13 @@ int PHG4GenHit::process_event(PHCompositeNode *topNode)
 {
   string hitnodename = "G4HIT_" + detector;
   string geonodename = "CYLINDERGEOM_" + detector;
-  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
+  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
   if (!geo)
   {
     cout << "cannot find geo node " << geonodename << endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  PHG4HitContainer *hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!hits_)
   {
     cout << "cannot find hit node " << hitnodename << endl;

@@ -10,6 +10,7 @@
 #include <gsl/gsl_rng.h>
 
 #include <array>
+#include <string>
 
 class G4Step;
 class PHCompositeNode;

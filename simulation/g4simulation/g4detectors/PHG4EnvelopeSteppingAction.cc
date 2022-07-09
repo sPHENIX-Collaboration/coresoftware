@@ -196,7 +196,7 @@ void PHG4EnvelopeSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
     hitnodename = "G4HIT_ENVELOPE_" + detector_->GetName();
   }
 
-  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
 
   // if we do not find the node it's messed up.
   if (!hits_)

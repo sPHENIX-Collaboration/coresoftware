@@ -65,7 +65,7 @@ int PHG4SectorSubsystem::Init(PHCompositeNode* topNode)
     }
     // create hit list
     PHG4HitContainer* block_hits = findNode::getClass<PHG4HitContainer>(
-        topNode, nodename.str().c_str());
+        topNode, nodename.str());
     if (!block_hits)
     {
       dstNode->addNode(new PHIODataNode<PHObject>(new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));

@@ -581,7 +581,7 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
     Rot->rotateZ(-phi * rad);
     name.str("");
     name << "OuterHcalSteel_" << i;
-    m_SteelAbsorberVec.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, OverlapCheck()));
+    m_SteelAbsorberVec.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str(), hcalenvelope, 0, i, OverlapCheck()));
     phi += deltaphi;
   }
   hcalenvelope->SetFieldManager(m_FieldSetup->get_Field_Manager_Gap(), false);
@@ -788,7 +788,7 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalen
     {
       g4userlimits = new G4UserLimits(steplimits);
     }
-    G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(m_ScintiTilesVec[i], GetDetectorMaterial("G4_POLYSTYRENE"), name.str().c_str(), nullptr, nullptr, g4userlimits);
+    G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(m_ScintiTilesVec[i], GetDetectorMaterial("G4_POLYSTYRENE"), name.str(), nullptr, nullptr, g4userlimits);
     m_DisplayAction->AddScintiVolume(scinti_tile_logic);
     assmeblyvol->AddPlacedVolume(scinti_tile_logic, g4vec, nullptr);
 

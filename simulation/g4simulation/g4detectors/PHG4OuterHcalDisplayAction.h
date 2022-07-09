@@ -16,7 +16,7 @@ class G4VPhysicalVolume;
 class PHG4OuterHcalDisplayAction : public PHG4DisplayAction
 {
  public:
-  PHG4OuterHcalDisplayAction(const std::string &name);
+  explicit PHG4OuterHcalDisplayAction(const std::string &name);
 
   ~PHG4OuterHcalDisplayAction() override;
 

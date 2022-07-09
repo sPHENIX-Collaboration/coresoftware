@@ -29,6 +29,10 @@ class PHG4OuterHcalFieldSetup
  public:
   PHG4OuterHcalFieldSetup(G4int steelPlates, G4double scintiGap,
                           G4double tiltAngle);
+  //! delete copy ctor and assignment opertor (cppcheck)
+  explicit PHG4OuterHcalFieldSetup(const PHG4OuterHcalFieldSetup&) = delete;
+  PHG4OuterHcalFieldSetup& operator=(const PHG4OuterHcalFieldSetup&) = delete;
+
   virtual ~PHG4OuterHcalFieldSetup() {}
 
   G4FieldManager*
