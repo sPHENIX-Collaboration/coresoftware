@@ -18,7 +18,7 @@ class PHG4Cellv1 : public PHG4Cell
 {
  public:
   PHG4Cellv1();
-  PHG4Cellv1(const PHG4CellDefs::keytype g4cellid);
+  explicit PHG4Cellv1(const PHG4CellDefs::keytype g4cellid);
   ~PHG4Cellv1() override;
 
   void identify(std::ostream& os = std::cout) const override;

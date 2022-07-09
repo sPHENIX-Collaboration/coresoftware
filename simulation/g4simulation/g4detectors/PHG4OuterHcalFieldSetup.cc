@@ -19,6 +19,7 @@
 #include <Geant4/G4Mag_UsualEqRhs.hh>
 #include <Geant4/G4MagneticField.hh>
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4Types.hh>
 
 PHG4OuterHcalFieldSetup::PHG4OuterHcalFieldSetup(G4int steelPlates,
                                                  G4double scintiGap, G4double tiltAngle)

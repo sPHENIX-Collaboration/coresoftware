@@ -19,11 +19,10 @@
 #include <Geant4/G4ExceptionSeverity.hh>  // for FatalException, JustWarning
 #include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
-#include <Geant4/G4MaterialTable.hh>  // for G4MaterialTable
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>  // for pi
 #include <Geant4/G4Sphere.hh>
+#include <Geant4/G4String.hh>
 #include <Geant4/G4SystemOfUnits.hh>  // for cm, um, perCent
 #include <Geant4/G4ThreeVector.hh>    // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>    // for G4Transform3D, G4RotateX3D
@@ -36,6 +35,8 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+
+class G4Material;
 
 PHG4Sector::PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name, PHG4Subsystem *subsys)
   : overlapcheck_sector(false)

@@ -519,11 +519,9 @@ PHG4FullProjSpacalDetector::Construct_Tower(
 
   // construct fibers
 
-  int fiber_count = 0;
-
   if (get_geom_v3()->get_config() == SpacalGeom_t::kFullProjective_2DTaper)
   {
-    fiber_count = Construct_Fibers(g_tower, block_logic);
+    int fiber_count = Construct_Fibers(g_tower, block_logic);
 
     if (get_geom_v3()->get_construction_verbose() >= 2)
       std::cout << "PHG4FullProjSpacalDetector::Construct_Tower::" << GetName()
@@ -532,7 +530,7 @@ PHG4FullProjSpacalDetector::Construct_Tower(
   }
   else if (get_geom_v3()->get_config() == SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower)
   {
-    fiber_count = Construct_Fibers_SameLengthFiberPerTower(g_tower,
+    int fiber_count = Construct_Fibers_SameLengthFiberPerTower(g_tower,
                                                            block_logic);
 
     if (get_geom_v3()->get_construction_verbose() >= 2)

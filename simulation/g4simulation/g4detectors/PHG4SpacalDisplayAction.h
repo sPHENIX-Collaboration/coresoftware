@@ -17,7 +17,7 @@ class PHG4CylinderGeom_Spacalv1;
 class PHG4SpacalDisplayAction : public PHG4DisplayAction
 {
  public:
-  PHG4SpacalDisplayAction(const std::string &name);
+  explicit PHG4SpacalDisplayAction(const std::string &name);
 
   ~PHG4SpacalDisplayAction() override;
 

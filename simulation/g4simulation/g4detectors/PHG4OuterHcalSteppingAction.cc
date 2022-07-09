@@ -24,7 +24,6 @@
 #include <TAxis.h>  // for TAxis
 #include <TFile.h>
 #include <TH2.h>
-#include <TH2F.h>
 #include <TNamed.h>  // for TNamed
 #include <TSystem.h>
 
@@ -44,7 +43,7 @@
 #include <Geant4/G4TouchableHandle.hh>  // for G4TouchableHandle
 #include <Geant4/G4Track.hh>            // for G4Track
 #include <Geant4/G4TrackStatus.hh>      // for fStopAndKill
-#include <Geant4/G4Transform3D.hh>
+//#include <Geant4/G4Transform3D.hh>
 #include <Geant4/G4TransportationManager.hh>
 #include <Geant4/G4Types.hh>                  // for G4double
 #include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
@@ -62,7 +61,7 @@ class PHCompositeNode;
 
 using namespace std;
 
-TH2F* MapCorr = NULL;
+TH2 *MapCorr = nullptr;
 
 //____________________________________________________________________________..
 PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector* detector, const PHParameters* parameters)
