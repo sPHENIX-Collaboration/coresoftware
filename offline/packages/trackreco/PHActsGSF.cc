@@ -34,6 +34,8 @@
 
 #include <ActsExamples/EventData/Index.hpp>
 
+#include <TDatabasePDG.h>
+
 //____________________________________________________________________________..
 PHActsGSF::PHActsGSF(const std::string &name):
  SubsysReco(name)
@@ -105,11 +107,17 @@ int PHActsGSF::process_event(PHCompositeNode*)
       auto geocontext = m_tGeometry->geometry().geoContext;
       auto magcontext = m_tGeometry->geometry().magFieldContext;
       auto calcontext = m_tGeometry->geometry().calibContext;
+
+      auto ppoptions = Acts::PropagatorPlainOptions();
+      ppoptions.absPdgCode = m_pHypothesis;
+      ppoptions.mass = TDatabasePDG::Instance()->GetParticle(
+        m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
       ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions options{
 	geocontext,
 	  magcontext,
 	  calcontext,
-	  calibrator, &(*pSurface), Acts::LoggerWrapper(*logger)};
+	  calibrator, &(*pSurface), Acts::LoggerWrapper(*logger),
+	  ppoptions};
       if(Verbosity() > 2)
 	{
 	  std::cout << "calling gsf with position " 

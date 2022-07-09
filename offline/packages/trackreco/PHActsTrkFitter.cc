@@ -327,22 +327,22 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Set host of propagator options for Acts to do e.g. material integration
       Acts::PropagatorPlainOptions ppPlainOptions;
       ppPlainOptions.absPdgCode = m_pHypothesis;
-      ppPlainOptions.mass = 
-	TDatabasePDG::Instance()->GetParticle(m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
+      ppPlainOptions.mass = TDatabasePDG::Instance()->GetParticle(
+        m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
        
       ActsExamples::MeasurementCalibrator calibrator{measurements};
 
       auto geocontext = m_tGeometry->geometry().geoContext;
       auto magcontext = m_tGeometry->geometry().magFieldContext;
       auto calibcontext = m_tGeometry->geometry().calibContext;
-   
+
       ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions 
 	kfOptions{geocontext,
 		  magcontext,
 	          calibcontext,
 		  calibrator,
 		  &(*pSurface),
-	  Acts::LoggerWrapper(*logger),};
+	  Acts::LoggerWrapper(*logger),ppPlainOptions};
       
       PHTimer fitTimer("FitTimer");
       fitTimer.stop();
