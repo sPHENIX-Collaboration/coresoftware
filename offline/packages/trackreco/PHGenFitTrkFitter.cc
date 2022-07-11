@@ -45,13 +45,16 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <tpc/TpcDistortionCorrectionContainer.h>
+
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/InttDefs.h>
+#include <trackbase/MvtxDefs.h>
+#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/InttDefs.h>
-#include <trackbase/MvtxDefs.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -243,8 +246,6 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
   { std::cout << PHWHERE << "Events processed: " << _event << std::endl; }
 
   // clear global position map
-  m_globalPositions.clear();
-
   GetNodes(topNode);
 
   // clear default track map, fill with seeds
@@ -261,7 +262,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
     if(siid == std::numeric_limits<unsigned int>::max()) continue;
     const auto siseed = m_siliconSeeds->get(siid);
     if( !siseed ) continue;
-    
+        
     // get crossing number and check
     const auto crossing = siseed->get_crossing();
     if(crossing == SHRT_MAX) continue;
@@ -896,36 +897,66 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
   m_vertexMap_refit = findNode::getClass<SvtxVertexMap>(topNode,
                    "SvtxVertexMapRefit");
   if (!m_vertexMap_refit && _event < 2)
-    {
-      cout << PHWHERE << " SvtxVertexMapRefit node not found on node tree"
-           << endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
+  {
+    cout << PHWHERE << " SvtxVertexMapRefit node not found on node tree"
+      << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  // tpc distortion corrections
+  m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
+  if( m_dcc_static )
+  { 
+    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl; 
+  }
+  
+  m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
+  if( m_dcc_average )
+  { 
+    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl; 
+  }
+  
+  m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerFluctuation");
+  if( m_dcc_fluctuation )
+  { 
+    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl; 
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_________________________________________________________________________________
-Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster )
+Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing )
 {
 
-  // find closest iterator in map
-  auto it = m_globalPositions.lower_bound( key );
-  if (it == m_globalPositions.end()|| (key < it->first ))
-  {
-    // get global position from Acts transform
-    Acts::Vector3 globalPosition;
-    globalPosition = m_tgeometry->getGlobalPosition(key, cluster);
+  // get global position from Acts transform
+  auto globalPosition = m_tgeometry->getGlobalPosition(key, cluster);
+  
+  // for the TPC calculate the proper z based on crossing and side
+  const auto trkrid = TrkrDefs::getTrkrId(key);
+  if(trkrid ==  TrkrDefs::tpcId)
+  {	 
+    const auto side = TpcDefs::getSide(key);
+    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);
 
-    /*
-     * todo: should also either apply distortion corrections
-     * or make sure clusters are loaded from corrected map, after cluster mover
-     */
-
-    // add new cluster and set its key
-    it = m_globalPositions.insert(it, std::make_pair(key, globalPosition));
+    // apply distortion corrections
+    if(m_dcc_static) 
+    {
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_static ); 
+    }
+    
+    if(m_dcc_average) 
+    { 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_average ); 
+    }
+    
+    if(m_dcc_fluctuation) 
+    { 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_fluctuation ); 
+    }
   }
-  return it->second;
+  
+  return globalPosition;
 }
 
 /*
@@ -953,6 +984,10 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   /* no need to check for the container validity here. The check is done if micromegas clusters are actually found in the track */
   auto geom_container_micromegas = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
 
+  // get crossing from track
+  const auto crossing = intrack->get_crossing();
+  assert( crossing != SHRT_MAX );
+  
   // prepare seed
   TVector3 seed_mom(100, 0, 0);
   TVector3 seed_pos(0, 0, 0);
@@ -1009,8 +1044,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   {
     
     const auto cluster = m_clustermap->findCluster(cluster_key);
-
-    const auto globalPosition = getGlobalPosition( cluster_key, cluster );
+    const auto globalPosition = getGlobalPosition( cluster_key, cluster, crossing );
 
     float r = sqrt(square( globalPosition.x() ) + square( globalPosition.y() ));
     m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
@@ -1045,7 +1079,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
         << endl;
 #endif
 
-    const auto globalPosition_acts = getGlobalPosition( cluster_key, cluster );
+    const auto globalPosition_acts = getGlobalPosition( cluster_key, cluster, crossing );
 
     const TVector3 pos(globalPosition_acts.x(), globalPosition_acts.y(), globalPosition_acts.z() );
     seed_mom.SetPhi(pos.Phi());
@@ -1454,6 +1488,10 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   // loop over clusters, check if layer is disabled, include extrapolated SvtxTrackState
   if( !_disabled_layers.empty() )
   {
+    
+    // get crossing
+    const auto crossing = svtx_track->get_crossing();
+    assert( crossing != SHRT_MAX );
 
     unsigned int id_min = 0;
     for( const auto& cluster_key:get_cluster_keys( svtx_track ) )
@@ -1466,7 +1504,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       { continue; }
 
       // get position
-      const auto globalPosition = getGlobalPosition( cluster_key, cluster );
+      const auto globalPosition = getGlobalPosition( cluster_key, cluster, crossing );
       const TVector3 pos(globalPosition.x(), globalPosition.y(), globalPosition.z() );
       const float r_cluster = std::sqrt( square(globalPosition.x()) + square(globalPosition.y()) );
 
