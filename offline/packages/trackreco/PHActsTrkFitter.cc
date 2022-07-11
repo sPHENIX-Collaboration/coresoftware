@@ -428,7 +428,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 //___________________________________________________________________________________
 SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 					      ActsExamples::MeasurementContainer& measurements,
-				   short int crossing )
+					      short int crossing )
 {
 
   SourceLinkVec sourcelinks;
@@ -507,20 +507,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       Acts::Vector3 global = global_moved[i].second;
    
       auto cluster = m_clusterContainer->findCluster(cluskey);
-      Surface surf;
-      if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::tpcId)
-	{ 
-	  /// Take into account any movement from distortions
-	  auto subsurfkey = cluster->getSubSurfKey();
-        
-	  surf = m_tGeometry->get_tpc_surface_from_coords(
-            TrkrDefs::getHitSetKeyFromClusKey(cluskey), 
-	    global, subsurfkey);
-	}
-      else
-	{
-	  surf = m_tGeometry->maps().getSurface(cluskey, cluster);
-	}
+      Surface surf = m_tGeometry->maps().getSurface(cluskey, cluster);
    
       if(!surf)
 	{ continue; }
@@ -528,29 +515,21 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       // get local coordinates
       Acts::Vector2 localPos;
       Acts::Vector3 normal = surf->normal(m_tGeometry->geometry().geoContext);
+      global *= Acts::UnitConstants::cm;
       auto local = surf->globalToLocal(m_tGeometry->geometry().geoContext,
-				       global * Acts::UnitConstants::cm,
-				       normal);
+				       global, normal);
      
+      /// silicon
       if(local.ok())
-	{
-	  localPos = local.value() / Acts::UnitConstants::cm;
-	}
+	{ localPos = local.value() / Acts::UnitConstants::cm; }
       else
 	{
-	  /// otherwise take the manual calculation
-	  Acts::Vector3 center = surf->center(m_tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
-	 
-	  double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-	  double clusphi = atan2(global[1], global[0]);
-	  double rClusPhi = clusRadius * clusphi;
-	  double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
-	  double surfPhiCenter = atan2(center[1], center[0]);
-	  double surfRphiCenter = surfPhiCenter * surfRadius;
-	  double surfZCenter = center[2];
-	  
-	  localPos(0) = rClusPhi - surfRphiCenter;
-	  localPos(1) = global[2] - surfZCenter; 
+	  /// tpc 
+	  Acts::Vector3 loct = surf->transform(m_tGeometry->geometry().geoContext).inverse() * global;
+	  loct /= Acts::UnitConstants::cm;
+
+	  localPos(0) = loct(0);
+	  localPos(1) = loct(2);
 	}
       
       if(Verbosity() > 0)
@@ -597,9 +576,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       
       sourcelinks.push_back(sl);
       measurements.push_back(meas);
- 
     }
-  
     
   return sourcelinks;
 }

@@ -384,34 +384,11 @@ namespace
       // SAMPA shaping bias correction
       clust = clust + my_data.sampa_tbias;
 
-      Acts::Vector3 center = surface->center(my_data.tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
-  
-      // no conversion needed, only used in acts
-      Acts::Vector3 normal = surface->normal(my_data.tGeometry->geometry().geoContext);
-      double clusRadius = sqrt(clusx * clusx + clusy * clusy);
-      double rClusPhi = clusRadius * clusphi;
-      double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
-      double surfPhiCenter = atan2(center[1], center[0]);
-      double surfRphiCenter = surfPhiCenter * surfRadius;
-      double surfZCenter = center[2];
-     
-      auto local = surface->globalToLocal(my_data.tGeometry->geometry().geoContext,
-					  global * Acts::UnitConstants::cm,
-					  normal);
-      Acts::Vector2 localPos;
+      /// convert to Acts units
+      global *= Acts::UnitConstants::cm;
+      Acts::Vector3 local = surface->transform(my_data.tGeometry->geometry().geoContext).inverse() * global;
 
-      // Prefer Acts transformation since we build the TPC surfaces manually
-      if(local.ok())
-	{
-	  localPos = local.value() / Acts::UnitConstants::cm;
-	}
-      else
-	{
-	  /// otherwise take the manual calculation
-	  localPos(0) = rClusPhi - surfRphiCenter;
-	  localPos(1) = clusz - surfZCenter; 
-	}
-      
+      local /= Acts::UnitConstants::cm;     
       
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
       
@@ -423,7 +400,7 @@ namespace
 	//auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setAdc(adc_sum);      
 	clus->setSubSurfKey(subsurfkey);      
-	clus->setLocalX(localPos(0));
+	clus->setLocalX(local(0));
 	clus->setLocalY(clust);
 	clus->setActsLocalError(0,0, phi_err_square);
 	clus->setActsLocalError(1,0, 0);
@@ -439,7 +416,7 @@ namespace
 	clus->setPhiSize(phisize);
 	clus->setZSize(tsize);
 	clus->setSubSurfKey(subsurfkey);      
-	clus->setLocalX(localPos(0));
+	clus->setLocalX(local(0));
 	clus->setLocalY(clust);
 	my_data.cluster_vector.push_back(clus);
 	
