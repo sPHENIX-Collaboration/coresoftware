@@ -125,7 +125,7 @@ class MakeActsGeometry : public SubsysReco
 
   void readTGeoLayerBuilderConfigsFile(const std::string& path,
 				       ActsExamples::TGeoDetector::Config& config);
-
+ 
   void setMaterialResponseFile(std::string& responseFile,
 			       std::string& materialFile);
 

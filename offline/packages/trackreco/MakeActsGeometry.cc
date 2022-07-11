@@ -11,6 +11,7 @@
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
+#include <trackbase/sPHENIXActsDetectorElement.h>
 
 #include <intt/CylinderGeomIntt.h>
 
@@ -600,6 +601,8 @@ MakeActsGeometry::build(const boost::program_options::variables_map& vm,
     }
 
   ActsExamples::TGeoDetector::Config config;
+
+  config.elementFactory = sPHENIXElementFactory;
 
   config.fileName = vm["geo-tgeo-filename"].as<std::string>();
 
