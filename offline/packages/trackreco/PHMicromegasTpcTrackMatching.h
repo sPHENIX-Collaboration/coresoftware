@@ -98,11 +98,16 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
 
   ActsGeometry *_tGeometry = nullptr;
 
-  /// distortion correction container
-  TpcDistortionCorrectionContainer* _dcc = nullptr;
- /// tpc distortion correction utility class
-  TpcDistortionCorrection _distortionCorrection;
-  TpcClusterZCrossingCorrection _clusterCrossingCorrection;
+  // crossing z correction
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+  
+  // distortion corrections
+  TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
+
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection m_distortionCorrection;
 
   //! coarse SC correction function
   TF1 *fdrphi{nullptr};
