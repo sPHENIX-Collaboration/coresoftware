@@ -15,10 +15,9 @@
 
 #include <trackbase/ActsGeometry.h>
 
-#include <tpc/TpcClusterZCrossingCorrection.h>
-#include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterMover.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
@@ -43,6 +42,7 @@ class TrackSeed;
 class TrackSeedContainer;
 class TrkrClusterContainer;
 class TrkrClusterIterationMap;
+class TpcDistortionCorrectionContainer;
 
 using SourceLink = ActsExamples::IndexSourceLink;
 using FitResult = Acts::KalmanFitterResult;

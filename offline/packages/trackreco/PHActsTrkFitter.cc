@@ -33,6 +33,8 @@
 #include <phool/PHObject.h>
 #include <phool/PHTimer.h>
 
+#include <tpc/TpcDistortionCorrectionContainer.h>
+
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Surfaces/PlaneSurface.hpp>
@@ -462,8 +464,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       if(!surf)
 	{ continue; }
 
-      unsigned int trkrid = TrkrDefs::getTrkrId(key);
-      unsigned int side = TpcDefs::getSide(key);
+      const unsigned int trkrid = TrkrDefs::getTrkrId(key);
+      const unsigned int side = TpcDefs::getSide(key);
 
       // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset 
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
