@@ -14,7 +14,7 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
 {
  public:
 
-  sPHENIXActsDetectorElement() = default;
+  sPHENIXActsDetectorElement() = delete;
   
   sPHENIXActsDetectorElement(const Identifier& identifier, 
 			     const TGeoNode& tGeoNode,
