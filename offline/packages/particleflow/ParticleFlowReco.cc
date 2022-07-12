@@ -11,8 +11,8 @@
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4Particle.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -58,18 +58,13 @@ std::pair<float, float> ParticleFlowReco::get_expected_signature( int trk ) {
 //____________________________________________________________________________..
 ParticleFlowReco::ParticleFlowReco(const std::string &name):
   SubsysReco(name),
-  _energy_match_Nsigma( 1.5 ) ,
-  _emulate_efficiency( 1.1 )
+  _energy_match_Nsigma( 1.5 )
 {
-  
-  _tr_eff = gsl_rng_alloc(gsl_rng_mt19937);
-  gsl_rng_set(_tr_eff,PHRandomSeed());
 }
 
 //____________________________________________________________________________..
 ParticleFlowReco::~ParticleFlowReco()
 {
-  gsl_rng_free(_tr_eff);
 }
 
 //____________________________________________________________________________..
@@ -90,7 +85,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-  std::cout << "ParticleFlowReco::process_event with Nsigma = " << _energy_match_Nsigma << " , emulate efficiency = " << _emulate_efficiency << std::endl;
+  std::cout << "ParticleFlowReco::process_event with Nsigma = " << _energy_match_Nsigma << std::endl;
   }
   // get handle to pflow node
   ParticleFlowElementContainer *pflowContainer = findNode::getClass<ParticleFlowElementContainer>(topNode, "ParticleFlowElements");
@@ -164,59 +159,26 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     std::cout << "ParticleFlowReco::process_event : initial population of TRK, EM, HAD objects " << std::endl;
 
   // read in tracks with > 0.5 GeV
-  // currently just do this from truth
   {
-    
-    PHG4TruthInfoContainer* truthinfo = findNode::getClass <PHG4TruthInfoContainer> (topNode, "G4TruthInfo");
-    PHG4TruthInfoContainer::Range range = truthinfo->GetPrimaryParticleRange ();
-    
-    for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter) {
-      PHG4Particle* g4particle = iter->second;
-      
-      TLorentzVector t;
-      t.SetPxPyPzE( g4particle->get_px(), g4particle->get_py(), g4particle->get_pz(), g4particle->get_e() );
-      
-      float truth_pt = t.Pt();
-      float truth_p = t.P();
-      if (truth_pt < 0.5)
-	continue; // only keep pt > 0.5 GeV
-      
-      float truth_eta = t.Eta();
-      if (fabs (truth_eta) > 1.1)
-	continue; // only keep |eta| < 1.1
-      
-      float truth_phi = t.Phi();
-      
-      int truth_pid = abs( g4particle->get_pid() ); // particle species
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
 
-      // only keep charged truth particles
-      if ( truth_pid != 211 && truth_pid != 321 && truth_pid != 2212 ) continue;
+    for(auto iter = trackmap->begin(); iter != trackmap->end(); ++iter)
+      {
+	SvtxTrack *track = iter->second;
+	if(track->get_pt() < 0.5)
+	  { continue; }
 
-      // if emulating finite efficiency, roll the dice here 
-      if ( _emulate_efficiency < 1.0 ) {
-
-	float this_eff = gsl_rng_uniform_pos(_tr_eff);
-
-	if ( this_eff > _emulate_efficiency ) {
-	  // lost this track due to inefficiency
-	  continue;
-	}
-
+	if(fabs(track->get_eta()) < 1.1)
+	  { continue; }
+	
+	_pflow_TRK_p.push_back(track->get_p());
+	_pflow_TRK_eta.push_back(track->get_eta());
+	_pflow_TRK_phi.push_back(track->get_phi());
+	_pflow_TRK_match_EM.push_back( std::vector<int>() );
+	_pflow_TRK_match_HAD.push_back( std::vector<int>() );
+	_pflow_TRK_addtl_match_EM.push_back( std::vector< std::pair<int,float> >() );
+	
       }
-
-      _pflow_TRK_p.push_back( truth_p );
-      _pflow_TRK_eta.push_back( truth_eta );
-      _pflow_TRK_phi.push_back( truth_phi );
-
-      _pflow_TRK_match_EM.push_back( std::vector<int>() );
-      _pflow_TRK_match_HAD.push_back( std::vector<int>() );
-
-      _pflow_TRK_addtl_match_EM.push_back( std::vector< std::pair<int,float> >() );
-
-      if ( Verbosity() > 5 && truth_pt > 0.5 ) 
-	std::cout << " TRK with p / pT = " << truth_p << " / " << truth_pt  << " , eta / phi = " << truth_eta << " / " << truth_phi << std::endl;
-      
-    } // close truth paticle loop
 
   } // 
 
