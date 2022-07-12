@@ -1810,7 +1810,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    double clusRadius = r;
 	    ClusterErrorPara _ClusErrPara;
 	    TrackSeed *seed = nullptr;
-	    if(track!=nullptr){
+	    if(track!=NULL){
 	      if(layer < 7){
 		seed = track->get_silicon_seed();
 	      }else{
@@ -2119,7 +2119,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		double clusRadius = r;
 		ClusterErrorPara _ClusErrPara;
 		TrackSeed *seed = nullptr;
-		if(track!=nullptr){
+		if(track!=NULL){
 		  if(layer < 7){
 		    seed = track->get_silicon_seed();
 		  }else{
