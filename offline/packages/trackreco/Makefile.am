@@ -41,6 +41,7 @@ pkginclude_HEADERS = \
   HelixKalmanFilter.h \
   MakeActsGeometry.h \
   nanoflann.hpp \
+  PHActsGSF.h \
   PHActsSiliconSeeding.h \
   PHActsVertexPropagator.h \
   PHActsTrkFitter.h \
@@ -48,7 +49,6 @@ pkginclude_HEADERS = \
   PHCASeeding.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
-  PHGenFitTrkProp.h \
   PHGhostRejection.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
@@ -63,7 +63,6 @@ pkginclude_HEADERS = \
   PHSimpleKFProp.h \
   PHTpcClusterMover.h \
   PHTpcDeltaZCorrection.h \
-  PHTpcTrackSeedCircleFit.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
@@ -73,7 +72,6 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
-  ResidualOutlierFinder.h \
   VertexFitter.h
 
 ROOTDICTS = \
@@ -114,6 +112,7 @@ if MAKE_ACTS
 ACTS_SOURCES = \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
+  PHActsGSF.cc \
   PHActsSiliconSeeding.cc \
   PHActsTrkFitter.cc \
   PHActsVertexPropagator.cc \
@@ -148,7 +147,6 @@ libtrack_reco_la_SOURCES = \
   PHCASeeding.cc \
   PHGenFitTrackProjection.cc \
   PHGenFitTrkFitter.cc \
-  PHGenFitTrkProp.cc \
   PHGhostRejection.cc \
   PHInitVertexing.cc \
   PHInitZVertexing.cc \
@@ -161,7 +159,6 @@ libtrack_reco_la_SOURCES = \
   PHSimpleVertexFinder.cc \
   PHTpcClusterMover.cc \
   PHTpcDeltaZCorrection.cc \
-  PHTpcTrackSeedCircleFit.cc \
   PHTrackCleaner.cc \
   PHTrackSeeding.cc \
   PHTrackSelector.cc \

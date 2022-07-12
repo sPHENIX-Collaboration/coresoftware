@@ -8,8 +8,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <map>
@@ -111,8 +110,7 @@ class DSTEmulator : public SubsysReco
   using G4HitMap = std::map<TrkrDefs::cluskey,G4HitSet>;
   mutable G4HitMap m_g4hit_map;
 
-  ActsSurfaceMaps *m_surfMaps = nullptr;
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
   ActsTransformations m_transform;
 
   TNtuple *_dst_data;

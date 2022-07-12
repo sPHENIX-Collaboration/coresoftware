@@ -28,14 +28,16 @@
 // tpc distortion correction
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
-#include <trackbase_historic/ActsTransformations.h>
-#include <trackbase_historic/TrackSeedContainer.h>
-#include <trackbase_historic/TrackSeed_v1.h>
-
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
+#include <trackbase/ActsGeometry.h>
+
+#include <trackbase_historic/ActsTransformations.h>
+#include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/TrackSeed_v1.h>
 
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
@@ -127,14 +129,8 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
   //---------------------------------
   // Get Objects off of the Node Tree
   //---------------------------------
-  _surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  if(!_surfmaps)
-    {
-      std::cout << "No Acts surface maps, exiting." << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  
-  _tgeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+
+  _tgeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!_tgeometry)
     {
       std::cout << "No Acts tracking geometry, exiting." << std::endl;
@@ -316,9 +312,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 Acts::Vector3 PHSimpleKFProp::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global position from Acts transform
-  auto globalpos = m_transform.getGlobalPosition(key, cluster,
-    _surfmaps,
-    _tgeometry);
+  auto globalpos = _tgeometry->getGlobalPosition(key, cluster);
 
   // check if TPC distortion correction are in place and apply
   if( m_dcc ) { globalpos = m_distortionCorrection.get_corrected_position( globalpos, m_dcc ); }
@@ -412,8 +406,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   double track_y = track->get_y();
   double track_z = track->get_z();
 
-  double track_px = track->get_px(_cluster_map,_surfmaps,_tgeometry);
-  double track_py = track->get_py(_cluster_map,_surfmaps,_tgeometry);
+  double track_px = track->get_px(_cluster_map,_tgeometry);
+  double track_py = track->get_py(_cluster_map,_tgeometry);
   double track_pz = track->get_pz();
 
   /// Move to first tpc cluster layer if necessary
@@ -1075,15 +1069,15 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
       rz_pts.push_back(std::make_pair(r,global(2)));
     }
     if(Verbosity()>0) std::cout << "chain size: " << chain.size() << std::endl;
-    double A;
-    double B;
-    double R;
-    double X0;
-    double Y0;
-    fitter->CircleFitByTaubin(xy_pts,R,X0,Y0);
-    fitter->line_fit(rz_pts,A,B);
-    std::vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
-    std::vector<double> rz_resid = fitter->GetLineClusterResiduals(rz_pts,A,B);
+
+    //fit a circle through x,y coordinates and calculate residuals
+    const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin( xy_pts );
+    const std::vector<double> xy_resid = fitter->GetCircleClusterResiduals(xy_pts,R,X0,Y0);
+
+    // fit a line through r,z coordinates and calculate residuals
+    const auto [A, B] = TrackFitUtils::line_fit( rz_pts );
+    const std::vector<double> rz_resid = fitter->GetLineClusterResiduals(rz_pts,A,B);
+    
     for(size_t i=0;i<chain.size();i++)
     {
       if(xy_resid[i]>_xy_outlier_threshold) continue;

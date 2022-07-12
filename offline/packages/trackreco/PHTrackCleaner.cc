@@ -7,9 +7,9 @@
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TpcSeedTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/TrackSeedContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -49,8 +49,7 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
 {
 
   if(Verbosity() > 0)
-    std::cout << PHWHERE << " track map size " << _track_map->size() 
-	      << " _seed_track_map size " << _seed_track_map->size() << std::endl;
+    std::cout << PHWHERE << " track map size " << _track_map->size()  << std::endl;
 
   std::set<unsigned int> track_keep_list;
   std::set<unsigned int> track_delete_list;
@@ -58,27 +57,37 @@ int PHTrackCleaner::process_event(PHCompositeNode */*topNode*/)
   unsigned int good_track = 0;  // for diagnostic output only
   unsigned int ok_track = 0;   // tracks to keep
 
-  // loop over the TPC seed - track map and make a set containing all TPC seed ID's
-  std::set<unsigned int> seed_id_list;
-  auto map_range =  _seed_track_map->getAll();
-  for(auto it = map_range.first; it != map_range.second; ++it)
+  std::multimap<unsigned int, unsigned int> tpcid_track_mmap;
+  std::set<unsigned int> tpc_id_set;
+  // loop over the fitted tracks
+  for (auto it = _track_map->begin(); it != _track_map->end(); ++it)
     {
-      seed_id_list.insert( (*it).first );
+      auto track_id = (*it).first;
+      auto track = (*it).second;
+      if(!track) continue;
+      
+      auto tpc_seed =  track->get_tpc_seed();
+      unsigned int tpc_index = _tpc_seed_map->find(tpc_seed);      
+
+      auto tpc_track_pair = std::make_pair(tpc_index, track_id);
+
+      tpc_id_set.insert(tpc_index);
+      tpcid_track_mmap.insert(tpc_track_pair);
     }
 
   if(Verbosity() > 0)
-    std::cout << " seed_id_list size " << seed_id_list.size() << std::endl;
+    std::cout << " tpcid_track_mmap  size " << tpcid_track_mmap.size() << std::endl;
 
   // loop over the TPC seed ID's
 
-  for(auto seed_iter = seed_id_list.begin(); seed_iter != seed_id_list.end(); ++seed_iter)
+  for(auto seed_iter = tpc_id_set.begin(); seed_iter != tpc_id_set.end(); ++seed_iter)
     {
       unsigned int tpc_id = *seed_iter;
 
       if(Verbosity() > 1)
 	std::cout << " TPC ID " << tpc_id << std::endl;
 
-      auto tpc_range =   _seed_track_map->getAssocTracks(tpc_id);
+      auto tpc_range = tpcid_track_mmap.equal_range(tpc_id);
 
       unsigned int best_id = 99999;
       double min_chisq_df = 99999.0;
@@ -184,18 +193,17 @@ int PHTrackCleaner::End(PHCompositeNode */*topNode*/)
 
 int  PHTrackCleaner::GetNodes(PHCompositeNode* topNode)
 {
-
+ _tpc_seed_map = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  if (!_tpc_seed_map)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find TpcTrackSeedContainer: " << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+  
   _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if (!_track_map)
   {
     std::cout << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  _seed_track_map = findNode::getClass<TpcSeedTrackMap>(topNode, "TpcSeedTrackMap");
-  if (!_seed_track_map)
-  {
-    std::cout << PHWHERE << " ERROR: Can't find node TpcSeedTrackMap: " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

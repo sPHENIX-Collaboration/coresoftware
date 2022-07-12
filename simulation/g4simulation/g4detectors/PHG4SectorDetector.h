@@ -37,7 +37,7 @@ class PHG4SectorDetector : public PHG4Detector, public PHG4Sector::PHG4SectorCon
   void SuperDetector(const std::string &name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
 
-  using PHG4Detector::OverlapCheck; // not implementing all OverlapChecc methods
+  using PHG4Detector::OverlapCheck;  // not implementing all OverlapChecc methods
   void OverlapCheck(const bool chk) override
   {
     PHG4Detector::OverlapCheck(chk);

@@ -9,7 +9,7 @@ class PHNode;
 class DumpTowerBackground : public DumpObject
 {
  public:
-  DumpTowerBackground(const std::string &NodeName);
+  explicit DumpTowerBackground(const std::string &NodeName);
   ~DumpTowerBackground() override {}
 
  protected:

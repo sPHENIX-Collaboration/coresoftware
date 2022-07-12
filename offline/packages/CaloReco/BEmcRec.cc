@@ -204,8 +204,8 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
   if (!GetTowerGeometry(ix, iy, geom0))
   {
     // Weird case: cluster center of gravity outside the EMCal, take geometry from the neighbouring tower
-    int idx[4] = {1, 0, -1, 0};
-    int idy[4] = {0, 1, 0, -1};
+    const int idx[4] = {1, 0, -1, 0};
+    const int idy[4] = {0, 1, 0, -1};
     int ii = 0;
     while (ii < 4 && !GetTowerGeometry(ix + idx[ii], iy + idy[ii], geom0)) ii++;
     if (ii >= 4)
@@ -799,7 +799,7 @@ void BEmcRec::ZeroVector(EmcModule* v, int N)
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void BEmcRec::CopyVector(int* from, int* to, int N)
+void BEmcRec::CopyVector(const int *from, int* to, int N)
 {
   if (N <= 0) return;
   for (int i = 0; i < N; i++) to[i] = from[i];
@@ -807,7 +807,7 @@ void BEmcRec::CopyVector(int* from, int* to, int N)
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void BEmcRec::CopyVector(EmcModule* from, EmcModule* to, int N)
+void BEmcRec::CopyVector(const EmcModule *from, EmcModule* to, int N)
 {
   if (N <= 0)
   {

@@ -41,9 +41,9 @@ using namespace std;
 class twrs
 {
  public:
-  twrs(RawTower *);
+  explicit twrs(RawTower *);
   virtual ~twrs() {}
-  bool is_adjacent(twrs &);
+  bool is_adjacent(const twrs &);
   void set_id(const int i)
   {
     id = i;
@@ -84,7 +84,7 @@ twrs::twrs(RawTower *rt)
   binphi = rt->get_binphi();
 }
 
-bool twrs::is_adjacent(twrs &tower)
+bool twrs::is_adjacent(const twrs &tower)
 {
   if (bineta - 1 <= tower.get_bineta() && tower.get_bineta() <= bineta + 1)
   {

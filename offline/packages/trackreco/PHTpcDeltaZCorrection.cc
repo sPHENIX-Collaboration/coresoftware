@@ -42,7 +42,6 @@ PHTpcDeltaZCorrection::PHTpcDeltaZCorrection(const std::string &name)
 int PHTpcDeltaZCorrection::InitRun(PHCompositeNode*)
 {
   UpdateParametersWithMacro();
-  m_drift_velocity = get_double_param("drift_velocity");
   m_bz_const = get_double_param("bz_const");
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -69,7 +68,6 @@ void PHTpcDeltaZCorrection::SetDefaultParameters()
   // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
   // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
   // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
-  set_default_double_param("drift_velocity", 8.0 / 1000.0);  // cm/ns
   set_default_double_param("bz_const", 1.4);  // Tesla
   return;
 }
@@ -77,13 +75,8 @@ void PHTpcDeltaZCorrection::SetDefaultParameters()
 //_____________________________________________________________________
 int PHTpcDeltaZCorrection::load_nodes( PHCompositeNode* topNode )
 {
-
-  // acts surface map
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  assert( m_surfmaps );
-
   // acts geometry
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   assert( m_tGeometry );
 
   // get necessary nodes
@@ -164,7 +157,7 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, TrackSeed* track )
     if(!cluster) continue;
 
     // get cluster global position
-    const auto global = m_transformer.getGlobalPosition(cluster_key, cluster,m_surfmaps, m_tGeometry);
+    const auto global = m_tGeometry->getGlobalPosition(cluster_key, cluster);
 
     // get delta z
     const double delta_z = global.z() - origin.z();
@@ -179,18 +172,18 @@ void PHTpcDeltaZCorrection::process_track( unsigned int key, TrackSeed* track )
 
     // helical path length
     const double pathlength = std::sqrt( square( delta_z ) + square( radius*delta_phi ) );
-    if( Verbosity() )
-    { std::cout << "PHTpcDeltaZCorrection::process_track - cluster: " << cluster_key << " path length: " << pathlength << std::endl; }
-
+    
     // adjust cluster position to account for particles propagation time
     /*
-    * accounting for particles finite velocity results in reducing the electron drift time by pathlenght/c
-    * this in turn affects the cluster z, so that it is always closer to the readout plane
-    */
-    const double z_correction = pathlength * m_drift_velocity/speed_of_light;
-    if( global.z() > 0 ) cluster->setLocalY( cluster->getLocalY()+z_correction);
-    else cluster->setLocalY( cluster->getLocalY()-z_correction);
+     * accounting for particles finite velocity results in reducing the electron drift time by pathlenght/c
+     * this in turn affects the cluster z, so that it is always closer to the readout plane
+     */
+    const double t_correction = pathlength /speed_of_light;  
+    cluster->setLocalY( cluster->getLocalY() - t_correction);
 
-  }
-
+    if( Verbosity() )
+      { std::cout << "PHTpcDeltaZCorrection::process_track - cluster: " << cluster_key 
+		  << " path length: " << pathlength << " t correction " << t_correction << std::endl; }
+	}
+  
 }

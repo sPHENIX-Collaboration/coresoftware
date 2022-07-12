@@ -5,7 +5,6 @@
 #include <trackbase/TrkrCluster.h>            // for TrkrCluster
 #include <trackbase/TrkrDefs.h>               // for cluskey, getLayer, TrkrId
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TpcSeedTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack, SvtxTrack::C...
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -283,7 +282,11 @@ void PHSimpleVertexFinder::checkDCAs()
       if(_require_mvtx)
 	{
 	  unsigned int nmvtx = 0;
-	  for(auto clusit = tr1->begin_cluster_keys(); clusit != tr1->end_cluster_keys(); ++clusit)
+	  TrackSeed *siliconseed = tr1->get_silicon_seed();
+	  if(!siliconseed)
+	    { continue; }
+
+	  for(auto clusit = siliconseed->begin_cluster_keys(); clusit != siliconseed->end_cluster_keys(); ++clusit)
 	    {
 	      if(TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId )
 		{
@@ -304,7 +307,11 @@ void PHSimpleVertexFinder::checkDCAs()
 	  if(_require_mvtx)
 	    {
 	      unsigned int nmvtx = 0;
-	      for(auto clusit = tr2->begin_cluster_keys(); clusit != tr2->end_cluster_keys(); ++clusit)
+	      TrackSeed *siliconseed = tr2->get_silicon_seed();
+	      if(!siliconseed)
+		{ continue; }
+	     
+	      for(auto clusit = siliconseed->begin_cluster_keys(); clusit != siliconseed->end_cluster_keys(); ++clusit)
 		{
 		  if(TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId)
 		    {
@@ -347,7 +354,7 @@ void PHSimpleVertexFinder::findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2)
   double dca = dcaTwoLines(a1, b1, a2,  b2, PCA1, PCA2);
 
   // check dca cut is satisfied, and that PCA is close to beam line
-if( fabs(dca) < _dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut) )
+  if( fabs(dca) < _dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut) )
     {
       if(Verbosity() > 3)
 	{

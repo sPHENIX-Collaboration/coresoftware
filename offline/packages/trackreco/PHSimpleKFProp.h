@@ -14,7 +14,6 @@
 #include <fun4all/SubsysReco.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase_historic/ActsTransformations.h>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 #include <Eigen/Core>
@@ -24,10 +23,7 @@
 #include <string>
 #include <vector>
 
-// forward declarations
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
-
+class ActsGeometry;
 class PHCompositeNode;
 class PHField;
 class TpcDistortionCorrectionContainer;
@@ -65,9 +61,6 @@ class PHSimpleKFProp : public SubsysReco
 
  private:
 
-  /// acts transformation object
-  ActsTransformations m_transform;
-
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
 
@@ -99,10 +92,7 @@ class PHSimpleKFProp : public SubsysReco
   PHField* _field_map = nullptr;
   
   /// acts geometry
-  ActsTrackingGeometry *_tgeometry = nullptr;
-
-  /// acts surface map
-  ActsSurfaceMaps *_surfmaps = nullptr;
+  ActsGeometry *_tgeometry = nullptr;
 
   /// distortion correction container
   TpcDistortionCorrectionContainer* m_dcc = nullptr;

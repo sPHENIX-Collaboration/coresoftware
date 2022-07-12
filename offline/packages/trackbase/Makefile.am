@@ -20,6 +20,8 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
   ActsTrackingGeometry.h \
+  ActsGeometry.h \
+  ClusterErrorPara.h \
   CMFlashCluster.h \
   CMFlashClusterv1.h \
   CMFlashClusterContainer.h \
@@ -30,8 +32,11 @@ pkginclude_HEADERS = \
   CMFlashDifferenceContainerv1.h \
   InttDefs.h \
   MvtxDefs.h \
+  sPHENIXActsDetectorElement.h \
+  TpcDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
+  TrackFitUtils.h \
   TrkrCluster.h \
   TrkrClusterv1.h \
   TrkrClusterv2.h \
@@ -72,11 +77,12 @@ ROOTDICTS = \
   CMFlashDifferencev1_Dict.cc \
   CMFlashDifferenceContainer_Dict.cc \
   CMFlashDifferenceContainerv1_Dict.cc \
+  sPHENIXActsDetectorElement.cc \
   TrkrCluster_Dict.cc \
   TrkrClusterv1_Dict.cc \
   TrkrClusterv2_Dict.cc \
   TrkrClusterv3_Dict.cc \
-   TrkrClusterContainer_Dict.cc \
+  TrkrClusterContainer_Dict.cc \
   TrkrClusterv4_Dict.cc \
   TrkrClusterContainerv1_Dict.cc \
   TrkrClusterContainerv2_Dict.cc \
@@ -151,12 +157,16 @@ nobase_dist_pcm_DATA = \
 libtrack_io_la_SOURCES = \
   $(ROOTDICTS) \
   ActsSurfaceMaps.cc \
+  ActsGeometry.cc \
+  ClusterErrorPara.cc \
   CMFlashClusterv1.cc \
   CMFlashClusterContainerv1.cc \
   CMFlashDifferencev1.cc \
   CMFlashDifferenceContainerv1.cc \
   InttDefs.cc \
   MvtxDefs.cc \
+  TpcDefs.cc \
+  TrackFitUtils.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
   TrkrClusterv3.cc \
@@ -188,7 +198,8 @@ libtrack_io_la_SOURCES = \
 
 libtrack_io_la_LIBADD = \
   -lphool \
-  -lActsCore
+  -lActsCore \
+  -lActsPluginTGeo
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

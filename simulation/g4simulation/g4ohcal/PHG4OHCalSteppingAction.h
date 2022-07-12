@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4OUTERHCALSTEPPINGACTION_H
-#define G4DETECTORS_PHG4OUTERHCALSTEPPINGACTION_H
+#ifndef G4OHCAL_PHG4OHCALSTEPPINGACTION_H
+#define G4OHCAL_PHG4OHCALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
@@ -31,34 +31,38 @@ class PHG4OHCalSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   void SetInterfacePointers(PHCompositeNode *) override;
 
+  void SetHitNodeName(const std::string &type, const std::string &name) override;
+
   void FieldChecker(const G4Step *);
   void EnableFieldChecker(const int i = 1) { m_EnableFieldCheckerFlag = i; }
 
  private:
   //! pointer to the detector
-  PHG4OHCalDetector *m_Detector;
+  PHG4OHCalDetector *m_Detector = nullptr;
 
   //! pointer to hit container
-  PHG4HitContainer *m_Hits;
-  PHG4HitContainer *m_AbsorberHits;
-  PHG4Hit *m_Hit;
-  const PHParameters *m_Params;
-  PHG4HitContainer *m_SaveHitContainer;
-  PHG4Shower *m_SaveShower;
-  G4VPhysicalVolume *m_SaveVolPre;
-  G4VPhysicalVolume *m_SaveVolPost;
-  int m_SaveTrackId;
-  int m_SavePreStepStatus;
-  int m_SavePostStepStatus;
-  int m_EnableFieldCheckerFlag;
+  PHG4HitContainer *m_HitContainer = nullptr;
+  PHG4HitContainer *m_AbsorberHitContainer = nullptr;
+  PHG4Hit *m_Hit = nullptr;
+  const PHParameters *m_Params = nullptr;
+  PHG4HitContainer *m_SaveHitContainer = nullptr;
+  PHG4Shower *m_SaveShower = nullptr;
+  G4VPhysicalVolume *m_SaveVolPre = nullptr;
+  G4VPhysicalVolume *m_SaveVolPost = nullptr;
+  int m_SaveTrackId = -1;
+  int m_SavePreStepStatus = -1;
+  int m_SavePostStepStatus = -1;
+  int m_EnableFieldCheckerFlag = -1;
 
   // since getting parameters is a map search we do not want to
   // do this in every step, the parameters used are cached
   // in the following variables
-  int m_IsActiveFlag;
-  int m_IsBlackHoleFlag;
-  int m_NScintiPlates;
-  int m_LightScintModelFlag;
+  int m_IsActiveFlag = 0;
+  int m_IsBlackHoleFlag = 0;
+  int m_NScintiPlates = -1;
+  int m_LightScintModelFlag = 0;
+  std::string m_AbsorberNodeName;
+  std::string m_HitNodeName;
 };
 
-#endif  // G4DETECTORS_PHG4OUTERHCALSTEPPINGACTION_H
+#endif  // G4OHCAL_PHG4OHCALSTEPPINGACTION_H

@@ -12,8 +12,7 @@
 
 #include <trackbase_historic/ActsTransformations.h>
 
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -73,15 +72,15 @@ namespace
 
   //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
   template <double (interpolation_data_t::*accessor)() const>
-  double interpolate(const interpolation_data_t::list& hits, double y_extrap)
+  double interpolate(const interpolation_data_t::list& hits, double z_extrap)
   {
     // calculate all terms needed for the interpolation
     // need to use double everywhere here due to numerical divergences
     double sw = 0;
-    double swy = 0;
-    double swy2 = 0;
+    double swz = 0;
+    double swz2 = 0;
     double swx = 0;
-    double swyx = 0;
+    double swzx = 0;
 
     bool valid(false);
     for (const auto& hit : hits)
@@ -91,22 +90,22 @@ namespace
       if (w <= 0) continue;
 
       valid = true;
-      const double y = hit.y();
+      const double z = hit.z();
 
       sw += w;
-      swy += w * y;
-      swy2 += w * square(y);
+      swz += w * z;
+      swz2 += w * square(z);
       swx += w * x;
-      swyx += w * x * y;
+      swzx += w * x * z;
     }
 
     if (!valid) return NAN;
 
-    const auto alpha = (sw * swyx - swy * swx);
-    const auto beta = (swy2 * swx - swy * swyx);
-    const auto denom = (sw * swy2 - square(swy));
+    const auto alpha = (sw * swzx - swz * swx);
+    const auto beta = (swz2 * swx - swz * swzx);
+    const auto denom = (sw * swz2 - square(swz));
 
-    return (alpha * y_extrap + beta) / denom;
+    return (alpha * z_extrap + beta) / denom;
   }
 
 }  // namespace
@@ -232,15 +231,7 @@ std::string QAG4SimulationMicromegas::get_histo_prefix() const
 //________________________________________________________________________
 int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
 {
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  if (!m_surfmaps)
-  {
-    std::cout << PHWHERE << "Error: can't find Acts surface maps"
-              << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
     std::cout << PHWHERE << "No acts tracking geometry, exiting."
@@ -373,8 +364,6 @@ void QAG4SimulationMicromegas::evaluate_clusters()
     histograms.insert(std::make_pair(layer, h));
   }
 
-  ActsTransformations transformer;
-
   // loop over hitsets
   for(const auto& hitsetkey:m_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::micromegasId))
   {
@@ -401,7 +390,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
       // get cluster
       const auto& cluster = clusterIter->second;
-      const auto global = transformer.getGlobalPosition(key, cluster, m_surfmaps, m_tGeometry);
+      const auto global = m_tGeometry->getGlobalPosition(key, cluster);
 
       // get segmentation type
       const auto segmentation_type = MicromegasDefs::getSegmentationType(key);
@@ -412,12 +401,13 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
       // convert cluster position to local tile coordinates
       const TVector3 cluster_world(global(0), global(1), global(2));
-      const TVector3 cluster_local = layergeom->get_local_from_world_coords(tileid, cluster_world);
+      const auto cluster_local = layergeom->get_local_from_world_coords(tileid, m_tGeometry, cluster_world);
 
       // find associated g4hits
       const auto g4hits = find_g4hits(key);
 
       // convert hits to list of interpolation_data_t
+      /* TODO: should actually use the same code as in TrackEvaluation */
       interpolation_data_t::list hits;
       for (const auto& g4hit : g4hits)
       {
@@ -426,44 +416,44 @@ void QAG4SimulationMicromegas::evaluate_clusters()
         {
           // convert position to local
           TVector3 g4hit_world(g4hit->get_x(i), g4hit->get_y(i), g4hit->get_z(i));
-          TVector3 g4hit_local = layergeom->get_local_from_world_coords(tileid, g4hit_world);
+          TVector3 g4hit_local = layergeom->get_local_from_world_coords(tileid, m_tGeometry, g4hit_world);
 
           // convert momentum to local
           TVector3 momentum_world(g4hit->get_px(i), g4hit->get_py(i), g4hit->get_pz(i));
-          TVector3 momentum_local = layergeom->get_local_from_world_vect(tileid, momentum_world);
+          TVector3 momentum_local = layergeom->get_local_from_world_vect(tileid, m_tGeometry, momentum_world);
 
           hits.push_back({.position = g4hit_local, .momentum = momentum_local, .weight = weight});
         }
       }
 
-      // do position interpolation
-      const auto y_extrap = cluster_local.y();
+      // do position interpolation along z
+      const auto z_extrap = cluster_local.z();
       const TVector3 interpolation_local(
-          interpolate<&interpolation_data_t::x>(hits, y_extrap),
-          interpolate<&interpolation_data_t::y>(hits, y_extrap),
-          interpolate<&interpolation_data_t::z>(hits, y_extrap));
+          interpolate<&interpolation_data_t::x>(hits, z_extrap),
+          interpolate<&interpolation_data_t::y>(hits, z_extrap),
+          interpolate<&interpolation_data_t::z>(hits, z_extrap));
 
       // fill phi residuals, errors and pulls
       auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
       switch (segmentation_type)
       {
-      case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-      {
-        const auto drphi = cluster_local.x() - interpolation_local.x();
-        fill(hiter->second.residual, drphi);
-        fill(hiter->second.residual_error, rphi_error);
-        fill(hiter->second.pulls, drphi / rphi_error);
-        break;
-      }
-
-      case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-      {
-        const auto dz = cluster_local.z() - interpolation_local.z();
-        fill(hiter->second.residual, dz);
-        fill(hiter->second.residual_error, z_error);
-        fill(hiter->second.pulls, dz / z_error);
-        break;
-      }
+        case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+        {
+          const auto drphi = cluster_local.x() - interpolation_local.x();
+          fill(hiter->second.residual, drphi);
+          fill(hiter->second.residual_error, rphi_error);
+          fill(hiter->second.pulls, drphi / rphi_error);
+          break;
+        }
+        
+        case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+        {
+          const auto dz = cluster_local.y() - interpolation_local.y();
+          fill(hiter->second.residual, dz);
+          fill(hiter->second.residual_error, z_error);
+          fill(hiter->second.pulls, dz / z_error);
+          break;
+        }
       }
 
       // cluster size

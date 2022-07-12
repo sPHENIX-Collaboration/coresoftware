@@ -17,10 +17,9 @@
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4DisplacedSolid.hh>
-#include <Geant4/G4Exception.hh>  // for G4Exception
+#include <Geant4/G4Exception.hh>          // for G4Exception
 #include <Geant4/G4ExceptionSeverity.hh>  // for FatalException
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4String.hh>  // for G4String
@@ -47,6 +46,7 @@
 #include <string>  // std::string, std::to_string
 #include <vector>  // for vector
 
+class G4Material;
 class G4VSolid;
 class PHCompositeNode;
 
@@ -799,11 +799,9 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
 
   // construct fibers
 
-  int fiber_count = 0;
-
   if (get_geom_v3()->get_config() == SpacalGeom_t::kFullProjective_2DTaper_Tilted)
   {
-    fiber_count = Construct_Fibers(g_tower, block_logic);
+    int fiber_count = Construct_Fibers(g_tower, block_logic);
 
     if (get_geom_v3()->get_construction_verbose() >= 2)
       cout << "PHG4FullProjTiltedSpacalDetector::Construct_Tower::" << GetName()
@@ -812,8 +810,8 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
   }
   else if (get_geom_v3()->get_config() == SpacalGeom_t::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower)
   {
-    fiber_count = Construct_Fibers_SameLengthFiberPerTower(g_tower,
-                                                           block_logic);
+    int fiber_count = Construct_Fibers_SameLengthFiberPerTower(g_tower,
+                                                               block_logic);
 
     if (get_geom_v3()->get_construction_verbose() >= 2)
       cout << "PHG4FullProjTiltedSpacalDetector::Construct_Tower::" << GetName()

@@ -29,18 +29,15 @@ class TrackSeed_v1 : public TrackSeed
 
   int get_charge() const override;
   float get_px(TrkrClusterContainer *clusters,
-	       ActsSurfaceMaps *surfMaps, 
-	       ActsTrackingGeometry *tGeometry) const override;
+	       ActsGeometry *tGeometry) const override;
   float get_py(TrkrClusterContainer *clusters,
-	       ActsSurfaceMaps *surfMaps, 
-	       ActsTrackingGeometry *tGeometry) const override;
+	       ActsGeometry *tGeometry) const override;
   float get_pz() const override;
   float get_x() const override;
   float get_y() const override;
   float get_z() const override;
   float get_phi(TrkrClusterContainer *clusters,
-		ActsSurfaceMaps *surfMaps, 
-		ActsTrackingGeometry *tGeometry) const override;
+		ActsGeometry *tGeometry) const override;
   float get_phi(std::map<TrkrDefs::cluskey, Acts::Vector3>& positions) const override;
   float get_eta() const override;
   float get_theta() const override;
@@ -76,14 +73,12 @@ class TrackSeed_v1 : public TrackSeed
 
   /// Updates R, X0, Y0
   void circleFitByTaubin(TrkrClusterContainer *clusters,
-			 ActsSurfaceMaps *surfMaps, 
-			 ActsTrackingGeometry *tGeometry,
+			 ActsGeometry *tGeometry,
 			 uint8_t startLayer = 0,
 			 uint8_t endLayer = 58) override;
   /// Updates r-z slope and intercept B
   void lineFit(TrkrClusterContainer *clusters,
-	       ActsSurfaceMaps *surfMaps, 
-	       ActsTrackingGeometry *tGeometry,
+	       ActsGeometry *tGeometry,
 	       uint8_t startLayer = 0,
 	       uint8_t endLayer = 58) override;
   
@@ -95,10 +90,13 @@ class TrackSeed_v1 : public TrackSeed
 	       uint8_t startLayer = 0,
 	       uint8_t endLayer = 58) override;
 
- private:
+ protected:
+
   /// Returns transverse PCA to (0,0)
-  void findRoot(float& x ,float& y) const;
-  float findRoot(bool findX) const;
+  std::pair<float,float> findRoot() const;
+
+ private:
+
   ClusterKeySet m_cluster_keys;
   
   float m_qOverR = NAN;

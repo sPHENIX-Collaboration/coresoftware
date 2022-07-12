@@ -16,7 +16,7 @@ class G4VPhysicalVolume;
 class PHG4SectorDisplayAction : public PHG4DisplayAction
 {
  public:
-  PHG4SectorDisplayAction(const std::string &name);
+  explicit PHG4SectorDisplayAction(const std::string &name);
 
   ~PHG4SectorDisplayAction() override;
 

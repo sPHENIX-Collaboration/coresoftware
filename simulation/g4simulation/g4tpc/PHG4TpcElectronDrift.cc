@@ -19,8 +19,7 @@
 
 #include <trackbase/TrkrHitTruthClusters.h>
 #include <trackbase/TrkrHitTruthClustersv1.h>
-
-#include <tpc/TpcDefs.h>
+#include <trackbase/TpcDefs.h>
 
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
@@ -233,6 +232,8 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
+  std::cout << PHWHERE << " drift velocity " << drift_velocity << std::endl;
+
   auto se = Fun4AllServer::instance();
   dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
   se->registerHisto(dlong);
@@ -268,6 +269,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     se->registerHisto(nthit);
     se->registerHisto(ntpad);
   }
+
   padplane->InitRun(topNode);
   padplane->CreateReadoutGeometry(topNode, seggeo);
 
@@ -401,7 +403,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       const double rantime =
           gsl_ran_gaussian(RandomGenerator.get(), t_sigma) +
           gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_long) / drift_velocity;
-      const double t_final = t_start + t_path + rantime;
+      double t_final = t_start + t_path + rantime;
       if (t_final < min_time || t_final > max_time) continue;
 
       double z_final;
@@ -436,7 +438,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	rad_final+=r_distortion;
 	phi_final+=phi_distortion;
 	z_final += z_distortion;
-    
+	if (z_start < 0)
+	  t_final = (z_final +tpc_length/2.0) / drift_velocity;
+	else
+	  t_final = (tpc_length/2.0 - z_final) / drift_velocity;
 
 	x_final=rad_final*std::cos(phi_final);
 	y_final=rad_final*std::sin(phi_final);
@@ -502,7 +507,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
       }
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
-      MapToPadPlane(x_final, y_final, z_final, side, hiter, ntpad, nthit);
+      MapToPadPlane(x_final, y_final, t_final, side, hiter, ntpad, nthit);
     }  // end loop over electrons for this g4hit
 
     if (is_embedded && n_electrons > 0) {

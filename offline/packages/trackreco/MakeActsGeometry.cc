@@ -10,14 +10,14 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/TpcDefs.h>
+#include <trackbase/sPHENIXActsDetectorElement.h>
 
 #include <intt/CylinderGeomIntt.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <micromegas/CylinderGeomMicromegas.h>
-
-#include <tpc/TpcDefs.h>
 
 #include <micromegas/MicromegasDefs.h>
 
@@ -31,6 +31,8 @@
 #include <phgeom/PHGeomTGeo.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHNode.h>
@@ -57,6 +59,13 @@
 #include <ActsExamples/Options/CommonOptions.hpp>
 #include <ActsExamples/Utilities/Options.hpp>
 #include <ActsExamples/MagneticField/MagneticFieldOptions.hpp>
+
+#include <ActsExamples/TGeoDetector/JsonTGeoDetectorConfig.hpp>
+
+#include <ActsExamples/Geometry/MaterialWiper.hpp>
+#include <Acts/Material/IMaterialDecorator.hpp>
+#include <Acts/Plugins/Json/JsonMaterialDecorator.hpp>
+#include <Acts/Plugins/Json/MaterialMapJsonConverter.hpp>
 
 #include <TGeoManager.h>
 #include <TMatrixT.h>
@@ -110,48 +119,45 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
 
   /// Set the actsGeometry struct to be put on the node tree
-  m_actsGeometry->tGeometry = m_tGeometry;
-  m_actsGeometry->magField = m_magneticField;
-  m_actsGeometry->calibContext = m_calibContext;
-  m_actsGeometry->magFieldContext = m_magFieldContext;
-  m_actsGeometry->geoContext = m_geoCtxt;
-  m_actsGeometry->tpcSurfStepPhi = m_surfStepPhi;
-  m_actsGeometry->tpcSurfStepZ = m_surfStepZ;
+  ActsTrackingGeometry trackingGeometry;
+  trackingGeometry.tGeometry = m_tGeometry;
+  trackingGeometry.magField = m_magneticField;
+  trackingGeometry.calibContext = m_calibContext;
+  trackingGeometry.magFieldContext = m_magFieldContext;
+  trackingGeometry.geoContext = m_geoCtxt;
+  trackingGeometry.tpcSurfStepPhi = m_surfStepPhi;
+  trackingGeometry.tpcSurfStepZ = m_surfStepZ;
 
   // fill ActsSurfaceMap content
-  m_surfMaps->siliconSurfaceMap = m_clusterSurfaceMapSilicon;
-  m_surfMaps->tpcSurfaceMap = m_clusterSurfaceMapTpcEdit;
-  m_surfMaps->mmSurfaceMap = m_clusterSurfaceMapMmEdit;
-  m_surfMaps->tGeoNodeMap = m_clusterNodeMap;
+  ActsSurfaceMaps surfMaps;
+  surfMaps.m_siliconSurfaceMap = m_clusterSurfaceMapSilicon;
+  surfMaps.m_tpcSurfaceMap = m_clusterSurfaceMapTpcEdit;
+  surfMaps.m_mmSurfaceMap = m_clusterSurfaceMapMmEdit ;
+  surfMaps.m_tGeoNodeMap = m_clusterNodeMap;
 
   // fill TPC volume ids
   for( const auto& [hitsetid, surfaceVector]:m_clusterSurfaceMapTpcEdit )
     for( const auto& surface:surfaceVector )
-  { m_surfMaps->tpcVolumeIds.insert( surface->geometryId().volume() ); }
+      { surfMaps.m_tpcVolumeIds.insert( surface->geometryId().volume() ); }
   
   // fill Micromegas volume ids
   for( const auto& [hitsetid, surface]:m_clusterSurfaceMapMmEdit )
-  { m_surfMaps->micromegasVolumeIds.insert( surface->geometryId().volume() ); } 
+    { surfMaps.m_micromegasVolumeIds.insert( surface->geometryId().volume() ); } 
+  
+  m_actsGeometry->setGeometry(trackingGeometry);
+  m_actsGeometry->setSurfMaps(surfMaps);
+  m_actsGeometry->set_drift_velocity(m_drift_velocity);
 
   // print
   if( Verbosity() )
   {
-    for( const auto& id:m_surfMaps->tpcVolumeIds )
+    for( const auto& id:surfMaps.m_tpcVolumeIds )
     { std::cout << "MakeActsGeometry::InitRun - TPC volume id: " << id << std::endl; }
   
-    for( const auto& id:m_surfMaps->micromegasVolumeIds )
+    for( const auto& id:surfMaps.m_micromegasVolumeIds )
     { std::cout << "MakeActsGeometry::InitRun - Micromegas volume id: " << id << std::endl; }
   }
   
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int MakeActsGeometry::process_event(PHCompositeNode */*topNode*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-int MakeActsGeometry::End(PHCompositeNode */*topNode*/)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -518,7 +524,7 @@ void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
 
 }
 void MakeActsGeometry::makeGeometry(int argc, char* argv[], 
-				    ActsExamples::IBaseDetector &detector)
+				    ActsExamples::TGeoDetector &detector)
 {
   
   /// setup and parse options
@@ -532,7 +538,7 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[],
   auto vm = ActsExamples::Options::parse(desc, argc, argv);
  
   /// The geometry, material and decoration
-  auto geometry = ActsExamples::Geometry::build(vm, detector);
+  auto geometry = build(vm, detector);
   /// Geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
 
   m_tGeometry = geometry.first;
@@ -560,6 +566,75 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[],
   unpackVolumes();
   
   return;
+}
+
+
+std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
+          std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
+MakeActsGeometry::build(const boost::program_options::variables_map& vm,
+			ActsExamples::TGeoDetector& detector) {
+  // Material decoration
+  std::shared_ptr<const Acts::IMaterialDecorator> matDeco = nullptr;
+ 
+  // Retrieve the filename
+  auto fileName = vm["mat-input-file"].template as<std::string>();
+  // json or root based decorator
+  if (fileName.find(".json") != std::string::npos ||
+      fileName.find(".cbor") != std::string::npos) 
+    {
+      // Set up the converter first
+      Acts::MaterialMapJsonConverter::Config jsonGeoConvConfig;
+      // Set up the json-based decorator
+      matDeco = std::make_shared<const Acts::JsonMaterialDecorator>(
+	   jsonGeoConvConfig, fileName, Acts::Logging::INFO);
+    } 
+  else
+    {
+      matDeco = std::make_shared<const Acts::MaterialWiper>();
+    }
+
+  ActsExamples::TGeoDetector::Config config;
+
+  config.elementFactory = sPHENIXElementFactory;
+
+  config.fileName = vm["geo-tgeo-filename"].as<std::string>();
+
+  const auto path = vm["geo-tgeo-jsonconfig"].template as<std::string>();
+
+  readTGeoLayerBuilderConfigsFile(path, config);
+
+  /// Return the geometry and context decorators
+  return detector.finalize(config, matDeco);
+ }
+  
+void MakeActsGeometry::readTGeoLayerBuilderConfigsFile(const std::string& path,
+						       ActsExamples::TGeoDetector::Config& config) {
+  if (path.empty()) {
+    std::cout << "There is no acts geometry response file loaded. Cannot build, exiting"
+	      << std::endl;
+    exit(1);
+  }
+
+  nlohmann::json djson;
+  std::ifstream infile(path, std::ifstream::in | std::ifstream::binary);
+  infile >> djson;
+
+  config.unitScalor = djson["geo-tgeo-unit-scalor"];
+
+  config.buildBeamPipe = djson["geo-tgeo-build-beampipe"];
+  if (config.buildBeamPipe) {
+    const auto beamPipeParameters =
+        djson["geo-tgeo-beampipe-parameters"].get<std::array<double, 3>>();
+    config.beamPipeRadius = beamPipeParameters[0];
+    config.beamPipeHalflengthZ = beamPipeParameters[1];
+    config.beamPipeLayerThickness = beamPipeParameters[2];
+  }
+
+  // Fill nested volume configs
+  for (const auto& volume : djson["Volumes"]) {
+    auto& vol = config.volumes.emplace_back();
+    vol = volume;
+  }
 }
 
 void MakeActsGeometry::unpackVolumes()
@@ -724,7 +799,7 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
       }
 
       // get matching tile
-      int tileid = layergeom->find_tile_planar( world_center );
+      int tileid = layergeom->find_tile_cylindrical( world_center );
       if( tileid < 0 ) 
       {
         std::cout << "MakeActsGeometry::makeMmMapPairs - could not file Micromegas tile matching ACTS surface" << std::endl;
@@ -987,9 +1062,6 @@ TrkrDefs::hitsetkey MakeActsGeometry::getMvtxHitSetKeyFromCoords(unsigned int la
   unsigned int chip = 0;
   layergeom->get_sensor_indices_from_world_coords(world, stave, chip);
 
-  double check_pos[3] = {0, 0, 0};
-  layergeom->find_sensor_center(stave, 0, 0, chip, check_pos);
-
   unsigned int strobe = 0;
   TrkrDefs::hitsetkey mvtx_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, strobe);
 
@@ -1013,9 +1085,6 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
   int segment_phi_bin = 0;
   layergeom->find_indices_from_segment_center(segment_z_bin, 
 					      segment_phi_bin, location);
-
-  double check_pos[3] = {0, 0, 0};
-  layergeom->find_segment_center(segment_z_bin, segment_phi_bin, check_pos);
 
   int crossing = 0;
   TrkrDefs::hitsetkey intt_hitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin, crossing);
@@ -1379,46 +1448,36 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
 
 int MakeActsGeometry::createNodes(PHCompositeNode *topNode)
 {
-  PHNodeIterator iter(topNode);
 
+  PHNodeIterator iter(topNode);
   /// Get the DST Node
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
   
   /// Check that it is there
-  if (!dstNode)
+  if (!parNode)
     {
-      std::cerr << "DST Node missing, quitting" << std::endl;
-      throw std::runtime_error("failed to find DST node in PHActsSourceLinks::createNodes");
+      std::cout << "PAR Node missing, creating it" << std::endl;
+      parNode = new PHCompositeNode("PAR");
+      topNode->addNode(parNode);
     }
   
+  PHNodeIterator pariter(parNode);
   /// Get the tracking subnode
-  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(pariter.findFirst("PHCompositeNode", "SVTX"));
   
   /// Check that it is there
   if (!svtxNode)
     {
       svtxNode = new PHCompositeNode("SVTX");
-      dstNode->addNode(svtxNode);
+      parNode->addNode(svtxNode);
     }
 
-  m_surfMaps = findNode::getClass<ActsSurfaceMaps>(topNode,
-						   "ActsSurfaceMaps");
-  if(!m_surfMaps)
-    {
-      m_surfMaps = new ActsSurfaceMaps();
-      PHDataNode<ActsSurfaceMaps> *node
-	= new PHDataNode<ActsSurfaceMaps>(m_surfMaps, "ActsSurfaceMaps");
-      svtxNode->addNode(node);
-
-    }
-
-  m_actsGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,
-							    "ActsTrackingGeometry");
+  m_actsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_actsGeometry)
     {
-      m_actsGeometry = new ActsTrackingGeometry();
-      PHDataNode<ActsTrackingGeometry> *tGeoNode 
-	= new PHDataNode<ActsTrackingGeometry>(m_actsGeometry, "ActsTrackingGeometry");
+      m_actsGeometry = new ActsGeometry();
+      PHDataNode<ActsGeometry> *tGeoNode 
+	= new PHDataNode<ActsGeometry>(m_actsGeometry, "ActsGeometry");
       svtxNode->addNode(tGeoNode);
     }
   
@@ -1456,6 +1515,9 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
     std::cout << PHWHERE 
 	      << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" 
 	      << std::endl;
+    topNode->print();
+    auto se = Fun4AllServer::instance();
+    se->Print();
     return Fun4AllReturnCodes::ABORTRUN;
   }
 

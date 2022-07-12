@@ -12,7 +12,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
-#include <trackbase_historic/ActsTransformations.h>
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 
 class TrackSeedContainer;
@@ -45,14 +45,8 @@ class PHTpcDeltaZCorrection : public SubsysReco, public PHParameterInterface
   /// process track
   void process_track( unsigned int, TrackSeed* );
 
-  /// Acts surface maps for surface lookup
-  ActsSurfaceMaps *m_surfmaps = nullptr;
-
   /// Acts tracking geometry for surface lookup
-  ActsTrackingGeometry *m_tGeometry = nullptr;
-
-  /// acts transformation
-  ActsTransformations m_transformer;
+  ActsGeometry *m_tGeometry = nullptr;
 
   /// track map
   TrackSeedContainer *m_track_map = nullptr;
@@ -67,9 +61,6 @@ class PHTpcDeltaZCorrection : public SubsysReco, public PHParameterInterface
   /// constant magnetic field
   /** it is used to get helix trajectory from momentum at origin */
   double m_bz_const = 1.4; // Tesla
-
-  /// electron drift velocity in gas
-  double m_drift_velocity = NAN;
 
 };
 

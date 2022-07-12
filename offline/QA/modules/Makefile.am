@@ -28,6 +28,7 @@ libqa_modules_la_LIBADD = \
   -lphg4hit \
   -ltrackbase_historic_io \
   -lCLHEP \
+  -ldecayfinder_io \
   -lphhepmc
 
 pkginclude_HEADERS = \
@@ -42,7 +43,8 @@ pkginclude_HEADERS = \
   QAG4SimulationTracking.h \
   QAG4SimulationVertex.h \
   QAG4SimulationUpsilon.h \
-  QAHistManagerDef.h
+  QAHistManagerDef.h \
+  QAG4SimulationTruthDecay.h
 
 libqa_kfparticle_la_SOURCES = \
   QAG4SimulationKFParticle.cc
@@ -58,7 +60,8 @@ libqa_modules_la_SOURCES = \
   QAG4SimulationTracking.cc \
   QAG4SimulationVertex.cc \
   QAG4SimulationUpsilon.cc \
-  QAHistManagerDef.cc
+  QAHistManagerDef.cc \
+  QAG4SimulationTruthDecay.cc
 
 ################################################
 # linking tests

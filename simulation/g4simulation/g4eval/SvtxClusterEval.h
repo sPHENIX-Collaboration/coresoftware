@@ -4,8 +4,7 @@
 #include "SvtxHitEval.h"
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsSurfaceMaps.h>
-#include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <map>
 #include <memory>                // for shared_ptr, less
@@ -106,12 +105,13 @@ class SvtxClusterEval
   PHG4HitContainer * _g4hits_intt = nullptr;
   PHG4HitContainer * _g4hits_mvtx = nullptr;
   PHG4HitContainer * _g4hits_mms = nullptr;
-  ActsSurfaceMaps *_surfmaps = nullptr;
-  ActsTrackingGeometry *_tgeometry = nullptr;
+  ActsGeometry *_tgeometry = nullptr;
 
   bool _strict = false ;
   int _verbosity = 0;
   unsigned int _errors = 0;
+
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
 
   bool _do_cache = true;
   std::map<TrkrDefs::cluskey, std::set<PHG4Hit*> > _cache_all_truth_hits;

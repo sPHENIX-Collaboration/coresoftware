@@ -11,8 +11,7 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                      
@@ -71,8 +70,6 @@ class MakeActsGeometry : public SubsysReco
 
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
-  int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
   std::vector<std::shared_ptr<ActsExamples::IContextDecorator>> getContextDecorators()
     { return m_contextDecorators; }
@@ -85,6 +82,8 @@ class MakeActsGeometry : public SubsysReco
 
   double getSurfStepPhi() {return m_surfStepPhi;}
   double getSurfStepZ() {return m_surfStepZ;}
+
+  void set_drift_velocity(double vd){m_drift_velocity = vd;}
 
   void add_fake_surfaces(bool add)
   {fake_surfaces = add;}
@@ -116,7 +115,14 @@ class MakeActsGeometry : public SubsysReco
 
   /// Function that mimics ActsExamples::GeometryExampleBase
   void makeGeometry(int argc, char* argv[], 
-		    ActsExamples::IBaseDetector& detector);
+		    ActsExamples::TGeoDetector& detector);
+  std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
+          std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
+    build(const boost::program_options::variables_map& vm,
+			ActsExamples::TGeoDetector& detector);
+
+  void readTGeoLayerBuilderConfigsFile(const std::string& path,
+				       ActsExamples::TGeoDetector::Config& config);
  
   void setMaterialResponseFile(std::string& responseFile,
 			       std::string& materialFile);
@@ -214,11 +220,12 @@ class MakeActsGeometry : public SubsysReco
   Acts::MagneticFieldContext m_magFieldContext;
 
   /// Structs to put on the node tree which carry around ActsGeom info
-  ActsTrackingGeometry *m_actsGeometry = nullptr;
-  ActsSurfaceMaps *m_surfMaps = nullptr;
+  ActsGeometry *m_actsGeometry = nullptr;
 
   /// Verbosity value handed from PHActsSourceLinks
   int m_verbosity = 0;
+
+  double m_drift_velocity = 8.0e-03;  // cm/ns, override from macro
 
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField ="1.4" ;

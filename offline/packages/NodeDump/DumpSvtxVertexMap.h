@@ -10,7 +10,7 @@ class PHNode;
 class DumpSvtxVertexMap : public DumpObject
 {
  public:
-  DumpSvtxVertexMap(const std::string &NodeName);
+  explicit DumpSvtxVertexMap(const std::string &NodeName);
   ~DumpSvtxVertexMap() override {}
 
  protected:

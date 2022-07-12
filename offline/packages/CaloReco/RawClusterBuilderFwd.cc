@@ -37,9 +37,9 @@ using namespace std;
 class twrs_fwd
 {
  public:
-  twrs_fwd(RawTower *);
+  explicit twrs_fwd(RawTower *);
   virtual ~twrs_fwd() {}
-  bool is_adjacent(twrs_fwd &);
+  bool is_adjacent(const twrs_fwd &);
   void set_id(const int i)
   {
     id = i;
@@ -70,7 +70,7 @@ twrs_fwd::twrs_fwd(RawTower *rt)
   bin_k = rt->get_binphi();
 }
 
-bool twrs_fwd::is_adjacent(twrs_fwd &tower)
+bool twrs_fwd::is_adjacent(twrs_fwd const &tower)
 {
   if (bin_j - 1 <= tower.get_j_bin() && tower.get_j_bin() <= bin_j + 1)
   {

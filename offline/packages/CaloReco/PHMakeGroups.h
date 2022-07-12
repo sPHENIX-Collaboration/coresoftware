@@ -10,7 +10,7 @@
 //      from this one to allow breaking out of the inner loop early
 //
 
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/graph/adjacency_list.hpp>

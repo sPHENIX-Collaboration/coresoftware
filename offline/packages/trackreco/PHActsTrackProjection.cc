@@ -14,6 +14,8 @@
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/ActsTransformations.h>
 
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerContainer.h>
@@ -170,7 +172,7 @@ PHActsTrackProjection::makeTrackParams(SvtxTrack* track)
     for(int j = 0; j < 6; j++)
       { cov(i,j) = track->get_acts_covariance(i,j); }
 
-  return ActsExamples::TrackParameters::create(perigee, m_tGeometry->geoContext,
+  return ActsExamples::TrackParameters::create(perigee, m_tGeometry->geometry().geoContext,
 					       actsFourPos, momentum,
 					       track->get_charge() / track->get_p(),
 					       cov).value();
@@ -193,70 +195,26 @@ void PHActsTrackProjection::updateSvtxTrack(
 	       SvtxTrack* svtxTrack,
 	       const int caloLayer)
 {
-  auto projectionPos = params.position(m_tGeometry->geoContext);
+  float pathlength = m_caloRadii.find(m_caloTypes.at(caloLayer))->second;
+  SvtxTrackState_v1 out(pathlength);
 
-  auto projectionPhi = atan2(projectionPos(1), projectionPos(0));
-  auto projectionEta = asinh(projectionPos(2) / 
-			     sqrt(projectionPos(0) * projectionPos(0)
-				  + projectionPos(1) * projectionPos(1)));
-
-
-  if(Verbosity() > 2)
-    {
-      double radius = sqrt(projectionPos(0) * projectionPos(0)
-			   + projectionPos(1) * projectionPos(1));
-      std::cout << "Track projection phi/eta " << projectionPhi
-		<< " and " << projectionEta << std::endl
-		<< " projection position " << projectionPos.transpose()
-		<< " and radius is " << radius << std::endl;
-	}
-
-  if(fabs(projectionEta) >= 1.1)
-    return;
-
-  auto phiBin = m_towerGeomContainer->get_phibin(projectionPhi);
-  auto etaBin = m_towerGeomContainer->get_etabin(projectionEta);
+  auto projectionPos = params.position(m_tGeometry->geometry().geoContext);
+  const auto momentum = params.momentum();
+  out.set_x(projectionPos.x() / Acts::UnitConstants::cm);
+  out.set_y(projectionPos.y() / Acts::UnitConstants::cm);
+  out.set_z(projectionPos.z() / Acts::UnitConstants::cm);
+  out.set_px(momentum.x());
+  out.set_py(momentum.y());
+  out.set_pz(momentum.z());
   
-  double energy3x3 = 0.0;
-  double energy5x5 = 0.0;
+  ActsTransformations transformer;
+  const auto globalCov = transformer.rotateActsCovToSvtxTrack(params);
+  for (int i = 0; i < 6; ++i) {
+    for (int j = 0; j < 6; ++j)
+      { out.set_error(i, j, globalCov(i,j)); }
+  }
 
-  getSquareTowerEnergies(phiBin, etaBin, energy3x3, energy5x5);
-
-  if(Verbosity() > 2)
-    std::cout << "3x3/5x5 energy sums " << energy3x3 
-	      << " and " << energy5x5 << std::endl;
-
-  svtxTrack->set_cal_energy_3x3(m_caloTypes.at(caloLayer),
-				energy3x3);
-  svtxTrack->set_cal_energy_5x5(m_caloTypes.at(caloLayer),
-				energy5x5);
-
-  double minIndex = NAN;
-  double minDphi = NAN;
-  double minDeta = NAN;
-  double minE = NAN;
-  
-  getClusterProperties(projectionPhi, projectionEta,
-		       minIndex, minDphi, minDeta, minE);
-
-  if(!std::isnan(minIndex))
-    {
-      svtxTrack->set_cal_dphi(m_caloTypes.at(caloLayer),
-			      minDphi);
-      svtxTrack->set_cal_deta(m_caloTypes.at(caloLayer),
-			      minDeta);
-      svtxTrack->set_cal_cluster_id(m_caloTypes.at(caloLayer),
-				    minIndex);
-      svtxTrack->set_cal_cluster_e(m_caloTypes.at(caloLayer),
-				   minE);
-      if(Verbosity() > 2)
-	std::cout << "Calo cluster has dphi " << minDphi
-		  << " and deta " << minDeta << " and clusID "
-		  << minIndex << " and energy " << minE 
-		  << std::endl;
-
-    }
-
+  svtxTrack->insert_state(&out);
   return;
 }
 
@@ -334,7 +292,7 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
   if(Verbosity() > 1) {
     std::cout << "Propagating final track fit with momentum: " 
 	      << params.momentum() << " and position " 
-	      << params.position(m_tGeometry->geoContext)
+	      << params.position(m_tGeometry->geometry().geoContext)
 	      << std::endl
 	      << "track fit phi/eta "
 	      << atan2(params.momentum()(1), 
@@ -348,7 +306,7 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
   using Stepper = Acts::EigenStepper<>;
   using Propagator = Acts::Propagator<Stepper>;
 
-  auto field = m_tGeometry->magField;
+  auto field = m_tGeometry->geometry().magField;
 
   if(m_constField)
     {
@@ -367,8 +325,8 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
   auto logger = Acts::getDefaultLogger("PHActsTrackProjection", 
 				       logLevel);
   
-  Acts::PropagatorOptions<> options(m_tGeometry->geoContext,
-				    m_tGeometry->magFieldContext,
+  Acts::PropagatorOptions<> options(m_tGeometry->geometry().geoContext,
+				    m_tGeometry->geometry().magFieldContext,
 				    Acts::LoggerWrapper{*logger});
   
   auto result = propagator.propagate(params, *targetSurf, 
@@ -425,14 +383,16 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
 	return Fun4AllReturnCodes::ABORTEVENT;
       
       /// Default to using calo radius
-      double caloRadius = m_towerGeomContainer->get_radius() 
-	* Acts::UnitConstants::cm;
+      double caloRadius = m_towerGeomContainer->get_radius();
       if(m_caloRadii.find(m_caloTypes.at(caloLayer)) != m_caloRadii.end())
 	{ 
-	  caloRadius = m_caloRadii.find(m_caloTypes.at(caloLayer))->second
-	    * Acts::UnitConstants::cm; 
+	  caloRadius = m_caloRadii.find(m_caloTypes.at(caloLayer))->second;
 	}
+      else
+	{ m_caloRadii.insert(std::make_pair(m_caloTypes.at(caloLayer), caloRadius)); }
     
+      caloRadius *= Acts::UnitConstants::cm;
+
       /// Extend farther so that there is at least surface there, for high
       /// curling tracks. Can always reject later
       const auto eta = 2.5;
@@ -447,7 +407,10 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
 	Acts::Surface::makeShared<Acts::CylinderSurface>(transform,
 							 caloRadius,
 							 halfZ);
-  
+      if(Verbosity() > 1)
+	{
+	  std::cout << "Creating  cylindrical surface at " << caloRadius << std::endl;
+	}
       m_caloSurfaces.insert(std::make_pair(m_caloNames.at(caloLayer),
 					   surf));
     }
@@ -457,7 +420,7 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
       for(const auto& [name, surfPtr] : m_caloSurfaces)
 	{
 	  std::cout << "Cylinder " << name << " has center "
-		    << surfPtr.get()->center(m_tGeometry->geoContext)
+		    << surfPtr.get()->center(m_tGeometry->geometry().geoContext).transpose()
 		    << std::endl;
 	}
     }
@@ -484,8 +447,8 @@ int PHActsTrackProjection::getNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(
-			  topNode, "ActsTrackingGeometry");
+  m_tGeometry = findNode::getClass<ActsGeometry>(
+			  topNode, "ActsGeometry");
   if(!m_tGeometry)
     {
       std::cout << "ActsTrackingGeometry not on node tree. Exiting."

@@ -252,7 +252,7 @@ sub CreateInclude()
     print F "\n";
     print F "  $classname(const std::string &name = \"$classname\");\n";
     print F "\n";
-    print F "  virtual ~$classname();\n";
+    print F "  ~$classname() override;\n";
     print F "\n";
     print F "  /** Called during initialization.\n";
     print F "      Typically this is where you can book histograms, and e.g.\n";

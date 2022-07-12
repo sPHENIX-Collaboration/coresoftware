@@ -29,6 +29,7 @@ class PHG4TpcPadPlane : public SubsysReco, public PHParameterInterface
     return 0;
   }
   int InitRun(PHCompositeNode *topNode) override;
+  virtual void SetDriftVelocity(double /*vd*/) {return;}
   virtual int CreateReadoutGeometry(PHCompositeNode * /*topNode*/, PHG4CylinderCellGeomContainer * /*seggeo*/) { return 0; }
   virtual void UpdateInternalParameters() { return; }
   //  virtual void MapToPadPlane(PHG4CellContainer * /*g4cells*/, const double /*x_gem*/, const double /*y_gem*/, const double /*t_gem*/, const unsigned int /*side*/, PHG4HitContainer::ConstIterator /*hiter*/, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) {}

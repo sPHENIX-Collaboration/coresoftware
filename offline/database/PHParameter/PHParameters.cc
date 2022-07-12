@@ -12,6 +12,9 @@
 #include <phool/PHTimeStamp.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
+
+#include <xpload/xpload.h>
 
 #include <TBufferXML.h>
 #include <TFile.h>
@@ -41,6 +44,13 @@ PHParameters::PHParameters(const PHParameters &params, const std::string &name)
 }
 
 PHParameters::~PHParameters()
+{
+  m_DoubleParMap.clear();
+  m_IntParMap.clear();
+  m_StringParMap.clear();
+}
+
+void PHParameters::Reset()
 {
   m_DoubleParMap.clear();
   m_IntParMap.clear();
@@ -122,7 +132,7 @@ bool PHParameters::exist_double_param(const std::string &name) const
   return false;
 }
 
-void PHParameters::Print(Option_t */*option*/) const
+void PHParameters::Print(Option_t * /*option*/) const
 {
   std::cout << "Parameters for " << m_Detector << std::endl;
   printint();
@@ -476,8 +486,7 @@ int PHParameters::ReadFromDB()
   PHTimeStamp TSearch(10);
 
   std::string tablename = m_Detector + "_geoparams";
-  std::transform(tablename.begin(), tablename.end(), tablename.begin(),
-                 ::tolower);
+  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
   PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapBank", bankID,
                                                tablename, TSearch);
   if (NewBank)
@@ -491,6 +500,44 @@ int PHParameters::ReadFromDB()
     std::cout << PHWHERE " Reading from DB failed" << std::endl;
     return -1;
   }
+  return 0;
+}
+
+int PHParameters::ReadFromCDB(const std::string &domain)
+{
+  recoConsts *rc = recoConsts::instance();
+  xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), domain, rc->get_uint64Flag("TIMESTAMP"), xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
+  if (result.payload.empty())
+  {
+    std::cout << "No calibration for domain " << domain << " for timestamp " << rc->get_uint64Flag("TIMESTAMP") << std::endl;
+    gSystem->Exit(1);
+  }
+  TFile *f = TFile::Open(result.payload.c_str());
+  if (!f)
+  {
+    std::cout << "could not open " << result.payload << std::endl;
+    gSystem->Exit(1);
+  }
+  PdbParameterMap *myparm = static_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
+  if (!myparm)
+  {
+    std::cout << "could not get PdbParameterMap from " << result.payload << std::endl;
+    gSystem->Exit(1);
+  }
+  FillFrom(myparm);
+  delete myparm;
+  delete f;
+  return 0;
+}
+
+int PHParameters::WriteToCDBFile(const std::string &filename)
+{
+  PdbParameterMap *myparm = new PdbParameterMap();
+  CopyToPdbParameterMap(myparm);
+  TFile *f = TFile::Open(filename.c_str(), "recreate");
+  myparm->Write();
+  delete f;
+  delete myparm;
   return 0;
 }
 
@@ -602,8 +649,10 @@ int PHParameters::ReadFromFile(const std::string &name, const std::string &exten
     assert(myparm);
 
     if (myparm->GetParameters(detid) == nullptr)
+    {
       std::cout << "Missing PdbParameterMapContainer Detector Id " << detid << std::endl;
-    assert(myparm->GetParameters(detid));
+      gSystem->Exit(1);
+    }
 
     std::cout << "Received PdbParameterMapContainer Detector Id " << detid << " with (Hash = 0x" << std::hex << myparm->GetParameters(detid)->get_hash() << std::dec << ")" << std::endl;
 
@@ -621,6 +670,16 @@ int PHParameters::ReadFromFile(const std::string &name, const std::string &exten
   }
   delete f;
 
+  return 0;
+}
+
+int PHParameters::ReadFromCDBFile(const std::string &url)
+{
+  TFile *f = TFile::Open(url.c_str());
+  PdbParameterMap *myparm = static_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
+  FillFrom(myparm);
+  delete myparm;
+  delete f;
   return 0;
 }
 

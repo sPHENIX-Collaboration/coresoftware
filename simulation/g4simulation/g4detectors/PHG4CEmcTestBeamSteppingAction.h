@@ -15,7 +15,7 @@ class PHG4CEmcTestBeamSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4CEmcTestBeamSteppingAction(PHG4CEmcTestBeamDetector*);
+  explicit PHG4CEmcTestBeamSteppingAction(PHG4CEmcTestBeamDetector*);
 
   //! destroctor
   ~PHG4CEmcTestBeamSteppingAction() override

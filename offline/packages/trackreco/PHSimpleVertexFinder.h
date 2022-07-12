@@ -24,7 +24,6 @@ class SvtxTrack;
 class SvtxTrackMap;
 class SvtxVertexMap;
 class TrkrCluster;
-class TpcSeedTrackMap;
 
 class PHSimpleVertexFinder : public SubsysReco
 {

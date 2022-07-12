@@ -28,7 +28,7 @@ class PHG4SteppingAction;
 class PHG4GDMLSubsystem : public PHG4DetectorSubsystem
 {
  public:
-  PHG4GDMLSubsystem(const std::string& name);
+  explicit PHG4GDMLSubsystem(const std::string& name);
   ~PHG4GDMLSubsystem() override;
 
   /*!

@@ -85,7 +85,7 @@ void Fun4AllMonitoring::Get_Memory()
       tokenizer::iterator tok_iter = tok.begin();
       if ((*tok_iter).find("Pss") != std::string::npos)
       {
-        tok_iter++;
+        ++tok_iter;
         std::string number = *tok_iter;
         boost::trim(number);
         if (libraryname.find("[heap]") != std::string::npos)

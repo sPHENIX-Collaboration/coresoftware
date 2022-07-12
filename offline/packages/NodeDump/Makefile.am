@@ -17,7 +17,9 @@ libphnodedump_la_SOURCES = \
   DumpBbcVertexMap.cc \
   DumpCaloTriggerInfo.cc \
   DumpCentralityInfo.cc \
+  DumpEpInfo.cc \
   DumpEventHeader.cc \
+  DumpFlagSave.cc \
   DumpGlobalVertexMap.cc \
   DumpInttDeadMap.cc \
   DumpJetMap.cc \
@@ -34,6 +36,7 @@ libphnodedump_la_SOURCES = \
   DumpPHG4HitContainer.cc \
   DumpPHG4ParticleSvtxMap.cc \
   DumpPHG4ScintillatorSlatContainer.cc \
+  DumpTrkrHitTruthClusters.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
   DumpPHHepMCGenEventMap.cc \
@@ -47,6 +50,7 @@ libphnodedump_la_SOURCES = \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
   DumpTpcSeedTrackMap.cc \
+  DumpTrackSeedContainer.cc \
   DumpTrkrClusterContainer.cc \
   DumpTrkrClusterHitAssoc.cc \
   DumpTrkrHitSetContainer.cc \
@@ -62,6 +66,7 @@ libphnodedump_la_LIBADD = \
   -lg4bbc_io \
   -lcalo_io \
   -lcalotrigger_io \
+  -leventplane_io \
   -lffaobjects \
   -lg4detectors_io \
   -lphfield_io \

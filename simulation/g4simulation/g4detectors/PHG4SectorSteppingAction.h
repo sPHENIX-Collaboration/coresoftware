@@ -16,7 +16,7 @@ class PHG4SectorSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4SectorSteppingAction(PHG4SectorDetector*);
+  explicit PHG4SectorSteppingAction(PHG4SectorDetector*);
 
   //! destructor
   ~PHG4SectorSteppingAction() override;

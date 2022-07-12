@@ -10,7 +10,7 @@ class PHNode;
 class DumpTrkrClusterCrossingAssoc : public DumpObject
 {
  public:
-  DumpTrkrClusterCrossingAssoc(const std::string &NodeName);
+  explicit DumpTrkrClusterCrossingAssoc(const std::string &NodeName);
   ~DumpTrkrClusterCrossingAssoc() override {}
 
  protected:

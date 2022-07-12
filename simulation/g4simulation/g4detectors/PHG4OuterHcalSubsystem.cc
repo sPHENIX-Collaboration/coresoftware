@@ -93,11 +93,11 @@ int PHG4OuterHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
     BOOST_FOREACH (string node, nodes)
     {
-      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node.c_str());
+      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
       if (!g4_hits)
       {
         g4_hits = new PHG4HitContainer(node);
-        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node.c_str(), "PHObject"));
+        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node, "PHObject"));
       }
     }
     // create stepping action

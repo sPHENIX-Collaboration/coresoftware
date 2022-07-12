@@ -92,7 +92,7 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
   }
 
   hitnodename = "G4HIT_" + detector;
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     cout << Name() << " Could not locate g4 hit node " << hitnodename << endl;
@@ -104,12 +104,12 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
   if (!cells)
   {
     cells = new PHG4CellContainer();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str(), "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename, "PHObject");
     DetNode->addNode(newNode);
   }
 
   geonodename = "BLOCKGEOM_" + detector;
-  PHG4BlockGeomContainer *geo = findNode::getClass<PHG4BlockGeomContainer>(topNode, geonodename.c_str());
+  PHG4BlockGeomContainer *geo = findNode::getClass<PHG4BlockGeomContainer>(topNode, geonodename);
   if (!geo)
   {
     cout << Name() << " Could not locate geometry node " << geonodename << endl;
@@ -247,7 +247,7 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
 
 int PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
 {
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     cout << "Could not locate g4 hit node " << hitnodename << endl;
@@ -260,7 +260,7 @@ int PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  PHG4BlockCellGeomContainer *seggeo = findNode::getClass<PHG4BlockCellGeomContainer>(topNode, seggeonodename.c_str());
+  PHG4BlockCellGeomContainer *seggeo = findNode::getClass<PHG4BlockCellGeomContainer>(topNode, seggeonodename);
   if (!seggeo)
   {
     cout << "could not locate geo node " << seggeonodename << endl;

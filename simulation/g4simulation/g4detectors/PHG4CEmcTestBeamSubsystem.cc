@@ -47,7 +47,7 @@ PHG4CEmcTestBeamSubsystem::PHG4CEmcTestBeamSubsystem(const std::string& name, co
   // for multiple layers
   ostringstream nam;
   nam << name << "_" << lyr;
-  Name(nam.str().c_str());
+  Name(nam.str());
   for (int i = 0; i < 3; i++)
   {
     dimension[i] = 100.0 * cm;
@@ -83,10 +83,10 @@ int PHG4CEmcTestBeamSubsystem::Init(PHCompositeNode* topNode)
       nodename << "G4HIT_" << detector_type << "_" << layer;
     }
     // create hit list
-    PHG4HitContainer* block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    PHG4HitContainer* block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!block_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
     }
     if (absorberactive)
     {
@@ -100,10 +100,10 @@ int PHG4CEmcTestBeamSubsystem::Init(PHCompositeNode* topNode)
         nodename << "G4HIT_ABSORBER_" << detector_type << "_" << layer;
       }
     }
-    block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!block_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
     }
     // create stepping action
     steppingAction_ = new PHG4CEmcTestBeamSteppingAction(detector_);

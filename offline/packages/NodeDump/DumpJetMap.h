@@ -10,7 +10,7 @@ class PHNode;
 class DumpJetMap : public DumpObject
 {
  public:
-  DumpJetMap(const std::string &NodeName);
+  explicit DumpJetMap(const std::string &NodeName);
   ~DumpJetMap() override {}
 
  protected:

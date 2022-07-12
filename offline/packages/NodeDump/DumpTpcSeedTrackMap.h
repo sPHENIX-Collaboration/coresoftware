@@ -10,7 +10,7 @@ class PHNode;
 class DumpTpcSeedTrackMap : public DumpObject
 {
  public:
-  DumpTpcSeedTrackMap(const std::string &NodeName);
+  explicit DumpTpcSeedTrackMap(const std::string &NodeName);
   ~DumpTpcSeedTrackMap() override {}
 
  protected:

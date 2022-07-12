@@ -10,7 +10,7 @@ class PHNode;
 class DumpInttDeadMap : public DumpObject
 {
  public:
-  DumpInttDeadMap(const std::string &NodeName);
+  explicit DumpInttDeadMap(const std::string &NodeName);
   ~DumpInttDeadMap() override {}
 
  protected:

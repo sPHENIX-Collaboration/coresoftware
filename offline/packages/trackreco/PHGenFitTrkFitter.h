@@ -1,3 +1,6 @@
+#ifndef TRACKRECO_PHGENFITTRKFITTER_H
+#define TRACKRECO_PHGENFITTRKFITTER_H
+
 /*!
  *  \file		PHGenFitTrkFitter.h
  *  \brief		Refit SvtxTracks with PHGenFit.
@@ -5,10 +8,9 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef TRACKRECO_PHGENFITTRKFITTER_H
-#define TRACKRECO_PHGENFITTRKFITTER_H
-
 #include <fun4all/SubsysReco.h>
+#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #if defined(__CLING__)
@@ -46,15 +48,16 @@ namespace PHGenFit
 class Fitter;
 } /* namespace PHGenFit */
 
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
-
+class ActsGeometry;
+class PHCompositeNode;
+class PHG4TruthInfoContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
 class SvtxVertex;
-class PHCompositeNode;
-class PHG4TruthInfoContainer;
+class TpcDistortionCorrectionContainer;
 class TrkrClusterContainer;
+class TrackSeedContainer;
+
 class TTree;
 
 //! \brief		Refit SvtxTracks with PHGenFit.
@@ -260,7 +263,7 @@ class PHGenFitTrkFitter : public SubsysReco
   /**
    * uses ActsTransformation to convert cluster local position into global coordinates
    */
-  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*);
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*, short int crossing);
 
   /*
    * fit track with SvtxTrack as input seed.
@@ -315,30 +318,37 @@ class PHGenFitTrkFitter : public SubsysReco
   //! https://rave.hepforge.org/trac/wiki/RaveMethods
   std::string _vertexing_method = "avr-smoothing:1-minweight:0.5-primcut:9-seccut:9";
 
-  /// acts transformation object
-  ActsTransformations m_transform;
-
   /// acts geometry
-  ActsTrackingGeometry *m_tgeometry = nullptr;
-
-  /// acts surface map
-  ActsSurfaceMaps *m_surfmaps = nullptr;
-
-  /// map cluster keys to global position
-  using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
-  PositionMap m_globalPositions;
+  ActsGeometry *m_tgeometry = nullptr;
   
   //! Input Node pointers
   PHG4TruthInfoContainer* _truth_container = nullptr;
-  TrkrClusterContainer* _clustermap = nullptr;
-  SvtxTrackMap* _trackmap = nullptr;
+  TrkrClusterContainer* m_clustermap = nullptr;
+  
+  // track seeds
+  TrackSeedContainer *m_seedMap = nullptr;
+  TrackSeedContainer *m_tpcSeeds = nullptr;
+  TrackSeedContainer *m_siliconSeeds = nullptr;
+
   SvtxVertexMap* _vertexmap = nullptr;
 
   //! Output Node pointers
-  SvtxTrackMap* _trackmap_refit = nullptr;
-  SvtxTrackMap* _primary_trackmap = nullptr;
-  SvtxVertexMap* _vertexmap_refit = nullptr;
+  SvtxTrackMap* m_trackMap = nullptr;
+  SvtxTrackMap* m_trackMap_refit = nullptr;
+  SvtxTrackMap* m_primary_trackMap = nullptr;
+  SvtxVertexMap* m_vertexMap_refit = nullptr;
 
+  // crossing z correction
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+  
+  // distortion corrections
+  TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
+
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection m_distortionCorrection;
+  
   //! Evaluation
   //! switch eval out
   bool _do_eval = false;
@@ -353,7 +363,7 @@ class PHGenFitTrkFitter : public SubsysReco
   TClonesArray* _tca_vertexmap = nullptr;
   TClonesArray* _tca_trackmap_refit = nullptr;
   TClonesArray* _tca_primtrackmap = nullptr;
-  TClonesArray* _tca_vertexmap_refit = nullptr;
+  TClonesArray* _tcam_vertexMap_refit = nullptr;
 
   TTree* _cluster_eval_tree = nullptr;
   float _cluster_eval_tree_x = 0;

@@ -46,6 +46,10 @@ class TrackSeed_FastSim_v1 : public TrackSeed_v1
   TrackSeed::HitIdConstIter find_g4hit_id(int volume) const override
   { return m_g4hit_ids.find(volume); }
 
+  /// We need a separate function for truth tracks because the bend
+  /// angle is already properly accounted for
+  float get_phi(TrkrClusterContainer *clusters,
+		ActsGeometry *tGeometry) const override;
 
   void set_truth_track_id(unsigned int truthTrackId) override
   { m_truth_track_id = truthTrackId; }

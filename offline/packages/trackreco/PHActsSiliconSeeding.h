@@ -1,11 +1,9 @@
 #ifndef TRACKRECO_PHACTSSILICONSEEDING_H
 #define TRACKRECO_PHACTSSILICONSEEDING_H
 
-#include <trackbase/ActsTrackingGeometry.h>
-
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
@@ -75,6 +73,7 @@ class PHActsSiliconSeeding : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void setunc(float unc) { m_uncfactor = unc; }
   /// Set seeding with truth clusters
   void useTruthClusters(bool useTruthClusters)
     { m_useTruthClusters = useTruthClusters; }
@@ -118,6 +117,8 @@ class PHActsSiliconSeeding : public SubsysReco
 
  private:
 
+  float m_uncfactor = 3.175;
+    
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 
@@ -163,17 +164,14 @@ class PHActsSiliconSeeding : public SubsysReco
 				double& xminus,
 				double& yminus);
 
-  Surface getSurface(TrkrDefs::hitsetkey hitsetkey);
-
   void createHistograms();
   void writeHistograms();
   double normPhi2Pi(const double phi);
 
-  ActsTrackingGeometry *m_tGeometry = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
   TrackSeedContainer *m_seedContainer = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;
   PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
-  ActsSurfaceMaps *m_surfMaps = nullptr;
   
   /// Configuration classes for Acts seeding
   Acts::SeedfinderConfig<SpacePoint> m_seedFinderCfg;
@@ -209,7 +207,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Only used in seeding with specified z bin edges, which
   /// is more configuration than we need
-  int m_numPhiNeighbors = 0;
+  int m_numPhiNeighbors = 1;
 
   /// B field value in z direction
   /// bfield for space point grid neds to be in kiloTesla
