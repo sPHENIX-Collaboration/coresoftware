@@ -11,8 +11,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include "ResidualOutlierFinder.h"
-
 #include <trackbase/ActsGeometry.h>
 
 #include <tpc/TpcDistortionCorrection.h>
@@ -121,7 +119,7 @@ class PHActsTrkFitter : public SubsysReco
   ActsExamples::TrackFittingAlgorithm::TrackFitterResult fitTrack(
            const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
 	   const ActsExamples::TrackParameters& seed,
-	   const ActsExamples::TrackFittingAlgorithm::TrackFitterOptions& 
+	   const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
 	   const SurfacePtrVec& surfSequence);
 

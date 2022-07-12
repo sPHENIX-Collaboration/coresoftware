@@ -53,7 +53,6 @@
 #include <vector>
 
 
-
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
   , m_trajectories(nullptr)
@@ -70,11 +69,11 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     { return Fun4AllReturnCodes::ABORTEVENT; }
   
-  m_fitCfg.fit = ActsExamples::TrackFittingAlgorithm::makeTrackFitterFunction(
+  m_fitCfg.fit = ActsExamples::TrackFittingAlgorithm::makeKalmanFitterFunction(
     m_tGeometry->geometry().tGeometry,
     m_tGeometry->geometry().magField);
 
-  m_fitCfg.dFit = ActsExamples::TrackFittingAlgorithm::makeTrackFitterFunction(
+  m_fitCfg.dFit = ActsExamples::TrackFittingAlgorithm::makeKalmanFitterFunction(
     m_tGeometry->geometry().magField);
 
   m_outlierFinder.verbosity = Verbosity();
@@ -84,6 +83,10 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   chi2Cuts.insert(std::make_pair(14,9));
   chi2Cuts.insert(std::make_pair(16,4));
   m_outlierFinder.chi2Cuts = chi2Cuts;
+  if(m_useOutlierFinder)
+    {
+      m_fitCfg.fit->outlierFinder(m_outlierFinder);
+    }
 
   if(m_timeAnalysis)
     {
@@ -326,36 +329,23 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Set host of propagator options for Acts to do e.g. material integration
       Acts::PropagatorPlainOptions ppPlainOptions;
       ppPlainOptions.absPdgCode = m_pHypothesis;
-      ppPlainOptions.mass = 
-	TDatabasePDG::Instance()->GetParticle(m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
+      ppPlainOptions.mass = TDatabasePDG::Instance()->GetParticle(
+        m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
        
-      Acts::KalmanFitterExtensions extensions;
       ActsExamples::MeasurementCalibrator calibrator{measurements};
-      extensions.calibrator.connect<&ActsExamples::MeasurementCalibrator::calibrate>(&calibrator);
-     
-      if(m_useOutlierFinder)
-	{ 
-	  extensions.outlierFinder.connect<&ResidualOutlierFinder::operator()>(&m_outlierFinder);
-	}
 
-      Acts::GainMatrixUpdater kfUpdater;
-      Acts::GainMatrixSmoother kfSmoother;
-      extensions.updater.connect<&Acts::GainMatrixUpdater::operator()>(&kfUpdater);
-      extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()>(&kfSmoother);
       auto geocontext = m_tGeometry->geometry().geoContext;
       auto magcontext = m_tGeometry->geometry().magFieldContext;
       auto calibcontext = m_tGeometry->geometry().calibContext;
-      Acts::KalmanFitterOptions kfOptions(geocontext,
-					  magcontext,
-					  calibcontext,
-					  extensions,
-					  Acts::LoggerWrapper(*logger),
-					  ppPlainOptions,
-					  &(*pSurface));
- 
-      kfOptions.multipleScattering = true;
-      kfOptions.energyLoss = true;
 
+      ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions 
+	kfOptions{geocontext,
+		  magcontext,
+	          calibcontext,
+		  calibrator,
+		  &(*pSurface),
+	  Acts::LoggerWrapper(*logger),ppPlainOptions};
+      
       PHTimer fitTimer("FitTimer");
       fitTimer.stop();
       fitTimer.restart();
@@ -650,7 +640,7 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
 ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
     const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
     const ActsExamples::TrackParameters& seed,
-    const ActsExamples::TrackFittingAlgorithm::TrackFitterOptions& kfOptions, 
+    const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
     const SurfacePtrVec& surfSequence)
 {
 

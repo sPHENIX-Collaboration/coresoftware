@@ -76,8 +76,7 @@ class ActsTransformations
 			   SvtxTrack *svtxTrack,
 			   Acts::GeometryContext& geoContext) const;
   
- 
-  private:
+ private:
   int m_verbosity = 0;
   
 
