@@ -67,7 +67,7 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
 }
 
 Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
-						 TrkrCluster* cluster) const
+					      TrkrCluster* cluster) const
 {
   Acts::Vector3 glob;
 
@@ -92,8 +92,14 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
       return glob;
     } 
 
+  Acts::Vector2 local(cluster->getLocalX(), cluster->getLocalY());
+
+  Acts::Vector3 global;
+
   double maxdriftlength =  AdcClockPeriod*MaxTBins*_drift_velocity / 2.0;  // MaxTBins covers 2 x 13.2 microseconds
 
+  /// Undo the manual calculation that is performed in TpcClusterizer
+  
   // must convert local Y from cluster average time of arival to cluster z position
    // t = 0 corresponds to zdriftlength = 0, t = +MaxT corresponds to zdriftlength = 105.5, t = 2* MaxT corresponds to zdriftlength = 2*105.5
   double zdriftlength = cluster->getLocalY() * _drift_velocity;
@@ -101,15 +107,26 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
   unsigned int side = TpcDefs::getSide(key);
   if(side == 0) zpos = -zpos;
 
-  /// test acts transforms
-  Acts::Vector3 loc(cluster->getLocalX(),0,0);
-  loc *= Acts::UnitConstants::cm;
-  glob = surface->transform(geometry().geoContext) * loc;
-  glob /= Acts::UnitConstants::cm;
+  auto surfCenter = surface->center(geometry().geoContext);
 
-  glob(2) = zpos;
+  surfCenter /= Acts::UnitConstants::cm;
+  double surfPhiCenter = atan2(surfCenter(1), surfCenter(0));
+  double surfRadius = radius(surfCenter(0), surfCenter(1));
+  double surfRPhiCenter = surfPhiCenter * surfRadius;
+  
+  double clusRPhi = local(0) + surfRPhiCenter;
+  //double gclusz = local(1) + surfCenter(2);
+  double gclusz = zpos;
+  
+  double clusphi = clusRPhi / surfRadius;
+  double gclusx = surfRadius * cos(clusphi);
+  double gclusy = surfRadius * sin(clusphi);
 
-  return glob;
+  global(0) = gclusx;
+  global(1) = gclusy;
+  global(2) = gclusz;
+
+  return global;
 }
 
 
