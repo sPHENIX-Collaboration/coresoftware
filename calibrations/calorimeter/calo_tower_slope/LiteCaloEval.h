@@ -93,7 +93,6 @@ class LiteCaloEval : public SubsysReco
 
   std::string _caloname;
   std::string _filename;
-
 };
 
 #endif  // LITECALOEVAL_H

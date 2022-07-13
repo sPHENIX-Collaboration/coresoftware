@@ -846,13 +846,13 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         // cemc_hist_eta_phi[i][j]->Rebin(2);
         //	   cemc_hist_eta_phi[i][j]->Smooth(1);
         if (j < 2)
-	{
+        {
           cemc_hist_eta_phi[i][j]->Fit("myexpo", "L", "", fitmin, fitmax);
-	}
+        }
         else
-	{
+        {
           cemc_hist_eta_phi[i][j]->Fit("myexpo", "LQ", "", fitmin, fitmax);
-	}
+        }
         //hcalout_eta[i]->Fit("f2","R+");
         //hcalout_eta[i]->Fit("f3","R+");
 
@@ -866,13 +866,13 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         hcal_out_eta_phi[i][j]->Smooth(nsmooth);
 
         if (j < 2)
-	{
+        {
           hcal_out_eta_phi[i][j]->Fit("myexpo", "L", "", fitmin, fitmax);
-	}
+        }
         else
-	{
+        {
           hcal_out_eta_phi[i][j]->Fit("myexpo", "LQ", "", fitmin, fitmax);
-	}
+        }
         //hcalout_eta[i]->Fit("f2","R+");
         //hcalout_eta[i]->Fit("f3","R+");
 
@@ -923,13 +923,13 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         towid = mjl * 1000 + mjk;
         corr = corrPat->GetBinContent(mjl + 1, mjk + 1);
         if (!(corr > 0.0))
-	{
+        {
           corr = 1.0;
-	}
+        }
         else
-	{
+        {
           corr = 1.0 / corr;
-	}
+        }
         t1->Fill();
       }
     }
@@ -957,13 +957,13 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
       {
         float corr = corrPat->GetBinContent(mjl + 1, mjk + 1);
         if (!(corr > 0.))
-	{
+        {
           corr = 1.0;
-	}
+        }
         else
-	{
+        {
           corr = 1.0 / corr;
-	}
+        }
         out_hcal_corrF << mjl << " "
                        << mjk << " "
                        << corr << std::endl;
