@@ -13,6 +13,7 @@
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/TpcDefs.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
@@ -559,14 +560,24 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       indices[0] = Acts::BoundIndices::eBoundLoc0;
       indices[1] = Acts::BoundIndices::eBoundLoc1;
       Acts::ActsSymMatrix<2> cov = Acts::ActsSymMatrix<2>::Zero();
-      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
-	cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
-	cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
-	cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
-	cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+
+      if(m_cluster_version==3){
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
+	  cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
+	  cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
+	  cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
+	  cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+      }else if(m_cluster_version==4){
+	double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+	auto para_errors = _ClusErrPara.get_cluster_error(track,cluster,clusRadius,cluskey);
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
+      }
       ActsExamples::Index index = measurements.size();
       
       SourceLink sl(surf->geometryId(), index, cluskey);

@@ -4,6 +4,7 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
@@ -114,6 +115,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void SetIteration(int iter){_n_iteration = iter;}
+  void set_cluster_version(int value) { m_cluster_version = value; }
 
  private:
 
@@ -239,6 +241,7 @@ class PHActsSiliconSeeding : public SubsysReco
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
   std::string _track_map_name = "SiliconTrackSeedContainer";
+  ClusterErrorPara _ClusErrPara;
 
   bool m_seedAnalysis = false;
   TFile *m_file = nullptr;
@@ -258,7 +261,7 @@ class PHActsSiliconSeeding : public SubsysReco
   TH2 *h_projHits = nullptr;
   TH2 *h_zprojHits = nullptr;
   TH2 *h_resids = nullptr;
-
+  int m_cluster_version = 3;
 };
 
 
