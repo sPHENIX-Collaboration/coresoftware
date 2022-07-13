@@ -31,6 +31,9 @@
 
 class PHCompositeNode;
 
+// cppcheck suggests to use const which is correct but root
+// barfs when this is used with TF1
+// cppcheck-suppress constParameter
 double LCE_fitf(Double_t *x, Double_t *par)
 {
   return par[0] * LCE_grff->Eval(x[0] * par[1], 0, "S");
@@ -39,12 +42,8 @@ double LCE_fitf(Double_t *x, Double_t *par)
 //____________________________________________________________________________..
 LiteCaloEval::LiteCaloEval(const std::string &name, const std::string &caloname, const std::string &filename)
   : SubsysReco(name)
-  , f_temp(0)
-  , fitmin(0.)
-  , fitmax(0.)
   , _caloname(caloname)
   , _filename(filename)
-  , mode(0)
 {
 }
 
