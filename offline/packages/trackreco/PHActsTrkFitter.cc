@@ -460,9 +460,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 
       // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset 
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
-
       Acts::Vector3 global  = m_tGeometry->getGlobalPosition(key, cluster);
-     
+ 
       if(trkrid ==  TrkrDefs::tpcId)
 	{	  
 	  // make all corrections to global position of TPC cluster
@@ -500,50 +499,29 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       Acts::Vector3 global = global_moved[i].second;
    
       auto cluster = m_clusterContainer->findCluster(cluskey);
-      Surface surf;
-      if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::tpcId)
-	{ 
-	  /// Take into account any movement from distortions
-	  auto subsurfkey = cluster->getSubSurfKey();
-        
-	  surf = m_tGeometry->get_tpc_surface_from_coords(
-            TrkrDefs::getHitSetKeyFromClusKey(cluskey), 
-	    global, subsurfkey);
-	}
-      else
-	{
-	  surf = m_tGeometry->maps().getSurface(cluskey, cluster);
-	}
-   
+      Surface surf = m_tGeometry->maps().getSurface(cluskey, cluster);
+    
       if(!surf)
 	{ continue; }
 
       // get local coordinates
       Acts::Vector2 localPos;
+      global *= Acts::UnitConstants::cm;
+
       Acts::Vector3 normal = surf->normal(m_tGeometry->geometry().geoContext);
       auto local = surf->globalToLocal(m_tGeometry->geometry().geoContext,
-				       global * Acts::UnitConstants::cm,
-				       normal);
+				       global, normal);
      
       if(local.ok())
-	{
-	  localPos = local.value() / Acts::UnitConstants::cm;
-	}
+	{ localPos = local.value() / Acts::UnitConstants::cm; }
       else
 	{
-	  /// otherwise take the manual calculation
-	  Acts::Vector3 center = surf->center(m_tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
-	 
-	  double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-	  double clusphi = atan2(global[1], global[0]);
-	  double rClusPhi = clusRadius * clusphi;
-	  double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
-	  double surfPhiCenter = atan2(center[1], center[0]);
-	  double surfRphiCenter = surfPhiCenter * surfRadius;
-	  double surfZCenter = center[2];
-	  
-	  localPos(0) = rClusPhi - surfRphiCenter;
-	  localPos(1) = global[2] - surfZCenter; 
+	  /// otherwise take the manual calculation for the TPC
+	  Acts::Vector3 loct = surf->transform(m_tGeometry->geometry().geoContext).inverse() * global;
+	  loct /= Acts::UnitConstants::cm;
+
+	  localPos(0) = loct(0);
+	  localPos(1) = loct(1);
 	}
       
       if(Verbosity() > 0)

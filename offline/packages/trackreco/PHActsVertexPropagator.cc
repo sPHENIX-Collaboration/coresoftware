@@ -179,7 +179,7 @@ BoundTrackParamPtrResult PHActsVertexPropagator::propagateTrack(
   Acts::Navigator navigator(cfg);
   Propagator propagator(stepper, navigator);
   
-  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
+  Acts::Logging::Level logLevel = Acts::Logging::INFO;
   if(Verbosity() > 3)
     { logLevel = Acts::Logging::VERBOSE; }
   
