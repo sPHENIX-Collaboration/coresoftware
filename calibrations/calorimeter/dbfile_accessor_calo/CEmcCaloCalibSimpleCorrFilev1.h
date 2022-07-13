@@ -11,12 +11,12 @@ class CEmcCaloCalibSimpleCorrFilev1 : public CaloCalibSimpleCorrFile
 {
  public:
   // CEmcCaloCalibSimpleCorrFilev1() : m_CalTreeName("emc_corr_tree") {}
- 
+
   CEmcCaloCalibSimpleCorrFilev1(RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE)
-    :  CaloCalibSimpleCorrFile(caloid),
-    m_CalTreeName("emc_corr_tree") 
-      {
-      }
+    : CaloCalibSimpleCorrFile(caloid)
+    , m_CalTreeName("emc_corr_tree")
+  {
+  }
   ~CEmcCaloCalibSimpleCorrFilev1() override {}
 
   /*
@@ -28,15 +28,17 @@ class CEmcCaloCalibSimpleCorrFilev1 : public CaloCalibSimpleCorrFile
   void Open(const std::string &) override;
   void View() override;
   void ViewReadable() override;
-  
+
   float getCorr(const unsigned int ieta, const unsigned int iphi) override;
 
   RawTowerDefs::keytype TowKey(const unsigned int ieta, const unsigned int iphi)
-    {   return ieta*1000+iphi; }
+  {
+    return ieta * 1000 + iphi;
+  }
 
   ConstIterator AddCorr(const unsigned int ieta, const unsigned int iphi, float corr) override;
 
-  void set_CalTreeName(const char * inTreename) {m_CalTreeName = inTreename;} 
+  void set_CalTreeName(const char *inTreename) { m_CalTreeName = inTreename; }
 
  protected:
   //  std::array< std::array<double,64>, 24> m_RecalArray;
@@ -45,8 +47,7 @@ class CEmcCaloCalibSimpleCorrFilev1 : public CaloCalibSimpleCorrFile
   //  TNtuple * _readNtup;
 
   std::string m_CalTreeName;
-//    ClassDefOverride(CEmcCaloCalibSimpleCorrFilev1, 2);
-
+  //    ClassDefOverride(CEmcCaloCalibSimpleCorrFilev1, 2);
 };
 
 #endif
