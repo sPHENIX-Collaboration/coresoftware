@@ -106,9 +106,13 @@ int LiteCaloEval::InitRun(PHCompositeNode * /*topNode*/)
     {
       std::string hist_name = "hcalout_eta_" + std::to_string(i);
       if (i < 24)
+      {
         hcalout_eta[i] = new TH1F(hist_name.c_str(), "hcalout eta's", 1000, 0, 10);
+      }
       else
+      {
         hcalout_eta[i] = new TH1F(hist_name.c_str(), "hcalout eta's", 1000000, 0, 10);
+      }
     }
   }
   else if (calotype == LiteCaloEval::CEMC)
@@ -130,9 +134,13 @@ int LiteCaloEval::InitRun(PHCompositeNode * /*topNode*/)
       std::string b = "eta_" + std::to_string(i);
 
       if (i < 96)
+      {
         eta_hist[i] = new TH1F(b.c_str(), "eta and all phi's", 1000, 0, 10);
+      }
       else
+      {
         eta_hist[i] = new TH1F(b.c_str(), "eta and all phi's", 1000000, 0, 10);
+      }
     }
 
     //make 2d histo
@@ -599,11 +607,15 @@ void LiteCaloEval::Get_Histos(const char *infile, const char *outfile)
 
   int max_ieta = 96;
   if (calotype != LiteCaloEval::CEMC)
+  {
     max_ieta = 24;
+  }
 
   int max_iphi = 256;
   if (calotype != LiteCaloEval::CEMC)
+  {
     max_iphi = 64;
+  }
 
   for (int i = 0; i < max_ieta; i++)
   {
@@ -611,30 +623,41 @@ void LiteCaloEval::Get_Histos(const char *infile, const char *outfile)
     a.Form("%d", i);
     TString b = "eta_" + a;
     if (calotype == LiteCaloEval::HCALOUT)
+    {
       b = "hcalout_" + b;
+    }
     TH1F *heta_temp = (TH1F *) f_temp->Get(b.Data());
     if (!heta_temp && i == 0) std::cout << " warning hist " << b.Data() << " not found" << std::endl;
 
     eta_hist[i] = heta_temp;
     if (calotype == LiteCaloEval::HCALOUT)
+    {
       hcalout_eta[i] = heta_temp;
+    }
 
     for (int j = 0; j < max_iphi; j++)
     {
       std::string hist_name_p = "emc_ieta" + std::to_string(i) + "_phi" + std::to_string(j);
       if (calotype == LiteCaloEval::HCALOUT)
+      {
         hist_name_p = "hcal_out_eta_" + std::to_string(i) + "_phi_" + std::to_string(j);
+      }
       if (j < 2)
+      {
         std::cout << "getting " << hist_name_p << std::endl;
-
+      }
       TH1F *heta_tempp = (TH1F *) f_temp->Get(hist_name_p.c_str());
 
       if (!heta_tempp && i == 0)
+      {
         std::cout << " warning hist " << hist_name_p.c_str() << " not found" << std::endl;
+      }
 
       cemc_hist_eta_phi[i][j] = heta_tempp;
       if (calotype == LiteCaloEval::HCALOUT)
+      {
         hcal_out_eta_phi[i][j] = heta_tempp;
+      }
     }
   }
 }
@@ -643,10 +666,13 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 {
   bool onlyEta = false;
   if (fitmin < 0.001)
+  {
     fitmin = 0.15;
+  }
   if (fitmax < 0.001)
+  {
     fitmax = 1.3;
-
+  }
   float par_value[96];
   float par_err[96];
   float eta_value[96];
@@ -661,20 +687,28 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   f1->SetParameters(1e4, 1.0);
 
   if (modeFitShifts % 10 == 1)
+  {
     onlyEta = true;
+  }
 
   int nsmooth = 1;
   int addSmooth = modeFitShifts % 100 / 10;
   if (addSmooth)
+  {
     nsmooth += addSmooth;
+  }
 
   int max_ieta = 96;
   if (calotype != LiteCaloEval::CEMC)
+  {
     max_ieta = 24;
+  }
 
   int max_iphi = 256;
   if (calotype != LiteCaloEval::CEMC)
+  {
     max_iphi = 64;
+  }
 
   TH2F *corrPat = new TH2F("corrPat", "", max_ieta, 0, max_ieta, max_iphi, 0, max_iphi);
 
@@ -701,9 +735,13 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
     int iik = i;
     TH1F *hnewf = 0;
     if (calotype == LiteCaloEval::CEMC)
+    {
       hnewf = (TH1F *) ref_lce->eta_hist[iik]->Clone(myClnm.Data());
+    }
     else if (calotype == LiteCaloEval::HCALOUT)
+    {
       hnewf = (TH1F *) ref_lce->hcalout_eta[iik]->Clone(myClnm.Data());
+    }
     std::cout << "got neweff " << std::endl;
     hnewf->Smooth(nsmooth);
 
@@ -715,7 +753,9 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
     if (calotype == LiteCaloEval::CEMC)
     {
       if (nsmooth > 1)
+      {
         eta_hist[i]->Smooth(nsmooth);
+      }
       eta_hist[i]->Fit("myexpo", "L", "", fitmin, fitmax);
       //hcalout_eta[i]->Fit("f2","R+");
       //hcalout_eta[i]->Fit("f3","R+");
@@ -726,7 +766,9 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
     {
       if (i == 0) std::cout << "in hcal" << std::endl;
       if (nsmooth > 1)
+      {
         hcalout_eta[i]->Smooth(nsmooth);
+      }
       hcalout_eta[i]->Fit("myexpo", "L", "", fitmin, fitmax);
       //hcalout_eta[i]->Fit("f2","R+");
       //hcalout_eta[i]->Fit("f3","R+");
@@ -738,8 +780,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
     grT->SetName(myClnm2.Data());
     for (int jjk = 0; jjk < 1000; jjk++)
     {
-      float xjj = fitmin +
-                  jjk * (fitmax - fitmin) / 1000.0;
+      float xjj = fitmin + jjk * (fitmax - fitmin) / 1000.0;
       grT->SetPoint(jjk, xjj, f2f->Eval(xjj));
     }
 
@@ -764,19 +805,25 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
       TString myClnm2p = "gnewhc_eta";
       myClnm2p = myClnm2p + 1000 * (i + 2) + j;
       if (j == 0)
+      {
         std::cout << " making fitting  " << myClnmp.Data() << std::endl;
-
+      }
       //       int iikp = i;
       //  int jjkp = i;
       TH1F *hnewfp = 0;
       if (calotype == LiteCaloEval::CEMC)
+      {
         hnewfp = (TH1F *) ref_lce->cemc_hist_eta_phi[i][j]->Clone(myClnmp.Data());
+      }
       else if (calotype == LiteCaloEval::HCALOUT)
+      {
         hnewfp = (TH1F *) ref_lce->hcal_out_eta_phi[i][j]->Clone(myClnmp.Data());
-
+      }
       if (j < 5)
+      {
         std::cout << "got neweff phi eta  ... fitting w/ fit min,max: " << fitmin
                   << " " << fitmax << std::endl;
+      }
 
       hnewfp->Smooth(nsmooth);
       /*
@@ -799,10 +846,13 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         // cemc_hist_eta_phi[i][j]->Rebin(2);
         //	   cemc_hist_eta_phi[i][j]->Smooth(1);
         if (j < 2)
+	{
           cemc_hist_eta_phi[i][j]->Fit("myexpo", "L", "", fitmin, fitmax);
+	}
         else
+	{
           cemc_hist_eta_phi[i][j]->Fit("myexpo", "LQ", "", fitmin, fitmax);
-
+	}
         //hcalout_eta[i]->Fit("f2","R+");
         //hcalout_eta[i]->Fit("f3","R+");
 
@@ -816,9 +866,13 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         hcal_out_eta_phi[i][j]->Smooth(nsmooth);
 
         if (j < 2)
+	{
           hcal_out_eta_phi[i][j]->Fit("myexpo", "L", "", fitmin, fitmax);
+	}
         else
+	{
           hcal_out_eta_phi[i][j]->Fit("myexpo", "LQ", "", fitmin, fitmax);
+	}
         //hcalout_eta[i]->Fit("f2","R+");
         //hcalout_eta[i]->Fit("f3","R+");
 
@@ -829,8 +883,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
       grT2->SetName(myClnm2p.Data());
       for (int jjk = 0; jjk < 1000; jjk++)
       {
-        float xjj = fitmin +
-                    jjk * (fitmax - fitmin) / 1000.0;
+        float xjj = fitmin + jjk * (fitmax - fitmin) / 1000.0;
         grT2->SetPoint(jjk, xjj, f2f->Eval(xjj));
       }
 
@@ -870,9 +923,13 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         towid = mjl * 1000 + mjk;
         corr = corrPat->GetBinContent(mjl + 1, mjk + 1);
         if (!(corr > 0.0))
+	{
           corr = 1.0;
+	}
         else
+	{
           corr = 1.0 / corr;
+	}
         t1->Fill();
       }
     }
@@ -900,10 +957,13 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
       {
         float corr = corrPat->GetBinContent(mjl + 1, mjk + 1);
         if (!(corr > 0.))
+	{
           corr = 1.0;
+	}
         else
+	{
           corr = 1.0 / corr;
-
+	}
         out_hcal_corrF << mjl << " "
                        << mjk << " "
                        << corr << std::endl;
@@ -914,6 +974,8 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   }
 
   if (f_temp)
+  {
     f_temp->Write();
-  f_temp->Close();
+    f_temp->Close();
+  }
 }
