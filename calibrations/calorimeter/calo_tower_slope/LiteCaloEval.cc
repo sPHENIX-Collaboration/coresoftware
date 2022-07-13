@@ -8,7 +8,6 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
@@ -19,6 +18,7 @@
 #include <TH1.h>
 #include <TH2.h>
 #include <TH3.h>
+#include <TString.h>
 #include <TStyle.h>
 #include <TSystem.h>
 #include <TTree.h>
@@ -26,10 +26,10 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
-#include <cmath>                            // for abs
 #include <map>                               // for _Rb_tree_const_iterator
-#include <memory>
 #include <utility>                           // for pair
+
+class PHCompositeNode;
 
 double LCE_fitf(Double_t *x, Double_t *par)
 {
@@ -847,16 +847,16 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts)
 	 }
 
 
-       TGraph * grT = new TGraph(1000);
-       grT->SetName(myClnm2p.Data());
+       TGraph * grT2 = new TGraph(1000);
+       grT2->SetName(myClnm2p.Data());
        for (int jjk = 0; jjk < 1000; jjk++)
 	 {
 	   float xjj = fitmin + 
 	     jjk*(fitmax-fitmin)/1000.0;
-	   grT->SetPoint(jjk,xjj,f2f->Eval(xjj));
+	   grT2->SetPoint(jjk,xjj,f2f->Eval(xjj));
 	 }
        
-       grT->Write();
+       grT2->Write();
        
        float a1fp = f2f2->GetParameter(1);
        float b1fp = f2f->GetParError(1);

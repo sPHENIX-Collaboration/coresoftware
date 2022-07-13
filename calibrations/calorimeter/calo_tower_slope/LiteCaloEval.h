@@ -13,8 +13,6 @@ class TH1;
 class TH2;
 class TH3;
 class TGraph;
-class TNtuple;
-class TF1;
 
 
 double LCE_fitf(double * f, double *p);
