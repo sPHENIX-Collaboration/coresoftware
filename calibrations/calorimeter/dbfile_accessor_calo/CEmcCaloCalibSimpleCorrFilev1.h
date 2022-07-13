@@ -5,10 +5,6 @@
 
 #include <calobase/RawTowerDefs.h>
 
-#include <cstddef>
-#include <iostream>
-#include <map>
-#include <utility>
 #include <string>
 
 class CEmcCaloCalibSimpleCorrFilev1 : public CaloCalibSimpleCorrFile
@@ -29,7 +25,7 @@ class CEmcCaloCalibSimpleCorrFilev1 : public CaloCalibSimpleCorrFile
   void identify(std::ostream& os = std::cout) const override;
   */
 
-  void Open(const char * ) override;
+  void Open(const std::string &) override;
   void View() override;
   void ViewReadable() override;
   
@@ -39,7 +35,6 @@ class CEmcCaloCalibSimpleCorrFilev1 : public CaloCalibSimpleCorrFile
     {   return ieta*1000+iphi; }
 
   ConstIterator AddCorr(const unsigned int ieta, const unsigned int iphi, float corr) override;
-  void set_CalibrationFileName(const char * inFileName) {m_CalibrationFileName = inFileName;}
 
   void set_CalTreeName(const char * inTreename) {m_CalTreeName = inTreename;} 
 
@@ -49,7 +44,6 @@ class CEmcCaloCalibSimpleCorrFilev1 : public CaloCalibSimpleCorrFile
 
   //  TNtuple * _readNtup;
 
-  std::string m_CalibrationFileName;
   std::string m_CalTreeName;
 //    ClassDefOverride(CEmcCaloCalibSimpleCorrFilev1, 2);
 

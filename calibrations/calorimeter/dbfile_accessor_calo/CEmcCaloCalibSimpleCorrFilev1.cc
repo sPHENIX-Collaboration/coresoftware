@@ -1,33 +1,36 @@
 #include "CEmcCaloCalibSimpleCorrFilev1.h"
-#include <iostream>
-#include <fstream>
-#include <cmath>
+
+#include <calobase/RawTowerDefs.h>  // for keytype
 
 #include <TSystem.h>
-#include <TBranch.h>
 #include <TTree.h>
 #include <TFile.h>
 
-//using namespace std;
+#include <cstdlib>                 // for exit
+#include <iostream>
+#include <fstream>
+#include <map>                      // for _Rb_tree_iterator
+#include <cmath>
+
+class TBranch;
+
 //CEmcCaloCalibSimpleCorrFilev1::CEmcCaloCalibSimpleCorrFilev1(RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE) 
 
 
-void CEmcCaloCalibSimpleCorrFilev1::Open(const char * inFileName)
+void CEmcCaloCalibSimpleCorrFilev1::Open(const std::string &CalibrationFileName)
 {
   
   //  _corrs[0] = 9.92939;
 
-  m_CalibrationFileName = inFileName;
-  
-  if (! m_CalibrationFileName.empty())
+  if (! CalibrationFileName.empty())
     {
 
-      TFile mef(m_CalibrationFileName.c_str());
+      TFile mef(CalibrationFileName.c_str());
       TTree * corrtree = (TTree *) mef.Get(m_CalTreeName.c_str());
       if (!corrtree)
 	{
 	  std::cout << "CEmcCCSCorrFilev1.cc:  getting simple emcal db calibrations from file " 
-		    << m_CalibrationFileName 
+		    << CalibrationFileName
 		    << "; treename: " << m_CalTreeName
 		    << std::endl;
 	  return;
@@ -64,7 +67,7 @@ void CEmcCaloCalibSimpleCorrFilev1::Open(const char * inFileName)
 	  if (! std::isfinite(corr))
 	    {
 	      std::cout << "Calibration constant at towid " << towid
-			<< " in " << m_CalibrationFileName
+			<< " in " << CalibrationFileName
 			<< " is not finite: " << corr << std::endl;
 	      gSystem->Exit(1);
 	      exit(1);

@@ -1,22 +1,22 @@
 #include "HcalCaloCalibSimpleCorrFilev1.h"
-#include <iostream>
-#include <fstream>
-#include <cmath>
+
 #include <TSystem.h>
 
-//using namespace std;
+#include <cmath>
+#include <cstdlib>   // for exit
+#include <iostream>
+#include <fstream>
+#include <map>        // for _Rb_tree_iterator
 
-void HcalCaloCalibSimpleCorrFilev1::Open(const char * inFileName)
+void HcalCaloCalibSimpleCorrFilev1::Open(const std::string &CalibrationFileName)
 {
   
   //  _corrs[0] = 9.92939;
 
-  m_CalibrationFileName = inFileName;
-  
-  if (! m_CalibrationFileName.empty())
+  if (! CalibrationFileName.empty())
     {
       std::ifstream calibrate_tower;
-      calibrate_tower.open(m_CalibrationFileName, std::ifstream::in);
+      calibrate_tower.open(CalibrationFileName, std::ifstream::in);
       if (calibrate_tower.is_open())
 	{
 	  int etabin = -1;
@@ -25,7 +25,7 @@ void HcalCaloCalibSimpleCorrFilev1::Open(const char * inFileName)
 	  calibrate_tower >> etabin >> phibin >> recal;
 	  
 	  std::cout << "HcalCCSCorrFilev1.cc:  getting simple hcal db calibrations from file " 
-		    << m_CalibrationFileName 
+		    << CalibrationFileName
 		    << " :  " << etabin << " " <<  phibin << " " << recal << " ... "
 		    << std::endl;
 
@@ -34,7 +34,7 @@ void HcalCaloCalibSimpleCorrFilev1::Open(const char * inFileName)
 	      if (! std::isfinite(recal))
 		{
 		  std::cout << "Calibration constant at etabin " << etabin
-			    << ", phibin " << phibin << " in " << m_CalibrationFileName
+			    << ", phibin " << phibin << " in " << CalibrationFileName
 			    << " is not finite: " << recal << std::endl;
 		gSystem->Exit(1);
 		exit(1);

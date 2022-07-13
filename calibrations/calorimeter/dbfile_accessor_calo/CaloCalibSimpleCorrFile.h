@@ -4,8 +4,6 @@
 #include <calobase/RawTowerDefs.h>
 
 #include <phool/phool.h>
-//#include <phool/PHObject.h>
-
 
 #include <iostream>
 #include <map>
@@ -27,7 +25,7 @@ class CaloCalibSimpleCorrFile
   {
   }
 
-  virtual void Open(const char *) { PHOOL_VIRTUAL_WARN("Open"); }
+  virtual void Open(const std::string &) { PHOOL_VIRTUAL_WARN("Open"); }
   virtual void View() { PHOOL_VIRTUAL_WARN("View"); }
   virtual void ViewReadable() { PHOOL_VIRTUAL_WARN("ViewReadable"); }
 
