@@ -88,7 +88,9 @@ float CEmcCaloCalibSimpleCorrFilev1::getCorr(const unsigned int ieta, const unsi
   RawTowerDefs::keytype key = TowKey(ieta, iphi);
 
   if (_corrs.find(key) != _corrs.end())
+  {
     return _corrs[key];
+  }
   else
   {
     std::cout << "calibrations/hcalCCSCFv1:: "

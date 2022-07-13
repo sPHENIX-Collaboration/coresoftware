@@ -67,7 +67,9 @@ float HcalCaloCalibSimpleCorrFilev1::getCorr(const unsigned int ieta, const unsi
   int key = ieta * 100 + iphi;
 
   if (_corrs.find(key) != _corrs.end())
+  {
     return _corrs[key];
+  }
   else
   {
     std::cout << "calibrations/hcalCCSCFv1:: "
