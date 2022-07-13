@@ -14,10 +14,8 @@ class TH2;
 class TH3;
 class TGraph;
 
-
-double LCE_fitf(double * f, double *p);
-TGraph * LCE_grff = 0;
-
+double LCE_fitf(double *f, double *p);
+TGraph *LCE_grff = 0;
 
 class LiteCaloEval : public SubsysReco
 {
@@ -30,10 +28,9 @@ class LiteCaloEval : public SubsysReco
     HCALOUT = 3
   };
 
-  
   LiteCaloEval(const std::string &name = "LiteCaloEval", const std::string &caloNm = "CEMC", const std::string &fnm = "outJF");
 
-  void set_mode(int modeset) { mode = modeset;}
+  void set_mode(int modeset) { mode = modeset; }
 
   virtual ~LiteCaloEval() {}
 
@@ -66,12 +63,11 @@ class LiteCaloEval : public SubsysReco
   */
   float fitmin, fitmax;
   //  TF1 *mygaus;
-  void Get_Histos(const char * infile, const char* fun4all_file = "");
+  void Get_Histos(const char *infile, const char *fun4all_file = "");
   //void Fit_Histos();
-  void FitRelativeShifts(LiteCaloEval * ref_lce, int modeFitShifts);
-  
- private:
+  void FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts);
 
+ private:
   TFile *cal_output = nullptr;
 
   TH1 *hcal_out_eta_phi[24][64] = {};
