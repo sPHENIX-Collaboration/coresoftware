@@ -1808,7 +1808,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    phisize = cluster->getPhiSize();
 	    zsize = cluster->getZSize();
 	    double clusRadius = r;
-	    ClusterErrorPara _ClusErrPara;
+	    ClusterErrorPara ClusErrPara;
 	    TrackSeed *seed = nullptr;
 	    if(track!=NULL){
 	      if(layer < 7){
@@ -1817,7 +1817,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		seed = track->get_tpc_seed();
 	      }
 	      if(seed != nullptr){
-		auto para_errors = _ClusErrPara.get_cluster_error(seed,cluster,clusRadius,cluster_key);
+		auto para_errors = ClusErrPara.get_cluster_error(seed,cluster,clusRadius,cluster_key);
 		pephi = sqrt(para_errors.first* Acts::UnitConstants::cm2);
 		pez =sqrt( para_errors.second* Acts::UnitConstants::cm2);
 	      }
