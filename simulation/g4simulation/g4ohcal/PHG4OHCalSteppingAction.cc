@@ -154,9 +154,9 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   if (whichactive > 0)  // scintillator
   {
     std::tuple<int, int, int> layer_tower = m_Detector->GetRowColumnId(volume);
-    sector_id = std::get<0>(layer_tower); //.first;
-    layer_id = std::get<1>(layer_tower); //.first;
-    tower_id = std::get<2>(layer_tower); //.second;
+    sector_id = std::get<0>(layer_tower); // calorimeter sector (0-31)
+    layer_id = std::get<1>(layer_tower); // calorimeter scintillator row (0-319)
+    tower_id = std::get<2>(layer_tower); // calorimeter scintillator tower in row (0-23)
   }
   else
   {

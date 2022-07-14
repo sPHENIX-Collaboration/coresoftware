@@ -117,7 +117,6 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   gdmlParser.Read(m_GDMPath, false);
 
 
-/*
   G4AssemblyVolume *abs_asym = reader->GetAssembly("sector");             //absorber
   m_ScintiMotherAssembly = reader->GetAssembly("tileAssembly24_90");             //tiles
 
@@ -149,12 +148,17 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
 
     ++it1;
   }
-*/
 
+// Chimney assemblies
   G4AssemblyVolume *chimAbs_asym = reader->GetAssembly("sectorChimney");  //absorber
   m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90");  //chimney tiles
-/*
+
   vector<G4VPhysicalVolume *>::iterator it2 = chimAbs_asym->GetVolumesIterator();
+//	order sector 30,31,29
+  std::map<unsigned int, unsigned int> sectormap;
+  sectormap.insert(make_pair(0,30));
+  sectormap.insert(make_pair(1,31));
+  sectormap.insert(make_pair(2,29));
   for (unsigned int isector = 0; isector < chimAbs_asym->TotalImprintedVolumes(); isector++)
   {
     m_DisplayAction->AddChimSteelVolume((*it2)->GetLogicalVolume());
@@ -174,7 +178,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
       m_DisplayAction->AddScintiVolume((*it4)->GetLogicalVolume());
       m_ScintiTileLogVolSet.insert((*it4)->GetLogicalVolume());
       hcalenvelope->AddDaughter((*it4));
-      m_ScintiTilePhysVolMap.insert(std::make_pair(*it4, ExtractLayerTowerId(isector+29, *it4))); // chimney sectors 29-31
+      m_ScintiTilePhysVolMap.insert(std::make_pair(*it4, ExtractLayerTowerId(sectormap[isector], *it4))); // chimney sectors 29-31
 //    std::pair<int, int> bla = ExtractLayerTowerId(*it4);
 //    m_ScintiTilePhysVolMap.insert(std::make_pair(*it4,make_pair(255,std::get<2>(bla)) ));
       m_VolumeScintillator += (*it4)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
@@ -183,7 +187,12 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     ++it2;
   }
   return 0;
-*/
+
+
+/*
+  G4AssemblyVolume *chimAbs_asym = reader->GetAssembly("sectorChimney");  //absorber
+  m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90");  //chimney tiles
+
   vector<G4VPhysicalVolume *>::iterator it2 = chimAbs_asym->GetVolumesIterator();
   for (unsigned int i = 0; i < chimAbs_asym->TotalImprintedVolumes(); i++){
     m_DisplayAction->AddChimSteelVolume((*it2)->GetLogicalVolume());
@@ -205,7 +214,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
       nsec++;
     }
 //    tuple<int, int, int> bla = ExtractLayerTowerId(nsec, *it4);
-    if (nsec == 30)
+    if (nsec == 29)
     {
     cout << "nsec: " << nsec << ", ncnt: " << ncnt << endl;
       m_DisplayAction->AddScintiVolume((*it4)->GetLogicalVolume());
@@ -219,7 +228,8 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     ncnt++;
     ++it4;
   }
-  std::cout << "nsec: " << nsec << endl;
+*/
+//  std::cout << "nsec: " << nsec << endl;
   std::cout << "total number of volumes: " << m_ChimScintiMotherAssembly->TotalImprintedVolumes() << endl;
   return 0;
 }
@@ -299,7 +309,9 @@ std::tuple<int, int, int> PHG4OHCalDetector::ExtractLayerTowerId(const unsigned 
   }
   int column = map_towerid(tower_id);
   int row = map_layerid(isector, layer_id);
-  cout << "name: " << volume->GetName() << ", sector: " << isector << ", layer id: " << layer_id << ", row: " << row << endl;
+  cout << "name: " << volume->GetName() << ", sector: " << isector
+       << ", tower_id: " << tower_id << ", layer id: " << layer_id
+       << ", row: " << row << ", column: " << column << endl;
   return std::make_tuple(isector, row, column);
 //  return std::make_pair(layer_id, column);
 }
@@ -429,11 +441,17 @@ int PHG4OHCalDetector::map_towerid(const int tower_id)
 int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_id)
 {
   int tmp_layer = layer_id - 10*isector; // normalize to 0-9
-  if (isector>=29)
+  if (isector==29)
   {
-    tmp_layer = layer_id - 10*(isector-29);
-    return layer_id;
+    tmp_layer = 114-layer_id;// - 10*(isector-29);
+    return tmp_layer;
   }
+  else if (isector>=30)
+  {
+    tmp_layer = 84-layer_id;// - 10*(isector-29);
+    return tmp_layer;
+  }
+
   int rowid = 4 - tmp_layer; // lower half
   if (rowid >= 0)
   {
@@ -444,15 +462,6 @@ int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_i
     else if (isector <= 28)
     {
       rowid += 10*(38-isector);
-    }
-    else if (isector == 29)
-    {
-      rowid += 10*(7);
-      rowid = -1;
-    }
-    else if (isector == 30)
-    {
-      rowid += 10*(8);
     }
     else
     {
@@ -469,15 +478,6 @@ int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_i
     else if (isector <= 28)
     {
       rowid += 10*(37-isector);
-    }
-    else if (isector == 29)
-    {
-      rowid += 10*(7);
-      rowid = -1;
-    }
-    else if (isector == 30)
-    {
-      rowid += 10*(8);
     }
     else
     {
