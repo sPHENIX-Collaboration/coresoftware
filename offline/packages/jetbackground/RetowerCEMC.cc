@@ -26,6 +26,7 @@
 
 RetowerCEMC::RetowerCEMC(const std::string &name)
   : SubsysReco(name)
+  , _WEIGHTED_ENERGY_DISTRIBUTION(1)
   , _NETA(-1)
   , _NPHI(-1)
 {
@@ -82,10 +83,49 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
     RawTowerGeom *tower_geom = geomEM->get_tower_geometry(tower->get_key());
 
     int this_IHetabin = geomIH->get_etabin(tower_geom->get_eta());
+  double fractionalcontribution[3] = {0};
+
+    // distribute energy based on shadowing of the inner hcal geometry
+    if (_WEIGHTED_ENERGY_DISTRIBUTION == 1)
+      {
+	std::pair<double, double> range_embin= geomEM->get_etabounds(tower_geom->get_bineta());
+	for (int etabin_iter = -1;etabin_iter <= 1;etabin_iter++)
+	  {
+	    if (this_IHetabin+etabin_iter < 0 || this_IHetabin+etabin_iter >= _NETA){continue;}
+	    std::pair<double, double> range_ihbin= geomIH->get_etabounds(this_IHetabin + etabin_iter);
+	    if (range_ihbin.first <= range_embin.first && range_ihbin.second >= range_embin.second)
+	      {
+		fractionalcontribution[etabin_iter+1] = 1;
+	      }
+	    else if  ( range_ihbin.first <= range_embin.first && range_ihbin.second < range_embin.second  && range_embin.first < range_ihbin.second)
+	      {
+		fractionalcontribution[etabin_iter+1] =  (range_ihbin.second - range_embin.first) / (range_embin.second- range_embin.first);
+	      }
+	    else if (range_ihbin.first > range_embin.first && range_ihbin.second >= range_embin.second && range_embin.second > range_ihbin.first)
+	      {
+		fractionalcontribution[etabin_iter+1] =  (range_embin.second - range_ihbin.first) / (range_embin.second- range_embin.first);
+	      }
+	    else
+	      {
+		fractionalcontribution[etabin_iter+1] = 0;
+	      }
+	  }
+      }
+    else
+      {
+	fractionalcontribution[0] = 0;
+ 	fractionalcontribution[1] = 1;
+	fractionalcontribution[2] = 0;
+     }
+
     int this_IHphibin = geomIH->get_phibin(tower_geom->get_phi());
     float this_E = tower->get_energy();
 
-    _EMCAL_RETOWER_E[this_IHetabin][this_IHphibin] += this_E;
+    for (int etabin_iter = -1 ; etabin_iter <= 1;etabin_iter++)
+      {
+	if (this_IHetabin+etabin_iter < 0 || this_IHetabin+etabin_iter >= _NETA){continue;}
+	_EMCAL_RETOWER_E[this_IHetabin+etabin_iter][this_IHphibin] += this_E * fractionalcontribution[etabin_iter+1];
+      }
   }
 
   RawTowerContainer *emcal_retower = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
