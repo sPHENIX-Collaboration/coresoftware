@@ -179,58 +179,11 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
       m_ScintiTileLogVolSet.insert((*it4)->GetLogicalVolume());
       hcalenvelope->AddDaughter((*it4));
       m_ScintiTilePhysVolMap.insert(std::make_pair(*it4, ExtractLayerTowerId(sectormap[isector], *it4))); // chimney sectors 29-31
-//    std::pair<int, int> bla = ExtractLayerTowerId(*it4);
-//    m_ScintiTilePhysVolMap.insert(std::make_pair(*it4,make_pair(255,std::get<2>(bla)) ));
       m_VolumeScintillator += (*it4)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
       ++it4;
     }
     ++it2;
   }
-  return 0;
-
-
-/*
-  G4AssemblyVolume *chimAbs_asym = reader->GetAssembly("sectorChimney");  //absorber
-  m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90");  //chimney tiles
-
-  vector<G4VPhysicalVolume *>::iterator it2 = chimAbs_asym->GetVolumesIterator();
-  for (unsigned int i = 0; i < chimAbs_asym->TotalImprintedVolumes(); i++){
-    m_DisplayAction->AddChimSteelVolume((*it2)->GetLogicalVolume());
-    hcalenvelope->AddDaughter((*it2));
-    ++it2;
-  }
-
-  m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90");  //chimney tiles
-  vector<G4VPhysicalVolume *>::iterator it4 = m_ChimScintiMotherAssembly->GetVolumesIterator();
-  unsigned int ncnt = 0;
-  unsigned int tilepersec = 24*5*2;
-  int nsec = 29;
-
-  for (unsigned int isector = 0; isector < m_ChimScintiMotherAssembly->TotalImprintedVolumes(); isector++)
-  {
-    if (ncnt >= tilepersec)
-    {
-      ncnt = 0;
-      nsec++;
-    }
-//    tuple<int, int, int> bla = ExtractLayerTowerId(nsec, *it4);
-    if (nsec == 29)
-    {
-    cout << "nsec: " << nsec << ", ncnt: " << ncnt << endl;
-      m_DisplayAction->AddScintiVolume((*it4)->GetLogicalVolume());
-    m_ScintiTileLogVolSet.insert((*it4)->GetLogicalVolume());
-    hcalenvelope->AddDaughter((*it4));
-    m_ScintiTilePhysVolMap.insert(std::make_pair(*it4, ExtractLayerTowerId(nsec, *it4)));
-    }
-//    std::pair<int, int> bla = ExtractLayerTowerId(*it4);
-//    m_ScintiTilePhysVolMap.insert(std::make_pair(*it4,make_pair(255,std::get<2>(bla)) ));
-    m_VolumeScintillator += (*it4)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
-    ncnt++;
-    ++it4;
-  }
-*/
-//  std::cout << "nsec: " << nsec << endl;
-  std::cout << "total number of volumes: " << m_ChimScintiMotherAssembly->TotalImprintedVolumes() << endl;
   return 0;
 }
 
@@ -309,11 +262,7 @@ std::tuple<int, int, int> PHG4OHCalDetector::ExtractLayerTowerId(const unsigned 
   }
   int column = map_towerid(tower_id);
   int row = map_layerid(isector, layer_id);
-  cout << "name: " << volume->GetName() << ", sector: " << isector
-       << ", tower_id: " << tower_id << ", layer id: " << layer_id
-       << ", row: " << row << ", column: " << column << endl;
   return std::make_tuple(isector, row, column);
-//  return std::make_pair(layer_id, column);
 }
 
 // map gdml tower ids to our columns
@@ -441,18 +390,18 @@ int PHG4OHCalDetector::map_towerid(const int tower_id)
 int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_id)
 {
   int tmp_layer = layer_id - 10*isector; // normalize to 0-9
-  if (isector==29)
+  int rowid = -1;
+  if (isector==29) // chimney sectors are different
   {
-    tmp_layer = 114-layer_id;// - 10*(isector-29);
-    return tmp_layer;
+    rowid = 114-layer_id;
   }
-  else if (isector>=30)
+  else if (isector>=30)// chimney sectors are different
   {
-    tmp_layer = 84-layer_id;// - 10*(isector-29);
-    return tmp_layer;
+    rowid = 84-layer_id;
   }
-
-  int rowid = 4 - tmp_layer; // lower half
+  else
+  {
+  rowid = 4 - tmp_layer; // lower half
   if (rowid >= 0)
   {
     if (isector <= 6)
@@ -485,51 +434,11 @@ int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_i
     }
 
   }
-  // if (isector != 6)
-  // {
-  //   rowid = -1;
-  // }
-  // switch(isector)
-  // {
-  // case 6:
-  //   break;
-  // case 5:
-  //   rowid += 10;
-  //   break;
-  // case 4:
-  //   rowid += 20;
-  //   break;
-  // case 3:
-  //   rowid += 30;
-  //   break;
-  // default:
-  //   rowid = -1;
-  //   break;
-  // }
+  }
   if (rowid < 0 || rowid > 319)
   {
     cout << "bad rowid for sector " << isector << ", layer_id " << layer_id << endl;
-    rowid = 255;
-  }
-  // if (layer_id <= 61)
-  // {
-  //   rowid = 61 - layer_id;
-  // }
-/*
-  else if (layer_id > 60 && layer_id <= 191)
-  {
-    rowid = 191 - layer_id + 125;
-  }
-  else if (layer_id > 191)
-  {
-    rowid = 255 - layer_id + 61;
-  }
-  else
-  {
-    std::cout << PHWHERE << " cannot map layer " << layer_id << std::endl;
     gSystem->Exit(1);
-    exit(1);
   }
-*/
   return rowid;
 }
