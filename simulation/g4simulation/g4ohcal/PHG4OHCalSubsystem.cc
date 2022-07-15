@@ -4,6 +4,7 @@
 #include "PHG4OHCalDisplayAction.h"
 #include "PHG4OHCalSteppingAction.h"
 
+#include <g4detectors/PHG4DetectorSubsystem.h>  // for PHG4DetectorSubsystem
 #include <g4detectors/PHG4HcalDefs.h>
 
 #include <phparameter/PHParameters.h>
@@ -19,16 +20,11 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <boost/foreach.hpp>
-
 #include <cmath>     // for NAN
 #include <iostream>  // for operator<<, basic_ostream
 #include <set>       // for set
-#include <sstream>
 
 class PHG4Detector;
-
-using namespace std;
 
 //_______________________________________________________________________
 PHG4OHCalSubsystem::PHG4OHCalSubsystem(const std::string &name, const int lyr)
@@ -56,7 +52,7 @@ int PHG4OHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector = new PHG4OHCalDetector(this, topNode, GetParams(), Name());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
-  set<string> nodes;
+  std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
@@ -124,9 +120,9 @@ int PHG4OHCalSubsystem::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-void PHG4OHCalSubsystem::Print(const string &what) const
+void PHG4OHCalSubsystem::Print(const std::string &what) const
 {
-  cout << "Outer Hcal Parameters: " << endl;
+  std::cout << "Outer Hcal Parameters: " << std::endl;
   GetParams()->Print();
   if (m_Detector)
   {

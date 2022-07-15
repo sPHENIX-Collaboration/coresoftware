@@ -109,22 +109,22 @@ class PHG4OHCalFieldSetup
   }
 
  private:
-  G4FieldManager* fFieldManagerIron;
-  G4FieldManager* fFieldManagerGap;
-  G4Mag_UsualEqRhs* fEquationIron;
-  G4Mag_UsualEqRhs* fEquationGap;
-  G4ChordFinder* fChordFinderIron;
-  G4ChordFinder* fChordFinderGap;
-  G4MagneticField* fEMfieldIron;
-  G4MagneticField* fEMfieldGap;
-  G4MagIntegratorStepper* fStepperIron;
-  G4MagIntegratorStepper* fStepperGap;
+  G4FieldManager* fFieldManagerIron = nullptr;
+  G4FieldManager* fFieldManagerGap = nullptr;
+  G4Mag_UsualEqRhs* fEquationIron = nullptr;
+  G4Mag_UsualEqRhs* fEquationGap = nullptr;
+  G4ChordFinder* fChordFinderIron = nullptr;
+  G4ChordFinder* fChordFinderGap = nullptr;
+  G4MagneticField* fEMfieldIron = nullptr;
+  G4MagneticField* fEMfieldGap = nullptr;
+  G4MagIntegratorStepper* fStepperIron = nullptr;
+  G4MagIntegratorStepper* fStepperGap = nullptr;
 
-  G4double fMinStep;
+  G4double fMinStep = NAN;
 
-  G4int n_steel_plates;
-  G4double scinti_gap;
-  G4double tilt_angle;
+  G4int n_steel_plates = -1;
+  G4double scinti_gap = NAN;
+  G4double tilt_angle = NAN;
 };
 
 #endif /* G4OHCAL_PHG4OHCALFIELDSETUP_H_ */

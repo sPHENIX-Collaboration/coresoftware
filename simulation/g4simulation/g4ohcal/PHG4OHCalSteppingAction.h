@@ -5,6 +5,8 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+#include <string>  // for string
+
 class G4Step;
 class G4VPhysicalVolume;
 class PHCompositeNode;
