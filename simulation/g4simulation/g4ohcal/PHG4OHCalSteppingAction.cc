@@ -58,7 +58,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>   // for operator<<, string
-#include <utility>  // for pair
+#include <tuple>                               // for get, tuple
 
 class PHCompositeNode;
 

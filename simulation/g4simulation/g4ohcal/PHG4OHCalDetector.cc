@@ -38,10 +38,13 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 
-#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <memory>                              // for unique_ptr
+#include <type_traits>                         // for __decay_and_strip<>::_...
+#include <utility>                             // for pair, make_pair
+#include <vector>                              // for vector, vector<>::iter...
 
 class G4Material;
 class PHCompositeNode;

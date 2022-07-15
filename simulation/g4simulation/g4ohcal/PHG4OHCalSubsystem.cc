@@ -4,6 +4,7 @@
 #include "PHG4OHCalDisplayAction.h"
 #include "PHG4OHCalSteppingAction.h"
 
+#include <g4detectors/PHG4DetectorSubsystem.h>  // for PHG4DetectorSubsystem
 #include <g4detectors/PHG4HcalDefs.h>
 
 #include <phparameter/PHParameters.h>
@@ -19,12 +20,9 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <boost/foreach.hpp>
-
 #include <cmath>     // for NAN
 #include <iostream>  // for operator<<, basic_ostream
 #include <set>       // for set
-#include <sstream>
 
 class PHG4Detector;
 

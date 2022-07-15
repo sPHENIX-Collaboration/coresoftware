@@ -6,11 +6,10 @@
 #include <g4main/PHG4Detector.h>
 
 #include <cmath>  // for NAN
+#include <map>
 #include <set>
 #include <string>   // for string
 #include <tuple>
-#include <utility>  // for pair
-#include <vector>
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
