@@ -57,8 +57,8 @@
 #include <cmath>  // for isfinite, sqrt
 #include <cstdlib>
 #include <iostream>
-#include <string>   // for operator<<, string
-#include <tuple>                               // for get, tuple
+#include <string>  // for operator<<, string
+#include <tuple>   // for get, tuple
 
 class PHCompositeNode;
 
@@ -154,9 +154,9 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   if (whichactive > 0)  // scintillator
   {
     std::tuple<int, int, int> layer_tower = m_Detector->GetRowColumnId(volume);
-    sector_id = std::get<0>(layer_tower); // calorimeter sector (0-31)
-    layer_id = std::get<1>(layer_tower); // calorimeter scintillator row (0-319)
-    tower_id = std::get<2>(layer_tower); // calorimeter scintillator tower in row (0-23)
+    sector_id = std::get<0>(layer_tower);  // calorimeter sector (0-31)
+    layer_id = std::get<1>(layer_tower);   // calorimeter scintillator row (0-319)
+    tower_id = std::get<2>(layer_tower);   // calorimeter scintillator tower in row (0-23)
   }
   else
   {
@@ -255,7 +255,7 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_Hit->set_edep(0);
       if (whichactive > 0)  // return of IsInOHCalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
-        m_Hit->set_sector(sector_id);  // the sector id
+        m_Hit->set_sector(sector_id);   // the sector id
         m_Hit->set_scint_id(tower_id);  // the slat id
         m_Hit->set_eion(0);
         m_Hit->set_light_yield(0);  //  for scintillator only, initialize light yields

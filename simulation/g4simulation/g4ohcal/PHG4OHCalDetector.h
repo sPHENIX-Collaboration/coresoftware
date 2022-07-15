@@ -8,7 +8,7 @@
 #include <cmath>  // for NAN
 #include <map>
 #include <set>
-#include <string>   // for string
+#include <string>  // for string
 #include <tuple>
 
 class G4AssemblyVolume;
@@ -71,7 +71,7 @@ class PHG4OHCalDetector : public PHG4Detector
   std::string m_SuperDetector;
   std::set<G4LogicalVolume *> m_SteelAbsorberLogVolSet;
   std::set<G4LogicalVolume *> m_ScintiTileLogVolSet;
-  std::map<G4VPhysicalVolume *, std::tuple< int, int, int>> m_ScintiTilePhysVolMap;
+  std::map<G4VPhysicalVolume *, std::tuple<int, int, int>> m_ScintiTilePhysVolMap;
 
   std::string m_GDMPath;
 };

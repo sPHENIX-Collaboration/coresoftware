@@ -41,10 +41,10 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <memory>                              // for unique_ptr
-#include <type_traits>                         // for __decay_and_strip<>::_...
-#include <utility>                             // for pair, make_pair
-#include <vector>                              // for vector, vector<>::iter...
+#include <memory>       // for unique_ptr
+#include <type_traits>  // for __decay_and_strip<>::_...
+#include <utility>      // for pair, make_pair
+#include <vector>       // for vector, vector<>::iter...
 
 class G4Material;
 class PHCompositeNode;
@@ -119,11 +119,10 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   gdmlParser.SetOverlapCheck(OverlapCheck());
   gdmlParser.Read(m_GDMPath, false);
 
+  G4AssemblyVolume *abs_asym = reader->GetAssembly("sector");         //absorber
+  m_ScintiMotherAssembly = reader->GetAssembly("tileAssembly24_90");  //tiles
 
-  G4AssemblyVolume *abs_asym = reader->GetAssembly("sector");             //absorber
-  m_ScintiMotherAssembly = reader->GetAssembly("tileAssembly24_90");             //tiles
-
-// this loop is inefficient but the assignment of the scintillator id's is much simpler when having the hcal sector
+  // this loop is inefficient but the assignment of the scintillator id's is much simpler when having the hcal sector
   vector<G4VPhysicalVolume *>::iterator it1 = abs_asym->GetVolumesIterator();
   for (unsigned int isector = 0; isector < abs_asym->TotalImprintedVolumes(); isector++)
   {
@@ -132,14 +131,14 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     hcalenvelope->AddDaughter((*it1));
     m_VolumeSteel += (*it1)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
     vector<G4VPhysicalVolume *>::iterator it3 = m_ScintiMotherAssembly->GetVolumesIterator();
-    unsigned int ncnt = 24*5*2;
-    unsigned int ioff = isector*ncnt;
+    unsigned int ncnt = 24 * 5 * 2;
+    unsigned int ioff = isector * ncnt;
     // ok we always have to skip to the scintillators we want to add for every hcal sector
     for (unsigned int j = 0; j < ioff; j++)
     {
       ++it3;
     }
-    for (unsigned int j = ioff; j < ioff+ncnt; j++)
+    for (unsigned int j = ioff; j < ioff + ncnt; j++)
     {
       m_DisplayAction->AddScintiVolume((*it3)->GetLogicalVolume());
       m_ScintiTileLogVolSet.insert((*it3)->GetLogicalVolume());
@@ -152,16 +151,16 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     ++it1;
   }
 
-// Chimney assemblies
-  G4AssemblyVolume *chimAbs_asym = reader->GetAssembly("sectorChimney");  //absorber
+  // Chimney assemblies
+  G4AssemblyVolume *chimAbs_asym = reader->GetAssembly("sectorChimney");         //absorber
   m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90");  //chimney tiles
 
   vector<G4VPhysicalVolume *>::iterator it2 = chimAbs_asym->GetVolumesIterator();
-//	order sector 30,31,29
+  //	order sector 30,31,29
   std::map<unsigned int, unsigned int> sectormap;
-  sectormap.insert(make_pair(0,30));
-  sectormap.insert(make_pair(1,31));
-  sectormap.insert(make_pair(2,29));
+  sectormap.insert(make_pair(0, 30));
+  sectormap.insert(make_pair(1, 31));
+  sectormap.insert(make_pair(2, 29));
   for (unsigned int isector = 0; isector < chimAbs_asym->TotalImprintedVolumes(); isector++)
   {
     m_DisplayAction->AddChimSteelVolume((*it2)->GetLogicalVolume());
@@ -169,19 +168,19 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     hcalenvelope->AddDaughter((*it2));
     m_VolumeSteel += (*it2)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
     vector<G4VPhysicalVolume *>::iterator it4 = m_ChimScintiMotherAssembly->GetVolumesIterator();
-    unsigned int ncnt = 24*5*2;
-    unsigned int ioff = isector*ncnt;
+    unsigned int ncnt = 24 * 5 * 2;
+    unsigned int ioff = isector * ncnt;
     // ok we always have to skip to the scintillators we want to add for every hcal sector
     for (unsigned int j = 0; j < ioff; j++)
     {
       ++it4;
     }
-    for (unsigned int j = ioff; j < ioff+ncnt; j++)
+    for (unsigned int j = ioff; j < ioff + ncnt; j++)
     {
       m_DisplayAction->AddScintiVolume((*it4)->GetLogicalVolume());
       m_ScintiTileLogVolSet.insert((*it4)->GetLogicalVolume());
       hcalenvelope->AddDaughter((*it4));
-      m_ScintiTilePhysVolMap.insert(std::make_pair(*it4, ExtractLayerTowerId(sectormap[isector], *it4))); // chimney sectors 29-31
+      m_ScintiTilePhysVolMap.insert(std::make_pair(*it4, ExtractLayerTowerId(sectormap[isector], *it4)));  // chimney sectors 29-31
       m_VolumeScintillator += (*it4)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
       ++it4;
     }
@@ -392,51 +391,50 @@ int PHG4OHCalDetector::map_towerid(const int tower_id)
 
 int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_id)
 {
-  int tmp_layer = layer_id - 10*isector; // normalize to 0-9
+  int tmp_layer = layer_id - 10 * isector;  // normalize to 0-9
   int rowid = -1;
-  if (isector==29) // chimney sectors are different
+  if (isector == 29)  // chimney sectors are different
   {
-    rowid = 114-layer_id;
+    rowid = 114 - layer_id;
   }
-  else if (isector==30 || isector==31)// chimney sectors are different
+  else if (isector == 30 || isector == 31)  // chimney sectors are different
   {
-    rowid = 84-layer_id;
-  }
-  else
-  {
-  rowid = 4 - tmp_layer; // lower half
-  if (rowid >= 0)
-  {
-    if (isector <= 6)
-    {
-      rowid += 10*(6-isector);
-    }
-    else if (isector <= 28)
-    {
-      rowid += 10*(38-isector);
-    }
-    else
-    {
-      rowid = -1;
-    }
+    rowid = 84 - layer_id;
   }
   else
-  { // upper half
-    rowid += 10;
-    if (isector <= 5)
+  {
+    rowid = 4 - tmp_layer;  // lower half
+    if (rowid >= 0)
     {
-      rowid += 10*(5-isector);
-    }
-    else if (isector <= 28)
-    {
-      rowid += 10*(37-isector);
+      if (isector <= 6)
+      {
+        rowid += 10 * (6 - isector);
+      }
+      else if (isector <= 28)
+      {
+        rowid += 10 * (38 - isector);
+      }
+      else
+      {
+        rowid = -1;
+      }
     }
     else
-    {
-      rowid = -1;
+    {  // upper half
+      rowid += 10;
+      if (isector <= 5)
+      {
+        rowid += 10 * (5 - isector);
+      }
+      else if (isector <= 28)
+      {
+        rowid += 10 * (37 - isector);
+      }
+      else
+      {
+        rowid = -1;
+      }
     }
-
-  }
   }
   if (rowid < 0 || rowid > 319)
   {
