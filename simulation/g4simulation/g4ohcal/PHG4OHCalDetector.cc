@@ -395,7 +395,7 @@ int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_i
   {
     rowid = 114-layer_id;
   }
-  else if (isector>=30)// chimney sectors are different
+  else if (isector==30 || isector==31)// chimney sectors are different
   {
     rowid = 84-layer_id;
   }

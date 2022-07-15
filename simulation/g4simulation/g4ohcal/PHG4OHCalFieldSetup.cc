@@ -29,7 +29,6 @@ PHG4OHCalFieldSetup::PHG4OHCalFieldSetup(G4int steelPlates,
 {
   G4int nvar = 8;
 
-  {
     fEMfieldIron = new PHG4OHCalField(true, n_steel_plates, scinti_gap,
                                       tilt_angle);
 
@@ -44,9 +43,7 @@ PHG4OHCalFieldSetup::PHG4OHCalFieldSetup(G4int steelPlates,
     fFieldManagerIron = new G4FieldManager();
     fFieldManagerIron->SetDetectorField(fEMfieldIron);
     fFieldManagerIron->SetChordFinder(fChordFinderIron);
-  }
 
-  {
     fEMfieldGap = new PHG4OHCalField(false, n_steel_plates, scinti_gap,
                                      tilt_angle);
 
@@ -61,5 +58,4 @@ PHG4OHCalFieldSetup::PHG4OHCalFieldSetup(G4int steelPlates,
     fFieldManagerGap = new G4FieldManager();
     fFieldManagerGap->SetDetectorField(fEMfieldGap);
     fFieldManagerGap->SetChordFinder(fChordFinderGap);
-  }
 }
