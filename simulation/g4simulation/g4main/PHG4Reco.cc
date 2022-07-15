@@ -84,6 +84,7 @@
 #include <Geant4/G4Version.hh>
 #include <Geant4/G4VisExecutive.hh>
 #include <Geant4/G4VisManager.hh>  // for G4VisManager
+#include <G4HadronicParameters.hh> // for G4HadronicParameters
 
 // physics lists
 #include <Geant4/FTFP_BERT.hh>
@@ -237,6 +238,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     }
     myphysicslist->RegisterPhysics(decayer);
   }
+  G4HadronicParameters::Instance()->SetEnableBCParticles(false); //Disable HF Decay
   myphysicslist->RegisterPhysics(new G4StepLimiterPhysics());
   // initialize cuts so we can ask the world region for it's default
   // cuts to propagate them to other regions in DefineRegions()
