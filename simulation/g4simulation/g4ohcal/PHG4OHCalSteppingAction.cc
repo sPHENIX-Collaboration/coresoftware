@@ -206,15 +206,15 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         std::cout << GetName() << ": New Hit for  " << std::endl;
         std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-             << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-             << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-             << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+                  << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                  << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+                  << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
         std::cout << "last track: " << m_SaveTrackId
-             << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+                  << ", current trackid: " << aTrack->GetTrackID() << std::endl;
         std::cout << "phys pre vol: " << volume->GetName()
-             << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+                  << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
         std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-             << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
+                  << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
       }
       [[fallthrough]];
     case fGeomBoundary:
@@ -283,15 +283,15 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       std::cout << GetName() << ": hit was not created" << std::endl;
       std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-           << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+                << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+                << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
       std::cout << "last track: " << m_SaveTrackId
-           << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+                << ", current trackid: " << aTrack->GetTrackID() << std::endl;
       std::cout << "phys pre vol: " << volume->GetName()
-           << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+                << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
       std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-           << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
+                << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
       gSystem->Exit(1);
     }
     m_SavePostStepStatus = postPoint->GetStepStatus();
@@ -300,8 +300,8 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       std::cout << GetName() << ": hits do not belong to the same track" << std::endl;
       std::cout << "saved track: " << m_SaveTrackId
-           << ", current trackid: " << aTrack->GetTrackID()
-           << std::endl;
+                << ", current trackid: " << aTrack->GetTrackID()
+                << std::endl;
       gSystem->Exit(1);
     }
     m_SavePreStepStatus = prePoint->GetStepStatus();
@@ -472,7 +472,7 @@ void PHG4OHCalSteppingAction::FieldChecker(const G4Step* aStep)
     se->registerHisto(h, 1);
 
     std::cout << "PHG4OHCalSteppingAction::FieldChecker - make a histograme to check outer Hcal field map."
-         << " Saved to Fun4AllServer Histo with name " << h_field_name << std::endl;
+              << " Saved to Fun4AllServer Histo with name " << h_field_name << std::endl;
   }
 
   TH2F* h = dynamic_cast<TH2F*>(se->getHisto(h_field_name));
@@ -525,9 +525,9 @@ void PHG4OHCalSteppingAction::FieldChecker(const G4Step* aStep)
     h->SetBinContent(binx, biny, B);
 
     std::cout << "PHG4OHCalSteppingAction::FieldChecker - "
-         << "bin " << binx
-         << ", " << biny << " := " << B << " Tesla @ x,y = " << globPosVec[0] / cm
-         << "," << globPosVec[1] / cm << " cm" << std::endl;
+              << "bin " << binx
+              << ", " << biny << " := " << B << " Tesla @ x,y = " << globPosVec[0] / cm
+              << "," << globPosVec[1] / cm << " cm" << std::endl;
   }
 }
 

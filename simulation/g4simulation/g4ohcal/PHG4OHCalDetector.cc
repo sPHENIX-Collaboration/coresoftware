@@ -210,7 +210,7 @@ std::tuple<int, int, int> PHG4OHCalDetector::GetRowColumnId(G4VPhysicalVolume *v
     return it->second;
   }
   std::cout << "could not locate volume " << volume->GetName()
-       << " in Outer Hcal scintillator map" << std::endl;
+            << " in Outer Hcal scintillator map" << std::endl;
   gSystem->Exit(1);
   // that's dumb but code checkers do not know that gSystem->Exit()
   // terminates, so using the standard exit() makes them happy
