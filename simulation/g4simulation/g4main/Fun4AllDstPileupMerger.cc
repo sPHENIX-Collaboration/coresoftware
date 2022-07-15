@@ -288,7 +288,15 @@ void Fun4AllDstPileupMerger::copy_background_event(PHCompositeNode *dstNode, dou
       std::cout << "Fun4AllDstPileupMerger::copy_background_event - invalid source container " << pair.first << std::endl;
       continue;
     }
-
+    auto detiter = m_DetectorTiming.find(pair.first);
+// apply special  cuts for selected detectors
+    if (detiter != m_DetectorTiming.end())
+    {
+      if (delta_t < detiter->second.first || delta_t > detiter->second.second)
+      {
+	continue;
+      }
+    }
     {
       // hits
       const auto range = container_hit->getHits();
