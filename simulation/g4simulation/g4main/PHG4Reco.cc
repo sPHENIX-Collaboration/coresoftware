@@ -231,6 +231,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 
   if (m_ActiveDecayerFlag)
   {
+    G4HadronicParameters::Instance()->SetEnableBCParticles(false); //Disable the Geant4 built in HF Decay and use external decayers for them
     P6DExtDecayerPhysics *decayer = new P6DExtDecayerPhysics();
     if (m_ActiveForceDecayFlag)
     {
@@ -238,7 +239,6 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     }
     myphysicslist->RegisterPhysics(decayer);
   }
-  G4HadronicParameters::Instance()->SetEnableBCParticles(false); //Disable HF Decay
   myphysicslist->RegisterPhysics(new G4StepLimiterPhysics());
   // initialize cuts so we can ask the world region for it's default
   // cuts to propagate them to other regions in DefineRegions()
