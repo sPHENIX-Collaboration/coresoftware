@@ -49,8 +49,6 @@
 class G4Material;
 class PHCompositeNode;
 
-using namespace std;
-
 PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parames, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4OHCalDisplayAction *>(subsys->GetDisplayAction()))
@@ -114,7 +112,7 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
 {
   // import the staves from the gemetry file
-  unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
+  std::unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
   gdmlParser.SetOverlapCheck(OverlapCheck());
   gdmlParser.Read(m_GDMPath, false);
@@ -123,14 +121,14 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   m_ScintiMotherAssembly = reader->GetAssembly("tileAssembly24_90");  //tiles
 
   // this loop is inefficient but the assignment of the scintillator id's is much simpler when having the hcal sector
-  vector<G4VPhysicalVolume *>::iterator it1 = abs_asym->GetVolumesIterator();
+  std::vector<G4VPhysicalVolume *>::iterator it1 = abs_asym->GetVolumesIterator();
   for (unsigned int isector = 0; isector < abs_asym->TotalImprintedVolumes(); isector++)
   {
     m_DisplayAction->AddSteelVolume((*it1)->GetLogicalVolume());
     m_SteelAbsorberLogVolSet.insert((*it1)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it1));
     m_VolumeSteel += (*it1)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
-    vector<G4VPhysicalVolume *>::iterator it3 = m_ScintiMotherAssembly->GetVolumesIterator();
+    std::vector<G4VPhysicalVolume *>::iterator it3 = m_ScintiMotherAssembly->GetVolumesIterator();
     unsigned int ncnt = 24 * 5 * 2;
     unsigned int ioff = isector * ncnt;
     // ok we always have to skip to the scintillators we want to add for every hcal sector
@@ -155,19 +153,19 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   G4AssemblyVolume *chimAbs_asym = reader->GetAssembly("sectorChimney");         //absorber
   m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90");  //chimney tiles
 
-  vector<G4VPhysicalVolume *>::iterator it2 = chimAbs_asym->GetVolumesIterator();
+  std::vector<G4VPhysicalVolume *>::iterator it2 = chimAbs_asym->GetVolumesIterator();
   //	order sector 30,31,29
   std::map<unsigned int, unsigned int> sectormap;
-  sectormap.insert(make_pair(0, 30));
-  sectormap.insert(make_pair(1, 31));
-  sectormap.insert(make_pair(2, 29));
+  sectormap.insert(std::make_pair(0, 30));
+  sectormap.insert(std::make_pair(1, 31));
+  sectormap.insert(std::make_pair(2, 29));
   for (unsigned int isector = 0; isector < chimAbs_asym->TotalImprintedVolumes(); isector++)
   {
     m_DisplayAction->AddChimSteelVolume((*it2)->GetLogicalVolume());
     m_SteelAbsorberLogVolSet.insert((*it2)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it2));
     m_VolumeSteel += (*it2)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
-    vector<G4VPhysicalVolume *>::iterator it4 = m_ChimScintiMotherAssembly->GetVolumesIterator();
+    std::vector<G4VPhysicalVolume *>::iterator it4 = m_ChimScintiMotherAssembly->GetVolumesIterator();
     unsigned int ncnt = 24 * 5 * 2;
     unsigned int ioff = isector * ncnt;
     // ok we always have to skip to the scintillators we want to add for every hcal sector
@@ -189,17 +187,17 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   return 0;
 }
 
-void PHG4OHCalDetector::Print(const string &what) const
+void PHG4OHCalDetector::Print(const std::string &what) const
 {
-  cout << "Outer Hcal Detector:" << endl;
+  std::cout << "Outer Hcal Detector:" << std::endl;
   if (what == "ALL" || what == "VOLUME")
   {
-    cout << "Volume Envelope: " << m_VolumeEnvelope / cm / cm / cm << " cm^3" << endl;
-    cout << "Volume Steel: " << m_VolumeSteel / cm / cm / cm << " cm^3" << endl;
-    cout << "Volume Scintillator: " << m_VolumeScintillator / cm / cm / cm << " cm^3" << endl;
-    cout << "Volume Air: " << (m_VolumeEnvelope - m_VolumeSteel - m_VolumeScintillator) / cm / cm / cm << " cm^3" << endl;
+    std::cout << "Volume Envelope: " << m_VolumeEnvelope / cm / cm / cm << " cm^3" << std::endl;
+    std::cout << "Volume Steel: " << m_VolumeSteel / cm / cm / cm << " cm^3" << std::endl;
+    std::cout << "Volume Scintillator: " << m_VolumeScintillator / cm / cm / cm << " cm^3" << std::endl;
+    std::cout << "Volume Air: " << (m_VolumeEnvelope - m_VolumeSteel - m_VolumeScintillator) / cm / cm / cm << " cm^3" << std::endl;
   }
-  cout << "******\tm_GDMPath : " << m_GDMPath << endl;
+  std::cout << "******\tm_GDMPath : " << m_GDMPath << std::endl;
 
   return;
 }
@@ -211,8 +209,8 @@ std::tuple<int, int, int> PHG4OHCalDetector::GetRowColumnId(G4VPhysicalVolume *v
   {
     return it->second;
   }
-  cout << "could not locate volume " << volume->GetName()
-       << " in Outer Hcal scintillator map" << endl;
+  std::cout << "could not locate volume " << volume->GetName()
+       << " in Outer Hcal scintillator map" << std::endl;
   gSystem->Exit(1);
   // that's dumb but code checkers do not know that gSystem->Exit()
   // terminates, so using the standard exit() makes them happy
@@ -438,7 +436,7 @@ int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_i
   }
   if (rowid < 0 || rowid > 319)
   {
-    cout << "bad rowid for sector " << isector << ", layer_id " << layer_id << endl;
+    std::cout << "bad rowid for sector " << isector << ", layer_id " << layer_id << std::endl;
     gSystem->Exit(1);
   }
   return rowid;
