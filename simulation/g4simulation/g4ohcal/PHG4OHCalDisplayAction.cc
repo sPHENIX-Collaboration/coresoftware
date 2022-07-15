@@ -60,7 +60,7 @@ void PHG4OHCalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
   G4VisAttributes *m_VisAtt2 = new G4VisAttributes();
   m_VisAtt2->SetVisibility(true);
   m_VisAtt2->SetForceSolid(true);
-  m_VisAtt2->SetColor(G4Colour::Yellow());
+  m_VisAtt2->SetColor(G4Colour::Grey());
   m_ChimSteelVol->SetVisAttributes(m_VisAtt2);
   m_VisAttVec2.push_back(m_VisAtt2);
   }
