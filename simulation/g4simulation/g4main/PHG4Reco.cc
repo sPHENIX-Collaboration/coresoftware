@@ -84,6 +84,7 @@
 #include <Geant4/G4Version.hh>
 #include <Geant4/G4VisExecutive.hh>
 #include <Geant4/G4VisManager.hh>  // for G4VisManager
+#include <G4HadronicParameters.hh> // for G4HadronicParameters
 
 // physics lists
 #include <Geant4/FTFP_BERT.hh>
@@ -230,6 +231,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 
   if (m_ActiveDecayerFlag)
   {
+    G4HadronicParameters::Instance()->SetEnableBCParticles(false); //Disable the Geant4 built in HF Decay and use external decayers for them
     P6DExtDecayerPhysics *decayer = new P6DExtDecayerPhysics();
     if (m_ActiveForceDecayFlag)
     {
