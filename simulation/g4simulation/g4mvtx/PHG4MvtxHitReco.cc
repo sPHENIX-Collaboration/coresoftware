@@ -253,8 +253,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
 
       // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
       int stave_number = g4hit->get_property_int(PHG4Hit::prop_stave_index);
-      int half_stave_number = g4hit->get_property_int(PHG4Hit::prop_half_stave_index);
-      int module_number = g4hit->get_property_int(PHG4Hit::prop_module_index);
+//      int half_stave_number = g4hit->get_property_int(PHG4Hit::prop_half_stave_index);
+//      int module_number = g4hit->get_property_int(PHG4Hit::prop_module_index);
       int chip_number = g4hit->get_property_int(PHG4Hit::prop_chip_index);
 
       TVector3 local_in(g4hit->get_local_x(0), g4hit->get_local_y(0), g4hit->get_local_z(0));
@@ -276,9 +276,10 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
           << std::endl;
 
         TVector3 world_in(g4hit->get_x(0), g4hit->get_y(0), g4hit->get_z(0));
-        TVector3 local_in_check = layergeom->get_local_from_world_coords(
-            stave_number, half_stave_number, module_number, chip_number, world_in);
+        auto hskey = MvtxDefs::genHitSetKey(layer,stave_number,chip_number,0);
+        auto surf = tgeometry->maps().getSiliconSurface(hskey);
 
+        TVector3 local_in_check = layergeom->get_local_from_world_coords(surf, tgeometry, world_in);
         std::cout
           << " local coords of entry point from geom (a check) "
           << local_in_check.X() << " " << local_in_check.Y() << " " << local_in_check.Z() << "\n"
