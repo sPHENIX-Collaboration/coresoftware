@@ -58,7 +58,6 @@ void PHG4OuterHcalField::GetFieldValue(const double Point[4], double* Bfield) co
   if (default_field)
   {
     default_field->GetFieldValue(Point, Bfield);
-
     // scale_factor for field component along the plate surface
     double x = Point[0];
     double y = Point[1];
@@ -92,8 +91,7 @@ void PHG4OuterHcalField::GetFieldValue(const double Point[4], double* Bfield) co
       std::cout << "And this is who called it:" << std::endl;
       std::cout << boost::stacktrace::stacktrace();
       std::cout << std::endl;
-      gSystem->Exit(1);
-      exit(1);
+      return;
     }
     // sign definition of tilt_angle is rotation around the -z axis
     const G4Vector3D absorber_dir(cos(atan2(y, x) - tilt_angle),

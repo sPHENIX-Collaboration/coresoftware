@@ -95,7 +95,7 @@ PHG4CellDefs::SpacalBinning::get_fiberid(const PHG4CellDefs::keytype key)
 
 // yes the arguments are flipped but it is consistent later on
 // changing this would just be a real headache
-// cppcheck-suppress *
+// cppcheck-suppress funcArgOrderDifferent
 PHG4CellDefs::keytype PHG4CellDefs::ScintillatorSlatBinning::genkey(const unsigned short detid, const unsigned short icolumn, const unsigned short irow)
 {
   PHG4CellDefs::keytype key = generic_16bit_genkey(detid, scintillatorslatbinning, icolumn, irow);
