@@ -93,10 +93,10 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     G4StepPoint* postPoint = aStep->GetPostStepPoint();
     int scint_id = -1;
 
-    if (                                                                                                                                 //
-        m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper  ||
+    if (  //
+        m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper ||
         m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower ||
-        m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted   ||
+        m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted ||
         m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower  //
     )
     {
@@ -207,7 +207,7 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       if (m_Hit->get_z(0) > get_zmax() || m_Hit->get_z(0) < get_zmin())
       {
         std::cout << "PHG4SpacalSteppingAction: hit outside acceptance, layer: "
-             << layer_id << std::endl;
+                  << layer_id << std::endl;
         m_Hit->identify();
       }
       break;
@@ -220,7 +220,7 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       std::cout << GetName() << ": hit was not created" << std::endl;
       std::cout << "prestep status: " << prePoint->GetStepStatus()
-           << ", last post step status: " << m_SavePostStepStatus << std::endl;
+                << ", last post step status: " << m_SavePostStepStatus << std::endl;
       exit(1);
     }
     m_SavePostStepStatus = postPoint->GetStepStatus();
@@ -229,8 +229,8 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       std::cout << GetName() << ": hits do not belong to the same track" << std::endl;
       std::cout << "saved track: " << m_SaveTrackid
-           << ", current trackid: " << aTrack->GetTrackID()
-           << std::endl;
+                << ", current trackid: " << aTrack->GetTrackID()
+                << std::endl;
       exit(1);
     }
     // here we just update the exit values, it will be overwritten
@@ -261,20 +261,20 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         if (Verbosity() > 0)
         {
           std::cout << "PHG4SpacalSteppingAction::UserSteppingAction::"
-               //
-               << m_Detector->GetName() << " - "
-               << " use scintillating light model at each Geant4 steps. "
-               << "First step: "
-               << "Material = "
-               << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-               << ", "
-               << "Birk Constant = "
-               << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-               << ","
-               << "edep = " << edep << ", "
-               << "eion = " << eion
-               << ", "
-               << "light_yield = " << light_yield << std::endl;
+                    //
+                    << m_Detector->GetName() << " - "
+                    << " use scintillating light model at each Geant4 steps. "
+                    << "First step: "
+                    << "Material = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+                    << ", "
+                    << "Birk Constant = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+                    << ","
+                    << "edep = " << edep << ", "
+                    << "eion = " << eion
+                    << ", "
+                    << "light_yield = " << light_yield << std::endl;
         }
       }
 
@@ -284,14 +284,14 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     if (m_Hit->get_z(1) > get_zmax() || m_Hit->get_z(1) < get_zmin())
     {
       std::cout << "PHG4SpacalSteppingAction: hit outside acceptance get_zmin() "
-           << get_zmin() << ", get_zmax() " << get_zmax() << " at exit"
-           << std::endl;
+                << get_zmin() << ", get_zmax() " << get_zmax() << " at exit"
+                << std::endl;
       m_Hit->identify();
     }
     if (geantino)
     {
       m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-                          //          m_Hit->set_eion(-1);
+                            //          m_Hit->set_eion(-1);
     }
     if (edep > 0)
     {

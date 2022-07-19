@@ -119,7 +119,6 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       detector_suffix = Name();
     }
 
-
     m_HitNodeName = "G4HIT_" + detector_suffix;
     nodes.insert(m_HitNodeName);
     m_AbsorberNodeName = "G4HIT_ABSORBER_" + detector_suffix;

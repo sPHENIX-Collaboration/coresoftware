@@ -39,7 +39,7 @@ class PHG4SpacalSteppingAction : public PHG4SteppingAction
 
   double get_zmax() const;
 
-  void SetHitNodeName(const std::string& type, const std::string& name) override;
+  void SetHitNodeName(const std::string &type, const std::string &name) override;
 
  private:
   //! pointer to the detector
