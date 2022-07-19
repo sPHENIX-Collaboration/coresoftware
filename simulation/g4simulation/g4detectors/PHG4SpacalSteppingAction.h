@@ -23,10 +23,10 @@ class PHG4Shower;
 class PHG4SpacalSteppingAction : public PHG4SteppingAction
 {
  public:
-  //! constructor
+  //! ctor
   explicit PHG4SpacalSteppingAction(PHG4SpacalDetector *);
 
-  //! destroctor
+  //! dtor
   ~PHG4SpacalSteppingAction() override;
 
   //! stepping action
@@ -43,18 +43,23 @@ class PHG4SpacalSteppingAction : public PHG4SteppingAction
   double
   get_zmax();
 
+  void SetHitNodeName(const std::string& type, const std::string& name) override;
+
  private:
   //! pointer to the detector
   PHG4SpacalDetector *detector_;
 
   //! pointer to hit container
-  PHG4HitContainer *hits_;
-  PHG4HitContainer *absorberhits_;
+  PHG4HitContainer *m_HitContainer;
+  PHG4HitContainer *m_AbsorberHitContainer;
   PHG4Hit *hit;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
   int savetrackid;
   int savepoststepstatus;
+
+  std::string m_AbsorberNodeName;
+  std::string m_HitNodeName;
 };
 
 #endif  // PHG4VHcalSteppingAction_h

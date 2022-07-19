@@ -36,6 +36,8 @@
 #include <Geant4/G4VTouchable.hh>             // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
+#include <TSystem.h>
+
 #include <cmath>    // for isfinite
 #include <cstdlib>  // for exit
 #include <iostream>
@@ -49,8 +51,8 @@ using namespace std;
 PHG4SpacalSteppingAction::PHG4SpacalSteppingAction(PHG4SpacalDetector* detector)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
-  , hits_(nullptr)
-  , absorberhits_(nullptr)
+  , m_HitContainer(nullptr)
+  , m_AbsorberHitContainer(nullptr)
   , hit(nullptr)
   , savehitcontainer(nullptr)
   , saveshower(nullptr)
@@ -192,11 +194,11 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         StoreLocalCoordinate(hit, aStep, true, false);
         hit->set_eion(0);  // only implemented for v5 otherwise empty
         hit->set_light_yield(0);
-        savehitcontainer = hits_;
+        savehitcontainer = m_HitContainer;
       }
       else
       {
-        savehitcontainer = absorberhits_;
+        savehitcontainer = m_AbsorberHitContainer;
       }
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
@@ -350,6 +352,24 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4SpacalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_AbsorberNodeName);
+  // if we do not find the node it's messed up.
+  if (!m_HitContainer)
+  {
+    std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
+    gSystem->Exit(1);
+  }
+  // this is perfectly fine if absorber hits are disabled
+  if (!m_AbsorberHitContainer)
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << std::endl;
+    }
+  }
+}
+/*
   string hitnodename;
   string absorbernodename;
   if (detector_->SuperDetector() != "NONE")
@@ -381,6 +401,7 @@ void PHG4SpacalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
     }
   }
 }
+*/
 
 double
 PHG4SpacalSteppingAction::get_zmin()
@@ -398,4 +419,21 @@ PHG4SpacalSteppingAction::get_zmax()
     return 0;
   else
     return detector_->get_geom()->get_zmax() + .0001;
+}
+
+void PHG4SpacalSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_ABSORBER")
+  {
+    m_AbsorberNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }
