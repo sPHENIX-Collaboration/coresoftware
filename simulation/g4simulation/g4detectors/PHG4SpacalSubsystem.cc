@@ -97,42 +97,49 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   // display to extract the visibility setting for logical volumes
   PHG4SpacalDisplayAction* DispAct = dynamic_cast<PHG4SpacalDisplayAction*>(m_DisplayAction);
   DispAct->SetGeom(detector_->get_geom());
+
+  std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
-    std::ostringstream nodename;
-    if (SuperDetector() != "NONE")
+    PHNodeIterator dstIter(dstNode);
+    PHCompositeNode* DetNode = dstNode;
+    if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
-      nodename << "G4HIT_" << SuperDetector();
+      PHNodeIterator iter_dst(dstNode);
+      DetNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+      if (!DetNode)
+      {
+        DetNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(DetNode);
+      }
     }
-    else
+    std::string detector_suffix = SuperDetector();
+    if (detector_suffix == "NONE" || detector_suffix.empty())
     {
-      nodename << "G4HIT_" << Name() << "_" << GetLayer();
+      detector_suffix = Name();
     }
-    PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
-    if (!cylinder_hits)
-    {
-      dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
-    }
-    cylinder_hits->AddLayer(GetLayer());
+
+    m_HitNodeName = "G4HIT_" + detector_suffix;
+    nodes.insert(m_HitNodeName);
+    m_AbsorberNodeName = "G4HIT_ABSORBER_" + detector_suffix;
     if (GetParams()->get_int_param("absorberactive"))
     {
-      nodename.str("");
-      if (SuperDetector() != "NONE")
-      {
-        nodename << "G4HIT_ABSORBER_" << SuperDetector();
-      }
-      else
-      {
-        nodename << "G4HIT_ABSORBER_" << Name() << "_" << GetLayer();
-      }
-      PHG4HitContainer* absorber_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
-      if (!absorber_hits)
-      {
-        dstNode->addNode(new PHIODataNode<PHObject>(absorber_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
-      }
-      absorber_hits->AddLayer(GetLayer());
+      nodes.insert(m_AbsorberNodeName);
     }
+    for (auto nodename : nodes)
+    {
+      PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+      if (!g4_hits)
+      {
+        g4_hits = new PHG4HitContainer(nodename);
+        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, nodename, "PHObject"));
+      }
+      g4_hits->AddLayer(GetLayer());
+    }
+
     steppingAction_ = new PHG4SpacalSteppingAction(detector_);
+    steppingAction_->SetHitNodeName("G4HIT", m_HitNodeName);
+    steppingAction_->SetHitNodeName("G4HIT_ABSORBER", m_AbsorberNodeName);
   }
   return 0;
 }
