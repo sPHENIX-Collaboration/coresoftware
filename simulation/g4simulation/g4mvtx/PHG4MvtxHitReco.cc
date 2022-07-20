@@ -47,7 +47,7 @@
 
 PHG4MvtxHitReco::PHG4MvtxHitReco(const std::string& name, const std::string& detector)
   : SubsysReco(name)
-		  , PHParameterInterface(name)
+  , PHParameterInterface(name)
   , m_detector(detector)
   , m_tmin(-5000.)
   , m_tmax(5000.)
