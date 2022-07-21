@@ -398,7 +398,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     const auto& lclusterglob = globalPositions.at(trackKeyChain.back());
     const float lclusterrad = sqrt(lclusterglob(0)*lclusterglob(0) + lclusterglob(1)*lclusterglob(1));
     double last_cluster_phierr = 0;
-    std::cout << " lversion: "<< m_cluster_version << std::endl;
+//    std::cout << " lversion: "<< m_cluster_version << std::endl;
     if(m_cluster_version==3){
       last_cluster_phierr = lcluster->getRPhiError() / lclusterrad;
     }else if(m_cluster_version==4){
