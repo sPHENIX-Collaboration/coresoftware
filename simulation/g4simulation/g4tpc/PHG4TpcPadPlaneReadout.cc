@@ -1,8 +1,8 @@
 #include "PHG4TpcPadPlaneReadout.h"
 
 #include <g4detectors/PHG4CellDefs.h>  // for genkey, keytype
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4HitContainer.h>
@@ -66,7 +66,7 @@ PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
   gsl_rng_free(RandomGenerator);
 }
 
-int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/, PHG4CylinderCellGeomContainer *seggeo)
+int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/, PHG4TpcCylinderGeomContainer *seggeo)
 {
   if (Verbosity()) std::cout << "PHG4TpcPadPlaneReadout: CreateReadoutGeometry: " << std::endl;
 
@@ -83,7 +83,7 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/,
                   << " phibins " << NPhiBins[iregion] << " phistep " << PhiBinWidth[iregion] << std::endl;
       }
 
-      PHG4CylinderCellGeom *layerseggeo = new PHG4CylinderCellGeom();
+      PHG4TpcCylinderGeom *layerseggeo = new PHG4TpcCylinderGeom();
       layerseggeo->set_layer(layer);
       layerseggeo->set_radius(MinRadius[iregion] + ((double) (layer - MinLayer[iregion]) + 0.5) * Thickness[iregion]);
       layerseggeo->set_thickness(Thickness[iregion]);
@@ -144,8 +144,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
 
   // Find which readout layer this electron ends up in
 
-  PHG4CylinderCellGeomContainer::ConstRange layerrange = GeomContainer->get_begin_end();
-  for (PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
+  PHG4TpcCylinderGeomContainer::ConstRange layerrange = GeomContainer->get_begin_end();
+  for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
        layeriter != layerrange.second;
        ++layeriter)
   {

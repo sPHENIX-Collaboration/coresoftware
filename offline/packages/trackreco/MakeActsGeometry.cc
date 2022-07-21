@@ -21,8 +21,8 @@
 
 #include <micromegas/MicromegasDefs.h>
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -1509,7 +1509,7 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
   }
 
   m_geomContainerTpc =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!m_geomContainerTpc)
   {
     std::cout << PHWHERE 

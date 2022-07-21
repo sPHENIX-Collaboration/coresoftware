@@ -15,8 +15,8 @@
 
 class PHCompositeNode;
 //class PHG4CellContainer;
-class PHG4CylinderCellGeomContainer;
-class PHG4CylinderCellGeom;
+class PHG4TpcCylinderGeomContainer;
+class PHG4TpcCylinderGeom;
 class TNtuple;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
@@ -30,7 +30,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   void SetDriftVelocity(double vd) override {drift_velocity = vd;}
 
-  int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo) override;
+  int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4TpcCylinderGeomContainer *seggeo) override;
 
   //  void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit) override;
 
@@ -49,8 +49,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   std::string seggeonodename;
 
-  PHG4CylinderCellGeomContainer *GeomContainer = nullptr;
-  PHG4CylinderCellGeom *LayerGeom = nullptr;
+  PHG4TpcCylinderGeomContainer *GeomContainer = nullptr;
+  PHG4TpcCylinderGeom *LayerGeom = nullptr;
 
   double rad_gem = NAN;
   double output_radius = 0;

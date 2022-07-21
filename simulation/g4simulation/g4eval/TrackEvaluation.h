@@ -18,7 +18,7 @@
 #include <vector>
 
 class ActsGeometry;
-class PHG4CylinderCellGeomContainer;
+class PHG4TpcCylinderGeomContainer;
 class PHG4CylinderGeomContainer;
 class PHG4Hit;
 class PHG4HitContainer;
@@ -145,7 +145,7 @@ class TrackEvaluation : public SubsysReco
   PHG4TruthInfoContainer* m_g4truthinfo = nullptr;
 
   //! tpc geometry
-  PHG4CylinderCellGeomContainer* m_tpc_geom_container = nullptr;
+  PHG4TpcCylinderGeomContainer* m_tpc_geom_container = nullptr;
 
   //! micromegas geometry
   PHG4CylinderGeomContainer* m_micromegas_geom_container = nullptr;

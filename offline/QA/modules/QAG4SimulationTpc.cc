@@ -2,7 +2,7 @@
 #include "QAG4Util.h"
 #include "QAHistManagerDef.h"
 
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -75,8 +75,8 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
   }
 
   // find tpc geometry
-  PHG4CylinderCellGeomContainer* geom_container =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcCylinderGeomContainer* geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   //auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
   {

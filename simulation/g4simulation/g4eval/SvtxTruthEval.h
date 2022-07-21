@@ -12,7 +12,7 @@ class PHG4HitContainer;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
 class PHG4CylinderGeomContainer;
-class PHG4CylinderCellGeomContainer;
+class PHG4TpcCylinderGeomContainer;
 class PHG4VtxPoint;
 class TrkrCluster;
 class ActsGeometry;
@@ -84,7 +84,7 @@ class SvtxTruthEval
   PHG4HitContainer* _g4hits_tracker{nullptr};
   PHG4HitContainer* _g4hits_maps{nullptr};
 
-  PHG4CylinderCellGeomContainer* _tpc_geom_container;
+  PHG4TpcCylinderGeomContainer* _tpc_geom_container;
   PHG4CylinderGeomContainer *_intt_geom_container;
   PHG4CylinderGeomContainer* _mvtx_geom_container;
   PHG4CylinderGeomContainer* _mms_geom_container;

@@ -220,7 +220,7 @@ int PHG4TpcCylinderGeom::get_etabin(const double eta) const
   return floor((eta - zmin) / zstep);
 }
 
-int PHG4TpcCylinderGeom::get_phibin_new(const double phi) const
+int PHG4TpcCylinderGeom::get_phibin(const double phi) const
 {
   double norm_phi = phi;
   if (phi < phimin || phi > (phimin + nphibins * phistep))
@@ -232,7 +232,7 @@ int PHG4TpcCylinderGeom::get_phibin_new(const double phi) const
   return floor((norm_phi - phimin) / phistep);
 }
 
-int PHG4TpcCylinderGeom::get_phibin(const double phi) const
+int PHG4TpcCylinderGeom::get_phibin_new(const double phi) const
 {
   const int side = 0 ;
   //double norm_phi = phi;
@@ -295,7 +295,7 @@ PHG4TpcCylinderGeom::get_etacenter(const int ibin) const
 }
 
 double
-PHG4TpcCylinderGeom::get_phicenter_new(const int ibin) const
+PHG4TpcCylinderGeom::get_phicenter(const int ibin) const
 {
   if (ibin < 0 || ibin > nphibins)
   {
@@ -310,7 +310,7 @@ PHG4TpcCylinderGeom::get_phicenter_new(const int ibin) const
 
 
 double
-PHG4TpcCylinderGeom::get_phicenter(const int ibin) const
+PHG4TpcCylinderGeom::get_phicenter_new(const int ibin) const
 {
   //double phi_center = -999;
   if (ibin < 0 || ibin > nphibins)

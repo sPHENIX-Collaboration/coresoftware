@@ -92,6 +92,8 @@ pkginclude_HEADERS = \
   PHG4SectorSubsystem.h \
   PHG4SpacalSubsystem.h \
   PHG4StepStatusDecode.h \
+  PHG4TpcCylinderGeom.h \
+  PHG4TpcCylinderGeomContainer.h \
   PHG4ZDCDefs.h \
   PHG4ZDCSubsystem.h
 
@@ -123,7 +125,9 @@ ROOT_IO_DICTS = \
   PHG4CylinderCellGeomContainer_Dict.cc \
   PHG4ScintillatorSlat_Dict.cc \
   PHG4ScintillatorSlatv1_Dict.cc \
-  PHG4ScintillatorSlatContainer_Dict.cc
+  PHG4ScintillatorSlatContainer_Dict.cc \
+  PHG4TpcCylinderGeom_Dict.cc \
+  PHG4TpcCylinderGeomContainer_Dict.cc 
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
@@ -154,7 +158,9 @@ nobase_dist_pcm_DATA = \
   PHG4CylinderCellGeomContainer_Dict_rdict.pcm \
   PHG4ScintillatorSlat_Dict_rdict.pcm \
   PHG4ScintillatorSlatv1_Dict_rdict.pcm \
-  PHG4ScintillatorSlatContainer_Dict_rdict.pcm
+  PHG4ScintillatorSlatContainer_Dict_rdict.pcm \
+  PHG4TpcCylinderGeom_Dict_rdict.pcm \
+  PHG4TpcCylinderGeomContainer_Dict_rdict.pcm 
 
 libg4detectors_io_la_SOURCES = \
   $(ROOT_IO_DICTS) \
@@ -185,7 +191,10 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellGeomContainer.cc \
   PHG4ScintillatorSlatDefs.cc \
   PHG4ScintillatorSlatv1.cc \
-  PHG4ScintillatorSlatContainer.cc
+  PHG4ScintillatorSlatContainer.cc \
+  PHG4TpcCylinderGeom.cc \
+  PHG4TpcCylinderGeomContainer.cc 
+
 
 libg4detectors_la_SOURCES = \
   BeamLineMagnetDetector.cc \
