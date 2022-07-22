@@ -3,6 +3,7 @@
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
 #include <trackbase/TpcDefs.h>
+#include <trackbase/MvtxDefs.h>
 #include <trackbase/TrkrClusterv3.h>   
 #include <trackbase/TrkrClusterContainer.h>   
 #include <trackbase/TrkrClusterCrossingAssoc.h>   
@@ -408,6 +409,26 @@ std::vector<short int> PHSiliconTpcTrackMatching::getInttCrossings(TrackSeed *si
       
       TrkrDefs::cluskey cluster_key = *iter;
       const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
+
+      if(Verbosity() > 1) 
+	{
+	  unsigned int layer = TrkrDefs::getLayer(cluster_key);
+
+	  if(trkrid == TrkrDefs::mvtxId)
+	    {
+	      TrkrCluster *cluster =  _cluster_map->findCluster(cluster_key);	
+	      if( !cluster ) continue;	  
+
+	      Acts::Vector3 global  = _tGeometry->getGlobalPosition(cluster_key, cluster);
+
+	      std::cout << "Checking  si Track " << _track_map_silicon->find(si_track) << " cluster " << cluster_key 
+			<< " in layer " << layer  << " position " << global(0) << "  " << global(1) << "  " << global(2) << std::endl;
+	    }
+	  else
+	    std::cout << "Checking  si Track " << _track_map_silicon->find(si_track) << " cluster " << cluster_key  		
+		      << " in layer " << layer  << std::endl;
+	}      
+
       if(trkrid == TrkrDefs::inttId)
 	{
 	  TrkrCluster *cluster =  _cluster_map->findCluster(cluster_key);	
@@ -420,7 +441,7 @@ std::vector<short int> PHSiliconTpcTrackMatching::getInttCrossings(TrackSeed *si
 	  for(auto iter = crossings.first; iter != crossings.second; ++iter)
 	    {
 	      if(Verbosity() > 1) 
-		std::cout << "      si Track " << _track_map_silicon->find(si_track) << " cluster " << iter->first << " layer " << layer << " crossing " << iter->second  << std::endl;
+		std::cout << "                si Track " << _track_map_silicon->find(si_track) << " cluster " << iter->first << " layer " << layer << " crossing " << iter->second  << std::endl;
 	      intt_crossings.push_back(iter->second);
 	    }
 	}
