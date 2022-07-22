@@ -109,7 +109,7 @@ MakeActsGeometry::MakeActsGeometry(const std::string &name)
 
 int MakeActsGeometry::Init(PHCompositeNode */*topNode*/)
 {  
-  setPlanarSurfaceDivisions();
+  //setPlanarSurfaceDivisions();//eshulga
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -168,6 +168,12 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   // this also adds the micromegas surfaces
   // Do this before anything else, so that the geometry is finalized
   
+  // need to get nodes first, in order to be able to build the proper micromegas & TPC geometry
+  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    return Fun4AllReturnCodes::ABORTEVENT;  
+
+  setPlanarSurfaceDivisions();//eshulga
+
   // This should be done only on the first tracking pass, to avoid adding surfaces twice
   if(fake_surfaces)
     editTPCGeometry(topNode);
@@ -181,9 +187,7 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
       PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.gdml");
     }
 
-  // need to get nodes first, in order to be able to build the proper micromegas geometry
-  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
-    return Fun4AllReturnCodes::ABORTEVENT;  
+
 
   // In case we did not call EditTpcGeometry, we still want to make the MMs surface map
   if( m_buildMMs && !m_geomContainerMicromegas )
@@ -1429,21 +1433,31 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
   m_moduleStepPhi = 2.0 * M_PI / 12.0;
   m_modulePhiStart = -M_PI;
   m_surfStepPhi = 2.0 * M_PI / (double) (m_nSurfPhi * m_nTpcModulesPerLayer);
-  for(unsigned int isector = 0; isector < 3; ++isector)
-    {
-      layer_thickness_sector[isector] = 
-	(m_maxRadius[isector] - m_minRadius[isector]) / 16.0;
 
-      for(unsigned int ilayer =0; ilayer < 16; ++ilayer)
-	{
-	  m_layerRadius[isector*16 + ilayer] = 
-	    m_minRadius[isector] + layer_thickness_sector[isector] * 
-	    (double) ilayer + layer_thickness_sector[isector] / 2.0;
-	  
-	  m_layerThickness[isector*16 + ilayer] = 
-	    layer_thickness_sector[isector];
-	}
-    }
+
+  for (int ilayer=7; ilayer<m_nTpcLayers+7; ilayer++){
+    PHG4TpcCylinderGeom* GeoLayer = m_geomContainerTpc->GetLayerCellGeom(ilayer);
+    std::cout << "MakeActsGeometry:: layer = " << ilayer << " layer_radius " << GeoLayer->get_radius() << std::endl;  
+	  m_layerRadius[ilayer-7] = GeoLayer->get_radius();
+	  m_layerThickness[ilayer-7] =  GeoLayer->get_thickness();
+    //sector_min_Phi[zside][ilayer-7] = GeoLayer->get_sector_min_phi();
+    //sector_max_Phi[zside][ilayer-7] = GeoLayer->get_sector_max_phi();
+  }   
+  //for(unsigned int isector = 0; isector < 3; ++isector)
+  //  {
+  //    layer_thickness_sector[isector] = 
+	//(m_maxRadius[isector] - m_minRadius[isector]) / 16.0;
+//
+  //    for(unsigned int ilayer =0; ilayer < 16; ++ilayer)
+	//{
+	//  m_layerRadius[isector*16 + ilayer] = 
+	//    m_minRadius[isector] + layer_thickness_sector[isector] * 
+	//    (double) ilayer + layer_thickness_sector[isector] / 2.0;
+	//  
+	//  m_layerThickness[isector*16 + ilayer] = 
+	//    layer_thickness_sector[isector];
+	//}
+  //  }
 }
 
 int MakeActsGeometry::createNodes(PHCompositeNode *topNode)

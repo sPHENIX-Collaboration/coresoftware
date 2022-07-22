@@ -62,7 +62,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<int, 3> MinLayer;
   std::array<double, 3> MinRadius;
   std::array<double, 3> MaxRadius;
-  std::array<double, 3> Thickness;
+  std::array<double, 5> Thickness;
   double MaxZ = NAN;
   double MinT = NAN;
   double MaxT = NAN;
