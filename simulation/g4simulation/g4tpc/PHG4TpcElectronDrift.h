@@ -28,6 +28,7 @@ class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
 class TrkrHitTruthClusters;
 class DistortedTrackContainer;
+class TrkrTruthCentroidBuilder;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
@@ -64,7 +65,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
  private:
   //! map a given x,y,z coordinates to plane hits
-  void MapToPadPlane(const double x, const double y, const double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
+  unsigned int MapToPadPlane(const double x, const double y, const double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
 
   TrkrHitSetContainer *hitsetcontainer = nullptr;
   TrkrHitTruthAssoc *hittruthassoc = nullptr;
@@ -118,6 +119,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double max_active_radius = NAN;
   double min_time = NAN;
   double max_time = NAN;
+
+  /* vector<double> gem_layer_boundaries {}; */
 
   //! rng de-allocator
   class Deleter

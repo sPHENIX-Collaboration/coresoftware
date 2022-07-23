@@ -34,7 +34,8 @@ pkginclude_HEADERS = \
   PHG4TpcPadBaselineShift.h \
   PHG4TpcPadPlane.h \
   PHG4TpcPadPlaneReadout.h \
-  PHG4TpcSubsystem.h 
+  PHG4TpcSubsystem.h \
+	TrkrTruthCentroidBuilder.h
 
 libg4tpc_la_SOURCES = \
   PHG4TpcCentralMembrane.cc \
@@ -52,7 +53,8 @@ libg4tpc_la_SOURCES = \
   PHG4TpcPadPlane.cc \
   PHG4TpcPadPlaneReadout.cc \
   PHG4TpcSteppingAction.cc \
-  PHG4TpcSubsystem.cc 
+  PHG4TpcSubsystem.cc \
+	TrkrTruthCentroidBuilder.cc 
 
 ################################################
 # linking tests

@@ -127,7 +127,7 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
   return nelec;
 }
 
-void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)
+unsigned int PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)
 {
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
@@ -138,8 +138,6 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
   if (phi < -M_PI) phi += 2 * M_PI;
 
   rad_gem = sqrt(x_gem * x_gem + y_gem * y_gem);
-  //std::cout << "Enter new MapToPadPlane with rad_gem " << rad_gem << std::endl;
-
   unsigned int layernum = 0;
 
   // Find which readout layer this electron ends up in
@@ -166,7 +164,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
 
   if (layernum == 0)
   {
-    return;
+    return 0;
   }
 
   // store phi bins and tbins upfront to avoid repetitive checks on the phi methods
@@ -348,7 +346,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
 
   m_NHits++;
 
-  return;
+  return layernum;
 }
 
 void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &phibin_pad, std::vector<double> &phibin_pad_share)

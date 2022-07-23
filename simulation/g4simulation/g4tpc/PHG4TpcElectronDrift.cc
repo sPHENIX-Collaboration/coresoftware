@@ -9,6 +9,8 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
+/* #include <trackbase/TrkrTruthCentroid.h> */
+
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
@@ -58,6 +60,8 @@
 #include <iostream>
 #include <map>      // for _Rb_tree_cons...
 #include <utility>  // for pair
+
+#include "TrkrTruthCentroidBuilder.h"
 
 namespace
 {
@@ -273,12 +277,19 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   padplane->InitRun(topNode);
   padplane->CreateReadoutGeometry(topNode, seggeo);
 
+  // get the padplane layers
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
   static constexpr unsigned int print_layer = 18;
+  std::cout << " E DRIFT " << std::endl;
+
+
+  /* TrkrTruthCentroid cent; */
+  /* cent.mean_z = 3; */
 
   // tells m_distortionMap which event to look at
   if (m_distortionMap)
@@ -326,6 +337,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   std::array<double, 8> phiRz_data;
   double sum_E = 0;
 
+  std::cout << "Making Centroid Builder " << std::endl; //FIXME
+  std::array<TrkrTruthCentroidBuilder, 55> centroid_builder; // build energy centriods 
+
   for (auto hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     count_g4hits++;
@@ -342,9 +356,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     if (trkid != trkid_prior) {
         trkid_prior = trkid;
         is_embedded = (truthinfo->isEmbeded(hiter->second->get_trkid()));
-        for (auto& v : phiRz_data) v = 0.;
-        sum_E = 0;
+        std::cout << " is embed: " << is_embedded << std::endl;
+        /* for (auto& v : phiRz_data) v = 0.; */
+        /* sum_E = 0; */
     }
+    if (is_embedded) std::cout<<" olive salami " << std::endl;
     // for very high occupancy events, accessing the TrkrHitsets on the node tree for every drifted electron seems to be very slow
     // Instead, use a temporary map to accumulate the charge from all drifted electrons, then copy to the node tree later
     double eion = hiter->second->get_eion();
@@ -469,7 +485,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       {
         continue;
       }
-     
+      /* std::cout << " olive phi_final: " << phi_final << std::endl;  //FIXME */
     if (is_embedded) {
         double energy = 1;
         sum_E += energy;
@@ -507,10 +523,19 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
       }
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
-      MapToPadPlane(x_final, y_final, t_final, side, hiter, ntpad, nthit);
+      /* std::cout << " olive A testings TNtuple: is null? " << (nthit == nullptr) << " ? " << std::endl; */
+      unsigned int layer = MapToPadPlane(x_final, y_final, t_final, side, hiter, ntpad, nthit);
+      float energy_weight = 1.;
+      if (is_embedded && layer > 0) centroid_builder[layer-1].add_electron(phi_final, z_final, energy_weight);
     }  // end loop over electrons for this g4hit
 
     if (is_embedded && n_electrons > 0) {
+      std::cout << " toasty builder: ";
+      for (auto &entry : centroid_builder) {
+        std::cout << !entry.is_empty;
+      } 
+      std::cout<<std::endl;
+
         hittruthclusters->push_truth_cluster( trkid, phiRz_data, sum_E );
         if (Verbosity() > 1000) hittruthclusters->print_clusters();
     }
@@ -526,6 +551,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       // we have an itrator to one TrkrHitSet for the Tpc from the single_hitsetcontainer
       TrkrDefs::hitsetkey node_hitsetkey = single_hitset_iter->first;
       const unsigned int layer = TrkrDefs::getLayer(node_hitsetkey);
+      /* std::cout << " olive layer: " << layer << std::endl; // FIXME */
       const int sector = TpcDefs::getSectorId(node_hitsetkey);
       const int side = TpcDefs::getSide(node_hitsetkey);
 
@@ -582,9 +608,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           TrkrHit *temp_tpchit = temp_hit_iter->second;
           if (Verbosity() > 10 && layer == print_layer)
           {
-            std::cout << "      temp_hitkey " << temp_hitkey << " l;ayer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
+            std::cout << " temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
                       << " z bin " << TpcDefs::getTBin(temp_hitkey)
-                      << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
+                      << " energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
 
             eg4hit += temp_tpchit->getEnergy();
             ecollectedhits += temp_tpchit->getEnergy();
@@ -667,9 +693,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *padnt, TNtuple *hitnt)
+unsigned int PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *padnt, TNtuple *hitnt)
 {
-  padplane->MapToPadPlane(single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, side, hiter, padnt, hitnt);
+  return padplane->MapToPadPlane(single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, side, hiter, padnt, hitnt);
 }
 
 int PHG4TpcElectronDrift::End(PHCompositeNode * /*topNode*/)
