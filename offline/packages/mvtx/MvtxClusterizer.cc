@@ -449,12 +449,12 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 void MvtxClusterizer::PrintClusters(PHCompositeNode *topNode)
 {
-  if (Verbosity() >= 0)
+  if (Verbosity() > 0)
   {
     TrkrClusterContainer *clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (!clusterlist) return;
 
-    cout << "================= Aftyer MvtxClusterizer::process_event() ====================" << endl;
+    cout << "================= After MvtxClusterizer::process_event() ====================" << endl;
 
     cout << " There are " << clusterlist->size() << " clusters recorded: " << endl;
 
