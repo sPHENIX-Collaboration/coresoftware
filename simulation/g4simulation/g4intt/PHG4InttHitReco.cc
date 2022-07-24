@@ -457,8 +457,8 @@ void PHG4InttHitReco::SetDefaultParameters()
   // if we ever need separate timing windows, don't patch around here!
   // use PHParameterContainerInterface which
   // provides for multiple layers/detector types
-  set_default_double_param("tmax", 20200.0);   // max upper time window for extended readout
-  set_default_double_param("tmin", -13200.0);  // min lower time window for extended readout
+  set_default_double_param("tmax", 7020.0);   // max upper time window for extended readout
+  set_default_double_param("tmin", -20.0);  // min lower time window for extended readout
   set_default_double_param("beam_crossing_period", 106.0);   
 
   return;

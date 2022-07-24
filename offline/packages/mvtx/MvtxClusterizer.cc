@@ -217,91 +217,52 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
   // Clustering
   //-----------
 
-  // combine all strobe values for a given hitset
-  std::multimap<TrkrDefs::hitsetkey, TrkrDefs::hitsetkey> hitset_multimap;
-  std::set<TrkrDefs::hitsetkey> bare_hitset_set;
-
+  // loop over each MvtxHitSet object (chip)
   TrkrHitSetContainer::ConstRange hitsetrange =
     m_hits->getHitSets(TrkrDefs::TrkrId::mvtxId);
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
     {
-      auto hitsetkey = hitsetitr->first;
-      // get the hitsetkey value for strobe 0
-      unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
-      unsigned int stave =  MvtxDefs::getStaveId(hitsetitr->first);
-      unsigned int chip =  MvtxDefs::getChipId(hitsetitr->first);
-      auto bare_hitsetkey =  MvtxDefs::genHitSetKey(layer, stave, chip, 0);
-      hitset_multimap.insert(std::make_pair(bare_hitsetkey, hitsetkey));
-      bare_hitset_set.insert(bare_hitsetkey);
-    }
-  
-  // loop over the bare hitsets, which correspond to the physical sensors
-  for(auto bare_it = bare_hitset_set.begin(); bare_it != bare_hitset_set.end(); ++bare_it)
-    {
-      // bare hitset correponding to physical sensor
-      // fill a vector of hits to make things easier
-      std::vector <std::pair< TrkrDefs::hitkey, TrkrHit*> > hitvec_initial;
-      std::vector <std::pair< TrkrDefs::hitkey, TrkrHit*> > hitvec;
-
-      // get all hitsets (including strobe bits) corresponding to this bare hitset
-      auto bare_hitsetrange= hitset_multimap.equal_range(*bare_it);
-
-      for(auto it = bare_hitsetrange.first; it != bare_hitsetrange.second; ++ it)
+      TrkrHitSet *hitset = hitsetitr->second;
+      
+      if(Verbosity() > 0)
 	{ 
-	  if(Verbosity() > 1) cout << "MvtxClusterizer found hitsetkey " << it->first << endl;
+	  unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
+	  unsigned int stave = MvtxDefs::getStaveId(hitsetitr->first);
+	  unsigned int chip = MvtxDefs::getChipId(hitsetitr->first);
+	  unsigned int strobe = MvtxDefs::getStrobeId(hitsetitr->first);
+	  cout << "MvtxClusterizer found hitsetkey " << hitsetitr->first << " layer " << layer << " stave " << stave << " chip " << chip << " strobe " << strobe << endl;
+     	}
 
-	  TrkrHitSet *hitset = m_hits->findHitSet(it->second);
-	  if (Verbosity() > 2) hitset->identify();
-	  
-	  TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-	  for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-	       hitr != hitrangei.second;
-	       ++hitr)
-	    {
-	      hitvec_initial.push_back(make_pair(hitr->first, hitr->second));
-	    }
-	}
- 
-      //if (Verbosity() > 2)
-      {
-	unsigned int layer = TrkrDefs::getLayer(*bare_it);
-	cout << "Layer " << layer << " hitvec_initial.size(): " << hitvec_initial.size() << endl;
-      }  
-
-      // hitvec_initial contains repeated hits with different strobe numbers
-      // Choose only one version of each hit here before clustering
-      std::multimap<std::pair<unsigned int, unsigned int>, std::pair<TrkrDefs::hitkey, TrkrHit*>> hitvec_map;
-      std::set<std::pair<unsigned int, unsigned int>> hitvec_set;
-      for(unsigned int i=0; i< hitvec_initial.size(); ++i)
+      if (Verbosity() > 2)
+	hitset->identify();
+      
+      // fill a vector of hits to make things easier
+      std::vector <std::pair< TrkrDefs::hitkey, TrkrHit*> > hitvec;
+      
+      TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+      for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+	   hitr != hitrangei.second;
+	   ++hitr)
 	{
-	  // these hits are all in the same chip, so we just detect repeat hits with the same col and row
-	  auto col = MvtxDefs::getCol(hitvec_initial[i].first);
-	  auto row = MvtxDefs::getRow(hitvec_initial[i].first);
-	  auto row_col = std::make_pair(row, col);
-	  hitvec_set.insert(row_col);
-	  hitvec_map.insert(std::make_pair(row_col, hitvec_initial[i]));
-	  std::cout << "    initial hits adding row " << row << " col " << col << std::endl;
+	  hitvec.push_back(make_pair(hitr->first, hitr->second));
+	}
+      if (Verbosity() > 2) cout << "hitvec.size(): " << hitvec.size() << endl;
+
+      if(Verbosity() > 0)
+	{
+	  for (unsigned int i = 0; i < hitvec.size(); i++)
+	    {
+	      auto hitkey = hitvec[i].first;
+	      auto row = MvtxDefs::getRow(hitkey);
+	      auto col = MvtxDefs::getCol(hitkey);
+	      std::cout << "      hitkey " << hitkey << " row " << row << " col " << col << std::endl; 
+	    }
+
 	}
       
-      // go through the map and take just one hit per row_col value
-      for(auto it = hitvec_set.begin(); it != hitvec_set.end(); ++it)
-	{
-	  auto ret = hitvec_map.equal_range(*it);
-	  for(auto hitit = ret.first; hitit  != ret.second; ++hitit)
-	    {
-	      hitvec.push_back(hitit->second);
-	      std::cout << "Add hit with row " << hitit->first.first << " col " << hitit->first.second << " hitkey " << hitit->second.first << std::endl;
-	      break;
-	    }
-	}
-
- 
-      //if (Verbosity() > 2) 
-      cout << "hitvec.size() after pruning: " << hitvec.size() << endl;
-      
-      // do the clustering
+       // do the clustering
       typedef adjacency_list<vecS, vecS, undirectedS> Graph;
       Graph G;
       
@@ -342,7 +303,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  if (Verbosity() > 2) cout << "Filling cluster id " << clusid << " of " << std::distance(cluster_ids.begin(),clusiter )<< endl;
 	  
 	  // make the cluster directly in the node tree
-	  auto ckey = TrkrDefs::genClusKey(*bare_it, clusid);
+	  auto ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 	  
 	  // determine the size of the cluster in phi and z
 	  set<int> phibins;
@@ -433,8 +394,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  else if( zbins.size() == 3 && phibins.size() == 3 )  zerror*=scalefactors_z[3];
 	  
 	  if(Verbosity() > 0)
-	    cout << " MvtxClusterizer: layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize
-		 << " zbins " << zbins.size() << " length " << length << " zsize " << zsize << endl;
+	    cout << " MvtxClusterizer: cluskey " << ckey << " layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize 
+		 << " zbins " << zbins.size() << " length " << length << " zsize " << zsize 
+		 << " local x " << locclusx << " local y " << locclusz
+		 << endl;
 	  
 	  if(m_cluster_version==3){
 	    auto clus = std::make_unique<TrkrClusterv3>();
@@ -472,8 +435,8 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	    
 	    m_clusterlist->addClusterSpecifyKey(ckey, clus.release());
 	  }
-	}  // clusitr
-    }  // bare hitsets
+	}  // clusitr loop
+    }  // loop over hitsets
       
   if(Verbosity() > 1)
     {
@@ -486,7 +449,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 void MvtxClusterizer::PrintClusters(PHCompositeNode *topNode)
 {
-  if (Verbosity() >= 3)
+  if (Verbosity() >= 0)
   {
     TrkrClusterContainer *clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (!clusterlist) return;
@@ -495,7 +458,7 @@ void MvtxClusterizer::PrintClusters(PHCompositeNode *topNode)
 
     cout << " There are " << clusterlist->size() << " clusters recorded: " << endl;
 
-    clusterlist->identify();
+    if(Verbosity() > 3)  clusterlist->identify();
 
     cout << "===========================================================================" << endl;
   }

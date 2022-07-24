@@ -78,6 +78,8 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode* topNode)
   m_strobe_separation = get_double_param("mvtx_strobe_separation");
   m_in_sphenix_srdo = (bool)get_int_param("mvtx_in_sphenix_srdo");
 
+  m_extended_readout_time = m_tmax - m_strobe_width;
+
   // printout
   if (Verbosity())
   {
@@ -181,7 +183,9 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
   m_tmin += strobe_zero_tm_start;
 
   m_tmax = (! m_in_sphenix_srdo) ? ( m_strobe_width + m_strobe_separation ) : m_tmax;
-  m_tmax += strobe_zero_tm_start;
+  m_tmax += -strobe_zero_tm_start + m_extended_readout_time;
+
+  std::cout << " m_strobe_width " << m_strobe_width << " m_strobe_separation " << m_strobe_separation << " strobe_zero_tm_start " << strobe_zero_tm_start << " m_extended_readout_time " << m_extended_readout_time << std::endl;
 
   // loop over all of the layers in the g4hit container
   auto layer_range = g4hitContainer->getLayers();
@@ -223,6 +227,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
 
       double lead_edge = g4hit->get_t(0) * ns + alpide_pulse.first;
       double fall_edge = g4hit->get_t(1) * ns + alpide_pulse.second;
+      std::cout << " MvtxHitReco: t0 " << g4hit->get_t(0) << " t1 " << g4hit->get_t(1) << " lead_edge " << lead_edge 
+		<< " fall_edge " << fall_edge << " tmin " << m_tmin << " tmax " << m_tmax << std::endl;
 
       if (lead_edge > m_tmax or fall_edge < m_tmin) continue;
 
@@ -594,9 +600,10 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
           // There is only one TrkrHit per pixel, but there may be multiple g4hits
           // How do we know how much energy from PHG4Hit went into TrkrHit? We don't, have to sort it out in evaluator to save memory
 
-          // How do we check if this association already exists?
-          //cout << "PHG4MvtxHitReco: adding association entry for hitkey " << hitkey << " and g4hitkey " << hiter->first << endl;
-          hitTruthAssoc->addAssoc(hitsetkey, hitkey, g4hit_it->first);
+	  // we set the strobe ID to zero in the hitsetkey 
+	  // we use the findOrAdd method to keep from adding identical entries
+	  TrkrDefs::hitsetkey bare_hitsetkey = zero_strobe_bits(hitsetkey);
+          hitTruthAssoc->findOrAddAssoc(bare_hitsetkey, hitkey, g4hit_it->first);
         }
       }  // end loop over hit cells
     }    // end loop over g4hits for this layer
@@ -659,10 +666,21 @@ void PHG4MvtxHitReco::set_timing_window(const int detid, const double tmin, cons
 void PHG4MvtxHitReco::SetDefaultParameters()
 {
   //cout << "PHG4MvtxHitReco: Setting Mvtx timing window defaults to tmin = -5000 and  tmax = 5000 ns" << endl;
-  set_default_double_param("mvtx_tmin", -13200);
-  set_default_double_param("mvtx_tmax",  20200);
+  set_default_double_param("mvtx_tmin", -5000);
+  set_default_double_param("mvtx_tmax",  5000);
   set_default_double_param("mvtx_strobe_width", 5*microsecond);
   set_default_double_param("mvtx_strobe_separation", 0.);
   set_default_int_param("mvtx_in_sphenix_srdo", (int)false);
   return;
+}
+
+TrkrDefs::hitsetkey PHG4MvtxHitReco::zero_strobe_bits(TrkrDefs::hitsetkey hitsetkey)
+{
+  unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+  unsigned int stave =  MvtxDefs::getStaveId(hitsetkey);
+  unsigned int chip =  MvtxDefs::getChipId(hitsetkey);
+  TrkrDefs::hitsetkey bare_hitsetkey =  MvtxDefs::genHitSetKey(layer, stave, chip, 0);
+
+  return bare_hitsetkey;
+
 }

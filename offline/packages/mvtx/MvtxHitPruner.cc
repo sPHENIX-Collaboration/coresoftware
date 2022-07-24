@@ -86,10 +86,8 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
   }
 
   // We want to combine all strobe values for a given hitset
-
   // Start by looping over all MVTX hitsets and making a map of physical sensor to hitsetkey-with-strobe
   //=============================================================================
-
   std::multimap<TrkrDefs::hitsetkey, TrkrDefs::hitsetkey> hitset_multimap;  // will map (bare hitset, hitset with strobe)
   std::set<TrkrDefs::hitsetkey> bare_hitset_set;  // list of all physical sensor hitsetkeys (i.e. with strobe set to zero)
 
@@ -100,15 +98,67 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
        ++hitsetitr)
     {
       auto hitsetkey = hitsetitr->first;
+
       // get the hitsetkey value for strobe 0
       unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
       unsigned int stave =  MvtxDefs::getStaveId(hitsetitr->first);
       unsigned int chip =  MvtxDefs::getChipId(hitsetitr->first);
       auto bare_hitsetkey =  MvtxDefs::genHitSetKey(layer, stave, chip, 0);
+
       hitset_multimap.insert(std::make_pair(bare_hitsetkey, hitsetkey));
       bare_hitset_set.insert(bare_hitsetkey);
+
+      cout << " found hitsetkey " << hitsetkey << " for bare_hitsetkey " << bare_hitsetkey << endl;
     }
 
+  // Now consolidate all hits into the hitset with strobe 0, and delete the other hitsets
+  //==============================================================
+  for(auto bare_it = bare_hitset_set.begin(); bare_it != bare_hitset_set.end(); ++bare_it)
+    {
+      auto bare_hitsetkey = *bare_it;
+      TrkrHitSet* bare_hitset = (m_hits->findOrAddHitSet(bare_hitsetkey))->second;
+      std::cout << "         bare_hitset " << bare_hitsetkey << " initially has " << bare_hitset->size() << " hits " << std::endl; 
+
+      auto bare_hitsetrange= hitset_multimap.equal_range(bare_hitsetkey);
+      for(auto it = bare_hitsetrange.first; it != bare_hitsetrange.second; ++ it)
+	{ 
+	  auto hitsetkey = it->second;
+	  cout << "            process hitsetkey " << hitsetkey << " for bare_hitsetkey " << bare_hitsetkey << endl;
+
+	  int strobe = MvtxDefs::getStrobeId(hitsetkey);
+	  if(strobe != 0)
+	    {
+	      // copy all hits to the hitset with strobe 0
+	      TrkrHitSet* hitset = m_hits->findHitSet(hitsetkey);		
+
+	      std::cout << "                hitsetkey " << hitsetkey << " has strobe " << strobe << " and has " << hitset->size() << " hits,  so copy it" << std::endl;
+
+	      TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+	      for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+		   hitr != hitrangei.second;
+		   ++hitr)
+		{
+		  auto hitkey = hitr->first;
+		  
+		  // if it is already there, leave it alone, this is a duplicate hit
+		  auto tmp_hit = bare_hitset->getHit(hitkey);
+		  if(tmp_hit) continue;
+		  
+		  // otherwise copy the hit over 
+		  std::cout << "                          copying over hitkey " << hitkey << std::endl;
+		  auto old_hit = hitr->second;
+		  TrkrHit *new_hit = new TrkrHitv2();
+		  new_hit->setAdc(old_hit->getAdc());
+		  bare_hitset->addHitSpecificKey(hitkey, new_hit);
+		}
+
+	      // all hits are copied over to the strobe zero hitset, remove this hitset
+	      m_hits->removeHitSet(hitsetkey);
+	    }
+	}
+    }
+
+  /*
   // Now loop over physical sensors one by one, make a vector of all hits from all hitsets in that sensor
   //===========================================================================
   
@@ -146,8 +196,12 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
  
       //if (Verbosity() > 2)
       {
-	unsigned int layer = TrkrDefs::getLayer(*bare_it);
-	cout << "Layer " << layer << " hitvec_initial.size(): " << hitvec_initial.size() << endl;
+	TrkrDefs::hitsetkey hitsetkey = *bare_it;
+	unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+	unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
+	unsigned int chip = MvtxDefs::getChipId(hitsetkey);
+	unsigned int strobe = MvtxDefs::getStrobeId(hitsetkey);
+	cout << "Bare hitsetkey " << hitsetkey << " layer " << layer << " stave " << stave << " chip " << chip << " strobe " << strobe << " hitvec_initial.size(): " << hitvec_initial.size() << endl;
       }  
 
 
@@ -218,7 +272,7 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
   // All chosen hits have been copied to the hitset with strobe 0 
   // now reset all hitsets with strobe != 0
   //============================
-  
+  std::vector<TrkrDefs::hitsetkey> remove_hitsets;  
   TrkrHitSetContainer::ConstRange mvtx_hitsets =
     m_hits->getHitSets(TrkrDefs::TrkrId::mvtxId);
   for (TrkrHitSetContainer::ConstIterator hitsetitr = mvtx_hitsets.first;
@@ -226,22 +280,20 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
        ++hitsetitr)
     {
       auto hitsetkey = hitsetitr->first;
-      auto hitset = hitsetitr->second;
 
       // get the strobe ID
       unsigned int strobe = MvtxDefs::getStrobeId(hitsetkey);
       if(strobe != 0)
 	{
-	  hitset->Reset();
+	  remove_hitsets.push_back(hitsetkey);
 	}
     }
 
-  // We need to rewrite the hit-truth association map too, right?????
-  //=================================================
-
-
-
-
+  for(unsigned int i = 0; i < remove_hitsets.size(); ++ i)
+    {
+      m_hits->removeHitSet(remove_hitsets[i]);
+    }
+  */
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
