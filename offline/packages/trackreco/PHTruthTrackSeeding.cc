@@ -483,7 +483,7 @@ std::set<short int> PHTruthTrackSeeding::getInttCrossings(TrackSeed *si_track) c
     
     const TrkrDefs::cluskey& cluster_key = *iter;
     const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
-    std::cout << "    trkrid " << trkrid << " cluster_key " << cluster_key << std::endl;
+    if(Verbosity() > 0) std::cout << "    trkrid " << trkrid << " cluster_key " << cluster_key << std::endl;
     if(trkrid == TrkrDefs::inttId)
     {
       

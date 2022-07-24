@@ -81,16 +81,14 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode* topNode)
   m_extended_readout_time = m_tmax - m_strobe_width;
 
   // printout
-  if (Verbosity())
-  {
-    std::cout
-      << "PHG4MvtxHitReco::InitRun\n"
-      << " m_tmin: " << m_tmin << "ns, m_tmax: " << m_tmax << "ns\n"
-      << " m_strobe_width: " << m_strobe_width << "\n"
-      << " m_strobe_separation: " << m_strobe_separation << "\n"
-      << " m_in_sphenix_srdo: " << (m_in_sphenix_srdo ? "true" : "false") << "\n"
-      << std::endl;
-  }
+  std::cout
+    << "PHG4MvtxHitReco::InitRun\n"
+    << " m_tmin: " << m_tmin << "ns, m_tmax: " << m_tmax << "ns\n"
+    << " m_strobe_width: " << m_strobe_width << "\n"
+    << " m_strobe_separation: " << m_strobe_separation << "\n"
+    << " m_extended_readout_time: " << m_extended_readout_time << "\n"
+    << " m_in_sphenix_srdo: " << (m_in_sphenix_srdo ? "true" : "false") << "\n"
+    << std::endl;
 
   //! get DST node
   PHNodeIterator iter(topNode);
@@ -185,7 +183,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
   m_tmax = (! m_in_sphenix_srdo) ? ( m_strobe_width + m_strobe_separation ) : m_tmax;
   m_tmax += -strobe_zero_tm_start + m_extended_readout_time;
 
-  std::cout << " m_strobe_width " << m_strobe_width << " m_strobe_separation " << m_strobe_separation << " strobe_zero_tm_start " << strobe_zero_tm_start << " m_extended_readout_time " << m_extended_readout_time << std::endl;
+  if(Verbosity() > 0)
+    std::cout << " m_strobe_width " << m_strobe_width << " m_strobe_separation " << m_strobe_separation << " strobe_zero_tm_start " << strobe_zero_tm_start << " m_extended_readout_time " << m_extended_readout_time << std::endl;
 
   // loop over all of the layers in the g4hit container
   auto layer_range = g4hitContainer->getLayers();
@@ -227,8 +226,10 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
 
       double lead_edge = g4hit->get_t(0) * ns + alpide_pulse.first;
       double fall_edge = g4hit->get_t(1) * ns + alpide_pulse.second;
-      std::cout << " MvtxHitReco: t0 " << g4hit->get_t(0) << " t1 " << g4hit->get_t(1) << " lead_edge " << lead_edge 
-		<< " fall_edge " << fall_edge << " tmin " << m_tmin << " tmax " << m_tmax << std::endl;
+
+      if(Verbosity() > 0)
+	std::cout << " MvtxHitReco: t0 " << g4hit->get_t(0) << " t1 " << g4hit->get_t(1) << " lead_edge " << lead_edge 
+		  << " fall_edge " << fall_edge << " tmin " << m_tmin << " tmax " << m_tmax << std::endl;
 
       if (lead_edge > m_tmax or fall_edge < m_tmin) continue;
 
