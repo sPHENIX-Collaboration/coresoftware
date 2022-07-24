@@ -61,7 +61,6 @@
 #include <map>      // for _Rb_tree_cons...
 #include <utility>  // for pair
 
-#include "TrkrTruthCentroidBuilder.h"
 
 namespace
 {
@@ -305,24 +304,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     gSystem->Exit(1);
   }
   PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-  
-  if (false) { // print out which tracks are embedded ("true") tracks and which are not
-      PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
-      int i_last {0};
-      for (auto hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter) {
-          int test_i =  hiter->second->get_trkid();
-          /* std::cout << " got a track with id: " << hiter->second->get_trkid() << std::endl; */
-          if (i_last != test_i && test_i > 0) {
-              i_last = test_i;
-              std::cout << " The track i: " << i_last << "  " <<
-                  hiter->second->get_trkid() << " is embedded? " <<
-                  truthinfo->isEmbeded(hiter->second->get_trkid()) << std::endl;
-          }
-      }
-  }
-
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
-  //std::cout << "g4hits size " << g4hit->size() << std::endl;
   unsigned int count_g4hits = 0;
   int count_electrons = 0;
 
@@ -332,14 +314,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   unsigned int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
   unsigned int dump_counter = 0;
 
-  int trkid_prior = -1;
-  bool is_embedded {false};
-  std::array<double, 8> phiRz_data;
-  double sum_E = 0;
 
-  std::cout << "Making Centroid Builder " << std::endl; //FIXME
-  std::array<TrkrTruthCentroidBuilder, 55> centroid_builder; // build energy centriods 
-
+  is_embedded = false;
+  trkid = -1;
+  has_energy_centroids = false;
   for (auto hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     count_g4hits++;
@@ -352,15 +330,12 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     }
 
     // djs get the track number
-    int trkid = hiter->second->get_trkid();
-    if (trkid != trkid_prior) {
-        trkid_prior = trkid;
-        is_embedded = (truthinfo->isEmbeded(hiter->second->get_trkid()));
-        std::cout << " is embed: " << is_embedded << std::endl;
-        /* for (auto& v : phiRz_data) v = 0.; */
-        /* sum_E = 0; */
+    int new_trkid = hiter->second->get_trkid();
+    if (new_trkid != trkid) {
+        if (is_embedded) fill_and_reset_trkrHitTruthClusters();
+        trkid = new_trkid;
+        is_embedded = (truthinfo->isEmbeded(hiter->second->get_trkid()));;
     }
-    if (is_embedded) std::cout<<" olive salami " << std::endl;
     // for very high occupancy events, accessing the TrkrHitsets on the node tree for every drifted electron seems to be very slow
     // Instead, use a temporary map to accumulate the charge from all drifted electrons, then copy to the node tree later
     double eion = hiter->second->get_eion();
@@ -485,20 +460,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       {
         continue;
       }
-      /* std::cout << " olive phi_final: " << phi_final << std::endl;  //FIXME */
-    if (is_embedded) {
-        double energy = 1;
-        sum_E += energy;
-        phiRz_data[0] += phi_final * energy;
-        phiRz_data[1] += square(phi_final) * energy;
-        phiRz_data[2] += rad_final * energy;
-        phiRz_data[3] += square(rad_final) * energy;
-        phiRz_data[4] += z_final * energy;
-        phiRz_data[5] += square(z_final) * energy;
-        double wrap_phi = (phi_final < 0) ? (phi_final + 6.2831853072) : phi_final;
-        phiRz_data[6] += wrap_phi * energy;
-        phiRz_data[7] += square(wrap_phi) * energy;
-    }
 
       if (Verbosity() > 1000)
       {
@@ -523,23 +484,16 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
       }
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
-      /* std::cout << " olive A testings TNtuple: is null? " << (nthit == nullptr) << " ? " << std::endl; */
       unsigned int layer = MapToPadPlane(x_final, y_final, t_final, side, hiter, ntpad, nthit);
       float energy_weight = 1.;
-      if (is_embedded && layer > 0) centroid_builder[layer-1].add_electron(phi_final, z_final, energy_weight);
+      if (is_embedded && layer > 0) {
+        has_energy_centroids = true;
+        centroid_builder[layer-1].add_electron(phi_final, z_final, energy_weight);
+      }
     }  // end loop over electrons for this g4hit
 
-    if (is_embedded && n_electrons > 0) {
-      std::cout << " toasty builder: ";
-      for (auto &entry : centroid_builder) {
-        std::cout << !entry.is_empty;
-      } 
-      std::cout<<std::endl;
-
-        hittruthclusters->push_truth_cluster( trkid, phiRz_data, sum_E );
-        if (Verbosity() > 1000) hittruthclusters->print_clusters();
-    }
-
+    if (is_embedded)  fill_and_reset_trkrHitTruthClusters(); 
+    hittruthclusters->print_clusters();
     // The hit-truth association has to be done for each g4hit
     // we use the single_hitsetcontainer for this
 
@@ -551,7 +505,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       // we have an itrator to one TrkrHitSet for the Tpc from the single_hitsetcontainer
       TrkrDefs::hitsetkey node_hitsetkey = single_hitset_iter->first;
       const unsigned int layer = TrkrDefs::getLayer(node_hitsetkey);
-      /* std::cout << " olive layer: " << layer << std::endl; // FIXME */
       const int sector = TpcDefs::getSectorId(node_hitsetkey);
       const int side = TpcDefs::getSide(node_hitsetkey);
 
@@ -689,6 +642,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     hittruthassoc->identify();
   }
 
+
   ++event_num;  // if doing more than one event, event_num will be incremented.
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -787,4 +741,16 @@ void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
   std::cout << "padplane registered and parameters updated" << std::endl;
 
   return;
+}
+
+void PHG4TpcElectronDrift::fill_and_reset_trkrHitTruthClusters() {
+  if (has_energy_centroids) {
+    has_energy_centroids = false;
+    TrkrHitTruthClusters::CentroidsFor1Track& centroids = hittruthclusters->add_track_centroids(trkid);
+    for (int i=0; i<TrkrHitTruthClusters::N_GEM_LAYERS; ++i) {
+      if (centroid_builder[i].is_empty) continue;
+      centroids[i].set_values(centroid_builder[i].build_centroid());
+      centroid_builder[i].reset();
+    }
+  }
 }

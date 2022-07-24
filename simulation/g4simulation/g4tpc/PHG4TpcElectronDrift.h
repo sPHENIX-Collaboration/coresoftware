@@ -11,6 +11,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <gsl/gsl_rng.h>
+#include "TrkrTruthCentroidBuilder.h"
 
 #include <cmath>
 #include <memory>
@@ -78,6 +79,14 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   int event_num = 0;
   bool do_ElectronDriftQAHistos = false;
 
+  // data to fill the energy centroids
+  bool is_embedded;
+  bool has_energy_centroids;
+  int trkid;
+  std::array<TrkrTruthCentroidBuilder, 55> centroid_builder {}; // build energy centriods 
+  void fill_and_reset_trkrHitTruthClusters();
+
+
   ///@name evaluation histograms
   //@{
   TH1 *dlong = nullptr;
@@ -120,7 +129,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double min_time = NAN;
   double max_time = NAN;
 
-  /* vector<double> gem_layer_boundaries {}; */
+
 
   //! rng de-allocator
   class Deleter
