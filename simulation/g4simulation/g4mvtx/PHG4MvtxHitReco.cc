@@ -178,10 +178,12 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
   double strobe_zero_tm_start = generate_strobe_zero_tm_start();
 
   m_tmin = (! m_in_sphenix_srdo) ? -1. * ( m_strobe_width + m_strobe_separation ) : m_tmin;
+  // decrease tmin by the strobe start time
   m_tmin += strobe_zero_tm_start;
 
   m_tmax = (! m_in_sphenix_srdo) ? ( m_strobe_width + m_strobe_separation ) : m_tmax;
-  m_tmax += -strobe_zero_tm_start + m_extended_readout_time;
+  // increase tmax by a) the complement of the strobe start time and b) the extended readout time
+  m_tmax += strobe_zero_tm_start +  ( m_strobe_width + m_strobe_separation ) + m_extended_readout_time;
 
   if(Verbosity() > 0)
     std::cout << " m_strobe_width " << m_strobe_width << " m_strobe_separation " << m_strobe_separation << " strobe_zero_tm_start " << strobe_zero_tm_start << " m_extended_readout_time " << m_extended_readout_time << std::endl;
