@@ -16,6 +16,8 @@
 #include <cmath>
 #include <memory>
 #include <string>  // for string
+#include <iostream>  // FIXME
+#include <fstream>  // FIXME
 
 class PHG4TpcPadPlane;
 class PHG4TpcDistortion;
@@ -80,11 +82,10 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   bool do_ElectronDriftQAHistos = false;
 
   // data to fill the energy centroids
-  bool is_embedded;
-  bool has_energy_centroids;
-  int trkid;
-  std::array<TrkrTruthCentroidBuilder, 55> centroid_builder {}; // build energy centriods 
-  void fill_and_reset_trkrHitTruthClusters();
+  /* bool is_embedded; */
+  /* bool has_energy_centroids; */
+  /* int trkid; */
+  void fill_and_reset_trkrHitTruthClusters( std::array<TrkrTruthCentroidBuilder,55>&, int& trkid, bool& has_data);
 
 
   ///@name evaluation histograms
@@ -116,6 +117,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   std::string detector;
   std::string hitnodename;
   std::string seggeonodename;
+
+  std::ofstream fout; //FIXME
 
   double diffusion_trans = NAN;
   double added_smear_sigma_trans = NAN;

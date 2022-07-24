@@ -21,7 +21,6 @@ TrkrHitTruthClustersv1::print_clusters(std::ostream &os) const
 {
   os << "-----TrkrHitTruthClustersv1-----" << std::endl;
   os << "Number of associations: " << m_map.size() << std::endl;
-
   for( const auto& entry : m_map )
   {
     int track_id = entry.first;
@@ -29,9 +28,10 @@ TrkrHitTruthClustersv1::print_clusters(std::ostream &os) const
     os << std::setw(3) << "#" << " ";
     for (int i=0;i<55;++i) {
       const EnergyCentroid& centroid = entry.second[i];
-      if (centroid.sum_E == 0) continue;
+      /* if (centroid.sum_E == 0) continue; */
       os << " layer: " << (i+1) << " phi ("<<centroid.phi_ave<<" pm "<<centroid.phi_stdev<<") "
-                                       << " z   ("<<centroid.z_ave<<" pm "<<centroid.z_stdev<<")"<<std::endl;
+                                       << " z   ("<<centroid.z_ave<<" pm "<<centroid.z_stdev<<")  sum_E ("<<
+                                       centroid.sum_E << ") " << std::endl;
     }
     os << std::endl;
   }
