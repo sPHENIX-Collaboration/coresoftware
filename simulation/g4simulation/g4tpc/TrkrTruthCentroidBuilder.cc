@@ -8,11 +8,11 @@ void TrkrTruthCentroidBuilder::add_electron(float phi, float z, float energy) {
   }
   if (near_phi_boundary) phi += M_PI;
   if (phi >  M_PI) phi -= 2*M_PI;
-  sum_phi   += phi*        energy;
+  sum_phi   += phi         * energy;
   sumSq_phi += pow(phi,2.) * energy;
   sum_z     += z           * energy;
   sumSq_z   += pow(z,2.)   * energy;
-  sumE      += energy;
+  sum_E      += energy;
 }
 
 std::pair<float,float> TrkrTruthCentroidBuilder::calc_mean_var(const double& Hj, const double& Ej, const double& Wj) {
@@ -21,16 +21,16 @@ std::pair<float,float> TrkrTruthCentroidBuilder::calc_mean_var(const double& Hj,
     return { mean , var };
 }
 
-std::array<float,5> TrkrTruthCentroidBuilder::build_centroid() {
-    auto phi_meanstd   = calc_mean_var(sum_phi,   sumSq_phi, sumE);
+std::array<float,5> TrkrTruthCentroidBuilder::build_centroid_stats() {
+    auto phi_meanstd   = calc_mean_var(sum_phi,   sumSq_phi, sum_E);
     if (near_phi_boundary) {
       phi_meanstd.first -= M_PI;
       if (phi_meanstd.first < -M_PI) phi_meanstd.first += 2*M_PI;
     }
-    auto z_meanstd = calc_mean_var(sum_z, sumSq_z, sumE);
-    return { phi_meanstd.first, phi_meanstd.second, z_meanstd.first, z_meanstd.second, static_cast<float>(sumE) };
+    auto z_meanstd = calc_mean_var(sum_z, sumSq_z, sum_E);
+    return { phi_meanstd.first, phi_meanstd.second, z_meanstd.first, z_meanstd.second, static_cast<float>(sum_E) };
 }
 
 void TrkrTruthCentroidBuilder::reset() {
-  sum_phi = 0; sumSq_phi = 0; sum_z = 0; sumSq_z = 0; is_empty=true; near_phi_boundary=false;
+  sum_phi = 0; sumSq_phi = 0; sum_z = 0; sumSq_z = 0; sum_E = 0., is_empty=true; near_phi_boundary=false;
 }

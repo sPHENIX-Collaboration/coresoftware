@@ -277,8 +277,6 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   padplane->InitRun(topNode);
   padplane->CreateReadoutGeometry(topNode, seggeo);
 
-  // get the padplane layers
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -310,11 +308,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   unsigned int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
   unsigned int dump_counter = 0;
 
-
-
+  // parameters to collect energy weighted centroids n the GEM layesr from hits from embedded tracks
   bool is_embedded = false;
   int trkid = -1;
-  unsigned int layer_id = 0; // FIXME
   bool has_energy_centroids = false;
   std::array<TrkrTruthCentroidBuilder, 55> centroid_builder {}; // build energy centriods 
 
@@ -329,14 +325,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       continue;
     }
 
-    // djs get the track number
     int new_trkid = hiter->second->get_trkid();
-    std::cout << " track id: " << new_trkid << std::endl; // FIXME
     if (new_trkid != trkid) {
       if (is_embedded) fill_and_reset_trkrHitTruthClusters(centroid_builder, trkid, has_energy_centroids);
       trkid = new_trkid;
       is_embedded = (truthinfo->isEmbeded(hiter->second->get_trkid()));;
-      fout << " track-id: " << trkid << " emb? " << is_embedded << std::endl;
     }
     // for very high occupancy events, accessing the TrkrHitsets on the node tree for every drifted electron seems to be very slow
     // Instead, use a temporary map to accumulate the charge from all drifted electrons, then copy to the node tree later
@@ -487,17 +480,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       }
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
       unsigned int layer = MapToPadPlane(x_final, y_final, t_final, side, hiter, ntpad, nthit);
-      if (layer_id != layer) { // FIXME
-        fout << " layer: " << layer;
-        layer_id = layer;
-      }
 
       float energy_weight = 1.;
       if (is_embedded && layer > 0) {
         has_energy_centroids = true;
         centroid_builder[layer-1].add_electron(phi_final, z_final, energy_weight);
-        std::cout << " track id ("<<trkid <<") layer ("<< layer << ") " << 
-          " phi ("<<phi_final <<")  z ( " << z_final << " ) " << std::endl;
       }
     }  // end loop over electrons for this g4hit
 
@@ -757,10 +744,11 @@ void PHG4TpcElectronDrift::fill_and_reset_trkrHitTruthClusters(std::array<TrkrTr
 {
   if (has_energy_centroids) {
     has_energy_centroids = false;
-    TrkrHitTruthClusters::CentroidsFor1Track& centroids = hittruthclusters->add_track_centroids(trkid);
+    TrkrHitTruthClusters::VecEC& centroids = hittruthclusters->get_new_centroids_vec(trkid);
     for (int i=0; i<TrkrHitTruthClusters::N_GEM_LAYERS; ++i) {
       if (centroid_builder[i].is_empty) continue;
-      centroids[i].set_values(centroid_builder[i].build_centroid());
+      // remember the offset between the gem layers (start at 1) and array index (starts at 0)
+      centroids.push_back({static_cast<short>(i+1), centroid_builder[i].build_centroid_stats()});
       std::cout << " olive print " << std::endl;
       centroid_builder[i].reset();
     }

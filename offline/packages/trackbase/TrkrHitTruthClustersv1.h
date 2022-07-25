@@ -30,9 +30,11 @@ class TrkrHitTruthClustersv1 : public TrkrHitTruthClusters
 
   void print_clusters (std::ostream &os = std::cout) const override;
 
-  CentroidsFor1Track& add_track_centroids(const int track_id) override;
+  /* CentroidsFor1Track& add_track_centroids(const int track_id) override; */
+  /* void add_track_centroids(short track_id, VecEC& centroids) override; */
+  VecEC& get_new_centroids_vec (short track_id) override;
 
-  MMap m_map;
+  MMap  m_map;
 
   private:
   ClassDefOverride(TrkrHitTruthClustersv1, 1);
