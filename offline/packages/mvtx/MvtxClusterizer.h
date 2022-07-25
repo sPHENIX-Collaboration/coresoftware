@@ -70,7 +70,7 @@ class MvtxClusterizer : public SubsysReco
   // settings
   bool m_makeZClustering;  // z_clustering_option
   bool do_hit_assoc = true;
-  int m_cluster_version = 3;
+  int m_cluster_version = 4;
 };
 
 #endif  // MVTX_MVTXCLUSTERIZER_H
