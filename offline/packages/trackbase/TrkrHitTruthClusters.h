@@ -25,15 +25,16 @@
  *
  */
 struct EnergyCentroid {
+  short layer_id;
   float phi_ave, phi_stdev, z_ave, z_stdev, sum_E;
-  EnergyCentroid( std::array<float,5> input) :
-    short     layer_id{0}, 
+  EnergyCentroid( short _layer_id, std::array<float,5> input) :
+    layer_id  {_layer_id},
     phi_ave   {input[0]},
     phi_stdev {input[1]},
     z_ave     {input[2]},
     z_stdev   {input[3]},
     sum_E     {input[4]} {};
-  EnergyCentroid() : phi_ave{0}, phi_stdev{0}, z_ave{0}, z_stdev{0}, sum_E{0.} {};
+  EnergyCentroid() : layer_id{0}, phi_ave{0}, phi_stdev{0}, z_ave{0}, z_stdev{0}, sum_E{0.} {};
   void set_values( short _layer_id, std::array<float,5> input) {
     layer_id = _layer_id;
     phi_ave   =input[0];
@@ -52,12 +53,10 @@ class TrkrHitTruthClusters : public PHObject
   //! typedefs for convenience 
   static const int N_GEM_LAYERS = 55;
   /* using CentroidsFor1Track = std::array<EnergyCentroid, N_GEM_LAYERS>; */
-  using VecEC = vector<EnergyCentroid>;
-  using VecECiter = vecEC::iterator;
-  using ConstVecECiter = vecEC::const_iterator;
-  using MMap = std::map<short, pair<short,short>>; // trk-id, first and last index in CentroidVector
-  // /* using MMap = std::map< int /*track-id*/, CentroidsFor1Track>; /*55 possible energy centroids*/*/
-
+  using VecEC = std::vector<EnergyCentroid>; // the data 
+  /* using VecECiter = VecEC::iterator; */
+  /* using ConstVecECiter = VecEC::const_iterator; */
+  using MMap = std::map<short, VecEC>; // trk-id, first and last index in CentroidVector
   using Iterator = MMap::iterator;
   using ConstIterator = MMap::const_iterator;
   using Range = std::pair<Iterator, Iterator>;
@@ -69,7 +68,7 @@ class TrkrHitTruthClusters : public PHObject
   virtual void print_clusters (std::ostream &/*os*/ = std::cout) const 
   {}
 
-  virtual CentroidsFor1Track& add_track_centroids(const int track_id) =0;
+  virtual VecEC& get_new_centroids_vec (short track_id) =0;
 
   //virtual void removeAssoc(const TrkrDefs::hitsetkey /*hitsetkey*/, const TrkrDefs::hitkey /*hitkey*/)
   //{}

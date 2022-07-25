@@ -25,22 +25,31 @@ TrkrHitTruthClustersv1::print_clusters(std::ostream &os) const
   {
     int track_id = entry.first;
     os << "   Centroids for track " << track_id << std::endl;
-    os << std::setw(3) << "#" << " ";
-    for (int i=0;i<55;++i) {
-      const EnergyCentroid& centroid = entry.second[i];
-      /* if (centroid.sum_E == 0) continue; */
-      os << " layer: " << (i+1) << " phi ("<<centroid.phi_ave<<" pm "<<centroid.phi_stdev<<") "
-                                       << " z   ("<<centroid.z_ave<<" pm "<<centroid.z_stdev<<")  sum_E ("<<
-                                       centroid.sum_E << ") " << std::endl;
+    os << std::setw(6);
+    for (auto centroid : entry.second) {
+      os << " layer: " << centroid.layer_id << " phi ("
+         << std::setw(10) << centroid.phi_ave <<" pm "
+         << std::setw(10) << centroid.phi_stdev<<") "
+         << " z   ("
+         << std::setw(10) << centroid.z_ave<<" pm "
+         << std::setw(10) << centroid.z_stdev<<")  sum_E ("
+         << std::setw(10) << centroid.sum_E << ") " << std::endl;
     }
     os << std::endl;
   }
-  os << "------------------------------" << std::endl;
+  os << " end of embedded track energy centroid listings for this event" << std::endl;
+  os << "---------------------------------------------------------------" << std::endl;
   return;
 }
 
-TrkrHitTruthClustersv1::CentroidsFor1Track& TrkrHitTruthClustersv1::add_track_centroids(const int i_track) {
-  //assumed that the tracks are added in increasing order
-  m_map[i_track] = {};
-  return m_map[i_track];
+/* TrkrHitTruthClustersv1::CentroidsFor1Track& TrkrHitTruthClustersv1::add_track_centroids(const int i_track) { */
+/*   //assumed that the tracks are added in increasing order */
+/*   m_map[i_track] = {}; */
+/*   return m_map[i_track]; */
+/* } */
+TrkrHitTruthClustersv1::VecEC& TrkrHitTruthClustersv1::get_new_centroids_vec(short track_id) {
+  m_map[track_id] = {};
+  return m_map[track_id];
 }
+
+
