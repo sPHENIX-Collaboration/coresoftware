@@ -23,8 +23,6 @@
 
 class PHG4Detector;
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4ZDCSubsystem::PHG4ZDCSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
@@ -52,7 +50,7 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->Verbosity(Verbosity());
-  set<string> nodes;
+  std::set<std::string> nodes;
 
   if (GetParams()->get_int_param("active"))
   {

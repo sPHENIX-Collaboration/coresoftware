@@ -405,7 +405,7 @@ namespace
 	clus->setActsLocalError(0,0, phi_err_square);
 	clus->setActsLocalError(1,0, 0);
 	clus->setActsLocalError(0,1, 0);
-	clus->setActsLocalError(1,1, t_err_square);
+	clus->setActsLocalError(1,1, t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2));
 	my_data.cluster_vector.push_back(clus);
       }else if(my_data.cluster_version==4){
 	auto clus = new TrkrClusterv4;
