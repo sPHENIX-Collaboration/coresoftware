@@ -294,7 +294,6 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
         if( m_diffusion_trans > 0 )
         {
           // add transeverse diffusion
-          // first convert to polar coordinates
           const double z = local.z();
           const double drift_distance = std::abs(z - mesh_local_z);
           const double diffusion = gsl_ran_gaussian(m_rng.get(), m_diffusion_trans*std::sqrt(drift_distance));

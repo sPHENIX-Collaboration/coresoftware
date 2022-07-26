@@ -290,7 +290,6 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
         {
           case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
           {
-
             coord_sum += strip_local_coordinate.X()*weight;
             coordsquare_sum += square(strip_local_coordinate.X())*weight;
             break;
