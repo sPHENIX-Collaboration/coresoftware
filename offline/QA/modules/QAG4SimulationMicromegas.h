@@ -2,6 +2,7 @@
 #define QA_QAG4SIMULATIONMICROMEGAS_H
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -17,6 +18,7 @@ class TrkrClusterContainer;
 class TrkrHitSetContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;
+
 
 /// \class QAG4SimulationMicromegas
 class QAG4SimulationMicromegas : public SubsysReco
@@ -72,6 +74,8 @@ class QAG4SimulationMicromegas : public SubsysReco
   /// list of relevant layers
   /* it is filled at Init stage. It should not change for the full run */
   std::set<int> m_layers;
+  ClusterErrorPara _ClusErrPara;
+  int m_cluster_version = 4;
 };
 
 #endif

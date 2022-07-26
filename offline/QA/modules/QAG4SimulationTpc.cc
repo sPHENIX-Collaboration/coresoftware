@@ -373,8 +373,18 @@ void QAG4SimulationTpc::evaluate_clusters()
         const auto r_cluster = QAG4Util::get_r(global(0), global(1));
         const auto z_cluster = global(2);
         const auto phi_cluster = (float) std::atan2(global(1), global(0));
-        const auto phi_error = rclus->getRPhiError() / r_cluster;
-        const auto z_error = rclus->getZError();
+
+        double phi_error = 0;
+        double z_error = 0;
+
+	if(m_cluster_version==3){
+	  phi_error = rclus->getRPhiError() / r_cluster;
+	  z_error = rclus->getZError();
+	}else{
+	  auto para_errors = _ClusErrPara.get_simple_cluster_error(rclus,r_cluster,rkey);
+	  phi_error = sqrt(para_errors.first)/ r_cluster;
+	  z_error = sqrt(para_errors.second);
+	}
 
         const auto dphi = QAG4Util::delta_phi(phi_cluster, gphi);
         const auto dz = z_cluster - gz;

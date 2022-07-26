@@ -1,5 +1,5 @@
 #include "QAG4SimulationMicromegas.h"
-
+#include "QAG4Util.h"
 #include "QAHistManagerDef.h"
 
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
@@ -21,6 +21,7 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -391,13 +392,21 @@ void QAG4SimulationMicromegas::evaluate_clusters()
       // get cluster
       const auto& cluster = clusterIter->second;
       const auto global = m_tGeometry->getGlobalPosition(key, cluster);
-
+      const auto cluster_r = QAG4Util::get_r(global(0), global(1));
       // get segmentation type
       const auto segmentation_type = MicromegasDefs::getSegmentationType(key);
 
       // get relevant cluster information
-      const auto rphi_error = cluster->getRPhiError();
-      const auto z_error = cluster->getZError();
+      double rphi_error = 0;
+      double z_error = 0;
+      if(m_cluster_version==3){
+	rphi_error = cluster->getRPhiError();
+	z_error = cluster->getZError();
+      }else{
+	auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster, cluster_r,key);
+	rphi_error = sqrt(para_errors.first);
+	z_error = sqrt(para_errors.second);
+      }
 
       // convert cluster position to local tile coordinates
       const TVector3 cluster_world(global(0), global(1), global(2));
