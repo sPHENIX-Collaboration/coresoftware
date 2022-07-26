@@ -177,13 +177,25 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
   // Generate strobe zero relative to trigger time
   double strobe_zero_tm_start = generate_strobe_zero_tm_start();
 
+  /*
   m_tmin = (! m_in_sphenix_srdo) ? -1. * ( m_strobe_width + m_strobe_separation ) : m_tmin;
   // decrease tmin by the strobe start time
   m_tmin += strobe_zero_tm_start;
 
-  m_tmax = (! m_in_sphenix_srdo) ? ( m_strobe_width + m_strobe_separation ) : m_tmax;
+  m_tmax = (! m_in_sphenix_srdo) ? ( m_strobe_width + m_strobe_separation + m_extended_readout_time) : m_tmax;
   // increase tmax by a) the complement of the strobe start time and b) the extended readout time
-  m_tmax += strobe_zero_tm_start +  ( m_strobe_width + m_strobe_separation ) + m_extended_readout_time;
+  m_tmax += strobe_zero_tm_start;
+  */
+
+  // assumes we want the range of accepted times to be from 0 to m_extended_readout_time 
+  std::pair<double, double> alpide_pulse = generate_alpide_pulse(0.0);
+  double clearance = 5000.0; //ns
+  m_tmax = m_extended_readout_time + alpide_pulse.first + clearance;
+  m_tmin = alpide_pulse.second - clearance;
+
+  // The above limits will select g4hit times of 0 to extended_readout_time only
+
+
 
   if(Verbosity() > 0)
     std::cout << " m_strobe_width " << m_strobe_width << " m_strobe_separation " << m_strobe_separation << " strobe_zero_tm_start " << strobe_zero_tm_start << " m_extended_readout_time " << m_extended_readout_time << std::endl;
@@ -224,7 +236,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
       unsigned int n_replica = 1;
 
       //Function returns ns
-      std::pair<double, double> alpide_pulse = generate_alpide_pulse(g4hit->get_edep());
+      //std::pair<double, double> alpide_pulse = generate_alpide_pulse(g4hit->get_edep());
 
       double lead_edge = g4hit->get_t(0) * ns + alpide_pulse.first;
       double fall_edge = g4hit->get_t(1) * ns + alpide_pulse.second;
