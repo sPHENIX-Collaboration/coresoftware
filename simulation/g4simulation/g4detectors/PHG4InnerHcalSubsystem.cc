@@ -7,21 +7,21 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4DisplayAction.h>     // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4SteppingAction.h>    // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>           // for PHIODataNode
-#include <phool/PHNode.h>                 // for PHNode
-#include <phool/PHNodeIterator.h>         // for PHNodeIterator
-#include <phool/PHObject.h>               // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
 #include <boost/foreach.hpp>
 
-#include <cmath>                         // for NAN
-#include <iostream>                       // for operator<<, basic_ostream
+#include <cmath>     // for NAN
+#include <iostream>  // for operator<<, basic_ostream
 #include <set>
 #include <sstream>
 
@@ -94,11 +94,11 @@ int PHG4InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
     BOOST_FOREACH (string node, nodes)
     {
-      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node.c_str());
+      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
       if (!g4_hits)
       {
         g4_hits = new PHG4HitContainer(node);
-        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node.c_str(), "PHObject"));
+        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node, "PHObject"));
       }
     }
 
@@ -203,4 +203,3 @@ void PHG4InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const
   set_double_param("light_balance_outer_radius", outer_radius);
   return;
 }
-

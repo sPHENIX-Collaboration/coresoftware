@@ -11,6 +11,7 @@
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
+#include <trackbase/sPHENIXActsDetectorElement.h>
 
 #include <intt/CylinderGeomIntt.h>
 
@@ -58,6 +59,13 @@
 #include <ActsExamples/Options/CommonOptions.hpp>
 #include <ActsExamples/Utilities/Options.hpp>
 #include <ActsExamples/MagneticField/MagneticFieldOptions.hpp>
+
+#include <ActsExamples/TGeoDetector/JsonTGeoDetectorConfig.hpp>
+
+#include <ActsExamples/Geometry/MaterialWiper.hpp>
+#include <Acts/Material/IMaterialDecorator.hpp>
+#include <Acts/Plugins/Json/JsonMaterialDecorator.hpp>
+#include <Acts/Plugins/Json/MaterialMapJsonConverter.hpp>
 
 #include <TGeoManager.h>
 #include <TMatrixT.h>
@@ -516,7 +524,7 @@ void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
 
 }
 void MakeActsGeometry::makeGeometry(int argc, char* argv[], 
-				    ActsExamples::IBaseDetector &detector)
+				    ActsExamples::TGeoDetector &detector)
 {
   
   /// setup and parse options
@@ -530,7 +538,7 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[],
   auto vm = ActsExamples::Options::parse(desc, argc, argv);
  
   /// The geometry, material and decoration
-  auto geometry = ActsExamples::Geometry::build(vm, detector);
+  auto geometry = build(vm, detector);
   /// Geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
 
   m_tGeometry = geometry.first;
@@ -558,6 +566,75 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[],
   unpackVolumes();
   
   return;
+}
+
+
+std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
+          std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
+MakeActsGeometry::build(const boost::program_options::variables_map& vm,
+			ActsExamples::TGeoDetector& detector) {
+  // Material decoration
+  std::shared_ptr<const Acts::IMaterialDecorator> matDeco = nullptr;
+ 
+  // Retrieve the filename
+  auto fileName = vm["mat-input-file"].template as<std::string>();
+  // json or root based decorator
+  if (fileName.find(".json") != std::string::npos ||
+      fileName.find(".cbor") != std::string::npos) 
+    {
+      // Set up the converter first
+      Acts::MaterialMapJsonConverter::Config jsonGeoConvConfig;
+      // Set up the json-based decorator
+      matDeco = std::make_shared<const Acts::JsonMaterialDecorator>(
+	   jsonGeoConvConfig, fileName, Acts::Logging::INFO);
+    } 
+  else
+    {
+      matDeco = std::make_shared<const Acts::MaterialWiper>();
+    }
+
+  ActsExamples::TGeoDetector::Config config;
+
+  config.elementFactory = sPHENIXElementFactory;
+
+  config.fileName = vm["geo-tgeo-filename"].as<std::string>();
+
+  const auto path = vm["geo-tgeo-jsonconfig"].template as<std::string>();
+
+  readTGeoLayerBuilderConfigsFile(path, config);
+
+  /// Return the geometry and context decorators
+  return detector.finalize(config, matDeco);
+ }
+  
+void MakeActsGeometry::readTGeoLayerBuilderConfigsFile(const std::string& path,
+						       ActsExamples::TGeoDetector::Config& config) {
+  if (path.empty()) {
+    std::cout << "There is no acts geometry response file loaded. Cannot build, exiting"
+	      << std::endl;
+    exit(1);
+  }
+
+  nlohmann::json djson;
+  std::ifstream infile(path, std::ifstream::in | std::ifstream::binary);
+  infile >> djson;
+
+  config.unitScalor = djson["geo-tgeo-unit-scalor"];
+
+  config.buildBeamPipe = djson["geo-tgeo-build-beampipe"];
+  if (config.buildBeamPipe) {
+    const auto beamPipeParameters =
+        djson["geo-tgeo-beampipe-parameters"].get<std::array<double, 3>>();
+    config.beamPipeRadius = beamPipeParameters[0];
+    config.beamPipeHalflengthZ = beamPipeParameters[1];
+    config.beamPipeLayerThickness = beamPipeParameters[2];
+  }
+
+  // Fill nested volume configs
+  for (const auto& volume : djson["Volumes"]) {
+    auto& vol = config.volumes.emplace_back();
+    vol = volume;
+  }
 }
 
 void MakeActsGeometry::unpackVolumes()

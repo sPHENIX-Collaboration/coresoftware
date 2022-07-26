@@ -200,7 +200,7 @@ void PHG4SectorSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   }
 
   //now look for the map and grab a pointer to it.
-  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
 
   // if we do not find the node we need to make it.
   if (!hits_)

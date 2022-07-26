@@ -19,11 +19,10 @@
 #include <Geant4/G4ExceptionSeverity.hh>  // for FatalException, JustWarning
 #include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
-#include <Geant4/G4MaterialTable.hh>  // for G4MaterialTable
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>  // for pi
 #include <Geant4/G4Sphere.hh>
+#include <Geant4/G4String.hh>
 #include <Geant4/G4SystemOfUnits.hh>  // for cm, um, perCent
 #include <Geant4/G4ThreeVector.hh>    // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>    // for G4Transform3D, G4RotateX3D
@@ -36,6 +35,8 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+
+class G4Material;
 
 PHG4Sector::PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name, PHG4Subsystem *subsys)
   : overlapcheck_sector(false)
@@ -228,7 +229,7 @@ PHG4Sector::PHG4SectorConstructor::Construct_Sectors_Plane(  //
   G4VSolid *Sol_Place = new G4DisplacedSolid(name + "_Place", Sol_Raw, 0,
                                              G4ThreeVector(0, 0, start_z + thickness / 2));
 
-  G4VSolid *Sol = new G4IntersectionSolid(name.c_str(), Sol_Place,
+  G4VSolid *Sol = new G4IntersectionSolid(name, Sol_Place,
                                           SecConeBoundary_Det);
 
   return Sol;

@@ -313,7 +313,8 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
         continue;
       }
 
-      if (bhit->get_edep() > 0.0)
+      if (bhit->get_edep() < 0.0) continue;
+      if ((b_itr->second->get_t(0) > -50) && (b_itr->second->get_t(1) < 50))
       {
         TVector3 bhitPos(bhit->get_avg_x(), bhit->get_avg_y(), bhit->get_avg_z());
         int id = bhit->get_layer();
@@ -369,10 +370,11 @@ void EpFinderReco::GetEventPlanes(PHCompositeNode *topNode)
       {
         continue;
       }
-
-      if (ehit->get_light_yield() > 0.0)
+   
+      if (ehit->get_light_yield() < 0.0) continue;
+      if ((e_itr->second->get_t(0) > -50) && (e_itr->second->get_t(1) < 50))
       {
-        TVector3 ehitPos(ehit->get_avg_x(), ehit->get_avg_y(), ehit->get_avg_z());
+        TVector3 ehitPos(ehit->get_avg_x(), ehit->get_avg_y(), ehit->get_avg_z()); 
         if (ehit->get_z(0) > 0)
         {
           _side = 1;

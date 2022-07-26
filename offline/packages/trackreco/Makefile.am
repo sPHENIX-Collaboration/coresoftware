@@ -41,6 +41,7 @@ pkginclude_HEADERS = \
   HelixKalmanFilter.h \
   MakeActsGeometry.h \
   nanoflann.hpp \
+  PHActsGSF.h \
   PHActsSiliconSeeding.h \
   PHActsVertexPropagator.h \
   PHActsTrkFitter.h \
@@ -71,7 +72,6 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
-  ResidualOutlierFinder.h \
   VertexFitter.h
 
 ROOTDICTS = \
@@ -112,6 +112,7 @@ if MAKE_ACTS
 ACTS_SOURCES = \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
+  PHActsGSF.cc \
   PHActsSiliconSeeding.cc \
   PHActsTrkFitter.cc \
   PHActsVertexPropagator.cc \

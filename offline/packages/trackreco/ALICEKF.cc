@@ -6,6 +6,7 @@
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase_historic/ActsTransformations.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <Geant4/G4SystemOfUnits.hh>
 
@@ -50,7 +51,7 @@ double ALICEKF::get_Bz(double x, double y, double z) const
   return bfield[2]/tesla;
 }
 
-double ALICEKF::getClusterError(TrkrCluster* c, Acts::Vector3 global, int i, int j) const
+double ALICEKF::getClusterError(TrkrCluster* c, TrkrDefs::cluskey key, Acts::Vector3 global, int i, int j) const
 {
   if(_use_fixed_clus_error) 
   {
@@ -60,15 +61,29 @@ double ALICEKF::getClusterError(TrkrCluster* c, Acts::Vector3 global, int i, int
   else 
     {
       TMatrixF localErr(3,3);
-      localErr[0][0] = 0.;
-      localErr[0][1] = 0.;
-      localErr[0][2] = 0.;
-      localErr[1][0] = 0.;
-      localErr[1][1] = c->getActsLocalError(0,0);
-      localErr[1][2] = c->getActsLocalError(0,1);
-      localErr[2][0] = 0.;
-      localErr[2][1] = c->getActsLocalError(1,0);
-      localErr[2][2] = c->getActsLocalError(2,0);
+      if(m_cluster_version==3){
+	localErr[0][0] = 0.;
+	localErr[0][1] = 0.;
+	localErr[0][2] = 0.;
+	localErr[1][0] = 0.;
+	localErr[1][1] = c->getActsLocalError(0,0);
+	localErr[1][2] = c->getActsLocalError(0,1);
+	localErr[2][0] = 0.;
+	localErr[2][1] = c->getActsLocalError(1,0);
+	localErr[2][2] = c->getActsLocalError(2,0);
+      }else if(m_cluster_version==4){
+	ClusterErrorPara ClusErrPara;
+	auto para_errors = ClusErrPara.get_fix_tpc_cluster_error(c,key);
+	localErr[0][0] = 0.;
+	localErr[0][1] = 0.;
+	localErr[0][2] = 0.;
+	localErr[1][0] = 0.;
+	localErr[1][1] = para_errors.first;
+	localErr[1][2] = 0.;
+	localErr[2][0] = 0.;
+	localErr[2][1] = 0.;
+	localErr[2][2] = para_errors.second;
+      }
       float clusphi = atan2(global(1), global(0));
       TMatrixF ROT(3,3);
       ROT[0][0] = cos(clusphi);
@@ -212,11 +227,11 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
      
       // find ALICE x-coordinate
       double nextCluster_x = nextpos(0);
-      double nextCluster_xerr = sqrt(getClusterError(nextCluster,nextpos,0,0));
+      double nextCluster_xerr = sqrt(getClusterError(nextCluster,*clusterkey,nextpos,0,0));
       double nextCluster_y = nextpos(1);
-      double nextCluster_yerr = sqrt(getClusterError(nextCluster,nextpos,1,1));
+      double nextCluster_yerr = sqrt(getClusterError(nextCluster,*clusterkey,nextpos,1,1));
       double nextCluster_z = nextpos(2);
-      double nextCluster_zerr = sqrt(getClusterError(nextCluster,nextpos,2,2));
+      double nextCluster_zerr = sqrt(getClusterError(nextCluster,*clusterkey,nextpos,2,2));
       // rotate track coordinates to match orientation of next cluster
       double newPhi = atan2(nextCluster_y,nextCluster_x);
       LogDebug("new phi = " << newPhi << std::endl);
@@ -274,8 +289,8 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
       //double nextCluster_alice_y = 0.;
       double nextCluster_alice_y = -nextCluster_x*sin(newPhi)+nextCluster_y*cos(newPhi);
       LogDebug("next cluster ALICE y = " << nextCluster_alice_y << std::endl);
-      double y2_error = getClusterError(nextCluster,nextpos,0,0)*sin(newPhi)*sin(newPhi)+2*getClusterError(nextCluster,nextpos,0,1)*cos(newPhi)*sin(newPhi)+getClusterError(nextCluster,nextpos,1,1)*cos(newPhi)*cos(newPhi);
-      double z2_error = getClusterError(nextCluster,nextpos,2,2);
+      double y2_error = getClusterError(nextCluster,*clusterkey,nextpos,0,0)*sin(newPhi)*sin(newPhi)+2*getClusterError(nextCluster,*clusterkey,nextpos,0,1)*cos(newPhi)*sin(newPhi)+getClusterError(nextCluster,*clusterkey,nextpos,1,1)*cos(newPhi)*cos(newPhi);
+      double z2_error = getClusterError(nextCluster,*clusterkey,nextpos,2,2);
       LogDebug("track ALICE SinPhi = " << trackSeed.GetSinPhi() << std::endl);
       LogDebug("track DzDs = " << trackSeed.GetDzDs() << std::endl);
       LogDebug("chi2 = " << trackSeed.GetChi2() << std::endl);
@@ -314,7 +329,14 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     
 	float nextclusrad = std::sqrt(nextCluster_x*nextCluster_x +
 				      nextCluster_y*nextCluster_y);
-	float nextclusphierr = nextCluster->getRPhiError() / nextclusrad;
+	float nextclusphierr = 0;
+	if(m_cluster_version==3){
+	  nextclusphierr = nextCluster->getRPhiError() / nextclusrad;
+	}else if(m_cluster_version==4){
+	  ClusterErrorPara ClusErrPara;
+	  auto para_errors = ClusErrPara.get_fix_tpc_cluster_error(nextCluster,*clusterkey);
+	  nextclusphierr = sqrt(para_errors.first);
+	}
 
 	cx.push_back(nextCluster_x);
         cy.push_back(nextCluster_y);
@@ -375,7 +397,15 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     auto lcluster = _cluster_map->findCluster(trackKeyChain.back());
     const auto& lclusterglob = globalPositions.at(trackKeyChain.back());
     const float lclusterrad = sqrt(lclusterglob(0)*lclusterglob(0) + lclusterglob(1)*lclusterglob(1));
-    double last_cluster_phierr = lcluster->getRPhiError() / lclusterrad;
+    double last_cluster_phierr = 0;
+//    std::cout << " lversion: "<< m_cluster_version << std::endl;
+    if(m_cluster_version==3){
+      last_cluster_phierr = lcluster->getRPhiError() / lclusterrad;
+    }else if(m_cluster_version==4){
+      ClusterErrorPara ClusErrPara;
+      auto para_errors = ClusErrPara.get_fix_tpc_cluster_error(lcluster,trackKeyChain.back());
+      last_cluster_phierr  = sqrt(para_errors.first);
+    }
     // phi error assuming error in track radial coordinate is zero
     double track_phierr = sqrt(pow(last_cluster_phierr,2)+(pow(trackSeed.GetX(),2)*trackSeed.GetErr2Y()) / 
       pow(pow(trackSeed.GetX(),2)+pow(trackSeed.GetY(),2),2));

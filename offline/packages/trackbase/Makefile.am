@@ -32,6 +32,7 @@ pkginclude_HEADERS = \
   CMFlashDifferenceContainerv1.h \
   InttDefs.h \
   MvtxDefs.h \
+  sPHENIXActsDetectorElement.h \
   TpcDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
@@ -76,6 +77,7 @@ ROOTDICTS = \
   CMFlashDifferencev1_Dict.cc \
   CMFlashDifferenceContainer_Dict.cc \
   CMFlashDifferenceContainerv1_Dict.cc \
+  sPHENIXActsDetectorElement.cc \
   TrkrCluster_Dict.cc \
   TrkrClusterv1_Dict.cc \
   TrkrClusterv2_Dict.cc \
@@ -196,7 +198,8 @@ libtrack_io_la_SOURCES = \
 
 libtrack_io_la_LIBADD = \
   -lphool \
-  -lActsCore
+  -lActsCore \
+  -lActsPluginTGeo
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

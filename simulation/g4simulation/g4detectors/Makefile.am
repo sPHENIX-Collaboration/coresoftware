@@ -22,26 +22,23 @@ AM_CPPFLAGS = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 libg4detectors_io_la_LIBADD = \
   -lphool \
   -lphparameter
 
 
-libg4detectors_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
-
 #libgmp comes in via CGAL which is now header only
 libg4detectors_la_LIBADD = \
   libg4detectors_io.la \
+  -lg4testbench \
   -lgmp \
   -lphg4gdml \
   -lphool  \
   -lSubsysReco \
-  -lg4testbench 
+  -lxpload
 
 pkginclude_HEADERS = \
   BeamLineMagnetSubsystem.h \

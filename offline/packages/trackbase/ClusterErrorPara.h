@@ -7,8 +7,8 @@
 #include <utility>
 #include <vector>
 #include <string>
-
-class TF1;
+#include <TF1.h>
+//class TF1;
 class TrackSeed;
 class TrkrCluster;
 
@@ -21,14 +21,13 @@ class ClusterErrorPara
   explicit ClusterErrorPara(const ClusterErrorPara&) = delete;
   ClusterErrorPara& operator=(const ClusterErrorPara&) = delete;
 
-  /*
   ~ClusterErrorPara(){
     delete f0;
     delete f1;
     delete f2;
     delete fz;
   };
-  */
+  
   using error_t = std::pair<double, double>;
 
   error_t get_cluster_error(TrackSeed *seed, TrkrCluster* cluster, double cluster_r, TrkrDefs::cluskey key);

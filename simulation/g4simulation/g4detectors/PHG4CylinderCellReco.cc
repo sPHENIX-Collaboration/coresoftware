@@ -85,7 +85,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
   }
 
   hitnodename = "G4HIT_" + detector;
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     cout << "Could not locate g4 hit node " << hitnodename << endl;
@@ -105,12 +105,12 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
     cells = new PHG4CellContainer();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str(), "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename, "PHObject");
     DetNode->addNode(newNode);
   }
 
   geonodename = "CYLINDERGEOM_" + detector;
-  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
+  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
   if (!geo)
   {
     cout << "Could not locate geometry node " << geonodename << endl;
@@ -121,11 +121,11 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
     geo->identify();
   }
   seggeonodename = "CYLINDERCELLGEOM_" + outdetector;
-  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename.c_str());
+  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename);
   if (!seggeo)
   {
     seggeo = new PHG4CylinderCellGeomContainer();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str(), "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
     runNode->addNode(newNode);
   }
 
@@ -369,7 +369,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
 
 int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 {
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     cout << "Could not locate g4 hit node " << hitnodename << endl;
@@ -382,7 +382,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename.c_str());
+  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename);
   if (!seggeo)
   {
     cout << "could not locate geo node " << seggeonodename << endl;

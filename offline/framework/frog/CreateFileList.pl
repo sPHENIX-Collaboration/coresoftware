@@ -68,6 +68,12 @@ my %notlike = ();
 my $pileupstring;
 my $pp_pileupstring;
 
+if (defined $embed && defined $nopileup)
+{
+    print "--embed and --nopileup flags do not work together, it does not make sense\n";
+    exit(1);
+}
+
 if ($pileup == 1)
 {
     $pileupstring = sprintf("50kHz");
@@ -86,6 +92,8 @@ else
     print "invalid pileup option $pileup\n";
     exit(1);
 }
+
+my $embedok = 0;
 
 if (defined $prodtype)
 {
@@ -172,6 +180,7 @@ if (defined $prodtype)
     }
     elsif ($prodtype == 11)
     {
+        $embedok = 1;
 	$filenamestring = "pythia8_Jet04";
 	if (! defined $nopileup)
 	{
@@ -188,6 +197,7 @@ if (defined $prodtype)
     }
     elsif ($prodtype == 12)
     {
+        $embedok = 1;
 	$filenamestring = "pythia8_Jet15";
 	if (! defined $nopileup)
 	{
@@ -204,6 +214,7 @@ if (defined $prodtype)
     }
     elsif ($prodtype == 13)
     {
+        $embedok = 1;
 	$filenamestring = "pythia8_PhotonJet";
 	if (! defined $nopileup)
 	{
@@ -225,6 +236,13 @@ if (defined $prodtype)
     }
     &fill_other_types();
 }
+
+if (defined $embed && ! $embedok)
+{
+    print "Embedding not implemented for type $prodtype\n";
+    exit(1);
+}
+
 my $filenamestring_with_runnumber = sprintf("%s\-%010d-",$filenamestring,$runnumber);
 if ($#ARGV < 0)
 {
@@ -232,12 +250,13 @@ if ($#ARGV < 0)
     {
 	print "usage: CreateFileLists.pl -type <production type> <filetypes>\n";
 	print "parameters:\n";
-	print "-n    : <number of events>\n";
+	print "-embed : pp embedded into hijing (only for pp types)\n";
+	print "-n     : <number of events>\n";
 	print "-nopileup : without pileup\n";
-	print "-rand : randomize segments used\n";
-	print "-run  : runnumber\n";
-	print "-s    : <starting segment>\n";
-	print "-type : production type\n";
+	print "-rand  : randomize segments used\n";
+	print "-run   : runnumber\n";
+	print "-s     : starting segment>\n";
+	print "-type  : production type\n";
 	foreach my $pd (sort { $a <=> $b } keys %proddesc)
 	{
 	    print "    $pd : $proddesc{$pd}\n";
@@ -338,6 +357,7 @@ while($#ARGV >= 0)
 }
 print "This Can Take a While (10 minutes depending on the amount of events and the number of file types you want)\n";
 my $conds = sprintf("dsttype = ? and filename like \'\%%%s\%\'",$filenamestring_with_runnumber);
+
 if (exists $notlike{$filenamestring})
 {
     $conds = sprintf("%s and filename not like  \'\%%%s\%\'",$conds,$notlike{$filenamestring});
@@ -354,20 +374,33 @@ foreach  my $tp (keys %req_types)
 {
     if ($tp eq "G4Hits")
     {
-	my @sp1 = split(/_/,$filenamestring_with_runnumber);
-	my $newfilenamestring;
-	if ($#sp1 == 3 ||$#sp1 == 6 )
+	if (defined $embed)
 	{
-	    $newfilenamestring = sprintf("%s_%s_%s",$sp1[0],$sp1[1],$sp1[2]);
+	    print "Selecting G4Hits with -embed is not supported (and does not make sense)\n";
+	    exit(1);
 	}
-	elsif ($#sp1 == 2)
+	my $newfilenamestring;
+	if (defined $nopileup) # for no pileup we have the string already (G4Hits are nopileup)
 	{
-	    $newfilenamestring = sprintf("%s_%s",$sp1[0],$sp1[1]);
+	    my @sp1 = split(/-/,$filenamestring_with_runnumber);
+	    $newfilenamestring = $filenamestring_with_runnumber;
 	}
 	else
 	{
-	    print "splitting $filenamestring_with_runnumber gave bad number of _: $#sp1\n";
-	    die;
+	    my @sp1 = split(/_/,$filenamestring_with_runnumber);
+	    if ($#sp1 == 3 || $#sp1 == 6 )
+	    {
+		$newfilenamestring = sprintf("%s_%s_%s\-%010d-",$sp1[0],$sp1[1],$sp1[2],$runnumber);
+	    }
+	    elsif ($#sp1 == 2)
+	    {
+		$newfilenamestring = sprintf("%s_%s\-%010d-",$sp1[0],$sp1[1],$runnumber);
+	    }
+	    else
+	    {
+		print "splitting $filenamestring_with_runnumber gave bad number of _: $#sp1\n";
+		die;
+	    }
 	}
 	my $newgetfilesql = $getfilesql;
 	$newgetfilesql =~ s/$filenamestring_with_runnumber/$newfilenamestring/;

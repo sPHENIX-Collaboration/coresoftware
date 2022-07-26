@@ -42,61 +42,6 @@ int PHG4GDMLSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector = new PHG4GDMLDetector(this, topNode, Name(), GetParams());
   m_Detector->OverlapCheck(CheckOverlap());
 
-  //  set<string> nodes;
-  //  if (GetParams()->get_int_param("active"))
-  //  {
-  //    PHNodeIterator dstIter(dstNode);
-  //    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
-  //    if (!DetNode)
-  //    {
-  //      DetNode = new PHCompositeNode(SuperDetector());
-  //      dstNode->addNode(DetNode);
-  //    }
-  //
-  //    ostringstream nodename;
-  //    if (SuperDetector() != "NONE")
-  //    {
-  //      nodename << "G4HIT_" << SuperDetector();
-  //    }
-  //    else
-  //    {
-  //      nodename << "G4HIT_" << Name();
-  //    }
-  //    nodes.insert(nodename.str());
-  //    if (GetParams()->get_int_param("absorberactive"))
-  //    {
-  //      nodename.str("");
-  //      if (SuperDetector() != "NONE")
-  //      {
-  //        nodename << "G4HIT_ABSORBER_" << SuperDetector();
-  //      }
-  //      else
-  //      {
-  //        nodename << "G4HIT_ABSORBER_" << Name();
-  //      }
-  //      nodes.insert(nodename.str());
-  //    }
-  //    BOOST_FOREACH (string node, nodes)
-  //    {
-  //      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node.c_str());
-  //      if (!g4_hits)
-  //      {
-  //        g4_hits = new PHG4HitContainer(node);
-  //        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node.c_str(), "PHObject"));
-  //      }
-  //    }
-  //
-  //    // create stepping action
-  //    m_SteppingAction = new PHG4InnerHcalSteppingAction(m_Detector, GetParams());
-  //  }
-  //  else
-  //  {
-  //    // if this is a black hole it does not have to be active
-  //    if (GetParams()->get_int_param("blackhole"))
-  //    {
-  //      m_SteppingAction = new PHG4InnerHcalSteppingAction(m_Detector, GetParams());
-  //    }
-  //  }
   return 0;
 }
 

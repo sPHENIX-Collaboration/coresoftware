@@ -567,7 +567,7 @@ int PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume *hcalenvelope)
     Rot->rotateZ(-phi * rad);
     name.str("");
     name << "InnerHcalSteel_" << i;
-    m_SteelAbsorberPhysVolSet.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, OverlapCheck()));
+    m_SteelAbsorberPhysVolSet.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str(), hcalenvelope, 0, i, OverlapCheck()));
     phi += deltaphi;
   }
   return 0;

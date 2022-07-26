@@ -119,7 +119,7 @@ void PHG4CEmcTestBeamDetector::ConstructMe(G4LogicalVolume* logicWorld)
     double phi = -i * tower_angular_coverage;
     G4RotationMatrix* tower_rotm = new G4RotationMatrix();
     tower_rotm->rotateZ(phi * rad);
-    new G4PVPlacement(tower_rotm, G4ThreeVector(0, 0, 0), tower_log, tower_vol_name.str().c_str(), cemc_log, 0, i, OverlapCheck());
+    new G4PVPlacement(tower_rotm, G4ThreeVector(0, 0, 0), tower_log, tower_vol_name.str(), cemc_log, 0, i, OverlapCheck());
     tower_vol_name.str("");
   }
   ConstructTowerVolume(tower_log);
@@ -159,7 +159,7 @@ int PHG4CEmcTestBeamDetector::ConstructTowerVolume(G4LogicalVolume* tower_log)
 
     new G4PVPlacement(sandwich_rotm, G4ThreeVector(xshift + xcorr, yshift + ycorr, 0),
                       sandwich_log,
-                      sandwich_name.str().c_str(),
+                      sandwich_name.str(),
                       tower_log, false, i, OverlapCheck());
     sandwich_name.str("");
   }

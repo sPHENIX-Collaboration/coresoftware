@@ -45,12 +45,7 @@ class ParticleFlowReco : public SubsysReco
     _energy_match_Nsigma = Nsigma;
 
   }
-
-  void set_emulated_efficiency( float eff ) {
-
-    _emulate_efficiency = eff;
-
-  }
+  void set_track_map_name(std::string& name) { _track_map_name = name; }
 
  private:
 
@@ -60,8 +55,6 @@ class ParticleFlowReco : public SubsysReco
   std::pair<float, float> get_expected_signature( int );
 
   float _energy_match_Nsigma;
-  float _emulate_efficiency;
-  gsl_rng *_tr_eff;
 
   std::vector<float> _pflow_TRK_p;
   std::vector<float> _pflow_TRK_eta;
@@ -88,6 +81,7 @@ class ParticleFlowReco : public SubsysReco
   std::vector< std::vector<int> > _pflow_HAD_match_EM;
   std::vector< std::vector<int> > _pflow_HAD_match_TRK;
 
+  std::string _track_map_name = "SvtxTrackMap";
 
 };
 

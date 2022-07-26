@@ -1,3 +1,6 @@
+#ifndef TRACKRECO_PHGENFITTRKFITTER_H
+#define TRACKRECO_PHGENFITTRKFITTER_H
+
 /*!
  *  \file		PHGenFitTrkFitter.h
  *  \brief		Refit SvtxTracks with PHGenFit.
@@ -5,10 +8,9 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef TRACKRECO_PHGENFITTRKFITTER_H
-#define TRACKRECO_PHGENFITTRKFITTER_H
-
 #include <fun4all/SubsysReco.h>
+#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #if defined(__CLING__)
@@ -52,8 +54,10 @@ class PHG4TruthInfoContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
 class SvtxVertex;
+class TpcDistortionCorrectionContainer;
 class TrkrClusterContainer;
 class TrackSeedContainer;
+
 class TTree;
 
 //! \brief		Refit SvtxTracks with PHGenFit.
@@ -259,7 +263,7 @@ class PHGenFitTrkFitter : public SubsysReco
   /**
    * uses ActsTransformation to convert cluster local position into global coordinates
    */
-  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*);
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*, short int crossing);
 
   /*
    * fit track with SvtxTrack as input seed.
@@ -316,10 +320,6 @@ class PHGenFitTrkFitter : public SubsysReco
 
   /// acts geometry
   ActsGeometry *m_tgeometry = nullptr;
-
-  /// map cluster keys to global position
-  using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
-  PositionMap m_globalPositions;
   
   //! Input Node pointers
   PHG4TruthInfoContainer* _truth_container = nullptr;
@@ -338,6 +338,17 @@ class PHGenFitTrkFitter : public SubsysReco
   SvtxTrackMap* m_primary_trackMap = nullptr;
   SvtxVertexMap* m_vertexMap_refit = nullptr;
 
+  // crossing z correction
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+  
+  // distortion corrections
+  TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
+
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection m_distortionCorrection;
+  
   //! Evaluation
   //! switch eval out
   bool _do_eval = false;

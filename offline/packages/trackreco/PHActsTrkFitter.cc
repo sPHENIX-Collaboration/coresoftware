@@ -13,6 +13,7 @@
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/TpcDefs.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
@@ -33,6 +34,8 @@
 #include <phool/PHObject.h>
 #include <phool/PHTimer.h>
 
+#include <tpc/TpcDistortionCorrectionContainer.h>
+
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Surfaces/PlaneSurface.hpp>
@@ -51,7 +54,6 @@
 #include <vector>
 
 
-
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
   , m_trajectories(nullptr)
@@ -68,11 +70,11 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     { return Fun4AllReturnCodes::ABORTEVENT; }
   
-  m_fitCfg.fit = ActsExamples::TrackFittingAlgorithm::makeTrackFitterFunction(
+  m_fitCfg.fit = ActsExamples::TrackFittingAlgorithm::makeKalmanFitterFunction(
     m_tGeometry->geometry().tGeometry,
     m_tGeometry->geometry().magField);
 
-  m_fitCfg.dFit = ActsExamples::TrackFittingAlgorithm::makeTrackFitterFunction(
+  m_fitCfg.dFit = ActsExamples::TrackFittingAlgorithm::makeKalmanFitterFunction(
     m_tGeometry->geometry().magField);
 
   m_outlierFinder.verbosity = Verbosity();
@@ -82,6 +84,10 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   chi2Cuts.insert(std::make_pair(14,9));
   chi2Cuts.insert(std::make_pair(16,4));
   m_outlierFinder.chi2Cuts = chi2Cuts;
+  if(m_useOutlierFinder)
+    {
+      m_fitCfg.fit->outlierFinder(m_outlierFinder);
+    }
 
   if(m_timeAnalysis)
     {
@@ -324,36 +330,23 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Set host of propagator options for Acts to do e.g. material integration
       Acts::PropagatorPlainOptions ppPlainOptions;
       ppPlainOptions.absPdgCode = m_pHypothesis;
-      ppPlainOptions.mass = 
-	TDatabasePDG::Instance()->GetParticle(m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
+      ppPlainOptions.mass = TDatabasePDG::Instance()->GetParticle(
+        m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
        
-      Acts::KalmanFitterExtensions extensions;
       ActsExamples::MeasurementCalibrator calibrator{measurements};
-      extensions.calibrator.connect<&ActsExamples::MeasurementCalibrator::calibrate>(&calibrator);
-     
-      if(m_useOutlierFinder)
-	{ 
-	  extensions.outlierFinder.connect<&ResidualOutlierFinder::operator()>(&m_outlierFinder);
-	}
 
-      Acts::GainMatrixUpdater kfUpdater;
-      Acts::GainMatrixSmoother kfSmoother;
-      extensions.updater.connect<&Acts::GainMatrixUpdater::operator()>(&kfUpdater);
-      extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()>(&kfSmoother);
       auto geocontext = m_tGeometry->geometry().geoContext;
       auto magcontext = m_tGeometry->geometry().magFieldContext;
       auto calibcontext = m_tGeometry->geometry().calibContext;
-      Acts::KalmanFitterOptions kfOptions(geocontext,
-					  magcontext,
-					  calibcontext,
-					  extensions,
-					  Acts::LoggerWrapper(*logger),
-					  ppPlainOptions,
-					  &(*pSurface));
- 
-      kfOptions.multipleScattering = true;
-      kfOptions.energyLoss = true;
 
+      ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions 
+	kfOptions{geocontext,
+		  magcontext,
+	          calibcontext,
+		  calibrator,
+		  &(*pSurface),
+	  Acts::LoggerWrapper(*logger),ppPlainOptions};
+      
       PHTimer fitTimer("FitTimer");
       fitTimer.stop();
       fitTimer.restart();
@@ -462,14 +455,13 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       if(!surf)
 	{ continue; }
 
-      unsigned int trkrid = TrkrDefs::getTrkrId(key);
-      unsigned int side = TpcDefs::getSide(key);
+      const unsigned int trkrid = TrkrDefs::getTrkrId(key);
+      const unsigned int side = TpcDefs::getSide(key);
 
       // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset 
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
-
       Acts::Vector3 global  = m_tGeometry->getGlobalPosition(key, cluster);
-     
+ 
       if(trkrid ==  TrkrDefs::tpcId)
 	{	  
 	  // make all corrections to global position of TPC cluster
@@ -507,50 +499,29 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       Acts::Vector3 global = global_moved[i].second;
    
       auto cluster = m_clusterContainer->findCluster(cluskey);
-      Surface surf;
-      if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::tpcId)
-	{ 
-	  /// Take into account any movement from distortions
-	  auto subsurfkey = cluster->getSubSurfKey();
-        
-	  surf = m_tGeometry->get_tpc_surface_from_coords(
-            TrkrDefs::getHitSetKeyFromClusKey(cluskey), 
-	    global, subsurfkey);
-	}
-      else
-	{
-	  surf = m_tGeometry->maps().getSurface(cluskey, cluster);
-	}
-   
+      Surface surf = m_tGeometry->maps().getSurface(cluskey, cluster);
+    
       if(!surf)
 	{ continue; }
 
       // get local coordinates
       Acts::Vector2 localPos;
+      global *= Acts::UnitConstants::cm;
+
       Acts::Vector3 normal = surf->normal(m_tGeometry->geometry().geoContext);
       auto local = surf->globalToLocal(m_tGeometry->geometry().geoContext,
-				       global * Acts::UnitConstants::cm,
-				       normal);
+				       global, normal);
      
       if(local.ok())
-	{
-	  localPos = local.value() / Acts::UnitConstants::cm;
-	}
+	{ localPos = local.value() / Acts::UnitConstants::cm; }
       else
 	{
-	  /// otherwise take the manual calculation
-	  Acts::Vector3 center = surf->center(m_tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
-	 
-	  double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-	  double clusphi = atan2(global[1], global[0]);
-	  double rClusPhi = clusRadius * clusphi;
-	  double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
-	  double surfPhiCenter = atan2(center[1], center[0]);
-	  double surfRphiCenter = surfPhiCenter * surfRadius;
-	  double surfZCenter = center[2];
-	  
-	  localPos(0) = rClusPhi - surfRphiCenter;
-	  localPos(1) = global[2] - surfZCenter; 
+	  /// otherwise take the manual calculation for the TPC
+	  Acts::Vector3 loct = surf->transform(m_tGeometry->geometry().geoContext).inverse() * global;
+	  loct /= Acts::UnitConstants::cm;
+
+	  localPos(0) = loct(0);
+	  localPos(1) = loct(1);
 	}
       
       if(Verbosity() > 0)
@@ -567,14 +538,24 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       indices[0] = Acts::BoundIndices::eBoundLoc0;
       indices[1] = Acts::BoundIndices::eBoundLoc1;
       Acts::ActsSymMatrix<2> cov = Acts::ActsSymMatrix<2>::Zero();
-      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
-	cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
-	cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
-	cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
-	cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+
+      if(m_cluster_version==3){
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
+	  cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
+	  cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
+	  cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
+	  cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+      }else if(m_cluster_version==4){
+	double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+	auto para_errors = _ClusErrPara.get_cluster_error(track,cluster,clusRadius,cluskey);
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
+      }
       ActsExamples::Index index = measurements.size();
       
       SourceLink sl(surf->geometryId(), index, cluskey);
@@ -671,7 +652,7 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
 ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
     const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
     const ActsExamples::TrackParameters& seed,
-    const ActsExamples::TrackFittingAlgorithm::TrackFitterOptions& kfOptions, 
+    const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
     const SurfacePtrVec& surfSequence)
 {
 

@@ -115,7 +115,14 @@ class MakeActsGeometry : public SubsysReco
 
   /// Function that mimics ActsExamples::GeometryExampleBase
   void makeGeometry(int argc, char* argv[], 
-		    ActsExamples::IBaseDetector& detector);
+		    ActsExamples::TGeoDetector& detector);
+  std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
+          std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
+    build(const boost::program_options::variables_map& vm,
+			ActsExamples::TGeoDetector& detector);
+
+  void readTGeoLayerBuilderConfigsFile(const std::string& path,
+				       ActsExamples::TGeoDetector::Config& config);
  
   void setMaterialResponseFile(std::string& responseFile,
 			       std::string& materialFile);

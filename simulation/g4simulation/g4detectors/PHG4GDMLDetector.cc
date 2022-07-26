@@ -128,7 +128,7 @@ void PHG4GDMLDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4PVPlacement* gdml_phys =
       new G4PVPlacement(rotm, placeVec,
                         vol,
-                        G4String(GetName().c_str()),
+                        G4String(GetName()),
                         logicWorld, false, 0, OverlapCheck());
   SetDisplayProperty(vol);
 

@@ -15,7 +15,7 @@ class PHG4EnvelopeSteppingAction : public PHG4SteppingAction
 {
  public:
   //Constructor
-  PHG4EnvelopeSteppingAction(PHG4EnvelopeDetector*);
+  explicit PHG4EnvelopeSteppingAction(PHG4EnvelopeDetector*);
 
   //Destructor
   ~PHG4EnvelopeSteppingAction() override

@@ -29,37 +29,33 @@ PHG4OHCalFieldSetup::PHG4OHCalFieldSetup(G4int steelPlates,
 {
   G4int nvar = 8;
 
-  {
-    fEMfieldIron = new PHG4OHCalField(true, n_steel_plates, scinti_gap,
-                                      tilt_angle);
+  fEMfieldIron = new PHG4OHCalField(true, n_steel_plates, scinti_gap,
+                                    tilt_angle);
 
-    fEquationIron = new G4Mag_UsualEqRhs(fEMfieldIron);
+  fEquationIron = new G4Mag_UsualEqRhs(fEMfieldIron);
 
-    fStepperIron = new G4ClassicalRK4(fEquationIron, nvar);
+  fStepperIron = new G4ClassicalRK4(fEquationIron, nvar);
 
-    fChordFinderIron = new G4ChordFinder(
-        new G4MagInt_Driver(fMinStep, fStepperIron,
-                            fStepperIron->GetNumberOfVariables()));
+  fChordFinderIron = new G4ChordFinder(
+      new G4MagInt_Driver(fMinStep, fStepperIron,
+                          fStepperIron->GetNumberOfVariables()));
 
-    fFieldManagerIron = new G4FieldManager();
-    fFieldManagerIron->SetDetectorField(fEMfieldIron);
-    fFieldManagerIron->SetChordFinder(fChordFinderIron);
-  }
+  fFieldManagerIron = new G4FieldManager();
+  fFieldManagerIron->SetDetectorField(fEMfieldIron);
+  fFieldManagerIron->SetChordFinder(fChordFinderIron);
 
-  {
-    fEMfieldGap = new PHG4OHCalField(false, n_steel_plates, scinti_gap,
-                                     tilt_angle);
+  fEMfieldGap = new PHG4OHCalField(false, n_steel_plates, scinti_gap,
+                                   tilt_angle);
 
-    fEquationGap = new G4Mag_UsualEqRhs(fEMfieldGap);
+  fEquationGap = new G4Mag_UsualEqRhs(fEMfieldGap);
 
-    fStepperGap = new G4ClassicalRK4(fEquationGap, nvar);
+  fStepperGap = new G4ClassicalRK4(fEquationGap, nvar);
 
-    fChordFinderGap = new G4ChordFinder(
-        new G4MagInt_Driver(fMinStep, fStepperGap,
-                            fStepperGap->GetNumberOfVariables()));
+  fChordFinderGap = new G4ChordFinder(
+      new G4MagInt_Driver(fMinStep, fStepperGap,
+                          fStepperGap->GetNumberOfVariables()));
 
-    fFieldManagerGap = new G4FieldManager();
-    fFieldManagerGap->SetDetectorField(fEMfieldGap);
-    fFieldManagerGap->SetChordFinder(fChordFinderGap);
-  }
+  fFieldManagerGap = new G4FieldManager();
+  fFieldManagerGap->SetDetectorField(fEMfieldGap);
+  fFieldManagerGap->SetChordFinder(fChordFinderGap);
 }
