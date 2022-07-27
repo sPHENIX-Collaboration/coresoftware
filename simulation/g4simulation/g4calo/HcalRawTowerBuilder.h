@@ -6,7 +6,9 @@
 #include <phparameter/PHParameterInterface.h>
 
 #include <cmath>
+#include <map>                                 // for map
 #include <string>
+#include <utility>                             // for pair
 #include <vector>
 
 class PHCompositeNode;
@@ -64,6 +66,7 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 
   void set_cell_decal_factor(const int etabin, const int phibin, const double d);
   void set_tower_decal_factor(const int etabin, const int phibin, const double d);
+  void Print(const std::string &what = "ALL") const override;
 
  private:
   void CreateNodes(PHCompositeNode *topNode);
