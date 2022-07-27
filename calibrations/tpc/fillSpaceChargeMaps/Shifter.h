@@ -19,7 +19,8 @@ class Shifter
   TFile *forward = nullptr;
   TFile *back = nullptr;
   TFile *average = nullptr;
-  bool hasTruth, hasCorrection;
+  bool hasTruth = false;
+  bool hasCorrection = false;
   TH3 *hX = nullptr;
   TH3 *hY = nullptr;
   TH3 *hZ = nullptr;

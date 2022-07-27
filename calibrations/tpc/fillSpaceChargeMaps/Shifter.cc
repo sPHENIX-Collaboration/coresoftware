@@ -14,7 +14,6 @@ Shifter::Shifter(const std::string &truthfilename, const std::string &correction
   // in X,Y, and Z components, but rather only in R, R*Phi, and Z components.
 
   //single event distortion file
-  hasTruth = false;  //assume the file doesn't load correctly, until we prove otherwise.
   if (!truthfilename.empty())
   {
     forward = TFile::Open(truthfilename.c_str(), "READ");
@@ -25,8 +24,8 @@ Shifter::Shifter(const std::string &truthfilename, const std::string &correction
       forward->GetObject("hIntDistortionZ", hZ);
 
       //not strictly needed, but handy:
-      forward->GetObject("hIntDistortionR",hR);
-      forward->GetObject("hIntDistortionP",hPhi);
+      forward->GetObject("hIntDistortionR", hR);
+      forward->GetObject("hIntDistortionP", hPhi);
     }
   }
   if (hX && hY && hZ)
@@ -35,24 +34,23 @@ Shifter::Shifter(const std::string &truthfilename, const std::string &correction
   }
 
   //single event distortion file
-  hasCorrection = false;  //assume the file doesn't load correctly, until we prove otherwise.
-  if (! correctionfilename.empty())
+  if (!correctionfilename.empty())
   {
     //average=TFile::Open(correctionfilename,"READ");
-// hardcoded????????
+    // hardcoded????????
     std::string correction_filename = std::string(getenv("CALIBRATIONROOT")) + "/distortion_maps/Distortions_full_realistic_micromegas_all-coarse.root";
     average = TFile::Open(correction_filename.c_str(), "READ");
     if (average)
     {
-      average->GetObject("hIntDistortionX",hXave);
-      average->GetObject("hIntDistortionY",hYave);
-      average->GetObject("hIntDistortionZ",hZave);
+      average->GetObject("hIntDistortionX", hXave);
+      average->GetObject("hIntDistortionY", hYave);
+      average->GetObject("hIntDistortionZ", hZave);
 
-      average->GetObject("hIntDistortionR",hRave);
-      average->GetObject("hIntDistortionP",hPhiave);
+      average->GetObject("hIntDistortionR", hRave);
+      average->GetObject("hIntDistortionP", hPhiave);
     }
   }
-  if (hXave  && hYave && hZave)
+  if (hXave && hYave && hZave)
   {
     hasCorrection = true;
   }
