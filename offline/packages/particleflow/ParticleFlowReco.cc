@@ -158,7 +158,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
   _pflow_HAD_match_TRK.clear();
 
   GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
-  GlobalVertex* vertex = (vertexmap->begin()->second);
+  GlobalVertex* vertex = nullptr;
+
   if(vertexmap)
     {
       if (!vertexmap->empty())
