@@ -141,7 +141,7 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
 		   ++hitr)
 		{
 		  auto hitkey = hitr->first;
-		  std::cout << "                 found hitkey " << hitkey << std::endl;		  
+		  if(Verbosity() > 0) std::cout << "                 found hitkey " << hitkey << std::endl;		  
 		  // if it is already there, leave it alone, this is a duplicate hit
 		  auto tmp_hit = bare_hitset->getHit(hitkey);
 		  if(tmp_hit) 
