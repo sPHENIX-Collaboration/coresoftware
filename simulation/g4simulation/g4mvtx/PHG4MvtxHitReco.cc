@@ -193,8 +193,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
   m_tmax = m_extended_readout_time + alpide_pulse.first + clearance;
   m_tmin = alpide_pulse.second - clearance;
 
-  // The above limits will select g4hit times of 0 to extended_readout_time only
-
+  // The above limits will select g4hit times of 0 up to m_extended_readout_time (only) with extensions by clearance
+  // But we really want to select all g4hit times that will be strobed, so replace clearance with the strobe start time
 
 
   if(Verbosity() > 0)
@@ -274,8 +274,6 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
 
       // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
       int stave_number = g4hit->get_property_int(PHG4Hit::prop_stave_index);
-//      int half_stave_number = g4hit->get_property_int(PHG4Hit::prop_half_stave_index);
-//      int module_number = g4hit->get_property_int(PHG4Hit::prop_module_index);
       int chip_number = g4hit->get_property_int(PHG4Hit::prop_chip_index);
 
       TVector3 local_in(g4hit->get_local_x(0), g4hit->get_local_y(0), g4hit->get_local_z(0));
@@ -592,7 +590,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
           if(strobe >= 16) strobe = 15;
 
           // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a chip for the Mvtx
-          TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer, stave_number, chip_number, strobe+i_rep);
+	  TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(layer, stave_number, chip_number, strobe);
           // Use existing hitset or add new one if needed
           TrkrHitSetContainer::Iterator hitsetit = trkrHitSetContainer->findOrAddHitSet(hitsetkey);
 
@@ -610,6 +608,10 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
 
           // Either way, add the energy to it
           hit->addEnergy(venergy[i1].first * TrkrDefs::MvtxEnergyScaleup);
+
+	  if(Verbosity() > 0) 
+	    std::cout << "     added hit " << hitkey << " to hitset " << hitsetkey << " with strobe id " << strobe << " in layer " << layer 
+		      << " with energy " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << std::endl; 
 
           // now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
           // There is only one TrkrHit per pixel, but there may be multiple g4hits

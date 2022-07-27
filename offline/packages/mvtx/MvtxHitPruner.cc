@@ -123,11 +123,12 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
       for(auto it = bare_hitsetrange.first; it != bare_hitsetrange.second; ++ it)
 	{ 
 	  auto hitsetkey = it->second;
-	  if(Verbosity() > 0)  cout << "            process hitsetkey " << hitsetkey << " for bare_hitsetkey " << bare_hitsetkey << endl;
 
 	  int strobe = MvtxDefs::getStrobeId(hitsetkey);
 	  if(strobe != 0)
 	    {
+	      if(Verbosity() > 0)  cout << "            process hitsetkey " << hitsetkey << " for bare_hitsetkey " << bare_hitsetkey << endl;
+
 	      // copy all hits to the hitset with strobe 0
 	      TrkrHitSet* hitset = m_hits->findHitSet(hitsetkey);		
 
@@ -140,11 +141,15 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
 		   ++hitr)
 		{
 		  auto hitkey = hitr->first;
-		  
+		  std::cout << "                 found hitkey " << hitkey << std::endl;		  
 		  // if it is already there, leave it alone, this is a duplicate hit
 		  auto tmp_hit = bare_hitset->getHit(hitkey);
-		  if(tmp_hit) continue;
-		  
+		  if(tmp_hit) 
+		    {
+		      if(Verbosity() > 0) std::cout << "                          hitkey " << hitkey << " is already in bare hitsest, do not copy" << std::endl;
+		      continue;
+		    }
+
 		  // otherwise copy the hit over 
 		   if(Verbosity() > 0)  std::cout << "                          copying over hitkey " << hitkey << std::endl;
 		  auto old_hit = hitr->second;

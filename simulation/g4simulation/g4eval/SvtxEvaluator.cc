@@ -2417,7 +2417,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		    ez = reco_cluster->getZError();		  
 		    ephi = reco_cluster->getRPhiError();
 		  }else if(m_cluster_version==4){
-		    cout << " ver v4 " <<  endl;
+		    //cout << " ver v4 " <<  endl;
 		    phisize = reco_cluster->getPhiSize();
 		    zsize = reco_cluster->getZSize();
 		  } 
