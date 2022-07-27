@@ -3,6 +3,8 @@
 #include "ParticleFlowElementContainer.h"
 #include "ParticleFlowElementv1.h"
 
+#include <g4vertex/GlobalVertex.h>
+#include <g4vertex/GlobalVertexMap.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -10,6 +12,7 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawClusterUtility.h>
 
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -26,6 +29,7 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_uniform_pos
 
+#include <cmath>
 #include <iostream>
 
 // examine second value of std::pair, sort by smallest
@@ -38,8 +42,8 @@ float ParticleFlowReco::calculate_dR( float eta1, float eta2, float phi1, float 
 
   float deta = eta1 - eta2;
   float dphi = phi1 - phi2;
-  while ( dphi > 3.14159 ) dphi -= 2 * 3.14159;
-  while ( dphi < -3.14159 ) dphi += 2 * 3.14159;
+  while ( dphi > M_PI ) dphi -= 2 * M_PI;
+  while ( dphi < -M_PI ) dphi += 2 * M_PI;
   return sqrt( pow( deta, 2 ) + pow( dphi ,2 ) );
 
 }
@@ -154,6 +158,16 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
   _pflow_HAD_match_EM.clear();
   _pflow_HAD_match_TRK.clear();
 
+  GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  GlobalVertex* vertex = nullptr;
+
+  if(vertexmap)
+    {
+      if (!vertexmap->empty())
+        {
+	  vertex = (vertexmap->begin()->second);
+	}
+    }
 
   if ( Verbosity() > 2 ) 
     std::cout << "ParticleFlowReco::process_event : initial population of TRK, EM, HAD objects " << std::endl;
@@ -165,12 +179,20 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     for(auto iter = trackmap->begin(); iter != trackmap->end(); ++iter)
       {
 	SvtxTrack *track = iter->second;
+
 	if(track->get_pt() < 0.5)
 	  { continue; }
 
-	if(fabs(track->get_eta()) < 1.1)
+	if(fabs(track->get_eta()) > 1.1)
 	  { continue; }
-	
+
+	if(Verbosity() > 2)
+	  {
+	    std::cout << "Track with p= " << track->get_p() <<", eta / phi = "
+		      << track->get_eta() << " / " << track->get_phi() 
+		      << std::endl;
+	  }
+
 	_pflow_TRK_p.push_back(track->get_p());
 	_pflow_TRK_eta.push_back(track->get_eta());
 	_pflow_TRK_phi.push_back(track->get_phi());
@@ -193,10 +215,15 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	if ( cluster_E < 0.2 ) continue;
 	
 	float cluster_phi = hiter->second->get_phi();
-	// for now, assume event at vx_z = 0
-	float cluster_theta = 3.14159 / 2.0 - atan2( hiter->second->get_z() , hiter->second->get_r() );
+	/// default assume at vx_z = 0
+	float cluster_theta = M_PI / 2.0 - atan2( hiter->second->get_z() , hiter->second->get_r() );
 	float cluster_eta = -1 * log( tan( cluster_theta / 2.0 ) );
 	
+	if(vertex)
+	  {
+	    cluster_eta = RawClusterUtility::GetPseudorapidity(*(hiter->second),CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
+	  }
+
 	_pflow_EM_E.push_back( cluster_E );
 	_pflow_EM_eta.push_back( cluster_eta );
 	_pflow_EM_phi.push_back( cluster_phi );
@@ -244,9 +271,13 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	
 	float cluster_phi = hiter->second->get_phi();
 	// for now, assume event at vx_z = 0
-	float cluster_theta = 3.14159 / 2.0 - atan2( hiter->second->get_z() , hiter->second->get_r() );
+	float cluster_theta = M_PI / 2.0 - atan2( hiter->second->get_z() , hiter->second->get_r() );
 	float cluster_eta = -1 * log( tan( cluster_theta / 2.0 ) );
-	
+	if(vertex)
+	  {
+	    cluster_eta = RawClusterUtility::GetPseudorapidity(*(hiter->second),CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
+	  }
+
 	_pflow_HAD_E.push_back( cluster_E );
 	_pflow_HAD_eta.push_back( cluster_eta );
 	_pflow_HAD_phi.push_back( cluster_phi );
@@ -324,8 +355,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
 	float deta = tower_eta - _pflow_TRK_eta[ trk ];
 	float dphi = tower_phi - _pflow_TRK_phi[ trk ];
-	if ( dphi > 3.14159 ) dphi -= 2 * 3.14159;
-	if ( dphi < -3.14159 ) dphi += 2 * 3.14159;
+	if ( dphi > M_PI ) dphi -= 2 * M_PI;
+	if ( dphi < -M_PI ) dphi += 2 * M_PI;
 
 	if ( fabs( deta ) < 0.025 * 2.5 && fabs( dphi ) < 0.025 * 2.5 ) {
 	  has_overlap = true;
@@ -402,8 +433,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
 	float deta = tower_eta - _pflow_TRK_eta[ trk ];
 	float dphi = tower_phi - _pflow_TRK_phi[ trk ];
-	if ( dphi > 3.14159 ) dphi -= 2 * 3.14159;
-	if ( dphi < -3.14159 ) dphi += 2 * 3.14159;
+	if ( dphi > M_PI ) dphi -= 2 * M_PI;
+	if ( dphi < -M_PI ) dphi += 2 * M_PI;
 
 	if ( fabs( deta ) < 0.1 * 1.5 && fabs( dphi ) < 0.1 * 1.5 ) {
 	  has_overlap = true;
@@ -476,8 +507,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
 	float deta = tower_eta - _pflow_EM_eta[ em ];
 	float dphi = tower_phi - _pflow_EM_phi[ em ];
-	if ( dphi > 3.14159 ) dphi -= 2 * 3.14159;
-	if ( dphi < -3.14159 ) dphi += 2 * 3.14159;
+	if ( dphi > M_PI ) dphi -= 2 * M_PI;
+	if ( dphi < -M_PI ) dphi += 2 * M_PI;
 
 	if ( fabs( deta ) < 0.1 * 1.5 && fabs( dphi ) < 0.1 * 1.5 ) {
 	  has_overlap = true;
