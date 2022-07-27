@@ -6,9 +6,9 @@
 #include <phparameter/PHParameterInterface.h>
 
 #include <cmath>
-#include <map>                                 // for map
+#include <map>  // for map
 #include <string>
-#include <utility>                             // for pair
+#include <utility>  // for pair
 #include <vector>
 
 class PHCompositeNode;
@@ -60,7 +60,7 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 
   short get_tower_row(const short cellrow) const;
 
-  void set_decal_filename(const std::string &fname) {m_DeCalibrationFileName = fname;}
+  void set_decal_filename(const std::string &fname) { m_DeCalibrationFileName = fname; }
 
   void SetDefaultParameters() override;
 
@@ -87,8 +87,8 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
   std::string m_TowerGeomNodeName;
   std::string m_SimTowerNodePrefix;
   std::string m_DeCalibrationFileName;
-  std::vector<std::vector <double> > m_DecalArray;  
-  std::map<std::pair<int,int>,double> m_TowerDecalFactors;
+  std::vector<std::vector<double> > m_DecalArray;
+  std::map<std::pair<int, int>, double> m_TowerDecalFactors;
 };
 
 #endif /* G4CALO_HCALRAWTOWERBUILDER_H */

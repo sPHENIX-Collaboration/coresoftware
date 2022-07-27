@@ -35,13 +35,13 @@
 
 #include <TSystem.h>
 
-#include <cmath>      // for fabs, NAN, cos
-#include <cstdlib>                                     // for exit
+#include <cmath>    // for fabs, NAN, cos
+#include <cstdlib>  // for exit
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <memory>                                       // for allocator_tra...
+#include <memory>  // for allocator_tra...
 #include <stdexcept>
 #include <utility>  // for make_pair, pair
 
@@ -453,7 +453,7 @@ void HcalRawTowerBuilder::SetDefaultParameters()
 
   set_default_double_param("scinti_eta_coverage_neg", 1.1);
   set_default_double_param("scinti_eta_coverage_pos", 1.1);
-  set_default_double_param("phistart",0.);
+  set_default_double_param("phistart", 0.);
 }
 
 void HcalRawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
@@ -520,7 +520,7 @@ void HcalRawTowerBuilder::set_tower_decal_factor_real(const int etabin, const in
   }
 }
 
-void HcalRawTowerBuilder::Print(const std::string &/*what*/) const
+void HcalRawTowerBuilder::Print(const std::string & /*what*/) const
 {
   std::cout << Name() << std::endl;
   PHParameterInterface::Print();

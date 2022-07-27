@@ -17,7 +17,6 @@ class RawTowerContainer;
 class RawTowerGeomContainer;
 class RawTowerDeadMap;
 
-
 //! simple tower digitizer which sum all cell to produce photon yield and pedstal noises
 //! default input DST node is TOWER_SIM_DETECTOR
 //! default output DST node is TOWER_RAW_DETECTOR
@@ -29,7 +28,11 @@ class RawTowerDigitizer : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  void Detector(const std::string &d) { m_Detector = d; _tower_params.set_name(d);}
+  void Detector(const std::string &d)
+  {
+    m_Detector = d;
+    _tower_params.set_name(d);
+  }
   void TowerType(const int type) { m_TowerType = type; }
   void set_seed(const unsigned int iseed);
   unsigned int get_seed() const { return m_Seed; }
@@ -170,20 +173,20 @@ class RawTowerDigitizer : public SubsysReco
   unsigned int get_sipm_effective_pixel() { return m_SiPMEffectivePixel; }
 
   // calo calib decal stuff JEF Feb 2022
-  void set_DoTowerDecal(const bool doTowerDecal, 
-			  const char * decalFileName = "", 
-			  const bool doInverse = false)
+  void set_DoTowerDecal(const bool doTowerDecal,
+                        const char *decalFileName = "",
+                        const bool doInverse = false)
   {
     m_DoDecal = doTowerDecal;
     m_DecalInverse = doInverse;
     set_DecalFileName(decalFileName);
   }
-  
-  void set_DecalFileName(const char * inCalFname) 
-  { 
+
+  void set_DecalFileName(const char *inCalFname)
+  {
     m_DecalFileName = inCalFname;
   }
-  
+
   void set_UseConditionsDB(const bool setUseCondDB)
   {
     m_UseConditionsDB = setUseCondDB;
@@ -246,7 +249,7 @@ class RawTowerDigitizer : public SubsysReco
   PHParameters _tower_params;
 
   gsl_rng *m_RandomGenerator = nullptr;
-  
+
   // calo calibs decal stuff JEF Feb 2022
   bool m_DoDecal = false;
   bool m_DecalInverse = false;

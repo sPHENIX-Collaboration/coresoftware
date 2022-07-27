@@ -3,38 +3,38 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerv1.h>
 
-#include <calobase/RawTower.h>                 // for RawTower
-#include <calobase/RawTowerDefs.h>             // for convert_name_to_caloid
-#include <calobase/RawTowerGeom.h>             // for RawTowerGeom
-#include <calobase/RawTowerGeomv3.h>
-#include <calobase/RawTowerGeomContainer.h>    // for RawTowerGeomContainer
+#include <calobase/RawTower.h>               // for RawTower
+#include <calobase/RawTowerDefs.h>           // for convert_name_to_caloid
+#include <calobase/RawTowerGeom.h>           // for RawTowerGeom
+#include <calobase/RawTowerGeomContainer.h>  // for RawTowerGeomContainer
 #include <calobase/RawTowerGeomContainerv1.h>
+#include <calobase/RawTowerGeomv3.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                      // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                    // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>                       // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TRotation.h>
 #include <TVector3.h>
 
-#include <cstdlib>                            // for exit
-#include <exception>                           // for exception
+#include <cstdlib>    // for exit
+#include <exception>  // for exception
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <stdexcept>
-#include <utility>                             // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 RawTowerBuilderByHitIndex::RawTowerBuilderByHitIndex(const std::string &name)
   : SubsysReco(name)
@@ -123,14 +123,14 @@ int RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
   if (Verbosity())
   {
     towerE = m_Towers->getTotalEdep();
-    std::cout << "towers before compression: "<< m_Towers->size() << "\t" << m_Detector << std::endl;
+    std::cout << "towers before compression: " << m_Towers->size() << "\t" << m_Detector << std::endl;
   }
   m_Towers->compress(m_Emin);
   if (Verbosity())
   {
-    std::cout << "storing towers: "<< m_Towers->size() << std::endl;
+    std::cout << "storing towers: " << m_Towers->size() << std::endl;
     std::cout << "Energy lost by dropping towers with less than " << m_Emin
-         << " energy, lost energy: " << towerE - m_Towers->getTotalEdep() << std::endl;
+              << " energy, lost energy: " << towerE - m_Towers->getTotalEdep() << std::endl;
     m_Towers->identify();
     RawTowerContainer::ConstRange begin_end = m_Towers->getTowers();
     RawTowerContainer::ConstIterator iter;
@@ -143,7 +143,7 @@ int RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerBuilderByHitIndex::End(PHCompositeNode */*topNode*/)
+int RawTowerBuilderByHitIndex::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -239,7 +239,7 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
 
     std::istringstream iss(line_mapping);
 
-     /* If line starts with keyword Tower, add to tower positions */
+    /* If line starts with keyword Tower, add to tower positions */
     if (line_mapping.find("Tower ") != std::string::npos)
     {
       unsigned idx_j, idx_k, idx_l;
@@ -289,7 +289,7 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
       m_GlobalParameterMap.insert(std::make_pair(parname, parval));
     }
   }
-    
+
   /* Update member variables for global parameters based on parsed parameter file */
   std::map<std::string, double>::iterator parit;
 
@@ -322,7 +322,7 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
   RawTowerGeomContainer::ConstRange all_towers = m_Geoms->get_tower_geometries();
 
   for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
-    it != all_towers.second; ++it)
+       it != all_towers.second; ++it)
   {
     double x_temp = it->second->get_center_x();
     double y_temp = it->second->get_center_y();
@@ -353,7 +353,7 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
       std::cout << "* Globl tower x y z : " << x_temp_rt << " " << y_temp_rt << " " << z_temp_rt << std::endl;
     }
   }
-  
+
   if (Verbosity())
   {
     std::cout << "size tower geom container:" << m_Geoms->size() << "\t" << m_Detector << std::endl;
