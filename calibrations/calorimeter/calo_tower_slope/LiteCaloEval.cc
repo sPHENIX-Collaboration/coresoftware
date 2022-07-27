@@ -70,7 +70,7 @@ int LiteCaloEval::InitRun(PHCompositeNode * /*topNode*/)
   if (calotype == LiteCaloEval::HCALIN)
   {
     hcalin_energy_eta = new TH2F("hcalin_energy_eta", "hcalin energy eta", 1000, 0, 100, 240, -1.1, 1.1);
-    hcalin_e_eta_phi = new TH3F("hcalin_e_eta_phi", "hcalin e eta phi", 50, 0, 14, 24, -1.1, 1.1, 64, -3.14159, 3.14159);
+    hcalin_e_eta_phi = new TH3F("hcalin_e_eta_phi", "hcalin e eta phi", 50, 0, 14, 24, -1.1, 1.1, 64, -M_PI, M_PI);
     for (int i = 0; i < 24; i++)
     {
       for (int j = 0; j < 64; j++)
@@ -91,7 +91,7 @@ int LiteCaloEval::InitRun(PHCompositeNode * /*topNode*/)
   else if (calotype == LiteCaloEval::HCALOUT)
   {
     hcalout_energy_eta = new TH2F("hcalout_energy_eta", "hcalout energy eta", 100, 0, 10, 240, -1.1, 1.1);
-    hcalout_e_eta_phi = new TH3F("hcalout_e_eta_phi", "hcalout e eta phi", 48, 0, 10, 24, -1.1, 1.1, 64, -3.14159, 3.14159);
+    hcalout_e_eta_phi = new TH3F("hcalout_e_eta_phi", "hcalout e eta phi", 48, 0, 10, 24, -1.1, 1.1, 64, -M_PI, M_PI);
     for (int i = 0; i < 24; i++)
     {
       for (int j = 0; j < 64; j++)
@@ -147,7 +147,7 @@ int LiteCaloEval::InitRun(PHCompositeNode * /*topNode*/)
     energy_eta_hist = new TH2F("energy_eta_hist", "energy eta and all phi", 512, 0, 10, 960, -1.15, 1.15);
 
     //make 3d histo
-    e_eta_phi = new TH3F("e_eta_phi", "e v eta v phi", 50, 0, 10, 192, -1.1335, 1.13350, 256, -3.14159, 3.14159);
+    e_eta_phi = new TH3F("e_eta_phi", "e v eta v phi", 50, 0, 10, 192, -1.1335, 1.13350, 256, -M_PI, M_PI);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

@@ -30,6 +30,7 @@
 #include <list>
 
 #include <algorithm>
+#include <cmath>
 
 bool sort_by_pair_second( const std::pair<int,float> &a,  const std::pair<int,float> &b) 
 { 
@@ -58,8 +59,8 @@ float RawClusterBuilderTopo::calculate_dR( float eta1, float eta2, float phi1, f
 
   float deta = eta1 - eta2;
   float dphi = phi1 - phi2;
-  while ( dphi > 3.14159 ) dphi -= 2 * 3.14159;
-  while ( dphi < -3.14159 ) dphi += 2 * 3.14159;
+  while ( dphi > M_PI ) dphi -= 2 * M_PI;
+  while ( dphi < -M_PI ) dphi += 2 * M_PI;
   return sqrt( pow( deta, 2 ) + pow( dphi ,2 ) );
 
 }
@@ -760,7 +761,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       if ( get_ilayer_from_ID( this_LM.first ) == 2 ) continue;
 
       float this_phi = _geom_containers[ get_ilayer_from_ID( this_LM.first ) ]->get_phicenter( get_iphi_from_ID( this_LM.first ) );
-      if ( this_phi > 3.14159 ) this_phi -= 2 * 3.14159;
+      if ( this_phi > M_PI ) this_phi -= 2 * M_PI;
       float this_eta = _geom_containers[ get_ilayer_from_ID( this_LM.first ) ]->get_etacenter( get_ieta_from_ID( this_LM.first ) );
 
       bool has_EM_overlap = false;
@@ -775,7 +776,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 	if ( get_ilayer_from_ID( this_LM2.first ) != 2 ) continue;
 
 	float this_phi2 = _geom_containers[ get_ilayer_from_ID( this_LM2.first ) ]->get_phicenter( get_iphi_from_ID( this_LM2.first ) );
-	if ( this_phi2 > 3.14159 ) this_phi -= 2 * 3.14159;
+	if ( this_phi2 > M_PI ) this_phi -= 2 * M_PI;
 	float this_eta2 = _geom_containers[ get_ilayer_from_ID( this_LM2.first ) ]->get_etacenter( get_ieta_from_ID( this_LM2.first ) );
 
 	// calculate geometric dR
@@ -807,7 +808,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 	int tower_ID = this_LM.first;
 	std::cout << "RawClusterBuilderTopo::process_event in cluster " << cl << ", tower ID " << tower_ID << " is LOCAL MAXIMUM with layer / E = " << get_ilayer_from_ID( tower_ID ) << " / " << get_E_from_ID( tower_ID ) << ", ";
 	float this_phi = _geom_containers[ get_ilayer_from_ID( tower_ID ) ]->get_phicenter( get_iphi_from_ID( tower_ID ) );
-	if ( this_phi > 3.14159 ) this_phi -= 2 * 3.14159;
+	if ( this_phi > M_PI ) this_phi -= 2 * M_PI;
 	std::cout << " eta / phi = " << _geom_containers[ get_ilayer_from_ID( tower_ID ) ]->get_etacenter( get_ieta_from_ID( tower_ID ) ) << " / " << this_phi << std::endl;
       }
       
