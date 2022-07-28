@@ -170,3 +170,11 @@ void PHParameterInterface::InitializeParameters()
     m_Params->set_string_param(iter->first, iter->second);
   }
 }
+
+void PHParameterInterface::Print() const
+{
+  if (m_Params)
+  {
+    m_Params->Print();
+  }
+}
