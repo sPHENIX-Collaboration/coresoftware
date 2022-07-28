@@ -394,7 +394,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	std::cout << " -> sorted list of matches, EM / dR = " <<  _pflow_TRK_addtl_match_EM.at( trk ).at( n ).first << " / " << _pflow_TRK_addtl_match_EM.at( trk ).at( n ).second << std::endl;
       }
     }
-
+  
     if ( _pflow_TRK_addtl_match_EM.at( trk ).size() > 0 ) {
       min_em_index = _pflow_TRK_addtl_match_EM.at( trk ).at( 0 ).first;
       min_em_dR =  _pflow_TRK_addtl_match_EM.at( trk ).at( 0 ).second;
@@ -619,6 +619,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     // begin with this HAD calo energy
     float total_EMHAD_E = _pflow_HAD_E.at( had );
 
+    std::vector<RawCluster*> matchedEClusters;
+
     // iterate over the EMs matched to this HAD 
     for (unsigned int j = 0; j < _pflow_HAD_match_EM.at( had ).size() ; j++ ) {
 
@@ -629,7 +631,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
       // add it to the total calo E 
       total_EMHAD_E += _pflow_EM_E.at( em );
-      
+      matchedEClusters.push_back(_pflow_EM_cluster.at(em));
       if ( Verbosity() > 5 ) {
 	std::cout << " -> -> LINKED EM " << em << " with E / eta / phi = " <<  _pflow_EM_E.at( em ) << " / " <<  _pflow_EM_eta.at( em ) << " / " <<  _pflow_EM_phi.at( em ) << std::endl;
       }
@@ -671,7 +673,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       pflow->set_pz( tlv.Pz() );
       pflow->set_e( tlv.E() );
       pflow->set_track(_pflow_TRK_trk[ trk ]);
-      pflow->set_ecluster();
+      pflow->set_eclusters(matchedEClusters);
       pflow->set_hcluster(_pflow_HAD_cluster.at(had));
       pflow->set_id( global_pflow_index );
       pflow->set_type( ParticleFlowElement::PFLOWTYPE::MATCHED_CHARGED_HADRON );
@@ -680,8 +682,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       global_pflow_index++;
 
     }
-
-
+    // Track + E+HCal PF elements are created
+    
     // process compatibility of fit 
     float total_expected_E_err = sqrt( total_expected_E_var );
 
@@ -798,6 +800,9 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       pflow->set_py( tlv.Py() );
       pflow->set_pz( tlv.Pz() );
       pflow->set_e( tlv.E() );
+      pflow->set_track(nullptr);
+      pflow->set_eclusters(matchedEClusters);
+      pflow->set_hcluster(_pflow_HAD_cluster.at(had));
       pflow->set_id( global_pflow_index );
       pflow->set_type( ParticleFlowElement::PFLOWTYPE::LEFTOVER_EM_PARTICLE );
 
@@ -860,10 +865,16 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       // assume pion mass
       TLorentzVector tlv; tlv.SetPtEtaPhiM( _pflow_TRK_p[ trk ] / cosh( _pflow_TRK_eta[ trk ] ) , _pflow_TRK_eta[ trk ] , _pflow_TRK_phi[ trk ] , 0.135 ); 
 
+      std::vector<RawCluster*> eclus;
+      eclus.push_back(_pflow_EM_cluster.at(em));
+
       pflow->set_px( tlv.Px() );
       pflow->set_py( tlv.Py() );
       pflow->set_pz( tlv.Pz() );
       pflow->set_e( tlv.E() );
+      pflow->set_track(_pflow_TRK_trk.at(trk));
+      pflow->set_eclusters(eclus);
+      pflow->set_hcluster(nullptr);
       pflow->set_id( global_pflow_index );
       pflow->set_type( ParticleFlowElement::PFLOWTYPE::MATCHED_CHARGED_HADRON );
 
@@ -901,10 +912,16 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       // assume no mass, but could update to use K0L mass(?)
       TLorentzVector tlv; tlv.SetPtEtaPhiM( residual_energy / cosh( _pflow_EM_eta[ em ] ) , _pflow_EM_eta[ em ] , _pflow_EM_phi[ em ] , 0 ); 
 
+      std::vector<RawCluster*> eclus;
+      eclus.push_back(_pflow_EM_cluster.at(em));
+
       pflow->set_px( tlv.Px() );
       pflow->set_py( tlv.Py() );
       pflow->set_pz( tlv.Pz() );
       pflow->set_e( tlv.E() );
+      pflow->set_eclusters(eclus);
+      pflow->set_hcluster(nullptr);
+      pflow->set_track(nullptr);
       pflow->set_id( global_pflow_index );
       pflow->set_type( ParticleFlowElement::PFLOWTYPE::LEFTOVER_EM_PARTICLE );
 
@@ -935,10 +952,16 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     // assume massless, could be updated to use K0L
     TLorentzVector tlv; tlv.SetPtEtaPhiM( _pflow_EM_E[ em ] / cosh( _pflow_EM_eta[ em ] ) , _pflow_EM_eta[ em ] , _pflow_EM_phi[ em ] , 0 ); 
     
+    std::vector<RawCluster*> eclus;
+    eclus.push_back(_pflow_EM_cluster.at(em));
+
     pflow->set_px( tlv.Px() );
     pflow->set_py( tlv.Py() );
     pflow->set_pz( tlv.Pz() );
     pflow->set_e( tlv.E() );
+    pflow->set_eclusters(eclus);
+    pflow->set_hcluster(nullptr);
+    pflow->set_track(nullptr);
     pflow->set_id( global_pflow_index );
     pflow->set_type( ParticleFlowElement::PFLOWTYPE::UNMATCHED_EM_PARTICLE );
 
@@ -967,6 +990,9 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     pflow->set_py( tlv.Py() );
     pflow->set_pz( tlv.Pz() );
     pflow->set_e( tlv.E() );
+    pflow->set_track(nullptr);
+    pflow->set_eclusters(std::vector<RawCluster*>());
+    pflow->set_hcluster(_pflow_HAD_cluster.at(had));
     pflow->set_id( global_pflow_index );
     pflow->set_type( ParticleFlowElement::PFLOWTYPE::UNMATCHED_NEUTRAL_HADRON );
 
@@ -995,6 +1021,9 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     pflow->set_py( tlv.Py() );
     pflow->set_pz( tlv.Pz() );
     pflow->set_e( tlv.E() );
+    pflow->set_track(_pflow_TRK_trk.at(trk));
+    pflow->set_eclusters(std::vector<RawCluster*>());
+    pflow->set_hcluster(nullptr);
     pflow->set_id( global_pflow_index );
     pflow->set_type( ParticleFlowElement::PFLOWTYPE::UNMATCHED_CHARGED_HADRON );
 

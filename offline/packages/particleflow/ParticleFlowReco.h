@@ -15,6 +15,8 @@
 #include <vector>
 
 class PHCompositeNode;
+class SvtxTrack;
+class RawCluster;
 
 class ParticleFlowReco : public SubsysReco
 {
