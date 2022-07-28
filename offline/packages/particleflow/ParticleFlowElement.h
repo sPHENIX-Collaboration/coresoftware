@@ -12,6 +12,9 @@
 #include <cmath>
 #include <iostream>
 
+class SvtxTrack;
+class RawCluster;
+
 class ParticleFlowElement : public PHObject
 {
  public:
@@ -50,6 +53,15 @@ class ParticleFlowElement : public PHObject
 
   virtual float get_e() const { return NAN; }
   virtual void set_e(float) { return; }
+
+  virtual SvtxTrack* get_track() const { return nullptr; }
+  virtual void set_track(SvtxTrack*) { return; }
+  
+  virtual RawCluster* get_ecluster() const { return nullptr; }
+  virtual void set_ecluster(RawCluster*) { return; }
+  
+  virtual RawCluster* get_hcluster() const { return nullptr; }
+  virtual void set_hcluster(RawCluster*) { return; }
 
   virtual float get_p() const { return NAN; }
   virtual float get_pt() const { return NAN; }

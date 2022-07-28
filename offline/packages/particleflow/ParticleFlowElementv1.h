@@ -14,6 +14,9 @@
 
 #include "ParticleFlowElement.h"
 
+class SvtxTrack;
+class RawCluster;
+
 class ParticleFlowElementv1 : public ParticleFlowElement
 {
  public:
@@ -45,7 +48,16 @@ class ParticleFlowElementv1 : public ParticleFlowElement
   
   float get_e() const override { return _e; }
   void set_e(float e) override { _e = e; }
+
+  SvtxTrack* get_track() const override { return _track; }
+  void set_track(SvtxTrack* track) override { _track = track; }
   
+  RawCluster* get_ecluster() const override { return _ecluster; }
+  void set_ecluster(RawCluster* ecluster) override { _ecluster = ecluster; }
+  
+  RawCluster* get_hcluster() const override { return _hcluster; }
+  void set_hcluster(RawCluster* hcluster) override { _hcluster = hcluster; }
+
   float get_p() const override;
   float get_pt() const override;
   float get_et() const override;
@@ -66,6 +78,9 @@ class ParticleFlowElementv1 : public ParticleFlowElement
   /// pflow energy
   float _e;
   
+  SvtxTrack* _track;
+  RawCluster* _ecluster;
+  RawCluster* _hcluster;
   ClassDefOverride(ParticleFlowElementv1, 1);
 };
 
