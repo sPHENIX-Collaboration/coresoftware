@@ -9,8 +9,8 @@
 #include <calobase/RawTowerv2.h>
 
 #include <dbfile_calo_calib/CEmcCaloCalibSimpleCorrFilev1.h>
+#include <dbfile_calo_calib/CaloCalibSimpleCorrFile.h>
 #include <dbfile_calo_calib/HcalCaloCalibSimpleCorrFilev1.h>
-
 
 #include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBOSITY_MORE
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -39,38 +39,13 @@
 #include <string>
 #include <utility>  // for pair
 
-using namespace std;
-
 RawTowerDigitizer::RawTowerDigitizer(const std::string &name)
   : SubsysReco(name)
-  , m_DigiAlgorithm(kNo_digitization)
-  , m_SimTowers(nullptr)
-  , m_RawTowers(nullptr)
-  , m_RawTowerGeom(nullptr)
-  , m_DeadMap(nullptr)
-  , m_Detector("NONE")
-  , m_SimTowerNodePrefix("SIM")
-  , m_RawTowerNodePrefix("RAW")
-  , m_PhotonElecYieldVisibleGeV(NAN)
-  , m_PhotonElecADC(NAN)
-  , m_PedstalCentralADC(NAN)
-  , m_PedstalWidthADC(NAN)
-  , m_pedestalFile(false)
-  , m_ZeroSuppressionADC(-1000)  //default to apply no zero suppression
-  , m_ZeroSuppressionFile(false)
-  , m_TowerType(-1)
-  , m_SiPMEffectivePixel(40000 * 4)  // sPHENIX EMCal default, 4x Hamamatsu S12572-015P MPPC [sPHENIX TDR]
   , _tower_params(name)
-  , m_DoDecal(false)
-  , m_DecalInverse(false)
-  , m_Decal(true)
-  , m_DecalFileName("")
-  , m_UseConditionsDB(false)
-  , m_CalDBFile(0)
 {
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   m_Seed = PHRandomSeed();  // fixed seed handled in PHRandomSeed()
-  // cout << Name() << " Random Seed: " << m_Seed << endl;
+  // std::cout << Name() << " Random Seed: " << m_Seed << std::endl;
   gsl_rng_set(m_RandomGenerator, m_Seed);
 }
 
@@ -94,8 +69,8 @@ int RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
   dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-         << "DST Node missing, doing nothing." << endl;
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+              << "DST Node missing, doing nothing." << std::endl;
     exit(1);
   }
 
@@ -105,7 +80,7 @@ int RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
   }
   catch (std::exception &e)
   {
-    cout << e.what() << endl;
+    std::cout << e.what() << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -143,51 +118,47 @@ int RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
     }
 */
 
-
-
   if (m_DoDecal)
+  {
+    if (m_Detector.c_str()[0] == 'H')
+      m_CalDBFile = (CaloCalibSimpleCorrFile *) new HcalCaloCalibSimpleCorrFilev1();
+    else if (m_Detector.c_str()[0] == 'C')
+      m_CalDBFile = (CaloCalibSimpleCorrFile *) new CEmcCaloCalibSimpleCorrFilev1();
+    else
     {
-      
-      if (m_Detector.c_str()[0] == 'H')
-	m_CalDBFile = (CaloCalibSimpleCorrFile *)  new  HcalCaloCalibSimpleCorrFilev1();
-      else if (m_Detector.c_str()[0] == 'C')
-	m_CalDBFile = (CaloCalibSimpleCorrFile *)  new  CEmcCaloCalibSimpleCorrFilev1();
-      else 
-	{
-	  std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-		    << "Calo Decal requested but Detector Name not HCALOUT/IN or CEMC" 
-		    << std::endl;
-	  return -999;
-	}
-      
-      if (!(m_DecalFileName == ""))
-	m_CalDBFile->Open(m_DecalFileName.c_str());
-      else
-	m_Decal = false;
-      //warnings for bad file names handled inside Open
-      
-    }   
-  
+      std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+                << "Calo Decal requested but Detector Name not HCALOUT/IN or CEMC"
+                << std::endl;
+      return -999;
+    }
+
+    if (!(m_DecalFileName == ""))
+      m_CalDBFile->Open(m_DecalFileName.c_str());
+    else
+      m_Decal = false;
+    //warnings for bad file names handled inside Open
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerDigitizer::process_event(PHCompositeNode */*topNode*/)
+int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity())
   {
-    cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-         << "Process event entered. "
-         << "Digitalization method: ";
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+              << "Process event entered. "
+              << "Digitalization method: ";
 
     if (m_DigiAlgorithm == kNo_digitization)
     {
-      cout << "directly pass the energy of sim tower to digitalized tower";
+      std::cout << "directly pass the energy of sim tower to digitalized tower";
     }
     else if (m_DigiAlgorithm == kSimple_photon_digitization)
     {
-      cout << "simple digitization with photon statistics, ADC conversion and pedstal";
+      std::cout << "simple digitization with photon statistics, ADC conversion and pedstal";
     }
-    cout << endl;
+    std::cout << std::endl;
   }
   // loop over all possible towers, even empty ones. The digitization can add towers containing
   // pedestals
@@ -203,48 +174,43 @@ int RawTowerDigitizer::process_event(PHCompositeNode */*topNode*/)
     const int eta = it->second->get_bineta();
     const int phi = it->second->get_binphi();
 
-    if (caloid == RawTowerDefs::LFHCAL) 
+    if (caloid == RawTowerDefs::LFHCAL)
     {
       const int l = it->second->get_binl();
       if (m_ZeroSuppressionFile == true)
       {
-        const string zsName = "ZS_ADC_eta" + to_string(eta) + "_phi" + to_string(phi) + "_l" + to_string(l);
+        const std::string zsName = "ZS_ADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi) + "_l" + std::to_string(l);
         m_ZeroSuppressionADC =
-          _tower_params.get_double_param(zsName);
+            _tower_params.get_double_param(zsName);
       }
 
       if (m_pedestalFile == true)
       {
-        const string pedCentralName = "PedCentral_ADC_eta" + to_string(eta) + "_phi" + to_string(phi) + "_l" + to_string(l);
+        const std::string pedCentralName = "PedCentral_ADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi) + "_l" + std::to_string(l);
         m_PedstalCentralADC =
-          _tower_params.get_double_param(pedCentralName);
-        const string pedWidthName = "PedWidth_ADC_eta" + to_string(eta) + "_phi" + to_string(phi) + "_l" + to_string(l);
+            _tower_params.get_double_param(pedCentralName);
+        const std::string pedWidthName = "PedWidth_ADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi) + "_l" + std::to_string(l);
         m_PedstalWidthADC =
-          _tower_params.get_double_param(pedWidthName);
+            _tower_params.get_double_param(pedWidthName);
       }
     }
-    else 
+    else
     {
       if (m_ZeroSuppressionFile == true)
       {
-        const string zsName = "ZS_ADC_eta" + to_string(eta) + "_phi" + to_string(phi);
-        m_ZeroSuppressionADC =
-          _tower_params.get_double_param(zsName);
+        const std::string zsName = "ZS_ADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi);
+        m_ZeroSuppressionADC = _tower_params.get_double_param(zsName);
       }
 
       if (m_pedestalFile == true)
       {
-        const string pedCentralName = "PedCentral_ADC_eta" + to_string(eta) + "_phi" + to_string(phi);
-        m_PedstalCentralADC =
-          _tower_params.get_double_param(pedCentralName);
-        const string pedWidthName = "PedWidth_ADC_eta" + to_string(eta) + "_phi" + to_string(phi);
-        m_PedstalWidthADC =
-          _tower_params.get_double_param(pedWidthName);
+        const std::string pedCentralName = "PedCentral_ADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi);
+        m_PedstalCentralADC = _tower_params.get_double_param(pedCentralName);
+        const std::string pedWidthName = "PedWidth_ADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi);
+        m_PedstalWidthADC = _tower_params.get_double_param(pedWidthName);
       }
-    } 
+    }
 
-    
-    
     if (m_TowerType >= 0)
     {
       // Skip towers that don't match the type we are supposed to digitize
@@ -265,8 +231,8 @@ int RawTowerDigitizer::process_event(PHCompositeNode */*topNode*/)
 
         if (Verbosity() >= VERBOSITY_MORE)
         {
-          cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-               << " apply dead tower " << key << endl;
+          std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+                    << " apply dead tower " << key << std::endl;
         }
       }
     }
@@ -293,33 +259,34 @@ int RawTowerDigitizer::process_event(PHCompositeNode */*topNode*/)
     }
     else
     {
-      cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-           << " invalid digitization algorithm #" << m_DigiAlgorithm
-           << endl;
+      std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+                << " invalid digitization algorithm #" << m_DigiAlgorithm
+                << std::endl;
 
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
     if (digi_tower)
     {
-
       if (m_DoDecal && m_Decal)
-	{
-	  float decal_fctr = m_CalDBFile->getCorr(eta,phi);
-	  
-	  if (m_DecalInverse)
-	    decal_fctr = 1.0/decal_fctr;
-	  float e_dec = digi_tower->get_energy();
-	  digi_tower->set_energy(e_dec*decal_fctr);
-	}
+      {
+        float decal_fctr = m_CalDBFile->getCorr(eta, phi);
+
+        if (m_DecalInverse)
+        {
+          decal_fctr = 1.0 / decal_fctr;
+        }
+        float e_dec = digi_tower->get_energy();
+        digi_tower->set_energy(e_dec * decal_fctr);
+      }
 
       m_RawTowers->AddTower(key, digi_tower);
 
       if (Verbosity() >= VERBOSITY_MORE)
       {
-        cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-             << " output tower:"
-             << endl;
+        std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+                  << " output tower:"
+                  << std::endl;
         digi_tower->identify();
       }
     }
@@ -327,11 +294,11 @@ int RawTowerDigitizer::process_event(PHCompositeNode */*topNode*/)
 
   if (Verbosity())
   {
-    cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-         << "input sum energy = " << m_SimTowers->getTotalEdep() << " GeV"
-         << ", dead channel masked energy = " << deadChanEnergy << " GeV"
-         << ", output sum digitalized value = " << m_RawTowers->getTotalEdep() << " ADC"
-         << endl;
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+              << "input sum energy = " << m_SimTowers->getTotalEdep() << " GeV"
+              << ", dead channel masked energy = " << deadChanEnergy << " GeV"
+              << ", output sum digitalized value = " << m_RawTowers->getTotalEdep() << " ADC"
+              << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -341,7 +308,7 @@ RawTowerDigitizer::simple_photon_digitization(RawTower *sim_tower)
 {
   RawTower *digi_tower = nullptr;
 
-  double energy = 0;
+  double energy = 0.;
   if (sim_tower)
   {
     energy = sim_tower->get_energy();
@@ -354,20 +321,19 @@ RawTowerDigitizer::simple_photon_digitization(RawTower *sim_tower)
 
   const int sum_ADC = signal_ADC + (int) pedestal;
 
-  double  sum_ADC_d = (double) sum_ADC; 
+  double sum_ADC_d = (double) sum_ADC;
 
   // temporary fix to remove digitization
   // for decalibration tests
-  // to be replaced permanently for all cases 
-  // with sim of pulse extraction/fitting  
+  // to be replaced permanently for all cases
+  // with sim of pulse extraction/fitting
   if (m_DoDecal)
-    {
-  
-      double signal_ADC_d = 1.*photon_count;
-      signal_ADC_d /= m_PhotonElecADC;
-    
-      sum_ADC_d  = signal_ADC_d + pedestal;
-    }
+  {
+    double signal_ADC_d = 1. * photon_count;
+    signal_ADC_d /= m_PhotonElecADC;
+
+    sum_ADC_d = signal_ADC_d + pedestal;
+  }
 
   if (sum_ADC > m_ZeroSuppressionADC)
   {
@@ -385,28 +351,28 @@ RawTowerDigitizer::simple_photon_digitization(RawTower *sim_tower)
 
   if (Verbosity() >= 2)
   {
-    cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-         << endl;
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+              << std::endl;
 
-    cout << "input: ";
+    std::cout << "input: ";
     if (sim_tower)
     {
       sim_tower->identify();
     }
     else
     {
-      cout << "None" << endl;
+      std::cout << "None" << std::endl;
     }
-    cout << "output based on "
-         << "sum_ADC = " << sum_ADC << ", zero_sup = "
-         << m_ZeroSuppressionADC << " : ";
+    std::cout << "output based on "
+              << "sum_ADC = " << sum_ADC << ", zero_sup = "
+              << m_ZeroSuppressionADC << " : ";
     if (digi_tower)
     {
       digi_tower->identify();
     }
     else
     {
-      cout << "None" << endl;
+      std::cout << "None" << std::endl;
     }
   }
 
@@ -454,28 +420,28 @@ RawTowerDigitizer::sipm_photon_digitization(RawTower *sim_tower)
 
   if (Verbosity() >= 2)
   {
-    cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-         << endl;
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+              << std::endl;
 
-    cout << "input: ";
+    std::cout << "input: ";
     if (sim_tower)
     {
       sim_tower->identify();
     }
     else
     {
-      cout << "None" << endl;
+      std::cout << "None" << std::endl;
     }
-    cout << "output based on "
-         << "sum_ADC = " << sum_ADC << ", zero_sup = "
-         << m_ZeroSuppressionADC << " : ";
+    std::cout << "output based on "
+              << "sum_ADC = " << sum_ADC << ", zero_sup = "
+              << m_ZeroSuppressionADC << " : ";
     if (digi_tower)
     {
       digi_tower->identify();
     }
     else
     {
-      cout << "None" << endl;
+      std::cout << "None" << std::endl;
     }
   }
 
@@ -488,19 +454,18 @@ void RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
   PHCompositeNode *runNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
-    cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-         << "Run Node missing, doing nothing." << endl;
-    throw std::runtime_error(
-        "Failed to find Run node in RawTowerDigitizer::CreateNodes");
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+              << "Run Node missing, doing nothing." << std::endl;
+    throw std::runtime_error("Failed to find Run node in RawTowerDigitizer::CreateNodes");
   }
 
-  string TowerGeomNodeName = "TOWERGEOM_" + m_Detector;
+  std::string TowerGeomNodeName = "TOWERGEOM_" + m_Detector;
   m_RawTowerGeom = findNode::getClass<RawTowerGeomContainer>(topNode, TowerGeomNodeName);
   if (!m_RawTowerGeom)
   {
-    cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-         << " " << TowerGeomNodeName << " Node missing, doing bail out!"
-         << endl;
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+              << " " << TowerGeomNodeName << " Node missing, doing bail out!"
+              << std::endl;
     throw std::runtime_error("Failed to find " + TowerGeomNodeName + " node in RawTowerDigitizer::CreateNodes");
   }
 
@@ -509,30 +474,30 @@ void RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
     m_RawTowerGeom->identify();
   }
 
-  const string deadMapName = "DEADMAP_" + m_Detector;
+  const std::string deadMapName = "DEADMAP_" + m_Detector;
   m_DeadMap = findNode::getClass<RawTowerDeadMap>(topNode, deadMapName);
   if (m_DeadMap)
   {
-    cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-         << " use dead map: ";
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+              << " use dead map: ";
     m_DeadMap->identify();
   }
 
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-         << "DST Node missing, doing nothing." << endl;
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+              << "DST Node missing, doing nothing." << std::endl;
     throw std::runtime_error("Failed to find DST node in RawTowerDigitizer::CreateNodes");
   }
 
-  string SimTowerNodeName = "TOWER_" + m_SimTowerNodePrefix + "_" + m_Detector;
+  std::string SimTowerNodeName = "TOWER_" + m_SimTowerNodePrefix + "_" + m_Detector;
   m_SimTowers = findNode::getClass<RawTowerContainer>(dstNode, SimTowerNodeName);
   if (!m_SimTowers)
   {
-    cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
-         << " " << SimTowerNodeName << " Node missing, doing bail out!"
-         << endl;
+    std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
+              << " " << SimTowerNodeName << " Node missing, doing bail out!"
+              << std::endl;
     throw std::runtime_error("Failed to find " + SimTowerNodeName + " node in RawTowerDigitizer::CreateNodes");
   }
 
@@ -546,7 +511,7 @@ void RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
   }
 
   // Be careful as a previous digitizer may have been registered for this detector
-  string RawTowerNodeName = "TOWER_" + m_RawTowerNodePrefix + "_" + m_Detector;
+  std::string RawTowerNodeName = "TOWER_" + m_RawTowerNodePrefix + "_" + m_Detector;
   m_RawTowers = findNode::getClass<RawTowerContainer>(DetNode, RawTowerNodeName);
   if (!m_RawTowers)
   {

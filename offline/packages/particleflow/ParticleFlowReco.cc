@@ -29,6 +29,7 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_uniform_pos
 
+#include <cmath>
 #include <iostream>
 
 // examine second value of std::pair, sort by smallest
@@ -41,8 +42,8 @@ float ParticleFlowReco::calculate_dR( float eta1, float eta2, float phi1, float 
 
   float deta = eta1 - eta2;
   float dphi = phi1 - phi2;
-  while ( dphi > 3.14159 ) dphi -= 2 * 3.14159;
-  while ( dphi < -3.14159 ) dphi += 2 * 3.14159;
+  while ( dphi > M_PI ) dphi -= 2 * M_PI;
+  while ( dphi < -M_PI ) dphi += 2 * M_PI;
   return sqrt( pow( deta, 2 ) + pow( dphi ,2 ) );
 
 }
@@ -219,7 +220,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	
 	float cluster_phi = hiter->second->get_phi();
 	/// default assume at vx_z = 0
-	float cluster_theta = 3.14159 / 2.0 - atan2( hiter->second->get_z() , hiter->second->get_r() );
+	float cluster_theta = M_PI / 2.0 - atan2( hiter->second->get_z() , hiter->second->get_r() );
 	float cluster_eta = -1 * log( tan( cluster_theta / 2.0 ) );
 	
 	if(vertex)
@@ -274,7 +275,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	
 	float cluster_phi = hiter->second->get_phi();
 	// for now, assume event at vx_z = 0
-	float cluster_theta = 3.14159 / 2.0 - atan2( hiter->second->get_z() , hiter->second->get_r() );
+	float cluster_theta = M_PI / 2.0 - atan2( hiter->second->get_z() , hiter->second->get_r() );
 	float cluster_eta = -1 * log( tan( cluster_theta / 2.0 ) );
 	if(vertex)
 	  {
@@ -359,8 +360,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
 	float deta = tower_eta - _pflow_TRK_eta[ trk ];
 	float dphi = tower_phi - _pflow_TRK_phi[ trk ];
-	if ( dphi > 3.14159 ) dphi -= 2 * 3.14159;
-	if ( dphi < -3.14159 ) dphi += 2 * 3.14159;
+	if ( dphi > M_PI ) dphi -= 2 * M_PI;
+	if ( dphi < -M_PI ) dphi += 2 * M_PI;
 
 	if ( fabs( deta ) < 0.025 * 2.5 && fabs( dphi ) < 0.025 * 2.5 ) {
 	  has_overlap = true;
@@ -437,8 +438,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
 	float deta = tower_eta - _pflow_TRK_eta[ trk ];
 	float dphi = tower_phi - _pflow_TRK_phi[ trk ];
-	if ( dphi > 3.14159 ) dphi -= 2 * 3.14159;
-	if ( dphi < -3.14159 ) dphi += 2 * 3.14159;
+	if ( dphi > M_PI ) dphi -= 2 * M_PI;
+	if ( dphi < -M_PI ) dphi += 2 * M_PI;
 
 	if ( fabs( deta ) < 0.1 * 1.5 && fabs( dphi ) < 0.1 * 1.5 ) {
 	  has_overlap = true;
@@ -511,8 +512,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 
 	float deta = tower_eta - _pflow_EM_eta[ em ];
 	float dphi = tower_phi - _pflow_EM_phi[ em ];
-	if ( dphi > 3.14159 ) dphi -= 2 * 3.14159;
-	if ( dphi < -3.14159 ) dphi += 2 * 3.14159;
+	if ( dphi > M_PI ) dphi -= 2 * M_PI;
+	if ( dphi < -M_PI ) dphi += 2 * M_PI;
 
 	if ( fabs( deta ) < 0.1 * 1.5 && fabs( dphi ) < 0.1 * 1.5 ) {
 	  has_overlap = true;
