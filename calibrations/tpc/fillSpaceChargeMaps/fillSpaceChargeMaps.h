@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef FILLSPACECHARGEMAPS_H
-#define FILLSPACECHARGEMAPS_H
+#ifndef FILLSPACECHARGEMAPS_FILLSPACECHARGEMAPS_H
+#define FILLSPACECHARGEMAPS_FILLSPACECHARGEMAPS_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 
-#include <math.h>
 
 // Forward declerations
 class Fun4AllHistoManager;
@@ -19,7 +18,6 @@ class TFile;
 class TH1;
 class TH2;
 class TH3;
-class TNtuple;
 class TTree;
 
 class fillSpaceChargeMaps : public SubsysReco
@@ -34,36 +32,25 @@ class fillSpaceChargeMaps : public SubsysReco
       register them to Fun4AllServer (so they can be output to file
       using Fun4AllServer::dumpHistos() method).
    */
-  int Init(PHCompositeNode *topNode) override;
+  int Init(PHCompositeNode * /*topNode*/) override;
 
   /** Called for first event when run number is known.
       Typically this is where you may want to fetch data from
       database, because you know the run number. A place
       to book histograms which have to know the run number.
    */
-  int InitRun(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode * /*topNode*/) override;
 
   /** Called for each event.
       This is where you do the real work.
    */
   int process_event(PHCompositeNode *topNode) override;
 
-  /// Clean up internals after each event.
-  //int ResetEvent(PHCompositeNode *topNode) override;
-
-  /// Called at the end of each run.
-  int EndRun(const int runnumber) override;
-
   /// Called at the end of all processing.
-  int End(PHCompositeNode *topNode) override;
-
-  /// Reset
-  int Reset(PHCompositeNode * /*topNode*/) override;
-
-  void Print(const std::string &what = "ALL") const override;
+  int End(PHCompositeNode * /*topNode*/) override;
 
   void SetFrequency(int freq);
-  void SetBeamXing(std::vector<int> &beamXs);
+  void SetBeamXing(const std::vector<int> &beamXs);
   void SetEvtStart(int newEvtStart);
   void SetUseIBFMap(bool useIBFMap = true);
   void SetGain(float ampGain = 2e3);
@@ -73,21 +60,22 @@ class fillSpaceChargeMaps : public SubsysReco
   void UseSliming(int fSliming = 0);
   void UseFieldMaps(int shiftElectrons = 0);
 
-  double pi = 2 * acos(0.0);
+ private:
+  std::vector<double> getNewWeights(TH3 *_h_SC_ibf, TH2 *_h_modules_anode, TH2 *_h_modules_measuredibf, double _hit_r, double _hit_phi, double dr_bin, double dphi_bin, bool _fUseIBFMap);
+  bool IsOverFrame(double r, double phi);
+  std::vector<double> putOnPlane(double r, double phi);
 
- protected:
-  Fun4AllHistoManager *hm;
+  Fun4AllHistoManager *hm = nullptr;
   std::string _filename;
   std::set<std::string> _node_postfix;
   std::map<int, int> _timestamps;
   std::vector<int> _keys;
-  TFile *outfile;
-  float _ampGain;
-  float _ampIBFfrac;
-  int _collSyst;
-  int _shiftElectrons;
+  TFile *outfile = nullptr;
+  float _ampGain = 2e3;
+  float _ampIBFfrac = 0.02;
+  int _collSyst = 0;
+  int _shiftElectrons = 0;
 
- private:
   double _freqKhz = 22;
   //int _beamxing = 0;
   std::vector<int> _beamxing;
@@ -96,7 +84,7 @@ class fillSpaceChargeMaps : public SubsysReco
   int _evtstart = 0;
   int _fAvg = 0;
   int _fSliming = 0;
-  TTree *_rawHits = 0;
+  TTree *_rawHits = nullptr;
   int _isOnPlane = 0;
   float _hit_z = 0;
   float _hit_r = 0;
@@ -108,14 +96,14 @@ class fillSpaceChargeMaps : public SubsysReco
   float _event_bunchXing = 0;
 
   bool _fUseIBFMap = false;
-  TH2 *_h_modules_anode = 0;
-  TH2 *_h_modules_measuredibf = 0;
-  TH1 *_h_hits = 0;
-  TH1 *_h_R = 0;
-  TH2 *_h_DC_E = 0;
+  TH2 *_h_modules_anode = nullptr;
+  TH2 *_h_modules_measuredibf = nullptr;
+  TH1 *_h_hits = nullptr;
+  TH1 *_h_R = nullptr;
+  TH2 *_h_DC_E = nullptr;
   static const int nFrames = 30;
-  TH3 *_h_SC_prim[nFrames];
-  TH3 *_h_SC_ibf[nFrames];
+  TH3 *_h_SC_prim[nFrames] = {nullptr};
+  TH3 *_h_SC_ibf[nFrames] = {nullptr};
 
   float f = 0.5;                    //for now, just pick the middle of the hit.  Do better later.
   float ns = 1e-9, s = 1;           // us=1e-6,ms=1e-3,
@@ -163,4 +151,4 @@ class fillSpaceChargeMaps : public SubsysReco
   float _mean = 0;
 };
 
-#endif  // fillSpaceChargeMaps_H
+#endif  // FILLSPACECHARGEMAPS_FILLSPACECHARGEMAPS_H

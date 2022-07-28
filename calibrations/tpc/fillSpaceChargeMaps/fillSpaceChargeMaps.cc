@@ -1,247 +1,55 @@
 #include "fillSpaceChargeMaps.h"
 
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>  // for SubsysReco
+#include "Shifter.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
-#include <phool/PHCompositeNode.h>
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/getClass.h>
 
+#include <TAxis.h>                        // for TAxis
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
 #include <TH3.h>
-#include <TNtuple.h>
 #include <TTree.h>
 #include <TVector3.h>
 
+#include <algorithm>                      // for max
+#include <cmath>                          // for sin, asin, cos, floor, M_PI
 #include <cstdlib>
+#include <cstdio>                        // for sprintf, printf
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
-#include <typeinfo>
+#include <utility>                        // for pair
 #include <vector>
 
-#include "Shifter.h"
-
-using namespace std;
-
-vector<double> getNewWeights(TH3 *_h_SC_ibf, TH2 *_h_modules_anode, TH2 *_h_modules_measuredibf, double _hit_r, double _hit_phi, double dr_bin, double dphi_bin, bool _fUseIBFMap);
-
-vector<double> getNewWeights(TH3 *_h_SC_ibf, TH2 *_h_modules_anode, TH2 *_h_modules_measuredibf, double _hit_r, double _hit_phi, double dr_bin, double dphi_bin, bool _fUseIBFMap)
-{
-  double w_ibf_tmp = 1.0;
-  double w_gain_tmp = 1.0;
-  int r_bin = _h_SC_ibf->GetYaxis()->FindBin(_hit_r);
-  double r_bin_c = _h_SC_ibf->GetYaxis()->GetBinCenter(r_bin);
-
-  int phi_bin = _h_SC_ibf->GetXaxis()->FindBin(_hit_phi);
-  double phi_bin_c = _h_SC_ibf->GetXaxis()->GetBinCenter(phi_bin);
-
-  if (dr_bin > 0 && dphi_bin < 0)
-  {
-    if (_hit_r - r_bin_c > 0)
-    {
-      _hit_r = _hit_r + dr_bin;
-    }
-    else
-    {
-      _hit_r = _hit_r - dr_bin;
-    }
-  }
-
-  if (dr_bin < 0 && dphi_bin > 0)
-  {
-    if (_hit_phi - phi_bin_c > 0)
-    {
-      _hit_phi = _hit_phi + dphi_bin;
-    }
-    else
-    {
-      _hit_phi = _hit_phi - dphi_bin;
-    }
-  }
-  if (dr_bin > 0 && dphi_bin > 0)
-  {
-    if (_hit_phi - phi_bin_c > 0 && _hit_r - r_bin_c >= 0)
-    {
-      _hit_phi = _hit_phi + dphi_bin;
-      _hit_r = _hit_r + dr_bin;
-    }
-    if (_hit_phi - phi_bin_c <= 0 && _hit_r - r_bin_c < 0)
-    {
-      _hit_phi = _hit_phi - dphi_bin;
-      _hit_r = _hit_r - dr_bin;
-    }
-    if (_hit_phi - phi_bin_c > 0 && _hit_r - r_bin_c <= 0)
-    {
-      _hit_phi = _hit_phi + dphi_bin;
-      _hit_r = _hit_r - dr_bin;
-    }
-    if (_hit_phi - phi_bin_c <= 0 && _hit_r - r_bin_c > 0)
-    {
-      _hit_phi = _hit_phi - dphi_bin;
-      _hit_r = _hit_r + dr_bin;
-    }
-  }
-  if (_fUseIBFMap)
-  {
-    double x_tmp = _hit_r * cos(_hit_phi);
-    double y_tmp = _hit_r * sin(_hit_phi);
-    int bin_x = _h_modules_anode->GetXaxis()->FindBin(x_tmp);
-    int bin_y = _h_modules_anode->GetYaxis()->FindBin(y_tmp);
-    w_ibf_tmp = _h_modules_measuredibf->GetBinContent(bin_x, bin_y);
-    w_gain_tmp = _h_modules_anode->GetBinContent(bin_x, bin_y);
-  }
-  vector<double> newWeights;
-  newWeights.push_back(w_ibf_tmp);
-  newWeights.push_back(w_gain_tmp);
-  newWeights.push_back(_hit_r);
-  newWeights.push_back(_hit_phi);
-  return newWeights;
-}
-
-bool IsOverFrame(double r, double phi);
-
-bool IsOverFrame(double r, double phi)
-{
-  //these parameters are taken from Feb 12 drawings of frames.
-  double tpc_frame_side_gap = 0.8;    //mm //space between radial line and start of frame
-  double tpc_frame_side_width = 2.6;  //mm //thickness of frame
-  double tpc_margin = 2.0;            //mm // extra gap between edge of frame and start of GEM holes
-
-  double tpc_frame_r3_outer = 759.11;  //758.4;//mm inner edge of larger-r frame of r3
-  double tpc_frame_r3_inner = 583.67;  //583.5;//mm outer edge of smaller-r frame of r3
-
-  double tpc_frame_r2_outer = 574.76;  //574.9;//mm inner edge of larger-r frame of r3
-  double tpc_frame_r2_inner = 411.53;  //411.4;//mm outer edge of smaller-r frame of r3
-
-  double tpc_frame_r1_outer = 402.49;  //402.6;//mm inner edge of larger-r frame of r3
-  double tpc_frame_r1_inner = 217.83;  //221.0;//mm outer edge of smaller-r frame of r3
-
-  //double tpc_sec0_phi=0.0;//get_double_param("tpc_sec0_phi");
-
-  //if the coordinate is in the radial spaces of the frames, return true:
-  if (r < tpc_frame_r1_inner + tpc_margin)
-    return true;
-  if (r > tpc_frame_r1_outer - tpc_margin && r < tpc_frame_r2_inner + tpc_margin)
-    return true;
-  if (r > tpc_frame_r2_outer - tpc_margin && r < tpc_frame_r3_inner + tpc_margin)
-    return true;
-  if (r > tpc_frame_r3_outer - tpc_margin)
-    return true;
-
-  //if the coordinate is within gap+width of a sector boundary, return true:
-  //note that this is not a line of constant radius, but a linear distance from a radius.
-
-  //find the two spokes we're between:
-  double pi = 2 * acos(0.0);
-
-  float sectorangle = (pi / 6);
-  float nsectors = phi / sectorangle;
-  int nsec = floor(nsectors);
-  float reduced_phi = phi - nsec * sectorangle;  //between zero and sixty degrees.
-  float dist_to_previous = r * sin(reduced_phi);
-  float dist_to_next = r * sin(sectorangle - reduced_phi);
-  if (dist_to_previous < tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
-    return true;
-  if (dist_to_next < tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
-    return true;
-
-  return false;
-}
-
-vector<double> putOnPlane(double r, double phi);
-
-vector<double> putOnPlane(double r, double phi)
-{
-  //these parameters are taken from Feb 12 drawings of frames.
-  double tpc_frame_side_gap = 0.8;    //mm //space between radial line and start of frame
-  double tpc_frame_side_width = 2.6;  //mm //thickness of frame
-  double tpc_margin = 2.0;            //mm // extra gap between edge of frame and start of GEM holes
-
-  double tpc_frame_r3_outer = 759.11;  //758.4;//mm inner edge of larger-r frame of r3
-  double tpc_frame_r3_inner = 583.67;  //583.5;//mm outer edge of smaller-r frame of r3
-
-  double tpc_frame_r2_outer = 574.76;  //574.9;//mm inner edge of larger-r frame of r3
-  double tpc_frame_r2_inner = 411.53;  //411.4;//mm outer edge of smaller-r frame of r3
-
-  double tpc_frame_r1_outer = 402.49;  //402.6;//mm inner edge of larger-r frame of r3
-  double tpc_frame_r1_inner = 217.83;  //221.0;//mm outer edge of smaller-r frame of r3
-
-  //double tpc_sec0_phi=0.0;//get_double_param("tpc_sec0_phi");
-  double r_0_bin = -1;
-  double phi_0_bin = -1;
-  //if the coordinate is in the radial spaces of the frames, return true:
-  if (r < tpc_frame_r1_inner + tpc_margin)
-    r_0_bin = tpc_frame_r1_inner - r;
-  if (r > tpc_frame_r1_outer - tpc_margin && r < tpc_frame_r2_inner + tpc_margin)
-    r_0_bin = tpc_frame_r2_inner - tpc_frame_r1_outer;
-  if (r > tpc_frame_r2_outer - tpc_margin && r < tpc_frame_r3_inner + tpc_margin)
-    r_0_bin = tpc_frame_r3_inner - tpc_frame_r2_outer;
-  if (r > tpc_frame_r3_outer - tpc_margin)
-    r_0_bin = r - tpc_frame_r3_outer;
-
-  //if the coordinate is within gap+width of a sector boundary, return true:
-  //note that this is not a line of constant radius, but a linear distance from a radius.
-
-  //find the two spokes we're between:
-  double pi = 2 * acos(0.0);
-
-  float sectorangle = (pi / 6);
-  float nsectors = phi / sectorangle;
-  int nsec = floor(nsectors);
-  float reduced_phi = phi - nsec * sectorangle;  //between zero and sixty degrees.
-  float dist_to_previous = r * sin(reduced_phi);
-  float dist_to_next = r * sin(sectorangle - reduced_phi);
-  if (dist_to_previous < tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
-    //phi_0_bin = 0.0136;
-    phi_0_bin = asin((tpc_frame_side_gap + tpc_frame_side_width + tpc_margin) / r);
-  if (dist_to_next < tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
-    //phi_0_bin = 0.0136;
-    phi_0_bin = asin((tpc_frame_side_gap + tpc_frame_side_width + tpc_margin) / r);
-  vector<double> r_phi_bin;
-  r_phi_bin.push_back(r_0_bin / 2);
-  r_phi_bin.push_back(phi_0_bin);
-  return r_phi_bin;
-}
 
 //____________________________________________________________________________..
 fillSpaceChargeMaps::fillSpaceChargeMaps(const std::string &name, const std::string &filename)
   : SubsysReco(name)
-  , hm(nullptr)
   , _filename(filename)
-  , outfile(nullptr)
-  , _ampGain(2e3)
-  , _ampIBFfrac(0.02)
-  , _collSyst(0)
-  , _shiftElectrons(0)
-
 {
-  for (int i = 0; i < nFrames; i++)
-  {
-    _h_SC_prim[i] = 0;
-    _h_SC_ibf[i] = 0;
-  }
-  cout << "fillSpaceChargeMaps::fillSpaceChargeMaps(const std::string &name) Calling ctor" << endl;
+  std::cout << "fillSpaceChargeMaps::fillSpaceChargeMaps(const std::string &name) Calling ctor" << std::endl;
 }
 
 //____________________________________________________________________________..
 fillSpaceChargeMaps::~fillSpaceChargeMaps()
 {
-  //cout << "fillSpaceChargeMaps::~fillSpaceChargeMaps() Calling dtor" << endl;
+  //std::cout << "fillSpaceChargeMaps::~fillSpaceChargeMaps() Calling dtor" << std::endl;
   // delete whatever is created
   delete hm;
 }
 
 //____________________________________________________________________________..
-int fillSpaceChargeMaps::Init(PHCompositeNode *topNode)
+int fillSpaceChargeMaps::Init(PHCompositeNode * /*topNode*/)
 {
   int nz = 72;
   double z_rdo = 108 * cm;
@@ -272,7 +80,7 @@ int fillSpaceChargeMaps::Init(PHCompositeNode *topNode)
                                4.78295, 4.814825, 4.8467, 4.878575, 4.91045, 4.942325, 4.9742, 5.006075, 5.03795, 5.069825, 5.1017, 5.133575, 5.16545,
                                5.197325, 5.2292, 5.2428, 5.274675, 5.30655, 5.338425, 5.3703, 5.402175, 5.43405, 5.465925, 5.4978, 5.529675, 5.56155,
                                5.593425, 5.6253, 5.657175, 5.68905, 5.720925, 5.7528, 5.7664, 5.798275, 5.83015, 5.862025, 5.8939, 5.925775, 5.95765,
-                               5.989525, 6.0214, 6.053275, 6.08515, 6.117025, 6.1489, 6.180775, 6.21265, 6.244525, 6.2764, 2 * pi};
+                               5.989525, 6.0214, 6.053275, 6.08515, 6.117025, 6.1489, 6.180775, 6.21265, 6.244525, 6.2764, 2 * M_PI};
 
   double z_bins[2 * nz + 1];
   for (int z = 0; z <= 2 * nz; z++)
@@ -326,9 +134,9 @@ int fillSpaceChargeMaps::Init(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode)
+int fillSpaceChargeMaps::InitRun(PHCompositeNode * /*topNode*/)
 {
-  //cout << "fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << endl;
+  //std::cout << "fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
   std::string line;
   //AA collisions timestamps
   std::string txt_file = "./data/timestamps_50kHz_1M.txt";
@@ -339,7 +147,7 @@ int fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode)
     txt_file = "/phenix/u/hpereira/sphenix/work/g4simulations/timestamps_3MHz.txt";
     start_line = 2;
   }
-  ifstream InputFile(txt_file);
+  std::ifstream InputFile(txt_file);
   if (InputFile.is_open())
   {
     int n_line = 0;
@@ -358,7 +166,7 @@ int fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode)
         _timestamps[n[0]] = n[1];
         if (n_line < 10)
         {
-          cout << n[1] << endl;
+          std::cout << n[1] << std::endl;
         }
         _keys.push_back(int(n[0]));
       }
@@ -367,12 +175,11 @@ int fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode)
   }
 
   else
-    cout << "Unable to open file:" << txt_file << endl;
+    std::cout << "Unable to open file:" << txt_file << std::endl;
 
-  TFile *MapsFile;
   if (_fUseIBFMap)
   {
-    MapsFile = new TFile("./data/IBF_Map.root", "READ");
+    TFile *MapsFile = new TFile("./data/IBF_Map.root", "READ");
     if (MapsFile->IsOpen()) printf("File opened successfully\n");
     _h_modules_anode = (TH2F *) MapsFile->Get("h_modules_anode")->Clone("_h_modules_anode");
     _h_modules_measuredibf = (TH2F *) MapsFile->Get("h_modules_measuredibf")->Clone("_h_modules_measuredibf");
@@ -388,8 +195,6 @@ int fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
 {
-  double bX = 0;
-  //double bX_end = 0;
   double z_bias_avg = 0;
   int bemxingsInFile = _keys.size();
   int key = -1;
@@ -402,15 +207,12 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
   _event_timestamp = (float) _timestamps[key] * ns;  //units in seconds
   _event_bunchXing = key;
 
-  if (_evtstart % 10 == 0) cout << "_evtstart = " << _evtstart << endl;
+  if (_evtstart % 10 == 0) std::cout << "_evtstart = " << _evtstart << std::endl;
   _evtstart++;
-  ostringstream nodename;
-  set<std::string>::const_iterator iter;
-  nodename << "G4HIT_TPC";
 
-  Shifter s("/sphenix/user/rcorliss/distortion_maps/2021.04/apr07.average.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root");
+  Shifter shifter("/sphenix/user/rcorliss/distortion_maps/2021.04/apr07.average.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root");
 
-  PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+  PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_TPC" );
   int n_hits = 0;
   if (hits)
   {
@@ -435,7 +237,7 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
 
       float r = sqrt(x * x + y * y);
       float phi = atan2(x, y);
-      if (phi < 0) phi += 2 * pi;
+      if (phi < 0) phi += 2 * M_PI;
 
       // Shift electrons according to the field maps
       TVector3 oldPos(x / cm, y / cm, z / cm);
@@ -445,12 +247,12 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
         if (oldPos.z() < 0)
         {
           oldPos.SetZ(abs(oldPos.z()));
-          newPos = s.ShiftForward(oldPos);
+          newPos = shifter.ShiftForward(oldPos);
           newPos.SetZ(newPos.z() * -1);
         }
         else
         {
-          newPos = s.ShiftForward(oldPos);
+          newPos = shifter.ShiftForward(oldPos);
         }
       }
       else
@@ -479,17 +281,17 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
       double dphi_bin = -1;
       double new_phi = newPos.Phi();
       double new_r = newPos.Perp() * cm;
-      if (new_phi < 0) new_phi += 2 * pi;
+      if (new_phi < 0) new_phi += 2 * M_PI;
       if (!IsOverFrame(new_r, new_phi))
       {
         _isOnPlane = 1;
       }
       else
       {
-        vector<double> r_phi_bin = putOnPlane(new_r / mm, new_phi);
+        std::vector<double> r_phi_bin = putOnPlane(new_r / mm, new_phi);
         dr_bin = r_phi_bin[0];
         dphi_bin = r_phi_bin[1];
-        //cout<<"dr_bin="<<dr_bin<<"dphi_bin="<<dphi_bin<<endl;
+        //std::cout<<"dr_bin="<<dr_bin<<"dphi_bin="<<dphi_bin<<std::endl;
       }
       _hit_z = z;
       _hit_r = r;
@@ -512,8 +314,8 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
         _h_DC_E->Fill(_ibf_vol, hit_eion * 1e6);
         for (int iz = 0; iz < 30; iz++)
         {
-          bX = _beamxing[iz];
-          //bX_end = _beamxing_end[iz];
+          double bX = _beamxing[iz];
+          //double bX_end = _beamxing_end[iz];
           if (_event_bunchXing <= bX)
           {
             if (_fAvg == 1)
@@ -544,8 +346,8 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
         _h_DC_E->Fill(_ibf_vol, hit_eion * 1e6);
         for (int iz = 0; iz < 30; iz++)
         {
-          bX = _beamxing[iz];
-          //bX_end = _beamxing_end[iz];
+          double bX = _beamxing[iz];
+          //double bX_end = _beamxing_end[iz];
           if (_event_bunchXing <= bX)
           {
             if (_fAvg == 1)
@@ -579,16 +381,14 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
         }
         if (f_fill_ibf[iz] == 1)
         {
-          double w_ibf_tmp = 1.0;
-          double w_gain_tmp = 1.0;
           if (!_isOnPlane)
           {
             //Redistribute charges
-            vector<double> newWeights = getNewWeights(_h_SC_ibf[iz], _h_modules_anode, _h_modules_measuredibf, _hit_r, _hit_phi, dr_bin, dphi_bin, _fUseIBFMap);
-            //vector<double> newWeights = getNewWeights(_h_SC_ibf[iz], _h_modules_anode, _h_modules_measuredibf, new_r, new_phi, dr_bin, dphi_bin, _fUseIBFMap);
+            std::vector<double> newWeights = getNewWeights(_h_SC_ibf[iz], _h_modules_anode, _h_modules_measuredibf, _hit_r, _hit_phi, dr_bin, dphi_bin, _fUseIBFMap);
+            //std::vector<double> newWeights = getNewWeights(_h_SC_ibf[iz], _h_modules_anode, _h_modules_measuredibf, new_r, new_phi, dr_bin, dphi_bin, _fUseIBFMap);
 
-            w_ibf_tmp = newWeights[0];
-            w_gain_tmp = newWeights[1];
+            double w_ibf_tmp = newWeights[0];
+            double w_gain_tmp = newWeights[1];
             _hit_r = newWeights[2];
             _hit_phi = newWeights[3];
 
@@ -614,27 +414,13 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
   }
   _h_hits->Fill(n_hits);
 
-  return 0;
-}
-
-//____________________________________________________________________________..
-//int fillSpaceChargeMaps::ResetEvent(PHCompositeNode *topNode)
-//{
-//  cout << "fillSpaceChargeMaps::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << endl;
-//  return Fun4AllReturnCodes::EVENT_OK;
-//}
-
-//____________________________________________________________________________..
-int fillSpaceChargeMaps::EndRun(const int runnumber)
-{
-  cout << "fillSpaceChargeMaps::EndRun(const int runnumber) Ending Run for Run " << runnumber << endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int fillSpaceChargeMaps::End(PHCompositeNode *topNode)
+int fillSpaceChargeMaps::End(PHCompositeNode * /*topNode*/)
 {
-  cout << "fillSpaceChargeMaps::End" << endl;
+  std::cout << "fillSpaceChargeMaps::End" << std::endl;
   if (_fSliming == 1)
   {
     outfile->cd();
@@ -654,86 +440,268 @@ int fillSpaceChargeMaps::End(PHCompositeNode *topNode)
   }
   else
   {
-    cout << "Writing File:" << _filename << endl;
+    std::cout << "Writing File:" << _filename << std::endl;
     hm->dumpHistos(_filename, "RECREATE");
   }
 
   return 0;
 }
 
-//____________________________________________________________________________..
-int fillSpaceChargeMaps::Reset(PHCompositeNode *topNode)
-{
-  cout << "fillSpaceChargeMaps::Reset(PHCompositeNode *topNode) being Reset" << endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-void fillSpaceChargeMaps::Print(const std::string &what) const
-{
-  cout << "fillSpaceChargeMaps::Print(const std::string &what) const Printing info for " << what << endl;
-}
-
 void fillSpaceChargeMaps::SetFrequency(int freq)
 {
   _freqKhz = freq;
-  cout << "Frequency is set to: " << _freqKhz << " kHz" << endl;
+  std::cout << "Frequency is set to: " << _freqKhz << " kHz" << std::endl;
 }
-void fillSpaceChargeMaps::SetBeamXing(std::vector<int> &beamXs)
+
+void fillSpaceChargeMaps::SetBeamXing(const std::vector<int> &beamXs)
 {
   _beamxing = beamXs;
-  cout << "Initial BeamXing is set to: " << _beamxing[0] << endl;
+  std::cout << "Initial BeamXing is set to: " << _beamxing[0] << std::endl;
 }
 //void fillSpaceChargeMaps::SetBeamXingEnd(std::vector<int> beamXs_end){
 //  _beamxing_end = beamXs_end;
-//  cout<<"Last BeamXing to fill TPC is set to: "<<_beamxing_end[0]<<endl;
+//  std::cout<<"Last BeamXing to fill TPC is set to: "<<_beamxing_end[0]<<std::endl;
 //
 //}
 void fillSpaceChargeMaps::SetEvtStart(int newEvtStart)
 {
   _evtstart = newEvtStart;
-  cout << "Starting event is set to: " << newEvtStart << endl;
+  std::cout << "Starting event is set to: " << newEvtStart << std::endl;
 }
 
 void fillSpaceChargeMaps::SetUseIBFMap(bool useIBFMap)
 {
   _fUseIBFMap = useIBFMap;
-  cout << "Using IBF and Gain Maps" << endl;
+  std::cout << "Using IBF and Gain Maps" << std::endl;
 }
 void fillSpaceChargeMaps::SetGain(float ampGain)
 {
   _ampGain = ampGain;
-  cout << "Gain is set to: " << _ampGain << endl;
+  std::cout << "Gain is set to: " << _ampGain << std::endl;
 }
 void fillSpaceChargeMaps::SetIBF(float ampIBFfrac)
 {
   _ampIBFfrac = ampIBFfrac;
-  cout << "IBF is set to: " << _ampIBFfrac << endl;
+  std::cout << "IBF is set to: " << _ampIBFfrac << std::endl;
 }
 
 void fillSpaceChargeMaps::SetCollSyst(int coll_syst)
 {
   _collSyst = coll_syst;
-  std::string s_syst[2] = {"AA", "pp"};
-  cout << "Collision system is set to: " << s_syst[_collSyst] << endl;
+  static const std::string s_syst[2] = {"AA", "pp"};
+  std::cout << "Collision system is set to: " << s_syst[_collSyst] << std::endl;
 }
 
 void fillSpaceChargeMaps::SetAvg(int fAvg)
 {
   _fAvg = fAvg;
-  std::string s_avg[2] = {"OFF", "ON"};
-  cout << "Averaging is set to: " << s_avg[_fAvg] << endl;
+  static const std::string s_avg[2] = {"OFF", "ON"};
+  std::cout << "Averaging is set to: " << s_avg[_fAvg] << std::endl;
 }
 void fillSpaceChargeMaps::UseSliming(int fSliming)
 {
   _fSliming = fSliming;
-  std::string s_sliming[2] = {"OFF", "ON"};
-  cout << "Sliming is set to: " << s_sliming[_fSliming] << endl;
+  static const std::string s_sliming[2] = {"OFF", "ON"};
+  std::cout << "Sliming is set to: " << s_sliming[_fSliming] << std::endl;
 }
 
 void fillSpaceChargeMaps::UseFieldMaps(int shiftElectrons)
 {
   _shiftElectrons = shiftElectrons;
-  std::string s_shiftElectrons[2] = {"OFF", "ON"};
-  cout << "Use Field-Maps is set to: " << s_shiftElectrons[_shiftElectrons] << endl;
+  static const std::string s_shiftElectrons[2] = {"OFF", "ON"};
+  std::cout << "Use Field-Maps is set to: " << s_shiftElectrons[_shiftElectrons] << std::endl;
+}
+
+std::vector<double> fillSpaceChargeMaps::getNewWeights(TH3 *h_SC_ibf, TH2 *h_modules_anode, TH2 *h_modules_measuredibf, double hit_r, double hit_phi, double dr_bin, double dphi_bin, bool fUseIBFMap)
+{
+  double w_ibf_tmp = 1.0;
+  double w_gain_tmp = 1.0;
+  int r_bin = h_SC_ibf->GetYaxis()->FindBin(hit_r);
+  double r_bin_c = h_SC_ibf->GetYaxis()->GetBinCenter(r_bin);
+
+  int phi_bin = h_SC_ibf->GetXaxis()->FindBin(hit_phi);
+  double phi_bin_c = h_SC_ibf->GetXaxis()->GetBinCenter(phi_bin);
+
+  if (dr_bin > 0 && dphi_bin < 0)
+  {
+    if (hit_r - r_bin_c > 0)
+    {
+      hit_r = hit_r + dr_bin;
+    }
+    else
+    {
+      hit_r = hit_r - dr_bin;
+    }
+  }
+
+  if (dr_bin < 0 && dphi_bin > 0)
+  {
+    if (hit_phi - phi_bin_c > 0)
+    {
+      hit_phi = hit_phi + dphi_bin;
+    }
+    else
+    {
+      hit_phi = hit_phi - dphi_bin;
+    }
+  }
+  if (dr_bin > 0 && dphi_bin > 0)
+  {
+    if (hit_phi - phi_bin_c > 0 && hit_r - r_bin_c >= 0)
+    {
+      hit_phi = hit_phi + dphi_bin;
+      hit_r = hit_r + dr_bin;
+    }
+    if (hit_phi - phi_bin_c <= 0 && hit_r - r_bin_c < 0)
+    {
+      hit_phi = hit_phi - dphi_bin;
+      hit_r = hit_r - dr_bin;
+    }
+    if (hit_phi - phi_bin_c > 0 && hit_r - r_bin_c <= 0)
+    {
+      hit_phi = hit_phi + dphi_bin;
+      hit_r = hit_r - dr_bin;
+    }
+    if (hit_phi - phi_bin_c <= 0 && hit_r - r_bin_c > 0)
+    {
+      hit_phi = hit_phi - dphi_bin;
+      hit_r = hit_r + dr_bin;
+    }
+  }
+  if (fUseIBFMap)
+  {
+    double x_tmp = hit_r * cos(hit_phi);
+    double y_tmp = hit_r * sin(hit_phi);
+    int bin_x = h_modules_anode->GetXaxis()->FindBin(x_tmp);
+    int bin_y = h_modules_anode->GetYaxis()->FindBin(y_tmp);
+    w_ibf_tmp = h_modules_measuredibf->GetBinContent(bin_x, bin_y);
+    w_gain_tmp = h_modules_anode->GetBinContent(bin_x, bin_y);
+  }
+  std::vector<double> newWeights;
+  newWeights.push_back(w_ibf_tmp);
+  newWeights.push_back(w_gain_tmp);
+  newWeights.push_back(hit_r);
+  newWeights.push_back(hit_phi);
+  return newWeights;
+}
+
+bool fillSpaceChargeMaps::IsOverFrame(double r, double phi)
+{
+  //these parameters are taken from Feb 12 drawings of frames.
+  double tpc_frame_side_gap = 0.8;    //mm //space between radial line and start of frame
+  double tpc_frame_side_width = 2.6;  //mm //thickness of frame
+  double tpc_margin = 2.0;            //mm // extra gap between edge of frame and start of GEM holes
+
+  double tpc_frame_r3_outer = 759.11;  //758.4;//mm inner edge of larger-r frame of r3
+  double tpc_frame_r3_inner = 583.67;  //583.5;//mm outer edge of smaller-r frame of r3
+
+  double tpc_frame_r2_outer = 574.76;  //574.9;//mm inner edge of larger-r frame of r3
+  double tpc_frame_r2_inner = 411.53;  //411.4;//mm outer edge of smaller-r frame of r3
+
+  double tpc_frame_r1_outer = 402.49;  //402.6;//mm inner edge of larger-r frame of r3
+  double tpc_frame_r1_inner = 217.83;  //221.0;//mm outer edge of smaller-r frame of r3
+
+  //double tpc_sec0_phi=0.0;//get_double_param("tpc_sec0_phi");
+
+  //if the coordinate is in the radial spaces of the frames, return true:
+  if (r < tpc_frame_r1_inner + tpc_margin)
+  {
+    return true;
+  }
+  if (r > tpc_frame_r1_outer - tpc_margin && r < tpc_frame_r2_inner + tpc_margin)
+  {
+    return true;
+  }
+  if (r > tpc_frame_r2_outer - tpc_margin && r < tpc_frame_r3_inner + tpc_margin)
+  {
+    return true;
+  }
+  if (r > tpc_frame_r3_outer - tpc_margin)
+  {
+    return true;
+  }
+  //if the coordinate is within gap+width of a sector boundary, return true:
+  //note that this is not a line of constant radius, but a linear distance from a radius.
+
+  //find the two spokes we're between:
+
+  float sectorangle = (M_PI / 6.);
+  float nsectors = phi / sectorangle;
+  int nsec = floor(nsectors);
+  float reduced_phi = phi - nsec * sectorangle;  //between zero and sixty degrees.
+  float dist_to_previous = r * sin(reduced_phi);
+  float dist_to_next = r * sin(sectorangle - reduced_phi);
+  if (dist_to_previous < tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
+  {
+    return true;
+  }
+  if (dist_to_next < tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
+  {
+    return true;
+  }
+  return false;
+}
+
+std::vector<double> fillSpaceChargeMaps::putOnPlane(double r, double phi)
+{
+  //these parameters are taken from Feb 12 drawings of frames.
+  double tpc_frame_side_gap = 0.8;    //mm //space between radial line and start of frame
+  double tpc_frame_side_width = 2.6;  //mm //thickness of frame
+  double tpc_margin = 2.0;            //mm // extra gap between edge of frame and start of GEM holes
+
+  double tpc_frame_r3_outer = 759.11;  //758.4;//mm inner edge of larger-r frame of r3
+  double tpc_frame_r3_inner = 583.67;  //583.5;//mm outer edge of smaller-r frame of r3
+
+  double tpc_frame_r2_outer = 574.76;  //574.9;//mm inner edge of larger-r frame of r3
+  double tpc_frame_r2_inner = 411.53;  //411.4;//mm outer edge of smaller-r frame of r3
+
+  double tpc_frame_r1_outer = 402.49;  //402.6;//mm inner edge of larger-r frame of r3
+  double tpc_frame_r1_inner = 217.83;  //221.0;//mm outer edge of smaller-r frame of r3
+
+  //double tpc_sec0_phi=0.0;//get_double_param("tpc_sec0_phi");
+  double r_0_bin = -1;
+  double phi_0_bin = -1;
+  //if the coordinate is in the radial spaces of the frames, return true:
+  if (r < tpc_frame_r1_inner + tpc_margin)
+  {
+    r_0_bin = tpc_frame_r1_inner - r;
+  }
+  if (r > tpc_frame_r1_outer - tpc_margin && r < tpc_frame_r2_inner + tpc_margin)
+  {
+    r_0_bin = tpc_frame_r2_inner - tpc_frame_r1_outer;
+  }
+  if (r > tpc_frame_r2_outer - tpc_margin && r < tpc_frame_r3_inner + tpc_margin)
+  {
+    r_0_bin = tpc_frame_r3_inner - tpc_frame_r2_outer;
+  }
+  if (r > tpc_frame_r3_outer - tpc_margin)
+  {
+    r_0_bin = r - tpc_frame_r3_outer;
+  }
+
+  //if the coordinate is within gap+width of a sector boundary, return true:
+  //note that this is not a line of constant radius, but a linear distance from a radius.
+
+  //find the two spokes we're between:
+
+  float sectorangle = (M_PI / 6.);
+  float nsectors = phi / sectorangle;
+  int nsec = floor(nsectors);
+  float reduced_phi = phi - nsec * sectorangle;  //between zero and sixty degrees.
+  float dist_to_previous = r * sin(reduced_phi);
+  float dist_to_next = r * sin(sectorangle - reduced_phi);
+  if (dist_to_previous < tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
+  {
+    //phi_0_bin = 0.0136;
+    phi_0_bin = asin((tpc_frame_side_gap + tpc_frame_side_width + tpc_margin) / r);
+  }
+  if (dist_to_next < tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
+  {
+    //phi_0_bin = 0.0136;
+    phi_0_bin = asin((tpc_frame_side_gap + tpc_frame_side_width + tpc_margin) / r);
+  }
+  std::vector<double> r_phi_bin;
+  r_phi_bin.push_back(r_0_bin / 2);
+  r_phi_bin.push_back(phi_0_bin);
+  return r_phi_bin;
 }
