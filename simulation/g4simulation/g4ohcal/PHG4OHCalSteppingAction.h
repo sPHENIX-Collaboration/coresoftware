@@ -15,6 +15,7 @@ class PHParameters;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
+class TH2;
 
 class PHG4OHCalSteppingAction : public PHG4SteppingAction
 {
@@ -41,6 +42,9 @@ class PHG4OHCalSteppingAction : public PHG4SteppingAction
  private:
   //! pointer to the detector
   PHG4OHCalDetector *m_Detector = nullptr;
+
+  //! efficiency maps from Mephi
+  TH2 *m_MapCorrHist = nullptr;
 
   //! pointer to hit container
   PHG4HitContainer *m_HitContainer = nullptr;
