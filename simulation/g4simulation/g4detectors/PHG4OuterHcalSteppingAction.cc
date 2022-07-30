@@ -245,6 +245,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         m_Hit->set_scint_id(tower_id);  // the slat id
         m_Hit->set_eion(0);
+        m_Hit->set_raw_light_yield(0);  //  for scintillator only, initialize light yields
         m_Hit->set_light_yield(0);  //  for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
         m_SaveHitContainer = m_Hits;
@@ -311,18 +312,12 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     if (whichactive > 0)
     {
-      if (m_LightScintModelFlag != 2)
-      {
-        m_Hit->set_eion(m_Hit->get_eion() + eion);
-        light_yield = eion;
-      }
+      m_Hit->set_eion(m_Hit->get_eion() + eion);
+      light_yield = eion;
       if (m_LightScintModelFlag)
       {
         light_yield = GetVisibleEnergyDeposition(aStep);
-        if (m_LightScintModelFlag == 2)  // for debugging - save old light yield instead of ionization energy
-        {
-          m_Hit->set_eion(m_Hit->get_eion() + light_yield);
-        }
+        m_Hit->set_raw_light_yield(m_Hit->get_raw_light_yield() + light_yield);
         if (m_MapCorrHist)
         {
           G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
