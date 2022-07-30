@@ -246,7 +246,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         m_Hit->set_scint_id(tower_id);  // the slat id
         m_Hit->set_eion(0);
         m_Hit->set_raw_light_yield(0);  //  for scintillator only, initialize light yields
-        m_Hit->set_light_yield(0);  //  for scintillator only, initialize light yields
+        m_Hit->set_light_yield(0);      //  for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
         m_SaveHitContainer = m_Hits;
       }
