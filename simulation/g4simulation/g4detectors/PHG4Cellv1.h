@@ -17,7 +17,7 @@
 class PHG4Cellv1 : public PHG4Cell
 {
  public:
-  PHG4Cellv1();
+  PHG4Cellv1(){}
   explicit PHG4Cellv1(const PHG4CellDefs::keytype g4cellid);
   ~PHG4Cellv1() override;
 
@@ -101,7 +101,7 @@ class PHG4Cellv1 : public PHG4Cell
   unsigned int get_property_nocheck(const PROPERTY prop_id) const override;
   void set_property_nocheck(const PROPERTY prop_id, const unsigned int ui) override { prop_map[prop_id] = ui; }
 
-  PHG4CellDefs::keytype cellid;
+  PHG4CellDefs::keytype cellid = ~0x0;
   EdepMap hitedeps;
   ShowerEdepMap showeredeps;
 
