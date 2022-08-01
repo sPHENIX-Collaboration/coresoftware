@@ -37,6 +37,10 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 
     //! save ionization energy
     kIonizationEnergy,
+
+    //! save raw light yield (before Mephi map) as the weight of the cells
+    kRawLightYield,
+
     //! initialization value
     unknown = -1
   };

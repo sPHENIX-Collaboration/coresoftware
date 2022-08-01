@@ -132,6 +132,10 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
     {
       std::cout << "save ionization energy in towers" << std::endl;
     }
+    else if (m_TowerEnergySrc == kRawLightYield)
+    {
+      std::cout << "save raw (pre-Mephi map) light yield in towers" << std::endl;
+    }
     else
     {
       std::cout << "unknown energy source" << std::endl;
@@ -329,6 +333,10 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     else if (m_TowerEnergySrc == kIonizationEnergy)
     {
       cell_weight = cell->get_eion();
+    }
+    else if (m_TowerEnergySrc == kRawLightYield)
+    {
+      cell_weight = cell->get_raw_light_yield();
     }
     else
     {

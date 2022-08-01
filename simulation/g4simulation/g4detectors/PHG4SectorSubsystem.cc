@@ -19,15 +19,9 @@
 
 class PHG4Detector;
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4SectorSubsystem::PHG4SectorSubsystem(const std::string& name)
   : PHG4Subsystem(name)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
-  , superdetector("NONE")
 {
 }
 
@@ -41,8 +35,7 @@ PHG4SectorSubsystem::~PHG4SectorSubsystem()
 int PHG4SectorSubsystem::Init(PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
-  PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
-      "PHCompositeNode", "DST"));
+  PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create display settings before detector
   m_DisplayAction = new PHG4SectorDisplayAction(Name());
@@ -54,7 +47,7 @@ int PHG4SectorSubsystem::Init(PHCompositeNode* topNode)
 
   if (geom.GetNumActiveLayers())
   {
-    ostringstream nodename;
+    std::ostringstream nodename;
     if (superdetector != "NONE")
     {
       nodename << "G4HIT_" << superdetector;
@@ -64,8 +57,7 @@ int PHG4SectorSubsystem::Init(PHCompositeNode* topNode)
       nodename << "G4HIT_" << Name();
     }
     // create hit list
-    PHG4HitContainer* block_hits = findNode::getClass<PHG4HitContainer>(
-        topNode, nodename.str());
+    PHG4HitContainer* block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!block_hits)
     {
       dstNode->addNode(new PHIODataNode<PHObject>(new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
