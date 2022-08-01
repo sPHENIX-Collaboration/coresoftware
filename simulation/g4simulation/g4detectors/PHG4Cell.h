@@ -70,6 +70,9 @@ class PHG4Cell : public PHObject
   virtual void add_light_yield(const float) { return; }
   virtual float get_light_yield() const { return NAN; }
 
+  virtual void add_raw_light_yield(const float) { return; }
+  virtual float get_raw_light_yield() const { return NAN; }
+
   // get/set methodes - PLEASE add those ALPHABETICALLY
 
   virtual void set_chip_index(const int) { return; }
@@ -127,6 +130,9 @@ class PHG4Cell : public PHObject
 
     //! for scintillation detectors, the amount of light produced
     prop_light_yield = 23,
+
+    //! for scintillation detectors, the amount of light produced
+    prop_raw_light_yield = 24,
 
     //! max limit in order to fit into 8 bit unsigned number
     prop_MAX_NUMBER = UCHAR_MAX

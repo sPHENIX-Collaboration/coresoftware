@@ -7,14 +7,13 @@
 #include <iostream>
 #include <map>
 
-using namespace std;
-static map<int, string> stepstatus;
+static std::map<int, std::string> stepstatus;
 
-string PHG4StepStatusDecode::GetStepStatus(const int istatus)
+std::string PHG4StepStatusDecode::GetStepStatus(const int istatus)
 {
   if (stepstatus.empty())
   {
-    cout << "filling stepstatus map" << endl;
+    std::cout << "filling stepstatus map" << std::endl;
     stepstatus[fWorldBoundary] = "fWorldBoundary";
     stepstatus[fGeomBoundary] = "fGeomBoundary";
     stepstatus[fAtRestDoItProc] = "fAtRestDoItProc";
@@ -26,7 +25,7 @@ string PHG4StepStatusDecode::GetStepStatus(const int istatus)
   }
   if (stepstatus.find(istatus) == stepstatus.end())
   {
-    cout << "could not find status " << istatus << " in stepstatus map" << endl;
+    std::cout << "could not find status " << istatus << " in stepstatus map" << std::endl;
     gSystem->Exit(1);
   }
   return stepstatus[istatus];
