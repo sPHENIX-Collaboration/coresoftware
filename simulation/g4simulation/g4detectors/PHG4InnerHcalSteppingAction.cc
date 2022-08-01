@@ -45,27 +45,14 @@
 
 class PHCompositeNode;
 
-//using namespace std;
-
-TH2F* mapCorr = nullptr;
 //____________________________________________________________________________..
 PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
-  , m_Hits(nullptr)
-  , m_AbsorberHits(nullptr)
-  , m_Hit(nullptr)
   , m_Params(parameters)
-  , m_SaveHitContainer(nullptr)
-  , m_SaveShower(nullptr)
-  , m_SaveVolPre(nullptr)
-  , m_SaveVolPost(nullptr)
-  , m_SaveTrackId(-1)
-  , m_SavePreStepStatus(-1)
-  , m_SavePostStepStatus(-1)
   , m_IsActive(m_Params->get_int_param("active"))
   , m_IsBlackHole(m_Params->get_int_param("blackhole"))
-  , m_LightScintModel(m_Params->get_int_param("light_scint_model"))
+  , m_LightScintModelFlag(m_Params->get_int_param("light_scint_model"))
 {
   SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
                      m_Params->get_double_param("light_balance_inner_corr"),
@@ -80,32 +67,34 @@ PHG4InnerHcalSteppingAction::~PHG4InnerHcalSteppingAction()
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete m_Hit;
+  // since we have a copy in memory of this one - we need to delete it
+  delete m_MapCorrHist;
 }
 
 //____________________________________________________________________________..
 int PHG4InnerHcalSteppingAction::Init()
 {
-  std::ostringstream ihcalmapname;
-  const char* Calibroot = getenv("CALIBRATIONROOT");
-  if (Calibroot)
+  if (m_LightScintModelFlag)
   {
-    ihcalmapname << Calibroot;
+    const char* Calibroot = getenv("CALIBRATIONROOT");
+    if (!Calibroot)
+    {
+      std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+      gSystem->Exit(1);
+    }
+    std::string ihcalmapname(Calibroot);
+    ihcalmapname += "/HCALIN/tilemap/iHCALMapsNorm020922.root";
+    TFile* file = TFile::Open(ihcalmapname.c_str());
+    file->GetObject("ihcalmapcombined", m_MapCorrHist);
+    m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
+    file->Close();
+    delete file;
+    if (!m_MapCorrHist)
+    {
+      std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;
+      gSystem->Exit(1);
+    }
   }
-  else
-  {
-    std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
-    gSystem->Exit(1);
-  }
-
-  ihcalmapname << "/HCALIN/tilemap/iHCALMapsNorm020922.root";
-  TFile* file = new TFile(ihcalmapname.str().c_str());
-  mapCorr = (TH2F*) file->Get("ihcalmapcombined");
-  if (!mapCorr)
-  {
-    std::cout << "ERROR: mapCorr is NULL" << std::endl;
-    gSystem->Exit(1);
-  }
-
   return 0;
 }
 
@@ -220,6 +209,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         m_Hit->set_scint_id(tower_id);  // the slat id
         m_Hit->set_eion(0);             // only implemented for v5 otherwise empty
+        m_Hit->set_raw_light_yield(0);  //  for scintillator only, initialize light yields
         m_Hit->set_light_yield(0);      // for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
         m_SaveHitContainer = m_Hits;
@@ -287,37 +277,39 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (whichactive > 0)  // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
     {
-      G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
-      G4ThreeVector worldPosition = postPoint->GetPosition();
-      G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
-
       m_Hit->set_eion(m_Hit->get_eion() + eion);
       light_yield = eion;
-
-      if (m_LightScintModel)
+      if (m_LightScintModelFlag)
       {
-        light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
-        float lx = (localPosition.x() / cm);
-        float lz = fabs(localPosition.z() / cm);
-
-        if (mapCorr)
+        light_yield = GetVisibleEnergyDeposition(aStep);                         // for scintillator only, calculate light yields
+        m_Hit->set_raw_light_yield(m_Hit->get_raw_light_yield() + light_yield);  // save raw Birks light yield
+        if (m_MapCorrHist)
         {
+          G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
+          G4ThreeVector worldPosition = postPoint->GetPosition();
+          G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
+          float lx = (localPosition.x() / cm);
+          float lz = fabs(localPosition.z() / cm);
           //adjust to tilemap coordinates
           int lcz = (int) (5.0 * lz) + 1;
           int lcx = (int) (5.0 * (lx + 12.1)) + 1;
 
-          if ((lcx >= 1) && (lcx <= mapCorr->GetNbinsY()) &&
-              (lcz >= 1) && (lcz <= mapCorr->GetNbinsX()))
+          if ((lcx >= 1) && (lcx <= m_MapCorrHist->GetNbinsY()) &&
+              (lcz >= 1) && (lcz <= m_MapCorrHist->GetNbinsX()))
           {
-            light_yield *= (double) (mapCorr->GetBinContent(lcz, lcx));
+            light_yield *= (double) (m_MapCorrHist->GetBinContent(lcz, lcx));
           }
           else
           {
             light_yield = 0.0;
           }
         }
+        else
+        {
+          // old correction (linear ligh yield dependence along r), never tested
+          light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x(), postPoint->GetPosition().y());
+        }
       }
-      light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x(), postPoint->GetPosition().y());
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
     if (geantino)

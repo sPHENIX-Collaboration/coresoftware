@@ -15,6 +15,7 @@ class PHParameters;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
+class TH2;
 
 class PHG4IHCalSteppingAction : public PHG4SteppingAction
 {
@@ -39,6 +40,9 @@ class PHG4IHCalSteppingAction : public PHG4SteppingAction
   //! pointer to the detector
   PHG4IHCalDetector *m_Detector = nullptr;
 
+  //! efficiency maps from Mephi
+  TH2 *m_MapCorrHist = nullptr;
+
   //! pointer to hit container
   PHG4HitContainer *m_HitContainer = nullptr;
   PHG4HitContainer *m_AbsorberHitContainer = nullptr;
@@ -56,7 +60,7 @@ class PHG4IHCalSteppingAction : public PHG4SteppingAction
   // in the following variables
   int m_IsActive = 0;
   int m_IsBlackHole = 0;
-  int m_LightScintModel = 0;
+  int m_LightScintModelFlag = 0;
   std::string m_AbsorberNodeName;
   std::string m_HitNodeName;
 };
