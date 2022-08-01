@@ -182,7 +182,11 @@ int PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
     slatarray[irow][icolumn]->add_edep(hiter->second->get_edep());
     slatarray[irow][icolumn]->add_eion(hiter->second->get_eion());
     slatarray[irow][icolumn]->add_light_yield(hiter->second->get_light_yield());
-    slatarray[irow][icolumn]->add_raw_light_yield(hiter->second->get_raw_light_yield());
+    float raw_light = hiter->second->get_raw_light_yield();
+    if (std::isfinite(raw_light))
+    {
+      slatarray[irow][icolumn]->add_raw_light_yield(raw_light);
+    }
     slatarray[irow][icolumn]->add_edep(hiter->first, hiter->second->get_edep());
     slatarray[irow][icolumn]->add_shower_edep(hiter->second->get_shower_id(), hiter->second->get_edep());
   }  // end loop over g4hits
