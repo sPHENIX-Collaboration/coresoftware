@@ -54,6 +54,9 @@ class PHG4Cellv1 : public PHG4Cell
   void add_light_yield(const float f) override { add_property(prop_light_yield, f); }
   float get_light_yield() const override { return get_property_float(prop_light_yield); }
 
+  void add_raw_light_yield(const float f) override { add_property(prop_raw_light_yield, f); }
+  float get_raw_light_yield() const override { return get_property_float(prop_raw_light_yield); }
+
   void set_chip_index(const int i) override { set_property(prop_chip_index, i); }
   int get_chip_index() const override { return get_property_int(prop_chip_index); }
 
