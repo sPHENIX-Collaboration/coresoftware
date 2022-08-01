@@ -53,6 +53,12 @@
 #include <iostream>
 #include <vector>
 
+namespace
+{
+  // check vector validity
+  inline bool is_valid( const Acts::Vector3 vec )
+  {  return !( std::isnan( vec.x() ) || std::isnan( vec.y() ) || std::isnan( vec.z() ) ); }  
+}
 
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
@@ -273,6 +279,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       position(0) = siseed->get_x() * Acts::UnitConstants::cm;
       position(1) = siseed->get_y() * Acts::UnitConstants::cm;
       position(2) = siseed->get_z() * Acts::UnitConstants::cm;
+      if( !is_valid( position ) ) continue;
 
       if(sourceLinks.size() == 0) { continue; }
 
@@ -296,6 +303,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	       tpcseed->get_px(m_clusterContainer, m_tGeometry), 
 	       tpcseed->get_py(m_clusterContainer, m_tGeometry),
 	       tpcseed->get_pz());
+      if( !is_valid( momentum ) ) continue;
  
       auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 					  position);
