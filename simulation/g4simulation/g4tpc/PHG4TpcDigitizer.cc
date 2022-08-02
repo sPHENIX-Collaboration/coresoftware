@@ -1,12 +1,12 @@
 #include "PHG4TpcDigitizer.h"
 
+#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrHitv2.h>
-#include <trackbase/TpcDefs.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -310,8 +310,8 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
           if (layer == print_layer)
           {
             TrkrDefs::hitkey hitkey = phi_sorted_hits[iphi][it]->first;
-            std::cout << "iphi " << iphi << " adding existing hit to t vector for layer " << layer << " side " << side << " tbin " << tbin << "  hitkey " << hitkey 
-		      << " pad " << TpcDefs::getPad(hitkey)
+            std::cout << "iphi " << iphi << " adding existing hit to t vector for layer " << layer << " side " << side << " tbin " << tbin << "  hitkey " << hitkey
+                      << " pad " << TpcDefs::getPad(hitkey)
                       << " t bin " << TpcDefs::getTBin(hitkey) << "  energy " << (phi_sorted_hits[iphi][it]->second)->getEnergy()
                       << std::endl;
           }
@@ -372,75 +372,75 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
       // The first to arrive is always bin 0
 
       for (int it = 0; it < ntbins; it++)
-	{
-	  if (it < binpointer) continue;
-	  
-	  if (adc_input[it] > ADCThreshold * ADCNoiseConversionGain)  // convert threshold in "equivalent electrons" to mV
-	    {
-	      // digitize this bin and the following 4 bins
-	      
-	      if (Verbosity() > 2)
-		if (layer == print_layer) std::cout << std::endl
-						    << "new:   (neg z) Above threshold of " << ADCThreshold * ADCNoiseConversionGain << " for phibin " << iphi
-						    << " it " << it << " with adc_input " << adc_input[it] << " digitize this and 4 following bins: " << std::endl;
-	      
-	      for (int itup = 0; itup < 5; itup++)
-		{
-		  if (it + itup < ntbins && it + itup >= 0)  // stay within the bin limits 
-		    {
-		      unsigned int adc_output = (unsigned int) (adc_input[it + itup] * 1024.0 / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
-		      if (adc_input[it + itup] < 0) adc_output = 0;
-		      if (adc_output > 1023) adc_output = 1023;
-		      
-		      if (Verbosity() > 2)
-			if (layer == print_layer) std::cout << "new:  iphi " << iphi << "  (neg z) it+itup " << it + itup << " adc_hitid " << adc_hitid[it + itup]
-							    << "  adc_input " << adc_input[it + itup] << " ADCThreshold " << ADCThreshold * ADCNoiseConversionGain
-							    << " adc_output " << adc_output << std::endl;
-		      
-		      // Get the hitkey
-		      TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it + itup);
-		      TrkrHit *hit = nullptr;
-		      hit = hitset_iter->second->getHit(hitkey);
-		      
-		      // noise bins do not have TrkrHits associated with them, have to make one
-		      if (!hit)
-			{
-			  hit = new TrkrHitv2();
-			  hitset_iter->second->addHitSpecificKey(hitkey, hit);
-			  //hit->addEnergy(adc_input[it+itup]);
-			  
-			  if (Verbosity() > 2)
-			    if (layer == print_layer) std::cout << "new:  adding noise hit for iphi " << iphi << " tbin " << it + itup
-								<< " created new hit with hitkey " << hitkey
-								<< " energy " << adc_input[it + itup] << " adc " << adc_output << std::endl;
-			}
-		      
-		      hit->setAdc(adc_output);
-		      
-		    }              // end boundary check
-		  binpointer++;  // skip this bin in future
-		}                // end itup loop
-	      
-	    }  //  adc threshold if
-	  else
-	    {
-	      // set adc value to zero if there is a hit
-	      // Get the hitkey
-	      TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
-	      TrkrHit *hit = nullptr;
-	      hit = hitset_iter->second->getHit(hitkey);
-	      if (hit)
-		{
-		  hit->setAdc(0);
-		}
-	      // below threshold, move on
-	      binpointer++;
-	    }  // end adc threshold if/else	      
-	}  // end time bin loop       
-    }  // end phibins loop
-    
+      {
+        if (it < binpointer) continue;
+
+        if (adc_input[it] > ADCThreshold * ADCNoiseConversionGain)  // convert threshold in "equivalent electrons" to mV
+        {
+          // digitize this bin and the following 4 bins
+
+          if (Verbosity() > 2)
+            if (layer == print_layer) std::cout << std::endl
+                                                << "new:   (neg z) Above threshold of " << ADCThreshold * ADCNoiseConversionGain << " for phibin " << iphi
+                                                << " it " << it << " with adc_input " << adc_input[it] << " digitize this and 4 following bins: " << std::endl;
+
+          for (int itup = 0; itup < 5; itup++)
+          {
+            if (it + itup < ntbins && it + itup >= 0)  // stay within the bin limits
+            {
+              unsigned int adc_output = (unsigned int) (adc_input[it + itup] * 1024.0 / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
+              if (adc_input[it + itup] < 0) adc_output = 0;
+              if (adc_output > 1023) adc_output = 1023;
+
+              if (Verbosity() > 2)
+                if (layer == print_layer) std::cout << "new:  iphi " << iphi << "  (neg z) it+itup " << it + itup << " adc_hitid " << adc_hitid[it + itup]
+                                                    << "  adc_input " << adc_input[it + itup] << " ADCThreshold " << ADCThreshold * ADCNoiseConversionGain
+                                                    << " adc_output " << adc_output << std::endl;
+
+              // Get the hitkey
+              TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it + itup);
+              TrkrHit *hit = nullptr;
+              hit = hitset_iter->second->getHit(hitkey);
+
+              // noise bins do not have TrkrHits associated with them, have to make one
+              if (!hit)
+              {
+                hit = new TrkrHitv2();
+                hitset_iter->second->addHitSpecificKey(hitkey, hit);
+                //hit->addEnergy(adc_input[it+itup]);
+
+                if (Verbosity() > 2)
+                  if (layer == print_layer) std::cout << "new:  adding noise hit for iphi " << iphi << " tbin " << it + itup
+                                                      << " created new hit with hitkey " << hitkey
+                                                      << " energy " << adc_input[it + itup] << " adc " << adc_output << std::endl;
+              }
+
+              hit->setAdc(adc_output);
+
+            }              // end boundary check
+            binpointer++;  // skip this bin in future
+          }                // end itup loop
+
+        }  //  adc threshold if
+        else
+        {
+          // set adc value to zero if there is a hit
+          // Get the hitkey
+          TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
+          TrkrHit *hit = nullptr;
+          hit = hitset_iter->second->getHit(hitkey);
+          if (hit)
+          {
+            hit->setAdc(0);
+          }
+          // below threshold, move on
+          binpointer++;
+        }  // end adc threshold if/else
+      }    // end time bin loop
+    }      // end phibins loop
+
   }  // end loop over hitsets
-    
+
   //======================================================
   if (Verbosity() > 2)
   {

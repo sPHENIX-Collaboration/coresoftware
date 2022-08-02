@@ -55,7 +55,7 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   G4AssemblyVolume *ConstructEndCapAssembly();
 
   void ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
-                           G4double &z_start); // careful z_start is modified and being used later
+                           G4double &z_start);  // careful z_start is modified and being used later
 
   void ConstructElectronics(G4AssemblyVolume *assmeblyvol,
                             G4double z_start);

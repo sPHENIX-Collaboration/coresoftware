@@ -64,7 +64,9 @@ PHG4TpcCentralMembrane::PHG4TpcCentralMembrane(const std::string& name)
 PHG4TpcCentralMembrane::~PHG4TpcCentralMembrane()
 {
   for (auto&& hit : PHG4Hits)
-  { delete hit; }
+  {
+    delete hit;
+  }
 }
 
 //_____________________________________________________________
@@ -89,62 +91,63 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* topNode)
 
   // reset vertices and g4hits
   for (auto&& hit : PHG4Hits)
-  { delete hit; }
-  
+  {
+    delete hit;
+  }
+
   PHG4Hits.clear();
-  
+
   /*
    * utility function to
    * - duplicate generated G4Hit to cover both sides of the central membrane
    * - adjust hit time and z,
    * - insert in container
    */
-  auto adjust_hits = [&]( PHG4Hit* source ) 
-  {
+  auto adjust_hits = [&](PHG4Hit* source) {
     // adjust time to account for central membrane delay
-    source->set_t(0, m_centralMembraneDelay);  
-    source->set_t(1, m_centralMembraneDelay);  
+    source->set_t(0, m_centralMembraneDelay);
+    source->set_t(1, m_centralMembraneDelay);
 
     // assign to positive side
     source->set_z(0, 1.);
     source->set_z(1, 1.);
-    PHG4Hits.push_back( source );
-   
+    PHG4Hits.push_back(source);
+
     // clone
     // assign to negative side and insert in list
     auto copy = new PHG4Hitv1(source);
     copy->set_z(0, -1.);
     copy->set_z(1, -1.);
-    PHG4Hits.push_back( copy );
+    PHG4Hits.push_back(copy);
   };
-  
+
   // loop over petalID
   for (int i = 0; i < 18; i++)
-  {  
+  {
     // loop over radiusID
     for (int j = 0; j < 8; j++)
     {
       // loop over stripeID
       for (int k = 0; k < nGoodStripes_R1_e[j]; k++)
-      { 
+      {
         adjust_hits(GetPHG4HitFromStripe(i, 0, j, k, electrons_per_stripe));
       }
-      
+
       // loop over stripeID
       for (int k = 0; k < nGoodStripes_R1[j]; k++)
-      { 
+      {
         adjust_hits(GetPHG4HitFromStripe(i, 1, j, k, electrons_per_stripe));
       }
 
       // loop over stripeID
       for (int k = 0; k < nGoodStripes_R2[j]; k++)
-      {  
+      {
         adjust_hits(GetPHG4HitFromStripe(i, 2, j, k, electrons_per_stripe));
       }
-      
+
       // loop over stripeID
       for (int k = 0; k < nGoodStripes_R3[j]; k++)
-      { 
+      {
         adjust_hits(GetPHG4HitFromStripe(i, 3, j, k, electrons_per_stripe));
       }
     }
@@ -226,7 +229,7 @@ void PHG4TpcCentralMembrane::CalculateVertices(
   double theta = 0.0;
   //center coords
   double cx[nStripes][nRadii];
-  double  cy[nStripes][nRadii];
+  double cy[nStripes][nRadii];
   //corner coords
   /* double tempX1a[nStripes][nRadii], tempY1a[nStripes][nRadii];
   double tempX1b[nStripes][nRadii], tempY1b[nStripes][nRadii];
@@ -331,9 +334,9 @@ void PHG4TpcCentralMembrane::CalculateVertices(
       nStripesBefore_R1_e[0] = 0;
 
       nStripesIn[j] = keepUntil[j] - keepThisAndAfter[j];
-      if (j==0)
+      if (j == 0)
       {
-	nStripesBefore[j] = 0;
+        nStripesBefore[j] = 0;
       }
       else
       {

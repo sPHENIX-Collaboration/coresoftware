@@ -5,8 +5,8 @@
 
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4String.hh>  // for G4String
+#include <Geant4/G4VisAttributes.hh>
 
 #include <iostream>
 #include <utility>  // for pair
