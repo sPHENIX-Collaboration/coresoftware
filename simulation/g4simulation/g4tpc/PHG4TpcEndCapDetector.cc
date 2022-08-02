@@ -260,7 +260,7 @@ void PHG4TpcEndCapDetector ::AddLayer(  //
 }
 
 void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
-                                                G4double &z_start)
+                                                G4double &z_start)  // careful z_start is modified and being used later
 {
   const int n_sectors = m_Params->get_int_param("n_sectors");
   assert(n_sectors >= 1);
