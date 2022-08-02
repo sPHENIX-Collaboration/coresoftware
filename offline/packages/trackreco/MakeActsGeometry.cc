@@ -12,6 +12,7 @@
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/sPHENIXActsDetectorElement.h>
+#include <trackbase/AlignmentTransformation.h>
 
 #include <intt/CylinderGeomIntt.h>
 
@@ -117,6 +118,10 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
   if(buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
+
+  // Alignment Transformation declaration of instance 
+  AlignmentTransformation alignment_transformation;
+  alignment_transformation.createMap();
 
   /// Set the actsGeometry struct to be put on the node tree
   ActsTrackingGeometry trackingGeometry;
