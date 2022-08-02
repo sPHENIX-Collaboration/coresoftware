@@ -6,11 +6,11 @@
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
 
-#include <TSystem.h>
-
 #include <phparameter/PHParameters.h>
 
 #include <phool/recoConsts.h>
+
+#include <TSystem.h>
 
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
@@ -22,7 +22,9 @@
 #include <Geant4/G4UserLimits.hh>
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
+#include <algorithm>                     // for max, copy
 #include <cassert>
+#include <cstdlib>                      // for exit
 #include <cmath>
 #include <iostream>  // for basic_ostream::operator<<
 #include <map>       // for map

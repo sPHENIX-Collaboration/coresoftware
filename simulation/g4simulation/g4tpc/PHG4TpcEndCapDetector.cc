@@ -463,7 +463,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
 }
 
 void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
-                                                 G4double &z_start)
+                                                 G4double z_start)
 {
   const int n_sectors = m_Params->get_int_param("n_sectors");
   assert(n_sectors >= 1);

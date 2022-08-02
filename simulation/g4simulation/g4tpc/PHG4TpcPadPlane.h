@@ -9,7 +9,6 @@
 
 #include <string>  // for string
 
-class PHG4CellContainer;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
 

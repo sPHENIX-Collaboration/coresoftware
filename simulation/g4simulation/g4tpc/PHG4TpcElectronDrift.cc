@@ -52,6 +52,7 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
+#include <array>
 #include <cassert>
 #include <cmath>    // for sqrt, abs, NAN
 #include <cstdlib>  // for exit
@@ -342,7 +343,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     if (trkid != trkid_prior) {
         trkid_prior = trkid;
         is_embedded = (truthinfo->isEmbeded(hiter->second->get_trkid()));
-        for (auto& v : phiRz_data) v = 0.;
+//        for (auto& v : phiRz_data) v = 0.;
+	phiRz_data.fill(0.);
         sum_E = 0;
     }
     // for very high occupancy events, accessing the TrkrHitsets on the node tree for every drifted electron seems to be very slow

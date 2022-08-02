@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <set>
+#include <string>
 #include <vector>
 
 class G4LogicalVolume;
