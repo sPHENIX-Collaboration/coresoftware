@@ -303,7 +303,7 @@ bool EpdGeom::IsInTile(double x, double y){
 
 
 //-------------------------------------------------------------------
-
+/*
 void EpdGeom::GetOverlappingBbcTiles(short uniqueID,
 				       int* nOverlappingBbcTiles, short* BbcTileIDs){
   SetPpTtSn(uniqueID);
@@ -625,6 +625,6 @@ short EpdGeom::mNorthBbcTilesWhichOverlap[12][9][3] = {
   }
 };
 
-
+*/
 
 

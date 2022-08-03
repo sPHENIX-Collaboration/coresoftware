@@ -41,14 +41,14 @@ class EpdGeom{
   double mRave[16];   // row
 
   // SouthNumberOfOverlappingBbcTiles[PP-1][TT-1] =  number of BBC tiles that overlap
-  static short mSouthNumberOfOverlappingBbcTiles[12][9];  
+////  static short mSouthNumberOfOverlappingBbcTiles[12][9];  
   // SouthBbcTilesWhichOverlap[PP-1][TT-1][j] gives the BBC tile ID of the jth overlapping BBC tile
-  static short mSouthBbcTilesWhichOverlap[12][9][3];  // 
+////  static short mSouthBbcTilesWhichOverlap[12][9][3];  // 
 
   // NorthNumberOfOverlappingBbcTiles[PP-1][TT-1] =  number of BBC tiles that overlap
-  static short mNorthNumberOfOverlappingBbcTiles[12][9];  
+////  static short mNorthNumberOfOverlappingBbcTiles[12][9];  
   // NorthBbcTilesWhichOverlap[PP-1][TT-1][j] gives the BBC tile ID of the jth overlapping BBC tile
-  static short mNorthBbcTilesWhichOverlap[12][9][3];  // 
+////  static short mNorthBbcTilesWhichOverlap[12][9][3];  // 
 
 
   void InitializeGeometry();
@@ -100,7 +100,7 @@ class EpdGeom{
   /// returns a list of (the IDs of) BBC tiles that overlap with a given EPD tile
   /// \param nOverlappingBbcTiles         *output* parameter: number of BBC tiles that overlaps this EPD tile (even just barely)
   /// \param BbcTileIDs                   *output* parameter: array of BBC tile IDs
-  void GetOverlappingBbcTiles(int* nOverlappingBbcTiles, short* BbcTileIDs);
+////  void GetOverlappingBbcTiles(int* nOverlappingBbcTiles, short* BbcTileIDs);
 
 
 
@@ -158,7 +158,7 @@ class EpdGeom{
   /// \param uniqueID                     identifier of the EPD tile = sign*(100*PP+TT) where sign=+/- for North/South
   /// \param nOverlappingBbcTiles         *output* parameter: number of BBC tiles that overlaps this EPD tile (even just barely)
   /// \param BbcTileIDs                   *output* parameter: array of BBC tile IDs
-  void GetOverlappingBbcTiles(short uniqueID, int* nOverlappingBbcTiles, short* BbcTileIDs);
+////  void GetOverlappingBbcTiles(short uniqueID, int* nOverlappingBbcTiles, short* BbcTileIDs);
 
   /// returns a list of (the IDs of) BBC tiles that overlap with a given EPD tile
   /// \param position   position of supersector [1,12]
@@ -166,7 +166,7 @@ class EpdGeom{
   /// \southnorth         south (-1) or north (+1) wheel
   /// \param nOverlappingBbcTiles         *output* parameter: number of BBC tiles that overlaps this EPD tile (even just barely)
   /// \param BbcTileIDs                   *output* parameter: array of BBC tile IDs
-  void GetOverlappingBbcTiles(short position, short tilenumber, short southnorth, int* nOverlappingBbcTiles, short* BbcTileIDs);
+////  void GetOverlappingBbcTiles(short position, short tilenumber, short southnorth, int* nOverlappingBbcTiles, short* BbcTileIDs);
 
 
 
