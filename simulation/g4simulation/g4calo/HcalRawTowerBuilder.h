@@ -6,7 +6,9 @@
 #include <phparameter/PHParameterInterface.h>
 
 #include <cmath>
+#include <map>  // for map
 #include <string>
+#include <utility>  // for pair
 #include <vector>
 
 class PHCompositeNode;
@@ -35,6 +37,10 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 
     //! save ionization energy
     kIonizationEnergy,
+
+    //! save raw light yield (before Mephi map) as the weight of the cells
+    kRawLightYield,
+
     //! initialization value
     unknown = -1
   };
@@ -58,12 +64,13 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 
   short get_tower_row(const short cellrow) const;
 
-  void set_decal_filename(const std::string &fname) {m_DeCalibrationFileName = fname;}
+  void set_decal_filename(const std::string &fname) { m_DeCalibrationFileName = fname; }
 
   void SetDefaultParameters() override;
 
   void set_cell_decal_factor(const int etabin, const int phibin, const double d);
   void set_tower_decal_factor(const int etabin, const int phibin, const double d);
+  void Print(const std::string &what = "ALL") const override;
 
  private:
   void CreateNodes(PHCompositeNode *topNode);
@@ -84,8 +91,8 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
   std::string m_TowerGeomNodeName;
   std::string m_SimTowerNodePrefix;
   std::string m_DeCalibrationFileName;
-  std::vector<std::vector <double> > m_DecalArray;  
-  std::map<std::pair<int,int>,double> m_TowerDecalFactors;
+  std::vector<std::vector<double> > m_DecalArray;
+  std::map<std::pair<int, int>, double> m_TowerDecalFactors;
 };
 
 #endif /* G4CALO_HCALRAWTOWERBUILDER_H */

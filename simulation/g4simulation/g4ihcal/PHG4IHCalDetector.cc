@@ -381,19 +381,13 @@ int PHG4IHCalDetector::map_layerid(const int layer_id)
   {
     rowid = 60 - layer_id;
   }
-  else if (layer_id > 60 && layer_id <= 191)
+  else if (layer_id <= 191)
   {
     rowid = 191 - layer_id + 125;
   }
-  else if (layer_id > 191)
-  {
-    rowid = 255 - layer_id + 61;
-  }
   else
   {
-    std::cout << PHWHERE << " cannot map layer " << layer_id << std::endl;
-    gSystem->Exit(1);
-    exit(1);
+    rowid = 255 - layer_id + 61;
   }
   return rowid;
 }

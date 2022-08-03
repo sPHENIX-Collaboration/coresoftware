@@ -16,7 +16,7 @@ class G4VPhysicalVolume;
 class PHG4TpcEndCapDisplayAction : public PHG4DisplayAction
 {
  public:
-  PHG4TpcEndCapDisplayAction(const std::string &name);
+  explicit PHG4TpcEndCapDisplayAction(const std::string &name);
 
   ~PHG4TpcEndCapDisplayAction() override;
 

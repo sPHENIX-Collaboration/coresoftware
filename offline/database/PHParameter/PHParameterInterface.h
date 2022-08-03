@@ -34,6 +34,7 @@ class PHParameterInterface
   void UpdateParametersWithMacro();
   void SaveToNodeTree(PHCompositeNode *runNode, const std::string &nodename);
   void PutOnParNode(PHCompositeNode *parNode, const std::string &nodename);
+  void Print() const;
 
  protected:
   void set_default_double_param(const std::string &name, const double dval);

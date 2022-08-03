@@ -17,7 +17,7 @@
 class PHG4Cellv1 : public PHG4Cell
 {
  public:
-  PHG4Cellv1();
+  PHG4Cellv1(){}
   explicit PHG4Cellv1(const PHG4CellDefs::keytype g4cellid);
   ~PHG4Cellv1() override;
 
@@ -53,6 +53,9 @@ class PHG4Cellv1 : public PHG4Cell
 
   void add_light_yield(const float f) override { add_property(prop_light_yield, f); }
   float get_light_yield() const override { return get_property_float(prop_light_yield); }
+
+  void add_raw_light_yield(const float f) override { add_property(prop_raw_light_yield, f); }
+  float get_raw_light_yield() const override { return get_property_float(prop_raw_light_yield); }
 
   void set_chip_index(const int i) override { set_property(prop_chip_index, i); }
   int get_chip_index() const override { return get_property_int(prop_chip_index); }
@@ -98,7 +101,7 @@ class PHG4Cellv1 : public PHG4Cell
   unsigned int get_property_nocheck(const PROPERTY prop_id) const override;
   void set_property_nocheck(const PROPERTY prop_id, const unsigned int ui) override { prop_map[prop_id] = ui; }
 
-  PHG4CellDefs::keytype cellid;
+  PHG4CellDefs::keytype cellid = ~0x0;
   EdepMap hitedeps;
   ShowerEdepMap showeredeps;
 

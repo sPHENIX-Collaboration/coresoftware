@@ -62,8 +62,6 @@
 
 class PHCompositeNode;
 
-TH2F* MapCorr = nullptr;
-
 //____________________________________________________________________________..
 PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
@@ -75,7 +73,10 @@ PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, co
   , m_NScintiPlates(m_Params->get_int_param(PHG4HcalDefs::scipertwr) * m_Params->get_int_param("n_towers"))
   , m_LightScintModelFlag(m_Params->get_int_param("light_scint_model"))
 {
-  SetName(m_Detector->GetName());
+  SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
+                     m_Params->get_double_param("light_balance_inner_corr"),
+                     m_Params->get_double_param("light_balance_outer_radius") * cm,
+                     m_Params->get_double_param("light_balance_outer_corr"));
 }
 
 PHG4OHCalSteppingAction::~PHG4OHCalSteppingAction()
@@ -85,38 +86,35 @@ PHG4OHCalSteppingAction::~PHG4OHCalSteppingAction()
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete m_Hit;
+  // since we have a copy in memory of this one - we need to delete it
+  delete m_MapCorrHist;
 }
 
 int PHG4OHCalSteppingAction::Init()
 {
   m_EnableFieldCheckerFlag = m_Params->get_int_param("field_check");
-  // method in base class for light correction
-  SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
-                     m_Params->get_double_param("light_balance_inner_corr"),
-                     m_Params->get_double_param("light_balance_outer_radius") * cm,
-                     m_Params->get_double_param("light_balance_outer_corr"));
 
-  std::ostringstream mappingfilename;
-  const char* calibroot = getenv("CALIBRATIONROOT");
-  if (calibroot)
+  if (m_LightScintModelFlag)
   {
-    mappingfilename << calibroot;
+    const char* Calibroot = getenv("CALIBRATIONROOT");
+    if (!Calibroot)
+    {
+      std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+      gSystem->Exit(1);
+    }
+    std::string mappingfilename(Calibroot);
+    mappingfilename += "/HCALOUT/tilemap/oHCALMaps092021.root";
+    TFile* file = TFile::Open(mappingfilename.c_str());
+    file->GetObject("hCombinedMap", m_MapCorrHist);
+    m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
+    file->Close();
+    delete file;
+    if (!m_MapCorrHist)
+    {
+      std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;
+      gSystem->Exit(1);
+    }
   }
-  else
-  {
-    std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
-    gSystem->Exit(1);
-  }
-
-  mappingfilename << "/HCALOUT/tilemap/oHCALMaps092021.root";
-  TFile* f = new TFile(mappingfilename.str().c_str());
-  MapCorr = (TH2F*) f->Get("hCombinedMap");
-  if (!MapCorr)
-  {
-    std::cout << "ERROR: MapCorr is NULL" << std::endl;
-    gSystem->Exit(1);
-  }
-
   return 0;
 }
 
@@ -228,22 +226,6 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
       m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
 
-      // DEBUG
-      // add the local coordinates
-      // if(whichactive>0){
-
-      // 	G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
-      // 	G4ThreeVector worldPosition = prePoint->GetPosition();
-      // 	G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
-
-      // 	m_Hit->set_property(PHG4Hit::prop_local_x_0, (float)(localPosition.x()/cm));
-      // 	m_Hit->set_property(PHG4Hit::prop_local_y_0, (float)(localPosition.y()/cm));
-      // 	m_Hit->set_property(PHG4Hit::prop_local_z_0, (float)(localPosition.z()/cm));
-
-      //   m_Hit->set_property(PHG4Hit::prop_layer, (unsigned int) layer_id);
-
-      // }
-
       // time in ns
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
       //set the track ID
@@ -256,7 +238,8 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         m_Hit->set_sector(sector_id);   // the sector id
         m_Hit->set_scint_id(tower_id);  // the slat id
         m_Hit->set_eion(0);
-        m_Hit->set_light_yield(0);  //  for scintillator only, initialize light yields
+        m_Hit->set_raw_light_yield(0);  //  for scintillator only, initialize light yields
+        m_Hit->set_light_yield(0);      //  for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
         m_SaveHitContainer = m_HitContainer;
       }
@@ -317,29 +300,22 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
+    //sum up the energy to get total deposited
+    m_Hit->set_edep(m_Hit->get_edep() + edep);
+
     if (whichactive > 0)
     {
-      // Local Coordinates:
-
-      //G4TouchableHandle theTouchable = postPoint->GetTouchableHandle();
-      // Use prePoint; sometimes the end point can be on the boundary/out of the scintillator
-      G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
-      G4ThreeVector worldPosition = postPoint->GetPosition();
-      G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
-
-      // DEBUG
-      // m_Hit->set_property(PHG4Hit::prop_local_x_1, (float)(localPosition.x()/cm));
-      // m_Hit->set_property(PHG4Hit::prop_local_y_1, (float)(localPosition.y()/cm));
-      // m_Hit->set_property(PHG4Hit::prop_local_z_1, (float)(localPosition.z()/cm));
-
-      // m_Hit->set_property(PHG4Hit::prop_layer, (unsigned int) layer_id);
-
+      m_Hit->set_eion(m_Hit->get_eion() + eion);
+      light_yield = eion;
       if (m_LightScintModelFlag)
       {
         light_yield = GetVisibleEnergyDeposition(aStep);
-
-        if (MapCorr)
+        m_Hit->set_raw_light_yield(m_Hit->get_raw_light_yield() + light_yield);  // save raw Birks light yield
+        if (m_MapCorrHist)
         {
+          G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
+          G4ThreeVector worldPosition = postPoint->GetPosition();
+          G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
           float lx = (localPosition.x() / cm);
           float lz = fabs(localPosition.z() / cm);  // reverse the sense for towerid<12
 
@@ -348,37 +324,25 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           int lcz = (int) (2.0 * lz) + 1;
           int lcx = (int) (2.0 * (lx + 42.75)) + 1;
 
-          if ((lcx >= 1) && (lcx <= MapCorr->GetNbinsY()) &&
-              (lcz >= 1) && (lcz <= MapCorr->GetNbinsX()))
+          if ((lcx >= 1) && (lcx <= m_MapCorrHist->GetNbinsY()) &&
+              (lcz >= 1) && (lcz <= m_MapCorrHist->GetNbinsX()))
           {
-            light_yield *= (double) (MapCorr->GetBinContent(lcz, lcx));
+            light_yield *= (double) (m_MapCorrHist->GetBinContent(lcz, lcx));
           }
           else
           {
             light_yield = 0.0;
           }
         }
+        else
+        {
+          // old correction (linear ligh yield dependence along r), never tested
+          light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x(), postPoint->GetPosition().y());
+        }
       }
-      else
-      {
-        light_yield = eion;
-      }
-
-      if (ValidCorrection())
-      {
-        double cor = GetLightCorrection(postPoint->GetPosition().x(), (postPoint->GetPosition().y()));
-        std::cout << "applying cor: " << cor << std::endl;
-        light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x(), (postPoint->GetPosition().y()));
-      }
-    }
-
-    //sum up the energy to get total deposited
-    m_Hit->set_edep(m_Hit->get_edep() + edep);
-    if (whichactive > 0)
-    {
-      m_Hit->set_eion(m_Hit->get_eion() + eion);
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
+
     if (geantino)
     {
       m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
