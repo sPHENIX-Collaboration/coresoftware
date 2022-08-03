@@ -6,11 +6,11 @@
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
 
-#include <TSystem.h>
-
 #include <phparameter/PHParameters.h>
 
 #include <phool/recoConsts.h>
+
+#include <TSystem.h>
 
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
@@ -22,8 +22,10 @@
 #include <Geant4/G4UserLimits.hh>
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
+#include <algorithm>  // for max, copy
 #include <cassert>
 #include <cmath>
+#include <cstdlib>   // for exit
 #include <iostream>  // for basic_ostream::operator<<
 #include <map>       // for map
 #include <sstream>
@@ -105,8 +107,8 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
 {
   static std::map<int, std::string> tpcgasvolname =
-    {{PHG4TpcDefs::North, "tpc_gas_north"},
-     {PHG4TpcDefs::South, "tpc_gas_south"}};
+      {{PHG4TpcDefs::North, "tpc_gas_north"},
+       {PHG4TpcDefs::South, "tpc_gas_south"}};
 
   // Window / central membrane
   double tpc_window_thickness = m_Params->get_double_param("window_thickness") * cm;
@@ -121,23 +123,19 @@ int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
   material.push_back("G4_Au");
   thickness.push_back(.008 * cm);
   G4Material *temp = nullptr;
-  temp=GetDetectorMaterial("ENIG", false);
+  temp = GetDetectorMaterial("ENIG", false);
   if (temp == nullptr)
-    {
-      CreateCompositeMaterial("ENIG", material, thickness);  //see new function below
-    }
- 
-
-  
+  {
+    CreateCompositeMaterial("ENIG", material, thickness);  //see new function below
+  }
 
   G4VSolid *tpc_window = new G4Tubs("tpc_window", m_Params->get_double_param("gas_inner_radius") * cm, m_Params->get_double_param("gas_outer_radius") * cm, tpc_window_thickness / 2., 0., 2 * M_PI);
   //we build our CM surface:
   G4LogicalVolume *tpc_window_logic = new G4LogicalVolume(tpc_window,
-							  GetDetectorMaterial("ENIG"),
+                                                          GetDetectorMaterial("ENIG"),
                                                           "tpc_window");
   //previously:                                                            GetDetectorMaterial(m_Params->get_string_param("window_surface1_material")),
 
-  
   //  G4VisAttributes *visatt = new G4VisAttributes();
   //  visatt->SetVisibility(true);
   //  visatt->SetForceSolid(true);
@@ -237,60 +235,57 @@ int PHG4TpcDetector::ConstructTpcExternalSupports(G4LogicalVolume *logicWorld)
   //StainlessSteel->AddMaterial(matman->FindOrBuildMaterial("G4_Cr"), 0.19);
   //StainlessSteel->AddMaterial(matman->FindOrBuildMaterial("G4_Ni"), 0.10);
   //StainlessSteel->AddMaterial(matman->FindOrBuildMaterial("G4_Fe"), 0.68);
-  G4Material *stainlessSteel=GetDetectorMaterial("G4_STAINLESS-STEEL");
-  double inch=2.54*cm;
-  double hangerAngle=41.39*M_PI/180.;
-  double hangerRadius=32.05*inch;
-  double hangerX=std::sin(hangerAngle)*hangerRadius;
-  double hangerY=std::cos(hangerAngle)*hangerRadius;
-  double hangerDiameter=2.*inch;
-  G4VSolid *hangerBeam = new G4Tubs("tpc_hanger_beam", 0,hangerDiameter/2.,(m_Params->get_double_param("tpc_length") * cm )/ 2., 0., 2*M_PI);
+  G4Material *stainlessSteel = GetDetectorMaterial("G4_STAINLESS-STEEL");
+  double inch = 2.54 * cm;
+  double hangerAngle = 41.39 * M_PI / 180.;
+  double hangerRadius = 32.05 * inch;
+  double hangerX = std::sin(hangerAngle) * hangerRadius;
+  double hangerY = std::cos(hangerAngle) * hangerRadius;
+  double hangerDiameter = 2. * inch;
+  G4VSolid *hangerBeam = new G4Tubs("tpc_hanger_beam", 0, hangerDiameter / 2., (m_Params->get_double_param("tpc_length") * cm) / 2., 0., 2 * M_PI);
   G4LogicalVolume *hangerBeamLogic = new G4LogicalVolume(hangerBeam,
-							stainlessSteel,
-							"tpc_hanger_beam");
+                                                         stainlessSteel,
+                                                         "tpc_hanger_beam");
 
   m_DisplayAction->AddVolume(hangerBeamLogic, "TpcHangerBeam");
-  G4VPhysicalVolume *tpc_hanger_beam_phys[2]={nullptr,nullptr};
-  tpc_hanger_beam_phys[0] = new G4PVPlacement(0, G4ThreeVector(hangerX,hangerY, 0),
-                                                         hangerBeamLogic, "tpc_hanger_beam_left",
-                                                         logicWorld, false, 0, OverlapCheck());
-  tpc_hanger_beam_phys[1] = new G4PVPlacement(0, G4ThreeVector(-hangerX,hangerY, 0),
-                                                         hangerBeamLogic, "tpc_hanger_beam_right",
-                                                         logicWorld, false, 1, OverlapCheck());
+  G4VPhysicalVolume *tpc_hanger_beam_phys[2] = {nullptr, nullptr};
+  tpc_hanger_beam_phys[0] = new G4PVPlacement(0, G4ThreeVector(hangerX, hangerY, 0),
+                                              hangerBeamLogic, "tpc_hanger_beam_left",
+                                              logicWorld, false, 0, OverlapCheck());
+  tpc_hanger_beam_phys[1] = new G4PVPlacement(0, G4ThreeVector(-hangerX, hangerY, 0),
+                                              hangerBeamLogic, "tpc_hanger_beam_right",
+                                              logicWorld, false, 1, OverlapCheck());
   m_AbsorberVolumeSet.insert(tpc_hanger_beam_phys[0]);
   m_AbsorberVolumeSet.insert(tpc_hanger_beam_phys[1]);
-
-  
 
   //Twelve one-inch diam carbon fiber rods of thickness 1/16" at 31.04" from beam center
   //borrowed from the INTT specification of carbon fiber
   //note that this defines a clocking!
-  G4Material *carbonFiber=GetDetectorMaterial("CFRP_INTT");
-  double rodAngleStart=M_PI/12.;
-  double rodAngularSpacing=2*M_PI/12.;
-  double rodRadius=31.5*inch;
-  double rodWallThickness=1./8.*inch;
-  double rodDiameter=3./4.*inch;
-  G4VSolid *tieRod = new G4Tubs("tpc_tie_rod",rodDiameter/2.-rodWallThickness, rodDiameter/2.,(m_Params->get_double_param("tpc_length") * cm )/ 2., 0., 2*M_PI);
+  G4Material *carbonFiber = GetDetectorMaterial("CFRP_INTT");
+  double rodAngleStart = M_PI / 12.;
+  double rodAngularSpacing = 2 * M_PI / 12.;
+  double rodRadius = 31.5 * inch;
+  double rodWallThickness = 1. / 8. * inch;
+  double rodDiameter = 3. / 4. * inch;
+  G4VSolid *tieRod = new G4Tubs("tpc_tie_rod", rodDiameter / 2. - rodWallThickness, rodDiameter / 2., (m_Params->get_double_param("tpc_length") * cm) / 2., 0., 2 * M_PI);
   G4LogicalVolume *tieRodLogic = new G4LogicalVolume(tieRod,
-							carbonFiber,
-							"tpc_tie_rod");
+                                                     carbonFiber,
+                                                     "tpc_tie_rod");
 
-  G4VPhysicalVolume *tpc_tie_rod_phys[12]={nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,
-					   nullptr,nullptr,nullptr,nullptr,nullptr,nullptr};
+  G4VPhysicalVolume *tpc_tie_rod_phys[12] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                                             nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
 
   std::ostringstream name;
-  for (int i=0;i<12;i++){
-    double ang=rodAngleStart+rodAngularSpacing*i;
+  for (int i = 0; i < 12; i++)
+  {
+    double ang = rodAngleStart + rodAngularSpacing * i;
     name.str("");
     name << "tpc_tie_rod_" << i;
-    tpc_tie_rod_phys[i] = new G4PVPlacement(0, G4ThreeVector(rodRadius*cos(ang),rodRadius*sin(ang), 0),
-					    tieRodLogic, name.str(),
-					    logicWorld, false, i, OverlapCheck());
+    tpc_tie_rod_phys[i] = new G4PVPlacement(0, G4ThreeVector(rodRadius * cos(ang), rodRadius * sin(ang), 0),
+                                            tieRodLogic, name.str(),
+                                            logicWorld, false, i, OverlapCheck());
     m_AbsorberVolumeSet.insert(tpc_tie_rod_phys[i]);
   }
-  
-
 
   //  G4VisAttributes *visatt = new G4VisAttributes();
   //  visatt->SetVisibility(true);
@@ -298,7 +293,6 @@ int PHG4TpcDetector::ConstructTpcExternalSupports(G4LogicalVolume *logicWorld)
   //  visatt->SetColor(PHG4TPCColorDefs::tpc_cu_color);
   //  tpc_window_logic->SetVisAttributes(visatt);
 
-  
   return 0;
 }
 
@@ -331,10 +325,6 @@ int PHG4TpcDetector::ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope)
                                                 m_Params->get_string_param("cage_layer_8_material"),
                                                 m_Params->get_string_param("cage_layer_9_material")};
 
-
-
-
-  
   double tpc_cage_radius = m_InnerCageRadius;
   std::ostringstream name;
   for (int i = 0; i < nlayers; i++)
@@ -354,7 +344,7 @@ int PHG4TpcDetector::ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope)
     tpc_cage_radius += thickness[i];
   }
   // outer cage
-  
+
   tpc_cage_radius = m_OuterCageRadius;
   for (int i = 0; i < nlayers; i++)
   {
@@ -375,7 +365,6 @@ int PHG4TpcDetector::ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope)
 
   return 0;
 }
-
 
 void PHG4TpcDetector ::CreateCompositeMaterial(
     std::string compositeName,
