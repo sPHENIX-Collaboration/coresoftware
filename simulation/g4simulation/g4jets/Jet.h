@@ -71,7 +71,10 @@ class Jet : public PHObject
     prop_zg = 5,
     prop_Rg = 6,
     prop_mu = 7,
-
+    //! photon tag property
+    prop_gamma = 8,
+    prop_JetHadronFlavor = 9,
+    prop_JetHadronZT = 10,
   };
 
   Jet() {}
