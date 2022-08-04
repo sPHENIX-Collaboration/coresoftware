@@ -232,7 +232,8 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
-  std::cout << PHWHERE << " drift velocity " << drift_velocity << std::endl;
+  std::cout << PHWHERE << " drift velocity " << drift_velocity << " extended_readout_time " << get_double_param("extended_readout_time") 
+	    << " max time cutoff " << max_time << std::endl;
 
   auto se = Fun4AllServer::instance();
   dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
@@ -351,12 +352,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
     count_electrons += n_electrons;
     
-    /*
-    if(count_g4hits%50000 == 0)
-      std::cout << " g4hit->size() " << g4hit->size() << " count_g4hits " << count_g4hits << " remaining " << 
-	g4hit->size() - count_g4hits << " count_electrons " << count_electrons << std::endl;
-    */
-
     if (Verbosity() > 100)
       std::cout << "  new hit with t0, " << t0 << " g4hitid " << hiter->first
                 << " eion " << eion << " n_electrons " << n_electrons
@@ -404,6 +399,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           gsl_ran_gaussian(RandomGenerator.get(), t_sigma) +
           gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_long) / drift_velocity;
       double t_final = t_start + t_path + rantime;
+
       if (t_final < min_time || t_final > max_time) continue;
 
       double z_final;
@@ -411,7 +407,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         z_final = -tpc_length / 2. + t_final * drift_velocity;
       else
         z_final = tpc_length / 2. - t_final * drift_velocity;
-	
+
       const double radstart = std::sqrt(square(x_start) + square(y_start));
       const double phistart = std::atan2(y_start, x_start);
       const double ranphi = gsl_ran_flat(RandomGenerator.get(), -M_PI, M_PI);

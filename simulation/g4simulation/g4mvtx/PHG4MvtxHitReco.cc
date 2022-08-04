@@ -188,14 +188,15 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
   */
 
   // assumes we want the range of accepted times to be from 0 to m_extended_readout_time 
-  std::pair<double, double> alpide_pulse = generate_alpide_pulse(0.0);
-  double clearance = 5000.0; //ns
+  std::pair<double, double> alpide_pulse = generate_alpide_pulse(0.0);  // this currently just returns fixed values
+  //double clearance = strobe_zero_tm_start; //ns  // this is generous for now, will include some hits outside the range of real data
+  double clearance = 200.0;  // 0.2 microsecond for luck
   m_tmax = m_extended_readout_time + alpide_pulse.first + clearance;
   m_tmin = alpide_pulse.second - clearance;
 
   // The above limits will select g4hit times of 0 up to m_extended_readout_time (only) with extensions by clearance
-  // But we really want to select all g4hit times that will be strobed, so replace clearance with the strobe start time
-
+  // But we really want to select all g4hit times that will be strobed, so replace clearance with something derived from 
+  // the strobe start time in future
 
   if(Verbosity() > 0)
     std::cout << " m_strobe_width " << m_strobe_width << " m_strobe_separation " << m_strobe_separation << " strobe_zero_tm_start " << strobe_zero_tm_start << " m_extended_readout_time " << m_extended_readout_time << std::endl;
@@ -245,6 +246,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
 	std::cout << " MvtxHitReco: t0 " << g4hit->get_t(0) << " t1 " << g4hit->get_t(1) << " lead_edge " << lead_edge 
 		  << " fall_edge " << fall_edge << " tmin " << m_tmin << " tmax " << m_tmax << std::endl;
 
+      // check that the signal occurred witin the time window 0 to extended_readout_time, discard if not
       if (lead_edge > m_tmax or fall_edge < m_tmin) continue;
 
       // chop alpide pulse into the readout time window
