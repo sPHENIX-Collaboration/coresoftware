@@ -21,7 +21,7 @@ class RawTowerGeomContainer;
 class RawClusterBuilderTopo : public SubsysReco
 {
  public:
-  RawClusterBuilderTopo(const std::string &name = "RawClusterBuilderTopo");
+  explicit RawClusterBuilderTopo(const std::string &name = "RawClusterBuilderTopo");
   ~RawClusterBuilderTopo() override {}
 
   int InitRun(PHCompositeNode *topNode) override;
