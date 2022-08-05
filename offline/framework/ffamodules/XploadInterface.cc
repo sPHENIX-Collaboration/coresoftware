@@ -103,26 +103,12 @@ void XploadInterface::Print(const std::string & /* what */) const
   }
 }
 
-std::string XploadInterface::getUrl(const std::string &domain)
-{
-  recoConsts *rc = recoConsts::instance();
-  uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP");
-  xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), domain, timestamp, xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
-  auto pret = m_UrlVector.insert(make_tuple(domain, result.payload, timestamp));
-  if (!pret.second && Verbosity() > 1)
-  {
-    std::cout << "duplicate entry " << domain << ", url: " << result.payload
-              << ", time stamp: " << timestamp << std::endl;
-  }
-  return result.payload;
-}
-
 std::string XploadInterface::getUrl(const std::string &domain, const std::string &filename)
 {
   std::string return_url = filename;
   recoConsts *rc = recoConsts::instance();
-  uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP");
-  xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), domain, timestamp, xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
+  uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP",12345678912345);
+  xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG","TEST"), domain, timestamp, xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG","sPHENIX_cdb")));
   if (!result.payload.empty())
   {
     return_url = result.payload;
