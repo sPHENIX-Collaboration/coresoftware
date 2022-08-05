@@ -1,20 +1,16 @@
 #include "Rossegger.h"
-#include "MultiArray.h" //for TH3 alternative
 
-#include <TObject.h>  // for TObject
 #include <TVector3.h>
 
 #include <cmath>    // for NAN, abs
-#include <cstdio>   // for printf
-#include <cstdlib>  // for malloc
 #include <string>   // for string
-
-#include <cassert>
 
 class AnalyticFieldModel;
 class ChargeMapReader;
 class TH3;
 class TTree;
+
+template <class T> class MultiArray;
 
 class AnnularFieldSim
 {
@@ -189,6 +185,9 @@ class AnnularFieldSim
                   int phi, int roi_phi0, int roi_phi1, int in_phiLowSpacing, int in_phiHighSize,
                   int z, int roi_z0, int roi_z1, int in_zLowSpacing, int in_zHighSize,
                   float vdr, LookupCase in_lookupCase, ChargeCase in_chargeCase);
+    //! delete copy ctor and assignment opertor (cppcheck)
+    explicit AnnularFieldSim(const AnnularFieldSim &) = delete;
+    AnnularFieldSim &operator=(const AnnularFieldSim &) = delete;
 
   //debug functions:
   void UpdateEveryN(int n)

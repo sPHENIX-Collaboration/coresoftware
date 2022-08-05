@@ -1,6 +1,8 @@
 #include "AnnularFieldSim.h"
 
 #include "AnalyticFieldModel.h"
+#include "ChargeMapReader.h"
+#include "MultiArray.h" //for TH3 alternative
 #include "Rossegger.h"
 
 #include <TCanvas.h>
@@ -9,22 +11,21 @@
 #include <TH2.h>
 #include <TH3.h>
 #include <TLatex.h>
+#include <TPad.h>
 #include <TString.h>
 #include <TStyle.h>
 #include <TTree.h>
 #include <TVector3.h>
-#include "ChargeMapReader.h"
 
 #include <boost/format.hpp>
 
+#include <cassert>                                 // for assert
 #include <cmath>
-
+#include <cstdio>                                  // for printf, sprintf
+#include <cstdlib>                                 // for abs
 #include <iostream>
 
 #define ALMOST_ZERO 0.00001
-#ifndef M_TWOPI
-#define M_TWOPI 6.2831853
-#endif
 
 AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, float in_outerZ,
                                  int r, int roi_r0, int roi_r1, int /*in_rLowSpacing*/, int /*in_rHighSize*/,
@@ -345,17 +346,17 @@ double AnnularFieldSim::FilterPhiPos(double phi)
   //this primarily takes the region [-pi,0] and maps it to [pi,2pi] by adding 2pi to it.
   //if math has pushed us past 2pi, it also subtracts to try to get us in range.
   double p = phi;
-  if (p >= M_TWOPI)//phispan)
+  if (p >= 2*M_PI)//phispan)
   {
-    p -= M_TWOPI;
+    p -= 2*M_PI;
   }
   if (p < 0)
   {
-    p += M_TWOPI;
+    p += 2*M_PI;
   }
-    if (p >= M_TWOPI || p < 0)
+    if (p >= 2*M_PI || p < 0)
   {
-    printf("AnnularFieldSim::FilterPhiPos asked to filter %f, which is more than range=%f out of bounds.  Check what called this.\n", phi, M_TWOPI);
+    printf("AnnularFieldSim::FilterPhiPos asked to filter %f, which is more than range=%f out of bounds.  Check what called this.\n", phi, 2*M_PI);
     assert(1 == 2);
   }
   return p;
@@ -897,7 +898,8 @@ void AnnularFieldSim::loadEfield(const std::string &filename, const std::string 
   //prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   //assumes file stores fields as V/cm.
   TFile fieldFile(filename.c_str(), "READ");
-  TTree *fTree = (TTree *) (fieldFile.Get(treename.c_str()));
+  TTree *fTree;
+  fieldFile.GetObject(treename.c_str(),fTree);
   Efieldname = "E:" + filename + ":" + treename;
   //  sprintf(Efieldname,"E:%s:%s",filename,treename);
   float r, z, phi;     //coordinates
@@ -919,7 +921,8 @@ void AnnularFieldSim::loadBfield(const std::string &filename, const std::string 
   //prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   //assumes file stores field as Tesla.
   TFile fieldFile(filename.c_str(), "READ");
-  TTree *fTree = (TTree *) (fieldFile.Get(treename.c_str()));
+  TTree *fTree;
+  fieldFile.GetObject(treename.c_str(),fTree);
   Bfieldname = "B:" + filename + ":" + treename;
   float r, z, phi;     //coordinates
   float fr, fz, fphi;  //field components at that coordinate
@@ -942,7 +945,8 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
   //prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   //assumes file stores field as Tesla.
   TFile fieldFile(filename.c_str(), "READ");
-  TTree *fTree = (TTree *) (fieldFile.Get(treename.c_str()));
+  TTree *fTree;
+  fieldFile.GetObject(treename.c_str(),fTree);
   Bfieldname = "B(3D):" + filename + ":" + treename + " Scale =" + boost::str(boost::format("%2.2f") % scale);
   //  sprintf(Bfieldname,"B(3D):%s:%s Scale=%2.2f",filename,treename,scale);
   float r, z, phi;     //coordinates
@@ -1068,7 +1072,8 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
 void AnnularFieldSim::load_spacecharge(const std::string &filename, const std::string &histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity)
 {
   TFile *f = TFile::Open(filename.c_str());
-  TH3 *scmap = (TH3*) f->Get(histname.c_str());
+  TH3 *scmap;
+  f->GetObject(histname.c_str(),scmap);
   std::cout << "Loading spacecharge from '" << filename
             << "'.  Seeking histname '" << histname << "'" << std::endl;
   chargesourcename = filename + ":" + histname;
@@ -1081,7 +1086,8 @@ void AnnularFieldSim::load_spacecharge(const std::string &filename, const std::s
 void AnnularFieldSim::load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz, const std::string &filename, const std::string &histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity)
 {
   TFile *f = TFile::Open(filename.c_str());
-  TH3 *scmap = (TH3*) f->Get(histname.c_str());
+  TH3 *scmap;
+  f->GetObject(histname.c_str(),scmap);
   std::cout << "Resampling spacecharge from '" << filename
             << "'.  Seeking histname '" << histname << "'" << std::endl;
   chargesourcename = filename + ":" + histname;
@@ -1709,14 +1715,14 @@ void AnnularFieldSim::populate_lowres_lookup()
   TVector3 at(1, 0, 0);
   TVector3 from(1, 0, 0);
   TVector3 zero(0, 0, 0);
-  int fr_low, fr_high, fphi_low, fphi_high, fz_low, fz_high;  //edges of the outer l-bin
+  int fphi_low, fphi_high, fz_low, fz_high;  //edges of the outer l-bin
   int r_low, r_high, phi_low, phi_high, z_low, z_high;        //edges of the inner l-bin
 
   //todo:  add in handling if roi_low is wrap-around in phi
   for (int ifr = rmin_roi_low; ifr < rmax_roi_low; ifr++)
   {
-    fr_low = ifr * r_spacing;
-    fr_high = fr_low + r_spacing - 1;
+    int fr_low = ifr * r_spacing;
+    int fr_high = fr_low + r_spacing - 1;
     if (fr_high >= nr) fr_high = nr - 1;
     for (int ifphi = phimin_roi_low; ifphi < phimax_roi_low; ifphi++)
     {
@@ -1852,8 +1858,8 @@ void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
   printf("total elements = %llu\n", totalelements);
 
   TFile *input = TFile::Open(sourcefile, "READ");
-
-  TTree *tInfo = (TTree *) (input->Get("info"));
+  TTree *tInfo;
+  input->GetObject("info",tInfo);
   assert(tInfo);
 
   float file_rmin, file_rmax, file_zmin, file_zmax;
@@ -1896,7 +1902,8 @@ void AnnularFieldSim::load_phislice_lookup(const char *sourcefile)
     assert(1 == 4);
   }
 
-  TTree *tLookup = (TTree *) (input->Get("phislice"));
+  TTree *tLookup;
+  input->GetObject("phislice",tLookup);
   assert(tLookup);
   int ior, ifr, iophi, ioz, ifz;
   TVector3 *unitf = 0;
@@ -2314,7 +2321,7 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
   //note that if any out-of-bounds ones survive somehow, the call to Epartial_lowres will fail loudly.
   int lBinEdge[2];                         //lower and upper (included) edges of the low-res bin, measured in f-bins, reused per-dimension
   int hRegionEdge[2];                      //lower and upper edge of the high-res region, measured in f-bins, reused per-dimension.
-  bool overlapsR, overlapsPhi, overlapsZ;  //whether we overlap in R, phi, and z.
+  bool overlapsPhi, overlapsZ;  //whether we overlap in R, phi, and z.
 
   int r_highres_dist = (nr_high - 1) / 2;
   int phi_highres_dist = (nphi_high - 1) / 2;
@@ -2326,7 +2333,7 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
     lBinEdge[1] = (ir + 1) * r_spacing - 1;
     hRegionEdge[0] = r - r_highres_dist;
     hRegionEdge[1] = r + r_highres_dist;
-    overlapsR = (lBinEdge[0] <= hRegionEdge[1] && hRegionEdge[0] <= lBinEdge[1]);
+    bool overlapsR = (lBinEdge[0] <= hRegionEdge[1] && hRegionEdge[0] <= lBinEdge[1]);
     for (int iphi = 0; iphi < nphi_low; iphi++)
     {
       lBinEdge[0] = iphi * phi_spacing;

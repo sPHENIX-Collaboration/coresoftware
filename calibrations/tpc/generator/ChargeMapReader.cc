@@ -1,13 +1,19 @@
 #include "ChargeMapReader.h"
-#include "TH3.h"
-#include "TFile.h"
-#include "TMath.h"
+
+#include "MultiArray.h"
+
+#include <TAxis.h>
+#include <TH3.h>
+#include <TFile.h>
+#include <TMath.h>
+
 #include <cassert>
+#include <cstdio>
 
 #define DEBUG false
 
 ChargeMapReader::ChargeMapReader():
-  ChargeMapReader(20,20.0,78.0,20,0,TMath::TwoPi(),40,-105.5,105.5){
+  ChargeMapReader(20,20.0,78.0,20,0,2*M_PI,40,-105.5,105.5){
   printf("made a new ChargeMapReader with default values -- cascading to next constructor\n");
   return;
 }
@@ -87,10 +93,10 @@ void ChargeMapReader::FillChargeHistogram(TH3* h){
   dphi=binWidth[1];
   dz=binWidth[2];
   
-  float phimid,rmid,zmid; //midpoints at each step.
+  float phimid,zmid; //midpoints at each step.
   int i[3];
   for ( i[0]=0;i[0]<nBins[0];i[0]++){//r
-    rmid=lowerBound[0]+(i[0]+0.5)*dr;
+    float rmid=lowerBound[0]+(i[0]+0.5)*dr;
     for ( i[1]=0;i[1]<nBins[1];i[1]++){//phi
       phimid=lowerBound[1]+(i[1]+0.5)*dphi;
       for ( i[2]=0;i[2]<nBins[2];i[2]++){//z
@@ -122,11 +128,11 @@ void ChargeMapReader::RegenerateCharge(){
   dphi=binWidth[1];
   dz=binWidth[2];
   
-  float phimid,rmid,zmid; //position of the center of each fixed-width array bin, in the input histogram units
+  float phimid,zmid; //position of the center of each fixed-width array bin, in the input histogram units
   //note that since we computed density using the hist units, we must use those units for the volume term again here.
   int i[3];
   for ( i[0]=0;i[0]<=nBins[0];i[0]++){//r
-    rmid=(lowerBound[0]+(i[0]+0.5)*dr)/inputAxisScale;
+    float rmid=(lowerBound[0]+(i[0]+0.5)*dr)/inputAxisScale;
     float rlow=lowerBound[0]+dr*i[0];
     float volume=dz*dphi*(rlow+0.5*dr)*dr; //note that since we have equal bin widths, the volume term depends only on r.
     float scaleFactor=volume*inputChargeScale; //and the total scale factor is the volume term times the charge scale factor
@@ -176,7 +182,7 @@ void ChargeMapReader::RegenerateDensity(){
   }
 
   //clone this from the source histogram, which we assume is open.
-  hChargeDensity=(TH3*)(hSourceCharge->Clone("hChargeDensity"));
+  hChargeDensity=static_cast<TH3*>(hSourceCharge->Clone("hChargeDensity"));
 
   //then go through it, bin by bin, and replace each bin content with the corresponding density, so we can interpolate correctly.
   //TODO:  Does this mean we once again need 'guard' bins?  Gross.
@@ -194,16 +200,16 @@ void ChargeMapReader::RegenerateDensity(){
 
     //   0     1     2   ...   n-1    n    n+1
   // under|first|   ..|  ..  |  .. |last| over
-  int i[3],a;
+  int i[3];
   float low[3],high[3];
-  float dphi,dr,dz; //bin widths in each dimension.  Got too confusing to make these an array.
+  float dr,dz; //bin widths in each dimension.  Got too confusing to make these an array.
   //note that all of this is done in the native units of the source data, specifically, the volume element is in hist units, not our internal units.
   
   for ( i[0]=1;i[0]<=nbins[0];i[0]++){//phi
-    a=0;
+    int a=0;
     low[a]=ax[a]->GetBinLowEdge(i[a]);
     high[a]=ax[a]->GetBinUpEdge(i[a]);
-    dphi=high[a]-low[a];
+    float dphi=high[a]-low[a];
     for ( i[1]=1;i[1]<=nbins[1];i[1]++){//r
       a=1;
       low[a]=ax[a]->GetBinLowEdge(i[a]);
@@ -233,7 +239,7 @@ bool ChargeMapReader::ReadSourceCharge(const char* filename, const char* histnam
   inputAxisScale=axisScale;
   inputChargeScale=contentScale;
   TFile *inputFile=TFile::Open(filename,"READ");
-  hSourceCharge=(TH3*)(inputFile->Get(histname));
+  inputFile->GetObject(histname,hSourceCharge);
   if (hSourceCharge==nullptr) return false;
   RegenerateDensity();
   inputFile->Close();
@@ -274,8 +280,9 @@ bool ChargeMapReader::SetOutputParameters(int _nr, float _rmin, float _rmax, int
 
   
   for (int i=0;i<3;i++)
+  {
     binWidth[i]=(upperBound[i]-lowerBound[i])/(1.0*nBins[i]);
-
+  }
 
   //if the array exists, delete it.
   if (charge!=nullptr){

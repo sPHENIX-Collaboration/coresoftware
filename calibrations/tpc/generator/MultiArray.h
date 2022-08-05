@@ -1,6 +1,6 @@
 
-#ifndef MULTIARRAY
-#define MULTIARRAY
+#ifndef MULTIARRAY_H
+#define MULTIARRAY_H
 
 #include <cassert>
 #include <cstdlib>  // for malloc
@@ -37,6 +37,10 @@ class MultiArray
     field = static_cast<T *>(malloc(length * sizeof(T)));
     //note that since we don't know what T is, we can't safely zero it.  Someone else will have to do that.
   }
+    //! delete copy ctor and assignment opertor (cppcheck)
+    explicit MultiArray(const MultiArray &) = delete;
+    MultiArray &operator=(const MultiArray &) = delete;
+
   
   ~MultiArray() {
     free(field);
@@ -124,4 +128,4 @@ class MultiArray
   }
   
 };
-#endif  //MULTIARRAY
+#endif  //MULTIARRAY_H

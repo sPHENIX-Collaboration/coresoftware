@@ -1,7 +1,5 @@
 class TH3;
-class TTree;
-
-#include <MultiArray.h>
+template <class T> class MultiArray;
 
 //since we are never in the position of adding very large numbers to very small, floats are sufficient precision here.
 class ChargeMapReader
