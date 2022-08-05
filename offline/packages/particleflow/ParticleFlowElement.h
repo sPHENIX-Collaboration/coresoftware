@@ -58,7 +58,7 @@ class ParticleFlowElement : public PHObject
   virtual void set_track(SvtxTrack*) { return; }
   
   virtual std::vector<RawCluster*> get_eclusters() const { return std::vector<RawCluster*>(); }
-  virtual void set_eclusters(std::vector<RawCluster*>) { return; }
+  virtual void set_eclusters(const std::vector<RawCluster*>&) { return; }
   
   virtual RawCluster* get_hcluster() const { return nullptr; }
   virtual void set_hcluster(RawCluster*) { return; }

@@ -53,7 +53,7 @@ class ParticleFlowElementv1 : public ParticleFlowElement
   void set_track(SvtxTrack* track) override { _track = track; }
   
   std::vector<RawCluster*> get_eclusters() const override { return _ecluster; }
-  void set_eclusters(std::vector<RawCluster*> ecluster) override { _ecluster = ecluster; }
+  void set_eclusters(const std::vector<RawCluster*>& ecluster) override { _ecluster = ecluster; }
   
   RawCluster* get_hcluster() const override { return _hcluster; }
   void set_hcluster(RawCluster* hcluster) override { _hcluster = hcluster; }
@@ -78,9 +78,9 @@ class ParticleFlowElementv1 : public ParticleFlowElement
   /// pflow energy
   float _e;
   
-  SvtxTrack* _track;
+  SvtxTrack* _track = nullptr;
   std::vector<RawCluster*> _ecluster;
-  RawCluster* _hcluster;
+  RawCluster* _hcluster = nullptr;
   ClassDefOverride(ParticleFlowElementv1, 1);
 };
 
