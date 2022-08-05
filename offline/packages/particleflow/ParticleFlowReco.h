@@ -15,6 +15,8 @@
 #include <vector>
 
 class PHCompositeNode;
+class SvtxTrack;
+class RawCluster;
 
 class ParticleFlowReco : public SubsysReco
 {
@@ -59,15 +61,17 @@ class ParticleFlowReco : public SubsysReco
   std::vector<float> _pflow_TRK_p;
   std::vector<float> _pflow_TRK_eta;
   std::vector<float> _pflow_TRK_phi;
+  std::vector<SvtxTrack*> _pflow_TRK_trk;
   std::vector< std::vector<int> > _pflow_TRK_match_EM;
   std::vector< std::vector<int> > _pflow_TRK_match_HAD;
-
+  
   // convention is ( EM index, dR value )
   std::vector< std::vector< std::pair<int,float> > > _pflow_TRK_addtl_match_EM;
 
   std::vector<float> _pflow_EM_E;
   std::vector<float> _pflow_EM_eta;
   std::vector<float> _pflow_EM_phi;
+  std::vector<RawCluster*> _pflow_EM_cluster;
   std::vector< std::vector<float> > _pflow_EM_tower_eta;
   std::vector< std::vector<float> > _pflow_EM_tower_phi;
   std::vector< std::vector<int> > _pflow_EM_match_HAD;
@@ -76,6 +80,7 @@ class ParticleFlowReco : public SubsysReco
   std::vector<float> _pflow_HAD_E;
   std::vector<float> _pflow_HAD_eta;
   std::vector<float> _pflow_HAD_phi;
+  std::vector<RawCluster*> _pflow_HAD_cluster;
   std::vector< std::vector<float> > _pflow_HAD_tower_eta;
   std::vector< std::vector<float> > _pflow_HAD_tower_phi;
   std::vector< std::vector<int> > _pflow_HAD_match_EM;
