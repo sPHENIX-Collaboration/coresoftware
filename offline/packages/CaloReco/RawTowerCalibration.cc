@@ -1,6 +1,5 @@
 #include "RawTowerCalibration.h"
 
-
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>
@@ -9,6 +8,7 @@
 #include <calobase/RawTowerv1.h>
 #include <calobase/RawTowerv2.h>
 
+#include <dbfile_calo_calib/CaloCalibSimpleCorrFile.h>
 #include <dbfile_calo_calib/HcalCaloCalibSimpleCorrFilev1.h>
 #include <dbfile_calo_calib/CEmcCaloCalibSimpleCorrFilev1.h>
 
@@ -26,8 +26,6 @@
 #include <phool/recoConsts.h>
 
 #include <TSystem.h>
-
-#include <xpload/xpload.h>
 
 #include <cassert>
 #include <cmath>

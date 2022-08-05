@@ -19,6 +19,7 @@
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
+#include <algorithm>
 #include <cmath>
 #include <exception>
 #include <iostream>
@@ -29,8 +30,6 @@
 #include <vector>
 #include <list>
 
-#include <algorithm>
-#include <cmath>
 
 bool sort_by_pair_second( const std::pair<int,float> &a,  const std::pair<int,float> &b) 
 { 

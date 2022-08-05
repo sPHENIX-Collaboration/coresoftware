@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
+#include <set>                               // for _Rb_tree_const_iterator
 #include <stdexcept>
 #include <string>
 #include <utility>

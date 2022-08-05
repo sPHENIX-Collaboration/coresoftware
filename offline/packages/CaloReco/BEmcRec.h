@@ -7,6 +7,8 @@
 
 #include "BEmcCluster.h"
 
+#include <algorithm>      // for max
+#include <cmath>         // for NAN
 #include <map>
 #include <string>
 #include <vector>
