@@ -177,19 +177,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
   // Generate strobe zero relative to trigger time
   double strobe_zero_tm_start = generate_strobe_zero_tm_start();
 
-  /*
-  m_tmin = (! m_in_sphenix_srdo) ? -1. * ( m_strobe_width + m_strobe_separation ) : m_tmin;
-  // decrease tmin by the strobe start time
-  m_tmin += strobe_zero_tm_start;
-
-  m_tmax = (! m_in_sphenix_srdo) ? ( m_strobe_width + m_strobe_separation + m_extended_readout_time) : m_tmax;
-  // increase tmax by a) the complement of the strobe start time and b) the extended readout time
-  m_tmax += strobe_zero_tm_start;
-  */
-
   // assumes we want the range of accepted times to be from 0 to m_extended_readout_time 
   std::pair<double, double> alpide_pulse = generate_alpide_pulse(0.0);  // this currently just returns fixed values
-  //double clearance = strobe_zero_tm_start; //ns  // this is generous for now, will include some hits outside the range of real data
   double clearance = 200.0;  // 0.2 microsecond for luck
   m_tmax = m_extended_readout_time + alpide_pulse.first + clearance;
   m_tmin = alpide_pulse.second - clearance;
