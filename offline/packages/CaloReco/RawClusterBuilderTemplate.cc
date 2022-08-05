@@ -18,6 +18,8 @@
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
+#include <ffamodules/XploadInterface.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
@@ -28,9 +30,6 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <phool/recoConsts.h>
-
-#include <xpload/xpload.h>
 
 #include <cmath>
 #include <exception>
@@ -96,15 +95,9 @@ void RawClusterBuilderTemplate::Detector(const std::string &d)
 
 void RawClusterBuilderTemplate::LoadProfile(const std::string &fname)
 {
-  //  _emcprof = new BEmcProfile(fname);
-  std::string tmpfname = fname;
-  if (tmpfname == "CDB")
-  {
-      recoConsts *rc = recoConsts::instance();
-      xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), "EMCPROFILE", rc->get_uint64Flag("TIMESTAMP"), xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
-      tmpfname = result.payload;
-  }
-  bemc->LoadProfile(tmpfname);
+  std::string url = XploadInterface::instance()->getUrl("EMCPROFILE", fname);
+
+  bemc->LoadProfile(url);
 }
 
 void RawClusterBuilderTemplate::SetCylindricalGeometry()
