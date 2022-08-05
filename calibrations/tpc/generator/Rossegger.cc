@@ -150,10 +150,10 @@ void Rossegger::FindBetamn(double epsilon)
       N2mn[m][n] *= (jna_over_jnb * jna_over_jnb - 1.0);
       //rcc note!  in eq 5.17, N2nm is set with betamn[m][n], but from context that looks to be a typo.  The order is mn everywhere else
       if (verbosity > 1) std::cout << "m: " << m << " n: " << n << " N2[m][n]: " << N2mn[m][n];
-      double integral = 0.0;
       double step = 0.01;
       if (verbosity > 1)
       {
+        double integral = 0.0;
         for (double r = a; r < b; r += step)
         {
           double rmnval = Rmn(m, n, r);

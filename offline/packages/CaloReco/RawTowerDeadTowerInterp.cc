@@ -21,20 +21,14 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
+#include <set>  // for _Rb_tree_const_iterator
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
-using namespace std;
-
 RawTowerDeadTowerInterp::RawTowerDeadTowerInterp(const std::string &name)
   : SubsysReco(name)
-  , m_calibTowers(nullptr)
-  , m_geometry(nullptr)
-  , m_deadTowerMap(nullptr)
-  , m_detector("NONE")
-  , _calib_tower_node_prefix("CALIB")
 {
 }
 
@@ -48,8 +42,8 @@ int RawTowerDeadTowerInterp::InitRun(PHCompositeNode *topNode)
                                                            "DST"));
   if (!dstNode)
   {
-    cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
-         << "DST Node missing, doing nothing." << std::endl;
+    std::cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
+              << "DST Node missing, doing nothing." << std::endl;
     exit(1);
   }
 
@@ -65,7 +59,7 @@ int RawTowerDeadTowerInterp::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerDeadTowerInterp::process_event(PHCompositeNode */*topNode*/)
+int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity())
   {
@@ -102,9 +96,9 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode */*topNode*/)
       RawTowerGeom *towerGeom = m_geometry->get_tower_geometry(key);
       if (towerGeom == nullptr)
       {
-        std::cerr << Name() << "::" << m_detector << "::"
+        std::cout << Name() << "::" << m_detector << "::"
                   << "process_event"
-                  << " - invalid dead tower ID " << key << endl;
+                  << " - invalid dead tower ID " << key << std::endl;
 
         exit(2);
       }
@@ -114,8 +108,8 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode */*topNode*/)
 
       if (Verbosity() >= VERBOSITY_MORE)
       {
-        cout << " bin " << bineta << "-" << binphi;
-        cout << ". Add neighbors: ";
+        std::cout << " bin " << bineta << "-" << binphi;
+        std::cout << ". Add neighbors: ";
       }
 
       assert(bineta >= 0);
@@ -124,12 +118,12 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode */*topNode*/)
       assert(binphi <= phi_bins);
 
       // eight neighbors
-      static const vector<pair<int, int>> neighborIndexs =
+      static const std::vector<std::pair<int, int>> neighborIndexs =
           {{+1, 0}, {+1, +1}, {0, +1}, {-1, +1}, {-1, 0}, {-1, -1}, {0, -1}, {+1, -1}};
 
       int n_neighbor = 0;
       double E_SumNeighbor = 0;
-      for (const pair<int, int> &neighborIndex : neighborIndexs)
+      for (const std::pair<int, int> &neighborIndex : neighborIndexs)
       {
         int ieta = bineta + neighborIndex.first;
         int iphi = binphi + neighborIndex.second;
@@ -156,7 +150,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode */*topNode*/)
 
         if (Verbosity() >= VERBOSITY_MORE)
         {
-          cout << neighTower->get_energy() << " (" << ieta << "-" << iphi << "), ";
+          std::cout << neighTower->get_energy() << " (" << ieta << "-" << iphi << "), ";
         }
 
         E_SumNeighbor += neighTower->get_energy();
@@ -181,7 +175,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode */*topNode*/)
 
         if (Verbosity() >= VERBOSITY_MORE)
         {
-          cout << " -> " << deadTower->get_energy() << " GeV @ " << deadTower->get_id();
+          std::cout << " -> " << deadTower->get_energy() << " GeV @ " << deadTower->get_id();
         }
 
       }  // if (n_neighbor>0)
@@ -189,14 +183,14 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode */*topNode*/)
       {
         if (Verbosity() >= VERBOSITY_MORE)
         {
-          cout << "No neighbor towers found.";
+          std::cout << "No neighbor towers found.";
         }
 
       }  // if (n_neighbor>0) -else
 
       if (Verbosity() >= VERBOSITY_MORE)
       {
-        cout << endl;
+        std::cout << std::endl;
       }
     }
 
@@ -212,7 +206,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode */*topNode*/)
       std::cout << Name() << "::" << m_detector << "::"
                 << "process_event"
                 << " - missing dead map node. Do nothing ..."
-                << endl;
+                << std::endl;
     }
   }
 
@@ -228,7 +222,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode */*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerDeadTowerInterp::End(PHCompositeNode */*topNode*/)
+int RawTowerDeadTowerInterp::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -240,28 +234,28 @@ void RawTowerDeadTowerInterp::CreateNodes(PHCompositeNode *topNode)
       "PHCompositeNode", "RUN"));
   if (!runNode)
   {
-    std::cerr << Name() << "::" << m_detector << "::"
+    std::cout << Name() << "::" << m_detector << "::"
               << "CreateNodes"
               << "Run Node missing, doing nothing." << std::endl;
     throw std::runtime_error(
         "Failed to find Run node in RawTowerDeadTowerInterp::CreateNodes");
   }
 
-  const string deadMapName = "DEADMAP_" + m_detector;
+  const std::string deadMapName = "DEADMAP_" + m_detector;
   m_deadTowerMap = findNode::getClass<RawTowerDeadMap>(topNode, deadMapName);
   if (m_deadTowerMap)
   {
-    cout << Name() << "::" << m_detector << "::"
-         << "CreateNodes"
-         << " use dead map: ";
+    std::cout << Name() << "::" << m_detector << "::"
+              << "CreateNodes"
+              << " use dead map: ";
     m_deadTowerMap->identify();
   }
 
-  const string geometry_node = "TOWERGEOM_" + m_detector;
+  const std::string geometry_node = "TOWERGEOM_" + m_detector;
   m_geometry = findNode::getClass<RawTowerGeomContainer>(topNode, geometry_node);
   if (!m_geometry)
   {
-    std::cerr << Name() << "::" << m_detector << "::"
+    std::cout << Name() << "::" << m_detector << "::"
               << "CreateNodes"
               << " " << geometry_node << " Node missing, doing bail out!"
               << std::endl;
@@ -278,18 +272,18 @@ void RawTowerDeadTowerInterp::CreateNodes(PHCompositeNode *topNode)
       "PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    std::cerr << Name() << "::" << m_detector << "::"
+    std::cout << Name() << "::" << m_detector << "::"
               << "CreateNodes"
               << "DST Node missing, doing nothing." << std::endl;
     throw std::runtime_error(
         "Failed to find DST node in RawTowerDeadTowerInterp::CreateNodes");
   }
 
-  const string rawTowerNodeName = "TOWER_" + _calib_tower_node_prefix + "_" + m_detector;
+  const std::string rawTowerNodeName = "TOWER_" + _calib_tower_node_prefix + "_" + m_detector;
   m_calibTowers = findNode::getClass<RawTowerContainer>(dstNode, rawTowerNodeName);
   if (!m_calibTowers)
   {
-    std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
+    std::cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
               << " " << rawTowerNodeName << " Node missing, doing bail out!"
               << std::endl;
     throw std::runtime_error(

@@ -11,7 +11,7 @@
 
 #include <phool/getClass.h>
 
-#include <TAxis.h>                        // for TAxis
+#include <TAxis.h>  // for TAxis
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
@@ -19,18 +19,17 @@
 #include <TTree.h>
 #include <TVector3.h>
 
-#include <algorithm>                      // for max
-#include <cmath>                          // for sin, asin, cos, floor, M_PI
+#include <algorithm>  // for max
+#include <cmath>      // for sin, asin, cos, floor, M_PI
+#include <cstdio>     // for sprintf, printf
 #include <cstdlib>
-#include <cstdio>                        // for sprintf, printf
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
-#include <utility>                        // for pair
+#include <utility>  // for pair
 #include <vector>
-
 
 //____________________________________________________________________________..
 fillSpaceChargeMaps::fillSpaceChargeMaps(const std::string &name, const std::string &filename)
@@ -212,7 +211,7 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
 
   Shifter shifter("/sphenix/user/rcorliss/distortion_maps/2021.04/apr07.average.real_B1.4_E-400.0.ross_phi1_sphenix_phislice_lookup_r26xp40xz40.distortion_map.hist.root");
 
-  PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_TPC" );
+  PHG4HitContainer *hits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   int n_hits = 0;
   if (hits)
   {

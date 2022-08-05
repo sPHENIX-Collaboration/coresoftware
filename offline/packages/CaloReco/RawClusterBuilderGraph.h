@@ -11,7 +11,7 @@ class RawClusterContainer;
 class RawClusterBuilderGraph : public SubsysReco
 {
  public:
-  RawClusterBuilderGraph(const std::string &name = "RawClusterBuilderGraph");
+  explicit RawClusterBuilderGraph(const std::string &name = "RawClusterBuilderGraph");
   ~RawClusterBuilderGraph() override {}
 
   int InitRun(PHCompositeNode *topNode) override;
