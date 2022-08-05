@@ -3,9 +3,9 @@
 #include <ffaobjects/CdbUrlSave.h>
 #include <ffaobjects/CdbUrlSavev1.h>
 
-#include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>          // for SubsysReco
+#include <fun4all/Fun4AllServer.h>
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -17,10 +17,10 @@
 
 #include <xpload/xpload.h>
 
-#include <cstdint>                       // for uint64_t
-#include <iostream>                      // for operator<<, basic_ostream, endl
-#include <utility>                       // for pair
-#include <vector>                        // for vector
+#include <cstdint>   // for uint64_t
+#include <iostream>  // for operator<<, basic_ostream, endl
+#include <utility>   // for pair
+#include <vector>    // for vector
 
 XploadInterface *XploadInterface::__instance = nullptr;
 
@@ -47,8 +47,8 @@ int XploadInterface::End(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-  CdbUrlSave *cdburls = findNode::getClass<CdbUrlSave>(runNode,"CdbUrl");
-  if (! cdburls)
+  CdbUrlSave *cdburls = findNode::getClass<CdbUrlSave>(runNode, "CdbUrl");
+  if (!cdburls)
   {
     cdburls = new CdbUrlSavev1();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cdburls, "CdbUrl", "PHObject");
@@ -61,27 +61,27 @@ int XploadInterface::End(PHCompositeNode *topNode)
     {
       tmp_set.insert(*iter_tup);
     }
-// remove duplicates in our set
-// not possible using for range loops, iterator gets invalidated
+    // remove duplicates in our set
+    // not possible using for range loops, iterator gets invalidated
     for (auto itr = m_UrlVector.cbegin(); itr != m_UrlVector.cend();)
     {
       if (tmp_set.find(*itr) != tmp_set.end())
       {
-	if (Verbosity())
-	{
-	  std::cout << "removing already saved: domain " << std::get<0>(*itr)
-		    << ", url: " << std::get<1>(*itr)
-		    << ", timestamp: " << std::get<2>(*itr)  << std::endl;
-	}
-	itr = m_UrlVector.erase(itr);
+        if (Verbosity())
+        {
+          std::cout << "removing already saved: domain " << std::get<0>(*itr)
+                    << ", url: " << std::get<1>(*itr)
+                    << ", timestamp: " << std::get<2>(*itr) << std::endl;
+        }
+        itr = m_UrlVector.erase(itr);
       }
       else
       {
-	++itr;
+        ++itr;
       }
     }
   }
-  for (auto &tuple: m_UrlVector)
+  for (auto &tuple : m_UrlVector)
   {
     cdburls->AddUrl(tuple);
   }
@@ -95,11 +95,11 @@ int XploadInterface::End(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 void XploadInterface::Print(const std::string & /* what */) const
 {
-  for (auto &iter :  m_UrlVector)
+  for (auto &iter : m_UrlVector)
   {
-    std::cout << "domain: " << std::get<0>(iter) 
-       << ", url: " << std::get<1>(iter) 
-       << ", timestamp: " << std::get<2>(iter) << std::endl;
+    std::cout << "domain: " << std::get<0>(iter)
+              << ", url: " << std::get<1>(iter)
+              << ", timestamp: " << std::get<2>(iter) << std::endl;
   }
 }
 
@@ -108,11 +108,11 @@ std::string XploadInterface::getUrl(const std::string &domain)
   recoConsts *rc = recoConsts::instance();
   uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP");
   xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), domain, timestamp, xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
-  auto pret = m_UrlVector.insert(make_tuple(domain,result.payload,timestamp));
-  if (! pret.second && Verbosity() > 1)
+  auto pret = m_UrlVector.insert(make_tuple(domain, result.payload, timestamp));
+  if (!pret.second && Verbosity() > 1)
   {
     std::cout << "duplicate entry " << domain << ", url: " << result.payload
-	      << ", time stamp: " << timestamp << std::endl;
+              << ", time stamp: " << timestamp << std::endl;
   }
   return result.payload;
 }
@@ -123,15 +123,15 @@ std::string XploadInterface::getUrl(const std::string &domain, const std::string
   recoConsts *rc = recoConsts::instance();
   uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP");
   xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), domain, timestamp, xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
-  if (! result.payload.empty())
+  if (!result.payload.empty())
   {
     return_url = result.payload;
   }
-  auto pret = m_UrlVector.insert(make_tuple(domain,return_url,timestamp));
-  if (! pret.second && Verbosity() > 1)
+  auto pret = m_UrlVector.insert(make_tuple(domain, return_url, timestamp));
+  if (!pret.second && Verbosity() > 1)
   {
     std::cout << "duplicate entry " << domain << ", url: " << return_url
-	      << ", time stamp: " << timestamp << std::endl;
+              << ", time stamp: " << timestamp << std::endl;
   }
   return return_url;
 }
