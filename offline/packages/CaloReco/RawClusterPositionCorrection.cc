@@ -11,12 +11,12 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/getClass.h>
 #include <phool/phool.h>
 
 #include <cassert>
@@ -27,7 +27,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <utility>                           // for pair
+#include <utility>  // for pair
 
 RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &name)
   : SubsysReco(std::string("RawClusterPositionCorrection_") + name)
@@ -297,7 +297,7 @@ void RawClusterPositionCorrection::CreateNodeTree(PHCompositeNode *topNode)
   const std::string paramNodeName2 = std::string("ecore_Recalibration_" + _det_name);
   _ecore_calib_params.SaveToNodeTree(parNode, paramNodeName2);
 }
-int RawClusterPositionCorrection::End(PHCompositeNode */*topNode*/)
+int RawClusterPositionCorrection::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

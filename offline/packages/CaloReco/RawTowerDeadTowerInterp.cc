@@ -21,7 +21,7 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
-#include <set>                               // for _Rb_tree_const_iterator
+#include <set>  // for _Rb_tree_const_iterator
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -43,7 +43,7 @@ int RawTowerDeadTowerInterp::InitRun(PHCompositeNode *topNode)
   if (!dstNode)
   {
     std::cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
-         << "DST Node missing, doing nothing." << std::endl;
+              << "DST Node missing, doing nothing." << std::endl;
     exit(1);
   }
 
@@ -59,7 +59,7 @@ int RawTowerDeadTowerInterp::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerDeadTowerInterp::process_event(PHCompositeNode */*topNode*/)
+int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity())
   {
@@ -222,7 +222,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode */*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerDeadTowerInterp::End(PHCompositeNode */*topNode*/)
+int RawTowerDeadTowerInterp::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -246,8 +246,8 @@ void RawTowerDeadTowerInterp::CreateNodes(PHCompositeNode *topNode)
   if (m_deadTowerMap)
   {
     std::cout << Name() << "::" << m_detector << "::"
-         << "CreateNodes"
-         << " use dead map: ";
+              << "CreateNodes"
+              << " use dead map: ";
     m_deadTowerMap->identify();
   }
 

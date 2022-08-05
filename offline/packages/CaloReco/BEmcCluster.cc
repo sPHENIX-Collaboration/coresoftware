@@ -285,7 +285,7 @@ float EmcCluster::GetProb(float& chi2, int& ndf)
 
 // ///////////////////////////////////////////////////////////////////////////
 
-int EmcCluster::GetSubClusters(std::vector<EmcCluster> &PkList, std::vector<EmcModule> &ppeaks)
+int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcModule>& ppeaks)
 {
   // Splits the cluster onto subclusters
   // The number of subclusters is equal to the number of Local Maxima in a cluster.
@@ -367,8 +367,8 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster> &PkList, std::vector<EmcM
       {
         delete[] hlist;
         std::cout << "!!! Error in EmcCluster::GetSubClusters(): too many peaks in a cluster (>"
-             << fgMaxNofPeaks
-             << "). May need tower energy threshold increase for clustering." << std::endl;
+                  << fgMaxNofPeaks
+                  << "). May need tower energy threshold increase for clustering." << std::endl;
         return -1;
       }
 
@@ -503,7 +503,7 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster> &PkList, std::vector<EmcM
 
         // predict energy within 2.5 cell square around local peak
         if (ABS(dx) < 2.5 && ABS(dy) < 2.5)
-	  //          a = epk[ipk] * fOwner->PredictEnergy(dx, dy, epk[ipk]);
+          //          a = epk[ipk] * fOwner->PredictEnergy(dx, dy, epk[ipk]);
           a = epk[ipk] * fOwner->PredictEnergy(epk[ipk], xpk[ipk], ypk[ipk], ix, iy);
 
         Energy[ipk][in] = a;
@@ -596,7 +596,7 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster> &PkList, std::vector<EmcM
           ix = ixy - iy * fOwner->GetNx();
           dx = fOwner->fTowerDist(float(ix), xpk[ig]);
           dy = ypk[ig] - iy;
-	  //          a = epk[ig] * fOwner->PredictEnergy(dx, dy, epk[ig]);
+          //          a = epk[ig] * fOwner->PredictEnergy(dx, dy, epk[ig]);
           a = epk[ig] * fOwner->PredictEnergy(epk[ig], xpk[ig], ypk[ig], ix, iy);
           Energy[ipk][in] += a;
           tmpEnergy[in] += a;

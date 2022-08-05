@@ -80,8 +80,8 @@ void RawClusterBuilderTemplate::Detector(const std::string &d)
   else
   {
     std::cout << "Warning from RawClusterBuilderTemplate::Detector(): no detector specific class "
-         << Name() << " defined for detector " << detector
-         << ". Default BEmcRec will be used" << std::endl;
+              << Name() << " defined for detector " << detector
+              << ". Default BEmcRec will be used" << std::endl;
     bemc = new BEmcRec();
   }
 
@@ -173,14 +173,14 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 1)
   {
     std::cout << "Info from RawClusterBuilderTemplate::InitRun(): Init geometry for "
-         << detector << ": N of geom towers: " << ngeom << "; ix = "
-         << ixmin << "-" << ixmax << ", iy = "
-         << iymin << "-" << iymax << std::endl;
+              << detector << ": N of geom towers: " << ngeom << "; ix = "
+              << ixmin << "-" << ixmax << ", iy = "
+              << iymin << "-" << iymax << std::endl;
   }
   if (ixmax < ixmin || iymax < iymin)
   {
     std::cout << "Error in RawClusterBuilderTemplate::InitRun(): wrong geometry data for detector "
-         << detector << std::endl;
+              << detector << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -232,7 +232,7 @@ void RawClusterBuilderTemplate::PrintCylGeom(RawTowerGeomContainer *towergeom, c
   if (!outfile.is_open())
   {
     std::cout << "Error in BEmcRec::RawClusterBuilderTemplate::PrintCylGeom(): Failed to open file "
-         << fname << std::endl;
+              << fname << std::endl;
     return;
   }
   outfile << NBINX << " " << NBINY << std::endl;
@@ -247,7 +247,7 @@ void RawClusterBuilderTemplate::PrintCylGeom(RawTowerGeomContainer *towergeom, c
   outfile.close();
 }
 
-bool RawClusterBuilderTemplate::Cell2Abs(RawTowerGeomContainer */*towergeom*/, float /*phiC*/, float /*etaC*/, float &phi, float &eta)
+bool RawClusterBuilderTemplate::Cell2Abs(RawTowerGeomContainer * /*towergeom*/, float /*phiC*/, float /*etaC*/, float &phi, float &eta)
 {
   phi = eta = 0;
   return false;
@@ -350,7 +350,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   if (ncl < 0)
   {
     std::cout << "!!! Error in BEmcRec::FindClusters(): numbers of cluster "
-         << ncl << " ?" << std::endl;
+              << ncl << " ?" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -476,8 +476,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       if (fabs(etower - ecluster) / ecluster > 1e-9)
       {
         std::cout << "energy conservation violation: ETower: " << etower
-             << " ECluster: " << ecluster
-             << " diff: " << etower - ecluster << std::endl;
+                  << " ECluster: " << ecluster
+                  << " diff: " << etower - ecluster << std::endl;
       }
     }
     else
@@ -485,7 +485,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       if (etower != 0)
       {
         std::cout << "energy conservation violation: ETower: " << etower
-             << " ECluster: " << ecluster << std::endl;
+                  << " ECluster: " << ecluster << std::endl;
       }
     }
   }

@@ -9,12 +9,10 @@
 #include <iostream>
 #include <string>
 
-
 class CaloCalibSimpleCorrFile;
 class PHCompositeNode;
 class RawTowerContainer;
 class RawTowerGeomContainer;
-
 
 //! calibrate ADC value to measured energy deposition in calorimeter towers
 //! default input DST node is TOWER_RAW_DETECTOR
@@ -53,7 +51,7 @@ class RawTowerCalibration : public SubsysReco
     //! input calibration file for tower by tower calibration. Use GetCalibrationParameters() to set the calibration parameters
     kTower_by_tower_calibration = 2,
 
-    // use conditions DB file/wrapper (non-xml) file for most gain tracing correction factors 
+    // use conditions DB file/wrapper (non-xml) file for most gain tracing correction factors
     kDbfile_tbt_gain_corr = 3
   };
 
@@ -144,15 +142,14 @@ class RawTowerCalibration : public SubsysReco
     return _tower_calib_params;
   }
 
-  void set_CalibrationFileName(const char * inCalFname) 
-  { 
+  void set_CalibrationFileName(const char *inCalFname)
+  {
     m_CalibrationFileName = inCalFname;
   }
   void set_UseConditionsDB(const bool setUseCondDB)
   {
     m_UseConditionsDB = setUseCondDB;
   }
-
 
  protected:
   void
@@ -193,8 +190,7 @@ class RawTowerCalibration : public SubsysReco
   std::string m_CalibrationFileName;
   bool m_UseConditionsDB = false;
 
-  CaloCalibSimpleCorrFile * _cal_dbfile = nullptr;
-
+  CaloCalibSimpleCorrFile *_cal_dbfile = nullptr;
 };
 
 #endif

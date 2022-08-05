@@ -25,19 +25,21 @@ void BEmcRecCEMC::LoadProfile(const std::string& fname)
   _emcprof = new BEmcProfile(fname);
 }
 
-
 void BEmcRecCEMC::GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi)
 {
   theta = 0;
   phi = 0;
 
   //  float theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
-  float rg = sqrt(xg*xg+yg*yg);
+  float rg = sqrt(xg * xg + yg * yg);
   float theta_twr;
-  if( fabs(zg)<=15 ) theta_twr = 0;
-  else if( zg>15 )   theta_twr = atan2(zg-15,rg);
-  else               theta_twr = atan2(zg+15,rg);
-  float theta_tr = atan2(zg-fVz,rg);
+  if (fabs(zg) <= 15)
+    theta_twr = 0;
+  else if (zg > 15)
+    theta_twr = atan2(zg - 15, rg);
+  else
+    theta_twr = atan2(zg + 15, rg);
+  float theta_tr = atan2(zg - fVz, rg);
   theta = fabs(theta_tr - theta_twr);
   //  phi = atan2(yg,xg);
 }
@@ -242,28 +244,31 @@ void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
   */
 
   float logE = log(0.1);
-  if( E>0.1 ) logE = log(E);
+  if (E > 0.1) logE = log(E);
 
   // Rotate by phi (towers are tilted by a fixed angle in phi by ~9 deg?)
   // Just tuned from sim data
-  float phi = 0.002 - 0.001*logE;
-  xC = xA*cos(phi) - yA*sin(phi);
-  yC = xA*sin(phi) + yA*cos(phi);
+  float phi = 0.002 - 0.001 * logE;
+  xC = xA * cos(phi) - yA * sin(phi);
+  yC = xA * sin(phi) + yA * cos(phi);
 
   // Correction in z
   // Just tuned for sim data ... don't fully understand why it works like that
-  float rA = sqrt(xA*xA + yA*yA);
+  float rA = sqrt(xA * xA + yA * yA);
   //  float theta_twr = GetTowerTheta(xA,yA,zA);
   float theta_twr;
-  if( fabs(zA)<=15 ) theta_twr = 0;
-  else if( zA>15 )   theta_twr = atan2(zA-15,rA);
-  else               theta_twr = atan2(zA+15,rA);
+  if (fabs(zA) <= 15)
+    theta_twr = 0;
+  else if (zA > 15)
+    theta_twr = atan2(zA - 15, rA);
+  else
+    theta_twr = atan2(zA + 15, rA);
 
-  float theta_tr = atan2(zA-fVz,rA);
-  float L = -1.3 + 0.7*logE; // Shower CG in long. direction
-  float dz = L*sin(theta_tr-theta_twr)/cos(theta_twr);
+  float theta_tr = atan2(zA - fVz, rA);
+  float L = -1.3 + 0.7 * logE;  // Shower CG in long. direction
+  float dz = L * sin(theta_tr - theta_twr) / cos(theta_twr);
 
-  dz -= fVz*0.10;
+  dz -= fVz * 0.10;
 
   zC = zA - dz;
 
@@ -362,7 +367,7 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   {
     x0 = x;
     std::cout << "????? Something wrong in BEmcRecCEMC::CorrectPosition: x = "
-         << x << " dx = " << x0 - ix0 << std::endl;
+              << x << " dx = " << x0 - ix0 << std::endl;
   }
 
   // Correct for phi bias within module of 8 towers
@@ -387,7 +392,7 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   {
     y0 = y;
     std::cout << "????? Something wrong in BEmcRecCEMC::CorrectPosition: y = "
-         << y << "dy = " << y0 - iy0 << std::endl;
+              << y << "dy = " << y0 - iy0 << std::endl;
   }
   yc = y0;
 }

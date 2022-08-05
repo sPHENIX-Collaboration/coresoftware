@@ -35,7 +35,7 @@ BEmcProfile::BEmcProfile(const std::string& fname)
 
   gROOT->cd();
 
-  TH1F* hen = static_cast<TH1F*> (f->Get("hen"));
+  TH1F* hen = static_cast<TH1F*>(f->Get("hen"));
   if (!hen)
   {
     std::cout << "BEmcProfile: Error when loading profile data: hen" << std::endl;
@@ -43,7 +43,7 @@ BEmcProfile::BEmcProfile(const std::string& fname)
     return;
   }
 
-  TH1F* hth = static_cast<TH1F*> (f->Get("hth"));
+  TH1F* hth = static_cast<TH1F*>(f->Get("hth"));
   if (!hth)
   {
     std::cout << "BEmcProfile: Error when loading profile data: hth" << std::endl;
@@ -92,45 +92,44 @@ BEmcProfile::BEmcProfile(const std::string& fname)
       for (int ip = 0; ip < NP; ip++)
       {
         hname = boost::str(boost::format("hmean%d_en%d_t%d") % (ip + 1) % ie % it);
-        hh = static_cast<TH1F*> (f->Get(hname.c_str()));
+        hh = static_cast<TH1F*>(f->Get(hname.c_str()));
         if (!hh)
         {
           std::cout << "BEmcProfile: Could not load histogram " << hname
-               << ", Error when loading profile data for hmean it = "
-               << it << ", ie = " << ie << "ip = " << ip << std::endl;
+                    << ", Error when loading profile data for hmean it = "
+                    << it << ", ie = " << ie << "ip = " << ip << std::endl;
           f->Close();
           return;
         }
-        hmean[ii] = static_cast<TH1F*> (hh->Clone());
+        hmean[ii] = static_cast<TH1F*>(hh->Clone());
 
         hname = boost::str(boost::format("hsigma%d_en%d_t%d") % (ip + 1) % ie % it);
-        hh = static_cast<TH1F*> (f->Get(hname.c_str()));
+        hh = static_cast<TH1F*>(f->Get(hname.c_str()));
         if (!hh)
         {
           std::cout << "BEmcProfile: Could not load histogram " << hname
-               << ", Error when loading profile data for hsigma it = "
-               << it << ", ie = " << ie << ", ip = " << ip << std::endl;
+                    << ", Error when loading profile data for hsigma it = "
+                    << it << ", ie = " << ie << ", ip = " << ip << std::endl;
           f->Close();
           return;
         }
-        hsigma[ii] = static_cast<TH1F*> (hh->Clone());
+        hsigma[ii] = static_cast<TH1F*>(hh->Clone());
 
         ii++;
       }
 
       hname = boost::str(boost::format("hr4_en%d_t%d") % ie % it);
-      hh = static_cast<TH1F*> (f->Get(hname.c_str()));
+      hh = static_cast<TH1F*>(f->Get(hname.c_str()));
 
       if (!hh)
       {
-	std::cout << "BEmcProfile: Error when loading profile data for hr4 it = " 
-	     << it << ", ie = " << ie << std::endl;
-	f->Close();
-	return;
+        std::cout << "BEmcProfile: Error when loading profile data for hr4 it = "
+                  << it << ", ie = " << ie << std::endl;
+        f->Close();
+        return;
       }
-      hr4[ii2] = static_cast<TH1F*> (hh->Clone());
+      hr4[ii2] = static_cast<TH1F*>(hh->Clone());
       ii2++;
-
     }
   }
 
@@ -176,7 +175,7 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   // z coordinate below means x coordinate
 
   float ee;
-  int ich;// iy, iz;
+  int ich;  // iy, iz;
 
   int iy0 = -1, iz0 = -1;
   float emax = 0;
@@ -373,33 +372,33 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float /*phi*/
   if (ip < 0 || ip >= NP)
   {
     std::cout << "Error in BEmcProfile::PredictEnergy: profile index = "
-         << ip << " but should be from 0 to " << NP - 1 << std::endl;
+              << ip << " but should be from 0 to " << NP - 1 << std::endl;
     return;
   }
 
   if (energy <= 0)
   {
     std::cout << "Error in BEmcProfile::PredictEnergy: energy = "
-         << energy << " but should be >0" << std::endl;
+              << energy << " but should be >0" << std::endl;
     return;
   }
   if (theta < 0)
   {
     std::cout << "Error in BEmcProfile::PredictEnergy: theta = "
-         << theta << " but should be >=0" << std::endl;
+              << theta << " but should be >=0" << std::endl;
     return;
   }
 
   if (ddz < 0 || ddz > 0.5)
   {
     std::cout << "Error in BEmcProfile::PredictEnergy: ddz = "
-         << ddz << " but should be from 0 to 0.5" << std::endl;
+              << ddz << " but should be from 0 to 0.5" << std::endl;
   }
 
   if (ddy < 0 || ddy > 0.5)
   {
     std::cout << "Error in BEmcProfile::PredictEnergy: ddy = "
-         << ddy << " but should be from 0 to 0.5" << std::endl;
+              << ddy << " but should be from 0 to 0.5" << std::endl;
   }
 
   // Safety margin (slightly away from bin edge)
@@ -508,10 +507,8 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float /*phi*/
   err = er;
 }
 
-
 float BEmcProfile::PredictEnergyR(float energy, float theta, float /*phi*/, float rr)
 {
-
   if (!bloaded)
   {
     //    std::cout << "Error in BEmcProfile::PredictEnergyR: profiles not loaded" << std::endl;
@@ -520,21 +517,21 @@ float BEmcProfile::PredictEnergyR(float energy, float theta, float /*phi*/, floa
 
   if (energy <= 0)
   {
-    std::cout << "Error in BEmcProfile::PredictEnergyR: energy = " << energy 
-	 << " but should be >0" << std::endl;
+    std::cout << "Error in BEmcProfile::PredictEnergyR: energy = " << energy
+              << " but should be >0" << std::endl;
     return 0;
   }
   if (theta < 0)
   {
-    std::cout << "Error in BEmcProfile::PredictEnergyR: theta = " << theta 
-	 << " but should be >=0" << std::endl;
+    std::cout << "Error in BEmcProfile::PredictEnergyR: theta = " << theta
+              << " but should be >=0" << std::endl;
     return 0;
   }
 
-  if (rr < 1 )
+  if (rr < 1)
   {
-    std::cout << "Error in BEmcProfile::PredictEnergyR: rr = " << rr 
-	 << " but should be >1" << std::endl;
+    std::cout << "Error in BEmcProfile::PredictEnergyR: rr = " << rr
+              << " but should be >1" << std::endl;
   }
 
   // Energy bin
@@ -591,7 +588,6 @@ float BEmcProfile::PredictEnergyR(float energy, float theta, float /*phi*/, floa
 
   return pr;
 }
-
 
 float BEmcProfile::GetTowerEnergy(int iy, int iz, std::vector<EmcModule>* plist, int NX)
 {

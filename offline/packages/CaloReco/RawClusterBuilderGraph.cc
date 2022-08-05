@@ -2,10 +2,10 @@
 
 #include "PHMakeGroups.h"
 
-#include <calobase/RawClusterContainer.h>
 #include <calobase/RawCluster.h>
-#include <calobase/RawClusterv1.h>
+#include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterDefs.h>
+#include <calobase/RawClusterv1.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>
@@ -15,12 +15,12 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/getClass.h>
 #include <phool/phool.h>
 
 #include <cassert>
@@ -258,8 +258,8 @@ int RawClusterBuilderGraph::process_event(PHCompositeNode *topNode)
       if (fabs(etower - ecluster) / ecluster > 1e-9)
       {
         std::cout << "energy conservation violation: ETower: " << etower
-             << " ECluster: " << ecluster
-             << " diff: " << etower - ecluster << std::endl;
+                  << " ECluster: " << ecluster
+                  << " diff: " << etower - ecluster << std::endl;
       }
     }
     else
@@ -267,14 +267,14 @@ int RawClusterBuilderGraph::process_event(PHCompositeNode *topNode)
       if (etower != 0)
       {
         std::cout << "energy conservation violation: ETower: " << etower
-             << " ECluster: " << ecluster << std::endl;
+                  << " ECluster: " << ecluster << std::endl;
       }
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawClusterBuilderGraph::End(PHCompositeNode */*topNode*/)
+int RawClusterBuilderGraph::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
