@@ -3,14 +3,13 @@
 #ifndef FFAOBJECTS_CDBURLSAVEV1_H
 #define FFAOBJECTS_CDBURLSAVEV1_H
 
-
 #include "CdbUrlSave.h"
 
-#include <cstdint>       // for uint64_t
+#include <cstdint>  // for uint64_t
 #include <iostream>
 #include <string>  // for string
 #include <tuple>
-#include <vector>        // for vector<>::const_iterator, vector
+#include <vector>  // for vector<>::const_iterator, vector
 
 ///
 class CdbUrlSavev1 : public CdbUrlSave
@@ -39,7 +38,6 @@ class CdbUrlSavev1 : public CdbUrlSave
   std::vector<std::tuple<std::string, std::string, uint64_t>>::const_iterator end() const override;
 
  private:
-
   std::vector<std::tuple<std::string, std::string, uint64_t>> m_CdbUrlVector;
 
   ClassDefOverride(CdbUrlSavev1, 1)

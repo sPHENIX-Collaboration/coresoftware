@@ -6,7 +6,7 @@
 
 class PHObject;
 
-PHObject*
+PHObject *
 CdbUrlSavev1::CloneMe() const
 {
   std::cout << "CdbUrlSavev1::CloneMe() is not implemented in daugther class" << std::endl;
@@ -19,13 +19,13 @@ void CdbUrlSavev1::Reset()
   return;
 }
 
-void CdbUrlSavev1::identify(std::ostream& os) const
+void CdbUrlSavev1::identify(std::ostream &os) const
 {
   os << "identify yourself: CdbUrlSavev1 Object" << std::endl;
-  for (auto &iter :  m_CdbUrlVector)
+  for (auto &iter : m_CdbUrlVector)
   {
-    os << "domain: " << std::get<0>(iter) 
-       << ", url: " << std::get<1>(iter) 
+    os << "domain: " << std::get<0>(iter)
+       << ", url: " << std::get<1>(iter)
        << ", timestamp: " << std::get<2>(iter) << std::endl;
   }
   return;
@@ -33,7 +33,7 @@ void CdbUrlSavev1::identify(std::ostream& os) const
 
 int CdbUrlSavev1::isValid() const
 {
-  if (! m_CdbUrlVector.empty())
+  if (!m_CdbUrlVector.empty())
   {
     return 1;
   }
@@ -42,20 +42,20 @@ int CdbUrlSavev1::isValid() const
 
 std::vector<std::tuple<std::string, std::string, uint64_t>>::const_iterator CdbUrlSavev1::begin() const
 {
-  return  m_CdbUrlVector.begin(); 
+  return m_CdbUrlVector.begin();
 }
 
 std::vector<std::tuple<std::string, std::string, uint64_t>>::const_iterator CdbUrlSavev1::end() const
 {
-  return  m_CdbUrlVector.end(); 
+  return m_CdbUrlVector.end();
 }
 
-void  CdbUrlSavev1::AddUrl(const std::string &domain, const std::string &url, const uint64_t timestamp)
+void CdbUrlSavev1::AddUrl(const std::string &domain, const std::string &url, const uint64_t timestamp)
 {
-  m_CdbUrlVector.push_back(std::make_tuple(domain,url,timestamp));
+  m_CdbUrlVector.push_back(std::make_tuple(domain, url, timestamp));
 }
 
-void  CdbUrlSavev1::AddUrl(const std::tuple<std::string, std::string, uint64_t> &tup)
+void CdbUrlSavev1::AddUrl(const std::tuple<std::string, std::string, uint64_t> &tup)
 {
   m_CdbUrlVector.push_back(tup);
 }

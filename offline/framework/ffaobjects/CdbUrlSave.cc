@@ -2,7 +2,7 @@
 
 #include <phool/phool.h>
 
-#include <cstdint>        // for uint64_t
+#include <cstdint>  // for uint64_t
 #include <iostream>
 
 class PHObject;
@@ -36,10 +36,10 @@ int CdbUrlSave::isValid() const
 
 std::vector<std::tuple<std::string, std::string, uint64_t>>::const_iterator CdbUrlSave::begin() const
 {
-  return  dummy.begin(); 
+  return dummy.begin();
 }
 
 std::vector<std::tuple<std::string, std::string, uint64_t>>::const_iterator CdbUrlSave::end() const
 {
-  return  dummy.begin(); 
+  return dummy.begin();
 }
