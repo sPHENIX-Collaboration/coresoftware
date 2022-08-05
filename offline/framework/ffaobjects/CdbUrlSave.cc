@@ -2,6 +2,7 @@
 
 #include <phool/phool.h>
 
+#include <cstdint>        // for uint64_t
 #include <iostream>
 
 class PHObject;

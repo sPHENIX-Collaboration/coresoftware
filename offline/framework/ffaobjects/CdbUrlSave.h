@@ -6,10 +6,11 @@
 
 #include <phool/PHObject.h>
 
-#include <cmath>
+#include <cstdint>          // for uint64_t
 #include <iostream>
 #include <string>  // for string
 #include <tuple>
+#include <vector>            // for vector, vector<>::const_iterator
 
 ///
 class CdbUrlSave : public PHObject
