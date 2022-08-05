@@ -24,8 +24,7 @@ class XploadInterface : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
-  std::string getUrl(const std::string &domain);
-  std::string getUrl(const std::string &domain, const std::string &filename);
+  std::string getUrl(const std::string &domain, const std::string &filename = "");
 
  private:
   XploadInterface(const std::string &name = "XploadInterface");
