@@ -238,15 +238,10 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
       // check that the signal occurred witin the time window 0 to extended_readout_time, discard if not
       if (lead_edge > m_tmax or fall_edge < m_tmin) continue;
 
-      // chop alpide pulse into the readout time window
-      lead_edge = (lead_edge < m_tmin) ? m_tmin : lead_edge;
-      fall_edge = (fall_edge > m_tmax) ? m_tmax : fall_edge;
-
       double t0_strobe_frame = get_strobe_frame(lead_edge, strobe_zero_tm_start);
       double t1_strobe_frame = get_strobe_frame(fall_edge, strobe_zero_tm_start);
       n_replica += t1_strobe_frame - t0_strobe_frame;
-      assert(n_replica >= 1);
-
+ 
       if (Verbosity() > 1)
       {
         std::cout
@@ -262,6 +257,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
           << "number of hit replica: " << n_replica << "\n"
           << std::endl;
       }
+
+      assert(n_replica >= 1);
 
       // get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
       int stave_number = g4hit->get_property_int(PHG4Hit::prop_stave_index);
