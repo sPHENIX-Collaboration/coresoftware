@@ -40,40 +40,13 @@
 #include <fstream>
 
 
-
-
-using namespace std;
-
 RawTowerCalibration::RawTowerCalibration(const std::string &name)
   : SubsysReco(name)
   , _calib_algorithm(kNo_calibration)
-  ,  //
-    _calib_towers(nullptr)
-  , _raw_towers(nullptr)
-  ,  //
-    rawtowergeom(nullptr)
-  ,  //
-    detector("NONE")
-  ,  //
-    _calib_tower_node_prefix("CALIB")
+  , detector("NONE")
+  , _calib_tower_node_prefix("CALIB")
   , _raw_tower_node_prefix("RAW")
-  ,  //
-  //! pedstal in unit of ADC
-    _pedstal_ADC(NAN)
-  ,
-  //! default to fixed pedestal
-    _pedestal_file(false)
-  ,
-    //! calibration constant in unit of GeV per ADC
-    _calib_const_GeV_ADC(NAN)
-  ,  //
-    //! default to fixed GeV per ADC
-    _GeV_ADC_file(false)
-  , _tower_type(-1)
   , _tower_calib_params(name)
-  ,  m_CalibrationFileName("")
-  ,  m_UseConditionsDB(false)
-  , _cal_dbfile(0)
 {
 
   //_tower_type = -1;
@@ -181,40 +154,40 @@ int RawTowerCalibration::process_event(PHCompositeNode */*topNode*/)
       if (caloid == RawTowerDefs::LFHCAL) 
       {
         const int l   = raw_tower->get_binl();
-        const string calib_const_name("calib_const_eta" + to_string(eta) + "_phi" + to_string(phi) + "_l" + to_string(l));
+        const std::string calib_const_name("calib_const_eta" + std::to_string(eta) + "_phi" + std::to_string(phi) + "_l" + std::to_string(l));
 
         tower_by_tower_calib = _tower_calib_params.get_double_param(calib_const_name);
 
         if (_pedestal_file == true)
         {
-          const string pedstal_name("PedCentral_ADC_eta" + to_string(eta) + "_phi" + to_string(phi)+ "_l" + to_string(l));
+          const std::string pedstal_name("PedCentral_ADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi)+ "_l" + std::to_string(l));
           _pedstal_ADC =
               _tower_calib_params.get_double_param(pedstal_name);
         }
 
         if (_GeV_ADC_file == true)
         {
-          const string GeVperADCname("GeVperADC_eta" + to_string(eta) + "_phi" + to_string(phi)+ "_l" + to_string(l));
+          const std::string GeVperADCname("GeVperADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi)+ "_l" + std::to_string(l));
           _calib_const_GeV_ADC =
               _tower_calib_params.get_double_param(GeVperADCname);
         }
       } 
       else 
       {
-        const string calib_const_name("calib_const_eta" + to_string(eta) + "_phi" + to_string(phi));
+        const std::string calib_const_name("calib_const_eta" + std::to_string(eta) + "_phi" + std::to_string(phi));
 
         tower_by_tower_calib = _tower_calib_params.get_double_param(calib_const_name);
 
         if (_pedestal_file == true)
         {
-          const string pedstal_name("PedCentral_ADC_eta" + to_string(eta) + "_phi" + to_string(phi));
+          const std::string pedstal_name("PedCentral_ADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi));
           _pedstal_ADC =
               _tower_calib_params.get_double_param(pedstal_name);
         }
 
         if (_GeV_ADC_file == true)
         {
-          const string GeVperADCname("GeVperADC_eta" + to_string(eta) + "_phi" + to_string(phi));
+          const std::string GeVperADCname("GeVperADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi));
           _calib_const_GeV_ADC =
               _tower_calib_params.get_double_param(GeVperADCname);
         }

@@ -32,8 +32,6 @@
 #include <utility>
 #include <vector>
 
-using namespace std;
-
 class twrs_fwd
 {
  public:
@@ -118,7 +116,7 @@ int RawClusterBuilderFwd::InitRun(PHCompositeNode *topNode)
 
 int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
 {
-  string towernodename = "TOWER_CALIB_" + detector;
+  std::string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
   RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode, towernodename);
   if (!towers)
@@ -126,11 +124,11 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << ": Could not find node " << towernodename << std::endl;
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
-  string towergeomnodename = "TOWERGEOM_" + detector;
+  std::string towergeomnodename = "TOWERGEOM_" + detector;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename);
   if (!towergeom)
   {
-    cout << PHWHERE << ": Could not find node " << towergeomnodename << endl;
+    std::cout << PHWHERE << ": Could not find node " << towergeomnodename << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   // make the list of towers above threshold
@@ -225,7 +223,7 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 1)
     {
-      cout << "RawClusterBuilder constucted ";
+      std::cout << "RawClusterBuilder constucted ";
       clusterA->identify();
     }
   }  //  for (const auto & cluster_pair : _clusters->getClustersMap())
@@ -237,17 +235,17 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
     {
       if (fabs(etower - ecluster) / ecluster > 1e-9)
       {
-        cout << "energy conservation violation: ETower: " << etower
+        std::cout << "energy conservation violation: ETower: " << etower
              << " ECluster: " << ecluster
-             << " diff: " << etower - ecluster << endl;
+             << " diff: " << etower - ecluster << std::endl;
       }
     }
     else
     {
       if (etower != 0)
       {
-        cout << "energy conservation violation: ETower: " << etower
-             << " ECluster: " << ecluster << endl;
+        std::cout << "energy conservation violation: ETower: " << etower
+             << " ECluster: " << ecluster << std::endl;
       }
     }
   }

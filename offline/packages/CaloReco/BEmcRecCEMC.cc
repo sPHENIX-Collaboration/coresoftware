@@ -6,8 +6,6 @@
 #include <cmath>
 #include <iostream>
 
-using namespace std;
-
 BEmcRecCEMC::BEmcRecCEMC()
 //  : _emcprof(nullptr)
 {
@@ -21,9 +19,9 @@ BEmcRecCEMC::~BEmcRecCEMC()
   //  delete _emcprof;
 }
 
-void BEmcRecCEMC::LoadProfile(const string& fname)
+void BEmcRecCEMC::LoadProfile(const std::string& fname)
 {
-  //  cout << "Infor from BEmcRecCEMC::LoadProfile(): no external file used for shower profile evaluation in CEMC" << endl;
+  //  std::cout << "Infor from BEmcRecCEMC::LoadProfile(): no external file used for shower profile evaluation in CEMC" << std::endl;
   _emcprof = new BEmcProfile(fname);
 }
 
@@ -99,7 +97,7 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float 
       nn++;
       if (nn >= Nmax)
       {
-      cout << "BEmcRec::GetProb: Cluster size is too big. Skipping the rest of the towers" << endl;
+      std::cout << "BEmcRec::GetProb: Cluster size is too big. Skipping the rest of the towers" << std::endl;
         break;
       }
     }  // if( ee[nn]
@@ -363,8 +361,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     x0 = x;
-    cout << "????? Something wrong in BEmcRecCEMC::CorrectPosition: x = "
-         << x << " dx = " << x0 - ix0 << endl;
+    std::cout << "????? Something wrong in BEmcRecCEMC::CorrectPosition: x = "
+         << x << " dx = " << x0 - ix0 << std::endl;
   }
 
   // Correct for phi bias within module of 8 towers
@@ -388,8 +386,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     y0 = y;
-    cout << "????? Something wrong in BEmcRecCEMC::CorrectPosition: y = "
-         << y << "dy = " << y0 - iy0 << endl;
+    std::cout << "????? Something wrong in BEmcRecCEMC::CorrectPosition: y = "
+         << y << "dy = " << y0 - iy0 << std::endl;
   }
   yc = y0;
 }
@@ -444,8 +442,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     *pxc = x - xShift;
-    cout << "????? Something wrong in CorrectPosition: x = "
-         << x << " dx = " << x0 - ix0 << endl;
+    std::cout << "????? Something wrong in CorrectPosition: x = "
+         << x << " dx = " << x0 - ix0 << std::endl;
   }
 
   y0 = y;
@@ -459,8 +457,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     *pyc = y - yShift;
-    cout << "????? Something wrong in CorrectPosition: y = "
-         << y << " dy = " << y0 - iy << endl;
+    std::cout << "????? Something wrong in CorrectPosition: y = "
+         << y << " dy = " << y0 - iy << std::endl;
   }
 }
 */

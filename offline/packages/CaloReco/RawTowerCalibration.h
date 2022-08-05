@@ -5,6 +5,7 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <cmath>
 #include <iostream>
 #include <string>
 
@@ -159,9 +160,9 @@ class RawTowerCalibration : public SubsysReco
 
   enu_calib_algorithm _calib_algorithm;
 
-  RawTowerContainer *_calib_towers;
-  RawTowerContainer *_raw_towers;
-  RawTowerGeomContainer *rawtowergeom;
+  RawTowerContainer *_calib_towers = nullptr;
+  RawTowerContainer *_raw_towers = nullptr;
+  RawTowerGeomContainer *rawtowergeom = nullptr;
 
   std::string detector;
   std::string RawTowerNodeName;
@@ -172,27 +173,27 @@ class RawTowerCalibration : public SubsysReco
   std::string _raw_tower_node_prefix;
 
   //! pedstal in unit of ADC
-  double _pedstal_ADC;
+  double _pedstal_ADC = NAN;
 
   //! pedestal from file
-  bool _pedestal_file;
+  bool _pedestal_file = false;
 
   //! calibration constant in unit of GeV per ADC
-  double _calib_const_GeV_ADC;
+  double _calib_const_GeV_ADC = NAN;
 
   //! GeV per ADC from file
-  bool _GeV_ADC_file;
+  bool _GeV_ADC_file = false;
 
   //! tower type to act on
-  int _tower_type;
+  int _tower_type = -1;
 
   //! Tower by tower calibration parameters
   PHParameters _tower_calib_params;
 
   std::string m_CalibrationFileName;
-  bool m_UseConditionsDB;
+  bool m_UseConditionsDB = false;
 
-  CaloCalibSimpleCorrFile * _cal_dbfile;
+  CaloCalibSimpleCorrFile * _cal_dbfile = nullptr;
 
 };
 

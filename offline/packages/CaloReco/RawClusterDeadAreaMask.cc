@@ -27,8 +27,6 @@
 #include <utility>                           // for pair
 #include <vector>
 
-using namespace std;
-
 RawClusterDeadAreaMask::RawClusterDeadAreaMask(const std::string &name)
   : SubsysReco(name)
   , m_detector("NONE")
@@ -51,7 +49,7 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode */*topNode*/)
 {
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << Name() << "::" << m_detector << "::process_event - Entry" << endl;
+    std::cout << Name() << "::" << m_detector << "::process_event - Entry" << std::endl;
   }
   int nMasked = 0;
 
@@ -117,7 +115,7 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode */*topNode*/)
         phibin += phi_bins;
       else if (phibin - towerphis.at(0) > +phi_bins / 2.0)
         phibin -= phi_bins;
-      assert(abs(phibin - towerphis.at(0)) <= phi_bins / 2.0);
+      assert(std::abs(phibin - towerphis.at(0)) <= phi_bins / 2.0);
 
       energymult = towerenergies.at(j) * phibin;
       phimult += energymult;
@@ -129,7 +127,7 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode */*topNode*/)
 
     if (Verbosity() > VERBOSITY_MORE)
     {
-      cout << Name() << "::" << m_detector << "::process_event - "
+      std::cout << Name() << "::" << m_detector << "::process_event - "
            << "process cluster at average location " << avgeta << "," << avgphi << " : ";
       cluster->identify();
     }
@@ -155,11 +153,11 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode */*topNode*/)
         // dead tower found in cluster
         if (Verbosity() > VERBOSITY_MORE)
         {
-          cout << "\t"
+          std::cout << "\t"
                << "tower " << ieta
                << "," << iphi
                << (isDead ? ": is dead." : "OK")
-               << endl;
+               << std::endl;
         }
 
         if (isDead)
@@ -177,8 +175,8 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode */*topNode*/)
     {
       if (Verbosity() > VERBOSITY_MORE)
       {
-        cout << Name() << "::" << m_detector << "::process_event - "
-             << "reject cluster " << cluster->get_id() << endl;
+        std::cout << Name() << "::" << m_detector << "::process_event - "
+             << "reject cluster " << cluster->get_id() << std::endl;
         cluster->identify();
       }
 
@@ -189,8 +187,8 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode */*topNode*/)
     {
       if (Verbosity() > VERBOSITY_MORE)
       {
-        cout << Name() << "::" << m_detector << "::process_event - "
-             << "keep cluster " << cluster->get_id() << endl;
+        std::cout << Name() << "::" << m_detector << "::process_event - "
+             << "keep cluster " << cluster->get_id() << std::endl;
       }
       ++iter;
     }
@@ -199,10 +197,10 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode */*topNode*/)
 
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << Name() << "::" << m_detector << "::process_event - masked "
+    std::cout << Name() << "::" << m_detector << "::process_event - masked "
          << nMasked << " clusters. Final cluster containers has "
          << m_rawClusters->size() << " clusters"
-         << endl;
+         << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -217,14 +215,14 @@ void RawClusterDeadAreaMask::CreateNodeTree(PHCompositeNode *topNode)
   //Check that it is there
   if (!dstNode)
   {
-    std::cerr << "DST Node missing, quitting" << std::endl;
+    std::cout << "DST Node missing, quitting" << std::endl;
     throw std::runtime_error("failed to find DST node in RawClusterDeadAreaMask::CreateNodeTree");
   }
 
   m_rawClusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_" + m_detector);
   if (!m_rawClusters)
   {
-    cout << Name() << "::" << m_detector << "::"
+    std::cout << Name() << "::" << m_detector << "::"
          << "CreateNodeTree "
             "No "
          << m_detector << " Cluster Container found while in RawClusterDeadAreaMask, can't proceed!!!" << std::endl;
@@ -235,27 +233,27 @@ void RawClusterDeadAreaMask::CreateNodeTree(PHCompositeNode *topNode)
   m_calibTowers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_" + m_detector);
   if (!m_calibTowers)
   {
-    cout << Name() << "::" << m_detector << "::"
+    std::cout << Name() << "::" << m_detector << "::"
          << "CreateNodeTree "
          << "No calibrated " << m_detector << " tower info found while in RawClusterDeadAreaMask, can't proceed!!!" << std::endl;
     throw std::runtime_error("failed to find TOWER_CALIB node in RawClusterDeadAreaMask::CreateNodeTree");
   }
 
-  string towergeomnodename = "TOWERGEOM_" + m_detector;
+  std::string towergeomnodename = "TOWERGEOM_" + m_detector;
   m_geometry = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename);
   if (!m_geometry)
   {
-    cout << Name() << "::" << m_detector << "::"
+    std::cout << Name() << "::" << m_detector << "::"
          << "CreateNodeTree"
-         << ": Could not find node " << towergeomnodename << endl;
+         << ": Could not find node " << towergeomnodename << std::endl;
     throw std::runtime_error("failed to find TOWERGEOM node in RawClusterDeadAreaMask::CreateNodeTree");
   }
 
-  const string deadMapName = "DEADMAP_" + m_detector;
+  const std::string deadMapName = "DEADMAP_" + m_detector;
   m_deadMap = findNode::getClass<RawTowerDeadMap>(topNode, deadMapName);
   if (m_deadMap)
   {
-    cout << Name() << "::" << m_detector << "::"
+    std::cout << Name() << "::" << m_detector << "::"
          << "CreateNodeTree"
          << " use dead map: ";
     m_deadMap->identify();
