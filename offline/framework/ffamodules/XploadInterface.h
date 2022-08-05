@@ -5,9 +5,10 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <cstdint>              // for uint64_t
 #include <set>
 #include <string>
-#include <vector>
+#include <tuple>                 // for tuple
 
 class PHCompositeNode;
 

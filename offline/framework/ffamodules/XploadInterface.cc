@@ -5,6 +5,7 @@
 
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>          // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -15,6 +16,11 @@
 #include <phool/recoConsts.h>
 
 #include <xpload/xpload.h>
+
+#include <cstdint>                       // for uint64_t
+#include <iostream>                      // for operator<<, basic_ostream, endl
+#include <utility>                       // for pair
+#include <vector>                        // for vector
 
 XploadInterface *XploadInterface::__instance = nullptr;
 
