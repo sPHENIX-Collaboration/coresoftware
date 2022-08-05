@@ -10,12 +10,12 @@
 #include <phool/PHRandomSeed.h>
 
 // Move to new storage containers
+#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, hitse...
 #include <trackbase/TrkrHit.h>   // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
-#include <trackbase/TpcDefs.h>
 
 #include <phool/phool.h>  // for PHWHERE
 
@@ -111,7 +111,6 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/,
   return 0;
 }
 
-
 double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
 {
   // Jin H.: For the GEM gain in sPHENIX TPC,
@@ -193,13 +192,13 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
               << " layernum " << layernum
               << " phi " << phi
               << " sigmaT " << sigmaT
-      //<< " zigzag_pads " << zigzag_pads
+              //<< " zigzag_pads " << zigzag_pads
               << std::endl;
 
   pad_phibin.clear();
   pad_phibin_share.clear();
   populate_zigzag_phibins(layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
-  
+
   // Normalize the shares so they add up to 1
   double norm1 = 0.0;
   for (unsigned int ipad = 0; ipad < pad_phibin.size(); ++ipad)
@@ -566,8 +565,8 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("tpc_maxradius_outer", 77.0);  // from Tom
 
   set_default_double_param("neffelectrons_threshold", 1.0);
-  set_default_double_param("maxdriftlength", 105.5);         // cm
-  set_default_double_param("tpc_adc_clock", 53.0);           // ns, for 18.8 MHz clock
+  set_default_double_param("maxdriftlength", 105.5);     // cm
+  set_default_double_param("tpc_adc_clock", 53.0);       // ns, for 18.8 MHz clock
   set_default_double_param("gem_cloud_sigma", 0.04);     // cm = 400 microns
   set_default_double_param("sampa_shaping_lead", 32.0);  // ns, for 80 ns SAMPA
   set_default_double_param("sampa_shaping_tail", 48.0);  // ns, for 80 ns SAMPA
@@ -622,7 +621,7 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   MaxZ = get_double_param("maxdriftlength");
   TBinWidth = tpc_adc_clock;
   ZBinWidth = TBinWidth * drift_velocity;
-  MaxT = 2.0 * MaxZ / drift_velocity;   // allows for extended time readout
+  MaxT = 2.0 * MaxZ / drift_velocity;  // allows for extended time readout
   MinT = 0;
   NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
 

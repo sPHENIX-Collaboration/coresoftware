@@ -8,7 +8,6 @@
 #include <climits>
 #include <cmath>
 #include <string>
-#include <utility>  // for pair
 
 class PHCompositeNode;
 
