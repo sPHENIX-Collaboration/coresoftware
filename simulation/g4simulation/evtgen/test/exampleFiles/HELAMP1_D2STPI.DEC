@@ -1,0 +1,13 @@
+#
+Decay B+
+1.000 D_2*0  pi+               HELAMP 1.0 0.0; 
+Enddecay
+#
+Decay D_2*0
+1.000 D0     pi0               HELAMP 1.0 0.0;
+Enddecay
+#
+#Decay D0
+#Enddecay
+#
+End

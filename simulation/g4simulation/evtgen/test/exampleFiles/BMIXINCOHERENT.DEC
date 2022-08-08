@@ -1,0 +1,13 @@
+#
+# Don't decay B_s
+#
+#Decay B0
+#Enddecay
+#
+#Decay anti-B0
+#Enddecay
+#
+#
+End
+
+

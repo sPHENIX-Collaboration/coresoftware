@@ -1,0 +1,100 @@
+
+/***********************************************************************
+* Copyright 1998-2020 CERN for the benefit of the EvtGen authors       *
+*                                                                      *
+* This file is part of EvtGen.                                         *
+*                                                                      *
+* EvtGen is free software: you can redistribute it and/or modify       *
+* it under the terms of the GNU General Public License as published by *
+* the Free Software Foundation, either version 3 of the License, or    *
+* (at your option) any later version.                                  *
+*                                                                      *
+* EvtGen is distributed in the hope that it will be useful,            *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+* GNU General Public License for more details.                         *
+*                                                                      *
+* You should have received a copy of the GNU General Public License    *
+* along with EvtGen.  If not, see <https://www.gnu.org/licenses/>.     *
+***********************************************************************/
+
+{
+TFile *myFile = new TFile("ssdcp.root","READ");
+myFile->ls();
+
+TCanvas *myCanvas = new TCanvas("c","ssdcp",0,0,800,600);
+myCanvas->Divide(2,3);
+
+TH1F *th1=h1;
+TH1F *th2=h2;
+TH1F *th3=h3;
+TH1F *th4=h4;
+TH1F *th5=h5;
+TH1F *th6=h6;
+TH1F *th7=h7;
+
+TH1F* sum=new TH1F(*h2+*h3);
+TH1F* diff=new TH1F(*h2-*h3);
+TH1F* asym=new TH1F((*diff)/(*sum));
+
+
+myCanvas->cd(1);
+th2->Draw();
+
+myCanvas->cd(2);
+th3->Draw();
+
+myCanvas->cd(3);
+TH1F* Alloweddiff=new TH1F(*h4-*h7);
+//gPad->SetLogy();
+Alloweddiff->Draw();
+
+
+myCanvas->cd(4);
+TH1F* Suppresseddiff=new TH1F(*h6-*h5);
+//gPad->SetLogy();
+Suppresseddiff->Draw();
+
+
+TH1F* dstplus=new TH1F(*h4+*h5);
+myCanvas->cd(5);
+gPad->SetLogy();
+dstplus->Draw();
+
+TH1F* dstminus=new TH1F(*h6+*h7);
+myCanvas->cd(6);
+gPad->SetLogy();
+dstminus->Draw();
+
+
+myCanvas.Update();
+
+
+myCanvas->Print("ssdcp.eps");
+
+TCanvas *myCanvas2 = new TCanvas("c2","ssdcp2",0,0,600,400);
+myCanvas2->Divide(2,2);
+
+myCanvas2->cd(1);
+th4->Draw();
+
+myCanvas2->cd(2);
+th5->Draw();
+
+myCanvas2->cd(3);
+
+
+
+th6->Draw();
+
+myCanvas2->cd(4);
+th7->Draw();
+
+myCanvas2.Update();
+
+myCanvas2->Print("ssdcp2.eps");
+
+
+}
+
+

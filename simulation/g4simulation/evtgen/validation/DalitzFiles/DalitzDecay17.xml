@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="DECAY.XSL" type="text/xsl" ?>
+<data>
+<!-- flag=7 from D_DALITZ -->
+  <dalitzDecay particle="D+" daughters="K- K+ pi+" probMax="35000.0">
+    <resonance real="3.069" imag="4.073" shape="NonRes"/>
+    <resonance ampFactorReal="1.00" mag="1.00" phase="0.00" width="0.0503"
+               mass="0.8960" spin="1" daughterPair="3" shape="RBW_CLEO_ZEMACH" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="1.00" mag="3.7" phase="73.00" width="0.290"
+               mass="1.414" spin="0" daughterPair="3" shape="RBW" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="1.00" mag="1.189" phase="1.0" width="0.00426"
+               mass="1.019455" spin="1" daughterPair="1" shape="RBW_CLEO_ZEMACH" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="1.00" mag="1.72" phase="123.0" width="0.265"
+               mass="1.474" spin="0" daughterPair="1" shape="RBW" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="1.00" mag="1.9" phase="128.0" width="0.15"
+               mass="1.68" spin="1" daughterPair="1" shape="RBW_CLEO_ZEMACH" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="1.00" mag="6.4" phase="150.0" width="0.109"
+               mass="1.4324" spin="2" daughterPair="3" shape="RBW_CLEO_ZEMACH" BlattWeisskopfFactorParent="5.0"/>
+  </dalitzDecay>
+  <copyDalitz particle="D-" daughters="K+ K- pi-"
+              copy="D+" copyDaughters="K- K+ pi+" />
+  <decay name="D+">
+    <channel br="1.0" daughters="K- K+ pi+" model="GENERIC_DALITZ" params="DalitzFiles/DalitzDecay17.xml"/>
+  </decay>
+  <decay name="D-">
+    <channel br="1.0" daughters="K+ K- pi-" model="GENERIC_DALITZ" params="DalitzFiles/DalitzDecay17.xml"/>
+  </decay>
+</data>
+

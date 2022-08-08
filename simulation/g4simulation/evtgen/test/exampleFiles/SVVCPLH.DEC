@@ -1,0 +1,31 @@
+#
+#
+#
+#
+#
+Decay B_s0
+1.000   J/psi  phi   SVV_CPLH  0.2 2.0e12 1 1.0 0.0 1.0 0.0 1.0 0.0;
+Enddecay
+#
+Decay anti-B_s0
+1.000   J/psi  phi   SVV_CPLH  0.2 2.0e12 1 1.0 0.0 1.0 0.0 1.0 0.0;
+Enddecay
+#
+Decay J/psi
+1.000  e+ e-        VLL;
+Enddecay
+#
+Decay phi
+1.000  K+ K-        VSS;
+Enddecay
+#
+End
+ 
+ 
+ 
+
+
+
+
+
+

@@ -1,0 +1,8 @@
+Decay Upsilon(4S)
+0.500 B+ B-                    VSS;
+0.500   B0 anti-B0                          VSS_BMIX dm;
+#0.500   B0 anti-B0                          VSS;
+Enddecay
+
+End
+

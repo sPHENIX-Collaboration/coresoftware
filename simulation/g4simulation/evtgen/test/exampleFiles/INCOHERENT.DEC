@@ -1,0 +1,14 @@
+#
+#
+#
+#
+Decay B0
+1.000   K_S0  J/psi VERBOSE  SSD_CP dm 0.0 1.0 minusTwoBeta 1.0 0.0 -1.0 0.0;
+Enddecay
+#
+Decay anti-B0
+1.000   K_S0  J/psi VERBOSE  SSD_CP dm 0.0 1.0 minusTwoBeta 1.0 0.0 -1.0 0.0;
+Enddecay
+#
+End
+

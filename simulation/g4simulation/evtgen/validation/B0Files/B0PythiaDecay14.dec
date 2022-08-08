@@ -1,0 +1,5 @@
+Decay B0
+1.0        u     anti-u  anti-d       d       PYTHIA         23;
+Enddecay
+#
+End

@@ -1,0 +1,21 @@
+#
+Decay Upsilon(4S)
+1.000 B+ B-                    VSS;
+Enddecay
+#
+Decay B+
+1.000 D_2*0   pi+              STS;
+Enddecay
+#
+Decay D_2*0
+1.000 D+     pi- 	       TSS;
+Enddecay
+#
+Decay D+
+Enddecay
+#
+Decay B-
+Enddecay
+#
+End
+

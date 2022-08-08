@@ -1,0 +1,16 @@
+#
+Decay psi(2S)
+#1.000 chi_c1  gamma             HELAMP 1.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0; 
+1.000 chi_c1  gamma             PARTWAVE 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+                                         0.0 0.0 0.0 0.0 0.0; 
+Enddecay
+#
+Decay chi_c1
+1.000 D0     pi0               HELAMP 1.0 0.0;
+Enddecay
+#
+Decay D0
+Enddecay
+#
+End
+

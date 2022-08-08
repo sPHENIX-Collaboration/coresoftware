@@ -1,0 +1,22 @@
+#
+#
+#need to turn off mixing to prevent B0 from becoming an anti-B0
+Define dm_incohMix_B0 0.0
+#
+Decay B0
+1.000 chi_c1  K*0           HELAMP 1.0 0.0 0.0 0.0 1.0 0.0;
+Enddecay
+#
+Decay chi_c1
+1.000 J/psi gamma           HELAMP 0.0 0.0 1.0 0.0 
+                                   1.0 0.0 0.0 0.0;
+Enddecay
+#
+Decay K*0
+1.000 K+   pi-              VSS;
+Enddecay
+#
+Decay J/psi
+Enddecay
+#
+End

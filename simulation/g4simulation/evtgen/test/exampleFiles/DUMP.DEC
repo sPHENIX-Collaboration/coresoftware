@@ -1,0 +1,30 @@
+Decay Upsilon(4S)
+1.000 B0 anti-B0                VSS;
+Enddecay
+Decay anti-B0
+1.000 nu_e anti-nu_e            PHSP;
+Enddecay
+#Decay B0
+#1.000 D-   pi+                  PHSP;
+#1.000 D*-  pi+                  PHSP;
+#1.000 D-   rho+                  PHSP;
+#1.000 D*-  rho+                  PHSP;
+#1.000 D-   pi+ pi0                  PHSP;
+#Enddecay
+#Decay D*-	
+#1.000 anti-D0  pi-          PHSP;
+#1.000 D-       pi0          PHSP;
+#Enddecay
+#Decay D-      
+#1.000 K_S0   pi-              PHSP;
+#1.000 K_S0   pi-   pi0        PHSP;
+#1.000 K+   pi-   pi-        PHSP;
+#Enddecay
+#Decay anti-D0      
+#1.000 K+   pi-              PHSP;
+#1.000 K+   pi-   pi0        PHSP;
+#Enddecay
+#Decay pi0
+#1.000 gamma gamma          PHSP;
+#Enddecay
+End

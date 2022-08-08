@@ -1,0 +1,10 @@
+Decay UPS4
+1.000 TAU+ TAU-                               VLL;
+Enddecay
+Decay TAU-
+1.000 e-  nueb  nut                       TAULNUNU;
+Enddecay
+Decay TAU+
+1.000 e+  nue  nutb                       TAULNUNU;
+Enddecay
+End

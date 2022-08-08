@@ -1,0 +1,23 @@
+
+Alias MyPhi phi
+#
+Alias MyB+ B+
+Alias MyB- B-
+ChargeConj MyB+ MyB-
+#
+Decay Upsilon(4S)
+1. MyB+ MyB-              VSS;
+Enddecay
+#
+Decay MyB+
+1.0000  MyPhi  pi+               SVS;
+Enddecay 
+#
+CDecay MyB-
+#
+Decay MyPhi
+1.0000  K+ K-			VSS;			
+Enddecay
+#
+End
+

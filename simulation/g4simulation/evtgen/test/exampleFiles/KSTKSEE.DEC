@@ -1,0 +1,7 @@
+Decay B+
+1.000 K*+   e+  e-               BTOSLLBALL;
+Enddecay
+Decay K*+
+1.000 K_S0 pi+ VSS;
+Enddecay
+End

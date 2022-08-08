@@ -1,0 +1,5 @@
+Decay D0
+1.0 anti-K0 pi- pi+ GENERIC_DALITZ DalitzFiles/DalitzDecays.xml;
+Enddecay
+CDecay anti-D0
+End

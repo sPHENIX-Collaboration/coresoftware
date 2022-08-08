@@ -1,0 +1,93 @@
+syntax = "proto2";
+
+package HepMC3_pb;
+
+message Header {
+    required string version_str = 1;
+    required uint32 version_maj = 2;
+    required uint32 version_min = 3;
+    required uint32 version_patch = 4;
+
+    required uint32 protobuf_version_maj = 5;
+    required uint32 protobuf_version_min = 6;
+    required uint32 protobuf_version_patch = 7;
+}
+
+message Footer {
+    required uint32 nevents = 1;
+    required uint64 event_bytes_written = 2;
+}
+
+message MessageDigest {
+    enum MessageType {
+        unknown = 0;
+        Header = 1;
+        RunInfo = 2;
+        Event = 3;
+        Footer = 4;
+    }
+
+    required fixed32 bytes = 1;
+    required fixed32 message_type = 2;
+}
+
+message FourVector {
+    required double m_v1 = 1;
+    required double m_v2 = 2;
+    required double m_v3 = 3;
+    required double m_v4 = 4;
+}
+
+message GenEventData {
+    required int32 event_number = 1;
+
+    enum MomentumUnit {
+        GEV = 0;
+        MEV = 1;
+    }
+    required MomentumUnit momentum_unit = 2;
+
+    enum LengthUnit {
+        MM = 0;
+        CM = 1;
+    }
+    required LengthUnit length_unit = 3;
+
+    message GenParticleData {
+        required int32 pid = 1;
+        required int32 status = 2;
+        required bool is_mass_set = 3;
+        required double mass = 4;
+        required FourVector momentum = 5;
+    }
+
+    message GenVertexData {
+        required int32 status = 1;
+
+        required FourVector position = 2;
+    }
+
+    repeated GenParticleData particles = 4;
+    repeated GenVertexData vertices = 5;
+    repeated double weights = 6;
+
+    required FourVector event_pos = 7;
+
+    repeated int32 links1 = 8;
+    repeated int32 links2 = 9;
+
+    repeated int32 attribute_id = 10;
+    repeated string attribute_name = 11;
+    repeated string attribute_string = 12;
+}
+
+message GenRunInfoData {
+    repeated string weight_names = 1;
+
+    repeated string tool_name = 2;
+    repeated string tool_version = 3;
+    repeated string tool_description = 4;
+
+    repeated string attribute_name = 5;
+    repeated string attribute_string = 6;
+}

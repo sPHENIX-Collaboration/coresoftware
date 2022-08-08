@@ -1,0 +1,1210 @@
+<LesHouchesEvents version="3.0">
+
+  <header>                                                                
+  <MG5ProcCard>                                                           
+#************************************************************             
+#*                        MadGraph 5                        *             
+#*                                                          *             
+#*                *                       *                 *             
+#*                  *        * *        *                   *             
+#*                    * * * * 5 * * * *                     *             
+#*                  *        * *        *                   *             
+#*                *                       *                 *             
+#*                                                          *             
+#*                                                          *             
+#*         VERSION 2.0.0.beta4           2013-06-22         *             
+#*                                                          *             
+#*    The MadGraph Development Team - Please visit us at    *             
+#*    https://server06.fynu.ucl.ac.be/projects/madgraph     *             
+#*                                                          *             
+#************************************************************             
+#*                                                          *             
+#*               Command File for MadGraph 5                *             
+#*                                                          *             
+#*     run as ./bin/mg5  filename                           *             
+#*                                                          *             
+#************************************************************             
+                                                                          
+set group_subprocesses Auto                                               
+set ignore_six_quark_processes False                                      
+set loop_optimized_output True                                            
+set gauge unitary                                                         
+set complex_mass_scheme False                                             
+import model sm                                                           
+define p = g u c d s u~ c~ d~ s~                                          
+define j = g u c d s u~ c~ d~ s~                                          
+define l+ = e+ mu+                                                        
+define l- = e- mu-                                                        
+define vl = ve vm vt                                                      
+define vl~ = ve~ vm~ vt~                                                  
+import model loop_sm-no_b_mass                                            
+set complex_mass_scheme True                                              
+define p = p b b~                                                         
+define j = p                                                              
+generate p p > w+ b j $$w+ w- z a QED=3 QCD=0 [QCD]                       
+output wbj_prod_1                                                         
+                                                             
+#************************************************************             
+#*                        MadGraph 5                        *             
+#*                                                          *             
+#*                *                       *                 *             
+#*                  *        * *        *                   *             
+#*                    * * * * 5 * * * *                     *             
+#*                  *        * *        *                   *             
+#*                *                       *                 *             
+#*                                                          *             
+#*                                                          *             
+#*         VERSION 2.0.0.beta4           2013-06-22         *             
+#*                                                          *             
+#*    The MadGraph Development Team - Please visit us at    *             
+#*    https://server06.fynu.ucl.ac.be/projects/madgraph     *             
+#*                                                          *             
+#************************************************************             
+#*                                                          *             
+#*               Command File for MadGraph 5                *             
+#*                                                          *             
+#*     run as ./bin/mg5  filename                           *             
+#*                                                          *             
+#************************************************************             
+                                                                          
+set group_subprocesses Auto                                               
+set ignore_six_quark_processes False                                      
+set loop_optimized_output True                                            
+set gauge unitary                                                         
+set complex_mass_scheme False                                             
+import model sm                                                           
+define p = g u c d s u~ c~ d~ s~                                          
+define j = g u c d s u~ c~ d~ s~                                          
+define l+ = e+ mu+                                                        
+define l- = e- mu-                                                        
+define vl = ve vm vt                                                      
+define vl~ = ve~ vm~ vt~                                                  
+import model loop_sm-no_b_mass                                            
+set complex_mass_scheme True                                              
+define p = p b b~                                                         
+define j = p                                                              
+generate p p > w+ b j $$w+ w- z a QED=3 QCD=0 [QCD]                       
+output wbj_prod_1                                                         
+                                                             
+#************************************************************             
+#*                        MadGraph 5                        *             
+#*                                                          *             
+#*                *                       *                 *             
+#*                  *        * *        *                   *             
+#*                    * * * * 5 * * * *                     *             
+#*                  *        * *        *                   *             
+#*                *                       *                 *             
+#*                                                          *             
+#*                                                          *             
+#*         VERSION 2.0.0.beta4           2013-06-22         *             
+#*                                                          *             
+#*    The MadGraph Development Team - Please visit us at    *             
+#*    https://server06.fynu.ucl.ac.be/projects/madgraph     *             
+#*                                                          *             
+#************************************************************             
+#*                                                          *             
+#*               Command File for MadGraph 5                *             
+#*                                                          *             
+#*     run as ./bin/mg5  filename                           *             
+#*                                                          *             
+#************************************************************             
+                                                                          
+set group_subprocesses Auto                                               
+set ignore_six_quark_processes False                                      
+set loop_optimized_output True                                            
+set gauge unitary                                                         
+set complex_mass_scheme False                                             
+import model sm                                                           
+define p = g u c d s u~ c~ d~ s~                                          
+define j = g u c d s u~ c~ d~ s~                                          
+define l+ = e+ mu+                                                        
+define l- = e- mu-                                                        
+define vl = ve vm vt                                                      
+define vl~ = ve~ vm~ vt~                                                  
+import model loop_sm-no_b_mass                                            
+set complex_mass_scheme True                                              
+define p = p b b~                                                         
+define j = p                                                              
+generate p p > w+ b j $$w+ w- z a QED=3 QCD=0 [QCD]                       
+output wbj_prod_1                                                         
+                                                             
+#************************************************************             
+#*                        MadGraph 5                        *             
+#*                                                          *             
+#*                *                       *                 *             
+#*                  *        * *        *                   *             
+#*                    * * * * 5 * * * *                     *             
+#*                  *        * *        *                   *             
+#*                *                       *                 *             
+#*                                                          *             
+#*                                                          *             
+#*         VERSION 2.0.0.beta4           2013-06-22         *             
+#*                                                          *             
+#*    The MadGraph Development Team - Please visit us at    *             
+#*    https://server06.fynu.ucl.ac.be/projects/madgraph     *             
+#*                                                          *             
+#************************************************************             
+#*                                                          *             
+#*               Command File for MadGraph 5                *             
+#*                                                          *             
+#*     run as ./bin/mg5  filename                           *             
+#*                                                          *             
+#************************************************************             
+                                                                          
+set group_subprocesses Auto                                               
+set ignore_six_quark_processes False                                      
+set loop_optimized_output True                                            
+set gauge unitary                                                         
+set complex_mass_scheme False                                             
+import model sm                                                           
+define p = g u c d s u~ c~ d~ s~                                          
+define j = g u c d s u~ c~ d~ s~                                          
+define l+ = e+ mu+                                                        
+define l- = e- mu-                                                        
+define vl = ve vm vt                                                      
+define vl~ = ve~ vm~ vt~                                                  
+import model loop_sm-no_b_mass                                            
+set complex_mass_scheme True                                              
+define p = p b b~                                                         
+define j = p                                                              
+generate p p > w+ b j $$w+ w- z a QED=3 QCD=0 [QCD]                       
+output wbj_prod_1                                                         
+  </MG5ProcCard>
+
+                                                          
+  <slha>                                                                  
+######################################################################    
+## PARAM_CARD AUTOMATICALY GENERATED BY MG5 FOLLOWING UFO MODEL   ####    
+######################################################################    
+##                                                                  ##    
+##  Width set on Auto will be computed following the information    ##    
+##        present in the decay.py files of the model. By default,   ##    
+##        this is only 1->2 decay modes.                            ##    
+##                                                                  ##    
+######################################################################    
+                                                                          
+###################################                                       
+## INFORMATION FOR LOOP                                                   
+###################################                                       
+Block loop                                                                
+    1 8.660000e+01 # MU_R                                                 
+                                                                          
+###################################                                       
+## INFORMATION FOR MASS                                                   
+###################################                                       
+Block mass                                                                
+    6 1.732000e+02 # MT                                                   
+   15 1.777000e+00 # MTA                                                  
+   23 9.118760e+01 # MZ                                                   
+   24 8.039800e+01 # MW                                                   
+   25 1.200000e+02 # MH                                                   
+## Dependent parameters, given by model restrictions.                     
+## Those values should be edited following the                            
+## analytical expression. MG5 ignores those values                        
+## but they are important for interfacing the output of MG5               
+## to external program such as Pythia.                                    
+  1 0.000000 # d : 0.0                                                    
+  2 0.000000 # u : 0.0                                                    
+  3 0.000000 # s : 0.0                                                    
+  4 0.000000 # c : 0.0                                                    
+  5 0.000000 # b : 0.0                                                    
+  11 0.000000 # e- : 0.0                                                  
+  12 0.000000 # ve : 0.0                                                  
+  13 0.000000 # mu- : 0.0                                                 
+  14 0.000000 # vm : 0.0                                                  
+  16 0.000000 # vt : 0.0                                                  
+  21 0.000000 # g : 0.0                                                   
+  22 0.000000 # a : 0.0                                                   
+  82 0.000000 # gh : 0.0                                                  
+                                                                          
+###################################                                       
+## INFORMATION FOR SMINPUTS                                               
+###################################                                       
+Block sminputs                                                            
+    1 1.323384e+02 # aEWM1                                                
+    3 1.180000e-01 # aS                                                   
+                                                                          
+###################################                                       
+## INFORMATION FOR DECAY                                                  
+###################################                                       
+DECAY   6 1.501700e+00 # WT Gamma_t_LO                                    
+#DECAY   6 1.356900e+00 # WT Gamma_t_NLO(mu=mt/2)                         
+DECAY  23 2.495200e+00 # WZ                                               
+DECAY  24 0.000000e+00 # WW                                               
+DECAY  25 5.753088e-03 # WH                                               
+## Dependent parameters, given by model restrictions.                     
+## Those values should be edited following the                            
+## analytical expression. MG5 ignores those values                        
+## but they are important for interfacing the output of MG5               
+## to external program such as Pythia.                                    
+DECAY  1 0.000000 # d : 0.0                                               
+DECAY  2 0.000000 # u : 0.0                                               
+DECAY  3 0.000000 # s : 0.0                                               
+DECAY  4 0.000000 # c : 0.0                                               
+DECAY  5 0.000000 # b : 0.0                                               
+DECAY  11 0.000000 # e- : 0.0                                             
+DECAY  12 0.000000 # ve : 0.0                                             
+DECAY  13 0.000000 # mu- : 0.0                                            
+DECAY  14 0.000000 # vm : 0.0                                             
+DECAY  15 0.000000 # ta- : 0.0                                            
+DECAY  16 0.000000 # vt : 0.0                                             
+DECAY  21 0.000000 # g : 0.0                                              
+DECAY  22 0.000000 # a : 0.0                                              
+DECAY  82 0.000000 # gh : 0.0                                             
+#===========================================================              
+# QUANTUM NUMBERS OF NEW STATE(S) (NON SM PDG CODE)                       
+#===========================================================              
+                                                                          
+Block QNUMBERS 82  # gh                                                   
+        1 0  # 3 times electric charge                                    
+        2 1  # number of spin states (2S+1)                               
+        3 8  # colour rep (1: singlet, 3: triplet, 8: octet)              
+        4 1  # Particle/Antiparticle distinction (0=own anti)             
+                                                                    
+######################################################################    
+## PARAM_CARD AUTOMATICALY GENERATED BY MG5 FOLLOWING UFO MODEL   ####    
+######################################################################    
+##                                                                  ##    
+##  Width set on Auto will be computed following the information    ##    
+##        present in the decay.py files of the model. By default,   ##    
+##        this is only 1->2 decay modes.                            ##    
+##                                                                  ##    
+######################################################################    
+                                                                          
+###################################                                       
+## INFORMATION FOR LOOP                                                   
+###################################                                       
+Block loop                                                                
+    1 8.660000e+01 # MU_R                                                 
+                                                                          
+###################################                                       
+## INFORMATION FOR MASS                                                   
+###################################                                       
+Block mass                                                                
+    6 1.732000e+02 # MT                                                   
+   15 1.777000e+00 # MTA                                                  
+   23 9.118760e+01 # MZ                                                   
+   24 8.039800e+01 # MW                                                   
+   25 1.200000e+02 # MH                                                   
+## Dependent parameters, given by model restrictions.                     
+## Those values should be edited following the                            
+## analytical expression. MG5 ignores those values                        
+## but they are important for interfacing the output of MG5               
+## to external program such as Pythia.                                    
+  1 0.000000 # d : 0.0                                                    
+  2 0.000000 # u : 0.0                                                    
+  3 0.000000 # s : 0.0                                                    
+  4 0.000000 # c : 0.0                                                    
+  5 0.000000 # b : 0.0                                                    
+  11 0.000000 # e- : 0.0                                                  
+  12 0.000000 # ve : 0.0                                                  
+  13 0.000000 # mu- : 0.0                                                 
+  14 0.000000 # vm : 0.0                                                  
+  16 0.000000 # vt : 0.0                                                  
+  21 0.000000 # g : 0.0                                                   
+  22 0.000000 # a : 0.0                                                   
+  82 0.000000 # gh : 0.0                                                  
+                                                                          
+###################################                                       
+## INFORMATION FOR SMINPUTS                                               
+###################################                                       
+Block sminputs                                                            
+    1 1.323384e+02 # aEWM1                                                
+    3 1.180000e-01 # aS                                                   
+                                                                          
+###################################                                       
+## INFORMATION FOR DECAY                                                  
+###################################                                       
+DECAY   6 1.501700e+00 # WT Gamma_t_LO                                    
+#DECAY   6 1.356900e+00 # WT Gamma_t_NLO(mu=mt/2)                         
+DECAY  23 2.495200e+00 # WZ                                               
+DECAY  24 0.000000e+00 # WW                                               
+DECAY  25 5.753088e-03 # WH                                               
+## Dependent parameters, given by model restrictions.                     
+## Those values should be edited following the                            
+## analytical expression. MG5 ignores those values                        
+## but they are important for interfacing the output of MG5               
+## to external program such as Pythia.                                    
+DECAY  1 0.000000 # d : 0.0                                               
+DECAY  2 0.000000 # u : 0.0                                               
+DECAY  3 0.000000 # s : 0.0                                               
+DECAY  4 0.000000 # c : 0.0                                               
+DECAY  5 0.000000 # b : 0.0                                               
+DECAY  11 0.000000 # e- : 0.0                                             
+DECAY  12 0.000000 # ve : 0.0                                             
+DECAY  13 0.000000 # mu- : 0.0                                            
+DECAY  14 0.000000 # vm : 0.0                                             
+DECAY  15 0.000000 # ta- : 0.0                                            
+DECAY  16 0.000000 # vt : 0.0                                             
+DECAY  21 0.000000 # g : 0.0                                              
+DECAY  22 0.000000 # a : 0.0                                              
+DECAY  82 0.000000 # gh : 0.0                                             
+#===========================================================              
+# QUANTUM NUMBERS OF NEW STATE(S) (NON SM PDG CODE)                       
+#===========================================================              
+                                                                          
+Block QNUMBERS 82  # gh                                                   
+        1 0  # 3 times electric charge                                    
+        2 1  # number of spin states (2S+1)                               
+        3 8  # colour rep (1: singlet, 3: triplet, 8: octet)              
+        4 1  # Particle/Antiparticle distinction (0=own anti)             
+                                                                    
+######################################################################    
+## PARAM_CARD AUTOMATICALY GENERATED BY MG5 FOLLOWING UFO MODEL   ####    
+######################################################################    
+##                                                                  ##    
+##  Width set on Auto will be computed following the information    ##    
+##        present in the decay.py files of the model. By default,   ##    
+##        this is only 1->2 decay modes.                            ##    
+##                                                                  ##    
+######################################################################    
+                                                                          
+###################################                                       
+## INFORMATION FOR LOOP                                                   
+###################################                                       
+Block loop                                                                
+    1 8.660000e+01 # MU_R                                                 
+                                                                          
+###################################                                       
+## INFORMATION FOR MASS                                                   
+###################################                                       
+Block mass                                                                
+    6 1.732000e+02 # MT                                                   
+   15 1.777000e+00 # MTA                                                  
+   23 9.118760e+01 # MZ                                                   
+   24 8.039800e+01 # MW                                                   
+   25 1.200000e+02 # MH                                                   
+## Dependent parameters, given by model restrictions.                     
+## Those values should be edited following the                            
+## analytical expression. MG5 ignores those values                        
+## but they are important for interfacing the output of MG5               
+## to external program such as Pythia.                                    
+  1 0.000000 # d : 0.0                                                    
+  2 0.000000 # u : 0.0                                                    
+  3 0.000000 # s : 0.0                                                    
+  4 0.000000 # c : 0.0                                                    
+  5 0.000000 # b : 0.0                                                    
+  11 0.000000 # e- : 0.0                                                  
+  12 0.000000 # ve : 0.0                                                  
+  13 0.000000 # mu- : 0.0                                                 
+  14 0.000000 # vm : 0.0                                                  
+  16 0.000000 # vt : 0.0                                                  
+  21 0.000000 # g : 0.0                                                   
+  22 0.000000 # a : 0.0                                                   
+  82 0.000000 # gh : 0.0                                                  
+                                                                          
+###################################                                       
+## INFORMATION FOR SMINPUTS                                               
+###################################                                       
+Block sminputs                                                            
+    1 1.323384e+02 # aEWM1                                                
+    3 1.180000e-01 # aS                                                   
+                                                                          
+###################################                                       
+## INFORMATION FOR DECAY                                                  
+###################################                                       
+DECAY   6 1.501700e+00 # WT Gamma_t_LO                                    
+#DECAY   6 1.356900e+00 # WT Gamma_t_NLO(mu=mt/2)                         
+DECAY  23 2.495200e+00 # WZ                                               
+DECAY  24 0.000000e+00 # WW                                               
+DECAY  25 5.753088e-03 # WH                                               
+## Dependent parameters, given by model restrictions.                     
+## Those values should be edited following the                            
+## analytical expression. MG5 ignores those values                        
+## but they are important for interfacing the output of MG5               
+## to external program such as Pythia.                                    
+DECAY  1 0.000000 # d : 0.0                                               
+DECAY  2 0.000000 # u : 0.0                                               
+DECAY  3 0.000000 # s : 0.0                                               
+DECAY  4 0.000000 # c : 0.0                                               
+DECAY  5 0.000000 # b : 0.0                                               
+DECAY  11 0.000000 # e- : 0.0                                             
+DECAY  12 0.000000 # ve : 0.0                                             
+DECAY  13 0.000000 # mu- : 0.0                                            
+DECAY  14 0.000000 # vm : 0.0                                             
+DECAY  15 0.000000 # ta- : 0.0                                            
+DECAY  16 0.000000 # vt : 0.0                                             
+DECAY  21 0.000000 # g : 0.0                                              
+DECAY  22 0.000000 # a : 0.0                                              
+DECAY  82 0.000000 # gh : 0.0                                             
+#===========================================================              
+# QUANTUM NUMBERS OF NEW STATE(S) (NON SM PDG CODE)                       
+#===========================================================              
+                                                                          
+Block QNUMBERS 82  # gh                                                   
+        1 0  # 3 times electric charge                                    
+        2 1  # number of spin states (2S+1)                               
+        3 8  # colour rep (1: singlet, 3: triplet, 8: octet)              
+        4 1  # Particle/Antiparticle distinction (0=own anti)             
+                                                                    
+######################################################################    
+## PARAM_CARD AUTOMATICALY GENERATED BY MG5 FOLLOWING UFO MODEL   ####    
+######################################################################    
+##                                                                  ##    
+##  Width set on Auto will be computed following the information    ##    
+##        present in the decay.py files of the model. By default,   ##    
+##        this is only 1->2 decay modes.                            ##    
+##                                                                  ##    
+######################################################################    
+                                                                          
+###################################                                       
+## INFORMATION FOR LOOP                                                   
+###################################                                       
+Block loop                                                                
+    1 8.660000e+01 # MU_R                                                 
+                                                                          
+###################################                                       
+## INFORMATION FOR MASS                                                   
+###################################                                       
+Block mass                                                                
+    6 1.732000e+02 # MT                                                   
+   15 1.777000e+00 # MTA                                                  
+   23 9.118760e+01 # MZ                                                   
+   24 8.039800e+01 # MW                                                   
+   25 1.200000e+02 # MH                                                   
+## Dependent parameters, given by model restrictions.                     
+## Those values should be edited following the                            
+## analytical expression. MG5 ignores those values                        
+## but they are important for interfacing the output of MG5               
+## to external program such as Pythia.                                    
+  1 0.000000 # d : 0.0                                                    
+  2 0.000000 # u : 0.0                                                    
+  3 0.000000 # s : 0.0                                                    
+  4 0.000000 # c : 0.0                                                    
+  5 0.000000 # b : 0.0                                                    
+  11 0.000000 # e- : 0.0                                                  
+  12 0.000000 # ve : 0.0                                                  
+  13 0.000000 # mu- : 0.0                                                 
+  14 0.000000 # vm : 0.0                                                  
+  16 0.000000 # vt : 0.0                                                  
+  21 0.000000 # g : 0.0                                                   
+  22 0.000000 # a : 0.0                                                   
+  82 0.000000 # gh : 0.0                                                  
+                                                                          
+###################################                                       
+## INFORMATION FOR SMINPUTS                                               
+###################################                                       
+Block sminputs                                                            
+    1 1.323384e+02 # aEWM1                                                
+    3 1.180000e-01 # aS                                                   
+                                                                          
+###################################                                       
+## INFORMATION FOR DECAY                                                  
+###################################                                       
+DECAY   6 1.501700e+00 # WT Gamma_t_LO                                    
+#DECAY   6 1.356900e+00 # WT Gamma_t_NLO(mu=mt/2)                         
+DECAY  23 2.495200e+00 # WZ                                               
+DECAY  24 0.000000e+00 # WW                                               
+DECAY  25 5.753088e-03 # WH                                               
+## Dependent parameters, given by model restrictions.                     
+## Those values should be edited following the                            
+## analytical expression. MG5 ignores those values                        
+## but they are important for interfacing the output of MG5               
+## to external program such as Pythia.                                    
+DECAY  1 0.000000 # d : 0.0                                               
+DECAY  2 0.000000 # u : 0.0                                               
+DECAY  3 0.000000 # s : 0.0                                               
+DECAY  4 0.000000 # c : 0.0                                               
+DECAY  5 0.000000 # b : 0.0                                               
+DECAY  11 0.000000 # e- : 0.0                                             
+DECAY  12 0.000000 # ve : 0.0                                             
+DECAY  13 0.000000 # mu- : 0.0                                            
+DECAY  14 0.000000 # vm : 0.0                                             
+DECAY  15 0.000000 # ta- : 0.0                                            
+DECAY  16 0.000000 # vt : 0.0                                             
+DECAY  21 0.000000 # g : 0.0                                              
+DECAY  22 0.000000 # a : 0.0                                              
+DECAY  82 0.000000 # gh : 0.0                                             
+#===========================================================              
+# QUANTUM NUMBERS OF NEW STATE(S) (NON SM PDG CODE)                       
+#===========================================================              
+                                                                          
+Block QNUMBERS 82  # gh                                                   
+        1 0  # 3 times electric charge                                    
+        2 1  # number of spin states (2S+1)                               
+        3 8  # colour rep (1: singlet, 3: triplet, 8: octet)              
+        4 1  # Particle/Antiparticle distinction (0=own anti)             
+  </slha>
+
+                                                                 
+  <MGRunCard>                                                             
+#***********************************************************************  
+#                       MadGraph/MadEvent                              *  
+#                  http://madgraph.hep.uiuc.edu                        *  
+#                                                                      *  
+#                        run_card.dat                                  *  
+#                                                                      *  
+#  This file is used to set the parameters of the run.                 *  
+#                                                                      *  
+#  Some notation/conventions:                                          *  
+#                                                                      *  
+#   Lines starting with a hash (#) are info or comments                *  
+#                                                                      *  
+#   mind the format:   value    = variable     ! comment               *  
+#***********************************************************************  
+#                                                                         
+#*******************                                                      
+# Running parameters                                                      
+#*******************                                                      
+#                                                                         
+#***********************************************************************  
+# Tag name for the run (one word)                                      *  
+#***********************************************************************  
+  tag_1     = run_tag ! name of the run                                   
+#***********************************************************************  
+# Number of events (and their normalization) and the required          *  
+# (relative) accuracy on the Xsec.                                     *  
+# These values are ignored for fixed order runs                        *  
+#***********************************************************************  
+     1000000  = nevents    ! Number of unweighted events requested
+    1000000 = nevents                                                     
+#    -1 = req_acc ! Required accuracy (-1=auto determined from nevents)   
+    -1 = nevt_job! Max number of events per job in event generation.      
+                 !  (-1= no split).                                       
+average = event_norm ! Normalize events to sum or average to the X sect.  
+#***********************************************************************  
+# Number of points per itegration channel (ignored for aMC@NLO runs)   *  
+#***********************************************************************  
+ 100000   = npoints_FO_grid  ! number of points to set-up int. grids      
+ 5      = niters_FO_grid   ! number of iterations to set-up int. grids    
+ 500000   = npoints_FO_virt  ! number of points to compute Xsec (virt)    
+ 10      = niters_FO_virt   ! number of iter. to compute Xsec (virt)      
+ 1000000  = npoints_FO       ! number of points to compute Xsec (no virt  
+ 10      = niters_FO        ! number of iter. to compute Xsec (no virt)   
+#***********************************************************************  
+# Random number seed                                                   *  
+#***********************************************************************  
+         44 =  iseed                                                      
+#***********************************************************************  
+# Collider type and energy                                             *  
+#***********************************************************************  
+    1   = lpp1    ! beam 1 type (0 = no PDF)                              
+    1   = lpp2    ! beam 2 type (0 = no PDF)                              
+ 4000   = ebeam1  ! beam 1 energy in GeV                                  
+ 4000   = ebeam2  ! beam 2 energy in GeV                                  
+#***********************************************************************  
+# PDF choice: this automatically fixes also alpha_s(MZ) and its evol.  *  
+#***********************************************************************  
+  lhapdf   = pdlabel   ! PDF set                                          
+  21100    = lhaid     ! if pdlabel=lhapdf, this is the lhapdf number     
+#***********************************************************************  
+# Include the NLO Monte Carlo subtr. terms for the following parton    *  
+# shower (HERWIG6 | HERWIGPP | PYTHIA6Q | PYTHIA6PT | PYTHIA8)         *  
+# WARNING: PYTHIA6PT works only for processes without FSR!!!!          *  
+#***********************************************************************  
+#  HERWIG6   = parton_shower                                              
+  PYTHIA8 = parton_shower                                                 
+#***********************************************************************  
+# Renormalization and factorization scales                             *  
+# (Default functional form for the non-fixed scales is the sum of      *  
+# the transverse masses of all final state particles and partons. This *  
+# can be changed in SubProcesses/set_scales.f)                         *  
+#***********************************************************************  
+ T        = fixed_ren_scale  ! if .true. use fixed ren scale              
+ T        = fixed_fac_scale  ! if .true. use fixed fac scale              
+ 86.600   = muR_ref_fixed    ! fixed ren reference scale                  
+ 86.600   = muF1_ref_fixed   ! fixed fact reference scale for pdf1        
+ 86.600   = muF2_ref_fixed   ! fixed fact reference scale for pdf2        
+#***********************************************************************  
+# Renormalization and factorization scales (advanced and NLO options)  *  
+#***********************************************************************  
+ T        = fixed_QES_scale  ! if .true. use fixed Ellis-Sexton scale     
+ 86.600   = QES_ref_fixed    ! fixed Ellis-Sexton reference scale         
+ 1        = muR_over_ref     ! ratio of current muR over reference muR    
+ 1        = muF1_over_ref    ! ratio of current muF1 over reference muF1  
+ 1        = muF2_over_ref    ! ratio of current muF2 over reference muF2  
+ 1        = QES_over_ref     ! ratio of current QES over reference QES    
+#***********************************************************************  
+# Reweight flags to get scale dependence and PDF uncertainty           *  
+# For scale dependence: factor rw_scale_up/down around central scale   *  
+# For PDF uncertainty: use LHAPDF with supported set                   *  
+#***********************************************************************  
+ .true.   = reweight_scale   ! reweight to get scale dependence           
+  0.5     = rw_Rscale_down   ! lower bound for ren scale variations       
+  2.0     = rw_Rscale_up     ! upper bound for ren scale variations       
+  0.5     = rw_Fscale_down   ! lower bound for fact scale variations      
+  2.0     = rw_Fscale_up     ! upper bound for fact scale variations      
+ .false.  = reweight_PDF     ! reweight to get PDF uncertainty            
+  21101   = PDF_set_min      ! First of the error PDF sets                
+  21140   = PDF_set_max      ! Last of the error PDF sets                 
+#***********************************************************************  
+# Merging - WARNING! Applies merging only at the hard-event level.     *  
+# After showering an MLM-type merging should be applied as well.       *  
+# See http://amcatnlo.cern.ch/FxFx_merging.htm for more details.       *  
+#***********************************************************************  
+ 0        = ickkw            ! 0 no merging, 3 FxFx merging               
+#***********************************************************************  
+#                                                                         
+#***********************************************************************  
+# BW cutoff (M+/-bwcutoff*Gamma)                                       *  
+#***********************************************************************  
+ 35  = bwcutoff                                                           
+#***********************************************************************  
+# Cuts on the jets                                                     *  
+# When matching to a parton shower, these generation cuts should be    *  
+# considerably softer than the analysis cuts.                          *  
+# (more specific cuts can be specified in SubProcesses/cuts.f)         *  
+#***********************************************************************  
+   1  = jetalgo   ! FastJet jet algorithm (1=kT, 0=C/A, -1=anti-kT)       
+ 0.4  = jetradius ! The radius parameter for the jet algorithm            
+   4  = ptj       ! Min jet transverse momentum                           
+  -1  = etaj      ! Max jet abs(pseudo-rap) (a value .lt.0 means no cut)  
+#***********************************************************************  
+# Cuts on the charged leptons (e+, e-, mu+, mu-, tau+ and tau-)        *  
+# (more specific gen cuts can be specified in SubProcesses/cuts.f)     *  
+#***********************************************************************  
+   0  = ptl   ! Min lepton transverse momentum                            
+  -1  = etal  ! Max lepton abs(pseudo-rap) (a value .lt.0 means no cut)   
+   0  = drll  ! Min distance between opposite sign lepton pairs           
+  10  = mll   ! Min inv. mass of all oppositely charged lepton pairs      
+#***********************************************************************  
+# Photon-isolation cuts, according to hep-ph/9801442                   *  
+# When ptgmin=0, all the other parameters are ignored                  *  
+#***********************************************************************  
+  20  = ptgmin    ! Min photon transverse momentum                        
+  -1  = etagamma  ! Max photon abs(pseudo-rap)                            
+ 0.4  = R0gamma   ! Radius of isolation code                              
+ 1.0  = xn        ! n parameter of eq.(3.4) in hep-ph/9801442             
+ 1.0  = epsgamma  ! epsilon_gamma parameter of eq.(3.4) in hep-ph/980144  
+ .true.  = isoEM  ! isolate photons from EM energy (photons and leptons)  
+#***********************************************************************  
+# maximal pdg code for quark to be considered as a jet                 *  
+#***********************************************************************  
+ 5 = maxjetflavor                                                         
+#***********************************************************************  
+                                                               
+#***********************************************************************  
+#                       MadGraph/MadEvent                              *  
+#                  http://madgraph.hep.uiuc.edu                        *  
+#                                                                      *  
+#                        run_card.dat                                  *  
+#                                                                      *  
+#  This file is used to set the parameters of the run.                 *  
+#                                                                      *  
+#  Some notation/conventions:                                          *  
+#                                                                      *  
+#   Lines starting with a hash (#) are info or comments                *  
+#                                                                      *  
+#   mind the format:   value    = variable     ! comment               *  
+#***********************************************************************  
+#                                                                         
+#*******************                                                      
+# Running parameters                                                      
+#*******************                                                      
+#                                                                         
+#***********************************************************************  
+# Tag name for the run (one word)                                      *  
+#***********************************************************************  
+  tag_1     = run_tag ! name of the run                                   
+#***********************************************************************  
+# Number of events (and their normalization) and the required          *  
+# (relative) accuracy on the Xsec.                                     *  
+# These values are ignored for fixed order runs                        *  
+#***********************************************************************  
+     1000000  = nevents    ! Number of unweighted events requested
+    1000000 = nevents                                                     
+#    -1 = req_acc ! Required accuracy (-1=auto determined from nevents)   
+    -1 = nevt_job! Max number of events per job in event generation.      
+                 !  (-1= no split).                                       
+average = event_norm ! Normalize events to sum or average to the X sect.  
+#***********************************************************************  
+# Number of points per itegration channel (ignored for aMC@NLO runs)   *  
+#***********************************************************************  
+ 100000   = npoints_FO_grid  ! number of points to set-up int. grids      
+ 5      = niters_FO_grid   ! number of iterations to set-up int. grids    
+ 500000   = npoints_FO_virt  ! number of points to compute Xsec (virt)    
+ 10      = niters_FO_virt   ! number of iter. to compute Xsec (virt)      
+ 1000000  = npoints_FO       ! number of points to compute Xsec (no virt  
+ 10      = niters_FO        ! number of iter. to compute Xsec (no virt)   
+#***********************************************************************  
+# Random number seed                                                   *  
+#***********************************************************************  
+         44 =  iseed                                                      
+#***********************************************************************  
+# Collider type and energy                                             *  
+#***********************************************************************  
+    1   = lpp1    ! beam 1 type (0 = no PDF)                              
+    1   = lpp2    ! beam 2 type (0 = no PDF)                              
+ 4000   = ebeam1  ! beam 1 energy in GeV                                  
+ 4000   = ebeam2  ! beam 2 energy in GeV                                  
+#***********************************************************************  
+# PDF choice: this automatically fixes also alpha_s(MZ) and its evol.  *  
+#***********************************************************************  
+  lhapdf   = pdlabel   ! PDF set                                          
+  21100    = lhaid     ! if pdlabel=lhapdf, this is the lhapdf number     
+#***********************************************************************  
+# Include the NLO Monte Carlo subtr. terms for the following parton    *  
+# shower (HERWIG6 | HERWIGPP | PYTHIA6Q | PYTHIA6PT | PYTHIA8)         *  
+# WARNING: PYTHIA6PT works only for processes without FSR!!!!          *  
+#***********************************************************************  
+#  HERWIG6   = parton_shower                                              
+  PYTHIA8 = parton_shower                                                 
+#***********************************************************************  
+# Renormalization and factorization scales                             *  
+# (Default functional form for the non-fixed scales is the sum of      *  
+# the transverse masses of all final state particles and partons. This *  
+# can be changed in SubProcesses/set_scales.f)                         *  
+#***********************************************************************  
+ T        = fixed_ren_scale  ! if .true. use fixed ren scale              
+ T        = fixed_fac_scale  ! if .true. use fixed fac scale              
+ 86.600   = muR_ref_fixed    ! fixed ren reference scale                  
+ 86.600   = muF1_ref_fixed   ! fixed fact reference scale for pdf1        
+ 86.600   = muF2_ref_fixed   ! fixed fact reference scale for pdf2        
+#***********************************************************************  
+# Renormalization and factorization scales (advanced and NLO options)  *  
+#***********************************************************************  
+ T        = fixed_QES_scale  ! if .true. use fixed Ellis-Sexton scale     
+ 86.600   = QES_ref_fixed    ! fixed Ellis-Sexton reference scale         
+ 1        = muR_over_ref     ! ratio of current muR over reference muR    
+ 1        = muF1_over_ref    ! ratio of current muF1 over reference muF1  
+ 1        = muF2_over_ref    ! ratio of current muF2 over reference muF2  
+ 1        = QES_over_ref     ! ratio of current QES over reference QES    
+#***********************************************************************  
+# Reweight flags to get scale dependence and PDF uncertainty           *  
+# For scale dependence: factor rw_scale_up/down around central scale   *  
+# For PDF uncertainty: use LHAPDF with supported set                   *  
+#***********************************************************************  
+ .true.   = reweight_scale   ! reweight to get scale dependence           
+  0.5     = rw_Rscale_down   ! lower bound for ren scale variations       
+  2.0     = rw_Rscale_up     ! upper bound for ren scale variations       
+  0.5     = rw_Fscale_down   ! lower bound for fact scale variations      
+  2.0     = rw_Fscale_up     ! upper bound for fact scale variations      
+ .false.  = reweight_PDF     ! reweight to get PDF uncertainty            
+  21101   = PDF_set_min      ! First of the error PDF sets                
+  21140   = PDF_set_max      ! Last of the error PDF sets                 
+#***********************************************************************  
+# Merging - WARNING! Applies merging only at the hard-event level.     *  
+# After showering an MLM-type merging should be applied as well.       *  
+# See http://amcatnlo.cern.ch/FxFx_merging.htm for more details.       *  
+#***********************************************************************  
+ 0        = ickkw            ! 0 no merging, 3 FxFx merging               
+#***********************************************************************  
+#                                                                         
+#***********************************************************************  
+# BW cutoff (M+/-bwcutoff*Gamma)                                       *  
+#***********************************************************************  
+ 35  = bwcutoff                                                           
+#***********************************************************************  
+# Cuts on the jets                                                     *  
+# When matching to a parton shower, these generation cuts should be    *  
+# considerably softer than the analysis cuts.                          *  
+# (more specific cuts can be specified in SubProcesses/cuts.f)         *  
+#***********************************************************************  
+   1  = jetalgo   ! FastJet jet algorithm (1=kT, 0=C/A, -1=anti-kT)       
+ 0.4  = jetradius ! The radius parameter for the jet algorithm            
+   4  = ptj       ! Min jet transverse momentum                           
+  -1  = etaj      ! Max jet abs(pseudo-rap) (a value .lt.0 means no cut)  
+#***********************************************************************  
+# Cuts on the charged leptons (e+, e-, mu+, mu-, tau+ and tau-)        *  
+# (more specific gen cuts can be specified in SubProcesses/cuts.f)     *  
+#***********************************************************************  
+   0  = ptl   ! Min lepton transverse momentum                            
+  -1  = etal  ! Max lepton abs(pseudo-rap) (a value .lt.0 means no cut)   
+   0  = drll  ! Min distance between opposite sign lepton pairs           
+  10  = mll   ! Min inv. mass of all oppositely charged lepton pairs      
+#***********************************************************************  
+# Photon-isolation cuts, according to hep-ph/9801442                   *  
+# When ptgmin=0, all the other parameters are ignored                  *  
+#***********************************************************************  
+  20  = ptgmin    ! Min photon transverse momentum                        
+  -1  = etagamma  ! Max photon abs(pseudo-rap)                            
+ 0.4  = R0gamma   ! Radius of isolation code                              
+ 1.0  = xn        ! n parameter of eq.(3.4) in hep-ph/9801442             
+ 1.0  = epsgamma  ! epsilon_gamma parameter of eq.(3.4) in hep-ph/980144  
+ .true.  = isoEM  ! isolate photons from EM energy (photons and leptons)  
+#***********************************************************************  
+# maximal pdg code for quark to be considered as a jet                 *  
+#***********************************************************************  
+ 5 = maxjetflavor                                                         
+#***********************************************************************  
+                                                               
+#***********************************************************************  
+#                       MadGraph/MadEvent                              *  
+#                  http://madgraph.hep.uiuc.edu                        *  
+#                                                                      *  
+#                        run_card.dat                                  *  
+#                                                                      *  
+#  This file is used to set the parameters of the run.                 *  
+#                                                                      *  
+#  Some notation/conventions:                                          *  
+#                                                                      *  
+#   Lines starting with a hash (#) are info or comments                *  
+#                                                                      *  
+#   mind the format:   value    = variable     ! comment               *  
+#***********************************************************************  
+#                                                                         
+#*******************                                                      
+# Running parameters                                                      
+#*******************                                                      
+#                                                                         
+#***********************************************************************  
+# Tag name for the run (one word)                                      *  
+#***********************************************************************  
+  tag_1     = run_tag ! name of the run                                   
+#***********************************************************************  
+# Number of events (and their normalization) and the required          *  
+# (relative) accuracy on the Xsec.                                     *  
+# These values are ignored for fixed order runs                        *  
+#***********************************************************************  
+     1000000  = nevents    ! Number of unweighted events requested
+    1000000 = nevents                                                     
+#    -1 = req_acc ! Required accuracy (-1=auto determined from nevents)   
+    -1 = nevt_job! Max number of events per job in event generation.      
+                 !  (-1= no split).                                       
+average = event_norm ! Normalize events to sum or average to the X sect.  
+#***********************************************************************  
+# Number of points per itegration channel (ignored for aMC@NLO runs)   *  
+#***********************************************************************  
+ 100000   = npoints_FO_grid  ! number of points to set-up int. grids      
+ 5      = niters_FO_grid   ! number of iterations to set-up int. grids    
+ 500000   = npoints_FO_virt  ! number of points to compute Xsec (virt)    
+ 10      = niters_FO_virt   ! number of iter. to compute Xsec (virt)      
+ 1000000  = npoints_FO       ! number of points to compute Xsec (no virt  
+ 10      = niters_FO        ! number of iter. to compute Xsec (no virt)   
+#***********************************************************************  
+# Random number seed                                                   *  
+#***********************************************************************  
+         44 =  iseed                                                      
+#***********************************************************************  
+# Collider type and energy                                             *  
+#***********************************************************************  
+    1   = lpp1    ! beam 1 type (0 = no PDF)                              
+    1   = lpp2    ! beam 2 type (0 = no PDF)                              
+ 4000   = ebeam1  ! beam 1 energy in GeV                                  
+ 4000   = ebeam2  ! beam 2 energy in GeV                                  
+#***********************************************************************  
+# PDF choice: this automatically fixes also alpha_s(MZ) and its evol.  *  
+#***********************************************************************  
+  lhapdf   = pdlabel   ! PDF set                                          
+  21100    = lhaid     ! if pdlabel=lhapdf, this is the lhapdf number     
+#***********************************************************************  
+# Include the NLO Monte Carlo subtr. terms for the following parton    *  
+# shower (HERWIG6 | HERWIGPP | PYTHIA6Q | PYTHIA6PT | PYTHIA8)         *  
+# WARNING: PYTHIA6PT works only for processes without FSR!!!!          *  
+#***********************************************************************  
+#  HERWIG6   = parton_shower                                              
+  PYTHIA8 = parton_shower                                                 
+#***********************************************************************  
+# Renormalization and factorization scales                             *  
+# (Default functional form for the non-fixed scales is the sum of      *  
+# the transverse masses of all final state particles and partons. This *  
+# can be changed in SubProcesses/set_scales.f)                         *  
+#***********************************************************************  
+ T        = fixed_ren_scale  ! if .true. use fixed ren scale              
+ T        = fixed_fac_scale  ! if .true. use fixed fac scale              
+ 86.600   = muR_ref_fixed    ! fixed ren reference scale                  
+ 86.600   = muF1_ref_fixed   ! fixed fact reference scale for pdf1        
+ 86.600   = muF2_ref_fixed   ! fixed fact reference scale for pdf2        
+#***********************************************************************  
+# Renormalization and factorization scales (advanced and NLO options)  *  
+#***********************************************************************  
+ T        = fixed_QES_scale  ! if .true. use fixed Ellis-Sexton scale     
+ 86.600   = QES_ref_fixed    ! fixed Ellis-Sexton reference scale         
+ 1        = muR_over_ref     ! ratio of current muR over reference muR    
+ 1        = muF1_over_ref    ! ratio of current muF1 over reference muF1  
+ 1        = muF2_over_ref    ! ratio of current muF2 over reference muF2  
+ 1        = QES_over_ref     ! ratio of current QES over reference QES    
+#***********************************************************************  
+# Reweight flags to get scale dependence and PDF uncertainty           *  
+# For scale dependence: factor rw_scale_up/down around central scale   *  
+# For PDF uncertainty: use LHAPDF with supported set                   *  
+#***********************************************************************  
+ .true.   = reweight_scale   ! reweight to get scale dependence           
+  0.5     = rw_Rscale_down   ! lower bound for ren scale variations       
+  2.0     = rw_Rscale_up     ! upper bound for ren scale variations       
+  0.5     = rw_Fscale_down   ! lower bound for fact scale variations      
+  2.0     = rw_Fscale_up     ! upper bound for fact scale variations      
+ .false.  = reweight_PDF     ! reweight to get PDF uncertainty            
+  21101   = PDF_set_min      ! First of the error PDF sets                
+  21140   = PDF_set_max      ! Last of the error PDF sets                 
+#***********************************************************************  
+# Merging - WARNING! Applies merging only at the hard-event level.     *  
+# After showering an MLM-type merging should be applied as well.       *  
+# See http://amcatnlo.cern.ch/FxFx_merging.htm for more details.       *  
+#***********************************************************************  
+ 0        = ickkw            ! 0 no merging, 3 FxFx merging               
+#***********************************************************************  
+#                                                                         
+#***********************************************************************  
+# BW cutoff (M+/-bwcutoff*Gamma)                                       *  
+#***********************************************************************  
+ 35  = bwcutoff                                                           
+#***********************************************************************  
+# Cuts on the jets                                                     *  
+# When matching to a parton shower, these generation cuts should be    *  
+# considerably softer than the analysis cuts.                          *  
+# (more specific cuts can be specified in SubProcesses/cuts.f)         *  
+#***********************************************************************  
+   1  = jetalgo   ! FastJet jet algorithm (1=kT, 0=C/A, -1=anti-kT)       
+ 0.4  = jetradius ! The radius parameter for the jet algorithm            
+   4  = ptj       ! Min jet transverse momentum                           
+  -1  = etaj      ! Max jet abs(pseudo-rap) (a value .lt.0 means no cut)  
+#***********************************************************************  
+# Cuts on the charged leptons (e+, e-, mu+, mu-, tau+ and tau-)        *  
+# (more specific gen cuts can be specified in SubProcesses/cuts.f)     *  
+#***********************************************************************  
+   0  = ptl   ! Min lepton transverse momentum                            
+  -1  = etal  ! Max lepton abs(pseudo-rap) (a value .lt.0 means no cut)   
+   0  = drll  ! Min distance between opposite sign lepton pairs           
+  10  = mll   ! Min inv. mass of all oppositely charged lepton pairs      
+#***********************************************************************  
+# Photon-isolation cuts, according to hep-ph/9801442                   *  
+# When ptgmin=0, all the other parameters are ignored                  *  
+#***********************************************************************  
+  20  = ptgmin    ! Min photon transverse momentum                        
+  -1  = etagamma  ! Max photon abs(pseudo-rap)                            
+ 0.4  = R0gamma   ! Radius of isolation code                              
+ 1.0  = xn        ! n parameter of eq.(3.4) in hep-ph/9801442             
+ 1.0  = epsgamma  ! epsilon_gamma parameter of eq.(3.4) in hep-ph/980144  
+ .true.  = isoEM  ! isolate photons from EM energy (photons and leptons)  
+#***********************************************************************  
+# maximal pdg code for quark to be considered as a jet                 *  
+#***********************************************************************  
+ 5 = maxjetflavor                                                         
+#***********************************************************************  
+                                                               
+#***********************************************************************  
+#                       MadGraph/MadEvent                              *  
+#                  http://madgraph.hep.uiuc.edu                        *  
+#                                                                      *  
+#                        run_card.dat                                  *  
+#                                                                      *  
+#  This file is used to set the parameters of the run.                 *  
+#                                                                      *  
+#  Some notation/conventions:                                          *  
+#                                                                      *  
+#   Lines starting with a hash (#) are info or comments                *  
+#                                                                      *  
+#   mind the format:   value    = variable     ! comment               *  
+#***********************************************************************  
+#                                                                         
+#*******************                                                      
+# Running parameters                                                      
+#*******************                                                      
+#                                                                         
+#***********************************************************************  
+# Tag name for the run (one word)                                      *  
+#***********************************************************************  
+  tag_1     = run_tag ! name of the run                                   
+#***********************************************************************  
+# Number of events (and their normalization) and the required          *  
+# (relative) accuracy on the Xsec.                                     *  
+# These values are ignored for fixed order runs                        *  
+#***********************************************************************  
+     1000000  = nevents    ! Number of unweighted events requested
+    1000000 = nevents                                                     
+#    -1 = req_acc ! Required accuracy (-1=auto determined from nevents)   
+    -1 = nevt_job! Max number of events per job in event generation.      
+                 !  (-1= no split).                                       
+average = event_norm ! Normalize events to sum or average to the X sect.  
+#***********************************************************************  
+# Number of points per itegration channel (ignored for aMC@NLO runs)   *  
+#***********************************************************************  
+ 100000   = npoints_FO_grid  ! number of points to set-up int. grids      
+ 5      = niters_FO_grid   ! number of iterations to set-up int. grids    
+ 500000   = npoints_FO_virt  ! number of points to compute Xsec (virt)    
+ 10      = niters_FO_virt   ! number of iter. to compute Xsec (virt)      
+ 1000000  = npoints_FO       ! number of points to compute Xsec (no virt  
+ 10      = niters_FO        ! number of iter. to compute Xsec (no virt)   
+#***********************************************************************  
+# Random number seed                                                   *  
+#***********************************************************************  
+         44 =  iseed                                                      
+#***********************************************************************  
+# Collider type and energy                                             *  
+#***********************************************************************  
+    1   = lpp1    ! beam 1 type (0 = no PDF)                              
+    1   = lpp2    ! beam 2 type (0 = no PDF)                              
+ 4000   = ebeam1  ! beam 1 energy in GeV                                  
+ 4000   = ebeam2  ! beam 2 energy in GeV                                  
+#***********************************************************************  
+# PDF choice: this automatically fixes also alpha_s(MZ) and its evol.  *  
+#***********************************************************************  
+  lhapdf   = pdlabel   ! PDF set                                          
+  21100    = lhaid     ! if pdlabel=lhapdf, this is the lhapdf number     
+#***********************************************************************  
+# Include the NLO Monte Carlo subtr. terms for the following parton    *  
+# shower (HERWIG6 | HERWIGPP | PYTHIA6Q | PYTHIA6PT | PYTHIA8)         *  
+# WARNING: PYTHIA6PT works only for processes without FSR!!!!          *  
+#***********************************************************************  
+#  HERWIG6   = parton_shower                                              
+  PYTHIA8 = parton_shower                                                 
+#***********************************************************************  
+# Renormalization and factorization scales                             *  
+# (Default functional form for the non-fixed scales is the sum of      *  
+# the transverse masses of all final state particles and partons. This *  
+# can be changed in SubProcesses/set_scales.f)                         *  
+#***********************************************************************  
+ T        = fixed_ren_scale  ! if .true. use fixed ren scale              
+ T        = fixed_fac_scale  ! if .true. use fixed fac scale              
+ 86.600   = muR_ref_fixed    ! fixed ren reference scale                  
+ 86.600   = muF1_ref_fixed   ! fixed fact reference scale for pdf1        
+ 86.600   = muF2_ref_fixed   ! fixed fact reference scale for pdf2        
+#***********************************************************************  
+# Renormalization and factorization scales (advanced and NLO options)  *  
+#***********************************************************************  
+ T        = fixed_QES_scale  ! if .true. use fixed Ellis-Sexton scale     
+ 86.600   = QES_ref_fixed    ! fixed Ellis-Sexton reference scale         
+ 1        = muR_over_ref     ! ratio of current muR over reference muR    
+ 1        = muF1_over_ref    ! ratio of current muF1 over reference muF1  
+ 1        = muF2_over_ref    ! ratio of current muF2 over reference muF2  
+ 1        = QES_over_ref     ! ratio of current QES over reference QES    
+#***********************************************************************  
+# Reweight flags to get scale dependence and PDF uncertainty           *  
+# For scale dependence: factor rw_scale_up/down around central scale   *  
+# For PDF uncertainty: use LHAPDF with supported set                   *  
+#***********************************************************************  
+ .true.   = reweight_scale   ! reweight to get scale dependence           
+  0.5     = rw_Rscale_down   ! lower bound for ren scale variations       
+  2.0     = rw_Rscale_up     ! upper bound for ren scale variations       
+  0.5     = rw_Fscale_down   ! lower bound for fact scale variations      
+  2.0     = rw_Fscale_up     ! upper bound for fact scale variations      
+ .false.  = reweight_PDF     ! reweight to get PDF uncertainty            
+  21101   = PDF_set_min      ! First of the error PDF sets                
+  21140   = PDF_set_max      ! Last of the error PDF sets                 
+#***********************************************************************  
+# Merging - WARNING! Applies merging only at the hard-event level.     *  
+# After showering an MLM-type merging should be applied as well.       *  
+# See http://amcatnlo.cern.ch/FxFx_merging.htm for more details.       *  
+#***********************************************************************  
+ 0        = ickkw            ! 0 no merging, 3 FxFx merging               
+#***********************************************************************  
+#                                                                         
+#***********************************************************************  
+# BW cutoff (M+/-bwcutoff*Gamma)                                       *  
+#***********************************************************************  
+ 35  = bwcutoff                                                           
+#***********************************************************************  
+# Cuts on the jets                                                     *  
+# When matching to a parton shower, these generation cuts should be    *  
+# considerably softer than the analysis cuts.                          *  
+# (more specific cuts can be specified in SubProcesses/cuts.f)         *  
+#***********************************************************************  
+   1  = jetalgo   ! FastJet jet algorithm (1=kT, 0=C/A, -1=anti-kT)       
+ 0.4  = jetradius ! The radius parameter for the jet algorithm            
+   4  = ptj       ! Min jet transverse momentum                           
+  -1  = etaj      ! Max jet abs(pseudo-rap) (a value .lt.0 means no cut)  
+#***********************************************************************  
+# Cuts on the charged leptons (e+, e-, mu+, mu-, tau+ and tau-)        *  
+# (more specific gen cuts can be specified in SubProcesses/cuts.f)     *  
+#***********************************************************************  
+   0  = ptl   ! Min lepton transverse momentum                            
+  -1  = etal  ! Max lepton abs(pseudo-rap) (a value .lt.0 means no cut)   
+   0  = drll  ! Min distance between opposite sign lepton pairs           
+  10  = mll   ! Min inv. mass of all oppositely charged lepton pairs      
+#***********************************************************************  
+# Photon-isolation cuts, according to hep-ph/9801442                   *  
+# When ptgmin=0, all the other parameters are ignored                  *  
+#***********************************************************************  
+  20  = ptgmin    ! Min photon transverse momentum                        
+  -1  = etagamma  ! Max photon abs(pseudo-rap)                            
+ 0.4  = R0gamma   ! Radius of isolation code                              
+ 1.0  = xn        ! n parameter of eq.(3.4) in hep-ph/9801442             
+ 1.0  = epsgamma  ! epsilon_gamma parameter of eq.(3.4) in hep-ph/980144  
+ .true.  = isoEM  ! isolate photons from EM energy (photons and leptons)  
+#***********************************************************************  
+# maximal pdg code for quark to be considered as a jet                 *  
+#***********************************************************************  
+ 5 = maxjetflavor                                                         
+#***********************************************************************  
+  </MGRunCard>
+
+                                                            
+  <MonteCarloMasses>                                                      
+       1   0.330000E+00                                                   
+       2   0.330000E+00                                                   
+       3   0.500000E+00                                                   
+       4   0.150000E+01                                                   
+       5   0.480000E+01                                                   
+      21   0.000000E+00                                                   
+                                                        
+       1   0.330000E+00                                                   
+       2   0.330000E+00                                                   
+       3   0.500000E+00                                                   
+       4   0.150000E+01                                                   
+       5   0.480000E+01                                                   
+      21   0.000000E+00                                                   
+                                                        
+       1   0.330000E+00                                                   
+       2   0.330000E+00                                                   
+       3   0.500000E+00                                                   
+       4   0.150000E+01                                                   
+       5   0.480000E+01                                                   
+      21   0.000000E+00                                                   
+                                                        
+       1   0.330000E+00                                                   
+       2   0.330000E+00                                                   
+       3   0.500000E+00                                                   
+       4   0.150000E+01                                                   
+       5   0.480000E+01                                                   
+      21   0.000000E+00                                                   
+  </MonteCarloMasses>
+
+                                                     
+  <initrwgt>                                                              
+    <weightgroup combine="envelope" type="scale_variation">               
+      <weight id="1001"> muR=0.10000E+01 muF=0.10000E+01  muR=0.10000E+01 muF=0.10000E+01  muR=0.10000E+01 muF=0.10000E+01  muR=0.10000E+01 muF=0.10000E+01 </weight>
+
+        
+      <weight id="1002"> muR=0.10000E+01 muF=0.20000E+01  muR=0.10000E+01 muF=0.20000E+01  muR=0.10000E+01 muF=0.20000E+01  muR=0.10000E+01 muF=0.20000E+01 </weight>
+
+        
+      <weight id="1003"> muR=0.10000E+01 muF=0.50000E+00  muR=0.10000E+01 muF=0.50000E+00  muR=0.10000E+01 muF=0.50000E+00  muR=0.10000E+01 muF=0.50000E+00 </weight>
+
+        
+      <weight id="1004"> muR=0.20000E+01 muF=0.10000E+01  muR=0.20000E+01 muF=0.10000E+01  muR=0.20000E+01 muF=0.10000E+01  muR=0.20000E+01 muF=0.10000E+01 </weight>
+
+        
+      <weight id="1005"> muR=0.20000E+01 muF=0.20000E+01  muR=0.20000E+01 muF=0.20000E+01  muR=0.20000E+01 muF=0.20000E+01  muR=0.20000E+01 muF=0.20000E+01 </weight>
+
+        
+      <weight id="1006"> muR=0.20000E+01 muF=0.50000E+00  muR=0.20000E+01 muF=0.50000E+00  muR=0.20000E+01 muF=0.50000E+00  muR=0.20000E+01 muF=0.50000E+00 </weight>
+
+        
+      <weight id="1007"> muR=0.50000E+00 muF=0.10000E+01  muR=0.50000E+00 muF=0.10000E+01  muR=0.50000E+00 muF=0.10000E+01  muR=0.50000E+00 muF=0.10000E+01 </weight>
+
+        
+      <weight id="1008"> muR=0.50000E+00 muF=0.20000E+01  muR=0.50000E+00 muF=0.20000E+01  muR=0.50000E+00 muF=0.20000E+01  muR=0.50000E+00 muF=0.20000E+01 </weight>
+
+        
+      <weight id="1009"> muR=0.50000E+00 muF=0.50000E+00  muR=0.50000E+00 muF=0.50000E+00  muR=0.50000E+00 muF=0.50000E+00  muR=0.50000E+00 muF=0.50000E+00 </weight>
+
+        
+    </weightgroup>
+
+                                                        
+  </initrwgt>
+
+                                                             
+  </header>
+
+                                                               
+  
+<init>
+     2212     2212           4000           4000   -1   -1 21100 21100   -4    1
+      50.109086    0.089185414      50.109093     66
+<generator name="SomeGen1" version="1.2.3"> some additional comments </generator>
+<generator name="SomeGen2" version="a.x.3"> some other comments </generator>
+<generator name="SomeGen3" version="+.#.@"> more comments </generator>
+<eventfiles>
+  <eventfile name="LHEF_example_1_out.plhe" neve="59"/>
+  <eventfile name="LHEF_example_2_out.plhe" neve="57"/>
+</eventfiles>
+<xsecinfo neve="59" totxsec="50.109093"/>
+<weightinfo name="test" muf="2"/>
+<initrwgt>
+<weightgroup type="scale_variation" combine="envelope">
+<weight id="1001"> muR=0.10000E+01 muF=0.10000E+01 </weight>
+<weight id="1002"> muR=0.10000E+01 muF=0.20000E+01 </weight>
+<weight id="1003"> muR=0.10000E+01 muF=0.50000E+00 </weight>
+<weight id="1004"> muR=0.20000E+01 muF=0.10000E+01 </weight>
+<weight id="1005"> muR=0.20000E+01 muF=0.20000E+01 </weight>
+<weight id="1006"> muR=0.20000E+01 muF=0.50000E+00 </weight>
+<weight id="1007"> muR=0.50000E+00 muF=0.10000E+01 </weight>
+<weight id="1008"> muR=0.50000E+00 muF=0.20000E+01 </weight>
+<weight id="1009"> muR=0.50000E+00 muF=0.50000E+00 </weight>
+</weightgroup>
+</initrwgt>
+# Just some random garbage...
+</init>
+</LesHouchesEvents>

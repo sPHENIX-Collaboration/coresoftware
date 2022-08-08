@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="DECAY.XSL" type="text/xsl" ?>
+<data>
+<!-- flag=2 from D_DALITZ -->
+<!-- mags multiplied by 0.388844 and 0.223159 respectively to account for sqrt(gamma0) -->
+  <dalitzDecay particle="D+" daughters="anti-K0 pi+ pi0" probMax="150.0">
+    <resonance real="-0.268361" imag="-0.913601" shape="NonRes"/>
+    <resonance ampFactorReal="1.00" mag="0.388844" phase="0.00" width="0.1512"
+               mass="0.7699" spin="1" daughterPair="2" shape="RBW" BlattWeisskopfFactorResonance="25.38"/>
+    <resonance ampFactorReal="1.00" ampFactorImag="0.00"
+               mag="0.1940367505" phase="41.201" width="0.0498"
+               mass="0.89159" spin="1" daughterPair="3" shape="RBW" BlattWeisskopfFactorResonance="10.15"/>
+  </dalitzDecay>
+  <copyDalitz particle="D-" daughters="K0 pi- pi0"
+              copy="D+" copyDaughters="anti-K0 pi+ pi0" />
+  <decay name="D+">
+    <channel br="1.0" daughters="anti-K0 pi+ pi0" model="GENERIC_DALITZ" params="DalitzFiles/DalitzDecay7.xml"/>
+  </decay>
+  <decay name="D-">
+    <channel br="1.0" daughters="K0 pi- pi0" model="GENERIC_DALITZ" params="DalitzFiles/DalitzDecay7.xml"/>
+  </decay>
+</data>
+

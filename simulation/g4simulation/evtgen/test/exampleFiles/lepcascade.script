@@ -1,0 +1,92 @@
+
+/***********************************************************************
+* Copyright 1998-2020 CERN for the benefit of the EvtGen authors       *
+*                                                                      *
+* This file is part of EvtGen.                                         *
+*                                                                      *
+* EvtGen is free software: you can redistribute it and/or modify       *
+* it under the terms of the GNU General Public License as published by *
+* the Free Software Foundation, either version 3 of the License, or    *
+* (at your option) any later version.                                  *
+*                                                                      *
+* EvtGen is distributed in the hope that it will be useful,            *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+* GNU General Public License for more details.                         *
+*                                                                      *
+* You should have received a copy of the GNU General Public License    *
+* along with EvtGen.  If not, see <https://www.gnu.org/licenses/>.     *
+***********************************************************************/
+
+{
+gROOT->SetStyle("Plain");
+Int_t nbin(14);
+
+
+
+Double_t p[nbin]={.65,.75,.85,.95,1.05,1.15,1.25,1.35,1.45,1.55,1.65,1.75,1.85,1.95};
+Double_t dp[nbin]={.05,.05,.05,.05,.05,.05,.05,.05,.05,.05,.05,.05,.05,.05};
+
+Double_t n[nbin]={.093,.068,.058,.033,.023,.017,.013,.009,.004,.004,.003,.000,.001,.001};
+Double_t dn[nbin]={.004,.004,.004,.003,.003,.003,.001,.001,.001,.001,.001,.001,.001,.001};
+
+TFile *myFile = new TFile("generic.root","READ");
+myFile->ls();
+Float_t nBB=1.0/1000000.;
+
+nBB/=(2.0*dp[0]);
+TH1F *lmom=new TH1F((*mup)-(*mupDirect));
+
+*lmom=(*lmom)*nBB;
+
+TCanvas *myCanvas = new TCanvas("c","ssdcp",0,0,400,400);
+
+TGraphErrors *gr1=new TGraphErrors(nbin,p,n,dp,dn);
+
+gr1->SetMarkerStyle(21);
+gr1->SetMarkerSize(0.6);
+
+gr1->SetMaximum(0.16);
+gr1->SetMinimum(0.0);
+gr1->SetTitle("");
+
+Float_t lm=myCanvas->GetLeftMargin();
+Float_t bm=myCanvas->GetBottomMargin();
+lm=lm*1.7;
+bm=bm*1.5;
+myCanvas->SetLeftMargin(lm);
+myCanvas->SetBottomMargin(bm);
+
+
+gr1->Draw("AP");
+lmom->Draw("SAME");
+TAxis *axisx=gr1->GetXaxis();
+TAxis *axisy=gr1->GetYaxis();
+axisx->SetLabelSize(0.05);
+axisy->SetLabelSize(0.05);
+axisx->SetTitleOffset(1.);
+axisx->SetLimits(0.0,2.0);
+axisx->SetNdivisions(6);
+Float_t ts2=axisx->GetTitleSize();
+ts2=1.5*ts2;
+axisx->SetTitleSize(ts2);
+
+axisx->SetTitle("Momentum (GeV/c)");
+
+TLatex *myytit=new TLatex();
+//axisy->SetTitle(myytit);
+
+myytit->SetTextAngle(90);
+Float_t ts=myytit->GetTextSize();
+ts=1.1*ts;
+myytit->SetTextSize(ts);
+
+myytit->DrawLatex(-0.3,0.02,"1/#sigma_{#Upsilon(4S)} d#sigma/dp");
+
+myCanvas->Print("lepcascade.eps");
+
+
+
+}
+
+

@@ -149,8 +149,8 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           //calculate incidence angle
           const G4DynamicParticle* dypar = aTrack->GetDynamicParticle();
           G4ThreeVector pdirect = dypar->GetMomentumDirection();
-// this triggers cppcheck, the code is good and the warning is suppressed
-// cppcheck-suppress duplicateAssignExpression
+          // this triggers cppcheck, the code is good and the warning is suppressed
+          // cppcheck-suppress [duplicateAssignExpression, unmatchedSuppression]
           double dy = sqrt(2) / 2.;
           double dz = sqrt(2) / 2.;
           if (idx_j == 1) dz = -dz;

@@ -1,0 +1,12 @@
+noPhotos
+#
+#need to turn off mixing to prevent B0 from becoming an anti-B0
+Define dm_incohMix_B0 0.0
+#
+Decay B0
+1.0 K_2*0 gamma    VERBOSE  HELAMP 0.0 0.0 1.0 0.0;
+Enddecay
+Decay K_2*0 
+1.0   K+ pi-  VERBOSE  HELAMP 1.0 0.0 ;
+Enddecay
+End

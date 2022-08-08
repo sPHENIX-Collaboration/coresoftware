@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="DECAY.XSL" type="text/xsl" ?>
+<data>
+  <decay name="D+">
+    <channel br="1.0" daughters="K- pi+ pi+" model="D_DALITZ" />
+  </decay>
+</data>
+

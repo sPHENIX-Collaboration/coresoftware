@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="DECAY.XSL" type="text/xsl" ?>
+<data>
+<!-- flag=5 from D_DALITZ -->
+  <dalitzDecay particle="D0" daughters="K0 K- K+" probMax="2500000.0">
+    <resonance real="1.0" imag="0.0" shape="NonRes"/>
+    <resonance ampFactorReal="1.00" mag="113.75" phase="-40.0" width="0.0043"
+               mass="1.019456" spin="1" daughterPair="2" shape="NBW" BlattWeisskopfFactorResonance="0.0"/>
+    <resonance ampFactorReal="1.00" mag="152.25" phase="69.0" width="0.1196"
+               mass="0.9847" spin="0" daughterPair="2" shape="NBW" BlattWeisskopfFactorResonance="0.0"/>
+    <resonance ampFactorReal="1.00" mag="30.5" phase="-201.0" width="0.05"
+               mass="0.980" spin="0" daughterPair="2" shape="NBW" BlattWeisskopfFactorResonance="0.0"/>
+    <resonance ampFactorReal="1.00" mag="85.75" phase="-93.0" width="0.1196"
+               mass="0.9847" spin="0" daughterPair="1" shape="NBW" BlattWeisskopfFactorResonance="0.0"/>
+    <resonance ampFactorReal="1.00" mag="8.0" phase="-53.0" width="0.1196"
+               mass="0.9847" spin="0" daughterPair="3" shape="NBW" BlattWeisskopfFactorResonance="0.0"/>
+  </dalitzDecay>
+  <copyDalitz particle="anti-D0" daughters="K0 K+ K-"
+              copy="D0" copyDaughters="K0 K- K+" />
+  <decay name="D0">
+    <channel br="1.0" daughters="K0 K- K+" model="GENERIC_DALITZ" params="DalitzFiles/DalitzDecay13.xml"/>
+  </decay>
+  <decay name="anti-D0">
+    <channel br="1.0" daughters="K0 K+ K-" model="GENERIC_DALITZ" params="DalitzFiles/DalitzDecay13.xml"/>
+  </decay>
+</data>
+

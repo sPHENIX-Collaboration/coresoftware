@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="DECAY.XSL" type="text/xsl" ?>
+<data>
+  <dalitzDecay particle="D+" daughters="K- pi+ pi+" probMax="2500.0">
+    <resonance real="-7.02168" imag="2.33580" shape="NonRes"/>
+    <resonance ampFactorReal="-0.707106782" mag="1.0" phase="0.0" particle="K*0" width="0.0503"
+               mass="0.896" spin="1" daughterPair="1" shape="RBW_CLEO_ZEMACH" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="0.707106782"  mag="1.0" phase="0.0" particle="K*0" width="0.0503"
+               mass="0.896" spin="1" daughterPair="3" shape="RBW_CLEO_ZEMACH" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="0.707106782" mag="3.0" phase="-130.3" width="0.164"
+               mass="1.463" spin="0" daughterPair="1" shape="RBW" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="0.707106782" mag="3.0" phase="-130.3" width="0.164"
+               mass="1.463" spin="0" daughterPair="3" shape="RBW" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="0.707106782" mag="0.96" phase="150.1" particle="K_2*0" width="0.109"
+               mass="1.4324" spin="2" daughterPair="1" shape="RBW_CLEO_ZEMACH" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="0.707106782" mag="0.96" phase="150.1" particle="K_2*0" width="0.109"
+               mass="1.4324" spin="2" daughterPair="3" shape="RBW_CLEO_ZEMACH" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="-0.707106782" mag="6.5" phase="29" particle="K''*0" width="0.323"
+               mass="1.717" spin="1" daughterPair="1" shape="RBW_CLEO_ZEMACH" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="0.707106782"  mag="6.5" phase="29" particle="K''*0" width="0.323"
+               mass="1.717" spin="1" daughterPair="3" shape="RBW_CLEO_ZEMACH" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="0.707106782" mag="5.01" phase="16.3" width="0.470"
+               mass="0.809" spin="0" daughterPair="1" shape="RBW" BlattWeisskopfFactorParent="5.0"/>
+    <resonance ampFactorReal="0.707106782" mag="5.01" phase="16.3" width="0.470"
+               mass="0.809" spin="0" daughterPair="3" shape="RBW" BlattWeisskopfFactorParent="5.0"/>
+  </dalitzDecay>
+
+  <decay name="D+">
+    <channel br="1.0" daughters="K- pi+ pi+" model="GENERIC_DALITZ" params="DalitzFiles/DalitzDecay6.xml"/>
+  </decay>
+</data>
+

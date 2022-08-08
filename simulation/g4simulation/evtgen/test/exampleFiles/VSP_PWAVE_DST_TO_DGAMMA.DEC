@@ -1,0 +1,11 @@
+#
+Decay D*0
+1.000 D0  gamma             VSP_PWAVE; 
+Enddecay
+#
+Decay D0
+1.000 K- pi+                PHSP;
+Enddecay
+#
+End
+

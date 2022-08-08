@@ -1,0 +1,5 @@
+Decay D0
+1.0 K- pi+ pi0 D_DALITZ;
+Enddecay
+CDecay anti-D0
+End

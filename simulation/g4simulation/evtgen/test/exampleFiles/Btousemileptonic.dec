@@ -1,0 +1,43 @@
+Decay B0
+#
+#                    b -> u l nu
+#
+0.000145   pi-     e+      nu_e                            PHOTOS  ISGW2; # PDG2014
+0.000294   rho-    e+      nu_e                            PHOTOS  ISGW2; # PDG2014
+0.000000   D(2S)- e+   nu_e        PHOTOS  ISGW2;
+0.000000   D*(2S)- e+   nu_e       PHOTOS  ISGW2;
+0.001892   Xu-  e+  nu_e             VUB 4.8 1.29 0.22 20 0.30 0.55 1.20 0.61 1.26 0.85 1.34 1.08 1.41 1.21 1.48 1.30 1.55 1.30 1.61 1.33 1.67 1.36 1.73 1.39 1.79 1.33 1.84 1.42 1.90 1.39 1.95 1.39 2.00 1.37 2.50 1.30  3.00 0.74 3.50 0.99 4.00 1.09 4.50 1.00;
+#
+0.000145   pi-     mu+     nu_mu                           PHOTOS  ISGW2; # PDG2014 (electrons)
+0.000294   rho-    mu+     nu_mu                           PHOTOS  ISGW2; # PDG2014 (electrons)
+0.000000   D(2S)- mu+  nu_mu       PHOTOS  ISGW2;
+0.000000   D*(2S)- mu+  nu_mu      PHOTOS  ISGW2;
+0.001892   Xu-  mu+  nu_mu             VUB 4.8 1.29 0.22 20 0.30 0.55 1.20 0.61 1.26 0.85 1.34 1.08 1.41 1.21 1.48 1.30 1.55 1.30 1.61 1.33 1.67 1.36 1.73 1.39 1.79 1.33 1.84 1.42 1.90 1.39 1.95 1.39 2.00 1.37 2.50 1.30 3.00 0.74 3.50 0.99 4.00 1.09 4.50 1.00;
+Enddecay
+CDecay anti-B0
+
+Decay B+
+0.00007800 pi0     e+      nu_e   PHOTOS  ISGW2; # PDG2014
+0.00003800 eta     e+      nu_e   PHOTOS  ISGW2; # PDG2014
+0.00015800 rho0    e+      nu_e   PHOTOS  ISGW2; # PDG2014
+0.00011900 omega   e+      nu_e   PHOTOS  ISGW2; # PDG2014
+0.000230   eta'   e+   nu_e        PHOTOS  ISGW2; # PDG2014
+0.000000   anti-D(2S)0 e+   nu_e   PHOTOS  ISGW2;
+0.000000   anti-D*(2S)0 e+   nu_e  PHOTOS  ISGW2;
+0.001948   Xu0   e+  nu_e         VUB 4.8 1.29 0.22 20 0.30 0.54 1.20 0.95 1.26 0.78 1.34 0.98 1.41 0.91 1.48 1.23 1.55 1.36 1.61 1.39 1.67 1.38 1.73 1.43 1.79 1.41 1.84 1.42 1.90 1.45 1.95 1.40 2.00 1.42 2.50 1.31 3.00 1.36 3.50 1.15 4.00 1.01 4.50 1.51; 
+#
+# For muons do same as for electrons
+0.00007800 pi0     mu+     nu_mu   PHOTOS  ISGW2; 
+0.00003800 eta     mu+     nu_mu   PHOTOS  ISGW2; 
+0.00015800 rho0    mu+     nu_mu   PHOTOS  ISGW2; 
+0.00011900 omega   mu+     nu_mu   PHOTOS  ISGW2; 
+0.000230   eta'   mu+  nu_mu       PHOTOS  ISGW2;
+0.000000   anti-D(2S)0 mu+  nu_mu  PHOTOS  ISGW2;
+0.000000   anti-D*(2S)0 mu+  nu_mu PHOTOS  ISGW2;
+0.0020454  Xu0   mu+  nu_mu         VUB 4.8 1.29 0.22 20 0.30 0.54 1.20 0.95 1.26 0.78 1.34 0.98 1.41 0.91 1.48 1.23 1.55 1.36 1.61 1.39 1.67 1.38 1.73 1.43 1.79 1.41 1.84 1.42 1.90 1.45 1.95 1.40 2.00 1.42 2.50 1.31 3.00 1.36 3.50 1.15 4.00 1.01 4.50 1.51;
+#
+Enddecay
+CDecay B-
+
+End
+

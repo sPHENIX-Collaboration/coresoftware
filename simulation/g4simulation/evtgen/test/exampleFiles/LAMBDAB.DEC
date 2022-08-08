@@ -1,0 +1,18 @@
+#
+#
+#
+Decay Lambda_b0
+1.000 Lambda0   J/psi          HELAMP 1.0 0.0  0.0 0.0  0.0 0.0  0.0 0.0; 
+Enddecay
+#
+Decay Lambda0   	
+1.000 p+  pi-               HELAMP 1.0 0.0 0.0 0.0; 
+Enddecay
+#
+Decay J/psi
+1.000 mu+  mu-          VLL;
+Enddecay
+#
+#
+End
+

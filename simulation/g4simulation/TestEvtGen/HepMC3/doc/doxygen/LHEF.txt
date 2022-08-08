@@ -1,0 +1,569 @@
+/**
+@defgroup LHEF LHEF - Handling Les Houches Event Files
+
+This module contains helper classes and Reader and Writer classes
+for handling Les Houches event files - LHEF.
+
+@section lhef_intro Introduction
+
+The Les Houches accord on an event file format (LHEF) to be used
+for passing events from a matrix element generator program (MEG)
+to an event generator program (EG) implementing parton showers,
+underlying event models, and hadronisation models etc., was not
+originally included in the HepMC event record format. But as the
+demand for more information to be included in HepMC, it was
+decided to allow HepMC to include also the original information
+from a MEG in the LHEF format (see the run attribute
+HepMC3::HEPRUPAttribute and event attribute
+HepMC3::HEPEUPAttribute). A separate /standard/ implementation in
+C++ of the LHEF format had already been maintained by Leif
+Lönnblad, and it was decided to include this (header only -
+LHEF.h) as a part of HepMC3. This will both be used in above
+mentioned HepMC3::Attribute classes and as a kind of definition of
+the LHEF format, which so far has not been extremely well
+documented. From now on these pages will serve as the defining
+information about the LHEF format.
+
+@section lhef_background Background
+
+The original Les Houches accord for communicating between MEGs and EGs
+was agreed upon in
+2001 <a href="http://archive.org/abs/hep-ph/0109068">[arXiv:hep-ph/0109068]</a>
+and consisted of two simple FORTRAN common blocks. In fact this
+structure survived in the LHEF format, which was introduced in
+2006 <a href="http://archive.org/abs/hep-ph/0609017">
+[arXiv:hep-ph/0609017]</a>, and is still there after the updated
+versions 2 in 2009 <a href="http://archive.org/abs/1003.1643">
+[arXiv:1003.1643]</a>, and 3 in
+2013 <a href="http://archive.org/abs/1405.1067">
+[arXiv:1405.1067]</a>, and in the current proposal developed at the
+Les Houches workshop on TeV Colliders 2015 <a href=""></a>.
+
+As the methods for combining MEGs and EGs has advanced since the first
+accord, from the tree-level merging methods and NLO matching at the
+turn of the millennium, to the multi-jet (N)NLO matching and merging
+methods being perfected to day, the LHEF format has developed and a lot
+of optional information can be passed beyond the original common block
+structures. In the following all features included will be described,
+also those that were added a bit prematurely and later became
+deprecated.
+
+@section lhef_basics The basic structure
+
+The LHEF format is based on XML, but has some oddities that goes
+beyond pure XML. As the name indicates, XML is extensible, and anyone
+writing a LHEF file can add whatever information she or he wants,
+however the following basic structure must be observed.
+
+@code
+<LesHouchesEvents version="3.0">
+  <!--
+      # optional information in completely free format,
+      # except for the reserved end tag (see next line)
+    -->
+  <header>
+    <!-- individually designed XML tags, in fancy XML style -->
+  </header>
+  <init>
+    compulsory initialization information
+    # optional initialization information
+  </init>
+  <event>
+    compulsory event information
+    # optional event information
+  </event>
+  <event>
+    compulsory event information
+    <!-- more optional information -->
+  </event>
+  <!-- and as many events that you want, but ending with -->
+</LesHouchesEvents>
+@endcode
+
+This looks like fairly normal XML tags, and indeed they are. The only
+addition to the structure is that the <tt>init</tt> and
+<tt>event</tt> (and their respective end tags) are required to be
+alone on a line, and the content of these blocks are required to
+start with a number of lines on a specific format that follows
+exactly the structure of the fortran common block in original Les
+Houches Accord. This means that the first line in the
+<tt>init</tt> block must start with a line containing the numbers
+@code
+IDBMUP(1) IDBMUP(2) EBMUP(1) EBMUP(2) PDFGUP(1) PDFGUP(2) PDFSUP(1) PDFSUP(2) IDWTUP NPRUP
+@endcode
+and the following <tt>NPRUP</tt> lines should be numbers on the form
+@code
+XSECUP(IPR) XERRUP(IPR) XMAXUP(IPR) LPRUP(IPR)
+@endcode
+where the different  variable names are defined as follows:
+<ul>
+  <li>
+    <tt>IDBMUP</tt>: the PDG numbers for the incoming beams;
+  </li>
+  <li>
+    <tt>EBMUP</tt>: the energy (in GeV) of the incoming beams;
+  </li>
+  <li>
+    <tt>PDFGUP</tt> and <tt>PDFSUP</tt>: the LHAPDF group and set
+    numbers for the corresponding parton densities used;
+  </li>
+  <li>
+    <tt>IDWTUP</tt>: the weight strategy used;
+  </li>
+  <li>
+    <tt>NPRUP</tt> The number of different processes included in the file;
+  </li>
+</ul>
+and for each process <tt>IPR</tt>:
+<ul>
+  <li>
+    <tt>XSECUP</tt>, <tt>XERRUP</tt>: the Monte Carlo integrated
+    cross section and error estimate;
+  </li>
+  <li>
+    <tt>XMAXUP</tt>: the overestimated cross section such that the
+    sum over the individual weights in each <tt><event></tt> times
+    this file times <tt>XMAXUP</tt> equals <tt>XSECUP</tt> times
+    the number of events;
+  </li>
+  <li>
+    <tt>LPRUP</tt>: a unique integer identifying the corresponding
+    process.
+  </li>
+</ul>
+In the LHEF::Reader and LHEF::Writer classes this information is
+available as the public <tt>heprup</tt> member of class
+LHEF::HEPRUP with public members mimicking the Fortran common
+block variables.
+
+
+
+Similarly, every <tt>event</tt> block must start with a line
+containing then numbers
+@code
+NUP IDPRUP XWGTUP SCALUP AQEDUP AQCDUP
+@endcode
+and the following <tt>NUP</tt> lines should be numbers describing
+each particle on the form
+@code
+IDUP(I) ISTUP(I) MOTHUP(1,I) MOTHUP(2,I) ICOLUP(1,I) ICOLUP(2,I) PUP(1,I) PUP(2,I) PUP(3,I) PUP(4,I) PUP(5,I) VTIMUP(I) SPINUP(I)
+@endcode
+where the different  variable names are defined as follows:
+<ul>
+  <li>
+    <tt>NUP</tt>: the number of particles in the event;
+  </li>
+  <li>
+    <tt>IDPRUP</tt>: the integer identifying the process;
+  </li>
+  <li>
+    <tt>XWGTUP</tt>: the (default) weight of the event
+  </li>
+  <li>
+    <tt>SCALUP</tt>: the scale of the hard process in GeV;
+  </li>
+  <li>
+    <tt>AQEDUP</tt>: the value of &alpha;<sub>EM</sub> used;
+  </li>
+  <li>
+    <tt>AQCDUP</tt>: the value of &alpha;<sub>S</sub> used;
+  </li>
+</ul>
+and for each particle <tt>I</tt>:
+<ul>
+  <li>
+    <tt>IDUP</tt>: the PDG code for the particle;
+  </li>
+  <li>
+    <tt>ISTUP</tt>: the status code for the particle;
+  </li>
+  <li>
+    <tt>MOTHUP</tt>: the line numbers of two particles considered
+    to be the mothers of this particle;
+  </li>
+  <li>
+    <tt>ICOLUP</tt>: indices of the colour and anti-colour lines connected to this particle;
+  </li>
+  <li>
+    <tt>PUP</tt>: the <i>x</i>, <i>y</i>, <i>z</i> and energy
+    component of the 4-momentum and invariant masss (in units of
+    GeV);
+  </li>
+  <li>
+    <tt>VTIMUP</tt>; the proper lifetime of this particle;
+  </li>
+  <li>
+    <tt>SPINUP</tt>: the spin.
+  </li>
+</ul>
+In the LHEF::Reader and LHEF::Writer classes this information is
+available as the public <tt>hepeup</tt> member of class
+LHEF::HEPEUP with public members mimicking the Fortran common block
+variables.
+
+@section LHEF-taglist Additional information
+
+Over the years several additional XML-tags has been formalised to
+specify information on top of what is given in the original Les
+Houches accord common block. These are listed below. In most cases
+the tag name corresponds to a class with a corresponding name
+available as suitably named public members in the LHEF::HEPRUP and
+LHEF::HEPEUP class respectively.
+
+Note that a tag may contain attributes in the following ways:
+@code
+<tag attribute1="value" attribute2="value">things marked by the tag</tag>
+<tag attribute1="value" attribute2="value" attribute3="value" />
+@endcode
+where the second case is a tag with only attributes an no contents.
+In the following an attribute may be described as required (R) or
+optional with a default value (D).
+
+@subsection LHEF-init Standardised tags in the init block
+
+The <tt><init></tt> block contains information about the full run
+(similar to the information contained in HepMC3::GenRunInfo). The
+following tags are defined.
+
+<ul>
+  <li><b><tt><generator></tt></b> (optional, multiple, see LHEF::HEPRUP::generators)<br> For easy
+    access to the generator(s) used to generate this file. An
+    optional attribute <tt>version</tt> can be given with a string
+    containg a version string. The content of the tag can include
+    any generator specific information.
+  </li>
+  <li><b><tt><xsecinfo></tt></b> (required, multiple, see LHEF::HEPRUP::xsecinfos)<br>
+    The information in the HEPRUP common block is in principle
+    sufficient to figure out the cross sections of the processes
+    involved. However, the way things are specified is a bit
+    confusing and complicated since it was assumed to be used to
+    pass information between the MEG and PSG in both
+    directions. For the event file, the communication is per
+    definition one-way, and the information can be made more
+    easily provided. The attributes for the xsecinfo tag are as
+    follows.
+    <ul>
+      <li>
+        <tt>weightname</tt>: in case of multiple weights for each
+        event several <tt>xsecinfo</tt> tags can be given, in
+        which case This should give the corresponding weight
+        name. If missing This is assumed to describe the default
+        weight.
+      </li>
+      <li>
+        <tt>neve</tt> (R): the number of events in the file
+      </li>
+      <li>
+        <tt>totxsec</tt> (R): the total cross section (in units of pb) of all processes in the file
+      </li>
+      <li>
+        <tt>maxweight</tt> (D=1): the maximum weight of any event
+        in the file (in an arbitrary unit)
+      </li>
+      <li>
+        <tt>minweight</tt>: if the file contains negative weights,
+        the minweight may contain the most negative of the
+        negative weights in the file. If not given, minweight is
+        assumed to be <tt>-maxweight</tt> .
+      </li>
+      <li>
+        <tt>meanweight</tt> (D=1): The average weight of the
+        events in the file (same unit as <tt>maxweight</tt> ).
+      </li>
+      <li>
+        <tt>negweights</tt> (D=no): If yes, the file may contain
+        events with negative weights.
+      </li>
+      <li>
+        <tt>varweights</tt> (D=no): If yes, the file may contain
+        varying weights (if no, all events are weighted with
+      </li>
+      <li>
+        <tt>maxweight</tt> (or <tt>minweight</tt> )).
+      </li>
+    </ul>
+  </li>
+  <li><b><tt><cutsinfo></tt></b>(optional, multiple, see LHEF::HEPRUP::cuts)<br>
+    Used by a generator to supply information about the cuts used
+    in the generation. Inside this tag any number of <tt>cut</tt>
+    and <tt>ptype</tt> tags can be supplied.
+  </li>
+  <li><b><tt><ptype></tt></b>(optional, multiple, see LHEF::HEPRUP::ptypes)<br>
+    To be used inside the <tt>cutinfo</tt> tag to define a group
+    of particles to which a cut can be applied. Its contents
+    should be a white-space separated list of PDG particle
+    codes. The only attribute is <tt>name</tt> (R): the string
+    used to represent this <tt>ptype</tt> in a <tt>cut</tt> .
+  </li>
+  <li><b><tt><cut></tt></b>(optional, multiple, see LHEF::HEPRUP::cuts)<br>
+
+    This tag has information of a particular cut used. The information
+    needed is which particle(s) are affected, what variable is used
+    and the maximum and/or minimum value of that parameter. The
+    contents should be the minimum and maximum allowed values of this
+    variable (in that order). If only one number is given, there is no
+    maximum. If the minumum is larger or equal to the maximum, there
+    is no minimum. The attributes are:
+    <ul>
+      <li>
+        <tt>p1</tt> (D=0): The particles for which this cut
+        applies. This can either be a number corresponding to a given
+        particle PDG code or 0 for any particle or the name of a
+        previously defined <tt>ptype</tt> tag.
+      </li>
+      <li>
+        <tt>p2</tt> (D=0): If cut is between pairs of particles, this
+        attribute should be non-zero. Allowed values are the same as
+        for <tt>p1</tt>.
+      </li>
+      <li>
+        <tt>type</tt> (R) This defines the variable which is cut. The
+        following values are standardised (the lab frame is assumed in all
+        cases):
+        <ul>
+        <li>"m" the invariant mass of two particles (or, if only one
+        particle type is given, the invariant mass of that particle).
+        </li>
+        <li>"kt": the transverse momenta of a particle matching p1 (in GeV)
+        </li>
+        <li>"eta": the pseudorapidity of a particle matching p1
+        </li>
+        <li>"y": the true rapidity of a particle matching p1
+        </li>
+        <li>"deltaR": the pseudorapidity--azimuthal-angle difference between two particles matching p1 and p2 respectively.
+        </li>
+        <li>"E": the energy of a particle matching p1
+        </li>
+        <li>"ETmiss": the norm of the vectorial sum of the pt of particles matching p1 and not matching p2.
+        </li>
+        <li>"HT": the scalar sum of the transverse momentum of the particles matching p1 and not matching p2.
+        </li>
+        <li> other values are allowed but are not included in the standard.
+        </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><b><tt><procinfo></tt></b>(optional, multiple, see LHEF::HEPRUP::procinfo)<br>
+    For each process number used in the LPRUP variable in the HEPEUP
+    common block we can have additional information given in the
+    following attributes:
+    <ul>
+      <li>
+        <tt>iproc</tt> (D=0): The process number for which the information is given. 0 means all processes.
+      </li>
+      <li>
+        <tt>loops</tt>: The number of loops used in calculating this process.
+      </li>
+      <li>
+        <tt>qcdorder</tt>: The number of QCD vertices used in calculating this process.
+      </li>
+      <li>
+        <tt>eworder</tt>: The number of electro-weak vertices used in calculating this process.
+      </li>
+      <li>
+        <tt>rscheme</tt>: The renormalization scheme used, if applicable.
+      </li>
+      <li>
+        <tt>fscheme</tt>: The factorization scheme used, if applicable.
+      </li>
+      <li>
+        <tt>scheme</tt>: Information about the scheme used to
+        calculate the matrix elements. If absent, a pure tree-level
+        calculation is assumed. Other possible values could be
+        CSdipole (NLO calculation with Catani-Seymour subtraction),
+        MCatNLO, POWHEG and NLOexclusive (NLO calculation according to
+        the exclusive cross section withing the given cuts).
+      </li>
+    </ul>
+    The content of this tag is a string with arbitrary information about the process.
+  </li>
+  <li><b><tt><mergeinfo></tt></b>(DEPRECATED, multiple, see LHEF::HEPRUP::mergeinfo)<br>
+    For some merging schemes (eg. for CKKW) it is possible to reweight the
+    the events with Sudakov form factors already in the MEG. If this has
+    been done the content of the mergetype tag for the corresponding
+    process should give a name corresponding to the scheme used. The
+    attributes are:
+    <ul>
+      <li>
+        <tt>iproc</tt> (D=0): The process number for which the
+        information is given. "0" means all processes.
+      </li>
+      <li>
+        <tt>mergingscale</tt> (R): The value of the merging scale in GeV.
+      </li>
+      <li>
+        <tt>maxmult</tt> (D=no): If yes the corresponding process is
+        reweighted as if it is the maximum multiplicity process
+        (ie. the Sudakov for the last step down to the merging scale
+        is not included.
+      </li>
+    </ul>
+  </li>
+  <li><b><tt><eventfile></tt></b>(optional, multiple, see LHEF::HEPRUP::eventfiles)<br>
+    Sometimes it is desirable to have the events in a separate file(s)
+    from the <tt>init</tt> block, eg. when the event files become
+    extremely long or when one wants to write the <tt>init</tt> block
+    after having generated all events in order to collect the correct
+    information from the run. The names of these files are then
+    specified in <tt>eventfile</tt> tags with attributes:
+    <ul>
+      <li>
+        <tt>name</tt> (R): the file name, interpreted as an absolute
+        path if starting with "/", otherwise as a relative path to
+        where the file with the <tt>init</tt> block is located;
+      </li>
+      <li>
+        <tt>neve</tt>: the number of events in the file
+      </li>
+      <li>
+        <tt>ntries</tt>: the number of attempts the generator needed
+        to produce the <tt>neve</tt> events (for statistics purposes.
+      </li>
+    </ul>
+  </li>
+  <li><b><tt><weightinfo></tt></b>(optional, multiple, see LHEF::HEPRUP::weightinfo)<br>
+    When using multiple weights for events, each weight is given an
+    index and a name using the <tt>weightinfo</tt> tag. The default
+    weight (as given by the LHEF:HEPEUP::XWGTUP variable) is always
+    treated as index 0 and given the name "Default", while the
+    additional weights are indexed by the order of
+    the <tt>weightinfo</tt> tags. The attributes are:
+    <ul>
+      <li>
+        <tt>name</tt> (R): the name of the weight (in the best of all
+        worlds this would be standardised);
+      </li>
+      <li>
+        <tt>muf</tt>: he factor multiplying the nominal factorisation
+        scale of the event for the given weight;
+      </li>
+      <li>
+        <tt>mur</tt>: he factor multiplying the nominal
+        renormalisation scale of the event for the given weight;
+      </li>
+      <li>
+        <tt>pdf</tt> (D=0): the LHAPDF code used for the given weight
+        (where 0 corresponds to the default PDF of the run);
+      </li>
+      <li>
+        <tt>pdf2</tt> (D=pdf): the LHAPDF code used for the second
+        beam for the given weight;
+      </li>
+    </ul>
+  </li>
+  <li><b><tt><weightgroup></tt></b>(optional, multiple, see
+    LHEF::HEPRUP::weightgroup)<br> This tag can be used to
+    group <tt>weightinfo</tt> tags together.  The only well defined
+    attribute is
+    <tt>name</tt> giving a string which will be combined with
+    the <tt>name</tt> attribute of the included <tt>weightinfo</tt>
+    tags to give the HepMC weight names. Also other attributes can be
+    included to include information about the weight variation used
+    and is available in LHEF::WeightGroup::attributes.
+  </li>
+  <li><b><tt><initrwgt></tt></b>(optional, multiple, see LHEF::HEPRUP::weightinfo)<br>
+    Due to an initial confusion some generators uses this tag instead
+    of the <tt>weightinfo</tt> tag. It accepts the same attributes
+    as <tt>weightinfo</tt>, except that the name attribute is
+    named <tt>id</tt>.  Note that some generators puts these tags in
+    the <tt>header</tt> block. The current implementation of
+    LHEF::Reader cannot handle this. Note that this is handled by the
+    same classes (LHEF::WeightInfo and LHEF::WeightGroup) in
+    LHEF::Reader and LHEF::Writer.
+  </li>
+</ul>
+
+@subsection LHEF-events Standardised tags in the events block.
+
+After the <tt>init</tt> block any number of events can be given. In
+addition events can be given in separate files declared
+with <tt>eventfile</tt> tags in the <tt>init</tt> block.
+
+The main tag here is simply called <tt>event</tt> and can (for
+statistics purposes) have an attribute <tt>ntries</tt> specifying how
+many attempts the generator needed to produce the event. Also other
+attributes can be given (and will be stored in the
+LHEF::HEPEUP::attributes member variable).
+
+The <tt>event</tt> tags may be grouped together in
+a <tt>eventgroup</tt> tag. This is useful mainly for NLO generators
+that produces a (number) "real" event(s) accompanied with a number of
+"counter" events, where these events should be treated together for
+statistics purposes. For this reason the <tt>eventgroup</tt> tag can
+be provided with the optional tags <tt>nreal</tt>
+and <tt>ncounter</tt> to indicate the number of <tt>event</tt> tags
+included of each type.
+
+As indicated above the block must start with required information
+corresponding to the original Les Houches Accord Fortran common
+block. Here is a list of additional tags that may be provided.
+
+<ul>
+  <li><b><tt><weights></tt></b> (optional, see LHEF::HEPEUP::weights)<br>
+    This tag should contain a list of weights or the events given in
+    the order they are defined by the <tt>weightinfo</tt> tags in the <tt>init</tt>
+    block. If for some obscure reason a weight is absent, it should be
+    anyway be included as a zero weight. Note that the weight for the
+    nominal event is still given by <tt>XWGTUP</tt>. This tag has no attributes.
+  </li>
+  <li><b><tt><rwgt></tt></b> (optional, see LHEF::HEPEUP::weights)<br>
+    For weights declared in <tt>initrwgt</tt> this should contain the
+    weights for this event. The difference wrt. the <tt>weights</tt>
+    tag is that each weight needs to be given in an <tt>wgt</tt> tag.
+  </li>
+  <li><b><tt><wgt></tt></b> (optional, see LHEF::HEPEUP::weights)<br>
+    This tag contains a single weight correspoding to a weight
+    declared in the <tt>initrwgt</tt> tag. The only attribute is
+    the <tt>id</tt> of the weight defined in the
+    corresponing <tt>weightinfo</tt> tag.
+  </li>
+  <li><b><tt><scales></tt></b> (optional, see LHEF::HEPEUP::scales)<br>
+    Since it is often necessary to define more than one scale in an
+    event, this tag is provided to specify these. The scales are given
+    as the followin attributes:
+    <ul>
+      <li>
+        <tt>muf</tt> (D=SCLAUP): the factorisation scale (in GeV);
+      </li>
+      <li>
+        <tt>mur</tt> (D=SCLAUP): the renormalisation scale (in GeV);
+      </li>
+      <li>
+        <tt>mups</tt> (D=SCLAUP): the suggested parton shower starting
+        scale (in GeV).
+      </li>
+    </ul>
+    Also other attributes are allowed and will be stored in
+    LHEF::Scales::attributes.<br>
+  </li>
+  <li><b><tt><scale></tt></b> (optional inside a <tt><scales></tt>
+    tag)<br> It is also possible to specify an individual scale for
+    any particle in the event in a <tt><scale></tt> tag. This is
+    typically used to define a starting scale for a parton shower in
+    resonance decays. This tag can also be used to specify the scale
+    of a set of particle types. The following attributes can be given:
+    <ul>
+      <li>
+        <tt>pos</tt> (optional): the index of the particle for which this scale
+        applies, optionally followed by a space-separated list of
+        indices of recoilers involved when the particle was created.
+      </li>
+      <li>
+        <tt>etype</tt> (optional): a space-separated list of PDG codes
+        for which this scale applies. The short-hand notation "EW" can
+        be used to specify all leptons and electro-weak bosons, and
+        "QCD" can be used to specify the guon and all quarks.
+      </li>
+    </ul>
+    The contents of the tag gives the scale in GeV.
+  </li>
+</ul>
+
+
+
+<hr>
+
+ Last update 27 Oct 2020
+*/
+

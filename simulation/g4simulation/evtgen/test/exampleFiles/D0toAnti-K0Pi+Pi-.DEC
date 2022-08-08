@@ -1,0 +1,40 @@
+# PTO3P replaces the D_DALITZ model
+# D0 -> anti-K0 pi+ pi- with 3 channels contributing to the final state
+#
+
+Decay D0
+
+1.0 anti-K0 pi+ pi- PTO3P       
+
+	# Pole compensated value
+	MAXPDF		1.8
+	#SCANPDF 10000
+	#gives 1.61
+
+	# Non-resonant
+
+	AMPLITUDE	PHASESPACE	
+	COEFFICIENT 	POLAR_DEG	1.0	0.0
+	
+        # rho0 (770) 
+
+	AMPLITUDE	RESONANCE	BC	rho0	0.7683  0.1491
+	ANGULAR		AB
+	TYPE		NBW
+	COEFFICIENT 	POLAR_DEG	1.59	-123.0 
+
+        # K*+ (892) 
+
+        AMPLITUDE	RESONANCE	AB	K*+	0.8961  0.0498	
+	ANGULAR		BC
+	TYPE		NBW
+	COEFFICIENT	POLAR_DEG	2.31	109.0 
+
+	;
+
+
+Enddecay
+
+End
+
+

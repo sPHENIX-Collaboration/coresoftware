@@ -1,0 +1,5 @@
+Decay tau-
+1.0   TAUOLA 20;
+Enddecay
+CDecay tau+
+End

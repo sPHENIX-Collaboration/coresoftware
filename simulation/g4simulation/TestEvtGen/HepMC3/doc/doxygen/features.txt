@@ -1,0 +1,132 @@
+/**
+    @page features New features
+
+    The following is a list of the new features available in HepMC3
+
+    ###########################################################################
+    @section modules New modules
+    ###########################################################################
+
+    See <a href="modules.html">modules</a> section for descriptions of new
+    modules, such as ROOT I/O, Search Engine and Attributes.
+
+    ###########################################################################
+    @section gen_run GenRunInfo class
+    ###########################################################################
+
+    A new class has been provided to store run-level information, such as
+    weight names, names and description of tools used to generate the event,
+    global attributes such as LHE run information or any other run information
+    provided by user. See HepMC::GenRunInfo class description for details.
+
+    @note This class can be serialized and parsed using ASCII I/O or ROOT I/O.
+
+    ###########################################################################
+    @section interfaces LHEF interface and new header-only HEPEVT wrapper
+    ###########################################################################
+
+    See <a href="examples.html">examples</a> section for examples of their use.
+
+    ###########################################################################
+    @section small Small enchantments
+    ###########################################################################
+    ###########################################################################
+    @subsection generated_mass Check if generated mass is set
+    ###########################################################################
+
+    To determine if field HepMC3::GenParticle::generated_mass() is set use:
+
+    @code{.cpp}
+        bool is_set = particle.is_generated_mass_set();
+
+        if(!is_set) particle.set_generated_mass(m);
+
+        cout<<particle.generated_mass()<<endl;
+    @endcode
+
+    Note that if HepMC3::GenParticle::generated_mass() is not set, call to this function
+    will return mass calculated from 4-momentum using HepMC3::FourVector.m()
+
+    ###########################################################################
+    @subsection newiterators Iterators
+    ###########################################################################
+
+    GenEvent and GenVertex containers are now of std::vector type.
+    This greatly simplifies iteration over them
+
+    e.g. (c++11):
+
+    @code{.cpp}
+        for( ConstGenParticlePtr p : event.particles() ) { {
+            ...
+        }
+
+        for( ConstGenParticlePtr p : vertex.particles_in() ) { {
+            ...
+        }
+    @endcode
+
+
+
+
+    ###########################################################################
+    @subsection links Links
+    ###########################################################################
+
+    The relations between vertices and particles in GenEventData are encoded via
+     members links1 and links2, wich are std::vector<int> containing object ids.
+    Direct manipulations with links1 and links2 can be useful. For instance,
+    when the events are saved in ROOT format, one can extract the information
+    from links1 and links2 without reading whole event.
+    In case links1[i] is particle, links2[i] is end vertex. In case links1[i] is
+    vertex, links2[i] is outgoing particle. An example of usage is given below.
+    @code{.cpp}
+        // Andrii Verbytskyi, 2017, MPI fuer Physik
+        // Here is a code to look for a scattered DIS electron  in HepMC3 event record using links.
+        // The implementation is extended to provide example of links1,lins2 usage.
+        // Dummy code.
+        GenEventData*  A=...
+        ...
+        int i;
+        int j;
+        int current_l=0;                             // If the  incoming electron is the first particle in the list
+        int vertex_l=0;                              // We set final vertex to some nonsense value.
+        bool found_next_vertex=true;
+        while(found_next_vertex)                     // Looking for the electron end vertex
+        {
+            found_next_vertex=false;
+            for (i=0; i<A->links1.size(); i++)       // Points from to ...
+                if (A->links1[i]>0 &&                // The link1 should be particle, i.e. >0
+                    A->links1[i]==current_l+1)       // The link1 should be our electron
+                {
+                    vertex_l=A->links2[i];           // The end vertex of this electron is found
+                    found_next_vertex=true;
+                }
+            std::vector<int> out;                    // Here we will save the outgoing particles
+            if (found_next_vertex)
+            {
+                for (j=0; j<A->links1.size(); j++)   // Points from to ...
+                    if (A->links1[j]<0 &&            // The link1 should be a vertex, i.e. <0
+                        A->links1[j]==vertex_l)      // The link1 should be our end vertex
+                        if (std::abs(A->particles_pid[A->links2[j]-1])==11)  // If the outgoing particle is e+/e-.
+                            out.push_back(A->links2[j]);
+                if (out.size()==0) {
+                    printf("Warning: no electron in the new vertex.\n");
+                    break;
+                }
+                else
+                {
+                    if (out.size()>1) printf("Warning: more than one electron in the new vertex.\n");
+                    current_l=out.at(0)-1;           // Pick up the  first electron in the list and use it as current electron.
+                }
+            }
+            if (A->particles_status[current_l]==1) break; // The end particle is stable. It is our scattered electron.
+        }
+        ...
+        // Here we have cuts on electron
+    @endcode
+
+    <hr>
+
+    Last update 27 Oct 2020
+*/

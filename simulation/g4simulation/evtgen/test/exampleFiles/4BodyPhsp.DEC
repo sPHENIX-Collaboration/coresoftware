@@ -1,0 +1,10 @@
+Decay B+ 
+#1.000 mu+  mu-   K+   rho0                PHSP;
+#1.000 mu+  mu-   K+   pi0                PHSP;
+#1.000 mu+  mu-   K+   pi0                FOURBODYPHSP;
+#1.000 mu+  mu-   K+   pi0                FOURBODYPHSP 1.0 2.0 1.0 2.0;
+1.000 mu+  mu-   K+   rho0                FOURBODYPHSP;
+Enddecay
+CDecay B-
+
+End

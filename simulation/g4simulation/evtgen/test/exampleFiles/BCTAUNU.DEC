@@ -1,0 +1,13 @@
+Decay B_c+
+1.000 tau+   nu_tau                       SLN;
+Enddecay
+Decay B_c-
+1.000 tau-   anti-nu_tau                  SLN;
+Enddecay
+Decay tau+
+1.000 pi+    anti-nu_tau                  TAUSCALARNU;
+Enddecay
+Decay tau-
+1.000 pi-    nu_tau                       TAUSCALARNU;
+Enddecay
+End

@@ -1,0 +1,27 @@
+Alias myB01 B0
+Alias myanti-B01 anti-B0
+Alias myB02 B0
+Alias myanti-B02 anti-B0
+Decay Upsilon(4S)
+1.000 myB01  myanti-B01 myB02  myanti-B02 VSS_BMIX dm;
+Enddecay
+                                                                                
+Decay myB01
+1.0   D*-    e+  nu_e         PHOTOS  HQET 0.92 1.18 0.72;
+Enddecay
+Decay myanti-B01
+1.0   D*+    e-   anti-nu_e         PHOTOS  HQET 0.92 1.18 0.72;
+Enddecay
+
+                                                                                
+Decay myB02
+1.0   D-  pi+  SSD_CP dm 0.0 1.0 minusTwoBeta 1. 0. 1. -0.4 ;
+Enddecay
+                                                                                
+Decay myanti-B02
+1.0   D+  pi-  SSD_CP dm 0.0 1.0 minusTwoBeta 1. 0. 1. -0.4;
+Enddecay
+                                                                                
+                                                                                
+End
+

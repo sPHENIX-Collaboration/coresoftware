@@ -22,8 +22,8 @@ AM_CPPFLAGS = \
 libphg4hit_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
-
+  -L$(OFFLINE_MAIN)/lib64 \
+  ../G4EvtGenDecayer/EvtGenExtDecayerPhysics.hh
 
 libphg4hit_la_LIBADD = \
   -lphool
@@ -41,6 +41,7 @@ libg4testbench_la_LIBADD = \
   -leicsmear \
   -lfun4all \
   -lg4decayer \
+  -lg4evtgendecayer \  
   -lgsl \
   -lgslcblas \
   -lHepMC \

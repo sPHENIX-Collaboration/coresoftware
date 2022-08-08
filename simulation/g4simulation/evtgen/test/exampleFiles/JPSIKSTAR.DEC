@@ -1,0 +1,27 @@
+Alias MYB B0
+Alias Myanti-B0 anti-B0
+ChargeConj MYB Myanti-B0
+Decay Upsilon(4S)
+0.5 MYB anti-B0             VSS;
+0.5 MYB B0                  VSS;
+Enddecay
+Decay MYB
+1.000 J/psi  K*0             SVV_CP 0.4 0.51e12 1.0 0.5 0.0 1.0 0.0 0.5 0.0;
+Enddecay
+Decay J/psi
+1.000 e+   e-                VLL;
+Enddecay
+Decay K*0
+1.000 K0   pi0               VSS;
+Enddecay
+Decay anti-B0
+1.000 D+     e-   anti-nu_e  ISGW2;
+Enddecay
+Decay D+
+Enddecay
+Decay B0
+1.000 D-     e+   anti-nu_e  ISGW2;
+Enddecay
+Decay D-
+Enddecay
+End

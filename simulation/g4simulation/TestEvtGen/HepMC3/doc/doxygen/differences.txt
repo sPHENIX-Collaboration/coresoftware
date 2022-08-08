@@ -1,0 +1,471 @@
+/**
+    @page differences Differences between HepMC2 and HepMC3
+
+    The following is a list of main differences that should be taken into
+    account when transitioning from HepMC2 to HepMC3.
+
+    ###########################################################################
+    @section technical Technical changes
+    ###########################################################################
+    ###########################################################################
+    @subsection structure Structure change and header file organization
+    ###########################################################################
+
+    Following changes in header files have been applied:
+    @code{.cpp}
+        HepMC/HeavyIons.h    ->  HepMC3/GenHeavyIons.h   (now a POD struct)
+        HepMC/PdfInfo.h      ->  HepMC3/GenPdfInfo.h     (now a POD struct)
+        HepMC/SimpleVector.h ->  HepMC3/FourVector.h     (ThreeVector class removed)
+    @endcode
+    The structure of GenCrossSection class has been changed to handle multiple
+    values of cross-sections. The cross-section values and errors (uncertainties)
+    can be accessed only by public functions, the corresponding data members are
+    private. By default, the number of cross-section values in every event is equal
+    to the number of event weights.  Accordingly, each cross-section value can be
+    accessed using the corresponding event weight name (std::string) or event
+    weight index (int).
+
+    Following header files are no longer available:
+
+    @code{.cpp}
+        CompareGenEvent.h
+        Flow.h
+        GenRanges.h
+        HepMCDefs.h
+        HerwigWrapper.h
+        IteratorRange.h
+        Polarization.h
+        SearchVector.h
+        StreamHelpers.h
+        StreamInfo.h
+        TempParticleMap.h
+        WeightContainer.h
+        IO_GenEvent.h
+
+        enable_if.h
+        is_arithmetic.h
+
+        IO_AsciiParticles.h
+        IO_Exception.h
+        IO_HEPEVT.h
+        IO_HERWIG.h
+
+        PythiaWrapper.h
+        PythiaWrapper6_4.h
+        PythiaWrapper6_4_WIN32.h
+    @endcode
+
+    ###########################################################################
+    @subsection pythia6 Fortran generators
+    ###########################################################################
+    An example of interface to Pythia6 Fortran blocks  is given in the examples.
+    Please note that the provided interface Pythia6ToHepMC3.cc and Pythia6ToHepMC3.inc
+    is an interface for HepMC3 from Pythia6 and not an interface to Pythia6 from HepMC,
+    as it was in the case of the HepMC2.
+
+    ###########################################################################
+    @subsection io Changes to the I/O handling
+    ###########################################################################
+    Multiple file formats are supported. The implementation of reading  and writing
+    is separated in HepMC3. All the reading operations are performed in
+    "reader" objects inherited from HepMC::Reader and the writing operations in the "writer"
+    objects inherited from HePMC::Writer. Therefore it is to use the desired headers explicitly, as needed.
+
+    The IO_GenEvent.h header is not available anymore.
+    to write and/or read HepMC2 files the following includes
+    @code{.cpp}
+    WriterAsciiHepMC2.h
+    ReaderAsciiHepMC2.h
+    @endcode
+    should be used instead of
+    @code{.cpp}
+    IO_GenEvent.h
+    @endcode
+    Please note that HepMC2 format  is outdated and is not able to contain a lot
+    of information stored into event record by the modern Monte Carlo event generators.
+    It is recommended to use HepMC3 native event record in plain text or in ROOT TTree format.
+    The corresponding readers and writers are
+    @code{.cpp}
+    WriterAscii.h
+    ReaderAscii.h
+    @endcode
+    and
+    @code{.cpp}
+    WriterRootTree.h
+    ReaderRootTree.h
+    @endcode
+
+    Implementation of custom Reader and Writer objects is possible as well.
+
+    Please, note the difference in the behavior of default Readers with respect to HepMC2.
+    when reading files with multiple headers. The ASCII files with multiple headers ( e.g. obtained with
+    cat 1.hepmc 2.hepmc > 12.hepmc) will be processed by the readers only till the
+    first occurrence of END_EVENT_LISTING.
+    
+    In addition to the standard readers, starting for the version 3.2.5 HepMC3 provides as set of
+    templated readers/writers to handle the zip-,lzma-,bz2-compressed files (ReaderGZ and WriterGZ) and to perform multithread
+    reading (ReaderMT). 
+    
+    ###########################################################################
+    @subsection memory Memory managed by shared pointers
+    ###########################################################################
+    Particles and vertices are managed using shared pointers,
+    so they should not be created through the call to 'new'.
+
+    @code{.cpp}
+        GenEvent event;
+
+        // Create particles
+        GenParticlePtr p1 = make_shared<GenParticle>();
+        GenParticlePtr p2 = make_shared<GenParticle>();
+        GenParticlePtr p3 = make_shared<GenParticle>();
+
+        p1->set_pdg_id(23);
+        p2->set_pdg_id(15);
+        p3->set_pdg_id(-15);
+
+        // Create vertex
+        GenVertexPtr v1 = make_shared<GenVertex>();
+        v1->add_particle_in(p1);
+        v1->add_particle_out(p2);
+        v1->add_particle_out(p3);
+
+        event.add_vertex(v1);
+    @endcode
+
+    @note An interface to convert raw pointers to GenParticlePtr, GenVertexPtr
+          is available for backward-compatibility. It is marked as deprecated.
+
+    ###########################################################################
+    @subsection iterators Iterators
+    ###########################################################################
+
+    The iterator-bases classes and access functions from HepMC2, e.g.
+    @code{.cpp}
+    class particle_iterator;
+    class vertex_iterator;
+    class edge_iterator;
+    ...
+    inline int GenEvent::particles_size() const;
+    inline int GenEvent::vertices_size() const;
+    ...
+
+    @endcode
+    were removed.
+    The C++11 iterations should be used instead, e.g. instead of
+    @code{.cpp}
+    for (GenEvent::particle_const_iterator p = evt->particles_begin(); p != evt->particles_end(); ++p ) {
+    ...
+    }
+    @endcode
+    one should use
+    @code{.cpp}
+    for (auto p: evt->particles()) {
+    ...
+    }
+    @endcode
+    or alternatively
+    @code{.cpp}
+    for (size_t i=0;i<evt->particles().size();++i) {
+    ...
+    evt->particles().at(i)
+    ...
+    }
+    @endcode
+
+
+    ###########################################################################
+    @subsection topological_order Topological order
+    ###########################################################################
+
+    Particles and vertices in HepMC3 are stored in topological order. This means
+    that when creating vertices, incoming particles must have id lower than
+    any of the outgoing particles.
+
+    This forces the tree structure to be constructed top-to-bottom
+    and disallows creating loops.
+
+    @code{.cpp}
+        GenParticlePtr p1 = make_shared<GenParticle>();
+        GenParticlePtr p2 = make_shared<GenParticle>();
+        GenParticlePtr p3 = make_shared<GenParticle>();
+        GenParticlePtr p4 = make_shared<GenParticle>();
+
+        GenVertexPtr v1 = make_shared<GenVertex>();
+        GenVertexPtr v2 = make_shared<GenVertex>();
+        GenVertexPtr v3 = make_shared<GenVertex>();
+
+        event.add_particle(p1);
+        event.add_particle(p2);
+        event.add_particle(p3);
+        event.add_particle(p4);
+        event.add_vertex(v1);
+        event.add_vertex(v2);
+        event.add_vertex(v3);
+
+        v1->add_particle_in (p2);
+        v1->add_particle_out(p3);
+        v1->add_particle_in (p4); // will cause error, because p3
+                                  // has higher index than p4
+
+        v2->add_particle_in (p4);
+        v2->add_particle_out(p3); // will also cause error
+
+        // Order of vertices does not matter. Index of end vertex
+        // can be lower than index of production vertex
+        v3->add_particle_in (p1);
+        v3->add_particle_out(p2);
+    @endcode
+
+    ###########################################################################
+    @section functionality Changes to user interface and to HepMC functionality
+    ###########################################################################
+    ###########################################################################
+    @subsection deleting Deleting particles and vertices
+    ###########################################################################
+
+    Deleting a particle using GenEvent::remove_particle() will also remove
+    its end_vertex if this is the only particle that is on this vertex
+    particles_in() list.
+
+    Deleting a vertex will delete all of its outgoing
+    particles. (and subsequently, all of their decays).
+
+    ###########################################################################
+    @subsection barcodes Barcodes can no longer be se (Use constant ID instead)
+    ###########################################################################
+    The "barcode" integer in HepMC2 was an uncomfortable object, simultaneously
+    declared in the code documentation to be a meaningless unique identifier for
+    vertex and particle objects, and set to specific ranges by experiments'
+    production systems to encode information about a particle's origins. It proved
+    impossible to satisfactorily reconcile these twin uses, and experiments' demands
+    for particle provenance information have exceeded the capacity of an int (or
+    even a long int).
+
+    Hence, barcodes are no longer available. Use attributes to provide additional
+    information that was previously encoded using barcodes
+    (see module @ref attributes).
+
+    The unique identifier of particles and vertices is now called id() to
+    separate its role from barcodes. Id is set automatically and cannot
+    be changed. Id is not permanently attached to particle/vertex. When
+    a particle or vertex is removed from the event, id's of other particles
+    or vertices may change.
+    ###########################################################################
+    @subsection flow  Flow is not a class on its own (it is an attribute).
+    ###########################################################################
+
+    The Flow class has been removed, since it was unused by any widespread event
+    generator, and to our knowledge the only active use-case is an abuse of it to
+    provide more ints in which to encode provenance information. As this is now done
+    via attributes, there is no case for Flow's continued existence. No backward
+    compatibility Flow class is provided since this usage is extremely localized in
+    one piece of user code and migration to the newer scheme should be simple.
+
+    ###########################################################################
+    @subsection units Units are no longer defined at compilation time
+    ###########################################################################
+
+    The default units are set to GEV and MM. They can be provided as
+    constructor parameters or changed later using HepMC::GenEvent::set_units
+
+    @code{.cpp}
+        GenEvent event(Units::GEV,Units::CM);
+
+        GenParticlePtr p = make_shared<GenParticle>();
+
+        event.add_particle(p);
+        ...
+
+        event.print(); // event printed in GEV/CM
+
+        event.set_units(Units::MEV,Units::MM); // will trigger unit conversion for all particles and vertices
+
+        event.print(); // event printed in MEV/MM
+    @endcode
+
+    ###########################################################################
+    @subsection deprecated_code Deprecated code
+    ###########################################################################
+
+    A lot of HepMC2 functions has been declared obsolete and are marked as
+    deprecated. Warnings displayed at compilation time hint to what functions
+    or classes should be used instead.
+
+
+    @code{.cpp}
+
+
+        // HepMC2 code:
+        HepMC::FourVector position(pos[1],pos[2],pos[3],pos[0]);
+        vertex = new HepMC::GenVertex(position, id);
+
+        // Replace with:
+        HepMC3::FourVector position(pos[1],pos[2],pos[3],pos[0]);
+        HepMC3::GenVertexPtr vertex = std::make_shared<HepMC3::GenVertex>(position);
+        vertex->set_id(1);
+    @endcode
+
+    @code{.cpp}
+        // HepMC2 code:
+        std::vector<HepMC::GenParticle*> beamparticles
+        // ...
+        event.set_beam_particles(beamparticles[0],beamparticles[1]);
+
+        // Replace with:
+        std::vector<HepMC3::GenParticlePtr> beamparticles;
+        // ...
+        event.add_particle(beamparticles[0]);
+        event.add_particle(beamparticles[1]);
+    @endcode
+
+    @code{.cpp}
+        // HepMC2 code:
+        HepMC::GenVertex * vertex;
+        vertex->set_id(1);
+        vertex->id();
+
+        // Replace with:
+        HepMC3::GenVertexPtr vertex = std::make_shared<HepMC3::GenVertex>();
+        vertex->set_status(1);
+        vertex->status();
+    @endcode
+
+    @code{.cpp}
+        // HepMC2 code:
+        HepMC::GenVertex * vertex;
+        for (HepMC::GenVertex::particles_out_const_iterator pout
+               =v->particles_out_const_begin();
+             pout!=(*vit)->particles_out_const_end(); ++pout) { }
+
+        // Replace with (similarly for particles_in):
+        HepMC3::GenVertexPtr vertex = std::make_shared<HepMC3::GenVertex>();
+        for (HepMC3::GenParticlePtr pout : vertex->particles_out() ) { }
+    @endcode
+
+    @code{.cpp}
+        // HepMC2 code:
+        vertex->weights().push_back(1.);
+        // Replace with:
+        TODO
+    @endcode
+
+    @code{.cpp}
+        GenEvent evt(Units::GEV,Units::MM);
+        // HepMC2 code:
+        evt.set_alphaQCD(m_alphas);
+        evt.set_alphaQED(m_alpha);
+        evt.set_event_scale(m_event_scale);
+        evt.set_mpi(m_mpi);
+        evt.set_signal_process_id(m_signal_process_id);
+        evt.set_random_states(m_random_states);
+        // Replace with:
+        evt.add_attribute("alphaQCD",
+                           make_shared<DoubleAttribute>(m_alphas));
+        evt.add_attribute("alphaEM",
+                           make_shared<DoubleAttribute>(m_alpha));
+        evt.add_attribute("event_scale",
+                           make_shared<DoubleAttribute>(m_event_scale));
+        evt.add_attribute("mpi",
+                           make_shared<IntAttribute>(m_mpi));
+        evt.add_attribute("signal_process_id",
+                           make_shared<IntAttribute>(m_signal_process_id));
+        for ( size_t i=0;i<m_random_states.size();i++)
+          evt.add_attribute("random_states"+to_string(i),make_shared<IntAttribute>(m_random_states[i]));
+    @endcode
+
+    @code{.cpp}
+        // HepMC2 code:
+        HepMC::GenVertex * vertex;
+        ...
+        vertex->weights().push_back(1.);
+        // Replace with:
+        vertex->add_attribute("weight1", make_shared<DoubleAttribute>(1.0));
+
+    @endcode
+
+    @code{.cpp}
+        // HepMC2 code:
+        HepMC::GenVertex * vertex;
+        vertex->check_momentum_conservation();
+        // Replace with:
+        TODO
+    @endcode
+
+    @code{.cpp}
+        // HepMC2 code:
+        HepMC::GenParticle::set_flow(int code_index, int code = 0)
+        HepMC::GenParticle::set_polarization( Polarization(theta,phi))
+        // Replace with:
+        HepMC3::GenParticle::add_attribute("flow"+to_string(code_index),make_shared<IntAttribute>(code));
+        HepMC3::GenParticle::add_attribute("theta",make_shared<DoubleAttribute>(theta));
+        HepMC3::GenParticle::add_attribute("phi",make_shared<DoubleAttribute>(phi));
+    @endcode
+    ###########################################################################
+    @subsection attributes Standard attributes
+    ###########################################################################
+
+    For the user convenience and backward compatibility the following standard attributes are
+    supported for the
+
+    GenEvent
+    @code{.cpp}
+        double alphaQCD
+        double alphaEM
+        double event_scale
+        int mpi
+        int signal_process_id
+        int signal_vertex_id
+        int random_states1... random_statesN
+    @endcode
+
+    GenVertex
+    @code{.cpp}
+        double weight1... weightN
+    @endcode
+
+    GenParticle
+    @code{.cpp}
+        int flow
+        double theta
+        double phi
+    @endcode
+
+    The presence of cycles in the event structure is indicated with an attribute
+    @code{.cpp}
+        int cycles
+    @endcode
+
+     Note that attributes belong to the event, therefore these can be set only for particles and vertices
+     that belong to a GenEvent object.
+
+    ###########################################################################
+    @subsection hepevt Interface to HEPEVT block
+    ###########################################################################
+    The most recent versions of HepMC3 has multiple implementations of the interfaces to HEPEVT Fortran common 
+    block. These are 
+
+    include/HepMC3/HEPEVT_Wrapper.h -- the default implementation. The size of common block is defined in 
+    compile time via appropriate #define. The block can hold float/double precision momenta. 
+    This implementation is not compiled into any library. All functions and variables are static,
+    so only one instance of the interface can exists.
+
+    include/HepMC3/HEPEVT_Wrapper_Runtime.h -- The size of common block is defined in runtime. 
+    The block can be held in the object. Multiple instances can exists.
+    The interface is compiled into the library. This interface is also available in Python.
+
+    include/HepMC3/HEPEVT_Wrapper_Runtime_Static.h -- The size of common block is defined in runtime. 
+    All functions and variables are static,
+    so only one instance of the interface can exists. The interface is compiled into the library.
+
+    include/HepMC3/HEPEVT_Wrapper_Template.h --  The size of common block is defined in compile 
+    time as a parameter of template. The block can hold float/double precision momenta. 
+    The block can be held in the object. Multiple instances can exists.
+
+    @endcode
+    
+        
+    <hr>
+
+ Last update 28 Dec 2021
+*/

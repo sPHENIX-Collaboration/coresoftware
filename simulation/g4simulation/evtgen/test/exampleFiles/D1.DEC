@@ -1,0 +1,17 @@
+Decay Upsilon(4S)
+1.000 B+ B-                               VSS;
+Enddecay
+Decay B-
+1.000 D_10   e-   anti-nu_e               ISGW2;
+Enddecay
+Decay B+
+Enddecay
+Decay D*+
+1.000  D0  pi+                           VSS;
+Enddecay
+Decay D0
+Enddecay
+Decay D_10
+1.000 D*+ pi-                         VVS_PWAVE  0.0 0.0 0.0 0.0 1.0 0.0; 
+Enddecay
+End

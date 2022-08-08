@@ -1,0 +1,85 @@
+Decay Upsilon(4S)
+0.500   B+ B-                               VSS;
+0.500   B0 anti-B0                          VSS;
+Enddecay
+Decay anti-B0
+0.0490   D*+    e-   anti-nu_e            PHOTOS  ISGW2;
+0.0210   D+     e-   anti-nu_e            PHOTOS  ISGW2;
+0.0040   D_1+   e-   anti-nu_e            PHOTOS  ISGW2;
+0.0040   D_0*+   e-   anti-nu_e            PHOTOS  ISGW2;
+0.0070   D'_1+   e-   anti-nu_e            PHOTOS  ISGW2;
+0.0070   D_2*+   e-   anti-nu_e            PHOTOS  ISGW2;
+Enddecay
+Decay B0
+0.0490   D*-    e+   nu_e            PHOTOS  ISGW2;
+0.0210   D-     e+   nu_e            PHOTOS  ISGW2;
+0.0040   D_1-   e+   nu_e            PHOTOS  ISGW2;
+0.0040   D_0*-   e+   nu_e            PHOTOS  ISGW2;
+0.0070   D'_1-   e+   nu_e            PHOTOS  ISGW2;
+0.0070   D_2*-   e+   nu_e            PHOTOS  ISGW2;
+Enddecay
+Decay B-
+0.0490   D*0    e-   anti-nu_e           PHOTOS  ISGW2;
+0.0210   D0     e-   anti-nu_e           PHOTOS  ISGW2;
+0.0040   D_10   e-   anti-nu_e           PHOTOS  ISGW2;
+0.0040   D_0*0   e-   anti-nu_e           PHOTOS  ISGW2;
+0.0070   D'_10   e-   anti-nu_e           PHOTOS  ISGW2;
+0.0070   D_2*0   e-   anti-nu_e           PHOTOS  ISGW2;
+Enddecay
+Decay B+
+0.0490   anti-D*0    e+   nu_e          PHOTOS  ISGW2;
+0.0210   anti-D0    e+   nu_e          PHOTOS  ISGW2;
+0.0040   anti-D_10   e+   nu_e          PHOTOS  ISGW2;
+0.0040   anti-D_0*0   e+   nu_e          PHOTOS  ISGW2;
+0.0070   anti-D'_10   e+   nu_e          PHOTOS  ISGW2;
+0.0070   anti-D_2*0   e+   nu_e          PHOTOS  ISGW2;
+Enddecay
+Decay D*+
+Enddecay
+Decay D+
+Enddecay
+Decay D_1+
+Enddecay
+Decay D_0*+
+Enddecay
+Decay D'_1+
+Enddecay
+Decay D_2*+
+Enddecay
+Decay D*-
+Enddecay
+Decay D-
+Enddecay
+Decay D_1-
+Enddecay
+Decay D_0*-
+Enddecay
+Decay D'_1-
+Enddecay
+Decay D_2*-
+Enddecay
+Decay D*0
+Enddecay
+Decay D0
+Enddecay
+Decay D_10
+Enddecay
+Decay D_0*0
+Enddecay
+Decay D'_10
+Enddecay
+Decay D_2*0
+Enddecay
+Decay anti-D*0
+Enddecay
+Decay anti-D0
+Enddecay
+Decay anti-D_10
+Enddecay
+Decay anti-D_0*0
+Enddecay
+Decay anti-D'_10
+Enddecay
+Decay anti-D_2*0
+Enddecay
+End

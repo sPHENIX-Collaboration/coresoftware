@@ -1,0 +1,26 @@
+#
+#need to turn off mixing to prevent B0 from becoming an anti-B0
+Define dm_incohMix_B0 0.0
+#
+Decay B0
+1.0 J/psi K_S0     SVS;
+Enddecay
+Decay J/psi
+#0.333333  rho0 pi0 PARTWAVE 0. 0. 1. 0. 0. 0. ;
+#0.333333  rho- pi+ PARTWAVE 0. 0. 1. 0. 0. 0. ;
+##0.333333   rho+ pi- PARTWAVE 0. 0. 1. 0. 0. 0. ;
+0.333333   rho+ pi- HELAMP 1. 0. 0. 0. -1. 0. ;
+#0.333333  rho0 pi0 HELAMP 1. 0. 0. 0. 0. 0. ;
+#0.333333  rho- pi+ HELAMP 1. 0. 0. 0. 0. 0. ;
+#1.0  rho+ pi- HELAMP 1. 0. 0. 0. -1. 0. ;
+Enddecay
+Decay rho0
+1.000 pi+   pi-   VSS;
+Enddecay
+Decay rho+
+1.000 pi+   pi0   VSS;
+Enddecay
+Decay rho-
+1.000 pi-   pi0   VSS;
+Enddecay
+End

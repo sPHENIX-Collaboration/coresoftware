@@ -1,0 +1,150 @@
+/**
+    @defgroup data Particle, Vertex and event serializable data
+
+    This module contains structures used for serializing/deserializing
+    GenEvent objects. To link core functionality in your code use
+    libHepMC3.so (libHepMC3.dylib) library.
+
+    <hr>
+    Last update 24 Jan 2019
+*/
+
+
+
+/**
+    @defgroup IO IO-related classes and interfaces
+
+    This module contains interfaces for different IO formats,
+    including an adapter for older version of \b HepMC files.
+    To link rootIO engine in your code use libHepMC3rootIO.so (libHepMC3rootIO.dylib) library.
+    <hr>
+
+    Optionally the I/O capabilities can be implemented as plugin Reader/Writer classes compiled
+    separately into dynamically loadable libraries and used via  RearedPlugin and WriterPlugin classes.
+    Please note that all required libraries/dlls should be loadable.
+    See examples for details.
+
+    In some cases the fine tuning of the Reader/Writer classes behavior can be done using a
+    map of string "options"
+
+    @code{.cpp}
+           void Reader::set_options(const std::map<std::string, std::string>& options)
+
+           std::map<std::string, std::string> Reader::get_options() const
+    @endcode
+
+    The options for ReaderAsciiHepMC2
+
+      "particle_flows_are_separated"
+      "event_random_states_are_separated"
+      "vertex_weights_are_separated"
+      "particle_flows_are_separated"
+     regulate if the corresponding information from IO_GenEvent would be stored into multiple attributes as
+     individual numbers, i.e. "separated" or as a single std::vector. The former behavior is used if
+     the corresponding option name is present in the list of options, regardless of the option value.
+     The later behavior is the default one.
+
+    The option for WriterAscii and WriterAsciiHepMC2
+
+     "float_printf_specifier"
+
+     specifies the float printf specifier used for the output format of the floats.
+     Two first characters from the  option value are used.
+     The default behavior is equivalent to setting this option to "e" and results in the output formatted as
+     " %.*e". To save the disk space one can use the "g" option, e.g.
+    @code{.cpp}
+    WriterAscii       outputA("someoutput.hepmc");
+    auto optionsA =  outputA.get_options();
+    optionsA["float_printf_specifier"] = "g";
+    outputA.set_options(optionsA);
+    @endcode
+    This option will be the default on in the future.
+    Last update 12 Jun 2021
+*/
+
+
+
+/**
+    @defgroup attributes Attributes
+
+    @section using_attributes Using Attributes
+
+    Attributes can be attached to GenEvent, GenParticle or GenVertex
+    and they can have any format defined by the user
+    (see @ref writing_attributes). An attribute is accessed through
+    a shared pointer and identified by its name.
+
+    Example of reading an attribute from the event:
+
+    @code{.cpp}
+        shared_ptr<GenPdfInfo> pdf_info = event.attribute<GenPdfInfo>("GenPdfInfo");
+
+        if( pdf_info ) pdf_info->print();
+    @endcode
+
+    Example of adding an attribute to the event:
+
+    @code{.cpp}
+        shared_ptr<GenPdfInfo> pdf_info = make_shared<GenPdfInfo>();
+        evt.add_attribute("GenPdfInfo",pdf_info);
+
+        // Setting values can be done before or after adding it to the event
+        pdf_info->set(1,2,3.4,5.6,7.8,9.0,1.2,3,4);
+    @endcode
+
+    Adding and getting attributes of a vertex or particle uses the same
+    principles.
+
+    @note An event (or particle or vertex) can have more than one attribute
+          of the same type distinguished by different names. This might be
+          useful in some applications, however, we strongly encourage
+          to use just one instance named by its class name, as in these
+          examples.
+
+    @section writing_attributes Writing custom attributes
+
+    Any class that derives from HepMC::Attribute class can be used as
+    an attribute that can be attached to the event, vertex or particle.
+
+    User has to provide two abstract methods from HepMC::Attribute used
+    to parse the class content from/to string.
+
+    Example:
+
+    @code{.cpp}
+        #include "HepMC3/Attribute.h"
+
+        struct MyAttribute : public HepMC::Attribute {
+
+            double val1; /// First value
+            int    val2; /// Second value
+
+        public:
+            /// Implementation of Attribute::from_string
+            bool from_string(const string &att) {
+                val1 = stof( att );
+                val2 = stol( att.substr( att.find(' ')+1 ) );
+
+                return true;
+            }
+
+            /// Implementation of Attribute::to_string
+            bool to_string(string &att) const {
+                char buf[64];
+
+                sprintf(buf,"%.8e %i",val1,val2);
+
+                att = buf;
+
+                return true;
+            }
+        };
+    @endcode
+
+    For other examples see attributes provided in the HepMC3 package.
+
+    <hr>
+
+ Last update 27 Oct 2020
+*/
+

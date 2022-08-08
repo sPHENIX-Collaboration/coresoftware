@@ -64,7 +64,11 @@ class PHG4TpcDirectLaser : public SubsysReco, public PHParameterInterface
     m_autoAdvanceDirectLaser = value;
   };
 
-  void SetArbitraryThetaPhi(double theta, double phi) {arbitrary_theta = theta; arbitrary_phi = phi;}
+  void SetArbitraryThetaPhi(double theta, double phi)
+  {
+    arbitrary_theta = theta;
+    arbitrary_phi = phi;
+  }
 
  private:
   /// define lasers
@@ -117,8 +121,8 @@ class PHG4TpcDirectLaser : public SubsysReco, public PHParameterInterface
    */
   double electrons_per_gev = NAN;
 
-  double arbitrary_theta = -30.0; // degrees
-  double arbitrary_phi = -30.0; // degrees
+  double arbitrary_theta = -30.0;  // degrees
+  double arbitrary_phi = -30.0;    // degrees
 
   ///@name default phi and theta steps
   //@{

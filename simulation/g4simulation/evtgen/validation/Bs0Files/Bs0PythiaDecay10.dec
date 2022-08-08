@@ -1,0 +1,5 @@
+Decay B_s0
+1.0         c       anti-d  anti-c       s       PYTHIA         43;
+Enddecay
+#
+End

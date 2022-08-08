@@ -1,0 +1,19 @@
+#need to turn off mixing to prevent B0 from becoming an anti-B0
+Define dm_incohMix_B0 0.0
+#
+Decay B0
+#These two models should give the same result
+#1.000 D*+  D*-              SVV_HELAMP 0.5 0.5 1.0 0.0 0.5 -0.8 ;
+1.000 D*+  D*-              HELAMP 0.5 0.5 1.0 0.0 0.5 -0.8 ;
+Enddecay
+Decay D*+
+1.000 D0   pi+              VSS;
+Enddecay
+Decay D*-
+1.000 anti-D0   pi-         VSS;
+Enddecay
+Decay D0
+Enddecay
+Decay anti-D0
+Enddecay
+End

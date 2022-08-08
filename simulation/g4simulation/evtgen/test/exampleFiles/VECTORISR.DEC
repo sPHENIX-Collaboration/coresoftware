@@ -1,0 +1,27 @@
+Define VVS10 -1.0 
+Define VVS00 0.0 
+Define VVS-10 1.0 
+Define argVVS10 0. 
+Define argVVS00 0. 
+Define argVVS-10 0. 
+
+Decay vpho
+1.000 psi(4160) gamma                           VECTORISR 0.9 0.9;
+Enddecay
+
+Decay psi(4160)
+#0.5 D+ D- VSS;
+0.5000  D_s*+ D_s- HELAMP  VVS10 argVVS10 VVS00 argVVS00 VVS-10 argVVS-10;
+ 0.5000  D_s*- D_s+  HELAMP  VVS10 argVVS10 VVS00 argVVS00 VVS-10 argVVS-10;
+Enddecay
+
+Decay D_s*+
+#1.0 D_s+ gamma VSP_PWAVE;
+1.0 D_s+ pi0 VSS;
+Enddecay
+Decay D_s*-
+#1.0 D_s- gamma VSP_PWAVE;
+1.0 D_s- pi0 VSS;
+Enddecay
+
+End

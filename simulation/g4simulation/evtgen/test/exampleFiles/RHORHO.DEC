@@ -1,0 +1,57 @@
+############################################################
+#                                                          #
+# Decay:      B0    -> rho+ rho- -> (pi+pi0)(pi-pi0)       #
+#             B0bar -> generic                       +cc   #
+#                                                          #
+# Author: Andrei Gritsan                                   #
+# e-mail: gritsan@slac.stanford.edu                        #
+# Created:  10/10/2000                                     #
+# Changed:  03/30/2001                                     #
+#                                                          #
+############################################################
+#
+#
+# Define my particles
+#
+Alias MyB0 B0
+Alias MyB0bar anti-B0
+Define dm .464e12
+Define alpha 1.365
+#
+# 'Vector -> Scalar + Scalar'
+#
+Decay Upsilon(4S)
+1.0 B0  anti-B0 MyB0 MyB0bar                  VSS_BMIX dm;
+Enddecay
+#
+#
+# 'Scalar -> Vector Vector'
+# Tansverse polarization: SVV_CP alpha dm 1  1.0 0.0 0.0 0.0 1.0 0.0; ***
+# Longitud. polarization: SVV_CP alpha dm 1  0.0 0.0 1.0 0.0 0.0 0.0;
+#
+Decay MyB0
+1.0000  rho+ rho-      SVV_CP alpha dm 1 1.0 0.0 0.0 0.0 1.0 0.0;
+Enddecay 
+
+Decay MyB0bar
+1.0000  rho+ rho-      SVV_CP alpha dm 1 1.0 0.0 0.0 0.0 1.0 0.0;
+Enddecay 
+
+#
+
+Decay rho+
+1.0 pi+ pi0 VSS;
+Enddecay
+
+Decay rho0
+1.0 pi+ pi- VSS;
+Enddecay
+
+Decay rho-
+1.0 pi- pi0 VSS;
+Enddecay
+
+#
+End
+
+

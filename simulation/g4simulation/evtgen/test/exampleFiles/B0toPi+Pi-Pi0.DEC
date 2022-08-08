@@ -1,0 +1,224 @@
+#PARSING SUCCESSFUL 
+#9 amplitude terms
+#9 conjugate amplitude terms
+#Decay File defines mode B0 -> pi+ pi- pi0
+#Build amplitudes 10000 will be sampled
+#Flat contribution coefficient 9.5825
+#PDF STATS
+#  Points tried     100000
+#         pdfMax    10.737
+#         pdfSum   13629.8
+#       Integral   36.2262
+#    pdfMaxRatio   0.53755
+#     pdfMaxComp   0.53755
+#     pdfSumComp   967.312
+#SAMPLER STATS
+#SUM STATS
+#PDF STATS
+#  Points tried     100845
+#         pdfMax   19.9734
+#         pdfSum1.0023e+06
+#       Integral   3745.04
+#TERM STATS
+#PDF STATS
+#  Points tried          1
+#         pdfMax   4.31022
+#         pdfSum 0.0973633
+#       Integral   36.6894
+#TERM STATS
+#PDF STATS
+#  Points tried          1
+#         pdfMax  0.914684
+#         pdfSum   0.16434
+#       Integral   61.9283
+#TERM STATS
+#PDF STATS
+#  Points tried          1
+#         pdfMax   2.96102
+#         pdfSum  0.217727
+#       Integral   82.0461
+#TERM STATS
+#PDF STATS
+#  Points tried          1
+#         pdfMax   4.31022
+#         pdfSum 0.0973633
+#       Integral   36.6894
+#TERM STATS
+#PDF STATS
+#  Points tried          1
+#         pdfMax  0.914684
+#         pdfSum   0.16434
+#       Integral   61.9283
+#TERM STATS
+#PDF STATS
+#  Points tried          1
+#         pdfMax   2.96102
+#         pdfSum  0.217727
+#       Integral   82.0461
+#TERM STATS
+#PDF STATS
+#  Points tried          1
+#         pdfMax   4.31022
+#         pdfSum 0.0970714
+#       Integral   36.5794
+#TERM STATS
+#PDF STATS
+#  Points tried          1
+#         pdfMax  0.914684
+#         pdfSum  0.164142
+#       Integral   61.8535
+#TERM STATS
+#PDF STATS
+#  Points tried          1
+#         pdfMax   2.96102
+#         pdfSum  0.217619
+#       Integral   82.0052
+#TERM STATS
+#PDF STATS
+#  Points tried          1
+#         pdfMax         1
+#         pdfSum         1
+#       Integral    376.83
+#TERM SUMMARY
+#9 terms
+#        Integral      Peak   PoleCompPeak
+#0       0.205812   2.82628       0.222693
+#1      0.0139532 0.0285722     0.00290587
+#2     0.00947186 0.0376703       0.003854
+#3       0.727362   9.84436       0.501453
+#4      0.0498334 0.0993919     0.00994516
+#5      0.0327121  0.130835      0.0132519
+#6      0.0627693  0.822204      0.0769484
+#7     0.004073970.00831893    0.000816254
+#8     0.00271818 0.0109058     0.00110498
+#Sum=1.10871
+#Efficiency 0.01874
+
+
+Decay B0
+
+1.0 pi+ pi- pi0 PTO3P
+
+MAXPDF 17.9
+
+AMPLITUDE 	RESONANCE	AC	rho+	0.7734 0.1477
+		ANGULAR		AB
+		TYPE		RBW_KUEHN
+		POLECOMP
+COEFFICIENT	CARTESIAN	0.0756 -0.3053	
+
+
+AMPLITUDE	RESONANCE	AC	rho(2S)+	1.465 0.696
+		ANGULAR 	AB
+		TYPE		RBW_KUEHN
+		POLECOMP
+COEFFICIENT	CARTESIAN	-0.0173 0.0699
+
+
+AMPLITUDE	RESONANCE	AC	rho(3S)+	1.76 0.215
+		ANGULAR		AB		
+		TYPE		RBW_KUEHN
+		POLECOMP
+COEFFICIENT	CARTESIAN	0.0057 -0.0229
+
+AMPLITUDE	RESONANCE	BC	rho-	0.7734 0.1477
+		ANGULAR		AC
+		TYPE		RBW_KUEHN
+		POLECOMP
+COEFFICIENT	CARTESIAN	0.1758 -0.5589
+
+
+AMPLITUDE	RESONANCE	BC	rho(2S)-	1.465 0.696
+		ANGULAR		AC
+		TYPE		RBW_KUEHN
+		POLECOMP
+COEFFICIENT	CARTESIAN	-0.0403 0.1280
+
+
+AMPLITUDE	RESONANCE	BC	rho(3S)-	1.76 0.215
+		ANGULAR 	AC
+		TYPE		RBW_KUEHN
+		POLECOMP
+COEFFICIENT	CARTESIAN	0.0132 -0.0419
+
+
+AMPLITUDE 	RESONANCE	AB	rho0	0.7734 0.1477
+		ANGULAR 	AC
+		TYPE		RBW_KUEHN
+		POLECOMP
+COEFFICIENT	CARTESIAN	-0.0364 -0.1656	
+
+
+AMPLITUDE	RESONANCE	AB	rho(2S)0	1.465 0.696
+		ANGULAR		AC
+		TYPE		RBW_KUEHN
+		POLECOMP
+COEFFICIENT	CARTESIAN	0.0083 0.0379
+
+
+AMPLITUDE 	RESONANCE	AB	rho(3S)0	1.76 0.215
+		ANGULAR		AC
+		TYPE		RBW_KUEHN
+		POLECOMP
+COEFFICIENT	CARTESIAN	-0.0027 -0.0124
+
+
+CONJUGATE dm
+
+
+AMPLITUDE	RESONANCE	AC	rho+	0.7734 0.1477
+		ANGULAR		AB
+		TYPE		RBW_KUEHN
+COEFFICIENT	CARTESIAN	0.0756 0.3053
+
+
+AMPLITUDE	RESONANCE	AC	rho(2S)+	1.465 0.696
+		ANGULAR		AB
+		TYPE		RBW_KUEHN
+COEFFICIENT	CARTESIAN	-0.0173 -0.0699
+
+
+AMPLITUDE	RESONANCE	AC	rho(3S)+	1.76 0.215
+		ANGULAR		AB
+		TYPE		RBW_KUEHN
+COEFFICIENT	CARTESIAN	0.0057 0.0229
+
+
+AMPLITUDE	RESONANCE	BC	rho-	0.7734 0.1477
+		ANGULAR		AC
+		TYPE		RBW_KUEHN
+COEFFICIENT	CARTESIAN	0.1758 0.5589
+
+
+AMPLITUDE	RESONANCE	BC	rho(2S)-	1.465 0.696
+		ANGULAR		AC
+TYPE		RBW_KUEHN
+COEFFICIENT 	CARTESIAN	-0.0403 -0.1280
+
+
+AMPLITUDE	RESONANCE	BC	rho(3S)-	1.76 0.215
+		ANGULAR		AC
+		TYPE		RBW_KUEHN
+COEFFICIENT	CARTESIAN	0.0132 0.0419
+
+
+AMPLITUDE	RESONANCE	AB	rho0	0.7734 0.1477
+		ANGULAR		AC
+		TYPE		RBW_KUEHN
+COEFFICIENT	CARTESIAN	-0.0364 0.1656
+
+
+AMPLITUDE	RESONANCE	AB	rho(2S)0	1.465 0.696
+		ANGULAR		AC
+		TYPE		RBW_KUEHN
+COEFFICIENT	CARTESIAN	0.0083 -0.0379
+
+
+AMPLITUDE	RESONANCE	AB	rho(3S)0	1.76 0.215
+		ANGULAR		AC
+		TYPE		RBW_KUEHN
+COEFFICIENT 	CARTESIAN	-0.0027 0.0124
+
+;
+Enddecay
+End

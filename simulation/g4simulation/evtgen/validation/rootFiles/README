@@ -1,0 +1,2 @@
+Directory which is used by various validation programs, such as 
+compareRootFiles.cc and compareDalitz.C, to store ROOT output files.

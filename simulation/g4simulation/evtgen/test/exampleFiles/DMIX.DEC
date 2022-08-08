@@ -1,0 +1,33 @@
+#
+# Decay D0s
+
+#Decay vpho
+#1.000                     JSCONT 4;
+#Enddecay
+
+Decay D*+
+1.0 D0 pi+ VSS;
+Enddecay
+
+Decay D*-
+1.0 anti-D0 pi- VSS;
+Enddecay
+
+Decay D0
+1.0     K+ pi-                         DMIX  0.001 0.01 0.0097;;
+Enddecay
+#
+Decay anti-D0
+1.0    K- pi+                         DMIX 0.001 0.01 0.0097;
+Enddecay
+
+Decay B0
+Enddecay
+#
+Decay anti-B0
+Enddecay
+#
+#
+End
+
+

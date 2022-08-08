@@ -1,0 +1,10 @@
+Decay D_s+
+1.0  K-  K+  pi+             D_DALITZ;
+Enddecay
+
+Decay D_s-
+1.0  K+  K-  pi-             D_DALITZ;
+Enddecay
+
+End
+

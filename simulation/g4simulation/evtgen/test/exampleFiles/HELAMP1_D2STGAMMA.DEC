@@ -1,0 +1,15 @@
+#
+Decay Upsilon(4S)
+1.000 D_2*0  gamma             HELAMP 1.0 0.0 0.0 0.0 0.0 0.0
+                                      0.0 0.0 0.0 0.0 1.0 0.0; 
+Enddecay
+#
+Decay D_2*0
+1.000 D0     pi0               HELAMP 1.0 0.0;
+Enddecay
+#
+Decay D0
+Enddecay
+#
+End
+

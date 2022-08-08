@@ -1,0 +1,46 @@
+# PTO3P replaces the D_DALITZ model
+# D+ -> anti-K0 pi+ pi0 with 3 channels contributing to the final state
+#
+# Note that EvtResonance used the CLEO amplitude specification
+# in which the sign was flipped. (The amplitude was proportional 
+# to -cosTh(BC) in the r.f. of AB). I've flipped the sign back,
+# therefore the angle is calculated between a different pair of particles.
+
+Decay D+
+
+1.0 anti-K0 pi+ pi0 PTO3P       
+
+	MAXPDF		75.0
+	#SCANPDF 10000
+	#gives 73.5
+
+	# Non-resonant
+
+	AMPLITUDE	PHASESPACE	
+	COEFFICIENT	POLAR_RAD	0.9522	-1.8565
+	
+        # rho+ (770) 
+
+        AMPLITUDE	RESONANCE	BC	rho+		0.7699	0.1512	
+			ANGULAR		AC
+			TYPE		RBW_CLEO
+			DVFF		BLATTWEISSKOPF	25.38
+
+	COEFFICIENT	POLAR_RAD	0.389	0.0 
+
+
+        # anti-K*0 (770) 
+
+        AMPLITUDE	RESONANCE	AC	anti-K*0	0.89159	0.0498	
+			ANGULAR 	BC
+			TYPE		RBW_CLEO	
+			DVFF		BLATTWEISSKOPF	10.15
+
+	COEFFICIENT	POLAR_RAD	0.194	0.7191
+	;
+
+Enddecay
+
+End
+
+

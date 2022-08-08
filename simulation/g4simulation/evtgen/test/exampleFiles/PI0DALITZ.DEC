@@ -1,0 +1,7 @@
+#
+#
+Decay pi0
+1.000 e+ e- gamma   PI0_DALITZ;
+Enddecay
+#
+End

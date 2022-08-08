@@ -1,0 +1,9 @@
+#
+Decay Upsilon(4S)
+1.000 bsbottom  gamma  SBOTTOM;
+Enddecay
+Decay bsbottom
+1.000 g  g  JETSET 32;
+Enddecay
+End
+

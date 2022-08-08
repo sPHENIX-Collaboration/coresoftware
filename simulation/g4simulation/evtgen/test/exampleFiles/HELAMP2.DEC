@@ -1,0 +1,27 @@
+#
+#
+#
+Decay Upsilon(4S)
+1.000 B+ B-                    VSS;
+Enddecay
+#
+Decay B+	
+1.000 psi(2S)  K*+             HELAMP 0.0 0.0 0.0 0.0 1.0 0.0; 
+Enddecay
+#
+Decay psi(2S)
+1.000 J/psi  gamma          HELAMP 1.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0;
+Enddecay
+#
+Decay J/psi
+1.00  e+ e-                 VLL;
+Enddecay
+#
+Decay K*+
+Enddecay
+#
+Decay B-
+Enddecay
+#
+End
+

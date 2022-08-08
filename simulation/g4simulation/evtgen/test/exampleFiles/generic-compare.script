@@ -1,0 +1,75 @@
+
+/***********************************************************************
+* Copyright 1998-2020 CERN for the benefit of the EvtGen authors       *
+*                                                                      *
+* This file is part of EvtGen.                                         *
+*                                                                      *
+* EvtGen is free software: you can redistribute it and/or modify       *
+* it under the terms of the GNU General Public License as published by *
+* the Free Software Foundation, either version 3 of the License, or    *
+* (at your option) any later version.                                  *
+*                                                                      *
+* EvtGen is distributed in the hope that it will be useful,            *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+* GNU General Public License for more details.                         *
+*                                                                      *
+* You should have received a copy of the GNU General Public License    *
+* along with EvtGen.  If not, see <https://www.gnu.org/licenses/>.     *
+***********************************************************************/
+
+{
+
+TFile *f1=new TFile("generic.root","READ");
+
+TIter nextkey(f1->GetListOfKeys());
+TKey *key;
+
+TCanvas *myCanvas = new TCanvas("c","tCan",0,0,630,750);
+//myCanvas->Divide(1,2);
+
+
+TString myNames[300];
+Int_t nNames=0;
+
+while (key= (TKey*)nextkey()) {
+    TH1F *h1=(TH1F*)key->ReadObj();
+    myNames[nNames++]=TString(h1->GetName());
+}
+
+TPostScript *ps=new TPostScript("file.ps",111);
+
+delete f1;
+Int_t i;
+for ( i=0; i<nNames; i++ ) {
+  if ( i!=0) ps->NewPage();
+  f1=new TFile("generic.root","READ");
+  TH1F  *d1= (TH1F*) f1->Get(myNames[i]);
+  if ( myNames[i].Contains("Mass") ) {
+     gPad->SetLogy(1);
+  }
+  else{
+     gPad->SetLogy(0);
+  }
+
+  d1->Draw();
+//  delete f1;
+  cout << "hi " << myNames[i] << endl;
+  f2=new TFile("../../../jun30-1253/EvtGen/test/generic.root","READ");
+  TH1F  *d2= (TH1F*) f2->Get(myNames[i]);
+  cout << d2 << endl;
+  d2->SetLineColor(kRed);
+  d2->Draw("same");
+  cout << "hud\n";
+  //delete f1;
+  TString fname="plots/";
+  fname+=myNames[i];
+  fname+=".ps";
+  myCanvas->Update();
+  myCanvas->Print(fname);
+}
+
+ps->Close();
+
+}
+

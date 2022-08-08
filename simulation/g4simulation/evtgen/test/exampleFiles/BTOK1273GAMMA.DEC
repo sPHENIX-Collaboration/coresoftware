@@ -1,0 +1,32 @@
+#
+#
+#need to turn off mixing to prevent B0 from becoming an anti-B0
+Define dm_incohMix_B0 0.0
+#
+Decay Upsilon(4S)
+1.000  B+    B-             VSS;
+Enddecay
+#
+Decay B+
+1.000   K_1+ gamma VERBOSE  HELAMP 0.0 0.0 1.0 0.0 ;
+Enddecay
+#
+Decay B-
+1.000   K_1- gamma VERBOSE  HELAMP 0.0 0.0 1.0 0.0 ;
+Enddecay
+#
+End
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+

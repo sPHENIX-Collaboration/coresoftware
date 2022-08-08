@@ -1,0 +1,11 @@
+#
+Decay B+
+1.000 tau+  nu_tau               HELAMP 1.0 0.0; 
+Enddecay
+#
+Decay tau+
+1.000 pi+    anti-nu_tau         HELAMP 1.0 0.0;
+Enddecay
+#
+End
+

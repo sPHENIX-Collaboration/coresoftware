@@ -1,0 +1,42 @@
+
+/*!
+\copyright
+Copyright 1998-2021 CERN for the benefit of the @PROJECT_NAME@ authors<br>
+<br>
+@PROJECT_NAME@ is free software: you can redistribute it and/or modify<br>
+it under the terms of the GNU General Public License as published by<br>
+the Free Software Foundation, either version 3 of the License, or<br>
+(at your option) any later version.<br>
+<br>
+@PROJECT_NAME@ is distributed in the hope that it will be useful,<br>
+but WITHOUT ANY WARRANTY; without even the implied warranty of<br>
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the<br>
+GNU General Public License for more details.<br>
+<br>
+You should have received a copy of the GNU General Public License<br>
+along with @PROJECT_NAME@.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/*!
+\authors
+Original package authors:<br>
+David Lange<br>
+Anders Ryd<br>
+<br>
+Current authors / maintainers:<br>
+John Back<br>
+Michal Kreps<br>
+Thomas Latham<br>
+<br>
+See the [AUTHORS](AUTHORS.md) file for a full list.
+*/
+
+/*!
+\mainpage
+Welcome to the @PROJECT_NAME@ documentation, please use the links at the top of the page to navigate to particular classes or namespaces.
+
+The @PROJECT_NAME@ project webpages can be found at @PROJECT_HOMEPAGE_URL@
+
+See also the [README](README.md) and [release notes](History.md) for more information.
+*/
+

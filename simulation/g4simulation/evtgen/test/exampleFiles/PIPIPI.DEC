@@ -1,0 +1,12 @@
+Decay Upsilon(4S)
+1.000 B0 anti-B0                         VSS;
+Enddecay
+Decay B0
+1.000 pi+   pi-   pi0                    BTO3PI_CP 0.51e12 0.4;
+Enddecay
+Decay anti-B0
+1.000 D+     e-   anti-nu_e              ISGW2;
+Enddecay
+Decay D+
+Enddecay
+End

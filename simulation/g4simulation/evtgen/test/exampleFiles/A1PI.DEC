@@ -1,0 +1,33 @@
+noPhotos
+Alias MYB B0
+Alias MYantiB anti-B0
+ChargeConj MYB MYantiB
+CDecay MYantiB
+Decay Upsilon(4S)
+0.500 MYB anti-B0                           VSS;
+0.500 MYB B0                                VSS;
+Enddecay
+Decay MYB
+1.000 a_1-   pi+           SVS_NONCPEIGEN 0.35 0.51e12 1.0 1.0 0.0 3.0 0.0 3.0 0.0 1.0 0.0;
+1.000 a_1+   pi-           SVS_NONCPEIGEN 0.35 0.51e12 1.0 3.0 0.0 1.0 0.0 1.0 0.0 3.0 0.0;
+Enddecay
+Decay anti-B0
+1.000 D*+     e-   anti-nu_e                 ISGW2;
+Enddecay
+Decay B0
+1.000 D*-     e+   nu_e                ISGW2;
+Enddecay
+Decay D*+
+Enddecay
+Decay D*-
+Enddecay
+Decay a_1+
+1.000 rho0   pi+                   VVS_PWAVE   1.00 0.0 0.0 0.0 0.0 0.0;
+Enddecay
+Decay a_1-
+1.000 rho0   pi-                   VVS_PWAVE   1.00 0.0 0.0 0.0 0.0 0.0;
+Enddecay
+Decay rho0
+1.000 pi+   pi-                   VSS;
+Enddecay
+End

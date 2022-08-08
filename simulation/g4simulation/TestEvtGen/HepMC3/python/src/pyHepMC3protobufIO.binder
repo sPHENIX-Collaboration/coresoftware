@@ -1,0 +1,34 @@
++include <HepMC3/Version.h>
++include <HepMC3/Reader.h>
++include <HepMC3/Writer.h>
++include <HepMC3/Print.h>
++include <HepMC3/GenRunInfo.h>
+
+
+
++include <HepMC3/Writerprotobuf.h>
++include <HepMC3/Readerprotobuf.h>
++include <src/protobuf_binders.h>
+
+
+-class std::istream
+-class std::basic_ios
+-class HepMC3::GenEventData
+-class HepMC3::GenRunInfoData
+-class HepMC3::GenEvent
+-class HepMC3::GenPdfInfo
+-class HepMC3::GenRunInfo
+-class HepMC3::GenHeavyIon
+-class HepMC3::GenCrossSection
+-class HepMC3::FourVector
+-class HepMC3::Units
+-class HepMC3::Attribute
+-class HepMC3::Reader
++class HepMC3::Readerprotobuf
+-class HepMC3::Writer
++class HepMC3::Writerprotobuf
+
+
+
++binder HepMC3::Writerprotobuf  binder::Writerprotobuf_binder
++binder HepMC3::Readerprotobuf  binder::Readerprotobuf_binder

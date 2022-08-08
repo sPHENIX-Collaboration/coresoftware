@@ -1,0 +1,29 @@
+Define dm 0.474e12
+Define dgamma 0.5
+Define qoverp 0.8
+Define phaseqoverp 0
+
+Alias myB0 B0
+Alias myB0B anti-B0
+
+#
+Decay Upsilon(4S)
+1.000  B0 anti-B0 myB0 myB0B      VSS_BMIX dm dgamma qoverp phaseqoverp;
+Enddecay
+#
+Decay anti-B0
+Enddecay
+#
+Decay B0
+Enddecay
+#
+Decay myB0
+Enddecay
+#
+Decay myB0B
+Enddecay
+
+#
+End
+
+

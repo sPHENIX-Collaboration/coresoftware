@@ -1,0 +1,16 @@
+#
+Decay B0
+#1.0000   K*0   gamma       HELAMP  1.0 0.0 1.0 0.0;
+1.0000   K*0   gamma       PARTWAVE  1.0 0.0 0 0.0 1.0 0.0;
+Enddecay
+#
+Decay anti-B0
+#1.0000   anti-K*0   gamma       HELAMP  1.0 0.0 1.0 0.0;
+1.0000   K*0   gamma       PARTWAVE  1.0 0.0 0.0 0.0 1.0 0.0;
+Enddecay
+#
+Decay    K*0
+1.000    K-  pi+             HELAMP  1.0 0.0;
+Enddecay
+#
+End

@@ -1,0 +1,11 @@
+#
+#
+#
+#
+Decay omega
+1.000  pi+ pi- pi0    OMEGA_DALITZ;
+Enddecay
+#
+#
+End
+

@@ -1,0 +1,5 @@
+Decay tau-
+1.0        nu_tau     pi-     anti-K0 pi0             PYTHIA    21;
+Enddecay
+#
+End

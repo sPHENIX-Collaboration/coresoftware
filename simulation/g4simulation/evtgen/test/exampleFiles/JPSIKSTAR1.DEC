@@ -1,0 +1,29 @@
+Alias B1 B0
+Alias anti-B1 anti-B0
+ChargeConj B1 anti-B1
+CDecay anti-B1
+Decay Upsilon(4S)
+0.500 B1 anti-B0                 VSS;
+0.500 B1 B0                 VSS;
+Enddecay
+Decay B1
+1.000 J/psi  K*0              SVV_CP 0.4 0.51e12 1.0 1.0 0.0 1.0 0.0 1.0 0.0;
+#1.000 J/psi  K*0              SVV_HELAMP 1.0 0.0 0.0 0.0 1.0 0.0;
+Enddecay
+Decay J/psi
+1.000 e+   e-               VLL;
+Enddecay
+Decay K*0
+1.000 K0   pi0              VSS;
+Enddecay
+Decay anti-B0
+1.000 D+     e-   anti-nu_e      ISGW2;
+Enddecay
+Decay D+
+Enddecay
+Decay B0
+1.000 D-     e+   nu_e       ISGW2;
+Enddecay
+Decay D-
+Enddecay
+End

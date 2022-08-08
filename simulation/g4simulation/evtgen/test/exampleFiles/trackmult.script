@@ -1,0 +1,112 @@
+
+/***********************************************************************
+* Copyright 1998-2020 CERN for the benefit of the EvtGen authors       *
+*                                                                      *
+* This file is part of EvtGen.                                         *
+*                                                                      *
+* EvtGen is free software: you can redistribute it and/or modify       *
+* it under the terms of the GNU General Public License as published by *
+* the Free Software Foundation, either version 3 of the License, or    *
+* (at your option) any later version.                                  *
+*                                                                      *
+* EvtGen is distributed in the hope that it will be useful,            *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+* GNU General Public License for more details.                         *
+*                                                                      *
+* You should have received a copy of the GNU General Public License    *
+* along with EvtGen.  If not, see <https://www.gnu.org/licenses/>.     *
+***********************************************************************/
+
+{
+gROOT->SetStyle("Plain");
+Int_t nbin(13);
+
+Double_t ntrk[nbin]={0.,2.,4.,6.,8., 10., 12., 14., 16., 18., 20., 22., 24.};
+Double_t etrk[nbin]={1.,1.,1.,1.,1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.};
+
+//I lifted these from the eps file in CLEOs paper.
+Double_t eps0=302.;
+Double_t eps500=695.;
+
+Double_t epsUpErr[nbin]={305.5,330.25,311.5,399.25,545.0,617.25,562.25,
+                         461.0,368.25,341.25,321.0,305.5,305.5};
+
+Double_t epsDownErr[nbin]={297.25,294.75,303.5,374.5,515.5,597.25,
+                           554.25,440.0,342.25,312.5,289.5,297.25,297.25};
+
+Double_t centTrk[nbin];
+Double_t errTrk[nbin];
+
+Double_t totCentTrk=0;
+for (Int_t i=0; i<nbin; i++) {
+   centTrk[i]=(epsUpErr[i]+epsDownErr[i]-2.0*eps0)/2.0;
+   errTrk[i]=(epsUpErr[i]-epsDownErr[i])/2.0;
+   totCentTrk+=centTrk[i];
+}
+//normalize to 1
+
+for (Int_t i=0; i<nbin; i++) {
+   centTrk[i]=centTrk[i]/totCentTrk;
+   errTrk[i]=errTrk[i]/totCentTrk;
+   cout << centTrk[i] << " "<< errTrk[i]<<endl;
+}
+
+TFile *myFile = new TFile("trackmult.root","READ");
+myFile->ls();
+
+TH1F *lmom=new TH1F(*trackAll);
+
+TCanvas *myCanvas = new TCanvas("c","ssdcp",0,0,400,400);
+
+TGraphErrors *gr1=new TGraphErrors(nbin,ntrk,centTrk,etrk,errTrk);
+
+gr1->SetMarkerStyle(21);
+gr1->SetMarkerSize(0.6);
+
+gr1->SetMaximum(0.3);
+gr1->SetMinimum(-0.005);
+gr1->SetTitle("");
+
+Float_t lm=myCanvas->GetLeftMargin();
+Float_t bm=myCanvas->GetBottomMargin();
+lm=lm*1.7;
+bm=bm*1.5;
+myCanvas->SetLeftMargin(lm);
+myCanvas->SetBottomMargin(bm);
+
+
+lmom->SetNormFactor(1.0);
+
+gr1->Draw("AP");
+lmom->Draw("SAME");
+TAxis *axisx=gr1->GetXaxis();
+TAxis *axisy=gr1->GetYaxis();
+axisx->SetLabelSize(0.05);
+axisy->SetLabelSize(0.05);
+axisx->SetTitleOffset(1.);
+axisx->SetLimits(-1.0,25.0);
+axisx->SetNdivisions(13);
+Float_t ts2=axisx->GetTitleSize();
+ts2=1.5*ts2;
+axisx->SetTitleSize(ts2);
+
+axisx->SetTitle("Momentum (GeV/c)");
+
+TLatex *myytit=new TLatex();
+//axisy->SetTitle(myytit);
+
+myytit->SetTextAngle(90);
+Float_t ts=myytit->GetTextSize();
+ts=1.1*ts;
+myytit->SetTextSize(ts);
+
+myytit->DrawLatex(-4.8,0.025,"Fraction of #Upsilon(4S)} decays");
+
+myCanvas->Print("trackmult.eps");
+
+
+
+}
+
+

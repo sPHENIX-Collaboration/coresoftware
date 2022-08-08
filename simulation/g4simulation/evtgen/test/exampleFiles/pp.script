@@ -1,0 +1,116 @@
+
+/***********************************************************************
+* Copyright 1998-2020 CERN for the benefit of the EvtGen authors       *
+*                                                                      *
+* This file is part of EvtGen.                                         *
+*                                                                      *
+* EvtGen is free software: you can redistribute it and/or modify       *
+* it under the terms of the GNU General Public License as published by *
+* the Free Software Foundation, either version 3 of the License, or    *
+* (at your option) any later version.                                  *
+*                                                                      *
+* EvtGen is distributed in the hope that it will be useful,            *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+* GNU General Public License for more details.                         *
+*                                                                      *
+* You should have received a copy of the GNU General Public License    *
+* along with EvtGen.  If not, see <https://www.gnu.org/licenses/>.     *
+***********************************************************************/
+
+{
+gROOT->SetStyle("Plain");
+Int_t nbin(29);
+
+Double_t p[nbin]={0.325,0.375,
+	0.425,0.475,0.525,0.575,0.625,
+	0.675,0.725,0.775,0.825,0.875,
+	0.925,0.975,1.05,1.15,1.25,
+	1.35,1.45,1.55,1.65,1.75,1.85,
+	1.95,2.05,2.15,2.25,2.35,2.5};
+
+Double_t ep[nbin]={0.025,0.025,
+	0.025,0.025,0.025,0.025,0.025,
+	0.025,0.025,0.025,0.025,0.025,
+	0.025,0.025,0.05,0.05,0.05,
+	0.05,0.05,0.05,0.05,0.05,0.05,
+	0.05,0.05,0.05,0.05,0.05,0.1};
+
+Double_t npp[nbin]={0.1704,0.1839,0.2021,0.2156,
+	0.2208,0.2010,0.1955,0.1843,0.1744,0.1521,0.1326,
+	0.1161,0.0908,0.0852,0.0706,0.0448,0.0264,
+	0.0189,0.0131,0.0085,0.0105,0.0121,0.0054,0.0032,
+	-0.0018,0.0011,0.0043,0.0024,-0.0018};
+
+Double_t etot[nbin]={0.0127,0.0128,0.0129,0.0148,
+	0.0131,0.0124,0.0122,0.0117,0.0132,0.0099,0.0096,0.0110,
+	0.0077,0.0087,0.0066,0.0052,0.0048,0.0048,0.0043,
+	0.0039,0.0039,0.0037,0.0033,0.003,0.0028,0.0037,
+	0.0025,0.0020,0.0015};
+
+
+TFile *myFile = new TFile("generic.root","READ");
+
+Float_t nBB=1.0/25000.;
+
+
+TH1F *pipmom=new TH1F(*proton);
+*pipmom=(*pipmom)*nBB;
+
+TCanvas *myCanvas = new TCanvas("c","ssdcp",0,0,400,400);
+
+//TH1F *th1=h1;
+
+TGraphErrors *gr1=new TGraphErrors(nbin,p,npp,ep,etot);
+
+gr1->SetMarkerStyle(21);
+
+gr1->SetMarkerSize(0.6);
+
+gr1->SetMaximum(0.3);
+gr1->SetTitle("");
+
+Float_t lm=myCanvas->GetLeftMargin();
+Float_t bm=myCanvas->GetBottomMargin();
+lm=lm*1.5;
+bm=bm*1.5;
+myCanvas->SetLeftMargin(lm);
+myCanvas->SetBottomMargin(bm);
+
+
+gr1->Draw("AP");
+pipmom->Draw("SAME");
+
+TAxis *axisx=gr1->GetXaxis();
+TAxis *axisy=gr1->GetYaxis();
+axisx->SetLabelSize(0.06);
+axisy->SetLabelSize(0.06);
+axisx->SetTitleOffset(1.);
+axisx->SetLimits(0.0,3.0);
+
+TLine *line=new TLine(0.,0.,3.,0.);
+line->Draw();
+
+Float_t ts2=axisx->GetTitleSize();
+ts2=1.5*ts2;
+axisx->SetTitleSize(ts2);
+
+axisx->SetTitle("Momentum (GeV/c)");
+
+TLatex *myytit=new TLatex();
+//axisy->SetTitle(myytit);
+
+myytit->SetTextAngle(90);
+Float_t ts=myytit->GetTextSize();
+ts=1.3*ts;
+myytit->SetTextSize(ts);
+
+myytit->DrawLatex(-0.4,0.12,"1/#sigma_{#Upsilon(4S)} d#sigma/dp");
+
+myCanvas->Print("pp.gif");
+
+
+
+}
+
+

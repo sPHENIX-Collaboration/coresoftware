@@ -1,0 +1,47 @@
+
+/***********************************************************************
+* Copyright 1998-2020 CERN for the benefit of the EvtGen authors       *
+*                                                                      *
+* This file is part of EvtGen.                                         *
+*                                                                      *
+* EvtGen is free software: you can redistribute it and/or modify       *
+* it under the terms of the GNU General Public License as published by *
+* the Free Software Foundation, either version 3 of the License, or    *
+* (at your option) any later version.                                  *
+*                                                                      *
+* EvtGen is distributed in the hope that it will be useful,            *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+* GNU General Public License for more details.                         *
+*                                                                      *
+* You should have received a copy of the GNU General Public License    *
+* along with EvtGen.  If not, see <https://www.gnu.org/licenses/>.     *
+***********************************************************************/
+
+{
+TFile *myFile = new TFile("twobody.root","READ");
+myFile->ls();
+
+TCanvas *myCanvas = new TCanvas("c","twobody",0,0,600,900);
+myCanvas->Divide(2,3);
+
+TH1F *th1=h1;
+TH1F *th2=h2;
+TH1F *th3=h3;
+
+TF1 *f1=new TF1("f1", "[0]*(1.0+[1]*x+[2]*x*x)/(2+[2])",-1.0,1.0);
+
+myCanvas->cd(1);
+th1->Fit("f1");
+myCanvas->cd(2);
+th2->Fit("f1");
+myCanvas->cd(3);
+th3->Fit("f1");
+
+
+myCanvas.Update();
+
+myCanvas->Print("twobody3.eps");
+
+}
+

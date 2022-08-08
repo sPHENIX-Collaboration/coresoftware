@@ -1,0 +1,10 @@
+Decay vpho
+1.000 tau+ tau-                               VLL;
+Enddecay
+Decay tau-
+1.000 e-  anti-nu_e  nu_tau                   TAULNUNU;
+Enddecay
+Decay tau+
+1.000 e+  nu_e  anti-nu_tau                   TAULNUNU;
+Enddecay
+End

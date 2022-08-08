@@ -1,0 +1,9 @@
+Define dm 0.474e12
+Decay Upsilon(4S)
+1.000  B0 anti-B0                                VSS_MIX dm;
+Enddecay
+Decay anti-B0
+Enddecay
+Decay B0
+Enddecay
+End

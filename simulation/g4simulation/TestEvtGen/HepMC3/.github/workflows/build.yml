@@ -1,0 +1,130 @@
+name: HepMC3 Build Matrix for Windows and MacOSX
+
+on: [push, pull_request]
+
+jobs:
+  nativeosx:
+    if: "contains(github.event.head_commit.message, 'githubosxci')"
+    name: "${{ matrix.config.name }} ${{ matrix.python-version }}"
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9"]
+#        python-version: ["2.7", "3.9"]
+        config: 
+        - {
+            name: "MacOSX-12",
+            os: macos-12,
+            cc: "clang", 
+            cxx: "clang++"
+          }
+        - {
+            name: "MacOSX-11",
+            os: macos-11,
+            cc: "clang", 
+            cxx: "clang++"
+          }
+        - {
+            name: "MacOSX-10.15",
+            os: macos-10.15,
+            cc: "clang", 
+            cxx: "clang++"
+          }
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+          python-version: "${{ matrix.python-version }}"
+    - name: Build
+      run:  |
+        brew install protobuf
+        brew install doxygen
+        cmake -S. -B BUILD -DCMAKE_INSTALL_PREFIX=./INSTALL -DHEPMC3_BUILD_DOCS:BOOL=OFF -DHEPMC3_BUILD_EXAMPLES:BOOL=ON -DHEPMC3_ENABLE_ROOTIO:BOOL=OFF -DHEPMC3_ENABLE_PROTOBUFIO:BOOL=ON -DHEPMC3_ENABLE_TEST:BOOL=ON -DHEPMC3_PYTHON_VERSIONS=3
+        cmake --build BUILD 
+        cmake --install BUILD         
+        cd BUILD
+        ctest . --output-on-failure
+  nativewin:
+    if: "contains(github.event.head_commit.message, 'githubwinci')"
+    name: "${{ matrix.config.name }} ${{ matrix.python-version }}"
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9"]
+#        python-version: ["2.7", "3.9"]
+        config: 
+        - {
+            name: "Windows Latest MSVC",
+            os: windows-latest,
+            cc: "cl", 
+            cxx: "cl",
+            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+          }
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - name: Set up Protobuf
+#          curl.exe --output protoc-21.1-win64.zip --url https://github.com/protocolbuffers/protobuf/releases/download/v21.1/protoc-21.1-win64.zip
+        run:  |
+          Invoke-WebRequest -Uri https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-win64.zip -OutFile protoc-3.19.4-win64.zip
+          Expand-Archive -Path protoc-3.19.4-win64.zip -DestinationPath C:\output
+          vcpkg install protobuf:x64-windows
+          copy  C:\output\bin\protoc.exe C:\vcpkg\packages\protobuf_x64-windows\bin 
+          vcpkg list
+          dir   C:\vcpkg\packages\protobuf_x64-windows\bin 
+      - name: Build
+        run:  |
+          cmake -S. -B BUILD -DHEPMC3_ENABLE_PYTHON:BOOL=ON -DProtobuf_PROTOC_EXECUTABLE=C:\vcpkg\packages\protobuf_x64-windows\bin\protoc.exe  -DProtobuf_INCLUDE_DIR=C:\vcpkg\packages\protobuf_x64-windows\include -DProtobuf_LIBRARY=C:\vcpkg\packages\protobuf_x64-windows\lib\libprotobuf.lib -DCMAKE_INSTALL_PREFIX=C:\INSTALL -DHEPMC3_BUILD_DOCS:BOOL=OFF  -DHEPMC3_BUILD_EXAMPLES:BOOL=OFF -DHEPMC3_ENABLE_ROOTIO:BOOL=OFF -DHEPMC3_ENABLE_PROTOBUFIO:BOOL=ON -DHEPMC3_ENABLE_TEST:BOOL=ON -DHEPMC3_PYTHON_VERSIONS=3
+          cmake --build BUILD 
+          cmake --install BUILD 
+          chdir BUILD
+          ctest . -C Debug --output-on-failure
+
+  mingw:
+    if: "contains(github.event.head_commit.message, 'githubmingwci')"
+    name: "${{ matrix.include.name }}"
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: "Windows MinGW64", sys: mingw64, env: x86_64 }
+#          - { name: "Windows MinGW32", sys: mingw32, env: i686 }
+    steps:
+    # Force version because of https://github.com/msys2/setup-msys2/issues/167
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{matrix.sys}}
+        install: >-
+          mingw-w64-${{matrix.env}}-gcc
+          mingw-w64-${{matrix.env}}-gcc-fortran
+          mingw-w64-${{matrix.env}}-ninja
+          mingw-w64-${{matrix.env}}-python-pip
+          mingw-w64-${{matrix.env}}-python
+          mingw-w64-${{matrix.env}}-python-numpy
+          mingw-w64-${{matrix.env}}-python-setuptools
+          mingw-w64-${{matrix.env}}-cmake
+          mingw-w64-${{matrix.env}}-make
+          mingw-w64-${{matrix.env}}-protobuf
+          mingw-w64-${{matrix.env}}-doxygen
+    - uses: actions/checkout@v2
+    - name: Build
+#Fix here examples
+      run:  |
+        cmake -S. -B BUILD -DCMAKE_INSTALL_PREFIX=./INSTALL -DHEPMC3_BUILD_DOCS:BOOL=OFF  -DHEPMC3_BUILD_EXAMPLES:BOOL=OFF -DHEPMC3_ENABLE_ROOTIO:BOOL=OFF -DHEPMC3_ENABLE_PYTHON:BOOL=OFF -DHEPMC3_ENABLE_PROTOBUFIO:BOOL=ON -DHEPMC3_ENABLE_TEST:BOOL=OFF -DHEPMC3_PYTHON_VERSIONS=3
+        cmake --build BUILD 
+        cmake --install BUILD 
+#        cd BUILD
+#        ctest .
+
+

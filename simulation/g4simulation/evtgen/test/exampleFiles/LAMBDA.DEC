@@ -1,0 +1,6 @@
+#
+Decay    Lambda0
+1.000    p+  pi-             HELAMP  0.0 0.0 1.0 0.0;
+Enddecay
+#
+End

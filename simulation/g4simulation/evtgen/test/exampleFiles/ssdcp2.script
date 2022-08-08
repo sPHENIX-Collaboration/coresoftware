@@ -1,0 +1,76 @@
+
+/***********************************************************************
+* Copyright 1998-2020 CERN for the benefit of the EvtGen authors       *
+*                                                                      *
+* This file is part of EvtGen.                                         *
+*                                                                      *
+* EvtGen is free software: you can redistribute it and/or modify       *
+* it under the terms of the GNU General Public License as published by *
+* the Free Software Foundation, either version 3 of the License, or    *
+* (at your option) any later version.                                  *
+*                                                                      *
+* EvtGen is distributed in the hope that it will be useful,            *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+* GNU General Public License for more details.                         *
+*                                                                      *
+* You should have received a copy of the GNU General Public License    *
+* along with EvtGen.  If not, see <https://www.gnu.org/licenses/>.     *
+***********************************************************************/
+
+{
+TFile *myFile = new TFile("ssdcp2.root","READ");
+myFile->ls();
+
+TCanvas *myCanvas = new TCanvas("c","ssdcp",0,0,800,600);
+myCanvas->Divide(2,2);
+
+TH1F *th1=h1;
+TH1F *th2=h2;
+TH1F *th3=h3;
+
+TH1F* sum=new TH1F(*h2+*h3);
+//Need B0B tags - B0 tags
+TH1F* diff=new TH1F(*h3-*h2);
+TH1F* asym=new TH1F((*sum));
+
+  Double_t a2,a3;
+  for (Int_t i=1; i< asym->GetNbinsX(); i++){
+    a2=h2->GetBinContent(i);
+    a3=h3->GetBinContent(i);
+    asym->SetBinError(i,1.0);
+    if (a2==0.0&&a3==0.0){
+       asym->SetBinContent(i,0.0);
+    }
+    else{
+       asym->SetBinContent(i,(a3-a2)/(a2+a3));
+    }   
+
+    if (a2!=0.0&&a3!=0.0) asym->SetBinError(i,2.0*sqrt(a2*a3*a3+a3*a2*a2)/
+       ((a2+a3)*(a2+a3)));
+   }
+
+
+myCanvas->cd(1);
+th1->Draw("e");
+
+myCanvas->cd(2);
+th2->Draw("e");
+
+myCanvas->cd(3);
+th3->Draw("e");
+
+TF1 *f1=new TF1("f1", "[0]*sin(x*0.489)+[1]*cos(x*0.489)",-10.0,10.0);
+
+myCanvas->cd(4);
+//asym->Draw("e");
+asym->Fit("f1");
+
+
+myCanvas.Update();
+
+
+myCanvas->Print("ssdcp.eps");
+
+
+}

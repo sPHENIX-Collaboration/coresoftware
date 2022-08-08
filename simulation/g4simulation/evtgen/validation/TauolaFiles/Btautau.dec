@@ -1,0 +1,32 @@
+# Specify what hadronic currents we want: orig CLEO = 0, BaBar = 1 (default).
+# No check is made by EvtGen on valid integer options - its just passed to Tauola
+#Define TauolaCurrentOption 1
+
+# Choose the neutral propagator type for Tauola spin matrix calculations
+# "Z", "Gamma", "Higgs" (H0), "PseudoHiggs" (A0), "MixedHiggs" (A0/H0)
+Define TauolaNeutralProp Z
+
+# Choose the charged propagator type for Tauola spin matrix calculations
+# "W" or "Higgs" (charged H)
+Define TauolaChargedProp W
+
+# Change the Higgs and PseudoHiggs mixing angle; default = pi/4 rad
+#Define TauolaHiggsMixingAngle 0.7853
+
+# Redefine the Tauola sub-channel branching fractions using setTaukle
+# Default values are 0.5, 0.5, 0.5 and 0.6667
+Define TauolaBR1 1.0
+#Define TauolaBR2 0.5
+#Define TauolaBR3 0.5
+#Define TauolaBR4 0.6667
+
+Decay B0
+1.0 tau- tau+ PHSP;
+Enddecay
+
+Decay tau-
+1.0 TAUOLA 5;
+Enddecay
+CDecay tau+
+
+End

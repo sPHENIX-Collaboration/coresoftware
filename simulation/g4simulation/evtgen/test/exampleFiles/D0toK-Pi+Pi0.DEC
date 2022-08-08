@@ -1,0 +1,94 @@
+# PTO3P replaces the D_DALITZ model
+# D0 -> K+ pi- pi0 with 3 channels contributing to the final state
+#
+# Note that EvtResonance used the CLEO amplitude specification
+# in which the sign was flipped. (The amplitude was proportional 
+# to -cosTh(BC) in the r.f. of AB). I've flipped the sign back,
+# therefore the angle is calculated between a different pair of particles.
+
+Decay D0
+
+1.0 K+ pi- pi0 PTO3P    
+
+	MAXPDF	60.0
+	#SCANPDF 10000
+	#gives 57.28	
+
+	# Non-resonant	
+	
+	AMPLITUDE	PHASESPACE	
+	COEFFICIENT	POLAR_DEG	1.75	31.2
+
+	
+        # rho-(770) 
+
+        AMPLITUDE	RESONANCE	BC	rho0	0.770  0.1507
+			ANGULAR		AB
+			TYPE		RBW_CLEO
+			DVFF		BLATTWEISSKOPF 1.5
+			BVFF		BLATTWEISSKOPF 5.0
+	COEFFICIENT	POLAR_DEG	1.0	0.0 	
+
+
+	# K*0(896)
+
+        AMPLITUDE	RESONANCE	AB	K*0	0.8961  0.0505
+			ANGULAR		CA
+			TYPE		RBW_CLEO
+			DVFF		BLATTWEISSKOPF 1.5
+			BVFF		BLATTWEISSKOPF 5.0	
+	COEFFICIENT 	POLAR_DEG	0.39	-0.2 
+
+
+	# K*+(892)
+
+        AMPLITUDE	RESONANCE	AC	K*0	0.8915  0.050
+			ANGULAR		AB
+			TYPE		RBW_CLEO
+			DVFF		BLATTWEISSKOPF 1.5
+			BVFF		BLATTWEISSKOPF 5.0
+	COEFFICIENT	POLAR_DEG	0.44	163.0 	
+
+
+	# K_0*+(1430)
+
+        AMPLITUDE	RESONANCE	AC	K_0*+	1.412   0.294
+			ANGULAR 	AB
+			TYPE		RBW_CLEO
+			DVFF		BLATTWEISSKOPF 1.5
+			BVFF		BLATTWEISSKOPF 5.0
+	COEFFICIENT	POLAR_DEG	0.77	55.5 	
+
+
+	# K_0*0(1430)
+
+        AMPLITUDE	RESONANCE	AB	K_0*0	1.412   0.294
+			ANGULAR		CA
+			TYPE		RBW_CLEO
+			DVFF		BLATTWEISSKOPF 1.5
+			BVFF		BLATTWEISSKOPF 5.0
+	COEFFICIENT	POLAR_DEG	0.85	166.0 
+
+	
+	# rho(3S)-(1700)	
+
+	AMPLITUDE	RESONANCE	BC	rho(3S)- 1.700	0.240
+			ANGULAR		AB
+			TYPE		RBW_CLEO
+			DVFF		BLATTWEISSKOPF 1.5
+			BVFF		BLATTWEISSKOPF 5.0
+	COEFFICIENT	POLAR_DEG	2.5	171.0	
+
+
+	# K''*-(1700)	
+
+        AMPLITUDE	RESONANCE	AC	K''*-	1.717   0.322		
+			ANGULAR 	AB
+			TYPE		RBW_CLEO
+			DVFF		BLATTWEISSKOPF 1.5
+			BVFF		BLATTWEISSKOPF 5.0
+	COEFFICIENT 	POLAR_DEG	2.5	103.0 
+	;
+Enddecay
+
+End

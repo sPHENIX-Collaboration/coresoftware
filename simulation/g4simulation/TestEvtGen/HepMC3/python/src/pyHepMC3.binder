@@ -1,0 +1,99 @@
++include <HepMC3/Version.h>
++include <HepMC3/Reader.h>
++include <HepMC3/Writer.h>
++include <HepMC3/Print.h>
+
+
++include <src/stl_binders.hpp>
++include <src/binders.h>
++namespace HepMC3
++namespace LHEF
++binder std::vector binder::vector_binder
++binder std::map binder::map_binder
+
+-class std::istream
+-class std::ostream
+-class std::basic_ios
+-class std::locale
+-class std::streambuf
+-class std::_Ios_Seekdir
+
+
+-function HepMC3::WriterAsciiHepMC2::WriterAsciiHepMC2(std::ostream&,std::shared_ptr<HepMC3::GenRunInfo>)
+-function HepMC3::WriterAscii::WriterAscii(std::ostream&,std::shared_ptr<HepMC3::GenRunInfo>)
+-function HepMC3::WriterHEPEVT::WriterHEPEVT(std::ostream&,std::shared_ptr<HepMC3::GenRunInfo>)
+
+-function HepMC3::ReaderAsciiHepMC2::ReaderAsciiHepMC2(std::istream&)
+-function HepMC3::ReaderAscii::ReaderAscii(std::istream&)
+-function HepMC3::ReaderHEPEVT::ReaderHEPEVT(std::istream&)
+-function HepMC3::ReaderLHEF::ReaderLHEF(std::istream&)
+
+-function LHEF::Writer::Writer(std::ostream &)
+-function LHEF::Writer::headerBlock()
+-function LHEF::Writer::initComments()
+-function LHEF::Writer::eventComments()
+
+
+
+-function std::vector<std::shared_ptr<HepMC3::GenVertex>, std::allocator<std::shared_ptr<HepMC3::GenVertex> > >::data()
+-function std::vector<std::shared_ptr<HepMC3::GenParticle>, std::allocator<std::shared_ptr<HepMC3::GenParticle> > >::data()
+
++binder HepMC3::Print binder::print_binder
+
++add_on_binder HepMC3::HEPEVT_Wrapper_Runtime  binder::custom_HEPEVT_Wrapper_Runtime_binder
++add_on_binder HepMC3::GenEvent  binder::custom_GenEvent_binder
+-function HepMC3::GenEvent::attribute
+
++add_on_binder HepMC3::GenParticle  binder::custom_GenParticle_binder
+-function HepMC3::GenParticle::attribute
+
++add_on_binder HepMC3::GenVertex  binder::custom_GenVertex_binder
+-function HepMC3::GenVertex::attribute
+
+
++add_on_binder HepMC3::Units  binder::custom_Units_binder
+
++add_on_binder HepMC3::FourVector  binder::custom_FourVector_binder
+
+
++add_on_binder HepMC3::GenRunInfo  binder::custom_GenRunInfo_binder
+-function HepMC3::GenRunInfo::tools
+
++add_on_binder LHEF::Generator   binder::custom_T_binder<LHEF::Generator>
+-function  LHEF::Generator::print
++add_on_binder LHEF::XMLTag  binder::custom_T_binder<LHEF::XMLTag>
+-function LHEF::XMLTag::print
++add_on_binder LHEF::XSecInfo  binder::custom_T_binder<LHEF::XSecInfo>
+-function LHEF::XSecInfo::print
++add_on_binder LHEF::EventFile  binder::custom_T_binder<LHEF::EventFile>
+-function LHEF::EventFile::print
++add_on_binder LHEF::Cut  binder::custom_T_binder<LHEF::Cut>
+-function LHEF::Cut::print
++add_on_binder LHEF::ProcInfo  binder::custom_T_binder<LHEF::ProcInfo>
+-function LHEF::ProcInfo::print
++add_on_binder LHEF::MergeInfo  binder::custom_T_binder<LHEF::MergeInfo>
+-function LHEF::MergeInfo::print
++add_on_binder LHEF::WeightInfo  binder::custom_T_binder<LHEF::WeightInfo>
+-function LHEF::WeightInfo::print
++add_on_binder LHEF::Weight  binder::custom_T_binder<LHEF::Weight>
+-function LHEF::Weight::print
++add_on_binder LHEF::Clus  binder::custom_T_binder<LHEF::Clus>
+-function LHEF::Clus::print
++add_on_binder LHEF::Scale  binder::custom_T_binder<LHEF::Scale>
+-function LHEF::Scale::print
++add_on_binder LHEF::Scales  binder::custom_T_binder<LHEF::Scales>
+-function LHEF::Scales::print
++add_on_binder LHEF::PDFInfo  binder::custom_T_binder<LHEF::PDFInfo>
+-function LHEF::PDFInfo::print
++add_on_binder LHEF::HEPRUP  binder::custom_T_binder<LHEF::HEPRUP>
+-function LHEF::HEPRUP::print
++add_on_binder LHEF::HEPEUP  binder::custom_T_binder<LHEF::HEPEUP>
+-function LHEF::HEPEUP::print
+
+
+
++add_on_binder LHEF::TagBase  binder::custom_LHEFTagBase_binder
+-function LHEF::TagBase::printattrs
+-function LHEF::TagBase::closetag
+
+

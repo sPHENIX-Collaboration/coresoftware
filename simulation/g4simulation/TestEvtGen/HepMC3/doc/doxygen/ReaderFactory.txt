@@ -1,0 +1,70 @@
+/**
+
+  @defgroup factory ReaderFactory
+
+  HepMC includes an abstract Reader interface that can be implemented to read
+  a wide range of different file types.  Example file types include the old
+  Ascii2 version, the new Ascii standard, or ROOT I/O.
+
+  User code may want to be independent of the file type, and so a way of
+  obtaining a Reader without specifying the type is useful.
+
+  ReaderFactory has a static make_reader(string) method, which takes the
+  name of a file as the input.  When this is called, the ReaderFactory will
+  test each of the possible Readers that it is aware of and return one if it
+  matches the file type.  For an example of the use, see test/testReaderFactory1.cc or
+  test/testReaderFactory2.cc.  Note that in both tests, the derived type of the Reader
+  does not need to be specified, even though the tests read a few different
+  file types.
+
+  Users can implement their own derived Reader types for reading custom files
+  etc.  In order for such a custom Reader to be known to the ReaderFactory, it
+  must implement the following:
+
+  In a single compilation unit (typically the .cc file for the custom Reader)
+  there must be a declared instance of a Creator as follows:
+
+  @code{.cpp}
+  #include "HepMC3/ReaderFactory.h"
+
+  namespace HepMC3{
+    class MyCustomReaderClass;
+    ReaderFactory::Creator<MyCustomReaderClass> MyCustomReaderClassCreator;
+  }
+
+  @endcode
+
+  In order to be matched to the appropriate file type, the custom reader must
+  implement one of the two following methods
+
+  fileSignatures() returns a list of strings whose presence will be checked for
+  in the header of the file.  The factory expects that these strings will occur
+  in the file on separate consecutive lines (empty lines are ignored).  i.e.
+  in the example below, it expects "str1" to be found on the first non-empty line
+  and "str2" will be found on the second non-empty line
+
+  @code{.cpp}
+  vector<string> fileSignatures()const override{return {"str1", "str2"}};
+  @endcode
+
+  Alternatively, the custom Reader must implement a method called matchesFile
+
+  @code{.cpp}
+  bool matchesFile(const string &filename) const override;
+  @endcode
+
+  This will check the given filename and return true if the custom Reader is
+  capable of reading it.  See for example rootIO/include/HepMC3/ReaderRootTree.h
+
+  Having implemented the new Reader and added one (or both) of those methods, it can
+  be checked by the ReaderFactory and will be used automatically where appropriate.
+
+  Note that it is always possible to construct a specific type of Reader directly if
+  that is a better fit for the user code.  Also note that it is fine to implement a
+  custom Reader that does not implement the necessary functions for ReaderFactory,
+  but such a Reader will not be discoverable by ReaderFactory - it could only be
+  constructed directly.  ReaderFactory is an optional utility to make user code
+  simpler, but it is not mandatory to use it.
+
+ Last update 27 Oct 2020
+*/

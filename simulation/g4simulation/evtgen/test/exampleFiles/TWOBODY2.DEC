@@ -1,0 +1,15 @@
+noPhotos
+#
+#need to turn off mixing to prevent B0 from becoming an anti-B0
+Define dm_incohMix_B0 0.0
+#
+Decay B0
+1.0 p+  anti-Lambda_c- VERBOSE HELAMP 1.0 0.0 0.0 0.0;
+Enddecay
+Decay anti-Lambda_c-
+1.0   pi- anti-Lambda0  VERBOSE  PARTWAVE 1.0 0.0 1.0 0.0 ;
+Enddecay
+Decay anti-Lambda0
+1.000 p+   pi-    VERBOSE  PARTWAVE 1.0 0.0 1.0 0.0 ;
+Enddecay
+End

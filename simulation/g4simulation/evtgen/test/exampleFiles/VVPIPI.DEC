@@ -1,0 +1,29 @@
+#
+#
+#
+#need to turn off mixing to prevent B0 from becoming an anti-B0
+Define dm_incohMix_B0 0.0
+#
+#
+Decay B0
+1.000   psi(2S)  K_S0   SVS;
+Enddecay
+#
+Decay psi(2S)
+1.000  J/psi pi+ pi-    VVPIPI;
+Enddecay
+#
+Decay J/psi
+1.000  e+ e-        VLL;
+Enddecay
+#
+End
+ 
+ 
+ 
+
+
+
+
+
+

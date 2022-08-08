@@ -1,0 +1,21 @@
+Decay Upsilon(4S)
+1.000 B0 anti-B0                            VSS;
+Enddecay
+Decay B0
+#After the alpha angle and the dm the argumets are A_a1+ \barA_a1+
+#                                                  A_a2+ \barA_a2+
+#                                                  A_a1- \barA_a1-
+#                                                  A_a2- \barA_a2-
+1.000 pi+   pi-   pi+  pi-              BTO4PI_CP 0.4 0.51e12 
+                                                    1.0 0.0 1.0 0.0
+                                                    1.0 0.0 1.0 0.0
+                                                    1.0 0.0 1.0 0.0
+                                                    1.0 0.0 1.0 0.0;
+Enddecay
+Decay anti-B0
+1.000 D+     e-   anti-nu_e             ISGW2;
+Enddecay
+Decay D+
+Enddecay
+End
+

@@ -1,0 +1,43 @@
+/*
+
+  @defgroup python Python Bindings
+
+@section pythonintro Introduction
+
+  HepMC3 includes Python bindings codes suitable for compilation of python
+  modules for Python2.6+ and Python3.
+
+The binding codes were  generated automatically using the binder utility
+version 1.1.0 created by Sergey Lyskov, Johns Hopkins University.
+See
+- https://cppbinder.readthedocs.io/en/latest/ for details.
+
+The binding codes use the pybind11 library version 2.6.0 by Wenzel Jakob,
+EPFL's School of Computer and Communication Sciences.
+See
+- https://pybind11.readthedocs.io/en/master/
+- Wenzel Jakob and Jason Rhinelander and Dean Moldovan,
+  "pybind11 -- Seamless operability between C++11 and Python", 2017,  https://github.com/pybind/pybind11
+
+@section installationsources Installation sources
+
+The Python bindings together with the HepMC3 itself can be installed from PyPy and multiple other repositories.
+Please see <a href="https://gitlab.cern.ch/hepmc/HepMC3">HepMC3 page at CERN GitLab</a> for details.
+
+@section installationnotes Installation from sources
+
+To turn on the compilation of bindings use -DHEPMC3_ENABLE_PYTHON = ON.
+By default the python modules will be generated for python2 and python3 if these are found in the system.
+In case the test suite is enabled, tests of python bindings with all the enabled versions will run as well.
+
+Despite not recommended, it should be possible to compile the python bindings using the installed version of HepMC3.
+To do this, copy the python directory outside of source tree,  uncomment #project(pyHepMC3 CXX) in  python/CMakeLists.txt and
+run cmake inside python directory with -DUSE_INSTALLED_HEPMC3=ON  option.
+
+@section developernotes Developer notes
+
+- The constructors of Readers/Writers with ifstreams/ostreams were not binded.
+
+ Last update 05 Nov 2020
+*/
+

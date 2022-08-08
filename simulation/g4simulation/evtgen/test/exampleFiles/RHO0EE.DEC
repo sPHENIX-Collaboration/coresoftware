@@ -1,0 +1,7 @@
+Decay B0
+1.000 rho0   e+  e-               BTOSLLBALL;
+Enddecay
+Decay rho0
+1.000 pi+ pi- VSS;
+Enddecay
+End

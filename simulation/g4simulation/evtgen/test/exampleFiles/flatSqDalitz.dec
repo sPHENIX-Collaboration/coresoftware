@@ -1,0 +1,17 @@
+Alias      MyLambda     Lambda0
+Alias      MyantiLambda anti-Lambda0
+ChargeConj MyLambda     MyantiLambda
+#
+Decay Lambda_b0
+  1.000        K+      K-      MyLambda      FLATSQDALITZ;
+Enddecay
+CDecay anti-Lambda_b0
+#
+Decay MyLambda
+  1.000        p+      pi-                PHSP;
+Enddecay
+CDecay MyantiLambda
+#
+End
+
+

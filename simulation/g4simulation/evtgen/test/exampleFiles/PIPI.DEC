@@ -1,0 +1,48 @@
+#Define a parmater dm for the B0B0bar mass difference
+#
+Define dm     0.51e12
+#
+#Define the CKM angle alpha
+#
+Define alpha  0.4
+#
+#Alias the neutral MYB to a B0
+#the neutral MYB will decay to the CP mode of interest
+#
+Alias MYB B0
+Alias MYantiB anti-B0
+ChargeConj MYB MYantiB
+CDecay MYantiB
+#
+Decay Upsilon(4S)
+# two decays of the UPS4S with equal probabilities for B0 and B0B tags 
+0.50 MYB anti-B0                        VSS;
+0.50 MYB B0                         VSS;
+Enddecay
+#
+Decay MYB
+1.000 pi+   pi-                   SSS_CP alpha dm 1 1.0 0.0 1.0 0.0;
+Enddecay
+#
+Decay anti-B0
+1.000 D*+     e-   anti-nu_e        ISGW2;
+Enddecay
+#
+Decay B0
+1.000 D*-     e+   nu_e            ISGW2;
+Enddecay
+#
+# The statement below makes the D*+ a stable particle.
+#
+Decay D*+
+Enddecay
+#
+# The statement below makes the D*- a stable particle.
+#
+Decay D*-
+Enddecay
+#
+# Note this trailing "End" is important!
+#
+End
+

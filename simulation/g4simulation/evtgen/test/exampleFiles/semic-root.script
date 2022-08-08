@@ -1,0 +1,184 @@
+
+/***********************************************************************
+* Copyright 1998-2020 CERN for the benefit of the EvtGen authors       *
+*                                                                      *
+* This file is part of EvtGen.                                         *
+*                                                                      *
+* EvtGen is free software: you can redistribute it and/or modify       *
+* it under the terms of the GNU General Public License as published by *
+* the Free Software Foundation, either version 3 of the License, or    *
+* (at your option) any later version.                                  *
+*                                                                      *
+* EvtGen is distributed in the hope that it will be useful,            *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+* GNU General Public License for more details.                         *
+*                                                                      *
+* You should have received a copy of the GNU General Public License    *
+* along with EvtGen.  If not, see <https://www.gnu.org/licenses/>.     *
+***********************************************************************/
+
+{
+TFile *myFile = new TFile("semic.root","READ");
+myFile->ls();
+TCanvas *myCanvas = new TCanvas("c","Semileptonic decays",0,0,600,400);
+
+
+TH1F *hist11=h11;
+TH1F *hist13=h13;
+TH1F *hist15=h15;
+TH1F *hist17=h17;
+TH1F *hist12=h12;
+TH1F *hist14=h14;
+TH1F *hist16=h16;
+TH1F *hist18=h18;
+
+TH1F *hist21=h21;
+TH1F *hist23=h23;
+TH1F *hist25=h25;
+TH1F *hist27=h27;
+TH1F *hist22=h22;
+TH1F *hist24=h24;
+TH1F *hist26=h26;
+TH1F *hist28=h28;
+
+TH1F *hist31=h31;
+TH1F *hist33=h33;
+TH1F *hist35=h35;
+TH1F *hist37=h37;
+TH1F *hist32=h32;
+TH1F *hist34=h34;
+TH1F *hist36=h36;
+TH1F *hist38=h38;
+
+TH1F *hist41=h41;
+TH1F *hist43=h43;
+TH1F *hist45=h45;
+TH1F *hist47=h47;
+TH1F *hist42=h42;
+TH1F *hist44=h44;
+TH1F *hist46=h46;
+TH1F *hist48=h48;
+
+TH1F *hist51=h51;
+TH1F *hist53=h53;
+TH1F *hist55=h55;
+TH1F *hist57=h57;
+TH1F *hist52=h52;
+TH1F *hist54=h54;
+TH1F *hist56=h56;
+TH1F *hist58=h58;
+
+TH1F *hist61=h61;
+TH1F *hist63=h63;
+TH1F *hist65=h65;
+TH1F *hist67=h67;
+TH1F *hist62=h62;
+TH1F *hist64=h64;
+TH1F *hist66=h66;
+TH1F *hist68=h68;
+
+hist11->Draw();
+myCanvas.Update();
+hist13->Draw();
+myCanvas.Update();
+hist15->Draw();
+myCanvas.Update();
+hist17->Draw();
+myCanvas.Update();
+hist12->Draw();
+myCanvas.Update();
+hist14->Draw();
+myCanvas.Update();
+hist16->Draw();
+myCanvas.Update();
+hist18->Draw();
+myCanvas.Update();
+
+hist21->Draw();
+myCanvas.Update();
+hist23->Draw();
+myCanvas.Update();
+hist25->Draw();
+myCanvas.Update();
+hist27->Draw();
+myCanvas.Update();
+hist22->Draw();
+myCanvas.Update();
+hist24->Draw();
+myCanvas.Update();
+hist26->Draw();
+myCanvas.Update();
+hist28->Draw();
+myCanvas.Update();
+
+hist31->Draw();
+myCanvas.Update();
+hist33->Draw();
+myCanvas.Update();
+hist35->Draw();
+myCanvas.Update();
+hist37->Draw();
+myCanvas.Update();
+hist32->Draw();
+myCanvas.Update();
+hist34->Draw();
+myCanvas.Update();
+hist36->Draw();
+myCanvas.Update();
+hist38->Draw();
+myCanvas.Update();
+
+hist41->Draw();
+myCanvas.Update();
+hist43->Draw();
+myCanvas.Update();
+hist45->Draw();
+myCanvas.Update();
+hist47->Draw();
+myCanvas.Update();
+hist42->Draw();
+myCanvas.Update();
+hist44->Draw();
+myCanvas.Update();
+hist46->Draw();
+myCanvas.Update();
+hist48->Draw();
+myCanvas.Update();
+
+hist51->Draw();
+myCanvas.Update();
+hist53->Draw();
+myCanvas.Update();
+hist55->Draw();
+myCanvas.Update();
+hist57->Draw();
+myCanvas.Update();
+hist52->Draw();
+myCanvas.Update();
+hist54->Draw();
+myCanvas.Update();
+hist56->Draw();
+myCanvas.Update();
+hist58->Draw();
+myCanvas.Update();
+
+hist61->Draw();
+myCanvas.Update();
+hist63->Draw();
+myCanvas.Update();
+hist65->Draw();
+myCanvas.Update();
+hist67->Draw();
+myCanvas.Update();
+hist62->Draw();
+myCanvas.Update();
+hist64->Draw();
+myCanvas.Update();
+hist66->Draw();
+myCanvas.Update();
+hist68->Draw();
+myCanvas.Update();
+
+
+}

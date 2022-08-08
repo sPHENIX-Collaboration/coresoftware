@@ -1,0 +1,45 @@
+# $Id: Bd_phiKS=CPV.dec 89808 2010-10-12 10:17:29Z robbep $
+#
+# This is the decay file for the decay B0 -> PHI(-> K+ K-) K0S(-> PI+ PI-)
+#
+# EventType: 11104102
+#
+# Descriptor: [B0 -> (KS0 -> pi+ pi-) (phi(1020) -> K+ K-)]cc
+#
+# NickName: Bd_phiKS=CPV
+#
+# Physics: CP violation, Phi forced into K+ K-, K0s forced into pi+ pi-
+#
+# Tested: Yes
+# By: Yuehong Xie
+# Date: 7 May 2004
+#
+# Parameters are:
+# P(1) = deltaM = 0.502e12
+# P(2) = dg/g = 0
+# P(3) = |q/p| = 1
+# P(4) = arg(q/p) = -0.775
+# P(5) = |Af| = 1.0
+# P(6) = arg(Af) = 0.
+# P(7) = |Abarf| = 1.0
+# P(8) = arg(Abarf) = 0.
+#
+Alias      MyPhi   phi
+Alias      MyKs    K_S0
+ChargeConj MyPhi   MyPhi
+ChargeConj MyKs    MyKs
+Decay B0sig
+  1.000        MyKs      MyPhi    SSD_CP 0.502e12 0.0 1.0 -0.775 1.0 0.0 -1.0 0.0;
+Enddecay
+CDecay anti-B0sig
+#
+Decay MyPhi
+  1.000        K+       K-                  VSS;
+Enddecay
+#
+Decay MyKs
+  1.000        pi+      pi-                 PHSP;
+Enddecay
+#
+End
+

@@ -1,0 +1,5 @@
+Decay B_s0
+1.0        anti-cs_1       ud_1         PYTHIA 63;
+Enddecay
+#
+End

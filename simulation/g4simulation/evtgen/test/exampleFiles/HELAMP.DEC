@@ -1,0 +1,29 @@
+#
+#
+#
+Decay Upsilon(4S)
+#1.000 D*0  gamma             HELAMP 1.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0; 
+#1.000 D*0  gamma             HELAMP 0.0 0.0 1.0 0.0 1.0 0.0 0.0 0.0; 
+#1.000 D*0  gamma             HELAMP 0.7071 0.0 1.0 0.0 1.0 0.0 0.7071 0.0; 
+1.000 D_2*0  gamma             HELAMP 1.0 0.0 0.0 0.0 0.0 0.0
+                                      0.0 0.0 0.0 0.0 1.0 0.0; 
+Enddecay
+#
+Decay D_2*0
+#1.000 D0  pi0              TSS;
+1.000 D0  pi0              HELAMP 1.0 0.0;
+#1.000 D*0  pi0              HELAMP 1.0 0.0 0.0 0.0 0.0 0.0;
+Enddecay
+#
+Decay D*0
+1.00  D0   pi0               HELAMP 1.0 0.0;
+Enddecay
+#
+Decay D0
+Enddecay
+#
+Decay pi0
+Enddecay
+#
+End
+

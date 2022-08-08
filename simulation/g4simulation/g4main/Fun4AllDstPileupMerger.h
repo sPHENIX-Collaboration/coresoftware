@@ -38,6 +38,8 @@ class Fun4AllDstPileupMerger final
   //! time-shift and copy content of source nodes to destination
   void copy_background_event(PHCompositeNode *, double delta_t) const;
 
+  void copyDetectorActiveCrossings(const std::map<std::string,std::pair<double ,double>> &dmap) {m_DetectorTiming = dmap;}
+
   private:
 
   //! hepmc
@@ -49,6 +51,7 @@ class Fun4AllDstPileupMerger final
   //! truth information
   PHG4TruthInfoContainer *m_g4truthinfo = nullptr;
 
+  std::map<std::string,std::pair<double ,double>> m_DetectorTiming;
 };
 
 #endif

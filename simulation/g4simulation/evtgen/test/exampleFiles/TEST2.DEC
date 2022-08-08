@@ -1,0 +1,39 @@
+#
+#
+#
+#
+Decay Upsilon(4S)
+1.000   B0 anti-B0    VSS;
+Enddecay
+#
+Decay B0
+1.000 omega anti-D0   SVS;
+Enddecay
+#
+Decay omega
+1.000  pi+ pi- pi0    OMEGA_DALITZ;
+Enddecay
+#
+Decay anti-B0
+1.000  J/psi K*0      SVV_CP 0.5 0.47e12 1 1.0 0.0 1.0 0.0 1.0 0.0;
+Enddecay
+#
+Decay J/psi
+1.000 mu+  mu-        VLL;
+Enddecay
+#
+Decay K*0
+1.000 K_S0  pi0       VSS;
+Enddecay
+#
+Decay K_S0
+Enddecay
+#
+Decay pi0
+Enddecay
+#
+Decay anti-D0
+Enddecay
+#
+End
+

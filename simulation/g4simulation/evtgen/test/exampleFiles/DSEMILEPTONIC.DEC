@@ -1,0 +1,112 @@
+# Turn of photos for this test
+noPhotos
+#
+# Define model alias for the D semileptonic decays
+# This should correspond to MV=2.1 GeV and MA1=MA2=2.5 GeV
+# R2=0.85 RV=1.5
+ModelAlias SLPOLE_DtoKstarlnu SLPOLE 1.00 -0.558 0.0 1.0	
+                                     0.85 -0.558 0.0 1.0
+                                     1.50 -0.790 0.0 1.0
+                                     0.00 -0.558 0.0 1.0;
+# The pole mass for the Cabibbo suppressed decays nees to be fixed!!!!! 
+# This should correspond to MV=2.1 GeV and MA1=MA2=2.5 GeV
+# R2=0.6 RV=1.5
+ModelAlias SLPOLE_Dtorhoomegalnu SLPOLE 1.00 -0.558 0.0 1.0	
+                                        0.60 -0.558 0.0 1.0
+                                        1.50 -0.790 0.0 1.0
+                                        0.00 -0.558 0.0 1.0;
+ModelAlias SLBKPOLE_DtoKlnu SLBKPOLE 1.0 0.25 1.0;
+ModelAlias SLBKPOLE_Dtopilnu SLBKPOLE 1.0 0.25 1.0;
+ModelAlias SLBKPOLE_Dtoetalnu SLBKPOLE 1.0 0.25 1.0;
+ModelAlias SLBKPOLE_Dtoetaplnu SLBKPOLE 1.0 0.25 1.0;
+
+#
+Decay D+
+0.0556  anti-K*0  e+  nu_e           SLPOLE_DtoKstarlnu;
+0.0876  anti-K0    e+  nu_e          SLBKPOLE_DtoKlnu;
+0.0025  anti-K_10  e+  nu_e          ISGW2;
+0.0026  anti-K_2*0 e+  nu_e          ISGW2;
+0.0039  pi0  e+  nu_e                SLBKPOLE_Dtopilnu;
+0.0013  eta  e+  nu_e                SLBKPOLE_Dtoetalnu;
+0.0005  eta' e+  nu_e                SLBKPOLE_Dtoetaplnu;
+0.0023  rho0 e+  nu_e                SLPOLE_Dtorhoomegalnu;
+0.0015  omega e+  nu_e               SLPOLE_Dtorhoomegalnu;
+0.0018  K-  pi+  e+ nu_e             PHSP;
+#
+0.0545  anti-K*0  mu+  nu_mu         SLPOLE_DtoKstarlnu;
+0.0858  anti-K0    mu+  nu_mu        SLBKPOLE_DtoKlnu;
+0.0025  anti-K_10  mu+  nu_mu        ISGW2;
+0.0026  anti-K_2*0 mu+  nu_mu        ISGW2;
+0.0038  pi0  mu+  nu_mu              SLBKPOLE_Dtopilnu;
+0.0013  eta  mu+  nu_mu              SLBKPOLE_Dtoetalnu;
+0.0005  eta' mu+  nu_mu              SLBKPOLE_Dtoetaplnu;
+0.0023  rho0 mu+  nu_mu              SLPOLE_Dtorhoomegalnu;
+0.0015  omega mu+  nu_mu             SLPOLE_Dtorhoomegalnu;
+0.0018  K-  pi+  mu+ nu_mu           PHSP;
+Enddecay
+
+Decay D-
+0.0556   K*0  e-  anti-nu_e          SLPOLE_DtoKstarlnu;
+0.0876   K0   e-  anti-nu_e          SLBKPOLE_DtoKlnu;
+0.0025   K_10  e-  anti-nu_e         ISGW2;
+0.0026   K_2*0 e-  anti-nu_e         ISGW2;
+0.0039   pi0  e-  anti-nu_e          SLBKPOLE_Dtopilnu;
+0.0013   eta  e-  anti-nu_e          SLBKPOLE_Dtoetalnu;
+0.0005   eta' e-  anti-nu_e          SLBKPOLE_Dtoetaplnu;
+0.0023   rho0 e-  anti-nu_e          SLPOLE_Dtorhoomegalnu;
+0.0015   omega e-  anti-nu_e         SLPOLE_Dtorhoomegalnu;
+0.0018   K+  pi-  e- anti-nu_e       PHSP;
+#
+0.0545   K*0  mu-  anti-nu_mu        SLPOLE_DtoKstarlnu;
+0.0858   K0   mu-  anti-nu_mu        SLBKPOLE_DtoKlnu;
+0.0025   K_10  mu-  anti-nu_mu       ISGW2;
+0.0026   K_2*0 mu-  anti-nu_mu       ISGW2;
+0.0038   pi0  mu-  anti-nu_mu        SLBKPOLE_Dtopilnu;
+0.0013   eta  mu-  anti-nu_mu        SLBKPOLE_Dtoetalnu;
+0.0005   eta' mu-  anti-nu_mu        SLBKPOLE_Dtoetaplnu;
+0.0023   rho0 mu-  anti-nu_mu        SLPOLE_Dtorhoomegalnu;
+0.0015   omega mu-  anti-nu_mu       SLPOLE_Dtorhoomegalnu;
+0.0018   K+  pi-  mu- anti-nu_mu     PHSP;
+Enddecay
+
+Decay D0
+0.0216   K*-  e+  nu_e	             SLPOLE_DtoKstarlnu;
+0.0356   K-   e+  nu_e               SLBKPOLE_DtoKlnu;
+0.0014   K_1-  e+  nu_e              ISGW2;
+0.0015   K_2*- e+  nu_e              ISGW2;
+0.0031   pi-  e+  nu_e               SLBKPOLE_Dtopilnu;
+0.0016   rho- e+  nu_e               SLPOLE_Dtorhoomegalnu;
+0.0012   K-  pi0 e+ nu_e             PHSP;
+0.0021   anti-K0 pi- e+ nu_e         PHSP;
+#
+0.0212   K*-  mu+ nu_mu              SLPOLE_DtoKstarlnu;
+0.0349   K-   mu+ nu_mu              SLBKPOLE_DtoKlnu;
+0.0014   K_1-  mu+ nu_mu             ISGW2;
+0.0015   K_2*- mu+ nu_mu             ISGW2;
+0.0030   pi-  mu+ nu_mu              SLBKPOLE_Dtopilnu;
+0.0016   rho- mu+ nu_mu              SLPOLE_Dtorhoomegalnu;
+0.0012   K-  pi0 mu+ nu_mu           PHSP;
+0.0021   anti-K0 pi- mu+ nu_mu       PHSP;
+Enddecay
+
+Decay anti-D0
+0.0216   K*+  e-  anti-nu_e          SLPOLE_DtoKstarlnu;
+0.0356   K+   e-  anti-nu_e          SLBKPOLE_DtoKlnu;
+0.0014   K_1+  e-  anti-nu_e         ISGW2;
+0.0015   K_2*+ e-  anti-nu_e         ISGW2;
+0.0031   pi+  e-  anti-nu_e          SLBKPOLE_Dtopilnu;
+0.0016   rho+ e-  anti-nu_e          SLPOLE_Dtorhoomegalnu;
+0.0012   K+  pi0 e- anti-nu_e        PHSP;
+0.0021   K0 pi+ e- anti-nu_e         PHSP;
+#
+0.0212   K*+  mu- anti-nu_mu         SLPOLE_DtoKstarlnu;
+0.0349   K+   mu- anti-nu_mu         SLBKPOLE_DtoKlnu;
+0.0014   K_1+  mu- anti-nu_mu        ISGW2;
+0.0015   K_2*+ mu- anti-nu_mu        ISGW2;
+0.0030   pi+  mu- anti-nu_mu         SLBKPOLE_Dtopilnu;
+0.0016   rho+ mu- anti-nu_mu         SLPOLE_Dtorhoomegalnu;
+0.0012   K+  pi0 mu- anti-nu_mu      PHSP;
+0.0021   K0 pi+ mu- anti-nu_mu       PHSP;
+Enddecay
+
+End

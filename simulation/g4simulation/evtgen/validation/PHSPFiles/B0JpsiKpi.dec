@@ -1,0 +1,13 @@
+# Decay file to generate phase space for B0 -> J/psi K+ pi-
+# to see if the Dalitz plot has any artificial structure 
+# due to the random number generator
+
+Decay B0
+1.0  J/psi K+ pi- PHSP;
+Enddecay
+
+Decay J/psi
+1.0 mu+ mu- VLL;
+Enddecay
+
+End

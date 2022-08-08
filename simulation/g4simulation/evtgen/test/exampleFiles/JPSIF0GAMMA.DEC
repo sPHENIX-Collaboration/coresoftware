@@ -1,0 +1,19 @@
+#
+#
+#
+Decay J/psi
+1.000 f_0 gamma          HELAMP 1.0 0.0  0.0 0.0; 
+Enddecay
+#
+Decay f_0   	
+1.000 rho0  gamma       HELAMP 1.0 0.0 0.0 0.0; 
+Enddecay
+#
+Decay rho0   	
+1.000 pi+  pi-          HELAMP 1.0 0.0; 
+Enddecay
+#
+#
+End
+
+

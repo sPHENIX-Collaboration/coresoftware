@@ -1,0 +1,82 @@
+# Without pole compensation generation 
+# efficiency is only 0.3%
+#
+# PARSER OUTPUT:
+#PARSING SUCCESSFUL 
+#3 amplitude terms
+#0 conjugate amplitude terms
+#Decay File defines mode B0 -> K+ pi- pi0
+#Build amplitudes 10000 will be sampled
+#PDF STATS
+#  Points tried     100000
+#         pdfMax    517.14
+#         pdfSum7.22111e+06
+#       Integral   568.065
+#    pdfMaxRatio  0.999365
+#     pdfMaxComp   1.82268
+#     pdfSumComp   31190.6
+#SAMPLER STATS
+#SUM STATS
+#PDF STATS
+#  Points tried     100520
+#         pdfMax   528.996
+#         pdfSum    526677
+#       Integral   1821.27
+#TERM STATS
+#PDF STATS
+#  Points tried          1
+#         pdfMax   12.7835
+#         pdfSum 0.0861114
+#       Integral   30.0243
+#TERM STATS
+#PDF STATS
+#  Points tried          1
+#         pdfMax   12.6063
+#         pdfSum 0.0869193
+#       Integral    30.306
+#TERM STATS
+#PDF STATS
+#  Points tried          1
+#         pdfMax   4.24413
+#         pdfSum  0.103625
+#       Integral   36.1306
+#TERM SUMMARY
+#3 terms
+#        Integral      Peak   PoleCompPeak
+#0       0.691929   517.483        1.09923
+#1       0.317332   230.888        1.09315
+#2     0.00460246  0.960193       0.717559
+#Sum=1.01386
+#Efficiency 0.16897
+
+
+Decay B0
+
+1.0 K+ pi- pi0 PTO3P
+
+MAXPDF 2.2
+
+AMPLITUDE 	RESONANCE	AC	K*-	0.89 0.0498
+		ANGULAR		AB
+		TYPE		RBW_KUEHN
+		POLECOMP
+COEFFICIENT 	CARTESIAN	-1.0649 -0.6716
+
+
+AMPLITUDE 	RESONANCE	AB	anti-K*0	0.8961 0.0505
+		ANGULAR		AC
+		TYPE		RBW_KUEHN
+		POLECOMP
+COEFFICIENT	CARTESIAN	0.7892 0.3085
+
+
+AMPLITUDE	RESONANCE	BC	rho+	0.77 0.15
+		ANGULAR		AB
+		TYPE		RBW_KUEHN
+		POLECOMP
+COEFFICIENT	CARTESIAN	0.1746 -0.0664
+
+
+;
+Enddecay
+End

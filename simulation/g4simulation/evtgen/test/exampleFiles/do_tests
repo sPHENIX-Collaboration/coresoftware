@@ -1,0 +1,120 @@
+
+########################################################################
+# Copyright 1998-2020 CERN for the benefit of the EvtGen authors       #
+#                                                                      #
+# This file is part of EvtGen.                                         #
+#                                                                      #
+# EvtGen is free software: you can redistribute it and/or modify       #
+# it under the terms of the GNU General Public License as published by #
+# the Free Software Foundation, either version 3 of the License, or    #
+# (at your option) any later version.                                  #
+#                                                                      #
+# EvtGen is distributed in the hope that it will be useful,            #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of       #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        #
+# GNU General Public License for more details.                         #
+#                                                                      #
+# You should have received a copy of the GNU General Public License    #
+# along with EvtGen.  If not, see <https://www.gnu.org/licenses/>.     #
+########################################################################
+
+time ../../testEvtGen file 1000 GENERIC.DEC  
+time ../../testEvtGen print 1000 GENERIC.DEC  
+time ../../testEvtGen filevpho 1000 GENERIC.DEC
+time ../../testEvtGen test1 1000
+time ../../testEvtGen chi1kstar 1000
+time ../../testEvtGen test2 1000
+time ../../testEvtGen incoherent 1000
+time ../../testEvtGen omega 1000
+time ../../testEvtGen stdhep 2
+time ../../testEvtGen alias
+time ../../testEvtGen photos 1000
+time ../../testEvtGen dsee 1000
+time ../../testEvtGen trackmult 1000
+time ../../testEvtGen generic 1000
+time ../../testEvtGen generic 1000 generic.list
+time ../../testEvtGen generic 1000 genericlong.list
+time ../../testEvtGen finalstates 1000
+time ../../testEvtGen finalstates2 1000
+time ../../testEvtGen kstarnunu 1000
+time ../../testEvtGen bctaunu 1000
+time ../../testEvtGen bsmix 10000
+time ../../testEvtGen bmixincoherent 10000
+time ../../testEvtGen BtoXsgamma 1000
+time ../../testEvtGen BtoK1273gamma 1000
+time ../../testEvtGen pi0dalitz 1000 
+time ../../testEvtGen ddalitz 1000
+time ../../testEvtGen kstarll 1000
+time ../../testEvtGen lnugamma 1000
+time ../../testEvtGen kll 1000
+time ../../testEvtGen hll 1000 pimm
+time ../../testEvtGen hll 1000 piee
+time ../../testEvtGen hll 1000 pi0mm
+time ../../testEvtGen hll 1000 pi0ee
+time ../../testEvtGen vectorisr 10000
+time ../../testEvtGen bsquark 1000
+time ../../testEvtGen k3gamma 1000
+time ../../testEvtGen lambda 1000
+time ../../testEvtGen tautaupipi 1000
+time ../../testEvtGen tautauee 1000
+time ../../testEvtGen tautau2pi2pi 1000
+time ../../testEvtGen tautau3pi3pi 1000
+time ../../testEvtGen jpsikstar 1000 0
+time ../../testEvtGen jpsikstar 1000 1
+time ../../testEvtGen jpsikstar 1000 2
+time ../../testEvtGen jpsikstar 1000 3
+time ../../testEvtGen jpsikstar 1000 4
+time ../../testEvtGen svvcplh 1000
+time ../../testEvtGen svscplh 1000
+time ../../testEvtGen ssdcp 10000
+time ../../testEvtGen ssdcp2 10000
+time ../../testEvtGen kstarstargamma 1000
+time ../../testEvtGen dstarpi 10000
+time ../../testEvtGen etacphiphi 10000
+time ../../testEvtGen vvpipi 1000
+time ../../testEvtGen svvhelamp 1000
+time ../../testEvtGen partwave 1000
+time ../../testEvtGen partwave2 1000
+time ../../testEvtGen twobody 1000 TWOBODY1.DEC
+time ../../testEvtGen twobody 1000 TWOBODY2.DEC
+time ../../testEvtGen twobody 1000 TWOBODY3.DEC
+time ../../testEvtGen pipipi 1000
+time ../../testEvtGen bhadronic 1000
+time ../../testEvtGen singleb 1000
+time ../../testEvtGen pipi 1000
+time ../../testEvtGen pipipipi  1000
+time ../../testEvtGen a2pi 1000 
+time ../../testEvtGen helamp1 1000 HELAMP1_D2STGAMMA.DEC 'Upsilon(4S)' helamp1_D2stgamma.root
+time ../../testEvtGen helamp1 1000 HELAMP1_D2STPI.DEC 'B+' helamp1_D2stpi.root
+time ../../testEvtGen helamp1 1000 HELAMP1_K_3STPI.DEC 'B+' helamp1_K_3stpi.root
+time ../../testEvtGen helamp1 1000 HELAMP1_TAUNU.DEC 'B+' helamp1_taunu.root
+time ../../testEvtGen helamp1 1000 HELAMP1_NDELTA.DEC 'B+' helamp1_ndelta.root
+time ../../testEvtGen helamp1 -10000 HELAMP1_CHIC1GAMMA.DEC 'psi(2S)' helamp1_chic1gamma.root
+time ../../testEvtGen helamp1 -10000 VSP_PWAVE_DST_TO_DGAMMA.DEC 'D*0' vsp_pwave_dst_dgamma.root
+time ../../testEvtGen helamp1 -10000 PARTWAVE_DST_TO_DGAMMA.DEC 'D*0' partwave_dst_dgamma.root
+time ../../testEvtGen helamp2 1000
+time ../../testEvtGen lambdab 1000
+time ../../testEvtGen psip3body 1000
+time ../../testEvtGen jpsixgamma 1000
+time ../../testEvtGen jpsif0gamma 1000
+time ../../testEvtGen d2pi 1000
+time ../../testEvtGen a1pi 1000
+time ../../testEvtGen cptest 1000 
+time ../../testEvtGen pipicpt 1000
+time ../../testEvtGen jpsiks 1000
+time ../../testEvtGen jetsetetab3 10
+time ../../testEvtGen dump 10
+time ../../testEvtGen random 10
+time ../../testEvtGen uclaII 1000
+time ../../testEvtGen genericcont 1000
+time ../../testEvtGen d1 1000
+time ../../testEvtGen mix 1000
+time ../../testEvtGen bmix BMIX_1.DEC bmix_1.root 10000
+time ../../testEvtGen bmix BMIX_2.DEC bmix_2.root 10000
+time ../../testEvtGen dsemileptonic 10000
+time ../../testEvtGen etaprk 10000
+time ../../testEvtGen ddk 10000
+time ../../testEvtGen checkmass 10000 511
+time ../../testEvtGen jpsipolarization 10000
+time ../../testEvtGen checkrotboost
+time ../../testEvtGen baryonic 1000

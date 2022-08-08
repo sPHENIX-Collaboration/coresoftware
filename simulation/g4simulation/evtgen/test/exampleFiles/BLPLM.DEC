@@ -1,0 +1,16 @@
+Decay UPS4
+1.000 B0 B0B                              VSS;
+Enddecay
+Decay B0
+1.000 tau+   tau-                         SLL;
+Enddecay
+Decay B0B
+1.000 tau+   tau-                         SLL;
+Enddecay
+Decay tau+
+1.000 pi+    nutb                         TAUSCALARNU;
+Enddecay
+Decay tau-
+1.000 pi-    nut                          TAUSCALARNU;
+Enddecay
+End

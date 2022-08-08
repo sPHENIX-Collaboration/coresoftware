@@ -1,0 +1,11 @@
+#
+Decay D*0
+1.000 D0  gamma             PARTWAVE 0.0 0.0 1.0 0.0 0.0 0.0; 
+Enddecay
+#
+Decay D0
+1.000 K- pi+                PHSP;
+Enddecay
+#
+End
+

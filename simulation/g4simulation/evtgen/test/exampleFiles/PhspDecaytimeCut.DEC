@@ -1,0 +1,5 @@
+Decay B+
+1.000 J/psi   K+                            PHSPDECAYTIMECUT 0.4;
+Enddecay
+CDecay B-
+End

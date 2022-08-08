@@ -1,0 +1,23 @@
+# $Id: Bs_K+K-=CPV.dec 89808 2010-10-12 10:17:29Z robbep $
+#
+# This is the decay file for the decay BS0 -> K- K+
+#
+# EventType: 13102003
+#
+# Descriptor: [B_s0 -> K- K+]cc
+#
+# NickName: Bs_K+K-=CPV
+#
+# Physics: CP Violation
+#
+# Tested: No
+# By: 
+# Date: 
+#
+Decay B_s0sig
+  1.000       K+     K-    SSD_CP 20.e12 0.1 1.0 0.04 9.6 -0.8 8.4 -0.6;
+Enddecay
+CDecay anti-B_s0sig
+#
+End
+

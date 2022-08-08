@@ -1,0 +1,5 @@
+Decay B_s0
+1.0   anti-s  s       PYTHIA         91;
+Enddecay
+#
+End

@@ -1,0 +1,34 @@
+# $Id: Bd_pi+pi-=CPV.dec 89808 2010-10-12 10:17:29Z robbep $
+#
+# This is the decay file for the decay B0 -> PI+ PI-
+#
+# EventType: 11102012
+#
+# Descriptor: [B0 -> pi+ pi-]cc
+#
+# NickName: Bd_pi+pi-=CPV
+#
+# Physics: CP violation
+#
+# Tested: No
+# By: 
+# Date:
+#
+#
+# Parameters are:
+# P(1) = deltaM = 0.502e12
+# P(2) = dg/g = 0
+# P(3) = |q/p| = 1
+# P(4) = arg(q/p) = -0.775
+# P(5) = |Af| = 1
+# P(6) = arg(Af) = 0.6
+# P(7) = |Abarf| = 1.5
+# P(8) = arg(Abarf) = -1.0
+
+Decay B0sig
+  1.000       pi+     pi-   SSD_CP 0.502e12 0.0 1.0 -0.775 1.0 0.6 1.5 -1.0;
+Enddecay
+CDecay anti-B0sig
+#
+End
+

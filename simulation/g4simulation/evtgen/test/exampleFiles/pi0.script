@@ -1,0 +1,148 @@
+
+/***********************************************************************
+* Copyright 1998-2020 CERN for the benefit of the EvtGen authors       *
+*                                                                      *
+* This file is part of EvtGen.                                         *
+*                                                                      *
+* EvtGen is free software: you can redistribute it and/or modify       *
+* it under the terms of the GNU General Public License as published by *
+* the Free Software Foundation, either version 3 of the License, or    *
+* (at your option) any later version.                                  *
+*                                                                      *
+* EvtGen is distributed in the hope that it will be useful,            *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+* GNU General Public License for more details.                         *
+*                                                                      *
+* You should have received a copy of the GNU General Public License    *
+* along with EvtGen.  If not, see <https://www.gnu.org/licenses/>.     *
+***********************************************************************/
+
+{
+gROOT->SetStyle("Plain");
+Int_t nbin(30);
+
+Double_t p[nbin]={1.05,1.15,1.25,1.35,1.45,1.55,1.65,1.75,1.85,1.95,
+                  2.05,2.15,2.25,2.35,2.45,2.55,2.65,2.75,2.85,2.95,
+                  0.05,0.15,0.25,0.35,0.45,0.55,0.65,0.75,0.85,0.95};
+Double_t ep[nbin]={0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+                   0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+                   0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+
+Double_t npi0[nbin]={0.701,0.535,0.402,0.294,0.223,0.152,0.129,0.101,
+                     0.084,0.061,0.059,0.044,0.027,-.003,0.002,0.005,-.003,
+                     0.002,-.003,-.001,4.483,8.893,8.106,6.635,5.245,
+                     3.749,2.780,1.942,1.370,1.017,};
+Double_t esta[nbin]={.018,.015,.013,.012,.011,.009,.008,.007,.006,.006,
+                     .005,.005,.005,.005,.004,.004,.004,.004,.004,.004,
+                     .143,.297,.182,.117,.083,.062,.048,.039,.031,.026};
+Double_t esys[nbin]={0.125,0.095,0.076,0.059,0.049,0.039, 
+                     0.031,0.026,0.022,0.018,0.017,0.014,0.011,0.011,
+                     0.009,0.007,0.007,0.006,0.005,0.005,
+                     .0644,1.182,1.012,0.836,0.699,0.506,0.377,0.290,
+                     0.209,0.161};
+
+Double_t etot[nbin];
+
+for (Int_t i=0;i<nbin;i++) {
+   etot[i]=sqrt(esta[i]*esta[i]+esys[i]*esys[i]);
+}
+TFile *myFile = new TFile("generic.root","READ");
+
+Float_t nBB=1.0/10000.;
+
+
+TH1F *pi0mom=new TH1F(*pi0);
+*pi0mom=(*pi0mom)*nBB;
+
+TCanvas *myCanvas = new TCanvas("c","ssdcp",0,0,400,400);
+
+//TH1F *th1=h1;
+
+TGraphErrors *gr1=new TGraphErrors(nbin,p,npi0,ep,esta);
+TGraphErrors *gr2=new TGraphErrors(nbin,p,npi0,ep,etot);
+TGraphErrors *gr3=new TGraphErrors(20,p,npi0,ep,esta);
+TGraphErrors *gr4=new TGraphErrors(20,p,npi0,ep,etot);
+
+gr1->SetMarkerStyle(21);
+gr2->SetMarkerStyle(21);
+gr3->SetMarkerStyle(21);
+gr4->SetMarkerStyle(21);
+
+gr1->SetMarkerSize(0.6);
+gr2->SetMarkerSize(0.6);
+gr3->SetMarkerSize(0.6);
+gr4->SetMarkerSize(0.6);
+
+gr1->SetMaximum(12.0);
+gr1->SetMinimum(-0.2);
+gr3->SetMaximum(1.1);
+gr3->SetMinimum(-0.02);
+gr1->SetTitle("");
+gr2->SetTitle("");
+gr3->SetTitle("");
+gr4->SetTitle("");
+
+
+Float_t lm=myCanvas->GetLeftMargin();
+Float_t bm=myCanvas->GetBottomMargin();
+lm=lm*1.5;
+bm=bm*1.5;
+myCanvas->SetLeftMargin(lm);
+myCanvas->SetBottomMargin(bm);
+
+
+gr1->Draw("AP");
+gr2->Draw("P");
+pi0mom->Draw("SAME");
+TAxis *axisx=gr1->GetXaxis();
+TAxis *axisy=gr1->GetYaxis();
+axisx->SetLabelSize(0.06);
+axisy->SetLabelSize(0.06);
+axisx->SetTitleOffset(1.);
+axisx->SetLimits(0.0,3.0);
+
+TLine *line=new TLine(0.,0.,3.,0.);
+line->Draw();
+
+Float_t ts2=axisx->GetTitleSize();
+ts2=1.5*ts2;
+axisx->SetTitleSize(ts2);
+
+axisx->SetTitle("Momentum (GeV/c)");
+
+TLatex *myytit=new TLatex();
+//axisy->SetTitle(myytit);
+
+myytit->SetTextAngle(90);
+Float_t ts=myytit->GetTextSize();
+ts=1.3*ts;
+myytit->SetTextSize(ts);
+
+myytit->DrawLatex(-0.3,5.2,"1/#sigma_{#Upsilon(4S)} d#sigma/dp");
+
+TPad *miniPad=new TPad("hi","mini",0.39,0.39,0.89,0.89);
+miniPad->Draw();
+miniPad->cd();
+gr3->Draw("AP");
+gr4->Draw("P");
+pi0mom->Draw("SAME");
+
+TAxis *axisx2=gr3->GetXaxis();
+TAxis *axisy2=gr3->GetYaxis();
+axisx2->SetNdivisions(50209);
+axisx2->SetLabelSize(0.06);
+axisy2->SetLabelSize(0.06);
+axisx2->SetLimits(1.0,3.0);
+
+TLine *line2=new TLine(1.,0.,3.,0.);
+line2->Draw();
+
+
+myCanvas->Print("pi0.gif");
+
+
+
+}
+
+

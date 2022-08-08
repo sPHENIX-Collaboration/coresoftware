@@ -1,0 +1,49 @@
+
+/***********************************************************************
+* Copyright 1998-2020 CERN for the benefit of the EvtGen authors       *
+*                                                                      *
+* This file is part of EvtGen.                                         *
+*                                                                      *
+* EvtGen is free software: you can redistribute it and/or modify       *
+* it under the terms of the GNU General Public License as published by *
+* the Free Software Foundation, either version 3 of the License, or    *
+* (at your option) any later version.                                  *
+*                                                                      *
+* EvtGen is distributed in the hope that it will be useful,            *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+* GNU General Public License for more details.                         *
+*                                                                      *
+* You should have received a copy of the GNU General Public License    *
+* along with EvtGen.  If not, see <https://www.gnu.org/licenses/>.     *
+***********************************************************************/
+
+{
+TFile *myFile = new TFile("test2.root","READ");
+myFile->ls();
+TCanvas *myCanvas = new TCanvas("c","TEST2",0,0,600,400);
+myCanvas->Divide(2,2);
+myCanvas->cd(1);
+
+TH1F *hist3=h3;
+TH1F *hist4=h4;
+TH1F *hist30=h30;
+TH1F *hist31=h31;
+
+hist3->Draw();
+myCanvas.Update();
+myCanvas->cd(2);
+hist4->Draw();
+myCanvas.Update();
+myCanvas->cd(3);
+hist30->Draw("BOX");
+myCanvas.Update();
+myCanvas->cd(4);
+hist31->Draw("BOX");
+myCanvas.Update();
+
+myCanvas->Print("test2.eps");
+
+
+
+}
