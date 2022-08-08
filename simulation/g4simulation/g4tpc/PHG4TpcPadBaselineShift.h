@@ -44,6 +44,7 @@ class PHG4TpcPadBaselineShift : public SubsysReco
   void setScale(float CScale);
   void setFileName(const std::string &filename);
   void writeTree(int f_writeTree);
+  void set_drift_velocity(float vd) {_drift_velocity = vd;}
 
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom);
@@ -71,6 +72,10 @@ class PHG4TpcPadBaselineShift : public SubsysReco
   int NZBinsMax = 0;
   float _CScale = 1.;
 
+  double AdcClockPeriod = 53.0;  // ns
+  unsigned int MaxTBins = 498;
+  float _drift_velocity = 8.0e-03;
+ 
   TFile *outfile = nullptr;
   std::string _filename = "./hitsBLS.root";
 

@@ -106,14 +106,14 @@ int PHG4OHCalSteppingAction::Init()
     mappingfilename += "/HCALOUT/tilemap/oHCALMaps092021.root";
     TFile* file = TFile::Open(mappingfilename.c_str());
     file->GetObject("hCombinedMap", m_MapCorrHist);
-    m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
-    file->Close();
-    delete file;
     if (!m_MapCorrHist)
     {
       std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;
       gSystem->Exit(1);
     }
+    m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
+    file->Close();
+    delete file;
   }
   return 0;
 }

@@ -1,11 +1,12 @@
 #include "Shifter.h"
 
 #include <TFile.h>
-#include <TH3F.h>
+#include <TH3.h>
 #include <TString.h>
 #include <TVector3.h>
 
 #include <cmath>
+#include <cstdlib>  // for getenv
 
 Shifter::Shifter(const std::string &truthfilename, const std::string &correctionfilename)
 {

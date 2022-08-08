@@ -1,20 +1,17 @@
 #include "Rossegger.h"
-#include "MultiArray.h" //for TH3 alternative
 
-#include <TObject.h>  // for TObject
 #include <TVector3.h>
 
-#include <cmath>    // for NAN, abs
-#include <cstdio>   // for printf
-#include <cstdlib>  // for malloc
-#include <string>   // for string
-
-#include <cassert>
+#include <cmath>   // for NAN, abs
+#include <string>  // for string
 
 class AnalyticFieldModel;
 class ChargeMapReader;
 class TH3;
 class TTree;
+
+template <class T>
+class MultiArray;
 
 class AnnularFieldSim
 {
@@ -166,10 +163,10 @@ class AnnularFieldSim
   MultiArray<TVector3> *Eexternal;          //externally applied electric field in each f-bin in the roi
   MultiArray<TVector3> *Bfield;             //magnetic field in each f-bin in the roi
 
-  ChargeMapReader *q; // //class to read and report charge.
-  //  MultiArray<double> *q;                    //space charge in each f-bin in the whole volume
-    MultiArray<double> *q_local;              //temporary holder of space charge in each f-bin and summed bin of the high-res region.
-    MultiArray<double> *q_lowres;             //space charge in each l-bin. = sums over sets of f-bins.
+  ChargeMapReader *q;            // //class to read and report charge.
+                                 //  MultiArray<double> *q;                    //space charge in each f-bin in the whole volume
+  MultiArray<double> *q_local;   //temporary holder of space charge in each f-bin and summed bin of the high-res region.
+  MultiArray<double> *q_lowres;  //space charge in each l-bin. = sums over sets of f-bins.
 
  public:
   //constructors with history for backwards compatibility
@@ -189,6 +186,9 @@ class AnnularFieldSim
                   int phi, int roi_phi0, int roi_phi1, int in_phiLowSpacing, int in_phiHighSize,
                   int z, int roi_z0, int roi_z1, int in_zLowSpacing, int in_zHighSize,
                   float vdr, LookupCase in_lookupCase, ChargeCase in_chargeCase);
+  //! delete copy ctor and assignment opertor (cppcheck)
+  explicit AnnularFieldSim(const AnnularFieldSim &) = delete;
+  AnnularFieldSim &operator=(const AnnularFieldSim &) = delete;
 
   //debug functions:
   void UpdateEveryN(int n)
@@ -240,7 +240,7 @@ class AnnularFieldSim
   void PlotFieldSlices(const char *filebase, TVector3 pos, char which = 'E');
 
   void load_spacecharge(const std::string &filename, const std::string &histname, float zoffset = 0, float chargescale = 1, float cmscale = 1, bool isChargeDensity = true);
-  void load_spacecharge(TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity, const char* inputchargestring="");
+  void load_spacecharge(TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity, const char *inputchargestring = "");
 
   void load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz, const std::string &filename, const std::string &histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
 

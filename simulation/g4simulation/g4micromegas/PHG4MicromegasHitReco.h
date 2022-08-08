@@ -89,9 +89,6 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! electron transverse diffusion (cm/sqrt(cm))
   double m_diffusion_trans = 0.03;
 
-  //! use zig zag pads
-  bool m_zigzag_strips = true;
-
   //! rng de-allocator
   class Deleter
   {

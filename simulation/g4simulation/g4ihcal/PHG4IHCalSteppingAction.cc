@@ -87,14 +87,14 @@ int PHG4IHCalSteppingAction::Init()
     ihcalmapname += "/HCALIN/tilemap/iHCALMapsNorm020922.root";
     TFile* file = TFile::Open(ihcalmapname.c_str());
     file->GetObject("ihcalmapcombined", m_MapCorrHist);
-    m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
-    file->Close();
-    delete file;
     if (!m_MapCorrHist)
     {
       std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;
       gSystem->Exit(1);
     }
+    m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
+    file->Close();
+    delete file;
   }
   return 0;
 }

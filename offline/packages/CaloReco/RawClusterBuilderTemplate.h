@@ -13,7 +13,7 @@ class BEmcRec;
 class RawClusterBuilderTemplate : public SubsysReco
 {
  public:
-  RawClusterBuilderTemplate(const std::string& name = "RawClusterBuilderTemplate");
+  explicit RawClusterBuilderTemplate(const std::string& name = "RawClusterBuilderTemplate");
   ~RawClusterBuilderTemplate() override;
 
   int InitRun(PHCompositeNode* topNode) override;
