@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 
-
 // Forward declerations
 class Fun4AllHistoManager;
 class PHCompositeNode;

@@ -28,20 +28,13 @@
 #include <utility>
 #include <vector>
 
-using namespace std;
-
 RawTowerCombiner::RawTowerCombiner(const std::string &name)
   : SubsysReco(name)
-  ,  //
-  /*std::string*/ _tower_node_prefix("SIM")
-  ,
-  /*unsigned int*/ _n_combine_eta(2)
-  ,
-  /*unsigned int*/ _n_combine_phi(2)
-  ,
-  /*RawTowerContainer**/ _towers(nullptr)
-  ,
-  /*std::string*/ detector("NONE")
+  , _tower_node_prefix("SIM")
+  , _n_combine_eta(2)
+  , _n_combine_phi(2)
+  , _towers(nullptr)
+  , detector("NONE")
 {
 }
 
@@ -49,14 +42,14 @@ int RawTowerCombiner::InitRun(PHCompositeNode *topNode)
 {
   if (_n_combine_eta == 0)
   {
-    cout << __PRETTY_FUNCTION__ << " Fatal error _n_combine_eta==0" << endl;
+    std::cout << __PRETTY_FUNCTION__ << " Fatal error _n_combine_eta==0" << std::endl;
 
     exit(1243);
   }
 
   if (_n_combine_phi == 0)
   {
-    cout << __PRETTY_FUNCTION__ << " Fatal error _n_combine_phi==0" << endl;
+    std::cout << __PRETTY_FUNCTION__ << " Fatal error _n_combine_phi==0" << std::endl;
 
     exit(1243);
   }
@@ -87,7 +80,7 @@ int RawTowerCombiner::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerCombiner::process_event(PHCompositeNode */*topNode*/)
+int RawTowerCombiner::process_event(PHCompositeNode * /*topNode*/)
 {
   assert(_towers);
 
@@ -99,8 +92,8 @@ int RawTowerCombiner::process_event(PHCompositeNode */*topNode*/)
     std::cout << __PRETTY_FUNCTION__ << "Process event entered" << std::endl;
   }
 
-  typedef pair<int, int> tower_id_t;
-  typedef map<tower_id_t, RawTower *> new_tower_map_t;
+  typedef std::pair<int, int> tower_id_t;
+  typedef std::map<tower_id_t, RawTower *> new_tower_map_t;
   new_tower_map_t new_tower_map;
 
   RawTowerContainer::ConstRange all_towers = _towers->getTowers();
@@ -117,13 +110,13 @@ int RawTowerCombiner::process_event(PHCompositeNode */*topNode*/)
 
     RawTower *output_tower = nullptr;
     new_tower_map_t::iterator it_new = new_tower_map.find(
-        make_pair(output_eta, output_phi));
+        std::make_pair(output_eta, output_phi));
 
     if (it_new == new_tower_map.end())
     {
       output_tower = new RawTowerv1(*input_tower);
       assert(output_tower);
-      new_tower_map[make_pair(output_eta, output_phi)] = output_tower;
+      new_tower_map[std::make_pair(output_eta, output_phi)] = output_tower;
 
       if (Verbosity() >= VERBOSITY_MORE)
       {
@@ -140,8 +133,8 @@ int RawTowerCombiner::process_event(PHCompositeNode */*topNode*/)
           output_tower->get_energy() + input_tower->get_energy());
 
       output_tower->set_time(
-          (abs(output_tower->get_energy()) * output_tower->get_time() + abs(input_tower->get_energy()) * input_tower->get_time())  //
-          / (abs(output_tower->get_energy()) + abs(input_tower->get_energy()) + 1e-9)                                              //avoid devide 0
+          (std::abs(output_tower->get_energy()) * output_tower->get_time() + std::abs(input_tower->get_energy()) * input_tower->get_time())  //
+          / (std::abs(output_tower->get_energy()) + std::abs(input_tower->get_energy()) + 1e-9)                                              //avoid devide 0
       );
 
       RawTower::CellConstRange cell_range = input_tower->get_g4cells();
@@ -195,7 +188,7 @@ int RawTowerCombiner::process_event(PHCompositeNode */*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerCombiner::End(PHCompositeNode */*topNode*/)
+int RawTowerCombiner::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -216,7 +209,7 @@ void RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
   const RawTowerDefs::CalorimeterId caloid =
       RawTowerDefs::convert_name_to_caloid(detector);
 
-  const string iTowerGeomNodeName = "TOWERGEOM_" + detector;
+  const std::string iTowerGeomNodeName = "TOWERGEOM_" + detector;
   RawTowerGeomContainer *towergeom = findNode::getClass<
       RawTowerGeomContainer>(topNode, iTowerGeomNodeName);
   if (!towergeom)
@@ -250,12 +243,12 @@ void RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
     if (last_bin >= towergeom->get_phibins())
       last_bin = towergeom->get_phibins();
 
-    const pair<double, double> range1 = towergeom->get_phibounds(
+    const std::pair<double, double> range1 = towergeom->get_phibounds(
         first_bin);
-    const pair<double, double> range2 = towergeom->get_phibounds(
+    const std::pair<double, double> range2 = towergeom->get_phibounds(
         last_bin);
 
-    phi_bound_map.push_back(make_pair(range1.first, range2.second));
+    phi_bound_map.push_back(std::make_pair(range1.first, range2.second));
   }
 
   for (int ibin = 0; ibin < new_etabins; ibin++)
@@ -267,12 +260,12 @@ void RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
     if (last_bin >= towergeom->get_etabins())
       last_bin = towergeom->get_etabins();
 
-    const pair<double, double> range1 = towergeom->get_etabounds(
+    const std::pair<double, double> range1 = towergeom->get_etabounds(
         first_bin);
-    const pair<double, double> range2 = towergeom->get_etabounds(
+    const std::pair<double, double> range2 = towergeom->get_etabounds(
         last_bin);
 
-    eta_bound_map.push_back(make_pair(range1.first, range2.second));
+    eta_bound_map.push_back(std::make_pair(range1.first, range2.second));
   }
 
   // now update the tower geometry object with the new tower structure.
@@ -311,7 +304,7 @@ void RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
     towergeom->identify();
   }
 
-  const string input_TowerNodeName = "TOWER_" + _tower_node_prefix + "_" + detector;
+  const std::string input_TowerNodeName = "TOWER_" + _tower_node_prefix + "_" + detector;
   _towers = findNode::getClass<RawTowerContainer>(topNode,
                                                   input_TowerNodeName);
   if (!_towers)

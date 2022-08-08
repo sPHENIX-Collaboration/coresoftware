@@ -327,18 +327,19 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
     {
       unsigned short phibin = TpcDefs::getPad(hitr->first);
-      unsigned short zbin = TpcDefs::getTBin(hitr->first);
+      unsigned short tbin = TpcDefs::getTBin(hitr->first);
       // Get the hitkey
-      TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(phibin, zbin);
+      TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(phibin, tbin);
       TrkrHit *hit = nullptr;
       hit = hitsetitr->second->getHit(hitkey);
 
-      zbin = TpcDefs::getTBin(hitr->first);
+      tbin = TpcDefs::getTBin(hitr->first);
       phibin = TpcDefs::getPad(hitr->first);
       double phi_center = layergeom->get_phicenter(phibin);
       if (phi_center < 0) phi_center += 2 * pi;
       _hit_phi = phi_center;
-      _hit_z = layergeom->get_zcenter(zbin);
+      _hit_z = AdcClockPeriod * MaxTBins * _drift_velocity / 2.0 - layergeom->get_zcenter(tbin) * _drift_velocity;
+      if(side == 0) _hit_z *= -1.0;
 
       if (hit) _hit_e = hit->getEnergy();
       _hit_adc = 0;

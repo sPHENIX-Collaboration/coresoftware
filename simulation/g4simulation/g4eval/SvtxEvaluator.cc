@@ -1848,6 +1848,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
 	    {
 	      TrkrHit* hit = hitset->second->getHit(clushititer->second);
+	      if(!hit) continue;
+
 	      ++size; 
 	      sumadc += (hit->getAdc() - 70);
 	      if((hit->getAdc()-70)>maxadc)
@@ -2415,7 +2417,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		    ez = reco_cluster->getZError();		  
 		    ephi = reco_cluster->getRPhiError();
 		  }else if(m_cluster_version==4){
-		    cout << " ver v4 " <<  endl;
+		    //cout << " ver v4 " <<  endl;
 		    phisize = reco_cluster->getPhiSize();
 		    zsize = reco_cluster->getZSize();
 		  } 

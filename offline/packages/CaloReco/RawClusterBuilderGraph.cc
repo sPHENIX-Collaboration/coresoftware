@@ -2,10 +2,10 @@
 
 #include "PHMakeGroups.h"
 
-#include <calobase/RawClusterContainer.h>
 #include <calobase/RawCluster.h>
-#include <calobase/RawClusterv1.h>
+#include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterDefs.h>
+#include <calobase/RawClusterv1.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>
@@ -15,12 +15,12 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/getClass.h>
 #include <phool/phool.h>
 
 #include <cassert>
@@ -31,8 +31,6 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
-
-using namespace std;
 
 // this is just a helper class which enables us to handle rollovers
 // when checking for adjacent towers, it requires one bit of
@@ -138,7 +136,7 @@ int RawClusterBuilderGraph::InitRun(PHCompositeNode *topNode)
 
 int RawClusterBuilderGraph::process_event(PHCompositeNode *topNode)
 {
-  string towernodename = "TOWER_CALIB_" + detector;
+  std::string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
   RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode, towernodename);
   if (!towers)
@@ -146,11 +144,11 @@ int RawClusterBuilderGraph::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << ": Could not find node " << towernodename << std::endl;
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
-  string towergeomnodename = "TOWERGEOM_" + detector;
+  std::string towergeomnodename = "TOWERGEOM_" + detector;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename);
   if (!towergeom)
   {
-    cout << PHWHERE << ": Could not find node " << towergeomnodename << endl;
+    std::cout << PHWHERE << ": Could not find node " << towergeomnodename << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   // make the list of towers above threshold
@@ -246,7 +244,7 @@ int RawClusterBuilderGraph::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 1)
     {
-      cout << "RawClusterBuilderGraph constucted ";
+      std::cout << "RawClusterBuilderGraph constucted ";
       clusterA->identify();
     }
   }  //  for (const auto & cluster_pair : _clusters->getClustersMap())
@@ -259,24 +257,24 @@ int RawClusterBuilderGraph::process_event(PHCompositeNode *topNode)
     {
       if (fabs(etower - ecluster) / ecluster > 1e-9)
       {
-        cout << "energy conservation violation: ETower: " << etower
-             << " ECluster: " << ecluster
-             << " diff: " << etower - ecluster << endl;
+        std::cout << "energy conservation violation: ETower: " << etower
+                  << " ECluster: " << ecluster
+                  << " diff: " << etower - ecluster << std::endl;
       }
     }
     else
     {
       if (etower != 0)
       {
-        cout << "energy conservation violation: ETower: " << etower
-             << " ECluster: " << ecluster << endl;
+        std::cout << "energy conservation violation: ETower: " << etower
+                  << " ECluster: " << ecluster << std::endl;
       }
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawClusterBuilderGraph::End(PHCompositeNode */*topNode*/)
+int RawClusterBuilderGraph::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
