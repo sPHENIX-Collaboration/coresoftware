@@ -215,13 +215,13 @@ distuninstallcheck_listfiles = find . -type f -print
 am__distuninstallcheck_listfiles = $(distuninstallcheck_listfiles) \
   | sed 's|^\./|$(prefix)/|' | grep -v '$(infodir)/dir$$'
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /gpfs/mnt/gpfs02/sphenix/user/zshi/TestLatestEvtGen/TestEvtGen/missing aclocal-1.13
+ACLOCAL = ${SHELL} /gpfs/mnt/gpfs02/sphenix/user/zshi/EvtGenPullRequest/coresoftware/simulation/g4simulation/TestEvtGen/missing aclocal-1.13
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 1
 AR = ar
-AUTOCONF = ${SHELL} /gpfs/mnt/gpfs02/sphenix/user/zshi/TestLatestEvtGen/TestEvtGen/missing autoconf
-AUTOHEADER = ${SHELL} /gpfs/mnt/gpfs02/sphenix/user/zshi/TestLatestEvtGen/TestEvtGen/missing autoheader
-AUTOMAKE = ${SHELL} /gpfs/mnt/gpfs02/sphenix/user/zshi/TestLatestEvtGen/TestEvtGen/missing automake-1.13
+AUTOCONF = ${SHELL} /gpfs/mnt/gpfs02/sphenix/user/zshi/EvtGenPullRequest/coresoftware/simulation/g4simulation/TestEvtGen/missing autoconf
+AUTOHEADER = ${SHELL} /gpfs/mnt/gpfs02/sphenix/user/zshi/EvtGenPullRequest/coresoftware/simulation/g4simulation/TestEvtGen/missing autoheader
+AUTOMAKE = ${SHELL} /gpfs/mnt/gpfs02/sphenix/user/zshi/EvtGenPullRequest/coresoftware/simulation/g4simulation/TestEvtGen/missing automake-1.13
 AWK = gawk
 CC = /cvmfs/sphenix.sdcc.bnl.gov/gcc-8.3/opt/sphenix/core/gcc/8.3.0.1-0a5ad/x86_64-centos7/bin/gcc
 CCDEPMODE = depmode=gcc3
@@ -259,7 +259,7 @@ LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIPO = 
 LN_S = ln -s
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /gpfs/mnt/gpfs02/sphenix/user/zshi/TestLatestEvtGen/TestEvtGen/missing makeinfo
+MAKEINFO = ${SHELL} /gpfs/mnt/gpfs02/sphenix/user/zshi/EvtGenPullRequest/coresoftware/simulation/g4simulation/TestEvtGen/missing makeinfo
 MANIFEST_TOOL = :
 MKDIR_P = /usr/bin/mkdir -p
 NM = /cvmfs/sphenix.sdcc.bnl.gov/gcc-8.3/opt/sphenix/core/binutils/2.30-e5b21/x86_64-centos7/bin/nm -B
@@ -282,10 +282,10 @@ SET_MAKE =
 SHELL = /bin/sh
 STRIP = strip
 VERSION = 1.00
-abs_builddir = /gpfs/mnt/gpfs02/sphenix/user/zshi/TestLatestEvtGen/TestEvtGen
-abs_srcdir = /gpfs/mnt/gpfs02/sphenix/user/zshi/TestLatestEvtGen/TestEvtGen
-abs_top_builddir = /gpfs/mnt/gpfs02/sphenix/user/zshi/TestLatestEvtGen/TestEvtGen
-abs_top_srcdir = /gpfs/mnt/gpfs02/sphenix/user/zshi/TestLatestEvtGen/TestEvtGen
+abs_builddir = /gpfs/mnt/gpfs02/sphenix/user/zshi/EvtGenPullRequest/coresoftware/simulation/g4simulation/TestEvtGen
+abs_srcdir = /gpfs/mnt/gpfs02/sphenix/user/zshi/EvtGenPullRequest/coresoftware/simulation/g4simulation/TestEvtGen
+abs_top_builddir = /gpfs/mnt/gpfs02/sphenix/user/zshi/EvtGenPullRequest/coresoftware/simulation/g4simulation/TestEvtGen
+abs_top_srcdir = /gpfs/mnt/gpfs02/sphenix/user/zshi/EvtGenPullRequest/coresoftware/simulation/g4simulation/TestEvtGen
 ac_ct_AR = ar
 ac_ct_CC = /cvmfs/sphenix.sdcc.bnl.gov/gcc-8.3/opt/sphenix/core/gcc/8.3.0.1-0a5ad/x86_64-centos7/bin/gcc
 ac_ct_CXX = 
@@ -315,7 +315,7 @@ host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /gpfs/mnt/gpfs02/sphenix/user/zshi/TestLatestEvtGen/TestEvtGen/install-sh
+install_sh = ${SHELL} /gpfs/mnt/gpfs02/sphenix/user/zshi/EvtGenPullRequest/coresoftware/simulation/g4simulation/TestEvtGen/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -324,7 +324,7 @@ mandir = ${datarootdir}/man
 mkdir_p = $(MKDIR_P)
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /gpfs/mnt/gpfs02/sphenix/user/zshi/TestLatestEvtGen/install
+prefix = /gpfs/mnt/gpfs02/sphenix/user/zshi/EvtGenPullRequest/install
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
@@ -342,7 +342,8 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include 
+  -I$(ROOTSYS)/include \
+  -DEVTGEN_HEPMC3
 
 AM_LDFLAGS = \
   -L$(libdir) \

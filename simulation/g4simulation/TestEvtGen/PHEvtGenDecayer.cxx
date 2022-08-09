@@ -12,7 +12,8 @@
 #include <EvtGenBase/EvtParticleFactory.hh>
 #include <EvtGenBase/EvtPDL.hh>
 #include <EvtGenBase/EvtRandom.hh>
-//#include <EvtGenBase/EvtHepMCEvent.hh>
+#include <EvtGenBase/EvtHepMCEvent.hh>
+
 #include <EvtGenBase/EvtSimpleRandomEngine.hh>
 #include <EvtGenBase/EvtRandomEngine.hh>
 
@@ -20,10 +21,9 @@
 #include <EvtGenBase/EvtAbsRadCorr.hh>
 #include <EvtGenBase/EvtDecayBase.hh>
 #include <EvtGenExternal/EvtExternalGenList.hh>
-#include "../evtgen/EvtGenBase/EvtHepMCEvent.hh"
-//#include <EvtGenBase/EvtHepMCEvent.hh>
-//#include "EvtHepMCEvent.cpp" //Overwriting EvtGenPackage to Access HEPMC3 Events Records
-//#include "EvtHepMCEvent.hh"
+
+#include <EvtGenBase/EvtHepMCEvent.hh>
+
 
 #include <list>
 #include <TParticle.h>
@@ -107,7 +107,7 @@ void PHEvtGenDecayer::Decay(int pdgId, TLorentzVector* _p)
 {
 	//cout << "Decay pdgid=" << pdgId << endl;
 	
-	//cout << "SUCK BRI ZS" << endl;
+
 	// Clear the event from the last run
 	ClearEvent();
 
@@ -154,43 +154,35 @@ Int_t PHEvtGenDecayer::ImportParticles(TClonesArray* _array)
 {
 	// Save the decay products
 	
-	cout<< "Pass ImportParticles = 1" <<  endl;
+
 
 	assert(_array);
-	//cout<< "Pass ImportParticles = 2" <<  endl;
+
 	
 	TClonesArray &array = *_array;
-	//cout<< "Pass ImportParticles = 3" <<  endl;
+
 
 	array.Clear();
-	//cout<< "Pass ImportParticles = 4" <<  endl;
+
 
 	EvtHepMCEvent theEvent;
 
-	//cout<< "Pass ImportParticles = 5" <<  endl;
+
 	theEvent.constructEvent(mParticle);
-	// Print list of EvtGen lines on debug
-/*
-	if (mDebug) {
-		theEvent.getEvent()->print(std::cout);
-	}
-*/
-	//cout<< "Pass ImportParticles = 6" <<  endl;
-
-	//cout << "DEBUG --- NEW EVTGEN VERSION" << endl;
 
 
-//	theEvent.getEvent()->print(std::cout);
-
-	//Convert HEPMC3 to HEPMC2
 
 
 	HepMC3::GenEvent * evt3 = theEvent.getEvent();
-	cout << "Now Convert" << endl;
+
 
 	HepMC::GenEvent * evt = ConvertHepMCGenEvent_3to2( *evt3);
 
-	cout << "Now Try" << endl;
+	// Print list of EvtGen lines on debug
+
+	if (mDebug) {
+		evt->print(std::cout);
+	}
 
 //	evt->print(std::cout);
 
@@ -198,55 +190,30 @@ Int_t PHEvtGenDecayer::ImportParticles(TClonesArray* _array)
 	Int_t nparts = 0;
 	Int_t particle_barcode[100];
 	//cout<< "Pass ImportParticles = 7" <<  endl;
-	////cout << " theEvent.getEvent()->size() = " << theEvent.getEvent()->size() << endl;
 
-	for ( GenEvent::vertex_const_iterator vtx = evt->vertices_begin();
+
+	for ( HepMC::GenEvent::vertex_const_iterator vtx = evt->vertices_begin();
 			vtx != evt->vertices_end(); ++vtx ) {
 		    //cout<< "Pass ImportParticles = 7.1" <<  endl;
 		
 		if(vtx==evt->vertices_begin()) {
-			//cout << "Pass ImportParticles = 7.14" << endl;
-			//cout << "Pass ImportParticles = 7.16" << endl;
-		//	GenVertex::particles_in_const_iterator part2 = (*vtx)->particles_in_const_begin();
-			//cout << "(*vtx)->particles_in_size()" << (*vtx)->particles_in_size() << endl;
-		//	assert(part2);
-		//	if(!part2) //cout << "(*vtx)->particles_in_const_begin() DOES NOT Exist, need to check why" << endl;
-			//cout << "Pass ImportParticles = 7.18" << endl;
 
-			//OLD HEPMC Codes
 			for (GenVertex::particles_in_const_iterator part = (*vtx)->particles_in_const_begin();part != (*vtx)->particles_in_const_end(); part++ ) {
-				//cout << "nparts = " << nparts << endl;
+
 				particle_barcode[nparts]=(*part)->barcode();
 				nparts++;
 			}
-	    //cout<< "Pass ImportParticles = 7.2" <<  endl;
+
 		
 		}
 		for ( GenVertex::particles_out_const_iterator part = (*vtx)->particles_out_const_begin();part != (*vtx)->particles_out_const_end(); part++ ) {
 			particle_barcode[nparts]=(*part)->barcode();
 			nparts++;
-	    //cout<< "Pass ImportParticles = 7.3" <<  endl;
+
 		}
 	
-/*		//New HEPMC3 Codes
-
-		for (auto part: (*vtx)->particles_in()) {
-				//cout << "nparts = " << nparts << endl;
-				particle_barcode[nparts]=(*part)->barcode();
-				nparts++;
-			}
-	    //cout<< "Pass ImportParticles = 7.2" <<  endl;
-		
-		}
-		for ( auto part: (*vtx)->particles_out() ) {
-			particle_barcode[nparts]=(*part)->barcode();
-			nparts++;
-	    //cout<< "Pass ImportParticles = 7.3" <<  endl;
-		}
-*/
-
 	}
-	//cout<< "Pass ImportParticles = 8" <<  endl;
+
 
 	GenParticle* p;
 	for(Int_t np=0;np<nparts;np++) {
@@ -291,9 +258,6 @@ Int_t PHEvtGenDecayer::ImportParticles(TClonesArray* _array)
 					mVertex->get(0)+p->production_vertex()->position().t());
 		}
 		
-	//	cout << "--------------------------  Decay Particle Info  -----------------------------------" << endl;
-	//	cout<<"HEMPMC - PDG ID =  "<<p->pdg_id() <<  "  px =  "  << p->momentum().x() << "  py =  " << p->momentum().y() << "  pz =  " << p->momentum().z() <<  "   E  = "<< p->momentum().t() << "   Mass = "  <<  sqrt(p->momentum().t() *  p->momentum().t() -   p->momentum().x()  *  p->momentum().x()  -  p->momentum().y() *  p->momentum().y() -  p->momentum().z()  *  p->momentum().z())   <<  endl;
-
 		if (mDebug) {
 			cout<<np<<" "<<((TParticle*)array[np])->GetStatusCode()
 				<<" "<<((TParticle*)array[np])->GetFirstDaughter()
@@ -302,10 +266,10 @@ Int_t PHEvtGenDecayer::ImportParticles(TClonesArray* _array)
 				<<" "<<((TParticle*)array[np])->T()<<" ";
 			((TParticle*)array[np])->Print();
 		}
-		//		((TParticle*)array[np])->Print() ;
+
 		
 	}
-	//cout<< "Pass ImportParticles = 10" <<  endl;
+
 
 	return nparts;
 }

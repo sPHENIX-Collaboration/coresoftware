@@ -11,12 +11,12 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/getClass.h>
 #include <phool/phool.h>
 
 #include <cassert>
@@ -27,14 +27,12 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <utility>                           // for pair
-
-using namespace std;
+#include <utility>  // for pair
 
 RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &name)
-  : SubsysReco(string("RawClusterPositionCorrection_") + name)
-  , _eclus_calib_params(string("eclus_params_") + name)
-  , _ecore_calib_params(string("ecore_params_") + name)
+  : SubsysReco(std::string("RawClusterPositionCorrection_") + name)
+  , _eclus_calib_params(std::string("eclus_params_") + name)
+  , _ecore_calib_params(std::string("ecore_params_") + name)
   , _det_name(name)
   , bins(17)  //default bins to be 17 to set default recalib parameters to 1
 {
@@ -48,14 +46,14 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity())
   {
-    std::cout << "RawClusterPositionCorrection is running for clusters in the EMCal with eclus parameters:" << endl;
+    std::cout << "RawClusterPositionCorrection is running for clusters in the EMCal with eclus parameters:" << std::endl;
     _eclus_calib_params.Print();
 
-    std::cout << "RawClusterPositionCorrection is running for clusters in the EMCal with ecore parameters:" << endl;
+    std::cout << "RawClusterPositionCorrection is running for clusters in the EMCal with ecore parameters:" << std::endl;
     _ecore_calib_params.Print();
   }
   //now get the actual number of bins in the calib file
-  ostringstream paramname;
+  std::ostringstream paramname;
   paramname.str("");
   paramname << "number_of_bins";
 
@@ -124,11 +122,11 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  string towergeomnodename = "TOWERGEOM_" + _det_name;
+  std::string towergeomnodename = "TOWERGEOM_" + _det_name;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename);
   if (!towergeom)
   {
-    cout << PHWHERE << ": Could not find node " << towergeomnodename << endl;
+    std::cout << PHWHERE << ": Could not find node " << towergeomnodename << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   const int nphibin = towergeom->get_phibins();
@@ -191,7 +189,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
         phibin += nphibin;
       else if (phibin - towerphis.at(0) > +nphibin / 2.0)
         phibin -= nphibin;
-      assert(abs(phibin - towerphis.at(0)) <= nphibin / 2.0);
+      assert(std::abs(phibin - towerphis.at(0)) <= nphibin / 2.0);
 
       energymult = towerenergies.at(j) * phibin;
       phimult += energymult;
@@ -241,15 +239,15 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() && clus_energy > 1)
     {
-      std::cout << "Input eclus cluster energy: " << clus_energy << endl;
-      std::cout << "Recalib value: " << eclus_recalib_val << endl;
+      std::cout << "Input eclus cluster energy: " << clus_energy << std::endl;
+      std::cout << "Recalib value: " << eclus_recalib_val << std::endl;
       std::cout << "Recalibrated eclus cluster energy: "
-                << clus_energy / eclus_recalib_val << endl;
+                << clus_energy / eclus_recalib_val << std::endl;
       std::cout << "Input ecore cluster energy: "
-                << cluster->get_ecore() << endl;
-      std::cout << "Recalib value: " << ecore_recalib_val << endl;
+                << cluster->get_ecore() << std::endl;
+      std::cout << "Recalib value: " << ecore_recalib_val << std::endl;
       std::cout << "Recalibrated eclus cluster energy: "
-                << cluster->get_ecore() / ecore_recalib_val << endl;
+                << cluster->get_ecore() / ecore_recalib_val << std::endl;
     }
   }
 
@@ -266,7 +264,7 @@ void RawClusterPositionCorrection::CreateNodeTree(PHCompositeNode *topNode)
   //Check that it is there
   if (!dstNode)
   {
-    std::cerr << "DST Node missing, quitting" << std::endl;
+    std::cout << "DST Node missing, quitting" << std::endl;
     throw std::runtime_error("failed to find DST node in RawClusterPositionCorrection::CreateNodeTree");
   }
 
@@ -294,12 +292,12 @@ void RawClusterPositionCorrection::CreateNodeTree(PHCompositeNode *topNode)
   //put the recalib parameters on the node tree
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   assert(parNode);
-  const string paramNodeName = string("eclus_Recalibration_" + _det_name);
+  const std::string paramNodeName = std::string("eclus_Recalibration_" + _det_name);
   _eclus_calib_params.SaveToNodeTree(parNode, paramNodeName);
-  const string paramNodeName2 = string("ecore_Recalibration_" + _det_name);
+  const std::string paramNodeName2 = std::string("ecore_Recalibration_" + _det_name);
   _ecore_calib_params.SaveToNodeTree(parNode, paramNodeName2);
 }
-int RawClusterPositionCorrection::End(PHCompositeNode */*topNode*/)
+int RawClusterPositionCorrection::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -307,7 +305,7 @@ void RawClusterPositionCorrection::SetDefaultParameters(PHParameters &param)
 {
   param.set_int_param("number_of_bins", 17);
 
-  ostringstream param_name;
+  std::ostringstream param_name;
   for (int i = 0; i < bins - 1; i++)
   {
     for (int j = 0; j < bins - 1; j++)

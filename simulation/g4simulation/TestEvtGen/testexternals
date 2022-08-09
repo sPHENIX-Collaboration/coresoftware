@@ -188,7 +188,7 @@ func_exec_program ()
 
   if test -f "$progdir/$program"; then
     # Add our own library path to LD_LIBRARY_PATH
-    LD_LIBRARY_PATH="/gpfs/mnt/gpfs02/sphenix/user/zshi/TestLatestEvtGen/TestEvtGen/.libs:/cvmfs/sphenix.sdcc.bnl.gov/gcc-8.3/opt/sphenix/core/gcc/8.3.0.1-0a5ad/x86_64-centos7/bin/../lib/gcc/x86_64-pc-linux-gnu/8.3.0/../../../../lib64:$LD_LIBRARY_PATH"
+    LD_LIBRARY_PATH="/gpfs/mnt/gpfs02/sphenix/user/zshi/EvtGenPullRequest/coresoftware/simulation/g4simulation/TestEvtGen/.libs:/cvmfs/sphenix.sdcc.bnl.gov/gcc-8.3/opt/sphenix/core/gcc/8.3.0.1-0a5ad/x86_64-centos7/bin/../lib/gcc/x86_64-pc-linux-gnu/8.3.0/../../../../lib64:$LD_LIBRARY_PATH"
 
     # Some systems cannot cope with colon-terminated LD_LIBRARY_PATH
     # The second colon is a workaround for a bug in BeOS R4 sed

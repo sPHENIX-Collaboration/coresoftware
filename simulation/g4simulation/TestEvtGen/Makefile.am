@@ -6,7 +6,8 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include 
+  -I$(ROOTSYS)/include \
+  -DEVTGEN_HEPMC3
 
 AM_LDFLAGS = \
   -L$(libdir) \

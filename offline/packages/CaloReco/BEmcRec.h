@@ -7,6 +7,8 @@
 
 #include "BEmcCluster.h"
 
+#include <algorithm>  // for max
+#include <cmath>      // for NAN
 #include <map>
 #include <string>
 #include <vector>
@@ -30,7 +32,7 @@ class BEmcRec
 {
  public:
   BEmcRec();
-  BEmcRec& operator=(const BEmcRec&) = delete;
+  BEmcRec &operator=(const BEmcRec &) = delete;
   virtual ~BEmcRec();
 
   void SetVertex(const float *vv)

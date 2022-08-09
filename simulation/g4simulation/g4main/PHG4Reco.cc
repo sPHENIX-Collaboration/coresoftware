@@ -18,10 +18,10 @@
 
 #include <eastphysicslist/eASTPhysicsList.hh>
 
+#include <g4decayer/P6DExtDecayerPhysics.hh>
 #include <g4decayer/EDecayType.hh>
-//#include <g4decayer/P6DExtDecayerPhysics.hh>
+
 #include "../G4EvtGenDecayer/EvtGenExtDecayerPhysics.hh"
-//#include "../G4EvtGenDecayer/EvtGenExtDecayerPhysics.cc"
 
 #include <phgeom/PHGeomUtility.h>
 
@@ -121,6 +121,9 @@ class PHG4StackingAction;
 class PHG4SteppingAction;
 
 TFile * fout;
+
+bool UsePYTHIA6Decayer = false;
+bool UseEvtGenDecayer = true;
 
 //_________________________________________________________________
 PHG4Reco::PHG4Reco(const std::string &name)
@@ -255,9 +258,6 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 	G4VModularPhysicsList *myphysicslist = nullptr;
 	// m_PhysicsList = new FTFP_BERT;  //Change Physicist//
 
-
-	std::cout << "Now Use FTFP_BERT Bro" << std::endl;
-
 	if (m_PhysicsList == "FTFP_BERT")
 	{
 		myphysicslist = new FTFP_BERT(Verbosity());
@@ -325,15 +325,33 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 		myphysicslist->RegisterPhysics(decayer);
 	}
 */
+	G4HadronicParameters::Instance()->SetEnableBCParticles(false); //Disable HF Decay 
 
-	
+	if (m_ActiveDecayerFlag && UsePYTHIA6Decayer)
+	{
+		std::cout << "Use PYTHIA 6 Decayer" << std::endl;
 
-	G4HadronicParameters::Instance()->SetEnableBCParticles(false); //Disable HF Decay?????   
+		P6DExtDecayerPhysics *decayer = new P6DExtDecayerPhysics();
+		if (m_ActiveForceDecayFlag)
+		{
+			decayer->SetForceDecay(m_ForceDecayType);
+		}
+		myphysicslist->RegisterPhysics(decayer);
+	}
+
+
+
 	//  myphysicslist->RegisterPhysics(new P6DExtDecayerPhysics());
 	//  std::cout << "Registered P6DExtDecayerPhysics" << std::endl;
 
-	EvtGenExtDecayerPhysics *decayer = new EvtGenExtDecayerPhysics();
-    myphysicslist->RegisterPhysics(decayer);
+	if (m_ActiveDecayerFlag && UseEvtGenDecayer){
+
+		std::cout << "Use EvtGen 6 Decayer" << std::endl;		
+		EvtGenExtDecayerPhysics *decayer = new EvtGenExtDecayerPhysics();
+		myphysicslist->RegisterPhysics(decayer);
+
+	}
+
 	myphysicslist->RegisterPhysics(new G4StepLimiterPhysics());
 	// initialize cuts so we can ask the world region for it's default
 	// cuts to propagate them to other regions in DefineRegions()

@@ -162,13 +162,17 @@ HepMC::GenEvent* ConvertHepMCGenEvent_3to2(const HepMC3::GenEvent& evt)
 #endif
         n->set_heavy_ion(hi2);
     }
-	/*
+	
+	/*  
+	
+	Not using weight here for now to convert HepMC3 to HepMC
     std::vector<double> wv=evt.weights();
 	std::vector<std::string> wn=evt.weight_names();
     for (size_t i=0; i<wv.size(); i++) n->weights()[wn.at(i)]=wv.at(i);
+	
 	*/
-	std::cout << "NOT WERIGT BRO" << std::endl;
-    std::shared_ptr<HepMC3::DoubleAttribute> A_event_scale=evt.attribute<HepMC3::DoubleAttribute>("event_scale");
+    
+	std::shared_ptr<HepMC3::DoubleAttribute> A_event_scale=evt.attribute<HepMC3::DoubleAttribute>("event_scale");
     std::shared_ptr<HepMC3::DoubleAttribute> A_alphaQED=evt.attribute<HepMC3::DoubleAttribute>("alphaQED");
     std::shared_ptr<HepMC3::DoubleAttribute> A_alphaQCD=evt.attribute<HepMC3::DoubleAttribute>("alphaQCD");
     std::shared_ptr<HepMC3::IntAttribute> A_signal_process_id=evt.attribute<HepMC3::IntAttribute>("signal_process_id");

@@ -7,14 +7,13 @@
 #include <pdbcalbase/PdbParameterMap.h>
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
+#include <ffamodules/XploadInterface.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHTimeStamp.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <phool/recoConsts.h>
-
-#include <xpload/xpload.h>
 
 #include <TBufferXML.h>
 #include <TFile.h>
@@ -505,23 +504,17 @@ int PHParameters::ReadFromDB()
 
 int PHParameters::ReadFromCDB(const std::string &domain)
 {
-  recoConsts *rc = recoConsts::instance();
-  xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), domain, rc->get_uint64Flag("TIMESTAMP"), xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
-  if (result.payload.empty())
-  {
-    std::cout << "No calibration for domain " << domain << " for timestamp " << rc->get_uint64Flag("TIMESTAMP") << std::endl;
-    gSystem->Exit(1);
-  }
-  TFile *f = TFile::Open(result.payload.c_str());
+  std::string url = XploadInterface::instance()->getUrl(domain);
+  TFile *f = TFile::Open(url.c_str());
   if (!f)
   {
-    std::cout << "could not open " << result.payload << std::endl;
+    std::cout << "could not open " << url << std::endl;
     gSystem->Exit(1);
   }
   PdbParameterMap *myparm = static_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
   if (!myparm)
   {
-    std::cout << "could not get PdbParameterMap from " << result.payload << std::endl;
+    std::cout << "could not get PdbParameterMap from " << url << std::endl;
     gSystem->Exit(1);
   }
   FillFrom(myparm);

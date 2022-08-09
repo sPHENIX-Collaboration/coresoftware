@@ -30,8 +30,8 @@
 ///
 /// \author I. Hrivnacova; IPN Orsay
 
-#ifndef P6D_EXT_DECAYER_PHYSICS_H
-#define P6D_EXT_DECAYER_PHYSICS_H
+#ifndef EVT_EXT_DECAYER_PHYSICS_H
+#define EVT_EXT_DECAYER_PHYSICS_H
 
 
 

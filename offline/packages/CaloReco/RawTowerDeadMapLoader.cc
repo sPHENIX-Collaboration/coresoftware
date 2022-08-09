@@ -49,8 +49,6 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 RawTowerDeadMapLoader::RawTowerDeadMapLoader(const std::string &detector)
   : SubsysReco("RawTowerDeadMapLoader_" + detector)
   , m_detector(detector)
@@ -81,7 +79,7 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
   }
 
   // Be careful as a previous calibrator may have been registered for this detector
-  string deadMapName = "DEADMAP_" + m_detector;
+  std::string deadMapName = "DEADMAP_" + m_detector;
   RawTowerDeadMap *m_deadmap = findNode::getClass<RawTowerDeadMapv1>(DetNode, deadMapName);
   if (!m_deadmap)
   {
@@ -95,7 +93,7 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
   assert(m_deadmap);
 
-  cout << "RawTowerDeadMapLoader::" << m_detector << "::InitRun - loading dead map from " << m_deadMapPath << endl;
+  std::cout << "RawTowerDeadMapLoader::" << m_detector << "::InitRun - loading dead map from " << m_deadMapPath << std::endl;
 
   PHParameters deadMapParam(m_detector);
   deadMapParam.ReadFromFile(m_detector, "xml", 0, 0, m_deadMapPath);
@@ -104,11 +102,11 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
   for (auto iterA = in_par_ranges.first; iterA != in_par_ranges.second; ++iterA)
   {
-    const string &deadChanName = iterA->first;
+    const std::string &deadChanName = iterA->first;
 
     if (Verbosity())
     {
-      cout << "deadMapParam[" << deadChanName << "] = " << iterA->second << ": ";
+      std::cout << "deadMapParam[" << deadChanName << "] = " << iterA->second << ": ";
     }
 
     boost::char_separator<char> sep("_");
@@ -142,14 +140,14 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
           if (Verbosity())
           {
-            cout << "add dead channel eta" << eta << " phi" << phi;
+            std::cout << "add dead channel eta" << eta << " phi" << phi;
           }
         }  // if (*tokeniter == "eta")
         else
         {
           if (Verbosity())
           {
-            cout << "skip " << deadChanName;
+            std::cout << "skip " << deadChanName;
           }
         }
 
@@ -158,7 +156,7 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
       {
         if (Verbosity())
         {
-          cout << "skip " << deadChanName;
+          std::cout << "skip " << deadChanName;
         }
       }
 
@@ -166,14 +164,14 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
     if (Verbosity())
     {
-      cout << endl;
+      std::cout << std::endl;
     }
 
   }  //  for (const auto iterA = in_par_ranges.first; iterA != in_par_ranges.second; ++iterA)
 
   if (Verbosity())
   {
-    cout << "RawTowerDeadMapLoader::" << m_detector << "::InitRun - loading dead map completed : ";
+    std::cout << "RawTowerDeadMapLoader::" << m_detector << "::InitRun - loading dead map completed : ";
     m_deadmap->identify();
   }
   return Fun4AllReturnCodes::EVENT_OK;

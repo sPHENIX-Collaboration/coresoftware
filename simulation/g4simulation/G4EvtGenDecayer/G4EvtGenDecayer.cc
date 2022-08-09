@@ -81,30 +81,11 @@ G4EvtGenDecayer::G4EvtGenDecayer()
 
 	useXml = false;
 
-	std::cout << "Force Here BRTO ORB" << std::endl;
+
 
 
 	EventID = 0;
-	std::cout << "Force Here BRTO ORB" << std::endl;
-/*
-	CheckDecay = new TFile("CheckDecay.root","RECREATE");
-	CheckDecay->cd();
-	DecayTree = new TTree("DecayTree","DecayTree");
 
-	DecayTree->Branch("EventID",&EventID,"EventID/I");	
-	DecayTree->Branch("PDGID",&PDGID,"PDGID/I");
-	DecayTree->Branch("px",&px,"px/F");
-	DecayTree->Branch("py",&py,"py/F");
-	DecayTree->Branch("pz",&pz,"pz/F");
-	DecayTree->Branch("vx",&vx,"vx/F");
-	DecayTree->Branch("vy",&vy,"vy/F");
-	DecayTree->Branch("vz",&vz,"vz/F");
-	DecayTree->Branch("pt",&pt,"pt/F");
-	DecayTree->Branch("E",&E,"E/F");
-*/
-
-
-//	fDecayProductsArray = new ParticleVector();
 
 	EvtRandomEngine* eng = 0;
 	eng = new EvtSimpleRandomEngine();
@@ -120,26 +101,14 @@ G4EvtGenDecayer::G4EvtGenDecayer()
 
 	extraModels = genList.getListOfModels();
 
-//	TString Decay_DEC = "InputDECAYFiles/DECAY.DEC";
-//	TString Evt_pdl = "InputDECAYFiles/evt.pdl";
-
-//	TString Decay_DEC = "InputDECAYFiles/D0.KPi.DEC";
-
-//	TString Evt_pdl = "InputDECAYFiles/D0.KPi.DEC";
-
 	std::string Decay_DEC = "InputDECAYFiles/DECAY.DEC";
 	std::string Evt_pdl = "InputDECAYFiles/evt.pdl";
 
 	myGenerator = new EvtGen(Decay_DEC, Evt_pdl, (EvtRandomEngine*)eng, radCorrEngine, &extraModels);
 	myEvtGenDecayer = new PHEvtGenDecayer(myGenerator);
 	std::cout << "Setting Decay Table" << std::endl;
-	//myEvtGenDecayer->SetDecayTable("InputDECAYFiles/D0.KPi.DEC",useXml);
+
 	myEvtGenDecayer->SetDecayTable("InputDECAYFiles/Bs.KKPiPi.DEC",useXml);
-
-
-  /// Standard constructor
-  //std::cout << __PRETTY_FUNCTION__ << std::endl;
-//  fDecayProductsArray = new ParticleVector();
 
 	
 }
@@ -241,7 +210,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
   //std::cout << __PRETTY_FUNCTION__ << std::endl;
   // get particle momentum
 
-  std::cout << "Inside ImportDecayProducts" << std::endl;
+
 
 	G4ThreeVector momentum = track.GetMomentum();
 	G4double etot = track.GetDynamicParticle()->GetTotalEnergy();
@@ -253,8 +222,6 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 	p[3] = etot / GeV;
 
 
-	std::vector<int> LeakParticle;
-	std::vector<int> LeakStatus;
 	// get particle PDG
 	// ask G4EvtGenDecayer to get PDG encoding
 	// (in order to get PDG from extended TDatabasePDG
@@ -271,23 +238,23 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 
 
 	
-	std::cout << "pdgEncoding = " << pdgEncoding << std::endl;
+
 
 	TClonesArray daughters("TParticle", 10);
 	TLorentzVector* ParMom= new TLorentzVector;
 	ParMom->SetPxPyPzE(p[0],p[1],p[2],p[3]);
-//	std::cout << "p[0] = " << p[0] << "  p[1] = " << p[1] << "  p[2] =  " << p[2] << "   p[3] = " << p[3] << std::endl;
+
 	myEvtGenDecayer->Decay(pdgEncoding, ParMom);
-	std::cout << "Pass 12" << std::endl;
+
 	myEvtGenDecayer->ImportParticles(&daughters);
-//	myEvtGenDecayer->ImportParticles(&fDecayProductsArray);
 
-	std::cout << "Pass 13" << std::endl;	
+
+
 	int nTrk = daughters.GetEntriesFast();
-	std::cout << "Pass 14" << std::endl;
 
 
-//	std::cout << "Now Start Looping = " << std::endl;
+
+
 
 
 	// convert decay products EvtGen Products type
@@ -302,12 +269,6 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 	G4DecayProducts* decayProducts = new G4DecayProducts(*(track.GetDynamicParticle()));
 
 	
-	
-	//std::cout<<"Decayer - PDG ID =  "<<  pdg <<  "  px =  "  << Mom[0]  << "  py =  " << Mom[1]  << "  pz =  " << Mom[2]  <<  std::endl;
-	
-	
-	std::cout<<"TotalPx =  "<< TotalPx <<  std::endl;
-	
 	for (int iTrk = 0; iTrk < nTrk; ++iTrk)
 	{
 
@@ -317,7 +278,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 		//int MomID = ptl0->GetFirstMother();
 		ptl0->Momentum(FourMom);
 	
-	//	if(id == 443) std::cout << "id = " << id << "    MomID = " <<  MomID << std::endl;
+
 		
 		TVector3 rcPosSig(ptl0->Vx() * cm, ptl0->Vy() * cm, ptl0->Vz() * cm);
 		TVector3 Mom = FourMom.Vect(); 
@@ -340,7 +301,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 		G4ThreeVector G4Mom = G4ThreeVector(Mom[0] * GeV,Mom[1] * GeV,Mom[2] * GeV);
 			
 		if(abs(pdg) == 130 || abs(pdg) == 310 || abs(pdg) == 211 || abs(pdg) == 321 || abs(pdg) == 22 || abs(pdg) == 11 || abs(pdg) == 2212 || abs(pdg) == 13 ||  abs(pdg) == 12 ||  abs(pdg) == 14 || abs(pdg) == 16){
-			//std::cout<<"Now PDGID: "  <<  pdg  << "   Status = " << Status << endl;
+
 			if(Status != 91) std::cout<<"Now PDGID: "  <<  pdg  << "   Status = " << Status << endl;
 
 		}
@@ -389,8 +350,6 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 		FourMomentum->SetXYZM(Mom[0],Mom[1],Mom[2],ParMass);
 
 
-	//	std::cout << "After Change" << std::endl;
-	//	std::cout<<"Decayer - PDG ID =  "  <<  pdg  << "   Status = " << Status <<  "  px =  "  << Mom[0]  << "  py =  " << Mom[1]  << "  pz =  " << Mom[2]  << "   Energy = " << FourMomentum->E() << "   Mass = "  <<  FourMomentum->M()  << "   Parmass = " << ParMass  << std::endl;
 		ParMass = -1;
 
 //		if(abs(pdg)!= 22) *TotalFourMom = *TotalFourMom + *FourMom;
@@ -398,18 +357,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 		TotalE = FourMomentum->E() + TotalE;
 
 		}
-		else{
-			LeakParticle.push_back(pdg);
-			LeakStatus.push_back(Status);
-		}
-/*
-		else{
-			
-//			std::cout << "LEAK PDGID " << pdg << "     Status:  " <<  Status  <<  std::endl;
-			std::cout<<"LEAK PDGID: "  <<  pdg  << "   Status = " << Status <<  "  px =  "  << Mom[0]  << "  py =  " << Mom[1]  << "  pz =  " << Mom[2]  << "   Energy = " << FourMomentum->E() << "   Mass = "  <<  FourMomentum->M()  << "   Parmass = " << ParMass  << std::endl;
 
-		}
-*/
 		G4DynamicParticle* dynamicParticle = new G4DynamicParticle(particleDefinition, G4Mom);
 		if (dynamicParticle)
 		{
@@ -430,37 +378,8 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 			if( Status != -11 && Status != -91 && (abs(pdg) == 130 || abs(pdg) == 310 || abs(pdg) == 211 || abs(pdg) == 321 || abs(pdg) == 22 || abs(pdg) == 11 || abs(pdg) == 2212 || abs(pdg) == 13 ||  abs(pdg) == 12 ||  abs(pdg) == 14 || abs(pdg) == 16 || abs(pdg) == 2112))  decayProducts->PushProducts(dynamicParticle); 
 
 		}
-/*
-		PDGID = ptl0->GetPdgCode();
-		px = Mom[0];
-		py = Mom[1];
-		pz = Mom[2];
-		pt = TMath::Sqrt(px * px + py * py);
-		E = FourMom.E();
-	
-		vx = ptl0->Vx() * cm;
-		vy = ptl0->Vy() * cm;
-		vz = ptl0->Vz() * cm;
-
-		DecayTree->Fill();
-*/
-	}
-	//CheckDecay->Write();
-    TotalMass = TotalFourMom->M();
-	
-	int LeakSize =  LeakParticle.size();
-
-	if(abs(TotalMass - ParentMass) > 0.1){
-
-		for(int i = 0; i < LeakSize; i++){
-	
-
-			std::cout  << "i = " << i <<  "     LeakParticle  = " << LeakParticle[i] << "   Status = " << LeakStatus[i] << endl;
-
-		}
 	}
 
-	std::cout << "decayProducts->entries() = " << decayProducts->entries() << std::endl;
 	return decayProducts;
   
 }

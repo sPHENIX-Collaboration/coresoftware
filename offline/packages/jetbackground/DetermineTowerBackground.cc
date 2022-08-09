@@ -370,7 +370,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   {
     if (Verbosity() > 0)
     {
-      std::cout << "DetermineTowerBackground::process_event: flow not enabled, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / 3.14159 << " * pi ) , v2 = " << _v2 << std::endl;
+      std::cout << "DetermineTowerBackground::process_event: flow not enabled, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) , v2 = " << _v2 << std::endl;
     }
   }
 
@@ -400,8 +400,8 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
           {
             float deta = this_eta - _seed_eta[iseed];
             float dphi = this_phi - _seed_phi[iseed];
-            if (dphi > 3.14159) dphi -= 2 * 3.14159;
-            if (dphi < -3.14159) dphi += 2 * 3.14159;
+            if (dphi > M_PI) dphi -= 2 * M_PI;
+            if (dphi < -M_PI) dphi += 2 * M_PI;
             float dR = sqrt(pow(deta, 2) + pow(dphi, 2));
             if (dR < 0.4)
             {
@@ -511,7 +511,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         _Psi2 = atan2(Hijing_Qy, Hijing_Qx) / 2.0;
 
         if (Verbosity() > 0)
-          std::cout << "DetermineTowerBackground::process_event: flow extracted from Hijing truth particles, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / 3.14159 << " * pi ) " << std::endl;
+          std::cout << "DetermineTowerBackground::process_event: flow extracted from Hijing truth particles, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) " << std::endl;
       }
 
       // determine v2 from calo regardless of origin of Psi2
@@ -537,7 +537,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     if (Verbosity() > 0)
     {
       std::cout << "DetermineTowerBackground::process_event: unnormalized Q vector (Qx, Qy) = ( " << Q_x << ", " << Q_y << " ) with Sum E_i = " << E << std::endl;
-      std::cout << "DetermineTowerBackground::process_event: Psi2 = " << _Psi2 << " ( " << _Psi2 / 3.14159 << " * pi " << (_do_flow == 2 ? "from Hijing " : "") << ") , v2 = " << _v2 << " ( using " << _nStrips << " ) " << std::endl;
+      std::cout << "DetermineTowerBackground::process_event: Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi " << (_do_flow == 2 ? "from Hijing " : "") << ") , v2 = " << _v2 << " ( using " << _nStrips << " ) " << std::endl;
     }
   }  // if do flow
 
@@ -566,8 +566,8 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         {
           float deta = this_eta - _seed_eta[iseed];
           float dphi = this_phi - _seed_phi[iseed];
-          if (dphi > 3.14159) dphi -= 2 * 3.14159;
-          if (dphi < -3.14159) dphi += 2 * 3.14159;
+          if (dphi > M_PI) dphi -= 2 * M_PI;
+          if (dphi < -M_PI) dphi += 2 * M_PI;
           float dR = sqrt(pow(deta, 2) + pow(dphi, 2));
           if (dR < 0.4)
           {

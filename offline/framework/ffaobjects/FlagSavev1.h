@@ -5,6 +5,7 @@
 
 #include "FlagSave.h"
 
+#include <cstdint>  // for uint64_t
 #include <iostream>
 #include <map>
 #include <string>

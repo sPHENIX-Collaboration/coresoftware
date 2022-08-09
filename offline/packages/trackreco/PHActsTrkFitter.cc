@@ -500,6 +500,15 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
    
       auto cluster = m_clusterContainer->findCluster(cluskey);
       Surface surf = m_tGeometry->maps().getSurface(cluskey, cluster);
+
+      // if this is a TPC cluster, the crossing correction may have moved it across the central membrane, check the surface
+      auto trkrid = TrkrDefs::getTrkrId(cluskey);
+      if(trkrid == TrkrDefs::tpcId)
+	{
+	  TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+	  TrkrDefs::subsurfkey new_subsurfkey = 0;    
+	  surf = m_tGeometry->get_tpc_surface_from_coords(hitsetkey,  global, new_subsurfkey);
+	}
     
       if(!surf)
 	{ continue; }
@@ -526,6 +535,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       
       if(Verbosity() > 0)
 	{
+	  std::cout << " cluster global after mover: " << global << std::endl; 
 	  std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
 	  std::cout << " new      local X " << localPos(0) << " new       local Y " << localPos(1) << std::endl;
 	}
