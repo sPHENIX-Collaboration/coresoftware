@@ -12,6 +12,8 @@
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
+#include <ffamodules/XploadInterface.h>
+
 #include <phool/getClass.h>
 
 #include <TSystem.h>
@@ -84,7 +86,8 @@ int PHG4InnerHcalSteppingAction::Init()
     }
     std::string ihcalmapname(Calibroot);
     ihcalmapname += "/HCALIN/tilemap/iHCALMapsNorm020922.root";
-    TFile* file = TFile::Open(ihcalmapname.c_str());
+    std::string url = XploadInterface::instance()->getUrl("OLD_INNER_HCAL_TILEMAP",ihcalmapname);
+    TFile* file = TFile::Open(url.c_str());
     file->GetObject("ihcalmapcombined", m_MapCorrHist);
     if (!m_MapCorrHist)
     {
