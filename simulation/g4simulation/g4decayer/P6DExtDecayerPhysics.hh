@@ -30,6 +30,8 @@
 ///
 /// \author I. Hrivnacova; IPN Orsay
 
+#ifndef P6D_EXT_DECAYER_PHYSICS_H
+#define P6D_EXT_DECAYER_PHYSICS_H
 
 #include "EDecayType.hh"
 
@@ -42,10 +44,6 @@
 /// processes
 ///
 /// \author I. Hrivnacova; IPN Orsay
-
-
-#ifndef G4_EVTGEN_DECAYER_H
-#define G4_EVTGEN_DECAYER_H
 
 class P6DExtDecayerPhysics : public G4VPhysicsConstructor
 {
@@ -76,5 +74,4 @@ class P6DExtDecayerPhysics : public G4VPhysicsConstructor
   EDecayType _force_decay_type;
 };
 
-#endif
-
+#endif  //P6D_EXT_DECAYER_PHYSICS_H
