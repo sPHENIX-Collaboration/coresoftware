@@ -9,6 +9,8 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <ffamodules/XploadInterface.h>
+
 #include <fun4all/Fun4AllServer.h>
 
 #include <g4main/PHG4Hit.h>
@@ -99,7 +101,8 @@ int PHG4OuterHcalSteppingAction::Init()
     }
     std::string mappingfilename(Calibroot);
     mappingfilename += "/HCALOUT/tilemap/oHCALMaps092021.root";
-    TFile* file = TFile::Open(mappingfilename.c_str());
+    std::string url = XploadInterface::instance()->getUrl("OLD_OUTER_HCAL_TILEMAP", mappingfilename);
+    TFile* file = TFile::Open(url.c_str());
     file->GetObject("hCombinedMap", m_MapCorrHist);
     m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
     file->Close();
