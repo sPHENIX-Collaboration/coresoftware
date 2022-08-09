@@ -1,0 +1,5 @@
+#include <@HEPMC3_INCLUDE_DIR@HepMC3/Readerprotobuf.h>
+#include <@HEPMC3_INCLUDE_DIR@HepMC3/Writerprotobuf.h>
+
+
+#include <memory>

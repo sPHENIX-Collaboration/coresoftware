@@ -1,0 +1,94 @@
+-------------------------------------------------
+PLEASE ADHERE TO THESE RULES WHEN ADDING NEW CODE
+-------------------------------------------------
+
+This will help keep the code uniform and will greatly improve readability
+of the code for new developers or old ones going back into the code after
+several years.
+
+-------------
+GENERAL RULES
+-------------
+
+1) We follow HepMC2 naming conventions:
+   - "snake_case" style of function and variable naming
+   - "CamelCase" style of class naming
+   - class/struct variables start from m_
+   - enum values are ALL-CAPS
+   - getters do not use 'get_' prefix
+   - setters use 'set_' prefix
+
+2) Remember to mark 'const' functions accordingly
+
+3) HepMC3 follows no-throw policy, as in: no part of the code
+   should throw an exception or use 'exit', etc. to end the program.
+   All critical cases should be checked and when needed,
+   an error should be printed.
+
+4) Declare use of each std class separately.
+   'using std::vector' instead of 'using namespace std'
+
+5) Use pre-defined macros for any text output outside of print() functions.
+   Precede any text with class and function name:
+
+   HEPMC3_ERROR(    "GenEvent::test: No particles in the event!" )
+   HEPMC3_WARNING(  "GenEvent::test: Only one particle present!" )
+   HEPMC3_DEBUG( 3, "GenEvent::test: Has end vertex: " << (bool)end_vertex() )
+
+   HEPMC3_DEBUG_CODE_BLOCK(
+       int x = 10*10;
+       HEPMC3_DEBUG( 3, "GenEvent::test: This should be 100: " << x )
+       event->print();
+   )
+
+6) Whenever you need an output for debugging, always use appropriately
+   commented HEPMC3_DEBUG( 10, "info" ) block. This would make things easier if you
+   later decide it's worth to leave the debug info in the code.
+
+7) HEPMC3_DEBUG and HEPMC3_DEBUG_CODE_BLOCK statements are not compile in release mode
+   so use them at will. To avoid information flooding use appropriate
+   debug levels for specific types of debug information:
+   - level 1  - critical, short info
+   - level 10 - less important, longer info
+
+------------
+CODING STYLE
+------------
+
+To perform an automatic formating the astyle utility is used.
+Run ``make beauty`` to format the C++ code with ``astyle`` and ``make beautypython``
+to fotmat the python code with ``black``.
+
+
+--------------
+COMMENTS STYLE
+--------------
+
+1) When writing a comment that goes into documentation, use
+   doxygen-style comments with keywords starting from '@', e.g.:
+
+Comment block:
+
+/**
+ *  @file GenEvent.h
+ *  @brief Definition of \b class GenEvent
+ *
+ *  @class HepMC3::GenEvent
+ *  @brief Stores event-related information
+ *
+ *  Manages GenParticle and GenVertex objects
+ *
+ */
+
+One-line comment:
+int variable; //!< @todo This variable is probably useless
+
+Parts that do not go into documentation (e.g. steps of an algorithm)
+can be commented using usual // or /* */ comments.
+
+2) Keep all of your code documented. building with -DHEPMC3_BUILD_DOCS=ON
+   should give no warnings about missing documentation
+
+3) Use @bug @todo keywords to mark problems found in the code. They go
+   on separate lists in the documentation so we can keep track of them
+   at any time. Remove these keywords after fixing the issue.

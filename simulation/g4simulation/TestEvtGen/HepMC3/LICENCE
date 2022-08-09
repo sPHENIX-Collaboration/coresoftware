@@ -1,0 +1,48 @@
+This software is released under Version 3 of the GNU Lesser General Public Licence (see ./COPYING) or any later version.
+
+Copyright (C) 2014-2021 HepMC3 Authors
+
+The third party codes are distributed under their own licenses.
+
+# ./include/HepMC3/bxzstr/LICENSE from  https://www.mozilla.org/en-US/MPL/2.0/
+# Copyright: 2020  Matei David Tommi Mäklin
+# Type: Mozilla Public License Version 2.0
+ ./include/HepMC3/bxzstr/*
+
+
+# http://www.thep.lu.se/~torbjorn/Pythia.html 
+# Copyright: 2010 Torbjorn Sjostrand et al. 
+./examples/Pythia6Example/main63.f
+./examples/Pythia6Example/pythia-6.4.28.f
+
+# ./COPYING  from https://www.gnu.org/licenses/gpl-3.0.html
+# Type: GPLv3+
+# Copyright: 2009, Adrien Bustany, <madcat@mymadcat.com>
+# Copyright: 2013-2014 Kevin Funk <kevin.funk@kdab.com>
+# Copyright: Allen Winter <allen.winter@kdab.com>
+# Copyright: 2012-2014 Klarälvdalens Datakonsult AB, a KDAB Group company <info@kdab.com>
+# Copyright: 2014 University of Southern California
+./examples/ViewerExample/cmake/Modules/FindGraphviz.cmake
+
+# ./cmake/Modules/Copyright.txt from  https://cmake.org/licensing 
+# Type: OSI-approved BSD 3-Clause License
+# Copyright: 2000-2021 Kitware, Inc. and Contributors
+./cmake/Modules/CMakeFindFrameworks.cmake
+./cmake/Modules/FindPackageMessage.cmake
+./cmake/Modules/FindPython2.cmake
+./cmake/Modules/FindPython3.cmake
+./cmake/Modules/FindPackageHandleStandardArgs.c
+./cmake/Modules/SelectLibraryConfigurations.cmake
+./cmake/Modules/FindPython/Support.cmake
+./cmake/Modules/CMakeMacroParseArguments.cmake
+
+# ./python/include/LICENSE from https://github.com/pybind/pybind11
+# Type: BSD 3-Clause like
+# Copyright: 2016 Wenzel Jakob <wenzel.jakob@epfl.ch>, All rights reserved.
+./python/include/pybind11/*
+
+# ./COPYING  from https://www.gnu.org/licenses/gpl-3.0.html
+# Type: GPLv3+
+# Copyright: 2014-2021 The HepMC collaboration (see AUTHORS for details)
+# Part of code was adopted from Pythia8-HepMC interface by Mikhail Kirsanov.
+./interfaces/pythia8/include/Pythia8/Pythia8ToHepMC3.h

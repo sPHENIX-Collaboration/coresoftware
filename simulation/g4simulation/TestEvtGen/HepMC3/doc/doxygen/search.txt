@@ -1,0 +1,267 @@
+/**
+    @defgroup Search Search-related classes and interfaces
+
+    HepMC3 comes with an optional "Search" library for finding particles
+    related to other particles or vertices.
+    It provides a set of functions to perform simple search operations e.g.
+    @code
+    std::vector<HepMC3::GenParticlePtr>      children_particles(HepMC3::GenVertexPtr O);   ///< Return children particles
+    std::vector<HepMC3::ConstGenVertexPtr>   grandchildren_vertices(HepMC3::ConstGenVertexPtr O); ///< Return grandchildren vertices
+    std::vector<HepMC3::GenParticlePtr>      parent_particles(HepMC3::GenVertexPtr O);  ///< Return parent particles
+    std::vector<HepMC3::GenVertexPtr>        ancestor_vertices(HepMC3::GenVertexPtr obj);      ///< Return ancestor vertices
+    @code
+    and interfaces for a more advanced usage. For the latter two main interfaces are defined:
+    Relatives, for finding a particular type of relative, and Feature, for
+    generating filters based on Features extracted from particles.
+    In addition, operator on Filters are also defined.
+
+    ###########################################################################
+    @section Relatives Interface
+    ###########################################################################
+
+    The Relatives interface is defined within search/include/HepMC3/Relatives.h.
+    Classes that obey this interface must provide a set of operator functions
+    that take either a GenParticlePtr, ConstGenParticlePtr, GenVertexPtr or
+    ConstGenVertexPtr and return a vector of either GenParticlePtr or
+    ConstGenParticlePtr.   Note that the versions of the operator functions that
+    receive a consted input parameter also return a vector<ConstGenParticlePtr>,
+    while the versions that take non-consted input return non-const output.
+    This ensures consistency with the rule that consted objects may only return
+    pointers to const objects.
+
+    The Relatives base class is abstract, and has a concrete implementation in
+    the templated RelativesInterface class.  The RelativesInterface uses type
+    erasure so that any class that obeys the defined Relatives interface
+    (i.e that has the necessary four operator functions) can be wrapped in the
+    RelativesInterface without needing to inherit from Relatives directly.
+
+    For example, if class foo implements the four necessary functions then the
+    following will work
+
+    @code{.cpp}
+    using FooRelatives = RelativesInterface<Foo>;
+    Relatives * relos = new FooRelatives();
+    GenParticlePtr someInput;
+    vector<GenParticlePtr> foos = (*relos)(someInput);
+    @endcode
+
+    The purpose of Relatives is to be able to wrap any viable class in a common
+    interface for finding relatives from a particle or vertex.  Examples are
+    provided in the form of the _parents and _children classes.  These do not
+    inherit from Raltives, but they do implement the necessary functions.
+    The _parents and _children class are not intended to be used directly, but
+    they are aliased by wrapping in the RelativesInterface:
+
+    @code{.cpp}
+    using Parents  = RelativesInterface<_parents>;
+    using Children = RelativesInterface<_children>;
+    @endcode
+
+    Note as well that the _parents and _children classes use some utility aliases
+    to help declare the appropriately consted return type.  For example
+
+    @code{.cpp}
+    template<typename GenObject_type>
+    GenParticles_type<GenObject_type> operator()(GenObject_type);
+    @endcode
+
+    has a return type GenParticles_type that is a vector of GenParticlePtr that
+    is consted if GenObject_type is const, but is not consted if GenObject_type
+    is not consted.  Note as well the use of enable_if so that a single
+    implementation can be used for both the const and non-const version of the
+    functions.  For the simple case of _parents the four required funcs could
+    have been implemented directly without such templating, but for more
+    complicated relatives it avoids duplicated code.
+
+    ###########################################################################
+    @section Recursive Relatives
+    ###########################################################################
+
+    In addition to the RelativesInterface wrapper, Relatives.h also contains a
+    Recursive class that can wrap the underlying relation in recursion.  For
+    example, recursion applied to the parents relationship provides all of the
+    ancestors, i.e. parents repeatedly applied to the output of parents.  The
+    only additional requirement to use the Recursive wrapper is that the
+    underlying class must implement a vertex(GenParticlePtr) method that returns
+    the appropriate vertex to follow from a given GenParticle.  As long as a
+    class has such a method, it is possible to make a recursive version of it
+
+    @code{.cpp}
+    using Ancestors = RelativesInterface<Recursive<_parents> >;
+    @endcode
+
+    ###########################################################################
+    @section Existing Relatives
+    ###########################################################################
+
+    The Relatives class contains static implementations of the Parents,
+    Children, Ancestors and Descendants relatives, which can be accessed and
+    used as follows
+
+    @code{.cpp}
+
+    vector<const Relatives*> relos{&Relatives::PARENTS, &Relatives::ANCESTORS, &Relatives::CHILDREN, &Relatives::DESCENDANTS};
+    ConstGenVertexPtr startPosition;
+    // loop over different relationships.
+    for(const Relatives* r: relos){
+      for(auto p: r(startPosition)){
+        // Do something with search result p
+      }
+    }
+
+    @endcode
+
+    ###########################################################################
+    @section Filters
+    ###########################################################################
+
+    A Filter is any object that has an operator that takes as input a
+    ConstGenParticlePtr and returns a bool that reflects whether the input
+    particle passes the filter requirements or not.  Filter is defined in
+    Filter.h as
+
+    @code{.cpp}
+    using Filter = std::function<bool(ConstGenParticlePtr)>;
+    @endcode
+
+    Filter.h also contains some logical operators that allow filters to be
+    combined to create new filters, for example
+
+    @code{.cpp}
+    Filter filter1, filter2, filter3;
+    Filter filter4 = filter1 && filter2;
+    Filter filter5 = filter3 || filter4;
+    Filter filter6 = !filter1;
+    @endcode
+
+    Filter.h additionally contains a dummy filter that always accepts every
+    possible particle.  This may be needed in functions that require a default
+    filter.  The dummy filter is accessed as
+
+    @code{.cpp}
+    Filter dummy = ACCEPT_ALL;
+    @endcode
+
+    It is possible to define a Filter by hand.  However, there are some utility
+    classes to define Filters based on features that can be obtained from GenParticles
+
+    ###########################################################################
+    @section Feature Interface
+    ###########################################################################
+
+    The Feature interface is defined in Feature.h.  The interface is templated
+    on a Feature_type that is any type that can be extracted from a GenParticle.
+    This is very flexible, and the only criteria is that the Feature must have
+    the set of comparison operators.  While the templated Feature is general
+    enough to be used with any type of Feature, there are specialisations
+    for both integral and floating point features.  The specialisations will
+    cover the vast majority of Features that are likely to be useful, although
+    note that Attributes may be a source of more complicated Features.
+
+    To create a Feature, one need only wrap a lambda expression in the Feature
+    interface.  For example, to create a Feature based on particle status or pT:
+
+    @code{.cpp}
+    Feature<int> status([](ConstGenParticlePtr p)->int{return p->status();});
+    Feature<double> pT([](ConstGenParticlePtr p)->double{return p->momentum().pt()});
+    @endcode
+
+    The more general form for any type of Feature would be
+
+    @code{.cpp}
+    Feature<type> foo([](ConstGenParticlePtr p)->type{return p->foo();});
+    @endcode
+
+    Having created a Feature, it can be used to create Filters for particle
+    selection.  Applying operators to Features creates the Filter, which is
+    a functor that evaluates on a particle.  For example
+
+    @code{.cpp}
+    ConstGenParticlePtr p;
+    Filter is_stable = (status == 1);
+    bool stable = is_stable(p);
+
+    // this evaluates true if p has pT above 100.
+    bool passPTCut = (pT > 100.)(p);
+
+    // The Features can be combined
+    bool combined = ((pT > 100.) && (status == 1))(p);
+
+    @endcode
+
+    It is also possible to make a new Feature from the absolute value of
+    a previous Feature, e.g.
+
+    @code{.cpp}
+    Feature<double> rapidity([](ConstGenParticlePtr p)->double{return p->momentum().rapidity()});
+    bool passes_rapCut = (abs(rapidity) < 2.5)(p);
+    @endcode
+
+    Some standard features are contained within the non-templated Selector class
+
+    ###########################################################################
+    @section Standard Selectors and SelectorWrapper
+    ###########################################################################
+
+    Selector is a simplified interface that contains some predefined Features
+    that can be used to search.  Selector defines comparisons operators for
+    both integral and floating point types, as well as the following selection
+    Features:
+
+    Selector::STATUS
+    Selector::PDG_ID
+    Selector::PT
+    Selector::ENERGY
+    Selector::RAPIDITY
+    Selector::ETA
+    Selector::PHI
+    Selector::ET
+    Selector::MASS
+    Selector::ATTRIBUTE(const std::string)
+
+    So, for example, a filter can be defined as follows
+
+    @code{.cpp}
+    Filter f = (Selector::STATUS == 1 && Selector::PT > 60.) || (Selector::MASS > 70. && Selector::MASS < 110.);
+    GenParticlePtr p;
+    bool passesCuts = f(p);
+    @endcode
+
+    As with Feature, it is possible to take tbe absolute value of a Selector.
+    However, note that while Featue is templated, Selector is abstract and so
+    it is not possible for abs() to return a Selector object directly, only a
+    pointer
+
+    @code{.cpp}
+    Filter f = *abs(Selector::RAPIDITY) < 2.5;
+    bool passRapidity = f(p);
+    @endcode
+
+    Note that the ATTRIBUTE selection is different from the others and does not
+    have the full set of comparison operators.  This is a current limitation of
+    the Attributes, which are not guaranteed to offer all comparisons.
+    ATTRIBUTE takes a string, which is the name of the attribute, and permits
+    the equality operator and the method exists, which checks if the attribute is
+    even present
+
+    @code{.cpp}
+    string name = "MyAttribute";
+    Filter f = Selector::ATTRIBUTE(name).exists() && Selector::ATTRIBUTE(name) == "My Value";
+    bool passesAttribute = f(p);
+    @endcode
+
+    ###########################################################################
+    @section Applying Filters
+    ###########################################################################
+
+    The function applyFilter is used to apply the Filter to a set of particles.
+    See for example examples/BasicExamples/basic_tree.cc
+
+    @code{.cpp}
+    for(ConstGenParticlePtr p: applyFilter( *abs(Selector::PDG_ID) <= 6, someParticles)){
+      Print::line(p);
+    }
+    @endcode
+
+ Last update 27 Oct 2020
+*/
