@@ -69,17 +69,17 @@ class PHG4SectorSubsystem : public PHG4Subsystem
  private:
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4SectorDetector* m_Detector;
+  PHG4SectorDetector* m_Detector = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction = nullptr;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction;
+  PHG4DisplayAction* m_DisplayAction = nullptr;
 
-  std::string superdetector;
+  std::string superdetector = "NONE";
 
   PHG4Sector::Sector_Geometry geom;
 };

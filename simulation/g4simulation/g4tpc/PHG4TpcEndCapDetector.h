@@ -4,6 +4,7 @@
 #define PHG4TPCENDCAPDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
+
 #include <Geant4/G4Types.hh>
 
 #include <set>
@@ -54,10 +55,10 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   G4AssemblyVolume *ConstructEndCapAssembly();
 
   void ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
-                           G4double &z_start);
+                           G4double &z_start);  // careful z_start is modified and being used later
 
   void ConstructElectronics(G4AssemblyVolume *assmeblyvol,
-                            G4double &z_start);
+                            G4double z_start);
 
   void
   AddLayer(  //

@@ -27,9 +27,7 @@
 
 #include <CLHEP/Vector/RotationZ.h>
 
-
 #include <boost/format.hpp>
-
 
 #include <algorithm>  // for max, copy
 #include <cassert>
@@ -260,7 +258,7 @@ void PHG4TpcEndCapDetector ::AddLayer(  //
 }
 
 void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
-                                                G4double &z_start)
+                                                G4double &z_start)  // careful z_start is modified and being used later
 {
   const int n_sectors = m_Params->get_int_param("n_sectors");
   assert(n_sectors >= 1);
@@ -463,7 +461,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
 }
 
 void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
-                                                 G4double &z_start)
+                                                 G4double z_start)
 {
   const int n_sectors = m_Params->get_int_param("n_sectors");
   assert(n_sectors >= 1);

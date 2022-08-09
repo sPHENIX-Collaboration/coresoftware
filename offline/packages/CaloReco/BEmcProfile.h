@@ -9,12 +9,11 @@ class BEmcProfile
  public:
   explicit BEmcProfile(const std::string& fname);
 
- // delete copy ctor and assignment operator (cppcheck)
+  // delete copy ctor and assignment operator (cppcheck)
   explicit BEmcProfile(const BEmcProfile&) = delete;
   BEmcProfile& operator=(const BEmcProfile&) = delete;
 
   virtual ~BEmcProfile();
-
 
   float GetProb(std::vector<EmcModule>* plist, int NX, float en, float theta, float phi);
   float GetTowerEnergy(int iy, int iz, std::vector<EmcModule>* plist, int nx);
@@ -37,7 +36,7 @@ class BEmcProfile
 
   TH1F** hmean;
   TH1F** hsigma;
-  TH1F* *hr4;
+  TH1F** hr4;
 
  private:
   int m_Verbosity;

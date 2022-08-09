@@ -19,6 +19,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   MvtxClusterizer.h \
+  MvtxHitPruner.h \
   CylinderGeom_Mvtx.h \
   SegmentationAlpide.h
 
@@ -32,7 +33,8 @@ nobase_dist_pcm_DATA = \
 
 # sources for mvtx library
 libmvtx_la_SOURCES = \
-  MvtxClusterizer.cc
+  MvtxClusterizer.cc \
+ MvtxHitPruner.cc
 
 libmvtx_la_LIBADD = \
   libmvtx_io.la \

@@ -30,15 +30,10 @@
 class G4VPhysicalVolume;
 class PHCompositeNode;
 
-using namespace std;
 //____________________________________________________________________________..
 PHG4SectorSteppingAction::PHG4SectorSteppingAction(PHG4SectorDetector* detector)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
-  , hits_(nullptr)
-  , hit(nullptr)
-  , saveshower(nullptr)
-  , layer_id(-1)
 {
 }
 
@@ -71,15 +66,15 @@ bool PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // the check for the pdg code speeds things up, I do not want to make
     // an expensive string compare for every track when we know
     // geantino or chargedgeantino has pid=0
-    if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 && aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+    if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 && aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
     G4StepPoint* prePoint = aStep->GetPreStepPoint();
     G4StepPoint* postPoint = aStep->GetPostStepPoint();
-    //       cout << "track id " << aTrack->GetTrackID() << endl;
-    //       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
-    //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+    //       std::cout << "track id " << aTrack->GetTrackID() << std::endl;
+    //       std::cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
+    //       std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
     //layer_id is sector number
     switch (prePoint->GetStepStatus())
     {
@@ -189,7 +184,7 @@ bool PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4SectorSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
+  std::string hitnodename;
   if (detector_->SuperDetector() != "NONE")
   {
     hitnodename = "G4HIT_" + detector_->SuperDetector();

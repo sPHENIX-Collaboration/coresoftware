@@ -23,7 +23,6 @@
 #include <HepMC/GenEvent.h>
 #include <HepMC/HeavyIon.h>  // for HeavyIon
 
-#include <iostream>
 #include <iterator>  // for operator!=, reverse_iterator
 #include <map>       // for _Rb_tree_iterator
 #include <utility>   // for pair

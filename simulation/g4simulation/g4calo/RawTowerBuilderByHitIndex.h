@@ -1,5 +1,5 @@
-#ifndef G4CALO__RAWTOWERBUILDERBYHITINDEX_H
-#define G4CALO__RAWTOWERBUILDERBYHITINDEX_H
+#ifndef G4CALO_RAWTOWERBUILDERBYHITINDEX_H
+#define G4CALO_RAWTOWERBUILDERBYHITINDEX_H
 
 #include <calobase/RawTowerDefs.h>
 
@@ -74,25 +74,25 @@ class RawTowerBuilderByHitIndex : public SubsysReco
    */
   bool ReadGeometryFromTable();
 
-  RawTowerContainer *m_Towers;
-  RawTowerGeomContainer *m_Geoms;
+  RawTowerContainer *m_Towers = nullptr;
+  RawTowerGeomContainer *m_Geoms = nullptr;
 
-  std::string m_Detector;
+  std::string m_Detector = "NONE";
   std::string m_SimTowerNodePrefix;
 
-  std::string m_MappingTowerFile;
+  std::string m_MappingTowerFile = "default.txt";
 
-  RawTowerDefs::CalorimeterId m_CaloId;
+  RawTowerDefs::CalorimeterId m_CaloId = RawTowerDefs::NONE;
 
-  double m_GlobalPlaceInX;
-  double m_GlobalPlaceInY;
-  double m_GlobalPlaceInZ;
+  double m_GlobalPlaceInX = 0.;
+  double m_GlobalPlaceInY = 0.;
+  double m_GlobalPlaceInZ = 0.;
 
-  double m_RotInX;
-  double m_RotInY;
-  double m_RotInZ;
+  double m_RotInX = 0.;
+  double m_RotInY = 0.;
+  double m_RotInZ = 0.;
 
-  double m_Emin;
+  double m_Emin = 1e-6;
 
   std::map<std::string, double> m_GlobalParameterMap;
 };

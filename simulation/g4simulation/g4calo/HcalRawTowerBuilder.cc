@@ -35,12 +35,13 @@
 
 #include <TSystem.h>
 
-#include <cmath>      // for fabs, NAN, cos
-#include <exception>  // for exception
+#include <cmath>    // for fabs, NAN, cos
+#include <cstdlib>  // for exit
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <memory>  // for allocator_tra...
 #include <stdexcept>
 #include <utility>  // for make_pair, pair
 
@@ -131,6 +132,10 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
     {
       std::cout << "save ionization energy in towers" << std::endl;
     }
+    else if (m_TowerEnergySrc == kRawLightYield)
+    {
+      std::cout << "save raw (pre-Mephi map) light yield in towers" << std::endl;
+    }
     else
     {
       std::cout << "unknown energy source" << std::endl;
@@ -151,7 +156,7 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   m_RawTowerGeom->set_phibins(get_int_param(PHG4HcalDefs::n_towers));
   m_RawTowerGeom->set_etabins(get_int_param("etabins"));
   double geom_ref_radius = innerrad + thickness / 2.;
-  double phistart = 0;
+  double phistart = get_double_param("phistart");
   for (int i = 0; i < get_int_param(PHG4HcalDefs::n_towers); i++)
   {
     double phiend = phistart + 2. * M_PI / get_int_param(PHG4HcalDefs::n_towers);
@@ -329,6 +334,10 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     {
       cell_weight = cell->get_eion();
     }
+    else if (m_TowerEnergySrc == kRawLightYield)
+    {
+      cell_weight = cell->get_raw_light_yield();
+    }
     else
     {
       std::cout << Name() << ": unknown tower energy source "
@@ -452,6 +461,7 @@ void HcalRawTowerBuilder::SetDefaultParameters()
 
   set_default_double_param("scinti_eta_coverage_neg", 1.1);
   set_default_double_param("scinti_eta_coverage_pos", 1.1);
+  set_default_double_param("phistart", 0.);
 }
 
 void HcalRawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
@@ -516,4 +526,10 @@ void HcalRawTowerBuilder::set_tower_decal_factor_real(const int etabin, const in
     int istart = phibin * m_NcellToTower + i;
     m_DecalArray.at(etabin).at(istart) = d;
   }
+}
+
+void HcalRawTowerBuilder::Print(const std::string & /*what*/) const
+{
+  std::cout << Name() << std::endl;
+  PHParameterInterface::Print();
 }

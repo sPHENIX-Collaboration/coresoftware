@@ -10,6 +10,7 @@
 #include "TrkrHitTruthClustersv1.h"
 
 #include <algorithm>
+#include <cmath>
 #include <ostream>               // for operator<<, endl, basic_ostream, bas...
 
 void
@@ -88,7 +89,7 @@ void TrkrHitTruthClustersv1::push_truth_cluster(const int i_track,
     if (phi_std > phiRz_calc[7]) {
         phi_std  = phiRz_calc[7];
         phi_mean = phiRz_calc[6];
-        if (phi_mean > 3.1415926536) phi_mean -= 6.2831853072;
+        if (phi_mean > M_PI) phi_mean -= 2*M_PI;
     }
     phiRz_entry [0] = phi_mean;
     phiRz_entry [1] = phi_std;

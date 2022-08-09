@@ -1039,7 +1039,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<doub
     if(layer == 30)
       std::cout << "   world = " << world[0] << "  " << world[1] 
 		<< "  " << world[2] << " phi_world " 
-		<< phi_world*180/3.14159 << " layer " << layer 
+		<< phi_world*180/M_PI << " layer " << layer
 		<< " readout_mod " << readout_mod << " side " << side 
 		<< " hitsetkey " << hitset_key<< std::endl;
   

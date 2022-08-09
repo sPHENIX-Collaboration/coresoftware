@@ -1,13 +1,13 @@
 #include "RawTowerBuilder.h"
 
-#include <calobase/RawTower.h>                          // for RawTower
-#include <calobase/RawTowerv1.h>
+#include <calobase/RawTower.h>  // for RawTower
 #include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerDefs.h>                      // for encode_towerid
-#include <calobase/RawTowerGeomContainer.h>             // for RawTowerGeomC...
+#include <calobase/RawTowerDefs.h>           // for encode_towerid
+#include <calobase/RawTowerGeom.h>           // for RawTowerGeom
+#include <calobase/RawTowerGeomContainer.h>  // for RawTowerGeomC...
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
-#include <calobase/RawTowerGeom.h>                      // for RawTowerGeom
 #include <calobase/RawTowerGeomv1.h>
+#include <calobase/RawTowerv1.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -19,56 +19,39 @@
 #include <g4main/PHG4Utils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                         // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                               // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                             // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>                                // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <boost/io/ios_state.hpp>
 
-#include <cmath>                                       // for fabs, tan, atan2
-#include <cstdlib>                                     // for exit
-#include <exception>                                    // for exception
+#include <cmath>      // for fabs, tan, atan2
+#include <cstdlib>    // for exit
+#include <exception>  // for exception
 #include <iostream>
 #include <map>
 #include <stdexcept>
-#include <utility>                                      // for pair, make_pair
-
-using namespace std;
+#include <utility>  // for pair, make_pair
 
 RawTowerBuilder::RawTowerBuilder(const std::string &name)
   : SubsysReco(name)
-  , m_TowerContainer(nullptr)
-  , m_RawTowerGeomContainer(nullptr)
-  , m_Detector("NONE")
-  , m_TowerEnergySrcEnum(kLightYield)
-  , m_CellBinning(PHG4CellDefs::undefined)
-  , m_ChkEnergyConservationFlag(0)
-  , m_NumLayers(-1)
-  , m_NumPhiBins(-1)
-  , m_NumEtaBins(-1)
-  , m_Emin(1e-6)
-  , m_EtaMin(NAN)
-  , m_PhiMin(NAN)
-  , m_EtaStep(NAN)
-  , m_PhiStep(NAN)
 {
 }
 
 int RawTowerBuilder::InitRun(PHCompositeNode *topNode)
 {
   std::string geonodename = "CYLINDERCELLGEOM_" + m_Detector;
-  PHG4CylinderCellGeomContainer *cellgeos = findNode::getClass<
-      PHG4CylinderCellGeomContainer>(topNode, geonodename);
+  PHG4CylinderCellGeomContainer *cellgeos = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, geonodename);
   if (!cellgeos)
   {
-    cout << PHWHERE << " " << geonodename
-         << " Node missing, doing nothing." << std::endl;
+    std::cout << PHWHERE << " " << geonodename
+              << " Node missing, doing nothing." << std::endl;
     throw std::runtime_error(
         "Failed to find " + geonodename + " node in RawTowerBuilder::CreateNodes");
   }
@@ -79,8 +62,7 @@ int RawTowerBuilder::InitRun(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
 
   // Looking for the DST node
-  PHCompositeNode *dstNode;
-  dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
@@ -99,15 +81,15 @@ int RawTowerBuilder::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() >= 1)
   {
-    cout << "RawTowerBuilder::InitRun :";
+    std::cout << "RawTowerBuilder::InitRun :";
     if (m_TowerEnergySrcEnum == kEnergyDeposition)
     {
-      cout << "save Geant4 energy deposition as the weight of the cells"
-           << endl;
+      std::cout << "save Geant4 energy deposition as the weight of the cells"
+                << std::endl;
     }
     else if (m_TowerEnergySrcEnum == kLightYield)
     {
-      cout << "save light yield as the weight of the cells" << endl;
+      std::cout << "save light yield as the weight of the cells" << std::endl;
     }
   }
 
@@ -126,8 +108,8 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (!cells)
   {
-    cout << PHWHERE << " " << cellnodename
-         << " Node missing, doing nothing." << std::endl;
+    std::cout << PHWHERE << " " << cellnodename
+              << " Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -139,11 +121,11 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
     PHG4Cell *cell = cell_iter->second;
 
     if (Verbosity() > 2)
-      {
-	std::cout << PHWHERE << " print out the cell:" << std::endl;
-	cell->identify();
-      }
-    
+    {
+      std::cout << PHWHERE << " print out the cell:" << std::endl;
+      cell->identify();
+    }
+
     // add the energy to the corresponding tower
     RawTower *tower = nullptr;
     short int firstpar;
@@ -160,8 +142,8 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
     }
     else
     {
-      boost::io::ios_flags_saver ifs(cout);
-      cout << "unknown cell binning, implement 0x" << hex << PHG4CellDefs::get_binning(cell->get_cellid()) << endl;
+      boost::io::ios_flags_saver ifs(std::cout);
+      std::cout << "unknown cell binning, implement 0x" << std::hex << PHG4CellDefs::get_binning(cell->get_cellid()) << std::dec << std::endl;
       exit(1);
     }
     tower = m_TowerContainer->getTower(firstpar, secondpar);
@@ -206,8 +188,8 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
     towerE = m_TowerContainer->getTotalEdep();
     if (fabs(cellE - towerE) / cellE > 1e-5)
     {
-      cout << "towerE: " << towerE << ", cellE: " << cellE << ", delta: "
-           << cellE - towerE << endl;
+      std::cout << "towerE: " << towerE << ", cellE: " << cellE << ", delta: "
+                << cellE - towerE << std::endl;
     }
   }
   if (Verbosity())
@@ -218,9 +200,9 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
   m_TowerContainer->compress(m_Emin);
   if (Verbosity())
   {
-    cout << "Energy lost by dropping towers with less than " << m_Emin
-         << " GeV energy, lost energy: " << towerE - m_TowerContainer->getTotalEdep()
-         << endl;
+    std::cout << "Energy lost by dropping towers with less than " << m_Emin
+              << " GeV energy, lost energy: " << towerE - m_TowerContainer->getTotalEdep()
+              << std::endl;
     m_TowerContainer->identify();
     RawTowerContainer::ConstRange begin_end = m_TowerContainer->getTowers();
     RawTowerContainer::ConstIterator iter;
@@ -239,7 +221,7 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
-    cout << PHWHERE << "Run Node missing, doing nothing." << std::endl;
+    std::cout << PHWHERE << "Run Node missing, doing nothing." << std::endl;
     throw std::runtime_error("Failed to find Run node in RawTowerBuilder::CreateNodes");
   }
 
@@ -258,8 +240,8 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   PHG4CylinderCellGeomContainer *cellgeos = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, geonodename);
   if (!cellgeos)
   {
-    cout << PHWHERE << " " << geonodename
-         << " Node missing, doing nothing." << std::endl;
+    std::cout << PHWHERE << " " << geonodename
+              << " Node missing, doing nothing." << std::endl;
     throw std::runtime_error(
         "Failed to find " + geonodename + " node in RawTowerBuilder::CreateNodes");
   }
@@ -316,9 +298,9 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       }
       else
       {
-        cout << "RawTowerBuilder::CreateNodes::" << Name()
-             << " - Fatal Error - unsupported cell binning method "
-             << m_CellBinning << endl;
+        std::cout << "RawTowerBuilder::CreateNodes::" << Name()
+                  << " - Fatal Error - unsupported cell binning method "
+                  << m_CellBinning << std::endl;
       }
       inner_radius = cellgeo->get_radius();
       first_layer = cellgeo->get_layer();
@@ -328,61 +310,61 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
     {
       if (m_CellBinning != cellgeo->get_binning())
       {
-        cout << "inconsistent binning method from " << m_CellBinning
-             << " layer " << cellgeo->get_layer() << ": "
-             << cellgeo->get_binning() << endl;
+        std::cout << "inconsistent binning method from " << m_CellBinning
+                  << " layer " << cellgeo->get_layer() << ": "
+                  << cellgeo->get_binning() << std::endl;
         exit(1);
       }
       if (inner_radius > cellgeo->get_radius())
       {
-        cout << "radius of layer " << cellgeo->get_layer() << " is "
-             << cellgeo->get_radius() << " which smaller than radius "
-             << inner_radius << " of first layer in list " << first_layer
-             << endl;
+        std::cout << "radius of layer " << cellgeo->get_layer() << " is "
+                  << cellgeo->get_radius() << " which smaller than radius "
+                  << inner_radius << " of first layer in list " << first_layer
+                  << std::endl;
       }
       if (m_NumPhiBins != cellgeo->get_phibins())
       {
-        cout << "mixing number of phibins, fisrt layer: " << m_NumPhiBins
-             << " layer " << cellgeo->get_layer() << ": "
-             << cellgeo->get_phibins() << endl;
+        std::cout << "mixing number of phibins, fisrt layer: " << m_NumPhiBins
+                  << " layer " << cellgeo->get_layer() << ": "
+                  << cellgeo->get_phibins() << std::endl;
         exit(1);
       }
       if (m_PhiMin != cellgeo->get_phimin())
       {
-        cout << "mixing number of phimin, fisrt layer: " << m_PhiMin
-             << " layer " << cellgeo->get_layer() << ": "
-             << cellgeo->get_phimin() << endl;
+        std::cout << "mixing number of phimin, fisrt layer: " << m_PhiMin
+                  << " layer " << cellgeo->get_layer() << ": "
+                  << cellgeo->get_phimin() << std::endl;
         exit(1);
       }
       if (m_PhiStep != cellgeo->get_phistep())
       {
-        cout << "mixing phisteps first layer: " << m_PhiStep << " layer "
-             << cellgeo->get_layer() << ": " << cellgeo->get_phistep()
-             << " diff: " << m_PhiStep - cellgeo->get_phistep() << endl;
+        std::cout << "mixing phisteps first layer: " << m_PhiStep << " layer "
+                  << cellgeo->get_layer() << ": " << cellgeo->get_phistep()
+                  << " diff: " << m_PhiStep - cellgeo->get_phistep() << std::endl;
         exit(1);
       }
       if (m_CellBinning == PHG4CellDefs::etaphibinning || m_CellBinning == PHG4CellDefs::etaslatbinning)
       {
         if (m_NumEtaBins != cellgeo->get_etabins())
         {
-          cout << "mixing number of EtaBins , first layer: "
-               << m_NumEtaBins << " layer " << cellgeo->get_layer() << ": "
-               << cellgeo->get_etabins() << endl;
+          std::cout << "mixing number of EtaBins , first layer: "
+                    << m_NumEtaBins << " layer " << cellgeo->get_layer() << ": "
+                    << cellgeo->get_etabins() << std::endl;
           exit(1);
         }
         if (fabs(m_EtaMin - cellgeo->get_etamin()) > 1e-9)
         {
-          cout << "mixing etamin, fisrt layer: " << m_EtaMin << " layer "
-               << cellgeo->get_layer() << ": " << cellgeo->get_etamin()
-               << " diff: " << m_EtaMin - cellgeo->get_etamin() << endl;
+          std::cout << "mixing etamin, fisrt layer: " << m_EtaMin << " layer "
+                    << cellgeo->get_layer() << ": " << cellgeo->get_etamin()
+                    << " diff: " << m_EtaMin - cellgeo->get_etamin() << std::endl;
           exit(1);
         }
         if (fabs(m_EtaStep - cellgeo->get_etastep()) > 1e-9)
         {
-          cout << "mixing eta steps first layer: " << m_EtaStep
-               << " layer " << cellgeo->get_layer() << ": "
-               << cellgeo->get_etastep() << " diff: "
-               << m_EtaStep - cellgeo->get_etastep() << endl;
+          std::cout << "mixing eta steps first layer: " << m_EtaStep
+                    << " layer " << cellgeo->get_layer() << ": "
+                    << cellgeo->get_etastep() << " diff: "
+                    << m_EtaStep - cellgeo->get_etastep() << std::endl;
           exit(1);
         }
       }
@@ -391,9 +373,9 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
       {
         if (m_NumEtaBins != cellgeo->get_zbins())
         {
-          cout << "mixing number of z bins , first layer: " << m_NumEtaBins
-               << " layer " << cellgeo->get_layer() << ": "
-               << cellgeo->get_zbins() << endl;
+          std::cout << "mixing number of z bins , first layer: " << m_NumEtaBins
+                    << " layer " << cellgeo->get_layer() << ": "
+                    << cellgeo->get_zbins() << std::endl;
           exit(1);
         }
       }
@@ -408,15 +390,15 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 
   if (!first_cellgeo)
   {
-    cout << "RawTowerBuilder::CreateNodes - ERROR - can not find first layer of cells "
-         << endl;
+    std::cout << "RawTowerBuilder::CreateNodes - ERROR - can not find first layer of cells "
+              << std::endl;
 
     exit(1);
   }
 
   for (int ibin = 0; ibin < first_cellgeo->get_phibins(); ibin++)
   {
-    const pair<double, double> range = first_cellgeo->get_phibounds(ibin);
+    const std::pair<double, double> range = first_cellgeo->get_phibounds(ibin);
 
     m_RawTowerGeomContainer->set_phibounds(ibin, range);
   }
@@ -427,7 +409,7 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 
     for (int ibin = 0; ibin < first_cellgeo->get_etabins(); ibin++)
     {
-      const pair<double, double> range = first_cellgeo->get_etabounds(ibin);
+      const std::pair<double, double> range = first_cellgeo->get_etabounds(ibin);
 
       m_RawTowerGeomContainer->set_etabounds(ibin, range);
     }
@@ -449,26 +431,26 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
         {
           if (Verbosity() > 0)
           {
-            cout << "RawTowerBuilder::CreateNodes - Tower geometry " << key << " already exists" << endl;
+            std::cout << "RawTowerBuilder::CreateNodes - Tower geometry " << key << " already exists" << std::endl;
           }
 
           if (fabs(tg->get_center_x() - x) > 1e-4)
           {
-            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
-                 << endl;
+            std::cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
+                      << std::endl;
 
             exit(1);
           }
           if (fabs(tg->get_center_y() - y) > 1e-4)
           {
-            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
-                 << endl;
+            std::cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
+                      << std::endl;
             exit(1);
           }
           if (fabs(tg->get_center_z() - z) > 1e-4)
           {
-            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
-                 << endl;
+            std::cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
+                      << std::endl;
             exit(1);
           }
         }
@@ -476,7 +458,7 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
         {
           if (Verbosity() > 0)
           {
-            cout << "RawTowerBuilder::CreateNodes - building tower geometry " << key << "" << endl;
+            std::cout << "RawTowerBuilder::CreateNodes - building tower geometry " << key << "" << std::endl;
           }
 
           tg = new RawTowerGeomv1(key);
@@ -495,11 +477,11 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
 
     for (int ibin = 0; ibin < first_cellgeo->get_zbins(); ibin++)
     {
-      const pair<double, double> z_range = first_cellgeo->get_zbounds(ibin);
+      const std::pair<double, double> z_range = first_cellgeo->get_zbounds(ibin);
       //          const double r = first_cellgeo->get_radius();
       const double eta1 = -log(tan(atan2(r, z_range.first) / 2.));
       const double eta2 = -log(tan(atan2(r, z_range.second) / 2.));
-      m_RawTowerGeomContainer->set_etabounds(ibin, make_pair(eta1, eta2));
+      m_RawTowerGeomContainer->set_etabounds(ibin, std::make_pair(eta1, eta2));
     }
 
     // setup location of all towers
@@ -518,26 +500,26 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
         {
           if (Verbosity() > 0)
           {
-            cout << "RawTowerBuilder::CreateNodes - Tower geometry " << key << " already exists" << endl;
+            std::cout << "RawTowerBuilder::CreateNodes - Tower geometry " << key << " already exists" << std::endl;
           }
 
           if (fabs(tg->get_center_x() - x) > 1e-4)
           {
-            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
-                 << endl;
+            std::cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
+                      << std::endl;
 
             exit(1);
           }
           if (fabs(tg->get_center_y() - y) > 1e-4)
           {
-            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
-                 << endl;
+            std::cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
+                      << std::endl;
             exit(1);
           }
           if (fabs(tg->get_center_z() - z) > 1e-4)
           {
-            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
-                 << endl;
+            std::cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
+                      << std::endl;
             exit(1);
           }
         }
@@ -545,7 +527,7 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
         {
           if (Verbosity() > 0)
           {
-            cout << "RawTowerBuilder::CreateNodes - building tower geometry " << key << "" << endl;
+            std::cout << "RawTowerBuilder::CreateNodes - building tower geometry " << key << "" << std::endl;
           }
 
           tg = new RawTowerGeomv1(key);
@@ -560,8 +542,8 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   }
   else
   {
-    cout << "RawTowerBuilder::CreateNodes - ERROR - unsupported cell geometry "
-         << m_CellBinning << endl;
+    std::cout << "RawTowerBuilder::CreateNodes - ERROR - unsupported cell geometry "
+              << m_CellBinning << std::endl;
     exit(1);
   }
 
@@ -573,7 +555,7 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     throw std::runtime_error(
         "Failed to find DST node in RawTowerBuilder::CreateNodes");
   }

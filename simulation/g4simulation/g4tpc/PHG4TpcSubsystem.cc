@@ -18,9 +18,6 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <boost/foreach.hpp>
-
-#include <cmath>     // for NAN
 #include <iostream>  // for operator<<, basic_ost...
 #include <set>
 
@@ -55,15 +52,15 @@ int PHG4TpcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
-    PHCompositeNode* DetNode = dstNode;
+    PHCompositeNode *DetNode = dstNode;
     if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
       PHNodeIterator iter_dst(dstNode);
-      DetNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
+      DetNode = dynamic_cast<PHCompositeNode *>(iter_dst.findFirst("PHCompositeNode", SuperDetector()));
       if (!DetNode)
       {
-	DetNode = new PHCompositeNode(SuperDetector());
-	dstNode->addNode(DetNode);
+        DetNode = new PHCompositeNode(SuperDetector());
+        dstNode->addNode(DetNode);
       }
     }
     std::string detector_suffix = SuperDetector();
@@ -78,7 +75,7 @@ int PHG4TpcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     {
       nodes.insert(m_AbsorberNodeName);
     }
-    for (auto nodename: nodes)
+    for (auto nodename : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
@@ -148,9 +145,9 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
-  set_default_double_param("tpc_length", 211.);  
+  set_default_double_param("tpc_length", 211.);
 
-  set_default_double_param("steplimits", NAN);
+  set_default_double_param("steplimits", 1);  // 1cm by default
 
   set_default_string_param("tpc_gas", "sPHENIX_TPC_Gas");
 
