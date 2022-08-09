@@ -16,6 +16,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   EpFinder.h \
+  EpdGeom.h \
   EpInfo.h \
   EpInfov1.h \
   EpFinderReco.h
@@ -35,6 +36,7 @@ libeventplane_io_la_SOURCES = \
 
 libeventplane_la_SOURCES = \
   EpFinder.cc \
+  EpdGeom.cc \
   EpFinderReco.cc
 
 libeventplane_io_la_LIBADD = \

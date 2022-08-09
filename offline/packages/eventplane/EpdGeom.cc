@@ -37,8 +37,8 @@
 #include "TRandom3.h"
 #include "TMath.h"
 
-ClassImp(EpdGeom)
-
+//ClassImp(EpdGeom)
+using namespace std;
 
 EpdGeom::EpdGeom() : mPP(0), mTT(0), mSN(0){
   if ( gRandom ) {
@@ -116,6 +116,7 @@ double EpdGeom::GetZwheel(){
 }
 
 
+
 //------------------------------------------------
 short EpdGeom::Row(short uniqueID){
   SetPpTtSn(uniqueID);
@@ -127,9 +128,13 @@ short EpdGeom::Row(short PP, short TT, short SN){
   mSN = SN;
   return this->Row();
 }
+
+
 short EpdGeom::Row(){
   return mTT/2 + 1;
 }
+
+
 
 //------------------------------------------------
 TVector3 EpdGeom::TileCenter(short uniqueID){
@@ -292,6 +297,7 @@ bool EpdGeom::IsInTile(short position, short tilenumber, short southnorth,
   mSN = southnorth;
   return this->IsInTile(x,y);
 }
+
 bool EpdGeom::IsInTile(double x, double y){
   double PolygonX[6];
   double PolygonY[6];
@@ -302,6 +308,7 @@ bool EpdGeom::IsInTile(double x, double y){
 }
 
 
+
 //-------------------------------------------------------------------
 /*
 void EpdGeom::GetOverlappingBbcTiles(short uniqueID,
@@ -309,7 +316,6 @@ void EpdGeom::GetOverlappingBbcTiles(short uniqueID,
   SetPpTtSn(uniqueID);
   GetOverlappingBbcTiles(nOverlappingBbcTiles,BbcTileIDs);
 }
-
 void EpdGeom::GetOverlappingBbcTiles(short position, short tilenumber, short southnorth,
 				       int* nOverlappingBbcTiles, short* BbcTileIDs){
   mPP = position;
@@ -340,11 +346,7 @@ void EpdGeom::GetOverlappingBbcTiles(int* nOverlappingBbcTiles, short* BbcTileID
       BbcTileIDs[i] = 0;
     }
   }
-
 }
-
-
-
 // SouthNumberOfOverlappingBbcTiles[PP-1][TT-1]; gives the number of BBC tiles that overlap
 short EpdGeom::mSouthNumberOfOverlappingBbcTiles[12][9] = {
   { 1, 2, 1, 1, 3, 2, 2, 0, 1},   // PP=  1
@@ -360,7 +362,6 @@ short EpdGeom::mSouthNumberOfOverlappingBbcTiles[12][9] = {
   { 1, 2, 1, 1, 3, 2, 2, 0, 1},   // PP= 11
   { 1, 1, 2, 3, 1, 2, 2, 1, 0}    // PP= 12
 };
-
 // SouthBbcTilesWhichOverlap[PP-1][TT-1][j] gives the BBC tile ID of the jth overlapping BBC tile
 short EpdGeom::mSouthBbcTilesWhichOverlap[12][9][3] = {
   { { -1,  0,  0}, // PP = 1 TT = 1
@@ -484,7 +485,6 @@ short EpdGeom::mSouthBbcTilesWhichOverlap[12][9][3] = {
     {  0,  0,  0}  // PP = 12 TT = 9
   }
 };
-
 // NorthNumberOfOverlappingBbcTiles[PP-1][TT-1]; gives the number of BBC tiles that overlap
 short EpdGeom::mNorthNumberOfOverlappingBbcTiles[12][9] = {
   { 1, 2, 1, 1, 3, 2, 2, 0, 1},   // PP= 1
@@ -500,7 +500,6 @@ short EpdGeom::mNorthNumberOfOverlappingBbcTiles[12][9] = {
   { 1, 2, 1, 1, 3, 2, 2, 0, 1},   // PP= 11
   { 1, 1, 2, 3, 1, 2, 2, 1, 0}    // PP= 12 
 };
-
 // NorthBbcTilesWhichOverlap[PP-1][TT-1][j] gives the BBC tile ID of the jth overlapping BBC tile
 short EpdGeom::mNorthBbcTilesWhichOverlap[12][9][3] = {
   { { 1, 0, 0}, // PP = 1 TT = 1
@@ -624,7 +623,4 @@ short EpdGeom::mNorthBbcTilesWhichOverlap[12][9][3] = {
     { 0, 0, 0}  // PP = 12 TT = 9
   }
 };
-
 */
-
-

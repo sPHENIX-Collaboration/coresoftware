@@ -17,7 +17,6 @@
  *   because we want to avoid StObject-dependence.
  *   Instead, simply use EpdHit::id(),
  *   e.g. RandomPointOnTile(hit->id())
-
  *
  *
  * Adapted for use in sPHENIX (from STAR)
@@ -27,6 +26,7 @@
  *************************************/
 
 class TRandom3;
+//class EpInfo;
 
 class EpdGeom{
  private:
@@ -56,6 +56,7 @@ class EpdGeom{
   /* these methods are used internally */
   /// z coordinate of the wheel in sPHENIX coordinate system
   /// depends on internal parameter mSN
+
   double GetZwheel();
 
   /// phi of the center of the tile in sPHENIX coordinate syste
@@ -87,6 +88,7 @@ class EpdGeom{
   /// \param x           this is a RETURNED values.  x-coordinates of corners
   /// \param y           this is a RETURNED values.  y-coordinates of corners
   /// depends on internal parameters mPP, mTT, mSN
+  
   void     GetCorners(int* nCorners, double* x, double* y);
 
   /// returns true if (x,y) lies within the tile.  Assumes z=zWheel
@@ -95,6 +97,7 @@ class EpdGeom{
   /// \param x    x-coordinate of projected hit
   /// \param y    y-coordinate of projected hit
   /// depends on internal parameters mPP, mTT, mSN
+
   bool   IsInTile(double x, double y);
 
   /// returns a list of (the IDs of) BBC tiles that overlap with a given EPD tile
@@ -144,6 +147,7 @@ class EpdGeom{
   /// \param *nCorners   this is a RETURNED value. Number of corners the tile has (TT01 has 5, others have 4)
   /// \param x           this is a RETURNED values.  x-coordinates of corners
   /// \param y           this is a RETURNED values.  y-coordinates of corners
+  
   void GetCorners(short uniqueID, int* nCorners, double* x, double* y);
   /// returns the corners of the tile in the plane of the wheel, in sPHENIX coordinate system
   /// \param position   position of supersector [1,12]
@@ -196,7 +200,12 @@ class EpdGeom{
   /// \param position   position of supersector [1,12]
   /// \param tilenumber tile on supsersector [1,31]
   /// \southnorth         south (-1) or north (+1) wheel
-  bool IsNorth(short position, short tilenumber, short southnorth);
+
+
+  /// these functions are omitted here as they require position, and then neglect their use
+  /// B.C.S.
+//  bool IsNorth(short position, short tilenumber, short southnorth);
+//  bool IsSouth(short position, short tilenumber, short southnorth);
 
   /// true if this tile is on south side
   /// \param uniqueID    identifier of the tile = sign*(100*PP+TT) where sign=+/- for North/South
@@ -205,7 +214,8 @@ class EpdGeom{
   /// \param position   position of supersector [1,12]
   /// \param tilenumber tile on supsersector [1,31]
   /// \southnorth         south (-1) or north (+1) wheel
-  bool IsSouth(short position, short tilenumber, short southnorth);
+
+
 
   /// the "tile row" of the tile.  Row = [1,16]
   /// \param uniqueID    identifier of the tile = sign*(100*PP+TT) where sign=+/- for North/South
@@ -217,18 +227,20 @@ class EpdGeom{
   /// \southnorth         south (-1) or north (+1) wheel
   short Row(short position, short tilenumber, short southnorth);
 
-  ClassDef(EpdGeom,0)
+//  ClassDef(EpdGeom,0)
 
 };
 
-inline bool EpdGeom::IsNorth(short uniqueID){return uniqueID>0;}
-inline bool EpdGeom::IsNorth(short position, short tilenumber, short southnorth){return southnorth>0;}
-inline bool EpdGeom::IsSouth(short uniqueID){return uniqueID<0;}
-inline bool EpdGeom::IsSouth(short position, short tilenumber, short southnorth){return southnorth<0;}
-inline unsigned short EpdGeom::position(short uniqueID){return abs(uniqueID/100);}
-inline unsigned short EpdGeom::tile(short uniqueID){return abs(uniqueID%100);}
 
 
+  inline bool EpdGeom::IsNorth(short uniqueID){return uniqueID>0;}
+//inline bool EpdGeom::IsNorth(short position, short tilenumber, short southnorth){return southnorth>0;}
+  inline bool EpdGeom::IsSouth(short uniqueID){return uniqueID<0;}
+//inline bool EpdGeom::IsSouth(short position, short tilenumber, short southnorth){return southnorth<0;}
+
+
+  inline unsigned short EpdGeom::position(short uniqueID){return abs(uniqueID/100);}
+  inline unsigned short EpdGeom::tile(short uniqueID){return abs(uniqueID%100);}
 
 
 #endif
