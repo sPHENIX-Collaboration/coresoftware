@@ -204,7 +204,7 @@ class PHActsTrkFitter : public SubsysReco
   TH1 *h_updateTime = nullptr;
   TH1 *h_stateTime = nullptr;
   TH1 *h_rotTime = nullptr;
-  int m_cluster_version = 4;
+  int m_cluster_version = 3;
 };
 
 #endif

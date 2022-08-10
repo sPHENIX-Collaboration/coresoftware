@@ -63,7 +63,7 @@ class QAG4SimulationIntt : public SubsysReco
   /* it is filled at Init stage. It should not change for the full run */
   std::set<int> m_layers;
   ClusterErrorPara _ClusErrPara;
-  int m_cluster_version = 4;
+  int m_cluster_version = 3;
 };
 
 #endif
