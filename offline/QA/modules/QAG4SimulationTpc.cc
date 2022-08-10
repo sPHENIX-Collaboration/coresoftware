@@ -18,6 +18,7 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for getTrkrId
 #include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrackFitUtils.h>
 
 #include <g4eval/SvtxClusterEval.h>  // for SvtxClusterEval
 #include <g4eval/SvtxEvalStack.h>
@@ -335,6 +336,31 @@ void QAG4SimulationTpc::evaluate_clusters()
 
     // Get the truth clusters from this particle
     const auto truth_clusters = trutheval->all_truth_clusters(g4particle);
+
+    // get circle fit parameters first
+    TrackFitUtils::position_vector_t xy_pts;
+    TrackFitUtils::position_vector_t rz_pts;
+
+    for (const auto& [gkey, gclus]:truth_clusters){
+      const auto layer = TrkrDefs::getLayer(gkey);
+      if (layer < 7) continue;
+      
+      float gx = gclus->getX();
+      float gy = gclus->getY();
+      float gz = gclus->getZ();
+
+      xy_pts.emplace_back( gx, gy );
+      rz_pts.emplace_back( std::sqrt(gx*gx + gy*gy),gz );
+    } 
+
+    // fit a circle through x,y coordinates
+    const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin( xy_pts );
+    const auto [slope, intercept] = TrackFitUtils::line_fit( rz_pts );
+
+    // skip chain entirely if fit fails
+    if( std::isnan( R ) ) continue;
+
+    // process residuals and pulls
     for (const auto& [gkey, gclus]:truth_clusters)
     {
       const auto layer = TrkrDefs::getLayer(gkey);
@@ -381,7 +407,11 @@ void QAG4SimulationTpc::evaluate_clusters()
 	  phi_error = rclus->getRPhiError() / r_cluster;
 	  z_error = rclus->getZError();
 	}else{
-	  auto para_errors = _ClusErrPara.get_simple_cluster_error(rclus,r_cluster,rkey);
+	  float r = r_cluster;
+	  double alpha = (r*r) /(2*r*R);
+	  double beta = slope;
+
+	  auto para_errors = _ClusErrPara.get_cluster_error(rclus,rkey,alpha,beta);
 	  phi_error = sqrt(para_errors.first)/ r_cluster;
 	  z_error = sqrt(para_errors.second);
 	}

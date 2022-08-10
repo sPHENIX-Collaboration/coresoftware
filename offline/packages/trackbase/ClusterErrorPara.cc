@@ -35,6 +35,21 @@ ClusterErrorPara::ClusterErrorPara()
   fz->SetParameter(1,-0.000177174);
   fz->SetParameter(2,0.0914288);
 
+  fmm_55_2 = new TF1("fmm_55_2","pol2",-2,2);
+  fmm_55_2->SetParameter(0,0.0430592);
+  fmm_55_2->SetParameter(1,-0.000177174);
+  fmm_55_2->SetParameter(2,0.0914288);
+
+  fmm_56_2 = new TF1("fmm_56_2","pol2",-2,2);
+  fmm_56_2->SetParameter(0,0.00363897);
+  fmm_56_2->SetParameter(1,0.0109713);
+  fmm_56_2->SetParameter(2,0.032354);
+
+  fmm_3 = new TF1("fmm_3","pol2",-2,2);
+  fmm_3->SetParameter(0,0.00305396);
+  fmm_3->SetParameter(1,0.00505814);
+  fmm_3->SetParameter(2,0.0395137);
+
   static const double invsqrt12 = 1./std::sqrt(12);
 
   pitcherr_phi_mvtx = 0.002688 * invsqrt12;
@@ -51,6 +66,15 @@ ClusterErrorPara::ClusterErrorPara()
 //_________________________________________________________________________________
 ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrackSeed *seed, TrkrCluster* cluster, double cluster_r, TrkrDefs::cluskey key)
 {
+  float r = cluster_r;
+  float R = TMath::Abs(1.0/seed->get_qOverR());
+  double alpha = (r*r) /(2*r*R);
+  double beta = atan(seed->get_slope());
+  return get_cluster_error(cluster, key, alpha, beta);
+}
+//_________________________________________________________________________________
+ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrkrCluster* cluster,  TrkrDefs::cluskey key, double alpha, double beta)
+{
 
   int layer = TrkrDefs::getLayer(key);
   double phierror = 0;
@@ -63,11 +87,23 @@ ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrackSeed *seed, T
 
     case TrkrDefs::micromegasId:
       if(layer==55){
-	phierror = pitcherr_phi_mm1;
 	zerror = pitcherr_z_mm1;
+	if(cluster->getPhiSize()==1){
+	  phierror = pitcherr_phi_mm1;
+	}else if(cluster->getPhiSize()==2){
+	  phierror = fmm_55_2->Eval(alpha);
+	}else if(cluster->getPhiSize()>=3){
+	  phierror = fmm_3->Eval(alpha);
+	}
       }else if(layer==56){
-	phierror =pitcherr_phi_mm2 = 31.6;
-	zerror = pitcherr_z_mm2 = 0.2;
+	phierror =pitcherr_phi_mm2;
+	if(cluster->getZSize()==1){
+	  zerror = pitcherr_z_mm2;
+	}else if(cluster->getZSize()==2){
+	  zerror = fmm_56_2->Eval(beta);
+	}else if(cluster->getZSize()>=3){
+	  zerror = fmm_3->Eval(beta);
+	}
       }
       break;
     case TrkrDefs::mvtxId:
@@ -111,12 +147,6 @@ ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrackSeed *seed, T
 	sector = 2;
       }
       
-      float r = cluster_r;
-      
-      float R = TMath::Abs(1.0/seed->get_qOverR());
-      // int Q = (seed->get_qOverR()>0)?1:-1;
-      float alpha = (r*r) /(2*r*R);
-      
       phierror = 0.0005;
       if(sector!=-1)
 	phierror = 0.0005;
@@ -129,11 +159,8 @@ ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrackSeed *seed, T
       if(sector==2){
 	phierror = f2->Eval(alpha);
       }
-      //      std::cout << "phierror: " << phierror << " alpha: "<< alpha << std::endl;
-      double beta = atan(seed->get_slope());
       zerror = fz->Eval(beta);
-      //      std::cout << "zerror: " << zerror << " beta: "<< beta << std::endl;
-      //      phierror;
+
       TrkrClusterv4 *clusterv4 = dynamic_cast<TrkrClusterv4 *>(cluster);
       if(clusterv4->getEdge()>=1)
 	phierror *= 2;

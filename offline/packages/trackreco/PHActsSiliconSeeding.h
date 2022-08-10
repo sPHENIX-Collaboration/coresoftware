@@ -261,7 +261,7 @@ class PHActsSiliconSeeding : public SubsysReco
   TH2 *h_projHits = nullptr;
   TH2 *h_zprojHits = nullptr;
   TH2 *h_resids = nullptr;
-  int m_cluster_version = 3;
+  int m_cluster_version = 4;
 };
 
 

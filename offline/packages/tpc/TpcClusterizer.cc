@@ -77,7 +77,7 @@ namespace
     unsigned short maxHalfSizePhi = 0;
     double m_tdriftmax = 0;
     double sampa_tbias = 0;
-     int cluster_version = 3;
+     int cluster_version = 4;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster*> cluster_vector;
     int verbosity = 0;
