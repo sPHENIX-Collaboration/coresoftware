@@ -21,7 +21,7 @@
 #include <g4decayer/P6DExtDecayerPhysics.hh>
 #include <g4decayer/EDecayType.hh>
 
-#include "../G4EvtGenDecayer/EvtGenExtDecayerPhysics.hh"
+#include <g4decayer/EvtGenExtDecayerPhysics.hh>
 
 #include <phgeom/PHGeomUtility.h>
 
@@ -130,6 +130,7 @@ PHG4Reco::PHG4Reco(const std::string &name)
 	: SubsysReco(name)
 	  , m_Fun4AllMessenger(new Fun4AllMessenger(Fun4AllServer::instance()))
 {
+	std::cout << "PHG4 Bro" << std::endl;
 	for (int i = 0; i < 3; i++)
 	{
 		m_WorldSize[i] = 1000.;
@@ -162,7 +163,8 @@ PHG4Reco::~PHG4Reco(void)
 //_________________________________________________________________
 int PHG4Reco::Init(PHCompositeNode *topNode)
 {
-
+	std::cout << "PHG4 ZZ Initialize" << std::endl;
+	
 	fout = new TFile("QAFile.root","RECREATE");
 	fout->cd();
 	QATree = new TTree("QATree","QATree");

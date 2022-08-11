@@ -41,7 +41,6 @@ libg4testbench_la_LIBADD = \
   -leicsmear \
   -lfun4all \
   -lg4decayer \
-  -lg4evtgendecayer \  
   -lgsl \
   -lgslcblas \
   -lHepMC \
