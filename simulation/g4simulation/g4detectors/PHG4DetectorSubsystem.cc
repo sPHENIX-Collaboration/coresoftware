@@ -18,8 +18,6 @@
 #include <iostream>
 #include <utility>  // for pair
 
-using namespace std;
-
 PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int lyr)
   : PHG4Subsystem(name)
   , params(new PHParameters(Name()))
@@ -27,7 +25,7 @@ PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int 
 {
   // put the layer into the name so we get unique names
   // for multiple layers
-  Name(name + "_" + to_string(lyr));
+  Name(name + "_" + std::to_string(lyr));
 }
 
 int PHG4DetectorSubsystem::Init(PHCompositeNode *topNode)
@@ -44,9 +42,9 @@ int PHG4DetectorSubsystem::InitRun(PHCompositeNode *topNode)
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
 
-  string g4geonodename = "G4GEO_";
-  string paramnodename = "G4GEOPARAM_";
-  string calibdetname;
+  std::string g4geonodename = "G4GEO_";
+  std::string paramnodename = "G4GEOPARAM_";
+  std::string calibdetname;
   int isSuperDetector = 0;
   if (superdetector != "NONE")
   {
@@ -84,13 +82,20 @@ int PHG4DetectorSubsystem::InitRun(PHCompositeNode *topNode)
   // Order: read first DB, then calib file if both are enabled
   if (ReadDB() || get_filetype() != PHG4DetectorSubsystem::none)
   {
-    if (ReadDB())
+    if (!m_Domain.empty())
     {
-      ReadParamsFromDB(calibdetname, isSuperDetector);
+      ReadParamsFromCDB(m_Domain);
     }
-    if (get_filetype() != PHG4DetectorSubsystem::none)
+    else
     {
-      ReadParamsFromFile(calibdetname, get_filetype(), isSuperDetector);
+      if (ReadDB())
+      {
+        ReadParamsFromDB(calibdetname, isSuperDetector);
+      }
+      if (get_filetype() != PHG4DetectorSubsystem::none)
+      {
+        ReadParamsFromFile(calibdetname, get_filetype(), isSuperDetector);
+      }
     }
   }
   else
@@ -129,7 +134,7 @@ int PHG4DetectorSubsystem::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, paramnodename);
-    cout << Name() << endl;
+    std::cout << Name() << std::endl;
     nodeparams->print();
   }
   beginrunexecuted = 1;
@@ -146,11 +151,11 @@ void PHG4DetectorSubsystem::set_double_param(const std::string &name, const doub
 {
   if (default_double.find(name) == default_double.end())
   {
-    cout << "double parameter " << name << " not implemented" << endl;
-    cout << "implemented double parameters are:" << endl;
-    for (map<const string, double>::const_iterator iter = default_double.begin(); iter != default_double.end(); ++iter)
+    std::cout << "double parameter " << name << " not implemented" << std::endl;
+    std::cout << "implemented double parameters are:" << std::endl;
+    for (std::map<const std::string, double>::const_iterator iter = default_double.begin(); iter != default_double.end(); ++iter)
     {
-      cout << iter->first << endl;
+      std::cout << iter->first << std::endl;
     }
     return;
   }
@@ -167,11 +172,11 @@ void PHG4DetectorSubsystem::set_int_param(const std::string &name, const int iva
 {
   if (default_int.find(name) == default_int.end())
   {
-    cout << "integer parameter " << name << " not implemented" << endl;
-    cout << "implemented integer parameters are:" << endl;
-    for (map<const string, int>::const_iterator iter = default_int.begin(); iter != default_int.end(); ++iter)
+    std::cout << "integer parameter " << name << " not implemented" << std::endl;
+    std::cout << "implemented integer parameters are:" << std::endl;
+    for (std::map<const std::string, int>::const_iterator iter = default_int.begin(); iter != default_int.end(); ++iter)
     {
-      cout << iter->first << endl;
+      std::cout << iter->first << std::endl;
     }
     return;
   }
@@ -183,22 +188,22 @@ int PHG4DetectorSubsystem::get_int_param(const std::string &name) const
   return params->get_int_param(name);
 }
 
-void PHG4DetectorSubsystem::set_string_param(const std::string &name, const string &sval)
+void PHG4DetectorSubsystem::set_string_param(const std::string &name, const std::string &sval)
 {
   if (default_string.find(name) == default_string.end())
   {
-    cout << "string parameter " << name << " not implemented" << endl;
-    cout << "implemented string parameters are:" << endl;
-    for (map<const string, string>::const_iterator iter = default_string.begin(); iter != default_string.end(); ++iter)
+    std::cout << "string parameter " << name << " not implemented" << std::endl;
+    std::cout << "implemented string parameters are:" << std::endl;
+    for (std::map<const std::string, std::string>::const_iterator iter = default_string.begin(); iter != default_string.end(); ++iter)
     {
-      cout << iter->first << endl;
+      std::cout << iter->first << std::endl;
     }
     return;
   }
   cparams[name] = sval;
 }
 
-string
+std::string
 PHG4DetectorSubsystem::get_string_param(const std::string &name) const
 {
   return params->get_string_param(name);
@@ -206,15 +211,15 @@ PHG4DetectorSubsystem::get_string_param(const std::string &name) const
 
 void PHG4DetectorSubsystem::UpdateParametersWithMacro()
 {
-  for (map<const string, double>::const_iterator iter = dparams.begin(); iter != dparams.end(); ++iter)
+  for (std::map<const std::string, double>::const_iterator iter = dparams.begin(); iter != dparams.end(); ++iter)
   {
     params->set_double_param(iter->first, iter->second);
   }
-  for (map<const string, int>::const_iterator iter = iparams.begin(); iter != iparams.end(); ++iter)
+  for (std::map<const std::string, int>::const_iterator iter = iparams.begin(); iter != iparams.end(); ++iter)
   {
     params->set_int_param(iter->first, iter->second);
   }
-  for (map<const string, string>::const_iterator iter = cparams.begin(); iter != cparams.end(); ++iter)
+  for (std::map<const std::string, std::string>::const_iterator iter = cparams.begin(); iter != cparams.end(); ++iter)
   {
     params->set_string_param(iter->first, iter->second);
   }
@@ -229,8 +234,8 @@ void PHG4DetectorSubsystem::set_default_double_param(const std::string &name, co
   }
   else
   {
-    cout << "trying to overwrite default double " << name << " "
-         << default_double[name] << " with " << dval << endl;
+    std::cout << "trying to overwrite default double " << name << " "
+              << default_double[name] << " with " << dval << std::endl;
     exit(1);
   }
   return;
@@ -244,14 +249,14 @@ void PHG4DetectorSubsystem::set_default_int_param(const std::string &name, const
   }
   else
   {
-    cout << "trying to overwrite default int " << name << " "
-         << default_int[name] << " with " << ival << endl;
+    std::cout << "trying to overwrite default int " << name << " "
+              << default_int[name] << " with " << ival << std::endl;
     exit(1);
   }
   return;
 }
 
-void PHG4DetectorSubsystem::set_default_string_param(const std::string &name, const string &sval)
+void PHG4DetectorSubsystem::set_default_string_param(const std::string &name, const std::string &sval)
 {
   if (default_string.find(name) == default_string.end())
   {
@@ -259,8 +264,8 @@ void PHG4DetectorSubsystem::set_default_string_param(const std::string &name, co
   }
   else
   {
-    cout << "trying to overwrite default string " << name << " "
-         << default_string[name] << " with " << sval << endl;
+    std::cout << "trying to overwrite default string " << name << " "
+              << default_string[name] << " with " << sval << std::endl;
     exit(1);
   }
   return;
@@ -276,15 +281,15 @@ void PHG4DetectorSubsystem::InitializeParameters()
 
   SetDefaultParameters();  // call method from specific subsystem
   // now load those parameters to our params class
-  for (map<const string, double>::const_iterator iter = default_double.begin(); iter != default_double.end(); ++iter)
+  for (std::map<const std::string, double>::const_iterator iter = default_double.begin(); iter != default_double.end(); ++iter)
   {
     params->set_double_param(iter->first, iter->second);
   }
-  for (map<const string, int>::const_iterator iter = default_int.begin(); iter != default_int.end(); ++iter)
+  for (std::map<const std::string, int>::const_iterator iter = default_int.begin(); iter != default_int.end(); ++iter)
   {
     params->set_int_param(iter->first, iter->second);
   }
-  for (map<const string, string>::const_iterator iter = default_string.begin(); iter != default_string.end(); ++iter)
+  for (std::map<const std::string, std::string>::const_iterator iter = default_string.begin(); iter != default_string.end(); ++iter)
   {
     params->set_string_param(iter->first, iter->second);
   }
@@ -303,12 +308,12 @@ int PHG4DetectorSubsystem::SaveParamsToDB()
   }
   if (iret)
   {
-    cout << "problem committing to DB" << endl;
+    std::cout << "problem committing to DB" << std::endl;
   }
   return iret;
 }
 
-int PHG4DetectorSubsystem::ReadParamsFromDB(const string &name, const int issuper)
+int PHG4DetectorSubsystem::ReadParamsFromDB(const std::string &name, const int issuper)
 {
   int iret = 0;
   if (issuper)
@@ -321,14 +326,14 @@ int PHG4DetectorSubsystem::ReadParamsFromDB(const string &name, const int issupe
   }
   if (iret)
   {
-    cout << "problem reading from DB" << endl;
+    std::cout << "problem reading from DB" << std::endl;
   }
   return iret;
 }
 
 int PHG4DetectorSubsystem::SaveParamsToFile(const PHG4DetectorSubsystem::FILE_TYPE ftyp)
 {
-  string extension;
+  std::string extension;
   switch (ftyp)
   {
   case xml:
@@ -338,7 +343,7 @@ int PHG4DetectorSubsystem::SaveParamsToFile(const PHG4DetectorSubsystem::FILE_TY
     extension = "root";
     break;
   default:
-    cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
+    std::cout << PHWHERE << "filetype " << ftyp << " not implemented" << std::endl;
     exit(1);
   }
   int iret = 0;
@@ -352,14 +357,14 @@ int PHG4DetectorSubsystem::SaveParamsToFile(const PHG4DetectorSubsystem::FILE_TY
   }
   if (iret)
   {
-    cout << "problem saving to " << extension << " file " << endl;
+    std::cout << "problem saving to " << extension << " file " << std::endl;
   }
   return iret;
 }
 
-int PHG4DetectorSubsystem::ReadParamsFromFile(const string &name, const PHG4DetectorSubsystem::FILE_TYPE ftyp, const int issuper)
+int PHG4DetectorSubsystem::ReadParamsFromFile(const std::string &name, const PHG4DetectorSubsystem::FILE_TYPE ftyp, const int issuper)
 {
-  string extension;
+  std::string extension;
   switch (ftyp)
   {
   case xml:
@@ -369,13 +374,13 @@ int PHG4DetectorSubsystem::ReadParamsFromFile(const string &name, const PHG4Dete
     extension = "root";
     break;
   default:
-    cout << PHWHERE << "filetype " << ftyp << " not implemented" << endl;
+    std::cout << PHWHERE << "filetype " << ftyp << " not implemented" << std::endl;
     exit(1);
   }
   int iret = params->ReadFromFile(name, extension, layer, issuper, calibfiledir);
   if (iret)
   {
-    cout << "problem reading from " << extension << " file " << endl;
+    std::cout << "problem reading from " << extension << " file " << std::endl;
   }
   return iret;
 }
@@ -403,4 +408,10 @@ void PHG4DetectorSubsystem::BlackHole(const int i)
 void PHG4DetectorSubsystem::SetAbsorberTruth(const int i)
 {
   iparams["absorbertruth"] = i;
+}
+
+int PHG4DetectorSubsystem::ReadParamsFromCDB(const std::string &domain)
+{
+  params->ReadFromCDB(domain);
+  return 0;
 }

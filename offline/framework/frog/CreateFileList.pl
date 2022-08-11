@@ -29,18 +29,18 @@ while(my @res = $getdsttypes->fetchrow_array())
 }
 
 my %proddesc = (
-    "1" => "hijing (0-12fm) pileup 0-12fm DELETED",
-    "2" => "hijing (0-4.88fm) pileup 0-12fm DELETED",
+#    "1" => "hijing (0-12fm) pileup 0-12fm DELETED",
+#    "2" => "hijing (0-4.88fm) pileup 0-12fm DELETED",
     "3" => "pythia8 pp MB",
     "4" => "hijing (0-20fm) pileup 0-20fm",
-    "5" => "hijing (0-12fm) pileup 0-20fm DELETED",
+#    "5" => "hijing (0-12fm) pileup 0-20fm DELETED",
     "6" => "hijing (0-4.88fm) pileup 0-20fm",
     "7" => "HF pythia8 Charm",
     "8" => "HF pythia8 Bottom",
     "9" => "HF pythia8 Charm D0",
     "10" => "HF pythia8 Bottom D0",
-    "11" => "JS pythia8 Jet R=4",
-    "12" => "JS pythia8 Jet 15GeV",
+    "11" => "JS pythia8 Jet ptmin = 30GeV",
+    "12" => "JS pythia8 Jet ptmin = 10GeV",
     "13" => "JS pythia8 Photon Jet"
     );
 
@@ -256,7 +256,7 @@ if ($#ARGV < 0)
 	print "-rand  : randomize segments used\n";
 	print "-run   : runnumber\n";
 	print "-s     : starting segment>\n";
-	print "-type  : production type\n";
+	print "\n-type  : production type\n";
 	foreach my $pd (sort { $a <=> $b } keys %proddesc)
 	{
 	    print "    $pd : $proddesc{$pd}\n";

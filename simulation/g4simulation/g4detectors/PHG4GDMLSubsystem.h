@@ -57,7 +57,7 @@ class PHG4GDMLSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! derives from PHG4Detector */
-  PHG4GDMLDetector* m_Detector;
+  PHG4GDMLDetector* m_Detector = nullptr;
 };
 
 #endif /* PHG4GDMLSUBSYSTEM_H_ */

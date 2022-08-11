@@ -30,13 +30,9 @@
 #include <set>  // for set
 #include <sstream>
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4PSTOFSubsystem::PHG4PSTOFSubsystem(const std::string &name)
   : PHG4DetectorGroupSubsystem(name)
-  , detector_(nullptr)
-  , steppingAction_(nullptr)
 {
   InitializeParameters();
   Name(name);
@@ -54,9 +50,9 @@ int PHG4PSTOFSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
 
-  set<string> nodes;
   if (GetParamsContainer()->GetParameters(-1)->get_int_param("active"))
   {
+    std::set<std::string> nodes;
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
     if (!DetNode)
@@ -64,7 +60,7 @@ int PHG4PSTOFSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       DetNode = new PHCompositeNode(SuperDetector());
       dstNode->addNode(DetNode);
     }
-    ostringstream nodename;
+    std::ostringstream nodename;
     if (SuperDetector() != "NONE")
     {
       nodename << "G4HIT_" << SuperDetector();
@@ -74,7 +70,7 @@ int PHG4PSTOFSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       nodename << "G4HIT_" << Name();
     }
     nodes.insert(nodename.str());
-    BOOST_FOREACH (string node, nodes)
+    BOOST_FOREACH (std::string node, nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
       if (!g4_hits)
@@ -103,9 +99,9 @@ int PHG4PSTOFSubsystem::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-void PHG4PSTOFSubsystem::Print(const string &what) const
+void PHG4PSTOFSubsystem::Print(const std::string &what) const
 {
-  //cout << "PSTOF Parameters: " << endl;
+  //std::cout << "PSTOF Parameters: " << std::endl;
   PrintDefaultParams();
   PrintMacroParams();
   GetParamsContainer()->Print();

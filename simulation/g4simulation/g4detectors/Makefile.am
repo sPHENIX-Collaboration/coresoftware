@@ -33,12 +33,12 @@ libg4detectors_io_la_LIBADD = \
 #libgmp comes in via CGAL which is now header only
 libg4detectors_la_LIBADD = \
   libg4detectors_io.la \
+  -lffamodules \
   -lg4testbench \
   -lgmp \
   -lphg4gdml \
   -lphool  \
-  -lSubsysReco \
-  -lxpload
+  -lSubsysReco
 
 pkginclude_HEADERS = \
   BeamLineMagnetSubsystem.h \
