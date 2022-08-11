@@ -53,9 +53,9 @@ int PHG4BbcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
 
-  std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
+    std::set<std::string> nodes;
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode *DetNode = dstNode;
     if (SuperDetector() != "NONE" && !SuperDetector().empty())
