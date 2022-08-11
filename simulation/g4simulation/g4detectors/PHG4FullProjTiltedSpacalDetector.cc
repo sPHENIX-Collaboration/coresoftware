@@ -80,7 +80,7 @@ void PHG4FullProjTiltedSpacalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   if (get_geom_v3()->get_construction_verbose() >= 1)
   {
     std::cout << "PHG4FullProjTiltedSpacalDetector::Construct::" << GetName()
-         << " - start with PHG4SpacalDetector::Construct()." << std::endl;
+              << " - start with PHG4SpacalDetector::Construct()." << std::endl;
   }
 
   PHG4SpacalDetector::ConstructMe(logicWorld);
@@ -88,7 +88,7 @@ void PHG4FullProjTiltedSpacalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   if (get_geom_v3()->get_construction_verbose() >= 1)
   {
     std::cout << "PHG4FullProjTiltedSpacalDetector::Construct::" << GetName()
-         << " - Completed." << std::endl;
+              << " - Completed." << std::endl;
   }
 }
 
@@ -159,11 +159,11 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     G4double projection_length;
   };
   std::vector<block_azimuth_geom> block_azimuth_geoms(phi_bin_in_sec,
-                                                 block_azimuth_geom{
-                                                     std::numeric_limits<double>::signaling_NaN(),
-                                                     std::numeric_limits<double>::signaling_NaN(),
-                                                     std::numeric_limits<double>::signaling_NaN(),
-                                                     std::numeric_limits<double>::signaling_NaN()});  // [phi-bin in sector] -> azimuth geometry
+                                                      block_azimuth_geom{
+                                                          std::numeric_limits<double>::signaling_NaN(),
+                                                          std::numeric_limits<double>::signaling_NaN(),
+                                                          std::numeric_limits<double>::signaling_NaN(),
+                                                          std::numeric_limits<double>::signaling_NaN()});  // [phi-bin in sector] -> azimuth geometry
   G4double block_x_edge1 = block_edge1_half_width;
   for (int sa = 0; sa < phi_bin_in_sec; ++sa)
   {
@@ -196,13 +196,13 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   };
   assert(phi_bin_in_sec >= 1);
   std::vector<block_divider_azimuth_geom> divider_azimuth_geoms(phi_bin_in_sec - 1,
-                                                           block_divider_azimuth_geom{
-                                                               std::numeric_limits<double>::signaling_NaN(),
-                                                               std::numeric_limits<double>::signaling_NaN(),
-                                                               std::numeric_limits<double>::signaling_NaN(),
-                                                               std::numeric_limits<double>::signaling_NaN(),
-                                                               std::numeric_limits<double>::signaling_NaN(),
-                                                               std::numeric_limits<double>::signaling_NaN()});
+                                                                block_divider_azimuth_geom{
+                                                                    std::numeric_limits<double>::signaling_NaN(),
+                                                                    std::numeric_limits<double>::signaling_NaN(),
+                                                                    std::numeric_limits<double>::signaling_NaN(),
+                                                                    std::numeric_limits<double>::signaling_NaN(),
+                                                                    std::numeric_limits<double>::signaling_NaN(),
+                                                                    std::numeric_limits<double>::signaling_NaN()});
 
   if (get_geom_v3()->get_sidewall_thickness() > 0)
   {
@@ -223,10 +223,10 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   if (fabs(block_x_edge1 - (-block_edge2_half_width)) > get_geom_v3()->get_assembly_spacing() * cm)
   {
     std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg - ERROR - " << std::endl
-         << "\t block_x_edge1 = " << block_x_edge1 << std::endl
-         << "\t block_edge2_half_width = " << block_edge2_half_width << std::endl
-         << "\t fabs(block_x_edge1 - (-block_edge2_half_width)) = " << fabs(block_x_edge1 - (-block_edge2_half_width)) << std::endl
-         << "\t get_geom_v3()->get_assembly_spacing() * cm = " << get_geom_v3()->get_assembly_spacing() * cm << std::endl;
+              << "\t block_x_edge1 = " << block_x_edge1 << std::endl
+              << "\t block_edge2_half_width = " << block_edge2_half_width << std::endl
+              << "\t fabs(block_x_edge1 - (-block_edge2_half_width)) = " << fabs(block_x_edge1 - (-block_edge2_half_width)) << std::endl
+              << "\t get_geom_v3()->get_assembly_spacing() * cm = " << get_geom_v3()->get_assembly_spacing() * cm << std::endl;
   }
   if (!(fabs(block_x_edge1 - (-block_edge2_half_width)) < get_geom_v3()->get_assembly_spacing() * cm))  // closure check
   {
@@ -237,15 +237,15 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   if (Verbosity())
   {
     std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg - " << std::endl
-         << "\t edge1_tilt_angle = " << edge1_tilt_angle << std::endl
-         << "\t edge2_tilt_angle = " << edge2_tilt_angle << std::endl
-         << "\t projection_center_y = " << projection_center_y << std::endl
-         << "\t projection_center_x = " << projection_center_x << std::endl
-         << "\t block_azimuth_angle = " << block_azimuth_angle << std::endl
-         << "\t block_edge1_half_width = " << block_edge1_half_width << std::endl
-         << "\t block_edge2_half_width = " << block_edge2_half_width << std::endl
-         << "\t block_width_ratio = " << block_width_ratio << std::endl
-         << "\t block_half_height_width = " << block_half_height_width << std::endl;
+              << "\t edge1_tilt_angle = " << edge1_tilt_angle << std::endl
+              << "\t edge2_tilt_angle = " << edge2_tilt_angle << std::endl
+              << "\t projection_center_y = " << projection_center_y << std::endl
+              << "\t projection_center_x = " << projection_center_x << std::endl
+              << "\t block_azimuth_angle = " << block_azimuth_angle << std::endl
+              << "\t block_edge1_half_width = " << block_edge1_half_width << std::endl
+              << "\t block_edge2_half_width = " << block_edge2_half_width << std::endl
+              << "\t block_width_ratio = " << block_width_ratio << std::endl
+              << "\t block_half_height_width = " << block_half_height_width << std::endl;
 
     for (int sa = 0; sa < phi_bin_in_sec; ++sa)
     {
@@ -298,7 +298,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     if (get_geom_v3()->get_construction_verbose() >= 1)
     {
       std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg::" << GetName()
-           << " - construct end walls." << std::endl;
+                << " - construct end walls." << std::endl;
     }
     //        G4Tubs* wall_solid = new G4Tubs(G4String(GetName() + std::string("_EndWall")),
     //            get_geom_v3()->get_radius() * cm + get_geom_v3()->get_sidewall_outer_torr() * cm,
@@ -334,8 +334,8 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       if (get_geom_v3()->get_construction_verbose() >= 2)
       {
         std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg::"
-             << GetName() << " - constructed End Wall ID " << val.first
-             << " @ Z = " << val.second << std::endl;
+                  << GetName() << " - constructed End Wall ID " << val.first
+                  << " @ Z = " << val.second << std::endl;
       }
       G4Transform3D wall_trans = G4TranslateZ3D(val.second);
 
@@ -355,7 +355,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     if (get_geom_v3()->get_construction_verbose() >= 1)
     {
       std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg::" << GetName()
-           << " - construct side walls." << std::endl;
+                << " - construct side walls." << std::endl;
     }
 
     typedef std::map<int, std::pair<int, int> > sign_t;
@@ -373,14 +373,14 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       if (get_geom_v3()->get_construction_verbose() >= 2)
       {
         std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg::"
-             << GetName() << " - constructed Side Wall ID " << val.first
-             << " with"
-             << " Shift X = "
-             << sign_azimuth * (get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_sidewall_outer_torr() * cm)
-             << " Rotation Z = "
-             << sign_azimuth * pi / get_geom_v3()->get_azimuthal_n_sec()
-             << " Shift Z = " << sign_z * (get_geom_v3()->get_length() * cm / 4)
-             << std::endl;
+                  << GetName() << " - constructed Side Wall ID " << val.first
+                  << " with"
+                  << " Shift X = "
+                  << sign_azimuth * (get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_sidewall_outer_torr() * cm)
+                  << " Rotation Z = "
+                  << sign_azimuth * pi / get_geom_v3()->get_azimuthal_n_sec()
+                  << " Shift Z = " << sign_z * (get_geom_v3()->get_length() * cm / 4)
+                  << std::endl;
       }
       const G4double azimuth_roate = sign_azimuth > 0 ? edge1_tilt_angle : edge2_tilt_angle;
       const G4double edge_half_depth = -get_geom_v3()->get_sidewall_thickness() * cm - get_geom_v3()->get_sidewall_outer_torr() * cm + (sign_azimuth > 0 ? edge1_half_depth : edge2_half_depth);
@@ -418,7 +418,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     if (get_geom_v3()->get_construction_verbose() >= 1)
     {
       std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg::" << GetName()
-           << " - construct dividers" << std::endl;
+                << " - construct dividers" << std::endl;
     }
 
     G4Material* divider_mat = GetDetectorMaterial(get_geom_v3()->get_divider_mat());
@@ -523,8 +523,8 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   }
 
   std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg::" << GetName()
-       << " - constructed " << get_geom_v3()->get_sector_tower_map().size()
-       << " unique towers" << std::endl;
+            << " - constructed " << get_geom_v3()->get_sector_tower_map().size()
+            << " unique towers" << std::endl;
 
   return std::make_pair(sec_logic, G4Transform3D::Identity);
 }
@@ -584,7 +584,7 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
 
       const int fiber_ID = g_tower.compose_fiber_id(ix, iy);
       fiber_par[fiber_ID] = std::make_pair(vector_fiber,
-                                      center_fiber);
+                                           center_fiber);
 
       const G4double fiber_length = vector_fiber.mag();
 
@@ -623,16 +623,16 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
 
     if (get_geom_v3()->get_construction_verbose() >= 3)
       std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_Fibers_SameLengthFiberPerTower::" << GetName()
-           << " - constructed fiber " << fiber_ID << ss.str()  //
-           << ", Length = " << optimal_fiber_length << "-"
-           << (optimal_fiber_length - fiber_length) << "mm, "  //
-           << "x = " << center_fiber.x() << "mm, "             //
-           << "y = " << center_fiber.y() << "mm, "             //
-           << "z = " << center_fiber.z() << "mm, "             //
-           << "vx = " << vector_fiber.x() << "mm, "            //
-           << "vy = " << vector_fiber.y() << "mm, "            //
-           << "vz = " << vector_fiber.z() << "mm, "            //
-           << std::endl;
+                << " - constructed fiber " << fiber_ID << ss.str()  //
+                << ", Length = " << optimal_fiber_length << "-"
+                << (optimal_fiber_length - fiber_length) << "mm, "  //
+                << "x = " << center_fiber.x() << "mm, "             //
+                << "y = " << center_fiber.y() << "mm, "             //
+                << "z = " << center_fiber.z() << "mm, "             //
+                << "vx = " << vector_fiber.x() << "mm, "            //
+                << "vy = " << vector_fiber.y() << "mm, "            //
+                << "vz = " << vector_fiber.z() << "mm, "            //
+                << std::endl;
 
     const G4double rotation_angle = G4Vector3D(0, 0, 1).angle(vector_fiber);
     const G4Vector3D rotation_axis =
@@ -721,15 +721,15 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers(
 
       if (get_geom_v3()->get_construction_verbose() >= 3)
         std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_Fibers::" << GetName()
-             << " - constructed fiber " << fiber_ID << ss.str()  //
-             << ", Length = " << fiber_length << "mm, "          //
-             << "x = " << center_fiber.x() << "mm, "             //
-             << "y = " << center_fiber.y() << "mm, "             //
-             << "z = " << center_fiber.z() << "mm, "             //
-             << "vx = " << vector_fiber.x() << "mm, "            //
-             << "vy = " << vector_fiber.y() << "mm, "            //
-             << "vz = " << vector_fiber.z() << "mm, "            //
-             << std::endl;
+                  << " - constructed fiber " << fiber_ID << ss.str()  //
+                  << ", Length = " << fiber_length << "mm, "          //
+                  << "x = " << center_fiber.x() << "mm, "             //
+                  << "y = " << center_fiber.y() << "mm, "             //
+                  << "z = " << center_fiber.z() << "mm, "             //
+                  << "vx = " << vector_fiber.x() << "mm, "            //
+                  << "vy = " << vector_fiber.y() << "mm, "            //
+                  << "vz = " << vector_fiber.z() << "mm, "            //
+                  << std::endl;
 
       const G4double rotation_angle = G4Vector3D(0, 0, 1).angle(
           vector_fiber);
@@ -759,8 +759,8 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers(
 
   if (get_geom_v3()->get_construction_verbose() >= 3)
     std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_Fibers::" << GetName()
-         << " - constructed tower ID " << g_tower.id << " with " << fiber_cnt
-         << " fibers" << std::endl;
+              << " - constructed tower ID " << g_tower.id << " with " << fiber_cnt
+              << " fibers" << std::endl;
 
   return fiber_cnt;
 }
@@ -803,8 +803,8 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
 
     if (get_geom_v3()->get_construction_verbose() >= 2)
       std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_Tower::" << GetName()
-           << " - constructed tower ID " << g_tower.id << " with "
-           << fiber_count << " fibers using Construct_Fibers" << std::endl;
+                << " - constructed tower ID " << g_tower.id << " with "
+                << fiber_count << " fibers using Construct_Fibers" << std::endl;
   }
   else if (get_geom_v3()->get_config() == SpacalGeom_t::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower)
   {
@@ -813,13 +813,13 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
 
     if (get_geom_v3()->get_construction_verbose() >= 2)
       std::cout << "PHG4FullProjTiltedSpacalDetector::Construct_Tower::" << GetName()
-           << " - constructed tower ID " << g_tower.id << " with "
-           << fiber_count
-           << " fibers using Construct_Fibers_SameLengthFiberPerTower."
-           << "V = " << block_solid->GetCubicVolume() / (cm3) << "cm3, "
-           << "m = " << block_logic->GetMass() / gram << "gram, "
-           << "Density = " << (block_logic->GetMass() / gram) / (block_solid->GetCubicVolume() / cm3) << "g/cm3"
-           << std::endl;
+                << " - constructed tower ID " << g_tower.id << " with "
+                << fiber_count
+                << " fibers using Construct_Fibers_SameLengthFiberPerTower."
+                << "V = " << block_solid->GetCubicVolume() / (cm3) << "cm3, "
+                << "m = " << block_logic->GetMass() / gram << "gram, "
+                << "Density = " << (block_logic->GetMass() / gram) / (block_solid->GetCubicVolume() / cm3) << "g/cm3"
+                << std::endl;
   }
   else
   {
@@ -912,7 +912,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_LightGuide(
 void PHG4FullProjTiltedSpacalDetector::Print(const std::string& /*what*/) const
 {
   std::cout << "PHG4FullProjTiltedSpacalDetector::Print::" << GetName()
-       << " - Print Geometry:" << std::endl;
+            << " - Print Geometry:" << std::endl;
   get_geom_v3()->Print();
 
   return;

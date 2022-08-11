@@ -73,12 +73,12 @@ void
 PHG4GDMLDetector::Print(const std::string& /*what*/) const
 {
   std::cout << "PHG4GDMLDetector::" << GetName() << " - import " << m_TopVolName << " from " << m_GDMPath << " with shift "
-       << m_placeX << ","
-       << m_placeY << ","
-       << m_placeZ << "cm and rotation "
-       << m_rotationX << ","
-       << m_rotationY << ","
-       << m_rotationZ << "rad" << std::endl;
+            << m_placeX << ","
+            << m_placeY << ","
+            << m_placeZ << "cm and rotation "
+            << m_rotationX << ","
+            << m_rotationY << ","
+            << m_rotationZ << "rad" << std::endl;
 }
 
 void PHG4GDMLDetector::ConstructMe(G4LogicalVolume* logicWorld)
@@ -161,7 +161,7 @@ void PHG4GDMLDetector::SetDisplayProperty(G4LogicalVolume* lv)
 
   if (Verbosity() >= 5)
     std::cout << "SetDisplayProperty - LV " << lv->GetName() << " built with "
-         << material_name << std::endl;
+              << material_name << std::endl;
 
   G4VisAttributes* matVis = new G4VisAttributes();
   if (material_name.find("SI") != std::string::npos)

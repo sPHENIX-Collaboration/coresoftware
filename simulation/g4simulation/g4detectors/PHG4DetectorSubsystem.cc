@@ -235,7 +235,7 @@ void PHG4DetectorSubsystem::set_default_double_param(const std::string &name, co
   else
   {
     std::cout << "trying to overwrite default double " << name << " "
-         << default_double[name] << " with " << dval << std::endl;
+              << default_double[name] << " with " << dval << std::endl;
     exit(1);
   }
   return;
@@ -250,7 +250,7 @@ void PHG4DetectorSubsystem::set_default_int_param(const std::string &name, const
   else
   {
     std::cout << "trying to overwrite default int " << name << " "
-         << default_int[name] << " with " << ival << std::endl;
+              << default_int[name] << " with " << ival << std::endl;
     exit(1);
   }
   return;
@@ -265,7 +265,7 @@ void PHG4DetectorSubsystem::set_default_string_param(const std::string &name, co
   else
   {
     std::cout << "trying to overwrite default string " << name << " "
-         << default_string[name] << " with " << sval << std::endl;
+              << default_string[name] << " with " << sval << std::endl;
     exit(1);
   }
   return;

@@ -60,11 +60,11 @@ int PHG4GenHit::process_event(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     std::cout << "phi " << phi << " inner rad: " << inner_radius
-         << ", outer rad: " << outer_radius
-         << " x0/y0/z0: " << x0 << "/" << y0 << "/" << z0
-         << " x1/y1/z1: " << x1 << "/" << y1 << "/" << z1
-         << " edep: " << eloss
-         << std::endl;
+              << ", outer rad: " << outer_radius
+              << " x0/y0/z0: " << x0 << "/" << y0 << "/" << z0
+              << " x1/y1/z1: " << x1 << "/" << y1 << "/" << z1
+              << " edep: " << eloss
+              << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
