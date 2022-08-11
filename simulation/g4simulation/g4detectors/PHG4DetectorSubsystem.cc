@@ -84,13 +84,20 @@ int PHG4DetectorSubsystem::InitRun(PHCompositeNode *topNode)
   // Order: read first DB, then calib file if both are enabled
   if (ReadDB() || get_filetype() != PHG4DetectorSubsystem::none)
   {
-    if (ReadDB())
+    if (!m_Domain.empty())
     {
-      ReadParamsFromDB(calibdetname, isSuperDetector);
+      ReadParamsFromCDB(m_Domain);
     }
-    if (get_filetype() != PHG4DetectorSubsystem::none)
+    else
     {
-      ReadParamsFromFile(calibdetname, get_filetype(), isSuperDetector);
+      if (ReadDB())
+      {
+        ReadParamsFromDB(calibdetname, isSuperDetector);
+      }
+      if (get_filetype() != PHG4DetectorSubsystem::none)
+      {
+        ReadParamsFromFile(calibdetname, get_filetype(), isSuperDetector);
+      }
     }
   }
   else
@@ -403,4 +410,10 @@ void PHG4DetectorSubsystem::BlackHole(const int i)
 void PHG4DetectorSubsystem::SetAbsorberTruth(const int i)
 {
   iparams["absorbertruth"] = i;
+}
+
+int PHG4DetectorSubsystem::ReadParamsFromCDB(const std::string &domain)
+{
+  params->ReadFromCDB(domain);
+  return 0;
 }
