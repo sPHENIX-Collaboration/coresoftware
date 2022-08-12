@@ -29,6 +29,8 @@
 /// \file eventgenerator/pythia/decayer6/include/G4EvtGenDecayer.hh
 /// \brief Definition of the G4EvtGenDecayer class
 //
+#ifndef G4_EVTGEN_DECAYER_H
+#define G4_EVTGEN_DECAYER_H
 
 //#include "G4EvtGenDecayerMessenger.hh"
 
@@ -93,4 +95,4 @@ class G4EvtGenDecayer : public G4VExtDecayer
 
 // ----------------------------------------------------------------------------
 
-
+#endif

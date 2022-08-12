@@ -172,7 +172,6 @@ HepMC::GenEvent* ConvertHepMCGenEvent_3to2(const HepMC3::GenEvent& evt)
 	
 	*/
     
-	std::cout << "Use New Bro Updated" << std::endl;
 
 	std::shared_ptr<HepMC3::DoubleAttribute> A_event_scale=evt.attribute<HepMC3::DoubleAttribute>("event_scale");
     std::shared_ptr<HepMC3::DoubleAttribute> A_alphaQED=evt.attribute<HepMC3::DoubleAttribute>("alphaQED");

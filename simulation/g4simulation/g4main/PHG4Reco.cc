@@ -109,7 +109,7 @@
 #include <memory>
 #include <set>     // for set, _Rb_tree_const_...
 #include <vector>  // for vector, vector<>::it...
-#include "../Share.hh"  // for vector, vector<>::it...
+//#include "../Share.hh"  // for vector, vector<>::it...
 #include "TFile.h"  // for vector, vector<>::it...
 #include "TTree.h"  // for vector, vector<>::it...
 
@@ -120,7 +120,7 @@ class PHG4EventAction;
 class PHG4StackingAction;
 class PHG4SteppingAction;
 
-TFile * fout;
+//TFile * fout;
 
 bool UsePYTHIA6Decayer = false;
 bool UseEvtGenDecayer = true;
@@ -144,9 +144,9 @@ PHG4Reco::~PHG4Reco(void)
 	// one can delete null pointer (it results in a nop), so checking if
 	// they are non zero is not needed
 
-	fout->cd();
-	QATree->Write();
-	fout->Close();
+//	fout->cd();
+//	QATree->Write();
+//	fout->Close();
 	delete m_Field;
 	delete m_RunManager;
 	delete m_UISession;
@@ -163,6 +163,7 @@ PHG4Reco::~PHG4Reco(void)
 //_________________________________________________________________
 int PHG4Reco::Init(PHCompositeNode *topNode)
 {
+	/*
 	std::cout << "PHG4 ZZ Initialize" << std::endl;
 	
 	fout = new TFile("QAFile.root","RECREATE");
@@ -232,6 +233,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 	ParentPz = 0;
 	ParentID = 0;
 
+	*/
 	if (Verbosity() > 0)
 	{
 		std::cout << "========================= PHG4Reco::Init() ================================" << std::endl;
@@ -740,6 +742,7 @@ int PHG4Reco::InitUImanager()
 //_________________________________________________________________
 int PHG4Reco::process_event(PHCompositeNode *topNode)
 {
+	/*
 	TotalParticle = 0;	
 	TotalPx = 0;
 	TotalPy = 0;
@@ -760,7 +763,8 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
 	TotalGamma = 0;
 	TotalNu = 0;
 	TotalN = 0;
-
+    */
+	
 	if (PHRandomSeed::Verbosity()>=2)
 	{
 		G4Random::showEngineStatus();
@@ -813,8 +817,8 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
 			return Fun4AllReturnCodes::ABORTEVENT;
 		}
 	}
-	Event = Event + 1;
-	QATree->Fill();
+	//Event = Event + 1;
+	//QATree->Fill();
 	return 0;
 }
 

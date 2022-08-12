@@ -53,7 +53,7 @@
 #include <cstdlib>   // for abs
 #include <iostream>  // for operator<<, basic_ostream:...
 #include <string>    // for operator<<
-#include "../Share.hh"
+//#include "../Share.hh"
 
 TFile * CheckDecay;
 TTree * DecayTree;
@@ -210,7 +210,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
   //std::cout << __PRETTY_FUNCTION__ << std::endl;
   // get particle momentum
 
-    std::cout << "OK New" << std::endl;	
+	//   std::cout << "OK New" << std::endl;	
 
 	G4ThreeVector momentum = track.GetMomentum();
 	G4double etot = track.GetDynamicParticle()->GetTotalEnergy();
@@ -229,13 +229,15 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 	G4ParticleDefinition* particleDef = track.GetDefinition();
 	G4int pdgEncoding = particleDef->GetPDGEncoding();
 	//EvtGen Declaration//
+	
+	/*
 	ParentID = pdgEncoding;
     ParentMass = p.m();
     ParentE = p[3];
     ParentPx = p[0];
     ParentPy = p[1];
     ParentPz = p[2];
-
+	*/
 
 	
 
@@ -259,12 +261,14 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 
 	// convert decay products EvtGen Products type
 	// to G4DecayProducts
-    TLorentzVector * FourMomentum = new TLorentzVector;
+/* 
+	TLorentzVector * FourMomentum = new TLorentzVector;
     TLorentzVector * TotalFourMom = new TLorentzVector;
     TotalFourMom->SetXYZM(0,0,0,0);
 
     float ParMass = 0;
-    TotalParticle = 0;
+*/
+	//    TotalParticle = 0;
 
 	G4DecayProducts* decayProducts = new G4DecayProducts(*(track.GetDynamicParticle()));
 
@@ -299,15 +303,17 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 		const G4ParticleDefinition* particleDefinition = GetParticleDefinition(ptl0);
 
 		G4ThreeVector G4Mom = G4ThreeVector(Mom[0] * GeV,Mom[1] * GeV,Mom[2] * GeV);
-			
+/*			
 		if(abs(pdg) == 130 || abs(pdg) == 310 || abs(pdg) == 211 || abs(pdg) == 321 || abs(pdg) == 22 || abs(pdg) == 11 || abs(pdg) == 2212 || abs(pdg) == 13 ||  abs(pdg) == 12 ||  abs(pdg) == 14 || abs(pdg) == 16){
 
 			if(Status != 91) std::cout<<"Now PDGID: "  <<  pdg  << "   Status = " << Status << endl;
 
 		}
 
+		
 		if(Status != -11 && Status != -91  && (abs(pdg) == 130 || abs(pdg) == 310 || abs(pdg) == 211 || abs(pdg) == 321 || abs(pdg) == 22 || abs(pdg) == 11 || abs(pdg) == 2212 || abs(pdg) == 13 ||  abs(pdg) == 12 ||  abs(pdg) == 14 || abs(pdg) == 16 || abs(pdg) == 2112)){
 
+			
 		TotalPx = TotalPx + Mom[0];
 		TotalPy = TotalPy + Mom[1];
 		TotalPz = TotalPz + Mom[2];
@@ -357,6 +363,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 		TotalE = FourMomentum->E() + TotalE;
 
 		}
+*/		
 
 		G4DynamicParticle* dynamicParticle = new G4DynamicParticle(particleDefinition, G4Mom);
 		if (dynamicParticle)
@@ -379,7 +386,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 
 		}
 	}
-    TotalMass = TotalFourMom->M();
+ //   TotalMass = TotalFourMom->M();
 
 	return decayProducts;
   

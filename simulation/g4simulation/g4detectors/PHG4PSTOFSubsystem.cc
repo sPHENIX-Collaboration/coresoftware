@@ -50,9 +50,9 @@ int PHG4PSTOFSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
 
-  std::set<std::string> nodes;
   if (GetParamsContainer()->GetParameters(-1)->get_int_param("active"))
   {
+    std::set<std::string> nodes;
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
     if (!DetNode)
