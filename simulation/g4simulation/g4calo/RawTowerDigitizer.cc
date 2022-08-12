@@ -26,6 +26,8 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 
+#include <TSystem.h>
+
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
@@ -84,58 +86,32 @@ int RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  /*
-  // this is for getting the file from 
-  // the  conditions DB, it's reply is not used right now
-  if (m_UseConditionsDB)
-    {
-      recoConsts *rc = recoConsts::instance();
-      uint64_t timestamp = rc->get_IntFlag("RUNNUMBER");
-      std::string tag = "example_tag_1";
-      std::string cfg = "test";
-      xpload::Configurator config(cfg);
-      //std::vector<std::string> paths = xpload::fetch(tag, cfg, timestamp, config);
-      xpload::Result pathres = xpload::fetch(tag, cfg, timestamp, config);
-      if (pathres.paths.empty())
-	{
-      if (Verbosity())
-	{
-	  std::cout << "No paths in conditions DB found" << std::endl;
-	}
-	}
-      else
-	{
-	  if (Verbosity())
-	    {
-	      std::cout << "Found paths:" << std::endl;
-	      
-	      for (const std::string &path : pathres.paths)
-		{
-		  std::cout << path << std::endl;
-		}
-	    }
-	}
-    }
-*/
-
   if (m_DoDecal)
   {
     if (m_Detector.c_str()[0] == 'H')
-      m_CalDBFile = (CaloCalibSimpleCorrFile *) new HcalCaloCalibSimpleCorrFilev1();
+    {
+      m_CalDBFile =  new HcalCaloCalibSimpleCorrFilev1();
+    }
     else if (m_Detector.c_str()[0] == 'C')
-      m_CalDBFile = (CaloCalibSimpleCorrFile *) new CEmcCaloCalibSimpleCorrFilev1();
+    {
+      m_CalDBFile =  new CEmcCaloCalibSimpleCorrFilev1();
+    }
     else
     {
       std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
                 << "Calo Decal requested but Detector Name not HCALOUT/IN or CEMC"
                 << std::endl;
-      return -999;
+      gSystem->Exit(1);
     }
 
-    if (!(m_DecalFileName == ""))
+    if (!m_DecalFileName.empty())
+    {
       m_CalDBFile->Open(m_DecalFileName.c_str());
+    }
     else
+    {
       m_Decal = false;
+    }
     //warnings for bad file names handled inside Open
   }
 
