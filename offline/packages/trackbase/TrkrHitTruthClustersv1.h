@@ -6,13 +6,7 @@
  * @author D. STEWART
  * @date April 2022
  */
-
-#include "TrkrDefs.h"
 #include "TrkrHitTruthClusters.h"
-
-#include <iostream>              // for cout, ostream
-#include <map>
-#include <utility>               // for pair
 
 /**
  * @brief Association object for PHG4Cells contributiong to TrkrHits
@@ -25,17 +19,18 @@ class TrkrHitTruthClustersv1 : public TrkrHitTruthClusters
   public:
 
   TrkrHitTruthClustersv1() = default;
- 
   void Reset() override;
 
-  void print_clusters (std::ostream &os = std::cout) const override;
-
-  void push_truth_cluster(const int track_id,
-          const std::array<double,8>& phi_eta_z_data, const double sum_E) override;
+  ConstRange getClusters         (short trkid=-1)           const override;
+  std::vector<short> getTrkIds   (short layer=-1)           const override;
+  std::vector<short> getLayerIds (short trkid=-1)           const override;
+  bool       hasTrkId            (short)                    const override;
+  bool       hasTrkIdLayerId     (short trkid, short layer) const override;
+  bool       hasLayerId          (short layer=-1)           const override;
+  void       addTruthCluster     (short trkid, MapToPadPlanePassData& hit_data) override;
 
   private:
-  
-  MMap m_map;
+  Vector m_data;
   
   ClassDefOverride(TrkrHitTruthClustersv1, 1);
 

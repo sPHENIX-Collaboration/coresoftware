@@ -32,6 +32,7 @@ pkginclude_HEADERS = \
   CMFlashDifferenceContainerv1.h \
   InttDefs.h \
   MvtxDefs.h \
+	MapToPadPlanePassData.h \
   sPHENIXActsDetectorElement.h \
   TpcDefs.h \
   TpcSeedTrackMap.h \
@@ -77,6 +78,7 @@ ROOTDICTS = \
   CMFlashDifferencev1_Dict.cc \
   CMFlashDifferenceContainer_Dict.cc \
   CMFlashDifferenceContainerv1_Dict.cc \
+	MapToPadPlanePassData_Dict.cc \
   sPHENIXActsDetectorElement.cc \
   TrkrCluster_Dict.cc \
   TrkrClusterv1_Dict.cc \
@@ -121,11 +123,12 @@ nobase_dist_pcm_DATA = \
   CMFlashDifferencev1_Dict_rdict.pcm \
   CMFlashDifferenceContainer_Dict_rdict.pcm \
   CMFlashDifferenceContainerv1_Dict_rdict.pcm \
+	MapToPadPlanePassData_Dict_rdict.pcm \
   TrkrCluster_Dict_rdict.pcm \
   TrkrClusterv1_Dict_rdict.pcm \
   TrkrClusterv2_Dict_rdict.pcm \
   TrkrClusterv3_Dict_rdict.pcm \
-   TrkrClusterContainer_Dict_rdict.pcm \
+  TrkrClusterContainer_Dict_rdict.pcm \
   TrkrClusterv4_Dict_rdict.pcm \
   TrkrClusterContainerv1_Dict_rdict.pcm \
   TrkrClusterContainerv2_Dict_rdict.pcm \
@@ -164,6 +167,7 @@ libtrack_io_la_SOURCES = \
   CMFlashDifferencev1.cc \
   CMFlashDifferenceContainerv1.cc \
   InttDefs.cc \
+  MapToPadPlanePassData.cc \
   MvtxDefs.cc \
   TpcDefs.cc \
   TrackFitUtils.cc \
