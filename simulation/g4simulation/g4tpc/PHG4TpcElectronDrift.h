@@ -9,6 +9,7 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/MapToPadPlanePassData.h>
 
 #include <gsl/gsl_rng.h>
 
@@ -63,7 +64,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
  private:
   //! map a given x,y,z coordinates to plane hits
-  void MapToPadPlane(const double x, const double y, const double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
+  MapToPadPlanePassData MapToPadPlane(const double x, const double y, const double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
 
   TrkrHitSetContainer *hitsetcontainer = nullptr;
   TrkrHitTruthAssoc *hittruthassoc = nullptr;

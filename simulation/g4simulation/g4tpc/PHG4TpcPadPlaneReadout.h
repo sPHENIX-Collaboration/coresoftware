@@ -4,6 +4,7 @@
 #include "PHG4TpcPadPlane.h"
 
 #include <g4main/PHG4HitContainer.h>
+#include "trackbase/MapToPadPlanePassData.h"
 
 #include <gsl/gsl_rng.h>
 
@@ -35,7 +36,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   // otherwise warning of inconsistent overload since only one MapToPadPlane methow is overridden
   using PHG4TpcPadPlane::MapToPadPlane;
 
-  void MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
+  MapToPadPlanePassData MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
 
   void SetDefaultParameters() override;
   void UpdateInternalParameters() override;

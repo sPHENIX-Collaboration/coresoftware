@@ -325,8 +325,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
   int trkid_prior = -1;
   bool is_embedded{false};
-  std::array<double, 8> phiRz_data;
-  double sum_E = 0;
+  std::array<MapToPadPlanePassData,55> padplanedata{}; // PadPlanePass Data; note offset of 1 in indexes to actual layers values
+  if (false) std::cout << padplanedata[0].layer << std::endl;
 
   for (auto hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
@@ -343,11 +343,14 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     int trkid = hiter->second->get_trkid();
     if (trkid != trkid_prior)
     {
+      if (trkid_prior != -1) {
+        for (auto& cluster : padplanedata) hittruthclusters->addTruthCluster(trkid_prior, cluster);
+      }
       trkid_prior = trkid;
       is_embedded = (truthinfo->isEmbeded(hiter->second->get_trkid()));
       //        for (auto& v : phiRz_data) v = 0.;
-      phiRz_data.fill(0.);
-      sum_E = 0;
+      /* phiRz_data.fill(0.); */
+      /* sum_E = 0; */
     }
     // for very high occupancy events, accessing the TrkrHitsets on the node tree for every drifted electron seems to be very slow
     // Instead, use a temporary map to accumulate the charge from all drifted electrons, then copy to the node tree later
@@ -469,20 +472,20 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         continue;
       }
 
-      if (is_embedded)
-      {
-        double energy = 1;
-        sum_E += energy;
-        phiRz_data[0] += phi_final * energy;
-        phiRz_data[1] += square(phi_final) * energy;
-        phiRz_data[2] += rad_final * energy;
-        phiRz_data[3] += square(rad_final) * energy;
-        phiRz_data[4] += z_final * energy;
-        phiRz_data[5] += square(z_final) * energy;
-        double wrap_phi = (phi_final < 0) ? (phi_final + 6.2831853072) : phi_final;
-        phiRz_data[6] += wrap_phi * energy;
-        phiRz_data[7] += square(wrap_phi) * energy;
-      }
+      /* if (is_embedded) */
+      /* { */
+        /* double energy = 1; */
+        /* sum_E += energy; */
+        /* phiRz_data[0] += phi_final * energy; */
+        /* phiRz_data[1] += square(phi_final) * energy; */
+        /* phiRz_data[2] += rad_final * energy; */
+        /* phiRz_data[3] += square(rad_final) * energy; */
+        /* phiRz_data[4] += z_final * energy; */
+        /* phiRz_data[5] += square(z_final) * energy; */
+        /* double wrap_phi = (phi_final < 0) ? (phi_final + 6.2831853072) : phi_final; */
+        /* phiRz_data[6] += wrap_phi * energy; */
+        /* phiRz_data[7] += square(wrap_phi) * energy; */
+      /* } */
 
       if (Verbosity() > 1000)
       {
@@ -507,14 +510,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
       }
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
-      MapToPadPlane(x_final, y_final, t_final, side, hiter, ntpad, nthit);
+      auto pass_data = MapToPadPlane(x_final, y_final, t_final, side, hiter, ntpad, nthit);
+      if (is_embedded && pass_data.layer != 0) padplanedata[pass_data.layer-1] += pass_data;
     }  // end loop over electrons for this g4hit
-
-    if (is_embedded && n_electrons > 0)
-    {
-      hittruthclusters->push_truth_cluster(trkid, phiRz_data, sum_E);
-      if (Verbosity() > 1000) hittruthclusters->print_clusters();
-    }
 
     // The hit-truth association has to be done for each g4hit
     // we use the single_hitsetcontainer for this
@@ -583,7 +581,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           TrkrHit *temp_tpchit = temp_hit_iter->second;
           if (Verbosity() > 10 && layer == print_layer)
           {
-            std::cout << "      temp_hitkey " << temp_hitkey << " l;ayer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
+            std::cout << "      temp_hitkey " << temp_hitkey << " layer " << layer << " pad " << TpcDefs::getPad(temp_hitkey)
                       << " z bin " << TpcDefs::getTBin(temp_hitkey)
                       << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
 
@@ -620,10 +618,12 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
     ++ihit;
 
+    // OLIVE 5 end of single_hitsetcontainer
     // we are done with this until the next g4hit
     single_hitsetcontainer->Reset();
 
   }  // end loop over g4hits
+  // OLIVE 6 end of all g4hits
 
   if (Verbosity() > 2)
   {
@@ -665,12 +665,22 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   }
 
   ++event_num;  // if doing more than one event, event_num will be incremented.
+
+  // if the final track was an embedded track, then collect it's truth clusters
+  if (is_embedded) {
+    for (auto& cluster : padplanedata) hittruthclusters->addTruthCluster(trkid_prior, cluster);
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *padnt, TNtuple *hitnt)
+MapToPadPlanePassData PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *padnt, TNtuple *hitnt)
 {
-  padplane->MapToPadPlane(single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, x_gem, y_gem, t_gem, side, hiter, padnt, hitnt);
+  return padplane->MapToPadPlane(
+      single_hitsetcontainer.get(), 
+      temp_hitsetcontainer.get(), 
+      hittruthassoc, 
+      x_gem, y_gem, t_gem, side, hiter, padnt, hitnt);
 }
 
 int PHG4TpcElectronDrift::End(PHCompositeNode * /*topNode*/)

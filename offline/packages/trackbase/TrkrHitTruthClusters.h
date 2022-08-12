@@ -8,9 +8,8 @@
  * @brief Keep track of mean and variance of phi, eta, and Z in clusters from truth hits
  */
 
-#include "TrkrDefs.h"
-
-#include <g4main/PHG4HitDefs.h>
+#include "TrkrCluster.h"
+#include "MapToPadPlanePassData.h"
 #include <phool/PHObject.h>
 
 #include <iostream>              // for cout, ostream
@@ -30,34 +29,33 @@ class TrkrHitTruthClusters : public PHObject
   public:
   
   //! typedefs for convenience 
-  using MMap = std::map< int /*track-id*/, 
-                         std::vector<std::array<float,6>> /*array of mean-std of phi,R,z*/>;
-  using Iterator = MMap::iterator;
-  using ConstIterator = MMap::const_iterator;
-  using Range = std::pair<Iterator, Iterator>;
-  using ConstRange = std::pair<ConstIterator, ConstIterator>;
+  using Key           = std::pair<short,short>;
+  using Entry         = std::pair<Key, TrkrCluster*>;
 
-  void Reset() override
-  {}
+  using Vector        = std::vector<Entry>;
 
-  virtual void print_clusters (std::ostream &/*os*/ = std::cout) const 
-  {}
+  using ConstIterator = Vector::const_iterator;
+  using ConstRange    = std::pair<ConstIterator,ConstIterator>;
 
-  virtual void push_truth_cluster(const int /*track_id*/, 
-          const std::array<double,8>& /*phi_eat_z_data*/, const double /*sum_E*/) 
-  {}
+  using Iterator      = Vector::iterator; // not inplemented with an accessor
+  using Range         = std::pair<Iterator,Iterator>; // not implemented with an accessor
 
-  //virtual void removeAssoc(const TrkrDefs::hitsetkey /*hitsetkey*/, const TrkrDefs::hitkey /*hitkey*/)
-  //{}
+  void Reset() override {};
+
+  virtual std::vector<short> getTrkIds   (short layer=-1) const =0; // default to values for all layers
+  virtual std::vector<short> getLayerIds (short trkid=-1) const =0; // default to values for all tracks
+  virtual bool        hasTrkId           (short trkid)              const =0;
+  virtual bool        hasTrkIdLayerId    (short trkid, short layer) const =0;
+  virtual bool        hasLayerId         (short layer=-1)           const =0;
+  virtual ConstRange  getClusters        (short trackid=-1)         const =0; // will only iterate over range of trackid (if provided)
+  virtual void        addTruthCluster    (short trkid, MapToPadPlanePassData& hit_data) =0;
 
   protected:
   //! ctor
   TrkrHitTruthClusters() = default;
 
   private:
-
   ClassDefOverride(TrkrHitTruthClusters, 1);
-
 };
 
 #endif //TRACKBASE_TRKRHITTRUTHCLUSTERS_H
