@@ -56,7 +56,7 @@ my $nEvents;
 my $start_segment;
 my $randomize;
 my $prodtype;
-my $runnumber = 4;
+my $runnumber = 40;
 my $verbose;
 my $nopileup;
 my $embed;
