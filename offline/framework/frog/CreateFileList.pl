@@ -56,7 +56,7 @@ my $nEvents;
 my $start_segment;
 my $randomize;
 my $prodtype;
-my $runnumber = 40;
+my $runnumber = 4;
 my $verbose;
 my $nopileup;
 my $embed;
@@ -185,7 +185,7 @@ if (defined $prodtype)
     elsif ($prodtype == 11)
     {
         $embedok = 1;
-	$filenamestring = "pythia8_Jet30";
+	$filenamestring = "pythia8_Jet04";
 	if (! defined $nopileup)
 	{
 	    if (defined $embed)
