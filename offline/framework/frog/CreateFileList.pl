@@ -47,7 +47,7 @@ my %proddesc = (
     );
 
 my %pileupdesc = (
-    "1" => "default (50kHz for Au+Au, 3MHz for p+p)",
+    "1" => "50kHz for Au+Au, 3MHz for p+p (default)",
     "2" => "25kHz for Au+Au",
     "3" => "10kHz for Au+Au"
     );
@@ -287,14 +287,14 @@ if ($#ARGV < 0)
 	print "-n     : <number of events>\n";
 	print "-nopileup : without pileup\n";
 	print "-rand  : randomize segments used\n";
-	print "-run   : runnumber\n";
+	print "-run   : runnumber (default = $runnumber)\n";
 	print "-s     : starting segment>\n";
 	print "\n-type  : production type\n";
 	foreach my $pd (sort { $a <=> $b } keys %proddesc)
 	{
 	    print "    $pd : $proddesc{$pd}\n";
 	}
-	print "\n-pileup : pileup rate selection\n";
+	print "\n-pileup : pileup rate selection (default = $pileup)\n";
 	foreach my $pd (sort { $a <=> $b } keys %pileupdesc)
 	{
 	    print "    $pd : $pileupdesc{$pd}\n";
