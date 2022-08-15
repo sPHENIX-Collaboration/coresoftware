@@ -39,7 +39,7 @@ XploadInterface::XploadInterface(const std::string &name)
   : SubsysReco(name)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
-  se->registerSubsystem(this);
+  se->addNewSubsystem(this);
 }
 
 //____________________________________________________________________________..
@@ -107,8 +107,8 @@ std::string XploadInterface::getUrl(const std::string &domain, const std::string
 {
   std::string return_url = filename;
   recoConsts *rc = recoConsts::instance();
-  uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP",12345678912345);
-  xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG","TEST"), domain, timestamp, xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG","sPHENIX_cdb")));
+  uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP", 12345678912345);
+  xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG", "TEST"), domain, timestamp, xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG", "sPHENIX_cdb")));
   if (!result.payload.empty())
   {
     return_url = result.payload;

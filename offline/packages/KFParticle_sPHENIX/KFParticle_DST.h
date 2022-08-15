@@ -1,7 +1,6 @@
 #ifndef KFPARTICLESPHENIX_KFPARTICLEDST_H
 #define KFPARTICLESPHENIX_KFPARTICLEDST_H
 
-
 #include <KFParticle.h>
 
 #include <string>
@@ -16,10 +15,10 @@ class KFParticle_DST
 {
  public:
   ///Constructor
-KFParticle_DST() {}
+  KFParticle_DST() {}
 
   ///Destructor
-virtual ~KFParticle_DST(){}
+  virtual ~KFParticle_DST() {}
 
   ///Places a KFParticle_Container and SvtxTrackMap on the node tree if they don't exist
   int createParticleNode(PHCompositeNode* topNode);

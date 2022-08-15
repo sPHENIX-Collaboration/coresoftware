@@ -16,8 +16,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 //_____________________________________________________________________________
 void TDirectoryHelper::copyToFile(TDirectory* src, TFile* dest)
 {
@@ -38,9 +36,9 @@ void TDirectoryHelper::copyToFile(TDirectory* src, TFile* dest)
 
   if (!dest->IsWritable())
   {
-    cerr << "TDirectoryHelper::copyToFile : destination file is not "
-            " writeable"
-         << endl;
+    std::cout << "TDirectoryHelper::copyToFile : destination file is not "
+                 " writeable"
+              << std::endl;
     return;
   }
 
@@ -120,9 +118,9 @@ void TDirectoryHelper::duplicateDir(TDirectory* dest, TDirectory* source)
 }
 
 //_____________________________________________________________________________
-bool TDirectoryHelper::mkpath(TDirectory* dir, const string& path)
+bool TDirectoryHelper::mkpath(TDirectory* dir, const std::string& path)
 {
-  static vector<string> paths;
+  static std::vector<std::string> paths;
 
   splitPath(path, paths);
 
@@ -146,7 +144,7 @@ bool TDirectoryHelper::mkpath(TDirectory* dir, const string& path)
 //_____________________________________________________________________________
 TDirectory*
 TDirectoryHelper::mkdir(TDirectory* topDir,
-                        const string& path,
+                        const std::string& path,
                         std::vector<std::string>* titles)
 {
   TDirectory* save = gDirectory;
@@ -194,7 +192,7 @@ TDirectoryHelper::mkdir(TDirectory* topDir,
 }
 
 //_____________________________________________________________________________
-bool TDirectoryHelper::pathIsInDir(const string& path, TDirectory* dir)
+bool TDirectoryHelper::pathIsInDir(const std::string& path, TDirectory* dir)
 {
   // This is to avoid annoying ROOT message when a directory does not exist
   // in Cd(), so we provide this small method to check whereas
@@ -203,7 +201,7 @@ bool TDirectoryHelper::pathIsInDir(const string& path, TDirectory* dir)
 
   TDirectory* dirsave = gDirectory;
 
-  static std::vector<string> paths;
+  static std::vector<std::string> paths;
 
   paths.clear();
   splitPath(path, paths);
@@ -229,8 +227,8 @@ bool TDirectoryHelper::pathIsInDir(const string& path, TDirectory* dir)
 }
 
 //_____________________________________________________________________________
-TH1* TDirectoryHelper::getHisto(TDirectory* dir, const string& histoname,
-                                const string& where)
+TH1* TDirectoryHelper::getHisto(TDirectory* dir, const std::string& histoname,
+                                const std::string& where)
 {
   // Try to find histogram named histoname into directory dir, under
   // path=where (where e.g. = "/Cut##/OK/C#/V#").
@@ -252,7 +250,7 @@ TH1* TDirectoryHelper::getHisto(TDirectory* dir, const string& histoname,
       rv = dynamic_cast<TH1*>(obj);
       if (!rv)
       {
-        cerr << "GetHisto : object " << histoname << " is not a TH1" << endl;
+        std::cout << "GetHisto : object " << histoname << " is not a TH1" << std::endl;
       }
     }
   }
@@ -260,7 +258,7 @@ TH1* TDirectoryHelper::getHisto(TDirectory* dir, const string& histoname,
 }
 
 //_____________________________________________________________________________
-void TDirectoryHelper::splitPath(const string& path,
+void TDirectoryHelper::splitPath(const std::string& path,
                                  std::vector<std::string>& paths)
 {
   // Given a path e.g. /Cut##/OK/C#/V#, will return

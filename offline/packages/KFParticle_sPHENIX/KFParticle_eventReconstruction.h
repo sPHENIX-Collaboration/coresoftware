@@ -35,7 +35,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
  public:
   KFParticle_eventReconstruction();
 
-  virtual ~KFParticle_eventReconstruction(){}
+  virtual ~KFParticle_eventReconstruction() {}
 
   /**
    * Starts the reconstruction chain
@@ -49,7 +49,7 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
                    std::vector<std::vector<KFParticle>>& selectedDaughters,
                    std::vector<std::vector<KFParticle>>& selectedIntermediates,
                    int& nPVs, int& multiplicity);
- 
+
   ///Used to reconstruct simple decays with no intermediate states
   void buildBasicChain(std::vector<KFParticle>& selectedMotherBasic,
                        std::vector<KFParticle>& selectedVertexBasic,
@@ -79,18 +79,17 @@ class KFParticle_eventReconstruction : public KFParticle_Tools
 
   ///Method to chose best candidate from a selection of common SV's
   int selectBestCombination(bool PVconstraint, bool isAnInterMother,
-                             std::vector<KFParticle> possibleCandidates, 
-                             std::vector<KFParticle> possibleVertex);
+                            std::vector<KFParticle> possibleCandidates,
+                            std::vector<KFParticle> possibleVertex);
 
-  KFParticle createFakePV(); 
+  KFParticle createFakePV();
 
  protected:
   bool m_constrain_to_vertex;
   bool m_constrain_int_mass;
   bool m_use_fake_pv;
 
- //private:
-
+  //private:
 };
 
 #endif  //KFPARTICLESPHENIX_KFPARTICLEEVENTRECONSTRUCTION_H
