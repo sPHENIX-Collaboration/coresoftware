@@ -50,6 +50,8 @@ class TrkrHitTruthClusters : public PHObject
   virtual ConstRange  getClusters        (short trackid=-1)         const =0; // will only iterate over range of trackid (if provided)
   virtual void        addTruthCluster    (short trkid, MapToPadPlanePassData& hit_data) =0;
 
+  virtual void print_clusters (std::ostream &/*os*/ = std::cout) const {}
+
   protected:
   //! ctor
   TrkrHitTruthClusters() = default;
