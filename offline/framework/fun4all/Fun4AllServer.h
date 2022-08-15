@@ -43,7 +43,7 @@ class Fun4AllServer : public Fun4AllBase
   virtual int isHistoRegistered(const std::string &name) const;
 
   int registerSubsystem(SubsysReco *subsystem, const std::string &topnodename = "TOP");
-  void addNewSubsystem(SubsysReco *subsystem, const std::string &topnodename = "TOP") {NewSubsystems.push_back(std::make_pair(subsystem,topnodename));}
+  void addNewSubsystem(SubsysReco *subsystem, const std::string &topnodename = "TOP") { NewSubsystems.push_back(std::make_pair(subsystem, topnodename)); }
   int unregisterSubsystem(SubsysReco *subsystem);
   SubsysReco *getSubsysReco(const std::string &name);
   int registerOutputManager(Fun4AllOutputManager *manager);
@@ -112,8 +112,8 @@ class Fun4AllServer : public Fun4AllBase
   void KeepDBConnection(const int i = 1) { keep_db_connected = i; }
   void PrintTimer(const std::string &name = "");
   void PrintMemoryTracker(const std::string &name = "") const;
-  int RunNumber() const {return runnumber;}
-  int EventCounter() const {return eventcounter;}
+  int RunNumber() const { return runnumber; }
+  int EventCounter() const { return eventcounter; }
 
  protected:
   Fun4AllServer(const std::string &name = "Fun4AllServer");

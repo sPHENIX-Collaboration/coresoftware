@@ -395,9 +395,9 @@ void Fun4AllSyncManager::Print(const std::string &what) const
   {
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
-         << std::endl;
+              << std::endl;
     std::cout << "List of InputManagers in Fun4AllSyncManager "
-         << Name() << ":" << std::endl;
+              << Name() << ":" << std::endl;
 
     for (Fun4AllInputManager *inman : m_InManager)
     {

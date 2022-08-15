@@ -231,14 +231,14 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const std::string &t
   catch (const std::exception &e)
   {
     std::cout << PHWHERE << " caught exception thrown during SubsysReco::Init() from "
-         << subsystem->Name() << std::endl;
+              << subsystem->Name() << std::endl;
     std::cout << "error: " << e.what() << std::endl;
     exit(1);
   }
   catch (...)
   {
     std::cout << PHWHERE << " caught unknown type exception thrown during SubsysReco::Init() from "
-         << subsystem->Name() << std::endl;
+              << subsystem->Name() << std::endl;
     exit(1);
   }
   gROOT->cd(currdir.c_str());
@@ -253,7 +253,7 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const std::string &t
       return 0;
     }
     std::cout << PHWHERE << " Error initializing subsystem "
-         << subsystem->Name() << ", return code: " << iret << std::endl;
+              << subsystem->Name() << ", return code: " << iret << std::endl;
     return iret;
   }
   if (Verbosity() >= VERBOSITY_SOME)
@@ -301,15 +301,15 @@ int Fun4AllServer::unregisterSubsystemsNow()
     if (!foundit)
     {
       std::cout << "unregisterSubsystem: Could not find SubsysReco "
-           << (*removeiter).first->Name()
-           << " in Fun4All Reco Module list" << std::endl;
+                << (*removeiter).first->Name()
+                << " in Fun4All Reco Module list" << std::endl;
       delete (*removeiter).first;
       continue;
     }
     if (Verbosity() >= VERBOSITY_MORE)
     {
       std::cout << "Removing Subsystem: " << (*removeiter).first->Name()
-           << " at index " << index << std::endl;
+                << " at index " << index << std::endl;
     }
     Subsystems.erase(Subsystems.begin() + index);
     delete (*removeiter).first;
@@ -414,7 +414,7 @@ tryagain:
     if (!found)
     {
       std::cout << "Could not find module " << *striter
-           << ", removing it from list of event selector modules" << std::endl;
+                << ", removing it from list of event selector modules" << std::endl;
       manager->EventSelector()->erase(striter);
       goto tryagain;
     }
@@ -510,7 +510,7 @@ int Fun4AllServer::process_event()
     std::cout << "*******************************************************************************" << std::endl;
     std::cout << "*******************************************************************************" << std::endl;
     std::cout << "Now that I have your attention, please fix the following "
-         << ScreamEveryEvent << " problem(s):" << std::endl;
+              << ScreamEveryEvent << " problem(s):" << std::endl;
     std::vector<std::string>::const_iterator viter;
     for (viter = ComplaintList.begin(); viter != ComplaintList.end(); ++viter)
     {
@@ -538,8 +538,8 @@ int Fun4AllServer::process_event()
     if (!gROOT->cd(newdirname.str().c_str()))
     {
       std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-           << (*iter).second->getName()
-           << " - send e-mail to off-l with your macro" << std::endl;
+                << (*iter).second->getName()
+                << " - send e-mail to off-l with your macro" << std::endl;
       exit(1);
     }
     else
@@ -599,14 +599,14 @@ int Fun4AllServer::process_event()
     catch (const std::exception &e)
     {
       std::cout << PHWHERE << " caught exception thrown during process_event from "
-           << (*iter).first->Name() << std::endl;
+                << (*iter).first->Name() << std::endl;
       std::cout << "error: " << e.what() << std::endl;
       gSystem->Exit(1);
     }
     catch (...)
     {
       std::cout << PHWHERE << " caught unknown type exception thrown during process_event from "
-           << (*iter).first->Name() << std::endl;
+                << (*iter).first->Name() << std::endl;
       exit(1);
     }
     if (RetCodes[icnt])
@@ -637,8 +637,8 @@ int Fun4AllServer::process_event()
       else
       {
         std::cout << "Fun4AllServer::Unknown return code: "
-             << RetCodes[icnt] << " from process_event method of "
-             << (*iter).first->Name() << std::endl;
+                  << RetCodes[icnt] << " from process_event method of "
+                  << (*iter).first->Name() << std::endl;
         std::cout << "This smells like an uninitialized return code and" << std::endl;
         std::cout << "it is too dangerous to continue, this Run will be aborted" << std::endl;
         std::cout << "If you do not know how to fix this please send mail to" << std::endl;
@@ -787,7 +787,7 @@ int Fun4AllServer::BeginRunTimeStamp(PHTimeStamp &TimeStp)
 
 int Fun4AllServer::BeginRun(const int runno)
 {
-  eventcounter = 0; // reset event counter for every new run
+  eventcounter = 0;  // reset event counter for every new run
 #ifdef FFAMEMTRACKER
   ffamemtracker->Snapshot("Fun4AllServerBeginRun");
 #endif
@@ -870,8 +870,8 @@ int Fun4AllServer::BeginRunSubsystem(const std::pair<SubsysReco *, PHCompositeNo
   if (!gROOT->cd(newdirname.str().c_str()))
   {
     std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-	 << subsys.second->getName()
-	 << " - send e-mail to off-l with your macro" << std::endl;
+              << subsys.second->getName()
+              << " - send e-mail to off-l with your macro" << std::endl;
     exit(1);
   }
   else
@@ -899,14 +899,14 @@ int Fun4AllServer::BeginRunSubsystem(const std::pair<SubsysReco *, PHCompositeNo
   catch (const std::exception &e)
   {
     std::cout << PHWHERE << " caught exception thrown during SubsysReco::InitRun() from "
-	 << subsys.first->Name() << std::endl;
+              << subsys.first->Name() << std::endl;
     std::cout << "error: " << e.what() << std::endl;
     exit(1);
   }
   catch (...)
   {
     std::cout << PHWHERE << " caught unknown type exception thrown during SubsysReco::InitRun() from "
-	 << subsys.first->Name() << std::endl;
+              << subsys.first->Name() << std::endl;
     exit(1);
   }
 
@@ -1002,15 +1002,15 @@ int Fun4AllServer::EndRun(const int runno)
     if (Verbosity() >= VERBOSITY_MORE)
     {
       std::cout << "Fun4AllServer::EndRun: EndRun("
-           << runno << ") for " << (*iter).first->Name() << std::endl;
+                << runno << ") for " << (*iter).first->Name() << std::endl;
     }
     std::ostringstream newdirname;
     newdirname << (*iter).second->getName() << "/" << (*iter).first->Name();
     if (!gROOT->cd(newdirname.str().c_str()))
     {
       std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-           << (*iter).second->getName()
-           << " - send e-mail to off-l with your macro" << std::endl;
+                << (*iter).second->getName()
+                << " - send e-mail to off-l with your macro" << std::endl;
       exit(1);
     }
     else
@@ -1027,14 +1027,14 @@ int Fun4AllServer::EndRun(const int runno)
     catch (const std::exception &e)
     {
       std::cout << PHWHERE << " caught exception thrown during SubsysReco::EndRun() from "
-           << (*iter).first->Name() << std::endl;
+                << (*iter).first->Name() << std::endl;
       std::cout << "error: " << e.what() << std::endl;
       exit(1);
     }
     catch (...)
     {
       std::cout << PHWHERE << " caught unknown type exception thrown during SubsysReco::EndRun() from "
-           << (*iter).first->Name() << std::endl;
+                << (*iter).first->Name() << std::endl;
       exit(1);
     }
   }
@@ -1062,8 +1062,8 @@ int Fun4AllServer::End()
     if (!gROOT->cd(newdirname.str().c_str()))
     {
       std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-           << (*iter).second->getName()
-           << " - send e-mail to off-l with your macro" << std::endl;
+                << (*iter).second->getName()
+                << " - send e-mail to off-l with your macro" << std::endl;
       exit(1);
     }
     else
@@ -1080,14 +1080,14 @@ int Fun4AllServer::End()
     catch (const std::exception &e)
     {
       std::cout << PHWHERE << " caught exception thrown during SusbsysReco::End() from "
-           << (*iter).first->Name() << std::endl;
+                << (*iter).first->Name() << std::endl;
       std::cout << "error: " << e.what() << std::endl;
       exit(1);
     }
     catch (...)
     {
       std::cout << PHWHERE << " caught unknown type exception thrown during SubsysReco::End() from "
-           << (*iter).first->Name() << std::endl;
+                << (*iter).first->Name() << std::endl;
       exit(1);
     }
   }
@@ -1120,7 +1120,7 @@ int Fun4AllServer::End()
     std::cout << "*******************************************************************************" << std::endl;
     std::cout << "*******************************************************************************" << std::endl;
     std::cout << "Now that we are at the End(), please fix the following "
-         << ScreamEveryEvent << " problem(s):" << std::endl;
+              << ScreamEveryEvent << " problem(s):" << std::endl;
     std::vector<std::string>::const_iterator viter;
     for (viter = ComplaintList.begin(); viter != ComplaintList.end(); ++viter)
     {
@@ -1149,14 +1149,14 @@ void Fun4AllServer::Print(const std::string &what) const
   {
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
-         << std::endl;
+              << std::endl;
     std::cout << "List of Subsystems in Fun4AllServer:" << std::endl;
 
     std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::const_iterator miter;
     for (miter = Subsystems.begin(); miter != Subsystems.end(); ++miter)
     {
       std::cout << (*miter).first->Name()
-           << " running under topNode " << (*miter).second->getName() << std::endl;
+                << " running under topNode " << (*miter).second->getName() << std::endl;
     }
     std::cout << std::endl;
   }
@@ -1178,7 +1178,7 @@ void Fun4AllServer::Print(const std::string &what) const
     if (pass_on == "ALL" || pass_on == "OUTPUTMANAGER")
     {
       std::cout << "--------------------------------------" << std::endl
-           << std::endl;
+                << std::endl;
       std::cout << "List of OutputManagers in Fun4AllServer:" << std::endl;
       pass_on = "ALL";
     }
@@ -1197,14 +1197,14 @@ void Fun4AllServer::Print(const std::string &what) const
   {
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
-         << std::endl;
+              << std::endl;
     std::cout << "List of TopNodes in Fun4AllServer:" << std::endl;
 
     std::map<std::string, PHCompositeNode *>::const_iterator iter;
     for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
     {
       std::cout << iter->first << " is at " << std::hex
-           << iter->second << std::dec << std::endl;
+                << iter->second << std::dec << std::endl;
     }
     std::cout << std::endl;
   }
@@ -1212,7 +1212,7 @@ void Fun4AllServer::Print(const std::string &what) const
   {
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
-         << std::endl;
+              << std::endl;
     std::cout << "List of Nodes in Fun4AllServer:" << std::endl;
 
     std::map<std::string, PHCompositeNode *>::const_iterator iter;
@@ -1241,8 +1241,8 @@ int Fun4AllServer::outfileclose()
     if (Verbosity() >= VERBOSITY_MORE)
     {
       std::cout << "Erasing OutputManager "
-           << (*OutputManager.begin())->Name()
-           << " at memory location " << *(OutputManager.begin()) << std::endl;
+                << (*OutputManager.begin())->Name()
+                << " at memory location " << *(OutputManager.begin()) << std::endl;
     }
     delete *(OutputManager.begin());
     OutputManager.erase(OutputManager.begin());
@@ -1279,7 +1279,7 @@ Fun4AllServer::topNode(const std::string &name)
     return iter->second;
   }
   std::cout << PHWHERE << " Could not create new topNode " << name
-       << " send email to off-l with the following printout: " << std::endl;
+            << " send email to off-l with the following printout: " << std::endl;
   for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
   {
     std::cout << iter->first << " is at " << std::hex << iter->second << std::dec << std::endl;
@@ -1451,8 +1451,8 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
     }
     if (Verbosity() >= 1)
     {
-        std::cout << "Fun4AllServer::run - processing event "
-             << (icnt+1) << " from run " << runnumber << std::endl;
+      std::cout << "Fun4AllServer::run - processing event "
+                << (icnt + 1) << " from run " << runnumber << std::endl;
     }
 
     if (icnt == 0 and Verbosity() > VERBOSITY_QUIET)
@@ -1501,7 +1501,7 @@ int Fun4AllServer::skip(const int nevnts)
     {
       iret += (*iter)->skip(nevnts);
     }
-    eventcounter += nevnts; // update event counter so it reflects the number of events in the input
+    eventcounter += nevnts;  // update event counter so it reflects the number of events in the input
   }
   return iret;
 }
@@ -1630,7 +1630,7 @@ int Fun4AllServer::registerSyncManager(Fun4AllSyncManager *newmaster)
     if (syncman->Name() == newmaster->Name())
     {
       std::cout << "Input Master " << newmaster->Name()
-           << " already registered" << std::endl;
+                << " already registered" << std::endl;
       return -1;
     }
   }
@@ -1671,7 +1671,7 @@ int Fun4AllServer::setRun(const int runno)
   {
     tstamp = new PHTimeStamp(0);
     std::cout << "Fun4AllServer::setRun(): could not get timestamp for run  " << runno
-         << ", using tics(0) timestamp: ";
+              << ", using tics(0) timestamp: ";
     tstamp->print();
     std::cout << std::endl;
   }
@@ -1690,7 +1690,7 @@ void Fun4AllServer::NodeIdentify(const std::string &name)
   else
   {
     std::cout << "Could not locate node " << name
-         << " or no PHObject Node" << std::endl;
+              << " or no PHObject Node" << std::endl;
   }
   return;
 }

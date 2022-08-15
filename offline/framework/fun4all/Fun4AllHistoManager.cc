@@ -123,16 +123,16 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
       if (!byteswritten)
       {
         std::cout << PHWHERE << "Error saving histogram "
-             << hptr->GetName()
-             << std::endl;
+                  << hptr->GetName()
+                  << std::endl;
         iret = -2;
       }
     }
     else
     {
       std::cout << PHWHERE << "dumpHistos : histogram "
-           << hname << " is a null pointer! Won't be saved."
-           << std::endl;
+                << hname << " is a null pointer! Won't be saved."
+                << std::endl;
     }
   }
   hfile.Close();
@@ -165,7 +165,7 @@ bool Fun4AllHistoManager::registerHisto(const std::string &hname, TNamed *h1d, c
     if (histoname != h1d->GetName())
     {
       std::cout << PHWHERE << "Histogram " << h1d->GetName()
-           << " at " << h1d << " renamed to " << histoname << std::endl;
+                << " at " << h1d << " renamed to " << histoname << std::endl;
     }
   }
   // this one did some very ugly mutilation to a const char *
@@ -214,7 +214,7 @@ Fun4AllHistoManager::getHisto(const unsigned int ihisto) const
   else
   {
     std::cout << "Fun4AllHistoManager::getHisto: ERROR Invalid histogram number: "
-         << ihisto << ", maximum number is " << size << std::endl;
+              << ihisto << ", maximum number is " << size << std::endl;
   }
   return nullptr;
 }
@@ -239,7 +239,7 @@ Fun4AllHistoManager::getHistoName(const unsigned int ihisto) const
   else
   {
     std::cout << "Fun4AllHistoManager::getHisto: ERROR Invalid histogram number: "
-         << ihisto << ", maximum number is " << size << std::endl;
+              << ihisto << ", maximum number is " << size << std::endl;
   }
   return "";
 }
@@ -253,7 +253,7 @@ Fun4AllHistoManager::getHisto(const std::string &hname) const
     return histoiter->second;
   }
   std::cout << "Fun4AllHistoManager::getHisto: ERROR Unknown Histogram " << hname
-       << ", The following are implemented: " << std::endl;
+            << ", The following are implemented: " << std::endl;
   Print("ALL");
   return nullptr;
 }
@@ -264,9 +264,9 @@ void Fun4AllHistoManager::Print(const std::string &what) const
   {
     // loop over the map and print out the content (name and location in memory)
     std::cout << "--------------------------------------" << std::endl
-         << std::endl;
+              << std::endl;
     std::cout << "List of Histos in Fun4AllHistoManager "
-         << Name() << ":" << std::endl;
+              << Name() << ":" << std::endl;
 
     std::map<const std::string, TNamed *>::const_iterator hiter;
     for (hiter = Histo.begin(); hiter != Histo.end(); ++hiter)

@@ -21,7 +21,7 @@ Fun4AllDstOutputManager::Fun4AllDstOutputManager(const std::string &myname, cons
   {
     delete dstOut;
     std::cout << PHWHERE << " Could not open " << fname
-         << " exiting now" << std::endl;
+              << " exiting now" << std::endl;
     gSystem->Exit(1);
     exit(1);  // cppcheck does not know gSystem->Exit(1)
   }
@@ -137,7 +137,7 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
           if (Verbosity() > 0)
           {
             std::cout << PHWHERE << Name() << ": Node " << nodename
-                 << " does not exist" << std::endl;
+                      << " does not exist" << std::endl;
           }
         }
       }
@@ -157,7 +157,7 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
         if (Verbosity() > 0)
         {
           std::cout << PHWHERE << Name() << ": Node " << nodename
-               << " does not exist" << std::endl;
+                    << " does not exist" << std::endl;
         }
       }
     }
@@ -189,7 +189,7 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
 int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
 {
   delete dstOut;
-  if (! m_SaveRunNodeFlag)
+  if (!m_SaveRunNodeFlag)
   {
     dstOut = nullptr;
     return 0;
@@ -214,7 +214,7 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
           if (Verbosity() > 0)
           {
             std::cout << PHWHERE << Name() << ": Node " << nodename
-                 << " does not exist" << std::endl;
+                      << " does not exist" << std::endl;
           }
         }
       }
@@ -234,7 +234,7 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
         if (Verbosity() > 0)
         {
           std::cout << PHWHERE << Name() << ": Node " << nodename
-               << " does not exist" << std::endl;
+                    << " does not exist" << std::endl;
         }
       }
     }

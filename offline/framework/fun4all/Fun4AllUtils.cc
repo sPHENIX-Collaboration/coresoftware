@@ -32,12 +32,12 @@ Fun4AllUtils::GetRunSegment(const std::string& filename)
   catch (boost::bad_lexical_cast const&)
   {
     std::cout << "Cannot extract segment number from filename "
-         << filename << std::endl;
+              << filename << std::endl;
     std::cout << "Segment string after parsing: input string "
-         << *(tokens.rbegin())
-         << " is not valid segment number" << std::endl;
+              << *(tokens.rbegin())
+              << " is not valid segment number" << std::endl;
     std::cout << "filename " << filename << " not standard -runnumber-segment.ext"
-         << std::endl;
+              << std::endl;
     std::cout << "using " << segment << " as segment number" << std::endl;
   }
   tokens.pop_back();  // remove the segment number
@@ -49,12 +49,12 @@ Fun4AllUtils::GetRunSegment(const std::string& filename)
   catch (boost::bad_lexical_cast const&)
   {
     std::cout << "Cannot extract run number from filename "
-         << filename << std::endl;
+              << filename << std::endl;
     std::cout << "Segment string after parsing: input string "
-         << *(tokens.rbegin())
-         << " is not valid run number" << std::endl;
+              << *(tokens.rbegin())
+              << " is not valid run number" << std::endl;
     std::cout << "filename " << filename << " not standard -runnumber-segment.ext"
-         << std::endl;
+              << std::endl;
     std::cout << "returning " << runnumber << " as run number" << std::endl;
   }
   return std::make_pair(runnumber, segment);

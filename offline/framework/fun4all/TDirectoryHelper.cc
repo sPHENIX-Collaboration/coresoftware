@@ -37,8 +37,8 @@ void TDirectoryHelper::copyToFile(TDirectory* src, TFile* dest)
   if (!dest->IsWritable())
   {
     std::cout << "TDirectoryHelper::copyToFile : destination file is not "
-            " writeable"
-         << std::endl;
+                 " writeable"
+              << std::endl;
     return;
   }
 
