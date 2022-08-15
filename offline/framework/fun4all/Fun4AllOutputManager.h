@@ -109,7 +109,7 @@ class Fun4AllOutputManager : public Fun4AllBase
 
  private:
   //! Number of Events
-  unsigned int m_NEvents;
+  unsigned int m_NEvents = 0;
 
   //! output file name
   std::string m_OutFileName;
