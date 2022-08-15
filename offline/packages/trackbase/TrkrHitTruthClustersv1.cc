@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <set>
 #include <algorithm>
+#include "TString.h"
 
 
 TrkrHitTruthClusters::ConstRange TrkrHitTruthClustersv1::getClusters (short trkId) const {
@@ -95,5 +96,21 @@ void TrkrHitTruthClustersv1::addTruthCluster (short trkid, MapToPadPlanePassData
 void TrkrHitTruthClustersv1::Reset() {
   for (auto& E : m_data) delete E.second;
   m_data.clear();
+}
+
+void
+TrkrHitTruthClustersv1::print_clusters(std::ostream &os) const
+{
+  os << "-----TrkrHitTruthClustersv1-----" << std::endl;
+  os << "Number of associations: " << m_data.size() << std::endl;
+  // TrkId TpcLayer  Cluster: neff_electrons phi Z phibin_range Zbin_range" 
+  os << Form(" %10s %8s %14s %10s %12s %12s %12s %12s","TrkrId","TpcLayer",
+      "hit data:","neff_electrons","phi","Z","phibin_range","Zbin_range") << std::endl;
+  for (auto& E : m_data) {
+    auto key = E.first;
+    auto hit = E.second;
+    os << Form(" %10i %8i %14s %10i %12f %12f %12f %12f", key.first, key.second, "", 
+        hit->getAdc(), hit->getPosition(0), hit->getPosition(1), hit->getPhiSize(), hit->getZSize()) << std::endl;
+  }
 }
 

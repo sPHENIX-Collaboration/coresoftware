@@ -28,6 +28,7 @@ class TrkrHitTruthClustersv1 : public TrkrHitTruthClusters
   bool       hasTrkIdLayerId     (short trkid, short layer) const override;
   bool       hasLayerId          (short layer=-1)           const override;
   void       addTruthCluster     (short trkid, MapToPadPlanePassData& hit_data) override;
+  void       print_clusters      (std::ostream &os = std::cout) const override;
 
   private:
   Vector m_data;
