@@ -39,9 +39,9 @@ typedef std::pair<int, float> particle_pair;
 class KFParticle_particleList
 {
  public:
-  KFParticle_particleList(){}
+  KFParticle_particleList() {}
 
-  virtual ~KFParticle_particleList(){}
+  virtual ~KFParticle_particleList() {}
 
   std::map<std::string, particle_pair> getParticleList();
 

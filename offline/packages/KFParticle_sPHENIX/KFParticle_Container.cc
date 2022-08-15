@@ -16,7 +16,6 @@
 #include <ostream>   // for operator<<, endl, ostream, basic_ostream, bas...
 #include <utility>   // for pair, make_pair
 
-
 KFParticle_Container::KFParticle_Container()
   : m_kfpmap()
 {
