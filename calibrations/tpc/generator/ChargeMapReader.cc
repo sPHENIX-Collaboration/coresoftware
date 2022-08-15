@@ -5,9 +5,9 @@
 #include <TAxis.h>
 #include <TFile.h>
 #include <TH3.h>
-#include <TMath.h>
 
 #include <cassert>
+#include <cmath>
 #include <cstdio>
 
 #define DEBUG false
