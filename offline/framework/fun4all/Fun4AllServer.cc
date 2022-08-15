@@ -39,8 +39,6 @@
 
 //#define FFAMEMTRACKER
 
-using namespace std;
-
 Fun4AllServer *Fun4AllServer::__instance = nullptr;
 
 Fun4AllServer *Fun4AllServer::instance()
@@ -130,7 +128,7 @@ void Fun4AllServer::InitAll()
     gSystem->IgnoreSignal((ESignals) i);
   }
   Fun4AllMonitoring::instance()->Snapshot("StartUp");
-  string histomanagername;
+  std::string histomanagername;
   histomanagername = Name() + "HISTOS";
   ServerHistoManager = new Fun4AllHistoManager(histomanagername);
   registerHistoManager(ServerHistoManager);
@@ -146,15 +144,15 @@ void Fun4AllServer::InitAll()
   return;
 }
 
-int Fun4AllServer::dumpHistos(const string &filename, const string &openmode)
+int Fun4AllServer::dumpHistos(const std::string &filename, const std::string &openmode)
 {
   int iret = 0;
-  cout << "Fun4AllServer::dumpHistos() dumping histograms" << endl;
+  std::cout << "Fun4AllServer::dumpHistos() dumping histograms" << std::endl;
   if (!filename.empty())
   {
     ServerHistoManager->setOutfileName(filename);
   }
-  vector<Fun4AllHistoManager *>::const_iterator hiter;
+  std::vector<Fun4AllHistoManager *>::const_iterator hiter;
   for (hiter = HistoManager.begin(); hiter != HistoManager.end(); ++hiter)
   {
     iret += (*hiter)->dumpHistos("", openmode);
@@ -167,32 +165,32 @@ bool Fun4AllServer::registerHisto(TNamed *h1d, const int replace)
   return ServerHistoManager->registerHisto(h1d, replace);
 }
 
-bool Fun4AllServer::registerHisto(const string &hname, TNamed *h1d, const int replace)
+bool Fun4AllServer::registerHisto(const std::string &hname, TNamed *h1d, const int replace)
 {
   return ServerHistoManager->registerHisto(hname, h1d, replace);
 }
 
-int Fun4AllServer::isHistoRegistered(const string &name) const
+int Fun4AllServer::isHistoRegistered(const std::string &name) const
 {
   int iret = ServerHistoManager->isHistoRegistered(name);
   return iret;
 }
 
-int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnodename)
+int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const std::string &topnodename)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
 
   // if somebody opens a TFile (or changes the gDirectory) in the ctor
   // we need to set it to a "known" directory
   gROOT->cd(default_Tdirectory.c_str());
-  string currdir = gDirectory->GetPath();
+  std::string currdir = gDirectory->GetPath();
   TDirectory *tmpdir = gDirectory;
   if (!tmpdir->FindObject(topnodename.c_str()))
   {
     tmpdir = tmpdir->mkdir(topnodename.c_str());
     if (!tmpdir)
     {
-      cout << "Error creating TDirectory topdir " << topnodename.c_str() << endl;
+      std::cout << "Error creating TDirectory topdir " << topnodename.c_str() << std::endl;
       exit(1);
     }
     // store the TDir pointer so it can be cleaned up in the dtor
@@ -208,7 +206,7 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnod
     tmpdir = tmpdir->mkdir(subsystem->Name().c_str());
     if (!tmpdir)
     {
-      cout << "Error creating TDirectory subdir " << subsystem->Name() << endl;
+      std::cout << "Error creating TDirectory subdir " << subsystem->Name() << std::endl;
       exit(1);
     }
     // store the TDir pointer so it can be cleaned up in the dtor
@@ -217,11 +215,11 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnod
     TDirCollection.push_back(tmpdir);
   }
   PHCompositeNode *subsystopNode = se->topNode(topnodename);
-  pair<SubsysReco *, PHCompositeNode *> newsubsyspair(subsystem, subsystopNode);
+  std::pair<SubsysReco *, PHCompositeNode *> newsubsyspair(subsystem, subsystopNode);
   int iret = 0;
   try
   {
-    string memory_tracker_name = subsystem->Name() + "_" + topnodename;
+    std::string memory_tracker_name = subsystem->Name() + "_" + topnodename;
 #ifdef FFAMEMTRACKER
     ffamemtracker->Start(memory_tracker_name, "SubsysReco");
 #endif
@@ -230,17 +228,17 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnod
     ffamemtracker->Stop(memory_tracker_name, "SubsysReco");
 #endif
   }
-  catch (const exception &e)
+  catch (const std::exception &e)
   {
-    cout << PHWHERE << " caught exception thrown during SubsysReco::Init() from "
-         << subsystem->Name() << endl;
-    cout << "error: " << e.what() << endl;
+    std::cout << PHWHERE << " caught exception thrown during SubsysReco::Init() from "
+              << subsystem->Name() << std::endl;
+    std::cout << "error: " << e.what() << std::endl;
     exit(1);
   }
   catch (...)
   {
-    cout << PHWHERE << " caught unknown type exception thrown during SubsysReco::Init() from "
-         << subsystem->Name() << endl;
+    std::cout << PHWHERE << " caught unknown type exception thrown during SubsysReco::Init() from "
+              << subsystem->Name() << std::endl;
     exit(1);
   }
   gROOT->cd(currdir.c_str());
@@ -250,20 +248,20 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnod
     {
       if (Verbosity() >= VERBOSITY_SOME)
       {
-        cout << "Not Registering Subsystem " << subsystem->Name() << endl;
+        std::cout << "Not Registering Subsystem " << subsystem->Name() << std::endl;
       }
       return 0;
     }
-    cout << PHWHERE << " Error initializing subsystem "
-         << subsystem->Name() << ", return code: " << iret << endl;
+    std::cout << PHWHERE << " Error initializing subsystem "
+              << subsystem->Name() << ", return code: " << iret << std::endl;
     return iret;
   }
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << "Registering Subsystem " << subsystem->Name() << endl;
+    std::cout << "Registering Subsystem " << subsystem->Name() << std::endl;
   }
   Subsystems.push_back(newsubsyspair);
-  string timer_name;
+  std::string timer_name;
   timer_name = subsystem->Name() + "_" + topnodename;
   PHTimer timer(timer_name);
   if (timer_map.find(timer_name) == timer_map.end())
@@ -276,7 +274,7 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnod
 
 int Fun4AllServer::unregisterSubsystem(SubsysReco *subsystem)
 {
-  pair<SubsysReco *, PHCompositeNode *> subsyspair(subsystem, 0);
+  std::pair<SubsysReco *, PHCompositeNode *> subsyspair(subsystem, 0);
   DeleteSubsystems.push_back(subsyspair);
   unregistersubsystem = 1;
   return 0;
@@ -284,7 +282,7 @@ int Fun4AllServer::unregisterSubsystem(SubsysReco *subsystem)
 
 int Fun4AllServer::unregisterSubsystemsNow()
 {
-  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator sysiter, removeiter;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::iterator sysiter, removeiter;
   for (removeiter = DeleteSubsystems.begin();
        removeiter != DeleteSubsystems.end();
        ++removeiter)
@@ -302,22 +300,22 @@ int Fun4AllServer::unregisterSubsystemsNow()
     }
     if (!foundit)
     {
-      cout << "unregisterSubsystem: Could not find SubsysReco "
-           << (*removeiter).first->Name()
-           << " in Fun4All Reco Module list" << endl;
+      std::cout << "unregisterSubsystem: Could not find SubsysReco "
+                << (*removeiter).first->Name()
+                << " in Fun4All Reco Module list" << std::endl;
       delete (*removeiter).first;
       continue;
     }
     if (Verbosity() >= VERBOSITY_MORE)
     {
-      cout << "Removing Subsystem: " << (*removeiter).first->Name()
-           << " at index " << index << endl;
+      std::cout << "Removing Subsystem: " << (*removeiter).first->Name()
+                << " at index " << index << std::endl;
     }
     Subsystems.erase(Subsystems.begin() + index);
     delete (*removeiter).first;
     // also update the vector with return codes
     RetCodes.erase(RetCodes.begin() + index);
-    vector<Fun4AllOutputManager *>::iterator outiter;
+    std::vector<Fun4AllOutputManager *>::iterator outiter;
     for (outiter = OutputManager.begin(); outiter != OutputManager.end(); ++outiter)
     {
       UpdateEventSelector(*outiter);
@@ -329,29 +327,29 @@ int Fun4AllServer::unregisterSubsystemsNow()
 }
 
 SubsysReco *
-Fun4AllServer::getSubsysReco(const string &name)
+Fun4AllServer::getSubsysReco(const std::string &name)
 {
-  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator sysiter;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::iterator sysiter;
   for (sysiter = Subsystems.begin(); sysiter != Subsystems.end(); ++sysiter)
   {
     if ((*sysiter).first->Name() == name)
     {
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
-        cout << "Found Subsystem " << name << endl;
+        std::cout << "Found Subsystem " << name << std::endl;
       }
       return (*sysiter).first;
     }
   }
-  cout << "Could not find SubsysReco " << name << endl;
+  std::cout << "Could not find SubsysReco " << name << std::endl;
   return 0;
 }
 
-int Fun4AllServer::AddComplaint(const string &complaint, const string &remedy)
+int Fun4AllServer::AddComplaint(const std::string &complaint, const std::string &remedy)
 {
   ScreamEveryEvent++;
-  string separatorstring = "------------------------------";
-  ostringstream complaintno;
+  std::string separatorstring = "------------------------------";
+  std::ostringstream complaintno;
   complaintno << "Problem No " << ScreamEveryEvent;
 
   ComplaintList.push_back(separatorstring);
@@ -366,18 +364,18 @@ int Fun4AllServer::AddComplaint(const string &complaint, const string &remedy)
 
 int Fun4AllServer::registerOutputManager(Fun4AllOutputManager *manager)
 {
-  vector<Fun4AllOutputManager *>::iterator iter;
+  std::vector<Fun4AllOutputManager *>::iterator iter;
   for (iter = OutputManager.begin(); iter != OutputManager.end(); ++iter)
   {
     if ((*iter)->Name() == manager->Name())
     {
-      cout << "OutputManager " << manager->Name() << " allready in list" << endl;
+      std::cout << "OutputManager " << manager->Name() << " allready in list" << std::endl;
       return -1;
     }
   }
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << "Registering OutputManager " << manager->Name() << endl;
+    std::cout << "Registering OutputManager " << manager->Name() << std::endl;
   }
   UpdateEventSelector(manager);
   OutputManager.push_back(manager);
@@ -386,8 +384,8 @@ int Fun4AllServer::registerOutputManager(Fun4AllOutputManager *manager)
 
 int Fun4AllServer::UpdateEventSelector(Fun4AllOutputManager *manager)
 {
-  vector<string>::iterator striter;
-  vector<pair<SubsysReco *, PHCompositeNode *>>::const_iterator subsysiter;
+  std::vector<std::string>::iterator striter;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::const_iterator subsysiter;
 
 tryagain:
   manager->RecoModuleIndex()->clear();
@@ -395,7 +393,7 @@ tryagain:
   {
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
-      cout << PHWHERE << "striter: " << *striter << endl;
+      std::cout << PHWHERE << "striter: " << *striter << std::endl;
     }
     unsigned index = 0;
     int found = 0;
@@ -406,7 +404,7 @@ tryagain:
         manager->RecoModuleIndex()->push_back(index);
         if (Verbosity() >= VERBOSITY_EVEN_MORE)
         {
-          cout << PHWHERE << "setting RecoModuleIndex to " << index << endl;
+          std::cout << PHWHERE << "setting RecoModuleIndex to " << index << std::endl;
         }
         found = 1;
         break;
@@ -415,8 +413,8 @@ tryagain:
     }
     if (!found)
     {
-      cout << "Could not find module " << *striter
-           << ", removing it from list of event selector modules" << endl;
+      std::cout << "Could not find module " << *striter
+                << ", removing it from list of event selector modules" << std::endl;
       manager->EventSelector()->erase(striter);
       goto tryagain;
     }
@@ -425,60 +423,60 @@ tryagain:
 }
 
 Fun4AllOutputManager *
-Fun4AllServer::getOutputManager(const string &name)
+Fun4AllServer::getOutputManager(const std::string &name)
 {
-  vector<Fun4AllOutputManager *>::iterator iter;
+  std::vector<Fun4AllOutputManager *>::iterator iter;
   for (iter = OutputManager.begin(); iter != OutputManager.end(); ++iter)
   {
     if (name == (*iter)->Name())
     {
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
-        cout << "Found OutputManager " << name << endl;
+        std::cout << "Found OutputManager " << name << std::endl;
       }
       return *iter;
     }
   }
-  cout << "Could not find OutputManager" << name << endl;
+  std::cout << "Could not find OutputManager" << name << std::endl;
   return 0;
 }
 
 Fun4AllHistoManager *
-Fun4AllServer::getHistoManager(const string &name)
+Fun4AllServer::getHistoManager(const std::string &name)
 {
-  vector<Fun4AllHistoManager *>::iterator iter;
+  std::vector<Fun4AllHistoManager *>::iterator iter;
   for (iter = HistoManager.begin(); iter != HistoManager.end(); ++iter)
   {
     if ((*iter)->Name() == name)
     {
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
-        cout << "Found HistoManager " << name << endl;
+        std::cout << "Found HistoManager " << name << std::endl;
       }
       return *iter;
     }
   }
   if (Verbosity() >= VERBOSITY_MORE)
   {
-    cout << "Could not find HistoManager " << name << endl;
+    std::cout << "Could not find HistoManager " << name << std::endl;
   }
   return 0;
 }
 
 int Fun4AllServer::registerHistoManager(Fun4AllHistoManager *manager)
 {
-  vector<Fun4AllHistoManager *>::iterator iter;
+  std::vector<Fun4AllHistoManager *>::iterator iter;
   for (iter = HistoManager.begin(); iter != HistoManager.end(); ++iter)
   {
     if ((*iter)->Name() == manager->Name())
     {
-      cout << "HistoManager " << manager->Name() << " allready in list" << endl;
+      std::cout << "HistoManager " << manager->Name() << " allready in list" << std::endl;
       return -1;
     }
   }
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << "Registering HistoManager " << manager->Name() << endl;
+    std::cout << "Registering HistoManager " << manager->Name() << std::endl;
   }
   HistoManager.push_back(manager);
   return 0;
@@ -490,13 +488,13 @@ Fun4AllServer::getHisto(const unsigned int ihisto) const
   return ServerHistoManager->getHisto(ihisto);
 }
 
-string
+std::string
 Fun4AllServer::getHistoName(const unsigned int ihisto) const
 {
   return (ServerHistoManager->getHistoName(ihisto));
 }
 
-TNamed *Fun4AllServer::getHisto(const string &hname) const
+TNamed *Fun4AllServer::getHisto(const std::string &hname) const
 {
   return (ServerHistoManager->getHisto(hname));
 }
@@ -508,53 +506,53 @@ int Fun4AllServer::process_event()
   int eventbad = 0;
   if (ScreamEveryEvent)
   {
-    cout << "*******************************************************************************" << endl;
-    cout << "*******************************************************************************" << endl;
-    cout << "*******************************************************************************" << endl;
-    cout << "Now that I have your attention, please fix the following "
-         << ScreamEveryEvent << " problem(s):" << endl;
-    vector<string>::const_iterator viter;
+    std::cout << "*******************************************************************************" << std::endl;
+    std::cout << "*******************************************************************************" << std::endl;
+    std::cout << "*******************************************************************************" << std::endl;
+    std::cout << "Now that I have your attention, please fix the following "
+              << ScreamEveryEvent << " problem(s):" << std::endl;
+    std::vector<std::string>::const_iterator viter;
     for (viter = ComplaintList.begin(); viter != ComplaintList.end(); ++viter)
     {
-      cout << *viter << endl;
+      std::cout << *viter << std::endl;
     }
-    cout << " " << endl;
-    cout << "*******************************************************************************" << endl;
-    cout << "*******************************************************************************" << endl;
-    cout << "*******************************************************************************" << endl;
+    std::cout << " " << std::endl;
+    std::cout << "*******************************************************************************" << std::endl;
+    std::cout << "*******************************************************************************" << std::endl;
+    std::cout << "*******************************************************************************" << std::endl;
   }
   if (unregistersubsystem)
   {
     unregisterSubsystemsNow();
   }
   gROOT->cd(default_Tdirectory.c_str());
-  string currdir = gDirectory->GetPath();
-  for (vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
+  std::string currdir = gDirectory->GetPath();
+  for (std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::iterator iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     if (Verbosity() >= VERBOSITY_MORE)
     {
-      cout << "Fun4AllServer::process_event processing " << (*iter).first->Name() << endl;
+      std::cout << "Fun4AllServer::process_event processing " << (*iter).first->Name() << std::endl;
     }
-    ostringstream newdirname;
+    std::ostringstream newdirname;
     newdirname << (*iter).second->getName() << "/" << (*iter).first->Name();
     if (!gROOT->cd(newdirname.str().c_str()))
     {
-      cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-           << (*iter).second->getName()
-           << " - send e-mail to off-l with your macro" << endl;
+      std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
+                << (*iter).second->getName()
+                << " - send e-mail to off-l with your macro" << std::endl;
       exit(1);
     }
     else
     {
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
-        cout << "process_event: cded to " << newdirname.str().c_str() << endl;
+        std::cout << "process_event: cded to " << newdirname.str().c_str() << std::endl;
       }
     }
 
     try
     {
-      string timer_name;
+      std::string timer_name;
       timer_name = (*iter).first->Name() + "_" + (*iter).second->getName();
       std::map<const std::string, PHTimer>::iterator titer = timer_map.find(timer_name);
       bool timer_found = false;
@@ -565,7 +563,7 @@ int Fun4AllServer::process_event()
       }
       else
       {
-        cout << "could not find timer for " << timer_name << endl;
+        std::cout << "could not find timer for " << timer_name << std::endl;
       }
 #ifdef FFAMEMTRACKER
       ffamemtracker->Start(timer_name, "SubsysReco");
@@ -583,11 +581,11 @@ int Fun4AllServer::process_event()
       {
         RetCodes.at(icnt) = retcode;
       }
-      catch (const exception &e)
+      catch (const std::exception &e)
       {
-        cout << PHWHERE << " caught exception thrown during RetCodes.at(icnt)" << endl;
-        cout << "RetCodes.size(): " << RetCodes.size() << ", icnt: " << icnt << endl;
-        cout << "error: " << e.what() << endl;
+        std::cout << PHWHERE << " caught exception thrown during RetCodes.at(icnt)" << std::endl;
+        std::cout << "RetCodes.size(): " << RetCodes.size() << ", icnt: " << icnt << std::endl;
+        std::cout << "error: " << e.what() << std::endl;
         gSystem->Exit(1);
       }
       if (timer_found)
@@ -598,17 +596,17 @@ int Fun4AllServer::process_event()
       ffamemtracker->Stop(timer_name, "SubsysReco");
 #endif
     }
-    catch (const exception &e)
+    catch (const std::exception &e)
     {
-      cout << PHWHERE << " caught exception thrown during process_event from "
-           << (*iter).first->Name() << endl;
-      cout << "error: " << e.what() << endl;
+      std::cout << PHWHERE << " caught exception thrown during process_event from "
+                << (*iter).first->Name() << std::endl;
+      std::cout << "error: " << e.what() << std::endl;
       gSystem->Exit(1);
     }
     catch (...)
     {
-      cout << PHWHERE << " caught unknown type exception thrown during process_event from "
-           << (*iter).first->Name() << endl;
+      std::cout << PHWHERE << " caught unknown type exception thrown during process_event from "
+                << (*iter).first->Name() << std::endl;
       exit(1);
     }
     if (RetCodes[icnt])
@@ -617,7 +615,7 @@ int Fun4AllServer::process_event()
       {
         if (Verbosity() >= VERBOSITY_EVEN_MORE)
         {
-          cout << "Fun4AllServer::Discard Event by " << (*iter).first->Name() << endl;
+          std::cout << "Fun4AllServer::Discard Event by " << (*iter).first->Name() << std::endl;
         }
       }
       else if (RetCodes[icnt] == Fun4AllReturnCodes::ABORTEVENT)
@@ -626,25 +624,25 @@ int Fun4AllServer::process_event()
         eventbad = 1;
         if (Verbosity() >= VERBOSITY_MORE)
         {
-          cout << "Fun4AllServer::Abort Event by " << (*iter).first->Name() << endl;
+          std::cout << "Fun4AllServer::Abort Event by " << (*iter).first->Name() << std::endl;
         }
         break;
       }
       else if (RetCodes[icnt] == Fun4AllReturnCodes::ABORTRUN)
       {
         retcodesmap[Fun4AllReturnCodes::ABORTRUN]++;
-        cout << "Fun4AllServer::Abort Run by " << (*iter).first->Name() << endl;
+        std::cout << "Fun4AllServer::Abort Run by " << (*iter).first->Name() << std::endl;
         return Fun4AllReturnCodes::ABORTRUN;
       }
       else
       {
-        cout << "Fun4AllServer::Unknown return code: "
-             << RetCodes[icnt] << " from process_event method of "
-             << (*iter).first->Name() << endl;
-        cout << "This smells like an uninitialized return code and" << endl;
-        cout << "it is too dangerous to continue, this Run will be aborted" << endl;
-        cout << "If you do not know how to fix this please send mail to" << endl;
-        cout << "phenix-off-l with this message" << endl;
+        std::cout << "Fun4AllServer::Unknown return code: "
+                  << RetCodes[icnt] << " from process_event method of "
+                  << (*iter).first->Name() << std::endl;
+        std::cout << "This smells like an uninitialized return code and" << std::endl;
+        std::cout << "it is too dangerous to continue, this Run will be aborted" << std::endl;
+        std::cout << "If you do not know how to fix this please send mail to" << std::endl;
+        std::cout << "phenix-off-l with this message" << std::endl;
         return Fun4AllReturnCodes::ABORTRUN;
       }
     }
@@ -681,17 +679,17 @@ int Fun4AllServer::process_event()
       if (OutNodeCount != newcount)
       {
         iter.print();
-        cout << PHWHERE << " FATAL: Someone changed the number of Output Nodes on the fly, from " << OutNodeCount << " to " << newcount << endl;
+        std::cout << PHWHERE << " FATAL: Someone changed the number of Output Nodes on the fly, from " << OutNodeCount << " to " << newcount << std::endl;
         exit(1);
       }
-      vector<Fun4AllOutputManager *>::iterator iterOutMan;
+      std::vector<Fun4AllOutputManager *>::iterator iterOutMan;
       for (iterOutMan = OutputManager.begin(); iterOutMan != OutputManager.end(); ++iterOutMan)
       {
         if (!(*iterOutMan)->DoNotWriteEvent(&RetCodes))
         {
           if (Verbosity() >= VERBOSITY_MORE)
           {
-            cout << "Writing Event for " << (*iterOutMan)->Name() << endl;
+            std::cout << "Writing Event for " << (*iterOutMan)->Name() << std::endl;
           }
 #ifdef FFAMEMTRACKER
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
@@ -707,17 +705,17 @@ int Fun4AllServer::process_event()
         {
           if (Verbosity() >= VERBOSITY_MORE)
           {
-            cout << "Not Writing Event for " << (*iterOutMan)->Name() << endl;
+            std::cout << "Not Writing Event for " << (*iterOutMan)->Name() << std::endl;
           }
         }
       }
     }
   }
-  for (vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
+  for (std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::iterator iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
-      cout << "Fun4AllServer::process_event Resetting Event " << (*iter).first->Name() << endl;
+      std::cout << "Fun4AllServer::process_event Resetting Event " << (*iter).first->Name() << std::endl;
     }
     (*iter).first->ResetEvent((*iter).second);
   }
@@ -725,7 +723,7 @@ int Fun4AllServer::process_event()
   {
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
-      cout << "Fun4AllServer::process_event Resetting Event for Sync Manager " << syncman->Name() << endl;
+      std::cout << "Fun4AllServer::process_event Resetting Event for Sync Manager " << syncman->Name() << std::endl;
     }
     syncman->ResetEvent();
   }
@@ -736,15 +734,15 @@ int Fun4AllServer::process_event()
 
 int Fun4AllServer::ResetNodeTree()
 {
-  vector<string> ResetNodeList;
+  std::vector<std::string> ResetNodeList;
   ResetNodeList.push_back("DST");
   PHNodeReset reset;
   reset.Verbosity(Verbosity() > 2 ? Verbosity() - 2 : 0);  // one lower verbosity level than Fun4AllServer
-  map<string, PHCompositeNode *>::const_iterator iter;
+  std::map<std::string, PHCompositeNode *>::const_iterator iter;
   for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
   {
     PHNodeIterator mainIter((*iter).second);
-    for (vector<string>::const_iterator nodename = ResetNodeList.begin();
+    for (std::vector<std::string>::const_iterator nodename = ResetNodeList.begin();
          nodename != ResetNodeList.end(); ++nodename)
     {
       if (mainIter.cd(*nodename))
@@ -760,16 +758,16 @@ int Fun4AllServer::ResetNodeTree()
 int Fun4AllServer::Reset()
 {
   int i = 0;
-  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
-      cout << "Fun4AllServer::Reset Resetting " << (*iter).first->Name() << endl;
+      std::cout << "Fun4AllServer::Reset Resetting " << (*iter).first->Name() << std::endl;
     }
     i += (*iter).first->Reset((*iter).second);
   }
-  vector<Fun4AllHistoManager *>::iterator hiter;
+  std::vector<Fun4AllHistoManager *>::iterator hiter;
   for (hiter = HistoManager.begin(); hiter != HistoManager.end(); ++hiter)
   {
     (*hiter)->Reset();
@@ -780,16 +778,16 @@ int Fun4AllServer::Reset()
 int Fun4AllServer::BeginRunTimeStamp(PHTimeStamp &TimeStp)
 {
   beginruntimestamp = new PHTimeStamp(TimeStp);
-  cout << "Setting BOR timestamp to ";
+  std::cout << "Setting BOR timestamp to ";
   beginruntimestamp->print();
-  cout << endl;
+  std::cout << std::endl;
   bortime_override = 1;
   return 0;
 }
 
 int Fun4AllServer::BeginRun(const int runno)
 {
-  eventcounter = 0; // reset event counter for every new run
+  eventcounter = 0;  // reset event counter for every new run
 #ifdef FFAMEMTRACKER
   ffamemtracker->Snapshot("Fun4AllServerBeginRun");
 #endif
@@ -803,19 +801,19 @@ int Fun4AllServer::BeginRun(const int runno)
   }
   else
   {
-    cout << "overriding BOR timestamp by ";
+    std::cout << "overriding BOR timestamp by ";
     beginruntimestamp->print();
-    cout << endl;
+    std::cout << std::endl;
     //rc->set_TimeStamp(*beginruntimestamp);
   }
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << "Fun4AllServer::BeginRun: Run number " << runno << " uses RECO TIMESTAMP: ";
+    std::cout << "Fun4AllServer::BeginRun: Run number " << runno << " uses RECO TIMESTAMP: ";
     beginruntimestamp->print();
-    cout << endl;
+    std::cout << std::endl;
   }
-  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
-  int iret;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
+  int iret = 0;
 
   // check if any registered SubsysReco wants to be dropped and
   // remove it from the list before its BeginRun is executed
@@ -829,67 +827,18 @@ int Fun4AllServer::BeginRun(const int runno)
   // created in init) call the InitRun of the module and cd back
 
   gROOT->cd(default_Tdirectory.c_str());
-  string currdir = gDirectory->GetPath();
+  std::string currdir = gDirectory->GetPath();
+
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
-    ostringstream newdirname;
-    newdirname << (*iter).second->getName() << "/" << (*iter).first->Name();
-    if (!gROOT->cd(newdirname.str().c_str()))
-    {
-      cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-           << (*iter).second->getName()
-           << " - send e-mail to off-l with your macro" << endl;
-      exit(1);
-    }
-    else
-    {
-      if (Verbosity() >= VERBOSITY_EVEN_MORE)
-      {
-        cout << "BeginRun: cded to " << newdirname.str().c_str() << endl;
-      }
-    }
-
-    if (Verbosity() >= VERBOSITY_SOME)
-    {
-      cout << "Fun4AllServer::BeginRun: InitRun for " << (*iter).first->Name() << endl;
-    }
-    try
-    {
-#ifdef FFAMEMTRACKER
-      ffamemtracker->Start((*iter).first->Name(), "SubsysReco");
-#endif
-      iret = (*iter).first->InitRun((*iter).second);
-#ifdef FFAMEMTRACKER
-      ffamemtracker->Stop((*iter).first->Name(), "SubsysReco");
-#endif
-    }
-    catch (const exception &e)
-    {
-      cout << PHWHERE << " caught exception thrown during SubsysReco::InitRun() from "
-           << (*iter).first->Name() << endl;
-      cout << "error: " << e.what() << endl;
-      exit(1);
-    }
-    catch (...)
-    {
-      cout << PHWHERE << " caught unknown type exception thrown during SubsysReco::InitRun() from "
-           << (*iter).first->Name() << endl;
-      exit(1);
-    }
-
-    if (iret == Fun4AllReturnCodes::ABORTRUN)
-    {
-      cout << PHWHERE << "Module " << (*iter).first->Name() << " issued Abort Run, exiting" << endl;
-      exit(-1);
-    }
-    else if (iret != Fun4AllReturnCodes::EVENT_OK)
-    {
-      cout << PHWHERE << "Module " << (*iter).first->Name() << " issued non Fun4AllReturnCodes::EVENT_OK return code " << iret << " in InitRun()" << endl;
-      exit(-2);
-    }
+    iret = BeginRunSubsystem(*iter);
+  }
+  for (; !NewSubsystems.empty(); NewSubsystems.pop_front())
+  {
+    registerSubsystem((NewSubsystems.front()).first, (NewSubsystems.front()).second);
+    BeginRunSubsystem(std::make_pair(NewSubsystems.front().first, topNode(NewSubsystems.front().second)));
   }
   gROOT->cd(currdir.c_str());
-
   // disconnect from DB to save resources on DB machine
   // PdbCal leaves the DB connection open (PdbCal will reconnect without
   // problem if neccessary)
@@ -899,18 +848,79 @@ int Fun4AllServer::BeginRun(const int runno)
   }
   else
   {
-    cout << "WARNING WARNING, DBs will not be disconnected" << endl;
-    cout << "This is for DB server testing purposes only" << endl;
-    cout << "If you do not test our DB servers, remove" << endl;
-    cout << "Fun4AllServer->KeepDBConnection()" << endl;
-    cout << "from your macro" << endl;
+    std::cout << "WARNING WARNING, DBs will not be disconnected" << std::endl;
+    std::cout << "This is for DB server testing purposes only" << std::endl;
+    std::cout << "If you do not test our DB servers, remove" << std::endl;
+    std::cout << "Fun4AllServer->KeepDBConnection()" << std::endl;
+    std::cout << "from your macro" << std::endl;
   }
   // print out all node trees
   Print("NODETREE");
 #ifdef FFAMEMTRACKER
   ffamemtracker->Snapshot("Fun4AllServerBeginRun");
 #endif
-  return 0;
+  return iret;
+}
+
+int Fun4AllServer::BeginRunSubsystem(const std::pair<SubsysReco *, PHCompositeNode *> &subsys)
+{
+  int iret = 0;
+  std::ostringstream newdirname;
+  newdirname << subsys.second->getName() << "/" << subsys.first->Name();
+  if (!gROOT->cd(newdirname.str().c_str()))
+  {
+    std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
+              << subsys.second->getName()
+              << " - send e-mail to off-l with your macro" << std::endl;
+    exit(1);
+  }
+  else
+  {
+    if (Verbosity() >= VERBOSITY_EVEN_MORE)
+    {
+      std::cout << "BeginRun: cded to " << newdirname.str().c_str() << std::endl;
+    }
+  }
+
+  if (Verbosity() >= VERBOSITY_SOME)
+  {
+    std::cout << "Fun4AllServer::BeginRun: InitRun for " << subsys.first->Name() << std::endl;
+  }
+  try
+  {
+#ifdef FFAMEMTRACKER
+    ffamemtracker->Start(subsys.first->Name(), "SubsysReco");
+#endif
+    iret = subsys.first->InitRun(subsys.second);
+#ifdef FFAMEMTRACKER
+    ffamemtracker->Stop(subsys.first->Name(), "SubsysReco");
+#endif
+  }
+  catch (const std::exception &e)
+  {
+    std::cout << PHWHERE << " caught exception thrown during SubsysReco::InitRun() from "
+              << subsys.first->Name() << std::endl;
+    std::cout << "error: " << e.what() << std::endl;
+    exit(1);
+  }
+  catch (...)
+  {
+    std::cout << PHWHERE << " caught unknown type exception thrown during SubsysReco::InitRun() from "
+              << subsys.first->Name() << std::endl;
+    exit(1);
+  }
+
+  if (iret == Fun4AllReturnCodes::ABORTRUN)
+  {
+    std::cout << PHWHERE << "Module " << subsys.first->Name() << " issued Abort Run, exiting" << std::endl;
+    exit(-1);
+  }
+  else if (iret != Fun4AllReturnCodes::EVENT_OK)
+  {
+    std::cout << PHWHERE << "Module " << subsys.first->Name() << " issued non Fun4AllReturnCodes::EVENT_OK return code " << iret << " in InitRun()" << std::endl;
+    exit(-2);
+  }
+  return iret;
 }
 
 int Fun4AllServer::CountOutNodes(PHCompositeNode *startNode)
@@ -937,7 +947,7 @@ int Fun4AllServer::CountOutNodesRecursive(PHCompositeNode *startNode, const int 
       icnt++;
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
-        cout << thisNode->getName() << ", Node Count: " << icnt << endl;
+        std::cout << thisNode->getName() << ", Node Count: " << icnt << std::endl;
       }
     }
   }
@@ -984,47 +994,47 @@ int Fun4AllServer::MakeNodesPersistent(PHCompositeNode *startNode)
 
 int Fun4AllServer::EndRun(const int runno)
 {
-  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   gROOT->cd(default_Tdirectory.c_str());
-  string currdir = gDirectory->GetPath();
+  std::string currdir = gDirectory->GetPath();
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     if (Verbosity() >= VERBOSITY_MORE)
     {
-      cout << "Fun4AllServer::EndRun: EndRun("
-           << runno << ") for " << (*iter).first->Name() << endl;
+      std::cout << "Fun4AllServer::EndRun: EndRun("
+                << runno << ") for " << (*iter).first->Name() << std::endl;
     }
-    ostringstream newdirname;
+    std::ostringstream newdirname;
     newdirname << (*iter).second->getName() << "/" << (*iter).first->Name();
     if (!gROOT->cd(newdirname.str().c_str()))
     {
-      cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-           << (*iter).second->getName()
-           << " - send e-mail to off-l with your macro" << endl;
+      std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
+                << (*iter).second->getName()
+                << " - send e-mail to off-l with your macro" << std::endl;
       exit(1);
     }
     else
     {
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
-        cout << "EndRun: cded to " << newdirname.str().c_str() << endl;
+        std::cout << "EndRun: cded to " << newdirname.str().c_str() << std::endl;
       }
     }
     try
     {
       (*iter).first->EndRun(runno);
     }
-    catch (const exception &e)
+    catch (const std::exception &e)
     {
-      cout << PHWHERE << " caught exception thrown during SubsysReco::EndRun() from "
-           << (*iter).first->Name() << endl;
-      cout << "error: " << e.what() << endl;
+      std::cout << PHWHERE << " caught exception thrown during SubsysReco::EndRun() from "
+                << (*iter).first->Name() << std::endl;
+      std::cout << "error: " << e.what() << std::endl;
       exit(1);
     }
     catch (...)
     {
-      cout << PHWHERE << " caught unknown type exception thrown during SubsysReco::EndRun() from "
-           << (*iter).first->Name() << endl;
+      std::cout << PHWHERE << " caught unknown type exception thrown during SubsysReco::EndRun() from "
+                << (*iter).first->Name() << std::endl;
       exit(1);
     }
   }
@@ -1038,46 +1048,46 @@ int Fun4AllServer::End()
   recoConsts *rc = recoConsts::instance();
   EndRun(rc->get_IntFlag("RUNNUMBER"));  // call SubsysReco EndRun methods for current run
   int i = 0;
-  vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
   gROOT->cd(default_Tdirectory.c_str());
-  string currdir = gDirectory->GetPath();
+  std::string currdir = gDirectory->GetPath();
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     if (Verbosity() >= VERBOSITY_SOME)
     {
-      cout << "Fun4AllServer::End: End for " << (*iter).first->Name() << endl;
+      std::cout << "Fun4AllServer::End: End for " << (*iter).first->Name() << std::endl;
     }
-    ostringstream newdirname;
+    std::ostringstream newdirname;
     newdirname << (*iter).second->getName() << "/" << (*iter).first->Name();
     if (!gROOT->cd(newdirname.str().c_str()))
     {
-      cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
-           << (*iter).second->getName()
-           << " - send e-mail to off-l with your macro" << endl;
+      std::cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
+                << (*iter).second->getName()
+                << " - send e-mail to off-l with your macro" << std::endl;
       exit(1);
     }
     else
     {
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
-        cout << "End: cded to " << newdirname.str().c_str() << endl;
+        std::cout << "End: cded to " << newdirname.str().c_str() << std::endl;
       }
     }
     try
     {
       i += (*iter).first->End((*iter).second);
     }
-    catch (const exception &e)
+    catch (const std::exception &e)
     {
-      cout << PHWHERE << " caught exception thrown during SusbsysReco::End() from "
-           << (*iter).first->Name() << endl;
-      cout << "error: " << e.what() << endl;
+      std::cout << PHWHERE << " caught exception thrown during SusbsysReco::End() from "
+                << (*iter).first->Name() << std::endl;
+      std::cout << "error: " << e.what() << std::endl;
       exit(1);
     }
     catch (...)
     {
-      cout << PHWHERE << " caught unknown type exception thrown during SubsysReco::End() from "
-           << (*iter).first->Name() << endl;
+      std::cout << PHWHERE << " caught unknown type exception thrown during SubsysReco::End() from "
+                << (*iter).first->Name() << std::endl;
       exit(1);
     }
   }
@@ -1086,14 +1096,14 @@ int Fun4AllServer::End()
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
-    cout << "No Run Node, not writing Runwise info" << endl;
+    std::cout << "No Run Node, not writing Runwise info" << std::endl;
   }
   else
   {
     if (!OutputManager.empty())  // there are registered IO managers
     {
       MakeNodesTransient(runNode);  // make all nodes transient by default
-      vector<Fun4AllOutputManager *>::iterator IOiter;
+      std::vector<Fun4AllOutputManager *>::iterator IOiter;
       for (IOiter = OutputManager.begin(); IOiter != OutputManager.end(); ++IOiter)
       {
         (*IOiter)->WriteNode(runNode);
@@ -1106,26 +1116,26 @@ int Fun4AllServer::End()
 
   if (ScreamEveryEvent)
   {
-    cout << "*******************************************************************************" << endl;
-    cout << "*******************************************************************************" << endl;
-    cout << "*******************************************************************************" << endl;
-    cout << "Now that we are at the End(), please fix the following "
-         << ScreamEveryEvent << " problem(s):" << endl;
-    vector<string>::const_iterator viter;
+    std::cout << "*******************************************************************************" << std::endl;
+    std::cout << "*******************************************************************************" << std::endl;
+    std::cout << "*******************************************************************************" << std::endl;
+    std::cout << "Now that we are at the End(), please fix the following "
+              << ScreamEveryEvent << " problem(s):" << std::endl;
+    std::vector<std::string>::const_iterator viter;
     for (viter = ComplaintList.begin(); viter != ComplaintList.end(); ++viter)
     {
-      cout << *viter << endl;
+      std::cout << *viter << std::endl;
     }
-    cout << " " << endl;
-    cout << "*******************************************************************************" << endl;
-    cout << "*******************************************************************************" << endl;
-    cout << "*******************************************************************************" << endl;
+    std::cout << " " << std::endl;
+    std::cout << "*******************************************************************************" << std::endl;
+    std::cout << "*******************************************************************************" << std::endl;
+    std::cout << "*******************************************************************************" << std::endl;
   }
 
   return i;
 }
 
-void Fun4AllServer::Print(const string &what) const
+void Fun4AllServer::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "HISTOS")
   {
@@ -1138,17 +1148,17 @@ void Fun4AllServer::Print(const string &what) const
   if (what == "ALL" || what == "SUBSYSTEMS")
   {
     // loop over the map and print out the content (name and location in memory)
-    cout << "--------------------------------------" << endl
-         << endl;
-    cout << "List of Subsystems in Fun4AllServer:" << endl;
+    std::cout << "--------------------------------------" << std::endl
+              << std::endl;
+    std::cout << "List of Subsystems in Fun4AllServer:" << std::endl;
 
-    vector<pair<SubsysReco *, PHCompositeNode *>>::const_iterator miter;
+    std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::const_iterator miter;
     for (miter = Subsystems.begin(); miter != Subsystems.end(); ++miter)
     {
-      cout << (*miter).first->Name()
-           << " running under topNode " << (*miter).second->getName() << endl;
+      std::cout << (*miter).first->Name()
+                << " running under topNode " << (*miter).second->getName() << std::endl;
     }
-    cout << endl;
+    std::cout << std::endl;
   }
 
   if (what == "ALL" || what == "INPUTMANAGER")
@@ -1156,71 +1166,71 @@ void Fun4AllServer::Print(const string &what) const
     // the input managers are managed by the input singleton
     for (auto &syncman : SyncManagers)
     {
-      cout << "SyncManager: " << syncman->Name() << endl;
+      std::cout << "SyncManager: " << syncman->Name() << std::endl;
       syncman->Print(what);
     }
   }
 
-  if (what == "ALL" || what.find("OUTPUTMANAGER") != string::npos)
+  if (what == "ALL" || what.find("OUTPUTMANAGER") != std::string::npos)
   {
     // loop over the map and print out the content (name and location in memory)
-    string pass_on = what;
+    std::string pass_on = what;
     if (pass_on == "ALL" || pass_on == "OUTPUTMANAGER")
     {
-      cout << "--------------------------------------" << endl
-           << endl;
-      cout << "List of OutputManagers in Fun4AllServer:" << endl;
+      std::cout << "--------------------------------------" << std::endl
+                << std::endl;
+      std::cout << "List of OutputManagers in Fun4AllServer:" << std::endl;
       pass_on = "ALL";
     }
     else
     {
-      string::size_type pos = pass_on.find("%");
+      std::string::size_type pos = pass_on.find("%");
       pass_on = pass_on.substr(pos + 1, pass_on.size());
     }
     for (auto &outman : OutputManager)
     {
       outman->Print(pass_on);
     }
-    cout << endl;
+    std::cout << std::endl;
   }
   if (what == "ALL" || what == "TOPNODES")
   {
     // loop over the map and print out the content (name and location in memory)
-    cout << "--------------------------------------" << endl
-         << endl;
-    cout << "List of TopNodes in Fun4AllServer:" << endl;
+    std::cout << "--------------------------------------" << std::endl
+              << std::endl;
+    std::cout << "List of TopNodes in Fun4AllServer:" << std::endl;
 
-    map<std::string, PHCompositeNode *>::const_iterator iter;
+    std::map<std::string, PHCompositeNode *>::const_iterator iter;
     for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
     {
-      cout << iter->first << " is at " << hex
-           << iter->second << dec << endl;
+      std::cout << iter->first << " is at " << std::hex
+                << iter->second << std::dec << std::endl;
     }
-    cout << endl;
+    std::cout << std::endl;
   }
   if (what == "ALL" || what == "NODETREE")
   {
     // loop over the map and print out the content (name and location in memory)
-    cout << "--------------------------------------" << endl
-         << endl;
-    cout << "List of Nodes in Fun4AllServer:" << endl;
+    std::cout << "--------------------------------------" << std::endl
+              << std::endl;
+    std::cout << "List of Nodes in Fun4AllServer:" << std::endl;
 
-    map<std::string, PHCompositeNode *>::const_iterator iter;
+    std::map<std::string, PHCompositeNode *>::const_iterator iter;
     for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
     {
-      cout << "Node Tree under TopNode " << iter->first << endl;
+      std::cout << "Node Tree under TopNode " << iter->first << std::endl;
       PHNodeIterator nodeiter(iter->second);
       nodeiter.print();
-      cout << endl;
+      std::cout << std::endl;
     }
-    cout << endl;
+    std::cout << std::endl;
   }
   return;
 }
 
 void Fun4AllServer::identify(std::ostream &out) const
 {
-  out << "Fun4AllServer Name: " << Name() << endl;
+  out << "Fun4AllServer Name: " << Name() << std::endl;
   return;
 }
 
@@ -1230,9 +1240,9 @@ int Fun4AllServer::outfileclose()
   {
     if (Verbosity() >= VERBOSITY_MORE)
     {
-      cout << "Erasing OutputManager "
-           << (*OutputManager.begin())->Name()
-           << " at memory location " << *(OutputManager.begin()) << endl;
+      std::cout << "Erasing OutputManager "
+                << (*OutputManager.begin())->Name()
+                << " at memory location " << *(OutputManager.begin()) << std::endl;
     }
     delete *(OutputManager.begin());
     OutputManager.erase(OutputManager.begin());
@@ -1253,9 +1263,9 @@ int Fun4AllServer::InitNodeTree(PHCompositeNode *topNode)
 }
 
 PHCompositeNode *
-Fun4AllServer::topNode(const string &name)
+Fun4AllServer::topNode(const std::string &name)
 {
-  map<string, PHCompositeNode *>::const_iterator iter;
+  std::map<std::string, PHCompositeNode *>::const_iterator iter;
   iter = topnodemap.find(name);
   if (iter != topnodemap.end())
   {
@@ -1268,18 +1278,18 @@ Fun4AllServer::topNode(const string &name)
     InitNodeTree(iter->second);
     return iter->second;
   }
-  cout << PHWHERE << " Could not create new topNode " << name
-       << " send email to off-l with the following printout: " << endl;
+  std::cout << PHWHERE << " Could not create new topNode " << name
+            << " send email to off-l with the following printout: " << std::endl;
   for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
   {
-    cout << iter->first << " is at " << hex << iter->second << dec << endl;
+    std::cout << iter->first << " is at " << std::hex << iter->second << std::dec << std::endl;
   }
   exit(1);
 }
 
-int Fun4AllServer::AddTopNode(const string &name)
+int Fun4AllServer::AddTopNode(const std::string &name)
 {
-  map<string, PHCompositeNode *>::const_iterator iter;
+  std::map<std::string, PHCompositeNode *>::const_iterator iter;
   iter = topnodemap.find(name);
   if (iter != topnodemap.end())
   {
@@ -1290,7 +1300,7 @@ int Fun4AllServer::AddTopNode(const string &name)
   return 0;
 }
 
-PHCompositeNode *Fun4AllServer::getNode(const string &name, const string &topnodename)
+PHCompositeNode *Fun4AllServer::getNode(const std::string &name, const std::string &topnodename)
 {
   PHNodeIterator iter(topNode(topnodename));
   PHCompositeNode *thisNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", name));
@@ -1309,9 +1319,9 @@ int Fun4AllServer::registerInputManager(Fun4AllInputManager *InManager)
 }
 
 Fun4AllInputManager *
-Fun4AllServer::getInputManager(const string &name)
+Fun4AllServer::getInputManager(const std::string &name)
 {
-  vector<Fun4AllSyncManager *>::const_iterator iter;
+  std::vector<Fun4AllSyncManager *>::const_iterator iter;
   for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
   {
     if ((*iter)->getInputManager(name))
@@ -1319,7 +1329,7 @@ Fun4AllServer::getInputManager(const string &name)
       return (*iter)->getInputManager(name);
     }
   }
-  cout << "Could not locate input manager " << name << endl;
+  std::cout << "Could not locate input manager " << name << std::endl;
   return 0;
 }
 
@@ -1342,12 +1352,12 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
   if (ifirst && run_number_forced)
   {
     runnumber = rc->get_IntFlag("RUNNUMBER");
-    cout << "Fun4AllServer: Runnumber forced to " << runnumber << " by RUNNUMBER IntFlag" << endl;
+    std::cout << "Fun4AllServer: Runnumber forced to " << runnumber << " by RUNNUMBER IntFlag" << std::endl;
   }
   int iret = 0;
   int icnt = 0;
   int icnt_good = 0;
-  vector<Fun4AllSyncManager *>::const_iterator iter;
+  std::vector<Fun4AllSyncManager *>::const_iterator iter;
   while (!iret)
   {
     int resetnodetree = 0;
@@ -1355,7 +1365,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
     {
       if (Verbosity() >= VERBOSITY_MORE)
       {
-        cout << "executing run for input master " << (*iter)->Name() << endl;
+        std::cout << "executing run for input master " << (*iter)->Name() << std::endl;
       }
       int retval = (*iter)->run(1);
       // if a new input file is opened during syncing and it contains
@@ -1395,7 +1405,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
     for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
     {
       int runno = (*iter)->CurrentRun();
-      //	  cout << (*iter)->Name() << " run no: " << runno << endl;
+      //	  std::cout << (*iter)->Name() << " run no: " << runno << std::endl;
       if (runno != 0)
       {
         if (currentrun == 0)
@@ -1406,14 +1416,14 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
         {
           if (currentrun != runno)
           {
-            cout << "Mixing of Runs within same event is not supported" << endl;
-            cout << "Here is the list of Sync Managers and their runnumbers:" << endl;
-            vector<Fun4AllSyncManager *>::const_iterator syiter;
+            std::cout << "Mixing of Runs within same event is not supported" << std::endl;
+            std::cout << "Here is the list of Sync Managers and their runnumbers:" << std::endl;
+            std::vector<Fun4AllSyncManager *>::const_iterator syiter;
             for (syiter = SyncManagers.begin(); syiter != SyncManagers.end(); ++syiter)
             {
-              cout << (*syiter)->Name() << " run number: " << (*syiter)->CurrentRun() << endl;
+              std::cout << (*syiter)->Name() << " run number: " << (*syiter)->CurrentRun() << std::endl;
             }
-            cout << "Exiting now" << endl;
+            std::cout << "Exiting now" << std::endl;
             exit(1);
           }
         }
@@ -1441,8 +1451,8 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
     }
     if (Verbosity() >= 1)
     {
-        cout << "Fun4AllServer::run - processing event "
-             << (icnt+1) << " from run " << runnumber << endl;
+      std::cout << "Fun4AllServer::run - processing event "
+                << (icnt + 1) << " from run " << runnumber << std::endl;
     }
 
     if (icnt == 0 and Verbosity() > VERBOSITY_QUIET)
@@ -1486,21 +1496,21 @@ int Fun4AllServer::skip(const int nevnts)
   int iret = 0;
   if (nevnts > 0)  // do not execute for nevnts <= 0
   {
-    vector<Fun4AllSyncManager *>::const_iterator iter;
+    std::vector<Fun4AllSyncManager *>::const_iterator iter;
     for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
     {
       iret += (*iter)->skip(nevnts);
     }
-    eventcounter += nevnts; // update event counter so it reflects the number of events in the input
+    eventcounter += nevnts;  // update event counter so it reflects the number of events in the input
   }
   return iret;
 }
 
 //_________________________________________________________________
-int Fun4AllServer::fileopen(const string &managername, const string &filename)
+int Fun4AllServer::fileopen(const std::string &managername, const std::string &filename)
 {
   int iret = 0;
-  vector<Fun4AllSyncManager *>::const_iterator iter;
+  std::vector<Fun4AllSyncManager *>::const_iterator iter;
   for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
   {
     iret += (*iter)->fileopen(managername, filename);
@@ -1508,10 +1518,10 @@ int Fun4AllServer::fileopen(const string &managername, const string &filename)
   return iret;
 }
 
-int Fun4AllServer::BranchSelect(const string &managername, const string &branch, int iflag)
+int Fun4AllServer::BranchSelect(const std::string &managername, const std::string &branch, int iflag)
 {
   int iret = 0;
-  vector<Fun4AllSyncManager *>::const_iterator iter;
+  std::vector<Fun4AllSyncManager *>::const_iterator iter;
   for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
   {
     iret += (*iter)->BranchSelect(managername, branch, iflag);
@@ -1519,10 +1529,10 @@ int Fun4AllServer::BranchSelect(const string &managername, const string &branch,
   return iret;
 }
 
-int Fun4AllServer::BranchSelect(const string &branch, int iflag)
+int Fun4AllServer::BranchSelect(const std::string &branch, int iflag)
 {
   int iret = 0;
-  vector<Fun4AllSyncManager *>::const_iterator iter;
+  std::vector<Fun4AllSyncManager *>::const_iterator iter;
   for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
   {
     iret += (*iter)->BranchSelect(branch, iflag);
@@ -1530,10 +1540,10 @@ int Fun4AllServer::BranchSelect(const string &branch, int iflag)
   return iret;
 }
 
-int Fun4AllServer::setBranches(const string &managername)
+int Fun4AllServer::setBranches(const std::string &managername)
 {
   int iret = 0;
-  vector<Fun4AllSyncManager *>::const_iterator iter;
+  std::vector<Fun4AllSyncManager *>::const_iterator iter;
   for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
   {
     iret += (*iter)->setBranches(managername);
@@ -1544,7 +1554,7 @@ int Fun4AllServer::setBranches(const string &managername)
 int Fun4AllServer::setBranches()
 {
   int iret = 0;
-  vector<Fun4AllSyncManager *>::const_iterator iter;
+  std::vector<Fun4AllSyncManager *>::const_iterator iter;
   for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
   {
     iret += (*iter)->setBranches();
@@ -1552,10 +1562,10 @@ int Fun4AllServer::setBranches()
   return iret;
 }
 
-int Fun4AllServer::fileclose(const string &managername)
+int Fun4AllServer::fileclose(const std::string &managername)
 {
   int iret = 0;
-  vector<Fun4AllSyncManager *>::const_iterator iter;
+  std::vector<Fun4AllSyncManager *>::const_iterator iter;
   for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
   {
     iret += (*iter)->fileclose(managername);
@@ -1569,7 +1579,7 @@ int Fun4AllServer::SegmentNumber()
   return iret;
 }
 
-void Fun4AllServer::GetInputFullFileList(vector<string> &fnames) const
+void Fun4AllServer::GetInputFullFileList(std::vector<std::string> &fnames) const
 {
   defaultSyncManager->GetInputFullFileList(fnames);
   return;
@@ -1583,7 +1593,7 @@ int Fun4AllServer::DisconnectDB()
 unsigned
 Fun4AllServer::GetTopNodes(std::vector<std::string> &names) const
 {
-  map<string, PHCompositeNode *>::const_iterator iter;
+  std::map<std::string, PHCompositeNode *>::const_iterator iter;
   for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
   {
     names.push_back(iter->first);
@@ -1594,7 +1604,7 @@ Fun4AllServer::GetTopNodes(std::vector<std::string> &names) const
 void Fun4AllServer::GetOutputManagerList(std::vector<std::string> &names) const
 {
   names.clear();
-  vector<Fun4AllOutputManager *>::const_iterator iter;
+  std::vector<Fun4AllOutputManager *>::const_iterator iter;
   for (iter = OutputManager.begin(); iter != OutputManager.end(); ++iter)
   {
     names.push_back((*iter)->Name());
@@ -1605,7 +1615,7 @@ void Fun4AllServer::GetOutputManagerList(std::vector<std::string> &names) const
 void Fun4AllServer::GetModuleList(std::vector<std::string> &names) const
 {
   names.clear();
-  vector<pair<SubsysReco *, PHCompositeNode *>>::const_iterator iter;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::const_iterator iter;
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     names.push_back((*iter).first->Name());
@@ -1619,27 +1629,27 @@ int Fun4AllServer::registerSyncManager(Fun4AllSyncManager *newmaster)
   {
     if (syncman->Name() == newmaster->Name())
     {
-      cout << "Input Master " << newmaster->Name()
-           << " already registered" << endl;
+      std::cout << "Input Master " << newmaster->Name()
+                << " already registered" << std::endl;
       return -1;
     }
   }
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << "Registering Input Master " << newmaster->Name() << endl;
+    std::cout << "Registering Input Master " << newmaster->Name() << std::endl;
   }
   SyncManagers.push_back(newmaster);
   return 0;
 }
 
 Fun4AllSyncManager *
-Fun4AllServer::getSyncManager(const string &name)
+Fun4AllServer::getSyncManager(const std::string &name)
 {
   if (name == "DefaultSyncManager")
   {
     return defaultSyncManager;
   }
-  vector<Fun4AllSyncManager *>::iterator iter;
+  std::vector<Fun4AllSyncManager *>::iterator iter;
 
   for (iter = SyncManagers.begin(); iter != SyncManagers.end(); ++iter)
   {
@@ -1648,7 +1658,7 @@ Fun4AllServer::getSyncManager(const string &name)
       return *iter;
     }
   }
-  cout << "Could not find Input Master " << name << endl;
+  std::cout << "Could not find Input Master " << name << std::endl;
   return 0;
 }
 
@@ -1660,10 +1670,10 @@ int Fun4AllServer::setRun(const int runno)
   if (!tstamp)
   {
     tstamp = new PHTimeStamp(0);
-    cout << "Fun4AllServer::setRun(): could not get timestamp for run  " << runno
-         << ", using tics(0) timestamp: ";
+    std::cout << "Fun4AllServer::setRun(): could not get timestamp for run  " << runno
+              << ", using tics(0) timestamp: ";
     tstamp->print();
-    cout << endl;
+    std::cout << std::endl;
   }
   delete tstamp;
   FrameWorkVars->SetBinContent(RUNNUMBERBIN, (Stat_t) runno);
@@ -1679,16 +1689,16 @@ void Fun4AllServer::NodeIdentify(const std::string &name)
   }
   else
   {
-    cout << "Could not locate node " << name
-         << " or no PHObject Node" << endl;
+    std::cout << "Could not locate node " << name
+              << " or no PHObject Node" << std::endl;
   }
   return;
 }
 
-void Fun4AllServer::PrintTimer(const string &name)
+void Fun4AllServer::PrintTimer(const std::string &name)
 {
-  map<const string, PHTimer>::const_iterator iter;
-  PHTimer::PRINT(cout, "**");
+  std::map<const std::string, PHTimer>::const_iterator iter;
+  PHTimer::PRINT(std::cout, "**");
   if (name.empty())
   {
     for (iter = timer_map.begin(); iter != timer_map.end(); ++iter)
@@ -1705,18 +1715,18 @@ void Fun4AllServer::PrintTimer(const string &name)
     }
     else
     {
-      cout << "No timer with name " << name << " found" << endl;
-      cout << "Existing timers:" << endl;
+      std::cout << "No timer with name " << name << " found" << std::endl;
+      std::cout << "Existing timers:" << std::endl;
       for (iter = timer_map.begin(); iter != timer_map.end(); ++iter)
       {
-        cout << iter->first << endl;
+        std::cout << iter->first << std::endl;
       }
     }
   }
   return;
 }
 
-void Fun4AllServer::PrintMemoryTracker(const string &name) const
+void Fun4AllServer::PrintMemoryTracker(const std::string &name) const
 {
 #ifdef FFAMEMTRACKER
   ffamemtracker->PrintMemoryTracker(name);

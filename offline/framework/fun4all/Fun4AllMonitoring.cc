@@ -3,12 +3,12 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
 
+#include <unistd.h>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <regex>
 #include <sstream>
-#include <unistd.h>
 #include <vector>
 
 Fun4AllMonitoring *Fun4AllMonitoring::mInstance = nullptr;
@@ -92,10 +92,10 @@ void Fun4AllMonitoring::Get_Memory()
         {
           mHeapPss += std::stol(number);
         }
-	else if (libraryname == "mmap")
-	{
+        else if (libraryname == "mmap")
+        {
           mMMapPSS += std::stol(number);
-	}
+        }
         else
         {
           mOtherPss += std::stol(number);
