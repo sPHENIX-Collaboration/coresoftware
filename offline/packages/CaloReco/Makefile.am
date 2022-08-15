@@ -22,7 +22,6 @@ libcalo_reco_la_LIBADD = \
   -lg4vertex_io \
   -lcalo_io \
   -lcaloCalibDBFile \
-  -lxpload \
   -lphparameter
 
 AM_CPPFLAGS = \

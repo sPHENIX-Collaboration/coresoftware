@@ -2,6 +2,7 @@
 #define G4MVTX_PHG4MVTXHITRECO_H
 
 #include <phparameter/PHParameterInterface.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -45,6 +46,8 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 
   int get_strobe_frame(double alpide_time, double strobe_zero_tm_start);
 
+  TrkrDefs::hitsetkey zero_strobe_bits(TrkrDefs::hitsetkey hitsetkey);
+
   std::string m_detector;
 
   double m_tmin;
@@ -52,6 +55,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   double m_strobe_width;
   double m_strobe_separation;
   //double crossing_period = 106.0;
+  double m_extended_readout_time = 0.0;
 
   bool m_in_sphenix_srdo = false;
 

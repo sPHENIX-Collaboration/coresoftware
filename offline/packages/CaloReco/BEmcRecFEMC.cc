@@ -5,8 +5,6 @@
 #include <cmath>
 #include <iostream>
 
-using namespace std;
-
 BEmcRecFEMC::BEmcRecFEMC()
 //  : _emcprof(nullptr)
 {
@@ -20,15 +18,15 @@ BEmcRecFEMC::~BEmcRecFEMC()
   //  delete _emcprof;
 }
 
-void BEmcRecFEMC::LoadProfile(const string& fname)
+void BEmcRecFEMC::LoadProfile(const std::string& fname)
 {
   _emcprof = new BEmcProfile(fname);
 }
 
 void BEmcRecFEMC::GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi)
 {
-  theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
-  phi = atan2(yg,xg);
+  theta = atan(sqrt(xg * xg + yg * yg) / fabs(zg - fVz));
+  phi = atan2(yg, xg);
 }
 
 /*
@@ -179,8 +177,8 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     xc = x;
-    cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: x = "
-         << x << ",  dx = " << x0 - ix0 << endl;
+    std::cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: x = "
+              << x << ",  dx = " << x0 - ix0 << std::endl;
   }
 
   y0 = y + yZero;
@@ -194,7 +192,7 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   else
   {
     yc = y;
-    cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: y = "
-         << y << ",  dy = " << y0 - iy0 << endl;
+    std::cout << "????? Something wrong in BEmcRecFEMC::CorrectPosition: y = "
+              << y << ",  dy = " << y0 - iy0 << std::endl;
   }
 }

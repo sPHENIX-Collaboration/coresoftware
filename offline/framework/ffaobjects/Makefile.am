@@ -16,6 +16,8 @@ libffaobjects_la_LIBADD = \
   -lphool
 
 ROOTDICTS = \
+  CdbUrlSave_Dict.cc \
+  CdbUrlSavev1_Dict.cc \
   FlagSave_Dict.cc \
   FlagSavev1_Dict.cc \
   RunHeader_Dict.cc \
@@ -28,6 +30,8 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  CdbUrlSave_Dict_rdict.pcm \
+  CdbUrlSavev1_Dict_rdict.pcm \
   FlagSave_Dict_rdict.pcm \
   FlagSavev1_Dict_rdict.pcm \
   RunHeader_Dict_rdict.pcm \
@@ -39,6 +43,8 @@ nobase_dist_pcm_DATA = \
   EventHeaderv2_Dict_rdict.pcm
 
 pkginclude_HEADERS = \
+  CdbUrlSave.h \
+  CdbUrlSavev1.h \
   FlagSave.h \
   FlagSavev1.h \
   RunHeader.h \
@@ -52,6 +58,8 @@ pkginclude_HEADERS = \
 
 libffaobjects_la_SOURCES = \
   $(ROOTDICTS) \
+  CdbUrlSave.cc \
+  CdbUrlSavev1.cc \
   FlagSavev1.cc \
   RunHeader.cc \
   RunHeaderv1.cc \

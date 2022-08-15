@@ -29,14 +29,14 @@ class PHG4SectorSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4SectorDetector* detector_;
+  PHG4SectorDetector* detector_ = nullptr;
 
   //! pointer to hit container
-  PHG4HitContainer* hits_;
-  PHG4Hit* hit;
-  PHG4Shower* saveshower;
+  PHG4HitContainer* hits_ = nullptr;
+  PHG4Hit* hit = nullptr;
+  PHG4Shower* saveshower = nullptr;
 
-  int layer_id;
+  int layer_id = -1;
 };
 
 #endif  //__G4PHPHYTHIAREADER_H__

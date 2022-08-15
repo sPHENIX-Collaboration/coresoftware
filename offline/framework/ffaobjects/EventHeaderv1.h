@@ -57,7 +57,6 @@ class EventHeaderv1 : public EventHeader
   std::map<std::string, float> m_FloatEventProperties;
 
   ClassDefOverride(EventHeaderv1, 2)
-
 };
 
 #endif

@@ -36,7 +36,7 @@ class PHG4TpcDistortion
 
   //! z distortion for a given truth location of the primary ionization
   double get_z_distortion_cartesian(double x, double y, double z) const;
-  
+
   //! radial distortion for a given cylindrical truth location of the primary ionization
   double get_r_distortion(double r, double phi, double z) const;
 
@@ -46,10 +46,6 @@ class PHG4TpcDistortion
   //! z distortion for a given cylindrical truth location of the primary ionization
   double get_z_distortion(double r, double phi, double z) const;
 
-
-
-
-  
   //! Gets the verbosity of this module.
   int Verbosity() const
   {
@@ -111,9 +107,9 @@ class PHG4TpcDistortion
   bool m_do_static_distortions = false;
   std::string m_static_distortion_filename;
   std::unique_ptr<TFile> m_static_tfile;
-  TH3 *hDRint[2]={nullptr,nullptr};
-  TH3 *hDPint[2]={nullptr,nullptr};
-  TH3 *hDZint[2]={nullptr,nullptr};
+  TH3 *hDRint[2] = {nullptr, nullptr};
+  TH3 *hDPint[2] = {nullptr, nullptr};
+  TH3 *hDZint[2] = {nullptr, nullptr};
   //@}
 
   //!@name time ordered histograms
@@ -121,10 +117,10 @@ class PHG4TpcDistortion
   bool m_do_time_ordered_distortions = false;
   std::string m_time_ordered_distortion_filename;
   std::unique_ptr<TFile> m_time_ordered_tfile;
-  TTree *TimeTree=nullptr;
-  TH3 *TimehDR[2]={nullptr,nullptr};
-  TH3 *TimehDP[2]={nullptr,nullptr};
-  TH3 *TimehDZ[2]={nullptr,nullptr};
+  TTree *TimeTree = nullptr;
+  TH3 *TimehDR[2] = {nullptr, nullptr};
+  TH3 *TimehDP[2] = {nullptr, nullptr};
+  TH3 *TimehDZ[2] = {nullptr, nullptr};
   //@}
 };
 
