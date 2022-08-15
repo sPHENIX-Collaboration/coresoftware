@@ -815,7 +815,7 @@ int Fun4AllServer::BeginRun(const int runno)
     cout << endl;
   }
   vector<pair<SubsysReco *, PHCompositeNode *>>::iterator iter;
-  int iret;
+  int iret = 0;
 
   // check if any registered SubsysReco wants to be dropped and
   // remove it from the list before its BeginRun is executed
@@ -830,8 +830,11 @@ int Fun4AllServer::BeginRun(const int runno)
 
   gROOT->cd(default_Tdirectory.c_str());
   string currdir = gDirectory->GetPath();
+
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
+    iret = BeginRunSubsystem(*iter);
+/*
     ostringstream newdirname;
     newdirname << (*iter).second->getName() << "/" << (*iter).first->Name();
     if (!gROOT->cd(newdirname.str().c_str()))
@@ -887,9 +890,14 @@ int Fun4AllServer::BeginRun(const int runno)
       cout << PHWHERE << "Module " << (*iter).first->Name() << " issued non Fun4AllReturnCodes::EVENT_OK return code " << iret << " in InitRun()" << endl;
       exit(-2);
     }
+*/
+  }
+  for (; !NewSubsystems.empty(); NewSubsystems.pop_front())
+  {
+    registerSubsystem((NewSubsystems.front()).first, (NewSubsystems.front()).second);
+    BeginRunSubsystem(std::make_pair(NewSubsystems.front().first, topNode(NewSubsystems.front().second)));
   }
   gROOT->cd(currdir.c_str());
-
   // disconnect from DB to save resources on DB machine
   // PdbCal leaves the DB connection open (PdbCal will reconnect without
   // problem if neccessary)
@@ -910,7 +918,68 @@ int Fun4AllServer::BeginRun(const int runno)
 #ifdef FFAMEMTRACKER
   ffamemtracker->Snapshot("Fun4AllServerBeginRun");
 #endif
-  return 0;
+  return iret;
+}
+
+int Fun4AllServer::BeginRunSubsystem(const std::pair<SubsysReco *, PHCompositeNode *> &subsys)
+{
+  int iret = 0;
+    ostringstream newdirname;
+    newdirname << subsys.second->getName() << "/" << subsys.first->Name();
+    if (!gROOT->cd(newdirname.str().c_str()))
+    {
+      cout << PHWHERE << "Unexpected TDirectory Problem cd'ing to "
+           << subsys.second->getName()
+           << " - send e-mail to off-l with your macro" << endl;
+      exit(1);
+    }
+    else
+    {
+      if (Verbosity() >= VERBOSITY_EVEN_MORE)
+      {
+        cout << "BeginRun: cded to " << newdirname.str().c_str() << endl;
+      }
+    }
+
+    if (Verbosity() >= VERBOSITY_SOME)
+    {
+      cout << "Fun4AllServer::BeginRun: InitRun for " << subsys.first->Name() << endl;
+    }
+    try
+    {
+#ifdef FFAMEMTRACKER
+      ffamemtracker->Start(subsys.first->Name(), "SubsysReco");
+#endif
+      iret = subsys.first->InitRun(subsys.second);
+#ifdef FFAMEMTRACKER
+      ffamemtracker->Stop(subsys.first->Name(), "SubsysReco");
+#endif
+    }
+    catch (const exception &e)
+    {
+      cout << PHWHERE << " caught exception thrown during SubsysReco::InitRun() from "
+           << subsys.first->Name() << endl;
+      cout << "error: " << e.what() << endl;
+      exit(1);
+    }
+    catch (...)
+    {
+      cout << PHWHERE << " caught unknown type exception thrown during SubsysReco::InitRun() from "
+           << subsys.first->Name() << endl;
+      exit(1);
+    }
+
+    if (iret == Fun4AllReturnCodes::ABORTRUN)
+    {
+      cout << PHWHERE << "Module " << subsys.first->Name() << " issued Abort Run, exiting" << endl;
+      exit(-1);
+    }
+    else if (iret != Fun4AllReturnCodes::EVENT_OK)
+    {
+      cout << PHWHERE << "Module " << subsys.first->Name() << " issued non Fun4AllReturnCodes::EVENT_OK return code " << iret << " in InitRun()" << endl;
+      exit(-2);
+    }
+  return iret;
 }
 
 int Fun4AllServer::CountOutNodes(PHCompositeNode *startNode)
