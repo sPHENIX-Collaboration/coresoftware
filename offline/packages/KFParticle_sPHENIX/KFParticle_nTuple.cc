@@ -1,18 +1,27 @@
 #include "KFParticle_nTuple.h"
 
+#include "KFParticle_particleList.h"   // for KFParticle_particleList
 #include "KFParticle_Tools.h"
 
 #include <ffaobjects/EventHeaderv1.h>
 
+#include <phool/PHNodeIterator.h>      // for PHNodeIterator
 #include <phool/getClass.h>
 
-#include <KFPVertex.h>
 #include <KFParticle.h>
-#include <KFVertex.h>
 
+#include <Rtypes.h>
+#include <TString.h>                   // for TString, operator+
 #include <TTree.h>
 
+#include <algorithm>                   // for max
 #include <cmath>
+#include <cstdlib>                    // for abs, size_t
+#include <map>                         // for map, _Rb_tree_iterator, map<>:...
+#include <utility>                     // for pair
+
+class PHCompositeNode;
+class PHNode;
 
 /// Create necessary objects
 typedef std::pair<int, float> particle_pair_nTuple;

@@ -24,6 +24,7 @@
 
 #include <map>
 #include <string>
+#include <utility>  // for pair
 
 typedef std::pair<int, float> particle_pair;
 
@@ -34,7 +35,6 @@ typedef std::pair<int, float> particle_pair;
  *  The map element format is, for example:
  *  particleMasses["Bs0"] = make_pair(531, 5.366);
  */
-class KFParticleDatabase;
 
 class KFParticle_particleList
 {

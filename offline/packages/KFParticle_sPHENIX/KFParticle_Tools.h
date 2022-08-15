@@ -27,7 +27,10 @@
 
 #include <KFParticle.h>
 
-#include <map>
+#include <cfloat>
+#include <string>                     // for string
+#include <tuple>                      // for tuple
+#include <utility>                    // for pair
 #include <vector>
 
 class PHCompositeNode;

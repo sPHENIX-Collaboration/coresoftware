@@ -32,9 +32,13 @@
 //KFParticle stuff
 #include <KFParticle.h>
 
-#include <map>
+#include <algorithm>                         // for max
+#include <memory>                            // for allocator_traits<>::valu...
 #include <string>
+#include <utility>                           // for pair
+#include <vector>                            // for vector
 
+class PHCompositeNode;
 class TFile;
 
 class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public KFParticle_DST, protected KFParticle_eventReconstruction

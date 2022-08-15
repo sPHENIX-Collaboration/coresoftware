@@ -5,8 +5,10 @@
 
 #include <KFParticle.h>
 
+#include <string>                         // for string
 #include <vector>
 
+class PHCompositeNode;
 class TTree;
 
 class KFParticle_nTuple : public KFParticle_truthAndDetTools

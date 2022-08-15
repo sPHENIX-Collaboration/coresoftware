@@ -15,16 +15,26 @@
 #include "KFParticle_Tools.h"
 #include "KFParticle_truthAndDetTools.h"
 
+#include <trackbase_historic/SvtxTrackMap.h>     // for SvtxTrackMap, SvtxTr...
 #include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrack.h>        // for SvtxTrack
 #include <trackbase_historic/SvtxTrack_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                        // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                      // for PHObject
 #include <phool/getClass.h>
 
+#include <KFParticle.h>                          // for KFParticle
+
+#include <cstdlib>                              // for exit, size_t, abs
+#include <iostream>                              // for operator<<, endl
+#include <map>                                   // for map, map<>::mapped_type
+#include <utility>                               // for pair
 
 KFParticle_Tools kfpTupleTools_DST;
 KFParticle_truthAndDetTools kfpTruthTools_DST;

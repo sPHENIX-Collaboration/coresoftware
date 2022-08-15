@@ -7,16 +7,16 @@
 #ifndef KFPARTICLESPHENIX_KFPARTICLEMVA_H
 #define KFPARTICLESPHENIX_KFPARTICLEMVA_H
 
-//ROOT stuff
-#include <TMVA/Reader.h>
-#include <TMVA/Tools.h>
+#include <Rtypes.h> // for root's Float_t
 
 #include <string>
+#include <tuple>
 #include <vector>
 
 class KFParticle;
-class KFParticleBase;
 class KFPVertex;
+
+namespace TMVA { class Reader; }
 
 class KFParticle_MVA
 {

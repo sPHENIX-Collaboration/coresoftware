@@ -26,16 +26,19 @@
 /*****************/
 
 #include "KFParticle_eventReconstruction.h"
+#include "KFParticle_particleList.h"  // for KFParticle_particleList
 
 //KFParticle stuff
-#include <KFPTrack.h>
 #include <KFParticle.h>
-#include <KFParticleDatabase.h>
-#include <KFVertex.h>
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
+#include <iterator>                   // for begin, distance, end
 #include <map>
+#include <memory>                     // for allocator_traits<>::value_type
+#include <string>                     // for string
+#include <tuple>                      // for tie, tuple
+#include <utility>                    // for pair
 
 /// Create necessary objects
 typedef std::pair<int, float> particle_pair;

@@ -27,22 +27,32 @@
 
 #include "KFParticle_Tools.h"
 
-#include <phool/getClass.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
+#include <phool/getClass.h>
+
 //KFParticle stuff
-#include <KFPTrack.h>
 #include <KFParticle.h>
-#include <KFParticleDatabase.h>
 #include <KFVertex.h>
 
+#include <Rtypes.h>
 #include <TMatrixD.h>
+#include <TMatrixDfwd.h>                       // for TMatrixD
+#include <TMatrixT.h>                          // for TMatrixT, operator*
 
-#include <Eigen/Core>
 #include <Eigen/Dense>
+
+
+#include <algorithm>                           // for max, remove, minmax_el...
+#include <cmath>                              // for sqrt, pow, M_PI
+#include <cstdlib>                            // for abs, NULL
+#include <iostream>                            // for operator<<, basic_ostream
+#include <iterator>                            // for end
+#include <map>                                 // for _Rb_tree_iterator, map
+#include <memory>                              // for allocator_traits<>::va...
 
 /// Create necessary objects
 typedef std::pair<int, float> particle_pair;

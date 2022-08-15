@@ -21,6 +21,9 @@
 
 #include "KFParticle_sPHENIX.h"
 
+#include "KFParticle_Tools.h"                  // for KFParticle_Tools
+#include "KFParticle_particleList.h"           // for KFParticle_particleList
+
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
@@ -29,6 +32,21 @@
 #include <phool/getClass.h>
 
 #include <TFile.h>
+
+#include <KFParticle.h>                        // for KFParticle
+#include <fun4all/Fun4AllBase.h>               // for Fun4AllBase::VERBOSITY...
+#include <fun4all/SubsysReco.h>                // for SubsysReco
+
+#include <cctype>                             // for toupper
+#include <iostream>                            // for operator<<, endl, basi...
+#include <map>                                 // for map
+#include <cmath>                              // for sqrt
+#include <cstdlib>                            // for size_t, exit
+#include <tuple>                               // for tie, tuple
+
+class PHCompositeNode;
+
+namespace TMVA { class Reader; }
 
 typedef std::pair<int, float> particle_pair;
 

@@ -1,7 +1,53 @@
 #include "KFParticle_truthAndDetTools.h"
 
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
+#include "KFParticle_Tools.h"                  // for KFParticle_Tools
+
+#include <g4eval/SvtxEvalStack.h>              // for SvtxEvalStack
+#include <g4eval/SvtxTrackEval.h>              // for SvtxTrackEval
+#include <g4eval/SvtxTruthEval.h>              // for SvtxTruthEval
+#include <g4eval/SvtxVertexEval.h>             // for SvtxVertexEval
+
+#include <trackbase/InttDefs.h>                // for getLadderPhiId, getLad...
+#include <trackbase/MvtxDefs.h>                // for getChipId, getStaveId
+#include <trackbase/TpcDefs.h>                 // for getSectorId, getSide
+#include <trackbase/TrkrCluster.h>             // for TrkrCluster
+#include <trackbase/TrkrClusterContainer.h>    // for TrkrClusterContainer
+#include <trackbase/TrkrDefs.h>                // for getLayer, getTrkrId
+#include <trackbase_historic/SvtxTrack.h>      // for SvtxTrack, SvtxTrack::...
+#include <trackbase_historic/SvtxTrackMap.h>   // for SvtxTrackMap, SvtxTrac...
+#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
+#include <trackbase_historic/SvtxVertexMap.h>  // for SvtxVertexMap, SvtxVer...
+
+#include <g4main/PHG4Particle.h>               // for PHG4Particle
+#include <g4main/PHG4TruthInfoContainer.h>     // for PHG4TruthInfoContainer
+#include <g4main/PHG4VtxPoint.h>               // for PHG4VtxPoint
+
+#include <phhepmc/PHHepMCGenEvent.h>           // for PHHepMCGenEvent
+#include <phhepmc/PHHepMCGenEventMap.h>        // for PHHepMCGenEventMap
+
+#include <phool/PHNodeIterator.h>              // for PHNodeIterator
+#include <phool/getClass.h>                    // for getClass
+
+#include <KFParticle.h>                        // for KFParticle
+#include <TString.h>                           // for TString, operator+
+#include <TTree.h>                             // for TTree
+
+#include <HepMC/GenEvent.h>                    // for GenEvent::particle_con...
+#include <HepMC/GenParticle.h>                 // for GenParticle
+#include <HepMC/GenVertex.h>                   // for GenVertex::particle_it...
+#include <HepMC/IteratorRange.h>               // for parents
+#include <HepMC/SimpleVector.h>                // for FourVector
+
+#include <algorithm>                           // for max, find
+#include <iostream>                            // for operator<<, endl, basi...
+#include <iterator>                            // for end, begin
+#include <map>                                 // for _Rb_tree_iterator, map
+#include <math.h>                              // for pow, sqrt
+#include <memory>                              // for allocator_traits<>::va...
+#include <stdlib.h>                            // for NULL, abs
+#include <utility>                             // for pair
+
+ class PHNode;
 
 std::map<std::string, int> Use =
     {
