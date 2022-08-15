@@ -39,7 +39,7 @@ XploadInterface::XploadInterface(const std::string &name)
   : SubsysReco(name)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
-  se->registerSubsystem(this);
+  se->addNewSubsystem(this);
 }
 
 //____________________________________________________________________________..
