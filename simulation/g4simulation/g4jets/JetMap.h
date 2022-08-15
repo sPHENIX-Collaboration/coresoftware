@@ -10,6 +10,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <functional>
 #include <set>
 
 class JetMap : public PHObject
@@ -78,6 +79,7 @@ class JetMap : public PHObject
   virtual Iter end();
 
   virtual std::vector<Jet*> vec(Jet::SORT=Jet::SORT::PT)=0;
+  virtual std::vector<Jet*> vec(std::function<bool (Jet*, Jet*)> custom_sort)=0;
 
  private:
   ClassDefOverride(JetMap, 1);

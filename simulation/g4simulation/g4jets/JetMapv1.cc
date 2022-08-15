@@ -157,3 +157,10 @@ std::vector<Jet*> JetMapv1::vec(Jet::SORT sort_criteria) {
   }
   return v_data;
 }
+
+std::vector<Jet*> JetMapv1::vec(std::function<bool (Jet*, Jet*)> custom_sort) {
+  vector<Jet*> v_data;
+  for (auto& _ : _map) { v_data.push_back(_.second); }
+  std::sort(v_data.begin(), v_data.end(), custom_sort );
+  return v_data;
+}
