@@ -73,7 +73,7 @@ class QAG4SimulationTpc : public SubsysReco
   std::set<int> m_layers;
   std::multimap<int, int> m_layer_region_map;
   ClusterErrorPara _ClusErrPara;
-  int m_cluster_version = 3;
+  int m_cluster_version = 4;
 };
 
 #endif

@@ -25,6 +25,7 @@ class ClusterErrorPara
     delete f0;
     delete f1;
     delete f2;
+    delete fz0;
     delete fz;
     delete fmm_55_2;
     delete fmm_56_2;
@@ -45,6 +46,7 @@ class ClusterErrorPara
   TF1 *f0 = nullptr;
   TF1 *f1 = nullptr;
   TF1 *f2 = nullptr;
+  TF1 *fz0 = nullptr;
   TF1 *fz = nullptr;
   TF1 *fmm_55_2 = nullptr;
   TF1 *fmm_56_2 = nullptr;
@@ -60,7 +62,20 @@ class ClusterErrorPara
 
   double pitcherr_phi_mm2;
   double pitcherr_z_mm2;
-
+  double scale_mvtx = 1.2;
+  double scale_mvtx_z = 0.9;
+  double scale_intt_3 = 0.97;
+  double scale_intt_4 = 0.964;
+  double scale_intt_5 = 0.894;
+  double scale_intt_6 = 0.893;
+  double scale_tpc_0 = 1.1;
+  double scale_tpc_1 = 1.2;
+  double scale_tpc_2 = 1.3;
+  double scale_tpc_0_z = 1.1;
+  double scale_tpc_1_z = 1.07;
+  double scale_tpc_2_z = 1.04;
+  double scale_mm_0 = 1.1;
+  double scale_mm_1 = 1.5; 
 };
 
 #endif
