@@ -38,8 +38,7 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int skip(const int nevt) { return PushBackEvents(-nevt); }
   virtual int NoSyncPushBackEvents(const int /*nevt*/) { return -1; }
   int AddFile(const std::string &filename);
-  // read only files from lines "n" such that n%n_jobs==this_job. (Defaults n_jobs=1, this_job=0 result in reading read every line)
-  int AddListFile(const std::string &filename, const int do_it = 0, const int this_job=0, const int n_jobs=1);
+  int AddListFile(const std::string &filename, const int do_it = 0);
   int registerSubsystem(SubsysReco *subsystem);
   virtual int RejectEvent();
   void Repeat(const int i = -1) { m_Repeat = i; }
