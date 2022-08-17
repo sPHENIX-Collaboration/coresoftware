@@ -44,7 +44,7 @@ int Fun4AllInputManager::AddFile(const std::string &filename)
   return 0;
 }
 
-int Fun4AllInputManager::AddListFile(const std::string &filename, const int do_it)
+int Fun4AllInputManager::AddListFile(const std::string &filename, const int do_it, const int n_jobs, const int i_this_job)
 {
   // checking filesize to see if we have a text file
   if (boost::filesystem::exists(filename.c_str()))
@@ -88,7 +88,10 @@ int Fun4AllInputManager::AddListFile(const std::string &filename, const int do_i
   {
     if (FullLine.size() && FullLine[0] != '#')  // remove comments
     {
-      AddFile(FullLine);
+      if (nfiles % n_jobs == i_this_job)
+      {
+        AddFile(FullLine);
+      }
       nfiles++;
     }
     else if (FullLine.size())
