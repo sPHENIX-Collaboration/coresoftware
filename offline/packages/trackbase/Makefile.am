@@ -23,6 +23,7 @@ pkginclude_HEADERS = \
   ActsTrackingGeometry.h \
   ActsGeometry.h \
   AlignmentTransformation.h \
+  alignmentTransformationContainer.h \
   ClusterErrorPara.h \
   CMFlashCluster.h \
   CMFlashClusterv1.h \
@@ -71,6 +72,7 @@ pkginclude_HEADERS = \
   TrkrHitSetContainerv1.h
 
 ROOTDICTS = \
+  alignmentTransformationContainer_Dict.cc \
   CMFlashCluster_Dict.cc \
   CMFlashClusterv1_Dict.cc \
   CMFlashClusterContainer_Dict.cc \
@@ -115,6 +117,7 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  alignmentTransformationContainer_Dict_rdict.pcm \
   CMFlashCluster_Dict_rdict.pcm \
   CMFlashClusterv1_Dict_rdict.pcm \
   CMFlashClusterContainer_Dict_rdict.pcm \
@@ -161,6 +164,7 @@ libtrack_io_la_SOURCES = \
   ActsSurfaceMaps.cc \
   ActsGeometry.cc \
   AlignmentTransformation.cc \
+  alignmentTransformationContainer.cc \
   ClusterErrorPara.cc \
   CMFlashClusterv1.cc \
   CMFlashClusterContainerv1.cc \

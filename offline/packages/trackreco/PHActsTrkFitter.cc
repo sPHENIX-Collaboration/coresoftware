@@ -53,6 +53,11 @@
 #include <vector>
 
 
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <trackbase/alignmentTransformationContainer.h>
+
+
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
   , m_trajectories(nullptr)
@@ -461,7 +466,60 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
 
       Acts::Vector3 global  = m_tGeometry->getGlobalPosition(key, cluster);
-     
+      
+      if (trkrid==TrkrDefs::mvtxId or trkrid == TrkrDefs::inttId )
+	{
+
+	  auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(key);
+
+	  float globphi = atan2(global(1),global(0))*180.0/M_PI;
+	  
+
+	  std::cout << "global phi " << globphi << " hitsetkey: " << hitsetkey <<" global: " << global << std::endl;
+
+	  auto x = cluster->getLocalX();
+	  auto y = cluster->getLocalY();
+
+	  Eigen::Vector4f clusterLocalPosition (x,0,y,1);
+	  std::cout << "local: "<<clusterLocalPosition << std::endl;
+	  
+	  if (trkrid == TrkrDefs::inttId)
+	  {
+	    unsigned int layer     = TrkrDefs::getLayer(hitsetkey);
+	    unsigned int ladderz   = InttDefs::getLadderZId(hitsetkey);
+	    unsigned int ladderphi = InttDefs::getLadderPhiId(hitsetkey);
+
+	    std::cout << "layer: "<<layer<< " ladderZ: "<<ladderz<< " ladderPhi: " << ladderphi<<std::endl;
+	  }
+	  else if (trkrid == TrkrDefs::mvtxId)
+	  {
+	    unsigned int layer                          = TrkrDefs::getLayer(hitsetkey);
+	    unsigned int stave                          = MvtxDefs::getStaveId(hitsetkey);
+	    unsigned int chip                           = MvtxDefs::getChipId(hitsetkey);
+	    std::cout << "layer: " << layer << " stave: " << stave << "chip: " << chip << std::endl;
+	  }
+	  auto alignmentTransformation = m_alignmentTransformationMap->getTransform(hitsetkey);
+
+	  std::cout << " Transform: " << alignmentTransformation << std::endl;
+
+	  Eigen::Vector4f finalCoords = alignmentTransformation*clusterLocalPosition;
+	  float phi = atan2(finalCoords(1),finalCoords(0))*180.0/M_PI;
+
+
+	  Eigen::Vector4f eigenGlobal (global(0),global(1),global(2),1);
+	  float deltaX = finalCoords(0)-eigenGlobal(0);
+	  float deltaY = finalCoords(1)-eigenGlobal(1);
+
+	  std::cout<< "deltax: "<<deltaX << " deltaY: " << deltaY << std::endl;
+
+	  std::cout << " phi: "<< phi <<" Final Alignment Transform Coordinates: " << finalCoords << std::endl << std::endl;
+
+
+
+
+	}
+
+
       if(trkrid ==  TrkrDefs::tpcId)
 	{	  
 	  // make all corrections to global position of TPC cluster
@@ -984,8 +1042,21 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
+
+
 int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 {
+  m_alignmentTransformationMap = findNode::getClass<alignmentTransformationContainer>(topNode, "alignmentTransformationContainer");
+  if(!m_alignmentTransformationMap)
+    {
+      std::cout << PHWHERE << "alignmentTransformationContainer not on node tree. Bailing"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+
+
 
   m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if(!m_tpcSeeds)
