@@ -25,8 +25,8 @@ void alignmentTransformationContainer::identify(std::ostream &os)
 
   for( const auto& entry : transformMap )
   {
-    int layer = TrkrDefs::getLayer(entry.first);
-    os << "   hitset key: "  << entry.first << " layer " << layer
+    int layer = TrkrDefs::getLayer(entry.first.first);
+    os << "   hitset key: "  << entry.first.first<< " subsurface key: " << entry.first.second << " layer " << layer
        << " transform: " << entry.second
        << std::endl;
   }
@@ -36,18 +36,21 @@ void alignmentTransformationContainer::identify(std::ostream &os)
   return;
 }
 
-void alignmentTransformationContainer::addTransform(const TrkrDefs::hitsetkey hitsetkey, Eigen::Matrix4d transform)
+void alignmentTransformationContainer::addTransform(const TrkrDefs::hitsetkey hitsetkey, unsigned int subsurfkey, Eigen::Matrix4d transform)
 {
-   transformMap.insert(std::make_pair(hitsetkey, transform));
+  std::pair<TrkrDefs::hitsetkey,unsigned int> key = std::make_pair(hitsetkey,subsurfkey);
+  transformMap.insert(std::make_pair(key, transform));
 }
 
 
-void alignmentTransformationContainer::removeTransform(const TrkrDefs::hitsetkey hitsetkey)
+void alignmentTransformationContainer::removeTransform(const TrkrDefs::hitsetkey hitsetkey, unsigned int subsurfkey)
 {
-  const auto hitsetrange = transformMap.equal_range(hitsetkey);
-  for( auto mapiter = hitsetrange.first; mapiter != hitsetrange.second; ++mapiter)
+  std::pair<TrkrDefs::hitsetkey, unsigned int> key = std::make_pair(hitsetkey,subsurfkey);
+
+  const auto range = transformMap.equal_range(key);
+  for( auto mapiter = range.first; mapiter != range.second; ++mapiter)
   {
-    if(mapiter->first == hitsetkey)
+    if(mapiter->first == key)
     {
       transformMap.erase(mapiter);
       return;
@@ -55,17 +58,19 @@ void alignmentTransformationContainer::removeTransform(const TrkrDefs::hitsetkey
   }
 }
 
-Eigen::Matrix4d alignmentTransformationContainer::getTransform(const TrkrDefs::hitsetkey hitsetkey)
+Eigen::Matrix4d alignmentTransformationContainer::getTransform(const TrkrDefs::hitsetkey hitsetkey, unsigned int subsurfkey)
 {
   Eigen::Matrix4d transform;
-  const auto hitsetrange = transformMap.equal_range(hitsetkey);
-  for( auto mapiter = hitsetrange.first; mapiter != hitsetrange.second; ++mapiter)
+  std::pair<TrkrDefs::hitsetkey, unsigned int> key = std::make_pair(hitsetkey,subsurfkey);
+
+  const auto range = transformMap.equal_range(key);
+  for( auto mapiter = range.first; mapiter != range.second; ++mapiter)
   {
-    if(mapiter->first == hitsetkey)
+    if(mapiter->first == key)
     {
       return mapiter->second;
     }
   }
-  std::cout << "Unable to find hitsetkey: "<< hitsetkey << " in alignmentTransformationContainer" << std::endl;
+  std::cout << "Unable to find hitsetkey: "<< key.first<< " subsurface key:"<< key.second << " in alignmentTransformationContainer" << std::endl;
   exit(1);
 }
