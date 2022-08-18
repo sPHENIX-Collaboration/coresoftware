@@ -12,6 +12,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterMover.h>
@@ -102,6 +103,8 @@ class PHActsTrkFitter : public SubsysReco
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void set_seed_track_map_name(const std::string &map_name) { _seed_track_map_name = map_name; }
 
+  void set_cluster_version(int value) { m_cluster_version = value; }
+
  private:
 
   /// Get all the nodes
@@ -187,6 +190,7 @@ class PHActsTrkFitter : public SubsysReco
 
   // cluster mover utility class
   TpcClusterMover _clusterMover;
+  ClusterErrorPara _ClusErrPara;
 
   std::string m_fieldMap = "";
   TrkrClusterIterationMap* _iteration_map = nullptr;
@@ -205,6 +209,7 @@ class PHActsTrkFitter : public SubsysReco
   TH1 *h_updateTime = nullptr;
   TH1 *h_stateTime = nullptr;
   TH1 *h_rotTime = nullptr;
+  int m_cluster_version = 3;
 };
 
 #endif

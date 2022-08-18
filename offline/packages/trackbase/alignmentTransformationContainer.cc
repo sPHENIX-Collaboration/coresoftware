@@ -36,7 +36,7 @@ void alignmentTransformationContainer::identify(std::ostream &os)
   return;
 }
 
-void alignmentTransformationContainer::addTransform(const TrkrDefs::hitsetkey hitsetkey, Eigen::Matrix4f transform)
+void alignmentTransformationContainer::addTransform(const TrkrDefs::hitsetkey hitsetkey, Eigen::Matrix4d transform)
 {
    transformMap.insert(std::make_pair(hitsetkey, transform));
 }
@@ -55,9 +55,9 @@ void alignmentTransformationContainer::removeTransform(const TrkrDefs::hitsetkey
   }
 }
 
-Eigen::Matrix4f alignmentTransformationContainer::getTransform(const TrkrDefs::hitsetkey hitsetkey)
+Eigen::Matrix4d alignmentTransformationContainer::getTransform(const TrkrDefs::hitsetkey hitsetkey)
 {
-  Eigen::Matrix4f transform;
+  Eigen::Matrix4d transform;
   const auto hitsetrange = transformMap.equal_range(hitsetkey);
   for( auto mapiter = hitsetrange.first; mapiter != hitsetrange.second; ++mapiter)
   {

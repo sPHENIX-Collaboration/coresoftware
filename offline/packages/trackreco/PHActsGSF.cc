@@ -184,8 +184,6 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
   // loop over all clusters
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
 
-  ActsTransformations transformer;
-
   for (auto clusIter = track->begin_cluster_keys();
        clusIter != track->end_cluster_keys();
        ++clusIter)
@@ -212,9 +210,6 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
       // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset 
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
       
-      // transform to global coordinates for z correction 
-      ActsTransformations transformer;
-   
       auto global = m_tGeometry->getGlobalPosition(key, cluster);
       
       if(Verbosity() > 0)

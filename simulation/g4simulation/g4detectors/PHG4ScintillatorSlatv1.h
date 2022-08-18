@@ -16,7 +16,7 @@
 class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
 {
  public:
-  PHG4ScintillatorSlatv1();
+  PHG4ScintillatorSlatv1(){}
   ~PHG4ScintillatorSlatv1() override {}
 
   void identify(std::ostream& os = std::cout) const override;
@@ -41,10 +41,10 @@ class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
   std::pair<std::set<PHG4HitDefs::keytype>::const_iterator, std::set<PHG4HitDefs::keytype>::const_iterator> get_hit_ids() const override { return std::make_pair(hit_id.begin(), hit_id.end()); }
 
  protected:
-  PHG4ScintillatorSlatDefs::keytype key;
-  double edep;
-  double eion;
-  double light_yield;
+  PHG4ScintillatorSlatDefs::keytype key = ~0x0;
+  double edep =0.;
+  double eion = 0.;
+  double light_yield = 0.;
   std::set<PHG4HitDefs::keytype> hit_id;
 
   ClassDefOverride(PHG4ScintillatorSlatv1, 1)

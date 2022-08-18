@@ -58,7 +58,6 @@ class SyncObjectv1 : public SyncObject
   int segmentnumber = -999999;  // segment number
 
   ClassDefOverride(SyncObjectv1, 1)
-
 };
 
 #endif

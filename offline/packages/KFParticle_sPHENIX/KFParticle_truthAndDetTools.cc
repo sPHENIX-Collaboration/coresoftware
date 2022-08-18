@@ -1,7 +1,53 @@
 #include "KFParticle_truthAndDetTools.h"
 
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
+#include "KFParticle_Tools.h"  // for KFParticle_Tools
+
+#include <g4eval/SvtxEvalStack.h>   // for SvtxEvalStack
+#include <g4eval/SvtxTrackEval.h>   // for SvtxTrackEval
+#include <g4eval/SvtxTruthEval.h>   // for SvtxTruthEval
+#include <g4eval/SvtxVertexEval.h>  // for SvtxVertexEval
+
+#include <trackbase/InttDefs.h>                // for getLadderPhiId, getLad...
+#include <trackbase/MvtxDefs.h>                // for getChipId, getStaveId
+#include <trackbase/TpcDefs.h>                 // for getSectorId, getSide
+#include <trackbase/TrkrCluster.h>             // for TrkrCluster
+#include <trackbase/TrkrClusterContainer.h>    // for TrkrClusterContainer
+#include <trackbase/TrkrDefs.h>                // for getLayer, getTrkrId
+#include <trackbase_historic/SvtxTrack.h>      // for SvtxTrack, SvtxTrack::...
+#include <trackbase_historic/SvtxTrackMap.h>   // for SvtxTrackMap, SvtxTrac...
+#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
+#include <trackbase_historic/SvtxVertexMap.h>  // for SvtxVertexMap, SvtxVer...
+
+#include <g4main/PHG4Particle.h>            // for PHG4Particle
+#include <g4main/PHG4TruthInfoContainer.h>  // for PHG4TruthInfoContainer
+#include <g4main/PHG4VtxPoint.h>            // for PHG4VtxPoint
+
+#include <phhepmc/PHHepMCGenEvent.h>     // for PHHepMCGenEvent
+#include <phhepmc/PHHepMCGenEventMap.h>  // for PHHepMCGenEventMap
+
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/getClass.h>        // for getClass
+
+#include <KFParticle.h>  // for KFParticle
+#include <TString.h>     // for TString, operator+
+#include <TTree.h>       // for TTree
+
+#include <HepMC/GenEvent.h>       // for GenEvent::particle_con...
+#include <HepMC/GenParticle.h>    // for GenParticle
+#include <HepMC/GenVertex.h>      // for GenVertex::particle_it...
+#include <HepMC/IteratorRange.h>  // for parents
+#include <HepMC/SimpleVector.h>   // for FourVector
+
+#include <math.h>     // for pow, sqrt
+#include <stdlib.h>   // for NULL, abs
+#include <algorithm>  // for max, find
+#include <iostream>   // for operator<<, endl, basi...
+#include <iterator>   // for end, begin
+#include <map>        // for _Rb_tree_iterator, map
+#include <memory>     // for allocator_traits<>::va...
+#include <utility>    // for pair
+
+class PHNode;
 
 std::map<std::string, int> Use =
     {
@@ -47,7 +93,7 @@ SvtxVertex *KFParticle_truthAndDetTools::getVertex(unsigned int vertex_id, SvtxV
   return matched_vertex;
 }
 
-PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack* thisTrack, PHCompositeNode* topNode)
+PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack *thisTrack, PHCompositeNode *topNode)
 {
   if (!m_svtx_evalstack)
   {
@@ -57,7 +103,7 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack* thisTrack, P
     trackeval = m_svtx_evalstack->get_track_eval();
     trutheval = m_svtx_evalstack->get_truth_eval();
     vertexeval = m_svtx_evalstack->get_vertex_eval();
-  }  
+  }
 
   m_svtx_evalstack->next_event(topNode);
 
@@ -97,12 +143,12 @@ void KFParticle_truthAndDetTools::initializeTruthBranches(TTree *m_tree, int dau
   m_tree->Branch(TString(daughter_number) + "_true_track_history_pT", &m_true_daughter_track_history_pT[daughter_id]);
 }
 
-void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTree */*m_tree*/, KFParticle daughter, int daughter_id, KFParticle vertex, bool m_constrain_to_vertex_truthMatch)
+void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTree * /*m_tree*/, KFParticle daughter, int daughter_id, KFParticle vertex, bool m_constrain_to_vertex_truthMatch)
 {
   float true_px, true_py, true_pz, true_p, true_pt;
 
   PHNodeIterator nodeIter(topNode);
-  PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
+  PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
   if (findNode)
   {
     dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
@@ -111,7 +157,7 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   {
     std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
   }
-  findNode = dynamic_cast<PHNode*>(nodeIter.findFirst(m_vtx_map_node_name_nTuple));
+  findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_vtx_map_node_name_nTuple));
   if (findNode)
   {
     dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name_nTuple);
@@ -123,9 +169,9 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
 
   track = getTrack(daughter.Id(), dst_trackmap);
   g4particle = getTruthTrack(track, topNode);
-  
+
   bool isParticleValid = g4particle == nullptr ? 0 : 1;
-  
+
   true_px = isParticleValid ? (Float_t) g4particle->get_px() : 0.;
   true_py = isParticleValid ? (Float_t) g4particle->get_py() : 0.;
   true_pz = isParticleValid ? (Float_t) g4particle->get_pz() : 0.;
@@ -148,11 +194,11 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   m_true_daughter_vertex_y[daughter_id] = isParticleValid ? g4vertex_point->get_y() : 0.;
   m_true_daughter_vertex_z[daughter_id] = isParticleValid ? g4vertex_point->get_z() : 0.;
 
-  if (m_constrain_to_vertex_truthMatch)  
+  if (m_constrain_to_vertex_truthMatch)
   {
     //Calculate true DCA
-    SvtxVertex* recoVertex = getVertex(vertex.Id(), dst_vertexmap);
-    PHG4VtxPoint* truePoint = vertexeval->max_truth_point_by_ntracks(recoVertex);
+    SvtxVertex *recoVertex = getVertex(vertex.Id(), dst_vertexmap);
+    PHG4VtxPoint *truePoint = vertexeval->max_truth_point_by_ntracks(recoVertex);
 
     KFParticle trueKFParticleVertex;
 
@@ -161,9 +207,9 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
     if (truePoint == NULL)
     {
       std::cout << "KFParticle truth matching: This event has no PHG4VtxPoint information!\n";
-      std::cout << "Your truth track DCA will be measured wrt a reconstructed vertex!" << std::endl; 
+      std::cout << "Your truth track DCA will be measured wrt a reconstructed vertex!" << std::endl;
 
-      f_vertexParameters[0] = recoVertex->get_x(); 
+      f_vertexParameters[0] = recoVertex->get_x();
       f_vertexParameters[1] = recoVertex->get_y();
       f_vertexParameters[2] = recoVertex->get_z();
     }
@@ -197,13 +243,12 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
     m_true_daughter_pv_x[daughter_id] = truePoint == NULL ? -99. : truePoint->get_x();
     m_true_daughter_pv_y[daughter_id] = truePoint == NULL ? -99. : truePoint->get_y();
     m_true_daughter_pv_z[daughter_id] = truePoint == NULL ? -99. : truePoint->get_z();
-
   }
 }
 
-void KFParticle_truthAndDetTools::fillGeant4Branch(PHG4Particle* particle, int daughter_id)
-{ 
-  Float_t pT = sqrt(pow(particle->get_px(), 2) + pow(particle->get_py(), 2)); 
+void KFParticle_truthAndDetTools::fillGeant4Branch(PHG4Particle *particle, int daughter_id)
+{
+  Float_t pT = sqrt(pow(particle->get_px(), 2) + pow(particle->get_py(), 2));
 
   m_true_daughter_track_history_PDG_ID[daughter_id].push_back(particle->get_pid());
   m_true_daughter_track_history_PDG_mass[daughter_id].push_back(0);
@@ -215,7 +260,7 @@ void KFParticle_truthAndDetTools::fillGeant4Branch(PHG4Particle* particle, int d
 }
 
 void KFParticle_truthAndDetTools::fillHepMCBranch(HepMC::GenParticle *particle, int daughter_id)
-{ 
+{
   HepMC::FourVector myFourVector = particle->momentum();
 
   m_true_daughter_track_history_PDG_ID[daughter_id].push_back(particle->pdg_id());
@@ -227,17 +272,17 @@ void KFParticle_truthAndDetTools::fillHepMCBranch(HepMC::GenParticle *particle, 
   m_true_daughter_track_history_pT[daughter_id].push_back((Float_t) myFourVector.perp());
 }
 
-int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree */*m_tree*/, KFParticle daughter, int daughter_id)
+int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * /*m_tree*/, KFParticle daughter, int daughter_id)
 {
   //Make dummy particle for null pointers and missing nodes
-  HepMC::GenParticle* dummyParticle = new HepMC::GenParticle();
-  HepMC::FourVector dummyFourVector(0,0,0,0);
+  HepMC::GenParticle *dummyParticle = new HepMC::GenParticle();
+  HepMC::FourVector dummyFourVector(0, 0, 0, 0);
   dummyParticle->set_momentum(dummyFourVector);
   dummyParticle->set_pdg_id(0);
   dummyParticle->set_generated_mass(0.);
 
   PHNodeIterator nodeIter(topNode);
-  PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
+  PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
   if (findNode)
   {
     dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
@@ -271,7 +316,7 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree */
   m_genevt = m_geneventmap->get(1);
   if (!m_genevt)
   {
-    std::cout <<  "KFParticle truth matching: Missing node PHHepMCGenEvent" << std::endl;
+    std::cout << "KFParticle truth matching: Missing node PHHepMCGenEvent" << std::endl;
     std::cout << "You will have no mother information" << std::endl;
     fillHepMCBranch(dummyParticle, daughter_id);
     return 0;
@@ -282,7 +327,7 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree */
   //This can happen if you limit the decay volume in the generator
   if (g4particle->get_parent_id() != 0)
   {
-    PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst("G4TruthInfo"));
+    PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("G4TruthInfo"));
     if (findNode)
     {
       m_truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
@@ -296,12 +341,12 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree */
       g4particle = m_truthinfo->GetParticle(g4particle->get_parent_id());
       fillGeant4Branch(g4particle, daughter_id);
     }
-  }  
+  }
 
-  HepMC::GenEvent* theEvent = m_genevt->getEvent();
-  HepMC::GenParticle* prevParticle = nullptr;
+  HepMC::GenEvent *theEvent = m_genevt->getEvent();
+  HepMC::GenParticle *prevParticle = nullptr;
 
-  int forbiddenPDGIDs[] = {21,22}; //Stop tracing history when we reach quarks, gluons and photons
+  int forbiddenPDGIDs[] = {21, 22};  //Stop tracing history when we reach quarks, gluons and photons
 
   for (HepMC::GenEvent::particle_const_iterator p = theEvent->particles_begin(); p != theEvent->particles_end(); ++p)
   {
@@ -314,11 +359,15 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree */
         for (HepMC::GenVertex::particle_iterator mother = prevParticle->production_vertex()->particles_begin(HepMC::parents);
              mother != prevParticle->production_vertex()->particles_end(HepMC::parents); ++mother)
         {
-          if (std::find(std::begin(forbiddenPDGIDs), std::end(forbiddenPDGIDs), 
-              abs((*mother)->pdg_id())) != std::end(forbiddenPDGIDs)) {breakOut = true; break;}
+          if (std::find(std::begin(forbiddenPDGIDs), std::end(forbiddenPDGIDs),
+                        abs((*mother)->pdg_id())) != std::end(forbiddenPDGIDs))
+          {
+            breakOut = true;
+            break;
+          }
 
-           fillHepMCBranch((*mother), daughter_id);
-           prevParticle = *mother;
+          fillHepMCBranch((*mother), daughter_id);
+          prevParticle = *mother;
         }
         if (breakOut) break;
       }
@@ -326,7 +375,7 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree */
   }
 
   return 0;
-}//End of function
+}  //End of function
 
 void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daughter_id, std::string daughter_number)
 {
@@ -348,10 +397,10 @@ void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daug
 }
 
 void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
-                                                 TTree */*m_tree*/, KFParticle daughter, int daughter_id)
+                                                 TTree * /*m_tree*/, KFParticle daughter, int daughter_id)
 {
   PHNodeIterator nodeIter(topNode);
-  PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
+  PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
   if (findNode)
   {
     dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
@@ -360,7 +409,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   {
     std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
   }
- 
+
   track = getTrack(daughter.Id(), dst_trackmap);
 
   detector_emcal_deltaphi[daughter_id] = track->get_cal_dphi(SvtxTrack::CAL_LAYER(1));
@@ -415,11 +464,11 @@ void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, s
 }
 
 void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
-                                                     TTree */*m_tree*/, KFParticle daughter, int daughter_id)
+                                                     TTree * /*m_tree*/, KFParticle daughter, int daughter_id)
 {
   PHNodeIterator nodeIter(topNode);
 
-  PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
+  PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
   if (findNode)
   {
     dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
@@ -429,7 +478,7 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
     std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
   }
 
-  findNode = dynamic_cast<PHNode*>(nodeIter.findFirst("TRKR_CLUSTER"));
+  findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("TRKR_CLUSTER"));
   if (findNode)
   {
     dst_clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
@@ -482,7 +531,7 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
 }
 
 void KFParticle_truthAndDetTools::allPVInfo(PHCompositeNode *topNode,
-                                            TTree */*m_tree*/, 
+                                            TTree * /*m_tree*/,
                                             KFParticle motherParticle,
                                             std::vector<KFParticle> daughters,
                                             std::vector<KFParticle> intermediates)
@@ -495,19 +544,19 @@ void KFParticle_truthAndDetTools::allPVInfo(PHCompositeNode *topNode,
     allPV_x.push_back(primaryVertices[i].GetX());
     allPV_y.push_back(primaryVertices[i].GetY());
     allPV_z.push_back(primaryVertices[i].GetZ());
-  
-    allPV_mother_IP.push_back(motherParticle.GetDistanceFromVertex(primaryVertices[i]));  
+
+    allPV_mother_IP.push_back(motherParticle.GetDistanceFromVertex(primaryVertices[i]));
     allPV_mother_IPchi2.push_back(motherParticle.GetDeviationFromVertex(primaryVertices[i]));
 
     for (unsigned int j = 0; j < daughters.size(); ++j)
     {
-      allPV_daughter_IP[j].push_back(daughters[j].GetDistanceFromVertex(primaryVertices[i]));  
+      allPV_daughter_IP[j].push_back(daughters[j].GetDistanceFromVertex(primaryVertices[i]));
       allPV_daughter_IPchi2[j].push_back(daughters[j].GetDeviationFromVertex(primaryVertices[i]));
     }
 
     for (unsigned int j = 0; j < intermediates.size(); ++j)
     {
-      allPV_intermediates_IP[j].push_back(intermediates[j].GetDistanceFromVertex(primaryVertices[i]));  
+      allPV_intermediates_IP[j].push_back(intermediates[j].GetDistanceFromVertex(primaryVertices[i]));
       allPV_intermediates_IPchi2[j].push_back(intermediates[j].GetDeviationFromVertex(primaryVertices[i]));
     }
   }
@@ -538,9 +587,9 @@ void KFParticle_truthAndDetTools::clearVectors()
     tpc_sectorID[i].clear();
     tpc_side[i].clear();
 
-   //PV vectors
-   allPV_daughter_IP[i].clear();
-   allPV_daughter_IPchi2[i].clear();
+    //PV vectors
+    allPV_daughter_IP[i].clear();
+    allPV_daughter_IPchi2[i].clear();
   }
 
   allPV_x.clear();

@@ -164,6 +164,7 @@ int Fun4AllDstPileupInputManager::run(const int nevents)
 
   // create merger node
   Fun4AllDstPileupMerger merger;
+  merger.copyDetectorActiveCrossings(m_DetectorTiming);
   merger.load_nodes(m_dstNode);
 
   // generate background collisions
@@ -386,4 +387,17 @@ readagain:
     goto readagain;
   }
   return 0;
+}
+
+void Fun4AllDstPileupInputManager::setDetectorActiveCrossings(const std::string &name, const int nbcross)
+{
+  setDetectorActiveCrossings(name,-nbcross,nbcross);
+}
+
+void Fun4AllDstPileupInputManager::setDetectorActiveCrossings(const std::string &name, const int min, const int max)
+{
+  std::string nodename = "G4HIT_" + name;
+// compensate that active for one bunch crossign means delta_t = 0
+  m_DetectorTiming.insert(std::make_pair(nodename,std::make_pair(m_time_between_crossings * (min+1), m_time_between_crossings * (max-1))));
+  return;
 }

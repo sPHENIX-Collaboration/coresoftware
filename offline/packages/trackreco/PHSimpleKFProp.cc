@@ -598,9 +598,9 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
       double cy = globalpos(1);
       double cz = globalpos(2);
       double cphi = atan2(cy,cx);
-      double cxerr = sqrt(fitter->getClusterError(nc,globalpos,0,0));
-      double cyerr = sqrt(fitter->getClusterError(nc,globalpos,1,1));
-      double czerr = sqrt(fitter->getClusterError(nc,globalpos,2,2));
+      double cxerr = sqrt(fitter->getClusterError(nc,next_ckey,globalpos,0,0));
+      double cyerr = sqrt(fitter->getClusterError(nc,next_ckey,globalpos,1,1));
+      double czerr = sqrt(fitter->getClusterError(nc,next_ckey,globalpos,2,2));
       double alpha = cphi-old_phi;
       double tX = kftrack.GetX();
       double tY = kftrack.GetY();
@@ -784,9 +784,9 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 	}
       */      
 
-      double cxerr = sqrt(fitter->getClusterError(cc,ccglob,0,0));
-      double cyerr = sqrt(fitter->getClusterError(cc,ccglob,1,1));
-      double czerr = sqrt(fitter->getClusterError(cc,ccglob,2,2));
+      double cxerr = sqrt(fitter->getClusterError(cc,closest_ckey,ccglob,0,0));
+      double cyerr = sqrt(fitter->getClusterError(cc,closest_ckey,ccglob,1,1));
+      double czerr = sqrt(fitter->getClusterError(cc,closest_ckey,ccglob,2,2));
       double ccphi = atan2(ccY,ccX);
       if(Verbosity()>0) std::cout << "cluster position: (" << ccX << ", " << ccY << ", " << ccZ << ")" << std::endl;
       if(Verbosity()>0) std::cout << "cluster position error: (" << cxerr << ", " << cyerr << ", " << czerr << ")" << std::endl;
@@ -812,8 +812,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 //        kftrack.SetY(-ccX*sin(ccphi)+ccY*cos(ccphi));
 //        kftrack.SetZ(cc->getZ());
         double ccaY = -ccX*sin(ccphi)+ccY*cos(ccphi);
-        double ccerrY = fitter->getClusterError(cc,ccglob,0,0)*sin(ccphi)*sin(ccphi)+fitter->getClusterError(cc,ccglob,0,1)*sin(ccphi)*cos(ccphi)+fitter->getClusterError(cc,ccglob,1,1)*cos(ccphi)*cos(ccphi);
-        double ccerrZ = fitter->getClusterError(cc,ccglob,2,2);
+        double ccerrY = fitter->getClusterError(cc,closest_ckey,ccglob,0,0)*sin(ccphi)*sin(ccphi)+fitter->getClusterError(cc,closest_ckey,ccglob,0,1)*sin(ccphi)*cos(ccphi)+fitter->getClusterError(cc,closest_ckey,ccglob,1,1)*cos(ccphi)*cos(ccphi);
+        double ccerrZ = fitter->getClusterError(cc,closest_ckey,ccglob,2,2);
         kftrack.Filter(ccaY,ccZ,ccerrY,ccerrZ,_max_sin_phi);
         if(Verbosity()>0) std::cout << "added cluster" << std::endl;
         old_phi = ccphi;
@@ -1006,9 +1006,9 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 	}
       */
 
-      double cxerr = sqrt(fitter->getClusterError(cc,ccglob2,0,0));
-      double cyerr = sqrt(fitter->getClusterError(cc,ccglob2,1,1));
-      double czerr = sqrt(fitter->getClusterError(cc,ccglob2,2,2));
+      double cxerr = sqrt(fitter->getClusterError(cc,closest_ckey,ccglob2,0,0));
+      double cyerr = sqrt(fitter->getClusterError(cc,closest_ckey,ccglob2,1,1));
+      double czerr = sqrt(fitter->getClusterError(cc,closest_ckey,ccglob2,2,2));
       if(Verbosity()>0) std::cout << "cluster position: (" << ccX << ", " << ccY << ", " << ccZ << ")" << std::endl;
       double ccphi = atan2(ccY,ccX);
       if(Verbosity()>0) std::cout << "cluster position errors: (" << cxerr << ", " << cyerr << ", " << czerr << ")" << std::endl;
@@ -1032,8 +1032,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
 */
         kftrack.Rotate(alpha,kfline,10.);
         double ccaY = -ccX*sin(ccphi)+ccY*cos(ccphi);
-        double ccerrY = fitter->getClusterError(cc,ccglob2,0,0)*sin(ccphi)*sin(ccphi)+fitter->getClusterError(cc,ccglob2,1,0)*sin(ccphi)*cos(ccphi)+fitter->getClusterError(cc,ccglob2,1,1)*cos(ccphi)*cos(ccphi);
-        double ccerrZ = fitter->getClusterError(cc,ccglob2,2,2);
+        double ccerrY = fitter->getClusterError(cc,closest_ckey,ccglob2,0,0)*sin(ccphi)*sin(ccphi)+fitter->getClusterError(cc,closest_ckey,ccglob2,1,0)*sin(ccphi)*cos(ccphi)+fitter->getClusterError(cc,closest_ckey,ccglob2,1,1)*cos(ccphi)*cos(ccphi);
+        double ccerrZ = fitter->getClusterError(cc,closest_ckey,ccglob2,2,2);
         kftrack.Filter(ccaY,ccZ,ccerrY,ccerrZ,_max_sin_phi);
 //        kftrack.SetX(ccX*cos(ccphi)+ccY*sin(ccphi));
 //        kftrack.SetY(-ccX*sin(ccphi)+ccY*cos(ccphi));

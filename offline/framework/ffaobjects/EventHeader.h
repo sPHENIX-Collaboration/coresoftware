@@ -46,11 +46,11 @@ class EventHeader : public PHObject
   //! bunch crossing
   virtual int64_t get_BunchCrossing() const { return get_intval("bcr"); }
 
-  virtual void set_floatval(const std::string &/*name*/, const float /*fval*/) { return; }
-  virtual float get_floatval(const std::string &/*name*/) const { return NAN; }
+  virtual void set_floatval(const std::string & /*name*/, const float /*fval*/) { return; }
+  virtual float get_floatval(const std::string & /*name*/) const { return NAN; }
 
-  virtual void set_intval(const std::string &/*name*/, const int64_t /*ival*/) { return; }
-  virtual int64_t get_intval(const std::string &/*name*/) const { return -999999; }
+  virtual void set_intval(const std::string & /*name*/, const int64_t /*ival*/) { return; }
+  virtual int64_t get_intval(const std::string & /*name*/) const { return -999999; }
 
   /// get Event Type (Data,rejected,EOR,BOR,...)
   int get_EvtType() const { return get_intval("type"); }

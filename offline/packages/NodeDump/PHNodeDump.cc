@@ -3,6 +3,7 @@
 
 #include "DumpBbcVertexMap.h"
 #include "DumpCaloTriggerInfo.h"
+#include "DumpCdbUrlSave.h"
 #include "DumpCentralityInfo.h"
 #include "DumpEpInfo.h"
 #include "DumpEventHeader.h"
@@ -178,7 +179,7 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
     {
       // need a static cast since only from DST these guys are of type PHIODataNode<TObject*>
       // when created they are normally  PHIODataNode<PHObject*> but can be anything else as well
-      TObject *tmp = (TObject *) (static_cast<PHIODataNode<TObject> *>(node))->getData();
+      TObject *tmp = static_cast<TObject *> ((static_cast<PHIODataNode<TObject> *>(node))->getData());
       if (tmp->InheritsFrom("BbcVertexMap"))
       {
         newdump = new DumpBbcVertexMap(NodeName);
@@ -186,6 +187,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("CaloTriggerInfo"))
       {
         newdump = new DumpCaloTriggerInfo(NodeName);
+      }
+      else if (tmp->InheritsFrom("CdbUrlSave"))
+      {
+        newdump = new DumpCdbUrlSave(NodeName);
       }
       else if (tmp->InheritsFrom("CentralityInfo"))
       {

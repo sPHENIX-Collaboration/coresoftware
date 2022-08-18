@@ -8,6 +8,7 @@
 #include <fstream>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
+#include <Eigen/LU>
 //#include <fun4all/Fun4AllReturnCodes.h>
 //#include <g4intt/G4_Intt.C>
 
@@ -55,20 +56,24 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
       std::cout << i << " " <<hitsetkey << " " <<alpha<< " " <<beta<< " " <<gamma<< " " <<dx<< " " <<dy<< " " <<dz << std::endl;
 
       // Perturbation translations and angles for stave and sensor
-      Eigen::Vector3f staveTranslation (0.0,0.0,0.0);
-      Eigen::Vector3f staveAngles (0.0,0.0,0.0);
-      Eigen::Vector3f sensorTranslation (0.0,0.0,0.0);
-      Eigen::Vector3f sensorAngles (0.0,0.0,0);  
+      // Eigen::Vector3d staveTranslation (0.0,0.0,0.0);
+      // Eigen::Vector3d staveAngles (0.0,0.0,0.0);
+      // Eigen::Vector3d sensorTranslation (0.0,0.0,0.0);
+      Eigen::Vector3d sensorAngles (0.0,0.0,0);  
+      Eigen::Vector3d millepedeTranslation(0,0,0); 
 
-      Eigen::Matrix4f transform = makeTransform(hitsetkey, staveTranslation, staveAngles, sensorTranslation, sensorAngles);
 
-      Eigen::Matrix3d globalRotation = rotateToGlobal(hitsetkey);
-      std::cout << " global Rotation: " << globalRotation<< std::endl;
-      //Eigen::Vector4f test (0.5,0.0,0.6,1);
-      //Eigen::Vector4f firstPoint = transform*test;
+      Eigen::Matrix4d transform = makeTransform(hitsetkey, millepedeTranslation, sensorAngles);
+
+      //Eigen::Matrix3d globalRotation = rotateToGlobal(hitsetkey);
+      //std::cout << " global Rotation: " << globalRotation<< std::endl;
+     
+
+      //Eigen::Vector4d test (0.5,0.0,0.6,1);
+      //Eigen::Vector4d firstPoint = transform*test;
       //std::cout << firstPoint << std::endl;
 
-      //Eigen::Vector4f finalPoint = transform.inverse()*firstPoint;
+      //Eigen::Vector4d finalPoint = transform.inverse()*firstPoint;
       //std::cout << finalPoint << std::endl;
 	   
       transformMap->addTransform(hitsetkey,transform);
@@ -82,13 +87,14 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 } 
 
 
+
 Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(TrkrDefs::hitsetkey hitsetkey)
 {  
 
-//unsigned int trkrId = TrkrDefs::getTrkrId(hitsetkey); // specify between detectors
+  //unsigned int trkrId = TrkrDefs::getTrkrId(hitsetkey); // specify between detectors
   
-  auto surfMaps = m_tGeometry->maps();
-  Surface surf = surfMaps.getSiliconSurface(hitsetkey);;
+  ActsSurfaceMaps surfMaps = m_tGeometry->maps();
+  Surface surf             = surfMaps.getSiliconSurface(hitsetkey);
 
   // if(trkrId == TrkrDefs::mvtxId or trkrId == TrkrDefs::inttId)
   //   {
@@ -105,26 +111,35 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(TrkrDefs::hitsetkey hits
   //   }
 
 
-  //surface *surf = surfMaps->getSiliconSurface(hitsetkey);
+  unsigned int layer                          = TrkrDefs::getLayer(hitsetkey);
+  unsigned int stave                          = MvtxDefs::getStaveId(hitsetkey);
+  unsigned int chip                           = MvtxDefs::getChipId(hitsetkey);
 
-  Eigen::Vector3d ylocal (0,1,0);
-  Eigen::Vector3d sensorNormal = surf->normal(m_tGeometry->geometry().geoContext);
-  //Eigen::Vector3d sensorCenter = surf->center(m_tGeometry->geoContext());
+  std::cout << " stave: " << stave<<" layer: "<< layer << " chip: "<< chip << std::endl;
 
-  sensorNormal = sensorNormal/sensorNormal.norm(); // make unit vector 
-  double sinTheta     = ylocal.dot(sensorNormal);
-  double cosTheta     = ylocal.cross(sensorNormal).norm();
-
-  Eigen::Vector3d vectorRejection = (sensorNormal - (ylocal.dot(sensorNormal))*sensorNormal)/(sensorNormal - (ylocal.dot(sensorNormal))*sensorNormal).norm();
+  Eigen::Vector3d ylocal(0,1,0);
+  Eigen::Vector3d sensorNormal    = -surf->normal(m_tGeometry->geometry().geoContext);
+  sensorNormal                    = sensorNormal/sensorNormal.norm(); // make unit vector 
+  std::cout << "sensor normal: " <<sensorNormal<<std::endl;
+  double cosTheta                 = ylocal.dot(sensorNormal);
+  double sinTheta                 = (ylocal.cross(sensorNormal)).norm();
+  Eigen::Vector3d vectorRejection = (sensorNormal - (ylocal.dot(sensorNormal))*ylocal)/(sensorNormal - (ylocal.dot(sensorNormal))*ylocal).norm();
   Eigen::Vector3d perpVector      =  sensorNormal.cross(ylocal);
 
 
   //Initialize and fill matrices
   Eigen::Matrix3d fInverse;
-  fInverse.col(0) = ylocal;  // also try F.row(0) = A, then use inverse
-  fInverse.col(1) = vectorRejection;
-  fInverse.col(2) = perpVector;
+  fInverse(0,0) = ylocal(0);
+  fInverse(1,0) = ylocal(1);
+  fInverse(2,0) = ylocal(2);
+  fInverse(0,1) = vectorRejection(0);
+  fInverse(1,1) = vectorRejection(1); 
+  fInverse(2,1) = vectorRejection(2);
+  fInverse(0,2) = perpVector(0);
+  fInverse(1,2) = perpVector(1);
+  fInverse(2,2) = perpVector(2);
   
+
   Eigen::Matrix3d G;
   G(0,0) =  cosTheta;
   G(0,1) = -sinTheta;
@@ -132,32 +147,45 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(TrkrDefs::hitsetkey hits
   G(1,0) =  sinTheta;
   G(1,1) =  cosTheta;
   G(1,2) =  0;
+  G(2,0) =  0;
   G(2,1) =  0;
-  G(2,2) =  0;
   G(2,2) =  1;
 
-  Eigen::Matrix3d globalRotation = fInverse*G*(fInverse.inverse());
- 
+
+  Eigen::Matrix3d globalRotation = fInverse * G * (fInverse.inverse());
+  
+  std::cout<< "G matrix: " << std::endl << G << std::endl << " F inverse: "<< std::endl <<fInverse<< std::endl <<" F: "<< std::endl <<fInverse.inverse()<<std::endl  << " global rotation:  "<< std::endl << globalRotation << std::endl <<" identity:"<< std::endl << fInverse * (fInverse.inverse()) <<std::endl;
+
   //ylocal is A, sensor Normal is b
   return globalRotation;
 }
 
 
-
-Eigen::Matrix4f AlignmentTransformation::makeAffineMatrix(Eigen::Vector3f rotationAnglesXYZ, Eigen::Vector3f translationVector)
+Eigen::Matrix4d AlignmentTransformation::makeAffineMatrix(Eigen::Vector3d rotationAnglesXYZ, Eigen::Vector3d translationVector)
 {
   // Creates 4x4 affine matrix given rotation angles about each axis and translationVector 
     
-  Eigen::Transform<float, 3, Eigen::Affine> affineMatrix;
-  affineMatrix = Eigen::Translation<float, 3>(translationVector);
-  affineMatrix.rotate(Eigen::AngleAxis<float>(rotationAnglesXYZ(0), Eigen::Vector3f::UnitX()));
-  affineMatrix.rotate(Eigen::AngleAxis<float>(rotationAnglesXYZ(1), Eigen::Vector3f::UnitY()));
-  affineMatrix.rotate(Eigen::AngleAxis<float>(rotationAnglesXYZ(2), Eigen::Vector3f::UnitZ()));
+  Eigen::Transform<double, 3, Eigen::Affine> affineMatrix;
+  affineMatrix = Eigen::Translation<double, 3>(translationVector);
+  affineMatrix.rotate(Eigen::AngleAxis<double>(rotationAnglesXYZ(0), Eigen::Vector3d::UnitX()));
+  affineMatrix.rotate(Eigen::AngleAxis<double>(rotationAnglesXYZ(1), Eigen::Vector3d::UnitY()));
+  affineMatrix.rotate(Eigen::AngleAxis<double>(rotationAnglesXYZ(2), Eigen::Vector3d::UnitZ()));
+  return affineMatrix.matrix();
+}
+
+Eigen::Matrix4d AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector)
+{
+  // Creates 4x4 affine matrix given rotation angles about each axis and translationVector 
+  Eigen::Matrix4d affineMatrix;
+  affineMatrix.setIdentity();  // set bottom row of matrix
+  affineMatrix.block<3,3>(0,0) = rotationMatrix;
+  affineMatrix.block<3,1>(0,3) = translationVector;
   return affineMatrix.matrix();
 }
 
 
-Eigen::Matrix4f AlignmentTransformation::mvtxTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3f staveTrans, Eigen::Vector3f staveAngles, Eigen::Vector3f sensorTrans, Eigen::Vector3f sensorAngles)
+
+Eigen::Matrix4d AlignmentTransformation::mvtxTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3d staveTrans, Eigen::Vector3d staveAngles, Eigen::Vector3d sensorTrans, Eigen::Vector3d sensorAngles)
 {
   std::cout << "Creating MVTX Transform..." << std::endl;
 
@@ -170,10 +198,10 @@ Eigen::Matrix4f AlignmentTransformation::mvtxTransform(TrkrDefs::hitsetkey hitse
   unsigned int chip                           = MvtxDefs::getChipId(hitsetkey);
 
 
-  Eigen::Vector3f moduleInStave (inner_loc_halfstave_in_stave_data[0],inner_loc_halfstave_in_stave_data[1],inner_loc_halfstave_in_stave_data[2]);
-  Eigen::Vector3f sensorInChip  (loc_sensor_in_chip_data[0], loc_sensor_in_chip_data[1], loc_sensor_in_chip_data[2]);
-  Eigen::Vector3f chipInModule  (inner_loc_chip_in_module_data[chip][0],inner_loc_chip_in_module_data[chip][1],inner_loc_chip_in_module_data[chip][2]); 
-  Eigen::Vector3f implicitTrans = moduleInStave + sensorInChip + chipInModule;  // sensor translation implicit to mvtx
+  Eigen::Vector3d moduleInStave (inner_loc_halfstave_in_stave_data[0],inner_loc_halfstave_in_stave_data[1],inner_loc_halfstave_in_stave_data[2]);
+  Eigen::Vector3d sensorInChip  (loc_sensor_in_chip_data[0], loc_sensor_in_chip_data[1], loc_sensor_in_chip_data[2]);
+  Eigen::Vector3d chipInModule  (inner_loc_chip_in_module_data[chip][0],inner_loc_chip_in_module_data[chip][1],inner_loc_chip_in_module_data[chip][2]); 
+  Eigen::Vector3d implicitTrans = moduleInStave + sensorInChip + chipInModule;  // sensor translation implicit to mvtx
     
 
   int staveNum   = PHG4MvtxDefs::mvtxdat[layer][5];       // Number of staves per layer
@@ -188,13 +216,13 @@ Eigen::Matrix4f AlignmentTransformation::mvtxTransform(TrkrDefs::hitsetkey hitse
 
 
   // Create Eigen Matrices for sensor to stave and stave to global transformation
-  Eigen::Vector3f sensorTranslation = sensorTrans + implicitTrans;
-  Eigen::Vector3f sensorRotation    = sensorAngles; 
-  Eigen::Matrix4f sensorTransform   = AlignmentTransformation::makeAffineMatrix(sensorRotation, sensorTranslation);
-  Eigen::Vector3f staveTranslation  (staveTrans(0) + xRmid, staveTrans(1) + yRmid, staveTrans(2));
-  Eigen::Vector3f staveRotation     (staveAngles(0), staveAngles(1), staveAngles(2) + phi + M_PI/2 + phi_tilt);
-  Eigen::Matrix4f staveTransform    = AlignmentTransformation::makeAffineMatrix(staveRotation, staveTranslation);
-  Eigen::Matrix4f combinedTransform = staveTransform*sensorTransform;
+  Eigen::Vector3d sensorTranslation = sensorTrans + implicitTrans;
+  Eigen::Vector3d sensorRotation    = sensorAngles; 
+  Eigen::Matrix4d sensorTransform   = AlignmentTransformation::makeAffineMatrix(sensorRotation, sensorTranslation);
+  Eigen::Vector3d staveTranslation  (staveTrans(0) + xRmid, staveTrans(1) + yRmid, staveTrans(2));
+  Eigen::Vector3d staveRotation     (staveAngles(0), staveAngles(1), staveAngles(2) + phi + M_PI/2 + phi_tilt);
+  Eigen::Matrix4d staveTransform    = AlignmentTransformation::makeAffineMatrix(staveRotation, staveTranslation);
+  Eigen::Matrix4d combinedTransform = staveTransform*sensorTransform;
 
 
   //if(Verbosity()>-1)
@@ -214,7 +242,7 @@ Eigen::Matrix4f AlignmentTransformation::mvtxTransform(TrkrDefs::hitsetkey hitse
 }
 
 
-Eigen::Matrix4f AlignmentTransformation::inttTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3f staveTrans, Eigen::Vector3f staveAngles, Eigen::Vector3f sensorTrans, Eigen::Vector3f sensorAngles)
+Eigen::Matrix4d AlignmentTransformation::inttTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3d staveTrans, Eigen::Vector3d staveAngles, Eigen::Vector3d sensorTrans, Eigen::Vector3d sensorAngles)
 {
   std::cout << "Creating INTT Transform..." << std::endl;
 
@@ -301,47 +329,68 @@ Eigen::Matrix4f AlignmentTransformation::inttTransform(TrkrDefs::hitsetkey hitse
   //const double fRotate = phi + offsetrot;  // rotate in its own frame to make sensor perp to radial vector (p), then additionally rotate to account for ladder phi
 
 
-  Eigen::Vector3f implicitTrans (sensor_offset_x_ladder,0,m_PosZ); // sensor translation implicit to intt
-  Eigen::Vector3f sensorTranslation = sensorTrans + implicitTrans;
-  Eigen::Matrix4f sensorTransform   = AlignmentTransformation::makeAffineMatrix(sensorAngles, sensorTranslation);
-  Eigen::Vector3f staveTranslation (staveTrans(0) + xRmid, staveTrans(1) + yRmid, staveTrans(2));
-  Eigen::Vector3f staveRot         (staveAngles(0), staveAngles(1), staveAngles(2) + phi + M_PI/2);
-  Eigen::Matrix4f staveTransform    = AlignmentTransformation::makeAffineMatrix(staveRot, staveTranslation);
-  Eigen::Matrix4f combinedTransform = staveTransform*sensorTransform;
-
+  Eigen::Vector3d implicitTrans (sensor_offset_x_ladder,0,m_PosZ); // sensor translation implicit to intt
+  Eigen::Vector3d sensorTranslation = sensorTrans + implicitTrans;
+  Eigen::Matrix4d sensorTransform   = AlignmentTransformation::makeAffineMatrix(sensorAngles, sensorTranslation);
+  Eigen::Vector3d staveTranslation (staveTrans(0) + xRmid, staveTrans(1) + yRmid, staveTrans(2));
+  Eigen::Vector3d staveRot         (staveAngles(0), staveAngles(1), staveAngles(2) + phi + M_PI/2);
+  Eigen::Matrix4d staveTransform    = AlignmentTransformation::makeAffineMatrix(staveRot, staveTranslation);
+  Eigen::Matrix4d combinedTransform = staveTransform*sensorTransform;
 
   std::cout << "m_PosZ:" << m_PosZ << " implicit trans: " << implicitTrans<<std::endl;
-
   
   return combinedTransform;
 }
 
 
-Eigen::Matrix4f AlignmentTransformation::makeTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3f staveTrans, Eigen::Vector3f staveAngles, Eigen::Vector3f sensorTrans, Eigen::Vector3f sensorAngles)
+Eigen::Matrix4d AlignmentTransformation::makeTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles)
 {
-  unsigned int trkrId = TrkrDefs::getTrkrId(hitsetkey); // specify between detectors
+  unsigned int trkrId      = TrkrDefs::getTrkrId(hitsetkey); // specify between detectors
+  ActsSurfaceMaps surfMaps = m_tGeometry->maps();
 
-  if(trkrId == TrkrDefs::mvtxId)
+  Eigen::AngleAxisd alpha(sensorAngles(0), Eigen::Vector3d::UnitX());
+  Eigen::AngleAxisd beta(sensorAngles(1), Eigen::Vector3d::UnitY());
+  Eigen::AngleAxisd gamma(sensorAngles(2), Eigen::Vector3d::UnitZ());
+  Eigen::Quaternion<double> q       = gamma*beta*alpha;
+  Eigen::Matrix3d millepedeRotation = q.matrix();
+
+  Eigen::Matrix3d globalRotation    = AlignmentTransformation::rotateToGlobal(hitsetkey);
+  Eigen::Matrix3d combinedRotation  = globalRotation * millepedeRotation;
+  Surface surf;
+
+  if(trkrId == TrkrDefs::mvtxId or trkrId == TrkrDefs::inttId)
     {
-      // Eigen::Vector3d nullVector (0,0,0);
-      //make affine matrix with millepede sensor rotations ad null transaltion z placement 
-      //Eigen::Matrix4d millepedeRotation = AlignmentTransformation::makeAffineMatrix(sensorAngles,nullVector);
-      // make affine matrix with global rotations and millepede perturbation + center vector perturbation
-      
-      
-      Eigen::Matrix4f transformation = AlignmentTransformation::mvtxTransform(hitsetkey,staveTrans,staveAngles,sensorTrans,sensorAngles);
-      return transformation;
+      surf = surfMaps.getSiliconSurface(hitsetkey);
     }
-  else if(trkrId == TrkrDefs::inttId)
+  else if(trkrId == TrkrDefs::tpcId)
     {
-      Eigen::Matrix4f transformation = AlignmentTransformation::inttTransform(hitsetkey,staveTrans,staveAngles,sensorTrans,sensorAngles);
-      return transformation;
+      // surf = surfMaps.getTpcSurface(hitsetkey);
+
     }
   else
     {
       std::cout << "Invalid hitsetkey";
       exit(1);
     }
+
+  Eigen::Vector3d sensorCenter      = surf->center(m_tGeometry->geometry().geoContext)*0.1;
+  Eigen::Vector3d globalTranslation = sensorCenter + millepedeTranslation;
+  std::cout << "sensor center: " << sensorCenter << " millepede trans: " << millepedeTranslation <<std::endl;
+
+  Eigen::Matrix4d transformation    = AlignmentTransformation::makeAffineMatrix(combinedRotation,globalTranslation);
+
+  Eigen::Vector3d dummyVector(0,0,0);
+  Eigen::Matrix4d oldtransform = AlignmentTransformation::mvtxTransform(hitsetkey,dummyVector,dummyVector,dummyVector,dummyVector);
+
+  
+
+  std::cout << "New Transform: "<< std::endl<< transformation << std::endl <<"old Transform"<<std::endl << oldtransform <<std::endl;
+      
+
+
+  return transformation;
+    
+
 }
 
 

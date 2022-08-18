@@ -11,8 +11,6 @@
 #include <iostream>
 #include <utility>  // for pair
 
-using namespace std;
-
 PHG4ZDCDisplayAction::PHG4ZDCDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
 {
@@ -76,7 +74,7 @@ void PHG4ZDCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     }
     else
     {
-      cout << GetName() << " unknown logical volume " << it.second << endl;
+      std::cout << GetName() << " unknown logical volume " << it.second << std::endl;
       gSystem->Exit(1);
     }
     logvol->SetVisAttributes(visatt);

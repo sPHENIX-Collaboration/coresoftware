@@ -121,10 +121,6 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   if(buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  // Alignment Transformation declaration of instance 
-  AlignmentTransformation alignment_transformation;
-  alignment_transformation.createMap(topNode);
-
   /// Set the actsGeometry struct to be put on the node tree
   ActsTrackingGeometry trackingGeometry;
   trackingGeometry.tGeometry = m_tGeometry;
@@ -154,6 +150,11 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->setGeometry(trackingGeometry);
   m_actsGeometry->setSurfMaps(surfMaps);
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
+
+
+  // Alignment Transformation declaration of instance 
+  AlignmentTransformation alignment_transformation;
+  alignment_transformation.createMap(topNode);
 
   // print
   if( Verbosity() )
@@ -1046,7 +1047,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<doub
     if(layer == 30)
       std::cout << "   world = " << world[0] << "  " << world[1] 
 		<< "  " << world[2] << " phi_world " 
-		<< phi_world*180/3.14159 << " layer " << layer 
+		<< phi_world*180/M_PI << " layer " << layer
 		<< " readout_mod " << readout_mod << " side " << side 
 		<< " hitsetkey " << hitset_key<< std::endl;
   

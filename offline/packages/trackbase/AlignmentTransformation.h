@@ -24,17 +24,20 @@ class AlignmentTransformation {
 
  private:
 
-  Eigen::Matrix4f makeTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3f staveTrans,Eigen::Vector3f staveAngles, Eigen::Vector3f sensorTrans,Eigen::Vector3f sensorAngles);
+  Eigen::Matrix4d makeTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles);
 
-  Eigen::Matrix4f mvtxTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3f staveTrans, Eigen::Vector3f staveAngles, Eigen::Vector3f sensorTrans,Eigen::Vector3f sensorAngles);
+  Eigen::Matrix4d mvtxTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3d staveTrans, Eigen::Vector3d staveAngles, Eigen::Vector3d sensorTrans,Eigen::Vector3d sensorAngles);
 
-  Eigen::Matrix4f inttTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3f staveTrans, Eigen::Vector3f staveAngles, Eigen::Vector3f sensorTrans,Eigen::Vector3f sensorAngles);
+  Eigen::Matrix4d inttTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3d staveTrans, Eigen::Vector3d staveAngles, Eigen::Vector3d sensorTrans,Eigen::Vector3d sensorAngles);
 
-  Eigen::Matrix4f makeAffineMatrix(Eigen::Vector3f rotationAnglesXYZ, Eigen::Vector3f translationVector);
+  Eigen::Matrix4d makeAffineMatrix(Eigen::Vector3d rotationAnglesXYZ, Eigen::Vector3d translationVector);
+
+  Eigen::Matrix4d makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector);
+
 
   Eigen::Matrix3d rotateToGlobal(TrkrDefs::hitsetkey hitsetkey);
 
-  //std::map<const TrkrDefs::hitsetkey, Eigen::Matrix4f>* transformMap;
+  //std::map<const TrkrDefs::hitsetkey, Eigen::Matrix4d>* transformMap;
   alignmentTransformationContainer* transformMap;
   ActsGeometry* m_tGeometry;
   

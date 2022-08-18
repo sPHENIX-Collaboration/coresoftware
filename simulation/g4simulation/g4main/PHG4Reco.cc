@@ -29,6 +29,8 @@
 #include <phfield/PHFieldConfigv2.h>
 #include <phfield/PHFieldUtility.h>
 
+#include <ffamodules/XploadInterface.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 
@@ -41,8 +43,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 #include <phool/recoConsts.h>
-
-#include <xpload/xpload.h>
 
 #include <TSystem.h>  // for TSystem, gSystem
 
@@ -84,6 +84,7 @@
 #include <Geant4/G4Version.hh>
 #include <Geant4/G4VisExecutive.hh>
 #include <Geant4/G4VisManager.hh>  // for G4VisManager
+#include <G4HadronicParameters.hh> // for G4HadronicParameters
 
 // physics lists
 #include <Geant4/FTFP_BERT.hh>
@@ -230,6 +231,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 
   if (m_ActiveDecayerFlag)
   {
+    G4HadronicParameters::Instance()->SetEnableBCParticles(false); //Disable the Geant4 built in HF Decay and use external decayers for them
     P6DExtDecayerPhysics *decayer = new P6DExtDecayerPhysics();
     if (m_ActiveForceDecayFlag)
     {
@@ -272,13 +274,8 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
 
   if (m_FieldMapFile != "NONE")
   {
-    if (m_FieldMapFile == "CDB")
-    {
-      recoConsts *rc = recoConsts::instance();
-      xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), "FIELDMAPBIG", rc->get_uint64Flag("TIMESTAMP"), xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
-      m_FieldMapFile = result.payload;
-    }
-    default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, m_FieldMapFile, m_MagneticFieldRescale));
+    std::string url = XploadInterface::instance()->getUrl("FIELDMAPBIG", m_FieldMapFile);
+    default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, url, m_MagneticFieldRescale));
   }
   else
   {

@@ -10,24 +10,28 @@ AM_CPPFLAGS = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 libffamodules_la_LIBADD = \
   -lfun4all \
   -lffaobjects \
   -lphhepmc_io \
-  -lSubsysReco
-
+  -lSubsysReco \
+  -lxpload \
+  -lstdc++fs
 
 pkginclude_HEADERS = \
   FlagHandler.h \
   HeadReco.h \
-  SyncReco.h
+  SyncReco.h \
+  XploadInterface.h
 
 libffamodules_la_SOURCES = \
   FlagHandler.cc \
   HeadReco.cc \
-  SyncReco.cc
+  SyncReco.cc \
+  XploadInterface.cc
 
 BUILT_SOURCES = testexternals.cc
 

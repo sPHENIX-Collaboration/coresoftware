@@ -8,15 +8,13 @@
 
 #include "KFParticle_Container.h"
 
-#include <phool/PHObject.h>  // for PHObject
-
 #include <KFParticle.h>
 
+#include <cstdlib>
 #include <iterator>  // for reverse_iterator
 #include <map>       // for _Rb_tree_const_iterator, _Rb_tree_iterator
 #include <ostream>   // for operator<<, endl, ostream, basic_ostream, bas...
 #include <utility>   // for pair, make_pair
-
 
 KFParticle_Container::KFParticle_Container()
   : m_kfpmap()

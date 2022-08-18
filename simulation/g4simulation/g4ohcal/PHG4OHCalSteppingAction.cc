@@ -57,14 +57,10 @@
 #include <cmath>  // for isfinite, sqrt
 #include <cstdlib>
 #include <iostream>
-#include <string>   // for operator<<, string
-#include <utility>  // for pair
+#include <string>  // for operator<<, string
+#include <tuple>   // for get, tuple
 
 class PHCompositeNode;
-
-using namespace std;
-
-TH2F* MapCorr = nullptr;
 
 //____________________________________________________________________________..
 PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, const PHParameters* parameters)
@@ -77,7 +73,10 @@ PHG4OHCalSteppingAction::PHG4OHCalSteppingAction(PHG4OHCalDetector* detector, co
   , m_NScintiPlates(m_Params->get_int_param(PHG4HcalDefs::scipertwr) * m_Params->get_int_param("n_towers"))
   , m_LightScintModelFlag(m_Params->get_int_param("light_scint_model"))
 {
-  SetName(m_Detector->GetName());
+  SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
+                     m_Params->get_double_param("light_balance_inner_corr"),
+                     m_Params->get_double_param("light_balance_outer_radius") * cm,
+                     m_Params->get_double_param("light_balance_outer_corr"));
 }
 
 PHG4OHCalSteppingAction::~PHG4OHCalSteppingAction()
@@ -87,38 +86,35 @@ PHG4OHCalSteppingAction::~PHG4OHCalSteppingAction()
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete m_Hit;
+  // since we have a copy in memory of this one - we need to delete it
+  delete m_MapCorrHist;
 }
 
 int PHG4OHCalSteppingAction::Init()
 {
   m_EnableFieldCheckerFlag = m_Params->get_int_param("field_check");
-  // method in base class for light correction
-  SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
-                     m_Params->get_double_param("light_balance_inner_corr"),
-                     m_Params->get_double_param("light_balance_outer_radius") * cm,
-                     m_Params->get_double_param("light_balance_outer_corr"));
 
-  std::ostringstream mappingfilename;
-  const char* calibroot = getenv("CALIBRATIONROOT");
-  if (calibroot)
+  if (m_LightScintModelFlag)
   {
-    mappingfilename << calibroot;
+    const char* Calibroot = getenv("CALIBRATIONROOT");
+    if (!Calibroot)
+    {
+      std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+      gSystem->Exit(1);
+    }
+    std::string mappingfilename(Calibroot);
+    mappingfilename += "/HCALOUT/tilemap/oHCALMaps092021.root";
+    TFile* file = TFile::Open(mappingfilename.c_str());
+    file->GetObject("hCombinedMap", m_MapCorrHist);
+    if (!m_MapCorrHist)
+    {
+      std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;
+      gSystem->Exit(1);
+    }
+    m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
+    file->Close();
+    delete file;
   }
-  else
-  {
-    std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
-    gSystem->Exit(1);
-  }
-
-  mappingfilename << "/HCALOUT/tilemap/oHCALMaps092021.root";
-  TFile* f = new TFile(mappingfilename.str().c_str());
-  MapCorr = (TH2F*) f->Get("hCombinedMap");
-  if (!MapCorr)
-  {
-    std::cout << "ERROR: MapCorr is NULL" << std::endl;
-    gSystem->Exit(1);
-  }
-
   return 0;
 }
 
@@ -154,9 +150,9 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   if (whichactive > 0)  // scintillator
   {
     std::tuple<int, int, int> layer_tower = m_Detector->GetRowColumnId(volume);
-    sector_id = std::get<0>(layer_tower); //.first;
-    layer_id = std::get<1>(layer_tower); //.first;
-    tower_id = std::get<2>(layer_tower); //.second;
+    sector_id = std::get<0>(layer_tower);  // calorimeter sector (0-31)
+    layer_id = std::get<1>(layer_tower);   // calorimeter scintillator row (0-319)
+    tower_id = std::get<2>(layer_tower);   // calorimeter scintillator tower in row (0-23)
   }
   else
   {
@@ -187,15 +183,15 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // an expensive string compare for every track when we know
     // geantino or chargedgeantino has pid=0
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
     G4StepPoint* prePoint = aStep->GetPreStepPoint();
     G4StepPoint* postPoint = aStep->GetPostStepPoint();
-    //       cout << "track id " << aTrack->GetTrackID() << endl;
-    //       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
-    //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+    //       std::cout << "track id " << aTrack->GetTrackID() << std::endl;
+    //       std::cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
+    //       std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
 
     switch (prePoint->GetStepStatus())
     {
@@ -206,17 +202,17 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       }
       else
       {
-        cout << GetName() << ": New Hit for  " << endl;
-        cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-             << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-             << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-             << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
-        cout << "last track: " << m_SaveTrackId
-             << ", current trackid: " << aTrack->GetTrackID() << endl;
-        cout << "phys pre vol: " << volume->GetName()
-             << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-        cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-             << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
+        std::cout << GetName() << ": New Hit for  " << std::endl;
+        std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+                  << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                  << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+                  << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+        std::cout << "last track: " << m_SaveTrackId
+                  << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+        std::cout << "phys pre vol: " << volume->GetName()
+                  << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+        std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+                  << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
       }
       [[fallthrough]];
     case fGeomBoundary:
@@ -230,22 +226,6 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
       m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
 
-      // DEBUG
-      // add the local coordinates
-      // if(whichactive>0){
-
-      // 	G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
-      // 	G4ThreeVector worldPosition = prePoint->GetPosition();
-      // 	G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
-
-      // 	m_Hit->set_property(PHG4Hit::prop_local_x_0, (float)(localPosition.x()/cm));
-      // 	m_Hit->set_property(PHG4Hit::prop_local_y_0, (float)(localPosition.y()/cm));
-      // 	m_Hit->set_property(PHG4Hit::prop_local_z_0, (float)(localPosition.z()/cm));
-
-      //   m_Hit->set_property(PHG4Hit::prop_layer, (unsigned int) layer_id);
-
-      // }
-
       // time in ns
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
       //set the track ID
@@ -255,10 +235,11 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_Hit->set_edep(0);
       if (whichactive > 0)  // return of IsInOHCalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
-        m_Hit->set_sector(sector_id);  // the sector id
+        m_Hit->set_sector(sector_id);   // the sector id
         m_Hit->set_scint_id(tower_id);  // the slat id
         m_Hit->set_eion(0);
-        m_Hit->set_light_yield(0);  //  for scintillator only, initialize light yields
+        m_Hit->set_raw_light_yield(0);  //  for scintillator only, initialize light yields
+        m_Hit->set_light_yield(0);      //  for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
         m_SaveHitContainer = m_HitContainer;
       }
@@ -281,29 +262,29 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     }
     // some sanity checks for inconsistencies
     // check if this hit was created, if not print out last post step status
-    if (!m_Hit || !isfinite(m_Hit->get_x(0)))
+    if (!m_Hit || !std::isfinite(m_Hit->get_x(0)))
     {
-      cout << GetName() << ": hit was not created" << endl;
-      cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-           << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
-      cout << "last track: " << m_SaveTrackId
-           << ", current trackid: " << aTrack->GetTrackID() << endl;
-      cout << "phys pre vol: " << volume->GetName()
-           << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-      cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-           << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
+      std::cout << GetName() << ": hit was not created" << std::endl;
+      std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+                << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+                << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+      std::cout << "last track: " << m_SaveTrackId
+                << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+      std::cout << "phys pre vol: " << volume->GetName()
+                << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+      std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+                << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
       gSystem->Exit(1);
     }
     m_SavePostStepStatus = postPoint->GetStepStatus();
     // check if track id matches the initial one when the hit was created
     if (aTrack->GetTrackID() != m_SaveTrackId)
     {
-      cout << GetName() << ": hits do not belong to the same track" << endl;
-      cout << "saved track: " << m_SaveTrackId
-           << ", current trackid: " << aTrack->GetTrackID()
-           << endl;
+      std::cout << GetName() << ": hits do not belong to the same track" << std::endl;
+      std::cout << "saved track: " << m_SaveTrackId
+                << ", current trackid: " << aTrack->GetTrackID()
+                << std::endl;
       gSystem->Exit(1);
     }
     m_SavePreStepStatus = prePoint->GetStepStatus();
@@ -319,29 +300,22 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
+    //sum up the energy to get total deposited
+    m_Hit->set_edep(m_Hit->get_edep() + edep);
+
     if (whichactive > 0)
     {
-      // Local Coordinates:
-
-      //G4TouchableHandle theTouchable = postPoint->GetTouchableHandle();
-      // Use prePoint; sometimes the end point can be on the boundary/out of the scintillator
-      G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
-      G4ThreeVector worldPosition = postPoint->GetPosition();
-      G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
-
-      // DEBUG
-      // m_Hit->set_property(PHG4Hit::prop_local_x_1, (float)(localPosition.x()/cm));
-      // m_Hit->set_property(PHG4Hit::prop_local_y_1, (float)(localPosition.y()/cm));
-      // m_Hit->set_property(PHG4Hit::prop_local_z_1, (float)(localPosition.z()/cm));
-
-      // m_Hit->set_property(PHG4Hit::prop_layer, (unsigned int) layer_id);
-
+      m_Hit->set_eion(m_Hit->get_eion() + eion);
+      light_yield = eion;
       if (m_LightScintModelFlag)
       {
         light_yield = GetVisibleEnergyDeposition(aStep);
-
-        if (MapCorr)
+        m_Hit->set_raw_light_yield(m_Hit->get_raw_light_yield() + light_yield);  // save raw Birks light yield
+        if (m_MapCorrHist)
         {
+          G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
+          G4ThreeVector worldPosition = postPoint->GetPosition();
+          G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
           float lx = (localPosition.x() / cm);
           float lz = fabs(localPosition.z() / cm);  // reverse the sense for towerid<12
 
@@ -350,37 +324,25 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           int lcz = (int) (2.0 * lz) + 1;
           int lcx = (int) (2.0 * (lx + 42.75)) + 1;
 
-          if ((lcx >= 1) && (lcx <= MapCorr->GetNbinsY()) &&
-              (lcz >= 1) && (lcz <= MapCorr->GetNbinsX()))
+          if ((lcx >= 1) && (lcx <= m_MapCorrHist->GetNbinsY()) &&
+              (lcz >= 1) && (lcz <= m_MapCorrHist->GetNbinsX()))
           {
-            light_yield *= (double) (MapCorr->GetBinContent(lcz, lcx));
+            light_yield *= (double) (m_MapCorrHist->GetBinContent(lcz, lcx));
           }
           else
           {
             light_yield = 0.0;
           }
         }
+        else
+        {
+          // old correction (linear ligh yield dependence along r), never tested
+          light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x(), postPoint->GetPosition().y());
+        }
       }
-      else
-      {
-        light_yield = eion;
-      }
-
-      if (ValidCorrection())
-      {
-        double cor = GetLightCorrection(postPoint->GetPosition().x(), (postPoint->GetPosition().y()));
-        cout << "applying cor: " << cor << endl;
-        light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x(), (postPoint->GetPosition().y()));
-      }
-    }
-
-    //sum up the energy to get total deposited
-    m_Hit->set_edep(m_Hit->get_edep() + edep);
-    if (whichactive > 0)
-    {
-      m_Hit->set_eion(m_Hit->get_eion() + eion);
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
+
     if (geantino)
     {
       m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
@@ -464,7 +426,7 @@ void PHG4OHCalSteppingAction::FieldChecker(const G4Step* aStep)
   Fun4AllServer* se = Fun4AllServer::instance();
   assert(se);
 
-  static const string h_field_name = "hOHCalField";
+  static const std::string h_field_name = "hOHCalField";
 
   if (not se->isHistoRegistered(h_field_name))
   {
@@ -473,8 +435,8 @@ void PHG4OHCalSteppingAction::FieldChecker(const G4Step* aStep)
 
     se->registerHisto(h, 1);
 
-    cout << "PHG4OHCalSteppingAction::FieldChecker - make a histograme to check outer Hcal field map."
-         << " Saved to Fun4AllServer Histo with name " << h_field_name << endl;
+    std::cout << "PHG4OHCalSteppingAction::FieldChecker - make a histograme to check outer Hcal field map."
+              << " Saved to Fun4AllServer Histo with name " << h_field_name << std::endl;
   }
 
   TH2F* h = dynamic_cast<TH2F*>(se->getHisto(h_field_name));
@@ -526,10 +488,10 @@ void PHG4OHCalSteppingAction::FieldChecker(const G4Step* aStep)
 
     h->SetBinContent(binx, biny, B);
 
-    cout << "PHG4OHCalSteppingAction::FieldChecker - "
-         << "bin " << binx
-         << ", " << biny << " := " << B << " Tesla @ x,y = " << globPosVec[0] / cm
-         << "," << globPosVec[1] / cm << " cm" << endl;
+    std::cout << "PHG4OHCalSteppingAction::FieldChecker - "
+              << "bin " << binx
+              << ", " << biny << " := " << B << " Tesla @ x,y = " << globPosVec[0] / cm
+              << "," << globPosVec[1] / cm << " cm" << std::endl;
   }
 }
 

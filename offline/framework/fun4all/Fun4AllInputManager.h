@@ -56,7 +56,7 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int IsOpen() const { return m_IsOpen; }
   virtual int SkipForThisManager(const int /*nevents*/) { return 0; }
   virtual int HasSyncObject() const { return 0; }
-  virtual std::string GetString(const std::string &) const {return "";}
+  virtual std::string GetString(const std::string &) const { return ""; }
 
  protected:
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");

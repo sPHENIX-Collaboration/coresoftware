@@ -38,15 +38,15 @@ class alignmentTransformationContainer
 
   void identify(std::ostream &os = std::cout);  
 
-  void addTransform(const TrkrDefs::hitsetkey,Eigen::Matrix4f); 
+  void addTransform(const TrkrDefs::hitsetkey,Eigen::Matrix4d); 
 
   void removeTransform(const TrkrDefs::hitsetkey); 
   
-  Eigen::Matrix4f getTransform(const TrkrDefs::hitsetkey hitsetkey);
+  Eigen::Matrix4d getTransform(const TrkrDefs::hitsetkey hitsetkey);
 
   private:
   
-  std::map<const TrkrDefs::hitsetkey, Eigen::Matrix4f> transformMap;
+  std::map<const TrkrDefs::hitsetkey, Eigen::Matrix4d> transformMap;
   
   ClassDef(alignmentTransformationContainer,1);
 
