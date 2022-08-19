@@ -18,14 +18,14 @@
 
 // standard includes
 #include <iostream>
-#include <map>                         // for _Rb_tree_iterator
-#include <memory>                      // for allocator_traits<>::value_type
-#include <utility>                     // for pair
+#include <map>      // for _Rb_tree_iterator
+#include <memory>   // for allocator_traits<>::value_type
+#include <utility>  // for pair
 #include <vector>
 
 FastJetAlgo::FastJetAlgo(Jet::ALGO algo, float par, int verbosity)
   : m_Verbosity(verbosity)
-  , _algo(algo)
+  , m_AlgoFlag(algo)
   , m_Par(par)
   , m_SDFlag(false)
   , m_SDBeta(0)
@@ -48,15 +48,15 @@ FastJetAlgo::FastJetAlgo(Jet::ALGO algo, float par, int verbosity)
 void FastJetAlgo::identify(std::ostream& os)
 {
   os << "   FastJetAlgo: ";
-  if (_algo == Jet::ANTIKT)
+  if (m_AlgoFlag == Jet::ANTIKT)
   {
     os << "ANTIKT r=" << m_Par;
   }
-  else if (_algo == Jet::KT)
+  else if (m_AlgoFlag == Jet::KT)
   {
     os << "KT r=" << m_Par;
   }
-  else if (_algo == Jet::CAMBRIDGE)
+  else if (m_AlgoFlag == Jet::CAMBRIDGE)
   {
     os << "CAMBRIDGE r=" << m_Par;
   }
@@ -75,17 +75,17 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
     // (0,0,0,0) inputs, such as placeholder towers or those with
     // zero'd out energy after CS. this catch also in FastJetAlgoSub
     if (particles[ipart]->get_e() == 0.) continue;
-    if (! std::isfinite(particles[ipart]->get_px()) ||
-        ! std::isfinite(particles[ipart]->get_py()) ||
-        ! std::isfinite(particles[ipart]->get_pz()) ||
-	! std::isfinite(particles[ipart]->get_e()))
+    if (!std::isfinite(particles[ipart]->get_px()) ||
+        !std::isfinite(particles[ipart]->get_py()) ||
+        !std::isfinite(particles[ipart]->get_pz()) ||
+        !std::isfinite(particles[ipart]->get_e()))
     {
       std::cout << PHWHERE << " invalid particle kinematics:"
-		<< " px: " << particles[ipart]->get_px()
-		<< " py: " << particles[ipart]->get_py()
-		<< " pz: " << particles[ipart]->get_pz()
-		<< " e: " << particles[ipart]->get_e() << std::endl;
-	gSystem->Exit(1);
+                << " px: " << particles[ipart]->get_px()
+                << " py: " << particles[ipart]->get_py()
+                << " pz: " << particles[ipart]->get_pz()
+                << " e: " << particles[ipart]->get_e() << std::endl;
+      gSystem->Exit(1);
     }
     fastjet::PseudoJet pseudojet(particles[ipart]->get_px(),
                                  particles[ipart]->get_py(),
@@ -96,15 +96,15 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
   }
   // run fast jet
   fastjet::JetDefinition* jetdef = nullptr;
-  if (_algo == Jet::ANTIKT)
+  if (m_AlgoFlag == Jet::ANTIKT)
   {
     jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm, m_Par, fastjet::E_scheme, fastjet::Best);
   }
-  else if (_algo == Jet::KT)
+  else if (m_AlgoFlag == Jet::KT)
   {
     jetdef = new fastjet::JetDefinition(fastjet::kt_algorithm, m_Par, fastjet::E_scheme, fastjet::Best);
   }
-  else if (_algo == Jet::CAMBRIDGE)
+  else if (m_AlgoFlag == Jet::CAMBRIDGE)
   {
     jetdef = new fastjet::JetDefinition(fastjet::cambridge_algorithm, m_Par, fastjet::E_scheme, fastjet::Best);
   }
@@ -116,8 +116,8 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
   std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
   delete jetdef;
 
-  fastjet::contrib::SoftDrop sd( m_SDBeta, m_SDZCut );
-  if ( m_Verbosity > 5 )
+  fastjet::contrib::SoftDrop sd(m_SDBeta, m_SDZCut);
+  if (m_Verbosity > 5)
   {
     std::cout << "FastJetAlgo::get_jets : created SoftDrop groomer configuration : " << sd.description() << std::endl;
   }
@@ -132,27 +132,27 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
     jet->set_pz(fastjets[ijet].pz());
     jet->set_e(fastjets[ijet].e());
     jet->set_id(ijet);
-    
+
     // if SoftDrop enabled, and jets have > 5 GeV (do not waste time
     // on very low-pT jets), run SD and pack output into jet properties
-    if ( m_SDFlag && fastjets[ijet].perp() > 5 ) {
+    if (m_SDFlag && fastjets[ijet].perp() > 5)
+    {
+      fastjet::PseudoJet sd_jet = sd(fastjets[ijet]);
 
-      fastjet::PseudoJet sd_jet = sd( fastjets[ijet] );
-            
-      if ( m_Verbosity > 5 ) {
-	std::cout << "original    jet: pt / eta / phi / m = " << fastjets[ijet].perp() << " / " <<  fastjets[ijet].eta() << " / " << fastjets[ijet].phi() << " / " << fastjets[ijet].m() << std::endl;
-	std::cout << "SoftDropped jet: pt / eta / phi / m = " << sd_jet.perp() << " / " <<  sd_jet.eta() << " / " << sd_jet.phi() << " / " << sd_jet.m() << std::endl;
-	
-	std::cout << "  delta_R between subjets: " << sd_jet.structure_of<fastjet::contrib::SoftDrop>().delta_R() << std::endl;
-	std::cout << "  symmetry measure(z):     " << sd_jet.structure_of<fastjet::contrib::SoftDrop>().symmetry() << std::endl;
-	std::cout << "  mass drop(mu):           " << sd_jet.structure_of<fastjet::contrib::SoftDrop>().mu() << std::endl;      
+      if (m_Verbosity > 5)
+      {
+        std::cout << "original    jet: pt / eta / phi / m = " << fastjets[ijet].perp() << " / " << fastjets[ijet].eta() << " / " << fastjets[ijet].phi() << " / " << fastjets[ijet].m() << std::endl;
+        std::cout << "SoftDropped jet: pt / eta / phi / m = " << sd_jet.perp() << " / " << sd_jet.eta() << " / " << sd_jet.phi() << " / " << sd_jet.m() << std::endl;
+
+        std::cout << "  delta_R between subjets: " << sd_jet.structure_of<fastjet::contrib::SoftDrop>().delta_R() << std::endl;
+        std::cout << "  symmetry measure(z):     " << sd_jet.structure_of<fastjet::contrib::SoftDrop>().symmetry() << std::endl;
+        std::cout << "  mass drop(mu):           " << sd_jet.structure_of<fastjet::contrib::SoftDrop>().mu() << std::endl;
       }
 
       // attach SoftDrop quantities as jet properties
-      jet->set_property( Jet::PROPERTY::prop_zg , sd_jet.structure_of<fastjet::contrib::SoftDrop>().symmetry() );
-      jet->set_property( Jet::PROPERTY::prop_Rg , sd_jet.structure_of<fastjet::contrib::SoftDrop>().delta_R() );
-      jet->set_property( Jet::PROPERTY::prop_mu , sd_jet.structure_of<fastjet::contrib::SoftDrop>().mu() );
-
+      jet->set_property(Jet::PROPERTY::prop_zg, sd_jet.structure_of<fastjet::contrib::SoftDrop>().symmetry());
+      jet->set_property(Jet::PROPERTY::prop_Rg, sd_jet.structure_of<fastjet::contrib::SoftDrop>().delta_R());
+      jet->set_property(Jet::PROPERTY::prop_mu, sd_jet.structure_of<fastjet::contrib::SoftDrop>().mu());
     }
 
     // copy components into output jet
