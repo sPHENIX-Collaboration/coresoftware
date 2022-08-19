@@ -17,9 +17,7 @@
 #include <utility>  // for pair
 #include <vector>
 
-using namespace std;
-
-Fun4AllSyncManager::Fun4AllSyncManager(const string &name)
+Fun4AllSyncManager::Fun4AllSyncManager(const std::string &name)
   : Fun4AllBase(name)
 {
   return;
@@ -46,14 +44,14 @@ int Fun4AllSyncManager::registerInputManager(Fun4AllInputManager *InputManager)
   {
     if (inman->Name() == InputManager->Name())
     {
-      cout << "InputManager " << InputManager->Name() << " allready in list" << endl;
+      std::cout << "InputManager " << InputManager->Name() << " allready in list" << std::endl;
       return -1;
     }
   }
 
   if (Verbosity() > 0)
   {
-    cout << "Registering InputManager " << InputManager->Name() << endl;
+    std::cout << "Registering InputManager " << InputManager->Name() << std::endl;
   }
   m_InManager.push_back(InputManager);
   m_iretInManager.push_back(0);
@@ -62,7 +60,7 @@ int Fun4AllSyncManager::registerInputManager(Fun4AllInputManager *InputManager)
 }
 
 Fun4AllInputManager *
-Fun4AllSyncManager::getInputManager(const string &name)
+Fun4AllSyncManager::getInputManager(const std::string &name)
 {
   for (Fun4AllInputManager *inman : m_InManager)
   {
@@ -71,7 +69,7 @@ Fun4AllSyncManager::getInputManager(const string &name)
       return inman;
     }
   }
-  cout << Name() << ": Could not find InputManager" << name << endl;
+  std::cout << Name() << ": Could not find InputManager" << name << std::endl;
   return nullptr;
 }
 
@@ -96,7 +94,7 @@ int Fun4AllSyncManager::run(const int nevnts)
     unsigned iman = 0;
     int ifirst = 0;
     int hassync = 0;
-    for (vector<Fun4AllInputManager *>::iterator iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
+    for (std::vector<Fun4AllInputManager *>::iterator iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
     {
       m_iretInManager[iman] = (*iter)->run(1);
       iret += m_iretInManager[iman];
@@ -157,7 +155,7 @@ int Fun4AllSyncManager::run(const int nevnts)
       if (iret)
       {
         unsigned inputmgr_cnt = 0;
-        vector<Fun4AllInputManager *>::const_iterator InIter;
+        std::vector<Fun4AllInputManager *>::const_iterator InIter;
         // set in the macro for Sync Manager. Permanently enabled (default when using syncman->Repeat(),
         // m_Repeat = -1 so the m_Repeat--; is not called, this is used when you give it a positive number of
         // repetitions
@@ -178,7 +176,7 @@ int Fun4AllSyncManager::run(const int nevnts)
               int ireset = (*InIter)->ResetFileList();
               if (ireset)
               {
-                cout << "Resetting input manager " << (*InIter)->Name() << " failed during Repeat" << endl;
+                std::cout << "Resetting input manager " << (*InIter)->Name() << " failed during Repeat" << std::endl;
                 exit(1);
               }
               inputmgr_cnt++;
@@ -193,18 +191,18 @@ int Fun4AllSyncManager::run(const int nevnts)
         }
         // push back events where the Imanager did not report an error
         InIter = m_InManager.begin();
-        for (vector<int>::const_iterator iter = m_iretInManager.begin(); iter != m_iretInManager.end(); ++iter)
+        for (std::vector<int>::const_iterator iter = m_iretInManager.begin(); iter != m_iretInManager.end(); ++iter)
         {
           if (Verbosity() > 0)
           {
-            cout << (*InIter)->Name() << ": return code: " << *iter << endl;
+            std::cout << (*InIter)->Name() << ": return code: " << *iter << std::endl;
           }
           if (!(*iter))
           {
             (*InIter)->PushBackEvents(1);
             if (Verbosity() > 0)
             {
-              cout << (*InIter)->Name() << ": push evts: " << *iter << endl;
+              std::cout << (*InIter)->Name() << ": push evts: " << *iter << std::endl;
             }
           }
           ++InIter;
@@ -240,12 +238,12 @@ readerror:
     if (!resetnodetree)  // all syncing is done and no read errors --> we have a good event in memory
     {
       m_CurrentRun = 0;  // reset current run to 0
-      for (vector<Fun4AllInputManager *>::iterator iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
+      for (std::vector<Fun4AllInputManager *>::iterator iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
       {
         int runno = (*iter)->RunNumber();
         if (Verbosity() > 2)
         {
-          cout << Name() << " input mgr " << (*iter)->Name() << " run: " << runno << endl;
+          std::cout << Name() << " input mgr " << (*iter)->Name() << " run: " << runno << std::endl;
         }
         if (runno != 0)
         {
@@ -258,13 +256,13 @@ readerror:
           {
             if (m_CurrentRun != runno)
             {
-              cout << "Mixing run numbers (except runnumber=0 which means no valid runnumber) is not supported" << endl;
-              cout << "Here are the list of input managers and runnumbers:" << endl;
+              std::cout << "Mixing run numbers (except runnumber=0 which means no valid runnumber) is not supported" << std::endl;
+              std::cout << "Here are the list of input managers and runnumbers:" << std::endl;
               for (Fun4AllInputManager *inman : m_InManager)
               {
-                cout << inman->Name() << " runno: " << inman->RunNumber() << endl;
+                std::cout << inman->Name() << " runno: " << inman->RunNumber() << std::endl;
               }
-              cout << "Exiting now" << endl;
+              std::cout << "Exiting now" << std::endl;
               exit(1);
             }
           }
@@ -297,20 +295,20 @@ int Fun4AllSyncManager::skip(const int nevnts)
     }
     else
     {
-      cout << PHWHERE << " Error during skipping events" << endl;
+      std::cout << PHWHERE << " Error during skipping events" << std::endl;
       return iret;
     }
   }
-  cout << PHWHERE << " Cannot skip events: No Input Managers registered?" << endl;
+  std::cout << PHWHERE << " Cannot skip events: No Input Managers registered?" << std::endl;
   Print("INPUTMANAGER");
-  cout << "If there are Input Managers in this list, send mail with this" << endl;
-  cout << "error message to off-l" << endl;
-  cout << "and include the macro you used" << endl;
+  std::cout << "If there are Input Managers in this list, send mail with this" << std::endl;
+  std::cout << "error message to off-l" << std::endl;
+  std::cout << "and include the macro you used" << std::endl;
   return -1;
 }
 
 //_________________________________________________________________
-int Fun4AllSyncManager::fileopen(const string &managername, const string &filename)
+int Fun4AllSyncManager::fileopen(const std::string &managername, const std::string &filename)
 {
   for (Fun4AllInputManager *inman : m_InManager)
   {
@@ -320,11 +318,11 @@ int Fun4AllSyncManager::fileopen(const string &managername, const string &filena
       return iret;
     }
   }
-  cout << "No Input Manager " << managername << " registered" << endl;
+  std::cout << "No Input Manager " << managername << " registered" << std::endl;
   return -1;
 }
 
-int Fun4AllSyncManager::BranchSelect(const string &managername, const string &branch, const int iflag)
+int Fun4AllSyncManager::BranchSelect(const std::string &managername, const std::string &branch, const int iflag)
 {
   for (Fun4AllInputManager *inman : m_InManager)
   {
@@ -334,11 +332,11 @@ int Fun4AllSyncManager::BranchSelect(const string &managername, const string &br
       return iret;
     }
   }
-  cout << "No Input Manager " << managername << " registered" << endl;
+  std::cout << "No Input Manager " << managername << " registered" << std::endl;
   return -1;
 }
 
-int Fun4AllSyncManager::BranchSelect(const string &branch, const int iflag)
+int Fun4AllSyncManager::BranchSelect(const std::string &branch, const int iflag)
 {
   int iret = 0;
   for (Fun4AllInputManager *inman : m_InManager)
@@ -348,7 +346,7 @@ int Fun4AllSyncManager::BranchSelect(const string &branch, const int iflag)
   return iret;
 }
 
-int Fun4AllSyncManager::setBranches(const string &managername)
+int Fun4AllSyncManager::setBranches(const std::string &managername)
 {
   for (Fun4AllInputManager *inman : m_InManager)
   {
@@ -358,7 +356,7 @@ int Fun4AllSyncManager::setBranches(const string &managername)
       return iret;
     }
   }
-  cout << "No Input Manager " << managername << " registered" << endl;
+  std::cout << "No Input Manager " << managername << " registered" << std::endl;
   return -1;
 }
 
@@ -372,7 +370,7 @@ int Fun4AllSyncManager::setBranches()
   return iret;
 }
 
-int Fun4AllSyncManager::fileclose(const string &managername)
+int Fun4AllSyncManager::fileclose(const std::string &managername)
 {
   int foundIt = 0;
   for (Fun4AllInputManager *inman : m_InManager)
@@ -387,25 +385,25 @@ int Fun4AllSyncManager::fileclose(const string &managername)
   {
     return 0;
   }
-  cout << "No Input Manager " << managername << " registered" << endl;
+  std::cout << "No Input Manager " << managername << " registered" << std::endl;
   return -1;
 }
 
-void Fun4AllSyncManager::Print(const string &what) const
+void Fun4AllSyncManager::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "INPUTMANAGER")
   {
     // loop over the map and print out the content (name and location in memory)
-    cout << "--------------------------------------" << endl
-         << endl;
-    cout << "List of InputManagers in Fun4AllSyncManager "
-         << Name() << ":" << endl;
+    std::cout << "--------------------------------------" << std::endl
+              << std::endl;
+    std::cout << "List of InputManagers in Fun4AllSyncManager "
+              << Name() << ":" << std::endl;
 
     for (Fun4AllInputManager *inman : m_InManager)
     {
-      cout << inman->Name() << endl;
+      std::cout << inman->Name() << std::endl;
     }
-    cout << endl;
+    std::cout << std::endl;
   }
   return;
 }
@@ -446,7 +444,7 @@ int Fun4AllSyncManager::ResetEvent()
   {
     if (Verbosity() > 0)
     {
-      cout << "Resetting Event for Input Manager " << inman->Name() << endl;
+      std::cout << "Resetting Event for Input Manager " << inman->Name() << std::endl;
     }
     iret += inman->ResetEvent();
   }
@@ -463,15 +461,15 @@ void Fun4AllSyncManager::CurrentEvent(const int evt)
 
 void Fun4AllSyncManager::PrintSyncProblem() const
 {
-  cout << "Bad use of Fun4AllDstInputManager for file(s) which do not have a synchronization object" << endl;
-  cout << "This works for single streams but if you run with multiple input streams this might lead to event mixing" << endl;
-  cout << "If you insist to run this (you take full responsibility), change the following in your macro: " << endl;
+  std::cout << "Bad use of Fun4AllDstInputManager for file(s) which do not have a synchronization object" << std::endl;
+  std::cout << "This works for single streams but if you run with multiple input streams this might lead to event mixing" << std::endl;
+  std::cout << "If you insist to run this (you take full responsibility), change the following in your macro: " << std::endl;
   for (auto iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
   {
     if ((*iter)->HasSyncObject() < 0)
     {
-      cout << "File " << (*iter)->FileName() << " does not contain a sync object" << endl;
-      cout << "Change its Fun4AllDstInputManager with name " << (*iter)->Name() << " from Fun4AllDstInputManager to Fun4AllNoSyncDstInputManager" << endl;
+      std::cout << "File " << (*iter)->FileName() << " does not contain a sync object" << std::endl;
+      std::cout << "Change its Fun4AllDstInputManager with name " << (*iter)->Name() << " from Fun4AllDstInputManager to Fun4AllNoSyncDstInputManager" << std::endl;
     }
   }
   return;

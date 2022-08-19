@@ -23,7 +23,9 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  void Detector(const std::string &d) { m_Detector = d; }
+  void Detector(const std::string &d) { m_InputDetector = d; m_OutputDetector = d;}
+  void InDetector(const std::string &d) { m_InputDetector = d; }
+  void OutDetector(const std::string &d) { m_OutputDetector = d; }
   void EminCut(const double e) { m_Emin = e; }
   void checkenergy(const int i = 1) { m_ChkEnergyConservationFlag = i; }
 
@@ -85,8 +87,8 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
   int m_ChkEnergyConservationFlag = 0;
   int m_TowerEnergySrc = enu_tower_energy_src::unknown;
   int m_NcellToTower = -1;
-
-  std::string m_Detector = "NONE";
+  std::string m_OutputDetector;
+  std::string m_InputDetector;
   std::string m_TowerNodeName;
   std::string m_TowerGeomNodeName;
   std::string m_SimTowerNodePrefix;

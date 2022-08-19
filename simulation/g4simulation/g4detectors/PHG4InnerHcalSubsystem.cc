@@ -53,9 +53,10 @@ int PHG4InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector = new PHG4InnerHcalDetector(this, topNode, GetParams(), Name());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
-  std::set<std::string> nodes;
+
   if (GetParams()->get_int_param("active"))
   {
+    std::set<std::string> nodes;
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
     if (!DetNode)

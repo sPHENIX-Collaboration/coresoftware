@@ -6,7 +6,6 @@
 #include <cstddef>   // for size_t
 #include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>  // for pair
 
 class KFParticle;
 

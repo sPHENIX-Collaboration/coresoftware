@@ -10,6 +10,7 @@ use List::Util qw(shuffle);
 
 sub commonfiletypes;
 sub fill_nocombine_files;
+sub print_single_types;
 
 my $dbh = DBI->connect("dbi:ODBC:FileCatalog","argouser") || die $DBI::error;
 $dbh->{LongReadLen}=2000; # full file paths need to fit in here
@@ -41,11 +42,12 @@ my %proddesc = (
     "10" => "HF pythia8 Bottom D0",
     "11" => "JS pythia8 Jet ptmin = 30GeV",
     "12" => "JS pythia8 Jet ptmin = 10GeV",
-    "13" => "JS pythia8 Photon Jet"
+    "13" => "JS pythia8 Photon Jet",
+    "14" => "Single Particles",
     );
 
 my %pileupdesc = (
-    "1" => "default (50kHz for Au+Au, 3MHz for p+p)",
+    "1" => "50kHz for Au+Au, 3MHz for p+p (default)",
     "2" => "25kHz for Au+Au",
     "3" => "10kHz for Au+Au"
     );
@@ -54,13 +56,16 @@ my $nEvents;
 my $start_segment;
 my $randomize;
 my $prodtype;
-my $runnumber = 4;
+my $runnumber = 40;
 my $verbose;
 my $nopileup;
 my $embed;
 my $pileup = 1;
+my $particle;
+my $pmin;
+my $pmax;
 
-GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, "nopileup" => \$nopileup, 'pileup:i' => \$pileup, 'rand' => \$randomize, 's:i' => \$start_segment, 'run:i' => \$runnumber, "verbose" =>\$verbose, 'embed' => \$embed);
+GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, 'rand' => \$randomize, 's:i' => \$start_segment, 'run:i' => \$runnumber, "verbose" =>\$verbose, 'embed' => \$embed);
 my $filenamestring;
 my %filetypes = ();
 my %notlike = ();
@@ -73,7 +78,6 @@ if (defined $embed && defined $nopileup)
     print "--embed and --nopileup flags do not work together, it does not make sense\n";
     exit(1);
 }
-
 if ($pileup == 1)
 {
     $pileupstring = sprintf("50kHz");
@@ -198,7 +202,7 @@ if (defined $prodtype)
     elsif ($prodtype == 12)
     {
         $embedok = 1;
-	$filenamestring = "pythia8_Jet15";
+	$filenamestring = "pythia8_Jet10";
 	if (! defined $nopileup)
 	{
 	    if (defined $embed)
@@ -229,6 +233,35 @@ if (defined $prodtype)
 	}
 	&commonfiletypes();
     }
+    elsif ($prodtype == 14)
+    {
+        $nopileup = 1;
+        my $bad = 0;
+	$filenamestring = "single";
+	if (!defined $particle)
+	{
+	    print "-particle: G4 particle name needs to be set for single particle sims\n";
+	    $bad = 1;
+	}
+	if (!defined $pmin)
+	{
+	    print "-pmin: min mimentum needs to be set for single particle sims\n";
+	    $bad = 1;
+	}
+	if (!defined $pmax)
+	{
+	    print "-pmax: max momentum needs to be set for single particle sims\n";
+	    $bad = 1;
+	}
+	if ($bad > 0)
+	{
+            print "\nExisting single particle sims:\n";
+            print_single_types();
+	    exit(1);
+	}
+	$filenamestring = sprintf("%s_%s_%d_%dMeV",$filenamestring, $particle, $pmin, $pmax);
+	&commonfiletypes();
+    }
     else
     {
 	print "no production type $prodtype\n";
@@ -254,18 +287,23 @@ if ($#ARGV < 0)
 	print "-n     : <number of events>\n";
 	print "-nopileup : without pileup\n";
 	print "-rand  : randomize segments used\n";
-	print "-run   : runnumber\n";
+	print "-run   : runnumber (default = $runnumber)\n";
 	print "-s     : starting segment>\n";
 	print "\n-type  : production type\n";
 	foreach my $pd (sort { $a <=> $b } keys %proddesc)
 	{
 	    print "    $pd : $proddesc{$pd}\n";
 	}
-	print "\n-pileup : pileup rate selection\n";
+	print "\n-pileup : pileup rate selection (default = $pileup)\n";
 	foreach my $pd (sort { $a <=> $b } keys %pileupdesc)
 	{
 	    print "    $pd : $pileupdesc{$pd}\n";
 	}
+        print "\n Single particle mandatory options:\n";
+        print "-particle : G4 particle name\n";
+        print "-pmin : minimum momentum (in MeV/c)\n";
+        print "-pmax : maximum momentum (in MeV/c)\n";
+
 	print "\navailable file types (choose at least one, --> means: written to):\n";
 	foreach my $tp (sort keys %dsttype)
 	{
@@ -551,7 +589,9 @@ sub commonfiletypes
     $filetypes{"DST_TRKR_HIT"} = "TPC and Silicon Hits";
     $filetypes{"DST_TRUTH"} = "Truth Info (updated with Clusters)";
 #pass4 tracks
-    $filetypes{"DST_TRACKS"} = "Reconstructed Tracks";
+    $filetypes{"DST_TRKR_CLUSTER"} = "pass0 output: tpc clusters";
+    $filetypes{"DST_TRACKSEEDS"} = "passA output: track seeds";
+    $filetypes{"DST_TRACKS"} = "passC output: Reconstructed Tracks";
 }
 
 
@@ -578,4 +618,27 @@ sub fill_other_types
 	}
     }
     $getalltypes->finish();
+}
+
+sub print_single_types
+{
+    my $sqlstring = sprintf("select filename from datasets where runnumber = %d and filename like '%%_single_%%'",$runnumber);
+    my $getallfiles = $dbh->prepare($sqlstring);
+    $getallfiles->execute();
+    my $runsplit = sprintf("MeV-%010d",$runnumber);
+    my %types = ();
+    while (my @res = $getallfiles->fetchrow_array())
+    {
+	my @sp1 = split(/single_/,$res[0]);
+	my @sp2 = split(/$runsplit/,$sp1[1]);
+	$types{$sp2[0]} = 1;
+    }
+    $getallfiles->finish();
+    foreach my $name (sort keys %types)
+    {
+	if ($name =~ /(\S+)\_(\d+)\_(\d+).*/ )
+	{
+	    print "CreateFileList.pl -type 14 -particle $1 -pmin $2 -pmax $3 G4Hits\n";
+	}
+    }
 }
