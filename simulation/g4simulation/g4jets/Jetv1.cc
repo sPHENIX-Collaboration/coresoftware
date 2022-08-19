@@ -95,7 +95,7 @@ float Jetv1::get_mass() const
   {
     return -1 * sqrt(fabs(mass2));
   }
-    return sqrt(mass2);
+  return sqrt(mass2);
 }
 
 float Jetv1::get_mass2() const
@@ -111,7 +111,7 @@ bool Jetv1::has_property(Jet::PROPERTY prop_id) const
   {
     return false;
   }
-    return true;
+  return true;
 }
 
 float Jetv1::get_property(Jet::PROPERTY prop_id) const
@@ -121,7 +121,7 @@ float Jetv1::get_property(Jet::PROPERTY prop_id) const
   {
     return NAN;
   }
-    return citer->second;
+  return citer->second;
 }
 
 void Jetv1::set_property(Jet::PROPERTY prop_id, float value)

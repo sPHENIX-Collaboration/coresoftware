@@ -9,21 +9,21 @@
 
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>          // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/PHTypedNodeIterator.h>
-#include <phool/PHObject.h>              // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>                 // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 // standard includes
-#include <cstdlib>                      // for exit
+#include <cstdlib>  // for exit
 #include <iostream>
-#include <memory>                        // for allocator_traits<>::value_type
+#include <memory>  // for allocator_traits<>::value_type
 #include <vector>
 
 JetReco::JetReco(const std::string &name)
@@ -33,14 +33,14 @@ JetReco::JetReco(const std::string &name)
 
 JetReco::~JetReco()
 {
-  for (unsigned int i = 0; i < _inputs.size(); ++i) 
+  for (unsigned int i = 0; i < _inputs.size(); ++i)
   {
-delete _inputs[i];
+    delete _inputs[i];
   }
   _inputs.clear();
-  for (unsigned int i = 0; i < _algos.size(); ++i) 
+  for (unsigned int i = 0; i < _algos.size(); ++i)
   {
-delete _algos[i];
+    delete _algos[i];
   }
   _algos.clear();
   _outputs.clear();
@@ -144,7 +144,7 @@ int JetReco::CreateNodes(PHCompositeNode *topNode)
 
 void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet *> jets)
 {
-  JetMap *jetmap = findNode::getClass<JetMap>(topNode,_outputs[ipos]);
+  JetMap *jetmap = findNode::getClass<JetMap>(topNode, _outputs[ipos]);
   if (!jetmap)
   {
     std::cout << PHWHERE << " ERROR: Can't find JetMap: " << _outputs[ipos] << std::endl;

@@ -11,10 +11,10 @@
 
 #include "Jet.h"
 
-#include <cstddef>          // for size_t
+#include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
-#include <utility>   // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 class PHObject;
 

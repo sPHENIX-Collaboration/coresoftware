@@ -10,7 +10,7 @@
 #include <ostream>   // for operator<<, endl, ostream, basic_ostream::operat...
 #include <utility>   // for pair, make_pair
 
-JetMapv1::JetMapv1(const JetMap *jets)
+JetMapv1::JetMapv1(const JetMap* jets)
   : _algo(jets->get_algo())
   , _par(jets->get_par())
   , _src()
@@ -27,7 +27,7 @@ JetMapv1::JetMapv1(const JetMap *jets)
        iter != jets->end();
        ++iter)
   {
-    Jet* jet = dynamic_cast<Jet *> ((iter->second)->CloneMe());
+    Jet* jet = dynamic_cast<Jet*>((iter->second)->CloneMe());
     assert(jet);
     _map.insert(std::make_pair(jet->get_id(), jet));
   }
@@ -51,7 +51,7 @@ JetMapv1& JetMapv1::operator=(const JetMapv1& jets)
        iter != jets.end();
        ++iter)
   {
-    Jet* jet = dynamic_cast<Jet *> ((iter->second)->CloneMe());
+    Jet* jet = dynamic_cast<Jet*>((iter->second)->CloneMe());
     assert(jet);
     _map.insert(std::make_pair(jet->get_id(), jet));
   }

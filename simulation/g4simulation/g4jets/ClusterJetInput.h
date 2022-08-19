@@ -8,7 +8,7 @@
 #include "Jet.h"
 
 // finally system includes
-#include <iostream>    // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <vector>
 
 // forward declarations

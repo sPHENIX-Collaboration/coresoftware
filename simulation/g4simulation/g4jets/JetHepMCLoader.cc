@@ -10,38 +10,38 @@
 
 #include "JetHepMCLoader.h"
 
-#include "JetMap.h"                       // for JetMap
+#include "JetMap.h"  // for JetMap
 #include "JetMapv1.h"
 #include "Jetv1.h"
 
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
-#include <fun4all/Fun4AllBase.h>          // for Fun4AllBase::VERBOSITY_A_LOT
+#include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBOSITY_A_LOT
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
-#include <fun4all/SubsysReco.h>           // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                 // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>               // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>                  // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
-#include <TAxis.h>                        // for TAxis
+#include <TAxis.h>  // for TAxis
 #include <TH1.h>
 #include <TH2.h>
-#include <TNamed.h>                       // for TNamed
+#include <TNamed.h>  // for TNamed
 
-#include <HepMC/GenEvent.h>               // for GenEvent, GenEvent::particl...
-#include <HepMC/GenParticle.h>            // for GenParticle
-#include <HepMC/SimpleVector.h>           // for FourVector
-#include <HepMC/Units.h>                  // for conversion_factor, GEV
+#include <HepMC/GenEvent.h>      // for GenEvent, GenEvent::particl...
+#include <HepMC/GenParticle.h>   // for GenParticle
+#include <HepMC/SimpleVector.h>  // for FourVector
+#include <HepMC/Units.h>         // for conversion_factor, GEV
 
-#include <algorithm>                      // for max
+#include <algorithm>  // for max
 #include <cassert>
 #include <iostream>
 
@@ -189,7 +189,7 @@ int JetHepMCLoader::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int JetHepMCLoader::End(PHCompositeNode */*topNode*/)
+int JetHepMCLoader::End(PHCompositeNode * /*topNode*/)
 {
   if (m_saveQAPlots)
   {

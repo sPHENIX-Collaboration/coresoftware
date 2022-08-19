@@ -23,7 +23,7 @@
 #include <vector>
 
 ClusterJetInput::ClusterJetInput(Jet::SRC input)
-  :  m_Input(input)
+  : m_Input(input)
 {
 }
 

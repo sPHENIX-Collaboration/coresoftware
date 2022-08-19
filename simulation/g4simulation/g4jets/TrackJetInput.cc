@@ -10,8 +10,8 @@
 
 // standard includes
 #include <iostream>
-#include <map>                                // for _Rb_tree_const_iterator
-#include <utility>                            // for pair
+#include <map>      // for _Rb_tree_const_iterator
+#include <utility>  // for pair
 #include <vector>
 
 TrackJetInput::TrackJetInput(Jet::SRC input, const std::string &nodename)

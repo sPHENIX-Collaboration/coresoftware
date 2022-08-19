@@ -8,15 +8,15 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 
 #include <phool/getClass.h>
-#include <phool/phool.h>                    // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 // standard includes
 #include <algorithm>  // std::find
-#include <cmath>                           // for asinh, sqrt
+#include <cmath>      // for asinh, sqrt
 #include <cstdlib>
 #include <iostream>
-#include <map>                              // for _Rb_tree_const_iterator
-#include <utility>                          // for pair
+#include <map>      // for _Rb_tree_const_iterator
+#include <utility>  // for pair
 #include <vector>
 
 TruthJetInput::TruthJetInput(Jet::SRC input)
