@@ -16,6 +16,7 @@
 
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackState.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -74,6 +75,10 @@ ParticleFlowReco::~ParticleFlowReco()
 //____________________________________________________________________________..
 int ParticleFlowReco::Init(PHCompositeNode */*topNode*/)
 {
+  file = new TFile("pflowfieldprojxyz.root","recreate");
+  emcaldr = new TH1F("emcaldr",";#DeltaR",100,0,2);
+  hcaldr = new TH1F("hcaldr",";#DeltaR",100,0,2);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -142,6 +147,10 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
   _pflow_TRK_match_HAD.clear();
   _pflow_TRK_addtl_match_EM.clear();
   _pflow_TRK_trk.clear();
+  _pflow_TRK_EMproj_phi.clear();
+  _pflow_TRK_EMproj_eta.clear();
+  _pflow_TRK_HADproj_eta.clear();
+  _pflow_TRK_HADproj_phi.clear();
 
   _pflow_EM_E.clear();
   _pflow_EM_eta.clear();
@@ -178,6 +187,9 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
   // read in tracks with > 0.5 GeV
   {
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
+  
+    float cemcradius = geomEM->get_radius();
+    float ohcalradius = geomOH->get_radius();
 
     for(auto iter = trackmap->begin(); iter != trackmap->end(); ++iter)
       {
@@ -204,6 +216,28 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	_pflow_TRK_match_HAD.push_back( std::vector<int>() );
 	_pflow_TRK_addtl_match_EM.push_back( std::vector< std::pair<int,float> >() );
 	
+	SvtxTrackState* cemcstate = track->get_state(cemcradius);
+	SvtxTrackState* ohstate = track->get_state(ohcalradius);
+	/// Get the track projections. If they failed for some reason, just use the track
+	/// phi and eta values at the point of closest approach
+	if(cemcstate)
+	  {
+	    _pflow_TRK_EMproj_phi.push_back(atan2(cemcstate->get_y(), cemcstate->get_x()));
+	    _pflow_TRK_EMproj_eta.push_back(asinh(cemcstate->get_z()/sqrt(cemcstate->get_x()*cemcstate->get_x() + cemcstate->get_y()*cemcstate->get_y())));
+	  } 
+	  else { 
+	  _pflow_TRK_EMproj_phi.push_back(track->get_phi());
+	  _pflow_TRK_EMproj_eta.push_back(track->get_eta());
+	  	  }
+	if(ohstate)
+	  {
+	    _pflow_TRK_HADproj_phi.push_back(atan2(ohstate->get_py(), ohstate->get_px()));
+	    _pflow_TRK_HADproj_eta.push_back(asinh(ohstate->get_pz()/ohstate->get_pt()));
+	  }
+	  else { 
+	  _pflow_TRK_HADproj_phi.push_back(track->get_phi());
+	  _pflow_TRK_HADproj_eta.push_back(track->get_eta());
+	  }
       }
 
   } // 
@@ -348,9 +382,10 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     
     for (unsigned int em = 0 ; em < _pflow_EM_E.size() ; em++) {
 
-      float dR = calculate_dR( _pflow_TRK_eta[ trk ] , _pflow_EM_eta[ em ] , _pflow_TRK_phi[ trk ] , _pflow_EM_phi[ em ] );
+      float dR = calculate_dR( _pflow_TRK_EMproj_eta[ trk ] , _pflow_EM_eta[ em ] , _pflow_TRK_EMproj_phi[ trk ] , _pflow_EM_phi[ em ] );
+      emcaldr->Fill(dR);
       if ( dR > 0.2 ) continue;
-
+   
       bool has_overlap = false;
 
       for (unsigned int tow = 0; tow < _pflow_EM_tower_eta.at( em ).size() ; tow++) {
@@ -358,8 +393,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	float tower_eta =  _pflow_EM_tower_eta.at( em ).at( tow );
 	float tower_phi =  _pflow_EM_tower_phi.at( em ).at( tow );
 
-	float deta = tower_eta - _pflow_TRK_eta[ trk ];
-	float dphi = tower_phi - _pflow_TRK_phi[ trk ];
+	float deta = tower_eta - _pflow_TRK_EMproj_eta[ trk ];
+	float dphi = tower_phi - _pflow_TRK_EMproj_phi[ trk ];
 	if ( dphi > M_PI ) dphi -= 2 * M_PI;
 	if ( dphi < -M_PI ) dphi += 2 * M_PI;
 
@@ -426,9 +461,10 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     // TODO: sequential linking should better happen here -- i.e. allow EM-matched HAD's into the possible pool
     for (unsigned int had = 0 ; had < _pflow_HAD_E.size() ; had++) {
 
-      float dR = calculate_dR( _pflow_TRK_eta[ trk ] , _pflow_HAD_eta[ had ] , _pflow_TRK_phi[ trk ] , _pflow_HAD_phi[ had ] );
+      float dR = calculate_dR( _pflow_TRK_HADproj_eta[ trk ] , _pflow_HAD_eta[ had ] , _pflow_TRK_HADproj_phi[ trk ] , _pflow_HAD_phi[ had ] );
+      hcaldr->Fill(dR);
       if ( dR > 0.5 ) continue;
-
+    
       bool has_overlap = false;
 
       for (unsigned int tow = 0; tow < _pflow_HAD_tower_eta.at( had ).size() ; tow++) {
@@ -436,8 +472,8 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
 	float tower_eta =  _pflow_HAD_tower_eta.at( had ).at( tow );
 	float tower_phi =  _pflow_HAD_tower_phi.at( had ).at( tow );
 
-	float deta = tower_eta - _pflow_TRK_eta[ trk ];
-	float dphi = tower_phi - _pflow_TRK_phi[ trk ];
+	float deta = tower_eta - _pflow_TRK_HADproj_eta[ trk ];
+	float dphi = tower_phi - _pflow_TRK_HADproj_phi[ trk ];
 	if ( dphi > M_PI ) dphi -= 2 * M_PI;
 	if ( dphi < -M_PI ) dphi += 2 * M_PI;
 
@@ -677,7 +713,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
       pflow->set_hcluster(_pflow_HAD_cluster.at(had));
       pflow->set_id( global_pflow_index );
       pflow->set_type( ParticleFlowElement::PFLOWTYPE::MATCHED_CHARGED_HADRON );
-
+    
       pflowContainer->AddParticleFlowElement( global_pflow_index, pflow );
       global_pflow_index++;
 
@@ -1106,6 +1142,10 @@ int ParticleFlowReco::EndRun(const int runnumber)
 //____________________________________________________________________________..
 int ParticleFlowReco::End(PHCompositeNode */*topNode*/)
 {
+  file->cd();
+  emcaldr->Write();
+  hcaldr->Write();
+  file->Close();
   if (Verbosity() > 0)
   {
   std::cout << "ParticleFlowReco::End(PHCompositeNode *topNode) This is the End..." << std::endl;

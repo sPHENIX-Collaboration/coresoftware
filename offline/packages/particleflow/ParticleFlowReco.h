@@ -13,7 +13,8 @@
 
 #include <string>
 #include <vector>
-
+#include <TFile.h>
+#include <TH1F.h>
 class PHCompositeNode;
 class SvtxTrack;
 class RawCluster;
@@ -57,10 +58,16 @@ class ParticleFlowReco : public SubsysReco
   std::pair<float, float> get_expected_signature( int );
 
   float _energy_match_Nsigma;
-
+  TFile *file = nullptr;
+  TH1 *emcaldr = nullptr;
+  TH1 *hcaldr = nullptr;
   std::vector<float> _pflow_TRK_p;
   std::vector<float> _pflow_TRK_eta;
   std::vector<float> _pflow_TRK_phi;
+  std::vector<float> _pflow_TRK_EMproj_phi;
+  std::vector<float> _pflow_TRK_EMproj_eta;
+  std::vector<float> _pflow_TRK_HADproj_phi;
+  std::vector<float> _pflow_TRK_HADproj_eta;
   std::vector<SvtxTrack*> _pflow_TRK_trk;
   std::vector< std::vector<int> > _pflow_TRK_match_EM;
   std::vector< std::vector<int> > _pflow_TRK_match_HAD;
