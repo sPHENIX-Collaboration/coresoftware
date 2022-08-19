@@ -14,7 +14,7 @@ class PHObject;
 class JetMapv1 : public JetMap
 {
  public:
-  JetMapv1();
+  JetMapv1() {}
   JetMapv1(const JetMap *jets);
   JetMapv1& operator=(const JetMapv1& jets);
   ~JetMapv1() override;
@@ -68,8 +68,8 @@ class JetMapv1 : public JetMap
   Iter end() override { return _map.end(); }
 
  private:
-  Jet::ALGO _algo;          //< algorithm used to reconstruct jets
-  float _par;               //< algorithm parameter setting (e.g. radius)
+  Jet::ALGO _algo = Jet::NONE;          //< algorithm used to reconstruct jets
+  float _par = NAN;               //< algorithm parameter setting (e.g. radius)
   std::set<Jet::SRC> _src;  //< list of sources (clusters, towers, etc)
   typ_JetMap _map;          //< jet algorithm output storage
 

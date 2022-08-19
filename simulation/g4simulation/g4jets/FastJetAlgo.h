@@ -4,6 +4,7 @@
 #include "Jet.h"
 #include "JetAlgo.h"
 
+#include <cmath>     // for NAN
 #include <iostream>  // for cout, ostream
 #include <vector>    // for vector
 

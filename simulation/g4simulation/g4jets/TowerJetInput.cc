@@ -20,8 +20,6 @@
 #include <utility>  // for pair
 #include <vector>
 
-using namespace std;
-
 TowerJetInput::TowerJetInput(Jet::SRC input)
   : _input(input)
 {
@@ -31,28 +29,40 @@ void TowerJetInput::identify(std::ostream &os)
 {
   os << "   TowerJetInput: ";
   if (_input == Jet::CEMC_TOWER)
+  {
     os << "TOWER_CEMC to Jet::CEMC_TOWER";
-  if (_input == Jet::EEMC_TOWER)
+  }
+  else if (_input == Jet::EEMC_TOWER)
+  {
     os << "TOWER_EEMC to Jet::EEMC_TOWER";
+  }
   else if (_input == Jet::HCALIN_TOWER)
+  {
     os << "TOWER_HCALIN to Jet::HCALIN_TOWER";
+  }
   else if (_input == Jet::HCALOUT_TOWER)
+  {
     os << "TOWER_HCALOUT to Jet::HCALOUT_TOWER";
+  }
   else if (_input == Jet::FEMC_TOWER)
+  {
     os << "TOWER_FEMC to Jet::FEMC_TOWER";
+  }
   else if (_input == Jet::FHCAL_TOWER)
+  {
     os << "TOWER_FHCAL to Jet::FHCAL_TOWER";
-  os << endl;
+  }
+  os << std::endl;
 }
 
 std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 0) cout << "TowerJetInput::process_event -- entered" << endl;
+  if (Verbosity() > 0) std::cout << "TowerJetInput::process_event -- entered" << std::endl;
 
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
   {
-    cout << "TowerJetInput::get_input - Fatal Error - GlobalVertexMap node is missing. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << endl;
+    std::cout << "TowerJetInput::get_input - Fatal Error - GlobalVertexMap node is missing. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << std::endl;
     assert(vertexmap);  // force quit
 
     return std::vector<Jet *>();
@@ -60,7 +70,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 
   if (vertexmap->empty())
   {
-    cout << "TowerJetInput::get_input - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_bbc or tracking reco flags in the main macro in order to reconstruct the global vertex." << endl;
+    std::cout << "TowerJetInput::get_input - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_bbc or tracking reco flags in the main macro in order to reconstruct the global vertex." << std::endl;
     return std::vector<Jet *>();
   }
 
@@ -192,9 +202,13 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   GlobalVertex *vtx = vertexmap->begin()->second;
   float vtxz = NAN;
   if (vtx)
+  {
     vtxz = vtx->get_z();
+  }
   else
+  {
     return std::vector<Jet *>();
+  }
 
   if (isnan(vtxz))
   {
@@ -203,7 +217,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     {
       once = false;
 
-      cout << "TowerJetInput::get_input - WARNING - vertex is NAN. Drop all tower inputs (further NAN-vertex warning will be suppressed)." << endl;
+      std::cout << "TowerJetInput::get_input - WARNING - vertex is NAN. Drop all tower inputs (further NAN-vertex warning will be suppressed)." << std::endl;
     }
 
     return std::vector<Jet *>();
@@ -216,8 +230,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   {
     RawTower *tower = rtiter->second;
 
-    RawTowerGeom *tower_geom =
-        geom->get_tower_geometry(tower->get_key());
+    RawTowerGeom *tower_geom = geom->get_tower_geometry(tower->get_key());
     assert(tower_geom);
 
     double r = tower_geom->get_center_radius();
@@ -243,7 +256,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     pseudojets.push_back(jet);
   }
 
-  if (Verbosity() > 0) cout << "TowerJetInput::process_event -- exited" << endl;
+  if (Verbosity() > 0) std::cout << "TowerJetInput::process_event -- exited" << std::endl;
 
   return pseudojets;
 }

@@ -1,4 +1,3 @@
-
 #include "FastJetAlgo.h"
 
 #include "Jet.h"
@@ -8,18 +7,22 @@
 
 // fastjet includes
 #include <fastjet/ClusterSequence.hh>
+#include <fastjet/FunctionOfPseudoJet.hh>               // for FunctionOfPse...
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
 
 // SoftDrop includes
 #include <fastjet/contrib/SoftDrop.hh>
+#include <fastjet/contrib/RecursiveSymmetryCutBase.hh>  // for RecursiveSymm...
 
 #include <TSystem.h>
 
 // standard includes
+#include <cmath>                                        // for isfinite
 #include <iostream>
 #include <map>      // for _Rb_tree_iterator
 #include <memory>   // for allocator_traits<>::value_type
+#include <string>                                       // for operator<<
 #include <utility>  // for pair
 #include <vector>
 
