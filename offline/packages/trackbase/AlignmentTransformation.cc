@@ -144,12 +144,6 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
 Acts::Transform3 AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector)
 {
   // Creates 4x4 affine matrix given rotation matrix and translationVector 
-  /*
-  Eigen::Matrix4d 
-  affineMatrix.setIdentity();  // set bottom row of matrix
-  affineMatrix.block<3,3>(0,0) = rotationMatrix;
-  affineMatrix.block<3,1>(0,3) = translationVector;
-  */
   Acts::Transform3 affineMatrix;
   affineMatrix.linear() = rotationMatrix;
   affineMatrix.translation() = translationVector;
