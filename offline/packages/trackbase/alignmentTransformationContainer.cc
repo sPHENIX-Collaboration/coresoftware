@@ -21,19 +21,20 @@ void alignmentTransformationContainer::Reset()
 
 void alignmentTransformationContainer::identify(std::ostream &os)
 {
+
   os << "-----alignmentTransformationContainer-----" << std::endl;
   for( const auto& entry : transformMap )
   {
     os << " Acts Id: "  << entry.first 
-       << " Transform: " << entry.second
+       << " Transform: " << entry.second.matrix()
        << std::endl;
   }
   os << "------------------------------" << std::endl;
-
+ 
   return;
 }
 
-void alignmentTransformationContainer::addTransform(const Acts::GeometryIdentifier id, Eigen::Matrix4d transform)
+void alignmentTransformationContainer::addTransform(const Acts::GeometryIdentifier id, Acts::Transform3 transform)
 {
   transformMap.insert(std::make_pair(id, transform));
 }
@@ -51,9 +52,9 @@ void alignmentTransformationContainer::removeTransform(const Acts::GeometryIdent
   }
 }
 
-Eigen::Matrix4d alignmentTransformationContainer::getTransform(const Acts::GeometryIdentifier id)
+Acts::Transform3 alignmentTransformationContainer::getTransform(const Acts::GeometryIdentifier id)
 {
-  Eigen::Matrix4d transform;
+  Acts::Transform3 transform;
 
   const auto range = transformMap.equal_range(id);
   for( auto mapiter = range.first; mapiter != range.second; ++mapiter)
@@ -68,7 +69,7 @@ Eigen::Matrix4d alignmentTransformationContainer::getTransform(const Acts::Geome
 }
 
 
-std::map<const Acts::GeometryIdentifier, Eigen::Matrix4d> alignmentTransformationContainer::getContainer()
+std::map<const Acts::GeometryIdentifier, Acts::Transform3> alignmentTransformationContainer::get()
 {
   return transformMap;
 }

@@ -64,7 +64,8 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	   {
              surf = surfMaps.getTpcSurface(hitsetkey,subsurfkey);
 
-	     Eigen::Matrix4d transform = makeTransform(surf, millepedeTranslation, sensorAngles);
+	     //Eigen::Matrix4d 
+	      Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
 
              Acts::GeometryIdentifier id = surf->geometryId();
 
@@ -74,7 +75,8 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
      else 
        {
          surf = surfMaps.getSiliconSurface(hitsetkey);
-	 Eigen::Matrix4d transform = makeTransform(surf, millepedeTranslation, sensorAngles);
+	 //Eigen::Matrix4d 
+	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
 
          Acts::GeometryIdentifier id = surf->geometryId();
 	 transformMap->addTransform(id,transform);
@@ -138,18 +140,25 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
 }
 
 
-Eigen::Matrix4d AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector)
+//Eigen::Matrix4d 
+Acts::Transform3 AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector)
 {
   // Creates 4x4 affine matrix given rotation matrix and translationVector 
-  Eigen::Matrix4d affineMatrix;
+  /*
+  Eigen::Matrix4d 
   affineMatrix.setIdentity();  // set bottom row of matrix
   affineMatrix.block<3,3>(0,0) = rotationMatrix;
   affineMatrix.block<3,1>(0,3) = translationVector;
-  return affineMatrix.matrix();
+  */
+  Acts::Transform3 affineMatrix;
+  affineMatrix.linear() = rotationMatrix;
+  affineMatrix.translation() = translationVector;
+  return affineMatrix;
 }
 
 
-Eigen::Matrix4d AlignmentTransformation::makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles)
+//Eigen::Matrix4d 
+Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles)
 {
   // Create aligment rotation matrix
   Eigen::AngleAxisd alpha(sensorAngles(0), Eigen::Vector3d::UnitX());
@@ -164,12 +173,13 @@ Eigen::Matrix4d AlignmentTransformation::makeTransform(Surface surf, Eigen::Vect
   Eigen::Matrix3d combinedRotation  = globalRotation * millepedeRotation;
   Eigen::Vector3d sensorCenter      = surf->center(m_tGeometry->geometry().geoContext)*0.1;
   Eigen::Vector3d globalTranslation = sensorCenter + millepedeTranslation;
-  Eigen::Matrix4d transformation    = AlignmentTransformation::makeAffineMatrix(combinedRotation,globalTranslation);
+  //Eigen::Matrix4d 
+  Acts::Transform3 transformation    = AlignmentTransformation::makeAffineMatrix(combinedRotation,globalTranslation);
 
   if(localVerbosity == true)
     {
       std::cout << "sensor center: " << sensorCenter << " millepede translation: " << millepedeTranslation <<std::endl;
-      std::cout << "Transform: "<< std::endl<< transformation  <<std::endl;
+      std::cout << "Transform: "<< std::endl<< transformation.matrix()  <<std::endl;
     }
 
   return transformation;   

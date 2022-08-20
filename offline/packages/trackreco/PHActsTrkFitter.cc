@@ -531,7 +531,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 
 	  auto alignmentTransformation = m_alignmentTransformationMap->getTransform(id);      
 
-	  std::cout << " Transform: " << alignmentTransformation << std::endl;
+	  std::cout << " Transform: " << alignmentTransformation.matrix() << std::endl;
 
 	  Eigen::Vector4d finalCoords = alignmentTransformation*clusterLocalPosition;
 	  float phi = atan2(finalCoords(1),finalCoords(0))*180.0/M_PI;
