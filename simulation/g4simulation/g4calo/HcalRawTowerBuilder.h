@@ -23,7 +23,11 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  void Detector(const std::string &d) { m_InputDetector = d; m_OutputDetector = d;}
+  void Detector(const std::string &d)
+  {
+    m_InputDetector = d;
+    m_OutputDetector = d;
+  }
   void InDetector(const std::string &d) { m_InputDetector = d; }
   void OutDetector(const std::string &d) { m_OutputDetector = d; }
   void EminCut(const double e) { m_Emin = e; }
