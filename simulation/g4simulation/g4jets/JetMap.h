@@ -6,7 +6,7 @@
 #include <phool/PHObject.h>
 
 #include <cmath>
-#include <cstddef>          // for size_t
+#include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
 #include <set>
@@ -23,7 +23,7 @@ class JetMap : public PHObject
   typedef std::set<Jet::SRC>::const_iterator ConstSrcIter;
   typedef std::set<Jet::SRC>::iterator SrcIter;
 
-  JetMap(){}
+  JetMap() {}
   ~JetMap() override {}
 
   void identify(std::ostream& os = std::cout) const override;

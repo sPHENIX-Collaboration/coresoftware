@@ -8,23 +8,19 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 
 #include <phool/getClass.h>
-#include <phool/phool.h>                    // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 // standard includes
 #include <algorithm>  // std::find
-#include <cmath>                           // for asinh, sqrt
+#include <cmath>      // for asinh, sqrt
 #include <cstdlib>
 #include <iostream>
-#include <map>                              // for _Rb_tree_const_iterator
-#include <utility>                          // for pair
+#include <map>      // for _Rb_tree_const_iterator
+#include <utility>  // for pair
 #include <vector>
 
-using namespace std;
-
 TruthJetInput::TruthJetInput(Jet::SRC input)
-  : _input(input)
-  , _eta_min(-4.0)
-  , _eta_max(+4.0)
+  : m_Input(input)
 {
 }
 
@@ -34,23 +30,23 @@ void TruthJetInput::identify(std::ostream &os)
   if (use_embed_stream())
   {
     os << ". Processing embedded streams: ";
-    for (std::vector<int>::const_iterator it = _embed_id.begin(); it != _embed_id.end(); ++it)
+    for (std::vector<int>::const_iterator it = m_EmbedID.begin(); it != m_EmbedID.end(); ++it)
     {
       os << (*it) << ", ";
     }
   }
-  os << endl;
+  os << std::endl;
 }
 
 std::vector<Jet *> TruthJetInput::get_input(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 0) cout << "TruthJetInput::process_event -- entered" << endl;
+  if (Verbosity() > 0) std::cout << "TruthJetInput::process_event -- entered" << std::endl;
 
   // Pull the reconstructed track information off the node tree...
   PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!truthinfo)
   {
-    cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
+    std::cout << PHWHERE << " ERROR: Can't find G4TruthInfo" << std::endl;
     return std::vector<Jet *>();
   }
 
@@ -66,7 +62,7 @@ std::vector<Jet *> TruthJetInput::get_input(PHCompositeNode *topNode)
     {
       const int this_embed_id = truthinfo->isEmbeded(part->get_track_id());
 
-      if (std::find(_embed_id.begin(), _embed_id.end(), this_embed_id) == _embed_id.end())
+      if (std::find(m_EmbedID.begin(), m_EmbedID.end(), this_embed_id) == m_EmbedID.end())
       {
         continue;  // reject particle as it is not in the interested embedding stream.
       }
@@ -83,8 +79,8 @@ std::vector<Jet *> TruthJetInput::get_input(PHCompositeNode *topNode)
     // remove acceptance... _etamin,_etamax
     if ((part->get_px() == 0.0) && (part->get_py() == 0.0)) continue;  // avoid pt=0
     float eta = asinh(part->get_pz() / sqrt(pow(part->get_px(), 2) + pow(part->get_py(), 2)));
-    if (eta < _eta_min) continue;
-    if (eta > _eta_max) continue;
+    if (eta < m_EtaMin) continue;
+    if (eta > m_EtaMax) continue;
 
     Jet *jet = new Jetv1();
     jet->set_px(part->get_px());
@@ -95,7 +91,7 @@ std::vector<Jet *> TruthJetInput::get_input(PHCompositeNode *topNode)
     pseudojets.push_back(jet);
   }
 
-  if (Verbosity() > 0) cout << "TruthJetInput::process_event -- exited" << endl;
+  if (Verbosity() > 0) std::cout << "TruthJetInput::process_event -- exited" << std::endl;
 
   return pseudojets;
 }
