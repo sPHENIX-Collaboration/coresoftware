@@ -32,7 +32,7 @@ int DumpObject::OpenOutFile()
   return 0;
 }
 
-void DumpObject::Print(const char */*what*/) const
+void DumpObject::Print(const char * /*what*/) const
 {
   std::cout << ThisName << " did not implement Print method" << std::endl;
   return;
@@ -52,14 +52,14 @@ int DumpObject::process_event(PHNode *myNode)
     {
       *fout << ", Event Sequence: " << myNodeDump->EvtSequence();
     }
-     *fout << std::endl;
+    *fout << std::endl;
   }
   process_Node(myNode);
   //  std::cout << ThisName << " did not implement process_event method" << std::endl;
   return 0;
 }
 
-int DumpObject::process_Node(PHNode */*myNode*/)
+int DumpObject::process_Node(PHNode * /*myNode*/)
 {
   //  std::cout << ThisName << " did not implement process_event method" << std::endl;
   return 0;
