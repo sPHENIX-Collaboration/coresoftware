@@ -475,63 +475,76 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
       Acts::Vector3 global  = m_tGeometry->getGlobalPosition(key, cluster);
 
+
  
+      if(subsurfkey < 288)  
+	{
+	  // ActsSurfaceMaps surfMapsTest = m_tGeometry->maps();
+	  // Surface surfTest;
 
-      // Alignment transformation testing purposes
-      auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(key);
+	  // Alignment transformation testing purposes
+	  auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(key);
 
-      float globphi = atan2(global(1),global(0))*180.0/M_PI;
+	  float globphi = atan2(global(1),global(0))*180.0/M_PI;
 	  
-      std::cout << "global phi " << globphi << " hitsetkey: " << hitsetkey <<" global: " << global << std::endl;
+	  std::cout << "global phi " << globphi << " hitsetkey: " << hitsetkey <<" global: " << global << std::endl;
 
-      auto x = cluster->getLocalX();
-      auto y = cluster->getLocalY();
+	  auto x = cluster->getLocalX();
+	  auto y = cluster->getLocalY();
 
-      Eigen::Vector4d clusterLocalPosition (x,0,y,1);
-      std::cout << "local: "<<clusterLocalPosition << std::endl;
+	  Eigen::Vector4d clusterLocalPosition (x,0,y,1);
+	  std::cout << "local: "<<clusterLocalPosition << std::endl;
 	  
-      if (trkrid == TrkrDefs::inttId)
-	{
-	  unsigned int layer     = TrkrDefs::getLayer(hitsetkey);
-	  unsigned int ladderz   = InttDefs::getLadderZId(hitsetkey);
-	  unsigned int ladderphi = InttDefs::getLadderPhiId(hitsetkey);
+	  if (trkrid == TrkrDefs::inttId)
+	    {
+	      unsigned int layer     = TrkrDefs::getLayer(hitsetkey);
+	      unsigned int ladderz   = InttDefs::getLadderZId(hitsetkey);
+	      unsigned int ladderphi = InttDefs::getLadderPhiId(hitsetkey);
 
-	  std::cout << "layer: "<<layer<< " ladderZ: "<<ladderz<< " ladderPhi: " << ladderphi<<std::endl;
-	}
-      else if (trkrid == TrkrDefs::mvtxId)
-	{
-	  unsigned int layer                          = TrkrDefs::getLayer(hitsetkey);
-	  unsigned int stave                          = MvtxDefs::getStaveId(hitsetkey);
-	  unsigned int chip                           = MvtxDefs::getChipId(hitsetkey);
-	  std::cout << "layer: " << layer << " stave: " << stave << "chip: " << chip << std::endl;
-	}
-      else if(trkrid == TrkrDefs::tpcId)
-	{
-	  unsigned int layer                          = TrkrDefs::getLayer(hitsetkey);
-	  unsigned int sector                         = TpcDefs::getSectorId(hitsetkey);
-	  unsigned int side                           = TpcDefs::getSide(hitsetkey);
-	  std::cout<< "subsurfkey: "<< subsurfkey << " layer: " << layer << " sector: " << sector << " side: " << side << std::endl;
-	}
+	      std::cout << "layer: "<<layer<< " ladderZ: "<<ladderz<< " ladderPhi: " << ladderphi<<std::endl;
+	      //surf = surfMapsTest.getSiliconSurface(hitsetkey);
 
-      auto alignmentTransformation = m_alignmentTransformationMap->getTransform(hitsetkey,subsurfkey);
-      
+	    }
+	  else if (trkrid == TrkrDefs::mvtxId)
+	    {
+	      unsigned int layer                          = TrkrDefs::getLayer(hitsetkey);
+	      unsigned int stave                          = MvtxDefs::getStaveId(hitsetkey);
+	      unsigned int chip                           = MvtxDefs::getChipId(hitsetkey);
+	      std::cout << "layer: " << layer << " stave: " << stave << "chip: " << chip << std::endl;
+	      //surfTest = surfMapsTest.getSiliconSurface(hitsetkey);
 
-      std::cout << " Transform: " << alignmentTransformation << std::endl;
+	    }
+	  else if(trkrid == TrkrDefs::tpcId)
+	    {
+	      unsigned int layer                          = TrkrDefs::getLayer(hitsetkey);
+	      unsigned int sector                         = TpcDefs::getSectorId(hitsetkey);
+	      unsigned int side                           = TpcDefs::getSide(hitsetkey);
+	      std::cout<< "subsurfkey: "<< subsurfkey << " layer: " << layer << " sector: " << sector << " side: " << side << std::endl;
+	      //surfTest = surfMapsTest.getTpcSurface(hitsetkey,subsurfkey);
 
-      Eigen::Vector4d finalCoords = alignmentTransformation*clusterLocalPosition;
-      float phi = atan2(finalCoords(1),finalCoords(0))*180.0/M_PI;
+	    }
 
 
-      Eigen::Vector4d eigenGlobal (global(0),global(1),global(2),1);
-      float deltaX = finalCoords(0)-eigenGlobal(0);
-      float deltaY = finalCoords(1)-eigenGlobal(1);
+	  std::cout << " Requesting Geometry ID... " << std::endl;
+          Acts::GeometryIdentifier id = surf->geometryId();
+	  std::cout << " Geometry Id: " << id << std::endl;
 
-      std::cout<< "deltax: "<<deltaX << " deltaY: " << deltaY << std::endl;
+	  auto alignmentTransformation = m_alignmentTransformationMap->getTransform(id);      
 
-      std::cout << " phi: "<< phi <<" Final Alignment Transform Coordinates: " << finalCoords << std::endl << std::endl;
+	  std::cout << " Transform: " << alignmentTransformation << std::endl;
 
-	
+	  Eigen::Vector4d finalCoords = alignmentTransformation*clusterLocalPosition;
+	  float phi = atan2(finalCoords(1),finalCoords(0))*180.0/M_PI;
 
+	  Eigen::Vector4d eigenGlobal (global(0),global(1),global(2),1);
+	  float deltaX = finalCoords(0)-eigenGlobal(0);
+	  float deltaY = finalCoords(1)-eigenGlobal(1);
+
+	  std::cout<< "deltax: "<<deltaX << " deltaY: " << deltaY << std::endl;
+
+	  std::cout << " phi: "<< phi <<" Final Alignment Transform Coordinates: " << finalCoords << std::endl << std::endl;
+
+	}	
 
 
       if(trkrid ==  TrkrDefs::tpcId)

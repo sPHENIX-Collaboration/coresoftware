@@ -1,6 +1,7 @@
 #include "AlignmentTransformation.h"
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/TpcDefs.h>
 #include <trackbase/ActsGeometry.h>
 
 #include <cmath>
@@ -25,88 +26,77 @@
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
-
-
-
 void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 { 
-  std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
+std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 
-  createNodes(topNode);
+ createNodes(topNode);
 
-  // Define Parsing Variables
-  TrkrDefs::hitsetkey hitsetkey = 0;
-  float alpha = 0.0, beta = 0.0, gamma = 0.0, dx = 0.0, dy = 0.0, dz = 0.0;
+ // Define Parsing Variables
+ TrkrDefs::hitsetkey hitsetkey = 0;
+ float alpha = 0.0, beta = 0.0, gamma = 0.0, dx = 0.0, dy = 0.0, dz = 0.0;
   
-  // load alignment constants file
-  std::ifstream datafile("data.txt");
+ // load alignment constants file
+ std::ifstream datafile("data.txt");
+      
+ ActsSurfaceMaps surfMaps = m_tGeometry->maps();
+ Surface surf;
 
-  int fileLines = 1808;
-  for (int i=0; i<fileLines; i++)
-     {
-      datafile >> hitsetkey >> alpha >> beta >> gamma >> dx >> dy >> dz;
+ int fileLines = 1808;
+ for (int i=0; i<fileLines; i++)
+   {
+     datafile >> hitsetkey >> alpha >> beta >> gamma >> dx >> dy >> dz;
 
-      // Perturbation translations and angles for stave and sensor
-      Eigen::Vector3d sensorAngles (alpha,beta,gamma);  
-      Eigen::Vector3d millepedeTranslation(dx,dy,dz); 
+     // Perturbation translations and angles for stave and sensor
+     Eigen::Vector3d sensorAngles (alpha,beta,gamma);  
+     Eigen::Vector3d millepedeTranslation(dx,dy,dz); 
 
-      unsigned int trkrId = TrkrDefs::getTrkrId(hitsetkey); // specify between detectors
+     unsigned int trkrId = TrkrDefs::getTrkrId(hitsetkey); // specify between detectors
 
+     if(trkrId == TrkrDefs::tpcId)
+       {
+	 unsigned int sector         = TpcDefs::getSectorId(hitsetkey);
+	 unsigned int side           = TpcDefs::getSide(hitsetkey);
+	 unsigned int subsurfkey_min = sector * 12 + (1-side) * 144;
+	 unsigned int subsurfkey_max = subsurfkey_min + 12;
 
-      if(trkrId == TrkrDefs::tpcId )
-	{
-	  for(unsigned int subsurfkey=0; subsurfkey<10; subsurfkey++)
-	    {
-	      Eigen::Matrix4d transform = makeTransform(hitsetkey, millepedeTranslation, sensorAngles, subsurfkey);
+	 for(unsigned int subsurfkey = subsurfkey_min; subsurfkey<subsurfkey_max; subsurfkey++)
+	   {
+             surf = surfMaps.getTpcSurface(hitsetkey,subsurfkey);
 
-	      transformMap->addTransform(hitsetkey,subsurfkey,transform);
-	    }
-	}
-      else 
-	{
-          unsigned int subsurfkey = 0;
+	     Eigen::Matrix4d transform = makeTransform(surf, millepedeTranslation, sensorAngles);
 
-          Eigen::Matrix4d transform = makeTransform(hitsetkey, millepedeTranslation, sensorAngles,subsurfkey);
+             Acts::GeometryIdentifier id = surf->geometryId();
 
-          transformMap->addTransform(hitsetkey,subsurfkey,transform);
-	}
+	     transformMap->addTransform(id,transform);
+	   }
+       }
+     else 
+       {
+         surf = surfMaps.getSiliconSurface(hitsetkey);
+	 Eigen::Matrix4d transform = makeTransform(surf, millepedeTranslation, sensorAngles);
 
-      if(localVerbosity == true )
-	{
-	  std::cout << i << " " <<hitsetkey << " " <<alpha<< " " <<beta<< " " <<gamma<< " " <<dx<< " " <<dy<< " " <<dz << std::endl;
+         Acts::GeometryIdentifier id = surf->geometryId();
+	 transformMap->addTransform(id,transform);
+       }
 
-	  transformMap->identify();
-	}
+     if(localVerbosity == true )
+       {
+	 std::cout << i << " " <<hitsetkey << " " <<alpha<< " " <<beta<< " " <<gamma<< " " <<dx<< " " <<dy<< " " <<dz << std::endl;
+	 transformMap->identify();
+       }
 
-     } 
+   } 
 }
 
 
-Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(TrkrDefs::hitsetkey hitsetkey, unsigned int subsurfkey)
+Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
 {  
   /*
-   Get ideal geometry rotation, by aligning surface to surface normal vector in global coordinates
-   URL: https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+    Get ideal geometry rotation, by aligning surface to surface normal vector in global coordinates
+    URL: https://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
   */  
-
-  unsigned int trkrId      = TrkrDefs::getTrkrId(hitsetkey); // specify between detectors
-  ActsSurfaceMaps surfMaps = m_tGeometry->maps();
-  Surface surf;
-
-  if(trkrId == TrkrDefs::mvtxId or trkrId == TrkrDefs::inttId)
-    {
-      surf = surfMaps.getSiliconSurface(hitsetkey);
-    }
-  else if(trkrId == TrkrDefs::tpcId)
-    {
-      surf = surfMaps.getTpcSurface(hitsetkey,subsurfkey);
-    }
-  else
-    {
-      std::cout << "Invalid hitsetkey";
-      exit(1);
-    }
-
+ 
   Eigen::Vector3d ylocal(0,1,0);
   Eigen::Vector3d sensorNormal    = -surf->normal(m_tGeometry->geometry().geoContext);
   sensorNormal                    = sensorNormal/sensorNormal.norm(); // make unit vector 
@@ -148,10 +138,9 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(TrkrDefs::hitsetkey hits
 }
 
 
-
 Eigen::Matrix4d AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector)
 {
-  // Creates 4x4 affine matrix given rotation angles about each axis and translationVector 
+  // Creates 4x4 affine matrix given rotation matrix and translationVector 
   Eigen::Matrix4d affineMatrix;
   affineMatrix.setIdentity();  // set bottom row of matrix
   affineMatrix.block<3,3>(0,0) = rotationMatrix;
@@ -160,11 +149,8 @@ Eigen::Matrix4d AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotati
 }
 
 
- Eigen::Matrix4d AlignmentTransformation::makeTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles, unsigned int subsurfkey)
+Eigen::Matrix4d AlignmentTransformation::makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles)
 {
-  unsigned int trkrId      = TrkrDefs::getTrkrId(hitsetkey); // specify between detectors
-  ActsSurfaceMaps surfMaps = m_tGeometry->maps();
-  
   // Create aligment rotation matrix
   Eigen::AngleAxisd alpha(sensorAngles(0), Eigen::Vector3d::UnitX());
   Eigen::AngleAxisd beta(sensorAngles(1), Eigen::Vector3d::UnitY());
@@ -173,38 +159,20 @@ Eigen::Matrix4d AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotati
   Eigen::Matrix3d millepedeRotation = q.matrix();
 
   // Create ideal rotation matrix from ActsGeometry
-  Eigen::Matrix3d globalRotation    = AlignmentTransformation::rotateToGlobal(hitsetkey,subsurfkey);
+  Eigen::Matrix3d globalRotation    = AlignmentTransformation::rotateToGlobal(surf);
+  
   Eigen::Matrix3d combinedRotation  = globalRotation * millepedeRotation;
-  Surface surf;
-  if(trkrId == TrkrDefs::mvtxId or trkrId == TrkrDefs::inttId)
-    {
-      surf = surfMaps.getSiliconSurface(hitsetkey);
-    }
-  else if(trkrId == TrkrDefs::tpcId)
-    {
-      surf = surfMaps.getTpcSurface(hitsetkey,subsurfkey);
-
-    }
-  else
-    {
-      std::cout << "Invalid hitsetkey";
-      exit(1);
-    }
-
   Eigen::Vector3d sensorCenter      = surf->center(m_tGeometry->geometry().geoContext)*0.1;
   Eigen::Vector3d globalTranslation = sensorCenter + millepedeTranslation;
   Eigen::Matrix4d transformation    = AlignmentTransformation::makeAffineMatrix(combinedRotation,globalTranslation);
 
-  
   if(localVerbosity == true)
     {
       std::cout << "sensor center: " << sensorCenter << " millepede translation: " << millepedeTranslation <<std::endl;
       std::cout << "Transform: "<< std::endl<< transformation  <<std::endl;
     }
 
-
-  return transformation;
-   
+  return transformation;   
 }
 
 
@@ -215,10 +183,10 @@ int AlignmentTransformation::createNodes(PHCompositeNode* topNode)
  
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
-  {
-    std::cerr << "DST node is missing, quitting" << std::endl;
-    throw std::runtime_error("Failed to find DST node in AlignmentTransformation::createNodes");
-  }
+    {
+      std::cerr << "DST node is missing, quitting" << std::endl;
+      throw std::runtime_error("Failed to find DST node in AlignmentTransformation::createNodes");
+    }
 
   transformMap = findNode::getClass<alignmentTransformationContainer>(topNode, "alignmentTransformationContainer");
   if(!transformMap)
@@ -237,7 +205,7 @@ int AlignmentTransformation::createNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
- return 0; 
+  return 0; 
 }
 
 

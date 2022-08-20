@@ -26,11 +26,11 @@ class AlignmentTransformation {
 
   int localVerbosity = false;
 
-  Eigen::Matrix4d makeTransform(TrkrDefs::hitsetkey hitsetkey, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles, unsigned int subsurfkey);
+  Eigen::Matrix4d makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles);
 
   Eigen::Matrix4d makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector);
 
-  Eigen::Matrix3d rotateToGlobal(TrkrDefs::hitsetkey hitsetkey, unsigned int subsurfkey);
+  Eigen::Matrix3d rotateToGlobal(Surface surf);
 
   //std::map<const TrkrDefs::hitsetkey, Eigen::Matrix4d>* transformMap;
   alignmentTransformationContainer* transformMap;

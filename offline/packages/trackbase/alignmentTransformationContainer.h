@@ -19,13 +19,15 @@
 
 #include <phool/PHObject.h>
 
+#include <trackbase/ActsGeometry.h>
+
 
 /**
  * @brief Container class for Alignment transformations
  *
  * Association object holding transformations associated with given tracker hitset
  */
-class alignmentTransformationContainer
+class alignmentTransformationContainer : public Acts::GeometryContext
 {
   
   public:
@@ -33,20 +35,24 @@ class alignmentTransformationContainer
   alignmentTransformationContainer() = default;
 
   virtual ~alignmentTransformationContainer(){}
- 
+
   void Reset(); 
 
   void identify(std::ostream &os = std::cout);  
 
-  void addTransform(const TrkrDefs::hitsetkey, unsigned int, Eigen::Matrix4d); 
+  void addTransform(Acts::GeometryIdentifier, Eigen::Matrix4d); 
 
-  void removeTransform(const TrkrDefs::hitsetkey, unsigned int); 
+  void removeTransform(Acts::GeometryIdentifier id); 
   
-  Eigen::Matrix4d getTransform(const TrkrDefs::hitsetkey hitsetkey, unsigned int subsurfkey);
+  Eigen::Matrix4d getTransform(Acts::GeometryIdentifier id);
+
+  std::map<const Acts::GeometryIdentifier, Eigen::Matrix4d> getContainer();
+
+  void setContainer();
 
   private:
   
-  std::map<const std::pair<TrkrDefs::hitsetkey,unsigned int>, Eigen::Matrix4d> transformMap;
+  std::map<const Acts::GeometryIdentifier, Eigen::Matrix4d> transformMap;
   
   ClassDef(alignmentTransformationContainer,1);
 

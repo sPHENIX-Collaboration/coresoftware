@@ -4,6 +4,10 @@
 #include <Acts/Plugins/TGeo/TGeoDetectorElement.hpp>
 #include <Acts/Plugins/Identification/Identifier.hpp>
 
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/alignmentTransformationContainer.h>
+
+
 
 /**
  * This class implements an sphenix detector element to build
@@ -44,6 +48,11 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
      
   ~sPHENIXActsDetectorElement() override;
 
+  const Acts::Transform3& transform(const Acts::GeometryContext& ctxt) const override;
+
+private:
+
+std::map<Acts::GeometryIdentifier, Acts::Transform3> m_alignmentParameters;
 
 };
 
