@@ -11,11 +11,9 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 typedef PHIODataNode<TrkrHitSetContainer> MyNode_t;
 
-DumpTrkrHitSetContainer::DumpTrkrHitSetContainer(const string &NodeName)
+DumpTrkrHitSetContainer::DumpTrkrHitSetContainer(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -33,7 +31,7 @@ int DumpTrkrHitSetContainer::process_Node(PHNode *myNode)
   {
     TrkrHitSetContainer::ConstIterator hiter;
     TrkrHitSetContainer::ConstRange begin_end = trkrhitsetcontainer->getHitSets();
-    *fout << "size: " << trkrhitsetcontainer->size() << endl;
+    *fout << "size: " << trkrhitsetcontainer->size() << std::endl;
     for (hiter = begin_end.first; hiter != begin_end.second; ++hiter)
     {
       TrkrHitSet *trkrhitset = hiter->second;
@@ -42,9 +40,9 @@ int DumpTrkrHitSetContainer::process_Node(PHNode *myNode)
       for (tsetiter = trset_begin_end.first; tsetiter != trset_begin_end.second; ++tsetiter)
       {
         TrkrHit *hit = tsetiter->second;
-        *fout << "id: " << tsetiter->first << endl;
-        *fout << "adc: " << hit->getAdc() << endl;
-        *fout << "energy: " << hit->getEnergy() << endl;
+        *fout << "id: " << tsetiter->first << std::endl;
+        *fout << "adc: " << hit->getAdc() << std::endl;
+        *fout << "energy: " << hit->getEnergy() << std::endl;
       }
     }
   }

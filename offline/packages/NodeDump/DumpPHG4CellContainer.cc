@@ -12,11 +12,9 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 typedef PHIODataNode<PHG4CellContainer> MyNode_t;
 
-DumpPHG4CellContainer::DumpPHG4CellContainer(const string &NodeName)
+DumpPHG4CellContainer::DumpPHG4CellContainer(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -34,44 +32,44 @@ int DumpPHG4CellContainer::process_Node(PHNode *myNode)
   {
     PHG4CellContainer::ConstIterator celler;
     PHG4CellContainer::ConstRange cell_begin_end = phg4cellcontainer->getCells();
-    *fout << "size: " << phg4cellcontainer->size() << endl;
+    *fout << "size: " << phg4cellcontainer->size() << std::endl;
     for (celler = cell_begin_end.first; celler != cell_begin_end.second; celler++)
     {
-      *fout << "id: 0x" << hex << celler->second->get_cellid() << dec << endl;
+      *fout << "id: 0x" << std::hex << celler->second->get_cellid() << std::dec << std::endl;
       if (celler->second->has_binning(PHG4CellDefs::scintillatorslatbinning))
       {
-        *fout << "get_column: " << PHG4CellDefs::ScintillatorSlatBinning::get_column(celler->second->get_cellid()) << endl;
-        *fout << "get_row: " << PHG4CellDefs::ScintillatorSlatBinning::get_row(celler->second->get_cellid()) << endl;
+        *fout << "get_column: " << PHG4CellDefs::ScintillatorSlatBinning::get_column(celler->second->get_cellid()) << std::endl;
+        *fout << "get_row: " << PHG4CellDefs::ScintillatorSlatBinning::get_row(celler->second->get_cellid()) << std::endl;
       }
       else if (celler->second->has_binning(PHG4CellDefs::sizebinning))
       {
-        *fout << "get_phibin: " << PHG4CellDefs::SizeBinning::get_phibin(celler->second->get_cellid()) << endl;
-        *fout << "get_zbin: " << PHG4CellDefs::SizeBinning::get_zbin(celler->second->get_cellid()) << endl;
+        *fout << "get_phibin: " << PHG4CellDefs::SizeBinning::get_phibin(celler->second->get_cellid()) << std::endl;
+        *fout << "get_zbin: " << PHG4CellDefs::SizeBinning::get_zbin(celler->second->get_cellid()) << std::endl;
       }
       else if (celler->second->has_binning(PHG4CellDefs::etaphibinning))
       {
-        *fout << "get_etabin: " << PHG4CellDefs::EtaPhiBinning::get_etabin(celler->second->get_cellid()) << endl;
-        *fout << "get_phibin: " << PHG4CellDefs::EtaPhiBinning::get_phibin(celler->second->get_cellid()) << endl;
+        *fout << "get_etabin: " << PHG4CellDefs::EtaPhiBinning::get_etabin(celler->second->get_cellid()) << std::endl;
+        *fout << "get_phibin: " << PHG4CellDefs::EtaPhiBinning::get_phibin(celler->second->get_cellid()) << std::endl;
       }
       else if (celler->second->has_binning(PHG4CellDefs::spacalbinning))
       {
-        *fout << "get_etabin: " << PHG4CellDefs::SpacalBinning::get_etabin(celler->second->get_cellid()) << endl;
-        *fout << "get_phibin: " << PHG4CellDefs::SpacalBinning::get_phibin(celler->second->get_cellid()) << endl;
-        *fout << "get_fiberid: " << PHG4CellDefs::SpacalBinning::get_fiberid(celler->second->get_cellid()) << endl;
+        *fout << "get_etabin: " << PHG4CellDefs::SpacalBinning::get_etabin(celler->second->get_cellid()) << std::endl;
+        *fout << "get_phibin: " << PHG4CellDefs::SpacalBinning::get_phibin(celler->second->get_cellid()) << std::endl;
+        *fout << "get_fiberid: " << PHG4CellDefs::SpacalBinning::get_fiberid(celler->second->get_cellid()) << std::endl;
       }
       else if (celler->second->has_binning(PHG4CellDefs::etaxsizebinning))
       {
-        *fout << "get_etabin: " << PHG4CellDefs::EtaXsizeBinning::get_etabin(celler->second->get_cellid()) << endl;
-        *fout << "get_xsizebin: " << PHG4CellDefs::EtaXsizeBinning::get_xsizebin(celler->second->get_cellid()) << endl;
+        *fout << "get_etabin: " << PHG4CellDefs::EtaXsizeBinning::get_etabin(celler->second->get_cellid()) << std::endl;
+        *fout << "get_xsizebin: " << PHG4CellDefs::EtaXsizeBinning::get_xsizebin(celler->second->get_cellid()) << std::endl;
       }
       else if (celler->second->has_binning(PHG4CellDefs::mvtxbinning))
       {
-        *fout << "get_index: " << PHG4CellDefs::MVTXBinning::get_index(celler->second->get_cellid()) << endl;
+        *fout << "get_index: " << PHG4CellDefs::MVTXBinning::get_index(celler->second->get_cellid()) << std::endl;
       }
       else if (celler->second->has_binning(PHG4CellDefs::tpcbinning))
       {
-        *fout << "get_radbin: " << PHG4CellDefs::TPCBinning::get_radbin(celler->second->get_cellid()) << endl;
-        *fout << "get_phibin: " << PHG4CellDefs::TPCBinning::get_phibin(celler->second->get_cellid()) << endl;
+        *fout << "get_radbin: " << PHG4CellDefs::TPCBinning::get_radbin(celler->second->get_cellid()) << std::endl;
+        *fout << "get_phibin: " << PHG4CellDefs::TPCBinning::get_phibin(celler->second->get_cellid()) << std::endl;
       }
       else
       {
@@ -79,7 +77,7 @@ int DumpPHG4CellContainer::process_Node(PHNode *myNode)
               << PHG4CellDefs::get_binning(celler->second->get_cellid())
               << " for detid: "
               << PHG4CellDefs::get_detid(celler->second->get_cellid())
-              << " not implemented in DumpPHG4CellContainer" << endl;
+              << " not implemented in DumpPHG4CellContainer" << std::endl;
       }
 
       for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
@@ -88,7 +86,7 @@ int DumpPHG4CellContainer::process_Node(PHNode *myNode)
         if (celler->second->has_property(prop_id))
         {
           *fout << "prop id: " << static_cast<unsigned int>(ic);
-          pair<const string, PHG4Cell::PROPERTY_TYPE> property_info = PHG4Cell::get_property_info(prop_id);
+          std::pair<const std::string, PHG4Cell::PROPERTY_TYPE> property_info = PHG4Cell::get_property_info(prop_id);
           *fout << ", name " << property_info.first << " value ";
           switch (property_info.second)
           {
@@ -104,18 +102,18 @@ int DumpPHG4CellContainer::process_Node(PHNode *myNode)
           default:
             *fout << " unknown type ";
           }
-          *fout << endl;
+          *fout << std::endl;
         }
       }
       PHG4Cell::EdepConstRange hitedep_begin_end = celler->second->get_g4hits();
       for (PHG4Cell::EdepConstIterator iter = hitedep_begin_end.first; iter != hitedep_begin_end.second; ++iter)
       {
-        *fout << "hit 0x" << hex << iter->first << dec << " edep: " << iter->second << endl;
+        *fout << "hit 0x" << std::hex << iter->first << std::dec << " edep: " << iter->second << std::endl;
       }
       PHG4Cell::ShowerEdepConstRange shower_begin_end = celler->second->get_g4showers();
       for (PHG4Cell::ShowerEdepConstIterator iter = shower_begin_end.first; iter != shower_begin_end.second; ++iter)
       {
-        *fout << "shower 0x" << hex << iter->first << dec << " edep: " << iter->second << endl;
+        *fout << "shower 0x" << std::hex << iter->first << std::dec << " edep: " << iter->second << std::endl;
       }
     }
   }

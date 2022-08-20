@@ -10,11 +10,9 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 typedef PHIODataNode<GlobalVertexMap> MyNode_t;
 
-DumpGlobalVertexMap::DumpGlobalVertexMap(const string &NodeName)
+DumpGlobalVertexMap::DumpGlobalVertexMap(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -32,29 +30,29 @@ int DumpGlobalVertexMap::process_Node(PHNode *myNode)
   {
     GlobalVertexMap::ConstIter viter_beg = globalvertexmap->begin();
     GlobalVertexMap::ConstIter viter_end = globalvertexmap->end();
-    *fout << "size: " << globalvertexmap->size() << endl;
+    *fout << "size: " << globalvertexmap->size() << std::endl;
     for (GlobalVertexMap::ConstIter viter = viter_beg; viter != viter_end; ++viter)
     {
-      *fout << "id: " << viter->second->get_id() << endl;
-      *fout << "t: " << viter->second->get_t() << endl;
-      *fout << "t_err: " << viter->second->get_t_err() << endl;
-      *fout << "x: " << viter->second->get_x() << endl;
-      *fout << "y: " << viter->second->get_y() << endl;
-      *fout << "z: " << viter->second->get_z() << endl;
-      *fout << "chisq: " << viter->second->get_chisq() << endl;
-      *fout << "ndor: " << viter->second->get_ndof() << endl;
+      *fout << "id: " << viter->second->get_id() << std::endl;
+      *fout << "t: " << viter->second->get_t() << std::endl;
+      *fout << "t_err: " << viter->second->get_t_err() << std::endl;
+      *fout << "x: " << viter->second->get_x() << std::endl;
+      *fout << "y: " << viter->second->get_y() << std::endl;
+      *fout << "z: " << viter->second->get_z() << std::endl;
+      *fout << "chisq: " << viter->second->get_chisq() << std::endl;
+      *fout << "ndor: " << viter->second->get_ndof() << std::endl;
       for (int i = 0; i < 3; i++)
       {
         for (int j = 0; j < 3; j++)
         {
-          *fout << "err[" << i << "][" << j << "]: " << viter->second->get_error(i, j) << endl;
+          *fout << "err[" << i << "][" << j << "]: " << viter->second->get_error(i, j) << std::endl;
         }
       }
       GlobalVertex::ConstVtxIter vtxbegin = viter->second->begin_vtxids();
       GlobalVertex::ConstVtxIter vtxend = viter->second->end_vtxids();
       for (GlobalVertex::ConstVtxIter vtxiter = vtxbegin; vtxiter != vtxend; ++vtxiter)
       {
-        *fout << "type " << vtxiter->first << " id: " << vtxiter->second << endl;
+        *fout << "type " << vtxiter->first << " id: " << vtxiter->second << std::endl;
       }
     }
   }
