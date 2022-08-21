@@ -65,7 +65,7 @@ class CaloTriggerSim : public SubsysReco
 
   // needed since phi ranges are potentially different in EMCal vs. HCal
   float m_FULLCALO_PHI_START = 0.;
-  float m_FULLCALO_PHI_END = 2*M_PI;
+  float m_FULLCALO_PHI_END = 2 * M_PI;
 
   // full calo (based on 0.1x0.1 HCal towers) limits and maps
   int m_FULLCALO_0p1x0p1_NETA = -1;
