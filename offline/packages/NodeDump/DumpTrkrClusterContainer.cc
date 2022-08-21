@@ -38,12 +38,7 @@ int DumpTrkrClusterContainer::process_Node(PHNode *myNode)
       for (hiter = begin_end.first; hiter != begin_end.second; ++hiter)
       {
         TrkrCluster *trkrcluster = hiter->second;
-        *fout << "getX: " << trkrcluster->getX() << std::endl;
-        *fout << "getY: " << trkrcluster->getY() << std::endl;
-        *fout << "getZ: " << trkrcluster->getZ() << std::endl;
         *fout << "getAdc: " << trkrcluster->getAdc() << std::endl;
-        *fout << "getPhiSize: " << trkrcluster->getPhiSize() << std::endl;
-        *fout << "getPhiError: " << trkrcluster->getPhiError() << std::endl;
         *fout << "getRPhiError: " << trkrcluster->getRPhiError() << std::endl;
         *fout << "getZError: " << trkrcluster->getZError() << std::endl;
       }
