@@ -7,11 +7,9 @@
 #include <ostream>
 #include <string>
 
-using namespace std;
-
 typedef PHIODataNode<VariableArray> MyNode_t;
 
-DumpVariableArray::DumpVariableArray(const string &NodeName)
+DumpVariableArray::DumpVariableArray(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -27,12 +25,12 @@ int DumpVariableArray::process_Node(PHNode *myNode)
   }
   if (variablearray)
   {
-    *fout << "Id(): " << variablearray->Id() << endl;
-    *fout << "get_array_size(): " << variablearray->get_array_size() << endl;
+    *fout << "Id(): " << variablearray->Id() << std::endl;
+    *fout << "get_array_size(): " << variablearray->get_array_size() << std::endl;
     const short *sval = variablearray->get_array();
     for (unsigned int i = 0; i < variablearray->get_array_size(); i++)
     {
-      *fout << "val[" << i << "]: " << sval[i] << endl;
+      *fout << "val[" << i << "]: " << sval[i] << std::endl;
     }
   }
   return 0;
