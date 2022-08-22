@@ -474,8 +474,6 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset 
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
       Acts::Vector3 global  = m_tGeometry->getGlobalPosition(key, cluster);
-
-
  
       if(subsurfkey < 288)  
 	{
@@ -500,10 +498,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	      unsigned int layer     = TrkrDefs::getLayer(hitsetkey);
 	      unsigned int ladderz   = InttDefs::getLadderZId(hitsetkey);
 	      unsigned int ladderphi = InttDefs::getLadderPhiId(hitsetkey);
-
 	      std::cout << "layer: "<<layer<< " ladderZ: "<<ladderz<< " ladderPhi: " << ladderphi<<std::endl;
-	      //surf = surfMapsTest.getSiliconSurface(hitsetkey);
-
 	    }
 	  else if (trkrid == TrkrDefs::mvtxId)
 	    {
@@ -511,8 +506,6 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	      unsigned int stave                          = MvtxDefs::getStaveId(hitsetkey);
 	      unsigned int chip                           = MvtxDefs::getChipId(hitsetkey);
 	      std::cout << "layer: " << layer << " stave: " << stave << "chip: " << chip << std::endl;
-	      //surfTest = surfMapsTest.getSiliconSurface(hitsetkey);
-
 	    }
 	  else if(trkrid == TrkrDefs::tpcId)
 	    {
@@ -520,10 +513,14 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	      unsigned int sector                         = TpcDefs::getSectorId(hitsetkey);
 	      unsigned int side                           = TpcDefs::getSide(hitsetkey);
 	      std::cout<< "subsurfkey: "<< subsurfkey << " layer: " << layer << " sector: " << sector << " side: " << side << std::endl;
-	      //surfTest = surfMapsTest.getTpcSurface(hitsetkey,subsurfkey);
-
 	    }
-
+	  else if(trkrid == TrkrDefs::micromegasId)
+	    {
+	      unsigned int layer                          = TrkrDefs::getLayer(hitsetkey);
+	      unsigned int segmentation                   = MicromegasDefs::getSegmentationType(hitsetkey);
+	      unsigned int tile                           = MicromegasDefs::getTileId(hitsetkey);
+	      std::cout<< " layer: " << layer << " segmentation type: " << segmentation << " tile: " << tile << std::endl;
+	    }
 
 	  std::cout << " Requesting Geometry ID... " << std::endl;
           Acts::GeometryIdentifier id = surf->geometryId();
