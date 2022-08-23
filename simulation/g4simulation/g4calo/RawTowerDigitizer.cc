@@ -90,11 +90,11 @@ int RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
   {
     if (m_Detector.c_str()[0] == 'H')
     {
-      m_CalDBFile =  new HcalCaloCalibSimpleCorrFilev1();
+      m_CalDBFile = new HcalCaloCalibSimpleCorrFilev1();
     }
     else if (m_Detector.c_str()[0] == 'C')
     {
-      m_CalDBFile =  new CEmcCaloCalibSimpleCorrFilev1();
+      m_CalDBFile = new CEmcCaloCalibSimpleCorrFilev1();
     }
     else
     {

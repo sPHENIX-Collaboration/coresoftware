@@ -6,9 +6,7 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
-
-DumpObject::DumpObject(const string &NodeName)
+DumpObject::DumpObject(const std::string &NodeName)
   : ThisName(NodeName)
 {
   return;
@@ -29,14 +27,14 @@ int DumpObject::OpenOutFile()
   {
     return 0;
   }
-  string fname = OutDir + "/" + ThisName + ".list";
-  fout = new ofstream(fname.c_str());
+  std::string fname = OutDir + "/" + ThisName + ".list";
+  fout = new std::ofstream(fname.c_str());
   return 0;
 }
 
-void DumpObject::Print(const char */*what*/) const
+void DumpObject::Print(const char * /*what*/) const
 {
-  cout << ThisName << " did not implement Print method" << endl;
+  std::cout << ThisName << " did not implement Print method" << std::endl;
   return;
 }
 
@@ -48,22 +46,22 @@ int DumpObject::process_event(PHNode *myNode)
     {
       (*fout).precision(fp_precision);
     }
-    *fout << endl
+    *fout << std::endl
           << "RunNumber: " << myNodeDump->RunNumber();
     if (print_evtseq)
     {
       *fout << ", Event Sequence: " << myNodeDump->EvtSequence();
     }
-     *fout << endl;
+    *fout << std::endl;
   }
   process_Node(myNode);
-  //  cout << ThisName << " did not implement process_event method" << endl;
+  //  std::cout << ThisName << " did not implement process_event method" << std::endl;
   return 0;
 }
 
-int DumpObject::process_Node(PHNode */*myNode*/)
+int DumpObject::process_Node(PHNode * /*myNode*/)
 {
-  //  cout << ThisName << " did not implement process_event method" << endl;
+  //  std::cout << ThisName << " did not implement process_event method" << std::endl;
   return 0;
 }
 

@@ -9,59 +9,53 @@
 
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>          // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/PHTypedNodeIterator.h>
-#include <phool/PHObject.h>              // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>                 // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 // standard includes
-#include <cstdlib>                      // for exit
+#include <cstdlib>  // for exit
 #include <iostream>
-#include <memory>                        // for allocator_traits<>::value_type
+#include <memory>  // for allocator_traits<>::value_type
 #include <vector>
 
-using namespace std;
-
-JetReco::JetReco(const string &name)
+JetReco::JetReco(const std::string &name)
   : SubsysReco(name)
-  , _inputs()
-  , _algos()
-  , _algonode()
-  , _inputnode()
-  , _outputs()
 {
 }
 
 JetReco::~JetReco()
 {
-  for (unsigned int i = 0; i < _inputs.size(); ++i) delete _inputs[i];
+  for (unsigned int i = 0; i < _inputs.size(); ++i)
+  {
+    delete _inputs[i];
+  }
   _inputs.clear();
-  for (unsigned int i = 0; i < _algos.size(); ++i) delete _algos[i];
+  for (unsigned int i = 0; i < _algos.size(); ++i)
+  {
+    delete _algos[i];
+  }
   _algos.clear();
   _outputs.clear();
-}
-
-int JetReco::Init(PHCompositeNode */*topNode*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int JetReco::InitRun(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-    cout << "========================== JetReco::InitRun() =============================" << endl;
-    cout << " Input Selections:" << endl;
+    std::cout << "========================== JetReco::InitRun() =============================" << std::endl;
+    std::cout << " Input Selections:" << std::endl;
     for (unsigned int i = 0; i < _inputs.size(); ++i) _inputs[i]->identify();
-    cout << " Algorithms:" << endl;
+    std::cout << " Algorithms:" << std::endl;
     for (unsigned int i = 0; i < _algos.size(); ++i) _algos[i]->identify();
-    cout << "===========================================================================" << endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   return CreateNodes(topNode);
@@ -69,7 +63,7 @@ int JetReco::InitRun(PHCompositeNode *topNode)
 
 int JetReco::process_event(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 1) cout << "JetReco::process_event -- entered" << endl;
+  if (Verbosity() > 1) std::cout << "JetReco::process_event -- entered" << std::endl;
 
   //---------------------------------
   // Get Objects off of the Node Tree
@@ -101,13 +95,8 @@ int JetReco::process_event(PHCompositeNode *topNode)
   for (unsigned int i = 0; i < inputs.size(); ++i) delete inputs[i];
   inputs.clear();
 
-  if (Verbosity() > 1) cout << "JetReco::process_event -- exited" << endl;
+  if (Verbosity() > 1) std::cout << "JetReco::process_event -- exited" << std::endl;
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int JetReco::End(PHCompositeNode */*topNode*/)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -116,26 +105,26 @@ int JetReco::CreateNodes(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
 
   // Looking for the DST node
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   // Create the AntiKt node if required
-  PHCompositeNode *AlgoNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", _algonode.c_str()));
+  PHCompositeNode *AlgoNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", _algonode));
   if (!AlgoNode)
   {
-    AlgoNode = new PHCompositeNode(_algonode.c_str());
+    AlgoNode = new PHCompositeNode(_algonode);
     dstNode->addNode(AlgoNode);
   }
 
   // Create the Input node if required
-  PHCompositeNode *InputNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", _inputnode.c_str()));
+  PHCompositeNode *InputNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", _inputnode));
   if (!InputNode)
   {
-    InputNode = new PHCompositeNode(_inputnode.c_str());
+    InputNode = new PHCompositeNode(_inputnode);
     AlgoNode->addNode(InputNode);
   }
 
@@ -145,7 +134,7 @@ int JetReco::CreateNodes(PHCompositeNode *topNode)
     if (!jets)
     {
       jets = new JetMapv1();
-      PHIODataNode<PHObject> *JetMapNode = new PHIODataNode<PHObject>(jets, _outputs[i].c_str(), "PHObject");
+      PHIODataNode<PHObject> *JetMapNode = new PHIODataNode<PHObject>(jets, _outputs[i], "PHObject");
       InputNode->addNode(JetMapNode);
     }
   }
@@ -155,17 +144,11 @@ int JetReco::CreateNodes(PHCompositeNode *topNode)
 
 void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet *> jets)
 {
-  JetMap *jetmap = nullptr;
-  PHTypedNodeIterator<JetMap> jetmapiter(topNode);
-  PHIODataNode<JetMap> *JetMapNode = jetmapiter.find(_outputs[ipos].c_str());
-  if (!JetMapNode)
+  JetMap *jetmap = findNode::getClass<JetMap>(topNode, _outputs[ipos]);
+  if (!jetmap)
   {
-    cout << PHWHERE << " ERROR: Can't find JetMap: " << _outputs[ipos] << endl;
+    std::cout << PHWHERE << " ERROR: Can't find JetMap: " << _outputs[ipos] << std::endl;
     exit(-1);
-  }
-  else
-  {
-    jetmap = dynamic_cast<JetMap *> (JetMapNode->getData());
   }
 
   jetmap->set_algo(_algos[ipos]->get_algo());

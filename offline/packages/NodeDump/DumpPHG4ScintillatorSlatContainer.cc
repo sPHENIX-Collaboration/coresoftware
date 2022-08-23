@@ -10,11 +10,9 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 typedef PHIODataNode<PHG4ScintillatorSlatContainer> MyNode_t;
 
-DumpPHG4ScintillatorSlatContainer::DumpPHG4ScintillatorSlatContainer(const string &NodeName)
+DumpPHG4ScintillatorSlatContainer::DumpPHG4ScintillatorSlatContainer(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -32,15 +30,15 @@ int DumpPHG4ScintillatorSlatContainer::process_Node(PHNode *myNode)
   {
     PHG4ScintillatorSlatContainer::ConstIterator hiter;
     PHG4ScintillatorSlatContainer::ConstRange begin_end = scinticontainer->getScintillatorSlats();
-    *fout << "size: " << scinticontainer->size() << endl;
+    *fout << "size: " << scinticontainer->size() << std::endl;
     for (hiter = begin_end.first; hiter != begin_end.second; ++hiter)
     {
-      *fout << "get_key(): 0x" << hex << hiter->second->get_key() << dec << endl;
-      *fout << "get_column(): " << hiter->second->get_column() << endl;
-      *fout << "get_row(): " << hiter->second->get_row() << endl;
-      *fout << "get_edep(): " << hiter->second->get_edep() << endl;
-      *fout << "get_eion(): " << hiter->second->get_eion() << endl;
-      *fout << "get_light_yield(): " << hiter->second->get_light_yield() << endl;
+      *fout << "get_key(): 0x" << std::hex << hiter->second->get_key() << std::dec << std::endl;
+      *fout << "get_column(): " << hiter->second->get_column() << std::endl;
+      *fout << "get_row(): " << hiter->second->get_row() << std::endl;
+      *fout << "get_edep(): " << hiter->second->get_edep() << std::endl;
+      *fout << "get_eion(): " << hiter->second->get_eion() << std::endl;
+      *fout << "get_light_yield(): " << hiter->second->get_light_yield() << std::endl;
     }
   }
   return 0;

@@ -10,11 +10,9 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 typedef PHIODataNode<RawClusterContainer> MyNode_t;
 
-DumpRawClusterContainer::DumpRawClusterContainer(const string &NodeName)
+DumpRawClusterContainer::DumpRawClusterContainer(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -32,13 +30,13 @@ int DumpRawClusterContainer::process_Node(PHNode *myNode)
   {
     RawClusterContainer::ConstIterator hiter;
     RawClusterContainer::ConstRange begin_end = rawclustercontainer->getClusters();
-    *fout << "size: " << rawclustercontainer->size() << endl;
+    *fout << "size: " << rawclustercontainer->size() << std::endl;
     for (hiter = begin_end.first; hiter != begin_end.second; ++hiter)
     {
-      *fout << "NTowers: " << hiter->second->getNTowers() << endl;
-      *fout << "z: " << hiter->second->get_z() << endl;
-      *fout << "phi: " << hiter->second->get_phi() << endl;
-      *fout << "energy: " << hiter->second->get_energy() << endl;
+      *fout << "NTowers: " << hiter->second->getNTowers() << std::endl;
+      *fout << "z: " << hiter->second->get_z() << std::endl;
+      *fout << "phi: " << hiter->second->get_phi() << std::endl;
+      *fout << "energy: " << hiter->second->get_energy() << std::endl;
     }
   }
   return 0;

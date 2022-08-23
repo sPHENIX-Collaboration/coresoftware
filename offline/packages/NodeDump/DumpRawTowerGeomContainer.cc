@@ -10,11 +10,9 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 typedef PHIODataNode<RawTowerGeomContainer> MyNode_t;
 
-DumpRawTowerGeomContainer::DumpRawTowerGeomContainer(const string &NodeName)
+DumpRawTowerGeomContainer::DumpRawTowerGeomContainer(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -30,8 +28,8 @@ int DumpRawTowerGeomContainer::process_Node(PHNode *myNode)
   }
   if (rawtowergeom)
   {
-    *fout << "Calorimeter ID: " << rawtowergeom->get_calorimeter_id() << endl;
-    *fout << "size: " << rawtowergeom->size() << endl;
+    *fout << "Calorimeter ID: " << rawtowergeom->get_calorimeter_id() << std::endl;
+    *fout << "size: " << rawtowergeom->size() << std::endl;
     rawtowergeom->identify(*fout);
     RawTowerGeomContainer::ConstRange all_towers = rawtowergeom->get_tower_geometries();
     for (RawTowerGeomContainer::ConstIterator it = all_towers.first;

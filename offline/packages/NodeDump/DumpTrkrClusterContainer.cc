@@ -10,11 +10,9 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 typedef PHIODataNode<TrkrClusterContainer> MyNode_t;
 
-DumpTrkrClusterContainer::DumpTrkrClusterContainer(const string &NodeName)
+DumpTrkrClusterContainer::DumpTrkrClusterContainer(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -31,19 +29,19 @@ int DumpTrkrClusterContainer::process_Node(PHNode *myNode)
   if (trkrclustercontainer)
   {
     TrkrClusterContainer::ConstIterator hiter;
-    TrkrClusterContainer::ConstRange begin_end = trkrclustercontainer->getClusters();
-    *fout << "size: " << trkrclustercontainer->size() << endl;
-    for (hiter = begin_end.first; hiter != begin_end.second; ++hiter)
+    *fout << "size: " << trkrclustercontainer->size() << std::endl;
+    trkrclustercontainer->identify(*fout);
+    TrkrClusterContainer::HitSetKeyList keylist = trkrclustercontainer->getHitSetKeys();
+    for (auto iter = keylist.begin(); iter != keylist.end(); ++iter)
     {
-      TrkrCluster *trkrcluster = hiter->second;
-      *fout << "getX: " << trkrcluster->getX() << endl;
-      *fout << "getY: " << trkrcluster->getY() << endl;
-      *fout << "getZ: " << trkrcluster->getZ() << endl;
-      *fout << "getAdc: " << trkrcluster->getAdc() << endl;
-      *fout << "getPhiSize: " << trkrcluster->getPhiSize() << endl;
-      *fout << "getPhiError: " << trkrcluster->getPhiError() << endl;
-      *fout << "getRPhiError: " << trkrcluster->getRPhiError() << endl;
-      *fout << "getZError: " << trkrcluster->getZError() << endl;
+      TrkrClusterContainer::ConstRange begin_end = trkrclustercontainer->getClusters(*iter);
+      for (hiter = begin_end.first; hiter != begin_end.second; ++hiter)
+      {
+        TrkrCluster *trkrcluster = hiter->second;
+        *fout << "getAdc: " << trkrcluster->getAdc() << std::endl;
+        *fout << "getRPhiError: " << trkrcluster->getRPhiError() << std::endl;
+        *fout << "getZError: " << trkrcluster->getZError() << std::endl;
+      }
     }
   }
   return 0;

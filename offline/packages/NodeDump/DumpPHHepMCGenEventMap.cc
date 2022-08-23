@@ -12,11 +12,9 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 typedef PHIODataNode<PHHepMCGenEventMap> MyNode_t;
 
-DumpPHHepMCGenEventMap::DumpPHHepMCGenEventMap(const string &NodeName)
+DumpPHHepMCGenEventMap::DumpPHHepMCGenEventMap(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -34,18 +32,18 @@ int DumpPHHepMCGenEventMap::process_Node(PHNode *myNode)
   {
     PHHepMCGenEventMap::ConstIter iter_beg = phhepmcgeneventmap->begin();
     PHHepMCGenEventMap::ConstIter iter_end = phhepmcgeneventmap->end();
-    *fout << "size: " << phhepmcgeneventmap->size() << endl;
+    *fout << "size: " << phhepmcgeneventmap->size() << std::endl;
     for (PHHepMCGenEventMap::ConstIter iter = iter_beg; iter != iter_end; ++iter)
     {
-      *fout << "map entry: " << iter->first << endl;
+      *fout << "map entry: " << iter->first << std::endl;
       PHHepMCGenEvent *genevt = iter->second;
       HepMC::GenEvent *evt = genevt->getEvent();
-      *fout << "Embedding id " << genevt->get_embedding_id() << endl;
-      *fout << "is simulated " << genevt->is_simulated() << endl;
-      *fout << "Collision vertex x: " << genevt->get_collision_vertex().x() << endl;
-      *fout << "Collision vertex y: " << genevt->get_collision_vertex().y() << endl;
-      *fout << "Collision vertex z: " << genevt->get_collision_vertex().z() << endl;
-      *fout << "Collision vertex t: " << genevt->get_collision_vertex().t() << endl;
+      *fout << "Embedding id " << genevt->get_embedding_id() << std::endl;
+      *fout << "is simulated " << genevt->is_simulated() << std::endl;
+      *fout << "Collision vertex x: " << genevt->get_collision_vertex().x() << std::endl;
+      *fout << "Collision vertex y: " << genevt->get_collision_vertex().y() << std::endl;
+      *fout << "Collision vertex z: " << genevt->get_collision_vertex().z() << std::endl;
+      *fout << "Collision vertex t: " << genevt->get_collision_vertex().t() << std::endl;
       evt->print(*fout);
     }
   }
