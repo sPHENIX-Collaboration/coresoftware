@@ -297,10 +297,9 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 	{ nfakesurfaces++; }
     }
 
-  /// Make a check for the fake surfaces. If we have more than 2, i.e. 
-  /// more than 2 sides, then we've built the fake surfaces and we should
-  /// not do it again
-  if(nfakesurfaces > 2)
+  /// Make a check for the fake surfaces. If we have more than 0
+  /// then we've built the fake surfaces and we should not do it again
+  if(nfakesurfaces > 0)
     { return; }
 
   if (Verbosity() > 3)
