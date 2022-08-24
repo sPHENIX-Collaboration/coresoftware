@@ -487,8 +487,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	  
 	  std::cout << "global phi " << globphi << " hitsetkey: " << hitsetkey <<" global: " << global << std::endl;
 
-	  auto x = cluster->getLocalX();
-	  auto y = cluster->getLocalY();
+	  auto x = cluster->getLocalX()*10.0;
+	  auto y = cluster->getLocalY()*10.0;
 
 	  Eigen::Vector4d clusterLocalPosition (x,0,y,1);
 	  std::cout << "local: "<<clusterLocalPosition << std::endl;

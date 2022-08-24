@@ -182,11 +182,12 @@ Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vec
 
   // Create ideal rotation matrix from ActsGeometry
   Eigen::Matrix3d globalRotation    = AlignmentTransformation::rotateToGlobal(surf);
-  
+ 
   Eigen::Matrix3d combinedRotation  = globalRotation * millepedeRotation;
-  Eigen::Vector3d sensorCenter      = surf->center(m_tGeometry->geometry().geoContext)*0.1;
+ 
+  Eigen::Vector3d sensorCenter      = surf->center(m_tGeometry->geometry().geoContext);//*0.1;
   Eigen::Vector3d globalTranslation = sensorCenter + millepedeTranslation;
-  globalTranslation                *= 10.0;
+  // globalTranslation                *= 10.0;
   Acts::Transform3 transformation   = AlignmentTransformation::makeAffineMatrix(combinedRotation,globalTranslation);
 
   if(localVerbosity == true)
