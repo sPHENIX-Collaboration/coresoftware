@@ -26,8 +26,6 @@
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
-//#include "sPHENIXActsDetectorElement.h"
-
 void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 { 
 std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
@@ -69,7 +67,8 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	      Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
 
              Acts::GeometryIdentifier id = surf->geometryId();
-	     if(localVerbosity) std::cout << " Add transform for surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	     //if(localVerbosity) 
+	       std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 	     transformMap->addTransform(id,transform);
 	   }
        }
@@ -79,7 +78,8 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
 
          Acts::GeometryIdentifier id = surf->geometryId();
-	 if(localVerbosity) std::cout << " Add transform for surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	 //if(localVerbosity) 
+	   std::cout << " Add transform for non-TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 	 transformMap->addTransform(id,transform);
        }
 
@@ -96,7 +96,6 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
  std::cout << " check:  map2 size is " << map2.size() << std::endl; 
  m_tGeometry->geometry().geoContext = context.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
 
- // sPHENIXActsDetectorElement::use_alignment = true;
 }
 
 Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)

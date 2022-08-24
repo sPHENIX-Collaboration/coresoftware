@@ -13,14 +13,14 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
   if(use_alignment)
     {
       std::cout << "map is filled " << std::endl;
-      Acts::GeometryIdentifier id = surface().geometryId();
-      std::cout << " Get transform for identifier " << id << std::endl;
      const std::map<Acts::GeometryIdentifier, Acts::Transform3>& map = ctxt.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
      //auto map = ctxt.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>&>();
 
-
+      std::cout << "      map size " << map.size() << std::endl; 
+      Acts::GeometryIdentifier id = surface().geometryId();
+      std::cout << " Get transform for identifier " << id << std::endl;
       const Acts::Transform3& transform = map.find(id)->second;
-      //std::cout << "          transform is: " << transform.matrix() << std::endl;
+      std::cout << "          transform is: " << transform.matrix() << std::endl;
 
       return transform;
     }

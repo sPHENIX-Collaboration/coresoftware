@@ -159,8 +159,9 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   AlignmentTransformation alignment_transformation;
   alignment_transformation.createAlignmentTransformContainer(topNode);
   alignment_transformation.createMap(topNode);
-
-  // print
+  sPHENIXActsDetectorElement::use_alignment = true;
+ 
+ // print
   //  if( Verbosity() )
   {
     for( const auto& id:surfMaps.m_tpcVolumeIds )
