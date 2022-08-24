@@ -11,11 +11,9 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 typedef PHIODataNode<PHG4HitContainer> MyNode_t;
 
-DumpPHG4HitContainer::DumpPHG4HitContainer(const string &NodeName)
+DumpPHG4HitContainer::DumpPHG4HitContainer(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -33,20 +31,20 @@ int DumpPHG4HitContainer::process_Node(PHNode *myNode)
   {
     PHG4HitContainer::ConstIterator hiter;
     PHG4HitContainer::ConstRange hit_begin_end = phg4hitcontainer->getHits();
-    *fout << "size: " << phg4hitcontainer->size() << endl;
-    *fout << "num layers: " << phg4hitcontainer->num_layers() << endl;
+    *fout << "size: " << phg4hitcontainer->size() << std::endl;
+    *fout << "num layers: " << phg4hitcontainer->num_layers() << std::endl;
     for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
     {
-      *fout << "id: 0x" << hex << hiter->second->get_hit_id() << dec << endl;
-      *fout << "detid: " << hiter->second->get_detid() << endl;
-      *fout << "trkid: " << hiter->second->get_trkid() << endl;
-      *fout << "edep: " << hiter->second->get_edep() << endl;
+      *fout << "id: 0x" << std::hex << hiter->second->get_hit_id() << std::dec << std::endl;
+      *fout << "detid: " << hiter->second->get_detid() << std::endl;
+      *fout << "trkid: " << hiter->second->get_trkid() << std::endl;
+      *fout << "edep: " << hiter->second->get_edep() << std::endl;
       for (int i = 0; i < 2; i++)
       {
-        *fout << "x(" << i << "): " << hiter->second->get_x(i) << endl;
-        *fout << "y(" << i << "): " << hiter->second->get_y(i) << endl;
-        *fout << "z(" << i << "): " << hiter->second->get_z(i) << endl;
-        *fout << "t(" << i << "): " << hiter->second->get_t(i) << endl;
+        *fout << "x(" << i << "): " << hiter->second->get_x(i) << std::endl;
+        *fout << "y(" << i << "): " << hiter->second->get_y(i) << std::endl;
+        *fout << "z(" << i << "): " << hiter->second->get_z(i) << std::endl;
+        *fout << "t(" << i << "): " << hiter->second->get_t(i) << std::endl;
       }
       for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
       {
@@ -54,7 +52,7 @@ int DumpPHG4HitContainer::process_Node(PHNode *myNode)
         if (hiter->second->has_property(prop_id))
         {
           *fout << "prop id: " << static_cast<unsigned int>(ic);
-          pair<const string, PHG4Hit::PROPERTY_TYPE> property_info = PHG4Hit::get_property_info(prop_id);
+          std::pair<const std::string, PHG4Hit::PROPERTY_TYPE> property_info = PHG4Hit::get_property_info(prop_id);
           *fout << ", name " << property_info.first << " value ";
           switch (property_info.second)
           {
@@ -70,7 +68,7 @@ int DumpPHG4HitContainer::process_Node(PHNode *myNode)
           default:
             *fout << " unknown type ";
           }
-          *fout << endl;
+          *fout << std::endl;
         }
       }
     }

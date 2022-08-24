@@ -14,9 +14,11 @@ namespace
 
 Eigen::Matrix<float,3,1> ActsGeometry::getGlobalPositionF(
   TrkrDefs:: cluskey key,       
-  TrkrCluster* cluster) const
+  //  TrkrCluster* cluster) const
+  TrkrCluster* cluster)
 {
-  const Acts::Vector3 doublePos = getGlobalPosition(key, cluster);
+  //  const Acts::Vector3 doublePos = getGlobalPosition(key, cluster);
+  Acts::Vector3 doublePos = getGlobalPosition(key, cluster);
   return Eigen::Matrix<float,3,1>(doublePos(0), doublePos(1), doublePos(2));
 }
 
@@ -31,7 +33,8 @@ Eigen::Matrix<float,3,1> ActsGeometry::getGlobalPositionTpcF(
 */
 
 Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
-					      TrkrCluster* cluster) const
+					      //					      TrkrCluster* cluster) const
+					      TrkrCluster* cluster)
 {
   Acts::Vector3 glob;
  
@@ -66,8 +69,8 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
   return global;
 }
 
-Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
-						 TrkrCluster* cluster) const
+//Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,	 TrkrCluster* cluster) const
+Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,	 TrkrCluster* cluster)
 {
   Acts::Vector3 glob;
 
@@ -116,7 +119,8 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
 Surface ActsGeometry::get_tpc_surface_from_coords(
   TrkrDefs::hitsetkey hitsetkey,
   Acts::Vector3 world,
-  TrkrDefs::subsurfkey& subsurfkey) const
+  //  TrkrDefs::subsurfkey& subsurfkey) const
+  TrkrDefs::subsurfkey& subsurfkey)
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   auto mapIter = maps().m_tpcSurfaceMap.find(layer);

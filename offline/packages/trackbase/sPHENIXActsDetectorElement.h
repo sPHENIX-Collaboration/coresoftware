@@ -3,14 +3,16 @@
 
 #include <Acts/Plugins/TGeo/TGeoDetectorElement.hpp>
 #include <Acts/Plugins/Identification/Identifier.hpp>
-#include <trackbase/ActsGeometry.h>
-#include <trackbase/alignmentTransformationContainer.h>
+#include <Acts/Geometry/GeometryIdentifier.hpp>
 
 /**
  * This class implements an sphenix detector element to build
  * the Acts geometry with. Relevant info on how to handle alignment
  * information from the GeometryContext is logically processed here
  */
+
+class ActsGeometry;
+
 class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
 {
  public:
@@ -28,7 +30,8 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
     
   sPHENIXActsDetectorElement(const Identifier& identifier, 
 			     const TGeoNode& tGeoNode,
-			     const Acts::Transform3& tgTransform,
+			     //			     const Acts::Transform3& tgTransform,
+			      Acts::Transform3& tgTransform,
 			     std::shared_ptr<const Acts::PlanarBounds> tgBounds,
 			     double tgThickness = 0.) : 
      Acts::TGeoDetectorElement(identifier, tGeoNode, tgTransform, 
@@ -37,7 +40,8 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
      
   sPHENIXActsDetectorElement(const Identifier& identifier, 
 			     const TGeoNode& tGeoNode,
-			     const Acts::Transform3& tgTransform,
+			     //const Acts::Transform3& tgTransform,
+			     Acts::Transform3& tgTransform,
 			     std::shared_ptr<const Acts::DiscBounds> tgBounds,
 			     double tgThickness = 0.) :
     Acts::TGeoDetectorElement(identifier, tGeoNode, tgTransform, tgBounds, 
@@ -47,9 +51,13 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
 
   const Acts::Transform3& transform(const Acts::GeometryContext& ctxt) const override;
 
+void set_aligned(bool val){use_alignment = val;}
+
+static bool use_alignment;
+
 private:
 
-std::map<Acts::GeometryIdentifier, Acts::Transform3> m_alignmentParameters;
+//std::map<Acts::GeometryIdentifier, Acts::Transform3> m_alignmentParameters;
 
 };
 

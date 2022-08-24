@@ -25,7 +25,7 @@ int DumpEpInfo::process_Node(PHNode *myNode)
   }
   if (epinfo)
   {
-    *fout << "Max Order: " <<  epinfo->MaxOrder() << std::endl;
+    *fout << "Max Order: " << epinfo->MaxOrder() << std::endl;
     // order starts at 1
     for (unsigned int i = 1; i < epinfo->MaxOrder(); ++i)
     {
@@ -33,7 +33,6 @@ int DumpEpInfo::process_Node(PHNode *myNode)
       *fout << "RawQ( " << i << "): " << tmp.first << ", " << tmp.second << std::endl;
       *fout << "SWRaw( " << i << "): " << epinfo->SWRaw(i) << std::endl;
       *fout << "RawPsi( " << i << "): " << epinfo->RawPsi(i) << std::endl;
-
     }
   }
   return 0;

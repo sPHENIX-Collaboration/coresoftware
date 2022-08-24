@@ -63,10 +63,13 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	 for(unsigned int subsurfkey = subsurfkey_min; subsurfkey<subsurfkey_max; subsurfkey++)
 	   {
              surf = surfMaps.getTpcSurface(hitsetkey,subsurfkey);
-	     //Eigen::Matrix4d 
-	     Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
-             Acts::GeometryIdentifier id = surf->geometryId();
 
+
+	     Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
+
+             Acts::GeometryIdentifier id = surf->geometryId();
+	     //if(localVerbosity) 
+	     std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 	     transformMap->addTransform(id,transform);
 	   }
        }
@@ -76,15 +79,19 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
          Acts::GeometryIdentifier id = surf->geometryId();
 
+	 std::cout << " Add transform for Silicon with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+
 	 transformMap->addTransform(id,transform);
        }
-
      else if(trkrId == TrkrDefs::micromegasId)
       {
          surf = surfMaps.getMMSurface(hitsetkey);
 	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
          Acts::GeometryIdentifier id = surf->geometryId();
-	 
+
+	 //if(localVerbosity) 
+	 std::cout << " Add transform for Micromegas with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+
 	 transformMap->addTransform(id,transform);
 
       }
@@ -93,14 +100,20 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	 std::cout<< "Error: Invalid Hitsetkey" << std::endl;
        }
 
-     if(localVerbosity == true )
+     if(localVerbosity)
        {
 	 std::cout << i << " " <<hitsetkey << " " <<alpha<< " " <<beta<< " " <<gamma<< " " <<dx<< " " <<dy<< " " <<dz << std::endl;
-	 transformMap->identify();
+	 //transformMap->identify();
        }
    } 
-}
+ const auto map = transformMap->getMap();
+ Acts::GeometryContext context(map);
+ std::cout << " check:  get map2  " << std::endl;  
+ const auto map2 = context.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
+ std::cout << " check:  map2 size is " << map2.size() << std::endl; 
+ m_tGeometry->geometry().geoContext = context.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
 
+}
 
 Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
 {  
@@ -149,8 +162,6 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
   return globalRotation;
 }
 
-
-//Eigen::Matrix4d 
 Acts::Transform3 AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector)
 {
   // Creates 4x4 affine matrix given rotation matrix and translationVector 
@@ -160,8 +171,6 @@ Acts::Transform3 AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotat
   return affineMatrix;
 }
 
-
-//Eigen::Matrix4d 
 Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles)
 {
   // Create aligment rotation matrix
@@ -177,8 +186,8 @@ Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vec
   Eigen::Matrix3d combinedRotation  = globalRotation * millepedeRotation;
   Eigen::Vector3d sensorCenter      = surf->center(m_tGeometry->geometry().geoContext)*0.1;
   Eigen::Vector3d globalTranslation = sensorCenter + millepedeTranslation;
-  //Eigen::Matrix4d 
-  Acts::Transform3 transformation    = AlignmentTransformation::makeAffineMatrix(combinedRotation,globalTranslation);
+  globalTranslation                *= 10.0;
+  Acts::Transform3 transformation   = AlignmentTransformation::makeAffineMatrix(combinedRotation,globalTranslation);
 
   if(localVerbosity == true)
     {
@@ -192,16 +201,6 @@ Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vec
 
 int AlignmentTransformation::createNodes(PHCompositeNode* topNode)
 {
-  //​ Get a pointer to the top of the node tree
-  PHNodeIterator iter(topNode);
- 
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode)
-    {
-      std::cerr << "DST node is missing, quitting" << std::endl;
-      throw std::runtime_error("Failed to find DST node in AlignmentTransformation::createNodes");
-    }
-
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_tGeometry)
     {
@@ -214,26 +213,23 @@ int AlignmentTransformation::createNodes(PHCompositeNode* topNode)
   return 0; 
 }
 
-
-
-// void AlignmentTransformation::createTransformMap(PHCompositeNode* topNode)
-// {
-
-//   //​ Get a pointer to the top of the node tree
-//   PHNodeIterator iter(topNode);
+void AlignmentTransformation::createAlignmentTransformContainer(PHCompositeNode* topNode)
+{
+  //​ Get a pointer to the top of the node tree
+  PHNodeIterator iter(topNode);
  
-//   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-//   if (!dstNode)
-//     {
-//       std::cerr << "DST node is missing, quitting" << std::endl;
-//       throw std::runtime_error("Failed to find DST node in AlignmentTransformation::createNodes");
-//     }
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+    {
+      std::cerr << "DST node is missing, quitting" << std::endl;
+      throw std::runtime_error("Failed to find DST node in AlignmentTransformation::createNodes");
+    }
 
-//   transformMap = findNode::getClass<alignmentTransformationContainer>(topNode, "alignmentTransformationContainer");
-//   if(!transformMap)
-//     {
-//       transformMap = new alignmentTransformationContainer;
-//       auto node    = new PHDataNode<alignmentTransformationContainer>(transformMap, "alignmentTransformationContainer");
-//       dstNode->addNode(node);
-//     }
-// } 
+  transformMap = findNode::getClass<alignmentTransformationContainer>(topNode, "alignmentTransformationContainer");
+  if(!transformMap)
+    {
+      transformMap = new alignmentTransformationContainer;
+      auto node    = new PHDataNode<alignmentTransformationContainer>(transformMap, "alignmentTransformationContainer");
+      dstNode->addNode(node);
+    }
+}
