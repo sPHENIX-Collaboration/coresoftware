@@ -118,6 +118,11 @@ int MakeActsGeometry::Init(PHCompositeNode */*topNode*/)
 
 int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
+  
+  // Alignment Transformation declaration of instance creating empty map
+  AlignmentTransformation alignment_transformation;
+  // alignment_transformation.createTransformMap();
+
   if(buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
@@ -150,10 +155,8 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->setGeometry(trackingGeometry);
   m_actsGeometry->setSurfMaps(surfMaps);
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
-
-
-  // Alignment Transformation declaration of instance 
-  AlignmentTransformation alignment_transformation;
+  
+  // call create map method to fill map on node tree
   alignment_transformation.createMap(topNode);
 
   // print

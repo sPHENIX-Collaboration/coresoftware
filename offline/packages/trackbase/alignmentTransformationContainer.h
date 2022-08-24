@@ -9,6 +9,7 @@
  */
 
 #include "TrkrDefs.h"
+#include "ActsGeometry.h"
 
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
@@ -19,7 +20,7 @@
 
 #include <phool/PHObject.h>
 
-#include <trackbase/ActsGeometry.h>
+
 
 
 /**
@@ -40,19 +41,19 @@ class alignmentTransformationContainer : public Acts::GeometryContext
 
   void identify(std::ostream &os = std::cout);  
 
-  void addTransform(Acts::GeometryIdentifier, Eigen::Matrix4d); 
+void addTransform(Acts::GeometryIdentifier, Acts::Transform3); 
 
   void removeTransform(Acts::GeometryIdentifier id); 
   
-  Eigen::Matrix4d getTransform(Acts::GeometryIdentifier id);
+Acts::Transform3 getTransform(Acts::GeometryIdentifier id);
 
-  std::map<const Acts::GeometryIdentifier, Eigen::Matrix4d> getContainer();
+  std::map<const Acts::GeometryIdentifier, Acts::Transform3> get();
 
   void setContainer();
 
   private:
   
-  std::map<const Acts::GeometryIdentifier, Eigen::Matrix4d> transformMap;
+std::map<const Acts::GeometryIdentifier, Acts::Transform3> transformMap;
   
   ClassDef(alignmentTransformationContainer,1);
 

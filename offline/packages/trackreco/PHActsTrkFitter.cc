@@ -516,10 +516,10 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	    }
 	  else if(trkrid == TrkrDefs::micromegasId)
 	    {
-	      unsigned int layer                          = TrkrDefs::getLayer(hitsetkey);
-	      unsigned int segmentation                   = MicromegasDefs::getSegmentationType(hitsetkey);
-	      unsigned int tile                           = MicromegasDefs::getTileId(hitsetkey);
-	      std::cout<< " layer: " << layer << " segmentation type: " << segmentation << " tile: " << tile << std::endl;
+	      unsigned int layer                            = TrkrDefs::getLayer(hitsetkey);
+	      //MicromegasDefs::SegmentationType segmentation = MicromegasDefs::getSegmentationType(hitsetkey);
+	      unsigned int tile                             = MicromegasDefs::getTileId(hitsetkey);
+	      std::cout<< " layer: " << layer  << " tile: " << tile << std::endl;
 	    }
 
 	  std::cout << " Requesting Geometry ID... " << std::endl;
@@ -528,7 +528,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 
 	  auto alignmentTransformation = m_alignmentTransformationMap->getTransform(id);      
 
-	  std::cout << " Transform: " << alignmentTransformation << std::endl;
+	  std::cout << " Transform: " << alignmentTransformation.matrix() << std::endl;
 
 	  Eigen::Vector4d finalCoords = alignmentTransformation*clusterLocalPosition;
 	  float phi = atan2(finalCoords(1),finalCoords(0))*180.0/M_PI;

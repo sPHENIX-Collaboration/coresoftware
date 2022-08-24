@@ -1,9 +1,13 @@
 #ifndef TRACKBASE_ALIGNMENTTRANSFORMATION_H 
 #define TRACKBASE_ALIGNMENTTRANSFORMATION_H
 #include <map>
-#include <trackbase/TrkrDefs.h>
+#include "TrkrDefs.h"
+#include "ActsGeometry.h"
+
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
+
+
 #include "alignmentTransformationContainer.h"
 
 
@@ -22,13 +26,16 @@ class AlignmentTransformation {
 
   void createMap(PHCompositeNode* topNode);
 
+  //void createTransformMap(PHCompositeNode* topNode);
+
+
  private:
 
   int localVerbosity = false;
 
-  Eigen::Matrix4d makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles);
+  Acts::Transform3 makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles);
 
-  Eigen::Matrix4d makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector);
+  Acts::Transform3 makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector);
 
   Eigen::Matrix3d rotateToGlobal(Surface surf);
 

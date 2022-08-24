@@ -3,11 +3,8 @@
 
 #include <Acts/Plugins/TGeo/TGeoDetectorElement.hpp>
 #include <Acts/Plugins/Identification/Identifier.hpp>
-
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/alignmentTransformationContainer.h>
-
-
 
 /**
  * This class implements an sphenix detector element to build
@@ -62,6 +59,6 @@ std::shared_ptr<sPHENIXActsDetectorElement> sPHENIXElementFactory(
     std::shared_ptr<const Acts::ISurfaceMaterial> material) {
   return std::make_shared<sPHENIXActsDetectorElement>(identifier, tGeoNode, tGeoMatrix,
                                                axes, scalor, material);
-  }
+}
 
 #endif
