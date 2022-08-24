@@ -12,11 +12,9 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 typedef PHIODataNode<PHG4CylinderCellContainer> MyNode_t;
 
-DumpPHG4CylinderCellContainer::DumpPHG4CylinderCellContainer(const string &NodeName)
+DumpPHG4CylinderCellContainer::DumpPHG4CylinderCellContainer(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -34,102 +32,102 @@ int DumpPHG4CylinderCellContainer::process_Node(PHNode *myNode)
   {
     PHG4CylinderCellContainer::ConstIterator hiter;
     PHG4CylinderCellContainer::ConstRange cell_begin_end = phg4cellcontainer->getCylinderCells();
-    *fout << "size: " << phg4cellcontainer->size() << endl;
+    *fout << "size: " << phg4cellcontainer->size() << std::endl;
     for (hiter = cell_begin_end.first; hiter != cell_begin_end.second; hiter++)
     {
-      *fout << "id: 0x" << hex << hiter->second->get_cell_id() << dec << endl;
-      *fout << "layer: " << hiter->second->get_layer() << endl;
-      *fout << "edep: " << hiter->second->get_edep() << endl;
+      *fout << "id: 0x" << std::hex << hiter->second->get_cell_id() << std::dec << std::endl;
+      *fout << "layer: " << hiter->second->get_layer() << std::endl;
+      *fout << "edep: " << hiter->second->get_edep() << std::endl;
       int tmp = hiter->second->get_binz();
       if (tmp != -1)
       {
-        *fout << "binz: " << tmp << endl;
+        *fout << "binz: " << tmp << std::endl;
       }
       tmp = hiter->second->get_binphi();
       if (tmp != -1)
       {
-        *fout << "binphi: " << tmp << endl;
+        *fout << "binphi: " << tmp << std::endl;
       }
       tmp = hiter->second->get_bineta();
       if (tmp != -1)
       {
-        *fout << "bineta: " << tmp << endl;
+        *fout << "bineta: " << tmp << std::endl;
       }
       float dtmp = hiter->second->get_light_yield();
-      if (isfinite(dtmp))
+      if (std::isfinite(dtmp))
       {
-        *fout << "get_light_yield(): " << dtmp << endl;
+        *fout << "get_light_yield(): " << dtmp << std::endl;
       }
       tmp = hiter->second->get_fiber_ID();
       if (tmp != -1)
       {
-        *fout << "get_fiber_ID(): " << hiter->second->get_fiber_ID() << endl;
+        *fout << "get_fiber_ID(): " << hiter->second->get_fiber_ID() << std::endl;
       }
-      string tmpstr = hiter->second->get_sensor_index();
+      std::string tmpstr = hiter->second->get_sensor_index();
       if (!tmpstr.empty())
       {
-        *fout << "get_sensor_index(): " << hiter->second->get_sensor_index() << endl;
+        *fout << "get_sensor_index(): " << hiter->second->get_sensor_index() << std::endl;
       }
       tmp = hiter->second->get_ladder_phi_index();
       if (tmp != -9999)
       {
-        *fout << "get_ladder_phi_index(): " << hiter->second->get_ladder_phi_index() << endl;
+        *fout << "get_ladder_phi_index(): " << hiter->second->get_ladder_phi_index() << std::endl;
       }
       tmp = hiter->second->get_ladder_z_index();
       if (tmp != -9999)
       {
-        *fout << "get_ladder_z_index(): " << hiter->second->get_ladder_z_index() << endl;
+        *fout << "get_ladder_z_index(): " << hiter->second->get_ladder_z_index() << std::endl;
       }
       tmp = hiter->second->get_j_index();
       if (tmp != -9999)
       {
-        *fout << "get_j_index(): " << hiter->second->get_j_index() << endl;
+        *fout << "get_j_index(): " << hiter->second->get_j_index() << std::endl;
       }
       tmp = hiter->second->get_k_index();
       if (tmp != -9999)
       {
-        *fout << "get_k_index(): " << hiter->second->get_k_index() << endl;
+        *fout << "get_k_index(): " << hiter->second->get_k_index() << std::endl;
       }
       tmp = hiter->second->get_l_index();
       if (tmp != -9999)
       {
-        *fout << "get_l_index(): " << hiter->second->get_l_index() << endl;
+        *fout << "get_l_index(): " << hiter->second->get_l_index() << std::endl;
       }
       tmp = hiter->second->get_pixel_index();
       if (tmp != -9999)
       {
-        *fout << "get_pixel_index(): " << hiter->second->get_pixel_index() << endl;
+        *fout << "get_pixel_index(): " << hiter->second->get_pixel_index() << std::endl;
       }
       tmp = hiter->second->get_chip_index();
       if (tmp != -9999)
       {
-        *fout << "get_chip_index(): " << hiter->second->get_chip_index() << endl;
+        *fout << "get_chip_index(): " << hiter->second->get_chip_index() << std::endl;
       }
       tmp = hiter->second->get_module_index();
       if (tmp != -9999)
       {
-        *fout << "get_module_index(): " << hiter->second->get_module_index() << endl;
+        *fout << "get_module_index(): " << hiter->second->get_module_index() << std::endl;
       }
       tmp = hiter->second->get_half_stave_index();
       if (tmp != -9999)
       {
-        *fout << "get_half_stave_index(): " << hiter->second->get_half_stave_index() << endl;
+        *fout << "get_half_stave_index(): " << hiter->second->get_half_stave_index() << std::endl;
       }
       tmp = hiter->second->get_stave_index();
       if (tmp != -9999)
       {
-        *fout << "get_stave_index(): " << hiter->second->get_stave_index() << endl;
+        *fout << "get_stave_index(): " << hiter->second->get_stave_index() << std::endl;
       }
 
       PHG4CylinderCell::EdepConstRange hitedep_begin_end = hiter->second->get_g4hits();
       for (PHG4CylinderCell::EdepConstIterator iter = hitedep_begin_end.first; iter != hitedep_begin_end.second; ++iter)
       {
-        *fout << "hit 0x" << hex << iter->first << dec << " edep: " << iter->second << endl;
+        *fout << "hit 0x" << std::hex << iter->first << std::dec << " edep: " << iter->second << std::endl;
       }
       PHG4CylinderCell::ShowerEdepConstRange shower_begin_end = hiter->second->get_g4showers();
       for (PHG4CylinderCell::ShowerEdepConstIterator iter = shower_begin_end.first; iter != shower_begin_end.second; ++iter)
       {
-        *fout << "shower " << iter->first << " edep: " << iter->second << endl;
+        *fout << "shower " << iter->first << " edep: " << iter->second << std::endl;
       }
     }
   }

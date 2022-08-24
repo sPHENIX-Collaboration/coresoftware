@@ -8,7 +8,7 @@
 #include "Jet.h"
 
 // finally system includes
-#include <iostream>    // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <vector>
 
 // forward declarations
@@ -22,13 +22,13 @@ class ClusterJetInput : public JetInput
 
   void identify(std::ostream& os = std::cout) override;
 
-  Jet::SRC get_src() override { return _input; }
+  Jet::SRC get_src() override { return m_Input; }
 
   std::vector<Jet*> get_input(PHCompositeNode* topNode) override;
 
  private:
-  int _verbosity;
-  Jet::SRC _input;
+  int m_Verbosity = 0;
+  Jet::SRC m_Input = Jet::VOID;
 };
 
 #endif

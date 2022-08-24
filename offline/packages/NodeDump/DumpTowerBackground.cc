@@ -7,11 +7,9 @@
 #include <ostream>
 #include <string>
 
-using namespace std;
-
 typedef PHIODataNode<TowerBackground> MyNode_t;
 
-DumpTowerBackground::DumpTowerBackground(const string &NodeName)
+DumpTowerBackground::DumpTowerBackground(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -27,8 +25,8 @@ int DumpTowerBackground::process_Node(PHNode *myNode)
   }
   if (twrbkg)
   {
-    *fout << "get_v2(): " << twrbkg->get_v2() << endl;
-    *fout << "get_Psi2(): " << twrbkg->get_Psi2() << endl;
+    *fout << "get_v2(): " << twrbkg->get_v2() << std::endl;
+    *fout << "get_Psi2(): " << twrbkg->get_Psi2() << std::endl;
   }
   return 0;
 }
