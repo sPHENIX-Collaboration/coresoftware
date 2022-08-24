@@ -26,7 +26,7 @@ class AlignmentTransformation {
 
  private:
 
-  int localVerbosity = false;
+  bool localVerbosity = false;
 
   Acts::Transform3 makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles);
 

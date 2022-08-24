@@ -26,6 +26,8 @@
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
+//#include "sPHENIXActsDetectorElement.h"
+
 void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 { 
 std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
@@ -67,7 +69,7 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	      Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
 
              Acts::GeometryIdentifier id = surf->geometryId();
-	     std::cout << " Add transform for surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	     if(localVerbosity) std::cout << " Add transform for surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 	     transformMap->addTransform(id,transform);
 	   }
        }
@@ -77,11 +79,11 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
 
          Acts::GeometryIdentifier id = surf->geometryId();
-	 std::cout << " Add transform for surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	 if(localVerbosity) std::cout << " Add transform for surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 	 transformMap->addTransform(id,transform);
        }
 
-     if(localVerbosity == true )
+     if(localVerbosity)
        {
 	 std::cout << i << " " <<hitsetkey << " " <<alpha<< " " <<beta<< " " <<gamma<< " " <<dx<< " " <<dy<< " " <<dz << std::endl;
 	 //transformMap->identify();
