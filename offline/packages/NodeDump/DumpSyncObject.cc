@@ -7,7 +7,7 @@
 #include <ostream>
 #include <string>
 
-typedef PHIODataNode<SyncObject> MyNode_t;
+using MyNode_t = PHIODataNode<SyncObject>;
 
 DumpSyncObject::DumpSyncObject(const std::string &NodeName)
   : DumpObject(NodeName)

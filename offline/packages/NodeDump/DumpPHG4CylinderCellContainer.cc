@@ -12,7 +12,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<PHG4CylinderCellContainer> MyNode_t;
+using MyNode_t = PHIODataNode<PHG4CylinderCellContainer>;
 
 DumpPHG4CylinderCellContainer::DumpPHG4CylinderCellContainer(const std::string &NodeName)
   : DumpObject(NodeName)

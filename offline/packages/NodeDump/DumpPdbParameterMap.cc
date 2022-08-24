@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<PdbParameterMap> MyNode_t;
+using MyNode_t = PHIODataNode<PdbParameterMap>;
 
 DumpPdbParameterMap::DumpPdbParameterMap(const std::string &NodeName)
   : DumpObject(NodeName)

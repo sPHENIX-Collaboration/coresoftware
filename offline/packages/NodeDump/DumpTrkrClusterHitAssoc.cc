@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<TrkrClusterHitAssoc> MyNode_t;
+using MyNode_t = PHIODataNode<TrkrClusterHitAssoc>;
 
 DumpTrkrClusterHitAssoc::DumpTrkrClusterHitAssoc(const std::string &NodeName)
   : DumpObject(NodeName)

@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<TrkrClusterContainer> MyNode_t;
+using MyNode_t = PHIODataNode<TrkrClusterContainer>;
 
 DumpTrkrHitTruthAssoc::DumpTrkrHitTruthAssoc(const std::string &NodeName)
   : DumpObject(NodeName)

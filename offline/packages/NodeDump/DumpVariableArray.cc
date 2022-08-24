@@ -7,7 +7,7 @@
 #include <ostream>
 #include <string>
 
-typedef PHIODataNode<VariableArray> MyNode_t;
+using MyNode_t = PHIODataNode<VariableArray>;
 
 DumpVariableArray::DumpVariableArray(const std::string &NodeName)
   : DumpObject(NodeName)
