@@ -168,12 +168,10 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   // this also adds the micromegas surfaces
   // Do this before anything else, so that the geometry is finalized
   
-  // This should be done only on the first tracking pass, to avoid adding surfaces twice
-  if(fake_surfaces)
-    editTPCGeometry(topNode);
-  else
-    std::cout << " NOT adding TPC surfaces" << std::endl;
-
+  // This should be done only on the first tracking pass, to avoid adding surfaces twice. 
+  // There is a check for existing acts fake surfaces in editTPCGeometry
+  editTPCGeometry(topNode); 
+ 
   /// Export the new geometry to a root file for examination
   if(Verbosity() > 3)
     {
@@ -290,6 +288,20 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   assert(tpc_gas_north_node);
   TGeoVolume *tpc_gas_north_vol = tpc_gas_north_node->GetVolume();
   assert(tpc_gas_north_vol);
+
+  int nfakesurfaces = 0;
+  for(int i=0; i<tpc_gas_north_vol->GetNdaughters(); i++)
+    {
+      TString node_name = tpc_gas_north_vol->GetNode(i)->GetName();
+      if(node_name.BeginsWith("tpc_gas_measurement_"))
+	{ nfakesurfaces++; }
+    }
+
+  /// Make a check for the fake surfaces. If we have more than 2, i.e. 
+  /// more than 2 sides, then we've built the fake surfaces and we should
+  /// not do it again
+  if(nfakesurfaces > 2)
+    { return; }
 
   if (Verbosity() > 3)
   {
