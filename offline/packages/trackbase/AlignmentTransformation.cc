@@ -1,8 +1,8 @@
 #include "AlignmentTransformation.h"
 
-#include <trackbase/TrkrDefs.h>
-#include <trackbase/TpcDefs.h>
-#include <trackbase/ActsGeometry.h>
+#include "TrkrDefs.h"
+#include "TpcDefs.h"
+#include "ActsGeometry.h"
 
 #include <cmath>
 #include <fstream>
@@ -64,33 +64,38 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	   {
              surf = surfMaps.getTpcSurface(hitsetkey,subsurfkey);
 
-	     //Eigen::Matrix4d 
 	      Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
 
              Acts::GeometryIdentifier id = surf->geometryId();
-
+	     std::cout << " Add transform for surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 	     transformMap->addTransform(id,transform);
 	   }
        }
      else 
        {
          surf = surfMaps.getSiliconSurface(hitsetkey);
-	 //Eigen::Matrix4d 
 	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
 
          Acts::GeometryIdentifier id = surf->geometryId();
+	 std::cout << " Add transform for surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 	 transformMap->addTransform(id,transform);
        }
 
      if(localVerbosity == true )
        {
 	 std::cout << i << " " <<hitsetkey << " " <<alpha<< " " <<beta<< " " <<gamma<< " " <<dx<< " " <<dy<< " " <<dz << std::endl;
-	 transformMap->identify();
+	 //transformMap->identify();
        }
-
    } 
-}
+ const auto map = transformMap->getMap();
+ Acts::GeometryContext context(map);
+ std::cout << " check:  get map2  " << std::endl;  
+ const auto map2 = context.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
+ std::cout << " check:  map2 size is " << map2.size() << std::endl; 
+ m_tGeometry->geometry().geoContext = context.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
 
+ // sPHENIXActsDetectorElement::use_alignment = true;
+}
 
 Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
 {  
@@ -139,8 +144,6 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
   return globalRotation;
 }
 
-
-//Eigen::Matrix4d 
 Acts::Transform3 AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector)
 {
   // Creates 4x4 affine matrix given rotation matrix and translationVector 
@@ -150,8 +153,6 @@ Acts::Transform3 AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotat
   return affineMatrix;
 }
 
-
-//Eigen::Matrix4d 
 Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles)
 {
   // Create aligment rotation matrix
@@ -167,7 +168,6 @@ Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vec
   Eigen::Matrix3d combinedRotation  = globalRotation * millepedeRotation;
   Eigen::Vector3d sensorCenter      = surf->center(m_tGeometry->geometry().geoContext)*0.1;
   Eigen::Vector3d globalTranslation = sensorCenter + millepedeTranslation;
-  //Eigen::Matrix4d 
   Acts::Transform3 transformation    = AlignmentTransformation::makeAffineMatrix(combinedRotation,globalTranslation);
 
   if(localVerbosity == true)
@@ -181,6 +181,20 @@ Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vec
 
 
 int AlignmentTransformation::createNodes(PHCompositeNode* topNode)
+{
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if(!m_tGeometry)
+    {
+      std::cout << "ActsGeometry not on node tree. Exiting."
+		<< std::endl;
+      
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  return 0; 
+}
+
+void AlignmentTransformation::createAlignmentTransformContainer(PHCompositeNode* topNode)
 {
   //​ Get a pointer to the top of the node tree
   PHNodeIterator iter(topNode);
@@ -199,17 +213,4 @@ int AlignmentTransformation::createNodes(PHCompositeNode* topNode)
       auto node    = new PHDataNode<alignmentTransformationContainer>(transformMap, "alignmentTransformationContainer");
       dstNode->addNode(node);
     }
-
-  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  if(!m_tGeometry)
-    {
-      std::cout << "ActsGeometry not on node tree. Exiting."
-		<< std::endl;
-      
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  return 0; 
 }
-
-

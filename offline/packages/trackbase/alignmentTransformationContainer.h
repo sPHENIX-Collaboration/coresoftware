@@ -8,8 +8,8 @@
  * @brief Storage class for alignment transformation to node tree
  */
 
-#include "trackbase/TrkrDefs.h"
-#include <trackbase/ActsGeometry.h>
+#include "TrkrDefs.h"
+#include "ActsGeometry.h"
 
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
@@ -41,19 +41,19 @@ class alignmentTransformationContainer : public Acts::GeometryContext
 
   void identify(std::ostream &os = std::cout);  
 
-void addTransform(Acts::GeometryIdentifier, Acts::Transform3); 
+  void addTransform(Acts::GeometryIdentifier, Acts::Transform3); 
 
   void removeTransform(Acts::GeometryIdentifier id); 
   
-Acts::Transform3 getTransform(Acts::GeometryIdentifier id);
+   Acts::Transform3& getTransform(Acts::GeometryIdentifier id);
 
-  std::map<const Acts::GeometryIdentifier, Acts::Transform3> get();
+  const std::map<Acts::GeometryIdentifier, Acts::Transform3> getMap();
 
-  void setContainer();
+  void set();
 
   private:
   
-std::map<const Acts::GeometryIdentifier, Acts::Transform3> transformMap;
+  std::map<Acts::GeometryIdentifier, Acts::Transform3> transformMap;
   
   ClassDef(alignmentTransformationContainer,1);
 

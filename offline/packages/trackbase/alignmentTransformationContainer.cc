@@ -52,7 +52,7 @@ void alignmentTransformationContainer::removeTransform(const Acts::GeometryIdent
   }
 }
 
-Acts::Transform3 alignmentTransformationContainer::getTransform(const Acts::GeometryIdentifier id)
+Acts::Transform3& alignmentTransformationContainer::getTransform(const Acts::GeometryIdentifier id)
 {
   Acts::Transform3 transform;
 
@@ -69,10 +69,10 @@ Acts::Transform3 alignmentTransformationContainer::getTransform(const Acts::Geom
 }
 
 
-std::map<const Acts::GeometryIdentifier, Acts::Transform3> alignmentTransformationContainer::get()
+const std::map<Acts::GeometryIdentifier, Acts::Transform3> alignmentTransformationContainer::getMap()
 {
   return transformMap;
 }
 
 
-void alignmentTransformationContainer::setContainer(){}
+void alignmentTransformationContainer::set(){}

@@ -1,16 +1,13 @@
 #ifndef TRACKBASE_ALIGNMENTTRANSFORMATION_H 
 #define TRACKBASE_ALIGNMENTTRANSFORMATION_H
 #include <map>
-#include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsGeometry.h>
+#include "TrkrDefs.h"
 
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
 
 #include "alignmentTransformationContainer.h"
-
-
 
 class PHCompositeNode;
 
@@ -25,6 +22,7 @@ class AlignmentTransformation {
   ~AlignmentTransformation() {} 
 
   void createMap(PHCompositeNode* topNode);
+  void createAlignmentTransformContainer(PHCompositeNode* topNode);
 
  private:
 
