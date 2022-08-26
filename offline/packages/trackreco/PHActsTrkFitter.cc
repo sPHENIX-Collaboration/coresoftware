@@ -224,6 +224,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 {
   auto logger = Acts::getDefaultLogger("PHActsTrkFitter", logLevel);
 
+  std::cout << " seed map size " << m_seedMap->size() << std::endl;
+
   for(auto trackiter = m_seedMap->begin(); trackiter != m_seedMap->end();
       ++trackiter)
     {
@@ -474,8 +476,11 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset 
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
       Acts::Vector3 global  = m_tGeometry->getGlobalPosition(key, cluster);
- 
-      if(subsurfkey < 288)  
+
+      // temporary for testing transforms 
+      //=========================
+      bool test_transforms = true;
+      if(subsurfkey < 288 && test_transforms)  
 	{
 	  // ActsSurfaceMaps surfMapsTest = m_tGeometry->maps();
 	  // Surface surfTest;
@@ -484,15 +489,26 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	  auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(key);
 
 	  float globphi = atan2(global(1),global(0))*180.0/M_PI;
-	  
-	  std::cout << "global phi " << globphi << " hitsetkey: " << hitsetkey <<" global: " << global << std::endl;
+	  std::cout << "Check in TrkFitter: global phi " << globphi << " hitsetkey: " << hitsetkey <<" global: " << std::endl << global << std::endl;
 
-	  auto x = cluster->getLocalX()*10.0;
-	  auto y = cluster->getLocalY()*10.0;
+	  auto x = cluster->getLocalX() * 10.0;   // mm
+	  auto y = cluster->getLocalY() * 10.0;
 
-	  Eigen::Vector4d clusterLocalPosition (x,0,y,1);
-	  std::cout << "local: "<<clusterLocalPosition << std::endl;
-	  
+	  if(trkrid == TrkrDefs::tpcId)
+	    {
+	      // must convert local Y from cluster average time of arival to local cluster z position
+	      double drift_velocity = 8.0e-3;  // cm/ns
+	      double zdriftlength = cluster->getLocalY() * drift_velocity;
+	      double surfCenterZ = 52.89; // 52.89 is where G4 thinks the surface center is
+	      double zloc = surfCenterZ - zdriftlength;   // converts z drift length to local z position in the TPC in north
+	      unsigned int side = TpcDefs::getSide(key);
+	      if(side == 0) zloc = -zloc;
+	      y = zloc * 10.0;
+	    }
+
+	  Eigen::Vector3d clusterLocalPosition (x,y,0);  // follows the convention for the acts transform of local = (x,z,y)
+	  std::cout << "local: "<< std::endl <<clusterLocalPosition << std::endl;
+
 	  if (trkrid == TrkrDefs::inttId)
 	    {
 	      unsigned int layer     = TrkrDefs::getLayer(hitsetkey);
@@ -512,7 +528,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	      unsigned int layer                          = TrkrDefs::getLayer(hitsetkey);
 	      unsigned int sector                         = TpcDefs::getSectorId(hitsetkey);
 	      unsigned int side                           = TpcDefs::getSide(hitsetkey);
-	      std::cout<< "subsurfkey: "<< subsurfkey << " layer: " << layer << " sector: " << sector << " side: " << side << std::endl;
+	      std::cout<< "subsurfkey: "<< subsurfkey << " layer: " << layer << " sector: " << sector 
+		       << " side: " << side << std::endl;
 	    }
 	  else if(trkrid == TrkrDefs::micromegasId)
 	    {
@@ -522,27 +539,25 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	      std::cout<< " layer: " << layer  << " tile: " << tile << std::endl;
 	    }
 
-	  std::cout << " Requesting Geometry ID... " << std::endl;
           Acts::GeometryIdentifier id = surf->geometryId();
 	  std::cout << " Geometry Id: " << id << std::endl;
 
 	  auto alignmentTransformation = m_alignmentTransformationMap->getTransform(id);      
 
-	  std::cout << " Transform: " << alignmentTransformation.matrix() << std::endl;
+	  std::cout << " Transform: " << std::endl << alignmentTransformation.matrix() << std::endl;
 
-	  Eigen::Vector4d finalCoords = alignmentTransformation*clusterLocalPosition;
+	  Eigen::Vector3d finalCoords = alignmentTransformation*clusterLocalPosition;
 	  float phi = atan2(finalCoords(1),finalCoords(0))*180.0/M_PI;
 
-	  Eigen::Vector4d eigenGlobal (global(0),global(1),global(2),1);
-	  float deltaX = finalCoords(0)-eigenGlobal(0);
-	  float deltaY = finalCoords(1)-eigenGlobal(1);
+	  finalCoords /= 10.0;
+	  float deltaX = finalCoords(0)-global(0);
+	  float deltaY = finalCoords(1)-global(1);
 
 	  std::cout<< "deltax: "<<deltaX << " deltaY: " << deltaY << std::endl;
-
 	  std::cout << " phi: "<< phi <<" Final Alignment Transform Coordinates: " << finalCoords << std::endl << std::endl;
 
-	}	
-
+	}  // end testing transforms
+      //=========================
 
       if(trkrid ==  TrkrDefs::tpcId)
 	{	  

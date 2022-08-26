@@ -51,6 +51,8 @@ class alignmentTransformationContainer : public Acts::GeometryContext
 
   void set();
 
+  static bool use_alignment;
+
   private:
   
   std::map<Acts::GeometryIdentifier, Acts::Transform3> transformMap;

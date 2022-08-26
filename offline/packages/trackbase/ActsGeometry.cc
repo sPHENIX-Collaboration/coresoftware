@@ -1,6 +1,7 @@
 #include "ActsGeometry.h"
 #include "TrkrCluster.h"
 #include "TpcDefs.h"
+#include "alignmentTransformationContainer.h"
 
 namespace
 {
@@ -44,6 +45,8 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
       return getGlobalPositionTpc(key, cluster);
     }
 
+  /// If silicon/TPOT, the transform is one-to-one since the surface is planar
+
   auto surface = maps().getSurface(key, cluster);
 
   if(!surface)
@@ -56,20 +59,41 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
       glob(2) = NAN;
       return glob;
     } 
+  /*
+ Acts::Vector3 loc;
+  if(alignmentTransformationContainer::use_alignment)
+    {
+      std::cout << " ActsGeom: using alignment transforms" << std::endl;
+      loc(0) = cluster->getLocalX();
+      loc(1) = 0.0;
+      loc(2) = cluster->getLocalY();
+    }
+  else
+    {
+      std::cout << " ActsGeom: using construction transforms" << std::endl;
+      loc(0) = cluster->getLocalX();
+      loc(1) = cluster->getLocalY();
+      loc(2) = 0.0;
+    }
+
+  std::cout << " local " << loc << std::endl;
+
+  loc *= Acts::UnitConstants::cm;
+  glob = surface->transform(geometry().geoContext) * loc;
+  glob /= Acts::UnitConstants::cm;
+  */
 
   Acts::Vector2 local(cluster->getLocalX(), cluster->getLocalY());
-
   Acts::Vector3 global;
-  /// If silicon/TPOT, the transform is one-to-one since the surface is planar
-
   global = surface->localToGlobal(geometry().geoContext,
 				  local * Acts::UnitConstants::cm,
 				  Acts::Vector3(1,1,1));
   global /= Acts::UnitConstants::cm;
+
+
   return global;
 }
 
-//Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,	 TrkrCluster* cluster) const
 Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,	 TrkrCluster* cluster)
 {
   Acts::Vector3 glob;
@@ -95,22 +119,46 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,	 TrkrCl
       return glob;
     } 
 
-  double maxdriftlength =  AdcClockPeriod*MaxTBins*_drift_velocity / 2.0;  // MaxTBins covers 2 x 13.2 microseconds
-
-  // must convert local Y from cluster average time of arival to cluster z position
-   // t = 0 corresponds to zdriftlength = 0, t = +MaxT corresponds to zdriftlength = 105.5, t = 2* MaxT corresponds to zdriftlength = 2*105.5
-  double zdriftlength = cluster->getLocalY() * _drift_velocity;
-  double zpos  = maxdriftlength -zdriftlength;   // convert z drift length to z position in the TPC
+  double surfaceZCenter = 52.89; // this is where G4 thinks the surface center is in cm
+  double zdriftlength = cluster->getLocalY() * _drift_velocity;  // cm
+  double zloc = surfaceZCenter - zdriftlength;     // local z relative to surface center (for north side):
   unsigned int side = TpcDefs::getSide(key);
-  if(side == 0) zpos = -zpos;
+  if(side == 0) zloc = -zloc;
 
-  /// test acts transforms
-  Acts::Vector3 loc(cluster->getLocalX(),0,0);
+  std::cout << " cluster->getLocalX() " << cluster->getLocalX() << " cluster->getLocalY() " << cluster->getLocalY() << " z local = " << zloc << std::endl;
+
+  Acts::Vector2 local(cluster->getLocalX(), zloc);
+  glob = surface->localToGlobal(geometry().geoContext,
+				  local * Acts::UnitConstants::cm,
+				  Acts::Vector3(1,1,1));
+  glob /= Acts::UnitConstants::cm;
+
+  /*
+  Acts::Vector3 loc;
+  if(alignmentTransformationContainer::use_alignment)
+    {
+      std::cout << " ActsGeom: using alignment transforms" << std::endl;
+      loc(0) = cluster->getLocalX();
+      loc(1) = 0.0;
+      loc(2) = zloc;
+    }
+  else
+    {
+      std::cout << " ActsGeom: using construction transforms" << std::endl;
+      loc(0) = cluster->getLocalX();
+      loc(1) = zloc;
+      loc(2) = 0.0;
+    }
+
+  std::cout << " side " << side << " local " << loc << std::endl;
+
   loc *= Acts::UnitConstants::cm;
   glob = surface->transform(geometry().geoContext) * loc;
   glob /= Acts::UnitConstants::cm;
+  */
 
-  glob(2) = zpos;
+  //  std::cout << " side " << side << " local " << local << std::endl;
+  //  std::cout << "       transform " <<    surface->transform(geometry().geoContext).matrix() << std::endl << "   glob " << glob << std::endl;
 
   return glob;
 }

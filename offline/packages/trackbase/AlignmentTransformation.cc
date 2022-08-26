@@ -103,16 +103,19 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
      if(localVerbosity)
        {
 	 std::cout << i << " " <<hitsetkey << " " <<alpha<< " " <<beta<< " " <<gamma<< " " <<dx<< " " <<dy<< " " <<dz << std::endl;
-	 //transformMap->identify();
        }
    } 
+
  const auto map = transformMap->getMap();
  Acts::GeometryContext context(map);
- std::cout << " check:  get map2  " << std::endl;  
+
  const auto map2 = context.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
  std::cout << " check:  map2 size is " << map2.size() << std::endl; 
  m_tGeometry->geometry().geoContext = context.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
 
+ // map is created, now we can use the transforms
+ alignmentTransformationContainer::use_alignment = true;
+ 
 }
 
 Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
@@ -124,6 +127,7 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
  
   Eigen::Vector3d ylocal(0,1,0);
   Eigen::Vector3d sensorNormal    = -surf->normal(m_tGeometry->geometry().geoContext);
+  //Eigen::Vector3d sensorNormal    = surf->normal(m_tGeometry->geometry().geoContext);
   sensorNormal                    = sensorNormal/sensorNormal.norm(); // make unit vector 
   double cosTheta                 = ylocal.dot(sensorNormal);
   double sinTheta                 = (ylocal.cross(sensorNormal)).norm();
@@ -164,9 +168,28 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
 
 Acts::Transform3 AlignmentTransformation::makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector)
 {
+  // Acts uses a rotation matrix that transforms local position (x,z,y) into global position (x',y',z')
+  // That rotation matrix is obtained from the one we have (which does (x,y,z) to (x',y',z') by:
+  //    exchanging column 2 and 3 (y with z)
+  //    flipping the signs of the original content of column 2
+
+  Eigen::Matrix3d actsRotationMatrix;
+  actsRotationMatrix(0,0) = rotationMatrix(0,0);
+  actsRotationMatrix(1,0) = rotationMatrix(1,0);
+  actsRotationMatrix(2,0) = rotationMatrix(2,0);
+
+  // flip column 1 and 2
+  actsRotationMatrix(0,1) = rotationMatrix(0,2);
+  actsRotationMatrix(1,1) = rotationMatrix(1,2);
+  actsRotationMatrix(2,1) = rotationMatrix(2,2);
+
+  actsRotationMatrix(0,2) = -rotationMatrix(0,1);
+  actsRotationMatrix(1,2) = -rotationMatrix(1,1);
+  actsRotationMatrix(2,2) = -rotationMatrix(2,1);
+
   // Creates 4x4 affine matrix given rotation matrix and translationVector 
   Acts::Transform3 affineMatrix;
-  affineMatrix.linear() = rotationMatrix;
+  affineMatrix.linear() = actsRotationMatrix;
   affineMatrix.translation() = translationVector;
   return affineMatrix;
 }

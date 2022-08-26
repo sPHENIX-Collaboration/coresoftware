@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <ostream>  
  
-
+bool alignmentTransformationContainer::use_alignment = false;
 
 void alignmentTransformationContainer::Reset()
 { transformMap.clear(); }
