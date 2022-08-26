@@ -11,7 +11,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<JetMap> MyNode_t;
+using MyNode_t = PHIODataNode<JetMap>;
 
 DumpJetMap::DumpJetMap(const std::string &NodeName)
   : DumpObject(NodeName)

@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<RawTowerContainer> MyNode_t;
+using MyNode_t = PHIODataNode<RawTowerContainer>;
 
 DumpRawTowerContainer::DumpRawTowerContainer(const std::string &NodeName)
   : DumpObject(NodeName)

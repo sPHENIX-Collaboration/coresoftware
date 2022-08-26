@@ -11,7 +11,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<SvtxTrackMap> MyNode_t;
+using MyNode_t = PHIODataNode<SvtxTrackMap>;
 
 DumpSvtxTrackMap::DumpSvtxTrackMap(const std::string &NodeName)
   : DumpObject(NodeName)

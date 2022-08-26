@@ -9,7 +9,7 @@
 #include <ostream>
 #include <string>
 
-typedef PHIODataNode<EventHeader> MyNode_t;
+using MyNode_t = PHIODataNode<EventHeader>;
 
 DumpEventHeader::DumpEventHeader(const std::string &NodeName)
   : DumpObject(NodeName)

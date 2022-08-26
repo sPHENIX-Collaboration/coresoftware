@@ -7,7 +7,7 @@
 #include <ostream>
 #include <string>
 
-typedef PHIODataNode<CaloTriggerInfo> MyNode_t;
+using MyNode_t = PHIODataNode<CaloTriggerInfo>;
 
 DumpCaloTriggerInfo::DumpCaloTriggerInfo(const std::string &NodeName)
   : DumpObject(NodeName)

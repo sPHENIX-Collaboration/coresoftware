@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<PHG4ScintillatorSlatContainer> MyNode_t;
+using MyNode_t = PHIODataNode<PHG4ScintillatorSlatContainer>;
 
 DumpPHG4ScintillatorSlatContainer::DumpPHG4ScintillatorSlatContainer(const std::string &NodeName)
   : DumpObject(NodeName)

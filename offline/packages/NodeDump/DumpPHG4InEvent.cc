@@ -11,7 +11,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<PHG4InEvent> MyNode_t;
+using MyNode_t = PHIODataNode<PHG4InEvent>;
 
 DumpPHG4InEvent::DumpPHG4InEvent(const std::string &NodeName)
   : DumpObject(NodeName)
