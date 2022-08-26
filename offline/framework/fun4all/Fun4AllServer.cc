@@ -1184,7 +1184,7 @@ void Fun4AllServer::Print(const std::string &what) const
     }
     else
     {
-      std::string::size_type pos = pass_on.find("%");
+      std::string::size_type pos = pass_on.find('%');
       pass_on = pass_on.substr(pos + 1, pass_on.size());
     }
     for (auto &outman : OutputManager)
