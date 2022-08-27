@@ -384,21 +384,12 @@ namespace
       // SAMPA shaping bias correction
       clust = clust + my_data.sampa_tbias;
 
-      std::cout << " clust = " << clust << std::endl;
-
       /// convert to Acts units
       global *= Acts::UnitConstants::cm;
 
       Acts::Vector3 local = surface->transform(my_data.tGeometry->geometry().geoContext).inverse() * global;
-      /*
-       Acts::Vector4 global4(global(0), global(1), global(2), 1.0);      
-      Acts::Vector4 local = surface->transform(my_data.tGeometry->geometry().geoContext).matrix().inverse() * global4;
-      std::cout << "  clusterizer: global4 = " << global4 << std::endl << " local = " << local << std::endl;
-      */
       local /= Acts::UnitConstants::cm;     
       
-      std::cout << "  clusterizer: global = " << global << std::endl << " local = " << local << std::endl;
-
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
       
       if(my_data.cluster_version==3){

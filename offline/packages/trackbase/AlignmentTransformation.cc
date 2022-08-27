@@ -30,7 +30,10 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 { 
 std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 
- createNodes(topNode);
+ getNodes(topNode);
+
+ // Use construction transforms as a reference for making the map
+ if(alignmentTransformationContainer::use_alignment) alignmentTransformationContainer::use_alignment = false;
 
  // Define Parsing Variables
  TrkrDefs::hitsetkey hitsetkey = 0;
@@ -68,8 +71,8 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	     Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
 
              Acts::GeometryIdentifier id = surf->geometryId();
-	     //if(localVerbosity) 
-	     std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	     if(localVerbosity) 
+	       std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 	     transformMap->addTransform(id,transform);
 	   }
        }
@@ -79,7 +82,8 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
          Acts::GeometryIdentifier id = surf->geometryId();
 
-	 std::cout << " Add transform for Silicon with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	 if(localVerbosity) 
+	   std::cout << " Add transform for Silicon with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 
 	 transformMap->addTransform(id,transform);
        }
@@ -89,8 +93,8 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
          Acts::GeometryIdentifier id = surf->geometryId();
 
-	 //if(localVerbosity) 
-	 std::cout << " Add transform for Micromegas with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	 if(localVerbosity) 
+	   std::cout << " Add transform for Micromegas with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 
 	 transformMap->addTransform(id,transform);
 
@@ -223,7 +227,7 @@ Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vec
 }
 
 
-int AlignmentTransformation::createNodes(PHCompositeNode* topNode)
+int AlignmentTransformation::getNodes(PHCompositeNode* topNode)
 {
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_tGeometry)

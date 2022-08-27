@@ -23,9 +23,6 @@ class AlignmentTransformation {
   void createMap(PHCompositeNode* topNode);
   void createAlignmentTransformContainer(PHCompositeNode* topNode);
 
-  //void createTransformMap(PHCompositeNode* topNode);
-
-
  private:
 
   bool localVerbosity = false;
@@ -40,7 +37,7 @@ class AlignmentTransformation {
   alignmentTransformationContainer* transformMap;
   ActsGeometry* m_tGeometry;
   
-  int createNodes(PHCompositeNode* topNode);
+  int getNodes(PHCompositeNode* topNode);
 
 };
 

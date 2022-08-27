@@ -59,29 +59,6 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
       glob(2) = NAN;
       return glob;
     } 
-  /*
- Acts::Vector3 loc;
-  if(alignmentTransformationContainer::use_alignment)
-    {
-      std::cout << " ActsGeom: using alignment transforms" << std::endl;
-      loc(0) = cluster->getLocalX();
-      loc(1) = 0.0;
-      loc(2) = cluster->getLocalY();
-    }
-  else
-    {
-      std::cout << " ActsGeom: using construction transforms" << std::endl;
-      loc(0) = cluster->getLocalX();
-      loc(1) = cluster->getLocalY();
-      loc(2) = 0.0;
-    }
-
-  std::cout << " local " << loc << std::endl;
-
-  loc *= Acts::UnitConstants::cm;
-  glob = surface->transform(geometry().geoContext) * loc;
-  glob /= Acts::UnitConstants::cm;
-  */
 
   Acts::Vector2 local(cluster->getLocalX(), cluster->getLocalY());
   Acts::Vector3 global;
@@ -125,37 +102,11 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,	 TrkrCl
   unsigned int side = TpcDefs::getSide(key);
   if(side == 0) zloc = -zloc;
 
-  std::cout << " cluster->getLocalX() " << cluster->getLocalX() << " cluster->getLocalY() " << cluster->getLocalY() << " z local = " << zloc << std::endl;
-
   Acts::Vector2 local(cluster->getLocalX(), zloc);
   glob = surface->localToGlobal(geometry().geoContext,
 				  local * Acts::UnitConstants::cm,
 				  Acts::Vector3(1,1,1));
   glob /= Acts::UnitConstants::cm;
-
-  /*
-  Acts::Vector3 loc;
-  if(alignmentTransformationContainer::use_alignment)
-    {
-      std::cout << " ActsGeom: using alignment transforms" << std::endl;
-      loc(0) = cluster->getLocalX();
-      loc(1) = 0.0;
-      loc(2) = zloc;
-    }
-  else
-    {
-      std::cout << " ActsGeom: using construction transforms" << std::endl;
-      loc(0) = cluster->getLocalX();
-      loc(1) = zloc;
-      loc(2) = 0.0;
-    }
-
-  std::cout << " side " << side << " local " << loc << std::endl;
-
-  loc *= Acts::UnitConstants::cm;
-  glob = surface->transform(geometry().geoContext) * loc;
-  glob /= Acts::UnitConstants::cm;
-  */
 
   //  std::cout << " side " << side << " local " << local << std::endl;
   //  std::cout << "       transform " <<    surface->transform(geometry().geoContext).matrix() << std::endl << "   glob " << glob << std::endl;
