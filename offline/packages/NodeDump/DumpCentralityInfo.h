@@ -1,7 +1,7 @@
 #ifndef NODEDUMP_DUMPCENTRALITYINFO_H
 #define NODEDUMP_DUMPCENTRALITYINFO_H
 
-#include <DumpObject.h>
+#include "DumpObject.h"
 
 #include <string>
 

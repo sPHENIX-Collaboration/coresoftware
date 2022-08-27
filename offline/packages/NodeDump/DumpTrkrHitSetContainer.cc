@@ -11,7 +11,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<TrkrHitSetContainer> MyNode_t;
+using MyNode_t = PHIODataNode<TrkrHitSetContainer>;
 
 DumpTrkrHitSetContainer::DumpTrkrHitSetContainer(const std::string &NodeName)
   : DumpObject(NodeName)

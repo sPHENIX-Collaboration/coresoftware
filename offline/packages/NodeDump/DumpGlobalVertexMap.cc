@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<GlobalVertexMap> MyNode_t;
+using MyNode_t = PHIODataNode<GlobalVertexMap>;
 
 DumpGlobalVertexMap::DumpGlobalVertexMap(const std::string &NodeName)
   : DumpObject(NodeName)

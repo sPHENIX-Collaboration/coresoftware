@@ -7,7 +7,7 @@
 #include <ostream>
 #include <string>
 
-typedef PHIODataNode<TowerBackground> MyNode_t;
+using MyNode_t = PHIODataNode<TowerBackground>;
 
 DumpTowerBackground::DumpTowerBackground(const std::string &NodeName)
   : DumpObject(NodeName)

@@ -7,7 +7,7 @@
 #include <ostream>
 #include <string>
 
-typedef PHIODataNode<EpInfo> MyNode_t;
+using MyNode_t = PHIODataNode<EpInfo>;
 
 DumpEpInfo::DumpEpInfo(const std::string &NodeName)
   : DumpObject(NodeName)

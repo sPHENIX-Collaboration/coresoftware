@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<SvtxPHG4ParticleMap> MyNode_t;
+using MyNode_t = PHIODataNode<SvtxPHG4ParticleMap>;
 
 DumpSvtxPHG4ParticleMap::DumpSvtxPHG4ParticleMap(const std::string &NodeName)
   : DumpObject(NodeName)

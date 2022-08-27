@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<InttDeadMap> MyNode_t;
+using MyNode_t = PHIODataNode<InttDeadMap>;
 
 DumpInttDeadMap::DumpInttDeadMap(const std::string &NodeName)
   : DumpObject(NodeName)

@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<BbcVertexMap> MyNode_t;
+using MyNode_t = PHIODataNode<BbcVertexMap>;
 
 DumpBbcVertexMap::DumpBbcVertexMap(const std::string &NodeName)
   : DumpObject(NodeName)
