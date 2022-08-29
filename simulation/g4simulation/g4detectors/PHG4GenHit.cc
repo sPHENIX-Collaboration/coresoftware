@@ -16,31 +16,25 @@
 
 class PHCompositeNode;
 
-using namespace std;
-
-PHG4GenHit::PHG4GenHit(const string &name)
+PHG4GenHit::PHG4GenHit(const std::string &name)
   : SubsysReco(name)
-  , phi(NAN)
-  , theta(NAN)
-  , eloss(NAN)
-  , layer(-9999)
 {
 }
 
 int PHG4GenHit::process_event(PHCompositeNode *topNode)
 {
-  string hitnodename = "G4HIT_" + detector;
-  string geonodename = "CYLINDERGEOM_" + detector;
+  std::string hitnodename = "G4HIT_" + detector;
+  std::string geonodename = "CYLINDERGEOM_" + detector;
   PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
   if (!geo)
   {
-    cout << "cannot find geo node " << geonodename << endl;
+    std::cout << "cannot find geo node " << geonodename << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
   PHG4HitContainer *hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!hits_)
   {
-    cout << "cannot find hit node " << hitnodename << endl;
+    std::cout << "cannot find hit node " << hitnodename << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
   PHG4CylinderGeom *mygeom = geo->GetLayerGeom(layer);
@@ -65,12 +59,12 @@ int PHG4GenHit::process_event(PHCompositeNode *topNode)
   hits_->AddHit(layer, hit);
   if (Verbosity() > 0)
   {
-    cout << "phi " << phi << " inner rad: " << inner_radius
-         << ", outer rad: " << outer_radius
-         << " x0/y0/z0: " << x0 << "/" << y0 << "/" << z0
-         << " x1/y1/z1: " << x1 << "/" << y1 << "/" << z1
-         << " edep: " << eloss
-         << endl;
+    std::cout << "phi " << phi << " inner rad: " << inner_radius
+              << ", outer rad: " << outer_radius
+              << " x0/y0/z0: " << x0 << "/" << y0 << "/" << z0
+              << " x1/y1/z1: " << x1 << "/" << y1 << "/" << z1
+              << " edep: " << eloss
+              << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -39,8 +39,6 @@
 
 class PHG4CylinderGeom;
 
-using namespace std;
-
 // uncomment if you want to make a graphics display where the slats are visible
 // it makes them stick out of the hcal for visibility
 // NEVER EVER RUN REAL SIMS WITH THIS
@@ -75,7 +73,7 @@ PHG4HcalDetector::PHG4HcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
 //_______________________________________________________________
 int PHG4HcalDetector::IsInCylinderActive(const G4VPhysicalVolume* volume)
 {
-  //  cout << "checking detector" << endl;
+  //  std::cout << "checking detector" << std::endl;
   if (active && box_vol.find(volume) != box_vol.end())
   {
     return box_vol.find(volume)->second;
@@ -214,7 +212,7 @@ void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   box_logic->SetVisAttributes(VisAtt);
 
   double phi_increment = 360. / _sciNum;
-  ostringstream slatname;
+  std::ostringstream slatname;
   for (int i = 0; i < _sciNum; i++)
   {
     double phi = (i + _sciPhi0) * phi_increment;
@@ -231,7 +229,7 @@ void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   }
   if (active)
   {
-    ostringstream geonode;
+    std::ostringstream geonode;
     if (superdetector != "NONE")
     {
       geonode << "CYLINDERGEOM_" << superdetector;
@@ -271,6 +269,6 @@ PHG4HcalDetector::GetLength(const double phi) const
 
 void PHG4HcalDetector::Print(const std::string& /*what*/) const
 {
-  cout << "radius: " << radius << endl;
+  std::cout << "radius: " << radius << std::endl;
   return;
 }

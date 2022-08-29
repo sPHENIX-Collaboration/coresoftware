@@ -9,7 +9,13 @@
 #include <KFPVertex.h>
 #include <KFParticle.h>
 
+#include <TMVA/Reader.h>  // for Reader
+#include <TMVA/Tools.h>   // for Tools
+
+#include <algorithm>  // for max
 #include <map>
+#include <memory>   // for allocator_traits<>::value_type
+#include <utility>  // for pair
 
 KFParticle_Tools kfpTools;
 

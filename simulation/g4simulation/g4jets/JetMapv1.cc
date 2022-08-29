@@ -10,17 +10,7 @@
 #include <ostream>   // for operator<<, endl, ostream, basic_ostream::operat...
 #include <utility>   // for pair, make_pair
 
-using namespace std;
-
-JetMapv1::JetMapv1()
-  : _algo(Jet::NONE)
-  , _par(NAN)
-  , _src()
-  , _map()
-{
-}
-
-JetMapv1::JetMapv1(const JetMap *jets)
+JetMapv1::JetMapv1(const JetMap* jets)
   : _algo(jets->get_algo())
   , _par(jets->get_par())
   , _src()
@@ -37,9 +27,9 @@ JetMapv1::JetMapv1(const JetMap *jets)
        iter != jets->end();
        ++iter)
   {
-    Jet* jet = dynamic_cast<Jet *> ((iter->second)->CloneMe());
+    Jet* jet = dynamic_cast<Jet*>((iter->second)->CloneMe());
     assert(jet);
-    _map.insert(make_pair(jet->get_id(), jet));
+    _map.insert(std::make_pair(jet->get_id(), jet));
   }
 }
 
@@ -61,9 +51,9 @@ JetMapv1& JetMapv1::operator=(const JetMapv1& jets)
        iter != jets.end();
        ++iter)
   {
-    Jet* jet = dynamic_cast<Jet *> ((iter->second)->CloneMe());
+    Jet* jet = dynamic_cast<Jet*>((iter->second)->CloneMe());
     assert(jet);
-    _map.insert(make_pair(jet->get_id(), jet));
+    _map.insert(std::make_pair(jet->get_id(), jet));
   }
 
   return *this;
@@ -93,16 +83,16 @@ PHObject* JetMapv1::CloneMe() const
   return map;
 }
 
-void JetMapv1::identify(ostream& os) const
+void JetMapv1::identify(std::ostream& os) const
 {
-  os << "JetMapv1: size = " << _map.size() << endl;
-  os << "          par = " << _par << endl;
+  os << "JetMapv1: size = " << _map.size() << std::endl;
+  os << "          par = " << _par << std::endl;
   os << "          source = ";
   for (ConstSrcIter i = begin_src(); i != end_src(); ++i)
   {
     os << (*i) << ",";
   }
-  os << endl;
+  os << std::endl;
 
   return;
 }
@@ -125,7 +115,7 @@ Jet* JetMapv1::insert(Jet* jet)
 {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair(index, jet));
+  _map.insert(std::make_pair(index, jet));
   _map[index]->set_id(index);
   return (_map[index]);
 }

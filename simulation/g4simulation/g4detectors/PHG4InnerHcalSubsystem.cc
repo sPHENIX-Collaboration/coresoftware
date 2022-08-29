@@ -27,14 +27,9 @@
 
 class PHG4Detector;
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem(const std::string &name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
-  , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
-  , m_DisplayAction(nullptr)
 {
   InitializeParameters();
 }
@@ -58,9 +53,10 @@ int PHG4InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector = new PHG4InnerHcalDetector(this, topNode, GetParams(), Name());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
-  set<string> nodes;
+
   if (GetParams()->get_int_param("active"))
   {
+    std::set<std::string> nodes;
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
     if (!DetNode)
@@ -69,7 +65,7 @@ int PHG4InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    ostringstream nodename;
+    std::ostringstream nodename;
     if (SuperDetector() != "NONE")
     {
       nodename << "G4HIT_" << SuperDetector();
@@ -92,7 +88,7 @@ int PHG4InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       }
       nodes.insert(nodename.str());
     }
-    BOOST_FOREACH (string node, nodes)
+    BOOST_FOREACH (std::string node, nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
       if (!g4_hits)
@@ -130,9 +126,9 @@ int PHG4InnerHcalSubsystem::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-void PHG4InnerHcalSubsystem::Print(const string &what) const
+void PHG4InnerHcalSubsystem::Print(const std::string &what) const
 {
-  cout << Name() << " Parameters: " << endl;
+  std::cout << Name() << " Parameters: " << std::endl;
   GetParams()->Print();
   if (m_Detector)
   {

@@ -36,21 +36,10 @@
 
 class PHCompositeNode;
 
-using namespace std;
 //____________________________________________________________________________..
 PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction(PHG4PSTOFDetector* detector, const PHParametersContainer* /*parameters*/)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
-  , hits_(nullptr)
-  , hit(nullptr)
-  , savehitcontainer(nullptr)
-  , savevolpre(nullptr)
-  , savevolpost(nullptr)
-  , savetrackid(-1)
-  , saveprestepstatus(-1)
-  , savepoststepstatus(-1)
-  , edepsum(0)
-  , eionsum(0)
 {
 }
 
@@ -91,22 +80,22 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
   // an expensive string compare for every track when we know
   // geantino or chargedgeantino has pid=0
   if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-      aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+      aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
   {
     geantino = true;
   }
   G4StepPoint* prePoint = aStep->GetPreStepPoint();
   G4StepPoint* postPoint = aStep->GetPostStepPoint();
-  //       cout << "track id " << aTrack->GetTrackID() << endl;
-  //       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
-  //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+  //       std::cout << "track id " << aTrack->GetTrackID() << std::endl;
+  //       std::cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
+  //       std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
 
   layer_id = touch->GetCopyNumber();
   if (layer_id != whichactive)
   {
-    cout << PHWHERE << " inconsistency between G4 copy number: "
+    std::cout << PHWHERE << " inconsistency between G4 copy number: "
          << layer_id << " and module id from detector: "
-         << whichactive << endl;
+         << whichactive << std::endl;
     gSystem->Exit(1);
   }
 
@@ -119,17 +108,17 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
     }
     else
     {
-      cout << GetName() << ": New Hit for  " << endl;
-      cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+      std::cout << GetName() << ": New Hit for  " << std::endl;
+      std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
            << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
            << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
-           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
-      cout << "last track: " << savetrackid
-           << ", current trackid: " << aTrack->GetTrackID() << endl;
-      cout << "phys pre vol: " << volume->GetName()
-           << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-      cout << " previous phys pre vol: " << savevolpre->GetName()
-           << " previous phys post vol: " << savevolpost->GetName() << endl;
+           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << std::endl;
+      std::cout << "last track: " << savetrackid
+           << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+      std::cout << "phys pre vol: " << volume->GetName()
+           << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+      std::cout << " previous phys pre vol: " << savevolpre->GetName()
+           << " previous phys post vol: " << savevolpost->GetName() << std::endl;
     }
     [[fallthrough]];
   case fGeomBoundary:
@@ -165,7 +154,7 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
     }
     else
     {
-      cout << "implement stuff for whichactive < 0" << endl;
+      std::cout << "implement stuff for whichactive < 0" << std::endl;
       gSystem->Exit(1);
     }
     if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
@@ -184,30 +173,30 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
 
   // some sanity checks for inconsistencies
   // check if this hit was created, if not print out last post step status
-  if (!hit || !isfinite(hit->get_x(0)))
+  if (!hit || !std::isfinite(hit->get_x(0)))
   {
-    cout << GetName() << ": hit was not created" << endl;
-    cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+    std::cout << GetName() << ": hit was not created" << std::endl;
+    std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
          << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
          << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
-         << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
-    cout << "last track: " << savetrackid
-         << ", current trackid: " << aTrack->GetTrackID() << endl;
-    cout << "phys pre vol: " << volume->GetName()
-         << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-    cout << " previous phys pre vol: " << savevolpre->GetName()
-         << " previous phys post vol: " << savevolpost->GetName() << endl;
+         << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << std::endl;
+    std::cout << "last track: " << savetrackid
+         << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+    std::cout << "phys pre vol: " << volume->GetName()
+         << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+    std::cout << " previous phys pre vol: " << savevolpre->GetName()
+         << " previous phys post vol: " << savevolpost->GetName() << std::endl;
     gSystem->Exit(1);
   }
   // check if track id matches the initial one when the hit was created
   if (aTrack->GetTrackID() != savetrackid)
   {
-    cout << GetName() << ": hits do not belong to the same track" << endl;
-    cout << "saved track: " << savetrackid
+    std::cout << GetName() << ": hits do not belong to the same track" << std::endl;
+    std::cout << "saved track: " << savetrackid
          << ", current trackid: " << aTrack->GetTrackID()
          << ", prestep status: " << prePoint->GetStepStatus()
          << ", previous post step status: " << savepoststepstatus
-         << endl;
+         << std::endl;
 
     gSystem->Exit(1);
   }
@@ -291,7 +280,7 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
 //____________________________________________________________________________..
 void PHG4PSTOFSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
+  std::string hitnodename;
   if (detector_->SuperDetector() != "NONE")
   {
     hitnodename = "G4HIT_" + detector_->SuperDetector();

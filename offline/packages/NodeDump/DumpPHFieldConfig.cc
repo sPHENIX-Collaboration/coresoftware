@@ -9,7 +9,7 @@
 #include <ostream>
 #include <string>
 
-typedef PHIODataNode<PHFieldConfig> MyNode_t;
+using MyNode_t = PHIODataNode<PHFieldConfig>;
 
 DumpPHFieldConfig::DumpPHFieldConfig(const std::string &NodeName)
   : DumpObject(NodeName)

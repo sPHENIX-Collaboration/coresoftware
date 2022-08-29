@@ -1,0 +1,4 @@
+Checks: 'modernize-use-using, performance-*'
+CheckOptions:
+  - key: modernize-use-using    
+    value:           'true'
