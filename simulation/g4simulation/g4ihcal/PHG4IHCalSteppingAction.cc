@@ -77,7 +77,7 @@ int PHG4IHCalSteppingAction::Init()
 {
   if (m_LightScintModelFlag)
   {
-/*
+    /*
     const char* Calibroot = getenv("CALIBRATIONROOT");
     if (!Calibroot)
     {
