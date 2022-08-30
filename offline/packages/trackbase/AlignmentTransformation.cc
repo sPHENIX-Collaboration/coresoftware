@@ -45,7 +45,7 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
  ActsSurfaceMaps surfMaps = m_tGeometry->maps();
  Surface surf;
 
- int fileLines = 1808;
+ int fileLines = 1822;
  for (int i=0; i<fileLines; i++)
    {
      datafile >> hitsetkey >> alpha >> beta >> gamma >> dx >> dy >> dz;
@@ -66,7 +66,6 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	 for(unsigned int subsurfkey = subsurfkey_min; subsurfkey<subsurfkey_max; subsurfkey++)
 	   {
              surf = surfMaps.getTpcSurface(hitsetkey,subsurfkey);
-
 
 	     Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
 
@@ -97,13 +96,11 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
 	   std::cout << " Add transform for Micromegas with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 
 	 transformMap->addTransform(id,transform);
-
       }
      else
        {
 	 std::cout<< "Error: Invalid Hitsetkey" << std::endl;
        }
-
      if(localVerbosity)
        {
 	 std::cout << i << " " <<hitsetkey << " " <<alpha<< " " <<beta<< " " <<gamma<< " " <<dx<< " " <<dy<< " " <<dz << std::endl;

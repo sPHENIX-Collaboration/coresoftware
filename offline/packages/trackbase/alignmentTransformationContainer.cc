@@ -54,7 +54,7 @@ void alignmentTransformationContainer::removeTransform(const Acts::GeometryIdent
 
 Acts::Transform3& alignmentTransformationContainer::getTransform(const Acts::GeometryIdentifier id)
 {
-  Acts::Transform3 transform;
+  Acts::Transform3 transform; // intiialize this or return soemthing instead of exit
 
   const auto range = transformMap.equal_range(id);
   for( auto mapiter = range.first; mapiter != range.second; ++mapiter)
@@ -66,6 +66,10 @@ Acts::Transform3& alignmentTransformationContainer::getTransform(const Acts::Geo
   }
   std::cout << "Unable to find Acts Id: "<< id<<  " in alignmentTransformationContainer" << std::endl;
   exit(1);
+  //later find way to detect null transform that you must return 
+
+  //return transform;
+
 }
 
 

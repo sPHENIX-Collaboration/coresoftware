@@ -479,7 +479,25 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 
       // temporary for testing transforms 
       //=========================
-      bool test_transforms = false;
+      bool test_transforms = true;
+
+
+      // if(trkrid==TrkrDefs::micromegasId)
+      // 	{
+      // 	  subsurfkey = 0;
+      // 	}
+
+
+      if(trkrid == TrkrDefs::micromegasId)
+	{
+	  auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(key);
+	  unsigned int layer                            = TrkrDefs::getLayer(hitsetkey);
+	  unsigned short segmentation = (unsigned short) MicromegasDefs::getSegmentationType(hitsetkey);
+	  unsigned int tile                             = MicromegasDefs::getTileId(hitsetkey);
+	  std::cout<< " layer: " << layer <<" segmentation: " << segmentation  << " tile: " << tile << std::endl;
+	}
+
+      std::cout<< "trkrId: " << trkrid << " subsurfkey: "<< subsurfkey <<std::endl;
       if(subsurfkey < 288 && test_transforms)  
 	{
 	  // ActsSurfaceMaps surfMapsTest = m_tGeometry->maps();
@@ -493,7 +511,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 
 	  auto x = cluster->getLocalX() * 10.0;   // mm
 	  auto y = cluster->getLocalY() * 10.0;
-
+	  
 	  if(trkrid == TrkrDefs::tpcId)
 	    {
 	      // must convert local Y from cluster average time of arival to local cluster z position
