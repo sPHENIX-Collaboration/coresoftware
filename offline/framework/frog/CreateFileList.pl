@@ -185,7 +185,7 @@ if (defined $prodtype)
     elsif ($prodtype == 11)
     {
         $embedok = 1;
-	$filenamestring = "pythia8_Jet04";
+	$filenamestring = "pythia8_Jet30";
 	if (! defined $nopileup)
 	{
 	    if (defined $embed)
@@ -592,6 +592,8 @@ sub commonfiletypes
     $filetypes{"DST_TRKR_CLUSTER"} = "pass0 output: tpc clusters";
     $filetypes{"DST_TRACKSEEDS"} = "passA output: track seeds";
     $filetypes{"DST_TRACKS"} = "passC output: Reconstructed Tracks";
+#analysis pass
+    $filetypes{"DST_TRUTH_JET"} = "Truth Jets";
 }
 
 
