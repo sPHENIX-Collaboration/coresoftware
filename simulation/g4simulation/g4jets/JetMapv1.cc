@@ -4,18 +4,17 @@
 
 #include <phool/PHObject.h>  // for PHObject
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iterator>  // for reverse_iterator
 #include <ostream>   // for operator<<, endl, ostream, basic_ostream::operat...
 #include <utility>   // for pair, make_pair
-#include <algorithm>
+#include <vector>
 
 JetMapv1::JetMapv1(const JetMap* jets)
   : _algo(jets->get_algo())
   , _par(jets->get_par())
-  , _src()
-  , _map()
 {
   for (ConstSrcIter iter = jets->begin_src();
        iter != jets->end_src();
@@ -121,36 +120,44 @@ Jet* JetMapv1::insert(Jet* jet)
   return (_map[index]);
 }
 
-std::vector<Jet*> JetMapv1::vec(Jet::SORT sort_criteria) {
-  vector<Jet*> v_data;
-  for (auto& _ : _map) { v_data.push_back(_.second); }
-  switch (sort_criteria) 
+std::vector<Jet*> JetMapv1::vec(Jet::SORT sort_criteria)
+{
+  std::vector<Jet*> v_data;
+  for (auto& _ : _map)
   {
-    case Jet::SORT::PT:
-      std::sort(v_data.begin(), v_data.end(), [](Jet* a, Jet* b) { return a->get_pt() > b->get_pt(); });
-      break;
-    case Jet::SORT::E:
-      std::sort(v_data.begin(), v_data.end(), [](Jet* a, Jet* b) { return a->get_e() > b->get_e(); });
-      break;
-    case Jet::SORT::P:
-      std::sort(v_data.begin(), v_data.end(), [](Jet* a, Jet* b) { return a->get_p() > b->get_p(); });
-      break;
-    case Jet::SORT::MASS:
-      std::sort(v_data.begin(), v_data.end(), [](Jet* a, Jet* b) { return a->get_mass() > b->get_mass(); });
-      break;
-    case Jet::SORT::NO_SORT:
-      // do nothing
-      break;
-    default:
-        std::cout << "Fatal error: option to JetMap::vec( option ) was not recognized." << std::endl;
-        exit(1);
+    v_data.push_back(_.second);
+  }
+  switch (sort_criteria)
+  {
+  case Jet::SORT::PT:
+    std::sort(v_data.begin(), v_data.end(), [](Jet* a, Jet* b) { return a->get_pt() > b->get_pt(); });
+    break;
+  case Jet::SORT::E:
+    std::sort(v_data.begin(), v_data.end(), [](Jet* a, Jet* b) { return a->get_e() > b->get_e(); });
+    break;
+  case Jet::SORT::P:
+    std::sort(v_data.begin(), v_data.end(), [](Jet* a, Jet* b) { return a->get_p() > b->get_p(); });
+    break;
+  case Jet::SORT::MASS:
+    std::sort(v_data.begin(), v_data.end(), [](Jet* a, Jet* b) { return a->get_mass() > b->get_mass(); });
+    break;
+  case Jet::SORT::NO_SORT:
+    // do nothing
+    break;
+  default:
+    std::cout << "Fatal error: option to JetMap::vec( option ) was not recognized." << std::endl;
+    exit(1);
   }
   return v_data;
 }
 
-std::vector<Jet*> JetMapv1::vec(std::function<bool (Jet*, Jet*)> custom_sort) {
-  vector<Jet*> v_data;
-  for (auto& _ : _map) { v_data.push_back(_.second); }
-  std::sort(v_data.begin(), v_data.end(), custom_sort );
+std::vector<Jet*> JetMapv1::vec(std::function<bool(Jet*, Jet*)> custom_sort)
+{
+  std::vector<Jet*> v_data;
+  for (auto& _ : _map)
+  {
+    v_data.push_back(_.second);
+  }
+  std::sort(v_data.begin(), v_data.end(), custom_sort);
   return v_data;
 }
