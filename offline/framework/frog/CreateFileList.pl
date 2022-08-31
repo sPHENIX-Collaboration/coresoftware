@@ -255,7 +255,7 @@ if (defined $prodtype)
 	}
 	if ($bad > 0)
 	{
-            print "\nExisting single particle sims:\n";
+            print "\nExisting single particle sims, use:\n";
             print_single_types();
 	    exit(1);
 	}
@@ -629,18 +629,25 @@ sub print_single_types
     $getallfiles->execute();
     my $runsplit = sprintf("MeV-%010d",$runnumber);
     my %types = ();
+    my %dsts = ();
     while (my @res = $getallfiles->fetchrow_array())
     {
-	my @sp1 = split(/single_/,$res[0]);
+	my @sp1 = split(/_single_/,$res[0]);
 	my @sp2 = split(/$runsplit/,$sp1[1]);
 	$types{$sp2[0]} = 1;
+        $dsts{$sp1[0]} = 1;
     }
     $getallfiles->finish();
     foreach my $name (sort keys %types)
     {
 	if ($name =~ /(\S+)\_(\d+)\_(\d+).*/ )
 	{
-	    print "CreateFileList.pl -type 14 -particle $1 -pmin $2 -pmax $3 G4Hits\n";
+	    print "CreateFileList.pl -type 14 -particle $1 -pmin $2 -pmax $3\n";
 	}
+    }
+    print "\nDST types:\n";
+    foreach my $name (sort keys %dsts)
+    {
+	    print "$name\n";
     }
 }
