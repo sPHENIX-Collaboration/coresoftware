@@ -85,9 +85,6 @@ class MakeActsGeometry : public SubsysReco
 
   void set_drift_velocity(double vd){m_drift_velocity = vd;}
 
-  void add_fake_surfaces(bool add)
-  {fake_surfaces = add;}
-
   void build_mm_surfaces( bool value )
   { m_buildMMs = value; }
     
@@ -232,7 +229,6 @@ class MakeActsGeometry : public SubsysReco
   double m_magFieldRescale = -1.;
 
   bool m_buildMMs = false;
-  bool fake_surfaces = true;
 };
 
 #endif
