@@ -207,7 +207,8 @@ libtrack_io_la_LIBADD = \
   -L$(ROOTSYS)/lib \
   -lphool \
   -lActsCore \
-  -lActsPluginTGeo
+  -lActsPluginTGeo \
+  -lffamodules
 
 
 # Rule for generating table CINT dictionaries.

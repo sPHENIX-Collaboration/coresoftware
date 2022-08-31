@@ -224,7 +224,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 {
   auto logger = Acts::getDefaultLogger("PHActsTrkFitter", logLevel);
 
-  std::cout << " seed map size " << m_seedMap->size() << std::endl;
+  if(Verbosity()>0)
+    {
+      std::cout << " seed map size " << m_seedMap->size() << std::endl;
+    }
 
   for(auto trackiter = m_seedMap->begin(); trackiter != m_seedMap->end();
       ++trackiter)
@@ -479,29 +482,10 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 
       // temporary for testing transforms 
       //=========================
-      bool test_transforms = true;
+      bool test_transforms = false;
 
-
-      // if(trkrid==TrkrDefs::micromegasId)
-      // 	{
-      // 	  subsurfkey = 0;
-      // 	}
-
-
-      if(trkrid == TrkrDefs::micromegasId)
+      if(test_transforms)  
 	{
-	  auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(key);
-	  unsigned int layer                            = TrkrDefs::getLayer(hitsetkey);
-	  unsigned short segmentation = (unsigned short) MicromegasDefs::getSegmentationType(hitsetkey);
-	  unsigned int tile                             = MicromegasDefs::getTileId(hitsetkey);
-	  std::cout<< " layer: " << layer <<" segmentation: " << segmentation  << " tile: " << tile << std::endl;
-	}
-
-      std::cout<< "trkrId: " << trkrid << " subsurfkey: "<< subsurfkey <<std::endl;
-      if(subsurfkey < 288 && test_transforms)  
-	{
-	  // ActsSurfaceMaps surfMapsTest = m_tGeometry->maps();
-	  // Surface surfTest;
 
 	  // Alignment transformation testing purposes
 	  auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(key);
@@ -552,9 +536,9 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	  else if(trkrid == TrkrDefs::micromegasId)
 	    {
 	      unsigned int layer                            = TrkrDefs::getLayer(hitsetkey);
-	      //MicromegasDefs::SegmentationType segmentation = MicromegasDefs::getSegmentationType(hitsetkey);
+	      unsigned short segmentation = (unsigned short) MicromegasDefs::getSegmentationType(hitsetkey);
 	      unsigned int tile                             = MicromegasDefs::getTileId(hitsetkey);
-	      std::cout<< " layer: " << layer  << " tile: " << tile << std::endl;
+	      std::cout<< " layer: " << layer << " segmentation: "<< segmentation  << " tile: " << tile << std::endl;
 	    }
 
           Acts::GeometryIdentifier id = surf->geometryId();

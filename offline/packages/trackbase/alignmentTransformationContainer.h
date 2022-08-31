@@ -21,8 +21,6 @@
 #include <phool/PHObject.h>
 
 
-
-
 /**
  * @brief Container class for Alignment transformations
  *

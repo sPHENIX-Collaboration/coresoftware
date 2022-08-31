@@ -1,10 +1,11 @@
 #ifndef TRACKBASE_ALIGNMENTTRANSFORMATION_H 
 #define TRACKBASE_ALIGNMENTTRANSFORMATION_H
 #include <map>
+
 #include "TrkrDefs.h"
+
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
-
 
 #include "alignmentTransformationContainer.h"
 
@@ -25,7 +26,9 @@ class AlignmentTransformation {
 
  private:
 
-  bool localVerbosity = true;
+  std::string alignmentParamsFile = "";
+
+  bool localVerbosity = false;
 
   Acts::Transform3 makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles);
 
@@ -33,7 +36,6 @@ class AlignmentTransformation {
 
   Eigen::Matrix3d rotateToGlobal(Surface surf);
 
-  //std::map<const TrkrDefs::hitsetkey, Eigen::Matrix4d>* transformMap;
   alignmentTransformationContainer* transformMap;
   ActsGeometry* m_tGeometry;
   

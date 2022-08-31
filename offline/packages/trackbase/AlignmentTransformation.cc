@@ -26,10 +26,11 @@
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
+#include <ffamodules/XploadInterface.h>
+
+
 void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 { 
-std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
-
  getNodes(topNode);
 
  // Use construction transforms as a reference for making the map
@@ -38,18 +39,21 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
  // Define Parsing Variables
  TrkrDefs::hitsetkey hitsetkey = 0;
  float alpha = 0.0, beta = 0.0, gamma = 0.0, dx = 0.0, dy = 0.0, dz = 0.0;
-  
+
+ alignmentParamsFile = XploadInterface::instance()->getUrl("TRACKINGALIGNMENT");
+ std::cout << "AlignmentTransformation: Reading Alignment Parameters From: " << alignmentParamsFile << std::endl; 
+   
  // load alignment constants file
- std::ifstream datafile("data.txt");
-      
+ std::ifstream datafile(alignmentParamsFile);
+ 
  ActsSurfaceMaps surfMaps = m_tGeometry->maps();
  Surface surf;
 
- int fileLines = 1822;
+ int fileLines = 1824;
  for (int i=0; i<fileLines; i++)
    {
      datafile >> hitsetkey >> alpha >> beta >> gamma >> dx >> dy >> dz;
-
+     
      // Perturbation translations and angles for stave and sensor
      Eigen::Vector3d sensorAngles (alpha,beta,gamma);  
      Eigen::Vector3d millepedeTranslation(dx,dy,dz); 
@@ -111,7 +115,6 @@ std::cout << "Entering AlignmentTransformation::createMap..." << std::endl;
  Acts::GeometryContext context(map);
 
  const auto map2 = context.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
- std::cout << " check:  map2 size is " << map2.size() << std::endl; 
  m_tGeometry->geometry().geoContext = context.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
 
  // map is created, now we can use the transforms
@@ -128,7 +131,6 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
  
   Eigen::Vector3d ylocal(0,1,0);
   Eigen::Vector3d sensorNormal    = -surf->normal(m_tGeometry->geometry().geoContext);
-  //Eigen::Vector3d sensorNormal    = surf->normal(m_tGeometry->geometry().geoContext);
   sensorNormal                    = sensorNormal/sensorNormal.norm(); // make unit vector 
   double cosTheta                 = ylocal.dot(sensorNormal);
   double sinTheta                 = (ylocal.cross(sensorNormal)).norm();
@@ -206,12 +208,9 @@ Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vec
 
   // Create ideal rotation matrix from ActsGeometry
   Eigen::Matrix3d globalRotation    = AlignmentTransformation::rotateToGlobal(surf);
- 
-  Eigen::Matrix3d combinedRotation  = globalRotation * millepedeRotation;
- 
+  Eigen::Matrix3d combinedRotation  = globalRotation * millepedeRotation; 
   Eigen::Vector3d sensorCenter      = surf->center(m_tGeometry->geometry().geoContext);//*0.1;
   Eigen::Vector3d globalTranslation = sensorCenter + millepedeTranslation;
-  // globalTranslation                *= 10.0;
   Acts::Transform3 transformation   = AlignmentTransformation::makeAffineMatrix(combinedRotation,globalTranslation);
 
   if(localVerbosity == true)
