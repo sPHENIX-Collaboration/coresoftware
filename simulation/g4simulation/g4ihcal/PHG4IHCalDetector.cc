@@ -138,7 +138,6 @@ int PHG4IHCalDetector::ConstructIHCal(G4LogicalVolume *hcalenvelope)
       m_DisplayAction->AddScintiVolume((*its)->GetLogicalVolume());
       m_ScintiTileLogVolSet.insert((*its)->GetLogicalVolume());
       hcalenvelope->AddDaughter((*its));
-      std::cout << "sector " << isector << std::endl;
       m_ScintiTilePhysVolMap.insert(std::make_pair(*its, ExtractLayerTowerId(isector, *its)));
       m_VolumeScintillator += (*its)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
       ++its;
