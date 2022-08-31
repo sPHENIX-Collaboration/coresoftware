@@ -84,6 +84,87 @@ namespace
     double weight = 1;
   };
 
+
+  //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
+  template<double (interpolation_data_t::*accessor)() const>
+  double interpolate_y( const interpolation_data_t::list& hits, double y_extrap )
+  {
+
+    // calculate all terms needed for the interpolation
+    // need to use double everywhere here due to numerical divergences
+    double sw = 0;
+    double swy = 0;
+    double swy2 = 0;
+    double swx = 0;
+    double swyx = 0;
+
+    bool valid( false );
+    for( const auto& hit:hits )
+    {
+
+      const double x = (hit.*accessor)();
+      const double w = hit.weight;
+      if( w <= 0 ) continue;
+
+      valid = true;
+      const double y = hit.y();
+
+      sw += w;
+      swy += w*y;
+      swy2 += w*square(y);
+      swx += w*x;
+      swyx += w*x*y;
+    }
+
+    if( !valid ) return NAN;
+
+    const auto alpha = (sw*swyx - swy*swx);
+    const auto beta = (swy2*swx - swy*swyx);
+    const auto denom = (sw*swy2 - square(swy));
+
+    return ( alpha*y_extrap + beta )/denom;
+  }
+
+  //! calculate the interpolation of member function called on all members in collection to the provided y_extrap
+  template<double (interpolation_data_t::*accessor)() const>
+  double interpolate_r( const interpolation_data_t::list& hits, double r_extrap )
+  {
+
+    // calculate all terms needed for the interpolation
+    // need to use double everywhere here due to numerical divergences
+    double sw = 0;
+    double swr = 0;
+    double swr2 = 0;
+    double swx = 0;
+    double swrx = 0;
+
+    bool valid( false );
+    for( const auto& hit:hits )
+    {
+
+      const double x = (hit.*accessor)();
+      const double w = hit.weight;
+      if( w <= 0 ) continue;
+
+      valid = true;
+      const double r = get_r(hit.x(), hit.y());
+
+      sw += w;
+      swr += w*r;
+      swr2 += w*square(r);
+      swx += w*x;
+      swrx += w*x*r;
+    }
+
+    if( !valid ) return NAN;
+
+    const auto alpha = (sw*swrx - swr*swx);
+    const auto beta = (swr2*swx - swr*swrx);
+    const auto denom = (sw*swr2 - square(swr));
+
+    return ( alpha*r_extrap + beta )/denom;
+  }
+  
   //! calculate the average of member function called on all members in collection
   template<double (interpolation_data_t::*accessor)() const>
   double average( const interpolation_data_t::list& hits )
@@ -1191,7 +1272,7 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
       tmp_hits.push_back( {.position = g4hit_world, .momentum = momentum_world, .weight = weight } );
     }
 
-    if( is_tpc )
+    if( false && is_tpc )
     {
       // add layer boundary checks
       // ensure first hit has lowest r
@@ -1241,15 +1322,27 @@ void TrackingEvaluator_hp::add_truth_information( TrackingEvaluator_hp::ClusterS
     hits.push_back(std::move(tmp_hits[1]));
   }
 
+  const auto rextrap = cluster._r;
+  
   // add truth position
-  cluster._truth_x = average<&interpolation_data_t::x>( hits );
-  cluster._truth_y = average<&interpolation_data_t::y>( hits );
-  cluster._truth_z = average<&interpolation_data_t::z>( hits );
+  cluster._truth_x = interpolate_r<&interpolation_data_t::x>( hits, rextrap );
+  cluster._truth_y = interpolate_r<&interpolation_data_t::y>( hits, rextrap );
+  cluster._truth_z = interpolate_r<&interpolation_data_t::z>( hits, rextrap );
 
   // add truth momentum information
-  cluster._truth_px = average<&interpolation_data_t::px>( hits );
-  cluster._truth_py = average<&interpolation_data_t::py>( hits );
-  cluster._truth_pz = average<&interpolation_data_t::pz>( hits );
+  cluster._truth_px = interpolate_r<&interpolation_data_t::px>( hits, rextrap );
+  cluster._truth_py = interpolate_r<&interpolation_data_t::py>( hits, rextrap );
+  cluster._truth_pz = interpolate_r<&interpolation_data_t::pz>( hits, rextrap );
+
+//   // add truth position
+//   cluster._truth_x = average<&interpolation_data_t::x>( hits );
+//   cluster._truth_y = average<&interpolation_data_t::y>( hits );
+//   cluster._truth_z = average<&interpolation_data_t::z>( hits );
+// 
+//   // add truth momentum information
+//   cluster._truth_px = average<&interpolation_data_t::px>( hits );
+//   cluster._truth_py = average<&interpolation_data_t::py>( hits );
+//   cluster._truth_pz = average<&interpolation_data_t::pz>( hits );
 
   cluster._truth_r = get_r( cluster._truth_x, cluster._truth_y );
   cluster._truth_phi = std::atan2( cluster._truth_y, cluster._truth_x );
