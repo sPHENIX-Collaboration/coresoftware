@@ -454,7 +454,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     {
       //only analyze subset of particle with proper embedding IDs
       int candidate_embedding_id = trutheval->get_embed(g4particle);
-      if (candidate_embedding_id < 0) candidate_embedding_id = -1;
+      if (candidate_embedding_id <= m_embed_id_cut) candidate_embedding_id = -1;
 
       // skip if no match
       if (m_embeddingIDs.find(candidate_embedding_id) == m_embeddingIDs.end()) continue;
