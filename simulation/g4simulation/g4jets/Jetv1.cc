@@ -49,9 +49,9 @@ int Jetv1::isValid() const
   if (_id == 0xFFFFFFFF) return 0;
   for (float i : _mom)
   {
-    if (isnan(i)) return 0;
+    if (std::isnan(i)) return 0;
   }
-  if (isnan(_e)) return 0;
+  if (std::isnan(_e)) return 0;
   if (_comp_ids.empty()) return 0;
   return 1;
 }
