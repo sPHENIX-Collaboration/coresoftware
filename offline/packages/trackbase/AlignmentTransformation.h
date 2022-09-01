@@ -36,8 +36,8 @@ class AlignmentTransformation {
 
   Eigen::Matrix3d rotateToGlobal(Surface surf);
 
-  alignmentTransformationContainer* transformMap;
-  ActsGeometry* m_tGeometry;
+  alignmentTransformationContainer* transformMap = NULL;
+  ActsGeometry* m_tGeometry = NULL;
   
   int getNodes(PHCompositeNode* topNode);
 

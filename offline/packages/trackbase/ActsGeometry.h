@@ -63,8 +63,6 @@ class ActsGeometry {
   //  alignmentTransformationContainer alignmentTransforms;
 
   double _drift_velocity = 8.0e-3;  // cm/ns
-  double AdcClockPeriod = 53.0;  // ns
-  unsigned int MaxTBins = 498;
 };
 
 #endif
