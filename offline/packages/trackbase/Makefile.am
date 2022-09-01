@@ -204,7 +204,6 @@ libtrack_io_la_SOURCES = \
   TpcSeedTrackMapv1.cc
 
 libtrack_io_la_LIBADD = \
-  -L$(ROOTSYS)/lib \
   -lphool \
   -lActsCore \
   -lActsPluginTGeo \

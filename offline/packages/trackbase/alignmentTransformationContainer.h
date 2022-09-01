@@ -8,8 +8,10 @@
  * @brief Storage class for alignment transformation to node tree
  */
 
-#include "TrkrDefs.h"
 #include "ActsGeometry.h"
+#include "TrkrDefs.h"
+
+#include <phool/PHObject.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
@@ -18,7 +20,6 @@
 #include <map>
 #include <utility>               // for pair
 
-#include <phool/PHObject.h>
 
 
 /**
@@ -43,7 +44,7 @@ class alignmentTransformationContainer : public Acts::GeometryContext
 
   void removeTransform(Acts::GeometryIdentifier id); 
   
-   Acts::Transform3& getTransform(Acts::GeometryIdentifier id);
+  Acts::Transform3& getTransform(Acts::GeometryIdentifier id);
 
   const std::map<Acts::GeometryIdentifier, Acts::Transform3> getMap();
 

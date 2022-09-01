@@ -1,13 +1,14 @@
 #ifndef TRACKBASE_ALIGNMENTTRANSFORMATION_H 
 #define TRACKBASE_ALIGNMENTTRANSFORMATION_H
-#include <map>
 
+#include "alignmentTransformationContainer.h"
 #include "TrkrDefs.h"
 
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
-#include "alignmentTransformationContainer.h"
+#include <map>
+
 
 class PHCompositeNode;
 

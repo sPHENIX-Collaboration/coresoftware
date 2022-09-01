@@ -1,15 +1,10 @@
 #include "AlignmentTransformation.h"
 
-#include "TrkrDefs.h"
-#include "TpcDefs.h"
 #include "ActsGeometry.h"
+#include "TpcDefs.h"
+#include "TrkrDefs.h"
 
-#include <cmath>
-#include <fstream>
-
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
-#include <Eigen/LU>
+#include <ffamodules/XploadInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -26,7 +21,13 @@
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 
-#include <ffamodules/XploadInterface.h>
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+
+#include <cmath>
+#include <fstream>
+
 
 
 void AlignmentTransformation::createMap(PHCompositeNode* topNode)
