@@ -23,11 +23,9 @@ JetMapv1::JetMapv1(const JetMap* jets)
     _src.insert(*iter);
   }
 
-  for (ConstIter iter = jets->begin();
-       iter != jets->end();
-       ++iter)
+  for (auto iter : *jets)
   {
-    Jet* jet = dynamic_cast<Jet*>((iter->second)->CloneMe());
+    Jet* jet = dynamic_cast<Jet*>((iter.second)->CloneMe());
     assert(jet);
     _map.insert(std::make_pair(jet->get_id(), jet));
   }
@@ -47,11 +45,9 @@ JetMapv1& JetMapv1::operator=(const JetMapv1& jets)
     _src.insert(*iter);
   }
 
-  for (ConstIter iter = jets.begin();
-       iter != jets.end();
-       ++iter)
+  for (auto iter : jets)
   {
-    Jet* jet = dynamic_cast<Jet*>((iter->second)->CloneMe());
+    Jet* jet = dynamic_cast<Jet*>((iter.second)->CloneMe());
     assert(jet);
     _map.insert(std::make_pair(jet->get_id(), jet));
   }
