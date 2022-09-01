@@ -673,13 +673,10 @@ ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack
     const SurfacePtrVec& surfSequence)
 {
 
-  std::cout << "PHActsTrkFitter::fitTrack - fitting track" << std::endl;
   if(m_fitSiliconMMs) 
   { 
-    std::cout << "PHActsTrkFitter::fitTrack - using direct fit" << std::endl;
     return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence); 
   } else {
-    std::cout << "PHActsTrkFitter::fitTrack - using normal fit" << std::endl;
     return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions); 
   }
 }
