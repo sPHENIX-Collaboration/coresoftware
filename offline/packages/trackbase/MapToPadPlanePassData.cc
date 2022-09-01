@@ -3,7 +3,7 @@
 class MapToPadPlanePassData;
 
 MapToPadPlanePassData& MapToPadPlanePassData::operator+=(const MapToPadPlanePassData& rhs) {
-  layer = rhs.layer;
+  hitsetkey = rhs.hitsetkey;
   if (rhs.phi_bin_lo < phi_bin_lo) phi_bin_lo = rhs.phi_bin_lo;
   if (rhs.phi_bin_hi > phi_bin_hi) phi_bin_hi = rhs.phi_bin_hi;
 
@@ -18,7 +18,7 @@ MapToPadPlanePassData& MapToPadPlanePassData::operator+=(const MapToPadPlanePass
 }
 
 void MapToPadPlanePassData::reset() {
-  layer = 0;
+  hitsetkey = 0;
   neff_electrons = 0;
   phi_integral = 0.;
   time_integral = 0.;
