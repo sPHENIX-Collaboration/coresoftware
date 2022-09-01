@@ -252,7 +252,7 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const std::string &t
       }
       return 0;
     }
-    std::cout << PHWHERE << " Error initializing subsystem "
+    std::cout << PHWHERE << " Error from Init() method by "
               << subsystem->Name() << ", return code: " << iret << std::endl;
     return iret;
   }
