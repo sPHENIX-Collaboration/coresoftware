@@ -54,6 +54,7 @@ my %pileupdesc = (
 
 my $nEvents;
 my $start_segment;
+my $last_segment;
 my $randomize;
 my $prodtype;
 my $runnumber = 40;
@@ -65,7 +66,7 @@ my $particle;
 my $pmin;
 my $pmax;
 
-GetOptions('type:i' =>\$prodtype, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, 'rand' => \$randomize, 's:i' => \$start_segment, 'run:i' => \$runnumber, "verbose" =>\$verbose, 'embed' => \$embed);
+GetOptions('embed' => \$embed, 'l:i' => \$last_segment, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
 my $filenamestring;
 my %filetypes = ();
 my %notlike = ();
@@ -284,11 +285,12 @@ if ($#ARGV < 0)
 	print "usage: CreateFileLists.pl -type <production type> <filetypes>\n";
 	print "parameters:\n";
 	print "-embed : pp embedded into hijing (only for pp types)\n";
+	print "-l     : last segment\n";
 	print "-n     : <number of events>\n";
 	print "-nopileup : without pileup\n";
 	print "-rand  : randomize segments used\n";
 	print "-run   : runnumber (default = $runnumber)\n";
-	print "-s     : starting segment>\n";
+	print "-s     : starting segment (remember first segment is 0)\n";
 	print "\n-type  : production type\n";
 	foreach my $pd (sort { $a <=> $b } keys %proddesc)
 	{
@@ -403,6 +405,17 @@ if (exists $notlike{$filenamestring})
 if (defined $start_segment)
 {
     $conds = sprintf("%s and segment >= %d",$conds,$start_segment);
+}
+if (defined $last_segment)
+{
+    if (defined $start_segment)
+    {
+	if ($last_segment < $start_segment)
+	{
+	    print "last segment: (-l $last_segment) smaller than start segment: (-s $start_segment), I will try but you will not get anything\n";
+	}
+    }
+    $conds = sprintf("%s and segment <= %d",$conds,$last_segment);
 }
 my $getfilesql = sprintf("select filename,segment,events from datasets where %s order by segment",$conds);
 #my $getfilesql = sprintf("select filename,segment,events from datasets where %s ",$conds);
