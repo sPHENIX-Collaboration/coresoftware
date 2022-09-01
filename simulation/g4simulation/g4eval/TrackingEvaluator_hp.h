@@ -88,7 +88,6 @@ class TrackingEvaluator_hp : public SubsysReco
     //! number of clusters in the Micromegas
     unsigned int _nclusters_micromegas = 0;
     
-
     //! number of g4hits in the mvtx
     unsigned int _ng4hits_mvtx = 0;
 
