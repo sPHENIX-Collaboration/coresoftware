@@ -175,7 +175,7 @@ bool Fun4AllHistoManager::registerHisto(const std::string &hname, TNamed *h1d, c
 
   // reset directory for TTree
   if (h1d->InheritsFrom("TTree"))
-    static_cast<TTree *>(h1d)->SetDirectory(0);
+    static_cast<TTree *>(h1d)->SetDirectory(nullptr);
 
   // For histograms, enforce error calculation and propagation
   if (h1d->InheritsFrom("TH1"))
