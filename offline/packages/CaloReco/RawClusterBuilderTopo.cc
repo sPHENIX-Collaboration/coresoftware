@@ -175,7 +175,7 @@ void RawClusterBuilderTopo::export_single_cluster(std::vector<int> original_towe
     std::cout << "RawClusterBuilderTopo::export_single_cluster called " << std::endl;
 
   std::map<int, std::pair<int, int> > tower_ownership;
-  for (int & original_tower : original_towers)
+  for (int &original_tower : original_towers)
     tower_ownership[original_tower] = std::pair<int, int>(0, -1);  // all towers owned by cluster 0
 
   export_clusters(original_towers, tower_ownership, 1, std::vector<float>(), std::vector<float>(), std::vector<float>());
@@ -292,7 +292,6 @@ void RawClusterBuilderTopo::export_clusters(std::vector<int> original_towers, st
 
 RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
   : SubsysReco(name)
-  , _clusters(nullptr)
 {
   // geometry defined at run-time
   _EMCAL_NETA = -1;
@@ -300,10 +299,7 @@ RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
 
   _HCAL_NETA = -1;
   _HCAL_NPHI = -1;
-
-  for (auto & _geom_container : _geom_containers)
-    _geom_container = nullptr;
-
+  std::fill(std::begin(_geom_containers), std::end(_geom_containers), nullptr);
   _noise_LAYER[0] = 0.0025;
   _noise_LAYER[1] = 0.006;
   _noise_LAYER[2] = 0.03;  // EM
@@ -855,7 +851,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     // -2 means seen and in the seed list now (e.g. don't add it to the seed list again)
     // -3 shared tower, ignore going forward...
     std::map<int, std::pair<int, int> > tower_ownership;
-    for (int & original_tower : original_towers)
+    for (int &original_tower : original_towers)
       tower_ownership[original_tower] = std::pair<int, int>(-1, -1);  // initialize all towers as un-seen
 
     std::vector<int> seed_list;
@@ -874,7 +870,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 100)
     {
-      for (int & original_tower : original_towers)
+      for (int &original_tower : original_towers)
       {
         std::pair<int, int> the_pair = tower_ownership[original_tower];
         std::cout << " Debug Pre-Split: tower_ownership[ " << original_tower << " ] = ( " << the_pair.first << ", " << the_pair.second << " ) ";
@@ -1027,7 +1023,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 100)
     {
-      for (int & original_tower : original_towers)
+      for (int &original_tower : original_towers)
       {
         std::pair<int, int> the_pair = tower_ownership[original_tower];
         std::cout << " Debug Mid-Split: tower_ownership[ " << original_tower << " ] = ( " << the_pair.first << ", " << the_pair.second << " ) ";
@@ -1059,7 +1055,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     pseudocluster_sumE.resize(local_maxima_ID.size(), 0);
     pseudocluster_ntower.resize(local_maxima_ID.size(), 0);
 
-    for (int & original_tower : original_towers)
+    for (int &original_tower : original_towers)
     {
       std::pair<int, int> the_pair = tower_ownership[original_tower];
       if (the_pair.first > -1)
@@ -1159,7 +1155,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 100)
     {
-      for (int & original_tower : original_towers)
+      for (int &original_tower : original_towers)
       {
         std::pair<int, int> the_pair = tower_ownership[original_tower];
         std::cout << " Debug Post-Split: tower_ownership[ " << original_tower << " ] = ( " << the_pair.first << ", " << the_pair.second << " ) ";
