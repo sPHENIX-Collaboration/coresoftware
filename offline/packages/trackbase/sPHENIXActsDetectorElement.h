@@ -30,7 +30,6 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
     
   sPHENIXActsDetectorElement(const Identifier& identifier, 
 			     const TGeoNode& tGeoNode,
-			     //			     const Acts::Transform3& tgTransform,
 			      Acts::Transform3& tgTransform,
 			     std::shared_ptr<const Acts::PlanarBounds> tgBounds,
 			     double tgThickness = 0.) : 
@@ -40,7 +39,6 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
      
   sPHENIXActsDetectorElement(const Identifier& identifier, 
 			     const TGeoNode& tGeoNode,
-			     //const Acts::Transform3& tgTransform,
 			     Acts::Transform3& tgTransform,
 			     std::shared_ptr<const Acts::DiscBounds> tgBounds,
 			     double tgThickness = 0.) :
@@ -51,13 +49,8 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
 
   const Acts::Transform3& transform(const Acts::GeometryContext& ctxt) const override;
 
-void set_aligned(bool val){use_alignment = val;}
-
-static bool use_alignment;
 
 private:
-
-//std::map<Acts::GeometryIdentifier, Acts::Transform3> m_alignmentParameters;
 
 };
 

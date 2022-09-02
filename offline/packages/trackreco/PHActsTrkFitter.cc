@@ -499,7 +499,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	  if(trkrid == TrkrDefs::tpcId)
 	    {
 	      // must convert local Y from cluster average time of arival to local cluster z position
-	      double drift_velocity = 8.0e-3;  // cm/ns
+	      double drift_velocity = m_tGeometry->get_drift_velocity();
 	      double zdriftlength = cluster->getLocalY() * drift_velocity;
 	      double surfCenterZ = 52.89; // 52.89 is where G4 thinks the surface center is
 	      double zloc = surfCenterZ - zdriftlength;   // converts z drift length to local z position in the TPC in north

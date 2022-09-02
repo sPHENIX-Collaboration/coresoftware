@@ -1,11 +1,9 @@
-#include "sPHENIXActsDetectorElement.h"
+#include "ActsGeometry.h"
 #include "alignmentTransformationContainer.h"
+#include "sPHENIXActsDetectorElement.h"
 
-#include <ActsGeometry.h>
 
 sPHENIXActsDetectorElement::~sPHENIXActsDetectorElement() = default;
-
-bool sPHENIXActsDetectorElement::use_alignment = false;
 
 const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::GeometryContext& ctxt)  const
 {
@@ -13,7 +11,6 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
   if(alignmentTransformationContainer::use_alignment)
     {
       Acts::GeometryIdentifier id = surface().geometryId();
-      //std::cout << " sPHENIXActsDetectorElement: Get alignment transform for identifier: " << id << std::endl;
 
       const std::map<Acts::GeometryIdentifier, Acts::Transform3>& map =  ctxt.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
 
@@ -21,7 +18,6 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
       if(it!=map.end())
 	{
 	  const Acts::Transform3& transform = it->second;
-	  //std::cout << "        got alignment transform: " << std::endl << transform.matrix() << std::endl;
 	  return transform;
 	}
       else

@@ -15,27 +15,14 @@ namespace
 
 Eigen::Matrix<float,3,1> ActsGeometry::getGlobalPositionF(
   TrkrDefs:: cluskey key,       
-  //  TrkrCluster* cluster) const
   TrkrCluster* cluster)
 {
-  //  const Acts::Vector3 doublePos = getGlobalPosition(key, cluster);
   Acts::Vector3 doublePos = getGlobalPosition(key, cluster);
   return Eigen::Matrix<float,3,1>(doublePos(0), doublePos(1), doublePos(2));
 }
 
-/*
-Eigen::Matrix<float,3,1> ActsGeometry::getGlobalPositionTpcF(
-  TrkrDefs:: cluskey key,       
-  TrkrCluster* cluster) const
-{
-  const Acts::Vector3 doublePos = getGlobalPositionTpc(key, cluster);
-  return Eigen::Matrix<float,3,1>(doublePos(0), doublePos(1), doublePos(2));
-}
-*/
 
-Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
-					      //					      TrkrCluster* cluster) const
-					      TrkrCluster* cluster)
+Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster)
 {
   Acts::Vector3 glob;
  
@@ -108,9 +95,6 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,	 TrkrCl
 				  Acts::Vector3(1,1,1));
   glob /= Acts::UnitConstants::cm;
 
-  //  std::cout << " side " << side << " local " << local << std::endl;
-  //  std::cout << "       transform " <<    surface->transform(geometry().geoContext).matrix() << std::endl << "   glob " << glob << std::endl;
-
   return glob;
 }
 
@@ -118,7 +102,6 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,	 TrkrCl
 Surface ActsGeometry::get_tpc_surface_from_coords(
   TrkrDefs::hitsetkey hitsetkey,
   Acts::Vector3 world,
-  //  TrkrDefs::subsurfkey& subsurfkey) const
   TrkrDefs::subsurfkey& subsurfkey)
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);

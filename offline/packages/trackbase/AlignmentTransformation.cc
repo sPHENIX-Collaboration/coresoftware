@@ -115,7 +115,6 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
  const auto map = transformMap->getMap();
  Acts::GeometryContext context(map);
 
- const auto map2 = context.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
  m_tGeometry->geometry().geoContext = context.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
 
  // map is created, now we can use the transforms

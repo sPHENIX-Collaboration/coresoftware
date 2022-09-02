@@ -2,6 +2,7 @@
 #define TRACKBASE_ACTSGEOMETRY_H
 
 #include "ActsSurfaceMaps.h"
+
 #include <Acts/Definitions/Units.hpp>
 
 class TrkrCluster;
@@ -12,18 +13,14 @@ class ActsGeometry {
   ActsGeometry() = default;
   ~ActsGeometry() {} 
 
-  //  void setGeometry(const ActsTrackingGeometry& tGeometry) 
   void setGeometry(ActsTrackingGeometry& tGeometry) 
     { m_tGeometry = tGeometry; }
 
-  //  void setSurfMaps(const ActsSurfaceMaps& surfMaps)
   void setSurfMaps(ActsSurfaceMaps& surfMaps)
     { m_surfMaps = surfMaps; }
   
-  //  const ActsTrackingGeometry& geometry() const 
   ActsTrackingGeometry& geometry()
     { return m_tGeometry; }
-  //  const ActsSurfaceMaps& maps() const 
   ActsSurfaceMaps& maps() 
     { return m_surfMaps; }
 
@@ -32,19 +29,11 @@ class ActsGeometry {
 
   Eigen::Matrix<float,3,1> getGlobalPositionF(
       TrkrDefs:: cluskey key,       
-      //      TrkrCluster* cluster) const;
       TrkrCluster* cluster);
 
   Acts::Vector3 getGlobalPosition(
       TrkrDefs:: cluskey key,       
-      //      TrkrCluster* cluster) const;
       TrkrCluster* cluster);
-
-  /*
-  Eigen::Matrix<float,3,1> getGlobalPositionTpcF(
-      TrkrDefs:: cluskey key,       
-      TrkrCluster* cluster) const;
-  */
 
   Acts::Vector3 getGlobalPositionTpc(
       TrkrDefs:: cluskey key,       
@@ -53,14 +42,11 @@ class ActsGeometry {
   Surface get_tpc_surface_from_coords(
       TrkrDefs::hitsetkey hitsetkey,
       Acts::Vector3 world,
-      //      TrkrDefs::subsurfkey& subsurfkey) const;
       TrkrDefs::subsurfkey& subsurfkey);
 
  private:
   ActsTrackingGeometry m_tGeometry;
   ActsSurfaceMaps m_surfMaps;
-
-  //  alignmentTransformationContainer alignmentTransforms;
 
   double _drift_velocity = 8.0e-3;  // cm/ns
 };
