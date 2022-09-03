@@ -20,7 +20,7 @@
 PHTFileServer::SafeTFile::TFileMap PHTFileServer::SafeTFile::_map;
 
 //_________________________________________________
-PHTFileServer::~PHTFileServer(void)
+PHTFileServer::~PHTFileServer()
 {
   if (!SafeTFile::file_map().empty()) close();
 }
@@ -128,26 +128,26 @@ bool PHTFileServer::write(const std::string& filename)
 }
 
 //__________________________________________
-void PHTFileServer::close(void)
+void PHTFileServer::close()
 {
   // close
   //  MUTOO::TRACE( "PHTFileServer::close" );
-  for (SafeTFile::TFileMap::iterator iter = SafeTFile::file_map().begin(); iter != SafeTFile::file_map().end(); ++iter)
+  for (auto & iter : SafeTFile::file_map())
   {
-    if (iter->second->IsOpen())
+    if (iter.second->IsOpen())
     {
-      if (iter->second->counter())
+      if (iter.second->counter())
       {
         std::ostringstream what;
-        what << "PHTFileServer::close - file " << iter->first << " forced write with kWriteDelete.";
+        what << "PHTFileServer::close - file " << iter.first << " forced write with kWriteDelete.";
         std::cout << (what.str()) << std::endl;
-        iter->second->Write("0", TObject::kWriteDelete);
+        iter.second->Write("0", TObject::kWriteDelete);
       }
 
       // close TFile
       std::ostringstream what;
-      what << "PHTFileServer::close - closing " << iter->first << ".";
-      iter->second->Close();
+      what << "PHTFileServer::close - closing " << iter.first << ".";
+      iter.second->Close();
       std::cout << (what.str()) << std::endl;
     }
   }
@@ -157,7 +157,7 @@ void PHTFileServer::close(void)
 }
 
 //__________________________________________________________________________________
-PHTFileServer::SafeTFile::~SafeTFile(void)
+PHTFileServer::SafeTFile::~SafeTFile()
 {
   // see if TFile is still open
   if (IsOpen())

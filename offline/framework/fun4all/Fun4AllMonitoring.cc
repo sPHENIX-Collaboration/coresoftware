@@ -18,10 +18,6 @@ Fun4AllMonitoring::Fun4AllMonitoring()
 {
 }
 
-Fun4AllMonitoring::~Fun4AllMonitoring()
-{
-}
-
 void Fun4AllMonitoring::Snapshot(const std::string & /*what*/)
 {
   if (mOutFileName.empty())

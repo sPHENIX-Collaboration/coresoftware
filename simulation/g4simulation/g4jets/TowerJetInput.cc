@@ -210,7 +210,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     return std::vector<Jet *>();
   }
 
-  if (isnan(vtxz))
+  if (std::isnan(vtxz))
   {
     static bool once = true;
     if (once)
