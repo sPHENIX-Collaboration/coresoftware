@@ -160,10 +160,13 @@ void PHG4MvtxSupport::TrackingServiceCylinder(PHG4MvtxServiceStructure *object, 
 
     G4Material *trackerMaterial = NULL;
     if (materials[i] == "MVTX_CarbonFiber$")
+    {
       trackerMaterial = carbonFibreMaterial;
+    }
     else
+    {
       trackerMaterial = PHG4Detector::GetDetectorMaterial(materials[i]);
-
+    }
     G4VSolid *cylinderSolid = new G4Tubs(G4String(object->get_name() + "_SOLID"),
                                          innerRadius * cm, outerRadius * cm, (length / 2) * cm, 0, 2 * M_PI);
 
@@ -290,6 +293,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
       cable = new PHG4MvtxCable(boost::str(boost::format("%s_cooling_%d") % superName.c_str() % iCool), "G4_WATER", coolingCoreRadius, coolingSheathRadius,
                                 x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, cooling_color[iCool]);
       CreateCable(cable, assemblyVolume);
+      delete cable;
     }
   }
 
@@ -455,10 +459,16 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L1", 0.004, 0., 0.061, -26.9, -18.000, 10.20, 7.338));
   cones.push_back(new PHG4MvtxServiceStructure("MVTX_sb_to_L2", 0.004, 0., 0.058, -26.7, -22.301, 10.25, 9.580));
 
-  for (PHG4MvtxServiceStructure *cylinder : cylinders) TrackingServiceCylinder(cylinder, *m_avSupport);
-  for (PHG4MvtxServiceStructure *cone : cones) TrackingServiceCone(cone, *m_avSupport);
-  std::vector<PHG4MvtxServiceStructure *>().swap(cylinders);
-  std::vector<PHG4MvtxServiceStructure *>().swap(cones);
+  for (PHG4MvtxServiceStructure *cylinder : cylinders)
+  {
+    TrackingServiceCylinder(cylinder, *m_avSupport);
+    delete cylinder;
+  }
+  for (PHG4MvtxServiceStructure *cone : cones)
+  {
+    TrackingServiceCone(cone, *m_avSupport);
+    delete cone;
+  }
 
   G4RotationMatrix rot;
   G4ThreeVector place;
