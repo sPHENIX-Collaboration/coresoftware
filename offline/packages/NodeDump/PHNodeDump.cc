@@ -11,7 +11,6 @@
 #include "DumpGlobalVertexMap.h"
 #include "DumpInttDeadMap.h"
 #include "DumpJetMap.h"
-#include "DumpParticleFlowElementContainer.h"
 #include "DumpPHFieldConfig.h"
 #include "DumpPHG4BlockCellGeomContainer.h"
 #include "DumpPHG4BlockGeomContainer.h"
@@ -25,6 +24,7 @@
 #include "DumpPHG4ScintillatorSlatContainer.h"
 #include "DumpPHG4TruthInfoContainer.h"
 #include "DumpPHHepMCGenEventMap.h"
+#include "DumpParticleFlowElementContainer.h"
 #include "DumpPdbParameterMap.h"
 #include "DumpPdbParameterMapContainer.h"
 #include "DumpRawClusterContainer.h"
@@ -46,14 +46,13 @@
 #include "DumpTrkrHitTruthClusters.h"
 #include "DumpVariableArray.h"
 
-#include <ffaobjects/RunHeader.h>
 #include <ffaobjects/EventHeader.h>
+#include <ffaobjects/RunHeader.h>
 
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-
 
 #include <TObject.h>
 
@@ -78,7 +77,7 @@ int PHNodeDump::AddIgnore(const std::string &name)
   if (ignore.find(name) != ignore.end())
   {
     std::cout << PHWHERE << " "
-         << name << "already in ignore list" << std::endl;
+              << name << "already in ignore list" << std::endl;
     return -1;
   }
   ignore.insert(name);
@@ -90,7 +89,7 @@ int PHNodeDump::Select(const std::string &name)
   if (exclusive.find(name) != exclusive.end())
   {
     std::cout << PHWHERE << " "
-         << name << "already in exclusive list" << std::endl;
+              << name << "already in exclusive list" << std::endl;
     return -1;
   }
   exclusive.insert(name);
@@ -137,7 +136,7 @@ void PHNodeDump::perform(PHNode *node)
       //               std::cout << "registered: " << iter->second->Name() << std::endl;
       //             }
       std::cout << "Something went wrong with adding Dump Object for " << NodeName
-           << ", it should exist !! Trying to create it again" << std::endl;
+                << ", it should exist !! Trying to create it again" << std::endl;
       AddDumpObject(NodeName, node);
     }
   }
@@ -179,7 +178,7 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
     {
       // need a static cast since only from DST these guys are of type PHIODataNode<TObject*>
       // when created they are normally  PHIODataNode<PHObject*> but can be anything else as well
-      TObject *tmp = static_cast<TObject *> ((static_cast<PHIODataNode<TObject> *>(node))->getData());
+      TObject *tmp = static_cast<TObject *>((static_cast<PHIODataNode<TObject> *>(node))->getData());
       if (tmp->InheritsFrom("BbcVertexMap"))
       {
         newdump = new DumpBbcVertexMap(NodeName);
@@ -359,7 +358,7 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else
       {
         std::cout << "Registering Dummy for " << NodeName
-             << ", Class: " << tmp->ClassName() << std::endl;
+                  << ", Class: " << tmp->ClassName() << std::endl;
         newdump = new DumpObject(NodeName);
       }
     }

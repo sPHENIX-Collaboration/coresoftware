@@ -5,7 +5,7 @@
 
 #include "Jet.h"
 
-#include <iostream>    // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <vector>
 
 class PHCompositeNode;
@@ -22,31 +22,31 @@ class TruthJetInput : public JetInput
   //! Call add_embedding_flag() multiple times to add multiple embed stream
   void add_embedding_flag(const int embed_stream_id)
   {
-    _embed_id.push_back(embed_stream_id);
+    m_EmbedID.push_back(embed_stream_id);
   }
 
   void identify(std::ostream& os = std::cout) override;
 
-  Jet::SRC get_src() override { return _input; }
+  Jet::SRC get_src() override { return m_Input; }
 
   std::vector<Jet*> get_input(PHCompositeNode* topNode) override;
 
   void set_eta_range(float eta_min, float eta_max)
   {
-    _eta_min = eta_min;
-    _eta_max = eta_max;
+    m_EtaMin = eta_min;
+    m_EtaMax = eta_max;
   }
 
  private:
-  Jet::SRC _input;
-  float _eta_min;
-  float _eta_max;
+  Jet::SRC m_Input = Jet::VOID;
+  float m_EtaMin = -4.;
+  float m_EtaMax = 4.;
 
   //! if empty: process all primary particles
   //! if non-empty: only process primary particles in the selected embed stream.
-  std::vector<int> _embed_id;
+  std::vector<int> m_EmbedID;
 
-  bool use_embed_stream() { return _embed_id.size() > 0; }
+  bool use_embed_stream() { return m_EmbedID.size() > 0; }
 };
 
 #endif

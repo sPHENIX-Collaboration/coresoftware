@@ -10,11 +10,9 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 typedef PHIODataNode<BbcVertexMap> MyNode_t;
 
-DumpBbcVertexMap::DumpBbcVertexMap(const string &NodeName)
+DumpBbcVertexMap::DumpBbcVertexMap(const std::string &NodeName)
   : DumpObject(NodeName)
 {
   return;
@@ -32,14 +30,14 @@ int DumpBbcVertexMap::process_Node(PHNode *myNode)
   {
     BbcVertexMap::ConstIter biter_beg = bbcvertexmap->begin();
     BbcVertexMap::ConstIter biter_end = bbcvertexmap->end();
-    *fout << "size: " << bbcvertexmap->size() << endl;
+    *fout << "size: " << bbcvertexmap->size() << std::endl;
     for (BbcVertexMap::ConstIter biter = biter_beg; biter != biter_end; ++biter)
     {
-      *fout << "id: " << biter->second->get_id() << endl;
-      *fout << "t: " << biter->second->get_t() << endl;
-      *fout << "t_err: " << biter->second->get_t_err() << endl;
-      *fout << "z: " << biter->second->get_z() << endl;
-      *fout << "z_err: " << biter->second->get_z_err() << endl;
+      *fout << "id: " << biter->second->get_id() << std::endl;
+      *fout << "t: " << biter->second->get_t() << std::endl;
+      *fout << "t_err: " << biter->second->get_t_err() << std::endl;
+      *fout << "z: " << biter->second->get_z() << std::endl;
+      *fout << "z_err: " << biter->second->get_z_err() << std::endl;
     }
   }
   return 0;

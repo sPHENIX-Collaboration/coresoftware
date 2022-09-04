@@ -75,6 +75,14 @@ void PHG4BbcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     {
       visatt->SetColour(G4Colour::Gray());
     }
+    else if (it.second == "Bbc_CableCond")
+    {
+      visatt->SetColour(G4Colour::Yellow());
+    }
+    else if (it.second == "Bbc_CableShield")
+    {
+      visatt->SetColour(G4Colour::White());
+    }
     else
     {
       std::cout << "PHG4BbcDisplayAction::ApplyDisplayAction unknown logical volume " << it.second << " in " << GetName() << std::endl;

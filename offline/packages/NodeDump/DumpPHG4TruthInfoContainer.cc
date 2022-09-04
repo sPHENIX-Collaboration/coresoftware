@@ -69,16 +69,18 @@ int DumpPHG4TruthInfoContainer::process_Node(PHNode *myNode)
       *fout << "get_z(): " << shower_iter->second->get_z() << std::endl;
     }
     const std::pair<std::map<int, int>::const_iterator,
-	      std::map<int, int>::const_iterator> embed_begin_end = truthcontainer->GetEmbeddedVtxIds();
-    for (auto  embed_iter = embed_begin_end.first; embed_iter !=  embed_begin_end.second; ++embed_iter)
+                    std::map<int, int>::const_iterator>
+        embed_begin_end = truthcontainer->GetEmbeddedVtxIds();
+    for (auto embed_iter = embed_begin_end.first; embed_iter != embed_begin_end.second; ++embed_iter)
     {
-      *fout <<  "vtx id " << embed_iter->first << ", embed id: " << embed_iter->second << std::endl;
+      *fout << "vtx id " << embed_iter->first << ", embed id: " << embed_iter->second << std::endl;
     }
     const std::pair<std::map<int, int>::const_iterator,
-	      std::map<int, int>::const_iterator> embed_begin_end1 = truthcontainer->GetEmbeddedTrkIds();
-    for (auto embed_iter = embed_begin_end1.first; embed_iter !=  embed_begin_end1.second; ++embed_iter)
+                    std::map<int, int>::const_iterator>
+        embed_begin_end1 = truthcontainer->GetEmbeddedTrkIds();
+    for (auto embed_iter = embed_begin_end1.first; embed_iter != embed_begin_end1.second; ++embed_iter)
     {
-      *fout <<  "track id " << embed_iter->first << ", embed id: " << embed_iter->second << std::endl;
+      *fout << "track id " << embed_iter->first << ", embed id: " << embed_iter->second << std::endl;
     }
   }
   return 0;
