@@ -14,6 +14,12 @@ PHParameterInterface::PHParameterInterface(const std::string &name)
 {
 }
 
+PHParameterInterface::~PHParameterInterface()
+{
+  delete m_Params;
+}
+
+
 void PHParameterInterface::set_paramname(const std::string &name)
 {
   m_Params->set_name(name);
