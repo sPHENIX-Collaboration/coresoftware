@@ -9,8 +9,8 @@
 #include <gsl/gsl_rng.h>
 
 #include <map>
-#include <string>
 #include <memory>  // for unique_ptr
+#include <string>
 
 class PHCompositeNode;
 
@@ -39,7 +39,6 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   void SetDefaultParameters() override;
 
  private:
-
   std::pair<double, double> generate_alpide_pulse(const double energy_deposited);
 
   double generate_strobe_zero_tm_start();
@@ -61,9 +60,9 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 
   class Deleter
   {
-    public:
-      //! delection operation
-      void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+   public:
+    //! delection operation
+    void operator()(gsl_rng *rng) const { gsl_rng_free(rng); }
   };
 
   std::unique_ptr<gsl_rng, Deleter> m_rng;
