@@ -49,6 +49,7 @@ namespace Acts
 
 using Surface = std::shared_ptr<const Acts::Surface>;
 using TrackingGeometry = std::shared_ptr<const Acts::TrackingGeometry>;
+//using TrackingGeometry = std::shared_ptr<Acts::TrackingGeometry>;
 using TrackingVolumePtr = std::shared_ptr<const Acts::TrackingVolume>;
 
 /**
@@ -114,6 +115,7 @@ class MakeActsGeometry : public SubsysReco
   void makeGeometry(int argc, char* argv[], 
 		    ActsExamples::TGeoDetector& detector);
   std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
+    //std::pair<std::shared_ptr<Acts::TrackingGeometry>,
           std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
     build(const boost::program_options::variables_map& vm,
 			ActsExamples::TGeoDetector& detector);
