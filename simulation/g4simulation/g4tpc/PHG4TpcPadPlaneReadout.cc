@@ -207,7 +207,7 @@ MapToPadPlanePassData PHG4TpcPadPlaneReadout::MapToPadPlane(
   pad_phibin.clear();
   pad_phibin_share.clear();
   populate_zigzag_phibins(layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
-  if (pad_phibin.size() == 0) pass_data.layer = 0;
+  if (pad_phibin.size() == 0) pass_data.neff_electrons = 0;
   else {
     pass_data.phi_bin_lo = pad_phibin[0];
     pass_data.phi_bin_hi = pad_phibin[pad_phibin.size()-1];
@@ -232,7 +232,7 @@ MapToPadPlanePassData PHG4TpcPadPlaneReadout::MapToPadPlane(
   adc_tbin.clear();
   adc_tbin_share.clear();
   populate_tbins(t_gem, sigmaL, adc_tbin, adc_tbin_share);
-  if (adc_tbin.size() == 0)  pass_data.layer = 0;
+  if (adc_tbin.size() == 0)  pass_data.neff_electrons = 0;
   else {
     pass_data.time_bin_lo = adc_tbin[0];
     pass_data.time_bin_hi = adc_tbin[adc_tbin.size()-1];
@@ -367,8 +367,6 @@ MapToPadPlanePassData PHG4TpcPadPlaneReadout::MapToPadPlane(
     }
 
   m_NHits++;
-
-  pass_data.layer = layernum;
   return pass_data;
 }
 

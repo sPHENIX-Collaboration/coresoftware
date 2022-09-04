@@ -27,3 +27,12 @@ void MapToPadPlanePassData::reset() {
   time_bin_lo = 0;
   time_bin_hi = 0;
 }
+
+MapToPadPlanePassData::operator short() {
+  return TrkrDefs::getLayer(hitsetkey);
+}
+
+bool MapToPadPlanePassData::has_data() const {
+  return neff_electrons != 0;
+}
+

@@ -4,6 +4,8 @@
 #ifndef G4TPC_PHG4TPCELECTRONDRIFT_H
 #define G4TPC_PHG4TPCELECTRONDRIFT_H
 
+#include <array>
+
 #include <phparameter/PHParameterInterface.h>
 
 #include <g4main/PHG4HitContainer.h>
@@ -26,8 +28,10 @@ class TNtuple;
 class TFile;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
-class TrkrHitTruthClusters;
+class TrkrTruthClusters;
+class TrkrClusterContainer;
 class DistortedTrackContainer;
+class MapToPadPlanePassData;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
@@ -68,7 +72,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
   TrkrHitSetContainer *hitsetcontainer = nullptr;
   TrkrHitTruthAssoc *hittruthassoc = nullptr;
-  TrkrHitTruthClusters *hittruthclusters = nullptr;
+  TrkrTruthClusters *truthclusters = nullptr;
+  TrkrClusterContainer *truthclustercontainer = nullptr;
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<TrkrHitSetContainer> single_hitsetcontainer;
   std::unique_ptr<PHG4TpcPadPlane> padplane;
@@ -118,6 +123,10 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double max_active_radius = NAN;
   double min_time = NAN;
   double max_time = NAN;
+
+  std::array<MapToPadPlanePassData,55> layer_hits; // PadPlanePass Data; note offset of 1 in indexes to actual layers values
+  std::array<short, 55> layer_cnt; // hits per hitsetkey
+  void fill_TrkrTruthClusters(short trkid);
 
   //! rng de-allocator
   class Deleter

@@ -43,6 +43,10 @@ class MapToPadPlanePassData: public PHObject
     MapToPadPlanePassData& operator+=(const MapToPadPlanePassData& rhs);
     void reset();
 
+    operator short(); // return the layerid
+    short getLayer() const { return TrkrDefs::getLayer(hitsetkey); }
+    bool has_data() const;
+
     ~MapToPadPlanePassData() = default;
   /* protected: */
 
