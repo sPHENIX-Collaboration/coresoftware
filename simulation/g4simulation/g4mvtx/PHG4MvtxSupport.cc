@@ -208,11 +208,12 @@ void PHG4MvtxSupport::CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assem
   place.setY(setY * cm);
   place.setZ(setZ * cm);
   G4Transform3D transform(rot, place);
+// we need just one of these but have multiple calls to this method
+  static G4UserLimits *g4userLimits = new G4UserLimits(0.01);
 
   for (int i = 0; i < 2; ++i)
   {
     G4Material *trackerMaterial = PHG4Detector::GetDetectorMaterial(cableMaterials[i]);
-    G4UserLimits *g4userLimits = new G4UserLimits(0.01);
 
     G4VSolid *cylinderSolid = new G4Tubs(G4String(object->get_name() + "_SOLID"),
                                          IR[i] * cm, OR[i] * cm, (length / 2.) * cm, 0, 2 * M_PI);
@@ -237,8 +238,6 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
                                         bool enableSignal, bool enableCooling, bool enablePower,
                                         float x1, float x2, float y1, float y2, float z1, float z2)  //, float theta)
 {
-  PHG4MvtxCable *cable = nullptr;
-
   //Set up basic MVTX cable bundle (24 Samtec cables, 1 power cable, 2 cooling cables)
   float samtecCoreRadius = 0.01275;
   float samtecSheathRadius = 0.05;
@@ -259,8 +258,6 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
   float coolingShiftY = -1 * coolingSheathRadius + globalShiftY;
   float powerShiftX = 3.5 * powerLargeSheathRadius + globalShiftX;
   float powerShiftY = 6.1 * powerLargeSheathRadius + globalShiftY;
-  float deltaX = 0.;
-  float deltaY = 0.;
 
   //Samtec cables (we use 24 as there are 12 twinax)
   if (enableSignal)
@@ -272,11 +269,12 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
     {
       for (unsigned int iCol = 0; iCol < nCol; ++iCol)
       {
-        deltaX = samtecShiftX + ((iCol + 1) * (samtecSheathRadius * 2.6));
-        deltaY = samtecShiftY - ((iRow + 1) * (samtecSheathRadius * 2.1));
-        cable = new PHG4MvtxCable(boost::str(boost::format("%s_samtec_%d_%d") % superName.c_str() % iRow % iCol), "G4_Cu", samtecCoreRadius, samtecSheathRadius,
+        float deltaX = samtecShiftX + ((iCol + 1) * (samtecSheathRadius * 2.6));
+        float deltaY = samtecShiftY - ((iRow + 1) * (samtecSheathRadius * 2.1));
+        PHG4MvtxCable *cable = new PHG4MvtxCable(boost::str(boost::format("%s_samtec_%d_%d") % superName.c_str() % iRow % iCol), "G4_Cu", samtecCoreRadius, samtecSheathRadius,
                                   x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, "blue");
         CreateCable(cable, assemblyVolume);
+        delete cable;
       }
     }
   }
@@ -288,9 +286,9 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
     std::string cooling_color[2] = {"red", "white"};
     for (unsigned int iCool = 0; iCool < nCool; ++iCool)
     {
-      deltaX = coolingShiftX + ((iCool + 1) * (coolingSheathRadius * 2));
-      deltaY = coolingShiftY + (coolingSheathRadius * 2);
-      cable = new PHG4MvtxCable(boost::str(boost::format("%s_cooling_%d") % superName.c_str() % iCool), "G4_WATER", coolingCoreRadius, coolingSheathRadius,
+      float deltaX = coolingShiftX + ((iCool + 1) * (coolingSheathRadius * 2));
+      float deltaY = coolingShiftY + (coolingSheathRadius * 2);
+      PHG4MvtxCable *cable = new PHG4MvtxCable(boost::str(boost::format("%s_cooling_%d") % superName.c_str() % iCool), "G4_WATER", coolingCoreRadius, coolingSheathRadius,
                                 x1 + deltaX, x2 + deltaX, y1 + deltaY, y2 + deltaY, z1, z2, cooling_color[iCool]);
       CreateCable(cable, assemblyVolume);
       delete cable;
@@ -344,14 +342,13 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
       if (cableName == boost::str(boost::format("%s_bias") % superName.c_str())) cableColor = "white";
       if (cableName == boost::str(boost::format("%s_ground") % superName.c_str())) cableColor = "green";
 
-      cable = new PHG4MvtxCable(powerCable.first.first, "G4_Cu", coreRad, sheathRad,
+      PHG4MvtxCable *cable = new PHG4MvtxCable(powerCable.first.first, "G4_Cu", coreRad, sheathRad,
                                 (x1 + powerCable.second.first), (x2 + powerCable.second.first),
                                 (y1 + powerCable.second.second), (y2 + powerCable.second.second), z1, z2, cableColor);
       CreateCable(cable, assemblyVolume);
+      delete cable;
     }
   }
-
-  delete cable;
 }
 
 G4AssemblyVolume *PHG4MvtxSupport::buildBarrelCable()
