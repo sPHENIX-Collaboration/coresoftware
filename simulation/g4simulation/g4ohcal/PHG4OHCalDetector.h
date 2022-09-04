@@ -74,7 +74,7 @@ class PHG4OHCalDetector : public PHG4Detector
   std::set<G4LogicalVolume *> m_ScintiTileLogVolSet;
   std::map<G4VPhysicalVolume *, std::tuple<int, int, int>> m_ScintiTilePhysVolMap;
 
-  //! registry for volumes that should not be exported, i.e. fibers
+  //! registry for volumes that should not be exported
   PHG4GDMLConfig* gdml_config = nullptr;
 
   std::string m_GDMPath;

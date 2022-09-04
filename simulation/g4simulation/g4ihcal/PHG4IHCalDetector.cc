@@ -12,6 +12,8 @@
 
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
+#include <g4gdml/PHG4GDMLConfig.hh>
+#include <g4gdml/PHG4GDMLUtility.hh>
 
 #include <TSystem.h>
 
@@ -60,6 +62,8 @@ PHG4IHCalDetector::PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   , m_AbsorberActive(m_Params->get_int_param("absorberactive"))
   , m_GDMPath(m_Params->get_string_param("GDMPath"))
 {
+  gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
+  assert(gdml_config);
 }
 
 PHG4IHCalDetector::~PHG4IHCalDetector()
@@ -105,6 +109,12 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4VPhysicalVolume *mothervol = new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "IHCalEnvelope", logicWorld, 0, false, OverlapCheck());
   m_DisplayAction->SetMyTopVolume(mothervol);
   ConstructIHCal(hcal_envelope_log);
+
+  // disable GDML export for HCal geometries for memory saving and compatibility issues
+  assert(gdml_config);
+  gdml_config->exclude_physical_vol(mothervol);
+  gdml_config->exclude_logical_vol (hcal_envelope_log);
+
   return;
 }
 
