@@ -119,7 +119,7 @@ void PHG4MvtxSupport::TrackingServiceCone(PHG4MvtxServiceStructure *object, G4As
     outerRadiusSouth = innerRadiusSouth + thickness[i];
     outerRadiusNorth = innerRadiusNorth + thickness[i];
 
-    G4Material *trackerMaterial = NULL;
+    G4Material *trackerMaterial = nullptr;
     if (materials[i] == "MVTX_CarbonFiber$")
       trackerMaterial = carbonFibreMaterial;
     else
@@ -130,7 +130,7 @@ void PHG4MvtxSupport::TrackingServiceCone(PHG4MvtxServiceStructure *object, G4As
                                      innerRadiusNorth * cm, outerRadiusNorth * cm, (length / 2) * cm, 0, 2 * M_PI);
 
     G4LogicalVolume *coneLogic = new G4LogicalVolume(coneSolid, trackerMaterial,
-                                                     G4String(object->get_name() + "_LOGIC"), 0, 0, 0);
+                                                     G4String(object->get_name() + "_LOGIC"), nullptr, nullptr, nullptr);
 
     m_DisplayAction->AddVolume(coneLogic, materials[i]);
 
@@ -158,7 +158,7 @@ void PHG4MvtxSupport::TrackingServiceCylinder(PHG4MvtxServiceStructure *object, 
     if (thickness[i] == 0) continue;
     outerRadius = innerRadius + thickness[i];
 
-    G4Material *trackerMaterial = NULL;
+    G4Material *trackerMaterial = nullptr;
     if (materials[i] == "MVTX_CarbonFiber$")
     {
       trackerMaterial = carbonFibreMaterial;
@@ -171,7 +171,7 @@ void PHG4MvtxSupport::TrackingServiceCylinder(PHG4MvtxServiceStructure *object, 
                                          innerRadius * cm, outerRadius * cm, (length / 2) * cm, 0, 2 * M_PI);
 
     G4LogicalVolume *cylinderLogic = new G4LogicalVolume(cylinderSolid, trackerMaterial,
-                                                         G4String(object->get_name() + "_LOGIC"), 0, 0, 0);
+                                                         G4String(object->get_name() + "_LOGIC"), nullptr, nullptr, nullptr);
 
     m_DisplayAction->AddVolume(cylinderLogic, materials[i]);
 
@@ -189,14 +189,14 @@ void PHG4MvtxSupport::CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assem
   float dY = object->get_yNorth() - object->get_ySouth();
   float dZ = object->get_zNorth() - object->get_zSouth();
 
-  float rotY = dZ != 0. ? atan(dX / dZ) : 0.;
-  float rotZ = dX != 0. ? atan(dY / dX) : 0.;
+  float rotY = dZ != 0. ? std::atan(dX / dZ) : 0.;
+  float rotZ = dX != 0. ? std::atan(dY / dX) : 0.;
 
   float setX = (object->get_xSouth() + object->get_xNorth()) / 2;
   float setY = (object->get_ySouth() + object->get_yNorth()) / 2;
   float setZ = (object->get_zSouth() + object->get_zNorth()) / 2;
 
-  float length = sqrt(dX * dX + dY * dY + dZ * dZ);
+  float length = std::sqrt(dX * dX + dY * dY + dZ * dZ);
   float IR[2] = {0, object->get_coreRadius()};
   float OR[2] = {object->get_coreRadius(), object->get_sheathRadius()};
 
@@ -234,7 +234,7 @@ void PHG4MvtxSupport::CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assem
   }
 }
 
-void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::string superName,
+void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const std::string& superName,
                                         bool enableSignal, bool enableCooling, bool enablePower,
                                         float x1, float x2, float y1, float y2, float z1, float z2)  //, float theta)
 {
@@ -298,18 +298,18 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, std::s
   //Power Cables
   if (enablePower)
   {
-    typedef std::pair<std::pair<std::string, std::string>, std::pair<float, float>> PowerCableParameters;
+    using PowerCableParameters = std::pair<std::pair<std::string, std::string>, std::pair<float, float>>;
     std::vector<PowerCableParameters> powerCables;
     std::vector<std::vector<float>> powerCableColors;
 
-    powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_digiReturn") % superName.c_str()), "Large"), std::make_pair((-2.5 * powerLargeSheathRadius) + powerShiftX, (-2.5 * powerLargeSheathRadius) + powerShiftY)));
-    powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_digiSupply") % superName.c_str()), "Large"), std::make_pair((-4.5 * powerLargeSheathRadius) + powerShiftX, (-1.5 * powerLargeSheathRadius) + powerShiftY)));
-    powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_anaReturn") % superName.c_str()), "Medium"), std::make_pair((-4 * powerLargeSheathRadius) + powerShiftX, (-5.75 * powerMediumSheathRadius) + powerShiftY)));
-    powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_anaSupply") % superName.c_str()), "Medium"), std::make_pair((-5.1 * powerLargeSheathRadius) + powerShiftX, (-5.75 * powerMediumSheathRadius) + powerShiftY)));
-    powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_digiSense") % superName.c_str()), "Small"), std::make_pair((-10 * powerSmallSheathRadius) + powerShiftX, (-1 * powerSmallSheathRadius) + powerShiftY)));
-    powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_anaSense") % superName.c_str()), "Small"), std::make_pair((-8 * powerSmallSheathRadius) + powerShiftX, (-2 * powerSmallSheathRadius) + powerShiftY)));
-    powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_bias") % superName.c_str()), "Small"), std::make_pair((-6 * powerSmallSheathRadius) + powerShiftX, (-3 * powerSmallSheathRadius) + powerShiftY)));
-    powerCables.push_back(std::make_pair(std::make_pair(boost::str(boost::format("%s_ground") % superName.c_str()), "Small"), std::make_pair((-4 * powerSmallSheathRadius) + powerShiftX, (-4 * powerSmallSheathRadius) + powerShiftY)));
+    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_digiReturn") % superName.c_str()), "Large"), std::make_pair((-2.5 * powerLargeSheathRadius) + powerShiftX, (-2.5 * powerLargeSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_digiSupply") % superName.c_str()), "Large"), std::make_pair((-4.5 * powerLargeSheathRadius) + powerShiftX, (-1.5 * powerLargeSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_anaReturn") % superName.c_str()), "Medium"), std::make_pair((-4 * powerLargeSheathRadius) + powerShiftX, (-5.75 * powerMediumSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_anaSupply") % superName.c_str()), "Medium"), std::make_pair((-5.1 * powerLargeSheathRadius) + powerShiftX, (-5.75 * powerMediumSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_digiSense") % superName.c_str()), "Small"), std::make_pair((-10 * powerSmallSheathRadius) + powerShiftX, (-1 * powerSmallSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_anaSense") % superName.c_str()), "Small"), std::make_pair((-8 * powerSmallSheathRadius) + powerShiftX, (-2 * powerSmallSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_bias") % superName.c_str()), "Small"), std::make_pair((-6 * powerSmallSheathRadius) + powerShiftX, (-3 * powerSmallSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_ground") % superName.c_str()), "Small"), std::make_pair((-4 * powerSmallSheathRadius) + powerShiftX, (-4 * powerSmallSheathRadius) + powerShiftY));
 
     for (PowerCableParameters &powerCable : powerCables)
     {
@@ -478,8 +478,8 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   for (unsigned int i = 0; i < totStaves; ++i)
   {
     float phi = (2.0 * M_PI / totStaves) * i;
-    placeBarrelCable.setX((BarrelRadius - 1) * cos(phi) * cm);
-    placeBarrelCable.setY((BarrelRadius - 1) * sin(phi) * cm);
+    placeBarrelCable.setX((BarrelRadius - 1) * std::cos(phi) * cm);
+    placeBarrelCable.setY((BarrelRadius - 1) * std::sin(phi) * cm);
     //placeBarrelCable.setZ((-1*(BarrelLength/2 - ServiceOffset))*cm);
     G4RotationMatrix rotBarrelCable;
     rotBarrelCable.rotateZ(phi + (-90. * degToRad));
@@ -498,8 +498,8 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
       G4RotationMatrix rotCable;
       G4ThreeVector placeCable;
       float phi = (2.0 * M_PI / nStaves[iLayer]) * iStave;
-      placeCable.setX(cos(phi) * cm);
-      placeCable.setY(sin(phi) * cm);
+      placeCable.setX(std::cos(phi) * cm);
+      placeCable.setY(std::sin(phi) * cm);
       placeCable.setZ((ServiceOffset) *cm);
       rotCable.rotateZ(phi + ((-90. + cableRotate[iLayer]) * degToRad));
       G4Transform3D transformCable(rotCable, placeCable);

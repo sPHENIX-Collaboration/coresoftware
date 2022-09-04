@@ -406,7 +406,7 @@ G4LogicalVolume* PHG4MvtxDetector::GetMvtxOuterShell(G4LogicalVolume*& trackeren
 
   G4LogicalVolume *mvtx_outer_shell_volume = new G4LogicalVolume(mvtx_outer_shell_tube,
                                                                  trackerenvelope->GetMaterial(),
-                                                                 "mvtx_outer_shell_volume", 0, 0, 0);
+                                                                 "mvtx_outer_shell_volume", nullptr, nullptr, nullptr);
 
 
   double mvtx_shell_inner_skin_inner_radius = mvtxGeomDef::mvtx_shell_inner_radius;
@@ -420,9 +420,9 @@ G4LogicalVolume* PHG4MvtxDetector::GetMvtxOuterShell(G4LogicalVolume*& trackeren
 
   G4LogicalVolume *mvtx_shell_inner_skin_volume = new G4LogicalVolume(mvtx_shell_inner_skin_tube,
                                                                       GetDetectorMaterial("CFRP_INTT"),
-                                                                      "mvtx_shell_inner_skin_volume", 0, 0, 0);
+                                                                      "mvtx_shell_inner_skin_volume", nullptr, nullptr, nullptr);
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_inner_skin_volume,
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0.0), mvtx_shell_inner_skin_volume,
                     "mvtx_shell_inner_skin", mvtx_outer_shell_volume, false, 0, OverlapCheck());
   //m_DisplayAction->AddVolume(mvtx_shell_inner_skin_volume, "Rail");
 
@@ -433,9 +433,9 @@ G4LogicalVolume* PHG4MvtxDetector::GetMvtxOuterShell(G4LogicalVolume*& trackeren
 
   G4LogicalVolume *mvtx_shell_foam_core_volume = new G4LogicalVolume(mvtx_shell_foam_core_tube,
                                                                      GetDetectorMaterial("ROHACELL_FOAM_110"),
-                                                                     "mvtx_shell_foam_core_volume", 0, 0, 0);
+                                                                     "mvtx_shell_foam_core_volume", nullptr, nullptr, nullptr);
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_foam_core_volume,
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0.0), mvtx_shell_foam_core_volume,
                     "mvtx_shell_foam_core", mvtx_outer_shell_volume, false, 0, OverlapCheck());
   //m_DisplayAction->AddVolume(mvtx_shell_foam_core_volume, "Rail");
 
@@ -446,9 +446,9 @@ G4LogicalVolume* PHG4MvtxDetector::GetMvtxOuterShell(G4LogicalVolume*& trackeren
 
   G4LogicalVolume *mvtx_shell_outer_skin_volume = new G4LogicalVolume(mvtx_shell_outer_skin_tube,
                                                                       GetDetectorMaterial("CFRP_INTT"),
-                                                                      "mvtx_shell_outer_skin_volume", 0, 0, 0);
+                                                                      "mvtx_shell_outer_skin_volume", nullptr, nullptr, nullptr);
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,
                     "mvtx_shell_outer_skin", mvtx_outer_shell_volume, false, 0, OverlapCheck());
   //m_DisplayAction->AddVolume(mvtx_shell_outer_skin_volume, "");
 
@@ -485,7 +485,7 @@ void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
   }
   vector<string> matname = {"SI", "KAPTON", "ALUMINUM", "Carbon", "M60J3K", "WATER"};
   bool found = false;
-  for (string nam : matname)
+  for (const string& nam : matname)
   {
     if (material_name.find(nam) != std::string::npos)
     {

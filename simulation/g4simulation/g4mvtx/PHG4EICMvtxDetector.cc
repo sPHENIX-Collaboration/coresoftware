@@ -342,7 +342,7 @@ void PHG4EICMvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
   }
   vector<string> matname = {"SI", "KAPTON", "ALUMINUM", "Carbon", "M60J3K", "WATER"};
   bool found = false;
-  for (string nam : matname)
+  for (const string& nam : matname)
   {
     if (material_name.find(nam) != std::string::npos)
     {

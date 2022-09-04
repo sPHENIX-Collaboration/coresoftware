@@ -72,17 +72,13 @@ int PHG4MvtxDigitizer::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     cout << "====================== PHG4MvtxDigitizer::InitRun() =====================" << endl;
-    for (std::map<int, unsigned short>::iterator miter = _max_adc.begin();
-         miter != _max_adc.end();
-         ++miter)
+    for (auto & miter : _max_adc)
     {
-      cout << " Max ADC in Layer #" << miter->first << " = " << miter->second << endl;
+      cout << " Max ADC in Layer #" << miter.first << " = " << miter.second << endl;
     }
-    for (std::map<int, float>::iterator miter = _energy_scale.begin();
-         miter != _energy_scale.end();
-         ++miter)
+    for (auto & miter : _energy_scale)
     {
-      cout << " Energy per ADC in Layer #" << miter->first << " = " << 1.0e6 * miter->second << " keV" << endl;
+      cout << " Energy per ADC in Layer #" << miter.first << " = " << 1.0e6 * miter.second << " keV" << endl;
     }
     cout << "===========================================================================" << endl;
   }

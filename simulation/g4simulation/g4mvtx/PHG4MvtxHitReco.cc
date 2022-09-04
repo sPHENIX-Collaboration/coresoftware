@@ -657,7 +657,7 @@ int PHG4MvtxHitReco::get_strobe_frame(double alpide_time, double strobe_zero_tm_
 
 void PHG4MvtxHitReco::set_timing_window(const int detid, const double tmin, const double tmax)
 {
-  if (0)
+  if (false)
   {
     std::cout
       << "PHG4MvtxHitReco: Set Mvtx timing window parameters from macro for layer = "
