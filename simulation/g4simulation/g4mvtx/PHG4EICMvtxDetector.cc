@@ -12,7 +12,7 @@
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
-#include <g4main/PHG4Subsystem.h>                   // for PHG4Subsystem
+#include <g4main/PHG4Subsystem.h>      // for PHG4Subsystem
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -225,7 +225,7 @@ int PHG4EICMvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITS
   int N_staves = m_N_staves[layer];
   G4double layer_nominal_radius = m_nominal_radius[layer];
   G4double phitilt = m_nominal_phitilt[layer];
-  G4double phi0    = m_nominal_phi0[layer]; //YCM: azimuthal offset for the first stave
+  G4double phi0 = m_nominal_phi0[layer];  //YCM: azimuthal offset for the first stave
 
   if (N_staves < 0)
   {
@@ -342,7 +342,7 @@ void PHG4EICMvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
   }
   vector<string> matname = {"SI", "KAPTON", "ALUMINUM", "Carbon", "M60J3K", "WATER"};
   bool found = false;
-  for (string nam : matname)
+  for (const string& nam : matname)
   {
     if (material_name.find(nam) != std::string::npos)
     {
@@ -378,7 +378,7 @@ void PHG4EICMvtxDetector::AddGeometryNode()
   {
     active |= isAct;
   }
-  if (active) // At least one layer is active
+  if (active)  // At least one layer is active
   {
     ostringstream geonode;
     geonode << "CYLINDERGEOM_" << ((m_SuperDetector != "NONE") ? m_SuperDetector : m_Detector);
@@ -400,8 +400,7 @@ void PHG4EICMvtxDetector::AddGeometryNode()
                                                         m_nominal_radius[ilayer] / cm,
                                                         get_phistep(ilayer) / rad,
                                                         m_nominal_phitilt[ilayer] / rad,
-                                                        m_nominal_phi0[ilayer] / rad
-                                                        );
+                                                        m_nominal_phi0[ilayer] / rad);
       geo->AddLayerGeom(ilayer, mygeom);
     }  // loop per layers
     if (Verbosity())
