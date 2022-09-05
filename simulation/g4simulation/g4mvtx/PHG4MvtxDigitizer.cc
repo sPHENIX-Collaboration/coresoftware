@@ -72,17 +72,13 @@ int PHG4MvtxDigitizer::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     cout << "====================== PHG4MvtxDigitizer::InitRun() =====================" << endl;
-    for (std::map<int, unsigned short>::iterator miter = _max_adc.begin();
-         miter != _max_adc.end();
-         ++miter)
+    for (auto &miter : _max_adc)
     {
-      cout << " Max ADC in Layer #" << miter->first << " = " << miter->second << endl;
+      cout << " Max ADC in Layer #" << miter.first << " = " << miter.second << endl;
     }
-    for (std::map<int, float>::iterator miter = _energy_scale.begin();
-         miter != _energy_scale.end();
-         ++miter)
+    for (auto &miter : _energy_scale)
     {
-      cout << " Energy per ADC in Layer #" << miter->first << " = " << 1.0e6 * miter->second << " keV" << endl;
+      cout << " Energy per ADC in Layer #" << miter.first << " = " << 1.0e6 * miter.second << " keV" << endl;
     }
     cout << "===========================================================================" << endl;
   }
@@ -186,11 +182,11 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
         cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << " in layer " << layer << std::endl;
       // Remove the hits with energy under threshold
       bool rm_hit = false;
-      if ((hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup) < _energy_threshold) 
-	{
-	  if(Verbosity() > 0) std::cout << "         remove hit, below energy threshold of " << _energy_threshold << std::endl;
-	  rm_hit = true;
-	}
+      if ((hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup) < _energy_threshold)
+      {
+        if (Verbosity() > 0) std::cout << "         remove hit, below energy threshold of " << _energy_threshold << std::endl;
+        rm_hit = true;
+      }
       unsigned short adc = (unsigned short) (hit->getEnergy() / (TrkrDefs::MvtxEnergyScaleup * _energy_scale[layer]));
       if (adc > _max_adc[layer]) adc = _max_adc[layer];
       hit->setAdc(adc);

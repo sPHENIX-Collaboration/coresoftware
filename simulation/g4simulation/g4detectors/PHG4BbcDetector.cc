@@ -360,12 +360,14 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Tubs *bbc_cablecond = new G4Tubs("bbc_cablecond", 0., r_CableConductor, len_cable * 0.5, 0 * deg, 360 * deg);
 
   G4LogicalVolume *bbc_cablecond_lv = new G4LogicalVolume(bbc_cablecond, Cu, G4String("Bbc_CableCond"));
+  GetDisplayAction()->AddVolume(bbc_cablecond_lv,"Bbc_CableCond");
 
   const G4double rIn_CableShield = 0.302876 * cm;
   const G4double rOut_CableShield = 0.3175 * cm;
   G4Tubs *bbc_cableshield = new G4Tubs("bbc_cableshield", rIn_CableShield, rOut_CableShield, len_cable * 0.5, 0 * deg, 360 * deg);
 
   G4LogicalVolume *bbc_cableshield_lv = new G4LogicalVolume(bbc_cableshield, Cu, G4String("Bbc_CableShield"));
+  GetDisplayAction()->AddVolume(bbc_cableshield_lv,"Bbc_CableShield");
 
   ypos = len_cable / 2 + 5 * cm;
 

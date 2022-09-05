@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<FlagSave> MyNode_t;
+using MyNode_t = PHIODataNode<FlagSave>;
 
 DumpFlagSave::DumpFlagSave(const std::string &NodeName)
   : DumpObject(NodeName)

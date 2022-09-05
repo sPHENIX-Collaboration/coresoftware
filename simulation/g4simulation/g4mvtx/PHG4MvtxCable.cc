@@ -1,13 +1,13 @@
 #include "PHG4MvtxCable.h"
 
 PHG4MvtxCable::PHG4MvtxCable(const std::string &name,
-             const std::string &coreMaterial,
-             const float &coreRadius,
-             const float &sheathRadius,
-             const float &xSouth, const float &xNorth,
-             const float &ySouth, const float &yNorth,
-             const float &zSouth, const float &zNorth,
-             const std::string &color)
+                             const std::string &coreMaterial,
+                             const float &coreRadius,
+                             const float &sheathRadius,
+                             const float &xSouth, const float &xNorth,
+                             const float &ySouth, const float &yNorth,
+                             const float &zSouth, const float &zNorth,
+                             const std::string &color)
   : m_name(name)
   , m_coreMaterial(coreMaterial)
   , m_coreRadius(coreRadius)

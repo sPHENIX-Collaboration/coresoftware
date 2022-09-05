@@ -9,13 +9,13 @@ class PHG4MvtxServiceStructure
   PHG4MvtxServiceStructure();
 
   explicit PHG4MvtxServiceStructure(const std::string &name,
-                            const float &thickness_copper,
-                            const float &thickness_carbon,
-                            const float &thickness_plastic,
-                            const float &zSouth,
-                            const float &zNorth,
-                            const float &rSouth,
-                            const float &rNorth);
+                                    const float &thickness_copper,
+                                    const float &thickness_carbon,
+                                    const float &thickness_plastic,
+                                    const float &zSouth,
+                                    const float &zNorth,
+                                    const float &rSouth,
+                                    const float &rNorth);
 
   virtual ~PHG4MvtxServiceStructure(){};
 

@@ -6,9 +6,7 @@
 
 #include <iostream>
 
-using namespace std;
-
-Fun4AllDummyInputManager::Fun4AllDummyInputManager(const string &name, const string &nodename)
+Fun4AllDummyInputManager::Fun4AllDummyInputManager(const std::string &name, const std::string &nodename)
   : Fun4AllInputManager(name, nodename)
 {
   FileName("NOFILE-0000000000-0000.root");
@@ -50,12 +48,12 @@ int Fun4AllDummyInputManager::run(const int nevents)
   MySyncManager()->CurrentEvent(m_NumEvents);
   if (Verbosity() > 0)
   {
-    cout << "Event No: " << m_NumEvents;
+    std::cout << "Event No: " << m_NumEvents;
     if (m_SumEvents != m_NumEvents)
     {
-      cout << ", Event Sum: " << m_SumEvents;
+      std::cout << ", Event Sum: " << m_SumEvents;
     }
-    cout << endl;
+    std::cout << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }

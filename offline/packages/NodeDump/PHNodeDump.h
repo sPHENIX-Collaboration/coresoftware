@@ -24,9 +24,9 @@ class PHNodeDump : public PHNodeOperation
 
   int AddIgnore(const std::string &name);
   int Select(const std::string &name);
-  void SetOutDir(const std::string &dirname) {outdir = dirname;}
+  void SetOutDir(const std::string &dirname) { outdir = dirname; }
   void SetPrecision(const int digits) { fp_precision = digits; }
-  void PrintEvtSeq(const int i) {print_evtseq = i;}
+  void PrintEvtSeq(const int i) { print_evtseq = i; }
 
  private:
   void perform(PHNode *) override;

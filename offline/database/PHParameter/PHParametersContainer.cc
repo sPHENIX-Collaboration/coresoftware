@@ -136,7 +136,7 @@ int PHParametersContainer::WriteToFile(const std::string &extension, const std::
   }
   fnamestream << superdetectorname << "_geoparams"
               << "-" << bankID.getInternalValue()
-              << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(0)
+              << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(nullptr)
               << "." << extension;
   std::string fname = fnamestream.str();
   std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);

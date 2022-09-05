@@ -54,7 +54,6 @@
 
 #include <KFParticleDatabase.h>
 
-
 typedef std::pair<int, float> particle_pair;
 
 std::map<std::string, particle_pair> KFParticle_particleList::getParticleList()

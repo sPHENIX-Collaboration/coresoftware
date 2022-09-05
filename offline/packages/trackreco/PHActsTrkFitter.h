@@ -34,6 +34,10 @@
 #include <TH2.h>
 
 
+#include <trackbase/alignmentTransformationContainer.h>
+
+
+
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
@@ -147,6 +151,7 @@ class PHActsTrkFitter : public SubsysReco
   ActsExamples::TrackFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
+  alignmentTransformationContainer *m_alignmentTransformationMap = nullptr;  // added for testing purposes
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxTrackMap *m_directedTrackMap = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;

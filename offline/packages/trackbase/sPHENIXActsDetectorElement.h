@@ -3,13 +3,16 @@
 
 #include <Acts/Plugins/TGeo/TGeoDetectorElement.hpp>
 #include <Acts/Plugins/Identification/Identifier.hpp>
-
+#include <Acts/Geometry/GeometryIdentifier.hpp>
 
 /**
  * This class implements an sphenix detector element to build
  * the Acts geometry with. Relevant info on how to handle alignment
  * information from the GeometryContext is logically processed here
  */
+
+class ActsGeometry;
+
 class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
 {
  public:
@@ -27,7 +30,7 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
     
   sPHENIXActsDetectorElement(const Identifier& identifier, 
 			     const TGeoNode& tGeoNode,
-			     const Acts::Transform3& tgTransform,
+			      Acts::Transform3& tgTransform,
 			     std::shared_ptr<const Acts::PlanarBounds> tgBounds,
 			     double tgThickness = 0.) : 
      Acts::TGeoDetectorElement(identifier, tGeoNode, tgTransform, 
@@ -36,7 +39,7 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
      
   sPHENIXActsDetectorElement(const Identifier& identifier, 
 			     const TGeoNode& tGeoNode,
-			     const Acts::Transform3& tgTransform,
+			     Acts::Transform3& tgTransform,
 			     std::shared_ptr<const Acts::DiscBounds> tgBounds,
 			     double tgThickness = 0.) :
     Acts::TGeoDetectorElement(identifier, tGeoNode, tgTransform, tgBounds, 
@@ -44,6 +47,10 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
      
   ~sPHENIXActsDetectorElement() override;
 
+  const Acts::Transform3& transform(const Acts::GeometryContext& ctxt) const override;
+
+
+private:
 
 };
 
@@ -53,6 +60,6 @@ std::shared_ptr<sPHENIXActsDetectorElement> sPHENIXElementFactory(
     std::shared_ptr<const Acts::ISurfaceMaterial> material) {
   return std::make_shared<sPHENIXActsDetectorElement>(identifier, tGeoNode, tGeoMatrix,
                                                axes, scalor, material);
-  }
+}
 
 #endif

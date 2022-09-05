@@ -16,6 +16,7 @@ libphnodedump_la_SOURCES = \
   Dumper.cc \
   DumpBbcVertexMap.cc \
   DumpCaloTriggerInfo.cc \
+  DumpCdbUrlSave.cc \
   DumpCentralityInfo.cc \
   DumpEpInfo.cc \
   DumpEventHeader.cc \
@@ -36,7 +37,6 @@ libphnodedump_la_SOURCES = \
   DumpPHG4HitContainer.cc \
   DumpPHG4ParticleSvtxMap.cc \
   DumpPHG4ScintillatorSlatContainer.cc \
-  DumpTrkrHitTruthClusters.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
   DumpPHHepMCGenEventMap.cc \
@@ -54,6 +54,7 @@ libphnodedump_la_SOURCES = \
   DumpTrkrClusterContainer.cc \
   DumpTrkrClusterHitAssoc.cc \
   DumpTrkrHitSetContainer.cc \
+  DumpTrkrHitTruthClusters.cc \
   DumpTrkrClusterCrossingAssoc.cc \
   DumpTrkrHitTruthAssoc.cc \
   DumpVariableArray.cc \
