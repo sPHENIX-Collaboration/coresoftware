@@ -639,12 +639,17 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   {
     std::cout << "From PHG4TpcElectronDrift: hittruthassoc dump:" << std::endl;
     hittruthassoc->identify();
+
+    hittruthassoc->identify();
   }
 
   ++event_num;  // if doing more than one event, event_num will be incremented.
 
-  // if the final track was an embedded track, then collect it's truth clusters
-  if (is_embedded) { fill_TrkrTruthClusters(trkid); }
+  //-----------
+  //***********
+  //***********
+  //-----------
+  // checkout the truth clusters
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -750,37 +755,25 @@ void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
 }
 
 void PHG4TpcElectronDrift::fill_TrkrTruthClusters( short trkid )
-      /* TrkrTruthClusters* truth_clusters, TrkrClusterContainer* container, */
-      /* std::array<MapToPadPlanePassData,55>& layers, std::array<short, 55>& cnt) */ 
 {
- for (int layer=1;layer<=55;++layer) {
-   if (layer_hits[layer-1].has_data()) {
-     auto& this_layer = layer_hits[layer-1];
-     /* auto hitsetkey = TrkrDefs::genHitSetKey(layers[layer-1].hitsetkey */
-     /* TrkrDefs::hitsetcontainer */
-    TrkrDefs::cluskey cluskey = TrkrDefs::genClusKey(this_layer.hitsetkey, layer_cnt[layer-1]);
-    ++layer_cnt[layer-1];
+  for (int layer=1;layer<=55;++layer) {
+    if (layer_hits[layer-1].has_data()) {
+      auto& this_layer = layer_hits[layer-1];
 
-    TrkrClusterv4* cluster = new TrkrClusterv4();
-    cluster->setPosition( 0, this_layer.phi_integral  / this_layer.neff_electrons);
-    cluster->setPosition( 1, this_layer.time_integral / this_layer.neff_electrons);
-    cluster->setPhiSize ( this_layer.phi_bin_hi  - this_layer.phi_bin_lo  +1);
-    cluster->setZSize   ( this_layer.time_bin_hi - this_layer.time_bin_lo +1);
-    cluster->setAdc     ( this_layer.neff_electrons);
+      TrkrDefs::cluskey cluskey = TrkrDefs::genClusKey(this_layer.hitsetkey, layer_cnt[layer-1]);
+      ++layer_cnt[layer-1];
 
-    truthclustercontainer->addClusterSpecifyKey(cluskey, cluster);
-    truthclusters->addTruthCluster ( trkid, cluskey );
+      TrkrClusterv4* cluster = new TrkrClusterv4();
+      cluster->setPosition( 0, this_layer.phi_integral  / this_layer.neff_electrons);
+      cluster->setPosition( 1, this_layer.time_integral / this_layer.neff_electrons);
+      cluster->setPhiSize ( this_layer.phi_bin_hi  - this_layer.phi_bin_lo  +1);
+      cluster->setZSize   ( this_layer.time_bin_hi - this_layer.time_bin_lo +1);
+      cluster->setAdc     ( this_layer.neff_electrons);
 
-    this_layer.reset();
-   }
- }
+      truthclustercontainer->addClusterSpecifyKey(cluskey, cluster);
+      truthclusters->addTruthCluster ( trkid, cluskey );
+
+      this_layer.reset();
+    }
+  }
 }
-  /* Key key { trkid, _hit.layer }; */
-  /* TrkrClusterv4* cluster = new TrkrClusterv4(); */
-  /* cluster->setPosition( 0, _hit.phi_integral  / _hit.neff_electrons); */
-  /* cluster->setPosition( 1, _hit.time_integral / _hit.neff_electrons); */
-  /* cluster->setPhiSize ( _hit.phi_bin_hi  - _hit.phi_bin_lo  +1); */
-  /* cluster->setZSize   ( _hit.time_bin_hi - _hit.time_bin_lo +1); */
-  /* cluster->setAdc     ( _hit.neff_electrons); */
-  /* m_data.push_back ( {key, cluster} ); */
-  /* _hit.reset(); */

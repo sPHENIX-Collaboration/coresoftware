@@ -4,7 +4,6 @@
 #ifndef G4TPC_PHG4TPCELECTRONDRIFT_H
 #define G4TPC_PHG4TPCELECTRONDRIFT_H
 
-#include <array>
 
 #include <phparameter/PHParameterInterface.h>
 
@@ -15,9 +14,10 @@
 
 #include <gsl/gsl_rng.h>
 
+#include <array>
 #include <cmath>
 #include <memory>
-#include <string>  // for string
+#include <string>
 
 class PHG4TpcPadPlane;
 class PHG4TpcDistortion;
@@ -31,7 +31,6 @@ class TrkrHitTruthAssoc;
 class TrkrTruthClusters;
 class TrkrClusterContainer;
 class DistortedTrackContainer;
-class MapToPadPlanePassData;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {

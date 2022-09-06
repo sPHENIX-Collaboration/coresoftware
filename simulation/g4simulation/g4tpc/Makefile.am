@@ -22,7 +22,8 @@ libg4tpc_la_LIBADD = \
   -lg4detectors \
   -lphg4hit \
   -lphparameter \
-  -ltpc_io
+  -ltpc_io \
+	-ltrack_reco
 
 pkginclude_HEADERS = \
   PHG4TpcCentralMembrane.h \

@@ -27,7 +27,7 @@ int DumpTrkrHitTruthClusters::process_Node(PHNode *myNode)
   }
   if (trkrhittruthclusters)
   {
-    trkrhittruthclusters->print_clusters(*fout);
+    trkrhittruthclusters->identify(*fout);
   }
   return 0;
 }
