@@ -139,7 +139,8 @@ class PHActsSiliconSeeding : public SubsysReco
   SpacePointPtr makeSpacePoint(
     const Surface& surf,
     const TrkrDefs::cluskey,
-    const TrkrCluster* clus);
+    //    const TrkrCluster* clus);
+    TrkrCluster* clus);
   
   /// Get all space points for the seeder
   std::vector<const SpacePoint*> getMvtxSpacePoints(Acts::Extent& rRangeSPExtent);
@@ -261,7 +262,7 @@ class PHActsSiliconSeeding : public SubsysReco
   TH2 *h_projHits = nullptr;
   TH2 *h_zprojHits = nullptr;
   TH2 *h_resids = nullptr;
-  int m_cluster_version = 4;
+  int m_cluster_version = 3;
 };
 
 
