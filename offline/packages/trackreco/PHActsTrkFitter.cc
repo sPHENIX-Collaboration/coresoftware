@@ -373,30 +373,27 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
             fitTime);
         }
 	  
+        SvtxTrack_v4 newTrack;
+        newTrack.set_tpc_seed(tpcseed);
+        newTrack.set_crossing(crossing);
+        newTrack.set_silicon_seed(siseed);
+        
         if(m_fitSiliconMMs)
         {
           
-          auto newTrack = std::make_unique<SvtxTrack_v4>();
           unsigned int trid = m_directedTrackMap->size();
-          newTrack->set_id(trid);
-          newTrack->set_tpc_seed(tpcseed);
-          newTrack->set_crossing(m_siliconSeeds->get(siid)->get_crossing());
-          newTrack->set_silicon_seed(m_siliconSeeds->get(siid));
+          newTrack.set_id(trid);
 
-          if( getTrackFitResult(fitOutput, newTrack.get()) )
-          { m_directedTrackMap->insertWithKey(newTrack.get(), trid); }
+          if( getTrackFitResult(fitOutput, &newTrack) )
+          { m_directedTrackMap->insertWithKey(&newTrack, trid); }
           
         } else {
           
-          auto newTrack = std::make_unique<SvtxTrack_v4>();
           unsigned int trid = m_trackMap->size();
-          newTrack->set_id(trid);
-          newTrack->set_tpc_seed(tpcseed);
-          newTrack->set_crossing(m_siliconSeeds->get(siid)->get_crossing());
-          newTrack->set_silicon_seed(m_siliconSeeds->get(siid));
+          newTrack.set_id(trid);
 	
-          if( getTrackFitResult(fitOutput, newTrack.get()))
-          { m_trackMap->insertWithKey(newTrack.get(), trid); }
+          if( getTrackFitResult(fitOutput, &newTrack))
+          { m_trackMap->insertWithKey(&newTrack, trid); }
         
         }
         
