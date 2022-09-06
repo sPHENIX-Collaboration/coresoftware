@@ -77,7 +77,7 @@ namespace
     unsigned short maxHalfSizePhi = 0;
     double m_tdriftmax = 0;
     double sampa_tbias = 0;
-     int cluster_version = 4;
+    int cluster_version = 4;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster*> cluster_vector;
     int verbosity = 0;
@@ -386,8 +386,8 @@ namespace
 
       /// convert to Acts units
       global *= Acts::UnitConstants::cm;
-
       Acts::Vector3 local = surface->transform(my_data.tGeometry->geometry().geoContext).inverse() * global;
+
       local /= Acts::UnitConstants::cm;     
       
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
