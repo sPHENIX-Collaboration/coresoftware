@@ -128,14 +128,14 @@ void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
     if (momentum < m_minMomentumTruthMap) continue;
 
     int gtrackID = g4particle->get_track_id();
-    std::set<SvtxTrack *> alltracks = trackeval->all_tracks_from(g4particle);
+    std::set<SvtxTrack*> alltracks = trackeval->all_tracks_from(g4particle);
 
     // not to record zero associations
     if (alltracks.size() == 0) continue;
 
     PHG4ParticleSvtxMap::WeightedRecoTrackMap recomap;
 
-    for (const auto &track : alltracks)
+    for (SvtxTrack* track : alltracks)
     {
       /// We fill the map with a key corresponding to the ncluster contribution.
       /// This weight could in principle be anything we choose
@@ -156,7 +156,9 @@ void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
     
     if(Verbosity() > 1)
       { std::cout << " Inserting gtrack id " << gtrackID << " with map size " << recomap.size() << std::endl; }
+    
     m_truthMap->insert(gtrackID, recomap);
+    
   }
   
   m_truthMap->setProcessed(true);
@@ -176,7 +178,7 @@ void SvtxTruthRecoTableEval::fillRecoMap(PHCompositeNode *topNode)
   {
     std::set<PHG4Particle *> allparticles = trackeval->all_truth_particles(track);
     SvtxPHG4ParticleMap::WeightedTruthTrackMap truthmap;
-    for (const auto &g4particle : allparticles)
+    for (PHG4Particle* g4particle : allparticles)
     {
       float clusCont = trackeval->get_nclusters_contribution(track, g4particle);
       auto iterator = truthmap.find(clusCont);

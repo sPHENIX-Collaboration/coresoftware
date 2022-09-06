@@ -84,7 +84,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   int ret = get_nodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
   
-  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_fieldDir,
+  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_field_map, _fieldDir,
 				     _min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->useConstBField(_use_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
