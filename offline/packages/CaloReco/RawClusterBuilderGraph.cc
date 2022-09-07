@@ -40,7 +40,7 @@ class twrs
 {
  public:
   explicit twrs(RawTower *);
-  virtual ~twrs() {}
+  virtual ~twrs() = default;
   bool is_adjacent(const twrs &);
   void set_id(const int i)
   {

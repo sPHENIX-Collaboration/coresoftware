@@ -33,14 +33,14 @@ JetReco::JetReco(const std::string &name)
 
 JetReco::~JetReco()
 {
-  for (unsigned int i = 0; i < _inputs.size(); ++i)
+  for (auto & _input : _inputs)
   {
-    delete _inputs[i];
+    delete _input;
   }
   _inputs.clear();
-  for (unsigned int i = 0; i < _algos.size(); ++i)
+  for (auto & _algo : _algos)
   {
-    delete _algos[i];
+    delete _algo;
   }
   _algos.clear();
   _outputs.clear();
@@ -52,9 +52,9 @@ int JetReco::InitRun(PHCompositeNode *topNode)
   {
     std::cout << "========================== JetReco::InitRun() =============================" << std::endl;
     std::cout << " Input Selections:" << std::endl;
-    for (unsigned int i = 0; i < _inputs.size(); ++i) _inputs[i]->identify();
+    for (auto & _input : _inputs) _input->identify();
     std::cout << " Algorithms:" << std::endl;
-    for (unsigned int i = 0; i < _algos.size(); ++i) _algos[i]->identify();
+    for (auto & _algo : _algos) _algo->identify();
     std::cout << "===========================================================================" << std::endl;
   }
 
@@ -70,12 +70,12 @@ int JetReco::process_event(PHCompositeNode *topNode)
   //---------------------------------
 
   std::vector<Jet *> inputs;  // owns memory
-  for (unsigned int iselect = 0; iselect < _inputs.size(); ++iselect)
+  for (auto & _input : _inputs)
   {
-    std::vector<Jet *> parts = _inputs[iselect]->get_input(topNode);
-    for (unsigned int ipart = 0; ipart < parts.size(); ++ipart)
+    std::vector<Jet *> parts = _input->get_input(topNode);
+    for (auto & part : parts)
     {
-      inputs.push_back(parts[ipart]);
+      inputs.push_back(part);
       inputs.back()->set_id(inputs.size() - 1);  // unique ids ensured
     }
   }
@@ -92,7 +92,7 @@ int JetReco::process_event(PHCompositeNode *topNode)
   }
 
   // clean up input vector
-  for (unsigned int i = 0; i < inputs.size(); ++i) delete inputs[i];
+  for (auto & input : inputs) delete input;
   inputs.clear();
 
   if (Verbosity() > 1) std::cout << "JetReco::process_event -- exited" << std::endl;
@@ -128,13 +128,13 @@ int JetReco::CreateNodes(PHCompositeNode *topNode)
     AlgoNode->addNode(InputNode);
   }
 
-  for (unsigned i = 0; i < _outputs.size(); ++i)
+  for (auto & _output : _outputs)
   {
-    JetMap *jets = findNode::getClass<JetMap>(topNode, _outputs[i]);
+    JetMap *jets = findNode::getClass<JetMap>(topNode, _output);
     if (!jets)
     {
       jets = new JetMapv1();
-      PHIODataNode<PHObject> *JetMapNode = new PHIODataNode<PHObject>(jets, _outputs[i], "PHObject");
+      PHIODataNode<PHObject> *JetMapNode = new PHIODataNode<PHObject>(jets, _output, "PHObject");
       InputNode->addNode(JetMapNode);
     }
   }
@@ -153,14 +153,14 @@ void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet *>
 
   jetmap->set_algo(_algos[ipos]->get_algo());
   jetmap->set_par(_algos[ipos]->get_par());
-  for (unsigned int i = 0; i < _inputs.size(); ++i)
+  for (auto & _input : _inputs)
   {
-    jetmap->insert_src(_inputs[i]->get_src());
+    jetmap->insert_src(_input->get_src());
   }
 
-  for (unsigned int i = 0; i < jets.size(); ++i)
+  for (auto & jet : jets)
   {
-    jetmap->insert(jets[i]);  // map takes ownership, sets unique id
+    jetmap->insert(jet);  // map takes ownership, sets unique id
   }
 
   return;

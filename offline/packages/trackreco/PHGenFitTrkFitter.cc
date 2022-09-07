@@ -321,19 +321,19 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
     // rf_phgf_track stands for Refit_PHGenFit_Track
     std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
     if (rf_phgf_track)
-	{
-	  svtxtrack_genfittrack_map[svtx_track->get_id()] =  rf_phgf_tracks.size();
-	  rf_phgf_tracks.push_back(rf_phgf_track);
-	  if (rf_phgf_track->get_ndf() > _vertex_min_ndf)
-	    rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
-	  if(Verbosity() > 10) cout << "Done refitting input track" << svtx_track->get_id() << " or rf_phgf_track " <<   rf_phgf_tracks.size() << endl;
-	}
-      else{
-	if(Verbosity() >= 1) 
-	  cout << "failed refitting input track# " << iter->first << endl;
-      }
-      
+    {
+      svtxtrack_genfittrack_map[svtx_track->get_id()] =  rf_phgf_tracks.size();
+      rf_phgf_tracks.push_back(rf_phgf_track);
+      if (rf_phgf_track->get_ndf() > _vertex_min_ndf)
+        rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+      if(Verbosity() > 10) cout << "Done refitting input track" << svtx_track->get_id() << " or rf_phgf_track " <<   rf_phgf_tracks.size() << endl;
     }
+    else{
+      if(Verbosity() >= 1)
+        cout << "failed refitting input track# " << iter->first << endl;
+    }
+      
+  }
 
   /*
    * add tracks to event display
@@ -965,8 +965,7 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
  * \param invertex Input Vertex, if fit track as a primary vertex
  */
 //PHGenFit::Track* PHGenFitTrkFitter::ReFitTrack(PHCompositeNode *topNode, const SvtxTrack* intrack,
-std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* topNode, const SvtxTrack* intrack,
-                                                               const SvtxVertex* invertex)
+std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* topNode, const SvtxTrack* intrack, const SvtxVertex* invertex)
 {
   //std::shared_ptr<PHGenFit::Track> empty_track(nullptr);
   if (!intrack)
@@ -1027,8 +1026,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 
     if (is_vertex_cov_sane)
     {
-      PHGenFit::Measurement* meas = new PHGenFit::SpacepointMeasurement(
-          pos, cov);
+      auto meas = new PHGenFit::SpacepointMeasurement( pos, cov);
       measurements.push_back(meas);
       if(Verbosity() >= 2)
   {

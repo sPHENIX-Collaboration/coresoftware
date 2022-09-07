@@ -90,10 +90,9 @@ bool PHParameters::exist_int_param(const std::string &name) const
 void PHParameters::printint() const
 {
   std::cout << "int parameters: " << std::endl;
-  for (std::map<const std::string, int>::const_iterator iter = m_IntParMap.begin();
-       iter != m_IntParMap.end(); ++iter)
+  for (const auto &iter : m_IntParMap)
   {
-    std::cout << iter->first << ": " << iter->second << std::endl;
+    std::cout << iter.first << ": " << iter.second << std::endl;
   }
   return;
 }
@@ -145,30 +144,27 @@ PHParameters::get_hash() const
 {
   size_t seed = 0;
 
-  for (dMap::const_iterator iter = m_DoubleParMap.begin();
-       iter != m_DoubleParMap.end(); ++iter)
+  for (const auto &iter : m_DoubleParMap)
   {
     //      size_t seed = 0;
-    boost::hash_combine(seed, iter->first);
-    boost::hash_combine(seed, iter->second);
+    boost::hash_combine(seed, iter.first);
+    boost::hash_combine(seed, iter.second);
     //      std::cout << iter->first << ": " << iter->second <<" -> "<<seed<< std::endl;
   }
 
-  for (iMap::const_iterator iter = m_IntParMap.begin();
-       iter != m_IntParMap.end(); ++iter)
+  for (const auto &iter : m_IntParMap)
   {
     //      size_t seed = 0;
-    boost::hash_combine(seed, iter->first);
-    boost::hash_combine(seed, iter->second);
+    boost::hash_combine(seed, iter.first);
+    boost::hash_combine(seed, iter.second);
     //      std::cout << iter->first << ": " << iter->second <<" -> "<<seed<< std::endl;
   }
 
-  for (strMap::const_iterator iter = m_StringParMap.begin();
-       iter != m_StringParMap.end(); ++iter)
+  for (const auto &iter : m_StringParMap)
   {
     //      size_t seed = 0;
-    boost::hash_combine(seed, iter->first);
-    boost::hash_combine(seed, iter->second);
+    boost::hash_combine(seed, iter.first);
+    boost::hash_combine(seed, iter.second);
     //      std::cout << iter->first << ": " << iter->second <<" -> "<<seed<< std::endl;
   }
 
@@ -178,10 +174,9 @@ PHParameters::get_hash() const
 void PHParameters::printdouble() const
 {
   std::cout << "double parameters: " << std::endl;
-  for (std::map<const std::string, double>::const_iterator iter = m_DoubleParMap.begin();
-       iter != m_DoubleParMap.end(); ++iter)
+  for (const auto &iter : m_DoubleParMap)
   {
-    std::cout << iter->first << ": " << iter->second << std::endl;
+    std::cout << iter.first << ": " << iter.second << std::endl;
   }
   return;
 }
@@ -221,10 +216,9 @@ bool PHParameters::exist_string_param(const std::string &name) const
 void PHParameters::printstring() const
 {
   std::cout << "string parameters: " << std::endl;
-  for (std::map<const std::string, std::string>::const_iterator iter = m_StringParMap.begin();
-       iter != m_StringParMap.end(); ++iter)
+  for (const auto &iter : m_StringParMap)
   {
-    std::cout << iter->first << ": " << iter->second << std::endl;
+    std::cout << iter.first << ": " << iter.second << std::endl;
   }
   return;
 }
@@ -302,22 +296,19 @@ void PHParameters::FillFrom(const PHParameters *saveparams)
 {
   assert(saveparams);
 
-  for (dMap::const_iterator iter = saveparams->m_DoubleParMap.begin();
-       iter != saveparams->m_DoubleParMap.end(); ++iter)
+  for (const auto &iter : saveparams->m_DoubleParMap)
   {
-    m_DoubleParMap[iter->first] = iter->second;
+    m_DoubleParMap[iter.first] = iter.second;
   }
 
-  for (iMap::const_iterator iter = saveparams->m_IntParMap.begin();
-       iter != saveparams->m_IntParMap.end(); ++iter)
+  for (const auto &iter : saveparams->m_IntParMap)
   {
-    m_IntParMap[iter->first] = iter->second;
+    m_IntParMap[iter.first] = iter.second;
   }
 
-  for (strMap::const_iterator iter = saveparams->m_StringParMap.begin();
-       iter != saveparams->m_StringParMap.end(); ++iter)
+  for (const auto &iter : saveparams->m_StringParMap)
   {
-    m_StringParMap[iter->first] = iter->second;
+    m_StringParMap[iter.first] = iter.second;
   }
   return;
 }
@@ -549,7 +540,7 @@ int PHParameters::WriteToFile(const std::string &extension, const std::string &d
   }
   fnamestream << m_Detector << "_geoparams"
               << "-" << bankID.getInternalValue()
-              << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(0)
+              << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(nullptr)
               << "." << extension;
   std::string fname = fnamestream.str();
   std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);

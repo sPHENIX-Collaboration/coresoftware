@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<CdbUrlSave> MyNode_t;
+using MyNode_t = PHIODataNode<CdbUrlSave>;
 
 DumpCdbUrlSave::DumpCdbUrlSave(const std::string &NodeName)
   : DumpObject(NodeName)

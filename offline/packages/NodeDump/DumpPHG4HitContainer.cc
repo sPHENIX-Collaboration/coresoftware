@@ -11,7 +11,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<PHG4HitContainer> MyNode_t;
+using MyNode_t = PHIODataNode<PHG4HitContainer>;
 
 DumpPHG4HitContainer::DumpPHG4HitContainer(const std::string &NodeName)
   : DumpObject(NodeName)

@@ -425,8 +425,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       cluster->set_energy(ecl);
       cluster->set_ecore(ecore);
 
-      cluster->set_r(sqrt(xg * xg + yg * yg));
-      cluster->set_phi(atan2(yg, xg));
+      cluster->set_r(std::sqrt(xg * xg + yg * yg));
+      cluster->set_phi(std::atan2(yg, xg));
       cluster->set_z(zg);
 
       cluster->set_prob(prob);

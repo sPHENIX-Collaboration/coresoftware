@@ -12,7 +12,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<PHHepMCGenEventMap> MyNode_t;
+using MyNode_t = PHIODataNode<PHHepMCGenEventMap>;
 
 DumpPHHepMCGenEventMap::DumpPHHepMCGenEventMap(const std::string &NodeName)
   : DumpObject(NodeName)

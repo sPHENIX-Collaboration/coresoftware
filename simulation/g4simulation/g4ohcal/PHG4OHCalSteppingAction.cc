@@ -96,6 +96,7 @@ int PHG4OHCalSteppingAction::Init()
 
   if (m_LightScintModelFlag)
   {
+    /*
     const char* Calibroot = getenv("CALIBRATIONROOT");
     if (!Calibroot)
     {
@@ -114,6 +115,7 @@ int PHG4OHCalSteppingAction::Init()
     m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
     file->Close();
     delete file;
+*/
   }
   return 0;
 }
@@ -313,8 +315,8 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         m_Hit->set_raw_light_yield(m_Hit->get_raw_light_yield() + light_yield);  // save raw Birks light yield
         if (m_MapCorrHist)
         {
-          G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
-          G4ThreeVector worldPosition = postPoint->GetPosition();
+          const G4TouchableHandle& theTouchable = prePoint->GetTouchableHandle();
+          const G4ThreeVector& worldPosition = postPoint->GetPosition();
           G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
           float lx = (localPosition.x() / cm);
           float lz = fabs(localPosition.z() / cm);  // reverse the sense for towerid<12
