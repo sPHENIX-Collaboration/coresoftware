@@ -1,6 +1,7 @@
 #include "ActsGeometry.h"
 #include "TrkrCluster.h"
 #include "TpcDefs.h"
+#include "alignmentTransformationContainer.h"
 
 namespace
 {
@@ -14,24 +15,14 @@ namespace
 
 Eigen::Matrix<float,3,1> ActsGeometry::getGlobalPositionF(
   TrkrDefs:: cluskey key,       
-  TrkrCluster* cluster) const
+  TrkrCluster* cluster)
 {
-  const Acts::Vector3 doublePos = getGlobalPosition(key, cluster);
+  Acts::Vector3 doublePos = getGlobalPosition(key, cluster);
   return Eigen::Matrix<float,3,1>(doublePos(0), doublePos(1), doublePos(2));
 }
 
-/*
-Eigen::Matrix<float,3,1> ActsGeometry::getGlobalPositionTpcF(
-  TrkrDefs:: cluskey key,       
-  TrkrCluster* cluster) const
-{
-  const Acts::Vector3 doublePos = getGlobalPositionTpc(key, cluster);
-  return Eigen::Matrix<float,3,1>(doublePos(0), doublePos(1), doublePos(2));
-}
-*/
 
-Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
-					      TrkrCluster* cluster) const
+Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster)
 {
   Acts::Vector3 glob;
  
@@ -40,6 +31,8 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
     {
       return getGlobalPositionTpc(key, cluster);
     }
+
+  /// If silicon/TPOT, the transform is one-to-one since the surface is planar
 
   auto surface = maps().getSurface(key, cluster);
 
@@ -55,19 +48,17 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs:: cluskey key,
     } 
 
   Acts::Vector2 local(cluster->getLocalX(), cluster->getLocalY());
-
   Acts::Vector3 global;
-  /// If silicon/TPOT, the transform is one-to-one since the surface is planar
-
   global = surface->localToGlobal(geometry().geoContext,
 				  local * Acts::UnitConstants::cm,
 				  Acts::Vector3(1,1,1));
   global /= Acts::UnitConstants::cm;
+
+
   return global;
 }
 
-Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
-						 TrkrCluster* cluster) const
+Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,	 TrkrCluster* cluster)
 {
   Acts::Vector3 glob;
 
@@ -92,22 +83,17 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
       return glob;
     } 
 
-  double maxdriftlength =  AdcClockPeriod*MaxTBins*_drift_velocity / 2.0;  // MaxTBins covers 2 x 13.2 microseconds
-
-  // must convert local Y from cluster average time of arival to cluster z position
-   // t = 0 corresponds to zdriftlength = 0, t = +MaxT corresponds to zdriftlength = 105.5, t = 2* MaxT corresponds to zdriftlength = 2*105.5
-  double zdriftlength = cluster->getLocalY() * _drift_velocity;
-  double zpos  = maxdriftlength -zdriftlength;   // convert z drift length to z position in the TPC
+  double surfaceZCenter = 52.89; // this is where G4 thinks the surface center is in cm
+  double zdriftlength = cluster->getLocalY() * _drift_velocity;  // cm
+  double zloc = surfaceZCenter - zdriftlength;     // local z relative to surface center (for north side):
   unsigned int side = TpcDefs::getSide(key);
-  if(side == 0) zpos = -zpos;
+  if(side == 0) zloc = -zloc;
 
-  /// test acts transforms
-  Acts::Vector3 loc(cluster->getLocalX(),0,0);
-  loc *= Acts::UnitConstants::cm;
-  glob = surface->transform(geometry().geoContext) * loc;
+  Acts::Vector2 local(cluster->getLocalX(), zloc);
+  glob = surface->localToGlobal(geometry().geoContext,
+				  local * Acts::UnitConstants::cm,
+				  Acts::Vector3(1,1,1));
   glob /= Acts::UnitConstants::cm;
-
-  glob(2) = zpos;
 
   return glob;
 }
@@ -116,7 +102,7 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,
 Surface ActsGeometry::get_tpc_surface_from_coords(
   TrkrDefs::hitsetkey hitsetkey,
   Acts::Vector3 world,
-  TrkrDefs::subsurfkey& subsurfkey) const
+  TrkrDefs::subsurfkey& subsurfkey)
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   auto mapIter = maps().m_tpcSurfaceMap.find(layer);

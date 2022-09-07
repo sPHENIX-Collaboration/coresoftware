@@ -5,8 +5,8 @@
 
 #include <g4detectors/PHG4DetectorGroupSubsystem.h>
 
-#include <cmath>                                     // for asin
-#include <string>                                    // for string
+#include <cmath>   // for asin
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4Detector;

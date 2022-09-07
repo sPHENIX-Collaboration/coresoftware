@@ -30,9 +30,9 @@ void TruthJetInput::identify(std::ostream &os)
   if (use_embed_stream())
   {
     os << ". Processing embedded streams: ";
-    for (std::vector<int>::const_iterator it = m_EmbedID.begin(); it != m_EmbedID.end(); ++it)
+    for (int it : m_EmbedID)
     {
-      os << (*it) << ", ";
+      os << it << ", ";
     }
   }
   os << std::endl;

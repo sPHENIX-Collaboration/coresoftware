@@ -160,9 +160,9 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
 
     // copy components into output jet
     std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
-    for (unsigned int icomp = 0; icomp < comps.size(); ++icomp)
+    for (auto & comp : comps)
     {
-      Jet* particle = particles[comps[icomp].user_index()];
+      Jet* particle = particles[comp.user_index()];
 
       for (Jet::Iter iter = particle->begin_comp();
            iter != particle->end_comp();

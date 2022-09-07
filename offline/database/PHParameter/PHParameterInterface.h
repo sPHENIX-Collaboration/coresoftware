@@ -18,7 +18,7 @@ class PHParameterInterface
   PHParameterInterface(const PHParameterInterface &) = delete;
   PHParameterInterface &operator=(PHParameterInterface const &) = delete;
 
-  virtual ~PHParameterInterface() {}
+  virtual ~PHParameterInterface(){}
 
   void set_paramname(const std::string &name);
   virtual void SetDefaultParameters() = 0;

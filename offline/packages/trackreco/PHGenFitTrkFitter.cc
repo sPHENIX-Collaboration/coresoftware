@@ -328,9 +328,9 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
     else{
       if(Verbosity() >= 1)
         cout << "failed refitting input track# " << iter->first << endl;
-      }
-      
     }
+      
+  }
 
   /*
    * add tracks to event display

@@ -60,6 +60,11 @@ namespace
   {  return !( std::isnan( vec.x() ) || std::isnan( vec.y() ) || std::isnan( vec.z() ) ); }  
 }
 
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+#include <trackbase/alignmentTransformationContainer.h>
+
+
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
   , m_trajectories(nullptr)
@@ -217,6 +222,11 @@ int PHActsTrkFitter::End(PHCompositeNode */*topNode*/)
 void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 {
   auto logger = Acts::getDefaultLogger("PHActsTrkFitter", logLevel);
+
+  if(Verbosity()>0)
+    {
+      std::cout << " seed map size " << m_seedMap->size() << std::endl;
+    }
 
   for(auto trackiter = m_seedMap->begin(); trackiter != m_seedMap->end();
       ++trackiter)
@@ -465,7 +475,88 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       // For the TPC, cluster z has to be corrected for the crossing z offset, distortion, and TOF z offset 
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
       Acts::Vector3 global  = m_tGeometry->getGlobalPosition(key, cluster);
- 
+
+      // temporary for testing transforms 
+      //=========================
+      bool test_transforms = false;
+
+      if(test_transforms)  
+	{
+
+	  // Alignment transformation testing purposes
+	  auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(key);
+
+	  float globphi = atan2(global(1),global(0))*180.0/M_PI;
+	  std::cout << "Check in TrkFitter: global phi " << globphi << " hitsetkey: " << hitsetkey <<" global: " << std::endl << global << std::endl;
+
+	  auto x = cluster->getLocalX() * 10.0;   // mm
+	  auto y = cluster->getLocalY() * 10.0;
+	  
+	  if(trkrid == TrkrDefs::tpcId)
+	    {
+	      // must convert local Y from cluster average time of arival to local cluster z position
+	      double drift_velocity = m_tGeometry->get_drift_velocity();
+	      double zdriftlength = cluster->getLocalY() * drift_velocity;
+	      double surfCenterZ = 52.89; // 52.89 is where G4 thinks the surface center is
+	      double zloc = surfCenterZ - zdriftlength;   // converts z drift length to local z position in the TPC in north
+	      unsigned int side = TpcDefs::getSide(key);
+	      if(side == 0) zloc = -zloc;
+	      y = zloc * 10.0;
+	    }
+
+	  Eigen::Vector3d clusterLocalPosition (x,y,0);  // follows the convention for the acts transform of local = (x,z,y)
+	  std::cout << "local: "<< std::endl <<clusterLocalPosition << std::endl;
+
+	  if (trkrid == TrkrDefs::inttId)
+	    {
+	      unsigned int layer     = TrkrDefs::getLayer(hitsetkey);
+	      unsigned int ladderz   = InttDefs::getLadderZId(hitsetkey);
+	      unsigned int ladderphi = InttDefs::getLadderPhiId(hitsetkey);
+	      std::cout << "layer: "<<layer<< " ladderZ: "<<ladderz<< " ladderPhi: " << ladderphi<<std::endl;
+	    }
+	  else if (trkrid == TrkrDefs::mvtxId)
+	    {
+	      unsigned int layer                          = TrkrDefs::getLayer(hitsetkey);
+	      unsigned int stave                          = MvtxDefs::getStaveId(hitsetkey);
+	      unsigned int chip                           = MvtxDefs::getChipId(hitsetkey);
+	      std::cout << "layer: " << layer << " stave: " << stave << "chip: " << chip << std::endl;
+	    }
+	  else if(trkrid == TrkrDefs::tpcId)
+	    {
+	      unsigned int layer                          = TrkrDefs::getLayer(hitsetkey);
+	      unsigned int sector                         = TpcDefs::getSectorId(hitsetkey);
+	      unsigned int side                           = TpcDefs::getSide(hitsetkey);
+	      std::cout<< "subsurfkey: "<< subsurfkey << " layer: " << layer << " sector: " << sector 
+		       << " side: " << side << std::endl;
+	    }
+	  else if(trkrid == TrkrDefs::micromegasId)
+	    {
+	      unsigned int layer                            = TrkrDefs::getLayer(hitsetkey);
+	      unsigned short segmentation = (unsigned short) MicromegasDefs::getSegmentationType(hitsetkey);
+	      unsigned int tile                             = MicromegasDefs::getTileId(hitsetkey);
+	      std::cout<< " layer: " << layer << " segmentation: "<< segmentation  << " tile: " << tile << std::endl;
+	    }
+
+          Acts::GeometryIdentifier id = surf->geometryId();
+	  std::cout << " Geometry Id: " << id << std::endl;
+
+	  auto alignmentTransformation = m_alignmentTransformationMap->getTransform(id);      
+
+	  std::cout << " Transform: " << std::endl << alignmentTransformation.matrix() << std::endl;
+
+	  Eigen::Vector3d finalCoords = alignmentTransformation*clusterLocalPosition;
+	  float phi = atan2(finalCoords(1),finalCoords(0))*180.0/M_PI;
+
+	  finalCoords /= 10.0;
+	  float deltaX = finalCoords(0)-global(0);
+	  float deltaY = finalCoords(1)-global(1);
+
+	  std::cout<< "deltax: "<<deltaX << " deltaY: " << deltaY << std::endl;
+	  std::cout << " phi: "<< phi <<" Final Alignment Transform Coordinates: " << finalCoords << std::endl << std::endl;
+
+	}  // end testing transforms
+      //=========================
+
       if(trkrid ==  TrkrDefs::tpcId)
 	{	  
 	  // make all corrections to global position of TPC cluster
@@ -1000,8 +1091,21 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
+
+
 int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 {
+  m_alignmentTransformationMap = findNode::getClass<alignmentTransformationContainer>(topNode, "alignmentTransformationContainer");
+  if(!m_alignmentTransformationMap)
+    {
+      std::cout << PHWHERE << "alignmentTransformationContainer not on node tree. Bailing"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+
+
 
   m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if(!m_tpcSeeds)

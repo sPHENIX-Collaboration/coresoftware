@@ -41,6 +41,7 @@
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <cmath>  // for isfinite
+#include <cstdlib>
 #include <iostream>
 #include <string>   // for operator<<, operator+
 #include <utility>  // for pair
@@ -86,13 +87,14 @@ int PHG4InnerHcalSteppingAction::Init()
     }
     std::string ihcalmapname(Calibroot);
     ihcalmapname += "/HCALIN/tilemap/iHCALMapsNorm020922.root";
-    std::string url = XploadInterface::instance()->getUrl("OLD_INNER_HCAL_TILEMAP",ihcalmapname);
+    std::string url = XploadInterface::instance()->getUrl("OLD_INNER_HCAL_TILEMAP", ihcalmapname);
     TFile* file = TFile::Open(url.c_str());
     file->GetObject("ihcalmapcombined", m_MapCorrHist);
     if (!m_MapCorrHist)
     {
       std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;
       gSystem->Exit(1);
+      exit(1);  // make code checkers which do not know gSystem->Exit() happy
     }
     m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
     file->Close();
@@ -288,8 +290,8 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         m_Hit->set_raw_light_yield(m_Hit->get_raw_light_yield() + light_yield);  // save raw Birks light yield
         if (m_MapCorrHist)
         {
-          G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
-          G4ThreeVector worldPosition = postPoint->GetPosition();
+          const G4TouchableHandle& theTouchable = prePoint->GetTouchableHandle();
+          const G4ThreeVector& worldPosition = postPoint->GetPosition();
           G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
           float lx = (localPosition.x() / cm);
           float lz = fabs(localPosition.z() / cm);
