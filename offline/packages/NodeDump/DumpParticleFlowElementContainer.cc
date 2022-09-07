@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<ParticleFlowElementContainer> MyNode_t;
+using MyNode_t = PHIODataNode<ParticleFlowElementContainer>;
 
 DumpParticleFlowElementContainer::DumpParticleFlowElementContainer(const std::string &NodeName)
   : DumpObject(NodeName)

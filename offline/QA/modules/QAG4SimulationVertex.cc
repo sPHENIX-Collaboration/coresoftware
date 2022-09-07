@@ -217,7 +217,7 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
       ++embedvtxid_particle_count[gembed];
       PHG4Particle *g4particle = iter->second;
 
-      if (false && gembed <= 0) continue;
+      if (m_checkembed && gembed <= m_embed_id_cut) continue;
 
       std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
 

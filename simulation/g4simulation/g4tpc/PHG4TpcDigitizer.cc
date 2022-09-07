@@ -449,6 +449,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
   std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> delete_hitkey_list;
 
   // Clean up undigitized hits - we want all hitsets for the Tpc
+  // This loop is pretty efficient because the remove methods all take a specified hitset as input
   TrkrHitSetContainer::ConstRange hitset_range_now = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range_now.first;
        hitset_iter != hitset_range_now.second;
@@ -499,7 +500,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
         std::cout << "removed hit with hitsetkey " << delete_hitkey_list[i].first << " and hitkey " << delete_hitkey_list[i].second << std::endl;
 
     // should also delete all entries with this hitkey from the TrkrHitTruthAssoc map
-    hittruthassoc->removeAssoc(delete_hitkey_list[i].first, delete_hitkey_list[i].second);
+    //hittruthassoc->removeAssoc(delete_hitkey_list[i].first, delete_hitkey_list[i].second);   // this is slow! Commented out by ADF 9/6/2022
   }
 
   // Final hitset dump

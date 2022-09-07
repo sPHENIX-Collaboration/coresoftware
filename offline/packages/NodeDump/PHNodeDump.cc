@@ -156,7 +156,7 @@ int PHNodeDump::CloseOutputFiles()
 int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
 {
   DumpObject *newdump;
-  std::string newnode = NodeName;
+  const std::string &newnode = NodeName;
   if (!exclusive.empty())
   {
     if (exclusive.find(NodeName) == exclusive.end())

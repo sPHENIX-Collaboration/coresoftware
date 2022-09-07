@@ -1,7 +1,7 @@
 #ifndef NODEDUMP_DUMPEVENTHEADER_H
 #define NODEDUMP_DUMPEVENTHEADER_H
 
-#include <DumpObject.h>
+#include "DumpObject.h"
 
 #include <string>
 

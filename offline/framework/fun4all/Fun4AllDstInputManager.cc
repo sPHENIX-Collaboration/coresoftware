@@ -427,9 +427,9 @@ readnextsync:
       std::string delimeters = phooldefs::branchpathdelim;  // + phooldefs::legacypathdelims;
       std::vector<std::string> splitvec;
       boost::split(splitvec, bIter->first, boost::is_any_of(delimeters));
-      for (size_t ia = 0; ia < splitvec.size(); ia++)  // -1 so we skip the node name
+      for (auto & ia : splitvec)  // -1 so we skip the node name
       {
-        if (splitvec[ia] == syncdefs::SYNCNODENAME)
+        if (ia == syncdefs::SYNCNODENAME)
         {
           syncbranchname = bIter->first;
           break;
@@ -583,9 +583,9 @@ int Fun4AllDstInputManager::setBranches()
 int Fun4AllDstInputManager::setSyncBranches(PHNodeIOManager *IMan)
 {
   // protection against switching off the sync variables
-  for (int i = 0; i < syncdefs::NUM_SYNC_VARS; i++)
+  for (auto & i : syncdefs::SYNCVARS)
   {
-    IMan->selectObjectToRead(syncdefs::SYNCVARS[i], 1);
+    IMan->selectObjectToRead(i, true);
   }
   return 0;
 }

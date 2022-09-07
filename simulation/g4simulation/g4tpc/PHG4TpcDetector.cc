@@ -237,31 +237,75 @@ int PHG4TpcDetector::ConstructTpcExternalSupports(G4LogicalVolume *logicWorld)
   //StainlessSteel->AddMaterial(matman->FindOrBuildMaterial("G4_Fe"), 0.68);
   G4Material *stainlessSteel = GetDetectorMaterial("G4_STAINLESS-STEEL");
   double inch = 2.54 * cm;
-  double hangerAngle = 41.39 * M_PI / 180.;
-  double hangerRadius = 32.05 * inch;
-  double hangerX = std::sin(hangerAngle) * hangerRadius;
-  double hangerY = std::cos(hangerAngle) * hangerRadius;
+  // double hangerAngle = 41.39 * M_PI / 180.;
+  // double hangerRadius = 32.05 * inch;
+  double hangerX = 21.193 *inch;
+  double hangerY = 24.246* inch;
   double hangerDiameter = 2. * inch;
-  G4VSolid *hangerBeam = new G4Tubs("tpc_hanger_beam", 0, hangerDiameter / 2., (m_Params->get_double_param("tpc_length") * cm) / 2., 0., 2 * M_PI);
+  double extra_length = 0.941*inch;
+
+
+
+
+  G4VSolid *hangerSupport = new G4Tubs("tpc_hanger_support", 0, hangerDiameter / 2., (6*inch)+extra_length, 0., 2 * M_PI);
+  G4LogicalVolume *hangerSupportLogic = new G4LogicalVolume(hangerSupport,
+							    stainlessSteel,
+							    "tpc_hanger_support");
+  
+  double tpc_steel_location = (90 * inch) / 2 - 3 *inch - extra_length / 2.0;
+
+  m_DisplayAction->AddVolume(hangerSupportLogic, "TpcHangerSupport");
+ G4VPhysicalVolume *tpc_hanger_support_phys[4] = {nullptr, nullptr,nullptr,nullptr};
+  tpc_hanger_support_phys[0] = new G4PVPlacement(0, G4ThreeVector(hangerX, hangerY, tpc_steel_location),
+                                              hangerSupportLogic, "tpc_hanger_support_northleft",
+                                              logicWorld, false, 0, OverlapCheck());
+  tpc_hanger_support_phys[1] = new G4PVPlacement(0, G4ThreeVector(-hangerX, hangerY, tpc_steel_location),
+                                              hangerSupportLogic, "tpc_hanger_support_northright",
+                                              logicWorld, false, 1, OverlapCheck());
+  tpc_hanger_support_phys[2] = new G4PVPlacement(0, G4ThreeVector(hangerX, hangerY, -tpc_steel_location),
+                                              hangerSupportLogic, "tpc_hanger_support_southleft",
+                                              logicWorld, false, 2, OverlapCheck());
+  tpc_hanger_support_phys[3] = new G4PVPlacement(0, G4ThreeVector(-hangerX, hangerY, -tpc_steel_location),
+                                              hangerSupportLogic, "tpc_hanger_support_southright",
+                                              logicWorld, false, 3, OverlapCheck());
+
+  m_AbsorberVolumeSet.insert(tpc_hanger_support_phys[0]);
+  m_AbsorberVolumeSet.insert(tpc_hanger_support_phys[1]);
+  m_AbsorberVolumeSet.insert(tpc_hanger_support_phys[2]);
+  m_AbsorberVolumeSet.insert(tpc_hanger_support_phys[3]);
+
+
+  G4Material *carbonFiber = GetDetectorMaterial("CFRP_INTT");
+  double hangerBeamInnerDiameter = 2.0 * inch;
+  double hangerBeamOuterDiameter = 2.521 * inch;
+
+  G4VSolid *hangerBeam = new G4Tubs("tpc_hanger_beam", hangerBeamInnerDiameter / 2., hangerBeamOuterDiameter / 2., (90 * inch) / 2., 0., 2 * M_PI);
   G4LogicalVolume *hangerBeamLogic = new G4LogicalVolume(hangerBeam,
-                                                         stainlessSteel,
+                                                         carbonFiber,
                                                          "tpc_hanger_beam");
 
   m_DisplayAction->AddVolume(hangerBeamLogic, "TpcHangerBeam");
-  G4VPhysicalVolume *tpc_hanger_beam_phys[2] = {nullptr, nullptr};
-  tpc_hanger_beam_phys[0] = new G4PVPlacement(0, G4ThreeVector(hangerX, hangerY, 0),
+ G4VPhysicalVolume *tpc_hanger_beam_phys[2] = {nullptr, nullptr};
+ tpc_hanger_beam_phys[0] = new G4PVPlacement(0, G4ThreeVector(hangerX, hangerY, 0),
                                               hangerBeamLogic, "tpc_hanger_beam_left",
                                               logicWorld, false, 0, OverlapCheck());
   tpc_hanger_beam_phys[1] = new G4PVPlacement(0, G4ThreeVector(-hangerX, hangerY, 0),
                                               hangerBeamLogic, "tpc_hanger_beam_right",
                                               logicWorld, false, 1, OverlapCheck());
+
   m_AbsorberVolumeSet.insert(tpc_hanger_beam_phys[0]);
   m_AbsorberVolumeSet.insert(tpc_hanger_beam_phys[1]);
+  
+  
+
+
+
+
+
 
   //Twelve one-inch diam carbon fiber rods of thickness 1/16" at 31.04" from beam center
   //borrowed from the INTT specification of carbon fiber
   //note that this defines a clocking!
-  G4Material *carbonFiber = GetDetectorMaterial("CFRP_INTT");
   double rodAngleStart = M_PI / 12.;
   double rodAngularSpacing = 2 * M_PI / 12.;
   double rodRadius = 31.5 * inch;

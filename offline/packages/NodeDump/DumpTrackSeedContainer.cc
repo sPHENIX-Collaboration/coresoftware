@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<TrackSeedContainer> MyNode_t;
+using MyNode_t = PHIODataNode<TrackSeedContainer>;
 
 DumpTrackSeedContainer::DumpTrackSeedContainer(const std::string &NodeName)
   : DumpObject(NodeName)

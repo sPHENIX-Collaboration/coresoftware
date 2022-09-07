@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<SvtxVertexMap> MyNode_t;
+using MyNode_t = PHIODataNode<SvtxVertexMap>;
 
 DumpSvtxVertexMap::DumpSvtxVertexMap(const std::string &NodeName)
   : DumpObject(NodeName)

@@ -47,11 +47,11 @@ void Jetv1::Reset()
 int Jetv1::isValid() const
 {
   if (_id == 0xFFFFFFFF) return 0;
-  for (int i = 0; i < 3; ++i)
+  for (float i : _mom)
   {
-    if (isnan(_mom[i])) return 0;
+    if (std::isnan(i)) return 0;
   }
-  if (isnan(_e)) return 0;
+  if (std::isnan(_e)) return 0;
   if (_comp_ids.empty()) return 0;
   return 1;
 }
@@ -64,12 +64,12 @@ PHObject* Jetv1::CloneMe() const
 
 float Jetv1::get_p() const
 {
-  return sqrt(get_px() * get_px() + get_py() * get_py() + get_pz() * get_pz());
+  return std::sqrt(get_px() * get_px() + get_py() * get_py() + get_pz() * get_pz());
 }
 
 float Jetv1::get_pt() const
 {
-  return sqrt(get_px() * get_px() + get_py() * get_py());
+  return std::sqrt(get_px() * get_px() + get_py() * get_py());
 }
 
 float Jetv1::get_et() const
@@ -79,12 +79,12 @@ float Jetv1::get_et() const
 
 float Jetv1::get_eta() const
 {
-  return asinh(get_pz() / get_pt());
+  return std::asinh(get_pz() / get_pt());
 }
 
 float Jetv1::get_phi() const
 {
-  return atan2(get_py(), get_px());
+  return std::atan2(get_py(), get_px());
 }
 
 float Jetv1::get_mass() const
@@ -93,9 +93,9 @@ float Jetv1::get_mass() const
   float mass2 = get_mass2();
   if (mass2 < 0)
   {
-    return -1 * sqrt(fabs(mass2));
+    return -1 * sqrt(std::fabs(mass2));
   }
-  return sqrt(mass2);
+  return std::sqrt(mass2);
 }
 
 float Jetv1::get_mass2() const
@@ -131,12 +131,11 @@ void Jetv1::set_property(Jet::PROPERTY prop_id, float value)
 
 void Jetv1::print_property(std::ostream& os) const
 {
-  for (typ_property_map::const_iterator citer = _property_map.begin();
-       citer != _property_map.end(); ++citer)
+  for (auto citer : _property_map)
   {
     os << " ";  //indent
 
-    switch (citer->first)
+    switch (citer.first)
     {
     case prop_JetCharge:
       os << "Jet Charge";
@@ -145,10 +144,10 @@ void Jetv1::print_property(std::ostream& os) const
       os << "Jet B-quark fraction";
       break;
     default:
-      os << "Property[" << citer->first << "]";
+      os << "Property[" << citer.first << "]";
       break;
     }
 
-    os << "\t= " << citer->second << std::endl;
+    os << "\t= " << citer.second << std::endl;
   }
 }
