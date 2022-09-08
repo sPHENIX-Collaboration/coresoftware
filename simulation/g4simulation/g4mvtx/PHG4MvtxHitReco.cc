@@ -579,13 +579,13 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
           // generate the key for this hit
           TrkrDefs::hitkey hitkey = MvtxDefs::genHitKey(vzbin[i1], vxbin[i1]);
           // See if this hit already exists
-          TrkrHit *hit = nullptr;
-          hit = hitsetit->second->getHit(hitkey);
+	  std::unique_ptr<TrkrHit> hit(nullptr);
+          hit = std::unique_ptr<TrkrHit>(hitsetit->second->getHit(hitkey));
           if (!hit)
           {
             // Otherwise, create a new one
-            hit = new TrkrHitv2();
-            hitsetit->second->addHitSpecificKey(hitkey, hit);
+            hit = std::make_unique<TrkrHitv2>();
+            hitsetit->second->addHitSpecificKey(hitkey, hit.get());
           }
 
           // Either way, add the energy to it
