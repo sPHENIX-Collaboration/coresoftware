@@ -10,6 +10,7 @@
 #include "TrkrHitSetv1.h"
 
 #include <cstdlib>
+#include <memory>
 
 void TrkrHitSetContainerv1::Reset()
 {
@@ -81,7 +82,8 @@ TrkrHitSetContainerv1::findOrAddHitSet(TrkrDefs::hitsetkey key)
   auto it = m_hitmap.lower_bound( key );
   if( it == m_hitmap.end() || (key < it->first ) )
   {
-    it = m_hitmap.insert(it, std::make_pair(key, new TrkrHitSetv1));
+    std::unique_ptr<TrkrHitSetv1> hs = std::unique_ptr<TrkrHitSetv1>();
+    it = m_hitmap.insert(it, std::make_pair(key, hs.release()));
     it->second->setHitSetKey( key );
   }
   return it;
