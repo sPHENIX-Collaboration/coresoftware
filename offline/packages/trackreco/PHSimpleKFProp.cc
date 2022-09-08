@@ -90,9 +90,9 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
     std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
   fcfg.set_filename(magField);
   //  fcfg.set_rescale(1);
-  _field_map = PHFieldUtility::BuildFieldMap(&fcfg);
+  _field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
 
-  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_field_map, _fieldDir,
+  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_field_map.get(), _fieldDir,
 				     _min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->useConstBField(_use_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);

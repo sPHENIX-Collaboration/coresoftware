@@ -39,7 +39,7 @@ class PHSimpleKFProp : public SubsysReco
 {
  public:
   PHSimpleKFProp(const std::string &name = "PHSimpleKFProp");
-  ~PHSimpleKFProp() { delete _field_map; }
+  ~PHSimpleKFProp() {}
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -89,7 +89,7 @@ class PHSimpleKFProp : public SubsysReco
 
   TrackSeedContainer *_track_map = nullptr;
 
-  PHField* _field_map = nullptr;
+  std::unique_ptr<PHField> _field_map = nullptr;
   
   /// acts geometry
   ActsGeometry *_tgeometry = nullptr;
