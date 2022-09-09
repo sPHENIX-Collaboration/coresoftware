@@ -47,14 +47,6 @@ namespace
 
   /// radius
   template<class T> T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
-
-  /// return number of clusters of a given type that belong to a tracks
-  template<int type>
-    int count_clusters( const std::vector<TrkrDefs::cluskey>& keys )
-  {
-    return std::count_if( keys.begin(), keys.end(),
-      []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
-  }
   
   /// get sector median angle associated to a given index
   /** this assumes that sector 0 is centered on phi=0, then numbered along increasing phi */
@@ -88,6 +80,14 @@ namespace
       { std::copy( seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter( out ) ); }
     }
     return out;
+  }
+
+  /// return number of clusters of a given type that belong to a tracks
+  template<int type>
+    int count_clusters( const std::vector<TrkrDefs::cluskey>& keys )
+  {
+    return std::count_if( keys.begin(), keys.end(),
+      []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
   }
   
 }
@@ -133,21 +133,16 @@ int TpcSpaceChargeReconstruction::InitRun(PHCompositeNode* )
   m_max_dz = get_double_param( "spacecharge_max_dz" );
 
   // print
-  if( Verbosity() )
-  {
-    std::cout
-      << "TpcSpaceChargeReconstruction::InitRun\n"
-      << " m_outputfile: " << m_outputfile << "\n"
-      << " m_use_micromegas: " << std::boolalpha <<  m_use_micromegas << "\n"
-      << " m_max_talpha: " << m_max_talpha << "\n"
-      << " m_max_drphi: " << m_max_drphi << "\n"
-      << " m_max_tbeta: " << m_max_tbeta << "\n"
-      << " m_max_dz: " << m_max_dz << "\n"
-      << std::endl;
+  std::cout << "TpcSpaceChargeReconstruction::InitRun - m_outputfile: " << m_outputfile << std::endl;
+  std::cout << "TpcSpaceChargeReconstruction::InitRun - m_use_micromegas: " << std::boolalpha <<  m_use_micromegas << std::endl;
+  std::cout << "TpcSpaceChargeReconstruction::InitRun - m_max_talpha: " << m_max_talpha << std::endl;
+  std::cout << "TpcSpaceChargeReconstruction::InitRun - m_max_drphi: " << m_max_drphi << std::endl;
+  std::cout << "TpcSpaceChargeReconstruction::InitRun - m_max_tbeta: " << m_max_tbeta << std::endl;
+  std::cout << "TpcSpaceChargeReconstruction::InitRun - m_max_dz: " << m_max_dz << std::endl;
+  std::cout << "TpcSpaceChargeReconstruction::InitRun - m_min_pt: " << m_min_pt << " GeV/c" << std::endl;
 
-    // also identify the matrix container
-    m_matrix_container->identify();
-  }
+  // also identify the matrix container
+  m_matrix_container->identify();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -357,9 +352,10 @@ void TpcSpaceChargeReconstruction::process_tracks()
 //_____________________________________________________________________
 bool TpcSpaceChargeReconstruction::accept_track( SvtxTrack* track ) const
 {
-  // ignore tracks whose transverse momentum is too small
-  const auto pt = std::sqrt( square( track->get_px() ) + square( track->get_py() ) );
-  if( pt < 0.5 ) return false;
+
+  // track pt
+  if(track->get_pt() < m_min_pt)
+  { return false; }
 
   // ignore tracks with too few mvtx, intt and micromegas hits
   const auto cluster_keys( get_cluster_keys( track ) );

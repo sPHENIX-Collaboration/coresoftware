@@ -80,6 +80,14 @@ namespace
     return out;
   }
 
+  /// return number of clusters of a given type that belong to a tracks
+  template<int type>
+    int count_clusters( const std::vector<TrkrDefs::cluskey>& keys )
+  {
+    return std::count_if( keys.begin(), keys.end(),
+      []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
+  }
+
 }
 
 //___________________________________________________________________________________
@@ -205,34 +213,12 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
   if(track->get_pt() < 0.5)
     return false;
 
-  int nMvtxHits = 0;
-  int nInttHits = 0;
-  int nMMHits = 0;
+  // ignore tracks with too few mvtx, intt and micromegas hits
+  const auto cluster_keys( get_cluster_keys( track ) );
+  if( count_clusters<TrkrDefs::mvtxId>(cluster_keys) < 2 ) return false;
+  if( count_clusters<TrkrDefs::inttId>(cluster_keys) < 2 ) return false;
+  if( m_useMicromegas && count_clusters<TrkrDefs::micromegasId>(cluster_keys) < 2 ) return false;
 
-  for( const auto& key:get_cluster_keys( track ) )
-  {
-    auto trkrId = TrkrDefs::getTrkrId(key);
-    if(trkrId == TrkrDefs::TrkrId::mvtxId) ++nMvtxHits;
-    else if(trkrId == TrkrDefs::TrkrId::inttId) ++nInttHits;
-    else if(trkrId == TrkrDefs::TrkrId::micromegasId) ++nMMHits;
-  }
-
-  if(Verbosity() > 2)
-  {
-    std::cout << "PHTpcResiduals::checkTrack -"
-      << " nMvtxHits: " << nMvtxHits 
-      << " nInttHits: " << nInttHits 
-      << " nMMHits: "  << nMMHits 
-      << std::endl;
-  }
-    
-  // Require at least 2 hits in each detector
-  if( m_useMicromegas )
-  {
-    if(nMvtxHits<2 || nInttHits<2 || nMMHits<2) return false;
-  } else {
-    if(nMvtxHits<2 || nInttHits<2 ) return false;
-  }
 
   return true;
 

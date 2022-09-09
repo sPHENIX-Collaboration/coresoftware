@@ -62,6 +62,10 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   void set_use_micromegas( bool value )
   { m_use_micromegas = value; }
 
+  /// track min pT 
+  void set_min_pt( double value ) 
+  { m_min_pt = value; }
+  
   /// set grid dimensions
   /**
   \param phibins the number of bins in the azimuth direction
@@ -135,6 +139,9 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// true if only tracks with micromegas must be used
   bool m_use_micromegas = true;
+
+  /// minimum pT required for track to be considered in residuals calculation (GeV/c)
+  double m_min_pt = 0.5;
 
   /// acts geometry
   ActsGeometry *m_tgeometry = nullptr;
