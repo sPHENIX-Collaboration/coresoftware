@@ -14,28 +14,39 @@ AM_CXXFLAGS=`geant4-config --cflags`
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include
+  -I$(OFFLINE_MAIN)/include \
+  -I$(ROOTSYS)/include \
+  -DEVTGEN_HEPMC3
 
 libg4decayer_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OPT_SPHENIX)/lib \
+  -L$(OFFLINE_MAIN)/lib64 \
   `geant4-config --libs`
 
 libg4decayer_la_LIBADD = \
-  -lPythia6
+  -lPythia6 \
+  -lfun4all \
+  -lEvtGen \
+  -lEvtGenExternal \
+  -lHepMC3
 
 libg4decayer_la_SOURCES = \
   pythia6_common_address.c \
   Pythia6.cc \
   G4Pythia6Decayer.cc \
   G4Pythia6DecayerMessenger.cc \
-  P6DExtDecayerPhysics.cc
+  P6DExtDecayerPhysics.cc \
+  G4EvtGenDecayer.cc \
+  EvtGenExtDecayerPhysics.cc 
 
 pkginclude_HEADERS = \
   EDecayType.hh \
-  P6DExtDecayerPhysics.hh
-
+  P6DExtDecayerPhysics.hh \
+  G4EvtGenDecayer.hh \
+  EvtGenExtDecayerPhysics.hh 
+ 
 ################################################
 # linking tests
 
