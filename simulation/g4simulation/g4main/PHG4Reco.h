@@ -98,12 +98,12 @@ class PHG4Reco : public SubsysReco
   }
 
   //! export geometry to root file
-  void export_geometry( bool b, const std::string& filename = "sPHENIXGeom.root" )
+  void export_geometry(bool b, const std::string &filename = "sPHENIXGeom.root")
   {
     m_ExportGeometry = b;
     m_ExportGeomFilename = filename;
   }
-  
+
   //! Save geometry from Geant4 to DST
   void save_DST_geometry(bool b) { m_SaveDstGeometryFlag = b; }
   void SetWorldSizeX(const double sx) { m_WorldSize[0] = sx; }
@@ -193,10 +193,20 @@ class PHG4Reco : public SubsysReco
 
   bool m_ExportGeometry = false;
   std::string m_ExportGeomFilename = "sPHENIXGeom.root";
-  
+
   // settings for the external Pythia6 decayer
-  bool m_ActiveDecayerFlag = true;     //< turn on/off decayer
+  bool m_ActiveDecayerFlag = true;      //< turn on/off decayer
   bool m_ActiveForceDecayFlag = false;  //< turn on/off force decay channels
+
+  enum DecayerOptions
+  {
+    kPYTHIA6Decayer = 0,
+    kEvtGenDecayer = 1,
+
+  };  // Decayer Option for User to Choose: 0 - PYTHIA 6 Decayer, 1 - EvtGen Decayer
+
+  DecayerOptions m_Decayer = kEvtGenDecayer;
+
   EDecayType m_ForceDecayType = kAll;  //< forced decay channel setting
 
   bool m_SaveDstGeometryFlag = true;
