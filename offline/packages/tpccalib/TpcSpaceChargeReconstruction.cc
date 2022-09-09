@@ -50,9 +50,9 @@ namespace
 
   /// return number of clusters of a given type that belong to a tracks
   template<int type>
-    int get_clusters( SvtxTrack* track )
+    int count_clusters( const std::vector<TrkrDefs::cluskey>& keys )
   {
-    return std::count_if( track->begin_cluster_keys(), track->end_cluster_keys(),
+    return std::count_if( keys.begin(), keys.end(),
       []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
   }
   
@@ -78,6 +78,18 @@ namespace
   static constexpr float m_zmin = -105.5;
   static constexpr float m_zmax = 105.5;
 
+  /// get cluster keys from a given track
+  std::vector<TrkrDefs::cluskey> get_cluster_keys( SvtxTrack* track )
+  {
+    std::vector<TrkrDefs::cluskey> out;
+    for( const auto& seed: { track->get_silicon_seed(), track->get_tpc_seed() } )
+    {
+      if( seed )
+      { std::copy( seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter( out ) ); }
+    }
+    return out;
+  }
+  
 }
 
 //_____________________________________________________________________
@@ -350,9 +362,10 @@ bool TpcSpaceChargeReconstruction::accept_track( SvtxTrack* track ) const
   if( pt < 0.5 ) return false;
 
   // ignore tracks with too few mvtx, intt and micromegas hits
-  if( get_clusters<TrkrDefs::mvtxId>(track) < 2 ) return false;
-  if( get_clusters<TrkrDefs::inttId>(track) < 2 ) return false;
-  if( m_use_micromegas && get_clusters<TrkrDefs::micromegasId>(track) < 2 ) return false;
+  const auto cluster_keys( get_cluster_keys( track ) );
+  if( count_clusters<TrkrDefs::mvtxId>(cluster_keys) < 2 ) return false;
+  if( count_clusters<TrkrDefs::inttId>(cluster_keys) < 2 ) return false;
+  if( m_use_micromegas && count_clusters<TrkrDefs::micromegasId>(cluster_keys) < 2 ) return false;
 
   // all tests passed
   return true;
@@ -383,10 +396,9 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
   auto state_iter = track->begin_states();
 
   // loop over clusters
-  for( auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter )
+  for( const auto& cluster_key:get_cluster_keys( track ) )
   {
 
-    const auto& cluster_key = *key_iter;
     auto cluster = m_cluster_map->findCluster( cluster_key );
     if( !cluster )
     {
@@ -534,18 +546,21 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     if( std::abs( drp ) > m_max_drphi ) continue;
     if( std::abs( dz ) > m_max_dz ) continue;
 
-//     std::cout << "TpcSpaceChargeReconstruction::process_track - layer: " << (int) TrkrDefs::getLayer(cluster->getClusKey()) << std::endl;
-//     std::cout << "TpcSpaceChargeReconstruction::process_track -"
-//       << " cluster: (" << cluster_r << ", " << cluster_r*cluster_phi << ", " << cluster_z << ")"
-//       << " (" << cluster_rphi_error << ", " << cluster_z_error << ")" 
-//       << std::endl;
-//     std::cout << "TpcSpaceChargeReconstruction::process_track -"
-//       << " track: (" << track_r << ", " << cluster_r*track_phi << ", " << track_z << ")"
-//       << " (" << talpha << ", " << tbeta << ")"
-//       << " (" << track_rphi_error << ", " << track_z_error << ")"
-//       << std::endl;
-//     std::cout << std::endl;
-
+    if( Verbosity() )
+    {
+      std::cout << "TpcSpaceChargeReconstruction::process_track - layer: " << (int) TrkrDefs::getLayer(cluster_key) << std::endl;
+      std::cout << "TpcSpaceChargeReconstruction::process_track -"
+        << " cluster: (" << cluster_r << ", " << cluster_r*cluster_phi << ", " << cluster_z << ")"
+        << " (" << cluster_rphi_error << ", " << cluster_z_error << ")" 
+        << std::endl;
+      std::cout << "TpcSpaceChargeReconstruction::process_track -"
+        << " track: (" << track_r << ", " << cluster_r*track_phi << ", " << track_z << ")"
+        << " (" << talpha << ", " << tbeta << ")"
+        << " (" << track_rphi_error << ", " << track_z_error << ")"
+        << std::endl;
+      std::cout << std::endl;
+    }
+      
     // update matrices
     // see https://indico.bnl.gov/event/7440/contributions/43328/attachments/31334/49446/talk.pdf for details
     m_matrix_container->add_to_lhs(i, 0, 0, 1./erp );
