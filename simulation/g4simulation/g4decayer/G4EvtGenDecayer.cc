@@ -36,6 +36,7 @@
 
 #include "G4EvtGenDecayer.hh"
 
+
 #include <Geant4/G4DecayProducts.hh>
 #include <Geant4/G4DynamicParticle.hh>
 #include <Geant4/G4ParticleDefinition.hh>  // for G4ParticleDefinition
@@ -51,30 +52,36 @@
 #include <iostream>  // for operator<<, basic_ostream:...
 #include <string>    // for operator<<
 
+
+
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4EvtGenDecayer::G4EvtGenDecayer()
-  : G4VExtDecayer("G4EvtGenDecayer")
-  , fVerboseLevel(0)
+	: G4VExtDecayer("G4EvtGenDecayer")
+	  , fVerboseLevel(0)
 {
-  //bool WilluseXml =false;
-  EvtRandomEngine* eng = 0;
-  eng = new EvtSimpleRandomEngine();
-  EvtRandom::setRandomEngine((EvtRandomEngine*) eng);
-  EvtExternalGenList genList;
-  PHEvtGenDecayer();
 
-  //SetDecayTable("EvtGenDecayFiles/Bs.KKPiPi.DEC",WilluseXml);  //Force a specific particle to decay. For example, here is Bs -> Jpsi phi -> eeKK
+	//bool WilluseXml =false;
+	EvtRandomEngine* eng = 0;
+	eng = new EvtSimpleRandomEngine();
+	EvtRandom::setRandomEngine((EvtRandomEngine*)eng);
+//	EvtExternalGenList genList;
+	PHEvtGenDecayer();
+
+	//SetDecayTable("EvtGenDecayFiles/Bs.KKPiPi.DEC",WilluseXml);  //Force a specific particle to decay. For example, here is Bs -> Jpsi phi -> eeKK
+
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4EvtGenDecayer::~G4EvtGenDecayer()
 {
-  /// Destructor
-  //std::cout << __PRETTY_FUNCTION__ << std::endl;
+	/// Destructor
+	//std::cout << __PRETTY_FUNCTION__ << std::endl;
 
-  //	delete fDecayProductsArray;
+	//	delete fDecayProductsArray;
 }
 
 //
@@ -84,48 +91,51 @@ G4EvtGenDecayer::~G4EvtGenDecayer()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4ParticleDefinition* G4EvtGenDecayer::
-    GetParticleDefinition(int ParPDGID, G4bool warn) const
+GetParticleDefinition(int ParPDGID, G4bool warn) const
 {
-  /// Return G4 particle definition for given TParticle
+	/// Return G4 particle definition for given TParticle
 
-  // get particle definition from G4ParticleTable
-  G4int pdgEncoding = ParPDGID;
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particleDefinition = 0;
-  if (pdgEncoding != 0)
-    particleDefinition = particleTable->FindParticle(pdgEncoding);
+	// get particle definition from G4ParticleTable
+	G4int pdgEncoding = ParPDGID;
+	G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+	G4ParticleDefinition* particleDefinition = 0;
+	if (pdgEncoding != 0)
+		particleDefinition = particleTable->FindParticle(pdgEncoding);
 
-  if (particleDefinition == 0 && warn)
-  {
-    std::cerr
-        << "G4EvtGenDecayer: GetParticleDefinition: " << std::endl
-        << "G4ParticleTable::FindParticle() for particle with PDG = "
-        << pdgEncoding
-        << " failed." << std::endl;
-  }
 
-  return particleDefinition;
+	if (particleDefinition == 0 && warn)
+	{
+		std::cerr
+			<< "G4EvtGenDecayer: GetParticleDefinition: " << std::endl
+			<< "G4ParticleTable::FindParticle() for particle with PDG = "
+			<< pdgEncoding
+			<< " failed." << std::endl;
+	}
+
+	return particleDefinition;
 }
 
+
+
 bool G4EvtGenDecayer::
-    IsG4Detectable(int ParPDGID, G4bool warn) const
+IsG4Detectable(int ParPDGID, G4bool warn) const
 {
-  bool DetectorParticle = false;
-  G4int pdgEncoding = ParPDGID;
-  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particleDefinition = 0;
-  if (pdgEncoding != 0) particleDefinition = particleTable->FindParticle(pdgEncoding);
+	bool DetectorParticle = false;
+	G4int pdgEncoding = ParPDGID;
+	G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+	G4ParticleDefinition* particleDefinition = 0;
+	if (pdgEncoding != 0) particleDefinition = particleTable->FindParticle(pdgEncoding);
 
-  if (particleDefinition == 0 && warn)
-  {
-    DetectorParticle = false;
-  }
-  else
-  {
-    DetectorParticle = true;
-  }
+	if (particleDefinition == 0 && warn){
+		DetectorParticle = false;
+	}
+	else{
+		DetectorParticle = true;
 
-  return DetectorParticle;
+	}
+
+
+	return DetectorParticle;
 }
 
 //
@@ -136,114 +146,146 @@ bool G4EvtGenDecayer::
 
 G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 {
-  /// Import decay products
-  //std::cout << __PRETTY_FUNCTION__ << std::endl;
-  // get particle momentum
+	/// Import decay products
+	//std::cout << __PRETTY_FUNCTION__ << std::endl;
+	// get particle momentum
 
-  G4ThreeVector momentum = track.GetMomentum();
-  G4double etot = track.GetDynamicParticle()->GetTotalEnergy();
-  ;
-  CLHEP::HepLorentzVector p;
-  p[0] = momentum.x() / GeV;
-  p[1] = momentum.y() / GeV;
-  p[2] = momentum.z() / GeV;
-  p[3] = etot / GeV;
 
-  // get particle PDG
-  // ask G4EvtGenDecayer to get PDG encoding
-  // (in order to get PDG from extended TDatabasePDG
-  // in case the standard PDG code is not defined)
-  G4ParticleDefinition* particleDef = track.GetDefinition();
-  G4int pdgEncoding = particleDef->GetPDGEncoding();
-  //EvtGen Declaration//
 
-  //	TClonesArray daughters("TParticle", 10);
-  G4LorentzVector* ParMom = new G4LorentzVector;
+	G4ThreeVector momentum = track.GetMomentum();
+	G4double etot = track.GetDynamicParticle()->GetTotalEnergy();
+	;
+	CLHEP::HepLorentzVector p;
+	p[0] = momentum.x() / GeV;
+	p[1] = momentum.y() / GeV;
+	p[2] = momentum.z() / GeV;
+	p[3] = etot / GeV;
 
-  ParMom->setPx(p[0]);
-  ParMom->setPy(p[1]);
-  ParMom->setPz(p[2]);
-  ParMom->setE(p[3]);
 
-  std::vector<int> DecayPDGID;
-  std::vector<int> DecayStatus;
-  std::vector<G4LorentzVector> DecayMom;
-  std::vector<G4LorentzVector> DecayVtx;
+	// get particle PDG
+	// ask G4EvtGenDecayer to get PDG encoding
+	// (in order to get PDG from extended TDatabasePDG
+	// in case the standard PDG code is not defined)
+	G4ParticleDefinition* particleDef = track.GetDefinition();
+	G4int pdgEncoding = particleDef->GetPDGEncoding();
+	//EvtGen Declaration//
 
-  Decay(pdgEncoding, ParMom);
-  ImportParticles(DecayPDGID, DecayStatus, DecayMom, DecayVtx);
+	
 
-  int nTrk = DecayPDGID.size();
 
-  // convert decay products EvtGen Products type
-  // to G4DecayProducts
-  G4DecayProducts* decayProducts = new G4DecayProducts(*(track.GetDynamicParticle()));
+	//	TClonesArray daughters("TParticle", 10);
+	G4LorentzVector* ParMom= new G4LorentzVector;
 
-  for (int iTrk = 0; iTrk < nTrk; ++iTrk)
-  {
-    TVector3 rcPosSig(DecayMom[iTrk].x() * cm, DecayMom[iTrk].y() * cm, DecayMom[iTrk].z() * cm);
 
-    bool Detectable = IsG4Detectable(DecayPDGID[iTrk]);
+	ParMom->setPx(p[0]);
+	ParMom->setPy(p[1]);
+	ParMom->setPz(p[2]);
+	ParMom->setE(p[3]);
 
-    if (!Detectable)
-    {
-      //		std::cout << "Particle in the Chain: " << ptl0->GetName() << "   PDGID = " << pdg << "  is NOT Detectable by G4 " << std::endl;
-      continue;
-    }
-    else
-    {
-      //		std::cout << "Particle in the Chain: " << ptl0->GetName() << "   PDGID = " << pdg << "  IS Detectable by G4 " << std::endl;
-    }
+	
 
-    const G4ParticleDefinition* particleDefinition = GetParticleDefinition(DecayPDGID[iTrk]);
 
-    G4ThreeVector G4Mom = G4ThreeVector(DecayMom[iTrk].px() * GeV, DecayMom[iTrk].py() * GeV, DecayMom[iTrk].pz() * GeV);
+	std::vector<int> DecayPDGID;
+	std::vector<int> DecayStatus;	
+	std::vector<G4LorentzVector> DecayMom;
+	std::vector<G4LorentzVector> DecayVtx;
 
-    int pdg = DecayPDGID[iTrk];
-    int Status = DecayStatus[iTrk];
 
-    G4DynamicParticle* dynamicParticle = new G4DynamicParticle(particleDefinition, G4Mom);
-    if (dynamicParticle)
-    {
-      if (fVerboseLevel > 0)
-      {
-        std::cout << "  G4 particle name: "
-                  << dynamicParticle->GetDefinition()->GetParticleName()
-                  << std::endl;
-      }
 
-      if (Status != -11 && Status != -91 && (abs(pdg) == 130 || abs(pdg) == 310 || abs(pdg) == 211 || abs(pdg) == 321 || abs(pdg) == 22 || abs(pdg) == 11 || abs(pdg) == 2212 || abs(pdg) == 13 || abs(pdg) == 12 || abs(pdg) == 14 || abs(pdg) == 16 || abs(pdg) == 2112)) decayProducts->PushProducts(dynamicParticle);
-    }
-  }
+	Decay(pdgEncoding, ParMom);
+	ImportParticles(DecayPDGID,DecayStatus, DecayMom,DecayVtx);
 
-  return decayProducts;
+
+
+	int nTrk = DecayPDGID.size();
+
+
+
+	
+
+	// convert decay products EvtGen Products type
+	// to G4DecayProducts
+	G4DecayProducts* decayProducts = new G4DecayProducts(*(track.GetDynamicParticle()));
+
+
+
+	for (int iTrk = 0; iTrk < nTrk; ++iTrk)
+	{
+
+
+		TVector3 rcPosSig(DecayMom[iTrk].x()* cm,DecayMom[iTrk].y() * cm,DecayMom[iTrk].z()* cm);
+
+		bool Detectable = IsG4Detectable(DecayPDGID[iTrk]);
+
+		if(!Detectable){
+
+			//		std::cout << "Particle in the Chain: " << ptl0->GetName() << "   PDGID = " << pdg << "  is NOT Detectable by G4 " << std::endl;
+			continue;
+		}else{
+
+			//		std::cout << "Particle in the Chain: " << ptl0->GetName() << "   PDGID = " << pdg << "  IS Detectable by G4 " << std::endl;
+
+		}
+
+		const G4ParticleDefinition* particleDefinition = GetParticleDefinition(DecayPDGID[iTrk]);
+
+		G4ThreeVector G4Mom = G4ThreeVector(DecayMom[iTrk].px() * GeV,DecayMom[iTrk].py() * GeV,DecayMom[iTrk].pz() * GeV);
+
+		int pdg  = DecayPDGID[iTrk];
+		int Status = DecayStatus[iTrk];		 
+
+		G4DynamicParticle* dynamicParticle = new G4DynamicParticle(particleDefinition, G4Mom);
+		if (dynamicParticle)
+		{
+			if (fVerboseLevel > 0)
+			{
+				std::cout << "  G4 particle name: "
+					<< dynamicParticle->GetDefinition()->GetParticleName()
+					<< std::endl;
+			}
+
+
+			if( Status != -11 && Status != -91 && (abs(pdg) == 130 || abs(pdg) == 310 || abs(pdg) == 211 || abs(pdg) == 321 || abs(pdg) == 22 || abs(pdg) == 11 || abs(pdg) == 2212 || abs(pdg) == 13 ||  abs(pdg) == 12 ||  abs(pdg) == 14 || abs(pdg) == 16 || abs(pdg) == 2112))  decayProducts->PushProducts(dynamicParticle); 
+
+		}
+	}
+
+
+	return decayProducts;
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+
+
 void G4EvtGenDecayer::PHEvtGenDecayer()
 {
-  //if(mEvtGen) return; // trust that mEvtGen is properly initialized by the user
-  mOwner = true;
 
-  //#ifdef EVTGEN_CPP11
-  // Use the Mersenne-Twister generator (C++11 only) /gpfs/mnt/gpfs02/sphenix/user/zshi/EvtGenPullRequest/coresoftwareV6/simulation/g4simulation/g4
-  //	mEvtGenRandomEngine = new EvtMTRandomEngine(stime);
-  //#else
-  mEvtGenRandomEngine = new EvtSimpleRandomEngine();
-  //#endif
-  EvtRandom::setRandomEngine((EvtRandomEngine*) mEvtGenRandomEngine);
-  EvtExternalGenList genList;
-  EvtAbsRadCorr* radCorrEngine = genList.getPhotosModel();
-  std::list<EvtDecayBase*> extraModels = genList.getListOfModels();
 
-  // the hardcoded paths are temporary
-  const string decay = string(getenv("CALIBRATIONROOT")) + "/EvtGen/DECAY.DEC";  // Using PDG 2012 reference as the input for now
-  const string evt = string(getenv("CALIBRATIONROOT")) + "/EvtGen/evt.pdl";
+	//if(mEvtGen) return; // trust that mEvtGen is properly initialized by the user
+	mOwner = true;
 
-  std::ifstream in(decay);
+	//#ifdef EVTGEN_CPP11
+	// Use the Mersenne-Twister generator (C++11 only) 
+	//	mEvtGenRandomEngine = new EvtMTRandomEngine(stime);
+	//#else
+	mEvtGenRandomEngine = new EvtSimpleRandomEngine();
+	//#endif
+	EvtRandom::setRandomEngine((EvtRandomEngine*)mEvtGenRandomEngine);
+	EvtExternalGenList genList;
+	EvtAbsRadCorr* radCorrEngine = genList.getPhotosModel();
+	std::list<EvtDecayBase*> extraModels = genList.getListOfModels();
 
-  /*
+	// the hardcoded paths are temporary
+	const string decay = 	  string(getenv("CALIBRATIONROOT"))  + "/EvtGen/DECAY.DEC"; // Using PDG 2012 reference as the input for now
+	const string evt   =  string(getenv("CALIBRATIONROOT"))  + "/EvtGen/evt.pdl";
+
+
+
+	std::ifstream in(decay);
+
+	/*
 	//	in.Open(decay);
 	if (!in.good()) { 
 	decay = "$(PHENIX)/"+decay;  decay = gSystem->ExpandPathName( decay.Data() );
@@ -251,133 +293,181 @@ void G4EvtGenDecayer::PHEvtGenDecayer()
 	}
 	*/
 
-  mEvtGen = new EvtGen(decay,
-                       evt,
-                       (EvtRandomEngine*) mEvtGenRandomEngine,
-                       radCorrEngine,
-                       &extraModels);
+	mEvtGen = new EvtGen( decay, 
+			evt,
+			(EvtRandomEngine*)mEvtGenRandomEngine,
+			radCorrEngine, 
+			&extraModels);
 
-  //theEvent=new EvtHepMCEvent();
+	//theEvent=new EvtHepMCEvent();
 }
+
+
+
 
 void G4EvtGenDecayer::Decay(int pdgId, G4LorentzVector* _p)
 {
-  // Clear the event from the last run
-  ClearEvent();
 
-  // Add the particle to the pythia stack
-  AppendParticle(pdgId, _p);
 
-  // Decay the particle
-  mEvtGen->generateDecay(mParticle);
+
+	// Clear the event from the last run
+	ClearEvent();
+
+
+
+
+	// Add the particle to the pythia stack
+	AppendParticle(pdgId, _p );
+
+	
+	
+	// Decay the particle
+	mEvtGen->generateDecay(mParticle);
+
+
+
 }
+
 
 void G4EvtGenDecayer::ClearEvent()
 {
-  mVertex = new EvtVector4R(0, 0, 0, 0);
+
+	
+	mVertex=new EvtVector4R(0,0,0,0);
+
+
+
+
+
 }
+
 
 void G4EvtGenDecayer::AppendParticle(Int_t pdg, G4LorentzVector* _p)
 {
-  // Append a particle to the stack to be decayed
-  EvtVector4R p_init(_p->e(), _p->px(), _p->py(), _p->pz());
-  EvtId parentID = EvtPDL::evtIdFromLundKC(pdg);
-  //std::cout << "PDGID = " << pdg << "     p_init.Mag() = " << p_init.d3mag() << std::endl;
-  mParticle = EvtParticleFactory::particleFactory(parentID, p_init);
-  mParticle->setDiagonalSpinDensity();
+	// Append a particle to the stack to be decayed
+	EvtVector4R p_init(_p->e(), _p->px(), _p->py(), _p->pz());
+	EvtId parentID = EvtPDL::evtIdFromLundKC(pdg);
+	//std::cout << "PDGID = " << pdg << "     p_init.Mag() = " << p_init.d3mag() << std::endl;
+	mParticle = EvtParticleFactory::particleFactory(parentID, p_init);
+	mParticle->setDiagonalSpinDensity();
 }
 
-Int_t G4EvtGenDecayer::ImportParticles(std::vector<int>& DecayPDGID, std::vector<int>& DecayStatus, std::vector<G4LorentzVector>& DecayMom, std::vector<G4LorentzVector>& DecayVtx)
+
+
+Int_t G4EvtGenDecayer::ImportParticles(std::vector<int>& DecayPDGID,std::vector<int>& DecayStatus,std::vector<G4LorentzVector>& DecayMom,std::vector<G4LorentzVector>& DecayVtx)
 {
-  // Save the decay products
+	// Save the decay products
+	
+	
+	DecayPDGID.clear();
+	DecayStatus.clear();
+	DecayMom.clear();
+	DecayVtx.clear();
 
-  DecayPDGID.clear();
-  DecayStatus.clear();
-  DecayMom.clear();
-  DecayVtx.clear();
 
-  EvtHepMCEvent theEvent;
+	EvtHepMCEvent theEvent;
 
-  theEvent.constructEvent(mParticle);
 
-  HepMC3::GenEvent* evt = theEvent.getEvent();  //Directly use HepMC3 records
-  //HepMC::GenEvent * evt = ConvertHepMCGenEvent_3to2( *evt3); // Convert HepMC3 to HepMC2 Format
+	theEvent.constructEvent(mParticle);
 
-  G4LorentzVector FourMom;
-  G4LorentzVector FourPos;
 
-  Int_t nparts = 0;
 
-  for (auto vtx : evt->vertices())
-  {
-    for (auto part : vtx->particles_in())
-    {
-      DecayPDGID.push_back(part->pdg_id());
-      if (nparts == 0)
-      {
-        DecayStatus.push_back(part->status() == 1 ? 11 : -11);
-      }
-      else
-      {
-        DecayStatus.push_back(part->status() == 1 ? 91 : -91);
-      }
+	HepMC3::GenEvent * evt = theEvent.getEvent(); //Directly use HepMC3 records
+	//HepMC::GenEvent * evt = ConvertHepMCGenEvent_3to2( *evt3); // Convert HepMC3 to HepMC2 Format
 
-      FourMom.setPx(part->momentum().px());
-      FourMom.setPy(part->momentum().py());
-      FourMom.setPz(part->momentum().pz());
-      FourMom.setE(part->momentum().e());
 
-      DecayMom.push_back(FourMom);
+	G4LorentzVector FourMom;
+	G4LorentzVector FourPos;
 
-      FourPos.setX(mVertex->get(1) + part->production_vertex()->position().x());
-      FourPos.setY(mVertex->get(2) + part->production_vertex()->position().y());
-      FourPos.setZ(mVertex->get(3) + part->production_vertex()->position().z());
-      FourPos.setT(mVertex->get(0) + part->production_vertex()->position().t());
 
-      DecayVtx.push_back(FourPos);
 
-      nparts++;
-    }
+	Int_t nparts = 0;
+	
+	for (auto vtx: evt->vertices()) {
 
-    for (auto part : vtx->particles_out())
-    {
-      DecayPDGID.push_back(part->pdg_id());
-      if (nparts == 0)
-      {
-        DecayStatus.push_back(part->status() == 1 ? 11 : -11);
-      }
-      else
-      {
-        DecayStatus.push_back(part->status() == 1 ? 91 : -91);
-      }
+		for (auto part: vtx->particles_in()) {
 
-      FourMom.setPx(part->momentum().px());
-      FourMom.setPy(part->momentum().py());
-      FourMom.setPz(part->momentum().pz());
-      FourMom.setE(part->momentum().e());
+	
 
-      DecayMom.push_back(FourMom);
 
-      FourPos.setX(mVertex->get(1) + part->production_vertex()->position().x());
-      FourPos.setY(mVertex->get(2) + part->production_vertex()->position().y());
-      FourPos.setZ(mVertex->get(3) + part->production_vertex()->position().z());
-      FourPos.setT(mVertex->get(0) + part->production_vertex()->position().t());
 
-      DecayVtx.push_back(FourPos);
 
-      nparts++;
-    }
-  }
+			DecayPDGID.push_back(part->pdg_id());			
+			if(nparts == 0){
+				DecayStatus.push_back(part->status()==1?11:-11);
 
-  return nparts;
+			}else{
+				DecayStatus.push_back(part->status()==1?91:-91);
+			}
+
+	
+			FourMom.setPx(part->momentum().px());
+			FourMom.setPy(part->momentum().py());
+			FourMom.setPz(part->momentum().pz());
+			FourMom.setE(part->momentum().e());
+
+
+			DecayMom.push_back(FourMom);
+
+			FourPos.setX(mVertex->get(1)+part->production_vertex()->position().x());
+			FourPos.setY(mVertex->get(2)+part->production_vertex()->position().y());
+			FourPos.setZ(mVertex->get(3)+part->production_vertex()->position().z());
+			FourPos.setT(mVertex->get(0)+part->production_vertex()->position().t());
+
+			DecayVtx.push_back(FourPos);
+
+			nparts++;
+
+		}
+
+		for (auto part: vtx->particles_out()) {
+
+			DecayPDGID.push_back(part->pdg_id());			
+			if(nparts == 0){
+				DecayStatus.push_back(part->status()==1?11:-11);
+
+			}else{
+				DecayStatus.push_back(part->status()==1?91:-91);
+			}
+
+	
+			FourMom.setPx(part->momentum().px());
+			FourMom.setPy(part->momentum().py());
+			FourMom.setPz(part->momentum().pz());
+			FourMom.setE(part->momentum().e());
+
+
+			DecayMom.push_back(FourMom);
+
+			FourPos.setX(mVertex->get(1)+part->production_vertex()->position().x());
+			FourPos.setY(mVertex->get(2)+part->production_vertex()->position().y());
+			FourPos.setZ(mVertex->get(3)+part->production_vertex()->position().z());
+			FourPos.setT(mVertex->get(0)+part->production_vertex()->position().t());
+
+			DecayVtx.push_back(FourPos);
+
+			nparts++;
+
+		}
+
+
+	}
+
+
+
+
+	return nparts;
 }
+
 
 void G4EvtGenDecayer::SetDecayTable(const string decayTable, bool useXml)
 {
-  mEvtGen->readUDecay(decayTable, useXml);
+	mEvtGen->readUDecay(decayTable,useXml);
 }
 
 void G4EvtGenDecayer::SetVertex(G4LorentzVector* r)
 {
-  mVertex->set(r->t(), r->x(), r->y(), r->z());
+	mVertex->set(r->t(),r->x(),r->y(),r->z());
 }
+
+
