@@ -1,7 +1,7 @@
 /*!
  *  \file		PHActsTrkFitter.h
  *  \brief		Refit SvtxTracks with Acts.
- *  \details	Refit SvtxTracks with Acts
+ *  \details	        Refit SvtxTracks with Acts
  *  \author		Joe Osborn, Tony Frawley <afrawley@fsu.edu>
  */
 
