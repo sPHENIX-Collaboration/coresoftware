@@ -135,24 +135,27 @@ void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
 
     PHG4ParticleSvtxMap::WeightedRecoTrackMap recomap;
 
-    for (SvtxTrack* track : alltracks)
-    {
-      /// We fill the map with a key corresponding to the ncluster contribution.
-      /// This weight could in principle be anything we choose
-      float clusCont = trackeval->get_nclusters_contribution(track, g4particle);
-
-      auto iterator = recomap.find(clusCont);
-      if (iterator == recomap.end())
+    for (std::set<SvtxTrack*>::iterator jter = alltracks.begin();
+	 jter != alltracks.end();
+	 ++jter)
       {
-        std::set<unsigned int> dumset;
-        dumset.insert(track->get_id());
-        recomap.insert(std::make_pair(clusCont, dumset));
+	SvtxTrack* track = *jter;
+	/// We fill the map with a key corresponding to the ncluster contribution.
+	/// This weight could in principle be anything we choose
+	float clusCont = trackeval->get_nclusters_contribution(track, g4particle);
+	
+	auto iterator = recomap.find(clusCont);
+	if (iterator == recomap.end())
+	  {
+	    std::set<unsigned int> dumset;
+	    dumset.insert(track->get_id());
+	    recomap.insert(std::make_pair(clusCont, dumset));
+	  }
+	else
+	  {
+	    iterator->second.insert(track->get_id());
+	  }
       }
-      else
-      {
-        iterator->second.insert(track->get_id());
-      }
-    }
     
     if(Verbosity() > 1)
       { std::cout << " Inserting gtrack id " << gtrackID << " with map size " << recomap.size() << std::endl; }
