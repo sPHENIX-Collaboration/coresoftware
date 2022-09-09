@@ -510,7 +510,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
       }
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
-      auto pass_data = MapToPadPlane(x_final, y_final, t_final, side, hiter, ntpad, nthit);
+      /* auto pass_data = MapToPadPlane(x_final, y_final, t_final, side, hiter, ntpad, nthit); */
+      auto pass_data = padplane->MapToPadPlane(
+        single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, 
+        x_final, y_final, t_final, side, hiter, ntpad, nthit);
       if (is_embedded && pass_data.has_data()) layer_clusterers[pass_data.layer-1] += pass_data;
     }  // end loop over electrons for this g4hit
 
@@ -668,23 +671,23 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
   ++event_num;  // if doing more than one event, event_num will be incremented.
 
-  //-----------
-  //***********
-  //***********
-  //-----------
-  // checkout the truth clusters
+  if (Verbosity() > 500) 
+  {
+    std::cout << " TruthTrackContainer results at end of event in PHG4TpcElectronDrift::process_event " << std::endl;
+    truthtracks->identify();
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-TpcClusterBuilder PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *padnt, TNtuple *hitnt)
-{
-  return padplane->MapToPadPlane(
-      single_hitsetcontainer.get(), 
-      temp_hitsetcontainer.get(), 
-      hittruthassoc, 
-      x_gem, y_gem, t_gem, side, hiter, padnt, hitnt);
-}
+/* TpcClusterBuilder PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *padnt, TNtuple *hitnt) */
+/* { */
+/*   return padplane->MapToPadPlane( */
+/*       single_hitsetcontainer.get(), */ 
+/*       temp_hitsetcontainer.get(), */ 
+/*       hittruthassoc, */ 
+/*       x_gem, y_gem, t_gem, side, hiter, padnt, hitnt); */
+/* } */
 
 int PHG4TpcElectronDrift::End(PHCompositeNode * /*topNode*/)
 {

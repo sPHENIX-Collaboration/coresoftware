@@ -16,7 +16,7 @@ void TrkrTruthTrackv1::identify(std::ostream &os) const
   os << " TrkrTruthTrack: " << std::endl
      << "   trackid(" << trackid << ")  [X0,Y0,Z0]("<<X0<<","<<Y0<<","<<Z0<<")  "
      << " [pseudorapidity,pt,phi]("<<pseudoRapidity<<","<<pt<<","<<phi<<")" << std::endl;
-  os << " Clusters clusid(layer) : ";
+  os << " Clusters HitSetKey(layer) : " << std::endl << "  ";
   int cnt = 0;
   for (auto cluster : clusters) {
     if (cnt == 8) {
@@ -24,7 +24,9 @@ void TrkrTruthTrackv1::identify(std::ostream &os) const
       os << std::endl << "  ";
     }
     if (cnt > 0) os << ", ";
-    os << " " << cluster<<"("<<TrkrDefs::getLayer(cluster) << ")" << std::endl;
+    uint32_t i_hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster);
+    int layer = TrkrDefs::getLayer(cluster);
+    os << " " << i_hitsetkey<<"("<<layer<< ")";
     ++cnt;
   }
   if (cnt != 0) os << std::endl;

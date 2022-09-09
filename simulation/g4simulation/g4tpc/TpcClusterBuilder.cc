@@ -53,11 +53,11 @@ TpcClusterBuilder::PairCluskeyCluster TpcClusterBuilder::build(MapHitsetkeyUInt&
   cluster->setAdc      ( neff_electrons );
 
   // generate the hitset key at the mean phi location:
-  std::cout << " a0 " << std::endl;
+  /* std::cout << " a0 " << std::endl; */
   const int phi_pad_number           = layerGeom->get_phibin(phi_mean);
-  std::cout << " a1 " << std::endl;
+  /* std::cout << " a1 " << std::endl; */
   const auto phibins                 = layerGeom->get_phibins();
-  std::cout << " a2 " << std::endl;
+  /* std::cout << " a2 " << std::endl; */
   const unsigned int pads_per_sector = phibins / 12;
   const unsigned int sector          = phi_pad_number / pads_per_sector;
   TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layer, sector, side);
