@@ -309,9 +309,10 @@ int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
 //________________________________________________________________________
 void QAG4SimulationMicromegas::evaluate_hits()
 {
+  std::cout << "evaluate clusters..." << std::endl; 
   // do nothing if hitsets are not there
   if( !m_hitsets ) return;
-  
+
   // histogram manager
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -361,6 +362,7 @@ void QAG4SimulationMicromegas::evaluate_hits()
 //________________________________________________________________________
 void QAG4SimulationMicromegas::evaluate_clusters()
 {
+  std::cout << "evaluate clusters..." << std::endl;
   SvtxTruthEval* trutheval = m_svtxEvalStack->get_truth_eval();
   assert(trutheval);
   SvtxClusterEval* clustereval = m_svtxEvalStack->get_cluster_eval();
@@ -440,7 +442,9 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
     // process residuals and pulls
     // get reco clusters
+    std::cout << "get clusters from g4part..." << std::endl; 
     const auto ckeyset = clustereval->all_clusters_from(g4particle);
+    std::cout << "done cfg4" << std::endl; 
     for (const auto ckey:ckeyset)
     {
       const auto layer = TrkrDefs::getLayer(ckey);
@@ -479,7 +483,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 	rphi_error = sqrt(para_errors.first);
 	z_error = sqrt(para_errors.second);
       }
-
+      std::cout << "got error..." << std::endl; 
       // convert cluster position to local tile coordinates
       const TVector3 cluster_world(global(0), global(1), global(2));
       const auto cluster_local = layergeom->get_local_from_world_coords(tileid, m_tGeometry, cluster_world);
@@ -515,6 +519,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
       // fill phi residuals, errors and pulls
       auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
+      std::cout << "done transformations, fill histos" << std::endl; 
       switch (segmentation_type)
       {
         case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
