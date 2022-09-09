@@ -28,6 +28,7 @@ nobase_dist_pcm_DATA = \
 
 libphool_la_SOURCES = \
   $(ROOTDICTS) \
+  onnxlib.C \
   PHCompositeNode.cc \
   PHFlag.cc \
   PHMessage.cc \
@@ -46,6 +47,7 @@ libphool_la_SOURCES = \
 
 pkginclude_HEADERS =  \
   getClass.h \
+  onnxlib.h \
   PHCompositeNode.h \
   PHDataNode.h \
   PHDataNodeIterator.h \
@@ -71,6 +73,10 @@ pkginclude_HEADERS =  \
   PHTimeStamp.h \
   PHTypedNodeIterator.h \
   recoConsts.h
+
+libphool_la_LIBADD = \
+  -lonnxruntime
+
 
 BUILT_SOURCES = \
   testexternals.cc
