@@ -9,7 +9,6 @@
  */
 
 #include "TrkrCluster.h"
-#include "MapToPadPlanePassData.h"
 #include <phool/PHObject.h>
 #include "TrkrClusterContainer.h"
 
@@ -45,7 +44,7 @@ class TrkrTruthClusters : public PHObject
   virtual bool        hasTrkId           (short trkid)              const =0;
   virtual bool        hasTrkIdLayer    (short trkid, short layer) const =0;
   virtual bool        hasLayer         (short layer=-1)           const =0;
-  virtual void        addTruthCluster    (short trkid, TrkrDefs::cluskey) = 0;// MapToPadPlanePassData& hit_data) =0;
+  virtual void        addTruthCluster    (short trkid, TrkrDefs::cluskey) = 0;// 
   virtual std::ostream& print_clusters (TrkrClusterContainer*, std::ostream &/*os*/ = std::cout) const =0;//{}
   virtual TrkrDefs::cluskey   getCluskey(short trackid, short layer) const=0; // return 0 if not present
 

@@ -10,7 +10,7 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/MapToPadPlanePassData.h>
+#include "TpcClusterBuilder.h"
 
 #include <gsl/gsl_rng.h>
 
@@ -28,8 +28,9 @@ class TNtuple;
 class TFile;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
-class TrkrTruthClusters;
+class TrkrTruthTrackContainer;
 class TrkrClusterContainer;
+class TrkrTruthTrack;
 class DistortedTrackContainer;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
@@ -67,12 +68,15 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
  private:
   //! map a given x,y,z coordinates to plane hits
-  MapToPadPlanePassData MapToPadPlane(const double x, const double y, const double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
+  TpcClusterBuilder MapToPadPlane(const double x, const double y, const
+      double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter,
+      TNtuple *ntpad, TNtuple *nthit);
 
   TrkrHitSetContainer *hitsetcontainer = nullptr;
   TrkrHitTruthAssoc *hittruthassoc = nullptr;
-  TrkrTruthClusters *truthclusters = nullptr;
-  TrkrClusterContainer *truthclustercontainer = nullptr;
+  TrkrTruthTrackContainer *truthtracks = nullptr;
+  TrkrTruthTrack *current_track = nullptr;
+  TrkrClusterContainer *truthclustercontainer = nullptr; // the TrkrClusterContainer for truth clusters
   std::unique_ptr<TrkrHitSetContainer> temp_hitsetcontainer;
   std::unique_ptr<TrkrHitSetContainer> single_hitsetcontainer;
   std::unique_ptr<PHG4TpcPadPlane> padplane;
@@ -123,9 +127,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double min_time = NAN;
   double max_time = NAN;
 
-  std::array<MapToPadPlanePassData,55> layer_hits; // PadPlanePass Data; note offset of 1 in indexes to actual layers values
-  std::array<short, 55> layer_cnt; // hits per hitsetkey
-  void fill_TrkrTruthClusters(short trkid);
+  std::array<TpcClusterBuilder,55> layer_clusterers; // Generate TrkrClusterv4's for TrkrTruthTracks
+  void buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsigned int>&);
 
   //! rng de-allocator
   class Deleter

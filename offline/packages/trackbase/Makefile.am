@@ -35,12 +35,15 @@ pkginclude_HEADERS = \
   CMFlashDifferenceContainerv1.h \
   InttDefs.h \
   MvtxDefs.h \
-	MapToPadPlanePassData.h \
   sPHENIXActsDetectorElement.h \
   TpcDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
   TrackFitUtils.h \
+	TrkrTruthTrack.h \
+	TrkrTruthTrackv1.h \
+	TrkrTruthTrackContainer.h \
+	TrkrTruthTrackContainerv1.h \
   TrkrCluster.h \
   TrkrClusterv1.h \
   TrkrClusterv2.h \
@@ -82,8 +85,11 @@ ROOTDICTS = \
   CMFlashDifferencev1_Dict.cc \
   CMFlashDifferenceContainer_Dict.cc \
   CMFlashDifferenceContainerv1_Dict.cc \
-	MapToPadPlanePassData_Dict.cc \
   sPHENIXActsDetectorElement.cc \
+	TrkrTruthTrack_Dict.cc \
+	TrkrTruthTrackv1_Dict.cc \
+	TrkrTruthTrackContainer_Dict.cc \
+	TrkrTruthTrackContainerv1_Dict.cc \
   TrkrCluster_Dict.cc \
   TrkrClusterv1_Dict.cc \
   TrkrClusterv2_Dict.cc \
@@ -128,7 +134,10 @@ nobase_dist_pcm_DATA = \
   CMFlashDifferencev1_Dict_rdict.pcm \
   CMFlashDifferenceContainer_Dict_rdict.pcm \
   CMFlashDifferenceContainerv1_Dict_rdict.pcm \
-	MapToPadPlanePassData_Dict_rdict.pcm \
+	TrkrTruthTrack_Dict_rdict.pcm \
+	TrkrTruthTrackv1_Dict_rdict.pcm \
+	TrkrTruthTrackContainer_Dict_rdict.pcm \
+	TrkrTruthTrackContainerv1_Dict_rdict.pcm \
   TrkrCluster_Dict_rdict.pcm \
   TrkrClusterv1_Dict_rdict.pcm \
   TrkrClusterv2_Dict_rdict.pcm \
@@ -174,10 +183,11 @@ libtrack_io_la_SOURCES = \
   CMFlashDifferencev1.cc \
   CMFlashDifferenceContainerv1.cc \
   InttDefs.cc \
-  MapToPadPlanePassData.cc \
   MvtxDefs.cc \
   TpcDefs.cc \
   TrackFitUtils.cc \
+	TrkrTruthTrackv1.cc \
+	TrkrTruthTrackContainerv1.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
   TrkrClusterv3.cc \

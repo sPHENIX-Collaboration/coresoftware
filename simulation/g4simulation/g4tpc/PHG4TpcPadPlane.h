@@ -4,6 +4,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <g4main/PHG4HitContainer.h>
+#include "TpcClusterBuilder.h"
 
 #include <phparameter/PHParameterInterface.h>
 #include <trackbase/MapToPadPlanePassData.h>
@@ -33,7 +34,7 @@ class PHG4TpcPadPlane : public SubsysReco, public PHParameterInterface
   virtual int CreateReadoutGeometry(PHCompositeNode * /*topNode*/, PHG4CylinderCellGeomContainer * /*seggeo*/) { return 0; }
   virtual void UpdateInternalParameters() { return; }
   //  virtual void MapToPadPlane(PHG4CellContainer * /*g4cells*/, const double /*x_gem*/, const double /*y_gem*/, const double /*t_gem*/, const unsigned int /*side*/, PHG4HitContainer::ConstIterator /*hiter*/, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) {}
-  virtual MapToPadPlanePassData MapToPadPlane(TrkrHitSetContainer * /*single_hitsetcontainer*/, TrkrHitSetContainer * /*hitsetcontainer*/, TrkrHitTruthAssoc * /*hittruthassoc*/, const double /*x_gem*/, const double /*y_gem*/, const double /*t_gem*/, const unsigned int /*side*/, PHG4HitContainer::ConstIterator /*hiter*/, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)=0;// { return {}; }
+  virtual TpcClusterBuilder MapToPadPlane(TrkrHitSetContainer * /*single_hitsetcontainer*/, TrkrHitSetContainer * /*hitsetcontainer*/, TrkrHitTruthAssoc * /*hittruthassoc*/, const double /*x_gem*/, const double /*y_gem*/, const double /*t_gem*/, const unsigned int /*side*/, PHG4HitContainer::ConstIterator /*hiter*/, TNtuple * /*ntpad*/, TNtuple * /*nthit*/)=0;// { return {}; }
   void Detector(const std::string &name) { detector = name; }
 
  protected:

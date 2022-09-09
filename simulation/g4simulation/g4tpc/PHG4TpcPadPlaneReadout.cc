@@ -1,12 +1,12 @@
 #include "PHG4TpcPadPlaneReadout.h"
 
-
 #include <g4detectors/PHG4CellDefs.h>  // for genkey, keytype
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4HitContainer.h>
+
 
 #include <phool/PHRandomSeed.h>
 
@@ -17,6 +17,11 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
+
+#include <trackbase/TrkrTruthTrack.h>
+#include <trackbase/TrkrTruthTrackv1.h>
+#include <trackbase/TrkrTruthTrackContainer.h>
+#include <trackbase/TrkrTruthTrackContainerv1.h>
 
 #include <phool/phool.h>  // for PHWHERE
 
@@ -128,7 +133,7 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
 }
 
 
-MapToPadPlanePassData PHG4TpcPadPlaneReadout::MapToPadPlane(
+TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
     TrkrHitSetContainer *single_hitsetcontainer, 
     TrkrHitSetContainer *hitsetcontainer, 
     TrkrHitTruthAssoc * /*hittruthassoc*/, 
@@ -147,7 +152,7 @@ MapToPadPlanePassData PHG4TpcPadPlaneReadout::MapToPadPlane(
   //std::cout << "Enter new MapToPadPlane with rad_gem " << rad_gem << std::endl;
 
   unsigned int layernum = 0;
-  MapToPadPlanePassData pass_data {};
+  TpcClusterBuilder pass_data {};
 
   // Find which readout layer this electron ends up in
 
@@ -164,6 +169,8 @@ MapToPadPlanePassData PHG4TpcPadPlaneReadout::MapToPadPlane(
       // capture the layer where this electron hits sthe gem stack
       LayerGeom = layeriter->second;
       layernum = LayerGeom->get_layer();
+      pass_data.layerGeom = LayerGeom;
+      pass_data.layer = layernum;
       if (Verbosity() > 1000)
         std::cout << " g4hit id " << hiter->first << " rad_gem " << rad_gem << " rad_low " << rad_low << " rad_high " << rad_high
                   << " layer  " << hiter->second->get_layer() << " want to change to " << layernum << std::endl;
