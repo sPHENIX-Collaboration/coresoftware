@@ -408,14 +408,17 @@ void QAG4SimulationMicromegas::evaluate_clusters()
     std::cout << "g4part #" << iter->first << std::endl;
     PHG4Particle* g4particle = iter->second;
     if(g4particle == NULL) std::cout << "no dice" << std::endl;
+    std::cout << "accessing g4part..." << std::endl;
     float gtrackID = g4particle->get_track_id();
     float gflavor = g4particle->get_pid();
+    std::cout << " g4part is embedd..." << std::endl;
     float gembed = trutheval->get_embed(g4particle);
+    std::cout << " g4part is primary..." << std::endl;
     float gprimary = trutheval->is_primary(g4particle);
 
     if (Verbosity() > 0)
       std::cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gembed " << gembed << " gflavor " << gflavor << " gprimary " << gprimary << std::endl;
-
+    std::cout << "get truth clusters..." << std::endl;
     // Get the truth clusters from this particle
     const auto truth_clusters = trutheval->all_truth_clusters(g4particle);
 
