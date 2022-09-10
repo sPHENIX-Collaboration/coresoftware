@@ -60,6 +60,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
      Eigen::Vector3d millepedeTranslation(dx,dy,dz); 
 
      unsigned int trkrId = TrkrDefs::getTrkrId(hitsetkey); // specify between detectors
+     //     unsigned int layer = TrkrDefs::getLayer(hitsetkey);
 
      if(trkrId == TrkrDefs::tpcId)
        {
@@ -89,7 +90,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	 if(localVerbosity) 
 	   std::cout << " Add transform for Silicon with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 
-	 transformMap->addTransform(id,transform);
+	 transformMap->addTransform(id, transform);
        }
      else if(trkrId == TrkrDefs::micromegasId)
       {
@@ -115,7 +116,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
  const auto map = transformMap->getMap();
  Acts::GeometryContext context(map);
 
- m_tGeometry->geometry().geoContext = context.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
+ m_tGeometry->geometry().geoContext = context.get<std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>>();
 
  // map is created, now we can use the transforms
  alignmentTransformationContainer::use_alignment = true;
