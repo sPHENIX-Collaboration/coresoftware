@@ -365,13 +365,14 @@ void QAG4SimulationMicromegas::evaluate_clusters()
   std::cout << "evaluate clusters..." << std::endl;
   SvtxTruthEval* trutheval = m_svtxEvalStack->get_truth_eval();
   assert(trutheval);
+  std::cout << "got trutheval" << std::endl;
   SvtxClusterEval* clustereval = m_svtxEvalStack->get_cluster_eval();
   assert(clustereval);
-
+  std::cout << "got cluseval" << std::endl;
   // histogram manager
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-
+  std::cout << "got histmanager" << std::endl;
   // load relevant histograms
   struct HistogramList
   {
@@ -395,7 +396,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
     histograms.insert(std::make_pair(layer, h));
   }
-
+  std::cout << "histos assigned" << std::endl;
   // get primary truth particles
 
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();  // only from primary particles
@@ -404,8 +405,9 @@ void QAG4SimulationMicromegas::evaluate_clusters()
        iter != range.second;
        ++iter)
   {
+    std::cout << "g4part #" << iter->first << std::endl;
     PHG4Particle* g4particle = iter->second;
-
+    if(g4particle == NULL) std::cout << "no dice" << std::endl;
     float gtrackID = g4particle->get_track_id();
     float gflavor = g4particle->get_pid();
     float gembed = trutheval->get_embed(g4particle);
@@ -417,6 +419,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
     // Get the truth clusters from this particle
     const auto truth_clusters = trutheval->all_truth_clusters(g4particle);
 
+    std::cout << "fill position vectors..." << std::endl;
     // get circle fit parameters first
     TrackFitUtils::position_vector_t xy_pts;
     TrackFitUtils::position_vector_t rz_pts;
