@@ -32,7 +32,7 @@ class CaloWaveformProcessing : public SubsysReco
 
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
 
-  // std::vector<std::vector<float>>  calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
+  std::vector<std::vector<float>>  calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
 
   std::vector<std::vector<float>>  calo_processing_templatefit(std::vector<std::vector<float>> chnlvector);
 
@@ -45,7 +45,10 @@ class CaloWaveformProcessing : public SubsysReco
   static TProfile* h_template; 
   static double template_function(double *x, double *par);
 
-  std::string m_template_input_file = "/gpfs/mnt/gpfs02/sphenix/user/trinn/fitting_algorithm_playing/prdfcode/prototype/offline/packages/Prototype4/templates.root";
+
+  std::string m_template_input_file = std::string(getenv("CALIBRATIONROOT")) + "/WaveformProcessing/templates/testbeam_cemc_template.root";
+
+  std::string m_model_name = std::string(getenv("CALIBRATIONROOT")) + "/WaveformProcessing/models/testbeamtrained_cemc.onnx";
 
 };
 #endif

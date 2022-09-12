@@ -18,8 +18,11 @@
 #include <pthread.h>
 #include <ROOT/TThreadExecutor.hxx>
 #include <ROOT/TThreadedObject.hxx>
+#include <phool/onnxlib.h>
 
+//Define some items that must be defined globally in the .cc file
 TProfile* CaloWaveformProcessing::h_template = nullptr;
+Ort::Session* onnxmodule;
 
 
 double CaloWaveformProcessing::template_function(double *x, double *par)
@@ -41,7 +44,11 @@ void CaloWaveformProcessing::initialize_processing()
       TFile* fin = TFile::Open(m_template_input_file.c_str());
       assert(fin);
       assert(fin->IsOpen());
-      h_template = static_cast<TProfile*>(fin->Get("hp_electrons_fine_emcal_36_8GeV"));
+      h_template = static_cast<TProfile*>(fin->Get("cemc_template"));
+    }
+  if (m_modeltype == 2)
+    {
+      onnxmodule = onnxSession(m_model_name);
     }
 }
 
@@ -60,8 +67,14 @@ if (m_modeltype == 1)
       }
     fitresults =  CaloWaveformProcessing::calo_processing_templatefit(waveformvector);
   }
+
+if (m_modeltype == 2)
+  {
+    fitresults =  CaloWaveformProcessing::calo_processing_ONNX(waveformvector);
+  }
+
   return fitresults;
-}
+} 
 
 
 
@@ -141,5 +154,40 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_template
   fit_params.clear();
 }
 
+
+
+
+
+std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(std::vector<std::vector<float>> chnlvector)
+{
+  std::vector<std::vector<float>> fit_values;
+  int nchnls = chnlvector.size();
+  for (int m = 0; m < nchnls;m++)
+    {
+      std::vector<float> v = chnlvector.at(m);
+      int nsamples = v.size()-1;
+      std::vector<float> vtmp;
+      for (int k = 0; k < nsamples;k++)
+	{
+	  vtmp.push_back(v.at(k));
+	}
+      std::vector<float> val = onnxInference(onnxmodule,vtmp,1);
+    int nvals = val.size();
+      for (int i = 0 ; i < nvals;i++)
+	{
+	  if (i == 0 || i== 2)
+	    {
+	      val.at(i) = val.at(i);
+	    }
+	}
+      while ((int) val.size() < 3)
+	{
+	  val.push_back(1.0);
+	} 
+      fit_values.push_back(val);
+      val.clear();
+    }
+  return fit_values;
+}
 
 
