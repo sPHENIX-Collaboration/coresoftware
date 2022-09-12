@@ -89,21 +89,21 @@ class PHG4Reco : public SubsysReco
   //! set default scaling factor for input magnetic field map. If available, Field map setting on DST take higher priority.
   void set_field_rescale(const float rescale) { m_MagneticFieldRescale = rescale; }
 
-  void set_decayer_active(bool b) { m_ActiveDecayerFlag = b; }
+//  void set_decayer_active(bool b) { m_ActiveDecayerFlag = b; }  //Disable After Merging the Decayer flag to emuneration for decayer selections
   void set_force_decay(EDecayType force_decay_type)
   {
-    m_ActiveDecayerFlag = true;
+//    m_ActiveDecayerFlag = true;
     m_ActiveForceDecayFlag = true;
     m_ForceDecayType = force_decay_type;
   }
 
   //! export geometry to root file
-  void export_geometry(bool b, const std::string &filename = "sPHENIXGeom.root")
+  void export_geometry( bool b, const std::string& filename = "sPHENIXGeom.root" )
   {
     m_ExportGeometry = b;
     m_ExportGeomFilename = filename;
   }
-
+  
   //! Save geometry from Geant4 to DST
   void save_DST_geometry(bool b) { m_SaveDstGeometryFlag = b; }
   void SetWorldSizeX(const double sx) { m_WorldSize[0] = sx; }
@@ -193,21 +193,23 @@ class PHG4Reco : public SubsysReco
 
   bool m_ExportGeometry = false;
   std::string m_ExportGeomFilename = "sPHENIXGeom.root";
-
+  
   // settings for the external Pythia6 decayer
-  bool m_ActiveDecayerFlag = true;      //< turn on/off decayer
-  bool m_ActiveForceDecayFlag = false;  //< turn on/off force decay channels
-
-  enum DecayerOptions
+ // bool m_ActiveDecayerFlag = true;     //< turn on/off decayer
+    bool m_ActiveForceDecayFlag = false;  //< turn on/off force decay channels
+							
+  enum DecayerOptions 
   {
-    kPYTHIA6Decayer = 0,
-    kEvtGenDecayer = 1,
+		kGEANTInternalDecayer = 0,	  
+        kPYTHIA6Decayer = 1,    
+        kEvtGenDecayer = 2,
+     
+   };   // Decayer Option for User to Choose: 0 - GEANT 4 Internal Decayer (with momentum conservation issues), 1, PYTHIA 6 Decayer, 2 - EvtGen Decayer
 
-  };  // Decayer Option for User to Choose: 0 - PYTHIA 6 Decayer, 1 - EvtGen Decayer
-
-  DecayerOptions m_Decayer = kEvtGenDecayer;
+  DecayerOptions m_Decayer = kEvtGenDecayer; // Here we use EvtGen
 
   EDecayType m_ForceDecayType = kAll;  //< forced decay channel setting
+
 
   bool m_SaveDstGeometryFlag = true;
   bool m_disableUserActions = false;
