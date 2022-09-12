@@ -145,7 +145,8 @@ int QAG4SimulationMicromegas::InitRun(PHCompositeNode* topNode)
   if (!m_svtxEvalStack)
   {
     m_svtxEvalStack.reset(new SvtxEvalStack(topNode));
-    m_svtxEvalStack->set_strict(true);
+    //    m_svtxEvalStack->set_strict(true);
+    m_svtxEvalStack->set_strict(false);
     m_svtxEvalStack->set_verbosity(Verbosity());
   }
 
