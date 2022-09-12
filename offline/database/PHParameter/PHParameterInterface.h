@@ -44,6 +44,8 @@ class PHParameterInterface
 
  private:
   PHParameters *m_Params = nullptr;
+
+  bool m_Locked = false;
   std::map<const std::string, double> m_DoubleParMap;
   std::map<const std::string, int> m_IntParMap;
   std::map<const std::string, std::string> m_StringParMap;
