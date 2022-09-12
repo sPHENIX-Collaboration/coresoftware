@@ -109,12 +109,9 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack *thisTrack, P
   if (findNode)
   {
     findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("G4TruthInfo"));
-    if (findNode && m_truthinfo == nullptr)
+    if (findNode)
     {
       m_truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-    }
-    else if (findNode && m_truthinfo != nullptr)
-    {
     }
     else
     {
@@ -375,12 +372,9 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   if (g4particle->get_parent_id() != 0)
   {
     PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("G4TruthInfo"));
-    if (findNode && m_truthinfo == nullptr)
+    if (findNode)
     {
       m_truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-    }
-    else if (findNode && m_truthinfo != nullptr)
-    {
     }
     else
     {
