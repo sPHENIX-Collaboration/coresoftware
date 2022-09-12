@@ -53,7 +53,7 @@ void PHG4PSTOFDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Material *Glass = GetDetectorMaterial("G4_GLASS_PLATE");
   G4Box *pstof_box = new G4Box("pstof_box", 0.8 * cm, 6 * cm, 5 * cm);
 
-  G4LogicalVolume *pstof_log_vol = new G4LogicalVolume(pstof_box, Glass, G4String("PSTOF_box"), 0, 0, 0);
+  G4LogicalVolume *pstof_log_vol = new G4LogicalVolume(pstof_box, Glass, G4String("PSTOF_box"), nullptr, nullptr, nullptr);
   G4VisAttributes *pstofVisAtt = new G4VisAttributes();
   pstofVisAtt->SetVisibility(true);
   pstofVisAtt->SetForceSolid(true);

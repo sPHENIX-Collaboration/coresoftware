@@ -64,9 +64,7 @@ PHG4GDMLDetector::PHG4GDMLDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
   }
 }
 
-PHG4GDMLDetector::~PHG4GDMLDetector()
-{
-}
+PHG4GDMLDetector::~PHG4GDMLDetector() = default;
 
 void
 

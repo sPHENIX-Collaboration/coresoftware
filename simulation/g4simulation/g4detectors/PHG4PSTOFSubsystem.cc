@@ -113,13 +113,13 @@ void PHG4PSTOFSubsystem::Print(const std::string &what) const
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4PSTOFSubsystem::GetDetector(void) const
+PHG4Detector *PHG4PSTOFSubsystem::GetDetector() const
 {
   return detector_;
 }
 
 //_______________________________________________________________________
-PHG4SteppingAction *PHG4PSTOFSubsystem::GetSteppingAction(void) const
+PHG4SteppingAction *PHG4PSTOFSubsystem::GetSteppingAction() const
 {
   return steppingAction_;
 }

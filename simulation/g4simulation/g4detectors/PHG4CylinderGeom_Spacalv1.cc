@@ -127,12 +127,11 @@ void PHG4CylinderGeom_Spacalv1::Print(Option_t*) const
     cout << "\t"
          << "Containing " << sector_map.size()
          << " sector with rotation specified:" << endl;
-    for (sector_map_t::const_iterator it = sector_map.begin();
-         it != sector_map.end(); ++it)
+    for (auto it : sector_map)
     {
       cout << "\t"
            << "\t"
-           << "sector_map[" << it->first << "] = " << it->second
+           << "sector_map[" << it.first << "] = " << it.second
            << endl;
     }
   }
