@@ -55,7 +55,7 @@ class TrkrTruthTrack : public PHObject
 
  protected:
   unsigned int trackid;
-  TrkrTruthTrack() = default;
+  TrkrTruthTrack() : trackid{0} {};
   ClassDefOverride(TrkrTruthTrack, 1)
 };
 
