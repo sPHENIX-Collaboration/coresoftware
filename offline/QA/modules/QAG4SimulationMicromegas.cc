@@ -418,7 +418,12 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
     if (Verbosity() > 0)
       std::cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gembed " << gembed << " gflavor " << gflavor << " gprimary " << gprimary << std::endl;
+    std::cout << "get clusters from g4part..." << std::endl; 
+    const auto ckeyset = clustereval->all_clusters_from(g4particle);
+    std::cout << "done cfg4, size: " << ckeyset.size() << std::endl; 
+
     std::cout << "get truth clusters..." << std::endl;
+    if(trutheval == NULL) std::cout << "no dice" << std::endl;
     // Get the truth clusters from this particle
     const auto truth_clusters = trutheval->all_truth_clusters(g4particle);
 
@@ -448,9 +453,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
     // process residuals and pulls
     // get reco clusters
-    std::cout << "get clusters from g4part..." << std::endl; 
-    const auto ckeyset = clustereval->all_clusters_from(g4particle);
-    std::cout << "done cfg4" << std::endl; 
+
     for (const auto ckey:ckeyset)
     {
       const auto layer = TrkrDefs::getLayer(ckey);
