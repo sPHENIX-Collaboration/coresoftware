@@ -113,7 +113,7 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // disable GDML export for HCal geometries for memory saving and compatibility issues
   assert(gdml_config);
   gdml_config->exclude_physical_vol(mothervol);
-  gdml_config->exclude_logical_vol (hcal_envelope_log);
+  gdml_config->exclude_logical_vol(hcal_envelope_log);
 
   return;
 }

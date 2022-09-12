@@ -81,7 +81,7 @@ int PHG4IHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     {
       nodes.insert(m_AbsorberNodeName);
     }
-    for (const auto& nodename : nodes)
+    for (const auto &nodename : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
