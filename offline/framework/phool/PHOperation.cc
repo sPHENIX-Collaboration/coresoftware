@@ -12,10 +12,8 @@
 
 template <class T>
 PHOperation<T>::PHOperation()
-{
-}
+= default;
 
 template <class T>
 PHOperation<T>::~PHOperation()
-{
-}
+= default;
