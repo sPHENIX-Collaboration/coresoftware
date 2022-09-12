@@ -174,8 +174,6 @@ void PHG4TpcEndCapDetector ::CreateCompositeMaterial(
   //takes in a list of material names known to Geant already, and thicknesses, and creates a new material called compositeName.
 
   //check that desired material name doesn't already exist
-  //note that this throws a warning.
-  std::cout << __PRETTY_FUNCTION__ << " NOTICE: Checking if material " << compositeName << " exists.  This will return a warning if it doesn't, but that is okay." << std::endl;
   G4Material *tempmat = GetDetectorMaterial(compositeName, false);
 
   if (tempmat != nullptr)

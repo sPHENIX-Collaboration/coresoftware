@@ -21,7 +21,7 @@ JetMap::ConstSrcIter JetMap::find_src(Jet::SRC /*src*/) const
   return DummyJetSourceSet.end();
 }
 
-JetMap::ConstSrcIter JetMap:: end_src() const
+JetMap::ConstSrcIter JetMap::end_src() const
 {
   return DummyJetSourceSet.end();
 }

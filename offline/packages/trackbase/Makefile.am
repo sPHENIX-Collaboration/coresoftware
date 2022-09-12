@@ -15,12 +15,15 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
   ActsTrackingGeometry.h \
   ActsGeometry.h \
+  AlignmentTransformation.h \
+  alignmentTransformationContainer.h \
   ClusterErrorPara.h \
   CMFlashCluster.h \
   CMFlashClusterv1.h \
@@ -69,6 +72,7 @@ pkginclude_HEADERS = \
   TrkrHitSetContainerv1.h
 
 ROOTDICTS = \
+  alignmentTransformationContainer_Dict.cc \
   CMFlashCluster_Dict.cc \
   CMFlashClusterv1_Dict.cc \
   CMFlashClusterContainer_Dict.cc \
@@ -113,6 +117,7 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  alignmentTransformationContainer_Dict_rdict.pcm \
   CMFlashCluster_Dict_rdict.pcm \
   CMFlashClusterv1_Dict_rdict.pcm \
   CMFlashClusterContainer_Dict_rdict.pcm \
@@ -158,6 +163,8 @@ libtrack_io_la_SOURCES = \
   $(ROOTDICTS) \
   ActsSurfaceMaps.cc \
   ActsGeometry.cc \
+  AlignmentTransformation.cc \
+  alignmentTransformationContainer.cc \
   ClusterErrorPara.cc \
   CMFlashClusterv1.cc \
   CMFlashClusterContainerv1.cc \
@@ -199,7 +206,9 @@ libtrack_io_la_SOURCES = \
 libtrack_io_la_LIBADD = \
   -lphool \
   -lActsCore \
-  -lActsPluginTGeo
+  -lActsPluginTGeo \
+  -lffamodules
+
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

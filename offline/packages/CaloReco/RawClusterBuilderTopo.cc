@@ -175,8 +175,8 @@ void RawClusterBuilderTopo::export_single_cluster(std::vector<int> original_towe
     std::cout << "RawClusterBuilderTopo::export_single_cluster called " << std::endl;
 
   std::map<int, std::pair<int, int> > tower_ownership;
-  for (unsigned int t = 0; t < original_towers.size(); t++)
-    tower_ownership[original_towers.at(t)] = std::pair<int, int>(0, -1);  // all towers owned by cluster 0
+  for (int &original_tower : original_towers)
+    tower_ownership[original_tower] = std::pair<int, int>(0, -1);  // all towers owned by cluster 0
 
   export_clusters(original_towers, tower_ownership, 1, std::vector<float>(), std::vector<float>(), std::vector<float>());
 
@@ -205,13 +205,13 @@ void RawClusterBuilderTopo::export_clusters(std::vector<int> original_towers, st
     clusters_z.push_back(0);
   }
 
-  for (unsigned int t = 0; t < original_towers.size(); t++)
+  for (int original_tower : original_towers)
   {
-    int this_ID = original_towers.at(t);
+    int this_ID = original_tower;
     std::pair<int, int> the_pair = tower_ownership[this_ID];
 
     if (Verbosity() > 5)
-      std::cout << "RawClusterBuilderTopo::export_clusters -> assigning tower " << original_towers.at(t) << " with ownership ( " << the_pair.first << ", " << the_pair.second << " ) " << std::endl;
+      std::cout << "RawClusterBuilderTopo::export_clusters -> assigning tower " << original_tower << " with ownership ( " << the_pair.first << ", " << the_pair.second << " ) " << std::endl;
 
     int this_ieta = get_ieta_from_ID(this_ID);
     int this_iphi = get_iphi_from_ID(this_ID);
@@ -247,7 +247,7 @@ void RawClusterBuilderTopo::export_clusters(std::vector<int> original_towers, st
       // assigned to two clusters! get energy sharing fraction ...
       float dR1 = calculate_dR(tower_geom->get_eta(), pseudocluster_eta[the_pair.first], tower_geom->get_phi(), pseudocluster_phi[the_pair.first]) / _R_shower;
       float dR2 = calculate_dR(tower_geom->get_eta(), pseudocluster_eta[the_pair.second], tower_geom->get_phi(), pseudocluster_phi[the_pair.second]) / _R_shower;
-      float r = exp(dR1 - dR2);
+      float r = std::exp(dR1 - dR2);
       float frac1 = pseudocluster_sumE[the_pair.first] / (pseudocluster_sumE[the_pair.first] + r * pseudocluster_sumE[the_pair.second]);
 
       if (Verbosity() > 5)
@@ -277,14 +277,14 @@ void RawClusterBuilderTopo::export_clusters(std::vector<int> original_towers, st
     float mean_y = clusters_y[cl] / clusters_E[cl];
     float mean_z = clusters_z[cl] / clusters_E[cl];
 
-    clusters[cl]->set_r(sqrt(mean_y * mean_y + mean_x * mean_x));
-    clusters[cl]->set_phi(atan2(mean_y, mean_x));
+    clusters[cl]->set_r(std::sqrt(mean_y * mean_y + mean_x * mean_x));
+    clusters[cl]->set_phi(std::atan2(mean_y, mean_x));
     clusters[cl]->set_z(mean_z);
 
     _clusters->AddCluster(clusters[cl]);
 
     if (Verbosity() > 1)
-      std::cout << "RawClusterBuilderTopo::export_clusters: added cluster with E = " << clusters_E[cl] << ", eta = " << -1 * log(tan(atan2(sqrt(mean_y * mean_y + mean_x * mean_x), mean_z) / 2.0)) << ", phi = " << atan2(mean_y, mean_x) << std::endl;
+      std::cout << "RawClusterBuilderTopo::export_clusters: added cluster with E = " << clusters_E[cl] << ", eta = " << -1 * log(tan(atan2(std::sqrt(mean_y * mean_y + mean_x * mean_x), mean_z) / 2.0)) << ", phi = " << std::atan2(mean_y, mean_x) << std::endl;
   }
 
   return;
@@ -292,7 +292,6 @@ void RawClusterBuilderTopo::export_clusters(std::vector<int> original_towers, st
 
 RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
   : SubsysReco(name)
-  , _clusters(nullptr)
 {
   // geometry defined at run-time
   _EMCAL_NETA = -1;
@@ -300,10 +299,7 @@ RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
 
   _HCAL_NETA = -1;
   _HCAL_NPHI = -1;
-
-  for (int i = 0; i < 3; ++i)
-    _geom_containers[i] = nullptr;
-
+  std::fill(std::begin(_geom_containers), std::end(_geom_containers), nullptr);
   _noise_LAYER[0] = 0.0025;
   _noise_LAYER[1] = 0.006;
   _noise_LAYER[2] = 0.03;  // EM
@@ -472,7 +468,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       if (this_E > _sigma_seed * _noise_LAYER[2])
       {
         int ID = get_ID(2, ieta, iphi);
-        list_of_seeds.push_back(std::pair<int, float>(ID, this_E));
+        list_of_seeds.emplace_back(ID, this_E);
         if (Verbosity() > 10)
         {
           std::cout << "RawClusterBuilderTopo::process_event: adding EMCal tower at ieta / iphi = " << ieta << " / " << iphi << " with E = " << this_E << std::endl;
@@ -502,7 +498,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       if (this_E > _sigma_seed * _noise_LAYER[0])
       {
         int ID = get_ID(0, ieta, iphi);
-        list_of_seeds.push_back(std::pair<int, float>(ID, this_E));
+        list_of_seeds.emplace_back(ID, this_E);
         if (Verbosity() > 10)
         {
           std::cout << "RawClusterBuilderTopo::process_event: adding IHCal tower at ieta / iphi = " << ieta << " / " << iphi << " with E = " << this_E << std::endl;
@@ -528,7 +524,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       if (this_E > _sigma_seed * _noise_LAYER[1])
       {
         int ID = get_ID(1, ieta, iphi);
-        list_of_seeds.push_back(std::pair<int, float>(ID, this_E));
+        list_of_seeds.emplace_back(ID, this_E);
         if (Verbosity() > 10)
         {
           std::cout << "RawClusterBuilderTopo::process_event: adding OHCal tower at ieta / iphi = " << ieta << " / " << iphi << " with E = " << this_E << std::endl;
@@ -606,10 +602,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
       std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(grow_ID);
 
-      for (unsigned int adj = 0; adj < adjacent_tower_IDs.size(); adj++)
+      for (int this_adjacent_tower_ID : adjacent_tower_IDs)
       {
-        int this_adjacent_tower_ID = adjacent_tower_IDs.at(adj);
-
         if (Verbosity() > 10) std::cout << " --> --> --> checking possible adjacent tower with ID " << this_adjacent_tower_ID << " : ";
 
         int test_layer = get_ilayer_from_ID(this_adjacent_tower_ID);
@@ -668,10 +662,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
       std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(core_ID);
 
-      for (unsigned int adj = 0; adj < adjacent_tower_IDs.size(); adj++)
+      for (int this_adjacent_tower_ID : adjacent_tower_IDs)
       {
-        int this_adjacent_tower_ID = adjacent_tower_IDs.at(adj);
-
         if (Verbosity() > 10) std::cout << " --> --> --> checking possible adjacent tower with ID " << this_adjacent_tower_ID << " : ";
 
         int test_layer = get_ilayer_from_ID(this_adjacent_tower_ID);
@@ -732,10 +724,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     std::vector<std::pair<int, float> > local_maxima_ID;
 
     // iterate through each tower, looking for maxima
-    for (unsigned int t = 0; t < original_towers.size(); t++)
+    for (int tower_ID : original_towers)
     {
-      int tower_ID = original_towers.at(t);
-
       if (Verbosity() > 10) std::cout << " -> examining tower ID " << tower_ID << " for possible local maximum " << std::endl;
 
       // check minimum energy
@@ -751,10 +741,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
       // check for higher neighbox
       bool has_higher_neighbor = false;
-      for (unsigned int adj = 0; adj < adjacent_tower_IDs.size(); adj++)
+      for (int this_adjacent_tower_ID : adjacent_tower_IDs)
       {
-        int this_adjacent_tower_ID = adjacent_tower_IDs.at(adj);
-
         if (get_status_from_ID(this_adjacent_tower_ID) != cl) continue;  // only consider neighbors in cluster, obviously
 
         neighbors_in_cluster++;
@@ -776,7 +764,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         continue;
       }
 
-      local_maxima_ID.push_back(std::pair<int, float>(tower_ID, get_E_from_ID(tower_ID)));
+      local_maxima_ID.emplace_back(tower_ID, get_E_from_ID(tower_ID));
     }
 
     // check for possible EMCal-OHCal seed overlaps
@@ -834,9 +822,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     // only now print out full set of local maxima
     if (Verbosity() > 2)
     {
-      for (unsigned int n = 0; n < local_maxima_ID.size(); n++)
+      for (auto this_LM : local_maxima_ID)
       {
-        std::pair<int, float> this_LM = local_maxima_ID.at(n);
         int tower_ID = this_LM.first;
         std::cout << "RawClusterBuilderTopo::process_event in cluster " << cl << ", tower ID " << tower_ID << " is LOCAL MAXIMUM with layer / E = " << get_ilayer_from_ID(tower_ID) << " / " << get_E_from_ID(tower_ID) << ", ";
         float this_phi = _geom_containers[get_ilayer_from_ID(tower_ID)]->get_phicenter(get_iphi_from_ID(tower_ID));
@@ -864,8 +851,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     // -2 means seen and in the seed list now (e.g. don't add it to the seed list again)
     // -3 shared tower, ignore going forward...
     std::map<int, std::pair<int, int> > tower_ownership;
-    for (unsigned int t = 0; t < original_towers.size(); t++)
-      tower_ownership[original_towers.at(t)] = std::pair<int, int>(-1, -1);  // initialize all towers as un-seen
+    for (int &original_tower : original_towers)
+      tower_ownership[original_tower] = std::pair<int, int>(-1, -1);  // initialize all towers as un-seen
 
     std::vector<int> seed_list;
     std::vector<int> neighbor_list;
@@ -883,11 +870,11 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 100)
     {
-      for (unsigned int t = 0; t < original_towers.size(); t++)
+      for (int &original_tower : original_towers)
       {
-        std::pair<int, int> the_pair = tower_ownership[original_towers.at(t)];
-        std::cout << " Debug Pre-Split: tower_ownership[ " << original_towers.at(t) << " ] = ( " << the_pair.first << ", " << the_pair.second << " ) ";
-        std::cout << " , layer / ieta / iphi = " << get_ilayer_from_ID(original_towers.at(t)) << " / " << get_ieta_from_ID(original_towers.at(t)) << " / " << get_iphi_from_ID(original_towers.at(t));
+        std::pair<int, int> the_pair = tower_ownership[original_tower];
+        std::cout << " Debug Pre-Split: tower_ownership[ " << original_tower << " ] = ( " << the_pair.first << ", " << the_pair.second << " ) ";
+        std::cout << " , layer / ieta / iphi = " << get_ilayer_from_ID(original_tower) << " / " << get_ieta_from_ID(original_tower) << " / " << get_iphi_from_ID(original_tower);
         std::cout << std::endl;
       }
     }
@@ -923,9 +910,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
           // look over all towers THIS one is adjacent to, and count up...
           std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(neighbor_ID);
-          for (unsigned int adj = 0; adj < adjacent_tower_IDs.size(); adj++)
+          for (int this_adjacent_tower_ID : adjacent_tower_IDs)
           {
-            int this_adjacent_tower_ID = adjacent_tower_IDs.at(adj);
             if (get_status_from_ID(this_adjacent_tower_ID) != cl) continue;
             if (tower_ownership[this_adjacent_tower_ID].first > -1)
             {
@@ -1000,9 +986,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         {
           std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(neighbor_ID);
 
-          for (unsigned int adj = 0; adj < adjacent_tower_IDs.size(); adj++)
+          for (int this_adjacent_tower_ID : adjacent_tower_IDs)
           {
-            int this_adjacent_tower_ID = adjacent_tower_IDs.at(adj);
             if (get_status_from_ID(this_adjacent_tower_ID) != cl) continue;
             if (tower_ownership[this_adjacent_tower_ID].first == -1)
             {
@@ -1038,19 +1023,18 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 100)
     {
-      for (unsigned int t = 0; t < original_towers.size(); t++)
+      for (int &original_tower : original_towers)
       {
-        std::pair<int, int> the_pair = tower_ownership[original_towers.at(t)];
-        std::cout << " Debug Mid-Split: tower_ownership[ " << original_towers.at(t) << " ] = ( " << the_pair.first << ", " << the_pair.second << " ) ";
-        std::cout << " , layer / ieta / iphi = " << get_ilayer_from_ID(original_towers.at(t)) << " / " << get_ieta_from_ID(original_towers.at(t)) << " / " << get_iphi_from_ID(original_towers.at(t));
+        std::pair<int, int> the_pair = tower_ownership[original_tower];
+        std::cout << " Debug Mid-Split: tower_ownership[ " << original_tower << " ] = ( " << the_pair.first << ", " << the_pair.second << " ) ";
+        std::cout << " , layer / ieta / iphi = " << get_ilayer_from_ID(original_tower) << " / " << get_ieta_from_ID(original_tower) << " / " << get_iphi_from_ID(original_tower);
         std::cout << std::endl;
         if (the_pair.first == -1)
         {
-          std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(original_towers.at(t));
+          std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(original_tower);
 
-          for (unsigned int adj = 0; adj < adjacent_tower_IDs.size(); adj++)
+          for (int this_adjacent_tower_ID : adjacent_tower_IDs)
           {
-            int this_adjacent_tower_ID = adjacent_tower_IDs.at(adj);
             if (get_status_from_ID(this_adjacent_tower_ID) != cl) continue;
             std::cout << "    -> adjacent to add tower " << this_adjacent_tower_ID << " , which has status " << tower_ownership[this_adjacent_tower_ID].first << std::endl;
           }
@@ -1071,12 +1055,12 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     pseudocluster_sumE.resize(local_maxima_ID.size(), 0);
     pseudocluster_ntower.resize(local_maxima_ID.size(), 0);
 
-    for (unsigned int t = 0; t < original_towers.size(); t++)
+    for (int &original_tower : original_towers)
     {
-      std::pair<int, int> the_pair = tower_ownership[original_towers.at(t)];
+      std::pair<int, int> the_pair = tower_ownership[original_tower];
       if (the_pair.first > -1)
       {
-        float this_ID = original_towers.at(t);
+        float this_ID = original_tower;
         pseudocluster_sumE[the_pair.first] += get_E_from_ID(this_ID);
         float this_eta = _geom_containers[get_ilayer_from_ID(this_ID)]->get_etacenter(get_ieta_from_ID(this_ID));
         float this_phi = _geom_containers[get_ilayer_from_ID(this_ID)]->get_phicenter(get_iphi_from_ID(this_ID));
@@ -1115,9 +1099,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
       std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(shared_ID);
 
-      for (unsigned int adj = 0; adj < adjacent_tower_IDs.size(); adj++)
+      for (int this_adjacent_tower_ID : adjacent_tower_IDs)
       {
-        int this_adjacent_tower_ID = adjacent_tower_IDs.at(adj);
         if (get_status_from_ID(this_adjacent_tower_ID) != cl) continue;
         if (tower_ownership[this_adjacent_tower_ID].first > -1)
         {
@@ -1172,19 +1155,18 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 100)
     {
-      for (unsigned int t = 0; t < original_towers.size(); t++)
+      for (int &original_tower : original_towers)
       {
-        std::pair<int, int> the_pair = tower_ownership[original_towers.at(t)];
-        std::cout << " Debug Post-Split: tower_ownership[ " << original_towers.at(t) << " ] = ( " << the_pair.first << ", " << the_pair.second << " ) ";
-        std::cout << " , layer / ieta / iphi = " << get_ilayer_from_ID(original_towers.at(t)) << " / " << get_ieta_from_ID(original_towers.at(t)) << " / " << get_iphi_from_ID(original_towers.at(t));
+        std::pair<int, int> the_pair = tower_ownership[original_tower];
+        std::cout << " Debug Post-Split: tower_ownership[ " << original_tower << " ] = ( " << the_pair.first << ", " << the_pair.second << " ) ";
+        std::cout << " , layer / ieta / iphi = " << get_ilayer_from_ID(original_tower) << " / " << get_ieta_from_ID(original_tower) << " / " << get_iphi_from_ID(original_tower);
         std::cout << std::endl;
         if (the_pair.first == -1)
         {
-          std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(original_towers.at(t));
+          std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(original_tower);
 
-          for (unsigned int adj = 0; adj < adjacent_tower_IDs.size(); adj++)
+          for (int this_adjacent_tower_ID : adjacent_tower_IDs)
           {
-            int this_adjacent_tower_ID = adjacent_tower_IDs.at(adj);
             if (get_status_from_ID(this_adjacent_tower_ID) != cl) continue;
             std::cout << " -> adjacent to add tower " << this_adjacent_tower_ID << " , which has status " << tower_ownership[this_adjacent_tower_ID].first << std::endl;
           }

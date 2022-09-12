@@ -22,8 +22,15 @@
 #ifndef KFPARTICLESPHENIX_KFPARTICLESPHENIX_H
 #define KFPARTICLESPHENIX_KFPARTICLESPHENIX_H
 
-#include "KFParticle_DST.h"
 #include "KFParticle_eventReconstruction.h"
+
+// There is something broken in this package. clang format puts
+// #include "KFParticle_DST.h" first if there is no space but then
+// loading KFParticle makes root barf. I have no time to track this down
+// right now, it must be something in KFParticle_eventReconstruction.h and
+// the include files it uses (some include guard misfiring?)
+
+#include "KFParticle_DST.h"
 #include "KFParticle_nTuple.h"
 
 //sPHENIX stuff

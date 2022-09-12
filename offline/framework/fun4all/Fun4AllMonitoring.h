@@ -17,7 +17,7 @@ class Fun4AllMonitoring : public Fun4AllBase
     mInstance = new Fun4AllMonitoring();
     return mInstance;
   }
-  ~Fun4AllMonitoring() override;
+  ~Fun4AllMonitoring() override = default;
   void Snapshot(const std::string &what = "AfterProcessEvent");
 
   void PrintsMaps() const;
