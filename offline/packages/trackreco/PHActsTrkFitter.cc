@@ -22,6 +22,8 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+
 #include <micromegas/MicromegasDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -116,6 +118,14 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
       h_stateTime = new TH1F("h_stateTime", ";time [ms]",
 			     100000, 0, 1000);			     
     }		 
+
+   auto cellgeo =
+      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+
+  if (cellgeo)
+  {
+    _clusterMover.initialize_geometry(cellgeo);
+  }
 
   if(Verbosity() > 1)
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
