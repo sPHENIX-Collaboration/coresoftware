@@ -34,49 +34,39 @@
 
 //#include "G4EvtGenDecayerMessenger.hh"
 
-
-#include <Geant4/G4ThreeVector.hh>              // for G4ThreeVector
-#include <Geant4/G4Types.hh>                    // for G4int, G4bool
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+#include <Geant4/G4Types.hh>        // for G4int, G4bool
 #include <Geant4/G4VExtDecayer.hh>
-
-
-
 
 #include <cstddef>
 
-#include <TVirtualMCDecayer.h>
-#include <TString.h>
 #include <EvtGen/EvtGen.hh>
-#include <TLorentzVector.h>
-#include <EvtGenBase/EvtSimpleRandomEngine.hh>
-#include <EvtGenBase/EvtRandomEngine.hh>
-#include <EvtGenExternal/EvtExternalGenList.hh>
 #include <EvtGenBase/EvtRandom.hh>
+#include <EvtGenBase/EvtRandomEngine.hh>
+#include <EvtGenBase/EvtSimpleRandomEngine.hh>
+#include <EvtGenExternal/EvtExternalGenList.hh>
 
-
-
+#include <EvtGenBase/EvtHepMCEvent.hh>
+#include <EvtGenBase/EvtPDL.hh>
 #include <EvtGenBase/EvtParticle.hh>
 #include <EvtGenBase/EvtParticleFactory.hh>
-#include <EvtGenBase/EvtPDL.hh>
 #include <EvtGenBase/EvtRandom.hh>
-#include <EvtGenBase/EvtHepMCEvent.hh>
 
-#include <EvtGenBase/EvtMTRandomEngine.hh>
 #include <EvtGenBase/EvtAbsRadCorr.hh>
 #include <EvtGenBase/EvtDecayBase.hh>
+#include <EvtGenBase/EvtMTRandomEngine.hh>
 #include <EvtGenExternal/EvtExternalGenList.hh>
 
 #include <EvtGenBase/EvtHepMCEvent.hh>
 
-#include <HepMC3/HepMC3.h>
 #include <HepMC3/GenEvent.h>
-#include <HepMC3/GenVertex.h>
 #include <HepMC3/GenParticle.h>
-
+#include <HepMC3/GenVertex.h>
+#include <HepMC3/HepMC3.h>
 
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenVertex.h>
 #include <HepMC/GenParticle.h>
+#include <HepMC/GenVertex.h>
 
 #include <G4LorentzVector.hh>
 
@@ -89,7 +79,10 @@ class EvtStdlibRandomEngine;
 class EvtParticle;
 class EvtRandomEngine;
 
-namespace CLHEP { class HepLorentzVector; }
+namespace CLHEP
+{
+  class HepLorentzVector;
+}
 
 /// Pythia6 decayer
 ///
@@ -100,58 +93,50 @@ namespace CLHEP { class HepLorentzVector; }
 
 class G4EvtGenDecayer : public G4VExtDecayer
 {
-	public:
+ public:
+  G4EvtGenDecayer();
 
-		G4EvtGenDecayer();
+  virtual ~G4EvtGenDecayer();
+  virtual G4DecayProducts* ImportDecayProducts(const G4Track& track);
+  void SetVerboseLevel(G4int verboseLevel) { fVerboseLevel = verboseLevel; }
 
-		virtual ~G4EvtGenDecayer();
-		virtual G4DecayProducts* ImportDecayProducts(const G4Track& track);
-		void SetVerboseLevel(G4int verboseLevel) { fVerboseLevel =  verboseLevel; }
+  void PHEvtGenDecayer();
+  //	virtual void ~PHEvtGenDecayer();
+  void Decay(int pdgId, G4LorentzVector* p);
+  int ImportParticles(std::vector<int>& DecayPDGID, std::vector<int>& DecayStatus, std::vector<G4LorentzVector>& DecayMom, std::vector<G4LorentzVector>& DecayVtx);
+  void SetVertex(G4LorentzVector* r);
+  void SetDecayTable(const string decayTable, bool useXml);
+  void ClearEvent();
+  void AppendParticle(int pdg, G4LorentzVector* _p);
 
-		void PHEvtGenDecayer();
-		//	virtual void ~PHEvtGenDecayer();
-		void Decay(Int_t pdgId, G4LorentzVector* p);
-		Int_t ImportParticles(std::vector<int>& DecayPDGID,std::vector<int>& DecayStatus,std::vector<G4LorentzVector>& DecayMom,std::vector<G4LorentzVector>& DecayVtx);
-		void SetVertex(G4LorentzVector* r);
-		void SetDecayTable(const string decayTable, bool useXml);
-		void ClearEvent();
-		void AppendParticle(Int_t pdg, G4LorentzVector* _p);	
+ private:
+  /// Not implemented
+  G4EvtGenDecayer(const G4EvtGenDecayer& right);
+  /// Not implemented
+  G4EvtGenDecayer& operator=(const G4EvtGenDecayer& right);
+  //G4EvtGenDecayer* myEvtGenDecayer = NULL;
+  EvtGen* myGenerator;
 
+  G4ParticleDefinition*
+  GetParticleDefinition(int ParPDGID, G4bool warn = true) const;
 
+  bool IsG4Detectable(int ParPDGID, G4bool warn = true) const;
 
+  std::string Decay_DEC = "InputDECAYFiles/DECAY.DEC";
+  std::string Evt_pdl = "InputDECAYFiles/evt.pdl";
 
+  EvtGen* mEvtGen = NULL;
+  EvtRandomEngine* mEvtGenRandomEngine = NULL;
+  EvtParticle* mParticle;
+  //	TLorentzVector * mVertex = new TLorentzVector;
+  bool mOwner;
+  bool mDebug = false;
 
-	private:
+  EvtVector4R* mVertex;
 
-		/// Not implemented
-		G4EvtGenDecayer(const G4EvtGenDecayer& right);
-		/// Not implemented
-		G4EvtGenDecayer& operator=(const G4EvtGenDecayer& right);
-		//G4EvtGenDecayer* myEvtGenDecayer = NULL;
-		EvtGen *myGenerator;
-
-		G4ParticleDefinition*
-			GetParticleDefinition(int ParPDGID,G4bool warn = true) const;
-
-
-		bool IsG4Detectable(int ParPDGID,G4bool warn = true) const;
-
-		std::string Decay_DEC = "InputDECAYFiles/DECAY.DEC";
-		std::string Evt_pdl = "InputDECAYFiles/evt.pdl";
-
-		EvtGen* mEvtGen = NULL;	
-		EvtRandomEngine  * mEvtGenRandomEngine = NULL;
-		EvtParticle* mParticle;
-		//	TLorentzVector * mVertex = new TLorentzVector;  
-		bool mOwner;
-		bool mDebug = false; 
-
-		EvtVector4R * mVertex;
-
-		G4int            fVerboseLevel;        ///< verbose level
-											   //  ParticleVector*  fDecayProductsArray ; ///< array of decay products
-	//	TLorentzVector FourMom;
-
+  G4int fVerboseLevel;  ///< verbose level
+                        //  ParticleVector*  fDecayProductsArray ; ///< array of decay products
+                        //	TLorentzVector FourMom;
 };
 
 // ----------------------------------------------------------------------------

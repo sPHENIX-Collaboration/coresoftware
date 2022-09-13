@@ -33,8 +33,6 @@
 #ifndef EVT_EXT_DECAYER_PHYSICS_H
 #define EVT_EXT_DECAYER_PHYSICS_H
 
-
-
 #include <Geant4/G4String.hh>
 #include <Geant4/G4VPhysicsConstructor.hh>
 
@@ -62,9 +60,6 @@ class EvtGenExtDecayerPhysics : public G4VPhysicsConstructor
   EvtGenExtDecayerPhysics(const EvtGenExtDecayerPhysics& right);
   /// Not implemented
   EvtGenExtDecayerPhysics& operator=(const EvtGenExtDecayerPhysics& right);
-
-
-
 };
 
 #endif  //P6D_EXT_DECAYER_PHYSICS_H
