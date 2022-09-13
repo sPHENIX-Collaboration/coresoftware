@@ -9,9 +9,6 @@
 #include <ostream>      // for operator<<, endl, ostream, basic_ostream, bas...
 #include <utility>      // for pair, make_pair
 
-using namespace std;
-
-
 SvtxTrackMap_v2::SvtxTrackMap_v2()
   : _map()
 {
@@ -24,20 +21,24 @@ SvtxTrackMap_v2::SvtxTrackMap_v2(const SvtxTrackMap_v2& trackmap)
        iter != trackmap.end();
        ++iter)
   {
-    SvtxTrack* track = dynamic_cast<SvtxTrack*> (iter->second->CloneMe());
-    _map.insert(make_pair(track->get_id(), track));
+    auto track = static_cast<SvtxTrack*> (iter->second->CloneMe());
+    _map.insert(std::make_pair(track->get_id(), track));
   }
 }
 
 SvtxTrackMap_v2& SvtxTrackMap_v2::operator=(const SvtxTrackMap_v2& trackmap)
 {
+  
+  // do nothing if same  copying map onto itself
+  if( &trackmap == this ) return *this;
+  
   Reset();
   for (ConstIter iter = trackmap.begin();
        iter != trackmap.end();
        ++iter)
   {
-    SvtxTrack* track = dynamic_cast<SvtxTrack*> (iter->second->CloneMe());
-    _map.insert(make_pair(track->get_id(), track));
+    auto track = static_cast<SvtxTrack*> (iter->second->CloneMe());
+    _map.insert(std::make_pair(track->get_id(), track));
   }
   return *this;
 }
@@ -59,9 +60,9 @@ void SvtxTrackMap_v2::Reset()
   _map.clear();
 }
 
-void SvtxTrackMap_v2::identify(ostream& os) const
+void SvtxTrackMap_v2::identify(std::ostream& os) const
 {
-  os << "SvtxTrackMap_v2: size = " << _map.size() << endl;
+  os << "SvtxTrackMap_v2: size = " << _map.size() << std::endl;
   return;
 }
 
@@ -83,14 +84,31 @@ SvtxTrack* SvtxTrackMap_v2::insert(const SvtxTrack* track)
 {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair(index, dynamic_cast<SvtxTrack*> (track->CloneMe())));
-  _map[index]->set_id(index);
-  return _map[index];
+  auto copy = static_cast<SvtxTrack*>( track->CloneMe() );
+  copy->set_id(index);
+
+  const auto result = _map.insert(std::make_pair(index, copy ));
+  if( !result.second ) 
+  {
+    std::cout << "SvtxTrackMap_v2::insert - duplicated key. track not inserted" << std::endl; 
+    delete copy;
+    return nullptr;
+  } else {
+    return copy;
+  }
 }
 
 SvtxTrack* SvtxTrackMap_v2::insertWithKey(const SvtxTrack* track, unsigned int index)
 {
-  _map.insert(make_pair(index, dynamic_cast<SvtxTrack*> (track->CloneMe())));
-  _map[index]->set_id(index);
-  return _map[index];
+  auto copy = static_cast<SvtxTrack*>( track->CloneMe() );
+  copy->set_id(index);
+  const auto result = _map.insert(std::make_pair(index, copy ));
+  if( !result.second ) 
+  {
+    std::cout << "SvtxTrackMap_v2::insertWithKey - duplicated key. track not inserted" << std::endl; 
+    delete copy;
+    return nullptr;
+  } else {
+    return copy;
+  }
 }

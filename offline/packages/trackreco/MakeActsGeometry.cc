@@ -682,6 +682,10 @@ void MakeActsGeometry::unpackVolumes()
     assert( mmBarrel );
     makeMmMapPairs(mmBarrel);
   }
+  else
+    {
+      std::cout << "WARNING: You are not building the micromegas in your macro! If you intended to, make sure you set Enable::MICROMEGAS=true; otherwise, your macro will seg fault" << std::endl;
+    }
   
   {
     // MVTX
