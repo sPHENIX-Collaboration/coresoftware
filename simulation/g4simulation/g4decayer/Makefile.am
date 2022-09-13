@@ -15,7 +15,6 @@ AM_CXXFLAGS=`geant4-config --cflags`
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
   -DEVTGEN_HEPMC3
 
 libg4decayer_la_LDFLAGS = \
@@ -27,7 +26,6 @@ libg4decayer_la_LDFLAGS = \
 
 libg4decayer_la_LIBADD = \
   -lPythia6 \
-  -lfun4all \
   -lEvtGen \
   -lEvtGenExternal \
   -lHepMC3
