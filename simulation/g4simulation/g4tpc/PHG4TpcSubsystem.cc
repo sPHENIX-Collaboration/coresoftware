@@ -137,8 +137,8 @@ PHG4Detector *PHG4TpcSubsystem::GetDetector(void) const
 
 void PHG4TpcSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("gas_inner_radius", 21.);
-  set_default_double_param("gas_outer_radius", 77.);
+  set_default_double_param("gas_inner_radius", 21.6);
+  set_default_double_param("gas_outer_radius", 76.4);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);

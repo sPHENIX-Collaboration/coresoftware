@@ -23,7 +23,7 @@ PHNode::PHNode(const std::string& n, const std::string& typ)
   :  objecttype(typ)
 {
   int badnode = 0;
-  if (n.find(".") != std::string::npos)
+  if (n.find('.') != std::string::npos)
   {
     std::cout << PHWHERE << " No nodenames containing decimal point possible: "
          << n << std::endl;
@@ -34,7 +34,7 @@ PHNode::PHNode(const std::string& n, const std::string& typ)
     std::cout << PHWHERE << "Empty string as nodename given" << std::endl;
     badnode = 1;
   }
-  if (n.find(" ") != std::string::npos)
+  if (n.find(' ') != std::string::npos)
   {
     badnode = 1;
     std::cout << PHWHERE << "No nodenames with spaces" << std::endl;

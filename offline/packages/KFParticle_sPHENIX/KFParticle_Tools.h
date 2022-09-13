@@ -27,7 +27,10 @@
 
 #include <KFParticle.h>
 
-#include <map>
+#include <cfloat>
+#include <string>   // for string
+#include <tuple>    // for tuple
+#include <utility>  // for pair
 #include <vector>
 
 class PHCompositeNode;
@@ -56,16 +59,16 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
 
   /*const*/ bool isGoodTrack(KFParticle particle, const std::vector<KFParticle> &primaryVertices);
 
-  int calcMinIP(KFParticle track, std::vector<KFParticle> PVs, float& minimumIP, float& minimumIPchi2);
+  int calcMinIP(KFParticle track, std::vector<KFParticle> PVs, float &minimumIP, float &minimumIPchi2);
 
   std::vector<int> findAllGoodTracks(std::vector<KFParticle> daughterParticles, std::vector<KFParticle> primaryVertices);
 
   std::vector<std::vector<int>> findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks);
 
   std::vector<std::vector<int>> findNProngs(std::vector<KFParticle> daughterParticles,
-                                  std::vector<int> goodTrackIndex,
-                                  std::vector<std::vector<int>> goodTracksThatMeet,
-                                  int nRequiredTracks, unsigned int nProngs);
+                                            std::vector<int> goodTrackIndex,
+                                            std::vector<std::vector<int>> goodTracksThatMeet,
+                                            int nRequiredTracks, unsigned int nProngs);
 
   std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int num_remaining_tracks);
 
@@ -79,7 +82,7 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   void constrainToVertex(KFParticle &particle, bool &goodCandidate, KFParticle &vertex);
 
   std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], std::string daughterOrder[], KFParticle vertex,
-                                         bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID);
+                                              bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID);
 
   std::vector<std::vector<std::string>> findUniqueDaughterCombinations(int start, int end);
 
@@ -130,7 +133,7 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   float m_track_ptchi2 = FLT_MAX;
 
   float m_track_ip = -1;
-  
+
   float m_track_ipchi2 = -1;
 
   float m_track_chi2ndof = FLT_MAX;
@@ -167,7 +170,6 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   void removeDuplicates(std::vector<int> &v);
   void removeDuplicates(std::vector<std::vector<int>> &v);
   void removeDuplicates(std::vector<std::vector<std::string>> &v);
-
 };
 
 #endif  //KFPARTICLESPHENIX_KFPARTICLETOOLS_H

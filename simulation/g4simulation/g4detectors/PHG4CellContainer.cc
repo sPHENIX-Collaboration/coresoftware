@@ -8,9 +8,7 @@
 
 using namespace std;
 
-PHG4CellContainer::PHG4CellContainer()
-{
-}
+PHG4CellContainer::PHG4CellContainer() = default;
 
 void PHG4CellContainer::Reset()
 {
@@ -75,7 +73,7 @@ PHG4CellContainer::getCells(const unsigned short int detid) const
 }
 
 PHG4CellContainer::ConstRange
-PHG4CellContainer::getCells(void) const
+PHG4CellContainer::getCells() const
 {
   return std::make_pair(cellmap.begin(), cellmap.end());
 }
@@ -104,7 +102,7 @@ PHG4CellContainer::findCell(PHG4CellDefs::keytype key)
     return it->second;
   }
 
-  return 0;
+  return nullptr;
 }
 
 double

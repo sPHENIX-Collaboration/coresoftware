@@ -12,6 +12,8 @@
 
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
+#include <g4gdml/PHG4GDMLConfig.hh>
+#include <g4gdml/PHG4GDMLUtility.hh>
 
 #include <TSystem.h>
 
@@ -60,6 +62,8 @@ PHG4IHCalDetector::PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   , m_AbsorberActive(m_Params->get_int_param("absorberactive"))
   , m_GDMPath(m_Params->get_string_param("GDMPath"))
 {
+  gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
+  assert(gdml_config);
 }
 
 PHG4IHCalDetector::~PHG4IHCalDetector()
@@ -96,15 +100,21 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Material *worldmat = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4VSolid *hcal_envelope_cylinder = new G4Tubs("IHCal_envelope_solid", m_InnerRadius, m_OuterRadius, m_SizeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
-  G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, worldmat, "Hcal_envelope", 0, 0, 0);
+  G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, worldmat, "Hcal_envelope", nullptr, nullptr, nullptr);
 
   G4RotationMatrix hcal_rotm;
   hcal_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
   hcal_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);
   hcal_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
-  G4VPhysicalVolume *mothervol = new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "IHCalEnvelope", logicWorld, 0, false, OverlapCheck());
+  G4VPhysicalVolume *mothervol = new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "IHCalEnvelope", logicWorld, false, false, OverlapCheck());
   m_DisplayAction->SetMyTopVolume(mothervol);
   ConstructIHCal(hcal_envelope_log);
+
+  // disable GDML export for HCal geometries for memory saving and compatibility issues
+  assert(gdml_config);
+  gdml_config->exclude_physical_vol(mothervol);
+  gdml_config->exclude_logical_vol(hcal_envelope_log);
+
   return;
 }
 
@@ -138,7 +148,6 @@ int PHG4IHCalDetector::ConstructIHCal(G4LogicalVolume *hcalenvelope)
       m_DisplayAction->AddScintiVolume((*its)->GetLogicalVolume());
       m_ScintiTileLogVolSet.insert((*its)->GetLogicalVolume());
       hcalenvelope->AddDaughter((*its));
-      std::cout << "sector " << isector << std::endl;
       m_ScintiTilePhysVolMap.insert(std::make_pair(*its, ExtractLayerTowerId(isector, *its)));
       m_VolumeScintillator += (*its)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
       ++its;

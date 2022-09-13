@@ -9,7 +9,7 @@
 #include <ostream>
 #include <string>
 
-typedef PHIODataNode<RunHeader> MyNode_t;
+using MyNode_t = PHIODataNode<RunHeader>;
 
 DumpRunHeader::DumpRunHeader(const std::string &NodeName)
   : DumpObject(NodeName)

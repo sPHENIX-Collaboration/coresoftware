@@ -22,8 +22,8 @@ void BEmcRecEEMC::LoadProfile(const std::string& fname)
 
 void BEmcRecEEMC::GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi)
 {
-  theta = atan(sqrt(xg * xg + yg * yg) / fabs(zg - fVz));
-  phi = atan2(yg, xg);
+  theta = atan(std::sqrt(xg * xg + yg * yg) / std::fabs(zg - fVz));
+  phi = std::atan2(yg, xg);
 }
 
 /*
@@ -60,9 +60,9 @@ void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
     //      std::cout << "Success pass data(size): " << DZ << std::endl << std::endl;
 
     float logE = log(0.1);
-    if (E > 0.1) logE = log(E);
+    if (E > 0.1) logE = std::log(E);
     float zV = zA - fVz;
-    float cosT = fabs(zV) / sqrt(xA * xA + yA * yA + zV * zV);
+    float cosT = std::fabs(zV) / std::sqrt(xA * xA + yA * yA + zV * zV);
 
     zC = (zA - DZ) + (D + X0 * logE) * cosT;  //Only the shower depth corrected
     //  zC = zA; // !!!!!
@@ -79,9 +79,9 @@ void BEmcRecEEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
     //      std::cout << "Success pass data(size): " << DZ << std::endl << std::endl;
 
     float logE = log(0.1);
-    if (E > 0.1) logE = log(E);
+    if (E > 0.1) logE = std::log(E);
     float zV = zA - fVz;
-    float cosT = fabs(zV) / sqrt(xA * xA + yA * yA + zV * zV);
+    float cosT = std::fabs(zV) / std::sqrt(xA * xA + yA * yA + zV * zV);
 
     zC = (zA - DZ) + (D + X0 * logE) * cosT;  //Only the shower depth corrected
     //  zC = zA; // !!!!!
@@ -148,8 +148,8 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   zA -= fVz;
   //  float sinTx = xA / sqrt(xA * xA + zA * zA);
   //  float sinTy = yA / sqrt(yA * yA + zA * zA);
-  float sinTy = xA / sqrt(xA * xA + zA * zA);  // x is second index in here
-  float sinTx = yA / sqrt(yA * yA + zA * zA);
+  float sinTy = xA / std::sqrt(xA * xA + zA * zA);  // x is second index in here
+  float sinTx = yA / std::sqrt(yA * yA + zA * zA);
   float sin2Tx = sinTx * sinTx;
   float sin2Ty = sinTy * sinTy;
 
@@ -165,10 +165,10 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
 
   yZero = -yZero;  // Because tower index in X decreases with increasing X in EEMC (y is actually x here!)
 
-  t = 0.98 + 0.98 * sqrt(Energy);
+  t = 0.98 + 0.98 * std::sqrt(Energy);
   t *= 0.7;  // Temp correction
-  bx = 0.20 - 0.009 * log(Energy) + t * sin2Tx;
-  by = 0.20 - 0.009 * log(Energy) + t * sin2Ty;
+  bx = 0.20 - 0.009 * std::log(Energy) + t * sin2Tx;
+  by = 0.20 - 0.009 * std::log(Energy) + t * sin2Ty;
 
   x0 = x + xZero;
   ix0 = EmcCluster::lowint(x0 + 0.5);

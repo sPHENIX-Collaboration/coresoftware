@@ -81,7 +81,7 @@ int PHG4OHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     {
       nodes.insert(m_AbsorberNodeName);
     }
-    for (auto nodename : nodes)
+    for (const auto &nodename : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
@@ -132,7 +132,7 @@ void PHG4OHCalSubsystem::Print(const std::string &what) const
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4OHCalSubsystem::GetDetector(void) const
+PHG4Detector *PHG4OHCalSubsystem::GetDetector() const
 {
   return m_Detector;
 }

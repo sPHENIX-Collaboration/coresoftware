@@ -115,10 +115,10 @@ bool PHNodeIterator::cd(const std::string& pathString)
     bool pathFound;
     PHNode* subNode;
     int i = 0;
-    for (std::vector<std::string>::const_iterator iter = splitpath.begin(); iter != splitpath.end(); ++iter)
+    for (const auto & iter : splitpath)
     {
       i++;
-      if (*iter == "..")
+      if (iter == "..")
       {
         if (currentNode->getParent())
         {
@@ -135,7 +135,7 @@ bool PHNodeIterator::cd(const std::string& pathString)
         pathFound = false;
         while ((subNode = subNodeIter()))
         {
-          if (subNode->getType() == "PHCompositeNode" && subNode->getName() == *iter)
+          if (subNode->getType() == "PHCompositeNode" && subNode->getName() == iter)
           {
             currentNode = static_cast<PHCompositeNode*>(subNode);
             pathFound = true;

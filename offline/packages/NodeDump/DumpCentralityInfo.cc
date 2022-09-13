@@ -9,7 +9,7 @@
 #include <ostream>
 #include <string>
 
-typedef PHIODataNode<CentralityInfo> MyNode_t;
+using MyNode_t = PHIODataNode<CentralityInfo>;
 
 DumpCentralityInfo::DumpCentralityInfo(const std::string &NodeName)
   : DumpObject(NodeName)

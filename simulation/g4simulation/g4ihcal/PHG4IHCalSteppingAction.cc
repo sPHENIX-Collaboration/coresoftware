@@ -77,6 +77,7 @@ int PHG4IHCalSteppingAction::Init()
 {
   if (m_LightScintModelFlag)
   {
+    /*
     const char* Calibroot = getenv("CALIBRATIONROOT");
     if (!Calibroot)
     {
@@ -95,6 +96,7 @@ int PHG4IHCalSteppingAction::Init()
     m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
     file->Close();
     delete file;
+*/
   }
   return 0;
 }
@@ -172,7 +174,28 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     case fPostStepDoItProc:
       if (m_SavePostStepStatus != fGeomBoundary)
       {
-        break;
+        if (m_SavePostStepStatus != fAtRestDoItProc)
+        {
+          break;
+        }
+        else
+        {
+          if (aTrack->GetTrackID() == m_SaveTrackId)
+          {
+            std::cout << GetName() << ": Bad step status combination for the same track " << std::endl;
+            std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+                      << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                      << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+                      << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+            std::cout << "last track: " << m_SaveTrackId
+                      << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+            std::cout << "phys pre vol: " << volume->GetName()
+                      << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+            std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+                      << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
+            gSystem->Exit(1);
+          }
+        }
       }
       else
       {
@@ -289,8 +312,8 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         m_Hit->set_raw_light_yield(m_Hit->get_raw_light_yield() + light_yield);  // save raw Birks light yield
         if (m_MapCorrHist)
         {
-          G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
-          G4ThreeVector worldPosition = postPoint->GetPosition();
+          const G4TouchableHandle& theTouchable = prePoint->GetTouchableHandle();
+          const G4ThreeVector& worldPosition = postPoint->GetPosition();
           G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
           float lx = (localPosition.x() / cm);
           float lz = fabs(localPosition.z() / cm);
