@@ -118,7 +118,7 @@ int MakeActsGeometry::Init(PHCompositeNode */*topNode*/)
 
 int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
-  // Alignment Transformation declaration of instance - must be here to set initial alignment flag
+  //Alignment Transformation declaration of instance - must be here to set initial alignment flag
   AlignmentTransformation alignment_transformation;
   alignment_transformation.createAlignmentTransformContainer(topNode);
 

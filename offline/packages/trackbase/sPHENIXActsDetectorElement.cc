@@ -17,7 +17,7 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
       unsigned int sphlayer = base_layer_map.find(volume)->second + layer / 2 -1;
 
       const std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>& transformMap 
-	= ctxt.get<std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>>();
+	= ctxt.get<std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>&>();
             
       auto it = transformMap.find(sphlayer);    // get an iterator to the map for this layer
       if(it != transformMap.end())
@@ -33,7 +33,7 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
 	}
       
       // if we are still here, it was not found
-      std::cout << " Alignment transform not found, for identifier " << id << " use construction transform " << std::endl;
+      //std::cout << " Alignment transform not found, for identifier " << id << " use construction transform " << std::endl;
       const Acts::Transform3& transform = TGeoDetectorElement::transform(ctxt);  // ctxt is unused here
       //std::cout << "           construction transform: " << std::endl << transform.matrix() << std::endl;      
       return transform;
@@ -46,4 +46,5 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
     }
 
 }
+
 

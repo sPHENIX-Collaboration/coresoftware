@@ -158,7 +158,7 @@ int PHActsTrkFitter::process_event(PHCompositeNode */*topNode*/)
   eventTimer.stop();
   auto eventTime = eventTimer.get_accumulated_time();
 
-  if(Verbosity() > 1)
+  //  if(Verbosity() > 1)
     std::cout << "PHActsTrkFitter total event time " 
 	      << eventTime << std::endl;
 
@@ -369,7 +369,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       fitTimer.stop();
       auto fitTime = fitTimer.get_accumulated_time();
             
-      if(Verbosity() > 1)
+      //if(Verbosity() > 1)
       { std::cout << "PHActsTrkFitter Acts fit time " << fitTime << std::endl; }
 
       /// Check that the track fit result did not return an error
@@ -423,7 +423,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       trackTimer.stop();
       auto trackTime = trackTimer.get_accumulated_time();
       
-      if(Verbosity() > 1)
+      //if(Verbosity() > 1)
       { std::cout << "PHActsTrkFitter total single track time " << trackTime << std::endl; }
     
     }
@@ -446,6 +446,10 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       return sourcelinks; 
     }
 
+  PHTimer SLTrackTimer("SLTrackTimer");
+  SLTrackTimer.stop();
+  SLTrackTimer.restart();
+    
   // loop over all clusters
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
 
@@ -476,6 +480,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       // we do this locally here and do not modify the cluster, since the cluster may be associated with multiple silicon tracks  
       Acts::Vector3 global  = m_tGeometry->getGlobalPosition(key, cluster);
 
+      /*
       // temporary for testing transforms 
       //=========================
       bool test_transforms = false;
@@ -556,6 +561,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 
 	}  // end testing transforms
       //=========================
+      */
 
       if(trkrid ==  TrkrDefs::tpcId)
 	{	  
@@ -686,7 +692,14 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
  
     }
   
-    
+  SLTrackTimer.stop();
+  auto SLTime = SLTrackTimer.get_accumulated_time();
+  
+  //  if(Verbosity() > 1)
+    std::cout << "PHActsTrkFitter Source Links generation time:  "
+	      << SLTime << std::endl;
+
+
   return sourcelinks;
 }
 
@@ -939,7 +952,7 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
   trackStateTimer.stop();
   auto stateTime = trackStateTimer.get_accumulated_time();
   
-  if(Verbosity() > 1)
+  //  if(Verbosity() > 1)
     std::cout << "PHActsTrkFitter update SvtxTrackStates time "
 	      << stateTime << std::endl;
 
@@ -1096,6 +1109,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 
 int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 {
+  /*
   m_alignmentTransformationMap = findNode::getClass<alignmentTransformationContainer>(topNode, "alignmentTransformationContainer");
   if(!m_alignmentTransformationMap)
     {
@@ -1103,7 +1117,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-
+  */
 
 
 

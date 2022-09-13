@@ -77,8 +77,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
              Acts::GeometryIdentifier id = surf->geometryId();
 	     if(localVerbosity) 
-	       std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
-	     transformMap->addTransform(id,transform);
+	       std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << transform.matrix() << std::endl;
+	     //	     transformMap->addTransform(id,transform);
 	   }
        }
      else if(trkrId == TrkrDefs::mvtxId or trkrId == TrkrDefs::inttId) 
@@ -113,10 +113,11 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
        }
    } 
 
- const auto map = transformMap->getMap();
- Acts::GeometryContext context(map);
+ //const auto map = transformMap->getMap();
+ // Acts::GeometryContext context(map);
+ // m_tGeometry->geometry().geoContext = context.get<std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>&>();
 
- m_tGeometry->geometry().geoContext = context.get<std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>>();
+ m_tGeometry->geometry().geoContext =  transformMap->getMap();
 
  // map is created, now we can use the transforms
  alignmentTransformationContainer::use_alignment = true;

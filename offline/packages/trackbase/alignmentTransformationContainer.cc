@@ -90,7 +90,7 @@ Acts::Transform3& alignmentTransformationContainer::getTransform(const Acts::Geo
   exit(1); //later find way to detect null transform that you must return 
 }
 
-const std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>> alignmentTransformationContainer::getMap()
+const std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>& alignmentTransformationContainer::getMap()
 {
   return transformMap;
 }
