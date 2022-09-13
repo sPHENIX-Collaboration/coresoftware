@@ -58,7 +58,7 @@ int SvtxTruthRecoTableEval::process_event(PHCompositeNode *topNode)
 {
   if (!m_svtxevalstack)
   {
-    m_svtxevalstack = new SvtxEvalStack(topNode);
+    m_svtxevalstack = std::make_unique<SvtxEvalStack>(topNode); 
     m_svtxevalstack->set_strict(false);
     m_svtxevalstack->set_verbosity(Verbosity());
     m_svtxevalstack->set_use_initial_vertex(true);
@@ -128,7 +128,7 @@ void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
     if (momentum < m_minMomentumTruthMap) continue;
 
     int gtrackID = g4particle->get_track_id();
-    std::set<SvtxTrack*> alltracks = trackeval->all_tracks_from(g4particle);
+    const std::set<SvtxTrack*>& alltracks = trackeval->all_tracks_from(g4particle);
 
     // not to record zero associations
     if (alltracks.size() == 0) continue;
@@ -179,7 +179,7 @@ void SvtxTruthRecoTableEval::fillRecoMap(PHCompositeNode *topNode)
 
   for (const auto &[key, track] : *trackMap)
   {
-    std::set<PHG4Particle *> allparticles = trackeval->all_truth_particles(track);
+    const std::set<PHG4Particle *>& allparticles = trackeval->all_truth_particles(track);
     SvtxPHG4ParticleMap::WeightedTruthTrackMap truthmap;
     for (PHG4Particle* g4particle : allparticles)
     {
