@@ -529,6 +529,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
           fill(hiter->second.residual_error, z_error);
           fill(hiter->second.pulls, dz / z_error);
           break;
+
         }
       }
 
