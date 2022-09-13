@@ -13,7 +13,7 @@ std::string PHG4StepStatusDecode::GetStepStatus(const int istatus)
 {
   if (stepstatus.empty())
   {
-    std::cout << "filling stepstatus map" << std::endl;
+    //    std::cout << "filling stepstatus map" << std::endl;
     stepstatus[fWorldBoundary] = "fWorldBoundary";
     stepstatus[fGeomBoundary] = "fGeomBoundary";
     stepstatus[fAtRestDoItProc] = "fAtRestDoItProc";
