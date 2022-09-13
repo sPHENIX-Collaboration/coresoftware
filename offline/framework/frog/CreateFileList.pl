@@ -44,6 +44,7 @@ my %proddesc = (
     "12" => "JS pythia8 Jet ptmin = 10GeV",
     "13" => "JS pythia8 Photon Jet",
     "14" => "Single Particles",
+    "15" => "Special Productions"
     );
 
 my %pileupdesc = (
@@ -65,8 +66,9 @@ my $pileup = 1;
 my $particle;
 my $pmin;
 my $pmax;
+my $production;
 
-GetOptions('embed' => \$embed, 'l:i' => \$last_segment, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
+GetOptions('embed' => \$embed, 'l:i' => \$last_segment, 'n:i' => \$nEvents, "nopileup" => \$nopileup, "particle:s" => \$particle, 'pileup:i' => \$pileup, "pmin:i" => \$pmin, "pmax:i"=>\$pmax, "production:s"=>\$production, 'rand' => \$randomize, 'run:i' => \$runnumber, 's:i' => \$start_segment, 'type:i' =>\$prodtype, "verbose" =>\$verbose);
 my $filenamestring;
 my %filetypes = ();
 my %notlike = ();
@@ -263,6 +265,24 @@ if (defined $prodtype)
 	$filenamestring = sprintf("%s_%s_%d_%dMeV",$filenamestring, $particle, $pmin, $pmax);
 	&commonfiletypes();
     }
+    elsif ($prodtype == 15)
+    {
+        $nopileup = 1;
+        my $bad = 0;
+	$filenamestring = "special";
+	if (! defined $production)
+	{
+	    $bad = 1;
+	}
+	if ($bad > 0)
+	{
+            print "\nExisting special sims, use:\n";
+            print_special_types();
+	    exit(1);
+	}
+	$filenamestring = sprintf("%s_%s",$filenamestring, $production);
+	&commonfiletypes();
+    }
     else
     {
 	print "no production type $prodtype\n";
@@ -305,6 +325,9 @@ if ($#ARGV < 0)
         print "-particle : G4 particle name\n";
         print "-pmin : minimum momentum (in MeV/c)\n";
         print "-pmax : maximum momentum (in MeV/c)\n";
+
+        print "\n Special production mandatory options:\n";
+        print "-production : production name\n";
 
 	print "\navailable file types (choose at least one, --> means: written to):\n";
 	foreach my $tp (sort keys %dsttype)
@@ -657,6 +680,33 @@ sub print_single_types
 	{
 	    print "CreateFileList.pl -type 14 -particle $1 -pmin $2 -pmax $3\n";
 	}
+    }
+    print "\nDST types:\n";
+    foreach my $name (sort keys %dsts)
+    {
+	    print "$name\n";
+    }
+}
+
+sub print_special_types
+{
+    my $sqlstring = sprintf("select filename from datasets where runnumber = %d and filename like '%%_special_%%'",$runnumber);
+    my $getallfiles = $dbh->prepare($sqlstring);
+    $getallfiles->execute();
+    my $runsplit = sprintf("-%010d",$runnumber);
+    my %types = ();
+    my %dsts = ();
+    while (my @res = $getallfiles->fetchrow_array())
+    {
+	my @sp1 = split(/_special_/,$res[0]);
+	my @sp2 = split(/$runsplit/,$sp1[1]);
+	$types{$sp2[0]} = 1;
+        $dsts{$sp1[0]} = 1;
+    }
+    $getallfiles->finish();
+    foreach my $name (sort keys %types)
+    {
+	    print "CreateFileList.pl -type 15 -production $name\n";
     }
     print "\nDST types:\n";
     foreach my $name (sort keys %dsts)

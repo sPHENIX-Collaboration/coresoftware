@@ -18,7 +18,11 @@
 #include <TFile.h>
 #include <TSystem.h>
 
+// stacktrace gives a shadow warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/stacktrace.hpp>
+#pragma GCC diagnostic pop
 
 #include <unistd.h>
 #include <algorithm>

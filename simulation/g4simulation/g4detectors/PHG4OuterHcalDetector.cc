@@ -57,10 +57,10 @@
 
 class PHCompositeNode;
 
-typedef CGAL::Circle_2<PHG4OuterHcalDetector::Circular_k> Circle_2;
-typedef CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k> Circular_arc_point_2;
-typedef CGAL::Line_2<PHG4OuterHcalDetector::Circular_k> Line_2;
-typedef CGAL::Segment_2<PHG4OuterHcalDetector::Circular_k> Segment_2;
+using Circle_2 = CGAL::Circle_2<PHG4OuterHcalDetector::Circular_k>;
+using Circular_arc_point_2 = CGAL::Circular_arc_point_2<PHG4OuterHcalDetector::Circular_k>;
+using Line_2 = CGAL::Line_2<PHG4OuterHcalDetector::Circular_k>;
+using Segment_2 = CGAL::Segment_2<PHG4OuterHcalDetector::Circular_k>;
 
 // just for debugging if you want a single layer of scintillators at the center of the world
 //#define SCINTITEST
@@ -413,12 +413,12 @@ void PHG4OuterHcalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Material *Air = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4VSolid *hcal_envelope_cylinder = new G4Tubs("OuterHcal_envelope_solid", m_EnvelopeInnerRadius, m_EnvelopeOuterRadius, m_EnvelopeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
-  G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("OuterHcal_envelope"), 0, 0, 0);
+  G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("OuterHcal_envelope"), nullptr, nullptr, nullptr);
   G4RotationMatrix hcal_rotm;
   hcal_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
   hcal_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);
   hcal_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
-  G4VPhysicalVolume *mothervol = new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "OuterHcal", logicWorld, 0, false, OverlapCheck());
+  G4VPhysicalVolume *mothervol = new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "OuterHcal", logicWorld, false, false, OverlapCheck());
   m_DisplayAction->SetMyTopVolume(mothervol);
   ConstructOuterHcal(hcal_envelope_log);
   std::vector<G4VPhysicalVolume *>::iterator it = m_ScintiMotherAssembly->GetVolumesIterator();
@@ -464,14 +464,14 @@ void PHG4OuterHcalDetector::ConstructMe(G4LogicalVolume *logicWorld)
           if (layer_id < 0 || layer_id >= m_NumScintiPlates)
           {
             std::cout << "invalid scintillator row " << layer_id
-                 << ", valid range 0 < row < " << m_NumScintiPlates << std::endl;
+                      << ", valid range 0 < row < " << m_NumScintiPlates << std::endl;
             gSystem->Exit(1);
           }
         }
         else
         {
           std::cout << PHWHERE << " Error parsing " << (*it)->GetName()
-               << " for mother volume number " << std::endl;
+                    << " for mother volume number " << std::endl;
           gSystem->Exit(1);
         }
         break;
@@ -503,7 +503,7 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
 #endif
   G4VSolid *steel_plate = ConstructSteelPlate(hcalenvelope);
   //   DisplayVolume(steel_plate_4 ,hcalenvelope);
-  G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, GetDetectorMaterial(m_Params->get_string_param("material")), "HcalOuterSteelPlate", 0, 0, 0);
+  G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, GetDetectorMaterial(m_Params->get_string_param("material")), "HcalOuterSteelPlate", nullptr, nullptr, nullptr);
   m_DisplayAction->AddSteelVolume(steel_logical);
   double phi = 0;
   double deltaphi = 2 * M_PI / m_NumScintiPlates;
@@ -569,7 +569,7 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
     Rot->rotateZ(-phi * rad);
     name.str("");
     name << "OuterHcalSteel_" << i;
-    m_SteelAbsorberVec.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str(), hcalenvelope, 0, i, OverlapCheck()));
+    m_SteelAbsorberVec.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str(), hcalenvelope, false, i, OverlapCheck()));
     phi += deltaphi;
   }
   hcalenvelope->SetFieldManager(m_FieldSetup->get_Field_Manager_Gap(), false);
@@ -792,50 +792,50 @@ int PHG4OuterHcalDetector::ConsistencyCheck() const
   if (m_InnerRadius >= m_OuterRadius)
   {
     std::cout << PHWHERE << ": Inner Radius " << m_InnerRadius / cm
-         << " cm larger than Outer Radius " << m_OuterRadius / cm
-         << " cm" << std::endl;
+              << " cm larger than Outer Radius " << m_OuterRadius / cm
+              << " cm" << std::endl;
     gSystem->Exit(1);
   }
   if (m_ScintiTileThickness > m_ScintiGap)
   {
     std::cout << PHWHERE << "Scintillator thickness " << m_ScintiTileThickness / cm
-         << " cm larger than scintillator gap " << m_ScintiGap / cm
-         << " cm" << std::endl;
+              << " cm larger than scintillator gap " << m_ScintiGap / cm
+              << " cm" << std::endl;
     gSystem->Exit(1);
   }
   if (m_ScintiOuterRadius <= m_ScintiInnerRadius)
   {
     std::cout << PHWHERE << "Scintillator outer radius " << m_ScintiOuterRadius / cm
-         << " cm smaller than scintillator inner radius " << m_ScintiInnerRadius / cm
-         << " cm" << std::endl;
+              << " cm smaller than scintillator inner radius " << m_ScintiInnerRadius / cm
+              << " cm" << std::endl;
     gSystem->Exit(1);
   }
   if (m_ScintiOuterRadius <= m_InnerRadius)
   {
     std::cout << PHWHERE << "Scintillator outer radius " << m_ScintiOuterRadius / cm
-         << " cm smaller than inner radius " << m_InnerRadius / cm
-         << " cm" << std::endl;
+              << " cm smaller than inner radius " << m_InnerRadius / cm
+              << " cm" << std::endl;
     gSystem->Exit(1);
   }
   if (m_ScintiInnerRadius >= m_OuterRadius)
   {
     std::cout << PHWHERE << "Scintillator inner radius " << m_ScintiInnerRadius / cm
-         << " cm larger than inner radius " << m_InnerRadius / cm
-         << " cm" << std::endl;
+              << " cm larger than inner radius " << m_InnerRadius / cm
+              << " cm" << std::endl;
     gSystem->Exit(1);
   }
   if (m_Params->get_double_param("magnet_cutout_scinti_radius") * cm < m_ScintiInnerRadius)
   {
     std::cout << PHWHERE << "Magnet scintillator cutout radius " << m_Params->get_double_param("magnet_cutout_scinti_radius")
-         << " cm smaller than inner scintillator radius " << m_ScintiInnerRadius / cm
-         << " cm" << std::endl;
+              << " cm smaller than inner scintillator radius " << m_ScintiInnerRadius / cm
+              << " cm" << std::endl;
     gSystem->Exit(1);
   }
   if (m_Params->get_double_param("magnet_cutout_radius") * cm < m_InnerRadius)
   {
     std::cout << PHWHERE << "Magnet steel cutout radius " << m_Params->get_double_param("magnet_cutout_radius")
-         << " cm smaller than inner radius " << m_InnerRadius / cm
-         << " cm" << std::endl;
+              << " cm smaller than inner radius " << m_InnerRadius / cm
+              << " cm" << std::endl;
     gSystem->Exit(1);
   }
 
@@ -928,7 +928,7 @@ int PHG4OuterHcalDetector::CheckTiltAngle() const
   if (fabs(m_TiltAngle) >= M_PI)
   {
     std::cout << PHWHERE << "invalid tilt angle, abs(tilt) >= 90 deg: " << (m_TiltAngle / deg)
-         << std::endl;
+              << std::endl;
     exit(1);
   }
 
@@ -945,7 +945,7 @@ int PHG4OuterHcalDetector::CheckTiltAngle() const
   if (res.size() == 0)
   {
     std::cout << PHWHERE << " Tilt angle " << (m_TiltAngle / deg)
-         << " too large, no intersection with inner radius" << std::endl;
+              << " too large, no intersection with inner radius" << std::endl;
     exit(1);
   }
   return 0;
@@ -972,7 +972,7 @@ std::pair<int, int> PHG4OuterHcalDetector::GetLayerTowerId(G4VPhysicalVolume *vo
     return it->second;
   }
   std::cout << "could not locate volume " << volume->GetName()
-       << " in Inner Hcal scintillator map" << std::endl;
+            << " in Inner Hcal scintillator map" << std::endl;
   gSystem->Exit(1);
   // that's dumb but code checkers do not know that gSystem->Exit()
   // terminates, so using the standard exit() makes them happy

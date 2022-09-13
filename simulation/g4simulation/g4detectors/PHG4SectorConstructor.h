@@ -233,8 +233,8 @@ namespace PHG4Sector
 
     void
     AddLayer(                            //
-        const std::string &_name,               //! name base for this layer
-        const std::string &_material,           //! material name in G4
+        const std::string &_name,        //! name base for this layer
+        const std::string &_material,    //! material name in G4
         double _depth,                   //! depth in G4 units
         bool _active = false,            //! active detector element for sensitive detector?
         double _percentage_filled = 100  //! percentage filled//

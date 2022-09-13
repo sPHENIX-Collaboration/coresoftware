@@ -94,8 +94,8 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
   if (layer_id != whichactive)
   {
     std::cout << PHWHERE << " inconsistency between G4 copy number: "
-         << layer_id << " and module id from detector: "
-         << whichactive << std::endl;
+              << layer_id << " and module id from detector: "
+              << whichactive << std::endl;
     gSystem->Exit(1);
   }
 
@@ -110,15 +110,15 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
     {
       std::cout << GetName() << ": New Hit for  " << std::endl;
       std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-           << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
-           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << std::endl;
+                << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
+                << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << std::endl;
       std::cout << "last track: " << savetrackid
-           << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+                << ", current trackid: " << aTrack->GetTrackID() << std::endl;
       std::cout << "phys pre vol: " << volume->GetName()
-           << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+                << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
       std::cout << " previous phys pre vol: " << savevolpre->GetName()
-           << " previous phys post vol: " << savevolpost->GetName() << std::endl;
+                << " previous phys post vol: " << savevolpost->GetName() << std::endl;
     }
     [[fallthrough]];
   case fGeomBoundary:
@@ -177,15 +177,15 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
   {
     std::cout << GetName() << ": hit was not created" << std::endl;
     std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-         << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-         << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
-         << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << std::endl;
+              << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+              << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
+              << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << std::endl;
     std::cout << "last track: " << savetrackid
-         << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+              << ", current trackid: " << aTrack->GetTrackID() << std::endl;
     std::cout << "phys pre vol: " << volume->GetName()
-         << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+              << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
     std::cout << " previous phys pre vol: " << savevolpre->GetName()
-         << " previous phys post vol: " << savevolpost->GetName() << std::endl;
+              << " previous phys post vol: " << savevolpost->GetName() << std::endl;
     gSystem->Exit(1);
   }
   // check if track id matches the initial one when the hit was created
@@ -193,10 +193,10 @@ bool PHG4PSTOFSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
   {
     std::cout << GetName() << ": hits do not belong to the same track" << std::endl;
     std::cout << "saved track: " << savetrackid
-         << ", current trackid: " << aTrack->GetTrackID()
-         << ", prestep status: " << prePoint->GetStepStatus()
-         << ", previous post step status: " << savepoststepstatus
-         << std::endl;
+              << ", current trackid: " << aTrack->GetTrackID()
+              << ", prestep status: " << prePoint->GetStepStatus()
+              << ", previous post step status: " << savepoststepstatus
+              << std::endl;
 
     gSystem->Exit(1);
   }
