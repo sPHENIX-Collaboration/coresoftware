@@ -407,6 +407,7 @@ namespace
 	clus->setActsLocalError(0,1, 0);
 	clus->setActsLocalError(1,1, t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2));
 	my_data.cluster_vector.push_back(clus);
+  std::cout<<"TpcClusterizer :: cluster v3 subsurfkey = "<< subsurfkey <<std::endl;
       }else if(my_data.cluster_version==4){
 	auto clus = new TrkrClusterv4;
 	//auto clus = std::make_unique<TrkrClusterv3>();
@@ -419,6 +420,7 @@ namespace
 	clus->setLocalX(local(0));
 	clus->setLocalY(clust);
 	my_data.cluster_vector.push_back(clus);
+  std::cout<<"TpcClusterizer :: cluster v4 subsurfkey = "<< subsurfkey <<std::endl;
 	
       }
       

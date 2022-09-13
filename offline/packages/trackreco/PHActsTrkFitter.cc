@@ -452,6 +452,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       if(!cluster)
 	{
 	  if(Verbosity() > 0) std::cout << "Failed to get cluster with key " << key << " for track " << m_seedMap->find(track) << std::endl;
+    else std::cout<< "PHActsTrkFitter :: Key: "<< key << " for track " << m_seedMap->find(track) <<std::endl;
 	  continue;
 	}
 
