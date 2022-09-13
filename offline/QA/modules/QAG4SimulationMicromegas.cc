@@ -241,7 +241,7 @@ int QAG4SimulationMicromegas::process_event(PHCompositeNode* topNode)
   // load nodes
   auto res = load_nodes(topNode);
   if (res != Fun4AllReturnCodes::EVENT_OK) return res;
-
+  m_svtxEvalStack->next_event(topNode);
   // run evaluation
   evaluate_hits();
   evaluate_clusters();
@@ -310,7 +310,6 @@ int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
 //________________________________________________________________________
 void QAG4SimulationMicromegas::evaluate_hits()
 {
-  std::cout << "evaluate clusters..." << std::endl; 
   // do nothing if hitsets are not there
   if( !m_hitsets ) return;
 
@@ -363,17 +362,13 @@ void QAG4SimulationMicromegas::evaluate_hits()
 //________________________________________________________________________
 void QAG4SimulationMicromegas::evaluate_clusters()
 {
-  std::cout << "evaluate clusters..." << std::endl;
   SvtxTruthEval* trutheval = m_svtxEvalStack->get_truth_eval();
   assert(trutheval);
-  std::cout << "got trutheval" << std::endl;
   SvtxClusterEval* clustereval = m_svtxEvalStack->get_cluster_eval();
   assert(clustereval);
-  std::cout << "got cluseval" << std::endl;
   // histogram manager
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  std::cout << "got histmanager" << std::endl;
   // load relevant histograms
   struct HistogramList
   {
@@ -397,7 +392,6 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
     histograms.insert(std::make_pair(layer, h));
   }
-  std::cout << "histos assigned" << std::endl;
   // get primary truth particles
 
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();  // only from primary particles
@@ -406,29 +400,18 @@ void QAG4SimulationMicromegas::evaluate_clusters()
        iter != range.second;
        ++iter)
   {
-    std::cout << "g4part #" << iter->first << std::endl;
     PHG4Particle* g4particle = iter->second;
-    if(g4particle == NULL) std::cout << "no dice" << std::endl;
-    std::cout << "accessing g4part..." << std::endl;
     float gtrackID = g4particle->get_track_id();
     float gflavor = g4particle->get_pid();
-    std::cout << " g4part is embedd..." << std::endl;
     float gembed = trutheval->get_embed(g4particle);
-    std::cout << " g4part is primary..." << std::endl;
     float gprimary = trutheval->is_primary(g4particle);
 
     if (Verbosity() > 0)
       std::cout << PHWHERE << " PHG4Particle ID " << gtrackID << " gembed " << gembed << " gflavor " << gflavor << " gprimary " << gprimary << std::endl;
-    std::cout << "get clusters from g4part..." << std::endl; 
     const auto ckeyset = clustereval->all_clusters_from(g4particle);
-    std::cout << "done cfg4, size: " << ckeyset.size() << std::endl; 
-
-    std::cout << "get truth clusters..." << std::endl;
-    if(trutheval == NULL) std::cout << "no dice" << std::endl;
     // Get the truth clusters from this particle
     const auto truth_clusters = trutheval->all_truth_clusters(g4particle);
 
-    std::cout << "fill position vectors..." << std::endl;
     // get circle fit parameters first
     TrackFitUtils::position_vector_t xy_pts;
     TrackFitUtils::position_vector_t rz_pts;
@@ -493,7 +476,6 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 	rphi_error = sqrt(para_errors.first);
 	z_error = sqrt(para_errors.second);
       }
-      std::cout << "got error..." << std::endl; 
       // convert cluster position to local tile coordinates
       const TVector3 cluster_world(global(0), global(1), global(2));
       const auto cluster_local = layergeom->get_local_from_world_coords(tileid, m_tGeometry, cluster_world);
@@ -529,7 +511,6 @@ void QAG4SimulationMicromegas::evaluate_clusters()
 
       // fill phi residuals, errors and pulls
       auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
-      std::cout << "done transformations, fill histos" << std::endl; 
       switch (segmentation_type)
       {
         case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
