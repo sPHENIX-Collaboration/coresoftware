@@ -67,6 +67,9 @@ class JetMapv1 : public JetMap
   Iter find(unsigned int idkey) override { return _map.find(idkey); }
   Iter end() override { return _map.end(); }
 
+  std::vector<Jet*> vec(Jet::SORT sort=Jet::SORT::PT) override; // defaulted to PT in JetMap.h
+  std::vector<Jet*> vec(std::function<bool (Jet*, Jet*)> custom_sort) override; // defaulted to PT in JetMap.h
+
  private:
   Jet::ALGO _algo = Jet::NONE;  //< algorithm used to reconstruct jets
   float _par = NAN;             //< algorithm parameter setting (e.g. radius)

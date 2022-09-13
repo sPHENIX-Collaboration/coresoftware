@@ -126,60 +126,79 @@ class RawClusterBuilderTopo : public SubsysReco
   int get_ID(int ilayer, int ieta, int iphi)
   {
     if (ilayer < 2)
+    {
       return ilayer * _HCAL_NETA * _HCAL_NPHI + ieta * _HCAL_NPHI + iphi;
-    else
-      return _EMCAL_NPHI * _EMCAL_NETA + ieta * _EMCAL_NPHI + iphi;
+    }
+    return _EMCAL_NPHI * _EMCAL_NETA + ieta * _EMCAL_NPHI + iphi;
   }
 
   int get_ilayer_from_ID(int ID)
   {
     if (ID < _EMCAL_NPHI * _EMCAL_NETA)
+    {
       return ((int) (ID / (_HCAL_NETA * _HCAL_NPHI)));
+    }
     else
+    {
       return 2;
+    }
   }
 
   int get_ieta_from_ID(int ID)
   {
     if (ID < _EMCAL_NPHI * _EMCAL_NETA)
+    {
       return ((int) ((ID % (_HCAL_NETA * _HCAL_NPHI)) / (_HCAL_NPHI)));
+    }
     else
+    {
       return ((int) ((ID - _EMCAL_NPHI * _EMCAL_NETA) / _EMCAL_NPHI));
+    }
   }
 
   int get_iphi_from_ID(int ID)
   {
     if (ID < _EMCAL_NPHI * _EMCAL_NETA)
+    {
       return ((int) (ID % _HCAL_NPHI));
+    }
     else
+    {
       return ((int) ((ID - _EMCAL_NPHI * _EMCAL_NETA) % _EMCAL_NPHI));
+    }
   }
 
   int get_status_from_ID(int ID)
   {
     if (ID < _EMCAL_NPHI * _EMCAL_NETA)
+    {
       return _TOWERMAP_STATUS_LAYER_ETA_PHI[get_ilayer_from_ID(ID)][get_ieta_from_ID(ID)][get_iphi_from_ID(ID)];
-    else
-      return _EMTOWERMAP_STATUS_ETA_PHI[get_ieta_from_ID(ID)][get_iphi_from_ID(ID)];
+    }
+    return _EMTOWERMAP_STATUS_ETA_PHI[get_ieta_from_ID(ID)][get_iphi_from_ID(ID)];
   }
 
   float get_E_from_ID(int ID)
   {
     if (ID < _EMCAL_NPHI * _EMCAL_NETA)
+    {
       return _TOWERMAP_E_LAYER_ETA_PHI[get_ilayer_from_ID(ID)][get_ieta_from_ID(ID)][get_iphi_from_ID(ID)];
-    else
-      return _EMTOWERMAP_E_ETA_PHI[get_ieta_from_ID(ID)][get_iphi_from_ID(ID)];
+    }
+    return _EMTOWERMAP_E_ETA_PHI[get_ieta_from_ID(ID)][get_iphi_from_ID(ID)];
   }
 
   void set_status_by_ID(int ID, int status)
   {
     if (ID < _EMCAL_NPHI * _EMCAL_NETA)
+    {
       _TOWERMAP_STATUS_LAYER_ETA_PHI[get_ilayer_from_ID(ID)][get_ieta_from_ID(ID)][get_iphi_from_ID(ID)] = status;
+    }
     else
+    {
       _EMTOWERMAP_STATUS_ETA_PHI[get_ieta_from_ID(ID)][get_iphi_from_ID(ID)] = status;
+    }
   }
 
-  RawClusterContainer *_clusters;
+  RawClusterContainer *_clusters = nullptr;
 
   RawTowerGeomContainer *_geom_containers[3];
 

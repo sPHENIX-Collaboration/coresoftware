@@ -1,9 +1,12 @@
 #include "ParticleFlowJetInput.h"
 
-#include <phool/getClass.h>
+#include "ParticleFlowElement.h"
+#include "ParticleFlowElementContainer.h"
 
 #include <g4jets/Jet.h>
 #include <g4jets/Jetv1.h>
+
+#include <phool/getClass.h>
 
 // standard includes
 #include <cassert>
@@ -11,16 +14,6 @@
 #include <map>                               // for _Rb_tree_const_iterator
 #include <utility>                           // for pair
 #include <vector>
-
-#include "ParticleFlowElement.h"
-#include "ParticleFlowElementContainer.h"
-
-using namespace std;
-
-ParticleFlowJetInput::ParticleFlowJetInput( )
-  : _verbosity(0)
-{
-}
 
 void ParticleFlowJetInput::identify(std::ostream &os)
 {
@@ -30,7 +23,7 @@ void ParticleFlowJetInput::identify(std::ostream &os)
 
 std::vector<Jet *> ParticleFlowJetInput::get_input(PHCompositeNode *topNode)
 {
-  if (_verbosity > 0) cout << "ParticleFlowJetInput::process_event -- entered" << endl;
+  if (_verbosity > 0) std::cout << "ParticleFlowJetInput::process_event -- entered" << std::endl;
 
   ParticleFlowElementContainer *pflowContainer = findNode::getClass<ParticleFlowElementContainer>(topNode, "ParticleFlowElements");
   if (!pflowContainer)
@@ -54,7 +47,7 @@ std::vector<Jet *> ParticleFlowJetInput::get_input(PHCompositeNode *topNode)
     pseudojets.push_back( jet );
   }
 
-  if (_verbosity > 0) cout << "ParticleFlowJetInput::process_event -- exited" << endl;
+  if (_verbosity > 0) std::cout << "ParticleFlowJetInput::process_event -- exited" << std::endl;
 
   return pseudojets;
 }

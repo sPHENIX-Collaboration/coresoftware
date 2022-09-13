@@ -86,9 +86,6 @@ class MakeActsGeometry : public SubsysReco
 
   void set_drift_velocity(double vd){m_drift_velocity = vd;}
 
-  void add_fake_surfaces(bool add)
-  {fake_surfaces = add;}
-
   void build_mm_surfaces( bool value )
   { m_buildMMs = value; }
     
@@ -199,9 +196,7 @@ class MakeActsGeometry : public SubsysReco
 
   /// TPC TGeoManager editing box surfaces subdivisions
   const static int m_nTpcSectors = 3;
-  const double m_minRadius[m_nTpcSectors] = {30.0, 40.0, 60.0};
-  const double m_maxRadius[m_nTpcSectors] = {40.0, 60.0, 77.0};
-  double layer_thickness_sector[m_nTpcSectors] = {0};
+  
   double m_layerRadius[m_nTpcLayers] = {0};
   double m_layerThickness[m_nTpcLayers] = {0};
 
@@ -234,7 +229,6 @@ class MakeActsGeometry : public SubsysReco
   double m_magFieldRescale = -1.;
 
   bool m_buildMMs = false;
-  bool fake_surfaces = true;
 };
 
 #endif

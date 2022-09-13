@@ -105,6 +105,6 @@ void PHG4BlockDetector::ConstructMe(G4LogicalVolume *logicWorld)
   m_BlockPhysi = new G4PVPlacement(rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
                                    block_logic,
                                    G4String(GetName()),
-                                   logicWorld, 0, false, OverlapCheck());
+                                   logicWorld, false, false, OverlapCheck());
   m_DisplayAction->SetMyVolume(block_logic);
 }
