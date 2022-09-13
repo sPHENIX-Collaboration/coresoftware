@@ -27,11 +27,13 @@
 
 #include <cmath>
 #include <fstream>
+#include <random>
 
 
 
 void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 { 
+
  getNodes(topNode);
 
  // Use construction transforms as a reference for making the map
@@ -50,19 +52,84 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
  ActsSurfaceMaps surfMaps = m_tGeometry->maps();
  Surface surf;
 
+	     
  int fileLines = 1824;
  for (int i=0; i<fileLines; i++)
    {
      datafile >> hitsetkey >> alpha >> beta >> gamma >> dx >> dy >> dz;
      
      // Perturbation translations and angles for stave and sensor
-     Eigen::Vector3d sensorAngles (alpha,beta,gamma);  
+     Eigen::Vector3d sensorAngles(alpha,beta,gamma);  
      Eigen::Vector3d millepedeTranslation(dx,dy,dz); 
 
      unsigned int trkrId = TrkrDefs::getTrkrId(hitsetkey); // specify between detectors
 
-     if(trkrId == TrkrDefs::tpcId)
+
+     perturbationAngles      = Eigen::Vector3d(0.0,0.0,0.0);
+     perturbationTranslation = Eigen::Vector3d(0.0,0.0,0.0);
+     if(trkrId == TrkrDefs::mvtxId) 
        {
+	 std::cout<<"intial sensor angles: " << sensorAngles << std::endl;
+	 if(perturbMVTX)
+	   {
+	     std::cout << "mvtxangleDev: " << mvtxAngleDev << " mvtxAlpha: " << mvtxAngleDev(0);
+	     generateRandomPerturbations(mvtxAngleDev, mvtxTransDev);
+	     sensorAngles         = sensorAngles + perturbationAngles;
+	     millepedeTranslation = millepedeTranslation + perturbationTranslation;
+	   }
+
+	 std::cout << "sensorAngles: "<<sensorAngles<< " perturbationAngles: "<<perturbationAngles <<std::endl;
+
+         surf                        = surfMaps.getSiliconSurface(hitsetkey);
+	 Acts::Transform3 transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
+	 std::cout << "mvtx transform" << transform.matrix() << std::endl;
+         Acts::GeometryIdentifier id = surf->geometryId();
+
+	 if(localVerbosity) 
+	   {
+	   std::cout << " Add transform for MVTX with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	   }
+
+	 transformMap->addTransform(id,transform);
+       }
+
+     else if(trkrId == TrkrDefs::inttId) 
+       {
+
+	 if(perturbINTT)
+	   {
+	     generateRandomPerturbations(inttAngleDev,inttTransDev);
+	     sensorAngles         = sensorAngles + perturbationAngles;
+	     millepedeTranslation = millepedeTranslation + perturbationTranslation;
+	   }
+
+         surf = surfMaps.getSiliconSurface(hitsetkey);
+	 Acts::Transform3 transform  = makeTransform(surf, millepedeTranslation, sensorAngles);
+         Acts::GeometryIdentifier id = surf->geometryId();
+
+	 if(localVerbosity) 
+	   {
+	     std::cout << " Add transform for INTT with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	   }
+
+
+	 transformMap->addTransform(id,transform);
+       }
+
+
+     else if(trkrId == TrkrDefs::tpcId)
+       {
+	 if(perturbTPC)
+	   {
+	     generateRandomPerturbations(tpcAngleDev,tpcTransDev);
+	     std::cout << "tpcAngleDev: "<<tpcAngleDev<<" tpctransdev:" << tpcTransDev <<std::endl;
+	 
+	     sensorAngles         = sensorAngles + perturbationAngles;
+	     millepedeTranslation = millepedeTranslation + perturbationTranslation;
+	     std::cout << "sensorAngles: "<<sensorAngles<< " perturbationAngles: "<<perturbationAngles <<std::endl;
+
+	   }
+
 	 unsigned int sector         = TpcDefs::getSectorId(hitsetkey);
 	 unsigned int side           = TpcDefs::getSide(hitsetkey);
 	 unsigned int subsurfkey_min = sector * 12 + (1-side) * 144;
@@ -76,31 +143,35 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
              Acts::GeometryIdentifier id = surf->geometryId();
 	     if(localVerbosity) 
-	       std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
-	     transformMap->addTransform(id,transform);
+	       {
+		 std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	       }
+
+	       transformMap->addTransform(id,transform);
 	   }
        }
-     else if(trkrId == TrkrDefs::mvtxId or trkrId == TrkrDefs::inttId) 
-       {
-         surf = surfMaps.getSiliconSurface(hitsetkey);
-	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
-         Acts::GeometryIdentifier id = surf->geometryId();
 
-	 if(localVerbosity) 
-	   std::cout << " Add transform for Silicon with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
-
-	 transformMap->addTransform(id,transform);
-       }
      else if(trkrId == TrkrDefs::micromegasId)
       {
-         surf = surfMaps.getMMSurface(hitsetkey);
-	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
-         Acts::GeometryIdentifier id = surf->geometryId();
+	if(perturbMM)
+	  {
+	    generateRandomPerturbations(mmAngleDev,mmTransDev);
 
-	 if(localVerbosity) 
-	   std::cout << " Add transform for Micromegas with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	     sensorAngles         = sensorAngles + perturbationAngles;
+	     millepedeTranslation = millepedeTranslation + perturbationTranslation;
+	  }
 
-	 transformMap->addTransform(id,transform);
+
+	surf = surfMaps.getMMSurface(hitsetkey);
+	Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
+	Acts::GeometryIdentifier id = surf->geometryId();
+
+	if(localVerbosity)
+	  { 
+	    std::cout << " Add transform for Micromegas with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	  }
+
+	transformMap->addTransform(id,transform);
       }
      else
        {
@@ -110,6 +181,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
        {
 	 std::cout << i << " " <<hitsetkey << " " <<alpha<< " " <<beta<< " " <<gamma<< " " <<dx<< " " <<dy<< " " <<dz << std::endl;
        }
+     std::cout << i << " " <<hitsetkey << " " <<alpha<< " " <<beta<< " " <<gamma<< " " <<dx<< " " <<dy<< " " <<dz << std::endl;
    } 
 
  const auto map = transformMap->getMap();
@@ -257,3 +329,58 @@ void AlignmentTransformation::createAlignmentTransformContainer(PHCompositeNode*
       dstNode->addNode(node);
     }
 }
+
+
+void AlignmentTransformation::generateRandomPerturbations(Eigen::Vector3d angleDev, Eigen::Vector3d transformDev)
+{
+  /*Creates random perturbations for the correctional parameters with a given standard deviation and mean of zero*/
+
+  std::cout << "Generating Random Perturbations..."<<std::endl;
+  std::cout << "angleDev"<<angleDev<<"transformDev"<<transformDev<<std::endl;
+  std::cout << "initialrandomperturbationAngles" << perturbationAngles << " initialrandomperturbationTrans:" << perturbationTranslation << std::endl;
+
+  //std::default_random_engine generator;
+
+  if(angleDev(0)!=0)
+    {
+      std::default_random_engine generator;
+
+      std::cout << "alphaDev: "<< angleDev(0) << std::endl;
+      std::normal_distribution<double> distribution(0,angleDev(0));
+      perturbationAngles(0) = distribution(generator);
+      std::cout << "randomAlpha: "<<perturbationAngles(0)<<std::endl;
+      std::cout << "random sample: " <<  distribution(generator)<<std::endl;
+    }
+  if(angleDev(1)!=0)
+    {
+      std::default_random_engine generator;
+      std::normal_distribution<double> distribution(0,angleDev(1));
+      perturbationAngles(1) = distribution(generator);
+    }
+  if(angleDev(2)!=0)
+    {
+      std::default_random_engine generator;
+      std::normal_distribution<double> distribution(0,angleDev(2));
+      perturbationAngles(2) = distribution(generator);
+    }
+  if(transformDev(0)!=0)
+    {
+      std::default_random_engine generator;
+      std::normal_distribution<double> distribution(0,transformDev(0));
+      perturbationTranslation(0) = distribution(generator);
+    }
+  if(transformDev(1)!=0)
+    {
+      std::normal_distribution<double> distribution(0,transformDev(1));
+      perturbationTranslation(1) = distribution(generator);
+    }
+  if(transformDev(2)!=0)
+    {
+      std::default_random_engine generator;
+      std::normal_distribution<double> distribution(0,transformDev(2));
+      perturbationTranslation(2) = distribution(generator);
+    }
+  std::cout << "randomperturbationAngles" << perturbationAngles << " randomperturbationTrans:" << perturbationTranslation << std::endl;
+
+}
+

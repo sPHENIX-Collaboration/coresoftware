@@ -122,6 +122,13 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   AlignmentTransformation alignment_transformation;
   alignment_transformation.createAlignmentTransformContainer(topNode);
 
+  //set parameter for sampling probability distribution
+  alignment_transformation.setMVTXParams(0.1,0,0,0,0,0);
+  alignment_transformation.setINTTParams(0.1,0,0,0,0,0);
+  alignment_transformation.setTPCParams(0.1,0,0,0,0,0);
+  alignment_transformation.setMMParams(0.1,0,0,0,0,0);
+
+
   if(buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
