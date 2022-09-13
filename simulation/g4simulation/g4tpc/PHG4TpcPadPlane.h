@@ -7,7 +7,6 @@
 #include "TpcClusterBuilder.h"
 
 #include <phparameter/PHParameterInterface.h>
-#include <trackbase/MapToPadPlanePassData.h>
 
 #include <string>  // for string
 
