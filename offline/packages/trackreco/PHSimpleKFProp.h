@@ -39,7 +39,7 @@ class PHSimpleKFProp : public SubsysReco
 {
  public:
   PHSimpleKFProp(const std::string &name = "PHSimpleKFProp");
-  ~PHSimpleKFProp() {}
+  ~PHSimpleKFProp() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;

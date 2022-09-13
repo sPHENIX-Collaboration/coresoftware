@@ -15,8 +15,8 @@ void TrkrHitSetContainerv1::Reset()
 {
   for(auto&& [key, hitset] : m_hitmap)
     { delete hitset;}
-  Map empty;
-  m_hitmap.swap( empty );
+  
+  m_hitmap.clear();
 }
 
 void TrkrHitSetContainerv1::identify(std::ostream& os) const
@@ -50,7 +50,15 @@ TrkrHitSetContainerv1::addHitSetSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHi
 }
 
 void TrkrHitSetContainerv1::removeHitSet(TrkrDefs::hitsetkey key)
-{ m_hitmap.erase(key); }
+{ 
+  auto iter = m_hitmap.find( key );
+  if(iter != m_hitmap.end()) 
+    {
+      TrkrHitSet* hitset = iter->second;
+      delete hitset;
+      m_hitmap.erase(key); 
+    }
+}
 
 void TrkrHitSetContainerv1::removeHitSet(TrkrHitSet *hitset)
 { removeHitSet( hitset->getHitSetKey() ); }
