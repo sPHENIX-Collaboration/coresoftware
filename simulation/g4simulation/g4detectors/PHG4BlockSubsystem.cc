@@ -131,7 +131,7 @@ int PHG4BlockSubsystem::process_event(PHCompositeNode *topNode)
 
 //_______________________________________________________________________
 PHG4Detector *
-PHG4BlockSubsystem::GetDetector(void) const
+PHG4BlockSubsystem::GetDetector() const
 {
   return m_Detector;
 }

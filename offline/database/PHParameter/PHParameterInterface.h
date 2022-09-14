@@ -18,7 +18,7 @@ class PHParameterInterface
   PHParameterInterface(const PHParameterInterface &) = delete;
   PHParameterInterface &operator=(PHParameterInterface const &) = delete;
 
-  virtual ~PHParameterInterface(){}
+  virtual ~PHParameterInterface();
 
   void set_paramname(const std::string &name);
   virtual void SetDefaultParameters() = 0;
@@ -44,6 +44,8 @@ class PHParameterInterface
 
  private:
   PHParameters *m_Params = nullptr;
+
+  bool m_Locked = false;
   std::map<const std::string, double> m_DoubleParMap;
   std::map<const std::string, int> m_IntParMap;
   std::map<const std::string, std::string> m_StringParMap;

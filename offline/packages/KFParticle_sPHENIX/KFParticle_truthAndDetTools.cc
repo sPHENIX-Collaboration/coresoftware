@@ -13,6 +13,7 @@
 #include <trackbase/TrkrCluster.h>             // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>    // for TrkrClusterContainer
 #include <trackbase/TrkrDefs.h>                // for getLayer, getTrkrId
+#include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>      // for SvtxTrack, SvtxTrack::...
 #include <trackbase_historic/SvtxTrackMap.h>   // for SvtxTrackMap, SvtxTrac...
 #include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
@@ -95,20 +96,53 @@ SvtxVertex *KFParticle_truthAndDetTools::getVertex(unsigned int vertex_id, SvtxV
 
 PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack *thisTrack, PHCompositeNode *topNode)
 {
-  if (!m_svtx_evalstack)
+/*
+ * There are two methods for getting the truth rack from the reco track
+ * 1. (recommended) Use the reco -> truth tables (requires SvtxPHG4ParticleMap). Introduced Summer of 2022
+ * 2. Get truth track via nClusters. Older method and will work with older DSTs 
+ */
+
+  PHG4Particle *particle = nullptr;
+
+  PHNodeIterator nodeIter(topNode);
+  PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("SvtxPHG4ParticleMap"));
+  if (findNode)
   {
-    m_svtx_evalstack = new SvtxEvalStack(topNode);
-    clustereval = m_svtx_evalstack->get_cluster_eval();
-    //hiteval = m_svtx_evalstack->get_hit_eval();
-    trackeval = m_svtx_evalstack->get_track_eval();
-    trutheval = m_svtx_evalstack->get_truth_eval();
-    vertexeval = m_svtx_evalstack->get_vertex_eval();
+    findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("G4TruthInfo"));
+    if (findNode)
+    {
+      m_truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+    }
+    else
+    {
+      std::cout << "KFParticle truth matching: G4TruthInfo does not exist" << std::endl;
+    }
+
+    SvtxPHG4ParticleMap_v1 *dst_reco_truth_map = findNode::getClass<SvtxPHG4ParticleMap_v1>(topNode, "SvtxPHG4ParticleMap");
+
+    std::map<float, std::set<int>> truth_set = dst_reco_truth_map->get(thisTrack->get_id()); 
+    const auto& best_weight = truth_set.rbegin();
+    int best_truth_id =  *best_weight->second.rbegin();
+    particle = m_truthinfo->GetParticle(best_truth_id);
   }
-
-  m_svtx_evalstack->next_event(topNode);
-
-  PHG4Particle *particle = trackeval->max_truth_particle_by_nclusters(thisTrack);
-
+  else
+  {
+    std::cout << __FILE__ << ": SvtxPHG4ParticleMap not found, reverting to max_truth_particle_by_nclusters()" << std::endl;
+  
+    if (!m_svtx_evalstack)
+    {
+      m_svtx_evalstack = new SvtxEvalStack(topNode);
+      //clustereval = m_svtx_evalstack->get_cluster_eval();
+      //hiteval = m_svtx_evalstack->get_hit_eval();
+      trackeval = m_svtx_evalstack->get_track_eval();
+      trutheval = m_svtx_evalstack->get_truth_eval();
+      vertexeval = m_svtx_evalstack->get_vertex_eval();
+    }
+  
+    m_svtx_evalstack->next_event(topNode);
+  
+    particle = trackeval->max_truth_particle_by_nclusters(thisTrack);
+  }
   return particle;
 }
 
@@ -184,6 +218,16 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
   m_true_daughter_p[daughter_id] = true_p;
   m_true_daughter_pt[daughter_id] = true_pt;
   m_true_daughter_id[daughter_id] = isParticleValid ? g4particle->get_pid() : 0;
+
+  if (!m_svtx_evalstack)
+  {
+    m_svtx_evalstack = new SvtxEvalStack(topNode);
+    //clustereval = m_svtx_evalstack->get_cluster_eval();
+    //hiteval = m_svtx_evalstack->get_hit_eval();
+    trackeval = m_svtx_evalstack->get_track_eval();
+    trutheval = m_svtx_evalstack->get_truth_eval();
+    vertexeval = m_svtx_evalstack->get_vertex_eval();
+  }
 
   if (isParticleValid)
   {

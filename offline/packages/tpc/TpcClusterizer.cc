@@ -387,7 +387,7 @@ namespace
       /// convert to Acts units
       global *= Acts::UnitConstants::cm;
 
-      Acts::Vector3 local = surface->transform(my_data.tGeometry->geometry().geoContext).inverse() * global;
+      Acts::Vector3 local = surface->transform(my_data.tGeometry->geometry().getGeoContext()).inverse() * global;
       local /= Acts::UnitConstants::cm;     
       
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)

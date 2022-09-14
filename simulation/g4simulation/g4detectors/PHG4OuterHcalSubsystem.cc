@@ -136,7 +136,7 @@ void PHG4OuterHcalSubsystem::Print(const std::string &what) const
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4OuterHcalSubsystem::GetDetector(void) const
+PHG4Detector *PHG4OuterHcalSubsystem::GetDetector() const
 {
   return m_Detector;
 }
