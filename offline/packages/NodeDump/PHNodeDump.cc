@@ -346,10 +346,6 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       {
         newdump = new DumpTrkrHitTruthAssoc(NodeName);
       }
-      else if (tmp->InheritsFrom("TrkrHitTruthClusters"))
-      {
-        newdump = new DumpTrkrHitTruthClusters(NodeName);
-      }
       else if (tmp->InheritsFrom("VariableArray"))
       {
         newdump = new DumpVariableArray(NodeName);
