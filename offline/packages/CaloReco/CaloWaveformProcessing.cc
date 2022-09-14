@@ -1,25 +1,28 @@
 #include "CaloWaveformProcessing.h"
 
+#include <phool/onnxlib.h>
+
 #include <string>
 #include <iostream>
 
 #include <TF1.h>
 #include <TFile.h>
 #include <TProfile.h>
-// #include <torch/script.h> // One-stop header.
-#include "Math/WrappedTF1.h"
-#include "Math/WrappedMultiTF1.h"
-#include "Fit/BinData.h"
-#include "Fit/UnBinData.h"
-#include "HFitInterface.h"
-#include "Fit/Fitter.h"
-#include "Fit/Chi2FCN.h"
-#include "TThread.h"
+
+
+#include <HFitInterface.h>
+#include <Fit/BinData.h>
+#include <Fit/UnBinData.h>
+#include <Fit/Chi2FCN.h>
+#include <Fit/Fitter.h>
+#include <Math/WrappedTF1.h>
+#include <Math/WrappedMultiTF1.h>
 #include <pthread.h>
 #include <ROOT/TThreadExecutor.hxx>
 #include <ROOT/TThreadedObject.hxx>
-#include <phool/onnxlib.h>
+
 #include <ffamodules/XploadInterface.h>
+
 
 //Define some items that must be defined globally in the .cc file
 TProfile* CaloWaveformProcessing::h_template = nullptr;
@@ -33,14 +36,11 @@ double CaloWaveformProcessing::template_function(double *x, double *par)
 }
 
 
-
-
-
 void CaloWaveformProcessing::initialize_processing()
 {
 
 
-  if (m_modeltype == 1)
+  if (m_processingtype == CaloWaveformProcessing::TEMPLATE)
     {
       std::string calibrations_repo_template = std::string(getenv("CALIBRATIONROOT")) + "/WaveformProcessing/templates/"+m_template_input_file;
       url_template = XploadInterface::instance()->getUrl("CEMC_TEMPLATE", calibrations_repo_template); 
@@ -49,7 +49,7 @@ void CaloWaveformProcessing::initialize_processing()
       assert(fin->IsOpen());
       h_template = static_cast<TProfile*>(fin->Get("cemc_template"));
     }
-  if (m_modeltype == 2)
+  if (m_processingtype == CaloWaveformProcessing::ONNX)
     {
       std::string calibrations_repo_model = std::string(getenv("CALIBRATIONROOT")) + "/WaveformProcessing/models/"+m_model_name;
       url_onnx = XploadInterface::instance()->getUrl("CEMC_ONNX", calibrations_repo_model); 
@@ -64,7 +64,7 @@ std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::ve
 
   int size1 = waveformvector.size();
   std::vector<std::vector<float>> fitresults;
-  if (m_modeltype == 1)
+  if (m_processingtype == CaloWaveformProcessing::TEMPLATE)
     {
       for (int i = 0; i < size1;i++)
 	{
@@ -72,7 +72,7 @@ std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::ve
 	}
       fitresults =  CaloWaveformProcessing::calo_processing_templatefit(waveformvector);
     }
-  if (m_modeltype == 2)
+  if (m_processingtype == CaloWaveformProcessing::ONNX)
     {
       fitresults =  CaloWaveformProcessing::calo_processing_ONNX(waveformvector);
     }
