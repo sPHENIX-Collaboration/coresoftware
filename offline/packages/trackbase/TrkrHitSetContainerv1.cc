@@ -56,7 +56,7 @@ void TrkrHitSetContainerv1::removeHitSet(TrkrDefs::hitsetkey key)
     {
       TrkrHitSet* hitset = iter->second;
       delete hitset;
-      m_hitmap.erase(key); 
+      m_hitmap.erase(iter); 
     }
 }
 
