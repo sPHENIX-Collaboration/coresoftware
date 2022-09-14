@@ -23,11 +23,11 @@ libg4tpc_la_LIBADD = \
   -lphg4hit \
   -lphparameter \
   -ltpc_io \
-	-ltrack_reco
+  -ltrack_reco
 
 pkginclude_HEADERS = \
   PHG4TpcCentralMembrane.h \
-	TpcClusterBuilder.h \
+  TpcClusterBuilder.h \
   PHG4TpcDigitizer.h \
   PHG4TpcDirectLaser.h \
   PHG4TpcDistortion.h \
