@@ -2,7 +2,7 @@
 #include "onnxlib.h"
 
 
-std::vector<float> onnxCombo(std::string &modelfile, std::vector<float> &input, int N) {
+std::vector<float> onnxCombo(std::string &modelfile, std::vector<float> &input, int N, int Nsamp,int Nreturn) {
     Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtArenaAllocator, OrtMemType::OrtMemTypeDefault);
 
 
@@ -16,13 +16,13 @@ std::vector<float> onnxCombo(std::string &modelfile, std::vector<float> &input, 
 
     std::vector<Ort::Value>     inputTensors, outputTensors;
 
-    std::vector<int64_t> inputDimsN     = {N,31};
-    std::vector<int64_t> outputDimsN    = {N,3};
+    std::vector<int64_t> inputDimsN     = {N,Nsamp};
+    std::vector<int64_t> outputDimsN    = {N,Nreturn};
 
-    std::vector<float>   outputTensorValuesN(N*3);
+    std::vector<float>   outputTensorValuesN(N*Nreturn);
 
-    inputTensors.push_back (Ort::Value::CreateTensor<float>(memoryInfo, input.data(),               N*31,   inputDimsN.data(),  inputDimsN.size()));
-    outputTensors.push_back(Ort::Value::CreateTensor<float>(memoryInfo, outputTensorValuesN.data(), N*3,    outputDimsN.data(), outputDimsN.size()));
+    inputTensors.push_back (Ort::Value::CreateTensor<float>(memoryInfo, input.data(),               N*Nsamp,   inputDimsN.data(),  inputDimsN.size()));
+    outputTensors.push_back(Ort::Value::CreateTensor<float>(memoryInfo, outputTensorValuesN.data(), N*Nreturn,    outputDimsN.data(), outputDimsN.size()));
 
     std::vector<const char*> inputNames{session->GetInputName(0, allocator)};
     std::vector<const char*> outputNames{session->GetOutputName(0, allocator)};
@@ -41,7 +41,7 @@ Ort::Session* onnxSession(std::string &modelfile) {
     return new Ort::Session(env, modelfile.c_str(), sessionOptions);
 }
 
-std::vector<float> onnxInference(Ort::Session* session, std::vector<float> &input, int N) {
+std::vector<float> onnxInference(Ort::Session* session, std::vector<float> &input, int N, int Nsamp,int Nreturn) {
     Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtArenaAllocator, OrtMemType::OrtMemTypeDefault);
 
     Ort::AllocatorWithDefaultOptions allocator;
@@ -49,13 +49,13 @@ std::vector<float> onnxInference(Ort::Session* session, std::vector<float> &inpu
     std::vector<Ort::Value>     inputTensors, outputTensors;
 
 
-    std::vector<int64_t> inputDimsN     = {N,31};
-    std::vector<int64_t> outputDimsN    = {N,3};
+    std::vector<int64_t> inputDimsN     = {N,Nsamp};
+    std::vector<int64_t> outputDimsN    = {N,Nreturn};
 
-    std::vector<float>   outputTensorValuesN(N*3);
+    std::vector<float>   outputTensorValuesN(N*Nreturn);
 
-    inputTensors.push_back (Ort::Value::CreateTensor<float>(memoryInfo, input.data(),               N*31,   inputDimsN.data(),  inputDimsN.size()));
-    outputTensors.push_back(Ort::Value::CreateTensor<float>(memoryInfo, outputTensorValuesN.data(), N*3,    outputDimsN.data(), outputDimsN.size()));
+    inputTensors.push_back (Ort::Value::CreateTensor<float>(memoryInfo, input.data(),               N*Nsamp,   inputDimsN.data(),  inputDimsN.size()));
+    outputTensors.push_back(Ort::Value::CreateTensor<float>(memoryInfo, outputTensorValuesN.data(), N*Nreturn,    outputDimsN.data(), outputDimsN.size()));
 
     std::vector<const char*> inputNames{session->GetInputName(0, allocator)};
     std::vector<const char*> outputNames{session->GetOutputName(0, allocator)};

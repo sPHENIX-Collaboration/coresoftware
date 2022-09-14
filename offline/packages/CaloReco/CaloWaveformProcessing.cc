@@ -19,6 +19,7 @@
 #include <ROOT/TThreadExecutor.hxx>
 #include <ROOT/TThreadedObject.hxx>
 #include <phool/onnxlib.h>
+#include <ffamodules/XploadInterface.h>
 
 //Define some items that must be defined globally in the .cc file
 TProfile* CaloWaveformProcessing::h_template = nullptr;
@@ -41,14 +42,18 @@ void CaloWaveformProcessing::initialize_processing()
 
   if (m_modeltype == 1)
     {
-      TFile* fin = TFile::Open(m_template_input_file.c_str());
+      std::string calibrations_repo_template = std::string(getenv("CALIBRATIONROOT")) + "/WaveformProcessing/templates/"+m_template_input_file;
+      url_template = XploadInterface::instance()->getUrl("CEMC_TEMPLATE", calibrations_repo_template); 
+      TFile* fin = TFile::Open(url_template.c_str());
       assert(fin);
       assert(fin->IsOpen());
       h_template = static_cast<TProfile*>(fin->Get("cemc_template"));
     }
   if (m_modeltype == 2)
     {
-      onnxmodule = onnxSession(m_model_name);
+      std::string calibrations_repo_model = std::string(getenv("CALIBRATIONROOT")) + "/WaveformProcessing/models/"+m_model_name;
+      url_onnx = XploadInterface::instance()->getUrl("CEMC_ONNX", calibrations_repo_model); 
+      onnxmodule = onnxSession(url_onnx);
     }
 }
 
@@ -57,22 +62,20 @@ void CaloWaveformProcessing::initialize_processing()
 std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::vector<std::vector<float>> waveformvector)
 {
 
-int size1 = waveformvector.size();
- std::vector<std::vector<float>> fitresults;
-if (m_modeltype == 1)
-  {
-    for (int i = 0; i < size1;i++)
-      {
-	waveformvector.at(i).push_back(i);
-      }
-    fitresults =  CaloWaveformProcessing::calo_processing_templatefit(waveformvector);
-  }
-
-if (m_modeltype == 2)
-  {
-    fitresults =  CaloWaveformProcessing::calo_processing_ONNX(waveformvector);
-  }
-
+  int size1 = waveformvector.size();
+  std::vector<std::vector<float>> fitresults;
+  if (m_modeltype == 1)
+    {
+      for (int i = 0; i < size1;i++)
+	{
+	  waveformvector.at(i).push_back(i);
+	}
+      fitresults =  CaloWaveformProcessing::calo_processing_templatefit(waveformvector);
+    }
+  if (m_modeltype == 2)
+    {
+      fitresults =  CaloWaveformProcessing::calo_processing_ONNX(waveformvector);
+    }
   return fitresults;
 } 
 
@@ -147,8 +150,6 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_template
       fit_params.push_back(fit_params_tmp);
       fit_params_tmp.clear();
     }
-
-
   chnlvector.clear();
   return fit_params;
   fit_params.clear();
@@ -169,21 +170,17 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(std
       std::vector<float> vtmp;
       for (int k = 0; k < nsamples;k++)
 	{
-	  vtmp.push_back(v.at(k));
+	  vtmp.push_back(v.at(k)/1000.0);
 	}
-      std::vector<float> val = onnxInference(onnxmodule,vtmp,1);
-    int nvals = val.size();
+      std::vector<float> val = onnxInference(onnxmodule,vtmp,1,31,3);
+      int nvals = val.size();
       for (int i = 0 ; i < nvals;i++)
 	{
 	  if (i == 0 || i== 2)
 	    {
-	      val.at(i) = val.at(i);
+	      val.at(i) = val.at(i) * 1000;
 	    }
 	}
-      while ((int) val.size() < 3)
-	{
-	  val.push_back(1.0);
-	} 
       fit_values.push_back(val);
       val.clear();
     }

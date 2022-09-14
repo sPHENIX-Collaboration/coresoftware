@@ -9,10 +9,10 @@
 
 // This is a stub for some ONNX code refactoring
 
-std::vector<float> onnxCombo(std::string &modelfile, std::vector<float> &input, int N);
+std::vector<float> onnxCombo(std::string &modelfile, std::vector<float> &input, int N, int Nsamp, int Nreturn);
 
 Ort::Session* onnxSession(std::string &modelfile);
 
-std::vector<float> onnxInference(Ort::Session* session, std::vector<float> &input, int N);
+std::vector<float> onnxInference(Ort::Session* session, std::vector<float> &input, int N, int Nsamp, int Nreturn);
 
 #endif
