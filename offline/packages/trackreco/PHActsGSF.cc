@@ -103,7 +103,6 @@ int PHActsGSF::process_event(PHCompositeNode*)
 	{ wrappedSls.push_back(std::cref(sl)); }
 
       ActsExamples::MeasurementCalibrator calibrator(measurements);
-      //auto geocontext = m_tGeometry->geometry().getGeoContext();
       auto magcontext = m_tGeometry->geometry().magFieldContext;
       auto calcontext = m_tGeometry->geometry().calibContext;
 
