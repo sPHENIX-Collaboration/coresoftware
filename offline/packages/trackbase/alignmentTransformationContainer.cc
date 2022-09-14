@@ -27,7 +27,7 @@ void alignmentTransformationContainer::identify(std::ostream &os)
     os << " Layer: "  << entry.first << std::endl; 
 
     auto layerMap = entry.second;
-    for(const auto lyr_entry : layerMap)
+    for(auto lyr_entry : layerMap)
       {
 	os << " Acts Id: "  << lyr_entry.first 
 	   << " Transform: " << lyr_entry.second.matrix()
