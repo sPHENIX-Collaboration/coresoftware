@@ -408,6 +408,7 @@ namespace
 	clus->setActsLocalError(1,1, t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2));
 	my_data.cluster_vector.push_back(clus);
       }else if(my_data.cluster_version==4){
+	if(sqrt(phi_err_square) > 0.01){
 	auto clus = new TrkrClusterv4;
 	//auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setAdc(adc_sum);  
@@ -419,7 +420,7 @@ namespace
 	clus->setLocalX(local(0));
 	clus->setLocalY(clust);
 	my_data.cluster_vector.push_back(clus);
-	
+	}
       }
       
       //      if(my_data.do_assoc && my_data.clusterhitassoc){
