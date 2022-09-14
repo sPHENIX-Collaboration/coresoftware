@@ -16,7 +16,12 @@ class CaloWaveformProcessing : public SubsysReco
     ONNX = 2,
   };
 
-  CaloWaveformProcessing(){};
+  CaloWaveformProcessing()
+    :m_processingtype(CaloWaveformProcessing::TEMPLATE)
+    , _nthreads(1)
+    , m_template_input_file("testbeam_cemc_template.root")
+    , m_model_name("testbeamtrained_cemc.onnx")
+{};
   ~CaloWaveformProcessing() override  { }
 
   void set_processing_type(CaloWaveformProcessing::process modelno)
@@ -29,12 +34,12 @@ class CaloWaveformProcessing : public SubsysReco
     return m_processingtype;
   }
 
-  void set_template_file(std::string template_input_file)
+  void set_template_file(const std::string &template_input_file)
   {
     m_template_input_file = template_input_file;
     return;
   }
-  void set_model_file(std::string model_name)
+  void set_model_file(const std::string &model_name)
   {
     m_model_name = model_name;
     return;
@@ -60,17 +65,16 @@ class CaloWaveformProcessing : public SubsysReco
 
  private:
 
-  /* int m_processingtype; */
-  CaloWaveformProcessing::process m_processingtype;
-  int _nthreads = 1;
+   CaloWaveformProcessing::process m_processingtype ; 
+  int _nthreads;
   static TProfile* h_template; 
   static double template_function(double *x, double *par);
 
-  std::string m_template_input_file = "testbeam_cemc_template.root";
+  std::string m_template_input_file;
   std::string url_template;
 
   std::string url_onnx;
-  std::string m_model_name = "testbeamtrained_cemc.onnx";
+  std::string m_model_name;
 
 };
 #endif
