@@ -43,7 +43,6 @@
 #include "DumpTrkrClusterHitAssoc.h"
 #include "DumpTrkrHitSetContainer.h"
 #include "DumpTrkrHitTruthAssoc.h"
-#include "DumpTrkrHitTruthClusters.h"
 #include "DumpVariableArray.h"
 
 #include <ffaobjects/EventHeader.h>
