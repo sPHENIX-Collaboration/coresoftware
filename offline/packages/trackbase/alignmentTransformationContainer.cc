@@ -22,7 +22,7 @@ void alignmentTransformationContainer::identify(std::ostream &os)
 {
 
   os << "-----alignmentTransformationContainer-----" << std::endl;
-  for( const auto& entry : transformMap )
+  for( auto& entry : transformMap )
   {
     os << " Layer: "  << entry.first << std::endl; 
 
