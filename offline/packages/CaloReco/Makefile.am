@@ -24,7 +24,7 @@ libcalo_reco_la_LIBADD = \
   -lc10 \
   -ltorch_cpu \
   -ltorch \
-  -lonnxruntime \
+  -lsph_onnx \
   -lcaloCalibDBFile \
   -lphparameter
 
@@ -41,7 +41,7 @@ pkginclude_HEADERS = \
   RawClusterBuilderTemplate.h \
   RawClusterPositionCorrection.h \
   RawTowerCalibration.h 
-  
+
 libcalo_reco_la_SOURCES = \
   BEmcCluster.cc \
   BEmcProfile.cc \
