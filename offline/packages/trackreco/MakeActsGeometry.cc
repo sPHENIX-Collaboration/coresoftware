@@ -120,7 +120,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
     m_geomContainerTpc =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  setPlanarSurfaceDivisions();
+  //setPlanarSurfaceDivisions();
 
   // Alignment Transformation declaration of instance - must be here to set initial alignment flag
   AlignmentTransformation alignment_transformation;
@@ -185,6 +185,10 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   // this also adds the micromegas surfaces
   // Do this before anything else, so that the geometry is finalized
   
+  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    return Fun4AllReturnCodes::ABORTEVENT;  
+
+  setPlanarSurfaceDivisions();//eshulga
   // This should be done only on the first tracking pass, to avoid adding surfaces twice. 
   // There is a check for existing acts fake surfaces in editTPCGeometry
   editTPCGeometry(topNode); 
@@ -196,7 +200,9 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
       PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.gdml");
     }
 
-
+  // need to get nodes first, in order to be able to build the proper micromegas geometry
+  //if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+  //  return Fun4AllReturnCodes::ABORTEVENT;  
 
   // In case we did not call EditTpcGeometry, we still want to make the MMs surface map
   if( m_buildMMs && !m_geomContainerMicromegas )
@@ -1461,20 +1467,25 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
   m_modulePhiStart = -M_PI;
   m_surfStepPhi = 2.0 * M_PI / (double) (m_nSurfPhi * m_nTpcModulesPerLayer);
 
- 
+  //int layer=0;
+  //PHG4TpcCylinderGeomContainer::ConstRange layerrange = m_geomContainerTpc->get_begin_end();
+  //for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+  //     layeriter != layerrange.second;
+  //     ++layeriter)
+  //{
+  //  m_layerRadius[layer] = layeriter->second->get_radius();
+  //  m_layerThickness[layer] = layeriter->second->get_thickness();
+  //  layer++;
+  //  std::cout << "MakeActsGeometry:: layer = " << layer << " layer_radius " << m_layerRadius[layer] << std::endl;  
+//
+  //}
 
-  int layer=0;
-  PHG4TpcCylinderGeomContainer::ConstRange layerrange = m_geomContainerTpc->get_begin_end();
-  for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
-       layeriter != layerrange.second;
-       ++layeriter)
-  {
-    m_layerRadius[layer] = layeriter->second->get_radius();
-    m_layerThickness[layer] = layeriter->second->get_thickness();
-    layer++;
-  }
-
- 
+  for (int ilayer=7; ilayer<m_nTpcLayers+7; ilayer++){
+    PHG4TpcCylinderGeom* GeoLayer = m_geomContainerTpc->GetLayerCellGeom(ilayer);
+    std::cout << "MakeActsGeometry:: layer = " << ilayer << " layer_radius " << GeoLayer->get_radius() << std::endl;  
+	  m_layerRadius[ilayer-7] = GeoLayer->get_radius();
+	  m_layerThickness[ilayer-7] =  GeoLayer->get_thickness();
+  }   
 
 }
 
