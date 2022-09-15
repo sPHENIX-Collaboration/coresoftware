@@ -103,7 +103,6 @@ int PHActsGSF::process_event(PHCompositeNode*)
 	{ wrappedSls.push_back(std::cref(sl)); }
 
       ActsExamples::MeasurementCalibrator calibrator(measurements);
-      auto geocontext = m_tGeometry->geometry().geoContext;
       auto magcontext = m_tGeometry->geometry().magFieldContext;
       auto calcontext = m_tGeometry->geometry().calibContext;
 
@@ -112,7 +111,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
       ppoptions.mass = TDatabasePDG::Instance()->GetParticle(
         m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
       ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions options{
-	geocontext,
+	  m_tGeometry->geometry().getGeoContext(),
 	  magcontext,
 	  calcontext,
 	  calibrator, &(*pSurface), Acts::LoggerWrapper(*logger),
@@ -120,7 +119,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
       if(Verbosity() > 2)
 	{
 	  std::cout << "calling gsf with position " 
-		    << seed.position(m_tGeometry->geometry().geoContext).transpose() 
+		    << seed.position(m_tGeometry->geometry().getGeoContext()).transpose() 
 		    << " and momentum " << seed.momentum().transpose() 
 		    << std::endl;
 	}
@@ -169,7 +168,7 @@ ActsExamples::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
   auto cov = transformer.rotateSvtxTrackCovToActs(track);
 
   return ActsExamples::TrackParameters::create(psurf, 
-					       m_tGeometry->geometry().geoContext,
+					       m_tGeometry->geometry().getGeoContext(),
 					       fourpos, 
 					       momentum, 
 					       charge / momentum.norm(),
@@ -285,8 +284,8 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
 
       // get local coordinates
       Acts::Vector2 localPos;
-      Acts::Vector3 normal = surf->normal(m_tGeometry->geometry().geoContext);
-      auto local = surf->globalToLocal(m_tGeometry->geometry().geoContext,
+      Acts::Vector3 normal = surf->normal(m_tGeometry->geometry().getGeoContext());
+      auto local = surf->globalToLocal(m_tGeometry->geometry().getGeoContext(),
 				       global * Acts::UnitConstants::cm,
 				       normal);
       
@@ -297,7 +296,7 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
       else
 	{
 	  /// otherwise take the manual calculation
-	  Acts::Vector3 center = surf->center(m_tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
+	  Acts::Vector3 center = surf->center(m_tGeometry->geometry().getGeoContext())/Acts::UnitConstants::cm;
 	  double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
 	  double clusphi = atan2(global[1], global[0]);
 	  double rClusPhi = clusRadius * clusphi;
@@ -344,7 +343,7 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
 		    << ", cov : " << cov.transpose() << std::endl
 		    << " geo id " << sl.geometryId() << std::endl;
 	  std::cout << "Surface : " << std::endl;
-	  surf.get()->toStream(m_tGeometry->geometry().geoContext, std::cout);
+	  surf.get()->toStream(m_tGeometry->geometry().getGeoContext(), std::cout);
 	  std::cout << std::endl;
 	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
 	  std::cout << "For key " << cluskey << " with local pos " << std::endl
@@ -405,7 +404,7 @@ void PHActsGSF::updateSvtxTrack(const Trajectory& traj, SvtxTrack* track)
 		<< "   (" << track->get_px() << ", " << track->get_py()
 		<< ", " << track->get_pz() << ")" << std::endl;
       std::cout << "New GSF track parameters: " << std::endl
-		<< "   " << params.position(m_tGeometry->geometry().geoContext).transpose()
+		<< "   " << params.position(m_tGeometry->geometry().getGeoContext()).transpose()
 		<< std::endl << "   " << params.momentum().transpose()
 		<< std::endl;
 
@@ -423,9 +422,9 @@ void PHActsGSF::updateSvtxTrack(const Trajectory& traj, SvtxTrack* track)
   out.set_z(0.0);
   track->insert_state(&out); 
   
-  track->set_x(params.position(m_tGeometry->geometry().geoContext)(0) / Acts::UnitConstants::cm);
-  track->set_y(params.position(m_tGeometry->geometry().geoContext)(1) / Acts::UnitConstants::cm);
-  track->set_z(params.position(m_tGeometry->geometry().geoContext)(2) / Acts::UnitConstants::cm);
+  track->set_x(params.position(m_tGeometry->geometry().getGeoContext())(0) / Acts::UnitConstants::cm);
+  track->set_y(params.position(m_tGeometry->geometry().getGeoContext())(1) / Acts::UnitConstants::cm);
+  track->set_z(params.position(m_tGeometry->geometry().getGeoContext())(2) / Acts::UnitConstants::cm);
 
   track->set_px(params.momentum()(0));
   track->set_py(params.momentum()(1));
@@ -449,8 +448,7 @@ void PHActsGSF::updateSvtxTrack(const Trajectory& traj, SvtxTrack* track)
 	}	
     }
 
-  auto geocontext = m_tGeometry->geometry().geoContext;
-  transformer.fillSvtxTrackStates(mj, tracktip, track, geocontext);
+  transformer.fillSvtxTrackStates(mj, tracktip, track,  m_tGeometry->geometry().getGeoContext());
 
 }
 
