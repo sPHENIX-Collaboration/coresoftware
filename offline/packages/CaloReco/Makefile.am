@@ -21,9 +21,6 @@ libcalo_reco_la_LIBADD = \
   -lgslcblas \
   -lg4vertex_io \
   -lcalo_io \
-  -lc10 \
-  -ltorch_cpu \
-  -ltorch \
   -lsph_onnx \
   -lcaloCalibDBFile \
   -lphparameter
