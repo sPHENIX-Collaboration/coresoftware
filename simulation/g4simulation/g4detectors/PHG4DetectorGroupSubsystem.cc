@@ -215,7 +215,7 @@ void PHG4DetectorGroupSubsystem::set_double_param(const int detid, const std::st
   if (iter == m_DefaultDoubleParamsMap.end())
   {
     std::cout << "called like set_double_param(" << detid << ", \""
-         << name << "\", " << dval << ")" << std::endl;
+              << name << "\", " << dval << ")" << std::endl;
     std::cout << "detid " << detid << " not implemented" << std::endl;
     std::cout << "implemented detector ids: " << std::endl;
     for (auto &iter2 : m_DefaultDoubleParamsMap)
@@ -227,7 +227,7 @@ void PHG4DetectorGroupSubsystem::set_double_param(const int detid, const std::st
   if (iter->second.find(name) == iter->second.end())
   {
     std::cout << "double parameter " << name << " not implemented for detid "
-         << detid << std::endl;
+              << detid << std::endl;
     std::cout << "implemented double parameters are:" << std::endl;
     for (auto &iter2 : iter->second)
     {
@@ -258,7 +258,7 @@ void PHG4DetectorGroupSubsystem::set_int_param(const int detid, const std::strin
   if (iter == m_DefaultIntegerParamsMap.end())
   {
     std::cout << "called like set_int_param(" << detid << ", \""
-         << name << "\", " << ival << ")" << std::endl;
+              << name << "\", " << ival << ")" << std::endl;
     std::cout << "detid " << detid << " not implemented" << std::endl;
     std::cout << "implemented detector ids: " << std::endl;
     for (auto &iter2 : m_DefaultIntegerParamsMap)
@@ -270,7 +270,7 @@ void PHG4DetectorGroupSubsystem::set_int_param(const int detid, const std::strin
   if (iter->second.find(name) == iter->second.end())
   {
     std::cout << "int parameter " << name << " not implemented for detid"
-         << detid << std::endl;
+              << detid << std::endl;
     std::cout << "implemented int parameters are:" << std::endl;
     for (auto &iter2 : iter->second)
     {
@@ -296,7 +296,7 @@ void PHG4DetectorGroupSubsystem::set_string_param(const int detid, const std::st
   if (iter == m_DefaultStringParamsMap.end())
   {
     std::cout << "called like set_string_param(" << detid << ", \""
-         << name << "\", " << sval << ")" << std::endl;
+              << name << "\", " << sval << ")" << std::endl;
     std::cout << "detid " << detid << " not implemented" << std::endl;
     std::cout << "implemented detector ids: " << std::endl;
     for (auto &iter2 : m_DefaultStringParamsMap)
@@ -308,7 +308,7 @@ void PHG4DetectorGroupSubsystem::set_string_param(const int detid, const std::st
   if (iter->second.find(name) == iter->second.end())
   {
     std::cout << "string parameter " << name << " not implemented for detid "
-         << detid << std::endl;
+              << detid << std::endl;
     std::cout << "implemented string parameters are:" << std::endl;
     for (auto &iter2 : iter->second)
     {
@@ -385,8 +385,8 @@ void PHG4DetectorGroupSubsystem::set_default_double_param(const int detid, const
   if (ret2.second == false)
   {
     std::cout << PHWHERE << "Default double Parameter " << name
-         << " for detid " << detid << " already set to "
-         << ret.first->second[name] << " will not overwrite with " << dval << std::endl;
+              << " for detid " << detid << " already set to "
+              << ret.first->second[name] << " will not overwrite with " << dval << std::endl;
     std::cout << "Means: You are calling set_default_double_param twice for the same parameter" << std::endl;
     std::cout << "Please make up your mind and call it only once using the correct default" << std::endl;
     gSystem->Exit(1);
@@ -403,8 +403,8 @@ void PHG4DetectorGroupSubsystem::set_default_int_param(const int detid, const st
   if (ret2.second == false)
   {
     std::cout << PHWHERE << "Default integer Parameter " << name
-         << " for detid " << detid << " already set to "
-         << ret.first->second[name] << " will not overwrite with " << ival << std::endl;
+              << " for detid " << detid << " already set to "
+              << ret.first->second[name] << " will not overwrite with " << ival << std::endl;
     std::cout << "Means: You are calling set_default_int_param twice for the same parameter" << std::endl;
     std::cout << "Please make up your mind and call it only once using the correct default" << std::endl;
     gSystem->Exit(1);
@@ -421,8 +421,8 @@ void PHG4DetectorGroupSubsystem::set_default_string_param(const int detid, const
   if (ret2.second == false)
   {
     std::cout << PHWHERE << "Default String Parameter " << name
-         << " for detid " << detid << " already set to "
-         << ret.first->second[name] << " will not overwrite with " << sval << std::endl;
+              << " for detid " << detid << " already set to "
+              << ret.first->second[name] << " will not overwrite with " << sval << std::endl;
     std::cout << "Means: You are calling set_default_string_param twice for the same parameter" << std::endl;
     std::cout << "Please make up your mind and call it only once using the correct default" << std::endl;
     gSystem->Exit(1);
@@ -442,7 +442,7 @@ void PHG4DetectorGroupSubsystem::InitializeParameters()
   }
   SetDefaultParameters();  // call method from specific subsystem
   // now load those parameters to our params class
-  for (auto iter1 : m_DefaultDoubleParamsMap)
+  for (const auto &iter1 : m_DefaultDoubleParamsMap)
   {
     PHParameters *detidparams = m_ParamsContainerDefault->GetParametersToModify(iter1.first);
     if (!detidparams)
@@ -511,7 +511,7 @@ int PHG4DetectorGroupSubsystem::ReadParamsFromDB(const std::string & /*name*/, c
   //  if (iret)
   std::cout << boost::stacktrace::stacktrace();
   std::cout << std::endl
-       << "DO NOT PANIC - this is not a segfault" << std::endl;
+            << "DO NOT PANIC - this is not a segfault" << std::endl;
   std::cout << "This method is a dummy, tell the offline gurus about it and give this stack trace" << std::endl;
   {
     std::cout << "problem reading from DB" << std::endl;
@@ -565,7 +565,7 @@ int PHG4DetectorGroupSubsystem::ReadParamsFromFile(const std::string & /*name*/,
   //  if (iret)
   std::cout << boost::stacktrace::stacktrace();
   std::cout << std::endl
-       << "DO NOT PANIC - this is not a segfault" << std::endl;
+            << "DO NOT PANIC - this is not a segfault" << std::endl;
   std::cout << "This method is a dummy, tell the offline gurus about it and give this stack trace" << std::endl;
   std::cout << "problem reading from " << extension << " file " << std::endl;
   std::cout << "problem reading from DB" << std::endl;

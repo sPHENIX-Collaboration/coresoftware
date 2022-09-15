@@ -58,8 +58,8 @@ float PHG4Cellv1::get_property_float(const PROPERTY prop_id) const
   {
     std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
     std::cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_float) << std::endl;
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_float) << std::endl;
     exit(1);
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
@@ -75,8 +75,8 @@ int PHG4Cellv1::get_property_int(const PROPERTY prop_id) const
   {
     std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
     std::cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_int) << std::endl;
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_int) << std::endl;
     exit(1);
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
@@ -93,8 +93,8 @@ PHG4Cellv1::get_property_uint(const PROPERTY prop_id) const
   {
     std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
     std::cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_uint) << std::endl;
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_uint) << std::endl;
     exit(1);
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
@@ -110,8 +110,8 @@ void PHG4Cellv1::add_property(const PROPERTY prop_id, const float value)
   {
     std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
     std::cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_float) << std::endl;
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_float) << std::endl;
     exit(1);
   }
   float val = value;
@@ -128,8 +128,8 @@ void PHG4Cellv1::add_property(const PROPERTY prop_id, const int value)
   {
     std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
     std::cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_int) << std::endl;
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_int) << std::endl;
     exit(1);
   }
   int val = value;
@@ -146,8 +146,8 @@ void PHG4Cellv1::add_property(const PROPERTY prop_id, const unsigned int value)
   {
     std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
     std::cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_uint) << std::endl;
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_uint) << std::endl;
     exit(1);
   }
   unsigned int val = value;
@@ -164,8 +164,8 @@ void PHG4Cellv1::set_property(const PROPERTY prop_id, const float value)
   {
     std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
     std::cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_float) << std::endl;
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_float) << std::endl;
     exit(1);
   }
   prop_map[prop_id] = u_property(value).get_storage();
@@ -177,8 +177,8 @@ void PHG4Cellv1::set_property(const PROPERTY prop_id, const int value)
   {
     std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
     std::cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_int) << std::endl;
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_int) << std::endl;
     exit(1);
   }
   prop_map[prop_id] += u_property(value).get_storage();
@@ -190,8 +190,8 @@ void PHG4Cellv1::set_property(const PROPERTY prop_id, const unsigned int value)
   {
     std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
     std::cout << PHWHERE << " Property " << property_info.first << " with id "
-         << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_uint) << std::endl;
+              << prop_id << " is of type " << get_property_type(property_info.second)
+              << " not " << get_property_type(type_uint) << std::endl;
     exit(1);
   }
   prop_map[prop_id] += u_property(value).get_storage();
@@ -237,9 +237,9 @@ void PHG4Cellv1::identify(std::ostream& os) const
     os << "\t Shower " << pair.first << " -> " << pair.second << " GeV" << std::endl;
   }
   os << "Properties:" << std::endl;
-  for (prop_map_t::const_iterator i = prop_map.begin(); i != prop_map.end(); ++i)
+  for (auto i : prop_map)
   {
-    PROPERTY prop_id = static_cast<PROPERTY>(i->first);
+    PROPERTY prop_id = static_cast<PROPERTY>(i.first);
     std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
     os << "\t" << prop_id << ":\t" << property_info.first << " = \t";
     switch (property_info.second)

@@ -579,7 +579,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
           // generate the key for this hit
           TrkrDefs::hitkey hitkey = MvtxDefs::genHitKey(vzbin[i1], vxbin[i1]);
           // See if this hit already exists
-          TrkrHit *hit = nullptr;
+	  TrkrHit* hit = nullptr;
           hit = hitsetit->second->getHit(hitkey);
           if (!hit)
           {
