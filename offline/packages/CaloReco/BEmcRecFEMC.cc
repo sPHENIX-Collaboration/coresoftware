@@ -25,8 +25,8 @@ void BEmcRecFEMC::LoadProfile(const std::string& fname)
 
 void BEmcRecFEMC::GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi)
 {
-  theta = atan(sqrt(xg * xg + yg * yg) / fabs(zg - fVz));
-  phi = atan2(yg, xg);
+  theta = atan(std::sqrt(xg * xg + yg * yg) / std::fabs(zg - fVz));
+  phi = std::atan2(yg, xg);
 }
 
 /*
@@ -58,9 +58,9 @@ void BEmcRecFEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
   const float X0 = 0.8;  // in cm; obtained from GEANT (should be ~ rad length)
 
   float logE = log(0.1);
-  if (E > 0.1) logE = log(E);
+  if (E > 0.1) logE = std::log(E);
   float zV = zA - fVz;
-  float cosT = fabs(zV) / sqrt(xA * xA + yA * yA + zV * zV);
+  float cosT = std::fabs(zV) / std::sqrt(xA * xA + yA * yA + zV * zV);
 
   zC = (zA - DZ) + (D + X0 * logE) * cosT;
   //  zC = zA; // !!!!!
@@ -110,8 +110,8 @@ void BEmcRecFEMC::CorrectECore(float Ecore, float x, float y, float& Ecorr)
 
   float xA, yA, zA;
   Tower2Global(Ecore / 0.91, x, y, xA, yA, zA);  // 0.91 - average correction
-  float tanT = sqrt(xA * xA + yA * yA) / fabs(zA - fVz);
-  corr = par1 * (1 - tanT * tanT * tanT * (par2 + par3 * log(Ecore)));
+  float tanT = std::sqrt(xA * xA + yA * yA) / std::fabs(zA - fVz);
+  corr = par1 * (1 - tanT * tanT * tanT * (par2 + par3 * std::log(Ecore)));
   ec = Ecore / corr;
 
   //  CorrectEnergy( ec, x, y, &ec2);
@@ -143,8 +143,8 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   zA -= fVz;
   //  float sinTx = xA / sqrt(xA * xA + zA * zA);
   //  float sinTy = yA / sqrt(yA * yA + zA * zA);
-  float sinTy = xA / sqrt(xA * xA + zA * zA);  // x is second index in here
-  float sinTx = yA / sqrt(yA * yA + zA * zA);
+  float sinTy = xA / std::sqrt(xA * xA + zA * zA);  // x is second index in here
+  float sinTx = yA / std::sqrt(yA * yA + zA * zA);
   float sin2Tx = sinTx * sinTx;
   float sin2Ty = sinTy * sinTy;
 
@@ -158,10 +158,10 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   else
     yZero = -0.417 * sinTy + 1.500 * sin2Ty;
 
-  t = 0.98 + 0.98 * sqrt(Energy);
+  t = 0.98 + 0.98 * std::sqrt(Energy);
   t *= 0.7;  // Temp correction
-  bx = 0.17 - 0.009 * log(Energy) + t * sin2Tx;
-  by = 0.17 - 0.009 * log(Energy) + t * sin2Ty;
+  bx = 0.17 - 0.009 * std::log(Energy) + t * sin2Tx;
+  by = 0.17 - 0.009 * std::log(Energy) + t * sin2Ty;
 
   //  xZero *= 0.5;
   //  yZero *= 0.5;

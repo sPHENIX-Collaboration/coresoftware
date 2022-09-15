@@ -24,11 +24,14 @@ class JetInput
   {
     return std::vector<Jet*>();
   }
-  virtual int Verbosity() const {return m_Verbosity;}
-  virtual void Verbosity(int i) {m_Verbosity = i;}
+  virtual int Verbosity() const { return m_Verbosity; }
+  virtual void Verbosity(int i) { m_Verbosity = i; }
 
  protected:
-JetInput(): m_Verbosity(0) {}
+  JetInput()
+    : m_Verbosity(0)
+  {
+  }
 
  private:
   int m_Verbosity;

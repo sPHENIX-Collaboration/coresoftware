@@ -94,22 +94,22 @@ int Fun4AllSyncManager::run(const int nevnts)
     unsigned iman = 0;
     int ifirst = 0;
     int hassync = 0;
-    for (std::vector<Fun4AllInputManager *>::iterator iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
+    for (auto & iter : m_InManager)
     {
-      m_iretInManager[iman] = (*iter)->run(1);
+      m_iretInManager[iman] = iter->run(1);
       iret += m_iretInManager[iman];
       // one can run DSTs without sync object via the DST input manager
       // this only poses a problem if one runs two of them and expects the syncing to work
       // or mix DSTs with sync object and without
-      if (!hassync && (*iter)->HasSyncObject())  // only update if hassync is 0 and input mgr is non zero
+      if (!hassync && iter->HasSyncObject())  // only update if hassync is 0 and input mgr is non zero
       {
-        hassync = (*iter)->HasSyncObject();
+        hassync = iter->HasSyncObject();
       }
       else
       {
-        if ((*iter)->HasSyncObject())  // if zero (no syncing) no need to go further
+        if (iter->HasSyncObject())  // if zero (no syncing) no need to go further
         {
-          if (hassync != (*iter)->HasSyncObject())  // we have sync and no sync mixed
+          if (hassync != iter->HasSyncObject())  // we have sync and no sync mixed
           {
             PrintSyncProblem();
             gSystem->Exit(1);
@@ -125,7 +125,7 @@ int Fun4AllSyncManager::run(const int nevnts)
       {
         if (!m_iretInManager[iman])
         {
-          if (!((*iter)->GetSyncObject(&m_MasterSync)))  // NoSync managers return non zero
+          if (!(iter->GetSyncObject(&m_MasterSync)))  // NoSync managers return non zero
           {
             ifirst = 1;
           }
@@ -191,18 +191,18 @@ int Fun4AllSyncManager::run(const int nevnts)
         }
         // push back events where the Imanager did not report an error
         InIter = m_InManager.begin();
-        for (std::vector<int>::const_iterator iter = m_iretInManager.begin(); iter != m_iretInManager.end(); ++iter)
+        for (int iter : m_iretInManager)
         {
           if (Verbosity() > 0)
           {
-            std::cout << (*InIter)->Name() << ": return code: " << *iter << std::endl;
+            std::cout << (*InIter)->Name() << ": return code: " << iter << std::endl;
           }
-          if (!(*iter))
+          if (!iter)
           {
             (*InIter)->PushBackEvents(1);
             if (Verbosity() > 0)
             {
-              std::cout << (*InIter)->Name() << ": push evts: " << *iter << std::endl;
+              std::cout << (*InIter)->Name() << ": push evts: " << iter << std::endl;
             }
           }
           ++InIter;
@@ -238,12 +238,12 @@ readerror:
     if (!resetnodetree)  // all syncing is done and no read errors --> we have a good event in memory
     {
       m_CurrentRun = 0;  // reset current run to 0
-      for (std::vector<Fun4AllInputManager *>::iterator iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
+      for (auto & iter : m_InManager)
       {
-        int runno = (*iter)->RunNumber();
+        int runno = iter->RunNumber();
         if (Verbosity() > 2)
         {
-          std::cout << Name() << " input mgr " << (*iter)->Name() << " run: " << runno << std::endl;
+          std::cout << Name() << " input mgr " << iter->Name() << " run: " << runno << std::endl;
         }
         if (runno != 0)
         {
@@ -464,12 +464,12 @@ void Fun4AllSyncManager::PrintSyncProblem() const
   std::cout << "Bad use of Fun4AllDstInputManager for file(s) which do not have a synchronization object" << std::endl;
   std::cout << "This works for single streams but if you run with multiple input streams this might lead to event mixing" << std::endl;
   std::cout << "If you insist to run this (you take full responsibility), change the following in your macro: " << std::endl;
-  for (auto iter = m_InManager.begin(); iter != m_InManager.end(); ++iter)
+  for (auto iter : m_InManager)
   {
-    if ((*iter)->HasSyncObject() < 0)
+    if (iter->HasSyncObject() < 0)
     {
-      std::cout << "File " << (*iter)->FileName() << " does not contain a sync object" << std::endl;
-      std::cout << "Change its Fun4AllDstInputManager with name " << (*iter)->Name() << " from Fun4AllDstInputManager to Fun4AllNoSyncDstInputManager" << std::endl;
+      std::cout << "File " << iter->FileName() << " does not contain a sync object" << std::endl;
+      std::cout << "Change its Fun4AllDstInputManager with name " << iter->Name() << " from Fun4AllDstInputManager to Fun4AllNoSyncDstInputManager" << std::endl;
     }
   }
   return;

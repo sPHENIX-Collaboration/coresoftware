@@ -118,23 +118,23 @@ void TDirectoryHelper::duplicateDir(TDirectory* dest, TDirectory* source)
 }
 
 //_____________________________________________________________________________
-bool TDirectoryHelper::mkpath(TDirectory* dir, const std::string& path)
+bool TDirectoryHelper::mkpath(TDirectory* dir, const std::string& pathin)
 {
   static std::vector<std::string> paths;
 
-  splitPath(path, paths);
+  splitPath(pathin, paths);
 
   TDirectory* currentdir = dir;
 
-  for (size_t i = 0; i < paths.size(); i++)
+  for (auto & path : paths)
   {
     currentdir->cd();
 
-    currentdir = dynamic_cast<TDirectory*>(gDirectory->Get(paths[i].c_str()));
+    currentdir = dynamic_cast<TDirectory*>(gDirectory->Get(path.c_str()));
     if (!currentdir)
     {
-      currentdir = gDirectory->mkdir(paths[i].c_str());
-      assert(currentdir != 0);
+      currentdir = gDirectory->mkdir(path.c_str());
+      assert(currentdir != nullptr);
     }
   }
 
@@ -152,7 +152,7 @@ TDirectoryHelper::mkdir(TDirectory* topDir,
   TDirectory* dir = topDir;
   TDirectory* tdir = dir;
 
-  if (topDir == 0)
+  if (topDir == nullptr)
   {
     gROOT->cd();
     tdir = gDirectory;
@@ -168,7 +168,7 @@ TDirectoryHelper::mkdir(TDirectory* topDir,
   for (size_t i = 0; i < paths.size(); i++)
   {
     TDirectory* subdir = static_cast<TDirectory*>(dir->FindObject(paths[i].c_str()));
-    if (subdir == 0)
+    if (subdir == nullptr)
     {
       if (titles && i < titles->size())
       {
@@ -233,7 +233,7 @@ TH1* TDirectoryHelper::getHisto(TDirectory* dir, const std::string& histoname,
   // Try to find histogram named histoname into directory dir, under
   // path=where (where e.g. = "/Cut##/OK/C#/V#").
 
-  TH1* rv = 0;
+  TH1* rv = nullptr;
 
   bool ok = pathIsInDir(where, dir);
 

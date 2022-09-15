@@ -84,12 +84,11 @@ void PHG4CylinderGeom_Spacalv3::Print(Option_t* opt) const
        << " unique towers per sector." << endl;
 
   if (get_construction_verbose() >= 2)
-    for (tower_map_t::const_iterator it = sector_tower_map.begin();
-         it != sector_tower_map.end(); ++it)
+    for (const auto& it : sector_tower_map)
     {
       cout << "\t";
       cout << "\t";
-      it->second.identify(cout);
+      it.second.identify(cout);
     }
 }
 
@@ -460,10 +459,9 @@ PHG4CylinderGeom_Spacalv3::get_max_lightguide_height() const
 {
   double max_height = 0;
 
-  for (tower_map_t::const_iterator it = sector_tower_map.begin();
-       it != sector_tower_map.end(); ++it)
+  for (const auto& it : sector_tower_map)
   {
-    const double h = it->second.LightguideHeight;
+    const double h = it.second.LightguideHeight;
     max_height = max(max_height, h);
   }
 

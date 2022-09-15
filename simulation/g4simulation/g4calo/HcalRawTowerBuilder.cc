@@ -157,6 +157,12 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   m_RawTowerGeom->set_etabins(get_int_param("etabins"));
   double geom_ref_radius = innerrad + thickness / 2.;
   double phistart = get_double_param("phistart");
+  if (!std::isfinite(phistart))
+  {
+    std::cout << PHWHERE << " phistart is not finite: " << phistart
+              << ", exiting now (this will crash anyway)" << std::endl;
+    gSystem->Exit(1);
+  }
   for (int i = 0; i < get_int_param(PHG4HcalDefs::n_towers); i++)
   {
     double phiend = phistart + 2. * M_PI / get_int_param(PHG4HcalDefs::n_towers);

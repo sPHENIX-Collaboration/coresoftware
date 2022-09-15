@@ -77,7 +77,7 @@ PHG4SpacalDetector::PHG4SpacalDetector(PHG4Subsystem *subsys,
   assert(gdml_config);
 }
 
-PHG4SpacalDetector::~PHG4SpacalDetector(void)
+PHG4SpacalDetector::~PHG4SpacalDetector()
 {
   // deleting nullptr pointers is allowed (results in NOOP)
   // so checking for not null before deleting is not needed
@@ -151,11 +151,11 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Material *cylinder_mat = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   assert(cylinder_mat);
 
-  G4LogicalVolume *cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat, GetName(), 0, 0, 0);
+  G4LogicalVolume *cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat, GetName(), nullptr, nullptr, nullptr);
   GetDisplayAction()->AddVolume(cylinder_logic, "SpacalCylinder");
   if (!m_CosmicSetupFlag)
   {
-    new G4PVPlacement(0, G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm, _geom->get_zpos() * cm),
+    new G4PVPlacement(nullptr, G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm, _geom->get_zpos() * cm),
                       cylinder_logic, GetName(),
                       logicWorld, false, 0, OverlapCheck());
   }
@@ -188,7 +188,7 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
     G4PVPlacement *calo_phys = nullptr;
     if (m_CosmicSetupFlag)
     {
-      calo_phys = new G4PVPlacement(0, G4ThreeVector(0, -(_geom->get_radius()) * cm, 0), sec_logic,
+      calo_phys = new G4PVPlacement(nullptr, G4ThreeVector(0, -(_geom->get_radius()) * cm, 0), sec_logic,
                                     G4String(name.str()), logicWorld, false, sec,
                                     OverlapCheck());
     }
@@ -280,7 +280,7 @@ PHG4SpacalDetector::Construct_AzimuthalSeg()
   assert(cylinder_mat);
 
   G4LogicalVolume *sec_logic = new G4LogicalVolume(sec_solid, cylinder_mat,
-                                                   G4String(G4String(GetName() + std::string("_sec"))), 0, 0, nullptr);
+                                                   G4String(G4String(GetName() + std::string("_sec"))), nullptr, nullptr, nullptr);
 
   GetDisplayAction()->AddVolume(sec_logic, "AzimuthSegment");
 
@@ -347,7 +347,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const std::string &id
   assert(clading_mat);
 
   G4LogicalVolume *fiber_logic = new G4LogicalVolume(fiber_solid, clading_mat,
-                                                     G4String(G4String(GetName() + std::string("_fiber") + id)), 0, 0,
+                                                     G4String(G4String(GetName() + std::string("_fiber") + id)), nullptr, nullptr,
                                                      nullptr);
 
   {
@@ -362,7 +362,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const std::string &id
   assert(core_mat);
 
   G4LogicalVolume *core_logic = new G4LogicalVolume(core_solid, core_mat,
-                                                    G4String(G4String(GetName() + std::string("_fiber_core") + id)), 0, 0,
+                                                    G4String(G4String(GetName() + std::string("_fiber_core") + id)), nullptr, nullptr,
                                                     fiber_core_step_limits);
 
   {
@@ -370,7 +370,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const std::string &id
   }
 
   const bool overlapcheck_fiber = OverlapCheck() and (Verbosity() >= 3);
-  G4PVPlacement *core_physi = new G4PVPlacement(0, G4ThreeVector(), core_logic,
+  G4PVPlacement *core_physi = new G4PVPlacement(nullptr, G4ThreeVector(), core_logic,
                                                 G4String(G4String(GetName() + std::string("_fiber_core") + id)), fiber_logic,
                                                 false, 0, overlapcheck_fiber);
   fiber_core_vol[core_physi] = 0;

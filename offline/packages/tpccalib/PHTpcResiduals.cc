@@ -273,7 +273,7 @@ Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) con
   const auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(position);
   const auto actsFourPos = Acts::Vector4(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
 
-  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geometry().geoContext,
+  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geometry().getGeoContext(),
 					    actsFourPos, momentum,
 					    trackQ/p, cov).value();
  
@@ -332,7 +332,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
   if(m_nBadProps > initNBadProps && Verbosity() > 1)
     std::cout << "Starting track params position/momentum: "
-	      << trackParams.position(m_tGeometry->geometry().geoContext).transpose()
+	      << trackParams.position(m_tGeometry->geometry().getGeoContext()).transpose()
 	      << std::endl << trackParams.momentum().transpose() 
 	      << std::endl
 	      << "Track params phi/eta " 
@@ -365,7 +365,7 @@ PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState(
 
   auto logger = Acts::getDefaultLogger("PHTpcResiduals", logLevel);
       
-  Acts::PropagatorOptions<> options(m_tGeometry->geometry().geoContext,
+  Acts::PropagatorOptions<> options(m_tGeometry->geometry().getGeoContext(),
 				    m_tGeometry->geometry().magFieldContext,
 				    Acts::LoggerWrapper{*logger});
      
@@ -390,7 +390,7 @@ void PHTpcResiduals::addTrackState( SvtxTrack* track, float pathlength, const Ac
   SvtxTrackState_v1 state( pathlength );
 
   // save global position
-  const auto global = params.position(m_tGeometry->geometry().geoContext);
+  const auto global = params.position(m_tGeometry->geometry().getGeoContext());
   state.set_x(global.x() / Acts::UnitConstants::cm);
   state.set_y(global.y() / Acts::UnitConstants::cm);
   state.set_z(global.z() / Acts::UnitConstants::cm);
@@ -441,7 +441,7 @@ void PHTpcResiduals::calculateTpcResiduals(
   if(clusZErr < 0.05)
     return;
 
-  const auto globalStatePos = params.position(m_tGeometry->geometry().geoContext);
+  const auto globalStatePos = params.position(m_tGeometry->geometry().getGeoContext());
   const auto globalStateMom = params.momentum();
   const auto globalStateCov = *params.covariance();
 

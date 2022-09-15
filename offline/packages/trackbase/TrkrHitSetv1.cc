@@ -14,11 +14,12 @@
 void TrkrHitSetv1::Reset()
 {
   m_hitSetKey = TrkrDefs::HITSETKEYMAX;
-  for( const auto& pair:m_hits )
-  { delete pair.second; }
+
+  for(auto&& [key, hit] : m_hits)
+    { delete hit; }
 
   m_hits.clear();
-  return;
+  
 }
 
 void TrkrHitSetv1::identify(std::ostream& os) const

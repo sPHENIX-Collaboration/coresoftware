@@ -474,7 +474,9 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches( std::multimap<unsigned int
 
       if(crossing == SHRT_MAX) 
 	{
-	  std::cout << " drop si_track " << si_id << " with eta " << si_track->get_eta() << " and z " << si_track->get_z() << " because crossing is undefined " << std::endl; 
+	  if(Verbosity() > 2) {
+	    std::cout << " drop si_track " << si_id << " with eta " << si_track->get_eta() << " and z " << si_track->get_z() << " because crossing is undefined " << std::endl; 
+	  }
 	  continue;
 	}
 

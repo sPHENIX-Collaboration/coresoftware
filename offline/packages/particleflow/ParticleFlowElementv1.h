@@ -7,12 +7,10 @@
 /// \author Dennis V. Perepelitsa
 //===========================================================
 
-#include "TObject.h"
+#include "ParticleFlowElement.h"
 
 #include <iostream>
 #include <utility>   // for pair, make_pair
-
-#include "ParticleFlowElement.h"
 
 class SvtxTrack;
 class RawCluster;

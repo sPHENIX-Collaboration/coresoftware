@@ -5,8 +5,8 @@
 
 #include "Jet.h"
 
-#include <iostream>    // for cout, ostream
-#include <string>      // for string
+#include <iostream>  // for cout, ostream
+#include <string>    // for string
 #include <vector>
 
 class PHCompositeNode;
@@ -14,7 +14,7 @@ class PHCompositeNode;
 class TrackJetInput : public JetInput
 {
  public:
-  TrackJetInput(Jet::SRC input, const std::string &name = "SvtxTrackMap");
+  TrackJetInput(Jet::SRC input, const std::string& name = "SvtxTrackMap");
   ~TrackJetInput() override {}
 
   void identify(std::ostream& os = std::cout) override;

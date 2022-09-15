@@ -36,7 +36,7 @@ class twrs_fwd
 {
  public:
   explicit twrs_fwd(RawTower *);
-  virtual ~twrs_fwd() {}
+  virtual ~twrs_fwd() = default;
   bool is_adjacent(const twrs_fwd &);
   void set_id(const int i)
   {

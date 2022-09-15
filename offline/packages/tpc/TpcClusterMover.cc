@@ -12,6 +12,8 @@
 #include <cmath>
 #include <iostream>
 #include <climits>
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 TpcClusterMover::TpcClusterMover()
 {
@@ -31,6 +33,21 @@ TpcClusterMover::TpcClusterMover()
     {
       layer_radius[i+32] = outer_tpc_min_radius + (double) i * outer_tpc_spacing  +  0.5 * outer_tpc_spacing;
     }
+}
+
+void TpcClusterMover::initialize_geometry(PHG4CylinderCellGeomContainer* cellgeo)
+{
+  
+  int layer=0;
+  PHG4CylinderCellGeomContainer::ConstRange layerrange = cellgeo->get_begin_end();
+  for (PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
+       layeriter != layerrange.second;
+       ++layeriter)
+  {
+    layer_radius[layer] = layeriter->second->get_radius();
+    layer++;
+  }
+
 }
 
 //____________________________________________________________________________..

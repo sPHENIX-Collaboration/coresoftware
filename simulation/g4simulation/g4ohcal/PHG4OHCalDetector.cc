@@ -14,6 +14,9 @@
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
+#include <g4gdml/PHG4GDMLConfig.hh>
+#include <g4gdml/PHG4GDMLUtility.hh>
+
 #include <TSystem.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
@@ -38,6 +41,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 
+#include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -62,6 +66,8 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
   , m_GDMPath(m_Params->get_string_param("GDMPath"))
 {
+  gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
+  assert(gdml_config);
 }
 
 PHG4OHCalDetector::~PHG4OHCalDetector()
@@ -98,14 +104,20 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Material *Air = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4VSolid *hcal_envelope_cylinder = new G4Tubs("OHCal_envelope_solid", m_InnerRadius, m_OuterRadius, m_SizeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
-  G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("OHCal_envelope"), 0, 0, 0);
+  G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("OHCal_envelope"), nullptr, nullptr, nullptr);
   G4RotationMatrix hcal_rotm;
   hcal_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
   hcal_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);
   hcal_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
-  G4VPhysicalVolume *mothervol = new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "OHCal", logicWorld, 0, false, OverlapCheck());
+  G4VPhysicalVolume *mothervol = new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "OHCal", logicWorld, false, false, OverlapCheck());
   m_DisplayAction->SetMyTopVolume(mothervol);
   ConstructOHCal(hcal_envelope_log);
+
+  // disable GDML export for HCal geometries for memory saving and compatibility issues
+  assert(gdml_config);
+  gdml_config->exclude_physical_vol(mothervol);
+  gdml_config->exclude_logical_vol(hcal_envelope_log);
+
   return;
 }
 

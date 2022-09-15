@@ -18,8 +18,8 @@ Fun4AllOutputManager::Fun4AllOutputManager(const std::string &name, const std::s
 //___________________________________________________________________
 int Fun4AllOutputManager::AddEventSelector(const std::string &recomodule)
 {
-  std::string newselector = recomodule;
-  for (std::string evtsel : m_EventSelectorsVector)
+  const std::string &newselector = recomodule;
+  for (const std::string &evtsel : m_EventSelectorsVector)
   {
     if (evtsel == newselector)
     {
@@ -46,7 +46,7 @@ void Fun4AllOutputManager::Print(const std::string &what) const
   if (what == "ALL" || what == "EVENTSELECTOR")
   {
     unsigned icnt = 0;
-    for (std::string evtsel : m_EventSelectorsVector)
+    for (const std::string &evtsel : m_EventSelectorsVector)
     {
       std::cout << Name() << ": Reco Module " << evtsel << " select Events" << std::endl;
       std::cout << Name() << ": Reco Module Index: " << m_RecoModuleIndexVector[icnt] << std::endl;
