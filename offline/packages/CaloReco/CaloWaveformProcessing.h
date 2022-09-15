@@ -2,9 +2,10 @@
 #define CALORECO_CALOWAVEFORMPROCESSING_H
 
 #include <fun4all/SubsysReco.h>
-#include <string>
+
 #include<TProfile.h>
 
+#include <string>
 
 class CaloWaveformProcessing : public SubsysReco
 {
@@ -18,7 +19,6 @@ class CaloWaveformProcessing : public SubsysReco
 
   CaloWaveformProcessing()
     :m_processingtype(CaloWaveformProcessing::TEMPLATE)
-    , _nthreads(1)
     , m_template_input_file("testbeam_cemc_template.root")
     , m_model_name("testbeamtrained_cemc.onnx")
 {};
@@ -65,10 +65,11 @@ class CaloWaveformProcessing : public SubsysReco
 
  private:
 
-   CaloWaveformProcessing::process m_processingtype ; 
-  int _nthreads;
   static TProfile* h_template; 
   static double template_function(double *x, double *par);
+
+  CaloWaveformProcessing::process m_processingtype = CaloWaveformProcessing::NONE; 
+  int _nthreads = 1;
 
   std::string m_template_input_file;
   std::string url_template;
