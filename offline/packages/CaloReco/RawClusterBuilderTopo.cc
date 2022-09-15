@@ -169,7 +169,7 @@ std::vector<int> RawClusterBuilderTopo::get_adjacent_towers_by_ID(int ID)
   return adjacent_towers;
 }
 
-void RawClusterBuilderTopo::export_single_cluster(std::vector<int> original_towers)
+void RawClusterBuilderTopo::export_single_cluster(const std::vector<int>& original_towers)
 {
   if (Verbosity() > 2)
     std::cout << "RawClusterBuilderTopo::export_single_cluster called " << std::endl;
@@ -183,7 +183,7 @@ void RawClusterBuilderTopo::export_single_cluster(std::vector<int> original_towe
   return;
 }
 
-void RawClusterBuilderTopo::export_clusters(std::vector<int> original_towers, std::map<int, std::pair<int, int> > tower_ownership, unsigned int n_clusters, std::vector<float> pseudocluster_sumE, std::vector<float> pseudocluster_eta, std::vector<float> pseudocluster_phi)
+void RawClusterBuilderTopo::export_clusters(const std::vector<int>& original_towers, std::map<int, std::pair<int, int> > tower_ownership, unsigned int n_clusters, std::vector<float> pseudocluster_sumE, std::vector<float> pseudocluster_eta, std::vector<float> pseudocluster_phi)
 {
   if (n_clusters != 1)  // if we didn't just pass down from export_single_cluster
     if (Verbosity() > 2)
@@ -284,7 +284,7 @@ void RawClusterBuilderTopo::export_clusters(std::vector<int> original_towers, st
     _clusters->AddCluster(clusters[cl]);
 
     if (Verbosity() > 1)
-      std::cout << "RawClusterBuilderTopo::export_clusters: added cluster with E = " << clusters_E[cl] << ", eta = " << -1 * log(tan(atan2(std::sqrt(mean_y * mean_y + mean_x * mean_x), mean_z) / 2.0)) << ", phi = " << std::atan2(mean_y, mean_x) << std::endl;
+      std::cout << "RawClusterBuilderTopo::export_clusters: added cluster with E = " << clusters_E[cl] << ", eta = " << -1 * log(tan(std::atan2(std::sqrt(mean_y * mean_y + mean_x * mean_x), mean_z) / 2.0)) << ", phi = " << std::atan2(mean_y, mean_x) << std::endl;
   }
 
   return;

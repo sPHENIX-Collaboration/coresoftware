@@ -122,7 +122,7 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_template
     fitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
     double params[] = {static_cast<double>(maxheight),static_cast<double>(maxbin-5),static_cast<double>(pedestal)};
     fitter->Config().SetParamsSettings(3,params);
-    fitter->FitFCN(*EPChi2,0,data.Size(),true);
+    fitter->FitFCN(*EPChi2,nullptr,data.Size(),true);
     for (int i =0;i<3;i++)
       {
 	v.push_back(f->GetParameter(i));
@@ -168,7 +168,8 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(std
       std::vector<float> v = chnlvector.at(m);
       int nsamples = v.size()-1;
       std::vector<float> vtmp;
-      for (int k = 0; k < nsamples;k++)
+      vtmp.reserve(nsamples);
+for (int k = 0; k < nsamples;k++)
 	{
 	  vtmp.push_back(v.at(k)/1000.0);
 	}
