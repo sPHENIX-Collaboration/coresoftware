@@ -755,11 +755,11 @@ void DSTEmulator::evaluate_tracks()
     
     Surface surface = surf_vec[nsurf];
 
-    Acts::Vector3 center = surface->center(m_tGeometry->geometry().geoContext) 
+    Acts::Vector3 center = surface->center(m_tGeometry->geometry().getGeoContext()) 
       / Acts::UnitConstants::cm;
   
     // no conversion needed, only used in acts
-    //    Acts::Vector3 normal = surface->normal(m_tGeometry->geoContext);
+    //    Acts::Vector3 normal = surface->normal(m_tGeometry->getGeoContext());
     double TrkRadius = sqrt(trk_x * trk_x + trk_y * trk_y);
     double rTrkPhi = TrkRadius * atan2(trk_y, trk_x);//trkphi;
     double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));

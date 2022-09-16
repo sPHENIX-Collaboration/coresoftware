@@ -49,7 +49,7 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster
 
   Acts::Vector2 local(cluster->getLocalX(), cluster->getLocalY());
   Acts::Vector3 global;
-  global = surface->localToGlobal(geometry().geoContext,
+  global = surface->localToGlobal(geometry().getGeoContext(),
 				  local * Acts::UnitConstants::cm,
 				  Acts::Vector3(1,1,1));
   global /= Acts::UnitConstants::cm;
@@ -90,7 +90,7 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs:: cluskey key,	 TrkrCl
   if(side == 0) zloc = -zloc;
 
   Acts::Vector2 local(cluster->getLocalX(), zloc);
-  glob = surface->localToGlobal(geometry().geoContext,
+  glob = surface->localToGlobal(geometry().getGeoContext(),
 				  local * Acts::UnitConstants::cm,
 				  Acts::Vector3(1,1,1));
   glob /= Acts::UnitConstants::cm;
@@ -130,7 +130,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
 
   Surface this_surf = surf_vec[nsurf];
       
-  auto vec3d = this_surf->center(geometry().geoContext);
+  auto vec3d = this_surf->center(geometry().getGeoContext());
   std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
   double surf_z = surf_center[2];
   double surf_phi = atan2(surf_center[1], surf_center[0]);

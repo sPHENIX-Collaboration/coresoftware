@@ -5,7 +5,6 @@
 #include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTowerv1.h>
 #include <calobase/RawTowerv2.h>
 
 #include <dbfile_calo_calib/CEmcCaloCalibSimpleCorrFilev1.h>
@@ -23,15 +22,10 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
-#include <phool/recoConsts.h>
-
-#include <TSystem.h>
 
 #include <cassert>
-#include <cmath>
 #include <cstdlib>
 #include <exception>
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
