@@ -140,7 +140,6 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_template
   }
   chnlvector.clear();
   return fit_params;
-  fit_params.clear();
 }
 
 std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(std::vector<std::vector<float>> chnlvector)
