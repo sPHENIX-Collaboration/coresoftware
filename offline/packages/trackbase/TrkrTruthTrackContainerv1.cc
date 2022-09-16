@@ -1,9 +1,8 @@
 #include "TrkrTruthTrackContainerv1.h"
-
-#include <algorithm>
 #include "TrkrTruthTrack.h"
 #include "TrkrTruthTrackv1.h"
 
+#include <algorithm>
 void TrkrTruthTrackContainerv1::addTruthTrack(TrkrTruthTrack* track) {
   // note: assumed that track is ordered numerically by trackid already
   m_data.push_back(track);

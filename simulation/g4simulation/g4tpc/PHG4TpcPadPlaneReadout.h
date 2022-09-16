@@ -2,12 +2,10 @@
 #define G4TPC_PHG4TPCPADPLANEREADOUT_H
 
 #include "PHG4TpcPadPlane.h"
-
-#include <g4main/PHG4HitContainer.h>
 #include "TpcClusterBuilder.h"
 
+#include <g4main/PHG4HitContainer.h>
 #include <gsl/gsl_rng.h>
-
 #include <array>
 #include <climits>
 #include <cmath>

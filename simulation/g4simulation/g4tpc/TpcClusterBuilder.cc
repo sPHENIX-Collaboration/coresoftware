@@ -1,5 +1,4 @@
 #include "TpcClusterBuilder.h"
-/* #include <trackbase/TrkrCluster.h> */
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TpcDefs.h>

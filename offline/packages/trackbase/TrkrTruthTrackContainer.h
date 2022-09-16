@@ -5,8 +5,6 @@
 
 #include <phool/PHObject.h>
 #include <vector>
-
-/* class VtxPoint; */
 #include <map>
 
 class TrkrTruthTrack;
