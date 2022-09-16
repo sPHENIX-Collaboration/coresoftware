@@ -17,7 +17,7 @@ class TFile;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
-class PHG4CylinderCellGeom;
+class PHG4TpcCylinderGeom;
 
 struct ActsSurfaceMaps;
 struct ActsTrackingGeometry;
@@ -47,7 +47,7 @@ class PHG4TpcPadBaselineShift : public SubsysReco
   void set_drift_velocity(float vd) {_drift_velocity = vd;}
 
  private:
-  bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom);
+  bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom);
   float _hit_z = NAN;
   float _hit_r = NAN;
   float _hit_phi = NAN;

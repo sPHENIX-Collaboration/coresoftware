@@ -19,8 +19,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNode.h>  // for PHNode
@@ -87,7 +87,7 @@ PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name)
   std::cout << "PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name) Calling ctor" << std::endl;
 }
 
-bool PHG4TpcPadBaselineShift::is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom)
+bool PHG4TpcPadBaselineShift::is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom)
 {
   bool reject_it = false;
 
@@ -206,8 +206,8 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4CylinderCellGeomContainer *geom_container =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcCylinderGeomContainer *geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
   {
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
@@ -250,7 +250,7 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
     unsigned int sector = TpcDefs::getSectorId(hitsetitr->first);
-    PHG4CylinderCellGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+    PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
 
     _hit_sector = sector;
     _hit_layer = layer;
