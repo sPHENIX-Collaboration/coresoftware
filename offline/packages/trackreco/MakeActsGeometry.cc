@@ -1467,25 +1467,16 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
   m_modulePhiStart = -M_PI;
   m_surfStepPhi = 2.0 * M_PI / (double) (m_nSurfPhi * m_nTpcModulesPerLayer);
 
-  //int layer=0;
-  //PHG4TpcCylinderGeomContainer::ConstRange layerrange = m_geomContainerTpc->get_begin_end();
-  //for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
-  //     layeriter != layerrange.second;
-  //     ++layeriter)
-  //{
-  //  m_layerRadius[layer] = layeriter->second->get_radius();
-  //  m_layerThickness[layer] = layeriter->second->get_thickness();
-  //  layer++;
-  //  std::cout << "MakeActsGeometry:: layer = " << layer << " layer_radius " << m_layerRadius[layer] << std::endl;  
-//
-  //}
-
-  for (int ilayer=7; ilayer<m_nTpcLayers+7; ilayer++){
-    PHG4TpcCylinderGeom* GeoLayer = m_geomContainerTpc->GetLayerCellGeom(ilayer);
-    std::cout << "MakeActsGeometry:: layer = " << ilayer << " layer_radius " << GeoLayer->get_radius() << std::endl;  
-	  m_layerRadius[ilayer-7] = GeoLayer->get_radius();
-	  m_layerThickness[ilayer-7] =  GeoLayer->get_thickness();
-  }   
+  int layer=0;
+  PHG4TpcCylinderGeomContainer::ConstRange layerrange = m_geomContainerTpc->get_begin_end();
+  for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+       layeriter != layerrange.second;
+       ++layeriter)
+  {
+    m_layerRadius[layer] = layeriter->second->get_radius();
+    m_layerThickness[layer] = layeriter->second->get_thickness();
+    layer++;
+  }
 
 }
 

@@ -14,8 +14,8 @@ class TrkrHitSet;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
-class PHG4CylinderCellGeom;
-class PHG4CylinderCellGeomContainer;
+class PHG4TpcCylinderGeom;
+class PHG4TpcCylinderGeomContainer;
 
 //typedef std::pair<int, int> iphiz;
 //typedef std::pair<double, iphiz> ihit;
@@ -36,7 +36,7 @@ class TpcSimpleClusterizer : public SubsysReco
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
 
  private:
-  bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const;
+  bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
 
   TrkrHitSetContainer *m_hits = nullptr;
   TrkrClusterContainer *m_clusterlist = nullptr;
