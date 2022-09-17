@@ -112,12 +112,16 @@ MakeActsGeometry::MakeActsGeometry(const std::string &name)
 
 int MakeActsGeometry::Init(PHCompositeNode */*topNode*/)
 {  
-  setPlanarSurfaceDivisions();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
+    m_geomContainerTpc =
+      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  setPlanarSurfaceDivisions();
+
   // Alignment Transformation declaration of instance - must be here to set initial alignment flag
   AlignmentTransformation alignment_transformation;
   alignment_transformation.createAlignmentTransformContainer(topNode);
@@ -132,7 +136,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   trackingGeometry.magField = m_magneticField;
   trackingGeometry.calibContext = m_calibContext;
   trackingGeometry.magFieldContext = m_magFieldContext;
-  trackingGeometry.geoContext = m_geoCtxt;
+  trackingGeometry.getGeoContext() = m_geoCtxt;  // set reference 
   trackingGeometry.tpcSurfStepPhi = m_surfStepPhi;
   trackingGeometry.tpcSurfStepZ = m_surfStepZ;
 
@@ -1458,21 +1462,20 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
   m_moduleStepPhi = 2.0 * M_PI / 12.0;
   m_modulePhiStart = -M_PI;
   m_surfStepPhi = 2.0 * M_PI / (double) (m_nSurfPhi * m_nTpcModulesPerLayer);
-  for(unsigned int isector = 0; isector < 3; ++isector)
-    {
-      layer_thickness_sector[isector] = 
-	(m_maxRadius[isector] - m_minRadius[isector]) / 16.0;
+ 
 
-      for(unsigned int ilayer =0; ilayer < 16; ++ilayer)
-	{
-	  m_layerRadius[isector*16 + ilayer] = 
-	    m_minRadius[isector] + layer_thickness_sector[isector] * 
-	    (double) ilayer + layer_thickness_sector[isector] / 2.0;
-	  
-	  m_layerThickness[isector*16 + ilayer] = 
-	    layer_thickness_sector[isector];
-	}
-    }
+  int layer=0;
+  PHG4CylinderCellGeomContainer::ConstRange layerrange = m_geomContainerTpc->get_begin_end();
+  for (PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
+       layeriter != layerrange.second;
+       ++layeriter)
+  {
+    m_layerRadius[layer] = layeriter->second->get_radius();
+    m_layerThickness[layer] = layeriter->second->get_thickness();
+    layer++;
+  }
+
+ 
 }
 
 int MakeActsGeometry::createNodes(PHCompositeNode *topNode)

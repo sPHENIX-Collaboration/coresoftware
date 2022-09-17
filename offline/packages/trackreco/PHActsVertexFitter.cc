@@ -197,7 +197,7 @@ ActsVertex PHActsVertexFitter::fitVertex(BoundTrackParamVec tracks, Acts::Loggin
     /// Create necessary templated inputs for Acts vertex fitter
     MagneticField bField(inputField);
     auto propagator = std::make_shared<Propagator>(Stepper(bField));
-    PropagatorOptions propagatorOpts(m_tGeometry->geoContext,
+    PropagatorOptions propagatorOpts(m_tGeometry->getGeoContext(),
                                      m_tGeometry->magFieldContext,
                                      Acts::LoggerWrapper(*logger));
 
@@ -209,7 +209,7 @@ ActsVertex PHActsVertexFitter::fitVertex(BoundTrackParamVec tracks, Acts::Loggin
     Linearizer linearizer(linConfig);
 
     /// Can add a vertex fitting constraint as an option, if desired
-    VertexFitterOptions vfOptions(m_tGeometry->geoContext,
+    VertexFitterOptions vfOptions(m_tGeometry->getGeoContext(),
                                   m_tGeometry->magFieldContext);
 
     /// Call the fitter and get the result
@@ -283,9 +283,9 @@ VertexTrackMap PHActsVertexFitter::getTracks()
       for (const auto param : trackVec)
       {
         std::cout << "Track position: ("
-                  << param->position(m_tGeometry->geoContext)(0)
-                  << ", " << param->position(m_tGeometry->geoContext)(1) << ", "
-                  << param->position(m_tGeometry->geoContext)(2) << ")"
+                  << param->position(m_tGeometry->getGeoContext())(0)
+                  << ", " << param->position(m_tGeometry->getGeoContext())(1) << ", "
+                  << param->position(m_tGeometry->getGeoContext())(2) << ")"
                   << std::endl;
       }
     }
@@ -324,7 +324,7 @@ const Acts::BoundTrackParameters *PHActsVertexFitter::makeTrackParam(const SvtxT
                      track->get_z() * Acts::UnitConstants::cm));
 
   const auto param = new Acts::BoundTrackParameters(
-      perigee, m_tGeometry->geoContext,
+      perigee, m_tGeometry->getGeoContext(),
       trackPos, trackMom, p, trackQ, cov);
 
   return param;

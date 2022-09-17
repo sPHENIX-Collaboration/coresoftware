@@ -84,7 +84,7 @@ CylinderGeom_Mvtx::get_local_from_world_coords(Surface surface,
 
   global *= Acts::UnitConstants::cm;
 
-  Acts::Vector3 local = surface->transform(tGeometry->geometry().geoContext).inverse() * global;
+  Acts::Vector3 local = surface->transform(tGeometry->geometry().getGeoContext()).inverse() * global;
   local /= Acts::UnitConstants::cm;
 
   /// The Acts transform swaps a few of the coordinates
@@ -121,7 +121,7 @@ CylinderGeom_Mvtx::get_world_from_local_coords(Surface surface, ActsGeometry* tG
 
   Acts::Vector3 global;
   /// Acts requires a dummy vector to be passed in the arg list
-  global = surface->localToGlobal(tGeometry->geometry().geoContext,
+  global = surface->localToGlobal(tGeometry->geometry().getGeoContext(),
 				  actslocal, Acts::Vector3(1,1,1));
   global /= Acts::UnitConstants::cm;
 
@@ -139,7 +139,7 @@ CylinderGeom_Mvtx::get_world_from_local_coords(Surface surface, ActsGeometry* tG
   Acts::Vector3 loc(local.x(), local.y(), local.z());
   loc *= Acts::UnitConstants::cm;
   
-  Acts::Vector3 glob = surface->transform(tGeometry->geometry().geoContext)*loc;
+  Acts::Vector3 glob = surface->transform(tGeometry->geometry().getGeoContext())*loc;
   glob /= Acts::UnitConstants::cm;
 
   return TVector3(glob(0), glob(1), glob(2));

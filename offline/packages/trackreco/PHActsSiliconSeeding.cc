@@ -590,7 +590,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
 			 clus->getLocalY() * Acts::UnitConstants::cm);
   Acts::Vector3 globalPos(0,0,0);
   Acts::Vector3 mom(1,1,1);
-  globalPos = surf->localToGlobal(m_tGeometry->geometry().geoContext,
+  globalPos = surf->localToGlobal(m_tGeometry->geometry().getGeoContext(),
 				  localPos, mom);
 
   Acts::SymMatrix2 localCov = Acts::SymMatrix2::Zero();
@@ -621,7 +621,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   ///       dz/dz = 1 
 
   Acts::RotationMatrix3 rotLocalToGlobal =
-    surf->referenceFrame(m_tGeometry->geometry().geoContext, globalPos, mom);
+    surf->referenceFrame(m_tGeometry->geometry().getGeoContext(), globalPos, mom);
   auto scale = 2 / std::hypot(x,y);
   Acts::ActsMatrix<2, 3> jacXyzToRhoZ = Acts::ActsMatrix<2, 3>::Zero();
   jacXyzToRhoZ(0, Acts::ePos0) = scale * x;

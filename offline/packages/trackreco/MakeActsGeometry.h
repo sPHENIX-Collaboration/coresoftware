@@ -196,9 +196,7 @@ class MakeActsGeometry : public SubsysReco
 
   /// TPC TGeoManager editing box surfaces subdivisions
   const static int m_nTpcSectors = 3;
-  const double m_minRadius[m_nTpcSectors] = {30.0, 40.0, 60.0};
-  const double m_maxRadius[m_nTpcSectors] = {40.0, 60.0, 77.0};
-  double layer_thickness_sector[m_nTpcSectors] = {0};
+  
   double m_layerRadius[m_nTpcLayers] = {0};
   double m_layerThickness[m_nTpcLayers] = {0};
 
