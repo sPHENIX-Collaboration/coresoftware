@@ -54,6 +54,16 @@ ClusterErrorPara::ClusterErrorPara()
   fmm_3->SetParameter(1,0.00505814);
   fmm_3->SetParameter(2,0.0395137);
 
+  fadcz = new TF1("fadcz","[0]+([1]/pow(x-[2],2))",0,20000);
+  fadcz->SetParameter(0,0.663987);
+  fadcz->SetParameter(1,13506.6);
+  fadcz->SetParameter(2,-85.7223);
+
+  fadcphi = new TF1("fadcphi","[0]+([1]/pow(x-[2],2))",0,20000);
+  fadcphi->SetParameter(0,0.667683);
+  fadcphi->SetParameter(1,27742.8);
+  fadcphi->SetParameter(2,-131.897);
+
   static const double invsqrt12 = 1./std::sqrt(12);
 
   pitcherr_phi_mvtx = 0.002688 * invsqrt12;
@@ -187,6 +197,8 @@ ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrkrCluster* clust
       TrkrClusterv4 *clusterv4 = dynamic_cast<TrkrClusterv4 *>(cluster);
       if(clusterv4->getEdge()>=1)
 	phierror *= 2;
+      zerror *= fadcz->Eval(clusterv4->getAdc());
+      phierror *= fadcphi->Eval(clusterv4->getAdc());
       break;
      
     }

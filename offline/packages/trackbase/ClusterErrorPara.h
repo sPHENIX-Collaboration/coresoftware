@@ -30,6 +30,8 @@ class ClusterErrorPara
     delete fmm_55_2;
     delete fmm_56_2;
     delete fmm_3;
+    delete fadcphi;
+    delete fadcz;
   };
   
   using error_t = std::pair<double, double>;
@@ -51,6 +53,8 @@ class ClusterErrorPara
   TF1 *fmm_55_2 = nullptr;
   TF1 *fmm_56_2 = nullptr;
   TF1 *fmm_3 = nullptr;
+  TF1 *fadcz = nullptr;
+  TF1 *fadcphi = nullptr;
   double pitcherr_phi_mvtx;
   double pitcherr_z_mvtx;
 
