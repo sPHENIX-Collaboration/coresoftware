@@ -28,6 +28,7 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 #include <Geant4/G4VSolid.hh>
+#include <Geant4/G4Material.hh>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
@@ -114,6 +115,16 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   assert(gdml_config);
   gdml_config->exclude_physical_vol(mothervol);
   gdml_config->exclude_logical_vol(hcal_envelope_log);
+  
+  const G4MaterialTable* mtable = G4Material::GetMaterialTable();
+  int nMaterials = G4Material::GetNumberOfMaterials();
+  for(G4int i=0; i<nMaterials; ++i) {
+    const G4Material* mat = (*mtable)[i];
+    if(mat->GetName()=="EJ200") mat->GetIonisation()->SetBirksConstant(m_Params->get_double_param("Birk_const"));
+    
+    
+  }
+  
 
   return;
 }
