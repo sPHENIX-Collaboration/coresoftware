@@ -25,9 +25,7 @@ PHG4GDMLSubsystem::PHG4GDMLSubsystem(const std::string &name)
   InitializeParameters();
 }
 
-PHG4GDMLSubsystem::~PHG4GDMLSubsystem()
-{
-}
+PHG4GDMLSubsystem::~PHG4GDMLSubsystem() = default;
 
 //_______________________________________________________________________
 int PHG4GDMLSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
@@ -61,7 +59,7 @@ void PHG4GDMLSubsystem::Print(const std::string &what) const
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4GDMLSubsystem::GetDetector(void) const
+PHG4Detector *PHG4GDMLSubsystem::GetDetector() const
 {
   return m_Detector;
 }

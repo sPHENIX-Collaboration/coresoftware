@@ -777,7 +777,16 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   t_seed = std::make_unique<PHTimer>("t_seed");
   t_fill->stop();
   t_seed->stop();
-  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_fieldDir,_min_clusters_per_track,_max_sin_phi,Verbosity());
+
+  PHFieldConfigv1 fcfg;
+  fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
+  auto magField = std::string(getenv("CALIBRATIONROOT")) +
+    std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
+  fcfg.set_filename(magField);
+  //  fcfg.set_rescale(1);
+  std::unique_ptr<PHField> field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
+
+  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,field_map.get(),_fieldDir,_min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->useConstBField(_use_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
   fitter->setFixedClusterError(0,_fixed_clus_err.at(0));

@@ -120,7 +120,7 @@ void PHG4Sector::PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *World
                                           geom.get_max_R(), (sph_min_polar_size + sph_max_polar_size) / 2,
                                           geom.get_total_thickness());
     G4VSolid *BoxBoundary_Det_Place = new G4DisplacedSolid(
-        "BoxBoundary_Det_Place", BoxBoundary_Det, 0,
+        "BoxBoundary_Det_Place", BoxBoundary_Det, nullptr,
         G4ThreeVector(0, (sph_max_polar_size - sph_min_polar_size) / 2, 0));
 
     Boundary_Det = new G4IntersectionSolid("Boundary_Det",
@@ -148,12 +148,8 @@ void PHG4Sector::PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *World
   // construct layers
   double z_start = -geom.get_total_thickness() / 2;
 
-  for (Sector_Geometry::t_layer_list::const_iterator it =
-           geom.layer_list.begin();
-       it != geom.layer_list.end(); ++it)
+  for (const auto &l : geom.layer_list)
   {
-    const Layer &l = (*it);
-
     if (l.percentage_filled > 100. || l.percentage_filled < 0)
     {
       std::ostringstream strstr;
@@ -175,7 +171,7 @@ void PHG4Sector::PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *World
     RegisterLogicalVolume(LayerLog_Det);
 
     RegisterPhysicalVolume(
-        new G4PVPlacement(0, G4ThreeVector(), LayerLog_Det,
+        new G4PVPlacement(nullptr, G4ThreeVector(), LayerLog_Det,
                           layer_name + "_Physical", DetectorLog_Det, false, 0, overlapcheck_sector),
         l.active);
 
@@ -226,7 +222,7 @@ PHG4Sector::PHG4SectorConstructor::Construct_Sectors_Plane(  //
                                  2 * pi             //      G4double pDPhi
   );
 
-  G4VSolid *Sol_Place = new G4DisplacedSolid(name + "_Place", Sol_Raw, 0,
+  G4VSolid *Sol_Place = new G4DisplacedSolid(name + "_Place", Sol_Raw, nullptr,
                                              G4ThreeVector(0, 0, start_z + thickness / 2));
 
   G4VSolid *Sol = new G4IntersectionSolid(name, Sol_Place,
@@ -312,10 +308,9 @@ double
 PHG4Sector::Sector_Geometry::get_total_thickness() const
 {
   double sum = 0;
-  for (t_layer_list::const_iterator it = layer_list.begin();
-       it != layer_list.end(); ++it)
+  for (const auto &it : layer_list)
   {
-    sum += (*it).depth;
+    sum += it.depth;
   }
   return sum;
 }

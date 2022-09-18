@@ -78,7 +78,7 @@ class PHG4IHCalDetector : public PHG4Detector
   std::map<G4VPhysicalVolume *, int> m_AbsorberPhysVolMap;
 
   //! registry for volumes that should not be exported
-  PHG4GDMLConfig* gdml_config = nullptr;
+  PHG4GDMLConfig *gdml_config = nullptr;
 
   std::string m_GDMPath;
 };

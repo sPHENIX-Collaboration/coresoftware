@@ -31,7 +31,7 @@ PHG4SpacalDisplayAction::~PHG4SpacalDisplayAction()
 void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
-  for (auto it : m_LogicalVolumeMap)
+  for (const auto &it : m_LogicalVolumeMap)
   {
     G4LogicalVolume *logvol = it.first;
     if (logvol->GetVisAttributes())
@@ -54,7 +54,7 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/
     {
       visatt->SetColor(.3, .3, .3, .3);
       visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());
-      visatt->SetForceSolid(! m_Geom->is_virualize_fiber());
+      visatt->SetForceSolid(!m_Geom->is_virualize_fiber());
     }
     else if (it.second == "Divider")
     {
@@ -78,7 +78,7 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/
       PHG4Utils::SetColour(visatt, m_MaterialMap["LightGuide"]);
       visatt->SetColor(.8, 1, .8, .3);
       visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());
-      visatt->SetForceSolid(! m_Geom->is_virualize_fiber());
+      visatt->SetForceSolid(!m_Geom->is_virualize_fiber());
     }
     else if (it.second == "Sector")
     {
@@ -90,7 +90,7 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/
     else if (it.second == "SpacalCylinder")
     {
       PHG4Utils::SetColour(visatt, "W_Epoxy");
-      visatt->SetForceSolid((! m_Geom->is_virualize_fiber()) && (! m_Geom->is_azimuthal_seg_visible()));
+      visatt->SetForceSolid((!m_Geom->is_virualize_fiber()) && (!m_Geom->is_azimuthal_seg_visible()));
     }
     else if (it.second == "Wall")
     {
@@ -100,12 +100,12 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/
     else if (it.second == "WallProj")
     {
       visatt->SetColor(.5, .9, .5, .2);
-      visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible() && (! m_Geom->is_virualize_fiber()));
+      visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible() && (!m_Geom->is_virualize_fiber()));
     }
     else
     {
       std::cout << "did not assing color to " << it.first->GetName()
-           << " under " << it.second << std::endl;
+                << " under " << it.second << std::endl;
       gSystem->Exit(1);
     }
     logvol->SetVisAttributes(visatt);

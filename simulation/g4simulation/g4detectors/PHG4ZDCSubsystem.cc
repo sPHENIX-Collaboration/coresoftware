@@ -87,7 +87,7 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       nodes.insert(m_SupportNodeName);
     }
 
-    for (auto nodename : nodes)
+    for (const auto& nodename : nodes)
     {
       PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
@@ -122,7 +122,7 @@ int PHG4ZDCSubsystem::process_event(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4ZDCSubsystem::GetDetector(void) const
+PHG4Detector* PHG4ZDCSubsystem::GetDetector() const
 {
   return m_Detector;
 }

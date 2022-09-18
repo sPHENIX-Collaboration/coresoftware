@@ -562,7 +562,7 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 
   set_default_double_param("tpc_maxradius_inner", 40.0);  // cm
   set_default_double_param("tpc_maxradius_mid", 60.0);
-  set_default_double_param("tpc_maxradius_outer", 77.0);  // from Tom
+  set_default_double_param("tpc_maxradius_outer", 76.4);  // from Tom
 
   set_default_double_param("neffelectrons_threshold", 1.0);
   set_default_double_param("maxdriftlength", 105.5);     // cm

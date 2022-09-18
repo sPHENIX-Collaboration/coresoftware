@@ -86,7 +86,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
   G4LogicalVolume *magnet_mother_logic = new G4LogicalVolume(magnet_mother_solid,
                                                              GetDetectorMaterial("G4_Galactic"),
                                                              GetName(),
-                                                             0, 0, 0);
+                                                             nullptr, nullptr, nullptr);
 
   m_DisplayAction->AddVolume(magnet_mother_logic, "OFF");
   new G4PVPlacement(G4Transform3D(*rotm, origin),
@@ -174,7 +174,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
   G4LogicalVolume *magnet_iron_logic = new G4LogicalVolume(magnet_iron_solid,
                                                            GetDetectorMaterial("G4_Fe"),
                                                            GetName(),
-                                                           0, 0, 0);
+                                                           nullptr, nullptr, nullptr);
   m_DisplayAction->AddVolume(magnet_iron_logic, magnettype);
 
   if (m_Params->get_double_param("skin_thickness") > 0)
@@ -195,7 +195,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
     G4LogicalVolume *magnet_core_logic = new G4LogicalVolume(magnet_core_solid,
                                                              GetDetectorMaterial("G4_Fe"),
                                                              GetName(),
-                                                             0, 0, 0);
+                                                             nullptr, nullptr, nullptr);
     m_DisplayAction->AddVolume(magnet_core_logic, magnettype);
 
     magnet_core_physi = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0),
@@ -216,7 +216,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
   m_magnetFieldLogic = new G4LogicalVolume(magnet_field_solid,
                                            GetDetectorMaterial("G4_Galactic"),
                                            GetName(),
-                                           0, 0, 0);
+                                           nullptr, nullptr, nullptr);
 
   // allow installing new detector inside the magnet, magnet_field_logic
   PHG4Subsystem *mysys = GetMySubsystem();

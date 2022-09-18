@@ -89,7 +89,7 @@ class PHSimpleKFProp : public SubsysReco
 
   TrackSeedContainer *_track_map = nullptr;
 
-  PHField* _field_map = nullptr;
+  std::unique_ptr<PHField> _field_map = nullptr;
   
   /// acts geometry
   ActsGeometry *_tgeometry = nullptr;

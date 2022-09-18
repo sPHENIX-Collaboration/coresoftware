@@ -22,8 +22,12 @@
 #include <boost/foreach.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/stacktrace.hpp>
 #include <boost/tokenizer.hpp>
+// stacktrace gives a shadow warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <boost/stacktrace.hpp>
+#pragma GCC diagnostic pop
 
 #include <unistd.h>
 #include <algorithm>

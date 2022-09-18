@@ -77,7 +77,7 @@ int PHG4IHCalSteppingAction::Init()
 {
   if (m_LightScintModelFlag)
   {
-    /*
+    
     const char* Calibroot = getenv("CALIBRATIONROOT");
     if (!Calibroot)
     {
@@ -85,9 +85,9 @@ int PHG4IHCalSteppingAction::Init()
       gSystem->Exit(1);
     }
     std::string ihcalmapname(Calibroot);
-    ihcalmapname += "/HCALIN/tilemap/iHCALMapsNorm020922.root";
+    ihcalmapname += "/HCALIN/tilemap/ihcalgdmlmap092022norm.root";
     TFile* file = TFile::Open(ihcalmapname.c_str());
-    file->GetObject("ihcalmapcombined", m_MapCorrHist);
+    file->GetObject("ihcalcombinedgdmlnorm", m_MapCorrHist);
     if (!m_MapCorrHist)
     {
       std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;
@@ -96,7 +96,7 @@ int PHG4IHCalSteppingAction::Init()
     m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
     file->Close();
     delete file;
-*/
+
   }
   return 0;
 }
@@ -174,7 +174,28 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     case fPostStepDoItProc:
       if (m_SavePostStepStatus != fGeomBoundary)
       {
-        break;
+        if (m_SavePostStepStatus != fAtRestDoItProc)
+        {
+          break;
+        }
+        else
+        {
+          if (aTrack->GetTrackID() == m_SaveTrackId)
+          {
+            std::cout << GetName() << ": Bad step status combination for the same track " << std::endl;
+            std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+                      << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                      << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+                      << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+            std::cout << "last track: " << m_SaveTrackId
+                      << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+            std::cout << "phys pre vol: " << volume->GetName()
+                      << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+            std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+                      << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
+            gSystem->Exit(1);
+          }
+        }
       }
       else
       {
@@ -295,16 +316,16 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           const G4ThreeVector& worldPosition = postPoint->GetPosition();
           G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
           float lx = (localPosition.x() / cm);
-          float lz = fabs(localPosition.z() / cm);
+          float ly = (localPosition.y() / cm);
 
           //adjust to tilemap coordinates
-          int lcz = (int) (5.0 * lz) + 1;
-          int lcx = (int) (5.0 * (lx + 12.1)) + 1;
+          int lcx = (int) (5.0 * lx) + 1;
+          int lcy = (int) (5.0 * (ly + 2.0)) + 1;
 
-          if ((lcx >= 1) && (lcx <= m_MapCorrHist->GetNbinsY()) &&
-              (lcz >= 1) && (lcz <= m_MapCorrHist->GetNbinsX()))
+          if ((lcy >= 1) && (lcy <= m_MapCorrHist->GetNbinsY()) &&
+              (lcx >= 1) && (lcx <= m_MapCorrHist->GetNbinsX()))
           {
-            light_yield *= (double) (m_MapCorrHist->GetBinContent(lcz, lcx));
+            light_yield *= (double) (m_MapCorrHist->GetBinContent(lcx, lcy));
           }
           else
           {
@@ -413,3 +434,4 @@ void PHG4IHCalSteppingAction::SetHitNodeName(const std::string& type, const std:
   gSystem->Exit(1);
   return;
 }
+

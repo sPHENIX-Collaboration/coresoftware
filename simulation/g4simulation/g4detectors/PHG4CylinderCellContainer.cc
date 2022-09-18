@@ -100,7 +100,7 @@ PHG4CylinderCellContainer::getCylinderCells(const unsigned int detid) const
 }
 
 PHG4CylinderCellContainer::ConstRange
-PHG4CylinderCellContainer::getCylinderCells(void) const
+PHG4CylinderCellContainer::getCylinderCells() const
 {
   return std::make_pair(cellmap.begin(), cellmap.end());
 }
@@ -130,7 +130,7 @@ PHG4CylinderCellContainer::findCylinderCell(PHG4CylinderCellDefs::keytype key)
     return it->second;
   }
 
-  return 0;
+  return nullptr;
 }
 
 double

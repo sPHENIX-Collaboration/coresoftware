@@ -83,7 +83,7 @@ void PHG4EnvelopeDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                                 dZ / 2.,
                                                 sPhi, dPhi);
 
-  G4LogicalVolume* GarbageCollector_logical = new G4LogicalVolume(GarbageCollector_solid, material_crystal, G4String("GarbageCollector"), 0, 0, 0);
+  G4LogicalVolume* GarbageCollector_logical = new G4LogicalVolume(GarbageCollector_solid, material_crystal, G4String("GarbageCollector"), nullptr, nullptr, nullptr);
 
   G4VisAttributes* ecalVisAtt = new G4VisAttributes();
   ecalVisAtt->SetVisibility(true);
@@ -100,7 +100,7 @@ void PHG4EnvelopeDetector::ConstructMe(G4LogicalVolume* logicWorld)
                     GarbageCollector_logical,
                     "GarbageCollector",
                     logicWorld,
-                    0,
+                    false,
                     false,
                     OverlapCheck());
 
@@ -112,7 +112,7 @@ void PHG4EnvelopeDetector::ConstructMe(G4LogicalVolume* logicWorld)
                     GarbageCollector_logical,
                     "GarbageCollector_front",
                     logicWorld,
-                    0,
+                    false,
                     false,
                     OverlapCheck());
 
@@ -135,9 +135,9 @@ void PHG4EnvelopeDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4LogicalVolume* GarbageCollector_cyl_logical = new G4LogicalVolume(GarbageCollector_cyl_solid,
                                                                       material_crystal,
                                                                       G4String("GarbageCollector_cyl"),
-                                                                      0,
-                                                                      0,
-                                                                      0);
+                                                                      nullptr,
+                                                                      nullptr,
+                                                                      nullptr);
 
   GarbageCollector_cyl_logical->SetVisAttributes(ecalVisAtt);
 
@@ -145,7 +145,7 @@ void PHG4EnvelopeDetector::ConstructMe(G4LogicalVolume* logicWorld)
                     GarbageCollector_cyl_logical,
                     "GarbageCollector_cyl",
                     logicWorld,
-                    0,
+                    false,
                     false,
                     OverlapCheck());
 }

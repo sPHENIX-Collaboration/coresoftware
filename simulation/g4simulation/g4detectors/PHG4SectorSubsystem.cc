@@ -82,7 +82,7 @@ int PHG4SectorSubsystem::process_event(PHCompositeNode* topNode)
 
 //_______________________________________________________________________
 PHG4Detector*
-PHG4SectorSubsystem::GetDetector(void) const
+PHG4SectorSubsystem::GetDetector() const
 {
   return m_Detector;
 }

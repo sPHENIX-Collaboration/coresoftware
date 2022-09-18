@@ -35,7 +35,7 @@ int PHG4BeamlineMagnetSubsystem::process_event(PHCompositeNode* /*topNode*/)
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4BeamlineMagnetSubsystem::GetDetector(void) const
+PHG4Detector* PHG4BeamlineMagnetSubsystem::GetDetector() const
 {
   return detector_;
 }
