@@ -19,20 +19,21 @@ namespace
 ClusterErrorPara::ClusterErrorPara()
 {
   f0 = new TF1("f0","[0] + x*[1]",0,10);
-  f0->SetParameter(0,0.0158);
-  f0->SetParameter(1,0.00772013);
+  f0->SetParameter(0,0.0149535);
+  f0->SetParameter(1,0.020669);
 
-  f1 = new TF1("f1","[0] + x*[1]",0,10);
-  f1->SetParameter(0,0.0102342);
-  f1->SetParameter(1,0.0320397);
+  f1 = new TF1("f1","[0] + x*[1] + x*x*[2]*[2]",0,10);
+  f1->SetParameter(0,0.011901);
+  f1->SetParameter(1,0.00549083);
+  f1->SetParameter(2,0.120462);
 
   f2 = new TF1("f2","[0] + x*[1]",0,10);
-  f2->SetParameter(0,0.010688);
-  f2->SetParameter(1,0.0300981);
+  f2->SetParameter(0,0.010756);
+  f2->SetParameter(1,0.0369147);
 
   fz0 = new TF1("fz0","pol1",-2,2);
-  fz0->SetParameter(0,0.0520295);
-  fz0->SetParameter(1,0.0129029);
+  fz0->SetParameter(0,0.04801);
+  fz0->SetParameter(1,0.0136);
 
   fz = new TF1("fz","pol2",-2,2);
   fz->SetParameter(0,0.0409945);
@@ -197,6 +198,12 @@ ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrkrCluster* clust
       TrkrClusterv4 *clusterv4 = dynamic_cast<TrkrClusterv4 *>(cluster);
       if(clusterv4->getEdge()>=1)
 	phierror *= 2;
+      if(clusterv4->getPhiSize()==1)
+	phierror *= 2;
+      if(clusterv4->getPhiSize()==4)
+	phierror *= 2;
+      if(clusterv4->getPhiSize()>=5)
+	phierror *= 3;
       zerror *= fadcz->Eval(clusterv4->getAdc());
       phierror *= fadcphi->Eval(clusterv4->getAdc());
       break;
