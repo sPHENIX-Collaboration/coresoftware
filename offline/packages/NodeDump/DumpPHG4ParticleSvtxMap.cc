@@ -29,16 +29,16 @@ int DumpPHG4ParticleSvtxMap::process_Node(PHNode *myNode)
   if (phg4particlesvtxmap)
   {
     *fout << "size " << phg4particlesvtxmap->size() << std::endl;
-    for (auto iter = phg4particlesvtxmap->begin(); iter != phg4particlesvtxmap->end(); ++iter)
+    for (auto &iter : *phg4particlesvtxmap)
     {
-      *fout << "Cluster: " << std::hex << iter->first << std::dec << std::endl;
+      *fout << "Cluster: " << std::hex << iter.first << std::dec << std::endl;
 
-      for (auto iter2 = (iter->second).begin(); iter2 != (iter->second).end(); ++iter2)
+      for (auto iter2 = (iter.second).begin(); iter2 != (iter.second).end(); ++iter2)
       {
         *fout << "weight: " << iter2->first << std::endl;
-        for (auto iter3 = (iter2->second).begin(); iter3 != (iter2->second).end(); ++iter3)
+        for (unsigned int iter3 : iter2->second)
         {
-          *fout << "track id " << *iter3 << std::endl;
+          *fout << "track id " << iter3 << std::endl;
         }
       }
     }

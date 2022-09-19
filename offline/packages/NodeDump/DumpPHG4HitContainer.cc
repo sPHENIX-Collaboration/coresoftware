@@ -5,7 +5,7 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
-#include <limits.h>
+#include <climits>
 #include <map>
 #include <ostream>
 #include <string>
