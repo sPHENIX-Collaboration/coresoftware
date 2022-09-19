@@ -4,8 +4,9 @@
 #include "Jet.h"
 #include "JetAlgo.h"
 
-#include <iostream>   // for cout, ostream
-#include <vector>     // for vector
+#include <cmath>     // for NAN
+#include <iostream>  // for cout, ostream
+#include <vector>    // for vector
 
 class FastJetAlgo : public JetAlgo
 {
@@ -14,32 +15,25 @@ class FastJetAlgo : public JetAlgo
   ~FastJetAlgo() override {}
 
   void identify(std::ostream& os = std::cout) override;
-  Jet::ALGO get_algo() override { return _algo; }
-  float get_par() override { return _par; }
+  Jet::ALGO get_algo() override { return m_AlgoFlag; }
+  float get_par() override { return m_Par; }
 
-  void set_do_SoftDrop( bool do_SD ) {
-    _do_SD = do_SD;
-  }
+  void set_do_SoftDrop(bool do_SD) { m_SDFlag = do_SD; }
 
-  void set_SoftDrop_beta( float beta ) {
-    _SD_beta = beta;
-  }
+  void set_SoftDrop_beta(float beta) { m_SDBeta = beta; }
 
-  void set_SoftDrop_zcut( float zcut ) {
-    _SD_zcut = zcut;
-  }
+  void set_SoftDrop_zcut(float zcut) { m_SDZCut = zcut; }
 
   std::vector<Jet*> get_jets(std::vector<Jet*> particles) override;
 
  private:
-  int _verbosity;
-  Jet::ALGO _algo;
-  float _par;
+  int m_Verbosity = 0;
+  Jet::ALGO m_AlgoFlag = Jet::NONE;
+  float m_Par = NAN;
 
-  bool _do_SD;
-  float _SD_beta;
-  float _SD_zcut;
-
+  bool m_SDFlag = false;
+  float m_SDBeta = NAN;
+  float m_SDZCut = NAN;
 };
 
 #endif

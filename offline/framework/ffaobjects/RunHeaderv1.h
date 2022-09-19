@@ -15,7 +15,7 @@ class RunHeaderv1 : public RunHeader
   RunHeaderv1() = default;
   ~RunHeaderv1() override = default;
 
-  void Reset() override {return;}
+  void Reset() override { return; }
   void identify(std::ostream &os = std::cout) const override;
   int isValid() const override;
 
@@ -38,7 +38,6 @@ class RunHeaderv1 : public RunHeader
   std::map<std::string, float> m_FloatRunProperties;
 
   ClassDefOverride(RunHeaderv1, 1)
-
 };
 
 #endif /* FFAOBJECTS_RUNHEADERV1_H */

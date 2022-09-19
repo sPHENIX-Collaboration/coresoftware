@@ -21,8 +21,8 @@ libcalo_reco_la_LIBADD = \
   -lgslcblas \
   -lg4vertex_io \
   -lcalo_io \
+  -lsph_onnx \
   -lcaloCalibDBFile \
-  -lxpload \
   -lphparameter
 
 AM_CPPFLAGS = \
@@ -31,13 +31,14 @@ AM_CPPFLAGS = \
   -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
+  CaloWaveformProcessing.h \
   RawClusterBuilderFwd.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
   RawClusterPositionCorrection.h \
   RawTowerCalibration.h 
-  
+
 libcalo_reco_la_SOURCES = \
   BEmcCluster.cc \
   BEmcProfile.cc \
@@ -45,6 +46,7 @@ libcalo_reco_la_SOURCES = \
   BEmcRecCEMC.cc \
   BEmcRecFEMC.cc \
   BEmcRecEEMC.cc \
+  CaloWaveformProcessing.cc \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \

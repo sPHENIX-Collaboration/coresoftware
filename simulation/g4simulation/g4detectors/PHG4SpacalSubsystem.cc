@@ -98,9 +98,9 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   PHG4SpacalDisplayAction* DispAct = dynamic_cast<PHG4SpacalDisplayAction*>(m_DisplayAction);
   DispAct->SetGeom(detector_->get_geom());
 
-  std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
+    std::set<std::string> nodes;
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode* DetNode = dstNode;
     if (SuperDetector() != "NONE" && !SuperDetector().empty())
@@ -126,7 +126,7 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     {
       nodes.insert(m_AbsorberNodeName);
     }
-    for (auto nodename : nodes)
+    for (const auto& nodename : nodes)
     {
       PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
@@ -157,7 +157,7 @@ int PHG4SpacalSubsystem::process_event(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4SpacalSubsystem::GetDetector(void) const
+PHG4Detector* PHG4SpacalSubsystem::GetDetector() const
 {
   return detector_;
 }

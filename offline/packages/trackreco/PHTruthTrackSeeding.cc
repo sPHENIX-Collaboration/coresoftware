@@ -469,6 +469,9 @@ int PHTruthTrackSeeding::End()
 //_____________________________________________________________________________________________
 std::set<short int> PHTruthTrackSeeding::getInttCrossings(TrackSeed *si_track) const
 {
+  if( Verbosity() )
+    std::cout << "PHTruthTrackSeeding::getInttCrossings - entering " << std::endl;
+
   std::set<short int> intt_crossings;
 
   // If the Si track contains an INTT hit, use it to get the bunch crossing offset
@@ -480,6 +483,7 @@ std::set<short int> PHTruthTrackSeeding::getInttCrossings(TrackSeed *si_track) c
     
     const TrkrDefs::cluskey& cluster_key = *iter;
     const unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
+    if(Verbosity() > 0) std::cout << "    trkrid " << trkrid << " cluster_key " << cluster_key << std::endl;
     if(trkrid == TrkrDefs::inttId)
     {
       
@@ -492,7 +496,7 @@ std::set<short int> PHTruthTrackSeeding::getInttCrossings(TrackSeed *si_track) c
       {
         const auto& [key, crossing] = *iter;
         if( Verbosity() )
-        { std::cout << "PHTruthTrackSeeding::getInttCrossings - si Track cluster " << key << " layer " << layer << " crossing " << crossing  << std::endl; }
+	  { std::cout << "    PHTruthTrackSeeding::getInttCrossings - si Track cluster " << key << " layer " << layer << " crossing " << crossing  << std::endl; }
         intt_crossings.insert(crossing);
       }
     }

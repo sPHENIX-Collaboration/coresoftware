@@ -42,12 +42,12 @@ int ParticleFlowElementv1::isValid() const
 
 float ParticleFlowElementv1::get_p() const
 {
-  return sqrt(get_px() * get_px() + get_py() * get_py() + get_pz() * get_pz());
+  return std::sqrt(get_px() * get_px() + get_py() * get_py() + get_pz() * get_pz());
 }
 
 float ParticleFlowElementv1::get_pt() const
 {
-  return sqrt(get_px() * get_px() + get_py() * get_py());
+  return std::sqrt(get_px() * get_px() + get_py() * get_py());
 }
 
 float ParticleFlowElementv1::get_et() const
@@ -57,18 +57,18 @@ float ParticleFlowElementv1::get_et() const
 
 float ParticleFlowElementv1::get_eta() const
 {
-  return asinh(get_pz() / get_pt());
+  return std::asinh(get_pz() / get_pt());
 }
 
 float ParticleFlowElementv1::get_phi() const
 {
-  return atan2(get_py(), get_px());
+  return std::atan2(get_py(), get_px());
 }
 
 float ParticleFlowElementv1::get_mass() const
 {
   
-  return sqrt( get_e() * get_e() - get_px() * get_px() + get_py() * get_py() + get_pz() * get_pz() );
+  return std::sqrt( get_e() * get_e() - get_px() * get_px() + get_py() * get_py() + get_pz() * get_pz() );
 
 }
 

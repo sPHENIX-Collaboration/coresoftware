@@ -57,7 +57,6 @@ class EventHeaderv2 : public EventHeaderv1
   int64_t m_bunchCrossing = 0;
 
   ClassDefOverride(EventHeaderv2, 2)
-
 };
 
 #endif

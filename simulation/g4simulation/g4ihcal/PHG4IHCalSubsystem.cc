@@ -20,6 +20,7 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
+
 #include <cmath>     // for NAN
 #include <iostream>  // for operator<<, basic_ostream
 #include <set>
@@ -57,6 +58,7 @@ int PHG4IHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   {
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode *DetNode = dstNode;
+   
     if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
       PHNodeIterator iter_dst(dstNode);
@@ -81,7 +83,7 @@ int PHG4IHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     {
       nodes.insert(m_AbsorberNodeName);
     }
-    for (auto nodename : nodes)
+    for (const auto &nodename : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
@@ -138,7 +140,7 @@ void PHG4IHCalSubsystem::Print(const std::string &what) const
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4IHCalSubsystem::GetDetector(void) const
+PHG4Detector *PHG4IHCalSubsystem::GetDetector() const
 {
   return m_Detector;
 }
@@ -158,6 +160,7 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
   set_default_double_param("size_z", 175.94 * 2);
+  set_default_double_param("Birk_const", 0.07943);
 
   set_default_int_param("light_scint_model", 1);
   set_default_int_param(PHG4HcalDefs::n_towers, 64);

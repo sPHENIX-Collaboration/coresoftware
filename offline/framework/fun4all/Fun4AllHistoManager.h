@@ -13,7 +13,7 @@ class TNamed;
 class Fun4AllHistoManager : public Fun4AllBase
 {
  public:
-  Fun4AllHistoManager(const std::string &name);
+  explicit Fun4AllHistoManager(const std::string &name);
   ~Fun4AllHistoManager() override;
 
   void Print(const std::string &what = "ALL") const override;

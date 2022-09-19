@@ -18,7 +18,7 @@ class JetAlgo
   virtual Jet::ALGO get_algo() { return Jet::NONE; }
   virtual float get_par() { return NAN; }
 
-  virtual std::vector<Jet*> get_jets(std::vector<Jet*>/* particles*/)
+  virtual std::vector<Jet*> get_jets(std::vector<Jet*> /* particles*/)
   {
     return std::vector<Jet*>();
   }

@@ -217,8 +217,8 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
     newclus->setSubSurfKey(subsurfkey);
 
 	  // get local coordinates
-    Acts::Vector3 normal = surface->normal(_tGeometry->geometry().geoContext);
-    auto local = surface->globalToLocal(_tGeometry->geometry().geoContext,
+    Acts::Vector3 normal = surface->normal(_tGeometry->geometry().getGeoContext());
+    auto local = surface->globalToLocal(_tGeometry->geometry().getGeoContext(),
 					global * Acts::UnitConstants::cm,
 					normal);
 
@@ -230,7 +230,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  else
 	    {
 	      /// otherwise take the manual calculation
-	      Acts::Vector3 center = surface->center(_tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
+	      Acts::Vector3 center = surface->center(_tGeometry->geometry().getGeoContext())/Acts::UnitConstants::cm;
 	      double clusRadius = sqrt(xnew * xnew + ynew * ynew);
 	      double clusphi = atan2(ynew, xnew);
 	      double rClusPhi = clusRadius * clusphi;

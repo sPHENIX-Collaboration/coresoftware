@@ -90,7 +90,7 @@ void PHCompositeNode::forgetMe(PHNode* child)
     if (thisNode == child)
     {
       subNodes.removeAt(nodeIter.pos());
-      child = 0;
+      child = nullptr;
     }
   }
 }
