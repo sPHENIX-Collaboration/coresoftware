@@ -49,13 +49,6 @@ int DumpPHG4BlockCellGeomContainer::process_Node(PHNode *myNode)
         *fout << "xstep: " << hiter->second->get_xstep() << std::endl;
         break;
       case PHG4CylinderCellDefs::etaphibinning:
-        *fout << "etabins: " << hiter->second->get_etabins() << std::endl;
-        *fout << "etastep: " << hiter->second->get_etastep() << std::endl;
-        *fout << "etamin: " << hiter->second->get_etamin() << std::endl;
-        *fout << "xbins: " << hiter->second->get_xbins() << std::endl;
-        *fout << "xmin: " << hiter->second->get_xmin() << std::endl;
-        *fout << "xstep: " << hiter->second->get_xstep() << std::endl;
-        break;
       case PHG4CylinderCellDefs::etaslatbinning:
         *fout << "etabins: " << hiter->second->get_etabins() << std::endl;
         *fout << "etastep: " << hiter->second->get_etastep() << std::endl;
