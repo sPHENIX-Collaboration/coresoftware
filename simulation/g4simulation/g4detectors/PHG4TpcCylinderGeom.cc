@@ -230,6 +230,7 @@ int PHG4TpcCylinderGeom::get_phibin(const double phi) const
   }
   check_binning_method_phi();
   return floor((norm_phi - phimin) / phistep);
+  
 }
 
 int PHG4TpcCylinderGeom::get_phibin_new(const double phi) const
