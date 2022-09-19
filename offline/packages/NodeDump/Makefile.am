@@ -39,6 +39,7 @@ libphnodedump_la_SOURCES = \
   DumpPHG4ScintillatorSlatContainer.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
+  DumpPHGenIntegral.cc \
   DumpPHHepMCGenEventMap.cc \
   DumpRawClusterContainer.cc \
   DumpRawTowerContainer.cc \
