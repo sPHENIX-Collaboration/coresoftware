@@ -161,6 +161,7 @@ void PHG4OHCalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
   set_default_double_param("size_z", 304.91 * 2);
+  set_default_double_param("Birk_const", 0.07943);
   set_default_int_param("field_check", 0);
   set_default_int_param("light_scint_model", 1);
 

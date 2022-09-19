@@ -68,6 +68,6 @@ int DumpObject::process_Node(PHNode * /*myNode*/)
 int DumpObject::CloseOutputFile()
 {
   delete fout;
-  fout = 0;
+  fout = nullptr;
   return 0;
 }
