@@ -8,6 +8,8 @@
 #include <Eigen/Geometry>
 
 #include <map>
+#include <random>
+
 
 
 class PHCompositeNode;
@@ -34,76 +36,69 @@ class AlignmentTransformation {
   Eigen::Vector3d perturbationAngles      = Eigen::Vector3d(0.0,0.0,0.0);
   Eigen::Vector3d perturbationTranslation = Eigen::Vector3d(0.0,0.0,0.0);
 
-  void setMVTXParams(double mvtxAlphaDev, double mvtxBetaDev, double mvtxGammaDev, double mvtxDxDev, double mvtxDyDev, double mvtxDzDev)
+ void setMVTXParams(double mvtxDevs[6])
   {
-    mvtxAngleDev(0) = mvtxAlphaDev;
-    mvtxAngleDev(1) = mvtxBetaDev;
-    mvtxAngleDev(2) = mvtxGammaDev;
-    mvtxTransDev(0) = mvtxDxDev;
-    mvtxTransDev(1) = mvtxDyDev;
-    mvtxTransDev(2) = mvtxDzDev;
+    mvtxAngleDev(0) = mvtxDevs[0];
+    mvtxAngleDev(1) = mvtxDevs[1];
+    mvtxAngleDev(2) = mvtxDevs[2];
+    mvtxTransDev(0) = mvtxDevs[3];
+    mvtxTransDev(1) = mvtxDevs[4];
+    mvtxTransDev(2) = mvtxDevs[5];
 
     perturbMVTX = true;
 
     if(localVerbosity)
       {
-	std::cout << "perturbMVTX: "<<perturbMVTX << " alpha in: " << mvtxAlphaDev <<" mvtxAngleDevs: "<< mvtxAngleDev<< std::endl;
-	std::cout << mvtxAngleDev << " " << mvtxTransDev << " " << perturbMVTX << std::endl;
+	std::cout << "perturbMVTX: "<<perturbMVTX <<" MVTX Angle Std Dev: " << mvtxAngleDev <<"MVTX Trans Std Dev:"<< mvtxTransDev<< std::endl;
       }
   }
 
-  void setINTTParams(double inttAlphaDev, double inttBetaDev, double inttGammaDev, double inttDxDev, double inttDyDev, double inttDzDev)
+ void setINTTParams(double inttDevs[6])
   {
-    inttAngleDev(0) = inttAlphaDev;
-    inttAngleDev(1) = inttBetaDev;
-    inttAngleDev(2) = inttGammaDev;
-    inttTransDev(0) = inttDxDev;
-    inttTransDev(1) = inttDyDev;
-    inttTransDev(2) = inttDzDev;
+    inttAngleDev(0) = inttDevs[0];
+    inttAngleDev(1) = inttDevs[1];
+    inttAngleDev(2) = inttDevs[2];
+    inttTransDev(0) = inttDevs[3];
+    inttTransDev(1) = inttDevs[4];
+    inttTransDev(2) = inttDevs[5];
 
     perturbINTT = true;
 
     if(localVerbosity)
       {
-	std::cout << "perturbINTT: "<<perturbINTT << " " << inttAlphaDev << std::endl;
-	std::cout << inttAngleDev << " " << inttTransDev << " " << perturbINTT << std::endl;
+	std::cout << "perturbINTT: "<<perturbINTT <<" INTT Angle Std Dev: " << inttAngleDev <<"INTT Trans Std Dev:"<< inttTransDev<< std::endl;
       }
-  }
-
-  void setTPCParams(double tpcAlphaDev, double tpcBetaDev, double tpcGammaDev, double tpcDxDev, double tpcDyDev, double tpcDzDev)
+  } 
+void setTPCParams(double tpcDevs[6])
   {
-    tpcAngleDev(0) = tpcAlphaDev;
-    tpcAngleDev(1) = tpcBetaDev;
-    tpcAngleDev(2) = tpcGammaDev;
-    tpcTransDev(0) = tpcDxDev;
-    tpcTransDev(1) = tpcDyDev;
-    tpcTransDev(2) = tpcDzDev;
+    tpcAngleDev(0) = tpcDevs[0];
+    tpcAngleDev(1) = tpcDevs[1];
+    tpcAngleDev(2) = tpcDevs[2];
+    tpcTransDev(0) = tpcDevs[3];
+    tpcTransDev(1) = tpcDevs[4];
+    tpcTransDev(2) = tpcDevs[5];
 
     perturbTPC = true;
 
     if(localVerbosity)
       {
-	std::cout << "perturbTPC: "<<perturbTPC << " " << tpcAlphaDev << std::endl;
-	std::cout << "tpcAngleDevs " << tpcAngleDev << " tpctransDev "<< tpcTransDev <<std::endl;
-	std::cout << tpcAngleDev << " " << tpcTransDev << " " << perturbTPC << std::endl;
+	std::cout << "perturbTPC: "<<perturbTPC <<" TPC Angle Std Dev: " << tpcAngleDev <<"TPC Trans Std Dev:"<< tpcTransDev<< std::endl;
       }
   }
-
-  void setMMParams(double mmAlphaDev, double mmBetaDev, double mmGammaDev, double mmDxDev, double mmDyDev, double mmDzDev)
+ void setMMParams(double mmDevs[6])
   {
-    mmAngleDev(0) = mmAlphaDev;
-    mmAngleDev(1) = mmBetaDev;
-    mmAngleDev(2) = mmGammaDev;
-    mmTransDev(0) = mmDxDev;
-    mmTransDev(1) = mmDyDev;
-    mmTransDev(2) = mmDzDev;
+    mmAngleDev(0) = mmDevs[0];
+    mmAngleDev(1) = mmDevs[1];
+    mmAngleDev(2) = mmDevs[2];
+    mmTransDev(0) = mmDevs[3];
+    mmTransDev(1) = mmDevs[4];
+    mmTransDev(2) = mmDevs[5];
 
     perturbMM = true;
 
     if(localVerbosity)
       {
-	std::cout << "perturbMM: "<<perturbMM << " " << mmAlphaDev << std::endl;
-	std::cout << mmAngleDev << " " << mmTransDev << " " << perturbMM << std::endl;
+	std::cout << "perturbMM: "<<perturbMM <<" MM Angle Std Dev: " << mmAngleDev <<"MM Trans Std Dev:"<< mmTransDev<< std::endl;
       }
   }
 
@@ -119,6 +114,8 @@ class AlignmentTransformation {
   Eigen::Vector3d tpcTransDev;  
   Eigen::Vector3d mmAngleDev;
   Eigen::Vector3d mmTransDev;
+
+  std::default_random_engine generator;
 
   bool localVerbosity = false;
 

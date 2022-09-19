@@ -81,6 +81,72 @@ class MakeActsGeometry : public SubsysReco
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
 
+  /* void setMvtxDev(double &array) */
+  /* { */
+  /*   m_mvtxDevs = array; */
+  /*   mvtxParam  = true; */
+  /* } */
+  /* void setInttDev(double &array[6]) */
+  /* { */
+  /*   m_inttDevs = array; */
+  /*   inttParam  = true; */
+  /* }   */
+  /* void setTpcDev(double &array[6]) */
+  /* { */
+  /*   m_tpcDevs = array; */
+  /*   tpcParam  = true; */
+  /* }   */
+  /* void setMmDev(double &array[6]) */
+  /* { */
+  /*   m_mmDevs = array; */
+  /*   mmParam  = true; */
+  //}
+  
+  void setMvtxDev(double array[6])
+  {
+    m_mvtxDevs[0] = array[0];
+    m_mvtxDevs[1] = array[1];
+    m_mvtxDevs[2] = array[2];
+    m_mvtxDevs[3] = array[3];
+    m_mvtxDevs[4] = array[4];
+    m_mvtxDevs[5] = array[5];
+
+    mvtxParam = true;
+  }
+  void setInttDev(double array[6])
+  {
+    m_inttDevs[0] = array[0];
+    m_inttDevs[1] = array[1];
+    m_inttDevs[2] = array[2];
+    m_inttDevs[3] = array[3];
+    m_inttDevs[4] = array[4];
+    m_inttDevs[5] = array[5];
+
+    inttParam = true;
+  }
+  void setTpcDev(double array[6])
+  {
+    m_tpcDevs[0] = array[0];
+    m_tpcDevs[1] = array[1];
+    m_tpcDevs[2] = array[2];
+    m_tpcDevs[3] = array[3];
+    m_tpcDevs[4] = array[4];
+    m_tpcDevs[5] = array[5];
+
+    tpcParam = true;
+  }
+  void setMmDev(double array[6])
+  {
+    m_mmDevs[0] = array[0];
+    m_mmDevs[1] = array[1];
+    m_mmDevs[2] = array[2];
+    m_mmDevs[3] = array[3];
+    m_mmDevs[4] = array[4];
+    m_mmDevs[5] = array[5];
+
+    mmParam = true;
+  }
+
   double getSurfStepPhi() {return m_surfStepPhi;}
   double getSurfStepZ() {return m_surfStepZ;}
 
@@ -229,6 +295,17 @@ class MakeActsGeometry : public SubsysReco
   double m_magFieldRescale = -1.;
 
   bool m_buildMMs = false;
+
+  double m_mvtxDevs[6];
+  double m_inttDevs[6];
+  double m_tpcDevs[6];
+  double m_mmDevs[6];
+
+  bool mvtxParam = false;
+  bool inttParam = false;
+  bool tpcParam  = false;
+  bool mmParam   = false;
+
 };
 
 #endif
