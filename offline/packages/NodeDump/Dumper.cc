@@ -43,7 +43,7 @@ int Dumper::End(PHCompositeNode *topNode)
   DumpNodeList.emplace_back("RUN");
   DumpNodeList.emplace_back("PAR");
   nodedump->PrintEvtSeq(0);
-  for (const auto & iter : DumpNodeList)
+  for (const auto &iter : DumpNodeList)
   {
     if (nodeiter.cd(iter))
     {

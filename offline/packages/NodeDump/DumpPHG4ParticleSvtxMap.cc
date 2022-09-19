@@ -29,7 +29,7 @@ int DumpPHG4ParticleSvtxMap::process_Node(PHNode *myNode)
   if (phg4particlesvtxmap)
   {
     *fout << "size " << phg4particlesvtxmap->size() << std::endl;
-    for (auto & iter : *phg4particlesvtxmap)
+    for (auto &iter : *phg4particlesvtxmap)
     {
       *fout << "Cluster: " << std::hex << iter.first << std::dec << std::endl;
 

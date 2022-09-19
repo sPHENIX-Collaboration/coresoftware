@@ -32,7 +32,7 @@ int DumpTrkrClusterContainer::process_Node(PHNode *myNode)
     *fout << "size: " << trkrclustercontainer->size() << std::endl;
     trkrclustercontainer->identify(*fout);
     TrkrClusterContainer::HitSetKeyList keylist = trkrclustercontainer->getHitSetKeys();
-    for (unsigned int & iter : keylist)
+    for (unsigned int &iter : keylist)
     {
       TrkrClusterContainer::ConstRange begin_end = trkrclustercontainer->getClusters(iter);
       for (hiter = begin_end.first; hiter != begin_end.second; ++hiter)
