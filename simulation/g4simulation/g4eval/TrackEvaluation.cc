@@ -688,6 +688,7 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrD
       cluster_struct.phi_error = sqrt(para_errors_mm.first)/cluster_struct.r;
       cluster_struct.z_error = sqrt(para_errors_mm.second);
       //	float R = TMath::Abs(1.0/tpc_seed->get_qOverR());
+      cluster_struct.trk_radius = 1.0/tpc_seed->get_qOverR();
       cluster_struct.trk_alpha = (r*r) /(2*r*TMath::Abs(1.0/tpc_seed->get_qOverR()));
       cluster_struct.trk_beta = atan(tpc_seed->get_slope());
     }else{
@@ -695,6 +696,7 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrD
       cluster_struct.phi_error = sqrt(para_errors_mvtx.first)/cluster_struct.r;
       cluster_struct.z_error = sqrt(para_errors_mvtx.second);	
       //	float R = TMath::Abs(1.0/si_seed->get_qOverR());
+      cluster_struct.trk_radius = 1.0/tpc_seed->get_qOverR();
       cluster_struct.trk_alpha = (r*r) /(2*r*TMath::Abs(1.0/tpc_seed->get_qOverR()));
       cluster_struct.trk_beta = atan(si_seed->get_slope());
     }

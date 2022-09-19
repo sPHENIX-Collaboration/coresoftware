@@ -130,6 +130,9 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
     //! track inclination at cluster in r,z plane
     float trk_beta = 0;
 
+    //! track radius
+    float trk_radius = 0;
+
     //@}
 
     //!@name truth position
