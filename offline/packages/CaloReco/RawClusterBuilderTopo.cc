@@ -169,26 +169,30 @@ std::vector<int> RawClusterBuilderTopo::get_adjacent_towers_by_ID(int ID)
   return adjacent_towers;
 }
 
-void RawClusterBuilderTopo::export_single_cluster(std::vector<int> original_towers)
+void RawClusterBuilderTopo::export_single_cluster(const std::vector<int> &original_towers)
 {
   if (Verbosity() > 2)
+  {
     std::cout << "RawClusterBuilderTopo::export_single_cluster called " << std::endl;
+  }
 
   std::map<int, std::pair<int, int> > tower_ownership;
-  for (int &original_tower : original_towers)
+  for (const int &original_tower : original_towers)
+  {
     tower_ownership[original_tower] = std::pair<int, int>(0, -1);  // all towers owned by cluster 0
-
+  }
   export_clusters(original_towers, tower_ownership, 1, std::vector<float>(), std::vector<float>(), std::vector<float>());
 
   return;
 }
 
-void RawClusterBuilderTopo::export_clusters(std::vector<int> original_towers, std::map<int, std::pair<int, int> > tower_ownership, unsigned int n_clusters, std::vector<float> pseudocluster_sumE, std::vector<float> pseudocluster_eta, std::vector<float> pseudocluster_phi)
+void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_towers, std::map<int, std::pair<int, int> > tower_ownership, unsigned int n_clusters, std::vector<float> pseudocluster_sumE, std::vector<float> pseudocluster_eta, std::vector<float> pseudocluster_phi)
 {
   if (n_clusters != 1)  // if we didn't just pass down from export_single_cluster
+  {
     if (Verbosity() > 2)
       std::cout << "RawClusterBuilderTopo::export_clusters called on an initial cluster with " << n_clusters << " final clusters " << std::endl;
-
+  }
   // build a RawCluster for output
   std::vector<RawCluster *> clusters;
   std::vector<float> clusters_E;
@@ -211,8 +215,9 @@ void RawClusterBuilderTopo::export_clusters(std::vector<int> original_towers, st
     std::pair<int, int> the_pair = tower_ownership[this_ID];
 
     if (Verbosity() > 5)
+    {
       std::cout << "RawClusterBuilderTopo::export_clusters -> assigning tower " << original_tower << " with ownership ( " << the_pair.first << ", " << the_pair.second << " ) " << std::endl;
-
+    }
     int this_ieta = get_ieta_from_ID(this_ID);
     int this_iphi = get_iphi_from_ID(this_ID);
     int this_layer = get_ilayer_from_ID(this_ID);
@@ -240,7 +245,9 @@ void RawClusterBuilderTopo::export_clusters(std::vector<int> original_towers, st
       clusters_z[the_pair.first] = clusters_z[the_pair.first] + this_E * tower_geom->get_center_z();
 
       if (Verbosity() > 5)
+      {
         std::cout << " -> tower ID " << this_ID << " fully assigned to pseudocluster " << the_pair.first << std::endl;
+      }
     }
     else
     {
@@ -251,8 +258,9 @@ void RawClusterBuilderTopo::export_clusters(std::vector<int> original_towers, st
       float frac1 = pseudocluster_sumE[the_pair.first] / (pseudocluster_sumE[the_pair.first] + r * pseudocluster_sumE[the_pair.second]);
 
       if (Verbosity() > 5)
+      {
         std::cout << " tower ID " << this_ID << " has dR1 = " << dR1 << " to pseudocluster " << the_pair.first << " , and dR2 = " << dR2 << " to pseudocluster " << the_pair.second << ", so frac1 = " << frac1 << std::endl;
-
+      }
       clusters[the_pair.first]->addTower(this_key, this_E * frac1);
       clusters_E[the_pair.first] = clusters_E[the_pair.first] + this_E * frac1;
       clusters_x[the_pair.first] = clusters_x[the_pair.first] + this_E * tower_geom->get_center_x() * frac1;
@@ -284,7 +292,9 @@ void RawClusterBuilderTopo::export_clusters(std::vector<int> original_towers, st
     _clusters->AddCluster(clusters[cl]);
 
     if (Verbosity() > 1)
-      std::cout << "RawClusterBuilderTopo::export_clusters: added cluster with E = " << clusters_E[cl] << ", eta = " << -1 * log(tan(atan2(std::sqrt(mean_y * mean_y + mean_x * mean_x), mean_z) / 2.0)) << ", phi = " << std::atan2(mean_y, mean_x) << std::endl;
+    {
+      std::cout << "RawClusterBuilderTopo::export_clusters: added cluster with E = " << clusters_E[cl] << ", eta = " << -1 * log(tan(std::atan2(std::sqrt(mean_y * mean_y + mean_x * mean_x), mean_z) / 2.0)) << ", phi = " << std::atan2(mean_y, mean_x) << std::endl;
+    }
   }
 
   return;
@@ -574,7 +584,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     if (seed_status > -1)
     {
       if (Verbosity() > 10)
+      {
         std::cout << " --> already owned by cluster # " << seed_status << std::endl;
+      }
       continue;  // go onto the next iteration of the loop
     }
 
@@ -590,7 +602,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     // iteratively process growth towers, adding > 2 * sigma neighbors to the list for further checking
 
     if (Verbosity() > 5)
+    {
       std::cout << " RawClusterBuilderTopo::process_event: Entering Growth stage for cluster " << cluster_index << std::endl;
+    }
 
     while (grow_tower_ID.size() > 0)
     {
@@ -598,20 +612,27 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       grow_tower_ID.erase(grow_tower_ID.begin());
 
       if (Verbosity() > 5)
+      {
         std::cout << " --> cluster " << cluster_index << ", growth stage, examining neighbors of ID " << grow_ID << ", " << grow_tower_ID.size() << " grow towers left" << std::endl;
+      }
 
       std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(grow_ID);
 
       for (int this_adjacent_tower_ID : adjacent_tower_IDs)
       {
-        if (Verbosity() > 10) std::cout << " --> --> --> checking possible adjacent tower with ID " << this_adjacent_tower_ID << " : ";
-
+        if (Verbosity() > 10)
+        {
+          std::cout << " --> --> --> checking possible adjacent tower with ID " << this_adjacent_tower_ID << " : ";
+        }
         int test_layer = get_ilayer_from_ID(this_adjacent_tower_ID);
 
         // if tower does not exist, continue
         if (get_status_from_ID(this_adjacent_tower_ID) == -2)
         {
-          if (Verbosity() > 10) std::cout << "does not exist " << std::endl;
+          if (Verbosity() > 10)
+          {
+            std::cout << "does not exist " << std::endl;
+          }
           continue;
         }
 
@@ -648,8 +669,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
     // done growing cluster, now add on perimeter towers with E > 0 * sigma
     if (Verbosity() > 5)
+    {
       std::cout << " RawClusterBuilderTopo::process_event: Entering Perimeter stage for cluster " << cluster_index << std::endl;
-
+    }
     // we'll be adding on to the cluster list, so get the # of core towers first
     int n_core_towers = cluster_tower_ID.size();
 
@@ -658,8 +680,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       int core_ID = cluster_tower_ID.at(ic);
 
       if (Verbosity() > 5)
+      {
         std::cout << " --> cluster " << cluster_index << ", perimeter stage, examining neighbors of ID " << core_ID << ", core cluster # " << ic << " of " << n_core_towers << " total " << std::endl;
-
+      }
       std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(core_ID);
 
       for (int this_adjacent_tower_ID : adjacent_tower_IDs)
@@ -844,16 +867,18 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     // engage splitting procedure!
 
     if (Verbosity() > 2)
+    {
       std::cout << "RawClusterBuilderTopo::process_event splitting cluster " << cl << " into " << local_maxima_ID.size() << " according to local maxima!" << std::endl;
-
+    }
     // translate all cluster towers to a map which keeps track of their ownership
     // -1 means unseen
     // -2 means seen and in the seed list now (e.g. don't add it to the seed list again)
     // -3 shared tower, ignore going forward...
     std::map<int, std::pair<int, int> > tower_ownership;
     for (int &original_tower : original_towers)
+    {
       tower_ownership[original_tower] = std::pair<int, int>(-1, -1);  // initialize all towers as un-seen
-
+    }
     std::vector<int> seed_list;
     std::vector<int> neighbor_list;
     std::vector<int> shared_list;
@@ -884,8 +909,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
     do
     {
       if (Verbosity() > 5)
+      {
         std::cout << " -> starting split loop with " << seed_list.size() << " seed, " << neighbor_list.size() << " neighbor, and " << shared_list.size() << " shared towers " << std::endl;
-
+      }
       // go through neighbor list, assigning ownership only via the seed list
       std::vector<int> new_ownerships;
 
@@ -894,20 +920,24 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         int neighbor_ID = neighbor_list.at(n);
 
         if (Verbosity() > 10)
+        {
           std::cout << " -> -> looking at neighbor " << n << " (tower ID " << neighbor_ID << " ) of " << neighbor_list.size() << " total" << std::endl;
-
+        }
         if (first_pass)
         {
           if (Verbosity() > 10)
+          {
             std::cout << " -> -> -> special first pass rules, this tower already owned by pseudocluster " << tower_ownership[neighbor_ID].first << std::endl;
+          }
           new_ownerships.push_back(tower_ownership[neighbor_ID].first);
         }
         else
         {
           std::map<int, bool> pseudocluster_adjacency;
           for (unsigned int s = 0; s < local_maxima_ID.size(); s++)
+          {
             pseudocluster_adjacency[s] = false;
-
+          }
           // look over all towers THIS one is adjacent to, and count up...
           std::vector<int> adjacent_tower_IDs = get_adjacent_towers_by_ID(neighbor_ID);
           for (int this_adjacent_tower_ID : adjacent_tower_IDs)
@@ -916,7 +946,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
             if (tower_ownership[this_adjacent_tower_ID].first > -1)
             {
               if (Verbosity() > 20)
+              {
                 std::cout << " -> -> -> adjacent tower to this one, with ID " << this_adjacent_tower_ID << " , is owned by pseudocluster " << tower_ownership[this_adjacent_tower_ID].first << std::endl;
+              }
               pseudocluster_adjacency[tower_ownership[this_adjacent_tower_ID].first] = true;
             }
           }
@@ -929,7 +961,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
               last_adjacent_pseudocluster = s;
               n_pseudocluster_adjacent++;
               if (Verbosity() > 20)
+              {
                 std::cout << " -> -> adjacent to pseudocluster " << s << std::endl;
+              }
             }
           }
 
@@ -941,20 +975,26 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
           else if (n_pseudocluster_adjacent == 1)
           {
             if (Verbosity() > 10)
+            {
               std::cout << " -> -> neighbor tower " << neighbor_ID << " is ONLY adjacent to one pseudocluster # " << last_adjacent_pseudocluster << std::endl;
+            }
             new_ownerships.push_back(last_adjacent_pseudocluster);
           }
           else
           {
             if (Verbosity() > 10)
+            {
               std::cout << " -> -> neighbor tower " << neighbor_ID << " is adjacent to " << n_pseudocluster_adjacent << " pseudoclusters, move to shared list " << std::endl;
+            }
             new_ownerships.push_back(-3);
           }
         }
       }
 
       if (Verbosity() > 5)
+      {
         std::cout << " -> now updating status of all " << neighbor_list.size() << " original neighbors " << std::endl;
+      }
       // transfer neighbor list to seed list or shared list
       for (unsigned int n = 0; n < neighbor_list.size(); n++)
       {
@@ -964,19 +1004,25 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
           tower_ownership[neighbor_ID] = std::pair<int, int>(new_ownerships.at(n), -1);
           seed_list.push_back(neighbor_ID);
           if (Verbosity() > 20)
+          {
             std::cout << " -> -> neighbor ID " << neighbor_ID << " has new status " << new_ownerships.at(n) << std::endl;
+          }
         }
         if (new_ownerships.at(n) == -3)
         {
           tower_ownership[neighbor_ID] = std::pair<int, int>(-3, -1);
           shared_list.push_back(neighbor_ID);
           if (Verbosity() > 20)
+          {
             std::cout << " -> -> neighbor ID " << neighbor_ID << " has new status " << -3 << std::endl;
+          }
         }
       }
 
       if (Verbosity() > 5)
+      {
         std::cout << " producing a new neighbor list ... " << std::endl;
+      }
       // populate a new neighbor list from the about-to-be-owned towers before transferring this one
       std::list<int> new_neighbor_list;
       for (unsigned int n = 0; n < neighbor_list.size(); n++)
@@ -993,7 +1039,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
             {
               new_neighbor_list.push_back(this_adjacent_tower_ID);
               if (Verbosity() > 5)
+              {
                 std::cout << " -> queueing up to add tower " << this_adjacent_tower_ID << " , neighbor of tower " << neighbor_ID << " to new neighbor list" << std::endl;
+              }
             }
           }
         }
@@ -1077,12 +1125,15 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       pseudocluster_phi.push_back(pseudocluster_sumphi.at(pc) / pseudocluster_ntower.at(pc));
 
       if (Verbosity() > 2)
+      {
         std::cout << "RawClusterBuilderTopo::process_event pseudocluster #" << pc << ", E / eta / phi / Ntower = " << pseudocluster_sumE.at(pc) << " / " << pseudocluster_eta.at(pc) << " / " << pseudocluster_phi.at(pc) << " / " << pseudocluster_ntower.at(pc) << std::endl;
+      }
     }
 
     if (Verbosity() > 2)
+    {
       std::cout << "RawClusterBuilderTopo::process_event now splitting up shared clusters (including unassigned clusters), initial shared list has size " << shared_list.size() << std::endl;
-
+    }
     // iterate through shared cells, identifying which two they belong to
     while (shared_list.size() > 0)
     {
@@ -1091,8 +1142,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       shared_list.erase(shared_list.begin());
 
       if (Verbosity() > 5)
+      {
         std::cout << " -> looking at shared tower " << shared_ID << ", after this one there are " << shared_list.size() << " shared towers left " << std::endl;
-
+      }
       // look through adjacent pseudoclusters, taking two with highest energies
       std::vector<bool> pseudocluster_adjacency;
       pseudocluster_adjacency.resize(local_maxima_ID.size(), false);
@@ -1116,7 +1168,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
           shared_list.push_back(this_adjacent_tower_ID);
           tower_ownership[this_adjacent_tower_ID] = std::pair<int, int>(-3, -1);
           if (Verbosity() > 10)
+          {
             std::cout << " -> while looking at neighbors, have added un-examined tower " << this_adjacent_tower_ID << " to shared list " << std::endl;
+          }
         }
       }
 
@@ -1147,8 +1201,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       }
 
       if (Verbosity() > 5)
+      {
         std::cout << " -> highest pseudoclusters its adjacent to are " << highest_pseudocluster_index << " ( E = " << highest_pseudocluster_E << " ) and " << second_highest_pseudocluster_index << " ( E = " << second_highest_pseudocluster_E << " ) " << std::endl;
-
+      }
       // assign these clusters as owners
       tower_ownership[shared_ID] = std::pair<int, int>(highest_pseudocluster_index, second_highest_pseudocluster_index);
     }

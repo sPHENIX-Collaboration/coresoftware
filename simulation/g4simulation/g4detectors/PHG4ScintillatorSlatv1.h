@@ -16,7 +16,7 @@
 class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
 {
  public:
-  PHG4ScintillatorSlatv1(){}
+  PHG4ScintillatorSlatv1() {}
   ~PHG4ScintillatorSlatv1() override {}
 
   void identify(std::ostream& os = std::cout) const override;
@@ -42,7 +42,7 @@ class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
 
  protected:
   PHG4ScintillatorSlatDefs::keytype key = ~0x0;
-  double edep =0.;
+  double edep = 0.;
   double eion = 0.;
   double light_yield = 0.;
   std::set<PHG4HitDefs::keytype> hit_id;

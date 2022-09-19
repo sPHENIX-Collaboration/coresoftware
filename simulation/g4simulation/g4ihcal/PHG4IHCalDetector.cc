@@ -28,6 +28,7 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 #include <Geant4/G4VSolid.hh>
+#include <Geant4/G4Material.hh>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
@@ -100,20 +101,30 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Material *worldmat = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
   G4VSolid *hcal_envelope_cylinder = new G4Tubs("IHCal_envelope_solid", m_InnerRadius, m_OuterRadius, m_SizeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
-  G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, worldmat, "Hcal_envelope", 0, 0, 0);
+  G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, worldmat, "Hcal_envelope", nullptr, nullptr, nullptr);
 
   G4RotationMatrix hcal_rotm;
   hcal_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
   hcal_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);
   hcal_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
-  G4VPhysicalVolume *mothervol = new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "IHCalEnvelope", logicWorld, 0, false, OverlapCheck());
+  G4VPhysicalVolume *mothervol = new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "IHCalEnvelope", logicWorld, false, false, OverlapCheck());
   m_DisplayAction->SetMyTopVolume(mothervol);
   ConstructIHCal(hcal_envelope_log);
 
   // disable GDML export for HCal geometries for memory saving and compatibility issues
   assert(gdml_config);
   gdml_config->exclude_physical_vol(mothervol);
-  gdml_config->exclude_logical_vol (hcal_envelope_log);
+  gdml_config->exclude_logical_vol(hcal_envelope_log);
+  
+  const G4MaterialTable* mtable = G4Material::GetMaterialTable();
+  int nMaterials = G4Material::GetNumberOfMaterials();
+  for(G4int i=0; i<nMaterials; ++i) {
+    const G4Material* mat = (*mtable)[i];
+    if(mat->GetName()=="EJ200") mat->GetIonisation()->SetBirksConstant(m_Params->get_double_param("Birk_const"));
+    
+    
+  }
+  
 
   return;
 }

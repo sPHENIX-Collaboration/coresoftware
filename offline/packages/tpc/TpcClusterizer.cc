@@ -383,7 +383,10 @@ namespace
 
       // SAMPA shaping bias correction
       clust = clust + my_data.sampa_tbias;
-     
+
+      /// convert to Acts units
+      global *= Acts::UnitConstants::cm;
+
       Acts::Vector3 local = surface->transform(my_data.tGeometry->geometry().getGeoContext()).inverse() * global;
       local /= Acts::UnitConstants::cm;     
       

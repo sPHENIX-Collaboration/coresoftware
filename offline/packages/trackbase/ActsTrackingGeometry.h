@@ -40,6 +40,12 @@ struct ActsTrackingGeometry{
   Acts::CalibrationContext calibContext;
   Acts::GeometryContext geoContext;
   Acts::MagneticFieldContext magFieldContext;
+
+  Acts::GeometryContext& getGeoContext() 
+  {
+    return geoContext;
+  }
+
   double tpcSurfStepPhi = 0;
   double tpcSurfStepZ = 0;
 };

@@ -45,13 +45,12 @@ void PHG4SectorDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   Construct_Sectors(logicWorld);
 
-  for (map_log_vol_t::iterator it = map_log_vol.begin(); it != map_log_vol.end();
-       ++it)
+  for (auto &it : map_log_vol)
   {
-    if ((*it).first != G4String(name_base + "_Log"))
+    if (it.first != G4String(name_base + "_Log"))
     {
       // sub layers
-      m_DisplayAction->AddVolume((*it).second, "SectorDetector");
+      m_DisplayAction->AddVolume(it.second, "SectorDetector");
     }
   }
 }
