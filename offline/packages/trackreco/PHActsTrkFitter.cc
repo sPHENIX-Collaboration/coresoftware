@@ -22,6 +22,8 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+
 #include <micromegas/MicromegasDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -115,6 +117,14 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
       h_stateTime = new TH1F("h_stateTime", ";time [ms]",
 			     100000, 0, 1000);			     
     }		 
+
+   auto cellgeo =
+      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+
+  if (cellgeo)
+  {
+    _clusterMover.initialize_geometry(cellgeo);
+  }
 
   if(Verbosity() > 1)
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
@@ -333,7 +343,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Reset the track seed with the dummy covariance
       auto seed = ActsExamples::TrackParameters::create(
         pSurface,
-        m_tGeometry->geometry().geoContext,
+        m_tGeometry->geometry().getGeoContext(),
         actsFourPos,
         momentum,
         charge / momentum.norm(),
@@ -350,12 +360,12 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
        
       ActsExamples::MeasurementCalibrator calibrator{measurements};
 
-      auto geocontext = m_tGeometry->geometry().geoContext;
       auto magcontext = m_tGeometry->geometry().magFieldContext;
       auto calibcontext = m_tGeometry->geometry().calibContext;
 
       ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions 
-        kfOptions{geocontext,
+        kfOptions{
+	m_tGeometry->geometry().getGeoContext(),
         magcontext,
         calibcontext,
         calibrator,
@@ -370,7 +380,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       auto fitTime = fitTimer.get_accumulated_time();
             
       if(Verbosity() > 1)
-      { std::cout << "PHActsTrkFitter Acts fit time " << fitTime << std::endl; }
+	{ std::cout << "PHActsTrkFitter Acts fit time " << fitTime << std::endl; }
 
       /// Check that the track fit result did not return an error
       if (result.ok())
@@ -424,7 +434,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       auto trackTime = trackTimer.get_accumulated_time();
       
       if(Verbosity() > 1)
-      { std::cout << "PHActsTrkFitter total single track time " << trackTime << std::endl; }
+	{ std::cout << "PHActsTrkFitter total single track time " << trackTime << std::endl; }
     
     }
 
@@ -446,6 +456,10 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       return sourcelinks; 
     }
 
+  PHTimer SLTrackTimer("SLTrackTimer");
+  SLTrackTimer.stop();
+  SLTrackTimer.restart();
+    
   // loop over all clusters
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
 
@@ -612,8 +626,8 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       Acts::Vector2 localPos;
       global *= Acts::UnitConstants::cm;
 
-      Acts::Vector3 normal = surf->normal(m_tGeometry->geometry().geoContext);
-      auto local = surf->globalToLocal(m_tGeometry->geometry().geoContext,
+      Acts::Vector3 normal = surf->normal(m_tGeometry->geometry().getGeoContext());
+      auto local = surf->globalToLocal(m_tGeometry->geometry().getGeoContext(),
 				       global, normal);
      
       if(local.ok())
@@ -621,7 +635,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       else
 	{
 	  /// otherwise take the manual calculation for the TPC
-	  Acts::Vector3 loct = surf->transform(m_tGeometry->geometry().geoContext).inverse() * global;
+	  Acts::Vector3 loct = surf->transform(m_tGeometry->geometry().getGeoContext()).inverse() * global;
 	  loct /= Acts::UnitConstants::cm;
 
 	  localPos(0) = loct(0);
@@ -673,7 +687,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 		    << ", cov : " << cov.transpose() << std::endl
 		    << " geo id " << sl.geometryId() << std::endl;
 	  std::cout << "Surface : " << std::endl;
-	  surf.get()->toStream(m_tGeometry->geometry().geoContext, std::cout);
+	  surf.get()->toStream(m_tGeometry->geometry().getGeoContext(), std::cout);
 	  std::cout << std::endl;
 	  std::cout << "Cluster error " << cluster->getRPhiError() << " , " << cluster->getZError() << std::endl;
 	  std::cout << "For key " << cluskey << " with local pos " << std::endl
@@ -686,7 +700,14 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
  
     }
   
-    
+  SLTrackTimer.stop();
+  auto SLTime = SLTrackTimer.get_accumulated_time();
+  
+  if(Verbosity() > 1)
+    std::cout << "PHActsTrkFitter Source Links generation time:  "
+	      << SLTime << std::endl;
+
+
   return sourcelinks;
 }
 
@@ -708,7 +729,7 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
 	  const auto& params = fitOutput.fittedParameters.value();
       
           std::cout << "Fitted parameters for track" << std::endl;
-          std::cout << " position : " << params.position(m_tGeometry->geometry().geoContext).transpose()
+          std::cout << " position : " << params.position(m_tGeometry->geometry().getGeoContext()).transpose()
 	    
                     << std::endl;
 	  std::cout << "charge: "<<params.charge()<<std::endl;
@@ -893,11 +914,11 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
   const auto& params = traj.trackParameters(trackTip);
 
   /// Acts default unit is mm. So convert to cm
-  track->set_x(params.position(m_tGeometry->geometry().geoContext)(0)
+  track->set_x(params.position(m_tGeometry->geometry().getGeoContext())(0)
 	       / Acts::UnitConstants::cm);
-  track->set_y(params.position(m_tGeometry->geometry().geoContext)(1)
+  track->set_y(params.position(m_tGeometry->geometry().getGeoContext())(1)
 	       / Acts::UnitConstants::cm);
-  track->set_z(params.position(m_tGeometry->geometry().geoContext)(2)
+  track->set_z(params.position(m_tGeometry->geometry().getGeoContext())(2)
 	       / Acts::UnitConstants::cm);
 
   track->set_px(params.momentum()(0));
@@ -931,9 +952,8 @@ void PHActsTrkFitter::updateSvtxTrack(Trajectory traj, SvtxTrack* track)
 
   if(m_fillSvtxTrackStates)
     { 
-      auto geocontext = m_tGeometry->geometry().geoContext;
       rotater.fillSvtxTrackStates(mj, trackTip, track,
-				  geocontext);  
+				  m_tGeometry->geometry().getGeoContext());  
     }
 
   trackStateTimer.stop();
@@ -1009,7 +1029,7 @@ void PHActsTrkFitter::printTrackSeed(const ActsExamples::TrackParameters& seed) 
     << std::endl;  
 
   std::cout 
-    << "position: " << seed.position(m_tGeometry->geometry().geoContext).transpose() 
+    << "position: " << seed.position(m_tGeometry->geometry().getGeoContext()).transpose() 
     << std::endl
     << "momentum: " << seed.momentum().transpose()
     << std::endl;
@@ -1096,6 +1116,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 
 int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 {
+  /*
   m_alignmentTransformationMap = findNode::getClass<alignmentTransformationContainer>(topNode, "alignmentTransformationContainer");
   if(!m_alignmentTransformationMap)
     {
@@ -1103,7 +1124,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-
+  */
 
 
 

@@ -76,7 +76,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
              Acts::GeometryIdentifier id = surf->geometryId();
 	     if(localVerbosity) 
-	       std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	       {  std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << transform.matrix() << std::endl;}
+
 	     transformMap->addTransform(id,transform);
 	   }
        }
@@ -89,7 +90,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	 if(localVerbosity) 
 	   std::cout << " Add transform for Silicon with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
 
-	 transformMap->addTransform(id,transform);
+	 transformMap->addTransform(id, transform);
        }
      else if(trkrId == TrkrDefs::micromegasId)
       {
@@ -112,10 +113,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
        }
    } 
 
- const auto map = transformMap->getMap();
- Acts::GeometryContext context(map);
-
- m_tGeometry->geometry().geoContext = context.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
+ m_tGeometry->geometry().geoContext =  transformMap->getMap();
+ //m_tGeometry->geometry().getGeoContext() =  transformMap->getMap();
 
  // map is created, now we can use the transforms
  alignmentTransformationContainer::use_alignment = true;
@@ -130,7 +129,7 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
   */  
  
   Eigen::Vector3d ylocal(0,1,0);
-  Eigen::Vector3d sensorNormal    = -surf->normal(m_tGeometry->geometry().geoContext);
+  Eigen::Vector3d sensorNormal    = -surf->normal(m_tGeometry->geometry().getGeoContext());
   sensorNormal                    = sensorNormal/sensorNormal.norm(); // make unit vector 
   double cosTheta                 = ylocal.dot(sensorNormal);
   double sinTheta                 = (ylocal.cross(sensorNormal)).norm();
@@ -209,7 +208,7 @@ Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vec
   // Create ideal rotation matrix from ActsGeometry
   Eigen::Matrix3d globalRotation    = AlignmentTransformation::rotateToGlobal(surf);
   Eigen::Matrix3d combinedRotation  = globalRotation * millepedeRotation; 
-  Eigen::Vector3d sensorCenter      = surf->center(m_tGeometry->geometry().geoContext);//*0.1;
+  Eigen::Vector3d sensorCenter      = surf->center(m_tGeometry->geometry().getGeoContext());//*0.1;
   Eigen::Vector3d globalTranslation = sensorCenter + millepedeTranslation;
   Acts::Transform3 transformation   = AlignmentTransformation::makeAffineMatrix(combinedRotation,globalTranslation);
 

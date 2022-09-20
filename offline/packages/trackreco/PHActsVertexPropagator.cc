@@ -133,7 +133,7 @@ void PHActsVertexPropagator::setVtxChi2()
 void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track, 
 					     const Acts::BoundTrackParameters& params)
 {
-  auto position = params.position(m_tGeometry->geometry().geoContext);
+  auto position = params.position(m_tGeometry->geometry().getGeoContext());
   
   if(Verbosity() > 2)
     {
@@ -186,7 +186,7 @@ BoundTrackParamPtrResult PHActsVertexPropagator::propagateTrack(
   auto logger = Acts::getDefaultLogger("PHActsVertexPropagator", 
 				       logLevel);
 
-  Acts::PropagatorOptions<> options(m_tGeometry->geometry().geoContext,
+  Acts::PropagatorOptions<> options(m_tGeometry->geometry().getGeoContext(),
 				    m_tGeometry->geometry().magFieldContext,
 				    Acts::LoggerWrapper{*logger});
   

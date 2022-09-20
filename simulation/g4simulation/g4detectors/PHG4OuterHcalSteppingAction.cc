@@ -111,7 +111,7 @@ int PHG4OuterHcalSteppingAction::Init()
       gSystem->Exit(1);
       exit(1);  // make code checkers which do not know gSystem->Exit() happy
     }
-    m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
+    m_MapCorrHist->SetDirectory(nullptr);  // rootism: this needs to be set otherwise histo vanished when closing the file
     file->Close();
     delete file;
   }

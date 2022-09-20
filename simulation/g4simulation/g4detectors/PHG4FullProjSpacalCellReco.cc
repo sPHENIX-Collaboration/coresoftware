@@ -165,7 +165,7 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
                       * layergeom->get_n_subtower_phi();     // subtower per block
   const double deltaphi = 2. * M_PI / nphibin;
 
-  typedef std::map<double, int> map_z_tower_z_ID_t;
+  using map_z_tower_z_ID_t = std::map<double, int>;
   map_z_tower_z_ID_t map_z_tower_z_ID;
   double phi_min = NAN;
 

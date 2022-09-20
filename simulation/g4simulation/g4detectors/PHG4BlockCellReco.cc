@@ -292,7 +292,7 @@ int PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
 
     if (cellptarray.size() < nbins)
     {
-      cellptarray.resize(nbins, 0);
+      cellptarray.resize(nbins, nullptr);
     }
 
     // ------- eta/x binning ------------------------------------------------------------------------
