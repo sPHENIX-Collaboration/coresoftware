@@ -51,6 +51,22 @@ EpdGeom::EpdGeom() : mPP(0), mTT(0), mSN(0){
   InitializeGeometry();
 }
 
+
+EpdGeom& EpdGeom::operator=( const EpdGeom& other ) {
+     pRan = other.pRan;
+     return *this;
+  }
+
+EpdGeom::EpdGeom(const EpdGeom &obj) {
+   pRan = obj.pRan;
+}
+
+//EpdGeom::EpdGeom(const TRandom3 &obj) {
+//   pRan = new TRandom3();
+//   *pRan = *obj.pRan;
+//}
+
+
 EpdGeom::~EpdGeom(){
   if ( pRan && pRan != gRandom ) delete pRan;
 }
