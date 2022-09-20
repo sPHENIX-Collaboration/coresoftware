@@ -50,6 +50,9 @@ class EpdGeom{
   // NorthBbcTilesWhichOverlap[PP-1][TT-1][j] gives the BBC tile ID of the jth overlapping BBC tile
 ////  static short mNorthBbcTilesWhichOverlap[12][9][3];  // 
 
+  EpdGeom& operator=( const EpdGeom& other );
+
+  EpdGeom(const EpdGeom &obj);
 
   void InitializeGeometry();
 
