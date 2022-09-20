@@ -203,7 +203,7 @@ void ActsEvaluator::evaluateTrackFits(PHCompositeNode *topNode)
 	    if(traj.hasTrackParameters(trackTip))
 	      {
 		std::cout << "Fitted params : " 
-			  << traj.trackParameters(trackTip).position(m_tGeometry->geoContext) 
+			  << traj.trackParameters(trackTip).position(m_tGeometry->getGeoContext()) 
 			  << std::endl << traj.trackParameters(trackTip).momentum()
 			  << std::endl;
 		std::cout << "Track has " << trajState.nMeasurements
@@ -312,7 +312,7 @@ void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory& traj,
     /// This is an arbitrary vector. Doesn't matter in coordinate transformation
     /// in Acts code
     Acts::Vector3 mom(1, 1, 1);
-    Acts::Vector3 global = surface.localToGlobal(m_tGeometry->geoContext,
+    Acts::Vector3 global = surface.localToGlobal(m_tGeometry->getGeoContext(),
 						 local, mom);
 
     /// Get measurement covariance
@@ -340,7 +340,7 @@ void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory& traj,
     Acts::Vector3 globalTruthUnitDir(gx / r, gy / r, gz / r);
 
     auto vecResult = surface.globalToLocal(
-        m_tGeometry->geoContext,
+        m_tGeometry->getGeoContext(),
         globalTruthPos,
         globalTruthUnitDir);
 
@@ -475,7 +475,7 @@ void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory& traj,
 
       Acts::FreeVector freeParams = 
 	Acts::detail::transformBoundToFreeParameters(state.referenceSurface(), 
-						     m_tGeometry->geoContext,
+						     m_tGeometry->getGeoContext(),
 						     parameters);
 
       m_x_prt.push_back(freeParams[Acts::eFreePos0]);
@@ -597,7 +597,7 @@ void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory& traj,
           (parameter[Acts::eBoundTime] - truthTIME) /
           sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
-      Acts::FreeVector freeparams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geoContext, parameter);
+      Acts::FreeVector freeparams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->getGeoContext(), parameter);
 
       /// Other filtered parameter info
       m_x_flt.push_back(freeparams[Acts::eFreePos0]);
@@ -713,7 +713,7 @@ void ActsEvaluator::visitTrackStates(const Acts::MultiTrajectory& traj,
           (parameter[Acts::eBoundTime] - truthTIME) /
           sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
-      Acts::FreeVector freeparams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geoContext, parameter);
+      Acts::FreeVector freeparams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->getGeoContext(), parameter);
       
       /// Other smoothed parameter info
       m_x_smt.push_back(freeparams[Acts::eFreePos0]);
@@ -947,7 +947,7 @@ void ActsEvaluator::fillProtoTrack(SvtxTrack* track, PHCompositeNode *topNode)
       
       auto surf = getSurface(key, cluster->getSubSurfKey());
 
-      auto truthLocal = (*surf).globalToLocal(m_tGeometry->geoContext,
+      auto truthLocal = (*surf).globalToLocal(m_tGeometry->getGeoContext(),
 					      globalTruthPos,
 					      globalTruthUnitDir);
     
@@ -1012,9 +1012,9 @@ void ActsEvaluator::fillFittedTrackParams(const Trajectory traj,
     m_px_fit = boundParam.momentum()(0);
     m_py_fit = boundParam.momentum()(1);
     m_pz_fit = boundParam.momentum()(2);
-    m_x_fit  = boundParam.position(m_tGeometry->geoContext)(0);
-    m_y_fit  = boundParam.position(m_tGeometry->geoContext)(1);
-    m_z_fit  = boundParam.position(m_tGeometry->geoContext)(2);
+    m_x_fit  = boundParam.position(m_tGeometry->getGeoContext())(0);
+    m_y_fit  = boundParam.position(m_tGeometry->getGeoContext())(1);
+    m_z_fit  = boundParam.position(m_tGeometry->getGeoContext())(2);
     
     calculateDCA(boundParam, vertex);
 
@@ -1052,7 +1052,7 @@ void ActsEvaluator::calculateDCA(const Acts::BoundTrackParameters param,
 				 const Acts::Vector3 vertex)
 {
 
-  Acts::Vector3 pos = param.position(m_tGeometry->geoContext);
+  Acts::Vector3 pos = param.position(m_tGeometry->getGeoContext());
   Acts::Vector3 mom = param.momentum();
   
   /// Correct for vertex position

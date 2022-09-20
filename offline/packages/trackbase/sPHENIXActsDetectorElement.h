@@ -52,6 +52,8 @@ class sPHENIXActsDetectorElement : public Acts::TGeoDetectorElement
 
 private:
 
+  std::map<unsigned int, unsigned int> base_layer_map = { {10, 0}, {12,3}, {14,7}, {16,55} };
+
 };
 
 std::shared_ptr<sPHENIXActsDetectorElement> sPHENIXElementFactory(

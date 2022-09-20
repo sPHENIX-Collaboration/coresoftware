@@ -25,7 +25,7 @@ void BEmcRecFEMC::LoadProfile(const std::string& fname)
 
 void BEmcRecFEMC::GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi)
 {
-  theta = atan(std::sqrt(xg * xg + yg * yg) / std::fabs(zg - fVz));
+  theta = std::atan(std::sqrt(xg * xg + yg * yg) / std::fabs(zg - fVz));
   phi = std::atan2(yg, xg);
 }
 

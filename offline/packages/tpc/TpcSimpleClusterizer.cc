@@ -211,18 +211,18 @@ namespace
 	
 	  clus->setSubSurfKey(subsurfkey);
 	
-	  Acts::Vector3 center = surface->center(my_data.tGeometry->geometry().geoContext) 
+	  Acts::Vector3 center = surface->center(my_data.tGeometry->geometry().getGeoContext()) 
 	    / Acts::UnitConstants::cm;
 	  
 	  /// no conversion needed, only used in acts
-	  const Acts::Vector3 normal = surface->normal(my_data.tGeometry->geometry().geoContext);
+	  const Acts::Vector3 normal = surface->normal(my_data.tGeometry->geometry().getGeoContext());
    const double clusRadius = std::sqrt(square(clusx) + square(clusy));
 	  const double rClusPhi = clusRadius * clusphi;
    const double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
    const double surfPhiCenter = atan2(center[1], center[0]);
 	  const double surfRphiCenter = surfPhiCenter * surfRadius;
    const double surfZCenter = center[2];
-   auto local = surface->globalToLocal(my_data.tGeometry->geometry().geoContext,
+   auto local = surface->globalToLocal(my_data.tGeometry->geometry().getGeoContext(),
 				       global * Acts::UnitConstants::cm,
 				       normal);
 	  Acts::Vector2 localPos;

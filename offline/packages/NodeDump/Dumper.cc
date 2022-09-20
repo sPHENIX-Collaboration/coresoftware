@@ -40,13 +40,12 @@ int Dumper::End(PHCompositeNode *topNode)
 {
   PHNodeIterator nodeiter(topNode);
   std::vector<std::string> DumpNodeList;
-  DumpNodeList.push_back("RUN");
-  DumpNodeList.push_back("PAR");
+  DumpNodeList.emplace_back("RUN");
+  DumpNodeList.emplace_back("PAR");
   nodedump->PrintEvtSeq(0);
-  for (std::vector<std::string>::const_iterator iter = DumpNodeList.begin();
-       iter != DumpNodeList.end(); ++iter)
+  for (const auto &iter : DumpNodeList)
   {
-    if (nodeiter.cd(*iter))
+    if (nodeiter.cd(iter))
     {
       nodeiter.forEach(*nodedump);
       nodeiter.cd();

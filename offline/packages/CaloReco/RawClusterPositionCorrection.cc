@@ -20,6 +20,7 @@
 #include <phool/phool.h>
 
 #include <cassert>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <map>

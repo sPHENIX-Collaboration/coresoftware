@@ -126,11 +126,11 @@ void PHActsToSvtxTracks::createSvtxTrack(const unsigned int trackKey,
   auto trajState = 
     Acts::MultiTrajectoryHelpers::trajectoryState(mj, trackTip);
   
-  svtxTrack->set_x(params.position(m_tGeometry->geoContext)(0)
+  svtxTrack->set_x(params.position(m_tGeometry->getGeoContext())(0)
 	       / Acts::UnitConstants::cm);
-  svtxTrack->set_y(params.position(m_tGeometry->geoContext)(1)
+  svtxTrack->set_y(params.position(m_tGeometry->getGeoContext())(1)
 	       / Acts::UnitConstants::cm);
-  svtxTrack->set_z(params.position(m_tGeometry->geoContext)(2)
+  svtxTrack->set_z(params.position(m_tGeometry->getGeoContext())(2)
 	       / Acts::UnitConstants::cm);
   
   svtxTrack->set_px(params.momentum()(0));
@@ -153,14 +153,14 @@ void PHActsToSvtxTracks::createSvtxTrack(const unsigned int trackKey,
     {
       auto rotatedCov = 
 	rotater->rotateActsCovToSvtxTrack(params,
-					  m_tGeometry->geoContext);
+					  m_tGeometry->getGeoContext());
       
       for(int i = 0; i < 6; i++)
 	for(int j = 0; j < 6; j++)
 	  svtxTrack->set_error(i, j, rotatedCov(i,j));
       
       rotater->calculateDCA(params, vertex, rotatedCov,
-			    m_tGeometry->geoContext,
+			    m_tGeometry->getGeoContext(),
 			    dca3Dxy, dca3Dz,
 			    dca3DxyCov, dca3DzCov);
       
@@ -174,7 +174,7 @@ void PHActsToSvtxTracks::createSvtxTrack(const unsigned int trackKey,
   svtxTrack->set_dca3d_z_error(sqrt(dca3DzCov));
   
   rotater->fillSvtxTrackStates(traj, trackTip, svtxTrack,
-			       m_tGeometry->geoContext);
+			       m_tGeometry->getGeoContext());
   return;
 }
 
