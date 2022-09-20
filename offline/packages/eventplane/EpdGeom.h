@@ -54,6 +54,7 @@ class EpdGeom{
 
   EpdGeom(const EpdGeom &obj);
 
+
   void InitializeGeometry();
 
   /* these methods are used internally */
