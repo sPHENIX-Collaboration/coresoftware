@@ -246,13 +246,6 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   m_RunManager->SetUserInitialization(myphysicslist);
 
   DefineRegions();
-#if G4VERSION_NUMBER >= 1033
-  G4EmSaturation *emSaturation = G4LossTableManager::Instance()->EmSaturation();
-  if (!emSaturation)
-  {
-    std::cout << PHWHERE << "Could not initialize EmSaturation, Birks constants will fail" << std::endl;
-  }
-#endif
   // initialize registered subsystems
   for (SubsysReco *reco: m_SubsystemList)
   {
@@ -458,6 +451,14 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // initialize
   m_RunManager->Initialize();
 
+#if G4VERSION_NUMBER >= 1033
+  G4EmSaturation *emSaturation = G4LossTableManager::Instance()->EmSaturation();
+  if (!emSaturation)
+  {
+    std::cout << PHWHERE << "Could not initialize EmSaturation, Birks constants will fail" << std::endl;
+  }
+#endif
+  
   // add cerenkov and optical photon processes
   // std::cout << std::endl << "Ignore the next message - we implemented this correctly" << std::endl;
   G4Cerenkov *theCerenkovProcess = new G4Cerenkov("Cerenkov");
