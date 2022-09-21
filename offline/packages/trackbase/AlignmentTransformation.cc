@@ -50,6 +50,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
  ActsSurfaceMaps surfMaps = m_tGeometry->maps();
  Surface surf;
 
+ transformMap->Reset();  // clear the existing transform map
+
  int fileLines = 1824;
  for (int i=0; i<fileLines; i++)
    {
@@ -89,6 +91,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
 	 if(localVerbosity > 0) 
 	   std::cout << " Add transform for Silicon with surface GeometryIdentifier " << id << " trkrid " << trkrId << " sensor id  " << id.sensitive() << std::endl;
+	 if(localVerbosity > 2)
+	   std::cout << " Transform is: " << transform.matrix() << std::endl;
 
 	 transformMap->addTransform(id, transform);
        }

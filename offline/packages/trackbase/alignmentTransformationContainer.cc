@@ -16,7 +16,21 @@
 bool alignmentTransformationContainer::use_alignment = false;
 
 void alignmentTransformationContainer::Reset()
-{ transformVec.clear(); }
+{ 
+  if(transformVec.size() == 0) return;
+
+  // loop over the transformVec
+  for(unsigned int i=0; i< transformVec.size(); ++i)
+    {
+      transformVec[i].clear();
+      std::vector<Acts::Transform3> emptyLayerVec;
+      transformVec[i].swap(emptyLayerVec);
+    }
+
+  transformVec.clear(); 
+  std::vector<std::vector<Acts::Transform3>> emptyVec;
+  transformVec.swap(emptyVec);
+}
 
 void alignmentTransformationContainer::identify(std::ostream &os)
 {
@@ -76,29 +90,13 @@ void alignmentTransformationContainer::addTransform(const Acts::GeometryIdentifi
       }
     else
       {
+	transformVec.resize(sphlayer+1);  // pad the missing layers with empty vectors
+	// Add this transform to the last layer
 	std::vector<Acts::Transform3> newVec;
 	newVec.resize(sensor + 1, transform);
-	transformVec.resize(sphlayer+1, newVec);
+	transformVec[sphlayer] = newVec;
       }
 }
-
-/*
-void alignmentTransformationContainer::removeTransform(const Acts::GeometryIdentifier id)
-{
-  // in the fixed length vector of vectors scheme, removing a transform makes no sense
-
-  unsigned int sphlayer = getsphlayer(id);
-  unsigned int sensor = id.sensitive() - 1;  // Acts sensor numbering starts at 1
-
-  auto& layerVec = transformVec[sphlayer];
-  
-  auto transform = layerVec[sensor];
-  if(layerVec.size() > sensor)
-    {
-      return;
-    }
-}  
-*/
 
 Acts::Transform3& alignmentTransformationContainer::getTransform(const Acts::GeometryIdentifier id)
 {
@@ -128,5 +126,3 @@ unsigned int alignmentTransformationContainer::getsphlayer(Acts::GeometryIdentif
   
   return sphlayer;
 }
-
-void alignmentTransformationContainer::set(){}
