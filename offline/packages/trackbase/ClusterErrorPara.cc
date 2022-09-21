@@ -18,27 +18,29 @@ namespace
 
 ClusterErrorPara::ClusterErrorPara()
 {
-  f0 = new TF1("f0","[0] + x*[1]",0,10);
-  f0->SetParameter(0,0.0149535);
-  f0->SetParameter(1,0.020669);
+  f0 = new TF1("f0","[0] + x*[1] + x*x*[2]*[2]",0,10);
+  f0->SetParameter(0,0.0169157);
+  f0->SetParameter(1,0.0187465);
+  f0->SetParameter(2,0.0199696);
 
   f1 = new TF1("f1","[0] + x*[1] + x*x*[2]*[2]",0,10);
-  f1->SetParameter(0,0.011901);
-  f1->SetParameter(1,0.00549083);
-  f1->SetParameter(2,0.120462);
+  f1->SetParameter(0,0.0122044);
+  f1->SetParameter(1,0.0159068);
+  f1->SetParameter(2,0.367468);
 
-  f2 = new TF1("f2","[0] + x*[1]",0,10);
-  f2->SetParameter(0,0.010756);
-  f2->SetParameter(1,0.0369147);
+  f2 = new TF1("f2","[0] + x*[1] + x*x*[2]*[2] ",0,10);
+  f2->SetParameter(0,0.0118987);
+  f2->SetParameter(1,0.0302875);
+  f2->SetParameter(2,0.0271744);
 
   fz0 = new TF1("fz0","pol1",-2,2);
-  fz0->SetParameter(0,0.04801);
-  fz0->SetParameter(1,0.0136);
+  fz0->SetParameter(0,0.0531544);
+  fz0->SetParameter(1,0.0181959);
 
   fz = new TF1("fz","pol2",-2,2);
-  fz->SetParameter(0,0.0409945);
-  fz->SetParameter(1,-0.00530857);
-  fz->SetParameter(2,0.0573064);
+  fz->SetParameter(0,0.0404929);
+  fz->SetParameter(1,-0.00159808);
+  fz->SetParameter(2,0.0617323);
 
   fmm_55_2 = new TF1("fmm_55_2","pol2",-2,2);
   fmm_55_2->SetParameter(0,0.0430592);
@@ -55,15 +57,39 @@ ClusterErrorPara::ClusterErrorPara()
   fmm_3->SetParameter(1,0.00505814);
   fmm_3->SetParameter(2,0.0395137);
 
-  fadcz = new TF1("fadcz","[0]+([1]/pow(x-[2],2))",0,20000);
-  fadcz->SetParameter(0,0.663987);
-  fadcz->SetParameter(1,13506.6);
-  fadcz->SetParameter(2,-85.7223);
+  fadcz0 = new TF1("fadcz0","[0]+([1]/pow(x-[2],2))",0,20000);
+  fadcz0->SetParameter(0,0.479638);
+  fadcz0->SetParameter(1,28289.9);
+  fadcz0->SetParameter(2,-126.307);
 
-  fadcphi = new TF1("fadcphi","[0]+([1]/pow(x-[2],2))",0,20000);
-  fadcphi->SetParameter(0,0.667683);
-  fadcphi->SetParameter(1,27742.8);
-  fadcphi->SetParameter(2,-131.897);
+  fadcz1 = new TF1("fadcz1","[0]+([1]/pow(x-[2],2))",0,20000);
+  fadcz1->SetParameter(0,0.508903);
+  fadcz1->SetParameter(1,94583.5);
+  fadcz1->SetParameter(2,-238.725);
+
+  fadcz2 = new TF1("fadcz2","[0]+([1]/pow(x-[2],2))",0,20000);
+  fadcz2->SetParameter(0,0.52688);
+  fadcz2->SetParameter(1,57381.8);
+  fadcz2->SetParameter(2,-173.369);
+
+  fadcphi0 = new TF1("fadcphi0","[0]+([1]/pow(x-[2],2))",0,20000);
+  fadcphi0->SetParameter(0,0.409897);
+  fadcphi0->SetParameter(1,80395.38);
+  fadcphi0->SetParameter(2,-229.33);
+
+  fadcphi1 = new TF1("fadcphi1","[0]+([1]/pow(x-[2],2))",0,20000);
+  fadcphi1->SetParameter(0,0.392476);
+  fadcphi1->SetParameter(1,243084);
+  fadcphi1->SetParameter(2,-380.402);
+
+  fadcphi2 = new TF1("fadcphi2","[0]+([1]/pow(x-[2],2))",0,20000);
+  fadcphi2->SetParameter(0,0.366911);
+  fadcphi2->SetParameter(1,128396);
+  fadcphi2->SetParameter(2,-243.454);
+
+  fadcphi2fine = new TF1("fadcphi2fine","pol1",0,20000);
+  fadcphi2fine->SetParameter(0,1.04);
+  fadcphi2fine->SetParameter(1,-0.000325796);
 
   static const double invsqrt12 = 1./std::sqrt(12);
 
@@ -84,7 +110,7 @@ ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrackSeed *seed, T
   float r = cluster_r;
   float R = TMath::Abs(1.0/seed->get_qOverR());
   double alpha = (r*r) /(2*r*R);
-  double beta = atan(seed->get_slope());
+  double beta = TMath::Abs(atan(seed->get_slope()));
   return get_cluster_error(cluster, key, alpha, beta);
 }
 //_________________________________________________________________________________
@@ -163,6 +189,9 @@ ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrkrCluster* clust
       
     case TrkrDefs::tpcId:
       
+
+      TrkrClusterv4 *clusterv4 = dynamic_cast<TrkrClusterv4 *>(cluster);
+
       int sector = -1;
       if(layer >=7 && layer < 23){
 	sector = 0;
@@ -177,25 +206,32 @@ ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrkrCluster* clust
 	phierror = 0.0005;
       if(sector==0){
 	phierror = f0->Eval(alpha);
-	phierror *=  scale_tpc_0;
+	//	phierror *=  scale_tpc_0;
 	zerror = fz0->Eval(beta);
-	zerror *=  scale_tpc_0_z;
+	//zerror *=  scale_tpc_0_z;
+	zerror *= fadcz0->Eval(clusterv4->getAdc());
+	phierror *= fadcphi0->Eval(clusterv4->getAdc());
       }
       if(sector==1){
 	phierror = f1->Eval(alpha);
-	phierror *=  scale_tpc_1;
+	//	phierror *=  scale_tpc_1;
 	zerror = fz->Eval(beta);
-	zerror *=  scale_tpc_1_z;
+	//zerror *=  scale_tpc_1_z;
+	zerror *= fadcz1->Eval(clusterv4->getAdc());
+	phierror *= fadcphi1->Eval(clusterv4->getAdc());
+
       }
       if(sector==2){
 	phierror = f2->Eval(alpha);
-	phierror *=  scale_tpc_2;
+	//	phierror *=  scale_tpc_2;
 	zerror = fz->Eval(beta);
-	zerror *=  scale_tpc_2_z;
+	zerror *= fadcz2->Eval(clusterv4->getAdc());
+	phierror *= fadcphi2->Eval(clusterv4->getAdc());
+	phierror *= fadcphi2fine->Eval(clusterv4->getAdc());
+	//	zerror *=  scale_tpc_2_z;
+
       }
 
-
-      TrkrClusterv4 *clusterv4 = dynamic_cast<TrkrClusterv4 *>(cluster);
       if(clusterv4->getEdge()>=1)
 	phierror *= 2;
       if(clusterv4->getPhiSize()==1)
@@ -204,8 +240,6 @@ ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrkrCluster* clust
 	phierror *= 2;
       if(clusterv4->getPhiSize()>=5)
 	phierror *= 3;
-      zerror *= fadcz->Eval(clusterv4->getAdc());
-      phierror *= fadcphi->Eval(clusterv4->getAdc());
       break;
      
     }
