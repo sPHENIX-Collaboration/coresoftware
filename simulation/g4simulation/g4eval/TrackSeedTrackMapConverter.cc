@@ -4,10 +4,8 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrClusterContainer.h>
 
-#include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrack_v3.h>
+#include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeed.h>
 
@@ -89,7 +87,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 	    { continue; }
 	}
 
-      auto svtxtrack = std::make_unique<SvtxTrack_v3>();
+      auto svtxtrack = std::make_unique<SvtxTrack_v4>();
 
       if(Verbosity() > 0)
 	{
@@ -124,6 +122,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 	      svtxtrack->set_y(siseed->get_y());
 	      svtxtrack->set_z(siseed->get_z());
 	      addKeys(svtxtrack, siseed);
+	      svtxtrack->set_silicon_seed(siseed);
 	    }
 
 
@@ -133,6 +132,8 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 	  svtxtrack->set_pz(tpcseed->get_pz());
 	  
 	  addKeys(svtxtrack, tpcseed);
+	  svtxtrack->set_tpc_seed(tpcseed);
+	
 
 	}
       else
@@ -147,6 +148,16 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 	  svtxtrack->set_pz(trackSeed->get_pz());
 	  
 	  addKeys(svtxtrack, trackSeed);
+	  if(m_trackSeedName.find("SiliconTrackSeed") != std::string::npos)
+	    {
+	      svtxtrack->set_silicon_seed(trackSeed);
+	      svtxtrack->set_tpc_seed(nullptr);
+	    }
+	  else if(m_trackSeedName.find("TpcTrackSeed") != std::string::npos)
+	    {
+	      svtxtrack->set_tpc_seed(trackSeed);
+	      svtxtrack->set_silicon_seed(nullptr);
+	    }
 	}
 
       if(Verbosity() > 0)
@@ -169,7 +180,7 @@ int TrackSeedTrackMapConverter::End(PHCompositeNode*)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void TrackSeedTrackMapConverter::addKeys(std::unique_ptr<SvtxTrack_v3>& track, TrackSeed *seed)
+void TrackSeedTrackMapConverter::addKeys(std::unique_ptr<SvtxTrack_v4>& track, TrackSeed *seed)
 {
   for(TrackSeed::ConstClusterKeyIter iter = seed->begin_cluster_keys();
       iter != seed->end_cluster_keys();
