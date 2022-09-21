@@ -16,24 +16,23 @@
 bool alignmentTransformationContainer::use_alignment = false;
 
 void alignmentTransformationContainer::Reset()
-{ transformMap.clear(); }
+{ transformVec.clear(); }
 
 void alignmentTransformationContainer::identify(std::ostream &os)
 {
 
   os << "-----alignmentTransformationContainer-----" << std::endl;
-  //  for( auto& entry : transformMap )
-  for(unsigned int i=0; i< transformMap.size(); ++i)
+  for(unsigned int i=0; i< transformVec.size(); ++i)
     {
-      auto& layerMap = transformMap[i];
-      if(layerMap.empty()) continue;
+      auto& layerVec = transformVec[i];
+      if(layerVec.size() == 0) continue;
 
       os << " Layer: "  << i << std::endl; 
 
-      for(auto lyr_entry : layerMap)
+      for(unsigned int il=0; il< layerVec.size(); ++il)
 	{
-	  os << " Acts Id: "  << lyr_entry.first 
-	     << " Transform: " << lyr_entry.second.matrix()
+	  os << " Sensor Id: "  << il+1
+	     << " Transform: " << layerVec[il].matrix()
 	     << std::endl;
 	}
     }
@@ -45,71 +44,80 @@ void alignmentTransformationContainer::identify(std::ostream &os)
 void alignmentTransformationContainer::addTransform(const Acts::GeometryIdentifier id, Acts::Transform3 transform)
 {
   unsigned int sphlayer = getsphlayer(id);
+  unsigned int sensor = id.sensitive() - 1;  // Acts sensor numbering starts at 1
 
+  // We are filling a super-vector of layer-vectors
+  // first check that the layer-vector for sphlayer is present
 
-  if(sphlayer < transformMap.size())
+  if(sphlayer < transformVec.size())
     {
-      auto& layerMap = transformMap[sphlayer]; 
-      if(layerMap.empty()) 
-	{
-	  std::map<Acts::GeometryIdentifier, Acts::Transform3> newmap;
-	  transformMap[sphlayer] = newmap;
-	}
+      // There will be a layer-vector, it may be empty
+      auto& layerVec = transformVec[sphlayer]; 
 
-      transformMap[sphlayer].insert(std::make_pair(id, transform));
+      if(sensor < layerVec.size())
+	{
+	  layerVec[sensor] = transform;
+	}     
+      else if (sensor == layerVec.size())
+	{
+	  layerVec.push_back(transform);
+	}
+      else
+	{
+	  layerVec.resize(sensor+1, transform);
+	}
     }
-    else if(sphlayer == transformMap.size())
+  else if(sphlayer == transformVec.size())
       {
-	std::map<Acts::GeometryIdentifier, Acts::Transform3> newmap;
-	newmap.insert(std::make_pair(id, transform));
-	transformMap.push_back(newmap);
+	// add new layer-vector to transformVec and put transform in it
+	std::vector<Acts::Transform3> newVec;
+	newVec.resize(sensor + 1, transform);
+	transformVec.push_back(newVec);
       }
     else
       {
-	std::map<Acts::GeometryIdentifier, Acts::Transform3> newmap;
-	newmap.insert(std::make_pair(id, transform));
-	transformMap.resize(sphlayer+1, newmap);
+	std::vector<Acts::Transform3> newVec;
+	newVec.resize(sensor + 1, transform);
+	transformVec.resize(sphlayer+1, newVec);
       }
 }
 
+/*
 void alignmentTransformationContainer::removeTransform(const Acts::GeometryIdentifier id)
 {
+  // in the fixed length vector of vectors scheme, removing a transform makes no sense
+
   unsigned int sphlayer = getsphlayer(id);
-  auto& layerMap = transformMap[sphlayer];
+  unsigned int sensor = id.sensitive() - 1;  // Acts sensor numbering starts at 1
+
+  auto& layerVec = transformVec[sphlayer];
   
-  auto lyr_mapit = layerMap.find(id);
-  
-  if(lyr_mapit != layerMap.end())
+  auto transform = layerVec[sensor];
+  if(layerVec.size() > sensor)
     {
-      layerMap.erase(lyr_mapit);
       return;
     }
-    
-}
+}  
+*/
 
 Acts::Transform3& alignmentTransformationContainer::getTransform(const Acts::GeometryIdentifier id)
 {
   unsigned int sphlayer = getsphlayer(id);
+  unsigned int sensor = id.sensitive() - 1;  // Acts sensor numbering starts at 1
 
-  auto& layerMap = transformMap.at(sphlayer);
-  if(!layerMap.empty())
+  auto& layerVec = transformVec[sphlayer];
+  if(layerVec.size() > sensor)
     {
-      auto lyr_mapit = layerMap.find(id);
-      if(lyr_mapit != layerMap.end())
-	{
-	  return lyr_mapit->second;
-	}
+      return layerVec[sensor];
     }
   
   std::cout << "Unable to find Acts Id: "<< id<<  " in alignmentTransformationContainer" << std::endl;
   exit(1); 
 }
 
-//
-//const std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>& alignmentTransformationContainer::getMap()
-const std::vector<std::map<Acts::GeometryIdentifier, Acts::Transform3>>& alignmentTransformationContainer::getMap()
+const std::vector<std::vector<Acts::Transform3>>& alignmentTransformationContainer::getMap()
 {
-  return transformMap;
+  return transformVec;
 }
 
 unsigned int alignmentTransformationContainer::getsphlayer(Acts::GeometryIdentifier id)

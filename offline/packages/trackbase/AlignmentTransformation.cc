@@ -75,8 +75,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	     Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
 
              Acts::GeometryIdentifier id = surf->geometryId();
-	     if(localVerbosity) 
-	       {  std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << transform.matrix() << std::endl;}
+	     if(localVerbosity > 0) 
+	       {  std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << " trkrid " << trkrId << " sensor id " << id.sensitive() << std::endl;}
 
 	     transformMap->addTransform(id,transform);
 	   }
@@ -87,8 +87,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
          Acts::GeometryIdentifier id = surf->geometryId();
 
-	 if(localVerbosity) 
-	   std::cout << " Add transform for Silicon with surface GeometryIdentifier " << id << " trkrid " << trkrId << " transform " << transform.matrix() << std::endl;
+	 if(localVerbosity > 0) 
+	   std::cout << " Add transform for Silicon with surface GeometryIdentifier " << id << " trkrid " << trkrId << " sensor id  " << id.sensitive() << std::endl;
 
 	 transformMap->addTransform(id, transform);
        }
@@ -98,8 +98,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
          Acts::GeometryIdentifier id = surf->geometryId();
 
-	 if(localVerbosity) 
-	   std::cout << " Add transform for Micromegas with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	 if(localVerbosity > 0) 
+	   std::cout << " Add transform for Micromegas with surface GeometryIdentifier " << id << " trkrid " << trkrId << " sensor id " << id.sensitive() << std::endl;
 
 	 transformMap->addTransform(id,transform);
       }
@@ -107,7 +107,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
        {
 	 std::cout<< "Error: Invalid Hitsetkey" << std::endl;
        }
-     if(localVerbosity)
+     if(localVerbosity > 1)
        {
 	 std::cout << i << " " <<hitsetkey << " " <<alpha<< " " <<beta<< " " <<gamma<< " " <<dx<< " " <<dy<< " " <<dz << std::endl;
        }
@@ -162,7 +162,7 @@ Eigen::Matrix3d AlignmentTransformation::rotateToGlobal(Surface surf)
 
   Eigen::Matrix3d globalRotation = fInverse * G * (fInverse.inverse()); 
 
-  if(localVerbosity == true)
+  if(localVerbosity > 2)
     {
       std::cout<< " global rotation: "<< std::endl << globalRotation <<std::endl;
     }
@@ -213,7 +213,7 @@ Acts::Transform3 AlignmentTransformation::makeTransform(Surface surf, Eigen::Vec
   Eigen::Vector3d globalTranslation = sensorCenter + millepedeTranslation;
   Acts::Transform3 transformation   = AlignmentTransformation::makeAffineMatrix(combinedRotation,globalTranslation);
 
-  if(localVerbosity == true)
+  if(localVerbosity > 2)
     {
       std::cout << "sensor center: " << sensorCenter << " millepede translation: " << millepedeTranslation <<std::endl;
       std::cout << "Transform: "<< std::endl<< transformation.matrix()  <<std::endl;
