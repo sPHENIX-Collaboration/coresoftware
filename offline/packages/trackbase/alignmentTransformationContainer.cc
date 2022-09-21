@@ -22,18 +22,21 @@ void alignmentTransformationContainer::identify(std::ostream &os)
 {
 
   os << "-----alignmentTransformationContainer-----" << std::endl;
-  for( auto& entry : transformMap )
-  {
-    os << " Layer: "  << entry.first << std::endl; 
+  //  for( auto& entry : transformMap )
+  for(unsigned int i=0; i< transformMap.size(); ++i)
+    {
+      auto& layerMap = transformMap[i];
+      if(layerMap.empty()) continue;
 
-    auto layerMap = entry.second;
-    for(auto lyr_entry : layerMap)
-      {
-	os << " Acts Id: "  << lyr_entry.first 
-	   << " Transform: " << lyr_entry.second.matrix()
-	   << std::endl;
-      }
-  }
+      os << " Layer: "  << i << std::endl; 
+
+      for(auto lyr_entry : layerMap)
+	{
+	  os << " Acts Id: "  << lyr_entry.first 
+	     << " Transform: " << lyr_entry.second.matrix()
+	     << std::endl;
+	}
+    }
   os << "------------------------------" << std::endl;
   
   return;
@@ -42,55 +45,69 @@ void alignmentTransformationContainer::identify(std::ostream &os)
 void alignmentTransformationContainer::addTransform(const Acts::GeometryIdentifier id, Acts::Transform3 transform)
 {
   unsigned int sphlayer = getsphlayer(id);
-  // find or create the relevant map
-  auto it = transformMap.find(sphlayer);
-  if(it == transformMap.end())
+
+
+  if(sphlayer < transformMap.size())
     {
-      std::map<Acts::GeometryIdentifier, Acts::Transform3> newMap; 
-      newMap.insert(std::make_pair(id, transform));
-      transformMap.insert(std::make_pair(sphlayer, newMap));
+      auto& layerMap = transformMap[sphlayer]; 
+      if(layerMap.empty()) 
+	{
+	  std::map<Acts::GeometryIdentifier, Acts::Transform3> newmap;
+	  transformMap[sphlayer] = newmap;
+	}
+
+      transformMap[sphlayer].insert(std::make_pair(id, transform));
     }
-  else
-    {
-      it->second.insert(std::make_pair(id, transform));
-    }
+    else if(sphlayer == transformMap.size())
+      {
+	std::map<Acts::GeometryIdentifier, Acts::Transform3> newmap;
+	newmap.insert(std::make_pair(id, transform));
+	transformMap.push_back(newmap);
+      }
+    else
+      {
+	std::map<Acts::GeometryIdentifier, Acts::Transform3> newmap;
+	newmap.insert(std::make_pair(id, transform));
+	transformMap.resize(sphlayer+1, newmap);
+      }
 }
 
 void alignmentTransformationContainer::removeTransform(const Acts::GeometryIdentifier id)
 {
   unsigned int sphlayer = getsphlayer(id);
-  auto it = transformMap.find(sphlayer);
-  if(it != transformMap.end())
+  auto& layerMap = transformMap[sphlayer];
+  
+  auto lyr_mapit = layerMap.find(id);
+  
+  if(lyr_mapit != layerMap.end())
     {
-      auto lyr_mapit = it->second.find(id);
-
-	if(lyr_mapit != it->second.end())
-	  {
-	    it->second.erase(lyr_mapit);
-	    return;
-	  }
+      layerMap.erase(lyr_mapit);
+      return;
     }
+    
 }
 
 Acts::Transform3& alignmentTransformationContainer::getTransform(const Acts::GeometryIdentifier id)
 {
   unsigned int sphlayer = getsphlayer(id);
-  auto it = transformMap.find(sphlayer);
-  if(it != transformMap.end())
+
+  auto& layerMap = transformMap.at(sphlayer);
+  if(!layerMap.empty())
     {
-      auto lyr_mapit = it->second.find(id);
-
-	if(lyr_mapit != it->second.end())
-	  {
-	    return lyr_mapit->second;
-	  }
+      auto lyr_mapit = layerMap.find(id);
+      if(lyr_mapit != layerMap.end())
+	{
+	  return lyr_mapit->second;
+	}
     }
-
+  
   std::cout << "Unable to find Acts Id: "<< id<<  " in alignmentTransformationContainer" << std::endl;
-  exit(1); //later find way to detect null transform that you must return 
+  exit(1); 
 }
 
-const std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>& alignmentTransformationContainer::getMap()
+//
+//const std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>& alignmentTransformationContainer::getMap()
+const std::vector<std::map<Acts::GeometryIdentifier, Acts::Transform3>>& alignmentTransformationContainer::getMap()
 {
   return transformMap;
 }

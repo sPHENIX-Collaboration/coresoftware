@@ -45,7 +45,8 @@ class alignmentTransformationContainer : public Acts::GeometryContext
   Acts::Transform3& getTransform(Acts::GeometryIdentifier id);
 
   //  const std::multimap<unsigned int, std::pair<Acts::GeometryIdentifier, Acts::Transform3>> getMap();
-  const std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>& getMap();
+  //const std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>& getMap();
+  const std::vector<std::map<Acts::GeometryIdentifier, Acts::Transform3>>& getMap();
 
   void set();
 
@@ -57,7 +58,8 @@ class alignmentTransformationContainer : public Acts::GeometryContext
   
   std::map<unsigned int, unsigned int> base_layer_map = { {10, 0}, {12,3}, {14,7}, {16,55} };
 
-  std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>> transformMap;
+  //std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>> transformMap;
+  std::vector< std::map<Acts::GeometryIdentifier, Acts::Transform3>> transformMap;
 
   ClassDef(alignmentTransformationContainer,1);
 

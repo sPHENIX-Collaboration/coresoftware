@@ -88,7 +88,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
          Acts::GeometryIdentifier id = surf->geometryId();
 
 	 if(localVerbosity) 
-	   std::cout << " Add transform for Silicon with surface GeometryIdentifier " << id << " trkrid " << trkrId << std::endl;
+	   std::cout << " Add transform for Silicon with surface GeometryIdentifier " << id << " trkrid " << trkrId << " transform " << transform.matrix() << std::endl;
 
 	 transformMap->addTransform(id, transform);
        }
@@ -113,11 +113,12 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
        }
    } 
 
+ // copy map into geoContext
  m_tGeometry->geometry().geoContext =  transformMap->getMap();
- //m_tGeometry->geometry().getGeoContext() =  transformMap->getMap();
 
  // map is created, now we can use the transforms
  alignmentTransformationContainer::use_alignment = true;
+
  
 }
 
