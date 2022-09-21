@@ -75,7 +75,7 @@ PHG4IHCalSteppingAction::~PHG4IHCalSteppingAction()
 //____________________________________________________________________________..
 int PHG4IHCalSteppingAction::Init()
 {
-  if (m_LightScintModelFlag)
+  if (m_LightScintModelFlag < 10)
   {
     
     const char* Calibroot = getenv("CALIBRATIONROOT");
