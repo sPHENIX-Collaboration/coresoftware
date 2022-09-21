@@ -82,12 +82,13 @@ class ClusterErrorPara
   double scale_intt_4 = 0.964;
   double scale_intt_5 = 0.894;
   double scale_intt_6 = 0.893;
-  double scale_tpc_0 = 1.1;
+  /*  double scale_tpc_0 = 1.1;
   double scale_tpc_1 = 1.2;
   double scale_tpc_2 = 1.3;
   double scale_tpc_0_z = 1.1;
   double scale_tpc_1_z = 1.07;
   double scale_tpc_2_z = 1.04;
+  */
   double scale_mm_0 = 1.1;
   double scale_mm_1 = 1.5; 
 };
