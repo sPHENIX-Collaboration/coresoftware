@@ -72,7 +72,30 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/,
 
   for (int iregion = 0; iregion < 3; ++iregion)
   {
+    int zside = 0;
 
+    sector_R_bias[zside].clear();
+    sector_Phi_bias[zside].clear();
+    sector_min_Phi[zside].clear();
+    sector_max_Phi[zside].clear();
+    sector_min_Phi_sectors[zside][iregion].clear();
+    sector_max_Phi_sectors[zside][iregion].clear();
+    //int eff_layer = 0;
+    for (int isector = 0; isector < NSectors; ++isector)//12 sectors
+    {
+      sector_R_bias[zside].push_back(dR[zside][isector][iregion]);
+      sector_Phi_bias[zside].push_back(dPhi[zside][isector][iregion]);
+
+      double sec_gap = (2*M_PI - SectorPhi[iregion]*12)/12;
+      double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap * (isector+1) - 2 * M_PI / 12 * isector;
+      double sec_min_phi = sec_max_phi - SectorPhi[iregion];
+      sector_min_Phi[zside].push_back(sec_min_phi);
+      sector_max_Phi[zside].push_back(sec_max_phi);
+      std::cout << "R" << iregion << " sector " << isector << ": "<< sec_min_phi << " < phi < " << sec_max_phi  << std::endl;
+      sector_min_Phi_sectors[zside][iregion].push_back(sec_min_phi);
+      sector_max_Phi_sectors[zside][iregion].push_back(sec_max_phi);
+
+    }// isector
 
 
     double sum_r = 0;
@@ -119,6 +142,11 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/,
       layerseggeo->set_zstep(TBinWidth);
       layerseggeo->set_phibins(NPhiBins[iregion]);
       layerseggeo->set_phistep(PhiBinWidth[iregion]);
+      layerseggeo->set_r_bias(sector_R_bias);
+      layerseggeo->set_phi_bias(sector_Phi_bias);
+      layerseggeo->set_sector_min_phi(sector_min_Phi);
+      layerseggeo->set_sector_max_phi(sector_max_Phi);
+
       // Chris Pinkenburg: greater causes huge memory growth which causes problems
       // on our farm. If you need to increase this - TALK TO ME first
       if (NPhiBins[iregion] * NTBins > 5100000)
@@ -167,6 +195,67 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
   rad_gem = sqrt(x_gem * x_gem + y_gem * y_gem);
   //std::cout << "Enter new MapToPadPlane with rad_gem " << rad_gem << std::endl;
 
+  // Moving electrons from dead area to a closest pad 
+  int p_region=-1;
+  for (int iregion = 0; iregion < 3; ++iregion)
+  {
+    //std::cout<< "R "<<iregion<<std::endl;
+    double daR = 0; 
+    if(iregion==0 || iregion==2){
+      daR=1.4;//1.4cm edge to collect electrons from
+      //daPhi= sector_min_Phi_sectors[side][iregion] - sector_max_Phi_sectors[side][2];
+    }else{
+      daR = MinRadius[iregion]-MaxRadius[iregion-1];
+    }
+    if ( rad_gem <= MinRadius[iregion] && rad_gem >= MinRadius[iregion]-daR){
+      //std::cout<< "daR = " << daR <<std::endl;
+      //std::cout<< "R before" << rad_gem << std::endl;
+      if( rad_gem <= MinRadius[iregion]-daR/2){
+        rad_gem -= rad_gem - (MinRadius[iregion] - daR ); 
+      }else{
+        rad_gem += MinRadius[iregion] - rad_gem; 
+      }
+      //std::cout<< "R after" << rad_gem << std::endl;
+
+    }
+    if (rad_gem < MaxRadius[iregion] && rad_gem > MinRadius[iregion]) p_region = iregion;
+
+  }
+  for (int iregion = 0; iregion < 3; ++iregion)
+  {  
+    if (rad_gem < MaxRadius[iregion] && rad_gem > MinRadius[iregion]) p_region = iregion;
+    if(p_region>0){
+      std::cout<< "p_region" << p_region << std::endl;
+      for(int s=0; s<12;s++){
+        double daPhi = 0;
+      std::cout<< "1" << std::endl;
+      std::cout<< "s=" <<s<< std::endl;
+      std::cout<< "iregion=" <<iregion<< std::endl;
+      std::cout << "s min = " << sector_min_Phi_sectors[side][p_region][11] << std::endl;
+      std::cout << "s max = " << sector_max_Phi_sectors[side][p_region][s] << std::endl;
+      std::cout << "Ds = " << sector_min_Phi_sectors[side][p_region][11] - sector_max_Phi_sectors[side][p_region][s] << std::endl;
+        if (s==0){
+          //std::cout<< "ector_max_Phi_sectors[side][p_region][11] " << sector_max_Phi_sectors[side][p_region][11] << std::endl;
+          daPhi = fabs(sector_min_Phi_sectors[side][p_region][11] - sector_max_Phi_sectors[side][p_region][s]);
+        }else{
+          daPhi = fabs(sector_min_Phi_sectors[side][p_region][s-1] - sector_max_Phi_sectors[side][p_region][s]);
+        }
+      std::cout<< "2" << std::endl;
+      std::cout<< "daPhi = " << daPhi << std::endl;
+        if (phi<=sector_min_Phi_sectors[side][p_region][s] && phi>=sector_min_Phi_sectors[side][p_region][s]-daPhi){
+          std::cout<< "daPhi = " << daPhi <<std::endl;
+          std::cout<< "phi before" << phi << std::endl;
+          if(phi >= sector_min_Phi_sectors[side][p_region][s] + daPhi/2){
+            phi -= phi - sector_min_Phi_sectors[side][p_region][s];
+          }else{
+            phi += (sector_min_Phi_sectors[side][p_region][s] + daPhi/2) - phi;
+          }
+          std::cout<< "phi after" << phi << std::endl;
+         }
+
+      }
+    }
+  }
   unsigned int layernum = 0;
 
   // Find which readout layer this electron ends up in
@@ -189,6 +278,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
                   << " layer  " << hiter->second->get_layer() << " want to change to " << layernum << std::endl;
       hiter->second->set_layer(layernum);  // have to set here, since the stepping action knows nothing about layers
     }
+
   }
 
   if (layernum == 0)
@@ -609,6 +699,10 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("sampa_shaping_lead", 32.0);  // ns, for 80 ns SAMPA
   set_default_double_param("sampa_shaping_tail", 48.0);  // ns, for 80 ns SAMPA
 
+  set_default_double_param("tpc_sector_phi_inner", 0.5024);//2 * M_PI / 12 );//sector size in phi for R1 sector
+  set_default_double_param("tpc_sector_phi_mid",   0.5087);//2 * M_PI / 12 );//sector size in phi for R2 sector
+  set_default_double_param("tpc_sector_phi_outer", 0.5097);//2 * M_PI / 12 );//sector size in phi for R3 sector
+
   set_default_int_param("ntpc_phibins_inner", 1152);
   set_default_int_param("ntpc_phibins_mid", 1536);
   set_default_int_param("ntpc_phibins_outer", 2304);
@@ -671,13 +765,83 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
 
   std::cout << PHWHERE << "MaxT " << MaxT << " NTBins = " << NTBins << " drift velocity " << drift_velocity << std::endl;
 
+  SectorPhi[0] = get_double_param("tpc_sector_phi_inner");
+  SectorPhi[1] = get_double_param("tpc_sector_phi_mid");
+  SectorPhi[2] = get_double_param("tpc_sector_phi_outer");
+
   NPhiBins[0] = get_int_param("ntpc_phibins_inner");
   NPhiBins[1] = get_int_param("ntpc_phibins_mid");
   NPhiBins[2] = get_int_param("ntpc_phibins_outer");
 
-  PhiBinWidth[0] = 2.0 * M_PI / (double) NPhiBins[0];
-  PhiBinWidth[1] = 2.0 * M_PI / (double) NPhiBins[1];
-  PhiBinWidth[2] = 2.0 * M_PI / (double) NPhiBins[2];
+  PhiBinWidth[0] = SectorPhi[0] * 12 / (double) NPhiBins[0];
+  PhiBinWidth[1] = SectorPhi[1] * 12 / (double) NPhiBins[1];
+  PhiBinWidth[2] = SectorPhi[2] * 12 / (double) NPhiBins[2];
 
   averageGEMGain = get_double_param("gem_amplification");
+
+  //The modules are segmented in [-M_PI;M_PI] interval
+  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dR_tmp = {{
+    {{
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.}
+    }},
+    {{
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.}
+    }}
+  }};
+
+  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dPhi_tmp = {{
+    {{
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.}
+    }},
+    {{
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.},
+      {0.,0.,0.}
+    }}
+  }};
+
+  dR = dR_tmp;
+  dPhi = dPhi_tmp;
 }
