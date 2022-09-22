@@ -72,6 +72,7 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
+  SvtxTrackStateRemoval.h \
   VertexFitter.h
 
 ROOTDICTS = \
@@ -168,7 +169,8 @@ libtrack_reco_la_SOURCES = \
   PHTruthClustering.cc \
   PHTruthTrackSeeding.cc \
   PHTruthVertexing.cc \
-  PHTruthSiliconAssociation.cc
+  PHTruthSiliconAssociation.cc \
+  SvtxTrackStateRemoval.cc
 
 libtrack_reco_io_la_LIBADD = \
   -lphool \
