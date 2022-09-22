@@ -94,7 +94,7 @@ int PHG4OHCalSteppingAction::Init()
 {
   m_EnableFieldCheckerFlag = m_Params->get_int_param("field_check");
 
-  if (m_LightScintModelFlag)
+  if (m_LightScintModelFlag < 10)
   {
     /*
     const char* Calibroot = getenv("CALIBRATIONROOT");

@@ -22,7 +22,7 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <micromegas/MicromegasDefs.h>
 
@@ -119,7 +119,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
     }		 
 
    auto cellgeo =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
   if (cellgeo)
   {
@@ -472,6 +472,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       if(!cluster)
 	{
 	  if(Verbosity() > 0) std::cout << "Failed to get cluster with key " << key << " for track " << m_seedMap->find(track) << std::endl;
+    else std::cout<< "PHActsTrkFitter :: Key: "<< key << " for track " << m_seedMap->find(track) <<std::endl;
 	  continue;
 	}
 

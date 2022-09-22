@@ -26,6 +26,7 @@ libg4tpc_la_LIBADD = \
 
 pkginclude_HEADERS = \
   PHG4TpcCentralMembrane.h \
+  TpcClusterBuilder.h \
   PHG4TpcDigitizer.h \
   PHG4TpcDirectLaser.h \
   PHG4TpcDistortion.h \
@@ -38,6 +39,7 @@ pkginclude_HEADERS = \
 
 libg4tpc_la_SOURCES = \
   PHG4TpcCentralMembrane.cc \
+  TpcClusterBuilder.cc \
   PHG4TpcDetector.cc \
   PHG4TpcDigitizer.cc \
   PHG4TpcDirectLaser.cc \

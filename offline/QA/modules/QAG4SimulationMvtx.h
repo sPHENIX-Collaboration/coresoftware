@@ -2,6 +2,7 @@
 #define QA_QAG4SIMULATIONMVTX_H
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -39,6 +40,7 @@ class QAG4SimulationMvtx : public SubsysReco
   // get geant hits associated to a cluster
   using G4HitSet = std::set<PHG4Hit*>;
   G4HitSet find_g4hits(TrkrDefs::cluskey) const;
+  void set_cluster_version(int value) { m_cluster_version = value; }
 
   /// true if histograms are initialized
   bool m_initialized = false;
@@ -61,6 +63,8 @@ class QAG4SimulationMvtx : public SubsysReco
   /// list of relevant layers
   /* it is filled at Init stage. It should not change for the full run */
   std::set<int> m_layers;
+  ClusterErrorPara _ClusErrPara;
+  int m_cluster_version = 4;
 };
 
 #endif
