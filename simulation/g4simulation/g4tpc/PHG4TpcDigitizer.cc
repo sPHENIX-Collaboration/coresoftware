@@ -8,8 +8,8 @@
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrHitv2.h>
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
@@ -118,12 +118,12 @@ void PHG4TpcDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode)
 {
   // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
 
-  PHG4CylinderCellGeomContainer *geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcCylinderGeomContainer *geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
   if (!geom_container) return;
 
-  PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
-  for (PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
+  PHG4TpcCylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
+  for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
        layeriter != layerrange.second;
        ++layeriter)
   {
@@ -210,8 +210,8 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
   // Get Nodes
   //----------
 
-  PHG4CylinderCellGeomContainer *geom_container =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcCylinderGeomContainer *geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
   {
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
@@ -253,7 +253,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
         std::cout << "new: PHG4TpcDigitizer:  processing hits for layer " << layer << " hitsetkey " << hitsetkey << std::endl;
 
     // we need the geometry object for this layer
-    PHG4CylinderCellGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+    PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
     if (!layergeom)
       exit(1);
 

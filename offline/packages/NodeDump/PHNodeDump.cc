@@ -23,6 +23,7 @@
 #include "DumpPHG4ParticleSvtxMap.h"
 #include "DumpPHG4ScintillatorSlatContainer.h"
 #include "DumpPHG4TruthInfoContainer.h"
+#include "DumpPHGenIntegral.h"
 #include "DumpPHHepMCGenEventMap.h"
 #include "DumpParticleFlowElementContainer.h"
 #include "DumpPdbParameterMap.h"
@@ -43,7 +44,6 @@
 #include "DumpTrkrClusterHitAssoc.h"
 #include "DumpTrkrHitSetContainer.h"
 #include "DumpTrkrHitTruthAssoc.h"
-#include "DumpTrkrHitTruthClusters.h"
 #include "DumpVariableArray.h"
 
 #include <ffaobjects/EventHeader.h>
@@ -279,6 +279,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       {
         newdump = new DumpPHG4TruthInfoContainer(NodeName);
       }
+      else if (tmp->InheritsFrom("PHGenIntegral"))
+      {
+        newdump = new DumpPHGenIntegral(NodeName);
+      }
       else if (tmp->InheritsFrom("PHHepMCGenEventMap"))
       {
         newdump = new DumpPHHepMCGenEventMap(NodeName);
@@ -346,10 +350,6 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("TrkrHitTruthAssoc"))
       {
         newdump = new DumpTrkrHitTruthAssoc(NodeName);
-      }
-      else if (tmp->InheritsFrom("TrkrHitTruthClusters"))
-      {
-        newdump = new DumpTrkrHitTruthClusters(NodeName);
       }
       else if (tmp->InheritsFrom("VariableArray"))
       {
