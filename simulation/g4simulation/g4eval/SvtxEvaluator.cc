@@ -3734,6 +3734,8 @@ void SvtxEvaluator::get_dca(SvtxTrack* track, SvtxVertexMap* vertexmap,
 
   auto vtxid = track->get_vertex_id();
   auto svtxVertex = vertexmap->get(vtxid);
+  if(!svtxVertex)
+    { return; }
   Acts::Vector3 vertex(svtxVertex->get_x(),
 		       svtxVertex->get_y(),
 		       svtxVertex->get_z());

@@ -261,10 +261,11 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       // also store adc value
       unsigned int adc_sum = 0;
-
+      strip_count = 0;
       // loop over constituting hits
       for( auto hit_it = range.first; hit_it != range.second; ++hit_it )
       {
+	strip_count++;
         // get hit key
         const auto hitkey = hit_it->first;
         const auto hit = hit_it->second;
