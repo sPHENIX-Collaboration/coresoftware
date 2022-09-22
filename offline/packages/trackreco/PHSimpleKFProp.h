@@ -153,6 +153,7 @@ class PHSimpleKFProp : public SubsysReco
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
+
   int m_cluster_version = 4;
 };
 
