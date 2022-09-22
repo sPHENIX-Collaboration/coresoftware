@@ -6,7 +6,7 @@
 #include <map>
 
 class TrkrCluster;
-class PHG4CylinderCellGeom;
+class PHG4TpcCylinderGeom;
   // This is really just a structure used in simulation/g4simulation/g4tpc/PHG4TpcElectronDrift.cc
   // to collect necessary statistics from simulation/g4simulation/g4tpc/PHG4TpcPadPlaneReadout.cc
   // 
@@ -19,7 +19,7 @@ class TpcClusterBuilder
   using MapHitsetkeyUInt   = std::map<TrkrDefs::hitsetkey, unsigned int>;
   using PairCluskeyCluster = std::pair<TrkrDefs::cluskey,TrkrCluster*>;
   public:
-    PHG4CylinderCellGeom *layerGeom ; // unique to the layer
+    PHG4TpcCylinderGeom *layerGeom ; // unique to the layer
     short  layer;
     unsigned int side;
     int    neff_electrons ;
