@@ -74,7 +74,7 @@ class ALICEKF
   bool _use_fixed_clus_error = true;
   std::array<double,3> _fixed_clus_error = {.1,.1,.1};
   ClusterErrorPara _ClusErrPara;
-  int m_cluster_version = 3;
+  int m_cluster_version = 4;
 };
 
 #endif

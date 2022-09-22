@@ -94,6 +94,13 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
     int phi_size = 0;
     int z_size = 0;
 
+    //! cluster charge
+    unsigned int adc = 0;
+
+    //! cluster quality info
+    int ovlp = 0;
+    int edge = 0;
+
     //!@name cluster position
     //@{
     float x = 0;
@@ -122,6 +129,9 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
 
     //! track inclination at cluster in r,z plane
     float trk_beta = 0;
+
+    //! track radius
+    float trk_radius = 0;
 
     //@}
 
@@ -221,6 +231,8 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
     int pid = 0;
     int embed = 0;
     bool is_primary = false;
+    int gtrackID = 0;
+    float truth_t = 0;
 
     // number of g4hits from this MC track that match
     int contributors = 0;

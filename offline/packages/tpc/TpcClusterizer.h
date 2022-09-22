@@ -52,7 +52,7 @@ class TpcClusterizer : public SubsysReco
   double SectorFiducialCut = 0.5;
   unsigned short MaxClusterHalfSizePhi = 3;
   unsigned short MaxClusterHalfSizeT = 5;
-  int cluster_version = 3;
+  int cluster_version = 4;
   double m_tdriftmax = 0;
   double AdcClockPeriod = 53.0;   // ns 
 
