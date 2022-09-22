@@ -125,7 +125,6 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
     const G4Material* mat = (*mtable)[i];
     if(mat->GetName()=="Uniplast_scintillator"){
       if((mat->GetIonisation()->GetBirksConstant())==0)mat->GetIonisation()->SetBirksConstant(m_Params->get_double_param("Birk_const")); 
-      
     }
   }
   
@@ -151,7 +150,6 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
 	m_SteelAbsorberLogVolSet.insert((*it1)->GetLogicalVolume());
 	hcalenvelope->AddDaughter((*it1));
 	m_VolumeSteel += (*it1)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
-	
 	std::vector<G4VPhysicalVolume *>::iterator it3 = m_ScintiMotherAssembly->GetVolumesIterator();
 	unsigned int ncnt = 24 * 5 * 2;
 	unsigned int ioff = isector * ncnt;
@@ -167,8 +165,9 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
 	    hcalenvelope->AddDaughter((*it3));
 	    m_ScintiTilePhysVolMap.insert(std::make_pair(*it3, ExtractLayerTowerId(isector, *it3)));
 	    m_VolumeScintillator += (*it3)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
-      ++it3;
+            ++it3;
 	  }
+	
 	++it1;
     }
   
