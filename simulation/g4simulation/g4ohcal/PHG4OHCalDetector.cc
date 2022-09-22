@@ -170,7 +170,6 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
 	
 	++it1;
     }
-  
   // Chimney assemblies
   G4AssemblyVolume *chimAbs_asym = reader->GetAssembly("sectorChimney");         //absorber
   m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90");  //chimney tiles
@@ -181,9 +180,8 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   sectormap.insert(std::make_pair(0, 30));
   sectormap.insert(std::make_pair(1, 31));
   sectormap.insert(std::make_pair(2, 29));
-  for (unsigned int isector = 0; isector < 1; isector++)
+  for (unsigned int isector = 0; isector < chimAbs_asym->TotalImprintedVolumes(); isector++)
   {
-    //if(isector <30) continue;
     m_DisplayAction->AddChimSteelVolume((*it2)->GetLogicalVolume());
     m_SteelAbsorberLogVolSet.insert((*it2)->GetLogicalVolume());
     hcalenvelope->AddDaughter((*it2));
