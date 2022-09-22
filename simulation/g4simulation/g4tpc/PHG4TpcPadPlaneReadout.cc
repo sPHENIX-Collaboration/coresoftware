@@ -1,8 +1,8 @@
 #include "PHG4TpcPadPlaneReadout.h"
 
 #include <g4detectors/PHG4CellDefs.h>  // for genkey, keytype
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4HitContainer.h>
@@ -66,12 +66,28 @@ PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
   gsl_rng_free(RandomGenerator);
 }
 
-int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/, PHG4CylinderCellGeomContainer *seggeo)
+int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/, PHG4TpcCylinderGeomContainer *seggeo)
 {
   if (Verbosity()) std::cout << "PHG4TpcPadPlaneReadout: CreateReadoutGeometry: " << std::endl;
 
   for (int iregion = 0; iregion < 3; ++iregion)
   {
+
+
+
+    double sum_r = 0;
+    for (int layer = MinLayer[iregion]; layer < MinLayer[iregion] + NTpcLayers[iregion]; ++layer)
+    {          
+      double r_length = Thickness[iregion];
+      if(iregion == 0 && layer>0){
+        if(layer%2==0) r_length = Thickness[4];
+        else r_length = Thickness[3];
+      }
+      sum_r += r_length;
+    }    
+    double pad_space = (MaxRadius[iregion] - MinRadius[iregion] - sum_r)/(NTpcLayers[iregion]-1);
+    double current_r = MinRadius[iregion];
+
     for (int layer = MinLayer[iregion]; layer < MinLayer[iregion] + NTpcLayers[iregion]; ++layer)
     {
       if (Verbosity())
@@ -83,10 +99,20 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/,
                   << " phibins " << NPhiBins[iregion] << " phistep " << PhiBinWidth[iregion] << std::endl;
       }
 
-      PHG4CylinderCellGeom *layerseggeo = new PHG4CylinderCellGeom();
+      PHG4TpcCylinderGeom *layerseggeo = new PHG4TpcCylinderGeom();
       layerseggeo->set_layer(layer);
-      layerseggeo->set_radius(MinRadius[iregion] + ((double) (layer - MinLayer[iregion]) + 0.5) * Thickness[iregion]);
-      layerseggeo->set_thickness(Thickness[iregion]);
+
+      //layerseggeo->set_radius(MinRadius[iregion] + ((double) (layer - MinLayer[iregion]) + 0.5) * Thickness[iregion]);
+      //layerseggeo->set_thickness(Thickness[iregion]);
+
+      double r_length = Thickness[iregion];
+      if(iregion == 0 && layer>0){
+        if(layer%2==0) r_length = Thickness[4];
+        else r_length = Thickness[3];
+      }
+      layerseggeo->set_thickness(r_length);
+      layerseggeo->set_radius(current_r+r_length/2);
+
       layerseggeo->set_binning(PHG4CellDefs::sizebinning);
       layerseggeo->set_zbins(NTBins);
       layerseggeo->set_zmin(MinT);
@@ -103,6 +129,8 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/,
         gSystem->Exit(1);
       }
       seggeo->AddLayerCellGeom(layerseggeo);
+
+      current_r += r_length + pad_space;
     }
   }
 
@@ -143,8 +171,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *single_hitsetcon
 
   // Find which readout layer this electron ends up in
 
-  PHG4CylinderCellGeomContainer::ConstRange layerrange = GeomContainer->get_begin_end();
-  for (PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
+  PHG4TpcCylinderGeomContainer::ConstRange layerrange = GeomContainer->get_begin_end();
+  for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
        layeriter != layerrange.second;
        ++layeriter)
   {
@@ -556,13 +584,23 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 
   set_default_int_param("tpc_minlayer_inner", 7);
 
-  set_default_double_param("tpc_minradius_inner", 30.0);  // cm
-  set_default_double_param("tpc_minradius_mid", 40.0);
-  set_default_double_param("tpc_minradius_outer", 60.0);
+  //set_default_double_param("tpc_minradius_inner", 30.0);  // cm
+  //set_default_double_param("tpc_minradius_mid", 40.0);
+  //set_default_double_param("tpc_minradius_outer", 60.0);
+//
+  //set_default_double_param("tpc_maxradius_inner", 40.0);  // cm
+  //set_default_double_param("tpc_maxradius_mid", 60.0);
+  //set_default_double_param("tpc_maxradius_outer", 77.0);  // from Tom
 
-  set_default_double_param("tpc_maxradius_inner", 40.0);  // cm
-  set_default_double_param("tpc_maxradius_mid", 60.0);
-  set_default_double_param("tpc_maxradius_outer", 76.4);  // from Tom
+  set_default_double_param("tpc_minradius_inner", 31.105);//30.0);  // cm
+  set_default_double_param("tpc_minradius_mid", 41.153);//40.0);
+  set_default_double_param("tpc_minradius_outer", 58.367);//60.0);
+
+
+  set_default_double_param("tpc_maxradius_inner", 40.249);//40.0);  // cm
+  set_default_double_param("tpc_maxradius_mid", 57.475);//60.0);
+  set_default_double_param("tpc_maxradius_outer", 75.911);//77.0);  // from Tom
+
 
   set_default_double_param("neffelectrons_threshold", 1.0);
   set_default_double_param("maxdriftlength", 105.5);     // cm
@@ -604,13 +642,19 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   MaxRadius[1] = get_double_param("tpc_maxradius_mid");
   MaxRadius[2] = get_double_param("tpc_maxradius_outer");
 
-  Thickness[0] = NTpcLayers[0] <= 0 ? 0 : (MaxRadius[0] - MinRadius[0]) / NTpcLayers[0];
-  Thickness[1] = NTpcLayers[1] <= 0 ? 0 : (MaxRadius[1] - MinRadius[1]) / NTpcLayers[1];
-  Thickness[2] = NTpcLayers[2] <= 0 ? 0 : (MaxRadius[2] - MinRadius[2]) / NTpcLayers[2];
+  //Thickness[0] = NTpcLayers[0] <= 0 ? 0 : (MaxRadius[0] - MinRadius[0]) / NTpcLayers[0];
+  //Thickness[1] = NTpcLayers[1] <= 0 ? 0 : (MaxRadius[1] - MinRadius[1]) / NTpcLayers[1];
+  //Thickness[2] = NTpcLayers[2] <= 0 ? 0 : (MaxRadius[2] - MinRadius[2]) / NTpcLayers[2];
 
   MaxRadius[0] = get_double_param("tpc_maxradius_inner");
   MaxRadius[1] = get_double_param("tpc_maxradius_mid");
   MaxRadius[2] = get_double_param("tpc_maxradius_outer");
+
+  Thickness[0] = 0.687;
+  Thickness[1] = 1.012;
+  Thickness[2] = 1.088;
+  Thickness[3] = 0.534;
+  Thickness[4] = 0.595;
 
   sigmaT = get_double_param("gem_cloud_sigma");
   sigmaL[0] = get_double_param("sampa_shaping_lead");

@@ -21,7 +21,7 @@
 #include <trackbase/TrkrHitTruthClusters.h>
 #include <trackbase/TrkrHitTruthClustersv1.h>
 
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <phparameter/PHParameterInterface.h>  // for PHParameterIn...
 #include <phparameter/PHParameters.h>
@@ -165,10 +165,10 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   }
 
   seggeonodename = "CYLINDERCELLGEOM_SVTX";  // + detector;
-  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename);
+  PHG4TpcCylinderGeomContainer *seggeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   if (!seggeo)
   {
-    seggeo = new PHG4CylinderCellGeomContainer();
+    seggeo = new PHG4TpcCylinderGeomContainer();
     auto newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
     runNode->addNode(newNode);
   }
