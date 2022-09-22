@@ -44,7 +44,8 @@ my %proddesc = (
     "12" => "JS pythia8 Jet ptmin = 10GeV",
     "13" => "JS pythia8 Photon Jet",
     "14" => "Single Particles",
-    "15" => "Special Productions"
+    "15" => "Special Productions",
+    "16" => "HF pythia8 D0 Jets"
     );
 
 my %pileupdesc = (
@@ -281,6 +282,15 @@ if (defined $prodtype)
 	    exit(1);
 	}
 	$filenamestring = sprintf("%s_%s",$filenamestring, $production);
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 16)
+    {
+	$filenamestring = "pythia8_JetD0";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	}
 	&commonfiletypes();
     }
     else
