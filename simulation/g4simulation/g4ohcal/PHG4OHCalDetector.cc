@@ -157,7 +157,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
       for (unsigned int j = 0; j < ioff; j++)
 	{
 	  ++it3;
-	  }
+	}
       for (unsigned int j = ioff; j < ioff + ncnt; j++)
 	{
 	  m_DisplayAction->AddScintiVolume((*it3)->GetLogicalVolume());
@@ -166,14 +166,14 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
 	  m_ScintiTilePhysVolMap.insert(std::make_pair(*it3, ExtractLayerTowerId(isector, *it3)));
 	  m_VolumeScintillator += (*it3)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
 	  ++it3;
-	  }
+	}
       
       ++it1;
     }
   // Chimney assemblies
   G4AssemblyVolume *chimAbs_asym = reader->GetAssembly("sectorChimney");         //absorber
   m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90");  //chimney tiles
-
+  
   std::vector<G4VPhysicalVolume *>::iterator it2 = chimAbs_asym->GetVolumesIterator();
   //	order sector 30,31,29
   std::map<unsigned int, unsigned int> sectormap;
