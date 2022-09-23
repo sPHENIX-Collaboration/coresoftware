@@ -13,6 +13,12 @@ CDBNtuple::CDBNtuple(const std::string &fname)
 {
 }
 
+CDBNtuple::~CDBNtuple()
+{
+  m_EntryMap.clear();
+  m_SingleEntryMap.clear();
+}
+
 void CDBNtuple::SetValue(int channel, const std::string &name, float value)
 {
   if (name == "ID")
@@ -20,14 +26,14 @@ void CDBNtuple::SetValue(int channel, const std::string &name, float value)
     std::cout << "Sorry ID is reserved as fieldname, pick anything else" << std::endl;
     gSystem->Exit(1);
   }
-    if (m_Locked[MultipleEntries])
-    {
-      std::cout << "Trying to add field " << name << " after another entry was committed" << std::endl;
-      std::cout << "That does not work, restructure your code" << std::endl;
-      gSystem->Exit(1);
-    }
-    m_EntryMap[channel].insert(std::make_pair(name,value));
-    m_EntryNameSet.insert(name);
+  if (m_Locked[MultipleEntries])
+  {
+    std::cout << "Trying to add field " << name << " after another entry was committed" << std::endl;
+    std::cout << "That does not work, restructure your code" << std::endl;
+    gSystem->Exit(1);
+  }
+  m_EntryMap[channel].insert(std::make_pair(name,value));
+  m_EntryNameSet.insert(name);
 }
 
 void CDBNtuple::Commit()
@@ -50,7 +56,7 @@ void CDBNtuple::Commit()
   std::fill(vals,vals+m_EntryNameSet.size()+1,NAN);
   if (m_TNtuple[MultipleEntries] == nullptr)
   {
-m_TNtuple[MultipleEntries] = new TNtuple(m_TNtupleName[MultipleEntries].c_str(),m_TNtupleName[MultipleEntries].c_str(),fieldnames.c_str());
+    m_TNtuple[MultipleEntries] = new TNtuple(m_TNtupleName[MultipleEntries].c_str(),m_TNtupleName[MultipleEntries].c_str(),fieldnames.c_str());
   }
   for (auto &entry :  m_EntryMap)
   {
@@ -62,13 +68,13 @@ m_TNtuple[MultipleEntries] = new TNtuple(m_TNtupleName[MultipleEntries].c_str(),
       std::cout << "Committing " << calib.first << " at index " << index.find(calib.first)->second
 		<< " value " <<  calib.second << std::endl; 
       vals[(index.find(calib.first)->second)] = calib.second;  
-	 }
-m_TNtuple[MultipleEntries]->Fill(vals);
-  // for (size_t i = 0; i < m_EntryNameSet.size()+1; i++)
-  // {
-  //   vals[i] = NAN;
-  // }
-  std::fill(vals,vals+m_EntryNameSet.size()+1,NAN);
+    }
+    m_TNtuple[MultipleEntries]->Fill(vals);
+    // for (size_t i = 0; i < m_EntryNameSet.size()+1; i++)
+    // {
+    //   vals[i] = NAN;
+    // }
+    std::fill(vals,vals+m_EntryNameSet.size()+1,NAN);
   }
   delete [] vals;
 //  std::cout << calibid << std::endl;
@@ -108,7 +114,6 @@ void CDBNtuple::CommitSingle()
     {
       fieldnames += ':';
     }
-    field.second = NAN;
   }
   std::cout << "fields: " << fieldnames << std::endl;
   m_TNtuple[SingleEntries] = new TNtuple(m_TNtupleName[SingleEntries].c_str(),m_TNtupleName[SingleEntries].c_str(),fieldnames.c_str());
@@ -158,6 +163,7 @@ void CDBNtuple::LoadCalibrations()
   {
     TObjArray *branches =  m_TNtuple[SingleEntries]->GetListOfBranches();
     TIter iter(branches); //= branches->MakeIterator();
+    std::cout << "number of branches: " << branches->GetEntries() << std::endl;
     while(TBranch *thisbranch = static_cast<TBranch *> (iter.Next()))
     {
       float val;
@@ -166,25 +172,74 @@ void CDBNtuple::LoadCalibrations()
       m_SingleEntryMap.insert(std::make_pair(thisbranch->GetName(), val));
     }
   }
+  if (m_TNtuple[MultipleEntries] != nullptr)
+  {
+    TObjArray *branches =  m_TNtuple[MultipleEntries]->GetListOfBranches();
+    TIter iter(branches);
+    std::cout << "number of ntupe entries: " << m_TNtuple[MultipleEntries]->GetEntries() << std::endl;
+//    size_t numfields = branches->GetEntries();
+    std::map<std::string, float> branchmap;
+    while(TBranch *thisbranch = static_cast<TBranch *> (iter.Next()))
+    {
+      float val;
+      std::pair<std::string, float> valpair = std::make_pair(thisbranch->GetName(),val);
+      branchmap.insert(valpair);
+    }
+    for (auto &biter : branchmap)
+    {
+      m_TNtuple[MultipleEntries]->SetBranchAddress(biter.first.c_str(), &biter.second);
+    }
+    for (int i=0; i<m_TNtuple[MultipleEntries]->GetEntries(); i++)
+    {
+      m_TNtuple[MultipleEntries]->GetEntry(i);
+      int id = branchmap.find("ID")->second;
+      m_EntryMap.insert(std::make_pair(id, branchmap));
+      for (auto & biter : branchmap)
+      {
+	std::cout << i << ", " << biter.first << " val " << biter.second << std::endl;
+      }
+    }
+  }
   f->Close();
 }
 
 float CDBNtuple::GetSingleValue(const std::string &name)
 {  
   if ( m_SingleEntryMap.empty())
- {
-  LoadCalibrations();
-}
-  if (m_SingleEntryMap.find(name) == m_SingleEntryMap.end())
+  {
+    LoadCalibrations();
+  }
+  auto singleiter = m_SingleEntryMap.find(name);
+  if (singleiter == m_SingleEntryMap.end())
   {
     std::cout << "Could not find " << name << " in single calibrations" << std::endl;
     std::cout << "Existing values:" << std::endl;
-  for (auto &eiter : m_SingleEntryMap)
-  {
-    std::cout << "name : " << eiter.first << ", value " << eiter.second 
-	      << std::endl;
+    for (auto &eiter : m_SingleEntryMap)
+    {
+      std::cout << "name : " << eiter.first << ", value " << eiter.second
+		<< std::endl;
+    }
   }
-  }
-  return NAN;
+  return singleiter->second ;
 }
 
+float CDBNtuple::GetValue(int channel, const std::string &name)
+{
+  if ( m_EntryMap.empty())
+  {
+    LoadCalibrations();
+  }
+  auto channelmapiter = m_EntryMap.find(channel);
+  if (channelmapiter == m_EntryMap.end())
+  {
+    std::cout << "Could not find channel " << channel << " in calibrations" << std::endl;
+    return NAN;
+  }
+  auto calibiter = channelmapiter->second.find(name);
+  if (channelmapiter->second.find(name) == channelmapiter->second.end())
+  {
+    std::cout << "Could not find " << name << " among calibrations" << std::endl;
+    return NAN;
+  }
+  return calibiter->second;
+}

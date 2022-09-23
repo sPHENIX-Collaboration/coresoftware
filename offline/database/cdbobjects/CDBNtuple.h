@@ -12,7 +12,7 @@ class CDBNtuple
 public:
   CDBNtuple() = default;
   CDBNtuple(const std::string &fname);
-  ~CDBNtuple() {}
+  ~CDBNtuple();
   void SetValue(int channel, const std::string &name, float value);
   void Commit();
   void SetSingleValue(const std::string &name, float value);
@@ -21,6 +21,7 @@ public:
   void Print();
   void LoadCalibrations();
   float GetSingleValue(const std::string &name);
+  float GetValue(int channel, const std::string &name);
 
 private:
   enum {SingleEntries = 0, MultipleEntries = 1};
