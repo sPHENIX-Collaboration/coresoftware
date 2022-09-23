@@ -97,7 +97,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   fitter->useConstBField(_use_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
   fitter->set_cluster_version( m_cluster_version );
-
+  std::cout << "simple kf cluster version " << m_cluster_version << std::endl;
   fitter->setFixedClusterError(0,_fixed_clus_err.at(0));
   fitter->setFixedClusterError(1,_fixed_clus_err.at(1));
   fitter->setFixedClusterError(2,_fixed_clus_err.at(2));
