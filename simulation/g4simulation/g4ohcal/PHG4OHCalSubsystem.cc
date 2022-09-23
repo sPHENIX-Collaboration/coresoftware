@@ -48,6 +48,13 @@ int PHG4OHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   // create display settings before detector
   m_DisplayAction = new PHG4OHCalDisplayAction(Name());
 
+  if (get_string_param("IronFieldMapPath") == "DefaultParameters-InvadPath" )
+  {
+    std::cout <<__PRETTY_FUNCTION__<<": invalid string parameter IronFieldMapPath, where we expect a 3D field map"<<std::endl;
+    exit (1);
+  }
+
+
   // create detector
   m_Detector = new PHG4OHCalDetector(this, topNode, GetParams(), Name());
   m_Detector->SuperDetector(SuperDetector());
@@ -170,4 +177,7 @@ void PHG4OHCalSubsystem::SetDefaultParameters()
   set_default_int_param("n_scinti_tiles", 12);
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
+
+  set_default_string_param("IronFieldMapPath", "DefaultParameters-InvadPath");
+  set_default_double_param("IronFieldMapScale", 1.);
 }

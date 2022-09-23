@@ -57,7 +57,6 @@ class PHCompositeNode;
 PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parames, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4OHCalDisplayAction *>(subsys->GetDisplayAction()))
-  , m_FieldSetup(nullptr)
   , m_Params(parames)
   , m_InnerRadius(m_Params->get_double_param("inner_radius") * cm)
   , m_OuterRadius(m_Params->get_double_param("outer_radius") * cm)
@@ -69,6 +68,11 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
 {
   gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
   assert(gdml_config);
+
+  m_FieldSetup =
+    new PHG4OHCalFieldSetup(
+        m_Params->get_string_param("IronFieldMapPath"), m_Params->get_double_param("IronFieldMapScale")
+        );
 }
 
 PHG4OHCalDetector::~PHG4OHCalDetector()
@@ -147,6 +151,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   {
     m_DisplayAction->AddSteelVolume((*it1)->GetLogicalVolume());
     m_SteelAbsorberLogVolSet.insert((*it1)->GetLogicalVolume());
+
     hcalenvelope->AddDaughter((*it1));
     m_VolumeSteel += (*it1)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
     std::vector<G4VPhysicalVolume *>::iterator it3 = m_ScintiMotherAssembly->GetVolumesIterator();
@@ -184,6 +189,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   {
     m_DisplayAction->AddChimSteelVolume((*it2)->GetLogicalVolume());
     m_SteelAbsorberLogVolSet.insert((*it2)->GetLogicalVolume());
+
     hcalenvelope->AddDaughter((*it2));
     m_VolumeSteel += (*it2)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
     std::vector<G4VPhysicalVolume *>::iterator it4 = m_ChimScintiMotherAssembly->GetVolumesIterator();
@@ -205,6 +211,12 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     }
     ++it2;
   }
+
+  for (auto & logical_vol : m_SteelAbsorberLogVolSet)
+  {
+    logical_vol->SetFieldManager(m_FieldSetup->get_Field_Manager_Iron(), true);
+  }
+
   return 0;
 }
 
