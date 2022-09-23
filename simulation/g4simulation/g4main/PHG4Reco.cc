@@ -265,10 +265,15 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
 
   std::unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
 
-  if (m_FieldMapFile != "NONE")
+  if (m_FieldMapFile == "CDB")
   {
+    // loading from database
     std::string url = XploadInterface::instance()->getUrl("FIELDMAPBIG", m_FieldMapFile);
     default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, url, m_MagneticFieldRescale));
+  }
+  else if (m_FieldMapFile != "NONE")
+  {
+    default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, m_FieldMapFile, m_MagneticFieldRescale));
   }
   else
   {
