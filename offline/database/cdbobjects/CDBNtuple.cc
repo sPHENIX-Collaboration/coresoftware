@@ -51,7 +51,6 @@ void CDBNtuple::Commit()
     i++;
     index.insert(std::make_pair(field,i));
   }
-  std::cout << "fieldstring: " << fieldnames << std::endl;
   float *vals = new float[m_EntryNameSet.size()+1]; // +1 for the id
   std::fill(vals,vals+m_EntryNameSet.size()+1,NAN);
   if (m_TNtuple[MultipleEntries] == nullptr)
@@ -60,25 +59,15 @@ void CDBNtuple::Commit()
   }
   for (auto &entry :  m_EntryMap)
   {
-    std::cout << "entrymap entry " <<  entry.first 
-	      << " index " << index.find("ID")->second << std::endl;
     vals[(index.find("ID")->second)] = entry.first;
     for (auto &calib : entry.second)
     {
-      std::cout << "Committing " << calib.first << " at index " << index.find(calib.first)->second
-		<< " value " <<  calib.second << std::endl; 
       vals[(index.find(calib.first)->second)] = calib.second;  
     }
     m_TNtuple[MultipleEntries]->Fill(vals);
-    // for (size_t i = 0; i < m_EntryNameSet.size()+1; i++)
-    // {
-    //   vals[i] = NAN;
-    // }
     std::fill(vals,vals+m_EntryNameSet.size()+1,NAN);
   }
   delete [] vals;
-//  std::cout << calibid << std::endl;
-
   return;
 }
 
@@ -96,7 +85,6 @@ void CDBNtuple::SetSingleValue(const std::string &name, float value)
     return;
   }
   m_SingleEntryMap[name] = value;
-  std::cout << value << std::endl;
 }
 
 void CDBNtuple::CommitSingle()
@@ -115,29 +103,37 @@ void CDBNtuple::CommitSingle()
       fieldnames += ':';
     }
   }
-  std::cout << "fields: " << fieldnames << std::endl;
   m_TNtuple[SingleEntries] = new TNtuple(m_TNtupleName[SingleEntries].c_str(),m_TNtupleName[SingleEntries].c_str(),fieldnames.c_str());
   m_TNtuple[SingleEntries]->Fill(vals);
   delete [] vals;
-  std::cout << "commit single" << std::endl;
   return;
 }
 
 void CDBNtuple::Print()
 {
-  std::cout << "Number of fields: " << m_EntryMap.size() << std::endl;
-  for (auto &field : m_EntryMap)
+  if (! m_EntryMap.empty())
   {
-    std::cout << field.first << std::endl;
-    for (auto &calibs : field.second)
+    std::cout << "Number of entries: " << m_EntryMap.size() << std::endl;
+    for (auto &field : m_EntryMap)
     {
-      std::cout << "name " << calibs.first << " value: " << calibs.second << std::endl;
+      std::cout << "ID: " << field.first << std::endl;
+      for (auto &calibs : field.second)
+      {
+	std::cout << "name " << calibs.first << " value: " << calibs.second << std::endl;
+      }
     }
   }
-  std::cout << "Number of single fields: " << m_SingleEntryMap.size() << std::endl;
-  for (auto &field : m_SingleEntryMap)
+  if (!m_SingleEntryMap.empty())
   {
-    std::cout << field.first << " value " << field.second << std::endl;
+    if (!m_EntryMap.empty())
+    {
+      std::cout << std::endl;
+    }
+    std::cout << "Number of single fields: " << m_SingleEntryMap.size() << std::endl;
+    for (auto &field : m_SingleEntryMap)
+    {
+      std::cout << field.first << " value " << field.second << std::endl;
+    }
   }
 }
 
@@ -162,8 +158,7 @@ void CDBNtuple::LoadCalibrations()
   if (m_TNtuple[SingleEntries] != nullptr)
   {
     TObjArray *branches =  m_TNtuple[SingleEntries]->GetListOfBranches();
-    TIter iter(branches); //= branches->MakeIterator();
-    std::cout << "number of branches: " << branches->GetEntries() << std::endl;
+    TIter iter(branches);
     while(TBranch *thisbranch = static_cast<TBranch *> (iter.Next()))
     {
       float val;
@@ -176,8 +171,6 @@ void CDBNtuple::LoadCalibrations()
   {
     TObjArray *branches =  m_TNtuple[MultipleEntries]->GetListOfBranches();
     TIter iter(branches);
-    std::cout << "number of ntupe entries: " << m_TNtuple[MultipleEntries]->GetEntries() << std::endl;
-//    size_t numfields = branches->GetEntries();
     std::map<std::string, float> branchmap;
     while(TBranch *thisbranch = static_cast<TBranch *> (iter.Next()))
     {
@@ -194,10 +187,6 @@ void CDBNtuple::LoadCalibrations()
       m_TNtuple[MultipleEntries]->GetEntry(i);
       int id = branchmap.find("ID")->second;
       m_EntryMap.insert(std::make_pair(id, branchmap));
-      for (auto & biter : branchmap)
-      {
-	std::cout << i << ", " << biter.first << " val " << biter.second << std::endl;
-      }
     }
   }
   f->Close();
