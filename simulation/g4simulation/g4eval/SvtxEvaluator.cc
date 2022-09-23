@@ -36,8 +36,8 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -528,8 +528,8 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 	}
       }
 
-    PHG4CylinderCellGeomContainer* geom_container =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+    PHG4TpcCylinderGeomContainer* geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
       {
 	if (!geom_container)
 	  std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
@@ -539,7 +539,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 
     for (unsigned int ilayer = 0; ilayer < _nlayers_maps + _nlayers_intt + _nlayers_tpc; ++ilayer)
     {
-      PHG4CylinderCellGeom* GeoLayer = geom_container->GetLayerCellGeom(ilayer);
+      PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(ilayer);
 
       cout << "layer " << ilayer << ": nG4hits = " << ng4hits[ilayer]
            << " => nHits = " << nhits[ilayer]
@@ -843,14 +843,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	}
     }
   /**********/
-  PHG4CylinderCellGeomContainer* geom_container =
-    findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcCylinderGeomContainer* geom_container =
+    findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
     {
       std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
       return;
     }
-  PHG4CylinderCellGeom* GeoLayer;
+  PHG4TpcCylinderGeom* GeoLayer;
   int layer = _nlayers_maps + _nlayers_intt;
   GeoLayer = geom_container->GetLayerCellGeom(layer);
   int nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
@@ -1538,8 +1538,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
     // need things off of the DST...
     TrkrHitSetContainer *hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-    PHG4CylinderCellGeomContainer* geom_container =
-        findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+    PHG4TpcCylinderGeomContainer* geom_container =
+        findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
     if (!geom_container)
     {
       std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
@@ -1583,7 +1583,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    
 	    if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc )
 	      {
-		PHG4CylinderCellGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
+		PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
 		phibin = (float) TpcDefs::getPad(hit_key);
 		zbin = (float) TpcDefs::getTBin(hit_key);
 		phi = GeoLayer->get_phicenter(phibin);
@@ -3734,6 +3734,8 @@ void SvtxEvaluator::get_dca(SvtxTrack* track, SvtxVertexMap* vertexmap,
 
   auto vtxid = track->get_vertex_id();
   auto svtxVertex = vertexmap->get(vtxid);
+  if(!svtxVertex)
+    { return; }
   Acts::Vector3 vertex(svtxVertex->get_x(),
 		       svtxVertex->get_y(),
 		       svtxVertex->get_z());

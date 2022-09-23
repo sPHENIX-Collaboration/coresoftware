@@ -4,6 +4,7 @@
 #include <g4eval/SvtxEvalStack.h>  // for SvtxEvalStack
 
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -71,6 +72,8 @@ class QAG4SimulationTpc : public SubsysReco
   /* it is filled at Init stage. It should not change for the full run */
   std::set<int> m_layers;
   std::multimap<int, int> m_layer_region_map;
+  ClusterErrorPara _ClusErrPara;
+  int m_cluster_version = 4;
 };
 
 #endif

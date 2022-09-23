@@ -14,6 +14,7 @@
 #include <trackbase/TrkrDefs.h>  // for getTrkrId, getHit...
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 
@@ -258,8 +259,17 @@ void QAG4SimulationMvtx::evaluate_clusters()
       const auto r_cluster = QAG4Util::get_r(global(0), global(1));
       const auto z_cluster = global(2);
       const auto phi_cluster = (float) std::atan2(global(1), global(0));
-      const auto phi_error = cluster->getRPhiError() / r_cluster;
-      const auto z_error = cluster->getZError();
+      
+      double phi_error = 0;
+      double z_error = 0;
+      if(m_cluster_version==3){
+	phi_error = cluster->getRPhiError() / r_cluster;
+	z_error = cluster->getZError();
+      }else{
+	auto para_errors = _ClusErrPara.get_si_cluster_error(cluster,key);
+	phi_error = sqrt(para_errors.first)/ r_cluster;
+	z_error = sqrt(para_errors.second);
+      }
 
       // find associated g4hits
       const auto g4hits = find_g4hits(key);

@@ -75,7 +75,7 @@ PHG4IHCalSteppingAction::~PHG4IHCalSteppingAction()
 //____________________________________________________________________________..
 int PHG4IHCalSteppingAction::Init()
 {
-  if (m_LightScintModelFlag)
+  if (m_LightScintModelFlag < 10)
   {
     
     const char* Calibroot = getenv("CALIBRATIONROOT");
@@ -85,9 +85,9 @@ int PHG4IHCalSteppingAction::Init()
       gSystem->Exit(1);
     }
     std::string ihcalmapname(Calibroot);
-    ihcalmapname += "/HCALIN/tilemap/ihcalgdmlmap092022norm.root";
+    ihcalmapname += "/HCALIN/tilemap/ihcalgdmlmap09212022.root";
     TFile* file = TFile::Open(ihcalmapname.c_str());
-    file->GetObject("ihcalcombinedgdmlnorm", m_MapCorrHist);
+    file->GetObject("ihcalcombinedgdmlnormtbyt", m_MapCorrHist);
     if (!m_MapCorrHist)
     {
       std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;

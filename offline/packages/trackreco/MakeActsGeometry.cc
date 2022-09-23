@@ -24,8 +24,8 @@
 
 #include <micromegas/MicromegasDefs.h>
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -119,8 +119,8 @@ int MakeActsGeometry::Init(PHCompositeNode */*topNode*/)
 int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
     m_geomContainerTpc =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  setPlanarSurfaceDivisions();
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  //setPlanarSurfaceDivisions();
 
   // Alignment Transformation declaration of instance - must be here to set initial alignment flag
   AlignmentTransformation alignment_transformation;
@@ -185,6 +185,10 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   // this also adds the micromegas surfaces
   // Do this before anything else, so that the geometry is finalized
   
+  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    return Fun4AllReturnCodes::ABORTEVENT;  
+
+  setPlanarSurfaceDivisions();//eshulga
   // This should be done only on the first tracking pass, to avoid adding surfaces twice. 
   // There is a check for existing acts fake surfaces in editTPCGeometry
   editTPCGeometry(topNode); 
@@ -197,8 +201,8 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
     }
 
   // need to get nodes first, in order to be able to build the proper micromegas geometry
-  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
-    return Fun4AllReturnCodes::ABORTEVENT;  
+  //if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+  //  return Fun4AllReturnCodes::ABORTEVENT;  
 
   // In case we did not call EditTpcGeometry, we still want to make the MMs surface map
   if( m_buildMMs && !m_geomContainerMicromegas )
@@ -1462,11 +1466,10 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
   m_moduleStepPhi = 2.0 * M_PI / 12.0;
   m_modulePhiStart = -M_PI;
   m_surfStepPhi = 2.0 * M_PI / (double) (m_nSurfPhi * m_nTpcModulesPerLayer);
- 
 
   int layer=0;
-  PHG4CylinderCellGeomContainer::ConstRange layerrange = m_geomContainerTpc->get_begin_end();
-  for (PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
+  PHG4TpcCylinderGeomContainer::ConstRange layerrange = m_geomContainerTpc->get_begin_end();
+  for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
        layeriter != layerrange.second;
        ++layeriter)
   {
@@ -1475,7 +1478,6 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
     layer++;
   }
 
- 
 }
 
 int MakeActsGeometry::createNodes(PHCompositeNode *topNode)
@@ -1541,7 +1543,7 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
   }
 
   m_geomContainerTpc =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!m_geomContainerTpc)
   {
     std::cout << PHWHERE 
