@@ -797,8 +797,10 @@ class EcoMug
     }
 
     // Generate the charge
-    if (mRandom.GenerateRandomDouble(-100,128)>=0) mCharge = 1;
-    else mCharge = -1;
+    if (mRandom.GenerateRandomDouble(-100, 128) >= 0)
+      mCharge = 1;
+    else
+      mCharge = -1;
   };
   ///////////////////////////////////////////////////////////////
 
@@ -889,8 +891,10 @@ class EcoMug
     }
 
     // Generate the charge
-    if (mRandom.GenerateRandomDouble(-100,128)>=0) mCharge = 1;
-    else mCharge = -1;
+    if (mRandom.GenerateRandomDouble(-100, 128) >= 0)
+      mCharge = 1;
+    else
+      mCharge = -1;
   };
   ///////////////////////////////////////////////////////////////
 };

@@ -83,9 +83,9 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(PHField* phfield)
   if (verbosity > 0)
   {
     std::cout << "field: x" << magfield_at_000[0]
-         << ", y: " << magfield_at_000[1]
-         << ", z: " << magfield_at_000[2]
-         << std::endl;
+              << ", y: " << magfield_at_000[1]
+              << ", z: " << magfield_at_000[2]
+              << std::endl;
   }
 }
 

@@ -86,7 +86,7 @@ int PHG4Detector::DisplayVolume(G4LogicalVolume *checksolid, G4LogicalVolume *lo
 
 G4Material *PHG4Detector::GetDetectorMaterial(const std::string &name, const bool quit)
 {
-  G4Material *thismaterial =  G4Material::GetMaterial(name,false);
+  G4Material *thismaterial = G4Material::GetMaterial(name, false);
   if (thismaterial)
   {
     return thismaterial;
@@ -103,15 +103,14 @@ G4Material *PHG4Detector::GetDetectorMaterial(const std::string &name, const boo
     std::cout << std::endl;
     std::cout << "read the above stack trace who is calling this material" << std::endl;
     gSystem->Exit(1);
-    exit(1); // so coverity gets it
+    exit(1);  // so coverity gets it
   }
   return thismaterial;
 }
 
-
 G4Element *PHG4Detector::GetDetectorElement(const std::string &name, const bool quit)
 {
-  G4Element *thiselement =  G4Element::GetElement(name,false);
+  G4Element *thiselement = G4Element::GetElement(name, false);
   if (thiselement)
   {
     return thiselement;
@@ -128,7 +127,7 @@ G4Element *PHG4Detector::GetDetectorElement(const std::string &name, const bool 
     std::cout << std::endl;
     std::cout << "read the above stack trace who is calling this material" << std::endl;
     gSystem->Exit(1);
-    exit(1); // so coverity gets it
+    exit(1);  // so coverity gets it
   }
   return thiselement;
 }

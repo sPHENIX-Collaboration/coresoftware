@@ -165,7 +165,7 @@ void PHG4TruthTrackingAction::UpdateG4ParticleStack(const G4Track* track)
 {
   while (!m_G4ParticleStack.empty())
   {
-    if ( std::abs(m_G4ParticleStack.back().g4track_id) == track->GetParentID() )
+    if (std::abs(m_G4ParticleStack.back().g4track_id) == track->GetParentID())
     {
       break;
     }
@@ -173,7 +173,7 @@ void PHG4TruthTrackingAction::UpdateG4ParticleStack(const G4Track* track)
     {
       if (m_G4ParticleStack.back().g4track_id < 0)
       {
-        m_TruthInfoList->delete_particle( m_G4ParticleStack.back().particle_id );
+        m_TruthInfoList->delete_particle(m_G4ParticleStack.back().particle_id);
       }
       m_G4ParticleStack.pop_back();
     }
@@ -212,9 +212,9 @@ int PHG4TruthTrackingAction::ResetEvent(PHCompositeNode*)
 
   while (!m_G4ParticleStack.empty())
   {
-    if ( m_G4ParticleStack.back().g4track_id < 0)
+    if (m_G4ParticleStack.back().g4track_id < 0)
     {
-      m_TruthInfoList->delete_particle( m_G4ParticleStack.back().particle_id );
+      m_TruthInfoList->delete_particle(m_G4ParticleStack.back().particle_id);
     }
     m_G4ParticleStack.pop_back();
   }
@@ -288,7 +288,7 @@ PHG4VtxPoint* PHG4TruthTrackingAction::AddVertex(PHG4TruthInfoContainer& truth, 
     return truth.GetVtxMap().find(iter->second)->second;
   }
   // otherwise, create and add a new one
-  PHG4VtxPoint* vtxpt = new PHG4VtxPointv1(v[0]/cm, v[1]/cm, v[2]/cm, track.GetGlobalTime()/ns, vtxindex);
+  PHG4VtxPoint* vtxpt = new PHG4VtxPointv1(v[0] / cm, v[1] / cm, v[2] / cm, track.GetGlobalTime() / ns, vtxindex);
 
   return truth.AddVertex(vtxindex, vtxpt)->second;
 }

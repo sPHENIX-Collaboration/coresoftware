@@ -76,7 +76,7 @@ void PHG4TruthInfoContainer::identify(ostream& os) const
        ++eter)
   {
     os << "embeded track id: " << eter->first
-         << " flag: " << eter->second << endl;
+       << " flag: " << eter->second << endl;
   }
 
   os << "---list of embeded vtx flags-------------------" << endl;
@@ -85,7 +85,7 @@ void PHG4TruthInfoContainer::identify(ostream& os) const
        ++eter)
   {
     os << "embeded vertex id: " << eter->first
-         << " flag: " << eter->second << endl;
+       << " flag: " << eter->second << endl;
   }
 
   os << "---primary vertex-------------------" << endl;

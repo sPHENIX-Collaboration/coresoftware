@@ -30,19 +30,34 @@
 
 #include "PHG4RegionInformation.h"
 
-#include <iostream>          // for operator<<, ostream
+#include <iostream>  // for operator<<, ostream
 
 PHG4RegionInformation::PHG4RegionInformation()
-:isWorld(false),isTracker(false),isCalorimeter(false)
-{;}
+  : isWorld(false)
+  , isTracker(false)
+  , isCalorimeter(false)
+{
+  ;
+}
 
 void PHG4RegionInformation::Print() const
 {
- std::cout << "I'm ";
- if(isWorld) { std::cout << "World."; }
- else if(isTracker) { std::cout << "Tracker."; }
- else if(isCalorimeter) { std::cout << "Calorimeter."; }
- else { std::cout << "unknown."; }
- std::cout << std::endl;
+  std::cout << "I'm ";
+  if (isWorld)
+  {
+    std::cout << "World.";
+  }
+  else if (isTracker)
+  {
+    std::cout << "Tracker.";
+  }
+  else if (isCalorimeter)
+  {
+    std::cout << "Calorimeter.";
+  }
+  else
+  {
+    std::cout << "unknown.";
+  }
+  std::cout << std::endl;
 }
-

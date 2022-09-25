@@ -285,20 +285,20 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
                                           (*v)->position().y(),
                                           (*v)->position().z(),
                                           (*v)->position().t());
-	if(is_pythia)
-	  {
-	    lv_vertex.setX(collisionVertex.x());
-	    lv_vertex.setY(collisionVertex.y());
-	    lv_vertex.setZ(collisionVertex.z());
-	    lv_vertex.setT(collisionVertex.t());
-	    if (Verbosity() > 1)
-	      {
-		std::cout << __PRETTY_FUNCTION__ << " " << __LINE__ 
-			  << std::endl;
-		std::cout << "\t vertex reset to collision vertex: " 
-			  << lv_vertex << std::endl;
-	      }
-	  }
+        if (is_pythia)
+        {
+          lv_vertex.setX(collisionVertex.x());
+          lv_vertex.setY(collisionVertex.y());
+          lv_vertex.setZ(collisionVertex.z());
+          lv_vertex.setT(collisionVertex.t());
+          if (Verbosity() > 1)
+          {
+            std::cout << __PRETTY_FUNCTION__ << " " << __LINE__
+                      << std::endl;
+            std::cout << "\t vertex reset to collision vertex: "
+                      << lv_vertex << std::endl;
+          }
+        }
 
         // event gen frame to lab frame
         lv_vertex = lortentz_rotation(lv_vertex);

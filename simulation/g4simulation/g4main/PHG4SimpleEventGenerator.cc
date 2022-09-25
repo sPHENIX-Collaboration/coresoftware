@@ -357,32 +357,31 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode)
         exit(-1);
       }
 
-      double phi = (m_PhiMax - m_PhiMin) * gsl_rng_uniform_pos(RandomGenerator()) + m_PhiMin;      
+      double phi = (m_PhiMax - m_PhiMin) * gsl_rng_uniform_pos(RandomGenerator()) + m_PhiMin;
 
       double pt;
-      
+
       if (!std::isnan(m_P_Min) && !std::isnan(m_P_Max) && !std::isnan(m_P_GausWidth))
       {
-	pt = ((m_P_Max - m_P_Min) * gsl_rng_uniform_pos(RandomGenerator()) + m_P_Min + gsl_ran_gaussian(RandomGenerator(), m_P_GausWidth)) / cosh(eta);
-	if(!std::isnan(m_powerLawN))
-	{
-	  double y = gsl_rng_uniform_pos(RandomGenerator());
-	  double x1 = pow(m_Pt_Max, m_powerLawN+1);
-	  double x0 = pow(m_Pt_Min, m_powerLawN+1);
-	  pt = pow((x1-x0)*y + x0,1./(m_powerLawN+1.));
-	}
+        pt = ((m_P_Max - m_P_Min) * gsl_rng_uniform_pos(RandomGenerator()) + m_P_Min + gsl_ran_gaussian(RandomGenerator(), m_P_GausWidth)) / cosh(eta);
+        if (!std::isnan(m_powerLawN))
+        {
+          double y = gsl_rng_uniform_pos(RandomGenerator());
+          double x1 = pow(m_Pt_Max, m_powerLawN + 1);
+          double x0 = pow(m_Pt_Min, m_powerLawN + 1);
+          pt = pow((x1 - x0) * y + x0, 1. / (m_powerLawN + 1.));
+        }
       }
       else if (!std::isnan(m_Pt_Min) && !std::isnan(m_Pt_Max) && !std::isnan(m_Pt_GausWidth))
       {
         pt = (m_Pt_Max - m_Pt_Min) * gsl_rng_uniform_pos(RandomGenerator()) + m_Pt_Min + gsl_ran_gaussian(RandomGenerator(), m_Pt_GausWidth);
-	if(!std::isnan(m_powerLawN))
-	{
-	  double y = gsl_rng_uniform_pos(RandomGenerator());
-	  double x1 = pow(m_Pt_Max, m_powerLawN+1);
-	  double x0 = pow(m_Pt_Min, m_powerLawN+1);
-	  pt = pow((x1-x0)*y + x0,1./(m_powerLawN+1.));
-	}
-
+        if (!std::isnan(m_powerLawN))
+        {
+          double y = gsl_rng_uniform_pos(RandomGenerator());
+          double x1 = pow(m_Pt_Max, m_powerLawN + 1);
+          double x0 = pow(m_Pt_Min, m_powerLawN + 1);
+          pt = pow((x1 - x0) * y + x0, 1. / (m_powerLawN + 1.));
+        }
       }
       else
       {

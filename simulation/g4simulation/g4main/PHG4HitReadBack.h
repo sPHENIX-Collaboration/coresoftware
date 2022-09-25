@@ -5,18 +5,18 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>                // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 
 class PHG4HitReadBack : public SubsysReco
 {
  public:
-  PHG4HitReadBack(const std::string &name="PHG4HITREADBACK");
+  PHG4HitReadBack(const std::string &name = "PHG4HITREADBACK");
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
+
  protected:
 };
-
 
 #endif

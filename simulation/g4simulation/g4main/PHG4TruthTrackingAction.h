@@ -53,7 +53,10 @@ class PHG4TruthTrackingAction : public PHG4TrackingAction
   ///@{
   void UpdateG4ParticleStack(const G4Track*);
 
-  struct G4ParticleInfo { int g4track_id, particle_id, vertex_id; };
+  struct G4ParticleInfo
+  {
+    int g4track_id, particle_id, vertex_id;
+  };
   std::vector<G4ParticleInfo> m_G4ParticleStack;
   G4ParticleInfo m_CurrG4Particle;
   ///@}
