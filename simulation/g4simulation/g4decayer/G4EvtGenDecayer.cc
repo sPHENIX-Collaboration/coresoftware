@@ -138,7 +138,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 
   G4ThreeVector momentum = track.GetMomentum();
   G4double etot = track.GetDynamicParticle()->GetTotalEnergy();
-
+ 
   CLHEP::HepLorentzVector p;
   p[0] = momentum.x() / GeV;
   p[1] = momentum.y() / GeV;
@@ -176,12 +176,13 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 
   for (int iTrk = 0; iTrk < nTrk; ++iTrk)
   {
+
     const G4ParticleDefinition* particleDefinition = GetParticleDefinition(DecayPDGID[iTrk]);
 
     G4ThreeVector G4Mom = G4ThreeVector(DecayMom[iTrk].px() * GeV, DecayMom[iTrk].py() * GeV, DecayMom[iTrk].pz() * GeV);
 
-    int pdg = DecayPDGID[iTrk];
-    int Status = DecayStatus[iTrk];
+//    int pdg = DecayPDGID[iTrk];
+  //  int Status = DecayStatus[iTrk];
 
     G4DynamicParticle* dynamicParticle = new G4DynamicParticle(particleDefinition, G4Mom);
     if (dynamicParticle)
@@ -193,7 +194,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
                   << std::endl;
       }
 
-      decayProducts->PushProducts(dynamicParticle);
+	  decayProducts->PushProducts(dynamicParticle);
     }
   }
 
@@ -219,8 +220,8 @@ void G4EvtGenDecayer::PHEvtGenDecayer()
   std::list<EvtDecayBase*> extraModels = genList.getListOfModels();
 
   // the hardcoded paths are temporary
-  const string decay = string(getenv("OFFLINE_MAIN")) + "/share/EvtGen/DECAY.DEC";  // Using PDG 2019 reference as the input for now
-  const string evt = string(getenv("OFFLINE_MAIN")) + "/share/EvtGen/evt.pdl";
+  const string decay = 	  string(getenv("OFFLINE_MAIN"))  + "/share/EvtGen/DECAY.DEC"; // Using PDG 2019 reference as the input for now
+  const string evt   =  string(getenv("OFFLINE_MAIN"))  + "/share/EvtGen/evt.pdl";
 
   std::ifstream in(decay);
 
@@ -272,137 +273,185 @@ int G4EvtGenDecayer::ImportParticles(std::vector<int>& DecayPDGID, std::vector<i
 {
   // Save the decay products
 
-  DecayPDGID.clear();
-  DecayStatus.clear();
-  DecayMom.clear();
-  DecayVtx.clear();
 
-  EvtHepMCEvent theEvent;
 
-  theEvent.constructEvent(mParticle);
+	DecayPDGID.clear();
+	DecayStatus.clear();
+	DecayMom.clear();
+	DecayVtx.clear();
 
-  HepMC3::GenEvent* evt = theEvent.getEvent();  //Directly use HepMC3 records
-                                                //HepMC::GenEvent * evt = ConvertHepMCGenEvent_3to2( *evt3); // Convert HepMC3 to HepMC2 Format
 
-  G4LorentzVector FourMom;
-  G4LorentzVector FourPos;
+	EvtHepMCEvent theEvent;
 
-  Int_t nparts = 0;
-  Int_t NUndefined = 0;
 
-  std::vector<int> UndefinedParticles;
+	theEvent.constructEvent(mParticle);
 
-  for (auto vtx : evt->vertices())
-  {
-    for (auto part : vtx->particles_in())
-    {
-      int pdgidwithin = part->pdg_id();
-      bool Detectable = IsG4Detectable(pdgidwithin);
 
-      if (!Detectable)
-      {
-        //			std::cout << "Within Vertex PDGID = " << pdgidwithin << "  is NOT Detectable by G4 " << std::endl;
-        UndefinedParticles.push_back(pdgidwithin);
-      }
-      else
-      {
-        //std::cout << "Particle in the Chain: " << ptl0->GetName() << "   PDGID = " << pdg << "  IS Detectable by G4 " << std::endl;
-        //		std::cout << "Within Vertex PDGID = " << pdgidwithin << "  is Detectable by G4 " << std::endl;
-      }
-    }
-  }
 
-  NUndefined = UndefinedParticles.size();
+	HepMC3::GenEvent * evt = theEvent.getEvent(); //Directly use HepMC3 records
+												  //HepMC::GenEvent * evt = ConvertHepMCGenEvent_3to2( *evt3); // Convert HepMC3 to HepMC2 Format
 
-  int TotalVertexProcessed = 0;
-  int TotalVertexToProcess = 1;
-  int TotalParticleToProcess = NUndefined;
-  int TotalParticleProcessed = 0;
 
-  for (auto vtx : evt->vertices())
-  {
-    if (TotalVertexProcessed >= TotalVertexToProcess && TotalParticleProcessed >= TotalParticleToProcess)
-    {
-      break;
-    }
-    bool IsUndefined = 0;
+	G4LorentzVector FourMom;
+	G4LorentzVector FourPos;
 
-    for (auto part : vtx->particles_in())
-    {
-      int pdgidwithin = part->pdg_id();
 
-      for (int q = 0; q < NUndefined; q++)
-      {
-        if (pdgidwithin == UndefinedParticles[q])
-        {
-          IsUndefined = 1;
-        }
-      }
+	
+	int nparts = 0;
+	int NUndefined = 0;
 
-      FourMom.setPx(part->momentum().px());
-      FourMom.setPy(part->momentum().py());
-      FourMom.setPz(part->momentum().pz());
-      FourMom.setE(part->momentum().e());
+	std::vector<int> UndefinedParticles;
+		
 
-      FourPos.setX(mVertex->get(1) + part->production_vertex()->position().x());
-      FourPos.setY(mVertex->get(2) + part->production_vertex()->position().y());
-      FourPos.setZ(mVertex->get(3) + part->production_vertex()->position().z());
-      FourPos.setT(mVertex->get(0) + part->production_vertex()->position().t());
+	for (auto vtx: evt->vertices()) {
 
-      nparts++;
-    }
+		for (auto part: vtx->particles_in()) {
 
-    for (auto part : vtx->particles_out())
-    {
-      if (TotalVertexProcessed >= TotalVertexToProcess && IsUndefined == 0)
-      {
-        std::cout << "Process Done, Skip" << std::endl;
-        continue;
-      }
 
-      //Do Within the Particle Importation//
-      int pdgidwithin = part->pdg_id();
-      bool Detectable = IsG4Detectable(pdgidwithin);
+			int pdgidwithin = part->pdg_id();
+			bool Detectable = IsG4Detectable(pdgidwithin);
 
-      if (!Detectable)
-      {
-        continue;
-      }
-      else
-      {
-      }
+			if(!Detectable){
 
-      DecayPDGID.push_back(part->pdg_id());
-      if (nparts == 0)
-      {
-        DecayStatus.push_back(part->status() == 1 ? 11 : -11);
-      }
-      else
-      {
-        DecayStatus.push_back(part->status() == 1 ? 91 : -91);
-      }
+	//			std::cout << "Within Vertex PDGID = " << pdgidwithin << "  is NOT Detectable by G4 " << std::endl;
+				UndefinedParticles.push_back(pdgidwithin);
 
-      FourMom.setPx(part->momentum().px());
-      FourMom.setPy(part->momentum().py());
-      FourMom.setPz(part->momentum().pz());
-      FourMom.setE(part->momentum().e());
+			}else{
 
-      DecayMom.push_back(FourMom);
+				//std::cout << "Particle in the Chain: " << ptl0->GetName() << "   PDGID = " << pdg << "  IS Detectable by G4 " << std::endl;
+		//		std::cout << "Within Vertex PDGID = " << pdgidwithin << "  is Detectable by G4 " << std::endl;	
+			}
 
-      FourPos.setX(mVertex->get(1) + part->production_vertex()->position().x());
-      FourPos.setY(mVertex->get(2) + part->production_vertex()->position().y());
-      FourPos.setZ(mVertex->get(3) + part->production_vertex()->position().z());
-      FourPos.setT(mVertex->get(0) + part->production_vertex()->position().t());
+			
 
-      DecayVtx.push_back(FourPos);
+		}
 
-      nparts++;
-    }
+	}
 
-    TotalVertexProcessed = TotalVertexProcessed + 1;
-  }
+	NUndefined = UndefinedParticles.size();
 
-  return nparts;
+
+	int TotalVertexProcessed = 0;
+	int TotalVertexToProcess = 1;
+	int TotalParticleToProcess = NUndefined;
+	int TotalParticleProcessed = 0;
+
+	for (auto vtx: evt->vertices()) {
+
+
+
+			
+
+		if(TotalVertexProcessed >= TotalVertexToProcess && TotalParticleProcessed >= TotalParticleToProcess){
+		
+
+			break;
+
+		}
+		bool IsUndefined = 0;
+
+		for (auto part: vtx->particles_in()) {
+
+
+
+			int pdgidwithin = part->pdg_id();
+
+			
+			for(int q = 0; q < NUndefined; q++ ){
+
+				if(pdgidwithin == UndefinedParticles[q]){
+
+			
+					IsUndefined = 1;
+
+
+				}
+				
+			}
+
+			FourMom.setPx(part->momentum().px());
+			FourMom.setPy(part->momentum().py());
+			FourMom.setPz(part->momentum().pz());
+			FourMom.setE(part->momentum().e());
+
+
+
+
+			FourPos.setX(mVertex->get(1)+part->production_vertex()->position().x());
+			FourPos.setY(mVertex->get(2)+part->production_vertex()->position().y());
+			FourPos.setZ(mVertex->get(3)+part->production_vertex()->position().z());
+			FourPos.setT(mVertex->get(0)+part->production_vertex()->position().t());
+
+
+
+			nparts++;
+
+		}
+
+
+		for (auto part: vtx->particles_out()) {
+	
+			if(TotalVertexProcessed >= TotalVertexToProcess && IsUndefined == 0){
+				std::cout << "Process Done, Skip" << std::endl;
+				continue;
+			}
+
+
+
+			//Do Within the Particle Importation//
+			int pdgidwithin = part->pdg_id();
+			bool Detectable = IsG4Detectable(pdgidwithin);
+
+
+			if(!Detectable){
+
+				continue;
+			}else{
+
+			}
+
+
+
+			DecayPDGID.push_back(part->pdg_id());			
+			if(nparts == 0){
+				DecayStatus.push_back(part->status()==1?11:-11);
+
+			}else{
+				DecayStatus.push_back(part->status()==1?91:-91);
+			}
+
+
+			FourMom.setPx(part->momentum().px());
+			FourMom.setPy(part->momentum().py());
+			FourMom.setPz(part->momentum().pz());
+			FourMom.setE(part->momentum().e());
+
+
+			DecayMom.push_back(FourMom);
+
+			FourPos.setX(mVertex->get(1)+part->production_vertex()->position().x());
+			FourPos.setY(mVertex->get(2)+part->production_vertex()->position().y());
+			FourPos.setZ(mVertex->get(3)+part->production_vertex()->position().z());
+			FourPos.setT(mVertex->get(0)+part->production_vertex()->position().t());
+
+
+
+
+			DecayVtx.push_back(FourPos);
+
+			nparts++;
+
+		}
+	
+		TotalVertexProcessed = TotalVertexProcessed + 1;
+
+	}
+
+
+
+
+	return nparts;
+
 }
 
 void G4EvtGenDecayer::SetDecayTable(const string decayTable, bool useXml)
