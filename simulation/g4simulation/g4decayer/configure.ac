@@ -24,7 +24,7 @@ if test $ac_cv_prog_gxx = yes; then
 fi
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wno-undefined-var-template"
+  CXXFLAGS="$CXXFLAGS -Wno-undefined-var-template -Wno-macro-redefined -Wno-unused-parameter -Wno-deprecated-copy"
  ;;
 esac
 

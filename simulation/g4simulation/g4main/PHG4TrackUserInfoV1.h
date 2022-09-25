@@ -6,7 +6,7 @@
 #include <Geant4/G4VUserTrackInformation.hh>
 
 #include <iostream>
-#include <ostream>                            // for operator<<, basic_ostre...
+#include <ostream>  // for operator<<, basic_ostre...
 
 class PHG4Shower;
 
@@ -75,12 +75,12 @@ class G4Track;
 
 namespace PHG4TrackUserInfo
 {
-void SetUserTrackId(G4Track* track, const int usertrackid);
-void SetUserParentId(G4Track* track, const int userparentid);
-void SetUserPrimaryId(G4Track* track, const int userprimaryid);
-void SetWanted(G4Track* track, const int wanted);
-void SetKeep(G4Track* track, const int keep);
-void SetShower(G4Track* track, PHG4Shower* ptr);
+  void SetUserTrackId(G4Track* track, const int usertrackid);
+  void SetUserParentId(G4Track* track, const int userparentid);
+  void SetUserPrimaryId(G4Track* track, const int userprimaryid);
+  void SetWanted(G4Track* track, const int wanted);
+  void SetKeep(G4Track* track, const int keep);
+  void SetShower(G4Track* track, PHG4Shower* ptr);
 }  // namespace PHG4TrackUserInfo
 
 #endif

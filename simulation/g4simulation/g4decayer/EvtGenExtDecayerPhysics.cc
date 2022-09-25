@@ -23,15 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// $Id: P6DExtDecayerPhysics.cc,v 1.3 2015/01/05 23:49:39 mccumber Exp $
+// $Id: EvtGenExtDecayerPhysics.cc, 2022/08/09 23:49:39 mccumber Exp $
 //
-/// \file eventgenerator/pythia/decayer6/src/P6DExtDecayerPhysics.cc
-/// \brief Implementation of the P6DExtDecayerPhysics class
+/// \file derived from eventgenerator/pythia/decayer6/src/P6DExtDecayerPhysics.cc
+/// \brief Implementation of the EvtGenExtDecayerPhysics class
 ///
-/// \author I. Hrivnacova; IPN, Orsay
+/// \author Zhaozhong Shi; LANL, Los Alamos
 
-#include "P6DExtDecayerPhysics.hh"
-#include "G4Pythia6Decayer.hh"
+#include "EvtGenExtDecayerPhysics.hh"
+#include "G4EvtGenDecayer.hh"
 
 #include <Geant4/G4Decay.hh>
 #include <Geant4/G4ParticleDefinition.hh>
@@ -53,17 +53,15 @@
 #define aParticleIterator ((subInstanceManager.offset[g4vpcInstanceID])._aParticleIterator)
 #endif
 
-P6DExtDecayerPhysics::P6DExtDecayerPhysics(const G4String& name)
+EvtGenExtDecayerPhysics::EvtGenExtDecayerPhysics(const G4String& name)
   : G4VPhysicsConstructor(name)
-  , _active_force_decay(false)
-  , _force_decay_type(kAll)
 {
   /// Standard constructor
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-P6DExtDecayerPhysics::~P6DExtDecayerPhysics()
+EvtGenExtDecayerPhysics::~EvtGenExtDecayerPhysics()
 {
   /// Destructor
 }
@@ -74,20 +72,20 @@ P6DExtDecayerPhysics::~P6DExtDecayerPhysics()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void P6DExtDecayerPhysics::ConstructParticle()
+void EvtGenExtDecayerPhysics::ConstructParticle()
 {
   /// Nothing to be done here
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void P6DExtDecayerPhysics::ConstructProcess()
+void EvtGenExtDecayerPhysics::ConstructProcess()
 {
   /// Loop over all particles instantiated and add external decayer
   /// to all decay processes if External decayer is set
 
   // Create Geant4 external decayer
-  G4Pythia6Decayer* extDecayer = new G4Pythia6Decayer();
+  G4EvtGenDecayer* extDecayer = new G4EvtGenDecayer();
   extDecayer->SetVerboseLevel(0);
 
   aParticleIterator->reset();
@@ -118,15 +116,11 @@ void P6DExtDecayerPhysics::ConstructProcess()
         // increment counter in case we want to print out stats
         // for whatever reason (non null means it is used and
         // must not be deleted)
+        //       particle->SetDecayTable(NULL);
         decay->SetExtDecayer(extDecayer);
         decayer_used++;
       }
     }
-  }
-
-  if (_active_force_decay)
-  {
-    extDecayer->ForceDecayType(_force_decay_type);
   }
 
   // If the extDecayer isn't used for this particle we need to delete it here

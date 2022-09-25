@@ -5,15 +5,15 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>                // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 
-class PHG4ConsistencyCheck: public SubsysReco
+class PHG4ConsistencyCheck : public SubsysReco
 {
  public:
-PHG4ConsistencyCheck( const std::string &name = "CONSISTENCYCHECK" );
- ~PHG4ConsistencyCheck() override {}
+  PHG4ConsistencyCheck(const std::string &name = "CONSISTENCYCHECK");
+  ~PHG4ConsistencyCheck() override {}
   //! init
   int InitRun(PHCompositeNode *) override;
 
@@ -22,7 +22,6 @@ PHG4ConsistencyCheck( const std::string &name = "CONSISTENCYCHECK" );
 
  protected:
   unsigned int errorcnt;
-
 };
 
 #endif

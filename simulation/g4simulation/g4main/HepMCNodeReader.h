@@ -24,7 +24,9 @@ class HepMCNodeReader : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
 
   void pythia(const bool pythia)
-  { is_pythia = pythia; }
+  {
+    is_pythia = pythia;
+  }
 
   //! this function is depreciated.
   //! Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators.

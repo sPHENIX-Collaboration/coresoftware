@@ -36,7 +36,7 @@ class PHG4MagneticField : public G4MagneticField
     field_ = field;
   }
 
-  void GetFieldValue( const double Point[4],    double *Bfield ) const override;
+  void GetFieldValue(const double Point[4], double* Bfield) const override;
 
  protected:
   const PHField* field_;

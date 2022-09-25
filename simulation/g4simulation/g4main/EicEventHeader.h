@@ -35,9 +35,8 @@ class EicEventHeader : public PHObject
   virtual void set_milou_trueQ2(const float) { return; }
   virtual float get_milou_trueQ2() const { return NAN; }
 
-
-//  void set_milou_weight(const float val) override { set_property(prop_milou_weight, val); }
-//  float get_milou_weight() const override { return get_property_float(prop_milou_weight); }
+  //  void set_milou_weight(const float val) override { set_property(prop_milou_weight, val); }
+  //  float get_milou_weight() const override { return get_property_float(prop_milou_weight); }
 
   // DEMP
   virtual void set_demp_weight(const float) { return; }

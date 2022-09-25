@@ -6,7 +6,7 @@
 #include <TSystem.h>
 
 #include <iostream>
-#include <utility>                     // for pair
+#include <utility>  // for pair
 
 using namespace std;
 
@@ -24,7 +24,7 @@ PHG4PhenixDisplayAction::~PHG4PhenixDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4PhenixDisplayAction::ApplyDisplayAction(G4VPhysicalVolume */*physvol*/)
+void PHG4PhenixDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
   for (auto it : m_LogicalVolumeMap)

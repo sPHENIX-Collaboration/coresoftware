@@ -27,7 +27,7 @@
 // $Id: G4TBFieldMessenger.cc,v 1.5 2012/07/10 16:48:20 pinkenbu Exp $
 // GEANT4 tag $Name:  $
 //
-// 
+//
 
 #include "G4TBFieldMessenger.hh"
 
@@ -35,56 +35,53 @@
 
 #include <Geant4/G4ApplicationState.hh>
 #include <Geant4/G4String.hh>
-#include <Geant4/G4UIdirectory.hh>
+#include <Geant4/G4UIcmdWithADoubleAndUnit.hh>
 #include <Geant4/G4UIcmdWithAString.hh>
 #include <Geant4/G4UIcmdWithAnInteger.hh>
-#include <Geant4/G4UIcmdWithADoubleAndUnit.hh>
 #include <Geant4/G4UIcmdWithoutParameter.hh>
+#include <Geant4/G4UIdirectory.hh>
 
 class G4UIcommand;
 
 //////////////////////////////////////////////////////////////////////////////
 
 G4TBFieldMessenger::G4TBFieldMessenger(G4TBMagneticFieldSetup* pEMfield)
-  :fEFieldSetup(pEMfield)
-{ 
+  : fEFieldSetup(pEMfield)
+{
   G4TBdetDir = new G4UIdirectory("/field/");
   G4TBdetDir->SetGuidance("G4TB field tracking control.");
 
-  StepperCmd = new G4UIcmdWithAnInteger("/field/setStepperType",this);
+  StepperCmd = new G4UIcmdWithAnInteger("/field/setStepperType", this);
   StepperCmd->SetGuidance("Select stepper type for electric field");
-  StepperCmd->SetParameterName("choice",true);
+  StepperCmd->SetParameterName("choice", true);
   StepperCmd->SetDefaultValue(4);
-  StepperCmd->AvailableForStates(G4State_PreInit,G4State_Idle);
+  StepperCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
 
- 
-  UpdateCmd = new G4UIcmdWithoutParameter("/field/update",this);
+  UpdateCmd = new G4UIcmdWithoutParameter("/field/update", this);
   UpdateCmd->SetGuidance("Update calorimeter geometry.");
   UpdateCmd->SetGuidance("This command MUST be applied before \"beamOn\" ");
   UpdateCmd->SetGuidance("if you changed geometrical value(s).");
   UpdateCmd->AvailableForStates(G4State_Idle);
-      
-  ElFieldCmd = new G4UIcmdWithADoubleAndUnit("/field/setFieldZ",this);  
+
+  ElFieldCmd = new G4UIcmdWithADoubleAndUnit("/field/setFieldZ", this);
   ElFieldCmd->SetGuidance("Define uniform Electric field.");
   ElFieldCmd->SetGuidance("Electric field will be in Z direction.");
   ElFieldCmd->SetGuidance("Value of Electric field has to be given in volt/m");
-  ElFieldCmd->SetParameterName("Ez",false,false);
+  ElFieldCmd->SetParameterName("Ez", false, false);
   ElFieldCmd->SetDefaultUnit("volt/m");
-  ElFieldCmd->AvailableForStates(G4State_Idle); 
- 
-  MinStepCmd = new G4UIcmdWithADoubleAndUnit("/field/setMinStep",this);  
+  ElFieldCmd->AvailableForStates(G4State_Idle);
+
+  MinStepCmd = new G4UIcmdWithADoubleAndUnit("/field/setMinStep", this);
   MinStepCmd->SetGuidance("Define minimal step");
-  MinStepCmd->SetParameterName("min step",false,false);
+  MinStepCmd->SetParameterName("min step", false, false);
   MinStepCmd->SetDefaultUnit("mm");
-  MinStepCmd->AvailableForStates(G4State_Idle);  
-       
-  AbsMaterCmd = new G4UIcmdWithAString("/field/setAbsMat",this);
+  MinStepCmd->AvailableForStates(G4State_Idle);
+
+  AbsMaterCmd = new G4UIcmdWithAString("/field/setAbsMat", this);
   AbsMaterCmd->SetGuidance("Select Material of the Absorber.");
-  AbsMaterCmd->SetParameterName("choice",true);
+  AbsMaterCmd->SetParameterName("choice", true);
   AbsMaterCmd->SetDefaultValue("Xe");
   AbsMaterCmd->AvailableForStates(G4State_Idle);
-
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,29 +94,29 @@ G4TBFieldMessenger::~G4TBFieldMessenger()
   delete G4TBdetDir;
   delete UpdateCmd;
 
-  delete AbsMaterCmd; 
+  delete AbsMaterCmd;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 //
 //
 
-void G4TBFieldMessenger::SetNewValue( G4UIcommand* command, G4String newValue)
-{ 
-  if( command == StepperCmd )
-  { 
+void G4TBFieldMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
+{
+  if (command == StepperCmd)
+  {
     fEFieldSetup->SetStepperType(StepperCmd->GetNewIntValue(newValue));
-  }  
-  if( command == UpdateCmd )
-  { 
-    fEFieldSetup->UpdateField(); 
   }
-  if( command == ElFieldCmd )
-  { 
+  if (command == UpdateCmd)
+  {
+    fEFieldSetup->UpdateField();
+  }
+  if (command == ElFieldCmd)
+  {
     fEFieldSetup->SetFieldValue(ElFieldCmd->GetNewDoubleValue(newValue));
   }
-  if( command == MinStepCmd )
-  { 
+  if (command == MinStepCmd)
+  {
     fEFieldSetup->SetMinStep(MinStepCmd->GetNewDoubleValue(newValue));
   }
 }

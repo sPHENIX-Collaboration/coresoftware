@@ -67,7 +67,7 @@ class PHG4Subsystem : public SubsysReco
     return nullptr;
   }
 
-  virtual PHG4StackingAction *GetStackingAction() const {return nullptr;}
+  virtual PHG4StackingAction *GetStackingAction() const { return nullptr; }
 
   void OverlapCheck(const bool chk = true) { overlapcheck = chk; }
 
@@ -79,15 +79,15 @@ class PHG4Subsystem : public SubsysReco
   void SetLogicalVolume(G4LogicalVolume *vol) { m_MyLogicalVolume = vol; }
   G4LogicalVolume *GetLogicalVolume() const { return m_MyLogicalVolume; }
 
-// this method is used to check if it can be used as mothervolume
-// Subsystems which can be mothervolume need to implement this 
-// and return true
-  virtual bool CanBeMotherSubsystem() const {return false;}
+  // this method is used to check if it can be used as mothervolume
+  // Subsystems which can be mothervolume need to implement this
+  // and return true
+  virtual bool CanBeMotherSubsystem() const { return false; }
 
-//
-  virtual void AddProcesses(G4ParticleDefinition */*particle*/) {}
+  //
+  virtual void AddProcesses(G4ParticleDefinition * /*particle*/) {}
 
-// define materials used in detector
+  // define materials used in detector
   virtual void DefineMaterials() {}
 
  private:

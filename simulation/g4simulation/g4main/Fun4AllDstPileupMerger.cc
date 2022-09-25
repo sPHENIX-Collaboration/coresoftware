@@ -18,11 +18,11 @@
 #include <phhepmc/PHHepMCGenEventMap.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>          // for PHIODataNode
-#include <phool/PHNode.h>                // for PHNode
-#include <phool/PHNodeIterator.h>        // for PHNodeIterator
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHNodeOperation.h>
-#include <phool/PHObject.h>              // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 
 #include <TObject.h>
@@ -289,12 +289,12 @@ void Fun4AllDstPileupMerger::copy_background_event(PHCompositeNode *dstNode, dou
       continue;
     }
     auto detiter = m_DetectorTiming.find(pair.first);
-// apply special  cuts for selected detectors
+    // apply special  cuts for selected detectors
     if (detiter != m_DetectorTiming.end())
     {
       if (delta_t < detiter->second.first || delta_t > detiter->second.second)
       {
-	continue;
+        continue;
       }
     }
     {

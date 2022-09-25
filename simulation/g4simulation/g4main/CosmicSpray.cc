@@ -20,9 +20,8 @@
 #include <phool/PHNode.h>          // for PHNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
-#include <phool/getClass.h>
 #include <phool/PHRandomSeed.h>
-
+#include <phool/getClass.h>
 
 #include <array>  // for array
 #include <cmath>
@@ -122,7 +121,6 @@ int CosmicSpray::process_event(PHCompositeNode *topNode)
     double z1 = gun_z;
 
     double L = 0;
-    
 
     while (y1 > -_y_fix && L < _R)
     {
@@ -141,7 +139,7 @@ int CosmicSpray::process_event(PHCompositeNode *topNode)
 
   PHG4InEvent *inevent = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   int vtxindex = inevent->AddVtx(gun_x, gun_y, gun_z, gun_t);
-  
+
   PHG4Particle *particle = new PHG4Particlev2();
   particle->set_track_id(trackid);
   particle->set_vtx_id(vtxindex);

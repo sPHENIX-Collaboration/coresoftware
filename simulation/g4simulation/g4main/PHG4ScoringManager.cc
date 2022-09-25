@@ -61,7 +61,7 @@ PHG4ScoringManager::PHG4ScoringManager()
 {
 }
 
-int PHG4ScoringManager::InitRun(PHCompositeNode */*topNode*/)
+int PHG4ScoringManager::InitRun(PHCompositeNode * /*topNode*/)
 {
   //1. check G4RunManager
   G4RunManager *runManager = G4RunManager::GetRunManager();
@@ -159,13 +159,12 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
       const PHHepMCGenEvent *genevnt = genevntpair.second;
       assert(genevnt);
 
-      if (genevnt->get_collision_vertex().z() < m_vertexAcceptanceRange.first
-          or genevnt->get_collision_vertex().z() > m_vertexAcceptanceRange.second)
+      if (genevnt->get_collision_vertex().z() < m_vertexAcceptanceRange.first or genevnt->get_collision_vertex().z() > m_vertexAcceptanceRange.second)
       {
         if (Verbosity() >= 2)
         {
-          cout <<__PRETTY_FUNCTION__<<": get vertex "<<genevnt->get_collision_vertex().z()
-              <<" which is outside range "<<m_vertexAcceptanceRange.first <<" to "<<m_vertexAcceptanceRange.second<<" cm:";
+          cout << __PRETTY_FUNCTION__ << ": get vertex " << genevnt->get_collision_vertex().z()
+               << " which is outside range " << m_vertexAcceptanceRange.first << " to " << m_vertexAcceptanceRange.second << " cm:";
           genevnt->identify();
         }
 
