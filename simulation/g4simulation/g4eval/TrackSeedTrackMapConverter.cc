@@ -197,7 +197,8 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
             chi2 += xy_residuals[i]*xy_residuals[i]/xy_error2[i] + rz_residuals[i]*rz_residuals[i]/rz_error2[i];
           }
           svtxtrack->set_chisq(chi2);
-          svtxtrack->set_ndf(xy_residuals.size()-2);
+          // GPUTPCTrackParam initially sets NDF to -3 on first cluster and increments by 2 with every application of filter
+          svtxtrack->set_ndf(2*xy_residuals.size()-5);
 
           addKeys(svtxtrack, trackSeed);
 	  if(m_trackSeedName.find("SiliconTrackSeed") != std::string::npos)
