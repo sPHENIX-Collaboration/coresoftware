@@ -343,7 +343,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           if ((lcx >= 1) && (lcx <= m_MapCorrHist->GetNbinsY()) &&
               (lcz >= 1) && (lcz <= m_MapCorrHist->GetNbinsX()))
           {
-            light_yield *=  m_MapCorrHist->GetBinContent(lcz, lcx);
+            light_yield *= m_MapCorrHist->GetBinContent(lcz, lcx);
           }
           else
           {

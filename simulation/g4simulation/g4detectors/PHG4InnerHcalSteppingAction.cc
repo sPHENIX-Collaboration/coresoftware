@@ -86,13 +86,13 @@ int PHG4InnerHcalSteppingAction::Init()
       return 0;
     }
     std::string url = XploadInterface::instance()->getUrl("OLD_INNER_HCAL_TILEMAP", ihcalmapname);
-     if (!std::filesystem::exists(url))
+    if (!std::filesystem::exists(url))
     {
       std::cout << PHWHERE << " Could not locate " << url << std::endl;
       std::cout << "use empty filename to ignore mapfile" << std::endl;
       gSystem->Exit(1);
     }
-   TFile* file = TFile::Open(url.c_str());
+    TFile* file = TFile::Open(url.c_str());
     file->GetObject(m_Params->get_string_param("MapHistoName").c_str(), m_MapCorrHist);
     if (!m_MapCorrHist)
     {

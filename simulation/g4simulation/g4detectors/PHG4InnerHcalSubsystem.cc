@@ -190,7 +190,7 @@ void PHG4InnerHcalSubsystem::SetDefaultParameters()
 
   set_default_string_param("material", "G4_Al");
   std::string defaultmapfilename;
-  const char* Calibroot = getenv("CALIBRATIONROOT");
+  const char *Calibroot = getenv("CALIBRATIONROOT");
   if (Calibroot)
   {
     defaultmapfilename = Calibroot;
