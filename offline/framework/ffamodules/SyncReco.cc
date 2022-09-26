@@ -74,7 +74,14 @@ int SyncReco::process_event(PHCompositeNode *topNode)
   syncobject->EventCounter(se->EventCounter());
   syncobject->EventNumber(se->EventNumber());
   syncobject->RunNumber(se->RunNumber());
-  syncobject->SegmentNumber(se->SegmentNumber());
+  if (forced_segment >= 0)
+  {
+    syncobject->SegmentNumber(forced_segment);
+  }
+  else
+  {
+    syncobject->SegmentNumber(se->SegmentNumber());
+  }
 
   if (Verbosity() > 0)
   {
