@@ -40,6 +40,7 @@
 
 #include <cmath>    // for isfinite
 #include <cstdlib>  // for getenv
+#include <filesystem>
 #include <iostream>
 #include <string>   // for operator<<, operator+
 #include <utility>  // for pair
@@ -77,26 +78,30 @@ int PHG4IHCalSteppingAction::Init()
 {
   if (m_LightScintModelFlag < 10)
   {
-    
-    const char* Calibroot = getenv("CALIBRATIONROOT");
-    if (!Calibroot)
+    std::cout << "string params fname: " <<  m_Params->get_string_param("MapFileName")
+	      << ", histoname: " << m_Params->get_string_param("MapHistoName")
+	      << std::endl;
+    std::string ihcalmapname(m_Params->get_string_param("MapFileName"));
+    if (ihcalmapname.empty())
     {
-      std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+      return 0;
+    }
+    if (! std::filesystem::exists(m_Params->get_string_param("MapFileName")))
+    {
+      std::cout << PHWHERE << " Could not locate " << m_Params->get_string_param("MapFileName") << std::endl;
+      std::cout << "use empty filename to ignore mapfile" << std::endl;
       gSystem->Exit(1);
     }
-    std::string ihcalmapname(Calibroot);
-    ihcalmapname += "/HCALIN/tilemap/ihcalgdmlmap09212022.root";
     TFile* file = TFile::Open(ihcalmapname.c_str());
-    file->GetObject("ihcalcombinedgdmlnormtbyt", m_MapCorrHist);
+    file->GetObject(m_Params->get_string_param("MapHistoName").c_str(), m_MapCorrHist);
     if (!m_MapCorrHist)
     {
-      std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;
+      std::cout << "ERROR: could not find Histogram " << m_Params->get_string_param("MapHistoName") << " in " << m_Params->get_string_param("MapFileName") << std::endl;
       gSystem->Exit(1);
     }
     m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
     file->Close();
     delete file;
-
   }
   return 0;
 }
