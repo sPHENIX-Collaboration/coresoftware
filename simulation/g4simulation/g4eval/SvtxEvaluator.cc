@@ -2061,21 +2061,27 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 	  std::vector<TrkrDefs::cluskey> clusters;
 	  auto siseed = track->get_silicon_seed();
-	  for (auto iter = siseed->begin_cluster_keys();
-	       iter != siseed->end_cluster_keys();
-	       ++iter)
-	    {
-	      TrkrDefs::cluskey cluster_key = *iter;
-	      clusters.push_back(cluster_key);
-	    }
+          if(siseed)
+          {
+	    for (auto iter = siseed->begin_cluster_keys();
+	         iter != siseed->end_cluster_keys();
+	         ++iter)
+	      {
+	        TrkrDefs::cluskey cluster_key = *iter;
+	        clusters.push_back(cluster_key);
+	      }
+          }
 	  auto tpcseed = track->get_tpc_seed();
-	  for (auto iter = tpcseed->begin_cluster_keys();
-	       iter != tpcseed->end_cluster_keys();
-	       ++iter)
-	    {
-	      TrkrDefs::cluskey cluster_key = *iter;
-	      clusters.push_back(cluster_key);
-	    }
+          if(tpcseed)
+          {
+	    for (auto iter = tpcseed->begin_cluster_keys();
+	         iter != tpcseed->end_cluster_keys();
+	         ++iter)
+	      {
+	        TrkrDefs::cluskey cluster_key = *iter;
+	        clusters.push_back(cluster_key);
+	      }
+          }
 
 	  // loop over all cluster keys and build ntuple
 	  for(unsigned int iclus = 0; iclus < clusters.size(); ++iclus)
