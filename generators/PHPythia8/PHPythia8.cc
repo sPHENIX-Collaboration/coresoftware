@@ -20,7 +20,8 @@
 #include <phool/phool.h>  // for PHWHERE
 
 #include <HepMC/GenEvent.h>
-#include <HepMC/Units.h>  // for GEV, MM
+#include <HepMC/Units.h>            // for GEV, MM
+#include <HepMC/WeightContainer.h>  // for WeightContainer
 
 #include <Pythia8/Event.h>  // for Event
 #include <Pythia8/Info.h>   // for Info
@@ -76,7 +77,10 @@ PHPythia8::~PHPythia8()
 
 int PHPythia8::Init(PHCompositeNode *topNode)
 {
-  if (!m_ConfigFileName.empty()) read_config(m_ConfigFileName);
+  if (!m_ConfigFileName.empty())
+  {
+    read_config(m_ConfigFileName);
+  }
   for (unsigned int j = 0; j < m_Commands.size(); j++)
   {
     m_Pythia8->readString(m_Commands[j]);
@@ -113,9 +117,12 @@ int PHPythia8::Init(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHPythia8::End(PHCompositeNode */*topNode*/)
+int PHPythia8::End(PHCompositeNode * /*topNode*/)
 {
-  if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::End - I'm here!" << endl;
+  if (Verbosity() >= VERBOSITY_MORE)
+  {
+    cout << "PHPythia8::End - I'm here!" << endl;
+  }
 
   if (Verbosity() >= VERBOSITY_SOME)
   {
@@ -151,7 +158,9 @@ int PHPythia8::read_config(const string &cfg_file)
   m_ConfigFileName = cfg_file;
 
   if (Verbosity() >= VERBOSITY_SOME)
+  {
     cout << "PHPythia8::read_config - Reading " << m_ConfigFileName << endl;
+  }
 
   ifstream infile(m_ConfigFileName);
   if (infile.fail())
@@ -171,9 +180,12 @@ void PHPythia8::print_config() const
   m_Pythia8->info.list();
 }
 
-int PHPythia8::process_event(PHCompositeNode */*topNode*/)
+int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
 {
-  if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::process_event - event: " << m_EventCount << endl;
+  if (Verbosity() >= VERBOSITY_MORE)
+  {
+    cout << "PHPythia8::process_event - event: " << m_EventCount << endl;
+  }
 
   bool passedGen = false;
   bool passedTrigger = false;
@@ -253,9 +265,18 @@ int PHPythia8::process_event(PHCompositeNode */*topNode*/)
 
   // print outs
 
-  if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::process_event - FINISHED WHOLE EVENT" << endl;
-  if (m_EventCount < 2 && Verbosity() >= VERBOSITY_SOME) m_Pythia8->event.list();
-  if (m_EventCount >= 2 && Verbosity() >= VERBOSITY_A_LOT) m_Pythia8->event.list();
+  if (Verbosity() >= VERBOSITY_MORE)
+  {
+    cout << "PHPythia8::process_event - FINISHED WHOLE EVENT" << endl;
+  }
+  if (m_EventCount < 2 && Verbosity() >= VERBOSITY_SOME)
+  {
+    m_Pythia8->event.list();
+  }
+  if (m_EventCount >= 2 && Verbosity() >= VERBOSITY_A_LOT)
+  {
+    m_Pythia8->event.list();
+  }
 
   ++m_EventCount;
 
@@ -310,6 +331,9 @@ int PHPythia8::create_node_tree(PHCompositeNode *topNode)
 
 void PHPythia8::register_trigger(PHPy8GenTrigger *theTrigger)
 {
-  if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::registerTrigger - trigger " << theTrigger->GetName() << " registered" << endl;
+  if (Verbosity() >= VERBOSITY_MORE)
+  {
+    cout << "PHPythia8::registerTrigger - trigger " << theTrigger->GetName() << " registered" << endl;
+  }
   m_RegisteredTriggers.push_back(theTrigger);
 }
