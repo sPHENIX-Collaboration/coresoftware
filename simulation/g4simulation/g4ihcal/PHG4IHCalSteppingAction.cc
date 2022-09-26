@@ -76,11 +76,8 @@ PHG4IHCalSteppingAction::~PHG4IHCalSteppingAction()
 //____________________________________________________________________________..
 int PHG4IHCalSteppingAction::Init()
 {
-  if (m_LightScintModelFlag < 10)
+  if (m_LightScintModelFlag)
   {
-    std::cout << "string params fname: " << m_Params->get_string_param("MapFileName")
-              << ", histoname: " << m_Params->get_string_param("MapHistoName")
-              << std::endl;
     std::string ihcalmapname(m_Params->get_string_param("MapFileName"));
     if (ihcalmapname.empty())
     {
