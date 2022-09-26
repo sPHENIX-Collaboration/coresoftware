@@ -195,6 +195,8 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     trackSeed.SetQPt(init_QPt);
 
     GPUTPCTrackLinearisation trackLine(trackSeed);
+    GPUTPCTrackParam::GPUTPCTrackFitParam fp;
+    trackSeed.CalculateFitParameters(fp);
 
     LogDebug(std::endl << std::endl << "------------------------" << std::endl << "seed size: " << trackKeyChain.size() << std::endl << std::endl << std::endl);
     int cluster_ctr = 1;
@@ -239,7 +241,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
       LogDebug("old phi = " << oldPhi << std::endl);
       double alpha = newPhi - oldPhi;
       LogDebug("alpha = " << alpha << std::endl);
-      if(!trackSeed.Rotate(alpha,trackLine,_max_sin_phi))
+      if(!trackSeed.Rotate(alpha/2.,trackLine,_max_sin_phi))
       {
         LogWarning("Rotate failed! Aborting for this seed...\n");
 //        aborted = true;
@@ -248,14 +250,22 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
       double nextAlice_x = nextCluster_x*cos(newPhi)+nextCluster_y*sin(newPhi);
       LogDebug("track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << std::endl);
       LogDebug("Transporting from " << alice_x << " to " << nextAlice_x << "...");
-      GPUTPCTrackParam::GPUTPCTrackFitParam fp;
-      trackSeed.CalculateFitParameters(fp);
-  //    for(int i=1;i<=10;i++)
-  //    {
         double track_x = trackSeed.GetX()*cos(newPhi)-trackSeed.GetY()*sin(newPhi);
         double track_y = trackSeed.GetX()*sin(newPhi)+trackSeed.GetY()*cos(newPhi);
         double track_z = trackSeed.GetZ();
-        if(!trackSeed.TransportToX(nextAlice_x,_Bzconst*get_Bz(track_x,track_y,track_z),_max_sin_phi)) // remember: trackLine was here
+        if(!trackSeed.TransportToXWithMaterial((nextAlice_x+trackSeed.GetX())/2.,trackLine,fp,_Bzconst*get_Bz(track_x,track_y,track_z),_max_sin_phi))
+        {
+          LogWarning("Transport failed! Aborting for this seed...\n");
+//          aborted = true;
+          break;
+        }
+      if(!trackSeed.Rotate(alpha/2.,trackLine,_max_sin_phi))
+      {
+        LogWarning("Rotate failed! Aborting for this seed...\n");
+//        aborted = true;
+        break;
+      }
+        if(!trackSeed.TransportToXWithMaterial(nextAlice_x,trackLine,fp,_Bzconst*get_Bz(track_x,track_y,track_z),_max_sin_phi)) 
         {
           LogWarning("Transport failed! Aborting for this seed...\n");
 //          aborted = true;
@@ -352,7 +362,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
       }
     }
 
-    if(Verbosity()>0) std::cout << "finished track\n";
+    //if(Verbosity()>0) std::cout << "finished track\n";
 
     double track_phi = atan2(y,x);
 
@@ -435,10 +445,10 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     //track.set_x(trackSeed.GetX()*c-trackSeed.GetY()*s);//_vertex_x[best_vtx]);  //track.set_x(cl->getX());
     //track.set_y(trackSeed.GetX()*s+trackSeed.GetY()*c);//_vertex_y[best_vtx]);  //track.set_y(cl->getY());
     //track.set_z(trackSeed.GetZ());//_vertex_z[best_vtx]);  //track.set_z(cl->getZ());
-    if(Verbosity()>0) std::cout << "x " << track.get_x() << "\n";
-    if(Verbosity()>0) std::cout << "y " << track.get_y() << "\n";
-    if(Verbosity()>0) std::cout << "z " << track.get_z() << "\n";
-    if(checknan(p,"ALICE sinPhi",nseeds)) continue;
+    //if(Verbosity()>0) std::cout << "x " << track.get_x() << "\n";
+    //if(Verbosity()>0) std::cout << "y " << track.get_y() << "\n";
+    //if(Verbosity()>0) std::cout << "z " << track.get_z() << "\n";
+    //if(checknan(p,"ALICE sinPhi",nseeds)) continue;
     double d = trackSeed.GetDzDs();
     if(checknan(d,"ALICE dz/ds",nseeds)) continue;
      
@@ -552,7 +562,6 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
 	repairCovariance(scov);
       }
     /*
-    // Proceed with the absolutely hellish coordinate transformation of the covariance matrix.
     // Derived from:
     // 1) Taking the Jacobian of the conversion from (Y,Z,SinPhi,DzDs,Q/Pt) to (x,y,z,px,py,pz)
     // 2) Computing (Jacobian)*(ALICE covariance matrix)*(transpose of Jacobian)
