@@ -951,6 +951,10 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   PMMA->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 5.7 / (3.6 + 5.7 + 1.4));
   PMMA->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), 1.4 / (3.6 + 5.7 + 1.4));
 
+  //scintillator for HCal, use a new name in order to change the Birks' constant
+  G4Material *Uniplast_scintillator = new G4Material("Uniplast_scintillator", 1.06 * g / cm3, ncomponents = 1);
+  Uniplast_scintillator->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_POLYSTYRENE"), fractionmass = 1.);
+
   G4Material *G10 =
       new G4Material("G10", density = 1.700 * g / cm3, ncomponents = 4);
   G10->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), natoms = 1);
