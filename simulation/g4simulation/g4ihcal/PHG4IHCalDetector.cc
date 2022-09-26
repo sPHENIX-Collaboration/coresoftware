@@ -120,7 +120,10 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   int nMaterials = G4Material::GetNumberOfMaterials();
   for(G4int i=0; i<nMaterials; ++i) {
     const G4Material* mat = (*mtable)[i];
-    if(mat->GetName()=="EJ200") mat->GetIonisation()->SetBirksConstant(m_Params->get_double_param("Birk_const"));
+    if(mat->GetName()=="Uniplast_scintillator"){
+      
+      if((mat->GetIonisation()->GetBirksConstant())==0)mat->GetIonisation()->SetBirksConstant(m_Params->get_double_param("Birk_const")); 
+    }
     
     
   }

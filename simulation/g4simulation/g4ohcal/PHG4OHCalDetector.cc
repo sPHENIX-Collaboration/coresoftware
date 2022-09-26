@@ -123,8 +123,9 @@ void PHG4OHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   int nMaterials = G4Material::GetNumberOfMaterials();
   for(G4int i=0; i<nMaterials; ++i) {
     const G4Material* mat = (*mtable)[i];
-    if(mat->GetName()=="EJ200") mat->GetIonisation()->SetBirksConstant(m_Params->get_double_param("Birk_const"));
-
+    if(mat->GetName()=="Uniplast_scintillator"){
+      if((mat->GetIonisation()->GetBirksConstant())==0)mat->GetIonisation()->SetBirksConstant(m_Params->get_double_param("Birk_const")); 
+    }
   }
   
   return;
@@ -144,36 +145,35 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   // this loop is inefficient but the assignment of the scintillator id's is much simpler when having the hcal sector
   std::vector<G4VPhysicalVolume *>::iterator it1 = abs_asym->GetVolumesIterator();
   for (unsigned int isector = 0; isector < abs_asym->TotalImprintedVolumes(); isector++)
-  {
-    m_DisplayAction->AddSteelVolume((*it1)->GetLogicalVolume());
-    m_SteelAbsorberLogVolSet.insert((*it1)->GetLogicalVolume());
-    hcalenvelope->AddDaughter((*it1));
-    m_VolumeSteel += (*it1)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
-    std::vector<G4VPhysicalVolume *>::iterator it3 = m_ScintiMotherAssembly->GetVolumesIterator();
-    unsigned int ncnt = 24 * 5 * 2;
-    unsigned int ioff = isector * ncnt;
-    // ok we always have to skip to the scintillators we want to add for every hcal sector
-    for (unsigned int j = 0; j < ioff; j++)
     {
-      ++it3;
+      m_DisplayAction->AddSteelVolume((*it1)->GetLogicalVolume());
+      m_SteelAbsorberLogVolSet.insert((*it1)->GetLogicalVolume());
+      hcalenvelope->AddDaughter((*it1));
+      m_VolumeSteel += (*it1)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
+      std::vector<G4VPhysicalVolume *>::iterator it3 = m_ScintiMotherAssembly->GetVolumesIterator();
+      unsigned int ncnt = 24 * 5 * 2;
+      unsigned int ioff = isector * ncnt;
+      // ok we always have to skip to the scintillators we want to add for every hcal sector
+      for (unsigned int j = 0; j < ioff; j++)
+	{
+	  ++it3;
+	}
+      for (unsigned int j = ioff; j < ioff + ncnt; j++)
+	{
+	  m_DisplayAction->AddScintiVolume((*it3)->GetLogicalVolume());
+	  m_ScintiTileLogVolSet.insert((*it3)->GetLogicalVolume());
+	  hcalenvelope->AddDaughter((*it3));
+	  m_ScintiTilePhysVolMap.insert(std::make_pair(*it3, ExtractLayerTowerId(isector, *it3)));
+	  m_VolumeScintillator += (*it3)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
+	  ++it3;
+	}
+      
+      ++it1;
     }
-    for (unsigned int j = ioff; j < ioff + ncnt; j++)
-    {
-      m_DisplayAction->AddScintiVolume((*it3)->GetLogicalVolume());
-      m_ScintiTileLogVolSet.insert((*it3)->GetLogicalVolume());
-      hcalenvelope->AddDaughter((*it3));
-      m_ScintiTilePhysVolMap.insert(std::make_pair(*it3, ExtractLayerTowerId(isector, *it3)));
-      m_VolumeScintillator += (*it3)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
-      ++it3;
-    }
-
-    ++it1;
-  }
-
   // Chimney assemblies
   G4AssemblyVolume *chimAbs_asym = reader->GetAssembly("sectorChimney");         //absorber
   m_ChimScintiMotherAssembly = reader->GetAssembly("tileAssembly24chimney_90");  //chimney tiles
-
+  
   std::vector<G4VPhysicalVolume *>::iterator it2 = chimAbs_asym->GetVolumesIterator();
   //	order sector 30,31,29
   std::map<unsigned int, unsigned int> sectormap;
