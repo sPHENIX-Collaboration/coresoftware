@@ -32,6 +32,7 @@ class QAG4SimulationTpc : public SubsysReco
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
+  void set_cluster_version(int value) { m_cluster_version = value; }
 
  private:
   /// common prefix for QA histograms
