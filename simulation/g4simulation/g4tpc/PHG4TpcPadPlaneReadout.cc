@@ -78,31 +78,31 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/,
 
   for (int iregion = 0; iregion < 3; ++iregion)
   {
-    int zside = 0;
-
-    sector_R_bias[zside].clear();
-    sector_Phi_bias[zside].clear();
-    sector_min_Phi[zside].clear();
-    sector_max_Phi[zside].clear();
-    sector_min_Phi_sectors[zside][iregion].clear();
-    sector_max_Phi_sectors[zside][iregion].clear();
-    //int eff_layer = 0;
-    for (int isector = 0; isector < NSectors; ++isector)//12 sectors
-    {
-      sector_R_bias[zside].push_back(dR[zside][isector][iregion]);
-      sector_Phi_bias[zside].push_back(dPhi[zside][isector][iregion]);
-
-      double sec_gap = (2*M_PI - SectorPhi[iregion]*12)/12;
-      double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap * (isector+1) - 2 * M_PI / 12 * isector;
-      double sec_min_phi = sec_max_phi - SectorPhi[iregion];
-      sector_min_Phi[zside].push_back(sec_min_phi);
-      sector_max_Phi[zside].push_back(sec_max_phi);
-      //std::cout << "R" << iregion << " sector " << isector << ": "<< sec_min_phi << " < phi < " << sec_max_phi  << std::endl;
-      sector_min_Phi_sectors[zside][iregion].push_back(sec_min_phi);
-      sector_max_Phi_sectors[zside][iregion].push_back(sec_max_phi);
-
-    }// isector
-
+    //int zside = 0;
+    for (int zside = 0; zside < 2;zside++){
+      sector_R_bias[zside].clear();
+      sector_Phi_bias[zside].clear();
+      sector_min_Phi[zside].clear();
+      sector_max_Phi[zside].clear();
+      sector_min_Phi_sectors[zside][iregion].clear();
+      sector_max_Phi_sectors[zside][iregion].clear();
+      //int eff_layer = 0;
+      for (int isector = 0; isector < NSectors; ++isector)//12 sectors
+      {
+        sector_R_bias[zside].push_back(dR[zside][isector][iregion]);
+        sector_Phi_bias[zside].push_back(dPhi[zside][isector][iregion]);
+  
+        double sec_gap = (2*M_PI - SectorPhi[iregion]*12)/12;
+        double sec_max_phi = M_PI - SectorPhi[iregion]/2 - sec_gap - 2 * M_PI / 12 * isector;// * (isector+1) ;
+        double sec_min_phi = sec_max_phi - SectorPhi[iregion];
+        sector_min_Phi[zside].push_back(sec_min_phi);
+        sector_max_Phi[zside].push_back(sec_max_phi);
+        //std::cout << "R" << iregion << " sector " << isector << ": "<< sec_min_phi << " < phi < " << sec_max_phi  << std::endl;
+        sector_min_Phi_sectors[zside][iregion].push_back(sec_min_phi);
+        sector_max_Phi_sectors[zside][iregion].push_back(sec_max_phi);
+  
+      }// isector
+    }
 
     double sum_r = 0;
     for (int layer = MinLayer[iregion]; layer < MinLayer[iregion] + NTpcLayers[iregion]; ++layer)
@@ -208,7 +208,7 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
   //std::cout << "Enter new MapToPadPlane with rad_gem " << rad_gem << std::endl;
 
   // Moving electrons from dead area to a closest pad 
-  //int p_region=-1;
+  int p_region=-1;
   for (int iregion = 0; iregion < 3; ++iregion)
   {
     //std::cout<< "R "<<iregion<<std::endl;
@@ -230,48 +230,52 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
       //std::cout<< "R after" << rad_gem << std::endl;
 
     }
-    //if (rad_gem < MaxRadius[iregion] && rad_gem > MinRadius[iregion]) p_region = iregion;
+    if (rad_gem < MaxRadius[iregion] && rad_gem > MinRadius[iregion]) p_region = iregion;
 
   }
-  /*
-  for (int iregion = 0; iregion < 3; ++iregion)
-  {  
-    if (rad_gem < MaxRadius[iregion] && rad_gem > MinRadius[iregion]) p_region = iregion;
+  
+  //for (int iregion = 0; iregion < 3; ++iregion)
+  //{  
+    //if (rad_gem < MaxRadius[iregion] && rad_gem > MinRadius[iregion]) p_region = iregion;
     if(p_region>0){
+      //std::cout<< " " << p_region << std::endl;
+      //std::cout<< "side" << side << std::endl;
       //std::cout<< "p_region" << p_region << std::endl;
       for(int s=0; s<12;s++){
         double daPhi = 0;
-      //std::cout<< "1" << std::endl;
-      //std::cout<< "s=" <<s<< std::endl;
-      //std::cout<< "iregion=" <<iregion<< std::endl;
-      //std::cout << "s min = " << sector_min_Phi_sectors[side][p_region][11] << std::endl;
-      //std::cout << "s max = " << sector_max_Phi_sectors[side][p_region][s] << std::endl;
-      //std::cout << "Ds = " << sector_min_Phi_sectors[side][p_region][11] - sector_max_Phi_sectors[side][p_region][s] << std::endl;
+        //std::cout<< "1" << std::endl;
+        //std::cout<< "s=" <<s<< std::endl;
+        //if (s==0)std::cout << "s min 11 = " << sector_min_Phi_sectors[side][p_region][11] << std::endl;
+        //std::cout << "s min = " << sector_min_Phi_sectors[side][p_region][s] << std::endl;
+        //std::cout << "s max = " << sector_max_Phi_sectors[side][p_region][s] << std::endl;
+        //std::cout << "Ds = " << sector_min_Phi_sectors[side][p_region][11] - sector_max_Phi_sectors[side][p_region][s] << std::endl;
         if (s==0){
           //std::cout<< "ector_max_Phi_sectors[side][p_region][11] " << sector_max_Phi_sectors[side][p_region][11] << std::endl;
-          daPhi = fabs(sector_min_Phi_sectors[side][p_region][11] - sector_max_Phi_sectors[side][p_region][s]);
+          daPhi = fabs(sector_min_Phi_sectors[side][p_region][11] + 2*M_PI - sector_max_Phi_sectors[side][p_region][s]);
         }else{
           daPhi = fabs(sector_min_Phi_sectors[side][p_region][s-1] - sector_max_Phi_sectors[side][p_region][s]);
         }
       //std::cout<< "2" << std::endl;
       //std::cout<< "daPhi = " << daPhi << std::endl;
-        if (phi<=sector_min_Phi_sectors[side][p_region][s] && phi>=sector_min_Phi_sectors[side][p_region][s]-daPhi){
+      double min_phi = sector_max_Phi_sectors[side][p_region][s];
+      double max_phi = sector_max_Phi_sectors[side][p_region][s]+daPhi;
+        if (phi<=max_phi && phi>=min_phi){
           //std::cout<< "daPhi = " << daPhi <<std::endl;
           //std::cout<< "phi before" << phi << std::endl;
-          if (daPhi<1){ 
-            if(phi >= sector_min_Phi_sectors[side][p_region][s] + daPhi/2){
-              phi -= phi - sector_min_Phi_sectors[side][p_region][s];
-            }else{
-              phi += (sector_min_Phi_sectors[side][p_region][s] + daPhi/2) - phi;
-            }
+          //if (daPhi<1){ 
+          if(phi >= min_phi + daPhi/2){
+            phi = max_phi + max_phi - phi;
+          }else{
+            phi = min_phi  + phi - min_phi;
           }
+          //}
           //std::cout<< "phi after" << phi << std::endl;
          }
 
       }
     }
-  }
-  */
+  //}
+  
   unsigned int layernum = 0;
   TpcClusterBuilder pass_data {};
 

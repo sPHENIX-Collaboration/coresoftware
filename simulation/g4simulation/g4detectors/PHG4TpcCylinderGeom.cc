@@ -244,39 +244,42 @@ int PHG4TpcCylinderGeom::get_phibin(const double phi) const
   const int side = 0 ;
   //double norm_phi = phi;
   int phi_bin = -1;
-  if (phi >= phimin && phi <= -1*phimin){
+  //if (phi >= phimin && phi <= -1*phimin){
     for(std::size_t s=0;s<sector_max_Phi[side].size();s++){
-      if(phi < sector_max_Phi[side][s] && phi > sector_min_Phi[side][s]){
-        phi_bin = (int) ( std::abs(sector_max_Phi[side][s] - phi)/phistep  + nphibins/12 * s);
+      if(norm_phi < sector_max_Phi[side][s] && norm_phi > sector_min_Phi[side][s]){
+        phi_bin = (int) ( std::abs(sector_max_Phi[side][s] - norm_phi)/phistep  + nphibins/12 * s);
         break;
       }
       if (s==11){
-        if(phi < sector_max_Phi[side][s] && phi >= -M_PI){
-          phi_bin = int( std::abs(sector_max_Phi[side][s] - phi)/phistep ) + nphibins/12 * s;
+        if(norm_phi < sector_max_Phi[side][s] && norm_phi >= -M_PI){
+          phi_bin = int( std::abs(sector_max_Phi[side][s] - norm_phi)/phistep ) + nphibins/12 * s;
           break;
         }
-        if(phi > sector_min_Phi[side][s]+2*M_PI && phi <= M_PI){
-          phi_bin = int( std::abs(sector_max_Phi[side][s]+2*M_PI - phi)/phistep ) + nphibins/12 * s;
+        if(norm_phi > sector_min_Phi[side][s]+2*M_PI && norm_phi <= M_PI){
+          phi_bin = int( std::abs(sector_max_Phi[side][s]+2*M_PI - norm_phi)/phistep ) + nphibins/12 * s;
           break;
         }
       }
     }
-  }
-  else{
+  //}
+  //else{
     //for(std::size_t s=0;s<sector_max_Phi[side].size();s++){    
     //  std::cout << sector_max_Phi[side][s]<< " > phi > " << sector_min_Phi[side][s] << std::endl;
     //}    
-    //std::cout << PHWHERE << "Asking for bin for phi outside of phi range: " << phi << std::endl;
+    //std::cout << PHWHERE << "Asking for bin for phi outside of phi range: " << norm_phi << std::endl;
     //std::cout << PHWHERE << "phimin = " << phimin << std::endl;
     //exit(1);
-    phi_bin=0;
-  }
+    //phi_bin=0;
+  //}
   if (phi_bin<0){
+    /*
     for(std::size_t s=0;s<sector_max_Phi[side].size();s++){    
       std::cout << sector_max_Phi[side][s]<< " > phi > " << sector_min_Phi[side][s] << std::endl;
     }
-    std::cout << PHWHERE << "PHG4TpcCylinderGeom::get_phibin - Phi-bin is negative: " << phi << std::endl;
+    */
+    std::cout << PHWHERE << "PHG4TpcCylinderGeom::get_phibin - Phi-bin is negative: " << norm_phi << std::endl;
     std::cout << PHWHERE << "PHG4TpcCylinderGeom::get_phibin norm_phi: " << norm_phi << std::endl;
+    
     //exit(1);
     phi_bin=0;
   }
