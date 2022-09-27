@@ -72,8 +72,7 @@ double ALICEKF::getClusterError(TrkrCluster* c, TrkrDefs::cluskey key, Acts::Vec
 	localErr[2][1] = c->getActsLocalError(1,0);
 	localErr[2][2] = c->getActsLocalError(2,0);
       }else if(m_cluster_version==4){
-	ClusterErrorPara ClusErrPara;
-	auto para_errors = ClusErrPara.get_fix_tpc_cluster_error(c,key);
+	std::pair<double, double> para_errors = _ClusErrPara->get_fix_tpc_cluster_error(c,key);
 	localErr[0][0] = 0.;
 	localErr[0][1] = 0.;
 	localErr[0][2] = 0.;
@@ -333,8 +332,7 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
 	if(m_cluster_version==3){
 	  nextclusphierr = nextCluster->getRPhiError() / nextclusrad;
 	}else if(m_cluster_version==4){
-	  ClusterErrorPara ClusErrPara;
-	  auto para_errors = ClusErrPara.get_fix_tpc_cluster_error(nextCluster,*clusterkey);
+	  auto para_errors = _ClusErrPara->get_fix_tpc_cluster_error(nextCluster,*clusterkey);
 	  nextclusphierr = sqrt(para_errors.first);
 	}
 
@@ -402,8 +400,8 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     if(m_cluster_version==3){
       last_cluster_phierr = lcluster->getRPhiError() / lclusterrad;
     }else if(m_cluster_version==4){
-      ClusterErrorPara ClusErrPara;
-      auto para_errors = ClusErrPara.get_fix_tpc_cluster_error(lcluster,trackKeyChain.back());
+      //ClusterErrorPara ClusErrPara;
+      auto para_errors = _ClusErrPara->get_fix_tpc_cluster_error(lcluster,trackKeyChain.back());
       last_cluster_phierr  = sqrt(para_errors.first);
     }
     // phi error assuming error in track radial coordinate is zero
