@@ -1,4 +1,5 @@
 /*************************************
+ *
  * \author Mike Lisa
  * \date 4 Jan 2018
  *
@@ -30,6 +31,7 @@
  *   TT = tilenumber;
  *   SN = southnorth;
  *   SS = 30 deg, super sector of two sectors
+ *
  *************************************/
 
 #include "EpdGeom.h"

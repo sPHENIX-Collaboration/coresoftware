@@ -1,13 +1,5 @@
-#ifndef _EpdGeom
-#define _EpdGeom
-
-
-#include <gsl/gsl_const.h>
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>
-#include "TVector3.h"
-
 /*************************************
+ *
  * \author Mike Lisa
  * \date 4 Jan 2018
  *
@@ -33,6 +25,16 @@
  *   SS = 30 deg, super sector of two sectors
  *
  *************************************/
+
+
+#ifndef _EpdGeom
+#define _EpdGeom
+
+
+#include <gsl/gsl_const.h>
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
+#include "TVector3.h"
 
 class EpdGeom
 {

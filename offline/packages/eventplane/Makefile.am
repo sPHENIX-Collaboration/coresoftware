@@ -59,7 +59,7 @@ libeventplane_la_LIBADD = \
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;
 
-################################################
+#################################################
 # linking tests
 BUILT_SOURCES = testexternals.cc
 
