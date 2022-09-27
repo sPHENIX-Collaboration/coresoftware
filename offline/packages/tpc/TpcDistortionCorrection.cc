@@ -10,9 +10,34 @@
 #include <TH1.h>
 #include <cmath>
 
+#include <iostream>
+
 namespace
 {
   template<class T> inline constexpr T square( const T& x ) { return x*x; }
+
+  // check boundaries in axis
+  /* for the interpolation to work, the value must be within the range of the provided axis, and not into the first and last bin */
+  inline bool check_boundaries( const TAxis* axis, double value )
+  {
+    const auto bin = axis->FindBin( value );
+    return( bin >= 2 && bin < axis->GetNbins() );
+  }
+  
+  // check boundaries in histogram, before interpolation
+  /* for the interpolation to work, the value must be within the range of the provided axis, and not into the first and last bin */
+  inline bool check_boundaries( const TH1* h, double r, double phi, double z )
+  {
+    return check_boundaries( h->GetXaxis(), r ) 
+      && check_boundaries( h->GetYaxis(), phi ) 
+      && check_boundaries( h->GetZaxis(), z );
+  }
+ 
+  // check boundaries in histogram, before interpolation
+  /* for the interpolation to work, the value must be within the range of the provided axis, and not into the first and last bin */
+  inline bool check_boundaries( const TH1* h, double r, double phi )
+  { return check_boundaries( h->GetXaxis(), r ) && check_boundaries( h->GetYaxis(), phi ); }
+
 }
 
 //________________________________________________________
@@ -30,19 +55,20 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position( const Acts::Vecto
   auto phi_new=phi;
   auto r_new=r;
   auto z_new=z;
-  if (dcc->dimensions==3){
-    phi_new = (dcc->m_hDPint[index] && (mask&COORD_PHI)) ? phi - dcc->m_hDPint[index]->Interpolate(phi,r,z)/r : phi;
-    r_new = (dcc->m_hDRint[index] && (mask&COORD_R)) ? r - dcc->m_hDRint[index]->Interpolate(phi,r,z) : r;
-    z_new = (dcc->m_hDZint[index] && (mask&COORD_Z)) ? z - dcc->m_hDZint[index]->Interpolate(phi,r,z) : z;
+  if (dcc->dimensions==3)
+  {
+    if (dcc->m_hDPint[index] && (mask&COORD_PHI) && check_boundaries( dcc->m_hDPint[index],phi,r,z)) phi_new = phi - dcc->m_hDPint[index]->Interpolate(phi,r,z)/r;
+    if (dcc->m_hDRint[index] && (mask&COORD_R) && check_boundaries( dcc->m_hDRint[index],phi,r,z)) r_new = r - dcc->m_hDRint[index]->Interpolate(phi,r,z);
+    if (dcc->m_hDZint[index] && (mask&COORD_Z) && check_boundaries( dcc->m_hDZint[index],phi,r,z)) z_new = z - dcc->m_hDZint[index]->Interpolate(phi,r,z);
   }
   else if (dcc->dimensions==2){
     const double zterm = (1.- std::abs(z)/105.5);
-    phi_new = (dcc->m_hDPint[index] && (mask&COORD_PHI)) ? phi - dcc->m_hDPint[index]->Interpolate(phi,r)*zterm/r : phi;
-    r_new = (dcc->m_hDRint[index] && (mask&COORD_R)) ? r - dcc->m_hDRint[index]->Interpolate(phi,r)*zterm : r;
-    z_new = (dcc->m_hDZint[index] && (mask&COORD_Z)) ? z - dcc->m_hDZint[index]->Interpolate(phi,r)*zterm : z;
+    if (dcc->m_hDPint[index] && (mask&COORD_PHI) && check_boundaries( dcc->m_hDPint[index],phi,r)) phi_new = phi - dcc->m_hDPint[index]->Interpolate(phi,r)*zterm/r;
+    if (dcc->m_hDRint[index] && (mask&COORD_R) && check_boundaries( dcc->m_hDRint[index],phi,r)) r_new = r - dcc->m_hDRint[index]->Interpolate(phi,r)*zterm;
+    if (dcc->m_hDZint[index] && (mask&COORD_Z) && check_boundaries( dcc->m_hDZint[index],phi,r)) z_new = z - dcc->m_hDZint[index]->Interpolate(phi,r)*zterm;
   }
   
-    // update cluster
+  // update cluster
   const auto x_new = r_new*std::cos( phi_new );
   const auto y_new = r_new*std::sin( phi_new );
 
