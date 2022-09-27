@@ -23,8 +23,6 @@
 
 class PHG4Detector;
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4ZDCSubsystem::PHG4ZDCSubsystem(const std::string& name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
@@ -52,10 +50,10 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->Verbosity(Verbosity());
-  set<string> nodes;
 
   if (GetParams()->get_int_param("active"))
   {
+    std::set<std::string> nodes;
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode* DetNode = dstNode;
     if (SuperDetector() != "NONE" && !SuperDetector().empty())
@@ -89,7 +87,7 @@ int PHG4ZDCSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       nodes.insert(m_SupportNodeName);
     }
 
-    for (auto nodename : nodes)
+    for (const auto& nodename : nodes)
     {
       PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
@@ -124,7 +122,7 @@ int PHG4ZDCSubsystem::process_event(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4ZDCSubsystem::GetDetector(void) const
+PHG4Detector* PHG4ZDCSubsystem::GetDetector() const
 {
   return m_Detector;
 }

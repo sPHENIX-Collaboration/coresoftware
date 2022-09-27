@@ -154,7 +154,7 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track)
     }
   }
   std::set<PHG4Particle*> truth_particles;
-  SvtxTrack_FastSim * fastsim_track = dynamic_cast<SvtxTrack_FastSim * >(track);                                                                                            
+  SvtxTrack_FastSim * fastsim_track = dynamic_cast<SvtxTrack_FastSim * >(track);
 
   if (fastsim_track)
   {
@@ -951,10 +951,13 @@ std::vector<TrkrDefs::cluskey> SvtxTrackEval::get_track_ckeys(SvtxTrack* track)
 	  ++iter)
 	{ cluster_keys.push_back(*iter); }
     }
-  for(auto iter = tpcseed->begin_cluster_keys();
-      iter!= tpcseed->end_cluster_keys();
-      ++iter)
-    { cluster_keys.push_back(*iter); }
+  if(tpcseed)
+    {
+      for(auto iter = tpcseed->begin_cluster_keys();
+          iter!= tpcseed->end_cluster_keys();
+          ++iter)
+        { cluster_keys.push_back(*iter); }
+    }
   
   return cluster_keys;
 }

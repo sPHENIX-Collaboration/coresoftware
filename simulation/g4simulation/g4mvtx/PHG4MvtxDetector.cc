@@ -13,7 +13,7 @@
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
-#include <g4main/PHG4Subsystem.h>                   // for PHG4Subsystem
+#include <g4main/PHG4Subsystem.h>      // for PHG4Subsystem
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -25,17 +25,16 @@
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
+#include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4Polycone.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
 #include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
-#include <Geant4/G4Transform3D.hh>      // for G4Transform3D
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>  // for G4Transform3D
+#include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Types.hh>            // for G4double
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
-#include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4Tubs.hh>
-#include <Geant4/G4Polycone.hh>
-
 
 // xerces has some shadowed variables
 #pragma GCC diagnostic push
@@ -56,16 +55,16 @@ using namespace std;
 
 namespace mvtxGeomDef
 {
-  double mvtx_shell_inner_radius            = 4.8  * cm;
-  double skin_thickness                     = 0.01 * cm;
-  double foam_core_thickness                = 0.18 * cm;
-  double mvtx_shell_length                  = 46.  * cm;
-  double mvtx_shell_thickness =  skin_thickness + foam_core_thickness + skin_thickness;
+  double mvtx_shell_inner_radius = 4.8 * cm;
+  double skin_thickness = 0.01 * cm;
+  double foam_core_thickness = 0.18 * cm;
+  double mvtx_shell_length = 46. * cm;
+  double mvtx_shell_thickness = skin_thickness + foam_core_thickness + skin_thickness;
 
   double wrap_rmin = 2.2 * cm;
   double wrap_rmax = mvtx_shell_inner_radius + mvtx_shell_thickness + 0.8 * cm;
   double wrap_zlen = mvtx_shell_length;
-}
+}  // namespace mvtxGeomDef
 
 PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -184,9 +183,9 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
          << "PHG4MvtxDetector::Construct called for Mvtx " << endl;
   }
 
-  const G4double rMax = (10.330 + 0.436 + 0.001)*cm;
+  const G4double rMax = (10.330 + 0.436 + 0.001) * cm;
   const G4int numZPlanes = 4;
-  const G4double zPlane[numZPlanes] = {-160*cm, -30.65*cm, -23.95*cm, mvtxGeomDef::wrap_zlen / 2.0};
+  const G4double zPlane[numZPlanes] = {-160 * cm, -30.65 * cm, -23.95 * cm, mvtxGeomDef::wrap_zlen / 2.0};
   const G4double rInner[numZPlanes] = {mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin};
   const G4double rOuter[numZPlanes] = {rMax, rMax, mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_rmax};
   auto polycone = new G4Polycone("sol_MVTX_Wrapper", 0, 2.0 * M_PI, numZPlanes, zPlane, rInner, rOuter);
@@ -256,7 +255,7 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
   int N_staves = m_N_staves[layer];
   G4double layer_nominal_radius = m_nominal_radius[layer];
   G4double phitilt = m_nominal_phitilt[layer];
-  G4double phi0    = m_nominal_phi0[layer]; //YCM: azimuthal offset for the first stave
+  G4double phi0 = m_nominal_phi0[layer];  //YCM: azimuthal offset for the first stave
 
   if (N_staves < 0)
   {
@@ -362,7 +361,7 @@ int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume*& lv)
   //===================================
   // Construct Services geometry
   //===================================
-  if ( (! m_EndWheelsSideN.empty()) && (!m_EndWheelsSideS.empty()) )
+  if ((!m_EndWheelsSideN.empty()) && (!m_EndWheelsSideS.empty()))
   {
     // import the end_wheels from the geometry file
     std::unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
@@ -387,11 +386,11 @@ int PHG4MvtxDetector::ConstructMvtxPassiveVol(G4LogicalVolume*& lv)
     av_EW_N->MakeImprint(lv, TrN, 0, OverlapCheck());
   }
   //Now construct service barrel, CYSS, cones and cables
-  PHG4MvtxSupport *mvtxSupportSystem = new PHG4MvtxSupport(m_DisplayAction, OverlapCheck());
-  mvtxSupportSystem->ConstructMvtxSupport(lv); 
+  PHG4MvtxSupport* mvtxSupportSystem = new PHG4MvtxSupport(m_DisplayAction, OverlapCheck());
+  mvtxSupportSystem->ConstructMvtxSupport(lv);
 
   delete mvtxSupportSystem;
-  
+
   return 0;
 }
 
@@ -400,61 +399,59 @@ G4LogicalVolume* PHG4MvtxDetector::GetMvtxOuterShell(G4LogicalVolume*& trackeren
   // A Rohacell foam sandwich made of 0.1 mm thick CFRP skin and 1.8 mm Rohacell 110 foam core, it has a density of 110 kg/m**3.
   //mvtx_outer_shell
   G4Tubs* mvtx_outer_shell_tube = new G4Tubs("mvtx_outer_shell",
-                                              mvtxGeomDef::mvtx_shell_inner_radius,
-                                              mvtxGeomDef::mvtx_shell_inner_radius + mvtxGeomDef::mvtx_shell_thickness,
-                                              mvtxGeomDef::mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
+                                             mvtxGeomDef::mvtx_shell_inner_radius,
+                                             mvtxGeomDef::mvtx_shell_inner_radius + mvtxGeomDef::mvtx_shell_thickness,
+                                             mvtxGeomDef::mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
 
-  G4LogicalVolume *mvtx_outer_shell_volume = new G4LogicalVolume(mvtx_outer_shell_tube,
+  G4LogicalVolume* mvtx_outer_shell_volume = new G4LogicalVolume(mvtx_outer_shell_tube,
                                                                  trackerenvelope->GetMaterial(),
-                                                                 "mvtx_outer_shell_volume", 0, 0, 0);
-
+                                                                 "mvtx_outer_shell_volume", nullptr, nullptr, nullptr);
 
   double mvtx_shell_inner_skin_inner_radius = mvtxGeomDef::mvtx_shell_inner_radius;
-  double mvtx_shell_foam_core_inner_radius  = mvtx_shell_inner_skin_inner_radius + mvtxGeomDef::skin_thickness;
-  double mvtx_shell_outer_skin_inner_radius = mvtx_shell_foam_core_inner_radius  + mvtxGeomDef::foam_core_thickness;
+  double mvtx_shell_foam_core_inner_radius = mvtx_shell_inner_skin_inner_radius + mvtxGeomDef::skin_thickness;
+  double mvtx_shell_outer_skin_inner_radius = mvtx_shell_foam_core_inner_radius + mvtxGeomDef::foam_core_thickness;
 
-  G4Tubs *mvtx_shell_inner_skin_tube = new G4Tubs("mvtx_shell_inner_skin",
+  G4Tubs* mvtx_shell_inner_skin_tube = new G4Tubs("mvtx_shell_inner_skin",
                                                   mvtx_shell_inner_skin_inner_radius,
                                                   mvtx_shell_inner_skin_inner_radius + mvtxGeomDef::skin_thickness,
                                                   mvtxGeomDef::mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
 
-  G4LogicalVolume *mvtx_shell_inner_skin_volume = new G4LogicalVolume(mvtx_shell_inner_skin_tube,
+  G4LogicalVolume* mvtx_shell_inner_skin_volume = new G4LogicalVolume(mvtx_shell_inner_skin_tube,
                                                                       GetDetectorMaterial("CFRP_INTT"),
-                                                                      "mvtx_shell_inner_skin_volume", 0, 0, 0);
+                                                                      "mvtx_shell_inner_skin_volume", nullptr, nullptr, nullptr);
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_inner_skin_volume,
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0.0), mvtx_shell_inner_skin_volume,
                     "mvtx_shell_inner_skin", mvtx_outer_shell_volume, false, 0, OverlapCheck());
   //m_DisplayAction->AddVolume(mvtx_shell_inner_skin_volume, "Rail");
 
-  G4Tubs *mvtx_shell_foam_core_tube = new G4Tubs("mvtx_shell_foam_core",
+  G4Tubs* mvtx_shell_foam_core_tube = new G4Tubs("mvtx_shell_foam_core",
                                                  mvtx_shell_foam_core_inner_radius,
                                                  mvtx_shell_foam_core_inner_radius + mvtxGeomDef::foam_core_thickness,
                                                  mvtxGeomDef::mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
 
-  G4LogicalVolume *mvtx_shell_foam_core_volume = new G4LogicalVolume(mvtx_shell_foam_core_tube,
+  G4LogicalVolume* mvtx_shell_foam_core_volume = new G4LogicalVolume(mvtx_shell_foam_core_tube,
                                                                      GetDetectorMaterial("ROHACELL_FOAM_110"),
-                                                                     "mvtx_shell_foam_core_volume", 0, 0, 0);
+                                                                     "mvtx_shell_foam_core_volume", nullptr, nullptr, nullptr);
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_foam_core_volume,
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0.0), mvtx_shell_foam_core_volume,
                     "mvtx_shell_foam_core", mvtx_outer_shell_volume, false, 0, OverlapCheck());
   //m_DisplayAction->AddVolume(mvtx_shell_foam_core_volume, "Rail");
 
-  G4Tubs *mvtx_shell_outer_skin_tube = new G4Tubs("mvtx_shell_outer_skin",
+  G4Tubs* mvtx_shell_outer_skin_tube = new G4Tubs("mvtx_shell_outer_skin",
                                                   mvtx_shell_outer_skin_inner_radius,
                                                   mvtx_shell_outer_skin_inner_radius + mvtxGeomDef::skin_thickness,
                                                   mvtxGeomDef::mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
 
-  G4LogicalVolume *mvtx_shell_outer_skin_volume = new G4LogicalVolume(mvtx_shell_outer_skin_tube,
+  G4LogicalVolume* mvtx_shell_outer_skin_volume = new G4LogicalVolume(mvtx_shell_outer_skin_tube,
                                                                       GetDetectorMaterial("CFRP_INTT"),
-                                                                      "mvtx_shell_outer_skin_volume", 0, 0, 0);
+                                                                      "mvtx_shell_outer_skin_volume", nullptr, nullptr, nullptr);
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,
                     "mvtx_shell_outer_skin", mvtx_outer_shell_volume, false, 0, OverlapCheck());
   //m_DisplayAction->AddVolume(mvtx_shell_outer_skin_volume, "");
 
   return mvtx_outer_shell_volume;
 }
-
 
 void PHG4MvtxDetector::SetDisplayProperty(G4AssemblyVolume* av)
 {
@@ -485,7 +482,7 @@ void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
   }
   vector<string> matname = {"SI", "KAPTON", "ALUMINUM", "Carbon", "M60J3K", "WATER"};
   bool found = false;
-  for (string nam : matname)
+  for (const string& nam : matname)
   {
     if (material_name.find(nam) != std::string::npos)
     {
@@ -521,7 +518,7 @@ void PHG4MvtxDetector::AddGeometryNode()
   {
     active |= isAct;
   }
-  if (active) // At least one layer is active
+  if (active)  // At least one layer is active
   {
     ostringstream geonode;
     geonode << "CYLINDERGEOM_" << ((m_SuperDetector != "NONE") ? m_SuperDetector : m_Detector);
@@ -543,8 +540,7 @@ void PHG4MvtxDetector::AddGeometryNode()
                                                         m_nominal_radius[ilayer] / cm,
                                                         get_phistep(ilayer) / rad,
                                                         m_nominal_phitilt[ilayer] / rad,
-                                                        m_nominal_phi0[ilayer] / rad
-                                                        );
+                                                        m_nominal_phi0[ilayer] / rad);
       geo->AddLayerGeom(ilayer, mygeom);
     }  // loop per layers
     if (Verbosity())

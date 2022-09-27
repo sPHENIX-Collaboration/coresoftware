@@ -764,8 +764,7 @@ int BEmcRec::HitACompare(const void* h1, const void* h2)
 {
   float amp1 = static_cast<const EmcModule*>(h1)->amp;
   float amp2 = static_cast<const EmcModule*>(h2)->amp;
-  return (amp1 < amp2) ? 1 : (amp1 > amp2) ? -1
-                                           : 0;
+  return (amp1 < amp2) ? 1 : (amp1 > amp2) ? -1 : 0;
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -799,7 +798,7 @@ void BEmcRec::ZeroVector(EmcModule* v, int N)
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void BEmcRec::CopyVector(const int *from, int* to, int N)
+void BEmcRec::CopyVector(const int* from, int* to, int N)
 {
   if (N <= 0) return;
   for (int i = 0; i < N; i++) to[i] = from[i];
@@ -807,7 +806,7 @@ void BEmcRec::CopyVector(const int *from, int* to, int N)
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void BEmcRec::CopyVector(const EmcModule *from, EmcModule* to, int N)
+void BEmcRec::CopyVector(const EmcModule* from, EmcModule* to, int N)
 {
   if (N <= 0)
   {

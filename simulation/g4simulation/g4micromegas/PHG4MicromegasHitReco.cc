@@ -128,7 +128,6 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
   m_gain = get_double_param("micromegas_gain");
   m_cloud_sigma = get_double_param("micromegas_cloud_sigma");
   m_diffusion_trans = get_double_param("micromegas_diffusion_trans");
-  m_zigzag_strips = get_int_param("micromegas_zigzag_strips");
 
   // printout
   if( Verbosity() )
@@ -140,7 +139,6 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
       << " m_gain: " << m_gain << "\n"
       << " m_cloud_sigma: " << m_cloud_sigma << "cm\n"
       << " m_diffusion_trans: " << m_diffusion_trans << "cm/sqrt(cm)\n"
-      << " m_zigzag_strips: " << std::boolalpha << m_zigzag_strips << "\n"
       << std::endl;
   }
 
@@ -405,9 +403,6 @@ void PHG4MicromegasHitReco::SetDefaultParameters()
 
   // transverse diffusion (cm/sqrt(cm))
   set_default_double_param("micromegas_diffusion_trans", 0.03 );
-  
-  // zigzag strips
-  set_default_int_param("micromegas_zigzag_strips", true );
 }
 
 //___________________________________________________________________________
@@ -466,8 +461,15 @@ PHG4MicromegasHitReco::charge_list_t PHG4MicromegasHitReco::distribute_charge(
       (strip_location.X() - local_coords.X()):
       (strip_location.Y() - local_coords.Y());
 
+    // decide of whether zigzag or straight strips are used depending on segmentation type
+    /*
+     * for the real detector SEGMENTATION_Z view has zigzag strip due to large pitch (2mm)
+     * whereas SEGMENTATION_PHI has straight strips
+     */
+    const bool zigzag_strips = (layergeom->get_segmentation_type() == MicromegasDefs::SegmentationType::SEGMENTATION_Z );
+    
     // calculate charge fraction
-    const auto fraction = m_zigzag_strips ?
+    const auto fraction = zigzag_strips ?
       get_zigzag_fraction( xloc, sigma, pitch ):
       get_rectangular_fraction( xloc, sigma, pitch );
 

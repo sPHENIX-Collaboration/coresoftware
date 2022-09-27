@@ -488,34 +488,56 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
- // tpc distortion correction
-  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
-  if( _dcc )
-  { std::cout << "PHMicromegasTpcTrackMatching::get_Nodes  - found static TPC distortion correction container" << std::endl; }
+  // tpc distortion corrections
+  m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
+  if( m_dcc_static )
+  { 
+    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl; 
+  }
+  
+  m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
+  if( m_dcc_average )
+  { 
+    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl; 
+  }
+  
+  m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerFluctuation");
+  if( m_dcc_fluctuation )
+  { 
+    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl; 
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
  Acts::Vector3 PHMicromegasTpcTrackMatching::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing, unsigned int side)
 {
-  auto trkrid = TrkrDefs::getTrkrId(key);
-
-  Acts::Vector3 globalpos; 
+  auto globalPosition = _tGeometry->getGlobalPosition(key, cluster);
+  const auto trkrid = TrkrDefs::getTrkrId(key);
   if(trkrid == TrkrDefs::tpcId)
+  {    
+    // ADF: for streaming mode, will need a crossing z correction here
+    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);
+    
+    // apply distortion corrections
+    if(m_dcc_static) 
     {
-      globalpos = _tGeometry->getGlobalPosition(key, cluster);
-      
-      // ADF: for streaming mode, will need a crossing z correction here
-      float z = _clusterCrossingCorrection.correctZ(globalpos[2], side, crossing);
-      globalpos[2] = z;
-      
-      // check if TPC distortion correction are in place and apply
-      if(_dcc) { globalpos = _distortionCorrection.get_corrected_position( globalpos, _dcc ); }
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_static ); 
     }
-  else
-    globalpos = _tGeometry->getGlobalPosition(key, cluster);
+    
+    if(m_dcc_average) 
+    { 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_average ); 
+    }
+    
+    if(m_dcc_fluctuation) 
+    { 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_fluctuation ); 
+    }
+
+  }
   
-  return globalpos;
+  return globalPosition;
 }
   
 

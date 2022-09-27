@@ -58,6 +58,7 @@ class PHSimpleKFProp : public SubsysReco
   void use_truth_clusters(bool truth)
   { _use_truth_clusters = truth; }
   void SetIteration(int iter){_n_iteration = iter;}
+  void set_cluster_version(int value) { m_cluster_version = value; }
 
  private:
 
@@ -89,7 +90,7 @@ class PHSimpleKFProp : public SubsysReco
 
   TrackSeedContainer *_track_map = nullptr;
 
-  PHField* _field_map = nullptr;
+  std::unique_ptr<PHField> _field_map = nullptr;
   
   /// acts geometry
   ActsGeometry *_tgeometry = nullptr;
@@ -153,6 +154,7 @@ class PHSimpleKFProp : public SubsysReco
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
 
+  int m_cluster_version = 4;
 };
 
 #endif

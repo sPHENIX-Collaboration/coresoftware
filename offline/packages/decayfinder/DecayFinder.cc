@@ -484,6 +484,12 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> deca
   PHG4TruthInfoContainer::ConstRange range = m_truthinfo->GetParticleRange();
   for(PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
   {
+    if (decayChain.size() == 100)
+    {
+      breakLoop = true;  //Stuck in loop. Sympton not cause!
+      break;
+    }
+    
     PHG4Particle* g4particle = iter->second;
     PHG4Particle* mother = nullptr;
     if (g4particle->get_parent_id() != 0) mother = m_truthinfo->GetParticle(g4particle->get_parent_id());

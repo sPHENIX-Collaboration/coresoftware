@@ -59,7 +59,7 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4LogicalVolume *cone_logic = new G4LogicalVolume(cone_solid,
                                                     TrackerMaterial,
                                                     GetName() + "_LOGIC",
-                                                    0, 0, 0);
+                                                    nullptr, nullptr, nullptr);
   PHG4Subsystem *mysys = GetMySubsystem();
   mysys->SetLogicalVolume(cone_logic);
 
@@ -98,6 +98,6 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
                                                   m_Params->get_double_param("place_z") * cm),
                                     cone_logic,
                                     GetName(),
-                                    logicWorld, 0, false, OverlapCheck());
+                                    logicWorld, false, false, OverlapCheck());
   m_DisplayAction->SetMyVolume(cone_logic);
 }

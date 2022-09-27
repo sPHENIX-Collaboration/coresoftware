@@ -22,7 +22,7 @@ class BEmcRecEEMC : public BEmcRec
 
   void LoadProfile(const std::string &fname) override;
   //  float GetProb(std::vector<EmcModule> HitList, float e, float xg, float yg, float zg, float &chi2, int &ndf) override;
-  void GetImpactThetaPhi(float xg, float yg, float zg, float& theta, float& phi) override;
+  void GetImpactThetaPhi(float xg, float yg, float zg, float &theta, float &phi) override;
 
  private:
   //  BEmcProfile *_emcprof;

@@ -3,22 +3,18 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
 
+#include <unistd.h>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <regex>
 #include <sstream>
-#include <unistd.h>
 #include <vector>
 
 Fun4AllMonitoring *Fun4AllMonitoring::mInstance = nullptr;
 
 Fun4AllMonitoring::Fun4AllMonitoring()
   : Fun4AllBase("Fun4AllMonitoring")
-{
-}
-
-Fun4AllMonitoring::~Fun4AllMonitoring()
 {
 }
 
@@ -61,8 +57,8 @@ void Fun4AllMonitoring::Get_Memory()
     boost::trim(instring);  // remove leading + trailing spaces
     std::regex reg(R"(\s+)");
     instring = std::regex_replace(instring, reg, " ");  // replace multiple spaces with one space
-    std::string firststring = instring.substr(0, instring.find(" "));
-    if (firststring.find("-") != std::string::npos || (firststring.find("0000000") != std::string::npos && i == 0))
+    std::string firststring = instring.substr(0, instring.find(' '));
+    if (firststring.find('-') != std::string::npos || (firststring.find("0000000") != std::string::npos && i == 0))
     {
       std::vector<std::string> tokens;
       boost::split(tokens, instring, boost::is_any_of(" "));
@@ -80,7 +76,7 @@ void Fun4AllMonitoring::Get_Memory()
     else
     {
       boost::char_separator<char> sep(" ");
-      typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+      using tokenizer = boost::tokenizer<boost::char_separator<char>>;
       tokenizer tok(instring, sep);
       tokenizer::iterator tok_iter = tok.begin();
       if ((*tok_iter).find("Pss") != std::string::npos)
@@ -92,10 +88,10 @@ void Fun4AllMonitoring::Get_Memory()
         {
           mHeapPss += std::stol(number);
         }
-	else if (libraryname == "mmap")
-	{
+        else if (libraryname == "mmap")
+        {
           mMMapPSS += std::stol(number);
-	}
+        }
         else
         {
           mOtherPss += std::stol(number);

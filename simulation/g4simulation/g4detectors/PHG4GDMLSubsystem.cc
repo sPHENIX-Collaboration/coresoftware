@@ -19,18 +19,13 @@
 class PHCompositeNode;
 class PHG4Detector;
 
-using namespace std;
-
 PHG4GDMLSubsystem::PHG4GDMLSubsystem(const std::string &name)
   : PHG4DetectorSubsystem(name, 0)
-  , m_Detector(nullptr)
 {
   InitializeParameters();
 }
 
-PHG4GDMLSubsystem::~PHG4GDMLSubsystem()
-{
-}
+PHG4GDMLSubsystem::~PHG4GDMLSubsystem() = default;
 
 //_______________________________________________________________________
 int PHG4GDMLSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
@@ -51,9 +46,9 @@ int PHG4GDMLSubsystem::process_event(PHCompositeNode * /*topNode*/)
   return 0;
 }
 
-void PHG4GDMLSubsystem::Print(const string &what) const
+void PHG4GDMLSubsystem::Print(const std::string &what) const
 {
-  cout << Name() << " Parameters: " << endl;
+  std::cout << Name() << " Parameters: " << std::endl;
   GetParams()->Print();
   if (m_Detector)
   {
@@ -64,7 +59,7 @@ void PHG4GDMLSubsystem::Print(const string &what) const
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4GDMLSubsystem::GetDetector(void) const
+PHG4Detector *PHG4GDMLSubsystem::GetDetector() const
 {
   return m_Detector;
 }

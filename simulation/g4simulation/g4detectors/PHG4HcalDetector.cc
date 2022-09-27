@@ -39,8 +39,6 @@
 
 class PHG4CylinderGeom;
 
-using namespace std;
-
 // uncomment if you want to make a graphics display where the slats are visible
 // it makes them stick out of the hcal for visibility
 // NEVER EVER RUN REAL SIMS WITH THIS
@@ -75,7 +73,7 @@ PHG4HcalDetector::PHG4HcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
 //_______________________________________________________________
 int PHG4HcalDetector::IsInCylinderActive(const G4VPhysicalVolume* volume)
 {
-  //  cout << "checking detector" << endl;
+  //  std::cout << "checking detector" << std::endl;
   if (active && box_vol.find(volume) != box_vol.end())
   {
     return box_vol.find(volume)->second;
@@ -114,23 +112,23 @@ void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4ThreeVector zTransneg(0, 0, -(length - cone_length + delta_len) / 2.0);
   G4ThreeVector zTranspos(0, 0, (length - cone_length + delta_len) / 2.0);
   G4SubtractionSolid* subtraction_tmp =
-      new G4SubtractionSolid("Cylinder-Cone", _cylinder_solid, cone1, 0, zTransneg);
+      new G4SubtractionSolid("Cylinder-Cone", _cylinder_solid, cone1, nullptr, zTransneg);
   G4SubtractionSolid* subtraction =
-      new G4SubtractionSolid("Cylinder-Cone-Cone", subtraction_tmp, cone2, 0, zTranspos);
+      new G4SubtractionSolid("Cylinder-Cone-Cone", subtraction_tmp, cone2, nullptr, zTranspos);
   cylinder_logic = new G4LogicalVolume(subtraction,
                                        TrackerMaterial,
                                        G4String(GetName()),
-                                       0, 0, 0);
+                                       nullptr, nullptr, nullptr);
   G4VisAttributes* VisAtt = new G4VisAttributes();
   VisAtt->SetColour(G4Colour::Grey());
   VisAtt->SetVisibility(true);
   VisAtt->SetForceSolid(true);
   cylinder_logic->SetVisAttributes(VisAtt);
 
-  cylinder_physi = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos),
+  cylinder_physi = new G4PVPlacement(nullptr, G4ThreeVector(xpos, ypos, zpos),
                                      cylinder_logic,
                                      G4String(GetName()),
-                                     logicWorld, 0, false, OverlapCheck());
+                                     logicWorld, false, false, OverlapCheck());
   // Figure out corners of scintillator inside the containing G4Tubs.
   // Work our way around the scintillator cross section in a counter
   // clockwise fashion: ABCD
@@ -201,12 +199,12 @@ void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   G4Material* boxmat = GetDetectorMaterial("G4_POLYSTYRENE");
   G4SubtractionSolid* subtractionbox_tmp =
-      new G4SubtractionSolid("Box-Cone", _box_solid, cone1, 0, zTransneg);
+      new G4SubtractionSolid("Box-Cone", _box_solid, cone1, nullptr, zTransneg);
   G4SubtractionSolid* subtractionbox =
-      new G4SubtractionSolid("Box-Cone-Cone", subtractionbox_tmp, cone2, 0, zTranspos);
+      new G4SubtractionSolid("Box-Cone-Cone", subtractionbox_tmp, cone2, nullptr, zTranspos);
   G4LogicalVolume* box_logic = new G4LogicalVolume(subtractionbox,
                                                    boxmat, G4String("BOX"),
-                                                   0, 0, 0);
+                                                   nullptr, nullptr, nullptr);
   VisAtt = new G4VisAttributes();
   PHG4Utils::SetColour(VisAtt, "G4_POLYSTYRENE");
   VisAtt->SetVisibility(true);
@@ -214,7 +212,7 @@ void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   box_logic->SetVisAttributes(VisAtt);
 
   double phi_increment = 360. / _sciNum;
-  ostringstream slatname;
+  std::ostringstream slatname;
   for (int i = 0; i < _sciNum; i++)
   {
     double phi = (i + _sciPhi0) * phi_increment;
@@ -226,12 +224,12 @@ void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
     G4VPhysicalVolume* box_vol_tmp = new G4PVPlacement(G4Transform3D(Rot, G4ThreeVector(myTrans)),
                                                        box_logic,
                                                        G4String(slatname.str()),
-                                                       cylinder_logic, 0, false, OverlapCheck());
+                                                       cylinder_logic, false, false, OverlapCheck());
     box_vol[box_vol_tmp] = i;
   }
   if (active)
   {
-    ostringstream geonode;
+    std::ostringstream geonode;
     if (superdetector != "NONE")
     {
       geonode << "CYLINDERGEOM_" << superdetector;
@@ -271,6 +269,6 @@ PHG4HcalDetector::GetLength(const double phi) const
 
 void PHG4HcalDetector::Print(const std::string& /*what*/) const
 {
-  cout << "radius: " << radius << endl;
+  std::cout << "radius: " << radius << std::endl;
   return;
 }

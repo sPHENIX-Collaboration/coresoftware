@@ -71,13 +71,13 @@ int PHG4EnvelopeSubsystem::process_event(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4EnvelopeSubsystem::GetDetector(void) const
+PHG4Detector* PHG4EnvelopeSubsystem::GetDetector() const
 {
   return detector_;
 }
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4EnvelopeSubsystem::GetSteppingAction(void) const
+PHG4SteppingAction* PHG4EnvelopeSubsystem::GetSteppingAction() const
 {
   return steppingAction_;
 }

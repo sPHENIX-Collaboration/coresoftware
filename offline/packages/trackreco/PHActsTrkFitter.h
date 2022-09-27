@@ -1,7 +1,7 @@
 /*!
  *  \file		PHActsTrkFitter.h
  *  \brief		Refit SvtxTracks with Acts.
- *  \details	Refit SvtxTracks with Acts
+ *  \details	        Refit SvtxTracks with Acts
  *  \author		Joe Osborn, Tony Frawley <afrawley@fsu.edu>
  */
 
@@ -11,14 +11,12 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include "ResidualOutlierFinder.h"
-
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
 
-#include <tpc/TpcClusterZCrossingCorrection.h>
-#include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterMover.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
@@ -36,6 +34,10 @@
 #include <TH2.h>
 
 
+#include <trackbase/alignmentTransformationContainer.h>
+
+
+
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
@@ -43,6 +45,7 @@ class TrackSeed;
 class TrackSeedContainer;
 class TrkrClusterContainer;
 class TrkrClusterIterationMap;
+class TpcDistortionCorrectionContainer;
 
 using SourceLink = ActsExamples::IndexSourceLink;
 using FitResult = Acts::KalmanFitterResult;
@@ -100,6 +103,8 @@ class PHActsTrkFitter : public SubsysReco
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void set_seed_track_map_name(const std::string &map_name) { _seed_track_map_name = map_name; }
 
+  void set_cluster_version(int value) { m_cluster_version = value; }
+
  private:
 
   /// Get all the nodes
@@ -121,7 +126,7 @@ class PHActsTrkFitter : public SubsysReco
   ActsExamples::TrackFittingAlgorithm::TrackFitterResult fitTrack(
            const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
 	   const ActsExamples::TrackParameters& seed,
-	   const ActsExamples::TrackFittingAlgorithm::TrackFitterOptions& 
+	   const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
 	   const SurfacePtrVec& surfSequence);
 
@@ -146,6 +151,7 @@ class PHActsTrkFitter : public SubsysReco
   ActsExamples::TrackFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
+  alignmentTransformationContainer *m_alignmentTransformationMap = nullptr;  // added for testing purposes
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxTrackMap *m_directedTrackMap = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
@@ -184,6 +190,7 @@ class PHActsTrkFitter : public SubsysReco
 
   // cluster mover utility class
   TpcClusterMover _clusterMover;
+  ClusterErrorPara _ClusErrPara;
 
   std::string m_fieldMap = "";
   TrkrClusterIterationMap* _iteration_map = nullptr;
@@ -202,6 +209,7 @@ class PHActsTrkFitter : public SubsysReco
   TH1 *h_updateTime = nullptr;
   TH1 *h_stateTime = nullptr;
   TH1 *h_rotTime = nullptr;
+  int m_cluster_version = 4;
 };
 
 #endif

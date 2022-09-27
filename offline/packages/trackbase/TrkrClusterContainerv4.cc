@@ -49,10 +49,10 @@ void TrkrClusterContainerv4::identify(std::ostream& os) const
   for( const auto& [hitsetkey,clus_vector]:m_clusmap )
   {
     const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-    std::cout << "layer: " << layer << " hitsetkey: " << hitsetkey << std::endl;
+    os << "layer: " << layer << " hitsetkey: " << hitsetkey << std::endl;
 
     for( const auto& cluster:clus_vector )
-    { if( cluster ) cluster->identify(); }
+    { if( cluster ) cluster->identify(os); }
   }
 
   os << "------------------------------" << std::endl;
@@ -118,6 +118,14 @@ TrkrClusterContainerv4::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCl
     clus_vector.resize( index+1, nullptr );
     clus_vector[index] = newclus;
   }
+}
+
+TrkrClusterContainerv4::ConstRange
+TrkrClusterContainerv4::getClusters() const {
+  std::cout << "deprecated function in TrkrClusterContainerv4, user getClusters(TrkrDefs:hitsetkey)" 
+      << std::endl; 
+    TrkrClusterContainerv4::Map* dummy_map = new TrkrClusterContainerv4::Map();
+    return std::make_pair(dummy_map->end(),dummy_map->end());
 }
 
 //_________________________________________________________________

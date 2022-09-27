@@ -138,7 +138,7 @@ class SvtxEvaluator : public SubsysReco
   void fillOutputNtuples(PHCompositeNode *topNode);  ///< dump the evaluator information into ntuple for external analysis
   void printInputInfo(PHCompositeNode *topNode);     ///< print out the input object information (debugging upstream components)
   void printOutputInfo(PHCompositeNode *topNode);    ///< print out the ancestry information for detailed diagnosis
-    int m_cluster_version = 3;
+    int m_cluster_version = 4;
 };
 
 #endif  // G4EVAL_SVTXEVALUATOR_H

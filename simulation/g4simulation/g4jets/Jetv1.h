@@ -11,10 +11,11 @@
 
 #include "Jet.h"
 
-#include <cstddef>          // for size_t
+#include <cstddef>  // for size_t
+#include <cmath>
 #include <iostream>
 #include <map>
-#include <utility>   // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 class PHObject;
 
@@ -102,13 +103,13 @@ class Jetv1 : public Jet
 
  private:
   /// unique identifier within container
-  unsigned int _id;
+  unsigned int _id = ~0x0;
 
   /// jet momentum vector (px,py,pz)
   float _mom[3];
 
   /// jet energy
-  float _e;
+  float _e = NAN;
 
   /// source id -> component id
   typ_comp_ids _comp_ids;

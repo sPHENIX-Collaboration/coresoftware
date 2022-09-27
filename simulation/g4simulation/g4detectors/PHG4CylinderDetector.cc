@@ -120,6 +120,6 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
                                                              m_Params->get_double_param("place_z") * cm),
                                                cylinder_logic,
                                                G4String(GetName()),
-                                               logicWorld, 0, false, OverlapCheck());
+                                               logicWorld, false, false, OverlapCheck());
   m_DisplayAction->SetMyVolume(cylinder_logic);
 }

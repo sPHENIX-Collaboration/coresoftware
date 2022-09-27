@@ -180,7 +180,7 @@ void PHG4CylinderSubsystem::SetDefaultParameters()
 }
 
 PHG4Detector *
-PHG4CylinderSubsystem::GetDetector(void) const
+PHG4CylinderSubsystem::GetDetector() const
 {
   return m_Detector;
 }
