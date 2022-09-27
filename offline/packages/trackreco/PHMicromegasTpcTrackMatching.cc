@@ -140,12 +140,6 @@ int PHMicromegasTpcTrackMatching::InitRun(PHCompositeNode *topNode)
   // get first micromegas layer
   _min_mm_layer = static_cast<CylinderGeomMicromegas*>(_geomContainerMicromegas->GetFirstLayerGeom())->get_layer();
 
-  fdrphi = new TF1("fdrphi", "[0] + [1]*std::abs(x)");
-  fdrphi->SetParameter(0, _par0 *_collision_rate / _reference_collision_rate);
-  fdrphi->SetParameter(1, _par1);
-
-  // base class setup
- 
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
@@ -297,7 +291,6 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       // select the angle that is the closest to last cluster
       // store phi, apply coarse space charge corrections in calibration mode
       double phi = std::abs(last_clus_phi - phi_plus) < std::abs(last_clus_phi - phi_minus) ? phi_plus:phi_minus;
-      if(_sc_calib_mode) phi -= fdrphi->Eval(z)/r;
 
       // create cylinder intersection point in world coordinates
       const TVector3 world_intersection_cylindrical( r*std::cos(phi), r*std::sin(phi), z );
@@ -341,17 +334,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       const TVector3 world_intersection_planar( x, y, z );
 
       // convert to tile local reference frame, apply SC correction
-      auto local_intersection_planar = layergeom->get_local_from_world_coords( tileid, _tGeometry, world_intersection_planar );
-      if(_sc_calib_mode)
-      {
-        /*
-         * apply SC correction to the local intersection,
-         * to make sure that the corrected intersection is still in the micromegas plane
-         * in local tile coordinates, the rphi direction, to which the correction is applied, corresponds to the x direction
-         * TODO: this is probably completely obsolete. Check/Remove
-         */
-        local_intersection_planar.SetX( local_intersection_planar.x() - fdrphi->Eval(z) );
-      }
+      const auto local_intersection_planar = layergeom->get_local_from_world_coords( tileid, _tGeometry, world_intersection_planar );
 
       // store segmentation type
       const auto segmentation_type = layergeom->get_segmentation_type();
