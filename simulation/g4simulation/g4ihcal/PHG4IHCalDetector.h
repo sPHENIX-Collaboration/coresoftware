@@ -53,7 +53,7 @@ class PHG4IHCalDetector : public PHG4Detector
   int map_towerid(const int tower_id);
   int map_layerid(const int layer_id);
   int ConstructIHCal(G4LogicalVolume *sandwich);
-  std::tuple<int, int, int> ExtractLayerTowerId(const int isector, G4VPhysicalVolume *volume);
+  std::tuple<int, int, int> ExtractLayerTowerId(const unsigned int isector, G4VPhysicalVolume *volume);
   PHG4IHCalDisplayAction *m_DisplayAction = nullptr;
   PHParameters *m_Params = nullptr;
   G4AssemblyVolume *m_ScintiMotherAssembly = nullptr;

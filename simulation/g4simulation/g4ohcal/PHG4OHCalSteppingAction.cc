@@ -56,6 +56,7 @@
 #include <cassert>
 #include <cmath>  // for isfinite, sqrt
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <string>  // for operator<<, string
 #include <tuple>   // for get, tuple
@@ -94,28 +95,29 @@ int PHG4OHCalSteppingAction::Init()
 {
   m_EnableFieldCheckerFlag = m_Params->get_int_param("field_check");
 
-  if (m_LightScintModelFlag < 10)
+  if (m_LightScintModelFlag)
   {
-    /*
-    const char* Calibroot = getenv("CALIBRATIONROOT");
-    if (!Calibroot)
+    std::string mappingfilename(m_Params->get_string_param("MapFileName"));
+    if (mappingfilename.empty())
     {
-      std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+      return 0;
+    }
+    if (!std::filesystem::exists(m_Params->get_string_param("MapFileName")))
+    {
+      std::cout << PHWHERE << " Could not locate " << m_Params->get_string_param("MapFileName") << std::endl;
+      std::cout << "use empty filename to ignore mapfile" << std::endl;
       gSystem->Exit(1);
     }
-    std::string mappingfilename(Calibroot);
-    mappingfilename += "/HCALOUT/tilemap/oHCALMaps092021.root";
     TFile* file = TFile::Open(mappingfilename.c_str());
-    file->GetObject("hCombinedMap", m_MapCorrHist);
+    file->GetObject(m_Params->get_string_param("MapHistoName").c_str(), m_MapCorrHist);
     if (!m_MapCorrHist)
     {
-      std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;
+      std::cout << "ERROR: could not find Histogram " << m_Params->get_string_param("MapHistoName") << " in " << m_Params->get_string_param("MapFileName") << std::endl;
       gSystem->Exit(1);
     }
-    m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
+    m_MapCorrHist->SetDirectory(nullptr);  // rootism: this needs to be set otherwise histo vanished when closing the file
     file->Close();
     delete file;
-*/
   }
   return 0;
 }
@@ -396,7 +398,7 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         aTrack->GetTrackStatus() == fStopAndKill)
     {
       // save only hits with energy deposit (or -1 for geantino)
-      if (m_Hit->get_edep())
+      if (m_Hit->get_edep() != 0)
       {
         m_SaveHitContainer->AddHit(layer_id, m_Hit);
         if (m_SaveShower)
