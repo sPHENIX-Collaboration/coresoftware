@@ -48,6 +48,8 @@ libeventplane_la_LIBADD = \
   -lSubsysReco \
   -lcentrality_io \
   -lphg4hit \
+  -lgsl \
+  -lgslcblas \
   -lcalo_io
 
 # Rule for generating table CINT dictionaries.

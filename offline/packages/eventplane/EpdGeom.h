@@ -1,7 +1,10 @@
 #ifndef _EpdGeom
 #define _EpdGeom
 
-//#include "Rtypes.h"
+
+#include <gsl/gsl_const.h>
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
 #include "TVector3.h"
 
 /*************************************
@@ -23,37 +26,29 @@
  *   by Brennan Schaefer
  *   11 July 2022
  *
+ * Abbreviations
+ *   PP = position;
+ *   TT = tilenumber;
+ *   SN = southnorth;
+ *   SS = 30 deg, super sector of two sectors
+ *
  *************************************/
 
-class TRandom3;
-//class EpInfo;
-
-class EpdGeom{
+class EpdGeom
+{
  private:
-  short   mPP;  /// supersector position [1,12]
-  short   mTT;  /// tile number on supersector [1,31]
-  short   mSN;  /// North/South = +1/-1
-  TRandom3* pRan;
+  short mPP;  /// supersector position [1,12]
+  short mTT;  /// tile number on supersector [1,31]
+  short mSN;  /// North/South = +1/-1
 
   double mPhiCenter[12][31][2];  // PP,TT,SN
-  double mRmin[16];   // row
-  double mRmax[16];   // row
-  double mRave[16];   // row
+  double mRmin[16];              // row
+  double mRmax[16];              // row
+  double mRave[16];              // row
 
-  // SouthNumberOfOverlappingBbcTiles[PP-1][TT-1] =  number of BBC tiles that overlap
-////  static short mSouthNumberOfOverlappingBbcTiles[12][9];  
-  // SouthBbcTilesWhichOverlap[PP-1][TT-1][j] gives the BBC tile ID of the jth overlapping BBC tile
-////  static short mSouthBbcTilesWhichOverlap[12][9][3];  // 
+  gsl_rng* m_RandomGenerator = nullptr;
 
-  // NorthNumberOfOverlappingBbcTiles[PP-1][TT-1] =  number of BBC tiles that overlap
-////  static short mNorthNumberOfOverlappingBbcTiles[12][9];  
-  // NorthBbcTilesWhichOverlap[PP-1][TT-1][j] gives the BBC tile ID of the jth overlapping BBC tile
-////  static short mNorthBbcTilesWhichOverlap[12][9][3];  // 
-
-  EpdGeom& operator=( const EpdGeom& other );
-
-  EpdGeom(const EpdGeom &obj);
-
+  unsigned int m_Seed = 0;
 
   void InitializeGeometry();
 
@@ -71,11 +66,11 @@ class EpdGeom{
   //--------- obsolete (always the plan; that's why it was private)  void     GetRminRmax(double *Rmin, double *Rmax);
   /// the "tile row" of the tile.  Row = [1,16]
   /// depends on internal parameter mTT
-  short  Row();
+  short Row();
 
   /// given the uniqueID of a tile (uniqueID = sign*(100*PP+TT) where sign=+1/-1 for North/South wheel
   /// this sets the internal parameters mPP, mTT, and mSN
-  void     SetPpTtSn(short uniqueID);
+  void SetPpTtSn(short uniqueID);
 
   /// center of the tile in sPHENIX coordinate system
   /// depends on internal parameters mPP, mTT, mSN
@@ -92,8 +87,8 @@ class EpdGeom{
   /// \param x           this is a RETURNED values.  x-coordinates of corners
   /// \param y           this is a RETURNED values.  y-coordinates of corners
   /// depends on internal parameters mPP, mTT, mSN
-  
-  void     GetCorners(int* nCorners, double* x, double* y);
+
+  void GetCorners(int* nCorners, double* x, double* y);
 
   /// returns true if (x,y) lies within the tile.  Assumes z=zWheel
   /// useful if the user would like to project a track (using straight line of helix or whatever)
@@ -102,25 +97,21 @@ class EpdGeom{
   /// \param y    y-coordinate of projected hit
   /// depends on internal parameters mPP, mTT, mSN
 
-  bool   IsInTile(double x, double y);
+  bool IsInTile(double x, double y);
 
   /// returns a list of (the IDs of) BBC tiles that overlap with a given EPD tile
   /// \param nOverlappingBbcTiles         *output* parameter: number of BBC tiles that overlaps this EPD tile (even just barely)
   /// \param BbcTileIDs                   *output* parameter: array of BBC tile IDs
-////  void GetOverlappingBbcTiles(int* nOverlappingBbcTiles, short* BbcTileIDs);
 
-
-
-
+ protected:
+  gsl_rng* RandomGenerator() const { return m_RandomGenerator; }
 
  public:
-
   EpdGeom();
   ~EpdGeom();
 
   unsigned short position(short uniqueID);
   unsigned short tile(short uniqueID);
-
 
   /// center of the tile in sPHENIX coordinate system
   /// \param uniqueID    identifier of the tile = sign*(100*PP+TT) where sign=+/- for North/South
@@ -151,7 +142,7 @@ class EpdGeom{
   /// \param *nCorners   this is a RETURNED value. Number of corners the tile has (TT01 has 5, others have 4)
   /// \param x           this is a RETURNED values.  x-coordinates of corners
   /// \param y           this is a RETURNED values.  y-coordinates of corners
-  
+
   void GetCorners(short uniqueID, int* nCorners, double* x, double* y);
   /// returns the corners of the tile in the plane of the wheel, in sPHENIX coordinate system
   /// \param position   position of supersector [1,12]
@@ -166,7 +157,6 @@ class EpdGeom{
   /// \param uniqueID                     identifier of the EPD tile = sign*(100*PP+TT) where sign=+/- for North/South
   /// \param nOverlappingBbcTiles         *output* parameter: number of BBC tiles that overlaps this EPD tile (even just barely)
   /// \param BbcTileIDs                   *output* parameter: array of BBC tile IDs
-////  void GetOverlappingBbcTiles(short uniqueID, int* nOverlappingBbcTiles, short* BbcTileIDs);
 
   /// returns a list of (the IDs of) BBC tiles that overlap with a given EPD tile
   /// \param position   position of supersector [1,12]
@@ -174,9 +164,6 @@ class EpdGeom{
   /// \southnorth         south (-1) or north (+1) wheel
   /// \param nOverlappingBbcTiles         *output* parameter: number of BBC tiles that overlaps this EPD tile (even just barely)
   /// \param BbcTileIDs                   *output* parameter: array of BBC tile IDs
-////  void GetOverlappingBbcTiles(short position, short tilenumber, short southnorth, int* nOverlappingBbcTiles, short* BbcTileIDs);
-
-
 
   /// returns true if (x,y) lies within the tile.  Assumes z=zWheel
   /// useful if the user would like to project a track (using straight line of helix or whatever)
@@ -205,11 +192,8 @@ class EpdGeom{
   /// \param tilenumber tile on supsersector [1,31]
   /// \southnorth         south (-1) or north (+1) wheel
 
-
   /// these functions are omitted here as they require position, and then neglect their use
   /// B.C.S.
-//  bool IsNorth(short position, short tilenumber, short southnorth);
-//  bool IsSouth(short position, short tilenumber, short southnorth);
 
   /// true if this tile is on south side
   /// \param uniqueID    identifier of the tile = sign*(100*PP+TT) where sign=+/- for North/South
@@ -218,8 +202,6 @@ class EpdGeom{
   /// \param position   position of supersector [1,12]
   /// \param tilenumber tile on supsersector [1,31]
   /// \southnorth         south (-1) or north (+1) wheel
-
-
 
   /// the "tile row" of the tile.  Row = [1,16]
   /// \param uniqueID    identifier of the tile = sign*(100*PP+TT) where sign=+/- for North/South
@@ -230,21 +212,12 @@ class EpdGeom{
   /// \param tilenumber tile on supsersector [1,31]
   /// \southnorth         south (-1) or north (+1) wheel
   short Row(short position, short tilenumber, short southnorth);
-
-//  ClassDef(EpdGeom,0)
-
 };
 
+inline bool EpdGeom::IsNorth(short uniqueID) { return uniqueID > 0; }
+inline bool EpdGeom::IsSouth(short uniqueID) { return uniqueID < 0; }
 
-
-  inline bool EpdGeom::IsNorth(short uniqueID){return uniqueID>0;}
-//inline bool EpdGeom::IsNorth(short position, short tilenumber, short southnorth){return southnorth>0;}
-  inline bool EpdGeom::IsSouth(short uniqueID){return uniqueID<0;}
-//inline bool EpdGeom::IsSouth(short position, short tilenumber, short southnorth){return southnorth<0;}
-
-
-  inline unsigned short EpdGeom::position(short uniqueID){return abs(uniqueID/100);}
-  inline unsigned short EpdGeom::tile(short uniqueID){return abs(uniqueID%100);}
-
+inline unsigned short EpdGeom::position(short uniqueID) { return abs(uniqueID / 100); }
+inline unsigned short EpdGeom::tile(short uniqueID) { return abs(uniqueID % 100); }
 
 #endif
