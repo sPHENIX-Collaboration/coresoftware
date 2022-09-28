@@ -42,6 +42,7 @@
 
 #include <cmath>  // for isfinite
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <string>   // for operator<<, operator+
 #include <utility>  // for pair
@@ -79,20 +80,23 @@ int PHG4InnerHcalSteppingAction::Init()
 {
   if (m_LightScintModelFlag)
   {
-    const char* Calibroot = getenv("CALIBRATIONROOT");
-    if (!Calibroot)
+    std::string ihcalmapname(m_Params->get_string_param("MapFileName"));
+    if (ihcalmapname.empty())
     {
-      std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+      return 0;
+    }
+    std::string url = XploadInterface::instance()->getUrl("OLD_INNER_HCAL_TILEMAP", ihcalmapname);
+    if (!std::filesystem::exists(url))
+    {
+      std::cout << PHWHERE << " Could not locate " << url << std::endl;
+      std::cout << "use empty filename to ignore mapfile" << std::endl;
       gSystem->Exit(1);
     }
-    std::string ihcalmapname(Calibroot);
-    ihcalmapname += "/HCALIN/tilemap/iHCALMapsNorm020922.root";
-    std::string url = XploadInterface::instance()->getUrl("OLD_INNER_HCAL_TILEMAP", ihcalmapname);
     TFile* file = TFile::Open(url.c_str());
-    file->GetObject("ihcalmapcombined", m_MapCorrHist);
+    file->GetObject(m_Params->get_string_param("MapHistoName").c_str(), m_MapCorrHist);
     if (!m_MapCorrHist)
     {
-      std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;
+      std::cout << "ERROR: could not find Histogram " << m_Params->get_string_param("MapHistoName") << " in " << m_Params->get_string_param("MapFileName") << std::endl;
       gSystem->Exit(1);
       exit(1);  // make code checkers which do not know gSystem->Exit() happy
     }
@@ -347,7 +351,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         aTrack->GetTrackStatus() == fStopAndKill)
     {
       // save only hits with energy deposit (or -1 for geantino)
-      if (m_Hit->get_edep())
+      if (m_Hit->get_edep() != 0)
       {
         m_SaveHitContainer->AddHit(layer_id, m_Hit);
 

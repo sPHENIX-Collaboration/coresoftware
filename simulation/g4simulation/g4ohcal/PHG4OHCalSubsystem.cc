@@ -177,15 +177,23 @@ void PHG4OHCalSubsystem::SetDefaultParameters()
   set_default_int_param("n_scinti_tiles", 12);
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
-
+  std::string defaultmapfilename;
+  // const char* Calibroot = getenv("CALIBRATIONROOT");
+  // if (Calibroot)
+  // {
+  //   defaultmapfilename = Calibroot;
+  //   defaultmapfilename += "/HCALOUT/tilemap/oHCALMaps092021.root";
+  // }
+  set_default_string_param("MapFileName", defaultmapfilename);
+  set_default_string_param("MapHistoName", "hCombinedMap");
+  
   const char* Calibroot = getenv("CALIBRATIONROOT");
   if (!Calibroot)
   {
     std::cout<<__PRETTY_FUNCTION__ << ": no CALIBRATIONROOT environment variable" << std::endl;
     exit(1);
   }
-  std::string ihcalmapname(Calibroot);
-  ihcalmapname += "/Field/Map/sphenix3dbigmapxyz_steel_rebuild.root";
-  set_default_string_param("IronFieldMapPath", ihcalmapname);
+  set_default_string_param("IronFieldMapPath", std::string(Calibroot) + "/Field/Map/sphenix3dbigmapxyz_steel_rebuild.root" );
   set_default_double_param("IronFieldMapScale", 1.);
+  
 }

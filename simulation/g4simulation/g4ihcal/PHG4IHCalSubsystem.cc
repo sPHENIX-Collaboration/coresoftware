@@ -168,6 +168,15 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
+  const char* Calibroot = getenv("CALIBRATIONROOT");
+  std::string defaultmapfilename;
+  if (Calibroot)
+  {
+    defaultmapfilename = Calibroot;
+    defaultmapfilename += "/HCALIN/tilemap/ihcalgdmlmap09212022.root";
+  }
+  set_default_string_param("MapFileName", defaultmapfilename);
+  set_default_string_param("MapHistoName", "ihcalcombinedgdmlnormtbyt");
 }
 
 void PHG4IHCalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr)

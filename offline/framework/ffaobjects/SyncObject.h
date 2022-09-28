@@ -26,7 +26,7 @@ class SyncObject : public PHObject
   int isValid() const override;
 
   PHObject* CloneMe() const override;
-  virtual SyncObject& operator=(const SyncObject& source);
+  SyncObject& operator=(const SyncObject& source);
   virtual int Different(const SyncObject* other) const;
 
   /// set Event Counter

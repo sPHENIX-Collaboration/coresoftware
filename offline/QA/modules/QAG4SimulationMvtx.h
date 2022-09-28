@@ -26,6 +26,7 @@ class QAG4SimulationMvtx : public SubsysReco
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
+  void set_cluster_version(int value) { m_cluster_version = value; }
 
  private:
   /// common prefix for QA histograms
@@ -40,7 +41,6 @@ class QAG4SimulationMvtx : public SubsysReco
   // get geant hits associated to a cluster
   using G4HitSet = std::set<PHG4Hit*>;
   G4HitSet find_g4hits(TrkrDefs::cluskey) const;
-  void set_cluster_version(int value) { m_cluster_version = value; }
 
   /// true if histograms are initialized
   bool m_initialized = false;
