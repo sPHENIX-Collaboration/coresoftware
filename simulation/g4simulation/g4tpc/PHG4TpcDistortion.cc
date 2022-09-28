@@ -43,6 +43,23 @@ namespace
       && check_boundaries( h->GetZaxis(), z );
   }
   
+  // print histogram
+  [[maybe_unused]] void print_histogram( TH3* h )
+  {
+    
+    std::cout << "PHG4TpcDistortion::print_histogram - name: " << h->GetName() << std::endl;
+    for( const auto& axis:{h->GetXaxis(), h->GetYaxis(), h->GetZaxis() } )
+    {
+      std::cout 
+        << "  " << axis->GetName() 
+        << " bins: " << axis->GetNbins() 
+        << " min: " << axis->GetXmin() 
+        << " max: " << axis->GetXmax() 
+        << std::endl;
+    }
+    std::cout << std::endl;
+  }
+  
 }  // namespace
 
 //__________________________________________________________________________________________________________
@@ -54,7 +71,7 @@ void PHG4TpcDistortion::Init()
     m_static_tfile.reset(new TFile(m_static_distortion_filename.c_str()));
     if (!m_static_tfile->IsOpen())
     {
-      std::cout << "Static distortion file could not be opened!" << std::endl;
+      std::cout << "PHG4TpcDistortion::Init - Static distortion file could not be opened!" << std::endl;
       exit(1);
     }
 
@@ -73,10 +90,17 @@ void PHG4TpcDistortion::Init()
     m_time_ordered_tfile.reset(new TFile(m_time_ordered_distortion_filename.c_str()));
     if (!m_time_ordered_tfile->IsOpen())
     {
-      std::cout << "TimeOrdered distortion file could not be opened!" << std::endl;
+      std::cout << "PHG4TpcDistortion::Init - TimeOrdered distortion file could not be opened!" << std::endl;
       exit(1);
     }
 
+    TimeTree = static_cast<TTree*>(m_time_ordered_tfile->Get("TimeDists"));
+    if( !TimeTree )
+    {
+      std::cout << "PHG4TpcDistortion::Init - TimeOrdered distortion tree could not be found!" << std::endl;
+      exit(1);
+    }
+    
     // create histograms
     TimehDR[0] = new TH3F();
     TimehDR[1] = new TH3F();
@@ -85,7 +109,7 @@ void PHG4TpcDistortion::Init()
     TimehDZ[0] = new TH3F();
     TimehDZ[1] = new TH3F();
 
-    TimeTree = static_cast<TTree*>(m_time_ordered_tfile->Get("TimeDists"));
+    // assign to tree branches
     TimeTree->SetBranchAddress("hIntDistortionR_negz", &(TimehDR[0]));
     TimeTree->SetBranchAddress("hIntDistortionR_posz", &(TimehDR[1]));
     TimeTree->SetBranchAddress("hIntDistortionP_negz", &(TimehDP[0]));
@@ -237,7 +261,9 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
     if (hdistortion)
     {
       if( check_boundaries( hdistortion, phi, r, z ) )
-      { _distortion += hdistortion->Interpolate(phi, r, z); }
+      { 
+        _distortion += hdistortion->Interpolate(phi, r, z); 
+      }
     }
     else
     {
