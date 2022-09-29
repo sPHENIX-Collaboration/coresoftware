@@ -9,7 +9,7 @@
 
 class PHCompositeNode;
 class SvtxTrackMap;
-class SvtxTrack_v3;
+class SvtxTrack_v4;
 class TrackSeed;
 class TrackSeedContainer;
 class ActsGeometry;
@@ -34,7 +34,7 @@ class TrackSeedTrackMapConverter : public SubsysReco
 
   int getNodes(PHCompositeNode *topNode);
 
-  void addKeys(std::unique_ptr<SvtxTrack_v3>& track, TrackSeed *seed);
+  void addKeys(std::unique_ptr<SvtxTrack_v4>& track, TrackSeed *seed);
   std::string m_trackMapName = "SvtxTrackMap";
   std::string m_trackSeedName = "TpcTrackSeedContainer";
 

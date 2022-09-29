@@ -249,6 +249,13 @@ class PHGenFitTrkFitter : public SubsysReco
 
   //@}
 
+  /// fit only tracks with silicon+MM hits
+  void set_fit_silicon_mms( bool );
+
+  /// require micromegas in SiliconMM fits
+  void set_use_micromegas( bool value )
+  { m_use_micromegas = value; }
+
   private:
   //! Event counter
   int _event = 0;
@@ -300,7 +307,14 @@ class PHGenFitTrkFitter : public SubsysReco
   //! disabled layers
   /** clusters belonging to disabled layers are not included in track fit */
   std::set<int> _disabled_layers;
+  
+  /// Boolean to use normal tracking geometry navigator or the
+  /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
+  bool m_fit_silicon_mms = false;
 
+  /// requires micromegas present when fitting silicon-MM surfaces
+  bool m_use_micromegas = true;
+  
   //! KalmanFitterRefTrack, KalmanFitter, DafSimple, DafRef
   std::string _track_fitting_alg_name = "DafRef";
 

@@ -13,8 +13,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                         // for SubsysReco
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
@@ -60,7 +60,7 @@ namespace
 
   struct thread_data 
   {
-    PHG4CylinderCellGeom *layergeom = nullptr;
+    PHG4TpcCylinderGeom *layergeom = nullptr;
     TrkrHitSet *hitset = nullptr;
     ActsGeometry *tGeometry = nullptr;
     unsigned int layer = 0;
@@ -77,7 +77,7 @@ namespace
     unsigned short maxHalfSizePhi = 0;
     double m_tdriftmax = 0;
     double sampa_tbias = 0;
-     int cluster_version = 3;
+    int cluster_version = 4;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster*> cluster_vector;
     int verbosity = 0;
@@ -408,6 +408,7 @@ namespace
 	clus->setActsLocalError(1,1, t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2));
 	my_data.cluster_vector.push_back(clus);
       }else if(my_data.cluster_version==4){
+	if(sqrt(phi_err_square) > 0.01){
 	auto clus = new TrkrClusterv4;
 	//auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setAdc(adc_sum);  
@@ -419,7 +420,7 @@ namespace
 	clus->setLocalX(local(0));
 	clus->setLocalY(clust);
 	my_data.cluster_vector.push_back(clus);
-	
+	}
       }
       
       //      if(my_data.do_assoc && my_data.clusterhitassoc){
@@ -545,7 +546,7 @@ TpcClusterizer::TpcClusterizer(const std::string &name)
   : SubsysReco(name)
 {}
 
-bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const
+bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const
 {
   bool reject_it = false;
 
@@ -668,8 +669,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4CylinderCellGeomContainer *geom_container =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcCylinderGeomContainer *geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
   {
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
@@ -725,7 +726,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
     unsigned int sector= TpcDefs::getSectorId(hitsetitr->first);
-    PHG4CylinderCellGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+    PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
 
     // instanciate new thread pair, at the end of thread vector
     thread_pair_t& thread_pair = threads.emplace_back();

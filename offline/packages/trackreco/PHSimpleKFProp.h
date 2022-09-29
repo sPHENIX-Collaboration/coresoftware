@@ -58,6 +58,7 @@ class PHSimpleKFProp : public SubsysReco
   void use_truth_clusters(bool truth)
   { _use_truth_clusters = truth; }
   void SetIteration(int iter){_n_iteration = iter;}
+  void set_cluster_version(int value) { m_cluster_version = value; }
 
  private:
 
@@ -79,7 +80,7 @@ class PHSimpleKFProp : public SubsysReco
   double _Bzconst = 10*0.000299792458f;
   //double _Bz = 1.4*_Bzconst;
   double _max_dist = .05;
-  size_t _min_clusters_per_track = 20;
+  size_t _min_clusters_per_track = 3;
   double _fieldDir = -1;
   double _max_sin_phi = 1.;
   double _rz_outlier_threshold = .1;
@@ -144,7 +145,7 @@ class PHSimpleKFProp : public SubsysReco
   std::unique_ptr<ALICEKF> fitter;
   double get_Bz(double x, double y, double z) const;
   void publishSeeds(std::vector<TrackSeed_v1>& seeds, PositionMap &positions);
-  void publishSeeds(const std::vector<TrackSeed>&);
+  void publishSeeds(const std::vector<TrackSeed_v1>&);
 //   void MoveToVertex();
 
   bool _use_const_field = false;
@@ -153,6 +154,7 @@ class PHSimpleKFProp : public SubsysReco
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
 
+  int m_cluster_version = 4;
 };
 
 #endif

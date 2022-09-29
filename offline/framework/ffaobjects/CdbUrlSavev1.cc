@@ -52,7 +52,7 @@ std::vector<std::tuple<std::string, std::string, uint64_t>>::const_iterator CdbU
 
 void CdbUrlSavev1::AddUrl(const std::string &domain, const std::string &url, const uint64_t timestamp)
 {
-  m_CdbUrlVector.push_back(std::make_tuple(domain, url, timestamp));
+  m_CdbUrlVector.emplace_back(domain, url, timestamp);
 }
 
 void CdbUrlSavev1::AddUrl(const std::tuple<std::string, std::string, uint64_t> &tup)

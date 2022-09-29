@@ -189,6 +189,15 @@ void PHG4InnerHcalSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4HcalDefs::n_scinti_tiles_neg, 12);
 
   set_default_string_param("material", "G4_Al");
+  std::string defaultmapfilename;
+  const char *Calibroot = getenv("CALIBRATIONROOT");
+  if (Calibroot)
+  {
+    defaultmapfilename = Calibroot;
+    defaultmapfilename += "/HCALIN/tilemap/iHCALMapsNorm020922.root";
+  }
+  set_default_string_param("MapFileName", defaultmapfilename);
+  set_default_string_param("MapHistoName", "ihcalmapcombined");
 }
 
 void PHG4InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr)

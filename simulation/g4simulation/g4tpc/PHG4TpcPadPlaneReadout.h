@@ -2,11 +2,10 @@
 #define G4TPC_PHG4TPCPADPLANEREADOUT_H
 
 #include "PHG4TpcPadPlane.h"
+#include "TpcClusterBuilder.h"
 
 #include <g4main/PHG4HitContainer.h>
-
 #include <gsl/gsl_rng.h>
-
 #include <array>
 #include <climits>
 #include <cmath>
@@ -15,8 +14,8 @@
 
 class PHCompositeNode;
 //class PHG4CellContainer;
-class PHG4CylinderCellGeomContainer;
-class PHG4CylinderCellGeom;
+class PHG4TpcCylinderGeomContainer;
+class PHG4TpcCylinderGeom;
 class TNtuple;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
@@ -30,12 +29,13 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   void SetDriftVelocity(double vd) override { drift_velocity = vd; }
 
-  int CreateReadoutGeometry(PHCompositeNode * /*topNode*/, PHG4CylinderCellGeomContainer *seggeo) override;
+
+  int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4TpcCylinderGeomContainer *seggeo) override;
 
   // otherwise warning of inconsistent overload since only one MapToPadPlane methow is overridden
   using PHG4TpcPadPlane::MapToPadPlane;
 
-  void MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
+  TpcClusterBuilder MapToPadPlane(TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
 
   void SetDefaultParameters() override;
   void UpdateInternalParameters() override;
@@ -47,8 +47,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   std::string seggeonodename;
 
-  PHG4CylinderCellGeomContainer *GeomContainer = nullptr;
-  PHG4CylinderCellGeom *LayerGeom = nullptr;
+  PHG4TpcCylinderGeomContainer *GeomContainer = nullptr;
+  PHG4TpcCylinderGeom *LayerGeom = nullptr;
 
   double rad_gem = NAN;
   double output_radius = 0;
@@ -60,7 +60,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<int, 3> MinLayer;
   std::array<double, 3> MinRadius;
   std::array<double, 3> MaxRadius;
-  std::array<double, 3> Thickness;
+  std::array<double, 5> Thickness;
   double MaxZ = NAN;
   double MinT = NAN;
   double MaxT = NAN;
