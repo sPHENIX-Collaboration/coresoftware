@@ -8,13 +8,13 @@
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
 
-#include <algorithm> // for max
-#include <cmath>     // for sqrt
-#include <cstdlib>   // for abs
-#include <iostream>  // for operator<<, endl, basic_ostream
-#include <memory>    // for allocator_traits<>::value_type
-#include <utility>   // for swap
-#include <vector>    // for vector
+#include <algorithm>  // for max
+#include <cmath>      // for sqrt
+#include <cstdlib>    // for abs
+#include <iostream>   // for operator<<, endl, basic_ostream
+#include <memory>     // for allocator_traits<>::value_type
+#include <utility>    // for swap
+#include <vector>     // for vector
 
 using namespace std;
 
@@ -32,7 +32,10 @@ PHPy8JetTrigger::PHPy8JetTrigger(const std::string &name)
 
 PHPy8JetTrigger::~PHPy8JetTrigger()
 {
-  if (Verbosity() > 0) PrintConfig();
+  if (Verbosity() > 0)
+  {
+    PrintConfig();
+  }
 }
 
 bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
@@ -56,12 +59,21 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
       // 14 == nu_mu
       // 15 == taus
       // 16 == nu_tau
-      if ((abs(pythia->event[i].id()) >= 12) && (abs(pythia->event[i].id()) <= 16)) continue;
+      if ((abs(pythia->event[i].id()) >= 12) && (abs(pythia->event[i].id()) <= 16))
+      {
+        continue;
+      }
 
       // remove acceptance... _etamin,_etamax
-      if ((pythia->event[i].px() == 0.0) && (pythia->event[i].py() == 0.0)) continue;  // avoid pt=0
+      if ((pythia->event[i].px() == 0.0) && (pythia->event[i].py() == 0.0))
+      {
+        continue;  // avoid pt=0
+      }
       if ((pythia->event[i].eta() < _theEtaLow ||
-           pythia->event[i].eta() > _theEtaHigh)) continue;
+           pythia->event[i].eta() > _theEtaHigh))
+      {
+        continue;
+      }
 
       fastjet::PseudoJet pseudojet(pythia->event[i].px(),
                                    pythia->event[i].py(),
@@ -85,7 +97,10 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
   {
     const double pt = sqrt(fastjets[ijet].px() * fastjets[ijet].px() + fastjets[ijet].py() * fastjets[ijet].py());
 
-    if (pt > max_pt) max_pt = pt;
+    if (pt > max_pt)
+    {
+      max_pt = pt;
+    }
 
     vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
     int ijet_nconst = constituents.size();
@@ -115,7 +130,10 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
 
           double z_constit = con_ptot * ctheta / jet_ptot;
 
-          if (z_constit > leading_Z) leading_Z = z_constit;
+          if (z_constit > leading_Z)
+          {
+            leading_Z = z_constit;
+          }
         }
 
         if (leading_Z > _minZ)

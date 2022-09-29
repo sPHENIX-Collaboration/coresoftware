@@ -129,7 +129,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                                                  "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_vertex_eval) _ntp_vertex = new TNtuple("ntp_vertex", "vertex => max truth",
-						 "event:seed:vx:vy:vz:ntracks:chi2:ndof:"
+						 "event:seed:vertexID:vx:vy:vz:ntracks:chi2:ndof:"
 						 "gvx:gvy:gvz:gvt:gembed:gntracks:gntracksmaps:"
 						 "gnembed:nfromtruth:"
 						 "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
@@ -188,13 +188,13 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                                                  "gembed:gprimary:"
                                                  "trackID:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:"
                                                  "charge:quality:chisq:ndf:nhits:layers:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:"
-                                                 "dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:ntruintt:ntrutpc:ntrumms:ntrutpc1:ntrutpc11:ntrutpc2:ntrutpc3:layersfromtruth:"
+                                                 "vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:ntruintt:ntrutpc:ntrumms:ntrutpc1:ntrutpc11:ntrutpc2:ntrutpc3:layersfromtruth:"
                                                  "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_track_eval) _ntp_track = new TNtuple("ntp_track", "svtxtrack => max truth",
                                                "event:seed:trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:"
                                                "quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:layers:"
-                                               "dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:"
+                                               "vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:"
 					       "gtrackID:gflavor:gnhits:gnmaps:gnintt:gntpc:gnmms:gnlmaps:gnlintt:gnltpc:gnlmms:"
                                                "gpx:gpy:gpz:gpt:geta:gphi:"
                                                "gvx:gvy:gvz:gvt:"
@@ -1093,6 +1093,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
        {
         SvtxVertex* vertex = iter->second;
         PHG4VtxPoint* point = vertexeval->max_truth_point_by_ntracks(vertex);
+        int vertexID = vertex->get_id();
         float vx = vertex->get_x();
         float vy = vertex->get_y();
         float vz = vertex->get_z();
@@ -1125,6 +1126,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         }
 	
         float vertex_data[] = {(float) _ievent,m_fSeed,
+                               (float) vertexID,
                                vx,
                                vy,
                                vz,
@@ -2061,21 +2063,27 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 	  std::vector<TrkrDefs::cluskey> clusters;
 	  auto siseed = track->get_silicon_seed();
-	  for (auto iter = siseed->begin_cluster_keys();
-	       iter != siseed->end_cluster_keys();
-	       ++iter)
-	    {
-	      TrkrDefs::cluskey cluster_key = *iter;
-	      clusters.push_back(cluster_key);
-	    }
+          if(siseed)
+          {
+	    for (auto iter = siseed->begin_cluster_keys();
+	         iter != siseed->end_cluster_keys();
+	         ++iter)
+	      {
+	        TrkrDefs::cluskey cluster_key = *iter;
+	        clusters.push_back(cluster_key);
+	      }
+          }
 	  auto tpcseed = track->get_tpc_seed();
-	  for (auto iter = tpcseed->begin_cluster_keys();
-	       iter != tpcseed->end_cluster_keys();
-	       ++iter)
-	    {
-	      TrkrDefs::cluskey cluster_key = *iter;
-	      clusters.push_back(cluster_key);
-	    }
+          if(tpcseed)
+          {
+	    for (auto iter = tpcseed->begin_cluster_keys();
+	         iter != tpcseed->end_cluster_keys();
+	         ++iter)
+	      {
+	        TrkrDefs::cluskey cluster_key = *iter;
+	        clusters.push_back(cluster_key);
+	      }
+          }
 
 	  // loop over all cluster keys and build ntuple
 	  for(unsigned int iclus = 0; iclus < clusters.size(); ++iclus)
@@ -2507,7 +2515,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
 
         PHG4Particle* g4particle = iter->second;
-
+	
         if (_scan_for_embedded)
         {
           if (trutheval->get_embed(g4particle) <= 0) continue;
@@ -2688,6 +2696,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float nltpc = 0;
         float nlmms = 0;
         unsigned int layers = 0x0;
+        int vertexID = -1;
+        float vx = NAN;
+        float vy = NAN;
+        float vz = NAN;
         float dca2d = NAN;
         float dca2dsigma = NAN;
         float dca3dxy = NAN;
@@ -2718,7 +2730,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float ntrutpc2 = NAN;
         float ntrutpc3 = NAN;
         float layersfromtruth = NAN;
-
+        
         if (_do_track_match)
         {
           SvtxTrack* track = trackeval->best_track_from(g4particle);
@@ -2736,7 +2748,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      { nhits += tpcseed->size_cluster_keys(); }
 	    if(silseed)
 	      { nhits += silseed->size_cluster_keys(); }
-
+	  
             vector <int> maps(_nlayers_maps, 0);
             vector <int> intt(_nlayers_intt, 0);
             vector <int> tpc(_nlayers_tpc, 0);
@@ -2883,8 +2895,16 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		 << " nltpc  " << nltpc
 		 << endl;
 	    */
-	  
-	    get_dca(track, vertexmap, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma);
+	    
+            vertexID = track->get_vertex_id();
+            SvtxVertex* vertex = vertexmap->get(vertexID);
+	    if(vertex) {
+	      vx = vertex->get_x();
+	      vy = vertex->get_y();
+	      vz = vertex->get_z();
+	      
+	      get_dca(track, vertexmap, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma);
+	    }
 	    
             px = track->get_px();
             py = track->get_py();
@@ -2908,7 +2928,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
             nfromtruth = trackeval->get_nclusters_contribution(track, g4particle);
             nwrong = trackeval->get_nwrongclusters_contribution(track, g4particle);
-
+	   
             if (_nlayers_maps == 0)
             {
               ntrumaps = 0;
@@ -3010,6 +3030,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                nlintt,
                                nltpc,
 			       nlmms,
+                               (float) vertexID,
+                               vx,
+                               vy,
+                               vz,
                                dca2d,
                                dca2dsigma,
                                dca3dxy,
@@ -3236,9 +3260,20 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	float dca3dxy = NAN, dca3dz = NAN,
 	  dca3dxysigma = NAN, dca3dzsigma = NAN;
 	float dca2d = NAN, dca2dsigma = NAN;
-	get_dca(track, vertexmap, dca3dxy, dca3dz,
-		dca3dxysigma, dca3dzsigma);
 
+        int vertexID = track->get_vertex_id();
+        SvtxVertex* vertex = vertexmap->get(vertexID);
+	float vx = NAN;
+	float vy = NAN;
+	float vz = NAN;
+	if(vertex) {
+	  vx = vertex->get_x();
+	  vy = vertex->get_y();
+	  vz = vertex->get_z();
+	  
+	  get_dca(track, vertexmap, dca3dxy, dca3dz,
+		  dca3dxysigma, dca3dzsigma);
+	}
         float px = track->get_px();
         float py = track->get_py();
         float pz = track->get_pz();
@@ -3453,6 +3488,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 			      ntpc1,ntpc11,ntpc2,ntpc3,
 			      nlmaps, nlintt, nltpc,nlmms,
                               (float) layers,
+                              (float) vertexID,
+                              vx,
+                              vy,
+                              vz,
                               dca2d,
                               dca2dsigma,
                               dca3dxy,

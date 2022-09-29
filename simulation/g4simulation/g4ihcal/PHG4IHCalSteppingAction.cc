@@ -40,6 +40,7 @@
 
 #include <cmath>    // for isfinite
 #include <cstdlib>  // for getenv
+#include <filesystem>
 #include <iostream>
 #include <string>   // for operator<<, operator+
 #include <utility>  // for pair
@@ -75,28 +76,29 @@ PHG4IHCalSteppingAction::~PHG4IHCalSteppingAction()
 //____________________________________________________________________________..
 int PHG4IHCalSteppingAction::Init()
 {
-  if (m_LightScintModelFlag < 10)
+  if (m_LightScintModelFlag)
   {
-    
-    const char* Calibroot = getenv("CALIBRATIONROOT");
-    if (!Calibroot)
+    std::string ihcalmapname(m_Params->get_string_param("MapFileName"));
+    if (ihcalmapname.empty())
     {
-      std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+      return 0;
+    }
+    if (!std::filesystem::exists(m_Params->get_string_param("MapFileName")))
+    {
+      std::cout << PHWHERE << " Could not locate " << m_Params->get_string_param("MapFileName") << std::endl;
+      std::cout << "use empty filename to ignore mapfile" << std::endl;
       gSystem->Exit(1);
     }
-    std::string ihcalmapname(Calibroot);
-    ihcalmapname += "/HCALIN/tilemap/ihcalgdmlmap09212022.root";
     TFile* file = TFile::Open(ihcalmapname.c_str());
-    file->GetObject("ihcalcombinedgdmlnormtbyt", m_MapCorrHist);
+    file->GetObject(m_Params->get_string_param("MapHistoName").c_str(), m_MapCorrHist);
     if (!m_MapCorrHist)
     {
-      std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;
+      std::cout << "ERROR: could not find Histogram " << m_Params->get_string_param("MapHistoName") << " in " << m_Params->get_string_param("MapFileName") << std::endl;
       gSystem->Exit(1);
     }
-    m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
+    m_MapCorrHist->SetDirectory(nullptr);  // rootism: this needs to be set otherwise histo vanished when closing the file
     file->Close();
     delete file;
-
   }
   return 0;
 }
@@ -140,7 +142,7 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
-  G4double light_yield = 0;
+  double light_yield = 0;
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
@@ -315,8 +317,8 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           const G4TouchableHandle& theTouchable = prePoint->GetTouchableHandle();
           const G4ThreeVector& worldPosition = postPoint->GetPosition();
           G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
-          float lx = (localPosition.x() / cm);
-          float ly = (localPosition.y() / cm);
+          float lx = localPosition.x() / cm;
+          float ly = localPosition.y() / cm;
 
           //adjust to tilemap coordinates
           int lcx = (int) (5.0 * lx) + 1;
@@ -325,7 +327,7 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           if ((lcy >= 1) && (lcy <= m_MapCorrHist->GetNbinsY()) &&
               (lcx >= 1) && (lcx <= m_MapCorrHist->GetNbinsX()))
           {
-            light_yield *= (double) (m_MapCorrHist->GetBinContent(lcx, lcy));
+            light_yield *= m_MapCorrHist->GetBinContent(lcx, lcy);
           }
           else
           {
@@ -369,7 +371,7 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         aTrack->GetTrackStatus() == fStopAndKill)
     {
       // save only hits with energy deposit (or -1 for geantino)
-      if (m_Hit->get_edep())
+      if (m_Hit->get_edep() != 0)
       {
         m_SaveHitContainer->AddHit(layer_id, m_Hit);
 
@@ -434,4 +436,3 @@ void PHG4IHCalSteppingAction::SetHitNodeName(const std::string& type, const std:
   gSystem->Exit(1);
   return;
 }
-
