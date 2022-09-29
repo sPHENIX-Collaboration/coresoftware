@@ -47,7 +47,7 @@ int DumpJetMap::process_Node(PHNode *myNode)
       *fout << "eta: " << jiter->second->get_eta() << std::endl;
       *fout << "phi: " << jiter->second->get_phi() << std::endl;
       *fout << "mass: " << jiter->second->get_mass() << std::endl;
-      for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
+      for (auto ic = 0; ic < UCHAR_MAX; ic++)
       {
         Jet::PROPERTY prop_id = static_cast<Jet::PROPERTY>(ic);
         if (jiter->second->has_property(prop_id))

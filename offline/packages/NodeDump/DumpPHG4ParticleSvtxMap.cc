@@ -33,10 +33,10 @@ int DumpPHG4ParticleSvtxMap::process_Node(PHNode *myNode)
     {
       *fout << "Cluster: " << std::hex << iter.first << std::dec << std::endl;
 
-      for (auto iter2 = (iter.second).begin(); iter2 != (iter.second).end(); ++iter2)
+      for (auto &iter2 : iter.second)
       {
-        *fout << "weight: " << iter2->first << std::endl;
-        for (unsigned int iter3 : iter2->second)
+        *fout << "weight: " << iter2.first << std::endl;
+        for (unsigned int iter3 : iter2.second)
         {
           *fout << "track id " << iter3 << std::endl;
         }
