@@ -40,6 +40,7 @@ class TrkrHitTruthClusters : public PHObject
   {
   }
 
+  void identify(std::ostream& os = std::cout) const override {print_clusters(os);}
   virtual void print_clusters(std::ostream& /*os*/ = std::cout) const
   {
   }

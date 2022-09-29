@@ -26,6 +26,7 @@ class TrkrHitTruthClustersv1 : public TrkrHitTruthClusters
   TrkrHitTruthClustersv1() = default;
 
   void Reset() override;
+  void identify(std::ostream& os = std::cout) const override {print_clusters(os);}
 
   void print_clusters(std::ostream& os = std::cout) const override;
 
