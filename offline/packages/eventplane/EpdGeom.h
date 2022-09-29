@@ -34,81 +34,13 @@
 #include <gsl/gsl_const.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
-#include "TVector3.h"
+#include <TVector3.h>
 
 class EpdGeom
 {
- private:
-  short mPP;  /// supersector position [1,12]
-  short mTT;  /// tile number on supersector [1,31]
-  short mSN;  /// North/South = +1/-1
-
-  double mPhiCenter[12][31][2];  // PP,TT,SN
-  double mRmin[16];              // row
-  double mRmax[16];              // row
-  double mRave[16];              // row
-
-  gsl_rng* m_RandomGenerator = nullptr;
-
-  unsigned int m_Seed = 0;
-
-  void InitializeGeometry();
-
-  /* these methods are used internally */
-  /// z coordinate of the wheel in sPHENIX coordinate system
-  /// depends on internal parameter mSN
-
-  double GetZwheel();
-
-  /// phi of the center of the tile in sPHENIX coordinate syste
-  /// depends on internal parameters mPP, mTT, mSN
-  //--------- obsolete (always the plan; that's why it was private)  double GetPhiCenter();
-  /// the inner and outer extent of the tile in the radial direction
-  /// depends on internal parameters mPP, mTT, mSN
-  //--------- obsolete (always the plan; that's why it was private)  void     GetRminRmax(double *Rmin, double *Rmax);
-  /// the "tile row" of the tile.  Row = [1,16]
-  /// depends on internal parameter mTT
-  short Row();
-
-  /// given the uniqueID of a tile (uniqueID = sign*(100*PP+TT) where sign=+1/-1 for North/South wheel
-  /// this sets the internal parameters mPP, mTT, and mSN
-  void SetPpTtSn(short uniqueID);
-
-  /// center of the tile in sPHENIX coordinate system
-  /// depends on internal parameters mPP, mTT, mSN
-  TVector3 TileCenter();
-
-  /// returns a random point somewhere on the tile.
-  /// assumes a uniform hit density
-  /// this is very useful for calculating things like dN/deta
-  /// depends on internal parameters mPP, mTT, mSN
-  TVector3 RandomPointOnTile();
-
-  /// returns the corners of the tile in the plane of the wheel, in sPHENIX coordinate system
-  /// \param *nCorners   this is a RETURNED value. Number of corners the tile has (TT01 has 5, others have 4)
-  /// \param x           this is a RETURNED values.  x-coordinates of corners
-  /// \param y           this is a RETURNED values.  y-coordinates of corners
-  /// depends on internal parameters mPP, mTT, mSN
-
-  void GetCorners(int* nCorners, double* x, double* y);
-
-  /// returns true if (x,y) lies within the tile.  Assumes z=zWheel
-  /// useful if the user would like to project a track (using straight line of helix or whatever)
-  /// to the plane of the wheel and determine whether it hit a given tile
-  /// \param x    x-coordinate of projected hit
-  /// \param y    y-coordinate of projected hit
-  /// depends on internal parameters mPP, mTT, mSN
-
-  bool IsInTile(double x, double y);
-
-  /// returns a list of (the IDs of) BBC tiles that overlap with a given EPD tile
-  /// \param nOverlappingBbcTiles         *output* parameter: number of BBC tiles that overlaps this EPD tile (even just barely)
-  /// \param BbcTileIDs                   *output* parameter: array of BBC tile IDs
-
- protected:
-  gsl_rng* RandomGenerator() const { return m_RandomGenerator; }
 
  public:
+
   EpdGeom();
   ~EpdGeom();
 
@@ -214,6 +146,78 @@ class EpdGeom
   /// \param tilenumber tile on supsersector [1,31]
   /// \southnorth         south (-1) or north (+1) wheel
   short Row(short position, short tilenumber, short southnorth);
+
+
+ private:
+
+  short mPP;  /// supersector position [1,12]
+  short mTT;  /// tile number on supersector [1,31]
+  short mSN;  /// North/South = +1/-1
+
+  double mPhiCenter[12][31][2];  // PP,TT,SN
+  double mRmin[16];              // row
+  double mRmax[16];              // row
+  double mRave[16];              // row
+
+  gsl_rng* m_RandomGenerator = nullptr;
+
+  unsigned int m_Seed = 0;
+
+
+  gsl_rng* RandomGenerator() const { return m_RandomGenerator; }
+
+  void InitializeGeometry();
+
+  /* these methods are used internally */
+  /// z coordinate of the wheel in sPHENIX coordinate system
+  /// depends on internal parameter mSN
+
+  double GetZwheel();
+
+  /// phi of the center of the tile in sPHENIX coordinate syste
+  /// depends on internal parameters mPP, mTT, mSN
+  //--------- obsolete (always the plan; that's why it was private)  double GetPhiCenter();
+  /// the inner and outer extent of the tile in the radial direction
+  /// depends on internal parameters mPP, mTT, mSN
+  //--------- obsolete (always the plan; that's why it was private)  void     GetRminRmax(double *Rmin, double *Rmax);
+  /// the "tile row" of the tile.  Row = [1,16]
+  /// depends on internal parameter mTT
+  short Row();
+
+  /// given the uniqueID of a tile (uniqueID = sign*(100*PP+TT) where sign=+1/-1 for North/South wheel
+  /// this sets the internal parameters mPP, mTT, and mSN
+  void SetPpTtSn(short uniqueID);
+
+  /// center of the tile in sPHENIX coordinate system
+  /// depends on internal parameters mPP, mTT, mSN
+  TVector3 TileCenter();
+
+  /// returns a random point somewhere on the tile.
+  /// assumes a uniform hit density
+  /// this is very useful for calculating things like dN/deta
+  /// depends on internal parameters mPP, mTT, mSN
+  TVector3 RandomPointOnTile();
+
+  /// returns the corners of the tile in the plane of the wheel, in sPHENIX coordinate system
+  /// \param *nCorners   this is a RETURNED value. Number of corners the tile has (TT01 has 5, others have 4)
+  /// \param x           this is a RETURNED values.  x-coordinates of corners
+  /// \param y           this is a RETURNED values.  y-coordinates of corners
+  /// depends on internal parameters mPP, mTT, mSN
+
+  void GetCorners(int* nCorners, double* x, double* y);
+
+  /// returns true if (x,y) lies within the tile.  Assumes z=zWheel
+  /// useful if the user would like to project a track (using straight line of helix or whatever)
+  /// to the plane of the wheel and determine whether it hit a given tile
+  /// \param x    x-coordinate of projected hit
+  /// \param y    y-coordinate of projected hit
+  /// depends on internal parameters mPP, mTT, mSN
+
+  bool IsInTile(double x, double y);
+
+  /// returns a list of (the IDs of) BBC tiles that overlap with a given EPD tile
+  /// \param nOverlappingBbcTiles         *output* parameter: number of BBC tiles that overlaps this EPD tile (even just barely)
+  /// \param BbcTileIDs                   *output* parameter: array of BBC tile IDs
 };
 
 inline bool EpdGeom::IsNorth(short uniqueID) { return uniqueID > 0; }

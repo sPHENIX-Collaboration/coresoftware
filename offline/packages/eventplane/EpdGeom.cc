@@ -67,7 +67,7 @@ void EpdGeom::InitializeGeometry()
   //  Better to waste a little memory than to get confused.
   //
   double DeltaPhiSS = 30.0 * M_PI / 180.0;  // 30 degree supersectors
-  int SN = 0;                               // South
+  short SN = 0;                               // South
   for (int PP = 1; PP < 13; PP++)
   {
     double phiSS = M_PI / 2.0 - (PP - 0.5) * DeltaPhiSS;
