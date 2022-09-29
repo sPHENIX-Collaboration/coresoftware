@@ -3,6 +3,7 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrCluster.h>
 
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
@@ -139,6 +140,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
       else
 	{
 	  /// Otherwise we are using an individual subdetectors container
+
 	  svtxtrack->set_x(trackSeed->get_x());
 	  svtxtrack->set_y(trackSeed->get_y());
 	  svtxtrack->set_z(trackSeed->get_z());
@@ -146,8 +148,59 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode*)
 	  svtxtrack->set_px(trackSeed->get_px(m_clusters,m_tGeometry));
 	  svtxtrack->set_py(trackSeed->get_py(m_clusters,m_tGeometry));
 	  svtxtrack->set_pz(trackSeed->get_pz());
-	  
-	  addKeys(svtxtrack, trackSeed);
+
+          // calculate chisq and ndf
+          double R = 1./fabs(trackSeed->get_qOverR());
+          double X0 = trackSeed->get_X0();
+          double Y0 = trackSeed->get_Y0();
+          double Z0 = trackSeed->get_Z0();
+          double slope = trackSeed->get_slope();
+          std::vector<double> xy_error2;
+          std::vector<double> rz_error2;
+          std::vector<double> xy_residuals;
+          std::vector<double> rz_residuals;
+          std::vector<double> x_circle;
+          std::vector<double> y_circle;
+          std::vector<double> z_line;
+          for(auto c_iter = trackSeed->begin_cluster_keys();
+              c_iter != trackSeed->end_cluster_keys();
+              ++c_iter)
+          {
+            TrkrCluster* c = m_clusters->findCluster(*c_iter);
+            Acts::Vector3 pos = m_tGeometry->getGlobalPosition(*c_iter,c);
+            double x = pos(0);
+            double y = pos(1);
+            double z = pos(2);
+            double r = sqrt(x*x+y*y);
+            double dx = x-X0;
+            double dy = y-Y0;
+            double xy_centerdist = sqrt(dx*dx+dy*dy);
+            // method lifted from ALICEKF::GetCircleClusterResiduals
+            xy_residuals.push_back(xy_centerdist-R);
+            // method lifted from ALICEKF::GetLineClusterResiduals
+            rz_residuals.push_back(fabs(-slope*r+z-Z0)/sqrt(slope*slope+1));
+
+            // ignoring covariance for simplicity
+            xy_error2.push_back(c->getActsLocalError(0,0)+c->getActsLocalError(1,1));
+            rz_error2.push_back(c->getActsLocalError(2,2));
+            double phi = atan2(dy,dx);
+            x_circle.push_back(R*cos(phi)+X0);
+            y_circle.push_back(R*sin(phi)+Y0);
+            z_line.push_back(R*slope+Z0);
+          }
+          double chi2 = 0.;
+          for(unsigned int i=0; i<xy_residuals.size(); i++)
+          {
+            if(std::isnan(xy_error2[i])) xy_error2[i] = 0.01;
+            if(std::isnan(rz_error2[i])) rz_error2[i] = 0.01;
+            // method lifted from GPUTPCTrackParam::Filter
+            chi2 += xy_residuals[i]*xy_residuals[i]/xy_error2[i] + rz_residuals[i]*rz_residuals[i]/rz_error2[i];
+          }
+          svtxtrack->set_chisq(chi2);
+          // GPUTPCTrackParam initially sets NDF to -3 on first cluster and increments by 2 with every application of filter
+          svtxtrack->set_ndf(2*xy_residuals.size()-5);
+
+          addKeys(svtxtrack, trackSeed);
 	  if(m_trackSeedName.find("SiliconTrackSeed") != std::string::npos)
 	    {
 	      svtxtrack->set_silicon_seed(trackSeed);
