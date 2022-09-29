@@ -46,8 +46,10 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
 
   virtual int get_etabin(const double eta) const;
   virtual int get_zbin(const double z) const;
-  virtual int get_phibin(const double phi) const;
+  virtual int get_phibin(const double phi, int side = 0) const;
   virtual int get_phibin_new(const double phi) const;
+  
+  virtual int find_phibin(const double phi, int side = 0) const;
 
   void set_layer(const int i) override { layer = i; }
   void set_binning(const int i) { binning = i; }
