@@ -12,6 +12,8 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/ActsTransformations.h>
 
+#include <trackbase/TpcDefs.h>               // for side
+
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
@@ -45,12 +47,12 @@ int MakeMilleFiles::InitRun(PHCompositeNode *topNode)
   _mille = new Mille(outfilename.c_str()); 
 
   // Create global parameter labels and map of derivatives
-  std::map<int, float> derivativeGL;
-  int index = -1;
 
-  //MVTX
+  //MVTX & INTT
   for(auto mapIter = _tGeometry->maps().m_siliconSurfaceMap.begin(); mapIter !=  _tGeometry->maps().m_siliconSurfaceMap.end(); ++mapIter)
     {
+      auto surf = mapIter->second;
+      Acts::GeometryIdentifier id = surf->geometryId();
       unsigned int layer = id.layer();
       unsigned int sensor = id.sensitive();
       for(int ipar = 0; ipar < 6; ++ipar)
@@ -74,29 +76,36 @@ int MakeMilleFiles::InitRun(PHCompositeNode *topNode)
   // TPC
   for(auto mapIter = _tGeometry->maps().m_tpcSurfaceMap.begin(); mapIter !=  _tGeometry->maps().m_tpcSurfaceMap.end(); ++mapIter)
     {
-      unsigned int layer = id.layer();
-      unsigned int sensor = id.sensitive();
-      for(int ipar = 0; ipar < 6; ++ipar)
+      auto surf_vec = mapIter->second;
+      for(auto& surf : surf_vec)
 	{
-	  int labelGL = layer * 10000 + sensor * 10 + ipar;
-	  if(ipar < 3)
+	  Acts::GeometryIdentifier id = surf->geometryId();
+	  unsigned int layer = id.layer();
+	  unsigned int sensor = id.sensitive();
+	  for(int ipar = 0; ipar < 6; ++ipar)
 	    {
-	      // angles
-	      float derivative = 0.0;  // for now
-	      derivativeGL.insert(std::make_pair(labelGL, derivative));
-	    }
-	  else
-	    {
-	      // translations
-	      float derivative = 0.58;
-	      derivativeGL.insert(std::make_pair(labelGL, derivative));
+	      int labelGL = layer * 10000 + sensor * 10 + ipar;
+	      if(ipar < 3)
+		{
+		  // angles
+		  float derivative = 0.0;  // for now
+		  derivativeGL.insert(std::make_pair(labelGL, derivative));
+		}
+	      else
+		{
+		  // translations
+		  float derivative = 0.58;
+		  derivativeGL.insert(std::make_pair(labelGL, derivative));
+		}
 	    }
 	}
     }
 
   // TPOT
- for(auto mapIter = _tGeometry->maps().m_tpcSurfaceMap.begin(); mapIter !=  _tGeometry->maps().m_tpcSurfaceMap.end(); ++mapIter)
+ for(auto mapIter = _tGeometry->maps().m_mmSurfaceMap.begin(); mapIter !=  _tGeometry->maps().m_mmSurfaceMap.end(); ++mapIter)
     {
+      auto surf = mapIter->second;
+      Acts::GeometryIdentifier id = surf->geometryId();
       unsigned int layer = id.layer();
       unsigned int sensor = id.sensitive();
       for(int ipar = 0; ipar < 6; ++ipar)
@@ -150,7 +159,7 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
   //              array of integer global par labels
   //              residual value (float) z = measurement - track state
   //              sigma of measurement
-  //   After processing all measurements for this track, call _mille->End() to add buffer to file and reset buffer
+  //   After processing all measurements for this track, call _mille->end() to add buffer to file and reset buffer
   // After all tracks are processed, file is closed when Mille destructor is called
 
 
@@ -189,13 +198,14 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	  Acts::Vector3 global  = _tGeometry->getGlobalPosition(cluster_key, cluster);
 
 	  unsigned int trkrId = TrkrDefs::getTrkrId(cluster_key);
-	  unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
 	  // TPC clusters need distortion corrections, silicon and MM's clusters do not
 	  //=========================================================
 	  if(trkrId == TrkrDefs::tpcId)
 	    {
 	      // make all corrections to global position of TPC cluster
+	      unsigned int side = TpcDefs::getSide(cluster_key);
+	      unsigned int crossing = 0; // for now
 	      float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
 	      global[2] = z;
 	      
@@ -222,12 +232,12 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	  float dca = getDCALinePoint(global, state_iter->second);
 
 	  // need standard deviation of measurement
-	  clus_sigma = 0.0;
-	  if(m_cluster_version==3){
+	  float clus_sigma = 0.0;
+	  if(_cluster_version==3){
 	    clus_sigma = sqrt(cluster->getRPhiError()*cluster->getRPhiError() + cluster->getZError() * cluster->getZError());    
-	  }else if(m_cluster_version==4){
+	  }else if(_cluster_version==4){
 	    double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-	    auto para_errors = _ClusErrPara.get_cluster_error(track,cluster,clusRadius,cluster_key);
+	    auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster,clusRadius,cluster_key);
 	    auto exy2 = para_errors.first * Acts::UnitConstants::cm2;
 	    auto ez2 = para_errors.second * Acts::UnitConstants::cm2;
 	    clus_sigma = sqrt(exy2+ez2);
@@ -237,18 +247,18 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	  Surface surf = _tGeometry->maps().getSurface(cluster_key, cluster);
 
 	  // if this is a TPC cluster, check that the corrections did not change the surface
-	  if(trkrid == TrkrDefs::tpcId)
+	  if(trkrId == TrkrDefs::tpcId)
 	    {
-	      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+	      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
 	      TrkrDefs::subsurfkey new_subsurfkey = 0;    
-	      surf = m_tGeometry->get_tpc_surface_from_coords(hitsetkey,  global, new_subsurfkey);
+	      surf = _tGeometry->get_tpc_surface_from_coords(hitsetkey,  global, new_subsurfkey);
 	    }
 	  if(!surf)  { continue; }
 
 	  // The global alignment parameters are given initial values of zero by default
   	  // We identify the global alignment parameters for this surface
 	  Acts::GeometryIdentifier id = surf->geometryId();
-	  unsigned int layer = id.layer();
+	  unsigned int geolayer = id.layer();
 	  unsigned int sensor = id.sensitive();
 
 	  static const int NGL = 6;
@@ -256,17 +266,22 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	  float glbl_derivative[NGL];
 	  for(int ipar=0;ipar<NGL;++ipar)
 	    {
-	      glbl_label[ipar] = layer*1000+sensor*10+ipar;
-	      glbl_derivative[ipar] = derivativeGL.find(glbl_label[ipar]);
+	      glbl_label[ipar] = geolayer*1000+sensor*10+ipar;
+	      glbl_derivative[ipar] = derivativeGL.find(glbl_label[ipar])->second;
 	    }
+
+	  // For now
+	  static const int NLC = 0;
+	  float lcl_derivative[NLC];
+
 	
 	  // Add this measurement to Mille
 	  _mille->mille(NLC, lcl_derivative,
-			NGL, glbl_derivative, glbl_label, dca, sigma)      
+			NGL, glbl_derivative, glbl_label, dca, clus_sigma);
 	    }
 
       // close out this track
-      _mille->End();
+      _mille->end();
       
     }
   
@@ -280,13 +295,14 @@ int MakeMilleFiles::End(PHCompositeNode */*topNode*/)
 
 int  MakeMilleFiles::GetNodes(PHCompositeNode* topNode)
 {
+  /*
   _tpc_geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!_tpc_geom_container)
   {
     std::cout << PHWHERE << " ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
+  */
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
   {
@@ -307,14 +323,14 @@ int  MakeMilleFiles::GetNodes(PHCompositeNode* topNode)
       std::cout << PHWHERE << "Error, can't find acts tracking geometry" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-
+  /*
   // tpc distortion correction
   _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
   if( _dcc )
     { 
       std::cout << "MakeMilleFiles:   found TPC distortion correction container" << std::endl; 
     }
-        
+  */        
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

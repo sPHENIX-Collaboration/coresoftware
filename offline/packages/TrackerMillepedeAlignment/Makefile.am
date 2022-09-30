@@ -17,9 +17,9 @@ AM_LDFLAGS = \
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
-  libtrackalign.la
+  libtrackeralign.la
 
-libtrackalign_la_LIBADD = \
+libtrackeralign_la_LIBADD = \
   -lFROG \
   -lphool \
   -lSubsysReco \
@@ -31,6 +31,8 @@ libtrackalign_la_LIBADD = \
 pkginclude_HEADERS = \
   MakeMilleFiles.h \
   Mille.h
+
+pcmdir = $(libdir)
 
 libtrackeralign_la_SOURCES = \
   MakeMilleFiles.cc \

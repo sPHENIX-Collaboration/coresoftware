@@ -17,8 +17,11 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase_historic/ActsTransformations.h>
+#include <trackbase/ClusterErrorPara.h>
+
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 
 class PHCompositeNode;
 class PHG4TpcCylinderGeomContainer;
@@ -26,7 +29,9 @@ class SvtxTrack;
 class SvtxTrackMap;
 class TrkrCluster;
 class TrkrClusterContainer;
+class TpcDistortionCorrectionContainer;
 class Mille;
+class   ClusterErrorPara;
 
 class MakeMilleFiles : public SubsysReco
 {
@@ -41,18 +46,24 @@ class MakeMilleFiles : public SubsysReco
 
  private:
 
-  Mille *_millie;
+  Mille *_mille;
 
   int GetNodes(PHCompositeNode* topNode);
-  float getDCALinePoint(Acts::Vector3 global, SvtxTrackState* state)
+  float getDCALinePoint(Acts::Vector3 global, SvtxTrackState* state);
 
  /// acts transformation object
-    //  ActsTransformations _transformer;
+  //  ActsTransformations _transformer;
+
+  std::map<int, float> derivativeGL;
   
   /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;
 
   //  PHG4TpcCylinderGeomContainer* _tpc_geom_container = nullptr;
+
+  unsigned int _cluster_version = 4;
+
+  ClusterErrorPara _ClusErrPara;
 
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};
