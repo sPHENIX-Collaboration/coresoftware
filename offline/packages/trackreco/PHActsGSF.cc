@@ -228,14 +228,12 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
 	  if(m_dccAverage) { global = m_distortionCorrection.get_corrected_position( global, m_dccAverage ); }
 	  if(m_dccFluctuation) { global = m_distortionCorrection.get_corrected_position( global, m_dccFluctuation ); }
 	 
-	  // add the global positions to a vector to give to the cluster mover
-	  global_raw.push_back(std::make_pair(key, global));
+
 	}
-      else
-	{
-	  // silicon cluster, no corrections needed
-	  global_raw.push_back(std::make_pair(key, global));
-	}
+      
+      // add the global positions to a vector to give to the cluster mover
+      global_raw.push_back(std::make_pair(key, global));
+
     }	  // end loop over clusters here
   
   // move the cluster positions back to the original readout surface
@@ -246,8 +244,9 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
     {
       TrkrDefs::cluskey cluskey = global_moved[i].first;
       Acts::Vector3 global = global_moved[i].second;
+      auto cluster = m_clusterContainer->findCluster(cluskey);
 
-      Surface surf;
+      Surface surf = m_tGeometry->maps().getSurface(cluskey, cluster);
       TrkrDefs::subsurfkey subsurfkey;
 
       unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
@@ -258,29 +257,10 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
 	  surf = m_tGeometry->get_tpc_surface_from_coords(tpcHitSetKey,
 							  global,
 							  subsurfkey);
-
-	  if(!surf)
-	    {
-	      /// If the surface can't be found, we can't track with it. So 
-	      /// just continue and don't add the cluster to the source links
-	      if(Verbosity() > 0) std::cout << PHWHERE << "Failed to find surface for cluster " << cluskey << std::endl;
-	      continue;
-	    }
-	  
-	  if(Verbosity() > 0)
-	    {
-	      unsigned int side = TpcDefs::getSide(cluskey);       
-	      std::cout << "      global z corrected and moved " << global[2] << " xcorr " << global[0] << " ycorr " << global[1] << " side " << side << " crossing " << crossing
-			<< " cluskey " << cluskey << " subsurfkey " << subsurfkey << std::endl;
-	    }
 	}
-      else
-	{
-	  // silicon cluster, no changes possible
-	  auto cluster = m_clusterContainer->findCluster(cluskey);
-	  subsurfkey = cluster->getSubSurfKey();
-	  surf = m_tGeometry->maps().getSurface(cluskey, cluster);	  
-	}
+        
+      if(!surf)
+	{ continue; }	     
 
       // get local coordinates
       Acts::Vector2 localPos;
@@ -290,28 +270,20 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
 				       normal);
       
       if(local.ok())
-	{
-	  localPos = local.value() / Acts::UnitConstants::cm;
-	}
+	{ localPos = local.value() / Acts::UnitConstants::cm; }
       else
 	{
 	  /// otherwise take the manual calculation
-	  Acts::Vector3 center = surf->center(m_tGeometry->geometry().getGeoContext())/Acts::UnitConstants::cm;
-	  double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-	  double clusphi = atan2(global[1], global[0]);
-	  double rClusPhi = clusRadius * clusphi;
-	  double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
-	  double surfPhiCenter = atan2(center[1], center[0]);
-	  double surfRphiCenter = surfPhiCenter * surfRadius;
-	  double surfZCenter = center[2];
+	  Acts::Vector3 loct = surf->transform(m_tGeometry->geometry().getGeoContext()).inverse() * global;
+	  loct /= Acts::UnitConstants::cm;
 	  
-	  localPos(0) = rClusPhi - surfRphiCenter;
-	  localPos(1) = global[2] - surfZCenter; 
+	  localPos(0) = loct(0);
+	  localPos(1) = loct(1);
 	}
       
-      auto cluster = m_clusterContainer->findCluster(cluskey);
       if(Verbosity() > 0)
 	{
+	  std::cout << " cluster global after mover: " << global << std::endl; 
 	  std::cout << " cluster local X " << cluster->getLocalX() << " cluster local Y " << cluster->getLocalY() << std::endl;
 	  std::cout << " new      local X " << localPos(0) << " new       local Y " << localPos(1) << std::endl;
 	}
@@ -323,14 +295,24 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
       indices[0] = Acts::BoundIndices::eBoundLoc0;
       indices[1] = Acts::BoundIndices::eBoundLoc1;
       Acts::ActsSymMatrix<2> cov = Acts::ActsSymMatrix<2>::Zero();
-      cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
-	cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
-	cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
-	cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
-      cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
-	cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+      if(m_cluster_version==3){
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = 
+	  cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) =
+	  cluster->getActsLocalError(0,1) * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 
+	  cluster->getActsLocalError(1,0) * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = 
+	  cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+      } else if (m_cluster_version==4) {
+	double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+	auto para_errors = _ClusErrPara.get_cluster_error(track,cluster,clusRadius,cluskey);
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
+	cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
+	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
+      }
+
       ActsExamples::Index index = measurements.size();
       
       SourceLink sl(surf->geometryId(), index, cluskey);
