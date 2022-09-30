@@ -30,6 +30,7 @@
 #include <map>                                // for map
 #include <set>                                // for _Rb_tree_const_iterator
 #include <utility>                            // for pair, make_pair
+#include <fstream>
 
 //____________________________________________________________________________..
 MakeMilleFiles::MakeMilleFiles(const std::string &name)
@@ -42,92 +43,14 @@ int MakeMilleFiles::InitRun(PHCompositeNode *topNode)
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  // Instantiate Mille and open output file
-  std::string outfilename = "mille_output_data_file.txt";
-  _mille = new Mille(outfilename.c_str()); 
+  // Instantiate Mille and open output data file
+  std::string data_outfilename = "mille_output_data_file.bin";
+  _mille = new Mille(data_outfilename.c_str()); 
 
-  // Create global parameter labels and map of derivatives
-
-  //MVTX & INTT
-  for(auto mapIter = _tGeometry->maps().m_siliconSurfaceMap.begin(); mapIter !=  _tGeometry->maps().m_siliconSurfaceMap.end(); ++mapIter)
-    {
-      auto surf = mapIter->second;
-      Acts::GeometryIdentifier id = surf->geometryId();
-      unsigned int layer = id.layer();
-      unsigned int sensor = id.sensitive();
-      for(int ipar = 0; ipar < 6; ++ipar)
-	{
-	  int labelGL = layer * 10000 + sensor * 10 + ipar;
-	  if(ipar < 3)
-	    {
-	      // angles
-	      float derivative = 0.0;  // for now
-	      derivativeGL.insert(std::make_pair(labelGL, derivative));
-	    }
-	  else
-	    {
-	      // translations
-	      float derivative = 0.58;
-	      derivativeGL.insert(std::make_pair(labelGL, derivative));
-	    }
-	}
-    }
-
-  // TPC
-  for(auto mapIter = _tGeometry->maps().m_tpcSurfaceMap.begin(); mapIter !=  _tGeometry->maps().m_tpcSurfaceMap.end(); ++mapIter)
-    {
-      auto surf_vec = mapIter->second;
-      for(auto& surf : surf_vec)
-	{
-	  Acts::GeometryIdentifier id = surf->geometryId();
-	  unsigned int layer = id.layer();
-	  unsigned int sensor = id.sensitive();
-	  for(int ipar = 0; ipar < 6; ++ipar)
-	    {
-	      int labelGL = layer * 10000 + sensor * 10 + ipar;
-	      if(ipar < 3)
-		{
-		  // angles
-		  float derivative = 0.0;  // for now
-		  derivativeGL.insert(std::make_pair(labelGL, derivative));
-		}
-	      else
-		{
-		  // translations
-		  float derivative = 0.58;
-		  derivativeGL.insert(std::make_pair(labelGL, derivative));
-		}
-	    }
-	}
-    }
-
-  // TPOT
- for(auto mapIter = _tGeometry->maps().m_mmSurfaceMap.begin(); mapIter !=  _tGeometry->maps().m_mmSurfaceMap.end(); ++mapIter)
-    {
-      auto surf = mapIter->second;
-      Acts::GeometryIdentifier id = surf->geometryId();
-      unsigned int layer = id.layer();
-      unsigned int sensor = id.sensitive();
-      for(int ipar = 0; ipar < 6; ++ipar)
-	{
-	  int labelGL = layer * 10000 + sensor * 10 + ipar;
-	  if(ipar < 3)
-	    {
-	      // angles
-	      float derivative = 0.0;  // for now
-	      derivativeGL.insert(std::make_pair(labelGL, derivative));
-	    }
-	  else
-	    {
-	      // translations
-	      float derivative = 0.58;
-	      derivativeGL.insert(std::make_pair(labelGL, derivative));
-	    }
-	}
-    }
-
-
-  // Write steering file(s) here?
+  // Write the steering file here, and add the data file path to it
+  std::ofstream steering_file("steer.txt");
+  steering_file << data_outfilename.c_str() << std::endl;
+  steering_file.close();
 
   return ret;
 }
@@ -173,112 +96,146 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
     {
       auto track = phtrk_iter->second;
       
-      if (Verbosity() >= 1)
+      if (Verbosity() > 0)
 	{
 	  std::cout << std::endl << __LINE__   << ": Processing track itrack: " << phtrk_iter->first << ": nhits: " << track-> size_cluster_keys()
 		    << ": Total tracks: " << _track_map->size() << ": phi: " << track->get_phi() << std::endl;
 	}
-      
-      // running iterator over track states, used to match a given cluster to a track state
+     
+      // define running iterator over track states, used to match a given cluster to a track state
       auto state_iter = track->begin_states();
 
       // Get all clusters for this track
-      std::vector<Acts::Vector3> globalClusterPositions;
-      std::map<TrkrDefs::cluskey, Acts::Vector3> all_clusters;
-
-      for (auto key_iter = track->begin_cluster_keys();
-	   key_iter != track->end_cluster_keys();
-	   ++key_iter)
+      //      std::vector<Acts::Vector3> globalClusterPositions;
+      //      std::map<TrkrDefs::cluskey, Acts::Vector3> all_clusters;
+      // we get the clusters from the seeds
+      for( const auto& seed: { track->get_silicon_seed(), track->get_tpc_seed() } )
 	{
-	  TrkrDefs::cluskey cluster_key = *key_iter;
-	  auto cluster = _cluster_map->findCluster(cluster_key);
-	  if(!cluster) { continue;}
-
-	  // we want the global cluster positions
-	  Acts::Vector3 global  = _tGeometry->getGlobalPosition(cluster_key, cluster);
-
-	  unsigned int trkrId = TrkrDefs::getTrkrId(cluster_key);
-
-	  // TPC clusters need distortion corrections, silicon and MM's clusters do not
-	  //=========================================================
-	  if(trkrId == TrkrDefs::tpcId)
+	  for (auto key_iter = seed->begin_cluster_keys();
+	       key_iter != seed->end_cluster_keys();
+	       ++key_iter)
 	    {
-	      // make all corrections to global position of TPC cluster
-	      unsigned int side = TpcDefs::getSide(cluster_key);
-	      unsigned int crossing = 0; // for now
-	      float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
-	      global[2] = z;
+	      TrkrDefs::cluskey cluster_key = *key_iter;
+	      std::cout << " looking for cluster key " << cluster_key << std::endl;
+	      auto cluster = _cluster_map->findCluster(cluster_key);
+	      if(!cluster) { continue;}
 	      
-	      // apply distortion corrections
-	      if(_dcc_static) { global = _distortionCorrection.get_corrected_position( global, _dcc_static ); }
-	      if(_dcc_average) { global = _distortionCorrection.get_corrected_position( global, _dcc_average ); }
-	      if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
-	    }
-
-	  // find track state that is the closest to cluster -  assumes that both clusters and states are sorted along r
-	  float clus_radius = sqrt(global[0]*global[0]+global[1]*global[1]);
-	  float dr_min = -1;
-	  for( auto iter = state_iter; iter != track->end_states(); ++iter )
-	    {
-	      const auto dr = std::abs( clus_radius - ( iter->second->get_x()* iter->second->get_x() + iter->second->get_y()* iter->second->get_y())  );
-	      if( dr_min < 0 || dr < dr_min )
+	      // we want the global cluster positions
+	      Acts::Vector3 global  = _tGeometry->getGlobalPosition(cluster_key, cluster);
+	      
+	      unsigned int trkrId = TrkrDefs::getTrkrId(cluster_key);
+	      
+	      // TPC clusters need distortion corrections, silicon and MM's clusters do not
+	      //=========================================================
+	      if(trkrId == TrkrDefs::tpcId)
 		{
-		  state_iter = iter;
-		  dr_min = dr;
-		} else break;
+		  // make all corrections to global position of TPC cluster
+		  unsigned int side = TpcDefs::getSide(cluster_key);
+		  unsigned int crossing = 0; // for now
+		  float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
+		  global[2] = z;
+		  
+		  // apply distortion corrections
+		  if(_dcc_static) { global = _distortionCorrection.get_corrected_position( global, _dcc_static ); }
+		  if(_dcc_average) { global = _distortionCorrection.get_corrected_position( global, _dcc_average ); }
+		  if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
+		}
+	      
+	      // we have our global cluster position, corrected if necessary
+	      // each component of this vector is a measurement
+	      // we need to find the residual and derivative in each coordinate direction
+	      
+	      // find track state that is the closest to cluster -  assumes that both clusters and states are sorted along r
+	      float clus_radius = sqrt(global[0]*global[0]+global[1]*global[1]);
+	      float dr_min = -1;
+	      for( auto iter = state_iter; iter != track->end_states(); ++iter )
+		{
+		  const auto dr = std::abs( clus_radius - ( iter->second->get_x()* iter->second->get_x() + iter->second->get_y()* iter->second->get_y())  );
+		  if( dr_min < 0 || dr < dr_min )
+		    {
+		      state_iter = iter;
+		      dr_min = dr;
+		    } else break;
+		}
+	      
+	      // Use the PCA of the track to the measurement to get the residual
+	      Acts::Vector3 pca = getPCALinePoint(global, state_iter->second);
+	      Acts::Vector3 residual = global - pca;
+	      
+	      if(Verbosity() > 1)
+		{
+		  std::cout << " cluster global " << global(0) << "  " << global(1) << "  " << global(2)
+			    << " track PCA " << pca(0) << "  " << pca(1) << "  " << pca(2) << std::endl;
+		}
+	      
+	      // need standard deviation of measurements
+	      float phi = atan2(global(1), global(0));
+	      Acts::Vector3 clus_sigma(0,0,0);
+	      if(_cluster_version==3)
+		{
+		  clus_sigma(2) = cluster->getZError();
+		  clus_sigma(0) = cluster->getRPhiError() * cos(phi);
+		  clus_sigma(1) = cluster->getRPhiError() * sin(phi);
+		}
+	      else if(_cluster_version==4)
+		{
+		  double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+		  auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster,clusRadius,cluster_key);
+		  float exy2 = para_errors.first * Acts::UnitConstants::cm2;
+		  float ez2 = para_errors.second * Acts::UnitConstants::cm2;
+		  clus_sigma(2) = sqrt(ez2);
+		  clus_sigma(0) = sqrt(exy2) * cos(phi);
+		  clus_sigma(1) = sqrt(exy2) * sin(phi);
+		}
+	      
+	      // Get the surface for this cluster
+	      Surface surf = _tGeometry->maps().getSurface(cluster_key, cluster);
+	      
+	      // if this is a TPC cluster, check that the corrections did not change the surface
+	      if(trkrId == TrkrDefs::tpcId)
+		{
+		  TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+		  TrkrDefs::subsurfkey new_subsurfkey = 0;    
+		  surf = _tGeometry->get_tpc_surface_from_coords(hitsetkey,  global, new_subsurfkey);
+		}
+	      if(!surf)  { continue; }
+
+	      // For now, ignore local pars
+	      static const int NLC = 0;
+	      float lcl_derivative[NLC];
+	      	      
+	      // The global alignment parameters are given initial values of zero by default
+	      // We identify the global alignment parameters for this surface
+	      Acts::GeometryIdentifier id = surf->geometryId();
+	      unsigned int geolayer = id.layer();
+	      unsigned int sensor = id.sensitive();
+	      int label_base = geolayer*1000+sensor*10;
+	      
+	      // Add the measurement separately for each coordinate direction to Mille
+	      // set the derivatives non-zero only for parameters we want to be optimized
+	      // For now, we just want to optimize the translation corrections
+
+	      // These don't change for this track
+	      static const int NGL = 6;
+	      int glbl_label[NGL];
+	      for(int i=0;i<NGL;++i) {glbl_label[i] = label_base + i;}
+	      float glbl_derivative[NGL];
+
+	      // x - relevant global pars are alpha, beta, gamma, dx (ipar 0,1,2,3)
+	      for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
+	      glbl_derivative[3] = 1.0;  // optimize dx
+	      _mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(0), clus_sigma(0));
+	      
+	      // y - relevant global pars are alpha, beta, gamma, dy (ipar 0,1,2,4)
+	      for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
+	      glbl_derivative[4] = 1.0; // optimize dy
+	      _mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(1), clus_sigma(1));
+	      
+	      // z - relevant global pars are alpha, beta, dz (ipar 1,1,2,5)
+	      glbl_derivative[5] = 1.0;  // optimize dz
+	      _mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(2), clus_sigma(2));
 	    }
-	  
-	  // Use the DCA of the track to the measurement as the residual
-	  float dca = getDCALinePoint(global, state_iter->second);
-
-	  // need standard deviation of measurement
-	  float clus_sigma = 0.0;
-	  if(_cluster_version==3){
-	    clus_sigma = sqrt(cluster->getRPhiError()*cluster->getRPhiError() + cluster->getZError() * cluster->getZError());    
-	  }else if(_cluster_version==4){
-	    double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
-	    auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster,clusRadius,cluster_key);
-	    auto exy2 = para_errors.first * Acts::UnitConstants::cm2;
-	    auto ez2 = para_errors.second * Acts::UnitConstants::cm2;
-	    clus_sigma = sqrt(exy2+ez2);
-	  }
-
-	  // Get the surface for this cluster
-	  Surface surf = _tGeometry->maps().getSurface(cluster_key, cluster);
-
-	  // if this is a TPC cluster, check that the corrections did not change the surface
-	  if(trkrId == TrkrDefs::tpcId)
-	    {
-	      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-	      TrkrDefs::subsurfkey new_subsurfkey = 0;    
-	      surf = _tGeometry->get_tpc_surface_from_coords(hitsetkey,  global, new_subsurfkey);
-	    }
-	  if(!surf)  { continue; }
-
-	  // The global alignment parameters are given initial values of zero by default
-  	  // We identify the global alignment parameters for this surface
-	  Acts::GeometryIdentifier id = surf->geometryId();
-	  unsigned int geolayer = id.layer();
-	  unsigned int sensor = id.sensitive();
-
-	  static const int NGL = 6;
-	  int glbl_label[NGL];
-	  float glbl_derivative[NGL];
-	  for(int ipar=0;ipar<NGL;++ipar)
-	    {
-	      glbl_label[ipar] = geolayer*1000+sensor*10+ipar;
-	      glbl_derivative[ipar] = derivativeGL.find(glbl_label[ipar])->second;
-	    }
-
-	  // For now
-	  static const int NLC = 0;
-	  float lcl_derivative[NLC];
-
-	
-	  // Add this measurement to Mille
-	  _mille->mille(NLC, lcl_derivative,
-			NGL, glbl_derivative, glbl_label, dca, clus_sigma);
-	    }
+	}
 
       // close out this track
       _mille->end();
@@ -334,15 +291,17 @@ int  MakeMilleFiles::GetNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-float MakeMilleFiles::getDCALinePoint(Acts::Vector3 global, SvtxTrackState* state)
+Acts::Vector3 MakeMilleFiles::getPCALinePoint(Acts::Vector3 global, SvtxTrackState* state)
 {
   // Approximate track with a straight line consisting of the state position and the vector (px,py,pz)   
 
   Acts::Vector3 track_dir(state->get_px(), state->get_py(), state->get_pz());
+  track_dir /= track_dir.norm(); 
   Acts::Vector3 track_base(state->get_x(), state->get_y(), state->get_z());
 
-  auto num = (global - track_base).cross(track_dir);
-  float dca = num.norm() / track_dir.norm();
+  // The position of the closest point on the line is:
+  // track_base + projection of difference between the point and track_base on the line vector
+  Acts::Vector3 pca = track_base + ( (global - track_base).dot(track_dir) ) * track_dir;
 
-  return dca;
+  return pca;
 }

@@ -1,4 +1,4 @@
-AC_INIT(tpccalib, [1.00])
+AC_INIT(TrackerMillepedeAlignment, [1.00])
 AC_CONFIG_SRCDIR([configure.ac])
 
 AM_INIT_AUTOMAKE

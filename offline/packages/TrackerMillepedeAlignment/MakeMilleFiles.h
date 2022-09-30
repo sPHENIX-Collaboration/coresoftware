@@ -49,7 +49,7 @@ class MakeMilleFiles : public SubsysReco
   Mille *_mille;
 
   int GetNodes(PHCompositeNode* topNode);
-  float getDCALinePoint(Acts::Vector3 global, SvtxTrackState* state);
+  Acts::Vector3 getPCALinePoint(Acts::Vector3 global, SvtxTrackState* state);
 
  /// acts transformation object
   //  ActsTransformations _transformer;
@@ -61,7 +61,7 @@ class MakeMilleFiles : public SubsysReco
 
   //  PHG4TpcCylinderGeomContainer* _tpc_geom_container = nullptr;
 
-  unsigned int _cluster_version = 4;
+  unsigned int _cluster_version = 3;
 
   ClusterErrorPara _ClusErrPara;
 
