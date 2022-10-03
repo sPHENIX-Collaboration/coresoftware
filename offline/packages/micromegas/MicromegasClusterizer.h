@@ -38,7 +38,7 @@ class MicromegasClusterizer : public SubsysReco
 
   //! detector name
   std::string m_detector;
-  int m_cluster_version = 3;
+  int m_cluster_version = 4;
 };
 
 #endif

@@ -6,7 +6,7 @@
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CellDefs.h>
 
-#include <limits.h>
+#include <climits>
 #include <map>
 #include <ostream>
 #include <string>
@@ -80,7 +80,7 @@ int DumpPHG4CellContainer::process_Node(PHNode *myNode)
               << " not implemented in DumpPHG4CellContainer" << std::endl;
       }
 
-      for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
+      for (auto ic = 0; ic < UCHAR_MAX; ic++)
       {
         PHG4Cell::PROPERTY prop_id = static_cast<PHG4Cell::PROPERTY>(ic);
         if (celler->second->has_property(prop_id))

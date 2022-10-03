@@ -17,8 +17,14 @@ class SyncReco : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
 
- protected:
+  void SegmentNumber(int i) {forced_segment = i;}
+
+ private:
   int CreateNodeTree(PHCompositeNode *topNode);
+// just if we need to override the segment for e.g. embedding
+// where we want to reuse hijing files which normally set
+// the segment number
+  int forced_segment = -1;
 };
 
 #endif /* FFAMODULES_SYNCRECO_H */

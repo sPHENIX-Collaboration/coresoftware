@@ -35,6 +35,9 @@ class TrkrClusterv4 : public TrkrCluster
   int isValid() const override;
   PHObject* CloneMe() const override { return new TrkrClusterv4(*this); }
   
+  //! import PHObject CopyFrom, in order to avoid clang warning
+  using PHObject::CopyFrom;
+  
   //! copy content from base class
   void CopyFrom( const TrkrCluster& ) override;
 

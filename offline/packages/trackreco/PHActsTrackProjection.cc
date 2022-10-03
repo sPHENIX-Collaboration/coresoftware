@@ -172,7 +172,7 @@ PHActsTrackProjection::makeTrackParams(SvtxTrack* track)
     for(int j = 0; j < 6; j++)
       { cov(i,j) = track->get_acts_covariance(i,j); }
 
-  return ActsExamples::TrackParameters::create(perigee, m_tGeometry->geometry().geoContext,
+  return ActsExamples::TrackParameters::create(perigee, m_tGeometry->geometry().getGeoContext(),
 					       actsFourPos, momentum,
 					       track->get_charge() / track->get_p(),
 					       cov).value();
@@ -198,7 +198,7 @@ void PHActsTrackProjection::updateSvtxTrack(
   float pathlength = m_caloRadii.find(m_caloTypes.at(caloLayer))->second;
   SvtxTrackState_v1 out(pathlength);
 
-  auto projectionPos = params.position(m_tGeometry->geometry().geoContext);
+  auto projectionPos = params.position(m_tGeometry->geometry().getGeoContext());
   const auto momentum = params.momentum();
   out.set_x(projectionPos.x() / Acts::UnitConstants::cm);
   out.set_y(projectionPos.y() / Acts::UnitConstants::cm);
@@ -292,7 +292,7 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
   if(Verbosity() > 1) {
     std::cout << "Propagating final track fit with momentum: " 
 	      << params.momentum() << " and position " 
-	      << params.position(m_tGeometry->geometry().geoContext)
+	      << params.position(m_tGeometry->geometry().getGeoContext())
 	      << std::endl
 	      << "track fit phi/eta "
 	      << atan2(params.momentum()(1), 
@@ -325,7 +325,7 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
   auto logger = Acts::getDefaultLogger("PHActsTrackProjection", 
 				       logLevel);
   
-  Acts::PropagatorOptions<> options(m_tGeometry->geometry().geoContext,
+  Acts::PropagatorOptions<> options(m_tGeometry->geometry().getGeoContext(),
 				    m_tGeometry->geometry().magFieldContext,
 				    Acts::LoggerWrapper{*logger});
   
@@ -420,7 +420,7 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
       for(const auto& [name, surfPtr] : m_caloSurfaces)
 	{
 	  std::cout << "Cylinder " << name << " has center "
-		    << surfPtr.get()->center(m_tGeometry->geometry().geoContext).transpose()
+		    << surfPtr.get()->center(m_tGeometry->geometry().getGeoContext()).transpose()
 		    << std::endl;
 	}
     }

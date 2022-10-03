@@ -20,6 +20,7 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
+
 #include <cmath>     // for NAN
 #include <iostream>  // for operator<<, basic_ostream
 #include <set>
@@ -57,6 +58,7 @@ int PHG4IHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   {
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode *DetNode = dstNode;
+   
     if (SuperDetector() != "NONE" && !SuperDetector().empty())
     {
       PHNodeIterator iter_dst(dstNode);
@@ -158,6 +160,7 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
   set_default_double_param("size_z", 175.94 * 2);
+  set_default_double_param("Birk_const", 0.07943);
 
   set_default_int_param("light_scint_model", 1);
   set_default_int_param(PHG4HcalDefs::n_towers, 64);
@@ -165,6 +168,15 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
+  const char* Calibroot = getenv("CALIBRATIONROOT");
+  std::string defaultmapfilename;
+  if (Calibroot)
+  {
+    defaultmapfilename = Calibroot;
+    defaultmapfilename += "/HCALIN/tilemap/ihcalgdmlmap09212022.root";
+  }
+  set_default_string_param("MapFileName", defaultmapfilename);
+  set_default_string_param("MapHistoName", "ihcalcombinedgdmlnormtbyt");
 }
 
 void PHG4IHCalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr)

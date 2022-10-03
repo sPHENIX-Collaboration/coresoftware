@@ -55,6 +55,7 @@
 #include <cassert>
 #include <cmath>  // for isfinite, sqrt
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <string>   // for operator<<, string
 #include <utility>  // for pair
@@ -94,20 +95,23 @@ int PHG4OuterHcalSteppingAction::Init()
   m_EnableFieldCheckerFlag = m_Params->get_int_param("field_check");
   if (m_LightScintModelFlag)
   {
-    const char* Calibroot = getenv("CALIBRATIONROOT");
-    if (!Calibroot)
+    std::string mappingfilename(m_Params->get_string_param("MapFileName"));
+    if (mappingfilename.empty())
     {
-      std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+      return 0;
+    }
+    std::string url = XploadInterface::instance()->getUrl("OLD_OUTER_HCAL_TILEMAP", mappingfilename);
+    if (!std::filesystem::exists(url))
+    {
+      std::cout << PHWHERE << " Could not locate " << url << std::endl;
+      std::cout << "use empty filename to ignore mapfile" << std::endl;
       gSystem->Exit(1);
     }
-    std::string mappingfilename(Calibroot);
-    mappingfilename += "/HCALOUT/tilemap/oHCALMaps092021.root";
-    std::string url = XploadInterface::instance()->getUrl("OLD_OUTER_HCAL_TILEMAP", mappingfilename);
     TFile* file = TFile::Open(url.c_str());
-    file->GetObject("hCombinedMap", m_MapCorrHist);
+    file->GetObject(m_Params->get_string_param("MapHistoName").c_str(), m_MapCorrHist);
     if (!m_MapCorrHist)
     {
-      std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;
+      std::cout << "ERROR: could not find Histogram " << m_Params->get_string_param("MapHistoName") << " in " << m_Params->get_string_param("MapFileName") << std::endl;
       gSystem->Exit(1);
       exit(1);  // make code checkers which do not know gSystem->Exit() happy
     }
@@ -328,7 +332,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           const G4TouchableHandle& theTouchable = prePoint->GetTouchableHandle();
           const G4ThreeVector& worldPosition = postPoint->GetPosition();
           G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
-          float lx = (localPosition.x() / cm);
+          float lx = localPosition.x() / cm;
           float lz = fabs(localPosition.z() / cm);  // reverse the sense for towerid<12
 
           // convert to the map bin coordinates:
@@ -339,7 +343,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           if ((lcx >= 1) && (lcx <= m_MapCorrHist->GetNbinsY()) &&
               (lcz >= 1) && (lcz <= m_MapCorrHist->GetNbinsX()))
           {
-            light_yield *= (double) (m_MapCorrHist->GetBinContent(lcz, lcx));
+            light_yield *= m_MapCorrHist->GetBinContent(lcz, lcx);
           }
           else
           {
@@ -384,7 +388,7 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         aTrack->GetTrackStatus() == fStopAndKill)
     {
       // save only hits with energy deposit (or -1 for geantino)
-      if (m_Hit->get_edep())
+      if (m_Hit->get_edep() != 0)
       {
         m_SaveHitContainer->AddHit(layer_id, m_Hit);
         if (m_SaveShower)

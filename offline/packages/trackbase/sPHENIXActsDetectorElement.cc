@@ -12,23 +12,30 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
     {
       Acts::GeometryIdentifier id = surface().geometryId();
 
-      const std::map<Acts::GeometryIdentifier, Acts::Transform3>& map =  ctxt.get<std::map<Acts::GeometryIdentifier, Acts::Transform3>>();
+      unsigned int volume = id.volume(); 
+      unsigned int layer = id.layer(); 
+      unsigned int sphlayer = base_layer_map.find(volume)->second + layer / 2 -1;
+      unsigned int sensor = id.sensitive() - 1;  // Acts sensor ID starts at 1
 
-      auto it = map.find(id);
-      if(it!=map.end())
+      const std::vector<std::vector<Acts::Transform3>>& transformVec 
+	= ctxt.get<std::vector<std::vector<Acts::Transform3>>&>();
+            
+      auto& layerVec = transformVec[sphlayer];    // get the vector of transforms for this layer
+      if(layerVec.size() > sensor)
 	{
-	  const Acts::Transform3& transform = it->second;
-	  return transform;
+	  //std::cout << "sPHENIXActsDetectorElement: return transform:  volume " << volume <<" Acts  layer " << layer << " sensor " << sensor
+	  //	  	    << " sphenix layer " << sphlayer << " layerVec size " << layerVec.size() << std::endl;
+	
+	  return layerVec[sensor];
 	}
-      else
-	{
-	  std::cout << " Alignment transform not found, for identifier " << id << " use construction transform " << std::endl;
-	  const Acts::Transform3& transform = TGeoDetectorElement::transform(ctxt);  // ctxt is unused here
-	  std::cout << "           construction transform: " << std::endl << transform.matrix() << std::endl;      
-	  return transform;
-	}
+      
+      // if we are still here, it was not found
+      std::cout << " Alignment transform not found, for identifier " << id << " use construction transform " << std::endl;
+      const Acts::Transform3& transform = TGeoDetectorElement::transform(ctxt);  // ctxt is unused here
+      //std::cout << "           construction transform: " << std::endl << transform.matrix() << std::endl;      
+      return transform;
     }
-  else
+ else
     {
       // return the construction transform
       const Acts::Transform3& transform = TGeoDetectorElement::transform(ctxt);  // ctxt is unused here
@@ -36,4 +43,5 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
     }
 
 }
+
 

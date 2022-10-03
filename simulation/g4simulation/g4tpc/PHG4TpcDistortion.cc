@@ -26,6 +26,23 @@ namespace
     return x * x;
   }
 
+  // check boundaries in axis
+  /* for the interpolation to work, the value must be within the range of the provided axis, and not into the first and last bin */
+  inline bool check_boundaries( const TAxis* axis, double value )
+  {
+    const auto bin = axis->FindBin( value );
+    return( bin >= 2 && bin < axis->GetNbins() );
+  }
+  
+  // check boundaries in histogram, before interpolation
+  /* for the interpolation to work, the value must be within the range of the provided axis, and not into the first and last bin */
+  inline bool check_boundaries( const TH3* h, double r, double phi, double z )
+  {
+    return check_boundaries( h->GetXaxis(), r ) 
+      && check_boundaries( h->GetYaxis(), phi ) 
+      && check_boundaries( h->GetZaxis(), z );
+  }
+  
 }  // namespace
 
 //__________________________________________________________________________________________________________
@@ -192,7 +209,8 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
     }
     if (hdistortion)
     {
-      _distortion += hdistortion->Interpolate(phi, r, z);
+      if( check_boundaries( hdistortion, phi, r, z ) )
+      { _distortion += hdistortion->Interpolate(phi, r, z); }
     }
     else
     {
@@ -218,7 +236,8 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
     }
     if (hdistortion)
     {
-      _distortion += hdistortion->Interpolate(phi, r, z);
+      if( check_boundaries( hdistortion, phi, r, z ) )
+      { _distortion += hdistortion->Interpolate(phi, r, z); }
     }
     else
     {

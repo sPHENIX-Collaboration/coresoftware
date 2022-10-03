@@ -12,8 +12,8 @@
 #include <cmath>
 #include <iostream>
 #include <climits>
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 TpcClusterMover::TpcClusterMover()
 {
@@ -35,12 +35,12 @@ TpcClusterMover::TpcClusterMover()
     }
 }
 
-void TpcClusterMover::initialize_geometry(PHG4CylinderCellGeomContainer* cellgeo)
+void TpcClusterMover::initialize_geometry(PHG4TpcCylinderGeomContainer* cellgeo)
 {
   
   int layer=0;
-  PHG4CylinderCellGeomContainer::ConstRange layerrange = cellgeo->get_begin_end();
-  for (PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
+  PHG4TpcCylinderGeomContainer::ConstRange layerrange = cellgeo->get_begin_end();
+  for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
        layeriter != layerrange.second;
        ++layeriter)
   {

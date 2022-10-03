@@ -1,7 +1,8 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libphool.la
+  libphool.la \
+  libsph_onnx.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -10,7 +11,8 @@ AM_CPPFLAGS = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 libphool_la_LDFLAGS = \
   -L$(libdir) \
@@ -43,8 +45,12 @@ libphool_la_SOURCES = \
   PHTimeStamp.cc \
   recoConsts.cc
 
+libsph_onnx_la_SOURCES = \
+  onnxlib.cc
+
 pkginclude_HEADERS =  \
   getClass.h \
+  onnxlib.h \
   PHCompositeNode.h \
   PHDataNode.h \
   PHDataNodeIterator.h \
@@ -70,16 +76,26 @@ pkginclude_HEADERS =  \
   PHTypedNodeIterator.h \
   recoConsts.h
 
+libsph_onnx_la_LIBADD = \
+  -lonnxruntime
+
+
 BUILT_SOURCES = \
   testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals
+  testexternals_phool \
+  testexternals_sph_onnx
 
 
-testexternals_SOURCES = testexternals.cc
-testexternals_LDADD = \
+testexternals_phool_SOURCES = testexternals.cc
+testexternals_sph_onnx_SOURCES = testexternals.cc
+
+testexternals_phool_LDADD = \
   libphool.la
+
+testexternals_sph_onnx_LDADD = \
+  libsph_onnx.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

@@ -161,6 +161,7 @@ void PHG4OHCalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
   set_default_double_param("size_z", 304.91 * 2);
+  set_default_double_param("Birk_const", 0.07943);
   set_default_int_param("field_check", 0);
   set_default_int_param("light_scint_model", 1);
 
@@ -169,4 +170,13 @@ void PHG4OHCalSubsystem::SetDefaultParameters()
   set_default_int_param("n_scinti_tiles", 12);
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
+  std::string defaultmapfilename;
+  // const char* Calibroot = getenv("CALIBRATIONROOT");
+  // if (Calibroot)
+  // {
+  //   defaultmapfilename = Calibroot;
+  //   defaultmapfilename += "/HCALOUT/tilemap/oHCALMaps092021.root";
+  // }
+  set_default_string_param("MapFileName", defaultmapfilename);
+  set_default_string_param("MapHistoName", "hCombinedMap");
 }

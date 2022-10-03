@@ -1,7 +1,7 @@
 /*!
  *  \file		PHActsTrkFitter.h
  *  \brief		Refit SvtxTracks with Acts.
- *  \details	Refit SvtxTracks with Acts
+ *  \details	        Refit SvtxTracks with Acts
  *  \author		Joe Osborn, Tony Frawley <afrawley@fsu.edu>
  */
 
@@ -209,7 +209,7 @@ class PHActsTrkFitter : public SubsysReco
   TH1 *h_updateTime = nullptr;
   TH1 *h_stateTime = nullptr;
   TH1 *h_rotTime = nullptr;
-  int m_cluster_version = 3;
+  int m_cluster_version = 4;
 };
 
 #endif
