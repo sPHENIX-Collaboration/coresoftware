@@ -97,7 +97,7 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/,
         double sec_min_phi = sec_max_phi - SectorPhi[iregion];
         sector_min_Phi[zside].push_back(sec_min_phi);
         sector_max_Phi[zside].push_back(sec_max_phi);
-        //std::cout << "R" << iregion << " sector " << isector << ": "<< sec_min_phi << " < phi < " << sec_max_phi  << std::endl;
+        std::cout << "R" << iregion << " sector " << isector << ": "<< sec_min_phi << " < phi < " << sec_max_phi  << std::endl;
         sector_min_Phi_sectors[zside][iregion].push_back(sec_min_phi);
         sector_max_Phi_sectors[zside][iregion].push_back(sec_max_phi);
   
@@ -141,6 +141,8 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/,
       }
       layerseggeo->set_thickness(r_length);
       layerseggeo->set_radius(current_r+r_length/2);
+      
+      std::cout<< current_r << " < R < " << current_r+r_length << std::endl;
 
       layerseggeo->set_binning(PHG4CellDefs::sizebinning);
       layerseggeo->set_zbins(NTBins);
@@ -214,22 +216,17 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
     double daR = 0; 
     if(iregion==0 || iregion==2){
       daR=1.4;//1.4cm edge to collect electrons from
-      //daPhi= sector_min_Phi_sectors[side][iregion] - sector_max_Phi_sectors[side][2];
     }else{
       daR = MinRadius[iregion]-MaxRadius[iregion-1];
     }
     if ( rad_gem <= MinRadius[iregion] && rad_gem >= MinRadius[iregion]-daR){
-      //std::cout<< "daR = " << daR <<std::endl;
-      //std::cout<< "R before" << rad_gem << std::endl;
       if( rad_gem <= MinRadius[iregion]-daR/2){
         rad_gem -= rad_gem - (MinRadius[iregion] - daR ); 
       }else{
         rad_gem += MinRadius[iregion] - rad_gem; 
       }
-      //std::cout<< "R after" << rad_gem << std::endl;
 
     }
-    //if (rad_gem < MaxRadius[iregion] && rad_gem > MinRadius[iregion]) p_region = iregion;
 
   }
 
@@ -311,9 +308,23 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
     double pad_share = pad_phibin_share[ipad];
     norm1 += pad_share;
   }
-  if(norm1!=0){//eshulga temporary solution
+  if(norm1!=0){//eshulga temporary solution  
     for (unsigned int iphi = 0; iphi < pad_phibin.size(); ++iphi)
       pad_phibin_share[iphi] /= norm1;
+  }else{
+    //for (int isector = 0; isector < NSectors; ++isector){
+    //  for (int iregion = 0; iregion < 3; ++iregion)
+    //  {
+    //    std::cout << sector_min_Phi_sectors[side][iregion][isector] << " < phi < " << sector_max_Phi_sectors[side][iregion][isector] << std::endl;
+    //  }
+    //}
+    for (unsigned int ipad = 0; ipad < pad_phibin.size(); ++ipad)
+    {
+      std::cout << "ipad = " << ipad << "  pad_phibin_share[ipad] = " << pad_phibin_share[ipad] << std::endl;
+    }
+    std::cout << "  rad_gem = " << rad_gem << std::endl;
+    std::cout << "  phi = " << phi << std::endl;
+
   }//eshulga
   // Distribute the charge between the pads in t
   //====================================
@@ -485,11 +496,14 @@ double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double p
             new_phi = max_phi+PhiBinWidth[p_region]/5;
           }
 
+
          }
 
       }
     }
-
+    if(new_phi<sector_min_Phi_sectors[side][p_region][11] && new_phi>=-M_PI){
+      new_phi += 2*M_PI;
+    }
   return new_phi;
 }
 void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &phibin_pad, std::vector<double> &phibin_pad_share)
@@ -533,6 +547,10 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
   using PadParameterSet = std::array<double, 2>;
   std::array<PadParameterSet, 10> pad_parameters;
   std::array<int, 10> pad_keep;
+
+
+  // Now make a loop that steps through the charge distribution and evaluates the response at that point on each pad
+  std::array<double, 10> overlap = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
   for (int ipad = 0; ipad <= npads; ipad++)
   {
     int pad_now = phibin_low + ipad;
@@ -540,24 +558,35 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
     if (pad_now >= phibins) pad_now -= phibins;
 
     pad_keep[ipad] = pad_now;
-    const double rphi_pad_now = LayerGeom->get_phicenter(pad_now) * radius;
+    double phi_now = LayerGeom->get_phicenter(pad_now);
+    const double rphi_pad_now = phi_now * radius;
     pad_parameters[ipad] = {{pad_rphi / 2.0, rphi_pad_now}};
+    //std::cout<< "PHG4TpcPadPlaneReadout::populate_zigzag_phibins ipad = " << ipad << " rphi_pad_now = " << rphi_pad_now <<" pad_now = " << pad_now << " LayerGeom->get_phicenter(pad_now) = " << LayerGeom->get_phicenter(pad_now)  <<std::endl;
 
     if (Verbosity() > 1000)
       if (layernum == print_layer)
         std::cout << " zigzags: make fpad for ipad " << ipad << " pad_now " << pad_now << " pad_rphi/2 " << pad_rphi / 2.0
                   << " rphi_pad_now " << rphi_pad_now << std::endl;
-  }
+  //}
 
-  // Now make a loop that steps through the charge distribution and evaluates the response at that point on each pad
-  std::array<double, 10> overlap = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
   // use analytic integral
-  for (int ipad = 0; ipad <= npads; ipad++)
-  {
-    const double pitch = pad_parameters[ipad][0];
-    const double x_loc = pad_parameters[ipad][1] - rphi;
-    const double sigma = cloud_sig_rp;
+  //for (int ipad = 0; ipad <= npads; ipad++)
+  //{
+    //const double pitch = pad_parameters[ipad][0];
+    //const double x_loc = pad_parameters[ipad][1] - rphi;
+    //const double sigma = cloud_sig_rp;
+
+    const double pitch = pad_rphi / 2.0;//eshulga
+    double x_loc_tmp = rphi_pad_now - rphi;//eshulga
+    const double sigma = cloud_sig_rp;//eshulga
+    if(phi<-M_PI/2 && phi_now>0){
+      x_loc_tmp = (phi_now - 2*M_PI) * radius - rphi;
+    }
+    if(phi>M_PI/2 && phi_now<0){
+      x_loc_tmp = (phi_now + 2*M_PI) * radius - rphi;
+    }
+    const double x_loc = x_loc_tmp;
 
     // calculate fraction of the total charge on this strip
     /* 
@@ -567,6 +596,11 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
     overlap[ipad] =
         (pitch - x_loc) * (std::erf(x_loc / (M_SQRT2 * sigma)) - std::erf((x_loc - pitch) / (M_SQRT2 * sigma))) / (pitch * 2) + (pitch + x_loc) * (std::erf((x_loc + pitch) / (M_SQRT2 * sigma)) - std::erf(x_loc / (M_SQRT2 * sigma))) / (pitch * 2) + (gaus(x_loc - pitch, sigma) - gaus(x_loc, sigma)) * square(sigma) / pitch + (gaus(x_loc + pitch, sigma) - gaus(x_loc, sigma)) * square(sigma) / pitch;
 
+    //if(overlap[ipad]==0) {
+      //std::cout<< "PHG4TpcPadPlaneReadout::populate_zigzag_phibins ipad = " << ipad << " overlap[ipad] = " << overlap[ipad] <<" pitch = " << pitch << " x_loc = " << x_loc << " sigma = " << sigma <<std::endl;
+      //std::cout<< "PHG4TpcPadPlaneReadout::populate_zigzag_phibins pitch = pad_parameters[ipad][0]" << pad_parameters[ipad][0] << std::endl;
+      //std::cout<< "PHG4TpcPadPlaneReadout::populate_zigzag_phibins x_loc = pad_parameters[ipad][1] - rphi" << pad_parameters[ipad][1] << " - " << rphi << std::endl;
+    //}
   }
 
   // now we have the overlap for each pad
@@ -575,11 +609,11 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
     phibin_pad.push_back(pad_keep[ipad]);
     phibin_pad_share.push_back(overlap[ipad]);
     if (rad_gem < output_radius) std::cout << "         zigzags: for pad " << ipad << " integral is " << overlap[ipad] << std::endl;
-    if(isnan(overlap[ipad])){
-      std::cout << "PHG4TpcPadPlaneReadout::populate_zigzag_phibins   2" << 
-      " ipad = " << ipad << 
-      " overlap[ipad] = " << overlap[ipad] << std::endl;
-      }
+    //if(isnan(overlap[ipad])){
+    //  std::cout << "PHG4TpcPadPlaneReadout::populate_zigzag_phibins   2" << 
+    //  " ipad = " << ipad << 
+    //  " overlap[ipad] = " << overlap[ipad] << std::endl;
+    //  }
    }
 
   return;
