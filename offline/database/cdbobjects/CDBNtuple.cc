@@ -10,8 +10,7 @@
 
 CDBNtuple::CDBNtuple(const std::string &fname)
   : m_Filename(fname)
-{
-}
+{}
 
 CDBNtuple::~CDBNtuple()
 {
