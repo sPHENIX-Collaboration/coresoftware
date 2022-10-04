@@ -11,7 +11,8 @@ AM_CPPFLAGS = \
 
 libcdbobjects_la_SOURCES = \
   CDBNtuple.cc \
-  CDBNtupleTest.cc
+  CDBNtupleTest.cc \
+  CDBTTree.cc
 
 libcdbobjects_la_LDFLAGS = \
   -L$(libdir) \
@@ -29,7 +30,8 @@ libcdbobjects_la_LIBADD = \
 
 pkginclude_HEADERS = \
   CDBNtuple.h \
-  CDBNtupleTest.h
+  CDBNtupleTest.h \
+  CDBTTree.h
 
 ################################################
 # linking tests
