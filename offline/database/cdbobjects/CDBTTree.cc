@@ -1,5 +1,7 @@
 #include "CDBTTree.h"
 
+#include <phool/phool.h>
+
 #include <TFile.h>
 #include <TTree.h>
 #include <TSystem.h>
@@ -7,6 +9,7 @@
 #include <TTreeReaderValue.h>
 
 #include <iostream>
+#include <limits>
 
 CDBTTree::CDBTTree(const std::string &fname)
   : m_Filename(fname)
@@ -178,10 +181,6 @@ void CDBTTree::Print()
       }
     }
   }
-    // if (!m_FloatEntryMap.empty())
-    // {
-    //   std::cout << std::endl;
-    // }
   if (!m_SingleFloatEntryMap.empty())
   {
     std::cout << "Number of single float fields: " << m_SingleFloatEntryMap.size() << std::endl;
@@ -193,10 +192,15 @@ void CDBTTree::Print()
   if (!m_SingleDoubleEntryMap.empty())
   {
     std::cout << "Number of single double fields: " << m_SingleDoubleEntryMap.size() << std::endl;
+// some acrobatics to restore the old state of cout after changing the precision for double printout
+    std::ios oldState(nullptr);
+    oldState.copyfmt(std::cout);
+    std::cout.precision(std::numeric_limits< double >::max_digits10);
     for (auto &field : m_SingleDoubleEntryMap)
     {
       std::cout << field.first << " value " << field.second << std::endl;
     }
+    std::cout.copyfmt(oldState);
   }
   if (!m_SingleIntEntryMap.empty())
   {
@@ -240,12 +244,43 @@ void CDBTTree::LoadCalibrations()
     TIter iter(branches);
     while(TBranch *thisbranch = static_cast<TBranch *> (iter.Next()))
     {
-      float val;
-      m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(),&val);
-      thisbranch->GetEntry(0);
-      m_SingleFloatEntryMap.insert(std::make_pair(thisbranch->GetName(), val));
+      // this convoluted expression returns the data type of a split branch
+      std::string DataType = thisbranch->GetLeaf(thisbranch->GetName())->GetTypeName();
+      if (DataType == "Float_t")
+      {
+	auto itermap =  m_SingleFloatEntryMap.insert(std::make_pair(thisbranch->GetName(),NAN));
+	m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+      }
+      else if (DataType == "Double_t")
+      {
+	auto itermap =  m_SingleDoubleEntryMap.insert(std::make_pair(thisbranch->GetName(),NAN));
+	m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+      }
+      else if (DataType == "Int_t")
+      {
+	auto itermap =  m_SingleIntEntryMap.insert(std::make_pair(thisbranch->GetName(),-99999));
+	m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+      }
+      else if (DataType == "ULong_t")
+      {
+	auto itermap =  m_SingleUInt64EntryMap.insert(std::make_pair(thisbranch->GetName(),~0x0));
+	m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+      }
+      else
+      {
+	std::cout << PHWHERE << " data type " << DataType
+		  << " in " << m_TTree[SingleEntries]->GetName()
+		  << " from " << f->GetName()
+                  << " not implemented" << std::endl;
+	gSystem->Exit(1);
+      }
+//      thisbranch->Print();
+      // m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(),&val);
+      // thisbranch->GetEntry(0);
+      // m_SingleFloatEntryMap.insert(std::make_pair(thisbranch->GetName(), val));
     }
   }
+m_TTree[SingleEntries]->GetEntry(0);
   if (m_TTree[MultipleEntries] != nullptr)
   {
     TObjArray *branches =  m_TTree[MultipleEntries]->GetListOfBranches();
