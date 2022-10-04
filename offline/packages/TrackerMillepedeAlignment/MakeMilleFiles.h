@@ -18,6 +18,7 @@
 #include <trackbase/ActsGeometry.h>
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDistortionCorrection.h>
@@ -42,7 +43,8 @@ class MakeMilleFiles : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
-
+  void set_datafile_name(std::string file) { data_outfilename = file;}
+  void set_steeringfile_name(std::string file) { steering_outfilename = file;}
 
  private:
 
@@ -50,20 +52,24 @@ class MakeMilleFiles : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
   Acts::Vector3 getPCALinePoint(Acts::Vector3 global, SvtxTrackState* state);
-
- /// acts transformation object
-  //  ActsTransformations _transformer;
+  Acts::Vector3 getDerivativeAlignmentAngle(int angleIndex, Acts::Vector3 global, TrkrDefs::cluskey cluskey, TrkrCluster* cluster, Surface surface);
 
   std::map<int, float> derivativeGL;
-  
+  std::string  data_outfilename = ("mille_output_data_file.bin");  
+  std::string  steering_outfilename = ("steer.txt");  
+
   /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;
-
-  //  PHG4TpcCylinderGeomContainer* _tpc_geom_container = nullptr;
 
   unsigned int _cluster_version = 3;
 
   ClusterErrorPara _ClusErrPara;
+  float _delta_alpha = 0.1;
+  float _delta_beta = 0.1;
+  float _delta_gamma = 0.2;
+  //float _delta_alpha = 0.0;
+  //float _delta_beta = 0.0;
+  //float _delta_gamma = 0.0;
 
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};
