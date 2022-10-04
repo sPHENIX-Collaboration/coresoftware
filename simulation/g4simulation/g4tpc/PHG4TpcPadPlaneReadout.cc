@@ -569,7 +569,6 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
                   << " rphi_pad_now " << rphi_pad_now << std::endl;
   //}
 
-
   // use analytic integral
   //for (int ipad = 0; ipad <= npads; ipad++)
   //{
