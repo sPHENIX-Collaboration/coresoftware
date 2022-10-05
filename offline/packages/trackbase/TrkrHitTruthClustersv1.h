@@ -7,12 +7,13 @@
  * @date April 2022
  */
 
-#include "TrkrDefs.h"
 #include "TrkrHitTruthClusters.h"
 
-#include <iostream>              // for cout, ostream
+#include "TrkrDefs.h"
+
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>               // for pair
+#include <utility>  // for pair
 
 /**
  * @brief Association object for PHG4Cells contributiong to TrkrHits
@@ -21,25 +22,21 @@
  */
 class TrkrHitTruthClustersv1 : public TrkrHitTruthClusters
 {
-  
-  public:
-
+ public:
   TrkrHitTruthClustersv1() = default;
- 
-  void Reset() override;
 
-  void print_clusters (std::ostream &os = std::cout) const override;
+  void Reset() override;
+  void identify(std::ostream& os = std::cout) const override {print_clusters(os);}
+
+  void print_clusters(std::ostream& os = std::cout) const override;
 
   void push_truth_cluster(const int track_id,
-          const std::array<double,8>& phi_eta_z_data, const double sum_E) override;
+                          const std::array<double, 8>& phi_eta_z_data, const double sum_E) override;
 
-  private:
-  
+ private:
   MMap m_map;
-  
-  ClassDefOverride(TrkrHitTruthClustersv1, 1);
 
+  ClassDefOverride(TrkrHitTruthClustersv1, 1);
 };
 
-#endif //TRACKBASE_TRKRHITTRUTHCLUSTERS_H
-
+#endif  //TRACKBASE_TRKRHITTRUTHCLUSTERS_H

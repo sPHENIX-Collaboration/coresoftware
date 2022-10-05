@@ -19,8 +19,8 @@
 #include <trackbase/MvtxDefs.h>
 
 // sPHENIX Geant4 includes
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 //
@@ -1801,7 +1801,7 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
 {
 
   auto micromegasgeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
-  auto cellgeos = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  auto cellgeos = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   auto laddergeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   auto mapsladdergeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
@@ -1821,9 +1821,9 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
   // tpc
   if (cellgeos)
   {
-    PHG4CylinderCellGeomContainer::ConstRange layerrange =
+    PHG4TpcCylinderGeomContainer::ConstRange layerrange =
         cellgeos->get_begin_end();
-    for (PHG4CylinderCellGeomContainer::ConstIterator layeriter =
+    for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter =
              layerrange.first;
          layeriter != layerrange.second; ++layeriter)
     {
@@ -1884,12 +1884,12 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode* topNode)
   // tpc
   if (cellgeos)
   {
-    PHG4CylinderCellGeomContainer::ConstRange begin_end =
+    PHG4TpcCylinderGeomContainer::ConstRange begin_end =
         cellgeos->get_begin_end();
-    PHG4CylinderCellGeomContainer::ConstIterator miter = begin_end.first;
+    PHG4TpcCylinderGeomContainer::ConstIterator miter = begin_end.first;
     for (; miter != begin_end.second; miter++)
     {
-      PHG4CylinderCellGeom* geo = miter->second;
+      PHG4TpcCylinderGeom* geo = miter->second;
 
       _radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
           geo->get_radius() + 0.5 * geo->get_thickness();

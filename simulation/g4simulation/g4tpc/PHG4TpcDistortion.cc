@@ -261,9 +261,7 @@ double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double
     if (hdistortion)
     {
       if( check_boundaries( hdistortion, phi, r, z ) )
-      { 
-        _distortion += hdistortion->Interpolate(phi, r, z); 
-      }
+      { _distortion += hdistortion->Interpolate(phi, r, z); }
     }
     else
     {

@@ -120,6 +120,14 @@ TrkrClusterContainerv4::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCl
   }
 }
 
+TrkrClusterContainerv4::ConstRange
+TrkrClusterContainerv4::getClusters() const {
+  std::cout << "deprecated function in TrkrClusterContainerv4, user getClusters(TrkrDefs:hitsetkey)" 
+      << std::endl; 
+    TrkrClusterContainerv4::Map* dummy_map = new TrkrClusterContainerv4::Map();
+    return std::make_pair(dummy_map->end(),dummy_map->end());
+}
+
 //_________________________________________________________________
 TrkrClusterContainerv4::ConstRange
 TrkrClusterContainerv4::getClusters(TrkrDefs::hitsetkey hitsetkey)

@@ -22,7 +22,7 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <micromegas/MicromegasDefs.h>
 
@@ -119,7 +119,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
     }		 
 
    auto cellgeo =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
   if (cellgeo)
   {
@@ -472,6 +472,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       if(!cluster)
 	{
 	  if(Verbosity() > 0) std::cout << "Failed to get cluster with key " << key << " for track " << m_seedMap->find(track) << std::endl;
+    else std::cout<< "PHActsTrkFitter :: Key: "<< key << " for track " << m_seedMap->find(track) <<std::endl;
 	  continue;
 	}
 
@@ -582,11 +583,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	  if(_dcc_average) { global = _distortionCorrection.get_corrected_position( global, _dcc_average ); }
 	  if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
 	}
-      else
-	{
-	  // silicon cluster or MM's cluster, no corrections needed
-	}
-
+   
       if(Verbosity() > 0)
 	{
 	  std::cout << " zinit " << global[2] << " xinit " << global[0] << " yinit " << global[1] << " side " << side << " crossing " << crossing 
@@ -599,7 +596,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
     }	  // end loop over clusters here
   
   // move the cluster positions back to the original readout surface
-  std::vector<std::pair<TrkrDefs::cluskey,Acts::Vector3>> global_moved = _clusterMover.processTrack(global_raw);
+  auto global_moved = _clusterMover.processTrack(global_raw);
   
   // loop over global positions returned by cluster mover
   for(int i=0; i<global_moved.size(); ++i)
@@ -675,6 +672,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
 	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
       }
+
       ActsExamples::Index index = measurements.size();
       
       SourceLink sl(surf->geometryId(), index, cluskey);

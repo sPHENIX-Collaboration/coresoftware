@@ -12,24 +12,21 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
     {
       Acts::GeometryIdentifier id = surface().geometryId();
 
-      unsigned int layer = id.layer(); 
       unsigned int volume = id.volume(); 
+      unsigned int layer = id.layer(); 
       unsigned int sphlayer = base_layer_map.find(volume)->second + layer / 2 -1;
+      unsigned int sensor = id.sensitive() - 1;  // Acts sensor ID starts at 1
 
-      const std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>& transformMap 
-	= ctxt.get<std::map<unsigned int, std::map<Acts::GeometryIdentifier, Acts::Transform3>>&>();
+      const std::vector<std::vector<Acts::Transform3>>& transformVec 
+	= ctxt.get<std::vector<std::vector<Acts::Transform3>>&>();
             
-      auto it = transformMap.find(sphlayer);    // get an iterator to the map for this layer
-      if(it != transformMap.end())
+      auto& layerVec = transformVec[sphlayer];    // get the vector of transforms for this layer
+      if(layerVec.size() > sensor)
 	{
-	  //std::cout << "sPHENIXActsDetectorElement: return transform for volume " << volume <<"  layer " << layer 
-	  //	    << " sphenix layer " << sphlayer << " layer map size " << it->second.size() << std::endl;
+	  //std::cout << "sPHENIXActsDetectorElement: return transform:  volume " << volume <<" Acts  layer " << layer << " sensor " << sensor
+	  //	  	    << " sphenix layer " << sphlayer << " layerVec size " << layerVec.size() << std::endl;
 	
-	  auto lyr_mapit = it->second.find(id);     //iterator to the map entry for this surface
-	  if(lyr_mapit != it->second.end())
-	    {
-	      return lyr_mapit->second;
-	    }
+	  return layerVec[sensor];
 	}
       
       // if we are still here, it was not found

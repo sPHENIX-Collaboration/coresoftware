@@ -31,7 +31,7 @@
 
 class PHCompositeNode;
 class PHG4CylinderGeomContainer;
-class PHG4CylinderCellGeomContainer;
+class PHG4TpcCylinderGeomContainer;
 class TGeoManager;
 class TGeoNode;
 class TGeoVolume;
@@ -159,7 +159,7 @@ class MakeActsGeometry : public SubsysReco
   PHG4CylinderGeomContainer* m_geomContainerMvtx = nullptr;
   PHG4CylinderGeomContainer* m_geomContainerIntt = nullptr;
   PHG4CylinderGeomContainer* m_geomContainerMicromegas = nullptr;
-  PHG4CylinderCellGeomContainer* m_geomContainerTpc = nullptr;
+  PHG4TpcCylinderGeomContainer* m_geomContainerTpc = nullptr;
   TGeoManager* m_geoManager = nullptr;
 
   bool m_useField = true;
