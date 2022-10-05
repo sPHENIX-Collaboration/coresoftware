@@ -6,7 +6,6 @@
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
-
 #include <g4detectors/PHG4DetectorGroupSubsystem.h>  // for PHG4DetectorGrou...
 
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
@@ -189,6 +188,8 @@ void PHG4InttSubsystem::SetDefaultParameters()
                              7.188 - 36e-4, 7.732 - 36e-4, 9.680 - 36e-4, 10.262 - 36e-4,
                              12.676, 13.179};  // radius of center of sensor for layer default, new 30/05/2020
 
+  double offsetphi[4] = {-0.5 * 360.0 / nladder[0+2], 0.0, -0.5 * 360.0 / nladder[2+2], 0.0 }; // the final configuration, July/09/202
+ 
   auto detid = GetDetIds();  // get pair of iterators to begin/end of set<int> of detids
   for (auto detiter = detid.first; detiter != detid.second; ++detiter)
   {
@@ -199,7 +200,8 @@ void PHG4InttSubsystem::SetDefaultParameters()
     set_default_int_param(*detiter, "nladder", nladder[*detiter]);  // ladders per layer
     set_default_double_param(*detiter, "sensor_radius", sensor_radius[*detiter]);
     // These offsets should be kept at zero in the new design
-    set_default_double_param(*detiter, "offsetphi", 0.);
+    //  set_default_double_param(*detiter, "offsetphi", 0.);// obsolete
+    set_default_double_param(*detiter, "offsetphi", offsetphi[*detiter] );
     set_default_double_param(*detiter, "offsetrot", 0.);
 
     // 	sitrack->set_int_param(i, "laddertype", laddertype[i]);

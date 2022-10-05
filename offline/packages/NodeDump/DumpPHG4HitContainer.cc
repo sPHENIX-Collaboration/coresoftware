@@ -46,7 +46,7 @@ int DumpPHG4HitContainer::process_Node(PHNode *myNode)
         *fout << "z(" << i << "): " << hiter->second->get_z(i) << std::endl;
         *fout << "t(" << i << "): " << hiter->second->get_t(i) << std::endl;
       }
-      for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
+      for (auto ic = 0; ic < UCHAR_MAX; ic++)
       {
         PHG4Hit::PROPERTY prop_id = static_cast<PHG4Hit::PROPERTY>(ic);
         if (hiter->second->has_property(prop_id))
