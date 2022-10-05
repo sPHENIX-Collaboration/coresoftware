@@ -154,7 +154,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   {
     return;
   }
-  std::set<double>::const_iterator it = xvals.lower_bound(x);
+  std::set<float>::const_iterator it = xvals.lower_bound(x);
   if (it == xvals.begin())
   {
     std::cout << "x too small - outside range: " << x / cm << std::endl;
@@ -196,7 +196,7 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
     ykey_save = ykey[0];
     zkey_save = zkey[0];
 
-    std::map<boost::tuple<double, double, double>, boost::tuple<double, double, double> >::const_iterator magval;
+    std::map<boost::tuple<float, float, float>, boost::tuple<float, float, float> >::const_iterator magval;
     trio key;
     for (int i = 0; i < 2; i++)
     {

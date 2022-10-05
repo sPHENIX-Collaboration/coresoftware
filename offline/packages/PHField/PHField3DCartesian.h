@@ -44,11 +44,11 @@ class PHField3DCartesian : public PHField
   mutable int cache_hits = 0;
   mutable int cache_misses = 0;
 
-  typedef boost::tuple<double, double, double> trio;
-  std::map<boost::tuple<double, double, double>, boost::tuple<double, double, double> > fieldmap;
-  std::set<double> xvals;
-  std::set<double> yvals;
-  std::set<double> zvals;
+  typedef boost::tuple<float, float, float> trio;
+  std::map<boost::tuple<float, float, float>, boost::tuple<float, float, float> > fieldmap;
+  std::set<float> xvals;
+  std::set<float> yvals;
+  std::set<float> zvals;
 
 
 };
