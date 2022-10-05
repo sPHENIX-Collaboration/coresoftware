@@ -128,6 +128,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
   m_gain = get_double_param("micromegas_gain");
   m_cloud_sigma = get_double_param("micromegas_cloud_sigma");
   m_diffusion_trans = get_double_param("micromegas_diffusion_trans");
+  m_added_smear_sigma_trans = get_double_param("micromegas_added_smear_sigma_trans");
 
   // printout
   if( Verbosity() )
@@ -139,6 +140,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode *topNode)
       << " m_gain: " << m_gain << "\n"
       << " m_cloud_sigma: " << m_cloud_sigma << "cm\n"
       << " m_diffusion_trans: " << m_diffusion_trans << "cm/sqrt(cm)\n"
+      << " m_added_smear_sigma_trans: " << m_added_smear_sigma_trans << "cm\n"
       << std::endl;
   }
 
@@ -310,6 +312,14 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode *topNode)
           // diffusion occurs in x,z plane with a magnitude 'diffusion' and an angle 'diffusion angle'
           local += TVector3( diffusion*std::cos(diffusion_angle), diffusion*std::sin(diffusion_angle), 0 );
         }
+
+        if( m_added_smear_sigma_trans > 0 )
+        {
+          // additional ad hoc smearing
+          const double added_smear_trans = gsl_ran_gaussian(m_rng.get(), m_added_smear_sigma_trans);
+          const double added_smear_angle = gsl_ran_flat(m_rng.get(), -M_PI, M_PI);
+          local += TVector3( added_smear_trans*std::cos(added_smear_angle), added_smear_trans*std::sin(added_smear_angle), 0 );
+        }
         
         // distribute charge among adjacent strips
         const auto fractions = distribute_charge( layergeom, tileid, { local.x(), local.y() }, m_cloud_sigma );
@@ -455,7 +465,7 @@ PHG4MicromegasHitReco::charge_list_t PHG4MicromegasHitReco::distribute_charge(
     /*
      * find relevant strip coordinate with respect to location
      * in local coordinate, phi segmented view has strips along z and measures along x
-     * in local coordinate, z segmented view has strips along phi and measures along z
+     * in local coordinate, z segmented view has strips along phi and measures along y
      */
     const auto xloc = layergeom->get_segmentation_type() == MicromegasDefs::SegmentationType::SEGMENTATION_PHI ?
       (strip_location.X() - local_coords.X()):
