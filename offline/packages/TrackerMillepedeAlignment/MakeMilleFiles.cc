@@ -186,24 +186,24 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 
 	      // For now, ignore local pars
 	      static const int NLC = 5;
-	      float lcl_derivative[NLC] = {1,1,1,1,1};
+	      float lcl_derivative[NLC] = {0,0,0,0,0};
 	      	      
 	      // The global alignment parameters are given initial values of zero by default
 	      // We identify the global alignment parameters for this surface
 	      Acts::GeometryIdentifier id = surf->geometryId();
-	      unsigned int geolayer = id.layer();
-	      unsigned int sensor = id.sensitive();
-	      int label_base = geolayer*1000+sensor*10;
+	      int label_base = getLabelBase(id);
 	      
+	      static const int NGL = 6;
+	      int glbl_label[NGL];
+	      for(int i=0;i<NGL;++i) 
+		{
+		  glbl_label[i] = label_base + i;
+		  if(Verbosity() > 1) { std::cout << "  glbl " << i << " label " << glbl_label[i] << " "; }
+		}
+	      if(Verbosity() > 1) { std::cout << std::endl; }
+
 	      // Add the measurement separately for each coordinate direction to Mille
 	      // set the derivatives non-zero only for parameters we want to be optimized
-
-	      static const int NGL = 6;
-
-	      // These don't change for this track
-	      int glbl_label[NGL];
-	      for(int i=0;i<NGL;++i) {glbl_label[i] = label_base + i;}
-
 	      float glbl_derivative[NGL];
 	      std::vector<Acts::Vector3> angleDerivs = getDerivativesAlignmentAngles(global, cluster_key, cluster, surf, crossing); 
 
@@ -328,6 +328,8 @@ std::vector<Acts::Vector3> MakeMilleFiles::getDerivativesAlignmentAngles(Acts::V
     {
       // creates transform that adds a perturbation rotation around one axis, uses it to estimate derivative wrt perturbation rotation
 
+      unsigned int trkrId = TrkrDefs::getTrkrId(cluster_key);
+
       Acts::Vector3 derivs(0,0,0);
       Eigen::Vector3d theseAngles(0,0,0);
       theseAngles[iangle] = sensorAngles[iangle];  // set the one we want to be non-zero
@@ -338,7 +340,8 @@ std::vector<Acts::Vector3> MakeMilleFiles::getDerivativesAlignmentAngles(Acts::V
 	  if(ip == 1) { theseAngles[iangle] *= -1; } // test both sides of zero
 
 	  if(Verbosity() > 1)
-	    { std::cout << " sensorAngles " << theseAngles[0] << "  " << theseAngles[1] << "  " << theseAngles[2] << std::endl; }
+	    { std::cout << "     trkrId " << trkrId << " cluster_key " << cluster_key 
+			<< " sensorAngles " << theseAngles[0] << "  " << theseAngles[1] << "  " << theseAngles[2] << std::endl; }
 
 	  Acts::Transform3 perturbationTransformation = makePerturbationTransformation(theseAngles);
 	  Acts::Transform3 overallTransformation = transform * perturbationTransformation;
@@ -346,7 +349,6 @@ std::vector<Acts::Vector3> MakeMilleFiles::getDerivativesAlignmentAngles(Acts::V
 	  // transform the cluster local position to global coords with this additional rotation added
 	  auto x = cluster->getLocalX() * 10;  // mm 
 	  auto y = cluster->getLocalY() * 10;	  
-	  auto trkrId = TrkrDefs::getTrkrId(cluster_key);
 	  if(trkrId == TrkrDefs::tpcId) { y = convertTimeToZ(cluster_key, cluster); }
 	  
 	  Eigen::Vector3d clusterLocalPosition (x,y,0);  // follows the convention for the acts transform of local = (x,z,y)
@@ -370,9 +372,9 @@ std::vector<Acts::Vector3> MakeMilleFiles::getDerivativesAlignmentAngles(Acts::V
 
 	  if(Verbosity() > 1)
 	    {
-	      std::cout << "   finalCoords(0) " << finalCoords(0) << " global(0) " << global(0) << " finalCoords(1) " << finalCoords(1) 
+	      std::cout << "        finalCoords(0) " << finalCoords(0) << " global(0) " << global(0) << " finalCoords(1) " << finalCoords(1) 
 			<< " global(1) " << global(1) << " finalCoords(2) " << finalCoords(2) << " global(2) " << global(2) << std::endl;
-	      std::cout  << "       keeper now:  keeper(0) " << keeper(0) << " keeper(1) " << keeper(1) << " keeper(2) " << keeper(2) << std::endl;
+	      std::cout  << "        keeper now:  keeper(0) " << keeper(0) << " keeper(1) " << keeper(1) << " keeper(2) " << keeper(2) << std::endl;
 	    }
 	}
 
@@ -390,7 +392,7 @@ std::vector<Acts::Vector3> MakeMilleFiles::getDerivativesAlignmentAngles(Acts::V
 
       if(Verbosity() > 1)
 	{
-	  std::cout << "   derivs(0) " << derivs(0) << " derivs(1) " << derivs(1) << " derivs(2) " << derivs(2) << std::endl;
+	  std::cout << "        derivs(0) " << derivs(0) << " derivs(1) " << derivs(1) << " derivs(2) " << derivs(2) << std::endl;
 	}
     }
   
@@ -469,4 +471,75 @@ SvtxTrack::StateIter MakeMilleFiles::getStateIter(Acts::Vector3& global, SvtxTra
 		<< state_iter->second->get_z() << std::endl;
     }  
   return state_iter;
+}
+
+int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
+{
+  unsigned int volume = id.volume(); 
+  unsigned int acts_layer = id.layer();
+  unsigned int layer = base_layer_map.find(volume)->second + acts_layer / 2 -1;
+  unsigned int sensor = id.sensitive() - 1;  // Acts starts at 1
+
+  int label_base = 1;  // Mille wants to start at 1
+
+  // decide what level of grouping we want
+  if(layer < 7)
+    {
+      if(si_group == 0)
+	{
+	  // every sensor has a different label
+	  label_base += layer*1000 + sensor*10;
+	  return label_base;
+	}
+      if(si_group == 1)
+	{
+	  // layer and stave, assign all sensors to the stave number
+	  int stave = sensor / nstaves[layer];
+	  label_base += layer*1000 + stave*10;
+	  return label_base;
+	}
+      if(si_group == 2)
+	// layer only, assign sensor 0 to all sensors
+	label_base += layer*1000 + 0;
+      return label_base;
+    }
+  else if(layer > 6 && layer < 55)
+    {
+      if(tpc_group == 0)
+	{
+	  // every surface has separate label
+	  label_base += layer*1000 + sensor*10;
+	  return label_base;
+	}
+      if(tpc_group == 1)
+	{
+	  // all tpc layers, assign layer 7 and sector number to all layers and subsurfaces
+	  int sector += sensor / 12;   // check!!!!
+	  label_base += 7*1000 + sector*10;
+	  return label_base;
+	}
+      if(tpc_group == 2)
+	{
+	  // all tpc layers and all sectors, assign layer 7 and sensor 0 to all layers and sensors
+	  label_base += 7*1000 + 0;
+	  return label_base;
+	}
+    }
+  else
+    {
+      if(mms_group == 0)
+	{
+	  // every sensor has different label
+	  label_base += layer*1000+sensor*10;
+	  return label_base;
+	}
+      if(mms_group == 1)
+	{
+	  // assign layer 55 and tile 0 to all
+	  label_base += 55*1000 + 0;	  
+	  return label_base;
+	}
+    }
+
+  return -1;
 }

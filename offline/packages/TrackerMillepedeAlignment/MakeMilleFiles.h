@@ -47,18 +47,22 @@ class MakeMilleFiles : public SubsysReco
   int End(PHCompositeNode *topNode) override;
   void set_datafile_name(std::string file) { data_outfilename = file;}
   void set_steeringfile_name(std::string file) { steering_outfilename = file;}
+  void set_silicon_grouping(int group) {si_group = group;}
+  void set_tpc_grouping(int group) {tpc_group = group;}
+  void set_mms_grouping(int group) {mms_group = group;}
 
  private:
 
   Mille *_mille;
 
-  int GetNodes(PHCompositeNode* topNode);
-  Acts::Vector3 getPCALinePoint(Acts::Vector3 global, SvtxTrackState* state);
+int GetNodes(PHCompositeNode* topNode);
+Acts::Vector3 getPCALinePoint(Acts::Vector3 global, SvtxTrackState* state);
 std::vector<Acts::Vector3> getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing);
-  SvtxTrack::StateIter getStateIter(Acts::Vector3& global, SvtxTrack* track);
-  void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
-  float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
-  Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
+SvtxTrack::StateIter getStateIter(Acts::Vector3& global, SvtxTrack* track);
+void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
+float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
+Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
+int getLabelBase(Acts::GeometryIdentifier id);
 
   std::map<int, float> derivativeGL;
   std::string  data_outfilename = ("mille_output_data_file.bin");  
@@ -71,8 +75,15 @@ std::vector<Acts::Vector3> getDerivativesAlignmentAngles(Acts::Vector3& global, 
 
   ClusterErrorPara _ClusErrPara;
 
-float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
+  float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
 
+  int si_group = 0;
+  int tpc_group = 0;
+  int mms_group = 0;
+
+  int nstaves[7] = {12,16,20,12,12,16,16};
+
+  std::map<unsigned int, unsigned int> base_layer_map = { {10, 0}, {12,3}, {14,7}, {16,55} };
 
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};
