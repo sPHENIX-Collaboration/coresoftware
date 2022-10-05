@@ -210,26 +210,26 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	      // x - relevant global pars are alpha, beta, gamma, dx (ipar 0,1,2,3)
 	      for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
 	      glbl_derivative[3] = 1.0;  // optimize dx
-	      glbl_derivative[0] = angleDerivs[0](0);
-	      glbl_derivative[1] = angleDerivs[1](0);
-	      glbl_derivative[2] = angleDerivs[2](0);
+	      glbl_derivative[0] = angleDerivs[0](0);  // dx/alpha
+	      glbl_derivative[1] = angleDerivs[1](0);  // dx/dbeta
+	      glbl_derivative[2] = angleDerivs[2](0);  // dx/dgamma
 	      if(clus_sigma(0) < 1.0)  // discards crazy clusters
 		{ _mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(0), clus_sigma(0));}
 
 	      // y - relevant global pars are alpha, beta, gamma, dy (ipar 0,1,2,4)
 	      for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
 	      glbl_derivative[4] = 1.0; // optimize dy
-	      glbl_derivative[0] = angleDerivs[0](1);
-	      glbl_derivative[1] = angleDerivs[1](1);
-	      glbl_derivative[2] = angleDerivs[2](1);
+	      glbl_derivative[0] = angleDerivs[0](1);   // dy/dalpha
+	      glbl_derivative[1] = angleDerivs[1](1);   // dy/dbeta
+	      glbl_derivative[2] = angleDerivs[2](1);   // dz/dbeta
 	      if(clus_sigma(1) < 1.0)  // discards crazy clusters
 		{_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(1), clus_sigma(1));}
 	      
 	      // z - relevant global pars are alpha, beta, dz (ipar 1,1,2,5)
 	      glbl_derivative[5] = 1.0;  // optimize dz
-	      glbl_derivative[0] = angleDerivs[0](0);
-	      glbl_derivative[1] = angleDerivs[1](0);
-	      glbl_derivative[2] = angleDerivs[2](0);
+	      glbl_derivative[0] = angleDerivs[0](2);  // dz/dalpha
+	      glbl_derivative[1] = angleDerivs[1](2);  // dz/dbeta
+	      glbl_derivative[2] = angleDerivs[2](2);  // dz/dgamma
 	      if(clus_sigma(2) < 1.0)
 		{_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(2), clus_sigma(2));}
 
@@ -354,9 +354,7 @@ std::vector<Acts::Vector3> MakeMilleFiles::getDerivativesAlignmentAngles(Acts::V
 	  
 	  // have to add corrections for TPC clusters after transformation to global
 	  if(trkrId == TrkrDefs::tpcId) {  makeTpcGlobalCorrections(cluster_key, crossing, global); }
-	  
-	  // derivatives are dx/dalpha, dy/dalpha, dz/dalpha
-	  
+	  	  
 	  if(ip == 0)
 	    {
 	      keeper(0) = (finalCoords(0) - global(0));
@@ -377,7 +375,14 @@ std::vector<Acts::Vector3> MakeMilleFiles::getDerivativesAlignmentAngles(Acts::V
 	      std::cout  << "       keeper now:  keeper(0) " << keeper(0) << " keeper(1) " << keeper(1) << " keeper(2) " << keeper(2) << std::endl;
 	    }
 	}
-      // Average the changes to get the estimate of the derivative      
+
+      // derivs vector contains:
+      //   (dx/dalpha,     dy/dalpha,     dz/dalpha)     (for iangle = 0)
+      //   (dx/dbeta,        dy/dbeta,        dz/dbeta)        (for iangle = 1) 
+      //   (dx/dgamma, dy/dgamma, dz/dgamma) (for iangle = 2)
+ 
+     // Average the changes to get the estimate of the derivative      
+      // Check what the sign of this should be !!!!
       derivs(0) = keeper(0) / (2.0 * fabs(theseAngles[iangle]));
       derivs(1) = keeper(1) / (2.0 * fabs(theseAngles[iangle]));
       derivs(2) = keeper(2) / (2.0 * fabs(theseAngles[iangle]));
