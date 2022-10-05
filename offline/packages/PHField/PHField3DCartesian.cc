@@ -7,23 +7,15 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <boost/stacktrace.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/tuple/tuple_comparison.hpp>
 
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
-#include <map>
 #include <set>
 #include <utility>
 
-typedef boost::tuple<double, double, double> trio;
-std::map<boost::tuple<double, double, double>, boost::tuple<double, double, double> > fieldmap;
-std::set<double> xvals;
-std::set<double> yvals;
-std::set<double> zvals;
 
 PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float magfield_rescale)
   : filename(fname)

@@ -219,6 +219,12 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   for (auto & logical_vol : m_SteelAbsorberLogVolSet)
   {
     logical_vol->SetFieldManager(m_FieldSetup->get_Field_Manager_Iron(), true);
+
+    if (m_Params->get_int_param("field_check"))
+    {
+      std::cout <<__PRETTY_FUNCTION__<<" : setup Field_Manager_Iron for LV "
+          <<logical_vol->GetName()<<" w/ # of daughter "<< logical_vol->GetNoDaughters()<<std::endl;
+    }
   }
 
   return 0;
