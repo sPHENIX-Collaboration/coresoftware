@@ -20,6 +20,8 @@
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <trackbase_historic/SvtxTrackState_v1.h>
+
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
@@ -52,7 +54,11 @@ class MakeMilleFiles : public SubsysReco
 
   int GetNodes(PHCompositeNode* topNode);
   Acts::Vector3 getPCALinePoint(Acts::Vector3 global, SvtxTrackState* state);
-  Acts::Vector3 getDerivativeAlignmentAngle(int angleIndex, Acts::Vector3 global, TrkrDefs::cluskey cluskey, TrkrCluster* cluster, Surface surface);
+std::vector<Acts::Vector3> getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing);
+  SvtxTrack::StateIter getStateIter(Acts::Vector3& global, SvtxTrack* track);
+  void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
+  float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
+  Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
 
   std::map<int, float> derivativeGL;
   std::string  data_outfilename = ("mille_output_data_file.bin");  
@@ -64,12 +70,9 @@ class MakeMilleFiles : public SubsysReco
   unsigned int _cluster_version = 3;
 
   ClusterErrorPara _ClusErrPara;
-  float _delta_alpha = 0.1;
-  float _delta_beta = 0.1;
-  float _delta_gamma = 0.2;
-  //float _delta_alpha = 0.0;
-  //float _delta_beta = 0.0;
-  //float _delta_gamma = 0.0;
+
+float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
+
 
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};
