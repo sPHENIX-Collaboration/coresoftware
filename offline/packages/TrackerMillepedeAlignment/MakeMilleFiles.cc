@@ -44,7 +44,7 @@ int MakeMilleFiles::InitRun(PHCompositeNode *topNode)
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   // Instantiate Mille and open output data file
-  //  _mille = new Mille(data_outfilename.c_str(), false);   // write text data files, for debugging only
+  //  _mille = new Mille(data_outfilename.c_str(), false);   // write text in data files, rather than binary, for debugging only
   _mille = new Mille(data_outfilename.c_str()); 
 
   // Write the steering file here, and add the data file path to it
@@ -104,11 +104,12 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	}
 
       // Make any desired track cuts here
+      // Maybe set a lower pT limit - low pT tracks are not very sensitive to alignment
      
-      // Get all clusters for this track from the seeds
       std::map<TrkrDefs::cluskey, TrkrCluster*> all_clusters;
       for( const auto& seed: { track->get_silicon_seed(), track->get_tpc_seed() } )
 	{
+      // Get all clusters for this track from the seeds
 	  for (auto key_iter = seed->begin_cluster_keys();
 	       key_iter != seed->end_cluster_keys();
 	       ++key_iter)
@@ -127,9 +128,8 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	      // we want the global cluster positions
 	      Acts::Vector3 global  = _tGeometry->getGlobalPosition(cluster_key, cluster);
 	      
-	      unsigned int trkrId = TrkrDefs::getTrkrId(cluster_key);
-	      
 	      // TPC clusters need distortion corrections, silicon and MM's clusters do not
+	      unsigned int trkrId = TrkrDefs::getTrkrId(cluster_key);
 	      if(trkrId == TrkrDefs::tpcId) { makeTpcGlobalCorrections(cluster_key, crossing, global); }
 	      
 	      // we have our global cluster position, corrected if necessary. Each component is three measurements, x, y and z
@@ -144,10 +144,8 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	      
 	      if(Verbosity() > 1)
 		{
-		  std::cout << " cluster global " << global(0) << "  " << global(1) << "  " << global(2)
-			    << " track PCA " << pca(0) << "  " << pca(1) << "  " << pca(2) 
-			    << " residual " << residual(0) << "  " << residual(1) << "  " << residual(2)  
-			    << std::endl;
+		  std::cout << " cluster global " << global(0) << "  " << global(1) << "  " << global(2) << " track PCA " << pca(0) << "  " << pca(1) << "  " << pca(2) 
+			    << " residual " << residual(0) << "  " << residual(1) << "  " << residual(2)  << std::endl;
 		}
 	      
 	      // need standard deviation of measurements
@@ -187,10 +185,10 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	      static const int NLC = 5;
 	      float lcl_derivative[NLC] = {0,0,0,0,0};
 	      	      
-	      // The global alignment parameters are given initial values of zero by default
+	      // The global alignment parameters are given initial values of zero by default, we do not specify them
 	      // We identify the global alignment parameters for this surface
 	      Acts::GeometryIdentifier id = surf->geometryId();
-	      int label_base = getLabelBase(id);
+	      int label_base = getLabelBase(id);   // This value depends on how the surfaces are grouped
 	      
 	      static const int NGL = 6;
 	      int glbl_label[NGL];
@@ -204,7 +202,7 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	      // Add the measurement separately for each coordinate direction to Mille
 	      // set the derivatives non-zero only for parameters we want to be optimized
 	      float glbl_derivative[NGL];
-	      // angleDerivs dimensions are [alpha/beta/gamma](x/y/z)
+	      // The angleDerivs dimensions are [alpha/beta/gamma](x/y/z)
 	      std::vector<Acts::Vector3> angleDerivs = getDerivativesAlignmentAngles(global, cluster_key, cluster, surf, crossing); 
 
 	      // x - relevant global pars are alpha, beta, gamma, dx (ipar 0,1,2,3)
@@ -251,7 +249,7 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 		  std::cout << " end of Y meas " << std::endl;		    
 		}
 	      
-	      // z - relevant global pars are alpha, beta, dz (ipar 1,1,2,5)
+	      // z - relevant global pars are alpha, beta, dz (ipar 0,1,5)
 	      glbl_derivative[5] = 1.0;  // optimize dz
 	      glbl_derivative[0] = angleDerivs[0](2);  // dz/dalpha
 	      glbl_derivative[1] = angleDerivs[1](2);  // dz/dbeta
@@ -532,7 +530,7 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
 	  return label_base;
 	}
       if(si_group == siliconGroup::barrel)
-	// layer only, assign sensor 0 to all sensors
+	// layer only, assign all sensors to sensor 0 
 	label_base += layer*1000 + 0;
       return label_base;
     }
@@ -562,7 +560,7 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
     {
       if(mms_group == mmsGroup::tile)
 	{
-	  // every sensor has different label
+	  // every tile has different label
 	  label_base += layer*1000+sensor*10;
 	  return label_base;
 	}

@@ -51,14 +51,9 @@ class MakeMilleFiles : public SubsysReco
   int End(PHCompositeNode *topNode) override;
   void set_datafile_name(std::string file) { data_outfilename = file;}
   void set_steeringfile_name(std::string file) { steering_outfilename = file;}
-/*
-  void set_silicon_grouping(siliconGroup group) {si_group = group;}
-  void set_tpc_grouping(tpcGroup group) {tpc_group = group;}
-  void set_mms_grouping(mmsGroup group) {mms_group = group;}
-*/
-void set_silicon_grouping(int group) {si_group = (siliconGroup) group;}
-void set_tpc_grouping(int group) {tpc_group = (tpcGroup) group;}
-void set_mms_grouping(int group) {mms_group = (mmsGroup) group;}
+  void set_silicon_grouping(int group) {si_group = (siliconGroup) group;}
+  void set_tpc_grouping(int group) {tpc_group = (tpcGroup) group;}
+  void set_mms_grouping(int group) {mms_group = (mmsGroup) group;}
 
  private:
 
@@ -86,6 +81,7 @@ int getLabelBase(Acts::GeometryIdentifier id);
 
   float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
 
+// set default groups to lowest level
   siliconGroup si_group = siliconGroup::sensor;
   tpcGroup tpc_group = tpcGroup::subsurf;
   mmsGroup mms_group = mmsGroup::tile;
