@@ -9,7 +9,10 @@
  */
 
 #include "PHG4OHCalFieldSetup.h"
-#include "PHG4OHCalField.h"
+
+#include <g4main/PHG4MagneticField.h>
+#include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfigv1.h>
 
 #include <Geant4/G4ChordFinder.hh>
 #include <Geant4/G4ClassicalRK4.hh>
@@ -20,17 +23,18 @@
 #include <Geant4/G4MagneticField.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 
-PHG4OHCalFieldSetup::PHG4OHCalFieldSetup(G4int steelPlates,
-                                         G4double scintiGap, G4double tiltAngle)
-  : fMinStep(0.005 * mm)
-  , n_steel_plates(steelPlates) /*G4int*/
-  , scinti_gap(scintiGap)       /*G4double*/
-  , tilt_angle(tiltAngle)       /*G4double*/
-{
-  G4int nvar = 8;
+#include <cassert>
 
-  fEMfieldIron = new PHG4OHCalField(true, n_steel_plates, scinti_gap,
-                                    tilt_angle);
+PHG4OHCalFieldSetup::PHG4OHCalFieldSetup(const std::string & iron_fieldmap_path, const double scale)
+  : fMinStep(0.005 * mm)
+{
+  static const G4int nvar = 8;
+
+  // the new HCal expect 3D magnetic field
+  PHFieldConfigv1 field_config (PHFieldConfig::Field3DCartesian, iron_fieldmap_path, scale);
+
+  fEMfieldIron = new PHG4MagneticField(PHFieldUtility::BuildFieldMap(&field_config));
+  assert(fEMfieldIron);
 
   fEquationIron = new G4Mag_UsualEqRhs(fEMfieldIron);
 
@@ -43,19 +47,4 @@ PHG4OHCalFieldSetup::PHG4OHCalFieldSetup(G4int steelPlates,
   fFieldManagerIron = new G4FieldManager();
   fFieldManagerIron->SetDetectorField(fEMfieldIron);
   fFieldManagerIron->SetChordFinder(fChordFinderIron);
-
-  fEMfieldGap = new PHG4OHCalField(false, n_steel_plates, scinti_gap,
-                                   tilt_angle);
-
-  fEquationGap = new G4Mag_UsualEqRhs(fEMfieldGap);
-
-  fStepperGap = new G4ClassicalRK4(fEquationGap, nvar);
-
-  fChordFinderGap = new G4ChordFinder(
-      new G4MagInt_Driver(fMinStep, fStepperGap,
-                          fStepperGap->GetNumberOfVariables()));
-
-  fFieldManagerGap = new G4FieldManager();
-  fFieldManagerGap->SetDetectorField(fEMfieldGap);
-  fFieldManagerGap->SetChordFinder(fChordFinderGap);
 }
