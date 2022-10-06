@@ -44,6 +44,7 @@ int MakeMilleFiles::InitRun(PHCompositeNode *topNode)
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   // Instantiate Mille and open output data file
+  //  _mille = new Mille(data_outfilename.c_str(), false);   // write text data files, for debugging only
   _mille = new Mille(data_outfilename.c_str()); 
 
   // Write the steering file here, and add the data file path to it
@@ -101,6 +102,8 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	  std::cout << std::endl << __LINE__   << ": Processing track itrack: " << phtrk_iter->first << ": nhits: " << track-> size_cluster_keys()
 		    << ": Total tracks: " << _track_map->size() << ": phi: " << track->get_phi() << std::endl;
 	}
+
+      // Make any desired track cuts here
      
       // Get all clusters for this track from the seeds
       std::map<TrkrDefs::cluskey, TrkrCluster*> all_clusters;
@@ -127,15 +130,9 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	      unsigned int trkrId = TrkrDefs::getTrkrId(cluster_key);
 	      
 	      // TPC clusters need distortion corrections, silicon and MM's clusters do not
-	      //=========================================================
-	      if(trkrId == TrkrDefs::tpcId)
-		{
-		  makeTpcGlobalCorrections(cluster_key, crossing, global);
-		}
-	      //=========================================================
+	      if(trkrId == TrkrDefs::tpcId) { makeTpcGlobalCorrections(cluster_key, crossing, global); }
 	      
-	      // we have our global cluster position, corrected if necessary
-	      // each component of this vector is three measurements, x, y and z
+	      // we have our global cluster position, corrected if necessary. Each component is three measurements, x, y and z
 	      // we need to find the residual and its derivative wrt parameters in each coordinate direction
 	      
 	      // find track state that is the closest to cluster 
@@ -145,10 +142,12 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	      Acts::Vector3 pca = getPCALinePoint(global, state_iter->second);
 	      Acts::Vector3 residual = global - pca;
 	      
-	      if(Verbosity() > 2)
+	      if(Verbosity() > 1)
 		{
 		  std::cout << " cluster global " << global(0) << "  " << global(1) << "  " << global(2)
-			    << " track PCA " << pca(0) << "  " << pca(1) << "  " << pca(2) << std::endl;
+			    << " track PCA " << pca(0) << "  " << pca(1) << "  " << pca(2) 
+			    << " residual " << residual(0) << "  " << residual(1) << "  " << residual(2)  
+			    << std::endl;
 		}
 	      
 	      // need standard deviation of measurements
@@ -205,25 +204,52 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	      // Add the measurement separately for each coordinate direction to Mille
 	      // set the derivatives non-zero only for parameters we want to be optimized
 	      float glbl_derivative[NGL];
+	      // angleDerivs dimensions are [alpha/beta/gamma](x/y/z)
 	      std::vector<Acts::Vector3> angleDerivs = getDerivativesAlignmentAngles(global, cluster_key, cluster, surf, crossing); 
 
 	      // x - relevant global pars are alpha, beta, gamma, dx (ipar 0,1,2,3)
 	      for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
 	      glbl_derivative[3] = 1.0;  // optimize dx
-	      glbl_derivative[0] = angleDerivs[0](0);  // dx/alpha
+	      glbl_derivative[0] = angleDerivs[0](0);  // dx/dalpha
 	      glbl_derivative[1] = angleDerivs[1](0);  // dx/dbeta
 	      glbl_derivative[2] = angleDerivs[2](0);  // dx/dgamma
 	      if(clus_sigma(0) < 1.0)  // discards crazy clusters
 		{ _mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(0), clus_sigma(0));}
 
+	      if(Verbosity() > 3)
+		{
+		  std::cout << " X:  float buffer: " << " residual " << "  " << residual(0);
+		  for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_deriv["<< il << "] " << lcl_derivative[il] << "  ";  }
+		  std::cout  << " sigma " << "  " << clus_sigma(0) << "  ";
+		  for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0)  std::cout << " glbl_deriv["<< ig << "] " << glbl_derivative[ig] << "  ";  }
+		  std::cout << " X:  int buffer: " << " 0 " << "  ";
+		  for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_label["<< il << "] " << il << "  ";  }
+		  std::cout << " 0 " << "  ";
+		  for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0) std::cout << " glbl_label["<< ig << "] " << glbl_label[ig] << "  ";  }
+		  std::cout << " end of X meas " << std::endl;		    
+		}
+	      
 	      // y - relevant global pars are alpha, beta, gamma, dy (ipar 0,1,2,4)
 	      for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
 	      glbl_derivative[4] = 1.0; // optimize dy
 	      glbl_derivative[0] = angleDerivs[0](1);   // dy/dalpha
 	      glbl_derivative[1] = angleDerivs[1](1);   // dy/dbeta
-	      glbl_derivative[2] = angleDerivs[2](1);   // dz/dbeta
+	      glbl_derivative[2] = angleDerivs[2](1);   // dy/dgamma
 	      if(clus_sigma(1) < 1.0)  // discards crazy clusters
 		{_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(1), clus_sigma(1));}
+	      
+	      if(Verbosity() > 3) 
+		{ 
+		  std::cout << " Y:  float buffer: " << " residual " << "  " << residual(1);
+		  for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_deriv["<< il << "] " << lcl_derivative[il] << "  ";  }
+		  std::cout  << " sigma " << "  " << clus_sigma(1) << "  ";
+		  for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0)  std::cout << " glbl_deriv["<< ig << "] " << glbl_derivative[ig] << "  ";  }
+		  std::cout << " Y:  int buffer: " << " 0 " << "  ";
+		  for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_label["<< il << "] " << il << "  "; }
+		  std::cout << " 0 " << "  ";
+		  for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0) std::cout << " glbl_label["<< ig << "] " << glbl_label[ig] << "  "; }
+		  std::cout << " end of Y meas " << std::endl;		    
+		}
 	      
 	      // z - relevant global pars are alpha, beta, dz (ipar 1,1,2,5)
 	      glbl_derivative[5] = 1.0;  // optimize dz
@@ -232,12 +258,18 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	      glbl_derivative[2] = angleDerivs[2](2);  // dz/dgamma
 	      if(clus_sigma(2) < 1.0)
 		{_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(2), clus_sigma(2));}
-
-	      if(Verbosity() > 2)
+	      
+	      if(Verbosity() > 3)
 		{
-		  std::cout << "  X: NLC " << NLC << " NGL " << NGL << " residual " << residual(0) << " sigma " << clus_sigma(0) << std::endl; 
-		  std::cout << "  Y: NLC " << NLC << " NGL " << NGL << " residual " << residual(1) << " sigma " << clus_sigma(1) << std::endl; 
-		  std::cout << "  Z: NLC " << NLC << " NGL " << NGL << " residual " << residual(2) << " sigma " << clus_sigma(2) << std::endl;
+		  std::cout << " Z:  float buffer: " << " residual " << "  " << residual(2);
+		  for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_deriv["<< il << "] " << lcl_derivative[il] << "  "; }
+		  std::cout  << " sigma " << "  " << clus_sigma(2) << "  ";
+		  for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0)  std::cout << " glbl_deriv["<< ig << "] " << glbl_derivative[ig] << "  "; }
+		  std::cout << " Z:  int buffer: " << " 0 " << "  ";
+		  for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_label["<< il << "] " << il << "  ";  }
+		  std::cout << " 0 " << "  ";
+		  for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0) std::cout << " glbl_label["<< ig << "] " << glbl_label[ig] << "  ";  }
+		  std::cout << " end of Z meas " << std::endl;		    
 		}
 	    }
 	}
@@ -329,6 +361,7 @@ std::vector<Acts::Vector3> MakeMilleFiles::getDerivativesAlignmentAngles(Acts::V
       // creates transform that adds a perturbation rotation around one axis, uses it to estimate derivative wrt perturbation rotation
 
       unsigned int trkrId = TrkrDefs::getTrkrId(cluster_key);
+      unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
       Acts::Vector3 derivs(0,0,0);
       Eigen::Vector3d theseAngles(0,0,0);
@@ -340,7 +373,7 @@ std::vector<Acts::Vector3> MakeMilleFiles::getDerivativesAlignmentAngles(Acts::V
 	  if(ip == 1) { theseAngles[iangle] *= -1; } // test both sides of zero
 
 	  if(Verbosity() > 1)
-	    { std::cout << "     trkrId " << trkrId << " cluster_key " << cluster_key 
+	    { std::cout << "     trkrId " << trkrId << " layer " << layer << " cluster_key " << cluster_key 
 			<< " sensorAngles " << theseAngles[0] << "  " << theseAngles[1] << "  " << theseAngles[2] << std::endl; }
 
 	  Acts::Transform3 perturbationTransformation = makePerturbationTransformation(theseAngles);
@@ -485,40 +518,40 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
   // decide what level of grouping we want
   if(layer < 7)
     {
-      if(si_group == 0)
+      if(si_group == siliconGroup::sensor)
 	{
 	  // every sensor has a different label
 	  label_base += layer*1000 + sensor*10;
 	  return label_base;
 	}
-      if(si_group == 1)
+      if(si_group == siliconGroup::stave)
 	{
 	  // layer and stave, assign all sensors to the stave number
 	  int stave = sensor / nstaves[layer];
 	  label_base += layer*1000 + stave*10;
 	  return label_base;
 	}
-      if(si_group == 2)
+      if(si_group == siliconGroup::barrel)
 	// layer only, assign sensor 0 to all sensors
 	label_base += layer*1000 + 0;
       return label_base;
     }
   else if(layer > 6 && layer < 55)
     {
-      if(tpc_group == 0)
+      if(tpc_group == tpcGroup::subsurf)
 	{
 	  // every surface has separate label
 	  label_base += layer*1000 + sensor*10;
 	  return label_base;
 	}
-      if(tpc_group == 1)
+      if(tpc_group == tpcGroup::sector)
 	{
 	  // all tpc layers, assign layer 7 and sector number to all layers and subsurfaces
-	  int sector += sensor / 12;   // check!!!!
+	  int sector = sensor / 12;   // check!!!!
 	  label_base += 7*1000 + sector*10;
 	  return label_base;
 	}
-      if(tpc_group == 2)
+      if(tpc_group == tpcGroup::tpc)
 	{
 	  // all tpc layers and all sectors, assign layer 7 and sensor 0 to all layers and sensors
 	  label_base += 7*1000 + 0;
@@ -527,13 +560,13 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
     }
   else
     {
-      if(mms_group == 0)
+      if(mms_group == mmsGroup::tile)
 	{
 	  // every sensor has different label
 	  label_base += layer*1000+sensor*10;
 	  return label_base;
 	}
-      if(mms_group == 1)
+      if(mms_group == mmsGroup::mms)
 	{
 	  // assign layer 55 and tile 0 to all
 	  label_base += 55*1000 + 0;	  
