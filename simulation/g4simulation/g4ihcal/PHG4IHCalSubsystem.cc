@@ -147,19 +147,19 @@ PHG4Detector *PHG4IHCalSubsystem::GetDetector() const
 
 void PHG4IHCalSubsystem::SetDefaultParameters()
 {
-  set_default_double_param(PHG4HcalDefs::innerrad, 117.27);
+  set_default_double_param(PHG4HcalDefs::innerrad, 115);
   set_default_double_param("light_balance_inner_corr", NAN);
   set_default_double_param("light_balance_inner_radius", NAN);
   set_default_double_param("light_balance_outer_corr", NAN);
   set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param(PHG4HcalDefs::outerrad, 134.42);
+  set_default_double_param(PHG4HcalDefs::outerrad, 274.010 / 2 + 3);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
   set_default_double_param("rot_x", 0.);
-  set_default_double_param("rot_y", 0.);
+  set_default_double_param("rot_y", 180.);
   set_default_double_param("rot_z", 0.);
-  set_default_double_param("size_z", 175.94 * 2);
+  set_default_double_param("size_z", 435.000 + 10 );
   set_default_double_param("Birk_const", 0.07943);
 
   set_default_int_param("light_scint_model", 1);
