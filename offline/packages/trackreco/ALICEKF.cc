@@ -218,6 +218,9 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     std::vector<double> zsize;
     for(auto clusterkey = std::next(trackKeyChain.begin()); clusterkey != trackKeyChain.end(); ++clusterkey)
     {
+      if(std::isnan(trackSeed.GetX()) ||
+         std::isnan(trackSeed.GetY()) ||
+         std::isnan(trackSeed.GetZ())) continue;
       LogDebug("-------------------------------------------------------------" << std::endl);
       LogDebug("cluster " << cluster_ctr << " -> " << cluster_ctr + 1 << std::endl);
       LogDebug("this cluster (x,y,z) = (" << x << "," << y << "," << z << ")" << std::endl);
