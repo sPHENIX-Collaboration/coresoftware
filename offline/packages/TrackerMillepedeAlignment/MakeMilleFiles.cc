@@ -52,6 +52,10 @@ int MakeMilleFiles::InitRun(PHCompositeNode *topNode)
   steering_file << data_outfilename.c_str() << std::endl;
   steering_file.close();
 
+  // print grouping setup to log file:
+  std::cout << "MakeMilleFiles::InitRun: Surface groupings are silicon " << si_group << " tpc " << tpc_group << " mms " << mms_group << std::endl; 
+
+
   return ret;
 }
 
@@ -544,9 +548,10 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
 	}
       if(tpc_group == tpcGroup::sector)
 	{
-	  // all tpc layers, assign layer 7 and sector number to all layers and subsurfaces
-	  int sector = sensor / 12;   // check!!!!
-	  label_base += 7*1000 + sector*10;
+	  // all tpc layers, assign layer 7 and side and sector number to all layers and subsurfaces
+	  int side = sensor / 2;   // check!!!!
+	  int sector = (sensor - side *144) / 12; 
+	  label_base += 7*1000 + side * 1000 + sector*10; 
 	  return label_base;
 	}
       if(tpc_group == tpcGroup::tpc)
