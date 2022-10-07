@@ -2515,7 +2515,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
 
         PHG4Particle* g4particle = iter->second;
-
+	
         if (_scan_for_embedded)
         {
           if (trutheval->get_embed(g4particle) <= 0) continue;
@@ -2730,7 +2730,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float ntrutpc2 = NAN;
         float ntrutpc3 = NAN;
         float layersfromtruth = NAN;
-
+        
         if (_do_track_match)
         {
           SvtxTrack* track = trackeval->best_track_from(g4particle);
@@ -2748,7 +2748,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      { nhits += tpcseed->size_cluster_keys(); }
 	    if(silseed)
 	      { nhits += silseed->size_cluster_keys(); }
-
+	  
             vector <int> maps(_nlayers_maps, 0);
             vector <int> intt(_nlayers_intt, 0);
             vector <int> tpc(_nlayers_tpc, 0);
@@ -2895,14 +2895,16 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		 << " nltpc  " << nltpc
 		 << endl;
 	    */
-
+	    
             vertexID = track->get_vertex_id();
             SvtxVertex* vertex = vertexmap->get(vertexID);
-            vx = vertex->get_x();
-            vy = vertex->get_y();
-            vz = vertex->get_z();
-
-	    get_dca(track, vertexmap, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma);
+	    if(vertex) {
+	      vx = vertex->get_x();
+	      vy = vertex->get_y();
+	      vz = vertex->get_z();
+	      
+	      get_dca(track, vertexmap, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma);
+	    }
 	    
             px = track->get_px();
             py = track->get_py();
@@ -2926,7 +2928,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
             nfromtruth = trackeval->get_nclusters_contribution(track, g4particle);
             nwrong = trackeval->get_nwrongclusters_contribution(track, g4particle);
-
+	   
             if (_nlayers_maps == 0)
             {
               ntrumaps = 0;
@@ -3261,13 +3263,17 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         int vertexID = track->get_vertex_id();
         SvtxVertex* vertex = vertexmap->get(vertexID);
-        float vx = vertex->get_x();
-        float vy = vertex->get_y();
-        float vz = vertex->get_z();
-
-	get_dca(track, vertexmap, dca3dxy, dca3dz,
-		dca3dxysigma, dca3dzsigma);
-
+	float vx = NAN;
+	float vy = NAN;
+	float vz = NAN;
+	if(vertex) {
+	  vx = vertex->get_x();
+	  vy = vertex->get_y();
+	  vz = vertex->get_z();
+	  
+	  get_dca(track, vertexmap, dca3dxy, dca3dz,
+		  dca3dxysigma, dca3dzsigma);
+	}
         float px = track->get_px();
         float py = track->get_py();
         float pz = track->get_pz();

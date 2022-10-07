@@ -38,16 +38,16 @@ void CaloWaveformProcessing::initialize_processing()
   if (m_processingtype == CaloWaveformProcessing::TEMPLATE)
   {
     std::string calibrations_repo_template = std::string(getenv("CALIBRATIONROOT")) + "/WaveformProcessing/templates/" + m_template_input_file;
-    url_template = XploadInterface::instance()->getUrl("CEMC_TEMPLATE", calibrations_repo_template);
+    url_template = XploadInterface::instance()->getUrl(m_template_input_file.c_str(), calibrations_repo_template);
     TFile *fin = TFile::Open(url_template.c_str());
     assert(fin);
     assert(fin->IsOpen());
-    h_template = static_cast<TProfile *>(fin->Get("cemc_template"));
+    h_template = static_cast<TProfile *>(fin->Get("waveform_template"));
   }
   if (m_processingtype == CaloWaveformProcessing::ONNX)
   {
     std::string calibrations_repo_model = std::string(getenv("CALIBRATIONROOT")) + "/WaveformProcessing/models/" + m_model_name;
-    url_onnx = XploadInterface::instance()->getUrl("CEMC_ONNX", calibrations_repo_model);
+    url_onnx = XploadInterface::instance()->getUrl(m_model_name.c_str(), calibrations_repo_model);
     onnxmodule = onnxSession(url_onnx);
   }
 }

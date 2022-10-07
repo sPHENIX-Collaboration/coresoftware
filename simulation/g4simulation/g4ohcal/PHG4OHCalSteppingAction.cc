@@ -509,13 +509,15 @@ void PHG4OHCalSteppingAction::FieldChecker(const G4Step* aStep)
     G4ThreeVector FieldValue = G4ThreeVector(FieldValueVec[0],
                                              FieldValueVec[1], FieldValueVec[2]);
 
-    const double B = FieldValue.mag() / tesla;
+    const double Bz = FieldValue.z() / tesla;
 
-    h->SetBinContent(binx, biny, B);
+    h->SetBinContent(binx, biny, Bz);
 
     std::cout << "PHG4OHCalSteppingAction::FieldChecker - "
-              << "bin " << binx
-              << ", " << biny << " := " << B << " Tesla @ x,y = " << globPosVec[0] / cm
+              << "volume " << volume->GetName()<<" / " <<volume->GetLogicalVolume()->GetName()
+              << "\t bin " << binx
+              << ", " << biny << " : Bz= " << Bz <<" B = "<<FieldValue.mag()/ tesla
+              << " Tesla @ x,y = " << globPosVec[0] / cm
               << "," << globPosVec[1] / cm << " cm" << std::endl;
   }
 }

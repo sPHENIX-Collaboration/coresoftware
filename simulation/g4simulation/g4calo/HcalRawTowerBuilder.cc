@@ -165,8 +165,8 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   }
   for (int i = 0; i < get_int_param(PHG4HcalDefs::n_towers); i++)
   {
-    double phiend = phistart + 2. * M_PI / get_int_param(PHG4HcalDefs::n_towers);
-    std::pair<double, double> range = std::make_pair(phistart, phiend);
+    double phiend = phistart - 2. * M_PI / get_int_param(PHG4HcalDefs::n_towers);
+    std::pair<double, double> range = std::make_pair(phiend, phistart);
     phistart = phiend;
     m_RawTowerGeom->set_phibounds(i, range);
   }
