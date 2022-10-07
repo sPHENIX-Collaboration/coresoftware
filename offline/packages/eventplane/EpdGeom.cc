@@ -62,7 +62,7 @@ EpdGeom::~EpdGeom()
 void EpdGeom::InitializeGeometry()
 {
   //  First, save the phi values of the centers of all tiles.
-  //  I am aware that this is a bit wasteful, since all the even (or odd) numbered
+  //  I am aware that this is a it wasteful, since all the even (or odd) numbered
   //  tiles of a given position all have the same phi.  But you'll go nuts otherwise.
   //  Better to waste a little memory than to get confused.
   //
@@ -130,7 +130,7 @@ void EpdGeom::SetPpTtSn(short uniqueID)
 
 double EpdGeom::GetZwheel()
 {
-  const double z_EPD = 316.0;  // Distance (cm) of EPD from center of TPC, in the z-direction
+  const double z_EPD = 308.0;  // Distance (cm) of EPD from center of TPC, in the z-direction
   return z_EPD * mSN;
 }
 
@@ -204,7 +204,7 @@ TVector3 EpdGeom::RandomPointOnTile()
   double Bparam = -2.0 * GapWidth;
 
   double ZZ = this->GetZwheel();
-  short RR = this->Row();
+  short  RR = this->Row();
   double Rmin = mRmin[RR - 1];
   double Rmax = mRmax[RR - 1];
 
