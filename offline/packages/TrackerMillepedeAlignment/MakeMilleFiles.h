@@ -91,7 +91,6 @@ int getLabelBase(Acts::GeometryIdentifier id);
   std::map<unsigned int, unsigned int> base_layer_map = { {10, 0}, {12,3}, {14,7}, {16,55} };
 
   SvtxTrackMap *_track_map{nullptr};
-  SvtxTrack *_track{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};						    
   ActsGeometry *_tGeometry{nullptr};
 
