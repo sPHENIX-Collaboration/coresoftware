@@ -24,6 +24,7 @@
  */
 
 #include <fstream>
+#include <climits>
 
 /**
  * \class Mille
@@ -72,7 +73,7 @@ class Mille
   float myBufferFloat[myBufferSize]; ///< to collect derivatives etc.
   int   myBufferPos; ///< position in buffer
   bool  myHasSpecial; ///< if true, special(..) already called for this record
-  /// largest label allowed: 2^31 - 1
-  enum {myMaxLabel = (0xFFFFFFFF - (1 << 31))};
+  /// largest label allowed
+   enum {myMaxLabel = INT_MAX - 1};
 };
 #endif

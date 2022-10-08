@@ -33,8 +33,8 @@ class SvtxTrackMap;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TpcDistortionCorrectionContainer;
-class Mille;
 class   ClusterErrorPara;
+class Mille;
 
 enum siliconGroup {sensor, stave, barrel};
 enum tpcGroup {subsurf, sector, tpc};
@@ -49,15 +49,15 @@ class MakeMilleFiles : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
-  void set_datafile_name(std::string file) { data_outfilename = file;}
-  void set_steeringfile_name(std::string file) { steering_outfilename = file;}
+  void set_datafile_name(const std::string& file) { data_outfilename = file;}
+  void set_steeringfile_name(const std::string& file) { steering_outfilename = file;}
   void set_silicon_grouping(int group) {si_group = (siliconGroup) group;}
   void set_tpc_grouping(int group) {tpc_group = (tpcGroup) group;}
   void set_mms_grouping(int group) {mms_group = (mmsGroup) group;}
 
  private:
 
-  Mille *_mille;
+Mille* _mille;
 
 int GetNodes(PHCompositeNode* topNode);
 Acts::Vector3 getPCALinePoint(Acts::Vector3 global, SvtxTrackState* state);
