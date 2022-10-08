@@ -29,13 +29,32 @@ void CDBTTree::SetFloatValue(int channel, const std::string &name, float value)
     std::cout << "Sorry ID is reserved as fieldname, pick anything else" << std::endl;
     gSystem->Exit(1);
   }
+  std::string fieldname = "F" + name;
   if (m_Locked[MultipleEntries])
   {
     std::cout << "Trying to add field " << name << " after another entry was committed" << std::endl;
     std::cout << "That does not work, restructure your code" << std::endl;
     gSystem->Exit(1);
   }
-  m_FloatEntryMap[channel].insert(std::make_pair(name,value));
+  m_FloatEntryMap[channel].insert(std::make_pair(fieldname,value));
+  m_EntryNameSet.insert(name);
+}
+
+void CDBTTree::SetDoubleValue(int channel, const std::string &name, double value)
+{
+  if (name == "ID")
+  {
+    std::cout << "Sorry ID is reserved as fieldname, pick anything else" << std::endl;
+    gSystem->Exit(1);
+  }
+  std::string fieldname = "D" + name;
+  if (m_Locked[MultipleEntries])
+  {
+    std::cout << "Trying to add field " << name << " after another entry was committed" << std::endl;
+    std::cout << "That does not work, restructure your code" << std::endl;
+    gSystem->Exit(1);
+  }
+  m_DoubleEntryMap[channel].insert(std::make_pair(fieldname,value));
   m_EntryNameSet.insert(name);
 }
 
@@ -46,13 +65,32 @@ void CDBTTree::SetIntValue(int channel, const std::string &name, int value)
     std::cout << "Sorry ID is reserved as fieldname, pick anything else" << std::endl;
     gSystem->Exit(1);
   }
+  std::string fieldname = "I" + name;
   if (m_Locked[MultipleEntries])
   {
     std::cout << "Trying to add field " << name << " after another entry was committed" << std::endl;
     std::cout << "That does not work, restructure your code" << std::endl;
     gSystem->Exit(1);
   }
-  m_IntEntryMap[channel].insert(std::make_pair(name,value));
+  m_IntEntryMap[channel].insert(std::make_pair(fieldname,value));
+  m_EntryNameSet.insert(name);
+}
+
+void CDBTTree::SetUInt64Value(int channel, const std::string &name, uint64_t value)
+{
+  if (name == "ID")
+  {
+    std::cout << "Sorry ID is reserved as fieldname, pick anything else" << std::endl;
+    gSystem->Exit(1);
+  }
+  std::string fieldname = "g" + name;
+  if (m_Locked[MultipleEntries])
+  {
+    std::cout << "Trying to add field " << name << " after another entry was committed" << std::endl;
+    std::cout << "That does not work, restructure your code" << std::endl;
+    gSystem->Exit(1);
+  }
+  m_UInt64EntryMap[channel].insert(std::make_pair(fieldname,value));
   m_EntryNameSet.insert(name);
 }
 
@@ -67,7 +105,7 @@ void CDBTTree::Commit()
   std::map<std::string, int> intmap;
   std::map<std::string, uint64_t> uint64map;
   std::map<std::string, unsigned int> index;
-  intmap.insert(std::make_pair("ID",INT_MIN));
+  intmap.insert(std::make_pair("IID",INT_MIN));
   for (auto &f_entry: m_FloatEntryMap)
   {
     id_set.insert(f_entry.first);
@@ -126,7 +164,7 @@ void CDBTTree::Commit()
 // fill ttree
   for (auto ids : id_set)
   {
-    intmap["ID"] = ids;
+    intmap["IID"] = ids;
     auto fmapiter = m_FloatEntryMap.find(ids);
     if (fmapiter !=  m_FloatEntryMap.end())
     {
@@ -177,42 +215,13 @@ void CDBTTree::Commit()
       i_val.second = UINT64_MAX;
     }
   }
-/*
-  index.insert(std::make_pair("ID",0));
-  std::string fieldnames = "ID";
-  unsigned int i = 0;
-  for (auto &field :  m_EntryNameSet)
-  {
-    fieldnames += ":";
-    fieldnames += field;
-    i++;
-    index.insert(std::make_pair(field,i));
-  }
-  float *vals = new float[m_EntryNameSet.size()+1]; // +1 for the id
-  std::fill(vals,vals+m_EntryNameSet.size()+1,NAN);
-  if (m_TTree[MultipleEntries] == nullptr)
-  {
-//    m_TTree[MultipleEntries] = new TTree(m_TTreeName[MultipleEntries].c_str(),m_TTreeName[MultipleEntries].c_str(),fieldnames.c_str());
-    m_TTree[MultipleEntries] = new TTree(m_TTreeName[MultipleEntries].c_str(),m_TTreeName[MultipleEntries].c_str());
-  }
-  for (auto &entry :  m_FloatEntryMap)
-  {
-    vals[(index.find("ID")->second)] = entry.first;
-    for (auto &calib : entry.second)
-    {
-      vals[(index.find(calib.first)->second)] = calib.second;  
-    }
-//    m_TTree[MultipleEntries]->Fill(vals);
-    std::fill(vals,vals+m_EntryNameSet.size()+1,NAN);
-  }
-  delete [] vals;
-*/
   return;
 }
 
 void CDBTTree::SetSingleFloatValue(const std::string &name, float value)
 {
-  if (m_SingleFloatEntryMap.find(name) == m_SingleFloatEntryMap.end())
+  std::string fieldname = "F" + name;
+  if (m_SingleFloatEntryMap.find(fieldname) == m_SingleFloatEntryMap.end())
   {
     if (m_Locked[SingleEntries])
     {
@@ -220,15 +229,16 @@ void CDBTTree::SetSingleFloatValue(const std::string &name, float value)
       std::cout << "That does not work, restructure your code" << std::endl;
       gSystem->Exit(1);
     }
-    m_SingleFloatEntryMap.insert(std::make_pair(name, value));
+    m_SingleFloatEntryMap.insert(std::make_pair(fieldname, value));
     return;
   }
-  m_SingleFloatEntryMap[name] = value;
+  m_SingleFloatEntryMap[fieldname] = value;
 }
 
 void CDBTTree::SetSingleDoubleValue(const std::string &name, double value)
 {
-  if (m_SingleDoubleEntryMap.find(name) == m_SingleDoubleEntryMap.end())
+  std::string fieldname = "D" + name;
+  if (m_SingleDoubleEntryMap.find(fieldname) == m_SingleDoubleEntryMap.end())
   {
     if (m_Locked[SingleEntries])
     {
@@ -236,15 +246,16 @@ void CDBTTree::SetSingleDoubleValue(const std::string &name, double value)
       std::cout << "That does not work, restructure your code" << std::endl;
       gSystem->Exit(1);
     }
-    m_SingleDoubleEntryMap.insert(std::make_pair(name, value));
+    m_SingleDoubleEntryMap.insert(std::make_pair(fieldname, value));
     return;
   }
-  m_SingleDoubleEntryMap[name] = value;
+  m_SingleDoubleEntryMap[fieldname] = value;
 }
 
 void CDBTTree::SetSingleIntValue(const std::string &name, int value)
 {
-  if (m_SingleIntEntryMap.find(name) == m_SingleIntEntryMap.end())
+  std::string fieldname = "I" + name;
+  if (m_SingleIntEntryMap.find(fieldname) == m_SingleIntEntryMap.end())
   {
     if (m_Locked[SingleEntries])
     {
@@ -252,15 +263,16 @@ void CDBTTree::SetSingleIntValue(const std::string &name, int value)
       std::cout << "That does not work, restructure your code" << std::endl;
       gSystem->Exit(1);
     }
-    m_SingleIntEntryMap.insert(std::make_pair(name, value));
+    m_SingleIntEntryMap.insert(std::make_pair(fieldname, value));
     return;
   }
-  m_SingleIntEntryMap[name] = value;
+  m_SingleIntEntryMap[fieldname] = value;
 }
 
 void CDBTTree::SetSingleUInt64Value(const std::string &name, uint64_t value)
 {
-  if (m_SingleUInt64EntryMap.find(name) == m_SingleUInt64EntryMap.end())
+  std::string fieldname = "g" + name;
+  if (m_SingleUInt64EntryMap.find(fieldname) == m_SingleUInt64EntryMap.end())
   {
     if (m_Locked[SingleEntries])
     {
@@ -268,10 +280,10 @@ void CDBTTree::SetSingleUInt64Value(const std::string &name, uint64_t value)
       std::cout << "That does not work, restructure your code" << std::endl;
       gSystem->Exit(1);
     }
-    m_SingleUInt64EntryMap.insert(std::make_pair(name, value));
+    m_SingleUInt64EntryMap.insert(std::make_pair(fieldname, value));
     return;
   }
-  m_SingleUInt64EntryMap[name] = value;
+  m_SingleUInt64EntryMap[fieldname] = value;
 }
 
 void CDBTTree::CommitSingle()
@@ -444,14 +456,17 @@ float CDBTTree::GetSingleFloatValue(const std::string &name)
   {
     LoadCalibrations();
   }
-  auto singleiter = m_SingleFloatEntryMap.find(name);
+  std::string fieldname = "F" + name;
+  auto singleiter = m_SingleFloatEntryMap.find(fieldname);
   if (singleiter == m_SingleFloatEntryMap.end())
   {
     std::cout << "Could not find " << name << " in single calibrations" << std::endl;
     std::cout << "Existing values:" << std::endl;
     for (auto &eiter : m_SingleFloatEntryMap)
     {
-      std::cout << "name : " << eiter.first << ", value " << eiter.second
+      std::string tmpstring = eiter.first;
+      tmpstring.erase(0);
+      std::cout << "name : " << tmpstring << ", value " << eiter.second
 		<< std::endl;
     }
   }
@@ -470,8 +485,9 @@ float CDBTTree::GetFloatValue(int channel, const std::string &name)
     std::cout << "Could not find channel " << channel << " in calibrations" << std::endl;
     return NAN;
   }
-  auto calibiter = channelmapiter->second.find(name);
-  if (channelmapiter->second.find(name) == channelmapiter->second.end())
+  std::string fieldname = "F" + name;
+  auto calibiter = channelmapiter->second.find(fieldname);
+  if (calibiter == channelmapiter->second.end())
   {
     std::cout << "Could not find " << name << " among calibrations" << std::endl;
     return NAN;

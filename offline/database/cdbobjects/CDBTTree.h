@@ -14,7 +14,9 @@ public:
   CDBTTree(const std::string &fname);
   ~CDBTTree();
   void SetFloatValue(int channel, const std::string &name, float value);
+  void SetDoubleValue(int channel, const std::string &name, double value);
   void SetIntValue(int channel, const std::string &name, int value);
+  void SetUInt64Value(int channel, const std::string &name, uint64_t value);
   void Commit();
   void SetSingleFloatValue(const std::string &name, float value);
   void SetSingleDoubleValue(const std::string &name, double value);
