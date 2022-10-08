@@ -325,7 +325,9 @@ void CDBTTree::Print()
       std::cout << "ID: " << field.first << std::endl;
       for (auto &calibs : field.second)
       {
-	std::cout << "name " << calibs.first << " value: " << calibs.second << std::endl;
+      std::string tmpstring = calibs.first;
+      tmpstring.erase(0);
+	std::cout << "name " << tmpstring << " value: " << calibs.second << std::endl;
       }
     }
   }
@@ -334,7 +336,9 @@ void CDBTTree::Print()
     std::cout << "Number of single float fields: " << m_SingleFloatEntryMap.size() << std::endl;
     for (auto &field : m_SingleFloatEntryMap)
     {
-      std::cout << field.first << " value " << field.second << std::endl;
+      std::string tmpstring = calibs.first;
+      tmpstring.erase(0);
+      std::cout << tmpstring << " value " << field.second << std::endl;
     }
   }
   if (!m_SingleDoubleEntryMap.empty())
@@ -346,7 +350,9 @@ void CDBTTree::Print()
     std::cout.precision(std::numeric_limits< double >::max_digits10);
     for (auto &field : m_SingleDoubleEntryMap)
     {
-      std::cout << field.first << " value " << field.second << std::endl;
+      std::string tmpstring = field.first;
+      tmpstring.erase(0);
+      std::cout << tmpstring << " value " << field.second << std::endl;
     }
     std::cout.copyfmt(oldState);
   }
@@ -355,7 +361,9 @@ void CDBTTree::Print()
     std::cout << "Number of single int fields: " << m_SingleIntEntryMap.size() << std::endl;
     for (auto &field : m_SingleIntEntryMap)
     {
-      std::cout << field.first << " value " << field.second << std::endl;
+      std::string tmpstring = field.first;
+      tmpstring.erase(0);
+      std::cout << tmpstring << " value " << field.second << std::endl;
     }
   }
   if (!m_SingleUInt64EntryMap.empty())
@@ -363,7 +371,9 @@ void CDBTTree::Print()
     std::cout << "Number of single uint64 fields: " << m_SingleUInt64EntryMap.size() << std::endl;
     for (auto &field : m_SingleUInt64EntryMap)
     {
-      std::cout << field.first << " value " << field.second << std::endl;
+      std::string tmpstring = field.first;
+      tmpstring.erase(0);
+      std::cout << tmpstring << " value " << field.second << std::endl;
     }
   }
 }
