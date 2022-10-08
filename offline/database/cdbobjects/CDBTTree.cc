@@ -8,6 +8,7 @@
 #include <TTreeReader.h>
 #include <TTreeReaderValue.h>
 
+#include <climits>
 #include <iostream>
 #include <limits>
 
@@ -38,11 +39,145 @@ void CDBTTree::SetFloatValue(int channel, const std::string &name, float value)
   m_EntryNameSet.insert(name);
 }
 
+void CDBTTree::SetIntValue(int channel, const std::string &name, int value)
+{
+  if (name == "ID")
+  {
+    std::cout << "Sorry ID is reserved as fieldname, pick anything else" << std::endl;
+    gSystem->Exit(1);
+  }
+  if (m_Locked[MultipleEntries])
+  {
+    std::cout << "Trying to add field " << name << " after another entry was committed" << std::endl;
+    std::cout << "That does not work, restructure your code" << std::endl;
+    gSystem->Exit(1);
+  }
+  m_IntEntryMap[channel].insert(std::make_pair(name,value));
+  m_EntryNameSet.insert(name);
+}
+
 void CDBTTree::Commit()
 {
   m_Locked[MultipleEntries] = true;
 // create ntuple string
+  m_TTree[MultipleEntries] = new TTree(m_TTreeName[MultipleEntries].c_str(),m_TTreeName[MultipleEntries].c_str());
+  std::set<int> id_set;
+  std::map<std::string, float> floatmap;
+  std::map<std::string, double> doublemap;
+  std::map<std::string, int> intmap;
+  std::map<std::string, uint64_t> uint64map;
   std::map<std::string, unsigned int> index;
+  intmap.insert(std::make_pair("ID",INT_MIN));
+  for (auto &f_entry: m_FloatEntryMap)
+  {
+    id_set.insert(f_entry.first);
+    for (auto &f_val: f_entry.second)
+    {
+      floatmap.insert(std::make_pair(f_val.first,NAN));
+    }
+  }
+  for (auto &f_val : floatmap)
+  {
+    std::string fielddescriptor =  f_val.first + "/F";
+    m_TTree[MultipleEntries]->Branch(f_val.first.c_str(),&f_val.second,fielddescriptor.c_str());
+  }
+
+  for (auto &f_entry: m_DoubleEntryMap)
+  {
+    id_set.insert(f_entry.first);
+    for (auto &f_val: f_entry.second)
+    {
+      doublemap.insert(std::make_pair(f_val.first,NAN));
+    }
+  }
+  for (auto &f_val : doublemap)
+  {
+    std::string fielddescriptor =  f_val.first + "/D";
+    m_TTree[MultipleEntries]->Branch(f_val.first.c_str(),&f_val.second,fielddescriptor.c_str());
+  }
+
+  for (auto &i_entry: m_IntEntryMap)
+  {
+    id_set.insert(i_entry.first);
+    for (auto &i_val: i_entry.second)
+    {
+      intmap.insert(std::make_pair(i_val.first,INT_MIN));
+    }
+  }
+  for (auto &i_val : intmap)
+  {
+    std::string fielddescriptor =  i_val.first + "/I";
+    m_TTree[MultipleEntries]->Branch(i_val.first.c_str(),&i_val.second,fielddescriptor.c_str());
+  }
+
+  for (auto &i_entry: m_UInt64EntryMap)
+  {
+    id_set.insert(i_entry.first);
+    for (auto &i_val: i_entry.second)
+    {
+      uint64map.insert(std::make_pair(i_val.first,UINT64_MAX));
+    }
+  }
+  for (auto &i_val : uint64map)
+  {
+    std::string fielddescriptor =  i_val.first + "/g";
+    m_TTree[MultipleEntries]->Branch(i_val.first.c_str(),&i_val.second,fielddescriptor.c_str());
+  }
+// fill ttree
+  for (auto ids : id_set)
+  {
+    intmap["ID"] = ids;
+    auto fmapiter = m_FloatEntryMap.find(ids);
+    if (fmapiter !=  m_FloatEntryMap.end())
+    {
+      for (auto &f_val : fmapiter->second)
+      {
+	floatmap[f_val.first] = f_val.second;
+      }
+    }
+    auto dmapiter = m_DoubleEntryMap.find(ids);
+    if (dmapiter !=  m_DoubleEntryMap.end())
+    {
+      for (auto &d_val : dmapiter->second)
+      {
+	doublemap[d_val.first] = d_val.second;
+      }
+    }
+    auto imapiter = m_IntEntryMap.find(ids);
+    if (imapiter != m_IntEntryMap.end())
+    {
+      for (auto &i_val : imapiter->second)
+      {
+	intmap[i_val.first] = i_val.second;
+      }
+    }
+    auto uint64mapiter = m_UInt64EntryMap.find(ids);
+    if (uint64mapiter != m_UInt64EntryMap.end())
+    {
+      for (auto &uint64_val : uint64mapiter->second)
+      {
+	uint64map[uint64_val.first] = uint64_val.second;
+      }
+    }
+    m_TTree[MultipleEntries]->Fill();
+    for (auto &f_val: floatmap)
+    {
+      f_val.second = NAN;
+    }
+    for (auto &f_val: doublemap)
+    {
+      f_val.second = NAN;
+    }
+    for (auto &i_val: intmap)
+    {
+      i_val.second = INT_MIN;
+    }
+    for (auto &i_val: uint64map)
+    {
+      i_val.second = UINT64_MAX;
+    }
+  }
+/*
   index.insert(std::make_pair("ID",0));
   std::string fieldnames = "ID";
   unsigned int i = 0;
@@ -71,6 +206,7 @@ void CDBTTree::Commit()
     std::fill(vals,vals+m_EntryNameSet.size()+1,NAN);
   }
   delete [] vals;
+*/
   return;
 }
 
@@ -274,13 +410,9 @@ void CDBTTree::LoadCalibrations()
                   << " not implemented" << std::endl;
 	gSystem->Exit(1);
       }
-//      thisbranch->Print();
-      // m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(),&val);
-      // thisbranch->GetEntry(0);
-      // m_SingleFloatEntryMap.insert(std::make_pair(thisbranch->GetName(), val));
     }
   }
-m_TTree[SingleEntries]->GetEntry(0);
+  m_TTree[SingleEntries]->GetEntry(0);
   if (m_TTree[MultipleEntries] != nullptr)
   {
     TObjArray *branches =  m_TTree[MultipleEntries]->GetListOfBranches();
