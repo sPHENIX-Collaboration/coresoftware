@@ -116,5 +116,5 @@ PHG4Detector* PHG4EPDSubsystem::GetDetector() const
 
 void PHG4EPDSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("place_z", 316.);
+  set_default_double_param("place_z", 308.);
 }
