@@ -60,6 +60,7 @@ pkginclude_HEADERS = \
   SvtxTruthEval.h \
   SvtxTruthRecoTableEval.h \
   SvtxVertexEval.h \
+	TruthRecoTrackMatching.h \
   TrackEvaluation.h \
   TrackSeedTrackMapConverter.h \
   DSTEmulator.h \
@@ -104,6 +105,7 @@ libg4eval_la_SOURCES = \
   SvtxTrackEval.cc \
   SvtxTruthRecoTableEval.cc \
   SvtxVertexEval.cc \
+  TruthRecoTrackMatching.cc \
   SvtxEvaluator.cc \
   TrackEvaluation.cc \
   TrackSeedTrackMapConverter.cc \
