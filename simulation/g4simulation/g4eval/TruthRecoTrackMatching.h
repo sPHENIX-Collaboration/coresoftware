@@ -49,7 +49,11 @@ class TruthRecoTrackMatching : public SubsysReco
   TrkrClusterContainer    *m_RecoClusterContainer    {nullptr};
   TrkrTruthTrackContainer *m_TrkrTruthTrackContainer {nullptr};
 
-
+  // The sorting can get:
+  // 0. EmbedRecoPairs
+  // 1. EmbedNotMatched
+  // 2. RecoNotMatched
+  
   // locally - maybe?
   TrackSeedContainer      *m_tpcTrackSeedContainer   {nullptr}; // Get the seeds from the tracks to get the clusters
   // OUTPUT

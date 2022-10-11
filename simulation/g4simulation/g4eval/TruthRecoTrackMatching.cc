@@ -2,6 +2,7 @@
 
 #include <trackbase/TrkrTruthTrackContainer.h>
 #include <trackbase/TrkrTruthTrackContainerv1.h>
+#include <trackbase/TrkrTruthTrackv1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
 #include <trackbase/TrkrCluster.h>
@@ -26,6 +27,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <TSystem.h>
 
+/* #include <vector> */
+
 int TruthRecoTrackMatching::InitRun(PHCompositeNode *topNode)
 { 
   if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
@@ -48,21 +51,48 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)
   topnode->print();
   std::cout << " processing event in TruthRecoTrackMatching " << std::endl;
 
-  // need the
-
-  // loop through the phg4 tracks and see which ones are embedded
-  auto particle_map = m_PHG4TruthInfoContainer->GetMap();
-  for (const auto& pair : particle_map) {
-    int id = pair.first;
-    if (!m_PHG4TruthInfoContainer->isEmbeded(id)) continue;
-
-    // do the matching
-    std::cout << " id: " << id << "  is embedded? " << m_PHG4TruthInfoContainer->isEmbeded(id) << std::endl;
-
-
-
-    // get the particle eta, phi, and pt; must match the to the reconstructed tracks
+  // make a matching to the "best track" number
+  // There are 
+  // now just loop through the TrkrTruthTrackContainer
+  std::vector<bool> matched_truthtracks (m_TrkrTruthTrackContainer->getTruthTracks().size(), false);
+  std::vector<bool> matched_recotracks  (m_SvtxTrackMap->size(), false);
+  
+  std::cout << "id-C size: " << m_TrkrTruthTrackContainer->getTruthTracks().size() << std::endl;
+  for (auto _track : m_TrkrTruthTrackContainer->getTruthTracks()) {
+    auto track = static_cast<TrkrTruthTrackv1*>(_track);
+    /* std::cout << " id-C: " << track->getTrackid() << std::endl; */
+    std::cout << Form(" id-C (%2i)   phi(%5.2f) eta(%5.2f) pt(%5.2f)",
+        track->getTrackid(), track->getPhi(), track->getPseudoRapidity(), track->getPt()) << std::endl;
   }
+
+  std::cout << "id size: " << m_SvtxTrackMap->size() << std::endl;
+  for (auto reco = m_SvtxTrackMap->begin(); reco != m_SvtxTrackMap->end(); ++reco) {
+    auto _ = reco->second;
+    std::cout << Form(" id(%2i-%2i)   phi(%5.2f) eta(%5.2f) pt(%5.2f)",
+        reco->first, _->get_id(), _->get_phi(), _->get_eta(), _->get_pt()) << std::endl;
+  }
+
+
+  /* std::cout << " FIXME loop 3 " << std::endl; */
+  /* auto particle_map = m_PHG4TruthInfoContainer->GetMap(); */
+
+  /* std::cout << " FIXME loop 0 " << std::endl; */
+  /* for (const auto& pair : particle_map) { */
+  /*   int id = pair.first; */
+  /*   if (!m_PHG4TruthInfoContainer->isEmbeded(id)) continue; */
+
+  /*   // do the matching -> find the best reconstructed track */
+  /*   std::cout << " id-A: " << id << "  is embedded? " << m_PHG4TruthInfoContainer->isEmbeded(id) << std::endl; */
+  /*   // get the particle eta, phi, and pt; must match the to the reconstructed tracks */
+  /* } */
+  /* std::cout << " FIXME loop 1 " << std::endl; */
+  /* // test loop directly through the embedded track ids */
+  /* auto embTrkIds = m_PHG4TruthInfoContainer->GetEmbeddedTrkIds(); */
+  /* for (auto ids = embTrkIds.first; ids != embTrkIds.second; ++ids) { */
+  /*   std::cout << " id-B: " << ids->first << "  is embedded? " << m_PHG4TruthInfoContainer->isEmbeded(ids->first) << std::endl; */
+  /* } */
+  /* std::cout << " FIXME loop 2 " << std::endl; */
+
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
