@@ -6,6 +6,11 @@
 #include <cmath>
 #include <string>
 
+#include <map>
+#include <set>
+#include <boost/tuple/tuple.hpp>
+#include <boost/tuple/tuple_comparison.hpp>
+
 class PHField3DCartesian : public PHField
 {
  public:
@@ -38,6 +43,14 @@ class PHField3DCartesian : public PHField
   mutable double zkey_save = NAN;
   mutable int cache_hits = 0;
   mutable int cache_misses = 0;
+
+  typedef boost::tuple<float, float, float> trio;
+  std::map<boost::tuple<float, float, float>, boost::tuple<float, float, float> > fieldmap;
+  std::set<float> xvals;
+  std::set<float> yvals;
+  std::set<float> zvals;
+
+
 };
 
 #endif
