@@ -54,6 +54,11 @@ TpcClusterBuilder::PairCluskeyCluster TpcClusterBuilder::build(MapHitsetkeyUInt&
   // generate the hitset key at the mean phi location:
   /* std::cout << " a0 " << std::endl; */
   const int phi_pad_number           = layerGeom->get_phibin(phi_mean);
+  std::cout << " ______________________________ " << phi_mean << std::endl;
+  std::cout << " phi_mean " << phi_mean << std::endl;
+  std::cout << " phi_pad_number " << phi_pad_number << std::endl;
+  std::cout << " layerGeom->get_phicenter(phi_mean) " << layerGeom->get_phicenter(phi_pad_number) << std::endl;
+  std::cout << " layerGeom->get_phistep() " << layerGeom->get_phistep() << std::endl;
   /* std::cout << " a1 " << std::endl; */
   const auto phibins                 = layerGeom->get_phibins();
   /* std::cout << " a2 " << std::endl; */
