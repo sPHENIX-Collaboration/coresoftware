@@ -28,7 +28,8 @@ libg4ohcal_la_SOURCES = \
   PHG4OHCalDetector.cc \
   PHG4OHCalDisplayAction.cc \
   PHG4OHCalSteppingAction.cc \
-  PHG4OHCalSubsystem.cc
+  PHG4OHCalSubsystem.cc \
+  PHG4OHCalFieldSetup.cc 
 
 ################################################
 # linking tests

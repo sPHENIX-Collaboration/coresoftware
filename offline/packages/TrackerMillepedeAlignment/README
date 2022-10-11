@@ -1,0 +1,11 @@
+This directory holds code related to aligning the tracking system.
+Contents:
+
+Macro to make alignment parameter files to put into the CDB
+MakeAlignmentParams.C
+
+Code to gather data needed for alignment, and write text and data files needed by Pede
+
+Code to call and run Pede
+
+
