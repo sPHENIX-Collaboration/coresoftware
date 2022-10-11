@@ -3,6 +3,12 @@
 #include "TrkrTruthTrackv1.h"
 
 #include <algorithm>
+
+void TrkrTruthTrackContainerv1::Reset() {
+  for (auto& track : m_data) delete track;
+  m_data.clear();
+}
+
 void TrkrTruthTrackContainerv1::addTruthTrack(TrkrTruthTrack* track) {
   // note: assumed that track is ordered numerically by trackid already
   m_data.push_back(track);
