@@ -326,18 +326,63 @@ void CDBTTree::Print()
       for (auto &calibs : field.second)
       {
       std::string tmpstring = calibs.first;
-      tmpstring.erase(0);
+      tmpstring.erase(0,1);
+	std::cout << "name " << tmpstring << " value: " << calibs.second << std::endl;
+      }
+    }
+    std::cout << "--------------------------------------------------" << std::endl << std::endl;
+  }
+  if (! m_DoubleEntryMap.empty())
+  {
+    std::cout << "Number of double entries: " << m_DoubleEntryMap.size() << std::endl;
+    for (auto &field : m_DoubleEntryMap)
+    {
+      std::cout << "ID: " << field.first << std::endl;
+      for (auto &calibs : field.second)
+      {
+      std::string tmpstring = calibs.first;
+      tmpstring.erase(0,1);
+	std::cout << "name " << tmpstring << " value: " << calibs.second << std::endl;
+      }
+    }
+    std::cout << "--------------------------------------------------" << std::endl << std::endl;
+  }
+  if (! m_IntEntryMap.empty())
+  {
+    std::cout << "Number of int entries: " << m_IntEntryMap.size() << std::endl;
+    for (auto &field : m_IntEntryMap)
+    {
+      std::cout << "ID: " << field.first << std::endl;
+      for (auto &calibs : field.second)
+      {
+      std::string tmpstring = calibs.first;
+      tmpstring.erase(0,1);
 	std::cout << "name " << tmpstring << " value: " << calibs.second << std::endl;
       }
     }
   }
+  if (! m_UInt64EntryMap.empty())
+  {
+    std::cout << "Number of uint64 entries: " << m_UInt64EntryMap.size() << std::endl;
+    for (auto &field : m_UInt64EntryMap)
+    {
+      std::cout << "ID: " << field.first << std::endl;
+      for (auto &calibs : field.second)
+      {
+      std::string tmpstring = calibs.first;
+      tmpstring.erase(0,1);
+	std::cout << "name " << tmpstring << " value: " << calibs.second << std::endl;
+      }
+    }
+  }
+
   if (!m_SingleFloatEntryMap.empty())
   {
     std::cout << "Number of single float fields: " << m_SingleFloatEntryMap.size() << std::endl;
     for (auto &field : m_SingleFloatEntryMap)
     {
-      std::string tmpstring = calibs.first;
-      tmpstring.erase(0);
+      std::string tmpstring = field.first;
+      tmpstring.erase(0,1);
       std::cout << tmpstring << " value " << field.second << std::endl;
     }
   }
@@ -351,7 +396,7 @@ void CDBTTree::Print()
     for (auto &field : m_SingleDoubleEntryMap)
     {
       std::string tmpstring = field.first;
-      tmpstring.erase(0);
+      tmpstring.erase(0,1);
       std::cout << tmpstring << " value " << field.second << std::endl;
     }
     std::cout.copyfmt(oldState);
@@ -362,7 +407,7 @@ void CDBTTree::Print()
     for (auto &field : m_SingleIntEntryMap)
     {
       std::string tmpstring = field.first;
-      tmpstring.erase(0);
+      tmpstring.erase(0,1);
       std::cout << tmpstring << " value " << field.second << std::endl;
     }
   }
@@ -372,7 +417,7 @@ void CDBTTree::Print()
     for (auto &field : m_SingleUInt64EntryMap)
     {
       std::string tmpstring = field.first;
-      tmpstring.erase(0);
+      tmpstring.erase(0,1);
       std::cout << tmpstring << " value " << field.second << std::endl;
     }
   }
@@ -421,7 +466,7 @@ void CDBTTree::LoadCalibrations()
       }
       else if (DataType == "ULong_t")
       {
-	auto itermap =  m_SingleUInt64EntryMap.insert(std::make_pair(thisbranch->GetName(),~0x0));
+	auto itermap =  m_SingleUInt64EntryMap.insert(std::make_pair(thisbranch->GetName(),UINT64_MAX));
 	m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
       }
       else
@@ -439,22 +484,106 @@ void CDBTTree::LoadCalibrations()
   {
     TObjArray *branches =  m_TTree[MultipleEntries]->GetListOfBranches();
     TIter iter(branches);
-    std::map<std::string, float> branchmap;
+    std::map<std::string, float> floatvalmap;
+    std::map<std::string, double> doublevalmap;
+    std::map<std::string, int> intvalmap;
+    std::map<std::string, uint64_t> uint64valmap;
     while(TBranch *thisbranch = static_cast<TBranch *> (iter.Next()))
     {
-      float val;
-      std::pair<std::string, float> valpair = std::make_pair(thisbranch->GetName(),val);
-      branchmap.insert(valpair);
+      // this convoluted expression returns the data type of a split branch
+      std::string DataType = thisbranch->GetLeaf(thisbranch->GetName())->GetTypeName();
+      if (DataType == "Float_t")
+      {
+	auto itermap = floatvalmap.insert(std::make_pair(thisbranch->GetName(),NAN));
+        m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+      }
+      if (DataType == "Double_t")
+      {
+	auto itermap = doublevalmap.insert(std::make_pair(thisbranch->GetName(),NAN));
+        m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+      }
+      if (DataType == "Int_t")
+      {
+	auto itermap = intvalmap.insert(std::make_pair(thisbranch->GetName(),INT_MIN));
+        m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+      }
+      if (DataType == "ULong_t")
+      {
+	auto itermap = uint64valmap.insert(std::make_pair(thisbranch->GetName(),UINT64_MAX));
+        m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+      }
     }
-    for (auto &biter : branchmap)
+    for (auto entry = 0; entry <  m_TTree[MultipleEntries]->GetEntries();  ++entry)
     {
-      m_TTree[MultipleEntries]->SetBranchAddress(biter.first.c_str(), &biter.second);
-    }
-    for (int i=0; i<m_TTree[MultipleEntries]->GetEntries(); i++)
-    {
-      m_TTree[MultipleEntries]->GetEntry(i);
-      int id = branchmap.find("ID")->second;
-      m_FloatEntryMap.insert(std::make_pair(id, branchmap));
+      for (auto &field : floatvalmap)
+      {
+	field.second = NAN;
+      }
+      for (auto &field : doublevalmap)
+      {
+	field.second = NAN;
+      }
+      for (auto &field : intvalmap)
+      {
+	field.second = INT_MIN;
+      }
+      for (auto &field : uint64valmap)
+      {
+	field.second = UINT64_MAX;
+      }
+      m_TTree[MultipleEntries]->GetEntry(entry);
+      int ID = intvalmap.find("IID")->second;
+      std::map<std::string, float> tmp_floatvalmap;
+      for (auto &field : floatvalmap)
+      {
+	if (std::isfinite(field.second))
+	{
+	  tmp_floatvalmap.insert(std::make_pair(field.first, field.second));
+	}
+      }
+      if (! tmp_floatvalmap.empty())
+      {
+         m_FloatEntryMap.insert(std::make_pair(ID,tmp_floatvalmap));
+      }
+
+      std::map<std::string, double> tmp_doublevalmap;
+      for (auto &field : doublevalmap)
+      {
+	if (std::isfinite(field.second))
+	{
+	  tmp_doublevalmap.insert(std::make_pair(field.first, field.second));
+	}
+      }
+      if (! tmp_doublevalmap.empty())
+      {
+         m_DoubleEntryMap.insert(std::make_pair(ID,tmp_doublevalmap));
+      }
+
+      std::map<std::string, int> tmp_intvalmap;
+      for (auto &field : intvalmap)
+      {
+	if (field.second != INT_MIN && field.first != "IID")
+	{
+	  tmp_intvalmap.insert(std::make_pair(field.first, field.second));
+	}
+      }
+      if (! tmp_intvalmap.empty())
+      {
+         m_IntEntryMap.insert(std::make_pair(ID,tmp_intvalmap));
+      }
+
+      std::map<std::string, uint64_t> tmp_uint64valmap;
+      for (auto &field : uint64valmap)
+      {
+	if (field.second != UINT64_MAX)
+	{
+	  tmp_uint64valmap.insert(std::make_pair(field.first, field.second));
+	}
+      }
+      if (! tmp_uint64valmap.empty())
+      {
+         m_UInt64EntryMap.insert(std::make_pair(ID,tmp_uint64valmap));
+      }
     }
   }
   f->Close();
@@ -470,12 +599,12 @@ float CDBTTree::GetSingleFloatValue(const std::string &name)
   auto singleiter = m_SingleFloatEntryMap.find(fieldname);
   if (singleiter == m_SingleFloatEntryMap.end())
   {
-    std::cout << "Could not find " << name << " in single calibrations" << std::endl;
+    std::cout << "Could not find " << name << " in single float calibrations" << std::endl;
     std::cout << "Existing values:" << std::endl;
     for (auto &eiter : m_SingleFloatEntryMap)
     {
       std::string tmpstring = eiter.first;
-      tmpstring.erase(0);
+      tmpstring.erase(0,1);
       std::cout << "name : " << tmpstring << ", value " << eiter.second
 		<< std::endl;
     }
@@ -492,15 +621,151 @@ float CDBTTree::GetFloatValue(int channel, const std::string &name)
   auto channelmapiter = m_FloatEntryMap.find(channel);
   if (channelmapiter == m_FloatEntryMap.end())
   {
-    std::cout << "Could not find channel " << channel << " in calibrations" << std::endl;
+    std::cout << "Could not find channel " << channel << " in float calibrations" << std::endl;
     return NAN;
   }
   std::string fieldname = "F" + name;
   auto calibiter = channelmapiter->second.find(fieldname);
   if (calibiter == channelmapiter->second.end())
   {
-    std::cout << "Could not find " << name << " among calibrations" << std::endl;
+    std::cout << "Could not find " << name << " among float calibrations of channel " << channel << std::endl;
     return NAN;
   }
   return calibiter->second;
 }
+
+double CDBTTree::GetSingleDoubleValue(const std::string &name)
+{
+  if ( m_SingleDoubleEntryMap.empty())
+  {
+    LoadCalibrations();
+  }
+  std::string fieldname = "D" + name;
+  auto singleiter = m_SingleDoubleEntryMap.find(fieldname);
+  if (singleiter == m_SingleDoubleEntryMap.end())
+  {
+    std::cout << "Could not find " << name << " in single double calibrations" << std::endl;
+    std::cout << "Existing values:" << std::endl;
+    for (auto &eiter : m_SingleDoubleEntryMap)
+    {
+      std::string tmpstring = eiter.first;
+      tmpstring.erase(0,1);
+      std::cout << "name : " << tmpstring << ", value " << eiter.second
+		<< std::endl;
+    }
+  }
+  return singleiter->second ;
+}
+
+double CDBTTree::GetDoubleValue(int channel, const std::string &name)
+{
+  if ( m_DoubleEntryMap.empty())
+  {
+    LoadCalibrations();
+  }
+  auto channelmapiter = m_DoubleEntryMap.find(channel);
+  if (channelmapiter == m_DoubleEntryMap.end())
+  {
+    std::cout << "Could not find channel " << channel << " in double calibrations" << std::endl;
+    return NAN;
+  }
+  std::string fieldname = "D" + name;
+  auto calibiter = channelmapiter->second.find(fieldname);
+  if (calibiter == channelmapiter->second.end())
+  {
+    std::cout << "Could not find " << name << " among double calibrations for channel " << channel << std::endl;
+    return NAN;
+  }
+  return calibiter->second;
+}
+
+int CDBTTree::GetSingleIntValue(const std::string &name)
+{
+  if ( m_SingleIntEntryMap.empty())
+  {
+    LoadCalibrations();
+  }
+  std::string fieldname = "I" + name;
+  auto singleiter = m_SingleIntEntryMap.find(fieldname);
+  if (singleiter == m_SingleIntEntryMap.end())
+  {
+    std::cout << "Could not find " << name << " in single int calibrations" << std::endl;
+    std::cout << "Existing values:" << std::endl;
+    for (auto &eiter : m_SingleIntEntryMap)
+    {
+      std::string tmpstring = eiter.first;
+      tmpstring.erase(0,1);
+      std::cout << "name : " << tmpstring << ", value " << eiter.second
+		<< std::endl;
+    }
+  }
+  return singleiter->second ;
+}
+
+int CDBTTree::GetIntValue(int channel, const std::string &name)
+{
+  if ( m_IntEntryMap.empty())
+  {
+    LoadCalibrations();
+  }
+  auto channelmapiter = m_IntEntryMap.find(channel);
+  if (channelmapiter == m_IntEntryMap.end())
+  {
+    std::cout << "Could not find channel " << channel << " in int calibrations" << std::endl;
+    return INT_MIN;
+  }
+  std::string fieldname = "I" + name;
+  auto calibiter = channelmapiter->second.find(fieldname);
+  if (calibiter == channelmapiter->second.end())
+  {
+    std::cout << "Could not find " << name << " among int calibrations for channel " << channel << std::endl;
+    return INT_MIN;
+  }
+  return calibiter->second;
+}
+
+uint64_t CDBTTree::GetSingleUInt64Value(const std::string &name)
+{
+  if ( m_SingleUInt64EntryMap.empty())
+  {
+    LoadCalibrations();
+  }
+  std::string fieldname = "g" + name;
+  auto singleiter = m_SingleUInt64EntryMap.find(fieldname);
+  if (singleiter == m_SingleUInt64EntryMap.end())
+  {
+    std::cout << "Could not find " << name << " in single uint64 calibrations" << std::endl;
+    std::cout << "Existing values:" << std::endl;
+    for (auto &eiter : m_SingleUInt64EntryMap)
+    {
+      std::string tmpstring = eiter.first;
+      tmpstring.erase(0,1);
+      std::cout << "name : " << tmpstring << ", value " << eiter.second
+		<< std::endl;
+    }
+  }
+  return singleiter->second ;
+}
+
+uint64_t CDBTTree::GetUInt64Value(int channel, const std::string &name)
+{
+  if ( m_UInt64EntryMap.empty())
+  {
+    LoadCalibrations();
+  }
+  auto channelmapiter = m_UInt64EntryMap.find(channel);
+  if (channelmapiter == m_UInt64EntryMap.end())
+  {
+    std::cout << "Could not find channel " << channel << " in unint64 calibrations" << std::endl;
+    return UINT64_MAX;
+  }
+  std::string fieldname = "g" + name;
+  auto calibiter = channelmapiter->second.find(fieldname);
+  if (calibiter == channelmapiter->second.end())
+  {
+    std::cout << "Could not find " << name << " among uint64 calibrations for channel " << channel << std::endl;
+    return UINT64_MAX;
+  }
+  return calibiter->second;
+}
+

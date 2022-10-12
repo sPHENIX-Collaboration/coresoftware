@@ -28,6 +28,12 @@ public:
   void LoadCalibrations();
   float GetSingleFloatValue(const std::string &name);
   float GetFloatValue(int channel, const std::string &name);
+  double GetSingleDoubleValue(const std::string &name);
+  double GetDoubleValue(int channel, const std::string &name);
+  int GetSingleIntValue(const std::string &name);
+  int GetIntValue(int channel, const std::string &name);
+  uint64_t GetSingleUInt64Value(const std::string &name);
+  uint64_t GetUInt64Value(int channel, const std::string &name);
 
 private:
   enum {SingleEntries = 0, MultipleEntries = 1};
