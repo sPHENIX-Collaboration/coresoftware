@@ -9,7 +9,7 @@ class TTree;
 
 class CDBTTree
 {
-public:
+ public:
   CDBTTree() = default;
   CDBTTree(const std::string &fname);
   ~CDBTTree();
@@ -35,9 +35,13 @@ public:
   uint64_t GetSingleUInt64Value(const std::string &name);
   uint64_t GetUInt64Value(int channel, const std::string &name);
 
-private:
-  enum {SingleEntries = 0, MultipleEntries = 1};
-  const std::string m_TTreeName[2] = {"Single","Multiple"};
+ private:
+  enum
+  {
+    SingleEntries = 0,
+    MultipleEntries = 1
+  };
+  const std::string m_TTreeName[2] = {"Single", "Multiple"};
   TTree *m_TTree[2] = {nullptr};
   bool m_Locked[2] = {false};
 

@@ -3,8 +3,8 @@
 #include <phool/phool.h>
 
 #include <TFile.h>
-#include <TTree.h>
 #include <TSystem.h>
+#include <TTree.h>
 #include <TTreeReader.h>
 #include <TTreeReaderValue.h>
 
@@ -14,7 +14,8 @@
 
 CDBTTree::CDBTTree(const std::string &fname)
   : m_Filename(fname)
-{}
+{
+}
 
 CDBTTree::~CDBTTree()
 {
@@ -36,7 +37,7 @@ void CDBTTree::SetFloatValue(int channel, const std::string &name, float value)
     std::cout << "That does not work, restructure your code" << std::endl;
     gSystem->Exit(1);
   }
-  m_FloatEntryMap[channel].insert(std::make_pair(fieldname,value));
+  m_FloatEntryMap[channel].insert(std::make_pair(fieldname, value));
   m_EntryNameSet.insert(name);
 }
 
@@ -54,7 +55,7 @@ void CDBTTree::SetDoubleValue(int channel, const std::string &name, double value
     std::cout << "That does not work, restructure your code" << std::endl;
     gSystem->Exit(1);
   }
-  m_DoubleEntryMap[channel].insert(std::make_pair(fieldname,value));
+  m_DoubleEntryMap[channel].insert(std::make_pair(fieldname, value));
   m_EntryNameSet.insert(name);
 }
 
@@ -72,7 +73,7 @@ void CDBTTree::SetIntValue(int channel, const std::string &name, int value)
     std::cout << "That does not work, restructure your code" << std::endl;
     gSystem->Exit(1);
   }
-  m_IntEntryMap[channel].insert(std::make_pair(fieldname,value));
+  m_IntEntryMap[channel].insert(std::make_pair(fieldname, value));
   m_EntryNameSet.insert(name);
 }
 
@@ -90,95 +91,95 @@ void CDBTTree::SetUInt64Value(int channel, const std::string &name, uint64_t val
     std::cout << "That does not work, restructure your code" << std::endl;
     gSystem->Exit(1);
   }
-  m_UInt64EntryMap[channel].insert(std::make_pair(fieldname,value));
+  m_UInt64EntryMap[channel].insert(std::make_pair(fieldname, value));
   m_EntryNameSet.insert(name);
 }
 
 void CDBTTree::Commit()
 {
   m_Locked[MultipleEntries] = true;
-// create ntuple string
-  m_TTree[MultipleEntries] = new TTree(m_TTreeName[MultipleEntries].c_str(),m_TTreeName[MultipleEntries].c_str());
+  // create ntuple string
+  m_TTree[MultipleEntries] = new TTree(m_TTreeName[MultipleEntries].c_str(), m_TTreeName[MultipleEntries].c_str());
   std::set<int> id_set;
   std::map<std::string, float> floatmap;
   std::map<std::string, double> doublemap;
   std::map<std::string, int> intmap;
   std::map<std::string, uint64_t> uint64map;
   std::map<std::string, unsigned int> index;
-  intmap.insert(std::make_pair("IID",INT_MIN));
-  for (auto &f_entry: m_FloatEntryMap)
+  intmap.insert(std::make_pair("IID", INT_MIN));
+  for (auto &f_entry : m_FloatEntryMap)
   {
     id_set.insert(f_entry.first);
-    for (auto &f_val: f_entry.second)
+    for (auto &f_val : f_entry.second)
     {
-      floatmap.insert(std::make_pair(f_val.first,NAN));
+      floatmap.insert(std::make_pair(f_val.first, NAN));
     }
   }
   for (auto &f_val : floatmap)
   {
-    std::string fielddescriptor =  f_val.first + "/F";
-    m_TTree[MultipleEntries]->Branch(f_val.first.c_str(),&f_val.second,fielddescriptor.c_str());
+    std::string fielddescriptor = f_val.first + "/F";
+    m_TTree[MultipleEntries]->Branch(f_val.first.c_str(), &f_val.second, fielddescriptor.c_str());
   }
 
-  for (auto &f_entry: m_DoubleEntryMap)
+  for (auto &f_entry : m_DoubleEntryMap)
   {
     id_set.insert(f_entry.first);
-    for (auto &f_val: f_entry.second)
+    for (auto &f_val : f_entry.second)
     {
-      doublemap.insert(std::make_pair(f_val.first,NAN));
+      doublemap.insert(std::make_pair(f_val.first, NAN));
     }
   }
   for (auto &f_val : doublemap)
   {
-    std::string fielddescriptor =  f_val.first + "/D";
-    m_TTree[MultipleEntries]->Branch(f_val.first.c_str(),&f_val.second,fielddescriptor.c_str());
+    std::string fielddescriptor = f_val.first + "/D";
+    m_TTree[MultipleEntries]->Branch(f_val.first.c_str(), &f_val.second, fielddescriptor.c_str());
   }
 
-  for (auto &i_entry: m_IntEntryMap)
+  for (auto &i_entry : m_IntEntryMap)
   {
     id_set.insert(i_entry.first);
-    for (auto &i_val: i_entry.second)
+    for (auto &i_val : i_entry.second)
     {
-      intmap.insert(std::make_pair(i_val.first,INT_MIN));
+      intmap.insert(std::make_pair(i_val.first, INT_MIN));
     }
   }
   for (auto &i_val : intmap)
   {
-    std::string fielddescriptor =  i_val.first + "/I";
-    m_TTree[MultipleEntries]->Branch(i_val.first.c_str(),&i_val.second,fielddescriptor.c_str());
+    std::string fielddescriptor = i_val.first + "/I";
+    m_TTree[MultipleEntries]->Branch(i_val.first.c_str(), &i_val.second, fielddescriptor.c_str());
   }
 
-  for (auto &i_entry: m_UInt64EntryMap)
+  for (auto &i_entry : m_UInt64EntryMap)
   {
     id_set.insert(i_entry.first);
-    for (auto &i_val: i_entry.second)
+    for (auto &i_val : i_entry.second)
     {
-      uint64map.insert(std::make_pair(i_val.first,UINT64_MAX));
+      uint64map.insert(std::make_pair(i_val.first, UINT64_MAX));
     }
   }
   for (auto &i_val : uint64map)
   {
-    std::string fielddescriptor =  i_val.first + "/g";
-    m_TTree[MultipleEntries]->Branch(i_val.first.c_str(),&i_val.second,fielddescriptor.c_str());
+    std::string fielddescriptor = i_val.first + "/g";
+    m_TTree[MultipleEntries]->Branch(i_val.first.c_str(), &i_val.second, fielddescriptor.c_str());
   }
-// fill ttree
+  // fill ttree
   for (auto ids : id_set)
   {
     intmap["IID"] = ids;
     auto fmapiter = m_FloatEntryMap.find(ids);
-    if (fmapiter !=  m_FloatEntryMap.end())
+    if (fmapiter != m_FloatEntryMap.end())
     {
       for (auto &f_val : fmapiter->second)
       {
-	floatmap[f_val.first] = f_val.second;
+        floatmap[f_val.first] = f_val.second;
       }
     }
     auto dmapiter = m_DoubleEntryMap.find(ids);
-    if (dmapiter !=  m_DoubleEntryMap.end())
+    if (dmapiter != m_DoubleEntryMap.end())
     {
       for (auto &d_val : dmapiter->second)
       {
-	doublemap[d_val.first] = d_val.second;
+        doublemap[d_val.first] = d_val.second;
       }
     }
     auto imapiter = m_IntEntryMap.find(ids);
@@ -186,7 +187,7 @@ void CDBTTree::Commit()
     {
       for (auto &i_val : imapiter->second)
       {
-	intmap[i_val.first] = i_val.second;
+        intmap[i_val.first] = i_val.second;
       }
     }
     auto uint64mapiter = m_UInt64EntryMap.find(ids);
@@ -194,23 +195,23 @@ void CDBTTree::Commit()
     {
       for (auto &uint64_val : uint64mapiter->second)
       {
-	uint64map[uint64_val.first] = uint64_val.second;
+        uint64map[uint64_val.first] = uint64_val.second;
       }
     }
     m_TTree[MultipleEntries]->Fill();
-    for (auto &f_val: floatmap)
+    for (auto &f_val : floatmap)
     {
       f_val.second = NAN;
     }
-    for (auto &f_val: doublemap)
+    for (auto &f_val : doublemap)
     {
       f_val.second = NAN;
     }
-    for (auto &i_val: intmap)
+    for (auto &i_val : intmap)
     {
       i_val.second = INT_MIN;
     }
-    for (auto &i_val: uint64map)
+    for (auto &i_val : uint64map)
     {
       i_val.second = UINT64_MAX;
     }
@@ -289,26 +290,26 @@ void CDBTTree::SetSingleUInt64Value(const std::string &name, uint64_t value)
 void CDBTTree::CommitSingle()
 {
   m_Locked[SingleEntries] = true;
-  m_TTree[SingleEntries] = new TTree(m_TTreeName[SingleEntries].c_str(),m_TTreeName[SingleEntries].c_str());
-  for (auto &field :  m_SingleFloatEntryMap)
+  m_TTree[SingleEntries] = new TTree(m_TTreeName[SingleEntries].c_str(), m_TTreeName[SingleEntries].c_str());
+  for (auto &field : m_SingleFloatEntryMap)
   {
-    std::string fielddescriptor =  field.first + "/F";
-    m_TTree[SingleEntries]->Branch(field.first.c_str(),&field.second,fielddescriptor.c_str());
+    std::string fielddescriptor = field.first + "/F";
+    m_TTree[SingleEntries]->Branch(field.first.c_str(), &field.second, fielddescriptor.c_str());
   }
-  for (auto &field :  m_SingleDoubleEntryMap)
+  for (auto &field : m_SingleDoubleEntryMap)
   {
-    std::string fielddescriptor =  field.first + "/D";
-    m_TTree[SingleEntries]->Branch(field.first.c_str(),&field.second,fielddescriptor.c_str());
+    std::string fielddescriptor = field.first + "/D";
+    m_TTree[SingleEntries]->Branch(field.first.c_str(), &field.second, fielddescriptor.c_str());
   }
-  for (auto &field :  m_SingleIntEntryMap)
+  for (auto &field : m_SingleIntEntryMap)
   {
-    std::string fielddescriptor =  field.first + "/I";
-    m_TTree[SingleEntries]->Branch(field.first.c_str(),&field.second,fielddescriptor.c_str());
+    std::string fielddescriptor = field.first + "/I";
+    m_TTree[SingleEntries]->Branch(field.first.c_str(), &field.second, fielddescriptor.c_str());
   }
-  for (auto &field :  m_SingleUInt64EntryMap)
+  for (auto &field : m_SingleUInt64EntryMap)
   {
-    std::string fielddescriptor =  field.first + "/g";
-    m_TTree[SingleEntries]->Branch(field.first.c_str(),&field.second,fielddescriptor.c_str());
+    std::string fielddescriptor = field.first + "/g";
+    m_TTree[SingleEntries]->Branch(field.first.c_str(), &field.second, fielddescriptor.c_str());
   }
 
   m_TTree[SingleEntries]->Fill();
@@ -317,7 +318,7 @@ void CDBTTree::CommitSingle()
 
 void CDBTTree::Print()
 {
-  if (! m_FloatEntryMap.empty())
+  if (!m_FloatEntryMap.empty())
   {
     std::cout << "Number of float entries: " << m_FloatEntryMap.size() << std::endl;
     for (auto &field : m_FloatEntryMap)
@@ -325,14 +326,15 @@ void CDBTTree::Print()
       std::cout << "ID: " << field.first << std::endl;
       for (auto &calibs : field.second)
       {
-      std::string tmpstring = calibs.first;
-      tmpstring.erase(0,1);
-	std::cout << "name " << tmpstring << " value: " << calibs.second << std::endl;
+        std::string tmpstring = calibs.first;
+        tmpstring.erase(0, 1);
+        std::cout << "name " << tmpstring << " value: " << calibs.second << std::endl;
       }
     }
-    std::cout << "--------------------------------------------------" << std::endl << std::endl;
+    std::cout << "--------------------------------------------------" << std::endl
+              << std::endl;
   }
-  if (! m_DoubleEntryMap.empty())
+  if (!m_DoubleEntryMap.empty())
   {
     std::cout << "Number of double entries: " << m_DoubleEntryMap.size() << std::endl;
     for (auto &field : m_DoubleEntryMap)
@@ -340,14 +342,15 @@ void CDBTTree::Print()
       std::cout << "ID: " << field.first << std::endl;
       for (auto &calibs : field.second)
       {
-      std::string tmpstring = calibs.first;
-      tmpstring.erase(0,1);
-	std::cout << "name " << tmpstring << " value: " << calibs.second << std::endl;
+        std::string tmpstring = calibs.first;
+        tmpstring.erase(0, 1);
+        std::cout << "name " << tmpstring << " value: " << calibs.second << std::endl;
       }
     }
-    std::cout << "--------------------------------------------------" << std::endl << std::endl;
+    std::cout << "--------------------------------------------------" << std::endl
+              << std::endl;
   }
-  if (! m_IntEntryMap.empty())
+  if (!m_IntEntryMap.empty())
   {
     std::cout << "Number of int entries: " << m_IntEntryMap.size() << std::endl;
     for (auto &field : m_IntEntryMap)
@@ -355,13 +358,13 @@ void CDBTTree::Print()
       std::cout << "ID: " << field.first << std::endl;
       for (auto &calibs : field.second)
       {
-      std::string tmpstring = calibs.first;
-      tmpstring.erase(0,1);
-	std::cout << "name " << tmpstring << " value: " << calibs.second << std::endl;
+        std::string tmpstring = calibs.first;
+        tmpstring.erase(0, 1);
+        std::cout << "name " << tmpstring << " value: " << calibs.second << std::endl;
       }
     }
   }
-  if (! m_UInt64EntryMap.empty())
+  if (!m_UInt64EntryMap.empty())
   {
     std::cout << "Number of uint64 entries: " << m_UInt64EntryMap.size() << std::endl;
     for (auto &field : m_UInt64EntryMap)
@@ -369,9 +372,9 @@ void CDBTTree::Print()
       std::cout << "ID: " << field.first << std::endl;
       for (auto &calibs : field.second)
       {
-      std::string tmpstring = calibs.first;
-      tmpstring.erase(0,1);
-	std::cout << "name " << tmpstring << " value: " << calibs.second << std::endl;
+        std::string tmpstring = calibs.first;
+        tmpstring.erase(0, 1);
+        std::cout << "name " << tmpstring << " value: " << calibs.second << std::endl;
       }
     }
   }
@@ -382,21 +385,21 @@ void CDBTTree::Print()
     for (auto &field : m_SingleFloatEntryMap)
     {
       std::string tmpstring = field.first;
-      tmpstring.erase(0,1);
+      tmpstring.erase(0, 1);
       std::cout << tmpstring << " value " << field.second << std::endl;
     }
   }
   if (!m_SingleDoubleEntryMap.empty())
   {
     std::cout << "Number of single double fields: " << m_SingleDoubleEntryMap.size() << std::endl;
-// some acrobatics to restore the old state of cout after changing the precision for double printout
+    // some acrobatics to restore the old state of cout after changing the precision for double printout
     std::ios oldState(nullptr);
     oldState.copyfmt(std::cout);
-    std::cout.precision(std::numeric_limits< double >::max_digits10);
+    std::cout.precision(std::numeric_limits<double>::max_digits10);
     for (auto &field : m_SingleDoubleEntryMap)
     {
       std::string tmpstring = field.first;
-      tmpstring.erase(0,1);
+      tmpstring.erase(0, 1);
       std::cout << tmpstring << " value " << field.second << std::endl;
     }
     std::cout.copyfmt(oldState);
@@ -407,7 +410,7 @@ void CDBTTree::Print()
     for (auto &field : m_SingleIntEntryMap)
     {
       std::string tmpstring = field.first;
-      tmpstring.erase(0,1);
+      tmpstring.erase(0, 1);
       std::cout << tmpstring << " value " << field.second << std::endl;
     }
   }
@@ -417,7 +420,7 @@ void CDBTTree::Print()
     for (auto &field : m_SingleUInt64EntryMap)
     {
       std::string tmpstring = field.first;
-      tmpstring.erase(0,1);
+      tmpstring.erase(0, 1);
       std::cout << tmpstring << " value " << field.second << std::endl;
     }
   }
@@ -425,7 +428,7 @@ void CDBTTree::Print()
 
 void CDBTTree::WriteCDBTTree()
 {
-  TFile *f = TFile::Open(m_Filename.c_str(),"RECREATE");
+  TFile *f = TFile::Open(m_Filename.c_str(), "RECREATE");
   for (auto ntup : m_TTree)
   {
     if (ntup != nullptr)
@@ -443,146 +446,146 @@ void CDBTTree::LoadCalibrations()
   f->GetObject(m_TTreeName[MultipleEntries].c_str(), m_TTree[MultipleEntries]);
   if (m_TTree[SingleEntries] != nullptr)
   {
-    TObjArray *branches =  m_TTree[SingleEntries]->GetListOfBranches();
+    TObjArray *branches = m_TTree[SingleEntries]->GetListOfBranches();
     TIter iter(branches);
-    while(TBranch *thisbranch = static_cast<TBranch *> (iter.Next()))
+    while (TBranch *thisbranch = static_cast<TBranch *>(iter.Next()))
     {
       // this convoluted expression returns the data type of a split branch
       std::string DataType = thisbranch->GetLeaf(thisbranch->GetName())->GetTypeName();
       if (DataType == "Float_t")
       {
-	auto itermap =  m_SingleFloatEntryMap.insert(std::make_pair(thisbranch->GetName(),NAN));
-	m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+        auto itermap = m_SingleFloatEntryMap.insert(std::make_pair(thisbranch->GetName(), NAN));
+        m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
       else if (DataType == "Double_t")
       {
-	auto itermap =  m_SingleDoubleEntryMap.insert(std::make_pair(thisbranch->GetName(),NAN));
-	m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+        auto itermap = m_SingleDoubleEntryMap.insert(std::make_pair(thisbranch->GetName(), NAN));
+        m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
       else if (DataType == "Int_t")
       {
-	auto itermap =  m_SingleIntEntryMap.insert(std::make_pair(thisbranch->GetName(),-99999));
-	m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+        auto itermap = m_SingleIntEntryMap.insert(std::make_pair(thisbranch->GetName(), -99999));
+        m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
       else if (DataType == "ULong_t")
       {
-	auto itermap =  m_SingleUInt64EntryMap.insert(std::make_pair(thisbranch->GetName(),UINT64_MAX));
-	m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+        auto itermap = m_SingleUInt64EntryMap.insert(std::make_pair(thisbranch->GetName(), UINT64_MAX));
+        m_TTree[SingleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
       else
       {
-	std::cout << PHWHERE << " data type " << DataType
-		  << " in " << m_TTree[SingleEntries]->GetName()
-		  << " from " << f->GetName()
+        std::cout << PHWHERE << " data type " << DataType
+                  << " in " << m_TTree[SingleEntries]->GetName()
+                  << " from " << f->GetName()
                   << " not implemented" << std::endl;
-	gSystem->Exit(1);
+        gSystem->Exit(1);
       }
     }
   }
   m_TTree[SingleEntries]->GetEntry(0);
   if (m_TTree[MultipleEntries] != nullptr)
   {
-    TObjArray *branches =  m_TTree[MultipleEntries]->GetListOfBranches();
+    TObjArray *branches = m_TTree[MultipleEntries]->GetListOfBranches();
     TIter iter(branches);
     std::map<std::string, float> floatvalmap;
     std::map<std::string, double> doublevalmap;
     std::map<std::string, int> intvalmap;
     std::map<std::string, uint64_t> uint64valmap;
-    while(TBranch *thisbranch = static_cast<TBranch *> (iter.Next()))
+    while (TBranch *thisbranch = static_cast<TBranch *>(iter.Next()))
     {
       // this convoluted expression returns the data type of a split branch
       std::string DataType = thisbranch->GetLeaf(thisbranch->GetName())->GetTypeName();
       if (DataType == "Float_t")
       {
-	auto itermap = floatvalmap.insert(std::make_pair(thisbranch->GetName(),NAN));
-        m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+        auto itermap = floatvalmap.insert(std::make_pair(thisbranch->GetName(), NAN));
+        m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
       if (DataType == "Double_t")
       {
-	auto itermap = doublevalmap.insert(std::make_pair(thisbranch->GetName(),NAN));
-        m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+        auto itermap = doublevalmap.insert(std::make_pair(thisbranch->GetName(), NAN));
+        m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
       if (DataType == "Int_t")
       {
-	auto itermap = intvalmap.insert(std::make_pair(thisbranch->GetName(),INT_MIN));
-        m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+        auto itermap = intvalmap.insert(std::make_pair(thisbranch->GetName(), INT_MIN));
+        m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
       if (DataType == "ULong_t")
       {
-	auto itermap = uint64valmap.insert(std::make_pair(thisbranch->GetName(),UINT64_MAX));
-        m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(),&(itermap.first)->second);
+        auto itermap = uint64valmap.insert(std::make_pair(thisbranch->GetName(), UINT64_MAX));
+        m_TTree[MultipleEntries]->SetBranchAddress(thisbranch->GetName(), &(itermap.first)->second);
       }
     }
-    for (auto entry = 0; entry <  m_TTree[MultipleEntries]->GetEntries();  ++entry)
+    for (auto entry = 0; entry < m_TTree[MultipleEntries]->GetEntries(); ++entry)
     {
       for (auto &field : floatvalmap)
       {
-	field.second = NAN;
+        field.second = NAN;
       }
       for (auto &field : doublevalmap)
       {
-	field.second = NAN;
+        field.second = NAN;
       }
       for (auto &field : intvalmap)
       {
-	field.second = INT_MIN;
+        field.second = INT_MIN;
       }
       for (auto &field : uint64valmap)
       {
-	field.second = UINT64_MAX;
+        field.second = UINT64_MAX;
       }
       m_TTree[MultipleEntries]->GetEntry(entry);
       int ID = intvalmap.find("IID")->second;
       std::map<std::string, float> tmp_floatvalmap;
       for (auto &field : floatvalmap)
       {
-	if (std::isfinite(field.second))
-	{
-	  tmp_floatvalmap.insert(std::make_pair(field.first, field.second));
-	}
+        if (std::isfinite(field.second))
+        {
+          tmp_floatvalmap.insert(std::make_pair(field.first, field.second));
+        }
       }
-      if (! tmp_floatvalmap.empty())
+      if (!tmp_floatvalmap.empty())
       {
-         m_FloatEntryMap.insert(std::make_pair(ID,tmp_floatvalmap));
+        m_FloatEntryMap.insert(std::make_pair(ID, tmp_floatvalmap));
       }
 
       std::map<std::string, double> tmp_doublevalmap;
       for (auto &field : doublevalmap)
       {
-	if (std::isfinite(field.second))
-	{
-	  tmp_doublevalmap.insert(std::make_pair(field.first, field.second));
-	}
+        if (std::isfinite(field.second))
+        {
+          tmp_doublevalmap.insert(std::make_pair(field.first, field.second));
+        }
       }
-      if (! tmp_doublevalmap.empty())
+      if (!tmp_doublevalmap.empty())
       {
-         m_DoubleEntryMap.insert(std::make_pair(ID,tmp_doublevalmap));
+        m_DoubleEntryMap.insert(std::make_pair(ID, tmp_doublevalmap));
       }
 
       std::map<std::string, int> tmp_intvalmap;
       for (auto &field : intvalmap)
       {
-	if (field.second != INT_MIN && field.first != "IID")
-	{
-	  tmp_intvalmap.insert(std::make_pair(field.first, field.second));
-	}
+        if (field.second != INT_MIN && field.first != "IID")
+        {
+          tmp_intvalmap.insert(std::make_pair(field.first, field.second));
+        }
       }
-      if (! tmp_intvalmap.empty())
+      if (!tmp_intvalmap.empty())
       {
-         m_IntEntryMap.insert(std::make_pair(ID,tmp_intvalmap));
+        m_IntEntryMap.insert(std::make_pair(ID, tmp_intvalmap));
       }
 
       std::map<std::string, uint64_t> tmp_uint64valmap;
       for (auto &field : uint64valmap)
       {
-	if (field.second != UINT64_MAX)
-	{
-	  tmp_uint64valmap.insert(std::make_pair(field.first, field.second));
-	}
+        if (field.second != UINT64_MAX)
+        {
+          tmp_uint64valmap.insert(std::make_pair(field.first, field.second));
+        }
       }
-      if (! tmp_uint64valmap.empty())
+      if (!tmp_uint64valmap.empty())
       {
-         m_UInt64EntryMap.insert(std::make_pair(ID,tmp_uint64valmap));
+        m_UInt64EntryMap.insert(std::make_pair(ID, tmp_uint64valmap));
       }
     }
   }
@@ -590,8 +593,8 @@ void CDBTTree::LoadCalibrations()
 }
 
 float CDBTTree::GetSingleFloatValue(const std::string &name)
-{  
-  if ( m_SingleFloatEntryMap.empty())
+{
+  if (m_SingleFloatEntryMap.empty())
   {
     LoadCalibrations();
   }
@@ -604,17 +607,17 @@ float CDBTTree::GetSingleFloatValue(const std::string &name)
     for (auto &eiter : m_SingleFloatEntryMap)
     {
       std::string tmpstring = eiter.first;
-      tmpstring.erase(0,1);
+      tmpstring.erase(0, 1);
       std::cout << "name : " << tmpstring << ", value " << eiter.second
-		<< std::endl;
+                << std::endl;
     }
   }
-  return singleiter->second ;
+  return singleiter->second;
 }
 
 float CDBTTree::GetFloatValue(int channel, const std::string &name)
 {
-  if ( m_FloatEntryMap.empty())
+  if (m_FloatEntryMap.empty())
   {
     LoadCalibrations();
   }
@@ -636,7 +639,7 @@ float CDBTTree::GetFloatValue(int channel, const std::string &name)
 
 double CDBTTree::GetSingleDoubleValue(const std::string &name)
 {
-  if ( m_SingleDoubleEntryMap.empty())
+  if (m_SingleDoubleEntryMap.empty())
   {
     LoadCalibrations();
   }
@@ -649,17 +652,17 @@ double CDBTTree::GetSingleDoubleValue(const std::string &name)
     for (auto &eiter : m_SingleDoubleEntryMap)
     {
       std::string tmpstring = eiter.first;
-      tmpstring.erase(0,1);
+      tmpstring.erase(0, 1);
       std::cout << "name : " << tmpstring << ", value " << eiter.second
-		<< std::endl;
+                << std::endl;
     }
   }
-  return singleiter->second ;
+  return singleiter->second;
 }
 
 double CDBTTree::GetDoubleValue(int channel, const std::string &name)
 {
-  if ( m_DoubleEntryMap.empty())
+  if (m_DoubleEntryMap.empty())
   {
     LoadCalibrations();
   }
@@ -681,7 +684,7 @@ double CDBTTree::GetDoubleValue(int channel, const std::string &name)
 
 int CDBTTree::GetSingleIntValue(const std::string &name)
 {
-  if ( m_SingleIntEntryMap.empty())
+  if (m_SingleIntEntryMap.empty())
   {
     LoadCalibrations();
   }
@@ -694,17 +697,17 @@ int CDBTTree::GetSingleIntValue(const std::string &name)
     for (auto &eiter : m_SingleIntEntryMap)
     {
       std::string tmpstring = eiter.first;
-      tmpstring.erase(0,1);
+      tmpstring.erase(0, 1);
       std::cout << "name : " << tmpstring << ", value " << eiter.second
-		<< std::endl;
+                << std::endl;
     }
   }
-  return singleiter->second ;
+  return singleiter->second;
 }
 
 int CDBTTree::GetIntValue(int channel, const std::string &name)
 {
-  if ( m_IntEntryMap.empty())
+  if (m_IntEntryMap.empty())
   {
     LoadCalibrations();
   }
@@ -726,7 +729,7 @@ int CDBTTree::GetIntValue(int channel, const std::string &name)
 
 uint64_t CDBTTree::GetSingleUInt64Value(const std::string &name)
 {
-  if ( m_SingleUInt64EntryMap.empty())
+  if (m_SingleUInt64EntryMap.empty())
   {
     LoadCalibrations();
   }
@@ -739,17 +742,17 @@ uint64_t CDBTTree::GetSingleUInt64Value(const std::string &name)
     for (auto &eiter : m_SingleUInt64EntryMap)
     {
       std::string tmpstring = eiter.first;
-      tmpstring.erase(0,1);
+      tmpstring.erase(0, 1);
       std::cout << "name : " << tmpstring << ", value " << eiter.second
-		<< std::endl;
+                << std::endl;
     }
   }
-  return singleiter->second ;
+  return singleiter->second;
 }
 
 uint64_t CDBTTree::GetUInt64Value(int channel, const std::string &name)
 {
-  if ( m_UInt64EntryMap.empty())
+  if (m_UInt64EntryMap.empty())
   {
     LoadCalibrations();
   }
@@ -768,4 +771,3 @@ uint64_t CDBTTree::GetUInt64Value(int channel, const std::string &name)
   }
   return calibiter->second;
 }
-
