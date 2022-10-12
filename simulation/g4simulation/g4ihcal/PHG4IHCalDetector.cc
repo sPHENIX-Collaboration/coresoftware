@@ -273,6 +273,9 @@ std::tuple<int, int, int> PHG4IHCalDetector::ExtractLayerTowerId(const unsigned 
   }
   int column = map_towerid(tower_id);
   int row = map_layerid(layer_id);
+  //shift row number down by one so every sector start with a row number that mod4=0
+  row--;
+  while(row<0) row+=256;
   return std::make_tuple(isector, row, column);
 }
 
@@ -286,11 +289,11 @@ int PHG4IHCalDetector::map_towerid(const int tower_id)
   int itmp = tower_id / 2;
   if (tower_id % 2)
   {
-    itwr = 11 - itmp;
+    itwr = 12 + itmp;
   }
   else
   {
-    itwr = 12 + itmp;
+    itwr = 11 - itmp;
   }
   return itwr;
   // here is the mapping in long form
