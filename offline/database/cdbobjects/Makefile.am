@@ -10,8 +10,6 @@ AM_CPPFLAGS = \
   -isystem$(ROOTSYS)/include
 
 libcdbobjects_la_SOURCES = \
-  CDBNtuple.cc \
-  CDBNtupleTest.cc \
   CDBTTree.cc
 
 libcdbobjects_la_LDFLAGS = \
@@ -29,8 +27,6 @@ libcdbobjects_la_LIBADD = \
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
-  CDBNtuple.h \
-  CDBNtupleTest.h \
   CDBTTree.h
 
 ################################################
