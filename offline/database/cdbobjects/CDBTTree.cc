@@ -603,10 +603,10 @@ float CDBTTree::GetSingleFloatValue(const std::string &name, int verbose)
       std::cout << "Existing values:" << std::endl;
       for (auto &eiter : m_SingleFloatEntryMap)
       {
-	std::string tmpstring = eiter.first;
-	tmpstring.erase(0, 1);
-	std::cout << "name : " << tmpstring << ", value " << eiter.second
-		  << std::endl;
+        std::string tmpstring = eiter.first;
+        tmpstring.erase(0, 1);
+        std::cout << "name : " << tmpstring << ", value " << eiter.second
+                  << std::endl;
       }
     }
     return NAN;
@@ -625,7 +625,7 @@ float CDBTTree::GetFloatValue(int channel, const std::string &name, int verbose)
   {
     if (verbose > 0)
     {
-    std::cout << "Could not find channel " << channel << " in float calibrations" << std::endl;
+      std::cout << "Could not find channel " << channel << " in float calibrations" << std::endl;
     }
     return NAN;
   }
@@ -635,7 +635,7 @@ float CDBTTree::GetFloatValue(int channel, const std::string &name, int verbose)
   {
     if (verbose > 0)
     {
-    std::cout << "Could not find " << name << " among float calibrations of channel " << channel << std::endl;
+      std::cout << "Could not find " << name << " among float calibrations of channel " << channel << std::endl;
     }
     return NAN;
   }
@@ -654,15 +654,15 @@ double CDBTTree::GetSingleDoubleValue(const std::string &name, int verbose)
   {
     if (verbose > 0)
     {
-    std::cout << "Could not find " << name << " in single double calibrations" << std::endl;
-    std::cout << "Existing values:" << std::endl;
-    for (auto &eiter : m_SingleDoubleEntryMap)
-    {
-      std::string tmpstring = eiter.first;
-      tmpstring.erase(0, 1);
-      std::cout << "name : " << tmpstring << ", value " << eiter.second
-                << std::endl;
-    }
+      std::cout << "Could not find " << name << " in single double calibrations" << std::endl;
+      std::cout << "Existing values:" << std::endl;
+      for (auto &eiter : m_SingleDoubleEntryMap)
+      {
+        std::string tmpstring = eiter.first;
+        tmpstring.erase(0, 1);
+        std::cout << "name : " << tmpstring << ", value " << eiter.second
+                  << std::endl;
+      }
     }
     return NAN;
   }
@@ -680,7 +680,7 @@ double CDBTTree::GetDoubleValue(int channel, const std::string &name, int verbos
   {
     if (verbose > 0)
     {
-    std::cout << "Could not find channel " << channel << " in double calibrations" << std::endl;
+      std::cout << "Could not find channel " << channel << " in double calibrations" << std::endl;
     }
     return NAN;
   }
@@ -690,7 +690,7 @@ double CDBTTree::GetDoubleValue(int channel, const std::string &name, int verbos
   {
     if (verbose > 0)
     {
-    std::cout << "Could not find " << name << " among double calibrations for channel " << channel << std::endl;
+      std::cout << "Could not find " << name << " among double calibrations for channel " << channel << std::endl;
     }
     return NAN;
   }
@@ -709,15 +709,15 @@ int CDBTTree::GetSingleIntValue(const std::string &name, int verbose)
   {
     if (verbose > 0)
     {
-    std::cout << "Could not find " << name << " in single int calibrations" << std::endl;
-    std::cout << "Existing values:" << std::endl;
-    for (auto &eiter : m_SingleIntEntryMap)
-    {
-      std::string tmpstring = eiter.first;
-      tmpstring.erase(0, 1);
-      std::cout << "name : " << tmpstring << ", value " << eiter.second
-                << std::endl;
-    }
+      std::cout << "Could not find " << name << " in single int calibrations" << std::endl;
+      std::cout << "Existing values:" << std::endl;
+      for (auto &eiter : m_SingleIntEntryMap)
+      {
+        std::string tmpstring = eiter.first;
+        tmpstring.erase(0, 1);
+        std::cout << "name : " << tmpstring << ", value " << eiter.second
+                  << std::endl;
+      }
     }
     return INT_MIN;
   }
@@ -735,7 +735,7 @@ int CDBTTree::GetIntValue(int channel, const std::string &name, int verbose)
   {
     if (verbose > 0)
     {
-    std::cout << "Could not find channel " << channel << " in int calibrations" << std::endl;
+      std::cout << "Could not find channel " << channel << " in int calibrations" << std::endl;
     }
     return INT_MIN;
   }
@@ -745,7 +745,7 @@ int CDBTTree::GetIntValue(int channel, const std::string &name, int verbose)
   {
     if (verbose > 0)
     {
-    std::cout << "Could not find " << name << " among int calibrations for channel " << channel << std::endl;
+      std::cout << "Could not find " << name << " among int calibrations for channel " << channel << std::endl;
     }
     return INT_MIN;
   }
@@ -764,15 +764,15 @@ uint64_t CDBTTree::GetSingleUInt64Value(const std::string &name, int verbose)
   {
     if (verbose > 0)
     {
-    std::cout << "Could not find " << name << " in single uint64 calibrations" << std::endl;
-    std::cout << "Existing values:" << std::endl;
-    for (auto &eiter : m_SingleUInt64EntryMap)
-    {
-      std::string tmpstring = eiter.first;
-      tmpstring.erase(0, 1);
-      std::cout << "name : " << tmpstring << ", value " << eiter.second
-                << std::endl;
-    }
+      std::cout << "Could not find " << name << " in single uint64 calibrations" << std::endl;
+      std::cout << "Existing values:" << std::endl;
+      for (auto &eiter : m_SingleUInt64EntryMap)
+      {
+        std::string tmpstring = eiter.first;
+        tmpstring.erase(0, 1);
+        std::cout << "name : " << tmpstring << ", value " << eiter.second
+                  << std::endl;
+      }
     }
     return UINT64_MAX;
   }
@@ -790,7 +790,7 @@ uint64_t CDBTTree::GetUInt64Value(int channel, const std::string &name, int verb
   {
     if (verbose > 0)
     {
-    std::cout << "Could not find channel " << channel << " in unint64 calibrations" << std::endl;
+      std::cout << "Could not find channel " << channel << " in unint64 calibrations" << std::endl;
     }
     return UINT64_MAX;
   }
@@ -800,7 +800,7 @@ uint64_t CDBTTree::GetUInt64Value(int channel, const std::string &name, int verb
   {
     if (verbose > 0)
     {
-    std::cout << "Could not find " << name << " among uint64 calibrations for channel " << channel << std::endl;
+      std::cout << "Could not find " << name << " among uint64 calibrations for channel " << channel << std::endl;
     }
     return UINT64_MAX;
   }
