@@ -38,7 +38,6 @@ void CDBTTree::SetFloatValue(int channel, const std::string &name, float value)
     gSystem->Exit(1);
   }
   m_FloatEntryMap[channel].insert(std::make_pair(fieldname, value));
-  m_EntryNameSet.insert(name);
 }
 
 void CDBTTree::SetDoubleValue(int channel, const std::string &name, double value)
@@ -56,7 +55,6 @@ void CDBTTree::SetDoubleValue(int channel, const std::string &name, double value
     gSystem->Exit(1);
   }
   m_DoubleEntryMap[channel].insert(std::make_pair(fieldname, value));
-  m_EntryNameSet.insert(name);
 }
 
 void CDBTTree::SetIntValue(int channel, const std::string &name, int value)
@@ -74,7 +72,6 @@ void CDBTTree::SetIntValue(int channel, const std::string &name, int value)
     gSystem->Exit(1);
   }
   m_IntEntryMap[channel].insert(std::make_pair(fieldname, value));
-  m_EntryNameSet.insert(name);
 }
 
 void CDBTTree::SetUInt64Value(int channel, const std::string &name, uint64_t value)
@@ -92,7 +89,6 @@ void CDBTTree::SetUInt64Value(int channel, const std::string &name, uint64_t val
     gSystem->Exit(1);
   }
   m_UInt64EntryMap[channel].insert(std::make_pair(fieldname, value));
-  m_EntryNameSet.insert(name);
 }
 
 void CDBTTree::Commit()
@@ -105,7 +101,6 @@ void CDBTTree::Commit()
   std::map<std::string, double> doublemap;
   std::map<std::string, int> intmap;
   std::map<std::string, uint64_t> uint64map;
-  std::map<std::string, unsigned int> index;
   intmap.insert(std::make_pair("IID", INT_MIN));
   for (auto &f_entry : m_FloatEntryMap)
   {
@@ -592,7 +587,7 @@ void CDBTTree::LoadCalibrations()
   f->Close();
 }
 
-float CDBTTree::GetSingleFloatValue(const std::string &name)
+float CDBTTree::GetSingleFloatValue(const std::string &name, int verbose)
 {
   if (m_SingleFloatEntryMap.empty())
   {
@@ -602,20 +597,24 @@ float CDBTTree::GetSingleFloatValue(const std::string &name)
   auto singleiter = m_SingleFloatEntryMap.find(fieldname);
   if (singleiter == m_SingleFloatEntryMap.end())
   {
-    std::cout << "Could not find " << name << " in single float calibrations" << std::endl;
-    std::cout << "Existing values:" << std::endl;
-    for (auto &eiter : m_SingleFloatEntryMap)
+    if (verbose > 0)
     {
-      std::string tmpstring = eiter.first;
-      tmpstring.erase(0, 1);
-      std::cout << "name : " << tmpstring << ", value " << eiter.second
-                << std::endl;
+      std::cout << "Could not find " << name << " in single float calibrations" << std::endl;
+      std::cout << "Existing values:" << std::endl;
+      for (auto &eiter : m_SingleFloatEntryMap)
+      {
+	std::string tmpstring = eiter.first;
+	tmpstring.erase(0, 1);
+	std::cout << "name : " << tmpstring << ", value " << eiter.second
+		  << std::endl;
+      }
     }
+    return NAN;
   }
   return singleiter->second;
 }
 
-float CDBTTree::GetFloatValue(int channel, const std::string &name)
+float CDBTTree::GetFloatValue(int channel, const std::string &name, int verbose)
 {
   if (m_FloatEntryMap.empty())
   {
@@ -624,20 +623,26 @@ float CDBTTree::GetFloatValue(int channel, const std::string &name)
   auto channelmapiter = m_FloatEntryMap.find(channel);
   if (channelmapiter == m_FloatEntryMap.end())
   {
+    if (verbose > 0)
+    {
     std::cout << "Could not find channel " << channel << " in float calibrations" << std::endl;
+    }
     return NAN;
   }
   std::string fieldname = "F" + name;
   auto calibiter = channelmapiter->second.find(fieldname);
   if (calibiter == channelmapiter->second.end())
   {
+    if (verbose > 0)
+    {
     std::cout << "Could not find " << name << " among float calibrations of channel " << channel << std::endl;
+    }
     return NAN;
   }
   return calibiter->second;
 }
 
-double CDBTTree::GetSingleDoubleValue(const std::string &name)
+double CDBTTree::GetSingleDoubleValue(const std::string &name, int verbose)
 {
   if (m_SingleDoubleEntryMap.empty())
   {
@@ -647,6 +652,8 @@ double CDBTTree::GetSingleDoubleValue(const std::string &name)
   auto singleiter = m_SingleDoubleEntryMap.find(fieldname);
   if (singleiter == m_SingleDoubleEntryMap.end())
   {
+    if (verbose > 0)
+    {
     std::cout << "Could not find " << name << " in single double calibrations" << std::endl;
     std::cout << "Existing values:" << std::endl;
     for (auto &eiter : m_SingleDoubleEntryMap)
@@ -656,11 +663,13 @@ double CDBTTree::GetSingleDoubleValue(const std::string &name)
       std::cout << "name : " << tmpstring << ", value " << eiter.second
                 << std::endl;
     }
+    }
+    return NAN;
   }
   return singleiter->second;
 }
 
-double CDBTTree::GetDoubleValue(int channel, const std::string &name)
+double CDBTTree::GetDoubleValue(int channel, const std::string &name, int verbose)
 {
   if (m_DoubleEntryMap.empty())
   {
@@ -669,20 +678,26 @@ double CDBTTree::GetDoubleValue(int channel, const std::string &name)
   auto channelmapiter = m_DoubleEntryMap.find(channel);
   if (channelmapiter == m_DoubleEntryMap.end())
   {
+    if (verbose > 0)
+    {
     std::cout << "Could not find channel " << channel << " in double calibrations" << std::endl;
+    }
     return NAN;
   }
   std::string fieldname = "D" + name;
   auto calibiter = channelmapiter->second.find(fieldname);
   if (calibiter == channelmapiter->second.end())
   {
+    if (verbose > 0)
+    {
     std::cout << "Could not find " << name << " among double calibrations for channel " << channel << std::endl;
+    }
     return NAN;
   }
   return calibiter->second;
 }
 
-int CDBTTree::GetSingleIntValue(const std::string &name)
+int CDBTTree::GetSingleIntValue(const std::string &name, int verbose)
 {
   if (m_SingleIntEntryMap.empty())
   {
@@ -692,6 +707,8 @@ int CDBTTree::GetSingleIntValue(const std::string &name)
   auto singleiter = m_SingleIntEntryMap.find(fieldname);
   if (singleiter == m_SingleIntEntryMap.end())
   {
+    if (verbose > 0)
+    {
     std::cout << "Could not find " << name << " in single int calibrations" << std::endl;
     std::cout << "Existing values:" << std::endl;
     for (auto &eiter : m_SingleIntEntryMap)
@@ -701,11 +718,13 @@ int CDBTTree::GetSingleIntValue(const std::string &name)
       std::cout << "name : " << tmpstring << ", value " << eiter.second
                 << std::endl;
     }
+    }
+    return INT_MIN;
   }
   return singleiter->second;
 }
 
-int CDBTTree::GetIntValue(int channel, const std::string &name)
+int CDBTTree::GetIntValue(int channel, const std::string &name, int verbose)
 {
   if (m_IntEntryMap.empty())
   {
@@ -714,20 +733,26 @@ int CDBTTree::GetIntValue(int channel, const std::string &name)
   auto channelmapiter = m_IntEntryMap.find(channel);
   if (channelmapiter == m_IntEntryMap.end())
   {
+    if (verbose > 0)
+    {
     std::cout << "Could not find channel " << channel << " in int calibrations" << std::endl;
+    }
     return INT_MIN;
   }
   std::string fieldname = "I" + name;
   auto calibiter = channelmapiter->second.find(fieldname);
   if (calibiter == channelmapiter->second.end())
   {
+    if (verbose > 0)
+    {
     std::cout << "Could not find " << name << " among int calibrations for channel " << channel << std::endl;
+    }
     return INT_MIN;
   }
   return calibiter->second;
 }
 
-uint64_t CDBTTree::GetSingleUInt64Value(const std::string &name)
+uint64_t CDBTTree::GetSingleUInt64Value(const std::string &name, int verbose)
 {
   if (m_SingleUInt64EntryMap.empty())
   {
@@ -737,6 +762,8 @@ uint64_t CDBTTree::GetSingleUInt64Value(const std::string &name)
   auto singleiter = m_SingleUInt64EntryMap.find(fieldname);
   if (singleiter == m_SingleUInt64EntryMap.end())
   {
+    if (verbose > 0)
+    {
     std::cout << "Could not find " << name << " in single uint64 calibrations" << std::endl;
     std::cout << "Existing values:" << std::endl;
     for (auto &eiter : m_SingleUInt64EntryMap)
@@ -746,11 +773,13 @@ uint64_t CDBTTree::GetSingleUInt64Value(const std::string &name)
       std::cout << "name : " << tmpstring << ", value " << eiter.second
                 << std::endl;
     }
+    }
+    return UINT64_MAX;
   }
   return singleiter->second;
 }
 
-uint64_t CDBTTree::GetUInt64Value(int channel, const std::string &name)
+uint64_t CDBTTree::GetUInt64Value(int channel, const std::string &name, int verbose)
 {
   if (m_UInt64EntryMap.empty())
   {
@@ -759,14 +788,20 @@ uint64_t CDBTTree::GetUInt64Value(int channel, const std::string &name)
   auto channelmapiter = m_UInt64EntryMap.find(channel);
   if (channelmapiter == m_UInt64EntryMap.end())
   {
+    if (verbose > 0)
+    {
     std::cout << "Could not find channel " << channel << " in unint64 calibrations" << std::endl;
+    }
     return UINT64_MAX;
   }
   std::string fieldname = "g" + name;
   auto calibiter = channelmapiter->second.find(fieldname);
   if (calibiter == channelmapiter->second.end())
   {
+    if (verbose > 0)
+    {
     std::cout << "Could not find " << name << " among uint64 calibrations for channel " << channel << std::endl;
+    }
     return UINT64_MAX;
   }
   return calibiter->second;

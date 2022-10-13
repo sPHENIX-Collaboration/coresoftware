@@ -11,7 +11,7 @@ class CDBTTree
 {
  public:
   CDBTTree() = default;
-  CDBTTree(const std::string &fname);
+  explicit CDBTTree(const std::string &fname);
   ~CDBTTree();
   void SetFloatValue(int channel, const std::string &name, float value);
   void SetDoubleValue(int channel, const std::string &name, double value);
@@ -26,14 +26,14 @@ class CDBTTree
   void WriteCDBTTree();
   void Print();
   void LoadCalibrations();
-  float GetSingleFloatValue(const std::string &name);
-  float GetFloatValue(int channel, const std::string &name);
-  double GetSingleDoubleValue(const std::string &name);
-  double GetDoubleValue(int channel, const std::string &name);
-  int GetSingleIntValue(const std::string &name);
-  int GetIntValue(int channel, const std::string &name);
-  uint64_t GetSingleUInt64Value(const std::string &name);
-  uint64_t GetUInt64Value(int channel, const std::string &name);
+  float GetSingleFloatValue(const std::string &name, int verbose = 1);
+  float GetFloatValue(int channel, const std::string &name, int verbose = 1);
+  double GetSingleDoubleValue(const std::string &name, int verbose = 1);
+  double GetDoubleValue(int channel, const std::string &name, int verbose = 1);
+  int GetSingleIntValue(const std::string &name, int verbose = 1);
+  int GetIntValue(int channel, const std::string &name, int verbose = 1);
+  uint64_t GetSingleUInt64Value(const std::string &name, int verbose = 1);
+  uint64_t GetUInt64Value(int channel, const std::string &name, int verbose = 1);
 
  private:
   enum
@@ -46,7 +46,6 @@ class CDBTTree
   bool m_Locked[2] = {false};
 
   std::string m_Filename;
-  std::set<std::string> m_EntryNameSet;
   std::map<int, std::map<std::string, float>> m_FloatEntryMap;
   std::map<std::string, float> m_SingleFloatEntryMap;
   std::map<int, std::map<std::string, double>> m_DoubleEntryMap;
