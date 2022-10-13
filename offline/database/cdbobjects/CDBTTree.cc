@@ -3,6 +3,7 @@
 #include <phool/phool.h>
 
 #include <TFile.h>
+#include <TROOT.h>
 #include <TSystem.h>
 #include <TTree.h>
 #include <TTreeReader.h>
@@ -423,19 +424,25 @@ void CDBTTree::Print()
 
 void CDBTTree::WriteCDBTTree()
 {
+  std::string currdir = gDirectory->GetPath();
   TFile *f = TFile::Open(m_Filename.c_str(), "RECREATE");
-  for (auto ntup : m_TTree)
+  for (auto ttree : m_TTree)
   {
-    if (ntup != nullptr)
+    if (ttree != nullptr)
     {
-      ntup->Write();
+      ttree->Write();
     }
+    delete ttree;
+    ttree = nullptr;
   }
   f->Close();
+  gROOT->cd(currdir.c_str()); // restore previous directory
 }
 
 void CDBTTree::LoadCalibrations()
 {
+  std::string currdir = gDirectory->GetPath();
+
   TFile *f = TFile::Open(m_Filename.c_str());
   f->GetObject(m_TTreeName[SingleEntries].c_str(), m_TTree[SingleEntries]);
   f->GetObject(m_TTreeName[MultipleEntries].c_str(), m_TTree[MultipleEntries]);
@@ -584,7 +591,13 @@ void CDBTTree::LoadCalibrations()
       }
     }
   }
+  for (auto ttree : m_TTree)
+  {
+    delete ttree;
+    ttree = nullptr;
+  }
   f->Close();
+  gROOT->cd(currdir.c_str()); // restore previous directory
 }
 
 float CDBTTree::GetSingleFloatValue(const std::string &name, int verbose)
