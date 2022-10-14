@@ -148,9 +148,9 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   ysav = y;
   zsav = z;
 
-  if (point[0] < xmin || point[0] > xmax ||
-      point[1] < ymin || point[1] > ymax ||
-      point[2] < zmin || point[2] > zmax)
+  if (point[0] <= xmin || point[0] > xmax ||
+      point[1] <= ymin || point[1] > ymax ||
+      point[2] <= zmin || point[2] > zmax)
   {
     return;
   }
