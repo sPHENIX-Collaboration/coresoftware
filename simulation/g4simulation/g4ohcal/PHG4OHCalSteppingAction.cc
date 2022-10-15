@@ -91,8 +91,7 @@ PHG4OHCalSteppingAction::~PHG4OHCalSteppingAction()
     
   // since we have a copy in memory of this one - we need to delete it
   for(auto it : m_MapCorrHist) {delete it;}
-  for(auto it : m_MapCorrHistChim) {delete it;}
-
+  for(int j = 0; j<4 ; j++) {delete m_MapCorrHistChim[j];}
 }
 
 int PHG4OHCalSteppingAction::Init()
