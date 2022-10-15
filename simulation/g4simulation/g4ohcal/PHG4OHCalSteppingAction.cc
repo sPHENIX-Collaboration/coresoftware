@@ -1,3 +1,4 @@
+
 // local headers in quotes (that is important when using include subdirs!)
 #include "PHG4OHCalSteppingAction.h"
 
@@ -87,8 +88,11 @@ PHG4OHCalSteppingAction::~PHG4OHCalSteppingAction()
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete m_Hit;
+    
   // since we have a copy in memory of this one - we need to delete it
-  delete m_MapCorrHist;
+  for(auto it : m_MapCorrHist) {delete it;}
+  for(auto it : m_MapCorrHistChim) {delete it;}
+
 }
 
 int PHG4OHCalSteppingAction::Init()
@@ -108,14 +112,30 @@ int PHG4OHCalSteppingAction::Init()
       std::cout << "use empty filename to ignore mapfile" << std::endl;
       gSystem->Exit(1);
     }
+      
     TFile* file = TFile::Open(mappingfilename.c_str());
-    file->GetObject(m_Params->get_string_param("MapHistoName").c_str(), m_MapCorrHist);
-    if (!m_MapCorrHist)
+    std::string Tilehist = m_Params->get_string_param("MapHistoName");
+    
+    for (int i = 0; i < 24; i++)
     {
-      std::cout << "ERROR: could not find Histogram " << m_Params->get_string_param("MapHistoName") << " in " << m_Params->get_string_param("MapFileName") << std::endl;
-      gSystem->Exit(1);
+        std::string str2 = std::to_string(i);
+        Tilehist += str2;
+        file->GetObject(Tilehist.c_str(), m_MapCorrHist[i]);
+        if(i < 4) Tilehist += "_chimney";
+        file->GetObject(Tilehist.c_str(), m_MapCorrHistChim[i]);
+        Tilehist = m_Params->get_string_param("MapHistoName");
+        
+        if ((!m_MapCorrHist[i]) || (!m_MapCorrHistChim[i]))
+        {
+          std::cout << "ERROR: could not find Histogram " << Tilehist << i << " in " << m_Params->get_string_param("MapFileName") << std::endl;
+          gSystem->Exit(1);
+        }
+        
+        m_MapCorrHist[i]->SetDirectory(nullptr);  // rootism: this needs to be set otherwise histo vanished when closing the file
+        m_MapCorrHistChim[i]->SetDirectory(nullptr);
     }
-    m_MapCorrHist->SetDirectory(nullptr);  // rootism: this needs to be set otherwise histo vanished when closing the file
+      
+    
     file->Close();
     delete file;
   }
@@ -125,6 +145,7 @@ int PHG4OHCalSteppingAction::Init()
 //____________________________________________________________________________..
 bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 {
+ 
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
   // get volume of the current step
@@ -336,28 +357,42 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         light_yield = GetVisibleEnergyDeposition(aStep);
         m_Hit->set_raw_light_yield(m_Hit->get_raw_light_yield() + light_yield);  // save raw Birks light yield
-        if (m_MapCorrHist)
+        if ((m_MapCorrHistChim[tower_id]) || (m_MapCorrHist[tower_id]))
         {
           const G4TouchableHandle& theTouchable = prePoint->GetTouchableHandle();
           const G4ThreeVector& worldPosition = postPoint->GetPosition();
           G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
           float lx = (localPosition.x() / cm);
-          float lz = fabs(localPosition.z() / cm);  // reverse the sense for towerid<12
-
+          float ly = (localPosition.y() / cm);
+            
           // convert to the map bin coordinates:
-          // map is in 0.5 cm bins
-          int lcz = (int) (2.0 * lz) + 1;
-          int lcx = (int) (2.0 * (lx + 42.75)) + 1;
-
-          if ((lcx >= 1) && (lcx <= m_MapCorrHist->GetNbinsY()) &&
-              (lcz >= 1) && (lcz <= m_MapCorrHist->GetNbinsX()))
-          {
-            light_yield *= (double) (m_MapCorrHist->GetBinContent(lcz, lcx));
-          }
-          else
-          {
-            light_yield = 0.0;
-          }
+          int lcx = (int) (2.0 * lx) + 1;
+          int lcy = (int) (2.0 * (ly + 0.5)) + 1;
+            
+         if((sector_id == 29) || (sector_id == 30) || (sector_id == 31))
+         {
+             if ((lcy >= 1) && (lcy <= m_MapCorrHistChim[tower_id]->GetNbinsY()) &&
+                (lcx >= 1) && (lcx <= m_MapCorrHistChim[tower_id]->GetNbinsX()))
+             {
+                 light_yield *= (double) (m_MapCorrHistChim[tower_id]->GetBinContent(lcx, lcy));
+             }
+             else
+             {
+               light_yield = 0.0;
+             }
+         }
+         else
+         {
+             if ((lcy >= 1) && (lcy <= m_MapCorrHist[tower_id]->GetNbinsY()) &&
+                (lcx >= 1) && (lcx <= m_MapCorrHist[tower_id]->GetNbinsX()))
+             {
+                 light_yield *= (double) (m_MapCorrHist[tower_id]->GetBinContent(lcx, lcy));
+             }
+             else
+             {
+               light_yield = 0.0;
+             }
+         }
         }
         else
         {
@@ -538,3 +573,5 @@ void PHG4OHCalSteppingAction::SetHitNodeName(const std::string& type, const std:
   gSystem->Exit(1);
   return;
 }
+
+
