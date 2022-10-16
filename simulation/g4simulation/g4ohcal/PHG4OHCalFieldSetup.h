@@ -61,14 +61,18 @@ class PHG4OHCalFieldSetup
     fMinStep = minStep;
   }
 
+  void set_Map_Inner_Radius(float f) { m_FieldMapInnerRadius = f;}
+  void set_Map_Outer_Radius(float f) { m_FieldMapOuterRadius = f;}
+
  private:
   G4FieldManager* fFieldManagerIron = nullptr;
   G4Mag_UsualEqRhs* fEquationIron = nullptr;
   G4ChordFinder* fChordFinderIron = nullptr;
   G4MagneticField* fEMfieldIron = nullptr;
   G4MagIntegratorStepper* fStepperIron = nullptr;
-
+  float m_FieldMapInnerRadius = 0.;
+  float m_FieldMapOuterRadius = 1.e10;
   G4double fMinStep = NAN;
 };
 
-#endif /* G4OHCAL_PHG4OHCALFIELDSETUP_H_ */
+#endif /* G4OHCAL_PHG4OHCALFIELDSETUP_H */

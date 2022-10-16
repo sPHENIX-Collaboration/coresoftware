@@ -3,18 +3,18 @@
 
 #include "PHField.h"
 
-#include <cmath>
-#include <string>
-
-#include <map>
-#include <set>
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
+
+#include <cmath>
+#include <map>
+#include <set>
+#include <string>
 
 class PHField3DCartesian : public PHField
 {
  public:
-  PHField3DCartesian(const std::string &fname, const float magfield_rescale = 1.0);
+  PHField3DCartesian(const std::string &fname, const float magfield_rescale = 1.0, float innerradius = 0, float outerradius = 1.e10);
   ~PHField3DCartesian() override;
 
   //! access field value
@@ -49,7 +49,6 @@ class PHField3DCartesian : public PHField
   std::set<float> xvals;
   std::set<float> yvals;
   std::set<float> zvals;
-
 
 };
 

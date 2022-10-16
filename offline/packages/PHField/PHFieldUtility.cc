@@ -29,7 +29,7 @@
 using namespace std;
 
 PHField *
-PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbosity)
+PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, float inner_radius, float outer_radius, const int verbosity)
 {
   assert(field_config);
 
@@ -72,7 +72,9 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbo
     //    return "3D field map expressed in Cartesian coordinates";
     field = new PHField3DCartesian(
         field_config->get_filename(),
-        field_config->get_magfield_rescale());
+        field_config->get_magfield_rescale(),
+	inner_radius,
+	outer_radius);
     break;
 
   case PHFieldConfig::kFieldBeast:
