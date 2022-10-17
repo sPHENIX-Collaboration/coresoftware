@@ -8,7 +8,11 @@
 
 #include <Geant4/G4SystemOfUnits.hh>
 
+// stacktrace gives a shadow warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/stacktrace.hpp>
+#pragma GCC diagnostic pop
 
 #include <cassert>
 #include <cmath>
@@ -51,13 +55,10 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   std::cout << "\n ---> "
                "Reading the field grid from "
             << filename << " ... " << std::endl;
-//  rootinput->cd();
 
   //  get root NTuple objects
   TNtuple *field_map = nullptr;
-    rootinput->GetObject("fieldmap", field_map);
-//    field_map->DropBranchFromCache("*",true);
-//(TNtuple *) gDirectory->Get("fieldmap");
+  rootinput->GetObject("fieldmap", field_map);
   Float_t ROOT_X, ROOT_Y, ROOT_Z;
   Float_t ROOT_BX, ROOT_BY, ROOT_BZ;
   field_map->SetBranchAddress("x", &ROOT_X);
@@ -66,7 +67,6 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   field_map->SetBranchAddress("bx", &ROOT_BX);
   field_map->SetBranchAddress("by", &ROOT_BY);
   field_map->SetBranchAddress("bz", &ROOT_BZ);
-  std::cout << "inner rad cut: " << innerradius << ", outer rad: " << outerradius << std::endl;
   for (int i = 0; i < field_map->GetEntries(); i++)
   {
     field_map->GetEntry(i);
@@ -103,7 +103,6 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
 
   delete field_map;
   delete rootinput;
-//  rootinput->Close();
   std::cout << "\n================= End Construct Mag Field ======================\n"
             << std::endl;
   std::cout << "number of entries: " << fieldmap.size() << std::endl;
@@ -218,14 +217,10 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
     --it;
     zkey[1] = *it;
   }
-  // std::cout << "xkey[0]: " << xkey[0]/cm << ", xkey[1]: " <<  xkey[1]/cm <<  std::endl;
-  // std::cout << "kyey[0]: " << ykey[0]/cm << ", ykey[1]: " <<  ykey[1]/cm <<  std::endl;
-  // std::cout << "zkey[0]: " << zkey[0]/cm << ", zkey[1]: " <<  zkey[1]/cm <<  std::endl;
   if (xkey_save != xkey[0] ||
       ykey_save != ykey[0] ||
       zkey_save != zkey[0])
   {
-//    std::cout << "cache miss" << std::endl;
     cache_misses++;
     xkey_save = xkey[0];
     ykey_save = ykey[0];
@@ -269,7 +264,6 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   }
   else
   {
-//    std::cout << "cache hit" << std::endl;
     cache_hits++;
   }
 

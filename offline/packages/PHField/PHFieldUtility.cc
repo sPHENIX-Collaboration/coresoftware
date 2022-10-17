@@ -4,8 +4,6 @@
 #include "PHField2D.h"
 #include "PHField3DCartesian.h"
 #include "PHField3DCylindrical.h"
-#include "PHFieldBeast.h"
-#include "PHFieldCleo.h"
 #include "PHFieldConfig.h"
 #include "PHFieldConfigv1.h"
 #include "PHFieldUniform.h"
