@@ -130,7 +130,7 @@ void EpdGeom::SetPpTtSn(short uniqueID)
 
 double EpdGeom::GetZwheel()
 {
-  const double z_EPD = 308.0;  // Distance (cm) of EPD from center of TPC, in the z-direction
+  const double z_EPD = 316.0;  // Distance (cm) of EPD from center of TPC, in the z-direction
   return z_EPD * mSN;
 }
 
