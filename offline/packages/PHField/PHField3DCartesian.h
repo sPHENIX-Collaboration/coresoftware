@@ -36,8 +36,8 @@ class PHField3DCartesian : public PHField
   double zstepsize = NAN;
   // these are updated in a const method
   // to cache previous values
-  mutable double xyz[2][2][2][3];
-  mutable double bf[2][2][2][3];
+  mutable double xyz[2][2][2][3]{};
+  mutable double bf[2][2][2][3]{};
   mutable double xkey_save = NAN;
   mutable double ykey_save = NAN;
   mutable double zkey_save = NAN;
@@ -49,7 +49,6 @@ class PHField3DCartesian : public PHField
   std::set<float> xvals;
   std::set<float> yvals;
   std::set<float> zvals;
-
 };
 
 #endif
