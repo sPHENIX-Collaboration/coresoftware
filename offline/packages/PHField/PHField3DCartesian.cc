@@ -4,7 +4,11 @@
 
 #include <TDirectory.h>  // for TDirectory, gDirectory
 #include <TFile.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TNtuple.h>
+#pragma GCC diagnostic pop
 
 #include <Geant4/G4SystemOfUnits.hh>
 

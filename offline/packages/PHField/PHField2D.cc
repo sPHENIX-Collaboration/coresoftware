@@ -3,11 +3,14 @@
 //root framework
 #include <TDirectory.h>
 #include <TFile.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TNtuple.h>
+#include <TSystem.h>
+#pragma GCC diagnostic pop
 
 #include <Geant4/G4SystemOfUnits.hh>
-
-#include <TSystem.h>
 
 #include <boost/tuple/tuple_comparison.hpp>
 
