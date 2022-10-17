@@ -19,7 +19,7 @@
 #include <utility>
 
 
-PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float magfield_rescale, float innerradius, float outerradius)
+PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float magfield_rescale, const float innerradius, const float outerradius, const float size_z)
   : filename(fname)
 {
   for (int i = 0; i < 2; i++)
@@ -66,7 +66,7 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   field_map->SetBranchAddress("bx", &ROOT_BX);
   field_map->SetBranchAddress("by", &ROOT_BY);
   field_map->SetBranchAddress("bz", &ROOT_BZ);
-
+  std::cout << "inner rad cut: " << innerradius << ", outer rad: " << outerradius << std::endl;
   for (int i = 0; i < field_map->GetEntries(); i++)
   {
     field_map->GetEntry(i);
@@ -75,8 +75,9 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
     xvals.insert(ROOT_X * cm);
     yvals.insert(ROOT_Y * cm);
     zvals.insert(ROOT_Z * cm);
-    if (std::sqrt(ROOT_X * cm * ROOT_X * cm + ROOT_Y * cm * ROOT_Y * cm) >= innerradius*cm &&
-        std::sqrt(ROOT_X * cm * ROOT_X * cm + ROOT_Y * cm * ROOT_Y * cm) <= outerradius*cm  )
+    if ((std::sqrt(ROOT_X * cm * ROOT_X * cm + ROOT_Y * cm * ROOT_Y * cm) >= innerradius &&
+	 std::sqrt(ROOT_X * cm * ROOT_X * cm + ROOT_Y * cm * ROOT_Y * cm) <= outerradius) ||
+	std::abs(ROOT_Z * cm) > size_z )
     {
       fieldmap[coord_key] = field_val;
     }
@@ -159,9 +160,9 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   ysav = y;
   zsav = z;
 
-  if (point[0] <= xmin || point[0] > xmax ||
-      point[1] <= ymin || point[1] > ymax ||
-      point[2] <= zmin || point[2] > zmax)
+  if (point[0] < xmin || point[0] > xmax ||
+      point[1] < ymin || point[1] > ymax ||
+      point[2] < zmin || point[2] > zmax)
   {
     return;
   }

@@ -14,7 +14,7 @@
 class PHField3DCartesian : public PHField
 {
  public:
-  PHField3DCartesian(const std::string &fname, const float magfield_rescale = 1.0, float innerradius = 0, float outerradius = 1.e10);
+  PHField3DCartesian(const std::string &fname, const float magfield_rescale = 1.0, const float innerradius = 0, const float outerradius = 1.e10, const float size_z = 1.e10);
   ~PHField3DCartesian() override;
 
   //! access field value
