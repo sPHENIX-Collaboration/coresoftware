@@ -105,7 +105,6 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   delete rootinput;
   std::cout << "\n================= End Construct Mag Field ======================\n"
             << std::endl;
-  std::cout << "number of entries: " << fieldmap.size() << std::endl;
 }
 
 PHField3DCartesian::~PHField3DCartesian()

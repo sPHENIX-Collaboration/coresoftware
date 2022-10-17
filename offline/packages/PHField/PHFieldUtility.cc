@@ -66,8 +66,6 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, float inner_rad
 
   case PHFieldConfig::Field3DCartesian:
     //    return "3D field map expressed in Cartesian coordinates";
-      std::cout << "FieldUtil: inner rad cut: " << inner_radius << ", outer rad: " << outer_radius << std::endl;
-
     field = new PHField3DCartesian(
         field_config->get_filename(),
         field_config->get_magfield_rescale(),
@@ -78,6 +76,7 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, float inner_rad
 
   default:
     std::cout << "PHFieldUtility::BuildFieldMap - Invalid Field Configuration: " << field_config->get_field_config() << std::endl;
+    gSystem->Exit(1);
   }
   assert(field);  // Check for Invalid Field
   return field;
