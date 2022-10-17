@@ -71,10 +71,10 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
 
   m_FieldSetup =
     new PHG4OHCalFieldSetup(
-        m_Params->get_string_param("IronFieldMapPath"), m_Params->get_double_param("IronFieldMapScale")
+      m_Params->get_string_param("IronFieldMapPath"), m_Params->get_double_param("IronFieldMapScale"),
+      m_Params->get_double_param("inner_radius") * cm - 10,
+m_Params->get_double_param("outer_radius") * cm + 10
         );
-  m_FieldSetup->set_Map_Inner_Radius(m_Params->get_double_param("inner_radius") * cm - 10);
-  m_FieldSetup->set_Map_Outer_Radius(m_Params->get_double_param("outer_radius") * cm + 10);
 }
 
 PHG4OHCalDetector::~PHG4OHCalDetector()

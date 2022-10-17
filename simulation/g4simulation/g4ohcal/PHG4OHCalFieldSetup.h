@@ -29,13 +29,13 @@ class G4MagneticField;
 class PHG4OHCalFieldSetup
 {
  public:
-  PHG4OHCalFieldSetup(const std::string & iron_fieldmap_path, const double scale = 1.);
+  PHG4OHCalFieldSetup(const std::string & iron_fieldmap_path, const double scale = 1., const double inner_radius = 0., const double outer_radius = 1.e10);
 
   // delete copy ctor and assignment opertor (cppcheck)
   explicit PHG4OHCalFieldSetup(const PHG4OHCalFieldSetup&) = delete;
   PHG4OHCalFieldSetup& operator=(const PHG4OHCalFieldSetup&) = delete;
 
-  virtual ~PHG4OHCalFieldSetup() {}
+  virtual ~PHG4OHCalFieldSetup();
 
   G4FieldManager*
   get_Field_Manager_Iron() const
@@ -61,17 +61,12 @@ class PHG4OHCalFieldSetup
     fMinStep = minStep;
   }
 
-  void set_Map_Inner_Radius(float f) { m_FieldMapInnerRadius = f;}
-  void set_Map_Outer_Radius(float f) { m_FieldMapOuterRadius = f;}
-
  private:
   G4FieldManager* fFieldManagerIron = nullptr;
   G4Mag_UsualEqRhs* fEquationIron = nullptr;
   G4ChordFinder* fChordFinderIron = nullptr;
   G4MagneticField* fEMfieldIron = nullptr;
   G4MagIntegratorStepper* fStepperIron = nullptr;
-  float m_FieldMapInnerRadius = 0.;
-  float m_FieldMapOuterRadius = 1.e10;
   G4double fMinStep = NAN;
 };
 
