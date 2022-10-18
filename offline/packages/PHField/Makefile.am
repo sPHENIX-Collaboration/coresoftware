@@ -52,8 +52,6 @@ libphfield_la_SOURCES = \
   PHField2D.cc \
   PHField3DCylindrical.cc \
   PHField3DCartesian.cc \
-  PHFieldBeast.cc \
-  PHFieldCleo.cc \
   PHFieldUtility.cc 
 
 # Rule for generating table CINT dictionaries.
