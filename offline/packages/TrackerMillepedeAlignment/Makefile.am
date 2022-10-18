@@ -30,13 +30,15 @@ libtrackeralign_la_LIBADD = \
 
 pkginclude_HEADERS = \
   MakeMilleFiles.h \
-  Mille.h
+  Mille.h \
+  HelicalFitter.h
 
 pcmdir = $(libdir)
 
 libtrackeralign_la_SOURCES = \
   MakeMilleFiles.cc \
-  Mille.cc
+  Mille.cc \
+  HelicalFitter.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
