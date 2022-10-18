@@ -71,6 +71,7 @@ SvtxEvaluator::SvtxEvaluator(const string& /*name*/, const string& filename, con
   : SubsysReco("SvtxEvaluator")
   , _ievent(0)
   , _iseed(0)
+  , _tfile(nullptr)
   , m_fSeed(NAN)
   , _svtxevalstack(nullptr)
   , _strict(false)
@@ -106,7 +107,6 @@ SvtxEvaluator::SvtxEvaluator(const string& /*name*/, const string& filename, con
   , _ntp_gseed(nullptr)
   , _filename(filename)
   , _trackmapname(trackmapname)
-  , _tfile(nullptr)
   , _timer(nullptr)
 {
 }

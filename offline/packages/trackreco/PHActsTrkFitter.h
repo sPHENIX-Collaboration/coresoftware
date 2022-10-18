@@ -33,6 +33,7 @@
 #include <TH1.h>
 #include <TH2.h>
 
+#include <random>
 
 #include <trackbase/alignmentTransformationContainer.h>
 
@@ -96,6 +97,10 @@ class PHActsTrkFitter : public SubsysReco
 
   void setAbsPdgHypothesis(unsigned int pHypothesis)
   { m_pHypothesis = pHypothesis; }
+
+  void setxfluc(float x) { m_xfluc = x; }
+  void setyfluc(float y) { m_yfluc = y; }
+  void setzfluc(float z) { m_zfluc = z; }
 
   void useOutlierFinder(bool outlier) { m_useOutlierFinder = outlier; }
 
@@ -191,6 +196,11 @@ class PHActsTrkFitter : public SubsysReco
   // cluster mover utility class
   TpcClusterMover _clusterMover;
   ClusterErrorPara _ClusErrPara;
+
+  std::default_random_engine generator;
+  float m_xfluc = 0;
+  float m_yfluc = 0;
+  float m_zfluc = 0;
 
   std::string m_fieldMap = "";
   TrkrClusterIterationMap* _iteration_map = nullptr;

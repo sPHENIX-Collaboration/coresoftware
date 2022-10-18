@@ -614,6 +614,12 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	  TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
 	  TrkrDefs::subsurfkey new_subsurfkey = 0;    
 	  surf = m_tGeometry->get_tpc_surface_from_coords(hitsetkey,  global, new_subsurfkey);
+	  std::normal_distribution<double> xfluc(0,m_xfluc);
+	  std::normal_distribution<double> yfluc(0,m_yfluc);
+	  std::normal_distribution<double> zfluc(0,m_zfluc);
+	  global(0) += xfluc(generator);
+	  global(1) += yfluc(generator);
+	  global(2) += zfluc(generator);
 	}
     
       if(!surf)

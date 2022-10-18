@@ -75,6 +75,9 @@ class SvtxEvaluator : public SubsysReco
  private:
   unsigned int _ievent;
   unsigned int _iseed;
+  
+  TFile *_tfile;
+
   float m_fSeed;
   // eval stack
   SvtxEvalStack *_svtxevalstack;
@@ -130,7 +133,6 @@ class SvtxEvaluator : public SubsysReco
   std::string _filename;
   //Track map name
   std::string _trackmapname;
-  TFile *_tfile;
 
   PHTimer *_timer;
 
