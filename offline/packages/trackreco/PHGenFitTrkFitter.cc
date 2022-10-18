@@ -921,16 +921,16 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 
   // tpc distortion corrections
   m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
-  if( m_dcc_static )
-  { 
-    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl; 
-  }
+//   if( m_dcc_static )
+//   { 
+//     std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl; 
+//   }
   
   m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
-  if( m_dcc_average )
-  { 
-    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl; 
-  }
+//   if( m_dcc_average )
+//   { 
+//     std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl; 
+//   }
   
   m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerFluctuation");
   if( m_dcc_fluctuation )
