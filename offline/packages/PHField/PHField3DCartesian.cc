@@ -8,6 +8,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #include <TNtuple.h>
+#include <TSystem.h>
 #pragma GCC diagnostic pop
 
 #include <Geant4/G4SystemOfUnits.hh>
@@ -54,6 +55,7 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   if (!rootinput)
   {
     std::cout << "\n could not open " << filename << " exiting now" << std::endl;
+    gSystem->Exit(1);
     exit(1);
   }
   std::cout << "\n ---> "
@@ -63,6 +65,13 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   //  get root NTuple objects
   TNtuple *field_map = nullptr;
   rootinput->GetObject("fieldmap", field_map);
+  if (field_map == nullptr)
+  {
+    std::cout << PHWHERE << " Could not load fieldmap ntuple from "
+	      << filename << " exiting now" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
   Float_t ROOT_X, ROOT_Y, ROOT_Z;
   Float_t ROOT_BX, ROOT_BY, ROOT_BZ;
   field_map->SetBranchAddress("x", &ROOT_X);
