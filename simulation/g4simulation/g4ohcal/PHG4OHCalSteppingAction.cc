@@ -88,10 +88,16 @@ PHG4OHCalSteppingAction::~PHG4OHCalSteppingAction()
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete m_Hit;
-    
+
   // since we have a copy in memory of this one - we need to delete it
-  for(auto it : m_MapCorrHist) {delete it;}
-  for(int j = 0; j<4 ; j++) {delete m_MapCorrHistChim[j];}
+  for (auto it : m_MapCorrHist)
+  {
+    delete it;
+  }
+  for (int j = 0; j < 4; j++)
+  {
+    delete m_MapCorrHistChim[j];
+  }
 }
 
 int PHG4OHCalSteppingAction::Init()
@@ -111,30 +117,32 @@ int PHG4OHCalSteppingAction::Init()
       std::cout << "use empty filename to ignore mapfile" << std::endl;
       gSystem->Exit(1);
     }
-      
+
     TFile* file = TFile::Open(mappingfilename.c_str());
     std::string Tilehist = m_Params->get_string_param("MapHistoName");
-    
+
     for (int i = 0; i < 24; i++)
     {
-        std::string str2 = std::to_string(i);
-        Tilehist += str2;
-        file->GetObject(Tilehist.c_str(), m_MapCorrHist[i]);
-        if(i < 4) Tilehist += "_chimney";
-        file->GetObject(Tilehist.c_str(), m_MapCorrHistChim[i]);
-        Tilehist = m_Params->get_string_param("MapHistoName");
-        
-        if ((!m_MapCorrHist[i]) || (!m_MapCorrHistChim[i]))
-        {
-          std::cout << "ERROR: could not find Histogram " << Tilehist << i << " in " << m_Params->get_string_param("MapFileName") << std::endl;
-          gSystem->Exit(1);
-        }
-        
-        m_MapCorrHist[i]->SetDirectory(nullptr);  // rootism: this needs to be set otherwise histo vanished when closing the file
-        m_MapCorrHistChim[i]->SetDirectory(nullptr);
+      std::string str2 = std::to_string(i);
+      Tilehist += str2;
+      file->GetObject(Tilehist.c_str(), m_MapCorrHist[i]);
+      if (i < 4)
+      {
+        Tilehist += "_chimney";
+      }
+      file->GetObject(Tilehist.c_str(), m_MapCorrHistChim[i]);
+      Tilehist = m_Params->get_string_param("MapHistoName");
+
+      if ((!m_MapCorrHist[i]) || (!m_MapCorrHistChim[i]))
+      {
+        std::cout << "ERROR: could not find Histogram " << Tilehist << i << " in " << m_Params->get_string_param("MapFileName") << std::endl;
+        gSystem->Exit(1);
+      }
+
+      m_MapCorrHist[i]->SetDirectory(nullptr);  // rootism: this needs to be set otherwise histo vanished when closing the file
+      m_MapCorrHistChim[i]->SetDirectory(nullptr);
     }
-      
-    
+
     file->Close();
     delete file;
   }
@@ -142,9 +150,8 @@ int PHG4OHCalSteppingAction::Init()
 }
 
 //____________________________________________________________________________..
-bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
- 
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
   // get volume of the current step
@@ -363,35 +370,35 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
           float lx = (localPosition.x() / cm);
           float ly = (localPosition.y() / cm);
-            
+
           // convert to the map bin coordinates:
           int lcx = (int) (2.0 * lx) + 1;
           int lcy = (int) (2.0 * (ly + 0.5)) + 1;
-            
-         if((sector_id == 29) || (sector_id == 30) || (sector_id == 31))
-         {
-             if ((lcy >= 1) && (lcy <= m_MapCorrHistChim[tower_id]->GetNbinsY()) &&
+
+          if ((sector_id == 29) || (sector_id == 30) || (sector_id == 31))
+          {
+            if ((lcy >= 1) && (lcy <= m_MapCorrHistChim[tower_id]->GetNbinsY()) &&
                 (lcx >= 1) && (lcx <= m_MapCorrHistChim[tower_id]->GetNbinsX()))
-             {
-                 light_yield *= (double) (m_MapCorrHistChim[tower_id]->GetBinContent(lcx, lcy));
-             }
-             else
-             {
-               light_yield = 0.0;
-             }
-         }
-         else
-         {
-             if ((lcy >= 1) && (lcy <= m_MapCorrHist[tower_id]->GetNbinsY()) &&
+            {
+              light_yield *= (double) (m_MapCorrHistChim[tower_id]->GetBinContent(lcx, lcy));
+            }
+            else
+            {
+              light_yield = 0.0;
+            }
+          }
+          else
+          {
+            if ((lcy >= 1) && (lcy <= m_MapCorrHist[tower_id]->GetNbinsY()) &&
                 (lcx >= 1) && (lcx <= m_MapCorrHist[tower_id]->GetNbinsX()))
-             {
-                 light_yield *= (double) (m_MapCorrHist[tower_id]->GetBinContent(lcx, lcy));
-             }
-             else
-             {
-               light_yield = 0.0;
-             }
-         }
+            {
+              light_yield *= (double) (m_MapCorrHist[tower_id]->GetBinContent(lcx, lcy));
+            }
+            else
+            {
+              light_yield = 0.0;
+            }
+          }
         }
         else
         {
@@ -548,9 +555,9 @@ void PHG4OHCalSteppingAction::FieldChecker(const G4Step* aStep)
     h->SetBinContent(binx, biny, Bz);
 
     std::cout << "PHG4OHCalSteppingAction::FieldChecker - "
-              << "volume " << volume->GetName()<<" / " <<volume->GetLogicalVolume()->GetName()
+              << "volume " << volume->GetName() << " / " << volume->GetLogicalVolume()->GetName()
               << "\t bin " << binx
-              << ", " << biny << " : Bz= " << Bz <<" B = "<<FieldValue.mag()/ tesla
+              << ", " << biny << " : Bz= " << Bz << " B = " << FieldValue.mag() / tesla
               << " Tesla @ x,y = " << globPosVec[0] / cm
               << "," << globPosVec[1] / cm << " cm" << std::endl;
   }
@@ -572,5 +579,3 @@ void PHG4OHCalSteppingAction::SetHitNodeName(const std::string& type, const std:
   gSystem->Exit(1);
   return;
 }
-
-

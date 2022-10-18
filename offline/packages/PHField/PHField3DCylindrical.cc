@@ -2,7 +2,11 @@
 
 #include <TDirectory.h>  // for TDirectory, gDirectory
 #include <TFile.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TNtuple.h>
+#pragma GCC diagnostic pop
 
 #include <Geant4/G4SystemOfUnits.hh>
 
@@ -156,8 +160,14 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
     float Br = iter->second.get<1>() * gauss;
     float Bphi = iter->second.get<2>() * gauss;
 
-    if (z > maxz_) maxz_ = z;
-    if (z < minz_) minz_ = z;
+    if (z > maxz_)
+    {
+      maxz_ = z;
+    }
+    if (z < minz_)
+    {
+      minz_ = z;
+    }
 
     // check for change in z value, when z changes we have a ton of updates to do
     if (z != z_map_[iz])
@@ -217,7 +227,9 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
 void PHField3DCylindrical::GetFieldValue(const double point[4], double *Bfield) const
 {
   if (Verbosity() > 2)
+  {
     cout << "\nPHField3DCylindrical::GetFieldValue" << endl;
+  }
   double x = point[0];
   double y = point[1];
   double z = point[2];
@@ -231,7 +243,10 @@ void PHField3DCylindrical::GetFieldValue(const double point[4], double *Bfield) 
   {
     phi = atan2(y, x);
   }
-  if (phi < 0) phi += 2 * M_PI;  // normalize phi to be over the range [0,2*pi]
+  if (phi < 0)
+  {
+    phi += 2 * M_PI;  // normalize phi to be over the range [0,2*pi]
+  }
 
   // Check that the point is within the defined z region (check r in a second)
   if ((z >= minz_) && (z <= maxz_))
@@ -258,7 +273,9 @@ void PHField3DCylindrical::GetFieldValue(const double point[4], double *Bfield) 
     Bfield[1] = 0.0;
     Bfield[2] = 0.0;
     if (Verbosity() > 2)
+    {
       cout << "!!!!!!!!!! Field point not in defined region (outside of z bounds)" << endl;
+    }
   }
 
   if (Verbosity() > 2)
@@ -282,25 +299,33 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   BfieldCyl[2] = 0.0;
 
   if (Verbosity() > 2)
+  {
     cout << "GetFieldCyl@ <z,r,phi>: {" << z << "," << r << "," << phi << "}" << endl;
+  }
 
   if (z <= z_map_[0] || z >= z_map_[z_map_.size() - 1])
   {
     if (Verbosity() > 2)
+    {
       cout << "!!!! Point not in defined region (|z| too large)" << endl;
+    }
     return;
   }
   if (r < r_map_[0])
   {
     r = r_map_[0];
     if (Verbosity() > 2)
+    {
       cout << "!!!! Point not in defined region (radius too small in specific z-plane). Use min radius" << endl;
+    }
     //    return;
   }
   if (r > r_map_[r_map_.size() - 1])
   {
     if (Verbosity() > 2)
+    {
       cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
+    }
     return;
   }
 
@@ -318,7 +343,9 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   if (r_index0 >= (int) r_map_.size())
   {
     if (Verbosity() > 2)
+    {
       cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
+    }
     return;
   }
 
@@ -326,7 +353,9 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   if (r_index1 >= (int) r_map_.size())
   {
     if (Verbosity() > 2)
+    {
       cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
+    }
     return;
   }
 
@@ -337,7 +366,9 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   int phi_index0 = distance(phi_map_.begin(), phiiter) - 1;
   int phi_index1 = phi_index0 + 1;
   if (phi_index1 >= (int) phi_map_.size())
+  {
     phi_index1 = 0;
+  }
 
   assert(phi_index0 >= 0);
   assert(phi_index0 < (int) phi_map_.size());
@@ -381,7 +412,9 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   double phiweight = phi - phi_map_[phi_index0];
   double phispacing = phi_map_[phi_index1] - phi_map_[phi_index0];
   if (phi_index1 == 0)
+  {
     phispacing += 2 * M_PI;
+  }
   phiweight /= phispacing;
 
   // Z direction of B-field
