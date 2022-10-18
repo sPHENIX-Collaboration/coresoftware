@@ -248,15 +248,21 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side ) const
   for(std::size_t s=0;s<sector_max_Phi[side].size();s++){
     if(norm_phi < sector_max_Phi[side][s] && norm_phi > sector_min_Phi[side][s]){
       phi_bin = (int) ( std::abs(sector_max_Phi[side][s] - norm_phi)/phistep  + nphibins/12 * s);
+      //std::cout<< "1 phi_bin = "<< phi_bin << " sector_max_Phi[side][s] = " <<sector_max_Phi[side][s] << " norm_phi = " << norm_phi << 
+      //" phistep = "  << phistep   << " nphibins/12 = "  << nphibins/12  << " s = " << s << std::endl;
       break;
     }
     if (s==11){
       if(norm_phi < sector_max_Phi[side][s] && norm_phi >= -M_PI){
         phi_bin = int( std::abs(sector_max_Phi[side][s] - norm_phi)/phistep ) + nphibins/12 * s;
+      //std::cout<< "2 phi_bin = "<< phi_bin << " sector_max_Phi[side][s] = " <<sector_max_Phi[side][s] << " norm_phi = " << norm_phi << 
+      //" phistep = "  << phistep   << " nphibins/12 = "  << nphibins/12  << " s = " << s << std::endl;
         break;
       }
       if(norm_phi > sector_min_Phi[side][s]+2*M_PI ){
         phi_bin = int( std::abs(sector_max_Phi[side][s] - (norm_phi - 2*M_PI))/phistep ) + nphibins/12 * s;
+      //std::cout<< "3 phi_bin = "<< phi_bin << " sector_max_Phi[side][s] = " <<sector_max_Phi[side][s] << " norm_phi = " << norm_phi << 
+      //" phistep = "  << phistep   << " nphibins/12 = "  << nphibins/12  << " s = " << s << std::endl;
         break;
       }
 

@@ -215,22 +215,25 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
     //std::cout<< "R "<<iregion<<std::endl;
     double daR = 0; 
     if(iregion==0 || iregion==2){
-      daR=1.4;//1.4cm edge to collect electrons from
+      daR=1.0;//1.4cm edge to collect electrons from
     }else{
       daR = MinRadius[iregion]-MaxRadius[iregion-1];
     }
     if ( rad_gem <= MinRadius[iregion] && rad_gem >= MinRadius[iregion]-daR){
       if( rad_gem <= MinRadius[iregion]-daR/2){
-        rad_gem -= rad_gem - (MinRadius[iregion] - daR ); 
+        rad_gem = MinRadius[iregion] - (1.1*daR) ; 
       }else{
-        rad_gem += MinRadius[iregion] - rad_gem; 
+        rad_gem = MinRadius[iregion] + 0.1*daR; 
       }
 
     }
 
   }
 
-  phi = check_phi(side, phi);
+  std::cout<<"PHG4TpcPadPlaneReadout::MapToPadPlane : ";
+  std::cout<<" rad_gem: "<<rad_gem;
+
+  phi = check_phi(side, phi, rad_gem);
   unsigned int layernum = 0;
   TpcClusterBuilder pass_data {};
 
@@ -472,12 +475,12 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
   m_NHits++;
   return pass_data;
 }
-double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double phi){
+double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double phi, const double radius){
   double new_phi = phi;
   int p_region=-1;
   for (int iregion = 0; iregion < 3; ++iregion)
   {  
-    if (rad_gem < MaxRadius[iregion] && rad_gem > MinRadius[iregion]) p_region = iregion;
+    if (radius < MaxRadius[iregion] && radius > MinRadius[iregion]) p_region = iregion;
   }
     if(p_region>0){
       for(int s=0; s<12;s++){
@@ -491,7 +494,7 @@ double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double p
       double max_phi = sector_max_Phi_sectors[side][p_region][s]+daPhi;
         if (new_phi<=max_phi && new_phi>=min_phi){
           if(fabs(max_phi - new_phi) > fabs(new_phi - min_phi)){
-            new_phi = min_phi-PhiBinWidth[p_region]/5;
+            new_phi = min_phi-PhiBinWidth[p_region]/5;//to be changed
           }else{
             new_phi = max_phi+PhiBinWidth[p_region]/5;
           }
@@ -504,6 +507,7 @@ double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double p
     if(new_phi<sector_min_Phi_sectors[side][p_region][11] && new_phi>=-M_PI){
       new_phi += 2*M_PI;
     }
+  std::cout << "PHG4TpcPadPlaneReadout::check_phi phi_in: " << phi << " phi_out: "<< new_phi << std::endl;
   return new_phi;
 }
 void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &phibin_pad, std::vector<double> &phibin_pad_share)
@@ -527,8 +531,12 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
   const double philim_high_calc = phi + (_nsigmas * cloud_sig_rp / radius) + phistepsize;
 
   // Find the pad range that covers this phi range
-  const double philim_low = check_phi(side, philim_low_calc);
-  const double philim_high = check_phi(side, philim_high_calc);
+  std::cout<<"PHG4TpcPadPlaneReadout::populate_zigzag_phibins philim_low: ";
+  std::cout<<" rad_gem: "<<radius;
+  const double philim_low = check_phi(side, philim_low_calc, radius);
+  std::cout<<"PHG4TpcPadPlaneReadout::populate_zigzag_phibins philim_high: ";
+  std::cout<<" rad_gem: "<<radius;
+  const double philim_high = check_phi(side, philim_high_calc, radius);
   int phibin_low  = LayerGeom->get_phibin(philim_low);
   int phibin_high = LayerGeom->get_phibin(philim_high);
   int npads       = phibin_high - phibin_low;
