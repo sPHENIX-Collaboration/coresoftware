@@ -46,6 +46,29 @@ enum siliconGroup {sensor, stave, barrel};
 enum tpcGroup {subsurf, sector, tpc};
 enum mmsGroup {tile, mms};
 
+class AlignmentState {
+ public:
+  void set_residual(const Acts::Vector3& res) { m_residual = res; }
+  void set_dResAlignmentPar(const Acts::ActsMatrix<3,6>& d) 
+  { m_dResAlignmentPar = d;}
+  void set_dResTrackPar(const Acts::ActsMatrix<3,6>& d) 
+  { m_dResTrackPar = d; }
+  
+  const Acts::Vector3& get_residual() const { return m_residual; }
+  const Acts::ActsMatrix<3,6>& get_dResAlignmentPar() const 
+    { return m_dResAlignmentPar; }
+  const Acts::ActsMatrix<3,6>& get_dResTrackPar() const 
+    { return m_dResTrackPar; }
+  void set_tsIndex(const size_t index) { m_tsIndex = index; }
+  const size_t& get_tsIndex() const { return m_tsIndex; }
+  
+ private:
+  size_t m_tsIndex;
+  Acts::Vector3 m_residual;
+  Acts::ActsMatrix<3,6> m_dResAlignmentPar;
+  Acts::ActsMatrix<3,6> m_dResTrackPar;
+};
+
 class MakeMilleFiles : public SubsysReco
 {
  public:
@@ -76,6 +99,8 @@ class MakeMilleFiles : public SubsysReco
   Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
   int getLabelBase(Acts::GeometryIdentifier id);
   
+  std::map<TrkrDefs::cluskey, AlignmentState> getAlignmentStates(const Trajectory& traj, short int crossing);
+
   std::map<int, float> derivativeGL;
   std::string  data_outfilename = ("mille_output_data_file.bin");  
   std::string  steering_outfilename = ("steer.txt");  

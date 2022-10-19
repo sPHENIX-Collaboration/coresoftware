@@ -121,128 +121,9 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 
       /// Get the corresponding acts trajectory to look up the state info
       const auto traj = _trajectories->find(phtrk_iter->first)->second;
-      const auto mj = traj.multiTrajectory();
-      const auto& tips = traj.tips();
-      const auto& trackTip = tips.front();
-      std::vector<size_t> measurementIndices;
-
-      /// Collect the track states
-      mj.visitBackwards(trackTip, [&](const auto& state) {
-	  /// Collect only track states which were used in smoothing of KF and are measurements
-	  if (not state.hasSmoothed() or 
-	      not state.typeFlags().test(Acts::TrackStateFlag::MeasurementFlag)) {
-	    return true;
-	  }
-
-	  const auto& surface = state.referenceSurface();
-	  const auto& sl = static_cast<const ActsExamples::IndexSourceLink&>(state.uncalibrated());
-	  const auto& ckey = sl.cluskey();
-	  std::cout << "sl index and ckey " << sl.index() << ", " << sl.cluskey() << std::endl;
-	  const auto clus = _cluster_map->findCluster(ckey);
-	  const auto trkrId = TrkrDefs::getTrkrId(ckey);
-	  
-	  if(!clus) { 
-	    std::cout << "no cluster with key "<<ckey << " and index " << sl.index() << std::endl;
-	    return true;
-	  } 
-	  /// Gets the global parameters from the state
-	  const Acts::FreeVector freeParams =
-	    Acts::MultiTrajectoryHelpers::freeSmoothed(_tGeometry->geometry().getGeoContext(), state);
-	  
-	  const Acts::ActsDynamicMatrix measCovariance =
-	    state.effectiveCalibratedCovariance();
-	  /// Calculate the residual in global coordinates
-	  Acts::Vector3 clusGlobal = _tGeometry->getGlobalPosition(ckey, clus);
-	  if(trkrId == TrkrDefs::tpcId) { makeTpcGlobalCorrections(ckey, crossing, clusGlobal); }
-	  
-	  /// convert to acts units
-	  clusGlobal *= Acts::UnitConstants::cm;
-
-	  const Acts::FreeVector globalStateParams = Acts::detail::transformBoundToFreeParameters(surface, _tGeometry->geometry().getGeoContext(), state.smoothed());
-	  Acts::Vector3 stateGlobal = globalStateParams.segment<3>(Acts::eFreePos0);
-	  Acts::Vector3 residual = clusGlobal - stateGlobal;
-
-
-	  if(Verbosity() > 2)
-	    { std::cout << "clus global is " << clusGlobal.transpose() << std::endl << "state global is " << stateGlobal.transpose() << std::endl << "Residual is " << residual.transpose() << std::endl; }
-
-	  // Get the derivative of alignment (global) parameters w.r.t. measurement or residual
-	  const Acts::Vector3 direction = freeParams.segment<3>(Acts::eFreeDir0);
-	  // The derivative of free parameters w.r.t. path length. @note Here, we
-	  // assumes a linear track model, i.e. negecting the change of track
-	  // direction. Otherwise, we need to know the magnetic field at the free
-	  // parameters
-	  Acts::FreeVector pathDerivative = Acts::FreeVector::Zero();
-	  pathDerivative.head<3>() = direction;
-
-	  const Acts::ActsDynamicMatrix H = state.effectiveProjector();
-	  
-	  /// Acts residual, in local coordinates
-	  auto actslocres = state.effectiveCalibrated() - H * state.smoothed();
-
-	  // Get the derivative of bound parameters w.r.t. alignment parameters
-	  Acts::AlignmentToBoundMatrix d =
-	    surface.alignmentToBoundDerivative(_tGeometry->geometry().getGeoContext(), freeParams, pathDerivative);
-	  // Get the derivative of bound parameters wrt track parameters
-	  Acts::FreeToBoundMatrix j = surface.freeToBoundJacobian(_tGeometry->geometry().getGeoContext(), freeParams);
-	  
-	  // derivative of residual wrt track parameters
-	  auto dLocResTrack = -H * j;
-	  // derivative of residual wrt alignment parameters
-	  auto dLocResAlignment = -H * d;
-
-	  std::cout << "local resids " << actslocres.transpose() << std::endl
-		    << " derivative of resiudal wrt track params " << std::endl
-		    << dLocResTrack << std::endl
-		    << " derivative of residual wrt alignment params " << std::endl
-		    << dLocResAlignment << std::endl;
-
-	  /// The above matrices are in Acts local coordinates, so we need to convert them to
-	  /// global coordinates with a rotation d(l0,l1)/d(x,y,z)
-	  
-	  const double cosTheta = direction.z();
-	  const double sinTheta = std::sqrt(square(direction.x()) + square(direction.y()));
-	  const double invSinTheta = 1./sinTheta;
-	  const double cosPhi = direction.x() * invSinTheta;
-	  const double sinPhi = direction.y() * invSinTheta;
-	  Acts::ActsMatrix<3,2> rot = Acts::ActsMatrix<3,2>::Zero();
-	  rot(0,0) = -sinPhi;
-	  rot(0,1) = -cosPhi * cosTheta;
-	  rot(1,0) = cosPhi;
-	  rot(1,1) = -sinPhi * cosTheta;
-	  rot(2,1) = sinTheta;
-	  std::cout << "rot is " << std::endl << rot << std::endl;
-	  /// this is a 3x6 matrix now of d(x_res,y_res,z_res)/d(dx,dy,dz,alpha,beta,gamma)
-	  const auto dGlobResAlignment = rot * dLocResAlignment;
-	  
-	  /// this is a 3x8 matrix now of d(x_res,y_res,z_res)/d(x,y,z,t,xhat,yhat,zhat,q/p)
-	  const auto dActsGlobResTrack = rot * dLocResTrack;
-	  
-	  // Now rotate to x,y,z, px,py,pz
-	  const double p = 1./abs(globalStateParams[Acts::eFreeQOverP]);
-	  const double p2 = square(p);
-	  Acts::ActsMatrix<6,8> sphenixRot = Acts::ActsMatrix<6,8>::Zero(); 
-	  sphenixRot(0,0) = 1;
-	  sphenixRot(1,1) = 1;
-	  sphenixRot(2,2) = 1;
-	  sphenixRot(3,4) = p;
-	  sphenixRot(4,5) = p;
-	  sphenixRot(5,6) = p;
-	  sphenixRot(3,7) = direction.x()*p2;
-	  sphenixRot(4,7) = direction.y()*p2;
-	  sphenixRot(5,7) = direction.z()*p2;
-	  
-	  const auto dGlobResTrack = dActsGlobResTrack * sphenixRot.transpose();
-	  
-	  std::cout << "derivative of residual wrt alignment parameters glob " << std::endl
-		    << dGlobResAlignment << std::endl;
-	  std::cout << "derivative of residual wrt trakc parameters glob " << std::endl
-		    << dGlobResTrack << std::endl;
-	  return true;
-	}
-	);
+     
+      std::map<TrkrDefs::cluskey, AlignmentState> alignStates = getAlignmentStates(traj, crossing);
       
-
       // Make any desired track cuts here
       // Maybe set a lower pT limit - low pT tracks are not very sensitive to alignment
      
@@ -722,4 +603,138 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
     }
 
   return -1;
+}
+
+
+std::map<TrkrDefs::cluskey, AlignmentState> MakeMilleFiles::getAlignmentStates(const Trajectory& traj,
+									       short int crossing)
+{
+  const auto mj = traj.multiTrajectory();
+  const auto& tips = traj.tips();
+  const auto& trackTip = tips.front();
+  std::map<TrkrDefs::cluskey, AlignmentState> alignStates;
+  
+  /// Collect the track states
+  mj.visitBackwards(trackTip, [&](const auto& state) {
+      /// Collect only track states which were used in smoothing of KF and are measurements
+      if (not state.hasSmoothed() or 
+	  not state.typeFlags().test(Acts::TrackStateFlag::MeasurementFlag)) {
+	return true;
+      }
+      
+      const auto& surface = state.referenceSurface();
+      const auto& sl = static_cast<const ActsExamples::IndexSourceLink&>(state.uncalibrated());
+      const auto& ckey = sl.cluskey();
+      std::cout << "sl index and ckey " << sl.index() << ", " << sl.cluskey() << std::endl;
+      const auto clus = _cluster_map->findCluster(ckey);
+      const auto trkrId = TrkrDefs::getTrkrId(ckey);
+      
+      if(!clus) { 
+	std::cout << "no cluster with key "<<ckey << " and index " << sl.index() << std::endl;
+	return true;
+      } 
+      /// Gets the global parameters from the state
+      const Acts::FreeVector freeParams =
+	Acts::MultiTrajectoryHelpers::freeSmoothed(_tGeometry->geometry().getGeoContext(), state);
+      
+      const Acts::ActsDynamicMatrix measCovariance =
+	state.effectiveCalibratedCovariance();
+      /// Calculate the residual in global coordinates
+      Acts::Vector3 clusGlobal = _tGeometry->getGlobalPosition(ckey, clus);
+      if(trkrId == TrkrDefs::tpcId) { makeTpcGlobalCorrections(ckey, crossing, clusGlobal); }
+      
+      /// convert to acts units
+      clusGlobal *= Acts::UnitConstants::cm;
+      
+      const Acts::FreeVector globalStateParams = Acts::detail::transformBoundToFreeParameters(surface, _tGeometry->geometry().getGeoContext(), state.smoothed());
+      Acts::Vector3 stateGlobal = globalStateParams.segment<3>(Acts::eFreePos0);
+      Acts::Vector3 residual = clusGlobal - stateGlobal;
+      
+      
+      if(Verbosity() > 2)
+	{ std::cout << "clus global is " << clusGlobal.transpose() << std::endl << "state global is " << stateGlobal.transpose() << std::endl << "Residual is " << residual.transpose() << std::endl; }
+      
+      // Get the derivative of alignment (global) parameters w.r.t. measurement or residual
+      const Acts::Vector3 direction = freeParams.segment<3>(Acts::eFreeDir0);
+      // The derivative of free parameters w.r.t. path length. @note Here, we
+      // assumes a linear track model, i.e. negecting the change of track
+      // direction. Otherwise, we need to know the magnetic field at the free
+      // parameters
+      Acts::FreeVector pathDerivative = Acts::FreeVector::Zero();
+      pathDerivative.head<3>() = direction;
+      
+      const Acts::ActsDynamicMatrix H = state.effectiveProjector();
+      
+      /// Acts residual, in local coordinates
+      auto actslocres = state.effectiveCalibrated() - H * state.smoothed();
+      
+      // Get the derivative of bound parameters w.r.t. alignment parameters
+      Acts::AlignmentToBoundMatrix d =
+	surface.alignmentToBoundDerivative(_tGeometry->geometry().getGeoContext(), freeParams, pathDerivative);
+      // Get the derivative of bound parameters wrt track parameters
+      Acts::FreeToBoundMatrix j = surface.freeToBoundJacobian(_tGeometry->geometry().getGeoContext(), freeParams);
+      
+      // derivative of residual wrt track parameters
+      auto dLocResTrack = -H * j;
+      // derivative of residual wrt alignment parameters
+      auto dLocResAlignment = -H * d;
+      
+      std::cout << "local resids " << actslocres.transpose() << std::endl
+		<< " derivative of resiudal wrt track params " << std::endl
+		<< dLocResTrack << std::endl
+		<< " derivative of residual wrt alignment params " << std::endl
+		<< dLocResAlignment << std::endl;
+      
+      /// The above matrices are in Acts local coordinates, so we need to convert them to
+      /// global coordinates with a rotation d(l0,l1)/d(x,y,z)
+      
+      const double cosTheta = direction.z();
+      const double sinTheta = std::sqrt(square(direction.x()) + square(direction.y()));
+      const double invSinTheta = 1./sinTheta;
+      const double cosPhi = direction.x() * invSinTheta;
+      const double sinPhi = direction.y() * invSinTheta;
+      Acts::ActsMatrix<3,2> rot = Acts::ActsMatrix<3,2>::Zero();
+      rot(0,0) = -sinPhi;
+      rot(0,1) = -cosPhi * cosTheta;
+      rot(1,0) = cosPhi;
+      rot(1,1) = -sinPhi * cosTheta;
+      rot(2,1) = sinTheta;
+      std::cout << "rot is " << std::endl << rot << std::endl;
+      /// this is a 3x6 matrix now of d(x_res,y_res,z_res)/d(dx,dy,dz,alpha,beta,gamma)
+      const auto dGlobResAlignment = rot * dLocResAlignment;
+      
+      // Now rotate to x,y,z, px,py,pz
+      const double p = 1./abs(globalStateParams[Acts::eFreeQOverP]);
+      const double p2 = square(p);
+      Acts::ActsMatrix<6,8> sphenixRot = Acts::ActsMatrix<6,8>::Zero(); 
+      sphenixRot(0,0) = 1;
+      sphenixRot(1,1) = 1;
+      sphenixRot(2,2) = 1;
+      sphenixRot(3,4) = p;
+      sphenixRot(4,5) = p;
+      sphenixRot(5,6) = p;
+      sphenixRot(3,7) = direction.x()*p2;
+      sphenixRot(4,7) = direction.y()*p2;
+      sphenixRot(5,7) = direction.z()*p2;
+      
+      const auto dGlobResTrack = rot * dLocResTrack * sphenixRot.transpose();
+      
+      std::cout << "derivative of residual wrt alignment parameters glob " << std::endl
+		<< dGlobResAlignment << std::endl;
+      std::cout << "derivative of residual wrt trakc parameters glob " << std::endl
+		<< dGlobResTrack << std::endl;
+      
+      AlignmentState astate;
+      astate.set_residual(residual);
+      astate.set_dResAlignmentPar(dGlobResAlignment);
+      astate.set_dResTrackPar(dGlobResTrack);
+      astate.set_tsIndex(state.index());
+      alignStates.insert(std::make_pair(ckey, astate));
+      
+      return true;
+    }
+    );
+    
+
+  return alignStates;
 }
