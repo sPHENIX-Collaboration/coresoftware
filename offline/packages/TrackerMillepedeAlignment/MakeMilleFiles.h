@@ -26,6 +26,9 @@
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
 
+#include <ActsExamples/EventData/Trajectories.hpp>
+#include <ActsExamples/EventData/Track.hpp>
+
 class PHCompositeNode;
 class PHG4TpcCylinderGeomContainer;
 class SvtxTrack;
@@ -33,8 +36,11 @@ class SvtxTrackMap;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TpcDistortionCorrectionContainer;
-class   ClusterErrorPara;
+class ClusterErrorPara;
 class Mille;
+
+
+using Trajectory = ActsExamples::Trajectories;
 
 enum siliconGroup {sensor, stave, barrel};
 enum tpcGroup {subsurf, sector, tpc};
@@ -57,17 +63,19 @@ class MakeMilleFiles : public SubsysReco
 
  private:
 
-Mille* _mille;
+  Mille* _mille;
 
-int GetNodes(PHCompositeNode* topNode);
-Acts::Vector3 getPCALinePoint(Acts::Vector3 global, SvtxTrackState* state);
-std::vector<Acts::Vector3> getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing);
-SvtxTrack::StateIter getStateIter(Acts::Vector3& global, SvtxTrack* track);
-void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
-float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
-Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
-int getLabelBase(Acts::GeometryIdentifier id);
+  std::map<const unsigned int, Trajectory> *_trajectories;
 
+  int GetNodes(PHCompositeNode* topNode);
+  Acts::Vector3 getPCALinePoint(Acts::Vector3 global, SvtxTrackState* state);
+  std::vector<Acts::Vector3> getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing);
+  SvtxTrack::StateIter getStateIter(Acts::Vector3& global, SvtxTrack* track);
+  void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
+  float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
+  Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
+  int getLabelBase(Acts::GeometryIdentifier id);
+  
   std::map<int, float> derivativeGL;
   std::string  data_outfilename = ("mille_output_data_file.bin");  
   std::string  steering_outfilename = ("steer.txt");  
