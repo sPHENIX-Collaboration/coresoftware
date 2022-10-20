@@ -131,7 +131,7 @@ class G4EvtGenDecayer : public G4VExtDecayer
   EvtRandomEngine* mEvtGenRandomEngine = NULL;
   EvtExternalGenList genList;
 
-  EvtParticle* mParticle;
+//  EvtParticle* mParticle;
   EvtAbsRadCorr* radCorrEngine = NULL;
   std::list<EvtDecayBase*> extraModels;  
   //	TLorentzVector * mVertex = new TLorentzVector;
