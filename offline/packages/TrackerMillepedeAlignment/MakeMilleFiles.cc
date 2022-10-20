@@ -210,6 +210,10 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 	      // The angleDerivs dimensions are [alpha/beta/gamma](x/y/z)
 	      std::vector<Acts::Vector3> angleDerivs = getDerivativesAlignmentAngles(global, cluster_key, cluster, surf, crossing); 
 
+	      // check for nan's
+	     
+
+
 	      // x - relevant global pars are alpha, beta, gamma, dx (ipar 0,1,2,3)
 	      for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
 	      glbl_derivative[3] = 1.0;  // optimize dx
@@ -287,6 +291,8 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
 
 int MakeMilleFiles::End(PHCompositeNode */*topNode*/)
 {
+  delete _mille;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

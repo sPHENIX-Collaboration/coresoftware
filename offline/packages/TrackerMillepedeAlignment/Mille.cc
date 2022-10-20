@@ -168,6 +168,8 @@ void Mille::kill()
 /// Write buffer (set of derivatives with same local parameters) to file.
 void Mille::end()
 {
+  // std:: cout << " Mille::end() called with myBufferPos " << myBufferPos << std::endl;
+
   if (myBufferPos > 0) { // only if anything stored...
     const int numWordsToWrite = (myBufferPos + 1)*2;
 
@@ -192,6 +194,8 @@ void Mille::end()
     }
   }
   myBufferPos = -1; // reset buffer for next set of derivatives
+
+  //  std:: cout << " Mille::end() finished with myBufferPos " << myBufferPos << std::endl;
 }
 
 //___________________________________________________________________________

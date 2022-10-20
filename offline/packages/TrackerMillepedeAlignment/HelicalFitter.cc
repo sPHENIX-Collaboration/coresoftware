@@ -1,10 +1,13 @@
 #include "HelicalFitter.h"
 
+#include "Mille.h"
+
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>                // for cluskey, getTrkrId, tpcId
 #include <trackbase/TpcDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TrkrClusterv3.h>   
+#include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterContainer.h>   
 #include <trackbase/TrkrClusterCrossingAssoc.h>   
 #include <trackbase/TrackFitUtils.h>
@@ -40,6 +43,7 @@ using namespace std;
 HelicalFitter::HelicalFitter(const std::string &name):
   SubsysReco(name)
   , PHParameterInterface(name)
+  , _mille(nullptr)
 {
   InitializeParameters();
 }
@@ -57,6 +61,24 @@ int HelicalFitter::InitRun(PHCompositeNode *topNode)
 
    int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+
+  // Instantiate Mille and open output data file
+  if(test_output)
+    {
+      _mille = new Mille(data_outfilename.c_str(), false);   // write text in data files, rather than binary, for debugging only
+  }
+ else
+   {
+     _mille = new Mille(data_outfilename.c_str()); 
+   }
+
+  // Write the steering file here, and add the data file path to it
+  std::ofstream steering_file(steering_outfilename.c_str());
+  steering_file << data_outfilename.c_str() << std::endl;
+  steering_file.close();
+
+  // print grouping setup to log file:
+  std::cout << "MakeMilleFiles::InitRun: Surface groupings are silicon " << si_grp << " tpc " << tpc_grp << " mms " << mms_grp << std::endl; 
 
   return ret;
 }
@@ -129,7 +151,16 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  
 	  Acts::Vector3 global  = _tGeometry->getGlobalPosition(key, cluster);	  
 
-	  const unsigned int trkrid = TrkrDefs::getTrkrId(key);	  
+	  const unsigned int trkrId = TrkrDefs::getTrkrId(key);	  
+
+	  // have to add corrections for TPC clusters after transformation to global
+	  if(trkrId == TrkrDefs::tpcId) 
+	    {  
+	    int crossing = 0;
+	    makeTpcGlobalCorrections(key, crossing, global); 
+	  }
+
+	  /*
 	  if(trkrid ==  TrkrDefs::tpcId)
 	    {	  
 	      // make all corrections to global position of TPC cluster
@@ -143,6 +174,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	      if(_dcc_average) { global = _distortionCorrection.get_corrected_position( global, _dcc_average ); }
 	      if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
 	    }
+	  */
 	  
 	  // add the global positions to a vector to give to the helical fitter
 	  global_vec.push_back(global);
@@ -154,7 +186,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
       std::tuple<double, double, double> circle_fit_pars = TrackFitUtils::circle_fit_by_taubin(global_vec);
       std::tuple<double,double> line_fit_pars = TrackFitUtils::line_fit(global_vec);
 
-      // capture fit pars, put on node tree
+      // capture fit pars
       float radius = std::get<0>(circle_fit_pars);
       float x0 = std::get<1>(circle_fit_pars);
       float y0 = std::get<2>(circle_fit_pars);
@@ -162,22 +194,44 @@ int HelicalFitter::process_event(PHCompositeNode*)
       float z0 = std::get<1>(line_fit_pars);
       Acts::Vector3 helix_center(x0,y0,z0);        //  center of circle in xy plane, and starting z position
 
-      std::cout << " Track " << trackid << " helix center and start z " << x0 << " " << y0 << " " << z0 
-		<< " radius " << radius << " zslope " << zslope << std::endl;
+      if(Verbosity() > 0)  { std::cout << " Track " << trackid << " helix center and start z " << x0 << " " << y0 << " " << z0 
+		    << " radius " << radius << " zslope " << zslope << std::endl; }
 
       // get the residuals and derivatives for all clusters
-      std::vector<Acts::Vector3> residual_vec;
-      std::vector<float> derivative_vec;
-      for( const auto& global : global_vec )
+      for(unsigned int ivec=0;ivec<global_vec.size(); ++ivec)
 	{
+	  auto global = global_vec[ivec];
+	  auto cluskey = cluskey_vec[ivec];
+	  auto cluster = _cluster_map->findCluster(cluskey);
+	  if(!cluster) { continue;}
+
+	  // need standard deviation of measurements
+	  Acts::Vector3 clus_sigma(0,0,0);
+	  if(_cluster_version==3)
+	    {
+	      clus_sigma(2) = cluster->getZError();
+	      clus_sigma(0) = cluster->getRPhiError() / sqrt(2);
+	      clus_sigma(1) = cluster->getRPhiError() / sqrt(2);
+	    }
+	  else if(_cluster_version==4)
+	    {
+	      double clusRadius = sqrt(global[0]*global[0] + global[1]*global[1]);
+	      auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster,clusRadius,cluskey);
+	      float exy2 = para_errors.first * Acts::UnitConstants::cm2;
+	      float ez2 = para_errors.second * Acts::UnitConstants::cm2;
+	      clus_sigma(2) = sqrt(ez2);
+	      clus_sigma(0) = sqrt(exy2 / 2.0);
+	      clus_sigma(1) = sqrt(exy2 / 2.0);
+	    }
+	  if(isnan(clus_sigma(0)) || isnan(clus_sigma(1)) || isnan(clus_sigma(2)))  { continue; }
+	  
 	  // PCA of helix to cluster global position
 	  Acts::Vector3 pca = get_helix_pca(radius, zslope, helix_center, global);
 	    
-	  // capture residuals
-	  residual_vec.push_back(global - pca);
+	  // capture residuals in the form of (data - fit)
+	  auto residual = global - pca;
 
-	  std::cout << "    cluster position " << global(0) << " " << global(1) << " " << global(2) 
-		    << " pca " << pca(0) << " " << pca(1) << " " << pca(2)  << std::endl;
+	  if(Verbosity() > 0) {std::cout << "    cluster position " << global(0) << " " << global(1) << " " << global(2) << " pca " << pca(0) << " " << pca(1) << " " << pca(2)  << std::endl;}
 
 	  // need the (non-zero) derivatives with respect to the track parameters
 	  // parameters are radius, circle (x0,y0), z0 and zslope
@@ -185,60 +239,136 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  // z = z0 + zslope * radius 
 	  float z_zslope = radius;
 	  float z_z0 = 1.0;
-	  derivative_vec.push_back(z_zslope);
-	  derivative_vec.push_back(z_z0);
-	  //float z_x = 0.0;  // could skip this
-	  //float z_y = 0.0;  // could skip this
-	  //derivative_vec.push_back(z_x);
-	  //derivative_vec.push_back(z_y);
-	  //std::cout << "    z derivatives: z_zslope " << z_zslope << " z_z0 " << z_z0 << " z_x " << z_x << " z_y " << z_y << std::endl;
-	  std::cout << "    z derivatives: z_zslope " << z_zslope << " z_z0 " << z_z0 << std::endl;
+	  if(Verbosity() > 0) {std::cout << "    z derivatives: z_zslope " << z_zslope << " z_z0 " << z_z0 << std::endl;}
 
 	  // dx/dradius = radius / (R^2 - (y-y0)^2)^1/2  , sign of (x-x0)/fabs(x-x0)
 	  float x_x0 = 1.0;
-	  float x_radius = ( pca(0)-helix_center(0) / fabs((pca(0)-helix_center(0)) ) ) * radius / sqrt(radius*radius - (pca(1) - helix_center(1) * (pca(1) - helix_center(1) ) ) );
-	  derivative_vec.push_back(x_x0);
-	  derivative_vec.push_back(x_radius);
-	  //float x_y = 0.0;  // could skip this
-	  //float x_z = 0.0;  // could skip this
-	  //derivative_vec.push_back(x_y);
-	  //derivative_vec.push_back(x_z);
-	  //std::cout << "    x derivatives: x_x0 " << x_x0 << " x_radius " << x_radius << " x_y " << x_y << " x_z " << x_z << std::endl;
-	  std::cout << "    x derivatives: x_x0 " << x_x0 << " x_radius " << x_radius << std::endl;
+	  float x_radius = ( pca(0)-helix_center(0) ) / fabs( pca(0)-helix_center(0) ) * radius / sqrt(radius*radius - (pca(1) - helix_center(1) ) *  (pca(1) - helix_center(1) ) );
+	  if(Verbosity() > 0) {std::cout << "    x derivatives: x_x0 " << x_x0 << " x_radius " << x_radius << std::endl;}
+	  if(isnan(x_radius)) {x_radius = 0.0; }
 
 	  // dy/dradius = sign * radius / (R^2 - (x-x0)^2)^1/2 , sign of (y-y0)/fabs(y-y0)
 	  float y_y0 = 1.0;
-	  float y_radius =  ( pca(1)-helix_center(1) / fabs((pca(1)-helix_center(1)) ) ) * radius / sqrt(radius*radius - (pca(0) - helix_center(0) * (pca(0) - helix_center(0) ) ) );
-	  derivative_vec.push_back(y_y0);
-	  derivative_vec.push_back(y_radius);
-	  //float y_x = 0.0;  // could skip this
-	  //float y_z = 0.0;  // could skip this
-	  //derivative_vec.push_back(y_x);
-	  //derivative_vec.push_back(y_z);
-	  //std::cout << "    y derivatives: y_y0 " << y_y0 << " y_radius " << y_radius << " y_x " << y_x << " y_z " << y_z << std::endl;
-	  std::cout << "    y derivatives: y_y0 " << y_y0 << " y_radius " << y_radius << std::endl;
+	  float y_radius =  ( pca(1)-helix_center(1) ) / fabs( pca(1)-helix_center(1) ) * radius / sqrt(radius*radius - (pca(0) - helix_center(0) ) * (pca(0) - helix_center(0) ) );
+	  if(Verbosity() > 0) { std::cout << "    y derivatives: y_y0 " << y_y0 << " y_radius " << y_radius << std::endl; }
+	  if(isnan(y_radius)) {y_radius = 0.0; }
 
-	  // now we need the derivatives wrt the alignment parameters
-	  // copy methods over from MakeMilleFiles? Or write node tree info to pick up by MakeMilleFiles?
+	  // The global alignment parameters are given initial values of zero by default, we do not specify those
+	  // identify the global alignment parameters for this surface
+	  Surface surf = _tGeometry->maps().getSurface(cluskey, cluster);
+	  Acts::GeometryIdentifier id = surf->geometryId();
+	  int label_base = getLabelBase(id);   // This value depends on how the surfaces are grouped
+	  
+	  static const int NGL = 6;
+	  int glbl_label[NGL];
+	  for(int i=0;i<NGL;++i) 
+	    {
+	      glbl_label[i] = label_base + i;
+	      if(Verbosity() > 1) { std::cout << "    glbl " << i << " label " << glbl_label[i] << " "; }
+	    }
+	  if(Verbosity() > 1) { std::cout << std::endl; }
+	  
+	  // Add the measurement separately for each coordinate direction to Mille
+	  // set the derivatives non-zero only for parameters we want to be optimized
 
+	  static const int NLC = 5;  // x0, y0, z0, radius, zslope
+	  float lcl_derivative[NLC];
 
-
-	  // add everything to the Mille file for this cluster
-
-
+	  float glbl_derivative[NGL];
+	  // The angleDerivs dimensions are [alpha/beta/gamma](x/y/z)
+	  unsigned int crossing = 0;
+	  std::vector<Acts::Vector3> angleDerivs = getDerivativesAlignmentAngles(global, cluskey, cluster, surf, crossing); 
+	  
+	  // x - relevant global pars are alpha, beta, gamma, dx (ipar 0,1,2,3), relevant local pars are x_x0, x_radius
+	  for(int i=0;i<NLC;++i) {lcl_derivative[i] = 0.0;}
+	  lcl_derivative[0] = x_x0;
+	  lcl_derivative[3] = x_radius;
+	  for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
+	  glbl_derivative[3] = 1.0;  // optimize dx
+	  glbl_derivative[0] = angleDerivs[0](0);  // dx/dalpha
+	  glbl_derivative[1] = angleDerivs[1](0);  // dx/dbeta
+	  glbl_derivative[2] = angleDerivs[2](0);  // dx/dgamma
+	  if(clus_sigma(0) < 1.0)  // discards crazy clusters
+	    { _mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(0), clus_sigma(0));}
+	  
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << " X:  float buffer: " << " residual " << "  " << residual(0);
+	      for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_deriv["<< il << "] " << lcl_derivative[il] << "  ";  }
+	      std::cout  << " sigma " << "  " << clus_sigma(0) << "  ";
+	      for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0)  std::cout << " glbl_deriv["<< ig << "] " << glbl_derivative[ig] << "  ";  }
+	      std::cout << " X:  int buffer: " << " 0 " << "  ";
+	      for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_label["<< il << "] " << il << "  ";  }
+	      std::cout << " 0 " << "  ";
+	      for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0) std::cout << " glbl_label["<< ig << "] " << glbl_label[ig] << "  ";  }
+	      std::cout << " end of X meas " << std::endl;		    
+	    }
+	  
+	  // y - relevant global pars are alpha, beta, gamma, dy (ipar 0,1,2,4)
+	  for(int i=0;i<NLC;++i) {lcl_derivative[i] = 0.0;}
+	  lcl_derivative[1] = y_y0;
+	  lcl_derivative[3] = y_radius;
+	  for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
+	  glbl_derivative[4] = 1.0; // optimize dy
+	  glbl_derivative[0] = angleDerivs[0](1);   // dy/dalpha
+	  glbl_derivative[1] = angleDerivs[1](1);   // dy/dbeta
+	  glbl_derivative[2] = angleDerivs[2](1);   // dy/dgamma
+	  if(clus_sigma(1) < 1.0)  // discards crazy clusters
+	    {_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(1), clus_sigma(1));}
+	  
+	  if(Verbosity() > 3) 
+	    { 
+	      std::cout << " Y:  float buffer: " << " residual " << "  " << residual(1);
+	      for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_deriv["<< il << "] " << lcl_derivative[il] << "  ";  }
+	      std::cout  << " sigma " << "  " << clus_sigma(1) << "  ";
+	      for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0)  std::cout << " glbl_deriv["<< ig << "] " << glbl_derivative[ig] << "  ";  }
+	      std::cout << " Y:  int buffer: " << " 0 " << "  ";
+	      for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_label["<< il << "] " << il << "  "; }
+	      std::cout << " 0 " << "  ";
+	      for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0) std::cout << " glbl_label["<< ig << "] " << glbl_label[ig] << "  "; }
+	      std::cout << " end of Y meas " << std::endl;		    
+	    }
+	  
+	  // z - relevant global pars are alpha, beta, dz (ipar 0,1,5)
+	  for(int i=0;i<NLC;++i) {lcl_derivative[i] = 0.0;}
+	  lcl_derivative[2] = z_z0;
+	  lcl_derivative[4] = z_zslope;
+	  for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
+	  glbl_derivative[5] = 1.0;  // optimize dz
+	  glbl_derivative[0] = angleDerivs[0](2);  // dz/dalpha
+	  glbl_derivative[1] = angleDerivs[1](2);  // dz/dbeta
+	  glbl_derivative[2] = angleDerivs[2](2);  // dz/dgamma
+	  if(clus_sigma(2) < 1.0)
+	    {_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(2), clus_sigma(2));}
+	  
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << " Z:  float buffer: " << " residual " << "  " << residual(2);
+	      for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_deriv["<< il << "] " << lcl_derivative[il] << "  "; }
+	      std::cout  << " sigma " << "  " << clus_sigma(2) << "  ";
+	      for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0)  std::cout << " glbl_deriv["<< ig << "] " << glbl_derivative[ig] << "  "; }
+	      std::cout << " Z:  int buffer: " << " 0 " << "  ";
+	      for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_label["<< il << "] " << il << "  ";  }
+	      std::cout << " 0 " << "  ";
+	      for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0) std::cout << " glbl_label["<< ig << "] " << glbl_label[ig] << "  ";  }
+	      std::cout << " end of Z meas " << std::endl;		    
+	    }
 	}
 
+      // close out this track
+      _mille->end();
+      
     }  // end loop over tracks
   
-
-
-
   return Fun4AllReturnCodes::EVENT_OK;
-
- }
+  
+}
   
 int HelicalFitter::End(PHCompositeNode* )
 {
+  // closes output file in destructor
+  delete _mille;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -333,3 +463,209 @@ Acts::Vector2 HelicalFitter::get_circle_point_pca(float radius, Acts::Vector3 ce
   return pca;
 }
 
+std::vector<Acts::Vector3> HelicalFitter::getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing)
+{
+  // The value of global is from the geocontext transformation
+  // we add to that transformation a small rotation around the relevant axis in the surface frame
+
+  std::vector<Acts::Vector3> derivs_vector;
+
+  // get the transformation from the geocontext
+  Acts::Transform3 transform = surface->transform(_tGeometry->geometry().getGeoContext());
+
+  // Make an additional transform that applies a small rotation angle in the surface frame
+  for(unsigned int iangle = 0; iangle < 3; ++iangle)
+    {
+      // creates transform that adds a perturbation rotation around one axis, uses it to estimate derivative wrt perturbation rotation
+
+      unsigned int trkrId = TrkrDefs::getTrkrId(cluster_key);
+      unsigned int layer = TrkrDefs::getLayer(cluster_key);
+
+      Acts::Vector3 derivs(0,0,0);
+      Eigen::Vector3d theseAngles(0,0,0);
+      theseAngles[iangle] = sensorAngles[iangle];  // set the one we want to be non-zero
+
+      Acts::Vector3 keeper(0,0,0);
+      for(int ip = 0; ip < 2; ++ip)
+	{
+	  if(ip == 1) { theseAngles[iangle] *= -1; } // test both sides of zero
+
+	  if(Verbosity() > 1)
+	    { std::cout << "     trkrId " << trkrId << " layer " << layer << " cluster_key " << cluster_key 
+			<< " sensorAngles " << theseAngles[0] << "  " << theseAngles[1] << "  " << theseAngles[2] << std::endl; }
+
+	  Acts::Transform3 perturbationTransformation = makePerturbationTransformation(theseAngles);
+	  Acts::Transform3 overallTransformation = transform * perturbationTransformation;
+	  
+	  // transform the cluster local position to global coords with this additional rotation added
+	  auto x = cluster->getLocalX() * 10;  // mm 
+	  auto y = cluster->getLocalY() * 10;	  
+	  if(trkrId == TrkrDefs::tpcId) { y = convertTimeToZ(cluster_key, cluster); }
+	  
+	  Eigen::Vector3d clusterLocalPosition (x,y,0);  // follows the convention for the acts transform of local = (x,z,y)
+	  Eigen::Vector3d finalCoords = overallTransformation*clusterLocalPosition;  // result in mm
+	  finalCoords /= 10.0; // convert mm back to cm
+	  
+	  // have to add corrections for TPC clusters after transformation to global
+	  if(trkrId == TrkrDefs::tpcId) {  makeTpcGlobalCorrections(cluster_key, crossing, global); }
+
+	  // note that global cancels out here	  	  
+	  if(ip == 0)
+	    {
+	      keeper(0) = (finalCoords(0) - global(0));
+	      keeper(1) = (finalCoords(1) - global(1));
+	      keeper(2) = (finalCoords(2) - global(2));
+	    }
+	  else
+	    {
+	      keeper(0) -= (finalCoords(0) - global(0));
+	      keeper(1) -= (finalCoords(1) - global(1));
+	      keeper(2) -= (finalCoords(2) - global(2));
+	    }
+
+	  if(Verbosity() > 1)
+	    {
+	      std::cout << "        finalCoords(0) " << finalCoords(0) << " global(0) " << global(0) << " finalCoords(1) " << finalCoords(1) 
+			<< " global(1) " << global(1) << " finalCoords(2) " << finalCoords(2) << " global(2) " << global(2) << std::endl;
+	      std::cout  << "        keeper now:  keeper(0) " << keeper(0) << " keeper(1) " << keeper(1) << " keeper(2) " << keeper(2) << std::endl;
+	    }
+	}
+
+      // derivs vector contains:
+      //   (dx/dalpha,     dy/dalpha,     dz/dalpha)     (for iangle = 0)
+      //   (dx/dbeta,        dy/dbeta,        dz/dbeta)        (for iangle = 1) 
+      //   (dx/dgamma, dy/dgamma, dz/dgamma) (for iangle = 2)
+ 
+     // Average the changes to get the estimate of the derivative      
+      // Check what the sign of this should be !!!!
+      derivs(0) = keeper(0) / (2.0 * fabs(theseAngles[iangle]));
+      if( isnan(derivs(0)) ) { derivs(0) = 0; }
+      derivs(1) = keeper(1) / (2.0 * fabs(theseAngles[iangle]));
+      if( isnan(derivs(1)) ) { derivs(1) = 0; }
+      derivs(2) = keeper(2) / (2.0 * fabs(theseAngles[iangle]));
+      if( isnan(derivs(2)) ) { derivs(2) = 0; }
+      derivs_vector.push_back(derivs);
+
+      if(Verbosity() > 1) { std::cout << "        derivs(0) " << derivs(0) << " derivs(1) " << derivs(1) << " derivs(2) " << derivs(2) << std::endl; }
+    }
+  
+  return derivs_vector;
+}
+
+  Acts::Transform3 HelicalFitter::makePerturbationTransformation(Acts::Vector3 angles)
+  {
+    // Note: Here beta is apllied to the z axis and gamma is applied to the y axis because the geocontext transform 
+    // will flip those axes when transforming to global coordinates
+    Eigen::AngleAxisd alpha(angles(0), Eigen::Vector3d::UnitX());
+    Eigen::AngleAxisd beta(angles(2), Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd gamma(angles(1), Eigen::Vector3d::UnitZ());
+    Eigen::Quaternion<double> q       = gamma*beta*alpha;
+    Eigen::Matrix3d perturbationRotation = q.matrix();
+    
+    // combine rotation and translation into an affine matrix
+    Eigen::Vector3d nullTranslation(0,0,0);
+    Acts::Transform3 perturbationTransformation;
+    perturbationTransformation.linear() = perturbationRotation;
+    perturbationTransformation.translation() = nullTranslation;
+    
+    return perturbationTransformation;    
+  }
+
+float HelicalFitter::convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster)
+{
+  // must convert local Y from cluster average time of arival to local cluster z position
+  double drift_velocity = _tGeometry->get_drift_velocity();
+  double zdriftlength = cluster->getLocalY() * drift_velocity;
+  double surfCenterZ = 52.89; // 52.89 is where G4 thinks the surface center is
+  double zloc = surfCenterZ - zdriftlength;   // converts z drift length to local z position in the TPC in north
+  unsigned int side = TpcDefs::getSide(cluster_key);
+  if(side == 0) zloc = -zloc;
+  float z = zloc * 10.0;
+ 
+  return z; 
+}
+
+void HelicalFitter::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global)
+{
+  // make all corrections to global position of TPC cluster
+  unsigned int side = TpcDefs::getSide(cluster_key);
+  float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
+  global[2] = z;
+  
+  // apply distortion corrections
+  if(_dcc_static) { global = _distortionCorrection.get_corrected_position( global, _dcc_static ); }
+  if(_dcc_average) { global = _distortionCorrection.get_corrected_position( global, _dcc_average ); }
+  if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
+}
+
+int HelicalFitter::getLabelBase(Acts::GeometryIdentifier id)
+{
+  unsigned int volume = id.volume(); 
+  unsigned int acts_layer = id.layer();
+  unsigned int layer = base_layer_map.find(volume)->second + acts_layer / 2 -1;
+  unsigned int sensor = id.sensitive() - 1;  // Acts starts at 1
+
+  int label_base = 1;  // Mille wants to start at 1
+
+  // decide what level of grouping we want
+  if(layer < 7)
+    {
+      if(si_grp == siliconGrp::snsr)
+	{
+	  // every sensor has a different label
+	  label_base += layer*1000 + sensor*10;
+	  return label_base;
+	}
+      if(si_grp == siliconGrp::stv)
+	{
+	  // layer and stave, assign all sensors to the stave number
+	  int stave = sensor / nstaves[layer];
+	  label_base += layer*1000 + stave*10;
+	  return label_base;
+	}
+      if(si_grp == siliconGrp::brrl)
+	// layer only, assign all sensors to sensor 0 
+	label_base += layer*1000 + 0;
+      return label_base;
+    }
+  else if(layer > 6 && layer < 55)
+    {
+      if(tpc_grp == tpcGrp::subsrf)
+	{
+	  // every surface has separate label
+	  label_base += layer*1000 + sensor*10;
+	  return label_base;
+	}
+      if(tpc_grp == tpcGrp::sctr)
+	{
+	  // all tpc layers, assign layer 7 and side and sector number to all layers and subsurfaces
+	  int side = sensor / 2;   // check!!!!
+	  int sector = (sensor - side *144) / 12; 
+	  label_base += 7*1000 + side * 1000 + sector*10; 
+	  return label_base;
+	}
+      if(tpc_grp == tpcGrp::tp)
+	{
+	  // all tpc layers and all sectors, assign layer 7 and sensor 0 to all layers and sensors
+	  label_base += 7*1000 + 0;
+	  return label_base;
+	}
+    }
+  else
+    {
+      if(mms_grp == mmsGrp::tl)
+	{
+	  // every tile has different label
+	  label_base += layer*1000+sensor*10;
+	  return label_base;
+	}
+      if(mms_grp == mmsGrp::mm)
+	{
+	  // assign layer 55 and tile 0 to all
+	  label_base += 55*1000 + 0;	  
+	  return label_base;
+	}
+    }
+
+  return -1;
+}
