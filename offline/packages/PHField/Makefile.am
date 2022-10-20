@@ -19,8 +19,7 @@ libphfield_io_la_LIBADD = \
 
 libphfield_la_LIBADD = \
   libphfield_io.la \
-  -lfun4all \
-  -lbmf
+  -lfun4all
 
 pkginclude_HEADERS = \
   PHField3DCartesian.h \
