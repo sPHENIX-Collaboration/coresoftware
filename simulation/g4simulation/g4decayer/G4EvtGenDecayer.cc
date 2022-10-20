@@ -179,7 +179,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 	/// Import decay products
 	// get particle momentum
 
-//	std::cout << "Indeed Using EvtGen Decayer Hopefully Better - Final" << std::endl;
+//	std::cout << "Indeed Using EvtGen Decayer - Final" << std::endl;
 
 	G4ThreeVector momentum = track.GetMomentum();
 	G4double etot = track.GetDynamicParticle()->GetTotalEnergy();
