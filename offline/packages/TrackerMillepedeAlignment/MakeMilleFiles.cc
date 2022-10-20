@@ -122,7 +122,7 @@ int MakeMilleFiles::process_event(PHCompositeNode */*topNode*/)
       /// Get the corresponding acts trajectory to look up the state info
       const auto traj = _trajectories->find(phtrk_iter->first)->second;
      
-      std::map<TrkrDefs::cluskey, AlignmentState> alignStates = getAlignmentStates(traj, crossing);
+      std::map<TrkrDefs::cluskey, AlignmentState> alignStates = getAlignmentStates(traj, track, crossing);
       
       // Make any desired track cuts here
       // Maybe set a lower pT limit - low pT tracks are not very sensitive to alignment
@@ -607,13 +607,14 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
 
 
 std::map<TrkrDefs::cluskey, AlignmentState> MakeMilleFiles::getAlignmentStates(const Trajectory& traj,
+									       SvtxTrack* track,
 									       short int crossing)
 {
   const auto mj = traj.multiTrajectory();
   const auto& tips = traj.tips();
   const auto& trackTip = tips.front();
   std::map<TrkrDefs::cluskey, AlignmentState> alignStates;
-  
+
   /// Collect the track states
   mj.visitBackwards(trackTip, [&](const auto& state) {
       /// Collect only track states which were used in smoothing of KF and are measurements
@@ -624,15 +625,34 @@ std::map<TrkrDefs::cluskey, AlignmentState> MakeMilleFiles::getAlignmentStates(c
       
       const auto& surface = state.referenceSurface();
       const auto& sl = static_cast<const ActsExamples::IndexSourceLink&>(state.uncalibrated());
-      const auto& ckey = sl.cluskey();
+      auto ckey = sl.cluskey();
       std::cout << "sl index and ckey " << sl.index() << ", " << sl.cluskey() << std::endl;
-      const auto clus = _cluster_map->findCluster(ckey);
+      auto clus = _cluster_map->findCluster(ckey);
       const auto trkrId = TrkrDefs::getTrkrId(ckey);
       
       if(!clus) { 
-	std::cout << "no cluster with key "<<ckey << " and index " << sl.index() << std::endl;
-	return true;
+	
+	/// For some reason, the SL index and cluster key of the first state in the Acts trajectory
+	/// lose scope outside of the track fit result when the fitter is first called. They are
+	/// reset to either 0 or the largest possible value. So we have
+	/// to look up the first cluster manually
+	if(sl.index()  == 0 or sl.index() > 57)
+	  {
+	    auto siseed = track->get_silicon_seed();
+	    ckey = *(siseed->begin_cluster_keys());
+	    clus = _cluster_map->findCluster(ckey);
+	  }
+
+	/// if we still couldn't find it, skip it
+	if(!clus)
+	  { 
+	    if(Verbosity() > 2)
+	      { std::cout << "no cluster with key "<<ckey << " and index " << sl.index() << std::endl; }
+
+	    return true; 
+	  }
       } 
+
       /// Gets the global parameters from the state
       const Acts::FreeVector freeParams =
 	Acts::MultiTrajectoryHelpers::freeSmoothed(_tGeometry->geometry().getGeoContext(), state);

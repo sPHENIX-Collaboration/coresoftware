@@ -99,7 +99,7 @@ class MakeMilleFiles : public SubsysReco
   Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
   int getLabelBase(Acts::GeometryIdentifier id);
   
-  std::map<TrkrDefs::cluskey, AlignmentState> getAlignmentStates(const Trajectory& traj, short int crossing);
+  std::map<TrkrDefs::cluskey, AlignmentState> getAlignmentStates(const Trajectory& traj, SvtxTrack* track, short int crossing);
 
   std::map<int, float> derivativeGL;
   std::string  data_outfilename = ("mille_output_data_file.bin");  
