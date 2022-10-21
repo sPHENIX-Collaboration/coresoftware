@@ -126,7 +126,7 @@ class MakeMilleFiles : public SubsysReco
   void set_mms_grouping(int group) { mms_group = (mmsGroup) group; }
 
  private:
-  std::unique_ptr<Mille> _mille;
+  Mille *_mille;
 
   std::map<const unsigned int, Trajectory>* _trajectories;
 

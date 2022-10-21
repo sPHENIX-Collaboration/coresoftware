@@ -49,7 +49,9 @@ namespace
 
 //____________________________________________________________________________..
 MakeMilleFiles::MakeMilleFiles(const std::string& name)
-  : SubsysReco(name)
+  : SubsysReco(name),
+    _mille(nullptr),
+    _trajectories(nullptr)
 {
 }
 
@@ -61,7 +63,7 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
 
   // Instantiate Mille and open output data file
   //  _mille = new Mille(data_outfilename.c_str(), false);   // write text in data files, rather than binary, for debugging only
-  _mille = std::make_unique<Mille>(data_outfilename.c_str(), false);
+  _mille = new Mille(data_outfilename.c_str());
 
   // Write the steering file here, and add the data file path to it
   std::ofstream steering_file(steering_outfilename.c_str());
@@ -136,7 +138,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 
 int MakeMilleFiles::End(PHCompositeNode* /*topNode*/)
 {
-  
+  delete _mille;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
