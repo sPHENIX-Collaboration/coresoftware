@@ -9,8 +9,8 @@
 #include "TpcSpaceChargeMatrixContainerv1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
