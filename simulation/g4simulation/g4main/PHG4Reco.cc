@@ -98,7 +98,10 @@
 #include <Geant4/QGSP_INCLXX.hh>
 #include <Geant4/QGSP_INCLXX_HP.hh>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/filesystem.hpp>
+#pragma GCC diagnostic pop
 
 #include <cassert>
 #include <cstdlib>
