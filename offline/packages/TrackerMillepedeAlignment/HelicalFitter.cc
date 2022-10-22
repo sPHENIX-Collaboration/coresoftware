@@ -156,26 +156,10 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  // have to add corrections for TPC clusters after transformation to global
 	  if(trkrId == TrkrDefs::tpcId) 
 	    {  
-	    int crossing = 0;
+	      int crossing = 0;  // for now
 	    makeTpcGlobalCorrections(key, crossing, global); 
 	  }
 
-	  /*
-	  if(trkrid ==  TrkrDefs::tpcId)
-	    {	  
-	      // make all corrections to global position of TPC cluster
-	      const unsigned int side = TpcDefs::getSide(key);
-	      int crossing = 0;
-	      float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
-	      global[2] = z;
-	      
-	      // apply distortion corrections
-	      if(_dcc_static) { global = _distortionCorrection.get_corrected_position( global, _dcc_static ); }
-	      if(_dcc_average) { global = _distortionCorrection.get_corrected_position( global, _dcc_average ); }
-	      if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
-	    }
-	  */
-	  
 	  // add the global positions to a vector to give to the helical fitter
 	  global_vec.push_back(global);
 	  cluskey_vec.push_back(key);
@@ -183,8 +167,19 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	} // end loop over clusters for this track
 
       // make the helical fit using TrackFitUtils
+      if(global_vec.size() < 3)  {  std::cout << " track " << trackid << " has too few clusters for circle fit, skip it" << std::endl; continue; }
       std::tuple<double, double, double> circle_fit_pars = TrackFitUtils::circle_fit_by_taubin(global_vec);
-      std::tuple<double,double> line_fit_pars = TrackFitUtils::line_fit(global_vec);
+      // It is problematic that the large errors on the INTT strip z values are not allowed for - drop the INTT from the z line fit
+      std::vector<Acts::Vector3> global_vec_noINTT;
+      for(unsigned int ivec=0;ivec<global_vec.size(); ++ivec)
+	{
+	  auto x = global_vec[ivec](0);
+	  auto y = global_vec[ivec](1);
+	  float radius = sqrt(x*x + y*y);
+	  if(radius < 5.0 || radius > 15.0) { global_vec_noINTT.push_back(global_vec[ivec]); }
+	}      
+      if(global_vec_noINTT.size() < 3) { std::cout << " track " << trackid << " has too few non-INTT clusters for z fit, skip it" << std::endl; continue; }
+     std::tuple<double,double> line_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
 
       // capture fit pars
       float radius = std::get<0>(circle_fit_pars);
@@ -204,6 +199,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  auto cluskey = cluskey_vec[ivec];
 	  auto cluster = _cluster_map->findCluster(cluskey);
 	  if(!cluster) { continue;}
+
+	  unsigned int layer = TrkrDefs::getLayer(cluskey_vec[ivec]);
 
 	  // need standard deviation of measurements
 	  Acts::Vector3 clus_sigma(0,0,0);
@@ -236,8 +233,9 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  // need the (non-zero) derivatives with respect to the track parameters
 	  // parameters are radius, circle (x0,y0), z0 and zslope
 
-	  // z = z0 + zslope * radius 
-	  float z_zslope = radius;
+	  // z = z0 + zslope * cluster_radius 
+	  float cluster_radius = sqrt(global(0)*global(0)+global(1)*global(1));
+	  float z_zslope = cluster_radius;
 	  float z_z0 = 1.0;
 	  if(Verbosity() > 0) {std::cout << "    z derivatives: z_zslope " << z_zslope << " z_z0 " << z_z0 << std::endl;}
 
@@ -281,15 +279,17 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  
 	  // x - relevant global pars are alpha, beta, gamma, dx (ipar 0,1,2,3), relevant local pars are x_x0, x_radius
 	  for(int i=0;i<NLC;++i) {lcl_derivative[i] = 0.0;}
-	  lcl_derivative[0] = x_x0;
-	  lcl_derivative[3] = x_radius;
+	    lcl_derivative[0] = x_x0; 
+	    lcl_derivative[3] = x_radius;
 	  for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
-	  glbl_derivative[3] = 1.0;  // optimize dx
-	  glbl_derivative[0] = angleDerivs[0](0);  // dx/dalpha
-	  glbl_derivative[1] = angleDerivs[1](0);  // dx/dbeta
-	  glbl_derivative[2] = angleDerivs[2](0);  // dx/dgamma
-	  if(clus_sigma(0) < 1.0)  // discards crazy clusters
-	    { _mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(0), clus_sigma(0));}
+	  if(layer != fixedLayer) { 
+	    glbl_derivative[3] = 1.0;  // optimize dx
+	    glbl_derivative[0] = angleDerivs[0](0);  // dx/dalpha
+	    glbl_derivative[1] = angleDerivs[1](0);  // dx/dbeta
+	    glbl_derivative[2] = angleDerivs[2](0);  // dx/dgamma
+	  }
+	    if(clus_sigma(0) < 1.0)  // discards crazy clusters
+	      { _mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(0), clus_sigma(0));}
 	  
 	  if(Verbosity() > 3)
 	    {
@@ -309,10 +309,12 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  lcl_derivative[1] = y_y0;
 	  lcl_derivative[3] = y_radius;
 	  for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
-	  glbl_derivative[4] = 1.0; // optimize dy
-	  glbl_derivative[0] = angleDerivs[0](1);   // dy/dalpha
-	  glbl_derivative[1] = angleDerivs[1](1);   // dy/dbeta
-	  glbl_derivative[2] = angleDerivs[2](1);   // dy/dgamma
+	  if(layer != fixedLayer) { 
+	    glbl_derivative[4] = 1.0; // optimize dy
+	    glbl_derivative[0] = angleDerivs[0](1);   // dy/dalpha
+	    glbl_derivative[1] = angleDerivs[1](1);   // dy/dbeta
+	    glbl_derivative[2] = angleDerivs[2](1);   // dy/dgamma
+	  }
 	  if(clus_sigma(1) < 1.0)  // discards crazy clusters
 	    {_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(1), clus_sigma(1));}
 	  
@@ -334,10 +336,12 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  lcl_derivative[2] = z_z0;
 	  lcl_derivative[4] = z_zslope;
 	  for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
-	  glbl_derivative[5] = 1.0;  // optimize dz
-	  glbl_derivative[0] = angleDerivs[0](2);  // dz/dalpha
-	  glbl_derivative[1] = angleDerivs[1](2);  // dz/dbeta
-	  glbl_derivative[2] = angleDerivs[2](2);  // dz/dgamma
+	  if(layer != fixedLayer) { 
+	    glbl_derivative[5] = 1.0;  // optimize dz
+	    glbl_derivative[0] = angleDerivs[0](2);  // dz/dalpha
+	    glbl_derivative[1] = angleDerivs[1](2);  // dz/dbeta
+	    glbl_derivative[2] = angleDerivs[2](2);  // dz/dgamma
+	  }
 	  if(clus_sigma(2) < 1.0)
 	    {_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(2), clus_sigma(2));}
 	  

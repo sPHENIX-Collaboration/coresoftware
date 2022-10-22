@@ -31,6 +31,17 @@ class AlignmentTransformation {
 
   int localVerbosity = 0;
 
+  bool _test_translation = true;
+  Acts::Vector3  _silicon_test_translation[7] = {
+    {0.0, 0.0, 0.0},
+    {0.1, 0.0, 0.0},
+    {-0.05, 0.0, 0.0},
+    {0.05, 0.0, 0.0},
+    {-0.1, 0.0, 0.0},
+    {0.05, 0.0, 0.0},
+    {-0.05, 0.0, 0.0}
+  }; // mm
+
   Acts::Transform3 makeTransform(Surface surf, Eigen::Vector3d millepedeTranslation, Eigen::Vector3d sensorAngles);
 
   Acts::Transform3 makeAffineMatrix(Eigen::Matrix3d rotationMatrix, Eigen::Vector3d translationVector);

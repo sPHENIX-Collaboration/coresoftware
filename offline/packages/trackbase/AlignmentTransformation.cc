@@ -85,6 +85,14 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
        }
      else if(trkrId == TrkrDefs::mvtxId or trkrId == TrkrDefs::inttId) 
        {
+	 unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+	 if(_test_translation)
+	   {
+	     millepedeTranslation += _silicon_test_translation[layer];
+	     std::cout << "Change silicon translation for layer " << layer << " to " 
+		       << millepedeTranslation(0) << "  " <<  millepedeTranslation(1) << "  " <<  millepedeTranslation(2) << std::endl;
+	   }
+
          surf = surfMaps.getSiliconSurface(hitsetkey);
 	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
          Acts::GeometryIdentifier id = surf->geometryId();

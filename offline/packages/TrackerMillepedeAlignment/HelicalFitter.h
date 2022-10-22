@@ -87,7 +87,8 @@ Mille* _mille;
   ClusterErrorPara _ClusErrPara;
 
   float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
-
+  unsigned int fixedLayer = 100;
+ 
   // set default groups to lowest level
   siliconGrp si_grp = siliconGrp::snsr;
   tpcGrp tpc_grp = tpcGrp::subsrf;
