@@ -6,12 +6,15 @@
  */
 #include "TrkrTruthClustersv1.h"
 #include "TrkrClusterv4.h"
-#include "trackbase/TrkrDefs.h"
 
+#include <trackbase/TrkrDefs.h>
+
+#include <TString.h>
+
+#include <array>
 #include <iomanip>
 #include <set>
 #include <algorithm>
-#include "TString.h"
 
 
 TrkrTruthClusters::ConstRange TrkrTruthClustersv1::getClusters (short trkId) const {

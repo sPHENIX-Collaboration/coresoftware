@@ -19,8 +19,7 @@ libphfield_io_la_LIBADD = \
 
 libphfield_la_LIBADD = \
   libphfield_io.la \
-  -lfun4all \
-  -lbmf
+  -lfun4all
 
 pkginclude_HEADERS = \
   PHField3DCartesian.h \
@@ -52,8 +51,6 @@ libphfield_la_SOURCES = \
   PHField2D.cc \
   PHField3DCylindrical.cc \
   PHField3DCartesian.cc \
-  PHFieldBeast.cc \
-  PHFieldCleo.cc \
   PHFieldUtility.cc 
 
 # Rule for generating table CINT dictionaries.

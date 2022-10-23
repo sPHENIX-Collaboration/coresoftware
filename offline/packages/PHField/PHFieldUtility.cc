@@ -4,8 +4,6 @@
 #include "PHField2D.h"
 #include "PHField3DCartesian.h"
 #include "PHField3DCylindrical.h"
-#include "PHFieldBeast.h"
-#include "PHFieldCleo.h"
 #include "PHFieldConfig.h"
 #include "PHFieldConfigv1.h"
 #include "PHFieldUniform.h"
@@ -20,22 +18,23 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TSystem.h>
+#pragma GCC diagnostic pop
 
 #include <cassert>
 #include <cstdlib>  // for getenv
 #include <iostream>
 
-using namespace std;
-
 PHField *
-PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbosity)
+PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, float inner_radius, float outer_radius, float size_z, const int verbosity)
 {
   assert(field_config);
 
   if (verbosity)
   {
-    cout << "PHFieldUtility::BuildFieldMap - construction field with configuration: ";
+    std::cout << "PHFieldUtility::BuildFieldMap - construction field with configuration: ";
     field_config->identify();
   }
 
@@ -72,31 +71,15 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbo
     //    return "3D field map expressed in Cartesian coordinates";
     field = new PHField3DCartesian(
         field_config->get_filename(),
-        field_config->get_magfield_rescale());
-    break;
-
-  case PHFieldConfig::kFieldBeast:
-    //    return "2D Beast field map expressed in Cartesian coordinates";
-    cout << "calling PHFieldBeast scale " << field_config->get_magfield_rescale() << endl;
-    field = new PHFieldBeast(
-        field_config->get_filename(),
-        verbosity,
-        field_config->get_magfield_rescale());
-    break;
-
-  case PHFieldConfig::kFieldCleo:
-    //    return "2D Beast field map expressed in Cartesian coordinates";
-    cout << "calling PHFieldCleo scale " << field_config->get_magfield_rescale() << endl;
-    field = new PHFieldCleo(
-        field_config->get_filename(),
-        verbosity,
-        field_config->get_magfield_rescale());
+        field_config->get_magfield_rescale(),
+	inner_radius,
+	outer_radius,
+        size_z);
     break;
 
   default:
-    cout << "PHFieldUtility::BuildFieldMap - Invalid Field Configuration" << endl;
-    //    return nullptr;
-    //    return "Invalid Field";
+    std::cout << "PHFieldUtility::BuildFieldMap - Invalid Field Configuration: " << field_config->get_field_config() << std::endl;
+    gSystem->Exit(1);
   }
   assert(field);  // Check for Invalid Field
   return field;
@@ -108,9 +91,8 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbo
 //! \output default field configuration object. Caller assumes ownership
 PHFieldConfig *PHFieldUtility::DefaultFieldConfig()
 {
-  return new PHFieldConfigv1(PHFieldConfigv1::kField2D,
-                             (string(getenv("CALIBRATIONROOT")) + string("/Field/Map/sPHENIX.2d.root")),
-                             -1.4 / 1.5);
+  return new PHFieldConfigv1(PHFieldConfigv1::Field3DCartesian,
+                             (std::string(getenv("CALIBRATIONROOT")) + std::string("/Field/Map/sphenix3dbigmapxyz_gap_rebuild.root")),1.);
 }
 
 //! Get transient PHField from DST nodes. If not found, make a new one based on default_config
@@ -128,7 +110,7 @@ PHFieldUtility::GetFieldMapNode(const PHFieldConfig *default_config, PHComposite
   PHCompositeNode *parNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
   if (!parNode)
   {
-    cout << PHWHERE << ": PAR Node missing, request aborting.";
+    std::cout << PHWHERE << ": PAR Node missing, request aborting.";
     gSystem->Exit(1);
   }
 
@@ -163,7 +145,7 @@ PHFieldUtility::GetFieldConfigNode(const PHFieldConfig *default_config, PHCompos
   PHCompositeNode *runNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
-    cout << PHWHERE << ": RUN Node missing, aborting.";
+    std::cout << PHWHERE << ": RUN Node missing, aborting.";
     gSystem->Exit(1);
   }
 
@@ -175,7 +157,7 @@ PHFieldUtility::GetFieldConfigNode(const PHFieldConfig *default_config, PHCompos
       field = DefaultFieldConfig();
       if (verbosity)
       {
-        cout << "PHFieldUtility::GetFieldConfigNode - field map with configuration from build-in default: ";
+        std::cout << "PHFieldUtility::GetFieldConfigNode - field map with configuration from build-in default: ";
         field->identify();
       }
     }
@@ -184,7 +166,7 @@ PHFieldUtility::GetFieldConfigNode(const PHFieldConfig *default_config, PHCompos
       field = static_cast<PHFieldConfig *>(default_config->CloneMe());
       if (verbosity)
       {
-        cout << "PHFieldUtility::GetFieldConfigNode - field map with configuration from input default: ";
+        std::cout << "PHFieldUtility::GetFieldConfigNode - field map with configuration from input default: ";
         field->identify();
       }
     }
@@ -196,7 +178,7 @@ PHFieldUtility::GetFieldConfigNode(const PHFieldConfig *default_config, PHCompos
   {
     if (verbosity)
     {
-      cout << "PHFieldUtility::GetFieldConfigNode - field map with configuration from DST/RUN: ";
+      std::cout << "PHFieldUtility::GetFieldConfigNode - field map with configuration from DST/RUN: ";
       field->identify();
     }
   }
