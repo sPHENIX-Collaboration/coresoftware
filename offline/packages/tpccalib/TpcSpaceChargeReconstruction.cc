@@ -9,14 +9,17 @@
 #include "TpcSpaceChargeMatrixContainerv1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 
+#include <tpc/TpcDistortionCorrectionContainer.h>
+
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
@@ -89,6 +92,12 @@ namespace
     return std::count_if( keys.begin(), keys.end(),
       []( const TrkrDefs::cluskey& key ) { return TrkrDefs::getTrkrId(key) == type; } );
   }
+
+  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const Acts::Vector3& vector )
+  { 
+    out << "(" << vector.x() << ", " << vector.y() << ", " << vector.z() << ")";
+    return out;
+  }
   
 }
 
@@ -153,9 +162,6 @@ int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 
   // increment local event counter
   ++m_event;
-
-  // clear global position cache
-  m_globalPositions.clear();
 
   // load nodes
   const auto res = load_nodes(topNode);
@@ -242,6 +248,13 @@ int TpcSpaceChargeReconstruction::load_nodes( PHCompositeNode* topNode )
   }
 
   assert( m_cluster_map );
+  
+  
+  // tpc distortion corrections
+  m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
+  m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
+  m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerFluctuation");
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -312,25 +325,36 @@ void TpcSpaceChargeReconstruction::create_histograms()
 }
 
 //_________________________________________________________________________________
-Acts::Vector3 TpcSpaceChargeReconstruction::get_global_position(TrkrDefs::cluskey key, TrkrCluster* cluster )
+Acts::Vector3 TpcSpaceChargeReconstruction::get_global_position(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing )
 {
-
-  // find closest iterator in map
-  auto it = m_globalPositions.lower_bound( key );
-  if (it == m_globalPositions.end()|| (key < it->first ))
-  {
-    // get global position from Acts transform
-    const auto globalpos = m_tgeometry->getGlobalPosition(
-							     key,  cluster);
-
-    /*
-     * todo: should also apply distortion corrections
-     */
-
-    // add new cluster and set its key
-    it = m_globalPositions.insert(it, std::make_pair(key, globalpos));
+  // get global position from Acts transform
+  auto globalPosition = m_tgeometry->getGlobalPosition(key, cluster);
+  
+  // for the TPC calculate the proper z based on crossing and side
+  const auto trkrid = TrkrDefs::getTrkrId(key);
+  if(trkrid ==  TrkrDefs::tpcId)
+  {	 
+    const auto side = TpcDefs::getSide(key);
+    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);    
+        
+    // apply distortion corrections
+    if(m_dcc_static) 
+    {
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_static ); 
+    }
+    
+    if(m_dcc_average) 
+    { 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_average ); 
+    }
+    
+    if(m_dcc_fluctuation) 
+    { 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_fluctuation ); 
+    }
   }
-  return it->second;
+    
+  return globalPosition;
 }
 
 //_____________________________________________________________________
@@ -388,9 +412,14 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     }
   }
 
+  // store crossing
+  // it is needed for geting cluster's global position
+  const auto crossing = track->get_crossing();
+  assert( crossing != SHRT_MAX );
+
   // running track state
   auto state_iter = track->begin_states();
-
+  
   // loop over clusters
   for( const auto& cluster_key:get_cluster_keys( track ) )
   {
@@ -409,7 +438,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     if(detId != TrkrDefs::tpcId) continue;
 
     // cluster r, phi and z
-    const auto global_position = get_global_position( cluster_key, cluster );
+    const auto global_position = get_global_position( cluster_key, cluster, crossing );
     const auto cluster_r = get_r( global_position.x(), global_position.y() );
     const auto cluster_phi = std::atan2( global_position.y(), global_position.x() );
     const auto cluster_z = global_position.z();
@@ -519,7 +548,7 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     }
 
     // get cell
-    const auto i = get_cell_index( cluster_key, cluster );
+    const auto i = get_cell_index( global_position );
     if( i < 0 )
     {
       std::cout << "TpcSpaceChargeReconstruction::process_track - invalid cell index" << std::endl;
@@ -586,17 +615,13 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 }
 
 //_____________________________________________________________________
-int TpcSpaceChargeReconstruction::get_cell_index(TrkrDefs::cluskey key, TrkrCluster* cluster )
+int TpcSpaceChargeReconstruction::get_cell_index( const Acts::Vector3& global_position )
 {
   // get grid dimensions from matrix container
   int phibins = 0;
   int rbins = 0;
   int zbins = 0;
   m_matrix_container->get_grid_dimensions( phibins, rbins, zbins );
-
-
-  // get global position
-  const auto global_position = get_global_position( key, cluster );
 
   // phi
   // bound check

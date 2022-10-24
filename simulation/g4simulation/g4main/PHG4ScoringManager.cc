@@ -45,7 +45,10 @@
 #include <Geant4/G4VScoringMesh.hh>  // for G4VScoringMesh
 #include <Geant4/G4Version.hh>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/format.hpp>
+#pragma GCC diagnostic pop
 
 #include <cassert>
 #include <cmath>  // for fabs, M_PI
