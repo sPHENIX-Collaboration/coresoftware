@@ -66,9 +66,16 @@ enum mmsGroup
 class AlignmentState
 {
  public:
-  AlignmentState(size_t index, Acts::Vector3 res,
-                 Acts::ActsMatrix<3, 6> ralign,
-                 Acts::ActsMatrix<3, 6> rtrack,
+  static const int NGL = 6;
+  static const int NLC = 8;
+  static const int NRES = 2;
+  using GlobalMatrix = Acts::ActsMatrix<NRES, NGL>;
+  using LocalMatrix = Acts::ActsMatrix<NRES, NLC>;
+  using ResidualVector = Eigen::Matrix<Acts::ActsScalar, NRES, 1>;
+
+  AlignmentState(size_t index, ResidualVector res,
+                 GlobalMatrix ralign,
+                 LocalMatrix rtrack,
                  Acts::Vector3 clusglob)
     : m_tsIndex(index)
     , m_residual(res)
@@ -78,22 +85,22 @@ class AlignmentState
   {
   }
 
-  void set_residual(const Acts::Vector3& res) { m_residual = res; }
-  void set_dResAlignmentPar(const Acts::ActsMatrix<3, 6>& d)
+  void set_residual(const ResidualVector& res) { m_residual = res; }
+  void set_dResAlignmentPar(const GlobalMatrix& d)
   {
     m_dResAlignmentPar = d;
   }
-  void set_dResTrackPar(const Acts::ActsMatrix<3, 6>& d)
+  void set_dResTrackPar(const LocalMatrix& d)
   {
     m_dResTrackPar = d;
   }
 
-  const Acts::Vector3& get_residual() const { return m_residual; }
-  const Acts::ActsMatrix<3, 6>& get_dResAlignmentPar() const
+  const ResidualVector& get_residual() const { return m_residual; }
+  const GlobalMatrix& get_dResAlignmentPar() const
   {
     return m_dResAlignmentPar;
   }
-  const Acts::ActsMatrix<3, 6>& get_dResTrackPar() const
+  const LocalMatrix& get_dResTrackPar() const
   {
     return m_dResTrackPar;
   }
@@ -103,9 +110,9 @@ class AlignmentState
 
  private:
   size_t m_tsIndex;
-  Acts::Vector3 m_residual;
-  Acts::ActsMatrix<3, 6> m_dResAlignmentPar;
-  Acts::ActsMatrix<3, 6> m_dResTrackPar;
+  ResidualVector m_residual;
+  GlobalMatrix m_dResAlignmentPar;
+  LocalMatrix m_dResTrackPar;
   Acts::Vector3 m_clusglob;
 };
 

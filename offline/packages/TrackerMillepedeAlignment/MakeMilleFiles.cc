@@ -644,7 +644,7 @@ AlignmentStateMap MakeMilleFiles::getAlignmentStates(const Trajectory& traj,
 		  << dGlobResTrack << std::endl;
       }
     
-    AlignmentState astate(state.index(), residual, dGlobResAlignment, dGlobResTrack, clusGlobal);
+    AlignmentState astate(state.index(), actslocres, dLocResAlignment, dLocResTrack, clusGlobal);
 
     alignStates.insert(std::make_pair(ckey, astate));
     auto surf = _tGeometry->maps().getSurface(ckey, clus);
@@ -676,38 +676,55 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
     const auto& global = astate.get_clusglob();
 
     // need standard deviation of measurements
-    Acts::Vector3 clus_sigma(0, 0, 0);
-    if (_cluster_version == 3)
-    {
-      clus_sigma(2) = cluster->getZError() * Acts::UnitConstants::cm;
-      clus_sigma(0) = cluster->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
-      clus_sigma(1) = cluster->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
-    }
-    else if (_cluster_version == 4)
-    {
-      double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
-      auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster, clusRadius, ckey);
-      float exy2 = para_errors.first * Acts::UnitConstants::cm2;
-      float ez2 = para_errors.second * Acts::UnitConstants::cm2;
-      clus_sigma(2) = sqrt(ez2);
-      clus_sigma(0) = sqrt(exy2 / 2.0);
-      clus_sigma(1) = sqrt(exy2 / 2.0);
-    }
-
-    if(std::isnan(clus_sigma(0)) || 
-       std::isnan(clus_sigma(1)) || 
-       std::isnan(clus_sigma(2)))  
-      { continue; }
-
+    AlignmentState::ResidualVector clus_sigma = AlignmentState::ResidualVector::Zero();
+    if(AlignmentState::NRES == 3)
+      {
+	if (_cluster_version == 3)
+	  {
+	    clus_sigma(2) = cluster->getZError() * Acts::UnitConstants::cm;
+	    clus_sigma(0) = cluster->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
+	    clus_sigma(1) = cluster->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
+	  }
+	else if (_cluster_version == 4)
+	  {
+	    double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
+	    auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster, clusRadius, ckey);
+	    float exy2 = para_errors.first * Acts::UnitConstants::cm2;
+	    float ez2 = para_errors.second * Acts::UnitConstants::cm2;
+	    clus_sigma(2) = sqrt(ez2);
+	    clus_sigma(0) = sqrt(exy2 / 2.0);
+	    clus_sigma(1) = sqrt(exy2 / 2.0);
+	  }
+	
+	if(std::isnan(clus_sigma(0)) || 
+	   std::isnan(clus_sigma(1)) || 
+	   std::isnan(clus_sigma(2)))  
+	  { continue; }
+      }
+    else if (AlignmentState::NRES == 2)
+      {
+	 if (_cluster_version == 3)
+	   {
+	     clus_sigma(1) = cluster->getZError() * Acts::UnitConstants::cm;
+	     clus_sigma(0) = cluster->getRPhiError() * Acts::UnitConstants::cm;
+	   }
+	 else if (_cluster_version == 4)
+	   {
+	     double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
+	     auto para_errors = _ClusErrPara.get_simple_cluster_error(cluster, clusRadius, ckey);
+	     float exy2 = para_errors.first * Acts::UnitConstants::cm2;
+	     float ez2 = para_errors.second * Acts::UnitConstants::cm2;
+	     clus_sigma(1) = sqrt(ez2);
+	     clus_sigma(0) = sqrt(exy2);
+	   }
+      }
     const auto& multiTraj = traj.multiTrajectory();
     const auto& state = multiTraj.getTrackState(astate.get_tsIndex());
     Acts::GeometryIdentifier id = state.referenceSurface().geometryId();
     int label_base = getLabelBase(id);  // This value depends on how the surfaces are grouped
 
-    const int NLC = 6;
-    const int NGL = 6;
-    int glbl_label[NGL];
-    for (int i = 0; i < NGL; ++i)
+    int glbl_label[AlignmentState::NGL];
+    for (int i = 0; i < AlignmentState::NGL; ++i)
     {
       glbl_label[i] = label_base + i;
       if (Verbosity() > 1)
@@ -722,17 +739,17 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
     }
 
     /// For 3 residual coordinates x,y,z
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < AlignmentState::NRES; ++i)
     {
       // Add the measurement separately for each coordinate direction to Mille
-      float glbl_derivative[NGL];
-      for (int j = 0; j < NGL; ++j)
+      float glbl_derivative[AlignmentState::NGL];
+      for (int j = 0; j < AlignmentState::NGL; ++j)
       {
         glbl_derivative[j] = astate.get_dResAlignmentPar()(i, j);
       }
 
-      float lcl_derivative[NLC];
-      for (int j = 0; j < NLC; ++j)
+      float lcl_derivative[AlignmentState::NLC];
+      for (int j = 0; j < AlignmentState::NLC; ++j)
       {
         lcl_derivative[j] = astate.get_dResTrackPar()(i, j);
       }
@@ -741,13 +758,13 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
         std::cout << "coordinate " << i << " has residual " << residual(i) << " and clus_sigma " << clus_sigma(i) << std::endl
                   << "global deriv " << std::endl;
         ;
-        for (int k = 0; k < NGL; k++)
+        for (int k = 0; k < AlignmentState::NGL; k++)
         {
           std::cout << glbl_derivative[k] << ", ";
         }
         std::cout << std::endl
                   << "local deriv " << std::endl;
-        for (int k = 0; k < NLC; k++)
+        for (int k = 0; k < AlignmentState::NLC; k++)
         {
           std::cout << lcl_derivative[k] << ", ";
         }
@@ -756,7 +773,7 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
 
       if (clus_sigma(i) < 1.0)  // discards crazy clusters
       {
-        _mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(i), clus_sigma(i));
+        _mille->mille(AlignmentState::NLC, lcl_derivative, AlignmentState::NGL, glbl_derivative, glbl_label, residual(i), clus_sigma(i));
       }
     }
   }
