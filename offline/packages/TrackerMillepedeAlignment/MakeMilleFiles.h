@@ -119,6 +119,9 @@ class MakeMilleFiles : public SubsysReco
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
   int End(PHCompositeNode* topNode) override;
+
+  void set_binary(bool bin) { _binary = bin; }
+
   void set_datafile_name(const std::string& file) { data_outfilename = file; }
   void set_steeringfile_name(const std::string& file) { steering_outfilename = file; }
   void set_silicon_grouping(int group) { si_group = (siliconGroup) group; }
@@ -153,7 +156,7 @@ class MakeMilleFiles : public SubsysReco
 
   /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;
-
+  bool _binary = true;
   unsigned int _cluster_version = 4;
 
   ClusterErrorPara _ClusErrPara;

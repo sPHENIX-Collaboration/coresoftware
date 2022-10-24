@@ -63,7 +63,7 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
 
   // Instantiate Mille and open output data file
   //  _mille = new Mille(data_outfilename.c_str(), false);   // write text in data files, rather than binary, for debugging only
-  _mille = new Mille(data_outfilename.c_str());
+  _mille = new Mille(data_outfilename.c_str(), _binary);
 
   // Write the steering file here, and add the data file path to it
   std::ofstream steering_file(steering_outfilename.c_str());
@@ -493,6 +493,9 @@ AlignmentStateMap MakeMilleFiles::getAlignmentStates(const Trajectory& traj,
     auto clus = _cluster_map->findCluster(ckey);
     const auto trkrId = TrkrDefs::getTrkrId(ckey);
 
+    if(trkrId == TrkrDefs::TrkrId::tpcId or trkrId == TrkrDefs::micromegasId)
+      { return true; }
+
     if (!clus)
     {
       /// For some reason, the SL index and cluster key of the first state in the Acts trajectory
@@ -541,9 +544,27 @@ AlignmentStateMap MakeMilleFiles::getAlignmentStates(const Trajectory& traj,
 
     if (Verbosity() > 2)
     {
+      Acts::Vector3 clus_sigma(0, 0, 0);
+      if (_cluster_version == 3)
+	{
+	  clus_sigma(2) = clus->getZError() * Acts::UnitConstants::cm;
+	  clus_sigma(0) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
+	  clus_sigma(1) = clus->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
+	}
+      else if (_cluster_version == 4)
+	{
+	  double clusRadius = sqrt(clusGlobal(0)*clusGlobal(0) + clusGlobal(1)*clusGlobal(1));
+	  auto para_errors = _ClusErrPara.get_simple_cluster_error(clus, clusRadius, ckey);
+	  float exy2 = para_errors.first * Acts::UnitConstants::cm2;
+	  float ez2 = para_errors.second * Acts::UnitConstants::cm2;
+	  clus_sigma(2) = sqrt(ez2);
+	  clus_sigma(0) = sqrt(exy2 / 2.0);
+	  clus_sigma(1) = sqrt(exy2 / 2.0);
+	}
       std::cout << "clus global is " << clusGlobal.transpose() << std::endl
                 << "state global is " << stateGlobal.transpose() << std::endl
                 << "Residual is " << residual.transpose() << std::endl;
+      std::cout << "   clus errors are " << clus_sigma.transpose() << std::endl;
     }
 
     // Get the derivative of alignment (global) parameters w.r.t. measurement or residual
@@ -626,7 +647,14 @@ AlignmentStateMap MakeMilleFiles::getAlignmentStates(const Trajectory& traj,
     AlignmentState astate(state.index(), residual, dGlobResAlignment, dGlobResTrack, clusGlobal);
 
     alignStates.insert(std::make_pair(ckey, astate));
-
+    auto surf = _tGeometry->maps().getSurface(ckey, clus);
+    auto testvec = getDerivativesAlignmentAngles(clusGlobal, ckey, clus, surf, 0);
+    std::cout << "numerical calculation" << std::endl;
+    for(auto& row : testvec) 
+      {
+	std::cout << row.transpose() << std::endl;
+      }
+    
     return true;
   });
 
@@ -651,9 +679,9 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
     Acts::Vector3 clus_sigma(0, 0, 0);
     if (_cluster_version == 3)
     {
-      clus_sigma(2) = cluster->getZError();
-      clus_sigma(0) = cluster->getRPhiError() / sqrt(2);
-      clus_sigma(1) = cluster->getRPhiError() / sqrt(2);
+      clus_sigma(2) = cluster->getZError() * Acts::UnitConstants::cm;
+      clus_sigma(0) = cluster->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
+      clus_sigma(1) = cluster->getRPhiError() / sqrt(2) * Acts::UnitConstants::cm;
     }
     else if (_cluster_version == 4)
     {
@@ -665,6 +693,11 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
       clus_sigma(0) = sqrt(exy2 / 2.0);
       clus_sigma(1) = sqrt(exy2 / 2.0);
     }
+
+    if(std::isnan(clus_sigma(0)) || 
+       std::isnan(clus_sigma(1)) || 
+       std::isnan(clus_sigma(2)))  
+      { continue; }
 
     const auto& multiTraj = traj.multiTrajectory();
     const auto& state = multiTraj.getTrackState(astate.get_tsIndex());
