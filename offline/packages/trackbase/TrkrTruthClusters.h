@@ -9,8 +9,9 @@
  */
 
 #include "TrkrCluster.h"
-#include <phool/PHObject.h>
 #include "TrkrClusterContainer.h"
+
+#include <phool/PHObject.h>
 
 #include <iostream>              // for cout, ostream
 #include <map>
