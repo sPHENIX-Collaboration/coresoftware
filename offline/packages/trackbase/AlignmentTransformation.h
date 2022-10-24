@@ -27,11 +27,11 @@ class AlignmentTransformation {
 
  private:
 
-  std::string alignmentParamsFile = "";
+  std::string alignmentParamsFile = "./localAlignmentParamsFile.txt";
 
   int localVerbosity = 0;
 
-  bool _test_translation = true;
+  bool _test_translation = false;
   Acts::Vector3  _silicon_test_translation[7] = {
     {0.0, 0.0, 0.0},
     {0.1, 0.0, 0.0},

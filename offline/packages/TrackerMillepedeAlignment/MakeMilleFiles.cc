@@ -530,19 +530,19 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
       if(si_group == siliconGroup::sensor)
 	{
 	  // every sensor has a different label
-	  label_base += layer*1000 + sensor*10;
+	  label_base += layer*1000000 + sensor*10;
 	  return label_base;
 	}
       if(si_group == siliconGroup::stave)
 	{
 	  // layer and stave, assign all sensors to the stave number
-	  int stave = sensor / nstaves[layer];
-	  label_base += layer*1000 + stave*10;
+	  int stave = sensor / nsensors_stave[layer];
+	  label_base += layer*1000000 + stave*10000;
 	  return label_base;
 	}
       if(si_group == siliconGroup::barrel)
 	// layer only, assign all sensors to sensor 0 
-	label_base += layer*1000 + 0;
+	label_base += layer*1000000 + 0;
       return label_base;
     }
   else if(layer > 6 && layer < 55)
@@ -550,7 +550,7 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
       if(tpc_group == tpcGroup::subsurf)
 	{
 	  // every surface has separate label
-	  label_base += layer*1000 + sensor*10;
+	  label_base += layer*1000000 + sensor*10;
 	  return label_base;
 	}
       if(tpc_group == tpcGroup::sector)
@@ -558,13 +558,13 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
 	  // all tpc layers, assign layer 7 and side and sector number to all layers and subsurfaces
 	  int side = sensor / 2;   // check!!!!
 	  int sector = (sensor - side *144) / 12; 
-	  label_base += 7*1000 + side * 1000 + sector*10; 
+	  label_base += 7*1000000 + (side*12 + sector) *10000; 
 	  return label_base;
 	}
       if(tpc_group == tpcGroup::tpc)
 	{
 	  // all tpc layers and all sectors, assign layer 7 and sensor 0 to all layers and sensors
-	  label_base += 7*1000 + 0;
+	  label_base += 7*1000000 + 0;
 	  return label_base;
 	}
     }
@@ -573,13 +573,13 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
       if(mms_group == mmsGroup::tile)
 	{
 	  // every tile has different label
-	  label_base += layer*1000+sensor*10;
+	  label_base += layer*1000000+sensor*10;
 	  return label_base;
 	}
       if(mms_group == mmsGroup::mms)
 	{
 	  // assign layer 55 and tile 0 to all
-	  label_base += 55*1000 + 0;	  
+	  label_base += 55*1000000 + 0;	  
 	  return label_base;
 	}
     }

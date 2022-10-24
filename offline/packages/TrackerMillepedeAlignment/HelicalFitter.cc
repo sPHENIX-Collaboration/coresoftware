@@ -541,7 +541,6 @@ std::vector<Acts::Vector3> HelicalFitter::getDerivativesAlignmentAngles(Acts::Ve
       //   (dx/dgamma, dy/dgamma, dz/dgamma) (for iangle = 2)
  
      // Average the changes to get the estimate of the derivative      
-      // Check what the sign of this should be !!!!
       derivs(0) = keeper(0) / (2.0 * fabs(theseAngles[iangle]));
       if( isnan(derivs(0)) ) { derivs(0) = 0; }
       derivs(1) = keeper(1) / (2.0 * fabs(theseAngles[iangle]));
@@ -617,19 +616,21 @@ int HelicalFitter::getLabelBase(Acts::GeometryIdentifier id)
       if(si_grp == siliconGrp::snsr)
 	{
 	  // every sensor has a different label
-	  label_base += layer*1000 + sensor*10;
+	  label_base += layer*1000000  + sensor*10;
 	  return label_base;
 	}
       if(si_grp == siliconGrp::stv)
 	{
 	  // layer and stave, assign all sensors to the stave number
-	  int stave = sensor / nstaves[layer];
-	  label_base += layer*1000 + stave*10;
+	  //int stave = sensor / nstaves[layer];
+	  int stave = sensor / nsensors_stave[layer];
+	  label_base += layer*1000000 + stave*10000;
+	  //	  std::cout << " sensor " << sensor << " acts_layer " << acts_layer << " layer " <<  layer << " base_layer " <<  base_layer_map.find(volume)->second << " volume " << volume << " nstaves_layer " << nstaves[layer] << " stave " << stave << " label_base " << label_base << std::endl;
 	  return label_base;
 	}
       if(si_grp == siliconGrp::brrl)
 	// layer only, assign all sensors to sensor 0 
-	label_base += layer*1000 + 0;
+	label_base += layer*1000000 + 0;
       return label_base;
     }
   else if(layer > 6 && layer < 55)
@@ -637,7 +638,7 @@ int HelicalFitter::getLabelBase(Acts::GeometryIdentifier id)
       if(tpc_grp == tpcGrp::subsrf)
 	{
 	  // every surface has separate label
-	  label_base += layer*1000 + sensor*10;
+	  label_base += layer*1000000 + sensor*10;
 	  return label_base;
 	}
       if(tpc_grp == tpcGrp::sctr)
@@ -645,13 +646,13 @@ int HelicalFitter::getLabelBase(Acts::GeometryIdentifier id)
 	  // all tpc layers, assign layer 7 and side and sector number to all layers and subsurfaces
 	  int side = sensor / 2;   // check!!!!
 	  int sector = (sensor - side *144) / 12; 
-	  label_base += 7*1000 + side * 1000 + sector*10; 
+	  label_base += 7*1000000 + (side*12 + sector) *10000; 
 	  return label_base;
 	}
       if(tpc_grp == tpcGrp::tp)
 	{
 	  // all tpc layers and all sectors, assign layer 7 and sensor 0 to all layers and sensors
-	  label_base += 7*1000 + 0;
+	  label_base += 7*1000000 + 0;
 	  return label_base;
 	}
     }
@@ -660,13 +661,13 @@ int HelicalFitter::getLabelBase(Acts::GeometryIdentifier id)
       if(mms_grp == mmsGrp::tl)
 	{
 	  // every tile has different label
-	  label_base += layer*1000+sensor*10;
+	  label_base += layer*1000000+sensor*10;
 	  return label_base;
 	}
       if(mms_grp == mmsGrp::mm)
 	{
 	  // assign layer 55 and tile 0 to all
-	  label_base += 55*1000 + 0;	  
+	  label_base += 55*1000000 + 0;	  
 	  return label_base;
 	}
     }

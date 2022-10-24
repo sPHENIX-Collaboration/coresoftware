@@ -95,6 +95,7 @@ Mille* _mille;
   mmsGrp mms_grp = mmsGrp::tl;
 
   int nstaves[7] = {12,16,20,12,12,16,16};
+  int nsensors_stave[7] = {9,9,9,4,4,4,4};
 
   std::map<unsigned int, unsigned int> base_layer_map = { {10, 0}, {12,3}, {14,7}, {16,55} };
 
