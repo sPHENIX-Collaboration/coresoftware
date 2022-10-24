@@ -62,13 +62,18 @@ enum mmsGroup
 /*
  * Class which contains alignment information to be written to pede, 
  * obtained from Acts::Trajectories and track states
+ * Also defines all matrix and residual dimensions
  */
 class AlignmentState
 {
  public:
+  /// The number of global (alignment) parameters
   static const int NGL = 6;
+  /// The number of local (track state) parameters
   static const int NLC = 8;
+  /// The number of residuals per state (e.g. 2D or 3D)
   static const int NRES = 2;
+
   using GlobalMatrix = Acts::ActsMatrix<NRES, NGL>;
   using LocalMatrix = Acts::ActsMatrix<NRES, NLC>;
   using ResidualVector = Eigen::Matrix<Acts::ActsScalar, NRES, 1>;
@@ -136,7 +141,7 @@ class MakeMilleFiles : public SubsysReco
   void set_mms_grouping(int group) { mms_group = (mmsGroup) group; }
 
  private:
-  Mille *_mille;
+  Mille* _mille;
 
   std::map<const unsigned int, Trajectory>* _trajectories;
 
