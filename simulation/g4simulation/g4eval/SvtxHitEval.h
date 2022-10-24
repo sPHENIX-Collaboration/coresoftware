@@ -52,9 +52,17 @@ class SvtxHitEval
   std::set<PHG4Hit*> all_truth_hits(TrkrDefs::hitkey hit_key);
   PHG4Hit* max_truth_hit_by_energy(TrkrDefs::hitkey hit_key);
 
+  // backtrace through to PHG4Hits for a specific tracker
+  std::set<PHG4Hit*> all_truth_hits(TrkrDefs::hitkey hit_key, const TrkrDefs::TrkrId trkrid);
+  PHG4Hit* max_truth_hit_by_energy(TrkrDefs::hitkey hit_key, const TrkrDefs::TrkrId trkrid);
+
   // backtrace through to PHG4Particles
   std::set<PHG4Particle*> all_truth_particles(TrkrDefs::hitkey hit_key);
   PHG4Particle* max_truth_particle_by_energy(TrkrDefs::hitkey hit_key);
+
+  // backtrace through to PHG4Particles for a specific tracker
+  std::set<PHG4Particle*> all_truth_particles(TrkrDefs::hitkey hit_key, const TrkrDefs::TrkrId trkrid);
+  PHG4Particle* max_truth_particle_by_energy(TrkrDefs::hitkey hit_key, const TrkrDefs::TrkrId trkrid);
 
   // forwardtrace through to SvtxHits
   std::set<TrkrDefs::hitkey> all_hits_from(PHG4Particle* truthparticle);
