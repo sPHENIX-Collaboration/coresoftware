@@ -28,8 +28,9 @@
  class PHEvtGenRandomEngine : public EvtRandomEngine {
    public:
      PHEvtGenRandomEngine();
+	 virtual ~PHEvtGenRandomEngine();
      virtual double random();
- 
+
    protected:
 	  gsl_rng *RandomGenerator() const { return m_RandomGenerator; }
 
