@@ -164,6 +164,12 @@ namespace {
     return out;
   }
 
+  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const Acts::Vector3& vector )
+  { 
+    out << "(" << vector.x() << ", " << vector.y() << ", " << vector.z() << ")";
+    return out;
+  }
+  
 }
 
 /*
@@ -921,23 +927,9 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 
   // tpc distortion corrections
   m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
-  if( m_dcc_static )
-  { 
-    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl; 
-  }
-  
   m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
-  if( m_dcc_average )
-  { 
-    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl; 
-  }
-  
   m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerFluctuation");
-  if( m_dcc_fluctuation )
-  { 
-    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl; 
-  }
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -953,8 +945,8 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
   if(trkrid ==  TrkrDefs::tpcId)
   {	 
     const auto side = TpcDefs::getSide(key);
-    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);
-
+    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);    
+    
     // apply distortion corrections
     if(m_dcc_static) 
     {
@@ -971,7 +963,7 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
       globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_fluctuation ); 
     }
   }
-  
+    
   return globalPosition;
 }
 

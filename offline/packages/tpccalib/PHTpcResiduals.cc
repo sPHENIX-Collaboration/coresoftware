@@ -11,6 +11,9 @@
 #include <phool/PHObject.h>
 #include <phool/PHTimer.h>
 
+#include <tpc/TpcDistortionCorrectionContainer.h>
+
+#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -265,6 +268,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
   auto trackParams = makeTrackParams(track);
 
   int initNBadProps = m_nBadProps;
+  // store crossing. It is used in calculating cluster's global position
+  m_crossing = track->get_crossing();
+  assert( m_crossing != SHRT_MAX );
+  
   for( const auto& cluskey:get_cluster_keys( track ) )
   {
       ++m_total_clusters;
@@ -390,7 +397,7 @@ void PHTpcResiduals::calculateTpcResiduals( const Acts::BoundTrackParameters &pa
   cluskey = key;
   
   // Get all the relevant information for residual calculation
-  const auto globClusPos = m_tGeometry->getGlobalPosition(key, cluster);
+  const auto globClusPos = getGlobalPosition(key, cluster, m_crossing);
   clusR = get_r(globClusPos(0),globClusPos(1));
   clusPhi = std::atan2(globClusPos(1), globClusPos(0));
   clusZ = globClusPos(2);
@@ -643,7 +650,45 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  // tpc distortion corrections
+  m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
+  m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
+  m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerFluctuation");
+
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//_________________________________________________________________________________
+Acts::Vector3 PHTpcResiduals::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing )
+{
+  // get global position from Acts transform
+  auto globalPosition = m_tGeometry->getGlobalPosition(key, cluster);
+  
+  // for the TPC calculate the proper z based on crossing and side
+  const auto trkrid = TrkrDefs::getTrkrId(key);
+  if(trkrid ==  TrkrDefs::tpcId)
+  {	 
+    const auto side = TpcDefs::getSide(key);
+    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);    
+    
+    // apply distortion corrections
+    if(m_dcc_static) 
+    {
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_static ); 
+    }
+    
+    if(m_dcc_average) 
+    { 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_average ); 
+    }
+    
+    if(m_dcc_fluctuation) 
+    { 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_fluctuation ); 
+    }
+  }
+    
+  return globalPosition;
 }
 
 //_______________________________________________________________________________
