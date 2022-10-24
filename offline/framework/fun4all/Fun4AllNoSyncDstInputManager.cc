@@ -3,11 +3,9 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace std;
-
-Fun4AllNoSyncDstInputManager::Fun4AllNoSyncDstInputManager(const string &name,
-                                                           const string &nodename,
-                                                           const string &topnodename)
+Fun4AllNoSyncDstInputManager::Fun4AllNoSyncDstInputManager(const std::string &name,
+                                                           const std::string &nodename,
+                                                           const std::string &topnodename)
   : Fun4AllDstInputManager(name, nodename, topnodename)
 {
   return;
@@ -21,8 +19,8 @@ int Fun4AllNoSyncDstInputManager::NoRunTTree()
   }
   else
   {
-    cout << Name()
-         << "NoRunTTree() has to be done before opening a file" << endl;
+    std::cout << Name()
+              << "NoRunTTree() has to be done before opening a file" << std::endl;
     exit(1);
   }
   return 0;

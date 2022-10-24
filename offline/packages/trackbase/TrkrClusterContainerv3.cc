@@ -41,7 +41,7 @@ void TrkrClusterContainerv3::identify(std::ostream& os) const
   for( const auto& [hitsetkey,map]:m_clusmap )
   {
     const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-    std::cout << "layer: " << layer << " hitsetkey: " << hitsetkey << std::endl;
+    os << "layer: " << layer << " hitsetkey: " << hitsetkey << std::endl;
     for( const auto& [cluskey,cluster]:map )
     {
       const unsigned int layer = TrkrDefs::getLayer(cluskey);

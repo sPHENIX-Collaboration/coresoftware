@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<TpcSeedTrackMap> MyNode_t;
+using MyNode_t = PHIODataNode<TpcSeedTrackMap>;
 
 DumpTpcSeedTrackMap::DumpTpcSeedTrackMap(const std::string &NodeName)
   : DumpObject(NodeName)

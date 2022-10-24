@@ -21,9 +21,7 @@
 
 using namespace std;
 
-PHG4CylinderCellGeom_Spacalv1::PHG4CylinderCellGeom_Spacalv1()
-{
-}
+PHG4CylinderCellGeom_Spacalv1::PHG4CylinderCellGeom_Spacalv1() = default;
 
 PHG4CylinderCellGeom_Spacalv1::~PHG4CylinderCellGeom_Spacalv1()
 {

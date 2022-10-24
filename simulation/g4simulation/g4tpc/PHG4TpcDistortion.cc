@@ -25,6 +25,23 @@ namespace
   {
     return x * x;
   }
+
+  // check boundaries in axis
+  /* for the interpolation to work, the value must be within the range of the provided axis, and not into the first and last bin */
+  inline bool check_boundaries( const TAxis* axis, double value )
+  {
+    const auto bin = axis->FindBin( value );
+    return( bin >= 2 && bin < axis->GetNbins() );
+  }
+  
+  // check boundaries in histogram, before interpolation
+  /* for the interpolation to work, the value must be within the range of the provided axis, and not into the first and last bin */
+  inline bool check_boundaries( const TH3* h, double r, double phi, double z )
+  {
+    return check_boundaries( h->GetXaxis(), r ) 
+      && check_boundaries( h->GetYaxis(), phi ) 
+      && check_boundaries( h->GetZaxis(), z );
+  }
   
 }  // namespace
 
@@ -48,7 +65,6 @@ void PHG4TpcDistortion::Init()
     hDPint[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionP_posz"));
     hDZint[0] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ_negz"));
     hDZint[1] = dynamic_cast<TH3*>(m_static_tfile->Get("hIntDistortionZ_posz"));
-
   }
 
   if (m_do_time_ordered_distortions)
@@ -99,116 +115,137 @@ void PHG4TpcDistortion::load_event(int event_num)
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_x_distortion_cartesian(double x, double y, double z) const
 {
-  double r=sqrt(x*x+y*y);
-  double phi=std::atan2(y,x);
+  double r = sqrt(x * x + y * y);
+  double phi = std::atan2(y, x);
 
   //get components
-  double dr=get_distortion('r', r, phi, z);
-  double dphi=get_distortion('p', r, phi, z);
+  double dr = get_distortion('r', r, phi, z);
+  double dphi = get_distortion('p', r, phi, z);
 
   //rotate into cartesian based on local r phi:
-  double cosphi=cos(phi);
-  double sinphi=sin(phi);
-  double dx=dr*cosphi-dphi*sinphi;
+  double cosphi = cos(phi);
+  double sinphi = sin(phi);
+  double dx = dr * cosphi - dphi * sinphi;
   return dx;
 }
 
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_y_distortion_cartesian(double x, double y, double z) const
 {
-  double r=sqrt(x*x+y*y);
-  double phi=std::atan2(y,x);
+  double r = sqrt(x * x + y * y);
+  double phi = std::atan2(y, x);
 
   //get components
-  double dr=get_distortion('r', r, phi, z);
-  double dphi=get_distortion('p', r, phi, z);
+  double dr = get_distortion('r', r, phi, z);
+  double dphi = get_distortion('p', r, phi, z);
 
   //rotate into cartesian based on local r phi:
-  double cosphi=cos(phi);
-  double sinphi=sin(phi);
-  double dy=dphi*cosphi+dr*sinphi;
+  double cosphi = cos(phi);
+  double sinphi = sin(phi);
+  double dy = dphi * cosphi + dr * sinphi;
   return dy;
 }
 
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_z_distortion_cartesian(double x, double y, double z) const
 {
-  double r=sqrt(x*x+y*y);
-  double phi=std::atan2(y,x);
+  double r = sqrt(x * x + y * y);
+  double phi = std::atan2(y, x);
 
   //get components
-  double dz=get_distortion('z', r, phi, z);
+  double dz = get_distortion('z', r, phi, z);
 
   return dz;
 }
 
-
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_r_distortion(double r, double phi, double z) const
 {
-  return get_distortion('r',r,phi, z);
+  return get_distortion('r', r, phi, z);
 }
 
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_rphi_distortion(double r, double phi, double z) const
 {
-  return get_distortion('p',r,phi, z);
+  return get_distortion('p', r, phi, z);
 }
 
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_z_distortion(double r, double phi, double z) const
 {
-  return get_distortion('z',r,phi, z);
+  return get_distortion('z', r, phi, z);
 }
 
 double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double z) const
 {
   if (phi < 0) phi += 2 * M_PI;
-  const int zpart=(z>0?1:0); //z<0 corresponds to the negative side, which is element 0.
+  const int zpart = (z > 0 ? 1 : 0);  //z<0 corresponds to the negative side, which is element 0.
 
-  TH3* hdistortion=nullptr;
+  TH3* hdistortion = nullptr;
 
-  if (axis!='r' && axis!='p' && axis !='z'){
-    std::cout << "Distortion Requested along axis " << axis << " which is invalid.  Exiting.\n" << std::endl;
+  if (axis != 'r' && axis != 'p' && axis != 'z')
+  {
+    std::cout << "Distortion Requested along axis " << axis << " which is invalid.  Exiting.\n"
+              << std::endl;
     exit(1);
   }
 
-  double _distortion=0.;
-  
+  double _distortion = 0.;
+
   //select the appropriate histogram:
   if (m_do_static_distortions)
+  {
+    if (axis == 'r')
     {
-      if (axis=='r'){
-	hdistortion=hDRint[zpart];
-      } else if (axis=='p'){
-	hdistortion=hDPint[zpart];
-      } else if (axis=='z'){
-	hdistortion=hDZint[zpart];
-      }
-      if (hdistortion){
-	_distortion+=hdistortion->Interpolate(phi, r, z);
-      } else {
-	std::cout << "Static Distortion Requested along axis " << axis << ", but distortion map does not exist.  Exiting.\n" << std::endl;
-    exit(1);
-      }
+      hdistortion = hDRint[zpart];
     }
+    else if (axis == 'p')
+    {
+      hdistortion = hDPint[zpart];
+    }
+    else if (axis == 'z')
+    {
+      hdistortion = hDZint[zpart];
+    }
+    if (hdistortion)
+    {
+      if( check_boundaries( hdistortion, phi, r, z ) )
+      { _distortion += hdistortion->Interpolate(phi, r, z); }
+    }
+    else
+    {
+      std::cout << "Static Distortion Requested along axis " << axis << ", but distortion map does not exist.  Exiting.\n"
+                << std::endl;
+      exit(1);
+    }
+  }
 
   if (m_do_time_ordered_distortions)
+  {
+    if (axis == 'r')
     {
-      if (axis=='r'){
-	hdistortion=TimehDR[zpart];
-      } else if (axis=='p'){
-	hdistortion=TimehDP[zpart];
-      } else if (axis=='z'){
-	hdistortion=TimehDZ[zpart];
-      }
-      if (hdistortion){
-	_distortion+=hdistortion->Interpolate(phi, r, z);
-      } else {
-	std::cout << "Time Series Distortion Requested along axis " << axis << ", but distortion map does not exist.  Exiting.\n" << std::endl;
-	exit(1);
-      }
+      hdistortion = TimehDR[zpart];
     }
+    else if (axis == 'p')
+    {
+      hdistortion = TimehDP[zpart];
+    }
+    else if (axis == 'z')
+    {
+      hdistortion = TimehDZ[zpart];
+    }
+    if (hdistortion)
+    {
+      if( check_boundaries( hdistortion, phi, r, z ) )
+      { _distortion += hdistortion->Interpolate(phi, r, z); }
+    }
+    else
+    {
+      std::cout << "Time Series Distortion Requested along axis " << axis << ", but distortion map does not exist.  Exiting.\n"
+                << std::endl;
+      exit(1);
+    }
+  }
 
   return _distortion;
 }

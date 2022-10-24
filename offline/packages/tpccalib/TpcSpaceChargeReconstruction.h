@@ -7,7 +7,8 @@
  */
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
-
+#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
 
@@ -29,6 +30,10 @@ class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
+
+class TFile;
+class TH1;
+class TH2;
 
 /**
  * \class TpcSpaceChargeReconstruction
@@ -58,12 +63,23 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   void set_use_micromegas( bool value )
   { m_use_micromegas = value; }
 
+  /// track min pT 
+  void set_min_pt( double value ) 
+  { m_min_pt = value; }
+  
   /// set grid dimensions
   /**
   \param phibins the number of bins in the azimuth direction
   \param zbins the number of bins along z
   */
   void set_grid_dimensions( int phibins, int rbins, int zbins );
+
+
+  /// set to true to store evaluation histograms and ntuples
+  void set_save_histograms( bool value ) { m_savehistograms = value; }
+    
+  /// output file name for evaluation histograms
+  void set_histogram_outputfile(const std::string &outputfile) {m_histogramfilename = outputfile;}
 
   /// output file
   /**
@@ -93,13 +109,16 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// load nodes
   int load_nodes( PHCompositeNode* );
+  
+  /// create evaluation histograms
+  void create_histograms();
 
   /// get global position for a given cluster
   /**
    * uses ActsTransformation to convert cluster local position into global coordinates
    * incorporates TPC distortion correction, if present
    */
-  Acts::Vector3 get_global_position(TrkrDefs::cluskey, TrkrCluster*);
+  Acts::Vector3 get_global_position(TrkrDefs::cluskey, TrkrCluster*, short int /* crossing */);
 
   /// process tracks
   void process_tracks();
@@ -111,7 +130,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   void process_track( SvtxTrack* );
 
   /// get relevant cell for a given cluster
-  int get_cell_index( TrkrDefs::cluskey, TrkrCluster* );
+  int get_cell_index( const Acts::Vector3& );
 
   /// local event counter
   int m_event = 0;
@@ -122,13 +141,12 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   /// true if only tracks with micromegas must be used
   bool m_use_micromegas = true;
 
+  /// minimum pT required for track to be considered in residuals calculation (GeV/c)
+  double m_min_pt = 0.5;
+
   /// acts geometry
   ActsGeometry *m_tgeometry = nullptr;
-
-  /// map cluster keys to global position
-  using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
-  PositionMap m_globalPositions;
-
+  
   ///@name selection parameters
   //@{
   // residual cuts in r, phi plane
@@ -152,10 +170,40 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   int m_accepted_clusters = 0;
   //@}
 
+  
+  ///@name evaluation histograms
+  //@{
+  /// Output root histograms
+  bool m_savehistograms = false;
+
+  /// histogram output file name
+  std::string m_histogramfilename = "TpcSpaceChargeReconstruction.root";
+  std::unique_ptr<TFile> m_histogramfile;  
+  
+  using TH1_map_t = std::map<int,TH1*>;
+  using TH2_map_t = std::map<int,TH2*>;
+  
+  TH1_map_t m_h_drphi;
+  TH1_map_t m_h_dz;
+  TH2_map_t m_h_drphi_alpha;
+  TH2_map_t m_h_dz_beta;
+  //@}
+  
   ///@name nodes
   //@{
   SvtxTrackMap* m_track_map = nullptr;
   TrkrClusterContainer* m_cluster_map = nullptr;
+
+  // crossing z correction
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+  
+  // distortion corrections
+  TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
+
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection m_distortionCorrection;
   //@}
 
 };

@@ -7,26 +7,27 @@
 /// \author Dennis V. Perepelitsa
 //===========================================================
 
+#include <g4jets/JetInput.h>
+
 // finally system includes
 #include <iostream>    // for cout, ostream
 
-#include <g4jets/Jet.h>
-#include <g4jets/JetInput.h>
 
 // forward declarations
 class PHCompositeNode;
+class Jet;
 
 class ParticleFlowJetInput : public JetInput
 {
  public:
-  ParticleFlowJetInput();
+  ParticleFlowJetInput() = default;
   ~ParticleFlowJetInput() override {}
 
   std::vector<Jet*> get_input(PHCompositeNode* topNode) override;
   void identify(std::ostream& os = std::cout) override;
 
  private:
-  int _verbosity;
+  int _verbosity = 0;
 
 };
 

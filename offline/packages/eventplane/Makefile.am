@@ -16,6 +16,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   EpFinder.h \
+  EpdGeom.h \
   EpInfo.h \
   EpInfov1.h \
   EpFinderReco.h
@@ -35,6 +36,7 @@ libeventplane_io_la_SOURCES = \
 
 libeventplane_la_SOURCES = \
   EpFinder.cc \
+  EpdGeom.cc \
   EpFinderReco.cc
 
 libeventplane_io_la_LIBADD = \
@@ -46,6 +48,8 @@ libeventplane_la_LIBADD = \
   -lSubsysReco \
   -lcentrality_io \
   -lphg4hit \
+  -lgsl \
+  -lgslcblas \
   -lcalo_io
 
 # Rule for generating table CINT dictionaries.
@@ -55,7 +59,7 @@ libeventplane_la_LIBADD = \
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;
 
-################################################
+#################################################
 # linking tests
 BUILT_SOURCES = testexternals.cc
 

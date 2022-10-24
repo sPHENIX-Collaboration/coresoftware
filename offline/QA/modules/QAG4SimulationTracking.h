@@ -54,6 +54,8 @@ class QAG4SimulationTracking : public SubsysReco
     m_uniqueTrackingMatch = b;
   }
 
+  void set_embed_id_cut(const int id) { m_embed_id_cut = id; }
+
  private:
   /// load nodes
   int load_nodes(PHCompositeNode *);
@@ -72,6 +74,9 @@ class QAG4SimulationTracking : public SubsysReco
 
   //! only count unique truth<->reco track pair in tracking efficiency
   bool m_uniqueTrackingMatch = true;
+
+  //! cut for selecting on foreground
+  int m_embed_id_cut = 0;
 
   PHG4TruthInfoContainer *m_truthContainer = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;

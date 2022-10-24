@@ -364,7 +364,7 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
       VertexFinder finder(finderConfig, std::move(logger));
 
       typename VertexFinder::State state(m_tGeometry->magFieldContext);
-      VertexFinderOptions finderOptions(m_tGeometry->geoContext,
+      VertexFinderOptions finderOptions(m_tGeometry->getGeoContext(),
 					m_tGeometry->magFieldContext);
   
       auto result = finder.find(tracks, finderOptions, state);
@@ -397,7 +397,7 @@ VertexVector PHActsInitialVertexFinder::findVertices(TrackParamVec& tracks)
 	      std::cout << "Track positions IVF used are : " << std::endl;
 	      for(const auto track : tracks)
 		{
-		  const auto position = track->position(m_tGeometry->geoContext);
+		  const auto position = track->position(m_tGeometry->getGeoContext());
 		  std::cout << "(" << position(0) << ", " << position(1)
 			    << ", " << position(2) << std::endl;
 		}
@@ -749,7 +749,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 	  ActsTransformations transform;
 	  transform.setVerbosity(Verbosity());
 	  cov = transform.rotateSvtxTrackCovToActs(track,
-						   m_tGeometry->geoContext);
+						   m_tGeometry->getGeoContext());
 	}
 
       /// Make a dummy perigee surface to bound the track to
@@ -761,7 +761,7 @@ TrackParamVec PHActsInitialVertexFinder::getTrackPointers(InitKeyMap& keyMap)
 
       const auto param = new Acts::BoundTrackParameters(
 			           perigee,
-				   m_tGeometry->geoContext,
+				   m_tGeometry->getGeoContext(),
 				   stubVec, stubMom,
 				   p, trackQ, cov);
 

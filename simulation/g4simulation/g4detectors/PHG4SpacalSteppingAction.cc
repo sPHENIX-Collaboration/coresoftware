@@ -36,6 +36,8 @@
 #include <Geant4/G4VTouchable.hh>             // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
+#include <TSystem.h>
+
 #include <cmath>    // for isfinite
 #include <cstdlib>  // for exit
 #include <iostream>
@@ -44,18 +46,10 @@
 class G4VPhysicalVolume;
 class PHCompositeNode;
 
-using namespace std;
 //____________________________________________________________________________..
 PHG4SpacalSteppingAction::PHG4SpacalSteppingAction(PHG4SpacalDetector* detector)
   : PHG4SteppingAction(detector->GetName())
-  , detector_(detector)
-  , hits_(nullptr)
-  , absorberhits_(nullptr)
-  , hit(nullptr)
-  , savehitcontainer(nullptr)
-  , saveshower(nullptr)
-  , savetrackid(-1)
-  , savepoststepstatus(-1)
+  , m_Detector(detector)
 {
 }
 
@@ -65,15 +59,14 @@ PHG4SpacalSteppingAction::~PHG4SpacalSteppingAction()
   // and the memory is still allocated, so we need to delete it here
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
-  delete hit;
+  delete m_Hit;
 }
 
 //____________________________________________________________________________..
 bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 {
   // get volume of the current step
-  G4VPhysicalVolume* volume =
-      aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
+  G4VPhysicalVolume* volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -81,18 +74,18 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
   const G4Track* aTrack = aStep->GetTrack();
 
-  int layer_id = detector_->get_Layer();
+  int layer_id = m_Detector->get_Layer();
   // make sure we are in a volume
   // IsInCylinderActive returns the number of the scintillator
   // slat which has fired
-  int isactive = detector_->IsInCylinderActive(volume);
+  int isactive = m_Detector->IsInCylinderActive(volume);
   if (isactive > PHG4SpacalDetector::INACTIVE)
   {
     bool geantino = false;
     // the check for the pdg code speeds things up, I do not want to make
     // an expensive string compare for every track when we know
     // geantino or chargedgeantino has pid=0
-    if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 && aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+    if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 && aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
@@ -100,14 +93,11 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     G4StepPoint* postPoint = aStep->GetPostStepPoint();
     int scint_id = -1;
 
-    if (                                                                                                                                 //
-        detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper                                 //
-        or                                                                                                                               //
-        detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower         //
-        or                                                                                                                               //
-        detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted                          //
-        or                                                                                                                               //
-        detector_->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower  //
+    if (  //
+        m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper ||
+        m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_SameLengthFiberPerTower ||
+        m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted ||
+        m_Detector->get_geom()->get_config() == PHG4SpacalDetector::SpacalGeom_t::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower  //
     )
     {
       //SPACAL ID that is associated with towers
@@ -141,7 +131,7 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         sector_ID = prePoint->GetTouchable()->GetReplicaNumber(1);
         fiber_ID = (1 << (PHG4CylinderGeom_Spacalv3::scint_id_coder::kfiber_bit)) - 1;  // use max fiber ID to flag for support strucrtures.
 
-        //        cout <<"PHG4SpacalSteppingAction::UserSteppingAction - SUPPORT tower_ID = "<<tower_ID<<endl;
+        //        std::cout <<"PHG4SpacalSteppingAction::UserSteppingAction - SUPPORT tower_ID = "<<tower_ID<<std::endl;
       }
 
       // compact the tower/sector/fiber ID into 32 bit scint_id, so we could save some space for SPACAL hits
@@ -151,68 +141,74 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       // other configuraitons
       if (isactive == PHG4SpacalDetector::FIBER_CORE)
+      {
         scint_id = prePoint->GetTouchable()->GetReplicaNumber(2);
+      }
       else if (isactive == PHG4SpacalDetector::FIBER_CLADING)
+      {
         scint_id = prePoint->GetTouchable()->GetReplicaNumber(1);
+      }
       else
+      {
         scint_id = prePoint->GetTouchable()->GetReplicaNumber(0);
+      }
     }
 
-    //       cout << "track id " << aTrack->GetTrackID() << endl;
-    //        cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
-    //        cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+    //       std::cout << "track id " << aTrack->GetTrackID() << std::endl;
+    //        std::cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
+    //        std::cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
     switch (prePoint->GetStepStatus())
     {
     case fGeomBoundary:
     case fUndefined:
       // if previous hit was saved, hit pointer was set to nullptr
       // and we have to make a new one
-      if (!hit)
+      if (!m_Hit)
       {
-        hit = new PHG4Hitv1();
+        m_Hit = new PHG4Hitv1();
       }
-      hit->set_layer((unsigned int) layer_id);
-      hit->set_scint_id(scint_id);  // isactive contains the scintillator slat id
+      m_Hit->set_layer((unsigned int) layer_id);
+      m_Hit->set_scint_id(scint_id);  // isactive contains the scintillator slat id
       //here we set the entrance values in cm
-      hit->set_x(0, prePoint->GetPosition().x() / cm);
-      hit->set_y(0, prePoint->GetPosition().y() / cm);
-      hit->set_z(0, prePoint->GetPosition().z() / cm);
+      m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
+      m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
+      m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
 
       // time in ns
-      hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
+      m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
       //set the track ID
-      hit->set_trkid(aTrack->GetTrackID());
-      savetrackid = aTrack->GetTrackID();
+      m_Hit->set_trkid(aTrack->GetTrackID());
+      m_SaveTrackid = aTrack->GetTrackID();
       //set the initial energy deposit
-      hit->set_edep(0);
+      m_Hit->set_edep(0);
       // Now add the hit
       if (isactive == PHG4SpacalDetector::FIBER_CORE)  // the slat ids start with zero
       {
         // store all pre local coordinates
-        StoreLocalCoordinate(hit, aStep, true, false);
-        hit->set_eion(0);  // only implemented for v5 otherwise empty
-        hit->set_light_yield(0);
-        savehitcontainer = hits_;
+        StoreLocalCoordinate(m_Hit, aStep, true, false);
+        m_Hit->set_eion(0);  // only implemented for v5 otherwise empty
+        m_Hit->set_light_yield(0);
+        m_CurrentHitContainer = m_HitContainer;
       }
       else
       {
-        savehitcontainer = absorberhits_;
+        m_CurrentHitContainer = m_AbsorberHitContainer;
       }
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
         if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
         {
-          hit->set_trkid(pp->GetUserTrackId());
-          hit->set_shower_id(pp->GetShower()->get_id());
-          saveshower = pp->GetShower();
+          m_Hit->set_trkid(pp->GetUserTrackId());
+          m_Hit->set_shower_id(pp->GetShower()->get_id());
+          m_CurrentShower = pp->GetShower();
         }
       }
 
-      if (hit->get_z(0) > get_zmax() || hit->get_z(0) < get_zmin())
+      if (m_Hit->get_z(0) > get_zmax() || m_Hit->get_z(0) < get_zmin())
       {
-        cout << "PHG4SpacalSteppingAction: hit outside acceptance, layer: "
-             << layer_id << endl;
-        hit->identify();
+        std::cout << "PHG4SpacalSteppingAction: hit outside acceptance, layer: "
+                  << layer_id << std::endl;
+        m_Hit->identify();
       }
       break;
     default:
@@ -220,40 +216,40 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     }
     // some sanity checks for inconsistencies
     // check if this hit was created, if not print out last post step status
-    if (!hit || !isfinite(hit->get_x(0)))
+    if (!m_Hit || !std::isfinite(m_Hit->get_x(0)))
     {
-      cout << GetName() << ": hit was not created" << endl;
-      cout << "prestep status: " << prePoint->GetStepStatus()
-           << ", last post step status: " << savepoststepstatus << endl;
+      std::cout << GetName() << ": hit was not created" << std::endl;
+      std::cout << "prestep status: " << prePoint->GetStepStatus()
+                << ", last post step status: " << m_SavePostStepStatus << std::endl;
       exit(1);
     }
-    savepoststepstatus = postPoint->GetStepStatus();
+    m_SavePostStepStatus = postPoint->GetStepStatus();
     // check if track id matches the initial one when the hit was created
-    if (aTrack->GetTrackID() != savetrackid)
+    if (aTrack->GetTrackID() != m_SaveTrackid)
     {
-      cout << GetName() << ": hits do not belong to the same track" << endl;
-      cout << "saved track: " << savetrackid
-           << ", current trackid: " << aTrack->GetTrackID()
-           << endl;
+      std::cout << GetName() << ": hits do not belong to the same track" << std::endl;
+      std::cout << "saved track: " << m_SaveTrackid
+                << ", current trackid: " << aTrack->GetTrackID()
+                << std::endl;
       exit(1);
     }
     // here we just update the exit values, it will be overwritten
     // for every step until we leave the volume or the particle
     // ceases to exist
-    hit->set_x(1, postPoint->GetPosition().x() / cm);
-    hit->set_y(1, postPoint->GetPosition().y() / cm);
-    hit->set_z(1, postPoint->GetPosition().z() / cm);
+    m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
+    m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
+    m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
 
-    hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
+    m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
     //sum up the energy to get total deposited
-    hit->set_edep(hit->get_edep() + edep);
+    m_Hit->set_edep(m_Hit->get_edep() + edep);
 
     if (isactive == PHG4SpacalDetector::FIBER_CORE)  // only for active areas
     {
       // store all pre local coordinates
-      StoreLocalCoordinate(hit, aStep, false, true);
+      StoreLocalCoordinate(m_Hit, aStep, false, true);
 
-      hit->set_eion(hit->get_eion() + eion);
+      m_Hit->set_eion(m_Hit->get_eion() + eion);
 
       double light_yield = GetVisibleEnergyDeposition(aStep);
 
@@ -264,38 +260,38 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
         if (Verbosity() > 0)
         {
-          cout << "PHG4SpacalSteppingAction::UserSteppingAction::"
-               //
-               << detector_->GetName() << " - "
-               << " use scintillating light model at each Geant4 steps. "
-               << "First step: "
-               << "Material = "
-               << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
-               << ", "
-               << "Birk Constant = "
-               << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
-               << ","
-               << "edep = " << edep << ", "
-               << "eion = " << eion
-               << ", "
-               << "light_yield = " << light_yield << endl;
+          std::cout << "PHG4SpacalSteppingAction::UserSteppingAction::"
+                    //
+                    << m_Detector->GetName() << " - "
+                    << " use scintillating light model at each Geant4 steps. "
+                    << "First step: "
+                    << "Material = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()
+                    << ", "
+                    << "Birk Constant = "
+                    << aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()
+                    << ","
+                    << "edep = " << edep << ", "
+                    << "eion = " << eion
+                    << ", "
+                    << "light_yield = " << light_yield << std::endl;
         }
       }
 
-      hit->set_light_yield(hit->get_light_yield() + light_yield);
+      m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
 
-    if (hit->get_z(1) > get_zmax() || hit->get_z(1) < get_zmin())
+    if (m_Hit->get_z(1) > get_zmax() || m_Hit->get_z(1) < get_zmin())
     {
-      cout << "PHG4SpacalSteppingAction: hit outside acceptance get_zmin() "
-           << get_zmin() << ", get_zmax() " << get_zmax() << " at exit"
-           << endl;
-      hit->identify();
+      std::cout << "PHG4SpacalSteppingAction: hit outside acceptance get_zmin() "
+                << get_zmin() << ", get_zmax() " << get_zmax() << " at exit"
+                << std::endl;
+      m_Hit->identify();
     }
     if (geantino)
     {
-      hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-                          //          hit->set_eion(-1);
+      m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
+                            //          m_Hit->set_eion(-1);
     }
     if (edep > 0)
     {
@@ -319,23 +315,23 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         aTrack->GetTrackStatus() == fStopAndKill)
     {
       // save only hits with energy deposit (or -1 for geantino)
-      if (hit->get_edep())
+      if (m_Hit->get_edep())
       {
-        savehitcontainer->AddHit(layer_id, hit);
-        if (saveshower)
+        m_CurrentHitContainer->AddHit(layer_id, m_Hit);
+        if (m_CurrentShower)
         {
-          saveshower->add_g4hit_id(savehitcontainer->GetID(), hit->get_hit_id());
+          m_CurrentShower->add_g4hit_id(m_CurrentHitContainer->GetID(), m_Hit->get_hit_id());
         }
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track
-        hit = nullptr;
+        m_Hit = nullptr;
       }
       else
       {
         // if this hit has no energy deposit, just reset it for reuse
         // this means we have to delete it in the dtor. If this was
         // the last hit we processed the memory is still allocated
-        hit->Reset();
+        m_Hit->Reset();
       }
     }
     // return true to indicate the hit was used
@@ -350,52 +346,63 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 //____________________________________________________________________________..
 void PHG4SpacalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
-  if (detector_->SuperDetector() != "NONE")
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, m_AbsorberNodeName);
+  // if we do not find the node it's messed up.
+  if (!m_HitContainer)
   {
-    hitnodename = "G4HIT_" + detector_->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->SuperDetector();
+    std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_HitNodeName << std::endl;
+    gSystem->Exit(1);
   }
-  else
+  // this is perfectly fine if absorber hits are disabled
+  if (!m_AbsorberHitContainer)
   {
-    hitnodename = "G4HIT_" + detector_->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->GetName();
-  }
-
-  //now look for the map and grab a pointer to it.
-  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-  absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
-  // if we do not find the node we need to make it.
-  if (!hits_)
-  {
-    std::cout << "PHG4SpacalSteppingAction::SetTopNode - unable to find "
-              << hitnodename << std::endl;
-  }
-  if (!absorberhits_)
-  {
-    if (Verbosity() > 1)
+    if (Verbosity() > 0)
     {
-      std::cout << "PHG4SpacalSteppingAction::SetTopNode - unable to find "
-                << absorbernodename << std::endl;
+      std::cout << "PHG4ZDCSteppingAction::SetTopNode - unable to find " << m_AbsorberNodeName << std::endl;
     }
   }
 }
 
 double
-PHG4SpacalSteppingAction::get_zmin()
+PHG4SpacalSteppingAction::get_zmin() const
 {
-  if (!detector_)
+  if (!m_Detector)
+  {
     return 0;
+  }
   else
-    return detector_->get_geom()->get_zmin() - .0001;
+  {
+    return m_Detector->get_geom()->get_zmin() - .0001;
+  }
 }
 
 double
-PHG4SpacalSteppingAction::get_zmax()
+PHG4SpacalSteppingAction::get_zmax() const
 {
-  if (!detector_)
+  if (!m_Detector)
+  {
     return 0;
+  }
   else
-    return detector_->get_geom()->get_zmax() + .0001;
+  {
+    return m_Detector->get_geom()->get_zmax() + .0001;
+  }
+}
+
+void PHG4SpacalSteppingAction::SetHitNodeName(const std::string& type, const std::string& name)
+{
+  if (type == "G4HIT")
+  {
+    m_HitNodeName = name;
+    return;
+  }
+  else if (type == "G4HIT_ABSORBER")
+  {
+    m_AbsorberNodeName = name;
+    return;
+  }
+  std::cout << "Invalid output hit node type " << type << std::endl;
+  gSystem->Exit(1);
+  return;
 }

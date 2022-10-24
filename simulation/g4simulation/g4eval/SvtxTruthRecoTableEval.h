@@ -7,6 +7,7 @@
 #include <trackbase_historic/SvtxPHG4ParticleMap.h>
 
 #include <string>
+#include <memory>
 
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
@@ -44,7 +45,7 @@ class SvtxTruthRecoTableEval : public SubsysReco
 
   PHG4ParticleSvtxMap *m_truthMap = nullptr;
   SvtxPHG4ParticleMap *m_recoMap = nullptr;
-  SvtxEvalStack *m_svtxevalstack = nullptr;
+  std::unique_ptr<SvtxEvalStack> m_svtxevalstack;
 };
 
 #endif  // SVTXTRUTHRECOTABLEEVAL_H

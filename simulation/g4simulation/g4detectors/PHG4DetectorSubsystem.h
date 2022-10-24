@@ -45,9 +45,16 @@ class PHG4DetectorSubsystem : public PHG4Subsystem
 
   void UseDB(const int i = 1) { usedb = i; }
   int ReadDB() const { return usedb; }
+  void UseCDB(const std::string &domain)
+  {
+    usedb = 1;
+    m_Domain = domain;
+  }
+
   FILE_TYPE get_filetype() const { return filetype; }
 
   void UseCalibFiles(const FILE_TYPE ftyp) { filetype = ftyp; }
+  int ReadParamsFromCDB(const std::string &domain);
   int SaveParamsToDB();
   int ReadParamsFromDB(const std::string &name, const int issuper);
   int SaveParamsToFile(const FILE_TYPE ftyp);
@@ -89,6 +96,7 @@ class PHG4DetectorSubsystem : public PHG4Subsystem
   FILE_TYPE filetype = PHG4DetectorSubsystem::none;
   std::string superdetector = "NONE";
   std::string calibfiledir = "./";
+  std::string m_Domain;
 
   std::map<const std::string, double> dparams;
   std::map<const std::string, int> iparams;

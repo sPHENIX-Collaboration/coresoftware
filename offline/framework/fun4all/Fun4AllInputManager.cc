@@ -117,7 +117,7 @@ void Fun4AllInputManager::Print(const std::string &what) const
               << std::endl;
     std::cout << "List of input files in Fun4AllInputManager " << Name() << ":" << std::endl;
 
-    for (std::string file : m_FileList)
+    for (const std::string &file : m_FileList)
     {
       std::cout << file << std::endl;
     }

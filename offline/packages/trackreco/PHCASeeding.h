@@ -111,11 +111,12 @@ class PHCASeeding : public PHTrackSeeding
 
   PositionMap FillTree();
   int FindSeedsWithMerger(const PositionMap&);
-  std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> CreateLinks(const std::vector<coordKey>& clusters, const PositionMap& globalPositions, int mode = skip_layers::off) const;
+  std::pair<std::vector<std::unordered_set<keylink>>,std::vector<std::unordered_set<keylink>>> CreateLinks(const std::vector<coordKey>& clusters, const PositionMap& globalPositions) const;
   std::vector<std::vector<keylink>> FindBiLinks(const std::vector<std::unordered_set<keylink>>& belowLinks, const std::vector<std::unordered_set<keylink>>& aboveLinks) const;
   std::vector<keylist> FollowBiLinks(const std::vector<std::vector<keylink>>& bidirectionalLinks, const PositionMap& globalPositions) const;
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values) const;
   std::vector<TrackSeed_v1> RemoveBadClusters(const std::vector<keylist>& seeds, const PositionMap& globalPositions) const;
+  double getMengerCurvature(TrkrDefs::cluskey a, TrkrDefs::cluskey b, TrkrDefs::cluskey c, const PositionMap& globalPositions) const;
   
   void publishSeeds(const std::vector<TrackSeed_v1>& seeds);
 

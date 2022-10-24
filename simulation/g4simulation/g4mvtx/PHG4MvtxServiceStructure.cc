@@ -1,13 +1,13 @@
 #include "PHG4MvtxServiceStructure.h"
 
 PHG4MvtxServiceStructure::PHG4MvtxServiceStructure(const std::string &name,
-                                   const float &thickness_copper,
-                                   const float &thickness_carbon,
-                                   const float &thickness_plastic,
-                                   const float &zSouth,
-                                   const float &zNorth,
-                                   const float &rSouth,
-                                   const float &rNorth)
+                                                   const float &thickness_copper,
+                                                   const float &thickness_carbon,
+                                                   const float &thickness_plastic,
+                                                   const float &zSouth,
+                                                   const float &zNorth,
+                                                   const float &rSouth,
+                                                   const float &rNorth)
   : m_name(name)
   , m_thickness_copper(thickness_copper)
   , m_thickness_carbon(thickness_carbon)

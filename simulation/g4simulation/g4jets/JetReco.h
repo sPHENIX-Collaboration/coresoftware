@@ -11,7 +11,7 @@
 #include <fun4all/SubsysReco.h>
 
 // standard includes
-#include <string>                // for string
+#include <string>  // for string
 #include <vector>
 
 // forward declarations
@@ -34,10 +34,8 @@ class JetReco : public SubsysReco
   JetReco(const std::string &name = "JetReco");
   ~JetReco() override;
 
-  int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
   void add_input(JetInput *input) { _inputs.push_back(input); }
   void add_algo(JetAlgo *algo, std::string output)

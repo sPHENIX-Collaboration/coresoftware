@@ -1,6 +1,7 @@
 #include "PHActsSiliconSeeding.h"
 
 #include <trackbase_historic/ActsTransformations.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -582,20 +583,27 @@ void PHActsSiliconSeeding::circleCircleIntersection(const double layerRadius,
 SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   const Surface& surf,
   const TrkrDefs::cluskey key,
-  const TrkrCluster* clus)
+  //  const TrkrCluster* clus)
+  TrkrCluster* clus)
 {
   Acts::Vector2 localPos(clus->getLocalX() * Acts::UnitConstants::cm, 
 			 clus->getLocalY() * Acts::UnitConstants::cm);
   Acts::Vector3 globalPos(0,0,0);
   Acts::Vector3 mom(1,1,1);
-
-  globalPos = surf->localToGlobal(m_tGeometry->geometry().geoContext,
+  globalPos = surf->localToGlobal(m_tGeometry->geometry().getGeoContext(),
 				  localPos, mom);
 
   Acts::SymMatrix2 localCov = Acts::SymMatrix2::Zero();
-  localCov(0,0) = clus->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
-  localCov(1,1) = clus->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
-  
+  if(m_cluster_version==3){
+    localCov(0,0) = clus->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
+    localCov(1,1) = clus->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+  }else if(m_cluster_version==4){
+    auto para_errors = _ClusErrPara.get_si_cluster_error(clus,key);
+    localCov(0,0) = para_errors.first* Acts::UnitConstants::cm2;
+    localCov(1,1) = para_errors.second* Acts::UnitConstants::cm2;
+  }
+	//     std::cout << "err clus: " << cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2*cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2 << " | " << cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2*cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2 << " err para " <<  para_errors.first << " | " << para_errors.second << std::endl;
+    
   float x = globalPos.x();
   float y = globalPos.y();
   float z = globalPos.z();
@@ -613,7 +621,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   ///       dz/dz = 1 
 
   Acts::RotationMatrix3 rotLocalToGlobal =
-    surf->referenceFrame(m_tGeometry->geometry().geoContext, globalPos, mom);
+    surf->referenceFrame(m_tGeometry->geometry().getGeoContext(), globalPos, mom);
   auto scale = 2 / std::hypot(x,y);
   Acts::ActsMatrix<2, 3> jacXyzToRhoZ = Acts::ActsMatrix<2, 3>::Zero();
   jacXyzToRhoZ(0, Acts::ePos0) = scale * x;

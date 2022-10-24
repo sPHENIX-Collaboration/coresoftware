@@ -15,6 +15,9 @@ class AnalyticFieldModel
   double tpc_halfz = NAN;
 
   AnalyticFieldModel(float _ifc_radius, float _ofc_radius, float _z_max, float scalefactor = 1);
+  //! delete copy ctor and assignment opertor (cppcheck)
+  explicit AnalyticFieldModel(const AnalyticFieldModel &) = delete;
+  AnalyticFieldModel &operator=(const AnalyticFieldModel &) = delete;
 
   TVector3 E(TVector3 pos);                     //field as a function of position
   double Rho(TVector3 pos);                     //charge density as a function of position

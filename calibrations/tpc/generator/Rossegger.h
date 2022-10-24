@@ -30,7 +30,7 @@ class TH3;
 class Rossegger
 {
  public:
-  Rossegger(std::string filename);
+  explicit Rossegger(std::string filename);
   Rossegger(double a = 30, double b = 80, double L = 80, double epsilon = 1E-4);
   virtual ~Rossegger() {}
 

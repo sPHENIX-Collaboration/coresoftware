@@ -44,6 +44,7 @@ class PHG4TpcDigitizer : public SubsysReco
   void SetTpcMinLayer(const int minlayer) { TpcMinLayer = minlayer; };
   void SetADCThreshold(const float thresh) { ADCThreshold = thresh; };
   void SetENC(const float enc) { TpcEnc = enc; };
+  void set_drift_velocity(float vd) {_drift_velocity = vd;}
 
  private:
   void CalculateCylinderCellADCScale(PHCompositeNode *topNode);
@@ -55,6 +56,7 @@ class PHG4TpcDigitizer : public SubsysReco
   float TpcEnc;
   float Pedestal;
   float ChargeToPeakVolts;
+  float _drift_velocity = 8.0e-3;  // override from macro with simulation drift velocity
 
   float ADCSignalConversionGain;
   float ADCNoiseConversionGain;

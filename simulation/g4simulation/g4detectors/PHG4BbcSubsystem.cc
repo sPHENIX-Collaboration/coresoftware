@@ -53,9 +53,9 @@ int PHG4BbcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
 
-  std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
+    std::set<std::string> nodes;
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode *DetNode = dstNode;
     if (SuperDetector() != "NONE" && !SuperDetector().empty())
@@ -83,7 +83,7 @@ int PHG4BbcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     {
       nodes.insert(m_SupportNodeName);
     }
-    for (auto nodename : nodes)
+    for (const auto &nodename : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
@@ -133,7 +133,7 @@ void PHG4BbcSubsystem::Print(const std::string &what) const
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4BbcSubsystem::GetDetector(void) const
+PHG4Detector *PHG4BbcSubsystem::GetDetector() const
 {
   return m_Detector;
 }

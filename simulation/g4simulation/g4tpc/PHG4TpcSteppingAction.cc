@@ -81,7 +81,6 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   {
     return false;
   }
-  unsigned int layer_id = 99;  // no layer number for the hit, use a non-existent one for now, replace it later
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
@@ -118,6 +117,7 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       prepointstatus == fUndefined ||
       (prepointstatus == fPostStepDoItProc && m_SavePostStepStatus == fGeomBoundary))
   {
+    unsigned int layer_id = 99;  // no layer number for the hit, use a non-existent one for now, replace it later
     // this is for debugging weird occurances we have occasionally
     if (prepointstatus == fPostStepDoItProc && m_SavePostStepStatus == fGeomBoundary)
     {

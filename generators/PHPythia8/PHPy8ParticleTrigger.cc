@@ -3,9 +3,9 @@
 #include <Pythia8/Event.h>  // for Event, Particle
 #include <Pythia8/Pythia.h>
 
-#include <algorithm> // for max
-#include <cstdlib>   // for abs
-#include <iostream>  // for operator<<, endl, basic_ostream, basic_o...
+#include <algorithm>  // for max
+#include <cstdlib>    // for abs
+#include <iostream>   // for operator<<, endl, basic_ostream, basic_o...
 
 using namespace std;
 
@@ -50,7 +50,10 @@ PHPy8ParticleTrigger::PHPy8ParticleTrigger(const std::string &name)
 
 PHPy8ParticleTrigger::~PHPy8ParticleTrigger()
 {
-  if (Verbosity() > 0) PrintConfig();
+  if (Verbosity() > 0)
+  {
+    PrintConfig();
+  }
 }
 
 bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
@@ -73,34 +76,88 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
            ))
       {
         if (_doBothYCut && (pythia->event[i].y() < _theYLow ||
-                            pythia->event[i].y() > _theYHigh)) continue;
-        if (_doYLowCut && pythia->event[i].y() < _theYLow) continue;
-        if (_doYHighCut && pythia->event[i].y() > _theYHigh) continue;
+                            pythia->event[i].y() > _theYHigh))
+        {
+          continue;
+        }
+        if (_doYLowCut && pythia->event[i].y() < _theYLow)
+        {
+          continue;
+        }
+        if (_doYHighCut && pythia->event[i].y() > _theYHigh)
+        {
+          continue;
+        }
 
         if (_doBothEtaCut && (pythia->event[i].eta() < _theEtaLow ||
-                              pythia->event[i].eta() > _theEtaHigh)) continue;
-        if (_doEtaLowCut && pythia->event[i].eta() < _theEtaLow) continue;
-        if (_doEtaHighCut && pythia->event[i].eta() > _theEtaHigh) continue;
+                              pythia->event[i].eta() > _theEtaHigh))
+        {
+          continue;
+        }
+        if (_doEtaLowCut && pythia->event[i].eta() < _theEtaLow)
+        {
+          continue;
+        }
+        if (_doEtaHighCut && pythia->event[i].eta() > _theEtaHigh)
+        {
+          continue;
+        }
 
         if (_doBothAbsEtaCut && (abs(pythia->event[i].eta()) < _theEtaLow ||
-                                 abs(pythia->event[i].eta()) > _theEtaHigh)) continue;
-        if (_doAbsEtaLowCut && abs(pythia->event[i].eta()) < _theEtaLow) continue;
-        if (_doAbsEtaHighCut && abs(pythia->event[i].eta()) > _theEtaHigh) continue;
+                                 abs(pythia->event[i].eta()) > _theEtaHigh))
+        {
+          continue;
+        }
+        if (_doAbsEtaLowCut && abs(pythia->event[i].eta()) < _theEtaLow)
+        {
+          continue;
+        }
+        if (_doAbsEtaHighCut && abs(pythia->event[i].eta()) > _theEtaHigh)
+        {
+          continue;
+        }
 
         if (_doBothPtCut && (pythia->event[i].pT() < _thePtLow ||
-                             pythia->event[i].pT() > _thePtHigh)) continue;
-        if (_doPtHighCut && pythia->event[i].pT() > _thePtHigh) continue;
-        if (_doPtLowCut && pythia->event[i].pT() < _thePtLow) continue;
+                             pythia->event[i].pT() > _thePtHigh))
+        {
+          continue;
+        }
+        if (_doPtHighCut && pythia->event[i].pT() > _thePtHigh)
+        {
+          continue;
+        }
+        if (_doPtLowCut && pythia->event[i].pT() < _thePtLow)
+        {
+          continue;
+        }
 
         if (_doBothPCut && (pythia->event[i].pAbs() < _thePLow ||
-                            pythia->event[i].pAbs() > _thePHigh)) continue;
-        if (_doPHighCut && pythia->event[i].pAbs() > _thePHigh) continue;
-        if (_doPLowCut && pythia->event[i].pAbs() < _thePLow) continue;
+                            pythia->event[i].pAbs() > _thePHigh))
+        {
+          continue;
+        }
+        if (_doPHighCut && pythia->event[i].pAbs() > _thePHigh)
+        {
+          continue;
+        }
+        if (_doPLowCut && pythia->event[i].pAbs() < _thePLow)
+        {
+          continue;
+        }
 
         if (_doBothPzCut && (pythia->event[i].pz() < _thePzLow ||
-                             pythia->event[i].pz() > _thePzHigh)) continue;
-        if (_doPzHighCut && pythia->event[i].pz() > _thePzHigh) continue;
-        if (_doPzLowCut && pythia->event[i].pz() < _thePzLow) continue;
+                             pythia->event[i].pz() > _thePzHigh))
+        {
+          continue;
+        }
+        if (_doPzHighCut && pythia->event[i].pz() > _thePzHigh)
+        {
+          continue;
+        }
+        if (_doPzLowCut && pythia->event[i].pz() < _thePzLow)
+        {
+          continue;
+        }
 
         if (Verbosity() > 5)
         {
@@ -123,15 +180,24 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
             if (abs(pythia->event[moms[m]].id()) == abs(_theParents[k]))
             {
               passedParents = true;
-              if (Verbosity() > 5) cout << "found parent!" << endl;
+              if (Verbosity() > 5)
+              {
+                cout << "found parent!" << endl;
+              }
               break;
             }
           }  //moms for loop
-          if (passedParents) break;
+          if (passedParents)
+          {
+            break;
+          }
         }  //parents for loop
 
         //If we made it here and it passes parents, success!
-        if (_theParents.size() == 0 || passedParents) return true;
+        if (_theParents.size() == 0 || passedParents)
+        {
+          return true;
+        }
 
       }  //if _theParticles
     }    //_theParticles for loop
@@ -177,18 +243,26 @@ void PHPy8ParticleTrigger::SetPtHigh(double pt)
 {
   _thePtHigh = pt;
   if (_doPtLowCut)
+  {
     _doBothPtCut = true;
+  }
   else
+  {
     _doPtHighCut = true;
+  }
 }
 
 void PHPy8ParticleTrigger::SetPtLow(double pt)
 {
   _thePtLow = pt;
   if (_doPtHighCut)
+  {
     _doBothPtCut = true;
+  }
   else
+  {
     _doPtLowCut = true;
+  }
 }
 
 void PHPy8ParticleTrigger::SetPtHighLow(double ptHigh, double ptLow)
@@ -414,29 +488,51 @@ void PHPy8ParticleTrigger::PrintConfig()
   cout << "---------------- PHPy8ParticleTrigger::PrintConfig --------------------" << endl;
 
   if (m_doStableParticleOnly)
+  {
     cout << "Process stable particles only." << endl;
+  }
   else
+  {
     cout << "Process both unstable and stable particles." << endl;
+  }
 
   cout << "   Particles: ";
-  for (int i = 0; i < int(_theParticles.size()); i++) cout << _theParticles[i] << "  ";
+  for (int i = 0; i < int(_theParticles.size()); i++)
+  {
+    cout << _theParticles[i] << "  ";
+  }
   cout << endl;
 
   cout << "   Parents: ";
-  for (int i = 0; i < int(_theParents.size()); i++) cout << _theParents[i] << "  ";
+  for (int i = 0; i < int(_theParents.size()); i++)
+  {
+    cout << _theParents[i] << "  ";
+  }
   cout << endl;
 
   if (_doYHighCut || _doYLowCut || _doBothYCut)
+  {
     cout << "   doYCut:  " << _theYLow << " < Y < " << _theYHigh << endl;
+  }
   if (_doEtaHighCut || _doEtaLowCut || _doBothEtaCut)
+  {
     cout << "   doEtaCut:  " << _theEtaLow << " < eta < " << _theEtaHigh << endl;
+  }
   if (_doAbsEtaHighCut || _doAbsEtaLowCut || _doBothAbsEtaCut)
+  {
     cout << "   doAbsEtaCut:  " << _theEtaLow << " < |eta| < " << _theEtaHigh << endl;
+  }
   if (_doPtHighCut || _doPtLowCut || _doBothPtCut)
+  {
     cout << "   doPtCut:  " << _thePtLow << " < pT < " << _thePtHigh << endl;
+  }
   if (_doPHighCut || _doPLowCut || _doBothPCut)
+  {
     cout << "   doPCut:  " << _thePLow << " < p < " << _thePHigh << endl;
+  }
   if (_doPzHighCut || _doPzLowCut || _doBothPzCut)
+  {
     cout << "   doPzCut:  " << _thePzLow << " < pz < " << _thePzHigh << endl;
+  }
   cout << "-----------------------------------------------------------------------" << endl;
 }

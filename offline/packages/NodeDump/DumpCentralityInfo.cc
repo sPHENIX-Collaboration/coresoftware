@@ -9,7 +9,7 @@
 #include <ostream>
 #include <string>
 
-typedef PHIODataNode<CentralityInfo> MyNode_t;
+using MyNode_t = PHIODataNode<CentralityInfo>;
 
 DumpCentralityInfo::DumpCentralityInfo(const std::string &NodeName)
   : DumpObject(NodeName)
@@ -19,7 +19,7 @@ DumpCentralityInfo::DumpCentralityInfo(const std::string &NodeName)
 
 int DumpCentralityInfo::process_Node(PHNode *myNode)
 {
-  CentralityInfo *centralityinfo = 0;
+  CentralityInfo *centralityinfo = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

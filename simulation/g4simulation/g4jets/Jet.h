@@ -4,7 +4,7 @@
 #include <phool/PHObject.h>
 
 #include <cmath>
-#include <cstddef>          // for size_t
+#include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
 
@@ -50,6 +50,17 @@ class Jet : public PHObject
     EEMC_CLUSTER = 24,
   };
 
+
+  enum SORT  // used as criteria for sorting output in JetMap
+  {
+    NO_SORT = 0, // a blank input to not sort input
+    PT   = 1, // PT descending order
+    E    = 2, // E  descending order
+    P    = 3, // P descending order
+    MASS = 4, // Mass descending order
+    AREA = 5, // AREA descending order --> maybe used in future, as jets don't have area for now...
+  };
+
   enum PROPERTY
   {
 
@@ -71,7 +82,10 @@ class Jet : public PHObject
     prop_zg = 5,
     prop_Rg = 6,
     prop_mu = 7,
-
+    //! photon tag property
+    prop_gamma = 8,
+    prop_JetHadronFlavor = 9,
+    prop_JetHadronZT = 10,
   };
 
   Jet() {}

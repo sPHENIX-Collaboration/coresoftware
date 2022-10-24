@@ -13,17 +13,15 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
-
-Fun4AllDstOutputManager::Fun4AllDstOutputManager(const string &myname, const string &fname)
+Fun4AllDstOutputManager::Fun4AllDstOutputManager(const std::string &myname, const std::string &fname)
   : Fun4AllOutputManager(myname, fname)
 {
   dstOut = new PHNodeIOManager(fname, PHWrite);
   if (!dstOut->isFunctional())
   {
     delete dstOut;
-    cout << PHWHERE << " Could not open " << fname
-         << " exiting now" << endl;
+    std::cout << PHWHERE << " Could not open " << fname
+              << " exiting now" << std::endl;
     gSystem->Exit(1);
     exit(1);  // cppcheck does not know gSystem->Exit(1)
   }
@@ -37,31 +35,31 @@ Fun4AllDstOutputManager::~Fun4AllDstOutputManager()
   return;
 }
 
-int Fun4AllDstOutputManager::AddNode(const string &nodename)
+int Fun4AllDstOutputManager::AddNode(const std::string &nodename)
 {
   savenodes.insert(nodename);
   return 0;
 }
 
-int Fun4AllDstOutputManager::AddRunNode(const string &nodename)
+int Fun4AllDstOutputManager::AddRunNode(const std::string &nodename)
 {
   saverunnodes.insert(nodename);
   return 0;
 }
 
-int Fun4AllDstOutputManager::StripNode(const string &nodename)
+int Fun4AllDstOutputManager::StripNode(const std::string &nodename)
 {
   stripnodes.insert(nodename);
   return 0;
 }
 
-int Fun4AllDstOutputManager::StripRunNode(const string &nodename)
+int Fun4AllDstOutputManager::StripRunNode(const std::string &nodename)
 {
   striprunnodes.insert(nodename);
   return 0;
 }
 
-int Fun4AllDstOutputManager::outfileopen(const string &fname)
+int Fun4AllDstOutputManager::outfileopen(const std::string &fname)
 {
   delete dstOut;
   dstOut = new PHNodeIOManager(fname, PHWrite);
@@ -69,7 +67,7 @@ int Fun4AllDstOutputManager::outfileopen(const string &fname)
   {
     delete dstOut;
     dstOut = nullptr;
-    cout << PHWHERE << " Could not open " << fname << endl;
+    std::cout << PHWHERE << " Could not open " << fname << std::endl;
     return -1;
   }
 
@@ -77,23 +75,22 @@ int Fun4AllDstOutputManager::outfileopen(const string &fname)
   return 0;
 }
 
-void Fun4AllDstOutputManager::Print(const string &what) const
+void Fun4AllDstOutputManager::Print(const std::string &what) const
 {
   if (what == "ALL" || what == "WRITENODES")
   {
-    //    vector<string>::const_iterator iter;
-    cout << Name() << " writes " << OutFileName() << endl;
+    std::cout << Name() << " writes " << OutFileName() << std::endl;
     if (savenodes.empty())
     {
       if (stripnodes.empty())
       {
-        cout << Name() << ": All Nodes will be written out" << endl;
+        std::cout << Name() << ": All Nodes will be written out" << std::endl;
       }
       else
       {
         for (auto &nodename : stripnodes)
         {
-          cout << Name() << ": Node " << nodename << " will be stripped" << endl;
+          std::cout << Name() << ": Node " << nodename << " will be stripped" << std::endl;
         }
       }
     }
@@ -101,7 +98,7 @@ void Fun4AllDstOutputManager::Print(const string &what) const
     {
       for (auto &nodename : savenodes)
       {
-        cout << Name() << ": Node " << nodename << " is written out" << endl;
+        std::cout << Name() << ": Node " << nodename << " is written out" << std::endl;
       }
     }
   }
@@ -139,8 +136,8 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
         {
           if (Verbosity() > 0)
           {
-            cout << PHWHERE << Name() << ": Node " << nodename
-                 << " does not exist" << endl;
+            std::cout << PHWHERE << Name() << ": Node " << nodename
+                      << " does not exist" << std::endl;
           }
         }
       }
@@ -159,8 +156,8 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
       {
         if (Verbosity() > 0)
         {
-          cout << PHWHERE << Name() << ": Node " << nodename
-               << " does not exist" << endl;
+          std::cout << PHWHERE << Name() << ": Node " << nodename
+                    << " does not exist" << std::endl;
         }
       }
     }
@@ -192,7 +189,7 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
 int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
 {
   delete dstOut;
-  if (! m_SaveRunNodeFlag)
+  if (!m_SaveRunNodeFlag)
   {
     dstOut = nullptr;
     return 0;
@@ -216,8 +213,8 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
         {
           if (Verbosity() > 0)
           {
-            cout << PHWHERE << Name() << ": Node " << nodename
-                 << " does not exist" << endl;
+            std::cout << PHWHERE << Name() << ": Node " << nodename
+                      << " does not exist" << std::endl;
           }
         }
       }
@@ -236,8 +233,8 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
       {
         if (Verbosity() > 0)
         {
-          cout << PHWHERE << Name() << ": Node " << nodename
-               << " does not exist" << endl;
+          std::cout << PHWHERE << Name() << ": Node " << nodename
+                    << " does not exist" << std::endl;
         }
       }
     }

@@ -40,13 +40,13 @@
 
 #include <cmath>    // for isfinite
 #include <cstdlib>  // for getenv
+#include <filesystem>
 #include <iostream>
 #include <string>   // for operator<<, operator+
 #include <utility>  // for pair
 
 class PHCompositeNode;
 
-TH2F* mapCorr = nullptr;
 //____________________________________________________________________________..
 PHG4IHCalSteppingAction::PHG4IHCalSteppingAction(PHG4IHCalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
@@ -54,7 +54,7 @@ PHG4IHCalSteppingAction::PHG4IHCalSteppingAction(PHG4IHCalDetector* detector, co
   , m_Params(parameters)
   , m_IsActive(m_Params->get_int_param("active"))
   , m_IsBlackHole(m_Params->get_int_param("blackhole"))
-  , m_LightScintModel(m_Params->get_int_param("light_scint_model"))
+  , m_LightScintModelFlag(m_Params->get_int_param("light_scint_model"))
 {
   SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
                      m_Params->get_double_param("light_balance_inner_corr"),
@@ -69,30 +69,36 @@ PHG4IHCalSteppingAction::~PHG4IHCalSteppingAction()
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete m_Hit;
+  // since we have a copy in memory of this one - we need to delete it
+  delete m_MapCorrHist;
 }
 
 //____________________________________________________________________________..
 int PHG4IHCalSteppingAction::Init()
 {
-  std::ostringstream ihcalmapname;
-  const char* Calibroot = getenv("CALIBRATIONROOT");
-  if (Calibroot)
+  if (m_LightScintModelFlag)
   {
-    ihcalmapname << Calibroot;
-  }
-  else
-  {
-    std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
-    gSystem->Exit(1);
-  }
-
-  ihcalmapname << "/HCALIN/tilemap/iHCALMapsNorm020922.root";
-  TFile* file = new TFile(ihcalmapname.str().c_str());
-  mapCorr = (TH2F*) file->Get("ihcalmapcombined");
-  if (!mapCorr)
-  {
-    std::cout << "ERROR: mapCorr is NULL" << std::endl;
-    gSystem->Exit(1);
+    std::string ihcalmapname(m_Params->get_string_param("MapFileName"));
+    if (ihcalmapname.empty())
+    {
+      return 0;
+    }
+    if (!std::filesystem::exists(m_Params->get_string_param("MapFileName")))
+    {
+      std::cout << PHWHERE << " Could not locate " << m_Params->get_string_param("MapFileName") << std::endl;
+      std::cout << "use empty filename to ignore mapfile" << std::endl;
+      gSystem->Exit(1);
+    }
+    TFile* file = TFile::Open(ihcalmapname.c_str());
+    file->GetObject(m_Params->get_string_param("MapHistoName").c_str(), m_MapCorrHist);
+    if (!m_MapCorrHist)
+    {
+      std::cout << "ERROR: could not find Histogram " << m_Params->get_string_param("MapHistoName") << " in " << m_Params->get_string_param("MapFileName") << std::endl;
+      gSystem->Exit(1);
+    }
+    m_MapCorrHist->SetDirectory(nullptr);  // rootism: this needs to be set otherwise histo vanished when closing the file
+    file->Close();
+    delete file;
   }
   return 0;
 }
@@ -136,7 +142,7 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
-  G4double light_yield = 0;
+  double light_yield = 0;
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
@@ -170,7 +176,28 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     case fPostStepDoItProc:
       if (m_SavePostStepStatus != fGeomBoundary)
       {
-        break;
+        if (m_SavePostStepStatus != fAtRestDoItProc)
+        {
+          break;
+        }
+        else
+        {
+          if (aTrack->GetTrackID() == m_SaveTrackId)
+          {
+            std::cout << GetName() << ": Bad step status combination for the same track " << std::endl;
+            std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+                      << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                      << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+                      << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+            std::cout << "last track: " << m_SaveTrackId
+                      << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+            std::cout << "phys pre vol: " << volume->GetName()
+                      << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+            std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+                      << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
+            gSystem->Exit(1);
+          }
+        }
       }
       else
       {
@@ -211,6 +238,7 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         m_Hit->set_sector(sector_id);   // the slat id
         m_Hit->set_scint_id(tower_id);  // the slat id
         m_Hit->set_eion(0);             // only implemented for v5 otherwise empty
+        m_Hit->set_raw_light_yield(0);  //  for scintillator only, initialize light yields
         m_Hit->set_light_yield(0);      // for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
         m_SaveHitContainer = m_HitContainer;
@@ -278,37 +306,39 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (whichactive > 0)  // return of IsInIHCalDetector, > 0 hit in scintillator, < 0 hit in absorber
     {
-      G4TouchableHandle theTouchable = prePoint->GetTouchableHandle();
-      G4ThreeVector worldPosition = postPoint->GetPosition();
-      G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
-
       m_Hit->set_eion(m_Hit->get_eion() + eion);
       light_yield = eion;
-
-      if (m_LightScintModel)
+      if (m_LightScintModelFlag)
       {
-        light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
-        float lx = (localPosition.x() / cm);
-        float lz = fabs(localPosition.z() / cm);
-
-        if (mapCorr)
+        light_yield = GetVisibleEnergyDeposition(aStep);                         // for scintillator only, calculate light yields
+        m_Hit->set_raw_light_yield(m_Hit->get_raw_light_yield() + light_yield);  // save raw Birks light yield
+        if (m_MapCorrHist)
         {
-          //adjust to tilemap coordinates
-          int lcz = (int) (5.0 * lz) + 1;
-          int lcx = (int) (5.0 * (lx + 12.1)) + 1;
+          const G4TouchableHandle& theTouchable = prePoint->GetTouchableHandle();
+          const G4ThreeVector& worldPosition = postPoint->GetPosition();
+          G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
+          float lx = localPosition.x() / cm;
+          float ly = localPosition.y() / cm;
 
-          if ((lcx >= 1) && (lcx <= mapCorr->GetNbinsY()) &&
-              (lcz >= 1) && (lcz <= mapCorr->GetNbinsX()))
+          //adjust to tilemap coordinates
+          int lcx = (int) (5.0 * lx) + 1;
+          int lcy = (int) (5.0 * (ly + 2.0)) + 1;
+
+          if ((lcy >= 1) && (lcy <= m_MapCorrHist->GetNbinsY()) &&
+              (lcx >= 1) && (lcx <= m_MapCorrHist->GetNbinsX()))
           {
-            light_yield *= (double) (mapCorr->GetBinContent(lcz, lcx));
+            light_yield *= m_MapCorrHist->GetBinContent(lcx, lcy);
           }
           else
           {
             light_yield = 0.0;
           }
         }
+        else
+        {
+          light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x(), postPoint->GetPosition().y());
+        }
       }
-      light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x(), postPoint->GetPosition().y());
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
     if (geantino)
@@ -341,7 +371,7 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         aTrack->GetTrackStatus() == fStopAndKill)
     {
       // save only hits with energy deposit (or -1 for geantino)
-      if (m_Hit->get_edep())
+      if (m_Hit->get_edep() != 0)
       {
         m_SaveHitContainer->AddHit(layer_id, m_Hit);
 
