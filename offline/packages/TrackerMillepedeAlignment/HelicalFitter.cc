@@ -167,7 +167,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	} // end loop over clusters for this track
 
       // make the helical fit using TrackFitUtils
-      if(global_vec.size() < 3)  {  std::cout << " track " << trackid << " has too few clusters for circle fit, skip it" << std::endl; continue; }
+      if(global_vec.size() < 3)  
+	if(Verbosity() > 0) {  std::cout << " track " << trackid << " has too few clusters for circle fit, skip it" << std::endl; continue; }
       std::tuple<double, double, double> circle_fit_pars = TrackFitUtils::circle_fit_by_taubin(global_vec);
       // It is problematic that the large errors on the INTT strip z values are not allowed for - drop the INTT from the z line fit
       std::vector<Acts::Vector3> global_vec_noINTT;
@@ -178,7 +179,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  float radius = sqrt(x*x + y*y);
 	  if(radius < 5.0 || radius > 15.0) { global_vec_noINTT.push_back(global_vec[ivec]); }
 	}      
-      if(global_vec_noINTT.size() < 3) { std::cout << " track " << trackid << " has too few non-INTT clusters for z fit, skip it" << std::endl; continue; }
+      if(global_vec_noINTT.size() < 3) 
+	if(Verbosity() > 0) { std::cout << " track " << trackid << " has too few non-INTT clusters for z fit, skip it" << std::endl; continue; }
      std::tuple<double,double> line_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
 
       // capture fit pars
@@ -239,17 +241,24 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  float z_z0 = 1.0;
 	  if(Verbosity() > 0) {std::cout << "    z derivatives: z_zslope " << z_zslope << " z_z0 " << z_z0 << std::endl;}
 
-	  // dx/dradius = radius / (R^2 - (y-y0)^2)^1/2  , sign of (x-x0)/fabs(x-x0)
+
 	  float x_x0 = 1.0;
+	  // dx/dradius = radius / (R^2 - (y-y0)^2)^1/2  , sign of (x-x0)/fabs(x-x0)
 	  float x_radius = ( pca(0)-helix_center(0) ) / fabs( pca(0)-helix_center(0) ) * radius / sqrt(radius*radius - (pca(1) - helix_center(1) ) *  (pca(1) - helix_center(1) ) );
 	  if(Verbosity() > 0) {std::cout << "    x derivatives: x_x0 " << x_x0 << " x_radius " << x_radius << std::endl;}
 	  if(isnan(x_radius)) {x_radius = 0.0; }
+	  // dx/dy0 = (y-y0) / (R^2 - (y-y0)^2)^1/2 
+	  float x_y0 = (pca(1) - helix_center(1)) / sqrt(radius*radius - (pca(1) - helix_center(1)) * (pca(1) - helix_center(1)));
+	  if(isnan(x_y0)) {x_y0 = 0.0; }
 
-	  // dy/dradius = sign * radius / (R^2 - (x-x0)^2)^1/2 , sign of (y-y0)/fabs(y-y0)
 	  float y_y0 = 1.0;
+	  // dy/dradius = sign * radius / (R^2 - (x-x0)^2)^1/2 , sign of (y-y0)/fabs(y-y0)
 	  float y_radius =  ( pca(1)-helix_center(1) ) / fabs( pca(1)-helix_center(1) ) * radius / sqrt(radius*radius - (pca(0) - helix_center(0) ) * (pca(0) - helix_center(0) ) );
 	  if(Verbosity() > 0) { std::cout << "    y derivatives: y_y0 " << y_y0 << " y_radius " << y_radius << std::endl; }
 	  if(isnan(y_radius)) {y_radius = 0.0; }
+	  // dy/dx0 = (x-x0) / R^2 - (x-x0)^2)^1/2 
+	  float y_x0 = (pca(0) - helix_center(0)) / sqrt(radius*radius - (pca(0) - helix_center(0)) * (pca(0) - helix_center(0)));
+	  if(isnan(y_x0)) {y_x0 = 0.0; }
 
 	  // The global alignment parameters are given initial values of zero by default, we do not specify those
 	  // identify the global alignment parameters for this surface
@@ -280,6 +289,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  // x - relevant global pars are alpha, beta, gamma, dx (ipar 0,1,2,3), relevant local pars are x_x0, x_radius
 	  for(int i=0;i<NLC;++i) {lcl_derivative[i] = 0.0;}
 	    lcl_derivative[0] = x_x0; 
+	    lcl_derivative[1] = x_y0;
 	    lcl_derivative[3] = x_radius;
 	  for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
 	  if(layer != fixedLayer) { 
@@ -288,7 +298,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	    glbl_derivative[1] = angleDerivs[1](0);  // dx/dbeta
 	    glbl_derivative[2] = angleDerivs[2](0);  // dx/dgamma
 	  }
-	    if(clus_sigma(0) < 1.0)  // discards crazy clusters
+	  if( !isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
 	      { _mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(0), clus_sigma(0));}
 	  
 	  if(Verbosity() > 3)
@@ -306,6 +316,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  
 	  // y - relevant global pars are alpha, beta, gamma, dy (ipar 0,1,2,4)
 	  for(int i=0;i<NLC;++i) {lcl_derivative[i] = 0.0;}
+	  lcl_derivative[0] = y_x0;
 	  lcl_derivative[1] = y_y0;
 	  lcl_derivative[3] = y_radius;
 	  for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
@@ -315,7 +326,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	    glbl_derivative[1] = angleDerivs[1](1);   // dy/dbeta
 	    glbl_derivative[2] = angleDerivs[2](1);   // dy/dgamma
 	  }
-	  if(clus_sigma(1) < 1.0)  // discards crazy clusters
+	  if( !isnan(residual(0)) && clus_sigma(1) < 1.0)  // discards crazy clusters
 	    {_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(1), clus_sigma(1));}
 	  
 	  if(Verbosity() > 3) 
@@ -342,7 +353,7 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	    glbl_derivative[1] = angleDerivs[1](2);  // dz/dbeta
 	    glbl_derivative[2] = angleDerivs[2](2);  // dz/dgamma
 	  }
-	  if(clus_sigma(2) < 1.0)
+	  if(!isnan(residual(2)) && clus_sigma(2) < 1.0)
 	    {_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(2), clus_sigma(2));}
 	  
 	  if(Verbosity() > 3)
@@ -622,7 +633,6 @@ int HelicalFitter::getLabelBase(Acts::GeometryIdentifier id)
       if(si_grp == siliconGrp::stv)
 	{
 	  // layer and stave, assign all sensors to the stave number
-	  //int stave = sensor / nstaves[layer];
 	  int stave = sensor / nsensors_stave[layer];
 	  label_base += layer*1000000 + stave*10000;
 	  //	  std::cout << " sensor " << sensor << " acts_layer " << acts_layer << " layer " <<  layer << " base_layer " <<  base_layer_map.find(volume)->second << " volume " << volume << " nstaves_layer " << nstaves[layer] << " stave " << stave << " label_base " << label_base << std::endl;
