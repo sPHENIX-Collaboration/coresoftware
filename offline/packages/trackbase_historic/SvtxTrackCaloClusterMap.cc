@@ -1,6 +1,6 @@
 #include "SvtxTrackCaloClusterMap.h"
 
-namespace 
+namespace
 {
   SvtxTrackCaloClusterMap::Map DummyTrackMap;
 }
@@ -19,7 +19,6 @@ SvtxTrackCaloClusterMap::ConstIter SvtxTrackCaloClusterMap::end() const
 {
   return DummyTrackMap.end();
 }
-
 
 SvtxTrackCaloClusterMap::Iter SvtxTrackCaloClusterMap::begin()
 {

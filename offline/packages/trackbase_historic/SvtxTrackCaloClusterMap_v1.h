@@ -3,8 +3,8 @@
 
 #include "SvtxTrackCaloClusterMap.h"
 
-#include <cstddef>        // for size_t
-#include <iostream>        // for cout, ostream
+#include <cstddef>   // for size_t
+#include <iostream>  // for cout, ostream
 
 class PHObject;
 
@@ -21,7 +21,7 @@ class SvtxTrackCaloClusterMap_v1 : public SvtxTrackCaloClusterMap
   int isValid() const override { return 1; }
   PHObject* CloneMe() const override { return new SvtxTrackCaloClusterMap_v1(*this); }
 
-  bool empty() const override{ return _map.empty(); }
+  bool empty() const override { return _map.empty(); }
   size_t size() const override { return _map.size(); }
   void clear() override { Reset(); }
 

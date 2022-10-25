@@ -1,8 +1,8 @@
 #ifndef TRACKBASEHISTORIC_SVTXTRACKCALOCLUSTERMAP_H
 #define TRACKBASEHISTORIC_SVTXTRACKCALOCLUSTERMAP_H
 
-#include "SvtxTrack.h"
 #include <calobase/RawCluster.h>
+#include "SvtxTrack.h"
 
 #include <phool/PHObject.h>
 
@@ -29,10 +29,26 @@ class SvtxTrackCaloClusterMap : public PHObject
   virtual size_t size() const { return 0; }
   virtual void clear() {}
 
-  virtual const std::vector<RawCluster*> get(SvtxTrack* ) const { std::vector<RawCluster*> dum; return dum; }
-  virtual std::vector<RawCluster*> get(SvtxTrack* ) { std::vector<RawCluster*> dum; return dum; }
-  virtual std::vector<RawCluster*> insert(SvtxTrack*, std::vector<RawCluster*>) {std::vector<RawCluster*> dummy; return dummy;}
-  virtual std::vector<RawCluster*> insert(SvtxTrack*, RawCluster*) { std::vector<RawCluster*> dummy; return dummy; }
+  virtual const std::vector<RawCluster*> get(SvtxTrack*) const
+  {
+    std::vector<RawCluster*> dum;
+    return dum;
+  }
+  virtual std::vector<RawCluster*> get(SvtxTrack*)
+  {
+    std::vector<RawCluster*> dum;
+    return dum;
+  }
+  virtual std::vector<RawCluster*> insert(SvtxTrack*, std::vector<RawCluster*>)
+  {
+    std::vector<RawCluster*> dummy;
+    return dummy;
+  }
+  virtual std::vector<RawCluster*> insert(SvtxTrack*, RawCluster*)
+  {
+    std::vector<RawCluster*> dummy;
+    return dummy;
+  }
   virtual size_t erase(SvtxTrack*) { return 0; }
 
   virtual ConstIter begin() const;

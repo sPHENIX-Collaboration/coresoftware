@@ -4,13 +4,12 @@
 
 #include <phool/PHObject.h>  // for PHObject
 
-#include <iterator>     // for reverse_iterator
-#include <map>          // for _Rb_tree_const_iterator, _Rb_tree_iterator
-#include <ostream>      // for operator<<, endl, ostream, basic_ostream, bas...
-#include <utility>      // for pair, make_pair
+#include <iterator>  // for reverse_iterator
+#include <map>       // for _Rb_tree_const_iterator, _Rb_tree_iterator
+#include <ostream>   // for operator<<, endl, ostream, basic_ostream, bas...
+#include <utility>   // for pair, make_pair
 
 using namespace std;
-
 
 SvtxTrackCaloClusterMap_v1::SvtxTrackCaloClusterMap_v1()
   : _map()
@@ -49,7 +48,7 @@ SvtxTrackCaloClusterMap_v1::~SvtxTrackCaloClusterMap_v1()
 
 void SvtxTrackCaloClusterMap_v1::Reset()
 {
-  /// Pointers to SvtxTrack and RawCluster will be 
+  /// Pointers to SvtxTrack and RawCluster will be
   /// deleted by their respective containers already
   _map.clear();
 }
@@ -64,8 +63,10 @@ const std::vector<RawCluster*> SvtxTrackCaloClusterMap_v1::get(SvtxTrack* track)
 {
   std::vector<RawCluster*> dummy;
   ConstIter iter = _map.find(track);
-  if (iter == _map.end()) 
-    { return dummy; }
+  if (iter == _map.end())
+  {
+    return dummy;
+  }
   return iter->second;
 }
 
@@ -73,39 +74,41 @@ std::vector<RawCluster*> SvtxTrackCaloClusterMap_v1::get(SvtxTrack* track)
 {
   std::vector<RawCluster*> dummy;
   Iter iter = _map.find(track);
-  if (iter == _map.end()) 
-    { return dummy; }
+  if (iter == _map.end())
+  {
+    return dummy;
+  }
   return iter->second;
 }
 
-std::vector<RawCluster*>  SvtxTrackCaloClusterMap_v1::insert(SvtxTrack* track, std::vector<RawCluster*> clusters)
+std::vector<RawCluster*> SvtxTrackCaloClusterMap_v1::insert(SvtxTrack* track, std::vector<RawCluster*> clusters)
 {
   auto iter = _map.find(track);
-  if(iter != _map.end())
-    {
-      iter->second = clusters;
-    }
+  if (iter != _map.end())
+  {
+    iter->second = clusters;
+  }
   else
-    {
-      _map.insert(std::make_pair(track, clusters));
-    }
+  {
+    _map.insert(std::make_pair(track, clusters));
+  }
 
   return _map[track];
 }
 
-std::vector<RawCluster*>  SvtxTrackCaloClusterMap_v1::insert(SvtxTrack* track, RawCluster* clus)
+std::vector<RawCluster*> SvtxTrackCaloClusterMap_v1::insert(SvtxTrack* track, RawCluster* clus)
 {
   auto iter = _map.find(track);
-  if(iter != _map.end())
-    {
-      (iter->second).push_back(clus);
-    }
+  if (iter != _map.end())
+  {
+    (iter->second).push_back(clus);
+  }
   else
-    {
-      std::vector<RawCluster*> dummy;
-      dummy.push_back(clus);
-      _map.insert(std::make_pair(track, dummy));
-    }
+  {
+    std::vector<RawCluster*> dummy;
+    dummy.push_back(clus);
+    _map.insert(std::make_pair(track, dummy));
+  }
 
   return _map[track];
 }
@@ -113,13 +116,13 @@ std::vector<RawCluster*>  SvtxTrackCaloClusterMap_v1::insert(SvtxTrack* track, R
 size_t SvtxTrackCaloClusterMap_v1::erase(SvtxTrack* track)
 {
   const auto iter = _map.find(track);
-  if( iter != _map.end() ) 
-  { 
-    _map.erase( iter );
+  if (iter != _map.end())
+  {
+    _map.erase(iter);
     return 1;
-  
-  } 
-  else 
-    { return 0; }
+  }
+  else
+  {
+    return 0;
+  }
 }
-
