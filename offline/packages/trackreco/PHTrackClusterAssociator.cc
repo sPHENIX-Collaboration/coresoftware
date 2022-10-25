@@ -68,7 +68,7 @@ int PHTrackClusterAssociator::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHTrackClusterAssociator::process_event(PHCompositeNode *topNode)
 {
-
+  
   if(!m_calosAvailable) { return Fun4AllReturnCodes::EVENT_OK; }
 
   for(int layer = 0; layer < m_nCaloLayers; layer++)
@@ -96,7 +96,7 @@ int PHTrackClusterAssociator::process_event(PHCompositeNode *topNode)
 	    }
 	}
     }
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -142,8 +142,9 @@ int PHTrackClusterAssociator::matchTracks(PHCompositeNode* topNode,
 	      std::cout << "matching cluster " << cluster->get_id() << " to track " << track->get_id() << std::endl;
 	    }
 	}
+
       m_trackClusterMap->insert(track, cluster);
-      std::cout << "added cluster " << std::endl;
+   
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -250,9 +251,9 @@ int PHTrackClusterAssociator::createNodes(PHCompositeNode* topNode)
   if(!m_trackClusterMap)
     {
       m_trackClusterMap = new SvtxTrackCaloClusterMap_v1;
-       PHIODataNode<SvtxTrackCaloClusterMap> *newnode 
-	= new PHIODataNode<SvtxTrackCaloClusterMap>(m_trackClusterMap, "TrackCaloClusterMap");
-      svtxNode->addNode(newnode);
+       PHIODataNode<PHObject>* node = new PHIODataNode<PHObject>(
+         m_trackClusterMap,"TrackCaloClusterMap","PHObject");
+      svtxNode->addNode(node);
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
