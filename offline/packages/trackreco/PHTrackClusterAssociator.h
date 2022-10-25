@@ -16,12 +16,12 @@ class RawCluster;
 class RawClusterContainer;
 class RawTowerContainer;
 class RawTowerGeomContainer;
+class SvtxTrackCaloClusterMap;
 
 class PHTrackClusterAssociator : public SubsysReco
 {
  public:
-  typedef std::map<SvtxTrack*, RawCluster*> TrackClusterMap;
-
+  
   PHTrackClusterAssociator(const std::string &name = "PHTrackClusterAssociator");
 
   ~PHTrackClusterAssociator() override;
@@ -31,29 +31,31 @@ class PHTrackClusterAssociator : public SubsysReco
   int ResetEvent(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void setCaloRadius(const std::string& name, double rad)
+  { m_caloRadii.insert(std::make_pair(name, rad)); }
+
  private:
 
   int getNodes(PHCompositeNode* topNode);
   int createNodes(PHCompositeNode* topNode);
   int getCaloNodes(PHCompositeNode* topNode, const int caloLayer);
   int matchTracks(PHCompositeNode* topNode, const int caloLayer);
-
+  RawCluster* getCluster(double phi, double eta);
   SvtxTrackMap* m_trackMap = nullptr;
 
   /// Objects to hold calorimeter information. There are 
   /// only 3 calo layers
   const static int m_nCaloLayers = 3;
   std::vector<std::string> m_caloNames;
-  std::vector<SvtxTrack::CAL_LAYER> m_caloTypes;
   /// An optional map that allows projection to an arbitrary radius
   /// Results are written to the SvtxTrack based on the provided CAL_LAYER
-  std::map<SvtxTrack::CAL_LAYER, float> m_caloRadii;
+  std::map<std::string, float> m_caloRadii;
 
   RawTowerGeomContainer *m_towerGeomContainer = nullptr;
   RawTowerContainer *m_towerContainer = nullptr;
   RawClusterContainer *m_clusterContainer = nullptr;
 
-  TrackClusterMap* m_trackClusterMap = nullptr;
+  SvtxTrackCaloClusterMap* m_trackClusterMap = nullptr;
   
   bool m_useCemcPosRecalib = false;
   bool m_calosAvailable = true;

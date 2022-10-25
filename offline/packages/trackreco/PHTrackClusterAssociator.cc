@@ -4,7 +4,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>
+#include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
@@ -13,6 +13,7 @@
 
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackCaloClusterMap_v1.h>
 
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerContainer.h>
@@ -22,11 +23,26 @@
 #include <calobase/RawClusterUtility.h>
 #include <phgeom/PHGeomUtility.h>
 
+namespace
+{
+  template<class T> inline constexpr T deltaPhi( const T& dphi)
+  {
+    if (dphi > M_PI) 
+      return dphi - 2. * M_PI;
+    else if (dphi <= -M_PI) 
+      return dphi + 2.* M_PI;
+    else 
+      return dphi;
+  }
+}
 
 //____________________________________________________________________________..
 PHTrackClusterAssociator::PHTrackClusterAssociator(const std::string &name):
  SubsysReco(name)
 {
+  m_caloNames.push_back("CEMC");
+  m_caloNames.push_back("HCALIN");
+  m_caloNames.push_back("HCALOUT");
 }
 
 //____________________________________________________________________________..
@@ -68,20 +84,40 @@ int PHTrackClusterAssociator::process_event(PHCompositeNode *topNode)
 	{ return Fun4AllReturnCodes::ABORTEVENT; }
     }
 
+  if(Verbosity() > 3)
+    {
+      for(const auto [track, clustervec] : *m_trackClusterMap)
+	{
+	  track->identify();
+	  std::cout << " has clusters associated to it : " << std::endl;
+	  for(auto cluster : clustervec)
+	    {
+	      cluster->identify();
+	    }
+	}
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHTrackClusterAssociator::matchTracks(PHCompositeNode* topNode, 
 					  const int caloLayer)
 {
-
+  
   if (getCaloNodes(topNode, caloLayer) 
       != Fun4AllReturnCodes::EVENT_OK)
     { return Fun4AllReturnCodes::ABORTEVENT; }
 
+  /// Default to using calo radius
+  double caloRadius = m_towerGeomContainer->get_radius();
+  if(m_caloRadii.find(m_caloNames.at(caloLayer)) != m_caloRadii.end())
+    { 
+      caloRadius = m_caloRadii.find(m_caloNames.at(caloLayer))->second; 
+    }
+
+  
   for(const auto& [key, track] : *m_trackMap)
     {
-      float caloRadius = m_caloRadii.at(m_caloTypes.at(caloLayer));
       const SvtxTrackState* state = track->get_state(caloRadius);
       const float statex = state->get_x();
       const float statey = state->get_y();
@@ -91,17 +127,55 @@ int PHTrackClusterAssociator::matchTracks(PHCompositeNode* topNode,
 			     sqrt(statex * statex 
 				  + statey * statey));
 
-
-     
-
-
+      const auto cluster = getCluster(statephi, stateeta);
+      if(Verbosity() > 1 )
+	{
+	  if(!cluster)
+	    {
+	      
+	      std::cout << "no cluster found, continuing to next track" 
+			<< std::endl;
+	      continue;
+	    }
+	  else
+	    {
+	      std::cout << "matching cluster " << cluster->get_id() << " to track " << track->get_id() << std::endl;
+	    }
+	}
+      m_trackClusterMap->insert(track, cluster);
+      std::cout << "added cluster " << std::endl;
     }
 
-
-
-
+  return Fun4AllReturnCodes::EVENT_OK;
 
 }
+
+RawCluster* PHTrackClusterAssociator::getCluster(double phi,
+						    double eta)
+{
+  double minR = std::numeric_limits<double>::max();
+  auto clusterMap = m_clusterContainer->getClustersMap();
+  RawCluster* returncluster = nullptr;
+
+  for(const auto& [key, cluster] : clusterMap)
+    {
+      const auto clusterEta = 
+	RawClusterUtility::GetPseudorapidity(*cluster, 
+					     CLHEP::Hep3Vector(0,0,0));
+      const auto dphi = deltaPhi(phi - cluster->get_phi());
+      const auto deta = eta - clusterEta;
+      const auto r = sqrt(pow(dphi,2) + pow(deta,2));
+
+      if(r < minR)
+	{
+	  minR = r;
+	  returncluster = cluster;
+	}
+    }
+
+  return returncluster;
+}
+
 int PHTrackClusterAssociator::getNodes(PHCompositeNode* topNode)
 {
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
@@ -147,7 +221,7 @@ int PHTrackClusterAssociator::getCaloNodes(PHCompositeNode *topNode,
       m_calosAvailable = false;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -172,12 +246,12 @@ int PHTrackClusterAssociator::createNodes(PHCompositeNode* topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_trackClusterMap = findNode::getClass<TrackClusterMap>(topNode, "TrackCaloClusterMap");
+  m_trackClusterMap = findNode::getClass<SvtxTrackCaloClusterMap>(topNode, "TrackCaloClusterMap");
   if(!m_trackClusterMap)
     {
-      m_trackClusterMap = new TrackClusterMap;
-       PHDataNode<TrackClusterMap> *newnode 
-	= new PHDataNode<TrackClusterMap>(m_trackClusterMap, "TrackCaloClusterMap");
+      m_trackClusterMap = new SvtxTrackCaloClusterMap_v1;
+       PHIODataNode<SvtxTrackCaloClusterMap> *newnode 
+	= new PHIODataNode<SvtxTrackCaloClusterMap>(m_trackClusterMap, "TrackCaloClusterMap");
       svtxNode->addNode(newnode);
     }
 
@@ -189,9 +263,6 @@ int PHTrackClusterAssociator::createNodes(PHCompositeNode* topNode)
 //____________________________________________________________________________..
 int PHTrackClusterAssociator::ResetEvent(PHCompositeNode*)
 {
-
-  m_trackClusterMap->clear();
- 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
