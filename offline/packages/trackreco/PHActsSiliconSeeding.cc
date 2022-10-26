@@ -683,7 +683,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 
 	  auto sp = makeSpacePoint(surface, cluskey, cluster).release();
 	  spVec.push_back(sp);
-	  rRangeSPExtent.check({sp->x(), sp->y(), sp->z()});
+	  rRangeSPExtent.extend({sp->x(), sp->y(), sp->z()});
 	  numSiliconHits++;
 	}
     }
