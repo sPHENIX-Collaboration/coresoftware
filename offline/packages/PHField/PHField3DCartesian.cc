@@ -250,7 +250,8 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
           magval = fieldmap.find(key);
           if (magval == fieldmap.end())
           {
-            std::cout << "could not locate key, x: " << xkey[i] / cm
+            std::cout << PHWHERE << " could not locate key in " << filename
+		      << " value: x: " << xkey[i] / cm
                       << ", y: " << ykey[j] / cm
                       << ", z: " << zkey[k] / cm << std::endl;
             return;

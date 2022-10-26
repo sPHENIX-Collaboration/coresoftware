@@ -11,8 +11,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
@@ -225,7 +225,7 @@ void TpcDirectLaserReconstruction::set_grid_dimensions( int phibins, int rbins, 
 //_____________________________________________________________________
 int TpcDirectLaserReconstruction::load_nodes( PHCompositeNode* topNode )
 {
-  m_geom_container =  findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  m_geom_container =  findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   assert( m_geom_container );
 
   // acts surface map
@@ -323,7 +323,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       TrkrDefs::hitsetkey hitsetkey = hitsetitr->first;
       TrkrHitSet *hitset = hitsetitr->second;
       unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-      PHG4CylinderCellGeom *layergeom = m_geom_container->GetLayerCellGeom(layer);
+      PHG4TpcCylinderGeom *layergeom = m_geom_container->GetLayerCellGeom(layer);
       const auto layer_center_radius = layergeom->get_radius();
 
     // get corresponding hits
@@ -368,7 +368,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 
   for(auto layer : layer_bin_set)
     {
-      PHG4CylinderCellGeom *layergeom = m_geom_container->GetLayerCellGeom(layer);
+      PHG4TpcCylinderGeom *layergeom = m_geom_container->GetLayerCellGeom(layer);
       const auto layer_center_radius = layergeom->get_radius();
       const auto layer_inner_radius = layer_center_radius - layergeom->get_thickness() / 2.0;
       const auto layer_outer_radius = layer_center_radius + layergeom->get_thickness() / 2.0;
