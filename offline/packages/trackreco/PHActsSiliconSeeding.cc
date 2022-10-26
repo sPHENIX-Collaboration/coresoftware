@@ -601,7 +601,6 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
     localCov(0,0) = para_errors.first* Acts::UnitConstants::cm2;
     localCov(1,1) = para_errors.second* Acts::UnitConstants::cm2;
   }
-	//     std::cout << "err clus: " << cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2*cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2 << " | " << cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2*cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2 << " err para " <<  para_errors.first << " | " << para_errors.second << std::endl;
     
   float x = globalPos.x();
   float y = globalPos.y();

@@ -1,5 +1,8 @@
+#ifndef TRACKBASE_SPACEPOINT_H
+#define TRACKBASE_SPACEPOINT_H
+
 #include <memory>
-#include <trackbase/TrkrDefs.h>
+#include "trackbase/TrkrDefs.h"
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/Seeding/Seed.hpp>
@@ -36,3 +39,5 @@ inline bool operator==(SpacePoint a, SpacePoint b) {
 
 using SpacePointPtr = std::unique_ptr<SpacePoint>;
 using SeedContainer = std::vector<Acts::Seed<SpacePoint>>;
+
+#endif

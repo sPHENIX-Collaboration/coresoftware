@@ -126,7 +126,11 @@ void PHActsKDTreeSeeding::fillTrackSeedContainer(SeedContainer& seeds)
       siseed->lineFit(positions,0,8);
       /// The acts seed has better z resolution than the circle fit
       siseed->set_Z0(seed.z() / Acts::UnitConstants::cm);
-
+      if(Verbosity() > 2)
+	{
+	  std::cout << "Found seed" << std::endl;
+	  siseed->identify();
+	}
       m_seedContainer->insert(siseed.get());
 
     }

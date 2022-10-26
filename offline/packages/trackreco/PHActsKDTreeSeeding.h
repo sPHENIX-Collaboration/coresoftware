@@ -3,7 +3,7 @@
 #ifndef PHACTSKDTREESEEDING_H
 #define PHACTSKDTREESEEDING_H
 
-#include "SpacePoint.h"
+#include <trackbase/SpacePoint.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -25,8 +25,6 @@ class TrkrCluster;
 class PHActsKDTreeSeeding : public SubsysReco
 {
  public:
-  using SimSeedContainer = std::vector<Acts::Seed<SpacePoint>>;
-    
   PHActsKDTreeSeeding(const std::string &name = "PHActsKDTreeSeeding");
 
   ~PHActsKDTreeSeeding() override;

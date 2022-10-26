@@ -36,6 +36,7 @@ pkginclude_HEADERS = \
   InttDefs.h \
   MvtxDefs.h \
   sPHENIXActsDetectorElement.h \
+  SpacePoint.h \
   TpcDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \

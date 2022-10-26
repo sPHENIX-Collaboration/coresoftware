@@ -14,7 +14,7 @@
 #include <Acts/Seeding/BinFinder.hpp>
 #include <Acts/Seeding/SpacePointGrid.hpp>
 
-#include "SpacePoint.h"
+#include <trackbase/SpacePoint.h>
 
 #include <string>
 #include <map>
@@ -55,10 +55,6 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Output some diagnostic histograms
   void seedAnalysis(bool seedAnalysis)
     { m_seedAnalysis = seedAnalysis; }
-
-  /// field map name for 3d map functionality
-  void fieldMapName(const std::string& fieldmap)
-    { m_fieldMapName = fieldmap; }
 
   void setRPhiSearchWindow(const float win) { m_rPhiSearchWin = win; std::cout << "Search window is " << m_rPhiSearchWin<<std::endl;}
 
@@ -211,7 +207,6 @@ class PHActsSiliconSeeding : public SubsysReco
 
   int m_nBadUpdates = 0;
   int m_nBadInitialFits = 0;
-  std::string m_fieldMapName = "";
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
   int _n_iteration = 0;
   std::string _track_map_name = "SiliconTrackSeedContainer";
