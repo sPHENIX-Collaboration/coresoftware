@@ -1,12 +1,23 @@
 #include "PHField3DCartesian.h"
 
+#include <phool/phool.h>
+
 #include <TDirectory.h>  // for TDirectory, gDirectory
 #include <TFile.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TNtuple.h>
+#include <TSystem.h>
+#pragma GCC diagnostic pop
 
 #include <Geant4/G4SystemOfUnits.hh>
 
+// stacktrace gives a shadow warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/stacktrace.hpp>
+#pragma GCC diagnostic pop
 
 #include <cassert>
 #include <cmath>
@@ -17,7 +28,7 @@
 #include <utility>
 
 
-PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float magfield_rescale)
+PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float magfield_rescale, const float innerradius, const float outerradius, const float size_z)
   : filename(fname)
 {
   for (int i = 0; i < 2; i++)
@@ -44,15 +55,23 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   if (!rootinput)
   {
     std::cout << "\n could not open " << filename << " exiting now" << std::endl;
+    gSystem->Exit(1);
     exit(1);
   }
   std::cout << "\n ---> "
                "Reading the field grid from "
             << filename << " ... " << std::endl;
-  rootinput->cd();
 
   //  get root NTuple objects
-  TNtuple *field_map = (TNtuple *) gDirectory->Get("fieldmap");
+  TNtuple *field_map = nullptr;
+  rootinput->GetObject("fieldmap", field_map);
+  if (field_map == nullptr)
+  {
+    std::cout << PHWHERE << " Could not load fieldmap ntuple from "
+	      << filename << " exiting now" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
   Float_t ROOT_X, ROOT_Y, ROOT_Z;
   Float_t ROOT_BX, ROOT_BY, ROOT_BZ;
   field_map->SetBranchAddress("x", &ROOT_X);
@@ -61,7 +80,6 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   field_map->SetBranchAddress("bx", &ROOT_BX);
   field_map->SetBranchAddress("by", &ROOT_BY);
   field_map->SetBranchAddress("bz", &ROOT_BZ);
-
   for (int i = 0; i < field_map->GetEntries(); i++)
   {
     field_map->GetEntry(i);
@@ -70,7 +88,12 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
     xvals.insert(ROOT_X * cm);
     yvals.insert(ROOT_Y * cm);
     zvals.insert(ROOT_Z * cm);
-    fieldmap[coord_key] = field_val;
+    if ((std::sqrt(ROOT_X * cm * ROOT_X * cm + ROOT_Y * cm * ROOT_Y * cm) >= innerradius &&
+	 std::sqrt(ROOT_X * cm * ROOT_X * cm + ROOT_Y * cm * ROOT_Y * cm) <= outerradius) ||
+	std::abs(ROOT_Z * cm) > size_z )
+    {
+      fieldmap[coord_key] = field_val;
+    }
   }
   xmin = *(xvals.begin());
   xmax = *(xvals.rbegin());
@@ -91,8 +114,8 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
   ystepsize = (ymax - ymin) / (yvals.size() - 1);
   zstepsize = (zmax - zmin) / (zvals.size() - 1);
 
-  rootinput->Close();
-
+  delete field_map;
+  delete rootinput;
   std::cout << "\n================= End Construct Mag Field ======================\n"
             << std::endl;
 }
@@ -154,39 +177,58 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
   {
     return;
   }
+  double xkey[2];
   std::set<float>::const_iterator it = xvals.lower_bound(x);
+  xkey[0] = *it;
   if (it == xvals.begin())
   {
-    std::cout << "x too small - outside range: " << x / cm << std::endl;
-    return;
+    xkey[1] = *it;
+    if (x < xkey[0])
+    {
+      std::cout << PHWHERE << ": This should not happen! x too small - outside range: " << x / cm << std::endl;
+      return;
+    }
   }
-  double xkey[2];
-  xkey[0] = *it;
-  --it;
-  xkey[1] = *it;
+  else
+  {
+    --it;
+    xkey[1] = *it;
+  }
 
+  double ykey[2];
   it = yvals.lower_bound(y);
+  ykey[0] = *it;
   if (it == yvals.begin())
   {
-    std::cout << "y too small - outside range: " << y / cm << std::endl;
-    return;
+    ykey[1] = *it;
+    if (y < ykey[0])
+    {
+      std::cout << PHWHERE << ": This should not happen! y too small - outside range: " << y / cm << std::endl;
+      return;
+    }
   }
-  double ykey[2];
-  ykey[0] = *it;
-  --it;
-  ykey[1] = *it;
-
-  it = zvals.lower_bound(z);
-  if (it == zvals.begin())
+  else
   {
-    std::cout << "z too small - outside range: " << z / cm << std::endl;
-    return;
+    --it;
+    ykey[1] = *it;
   }
   double zkey[2];
+  it = zvals.lower_bound(z);
   zkey[0] = *it;
-  --it;
-  zkey[1] = *it;
-
+  if (it == zvals.begin())
+  {
+    zkey[1] = *it;
+    if (z < zkey[0])
+    {
+      std::cout << PHWHERE << ": This should not happen! z too small - outside range: " << z / cm << std::endl;
+      return;
+    }
+  }
+  else
+  {
+    --it;
+    zkey[1] = *it;
+  }
   if (xkey_save != xkey[0] ||
       ykey_save != ykey[0] ||
       zkey_save != zkey[0])
@@ -208,7 +250,8 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
           magval = fieldmap.find(key);
           if (magval == fieldmap.end())
           {
-            std::cout << "could not locate key, x: " << xkey[i] / cm
+            std::cout << PHWHERE << " could not locate key in " << filename
+		      << " value: x: " << xkey[i] / cm
                       << ", y: " << ykey[j] / cm
                       << ", z: " << zkey[k] / cm << std::endl;
             return;

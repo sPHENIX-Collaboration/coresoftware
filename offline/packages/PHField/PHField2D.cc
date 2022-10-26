@@ -3,11 +3,14 @@
 //root framework
 #include <TDirectory.h>
 #include <TFile.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <TNtuple.h>
+#include <TSystem.h>
+#pragma GCC diagnostic pop
 
 #include <Geant4/G4SystemOfUnits.hh>
-
-#include <TSystem.h>
 
 #include <boost/tuple/tuple_comparison.hpp>
 
@@ -40,7 +43,10 @@ PHField2D::PHField2D(const string &filename, const int verb, const float magfiel
     gSystem->Exit(1);
     exit(1);
   }
-  if (Verbosity() > 0) cout << "  Field grid file: " << filename << endl;
+  if (Verbosity() > 0)
+  {
+    cout << "  Field grid file: " << filename << endl;
+  }
   rootinput->cd();
 
   Float_t ROOT_Z, ROOT_R;
@@ -73,7 +79,10 @@ PHField2D::PHField2D(const string &filename, const int verb, const float magfiel
   static const int NENTRIES = field_map->GetEntries();
 
   // run checks on entries
-  if (Verbosity() > 0) cout << "  The field grid contained " << NENTRIES << " entries" << endl;
+  if (Verbosity() > 0)
+  {
+    cout << "  The field grid contained " << NENTRIES << " entries" << endl;
+  }
   if (Verbosity() > 1)
   {
     cout << "\n  NENTRIES should be the same as the following values:"
@@ -164,8 +173,14 @@ PHField2D::PHField2D(const string &filename, const int verb, const float magfiel
     float Bz = iter->second.get<0>() * magfield_unit;
     float Br = iter->second.get<1>() * magfield_unit;
 
-    if (z > maxz_) maxz_ = z;
-    if (z < minz_) minz_ = z;
+    if (z > maxz_)
+    {
+      maxz_ = z;
+    }
+    if (z < minz_)
+    {
+      minz_ = z;
+    }
 
     // check for change in z value, when z changes we have a ton of updates to do
     if (z != z_map_[iz])
@@ -205,24 +220,37 @@ PHField2D::PHField2D(const string &filename, const int verb, const float magfiel
 
   rootinput->Close();
 
-  if (Verbosity() > 0) cout << "  Mag field z boundaries (min,max): (" << minz_ / cm << ", " << maxz_ / cm << ") cm" << endl;
-  if (Verbosity() > 0) cout << "  Mag field r max boundary: " << r_map_.back() / cm << " cm" << endl;
+  if (Verbosity() > 0)
+  {
+    cout << "  Mag field z boundaries (min,max): (" << minz_ / cm << ", " << maxz_ / cm << ") cm" << endl;
+  }
+  if (Verbosity() > 0)
+  {
+    cout << "  Mag field r max boundary: " << r_map_.back() / cm << " cm" << endl;
+  }
 
   if (Verbosity() > 0)
+  {
     cout << " -----------------------------------------------------------" << endl;
+  }
 }
 
 void PHField2D::GetFieldValue(const double point[4], double *Bfield) const
 {
   if (Verbosity() > 2)
+  {
     cout << "\nPHField2D::GetFieldValue" << endl;
+  }
   double x = point[0];
   double y = point[1];
   double z = point[2];
   double r = sqrt(x * x + y * y);
   double phi;
   phi = atan2(y, x);
-  if (phi < 0) phi += 2 * M_PI;  // normalize phi to be over the range [0,2*pi]
+  if (phi < 0)
+  {
+    phi += 2 * M_PI;  // normalize phi to be over the range [0,2*pi]
+  }
 
   // Check that the point is within the defined z region (check r in a second)
   if ((z >= minz_) && (z <= maxz_))
@@ -248,7 +276,9 @@ void PHField2D::GetFieldValue(const double point[4], double *Bfield) const
     Bfield[1] = 0.0;
     Bfield[2] = 0.0;
     if (Verbosity() > 2)
+    {
       cout << "!!!!!!!!!! Field point not in defined region (outside of z bounds)" << endl;
+    }
   }
 
   if (Verbosity() > 2)
@@ -271,12 +301,16 @@ void PHField2D::GetFieldCyl(const double CylPoint[4], double *BfieldCyl) const
   BfieldCyl[2] = 0.0;
 
   if (Verbosity() > 2)
+  {
     cout << "GetFieldCyl@ <z,r>: {" << z << "," << r << "}" << endl;
+  }
 
   if (z < z_map_[0] || z > z_map_[z_map_.size() - 1])
   {
     if (Verbosity() > 2)
+    {
       cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
+    }
     return;
   }
 
@@ -295,7 +329,9 @@ void PHField2D::GetFieldCyl(const double CylPoint[4], double *BfieldCyl) const
     if (r_index0 >= r_map_.size())
     {
       if (Verbosity() > 2)
+      {
         cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
+      }
       return;
     }
 
@@ -303,7 +339,9 @@ void PHField2D::GetFieldCyl(const double CylPoint[4], double *BfieldCyl) const
     if (r_index1 >= r_map_.size())
     {
       if (Verbosity() > 2)
+      {
         cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
+      }
       return;
     }
 
@@ -324,7 +362,9 @@ void PHField2D::GetFieldCyl(const double CylPoint[4], double *BfieldCyl) const
     if (z_index1 >= z_map_.size())
     {
       if (Verbosity() > 2)
+      {
         cout << "!!!! Point not in defined region (z too large in specific r-plane)" << endl;
+      }
       return;
     }
 

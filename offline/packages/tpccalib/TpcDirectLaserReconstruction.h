@@ -19,7 +19,7 @@ class SvtxTrack;
 class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
 class TrkrHitSetContainer;
-class   PHG4CylinderCellGeomContainer;
+class   PHG4TpcCylinderGeomContainer;
 
 class TFile;
 class TH1;
@@ -123,7 +123,7 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   ///@name nodes
   //@{
 
-  PHG4CylinderCellGeomContainer *m_geom_container = nullptr;
+  PHG4TpcCylinderGeomContainer *m_geom_container = nullptr;
 
   /// Acts surface maps for surface lookup
   ActsSurfaceMaps* m_surfmaps = nullptr;

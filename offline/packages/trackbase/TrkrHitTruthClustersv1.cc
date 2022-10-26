@@ -7,6 +7,7 @@
 
 #include "TrkrHitTruthClustersv1.h"
 
+#include <array>
 #include <algorithm>
 #include <cmath>
 #include <iomanip>

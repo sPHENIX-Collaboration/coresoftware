@@ -178,16 +178,15 @@ void PHG4OHCalSubsystem::SetDefaultParameters()
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
   std::string defaultmapfilename;
-  // const char* Calibroot = getenv("CALIBRATIONROOT");
-  // if (Calibroot)
-  // {
-  //   defaultmapfilename = Calibroot;
-  //   defaultmapfilename += "/HCALOUT/tilemap/oHCALMaps092021.root";
-  // }
-  set_default_string_param("MapFileName", defaultmapfilename);
-  set_default_string_param("MapHistoName", "hCombinedMap");
-  
   const char* Calibroot = getenv("CALIBRATIONROOT");
+  if (Calibroot)
+   {
+     defaultmapfilename = Calibroot;
+     defaultmapfilename += "/HCALOUT/tilemap/ohcalgdmlmapfiles102022.root";
+   }
+  set_default_string_param("MapFileName", defaultmapfilename);
+  set_default_string_param("MapHistoName", "ohcal_mephi_map_towerid_");
+  
   if (!Calibroot)
   {
     std::cout<<__PRETTY_FUNCTION__ << ": no CALIBRATIONROOT environment variable" << std::endl;

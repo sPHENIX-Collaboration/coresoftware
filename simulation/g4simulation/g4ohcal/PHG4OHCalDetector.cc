@@ -71,7 +71,10 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
 
   m_FieldSetup =
     new PHG4OHCalFieldSetup(
-        m_Params->get_string_param("IronFieldMapPath"), m_Params->get_double_param("IronFieldMapScale")
+      m_Params->get_string_param("IronFieldMapPath"), m_Params->get_double_param("IronFieldMapScale"),
+      m_InnerRadius - 10*cm, // subtract 10 cm to make sure fieldmap with 2x2 grid covers it
+      m_OuterRadius + 10*cm, // add 10 cm to make sure fieldmap with 2x2 grid covers it
+      m_SizeZ/2. + 10*cm // div by 2 bc G4 convention
         );
 }
 
