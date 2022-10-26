@@ -51,24 +51,35 @@ class PHActsKDTreeSeeding : public SubsysReco
   Acts::SeedFilterConfig m_seedFilterConfig;
   Acts::SeedFinderOrthogonalConfig<SpacePoint> m_seedFinderConfig;
   
+  /// configured to seed in the MVTX using the middle layer 
+  /// as the seed anchor
+  /// Defines volume to search for seeds in
   float m_rMax = 200. * Acts::UnitConstants::mm;
   float m_deltaRMinTopSP = 1. * Acts::UnitConstants::mm;
-  float m_deltaRMaxTopSP = 15. * Acts::UnitConstants::mm;
+  float m_deltaRMaxTopSP = 20. * Acts::UnitConstants::mm;
   float m_deltaRMinBottomSP = 1. * Acts::UnitConstants::mm;
-  float m_deltaRMaxBottomSP = 15. * Acts::UnitConstants::mm;
+  float m_deltaRMaxBottomSP = 20. * Acts::UnitConstants::mm;
   float m_collisionRegionMin = -300 * Acts::UnitConstants::mm;
   float m_collisionRegionMax = 300 * Acts::UnitConstants::mm;
   float m_zMin = -300. * Acts::UnitConstants::mm;
   float m_zMax = 300. * Acts::UnitConstants::mm;
+
+  /// max number of seeds a single middle sp can belong to
   float m_maxSeedsPerSpM = 1;
   float m_cotThetaMax = 2.9; 
   float m_sigmaScattering = 5;
   float m_radLengthPerSeed = 0.05;
-  float m_minPt = 100. ; // MeV
-  float m_bFieldInZ = 0.0014; // kTesla
+  float m_minPt = 100.; // MeV
+  float m_bFieldInZ = 0.0014; //kTesla
   float m_beamPosX = 0;
   float m_beamPosY = 0;
+
+  /// Maximum transverse PCA allowed
   float m_impactMax = 20. * Acts::UnitConstants::mm;
+
+  /// Middle spacepoint must fall between these two radii
+  float m_rMinMiddle = 28. * Acts::UnitConstants::mm;
+  float m_rMaxMiddle = 36. * Acts::UnitConstants::mm;
 
   int m_nIteration = 0;
   std::string m_trackMapName = "SiliconTrackSeedContainer";

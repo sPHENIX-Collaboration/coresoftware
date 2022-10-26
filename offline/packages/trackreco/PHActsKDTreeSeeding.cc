@@ -100,6 +100,11 @@ SeedContainer PHActsKDTreeSeeding::runSeeder()
 
   /// Call acts seeding algo
   SeedContainer seeds = finder.createSeeds(spacePoints);
+  if(Verbosity() > 1)
+    {
+      std::cout << "Acts::OrthogonalSeeder found " << seeds.size() 
+		<< " seeds " << std::endl;
+    }
 
   return seeds;
 }
@@ -356,6 +361,8 @@ Acts::SeedFinderOrthogonalConfig<SpacePoint> PHActsKDTreeSeeding::configureSeedF
   cfg.beamPos =
       Acts::Vector2(m_beamPosX, m_beamPosY);
   cfg.impactMax = m_impactMax;
+  cfg.rMinMiddle = m_rMinMiddle;
+  cfg.rMaxMiddle = m_rMaxMiddle;
 
   // Taken from SeedingOrthogonalAlgorithm.cpp, e.g.
   // https://github.com/acts-project/acts/blob/4b9d9c408158d09bc413e50fc41dbf3277bd751b/Examples/Algorithms/TrackFinding/src/SeedingOrthogonalAlgorithm.cpp

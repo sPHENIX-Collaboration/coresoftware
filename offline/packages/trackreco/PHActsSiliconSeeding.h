@@ -88,8 +88,6 @@ class PHActsSiliconSeeding : public SubsysReco
 
  private:
 
-  float m_uncfactor = 3.175;
-    
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 
@@ -152,7 +150,8 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Configurable parameters
   /// seed pt has to be in MeV
   float m_minSeedPt = 100 * Acts::UnitConstants::MeV;
-
+  float m_uncfactor = 3.175;
+    
   /// How many seeds a given hit can be the middle hit of the seed
   /// MVTX can only have the middle layer be the middle hit
   int m_maxSeedsPerSpM = 1;
