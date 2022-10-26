@@ -583,7 +583,6 @@ void PHActsSiliconSeeding::circleCircleIntersection(const double layerRadius,
 SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   const Surface& surf,
   const TrkrDefs::cluskey key,
-  //  const TrkrCluster* clus)
   TrkrCluster* clus)
 {
   Acts::Vector2 localPos(clus->getLocalX() * Acts::UnitConstants::cm, 

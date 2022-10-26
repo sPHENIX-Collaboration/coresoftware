@@ -31,7 +31,7 @@ class TrkrClusterContainer;
 class TrkrClusterIterationMapv1;
 
 using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
-using SeedContainer = std::vector<Acts::Seed<SpacePoint>>;
+
 /**
  * This class runs the Acts seeder over the MVTX measurements
  * to create track stubs for the rest of the stub matching pattern
