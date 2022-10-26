@@ -80,7 +80,6 @@ libtrack_reco_io_la_SOURCES = \
   AssocInfoContainer.cc \
   GPUTPCTrackParam.cxx
 
-if MAKE_ACTS
 ACTS_SOURCES = \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
@@ -109,7 +108,6 @@ ACTS_LIBS = \
   -lActsExamplesFramework \
   -lActsExamplesIoRoot \
   -lActsExamplesMagneticField
-endif
 
 libtrack_reco_la_SOURCES = \
   $(ACTS_SOURCES) \

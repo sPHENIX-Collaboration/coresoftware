@@ -21,6 +21,7 @@ class TrkrClusterContainer;
 class TF1;
 class TpcDistortionCorrectionContainer;
 class Mille;
+class SvtxTrackSeed;
 
 enum siliconGrp {snsr, stv, brrl};
 enum tpcGrp {subsrf, sctr, tp};
@@ -66,15 +67,27 @@ Mille* _mille;
 
   int GetNodes(PHCompositeNode* topNode);
 
-  Acts::Vector3 get_helix_pca(float radius, float zslope, Acts::Vector3 helix_center, Acts::Vector3 global);
+  Acts::Vector3 get_helix_pca(std::vector<float>& fitpars, Acts::Vector3 global);
   Acts::Vector3 getPCALinePoint(Acts::Vector3 global, Acts::Vector3 tangent, Acts::Vector3 posref);
-  Acts::Vector2 get_circle_point_pca(float radius, Acts::Vector3 center, Acts::Vector3 global);
+  Acts::Vector2 get_circle_point_pca(float radius, float x0, float y0, Acts::Vector3 global);
 
   int getLabelBase(Acts::GeometryIdentifier id);
   Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
   std::vector<Acts::Vector3> getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing);
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
+
+  void getTrackletClusters(TrackSeed *_track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
+  std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);
+  Acts::Vector3 getClusterError(TrkrCluster *cluster, TrkrDefs::cluskey cluskey, Acts::Vector3& global);
+  void getGlobalLabels(Surface surf, int glbl_label[]);
+  void getLocalDerivativesX(Acts::Vector3& pca, std::vector<float>& fitpars, float lcl_derivative[]);
+  void getLocalDerivativesY(Acts::Vector3& pca, std::vector<float>& fitpars, float lcl_derivative[]);
+  void getLocalDerivativesZ(Acts::Vector3& global, float lcl_derivative[]);
+  void getGlobalDerivativesX( std::vector<Acts::Vector3> angleDerivs, float glbl_derivatives[], unsigned int layer);
+  void getGlobalDerivativesY( std::vector<Acts::Vector3> angleDerivs, float glbl_derivatives[], unsigned int layer);
+  void getGlobalDerivativesZ( std::vector<Acts::Vector3> angleDerivs, float glbl_derivatives[], unsigned int layer);
+  void printBuffers(int index, Acts::Vector3 residual, Acts::Vector3 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[]);
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
   TpcDistortionCorrectionContainer* _dcc_static{nullptr};
@@ -112,6 +125,9 @@ Mille* _mille;
 
   std::string  data_outfilename = ("mille_helical_output_data_file.bin");  
   std::string  steering_outfilename = ("steer_helical.txt");  
+
+  static const int NLC = 5;
+  static const int NGL = 6;
 
   bool fitsilicon = true;
   bool fittpc = false;
