@@ -125,15 +125,6 @@ class PHActsSiliconSeeding : public SubsysReco
 						   const double yProj[],
 						   const double zProj[]);
 
-  void circleCircleIntersection(const double layerRadius, 
-				const double circRadius,
-				const double circX0,
-				const double circY0,
-				double& xplus,
-				double& yplus,
-				double& xminus,
-				double& yminus);
-
   void createHistograms();
   void writeHistograms();
   double normPhi2Pi(const double phi);
