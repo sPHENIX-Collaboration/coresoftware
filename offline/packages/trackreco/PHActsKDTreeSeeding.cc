@@ -17,6 +17,12 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeed_v1.h>
 
+#include <intt/CylinderGeomIntt.h>
+
+#include <g4detectors/PHG4CylinderGeom.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrCluster.h>            
 #include <trackbase/TrkrClusterContainer.h>
@@ -70,6 +76,14 @@ int PHActsKDTreeSeeding::InitRun(PHCompositeNode* topNode)
     return ret;
 
   m_seedFinderConfig = configureSeedFinder();
+
+  auto beginend = m_geomContainerIntt->get_begin_end();
+  int i = 0;
+  for(auto iter = beginend.first; iter != beginend.second; ++iter)
+    {
+      m_nInttLayerRadii[i] = iter->second->get_radius();
+      i++;
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -129,6 +143,18 @@ void PHActsKDTreeSeeding::fillTrackSeedContainer(SeedContainer& seeds)
       
       siseed->circleFitByTaubin(positions,0,8);
       siseed->lineFit(positions,0,8);
+
+      /// Project to INTT and find matches to add to positions
+      findInttMatches(positions, *siseed);
+
+      for(const auto& [key, pos] : positions)
+	{
+	  if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::inttId)
+	    {
+	      siseed->insert_cluster_key(key);
+	    }
+	}
+
       /// The acts seed has better z resolution than the circle fit
       siseed->set_Z0(seed.z() / Acts::UnitConstants::cm);
       if(Verbosity() > 2)
@@ -136,8 +162,172 @@ void PHActsKDTreeSeeding::fillTrackSeedContainer(SeedContainer& seeds)
 	  std::cout << "Found seed" << std::endl;
 	  siseed->identify();
 	}
+      
       m_seedContainer->insert(siseed.get());
 
+    }
+}
+
+void PHActsKDTreeSeeding::findInttMatches(
+  std::map<TrkrDefs::cluskey, Acts::Vector3>& clusters,
+  TrackSeed& seed)
+{
+  const float R = fabs(1. / seed.get_qOverR());
+  const float X0 = seed.get_X0();
+  const float Y0 = seed.get_Y0();
+  const float B = seed.get_Z0();
+  const float m = seed.get_slope();
+
+  double xProj[m_nInttLayers];
+  double yProj[m_nInttLayers];
+  double zProj[m_nInttLayers];
+  
+  /// Project the seed to the INTT to find matches
+  for(int layer = 0; layer < m_nInttLayers; ++layer)
+    {
+      auto cci = TrackFitUtils::circle_circle_intersection(
+                 m_nInttLayerRadii[layer],
+		 R, X0, Y0);
+      double xplus = std::get<0>(cci);
+      double yplus = std::get<1>(cci);
+      double xminus = std::get<2>(cci);
+      double yminus = std::get<3>(cci);
+      
+      /// If there are no real solutions to the intersection, skip
+      if(std::isnan(xplus))
+	{
+	  if(Verbosity() > 2)
+	    {
+	      std::cout << "Circle intersection calc failed, skipping" 
+			<< std::endl;
+	      std::cout << "layer radius " << m_nInttLayerRadii[layer] 
+			<< " and circ rad " << R << " with center " << X0 
+			<< ", " << Y0 << std::endl;
+	    }
+
+	  continue;
+	}
+      
+      /// Figure out which solution is correct based on the position 
+      /// of the last layer in the mvtx seed
+      Acts::Vector3 lastclusglob = Acts::Vector3::Zero();
+      for(const auto& [key, pos] : clusters)
+	{
+	  float lastclusglobr = sqrt(square(lastclusglob(0))+square(lastclusglob(1)));
+	  float thisr = sqrt(square(pos(0))+square(pos(1)));
+	  if(thisr > lastclusglobr) lastclusglob = pos;
+	}
+
+      const double lastClusPhi = atan2(lastclusglob(1), lastclusglob(0));
+      const double plusPhi = atan2(yplus, xplus);
+      const double minusPhi = atan2(yminus, xminus);
+     
+      if(fabs(lastClusPhi - plusPhi) < fabs(lastClusPhi - minusPhi))
+	{
+	  xProj[layer] = xplus;
+	  yProj[layer] = yplus;
+	}
+      else
+	{
+	  xProj[layer] = xminus;
+	  yProj[layer] = yminus;
+	}
+      
+      zProj[layer] = m * m_nInttLayerRadii[layer] + B;
+
+      if(Verbosity() > 2)
+	{
+	  std::cout << "Projected point is : " << xProj[layer] << ", "
+		    << yProj[layer] << ", " << zProj[layer] << std::endl;
+	}
+    }
+  
+  matchInttClusters(clusters, xProj, yProj, zProj);
+}
+
+
+void PHActsKDTreeSeeding::matchInttClusters(
+  std::map<TrkrDefs::cluskey, Acts::Vector3>& clusters,
+  const double xProj[],
+  const double yProj[],
+  const double zProj[])
+{
+
+  for(int inttlayer = 0; inttlayer < m_nInttLayers; inttlayer++)
+    {
+      const double projR = std::sqrt(square(xProj[inttlayer]) + square(yProj[inttlayer]));
+      const double projPhi = std::atan2(yProj[inttlayer], xProj[inttlayer]);
+      const double projRphi = projR * projPhi;
+
+      for( const auto& hitsetkey : m_clusterMap->getHitSetKeys(TrkrDefs::TrkrId::inttId, inttlayer+3))
+      {
+	  double ladderLocation[3] = {0.,0.,0.};
+
+	  // Add three to skip the mvtx layers for comparison
+	  // to projections
+	  auto layerGeom = dynamic_cast<CylinderGeomIntt*>
+	    (m_geomContainerIntt->GetLayerGeom(inttlayer+3));
+	  
+	  auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
+	  layerGeom->find_segment_center(surf, m_tGeometry, ladderLocation);
+        
+	  const double ladderphi = atan2(ladderLocation[1], ladderLocation[0]) + layerGeom->get_strip_phi_tilt();
+	  const auto stripZSpacing = layerGeom->get_strip_z_spacing();
+	  float dphi = ladderphi - projPhi;
+	  if(dphi > M_PI)
+	    { dphi -= 2. * M_PI; }
+	  else if (dphi < -1 * M_PI)
+	    { dphi += 2. * M_PI; }
+	  
+	  /// Check that the projection is within some reasonable amount of the segment
+	  /// to reject e.g. looking at segments in the opposite hemisphere. This is about
+	  /// the size of one intt segment (256 * 80 micron strips in a segment)
+	  if(fabs(dphi) > 0.2)
+	    { 
+	    
+	      continue; 
+	    }
+
+	  TVector3 projectionLocal(0,0,0);
+	  TVector3 projectionGlobal(xProj[inttlayer],yProj[inttlayer],zProj[inttlayer]);
+	 
+	  projectionLocal = layerGeom->get_local_from_world_coords(surf, 
+								   m_tGeometry,
+								   projectionGlobal);
+        
+	  auto range = m_clusterMap->getClusters(hitsetkey);	
+	  for(auto clusIter = range.first; clusIter != range.second; ++clusIter )
+	    {
+	      const auto cluskey = clusIter->first;
+	      const auto cluster = clusIter->second;
+	     
+	      /// Z strip spacing is the entire strip, so because we use fabs
+	      /// we divide by two
+	      if(fabs(projectionLocal[1] - cluster->getLocalX()) < m_rPhiSearchWin and
+		 fabs(projectionLocal[2] - cluster->getLocalY()) < stripZSpacing / 2.)
+		{
+	
+		  /// Cache INTT global positions with seed
+		  const auto globalPos = m_tGeometry->getGlobalPosition(
+                    cluskey, cluster);
+		  clusters.insert(std::make_pair(cluskey, globalPos));
+
+		 		  	      
+		  if(Verbosity() > 4)
+		    {
+		      std::cout << "Matched INTT cluster with cluskey " << cluskey 
+				<< " and position " << globalPos.transpose() 
+				<< std::endl << " with projections rphi "
+				<< projRphi << " and inttclus rphi " << cluster->getLocalX()
+				<< " and proj z " << zProj[inttlayer] << " and inttclus z "
+				<< cluster->getLocalY() << " in layer " << inttlayer 
+				<< " with search windows " << m_rPhiSearchWin 
+				<< " in rphi and strip z spacing " << stripZSpacing 
+				<< std::endl;
+		    }
+		}
+	    }
+	}  
     }
 }
 
@@ -270,7 +460,14 @@ int PHActsKDTreeSeeding::End(PHCompositeNode*)
 
 int PHActsKDTreeSeeding::getNodes(PHCompositeNode* topNode)
 {
-  
+  m_geomContainerIntt = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  if(!m_geomContainerIntt)
+    {
+      std::cout << PHWHERE << "CYLINDERGEOM_INTT node not found on node tree"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_tGeometry)
     {

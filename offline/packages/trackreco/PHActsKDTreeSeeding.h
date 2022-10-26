@@ -21,6 +21,7 @@ class ActsGeometry;
 class TrkrClusterContainer;
 class TrackSeedContainer;
 class TrkrCluster;
+class PHG4CylinderGeomContainer;
 
 class PHActsKDTreeSeeding : public SubsysReco
 {
@@ -47,6 +48,16 @@ class PHActsKDTreeSeeding : public SubsysReco
   SpacePointPtr makeSpacePoint(const Surface& surf,
 			       const TrkrDefs::cluskey key,
 			       TrkrCluster* clus);
+
+  /// Projects circle fit to INTT radii to find possible INTT clusters
+  /// belonging to MVTX track stub
+  void findInttMatches(std::map<TrkrDefs::cluskey, Acts::Vector3>& clusters,
+		       TrackSeed& seed);
+
+  void matchInttClusters(std::map<TrkrDefs::cluskey, Acts::Vector3>& clusters,
+			 const double xProj[],
+			 const double yProj[],
+			 const double zProj[]);
 
   Acts::SeedFilterConfig m_seedFilterConfig;
   Acts::SeedFinderOrthogonalConfig<SpacePoint> m_seedFinderConfig;
@@ -87,7 +98,11 @@ class PHActsKDTreeSeeding : public SubsysReco
   int m_clusterVersion = 4;
   ClusterErrorPara m_clusErrPara;
   float m_uncfactor = 3.175;
-    
+  const static int m_nInttLayers = 4;
+  float m_nInttLayerRadii[m_nInttLayers] = {0};
+  float m_rPhiSearchWin = 0.1;
+
+  PHG4CylinderGeomContainer* m_geomContainerIntt = nullptr;
   TrkrClusterIterationMapv1* m_iterationMap = nullptr;
   ActsGeometry* m_tGeometry = nullptr;
   TrkrClusterContainer* m_clusterMap = nullptr;
