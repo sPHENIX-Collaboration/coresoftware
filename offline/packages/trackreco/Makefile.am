@@ -27,18 +27,9 @@ pkginclude_HEADERS = \
   ALICEKF.h \
   AssocInfoContainer.h \
   AssocInfoContainerv1.h \
-  CellularAutomaton.h \
-  CellularAutomaton_v1.h \
   GPUTPCBaseTrackParam.h \
   GPUTPCTrackLinearisation.h \
   GPUTPCTrackParam.h \
-  HelixHoughBin.h \
-  HelixHoughBin_v1.h \
-  HelixHoughFuncs.h \
-  HelixHoughFuncs_v1.h \
-  HelixHoughSpace.h \
-  HelixHoughSpace_v1.h \
-  HelixKalmanFilter.h \
   MakeActsGeometry.h \
   nanoflann.hpp \
   PHActsGSF.h \
@@ -51,7 +42,6 @@ pkginclude_HEADERS = \
   PHGenFitTrkFitter.h \
   PHGhostRejection.h \
   PHInitVertexing.h \
-  PHInitZVertexing.h \
   PHMicromegasTpcTrackMatching.h \
   PHSiliconTpcTrackMatching.h \
   PHSimpleVertexFinder.h \
@@ -71,42 +61,22 @@ pkginclude_HEADERS = \
   PHTruthClustering.h \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
-  PHTruthVertexing.h \
-  VertexFitter.h
+  PHTruthVertexing.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
-  AssocInfoContainerv1_Dict.cc \
-  HelixHoughBin_Dict.cc \
-  HelixHoughBin_v1_Dict.cc \
-  HelixHoughFuncs_Dict.cc \
-  HelixHoughFuncs_v1_Dict.cc \
-  HelixHoughSpace_Dict.cc \
-  HelixHoughSpace_v1_Dict.cc
+  AssocInfoContainerv1_Dict.cc
 
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
   AssocInfoContainer_Dict_rdict.pcm \
-  AssocInfoContainerv1_Dict_rdict.pcm \
-  HelixHoughBin_Dict_rdict.pcm \
-  HelixHoughBin_v1_Dict_rdict.pcm \
-  HelixHoughFuncs_Dict_rdict.pcm \
-  HelixHoughFuncs_v1_Dict_rdict.pcm \
-  HelixHoughSpace_Dict_rdict.pcm \
-  HelixHoughSpace_v1_Dict_rdict.pcm
+  AssocInfoContainerv1_Dict_rdict.pcm
 
 libtrack_reco_io_la_SOURCES = \
   $(ROOTDICTS) \
   AssocInfoContainerv1.cc \
   AssocInfoContainer.cc \
-  CellularAutomaton_v1.cc \
-  GPUTPCTrackParam.cxx \
-  HelixHoughBin.cc \
-  HelixHoughBin_v1.cc \
-  HelixHoughFuncs_v1.cc \
-  HelixHoughSpace_v1.cc \
-  HelixKalmanFilter.cc \
-  VertexFitter.cc
+  GPUTPCTrackParam.cxx
 
 if MAKE_ACTS
 ACTS_SOURCES = \
@@ -149,7 +119,6 @@ libtrack_reco_la_SOURCES = \
   PHGenFitTrkFitter.cc \
   PHGhostRejection.cc \
   PHInitVertexing.cc \
-  PHInitZVertexing.cc \
   PHMicromegasTpcTrackMatching.cc \
   PHRaveVertexing.cc \
   PHSiliconSeedMerger.cc \
@@ -171,8 +140,7 @@ libtrack_reco_la_SOURCES = \
   PHTruthSiliconAssociation.cc
 
 libtrack_reco_io_la_LIBADD = \
-  -lphool \
-  -lHelixHough 
+  -lphool
 
 libtrack_reco_la_LIBADD = \
   libtrack_reco_io.la \
@@ -183,8 +151,6 @@ libtrack_reco_la_LIBADD = \
   -lg4detectors \
   -lgsl \
   -lgslcblas \
-  -lFitNewton \
-  -lSeamstress \
   -lgenfit2 \
   -lgenfit2exp \
   -lPHGenFit \
