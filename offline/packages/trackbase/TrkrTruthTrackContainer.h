@@ -21,11 +21,11 @@ class TrkrTruthTrackContainer : public PHObject
   void Reset() override {}
 
   //! add a Track
-  virtual void       addTruthTrack(TrkrTruthTrack*) = 0;
-  virtual ConstRange getTruthTrackRange() const =0;
-  virtual bool       hasTrackid(unsigned int trackid) const =0;
-  virtual TrkrTruthTrack* getTruthTrack(unsigned int trackid) const=0;
-  virtual Vector&    getTruthTracks() =0;
+  virtual void            addTruthTrack(TrkrTruthTrack*) {};
+  virtual ConstRange      getTruthTrackRange() const;
+  virtual bool            hasTrackid(unsigned int   /*trackid*/) const { return false; };
+  virtual TrkrTruthTrack* getTruthTrack(unsigned int /*trackid*/) const { return nullptr; };
+  virtual Vector&         getTruthTracks();
   
   // PHObject virtual overload
   void identify(std::ostream& os = std::cout) const override
@@ -39,4 +39,3 @@ class TrkrTruthTrackContainer : public PHObject
 };
 
 #endif // TRACKBASE_TRUTHTRACKCONTAINER_H
-

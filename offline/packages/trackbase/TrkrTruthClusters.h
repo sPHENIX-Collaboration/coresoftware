@@ -6,6 +6,8 @@
  * @author D. Stewart
  * @date June 2022
  * @brief Keep track of mean and variance of phi, eta, and Z in clusters from truth hits
+ *
+ * Update October 2022 to remove pure virtual functions
  */
 
 #include "TrkrCluster.h"
@@ -39,15 +41,15 @@ class TrkrTruthClusters : public PHObject
 
   void Reset() override {};
 
-  virtual ConstRange  getClusters        (short trackid=-1)         const =0; // will only iterate over range of trackid (defaults to all tracks if none provided)
-  virtual std::vector<short> getTrkIds   (short layer=-1) const =0; // default to values for all layers
-  virtual std::vector<short> getLayers (short trkid=-1) const =0; // default to values for all tracks
-  virtual bool        hasTrkId           (short trkid)              const =0;
-  virtual bool        hasTrkIdLayer    (short trkid, short layer) const =0;
-  virtual bool        hasLayer         (short layer=-1)           const =0;
-  virtual void        addTruthCluster    (short trkid, TrkrDefs::cluskey) = 0;// 
-  virtual std::ostream& print_clusters (TrkrClusterContainer*, std::ostream &/*os*/ = std::cout) const =0;//{}
-  virtual TrkrDefs::cluskey   getCluskey(short trackid, short layer) const=0; // return 0 if not present
+  virtual ConstRange  getClusters       (short trackid=-1)   const; // will only iterate over range of trackid (defaults to all tracks if none provided)
+  virtual std::vector<short> getTrkIds  (short /*layer*/=-1) const { return {}; }; // default to values for all layers
+  virtual std::vector<short> getLayers  (short /*trkid*/=-1) const { return {}; }; // default to values for all tracks
+  virtual bool        hasTrkId          (short /*trkid*/)    const { return false; };
+  virtual bool        hasTrkIdLayer     (short /*trkid*/, short /*layer*/) const { return false; };
+  virtual bool        hasLayer          (short /*layer*/=-1) const { return false; };
+  virtual void        addTruthCluster   (short /*trkid*/, TrkrDefs::cluskey) {};// 
+  virtual std::ostream& print_clusters (TrkrClusterContainer*, std::ostream &/*os*/ = std::cout) const { return std::cout; };
+  virtual TrkrDefs::cluskey   getCluskey(short /*trackid*/, short /*layer*/) const { return 0; };// return 0 if not present
 
   // Method's required for STL to search (and sort) vectors of Entry (std::pair<short,TrkrDefs::cluskey>)
   // Sort by Track ID
@@ -62,7 +64,7 @@ class TrkrTruthClusters : public PHObject
     bool operator()(const short  lhs, const Entry& rhs) const 
     { return lhs < TrkrDefs::getLayer(rhs.second); }
   };
-  // Sort by Track D AND TPC Layer
+  // Sort by Track ID AND TPC Layer
   struct CompTrkIdLayer {
     bool operator()(const Entry& lhs, const std::pair<short, short> rhs) const 
     { 

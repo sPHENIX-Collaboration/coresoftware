@@ -192,7 +192,9 @@ libtrack_io_la_SOURCES = \
   MvtxDefs.cc \
   TpcDefs.cc \
   TrackFitUtils.cc \
+  TrkrTruthTrack.cc \
   TrkrTruthTrackv1.cc \
+  TrkrTruthTrackContainer.cc \
   TrkrTruthTrackContainerv1.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
@@ -220,6 +222,7 @@ libtrack_io_la_SOURCES = \
   TrkrHitTruthClustersv1.cc \
   TrkrHitv1.cc \
   TrkrHitv2.cc \
+  TrkrTruthClusters.cc \
   TrkrTruthClustersv1.cc \
   TpcSeedTrackMap.cc \
   TpcSeedTrackMapv1.cc
