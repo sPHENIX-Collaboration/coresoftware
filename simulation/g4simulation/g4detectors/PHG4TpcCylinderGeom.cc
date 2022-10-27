@@ -242,7 +242,7 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side ) const
     norm_phi += 2 * M_PI * nwraparound;
   }
   side = 0 ;
-  //double norm_phi = phi;
+
   int phi_bin = -1;
 
   for(std::size_t s=0;s<sector_max_Phi[side].size();s++){

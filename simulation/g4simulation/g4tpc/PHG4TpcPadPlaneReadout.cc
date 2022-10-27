@@ -531,6 +531,18 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
 
   // Now make a loop that steps through the charge distribution and evaluates the response at that point on each pad
   std::array<double, 10> overlap = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+  double pads_phi[10] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double sum_of_pads_phi = 0.;
+  double sum_of_pads_absphi = 0.;
+  for (int ipad = 0; ipad <= npads; ipad++)
+  {
+    int pad_now = phibin_low + ipad;
+    if (pad_now >= phibins) pad_now -= phibins;
+    pads_phi[ipad] = LayerGeom->get_phicenter(pad_now);
+    sum_of_pads_phi += pads_phi[ipad];
+    sum_of_pads_absphi += fabs(pads_phi[ipad]);
+  }
+
   for (int ipad = 0; ipad <= npads; ipad++)
   {
     int pad_now = phibin_low + ipad;
@@ -539,7 +551,7 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
     if (pad_now >= phibins) pad_now -= phibins;
 
     pad_keep[ipad] = pad_now;
-    double phi_now = LayerGeom->get_phicenter(pad_now);
+    double phi_now = pads_phi[ipad];
     const double rphi_pad_now = phi_now * radius;
     pad_parameters[ipad] = {{pad_rphi / 2.0, rphi_pad_now}};
 
@@ -559,14 +571,24 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
     const double pitch = pad_rphi / 2.0;//eshulga
     double x_loc_tmp = rphi_pad_now - rphi;//eshulga
     const double sigma = cloud_sig_rp;//eshulga
-    if(phi<-M_PI/2 && phi_now>0){
-      x_loc_tmp = (phi_now - 2*M_PI) * radius - rphi;
-    }
-    if(phi>M_PI/2 && phi_now<0){
-      x_loc_tmp = (phi_now + 2*M_PI) * radius - rphi;
-    }
-    const double x_loc = x_loc_tmp;
 
+    // Checking if the pads are on the same side of the TPC in phi 
+    if(fabs(sum_of_pads_phi)!= sum_of_pads_absphi){
+      if(phi<-M_PI/2 && phi_now>0){
+        x_loc_tmp = (phi_now - 2*M_PI) * radius - rphi;
+      }
+      if(phi>M_PI/2 && phi_now<0){
+        x_loc_tmp = (phi_now + 2*M_PI) * radius - rphi;
+      }
+      if(phi<0 && phi_now>0){
+        x_loc_tmp = (phi_now+fabs(phi)) * radius;
+      }
+      if(phi>0 && phi_now<0){
+        x_loc_tmp = (2*M_PI - phi_now + phi) * radius;
+      }
+    }
+
+    const double x_loc = x_loc_tmp;
     // calculate fraction of the total charge on this strip
     /* 
     this corresponds to integrating the charge distribution Gaussian function (centered on rphi and of width cloud_sig_rp), 
