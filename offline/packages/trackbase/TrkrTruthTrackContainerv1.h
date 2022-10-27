@@ -32,7 +32,6 @@ class TrkrTruthTrackContainerv1 : public TrkrTruthTrackContainer
   private:
   // the data
   Vector m_data;
-  
   ClassDefOverride(TrkrTruthTrackContainerv1, 1)
 };
 

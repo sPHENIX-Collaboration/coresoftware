@@ -40,6 +40,10 @@ pkginclude_HEADERS = \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
   TrackFitUtils.h \
+	EmbRecoMatch.h \
+	EmbRecoMatchv1.h \
+	EmbRecoMatchContainer.h \
+	EmbRecoMatchContainerv1.h \
 	TrkrTruthTrack.h \
 	TrkrTruthTrackv1.h \
 	TrkrTruthTrackContainer.h \
@@ -88,6 +92,10 @@ ROOTDICTS = \
   sPHENIXActsDetectorElement.cc \
 	TrkrTruthTrack_Dict.cc \
 	TrkrTruthTrackv1_Dict.cc \
+	EmbRecoMatch_Dict.cc \
+	EmbRecoMatchv1_Dict.cc \
+	EmbRecoMatchContainer_Dict.cc \
+	EmbRecoMatchContainerv1_Dict.cc \
 	TrkrTruthTrackContainer_Dict.cc \
 	TrkrTruthTrackContainerv1_Dict.cc \
   TrkrCluster_Dict.cc \
@@ -136,6 +144,10 @@ nobase_dist_pcm_DATA = \
   CMFlashDifferenceContainerv1_Dict_rdict.pcm \
 	TrkrTruthTrack_Dict_rdict.pcm \
 	TrkrTruthTrackv1_Dict_rdict.pcm \
+	EmbRecoMatch_Dict_rdict.pcm \
+	EmbRecoMatchv1_Dict_rdict.pcm \
+	EmbRecoMatchContainer_Dict_rdict.pcm \
+	EmbRecoMatchContainerv1_Dict_rdict.pcm \
 	TrkrTruthTrackContainer_Dict_rdict.pcm \
 	TrkrTruthTrackContainerv1_Dict_rdict.pcm \
   TrkrCluster_Dict_rdict.pcm \
@@ -188,6 +200,8 @@ libtrack_io_la_SOURCES = \
   TrackFitUtils.cc \
 	TrkrTruthTrackv1.cc \
 	TrkrTruthTrackContainerv1.cc \
+	EmbRecoMatchv1.cc \
+	EmbRecoMatchContainerv1.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
   TrkrClusterv3.cc \

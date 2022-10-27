@@ -4,145 +4,205 @@
 #include <trackbase/TrkrDefs.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-// needed:
-// Nodes: 
-//  Get TrkrTruthTrack's node
-//  Get reconstructed tracks node
-//  Compare TrkrTruthTracks::phi,eta,(pT?) vs reconstructed tracks::phi,eta,(pT?)
-//    -- if there are multiple matches, then go and match the TrkrClusters (from the TrkrClusterContainer)
-//  Write values to the MatchTracks on the tree:
-//    nClusterHits, nClusterHitsPossible (where there some that didn't match?!?), pT, eta, phi, X0, Y0, Z0,
-//    also match to the silicone tracklets
-
-class PHCompositeNode;
-/* class TNtuple; */
+#include <tuple>
+#include <vector>
+#include <map>
+#include <array>
+#include <set>
+#include <iostream>
 
 
 class PHG4TruthInfoContainer;
 class SvtxTrackMap;
+class SvtxTrack;
 class TrackSeedContainer;
 class TrkrClusterContainer;
+class TrkrCluster;
 class TrkrTruthTrackContainer;
+class TrkrTruthTrack;
 
-// truth information to match to the track
-/* class TruthRecoTrackMatching : public Fun4AllBase { */
+class PHG4TpcCylinderGeom;
+class EmbRecoMatchContainer;
+class PHCompositeNode;
+class PHG4TpcCylinderGeomContainer;
 
 class TruthRecoTrackMatching : public SubsysReco 
 {
+  //--------------------------------------------------
+  // Standard public interface
+  //--------------------------------------------------
   public:
-  /* TruthRecoTrackMatching(const std::string &name = "TruthRecoTrackMatching"); */
-  TruthRecoTrackMatching() {};
-  ~TruthRecoTrackMatching() override = default;
-  int Init(PHCompositeNode          *) override { return 0; };
-  int InitRun(PHCompositeNode       *) override;
-  int process_event(PHCompositeNode *) override;
-  int End(PHCompositeNode           *) override;
+    TruthRecoTrackMatching(
+        const short  _nmin_match=0,
+        const float  _nmin_ratio=0.,
+        const double _cutoff_dphi=0.3,
+        const double _same_dphi=0.05,
+        const double _cutoff_deta=0.3,
+        const double _same_deta=0.05,
+        const double _cluster_nzwidths=1.,
+        const double _cluster_nphiwidths=1.,
+        const unsigned short _m_min_nmatch=4);
+
+    ~TruthRecoTrackMatching() override = default; 
+    int Init(PHCompositeNode          *) override { return 0; };
+    int InitRun(PHCompositeNode       *) override; //`
+    int process_event(PHCompositeNode *) override; //`
+    int End(PHCompositeNode           *) override;
 
 
   private:
-  int createNodes(PHCompositeNode *topNode);
+  //--------------------------------------------------
+  // Internal functions
+  //--------------------------------------------------
 
-  // INPUT
-  PHG4TruthInfoContainer  *m_PHG4TruthInfoContainer  {nullptr}; // Get the truth track ids
-  SvtxTrackMap            *m_SvtxTrackMap            {nullptr}; 
-  TrkrClusterContainer    *m_TruthClusterContainer   {nullptr};
-  TrkrClusterContainer    *m_RecoClusterContainer    {nullptr};
-  TrkrTruthTrackContainer *m_TrkrTruthTrackContainer {nullptr};
+    //--------------------------------------------------
+    // Constant parameters for track matching
+    //--------------------------------------------------
+    const short  m_nmincluster_match; // minimum of matched clustered to keep a truth to emb match
+    const float  m_nmincluster_ratio; // minimum ratio of truth clustered that must be matched in reconstructed track
 
-  // The sorting can get:
-  // 0. EmbedRecoPairs
-  // 1. EmbedNotMatched
-  // 2. RecoNotMatched
+    const double m_cutoff_dphi; // how far in |phi_truth-phi_reco| to match
+    const double m_same_dphi;   // |phi_truth-phi_reco| to auto-evaluate (is < _m_cutoff_dphi)
+    const double m_cutoff_deta; //  how far in |eta_truth-eta_reco| to match
+    const double m_same_deta;   // |eta_truth-eta_reco| to auto-evaluate (is < m_cutoff_deta)
+
+    const double m_cluster_nzwidths;   // cutoff in *getPhiSize() in cluster for |cluster_phi_truth-cluster_phi_reco| to match
+    const double m_cluster_nphiwidths;   // same for eta
+
+    const unsigned short m_min_nmatch;
+
+    std::array<float, 55> m_phistep;
+    float m_zstep;
+
+    //--------------------------------------------------
+    // Data from input nodes
+    //--------------------------------------------------
+    PHG4TruthInfoContainer       *m_PHG4TruthInfoContainer  {nullptr}; // Get the truth track ids
+    SvtxTrackMap                 *m_SvtxTrackMap            {nullptr};
+    TrkrClusterContainer         *m_TruthClusterContainer   {nullptr};
+    TrkrClusterContainer         *m_RecoClusterContainer    {nullptr};
+    TrkrTruthTrackContainer      *m_TrkrTruthTrackContainer {nullptr};
+    PHG4TpcCylinderGeomContainer *m_PHG4TpcCylinderGeomContainer  {nullptr};
+    // Output data node:
+    EmbRecoMatchContainer   *m_EmbRecoMatchContainer   {nullptr};
+
+    //----------------------------------------------------------
+    // Local data types for manipulation and passing
+    //   * provide indices to arrays and tuples in constexp ints
+    //----------------------------------------------------------
+
+    //--------------------------------------------------
+    //    RECO data for a "table" of reconstructed tracks
+    //--------------------------------------------------
+    using RECOentry = std::tuple<float, float, float, unsigned short>;
+    static constexpr int RECOphi = 0;
+    static constexpr int RECOeta = 1;
+    static constexpr int RECOpt  = 2;
+    static constexpr int RECOid  = 3;
+  public:
+    using RECOvec   = std::vector<RECOentry>;
+    using RECOiter = RECOvec::iterator;
+    using RECO_pair_iter = std::pair<RECOiter, RECOiter>;
+  private:
+
+    struct CompRECOtoPhi {
+      bool operator() (const RECOentry& lhs, const double&    rhs) { return std::get<RECOphi>(lhs) < rhs;                    }
+      bool operator() (const double&    lhs, const RECOentry& rhs) { return lhs < std::get<RECOphi>(rhs); }
+      bool operator() (const RECOentry& lhs, const RECOentry& rhs) { return std::get<RECOphi>(lhs) < std::get<RECOphi>(rhs); }
+    };
+    struct CompRECOtoEta {
+      bool operator() (const RECOentry& lhs, const double&    rhs) { return std::get<RECOeta>(lhs) < rhs;                    }
+      bool operator() (const double&    lhs, const RECOentry& rhs) { return lhs < std::get<RECOeta>(rhs); }
+      bool operator() (const RECOentry& lhs, const RECOentry& rhs) { return std::get<RECOeta>(lhs) < std::get<RECOeta>(rhs); }
+    };
+    struct CompRECOtoPt  {
+      bool operator() (const RECOentry& lhs, const double&    rhs) { return std::get<RECOpt>(lhs) < rhs;                   }
+      bool operator() (const double&    lhs, const RECOentry& rhs) { return lhs < std::get<RECOpt>(rhs); }
+      bool operator() (const RECOentry& lhs, const RECOentry& rhs) { return std::get<RECOpt>(lhs) < std::get<RECOpt>(rhs); }
+    };
+
+    // sorting tuple is by: is_matched, phi, eta, pT,  index, is_matched
+    // c++ will be default sort these by index in order
+
+    //--------------------------------------------------
+    //    PossibleMatches (just array<unsinged short, 5>)
+    //--------------------------------------------------
+  public:
+    using PossibleMatch = std::array<unsigned short, 5>;
+  private:
+    static constexpr int PM_nmatch  = 0;
+    static constexpr int PM_ntrue  = 1;
+    static constexpr int PM_nreco  = 2;
+    static constexpr int PM_idtrue = 3;
+    static constexpr int PM_idreco = 4;
+    struct SortPossibleMatch  {
+      bool operator() (const PossibleMatch& lhs, const PossibleMatch& rhs) { 
+        if (lhs[PM_nmatch] > rhs[PM_nmatch]) return true;
+        if (lhs[PM_nmatch] < rhs[PM_nmatch]) return true;
+
+        if (lhs[PM_ntrue] < rhs[PM_ntrue]) return true;
+        if (lhs[PM_ntrue] > rhs[PM_ntrue]) return true;
+
+        if (lhs[PM_nreco] < rhs[PM_nreco]) return true;
+        if (lhs[PM_nreco] > rhs[PM_nreco]) return true;
+        return false;
+      }
+    };
+
+    //--------------------------------------------------
+    //    PossibleMatches (just array<unsinged short, 5>)
+    //--------------------------------------------------
+  public:
+    using CompCluster = std::array<float,6>;
+  private:
+    static constexpr int COMP_dphi = 0;
+    static constexpr int COMP_phisize_true = 1; // note this is converted with step size already
+    static constexpr int COMP_phisize_reco = 2; // converted with stepsize
+    static constexpr int COMP_dz = 3;
+    static constexpr int COMP_zsize_true = 4; // converted with stepsize
+    static constexpr int COMP_zsize_reco = 5; // converted with stepsize
   
-  // locally - maybe?
-  TrackSeedContainer      *m_tpcTrackSeedContainer   {nullptr}; // Get the seeds from the tracks to get the clusters
-  // OUTPUT
+    //--------------------------------------------------
+    // non-node member data
+    //--------------------------------------------------
+    RECOvec recoData {}; // "sv" = Sort Vector
 
-  /*
-   * Files:
-   ~/coresoftware/simulation/g4simulation/g4main/PHG4TruthInfoContainer.h
-   ~/coresoftware/offline/packages/trackbase_historic/SvtxTrackMap_v2.h
-   ~/coresoftware/offline/packages/trackreco/PHTrackCleaner.h
-   */
+    //--------------------------------------------------
+    // Member functions
+    //--------------------------------------------------
+   
+    //    Main functions
+    // -------------------------------------------------------------------
+    int createNodes(PHCompositeNode* topNode);
+    std::pair<std::vector<unsigned short>, std::vector<unsigned short>> 
+      find_box_matches(float truth_phi, float truth_eta, float truth_pt); // will populate to truth_to_reco_map and 
+    unsigned int match_tracks_in_box( std::vector<std::pair<unsigned short,unsigned short>>& indices,  // pairs of {id_true, id_reco}
+      std::set<int>& true_matched,
+      std::set<int>& reco_matched,
+      bool update_matched_sets);
+    
+    //    Helper functions
+    // -------------------------------------------------------------------
+    float delta_outer_pt(float) const;
+    float delta_inner_pt(float) const;
+    float abs_dphi (float phi0, float phi1);
 
-  // The low down:
-  //
-  // Input:
-  // SvtxTrackMap_v2 ``name?'' -> Container for SvtxTrack* (I will pull SvtxTrack_v4 from them)
-  //   ┕▶ SvtexTrack_v4   -> Get from SvtxTrackMap; can loop through them to find matched
-  // TrackSeedContainer_v1 ``name?''
-  //
-  //
-  // Output:
-  // m_TrkrTruthTrackContainer ->
-  //
-  //
-  /*
-  // ----------------------
-  // ----------------------
-  // ----------------------
-  // ----------------------
-  // ----------------------
-  // ----------------------
-  // Match to:
-  //    Tracks - pT, phi, eta -- > Where from? Are these the track seeds? Which node, which name
-  from trackbase_historic --  SvtxTrack_v4(); -> Has pointer to the Silicon and TPC seed
-    The seeds have the cluster keys, pt, eta, and phi for the matching
-      for best track, look to the track seeds and loop over
-    These tracks are already cleaned by track cleaner (after ACTS fit)
-
-  SvtxTrackSeed_v1.h  -> Has the track seeds' pointers
-
-  For example see the PH..TrackFitter, and in the trackreco/PHTrackCleaner.cc
-    (shows get nodes etc...) (for now just the TPC seed cluster, but ultimately will want
-        the silicon clusters, too)
-
-  All the truth tracks are PHG4Particle* objects, on _______ node from PHG4TruthInfoContainer::Map 
-  _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo") :: ParticleMap
-  // so loop through  PHG4Truth
-
+    //       Functions for gettings sets of TrkrClusters associated with tracks
+    // ------------------------------------------------------------------------
+    std::array<TrkrDefs::cluskey,55>         truekey_arr55   (int id_true); // get cluster keys for truth track
+    std::array<std::vector<TrkrDefs::cluskey>,55> recokey_arr55vec(int id_reco); // get cluster keys for reco track
+    PossibleMatch                       make_PossibleMatch(unsigned short index_reco, unsigned short index_truth, std::array<TrkrDefs::cluskey,55>& keys_truth);
+    CompCluster                         make_CompCluster(TrkrDefs::cluskey truthkey, TrkrDefs::cluskey recokey);
+    float sigma_CompCluster(PossibleMatch&);
+    bool skip_match(PossibleMatch& match, std::set<int>& true_matched, std::set<int>& reco_matched); // skip match is true or reco track already matched
+    bool is_match(TrkrDefs::cluskey truthkey, TrkrDefs::cluskey recokey);
+    bool is_match(const CompCluster&);
+    bool match_pass_cuts(PossibleMatch& match);
   
-  // ----------------------
-  // ----------------------
-  // ----------------------
-  // ----------------------
-  // ----------------------
-  */
-  //---------------------- SvtxTrack
-
-  // SubsysReco provides:
-  //   /// Called at the end of all processing.
-  //   virtual int End(PHCompositeNode * /*topNode*/) { return 0; }
-
-  //   /// Called at the end of each run.
-  //   virtual int EndRun(const int /*runnumber*/) { return 0; }
-
-  //   /** Called during initialization.
-  //       Typically this is where you can book histograms, and e.g.
-  //       register them to Fun4AllServer (so they can be output to file
-  //       using Fun4AllServer::dumpHistos() method).
-  //    */
-  //   virtual int Init(PHCompositeNode * /*topNode*/) { return 0; }
-
-  //   /** Called for first event when run number is known.
-  //       Typically this is where you may want to fetch data from
-  //       database, because you know the run number.
-  //    */
-  //   virtual int InitRun(PHCompositeNode * /*topNode*/) { return 0; }
-
-  //   /** Called for each event.
-  //       This is where you do the real work.
-  //   */
-  //   virtual int process_event(PHCompositeNode * /*topNode*/) { return 0; }
-
-  //   /// Reset.
-  //   virtual int Reset(PHCompositeNode * /*topNode*/) { return 0; }
-
-  //   /// Clean up after each event.
-  //   virtual int ResetEvent(PHCompositeNode * /*topNode*/) { return 0; }
-
-  //   void Print(const std::string & /*what*/ = "ALL") const override {}
+    // locally - maybe?
+    /* TrackSeedContainer *m_tpcTrackSeedContainer   {nullptr}; // Get the seeds from the tracks to get the clusters */
 };
+
 
 
 #endif
