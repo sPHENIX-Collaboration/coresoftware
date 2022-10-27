@@ -57,9 +57,9 @@ int XploadInterface::End(PHCompositeNode *topNode)
   else
   {
     std::set<std::tuple<std::string, std::string, uint64_t>> tmp_set;
-    for (auto iter_tup = cdburls->begin(); iter_tup != cdburls->end(); ++iter_tup)
+    for (const auto & cdburl : *cdburls)
     {
-      tmp_set.insert(*iter_tup);
+      tmp_set.insert(cdburl);
     }
     // remove duplicates in our set
     // not possible using for range loops, iterator gets invalidated

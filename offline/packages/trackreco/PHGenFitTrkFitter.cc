@@ -164,6 +164,12 @@ namespace {
     return out;
   }
 
+  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const Acts::Vector3& vector )
+  { 
+    out << "(" << vector.x() << ", " << vector.y() << ", " << vector.z() << ")";
+    return out;
+  }
+  
 }
 
 /*
@@ -222,9 +228,12 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
     init_eval_tree();
   }
 
+  std::cout << "PHGenFitTrkFitter::InitRun - m_fit_silicon_mms: " << m_fit_silicon_mms << std::endl;
+  std::cout << "PHGenFitTrkFitter::InitRun - m_use_micromegas: " << m_use_micromegas << std::endl;
+  
   // print disabled layers
-  if( Verbosity() )
-  {
+  // if( Verbosity() )
+  {    
     for( const auto& layer:_disabled_layers )
     { std::cout << PHWHERE << " Layer " << layer << " is disabled." << std::endl; }
   }
@@ -785,6 +794,19 @@ void PHGenFitTrkFitter::clear_disabled_layers()
 const std::set<int>& PHGenFitTrkFitter::get_disabled_layers() const
 { return _disabled_layers; }
 
+//______________________________________________________
+void PHGenFitTrkFitter::set_fit_silicon_mms( bool value )
+{
+  // store flags
+  m_fit_silicon_mms = value;
+  
+  // disable/enable layers accordingly
+  for( int layer = 7; layer < 23; ++layer ) { disable_layer( layer, value ); }
+  for( int layer = 23; layer < 39; ++layer ) { disable_layer( layer, value ); }
+  for( int layer = 39; layer < 55; ++layer ) { disable_layer( layer, value ); }
+  
+}
+
 /*
  * GetNodes():
  *  Get all the all the required nodes off the node tree
@@ -905,23 +927,9 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 
   // tpc distortion corrections
   m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
-  if( m_dcc_static )
-  { 
-    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl; 
-  }
-  
   m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
-  if( m_dcc_average )
-  { 
-    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl; 
-  }
-  
   m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerFluctuation");
-  if( m_dcc_fluctuation )
-  { 
-    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl; 
-  }
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -937,8 +945,8 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
   if(trkrid ==  TrkrDefs::tpcId)
   {	 
     const auto side = TpcDefs::getSide(key);
-    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);
-
+    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);    
+    
     // apply distortion corrections
     if(m_dcc_static) 
     {
@@ -955,7 +963,7 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
       globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_fluctuation ); 
     }
   }
-  
+    
   return globalPosition;
 }
 
@@ -1038,9 +1046,28 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   // sort clusters with radius before fitting
   if(Verbosity() > 10)   intrack->identify();
   std::map<float, TrkrDefs::cluskey> m_r_cluster_id;
+  
+  unsigned int n_silicon_clusters = 0;
+  unsigned int n_micromegas_clusters = 0;
+  
   for( const auto& cluster_key:get_cluster_keys( intrack ) )
   {
-    
+    // count clusters
+    switch( TrkrDefs::getTrkrId(cluster_key) )
+    {
+      case TrkrDefs::mvtxId:
+      case TrkrDefs::inttId:
+      ++n_silicon_clusters;
+      break;
+      
+      case TrkrDefs::micromegasId:
+      ++n_micromegas_clusters;
+      break;
+      
+      default: break;
+    }
+     
+
     const auto cluster = m_clustermap->findCluster(cluster_key);
     const auto globalPosition = getGlobalPosition( cluster_key, cluster, crossing );
 
@@ -1048,6 +1075,13 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
     int layer_out = TrkrDefs::getLayer(cluster_key);
     if(Verbosity() > 10) cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
+  }
+  
+  // discard track if not enough clusters when fitting with silicon + mm only
+  if( m_fit_silicon_mms )
+  {
+    if( n_silicon_clusters == 0 ) return nullptr;
+    if( m_use_micromegas && n_micromegas_clusters == 0 ) return nullptr;
   }
 
   for (auto iter = m_r_cluster_id.begin();

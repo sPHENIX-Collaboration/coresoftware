@@ -1,7 +1,7 @@
 #include "BeamLineMagnetSteppingAction.h"
-#include "BeamLineMagnetDetector.h"
 
-#include <g4detectors/PHG4StepStatusDecode.h>
+#include "BeamLineMagnetDetector.h"
+#include "PHG4StepStatusDecode.h"
 
 #include <phparameter/PHParameters.h>
 

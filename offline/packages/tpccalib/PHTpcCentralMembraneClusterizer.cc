@@ -15,8 +15,8 @@
 #include <TGraph.h>
 #include <cmath>
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 /// Tracking includes
 #include <trackbase/TrkrDefs.h>
@@ -267,11 +267,11 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 	      //      Use ratio of component cluster energies to estimate number of sigmas at row boundary
 	      float efrac = energy[i] / (energy[i] + energy[i_pair[i]]);
 
-	      PHG4CylinderCellGeom *layergeom1 = _geom_container->GetLayerCellGeom(layer[i]);
+	      PHG4TpcCylinderGeom *layergeom1 = _geom_container->GetLayerCellGeom(layer[i]);
 	      double rad1 = layergeom1->get_radius();
-	      PHG4CylinderCellGeom *layergeom2 = _geom_container->GetLayerCellGeom(layer[i_pair[i]]);
+	      PHG4TpcCylinderGeom *layergeom2 = _geom_container->GetLayerCellGeom(layer[i_pair[i]]);
 	      double rad2 = layergeom2->get_radius();
-	      PHG4CylinderCellGeom *layergeom0;
+	      PHG4TpcCylinderGeom *layergeom0;
 	      double layer_dr;
 	      if(layer[i] != 7 && layer[i] != 23 && layer[i] != 39)
 		{
@@ -412,7 +412,7 @@ int  PHTpcCentralMembraneClusterizer::GetNodes(PHCompositeNode* topNode)
   }
 
   _geom_container =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!_geom_container)
   {
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;

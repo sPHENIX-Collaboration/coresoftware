@@ -72,6 +72,8 @@ pkginclude_HEADERS = \
   TrkrHitv2.h \
   TrkrHitTruthAssoc.h \
   TrkrHitTruthAssocv1.h \
+  TrkrHitTruthClusters.h \
+  TrkrHitTruthClustersv1.h \
   TrkrTruthClusters.h \
   TrkrTruthClustersv1.h \
   TrkrHitSet.h \
@@ -121,6 +123,8 @@ ROOTDICTS = \
   TrkrHitv2_Dict.cc \
   TrkrHitTruthAssoc_Dict.cc \
   TrkrHitTruthAssocv1_Dict.cc \
+  TrkrHitTruthClusters_Dict.cc \
+  TrkrHitTruthClustersv1_Dict.cc \
   TrkrTruthClusters_Dict.cc \
   TrkrTruthClustersv1_Dict.cc \
   TrkrHitSet_Dict.cc \
@@ -173,6 +177,8 @@ nobase_dist_pcm_DATA = \
   TrkrHitv2_Dict_rdict.pcm \
   TrkrHitTruthAssoc_Dict_rdict.pcm \
   TrkrHitTruthAssocv1_Dict_rdict.pcm \
+  TrkrHitTruthClusters_Dict_rdict.pcm \
+  TrkrHitTruthClustersv1_Dict_rdict.pcm \
   TrkrTruthClusters_Dict_rdict.pcm \
   TrkrTruthClustersv1_Dict_rdict.pcm \
   TrkrHitSet_Dict_rdict.pcm \
@@ -198,6 +204,7 @@ libtrack_io_la_SOURCES = \
   MvtxDefs.cc \
   TpcDefs.cc \
   TrackFitUtils.cc \
+  TrkrTruthTrack.cc \
 	TrkrTruthTrackv1.cc \
 	TrkrTruthTrackContainerv1.cc \
 	EmbRecoMatchv1.cc \
@@ -220,14 +227,16 @@ libtrack_io_la_SOURCES = \
   TrkrClusterIterationMap.cc \
   TrkrClusterIterationMapv1.cc \
   TrkrDefs.cc \
-  TrkrHitTruthAssocv1.cc \
-  TrkrTruthClustersv1.cc \
   TrkrHitSet.cc \
   TrkrHitSetv1.cc \
   TrkrHitSetContainer.cc \
   TrkrHitSetContainerv1.cc \
+  TrkrHitTruthAssocv1.cc \
+  TrkrHitTruthClustersv1.cc \
   TrkrHitv1.cc \
   TrkrHitv2.cc \
+  TrkrTruthClusters.cc \
+  TrkrTruthClustersv1.cc \
   TpcSeedTrackMap.cc \
   TpcSeedTrackMapv1.cc
 

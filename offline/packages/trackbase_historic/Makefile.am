@@ -43,6 +43,8 @@ pkginclude_HEADERS = \
   SvtxTrackMap.h \
   SvtxTrackMap_v1.h \
   SvtxTrackMap_v2.h \
+  SvtxTrackCaloClusterMap.h \
+  SvtxTrackCaloClusterMap_v1.h \
   SvtxTrackState.h \
   SvtxTrackState_v1.h \
   SvtxVertex.h \
@@ -75,6 +77,8 @@ ROOTDICTS = \
   SvtxTrackMap_Dict.cc \
   SvtxTrackMap_v1_Dict.cc \
   SvtxTrackMap_v2_Dict.cc \
+  SvtxTrackCaloClusterMap_Dict.cc \
+  SvtxTrackCaloClusterMap_v1_Dict.cc \
   SvtxVertex_Dict.cc \
   SvtxVertex_v1_Dict.cc \
   SvtxVertexMap_Dict.cc \
@@ -106,6 +110,8 @@ nobase_dist_pcm_DATA = \
   SvtxTrackMap_Dict_rdict.pcm \
   SvtxTrackMap_v1_Dict_rdict.pcm \
   SvtxTrackMap_v2_Dict_rdict.pcm \
+  SvtxTrackCaloClusterMap_Dict_rdict.pcm \
+  SvtxTrackCaloClusterMap_v1_Dict_rdict.pcm \
   SvtxVertex_Dict_rdict.pcm \
   SvtxVertex_v1_Dict_rdict.pcm \
   SvtxVertexMap_Dict_rdict.pcm \
@@ -138,6 +144,8 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxTrackMap.cc \
   SvtxTrackMap_v1.cc \
   SvtxTrackMap_v2.cc \
+  SvtxTrackCaloClusterMap.cc \
+  SvtxTrackCaloClusterMap_v1.cc \
   SvtxVertex.cc \
   SvtxVertex_v1.cc \
   SvtxVertexMap.cc \

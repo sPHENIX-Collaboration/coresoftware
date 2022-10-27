@@ -1,8 +1,7 @@
 #include "TpcClusterBuilder.h"
-#include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TpcDefs.h>
-#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
 
 class TpcClusterBuilder;
 

@@ -19,6 +19,7 @@
 
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4String.hh>
@@ -28,7 +29,6 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 #include <Geant4/G4VSolid.hh>
-#include <Geant4/G4Material.hh>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
@@ -115,16 +115,20 @@ void PHG4IHCalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   assert(gdml_config);
   gdml_config->exclude_physical_vol(mothervol);
   gdml_config->exclude_logical_vol(hcal_envelope_log);
-  
-  const G4MaterialTable* mtable = G4Material::GetMaterialTable();
+
+  const G4MaterialTable *mtable = G4Material::GetMaterialTable();
   int nMaterials = G4Material::GetNumberOfMaterials();
-  for(G4int i=0; i<nMaterials; ++i) {
-    const G4Material* mat = (*mtable)[i];
-    if(mat->GetName()=="EJ200") mat->GetIonisation()->SetBirksConstant(m_Params->get_double_param("Birk_const"));
-    
-    
+  for (G4int i = 0; i < nMaterials; ++i)
+  {
+    const G4Material *mat = (*mtable)[i];
+    if (mat->GetName() == "Uniplast_scintillator")
+    {
+      if ((mat->GetIonisation()->GetBirksConstant()) == 0)
+      {
+        mat->GetIonisation()->SetBirksConstant(m_Params->get_double_param("Birk_const"));
+      }
+    }
   }
-  
 
   return;
 }
@@ -225,7 +229,7 @@ int PHG4IHCalDetector::GetSectorId(G4VPhysicalVolume *volume) const
   exit(1);
 }
 
-std::tuple<int, int, int> PHG4IHCalDetector::ExtractLayerTowerId(const int isector, G4VPhysicalVolume *volume)
+std::tuple<int, int, int> PHG4IHCalDetector::ExtractLayerTowerId(const unsigned int isector, G4VPhysicalVolume *volume)
 {
   boost::char_separator<char> sep("_");
   boost::tokenizer<boost::char_separator<char>> tok(volume->GetName(), sep);
@@ -269,6 +273,9 @@ std::tuple<int, int, int> PHG4IHCalDetector::ExtractLayerTowerId(const int isect
   }
   int column = map_towerid(tower_id);
   int row = map_layerid(layer_id);
+  //shift row number down by one so every sector start with a row number that mod4=0
+  row--;
+  while(row<0) row+=256;
   return std::make_tuple(isector, row, column);
 }
 
@@ -282,11 +289,11 @@ int PHG4IHCalDetector::map_towerid(const int tower_id)
   int itmp = tower_id / 2;
   if (tower_id % 2)
   {
-    itwr = 11 - itmp;
+    itwr = 12 + itmp;
   }
   else
   {
-    itwr = 12 + itmp;
+    itwr = 11 - itmp;
   }
   return itwr;
   // here is the mapping in long form

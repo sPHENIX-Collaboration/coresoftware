@@ -1,9 +1,9 @@
 #include "BeamLineMagnetSubsystem.h"
+
 #include "BeamLineMagnetDetector.h"
 #include "BeamLineMagnetDisplayAction.h"
 #include "BeamLineMagnetSteppingAction.h"
-
-#include <g4detectors/PHG4DetectorSubsystem.h>  // for PHG4DetectorSubsystem
+#include "PHG4DetectorSubsystem.h"  // for PHG4DetectorSubsystem
 
 #include <phparameter/PHParameters.h>
 

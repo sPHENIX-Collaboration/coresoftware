@@ -147,19 +147,19 @@ PHG4Detector *PHG4IHCalSubsystem::GetDetector() const
 
 void PHG4IHCalSubsystem::SetDefaultParameters()
 {
-  set_default_double_param(PHG4HcalDefs::innerrad, 117.27);
+  set_default_double_param(PHG4HcalDefs::innerrad, 115);
   set_default_double_param("light_balance_inner_corr", NAN);
   set_default_double_param("light_balance_inner_radius", NAN);
   set_default_double_param("light_balance_outer_corr", NAN);
   set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param(PHG4HcalDefs::outerrad, 134.42);
+  set_default_double_param(PHG4HcalDefs::outerrad, 274.010 / 2 + 3);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
   set_default_double_param("rot_x", 0.);
-  set_default_double_param("rot_y", 0.);
+  set_default_double_param("rot_y", 180.);
   set_default_double_param("rot_z", 0.);
-  set_default_double_param("size_z", 175.94 * 2);
+  set_default_double_param("size_z", 435.000 + 10 );
   set_default_double_param("Birk_const", 0.07943);
 
   set_default_int_param("light_scint_model", 1);
@@ -168,6 +168,15 @@ void PHG4IHCalSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
+  const char* Calibroot = getenv("CALIBRATIONROOT");
+  std::string defaultmapfilename;
+  if (Calibroot)
+  {
+    defaultmapfilename = Calibroot;
+    defaultmapfilename += "/HCALIN/tilemap/ihcalgdmlmap09212022.root";
+  }
+  set_default_string_param("MapFileName", defaultmapfilename);
+  set_default_string_param("MapHistoName", "ihcalcombinedgdmlnormtbyt");
 }
 
 void PHG4IHCalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr)

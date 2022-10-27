@@ -37,14 +37,15 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   void set_z_search_window_lyr2(const double win){_z_search_win[1] = win;}
   void set_min_tpc_layer(const unsigned int layer){_min_tpc_layer = layer;}
   void set_test_windows_printout(const bool test){_test_windows = test;}
-  void set_sc_calib_mode(const bool mode){_sc_calib_mode = mode;}
-  void set_collision_rate(const double rate){_collision_rate = rate;}
   void SetIteration(int iter){_n_iteration = iter;}
-  //  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode*) override;
   int End(PHCompositeNode*) override;
+
+  // deprecated calls
+  inline void set_sc_calib_mode(const bool) {}
+  inline void set_collision_rate(const double) {}
   
   private:
 
@@ -76,17 +77,8 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   
   /// first micromegas layer
   /** it is reset in ::Setup using actual micromegas geometry */
-  unsigned int _min_mm_layer = 55;
-
-  //! true for initial pass with distorted tracks
-  bool _sc_calib_mode = false; 
-
-  //! input rate for phi correction
-  double _collision_rate = 50e3;  
+  unsigned int _min_mm_layer = 55; 
   
-  //! reference rate for phi correction
-  double _reference_collision_rate = 50e3;  
-
   //! internal event number
   int _event = -1;
   
@@ -108,11 +100,6 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
 
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
-
-  //! coarse SC correction function
-  TF1 *fdrphi{nullptr};
-  double _par0 = -0.36619;
-  double _par1 = 0.00375714;
 
   //! true to printout actual residuals for testing
   bool _test_windows = false;   

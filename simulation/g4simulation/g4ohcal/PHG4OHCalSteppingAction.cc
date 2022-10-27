@@ -1,3 +1,4 @@
+
 // local headers in quotes (that is important when using include subdirs!)
 #include "PHG4OHCalSteppingAction.h"
 
@@ -56,6 +57,7 @@
 #include <cassert>
 #include <cmath>  // for isfinite, sqrt
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <string>  // for operator<<, string
 #include <tuple>   // for get, tuple
@@ -86,42 +88,69 @@ PHG4OHCalSteppingAction::~PHG4OHCalSteppingAction()
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete m_Hit;
+
   // since we have a copy in memory of this one - we need to delete it
-  delete m_MapCorrHist;
+  for (auto it : m_MapCorrHist)
+  {
+    delete it;
+  }
+  for (int j = 0; j < 4; j++)
+  {
+    delete m_MapCorrHistChim[j];
+  }
 }
 
 int PHG4OHCalSteppingAction::Init()
 {
   m_EnableFieldCheckerFlag = m_Params->get_int_param("field_check");
 
-  if (m_LightScintModelFlag < 10)
+  if (m_LightScintModelFlag)
   {
-    /*
-    const char* Calibroot = getenv("CALIBRATIONROOT");
-    if (!Calibroot)
+    std::string mappingfilename(m_Params->get_string_param("MapFileName"));
+    if (mappingfilename.empty())
     {
-      std::cout << "no CALIBRATIONROOT environment variable" << std::endl;
+      return 0;
+    }
+    if (!std::filesystem::exists(m_Params->get_string_param("MapFileName")))
+    {
+      std::cout << PHWHERE << " Could not locate " << m_Params->get_string_param("MapFileName") << std::endl;
+      std::cout << "use empty filename to ignore mapfile" << std::endl;
       gSystem->Exit(1);
     }
-    std::string mappingfilename(Calibroot);
-    mappingfilename += "/HCALOUT/tilemap/oHCALMaps092021.root";
+
     TFile* file = TFile::Open(mappingfilename.c_str());
-    file->GetObject("hCombinedMap", m_MapCorrHist);
-    if (!m_MapCorrHist)
+    std::string Tilehist = m_Params->get_string_param("MapHistoName");
+
+    for (int i = 0; i < 24; i++)
     {
-      std::cout << "ERROR: m_MapCorrHist is NULL" << std::endl;
-      gSystem->Exit(1);
+      std::string str2 = std::to_string(i);
+      Tilehist += str2;
+      file->GetObject(Tilehist.c_str(), m_MapCorrHist[i]);
+      if (i < 4)
+      {
+        Tilehist += "_chimney";
+      }
+      file->GetObject(Tilehist.c_str(), m_MapCorrHistChim[i]);
+      Tilehist = m_Params->get_string_param("MapHistoName");
+
+      if ((!m_MapCorrHist[i]) || (!m_MapCorrHistChim[i]))
+      {
+        std::cout << "ERROR: could not find Histogram " << Tilehist << i << " in " << m_Params->get_string_param("MapFileName") << std::endl;
+        gSystem->Exit(1);
+      }
+
+      m_MapCorrHist[i]->SetDirectory(nullptr);  // rootism: this needs to be set otherwise histo vanished when closing the file
+      m_MapCorrHistChim[i]->SetDirectory(nullptr);
     }
-    m_MapCorrHist->SetDirectory(0);  // rootism: this needs to be set otherwise histo vanished when closing the file
+
     file->Close();
     delete file;
-*/
   }
   return 0;
 }
 
 //____________________________________________________________________________..
-bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
@@ -334,27 +363,41 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         light_yield = GetVisibleEnergyDeposition(aStep);
         m_Hit->set_raw_light_yield(m_Hit->get_raw_light_yield() + light_yield);  // save raw Birks light yield
-        if (m_MapCorrHist)
+        if ((m_MapCorrHistChim[tower_id]) || (m_MapCorrHist[tower_id]))
         {
           const G4TouchableHandle& theTouchable = prePoint->GetTouchableHandle();
           const G4ThreeVector& worldPosition = postPoint->GetPosition();
           G4ThreeVector localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
           float lx = (localPosition.x() / cm);
-          float lz = fabs(localPosition.z() / cm);  // reverse the sense for towerid<12
+          float ly = (localPosition.y() / cm);
 
           // convert to the map bin coordinates:
-          // map is in 0.5 cm bins
-          int lcz = (int) (2.0 * lz) + 1;
-          int lcx = (int) (2.0 * (lx + 42.75)) + 1;
+          int lcx = (int) (2.0 * lx) + 1;
+          int lcy = (int) (2.0 * (ly + 0.5)) + 1;
 
-          if ((lcx >= 1) && (lcx <= m_MapCorrHist->GetNbinsY()) &&
-              (lcz >= 1) && (lcz <= m_MapCorrHist->GetNbinsX()))
+          if ((sector_id == 29) || (sector_id == 30) || (sector_id == 31))
           {
-            light_yield *= (double) (m_MapCorrHist->GetBinContent(lcz, lcx));
+            if ((lcy >= 1) && (lcy <= m_MapCorrHistChim[tower_id]->GetNbinsY()) &&
+                (lcx >= 1) && (lcx <= m_MapCorrHistChim[tower_id]->GetNbinsX()))
+            {
+              light_yield *= (double) (m_MapCorrHistChim[tower_id]->GetBinContent(lcx, lcy));
+            }
+            else
+            {
+              light_yield = 0.0;
+            }
           }
           else
           {
-            light_yield = 0.0;
+            if ((lcy >= 1) && (lcy <= m_MapCorrHist[tower_id]->GetNbinsY()) &&
+                (lcx >= 1) && (lcx <= m_MapCorrHist[tower_id]->GetNbinsX()))
+            {
+              light_yield *= (double) (m_MapCorrHist[tower_id]->GetBinContent(lcx, lcy));
+            }
+            else
+            {
+              light_yield = 0.0;
+            }
           }
         }
         else
@@ -396,7 +439,7 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         aTrack->GetTrackStatus() == fStopAndKill)
     {
       // save only hits with energy deposit (or -1 for geantino)
-      if (m_Hit->get_edep())
+      if (m_Hit->get_edep() != 0)
       {
         m_SaveHitContainer->AddHit(layer_id, m_Hit);
         if (m_SaveShower)
@@ -507,13 +550,15 @@ void PHG4OHCalSteppingAction::FieldChecker(const G4Step* aStep)
     G4ThreeVector FieldValue = G4ThreeVector(FieldValueVec[0],
                                              FieldValueVec[1], FieldValueVec[2]);
 
-    const double B = FieldValue.mag() / tesla;
+    const double Bz = FieldValue.z() / tesla;
 
-    h->SetBinContent(binx, biny, B);
+    h->SetBinContent(binx, biny, Bz);
 
     std::cout << "PHG4OHCalSteppingAction::FieldChecker - "
-              << "bin " << binx
-              << ", " << biny << " := " << B << " Tesla @ x,y = " << globPosVec[0] / cm
+              << "volume " << volume->GetName() << " / " << volume->GetLogicalVolume()->GetName()
+              << "\t bin " << binx
+              << ", " << biny << " : Bz= " << Bz << " B = " << FieldValue.mag() / tesla
+              << " Tesla @ x,y = " << globPosVec[0] / cm
               << "," << globPosVec[1] / cm << " cm" << std::endl;
   }
 }
