@@ -3,7 +3,7 @@
 #ifndef G4DETECTORS_BEAMLINEMAGNETSUBSYSTEM_H
 #define G4DETECTORS_BEAMLINEMAGNETSUBSYSTEM_H
 
-#include <g4detectors/PHG4DetectorSubsystem.h>
+#include "PHG4DetectorSubsystem.h"
 
 #include <string>  // for string
 

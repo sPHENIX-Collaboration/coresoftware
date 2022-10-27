@@ -53,6 +53,7 @@ pkginclude_HEADERS = \
   PHSimpleKFProp.h \
   PHTpcClusterMover.h \
   PHTpcDeltaZCorrection.h \
+  PHTrackClusterAssociator.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
@@ -80,7 +81,6 @@ libtrack_reco_io_la_SOURCES = \
   AssocInfoContainer.cc \
   GPUTPCTrackParam.cxx
 
-if MAKE_ACTS
 ACTS_SOURCES = \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
@@ -109,7 +109,6 @@ ACTS_LIBS = \
   -lActsExamplesFramework \
   -lActsExamplesIoRoot \
   -lActsExamplesMagneticField
-endif
 
 libtrack_reco_la_SOURCES = \
   $(ACTS_SOURCES) \
@@ -131,6 +130,7 @@ libtrack_reco_la_SOURCES = \
   PHTpcClusterMover.cc \
   PHTpcDeltaZCorrection.cc \
   PHTrackCleaner.cc \
+  PHTrackClusterAssociator.cc \
   PHTrackSeeding.cc \
   PHTrackSelector.cc \
   PHTrackSetMerging.cc \

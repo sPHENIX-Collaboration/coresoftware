@@ -139,8 +139,11 @@ int TpcClusterMover::get_circle_circle_intersection(double target_radius, double
    if(std::isnan(xplus)) 
      {
 	 {
-	   std::cout << " circle/circle intersection calculation failed, skip this cluster" << std::endl;
-	   std::cout << " target_radius " << target_radius << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
+	   if(_verbosity > 1)
+	     {
+	       std::cout << " circle/circle intersection calculation failed, skip this cluster" << std::endl;
+	       std::cout << " target_radius " << target_radius << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
+	     }
 	 }
        return Fun4AllReturnCodes::ABORTEVENT;  // skip to next cluster
      }
