@@ -35,7 +35,6 @@ class EmbRecoMatch : public PHObject
     {return lhs->idTruthTrack() < rhs->idTruthTrack();}
   };
 
-
   protected:
   ClassDefOverride(EmbRecoMatch, 1)
 };
