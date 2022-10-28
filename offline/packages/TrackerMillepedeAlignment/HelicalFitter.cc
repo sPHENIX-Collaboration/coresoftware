@@ -425,6 +425,19 @@ void HelicalFitter::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, shor
   if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
 }
 
+void HelicalFitter::getGlobalLabels(Surface surf, int glbl_label[])
+{
+  // identify the global alignment parameters for this surface
+  Acts::GeometryIdentifier id = surf->geometryId();
+  int label_base = getLabelBase(id);   // This value depends on how the surfaces are grouped	  
+  for(int i=0;i<NGL;++i) 
+    {
+      glbl_label[i] = label_base + i;
+      if(Verbosity() > 1) { std::cout << "    glbl " << i << " label " << glbl_label[i] << " "; }
+    }
+  if(Verbosity() > 1) { std::cout << std::endl; }
+}
+
 int HelicalFitter::getLabelBase(Acts::GeometryIdentifier id)
 {
   unsigned int volume = id.volume(); 
@@ -440,7 +453,8 @@ int HelicalFitter::getLabelBase(Acts::GeometryIdentifier id)
       if(si_grp == siliconGrp::snsr)
 	{
 	  // every sensor has a different label
-	  label_base += layer*1000000  + sensor*10;
+	  int stave = sensor / nsensors_stave[layer];
+	  label_base += layer*1000000  + stave*10000 + sensor*10;
 	  return label_base;
 	}
       if(si_grp == siliconGrp::stv)
@@ -692,15 +706,3 @@ void HelicalFitter::printBuffers(int index, Acts::Vector3 residual, Acts::Vector
   std::cout << " end of meas " << std::endl;		    
 }
 
-void HelicalFitter::getGlobalLabels(Surface surf, int glbl_label[])
-{
-  // identify the global alignment parameters for this surface
-  Acts::GeometryIdentifier id = surf->geometryId();
-  int label_base = getLabelBase(id);   // This value depends on how the surfaces are grouped	  
-  for(int i=0;i<NGL;++i) 
-    {
-      glbl_label[i] = label_base + i;
-      if(Verbosity() > 1) { std::cout << "    glbl " << i << " label " << glbl_label[i] << " "; }
-    }
-  if(Verbosity() > 1) { std::cout << std::endl; }
-}
