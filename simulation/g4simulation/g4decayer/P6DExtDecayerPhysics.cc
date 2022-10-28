@@ -100,8 +100,8 @@ void P6DExtDecayerPhysics::ConstructProcess()
     if (verboseLevel > 1)
     {
       std::cout << "Setting ext decayer for: "
-             << aParticleIterator->value()->GetParticleName()
-             << std::endl;
+                << aParticleIterator->value()->GetParticleName()
+                << std::endl;
     }
 
     G4ProcessVector* processVector = pmanager->GetProcessList();

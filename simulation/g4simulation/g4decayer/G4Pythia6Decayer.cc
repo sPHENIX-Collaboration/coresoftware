@@ -608,8 +608,8 @@ G4DecayProducts* G4Pythia6Decayer::ImportDecayProducts(const G4Track& track)
         if (fVerboseLevel > 0)
         {
           std::cout << "  G4 particle name: "
-                 << dynamicParticle->GetDefinition()->GetParticleName()
-                 << std::endl;
+                    << dynamicParticle->GetDefinition()->GetParticleName()
+                    << std::endl;
         }
 
         // add dynamicParticle to decayProducts

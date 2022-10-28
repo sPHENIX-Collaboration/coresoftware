@@ -120,9 +120,9 @@ class G4EvtGenDecayer : public G4VExtDecayer
  // EvtGen* myGenerator;
 
   G4ParticleDefinition*
-  GetParticleDefinition(int ParPDGID, G4bool warn = true) const;
+  GetParticleDefinition(int ParPDGID) const;
 
-  bool IsG4Detectable(int ParPDGID, G4bool warn = true) const;
+//  bool IsG4Detectable(int ParPDGID, G4bool warn = true) const;
 
   std::string Decay_DEC = "InputDECAYFiles/DECAY.DEC";
   std::string Evt_pdl = "InputDECAYFiles/evt.pdl";
