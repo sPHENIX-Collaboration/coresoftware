@@ -33,20 +33,20 @@ void TrkrTruthTrackv1::identify(std::ostream &os) const
 }
 
 TrkrTruthTrackv1::TrkrTruthTrackv1() 
-  : X0 {0.}
-  , Y0 {0.}
-  , Z0 {0.}
-  , pseudoRapidity {0.}
-  , pt {0.}
-  , phi {0.}
-  , clusters {}
-{ trackid = 0; }
+  : trackid { UINT_MAX }
+  , X0             {NAN}
+  , Y0             {NAN}
+  , Z0             {NAN}
+  , pseudoRapidity {NAN}
+  , pt             {NAN}
+  , phi            {NAN}
+  , clusters       {}
+{}
 
 TrkrTruthTrackv1::TrkrTruthTrackv1(unsigned int _trackid, PHG4Particle* p, PHG4VtxPoint* vtx) 
-  : clusters {}
+  : trackid {_trackid}
+  , clusters {}
 {
-  trackid = _trackid;
-
   X0 = vtx->get_x();
   Y0 = vtx->get_y();
   Z0 = vtx->get_z();
