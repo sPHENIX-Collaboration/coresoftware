@@ -3,23 +3,15 @@
 
 #include <trackbase/TrkrTruthTrackContainer.h>
 #include <trackbase/TrkrTruthTrack.h>
-/* #include <trackbase/TrkrTruthTrackContainerv1.h> */
-/* #include <trackbase/TrkrTruthTrackv1.h> */
 
 #include <trackbase_historic/SvtxTrack.h>
-/* #include <trackbase_historic/SvtxTrack_v4.h> */
-
 #include <trackbase_historic/SvtxTrackMap.h>
-/* #include <trackbase_historic/SvtxTrackMap_v2.h> */
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterv4.h>
-
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterContainerv4.h>
 
 #include <trackbase/EmbRecoMatch.h>
 #include <trackbase/EmbRecoMatchv1.h>
@@ -94,9 +86,9 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
   }
 
   /*FIXME*/ std::cout << "id-truth-track-size: " << m_TrkrTruthTrackContainer->getTruthTracks().size() << std::endl;
-  for (auto _track : m_TrkrTruthTrackContainer->getTruthTracks()) {
+  for (auto track : m_TrkrTruthTrackContainer->getTruthTracks()) {
     /* auto track = static_cast<TrkrTruthTrackv1*>(_track); */
-    auto track = *_track;
+    /* auto track = *_track; */
     /*FIXME*/ std::cout << Form(" Embedded Track:  (%2i)   phi(%5.2f) eta(%5.2f) pt(%5.2f)",
         track->getTrackid(), track->getPhi(), track->getPseudoRapidity(), track->getPt()) << std::endl;
   }
@@ -148,14 +140,11 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
 
   if (echo_print) std::cout << "Number of truth tracks: " << m_TrkrTruthTrackContainer->getTruthTracks().size() << std::endl;
   unsigned short index_truth {0};
-  for (auto _track : m_TrkrTruthTrackContainer->getTruthTracks()) {
-    auto track = static_cast<TrkrTruthTrackv1*>(_track);
-
+  for (auto track : m_TrkrTruthTrackContainer->getTruthTracks()) {
     if (echo_print) {
       std::cout << Form(" Embedded Track:  (%2i)   phi(%5.2f) eta(%5.2f) pt(%5.2f)", track->getTrackid(), track->getPhi(),
           track->getPseudoRapidity(), track->getPt()) << std::endl;
     }
-
     auto match_indices = find_box_matches(track->getPhi(), track->getPseudoRapidity(), track->getPt()); 
     for (auto& id_reco : match_indices.first)  innerbox_indices.push_back( {index_truth, id_reco} );
     for (auto& id_reco : match_indices.second) outerbox_indices.push_back( {index_truth, id_reco} );

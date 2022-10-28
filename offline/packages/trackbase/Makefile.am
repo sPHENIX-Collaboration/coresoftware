@@ -33,6 +33,10 @@ pkginclude_HEADERS = \
   CMFlashDifferencev1.h \
   CMFlashDifferenceContainer.h \
   CMFlashDifferenceContainerv1.h \
+  EmbRecoMatch.h \
+  EmbRecoMatchv1.h \
+  EmbRecoMatchContainer.h \
+  EmbRecoMatchContainerv1.h \
   InttDefs.h \
   MvtxDefs.h \
   sPHENIXActsDetectorElement.h \
@@ -40,14 +44,6 @@ pkginclude_HEADERS = \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
   TrackFitUtils.h \
-	EmbRecoMatch.h \
-	EmbRecoMatchv1.h \
-	EmbRecoMatchContainer.h \
-	EmbRecoMatchContainerv1.h \
-	TrkrTruthTrack.h \
-	TrkrTruthTrackv1.h \
-	TrkrTruthTrackContainer.h \
-	TrkrTruthTrackContainerv1.h \
   TrkrCluster.h \
   TrkrClusterv1.h \
   TrkrClusterv2.h \
@@ -79,7 +75,11 @@ pkginclude_HEADERS = \
   TrkrHitSet.h \
   TrkrHitSetv1.h \
   TrkrHitSetContainer.h \
-  TrkrHitSetContainerv1.h
+  TrkrHitSetContainerv1.h \
+  TrkrTruthTrack.h \
+  TrkrTruthTrackv1.h \
+  TrkrTruthTrackContainer.h \
+  TrkrTruthTrackContainerv1.h 
 
 ROOTDICTS = \
   alignmentTransformationContainer_Dict.cc \
@@ -91,15 +91,11 @@ ROOTDICTS = \
   CMFlashDifferencev1_Dict.cc \
   CMFlashDifferenceContainer_Dict.cc \
   CMFlashDifferenceContainerv1_Dict.cc \
+  EmbRecoMatch_Dict.cc \
+  EmbRecoMatchv1_Dict.cc \
+  EmbRecoMatchContainer_Dict.cc \
+  EmbRecoMatchContainerv1_Dict.cc \
   sPHENIXActsDetectorElement.cc \
-	TrkrTruthTrack_Dict.cc \
-	TrkrTruthTrackv1_Dict.cc \
-	EmbRecoMatch_Dict.cc \
-	EmbRecoMatchv1_Dict.cc \
-	EmbRecoMatchContainer_Dict.cc \
-	EmbRecoMatchContainerv1_Dict.cc \
-	TrkrTruthTrackContainer_Dict.cc \
-	TrkrTruthTrackContainerv1_Dict.cc \
   TrkrCluster_Dict.cc \
   TrkrClusterv1_Dict.cc \
   TrkrClusterv2_Dict.cc \
@@ -132,7 +128,11 @@ ROOTDICTS = \
   TrkrHitSetContainer_Dict.cc \
   TrkrHitSetContainerv1_Dict.cc \
   TpcSeedTrackMap_Dict.cc \
-  TpcSeedTrackMapv1_Dict.cc
+  TpcSeedTrackMapv1_Dict.cc \
+  TrkrTruthTrack_Dict.cc \
+  TrkrTruthTrackv1_Dict.cc \
+  TrkrTruthTrackContainer_Dict.cc \
+  TrkrTruthTrackContainerv1_Dict.cc 
 
 
 pcmdir = $(libdir)
@@ -146,14 +146,10 @@ nobase_dist_pcm_DATA = \
   CMFlashDifferencev1_Dict_rdict.pcm \
   CMFlashDifferenceContainer_Dict_rdict.pcm \
   CMFlashDifferenceContainerv1_Dict_rdict.pcm \
-	TrkrTruthTrack_Dict_rdict.pcm \
-	TrkrTruthTrackv1_Dict_rdict.pcm \
-	EmbRecoMatch_Dict_rdict.pcm \
-	EmbRecoMatchv1_Dict_rdict.pcm \
-	EmbRecoMatchContainer_Dict_rdict.pcm \
-	EmbRecoMatchContainerv1_Dict_rdict.pcm \
-	TrkrTruthTrackContainer_Dict_rdict.pcm \
-	TrkrTruthTrackContainerv1_Dict_rdict.pcm \
+  EmbRecoMatch_Dict_rdict.pcm \
+  EmbRecoMatchv1_Dict_rdict.pcm \
+  EmbRecoMatchContainer_Dict_rdict.pcm \
+  EmbRecoMatchContainerv1_Dict_rdict.pcm \
   TrkrCluster_Dict_rdict.pcm \
   TrkrClusterv1_Dict_rdict.pcm \
   TrkrClusterv2_Dict_rdict.pcm \
@@ -186,7 +182,11 @@ nobase_dist_pcm_DATA = \
   TrkrHitSetContainer_Dict_rdict.pcm \
   TrkrHitSetContainerv1_Dict_rdict.pcm \
   TpcSeedTrackMap_Dict_rdict.pcm \
-  TpcSeedTrackMapv1_Dict_rdict.pcm
+  TpcSeedTrackMapv1_Dict_rdict.pcm \
+  TrkrTruthTrack_Dict_rdict.pcm \
+  TrkrTruthTrackv1_Dict_rdict.pcm \
+  TrkrTruthTrackContainer_Dict_rdict.pcm \
+  TrkrTruthTrackContainerv1_Dict_rdict.pcm 
 
 # sources for io library
 libtrack_io_la_SOURCES = \
@@ -202,13 +202,11 @@ libtrack_io_la_SOURCES = \
   CMFlashDifferenceContainerv1.cc \
   InttDefs.cc \
   MvtxDefs.cc \
+  EmbRecoMatchv1.cc \
+  EmbRecoMatchContainer.cc \
+  EmbRecoMatchContainerv1.cc \
   TpcDefs.cc \
   TrackFitUtils.cc \
-  TrkrTruthTrack.cc \
-	TrkrTruthTrackv1.cc \
-	TrkrTruthTrackContainerv1.cc \
-	EmbRecoMatchv1.cc \
-	EmbRecoMatchContainerv1.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
   TrkrClusterv3.cc \
@@ -238,7 +236,11 @@ libtrack_io_la_SOURCES = \
   TrkrTruthClusters.cc \
   TrkrTruthClustersv1.cc \
   TpcSeedTrackMap.cc \
-  TpcSeedTrackMapv1.cc
+  TpcSeedTrackMapv1.cc \
+  TrkrTruthTrack.cc \
+  TrkrTruthTrackv1.cc \
+  TrkrTruthTrackContainer.cc \
+  TrkrTruthTrackContainerv1.cc 
 
 libtrack_io_la_LIBADD = \
   -lphool \

@@ -7,15 +7,14 @@
 #include "EmbRecoMatchv1.h"
 
 EmbRecoMatchv1::EmbRecoMatchv1(
-        unsigned short id_truth
+          unsigned short id_truth
         , unsigned short id_reco
         , unsigned short nclustruth
         , unsigned short nclusreco
         , unsigned short nclusmatched
         , unsigned short id_trackseed
         , unsigned short id_svtxtrackseed
-    ) : EmbRecoMatch { id_truth }
-      /* , m_idTruthTrack     { id_truth         } */
+    ) : m_idTruthTrack     { id_truth         }
       , m_idRecoTrack      { id_reco          }
       , m_nClustersTruth   { nclustruth       }
       , m_nClustersReco    { nclusreco        }

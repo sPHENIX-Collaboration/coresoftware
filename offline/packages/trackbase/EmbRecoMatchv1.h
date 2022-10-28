@@ -24,15 +24,14 @@ class EmbRecoMatchv1 : public EmbRecoMatch
     /* float meanClusterZDiff()   const override { return m_meanClusterZDiff; }; */
     /* float meanClusterPhiDiff() const override { return m_meanClusterPhiDiff; }; */
 
-    EmbRecoMatchv1() {};
     EmbRecoMatchv1(
-          unsigned short id_truth 
-        , unsigned short id_reco
-        , unsigned short nclustruth   =0
-        , unsigned short nclusreco    =0
-        , unsigned short nclusmatched =0
-        , unsigned short id_trackseed =0
-        , unsigned short id_svtxtrackseed=0
+          unsigned short id_truth     = USHRT_MAX
+        , unsigned short id_reco      = USHRT_MAX
+        , unsigned short nclustruth   = USHRT_MAX
+        , unsigned short nclusreco    = USHRT_MAX
+        , unsigned short nclusmatched = USHRT_MAX
+        , unsigned short id_trackseed = USHRT_MAX
+        , unsigned short id_svtxtrackseed= USHRT_MAX
         /* float meanclusZdiff, */
         /* float meanclusphidiff */
     );
@@ -48,18 +47,15 @@ class EmbRecoMatchv1 : public EmbRecoMatch
   /* {}; */
 
   private:
-    /* unsigned short m_idTruthTrack    {0}; */
-    unsigned short m_idRecoTrack     {0};
+    unsigned short m_idTruthTrack    {USHRT_MAX};
+    unsigned short m_idRecoTrack     {USHRT_MAX};
 
-    unsigned short m_nClustersTruth   {0};
-    unsigned short m_nClustersReco    {0};
+    unsigned short m_nClustersTruth   {USHRT_MAX};
+    unsigned short m_nClustersReco    {USHRT_MAX};
 
-    unsigned short m_idTrackSeed     {0};
-    unsigned short m_idSvtxTrackSeed {0};
-    unsigned short m_nClustersMatched {0};
-
-    /* float m_meanClusterZDiff   {0.}; */
-    /* float m_meanClusterPhiDiff {0.}; */
+    unsigned short m_idTrackSeed      {USHRT_MAX};
+    unsigned short m_idSvtxTrackSeed  {USHRT_MAX};
+    unsigned short m_nClustersMatched {USHRT_MAX};
 
   public:
     // PHObject virtual overloads

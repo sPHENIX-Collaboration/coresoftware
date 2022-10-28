@@ -1,5 +1,4 @@
 #include "TrkrTruthTrackContainerv1.h"
-#include "TrkrTruthTrack.h"
 #include "TrkrTruthTrackv1.h"
 
 #include <algorithm>

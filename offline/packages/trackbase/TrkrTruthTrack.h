@@ -5,6 +5,8 @@
 
 #include <phool/PHObject.h>
 #include <vector>
+#include <climits>
+#include <cmath>
 
 /* class VtxPoint; */
 
@@ -14,16 +16,17 @@ class TrkrTruthTrack : public PHObject
 
   //! dtor
   ~TrkrTruthTrack() override = default;
+  TrkrTruthTrack() {};
 
-  virtual unsigned int getTrackid () const { return 0.; };
+  virtual unsigned int getTrackid () const { return UINT_MAX; };
 
-  virtual float getX0() const { return 0.; };
-  virtual float getY0() const { return 0.; };
-  virtual float getZ0() const { return 0.; };
+  virtual float getX0() const { return NAN; };
+  virtual float getY0() const { return NAN; };
+  virtual float getZ0() const { return NAN; };
 
-  virtual float getPseudoRapidity() const { return 0.; };
-  virtual float getPt()             const { return 0.; };
-  virtual float getPhi()            const { return 0.; };
+  virtual float getPseudoRapidity() const { return NAN; };
+  virtual float getPt()             const { return NAN; };
+  virtual float getPhi()            const { return NAN; };
 
   virtual std::vector<TrkrDefs::cluskey>& getClusters();
   virtual void addCluster(TrkrDefs::cluskey) {};
@@ -40,11 +43,11 @@ class TrkrTruthTrack : public PHObject
 
   struct Comp { 
     bool operator()(const unsigned int lhs, const TrkrTruthTrack* rhs) const
-    {return lhs < rhs->trackid;}
+    {return lhs < rhs->getTrackid();}
     bool operator()(const TrkrTruthTrack* lhs, const unsigned int& rhs) const
-    {return lhs->trackid < rhs;}
+    {return lhs->getTrackid() < rhs;}
     bool operator()(const TrkrTruthTrack* lhs, const TrkrTruthTrack* rhs) const
-    {return lhs->trackid < rhs->trackid;}
+    {return lhs->getTrackid() < rhs->getTrackid();}
   };
 
   // PHObject virtual overloads
@@ -54,8 +57,6 @@ class TrkrTruthTrack : public PHObject
   };
 
  protected:
-  unsigned int trackid;
-  TrkrTruthTrack() : trackid{0} {};
   ClassDefOverride(TrkrTruthTrack, 1)
 };
 
