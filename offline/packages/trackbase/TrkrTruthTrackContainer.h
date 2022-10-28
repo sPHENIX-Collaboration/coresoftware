@@ -23,8 +23,8 @@ class TrkrTruthTrackContainer : public PHObject
   //! add a Track
   virtual void            addTruthTrack(TrkrTruthTrack*) {};
   virtual ConstRange      getTruthTrackRange() const;
-  virtual bool            hasTrackid(unsigned int   /*trackid*/) const { return false; };
-  virtual TrkrTruthTrack* getTruthTrack(unsigned int /*trackid*/) const { return nullptr; };
+  virtual bool            hasTrackid    (unsigned int /*trackid*/) const { return false;   };
+  virtual TrkrTruthTrack* getTruthTrack (unsigned int /*trackid*/) const { return nullptr; };
   virtual Vector&         getTruthTracks();
   
   // PHObject virtual overload
