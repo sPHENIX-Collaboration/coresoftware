@@ -96,8 +96,6 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
        }
      else if(trkrId == TrkrDefs::mvtxId or trkrId == TrkrDefs::inttId) 
        {
-	 unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-
          surf = surfMaps.getSiliconSurface(hitsetkey);
 	 Acts::Transform3 transform = makeTransform(surf, millepedeTranslation, sensorAngles);
          Acts::GeometryIdentifier id = surf->geometryId();
