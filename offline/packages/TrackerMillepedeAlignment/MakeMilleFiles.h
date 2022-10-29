@@ -169,7 +169,7 @@ class MakeMilleFiles : public SubsysReco
   /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;
   bool _binary = true;
-  unsigned int _cluster_version = 4;
+  unsigned int _cluster_version = 3;
 
   ClusterErrorPara _ClusErrPara;
 

@@ -406,7 +406,8 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
       if(si_group == siliconGroup::sensor)
 	{
 	  // every sensor has a different label
-	  label_base += layer*1000000 + sensor*10;
+	  int stave = sensor / nsensors_stave[layer];
+	  label_base += layer*1000000 + stave*10000 + sensor*10;
 	  return label_base;
 	}
       if(si_group == siliconGroup::stave)
@@ -435,7 +436,7 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
       if(tpc_group == tpcGroup::sector)
 	{
 	  // all tpc layers, assign layer 7 and side and sector number to all layers and subsurfaces
-	  int side = sensor / 2;   // check!!!!
+	  int side = sensor / 144; // 0-143 on side 0, 144-287 on side 1
 	  int sector = (sensor - side *144) / 12; 
 	  label_base += 7*1000000 + (side*12 + sector) *10000; 
 	  return label_base;
@@ -452,7 +453,8 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
       if(mms_group == mmsGroup::tile)
 	{
 	  // every tile has different label
-	  label_base += layer*1000000+sensor*10;
+	  int tile = sensor;
+	  label_base += layer*1000000 + tile*10000 + sensor*10;
 	  return label_base;
 	}
       if(mms_group == mmsGroup::mms)

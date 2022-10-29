@@ -138,7 +138,8 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  // PCA of helix to cluster global position
 	  //Acts::Vector3 pca = get_helix_pca(radius, zslope, helix_center, global);
 	  Acts::Vector3 pca = get_helix_pca(fitpars, global);
-	  if(Verbosity() > 0) {std::cout << "    cluster position " << global(0) << " " << global(1) << " " << global(2) << " pca " << pca(0) << " " << pca(1) << " " << pca(2)  << std::endl;}
+	  if(Verbosity() > 0) {std::cout << "    cluster position " << global(0) << " " << global(1) << " " << global(2) 
+					 << " pca " << pca(0) << " " << pca(1) << " " << pca(2)  << std::endl;}
 	    
 	  // capture residuals in the form of (data - fit)
 	  auto residual = global - pca;
@@ -462,7 +463,6 @@ int HelicalFitter::getLabelBase(Acts::GeometryIdentifier id)
 	  // layer and stave, assign all sensors to the stave number
 	  int stave = sensor / nsensors_stave[layer];
 	  label_base += layer*1000000 + stave*10000;
-	  //	  std::cout << " sensor " << sensor << " acts_layer " << acts_layer << " layer " <<  layer << " base_layer " <<  base_layer_map.find(volume)->second << " volume " << volume << " nstaves_layer " << nstaves[layer] << " stave " << stave << " label_base " << label_base << std::endl;
 	  return label_base;
 	}
       if(si_grp == siliconGrp::brrl)
@@ -481,7 +481,7 @@ int HelicalFitter::getLabelBase(Acts::GeometryIdentifier id)
       if(tpc_grp == tpcGrp::sctr)
 	{
 	  // all tpc layers, assign layer 7 and side and sector number to all layers and subsurfaces
-	  int side = sensor / 2;   // check!!!!
+	  int side = sensor / 144; // 0-143 on side 0, 144-287 on side 1
 	  int sector = (sensor - side *144) / 12; 
 	  label_base += 7*1000000 + (side*12 + sector) *10000; 
 	  return label_base;
@@ -498,7 +498,8 @@ int HelicalFitter::getLabelBase(Acts::GeometryIdentifier id)
       if(mms_grp == mmsGrp::tl)
 	{
 	  // every tile has different label
-	  label_base += layer*1000000+sensor*10;
+	  int tile = sensor;
+	  label_base += layer*1000000 + tile*10000+sensor*10;
 	  return label_base;
 	}
       if(mms_grp == mmsGrp::mm)
