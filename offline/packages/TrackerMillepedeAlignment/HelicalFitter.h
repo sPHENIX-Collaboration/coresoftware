@@ -107,7 +107,6 @@ Mille* _mille;
   tpcGrp tpc_grp = tpcGrp::subsrf;
   mmsGrp mms_grp = mmsGrp::tl;
 
-  int nstaves[7] = {12,16,20,12,12,16,16};
   int nsensors_stave[7] = {9,9,9,4,4,4,4};
 
   std::map<unsigned int, unsigned int> base_layer_map = { {10, 0}, {12,3}, {14,7}, {16,55} };
@@ -118,8 +117,6 @@ Mille* _mille;
   //  TrackSeedContainer *_svtx_seed_map{nullptr};
   TrackSeedContainer *_track_map_tpc{nullptr};
   TrackSeedContainer *_track_map_silicon{nullptr};
-  TrackSeed *_tracklet_tpc{nullptr};
-  TrackSeed *_tracklet_si{nullptr};
   TrkrClusterContainer *_cluster_map{nullptr};
   ActsGeometry *_tGeometry{nullptr};
 
