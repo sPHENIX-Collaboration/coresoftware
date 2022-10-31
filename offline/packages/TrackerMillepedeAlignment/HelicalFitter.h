@@ -24,7 +24,7 @@ class Mille;
 class SvtxTrackSeed;
 
 enum siliconGrp {snsr, stv, brrl};
-enum tpcGrp {subsrf, sctr, tp};
+enum tpcGrp {htst, sctr, tp};
 enum mmsGrp {tl, mm};
 
 class HelicalFitter : public SubsysReco, public PHParameterInterface
@@ -104,7 +104,7 @@ Mille* _mille;
  
   // set default groups to lowest level
   siliconGrp si_grp = siliconGrp::snsr;
-  tpcGrp tpc_grp = tpcGrp::subsrf;
+  tpcGrp tpc_grp = tpcGrp::htst;
   mmsGrp mms_grp = mmsGrp::tl;
 
   int nsensors_stave[7] = {9,9,9,4,4,4,4};

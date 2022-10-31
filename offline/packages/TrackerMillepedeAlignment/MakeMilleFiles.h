@@ -49,7 +49,7 @@ enum siliconGroup
 };
 enum tpcGroup
 {
-  subsurf,
+  hitset,
   sector,
   tpc
 };
@@ -177,7 +177,7 @@ class MakeMilleFiles : public SubsysReco
 
   // set default groups to lowest level
   siliconGroup si_group = siliconGroup::sensor;
-  tpcGroup tpc_group = tpcGroup::subsurf;
+  tpcGroup tpc_group = tpcGroup::hitset;
   mmsGroup mms_group = mmsGroup::tile;
 
   int nsensors_stave[7] = {9,9,9,4,4,4,4};

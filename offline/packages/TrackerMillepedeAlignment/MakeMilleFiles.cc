@@ -427,15 +427,17 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
     }
   else if (layer > 6 && layer < 55)
     {
-      if(tpc_group == tpcGroup::subsurf)
+      if(tpc_group == tpcGroup::hitset)
 	{
-	  // every surface has separate label
-	  label_base += layer*1000000 + sensor*10;
+	  // want every hitset (layer, sector, side) to have a separate label
+	  // each group of 12 subsurfaces (sensors) is in a single hitset
+	  int hitset = sensor/12; // hitsets 0-11 on side 0, 12-23 on side 1
+	  label_base += layer*1000000 + hitset*10000;
 	  return label_base;
 	}
       if(tpc_group == tpcGroup::sector)
 	{
-	  // all tpc layers, assign layer 7 and side and sector number to all layers and subsurfaces
+	  // grouop all tpc layers in sector, assign layer 7 and side and sector number to all layers and hitsets
 	  int side = sensor / 144; // 0-143 on side 0, 144-287 on side 1
 	  int sector = (sensor - side *144) / 12; 
 	  label_base += 7*1000000 + (side*12 + sector) *10000; 

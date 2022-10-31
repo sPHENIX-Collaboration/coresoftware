@@ -472,10 +472,12 @@ int HelicalFitter::getLabelBase(Acts::GeometryIdentifier id)
     }
   else if(layer > 6 && layer < 55)
     {
-      if(tpc_grp == tpcGrp::subsrf)
+      if(tpc_grp == tpcGrp::htst)
 	{
-	  // every surface has separate label
-	  label_base += layer*1000000 + sensor*10;
+	  // want every hitset (layer, sector, side) to have a separate label
+	  // each group of 12 subsurfaces (sensors) is in a single hitset
+	  int hitset = sensor/12; // 0-11 on side 0, 12-23 on side 1
+	  label_base += layer*1000000 + hitset*10000;
 	  return label_base;
 	}
       if(tpc_grp == tpcGrp::sctr)
