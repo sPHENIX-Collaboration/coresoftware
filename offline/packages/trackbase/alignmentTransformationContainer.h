@@ -40,7 +40,7 @@ class alignmentTransformationContainer : public Acts::GeometryContext
   void identify(std::ostream &os = std::cout);  
   void addTransform(Acts::GeometryIdentifier, Acts::Transform3); 
   Acts::Transform3& getTransform(Acts::GeometryIdentifier id);
-  const std::vector<std::vector<Acts::Transform3>>& getMap();
+  const std::vector<std::vector<Acts::Transform3>>& getMap() const;
 
   static bool use_alignment;
 

@@ -129,7 +129,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
    } 
 
  // copy map into geoContext
- m_tGeometry->geometry().geoContext =  transformMap->getMap();
+ m_tGeometry->geometry().geoContext =  transformMap;
 
  // map is created, now we can use the transforms
  alignmentTransformationContainer::use_alignment = true;
