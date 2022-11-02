@@ -678,15 +678,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-/* TpcClusterBuilder PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *padnt, TNtuple *hitnt) */
-/* { */
-/*   return padplane->MapToPadPlane( */
-/*       single_hitsetcontainer.get(), */ 
-/*       temp_hitsetcontainer.get(), */ 
-/*       hittruthassoc, */ 
-/*       x_gem, y_gem, t_gem, side, hiter, padnt, hitnt); */
-/* } */
-
 int PHG4TpcElectronDrift::End(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() > 0)
