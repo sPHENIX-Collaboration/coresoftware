@@ -157,6 +157,7 @@ class MakeMilleFiles : public SubsysReco
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster* cluster);
   Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
   int getLabelBase(Acts::GeometryIdentifier id);
+  int getTpcRegion(int layer);
 
   AlignmentStateMap getAlignmentStates(const Trajectory& traj,
                                        SvtxTrack* track, short int crossing);
