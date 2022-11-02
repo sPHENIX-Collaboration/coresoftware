@@ -37,7 +37,7 @@ struct SimpleReverseFilteringLogic {
   template <typename TrackFitterFunktion>
 auto makeKfOptions(
     const TrackFitterFunktion& f,
-    ActsExamples::ActsTrackFittingAlgorithm::GeneralFitterOptions options) {
+    ActsTrackFittingAlgorithm::GeneralFitterOptions options) {
   Acts::KalmanFitterExtensions extensions;
   extensions.updater.connect<&Acts::GainMatrixUpdater::operator()>(
       &f.kfUpdater);
@@ -60,7 +60,7 @@ auto makeKfOptions(
 }
 
 struct TrackFitterFunctionImpl
-    : public ActsExamples::ActsTrackFittingAlgorithm::TrackFitterFunction {
+    : public ActsTrackFittingAlgorithm::TrackFitterFunction {
   Fitter trackFitter;
 
   Acts::GainMatrixUpdater kfUpdater;
@@ -73,11 +73,11 @@ struct TrackFitterFunctionImpl
 
   TrackFitterFunctionImpl(Fitter&& f) : trackFitter(std::move(f)) {}
 
-  ActsExamples::ActsTrackFittingAlgorithm::TrackFitterResult operator()(
+  ActsTrackFittingAlgorithm::TrackFitterResult operator()(
       const std::vector<std::reference_wrapper<
           const ActsExamples::IndexSourceLink>>& sourceLinks,
       const ActsExamples::TrackParameters& initialParameters,
-      const ActsExamples::ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
+      const ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
       const override {
     auto kfOptions = makeKfOptions(*this, options);
     kfOptions.extensions.calibrator
@@ -90,7 +90,7 @@ struct TrackFitterFunctionImpl
 
 
 struct DirectedFitterFunctionImpl
-    : public ActsExamples::ActsTrackFittingAlgorithm::DirectedTrackFitterFunction {
+    : public ActsTrackFittingAlgorithm::DirectedTrackFitterFunction {
   DirectFitter fitter;
 
   Acts::GainMatrixUpdater kfUpdater;
@@ -103,11 +103,11 @@ struct DirectedFitterFunctionImpl
 
   DirectedFitterFunctionImpl(DirectFitter&& f) : fitter(std::move(f)) {}
 
-  ActsExamples::ActsTrackFittingAlgorithm::TrackFitterResult operator()(
+  ActsTrackFittingAlgorithm::TrackFitterResult operator()(
       const std::vector<std::reference_wrapper<
           const ActsExamples::IndexSourceLink>>& sourceLinks,
       const ActsExamples::TrackParameters& initialParameters,
-      const ActsExamples::ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
+      const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
       const std::vector<const Acts::Surface*>& sSequence) const override {
     auto kfOptions = makeKfOptions(*this, options);
     kfOptions.extensions.calibrator
@@ -133,11 +133,11 @@ struct sPHENIXTrackFitterFunctionImpl : public TrackFitterFunctionImpl {
   sPHENIXTrackFitterFunctionImpl(Fitter&& f) : TrackFitterFunctionImpl(std::move(f)) {}
 
  
-  ActsExamples::ActsTrackFittingAlgorithm::TrackFitterResult operator()(
+  ActsTrackFittingAlgorithm::TrackFitterResult operator()(
       const std::vector<std::reference_wrapper<
           const ActsExamples::IndexSourceLink>>& sourceLinks,
       const ActsExamples::TrackParameters& initialParameters,
-      const ActsExamples::ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
+      const ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
       const override {
     auto kfOptions = makeKfOptions(*this, options);
     kfOptions.extensions.calibrator.connect<&Calibrator::calibrate>(
@@ -152,8 +152,8 @@ struct sPHENIXTrackFitterFunctionImpl : public TrackFitterFunctionImpl {
   };
 };
 
-std::shared_ptr<ActsExamples::ActsTrackFittingAlgorithm::TrackFitterFunction>
-ActsExamples::ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
+std::shared_ptr<ActsTrackFittingAlgorithm::TrackFitterFunction>
+ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
     std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
     std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
     bool multipleScattering, bool energyLoss,
@@ -181,8 +181,8 @@ ActsExamples::ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
 }
 
 std::shared_ptr<
-    ActsExamples::ActsTrackFittingAlgorithm::DirectedTrackFitterFunction>
-ActsExamples::ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
+    ActsTrackFittingAlgorithm::DirectedTrackFitterFunction>
+ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
     std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
     bool multipleScattering, bool energyLoss,
     double reverseFilteringMomThreshold,

@@ -23,9 +23,9 @@ namespace Acts {
 class TrackingGeometry;
 }
 
-namespace ActsExamples {
+using namespace ActsExamples;
 
-  class ActsTrackFittingAlgorithm final : public BareAlgorithm {
+class ActsTrackFittingAlgorithm final : public BareAlgorithm {
   public:
   /// Track fitter function that takes input measurements, initial trackstate
   /// and fitter options and returns some track-fitter-specific result.
@@ -143,12 +143,12 @@ namespace ActsExamples {
 };
 
 
-inline ActsExamples::ActsTrackFittingAlgorithm::TrackFitterResult
-ActsExamples::ActsTrackFittingAlgorithm::fitTrack(
+inline ActsTrackFittingAlgorithm::TrackFitterResult
+ActsTrackFittingAlgorithm::fitTrack(
     const std::vector<std::reference_wrapper<
         const ActsExamples::IndexSourceLink>>& sourceLinks,
     const ActsExamples::TrackParameters& initialParameters,
-    const ActsExamples::ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
+    const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
     const std::vector<const Acts::Surface*>& surfSequence) const {
   if (m_cfg.directNavigation) {
     return (*m_cfg.dFit)(sourceLinks, initialParameters, options, surfSequence);
@@ -157,6 +157,5 @@ ActsExamples::ActsTrackFittingAlgorithm::fitTrack(
   return (*m_cfg.fit)(sourceLinks, initialParameters, options);
 }
 
-}  // namespace ActsExamples
 
 #endif

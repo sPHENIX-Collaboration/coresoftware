@@ -14,6 +14,7 @@
 #include <trackbase/InttDefs.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/Calibrator.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
@@ -83,11 +84,11 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     { return Fun4AllReturnCodes::ABORTEVENT; }
   
-  m_fitCfg.fit = ActsExamples::TrackFittingAlgorithm::makeKalmanFitterFunction(
+  m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
     m_tGeometry->geometry().tGeometry,
     m_tGeometry->geometry().magField);
 
-  m_fitCfg.dFit = ActsExamples::TrackFittingAlgorithm::makeKalmanFitterFunction(m_tGeometry->geometry().magField);
+  m_fitCfg.dFit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(m_tGeometry->geometry().magField);
 
   m_outlierFinder.verbosity = Verbosity();
   std::map<long unsigned int, float> chi2Cuts;
@@ -358,12 +359,12 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       ppPlainOptions.mass = TDatabasePDG::Instance()->GetParticle(
         m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
        
-      ActsExamples::MeasurementCalibrator calibrator{measurements};
+      Calibrator calibrator{measurements};
 
       auto magcontext = m_tGeometry->geometry().magFieldContext;
       auto calibcontext = m_tGeometry->geometry().calibContext;
 
-      ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions 
+      ActsTrackFittingAlgorithm::GeneralFitterOptions 
         kfOptions{
 	m_tGeometry->geometry().getGeoContext(),
         magcontext,
@@ -773,10 +774,10 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
   return true;
 }
 
-ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
+ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
     const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
     const ActsExamples::TrackParameters& seed,
-    const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
+    const ActsTrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
     const SurfacePtrVec& surfSequence)
 {
 
