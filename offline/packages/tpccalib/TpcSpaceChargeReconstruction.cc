@@ -325,7 +325,7 @@ void TpcSpaceChargeReconstruction::create_histograms()
 }
 
 //_________________________________________________________________________________
-Acts::Vector3 TpcSpaceChargeReconstruction::get_global_position(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing )
+Acts::Vector3 TpcSpaceChargeReconstruction::get_global_position(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing ) const
 {
   // get global position from Acts transform
   auto globalPosition = m_tgeometry->getGlobalPosition(key, cluster);

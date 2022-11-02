@@ -689,7 +689,7 @@ int PHTpcResiduals::getNodes(PHCompositeNode *topNode)
 }
 
 //_________________________________________________________________________________
-Acts::Vector3 PHTpcResiduals::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing )
+Acts::Vector3 PHTpcResiduals::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing ) const
 {
   // get global position from Acts transform
   auto globalPosition = m_tGeometry->getGlobalPosition(key, cluster);
