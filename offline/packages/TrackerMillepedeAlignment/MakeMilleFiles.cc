@@ -391,6 +391,17 @@ SvtxTrack::StateIter MakeMilleFiles::getStateIter(Acts::Vector3& global, SvtxTra
   return state_iter;
 }
 
+int MakeMilleFiles::getTpcRegion(int layer)
+{
+  int region = 0;
+  if(layer > 23 && layer < 39)
+    region = 1;
+  if(layer > 38 && layer < 55)
+    region = 2;
+
+  return region;  
+}
+
 int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
 {
   unsigned int volume = id.volume();
@@ -437,10 +448,14 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
 	}
       if(tpc_group == tpcGroup::sector)
 	{
-	  // grouop all tpc layers in sector, assign layer 7 and side and sector number to all layers and hitsets
+	  // group all tpc layers in each region and sector, assign layer 7 and side and sector number to all layers and hitsets
 	  int side = sensor / 144; // 0-143 on side 0, 144-287 on side 1
 	  int sector = (sensor - side *144) / 12; 
-	  label_base += 7*1000000 + (side*12 + sector) *10000; 
+	  // for a given layer there are only 12 sectors x 2 sides
+	  // The following gives the sectors in the inner, mid, outer regions unique group labels
+	  int region = getTpcRegion(layer);  // inner, mid, outer
+	  label_base += 7*1000000 + (region * 24 + side*12 + sector) *10000; 
+	  std::cout << " layer " << layer << " sensor " << sensor << " region " << region << " side " << side << " sector " << sector << " label_base " << label_base << std::endl;
 	  return label_base;
 	}
       if(tpc_group == tpcGroup::tpc)
