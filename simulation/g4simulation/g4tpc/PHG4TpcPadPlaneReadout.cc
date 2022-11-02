@@ -507,7 +507,7 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
   // Find the pad range that covers this phi range
   const double philim_low = check_phi(side, philim_low_calc, radius);
   const double philim_high = check_phi(side, philim_high_calc, radius);
- 
+
   int phibin_low  = LayerGeom->get_phibin(philim_high);
   int phibin_high = LayerGeom->get_phibin(philim_low);
   int npads       = phibin_high - phibin_low;

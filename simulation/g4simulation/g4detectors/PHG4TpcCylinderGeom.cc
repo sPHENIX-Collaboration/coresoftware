@@ -236,11 +236,17 @@ int PHG4TpcCylinderGeom::get_phibin_new(const double phi) const
 int PHG4TpcCylinderGeom::find_phibin(const double phi, int side ) const
 {
   double norm_phi = phi;
-  if (phi < phimin || phi > (phimin + nphibins * phistep))
-  {
-    int nwraparound = -floor((phi - phimin) * 0.5 / M_PI);
-    norm_phi += 2 * M_PI * nwraparound;
-  }
+  //if (phi < phimin || phi > (phimin + nphibins * phistep))
+  //{
+  //  int nwraparound = -floor((phi - phimin) * 0.5 / M_PI);
+  //  norm_phi += 2 * M_PI * nwraparound;
+  //}
+  if (phi >  M_PI){
+    norm_phi = phi - 2* M_PI;
+  }  
+  if (phi < phimin){
+    norm_phi = phi + 2* M_PI;
+  }  
   side = 0 ;
 
   int phi_bin = -1;
