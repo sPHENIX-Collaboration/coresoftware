@@ -26,7 +26,8 @@ namespace
 
   struct SimpleReverseFilteringLogic
   {
-    double momentumThreshold;
+    SimpleReverseFilteringLogic() = default;
+    double momentumThreshold = 0.0;
 
     bool doBackwardFiltering(
         Acts::MultiTrajectory::ConstTrackStateProxy trackState) const
@@ -77,6 +78,9 @@ namespace
 
     TrackFitterFunctionImpl(Fitter&& f)
       : trackFitter(std::move(f))
+      , multipleScattering(true)
+      , energyLoss(true)
+      , freeToBoundCorrection(Acts::FreeToBoundCorrection())
     {
     }
 
@@ -111,6 +115,9 @@ namespace
 
     DirectedFitterFunctionImpl(DirectFitter&& f)
       : fitter(std::move(f))
+      , multipleScattering(true)
+      , energyLoss(true)
+      , freeToBoundCorrection(Acts::FreeToBoundCorrection())
     {
     }
 
