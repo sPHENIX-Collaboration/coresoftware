@@ -6,19 +6,15 @@
  */
 #include "EmbRecoMatchv1.h"
 
-EmbRecoMatchv1::EmbRecoMatchv1(
-          unsigned short id_truth
-        , unsigned short id_reco
-        , unsigned short nclustruth
-        , unsigned short nclusreco
-        , unsigned short nclusmatched
-        , unsigned short id_trackseed
-        , unsigned short id_svtxtrackseed
-    ) : m_idTruthTrack     { id_truth         }
-      , m_idRecoTrack      { id_reco          }
-      , m_nClustersTruth   { nclustruth       }
-      , m_nClustersReco    { nclusreco        }
-      , m_idTrackSeed      { id_trackseed     }
-      , m_idSvtxTrackSeed  { id_svtxtrackseed }
-      , m_nClustersMatched { nclusmatched     }
-  {}
+unsigned short EmbRecoMatchv1::add_match(
+          unsigned short id_reco          
+        , unsigned short nclusreco        
+        , unsigned short nclusmatched     
+        , unsigned short id_tpctrackseed  
+        , unsigned short id_svtxtrackseed 
+    ) 
+{
+  m_matches.push_back( { id_reco, id_tpctrackseed, id_svtxtrackseed, nclusreco, nclusmatched } );
+  ++m_nMatches;
+  return m_nMatches;
+}

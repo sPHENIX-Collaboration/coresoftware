@@ -6,6 +6,7 @@
 #include <phool/PHObject.h>
 #include <vector>
 #include <climits>
+#include <cmath>
 
 /* class VtxPoint; */
 
@@ -14,17 +15,20 @@ class EmbRecoMatch : public PHObject
   public:
     EmbRecoMatch() {};
     ~EmbRecoMatch() override = default;
-    // The getters
-    virtual unsigned short idTruthTrack()     const { return USHRT_MAX; };
-    virtual unsigned short idRecoTrack()      const { return USHRT_MAX; };
-    virtual unsigned short idTrackSeed()      const { return USHRT_MAX; };
-    virtual unsigned short idSvtxTrackSeed()  const { return USHRT_MAX; };
 
-    virtual unsigned short nClustersTruth()   const { return USHRT_MAX; };
-    virtual unsigned short nClustersReco()    const { return USHRT_MAX; };
-    virtual unsigned short nClustersMatched() const { return USHRT_MAX; };
+    virtual unsigned short idTruthTrack   () const { return USHRT_MAX; };
+    virtual unsigned short nClustersTruth () const { return USHRT_MAX; };
+    virtual unsigned short nMatches       () const { return 0;         };
 
-    // The setters
+    // the argument i is which match (ranked from 0 to nMatches-1, ordered by goodness of match)
+    virtual unsigned short idRecoTrack      (unsigned short =0) const { return USHRT_MAX; };
+    virtual unsigned short idTpcTrackSeed   (unsigned short =0) const { return USHRT_MAX; };
+    virtual unsigned short idSvtxTrackSeed  (unsigned short =0) const { return USHRT_MAX; };
+
+    virtual unsigned short nClustersReco    (unsigned short =0) const { return USHRT_MAX; };
+    virtual unsigned short nClustersMatched (unsigned short =0) const { return USHRT_MAX; };
+
+    virtual float nRatioMatched() const { return NAN; };
 
   struct Comp { 
     bool operator()(const unsigned int lhs, const EmbRecoMatch* rhs) const

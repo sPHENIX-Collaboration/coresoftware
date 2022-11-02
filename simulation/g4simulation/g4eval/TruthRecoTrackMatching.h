@@ -32,16 +32,15 @@ class TruthRecoTrackMatching : public SubsysReco
   // Standard public interface
   //--------------------------------------------------
   public:
-    TruthRecoTrackMatching(
-        const short  _nmin_match=0,
-        const float  _nmin_ratio=0.,
-        const double _cutoff_dphi=0.3,
-        const double _same_dphi=0.05,
-        const double _cutoff_deta=0.3,
-        const double _same_deta=0.05,
-        const double _cluster_nzwidths=1.,
-        const double _cluster_nphiwidths=1.,
-        const unsigned short _m_min_nmatch=4);
+    TruthRecoTrackMatching(                 // Criteria to match a TrkrClusterContainer and track
+        const unsigned short _nmin_match=4, // Min. matched clusters to match matchs
+        const float  _nmin_ratio=0.,        // "                  " ratio to clusters in truth to match tracks
+        const double _cutoff_dphi=0.3,      // |phi_true-phi_reco| bounds to match tracks (bigger)
+        const double _same_dphi=0.05,       // |phi_true-phi_reco| bounds *must* check track
+        const double _cutoff_deta=0.3,      //  same for eta as for phi
+        const double _same_deta=0.05,       //  '                     '
+        const double _cluster_nzwidths=1.,  //  to match clusters: max |z_true-z_reco| allowed w.r.t. z_size_true
+        const double _cluster_nphiwidths=1.); // same for phi 
 
     ~TruthRecoTrackMatching() override = default; 
     int Init(PHCompositeNode          *) override { return 0; };
@@ -58,7 +57,7 @@ class TruthRecoTrackMatching : public SubsysReco
     //--------------------------------------------------
     // Constant parameters for track matching
     //--------------------------------------------------
-    const short  m_nmincluster_match; // minimum of matched clustered to keep a truth to emb match
+    const unsigned short  m_nmincluster_match; // minimum of matched clustered to keep a truth to emb match
     const float  m_nmincluster_ratio; // minimum ratio of truth clustered that must be matched in reconstructed track
 
     const double m_cutoff_dphi; // how far in |phi_truth-phi_reco| to match
@@ -68,8 +67,6 @@ class TruthRecoTrackMatching : public SubsysReco
 
     const double m_cluster_nzwidths;   // cutoff in *getPhiSize() in cluster for |cluster_phi_truth-cluster_phi_reco| to match
     const double m_cluster_nphiwidths;   // same for eta
-
-    const unsigned short m_min_nmatch;
 
     std::array<float, 55> m_phistep;
     float m_zstep;

@@ -5,35 +5,75 @@
 #include <algorithm>
 #include <iomanip>
 
-void EmbRecoMatchContainerv1::Reset() {
-  m_data.clear();
-  m_ids_Unmatched.clear();
+// WARNING to user:
+// methods depend on the internal data being sorted appropriately
+// -> BE SURE TO CALL *SORT*
+
+void EmbRecoMatchContainerv1::sort() {
+  std::sort(m_data.begin(), m_data.end(), EmbRecoMatch::Comp());
+  std::sort(m_RecoToTruth.begin(), m_RecoToTruth.end());
+  std::sort(m_idsTruthUnmatched.begin(), m_idsTruthUnmatched.end());
 }
 
-std::vector<unsigned short>  EmbRecoMatchContainerv1::ids_Matched() const {
+void EmbRecoMatchContainerv1::addMatch(EmbRecoMatch* match) {
+  m_data.push_back(match);
+  for (int i=0; i<=match->nMatches(); ++i) {
+    m_RecoToTruth.push_back({match->idRecoTrack(i), match->idTruthTrack()});
+  }
+}
+
+void EmbRecoMatchContainerv1::Reset() {
+  for (auto &m : m_data) delete m;
+  m_data.clear();
+  m_RecoToTruth.clear();
+  m_idsTruthUnmatched.clear();
+}
+
+std::vector<unsigned short>  EmbRecoMatchContainerv1::ids_TruthMatched() const {
   std::vector<unsigned short> vec;
   for (auto& id : m_data) vec.push_back(id->idTruthTrack());
   return vec;
 }
 
-EmbRecoMatch* EmbRecoMatchContainerv1::getMatch(unsigned short idEmb) {
-  auto iter = std::lower_bound(m_data.begin(), m_data.end(), idEmb, EmbRecoMatch::Comp());
-  if (iter == m_data.end()) {
-    std::cout << "Asking for EmbTrackMatch for Embedded Track id " << idEmb 
+std::vector<unsigned short>  EmbRecoMatchContainerv1::ids_RecoMatched() const {
+  std::vector<unsigned short> vec;
+  for (auto& id : m_RecoToTruth) vec.push_back(id.first);
+  return vec;
+}
+
+EmbRecoMatch* EmbRecoMatchContainerv1::getMatchTruth(unsigned short idtruth) {
+  auto iter = std::lower_bound(m_data.begin(), m_data.end(), idtruth, EmbRecoMatch::Comp());
+  if (iter == m_data.end() || (*iter)->idTruthTrack() != idtruth) {
+    std::cout << "Asking for EmbTrackMatch for Embedded Track id " << idtruth 
               << " which is not present. Returning empty match." << std::endl;
-    EmbRecoMatch* track = new EmbRecoMatchv1();
-    return track;
+    EmbRecoMatch* match = new EmbRecoMatchv1();
+    return match;
   }
   return *iter;
 }
 
-bool EmbRecoMatchContainerv1::hasMatch(unsigned short idEmb) {
-  return std::binary_search(m_data.begin(), m_data.end(), idEmb, EmbRecoMatch::Comp());
+EmbRecoMatch* EmbRecoMatchContainerv1::getMatchReco(unsigned short idreco) {
+  auto iter = std::lower_bound(m_RecoToTruth.begin(), m_RecoToTruth.end(), idreco, CompShortToPair());
+  if (iter==m_RecoToTruth.end() || iter->first != idreco) {
+    std::cout << "Asking for EmbTrackMatch for reco track id ("<<idreco<<") for which there is not match." << std::endl
+              << "Returning empty match." << std::endl;
+    EmbRecoMatch* match = new EmbRecoMatchv1();
+    return match;
+  }
+  return getMatchTruth(iter->second);
+}
+
+bool EmbRecoMatchContainerv1::hasTruthMatch(unsigned short idtruth) {
+  return std::binary_search(m_data.begin(), m_data.end(), idtruth, EmbRecoMatch::Comp());
+}
+
+bool EmbRecoMatchContainerv1::hasRecoMatch(unsigned short idreco) {
+  return std::binary_search(m_RecoToTruth.begin(), m_RecoToTruth.end(), idreco, CompShortToPair());
 }
 
 void EmbRecoMatchContainerv1::identify(std::ostream& os) const {
   os << " EmbRecoMatchContainerv1 data. N(matched emb. tracks) = " 
-     << nMatches() << ",  N(not matched) " << nUnmatched() << std::endl;
+     << nMatches() << ",  N(not matched) " << nTruthUnmatched() << std::endl;
   os << " Matched track data: " << std::endl;
   //    id-Emb  id-Reco  id-Seed  id-SvtxSeed  nClus-Emb nClus-Reco meanZClus meanPhiClus
   os << std::setw(6) << "id-Emb " 
@@ -47,7 +87,7 @@ void EmbRecoMatchContainerv1::identify(std::ostream& os) const {
     auto m = static_cast<EmbRecoMatchv1*> (_m);
   os << std::setw(6)  << m->idTruthTrack()      << " " //id-Emb" 
      << std::setw(7)  << m->idRecoTrack()       << " " //"id-Reco"
-     << std::setw(7)  << m->idTrackSeed()       << " " //"id-Seed"
+     << std::setw(7)  << m->idTpcTrackSeed()    << " " //"id-Seed"
      << std::setw(11) << m->idSvtxTrackSeed()   << " " //id-SvtxSeed"
      << std::setw(9)  << m->nClustersTruth()    << " " //nClus-Emb"
      << std::setw(10) << m->nClustersReco()     << " " //"nClus-Reco"
@@ -60,6 +100,6 @@ void EmbRecoMatchContainerv1::identify(std::ostream& os) const {
     /* m->nClustersTruth(), m->nClustersReco(), m->meanClusterZDiff(), m->meanClusterPhiDiff()) << std::endl; */
   }
   os << " IDs of embedded tracks that were not reconstructed: " << std::endl;
-  for (const auto n : m_ids_Unmatched) os << n << " ";
+  for (const auto n : m_idsTruthUnmatched) os << n << " ";
   os << std::endl;
 }

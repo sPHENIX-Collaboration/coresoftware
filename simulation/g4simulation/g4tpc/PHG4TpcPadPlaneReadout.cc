@@ -213,6 +213,8 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
 
   // store phi bins and tbins upfront to avoid repetitive checks on the phi methods
   const auto phibins = LayerGeom->get_phibins();
+  pass_data.nphibins = phibins;
+
   const auto tbins   = LayerGeom->get_zbins();
 
   // Create the distribution function of charge on the pad plane around the electron position
@@ -242,10 +244,10 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
   pad_phibin.clear();
   pad_phibin_share.clear();
   populate_zigzag_phibins(layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
-  if (pad_phibin.size() == 0) pass_data.neff_electrons = 0;
-  else {
-    pass_data.phi_bin_lo = pad_phibin[0];
-    pass_data.phi_bin_hi = pad_phibin[pad_phibin.size()-1];
+  if (pad_phibin.size() == 0) {
+    pass_data.neff_electrons = 0;
+  } else {
+    pass_data.fillPhiBins(pad_phibin);
   }
 
   // Normalize the shares so they add up to 1
@@ -267,10 +269,10 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
   adc_tbin.clear();
   adc_tbin_share.clear();
   populate_tbins(t_gem, sigmaL, adc_tbin, adc_tbin_share);
-  if (adc_tbin.size() == 0)  pass_data.neff_electrons = 0;
-  else {
-    pass_data.time_bin_lo = adc_tbin[0];
-    pass_data.time_bin_hi = adc_tbin[adc_tbin.size()-1];
+  if (adc_tbin.size() == 0)  {
+    pass_data.neff_electrons = 0;
+  } else {
+    pass_data.fillTimeBins(adc_tbin);
   }
 
   // Normalize the shares so that they add up to 1
@@ -304,7 +306,7 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
       float neffelectrons = nelec * (pad_share) * (adc_bin_share);
       if (neffelectrons < neffelectrons_threshold) continue;  // skip signals that will be below the noise suppression threshold
 
-      if (tbin_num >= tbins) std::cout << " Error making key: adc_tbin " << tbin_num << " ntbins " << tbins << std::endl;
+      if (tbin_num >= tbins)  std::cout << " Error making key: adc_tbin " << tbin_num << " ntbins " << tbins << std::endl;
       if (pad_num >= phibins) std::cout << " Error making key: pad_phibin " << pad_num << " nphibins " << phibins << std::endl;
 
       // collect information to do simple clustering. Checks operation of PHG4CylinderCellTpcReco, and
