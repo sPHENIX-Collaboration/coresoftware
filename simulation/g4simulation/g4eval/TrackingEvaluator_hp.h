@@ -3,6 +3,9 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHObject.h>
+#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/ActsTransformations.h>
 
@@ -473,6 +476,10 @@ class TrackingEvaluator_hp : public SubsysReco
   static int get_nclusters_micromegas( int64_t mask )
   { return get_nclusters( mask, 55, 57 ); }
 
+  /// cluster version
+  /* Note: this could be retrived automatically using dynamic casts from TrkrCluster objects */
+  void set_cluster_version(int value) { m_cluster_version = value; }
+
   private:
 
   //! load nodes
@@ -538,6 +545,12 @@ class TrackingEvaluator_hp : public SubsysReco
   //! fill MC track map
   void fill_g4particle_map();
 
+  /// get global position for a given cluster
+  /**
+   * uses ActsTransformation to convert cluster local position into global coordinates
+   */
+  Acts::Vector3 get_global_position(TrkrDefs::cluskey, TrkrCluster*, short int crossing = 0) const;
+
   //! evaluation node
   Container* m_container = nullptr;
 
@@ -546,6 +559,17 @@ class TrackingEvaluator_hp : public SubsysReco
 
   /// Acts tracking geometry for surface lookup
   ActsGeometry *m_tGeometry = nullptr;
+
+  // crossing z correction
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+  
+  // distortion corrections
+  TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
+
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection m_distortionCorrection;
   
   //! hits
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;
@@ -590,6 +614,13 @@ class TrackingEvaluator_hp : public SubsysReco
   /** copied from SimEvaluator_hp */
   using G4ParticleMap = std::map<int,int64_t>;
   G4ParticleMap m_g4particle_map;
+  
+  /// cluster error parametrisation
+  ClusterErrorPara m_cluster_error_parametrization;
+  
+  /// cluster version
+  int m_cluster_version = 4;
+  
 
 };
 

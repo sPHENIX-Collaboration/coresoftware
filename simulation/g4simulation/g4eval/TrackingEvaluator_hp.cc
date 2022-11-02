@@ -16,6 +16,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <tpc/TpcDefs.h>
+#include <tpc/TpcDistortionCorrectionContainer.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
@@ -560,8 +561,11 @@ int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
 
   // micromegas geometry
   m_micromegas_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL" );
-//   if( !m_micromegas_geom_container )
-//   { std::cout << "TrackingEvaluator_hp::load_nodes - unable to find CYLINDERGEOM_MICROMEGAS_FULL" << std::endl; }
+
+  // tpc distortion corrections
+  m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
+  m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
+  m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerFluctuation");
 
   return Fun4AllReturnCodes::EVENT_OK;
 
@@ -730,9 +734,38 @@ void TrackingEvaluator_hp::evaluate_tracks()
       add_cluster_size( cluster_struct, cluster_key, m_cluster_hit_map );
       add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, m_hitsetcontainer );
 
+      // assign cluster error from parametrisation
+      if( m_cluster_version >= 4 )
+      {
+        switch( TrkrDefs::getTrkrId(cluster_key) )
+        {
+          case TrkrDefs::tpcId:
+          case TrkrDefs::micromegasId:
+          {
+            if( track->get_tpc_seed() )
+            {
+              const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, cluster_struct._r, cluster_key ); 
+              cluster_struct._phi_error = std::sqrt( errors_square.first )/cluster_struct._r;
+              cluster_struct._z_error = std::sqrt( errors_square.second );
+            }
+            break;
+          }
+        
+          default:
+          {
+            if( track->get_silicon_seed() )
+            {
+              const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, cluster_struct._r, cluster_key ); 
+              cluster_struct._phi_error = std::sqrt( errors_square.first )/cluster_struct._r;
+              cluster_struct._z_error = std::sqrt( errors_square.second );
+            }
+            break;
+          }        
+        }
+      }
+      
       // truth information
       const auto g4hits = find_g4hits( cluster_key );
-
       const bool is_micromegas( TrkrDefs::getTrkrId(cluster_key) == TrkrDefs::micromegasId );
       if( is_micromegas ) add_truth_information_micromegas( cluster_struct, g4hits );
       else add_truth_information( cluster_struct, g4hits );
@@ -860,7 +893,7 @@ void TrackingEvaluator_hp::print_cluster( TrkrDefs::cluskey cluster_key, TrkrClu
 {
   // get detector type
   const auto trkrId = TrkrDefs::getTrkrId( cluster_key );
-  const auto global = m_tGeometry->getGlobalPosition(cluster_key, cluster);
+  const auto global = get_global_position(cluster_key, cluster);
   const auto r = get_r( global.x(), global.y());
   std::cout
     << "TrackingEvaluator_hp::print_cluster -"
@@ -980,7 +1013,7 @@ void TrackingEvaluator_hp::print_track(SvtxTrack* track) const
       }
 
       // get global coordinates
-      const auto global = m_tGeometry->getGlobalPosition(cluster_key, cluster);
+      const auto global = get_global_position(cluster_key, cluster);
 
       std::cout
         << "TrackingEvaluator_hp::print_track -"
@@ -1118,8 +1151,11 @@ int TrackingEvaluator_hp::get_embed( PHG4Particle* particle ) const
 TrackingEvaluator_hp::ClusterStruct TrackingEvaluator_hp::create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
 {
   // get global coordinates
-  const auto global = m_tGeometry->getGlobalPosition(key, cluster);
+  const auto global = get_global_position(key, cluster);
 
+  // apply distortion corrections
+  
+  
   TrackingEvaluator_hp::ClusterStruct cluster_struct;
   cluster_struct._layer = TrkrDefs::getLayer(key);
   cluster_struct._x = global.x();
@@ -1127,9 +1163,13 @@ TrackingEvaluator_hp::ClusterStruct TrackingEvaluator_hp::create_cluster( TrkrDe
   cluster_struct._z = global.z();
   cluster_struct._r = get_r( cluster_struct._x, cluster_struct._y );
   cluster_struct._phi = std::atan2( cluster_struct._y, cluster_struct._x );
-  cluster_struct._phi_error = cluster->getRPhiError()/cluster_struct._r;
-  cluster_struct._z_error = cluster->getZError();
-
+  
+  if( m_cluster_version < 4 )
+  {
+    cluster_struct._phi_error = cluster->getRPhiError()/cluster_struct._r;
+    cluster_struct._z_error = cluster->getZError();
+  }
+  
   if(TrkrDefs::getTrkrId(key) == TrkrDefs::micromegasId)
   { cluster_struct._tileid = MicromegasDefs::getTileId(key); }
 
@@ -1514,4 +1554,38 @@ void TrackingEvaluator_hp::fill_g4particle_map()
 
   }
 
+}
+
+
+//_________________________________________________________________________________
+Acts::Vector3 TrackingEvaluator_hp::get_global_position( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing ) const
+{
+  // get global position from Acts transform
+  auto globalPosition = m_tGeometry->getGlobalPosition(key, cluster);
+  
+  // for the TPC calculate the proper z based on crossing and side
+  const auto trkrid = TrkrDefs::getTrkrId(key);
+  if(trkrid ==  TrkrDefs::tpcId)
+  {	 
+    const auto side = TpcDefs::getSide(key);
+    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);    
+    
+    // apply distortion corrections
+    if(m_dcc_static) 
+    {
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_static ); 
+    }
+    
+    if(m_dcc_average) 
+    { 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_average ); 
+    }
+    
+    if(m_dcc_fluctuation) 
+    { 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_fluctuation ); 
+    }
+  }
+    
+  return globalPosition;
 }
