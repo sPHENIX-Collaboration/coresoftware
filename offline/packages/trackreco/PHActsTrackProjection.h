@@ -60,15 +60,15 @@ class PHActsTrackProjection : public SubsysReco
 		      const float rad) { 
 
     if(m_caloRadii.find(layer) != m_caloRadii.end())
-      m_caloRadii[layer] = rad;
+      { m_caloRadii[layer] = rad; }
     else
-      m_caloRadii.insert(std::make_pair(layer, rad));
+      { m_caloRadii.insert(std::make_pair(layer, rad)); }
   }
 
  private:
   
   int getNodes(PHCompositeNode *topNode);
-  int projectTracks(PHCompositeNode *topNode, int caloLayer);
+  int projectTracks(int caloLayer);
 
   /// Propagate the fitted track parameters to a surface with Acts
   BoundTrackParamPtrResult propagateTrack(
@@ -104,8 +104,6 @@ class PHActsTrackProjection : public SubsysReco
   ActsGeometry *m_tGeometry = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;
-  std::map<const unsigned int, Trajectory> *m_trajectories{nullptr};
-
 
   /// Objects to hold calorimeter information. There are 
   /// only 3 calo layers
@@ -122,9 +120,7 @@ class PHActsTrackProjection : public SubsysReco
   RawClusterContainer *m_clusterContainer = nullptr;
 
   bool m_constField = true;
-
   bool m_useCemcPosRecalib = false;
-
   bool m_calosAvailable = true;
   
   int m_event = 0;

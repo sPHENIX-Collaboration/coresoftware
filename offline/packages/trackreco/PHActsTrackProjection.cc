@@ -36,7 +36,6 @@
 
 PHActsTrackProjection::PHActsTrackProjection(const std::string& name)
   : SubsysReco(name)
-  , m_trajectories(nullptr)
 {
   m_caloNames.push_back("CEMC");
   m_caloNames.push_back("HCALIN");
@@ -50,23 +49,20 @@ PHActsTrackProjection::PHActsTrackProjection(const std::string& name)
 int PHActsTrackProjection::InitRun(PHCompositeNode *topNode)
 {
   if(Verbosity() > 1)
-    std::cout << "PHActsTrackProjection begin Init" << std::endl;
-
+    {
+      std::cout << "PHActsTrackProjection begin Init" << std::endl;
+    }
+  
   int ret = makeCaloSurfacePtrs(topNode);
 
-  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
-    ret = Fun4AllReturnCodes::ABORTEVENT;
+  /// only need to print warning once
+  m_calosAvailable = false;
 
-  if(ret == Fun4AllReturnCodes::ABORTEVENT)
-    {
-      /// If calos aren't available, set a flag so that job doesn't
-      /// quit processing but the flag will skip process event
-      m_calosAvailable = false;
-      return Fun4AllReturnCodes::EVENT_OK;
-    }
+  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    { ret = Fun4AllReturnCodes::ABORTEVENT; }
 
   if(Verbosity() > 1)
-    std::cout << "PHActsTrackProjection finished Init" << std::endl;
+    { std::cout << "PHActsTrackProjection finished Init" << std::endl; }
   
   return ret;
 }
@@ -79,22 +75,30 @@ int PHActsTrackProjection::process_event(PHCompositeNode *topNode)
 	      << m_event << std::endl;
     }
 
-  if(!m_calosAvailable) { return Fun4AllReturnCodes::EVENT_OK; }
-
   for(int layer = 0; layer < m_nCaloLayers; layer++)
     {
       if(Verbosity() > 1)
-	std::cout << "Processing calo layer " 
+	{
+	  std::cout << "Processing calo layer " 
 		  << m_caloNames.at(layer) << std::endl;
+	}
 
-      int ret = projectTracks(topNode, layer);
+      if (setCaloContainerNodes(topNode, layer) 
+	  != Fun4AllReturnCodes::EVENT_OK)
+	{ continue; }
+
+      int ret = projectTracks(layer);
       if(ret != Fun4AllReturnCodes::EVENT_OK)
-	return Fun4AllReturnCodes::ABORTEVENT;
+	{
+	  return Fun4AllReturnCodes::ABORTEVENT;
+	}
     }
 
   if(Verbosity() > 1)
-    std::cout << "PHActsTrackProjection : Finished process_event event "
+    {
+      std::cout << "PHActsTrackProjection : Finished process_event event "
 	      << m_event << std::endl;
+    }
 
   m_event++;
 
@@ -112,39 +116,23 @@ int PHActsTrackProjection::End(PHCompositeNode */*topNode*/)
 }
 
 
-int PHActsTrackProjection::projectTracks(PHCompositeNode *topNode, 
-					 const int caloLayer)
+int PHActsTrackProjection::projectTracks(const int caloLayer)
 {
-  if (setCaloContainerNodes(topNode, caloLayer) 
-      != Fun4AllReturnCodes::EVENT_OK)
-    return Fun4AllReturnCodes::ABORTEVENT;
-
-  for(const auto& [trackKey, traj] : *m_trajectories)
+  for(const auto& [key, track] : *m_trackMap)
     {
-      const auto track = m_trackMap->get(trackKey);
-      const auto& trackTips = traj.tips();
-  
-      if(trackTips.size() > 1 and Verbosity() > 0)
-	{ 
-	  std::cout << PHWHERE 
-		    << "More than 1 track tip per track. Should never happen..."
-		    << std::endl;
-	}
-      for(const auto& trackTip : trackTips)
+      const auto params = makeTrackParams(track);
+      auto cylSurf = 
+	m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
+      
+      auto result = propagateTrack(params, cylSurf);
+      
+      if(result.ok())
 	{
-	  const auto params = traj.trackParameters(trackTip);
-	  auto cylSurf = 
-	    m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
-	  
-	  auto result = propagateTrack(params, cylSurf);
-	  
-	  if(result.ok())
-	    {
-	      auto trackStateParams = std::move(**result);
-	      updateSvtxTrack(trackStateParams, 
-			      track, caloLayer);
-	    }
+	  auto trackStateParams = std::move(**result);
+	  updateSvtxTrack(trackStateParams, 
+			  track, caloLayer);
 	}
+	
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -167,10 +155,9 @@ PHActsTrackProjection::makeTrackParams(SvtxTrack* track)
 		  track->get_z() * Acts::UnitConstants::cm,
 		  10 * Acts::UnitConstants::ns);
 
-  Acts::BoundSymMatrix cov;
-  for(int i = 0; i < 6; i++)
-    for(int j = 0; j < 6; j++)
-      { cov(i,j) = track->get_acts_covariance(i,j); }
+  ActsTransformations transformer;
+
+  Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
 
   return ActsExamples::TrackParameters::create(perigee, m_tGeometry->geometry().getGeoContext(),
 					       actsFourPos, momentum,
@@ -182,10 +169,14 @@ Acts::Vector3 PHActsTrackProjection::getVertex(SvtxTrack *track)
 {
   auto vertexId = track->get_vertex_id();
   const SvtxVertex* svtxVertex = m_vertexMap->get(vertexId);
-
-  Acts::Vector3 vertex(svtxVertex->get_x() * Acts::UnitConstants::cm, 
-		       svtxVertex->get_y() * Acts::UnitConstants::cm, 
-		       svtxVertex->get_z() * Acts::UnitConstants::cm);
+  Acts::Vector3 vertex = Acts::Vector3::Zero();
+  if(svtxVertex)
+    {
+      vertex(0) = svtxVertex->get_x() * Acts::UnitConstants::cm; 
+      vertex(1) = svtxVertex->get_y() * Acts::UnitConstants::cm; 
+      vertex(2) = svtxVertex->get_z() * Acts::UnitConstants::cm;
+    } 
+  
   return vertex;
 }
 
@@ -207,6 +198,12 @@ void PHActsTrackProjection::updateSvtxTrack(
   out.set_py(momentum.y());
   out.set_pz(momentum.z());
   
+  if(Verbosity() > 1)
+    {
+      std::cout << "Adding track state for caloLayer " << caloLayer 
+		<< " with position " << projectionPos.transpose() << std::endl;
+    }
+
   ActsTransformations transformer;
   const auto globalCov = transformer.rotateActsCovToSvtxTrack(params);
   for (int i = 0; i < 6; ++i) {
@@ -289,8 +286,9 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
 	const SurfacePtr& targetSurf)
 {
   
-  if(Verbosity() > 1) {
-    std::cout << "Propagating final track fit with momentum: " 
+  if(Verbosity() > 1) 
+    {
+      std::cout << "Propagating final track fit with momentum: " 
 	      << params.momentum() << " and position " 
 	      << params.position(m_tGeometry->geometry().getGeoContext())
 	      << std::endl
@@ -365,10 +363,14 @@ int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode *topNode,
   
   if(!m_towerGeomContainer or !m_towerContainer or !m_clusterContainer)
     {
-      std::cout << PHWHERE 
-		<< "Calo geometry and/or cluster container not found on node tree. Track projections to calos won't be filled."
-		<< std::endl;
-      m_calosAvailable = false;
+      if(m_calosAvailable)
+	{
+	  std::cout << PHWHERE 
+		    << "Calo geometry and/or cluster container for " << m_caloNames.at(caloLayer) 
+		    << "not found on node tree. Track projections to calos won't be filled."
+		    << std::endl;
+	}
+
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   
@@ -380,7 +382,7 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
   for(int caloLayer = 0; caloLayer < m_nCaloLayers; caloLayer++)
     {
       if(setCaloContainerNodes(topNode, caloLayer) != Fun4AllReturnCodes::EVENT_OK)
-	return Fun4AllReturnCodes::ABORTEVENT;
+	{ continue; }
       
       /// Default to using calo radius
       double caloRadius = m_towerGeomContainer->get_radius();
@@ -431,14 +433,7 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode *topNode)
 
 int PHActsTrackProjection::getNodes(PHCompositeNode *topNode)
 {
-  m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
-  if(!m_trajectories)
-    {
-      std::cout << PHWHERE << "No Acts trajectories on node tree, bailing."
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
+  
   m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if(!m_vertexMap)
     {
