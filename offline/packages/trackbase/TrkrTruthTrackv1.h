@@ -22,8 +22,6 @@ class TrkrTruthTrackv1 : public TrkrTruthTrack
   //!dtor
   ~TrkrTruthTrackv1() override = default;
 
-  unsigned int getTruthTrack() const { return trackid; };
-
   unsigned int getTrackid() const override { return trackid; } ;
   float getX0() const override { return X0; };
   float getY0() const override { return Y0; };
@@ -49,7 +47,7 @@ class TrkrTruthTrackv1 : public TrkrTruthTrack
   void identify(std::ostream &os = std::cout) const override;
 
   protected:
-  /* unsigned int trackid; */
+  unsigned int trackid;
   float X0;
   float Y0;
   float Z0;

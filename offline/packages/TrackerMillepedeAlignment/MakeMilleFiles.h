@@ -49,7 +49,7 @@ enum siliconGroup
 };
 enum tpcGroup
 {
-  subsurf,
+  hitset,
   sector,
   tpc
 };
@@ -169,7 +169,7 @@ class MakeMilleFiles : public SubsysReco
   /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;
   bool _binary = true;
-  unsigned int _cluster_version = 4;
+  unsigned int _cluster_version = 3;
 
   ClusterErrorPara _ClusErrPara;
 
@@ -177,10 +177,10 @@ class MakeMilleFiles : public SubsysReco
 
   // set default groups to lowest level
   siliconGroup si_group = siliconGroup::sensor;
-  tpcGroup tpc_group = tpcGroup::subsurf;
+  tpcGroup tpc_group = tpcGroup::hitset;
   mmsGroup mms_group = mmsGroup::tile;
 
-  int nstaves[7] = {12, 16, 20, 12, 12, 16, 16};
+  int nsensors_stave[7] = {9,9,9,4,4,4,4};
 
   std::map<unsigned int, unsigned int> base_layer_map = {{10, 0}, {12, 3}, {14, 7}, {16, 55}};
 
