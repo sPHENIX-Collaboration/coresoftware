@@ -18,6 +18,7 @@ class TrkrTruthTrackContainerv1 : public TrkrTruthTrackContainer
 {
   public:
 
+  void Reset() override;
   void       addTruthTrack(TrkrTruthTrack*) override;
   ConstRange getTruthTrackRange() const override;
   bool       hasTrackid(unsigned int trackid) const override;

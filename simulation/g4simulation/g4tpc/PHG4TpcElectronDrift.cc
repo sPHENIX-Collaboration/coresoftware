@@ -19,10 +19,8 @@
 #include <trackbase/TrkrHitv2.h>
 
 #include <trackbase/TpcDefs.h>
-#include <trackbase/TrkrTruthTrack.h>
 #include <trackbase/TrkrTruthTrackv1.h>
 
-#include <trackbase/TrkrTruthTrackContainer.h>
 #include <trackbase/TrkrTruthTrackContainerv1.h>
 
 #include <trackbase/TrkrCluster.h>

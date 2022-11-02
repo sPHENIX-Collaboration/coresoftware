@@ -198,6 +198,7 @@ pkginclude_HEADERS = \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
   PHG4Particlev3.h \
+  PHG4MagneticField.h \
   PHG4ParticleGenerator.h \
   PHG4ParticleGeneratorBase.h \
   PHG4ParticleGeneratorD0.h \

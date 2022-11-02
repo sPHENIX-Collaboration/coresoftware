@@ -19,8 +19,8 @@ class CaloWaveformProcessing : public SubsysReco
 
   CaloWaveformProcessing()
     :m_processingtype(CaloWaveformProcessing::TEMPLATE)
-    , m_template_input_file("testbeam_cemc_template.root")
-    , m_model_name("testbeamtrained_cemc.onnx")
+    , m_template_input_file("CEMC_TEMPLATE")
+    , m_model_name("CEMC_ONNX")
 {};
   ~CaloWaveformProcessing() override  { }
 

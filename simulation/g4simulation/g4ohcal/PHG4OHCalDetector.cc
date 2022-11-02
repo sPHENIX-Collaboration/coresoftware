@@ -57,7 +57,6 @@ class PHCompositeNode;
 PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parames, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4OHCalDisplayAction *>(subsys->GetDisplayAction()))
-  , m_FieldSetup(nullptr)
   , m_Params(parames)
   , m_InnerRadius(m_Params->get_double_param("inner_radius") * cm)
   , m_OuterRadius(m_Params->get_double_param("outer_radius") * cm)
@@ -69,6 +68,14 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
 {
   gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
   assert(gdml_config);
+
+  m_FieldSetup =
+    new PHG4OHCalFieldSetup(
+      m_Params->get_string_param("IronFieldMapPath"), m_Params->get_double_param("IronFieldMapScale"),
+      m_InnerRadius - 10*cm, // subtract 10 cm to make sure fieldmap with 2x2 grid covers it
+      m_OuterRadius + 10*cm, // add 10 cm to make sure fieldmap with 2x2 grid covers it
+      m_SizeZ/2. + 10*cm // div by 2 bc G4 convention
+        );
 }
 
 PHG4OHCalDetector::~PHG4OHCalDetector()
@@ -189,6 +196,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
   {
     m_DisplayAction->AddChimSteelVolume((*it2)->GetLogicalVolume());
     m_SteelAbsorberLogVolSet.insert((*it2)->GetLogicalVolume());
+
     hcalenvelope->AddDaughter((*it2));
     m_VolumeSteel += (*it2)->GetLogicalVolume()->GetSolid()->GetCubicVolume();
     std::vector<G4VPhysicalVolume *>::iterator it4 = m_ChimScintiMotherAssembly->GetVolumesIterator();
@@ -210,6 +218,18 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     }
     ++it2;
   }
+
+  for (auto & logical_vol : m_SteelAbsorberLogVolSet)
+  {
+    logical_vol->SetFieldManager(m_FieldSetup->get_Field_Manager_Iron(), true);
+
+    if (m_Params->get_int_param("field_check"))
+    {
+      std::cout <<__PRETTY_FUNCTION__<<" : setup Field_Manager_Iron for LV "
+          <<logical_vol->GetName()<<" w/ # of daughter "<< logical_vol->GetNoDaughters()<<std::endl;
+    }
+  }
+
   return 0;
 }
 
@@ -301,13 +321,11 @@ int PHG4OHCalDetector::map_towerid(const int tower_id)
   int itmp = tower_id / 2;
   if (tower_id % 2)
   {
-    //itwr = 11 - itmp;
-    itwr = 11 + itmp;
+    itwr = 12 + itmp;
   }
   else
   {
-    //itwr = 12 + itmp;
-    itwr = 12 - itmp;
+    itwr = 11 - itmp;
   }
   return itwr;
   // here is the mapping in long form

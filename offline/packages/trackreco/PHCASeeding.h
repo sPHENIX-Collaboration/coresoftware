@@ -16,11 +16,12 @@
 #include <tpc/TpcDistortionCorrection.h>
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
+#include <trackbase/ActsGeometry.h>
+
+#include <phool/PHTimer.h>  // for PHTimer
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
-
-#include <trackbase/ActsGeometry.h>
 
 #include <boost/geometry/geometries/box.hpp>    // for box
 #include <boost/geometry/geometries/point.hpp>  // for point
