@@ -2,7 +2,6 @@
 #ifndef TRACKBASE_ACTSTRACKFITTINGALGORITHM_H
 #define TRACKBASE_ACTSTRACKFITTINGALGORITHM_H
 
-
 #include <Acts/EventData/detail/CorrectedTransformationFreeToBound.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/TrackFitting/KalmanFitter.hpp>
@@ -12,21 +11,23 @@
 #include <ActsExamples/Framework/BareAlgorithm.hpp>
 #include <ActsExamples/MagneticField/MagneticField.hpp>
 
-#include "ResidualOutlierFinder.h"
 #include "Calibrator.h"
+#include "ResidualOutlierFinder.h"
 
 #include <functional>
 #include <memory>
 #include <vector>
 
-namespace Acts {
-class TrackingGeometry;
+namespace Acts
+{
+  class TrackingGeometry;
 }
 
 using namespace ActsExamples;
 
-class ActsTrackFittingAlgorithm final : public BareAlgorithm {
-  public:
+class ActsTrackFittingAlgorithm final : public BareAlgorithm
+{
+ public:
   /// Track fitter function that takes input measurements, initial trackstate
   /// and fitter options and returns some track-fitter-specific result.
   using TrackFitterOptions = Acts::KalmanFitterOptions;
@@ -35,7 +36,8 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm {
 
   /// General options that do not depend on the fitter type, but need to be
   /// handed over by the algorithm
-  struct GeneralFitterOptions {
+  struct GeneralFitterOptions
+  {
     std::reference_wrapper<const Acts::GeometryContext> geoContext;
     std::reference_wrapper<const Acts::MagneticFieldContext> magFieldContext;
     std::reference_wrapper<const Acts::CalibrationContext> calibrationContext;
@@ -48,7 +50,8 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm {
   /// Fit function that takes the above parameters and runs a fit
   /// @note This is separated into a virtual interface to keep compilation units
   /// small
-  class TrackFitterFunction {
+  class TrackFitterFunction
+  {
    public:
     virtual ~TrackFitterFunction() = default;
     virtual TrackFitterResult operator()(
@@ -62,7 +65,8 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm {
   /// sequence for the DirectNavigator to follow
   /// @note This is separated into a virtual interface to keep compilation units
   /// small
-  class DirectedTrackFitterFunction {
+  class DirectedTrackFitterFunction
+  {
    public:
     virtual ~DirectedTrackFitterFunction() = default;
 
@@ -72,7 +76,8 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm {
         const std::vector<const Acts::Surface*>&) const = 0;
   };
 
-  struct Config {
+  struct Config
+  {
     bool directNavigation;
     /// Type erased fitter function.
     std::shared_ptr<TrackFitterFunction> fit;
@@ -142,20 +147,20 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm {
   Config m_cfg;
 };
 
-
 inline ActsTrackFittingAlgorithm::TrackFitterResult
 ActsTrackFittingAlgorithm::fitTrack(
     const std::vector<std::reference_wrapper<
         const ActsExamples::IndexSourceLink>>& sourceLinks,
     const ActsExamples::TrackParameters& initialParameters,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
-    const std::vector<const Acts::Surface*>& surfSequence) const {
-  if (m_cfg.directNavigation) {
+    const std::vector<const Acts::Surface*>& surfSequence) const
+{
+  if (m_cfg.directNavigation)
+  {
     return (*m_cfg.dFit)(sourceLinks, initialParameters, options, surfSequence);
   }
 
   return (*m_cfg.fit)(sourceLinks, initialParameters, options);
 }
-
 
 #endif
