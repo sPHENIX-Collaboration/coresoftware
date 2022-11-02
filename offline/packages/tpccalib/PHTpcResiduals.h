@@ -2,17 +2,16 @@
 #define TRACKRECO_PHTPCRESIDUALS_H
 
 #include <fun4all/SubsysReco.h>
+#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 #include <trackbase/TrkrDefs.h>
-
 #include <trackbase/ActsGeometry.h>
-
-#include <Acts/Definitions/Algebra.hpp>
-#include <Acts/Propagator/Propagator.hpp>
-#include <Acts/Utilities/Result.hpp>
-
-#include <Acts/EventData/TrackParameters.hpp>
-#include <ActsExamples/EventData/Track.hpp>
 #include <trackbase_historic/ActsTransformations.h>
+
+#include <Acts/Utilities/Result.hpp>
+#include <Acts/EventData/TrackParameters.hpp>
+
+#include <memory>
 
 class PHCompositeNode;
 class SvtxTrack;
@@ -22,7 +21,6 @@ class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 
-#include <memory>
 class TFile;
 class TH1;
 class TH2;
@@ -100,6 +98,12 @@ class PHTpcResiduals : public SubsysReco
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 
+  /// get global position for a given cluster
+  /**
+   * uses ActsTransformation to convert cluster local position into global coordinates
+   */
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*, short int crossing);
+
   int processTracks(PHCompositeNode *topNode);
 
   bool checkTrack(SvtxTrack* track) const;
@@ -111,7 +115,6 @@ class PHTpcResiduals : public SubsysReco
   /// Calculates TPC residuals given an Acts::Propagation result to
   /// a TPC surface
   void calculateTpcResiduals(const Acts::BoundTrackParameters& params, TrkrDefs::cluskey, TrkrCluster* cluster);
-        
 
   /** \brief 
    * Propagates the silicon+MM track fit to the surface on which
@@ -124,6 +127,7 @@ class PHTpcResiduals : public SubsysReco
   /// Gets distortion cell for identifying bins in TPC
   int getCell(const Acts::Vector3& loc);
 
+  /// create histograms
   void makeHistograms();
     
   //! create ACTS track parameters from Svtx track
@@ -141,6 +145,17 @@ class PHTpcResiduals : public SubsysReco
   ActsGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
 
+  // crossing z correction
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+  
+  // distortion corrections
+  TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
+
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection m_distortionCorrection;
+  
   float m_maxTAlpha = 0.6;
   float m_maxResidualDrphi = 0.5; // cm
   float m_maxTBeta = 1.5;
@@ -177,6 +192,9 @@ class PHTpcResiduals : public SubsysReco
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
 
+  /// running track crossing id
+  short int m_crossing = 0;
+  
   ///@name counters
   //@{
   int m_total_tracks = 0;
