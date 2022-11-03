@@ -146,8 +146,6 @@ int PHTpcResiduals::process_event(PHCompositeNode *topNode)
 int PHTpcResiduals::End(PHCompositeNode */*topNode*/)
 {
   std::cout << "PHTpcResiduals::End - writing matrices to " << m_outputfile << std::endl;
-  if(Verbosity() > 0)
-  { std::cout << "PHTpcResiduals::End - Number of bad SL propagations " << m_nBadProps << std::endl; }
       
   // save matrix container in output file
   if( m_matrix_container )
@@ -303,76 +301,82 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
   for( const auto& key:get_cluster_keys( track ) )
   {
     
-      ++m_total_clusters;
+    // assign to static cluskey
+    cluskey = key;
 
-      // make sure cluster is from TPC
-      const auto detId = TrkrDefs::getTrkrId(cluskey);
-      if(detId != TrkrDefs::tpcId) continue;  
-
-      const auto cluster = m_clusterContainer->findCluster(cluskey);      
-      const auto surf = m_tGeometry->maps().getSurface( cluskey, cluster );
-      auto result = propagateTrackState(trackParams, surf);
-
-      if(!result.ok())
+    // increment counter
+    ++m_total_clusters;
+    
+    // make sure cluster is from TPC
+    const auto detId = TrkrDefs::getTrkrId(cluskey);
+    if(detId != TrkrDefs::tpcId)
+    {
+      std::cout << "PHTpcResiduals::processTrack - cluster is not TPC" << std::endl;
+      continue;  
+    }
+    
+    const auto cluster = m_clusterContainer->findCluster(cluskey);      
+    const auto surf = m_tGeometry->maps().getSurface( cluskey, cluster );
+    auto result = propagateTrackState(trackParams, surf);
+    
+    if(!result.ok())
+    {
+      
+      // skip if propagation failed
+      if( Verbosity() > 1 )
       {
-               
-        // skip if propagation failed
-        if( Verbosity() > 1 )
-        {
-          std::cout << "Starting track params position/momentum: "
-            << trackParams.position(m_tGeometry->geometry().geoContext).transpose()
-            << std::endl
-            << std::endl
-            << "Track params phi/eta "
-            << std::atan2(trackParams.momentum().y(),
-            trackParams.momentum().x())
-            << " and "
-            << std::atanh(trackParams.momentum().z() /
-            trackParams.momentum().norm())
-            << std::endl;
-        }
-        m_nBadProps++;
-        continue;
- 
-      }
-
-      // get extrapolated track state, convert to sPHENIX and add to track
-      auto pathLength = (*result).first;
-      auto trackStateParams = std::move(*(*result).second);
-      if(Verbosity() > 1)
-      {
-        std::cout << "PHTpcResiduals::processTrack -"
-          << " path length: " << pathLength
-          << " track momentum : "
-          << trackParams.momentum()
-          << " propagator momentum : "
-          << trackStateParams.momentum()
+        std::cout << "Starting track params position/momentum: "
+          << trackParams.position(m_tGeometry->geometry().geoContext).transpose()
+          << std::endl
+          << std::endl
+          << "Track params phi/eta "
+          << std::atan2(trackParams.momentum().y(),
+          trackParams.momentum().x())
+          << " and "
+          << std::atanh(trackParams.momentum().z()/trackParams.momentum().norm())
           << std::endl;
       }
-        
-      addTrackState( track, pathLength, trackStateParams );
-
-        
-      // calculate residuals with respect to cluster
-      // Get all the relevant information for residual calculation
-      cluskey = key;
-      const auto globClusPos = getGlobalPosition(cluskey, cluster, m_crossing);
-      clusR = get_r(globClusPos(0),globClusPos(1));
-      clusPhi = std::atan2(globClusPos(1), globClusPos(0));
-      clusZ = globClusPos(2);
-
-      // cluster errors
-      if( m_cluster_version >= 4 )
-      {
-        const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, clusR, cluskey ); 
-        clusRPhiErr = std::sqrt( errors_square.first );
-        clusZErr = std::sqrt( errors_square.second );
-      } else {
-        clusRPhiErr = cluster->getRPhiError();
-        clusZErr = cluster->getZError();
-      }
-                
-      if(Verbosity() > 3)
+      
+      std::cout << "PHTpcResiduals::processTrack - propagation failed" << std::endl;
+      continue;
+      
+    }
+    
+    // get extrapolated track state, convert to sPHENIX and add to track
+    auto pathLength = (*result).first;
+    auto trackStateParams = std::move(*(*result).second);
+    if(Verbosity() > 1)
+    {
+      std::cout << "PHTpcResiduals::processTrack -"
+        << " path length: " << pathLength
+        << " track momentum : "
+        << trackParams.momentum()
+        << " propagator momentum : "
+        << trackStateParams.momentum()
+        << std::endl;
+    }
+    
+    addTrackState( track, pathLength, trackStateParams );
+    
+    // calculate residuals with respect to cluster
+    // Get all the relevant information for residual calculation
+    const auto globClusPos = getGlobalPosition(cluskey, cluster, m_crossing);
+    clusR = get_r(globClusPos(0),globClusPos(1));
+    clusPhi = std::atan2(globClusPos(1), globClusPos(0));
+    clusZ = globClusPos(2);
+    
+    // cluster errors
+    if( m_cluster_version >= 4 )
+    {
+      const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, clusR, cluskey ); 
+      clusRPhiErr = std::sqrt( errors_square.first );
+      clusZErr = std::sqrt( errors_square.second );
+    } else {
+      clusRPhiErr = cluster->getRPhiError();
+      clusZErr = cluster->getZError();
+    }
+      
+      // if(Verbosity() > 3)
       {
         std::cout << "PHTpcResiduals::processTrack -"
           << " cluskey: " << cluskey
