@@ -309,20 +309,15 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     
     // make sure cluster is from TPC
     const auto detId = TrkrDefs::getTrkrId(cluskey);
-    if(detId != TrkrDefs::tpcId)
-    {
-      std::cout << "PHTpcResiduals::processTrack - cluster is not TPC" << std::endl;
-      continue;  
-    }
+    if(detId != TrkrDefs::tpcId) continue;  
     
     const auto cluster = m_clusterContainer->findCluster(cluskey);      
     const auto surf = m_tGeometry->maps().getSurface( cluskey, cluster );
     auto result = propagateTrackState(trackParams, surf);
     
+    // skip if propagation failed
     if(!result.ok())
     {
-      
-      // skip if propagation failed
       if( Verbosity() > 1 )
       {
         std::cout << "Starting track params position/momentum: "
@@ -337,9 +332,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
           << std::endl;
       }
       
-      std::cout << "PHTpcResiduals::processTrack - propagation failed" << std::endl;
       continue;
-      
     }
     
     // get extrapolated track state, convert to sPHENIX and add to track
@@ -375,189 +368,201 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       clusRPhiErr = cluster->getRPhiError();
       clusZErr = cluster->getZError();
     }
-      
-      // if(Verbosity() > 3)
-      {
-        std::cout << "PHTpcResiduals::processTrack -"
-          << " cluskey: " << cluskey
-          << " clusR: " << clusR 
-          << " clusPhi: " << clusPhi << "+/-" << clusRPhiErr
-          << " clusZ: " << clusZ << "+/-" << clusZErr
-          << std::endl;
-      }
-          
+    
+    if(Verbosity() > 3)
+    {
+      std::cout << "PHTpcResiduals::processTrack -"
+        << " cluskey: " << cluskey
+        << " clusR: " << clusR 
+        << " clusPhi: " << clusPhi << "+/-" << clusRPhiErr
+        << " clusZ: " << clusZ << "+/-" << clusZErr
+        << std::endl;
+    }
+    
+    /* 
+     * as instructed by Christof, it should not be necessary to cut on small
+     * cluster errors any more with clusters of version 4 or higher 
+     */ 
+    if( m_cluster_version < 4 )
+    {
+      /*
+       * remove clusters with too small errors since they are likely pathological
+       * and have a large contribution to the chisquare
+       * TODO: make these cuts configurable
+       */
       if(clusRPhiErr < 0.015) continue;
       if(clusZErr < 0.05) continue;
+    }
+    
+    const auto globalStatePos = trackStateParams.position(m_tGeometry->geometry().getGeoContext());
+    const auto globalStateMom = trackStateParams.momentum();
+    const auto globalStateCov = *trackStateParams.covariance();
+    
+    stateRPhiErr = std::sqrt(globalStateCov(Acts::eBoundLoc0, Acts::eBoundLoc0))/Acts::UnitConstants::cm;
+    stateZErr = sqrt(globalStateCov(Acts::eBoundLoc1, Acts::eBoundLoc1))/Acts::UnitConstants::cm;
+    
+    stateZ = globalStatePos.z()/Acts::UnitConstants::cm;
+    
+    const auto globStateX = globalStatePos.x()/Acts::UnitConstants::cm;
+    const auto globStateY = globalStatePos.y()/Acts::UnitConstants::cm;
+    const auto globStateZ = stateZ;
+    
+    stateR = std::sqrt(square(globStateX) + square(globStateY));
+    
+    const auto dr = clusR - stateR;
+    const auto trackDrDt = (globStateX * globalStateMom(0) + globStateY * globalStateMom(1)) / stateR;
+    const auto trackDxDr = globalStateMom(0) / trackDrDt;
+    const auto trackDyDr = globalStateMom(1) / trackDrDt;
+    const auto trackDzDr = globalStateMom(2) / trackDrDt;
+    
+    const auto trackX = globStateX + dr * trackDxDr;
+    const auto trackY = globStateY + dr * trackDyDr;
+    const auto trackZ = globStateZ + dr * trackDzDr;
+    
+    if(Verbosity() > 2)
+    {
+      std::cout << "PHTpcResiduals::processTrack -"
+        << " stateR: " << stateR 
+        << " dr: " << dr 
+        << " trackDrDt: " << trackDrDt 
+        << " trackDxDr: " << trackDxDr
+        << " trackDyDr: " << trackDyDr 
+        << " trackDzDr: " << trackDzDr
+        << " track position: (" << trackX << ", " << trackY << ", " << trackZ  << ")"
+        << std::endl;
+    }
+    
+    statePhi = std::atan2(trackY, trackX);
+    stateZ = trackZ;
+    
+    if(Verbosity() > 3)
+    {
+      std::cout << "PHTpcResiduals::processTrack -" 
+        << " stateR: " << stateR
+        << " statePhi: " << statePhi << "+/-" << stateRPhiErr
+        << " stateZ: " << stateZ << "+/-" << stateZErr 
+        << std::endl;
+    }
+    
+    const auto erp = square(clusRPhiErr) + square(stateRPhiErr);
+    const auto ez = square(clusZErr) + square(stateZErr);
+    
+    // Calculate residuals
+    drphi = clusR * deltaPhi(clusPhi - statePhi);
+    dz  = clusZ - stateZ;
+    
+    if(Verbosity() > 3)
+    {
+      std::cout << "PHTpcResiduals::processTrack -"
+        << " drphi: " << drphi 
+        << " dz: " << dz 
+        << std::endl;
+    }
+    
+    const auto trackEta = std::atanh(trackStateParams.momentum().z() / trackStateParams.absoluteMomentum());
+    const auto clusEta = std::atanh(clusZ / std::sqrt(
+      square(globClusPos(0)) +
+      square(globClusPos(1)) +
+      square(globClusPos(2))));
+    
+    const auto trackPPhi = -trackStateParams.momentum()(0) * std::sin(statePhi) + trackStateParams.momentum()(1) * std::cos(statePhi);
+    const auto trackPR = trackStateParams.momentum()(0) * std::cos(statePhi) + trackStateParams.momentum()(1) * std::sin(statePhi);
+    const auto trackPZ = trackStateParams.momentum()(2);
+    
+    const auto trackAlpha = -trackPPhi / trackPR;
+    const auto trackBeta = -trackPZ / trackPR;
+    
+    if(Verbosity() > 3)
+    {
+      std::cout 
+        << "PHTpcResiduals::processTrack -"
+        << " trackPPhi: " << trackPPhi 
+        << " trackPR: " << trackPR
+        << " trackPZ: " << trackPZ 
+        << " trackAlpha: " << trackAlpha 
+        << " trackBeta: " << trackBeta
+        << std::endl;
+    }
+    
+    tanBeta = trackBeta;
+    tanAlpha = trackAlpha;
+    
+    // get cell index
+    const auto index = getCell(globClusPos);
+    if(Verbosity() > 3)
+    { std::cout << "Bin index found is " << index << std::endl; }
+    
+    if(index < 0 ) continue;
+    
+    if(Verbosity() > 3)
+    {
+      std::cout << "PHTpcResiduals::processTrack - layer: " << (int) TrkrDefs::getLayer(key) << std::endl;
+      std::cout << "PHTpcResiduals::processTrack -"
+        << " cluster: (" << clusR << ", " << clusR*clusPhi << ", " << clusZ << ")"
+        << " (" << clusRPhiErr << ", " << clusZErr << ")"
+        << std::endl;
       
-      const auto globalStatePos = trackStateParams.position(m_tGeometry->geometry().getGeoContext());
-      const auto globalStateMom = trackStateParams.momentum();
-      const auto globalStateCov = *trackStateParams.covariance();
+      std::cout << "PHTpcResiduals::processTrack -"
+        << " track: (" << stateR << ", " << clusR*statePhi << ", " << stateZ << ")"
+        << " (" << tanAlpha << ", " << tanBeta << ")"
+        << " (" << stateRPhiErr << ", " << stateZErr << ")"
+        << std::endl;
+      std::cout << std::endl;
+    }
+    
+    if( m_savehistograms )
+    {
+      h_index->Fill(index);
+      h_alpha->Fill(tanAlpha, drphi);
+      h_beta->Fill(tanBeta, dz);
+      h_rphiResid->Fill(clusR , drphi);
+      h_zResid->Fill(stateZ , dz);
+      h_etaResid->Fill(trackEta, clusEta - trackEta);
+      h_zResidLayer->Fill(clusR , dz);
+      h_etaResidLayer->Fill(clusR , clusEta - trackEta);
       
-      stateRPhiErr = std::sqrt(globalStateCov(Acts::eBoundLoc0, Acts::eBoundLoc0))/Acts::UnitConstants::cm;
-      stateZErr = sqrt(globalStateCov(Acts::eBoundLoc1, Acts::eBoundLoc1))/Acts::UnitConstants::cm;
+      const auto layer =  TrkrDefs::getLayer(key);
+      h_deltarphi_layer->Fill( layer, drphi );
+      h_deltaz_layer->Fill( layer, dz );
       
-      stateZ = globalStatePos.z()/Acts::UnitConstants::cm;
+      { const auto iter = h_drphi.find( index ); if( iter != h_drphi.end() ) iter->second->Fill( drphi ); }
+      { const auto iter = h_drphi_alpha.find( index ); if( iter != h_drphi_alpha.end() ) iter->second->Fill( tanAlpha, drphi ); }
+      { const auto iter = h_dz.find( index ); if( iter != h_dz.end() ) iter->second->Fill( dz ); }
+      { const auto iter = h_dz_beta.find( index ); if( iter != h_dz_beta.end() ) iter->second->Fill( tanBeta, dz ); }
       
-      const auto globStateX = globalStatePos.x()/Acts::UnitConstants::cm;
-      const auto globStateY = globalStatePos.y()/Acts::UnitConstants::cm;
-      const auto globStateZ = stateZ;
+      residTup->Fill();
+    }
+    
+    // check track angles and residuals agains cuts
+    if(std::abs(trackAlpha) > m_maxTAlpha || std::abs(drphi) > m_maxResidualDrphi)
+    { continue; }
+    
+    if(std::abs(trackBeta) > m_maxTBeta || std::abs(dz) > m_maxResidualDz)
+    { continue; }
+    
+    // Fill distortion matrices
+    m_matrix_container->add_to_lhs(index, 0, 0, 1./erp );
+    m_matrix_container->add_to_lhs(index, 0, 1, 0 );
+    m_matrix_container->add_to_lhs(index, 0, 2, trackAlpha/erp );
+    
+    m_matrix_container->add_to_lhs(index, 1, 0, 0 );
+    m_matrix_container->add_to_lhs(index, 1, 1, 1./ez );
+    m_matrix_container->add_to_lhs(index, 1, 2, trackBeta/ez );
+    
+    m_matrix_container->add_to_lhs(index, 2, 0, trackAlpha/erp );
+    m_matrix_container->add_to_lhs(index, 2, 1, trackBeta/ez );
+    m_matrix_container->add_to_lhs(index, 2, 2, square(trackAlpha)/erp + square(trackBeta)/ez );
+    
+    m_matrix_container->add_to_rhs(index, 0, drphi/erp );
+    m_matrix_container->add_to_rhs(index, 1, dz/ez );
+    m_matrix_container->add_to_rhs(index, 2, trackAlpha*drphi/erp + trackBeta*dz/ez );
+    
+    // update entries in cell
+    m_matrix_container->add_to_entries(index);
+    
+    // increment number of accepted clusters
+    ++m_accepted_clusters;
       
-      stateR = std::sqrt(square(globStateX) + square(globStateY));
-      
-      const auto dr = clusR - stateR;
-      const auto trackDrDt = (globStateX * globalStateMom(0) + globStateY * globalStateMom(1)) / stateR;
-      const auto trackDxDr = globalStateMom(0) / trackDrDt;
-      const auto trackDyDr = globalStateMom(1) / trackDrDt;
-      const auto trackDzDr = globalStateMom(2) / trackDrDt;
-      
-      const auto trackX = globStateX + dr * trackDxDr;
-      const auto trackY = globStateY + dr * trackDyDr;
-      const auto trackZ = globStateZ + dr * trackDzDr;
-      
-      if(Verbosity() > 2)
-      {
-        std::cout << "PHTpcResiduals::processTrack -"
-          << " stateR: " << stateR 
-          << " dr: " << dr 
-          << " trackDrDt: " << trackDrDt 
-          << " trackDxDr: " << trackDxDr
-          << " trackDyDr: " << trackDyDr 
-          << " trackDzDr: " << trackDzDr
-          << " track position: (" << trackX << ", " << trackY << ", " << trackZ  << ")"
-          << std::endl;
-      }
-      
-      statePhi = std::atan2(trackY, trackX);
-      stateZ = trackZ;
-      
-      if(Verbosity() > 3)
-      {
-        std::cout << "PHTpcResiduals::processTrack -" 
-          << " stateR: " << stateR
-          << " statePhi: " << statePhi << "+/-" << stateRPhiErr
-          << " stateZ: " << stateZ << "+/-" << stateZErr 
-          << std::endl;
-      }
-      
-      const auto erp = square(clusRPhiErr) + square(stateRPhiErr);
-      const auto ez = square(clusZErr) + square(stateZErr);
-      
-      // Calculate residuals
-      drphi = clusR * deltaPhi(clusPhi - statePhi);
-      dz  = clusZ - stateZ;
-      
-      if(Verbosity() > 3)
-      {
-        std::cout << "PHTpcResiduals::processTrack -"
-          << " drphi: " << drphi 
-          << " dz: " << dz 
-          << std::endl;
-      }
-      
-      const auto trackEta = std::atanh(trackStateParams.momentum().z() / trackStateParams.absoluteMomentum());
-      const auto clusEta = std::atanh(clusZ / std::sqrt(
-        square(globClusPos(0)) +
-        square(globClusPos(1)) +
-        square(globClusPos(2))));
-      
-      const auto trackPPhi = -trackStateParams.momentum()(0) * std::sin(statePhi) + trackStateParams.momentum()(1) * std::cos(statePhi);
-      const auto trackPR = trackStateParams.momentum()(0) * std::cos(statePhi) + trackStateParams.momentum()(1) * std::sin(statePhi);
-      const auto trackPZ = trackStateParams.momentum()(2);
-      
-      const auto trackAlpha = -trackPPhi / trackPR;
-      const auto trackBeta = -trackPZ / trackPR;
-      
-      if(Verbosity() > 3)
-      {
-        std::cout 
-          << "PHTpcResiduals::processTrack -"
-          << " trackPPhi: " << trackPPhi 
-          << " trackPR: " << trackPR
-          << " trackPZ: " << trackPZ 
-          << " trackAlpha: " << trackAlpha 
-          << " trackBeta: " << trackBeta
-          << std::endl;
-      }
-      
-      tanBeta = trackBeta;
-      tanAlpha = trackAlpha;
-      
-      // get cell index
-      const auto index = getCell(globClusPos);
-      if(Verbosity() > 3)
-      { std::cout << "Bin index found is " << index << std::endl; }
-      
-      if(index < 0 ) continue;
-      
-      if(Verbosity() > 3)
-      {
-        std::cout << "PHTpcResiduals::processTrack - layer: " << (int) TrkrDefs::getLayer(key) << std::endl;
-        std::cout << "PHTpcResiduals::processTrack -"
-          << " cluster: (" << clusR << ", " << clusR*clusPhi << ", " << clusZ << ")"
-          << " (" << clusRPhiErr << ", " << clusZErr << ")"
-          << std::endl;
-        
-        std::cout << "PHTpcResiduals::processTrack -"
-          << " track: (" << stateR << ", " << clusR*statePhi << ", " << stateZ << ")"
-          << " (" << tanAlpha << ", " << tanBeta << ")"
-          << " (" << stateRPhiErr << ", " << stateZErr << ")"
-          << std::endl;
-        std::cout << std::endl;
-      }
-      
-      if( m_savehistograms )
-      {
-        h_index->Fill(index);
-        h_alpha->Fill(tanAlpha, drphi);
-        h_beta->Fill(tanBeta, dz);
-        h_rphiResid->Fill(clusR , drphi);
-        h_zResid->Fill(stateZ , dz);
-        h_etaResid->Fill(trackEta, clusEta - trackEta);
-        h_zResidLayer->Fill(clusR , dz);
-        h_etaResidLayer->Fill(clusR , clusEta - trackEta);
-        
-        const auto layer =  TrkrDefs::getLayer(key);
-        h_deltarphi_layer->Fill( layer, drphi );
-        h_deltaz_layer->Fill( layer, dz );
-        
-        { const auto iter = h_drphi.find( index ); if( iter != h_drphi.end() ) iter->second->Fill( drphi ); }
-        { const auto iter = h_drphi_alpha.find( index ); if( iter != h_drphi_alpha.end() ) iter->second->Fill( tanAlpha, drphi ); }
-        { const auto iter = h_dz.find( index ); if( iter != h_dz.end() ) iter->second->Fill( dz ); }
-        { const auto iter = h_dz_beta.find( index ); if( iter != h_dz_beta.end() ) iter->second->Fill( tanBeta, dz ); }
-        
-        residTup->Fill();
-      }
-      
-      // check track angles and residuals agains cuts
-      if(std::abs(trackAlpha) > m_maxTAlpha || std::abs(drphi) > m_maxResidualDrphi)
-      { continue; }
-      
-      if(std::abs(trackBeta) > m_maxTBeta || std::abs(dz) > m_maxResidualDz)
-      { continue; }
-      
-      // Fill distortion matrices
-      m_matrix_container->add_to_lhs(index, 0, 0, 1./erp );
-      m_matrix_container->add_to_lhs(index, 0, 1, 0 );
-      m_matrix_container->add_to_lhs(index, 0, 2, trackAlpha/erp );
-      
-      m_matrix_container->add_to_lhs(index, 1, 0, 0 );
-      m_matrix_container->add_to_lhs(index, 1, 1, 1./ez );
-      m_matrix_container->add_to_lhs(index, 1, 2, trackBeta/ez );
-      
-      m_matrix_container->add_to_lhs(index, 2, 0, trackAlpha/erp );
-      m_matrix_container->add_to_lhs(index, 2, 1, trackBeta/ez );
-      m_matrix_container->add_to_lhs(index, 2, 2, square(trackAlpha)/erp + square(trackBeta)/ez );
-      
-      m_matrix_container->add_to_rhs(index, 0, drphi/erp );
-      m_matrix_container->add_to_rhs(index, 1, dz/ez );
-      m_matrix_container->add_to_rhs(index, 2, trackAlpha*drphi/erp + trackBeta*dz/ez );
-      
-      // update entries in cell
-      m_matrix_container->add_to_entries(index);
-            
-      // increment number of accepted clusters
-      ++m_accepted_clusters;
-
   }
         
 }
