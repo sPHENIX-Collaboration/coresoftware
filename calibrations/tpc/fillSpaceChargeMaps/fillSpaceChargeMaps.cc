@@ -654,11 +654,10 @@ bool fillSpaceChargeMaps::IsOverFrame(double r, double phi)
     return true;
   }
 
-  for(int p=0;p<24;p++){
+  for(int p=0;p<24;p=p+2){
     if(phi>=phi_dead_bins[p] && phi<=phi_dead_bins[p+1]){
       return true;
     }
-    p++;
   }
   return false;
 }
@@ -706,11 +705,10 @@ std::vector<double> fillSpaceChargeMaps::putOnPlane(double r, double phi)
   //note that this is not a line of constant radius, but a linear distance from a radius.
 
   //find the two spokes we're between:
-  for(int p=0;p<24;p++){
+  for(int p=0;p<24;p=p+2){
     if(phi>=phi_dead_bins[p] && phi<=phi_dead_bins[p+1]){
       phi_0_bin = phi_dead_bins[p] + (phi_dead_bins[p+1]-phi_dead_bins[p])/2;
     }
-    p++;
   }
 
   // // float sectorangle = (M_PI / 6.);
