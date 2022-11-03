@@ -129,7 +129,6 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   if(buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  std::cout << " Make trackingGeometry" << std::endl;
   /// Set the actsGeometry struct to be put on the node tree
   ActsTrackingGeometry trackingGeometry;
   trackingGeometry.tGeometry = m_tGeometry;
@@ -140,7 +139,6 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   trackingGeometry.tpcSurfStepPhi = m_surfStepPhi;
   trackingGeometry.tpcSurfStepZ = m_surfStepZ;
 
-  std::cout << " Fill surface maps" << std::endl;
   // fill ActsSurfaceMap content
   ActsSurfaceMaps surfMaps;
   surfMaps.m_siliconSurfaceMap = m_clusterSurfaceMapSilicon;
@@ -156,24 +154,22 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   // fill Micromegas volume ids
   for( const auto& [hitsetid, surface]:m_clusterSurfaceMapMmEdit )
     { surfMaps.m_micromegasVolumeIds.insert( surface->geometryId().volume() ); } 
-
-  std::cout << " setting geometry" << std::endl;  
+ 
   m_actsGeometry->setGeometry(trackingGeometry);
   m_actsGeometry->setSurfMaps(surfMaps);
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
 
-  std::cout << " creating alignment transform map" << std::endl;
   alignment_transformation.createMap(topNode);
  
  // print
-  //  if( Verbosity() )
-  {
-    for( const auto& id:surfMaps.m_tpcVolumeIds )
-    { std::cout << "MakeActsGeometry::InitRun - TPC volume id: " << id << std::endl; }
-  
-    for( const auto& id:surfMaps.m_micromegasVolumeIds )
-    { std::cout << "MakeActsGeometry::InitRun - Micromegas volume id: " << id << std::endl; }
-  }
+  if( Verbosity() )
+    {
+      for( const auto& id:surfMaps.m_tpcVolumeIds )
+	{ std::cout << "MakeActsGeometry::InitRun - TPC volume id: " << id << std::endl; }
+      
+      for( const auto& id:surfMaps.m_micromegasVolumeIds )
+	{ std::cout << "MakeActsGeometry::InitRun - Micromegas volume id: " << id << std::endl; }
+    }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }

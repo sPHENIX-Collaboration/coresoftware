@@ -40,8 +40,9 @@ class alignmentTransformationContainer : public Acts::GeometryContext
   void identify(std::ostream &os = std::cout);  
   void addTransform(Acts::GeometryIdentifier, Acts::Transform3); 
   Acts::Transform3& getTransform(Acts::GeometryIdentifier id);
-  const std::vector<std::vector<Acts::Transform3>>& getMap();
-
+  const std::vector<std::vector<Acts::Transform3>>& getMap() const;
+  void setMisalignmentFactor(const double m) { m_misalignmentFactor = m; }
+  const double& getMisalignmentFactor() const { return m_misalignmentFactor; }
   static bool use_alignment;
 
   private:
@@ -51,6 +52,8 @@ class alignmentTransformationContainer : public Acts::GeometryContext
   std::map<unsigned int, unsigned int> base_layer_map = { {10, 0}, {12,3}, {14,7}, {16,55} };
 
   std::vector< std::vector<Acts::Transform3>> transformVec;
+
+  double m_misalignmentFactor = 1;
 
   ClassDef(alignmentTransformationContainer,1);
 

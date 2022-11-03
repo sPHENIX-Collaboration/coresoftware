@@ -76,6 +76,7 @@ Mille* _mille;
   std::vector<Acts::Vector3> getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing);
   float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
+  int getTpcRegion(int layer);
 
   void getTrackletClusters(TrackSeed *_track, std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
   std::vector<float> fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec);

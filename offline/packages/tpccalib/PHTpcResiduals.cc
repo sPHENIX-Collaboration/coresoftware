@@ -351,6 +351,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       }
         
       addTrackState( track, pathLength, trackStateParams );
+
         
       // calculate residuals with respect to cluster
       // Get all the relevant information for residual calculation
