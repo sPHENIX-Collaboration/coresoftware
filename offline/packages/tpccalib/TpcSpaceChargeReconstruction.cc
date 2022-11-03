@@ -325,7 +325,7 @@ void TpcSpaceChargeReconstruction::create_histograms()
 }
 
 //_________________________________________________________________________________
-Acts::Vector3 TpcSpaceChargeReconstruction::get_global_position(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing )
+Acts::Vector3 TpcSpaceChargeReconstruction::get_global_position(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing ) const
 {
   // get global position from Acts transform
   auto globalPosition = m_tgeometry->getGlobalPosition(key, cluster);
@@ -444,8 +444,17 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto cluster_z = global_position.z();
 
     // cluster errors
-    const auto cluster_rphi_error = cluster->getRPhiError();
-    const auto cluster_z_error = cluster->getZError();
+    double cluster_rphi_error = 0;
+    double cluster_z_error = 0;
+    if( m_cluster_version >= 4 )
+    {
+      const auto errors_square = m_cluster_error_parametrization.get_cluster_error( track->get_tpc_seed(), cluster, cluster_r, cluster_key ); 
+      cluster_rphi_error = std::sqrt( errors_square.first );
+      cluster_z_error = std::sqrt( errors_square.second );
+    } else {
+      cluster_rphi_error = cluster->getRPhiError();
+      cluster_z_error = cluster->getZError();
+    }
 
     /*
     remove clusters with too small errors since they are likely pathological
