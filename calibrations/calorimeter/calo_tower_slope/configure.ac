@@ -13,7 +13,7 @@ if test $ac_cv_prog_gxx = yes; then
 fi
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wno-bitwise-instead-of-logical"
+  CXXFLAGS="$CXXFLAGS -Wno-bitwise-instead-of-logical -Wno-unknown-warning-option"
  ;;
 esac
 
