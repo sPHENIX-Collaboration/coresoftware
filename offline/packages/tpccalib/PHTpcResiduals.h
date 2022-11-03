@@ -169,9 +169,6 @@ class PHTpcResiduals : public SubsysReco
   // TODO: check if needed
   int m_event = 0;
   
-  /// Counter for number of bad propagations from propagateTrackState()
-  int m_nBadProps = 0;
-
   /// require micromegas to be present when extrapolating tracks to the TPC
   bool m_useMicromegas = true;
 
