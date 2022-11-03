@@ -113,7 +113,7 @@ Acts::Transform3& alignmentTransformationContainer::getTransform(const Acts::Geo
   exit(1); 
 }
 
-const std::vector<std::vector<Acts::Transform3>>& alignmentTransformationContainer::getMap()
+const std::vector<std::vector<Acts::Transform3>>& alignmentTransformationContainer::getMap() const
 {
   return transformVec;
 }
