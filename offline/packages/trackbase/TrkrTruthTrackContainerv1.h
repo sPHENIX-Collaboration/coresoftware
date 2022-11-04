@@ -16,24 +16,23 @@ class TrkrTruthTrack;
  */
 class TrkrTruthTrackContainerv1 : public TrkrTruthTrackContainer
 {
-  public:
-
+ public:
   void Reset() override;
-  void       addTruthTrack(TrkrTruthTrack*) override;
+  void addTruthTrack(TrkrTruthTrack*) override;
   ConstRange getTruthTrackRange() const override;
-  bool       hasTrackid(unsigned int trackid) const override;
-  Vector&    getTruthTracks() override;
+  bool hasTrackid(unsigned int trackid) const override;
+  Vector& getTruthTracks() override;
   TrkrTruthTrack* getTruthTrack(unsigned int trackid) const override;
 
   TrkrTruthTrackContainerv1() = default;
 
   void identify(std::ostream& os = std::cout) const override;
 
-  private:
+ private:
   // the data
   Vector m_data;
-  
+
   ClassDefOverride(TrkrTruthTrackContainerv1, 1)
 };
 
-#endif //TRACKBASE_TruthTrackContainerv1.h
+#endif  // TRACKBASE_TruthTrackContainerv1.h
