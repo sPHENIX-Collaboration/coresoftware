@@ -61,8 +61,7 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
-  SvtxTrackStateRemoval.h \
-  VertexFitter.h
+  SvtxTrackStateRemoval.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
