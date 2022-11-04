@@ -20,6 +20,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
+  ActsTrackFittingAlgorithm.h \
   ActsTrackingGeometry.h \
   ActsGeometry.h \
   AlignmentTransformation.h \
@@ -33,12 +34,14 @@ pkginclude_HEADERS = \
   CMFlashDifferencev1.h \
   CMFlashDifferenceContainer.h \
   CMFlashDifferenceContainerv1.h \
+  Calibrator.h \
   EmbRecoMatch.h \
   EmbRecoMatchv1.h \
   EmbRecoMatchContainer.h \
   EmbRecoMatchContainerv1.h \
   InttDefs.h \
   MvtxDefs.h \
+  ResidualOutlierFinder.h \
   sPHENIXActsDetectorElement.h \
   TpcDefs.h \
   TpcSeedTrackMap.h \
@@ -207,6 +210,11 @@ libtrack_io_la_SOURCES = \
   EmbRecoMatchContainerv1.cc \
   TpcDefs.cc \
   TrackFitUtils.cc \
+  TrackFittingAlgorithmFunctionsKalman.cc \
+  TrkrTruthTrack.cc \
+  TrkrTruthTrackv1.cc \
+  TrkrTruthTrackContainer.cc \
+  TrkrTruthTrackContainerv1.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
   TrkrClusterv3.cc \

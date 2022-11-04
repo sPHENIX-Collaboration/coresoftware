@@ -13,6 +13,8 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/ActsTrackFittingAlgorithm.h>
+#include <trackbase/alignmentTransformationContainer.h>
 
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterMover.h>
@@ -22,7 +24,7 @@
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-#include <ActsExamples/TrackFitting/TrackFittingAlgorithm.hpp>
+
 #include <ActsExamples/EventData/Trajectories.hpp>
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/IndexSourceLink.hpp>
@@ -32,11 +34,6 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
-
-
-#include <trackbase/alignmentTransformationContainer.h>
-
-
 
 class MakeActsGeometry;
 class SvtxTrack;
@@ -123,10 +120,10 @@ class PHActsTrkFitter : public SubsysReco
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
-  ActsExamples::TrackFittingAlgorithm::TrackFitterResult fitTrack(
+  ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
            const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
 	   const ActsExamples::TrackParameters& seed,
-	   const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& 
+	   const ActsTrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
 	   const SurfacePtrVec& surfSequence);
 
@@ -148,7 +145,7 @@ class PHActsTrkFitter : public SubsysReco
   ActsGeometry *m_tGeometry = nullptr;
 
   /// Configuration containing the fitting function instance
-  ActsExamples::TrackFittingAlgorithm::Config m_fitCfg;
+  ActsTrackFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
   alignmentTransformationContainer *m_alignmentTransformationMap = nullptr;  // added for testing purposes

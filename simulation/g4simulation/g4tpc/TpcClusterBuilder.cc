@@ -81,10 +81,21 @@ TpcClusterBuilder::PairCluskeyCluster TpcClusterBuilder::build(MapHitsetkeyUInt&
   TrkrClusterv4* cluster = new TrkrClusterv4();
   cluster->setPosition ( 0, phi_mean );
   cluster->setPosition ( 1, time_integral / neff_electrons);
-  cluster->setPhiSize  ( static_cast<char>(phi_bin_hi-phi_bin_lo+1) );
-  if (phi_bin_hi < phi_bin_lo) std::cout << " WARNING 101: phi_bin_hi<phi_bin_lo: " 
-     << phi_bin_hi << "<" << phi_bin_lo << std::endl;
-  cluster->setZSize    ( static_cast<char>(time_bin_hi-time_bin_lo+1));
+  int phi_size = phi_bin_hi-phi_bin_lo+1;
+  if (phi_size > CHAR_MAX || phi_size < 0) {
+    std::cout << PHWHERE << " Error in calculating nPads in Truth Track cluster: value is " << phi_size << " but should be within [1," << CHAR_MAX << "]" << std::endl
+              <<            "   -> setting nPads to -1 (i.e. it *can't* match any other node) " << std::endl;
+    phi_size = -1;
+  }
+  cluster->setPhiSize  ( static_cast<char>(phi_size) );
+
+  int Z_size = time_bin_hi-time_bin_lo+1;
+  if (Z_size > CHAR_MAX || Z_size < 0) {
+    std::cout << PHWHERE << " Error in calculating nTimeBins in Truth Track cluster: value is " << Z_size << " but should be within [1," << CHAR_MAX << "]" << std::endl
+              <<            "   -> setting nTimeBins to -1 (i.e. it *can't* match any other node) " << std::endl;
+    Z_size = -1;
+  }
+  cluster->setZSize    ( static_cast<char>(Z_size));
   cluster->setAdc      ( neff_electrons );
 
   const int phi_pad_number           = layerGeom->get_phibin(phi_mean);

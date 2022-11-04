@@ -2,16 +2,22 @@
 
 #include <phool/phool.h>
 
+#include <TBranch.h>      // for TBranch
+#include <TCollection.h>  // for TIter
+#include <TDirectory.h>   // for TDirectoryAtomicAdapter, TDirectory, gDirec...
 #include <TFile.h>
+#include <TLeaf.h>      // for TLeaf
+#include <TObjArray.h>  // for TObjArray
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TTree.h>
-#include <TTreeReader.h>
-#include <TTreeReaderValue.h>
 
 #include <climits>
+#include <cmath>    // for NAN, isfinite
+#include <cstdint>  // for uint64_t, UINT64_MAX
 #include <iostream>
-#include <limits>
+#include <set>      // for set
+#include <utility>  // for pair, make_pair
 
 CDBTTree::CDBTTree(const std::string &fname)
   : m_Filename(fname)
@@ -436,7 +442,7 @@ void CDBTTree::WriteCDBTTree()
     ttree = nullptr;
   }
   f->Close();
-  gROOT->cd(currdir.c_str()); // restore previous directory
+  gROOT->cd(currdir.c_str());  // restore previous directory
 }
 
 void CDBTTree::LoadCalibrations()
@@ -597,7 +603,7 @@ void CDBTTree::LoadCalibrations()
     ttree = nullptr;
   }
   f->Close();
-  gROOT->cd(currdir.c_str()); // restore previous directory
+  gROOT->cd(currdir.c_str());  // restore previous directory
 }
 
 float CDBTTree::GetSingleFloatValue(const std::string &name, int verbose)

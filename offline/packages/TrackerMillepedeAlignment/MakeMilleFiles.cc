@@ -139,6 +139,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 int MakeMilleFiles::End(PHCompositeNode* /*topNode*/)
 {
   delete _mille;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -390,6 +391,17 @@ SvtxTrack::StateIter MakeMilleFiles::getStateIter(Acts::Vector3& global, SvtxTra
   return state_iter;
 }
 
+int MakeMilleFiles::getTpcRegion(int layer)
+{
+  int region = 0;
+  if(layer > 23 && layer < 39)
+    region = 1;
+  if(layer > 38 && layer < 55)
+    region = 2;
+
+  return region;  
+}
+
 int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
 {
   unsigned int volume = id.volume();
@@ -401,67 +413,78 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
 
   // decide what level of grouping we want
   if (layer < 7)
-  {
-    if (si_group == siliconGroup::sensor)
     {
-      // every sensor has a different label
-      label_base += layer * 1000 + sensor * 10;
-      return label_base;
+      if(si_group == siliconGroup::sensor)
+	{
+	  // every sensor has a different label
+	  int stave = sensor / nsensors_stave[layer];
+	  label_base += layer*1000000 + stave*10000 + sensor*10;
+	  return label_base;
+	}
+      if(si_group == siliconGroup::stave)
+	{
+	  // layer and stave, assign all sensors to the stave number
+	  int stave = sensor / nsensors_stave[layer];
+	  label_base += layer*1000000 + stave*10000;
+	  return label_base;
+	}
+      if(si_group == siliconGroup::barrel)
+	{
+	  // layer only, assign all sensors to sensor 0 
+	  label_base += layer*1000000 + 0;
+      
+	  return label_base;
+	}
     }
-    if (si_group == siliconGroup::stave)
-    {
-      // layer and stave, assign all sensors to the stave number
-      int stave = sensor / nstaves[layer];
-      label_base += layer * 1000 + stave * 10;
-      return label_base;
-    }
-    if (si_group == siliconGroup::barrel)
-      // layer only, assign all sensors to sensor 0
-      label_base += layer * 1000 + 0;
-    return label_base;
-  }
   else if (layer > 6 && layer < 55)
-  {
-    if (tpc_group == tpcGroup::subsurf)
     {
-      // every surface has separate label
-      label_base += layer * 1000 + sensor * 10;
-      return label_base;
+      if(tpc_group == tpcGroup::hitset)
+	{
+	  // want every hitset (layer, sector, side) to have a separate label
+	  // each group of 12 subsurfaces (sensors) is in a single hitset
+	  int hitset = sensor/12; // hitsets 0-11 on side 0, 12-23 on side 1
+	  label_base += layer*1000000 + hitset*10000;
+	  return label_base;
+	}
+      if(tpc_group == tpcGroup::sector)
+	{
+	  // group all tpc layers in each region and sector, assign layer 7 and side and sector number to all layers and hitsets
+	  int side = sensor / 144; // 0-143 on side 0, 144-287 on side 1
+	  int sector = (sensor - side *144) / 12; 
+	  // for a given layer there are only 12 sectors x 2 sides
+	  // The following gives the sectors in the inner, mid, outer regions unique group labels
+	  int region = getTpcRegion(layer);  // inner, mid, outer
+	  label_base += 7*1000000 + (region * 24 + side*12 + sector) *10000; 
+	  std::cout << " layer " << layer << " sensor " << sensor << " region " << region << " side " << side << " sector " << sector << " label_base " << label_base << std::endl;
+	  return label_base;
+	}
+      if(tpc_group == tpcGroup::tpc)
+	{
+	  // all tpc layers and all sectors, assign layer 7 and sensor 0 to all layers and sensors
+	  label_base += 7*1000000 + 0;
+	  return label_base;
+	}
     }
-    if (tpc_group == tpcGroup::sector)
-    {
-      // all tpc layers, assign layer 7 and side and sector number to all layers and subsurfaces
-      int side = sensor / 2;  // check!!!!
-      int sector = (sensor - side * 144) / 12;
-      label_base += 7 * 1000 + side * 1000 + sector * 10;
-      return label_base;
-    }
-    if (tpc_group == tpcGroup::tpc)
-    {
-      // all tpc layers and all sectors, assign layer 7 and sensor 0 to all layers and sensors
-      label_base += 7 * 1000 + 0;
-      return label_base;
-    }
-  }
   else
-  {
-    if (mms_group == mmsGroup::tile)
     {
-      // every tile has different label
-      label_base += layer * 1000 + sensor * 10;
-      return label_base;
+      if(mms_group == mmsGroup::tile)
+	{
+	  // every tile has different label
+	  int tile = sensor;
+	  label_base += layer*1000000 + tile*10000 + sensor*10;
+	  return label_base;
+	}
+      if(mms_group == mmsGroup::mms)
+	{
+	  // assign layer 55 and tile 0 to all
+	  label_base += 55*1000000 + 0;	  
+	  return label_base;
+	}
     }
-    if (mms_group == mmsGroup::mms)
-    {
-      // assign layer 55 and tile 0 to all
-      label_base += 55 * 1000 + 0;
-      return label_base;
-    }
-  }
 
   return -1;
 }
-
+  
 AlignmentStateMap MakeMilleFiles::getAlignmentStates(const Trajectory& traj,
                                                      SvtxTrack* track,
                                                      short int crossing)

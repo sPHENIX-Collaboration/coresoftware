@@ -27,7 +27,7 @@ class AlignmentTransformation {
 
  private:
 
-  std::string alignmentParamsFile = "";
+  std::string alignmentParamsFile = "./localAlignmentParamsFile.txt";
 
   int localVerbosity = 0;
 
