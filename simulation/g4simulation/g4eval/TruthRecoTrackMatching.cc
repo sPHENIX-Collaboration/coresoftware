@@ -155,9 +155,9 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
       std::cout << Form(" Embedded Track:  (%2i)   phi(%5.2f) eta(%5.2f) pt(%5.2f)", track->getTrackid(), track->getPhi(),
           track->getPseudoRapidity(), track->getPt()) << std::endl;
       cout << " matched: (inner box) ";
-      for (auto match : match_indices.first) cout << " " << match;
+      for (auto match : match_indices.first) cout << " IM(" << match <<")";
       cout << " (outer box) ";
-      for (auto match : match_indices.second) cout << " " << match;
+      for (auto match : match_indices.second) cout << " OM(" << match<<")";
       cout << endl;
     }
     map_matched[track->getTrackid()]=false;
