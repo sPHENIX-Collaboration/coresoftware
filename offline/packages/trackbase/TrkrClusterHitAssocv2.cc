@@ -36,9 +36,8 @@ void TrkrClusterHitAssocv2::identify(std::ostream &os) const
   {
     for( const auto& pair:m_map[layer][phi_segment][z_segment] )
     {
-      int layer = TrkrDefs::getLayer(pair.first);
       os << "clus key " << pair.first << std::dec
-        << " layer " << layer
+        << " layer " << TrkrDefs::getLayer(pair.first)
         << " hit key: " << pair.second << std::endl;
     }
   }

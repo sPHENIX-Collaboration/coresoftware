@@ -51,8 +51,7 @@ void TrkrClusterContainerv2::identify(std::ostream& os) const
 
     for( const auto& pair:m_clusmap[layer][phi_segment][z_segment] )
     {
-      int layer = TrkrDefs::getLayer(pair.first);
-      os << "clus key " << pair.first  << " layer " << layer << std::endl;
+      os << "clus key " << pair.first  << " layer " << TrkrDefs::getLayer(pair.first) << std::endl;
       (pair.second)->identify();
     }
   }
