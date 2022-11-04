@@ -5,7 +5,8 @@
 #include <algorithm>
 
 void TrkrTruthTrackContainerv1::Reset() {
-  for (auto& track : m_data) delete track;
+  for (auto& track : m_data) { delete track;
+}
   m_data.clear();
 }
 

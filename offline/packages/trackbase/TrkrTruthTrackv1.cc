@@ -25,13 +25,15 @@ void TrkrTruthTrackv1::identify(std::ostream &os) const
       cnt = 0;
       os << std::endl << "  ";
     }
-    if (cnt > 0) os << ", ";
+    if (cnt > 0) { os << ", ";
+}
     uint32_t i_hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster);
     int layer = TrkrDefs::getLayer(cluster);
     os << " " << i_hitsetkey<<"("<<layer<< ")";
     ++cnt;
   }
-  if (cnt != 0) os << std::endl;
+  if (cnt != 0) { os << std::endl;
+}
 }
 
 TrkrTruthTrackv1::TrkrTruthTrackv1() 

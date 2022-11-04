@@ -4,11 +4,10 @@
 #include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
+
 #include <vector>
 #include <climits>
 #include <cmath>
-
-/* class VtxPoint; */
 
 class TrkrTruthTrack : public PHObject
 {
@@ -60,5 +59,4 @@ class TrkrTruthTrack : public PHObject
   ClassDefOverride(TrkrTruthTrack, 1)
 };
 
-#endif // G4TPC_TruthTrack_h
-
+#endif // TRACKBASE_TRKRTRUTHTRACK_H
