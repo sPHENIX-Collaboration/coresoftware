@@ -52,7 +52,8 @@ void TrkrClusterContainerv4::identify(std::ostream& os) const
     os << "layer: " << layer << " hitsetkey: " << hitsetkey << std::endl;
 
     for( const auto& cluster:clus_vector )
-    { if( cluster ) cluster->identify(os); }
+    { if( cluster ) { cluster->identify(os);
+}}
   }
 
   os << "------------------------------" << std::endl;
@@ -105,8 +106,8 @@ TrkrClusterContainerv4::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCl
      * and assign newclus if null
      * print error message and exit otherwise
      */
-    if( !clus_vector[index] ) clus_vector[index] = newclus;
-    else {
+    if( !clus_vector[index] ) { clus_vector[index] = newclus;
+    } else {
       std::cout << "TrkrClusterContainerv4::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
       exit(1);
     }
@@ -124,8 +125,7 @@ TrkrClusterContainerv4::ConstRange
 TrkrClusterContainerv4::getClusters() const {
   std::cout << "deprecated function in TrkrClusterContainerv4, user getClusters(TrkrDefs:hitsetkey)" 
       << std::endl; 
-    TrkrClusterContainerv4::Map* dummy_map = new TrkrClusterContainerv4::Map();
-    return std::make_pair(dummy_map->end(),dummy_map->end());
+    return std::make_pair(dummy_map.begin(),dummy_map.begin());
 }
 
 //_________________________________________________________________
@@ -178,9 +178,11 @@ TrkrCluster* TrkrClusterContainerv4::findCluster(TrkrDefs::cluskey key) const
     const auto index = TrkrDefs::getClusIndex( key );
     
     // compare to vector size
-    if( index < clus_vector.size() ) return clus_vector[index];
-    else return nullptr;
-  } else return nullptr;
+    if( index < clus_vector.size() ) { return clus_vector[index];
+    } else { return nullptr;
+}
+  } else { return nullptr;
+}
 }
 
 //_________________________________________________________________
@@ -236,7 +238,7 @@ TrkrClusterContainer::HitSetKeyList TrkrClusterContainerv4::getHitSetKeys(const 
 }
 
 //_________________________________________________________________
-unsigned int TrkrClusterContainerv4::size(void) const
+unsigned int TrkrClusterContainerv4::size() const
 {
   unsigned int size = 0;
   for( const auto& [hitsetkey,clus_vector]:m_clusmap )

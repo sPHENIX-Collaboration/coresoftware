@@ -18,8 +18,8 @@ namespace
 //_________________________________________________________________
 void TrkrClusterContainerv2::Reset()
 {
-  for(unsigned int layer = 0;layer < max_layer; layer++)
-    for(unsigned int phi_segment = 0;phi_segment < max_phisegment;phi_segment++)
+  for(unsigned int layer = 0;layer < max_layer; layer++) {
+    for(unsigned int phi_segment = 0;phi_segment < max_phisegment;phi_segment++) {
     for(unsigned int z_segment = 0; z_segment < max_zsegment; z_segment++)
   {
     for( const auto& pair:m_clusmap[layer][phi_segment][z_segment] )
@@ -28,6 +28,8 @@ void TrkrClusterContainerv2::Reset()
     m_clusmap[layer][phi_segment][z_segment].clear();
   }
 }
+}
+}
 
 //_________________________________________________________________
 void TrkrClusterContainerv2::identify(std::ostream& os) const
@@ -35,8 +37,8 @@ void TrkrClusterContainerv2::identify(std::ostream& os) const
   os << "-----TrkrClusterContainerv2-----" << std::endl;
   os << "Number of clusters: " << size() << std::endl;
 
-  for(unsigned int layer = 0;layer < max_layer; layer++)
-    for(unsigned int phi_segment = 0;phi_segment < max_phisegment;phi_segment++)
+  for(unsigned int layer = 0;layer < max_layer; layer++) {
+    for(unsigned int phi_segment = 0;phi_segment < max_phisegment;phi_segment++) {
     for(unsigned int z_segment = 0; z_segment < max_zsegment; z_segment++)
   {
     const auto iter = m_clusmap[layer][phi_segment][z_segment].begin();
@@ -55,6 +57,8 @@ void TrkrClusterContainerv2::identify(std::ostream& os) const
       (pair.second)->identify();
     }
   }
+}
+}
 
   os << "------------------------------" << std::endl;
 }
@@ -169,12 +173,14 @@ TrkrCluster* TrkrClusterContainerv2::findCluster(TrkrDefs::cluskey key) const
 unsigned int TrkrClusterContainerv2::size() const
 {
   unsigned int size = 0;
-  for(unsigned layer = 0;layer < max_layer; layer++)
-    for(unsigned phi_segment = 0;phi_segment < max_phisegment;phi_segment++)
+  for(unsigned layer = 0;layer < max_layer; layer++) {
+    for(unsigned phi_segment = 0;phi_segment < max_phisegment;phi_segment++) {
     for(unsigned z_segment = 0; z_segment < max_zsegment; z_segment++)
   {
     size += m_clusmap[layer][phi_segment][z_segment].size();
   }
+}
+}
   
   return size;
 }

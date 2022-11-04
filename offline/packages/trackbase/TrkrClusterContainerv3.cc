@@ -173,7 +173,7 @@ TrkrClusterContainer::HitSetKeyList TrkrClusterContainerv3::getHitSetKeys(const 
 }
 
 //_________________________________________________________________
-unsigned int TrkrClusterContainerv3::size(void) const
+unsigned int TrkrClusterContainerv3::size() const
 {
   unsigned int size = 0;
   for( const auto& map_pair:m_clusmap )

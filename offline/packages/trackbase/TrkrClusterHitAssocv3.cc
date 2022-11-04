@@ -89,7 +89,7 @@ TrkrClusterHitAssocv3::ConstRange TrkrClusterHitAssocv3::getHits(TrkrDefs::clusk
 }
 
 //_________________________________________________________________________
-unsigned int TrkrClusterHitAssocv3::size(void) const
+unsigned int TrkrClusterHitAssocv3::size() const
 {
   unsigned int size = 0;
   for( const auto& map_pair:m_map )

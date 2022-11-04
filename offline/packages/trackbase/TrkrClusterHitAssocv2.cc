@@ -18,10 +18,12 @@ namespace
 //_________________________________________________________________________
 void TrkrClusterHitAssocv2::Reset()
 {
-  for(unsigned int layer = 0;layer < max_layer; layer++)
-    for(unsigned int phi_segment = 0;phi_segment < max_phisegment;phi_segment++)
+  for(unsigned int layer = 0;layer < max_layer; layer++) {
+    for(unsigned int phi_segment = 0;phi_segment < max_phisegment;phi_segment++) {
     for(unsigned int z_segment = 0; z_segment < max_zsegment; z_segment++)
   { m_map[layer][phi_segment][z_segment].clear(); }
+}
+}
 }
 
 //_________________________________________________________________________
@@ -30,8 +32,8 @@ void TrkrClusterHitAssocv2::identify(std::ostream &os) const
   std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator iter;
   os << "-----TrkrClusterHitAssocv2-----" << std::endl;
   os << "Number of associations: " << size() << std::endl;
-  for(unsigned int layer = 0;layer < max_layer; layer++)
-    for(unsigned int phi_segment = 0;phi_segment < max_phisegment;phi_segment++)
+  for(unsigned int layer = 0;layer < max_layer; layer++) {
+    for(unsigned int phi_segment = 0;phi_segment < max_phisegment;phi_segment++) {
     for(unsigned int z_segment = 0; z_segment < max_zsegment; z_segment++)
   {
     for( const auto& pair:m_map[layer][phi_segment][z_segment] )
@@ -41,6 +43,8 @@ void TrkrClusterHitAssocv2::identify(std::ostream &os) const
         << " hit key: " << pair.second << std::endl;
     }
   }
+}
+}
   os << "------------------------------" << std::endl;
 
   return;
@@ -116,10 +120,12 @@ TrkrClusterHitAssocv2::ConstRange TrkrClusterHitAssocv2::getHits(TrkrDefs::clusk
 unsigned int TrkrClusterHitAssocv2::size() const
 {
   unsigned int size = 0;
-  for(unsigned layer = 0;layer < max_layer; layer++)
-    for(unsigned phi_segment = 0;phi_segment < max_phisegment;phi_segment++)
+  for(unsigned layer = 0;layer < max_layer; layer++) {
+    for(unsigned phi_segment = 0;phi_segment < max_phisegment;phi_segment++) {
     for(unsigned z_segment = 0; z_segment < max_zsegment; z_segment++)
   { size += m_map[layer][phi_segment][z_segment].size(); }
+}
+}
 
   return size;
 }
