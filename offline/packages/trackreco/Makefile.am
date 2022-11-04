@@ -13,7 +13,7 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I${G4_MAIN}/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -21,8 +21,6 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  ../PHTpcTracker/PHTpcTrackerUtil.h \
-  ../PHTpcTracker/externals/kdfinder.hpp \
   ActsEvaluator.h \
   ALICEKF.h \
   AssocInfoContainer.h \
@@ -112,7 +110,6 @@ ACTS_LIBS = \
 
 libtrack_reco_la_SOURCES = \
   $(ACTS_SOURCES) \
-  ../PHTpcTracker/PHTpcTrackerUtil.cc \
   ALICEKF.cc \
   PH3DVertexing.cc \
   PHCASeeding.cc \
