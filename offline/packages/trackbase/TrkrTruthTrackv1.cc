@@ -6,10 +6,12 @@
  */
 #include "TrkrTruthTrackv1.h"
 
-#include <cmath>
-#include <TLorentzVector.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPoint.h>
+
+#include <TLorentzVector.h>
+
+#include <cmath>
 
 void TrkrTruthTrackv1::identify(std::ostream &os) const 
 {
