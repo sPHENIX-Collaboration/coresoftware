@@ -6,7 +6,10 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 #include <TVector3.h>
+#pragma GCC diagnostic pop
 
 #include <iostream>
 
