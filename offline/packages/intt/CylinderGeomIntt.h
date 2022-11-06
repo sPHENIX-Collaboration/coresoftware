@@ -8,10 +8,7 @@
 #include <cmath>
 #include <iostream>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 #include <TVector3.h>
-#pragma GCC diagnostic pop
 
 class CylinderGeomIntt : public PHG4CylinderGeom
 {
