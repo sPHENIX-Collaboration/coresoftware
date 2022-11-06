@@ -36,7 +36,11 @@
 #include <TH2.h>
 #include <TNamed.h>  // for TNamed
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>      // for GenEvent, GenEvent::particl...
+#pragma GCC diagnostic pop
+
 #include <HepMC/GenParticle.h>   // for GenParticle
 #include <HepMC/SimpleVector.h>  // for FourVector
 #include <HepMC/Units.h>         // for conversion_factor, GEV

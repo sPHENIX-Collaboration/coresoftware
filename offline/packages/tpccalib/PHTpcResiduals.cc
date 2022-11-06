@@ -27,7 +27,12 @@
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
 #include <Acts/MagneticField/SharedBField.hpp>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <Acts/Propagator/EigenStepper.hpp>
+#pragma GCC diagnostic pop
+
 #include <Acts/Propagator/Navigator.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 

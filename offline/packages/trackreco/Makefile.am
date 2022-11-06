@@ -162,8 +162,7 @@ libtrack_reco_la_LIBADD = \
   -lintt_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter \
-  -llog4cpp
+  -lphparameter
 
 
 # Rule for generating table CINT dictionaries.

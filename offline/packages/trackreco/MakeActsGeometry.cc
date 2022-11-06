@@ -59,7 +59,12 @@
 #include <ActsExamples/Framework/IContextDecorator.hpp>
 #include <ActsExamples/Framework/WhiteBoard.hpp>
 #include <ActsExamples/Geometry/CommonGeometry.hpp>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <ActsExamples/Options/CommonOptions.hpp>
+#pragma GCC diagnostic pop
+
 #include <ActsExamples/Utilities/Options.hpp>
 #include <ActsExamples/MagneticField/MagneticFieldOptions.hpp>
 

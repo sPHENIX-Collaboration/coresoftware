@@ -2,17 +2,23 @@
 #ifndef TRACKBASE_ACTSTRACKFITTINGALGORITHM_H
 #define TRACKBASE_ACTSTRACKFITTINGALGORITHM_H
 
+
+#include "Calibrator.h"
+#include "ResidualOutlierFinder.h"
+
 #include <Acts/EventData/detail/CorrectedTransformationFreeToBound.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <Acts/TrackFitting/KalmanFitter.hpp>
+#pragma GCC diagnostic pop
+
 #include <ActsExamples/EventData/IndexSourceLink.hpp>
 #include <ActsExamples/EventData/Measurement.hpp>
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/Framework/BareAlgorithm.hpp>
 #include <ActsExamples/MagneticField/MagneticField.hpp>
-
-#include "Calibrator.h"
-#include "ResidualOutlierFinder.h"
 
 #include <functional>
 #include <memory>

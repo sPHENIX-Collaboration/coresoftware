@@ -11,7 +11,11 @@
 
 #include <Rtypes.h>  // for Int_t Float_t
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
+#pragma GCC diagnostic pop
+
 #include <HepMC/HEPEVT_Wrapper.h>  // for HEPEVT_Wrappe
 #include <HepMC/IO_BaseClass.h>    // for IO_BaseClass
 #include <HepMC/IO_GenEvent.h>
