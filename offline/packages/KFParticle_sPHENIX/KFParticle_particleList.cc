@@ -52,7 +52,10 @@
 //KFParticle stuff
 #include "KFParticle_particleList.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <KFParticleDatabase.h>
+#pragma GCC diagnostic pop
 
 typedef std::pair<int, float> particle_pair;
 
