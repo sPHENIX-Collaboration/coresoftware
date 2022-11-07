@@ -18,19 +18,9 @@ namespace
 //_________________________________________________________________________
 void TrkrClusterHitAssocv3::Reset()
 {
-  // delete all entries
-  for (const auto& map_pair : m_map)
-  {
-    Map thismap = map_pair.second;  //
-
-    Map empty_map;
-    empty_map.swap(thismap);
-    thismap.clear();
-  }
-
-  m_map.clear();
+  std::map<TrkrDefs::hitsetkey, Map> empty_map;
+  m_map.swap(empty_map);
 }
-
 //_________________________________________________________________________
 void TrkrClusterHitAssocv3::identify(std::ostream& os) const
 {
