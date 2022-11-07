@@ -9,7 +9,6 @@
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
-#include <string>
 
 #include <trackbase/ClusterErrorPara.h>
 
@@ -24,7 +23,13 @@
 #include <ActsExamples/EventData/IndexSourceLink.hpp>
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/Trajectories.hpp>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <ActsExamples/TrackFitting/TrackFittingAlgorithm.hpp>
+#pragma GCC diagnostic pop
+
+#include <string>
 
 class PHCompositeNode;
 class ActsGeometry;

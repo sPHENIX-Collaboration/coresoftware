@@ -5,7 +5,7 @@ lib_LTLIBRARIES = libpdbcalBase.la
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I`root-config --incdir`
+  -isystem`root-config --incdir`
 
 libpdbcalBase_la_LDFLAGS = \
   `root-config --evelibs`

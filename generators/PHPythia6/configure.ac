@@ -9,7 +9,7 @@ LT_INIT([disable-static])
 dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
 dnl   make warnings fatal errors: -Werror
-CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wextra -Wno-deprecated-declarations"
+CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wextra"
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

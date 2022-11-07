@@ -11,7 +11,11 @@
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 #include <ActsExamples/EventData/TrkrClusterSourceLink.hpp>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <ActsExamples/TrackFitting/TrkrClusterFittingAlgorithm.hpp>
+#pragma GCC diagnostic pop
 
 class TTree;
 class TFile;
