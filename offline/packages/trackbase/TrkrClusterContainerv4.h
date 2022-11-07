@@ -19,34 +19,32 @@ class TrkrCluster;
  */
 class TrkrClusterContainerv4 : public TrkrClusterContainer
 {
-  public:
-
+ public:
   TrkrClusterContainerv4() = default;
 
   void Reset() override;
 
-  void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   void addClusterSpecifyKey(const TrkrDefs::cluskey, TrkrCluster*) override;
 
   void removeCluster(TrkrDefs::cluskey) override;
 
-  ConstRange getClusters() const override; // deprecated
+  ConstRange getClusters() const override;  // deprecated
 
   ConstRange getClusters(TrkrDefs::hitsetkey) override;
 
   TrkrCluster* findCluster(TrkrDefs::cluskey) const override;
 
   HitSetKeyList getHitSetKeys() const override;
- 
+
   HitSetKeyList getHitSetKeys(const TrkrDefs::TrkrId) const override;
- 
-  HitSetKeyList getHitSetKeys(const TrkrDefs::TrkrId, const uint8_t /* layer */ ) const override;
+
+  HitSetKeyList getHitSetKeys(const TrkrDefs::TrkrId, const uint8_t /* layer */) const override;
 
   unsigned int size(void) const override;
 
-  private:
-
+ private:
   /// convenient alias
   using Vector = std::vector<TrkrCluster*>;
 
@@ -54,14 +52,14 @@ class TrkrClusterContainerv4 : public TrkrClusterContainer
   std::map<TrkrDefs::hitsetkey, Vector> m_clusmap;
 
   /// temporary map
-  /** 
+  /**
    * the map is transient. It must not be written to the output.
-   * To do this one adds //! after the declaration 
+   * To do this one adds //! after the declaration
    * see https://root.cern.ch/root/htmldoc/guides/users-guide/InputOutput.html for details
    */
-  Map m_tmpmap; //! transient. The temporary map does not get written to the output
-  
+  Map m_tmpmap;  //! transient. The temporary map does not get written to the output
+
   ClassDefOverride(TrkrClusterContainerv4, 1)
 };
 
-#endif //TRACKBASE_TrkrClusterContainerv4_H
+#endif  // TRACKBASE_TrkrClusterContainerv4_H

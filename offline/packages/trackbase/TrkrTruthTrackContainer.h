@@ -4,18 +4,18 @@
 #include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
-#include <vector>
 #include <map>
+#include <vector>
 
 class TrkrTruthTrack;
 class TrkrTruthTrackContainer : public PHObject
 {
-  public:
-  using Vector        = std::vector<TrkrTruthTrack*>;
-  using Iterator      = Vector::iterator;
+ public:
+  using Vector = std::vector<TrkrTruthTrack*>;
+  using Iterator = Vector::iterator;
   using ConstIterator = Vector::const_iterator;
-  using Range         = std::pair<Iterator, Iterator>;
-  using ConstRange    = std::pair<ConstIterator, ConstIterator>;
+  using Range = std::pair<Iterator, Iterator>;
+  using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
   //! reset method
   void Reset() override {}
@@ -38,4 +38,4 @@ class TrkrTruthTrackContainer : public PHObject
   ClassDefOverride(TrkrTruthTrackContainer, 1)
 };
 
-#endif // TRACKBASE_TRUTHTRACKCONTAINER_H
+#endif  // TRACKBASE_TRUTHTRACKCONTAINER_H

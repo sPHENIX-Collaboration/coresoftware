@@ -6,46 +6,59 @@
  */
 #include "TrkrTruthTrackv1.h"
 
-#include <cmath>
-#include <TLorentzVector.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPoint.h>
 
-void TrkrTruthTrackv1::identify(std::ostream &os) const 
+#include <TLorentzVector.h>
+
+#include <cmath>
+
+void TrkrTruthTrackv1::identify(std::ostream& os) const
 {
   os << " TrkrTruthTrack: " << std::endl
-     << "   trackid(" << trackid << ")  [X0,Y0,Z0]("<<X0<<","<<Y0<<","<<Z0<<")  "
-     << " [pseudorapidity,pt,phi]("<<pseudoRapidity<<","<<pt<<","<<phi<<")" << std::endl;
-  os << " Clusters HitSetKey(layer) : " << std::endl << "  ";
+     << "   trackid(" << trackid << ")  [X0,Y0,Z0](" << X0 << "," << Y0 << "," << Z0 << ")  "
+     << " [pseudorapidity,pt,phi](" << pseudoRapidity << "," << pt << "," << phi << ")" << std::endl;
+  os << " Clusters HitSetKey(layer) : " << std::endl
+     << "  ";
   int cnt = 0;
-  for (auto cluster : clusters) {
-    if (cnt == 8) {
+  for (auto cluster : clusters)
+  {
+    if (cnt == 8)
+    {
       cnt = 0;
-      os << std::endl << "  ";
+      os << std::endl
+         << "  ";
     }
-    if (cnt > 0) os << ", ";
+    if (cnt > 0)
+    {
+      os << ", ";
+    }
     uint32_t i_hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster);
     int layer = TrkrDefs::getLayer(cluster);
-    os << " " << i_hitsetkey<<"("<<layer<< ")";
+    os << " " << i_hitsetkey << "(" << layer << ")";
     ++cnt;
   }
-  if (cnt != 0) os << std::endl;
+  if (cnt != 0)
+  {
+    os << std::endl;
+  }
 }
 
-TrkrTruthTrackv1::TrkrTruthTrackv1() 
-  : trackid { UINT_MAX }
-  , X0             {NAN}
-  , Y0             {NAN}
-  , Z0             {NAN}
-  , pseudoRapidity {NAN}
-  , pt             {NAN}
-  , phi            {NAN}
-  , clusters       {}
-{}
+TrkrTruthTrackv1::TrkrTruthTrackv1()
+  : trackid{UINT_MAX}
+  , X0{NAN}
+  , Y0{NAN}
+  , Z0{NAN}
+  , pseudoRapidity{NAN}
+  , pt{NAN}
+  , phi{NAN}
+  , clusters{}
+{
+}
 
-TrkrTruthTrackv1::TrkrTruthTrackv1(unsigned int _trackid, PHG4Particle* p, PHG4VtxPoint* vtx) 
-  : trackid {_trackid}
-  , clusters {}
+TrkrTruthTrackv1::TrkrTruthTrackv1(unsigned int _trackid, PHG4Particle* p, PHG4VtxPoint* vtx)
+  : trackid{_trackid}
+  , clusters{}
 {
   X0 = vtx->get_x();
   Y0 = vtx->get_y();
@@ -58,6 +71,7 @@ TrkrTruthTrackv1::TrkrTruthTrackv1(unsigned int _trackid, PHG4Particle* p, PHG4V
   pt = v1.Pt();
 }
 
-void TrkrTruthTrackv1::addCluster(TrkrDefs::cluskey key) {
+void TrkrTruthTrackv1::addCluster(TrkrDefs::cluskey key)
+{
   clusters.push_back(key);
 }

@@ -1,9 +1,11 @@
 #include "TrkrTruthTrack.h"
 
-namespace {
+namespace
+{
   std::vector<TrkrDefs::cluskey> dummyClusters;
 }
 
-std::vector<TrkrDefs::cluskey>& TrkrTruthTrack::getClusters() {
+std::vector<TrkrDefs::cluskey>& TrkrTruthTrack::getClusters()
+{
   return dummyClusters;
 }

@@ -10,7 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -86,25 +86,21 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   alignmentTransformationContainer_Dict.cc \
-  CMFlashCluster_Dict.cc \
-  CMFlashClusterv1_Dict.cc \
   CMFlashClusterContainer_Dict.cc \
   CMFlashClusterContainerv1_Dict.cc \
-  CMFlashDifference_Dict.cc \
-  CMFlashDifferencev1_Dict.cc \
+  CMFlashCluster_Dict.cc \
+  CMFlashClusterv1_Dict.cc \
   CMFlashDifferenceContainer_Dict.cc \
   CMFlashDifferenceContainerv1_Dict.cc \
-  EmbRecoMatch_Dict.cc \
-  EmbRecoMatchv1_Dict.cc \
+  CMFlashDifference_Dict.cc \
+  CMFlashDifferencev1_Dict.cc \
   EmbRecoMatchContainer_Dict.cc \
   EmbRecoMatchContainerv1_Dict.cc \
-  sPHENIXActsDetectorElement.cc \
-  TrkrCluster_Dict.cc \
-  TrkrClusterv1_Dict.cc \
-  TrkrClusterv2_Dict.cc \
-  TrkrClusterv3_Dict.cc \
+  EmbRecoMatch_Dict.cc \
+  EmbRecoMatchv1_Dict.cc \
+  TpcSeedTrackMap_Dict.cc \
+  TpcSeedTrackMapv1_Dict.cc \
   TrkrClusterContainer_Dict.cc \
-  TrkrClusterv4_Dict.cc \
   TrkrClusterContainerv1_Dict.cc \
   TrkrClusterContainerv2_Dict.cc \
   TrkrClusterContainerv3_Dict.cc \
@@ -117,48 +113,49 @@ ROOTDICTS = \
   TrkrClusterHitAssocv3_Dict.cc \
   TrkrClusterIterationMap_Dict.cc \
   TrkrClusterIterationMapv1_Dict.cc \
-  TrkrHit_Dict.cc \
-  TrkrHitv1_Dict.cc \
-  TrkrHitv2_Dict.cc \
+  TrkrCluster_Dict.cc \
+  TrkrClusterv1_Dict.cc \
+  TrkrClusterv2_Dict.cc \
+  TrkrClusterv3_Dict.cc \
+  TrkrClusterv4_Dict.cc \
+  TrkrHitSetContainer_Dict.cc \
+  TrkrHitSetContainerv1_Dict.cc \
+  TrkrHitSet_Dict.cc \
+  TrkrHitSetv1_Dict.cc \
   TrkrHitTruthAssoc_Dict.cc \
   TrkrHitTruthAssocv1_Dict.cc \
   TrkrHitTruthClusters_Dict.cc \
   TrkrHitTruthClustersv1_Dict.cc \
+  TrkrHit_Dict.cc \
+  TrkrHitv1_Dict.cc \
+  TrkrHitv2_Dict.cc \
   TrkrTruthClusters_Dict.cc \
   TrkrTruthClustersv1_Dict.cc \
-  TrkrHitSet_Dict.cc \
-  TrkrHitSetv1_Dict.cc \
-  TrkrHitSetContainer_Dict.cc \
-  TrkrHitSetContainerv1_Dict.cc \
-  TpcSeedTrackMap_Dict.cc \
-  TpcSeedTrackMapv1_Dict.cc \
+  TrkrTruthTrackContainer_Dict.cc \
+  TrkrTruthTrackContainerv1_Dict.cc \
   TrkrTruthTrack_Dict.cc \
   TrkrTruthTrackv1_Dict.cc \
-  TrkrTruthTrackContainer_Dict.cc \
-  TrkrTruthTrackContainerv1_Dict.cc 
+  sPHENIXActsDetectorElement.cc
 
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   alignmentTransformationContainer_Dict_rdict.pcm \
-  CMFlashCluster_Dict_rdict.pcm \
-  CMFlashClusterv1_Dict_rdict.pcm \
   CMFlashClusterContainer_Dict_rdict.pcm \
   CMFlashClusterContainerv1_Dict_rdict.pcm \
-  CMFlashDifference_Dict_rdict.pcm \
-  CMFlashDifferencev1_Dict_rdict.pcm \
+  CMFlashCluster_Dict_rdict.pcm \
+  CMFlashClusterv1_Dict_rdict.pcm \
   CMFlashDifferenceContainer_Dict_rdict.pcm \
   CMFlashDifferenceContainerv1_Dict_rdict.pcm \
-  EmbRecoMatch_Dict_rdict.pcm \
-  EmbRecoMatchv1_Dict_rdict.pcm \
+  CMFlashDifference_Dict_rdict.pcm \
+  CMFlashDifferencev1_Dict_rdict.pcm \
   EmbRecoMatchContainer_Dict_rdict.pcm \
   EmbRecoMatchContainerv1_Dict_rdict.pcm \
-  TrkrCluster_Dict_rdict.pcm \
-  TrkrClusterv1_Dict_rdict.pcm \
-  TrkrClusterv2_Dict_rdict.pcm \
-  TrkrClusterv3_Dict_rdict.pcm \
+  EmbRecoMatch_Dict_rdict.pcm \
+  EmbRecoMatchv1_Dict_rdict.pcm \
+  TpcSeedTrackMap_Dict_rdict.pcm \
+  TpcSeedTrackMapv1_Dict_rdict.pcm \
   TrkrClusterContainer_Dict_rdict.pcm \
-  TrkrClusterv4_Dict_rdict.pcm \
   TrkrClusterContainerv1_Dict_rdict.pcm \
   TrkrClusterContainerv2_Dict_rdict.pcm \
   TrkrClusterContainerv3_Dict_rdict.pcm \
@@ -171,54 +168,51 @@ nobase_dist_pcm_DATA = \
   TrkrClusterHitAssocv3_Dict_rdict.pcm \
   TrkrClusterIterationMap_Dict_rdict.pcm \
   TrkrClusterIterationMapv1_Dict_rdict.pcm \
-  TrkrHit_Dict_rdict.pcm \
-  TrkrHitv1_Dict_rdict.pcm \
-  TrkrHitv2_Dict_rdict.pcm \
+  TrkrCluster_Dict_rdict.pcm \
+  TrkrClusterv1_Dict_rdict.pcm \
+  TrkrClusterv2_Dict_rdict.pcm \
+  TrkrClusterv3_Dict_rdict.pcm \
+  TrkrClusterv4_Dict_rdict.pcm \
+  TrkrHitSetContainer_Dict_rdict.pcm \
+  TrkrHitSetContainerv1_Dict_rdict.pcm \
+  TrkrHitSet_Dict_rdict.pcm \
+  TrkrHitSetv1_Dict_rdict.pcm \
   TrkrHitTruthAssoc_Dict_rdict.pcm \
   TrkrHitTruthAssocv1_Dict_rdict.pcm \
   TrkrHitTruthClusters_Dict_rdict.pcm \
   TrkrHitTruthClustersv1_Dict_rdict.pcm \
+  TrkrHit_Dict_rdict.pcm \
+  TrkrHitv1_Dict_rdict.pcm \
+  TrkrHitv2_Dict_rdict.pcm \
   TrkrTruthClusters_Dict_rdict.pcm \
   TrkrTruthClustersv1_Dict_rdict.pcm \
-  TrkrHitSet_Dict_rdict.pcm \
-  TrkrHitSetv1_Dict_rdict.pcm \
-  TrkrHitSetContainer_Dict_rdict.pcm \
-  TrkrHitSetContainerv1_Dict_rdict.pcm \
-  TpcSeedTrackMap_Dict_rdict.pcm \
-  TpcSeedTrackMapv1_Dict_rdict.pcm \
-  TrkrTruthTrack_Dict_rdict.pcm \
-  TrkrTruthTrackv1_Dict_rdict.pcm \
   TrkrTruthTrackContainer_Dict_rdict.pcm \
-  TrkrTruthTrackContainerv1_Dict_rdict.pcm 
+  TrkrTruthTrackContainerv1_Dict_rdict.pcm \
+  TrkrTruthTrack_Dict_rdict.pcm \
+  TrkrTruthTrackv1_Dict_rdict.pcm
 
 # sources for io library
 libtrack_io_la_SOURCES = \
   $(ROOTDICTS) \
-  ActsSurfaceMaps.cc \
-  ActsGeometry.cc \
-  AlignmentTransformation.cc \
   alignmentTransformationContainer.cc \
-  ClusterErrorPara.cc \
-  CMFlashClusterv1.cc \
+  ActsGeometry.cc \
+  ActsSurfaceMaps.cc \
+  AlignmentTransformation.cc \
   CMFlashClusterContainerv1.cc \
-  CMFlashDifferencev1.cc \
+  CMFlashClusterv1.cc \
   CMFlashDifferenceContainerv1.cc \
-  InttDefs.cc \
-  MvtxDefs.cc \
-  EmbRecoMatchv1.cc \
+  CMFlashDifferencev1.cc \
+  ClusterErrorPara.cc \
   EmbRecoMatchContainer.cc \
   EmbRecoMatchContainerv1.cc \
+  EmbRecoMatchv1.cc \
+  InttDefs.cc \
+  MvtxDefs.cc \
   TpcDefs.cc \
+  TpcSeedTrackMap.cc \
+  TpcSeedTrackMapv1.cc \
   TrackFitUtils.cc \
   TrackFittingAlgorithmFunctionsKalman.cc \
-  TrkrTruthTrack.cc \
-  TrkrTruthTrackv1.cc \
-  TrkrTruthTrackContainer.cc \
-  TrkrTruthTrackContainerv1.cc \
-  TrkrClusterv1.cc \
-  TrkrClusterv2.cc \
-  TrkrClusterv3.cc \
-  TrkrClusterv4.cc \
   TrkrClusterContainer.cc \
   TrkrClusterContainerv1.cc \
   TrkrClusterContainerv2.cc \
@@ -232,23 +226,25 @@ libtrack_io_la_SOURCES = \
   TrkrClusterHitAssocv3.cc \
   TrkrClusterIterationMap.cc \
   TrkrClusterIterationMapv1.cc \
+  TrkrClusterv1.cc \
+  TrkrClusterv2.cc \
+  TrkrClusterv3.cc \
+  TrkrClusterv4.cc \
   TrkrDefs.cc \
   TrkrHitSet.cc \
-  TrkrHitSetv1.cc \
   TrkrHitSetContainer.cc \
   TrkrHitSetContainerv1.cc \
+  TrkrHitSetv1.cc \
   TrkrHitTruthAssocv1.cc \
   TrkrHitTruthClustersv1.cc \
   TrkrHitv1.cc \
   TrkrHitv2.cc \
   TrkrTruthClusters.cc \
   TrkrTruthClustersv1.cc \
-  TpcSeedTrackMap.cc \
-  TpcSeedTrackMapv1.cc \
   TrkrTruthTrack.cc \
-  TrkrTruthTrackv1.cc \
   TrkrTruthTrackContainer.cc \
-  TrkrTruthTrackContainerv1.cc 
+  TrkrTruthTrackContainerv1.cc \
+  TrkrTruthTrackv1.cc
 
 libtrack_io_la_LIBADD = \
   -lphool \
