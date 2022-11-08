@@ -17,6 +17,8 @@
 #include <phool/PHNodeIterator.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/CMFlashCluster.h>
+#include <trackbase/CMFlashClusterContainer.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
@@ -253,7 +255,17 @@ namespace
     trackStruct._p = get_p( trackStruct._px, trackStruct._py, trackStruct._pz );
     trackStruct._pt = get_pt( trackStruct._px, trackStruct._py );
     trackStruct._eta = get_eta( trackStruct._p, trackStruct._pz );
-
+  }
+  
+  //! create central membrane cluster struct
+  TrackingEvaluator_hp::CMClusterStruct create_cm_cluster( unsigned int /*key*/, CMFlashCluster* cluster )
+  {    
+    TrackingEvaluator_hp::CMClusterStruct cm_cluster_struct;
+    cm_cluster_struct._nclusters = cluster->getNclusters();
+    cm_cluster_struct._x = cluster->getX();
+    cm_cluster_struct._y = cluster->getY();
+    cm_cluster_struct._z = cluster->getZ();
+    return cm_cluster_struct;
   }
 
   //! create track struct from struct from svx track
@@ -270,7 +282,6 @@ namespace
     trackStruct._z = track->get_z();
     trackStruct._r = get_r( trackStruct._x, trackStruct._y );
     trackStruct._phi = std::atan2( trackStruct._y, trackStruct._x );
-
     return trackStruct;
   }
 
@@ -278,7 +289,6 @@ namespace
   TrackingEvaluator_hp::TrackPairStruct create_track_pair( SvtxTrack* first, SvtxTrack* second )
   {
     TrackingEvaluator_hp::TrackPairStruct trackpair_struct;
-
     trackpair_struct._charge = first->get_charge() + second->get_charge();
     trackpair_struct._px = first->get_px() + second->get_px();
     trackpair_struct._py = first->get_py() + second->get_py();
@@ -445,6 +455,7 @@ void TrackingEvaluator_hp::Container::Reset()
 {
   _events.clear();
   _clusters.clear();
+  _cm_clusters.clear();
   _tracks.clear();
   _track_pairs.clear();
 }
@@ -501,6 +512,7 @@ int TrackingEvaluator_hp::process_event(PHCompositeNode* topNode)
   if(m_flags&PrintTracks) print_tracks();
   if(m_flags&EvalEvent) evaluate_event();
   if(m_flags&EvalClusters) evaluate_clusters();
+  if(m_flags&EvalCMClusters) evaluate_cm_clusters();
   if(m_flags&EvalTracks)
   {
     fill_g4particle_map();
@@ -534,6 +546,10 @@ int TrackingEvaluator_hp::load_nodes( PHCompositeNode* topNode )
   if( !m_cluster_map )
   { m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER"); }
 
+  
+  // central membrane clusters
+  m_cm_cluster_map = findNode::getClass<CMFlashClusterContainer>(topNode, "CORRECTED_CM_CLUSTER" );
+  
   // cluster hit association map
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
 
@@ -640,6 +656,12 @@ void TrackingEvaluator_hp::evaluate_event()
   event._ng4hits_tpc = count_g4hits( m_g4hits_tpc );
   event._ng4hits_micromegas = count_g4hits( m_g4hits_micromegas );
 
+  // number of cm clusters
+  if( m_cm_cluster_map )
+  {
+    const auto range = m_cm_cluster_map->getClusters();
+    event._ncmclusters = std::distance( range.first, range.second );
+  }
   // store
   m_container->addEvent(event);
 }
@@ -673,6 +695,23 @@ void TrackingEvaluator_hp::evaluate_clusters()
       m_container->addCluster( cluster_struct );
     }
   }
+}
+
+//_____________________________________________________________________
+void TrackingEvaluator_hp::evaluate_cm_clusters()
+{
+  if(!(m_cm_cluster_map&&m_container)) return;
+  
+  // clear
+  m_container->clearCMClusters();
+  
+  // loop over cm clusters
+  for( const auto& [key,cluster]:range_adaptor(m_cm_cluster_map->getClusters()))
+  {
+    auto cluster_struct = create_cm_cluster( key, cluster ); 
+    m_container->addCMCluster( cluster_struct );
+  }
+  
 }
 
 //_____________________________________________________________________
@@ -1154,8 +1193,6 @@ TrackingEvaluator_hp::ClusterStruct TrackingEvaluator_hp::create_cluster( TrkrDe
   const auto global = get_global_position(key, cluster);
 
   // apply distortion corrections
-  
-  
   TrackingEvaluator_hp::ClusterStruct cluster_struct;
   cluster_struct._layer = TrkrDefs::getLayer(key);
   cluster_struct._x = global.x();

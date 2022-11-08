@@ -15,6 +15,7 @@
 #include <vector>
 
 class ActsGeometry;
+class CMFlashClusterContainer;
 class PHG4CylinderGeomContainer;
 class PHG4Hit;
 class PHG4HitContainer;
@@ -102,6 +103,9 @@ class TrackingEvaluator_hp : public SubsysReco
 
     //! number of g4hits in the Micromegas
     unsigned int _ng4hits_micromegas = 0;
+   
+    //! number of central membrane clusters
+    unsigned int _ncmclusters = 0;
     
   };
 
@@ -208,6 +212,25 @@ class TrackingEvaluator_hp : public SubsysReco
     //! micromegas tile id
     int _tileid = 0;
 
+  };
+
+
+  // cluster information to be stored in tree
+  class CMClusterStruct
+  {
+    public:
+
+    using List = std::vector<CMClusterStruct>;
+
+    //! number of participating clusters
+    unsigned int _nclusters = 0;
+
+    //!@name cluster position
+    //@{
+    float _x = 0;
+    float _y = 0;
+    float _z = 0;
+    //@}
   };
 
   // track information to be stored in tree
@@ -373,6 +396,9 @@ class TrackingEvaluator_hp : public SubsysReco
     const ClusterStruct::List& clusters() const
     { return _clusters; }
 
+    const CMClusterStruct::List& cm_clusters() const 
+    { return _cm_clusters; }
+    
     const TrackStruct::List& tracks() const
     { return _tracks; }
 
@@ -390,6 +416,9 @@ class TrackingEvaluator_hp : public SubsysReco
     void addCluster( const ClusterStruct& cluster )
     { _clusters.push_back( cluster ); }
 
+    void addCMCluster( const CMClusterStruct& cluster )
+    { _cm_clusters.push_back( cluster ); }
+    
     void addTrack( const TrackStruct& track )
     { _tracks.push_back( track ); }
 
@@ -401,6 +430,9 @@ class TrackingEvaluator_hp : public SubsysReco
 
     void clearClusters()
     { _clusters.clear(); }
+
+    void clearCMClusters()
+    { _cm_clusters.clear(); }
 
     void clearTracks()
     { _tracks.clear(); }
@@ -418,6 +450,9 @@ class TrackingEvaluator_hp : public SubsysReco
     //! clusters array
     ClusterStruct::List _clusters;
 
+    //! central membrane clustsrs
+    CMClusterStruct::List _cm_clusters;
+    
     //! tracks array
     TrackStruct::List _tracks;
 
@@ -432,6 +467,7 @@ class TrackingEvaluator_hp : public SubsysReco
   {
     EvalEvent = 1<<0,
     EvalClusters = 1<<1,
+    EvalCMClusters = 1<<6,
     EvalTracks = 1<<2,
     EvalTrackPairs = 1<<3,
     PrintClusters = 1<<4,
@@ -491,6 +527,9 @@ class TrackingEvaluator_hp : public SubsysReco
   //! evaluate clusters
   void evaluate_clusters();
 
+  //! evaluate cm clusters
+  void evaluate_cm_clusters();
+  
   //! evaluate tracks
   void evaluate_tracks();
 
@@ -576,6 +615,9 @@ class TrackingEvaluator_hp : public SubsysReco
 
   //! clusters
   TrkrClusterContainer* m_cluster_map = nullptr;
+
+  //! central membrane clusters
+  CMFlashClusterContainer* m_cm_cluster_map = nullptr;
 
   //! cluster to hit association
   TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;
