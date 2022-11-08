@@ -693,21 +693,36 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
       //bool no_next_link = true;
       for(auto& link : bidirectionalLinks[trackHead_layer])
       {
+        if(link[0].second != trackHead) continue;
         auto& head_pos = globalPositions.at(trackHead);
         auto& prev_pos = globalPositions.at(seed.rbegin()[1]);
-        double dr = sqrt(head_pos.x()*head_pos.x()+head_pos.y()*head_pos.y())-sqrt(prev_pos.x()*prev_pos.x()+prev_pos.y()*prev_pos.y());
-        //double dx = head_pos.x()-prev_pos.x();
-        //double dy = head_pos.y()-prev_pos.y();
-        double dz = head_pos.z()-prev_pos.z();
-        double dphi = atan2(head_pos.y(),head_pos.x())-atan2(prev_pos.y(),prev_pos.x());
+        float x1 = head_pos.x();
+        float y1 = head_pos.y();
+        float z1 = head_pos.z();
+        float x2 = prev_pos.x();
+        float y2 = prev_pos.y();
+        float z2 = prev_pos.z();
+        float dr_12 = sqrt(x1*x1+y1*y1)-sqrt(x2*x2+y2*y2);
         TrkrDefs::cluskey testCluster = link[1].second;
         auto& test_pos = globalPositions.at(testCluster);
-        double new_dr = sqrt(test_pos.x()*test_pos.x()+test_pos.y()*test_pos.y())-sqrt(head_pos.x()*head_pos.x()+head_pos.y()*head_pos.y());
-        //double new_dx = test_pos.x()-head_pos.x();
-        //double new_dy = test_pos.y()-head_pos.y();
-        double new_dz = test_pos.z()-head_pos.z();
-        double new_dphi = atan2(test_pos.y(),test_pos.x())-atan2(head_pos.y(),head_pos.x());
-        if(link[0].second==trackHead && seed.size()<5 && fabs(dphi/dr-new_dphi/new_dr)<.03 && fabs(dz/dr-new_dz/new_dr)<0.5)
+        float xt = test_pos.x();
+        float yt = test_pos.y();
+        float zt = test_pos.z();
+        float new_dr = sqrt(xt*xt+yt*yt)-sqrt(x1*x1+y1*y1);
+        if(fabs( (z1-z2)/dr_12 - (zt-z1)/new_dr )>0.5) continue;
+        auto& third_pos = globalPositions.at(seed.rbegin()[2]);
+        float x3 = third_pos.x();
+        float y3 = third_pos.y();
+        float dr_23 = sqrt(x2*x2+y2*y2)-sqrt(x3*x3+y3*y3);
+        float phi1 = atan2(y1,x1);
+        float phi2 = atan2(y2,x2);
+        float phi3 = atan2(y3,x3);
+        float dphi12 = std::fmod(phi1-phi2,M_PI);
+        float dphi23 = std::fmod(phi2-phi3,M_PI);
+        float d2phidr2 = dphi12/(dr_12*dr_12)-dphi23/(dr_23*dr_23);
+        float new_dphi = std::fmod(atan2(yt,xt)-atan2(y1,x1),M_PI);
+        float new_d2phidr2 = new_dphi/(new_dr*new_dr)-dphi12/(dr_12*dr_12);
+        if(seed.size()<6 && fabs(d2phidr2-new_d2phidr2)<.005)
         {
       //    no_next_link = false;
           keylist newseed = seed;
@@ -715,7 +730,7 @@ std::vector<keylist> PHCASeeding::FollowBiLinks(const std::vector<std::vector<ke
           newtempSeedKeyLists.push_back(newseed);
         }
       }
-      if(seed.size()>4)
+      if(seed.size()>5)
       {
         trackSeedKeyLists.push_back(seed);
       }
