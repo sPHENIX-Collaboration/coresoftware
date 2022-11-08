@@ -31,9 +31,7 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
 {
  public:
 
- PHTpcCentralMembraneClusterizer(const std::string &name = "PHTpcCentralMembraneClusterizer");
-
-  virtual ~PHTpcCentralMembraneClusterizer();
+  PHTpcCentralMembraneClusterizer(const std::string &name = "PHTpcCentralMembraneClusterizer");
 
   void set_process(const int proc)  { _process = proc;  }
   void set_histos_on(const bool val) {_histos = val;}
