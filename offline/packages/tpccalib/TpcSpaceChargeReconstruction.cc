@@ -456,14 +456,21 @@ void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
       cluster_z_error = cluster->getZError();
     }
 
-    /*
-    remove clusters with too small errors since they are likely pathological
-    and have a large contribution to the chisquare
-    TODO: make these cuts configurable
-    */
-    if( cluster_rphi_error < 0.015 ) continue;
-    if( cluster_z_error < 0.05 ) continue;
-
+    /* 
+     * as instructed by Christof, it should not be necessary to cut on small
+     * cluster errors any more with clusters of version 4 or higher 
+     */ 
+    if( m_cluster_version < 4 )
+    {
+      /*
+       * remove clusters with too small errors since they are likely pathological
+       * and have a large contribution to the chisquare
+       * TODO: make these cuts configurable
+       */
+      if( cluster_rphi_error < 0.015 ) continue;
+      if( cluster_z_error < 0.05 ) continue;
+    }
+    
     // find track state that is the closest to cluster
     /* this assumes that both clusters and states are sorted along r */
     float dr_min = -1;
