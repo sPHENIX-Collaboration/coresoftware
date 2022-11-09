@@ -87,7 +87,11 @@ class PHActsSiliconSeeding : public SubsysReco
   void fieldMapName(const std::string& fieldmap)
     { m_fieldMapName = fieldmap; }
 
-  void setRPhiSearchWindow(const float win) { m_rPhiSearchWin = win; std::cout << "Search window is " << m_rPhiSearchWin<<std::endl;}
+  void setRPhiSearchWindow(const float win) 
+  { 
+    m_rPhiSearchWin = win; 
+    std::cout << "Search window is " << m_rPhiSearchWin<<std::endl;
+  }
 
   /// For each MVTX+INTT seed, take the best INTT hits and form
   /// 1 silicon seed per MVTX seed
@@ -108,7 +112,8 @@ class PHActsSiliconSeeding : public SubsysReco
   {m_cotThetaMax = cotThetaMax;}
   void gridFactor(const float gridFactor)
   {m_gridFactor = gridFactor;}
-
+  void sigmaScattering(const float sigma)
+  { m_sigmaScattering = sigma; }
   /// A function to run the seeder with large (true)
   /// or small (false) grid spacing
   void largeGridSpacing(const bool spacing);
@@ -188,6 +193,7 @@ class PHActsSiliconSeeding : public SubsysReco
   /// MVTX can only have the middle layer be the middle hit
   int m_maxSeedsPerSpM = 1;
 
+  float m_sigmaScattering = 5.;
   /// Limiting location of measurements (e.g. detector constraints)
   /// We limit to the MVTX
   float m_rMax = 200. * Acts::UnitConstants::mm;

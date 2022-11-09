@@ -24,7 +24,7 @@ class AlignmentTransformation {
 
   void createMap(PHCompositeNode* topNode);
   void createAlignmentTransformContainer(PHCompositeNode* topNode);
-
+  void misalignmentFactor(const double factor);
  private:
 
   std::string alignmentParamsFile = "./localAlignmentParamsFile.txt";
