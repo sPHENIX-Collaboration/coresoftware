@@ -62,8 +62,16 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   TrkrClusterContainer *_cluster_map{nullptr};
   CMFlashClusterContainer *_corrected_CMcluster_map{nullptr};
   PHG4TpcCylinderGeomContainer *_geom_container{nullptr};
- TpcDistortionCorrectionContainer* _dcc{nullptr};
+  TpcDistortionCorrectionContainer* _dcc{nullptr};
 
+  ///@name counters
+  //@{
+  int m_total_clusters = 0;
+  int m_accepted_clusters = 0;
+  int m_cm_clusters = 0;  
+  //@}
+  
+  
   TH1F *henergy;
   TH1F *hz;
   TH2F *hxy;
