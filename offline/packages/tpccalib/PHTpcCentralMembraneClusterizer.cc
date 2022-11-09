@@ -82,6 +82,9 @@ int PHTpcCentralMembraneClusterizer::InitRun(PHCompositeNode *topNode)
 int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 {
 
+  
+  std::cout << "PHTpcCentralMembraneClusterizer::process_event - _min_z_value: " << _min_z_value << std::endl;
+  
   //local coord conversion below
   ActsGeometry *tgeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
   
@@ -106,9 +109,13 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       for (auto clusiter = clusRange.first; 
 	   clusiter != clusRange.second; ++clusiter)
 	{
+    
+    ++m_total_clusters;
+    
     const auto& [cluskey, cluster] = *clusiter;
     auto glob = tgeometry->getGlobalPosition(cluskey, cluster);
-    
+    std::cout << "PHTpcCentralMembraneClusterizer::process_event - key: " << cluskey << "z: " << glob.z() << std::endl;
+   
     float x = glob(0);
     float y = glob(1);
     float z = glob(2);
@@ -122,6 +129,8 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
     
     if(cluster->getAdc() < _min_adc_value) continue;
     if( std::abs(z) < _min_z_value) continue;
+
+    ++m_accepted_clusters;
     
     i_pair.push_back(-1);
     energy.push_back(cluster->getAdc());
@@ -173,7 +182,10 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
     }
   }
   
-  //now for each cluster, find its nearest partner on an adjacent row:
+  //now for each cluster, find its nearest partner on an adjacent row
+  
+  /* TODO: check with Tony. Should be enough to loop for j=i+1 */
+  
   const float maxphidist=0.003;//as read off the plots.
   for (int i=0;i<nTpcClust;i++)
   {
@@ -215,7 +227,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
     }
   }
   
-  if(Verbosity() > 0)
+  // if(Verbosity() > 0)
   {
     if (allGood)
     {
@@ -331,7 +343,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
     cmfc->setNclusters(nclusters[iv]);
     
     _corrected_CMcluster_map->addClusterSpecifyKey(iv, cmfc);
-      
+    
+    ++m_cm_clusters;
+    
   }
 
   // read back the clusters and make some histograms
@@ -384,6 +398,20 @@ int PHTpcCentralMembraneClusterizer::End(PHCompositeNode * /*topNode*/ )
     
     fout->Close();
   }
+  
+  // print statistics
+
+  std::cout
+    << "PHTpcCentralMembraneClusterizer::End -"
+    << " cluster statistics total: " << m_total_clusters
+    << " accepted: " << m_accepted_clusters << " fraction: "
+    << 100.*m_accepted_clusters/m_total_clusters << "%"
+    << std::endl;
+
+  std::cout
+    << "PHTpcCentralMembraneClusterizer::End -"
+    << " cm clusters: " << m_cm_clusters
+    << std::endl;
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
