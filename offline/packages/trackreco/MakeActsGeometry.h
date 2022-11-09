@@ -81,27 +81,6 @@ class MakeActsGeometry : public SubsysReco
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
 
-  /* void setMvtxDev(double &array) */
-  /* { */
-  /*   m_mvtxDevs = array; */
-  /*   mvtxParam  = true; */
-  /* } */
-  /* void setInttDev(double &array[6]) */
-  /* { */
-  /*   m_inttDevs = array; */
-  /*   inttParam  = true; */
-  /* }   */
-  /* void setTpcDev(double &array[6]) */
-  /* { */
-  /*   m_tpcDevs = array; */
-  /*   tpcParam  = true; */
-  /* }   */
-  /* void setMmDev(double &array[6]) */
-  /* { */
-  /*   m_mmDevs = array; */
-  /*   mmParam  = true; */
-  //}
-  
   void setMvtxDev(double array[6])
   {
     m_mvtxDevs[0] = array[0];
@@ -296,10 +275,10 @@ class MakeActsGeometry : public SubsysReco
 
   bool m_buildMMs = false;
 
-  double m_mvtxDevs[6];
-  double m_inttDevs[6];
-  double m_tpcDevs[6];
-  double m_mmDevs[6];
+  double m_mvtxDevs[6] = {0};
+  double m_inttDevs[6] = {0};
+  double m_tpcDevs[6] = {0};
+  double m_mmDevs[6] = {0};
 
   bool mvtxParam = false;
   bool inttParam = false;
