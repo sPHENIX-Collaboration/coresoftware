@@ -307,7 +307,7 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
   PutOnParNode(ParDetNode, cellgeonodename);
   tmin = get_double_param("tmin");
   tmax = get_double_param("tmax");
-
+  m_DeltaT = get_double_param("tdelta_t");
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -362,7 +362,7 @@ int PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
     // checking ADC timing integration window cut
     if (hiter->second->get_t(0) > tmax) continue;
     if (hiter->second->get_t(1) < tmin) continue;
-    if (hiter->second->get_t(1) - hiter->second->get_t(0) > 100) continue;
+    if (hiter->second->get_t(1) - hiter->second->get_t(0) > m_DeltaT) continue;
 
     sum_energy_g4hit += hiter->second->get_edep();
 
