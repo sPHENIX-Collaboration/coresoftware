@@ -27,7 +27,7 @@
  *
  * Association object holding transformations associated with given tracker hitset
  */
-class alignmentTransformationContainer : public Acts::GeometryContext
+class alignmentTransformationContainer 
 {
   
   public:
@@ -44,6 +44,10 @@ class alignmentTransformationContainer : public Acts::GeometryContext
   void setMisalignmentFactor(const double m) { m_misalignmentFactor = m; }
   const double& getMisalignmentFactor() const { return m_misalignmentFactor; }
   static bool use_alignment;
+  const Acts::GeometryContext context() const
+    { 
+      return Acts::GeometryContext(this);
+    }
 
   private:
 
