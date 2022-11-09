@@ -33,12 +33,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_y_search_window(const double win){_y_search_win = win;}
   void set_z_search_window(const double win){_z_search_win = win;}
 
-  void set_field_dir(const double rescale)
-  {
-    _fieldDir = -1;
-    if(rescale > 0)
-      _fieldDir = 1;     
-  }
   void set_field(const std::string &field) { _field = field;}
 
   void set_test_windows_printout(const bool test){_test_windows = test ;}
@@ -127,7 +121,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   bool _use_intt_time = false;
 
   std::string _field;
-  int _fieldDir = -1;
 
   int _n_iteration = 0;
   std::string _track_map_name = "TpcTrackSeedContainer";
