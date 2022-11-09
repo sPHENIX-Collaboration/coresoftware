@@ -86,13 +86,12 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   std::cout << "PHTpcCentralMembraneClusterizer::process_event - _min_z_value: " << _min_z_value << std::endl;
   
   //local coord conversion below
-  ActsGeometry *tgeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
+  auto tgeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
   
   if(!tgeometry)
-    {
-      std::cout << PHWHERE << "No Acts geometry on node tree. Can't  continue."
-		<< std::endl;
-    } 
+  {
+    std::cout << PHWHERE << "No Acts geometry on node tree. Can't  continue." << std::endl;
+  } 
   
   if(Verbosity() > 0) std::cout << std::endl << "original size of cluster map: " << _cluster_map->size() << std::endl;  
   
@@ -104,80 +103,70 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   int nTpcClust = 0;
 
   for(const auto& hitsetkey:_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
-    {
-      auto clusRange = _cluster_map->getClusters(hitsetkey);
-      for (auto clusiter = clusRange.first; 
-	   clusiter != clusRange.second; ++clusiter)
-	{
-    
-    ++m_total_clusters;
-    
-    const auto& [cluskey, cluster] = *clusiter;
-    auto glob = tgeometry->getGlobalPosition(cluskey, cluster);
-    std::cout << "PHTpcCentralMembraneClusterizer::process_event - key: " << cluskey << "z: " << glob.z() << std::endl;
-   
-    float x = glob(0);
-    float y = glob(1);
-    float z = glob(2);
-    
-    if(Verbosity() > 0)
-    {
-      unsigned int lyr = TrkrDefs::getLayer(cluskey);
-      unsigned short  side = TpcDefs::getSide(cluskey);
-      std::cout << " z " << z << " side " << side << " layer " << lyr << " Adc " << cluster->getAdc() << " x " << x << " y " << y << std::endl;
-    }
-    
-    if(cluster->getAdc() < _min_adc_value) continue;
-    if( std::abs(z) < _min_z_value) continue;
-
-    ++m_accepted_clusters;
-    
-    i_pair.push_back(-1);
-    energy.push_back(cluster->getAdc());
-    nTpcClust++;
-    pos.push_back(TVector3(x,y,z));
-    layer.push_back((int)(TrkrDefs::getLayer(cluskey)));
-    side.push_back(TpcDefs::getSide(cluskey));
-    
-    if(Verbosity() > 0)
-      std::cout << ":\t" << x << "\t" << y << "\t" << z <<std::endl;
-  }
-    }
-
-  TVector3 delta;
-  float dphi;
-  TVector2 delta2;
-  
-  for (int i=0; i<nTpcClust;  ++i)
   {
-    for (int j=i+1;  j<nTpcClust;  j++)
+    auto clusRange = _cluster_map->getClusters(hitsetkey);
+    for (auto clusiter = clusRange.first; 
+    clusiter != clusRange.second; ++clusiter)
+    {
+      
+      ++m_total_clusters;
+      
+      const auto& [cluskey, cluster] = *clusiter;
+      auto glob = tgeometry->getGlobalPosition(cluskey, cluster);
+      std::cout << "PHTpcCentralMembraneClusterizer::process_event - key: " << cluskey << "z: " << glob.z() << std::endl;
+      
+      float x = glob(0);
+      float y = glob(1);
+      float z = glob(2);
+      
+      if(Verbosity() > 0)
+      {
+        unsigned int lyr = TrkrDefs::getLayer(cluskey);
+        unsigned short  side = TpcDefs::getSide(cluskey);
+        std::cout << " z " << z << " side " << side << " layer " << lyr << " Adc " << cluster->getAdc() << " x " << x << " y " << y << std::endl;
+      }
+      
+      if(cluster->getAdc() < _min_adc_value) continue;
+      if( std::abs(z) < _min_z_value) continue;
+      
+      ++m_accepted_clusters;
+      
+      i_pair.push_back(-1);
+      energy.push_back(cluster->getAdc());
+      nTpcClust++;
+      pos.push_back(TVector3(x,y,z));
+      layer.push_back((int)(TrkrDefs::getLayer(cluskey)));
+      side.push_back(TpcDefs::getSide(cluskey));
+      
+      if(Verbosity() > 0) std::cout << ":\t" << x << "\t" << y << "\t" << z <<std::endl;
+    }
+  }
+
+  if(_histos)
+  {
+    // fill evaluation histograms
+    for (int i=0; i<nTpcClust;  ++i)
+      for (int j=i+1;  j<nTpcClust;  j++)
     { 
       // must match clusters that are on the same side
       if( side[i] != side[j] ) continue;
       
-      //redundant to the 'adjacent row' check:  if (i==j) continue; //can't match yourself.
       if (abs(layer[i]-layer[j])==0)
       {
-        delta=pos[i]-pos[j];
-        dphi=abs(pos[i].DeltaPhi(pos[j]));
-        if(_histos)
-        {
-          hDist->Fill(delta.Mag());
-          hDist2->Fill(dphi);
-          hDistRow->Fill(dphi,layer[i]);
-        }
+        const TVector3 delta=pos[i]-pos[j];
+        const float dphi=abs(pos[i].DeltaPhi(pos[j]));
+        hDist->Fill(delta.Mag());
+        hDist2->Fill(dphi);
+        hDistRow->Fill(dphi,layer[i]);
       }
       
       if (abs(layer[i]-layer[j])==1)
-      {  //match those centers to the known/expected stripe positions
-        
-        delta=pos[i]-pos[j];
-        dphi=abs(pos[i].DeltaPhi(pos[j]));
-        if(_histos)
-        {
-          hDist2Adj->Fill(dphi);
-          hDistRowAdj->Fill(dphi,layer[i]);
-        }
+      {  
+        //match those centers to the known/expected stripe positions
+        const TVector3 delta=pos[i]-pos[j];
+        const float dphi=abs(pos[i].DeltaPhi(pos[j]));
+        hDist2Adj->Fill(dphi);
+        hDistRowAdj->Fill(dphi,layer[i]);
       }
     }
   }
