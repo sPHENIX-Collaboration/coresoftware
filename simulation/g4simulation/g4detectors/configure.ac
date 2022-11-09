@@ -11,7 +11,7 @@ fi
 
 case $CXX in
   clang++)
-    CXXFLAGS="$CXXFLAGS -Wno-c11-extensions -Wno-deprecated-copy -Wno-tautological-overlap-compare"
+    CXXFLAGS="$CXXFLAGS -Wno-c11-extensions -Wno-deprecated-copy -Wno-tautological-overlap-compare -Wno-null-pointer-subtraction -Wno-unknown-warning-option"
   ;;
 esac
 

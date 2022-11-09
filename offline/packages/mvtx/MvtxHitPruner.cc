@@ -36,7 +36,11 @@
 #include <TMatrixTUtils.h>                          // for TMatrixTRow
 #include <TVector3.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/graph/adjacency_list.hpp>
+#pragma GCC diagnostic pop
+
 #include <boost/graph/connected_components.hpp>
 
 #include <array>

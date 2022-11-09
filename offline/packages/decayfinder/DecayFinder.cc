@@ -14,6 +14,7 @@
 #include "DecayFinderContainer_v1.h"     // for DecayFinderContainer_v1
 
 #include <g4main/PHG4TruthInfoContainer.h>
+
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
@@ -24,9 +25,13 @@
 #include <phool/PHNodeIterator.h>        // for PHNodeIterator
 #include <phool/getClass.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>
 #include <HepMC/GenVertex.h>             // for GenVertex::particle_iterator
+#pragma GCC diagnostic pop
+
+#include <HepMC/GenParticle.h>
 #include <HepMC/IteratorRange.h>
 #include <HepMC/SimpleVector.h>
 

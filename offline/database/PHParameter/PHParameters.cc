@@ -20,7 +20,10 @@
 #include <TSystem.h>
 
 #include <boost/foreach.hpp>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/functional/hash.hpp>
+#pragma GCC diagnostic pop
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 // stacktrace gives a shadow warning

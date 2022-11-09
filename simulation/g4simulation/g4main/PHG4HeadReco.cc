@@ -15,7 +15,10 @@
 
 #include <TSystem.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
+#pragma GCC diagnostic pop
 #include <HepMC/HeavyIon.h>  // for HeavyIon
 
 #include <cstdlib>
