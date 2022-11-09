@@ -1,6 +1,10 @@
 #include "Fun4AllMonitoring.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/algorithm/string.hpp>
+#pragma GCC diagnostic pop
+
 #include <boost/tokenizer.hpp>
 
 #include <unistd.h>

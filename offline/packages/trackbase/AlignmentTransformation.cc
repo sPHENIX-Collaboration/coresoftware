@@ -42,11 +42,22 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
  TrkrDefs::hitsetkey hitsetkey = 0;
  float alpha = 0.0, beta = 0.0, gamma = 0.0, dx = 0.0, dy = 0.0, dz = 0.0;
 
- alignmentParamsFile = XploadInterface::instance()->getUrl("TRACKINGALIGNMENT");
- std::cout << "AlignmentTransformation: Reading Alignment Parameters From: " << alignmentParamsFile << std::endl; 
-   
  // load alignment constants file
- std::ifstream datafile(alignmentParamsFile);
+ std::ifstream datafile;
+ datafile.open(alignmentParamsFile);  //  looks for default file name on disk
+ if(datafile.is_open())
+   {
+     std::cout << "AlignmentTransformation: Reading alignment parameters from disk file: "
+	       << alignmentParamsFile << std::endl; 
+   }
+ else
+   { 
+     datafile.clear();
+     // load alignment constants file from database
+     alignmentParamsFile = XploadInterface::instance()->getUrl("TRACKINGALIGNMENT");
+     std::cout << "AlignmentTransformation: Reading alignment parameters from database file: " << alignmentParamsFile << std::endl; 
+     datafile.open(alignmentParamsFile);
+   }
  
  ActsSurfaceMaps surfMaps = m_tGeometry->maps();
  Surface surf;
@@ -164,7 +175,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
    } 
 
  // copy map into geoContext
- m_tGeometry->geometry().geoContext =  transformMap->getMap();
+ m_tGeometry->geometry().geoContext =  transformMap;
 
  // map is created, now we can use the transforms
  alignmentTransformationContainer::use_alignment = true;

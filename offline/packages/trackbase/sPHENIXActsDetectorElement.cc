@@ -16,11 +16,13 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
       unsigned int layer = id.layer(); 
       unsigned int sphlayer = base_layer_map.find(volume)->second + layer / 2 -1;
       unsigned int sensor = id.sensitive() - 1;  // Acts sensor ID starts at 1
-
-      const std::vector<std::vector<Acts::Transform3>>& transformVec 
-	= ctxt.get<std::vector<std::vector<Acts::Transform3>>&>();
-            
+ 
+      const alignmentTransformationContainer* transformContainer 
+	= ctxt.get<alignmentTransformationContainer*>();
+    
+      const auto& transformVec = transformContainer->getMap();
       auto& layerVec = transformVec[sphlayer];    // get the vector of transforms for this layer
+   
       if(layerVec.size() > sensor)
 	{
 	  //std::cout << "sPHENIXActsDetectorElement: return transform:  volume " << volume <<" Acts  layer " << layer << " sensor " << sensor

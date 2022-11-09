@@ -1,8 +1,8 @@
 #ifndef CDBOBJECTS_CDBTTREE_H
 #define CDBOBJECTS_CDBTTREE_H
 
+#include <cstdint>
 #include <map>
-#include <set>
 #include <string>
 
 class TTree;

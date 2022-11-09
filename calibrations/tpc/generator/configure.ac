@@ -15,7 +15,7 @@ fi
 
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wno-unused-parameter"
+  CXXFLAGS="$CXXFLAGS -Wno-unused-parameter -Wno-bitwise-instead-of-logical -Wno-unused-but-set-variable -Wno-unknown-warning-option"
  ;;
 esac
 

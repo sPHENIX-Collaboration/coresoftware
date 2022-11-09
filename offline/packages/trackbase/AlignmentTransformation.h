@@ -104,8 +104,6 @@ void setTPCParams(double tpcDevs[6])
 
  private:
 
-  std::string alignmentParamsFile = "";
-  
   Eigen::Vector3d mvtxAngleDev;
   Eigen::Vector3d mvtxTransDev;
   Eigen::Vector3d inttAngleDev;
@@ -116,6 +114,8 @@ void setTPCParams(double tpcDevs[6])
   Eigen::Vector3d mmTransDev;
 
   std::default_random_engine generator;
+
+  std::string alignmentParamsFile = "./localAlignmentParamsFile.txt";
 
   int localVerbosity = 0;
 
