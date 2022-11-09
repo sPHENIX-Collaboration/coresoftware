@@ -15,7 +15,6 @@
 #include <trackbase/AlignmentTransformation.h>
 #include <trackbase/alignmentTransformationContainer.h>
 
-
 #include <intt/CylinderGeomIntt.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
@@ -125,7 +124,6 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
     m_geomContainerTpc =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  //setPlanarSurfaceDivisions();
 
   // Alignment Transformation declaration of instance - must be here to set initial alignment flag
   AlignmentTransformation alignment_transformation;
@@ -171,7 +169,8 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
 
   alignment_transformation.createMap(topNode);
- 
+  alignment_transformation.misalignmentFactor(m_misalignmentFactor);
+
  // print
   if( Verbosity() )
     {

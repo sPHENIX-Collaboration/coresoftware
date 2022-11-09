@@ -81,6 +81,7 @@ class MakeActsGeometry : public SubsysReco
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
 
+
   void setMvtxDev(double array[6])
   {
     m_mvtxDevs[0] = array[0];
@@ -124,6 +125,12 @@ class MakeActsGeometry : public SubsysReco
     m_mmDevs[5] = array[5];
 
     mmParam = true;
+  }
+
+
+  void misalignmentFactor(const double misalignment)
+  {
+    m_misalignmentFactor = misalignment;
   }
 
   double getSurfStepPhi() {return m_surfStepPhi;}
@@ -208,6 +215,7 @@ class MakeActsGeometry : public SubsysReco
   TGeoManager* m_geoManager = nullptr;
 
   bool m_useField = true;
+  double m_misalignmentFactor = 1.;
 
   /// Acts Context decorators, which may contain e.g. calibration information
   std::vector<std::shared_ptr<ActsExamples::IContextDecorator> > 

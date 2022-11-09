@@ -32,8 +32,7 @@
 
 void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 { 
-
- getNodes(topNode);
+  getNodes(topNode);
 
  // Use construction transforms as a reference for making the map
  if(alignmentTransformationContainer::use_alignment) alignmentTransformationContainer::use_alignment = false;
@@ -298,6 +297,10 @@ int AlignmentTransformation::getNodes(PHCompositeNode* topNode)
   return 0; 
 }
 
+void AlignmentTransformation::misalignmentFactor(const double factor)
+{
+  transformMap->setMisalignmentFactor(factor);
+}
 void AlignmentTransformation::createAlignmentTransformContainer(PHCompositeNode* topNode)
 {
   //​ Get a pointer to the top of the node tree

@@ -26,6 +26,7 @@ class AlignmentTransformation {
 
   void createMap(PHCompositeNode* topNode);
   void createAlignmentTransformContainer(PHCompositeNode* topNode);
+
   void generateRandomPerturbations(Eigen::Vector3d angleDev, Eigen::Vector3d transformDev);
 
   bool perturbMVTX = false;
@@ -101,6 +102,8 @@ void setTPCParams(double tpcDevs[6])
 	std::cout << "perturbMM: "<<perturbMM <<" MM Angle Std Dev: " << mmAngleDev <<"MM Trans Std Dev:"<< mmTransDev<< std::endl;
       }
   }
+
+  void misalignmentFactor(const double factor);
 
  private:
 
