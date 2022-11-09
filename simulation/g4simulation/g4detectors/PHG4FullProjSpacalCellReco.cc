@@ -362,6 +362,7 @@ int PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
     // checking ADC timing integration window cut
     if (hiter->second->get_t(0) > tmax) continue;
     if (hiter->second->get_t(1) < tmin) continue;
+    if (hiter->second->get_t(1) - hiter->second->get_t(0) > 100) continue;
 
     sum_energy_g4hit += hiter->second->get_edep();
 

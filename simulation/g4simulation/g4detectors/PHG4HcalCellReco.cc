@@ -152,6 +152,8 @@ int PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
   {
     if (hiter->second->get_t(0) > tmax) continue;
     if (hiter->second->get_t(1) < tmin) continue;
+    if (hiter->second->get_t(1) - hiter->second->get_t(0) > 100) continue;
+
     short icolumn = hiter->second->get_scint_id();
     int introw = (hiter->second->get_hit_id() >> PHG4HitDefs::hit_idbits);
     if (introw >= ROWDIM || introw < 0)

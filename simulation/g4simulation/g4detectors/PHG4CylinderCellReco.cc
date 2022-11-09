@@ -420,6 +420,8 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         // checking ADC timing integration window cut
         if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
         if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
+	if (hiter->second->get_t(1) - hiter->second->get_t(0) > 100) continue;
+
 
         pair<double, double> etaphi[2];
         double phibin[2];
@@ -623,6 +625,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         // checking ADC timing integration window cut
         if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
         if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
+	if (hiter->second->get_t(1) - hiter->second->get_t(0) > 100) continue;
 
         double xinout[2];
         double yinout[2];
