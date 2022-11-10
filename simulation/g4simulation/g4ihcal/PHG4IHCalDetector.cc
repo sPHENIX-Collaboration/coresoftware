@@ -276,6 +276,7 @@ std::tuple<int, int, int> PHG4IHCalDetector::ExtractLayerTowerId(const unsigned 
   //shift row number down by one so every sector start with a row number that mod4=0
   row--;
   while(row<0) row+=256;
+  while(row>255) row-=256;
   return std::make_tuple(isector, row, column);
 }
 
@@ -416,5 +417,9 @@ int PHG4IHCalDetector::map_layerid(const int layer_id)
   {
     rowid = 255 - layer_id + 61;
   }
+
+  //fix for rotating the detector
+  rowid = 259 - rowid;
+
   return rowid;
 }
