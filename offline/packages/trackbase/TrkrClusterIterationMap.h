@@ -36,11 +36,11 @@ public:
    * @param[in] ckey Cluster key
    * @param[in] tracking iteration
    */
-  virtual void addIteration(TrkrDefs::cluskey ckey, short int iter) = 0;
+  virtual void addIteration(TrkrDefs::cluskey, short int) {}
 
-  virtual short int getIteration(TrkrDefs::cluskey ckey)  = 0;
+  virtual short int getIteration(TrkrDefs::cluskey) { return std::numeric_limits<short int>::max(); }
 
-  virtual unsigned int size() const {return 0;}
+  virtual unsigned int size() const { return 0; }
 
 protected:
   TrkrClusterIterationMap() = default;
