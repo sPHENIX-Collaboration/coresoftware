@@ -15,6 +15,7 @@
 #include <g4vertex/GlobalVertex.h>
 #include <g4vertex/GlobalVertexMap.h>
 
+#include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
@@ -22,20 +23,18 @@
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
-/// Fun4All includes
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-
 #include <g4main/PHG4Particle.h>            // for PHG4Particle
 #include <g4main/PHG4TruthInfoContainer.h>  // for PHG4TruthInfoContainer
-
-#include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
 
 #include <kfparticle_sphenix/KFParticle_Container.h>
 
 // Particle Flow
 #include <particleflowreco/ParticleFlowElement.h>
 #include <particleflowreco/ParticleFlowElementContainer.h>
+
+/// Fun4All includes
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
