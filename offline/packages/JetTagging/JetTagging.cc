@@ -70,8 +70,6 @@
 #include <set>                                              // for set
 #include <string>
 
-using namespace std;
-
 /**
  * JetTagging is a class developed to reconstruct jets containing a D-meson
  * The class can be adapted to tag jets using any kind of particle
@@ -133,7 +131,7 @@ int JetTagging::Init(PHCompositeNode *topNode)
 {
   if (Verbosity() > 5)
   {
-    cout << "Beginning Init in JetTagging" << endl;
+    std::cout << "Beginning Init in JetTagging" << std::endl;
   }
 
   m_outfile = new TFile(m_outfilename.c_str(), "RECREATE");
@@ -177,7 +175,7 @@ int JetTagging::process_event(PHCompositeNode *topNode)
     if (findNode)
     {
       kfContainer = findNode::getClass<KFParticle_Container>(topNode, "reconstructedParticles_KFParticle_Container");
-      //cout << "****************** CONTAINER FOUND with size: " << kfContainer->size() << endl;
+      //std::cout << "****************** CONTAINER FOUND with size: " << kfContainer->size() << std::endl;
     }
   }
 
@@ -234,7 +232,7 @@ int JetTagging::End(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() > 1)
   {
-    cout << "Ending JetTagging analysis package" << endl;
+    std::cout << "Ending JetTagging analysis package" << std::endl;
   }
 
   /// Change to the outfile
@@ -265,7 +263,7 @@ int JetTagging::End(PHCompositeNode * /*topNode*/)
 
   if (Verbosity() > 1)
   {
-    cout << "Finished JetTagging analysis package" << endl;
+    std::cout << "Finished JetTagging analysis package" << std::endl;
   }
 
   return 0;
@@ -279,12 +277,12 @@ void JetTagging::findTaggedJets(PHCompositeNode *topNode, KFParticle *Tag, KFPar
 
   Jet* taggedJet;
 
-  std::map<int, pair<Jet::SRC, int>> fjMap;
+  std::map<int, std::pair<Jet::SRC, int>> fjMap;
 
   fastjet::PseudoJet fjTag(Tag->Px(), Tag->Py(), Tag->Pz(), Tag->E());
   fjTag.set_user_index(0); //index 0 is the tag particle
   particles.push_back(fjTag);
-  fjMap.insert(pair<int, pair<Jet::SRC,int>>(0,std::make_pair(Jet::SRC::VOID,Tag->Id()))); //Maybe we could have a Jet::SRC::HF for HF-tagging?
+  fjMap.insert(std::pair<int, std::pair<Jet::SRC,int>>(0,std::make_pair(Jet::SRC::VOID,Tag->Id()))); //Maybe we could have a Jet::SRC::HF for HF-tagging?
   //int idpart = 1; //index 0 is the tag particle
 
 
@@ -322,7 +320,7 @@ void JetTagging::findTaggedJets(PHCompositeNode *topNode, KFParticle *Tag, KFPar
 /*
   for (Jet::ConstIter citer = taggedJet->begin_comp(); citer != taggedJet->end_comp(); ++citer)
   {
-    cout << citer->first << " -> " << citer->second << endl;
+    std::cout << citer->first << " -> " << citer->second << std::endl;
   }
 */
 
@@ -397,13 +395,13 @@ void JetTagging::addTracks(PHCompositeNode *topNode, std::vector<fastjet::Pseudo
   SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 
   int idpart = particles.size();
-  //cout << "Tracks idpart = " << idpart << endl;
+  //std::cout << "Tracks idpart = " << idpart << std::endl;
 
   if (!trackmap)
   {
-    cout << PHWHERE
+    std::cout << PHWHERE
          << "SvtxTrackMap node is missing, can't collect tracks"
-         << endl;
+         << std::endl;
     return;
   }
 
@@ -447,7 +445,7 @@ void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::Pseu
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
   {
-    cout << "JetTagging::getEmcalClusters - Fatal Error - GlobalVertexMap node is missing. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << endl;
+    std::cout << "JetTagging::getEmcalClusters - Fatal Error - GlobalVertexMap node is missing. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << std::endl;
     assert(vertexmap);  // force quit
 
     return;
@@ -455,7 +453,7 @@ void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::Pseu
 
   if (vertexmap->empty())
   {
-    cout << "JetTagging::getEmcalClusters - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << endl;
+    std::cout << "JetTagging::getEmcalClusters - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << std::endl;
     return;
   }
 
@@ -473,9 +471,9 @@ void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::Pseu
 
     if (!clustersEMC)
     {
-      cout << PHWHERE
+      std::cout << PHWHERE
            << "EMCal cluster node is missing, can't collect EMCal clusters"
-           << endl;
+           << std::endl;
       return;
     }
 
@@ -528,16 +526,16 @@ void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::Pseu
 
     if (!clustersHCALIN)
     {
-      cout << PHWHERE
+      std::cout << PHWHERE
            << "EMCal cluster node is missing, can't collect EMCal clusters"
-           << endl;
+           << std::endl;
       return;
     }
 
     RawClusterContainer::ConstRange begin_end_HCALIN = clustersHCALIN->getClusters();
     RawClusterContainer::ConstIterator clusIter_HCALIN;
 
-    //cout << "idpart before HCALIN: " << idpart << endl;
+    //std::cout << "idpart before HCALIN: " << idpart << std::endl;
 
     /// Loop over the EMCal clusters
     for (clusIter_HCALIN = begin_end_HCALIN.first;
@@ -579,16 +577,16 @@ void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::Pseu
 
     if (!clustersHCALOUT)
     {
-      cout << PHWHERE
+      std::cout << PHWHERE
            << "EMCal cluster node is missing, can't collect EMCal clusters"
-           << endl;
+           << std::endl;
       return;
     }
 
     RawClusterContainer::ConstRange begin_end_HCALOUT = clustersHCALOUT->getClusters();
     RawClusterContainer::ConstIterator clusIter_HCALOUT;
 
-    //cout << "idpart before HCALOUT: " << idpart << endl;
+    //std::cout << "idpart before HCALOUT: " << idpart << std::endl;
 
     /// Loop over the EMCal clusters
     for (clusIter_HCALOUT = begin_end_HCALOUT.first;
@@ -635,7 +633,7 @@ void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::Pseu
 
 
 
-  //cout << "idpart after HCALOUT: " << idpart << endl;
+  //std::cout << "idpart after HCALOUT: " << idpart << std::endl;
 
 
 }
@@ -683,13 +681,13 @@ HepMC::GenParticle* JetTagging::findMCTaggedJets(PHCompositeNode *topNode, KFPar
 
   Jet* mcTaggedJet;
 
-  std::map<int, pair<Jet::SRC, int>> fjMapMC;
+  std::map<int, std::pair<Jet::SRC, int>> fjMapMC;
 
   PHG4Particle *mcDaughters[nDecays];
 
   HepMC::GenParticle *mcTag = findMCTag(topNode, decays, nDecays, mcDaughters);
   if(!mcTag) return nullptr;
-  fjMapMC.insert(pair<int, pair<Jet::SRC,int>>(0,std::make_pair(Jet::SRC::VOID,mcTag->barcode()))); //Maybe we could have a Jet::SRC::HF for HF-tagging?
+  fjMapMC.insert(std::pair<int, std::pair<Jet::SRC,int>>(0,std::make_pair(Jet::SRC::VOID,mcTag->barcode()))); //Maybe we could have a Jet::SRC::HF for HF-tagging?
 
 
   fastjet::PseudoJet fjMCTag(mcTag->momentum().px(), mcTag->momentum().py(), mcTag->momentum().pz(), mcTag->momentum().e());
@@ -702,9 +700,9 @@ HepMC::GenParticle* JetTagging::findMCTaggedJets(PHCompositeNode *topNode, KFPar
   /// If the node was not properly put on the tree, return
   if (!hepmceventmap)
   {
-    cout << PHWHERE
+    std::cout << PHWHERE
          << "HEPMC event map node is missing, can't collected HEPMC truth particles"
-         << endl;
+         << std::endl;
     return 0;
   }
 
@@ -833,9 +831,9 @@ HepMC::GenParticle* JetTagging::findMCTag(PHCompositeNode *topNode, KFParticle *
 
   if (!trackmap)
   {
-    cout << PHWHERE
+    std::cout << PHWHERE
          << "SvtxTrackMap node is missing, can't collect tracks"
-         << endl;
+         << std::endl;
     return 0;
   }
 
@@ -883,9 +881,9 @@ HepMC::GenParticle* JetTagging::getMother(PHCompositeNode *topNode, PHG4Particle
   /// If the node was not properly put on the tree, return
   if (!hepmceventmap)
   {
-    cout << PHWHERE
+    std::cout << PHWHERE
          << "HEPMC event map node is missing, can't collected HEPMC truth particles"
-         << endl;
+         << std::endl;
     return 0;
   }
 
@@ -928,9 +926,9 @@ void JetTagging::findNonRecMC(PHCompositeNode *topNode, std::vector<HepMC::GenPa
   /// If the node was not properly put on the tree, return
   if (!hepmceventmap)
   {
-    cout << PHWHERE
+    std::cout << PHWHERE
          << "HEPMC event map node is missing, can't collected HEPMC truth particles"
-         << endl;
+         << std::endl;
     return;
   }
 
@@ -973,11 +971,11 @@ void JetTagging::findNonRecMC(PHCompositeNode *topNode, std::vector<HepMC::GenPa
         decayIDs.push_back((*it)->barcode());
       }
 
-      std::map<int, pair<Jet::SRC, int>> fjMapMC;
+      std::map<int, std::pair<Jet::SRC, int>> fjMapMC;
 
       std::vector<fastjet::PseudoJet>  particles;
       fastjet::PseudoJet fjMCParticle((*tag)->momentum().px(), (*tag)->momentum().py(), (*tag)->momentum().pz(), (*tag)->momentum().e());
-      fjMapMC.insert(pair<int, pair<Jet::SRC,int>>(0,std::make_pair(Jet::SRC::VOID,(*tag)->barcode()))); //Maybe we could have a Jet::SRC::HF for HF-tagging? Or maybe Jet::SRC::TAG? Using VOID for the tag particle
+      fjMapMC.insert(std::pair<int, std::pair<Jet::SRC,int>>(0,std::make_pair(Jet::SRC::VOID,(*tag)->barcode()))); //Maybe we could have a Jet::SRC::HF for HF-tagging? Or maybe Jet::SRC::TAG? Using VOID for the tag particle
       fjMCParticle.set_user_index(0);
       particles.push_back(fjMCParticle);
 
@@ -1077,9 +1075,9 @@ void JetTagging::doMCLoop(PHCompositeNode *topNode)
   /// If the node was not properly put on the tree, return
   if (!hepmceventmap)
   {
-    cout << PHWHERE
+    std::cout << PHWHERE
          << "HEPMC event map node is missing, can't collected HEPMC truth particles"
-         << endl;
+         << std::endl;
     return;
   }
 
@@ -1107,7 +1105,7 @@ void JetTagging::doMCLoop(PHCompositeNode *topNode)
       HepMC::GenVertex* TagVertex = (*p)->end_vertex();
       for (HepMC::GenVertex::particle_iterator it = TagVertex->particles_begin(HepMC::descendants); it != TagVertex->particles_end(HepMC::descendants); ++it)
       {
-        cout << "daughter PDG: " << (*it)->pdg_id() << "daughter barcode: " << (*it)->barcode() << " px: " << (*it)->momentum().px() << " py: " << (*it)->momentum().py() << " pz: " << (*it)->momentum().pz() << endl;
+        std::cout << "daughter PDG: " << (*it)->pdg_id() << "daughter barcode: " << (*it)->barcode() << " px: " << (*it)->momentum().px() << " py: " << (*it)->momentum().py() << " pz: " << (*it)->momentum().pz() << std::endl;
         continue; //Remove this stable D0
       }
     }
