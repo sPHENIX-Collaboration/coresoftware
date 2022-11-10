@@ -145,7 +145,7 @@ class JetTagging : public SubsysReco
 
   //Jet settings
   void setR(double r) { m_jetr = r; }
-  double getR(double r) { return m_jetr; }
+  double getR(double /*r*/) { return m_jetr; }
   void setJetAlgo(ALGO jetalgo) {
     switch(jetalgo)
     {
@@ -184,7 +184,7 @@ class JetTagging : public SubsysReco
   void setMakeQualityPlots(bool q) { m_qualy_plots = q; }
   bool getMakeQualityPlots() { return m_qualy_plots; }
 
-  void setJetContainerName(std::string n) {m_jetcontainer_name = n;}
+  void setJetContainerName(const std::string &n) {m_jetcontainer_name = n;}
   std::string getJetContainerName() {return m_jetcontainer_name;}
   void setSaveDST(bool s) { m_save_dst = s; }
   bool getSaveDST() { return m_save_dst; }

@@ -241,7 +241,7 @@ int JetTagging::process_event(PHCompositeNode *topNode)
  * End the module and finish any data collection. Clean up any remaining
  * loose ends
  */
-int JetTagging::End(PHCompositeNode *topNode)
+int JetTagging::End(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() > 1)
   {
@@ -699,9 +699,9 @@ HepMC::GenParticle* JetTagging::findMCTaggedJets(PHCompositeNode *topNode, KFPar
   PHG4Particle *mcDaughters[nDecays];
 
   HepMC::GenParticle *mcTag = findMCTag(topNode, decays, nDecays, mcDaughters);
+  if(!mcTag) return nullptr;
   fjMapMC.insert(pair<int, pair<Jet::SRC,int>>(0,std::make_pair(Jet::SRC::VOID,mcTag->barcode()))); //Maybe we could have a Jet::SRC::HF for HF-tagging?
 
-  if(!mcTag) return 0;
 
   fastjet::PseudoJet fjMCTag(mcTag->momentum().px(), mcTag->momentum().py(), mcTag->momentum().pz(), mcTag->momentum().e());
   fjMCTag.set_user_index(0); //index 0 is the tag particle
@@ -1017,10 +1017,10 @@ void JetTagging::findNonRecMC(PHCompositeNode *topNode, std::vector<HepMC::GenPa
         }
         if(isTagDecay) continue;
 
-        fastjet::PseudoJet fjMCParticle((*p)->momentum().px(), (*p)->momentum().py(), (*p)->momentum().pz(), (*p)->momentum().e());
+        fastjet::PseudoJet fjMCParticle2((*p)->momentum().px(), (*p)->momentum().py(), (*p)->momentum().pz(), (*p)->momentum().e());
         fjMapMC.insert(std::pair<int, std::pair<Jet::SRC,int>>(idpart,std::make_pair(Jet::SRC::PARTICLE,(*p)->barcode())));
-        fjMCParticle.set_user_index(idpart);
-        particles.push_back(fjMCParticle);
+        fjMCParticle2.set_user_index(idpart);
+        particles.push_back(fjMCParticle2);
         idpart++;
       }
 

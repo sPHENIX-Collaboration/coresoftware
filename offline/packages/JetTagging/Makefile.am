@@ -10,18 +10,12 @@ AM_LDFLAGS = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
   JetTagging.h
 
-if ! MAKEROOT6
-  ROOT5_DICTS = \
-    JetTagging_Dict.cc
-endif
-
 libjettagging_la_SOURCES = \
-  $(ROOT5_DICTS) \
   JetTagging.cc
 
 libjettagging_la_LDFLAGS = \
@@ -30,9 +24,10 @@ libjettagging_la_LDFLAGS = \
   -lcalo_io \
   -lfun4all \
   -lg4detectors_io \
+  -lg4jets \
+  -lkfparticle_sphenix_io \
+  -lparticleflow_io \
   -lphg4hit \
-  -lg4dst \
-  -lg4eval \
   `fastjet-config --libs`
 
 
