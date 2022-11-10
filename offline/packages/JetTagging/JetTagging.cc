@@ -49,8 +49,11 @@
 #include <fastjet/FunctionOfPseudoJet.hh>
 #include <fastjet/JetDefinition.hh>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
 #include <HepMC/GenVertex.h>
+#pragma GCC diagnostic pop
 
 /// ROOT includes
 #include <TFile.h>
