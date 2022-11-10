@@ -10,7 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -20,6 +20,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
+  ActsTrackFittingAlgorithm.h \
   ActsTrackingGeometry.h \
   ActsGeometry.h \
   AlignmentTransformation.h \
@@ -33,8 +34,10 @@ pkginclude_HEADERS = \
   CMFlashDifferencev1.h \
   CMFlashDifferenceContainer.h \
   CMFlashDifferenceContainerv1.h \
+  Calibrator.h \
   InttDefs.h \
   MvtxDefs.h \
+  ResidualOutlierFinder.h \
   sPHENIXActsDetectorElement.h \
   TpcDefs.h \
   TpcSeedTrackMap.h \
@@ -192,6 +195,7 @@ libtrack_io_la_SOURCES = \
   MvtxDefs.cc \
   TpcDefs.cc \
   TrackFitUtils.cc \
+  TrackFittingAlgorithmFunctionsKalman.cc \
   TrkrTruthTrack.cc \
   TrkrTruthTrackv1.cc \
   TrkrTruthTrackContainer.cc \

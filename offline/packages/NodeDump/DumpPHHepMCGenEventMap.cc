@@ -3,7 +3,10 @@
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
+#pragma GCC diagnostic pop
 
 #include <phool/PHIODataNode.h>
 

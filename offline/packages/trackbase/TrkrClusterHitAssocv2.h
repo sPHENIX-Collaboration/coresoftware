@@ -7,14 +7,14 @@
 #ifndef TRACKBASE_TRKRCLUSTERHITASSOCV2_H
 #define TRACKBASE_TRKRCLUSTERHITASSOCV2_H
 
-#include "TrkrDefs.h"
 #include "TrkrClusterHitAssoc.h"
+#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 /**
  * @brief Class for associating clusters to the hits that went into them
@@ -23,13 +23,12 @@
  */
 class TrkrClusterHitAssocv2 : public TrkrClusterHitAssoc
 {
-  public:
-
+ public:
   TrkrClusterHitAssocv2() = default;
 
   void Reset() override;
 
-  void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
 
   void addAssoc(TrkrDefs::cluskey, unsigned int) override;
 
@@ -39,7 +38,7 @@ class TrkrClusterHitAssocv2 : public TrkrClusterHitAssoc
 
   unsigned int size() const override;
 
-private:
+ private:
   unsigned int max_layer = 57;
   unsigned int max_phisegment = 12;
   unsigned int max_zsegment = 8;
@@ -48,4 +47,4 @@ private:
   ClassDefOverride(TrkrClusterHitAssocv2, 1);
 };
 
-#endif // TRACKBASE_TRKRCLUSTERHITASSOC_H
+#endif  // TRACKBASE_TRKRCLUSTERHITASSOC_H

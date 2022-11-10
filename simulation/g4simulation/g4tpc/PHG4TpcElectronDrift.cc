@@ -324,9 +324,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   //std::cout << "g4hits size " << g4hit->size() << std::endl;
   unsigned int count_g4hits = 0;
-  int count_electrons = 0;
+  //  int count_electrons = 0;
 
-  double ecollectedhits = 0.0;
+  //  double ecollectedhits = 0.0;
   int ncollectedhits = 0;
   double ihit = 0;
   unsigned int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
@@ -370,7 +370,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     // Instead, use a temporary map to accumulate the charge from all drifted electrons, then copy to the node tree later
     double eion = hiter->second->get_eion();
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
-    count_electrons += n_electrons;
+    //    count_electrons += n_electrons;
 
     if (Verbosity() > 100)
       std::cout << "  new hit with t0, " << t0 << " g4hitid " << hiter->first
@@ -584,7 +584,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
                       << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
 
             eg4hit += temp_tpchit->getEnergy();
-            ecollectedhits += temp_tpchit->getEnergy();
+	    //            ecollectedhits += temp_tpchit->getEnergy();
             ncollectedhits++;
           }
 
@@ -677,15 +677,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-/* TpcClusterBuilder PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *padnt, TNtuple *hitnt) */
-/* { */
-/*   return padplane->MapToPadPlane( */
-/*       single_hitsetcontainer.get(), */ 
-/*       temp_hitsetcontainer.get(), */ 
-/*       hittruthassoc, */ 
-/*       x_gem, y_gem, t_gem, side, hiter, padnt, hitnt); */
-/* } */
 
 int PHG4TpcElectronDrift::End(PHCompositeNode * /*topNode*/)
 {

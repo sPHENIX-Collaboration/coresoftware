@@ -4,7 +4,7 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
   -I$(G4_MAIN)/include \
-  -I`root-config --incdir`
+  -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = \
    libphfield_io.la \

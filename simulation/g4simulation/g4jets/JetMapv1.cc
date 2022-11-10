@@ -12,18 +12,18 @@
 #include <utility>   // for pair, make_pair
 #include <vector>
 
-JetMapv1::JetMapv1(const JetMap* jets)
-  : _algo(jets->get_algo())
-  , _par(jets->get_par())
+JetMapv1::JetMapv1(const JetMap &jets)
+  : _algo(jets.get_algo())
+  , _par(jets.get_par())
 {
-  for (ConstSrcIter iter = jets->begin_src();
-       iter != jets->end_src();
+  for (ConstSrcIter iter = jets.begin_src();
+       iter != jets.end_src();
        ++iter)
   {
     _src.insert(*iter);
   }
 
-  for (auto iter : *jets)
+  for (auto iter : jets)
   {
     Jet* jet = dynamic_cast<Jet*>((iter.second)->CloneMe());
     assert(jet);
@@ -31,7 +31,7 @@ JetMapv1::JetMapv1(const JetMap* jets)
   }
 }
 
-JetMapv1& JetMapv1::operator=(const JetMapv1& jets)
+JetMapv1& JetMapv1::operator=(const JetMap& jets)
 {
   Reset();
 
@@ -71,12 +71,6 @@ void JetMapv1::Reset()
     delete _map.begin()->second;
     _map.erase(_map.begin());
   }
-}
-
-PHObject* JetMapv1::CloneMe() const
-{
-  JetMap* map = new JetMapv1(*this);
-  return map;
 }
 
 void JetMapv1::identify(std::ostream& os) const

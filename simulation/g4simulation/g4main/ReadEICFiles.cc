@@ -13,9 +13,13 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>  // for GenParticle
 #include <HepMC/GenVertex.h>
+#pragma GCC diagnostic pop
+
+#include <HepMC/GenParticle.h>  // for GenParticle
 #include <HepMC/PdfInfo.h>       // for PdfInfo
 #include <HepMC/SimpleVector.h>  // for FourVector
 #include <HepMC/Units.h>         // for GEV, MM

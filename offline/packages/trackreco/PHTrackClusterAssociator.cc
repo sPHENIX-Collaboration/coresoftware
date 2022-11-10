@@ -94,7 +94,7 @@ int PHTrackClusterAssociator::process_event(PHCompositeNode* topNode)
 
   if (Verbosity() > 3)
   {
-    for (const auto [track, clustervec] : *m_trackClusterMap)
+    for (const auto &[track, clustervec] : *m_trackClusterMap)
     {
       track->identify();
       std::cout << " has clusters associated to it : " << std::endl;

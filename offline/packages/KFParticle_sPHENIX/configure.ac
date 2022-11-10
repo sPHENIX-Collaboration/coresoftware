@@ -13,7 +13,7 @@ dnl KFParticle KFParticleDatabase.h includes Vc/Vc which collides with
 dnl clangs inbuild Vc by redefining a macro
 case $CXX in
   clang++)
-   CXXFLAGS="$CXXFLAGS -Wno-macro-redefined -Wno-unused-parameter -Wno-deprecated-copy"
+   CXXFLAGS="$CXXFLAGS -Wno-macro-redefined -Wno-unused-parameter -Wno-deprecated-copy -Wno-bitwise-instead-of-logical -Wno-null-pointer-subtraction -Wno-unknown-warning-option"
   ;;
 esac
 

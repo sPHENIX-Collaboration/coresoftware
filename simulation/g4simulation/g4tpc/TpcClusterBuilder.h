@@ -4,6 +4,7 @@
 #include <phool/PHObject.h>
 #include <trackbase/TrkrDefs.h>
 #include <map>
+#include <climits>
 
 class TrkrCluster;
 class PHG4TpcCylinderGeom;
@@ -19,16 +20,19 @@ class TpcClusterBuilder
   using MapHitsetkeyUInt   = std::map<TrkrDefs::hitsetkey, unsigned int>;
   using PairCluskeyCluster = std::pair<TrkrDefs::cluskey,TrkrCluster*>;
   public:
-    PHG4TpcCylinderGeom *layerGeom ; // unique to the layer
-    short  layer;
-    unsigned int side;
-    int    neff_electrons ;
-    double phi_integral   ;
-    double time_integral  ;
-    int    phi_bin_lo     ;
-    int    phi_bin_hi     ;
-    int    time_bin_lo    ;
-    int    time_bin_hi    ;
+    PHG4TpcCylinderGeom *layerGeom { nullptr }; // unique to the layer
+    short  layer          {  SHRT_MAX };
+    unsigned int side     { 0       };
+    int    neff_electrons { 0       };
+    double phi_integral   { 0.      };
+    double time_integral  { 0.      };
+    int    phi_bin_lo     { INT_MAX };
+    int    phi_bin_hi     { INT_MIN };
+    int    time_bin_lo    { INT_MAX };
+    int    time_bin_hi    { INT_MIN };
+    int    nphibins       { 0       };
+    bool   hasPhiBins     { false   };
+    bool   hasTimeBins    { false   };
 
     TpcClusterBuilder( short _layer,  unsigned int _side, 
         int _neff_electrons, double _phi_integral, 
@@ -45,14 +49,16 @@ class TpcClusterBuilder
       , time_bin_lo    { _time_bin_lo    }
       , time_bin_hi    { _time_bin_hi    }
     {};
-    TpcClusterBuilder() :
-      layerGeom {nullptr}, layer {0}, side {0}, neff_electrons {0}, 
-      phi_integral {0.}, time_integral {0.},
-      phi_bin_lo {0}, phi_bin_hi {0}, time_bin_lo {0}, time_bin_hi {0}
-    {};
-
+    TpcClusterBuilder() {};
+      /* layerGeom {nullptr}, layer {0}, side {0}, neff_electrons {0}, */ 
+      /* phi_integral {0.}, time_integral {0.}, */
+      /* phi_bin_lo {0}, phi_bin_hi {0}, time_bin_lo {0}, time_bin_hi {0}, nphibins{0} */
+    /* {}; */
 
     TpcClusterBuilder& operator+=(const TpcClusterBuilder& rhs);
+    /* void fillBinsLowHigh (int& bin_lo, int&bin_hi, std::vector<int> bins); */
+    void fillPhiBins  (const std::vector<int>& bins);
+    void fillTimeBins (const std::vector<int>& bins);
     void reset();
     bool has_data() const;
     PairCluskeyCluster build(MapHitsetkeyUInt& cluster_cnt) const;

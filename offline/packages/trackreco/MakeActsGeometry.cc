@@ -15,7 +15,6 @@
 #include <trackbase/AlignmentTransformation.h>
 #include <trackbase/alignmentTransformationContainer.h>
 
-
 #include <intt/CylinderGeomIntt.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
@@ -59,7 +58,12 @@
 #include <ActsExamples/Framework/IContextDecorator.hpp>
 #include <ActsExamples/Framework/WhiteBoard.hpp>
 #include <ActsExamples/Geometry/CommonGeometry.hpp>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <ActsExamples/Options/CommonOptions.hpp>
+#pragma GCC diagnostic pop
+
 #include <ActsExamples/Utilities/Options.hpp>
 #include <ActsExamples/MagneticField/MagneticFieldOptions.hpp>
 
@@ -120,16 +124,20 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
     m_geomContainerTpc =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  //setPlanarSurfaceDivisions();
 
   // Alignment Transformation declaration of instance - must be here to set initial alignment flag
   AlignmentTransformation alignment_transformation;
   alignment_transformation.createAlignmentTransformContainer(topNode);
 
+  //set parameter for sampling probability distribution
+  if(mvtxParam){alignment_transformation.setMVTXParams(m_mvtxDevs);}
+  if(inttParam){alignment_transformation.setINTTParams(m_inttDevs);}
+  if(tpcParam){alignment_transformation.setTPCParams(m_tpcDevs);}
+  if(mmParam){alignment_transformation.setMMParams(m_mmDevs);}
+
   if(buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  std::cout << " Make trackingGeometry" << std::endl;
   /// Set the actsGeometry struct to be put on the node tree
   ActsTrackingGeometry trackingGeometry;
   trackingGeometry.tGeometry = m_tGeometry;
@@ -140,7 +148,6 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   trackingGeometry.tpcSurfStepPhi = m_surfStepPhi;
   trackingGeometry.tpcSurfStepZ = m_surfStepZ;
 
-  std::cout << " Fill surface maps" << std::endl;
   // fill ActsSurfaceMap content
   ActsSurfaceMaps surfMaps;
   surfMaps.m_siliconSurfaceMap = m_clusterSurfaceMapSilicon;
@@ -156,24 +163,23 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   // fill Micromegas volume ids
   for( const auto& [hitsetid, surface]:m_clusterSurfaceMapMmEdit )
     { surfMaps.m_micromegasVolumeIds.insert( surface->geometryId().volume() ); } 
-
-  std::cout << " setting geometry" << std::endl;  
+ 
   m_actsGeometry->setGeometry(trackingGeometry);
   m_actsGeometry->setSurfMaps(surfMaps);
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
 
-  std::cout << " creating alignment transform map" << std::endl;
   alignment_transformation.createMap(topNode);
- 
+  alignment_transformation.misalignmentFactor(m_misalignmentFactor);
+
  // print
-  //  if( Verbosity() )
-  {
-    for( const auto& id:surfMaps.m_tpcVolumeIds )
-    { std::cout << "MakeActsGeometry::InitRun - TPC volume id: " << id << std::endl; }
-  
-    for( const auto& id:surfMaps.m_micromegasVolumeIds )
-    { std::cout << "MakeActsGeometry::InitRun - Micromegas volume id: " << id << std::endl; }
-  }
+  if( Verbosity() )
+    {
+      for( const auto& id:surfMaps.m_tpcVolumeIds )
+	{ std::cout << "MakeActsGeometry::InitRun - TPC volume id: " << id << std::endl; }
+      
+      for( const auto& id:surfMaps.m_micromegasVolumeIds )
+	{ std::cout << "MakeActsGeometry::InitRun - Micromegas volume id: " << id << std::endl; }
+    }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }

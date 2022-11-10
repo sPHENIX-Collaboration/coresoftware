@@ -4,50 +4,55 @@
 #include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
-#include <vector>
+
 #include <climits>
 #include <cmath>
-
-/* class VtxPoint; */
+#include <vector>
 
 class TrkrTruthTrack : public PHObject
 {
  public:
-
   //! dtor
   ~TrkrTruthTrack() override = default;
-  TrkrTruthTrack() {};
+  TrkrTruthTrack(){};
 
-  virtual unsigned int getTrackid () const { return UINT_MAX; };
+  virtual unsigned int getTrackid() const { return UINT_MAX; };
 
-  virtual float getX0()             const { return NAN; };
-  virtual float getY0()             const { return NAN; };
-  virtual float getZ0()             const { return NAN; };
+  virtual float getX0() const { return NAN; };
+  virtual float getY0() const { return NAN; };
+  virtual float getZ0() const { return NAN; };
 
   virtual float getPseudoRapidity() const { return NAN; };
-  virtual float getPt()             const { return NAN; };
-  virtual float getPhi()            const { return NAN; };
+  virtual float getPt() const { return NAN; };
+  virtual float getPhi() const { return NAN; };
 
   virtual std::vector<TrkrDefs::cluskey>& getClusters();
-  virtual void addCluster(TrkrDefs::cluskey) {};
-  //std::map<unsigned int /*track id*/, std::vector<TrkrDefs::cluskey>
+  virtual void addCluster(TrkrDefs::cluskey){};
+  // std::map<unsigned int /*track id*/, std::vector<TrkrDefs::cluskey>
 
-  virtual void setTrackid(unsigned int) {};
-  virtual void setX0(float) {};
-  virtual void setY0(float) {};
-  virtual void setZ0(float) {};
+  virtual void setTrackid(unsigned int){};
+  virtual void setX0(float){};
+  virtual void setY0(float){};
+  virtual void setZ0(float){};
 
-  virtual void setPseudoRapity(float) {};
-  virtual void setPt(float)  {};
-  virtual void setPhi(float) {};
+  virtual void setPseudoRapity(float){};
+  virtual void setPt(float){};
+  virtual void setPhi(float){};
 
-  struct Comp { 
+  struct Comp
+  {
     bool operator()(const unsigned int lhs, const TrkrTruthTrack* rhs) const
-    {return lhs < rhs->getTrackid();}
+    {
+      return lhs < rhs->getTrackid();
+    }
     bool operator()(const TrkrTruthTrack* lhs, const unsigned int& rhs) const
-    {return lhs->getTrackid() < rhs;}
+    {
+      return lhs->getTrackid() < rhs;
+    }
     bool operator()(const TrkrTruthTrack* lhs, const TrkrTruthTrack* rhs) const
-    {return lhs->getTrackid() < rhs->getTrackid();}
+    {
+      return lhs->getTrackid() < rhs->getTrackid();
+    }
   };
 
   // PHObject virtual overloads
@@ -60,5 +65,4 @@ class TrkrTruthTrack : public PHObject
   ClassDefOverride(TrkrTruthTrack, 1)
 };
 
-#endif // G4TPC_TruthTrack_h
-
+#endif  // TRACKBASE_TRKRTRUTHTRACK_H
