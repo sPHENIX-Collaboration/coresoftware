@@ -306,6 +306,13 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
     std::cout << "DecayFinder: Missing node PHHepMCGenEventMap" << std::endl;
   }
 
+  if (!m_truthinfo && !m_geneventmap)
+  {
+    std::cout << "You have neither the PHHepMCGenEventMap or G4TruthInfo nodes" << std::endl;
+    std::cout << "DecayFinder will crash, exiting now!" << std::endl;
+    exit(1);
+  }
+
   if (m_truthinfo && !m_geneventmap) //This should use the truth info container if we have no HepMC record
   {
     if (Verbosity() >= VERBOSITY_SOME)
