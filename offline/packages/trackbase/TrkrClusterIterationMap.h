@@ -12,6 +12,7 @@
 #include <phool/PHObject.h>
 
 #include <climits>
+#include <limits>
 #include <iostream>  // for cout, ostream
 #include <map>
 #include <utility>  // for pair
