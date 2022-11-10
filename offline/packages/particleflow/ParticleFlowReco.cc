@@ -75,10 +75,6 @@ ParticleFlowReco::~ParticleFlowReco()
 //____________________________________________________________________________..
 int ParticleFlowReco::Init(PHCompositeNode */*topNode*/)
 {
-  file = new TFile("pflowfieldprojxyz.root","recreate");
-  emcaldr = new TH1F("emcaldr",";#DeltaR",100,0,2);
-  hcaldr = new TH1F("hcaldr",";#DeltaR",100,0,2);
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -383,7 +379,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     for (unsigned int em = 0 ; em < _pflow_EM_E.size() ; em++) {
 
       float dR = calculate_dR( _pflow_TRK_EMproj_eta[ trk ] , _pflow_EM_eta[ em ] , _pflow_TRK_EMproj_phi[ trk ] , _pflow_EM_phi[ em ] );
-      emcaldr->Fill(dR);
+    
       if ( dR > 0.2 ) continue;
    
       bool has_overlap = false;
@@ -462,7 +458,7 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     for (unsigned int had = 0 ; had < _pflow_HAD_E.size() ; had++) {
 
       float dR = calculate_dR( _pflow_TRK_HADproj_eta[ trk ] , _pflow_HAD_eta[ had ] , _pflow_TRK_HADproj_phi[ trk ] , _pflow_HAD_phi[ had ] );
-      hcaldr->Fill(dR);
+      
       if ( dR > 0.5 ) continue;
     
       bool has_overlap = false;
@@ -1142,10 +1138,6 @@ int ParticleFlowReco::EndRun(const int runnumber)
 //____________________________________________________________________________..
 int ParticleFlowReco::End(PHCompositeNode */*topNode*/)
 {
-  file->cd();
-  emcaldr->Write();
-  hcaldr->Write();
-  file->Close();
   if (Verbosity() > 0)
   {
   std::cout << "ParticleFlowReco::End(PHCompositeNode *topNode) This is the End..." << std::endl;
