@@ -4,81 +4,70 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerGeom.h>
-#include <calobase/RawTowerGeomContainer.h>
-#include <calotrigger/CaloTriggerInfo.h>
 
-#include <phool/phool.h>
 
 /// Jet includes
+#include <g4jets/Jet.h>
+#include <g4jets/JetMapv1.h>
 #include <g4jets/Jetv1.h>
-#include <g4jets/JetMap.h>
+//#include <jetbackground/FastJetAlgoSub.h>
 
 /// Tracking includes
 #include <g4vertex/GlobalVertex.h>
 #include <g4vertex/GlobalVertexMap.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-
-/// Truth evaluation includes
-#include <g4eval/JetEvalStack.h>
-#include <g4eval/SvtxEvalStack.h>
 
 /// HEPMC truth includes
-#include <HepMC/GenEvent.h>
-#include <HepMC/GenVertex.h>
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
 /// Fun4All includes
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
 
-#include <KFParticle.h>
-#include <kfparticle_sphenix/KFParticle_Container.h>
-
-#include <g4jets/FastJetAlgo.h>
-#include <g4jets/Jet.h>
-#include <g4jets/Jetv1.h>
-//#include <jetbackground/FastJetAlgoSub.h>
-
-#include <fastjet/ClusterSequence.hh>
-#include <fastjet/FunctionOfPseudoJet.hh>
-#include <fastjet/JetDefinition.hh>
-#include <fastjet/PseudoJet.hh>
 
 #include <g4main/PHG4Particle.h>            // for PHG4Particle
 #include <g4main/PHG4TruthInfoContainer.h>  // for PHG4TruthInfoContainer
-#include <g4main/PHG4VtxPoint.h>            // for PHG4VtxPoint
+
 #include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
-#include <kfparticle_sphenix/KFParticle_truthAndDetTools.h>
+
+#include <kfparticle_sphenix/KFParticle_Container.h>
 
 //Particle Flow
 #include <particleflowreco/ParticleFlowElement.h>
 #include <particleflowreco/ParticleFlowElementContainer.h>
 
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
+#include <KFParticle.h>
+
+#include <fastjet/ClusterSequence.hh>
+#include <fastjet/FunctionOfPseudoJet.hh>
+#include <fastjet/JetDefinition.hh>
+
+#include <HepMC/GenEvent.h>
+#include <HepMC/GenVertex.h>
+
 /// ROOT includes
 #include <TFile.h>
 #include <TH1.h>
-#include <TH1I.h>
-#include <TMath.h>
-#include <TNtuple.h>
 #include <TTree.h>
 #include <TDatabasePDG.h>
 #include <TParticlePDG.h>
 
 /// C++ includes
+#include <algorithm>                                        // for max
+#include <cstddef>                                         // for size_t
 #include <cassert>
-#include <sstream>
+#include <cmath>
+#include <iostream>                                         // for operator<<
+#include <iterator>                                         // for reverse_i...
+#include <memory>                                           // for allocator...
+#include <set>                                              // for set
 #include <string>
 
 using namespace std;
@@ -199,14 +188,14 @@ int JetTagging::process_event(PHCompositeNode *topNode)
   KFParticle *TagDaughters[nDaughters];
 
   std::vector<HepMC::GenParticle*> mcTags;
-  HepMC::GenParticle *mcTag = 0;
+  HepMC::GenParticle *mcTag = nullptr;
 
   m_jet_id = 0;
 
   for(unsigned int i = 0; i < kfContainer->size(); i++)
   {
     TagCand = kfContainer->get(i);
-    if(TMath::Abs(TagCand->GetPDG()) == m_tag_pdg)
+    if(std::abs(TagCand->GetPDG()) == m_tag_pdg)
     {
       m_eventcount_h->Fill(1);
 
@@ -669,9 +658,9 @@ bool JetTagging::isAcceptableHCalCluster(CLHEP::Hep3Vector &E_vec_cluster)
 
 bool JetTagging::isSameParticle(SvtxTrack *track, KFParticle *particle)
 {
-  if(TMath::Abs(track->get_px()-particle->Px()) < 0.00001
-     && TMath::Abs(track->get_py()-particle->Py()) < 0.00001
-     && TMath::Abs(track->get_pz()-particle->Pz()) < 0.00001) return true;
+  if(std::abs(track->get_px()-particle->Px()) < 0.00001
+     && std::abs(track->get_py()-particle->Py()) < 0.00001
+     && std::abs(track->get_pz()-particle->Pz()) < 0.00001) return true;
 
   return false;
 }
@@ -736,7 +725,7 @@ HepMC::GenParticle* JetTagging::findMCTaggedJets(PHCompositeNode *topNode, KFPar
   {
     if(((*p)->momentum().eta() < m_track_mineta) || ((*p)->momentum().eta() > m_track_maxeta)) continue; //Maybe make it depend on charge? (Track or cluster)
     partPDG = database->GetParticle((*p)->pdg_id());
-    double hepmcPartPt = TMath::Sqrt(((*p)->momentum().px()*(*p)->momentum().px()) + ((*p)->momentum().py()*(*p)->momentum().py()));
+    double hepmcPartPt = std::sqrt(((*p)->momentum().px()*(*p)->momentum().px()) + ((*p)->momentum().py()*(*p)->momentum().py()));
     if(partPDG->Charge() == 0)
     {
 
@@ -914,7 +903,7 @@ HepMC::GenParticle* JetTagging::getMother(PHCompositeNode *topNode, PHG4Particle
   HepMC::GenVertex* TagVertex = mcDaughter->production_vertex();
   for (HepMC::GenVertex::particle_iterator it = TagVertex->particles_begin(HepMC::ancestors); it != TagVertex->particles_end(HepMC::ancestors); ++it)
   {
-    if(TMath::Abs((*it)->pdg_id()) == m_tag_pdg) return (*it);
+    if(std::abs((*it)->pdg_id()) == m_tag_pdg) return (*it);
   }
 
   return 0;
@@ -966,7 +955,7 @@ void JetTagging::findNonRecMC(PHCompositeNode *topNode, std::vector<HepMC::GenPa
     if(((*tag)->momentum().eta() < m_track_mineta) || ((*tag)->momentum().eta() > m_track_maxeta)) continue;
 
 
-    if(TMath::Abs((*tag)->pdg_id()) == m_tag_pdg)
+    if(std::abs((*tag)->pdg_id()) == m_tag_pdg)
     {
       bool isRec = false;
       for(auto t : mcTagsWithRec)
@@ -1000,7 +989,7 @@ void JetTagging::findNonRecMC(PHCompositeNode *topNode, std::vector<HepMC::GenPa
         if((*p)->status()>1) continue;
 
         partPDG = database->GetParticle((*p)->pdg_id());
-        double hepmcPartPt = TMath::Sqrt(((*p)->momentum().px()*(*p)->momentum().px()) + ((*p)->momentum().py()*(*p)->momentum().py()));
+        double hepmcPartPt = std::sqrt(((*p)->momentum().px()*(*p)->momentum().px()) + ((*p)->momentum().py()*(*p)->momentum().py()));
 
         if(partPDG->Charge() != 0)
         {
@@ -1110,9 +1099,9 @@ void JetTagging::doMCLoop(PHCompositeNode *topNode)
     if(((*p)->momentum().eta() < m_track_mineta) || ((*p)->momentum().eta() > m_track_maxeta)) continue;
 
     partPDG = database->GetParticle((*p)->pdg_id());
-    double hepmcPartPt = TMath::Sqrt(((*p)->momentum().px()*(*p)->momentum().px()) + ((*p)->momentum().py()*(*p)->momentum().py()));
+    double hepmcPartPt = std::sqrt(((*p)->momentum().px()*(*p)->momentum().px()) + ((*p)->momentum().py()*(*p)->momentum().py()));
 
-    if(TMath::Abs((*p)->pdg_id()) == m_tag_pdg)
+    if(std::abs((*p)->pdg_id()) == m_tag_pdg)
     {
       m_gen_tagpart_pt->Fill(hepmcPartPt); //For now, D0 is stable. This should change
       HepMC::GenVertex* TagVertex = (*p)->end_vertex();

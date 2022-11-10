@@ -5,28 +5,18 @@
 #define HomogeneousField
 
 
+#include <g4jets/Jetv1.h>
+
 #include <fun4all/SubsysReco.h>
 
-#include <fastjet/ClusterSequence.hh>
-#include <fastjet/FunctionOfPseudoJet.hh>
 #include <fastjet/JetDefinition.hh>
-#include <fastjet/PseudoJet.hh>
 
-#include <calobase/RawCluster.h>
-#include <calobase/RawClusterContainer.h>
-#include <calobase/RawClusterUtility.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerGeom.h>
-#include <calobase/RawTowerGeomContainer.h>
-#include <calotrigger/CaloTriggerInfo.h>
-
-#include <HepMC/GenEvent.h>
 
 #include <KFParticle.h>
-#include <g4jets/Jetv1.h>
-#include <g4jets/JetMapv1.h>
 
+#include <map>                       // for map
+#include <string>                    // for string
+#include <utility>                   // for pair
 #include <vector>
 
 /// Class declarations for use in the analysis module
@@ -35,20 +25,16 @@ class PHCompositeNode;
 class TFile;
 class TTree;
 class TH1;
-class TH1I;
 class PHCompositeNode;
-class RawClusterContainer;
-class RawCluster;
-class SvtxTrackMap;
-class GlobalVertex;
-class PHHepMCGenEventMap;
-class JetRecoEval;
-class SvtxTrackEval;
-class PHG4TruthInfoContainer;
-class PHHepMCGenEvent;
 class SvtxTrack;
 class PHG4Particle;
 class ParticleFlowElement;
+class JetMapv1;
+class KFParticle;
+
+namespace CLHEP { class Hep3Vector; }
+namespace HepMC { class GenParticle; }
+namespace fastjet { class PseudoJet; }
 
 /// Definition of this analysis module class
 class JetTagging : public SubsysReco
