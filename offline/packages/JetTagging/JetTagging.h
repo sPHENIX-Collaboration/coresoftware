@@ -220,21 +220,21 @@ class JetTagging : public SubsysReco
   fastjet::JetAlgorithm m_jetalgo;
   fastjet::RecombinationScheme m_recomb_scheme;
 
-  JetMapv1* m_taggedJetMap;
-  JetMapv1* m_truth_taggedJetMap;
+  JetMapv1* m_taggedJetMap= nullptr;
+  JetMapv1* m_truth_taggedJetMap= nullptr;
 
   /// TFile to hold the following TTrees and histograms
-  TFile *m_outfile;
-  TTree *m_taggedjettree;
-  TH1 *m_eventcount_h;
-  TH1 *m_rec_tagpart_pt;
-  TH1 *m_gen_withrec_tagpart_pt; //Distribution of generated particles with a match to a rec particle
-  TH1 *m_gen_tagpart_pt;
-  TH1 *m_rec_tracks_pt;
-  TH1 *m_gen_tracks_pt;
-  TH1 *m_rec_emcal_clusters_pt;
-  TH1 *m_rec_hcalin_clusters_pt;
-  TH1 *m_rec_hcalout_clusters_pt;
+  TFile *m_outfile= nullptr;
+  TTree *m_taggedjettree= nullptr;
+  TH1 *m_eventcount_h= nullptr;
+  TH1 *m_rec_tagpart_pt= nullptr;
+  TH1 *m_gen_withrec_tagpart_pt= nullptr; //Distribution of generated particles with a match to a rec particle
+  TH1 *m_gen_tagpart_pt= nullptr;
+  TH1 *m_rec_tracks_pt= nullptr;
+  TH1 *m_gen_tracks_pt= nullptr;
+  TH1 *m_rec_emcal_clusters_pt= nullptr;
+  TH1 *m_rec_hcalin_clusters_pt= nullptr;
+  TH1 *m_rec_hcalout_clusters_pt= nullptr;
 
   int m_tag_pdg;
   bool m_qualy_plots;
@@ -254,7 +254,7 @@ class JetTagging : public SubsysReco
   HepMC::GenParticle* findMCTag(PHCompositeNode *topNode, KFParticle *decays[], int nDecays, PHG4Particle *mcDaughters[]);
   HepMC::GenParticle* getMother(PHCompositeNode *topNode, PHG4Particle *g4daughter);
   //bool hasMCTagParent(PHG4Particle *g4particle, PHG4TruthInfoContainer *truthinfo, int &parent_id);
-  void findNonRecMC(PHCompositeNode *topNode, std::vector<HepMC::GenParticle*> mcTags);
+  void findNonRecMC(PHCompositeNode *topNode, const std::vector<HepMC::GenParticle*>& mcTags);
   void doMCLoop(PHCompositeNode *topNode);
 
   bool isAcceptableParticleFlow(ParticleFlowElement* pfPart);
