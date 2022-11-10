@@ -39,7 +39,7 @@ class DecayFinder : public SubsysReco
 
   bool findDecay(PHCompositeNode *topNode);
 
-  bool findParticle(std::string particle);
+  bool findParticle(const std::string particle);
 
   void searchHepMCRecord(HepMC::GenParticle* particle, std::vector<int> decayProducts, 
                          bool &breakLoop, bool &hasPhoton, bool &hasPi0, bool &failedPT, bool &failedETA, 
@@ -59,9 +59,9 @@ class DecayFinder : public SubsysReco
 
   void multiplyVectorByScalarAndSort(std::vector<int> &v, int k);
 
-  int get_pdgcode(std::string name);
+  int get_pdgcode(const std::string name);
 
-  int get_charge(std::string name);
+  int get_charge(const std::string name);
 
   bool isInRange(float min, float value, float max);
 
