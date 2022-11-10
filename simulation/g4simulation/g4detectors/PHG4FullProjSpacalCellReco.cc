@@ -52,7 +52,6 @@
 PHG4FullProjSpacalCellReco::PHG4FullProjSpacalCellReco(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-  , light_collection_model()
 {
   InitializeParameters();
 }
@@ -307,7 +306,7 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
   PutOnParNode(ParDetNode, cellgeonodename);
   tmin = get_double_param("tmin");
   tmax = get_double_param("tmax");
-  m_DeltaT = get_double_param("tdelta_t");
+  m_DeltaT = get_double_param("delta_t");
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
