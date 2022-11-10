@@ -923,8 +923,8 @@ void TrackingEvaluator_hp::print_clusters() const
 void TrackingEvaluator_hp::print_tracks() const
 {
   if( !m_track_map ) return;
-  for(const auto& trackpair:*m_track_map)
-  { print_track( trackpair.second ); }
+  for(const auto& [id,track]:*m_track_map)
+  { print_track( track ); }
 }
 
 //_____________________________________________________________________
@@ -1036,7 +1036,7 @@ void TrackingEvaluator_hp::print_track(SvtxTrack* track) const
   std::cout << "TrackingEvaluator_hp::print_track - id: " << track->get_id() << std::endl;
   std::cout << "TrackingEvaluator_hp::print_track - position: (" << track->get_x() << ", " << track->get_y() << ", " << track->get_z() << ")" << std::endl;
   std::cout << "TrackingEvaluator_hp::print_track - momentum: (" << track->get_px() << ", " << track->get_py() << ", " << track->get_pz() << ")" << std::endl;
-  std::cout << "TrackingEvaluator_hp::print_track - clusters: " << track->size_cluster_keys() << ", states: " << track->size_states() << std::endl;
+  std::cout << "TrackingEvaluator_hp::print_track - clusters: " << get_cluster_keys( track ).size() << ", states: " << track->size_states() << std::endl;
 
   // loop over cluster keys
   if( false && m_cluster_map )
