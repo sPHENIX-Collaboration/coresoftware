@@ -24,13 +24,13 @@ class TrackingIterationCounter : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-  void iteration(const int iter) { m_iteration = iter; }
+  void iteration(const short int iter) { m_iteration = iter; }
 
  private:
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
   void addClustersToIterationMap(TrackSeed *seed);
-  int m_iteration = 1;
+  short int m_iteration = 1;
 
   SvtxTrackMap *m_trackMap = nullptr;
   TrkrClusterIterationMap *m_iterMap = nullptr;

@@ -11,10 +11,10 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
-#include <map>
-#include <utility>           // for pair
 #include <climits>
+#include <iostream>  // for cout, ostream
+#include <map>
+#include <utility>  // for pair
 
 /**
  * @brief Base class for associating clusters to iterations they were used in
@@ -23,12 +23,10 @@
  */
 class TrkrClusterIterationMap : public PHObject
 {
-public:
-
+ public:
   using Map = std::map<TrkrDefs::cluskey, short int>;
-  //  using ConstIterator = Map::const_iterator;
-  // using ConstRange = std::pair<Map::const_iterator, Map::const_iterator>;
-  
+  using ConstIter = Map::const_iterator;
+
   void Reset() override;
 
   /**
@@ -42,12 +40,14 @@ public:
 
   virtual unsigned int size() const { return 0; }
 
-protected:
+  virtual ConstIter begin() const;
+  virtual ConstIter end() const;
+
+ protected:
   TrkrClusterIterationMap() = default;
 
-private:
-
+ private:
   ClassDefOverride(TrkrClusterIterationMap, 1);
 };
 
-#endif // TRACKBASE_TRKRCLUSTERITERATIONMAP_H
+#endif  // TRACKBASE_TRKRCLUSTERITERATIONMAP_H
