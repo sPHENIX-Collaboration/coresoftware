@@ -35,6 +35,9 @@
 #include <TH1.h>
 #include <TH2.h>
 
+
+#include <trackbase/alignmentTransformationContainer.h>
+
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
