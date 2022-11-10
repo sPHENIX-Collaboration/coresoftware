@@ -18,6 +18,7 @@
 struct ActsTrackingGeometry{
   ActsTrackingGeometry(){}
   ActsTrackingGeometry(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
+		       //ActsTrackingGeometry(std::shared_ptr<Acts::TrackingGeometry> tGeo,
 		       std::shared_ptr<Acts::MagneticFieldProvider> mag,
 		       Acts::CalibrationContext calib,
 		       Acts::GeometryContext geoCtxt,
@@ -31,6 +32,7 @@ struct ActsTrackingGeometry{
 
   /// Tracking geometry and magnetic field, for fitter function
   std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
+  //std::shared_ptr<Acts::TrackingGeometry> tGeometry;
 
   std::shared_ptr<Acts::MagneticFieldProvider> magField;
 
@@ -38,6 +40,12 @@ struct ActsTrackingGeometry{
   Acts::CalibrationContext calibContext;
   Acts::GeometryContext geoContext;
   Acts::MagneticFieldContext magFieldContext;
+
+  Acts::GeometryContext& getGeoContext() 
+  {
+    return geoContext;
+  }
+
   double tpcSurfStepPhi = 0;
   double tpcSurfStepZ = 0;
 };

@@ -15,7 +15,7 @@ float TpcClusterZCrossingCorrection::_vdrift = 8.0e-03;  // default value, overr
 TpcClusterZCrossingCorrection::TpcClusterZCrossingCorrection()
 { }
 
-float TpcClusterZCrossingCorrection::correctZ(float zinit, unsigned int side, short int crossing)
+float TpcClusterZCrossingCorrection::correctZ(float zinit, unsigned int side, short int crossing) const
 {
   if(crossing == SHRT_MAX) return NAN;
 

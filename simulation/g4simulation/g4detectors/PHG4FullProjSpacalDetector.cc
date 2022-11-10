@@ -111,7 +111,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
   assert(cylinder_mat);
 
   G4LogicalVolume* sec_logic = new G4LogicalVolume(sec_solid, cylinder_mat,
-                                                   G4String(G4String(GetName() + std::string("_sec"))), 0, 0);
+                                                   G4String(G4String(GetName() + std::string("_sec"))), nullptr, nullptr);
 
   GetDisplayAction()->AddVolume(sec_logic, "Sector");
 
@@ -136,11 +136,11 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
                                     twopi / get_geom_v3()->get_azimuthal_n_sec());
 
     G4LogicalVolume* wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
-                                                      G4String(G4String(GetName() + std::string("_EndWall"))), 0, 0,
+                                                      G4String(G4String(GetName() + std::string("_EndWall"))), nullptr, nullptr,
                                                       nullptr);
     GetDisplayAction()->AddVolume(wall_logic, "WallProj");
 
-    typedef std::map<int, double> z_locations_t;
+    using z_locations_t = std::map<int, double>;
     z_locations_t z_locations;
     z_locations[1000] = get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm;
     z_locations[1001] = get_geom_v3()->get_length() * cm / 2.0 - (get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_assembly_spacing() * cm);
@@ -180,11 +180,11 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
                                   (get_geom_v3()->get_length() / 2. - 2 * (get_geom_v3()->get_sidewall_thickness() + 2. * get_geom_v3()->get_assembly_spacing())) * cm * .5);
 
     G4LogicalVolume* wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
-                                                      G4String(G4String(GetName() + std::string("_SideWall"))), 0, 0,
+                                                      G4String(G4String(GetName() + std::string("_SideWall"))), nullptr, nullptr,
                                                       nullptr);
     GetDisplayAction()->AddVolume(wall_logic, "WallProj");
 
-    typedef std::map<int, std::pair<int, int> > sign_t;
+    using sign_t = std::map<int, std::pair<int, int>>;
     sign_t signs;
     signs[2000] = std::make_pair(+1, +1);
     signs[2001] = std::make_pair(+1, -1);
@@ -258,7 +258,7 @@ int PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
 
   // first check out the fibers geometry
 
-  typedef std::map<int, std::pair<G4Vector3D, G4Vector3D> > fiber_par_map;
+  using fiber_par_map = std::map<int, std::pair<G4Vector3D, G4Vector3D>>;
   fiber_par_map fiber_par;
   G4double min_fiber_length = g_tower.pDz * cm * 4;
 
@@ -512,7 +512,7 @@ PHG4FullProjSpacalDetector::Construct_Tower(
   assert(cylinder_mat);
 
   G4LogicalVolume* block_logic = new G4LogicalVolume(block_solid, cylinder_mat,
-                                                     G4String(G4String(GetName()) + std::string("_Tower") + sTowerID), 0, 0,
+                                                     G4String(G4String(GetName()) + std::string("_Tower") + sTowerID), nullptr, nullptr,
                                                      nullptr);
 
   GetDisplayAction()->AddVolume(block_logic, "Block");

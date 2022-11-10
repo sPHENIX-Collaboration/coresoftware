@@ -14,11 +14,9 @@ class TrkrHitSet;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
-class PHG4CylinderCellGeom;
-class PHG4CylinderCellGeomContainer;
+class PHG4TpcCylinderGeom;
+class PHG4TpcCylinderGeomContainer;
 
-//typedef std::pair<int, int> iphiz;
-//typedef std::pair<double, iphiz> ihit;
 typedef std::pair<unsigned short, unsigned short> iphiz;
 typedef std::pair<unsigned short, iphiz> ihit;
 
@@ -40,7 +38,7 @@ class TpcClusterizer : public SubsysReco
   void set_cluster_version(int value) { cluster_version = value; }
   
  private:
-  bool is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const;
+  bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
 
   TrkrHitSetContainer *m_hits = nullptr;
   TrkrClusterContainer *m_clusterlist = nullptr;
@@ -52,13 +50,13 @@ class TpcClusterizer : public SubsysReco
   double SectorFiducialCut = 0.5;
   unsigned short MaxClusterHalfSizePhi = 3;
   unsigned short MaxClusterHalfSizeT = 5;
-  int cluster_version = 3;
+  int cluster_version = 4;
   double m_tdriftmax = 0;
   double AdcClockPeriod = 53.0;   // ns 
 
   // TPC shaping offset correction parameter
   // From Tony Frawley July 5, 2022
-  double m_sampa_tbias = 13.5;  // ns  
+  double m_sampa_tbias = 39.6;  // ns  
 };
 
 #endif

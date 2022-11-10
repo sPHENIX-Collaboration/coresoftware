@@ -11,6 +11,7 @@
 #include <fun4all/SubsysReco.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #if defined(__CLING__)
@@ -201,7 +202,6 @@ class PHGenFitTrkFitter : public SubsysReco
     _fit_min_pT = cutMinPT;
   }
 
-
   bool is_over_write_svtxtrackmap() const
   {
     return _over_write_svtxtrackmap;
@@ -232,6 +232,10 @@ class PHGenFitTrkFitter : public SubsysReco
     _vertex_min_ndf = vertexMinPT;
   }
 
+  /// cluster version
+  /* Note: this could be retrived automatically using dynamic casts from TrkrCluster objects */
+  void set_cluster_version(int value) { m_cluster_version = value; }
+
   //!@name disabled layers interface
   //@{
 
@@ -248,6 +252,13 @@ class PHGenFitTrkFitter : public SubsysReco
   const std::set<int>& get_disabled_layers() const;
 
   //@}
+
+  /// fit only tracks with silicon+MM hits
+  void set_fit_silicon_mms( bool );
+
+  /// require micromegas in SiliconMM fits
+  void set_use_micromegas( bool value )
+  { m_use_micromegas = value; }
 
   private:
   //! Event counter
@@ -300,7 +311,14 @@ class PHGenFitTrkFitter : public SubsysReco
   //! disabled layers
   /** clusters belonging to disabled layers are not included in track fit */
   std::set<int> _disabled_layers;
+  
+  /// Boolean to use normal tracking geometry navigator or the
+  /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
+  bool m_fit_silicon_mms = false;
 
+  /// requires micromegas present when fitting silicon-MM surfaces
+  bool m_use_micromegas = true;
+  
   //! KalmanFitterRefTrack, KalmanFitter, DafSimple, DafRef
   std::string _track_fitting_alg_name = "DafRef";
 
@@ -348,7 +366,13 @@ class PHGenFitTrkFitter : public SubsysReco
 
   /// tpc distortion correction utility class
   TpcDistortionCorrection m_distortionCorrection;
+ 
+  /// cluster error parametrisation
+  ClusterErrorPara m_cluster_error_parametrization;
   
+  /// cluster version
+  int m_cluster_version = 4;
+
   //! Evaluation
   //! switch eval out
   bool _do_eval = false;

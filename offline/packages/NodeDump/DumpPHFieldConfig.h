@@ -1,7 +1,7 @@
 #ifndef NODEDUMP_DUMPPHFIELDCONFIG_H
 #define NODEDUMP_DUMPPHFIELDCONFIG_H
 
-#include <DumpObject.h>
+#include "DumpObject.h"
 
 #include <string>
 

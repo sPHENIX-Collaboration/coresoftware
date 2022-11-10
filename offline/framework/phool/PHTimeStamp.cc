@@ -26,7 +26,7 @@ const phtime_t ticFactor = 10000000;
 
 PHTimeStamp::PHTimeStamp()
 {
-  setTics(time(0));
+  setTics(time(nullptr));
 
   setenv("TZ", "EST5EDT", 1);
 }
@@ -79,7 +79,7 @@ void PHTimeStamp::set(const char *timeString)
 
 void PHTimeStamp::setToSystemTime()
 {
-  setTics(time(0));
+  setTics(time(nullptr));
 }
 
 time_t PHTimeStamp::getTics() const
@@ -181,7 +181,7 @@ char *PHTimeStamp::formatTimeString() const
 
   if (u) strcpy(line, u);
 
-  while ((u = strtok(0, " ")))
+  while ((u = strtok(nullptr, " ")))
   {
     strcat(line, "_");
     strcat(line, u);

@@ -39,7 +39,7 @@ XploadInterface::XploadInterface(const std::string &name)
   : SubsysReco(name)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
-  se->registerSubsystem(this);
+  se->addNewSubsystem(this);
 }
 
 //____________________________________________________________________________..
@@ -57,9 +57,9 @@ int XploadInterface::End(PHCompositeNode *topNode)
   else
   {
     std::set<std::tuple<std::string, std::string, uint64_t>> tmp_set;
-    for (auto iter_tup = cdburls->begin(); iter_tup != cdburls->end(); ++iter_tup)
+    for (const auto & cdburl : *cdburls)
     {
-      tmp_set.insert(*iter_tup);
+      tmp_set.insert(cdburl);
     }
     // remove duplicates in our set
     // not possible using for range loops, iterator gets invalidated
@@ -107,8 +107,8 @@ std::string XploadInterface::getUrl(const std::string &domain, const std::string
 {
   std::string return_url = filename;
   recoConsts *rc = recoConsts::instance();
-  uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP",12345678912345);
-  xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG","TEST"), domain, timestamp, xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG","sPHENIX_cdb")));
+  uint64_t timestamp = rc->get_uint64Flag("TIMESTAMP", 12345678912345);
+  xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG", "TEST"), domain, timestamp, xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG", "sPHENIX_cdb")));
   if (!result.payload.empty())
   {
     return_url = result.payload;

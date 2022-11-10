@@ -6,14 +6,15 @@
 #include "TrackEvaluation.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
 #include <phool/getClass.h>
@@ -24,6 +25,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHit.h>
@@ -31,6 +33,7 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
@@ -186,56 +189,17 @@ namespace
   }
 
   //! number of hits associated to cluster
-  void add_cluster_size( TrackEvaluationContainerv1::ClusterStruct& cluster, TrkrDefs::cluskey clus_key, TrkrClusterHitAssoc* cluster_hit_map )
+  void add_cluster_size( TrackEvaluationContainerv1::ClusterStruct& cluster, TrkrCluster* trk_clus)
   {
-    if( !cluster_hit_map ) return;
-    const auto range = cluster_hit_map->getHits(clus_key);
 
-    // store full size
-    cluster.size =  std::distance( range.first, range.second );
+    TrkrClusterv4 *trk_clusv4 = dynamic_cast<TrkrClusterv4*> (trk_clus);
+    cluster.size = trk_clusv4->getSize();
+    cluster.phi_size = trk_clusv4->getPhiSize();
+    cluster.z_size = trk_clusv4->getZSize();
+    cluster.ovlp = trk_clusv4->getOverlap();
+    cluster.edge = trk_clusv4->getEdge();
+    cluster.adc = trk_clusv4->getAdc();
 
-    const auto detId = TrkrDefs::getTrkrId(clus_key);
-    if(detId == TrkrDefs::micromegasId)
-    {
-
-      // for micromegas the directional cluster size depends on segmentation type
-      auto segmentation_type = MicromegasDefs::getSegmentationType(clus_key);
-      if( segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_Z ) cluster.z_size = cluster.size;
-      else cluster.phi_size = cluster.size;
-
-    } else {
-
-      // for other detectors, one must loop over the constituting hits
-      std::set<int> phibins;
-      std::set<int> zbins;
-      for(const auto& [first, hit_key]:range_adaptor(range))
-      {
-        switch( detId )
-        {
-          default: break;
-          case TrkrDefs::mvtxId:
-          {
-            phibins.insert( MvtxDefs::getRow( hit_key ) );
-            zbins.insert( MvtxDefs::getCol( hit_key ) );
-            break;
-          }
-          case TrkrDefs::inttId:
-          {
-            phibins.insert( InttDefs::getRow( hit_key ) );
-            zbins.insert( InttDefs::getCol( hit_key ) );
-            break;
-          }
-          case TrkrDefs::tpcId:
-          {
-            phibins.insert( TpcDefs::getPad( hit_key ) );
-            zbins.insert( TpcDefs::getTBin( hit_key ) );
-            break;
-          }
-        }
-      }
-      cluster.phi_size = phibins.size();
-      cluster.z_size = zbins.size();
-    }
   }
 
   //! hit energy for a given cluster
@@ -273,12 +237,15 @@ namespace
   }
 
   // ad}d truth information
-  void add_truth_information( TrackEvaluationContainerv1::TrackStruct& track, PHG4Particle* particle )
+  void add_truth_information( TrackEvaluationContainerv1::TrackStruct& track, PHG4Particle* particle, PHG4TruthInfoContainer* truthinfo )
   {
     if( particle )
     {
+      PHG4VtxPoint* vtx  = truthinfo->GetVtx(particle->get_vtx_id());
       track.is_primary = is_primary( particle );
       track.pid = particle->get_pid();
+      track.gtrackID = particle->get_track_id();
+      track.truth_t = vtx->get_t();
       track.truth_px = particle->get_px();
       track.truth_py = particle->get_py();
       track.truth_pz = particle->get_pz();
@@ -426,7 +393,7 @@ int TrackEvaluation::load_nodes( PHCompositeNode* topNode )
   m_g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   // tpc geometry
-  m_tpc_geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  m_tpc_geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   assert( m_tpc_geom_container );
 
   // micromegas geometry
@@ -479,15 +446,15 @@ void TrackEvaluation::evaluate_clusters()
 
   // clear array
   m_container->clearClusters();
-
+  SvtxTrack *track = nullptr;
   // first loop over hitsets
   for( const auto& hitsetkey:m_cluster_map->getHitSetKeys())
   {
     for( const auto& [key,cluster]:range_adaptor(m_cluster_map->getClusters(hitsetkey)))
     {
       // create cluster structure
-      auto cluster_struct = create_cluster( key, cluster );
-      add_cluster_size( cluster_struct, key, m_cluster_hit_map );
+      auto cluster_struct = create_cluster( key, cluster, track );
+      add_cluster_size( cluster_struct, cluster);
       add_cluster_energy( cluster_struct, key, m_cluster_hit_map, m_hitsetcontainer );
 
       // truth information
@@ -521,7 +488,7 @@ void TrackEvaluation::evaluate_tracks()
 
     const auto track = trackpair.second;
     auto track_struct = create_track( track );
-
+    bool has_mm = false;
     // truth information
     const auto [id,contributors] = get_max_contributor( track );
     track_struct.contributors = contributors;
@@ -529,7 +496,7 @@ void TrackEvaluation::evaluate_tracks()
     // get particle
     auto particle = m_g4truthinfo->GetParticle(id);
     track_struct.embed = get_embed(particle);
-    ::add_truth_information(track_struct, particle);
+    ::add_truth_information(track_struct, particle,m_g4truthinfo);
 
     // running iterator over track states, used to match a given cluster to a track state
     auto state_iter = track->begin_states();
@@ -545,8 +512,8 @@ void TrackEvaluation::evaluate_tracks()
       }
 
       // create new cluster struct
-      auto cluster_struct = create_cluster( cluster_key, cluster );
-      add_cluster_size( cluster_struct, cluster_key, m_cluster_hit_map );
+      auto cluster_struct = create_cluster( cluster_key, cluster, track );
+      add_cluster_size( cluster_struct, cluster);
       add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, m_hitsetcontainer );
 
       // truth information
@@ -554,6 +521,7 @@ void TrackEvaluation::evaluate_tracks()
       const bool is_micromegas( TrkrDefs::getTrkrId(cluster_key) == TrkrDefs::micromegasId );
       if( is_micromegas )
       {
+	has_mm = true;
         const int tileid = MicromegasDefs::getTileId(cluster_key);
         add_truth_information_micromegas( cluster_struct, tileid, g4hits );
       } else {
@@ -586,7 +554,8 @@ void TrackEvaluation::evaluate_tracks()
       // add to track
       track_struct.clusters.push_back( cluster_struct );
     }
-    m_container->addTrack( track_struct );
+    if(has_mm)
+      m_container->addTrack( track_struct );
   }
 }
 
@@ -687,8 +656,16 @@ int TrackEvaluation::get_embed( PHG4Particle* particle ) const
 { return (m_g4truthinfo && particle) ? m_g4truthinfo->isEmbeded( particle->get_primary_id() ):0; }
 
 //_____________________________________________________________________
-TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster ) const
+TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster, SvtxTrack *track ) const
 {
+
+  TrackSeed *si_seed = nullptr;
+  TrackSeed *tpc_seed = nullptr;
+  if(track!=nullptr){
+    si_seed = track->get_silicon_seed();
+    tpc_seed = track->get_tpc_seed();
+  }
+
   // get global coordinates
   Acts::Vector3 global;
   global = m_tGeometry->getGlobalPosition(key, cluster);
@@ -699,9 +676,31 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrD
   cluster_struct.z = global.z();
   cluster_struct.r = get_r( cluster_struct.x, cluster_struct.y );
   cluster_struct.phi = std::atan2( cluster_struct.y, cluster_struct.x );
-  cluster_struct.phi_error = cluster->getRPhiError()/cluster_struct.r;
-  cluster_struct.z_error = cluster->getZError();
-
+  cluster_struct.phi_error = 0.0;
+  cluster_struct.z_error = 0.0;
+  cluster_struct.trk_alpha = 0.0;
+  cluster_struct.trk_beta = 0.0;
+  ClusterErrorPara ClusErrPara;
+  if(track!=0){
+    float r = cluster_struct.r;
+    if(cluster_struct.layer>7){
+      auto para_errors_mm = ClusErrPara.get_cluster_error(tpc_seed,cluster,r,key);
+      cluster_struct.phi_error = sqrt(para_errors_mm.first)/cluster_struct.r;
+      cluster_struct.z_error = sqrt(para_errors_mm.second);
+      //	float R = TMath::Abs(1.0/tpc_seed->get_qOverR());
+      cluster_struct.trk_radius = 1.0/tpc_seed->get_qOverR();
+      cluster_struct.trk_alpha = (r*r) /(2*r*TMath::Abs(1.0/tpc_seed->get_qOverR()));
+      cluster_struct.trk_beta = atan(tpc_seed->get_slope());
+    }else{
+      auto para_errors_mvtx = ClusErrPara.get_cluster_error(si_seed,cluster,r,key);
+      cluster_struct.phi_error = sqrt(para_errors_mvtx.first)/cluster_struct.r;
+      cluster_struct.z_error = sqrt(para_errors_mvtx.second);	
+      //	float R = TMath::Abs(1.0/si_seed->get_qOverR());
+      cluster_struct.trk_radius = 1.0/tpc_seed->get_qOverR();
+      cluster_struct.trk_alpha = (r*r) /(2*r*TMath::Abs(1.0/tpc_seed->get_qOverR()));
+      cluster_struct.trk_beta = atan(si_seed->get_slope());
+    }
+  }
   return cluster_struct;
 }
 
@@ -812,7 +811,7 @@ void TrackEvaluation::add_truth_information( TrackEvaluationContainerv1::Cluster
   // get layer, tpc flag and corresponding layer geometry
   const auto layer = cluster.layer;
   const bool is_tpc( layer >= 7 && layer < 55 );
-  const PHG4CylinderCellGeom* layergeom = is_tpc ? m_tpc_geom_container->GetLayerCellGeom(layer):nullptr;
+  const PHG4TpcCylinderGeom* layergeom = is_tpc ? m_tpc_geom_container->GetLayerCellGeom(layer):nullptr;
   const auto rin = layergeom ? layergeom->get_radius()-layergeom->get_thickness()/2:0;
   const auto rout = layergeom ? layergeom->get_radius()+layergeom->get_thickness()/2:0;
 

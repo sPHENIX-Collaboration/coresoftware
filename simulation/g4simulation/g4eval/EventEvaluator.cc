@@ -30,8 +30,6 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerv2.h>
 
-#include <HepMC/GenEvent.h>
-#include <HepMC/GenVertex.h>
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 #include <phhepmc/PHGenIntegral.h>
@@ -50,12 +48,17 @@
 
 #include <CLHEP/Vector/ThreeVector.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#include <HepMC/GenEvent.h>
+#include <HepMC/GenVertex.h>
+#pragma GCC diagnostic pop
+
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <set>
 #include <utility>
-// #include <fstream>
 
 using namespace std;
 

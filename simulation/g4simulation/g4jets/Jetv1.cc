@@ -8,35 +8,29 @@
 
 #include "Jetv1.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
 class PHObject;
 
-using namespace std;
-
 Jetv1::Jetv1()
-  : _id(0xFFFFFFFF)
-  , _mom()
-  , _e(NAN)
-  , _comp_ids()
-  , _property_map()
 {
-  for (int i = 0; i < 3; ++i) _mom[i] = NAN;
+  std::fill(std::begin(_mom), std::end(_mom), NAN);
 }
 
-void Jetv1::identify(ostream& os) const
+void Jetv1::identify(std::ostream& os) const
 {
-  os << "---Jet v1-----------------------" << endl;
-  os << "jetid: " << get_id() << endl;
+  os << "---Jet v1-----------------------" << std::endl;
+  os << "jetid: " << get_id() << std::endl;
   os << " (px,py,pz,e) =  (" << get_px() << ", " << get_py() << ", ";
-  os << get_pz() << ", " << get_e() << ") GeV" << endl;
+  os << get_pz() << ", " << get_e() << ") GeV" << std::endl;
   print_property(os);
   for (ConstIter citer = begin_comp(); citer != end_comp(); ++citer)
   {
-    cout << citer->first << " -> " << citer->second << endl;
+    os << citer->first << " -> " << citer->second << std::endl;
   }
-  os << "-----------------------------------------------" << endl;
+  os << "-----------------------------------------------" << std::endl;
 
   return;
 }
@@ -44,7 +38,7 @@ void Jetv1::identify(ostream& os) const
 void Jetv1::Reset()
 {
   _id = 0xFFFFFFFF;
-  for (int i = 0; i < 3; ++i) _mom[i] = NAN;
+  std::fill(std::begin(_mom), std::end(_mom), NAN);
   _e = NAN;
   _comp_ids.clear();
   _property_map.clear();
@@ -53,11 +47,11 @@ void Jetv1::Reset()
 int Jetv1::isValid() const
 {
   if (_id == 0xFFFFFFFF) return 0;
-  for (int i = 0; i < 3; ++i)
+  for (float i : _mom)
   {
-    if (isnan(_mom[i])) return 0;
+    if (std::isnan(i)) return 0;
   }
-  if (isnan(_e)) return 0;
+  if (std::isnan(_e)) return 0;
   if (_comp_ids.empty()) return 0;
   return 1;
 }
@@ -70,12 +64,12 @@ PHObject* Jetv1::CloneMe() const
 
 float Jetv1::get_p() const
 {
-  return sqrt(get_px() * get_px() + get_py() * get_py() + get_pz() * get_pz());
+  return std::sqrt(get_px() * get_px() + get_py() * get_py() + get_pz() * get_pz());
 }
 
 float Jetv1::get_pt() const
 {
-  return sqrt(get_px() * get_px() + get_py() * get_py());
+  return std::sqrt(get_px() * get_px() + get_py() * get_py());
 }
 
 float Jetv1::get_et() const
@@ -85,12 +79,12 @@ float Jetv1::get_et() const
 
 float Jetv1::get_eta() const
 {
-  return asinh(get_pz() / get_pt());
+  return std::asinh(get_pz() / get_pt());
 }
 
 float Jetv1::get_phi() const
 {
-  return atan2(get_py(), get_px());
+  return std::atan2(get_py(), get_px());
 }
 
 float Jetv1::get_mass() const
@@ -98,9 +92,10 @@ float Jetv1::get_mass() const
   // follow CLHEP convention and return negative mass if E^2 - p^2 < 0
   float mass2 = get_mass2();
   if (mass2 < 0)
-    return -1 * sqrt(fabs(mass2));
-  else
-    return sqrt(mass2);
+  {
+    return -1 * sqrt(std::fabs(mass2));
+  }
+  return std::sqrt(mass2);
 }
 
 float Jetv1::get_mass2() const
@@ -113,18 +108,20 @@ bool Jetv1::has_property(Jet::PROPERTY prop_id) const
 {
   typ_property_map::const_iterator citer = _property_map.find(prop_id);
   if (citer == _property_map.end())
+  {
     return false;
-  else
-    return true;
+  }
+  return true;
 }
 
 float Jetv1::get_property(Jet::PROPERTY prop_id) const
 {
   typ_property_map::const_iterator citer = _property_map.find(prop_id);
   if (citer == _property_map.end())
+  {
     return NAN;
-  else
-    return citer->second;
+  }
+  return citer->second;
 }
 
 void Jetv1::set_property(Jet::PROPERTY prop_id, float value)
@@ -132,14 +129,13 @@ void Jetv1::set_property(Jet::PROPERTY prop_id, float value)
   _property_map[prop_id] = value;
 }
 
-void Jetv1::print_property(ostream& os) const
+void Jetv1::print_property(std::ostream& os) const
 {
-  for (typ_property_map::const_iterator citer = _property_map.begin();
-       citer != _property_map.end(); ++citer)
+  for (auto citer : _property_map)
   {
     os << " ";  //indent
 
-    switch (citer->first)
+    switch (citer.first)
     {
     case prop_JetCharge:
       os << "Jet Charge";
@@ -148,10 +144,10 @@ void Jetv1::print_property(ostream& os) const
       os << "Jet B-quark fraction";
       break;
     default:
-      os << "Property[" << citer->first << "]";
+      os << "Property[" << citer.first << "]";
       break;
     }
 
-    os << "\t= " << citer->second << endl;
+    os << "\t= " << citer.second << std::endl;
   }
 }

@@ -14,6 +14,7 @@
 #include "DecayFinderContainer_v1.h"     // for DecayFinderContainer_v1
 
 #include <g4main/PHG4TruthInfoContainer.h>
+
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
@@ -24,9 +25,13 @@
 #include <phool/PHNodeIterator.h>        // for PHNodeIterator
 #include <phool/getClass.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>
 #include <HepMC/GenVertex.h>             // for GenVertex::particle_iterator
+#pragma GCC diagnostic pop
+
+#include <HepMC/GenParticle.h>
 #include <HepMC/IteratorRange.h>
 #include <HepMC/SimpleVector.h>
 
@@ -484,6 +489,12 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> deca
   PHG4TruthInfoContainer::ConstRange range = m_truthinfo->GetParticleRange();
   for(PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
   {
+    if (decayChain.size() == 100)
+    {
+      breakLoop = true;  //Stuck in loop. Sympton not cause!
+      break;
+    }
+    
     PHG4Particle* g4particle = iter->second;
     PHG4Particle* mother = nullptr;
     if (g4particle->get_parent_id() != 0) mother = m_truthinfo->GetParticle(g4particle->get_parent_id());

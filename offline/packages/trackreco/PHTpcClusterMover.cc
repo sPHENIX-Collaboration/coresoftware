@@ -12,6 +12,8 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/ActsTransformations.h>
 
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -37,26 +39,31 @@ int PHTpcClusterMover::InitRun(PHCompositeNode *topNode)
 {
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+  for (int layer=7; layer<7+48; layer++){
+    PHG4TpcCylinderGeom* GeoLayer = _tpc_geom_container->GetLayerCellGeom(layer);
+    std::cout << "PHTpcClusterMover:: layer = " << layer << " layer_radius " << GeoLayer->get_radius() << std::endl;  
+    layer_radius[layer-7] = GeoLayer->get_radius();
+  }
 
-  // initialize layer radii
-  inner_tpc_spacing = (mid_tpc_min_radius - inner_tpc_min_radius) / 16.0;
-  mid_tpc_spacing = (outer_tpc_min_radius - mid_tpc_min_radius) / 16.0;
-  outer_tpc_spacing = (outer_tpc_max_radius - outer_tpc_min_radius) / 16.0;
-  for(int i=0; i < 16; ++i)
-    {
-      layer_radius[i] = inner_tpc_min_radius + (double) i * inner_tpc_spacing + 0.5 * inner_tpc_spacing;
-      if(Verbosity() > 4) std::cout << " i " << i << " layer_radius " << layer_radius[i] << std::endl;
-    }
-  for(int i=0; i < 16; ++i)
-    {
-      layer_radius[i+16] = mid_tpc_min_radius + (double) i * mid_tpc_spacing + 0.5 * mid_tpc_spacing;
-      if(Verbosity() > 4) std::cout << " i " << i << " layer_radius " << layer_radius[i+16] << std::endl;
-    }
-  for(int i=0; i < 16; ++i)
-    {
-      layer_radius[i+32] = outer_tpc_min_radius + (double) i * outer_tpc_spacing  +  0.5 * outer_tpc_spacing;
-       if(Verbosity() > 4) std::cout << " i " << i << " layer_radius " << layer_radius[i+32] << std::endl;
-    }
+  //// initialize layer radii
+  //inner_tpc_spacing = (mid_tpc_min_radius - inner_tpc_min_radius) / 16.0;
+  //mid_tpc_spacing = (outer_tpc_min_radius - mid_tpc_min_radius) / 16.0;
+  //outer_tpc_spacing = (outer_tpc_max_radius - outer_tpc_min_radius) / 16.0;
+  //for(int i=0; i < 16; ++i)
+  //  {
+  //    layer_radius[i] = inner_tpc_min_radius + (double) i * inner_tpc_spacing + 0.5 * inner_tpc_spacing;
+  //    if(Verbosity() > 4) std::cout << " i " << i << " layer_radius " << layer_radius[i] << std::endl;
+  //  }
+  //for(int i=0; i < 16; ++i)
+  //  {
+  //    layer_radius[i+16] = mid_tpc_min_radius + (double) i * mid_tpc_spacing + 0.5 * mid_tpc_spacing;
+  //    if(Verbosity() > 4) std::cout << " i " << i << " layer_radius " << layer_radius[i+16] << std::endl;
+  //  }
+  //for(int i=0; i < 16; ++i)
+  //  {
+  //    layer_radius[i+32] = outer_tpc_min_radius + (double) i * outer_tpc_spacing  +  0.5 * outer_tpc_spacing;
+  //     if(Verbosity() > 4) std::cout << " i " << i << " layer_radius " << layer_radius[i+32] << std::endl;
+  //  }
 
   return ret;
 }
@@ -217,8 +224,8 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
     newclus->setSubSurfKey(subsurfkey);
 
 	  // get local coordinates
-    Acts::Vector3 normal = surface->normal(_tGeometry->geometry().geoContext);
-    auto local = surface->globalToLocal(_tGeometry->geometry().geoContext,
+    Acts::Vector3 normal = surface->normal(_tGeometry->geometry().getGeoContext());
+    auto local = surface->globalToLocal(_tGeometry->geometry().getGeoContext(),
 					global * Acts::UnitConstants::cm,
 					normal);
 
@@ -230,7 +237,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode */*topNode*/)
 	  else
 	    {
 	      /// otherwise take the manual calculation
-	      Acts::Vector3 center = surface->center(_tGeometry->geometry().geoContext)/Acts::UnitConstants::cm;
+	      Acts::Vector3 center = surface->center(_tGeometry->geometry().getGeoContext())/Acts::UnitConstants::cm;
 	      double clusRadius = sqrt(xnew * xnew + ynew * ynew);
 	      double clusphi = atan2(ynew, xnew);
 	      double rClusPhi = clusRadius * clusphi;
@@ -272,6 +279,13 @@ int PHTpcClusterMover::End(PHCompositeNode */*topNode*/)
 
 int  PHTpcClusterMover::GetNodes(PHCompositeNode* topNode)
 {
+  _tpc_geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!_tpc_geom_container)
+  {
+    std::cout << PHWHERE << " ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
   {

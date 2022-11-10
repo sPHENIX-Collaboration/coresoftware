@@ -146,11 +146,11 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   G4VSolid* Hole_solid = new G4Tubs(G4String("Hole_solid"),
                                     0.0, m_RHole, 2 * m_TWin, 0.0, CLHEP::twopi);
-  G4VSolid* ExitWindow_1cut_solid = new G4SubtractionSolid("ExitWindow_1cut_solid", ExitWindow_nocut_solid, Hole_solid, 0, G4ThreeVector(m_PlaceHole, 0, 0));
+  G4VSolid* ExitWindow_1cut_solid = new G4SubtractionSolid("ExitWindow_1cut_solid", ExitWindow_nocut_solid, Hole_solid, nullptr, G4ThreeVector(m_PlaceHole, 0, 0));
 
-  G4VSolid* ExitWindow_2cut_solid = new G4SubtractionSolid("ExitWindow_2cut_solid", ExitWindow_1cut_solid, Hole_solid, 0, G4ThreeVector(-m_PlaceHole, 0, 0));
+  G4VSolid* ExitWindow_2cut_solid = new G4SubtractionSolid("ExitWindow_2cut_solid", ExitWindow_1cut_solid, Hole_solid, nullptr, G4ThreeVector(-m_PlaceHole, 0, 0));
 
-  G4LogicalVolume* ExitWindow_log = new G4LogicalVolume(ExitWindow_2cut_solid, GetDetectorMaterial("G4_STAINLESS-STEEL"), G4String("ExitWindow_log"), 0, 0, 0);
+  G4LogicalVolume* ExitWindow_log = new G4LogicalVolume(ExitWindow_2cut_solid, GetDetectorMaterial("G4_STAINLESS-STEEL"), G4String("ExitWindow_log"), nullptr, nullptr, nullptr);
 
   GetDisplayAction()->AddVolume(ExitWindow_log, "Window");
   m_SupportLogicalVolSet.insert(ExitWindow_log);
@@ -162,13 +162,13 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   if (m_Layer == PHG4ZDCDefs::NORTH)
   {
     new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin, m_Params->get_double_param("place_z") * cm - m_Pzwin)),
-                      ExitWindow_log, "Window_North", logicWorld, 0, PHG4ZDCDefs::NORTH, OverlapCheck());
+                      ExitWindow_log, "Window_North", logicWorld, false, PHG4ZDCDefs::NORTH, OverlapCheck());
   }
 
   else if (m_Layer == PHG4ZDCDefs::SOUTH)
   {
     new G4PVPlacement(G4Transform3D(Window_rotm, G4ThreeVector(m_Pxwin, m_Pywin, -m_Params->get_double_param("place_z") * cm + m_Pzwin)),
-                      ExitWindow_log, "Window_South", logicWorld, 0, PHG4ZDCDefs::SOUTH, OverlapCheck());
+                      ExitWindow_log, "Window_South", logicWorld, false, PHG4ZDCDefs::SOUTH, OverlapCheck());
   }
   /* ZDC detector here */
   /* Create the box envelope = 'world volume' for ZDC */
@@ -181,7 +181,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                            Mother_Y,
                                            Mother_Z);
 
-  G4LogicalVolume* ZDC_envelope_log = new G4LogicalVolume(ZDC_envelope_solid, WorldMaterial, G4String("ZDC_envelope_log"), 0, 0, 0);
+  G4LogicalVolume* ZDC_envelope_log = new G4LogicalVolume(ZDC_envelope_solid, WorldMaterial, G4String("ZDC_envelope_log"), nullptr, nullptr, nullptr);
 
   /* Define visualization attributes */
   GetDisplayAction()->AddVolume(ZDC_envelope_log, "Envelope");
@@ -198,7 +198,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                           m_HFiber / 2.,
                                           TGap / 2.);
 
-  G4LogicalVolume* fiber_plate_log = new G4LogicalVolume(fiber_plate_solid, WorldMaterial, G4String("fiber_plate_log"), 0, 0, 0);
+  G4LogicalVolume* fiber_plate_log = new G4LogicalVolume(fiber_plate_solid, WorldMaterial, G4String("fiber_plate_log"), nullptr, nullptr, nullptr);
   GetDisplayAction()->AddVolume(fiber_plate_log, "fiber_plate_air");
   /*  front and back plate */
   G4VSolid* fb_plate_solid = new G4Box(G4String("fb_plate_solid"),
@@ -206,7 +206,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                        m_HPlate / 2.,
                                        m_TPlate / 2.);
 
-  G4LogicalVolume* fb_plate_log = new G4LogicalVolume(fb_plate_solid, Fe, G4String("fb_plate_log"), 0, 0, 0);
+  G4LogicalVolume* fb_plate_log = new G4LogicalVolume(fb_plate_solid, Fe, G4String("fb_plate_log"), nullptr, nullptr, nullptr);
   m_SupportLogicalVolSet.insert(fb_plate_log);
   GetDisplayAction()->AddVolume(fb_plate_log, "FrontBackPlate");
 
@@ -216,7 +216,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                        m_HAbsorber / 2.,
                                        m_TAbsorber / 2.);
 
-  G4LogicalVolume* absorber_log = new G4LogicalVolume(absorber_solid, W, G4String("absorber_log"), 0, 0, 0);
+  G4LogicalVolume* absorber_log = new G4LogicalVolume(absorber_solid, W, G4String("absorber_log"), nullptr, nullptr, nullptr);
   m_AbsorberLogicalVolSet.insert(absorber_log);
   GetDisplayAction()->AddVolume(absorber_log, "Absorber");
 
@@ -227,7 +227,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                   m_HSMD / 2.,
                                   m_TSMD / 2.);
 
-  G4LogicalVolume* SMD_log = new G4LogicalVolume(SMD_solid, WorldMaterial, G4String("SMD_log"), 0, 0, 0);
+  G4LogicalVolume* SMD_log = new G4LogicalVolume(SMD_solid, WorldMaterial, G4String("SMD_log"), nullptr, nullptr, nullptr);
   GetDisplayAction()->AddVolume(SMD_log, "SMD");
   // small scintillators block
   G4double scintx = 15 * mm;
@@ -237,7 +237,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                     scinty / 2.,
                                     m_TSMD / 2.);
 
-  G4LogicalVolume* Scint_log = new G4LogicalVolume(Scint_solid, Scint, G4String("Scint_log"), 0, 0, 0);
+  G4LogicalVolume* Scint_log = new G4LogicalVolume(Scint_solid, Scint, G4String("Scint_log"), nullptr, nullptr, nullptr);
   m_ScintiLogicalVolSet.insert(Scint_log);
   GetDisplayAction()->AddVolume(Scint_log, "Scint_solid");
 
@@ -261,7 +261,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                         Scint_log,
                         "single_scint",
                         SMD_log,
-                        0, copyno, OverlapCheck());
+                        false, copyno, OverlapCheck());
 
       scint_YPos += scint_Ystep;
     }
@@ -272,7 +272,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4VSolid* single_fiber_solid = new G4Tubs(G4String("single_fiber_solid"),
                                             0.0, (m_DFiber / 2.) - m_GFiber, (m_HFiber / 2.), 0.0, CLHEP::twopi);
 
-  G4LogicalVolume* single_fiber_log = new G4LogicalVolume(single_fiber_solid, PMMA, G4String("single_fiber_log"), 0, 0, 0);
+  G4LogicalVolume* single_fiber_log = new G4LogicalVolume(single_fiber_solid, PMMA, G4String("single_fiber_log"), nullptr, nullptr, nullptr);
   m_FiberLogicalVolSet.insert(single_fiber_log);
   GetDisplayAction()->AddVolume(single_fiber_log, "Fiber");
 
@@ -294,7 +294,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                       single_fiber_log,
                       G4String("single_fiber_scint"),
                       fiber_plate_log,
-                      0, copyno, OverlapCheck());
+                      false, copyno, OverlapCheck());
     fiber_XPos += fiber_step;
   }
 
@@ -330,7 +330,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                         SMD_log,
                         G4String("SMD"),
                         ZDC_envelope_log,
-                        0, 0, OverlapCheck());  //using copy number for now, need to find a better way
+                        false, 0, OverlapCheck());  //using copy number for now, need to find a better way
       ZPos += (SMD_Step / 2.);
     }
     /* place the front plate */
@@ -339,7 +339,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                       fb_plate_log,
                       G4String("front_plate"),
                       ZDC_envelope_log,
-                      0, copyno_plate, OverlapCheck());
+                      false, copyno_plate, OverlapCheck());
     ZPos += (Plate_Step / 2.);
     copyno_plate++;
     for (int j = 0; j < m_NLay; j++)
@@ -350,7 +350,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                         absorber_log,
                         G4String("single_absorber"),
                         ZDC_envelope_log,
-                        0, i * 100 + j, OverlapCheck());
+                        false, i * 100 + j, OverlapCheck());
       ZPos += (Absorber_Step / 2.);
 
       /* place the fiber plate */
@@ -361,7 +361,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                         fiber_plate_log,
                         name_fiber_plate,
                         ZDC_envelope_log,
-                        0, copyno, OverlapCheck());
+                        false, copyno, OverlapCheck());
       ZPos += (Gap_Step / 2.);
     }
     /* place the back plate */
@@ -370,7 +370,7 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
                       fb_plate_log,
                       G4String("back_plate"),
                       ZDC_envelope_log,
-                      0, copyno_plate, OverlapCheck());
+                      false, copyno_plate, OverlapCheck());
     copyno_plate++;
     ZPos += (Plate_Step / 2.);
   }
@@ -380,13 +380,13 @@ void PHG4ZDCDetector::ConstructMe(G4LogicalVolume* logicWorld)
   if (m_Layer == PHG4ZDCDefs::NORTH)
   {
     new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)),
-                      ZDC_envelope_log, "ZDC_Envelope_North", logicWorld, 0, PHG4ZDCDefs::NORTH, OverlapCheck());
+                      ZDC_envelope_log, "ZDC_Envelope_North", logicWorld, false, PHG4ZDCDefs::NORTH, OverlapCheck());
   }
   else if (m_Layer == PHG4ZDCDefs::SOUTH)
   {
     ZDC_rotm.rotateY(180 * deg);
     new G4PVPlacement(G4Transform3D(ZDC_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, -m_Params->get_double_param("place_z") * cm)),
-                      ZDC_envelope_log, "ZDC_Envelope_South", logicWorld, 0, PHG4ZDCDefs::SOUTH, OverlapCheck());
+                      ZDC_envelope_log, "ZDC_Envelope_South", logicWorld, false, PHG4ZDCDefs::SOUTH, OverlapCheck());
   }
   return;
 }

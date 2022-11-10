@@ -28,26 +28,28 @@ class ALICEKF
   public:
   ALICEKF(PHCompositeNode *topNode, 
           TrkrClusterContainer* cmap, 
+	  PHField *B,
           double fieldDir,
           unsigned int min_clusters,
           double max_sin_phi,
           int verbosity)
   {
-    PHFieldConfigv1 fcfg;
-    fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
-    auto magField = std::string(getenv("CALIBRATIONROOT")) +
-      std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
-    fcfg.set_filename(magField);
-    //  fcfg.set_rescale(1);
     if(!topNode) std::cout << "no topnode, too bad..." << std::endl;
-    _B = PHFieldUtility::BuildFieldMap(&fcfg);
+    _B = B;
     //    _B = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
     _cluster_map = cmap;
     _fieldDir = fieldDir;
     _max_sin_phi = max_sin_phi;
     _v = verbosity;
     _min_clusters_per_track = min_clusters;
+    _ClusErrPara = new ClusterErrorPara();
   }
+
+  ~ALICEKF() {delete _ClusErrPara;}
+
+  explicit ALICEKF(const ALICEKF&) = delete;
+  ALICEKF& operator=(const ALICEKF&) = delete;
+
   TrackSeedAliceSeedMap ALICEKalmanFilter(const std::vector<std::vector<TrkrDefs::cluskey>>& chains, bool use_nhits_limit, const PositionMap& globalPositions, std::vector<float>& trackChi2) const;
   bool covIsPosDef(Eigen::Matrix<double,6,6>& cov) const;
   void repairCovariance(Eigen::Matrix<double,6,6>& cov) const;
@@ -61,6 +63,7 @@ class ALICEKF
   std::vector<double> GetLineClusterResiduals(const std::vector<std::pair<double,double>>& pts, double A, double B) const; 
   double get_Bzconst() const { return _Bzconst; }
   void set_cluster_version(int value) { m_cluster_version = value; }
+  ClusterErrorPara *_ClusErrPara;
   private:
   PHField* _B = nullptr;
   size_t _min_clusters_per_track = 20;
@@ -75,8 +78,8 @@ class ALICEKF
   bool _use_const_field = false;
   bool _use_fixed_clus_error = true;
   std::array<double,3> _fixed_clus_error = {.1,.1,.1};
-  ClusterErrorPara _ClusErrPara;
-  int m_cluster_version = 3;
+
+  int m_cluster_version = 4;
 };
 
 #endif

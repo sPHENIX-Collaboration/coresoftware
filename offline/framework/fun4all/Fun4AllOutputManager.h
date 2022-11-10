@@ -46,7 +46,7 @@ class Fun4AllOutputManager : public Fun4AllBase
     return 0;
   }
 
-  virtual void SaveRunNode(const int) {return;}
+  virtual void SaveRunNode(const int) { return; }
 
   /*! \brief
     add an event selector to the outputmanager.
@@ -109,7 +109,7 @@ class Fun4AllOutputManager : public Fun4AllBase
 
  private:
   //! Number of Events
-  unsigned int m_NEvents;
+  unsigned int m_NEvents = 0;
 
   //! output file name
   std::string m_OutFileName;

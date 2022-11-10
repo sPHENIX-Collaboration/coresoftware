@@ -12,6 +12,8 @@
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/sPHENIXActsDetectorElement.h>
+#include <trackbase/AlignmentTransformation.h>
+#include <trackbase/alignmentTransformationContainer.h>
 
 #include <intt/CylinderGeomIntt.h>
 
@@ -21,8 +23,8 @@
 
 #include <micromegas/MicromegasDefs.h>
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -56,7 +58,12 @@
 #include <ActsExamples/Framework/IContextDecorator.hpp>
 #include <ActsExamples/Framework/WhiteBoard.hpp>
 #include <ActsExamples/Geometry/CommonGeometry.hpp>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <ActsExamples/Options/CommonOptions.hpp>
+#pragma GCC diagnostic pop
+
 #include <ActsExamples/Utilities/Options.hpp>
 #include <ActsExamples/MagneticField/MagneticFieldOptions.hpp>
 
@@ -109,12 +116,25 @@ MakeActsGeometry::MakeActsGeometry(const std::string &name)
 
 int MakeActsGeometry::Init(PHCompositeNode */*topNode*/)
 {  
-  setPlanarSurfaceDivisions();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
+    m_geomContainerTpc =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+
+  // Alignment Transformation declaration of instance - must be here to set initial alignment flag
+  AlignmentTransformation alignment_transformation;
+  alignment_transformation.createAlignmentTransformContainer(topNode);
+
+  //set parameter for sampling probability distribution
+  if(mvtxParam){alignment_transformation.setMVTXParams(m_mvtxDevs);}
+  if(inttParam){alignment_transformation.setINTTParams(m_inttDevs);}
+  if(tpcParam){alignment_transformation.setTPCParams(m_tpcDevs);}
+  if(mmParam){alignment_transformation.setMMParams(m_mmDevs);}
+
   if(buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
@@ -124,7 +144,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   trackingGeometry.magField = m_magneticField;
   trackingGeometry.calibContext = m_calibContext;
   trackingGeometry.magFieldContext = m_magFieldContext;
-  trackingGeometry.geoContext = m_geoCtxt;
+  trackingGeometry.getGeoContext() = m_geoCtxt;  // set reference 
   trackingGeometry.tpcSurfStepPhi = m_surfStepPhi;
   trackingGeometry.tpcSurfStepZ = m_surfStepZ;
 
@@ -143,20 +163,23 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   // fill Micromegas volume ids
   for( const auto& [hitsetid, surface]:m_clusterSurfaceMapMmEdit )
     { surfMaps.m_micromegasVolumeIds.insert( surface->geometryId().volume() ); } 
-  
+ 
   m_actsGeometry->setGeometry(trackingGeometry);
   m_actsGeometry->setSurfMaps(surfMaps);
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
 
-  // print
+  alignment_transformation.createMap(topNode);
+  alignment_transformation.misalignmentFactor(m_misalignmentFactor);
+
+ // print
   if( Verbosity() )
-  {
-    for( const auto& id:surfMaps.m_tpcVolumeIds )
-    { std::cout << "MakeActsGeometry::InitRun - TPC volume id: " << id << std::endl; }
-  
-    for( const auto& id:surfMaps.m_micromegasVolumeIds )
-    { std::cout << "MakeActsGeometry::InitRun - Micromegas volume id: " << id << std::endl; }
-  }
+    {
+      for( const auto& id:surfMaps.m_tpcVolumeIds )
+	{ std::cout << "MakeActsGeometry::InitRun - TPC volume id: " << id << std::endl; }
+      
+      for( const auto& id:surfMaps.m_micromegasVolumeIds )
+	{ std::cout << "MakeActsGeometry::InitRun - Micromegas volume id: " << id << std::endl; }
+    }
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -168,12 +191,14 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   // this also adds the micromegas surfaces
   // Do this before anything else, so that the geometry is finalized
   
-  // This should be done only on the first tracking pass, to avoid adding surfaces twice
-  if(fake_surfaces)
-    editTPCGeometry(topNode);
-  else
-    std::cout << " NOT adding TPC surfaces" << std::endl;
+  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+    return Fun4AllReturnCodes::ABORTEVENT;  
 
+  setPlanarSurfaceDivisions();//eshulga
+  // This should be done only on the first tracking pass, to avoid adding surfaces twice. 
+  // There is a check for existing acts fake surfaces in editTPCGeometry
+  editTPCGeometry(topNode); 
+ 
   /// Export the new geometry to a root file for examination
   if(Verbosity() > 3)
     {
@@ -182,8 +207,8 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
     }
 
   // need to get nodes first, in order to be able to build the proper micromegas geometry
-  if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
-    return Fun4AllReturnCodes::ABORTEVENT;  
+  //if(getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
+  //  return Fun4AllReturnCodes::ABORTEVENT;  
 
   // In case we did not call EditTpcGeometry, we still want to make the MMs surface map
   if( m_buildMMs && !m_geomContainerMicromegas )
@@ -290,6 +315,19 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   assert(tpc_gas_north_node);
   TGeoVolume *tpc_gas_north_vol = tpc_gas_north_node->GetVolume();
   assert(tpc_gas_north_vol);
+
+  int nfakesurfaces = 0;
+  for(int i=0; i<tpc_gas_north_vol->GetNdaughters(); i++)
+    {
+      TString node_name = tpc_gas_north_vol->GetNode(i)->GetName();
+      if(node_name.BeginsWith("tpc_gas_measurement_"))
+	{ nfakesurfaces++; }
+    }
+
+  /// Make a check for the fake surfaces. If we have more than 0
+  /// then we've built the fake surfaces and we should not do it again
+  if(nfakesurfaces > 0)
+    { return; }
 
   if (Verbosity() > 3)
   {
@@ -570,6 +608,7 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[],
 
 
 std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
+	  //std::pair<std::shared_ptr<Acts::TrackingGeometry>,
           std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
 MakeActsGeometry::build(const boost::program_options::variables_map& vm,
 			ActsExamples::TGeoDetector& detector) {
@@ -657,6 +696,10 @@ void MakeActsGeometry::unpackVolumes()
     assert( mmBarrel );
     makeMmMapPairs(mmBarrel);
   }
+  else
+    {
+      std::cout << "WARNING: You are not building the micromegas in your macro! If you intended to, make sure you set Enable::MICROMEGAS=true; otherwise, your macro will seg fault" << std::endl;
+    }
   
   {
     // MVTX
@@ -1429,21 +1472,18 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
   m_moduleStepPhi = 2.0 * M_PI / 12.0;
   m_modulePhiStart = -M_PI;
   m_surfStepPhi = 2.0 * M_PI / (double) (m_nSurfPhi * m_nTpcModulesPerLayer);
-  for(unsigned int isector = 0; isector < 3; ++isector)
-    {
-      layer_thickness_sector[isector] = 
-	(m_maxRadius[isector] - m_minRadius[isector]) / 16.0;
 
-      for(unsigned int ilayer =0; ilayer < 16; ++ilayer)
-	{
-	  m_layerRadius[isector*16 + ilayer] = 
-	    m_minRadius[isector] + layer_thickness_sector[isector] * 
-	    (double) ilayer + layer_thickness_sector[isector] / 2.0;
-	  
-	  m_layerThickness[isector*16 + ilayer] = 
-	    layer_thickness_sector[isector];
-	}
-    }
+  int layer=0;
+  PHG4TpcCylinderGeomContainer::ConstRange layerrange = m_geomContainerTpc->get_begin_end();
+  for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+       layeriter != layerrange.second;
+       ++layeriter)
+  {
+    m_layerRadius[layer] = layeriter->second->get_radius();
+    m_layerThickness[layer] = layeriter->second->get_thickness();
+    layer++;
+  }
+
 }
 
 int MakeActsGeometry::createNodes(PHCompositeNode *topNode)
@@ -1509,7 +1549,7 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
   }
 
   m_geomContainerTpc =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!m_geomContainerTpc)
   {
     std::cout << PHWHERE 

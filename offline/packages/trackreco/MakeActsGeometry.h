@@ -31,7 +31,7 @@
 
 class PHCompositeNode;
 class PHG4CylinderGeomContainer;
-class PHG4CylinderCellGeomContainer;
+class PHG4TpcCylinderGeomContainer;
 class TGeoManager;
 class TGeoNode;
 class TGeoVolume;
@@ -49,6 +49,7 @@ namespace Acts
 
 using Surface = std::shared_ptr<const Acts::Surface>;
 using TrackingGeometry = std::shared_ptr<const Acts::TrackingGeometry>;
+//using TrackingGeometry = std::shared_ptr<Acts::TrackingGeometry>;
 using TrackingVolumePtr = std::shared_ptr<const Acts::TrackingVolume>;
 
 /**
@@ -80,13 +81,62 @@ class MakeActsGeometry : public SubsysReco
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
 
+
+  void setMvtxDev(double array[6])
+  {
+    m_mvtxDevs[0] = array[0];
+    m_mvtxDevs[1] = array[1];
+    m_mvtxDevs[2] = array[2];
+    m_mvtxDevs[3] = array[3];
+    m_mvtxDevs[4] = array[4];
+    m_mvtxDevs[5] = array[5];
+
+    mvtxParam = true;
+  }
+  void setInttDev(double array[6])
+  {
+    m_inttDevs[0] = array[0];
+    m_inttDevs[1] = array[1];
+    m_inttDevs[2] = array[2];
+    m_inttDevs[3] = array[3];
+    m_inttDevs[4] = array[4];
+    m_inttDevs[5] = array[5];
+
+    inttParam = true;
+  }
+  void setTpcDev(double array[6])
+  {
+    m_tpcDevs[0] = array[0];
+    m_tpcDevs[1] = array[1];
+    m_tpcDevs[2] = array[2];
+    m_tpcDevs[3] = array[3];
+    m_tpcDevs[4] = array[4];
+    m_tpcDevs[5] = array[5];
+
+    tpcParam = true;
+  }
+  void setMmDev(double array[6])
+  {
+    m_mmDevs[0] = array[0];
+    m_mmDevs[1] = array[1];
+    m_mmDevs[2] = array[2];
+    m_mmDevs[3] = array[3];
+    m_mmDevs[4] = array[4];
+    m_mmDevs[5] = array[5];
+
+    mmParam = true;
+  }
+
+
+  void misalignmentFactor(const double misalignment)
+  {
+    m_misalignmentFactor = misalignment;
+  }
+
   double getSurfStepPhi() {return m_surfStepPhi;}
   double getSurfStepZ() {return m_surfStepZ;}
 
   void set_drift_velocity(double vd){m_drift_velocity = vd;}
-
-  void add_fake_surfaces(bool add)
-  {fake_surfaces = add;}
 
   void build_mm_surfaces( bool value )
   { m_buildMMs = value; }
@@ -117,6 +167,7 @@ class MakeActsGeometry : public SubsysReco
   void makeGeometry(int argc, char* argv[], 
 		    ActsExamples::TGeoDetector& detector);
   std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
+    //std::pair<std::shared_ptr<Acts::TrackingGeometry>,
           std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
     build(const boost::program_options::variables_map& vm,
 			ActsExamples::TGeoDetector& detector);
@@ -160,10 +211,11 @@ class MakeActsGeometry : public SubsysReco
   PHG4CylinderGeomContainer* m_geomContainerMvtx = nullptr;
   PHG4CylinderGeomContainer* m_geomContainerIntt = nullptr;
   PHG4CylinderGeomContainer* m_geomContainerMicromegas = nullptr;
-  PHG4CylinderCellGeomContainer* m_geomContainerTpc = nullptr;
+  PHG4TpcCylinderGeomContainer* m_geomContainerTpc = nullptr;
   TGeoManager* m_geoManager = nullptr;
 
   bool m_useField = true;
+  double m_misalignmentFactor = 1.;
 
   /// Acts Context decorators, which may contain e.g. calibration information
   std::vector<std::shared_ptr<ActsExamples::IContextDecorator> > 
@@ -197,9 +249,7 @@ class MakeActsGeometry : public SubsysReco
 
   /// TPC TGeoManager editing box surfaces subdivisions
   const static int m_nTpcSectors = 3;
-  const double m_minRadius[m_nTpcSectors] = {30.0, 40.0, 60.0};
-  const double m_maxRadius[m_nTpcSectors] = {40.0, 60.0, 77.0};
-  double layer_thickness_sector[m_nTpcSectors] = {0};
+  
   double m_layerRadius[m_nTpcLayers] = {0};
   double m_layerThickness[m_nTpcLayers] = {0};
 
@@ -232,7 +282,17 @@ class MakeActsGeometry : public SubsysReco
   double m_magFieldRescale = -1.;
 
   bool m_buildMMs = false;
-  bool fake_surfaces = true;
+
+  double m_mvtxDevs[6] = {0};
+  double m_inttDevs[6] = {0};
+  double m_tpcDevs[6] = {0};
+  double m_mmDevs[6] = {0};
+
+  bool mvtxParam = false;
+  bool inttParam = false;
+  bool tpcParam  = false;
+  bool mmParam   = false;
+
 };
 
 #endif

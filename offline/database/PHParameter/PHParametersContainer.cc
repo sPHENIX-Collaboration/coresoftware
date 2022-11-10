@@ -18,7 +18,11 @@
 #include <TFile.h>
 #include <TSystem.h>
 
+// stacktrace gives a shadow warning
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/stacktrace.hpp>
+#pragma GCC diagnostic pop
 
 #include <unistd.h>
 #include <algorithm>
@@ -136,7 +140,7 @@ int PHParametersContainer::WriteToFile(const std::string &extension, const std::
   }
   fnamestream << superdetectorname << "_geoparams"
               << "-" << bankID.getInternalValue()
-              << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(0)
+              << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(nullptr)
               << "." << extension;
   std::string fname = fnamestream.str();
   std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);

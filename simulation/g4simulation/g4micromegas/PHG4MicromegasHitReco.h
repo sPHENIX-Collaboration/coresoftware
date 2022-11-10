@@ -89,6 +89,12 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   //! electron transverse diffusion (cm/sqrt(cm))
   double m_diffusion_trans = 0.03;
 
+  //! additional smearing of primary electrons (cm)
+  /** it is used to adjust the Micromegas resolution to actual measurements */
+  double m_added_smear_sigma_z = 0;
+  double m_added_smear_sigma_rphi = 0;
+
+  
   //! rng de-allocator
   class Deleter
   {

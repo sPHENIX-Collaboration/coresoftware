@@ -60,7 +60,7 @@ PHG4ScintillatorSlatContainer::getScintillatorSlats(const short icolumn) const
 }
 
 PHG4ScintillatorSlatContainer::ConstRange
-PHG4ScintillatorSlatContainer::getScintillatorSlats(void) const
+PHG4ScintillatorSlatContainer::getScintillatorSlats() const
 {
   return std::make_pair(slatmap.begin(), slatmap.end());
 }

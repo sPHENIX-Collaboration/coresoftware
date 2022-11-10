@@ -164,6 +164,12 @@ namespace {
     return out;
   }
 
+  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const Acts::Vector3& vector )
+  { 
+    out << "(" << vector.x() << ", " << vector.y() << ", " << vector.z() << ")";
+    return out;
+  }
+  
 }
 
 /*
@@ -222,9 +228,12 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
     init_eval_tree();
   }
 
+  std::cout << "PHGenFitTrkFitter::InitRun - m_fit_silicon_mms: " << m_fit_silicon_mms << std::endl;
+  std::cout << "PHGenFitTrkFitter::InitRun - m_use_micromegas: " << m_use_micromegas << std::endl;
+  
   // print disabled layers
-  if( Verbosity() )
-  {
+  // if( Verbosity() )
+  {    
     for( const auto& layer:_disabled_layers )
     { std::cout << PHWHERE << " Layer " << layer << " is disabled." << std::endl; }
   }
@@ -321,19 +330,19 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
     // rf_phgf_track stands for Refit_PHGenFit_Track
     std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
     if (rf_phgf_track)
-	{
-	  svtxtrack_genfittrack_map[svtx_track->get_id()] =  rf_phgf_tracks.size();
-	  rf_phgf_tracks.push_back(rf_phgf_track);
-	  if (rf_phgf_track->get_ndf() > _vertex_min_ndf)
-	    rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
-	  if(Verbosity() > 10) cout << "Done refitting input track" << svtx_track->get_id() << " or rf_phgf_track " <<   rf_phgf_tracks.size() << endl;
-	}
-      else{
-	if(Verbosity() >= 1) 
-	  cout << "failed refitting input track# " << iter->first << endl;
-      }
-      
+    {
+      svtxtrack_genfittrack_map[svtx_track->get_id()] =  rf_phgf_tracks.size();
+      rf_phgf_tracks.push_back(rf_phgf_track);
+      if (rf_phgf_track->get_ndf() > _vertex_min_ndf)
+        rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+      if(Verbosity() > 10) cout << "Done refitting input track" << svtx_track->get_id() << " or rf_phgf_track " <<   rf_phgf_tracks.size() << endl;
     }
+    else{
+      if(Verbosity() >= 1)
+        cout << "failed refitting input track# " << iter->first << endl;
+    }
+      
+  }
 
   /*
    * add tracks to event display
@@ -785,6 +794,19 @@ void PHGenFitTrkFitter::clear_disabled_layers()
 const std::set<int>& PHGenFitTrkFitter::get_disabled_layers() const
 { return _disabled_layers; }
 
+//______________________________________________________
+void PHGenFitTrkFitter::set_fit_silicon_mms( bool value )
+{
+  // store flags
+  m_fit_silicon_mms = value;
+  
+  // disable/enable layers accordingly
+  for( int layer = 7; layer < 23; ++layer ) { disable_layer( layer, value ); }
+  for( int layer = 23; layer < 39; ++layer ) { disable_layer( layer, value ); }
+  for( int layer = 39; layer < 55; ++layer ) { disable_layer( layer, value ); }
+  
+}
+
 /*
  * GetNodes():
  *  Get all the all the required nodes off the node tree
@@ -905,23 +927,9 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 
   // tpc distortion corrections
   m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
-  if( m_dcc_static )
-  { 
-    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl; 
-  }
-  
   m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
-  if( m_dcc_average )
-  { 
-    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl; 
-  }
-  
   m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerFluctuation");
-  if( m_dcc_fluctuation )
-  { 
-    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl; 
-  }
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -937,8 +945,8 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
   if(trkrid ==  TrkrDefs::tpcId)
   {	 
     const auto side = TpcDefs::getSide(key);
-    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);
-
+    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);    
+    
     // apply distortion corrections
     if(m_dcc_static) 
     {
@@ -955,7 +963,7 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
       globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_fluctuation ); 
     }
   }
-  
+    
   return globalPosition;
 }
 
@@ -965,8 +973,7 @@ Acts::Vector3 PHGenFitTrkFitter::getGlobalPosition( TrkrDefs::cluskey key, TrkrC
  * \param invertex Input Vertex, if fit track as a primary vertex
  */
 //PHGenFit::Track* PHGenFitTrkFitter::ReFitTrack(PHCompositeNode *topNode, const SvtxTrack* intrack,
-std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* topNode, const SvtxTrack* intrack,
-                                                               const SvtxVertex* invertex)
+std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* topNode, const SvtxTrack* intrack, const SvtxVertex* invertex)
 {
   //std::shared_ptr<PHGenFit::Track> empty_track(nullptr);
   if (!intrack)
@@ -1027,8 +1034,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 
     if (is_vertex_cov_sane)
     {
-      PHGenFit::Measurement* meas = new PHGenFit::SpacepointMeasurement(
-          pos, cov);
+      auto meas = new PHGenFit::SpacepointMeasurement( pos, cov);
       measurements.push_back(meas);
       if(Verbosity() >= 2)
   {
@@ -1040,9 +1046,28 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   // sort clusters with radius before fitting
   if(Verbosity() > 10)   intrack->identify();
   std::map<float, TrkrDefs::cluskey> m_r_cluster_id;
+  
+  unsigned int n_silicon_clusters = 0;
+  unsigned int n_micromegas_clusters = 0;
+  
   for( const auto& cluster_key:get_cluster_keys( intrack ) )
   {
-    
+    // count clusters
+    switch( TrkrDefs::getTrkrId(cluster_key) )
+    {
+      case TrkrDefs::mvtxId:
+      case TrkrDefs::inttId:
+      ++n_silicon_clusters;
+      break;
+      
+      case TrkrDefs::micromegasId:
+      ++n_micromegas_clusters;
+      break;
+      
+      default: break;
+    }
+     
+
     const auto cluster = m_clustermap->findCluster(cluster_key);
     const auto globalPosition = getGlobalPosition( cluster_key, cluster, crossing );
 
@@ -1050,6 +1075,13 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
     int layer_out = TrkrDefs::getLayer(cluster_key);
     if(Verbosity() > 10) cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
+  }
+  
+  // discard track if not enough clusters when fitting with silicon + mm only
+  if( m_fit_silicon_mms )
+  {
+    if( n_silicon_clusters == 0 ) return nullptr;
+    if( m_use_micromegas && n_micromegas_clusters == 0 ) return nullptr;
   }
 
   for (auto iter = m_r_cluster_id.begin();
@@ -1093,11 +1125,11 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     {
 
       case TrkrDefs::mvtxId:
-	{
+      {
         double ladder_location[3] = {0.0, 0.0, 0.0};
         auto geom = static_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
-	auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-	auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
+        auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+        auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
         // returns the center of the sensor in world coordinates - used to get the ladder phi location
         geom->find_sensor_center(surf, m_tgeometry, ladder_location);
 
@@ -1112,8 +1144,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       {
         auto geom = static_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
         double hit_location[3] = {0.0, 0.0, 0.0};
-	auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-	auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
+        auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+        auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
         geom->find_segment_center(surf, m_tgeometry, hit_location);
 
         //cout << " Intt strip phi tilt = " <<  geom->get_strip_phi_tilt()
@@ -1138,9 +1170,46 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 
       default: break;
     }
+    
+    // get cluster errors
+    double cluster_rphi_error = 0;
+    double cluster_z_error = 0;
+    if( m_cluster_version >= 4 )
+    {
+      // get error from cluster error parametrization 
+      // get cluster radius
+      const auto cluster_r = std::sqrt(square(globalPosition_acts.x()) + square(globalPosition_acts.y()));
+
+      // decide of which seed to use depending on detector id
+      switch(  TrkrDefs::getTrkrId(cluster_key) )
+      {
+        case TrkrDefs::mvtxId:
+        case TrkrDefs::inttId:
+        {
+          const auto errors_square = m_cluster_error_parametrization.get_cluster_error( intrack->get_silicon_seed(), cluster, cluster_r, cluster_key ); 
+          cluster_rphi_error = std::sqrt( errors_square.first );
+          cluster_z_error = std::sqrt( errors_square.second );
+          break;
+        }
+        
+        case TrkrDefs::micromegasId:
+        case TrkrDefs::tpcId:
+        {
+          const auto errors_square = m_cluster_error_parametrization.get_cluster_error( intrack->get_tpc_seed(), cluster, cluster_r, cluster_key ); 
+          cluster_rphi_error = std::sqrt( errors_square.first );
+          cluster_z_error = std::sqrt( errors_square.second );
+          break;
+        }
+      }
+    } else {
+      // get error directly from cluster
+      cluster_rphi_error = cluster->getRPhiError();
+      cluster_z_error = cluster->getZError();
+    }
+
 
     // create measurement
-    auto meas = new PHGenFit::PlanarMeasurement(pos, n, cluster->getRPhiError(), cluster->getZError());
+    auto meas = new PHGenFit::PlanarMeasurement(pos, n, cluster_rphi_error, cluster_z_error);
 
     if(Verbosity() > 10)
     {

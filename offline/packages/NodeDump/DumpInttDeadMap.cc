@@ -10,7 +10,7 @@
 #include <string>
 #include <utility>
 
-typedef PHIODataNode<InttDeadMap> MyNode_t;
+using MyNode_t = PHIODataNode<InttDeadMap>;
 
 DumpInttDeadMap::DumpInttDeadMap(const std::string &NodeName)
   : DumpObject(NodeName)
@@ -30,9 +30,9 @@ int DumpInttDeadMap::process_Node(PHNode *myNode)
   {
     *fout << "size " << inttdeadmap->size() << std::endl;
     const InttDeadMap::Map thismap = inttdeadmap->getDeadChannels();
-    for (auto iter = thismap.begin(); iter != thismap.end(); ++iter)
+    for (unsigned long iter : thismap)
     {
-      *fout << "dead channel: " << std::hex << *iter << std::dec << std::endl;
+      *fout << "dead channel: " << std::hex << iter << std::dec << std::endl;
     }
   }
   return 0;

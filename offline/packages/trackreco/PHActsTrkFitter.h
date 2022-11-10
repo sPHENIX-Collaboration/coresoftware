@@ -1,7 +1,7 @@
 /*!
  *  \file		PHActsTrkFitter.h
  *  \brief		Refit SvtxTracks with Acts.
- *  \details	Refit SvtxTracks with Acts
+ *  \details	        Refit SvtxTracks with Acts
  *  \author		Joe Osborn, Tony Frawley <afrawley@fsu.edu>
  */
 
@@ -13,6 +13,8 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/ActsTrackFittingAlgorithm.h>
+#include <trackbase/alignmentTransformationContainer.h>
 
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterMover.h>
@@ -22,7 +24,7 @@
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-#include <ActsExamples/TrackFitting/TrackFittingAlgorithm.hpp>
+
 #include <ActsExamples/EventData/Trajectories.hpp>
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/IndexSourceLink.hpp>
@@ -33,6 +35,8 @@
 #include <TH1.h>
 #include <TH2.h>
 
+
+#include <trackbase/alignmentTransformationContainer.h>
 
 class MakeActsGeometry;
 class SvtxTrack;
@@ -119,10 +123,10 @@ class PHActsTrkFitter : public SubsysReco
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
-  ActsExamples::TrackFittingAlgorithm::TrackFitterResult fitTrack(
+  ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
            const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
 	   const ActsExamples::TrackParameters& seed,
-	   const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& 
+	   const ActsTrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
 	   const SurfacePtrVec& surfSequence);
 
@@ -144,9 +148,10 @@ class PHActsTrkFitter : public SubsysReco
   ActsGeometry *m_tGeometry = nullptr;
 
   /// Configuration containing the fitting function instance
-  ActsExamples::TrackFittingAlgorithm::Config m_fitCfg;
+  ActsTrackFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
+  alignmentTransformationContainer *m_alignmentTransformationMap = nullptr;  // added for testing purposes
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxTrackMap *m_directedTrackMap = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
@@ -204,7 +209,7 @@ class PHActsTrkFitter : public SubsysReco
   TH1 *h_updateTime = nullptr;
   TH1 *h_stateTime = nullptr;
   TH1 *h_rotTime = nullptr;
-  int m_cluster_version = 3;
+  int m_cluster_version = 4;
 };
 
 #endif

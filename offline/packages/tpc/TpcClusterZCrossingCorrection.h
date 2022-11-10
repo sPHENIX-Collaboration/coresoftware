@@ -13,7 +13,7 @@ class TpcClusterZCrossingCorrection
   
 TpcClusterZCrossingCorrection();
 
-  float correctZ(float zinit, unsigned int side, short int crossing);
+  float correctZ(float zinit, unsigned int side, short int crossing) const;
 
   static float _vdrift;
 

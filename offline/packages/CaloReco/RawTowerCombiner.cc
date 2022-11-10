@@ -92,8 +92,8 @@ int RawTowerCombiner::process_event(PHCompositeNode * /*topNode*/)
     std::cout << __PRETTY_FUNCTION__ << "Process event entered" << std::endl;
   }
 
-  typedef std::pair<int, int> tower_id_t;
-  typedef std::map<tower_id_t, RawTower *> new_tower_map_t;
+  using tower_id_t = std::pair<int, int>;
+  using new_tower_map_t = std::map<tower_id_t, RawTower *>;
   new_tower_map_t new_tower_map;
 
   RawTowerContainer::ConstRange all_towers = _towers->getTowers();
@@ -167,12 +167,11 @@ int RawTowerCombiner::process_event(PHCompositeNode * /*topNode*/)
   // replace content in tower container
   _towers->Reset();
 
-  for (new_tower_map_t::iterator it = new_tower_map.begin();
-       it != new_tower_map.end(); ++it)
+  for (auto & it : new_tower_map)
   {
-    const int eta = it->first.first;
-    const int phi = it->first.second;
-    RawTower *tower = it->second;
+    const int eta = it.first.first;
+    const int phi = it.first.second;
+    RawTower *tower = it.second;
 
     _towers->AddTower(eta, phi, tower);
   }
@@ -228,8 +227,8 @@ void RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
   const int new_etabins = ceil(
       double(towergeom->get_etabins()) / double(_n_combine_eta));
 
-  typedef std::pair<double, double> bound_t;
-  typedef std::vector<bound_t> bound_map_t;
+  using bound_t = std::pair<double, double>;
+  using bound_map_t = std::vector<bound_t>;
 
   bound_map_t eta_bound_map;
   bound_map_t phi_bound_map;

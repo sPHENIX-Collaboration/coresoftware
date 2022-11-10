@@ -44,7 +44,8 @@ class PHG4OHCalSteppingAction : public PHG4SteppingAction
   PHG4OHCalDetector *m_Detector = nullptr;
 
   //! efficiency maps from Mephi
-  TH2 *m_MapCorrHist = nullptr;
+  TH2 *m_MapCorrHist[24] = {0};
+  TH2 *m_MapCorrHistChim[24] = {0};
 
   //! pointer to hit container
   PHG4HitContainer *m_HitContainer = nullptr;
