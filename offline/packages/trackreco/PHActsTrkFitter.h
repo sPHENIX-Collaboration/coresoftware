@@ -44,7 +44,6 @@ class SvtxTrackMap;
 class TrackSeed;
 class TrackSeedContainer;
 class TrkrClusterContainer;
-class TrkrClusterIterationMap;
 class TpcDistortionCorrectionContainer;
 
 using SourceLink = ActsExamples::IndexSourceLink;
@@ -193,7 +192,7 @@ class PHActsTrkFitter : public SubsysReco
   ClusterErrorPara _ClusErrPara;
 
   std::string m_fieldMap = "";
-  TrkrClusterIterationMap* _iteration_map = nullptr;
+
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
   std::string _seed_track_map_name = "SeedTrackMap";

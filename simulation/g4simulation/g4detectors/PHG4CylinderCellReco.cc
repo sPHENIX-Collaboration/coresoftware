@@ -40,9 +40,6 @@ using namespace std;
 PHG4CylinderCellReco::PHG4CylinderCellReco(const string &name)
   : SubsysReco(name)
   , PHParameterContainerInterface(name)
-  , chkenergyconservation(0)
-  , sum_energy_before_cuts(0.)
-  , sum_energy_g4hit(0.)
 {
   SetDefaultParameters();
   memset(nbins, 0, sizeof(nbins));
@@ -75,9 +72,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
   PHNodeIterator runiter(runNode);
-  PHCompositeNode *RunDetNode =
-      dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode",
-                                                        detector));
+  PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode", detector));
   if (!RunDetNode)
   {
     RunDetNode = new PHCompositeNode(detector);
@@ -96,9 +91,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
   if (!cells)
   {
     PHNodeIterator dstiter(dstNode);
-    PHCompositeNode *DetNode =
-        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode",
-                                                          detector));
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", detector));
     if (!DetNode)
     {
       DetNode = new PHCompositeNode(detector);
@@ -149,6 +142,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
     implemented_detid.insert(layer);
     set_size(layer, get_double_param(layer, "size_long"), get_double_param(layer, "size_perp"));
     tmin_max.insert(std::make_pair(layer, std::make_pair(get_double_param(layer, "tmin"), get_double_param(layer, "tmax"))));
+    m_DeltaTMap.insert(std::make_pair(layer,get_double_param(layer, "delta_t")));
     double circumference = layergeom->get_radius() * 2 * M_PI;
     double length_in_z = layergeom->get_zmax() - layergeom->get_zmin();
     sizeiter = cell_size.find(layer);
@@ -420,6 +414,8 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         // checking ADC timing integration window cut
         if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
         if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
+	if (hiter->second->get_t(1) - hiter->second->get_t(0) > m_DeltaTMap[*layer]) continue;
+
 
         pair<double, double> etaphi[2];
         double phibin[2];
@@ -623,6 +619,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
         // checking ADC timing integration window cut
         if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
         if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
+	if (hiter->second->get_t(1) - hiter->second->get_t(0) > 100) continue;
 
         double xinout[2];
         double yinout[2];
@@ -998,5 +995,6 @@ void PHG4CylinderCellReco::SetDefaultParameters()
   set_default_double_param("size_perp", NAN);
   set_default_double_param("tmax", 60.0);
   set_default_double_param("tmin", -20.0);  // collision has a timing spread around the triggered event. Accepting negative time too.
+  set_default_double_param("delta_t", 100.);
   return;
 }

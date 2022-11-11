@@ -61,6 +61,10 @@ class ParticleFlowReco : public SubsysReco
   std::vector<float> _pflow_TRK_p;
   std::vector<float> _pflow_TRK_eta;
   std::vector<float> _pflow_TRK_phi;
+  std::vector<float> _pflow_TRK_EMproj_phi;
+  std::vector<float> _pflow_TRK_EMproj_eta;
+  std::vector<float> _pflow_TRK_HADproj_phi;
+  std::vector<float> _pflow_TRK_HADproj_eta;
   std::vector<SvtxTrack*> _pflow_TRK_trk;
   std::vector< std::vector<int> > _pflow_TRK_match_EM;
   std::vector< std::vector<int> > _pflow_TRK_match_HAD;
