@@ -12,6 +12,8 @@
 
 class PHCompositeNode;
 class SvtxTrackMap;
+class SvtxVertexMap;
+class SvtxVertex;
 class RawCluster;
 class RawClusterContainer;
 class RawTowerContainer;
@@ -40,8 +42,9 @@ class PHTrackClusterAssociator : public SubsysReco
   int createNodes(PHCompositeNode* topNode);
   int getCaloNodes(PHCompositeNode* topNode, const int caloLayer);
   int matchTracks(PHCompositeNode* topNode, const int caloLayer);
-  RawCluster* getCluster(double phi, double eta);
+  RawCluster* getCluster(double phi, double eta, SvtxVertex* vertex);
   SvtxTrackMap* m_trackMap = nullptr;
+  SvtxVertexMap* m_vertexMap = nullptr;
 
   /// Objects to hold calorimeter information. There are
   /// only 3 calo layers

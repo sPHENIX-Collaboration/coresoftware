@@ -14,6 +14,8 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackCaloClusterMap_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxVertexMap.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -94,7 +96,7 @@ int PHTrackClusterAssociator::process_event(PHCompositeNode* topNode)
 
   if (Verbosity() > 3)
   {
-    for (const auto &[track, clustervec] : *m_trackClusterMap)
+    for (const auto& [track, clustervec] : *m_trackClusterMap)
     {
       track->identify();
       std::cout << " has clusters associated to it : " << std::endl;
@@ -133,7 +135,9 @@ int PHTrackClusterAssociator::matchTracks(PHCompositeNode* topNode,
     const float stateeta = asinh(statez /
                                  sqrt(statex * statex + statey * statey));
 
-    const auto cluster = getCluster(statephi, stateeta);
+    const int vertexid = track->get_vertex_id();
+    const auto vertex = m_vertexMap->get(vertexid);
+    const auto cluster = getCluster(statephi, stateeta, vertex);
     if (Verbosity() > 1)
     {
       if (!cluster)
@@ -155,17 +159,25 @@ int PHTrackClusterAssociator::matchTracks(PHCompositeNode* topNode,
 }
 
 RawCluster* PHTrackClusterAssociator::getCluster(double phi,
-                                                 double eta)
+                                                 double eta,
+                                                 SvtxVertex* vertex)
 {
   double minR = std::numeric_limits<double>::max();
   auto clusterMap = m_clusterContainer->getClustersMap();
   RawCluster* returncluster = nullptr;
+  Acts::Vector3 vert = Acts::Vector3::Zero();
+  if (vertex)
+  {
+    vert(0) = vertex->get_x();
+    vert(1) = vertex->get_y();
+    vert(2) = vertex->get_z();
+  }
 
   for (const auto& [key, cluster] : clusterMap)
   {
     const auto clusterEta =
         RawClusterUtility::GetPseudorapidity(*cluster,
-                                             CLHEP::Hep3Vector(0, 0, 0));
+                                             CLHEP::Hep3Vector(vert(0), vert(1), vert(2)));
     const auto dphi = deltaPhi(phi - cluster->get_phi());
     const auto deta = eta - clusterEta;
     const auto r = sqrt(pow(dphi, 2) + pow(deta, 2));
@@ -185,7 +197,14 @@ int PHTrackClusterAssociator::getNodes(PHCompositeNode* topNode)
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if (!m_trackMap)
   {
-    std::cout << "No track map, can't continue" << std::endl;
+    std::cout << PHWHERE << "No track map, can't continue" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  m_vertexMap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if (!m_vertexMap)
+  {
+    std::cout << PHWHERE << "No vertex map, can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
