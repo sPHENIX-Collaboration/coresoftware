@@ -21,6 +21,7 @@ class TpcClusterBuilder
   using PairCluskeyCluster = std::pair<TrkrDefs::cluskey,TrkrCluster*>;
   public:
     PHG4TpcCylinderGeom *layerGeom { nullptr }; // unique to the layer
+    bool   has_data       { false };
     short  layer          {  SHRT_MAX };
     unsigned int side     { 0       };
     int    neff_electrons { 0       };
@@ -60,7 +61,7 @@ class TpcClusterBuilder
     void fillPhiBins  (const std::vector<int>& bins);
     void fillTimeBins (const std::vector<int>& bins);
     void reset();
-    bool has_data() const;
+    void set_has_data();
     PairCluskeyCluster build(MapHitsetkeyUInt& cluster_cnt) const;
 
     ~TpcClusterBuilder(){};
