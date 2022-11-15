@@ -29,7 +29,6 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/ActsTransformations.h>
 
-using namespace std;
 
 namespace 
 {
@@ -46,35 +45,32 @@ namespace
 //____________________________________________________________________________..
 PHTpcCentralMembraneClusterizer::PHTpcCentralMembraneClusterizer(const std::string &name):
  SubsysReco(name)
-{
-
-
-  // Make some histograms on an output file for diagnostics
-  char temp[500];
-  sprintf(temp,
-	  "./eval_output/Energy_Histograms_%i.root", _process);
-  fout = new TFile(temp,"RECREATE");
-  
-  henergy = new TH1F("henergy", "cluster energy", 200, 0, 2000);
-  hxy = new TH2F("hxy","cluster x:y",800,-100,100,800,-80,80);
-  hz = new TH1F("hz","cluster z", 220, -2,2);
-  
-  hClustE[0]= new TH1F("hRawClusterEnergy","Cluster Energy Before Merging;E[?]",200,0,2000);
-  hClustE[1] = new TH1F("hMatchedClusterEnergy","Pair Cluster Energy After Merging;E[?]",200,0,2000);
-  hClustE[2] = new TH1F("hSoloClusterEnergy","Lone Cluster Energy After Merging;E[?]",200,0,2000);
-  
-  hDist=new TH1F("hDist","3D distance to nearby clusters on same padrow;dist[cm]",100,-1,10);
-  hDistRow=new TH2F("hDistRow","phi distance to nearby clusters vs (lower)row;dist[rad];padrow",100,-0.001,0.01,60,-0.5,59.5);
-  hDist2=new TH1F("hDist2","phi distance to nearby clusters on same padrow;dist[rad]",100,-0.001,0.01);
-  hDistRowAdj=new TH2F("hDistRowAdj","phi distance to nearby clusters vs (lower)row;dist[rad];(lower) padrow",100,-0.001,0.01,60,-0.5,59.5);
-  hDist2Adj=new TH1F("hDist2Adj","phi distance to nearby clusters on adjacent padrow;dist[rad]",100,-0.001,0.01);
-
-}
+{}
 
 //____________________________________________________________________________..
 int PHTpcCentralMembraneClusterizer::InitRun(PHCompositeNode *topNode)
 {
   int ret = GetNodes(topNode);
+  
+  if( _histos )
+  {
+    m_histogramfile.reset( new TFile(m_histogramfilename.c_str(), "RECREATE"));
+    m_histogramfile->cd();   
+    henergy = new TH1F("henergy", "cluster energy", 200, 0, 2000);
+    hxy = new TH2F("hxy","cluster x:y",800,-100,100,800,-80,80);
+    hz = new TH1F("hz","cluster z", 220, -2,2);
+    
+    hClustE[0]= new TH1F("hRawClusterEnergy","Cluster Energy Before Merging;E[?]",200,0,2000);
+    hClustE[1] = new TH1F("hMatchedClusterEnergy","Pair Cluster Energy After Merging;E[?]",200,0,2000);
+    hClustE[2] = new TH1F("hSoloClusterEnergy","Lone Cluster Energy After Merging;E[?]",200,0,2000);
+    
+    hDist=new TH1F("hDist","3D distance to nearby clusters on same padrow;dist[cm]",100,-1,10);
+    hDistRow=new TH2F("hDistRow","phi distance to nearby clusters vs (lower)row;dist[rad];padrow",100,-0.001,0.01,60,-0.5,59.5);
+    hDist2=new TH1F("hDist2","phi distance to nearby clusters on same padrow;dist[rad]",100,-0.001,0.01);
+    hDistRowAdj=new TH2F("hDistRowAdj","phi distance to nearby clusters vs (lower)row;dist[rad];(lower) padrow",100,-0.001,0.01,60,-0.5,59.5);
+    hDist2Adj=new TH1F("hDist2Adj","phi distance to nearby clusters on adjacent padrow;dist[rad]",100,-0.001,0.01);
+  }
+    
   return ret;
 }
 
@@ -113,7 +109,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       
       const auto& [cluskey, cluster] = *clusiter;
       auto glob = tgeometry->getGlobalPosition(cluskey, cluster);
-      std::cout << "PHTpcCentralMembraneClusterizer::process_event - key: " << cluskey << "z: " << glob.z() << std::endl;
+      // std::cout << "PHTpcCentralMembraneClusterizer::process_event - key: " << cluskey << "z: " << glob.z() << std::endl;
       
       float x = glob(0);
       float y = glob(1);
@@ -151,20 +147,20 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       // must match clusters that are on the same side
       if( side[i] != side[j] ) continue;
       
-      if (abs(layer[i]-layer[j])==0)
+      if(layer[i]==layer[j])
       {
         const TVector3 delta=pos[i]-pos[j];
-        const float dphi=abs(pos[i].DeltaPhi(pos[j]));
+        const float dphi=std::abs(pos[i].DeltaPhi(pos[j]));
         hDist->Fill(delta.Mag());
         hDist2->Fill(dphi);
         hDistRow->Fill(dphi,layer[i]);
       }
       
-      if (abs(layer[i]-layer[j])==1)
+      if (std::abs(layer[i]-layer[j])==1)
       {  
         //match those centers to the known/expected stripe positions
         const TVector3 delta=pos[i]-pos[j];
-        const float dphi=abs(pos[i].DeltaPhi(pos[j]));
+        const float dphi=std::abs(pos[i].DeltaPhi(pos[j]));
         hDist2Adj->Fill(dphi);
         hDistRowAdj->Fill(dphi,layer[i]);
       }
@@ -183,12 +179,12 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
     {
       // redundant to the 'adjacent row' check:  if (i==j) continue; //can't match yourself.
       // must match to an adjacent row.
-      if (abs(layer[i]-layer[j])!=1) continue;
+      if (std::abs(layer[i]-layer[j])!=1) continue;
       
       // must match clusters that are on the same side
       if( side[i] != side[j] ) continue;
       
-      float newphidist=abs(pos[i].DeltaPhi(pos[j]));
+      const float newphidist=std::abs(pos[i].DeltaPhi(pos[j]));
       if (newphidist<bestphidist)
       {
         i_pair[i]=j;
@@ -198,7 +194,7 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   }
 
   // check to see if the cluster pairs each match each other
-  vector<bool>goodPair;
+  std::vector<bool>goodPair;
   bool allGood=true;
   int  nGood=0;
   
@@ -206,26 +202,31 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
   {
     int myPair=i_pair[i];
     int itsPair=myPair<0?-1:i_pair[myPair];
-    if (i!=itsPair)
+    if (i!=itsPair )
     {
+      
+      if( Verbosity() )
+      {
+        std::cout << "PHTpcCentralMembraneClusterizer::process_event -"
+          << " i: " << i 
+          << " myPair: " << myPair 
+          << " itsPair: " << itsPair 
+          << std::endl;
+      }
+      
       goodPair.push_back(false);
       allGood=false;
+      
     } else {
-      if (i<myPair) nGood++;
+      if (i<myPair) ++nGood;
       goodPair.push_back(true);
     }
   }
   
-  // if(Verbosity() > 0)
+  if(Verbosity())
   {
-    if (allGood)
-    {
-      printf("All Good!\n");
-    } 
-    else 
-    {
-      printf("nGood=%d out of %d\n",nGood,nTpcClust/2);
-    }
+    if (allGood) std::cout << "PHTpcCentralMembraneClusterizer::process_event - all pairs are good" << std::endl;
+    else std::cout << "PHTpcCentralMembraneClusterizer::process_event - nGood: " << nGood << " out of " << nTpcClust/2 << std::endl;
   }
   
   //build the weighted cluster centers
@@ -370,7 +371,7 @@ int PHTpcCentralMembraneClusterizer::End(PHCompositeNode * /*topNode*/ )
 
   if(_histos)
   {
-    fout->cd();
+    m_histogramfile->cd();
     
     henergy->Write();
     hxy->Write();
@@ -385,7 +386,7 @@ int PHTpcCentralMembraneClusterizer::End(PHCompositeNode * /*topNode*/ )
     hDistRowAdj->Write();
     hDist2Adj->Write();
     
-    fout->Close();
+    m_histogramfile->Close();
   }
   
   // print statistics
@@ -415,7 +416,7 @@ int  PHTpcCentralMembraneClusterizer::GetNodes(PHCompositeNode* topNode)
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << endl;
+    std::cout << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
