@@ -7,6 +7,7 @@
 #include <Acts/EventData/SourceLink.hpp>
 #include <ActsExamples/EventData/IndexSourceLink.hpp>
 
+#include "TrkrDefs.h"
 #include "alignmentTransformationContainer.h"
 
 class Calibrator
@@ -53,9 +54,11 @@ class Calibrator
           loc(1) = uncalibmeas.parameters()[Acts::eBoundLoc1];
 
           auto cov = uncalibmeas.covariance();
+          const auto& cluskey = sourceLink.cluskey();
+          const auto trkrid = TrkrDefs::getTrkrId(cluskey);
+          const double misalignmentFactor = gctx.get<alignmentTransformationContainer*>()->getMisalignmentFactor(trkrid);
 
           Acts::ActsSymMatrix<2> expandedCov = Acts::ActsSymMatrix<2>::Zero();
-          const double misalignmentFactor = gctx.get<alignmentTransformationContainer*>()->getMisalignmentFactor();
 
           for (int i = 0; i < cov.rows(); i++)
           {
