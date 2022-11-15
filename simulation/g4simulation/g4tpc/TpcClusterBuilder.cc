@@ -10,50 +10,46 @@ using std::cout, std::endl;
 TpcClusterBuilder& TpcClusterBuilder::operator+=(const TpcClusterBuilder& rhs) {
   // layer, side, and layerGeom won't change between different additions, but they
   // but need to be set by the first addition
-  if (rhs.neff_electrons==0) return *this; 
+  if (!rhs.has_data) return *this; 
 
-  layerGeom = rhs.layerGeom;
-  layer     = rhs.layer;
-  side      = rhs.side;
+  if (!has_data) {
+    layer          = rhs.layer;
+    side           = rhs.side;
+    neff_electrons = rhs.neff_electrons;
+    phi_integral   = rhs.phi_integral;
+    time_integral  = rhs.time_integral;
+    phi_bin_lo     = rhs.phi_bin_lo;
+    phi_bin_hi     = rhs.phi_bin_hi;
+    time_bin_lo    = rhs.time_bin_lo;
+    time_bin_hi    = rhs.time_bin_hi;
+    nphibins       = rhs.nphibins;
+    hasPhiBins     = rhs.hasPhiBins;
+    hasTimeBins    = rhs.hasTimeBins;
+  } else {
+    int rhs_phi_bin_lo = rhs.phi_bin_lo;
+    int rhs_phi_bin_hi = rhs.phi_bin_hi;
 
-  if (rhs.hasPhiBins) {
-    if (!hasPhiBins) {
-      phi_bin_lo = rhs.phi_bin_lo;
-      phi_bin_hi = rhs.phi_bin_hi;
-    } else {
-      int rhs_phi_bin_lo = rhs.phi_bin_lo;
-      int rhs_phi_bin_hi = rhs.phi_bin_hi;
-
-      // if this is the case, wrap the lower values to be higher
-      if ( (phi_bin_lo - rhs_phi_bin_lo) > (nphibins/2)) {
-        rhs_phi_bin_lo += nphibins;
-        rhs_phi_bin_hi += nphibins;
-      } else if ( (rhs_phi_bin_lo - phi_bin_lo) > (nphibins/2)) {
-        phi_bin_lo += nphibins;
-        phi_bin_hi += nphibins;
-      }
-
-      if (rhs_phi_bin_lo < phi_bin_lo) phi_bin_lo = rhs_phi_bin_lo;
-      if (rhs_phi_bin_hi > phi_bin_hi) phi_bin_hi = rhs_phi_bin_hi;
+    // if this is the case, wrap the lower values to be higher
+    if ( (phi_bin_lo - rhs_phi_bin_lo) > (nphibins/2)) {
+      rhs_phi_bin_lo += nphibins;
+      rhs_phi_bin_hi += nphibins;
+    } else if ( (rhs_phi_bin_lo - phi_bin_lo) > (nphibins/2)) {
+      phi_bin_lo += nphibins;
+      phi_bin_hi += nphibins;
     }
+
+    if (rhs_phi_bin_lo < phi_bin_lo) phi_bin_lo = rhs_phi_bin_lo;
+    if (rhs_phi_bin_hi > phi_bin_hi) phi_bin_hi = rhs_phi_bin_hi;
     hasPhiBins = true;
-  } 
 
+    if (rhs.time_bin_lo < time_bin_lo) time_bin_lo = rhs.time_bin_lo;
+    if (rhs.time_bin_hi > time_bin_hi) time_bin_hi = rhs.time_bin_hi;
 
-  if (rhs.hasTimeBins) {
-    if (!hasTimeBins) {
-      time_bin_lo = rhs.time_bin_lo;
-      time_bin_hi = rhs.time_bin_hi;
-    } else {
-      if (rhs.time_bin_lo < time_bin_lo) time_bin_lo = rhs.time_bin_lo;
-      if (rhs.time_bin_hi > time_bin_hi) time_bin_hi = rhs.time_bin_hi;
-    }
-    hasTimeBins = true;
+    neff_electrons += rhs.neff_electrons;
+    phi_integral   += rhs.phi_integral;
+    time_integral  += rhs.time_integral;
+    has_data       = true;
   }
-
-  neff_electrons += rhs.neff_electrons;
-  phi_integral   += rhs.phi_integral;
-  time_integral  += rhs.time_integral;
   return *this;
 }
 
@@ -72,6 +68,7 @@ void TpcClusterBuilder::reset() {
   nphibins       = 0;
   hasPhiBins     = false;
   hasTimeBins    = false;
+  has_data       = false;
 }
 
 TpcClusterBuilder::PairCluskeyCluster TpcClusterBuilder::build(MapHitsetkeyUInt& cluster_cnt) const {
@@ -119,8 +116,15 @@ TpcClusterBuilder::PairCluskeyCluster TpcClusterBuilder::build(MapHitsetkeyUInt&
   return std::make_pair( cluskey, cluster );
 }
 
-bool TpcClusterBuilder::has_data() const {
-  return neff_electrons != 0;
+void TpcClusterBuilder::set_has_data() {
+  has_data = ( 
+      neff_electrons > 0. 
+      && phi_integral > 0.
+      && time_integral > 0.
+      && hasPhiBins
+      && hasTimeBins 
+      && layerGeom != nullptr 
+  );
 }
 
 void TpcClusterBuilder::fillPhiBins(const std::vector<int>& bins) {
