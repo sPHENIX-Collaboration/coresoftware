@@ -389,14 +389,16 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
           else if (trackerID == TrkrDefs::inttId) ++INTT_hits;
         }
       }
-      
-      for (auto cluster_iter = tpcseed->begin_cluster_keys(); cluster_iter != tpcseed->end_cluster_keys(); ++cluster_iter)
-      {
-        const auto &cluster_key = *cluster_iter;
-        const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
-
-        if (trackerID == TrkrDefs::tpcId) ++TPC_hits;
-      }
+      if(tpcseed)
+	{
+	  for (auto cluster_iter = tpcseed->begin_cluster_keys(); cluster_iter != tpcseed->end_cluster_keys(); ++cluster_iter)
+	    {
+	      const auto &cluster_key = *cluster_iter;
+	      const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+	      
+	      if (trackerID == TrkrDefs::tpcId) ++TPC_hits;
+	    }
+	}
 
       if (MVTX_hits >= 2 && INTT_hits >= 1 && TPC_hits >= 20)
       {

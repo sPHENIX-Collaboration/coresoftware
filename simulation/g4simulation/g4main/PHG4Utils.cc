@@ -7,8 +7,12 @@
 
 #include <TSystem.h>
 
-#include <boost/algorithm/hex.hpp>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/algorithm/string.hpp>
+#pragma GCC diagnostic pop
+
+#include <boost/algorithm/hex.hpp>
 #include <boost/uuid/detail/md5.hpp>
 
 #include <algorithm>  // for copy

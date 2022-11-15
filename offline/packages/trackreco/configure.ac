@@ -31,7 +31,7 @@ case $CXX in
  ;;
  *g++)
   if test `g++ -dumpversion | awk -F\. '{print $1>=8?"1":"0"}'` = 1; then
-     CXXFLAGS="$CXXFLAGS -Werror -Wno-class-memaccess -Wno-unused-local-typedefs -Wno-sign-compare -Wno-switch -Wno-unused-function -Wno-unused-value"
+     CXXFLAGS="$CXXFLAGS -Werror -Wno-class-memaccess -Wno-unused-local-typedefs -Wno-sign-compare -Wno-switch -Wno-unused-function -Wno-unused-value -Wno-maybe-uninitialized"
   fi
  ;;
 esac

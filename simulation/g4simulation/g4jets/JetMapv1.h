@@ -14,15 +14,15 @@ class PHObject;
 class JetMapv1 : public JetMap
 {
  public:
-  JetMapv1() {}
-  JetMapv1(const JetMap* jets);
-  JetMapv1& operator=(const JetMapv1& jets);
+  JetMapv1()  = default;
+  explicit JetMapv1(const JetMap& jets);
+  JetMapv1& operator=(const JetMap& jets);
   ~JetMapv1() override;
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override;
   int isValid() const override { return 1; }
-  PHObject* CloneMe() const override;
+  PHObject* CloneMe() const override  { return new JetMapv1(*this);}
 
   // map content info ----------------------------------------------------------
 

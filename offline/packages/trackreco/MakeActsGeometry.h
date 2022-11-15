@@ -81,6 +81,58 @@ class MakeActsGeometry : public SubsysReco
   void setMagFieldRescale(double magFieldRescale)
     {m_magFieldRescale = magFieldRescale;}
 
+
+  void setMvtxDev(double array[6])
+  {
+    m_mvtxDevs[0] = array[0];
+    m_mvtxDevs[1] = array[1];
+    m_mvtxDevs[2] = array[2];
+    m_mvtxDevs[3] = array[3];
+    m_mvtxDevs[4] = array[4];
+    m_mvtxDevs[5] = array[5];
+
+    mvtxParam = true;
+  }
+  void setInttDev(double array[6])
+  {
+    m_inttDevs[0] = array[0];
+    m_inttDevs[1] = array[1];
+    m_inttDevs[2] = array[2];
+    m_inttDevs[3] = array[3];
+    m_inttDevs[4] = array[4];
+    m_inttDevs[5] = array[5];
+
+    inttParam = true;
+  }
+  void setTpcDev(double array[6])
+  {
+    m_tpcDevs[0] = array[0];
+    m_tpcDevs[1] = array[1];
+    m_tpcDevs[2] = array[2];
+    m_tpcDevs[3] = array[3];
+    m_tpcDevs[4] = array[4];
+    m_tpcDevs[5] = array[5];
+
+    tpcParam = true;
+  }
+  void setMmDev(double array[6])
+  {
+    m_mmDevs[0] = array[0];
+    m_mmDevs[1] = array[1];
+    m_mmDevs[2] = array[2];
+    m_mmDevs[3] = array[3];
+    m_mmDevs[4] = array[4];
+    m_mmDevs[5] = array[5];
+
+    mmParam = true;
+  }
+
+
+  void misalignmentFactor(const double misalignment)
+  {
+    m_misalignmentFactor = misalignment;
+  }
+
   double getSurfStepPhi() {return m_surfStepPhi;}
   double getSurfStepZ() {return m_surfStepZ;}
 
@@ -163,6 +215,7 @@ class MakeActsGeometry : public SubsysReco
   TGeoManager* m_geoManager = nullptr;
 
   bool m_useField = true;
+  double m_misalignmentFactor = 1.;
 
   /// Acts Context decorators, which may contain e.g. calibration information
   std::vector<std::shared_ptr<ActsExamples::IContextDecorator> > 
@@ -229,6 +282,17 @@ class MakeActsGeometry : public SubsysReco
   double m_magFieldRescale = -1.;
 
   bool m_buildMMs = false;
+
+  double m_mvtxDevs[6] = {0};
+  double m_inttDevs[6] = {0};
+  double m_tpcDevs[6] = {0};
+  double m_mmDevs[6] = {0};
+
+  bool mvtxParam = false;
+  bool inttParam = false;
+  bool tpcParam  = false;
+  bool mmParam   = false;
+
 };
 
 #endif
