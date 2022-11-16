@@ -265,6 +265,10 @@ namespace
     cm_cluster_struct._x = cluster->getX();
     cm_cluster_struct._y = cluster->getY();
     cm_cluster_struct._z = cluster->getZ();
+    
+    cm_cluster_struct._r = std::sqrt(square(cluster->getX()) + square(cluster->getY()));
+    cm_cluster_struct._phi = std::atan2(cluster->getY(), cluster->getX());
+    
     return cm_cluster_struct;
   }
 
