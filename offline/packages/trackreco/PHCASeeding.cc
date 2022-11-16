@@ -922,7 +922,9 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   t_seed->stop();
   PHFieldConfigv1 fcfg;
   fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
-  auto magField = std::string(getenv("CALIBRATIONROOT")) +
+  char *calibrationsroot = getenv("CALIBRATIONROOT");
+  assert(calibrationsroot);
+  auto magField = std::string(calibrationsroot) +
     std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
   fcfg.set_filename(magField);
   //  fcfg.set_rescale(1);
