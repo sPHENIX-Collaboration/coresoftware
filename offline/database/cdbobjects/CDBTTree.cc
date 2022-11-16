@@ -489,8 +489,8 @@ void CDBTTree::LoadCalibrations()
         gSystem->Exit(1);
       }
     }
+    m_TTree[SingleEntries]->GetEntry(0);
   }
-  m_TTree[SingleEntries]->GetEntry(0);
   if (m_TTree[MultipleEntries] != nullptr)
   {
     TObjArray *branches = m_TTree[MultipleEntries]->GetListOfBranches();
