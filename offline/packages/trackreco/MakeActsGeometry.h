@@ -128,9 +128,16 @@ class MakeActsGeometry : public SubsysReco
   }
 
 
-  void misalignmentFactor(const double misalignment)
+  void misalignmentFactor(TrkrDefs::TrkrId id, const double misalignment)
   {
-    m_misalignmentFactor = misalignment;
+    auto it = m_misalignmentFactor.find(id);
+    if(it != m_misalignmentFactor.end())
+      {
+	it->second = misalignment;
+	return;
+      }
+
+    std::cout << "Passed an unknown trkr id, misalignment factor will not be set for " << id << std::endl;
   }
 
   double getSurfStepPhi() {return m_surfStepPhi;}
@@ -215,7 +222,7 @@ class MakeActsGeometry : public SubsysReco
   TGeoManager* m_geoManager = nullptr;
 
   bool m_useField = true;
-  double m_misalignmentFactor = 1.;
+  std::map<TrkrDefs::TrkrId, double> m_misalignmentFactor;
 
   /// Acts Context decorators, which may contain e.g. calibration information
   std::vector<std::shared_ptr<ActsExamples::IContextDecorator> > 

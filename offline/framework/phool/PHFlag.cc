@@ -23,7 +23,7 @@ PHFlag::get_StringFlag(const std::string &name) const
   PrintStackTrace();
   std::cout << "The following flags are implemented: " << std::endl;
   Print();
-  return nullptr;
+  return "";
 }
 
 const std::string
