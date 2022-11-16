@@ -2,17 +2,18 @@
 
 #include <phool/phool.h>
 
+#include <TClass.h>       // for TClass
+#include <TCollection.h>  // for TIter
+#include <TDirectory.h>   // for TDirectoryAtomicAdapter, TDirectory, gDirec...
+#include <TList.h>        // for TList
+#include <TObject.h>      // for TObject
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <TKey.h>
 
-#include <climits>
-#include <cmath>    // for NAN, isfinite
-#include <cstdint>  // for uint64_t, UINT64_MAX
 #include <iostream>
-#include <set>      // for set
 #include <utility>  // for pair, make_pair
 
 CDBHistos::CDBHistos(const std::string &fname)
@@ -46,30 +47,33 @@ void CDBHistos::WriteCDBHistos()
 void CDBHistos::LoadCalibrations()
 {
   std::string currdir = gDirectory->GetPath();
-
   TFile *fin = TFile::Open(m_Filename.c_str());
-TList* list = fin->GetListOfKeys() ;
-  if (!list) { printf("<E> No keys found in file\n") ; exit(1) ; }
+  if (fin == nullptr)
+  {
+    std::cout << PHWHERE << " Could not open " << m_Filename << std::endl;
+    return;
+  }
+  TList* list = fin->GetListOfKeys() ;
+  if (!list)
+  {
+    std::cout << PHWHERE << " No keys found in " << m_Filename << std::endl;
+    fin->Close();
+    gROOT->cd(currdir.c_str());  // restore previous directory
+    return;
+  }
   TIter next(list) ;
   TKey* key ;
   TObject* obj ;
-  std::cout << "got keys" << std::endl;
   TH1 *h1 = nullptr;
   while ( (key = (TKey*)next()) ) 
   {
     obj = key->ReadObj() ;
-    std::cout << "found key " << obj->GetName() << std::endl;
-    if (    (strcmp(obj->IsA()->GetName(),"TProfile")==0)
-	    || (obj->InheritsFrom("TH1"))
-      ) 
+    if ((obj->InheritsFrom("TH1")))
     {
       fin->GetObject(obj->GetName(),h1);
-h1->SetDirectory(nullptr);
-      printf("<W> Object %s is 1D or 2D histogram : "
-             ,obj->GetName()) ;
+      h1->SetDirectory(nullptr);
       m_HistoMap.insert(std::make_pair(obj->GetName(),h1));
     }
-//    printf("Histo name:%s title:%s\n",obj->GetName(),obj->GetTitle());
   }
   fin->Close();
   gROOT->cd(currdir.c_str());  // restore previous directory
@@ -79,9 +83,8 @@ void CDBHistos::Print() const
 {
   for (auto &iter : m_HistoMap)
   {
-    std::cout << "histogram " << iter.first << std::endl;
-    iter.second->Draw();
-    sleep(10);
+    std::cout << "histogram " << iter.first << ", type "
+	      << iter.second->IsA()->GetName() << std::endl;
   }
   return;
 }

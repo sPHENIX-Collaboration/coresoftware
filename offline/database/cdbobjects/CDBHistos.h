@@ -1,7 +1,6 @@
 #ifndef CDBOBJECTS_CDBHISTOS_H
 #define CDBOBJECTS_CDBHISTOS_H
 
-#include <cstdint>
 #include <map>
 #include <string>
 
