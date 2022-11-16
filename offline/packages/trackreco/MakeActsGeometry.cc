@@ -480,9 +480,12 @@ void MakeActsGeometry::buildActsSurfaces()
 	{        
 	  m_magFieldRescale = 1;
 	}
-      
-      m_magField = std::string(getenv("CALIBRATIONROOT")) +
-      	std::string("/Field/Map/sphenix3dtrackingmapxyz.root"); 
+      char *calibrationsroot = getenv("CALIBRATIONROOT");
+      m_magField = "sphenix3dtrackingmapxyz.root";
+      if (calibrationsroot != nullptr)
+      {
+	m_magField = std::string(calibrationsroot) + std::string("/Field/Map/") + m_magField;
+      }
       //m_magField = std::string("/phenix/u/bogui/data/Field/sphenix3dtrackingmapxyz.root");
       //m_magField = std::string("/phenix/u/bogui/data/Field/sphenix3dbigmapxyz.root");
       
@@ -535,8 +538,9 @@ void MakeActsGeometry::setMaterialResponseFile(std::string& responseFile,
       std::cout << responseFile
 		<< " not found locally, use repo version"
 		<< std::endl;
-  
-      responseFile = std::string(getenv("OFFLINE_MAIN")) +
+      char *offline_main = getenv("OFFLINE_MAIN");
+      assert(offline_main);
+      responseFile = std::string(offline_main) +
 	(m_buildMMs ? "/share/tgeo-sphenix-mms.json":"/share/tgeo-sphenix.json");
     }
 
