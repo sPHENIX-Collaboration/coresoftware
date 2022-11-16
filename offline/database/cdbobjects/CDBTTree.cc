@@ -16,7 +16,7 @@
 #include <cmath>    // for NAN, isfinite
 #include <cstdint>  // for uint64_t, UINT64_MAX
 #include <iostream>
-#include <limits>         // for numeric_limits, numeric_limits<>::max_digits10
+#include <limits>   // for numeric_limits, numeric_limits<>::max_digits10
 #include <set>      // for set
 #include <utility>  // for pair, make_pair
 

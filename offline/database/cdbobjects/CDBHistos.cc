@@ -5,13 +5,13 @@
 #include <TClass.h>       // for TClass
 #include <TCollection.h>  // for TIter
 #include <TDirectory.h>   // for TDirectoryAtomicAdapter, TDirectory, gDirec...
-#include <TList.h>        // for TList
-#include <TObject.h>      // for TObject
-#include <TROOT.h>
-#include <TSystem.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <TKey.h>
+#include <TList.h>    // for TList
+#include <TObject.h>  // for TObject
+#include <TROOT.h>
+#include <TSystem.h>
 
 #include <iostream>
 #include <utility>  // for pair, make_pair
@@ -29,8 +29,6 @@ CDBHistos::~CDBHistos()
   }
   m_HistoMap.clear();
 }
-
-
 
 void CDBHistos::WriteCDBHistos()
 {
@@ -53,7 +51,7 @@ void CDBHistos::LoadCalibrations()
     std::cout << PHWHERE << " Could not open " << m_Filename << std::endl;
     return;
   }
-  TList* list = fin->GetListOfKeys() ;
+  TList *list = fin->GetListOfKeys();
   if (!list)
   {
     std::cout << PHWHERE << " No keys found in " << m_Filename << std::endl;
@@ -61,18 +59,18 @@ void CDBHistos::LoadCalibrations()
     gROOT->cd(currdir.c_str());  // restore previous directory
     return;
   }
-  TIter next(list) ;
-  TKey* key ;
-  TObject* obj ;
+  TIter next(list);
+  TKey *key;
+  TObject *obj;
   TH1 *h1 = nullptr;
-  while ( (key = (TKey*)next()) ) 
+  while ((key = (TKey *) next()))
   {
-    obj = key->ReadObj() ;
+    obj = key->ReadObj();
     if ((obj->InheritsFrom("TH1")))
     {
-      fin->GetObject(obj->GetName(),h1);
+      fin->GetObject(obj->GetName(), h1);
       h1->SetDirectory(nullptr);
-      m_HistoMap.insert(std::make_pair(obj->GetName(),h1));
+      m_HistoMap.insert(std::make_pair(obj->GetName(), h1));
     }
   }
   fin->Close();
@@ -84,7 +82,7 @@ void CDBHistos::Print() const
   for (auto &iter : m_HistoMap)
   {
     std::cout << "histogram " << iter.first << ", type "
-	      << iter.second->IsA()->GetName() << std::endl;
+              << iter.second->IsA()->GetName() << std::endl;
   }
   return;
 }
@@ -97,6 +95,6 @@ void CDBHistos::registerHisto(TH1 *h1)
     std::cout << PHWHERE << " Histogram " << h1->GetName() << " already registered, use a different name and try again" << std::endl;
     gSystem->Exit(1);
   }
-  m_HistoMap.insert(std::make_pair(h1->GetName(),h1));
+  m_HistoMap.insert(std::make_pair(h1->GetName(), h1));
   return;
 }
