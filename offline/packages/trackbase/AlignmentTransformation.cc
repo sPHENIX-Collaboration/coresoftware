@@ -297,9 +297,9 @@ int AlignmentTransformation::getNodes(PHCompositeNode* topNode)
   return 0; 
 }
 
-void AlignmentTransformation::misalignmentFactor(const double factor)
+void AlignmentTransformation::misalignmentFactor(TrkrDefs::TrkrId id, const double factor)
 {
-  transformMap->setMisalignmentFactor(factor);
+  transformMap->setMisalignmentFactor(id, factor);
 }
 void AlignmentTransformation::createAlignmentTransformContainer(PHCompositeNode* topNode)
 {

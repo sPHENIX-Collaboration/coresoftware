@@ -194,7 +194,7 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
 
     if (rad_gem > rad_low && rad_gem < rad_high)
     {
-      // capture the layer where this electron hits sthe gem stack
+      // capture the layer where this electron hits the gem stack
       LayerGeom = layeriter->second;
       layernum = LayerGeom->get_layer();
       pass_data.layerGeom = LayerGeom;
