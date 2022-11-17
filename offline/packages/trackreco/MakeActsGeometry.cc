@@ -112,7 +112,12 @@ namespace
 
 MakeActsGeometry::MakeActsGeometry(const std::string &name)
 : SubsysReco(name)
-{}
+{
+  for ( const auto id : { TrkrDefs::mvtxId, TrkrDefs::inttId, TrkrDefs::tpcId, TrkrDefs::micromegasId })
+    {
+      m_misalignmentFactor.insert(std::make_pair(id, 1.));
+    }
+}
 
 int MakeActsGeometry::Init(PHCompositeNode */*topNode*/)
 {  
@@ -169,7 +174,10 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
 
   alignment_transformation.createMap(topNode);
-  alignment_transformation.misalignmentFactor(m_misalignmentFactor);
+  for(auto& [id, factor] : m_misalignmentFactor)
+    {
+      alignment_transformation.misalignmentFactor(id, factor);
+    }
 
  // print
   if( Verbosity() )

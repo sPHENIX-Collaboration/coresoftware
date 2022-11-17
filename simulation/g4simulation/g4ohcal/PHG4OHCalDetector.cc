@@ -480,6 +480,13 @@ int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_i
       }
     }
   }
+
+  //fix for rotating the detector
+  rowid = 321 - rowid;
+  while(rowid > 319)
+    {
+      rowid -= 320;
+    }
   if (rowid < 0 || rowid > 319)
   {
     std::cout << "bad rowid for sector " << isector << ", layer_id " << layer_id << std::endl;

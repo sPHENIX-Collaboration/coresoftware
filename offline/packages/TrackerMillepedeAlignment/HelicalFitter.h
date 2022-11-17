@@ -89,6 +89,7 @@ Mille* _mille;
   void getGlobalDerivativesY( std::vector<Acts::Vector3> angleDerivs, float glbl_derivatives[], unsigned int layer);
   void getGlobalDerivativesZ( std::vector<Acts::Vector3> angleDerivs, float glbl_derivatives[], unsigned int layer);
   void printBuffers(int index, Acts::Vector3 residual, Acts::Vector3 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[]);
+  unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
   TpcDistortionCorrectionContainer* _dcc_static{nullptr};
@@ -127,8 +128,11 @@ Mille* _mille;
   static const int NLC = 5;
   static const int NGL = 6;
 
-  bool fitsilicon = true;
-  bool fittpc = false;
+  bool fitsilicon = false;
+  bool fittpc = true;
+  bool fitfulltrack = true;
+
+  float dca_cut = 0.1;  // 1 mm
 
   std::string _field;
   int _fieldDir = -1;

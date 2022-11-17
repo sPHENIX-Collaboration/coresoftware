@@ -124,8 +124,26 @@ int HelicalFitter::process_event(PHCompositeNode*)
       std::vector<float> fitpars =  fitClusters(global_vec, cluskey_vec);       // do helical fit
       if(fitpars.size() == 0) continue;  // discard this track, not enough clusters to fit
 
-      if(Verbosity() > 0)  { std::cout << " Track " << trackid   << " radius " << fitpars[0] << "X0 " << fitpars[1]<< " Y0 " << fitpars[2]
+      if(Verbosity() > 0)  
+	{ std::cout << " Track " << trackid   << " radius " << fitpars[0] << " X0 " << fitpars[1]<< " Y0 " << fitpars[2]
 		 << " zslope " << fitpars[3]  << " Z0 " << fitpars[4] << std::endl; }
+
+      // if a full track is requested, get the silicon clusters too and refit
+      if(fittpc && fitfulltrack)
+	{
+	  // this associates silicon clusters and adds them to the vectors
+	  unsigned int nsilicon = addSiliconClusters(fitpars, global_vec, cluskey_vec);
+	  if(nsilicon < 3) continue;  // discard this TPC seed, did not get a good match to silicon
+
+	  // fit the full track now
+	  fitpars.clear();
+	  fitpars =  fitClusters(global_vec, cluskey_vec);       // do helical fit
+	  if(fitpars.size() == 0) continue;  // discard this track, fit failed
+
+	  if(Verbosity() > 0)  
+	    { std::cout << " Full track " << trackid   << " radius " << fitpars[0] << " X0 " << fitpars[1]<< " Y0 " << fitpars[2]
+					   << " zslope " << fitpars[3]  << " Z0 " << fitpars[4] << std::endl; }
+	} 
 
       // get the residuals and derivatives for all clusters
       for(unsigned int ivec=0;ivec<global_vec.size(); ++ivec)
@@ -136,7 +154,6 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  if(!cluster) { continue;}
 	  
 	  // PCA of helix to cluster global position
-	  //Acts::Vector3 pca = get_helix_pca(radius, zslope, helix_center, global);
 	  Acts::Vector3 pca = get_helix_pca(fitpars, global);
 	  if(Verbosity() > 0) {std::cout << "    cluster position " << global(0) << " " << global(1) << " " << global(2) 
 					 << " pca " << pca(0) << " " << pca(1) << " " << pca(2)  << std::endl;}
@@ -723,3 +740,64 @@ void HelicalFitter::printBuffers(int index, Acts::Vector3 residual, Acts::Vector
   std::cout << " end of meas " << std::endl;		    
 }
 
+unsigned int HelicalFitter::addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec)
+{
+  // project the fit of the TPC clusters to each silicon layer, and find the nearest silicon cluster
+  // iterate over the cluster map and find silicon clusters that match this track fit
+
+  unsigned int nsilicon = 0;
+
+  // We want the best match in each layer
+  std::vector<float> best_layer_dca;
+  best_layer_dca.assign(7, 999.0);
+  std::vector<TrkrDefs::cluskey> best_layer_cluskey;
+  best_layer_cluskey.assign(7, 0);
+
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys())
+    {
+      auto range = _cluster_map->getClusters(hitsetkey);
+      for( auto clusIter = range.first; clusIter != range.second; ++clusIter )
+	{
+	  TrkrDefs::cluskey cluskey = clusIter->first;
+	  unsigned int layer = TrkrDefs::getLayer(cluskey);
+	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
+	  
+	  if(trkrid != TrkrDefs::mvtxId && trkrid != TrkrDefs::inttId)  continue;
+	  
+	  TrkrCluster* cluster = clusIter->second;
+	  auto global = _tGeometry->getGlobalPosition(cluskey, cluster);
+
+	  Acts::Vector3 pca = get_helix_pca(fitpars, global);
+	  float dca = (pca - global).norm();
+	  if(trkrid == TrkrDefs::inttId || trkrid == TrkrDefs::mvtxId)
+	    {
+	      Acts::Vector2 global_xy(global(0), global(1));
+	      Acts::Vector2 pca_xy(pca(0), pca(1));
+	      Acts::Vector2 pca_xy_residual = pca_xy - global_xy;
+	      dca = pca_xy_residual.norm();
+	    }
+
+	  if(dca < best_layer_dca[layer])
+	    {
+	      best_layer_dca[layer] = dca;
+	      best_layer_cluskey[layer] = cluskey;
+	    }
+	}  // end cluster iteration
+    } // end hitsetkey iteration
+
+  for(unsigned int layer = 0; layer < 7; ++layer)
+    {
+      if(best_layer_dca[layer] < dca_cut)
+	{
+	  cluskey_vec.push_back(best_layer_cluskey[layer]);
+	  auto clus =  _cluster_map->findCluster(best_layer_cluskey[layer]);
+	  auto global = _tGeometry->getGlobalPosition(best_layer_cluskey[layer], clus);
+	  global_vec.push_back(global);
+	  nsilicon++;
+	  if(Verbosity() > 0) std::cout << "   add cluster in layer " << layer << " with cluskey " << best_layer_cluskey[layer] << " and dca " << best_layer_dca[layer] 
+		    << " nsilicon " << nsilicon << std::endl;
+	}
+    }
+
+  return nsilicon;
+}

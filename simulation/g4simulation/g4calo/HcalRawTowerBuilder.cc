@@ -156,7 +156,7 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   m_RawTowerGeom->set_phibins(get_int_param(PHG4HcalDefs::n_towers));
   m_RawTowerGeom->set_etabins(get_int_param("etabins"));
   double geom_ref_radius = innerrad + thickness / 2.;
-  double phistart = get_double_param("phistart");
+  double phistart = get_double_param("phistart") - M_PI;
   if (!std::isfinite(phistart))
   {
     std::cout << PHWHERE << " phistart is not finite: " << phistart
@@ -165,7 +165,7 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   }
   for (int i = 0; i < get_int_param(PHG4HcalDefs::n_towers); i++)
   {
-    double phiend = phistart - 2. * M_PI / get_int_param(PHG4HcalDefs::n_towers);
+    double phiend = phistart + 2. * M_PI / get_int_param(PHG4HcalDefs::n_towers);
     std::pair<double, double> range = std::make_pair(phiend, phistart);
     phistart = phiend;
     m_RawTowerGeom->set_phibounds(i, range);
