@@ -252,18 +252,20 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
   
   
   // print radii
-  std::cout << "PHTpcCentralMembraneMatcher::InitRun - radii: " << radii.size() << std::endl;
-  int counter = 0;
-  for( const auto& radius:radii ) 
-  { 
-    std::cout << Form( "%.3f ", radius );
-    if( ++counter == 10 )
-    {
-      counter = 0;
-      std::cout << std::endl;
+  {
+    std::cout << "PHTpcCentralMembraneMatcher::InitRun - radii: " << radii.size() << std::endl;
+    int counter = 0;
+    for( const auto& radius:radii ) 
+    { 
+      std::cout << Form( "%.3f ", radius );
+      if( ++counter == 10 )
+      {
+        counter = 0;
+        std::cout << std::endl;
+      }
     }
+    std::cout << std::endl;
   }
-
   
   int ret = GetNodes(topNode);
   return ret;
@@ -315,11 +317,28 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   std::vector<std::pair<unsigned int, unsigned int>> matched_pair;
   std::vector<unsigned int> matched_nclus;
 
+
+//   // loop over cluster positions
+//   for(unsigned int j = 0; j < reco_pos.size(); ++j)
+//   {
+//       
+//     const auto& nclus = reco_nclusters[j];
+//     const double rad2=get_r(reco_pos[j].X(), reco_pos[j].Y());
+//     const double phi2 = reco_pos[j].Phi();
+// 
+//     // loop over truth positions
+//     for(unsigned int i=0; i<truth_pos.size(); ++i)
+//     {
+//       const double rad1= get_r( truth_pos[i].X(),truth_pos[i].Y());
+//       const double phi1 = truth_pos[i].Phi();
+      
   // loop over truth positions
   for(unsigned int i=0; i<truth_pos.size(); ++i)
   {
     const double rad1= get_r( truth_pos[i].X(),truth_pos[i].Y());
     const double phi1 = truth_pos[i].Phi();
+    
+    // loop over cluster positions
     for(unsigned int j = 0; j < reco_pos.size(); ++j)
     {
       
@@ -355,9 +374,11 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       }
       
       const auto dr = std::abs(rad1-rad2);
-      const auto dphi = std::abs(delta_phi(phi1-phi2));
       const bool accepted_r = (nclus == 1 && dr < m_rad_cut_1 )||(dr<m_rad_cut_2);
+
+      const auto dphi = std::abs(delta_phi(phi1-phi2));
       const bool accepted_phi = dphi < m_phi_cut;
+      
       if( accepted_r && accepted_phi ) 
       {
         matched_pair.emplace_back(i,j);
