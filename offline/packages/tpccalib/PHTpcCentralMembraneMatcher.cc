@@ -11,21 +11,23 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <TNtuple.h>
-#include <TFile.h>
-#include <TH1F.h>
-#include <TH2F.h>
-#include <string>
-#include <TVector3.h>
-#include <TCanvas.h>
-#include <TGraph.h>
-#include <cmath>
-
-/// Tracking includes
 #include <trackbase/CMFlashClusterv1.h>
 #include <trackbase/CMFlashClusterContainerv1.h>
 #include <trackbase/CMFlashDifferencev1.h>
 #include <trackbase/CMFlashDifferenceContainerv1.h>
+
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TGraph.h>
+#include <TH1F.h>
+#include <TH2F.h>
+#include <TNtuple.h>
+#include <TString.h>
+#include <TVector3.h>
+
+#include <cmath>
+#include <set>
+#include <string>
 
 namespace 
 {
@@ -35,6 +37,10 @@ namespace
     else if (phi <= -M_PI) return phi + 2.* M_PI;
     else return phi;
   }
+  
+  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+  
+  template<class T> inline T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
   
   // stream acts vector3
   [[maybe_unused]] std::ostream& operator << (std::ostream& out, const Acts::Vector3& v )
@@ -149,15 +155,18 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
     hrdr->GetYaxis()->SetTitle("dr");  
     hrdphi = new TH2F("hrdphi","dphi vs r",800,0.0,80.0,800,-0.001,0.001);
     hrdphi->GetXaxis()->SetTitle("r");  
-    hrdphi->GetYaxis()->SetTitle("dphi");  
-    hdr1_single = new TH1F("hdr1_single", "innner dr single", 200,-0.2, 0.2);
-    hdr2_single = new TH1F("hdr2_single", "mid dr single", 200,-0.2, 0.2);
-    hdr3_single = new TH1F("hdr3_single", "outer dr single", 200,-0.2, 0.2);
-    hdr1_double = new TH1F("hdr1_double", "innner dr double", 200,-0.2, 0.2);
-    hdr2_double = new TH1F("hdr2_double", "mid dr double", 200,-0.2, 0.2);
-    hdr3_double = new TH1F("hdr3_double", "outer dr double", 200,-0.2, 0.2);
+    hrdphi->GetYaxis()->SetTitle("dphi");
+    
+    
+    static constexpr float max_dr = 2.5;
+    hdr1_single = new TH1F("hdr1_single", "innner dr single", 200,-max_dr, max_dr);
+    hdr2_single = new TH1F("hdr2_single", "mid dr single", 200,-max_dr, max_dr);
+    hdr3_single = new TH1F("hdr3_single", "outer dr single", 200,-max_dr, max_dr);
+    hdr1_double = new TH1F("hdr1_double", "innner dr double", 200,-max_dr, max_dr);
+    hdr2_double = new TH1F("hdr2_double", "mid dr double", 200,-max_dr, max_dr);
+    hdr3_double = new TH1F("hdr3_double", "outer dr double", 200,-max_dr, max_dr);
     hdrphi = new TH1F("hdrphi","r * dphi", 200, -0.05, 0.05);
-    hnclus = new TH1F("hnclus", " nclusters ", 100, 0., 3.);
+    hnclus = new TH1F("hnclus", " nclusters ", 3, 0., 3.);
   }
   
   // Get truth cluster positions
@@ -168,6 +177,8 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
   
   // k is the petal ID, rotate the stripe center to this petal	      
   
+  std::set<float> radii;
+  
   // inner region extended is the 8 layers inside 30 cm    
   for(int j = 0; j < nRadii; ++j)
     for(int i=0; i < nGoodStripes_R1_e[j]; ++i)
@@ -176,6 +187,8 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 	  dummyPos.SetXYZ(cx1_e[i][j], cy1_e[i][j], 0.0);
 	  dummyPos.RotateZ(k * phi_petal);
 	  
+    if( k == 0 ) radii.insert( get_r( cx1_e[i][j], cy1_e[i][j] ) );
+    
 	  truth_pos.push_back(dummyPos);
 
 	  if(Verbosity() > 2)	  
@@ -192,6 +205,7 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 	{
 	  dummyPos.SetXYZ(cx1[i][j], cy1[i][j], 0.0);
 	  dummyPos.RotateZ(k * phi_petal);
+    if( k == 0 ) radii.insert( get_r( cx1[i][j], cy1[i][j] ) );
 	  
 	  truth_pos.push_back(dummyPos);
 
@@ -208,6 +222,7 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 	{
 	  dummyPos.SetXYZ(cx2[i][j], cy2[i][j], 0.0);
 	  dummyPos.RotateZ(k * phi_petal);
+    if( k == 0 ) radii.insert( get_r( cx2[i][j], cy2[i][j] ) );
 	  
 	  truth_pos.push_back(dummyPos);
 
@@ -224,6 +239,7 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 	{
 	  dummyPos.SetXYZ(cx3[i][j], cy3[i][j], 0.0);
 	  dummyPos.RotateZ(k * phi_petal);
+    if( k == 0 ) radii.insert( get_r( cx3[i][j], cy3[i][j] ) );
 
 	  truth_pos.push_back(dummyPos);
 	  
@@ -233,6 +249,21 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
 	  if(m_savehistograms) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}   
+  
+  
+  // print radii
+  std::cout << "PHTpcCentralMembraneMatcher::InitRun - radii: " << radii.size() << std::endl;
+  int counter = 0;
+  for( const auto& radius:radii ) 
+  { 
+    std::cout << Form( "%.3f ", radius );
+    if( ++counter == 10 )
+    {
+      counter = 0;
+      std::cout << std::endl;
+    }
+  }
+
   
   int ret = GetNodes(topNode);
   return ret;
@@ -286,57 +317,96 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 
   // loop over truth positions
   for(unsigned int i=0; i<truth_pos.size(); ++i)
+  {
+    const double rad1= get_r( truth_pos[i].X(),truth_pos[i].Y());
+    const double phi1 = truth_pos[i].Phi();
+    for(unsigned int j = 0; j < reco_pos.size(); ++j)
     {
-      double rad1=sqrt(truth_pos[i].X() * truth_pos[i].X() + truth_pos[i].Y() * truth_pos[i].Y());
-      double phi1 = truth_pos[i].Phi();
-      for(unsigned int j = 0; j < reco_pos.size(); ++j)
-	{
-	  unsigned int nclus = reco_nclusters[j];
-
-	  double rad2=sqrt(reco_pos[j].X() * reco_pos[j].X() + reco_pos[j].Y() * reco_pos[j].Y());
-	  double phi2 = reco_pos[j].Phi();
-
-	  if(fabs(rad1-rad2) < m_rad_cut && fabs(phi1-phi2) < m_phi_cut)
-	    {
-	      matched_pair.emplace_back(i,j);
-        matched_nclus.push_back(nclus);
-	      break;
-	    }
-	}      
-    }
-  
-    for(unsigned int ip = 0; ip < matched_pair.size(); ++ip)
-    {
-      const std::pair<unsigned int, unsigned int>& p = matched_pair[ip];
-      const unsigned int& nclus = matched_nclus[ip];
+      
+      const auto& nclus = reco_nclusters[j];
+      const double rad2=get_r(reco_pos[j].X(), reco_pos[j].Y());
+      const double phi2 = reco_pos[j].Phi();
+      
       if(m_savehistograms)
-	{
-	  double rad1 = sqrt(reco_pos[p.second].X() * reco_pos[p.second].X() + reco_pos[p.second].Y() * reco_pos[p.second].Y());
-	  double rad2 = sqrt(truth_pos[p.first].X() * truth_pos[p.first].X() + truth_pos[p.first].Y() * truth_pos[p.first].Y());
-
-	  double dr =  rad1-rad2;
-	  double dphi = reco_pos[p.second].Phi() - truth_pos[p.first].Phi();
-	  double r =  rad2;
-
-	  hdrphi->Fill(r * dphi);
-	  hdrdphi->Fill(dr, dphi);
-	  hrdr->Fill(r,dr);
-	  hrdphi->Fill(r,dphi);
-	  hnclus->Fill( (float) nclus);
-
-	  if(nclus==1)
-	    {
-	      if(r < 40.0) hdr1_single->Fill(dr); 
-	      if(r >= 40.0 && r < 58.0) hdr2_single->Fill(dr); 
-	      if(r >= 58.0) hdr3_single->Fill(dr); 	  
-	    }
-	  else
-	    {
-	      if(r < 40.0) hdr1_double->Fill(dr); 
-	      if(r >= 40.0 && r < 58.0) hdr2_double->Fill(dr); 
-	      if(r >= 58.0) hdr3_double->Fill(dr); 	  
-	    }
-	}
+      {
+        
+        const double dr =  rad1-rad2;
+        const double dphi = delta_phi(phi1-phi2);
+        const double r =  rad2;
+        
+        hdrphi->Fill(r*dphi);
+        hdrdphi->Fill(dr, dphi);
+        hrdr->Fill(r,dr);
+        hrdphi->Fill(r,dphi);
+        hnclus->Fill( (float) nclus);
+        
+        if(nclus==1)
+        {
+          if(r < 40.0) hdr1_single->Fill(dr); 
+          if(r >= 40.0 && r < 58.0) hdr2_single->Fill(dr); 
+          if(r >= 58.0) hdr3_single->Fill(dr); 	  
+        }
+        else
+        {
+          if(r < 40.0) hdr1_double->Fill(dr); 
+          if(r >= 40.0 && r < 58.0) hdr2_double->Fill(dr); 
+          if(r >= 58.0) hdr3_double->Fill(dr); 	  
+        }
+      }
+      
+      const auto dr = std::abs(rad1-rad2);
+      const auto dphi = std::abs(delta_phi(phi1-phi2));
+      const bool accepted_r = (nclus == 1 && dr < m_rad_cut_1 )||(dr<m_rad_cut_2);
+      const bool accepted_phi = dphi < m_phi_cut;
+      if( accepted_r && accepted_phi ) 
+      {
+        matched_pair.emplace_back(i,j);
+        matched_nclus.push_back(nclus);
+        break;
+      }
+    }      
+  }
+  
+  // print some statistics: 
+  // if( Verbosity() )
+  {
+    std::cout << "PHTpcCentralMembraneMatcher - truth_pos size: " << truth_pos.size() << std::endl;
+    std::cout << "PHTpcCentralMembraneMatcher - reco_pos size: " << reco_pos.size() << std::endl;
+    std::cout << "PHTpcCentralMembraneMatcher - matched_pair size: " << matched_pair.size() << std::endl;
+  }
+  
+  for(unsigned int ip = 0; ip < matched_pair.size(); ++ip)
+  {
+    const std::pair<unsigned int, unsigned int>& p = matched_pair[ip];
+    const unsigned int& nclus = matched_nclus[ip];
+//     if(m_savehistograms)
+//     {
+//       double rad1 = sqrt(reco_pos[p.second].X() * reco_pos[p.second].X() + reco_pos[p.second].Y() * reco_pos[p.second].Y());
+//       double rad2 = sqrt(truth_pos[p.first].X() * truth_pos[p.first].X() + truth_pos[p.first].Y() * truth_pos[p.first].Y());
+//       
+//       double dr =  rad1-rad2;
+//       double dphi = reco_pos[p.second].Phi() - truth_pos[p.first].Phi();
+//       double r =  rad2;
+//       
+//       hdrphi->Fill(r * dphi);
+//       hdrdphi->Fill(dr, dphi);
+//       hrdr->Fill(r,dr);
+//       hrdphi->Fill(r,dphi);
+//       hnclus->Fill( (float) nclus);
+//       
+//       if(nclus==1)
+//       {
+//         if(r < 40.0) hdr1_single->Fill(dr); 
+//         if(r >= 40.0 && r < 58.0) hdr2_single->Fill(dr); 
+//         if(r >= 58.0) hdr3_single->Fill(dr); 	  
+//       }
+//       else
+//       {
+//         if(r < 40.0) hdr1_double->Fill(dr); 
+//         if(r >= 40.0 && r < 58.0) hdr2_double->Fill(dr); 
+//         if(r >= 58.0) hdr3_double->Fill(dr); 	  
+//       }
+//     }
 
     // add to node tree
     unsigned int key = p.first;
@@ -521,34 +591,37 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
     new PHIODataNode<PHObject>(m_cm_flash_diffs, "CM_FLASH_DIFFERENCES", "PHObject");
   DetNode->addNode(CMFlashDifferenceNode);
   
-  // output tpc fluctuation distortion container
-  // this one is filled on the fly on a per-CM-event basis, and applied in the tracking chain
-  const std::string dcc_out_node_name = "TpcDistortionCorrectionContainerFluctuation";
-  m_dcc_out = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,dcc_out_node_name);
-  if( !m_dcc_out )
-  { 
-  
-    /// Get the DST node and check
-    auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-    if (!dstNode)
-    {
-      std::cout << "PHTpcCentralMembraneMatcher::InitRun - DST Node missing, quitting" << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-    
-    // Get the tracking subnode and create if not found
-    auto svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
-    if (!svtxNode)
-    {
-      svtxNode = new PHCompositeNode("SVTX");
-      dstNode->addNode(svtxNode);
-    }
+//   // output tpc fluctuation distortion container
+//   // this one is filled on the fly on a per-CM-event basis, and applied in the tracking chain
+//   const std::string dcc_out_node_name = "TpcDistortionCorrectionContainerFluctuation";
+//   m_dcc_out = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,dcc_out_node_name);
+//   if( !m_dcc_out )
+//   { 
+//   
+//     /// Get the DST node and check
+//     auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+//     if (!dstNode)
+//     {
+//       std::cout << "PHTpcCentralMembraneMatcher::InitRun - DST Node missing, quitting" << std::endl;
+//       return Fun4AllReturnCodes::ABORTRUN;
+//     }
+//     
+//     // Get the tracking subnode and create if not found
+//     auto svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+//     if (!svtxNode)
+//     {
+//       svtxNode = new PHCompositeNode("SVTX");
+//       dstNode->addNode(svtxNode);
+//     }
+// 
+//     std::cout << "PHTpcCentralMembraneMatcher::GetNodes - creating TpcDistortionCorrectionContainer in node " << dcc_out_node_name << std::endl;
+//     m_dcc_out = new TpcDistortionCorrectionContainer;
+//     auto node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
+//     svtxNode->addNode(node);
+//   }
 
-    std::cout << "PHTpcCentralMembraneMatcher::GetNodes - creating TpcDistortionCorrectionContainer in node " << dcc_out_node_name << std::endl;
-    m_dcc_out = new TpcDistortionCorrectionContainer;
-    auto node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
-    svtxNode->addNode(node);
-  }
+  // create per event distortions. Do not put on the node tree
+  m_dcc_out = new TpcDistortionCorrectionContainer;
 
   // also prepare the local distortion container, used to aggregate multple events 
   m_dcc_out_aggregated.reset( new TpcDistortionCorrectionContainer );
