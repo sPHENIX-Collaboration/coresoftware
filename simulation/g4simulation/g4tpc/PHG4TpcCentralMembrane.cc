@@ -85,9 +85,6 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* /* topNode */)
   std::cout << "PHG4TpcCentralMembrane::InitRun - electrons_per_stripe: " << electrons_per_stripe << std::endl;
   std::cout << "PHG4TpcCentralMembrane::InitRun - electrons_per_gev " << electrons_per_gev << std::endl;
   
-  // assign G4Hits container name
-  hitnodename = "G4HIT_" + detector;
-
   // reset g4hits
   for (auto&& hit : PHG4Hits)
   {
@@ -169,16 +166,19 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* /* topNode */)
   }
 
   // print radii
-  std::cout << "PHG4TpcCentralMembrane::InitRun - radii: " << radii.size() << std::endl;
-  int counter = 0;
-  for( const auto& radius:radii ) 
-  { 
-    std::cout << Form( "%.3f ", radius );
-    if( ++counter == 10 )
-    {
-      counter = 0;
-      std::cout << std::endl;
+  {
+    std::cout << "PHG4TpcCentralMembrane::InitRun - radii: " << radii.size() << std::endl;
+    int counter = 0;
+    for( const auto& radius:radii ) 
+    { 
+      std::cout << Form( "%.3f ", radius );
+      if( ++counter == 10 )
+      {
+        counter = 0;
+        std::cout << std::endl;
+      }
     }
+    std::cout << std::endl;
   }
   
   return Fun4AllReturnCodes::EVENT_OK;
@@ -226,7 +226,7 @@ void PHG4TpcCentralMembrane::SetDefaultParameters()
   set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1000000.);
 
   /// mean number of electrons per stripe
-  set_default_int_param("electrons_per_stripe", 300);
+  set_default_int_param("electrons_per_stripe", 100);
 }
 
 //_____________________________________________________________
