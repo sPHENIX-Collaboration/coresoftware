@@ -14,6 +14,7 @@
 #include <phool/phool.h>  // for PHWHERE
 
 #include <TVector3.h>
+#include <TString.h>
 
 #include <iostream>  // for operator<<, endl, basi...
 
@@ -23,6 +24,10 @@ namespace
 {
   // unique detector id for all direct lasers
   static const int detId = PHG4HitDefs::get_volume_id("PHG4TpcCentralMembrane");
+  
+  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+  
+  template<class T> inline T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
 
 }  // namespace
 
@@ -70,7 +75,7 @@ PHG4TpcCentralMembrane::~PHG4TpcCentralMembrane()
 }
 
 //_____________________________________________________________
-int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* topNode)
+int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* /* topNode */)
 {
   // setup parameters
   UpdateParametersWithMacro();
@@ -79,17 +84,11 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* topNode)
 
   std::cout << "PHG4TpcCentralMembrane::InitRun - electrons_per_stripe: " << electrons_per_stripe << std::endl;
   std::cout << "PHG4TpcCentralMembrane::InitRun - electrons_per_gev " << electrons_per_gev << std::endl;
-
-  // make sure G4Hit container exists
+  
+  // assign G4Hits container name
   hitnodename = "G4HIT_" + detector;
-  auto* g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  if (!g4hit)
-  {
-    std::cout << Name() << " Could not locate G4HIT node " << hitnodename << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
 
-  // reset vertices and g4hits
+  // reset g4hits
   for (auto&& hit : PHG4Hits)
   {
     delete hit;
@@ -121,6 +120,9 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* topNode)
     PHG4Hits.push_back(copy);
   };
 
+  std::vector<TVector3>  positions;
+  std::set<float> radii;
+  
   // loop over petalID
   for (int i = 0; i < 18; i++)
   {
@@ -151,8 +153,34 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* topNode)
         adjust_hits(GetPHG4HitFromStripe(i, 3, j, k, electrons_per_stripe));
       }
     }
+    
+    // store all positions for first petal
+    if( i == 0 )
+    {
+      for( const auto& g4hit:PHG4Hits )
+      { 
+        if( g4hit->get_avg_z() > 0 )
+        { 
+          positions.emplace_back( g4hit->get_avg_x(), g4hit->get_avg_y(), g4hit->get_avg_z() ); 
+          radii.insert( get_r( g4hit->get_avg_x(), g4hit->get_avg_y() ) );
+        }
+      }
+    }
   }
 
+  // print radii
+  std::cout << "PHG4TpcCentralMembrane::InitRun - radii: " << radii.size() << std::endl;
+  int counter = 0;
+  for( const auto& radius:radii ) 
+  { 
+    std::cout << Form( "%.3f ", radius );
+    if( ++counter == 10 )
+    {
+      counter = 0;
+      std::cout << std::endl;
+    }
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
