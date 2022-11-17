@@ -37,7 +37,6 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
   ~PHTpcCentralMembraneMatcher() override = default;
 
-
   /// set to true to store evaluation histograms and ntuples
   void setSavehistograms( bool value )
   {m_savehistograms = value;}
@@ -112,13 +111,15 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
   //@}
   
-  /// radius cut for matching clusters to pad
-  /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
-  double m_rad_cut= 0.2;
+  /// radius cut for matching clusters to pad, for size 1 clusters
+  double m_rad_cut_1 = 1.0;
+  
+  /// radius cut for matching clusters to pad, for size 2 clusters
+  double m_rad_cut_2= 0.2;
   
   /// phi cut for matching clusters to pad
   /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
-  double m_phi_cut= 0.01;
+  double m_phi_cut= 0.02;
   
   ///@name distortion correction histograms
   //@{
