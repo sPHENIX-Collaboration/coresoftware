@@ -20,7 +20,7 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
 {
  public:
   /// constructor
-  PHG4TpcCentralMembrane(const std::string& name = "PHG4TpcDirectLaser");
+  PHG4TpcCentralMembrane(const std::string& name = "PHG4TpcCentralMembrane");
 
   /// destructor
   ~PHG4TpcCentralMembrane() override;
