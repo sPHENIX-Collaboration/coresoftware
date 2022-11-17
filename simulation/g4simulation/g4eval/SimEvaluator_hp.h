@@ -104,6 +104,8 @@ class SimEvaluator_hp : public SubsysReco
     float _x = 0;
     float _y = 0;
     float _z = 0;
+    float _r = 0;
+    float _phi = 0;
     float _t = 0;
     float _length = 0;
   };

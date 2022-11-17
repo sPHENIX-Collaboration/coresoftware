@@ -59,17 +59,18 @@ namespace
     const std::pair<T,T> m_range;
   };
 
-  //! square
-  template<class T> T square( T x ) { return x*x; }
+  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+  
+  template<class T> inline T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
 
   //! pt
-  template<class T> T get_pt( T px, T py ) { return std::sqrt( square(px) + square(py) ); }
+  template<class T> inline T get_pt( T px, T py ) { return std::sqrt( square(px) + square(py) ); }
 
   //! p
-  template<class T> T get_p( T px, T py, T pz ) { return std::sqrt( square(px) + square(py) + square(pz) ); }
+  template<class T> inline T get_p( T px, T py, T pz ) { return std::sqrt( square(px) + square(py) + square(pz) ); }
 
   //! eta
-  template<class T> T get_eta( T p, T pz ) { return std::log( (p+pz)/(p-pz) )/2; }
+  template<class T> inline T get_eta( T p, T pz ) { return std::log( (p+pz)/(p-pz) )/2; }
 
   //! true if particle is primary
   inline bool is_primary( PHG4Particle* particle )
@@ -149,6 +150,8 @@ namespace
     g4hitstruct._x = g4hit->get_avg_x();
     g4hitstruct._y = g4hit->get_avg_y();
     g4hitstruct._z = g4hit->get_avg_z();
+    g4hitstruct._r = get_r( g4hitstruct._x, g4hitstruct._y );
+    g4hitstruct._phi = std::atan2( g4hitstruct._y, g4hitstruct._x );
     g4hitstruct._length = std::sqrt( 
       square(g4hit->get_x(1) - g4hit->get_x(0))+
       square(g4hit->get_y(1) - g4hit->get_y(0))+
