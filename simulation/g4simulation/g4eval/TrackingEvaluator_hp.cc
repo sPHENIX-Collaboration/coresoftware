@@ -679,6 +679,28 @@ void TrackingEvaluator_hp::evaluate_clusters()
   // clear array
   m_container->clearClusters();
 
+  // print total hits in TPC
+  {
+    int n_tpc_hits = 0;
+    int n_tpc_clusters = 0;
+    for( const auto& [hitsetkey,hitset]:range_adaptor( m_hitsetcontainer->getHitSets( TrkrDefs::tpcId )))
+    { 
+      n_tpc_hits += hitset->size(); 
+      const auto range = m_cluster_map->getClusters(hitsetkey);
+      n_tpc_clusters += std::distance( range.first, range.second );
+    }
+  
+    std::cout << "TrackingEvaluator_hp::evaluate_clusters - n_tpc_hits: " << n_tpc_hits << std::endl;
+    std::cout << "TrackingEvaluator_hp::evaluate_clusters - n_tpc_clusters: " << n_tpc_clusters << std::endl;
+  }
+  
+  // print total clusters in TPC
+  {
+    
+    
+  }
+  
+  
   // first loop over hitsets
   for( const auto& [hitsetkey,hitset]:range_adaptor(m_hitsetcontainer->getHitSets()))
   {
