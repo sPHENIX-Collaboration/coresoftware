@@ -381,7 +381,10 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   // print some statistics: 
   // if( Verbosity() )
   {
+    const auto n_valid_truth = std::count_if( truth_pos.begin(), truth_pos.end(), []( const TVector3& pos ) { return get_r( pos.x(), pos.y() ) >  30; } );
+    
     std::cout << "PHTpcCentralMembraneMatcher - truth_pos size: " << truth_pos.size() << std::endl;
+    std::cout << "PHTpcCentralMembraneMatcher - truth_pos size, r>30cm: " << n_valid_truth << std::endl;
     std::cout << "PHTpcCentralMembraneMatcher - reco_pos size: " << reco_pos.size() << std::endl;
     std::cout << "PHTpcCentralMembraneMatcher - matched_pair size: " << matched_pair.size() << std::endl;
   }
@@ -638,11 +641,11 @@ int  PHTpcCentralMembraneMatcher::GetNodes(PHCompositeNode* topNode)
   m_dcc_out_aggregated.reset( new TpcDistortionCorrectionContainer );
 
   // compute axis limits to include guarding bins, needed for TH2::Interpolate to work
-  const float phiMin = m_phiMin - (m_phiMin-m_phiMax)/m_phibins;
-  const float phiMax = m_phiMax + (m_phiMin-m_phiMax)/m_phibins;
+  const float phiMin = m_phiMin - (m_phiMax-m_phiMin)/m_phibins;
+  const float phiMax = m_phiMax + (m_phiMax-m_phiMin)/m_phibins;
   
-  const float rMin = m_rMin - (m_rMin-m_rMax)/m_rbins;
-  const float rMax = m_rMax + (m_rMin-m_rMax)/m_rbins;
+  const float rMin = m_rMin - (m_rMax-m_rMin)/m_rbins;
+  const float rMax = m_rMax + (m_rMax-m_rMin)/m_rbins;
 
   // reset all output distortion container so that they match the requested grid size
   const std::array<const std::string,2> extension = {{ "_negz", "_posz" }};
