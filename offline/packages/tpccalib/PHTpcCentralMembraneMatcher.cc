@@ -172,29 +172,36 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
   // Get truth cluster positions
   //=====================
   
-  TVector3 dummyPos;
   const double phi_petal = M_PI / 9.0;  // angle span of one petal
-  
-  // k is the petal ID, rotate the stripe center to this petal	      
-  
-  std::set<float> radii;
+   
+  /*
+   * utility function to
+   * - duplicate generated truth position to cover both sides of the central membrane
+   * - assign proper z,
+   * - insert in container
+   */
+  auto save_truth_position = [&](TVector3 source) 
+  {
+    source.SetZ( +1 );
+    truth_pos.push_back( source );
+    
+    source.SetZ( -1 );
+    truth_pos.push_back( source );
+  };
   
   // inner region extended is the 8 layers inside 30 cm    
   for(int j = 0; j < nRadii; ++j)
     for(int i=0; i < nGoodStripes_R1_e[j]; ++i)
       for(int k =0; k<18; ++k)
 	{
-	  dummyPos.SetXYZ(cx1_e[i][j], cy1_e[i][j], 0.0);
+	  TVector3 dummyPos(cx1_e[i][j], cy1_e[i][j], 0.0);
 	  dummyPos.RotateZ(k * phi_petal);
-	  
-    if( k == 0 ) radii.insert( get_r( cx1_e[i][j], cy1_e[i][j] ) );
-    
-	  truth_pos.push_back(dummyPos);
+	  save_truth_position(dummyPos);
 
 	  if(Verbosity() > 2)	  
 	    std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
-		      <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
-		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
+		      <<  " theta " << std::atan2(dummyPos.Y(), dummyPos.X())
+		      << " radius " << get_r( dummyPos.X(), dummyPos.y()) << std::endl; 
 	  if(m_savehistograms) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}  
   
@@ -203,16 +210,14 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
     for(int i=0; i < nGoodStripes_R1[j]; ++i)
       for(int k =0; k<18; ++k)
 	{
-	  dummyPos.SetXYZ(cx1[i][j], cy1[i][j], 0.0);
+	  TVector3 dummyPos(cx1[i][j], cy1[i][j], 0.0);
 	  dummyPos.RotateZ(k * phi_petal);
-    if( k == 0 ) radii.insert( get_r( cx1[i][j], cy1[i][j] ) );
-	  
-	  truth_pos.push_back(dummyPos);
+	  save_truth_position(dummyPos);
 
 	  if(Verbosity() > 2)	  
 	    std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
-		      <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
-		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
+		      <<  " theta " << std::atan2(dummyPos.Y(), dummyPos.X())
+		      << " radius " << get_r( dummyPos.X(), dummyPos.y()) << std::endl; 
 	  if(m_savehistograms) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}  
 
@@ -220,16 +225,14 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
     for(int i=0; i < nGoodStripes_R2[j]; ++i)
       for(int k =0; k<18; ++k)
 	{
-	  dummyPos.SetXYZ(cx2[i][j], cy2[i][j], 0.0);
+	  TVector3 dummyPos(cx2[i][j], cy2[i][j], 0.0);
 	  dummyPos.RotateZ(k * phi_petal);
-    if( k == 0 ) radii.insert( get_r( cx2[i][j], cy2[i][j] ) );
-	  
-	  truth_pos.push_back(dummyPos);
+	  save_truth_position(dummyPos);
 
 	  if(Verbosity() > 2)	  
 	    std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
-		      <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
-		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
+		      <<  " theta " << std::atan2(dummyPos.Y(), dummyPos.X())
+		      << " radius " << get_r( dummyPos.X(), dummyPos.y()) << std::endl; 
 	  if(m_savehistograms) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}      	  
   
@@ -237,35 +240,16 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
     for(int i=0; i < nGoodStripes_R3[j]; ++i)
       for(int k =0; k<18; ++k)
 	{
-	  dummyPos.SetXYZ(cx3[i][j], cy3[i][j], 0.0);
+	  TVector3 dummyPos(cx3[i][j], cy3[i][j], 0.0);
 	  dummyPos.RotateZ(k * phi_petal);
-    if( k == 0 ) radii.insert( get_r( cx3[i][j], cy3[i][j] ) );
-
-	  truth_pos.push_back(dummyPos);
+	  save_truth_position(dummyPos);
 	  
 	  if(Verbosity() > 2)
 	    std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
-		      <<  " theta " << atan2(dummyPos.Y(), dummyPos.X())
-		      << " radius " << sqrt(pow(dummyPos.X(),2)+pow(dummyPos.Y(),2)) << std::endl; 
+		      <<  " theta " << std::atan2(dummyPos.Y(), dummyPos.X())
+		      << " radius " << get_r( dummyPos.X(), dummyPos.y()) << std::endl; 
 	  if(m_savehistograms) hxy_truth->Fill(dummyPos.X(),dummyPos.Y());      	  
 	}   
-  
-  
-  // print radii
-  {
-    std::cout << "PHTpcCentralMembraneMatcher::InitRun - radii: " << radii.size() << std::endl;
-    int counter = 0;
-    for( const auto& radius:radii ) 
-    { 
-      std::cout << Form( "%.3f ", radius );
-      if( ++counter == 10 )
-      {
-        counter = 0;
-        std::cout << std::endl;
-      }
-    }
-    std::cout << std::endl;
-  }
   
   int ret = GetNodes(topNode);
   return ret;
@@ -335,6 +319,7 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   // loop over truth positions
   for(unsigned int i=0; i<truth_pos.size(); ++i)
   {
+    const double z1 = truth_pos[i].Z(); 
     const double rad1= get_r( truth_pos[i].X(),truth_pos[i].Y());
     const double phi1 = truth_pos[i].Phi();
     
@@ -343,8 +328,13 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     {
       
       const auto& nclus = reco_nclusters[j];
+      const double z2 = reco_pos[j].Z(); 
       const double rad2=get_r(reco_pos[j].X(), reco_pos[j].Y());
       const double phi2 = reco_pos[j].Phi();
+    
+      // only match pairs that are on the same side of the TPC
+      const bool accepted_z = ((z1>0)==(z2>0));
+      if( !accepted_z ) continue;
       
       if(m_savehistograms)
       {
