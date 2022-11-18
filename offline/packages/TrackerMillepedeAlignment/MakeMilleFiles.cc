@@ -104,18 +104,14 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
   if (Verbosity() > 0)
     std::cout << PHWHERE << " track map size " << _track_map->size() << std::endl;
 
-  // loop over the tracks
-  for (auto phtrk_iter = _track_map->begin();
-       phtrk_iter != _track_map->end();
-       ++phtrk_iter)
+  for(auto [key, track] : *_track_map)
   {
-    auto track = phtrk_iter->second;
     auto crossing = track->get_silicon_seed()->get_crossing();
 
     if (Verbosity() > 0)
     {
       std::cout << std::endl
-                << __LINE__ << ": Processing track itrack: " << phtrk_iter->first << ": nhits: " << track->size_cluster_keys()
+                << __LINE__ << ": Processing track itrack: " << key << ": nhits: " << track->size_cluster_keys()
                 << ": Total tracks: " << _track_map->size() << ": phi: " << track->get_phi() << std::endl;
     }
 
@@ -123,7 +119,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
     // Maybe set a lower pT limit - low pT tracks are not very sensitive to alignment
 
     /// Get the corresponding acts trajectory to look up the state info
-    const auto traj = _trajectories->find(phtrk_iter->first)->second;
+    const auto traj = _trajectories->find(key)->second;
 
     AlignmentStateMap alignStates = getAlignmentStates(traj, track, crossing);
 
@@ -131,6 +127,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 
     /// Finish this track
     _mille->end();
+ 
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -664,12 +661,41 @@ AlignmentStateMap MakeMilleFiles::getAlignmentStates(const Trajectory& traj,
                 << dGlobResTrack << std::endl;
     }
 
-    AlignmentState astate(state.index(), actslocres, dLocResAlignment, dLocResTrack, clusGlobal);
+   
 
+    AlignmentState astate(state.index(), residual, dGlobResAlignment, dGlobResTrack, clusGlobal);
+
+    /// To switch to creating things WRT local coordinates, change 
+    /// AlignmentState::NLC to 8 and AlignmentState::NRES to 2 and 
+    /// uncomment the following
+    /// AlignmentState astate(state.index(actslocres, dLocResAlignment, dLocResTrack, clusGlobal);
+
+    if(m_useAnalytic)
+      {
+	auto surf = _tGeometry->maps().getSurface(ckey, clus);
+	auto anglederivs = getDerivativesAlignmentAngles(clusGlobal, ckey, 
+							 clus, surf, 
+							 crossing);
+	AlignmentState::GlobalMatrix analytic = AlignmentState::GlobalMatrix::Zero();
+        analytic(0,0) = 1;
+        analytic(1,1) = 1;
+        analytic(2,2) = 1;
+	for(int i=0; i<AlignmentState::NRES; ++i) 
+	  {
+	    for(int j=3; j<AlignmentState::NGL; ++j)
+	      {
+		/// convert to mm
+		analytic(i,j) = anglederivs.at(i)(j-3) * Acts::UnitConstants::cm;
+	      }
+	  }
+
+	astate.set_dResAlignmentPar(analytic);
+      }
+  
     alignStates.insert(std::make_pair(ckey, astate));
-
+    
     return true;
-  });
+    });
 
   return alignStates;
 }
@@ -679,8 +705,9 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
   for (auto& [ckey, astate] : alignStates)
   {
     if (Verbosity() > 2)
-      std::cout << "adding state for ckey " << ckey << std::endl;
-
+      {
+	std::cout << "adding state for ckey " << ckey << std::endl;
+      }
     // The global alignment parameters are given initial values of zero by default, we do not specify them
     // We identify the global alignment parameters for this surface
     const auto cluster = _cluster_map->findCluster(ckey);
@@ -754,7 +781,7 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
       std::cout << std::endl;
     }
 
-    /// For 3 residual coordinates x,y,z
+    /// For N residual coordinates x,y,z or local x,z
     for (int i = 0; i < AlignmentState::NRES; ++i)
     {
       // Add the measurement separately for each coordinate direction to Mille
@@ -773,7 +800,7 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
       {
         std::cout << "coordinate " << i << " has residual " << residual(i) << " and clus_sigma " << clus_sigma(i) << std::endl
                   << "global deriv " << std::endl;
-        ;
+        
         for (int k = 0; k < AlignmentState::NGL; k++)
         {
           std::cout << glbl_derivative[k] << ", ";
@@ -793,6 +820,6 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
       }
     }
   }
-
+ 
   return;
 }

@@ -512,7 +512,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       auto pass_data = padplane->MapToPadPlane(
         single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, 
         x_final, y_final, t_final, side, hiter, ntpad, nthit);
-      if (is_embedded && pass_data.has_data()) layer_clusterers[pass_data.layer-1] += pass_data;
+      if (is_embedded && pass_data.has_data) layer_clusterers[pass_data.layer-1] += pass_data;
     }  // end loop over electrons for this g4hit
 
     TrkrHitSetContainer::ConstRange single_hitset_range = single_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -772,7 +772,7 @@ void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
 void PHG4TpcElectronDrift::buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsigned int>& hitset_cnt)
 {
   for (auto& cluster_builder : layer_clusterers) {
-    if (cluster_builder.has_data()) {
+    if (cluster_builder.has_data) {
       std::pair<TrkrDefs::cluskey,TrkrCluster*> keyval = cluster_builder.build(hitset_cnt);
       current_track->addCluster(keyval.first);
       truthclustercontainer->addClusterSpecifyKey(keyval.first, keyval.second);
