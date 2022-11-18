@@ -38,7 +38,12 @@ FROG::location(const std::string &logical_name)
   }
   try
   {
-    std::string gsearchpath(getenv("GSEARCHPATH"));
+    char *gsearchpath_env = getenv("GSEARCHPATH");
+    if (gsearchpath_env == nullptr)
+    {
+      return pfn.c_str();
+    }
+    std::string gsearchpath(gsearchpath_env);
     if (Verbosity() > 0)
     {
       std::cout << "FROG: GSEARCHPATH: " << gsearchpath << std::endl;

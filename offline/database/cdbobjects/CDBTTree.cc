@@ -16,6 +16,7 @@
 #include <cmath>    // for NAN, isfinite
 #include <cstdint>  // for uint64_t, UINT64_MAX
 #include <iostream>
+#include <limits>   // for numeric_limits, numeric_limits<>::max_digits10
 #include <set>      // for set
 #include <utility>  // for pair, make_pair
 
@@ -489,8 +490,8 @@ void CDBTTree::LoadCalibrations()
         gSystem->Exit(1);
       }
     }
+    m_TTree[SingleEntries]->GetEntry(0);
   }
-  m_TTree[SingleEntries]->GetEntry(0);
   if (m_TTree[MultipleEntries] != nullptr)
   {
     TObjArray *branches = m_TTree[MultipleEntries]->GetListOfBranches();
