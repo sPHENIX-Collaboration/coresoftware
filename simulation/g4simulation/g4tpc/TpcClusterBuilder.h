@@ -1,6 +1,7 @@
 #ifndef G4TPC_TPCCLUSTERBUILDER_H
 #define G4TPC_TPCCLUSTERBUILDER_H
 
+#include <trackbase/ActsGeometry.h>
 #include <phool/PHObject.h>
 #include <trackbase/TrkrDefs.h>
 #include <map>
@@ -17,9 +18,13 @@ class PHG4TpcCylinderGeom;
 
 class TpcClusterBuilder 
 {
+
   using MapHitsetkeyUInt   = std::map<TrkrDefs::hitsetkey, unsigned int>;
   using PairCluskeyCluster = std::pair<TrkrDefs::cluskey,TrkrCluster*>;
   public:
+    static constexpr double AdcClockPeriod = 53.0; // ns (copied from TpcClusterizer.h)
+    static ActsGeometry* tGeometry;
+
     PHG4TpcCylinderGeom *layerGeom { nullptr }; // unique to the layer
     bool   has_data       { false };
     short  layer          {  SHRT_MAX };
@@ -35,11 +40,12 @@ class TpcClusterBuilder
     bool   hasPhiBins     { false   };
     bool   hasTimeBins    { false   };
 
-    TpcClusterBuilder( short _layer,  unsigned int _side, 
+    TpcClusterBuilder( short _layer,  bool _has_data, unsigned int _side, 
         int _neff_electrons, double _phi_integral, 
         double _time_integral, int _phi_bin_lo,  int _phi_bin_hi, 
         int _time_bin_lo, int _time_bin_hi) 
       : layerGeom      { nullptr         }
+      , has_data       { _has_data       }
       , layer          { _layer          }
       , side           { _side           }
       , neff_electrons { _neff_electrons }
