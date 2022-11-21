@@ -77,9 +77,6 @@ int PHTpcCentralMembraneClusterizer::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
 {
-
-  
-  std::cout << "PHTpcCentralMembraneClusterizer::process_event - _min_z_value: " << _min_z_value << std::endl;
   
   //local coord conversion below
   auto tgeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
