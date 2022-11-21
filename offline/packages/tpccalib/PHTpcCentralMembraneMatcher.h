@@ -110,12 +110,9 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   std::unique_ptr<TFile> fout;
 
   //@}
-  
-  /// radius cut for matching clusters to pad, for size 1 clusters
-  double m_rad_cut_1 = 1.0;
-  
+    
   /// radius cut for matching clusters to pad, for size 2 clusters
-  double m_rad_cut_2= 0.2;
+  double m_rad_cut= 0.2;
   
   /// phi cut for matching clusters to pad
   /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
@@ -151,9 +148,6 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   static constexpr int nPads_R1 = 6 * 16;
   static constexpr int nPads_R2 = 8 * 16;
   static constexpr int nPads_R3 = 12 * 16;
-
-  /// radius of arc on end of a stripe
-  static constexpr double arc_r = 0.5 * mm;
 
   /// stripe radii
   static constexpr std::array<double, nRadii> R1_e = {{227.0902789 * mm, 238.4100043 * mm, 249.7297296 * mm, 261.049455 * mm, 272.3691804 * mm, 283.6889058 * mm, 295.0086312 * mm, 306.3283566 * mm}};
