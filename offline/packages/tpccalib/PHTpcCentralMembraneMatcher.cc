@@ -336,35 +336,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       const bool accepted_z = ((z1>0)==(z2>0));
       if( !accepted_z ) continue;
       
-      if(m_savehistograms)
-      {
-        
-        const double dr =  rad1-rad2;
-        const double dphi = delta_phi(phi1-phi2);
-        const double r =  rad2;
-        
-        hdrphi->Fill(r*dphi);
-        hdrdphi->Fill(dr, dphi);
-        hrdr->Fill(r,dr);
-        hrdphi->Fill(r,dphi);
-        hnclus->Fill( (float) nclus);
-        
-        if(nclus==1)
-        {
-          if(r < 40.0) hdr1_single->Fill(dr); 
-          if(r >= 40.0 && r < 58.0) hdr2_single->Fill(dr); 
-          if(r >= 58.0) hdr3_single->Fill(dr); 	  
-        }
-        else
-        {
-          if(r < 40.0) hdr1_double->Fill(dr); 
-          if(r >= 40.0 && r < 58.0) hdr2_double->Fill(dr); 
-          if(r >= 58.0) hdr3_double->Fill(dr); 	  
-        }
-      }
-      
       const auto dr = std::abs(rad1-rad2);
-      const bool accepted_r = (nclus == 1 && dr < m_rad_cut_1 )||(dr<m_rad_cut_2);
+      const bool accepted_r = dr < m_rad_cut;
 
       const auto dphi = std::abs(delta_phi(phi1-phi2));
       const bool accepted_phi = dphi < m_phi_cut;
@@ -383,44 +356,44 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   {
     const auto n_valid_truth = std::count_if( truth_pos.begin(), truth_pos.end(), []( const TVector3& pos ) { return get_r( pos.x(), pos.y() ) >  30; } );
     
-    std::cout << "PHTpcCentralMembraneMatcher - truth_pos size: " << truth_pos.size() << std::endl;
-    std::cout << "PHTpcCentralMembraneMatcher - truth_pos size, r>30cm: " << n_valid_truth << std::endl;
-    std::cout << "PHTpcCentralMembraneMatcher - reco_pos size: " << reco_pos.size() << std::endl;
-    std::cout << "PHTpcCentralMembraneMatcher - matched_pair size: " << matched_pair.size() << std::endl;
+    std::cout << "PHTpcCentralMembraneMatcher::process_event - truth_pos size: " << truth_pos.size() << std::endl;
+    std::cout << "PHTpcCentralMembraneMatcher::process_event - truth_pos size, r>30cm: " << n_valid_truth << std::endl;
+    std::cout << "PHTpcCentralMembraneMatcher::process_event - reco_pos size: " << reco_pos.size() << std::endl;
+    std::cout << "PHTpcCentralMembraneMatcher::process_event - matched_pair size: " << matched_pair.size() << std::endl;
   }
   
   for(unsigned int ip = 0; ip < matched_pair.size(); ++ip)
   {
     const std::pair<unsigned int, unsigned int>& p = matched_pair[ip];
     const unsigned int& nclus = matched_nclus[ip];
-//     if(m_savehistograms)
-//     {
-//       double rad1 = sqrt(reco_pos[p.second].X() * reco_pos[p.second].X() + reco_pos[p.second].Y() * reco_pos[p.second].Y());
-//       double rad2 = sqrt(truth_pos[p.first].X() * truth_pos[p.first].X() + truth_pos[p.first].Y() * truth_pos[p.first].Y());
-//       
-//       double dr =  rad1-rad2;
-//       double dphi = reco_pos[p.second].Phi() - truth_pos[p.first].Phi();
-//       double r =  rad2;
-//       
-//       hdrphi->Fill(r * dphi);
-//       hdrdphi->Fill(dr, dphi);
-//       hrdr->Fill(r,dr);
-//       hrdphi->Fill(r,dphi);
-//       hnclus->Fill( (float) nclus);
-//       
-//       if(nclus==1)
-//       {
-//         if(r < 40.0) hdr1_single->Fill(dr); 
-//         if(r >= 40.0 && r < 58.0) hdr2_single->Fill(dr); 
-//         if(r >= 58.0) hdr3_single->Fill(dr); 	  
-//       }
-//       else
-//       {
-//         if(r < 40.0) hdr1_double->Fill(dr); 
-//         if(r >= 40.0 && r < 58.0) hdr2_double->Fill(dr); 
-//         if(r >= 58.0) hdr3_double->Fill(dr); 	  
-//       }
-//     }
+    if(m_savehistograms)
+    {
+      double rad1 = sqrt(reco_pos[p.second].X() * reco_pos[p.second].X() + reco_pos[p.second].Y() * reco_pos[p.second].Y());
+      double rad2 = sqrt(truth_pos[p.first].X() * truth_pos[p.first].X() + truth_pos[p.first].Y() * truth_pos[p.first].Y());
+      
+      double dr =  rad1-rad2;
+      double dphi = reco_pos[p.second].Phi() - truth_pos[p.first].Phi();
+      double r =  rad2;
+      
+      hdrphi->Fill(r * dphi);
+      hdrdphi->Fill(dr, dphi);
+      hrdr->Fill(r,dr);
+      hrdphi->Fill(r,dphi);
+      hnclus->Fill( (float) nclus);
+      
+      if(nclus==1)
+      {
+        if(r < 40.0) hdr1_single->Fill(dr); 
+        if(r >= 40.0 && r < 58.0) hdr2_single->Fill(dr); 
+        if(r >= 58.0) hdr3_single->Fill(dr); 	  
+      }
+      else
+      {
+        if(r < 40.0) hdr1_double->Fill(dr); 
+        if(r >= 40.0 && r < 58.0) hdr2_double->Fill(dr); 
+        if(r >= 58.0) hdr3_double->Fill(dr); 	  
+      }
+    }
 
     // add to node tree
     unsigned int key = p.first;
