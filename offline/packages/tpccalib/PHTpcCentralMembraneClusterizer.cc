@@ -333,6 +333,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
     
     ++m_cm_clusters;
     
+    if( nclusters[iv]==1 ) ++m_cm_clusters_size1;
+    else if( nclusters[iv]==2 ) ++m_cm_clusters_size2;
+    
   }
 
   // read back the clusters and make some histograms
@@ -388,18 +391,30 @@ int PHTpcCentralMembraneClusterizer::End(PHCompositeNode * /*topNode*/ )
   
   // print statistics
 
-  std::cout
-    << "PHTpcCentralMembraneClusterizer::End -"
-    << " cluster statistics total: " << m_total_clusters
-    << " accepted: " << m_accepted_clusters << " fraction: "
-    << 100.*m_accepted_clusters/m_total_clusters << "%"
-    << std::endl;
+  if( Verbosity() )
+  {
+    std::cout
+      << "PHTpcCentralMembraneClusterizer::End -"
+      << " cluster statistics total: " << m_total_clusters
+      << " accepted: " << m_accepted_clusters << " fraction: "
+      << 100.*m_accepted_clusters/m_total_clusters << "%"
+      << std::endl;
+    
+    std::cout
+      << "PHTpcCentralMembraneClusterizer::End -"
+      << " cm clusters: " << m_cm_clusters
+      << std::endl;
+    
+    std::cout
+      << "PHTpcCentralMembraneClusterizer::End -"
+      << " cm clusters size 1: " << m_cm_clusters_size1
+      << std::endl;
 
-  std::cout
-    << "PHTpcCentralMembraneClusterizer::End -"
-    << " cm clusters: " << m_cm_clusters
-    << std::endl;
-  
+    std::cout
+      << "PHTpcCentralMembraneClusterizer::End -"
+      << " cm clusters size 2: " << m_cm_clusters_size2
+      << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
