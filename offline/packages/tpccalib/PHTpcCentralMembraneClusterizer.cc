@@ -390,7 +390,6 @@ int PHTpcCentralMembraneClusterizer::End(PHCompositeNode * /*topNode*/ )
   }
   
   // print statistics
-
   if( Verbosity() )
   {
     std::cout
