@@ -404,6 +404,7 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
     }
 
   m_NHits++;
+  pass_data.set_has_data();
   return pass_data;
 }
 

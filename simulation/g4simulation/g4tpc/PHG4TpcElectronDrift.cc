@@ -321,6 +321,14 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   }
   PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
+  TpcClusterBuilder::tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
+  if (!TpcClusterBuilder::tGeometry) {
+    std::cout << "ActsGeometry not found on node tree. Exiting"
+      << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   //std::cout << "g4hits size " << g4hit->size() << std::endl;
   unsigned int count_g4hits = 0;
@@ -774,8 +782,10 @@ void PHG4TpcElectronDrift::buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsig
   for (auto& cluster_builder : layer_clusterers) {
     if (cluster_builder.has_data) {
       std::pair<TrkrDefs::cluskey,TrkrCluster*> keyval = cluster_builder.build(hitset_cnt);
-      current_track->addCluster(keyval.first);
-      truthclustercontainer->addClusterSpecifyKey(keyval.first, keyval.second);
+      if (keyval.second != nullptr) {
+        current_track->addCluster(keyval.first);
+        truthclustercontainer->addClusterSpecifyKey(keyval.first, keyval.second);
+      }
       cluster_builder.reset();
     }
   }

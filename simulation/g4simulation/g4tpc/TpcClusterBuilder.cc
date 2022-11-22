@@ -3,6 +3,7 @@
 #include <trackbase/TpcDefs.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <algorithm>
+#include <Acts/Surfaces/Surface.hpp>
 
 class TpcClusterBuilder;
 using std::cout, std::endl;
@@ -25,6 +26,7 @@ TpcClusterBuilder& TpcClusterBuilder::operator+=(const TpcClusterBuilder& rhs) {
     nphibins       = rhs.nphibins;
     hasPhiBins     = rhs.hasPhiBins;
     hasTimeBins    = rhs.hasTimeBins;
+    layerGeom      = rhs.layerGeom;
   } else {
     int rhs_phi_bin_lo = rhs.phi_bin_lo;
     int rhs_phi_bin_hi = rhs.phi_bin_hi;
@@ -44,12 +46,14 @@ TpcClusterBuilder& TpcClusterBuilder::operator+=(const TpcClusterBuilder& rhs) {
 
     if (rhs.time_bin_lo < time_bin_lo) time_bin_lo = rhs.time_bin_lo;
     if (rhs.time_bin_hi > time_bin_hi) time_bin_hi = rhs.time_bin_hi;
+    hasTimeBins = true;
 
     neff_electrons += rhs.neff_electrons;
     phi_integral   += rhs.phi_integral;
     time_integral  += rhs.time_integral;
     has_data       = true;
   }
+  set_has_data();
   return *this;
 }
 
@@ -72,34 +76,53 @@ void TpcClusterBuilder::reset() {
 }
 
 TpcClusterBuilder::PairCluskeyCluster TpcClusterBuilder::build(MapHitsetkeyUInt& cluster_cnt) const {
-/* std::pair<TrkrDefs::cluskey, TrkrClusterv4*> TpcClusterBuilder::build_cluster( */
-    /* std::map<TrkrDefs::hitsetkey, unsigned int>& cluster_cnt) const { */
-  auto phi_mean { phi_integral / neff_electrons };
-  TrkrClusterv4* cluster = new TrkrClusterv4();
-  cluster->setPosition ( 0, phi_mean );
-  cluster->setPosition ( 1, time_integral / neff_electrons);
+
   int phi_size = phi_bin_hi-phi_bin_lo+1;
-  if (phi_size > CHAR_MAX || phi_size < 0) {
-//    std::cout << PHWHERE << " Error in calculating nPads in Truth Track cluster: value is " << phi_size << " but should be within [1," << CHAR_MAX << "]" << std::endl
-//              <<            "   -> setting nPads to -1 (i.e. it *can't* match any other node) " << std::endl;
-    phi_size = -1;
-  }
-  cluster->setPhiSize  ( static_cast<char>(phi_size) );
+  if (phi_size > CHAR_MAX || phi_size < 0) return { 0, nullptr };
 
   int Z_size = time_bin_hi-time_bin_lo+1;
-  if (Z_size > CHAR_MAX || Z_size < 0) {
-    // std::cout << PHWHERE << " Error in calculating nTimeBins in Truth Track cluster: value is " << Z_size << " but should be within [1," << CHAR_MAX << "]" << std::endl
-    //           <<            "   -> setting nTimeBins to -1 (i.e. it *can't* match any other node) " << std::endl;
-    Z_size = -1;
-  }
+  if (Z_size > CHAR_MAX || Z_size < 0)  return { 0, nullptr };
+
+  TrkrClusterv4* cluster = new TrkrClusterv4();
+  cluster->setPhiSize  ( static_cast<char>(phi_size) );
   cluster->setZSize    ( static_cast<char>(Z_size));
+
   cluster->setAdc      ( neff_electrons );
 
-  const int phi_pad_number           = layerGeom->get_phibin(phi_mean);
-  const auto phibins                 = layerGeom->get_phibins();
+  // copy logic from packages/tpc/TpcClusterizer.cc ~line 333
+  const double clusphi { phi_integral  / neff_electrons };
+  const double clust   { time_integral / neff_electrons };
+  const int    phi_pad_number        = layerGeom->get_phibin(clusphi);
+  const auto   phibins               = layerGeom->get_phibins();
   const unsigned int pads_per_sector = phibins / 12;
   const unsigned int sector          = phi_pad_number / pads_per_sector;
   TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layer, sector, side);
+  
+  const double radius = layerGeom->get_radius();  // returns center of layer
+  const float  clusx  = radius * cos(clusphi);
+  const float  clusy  = radius * sin(clusphi);
+
+  const unsigned short NTBins = (unsigned short) layerGeom->get_zbins();
+  const double m_tdriftmax = AdcClockPeriod * NTBins / 2.0;  
+  const double zdriftlength = clust * tGeometry->get_drift_velocity();
+  const double z_sign = (side==0) ? -1 : 1;
+  const double clusz  = z_sign * (m_tdriftmax * tGeometry->get_drift_velocity()-zdriftlength);
+
+  Acts::Vector3 global(clusx, clusy, clusz);
+  TrkrDefs::subsurfkey subsurfkey = 0;
+  Surface surface = tGeometry->get_tpc_surface_from_coords( hitsetkey, global, subsurfkey);
+
+	// check if  surface not found and we can't track with it. 
+  if(!surface) {
+    delete cluster;
+    return {0, nullptr};
+  };
+
+  global *= Acts::UnitConstants::cm;
+  Acts::Vector3 local = surface->transform(tGeometry->geometry().getGeoContext()).inverse() * global;
+  local /= Acts::UnitConstants::cm;     
+  cluster->setLocalX (local(0));
+  cluster->setLocalY (clust);
 
   // generate the clusterkey 
   unsigned int which_cluster = 0;
@@ -119,11 +142,13 @@ TpcClusterBuilder::PairCluskeyCluster TpcClusterBuilder::build(MapHitsetkeyUInt&
 void TpcClusterBuilder::set_has_data() {
   has_data = ( 
       neff_electrons > 0. 
-      && phi_integral > 0.
+      && phi_integral != 0.
       && time_integral > 0.
       && hasPhiBins
       && hasTimeBins 
       && layerGeom != nullptr 
+      && layer >= 0 
+      && layer <  55
   );
 }
 
@@ -143,3 +168,5 @@ void TpcClusterBuilder::fillTimeBins(const std::vector<int>& bins) {
   time_bin_hi = bins[bins.size()-1];
   hasTimeBins = true;
 }
+
+ActsGeometry* TpcClusterBuilder::tGeometry = nullptr;
