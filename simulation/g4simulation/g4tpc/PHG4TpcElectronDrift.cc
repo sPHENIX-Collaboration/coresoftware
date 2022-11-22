@@ -299,6 +299,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   padplane->CreateReadoutGeometry(topNode, seggeo);
 
   // print all layers radii
+  if (Verbosity())
   {
     const auto range = seggeo->get_begin_end(); 
     std::cout << "PHG4TpcElectronDrift::InitRun - layers: " << std::distance(range.first, range.second) << std::endl;
