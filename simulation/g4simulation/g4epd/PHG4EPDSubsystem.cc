@@ -76,7 +76,7 @@ int PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       nodes.insert(m_SupportNodeName);
     }
 
-    for (auto nodename : nodes)
+    for (const auto& nodename : nodes)
     {
       PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)

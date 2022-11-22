@@ -51,7 +51,7 @@ void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
     std::string label = "EPD_tile_" + std::to_string(i);
 
     G4ExtrudedSolid* block = construct_block(i);
-    G4LogicalVolume* volume = new G4LogicalVolume(block, material, label, 0, 0, 0);
+    G4LogicalVolume* volume = new G4LogicalVolume(block, material, label, nullptr, nullptr, nullptr);
 
     GetDisplayAction()->AddVolume(volume, volume->GetName());
     m_ActiveLogVolSet.insert(volume);
