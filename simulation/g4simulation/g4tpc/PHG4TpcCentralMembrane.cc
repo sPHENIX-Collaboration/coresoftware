@@ -117,9 +117,6 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* /* topNode */)
     PHG4Hits.push_back(copy);
   };
 
-  std::vector<TVector3>  positions;
-  std::set<float> radii;
-  
   // loop over petalID
   for (int i = 0; i < 18; i++)
   {
@@ -150,35 +147,6 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* /* topNode */)
         adjust_hits(GetPHG4HitFromStripe(i, 3, j, k, electrons_per_stripe));
       }
     }
-    
-    // store all positions for first petal
-    if( i == 0 )
-    {
-      for( const auto& g4hit:PHG4Hits )
-      { 
-        if( g4hit->get_avg_z() > 0 )
-        { 
-          positions.emplace_back( g4hit->get_avg_x(), g4hit->get_avg_y(), g4hit->get_avg_z() ); 
-          radii.insert( get_r( g4hit->get_avg_x(), g4hit->get_avg_y() ) );
-        }
-      }
-    }
-  }
-
-  // print radii
-  {
-    std::cout << "PHG4TpcCentralMembrane::InitRun - radii: " << radii.size() << std::endl;
-    int counter = 0;
-    for( const auto& radius:radii ) 
-    { 
-      std::cout << Form( "%.3f ", radius );
-      if( ++counter == 10 )
-      {
-        counter = 0;
-        std::cout << std::endl;
-      }
-    }
-    std::cout << std::endl;
   }
   
   return Fun4AllReturnCodes::EVENT_OK;
