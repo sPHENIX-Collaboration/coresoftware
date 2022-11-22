@@ -93,9 +93,9 @@ int PHG4EPDDetector::IsInDetector(G4VPhysicalVolume* volume) const
   return 0;
 }
 
-uint32_t PHG4EPDDetector::module_id_for(int32_t index, int32_t slice, int32_t side)
+uint32_t PHG4EPDDetector::module_id_for(uint32_t index, uint32_t slice, uint32_t side)
 {
-  return (side << 9 | slice << 5 | index) & 0x3FF;
+  return (side << 9U | slice << 5U | index) & 0x3FF;
 }
 
 uint32_t PHG4EPDDetector::module_id_for(G4VPhysicalVolume* volume)
