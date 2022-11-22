@@ -64,11 +64,11 @@ void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
 
       m_volumes.emplace(
           new G4PVPlacement( rotate, positive, volume, label, world, false, 2 * k + 0, OverlapCheck()),
-	  module_id_for(i, k, 0));
+          module_id_for(i, k, 0));
 
       m_volumes.emplace(
           new G4PVPlacement( rotate, negative, volume, label, world, false, 2 * k + 1, OverlapCheck()),
-	  module_id_for(i, k, 1));
+          module_id_for(i, k, 1));
     }
   }
 }
