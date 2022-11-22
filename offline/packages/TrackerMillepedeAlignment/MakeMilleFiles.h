@@ -70,9 +70,9 @@ class AlignmentState
   /// The number of global (alignment) parameters
   static const int NGL = 6;
   /// The number of local (track state) parameters
-  static const int NLC = 8;
+  static const int NLC = 6;
   /// The number of residuals per state (e.g. 2D or 3D)
-  static const int NRES = 2;
+  static const int NRES = 3;
 
   using GlobalMatrix = Acts::ActsMatrix<NRES, NGL>;
   using LocalMatrix = Acts::ActsMatrix<NRES, NLC>;
@@ -170,7 +170,9 @@ class MakeMilleFiles : public SubsysReco
   /// tpc distortion correction utility class
   TpcDistortionCorrection _distortionCorrection;
   bool _binary = true;
-  unsigned int _cluster_version = 3;
+  unsigned int _cluster_version = 4;
+
+  bool m_useAnalytic = true;
 
   ClusterErrorPara _ClusErrPara;
 

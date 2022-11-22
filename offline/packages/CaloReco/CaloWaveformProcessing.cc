@@ -35,10 +35,12 @@ double CaloWaveformProcessing::template_function(double *x, double *par)
 
 void CaloWaveformProcessing::initialize_processing()
 {
+    char *calibrationsroot =  getenv("CALIBRATIONROOT");
+    assert(calibrationsroot);
   if (m_processingtype == CaloWaveformProcessing::TEMPLATE)
   {
-    std::string calibrations_repo_template = std::string(getenv("CALIBRATIONROOT")) + "/WaveformProcessing/templates/" + m_template_input_file;
-    url_template = XploadInterface::instance()->getUrl(m_template_input_file.c_str(), calibrations_repo_template);
+    std::string calibrations_repo_template = std::string(calibrationsroot) + "/WaveformProcessing/templates/" + m_template_input_file;
+    url_template = XploadInterface::instance()->getUrl(m_template_input_file, calibrations_repo_template);
     TFile *fin = TFile::Open(url_template.c_str());
     assert(fin);
     assert(fin->IsOpen());
@@ -46,8 +48,8 @@ void CaloWaveformProcessing::initialize_processing()
   }
   if (m_processingtype == CaloWaveformProcessing::ONNX)
   {
-    std::string calibrations_repo_model = std::string(getenv("CALIBRATIONROOT")) + "/WaveformProcessing/models/" + m_model_name;
-    url_onnx = XploadInterface::instance()->getUrl(m_model_name.c_str(), calibrations_repo_model);
+    std::string calibrations_repo_model = std::string(calibrationsroot) + "/WaveformProcessing/models/" + m_model_name;
+    url_onnx = XploadInterface::instance()->getUrl(m_model_name, calibrations_repo_model);
     onnxmodule = onnxSession(url_onnx);
   }
 }

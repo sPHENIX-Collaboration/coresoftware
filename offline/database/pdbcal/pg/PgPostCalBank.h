@@ -32,9 +32,9 @@ class PgPostCalBank : public PdbCalBank
   virtual PHTimeStamp getInsertTime() const { return PHTimeStamp((time_t) 0); }
   virtual PHTimeStamp getStartValTime() const { return PHTimeStamp((time_t) 0); }
   virtual PHTimeStamp getEndValTime() const { return PHTimeStamp((time_t) 0); }
-  virtual std::string getDescription() const { return 0; }
-  virtual std::string getUserName() const { return 0; }
-  virtual std::string getTableName() const { return 0; }
+  virtual std::string getDescription() const { return ""; }
+  virtual std::string getUserName() const { return ""; }
+  virtual std::string getTableName() const { return ""; }
 
   virtual void setBankID(const PdbBankID& /*val*/) {}
   virtual void setInsertTime(const PHTimeStamp& /*val*/) {}
