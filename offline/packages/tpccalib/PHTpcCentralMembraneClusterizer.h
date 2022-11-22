@@ -75,6 +75,8 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   int m_total_clusters = 0;
   int m_accepted_clusters = 0;
   int m_cm_clusters = 0;  
+  int m_cm_clusters_size1 = 0;  
+  int m_cm_clusters_size2 = 0;  
   //@}
   
   bool _histos = false;
