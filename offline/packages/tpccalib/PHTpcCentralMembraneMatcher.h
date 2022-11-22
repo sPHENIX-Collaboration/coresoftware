@@ -99,6 +99,7 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   TH2F *hrdr = nullptr;
   TH2F *hrdphi = nullptr;
   TH1F *hdrphi = nullptr;
+  TH1F *hdphi = nullptr;
   TH1F *hdr1_single = nullptr;
   TH1F *hdr2_single = nullptr;
   TH1F *hdr3_single = nullptr;
@@ -112,7 +113,7 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   //@}
     
   /// radius cut for matching clusters to pad, for size 2 clusters
-  double m_rad_cut= 0.2;
+  double m_rad_cut= 0.5;
   
   /// phi cut for matching clusters to pad
   /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
@@ -203,7 +204,7 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
     double cx[][nRadii], double cy[][nRadii] );
   
   /// store centers of all central membrane pads
-  std::vector<TVector3> truth_pos;
+  std::vector<TVector3> m_truth_pos;
 
   //@}
 

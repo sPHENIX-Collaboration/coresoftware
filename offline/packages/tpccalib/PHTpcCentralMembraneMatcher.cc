@@ -144,21 +144,29 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 {
   if( m_savehistograms )
   { 
+
+    static constexpr float max_dr = 1.0;
+    static constexpr float max_dphi = 0.05;
+
     fout.reset( new TFile(m_histogramfilename.c_str(),"RECREATE") ); 
     hxy_reco = new TH2F("hxy_reco","reco cluster x:y",800,-100,100,800,-80,80);
     hxy_truth = new TH2F("hxy_truth","truth cluster x:y",800,-100,100,800,-80,80);
-    hdrdphi = new TH2F("hdrdphi","dr vs dphi",800,-0.5,0.5,800,-0.001,0.001);
+    
+    hdrdphi = new TH2F("hdrdphi","dr vs dphi",800,-max_dr,max_dr,800,-max_dphi,max_dphi);
     hdrdphi->GetXaxis()->SetTitle("dr");  
     hdrdphi->GetYaxis()->SetTitle("dphi");  
-    hrdr = new TH2F("hrdr","dr vs r",800,0.0,80.0,800,-0.5,0.5);
+    
+    hrdr = new TH2F("hrdr","dr vs r",800,0.0,80.0,800,-max_dr, max_dr);
     hrdr->GetXaxis()->SetTitle("r");  
     hrdr->GetYaxis()->SetTitle("dr");  
-    hrdphi = new TH2F("hrdphi","dphi vs r",800,0.0,80.0,800,-0.001,0.001);
+    
+    hrdphi = new TH2F("hrdphi","dphi vs r",800,0.0,80.0,800,-max_dphi,max_dphi);
     hrdphi->GetXaxis()->SetTitle("r");  
     hrdphi->GetYaxis()->SetTitle("dphi");
     
-    
-    static constexpr float max_dr = 2.5;
+    hdphi = new TH1F("hdphi","dph",800,-max_dphi,max_dphi);
+    hdphi->GetXaxis()->SetTitle("dphi");
+
     hdr1_single = new TH1F("hdr1_single", "innner dr single", 200,-max_dr, max_dr);
     hdr2_single = new TH1F("hdr2_single", "mid dr single", 200,-max_dr, max_dr);
     hdr3_single = new TH1F("hdr3_single", "outer dr single", 200,-max_dr, max_dr);
@@ -183,10 +191,10 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
   auto save_truth_position = [&](TVector3 source) 
   {
     source.SetZ( +1 );
-    truth_pos.push_back( source );
+    m_truth_pos.push_back( source );
     
     source.SetZ( -1 );
-    truth_pos.push_back( source );
+    m_truth_pos.push_back( source );
   };
   
   // inner region extended is the 8 layers inside 30 cm    
@@ -300,28 +308,13 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   //std::map<unsigned int, unsigned int> matched_pair;
   std::vector<std::pair<unsigned int, unsigned int>> matched_pair;
   std::vector<unsigned int> matched_nclus;
-
-
-//   // loop over cluster positions
-//   for(unsigned int j = 0; j < reco_pos.size(); ++j)
-//   {
-//       
-//     const auto& nclus = reco_nclusters[j];
-//     const double rad2=get_r(reco_pos[j].X(), reco_pos[j].Y());
-//     const double phi2 = reco_pos[j].Phi();
-// 
-//     // loop over truth positions
-//     for(unsigned int i=0; i<truth_pos.size(); ++i)
-//     {
-//       const double rad1= get_r( truth_pos[i].X(),truth_pos[i].Y());
-//       const double phi1 = truth_pos[i].Phi();
       
   // loop over truth positions
-  for(unsigned int i=0; i<truth_pos.size(); ++i)
+  for(unsigned int i=0; i<m_truth_pos.size(); ++i)
   {
-    const double z1 = truth_pos[i].Z(); 
-    const double rad1= get_r( truth_pos[i].X(),truth_pos[i].Y());
-    const double phi1 = truth_pos[i].Phi();
+    const double z1 = m_truth_pos[i].Z(); 
+    const double rad1= get_r( m_truth_pos[i].X(),m_truth_pos[i].Y());
+    const double phi1 = m_truth_pos[i].Phi();
     
     // loop over cluster positions
     for(unsigned int j = 0; j < reco_pos.size(); ++j)
@@ -336,11 +329,46 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       const bool accepted_z = ((z1>0)==(z2>0));
       if( !accepted_z ) continue;
       
-      const auto dr = std::abs(rad1-rad2);
-      const bool accepted_r = dr < m_rad_cut;
+      const auto dr = rad1-rad2;
+      const bool accepted_r = std::abs(dr) < m_rad_cut;
 
-      const auto dphi = std::abs(delta_phi(phi1-phi2));
-      const bool accepted_phi = dphi < m_phi_cut;
+      const auto dphi = delta_phi(phi1-phi2);
+      const bool accepted_phi = std::abs(dphi) < m_phi_cut;
+      
+      if(m_savehistograms)
+      {
+       
+        hnclus->Fill( (float) nclus);
+
+        double r =  rad2;
+
+        if( accepted_r )
+        {
+          hdrphi->Fill(r * dphi);
+          hdphi->Fill(dphi);
+          hrdphi->Fill(r,dphi);
+        }
+
+        if( accepted_r && accepted_phi)
+        { hdrdphi->Fill(dr, dphi); }
+
+        if( accepted_phi )
+        {
+          hrdr->Fill(r,dr);
+          if(nclus==1)
+          {
+            if(r < 40.0) hdr1_single->Fill(dr); 
+            if(r >= 40.0 && r < 58.0) hdr2_single->Fill(dr); 
+            if(r >= 58.0) hdr3_single->Fill(dr); 	  
+          }
+          else
+          {
+            if(r < 40.0) hdr1_double->Fill(dr); 
+            if(r >= 40.0 && r < 58.0) hdr2_double->Fill(dr); 
+            if(r >= 58.0) hdr3_double->Fill(dr); 	  
+          }
+        }
+      }
       
       if( accepted_r && accepted_phi ) 
       {
@@ -352,13 +380,16 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   }
   
   // print some statistics: 
-  // if( Verbosity() )
+  if( Verbosity() )
   {
-    const auto n_valid_truth = std::count_if( truth_pos.begin(), truth_pos.end(), []( const TVector3& pos ) { return get_r( pos.x(), pos.y() ) >  30; } );
-    
-    std::cout << "PHTpcCentralMembraneMatcher::process_event - truth_pos size: " << truth_pos.size() << std::endl;
-    std::cout << "PHTpcCentralMembraneMatcher::process_event - truth_pos size, r>30cm: " << n_valid_truth << std::endl;
+    const auto n_valid_truth = std::count_if( m_truth_pos.begin(), m_truth_pos.end(), []( const TVector3& pos ) { return get_r( pos.x(), pos.y() ) >  30; } );
+    const auto n_reco_size1 = std::count_if( reco_nclusters.begin(), reco_nclusters.end(), []( const unsigned int& value ) { return value==1; } );
+    const auto n_reco_size2 = std::count_if( reco_nclusters.begin(), reco_nclusters.end(), []( const unsigned int& value ) { return value==2; } );
+    std::cout << "PHTpcCentralMembraneMatcher::process_event - m_truth_pos size: " << m_truth_pos.size() << std::endl;
+    std::cout << "PHTpcCentralMembraneMatcher::process_event - m_truth_pos size, r>30cm: " << n_valid_truth << std::endl;
     std::cout << "PHTpcCentralMembraneMatcher::process_event - reco_pos size: " << reco_pos.size() << std::endl;
+    std::cout << "PHTpcCentralMembraneMatcher::process_event - reco_pos size (nclus==1): " << n_reco_size1 << std::endl;
+    std::cout << "PHTpcCentralMembraneMatcher::process_event - reco_pos size (nclus==2): " << n_reco_size2 << std::endl;
     std::cout << "PHTpcCentralMembraneMatcher::process_event - matched_pair size: " << matched_pair.size() << std::endl;
   }
   
@@ -366,41 +397,13 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   {
     const std::pair<unsigned int, unsigned int>& p = matched_pair[ip];
     const unsigned int& nclus = matched_nclus[ip];
-    if(m_savehistograms)
-    {
-      double rad1 = sqrt(reco_pos[p.second].X() * reco_pos[p.second].X() + reco_pos[p.second].Y() * reco_pos[p.second].Y());
-      double rad2 = sqrt(truth_pos[p.first].X() * truth_pos[p.first].X() + truth_pos[p.first].Y() * truth_pos[p.first].Y());
-      
-      double dr =  rad1-rad2;
-      double dphi = reco_pos[p.second].Phi() - truth_pos[p.first].Phi();
-      double r =  rad2;
-      
-      hdrphi->Fill(r * dphi);
-      hdrdphi->Fill(dr, dphi);
-      hrdr->Fill(r,dr);
-      hrdphi->Fill(r,dphi);
-      hnclus->Fill( (float) nclus);
-      
-      if(nclus==1)
-      {
-        if(r < 40.0) hdr1_single->Fill(dr); 
-        if(r >= 40.0 && r < 58.0) hdr2_single->Fill(dr); 
-        if(r >= 58.0) hdr3_single->Fill(dr); 	  
-      }
-      else
-      {
-        if(r < 40.0) hdr1_double->Fill(dr); 
-        if(r >= 40.0 && r < 58.0) hdr2_double->Fill(dr); 
-        if(r >= 58.0) hdr3_double->Fill(dr); 	  
-      }
-    }
 
     // add to node tree
     unsigned int key = p.first;
     auto cmdiff = new CMFlashDifferencev1();
-    cmdiff->setTruthPhi(truth_pos[p.first].Phi());
-    cmdiff->setTruthR(truth_pos[p.first].Perp());
-    cmdiff->setTruthZ(truth_pos[p.first].Z());
+    cmdiff->setTruthPhi(m_truth_pos[p.first].Phi());
+    cmdiff->setTruthR(m_truth_pos[p.first].Perp());
+    cmdiff->setTruthZ(m_truth_pos[p.first].Z());
     
     cmdiff->setRecoPhi(reco_pos[p.second].Phi());
     cmdiff->setRecoR(reco_pos[p.second].Perp());
@@ -419,17 +422,10 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     const unsigned int side = (clus_z<0) ? 0:1;
     
     // calculate residuals (cluster - truth)
-    const double dr = reco_pos[p.second].Perp() - truth_pos[p.first].Perp();
-    const double dphi = delta_phi( reco_pos[p.second].Phi() - truth_pos[p.first].Phi() );
+    const double dr = reco_pos[p.second].Perp() - m_truth_pos[p.first].Perp();
+    const double dphi = delta_phi( reco_pos[p.second].Phi() - m_truth_pos[p.first].Phi() );
     const double rdphi = reco_pos[p.second].Perp() * dphi;
-    
-    /*
-     * TODO: truth_pos.z() will not be zero. It has to account from the width of the central membrane 
-     * and the fact that there are central membrane clusters on both sides on the TPC
-     * easiest is probably to account for that when calculating dz residual for a given cluster,
-     * taking into consideration the side at which the cluster was produced
-     */
-    const double dz = reco_pos[p.second].z() - truth_pos[p.first].z();
+    const double dz = reco_pos[p.second].z() - m_truth_pos[p.first].z();
 
     // fill distortion correction histograms
     /* 
@@ -516,6 +512,7 @@ int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
     hdrdphi->Write();
     hrdr->Write();
     hrdphi->Write();
+    hdphi->Write();
     hdrphi->Write();
     hdr1_single->Write();
     hdr2_single->Write();
