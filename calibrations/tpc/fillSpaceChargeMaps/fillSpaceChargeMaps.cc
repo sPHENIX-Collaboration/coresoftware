@@ -20,7 +20,7 @@
 #include <TVector3.h>
 
 #include <algorithm>  // for max
-#include <cmath>      // for sin, asin, cos, floor, M_PI
+//#include <cmath>      // for sin, asin, cos, floor, M_PI
 #include <cstdio>     // for sprintf, printf
 #include <cstdlib>
 #include <fstream>
@@ -61,25 +61,30 @@ int fillSpaceChargeMaps::Init(PHCompositeNode * /*topNode*/)
                                  311.05, 317.92, 323.31, 329.27, 334.63, 340.59, 345.95, 351.91, 357.27, 363.23, 368.59, 374.55, 379.91, 385.87, 391.23, 397.19, 402.49,
                                  411.53, 421.70, 431.90, 442.11, 452.32, 462.52, 472.73, 482.94, 493.14, 503.35, 513.56, 523.76, 533.97, 544.18, 554.39, 564.59, 574.76,
                                  583.67, 594.59, 605.57, 616.54, 627.51, 638.48, 649.45, 660.42, 671.39, 682.36, 693.33, 704.30, 715.27, 726.24, 737.21, 748.18, 759.11};
+  double r_bins_edges[r_bins_N + 3] = {217.83-2,217.83,
+                                 223.83, 229.83, 235.83, 241.83, 247.83, 253.83, 259.83, 265.83, 271.83, 277.83, 283.83, 289.83, 295.83, 301.83, 306.83,
+                                 311.05, 317.92, 323.31, 329.27, 334.63, 340.59, 345.95, 351.91, 357.27, 363.23, 368.59, 374.55, 379.91, 385.87, 391.23, 397.19, 402.49,
+                                 411.53, 421.70, 431.90, 442.11, 452.32, 462.52, 472.73, 482.94, 493.14, 503.35, 513.56, 523.76, 533.97, 544.18, 554.39, 564.59, 574.76,
+                                 583.67, 594.59, 605.57, 616.54, 627.51, 638.48, 649.45, 660.42, 671.39, 682.36, 693.33, 704.30, 715.27, 726.24, 737.21, 748.18, 759.11, 759.11+2};
+
   const int nphi = 205;
-  double phi_bins[nphi + 1] = {0., 0.0068, 0.038675, 0.07055, 0.102425, 0.1343, 0.166175, 0.19805,
-                               0.229925, 0.2618, 0.293675, 0.32555, 0.357425, 0.3893, 0.421175, 0.45305, 0.484925,
-                               0.5168, 0.5304, 0.562275, 0.59415, 0.626025, 0.6579, 0.689775, 0.72165, 0.753525, 0.7854,
-                               0.817275, 0.84915, 0.881025, 0.9129, 0.944775, 0.97665, 1.008525, 1.0404, 1.054, 1.085875,
-                               1.11775, 1.149625, 1.1815, 1.213375, 1.24525, 1.277125, 1.309, 1.340875, 1.37275, 1.404625, 1.4365,
-                               1.468375, 1.50025, 1.532125, 1.564, 1.5776, 1.609475, 1.64135, 1.673225, 1.7051, 1.736975, 1.76885,
-                               1.800725, 1.8326, 1.864475, 1.89635, 1.928225, 1.9601, 1.991975, 2.02385, 2.055725, 2.0876, 2.1012,
-                               2.133075, 2.16495, 2.196825, 2.2287, 2.260575, 2.29245, 2.324325, 2.3562, 2.388075, 2.41995, 2.451825,
-                               2.4837, 2.515575, 2.54745, 2.579325, 2.6112, 2.6248, 2.656675, 2.68855, 2.720425, 2.7523, 2.784175, 2.81605,
-                               2.847925, 2.8798, 2.911675, 2.94355, 2.975425, 3.0073, 3.039175, 3.07105, 3.102925, 3.1348, 3.1484, 3.180275,
-                               3.21215, 3.244025, 3.2759, 3.307775, 3.33965, 3.371525, 3.4034, 3.435275, 3.46715, 3.499025, 3.5309, 3.562775,
-                               3.59465, 3.626525, 3.6584, 3.672, 3.703875, 3.73575, 3.767625, 3.7995, 3.831375, 3.86325, 3.895125, 3.927, 3.958875,
-                               3.99075, 4.022625, 4.0545, 4.086375, 4.11825, 4.150125, 4.182, 4.1956, 4.227475, 4.25935, 4.291225, 4.3231, 4.354975,
-                               4.38685, 4.418725, 4.4506, 4.482475, 4.51435, 4.546225, 4.5781, 4.609975, 4.64185, 4.673725, 4.7056, 4.7192, 4.751075,
-                               4.78295, 4.814825, 4.8467, 4.878575, 4.91045, 4.942325, 4.9742, 5.006075, 5.03795, 5.069825, 5.1017, 5.133575, 5.16545,
-                               5.197325, 5.2292, 5.2428, 5.274675, 5.30655, 5.338425, 5.3703, 5.402175, 5.43405, 5.465925, 5.4978, 5.529675, 5.56155,
-                               5.593425, 5.6253, 5.657175, 5.68905, 5.720925, 5.7528, 5.7664, 5.798275, 5.83015, 5.862025, 5.8939, 5.925775, 5.95765,
-                               5.989525, 6.0214, 6.053275, 6.08515, 6.117025, 6.1489, 6.180775, 6.21265, 6.244525, 6.2764, 2 * M_PI};
+
+  double phi_bins[nphi + 1] = { 0., 6.3083-2 * M_PI, 6.3401-2 * M_PI, 6.372-2 * M_PI, 6.4039-2 * M_PI, 6.4358-2 * M_PI, 6.4676-2 * M_PI, 6.4995-2 * M_PI, 6.5314-2 * M_PI, 
+                                0.2618, 0.2937, 0.3256, 0.3574, 0.3893, 0.4212, 0.453, 0.4849, 0.5168, 0.5487, 0.5805, 0.6124, 0.6443, 0.6762, 0.7081, 
+                                0.7399, 0.7718, 0.7854, 0.8173, 0.8491, 0.881, 0.9129, 0.9448, 0.9767, 1.0085, 1.0404, 1.0723, 1.1041, 1.136, 1.1679, 
+                                1.1998, 1.2317, 1.2635, 1.2954, 1.309, 1.3409, 1.3727, 1.4046, 1.4365, 1.4684, 1.5002, 1.5321, 1.564, 1.5959, 1.6277, 
+                                1.6596, 1.6915, 1.7234, 1.7552, 1.7871, 1.819, 1.8326, 1.8645, 1.8963, 1.9282, 1.9601, 1.992, 2.0238, 2.0557, 2.0876, 
+                                2.1195, 2.1513, 2.1832, 2.2151, 2.247, 2.2788, 2.3107, 2.3426, 2.3562, 2.3881, 2.42, 2.4518, 2.4837, 2.5156, 2.5474, 
+                                2.5793, 2.6112, 2.6431, 2.6749, 2.7068, 2.7387, 2.7706, 2.8024, 2.8343, 2.8662, 2.8798, 2.9117, 2.9436, 2.9754, 3.0073, 
+                                3.0392, 3.0711, 3.1029, 3.1348, 3.1667, 3.1986, 3.2304, 3.2623, 3.2942, 3.326, 3.3579, 3.3898, 3.4034, 3.4353, 3.4671, 
+                                3.499, 3.5309, 3.5628, 3.5946, 3.6265, 3.6584, 3.6903, 3.7221, 3.754, 3.7859, 3.8178, 3.8496, 3.8815, 3.9134, 3.927, 
+                                3.9589, 3.9907, 4.0226, 4.0545, 4.0864, 4.1182, 4.1501, 4.182, 4.2139, 4.2457, 4.2776, 4.3095, 4.3414, 4.3732, 4.4051, 
+                                4.437, 4.4506, 4.4825, 4.5143, 4.5462, 4.5781, 4.61, 4.6418, 4.6737, 4.7056, 4.7375, 4.7693, 4.8012, 4.8331, 4.865, 
+                                4.8968, 4.9287, 4.9606, 4.9742, 5.0061, 5.0379, 5.0698, 5.1017, 5.1336, 5.1654, 5.1973, 5.2292, 5.2611, 5.2929, 5.3248, 
+                                5.3567, 5.3886, 5.4204, 5.4523, 5.4842, 5.4978, 5.5297, 5.5615, 5.5934, 5.6253, 5.6572, 5.689, 5.7209, 5.7528, 5.7847, 
+                                5.8165, 5.8484, 5.8803, 5.9122, 5.944, 5.9759, 6.0078, 6.0214, 6.0533, 6.0851, 6.117, 6.1489, 6.1808, 6.2127, 6.2445, 
+                                6.2764, 2 * M_PI};
+
 
   double z_bins[2 * nz + 1];
   for (int z = 0; z <= 2 * nz; z++)
@@ -87,7 +92,7 @@ int fillSpaceChargeMaps::Init(PHCompositeNode * /*topNode*/)
     z_bins[z] = -z_rdo + z_rdo / nz * z;
   }
 
-  _h_R = new TH1F("_h_R", "_h_R;R, [m]", r_bins_N, r_bins);
+  _h_R = new TH1F("_h_R", "_h_R;R, [m]", r_bins_N+2, r_bins_edges);
   _h_hits = new TH1F("_h_hits", "_h_hits;N, [hit]", 1000, 0, 1e6);
   _h_DC_E = new TH2F("_h_DC_E", "_h_DC_E;SC;E#times10^{6}", 2000, -100, 2e5 - 100, 1000, -50, 1e3 - 50);
   char name[100];
@@ -194,6 +199,16 @@ int fillSpaceChargeMaps::InitRun(PHCompositeNode * /*topNode*/)
 //____________________________________________________________________________..
 int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
 {
+  //double tpc_frame_r3_outer = 759.11*mm;  //758.4;//mm inner edge of larger-r frame of r3
+  //double tpc_frame_r3_inner = 583.67*mm;  //583.5;//mm outer edge of smaller-r frame of r3
+
+  //double tpc_frame_r2_outer = 574.76*mm;  //574.9;//mm inner edge of larger-r frame of r3
+  //double tpc_frame_r2_inner = 411.53*mm;  //411.4;//mm outer edge of smaller-r frame of r3
+
+  //double tpc_frame_r1_outer = 402.49*mm;  //402.6;//mm inner edge of larger-r frame of r3
+  //double tpc_frame_r1_inner = 217.83*mm;  //221.0;//mm outer edge of smaller-r frame of r3
+
+
   double z_bias_avg = 0;
   int bemxingsInFile = _keys.size();
   int key = -1;
@@ -290,7 +305,6 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
         std::vector<double> r_phi_bin = putOnPlane(new_r / mm, new_phi);
         dr_bin = r_phi_bin[0];
         dphi_bin = r_phi_bin[1];
-        //std::cout<<"dr_bin="<<dr_bin<<"dphi_bin="<<dphi_bin<<std::endl;
       }
       _hit_z = z;
       _hit_r = r;
@@ -383,8 +397,8 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
           if (!_isOnPlane)
           {
             //Redistribute charges
-            std::vector<double> newWeights = getNewWeights(_h_SC_ibf[iz], _h_modules_anode, _h_modules_measuredibf, _hit_r, _hit_phi, dr_bin, dphi_bin, _fUseIBFMap);
-            //std::vector<double> newWeights = getNewWeights(_h_SC_ibf[iz], _h_modules_anode, _h_modules_measuredibf, new_r, new_phi, dr_bin, dphi_bin, _fUseIBFMap);
+            //std::vector<double> newWeights = getNewWeights(_h_SC_ibf[iz], _h_modules_anode, _h_modules_measuredibf, _hit_r, _hit_phi, dr_bin, dphi_bin, _fUseIBFMap);
+            std::vector<double> newWeights = getNewWeights(_h_SC_ibf[iz], _h_modules_anode, _h_modules_measuredibf, new_r, new_phi, dr_bin, dphi_bin, _fUseIBFMap);
 
             double w_ibf_tmp = newWeights[0];
             double w_gain_tmp = newWeights[1];
@@ -393,6 +407,7 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
 
             _ibf_vol = N_electrons * w_gain_tmp * _ampGain * w_ibf_tmp * _ampIBFfrac;
             _h_SC_ibf[iz]->Fill(_hit_phi, _hit_r, z_ibf[iz], _ibf_vol);
+            
           }
           else
           {
@@ -515,21 +530,28 @@ std::vector<double> fillSpaceChargeMaps::getNewWeights(TH3 *h_SC_ibf, TH2 *h_mod
 {
   double w_ibf_tmp = 1.0;
   double w_gain_tmp = 1.0;
-  int r_bin = h_SC_ibf->GetYaxis()->FindBin(hit_r);
-  double r_bin_c = h_SC_ibf->GetYaxis()->GetBinCenter(r_bin);
+  int r_bin = _h_R->GetXaxis()->FindBin(dr_bin);
+  double r_bin_c = _h_R->GetXaxis()->GetBinCenter(r_bin);
+  double r_bin_r = _h_R->GetXaxis()->GetBinCenter(r_bin+1);
+  double r_bin_l = _h_R->GetXaxis()->GetBinCenter(r_bin-1);
 
-  int phi_bin = h_SC_ibf->GetXaxis()->FindBin(hit_phi);
+  int phi_bin = h_SC_ibf->GetXaxis()->FindBin(dphi_bin);
+    
   double phi_bin_c = h_SC_ibf->GetXaxis()->GetBinCenter(phi_bin);
+  double phi_bin_r = h_SC_ibf->GetXaxis()->GetBinCenter(phi_bin+1);
+  double phi_bin_l = h_SC_ibf->GetXaxis()->GetBinCenter(phi_bin-1);
+
+
 
   if (dr_bin > 0 && dphi_bin < 0)
   {
     if (hit_r - r_bin_c > 0)
     {
-      hit_r = hit_r + dr_bin;
+      hit_r = r_bin_r;//hit_r + dr_bin;
     }
     else
     {
-      hit_r = hit_r - dr_bin;
+      hit_r = r_bin_l;//hit_r - dr_bin;
     }
   }
 
@@ -537,34 +559,34 @@ std::vector<double> fillSpaceChargeMaps::getNewWeights(TH3 *h_SC_ibf, TH2 *h_mod
   {
     if (hit_phi - phi_bin_c > 0)
     {
-      hit_phi = hit_phi + dphi_bin;
+      hit_phi = phi_bin_r; //hit_phi + dphi_bin;
     }
     else
     {
-      hit_phi = hit_phi - dphi_bin;
+      hit_phi = phi_bin_l; //hit_phi - dphi_bin;
     }
   }
   if (dr_bin > 0 && dphi_bin > 0)
   {
-    if (hit_phi - phi_bin_c > 0 && hit_r - r_bin_c >= 0)
+    if (hit_phi - phi_bin_c >= 0 && hit_r - r_bin_c >= 0)
     {
-      hit_phi = hit_phi + dphi_bin;
-      hit_r = hit_r + dr_bin;
+      hit_phi = phi_bin_r; //hit_phi + dphi_bin;
+      hit_r = r_bin_r;//hit_r + dr_bin;
     }
-    if (hit_phi - phi_bin_c <= 0 && hit_r - r_bin_c < 0)
+    if (hit_phi - phi_bin_c <= 0 && hit_r - r_bin_c <= 0)
     {
-      hit_phi = hit_phi - dphi_bin;
-      hit_r = hit_r - dr_bin;
+      hit_phi = phi_bin_l; //hit_phi - dphi_bin;
+      hit_r = r_bin_l;//hit_r - dr_bin;
     }
-    if (hit_phi - phi_bin_c > 0 && hit_r - r_bin_c <= 0)
+    if (hit_phi - phi_bin_c >= 0 && hit_r - r_bin_c <= 0)
     {
-      hit_phi = hit_phi + dphi_bin;
-      hit_r = hit_r - dr_bin;
+      hit_phi = phi_bin_r; //hit_phi + dphi_bin;
+      hit_r = r_bin_l;//hit_r - dr_bin;
     }
-    if (hit_phi - phi_bin_c <= 0 && hit_r - r_bin_c > 0)
+    if (hit_phi - phi_bin_c <= 0 && hit_r - r_bin_c >= 0)
     {
-      hit_phi = hit_phi - dphi_bin;
-      hit_r = hit_r + dr_bin;
+      hit_phi = phi_bin_l; //hit_phi - dphi_bin;
+      hit_r = r_bin_r;//hit_r + dr_bin;
     }
   }
   if (fUseIBFMap)
@@ -576,6 +598,18 @@ std::vector<double> fillSpaceChargeMaps::getNewWeights(TH3 *h_SC_ibf, TH2 *h_mod
     w_ibf_tmp = h_modules_measuredibf->GetBinContent(bin_x, bin_y);
     w_gain_tmp = h_modules_anode->GetBinContent(bin_x, bin_y);
   }
+  //for(int p=0;p<24;p++){
+  //  if(hit_phi>=phi_dead_bins[p] && hit_phi<=phi_dead_bins[p+1]){
+  //    std::cout<< 
+  //    " dphi_bin  = "<< dphi_bin << 
+  //    " phi_bin_c = " <<phi_bin_c <<
+  //    " phi_bin_r = " <<phi_bin_r <<
+  //    " phi_bin_l = " <<phi_bin_l
+  //    << std::endl;
+  //    std::cout<<"end new Weights hit_phi = "<<hit_phi<<std::endl;
+  //  }
+  //  p++;
+  //}
   std::vector<double> newWeights;
   newWeights.push_back(w_ibf_tmp);
   newWeights.push_back(w_gain_tmp);
@@ -587,56 +621,43 @@ std::vector<double> fillSpaceChargeMaps::getNewWeights(TH3 *h_SC_ibf, TH2 *h_mod
 bool fillSpaceChargeMaps::IsOverFrame(double r, double phi)
 {
   //these parameters are taken from Feb 12 drawings of frames.
-  double tpc_frame_side_gap = 0.8;    //mm //space between radial line and start of frame
-  double tpc_frame_side_width = 2.6;  //mm //thickness of frame
-  double tpc_margin = 2.0;            //mm // extra gap between edge of frame and start of GEM holes
+  //double tpc_frame_side_gap = 0.8 * mm;    //mm //space between radial line and start of frame
+  //double tpc_frame_side_width = 2.6 * mm;  //mm //thickness of frame
+  double tpc_margin = 2.0 * mm;            //mm // extra gap between edge of frame and start of GEM holes
 
-  double tpc_frame_r3_outer = 759.11;  //758.4;//mm inner edge of larger-r frame of r3
-  double tpc_frame_r3_inner = 583.67;  //583.5;//mm outer edge of smaller-r frame of r3
+  double tpc_frame_r3_outer = 759.11 * mm;  //758.4;//mm inner edge of larger-r frame of r3
+  double tpc_frame_r3_inner = 583.67 * mm;  //583.5;//mm outer edge of smaller-r frame of r3
 
-  double tpc_frame_r2_outer = 574.76;  //574.9;//mm inner edge of larger-r frame of r3
-  double tpc_frame_r2_inner = 411.53;  //411.4;//mm outer edge of smaller-r frame of r3
+  double tpc_frame_r2_outer = 574.76 * mm;  //574.9;//mm inner edge of larger-r frame of r3
+  double tpc_frame_r2_inner = 411.53 * mm;  //411.4;//mm outer edge of smaller-r frame of r3
 
-  double tpc_frame_r1_outer = 402.49;  //402.6;//mm inner edge of larger-r frame of r3
-  double tpc_frame_r1_inner = 217.83;  //221.0;//mm outer edge of smaller-r frame of r3
+  double tpc_frame_r1_outer = 402.49 * mm;  //402.6;//mm inner edge of larger-r frame of r3
+  double tpc_frame_r1_inner = 217.83 * mm;  //221.0;//mm outer edge of smaller-r frame of r3
 
   //double tpc_sec0_phi=0.0;//get_double_param("tpc_sec0_phi");
 
   //if the coordinate is in the radial spaces of the frames, return true:
-  if (r < tpc_frame_r1_inner + tpc_margin)
+  if (r <= tpc_frame_r1_inner + tpc_margin)
   {
     return true;
   }
-  if (r > tpc_frame_r1_outer - tpc_margin && r < tpc_frame_r2_inner + tpc_margin)
+  if (r >= tpc_frame_r1_outer - tpc_margin && r <= tpc_frame_r2_inner + tpc_margin)
   {
     return true;
   }
-  if (r > tpc_frame_r2_outer - tpc_margin && r < tpc_frame_r3_inner + tpc_margin)
+  if (r >= tpc_frame_r2_outer - tpc_margin && r <= tpc_frame_r3_inner + tpc_margin)
   {
     return true;
   }
-  if (r > tpc_frame_r3_outer - tpc_margin)
+  if (r >= tpc_frame_r3_outer - tpc_margin)
   {
     return true;
   }
-  //if the coordinate is within gap+width of a sector boundary, return true:
-  //note that this is not a line of constant radius, but a linear distance from a radius.
 
-  //find the two spokes we're between:
-
-  float sectorangle = (M_PI / 6.);
-  float nsectors = phi / sectorangle;
-  int nsec = floor(nsectors);
-  float reduced_phi = phi - nsec * sectorangle;  //between zero and sixty degrees.
-  float dist_to_previous = r * sin(reduced_phi);
-  float dist_to_next = r * sin(sectorangle - reduced_phi);
-  if (dist_to_previous < tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
-  {
-    return true;
-  }
-  if (dist_to_next < tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
-  {
-    return true;
+  for(int p=0;p<24;p=p+2){
+    if(phi>=phi_dead_bins[p] && phi<=phi_dead_bins[p+1]){
+      return true;
+    }
   }
   return false;
 }
@@ -644,63 +665,71 @@ bool fillSpaceChargeMaps::IsOverFrame(double r, double phi)
 std::vector<double> fillSpaceChargeMaps::putOnPlane(double r, double phi)
 {
   //these parameters are taken from Feb 12 drawings of frames.
-  double tpc_frame_side_gap = 0.8;    //mm //space between radial line and start of frame
-  double tpc_frame_side_width = 2.6;  //mm //thickness of frame
-  double tpc_margin = 2.0;            //mm // extra gap between edge of frame and start of GEM holes
+  //double tpc_frame_side_gap = 0.8*mm;    //mm //space between radial line and start of frame
+  //double tpc_frame_side_width = 2.6*mm;  //mm //thickness of frame
+  double tpc_margin = 2.0*mm;            //mm // extra gap between edge of frame and start of GEM holes
 
-  double tpc_frame_r3_outer = 759.11;  //758.4;//mm inner edge of larger-r frame of r3
-  double tpc_frame_r3_inner = 583.67;  //583.5;//mm outer edge of smaller-r frame of r3
+  double tpc_frame_r3_outer = 759.11*mm;  //758.4;//mm inner edge of larger-r frame of r3
+  double tpc_frame_r3_inner = 583.67*mm;  //583.5;//mm outer edge of smaller-r frame of r3
 
-  double tpc_frame_r2_outer = 574.76;  //574.9;//mm inner edge of larger-r frame of r3
-  double tpc_frame_r2_inner = 411.53;  //411.4;//mm outer edge of smaller-r frame of r3
+  double tpc_frame_r2_outer = 574.76*mm;  //574.9;//mm inner edge of larger-r frame of r3
+  double tpc_frame_r2_inner = 411.53*mm;  //411.4;//mm outer edge of smaller-r frame of r3
 
-  double tpc_frame_r1_outer = 402.49;  //402.6;//mm inner edge of larger-r frame of r3
-  double tpc_frame_r1_inner = 217.83;  //221.0;//mm outer edge of smaller-r frame of r3
+  double tpc_frame_r1_outer = 402.49*mm;  //402.6;//mm inner edge of larger-r frame of r3
+  double tpc_frame_r1_inner = 217.83*mm;  //221.0;//mm outer edge of smaller-r frame of r3
 
   //double tpc_sec0_phi=0.0;//get_double_param("tpc_sec0_phi");
   double r_0_bin = -1;
   double phi_0_bin = -1;
   //if the coordinate is in the radial spaces of the frames, return true:
-  if (r < tpc_frame_r1_inner + tpc_margin)
+  if (r >= tpc_frame_r1_inner - 2*tpc_margin && r <= tpc_frame_r1_inner + tpc_margin)
   {
-    r_0_bin = tpc_frame_r1_inner - r;
+    //Collect charges from inner margin + 1 mm
+    r_0_bin = tpc_frame_r1_inner - tpc_margin/2;//- r; 
   }
-  if (r > tpc_frame_r1_outer - tpc_margin && r < tpc_frame_r2_inner + tpc_margin)
+  if (r >= tpc_frame_r1_outer - tpc_margin && r <= tpc_frame_r2_inner + tpc_margin)
   {
-    r_0_bin = tpc_frame_r2_inner - tpc_frame_r1_outer;
+    r_0_bin = tpc_frame_r2_inner-(tpc_frame_r2_inner - tpc_frame_r1_outer)/2;
   }
-  if (r > tpc_frame_r2_outer - tpc_margin && r < tpc_frame_r3_inner + tpc_margin)
+  if (r >= tpc_frame_r2_outer - tpc_margin && r <= tpc_frame_r3_inner + tpc_margin)
   {
-    r_0_bin = tpc_frame_r3_inner - tpc_frame_r2_outer;
+    r_0_bin = tpc_frame_r3_inner-(tpc_frame_r3_inner - tpc_frame_r2_outer)/2;
   }
-  if (r > tpc_frame_r3_outer - tpc_margin)
+  if (r >= tpc_frame_r3_outer - tpc_margin)
   {
-    r_0_bin = r - tpc_frame_r3_outer;
+    //Collect charges from outer margin + 1 mm
+    r_0_bin = tpc_frame_r3_outer + tpc_margin/2;
   }
 
   //if the coordinate is within gap+width of a sector boundary, return true:
   //note that this is not a line of constant radius, but a linear distance from a radius.
 
   //find the two spokes we're between:
+  for(int p=0;p<24;p=p+2){
+    if(phi>=phi_dead_bins[p] && phi<=phi_dead_bins[p+1]){
+      phi_0_bin = phi_dead_bins[p] + (phi_dead_bins[p+1]-phi_dead_bins[p])/2;
+    }
+  }
 
-  float sectorangle = (M_PI / 6.);
-  float nsectors = phi / sectorangle;
-  int nsec = floor(nsectors);
-  float reduced_phi = phi - nsec * sectorangle;  //between zero and sixty degrees.
-  float dist_to_previous = r * sin(reduced_phi);
-  float dist_to_next = r * sin(sectorangle - reduced_phi);
-  if (dist_to_previous < tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
-  {
-    //phi_0_bin = 0.0136;
-    phi_0_bin = asin((tpc_frame_side_gap + tpc_frame_side_width + tpc_margin) / r);
-  }
-  if (dist_to_next < tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
-  {
-    //phi_0_bin = 0.0136;
-    phi_0_bin = asin((tpc_frame_side_gap + tpc_frame_side_width + tpc_margin) / r);
-  }
+  // // float sectorangle = (M_PI / 6.);
+  // // float nsectors = (phi+sectorangle/2) / sectorangle;
+  // // if(nsectors>11) nsectors-=11;
+  // // int nsec = floor(nsectors);
+  // // float reduced_phi = phi - nsec * sectorangle;  //between zero and sixty degrees.
+  // // float dist_to_previous = r * sin(reduced_phi );
+  // // float dist_to_next = r * sin(sectorangle - reduced_phi );
+  // // if (dist_to_previous <= tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
+  // // {
+  // //   //phi_0_bin = 0.0136;
+  // //   phi_0_bin = asin((tpc_frame_side_gap + tpc_frame_side_width + tpc_margin) / r);
+  // // }
+  // // if (dist_to_next <= tpc_frame_side_gap + tpc_frame_side_width + tpc_margin)
+  // // {
+  // //   //phi_0_bin = 0.0136;
+  // //   phi_0_bin = asin((tpc_frame_side_gap + tpc_frame_side_width + tpc_margin) / r);
+  // // }
   std::vector<double> r_phi_bin;
-  r_phi_bin.push_back(r_0_bin / 2);
+  r_phi_bin.push_back(r_0_bin);
   r_phi_bin.push_back(phi_0_bin);
   return r_phi_bin;
 }

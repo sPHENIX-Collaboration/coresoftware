@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+#include <cmath>      // for sin, asin, cos, floor, M_PI
+
 // Forward declerations
 class Fun4AllHistoManager;
 class PHCompositeNode;
@@ -105,10 +107,10 @@ class fillSpaceChargeMaps : public SubsysReco
   TH3 *_h_SC_ibf[nFrames] = {nullptr};
 
   float f = 0.5;                    //for now, just pick the middle of the hit.  Do better later.
-  float ns = 1e-9, s = 1;           // us=1e-6,ms=1e-3,
-  float mm = 1, cm = 10, m = 1000;  //um=1e-3,//changed to make 'cm' 1.0, for convenience.
+  float ns = 1e-9, s = 1.0;           // us=1e-6,ms=1e-3,
+  float mm = 1.0, cm = 10.0, m = 1000.0;  //um=1e-3,//changed to make 'cm' 1.0, for convenience.
   float kHz = 1e3, MHz = 1e6;       //Hz=1,
-  float V = 1;
+  float V = 1.0;
   //used two ways:  1) to apply units to variables when defined
   //                2) to divide by certain units so that those variables are expressed in those units.
 
@@ -134,7 +136,18 @@ class fillSpaceChargeMaps : public SubsysReco
 
   //double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
   double Tpc_ElectronsPerGeV = Tpc_NTot / Tpc_dEdx * 1e6;  //electrons per gev.
-
+  double phi_dead_bins[24] ={ 6.5314-2 * M_PI, 6.545-2 * M_PI, 
+                                  0.7718, 0.7854, 
+                                  1.2954, 1.309, 
+                                  1.819, 1.8326, 
+                                  2.3426, 2.3562, 
+                                  2.8662, 2.8798, 
+                                  3.3898, 3.4034, 
+                                  3.9134, 3.927, 
+                                  4.437, 4.4506, 
+                                  4.9606, 4.9742, 
+                                  5.4842, 5.4978, 
+                                  6.0078, 6.0214};
   //int nr=159;
   //int nphi=360;
   //int nz=62*2;
