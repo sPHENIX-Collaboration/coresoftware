@@ -1,5 +1,5 @@
-#ifndef JETTAGGING_H__
-#define JETTAGGING_H__
+#ifndef RESONANCEJETTAGGING_H__
+#define RESONANCEJETTAGGING_H__
 
 #define HomogeneousField
 
@@ -19,11 +19,9 @@
 /// Class declarations for use in the analysis module
 class Fun4AllHistoManager;
 class PHCompositeNode;
-class TFile;
-class TTree;
-class TH1;
 class PHCompositeNode;
 class SvtxTrack;
+class PHG4Particlev2;
 class PHG4Particle;
 class ParticleFlowElement;
 class JetMapv1;
@@ -43,7 +41,7 @@ namespace fastjet
 }
 
 /// Definition of this analysis module class
-class JetTagging : public SubsysReco
+class ResonanceJetTagging : public SubsysReco
 {
  public:
   enum ALGO
@@ -62,12 +60,22 @@ class JetTagging : public SubsysReco
     ET2_SCHEME = 4
   };
 
+  enum TAG
+  {
+    D0 = 0,
+    DPLUS = 1,
+    DSTAR = 2,
+    JPSY = 3,
+    K0 = 4,
+    GAMMA = 5,
+    ELECTRON = 6
+  };
+
   /// Constructor
-  JetTagging(const std::string &name = "JetTagging",
-             const std::string &fname = "JetTagging.root");
+  ResonanceJetTagging(const std::string &name = "ResonanceJetTagging", const TAG tag = TAG::D0);
 
   // Destructor
-  virtual ~JetTagging();
+  virtual ~ResonanceJetTagging();
 
   /// SubsysReco initialize processing method
   int Init(PHCompositeNode *);
@@ -201,26 +209,14 @@ class JetTagging : public SubsysReco
     setJetAlgo(jetalgo);
     setRecombScheme(recomb_scheme);
   }
-
-  void setMakeQualityPlots(bool q) { m_qualy_plots = q; }
-  bool getMakeQualityPlots() { return m_qualy_plots; }
-
   void setJetContainerName(const std::string &n) { m_jetcontainer_name = n; }
   std::string getJetContainerName() { return m_jetcontainer_name; }
-  void setSaveDST(bool s) { m_save_dst = s; }
-  bool getSaveDST() { return m_save_dst; }
   void setIsMC(bool b) { m_ismc = b; }
   bool getIsMC() { return m_ismc; }
-  void setSaveDSTMC(bool s) { m_save_truth_dst = s; }
-  bool getSaveDSTMC() { return m_save_truth_dst; }
 
  private:
-  /// String to contain the outfile name containing the trees
-  std::string m_outfilename;
+  /// String to contain the jetmap name containing the tagged jets
   std::string m_jetcontainer_name;
-
-  /// Fun4All Histogram Manager tool
-  Fun4AllHistoManager *m_hm;
 
   /// Particle Flow selection and acceptance
   double m_particleflow_mineta;
@@ -258,83 +254,30 @@ class JetTagging : public SubsysReco
   JetMapv1 *m_taggedJetMap = nullptr;
   JetMapv1 *m_truth_taggedJetMap = nullptr;
 
-  /// TFile to hold the following TTrees and histograms
-  TFile *m_outfile = nullptr;
-  TTree *m_taggedjettree = nullptr;
-  TH1 *m_eventcount_h = nullptr;
-  TH1 *m_rec_tagpart_pt = nullptr;
-  TH1 *m_gen_withrec_tagpart_pt = nullptr;  // Distribution of generated particles with a match to a rec particle
-  TH1 *m_gen_tagpart_pt = nullptr;
-  TH1 *m_rec_tracks_pt = nullptr;
-  TH1 *m_gen_tracks_pt = nullptr;
-  TH1 *m_rec_emcal_clusters_pt = nullptr;
-  TH1 *m_rec_hcalin_clusters_pt = nullptr;
-  TH1 *m_rec_hcalout_clusters_pt = nullptr;
-
   int m_tag_pdg;
-  bool m_qualy_plots;
-  bool m_save_dst;
-  bool m_save_truth_dst;
   unsigned int m_jet_id = 0;
-  unsigned int m_truth_jet_id = 0;
   bool m_ismc;
+  TAG m_tag_particle;
 
   /// Methods for grabbing the data
-  void findTaggedJets(PHCompositeNode *topNode, KFParticle *Tag, KFParticle *TagDecays[], int nDecays);
-  void addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, KFParticle *TagDecays[], int nDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
-  void addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, KFParticle *TagDecays[], int nDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
+  int tagD0(PHCompositeNode *topNode);
+  void findTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *Tag, PHG4Particlev2 *TagDecays[], int nDecays);
+  void addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, PHG4Particlev2 *TagDecays[], int nDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
+  void addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, PHG4Particlev2 *TagDecays[], int nDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
   void addClusters(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
-  void getTracks(PHCompositeNode *topNode);
-  HepMC::GenParticle *findMCTaggedJets(PHCompositeNode *topNode, KFParticle *decays[], int nDecays);
-  HepMC::GenParticle *findMCTag(PHCompositeNode *topNode, KFParticle *decays[], int nDecays, PHG4Particle *mcDaughters[]);
+  HepMC::GenParticle *findMCTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *decays[], int nDecays);
+  HepMC::GenParticle *findMCTag(PHCompositeNode *topNode, PHG4Particlev2 *decays[], int nDecays, PHG4Particle *mcDaughters[]);
   HepMC::GenParticle *getMother(PHCompositeNode *topNode, PHG4Particle *g4daughter);
-  // bool hasMCTagParent(PHG4Particle *g4particle, PHG4TruthInfoContainer *truthinfo, int &parent_id);
   void findNonRecMC(PHCompositeNode *topNode, const std::vector<HepMC::GenParticle *> &mcTags);
-  void doMCLoop(PHCompositeNode *topNode);
 
   bool isAcceptableParticleFlow(ParticleFlowElement *pfPart);
   bool isAcceptableTrack(SvtxTrack *track);
   bool isAcceptableEMCalCluster(CLHEP::Hep3Vector &E_vec_cluster);
   bool isAcceptableHCalCluster(CLHEP::Hep3Vector &E_vec_cluster);
   bool isDecay(HepMC::GenParticle *particle, PHG4Particle *decays[], int nDecays);
-  bool isSameParticle(SvtxTrack *track, KFParticle *particle);
-  bool isDecay(SvtxTrack *track, KFParticle *decays[], int nDecays);
-  void initializeVariables();
-  void initializeTrees();
+  bool isSameParticle(SvtxTrack *track, PHG4Particlev2 *particle);
+  bool isDecay(SvtxTrack *track, PHG4Particlev2 *decays[], int nDecays);
   int createJetNode(PHCompositeNode *topNode);
-  void resetTreeVariables();
-
-  /**
-   * Make variables for the relevant trees
-   */
-
-  // Tagged-Jet variables
-  double m_tagpartpx = -9999.;
-  double m_tagpartpy = -9999.;
-  double m_tagpartpz = -9999.;
-  double m_tagpartpt = -9999.;
-  double m_tagparteta = -9999.;
-  double m_tagpartphi = -9999.;
-  double m_tagpartm = -9999.;
-  double m_tagjetpx = -9999.;
-  double m_tagjetpy = -9999.;
-  double m_tagjetpz = -9999.;
-  double m_tagjetpt = -9999.;
-  double m_tagjeteta = -9999.;
-  double m_tagjetphi = -9999.;
-  // Truth info
-  double m_truth_tagpartpx = -9999.;
-  double m_truth_tagpartpy = -9999.;
-  double m_truth_tagpartpz = -9999.;
-  double m_truth_tagpartpt = -9999.;
-  double m_truth_tagparteta = -9999.;
-  double m_truth_tagpartphi = -9999.;
-  double m_truth_tagjetpx = -9999.;
-  double m_truth_tagjetpy = -9999.;
-  double m_truth_tagjetpz = -9999.;
-  double m_truth_tagjetpt = -9999.;
-  double m_truth_tagjeteta = -9999.;
-  double m_truth_tagjetphi = -9999.;
 };
 
 #endif

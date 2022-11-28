@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-    libjettagging.la
+    libresonancejettagging.la
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -13,12 +13,12 @@ AM_CPPFLAGS = \
   -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
-  JetTagging.h
+  ResonanceJetTagging.h
 
-libjettagging_la_SOURCES = \
-  JetTagging.cc
+libresonancejettagging_la_SOURCES = \
+  ResonanceJetTagging.cc
 
-libjettagging_la_LDFLAGS = \
+libresonancejettagging_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -lcalo_io \
@@ -40,7 +40,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD = libjettagging.la
+testexternals_LDADD = libresonancejettagging.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

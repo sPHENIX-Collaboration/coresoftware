@@ -1,4 +1,4 @@
-#include "JetTagging.h"
+#include "ResonanceJetTagging.h"
 
 /// Cluster/Calorimeter includes
 #include <calobase/RawCluster.h>
@@ -24,6 +24,7 @@
 #include <phhepmc/PHHepMCGenEventMap.h>
 
 #include <g4main/PHG4Particle.h>            // for PHG4Particle
+#include <g4main/PHG4Particlev2.h>            // for PHG4Particle
 #include <g4main/PHG4TruthInfoContainer.h>  // for PHG4TruthInfoContainer
 
 #include <kfparticle_sphenix/KFParticle_Container.h>
@@ -57,7 +58,6 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TParticlePDG.h>
-#include <TTree.h>
 
 /// C++ includes
 #include <algorithm>  // for max
@@ -71,7 +71,7 @@
 #include <string>
 
 /**
- * JetTagging is a class developed to reconstruct jets containing a D-meson
+ * ResonanceJetTagging is a class developed to reconstruct jets containing a D-meson
  * The class can be adapted to tag jets using any kind of particle
  * Author: Antonio Silva (antonio.sphenix@gmail.com)
  */
@@ -79,10 +79,8 @@
 /**
  * Constructor of module
  */
-JetTagging::JetTagging(const std::string &name, const std::string &filename)
+ResonanceJetTagging::ResonanceJetTagging(const std::string &name, const TAG tag)
   : SubsysReco(name)
-  , m_outfilename(filename)
-  , m_hm(nullptr)
   , m_particleflow_mineta(-1.1)
   , m_particleflow_maxeta(1.1)
   , m_track_minpt(0.)
@@ -104,57 +102,54 @@ JetTagging::JetTagging(const std::string &name, const std::string &filename)
   , m_jetr(0.4)
   , m_jetalgo(fastjet::antikt_algorithm)
   , m_recomb_scheme(fastjet::pt_scheme)
-  , m_tag_pdg(421)
-  , m_qualy_plots(false)
-  , m_save_dst(false)
   , m_ismc(false)
+  , m_tag_particle(tag)
 {
-  /// Initialize variables and trees so we don't accidentally access
-  /// memory that was never allocated
-  initializeVariables();
-  initializeTrees();
+  switch (m_tag_particle) {
+    case TAG::D0 :
+      m_tag_pdg = 421;
+      break;
+    case TAG::DPLUS :
+      m_tag_pdg = 411;
+      break;
+    case TAG::DSTAR :
+      m_tag_pdg = 413;
+      break;
+    case TAG::JPSY :
+      m_tag_pdg = 433;
+      break;
+    case TAG::K0 :
+      m_tag_pdg = 311;
+      break;
+    case TAG::GAMMA :
+      m_tag_pdg = 22;
+      break;
+    case TAG::ELECTRON :
+      m_tag_pdg = 11;
+      break;
+  }
+
 }
 
 /**
  * Destructor of module
  */
-JetTagging::~JetTagging()
+ResonanceJetTagging::~ResonanceJetTagging()
 {
-  delete m_hm;
-  delete m_taggedjettree;
+
 }
 
 /**
  * Initialize the module and prepare looping over events
  */
-int JetTagging::Init(PHCompositeNode *topNode)
+int ResonanceJetTagging::Init(PHCompositeNode *topNode)
 {
   if (Verbosity() > 5)
   {
-    std::cout << "Beginning Init in JetTagging" << std::endl;
+    std::cout << "Beginning Init in ResonanceJetTagging" << std::endl;
   }
 
-  m_outfile = new TFile(m_outfilename.c_str(), "RECREATE");
-
-  if (m_save_dst)
-  {
-    createJetNode(topNode);
-  }
-
-  m_eventcount_h = new TH1I("eventcount_h", "Event Count", 2, -0.5, 1.5);
-  m_eventcount_h->GetXaxis()->SetBinLabel(1, "N ev anal");
-  m_eventcount_h->GetXaxis()->SetBinLabel(2, "N D candidates");
-
-  m_rec_tagpart_pt = new TH1D("rec_tagpart_pt", ";#it{p}_{T,D} (GeV/#it{c});Entries", 20, 0., 20.);
-  m_gen_withrec_tagpart_pt = new TH1D("gen_withrec_tagpart_pt", ";#it{p}_{T,D} (GeV/#it{c});Entries", 20, 0., 20.);
-  m_gen_tagpart_pt = new TH1D("gen_tagpart_pt", ";#it{p}_{T,D} (GeV/#it{c});Entries", 20, 0., 20.);
-
-  m_rec_tracks_pt = new TH1D("rec_tracks_pt", ";#it{p}_{T} (GeV/#it{c});Entries", 200, 0., 20.);
-  m_gen_tracks_pt = new TH1D("gen_tracks_pt", ";#it{p}_{T} (GeV/#it{c});Entries", 200, 0., 20.);
-
-  m_rec_emcal_clusters_pt = new TH1D("rec_emcal_clusters_pt", ";#it{p}_{T} (GeV/#it{c});Entries", 200, 0., 20.);
-  m_rec_hcalin_clusters_pt = new TH1D("rec_hcalin_clusters_pt", ";#it{p}_{T} (GeV/#it{c});Entries", 200, 0., 20.);
-  m_rec_hcalout_clusters_pt = new TH1D("rec_hcalout_clusters_pt", ";#it{p}_{T} (GeV/#it{c});Entries", 200, 0., 20.);
+  createJetNode(topNode);
 
   return 0;
 }
@@ -163,29 +158,56 @@ int JetTagging::Init(PHCompositeNode *topNode)
  * Main workhorse function where each event is looped over and
  * data from each event is collected from the node tree for analysis
  */
-int JetTagging::process_event(PHCompositeNode *topNode)
+int ResonanceJetTagging::process_event(PHCompositeNode *topNode)
 {
-  m_eventcount_h->Fill(0);
 
-  KFParticle_Container *kfContainer = new KFParticle_Container();
-
-  PHNodeIterator nodeIter(topNode);
-  PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("DST"));
-  if (findNode)
-  {
-    findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("reconstructedParticles_KFParticle_Container"));
-    if (findNode)
-    {
-      kfContainer = findNode::getClass<KFParticle_Container>(topNode, "reconstructedParticles_KFParticle_Container");
-      // std::cout << "****************** CONTAINER FOUND with size: " << kfContainer->size() << std::endl;
-    }
+  switch (m_tag_particle) {
+    case TAG::D0:
+      return tagD0(topNode);
+      break;
+    case TAG::DPLUS:
+      break;
+    case TAG::DSTAR:
+      break;
+    case TAG::JPSY:
+      break;
+    case TAG::K0:
+      break;
+    case TAG::GAMMA:
+      break;
+    case TAG::ELECTRON:
+      break;
   }
 
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+/**
+ * End the module and finish any data collection. Clean up any remaining
+ * loose ends
+ */
+int ResonanceJetTagging::End(PHCompositeNode * /*topNode*/)
+{
+  if (Verbosity() > 1)
+  {
+    std::cout << "Finished ResonanceJetTagging analysis package" << std::endl;
+  }
+
+  return 0;
+}
+
+int ResonanceJetTagging::tagD0(PHCompositeNode *topNode)
+{
+  KFParticle_Container *kfContainer = findNode::getClass<KFParticle_Container>(topNode, "reconstructedParticles_KFParticle_Container");
+  if(!kfContainer) return Fun4AllReturnCodes::ABORTEVENT;
+
   KFParticle *TagCand;
+  PHG4Particlev2 *Cand = new PHG4Particlev2();
 
   const int nDaughters = 2;  // TagCand->NDaughters() is returning 0, bug?
 
   KFParticle *TagDaughters[nDaughters];
+  PHG4Particlev2 *Daughters[nDaughters];
 
   std::vector<HepMC::GenParticle *> mcTags;
   HepMC::GenParticle *mcTag = nullptr;
@@ -197,25 +219,31 @@ int JetTagging::process_event(PHCompositeNode *topNode)
     TagCand = kfContainer->get(i);
     if (std::abs(TagCand->GetPDG()) == m_tag_pdg)
     {
-      m_eventcount_h->Fill(1);
-
       for (int idau = 0; idau < nDaughters; idau++)
       {
         TagDaughters[idau] = kfContainer->get(i + idau + 1);
+        Daughters[idau] = new PHG4Particlev2();
+        Daughters[idau]->set_px(TagDaughters[idau]->Px());
+        Daughters[idau]->set_py(TagDaughters[idau]->Py());
+        Daughters[idau]->set_pz(TagDaughters[idau]->Pz());
+        Daughters[idau]->set_barcode(TagDaughters[idau]->Id());
       }
 
-      findTaggedJets(topNode, TagCand, TagDaughters, nDaughters);
+      Cand->set_px(TagCand->Px());
+      Cand->set_py(TagCand->Py());
+      Cand->set_pz(TagCand->Pz());
+      Cand->set_e(TagCand->E());
+      Cand->set_barcode(TagCand->Id());
+
+      findTaggedJets(topNode, Cand, Daughters, nDaughters);
 
       if (m_ismc)
       {
-        mcTag = findMCTaggedJets(topNode, TagDaughters, nDaughters);
+        mcTag = findMCTaggedJets(topNode, Daughters, nDaughters);
         mcTags.push_back(mcTag);
       }
 
-      m_rec_tagpart_pt->Fill(TagCand->GetPt());
-      m_taggedjettree->Fill();
       m_jet_id++;
-      resetTreeVariables();
       i += nDaughters;  // Go to the next D meson
     }
   }
@@ -225,61 +253,12 @@ int JetTagging::process_event(PHCompositeNode *topNode)
     findNonRecMC(topNode, mcTags);
   }
 
-  if ((kfContainer->size() > 0) && m_qualy_plots)
-  {
-    doMCLoop(topNode);
-  }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-/**
- * End the module and finish any data collection. Clean up any remaining
- * loose ends
- */
-int JetTagging::End(PHCompositeNode * /*topNode*/)
+void ResonanceJetTagging::findTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *Tag, PHG4Particlev2 *TagDecays[], int nDecays)
 {
-  if (Verbosity() > 1)
-  {
-    std::cout << "Ending JetTagging analysis package" << std::endl;
-  }
-
-  /// Change to the outfile
-  m_outfile->cd();
-
-  m_taggedjettree->Write();
-
-  m_eventcount_h->Write();
-
-  m_rec_tagpart_pt->Write();
-  m_gen_withrec_tagpart_pt->Write();
-  m_gen_tagpart_pt->Write();
-
-  m_rec_tracks_pt->Write();
-  m_gen_tracks_pt->Write();
-
-  m_rec_emcal_clusters_pt->Write();
-  m_rec_hcalin_clusters_pt->Write();
-  m_rec_hcalout_clusters_pt->Write();
-
-  /// Write and close the outfile
-  m_outfile->Write();
-  m_outfile->Close();
-
-  /// Clean up pointers and associated histos/trees in TFile
-  delete m_outfile;
-
-  if (Verbosity() > 1)
-  {
-    std::cout << "Finished JetTagging analysis package" << std::endl;
-  }
-
-  return 0;
-}
-
-void JetTagging::findTaggedJets(PHCompositeNode *topNode, KFParticle *Tag, KFParticle *TagDecays[], int nDecays)
-{
-  fastjet::JetDefinition *jetdef = new fastjet::JetDefinition(m_jetalgo, m_jetr, m_recomb_scheme, fastjet::Best);
+  std::unique_ptr<fastjet::JetDefinition> jetdef(new fastjet::JetDefinition(m_jetalgo, m_jetr, m_recomb_scheme, fastjet::Best));
 
   std::vector<fastjet::PseudoJet> particles;
 
@@ -287,20 +266,21 @@ void JetTagging::findTaggedJets(PHCompositeNode *topNode, KFParticle *Tag, KFPar
 
   std::map<int, std::pair<Jet::SRC, int>> fjMap;
 
-  fastjet::PseudoJet fjTag(Tag->Px(), Tag->Py(), Tag->Pz(), Tag->E());
+  fastjet::PseudoJet fjTag(Tag->get_px(), Tag->get_py(), Tag->get_pz(), Tag->get_e());
   fjTag.set_user_index(0);  // index 0 is the tag particle
   particles.push_back(fjTag);
-  fjMap.insert(std::pair<int, std::pair<Jet::SRC, int>>(0, std::make_pair(Jet::SRC::VOID, Tag->Id())));  // Maybe we could have a Jet::SRC::HF for HF-tagging?
-  // int idpart = 1; //index 0 is the tag particle
+  fjMap.insert(std::pair<int, std::pair<Jet::SRC, int>>(0, std::make_pair(Jet::SRC::VOID, Tag->get_barcode())));  // Maybe we could have a Jet::SRC::HF for HF-tagging?
 
   if (m_add_particleflow)
   {
     addParticleFlow(topNode, particles, TagDecays, nDecays, fjMap);
   }
+
   if (m_add_tracks)
   {
     addTracks(topNode, particles, TagDecays, nDecays, fjMap);
   }
+
   if (m_add_EMCal_clusters || m_add_HCal_clusters)
   {
     addClusters(topNode, particles, fjMap);
@@ -308,8 +288,6 @@ void JetTagging::findTaggedJets(PHCompositeNode *topNode, KFParticle *Tag, KFPar
 
   fastjet::ClusterSequence jetFinder(particles, *jetdef);
   std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
-
-  delete jetdef;
 
   taggedJet = new Jetv1();
 
@@ -339,36 +317,23 @@ void JetTagging::findTaggedJets(PHCompositeNode *topNode, KFParticle *Tag, KFPar
       taggedJet->clear_comp();
     }
   }
-  /*
-    for (Jet::ConstIter citer = taggedJet->begin_comp(); citer != taggedJet->end_comp(); ++citer)
-    {
-      std::cout << citer->first << " -> " << citer->second << std::endl;
-    }
-  */
-
-  m_tagpartpx = Tag->Px();
-  m_tagpartpy = Tag->Py();
-  m_tagpartpz = Tag->Pz();
-  m_tagpartpt = Tag->GetPt();
-  m_tagparteta = Tag->GetEta();
-  m_tagpartphi = Tag->GetPhi();
-  m_tagpartm = Tag->GetMass();
-
-  m_tagjetpx = taggedJet->get_px();
-  m_tagjetpy = taggedJet->get_py();
-  m_tagjetpz = taggedJet->get_pz();
-  m_tagjetpt = taggedJet->get_pt();
-  m_tagjeteta = taggedJet->get_eta();
-  m_tagjetphi = taggedJet->get_phi();
 
   m_taggedJetMap->insert(taggedJet);
 
   return;
 }
 
-void JetTagging::addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, KFParticle *TagDecays[], int nDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
+void ResonanceJetTagging::addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, PHG4Particlev2 *TagDecays[], int nDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
 {
   ParticleFlowElementContainer *pflowContainer = findNode::getClass<ParticleFlowElementContainer>(topNode, "ParticleFlowElements");
+
+  if(!pflowContainer)
+  {
+    std::cout << PHWHERE
+         << "ParticleFlowElements node is missing, can't collect particles"
+         << std::endl;
+    return;
+  }
 
   SvtxTrack *track = nullptr;
 
@@ -410,7 +375,7 @@ void JetTagging::addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::
   }
 }
 
-bool JetTagging::isAcceptableParticleFlow(ParticleFlowElement *pfPart)
+bool ResonanceJetTagging::isAcceptableParticleFlow(ParticleFlowElement *pfPart)
 {
   // Only eta cut at this moment
   if ((pfPart->get_eta() < m_particleflow_mineta) || (pfPart->get_eta() > m_particleflow_maxeta))
@@ -420,13 +385,9 @@ bool JetTagging::isAcceptableParticleFlow(ParticleFlowElement *pfPart)
 
   return true;
 }
-
-void JetTagging::addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, KFParticle *TagDecays[], int nDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
+void ResonanceJetTagging::addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, PHG4Particlev2 *TagDecays[], int nDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
 {
   SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-
-  int idpart = particles.size();
-  // std::cout << "Tracks idpart = " << idpart << std::endl;
 
   if (!trackmap)
   {
@@ -435,6 +396,8 @@ void JetTagging::addTracks(PHCompositeNode *topNode, std::vector<fastjet::Pseudo
               << std::endl;
     return;
   }
+
+  int idpart = particles.size();
 
   SvtxTrack *track = nullptr;
 
@@ -445,11 +408,6 @@ void JetTagging::addTracks(PHCompositeNode *topNode, std::vector<fastjet::Pseudo
     if (!isAcceptableTrack(track))
     {
       continue;
-    }
-
-    if (m_qualy_plots)
-    {
-      m_rec_tracks_pt->Fill(track->get_pt());
     }
 
     if (isDecay(track, TagDecays, nDecays))
@@ -466,7 +424,7 @@ void JetTagging::addTracks(PHCompositeNode *topNode, std::vector<fastjet::Pseudo
   }
 }
 
-bool JetTagging::isAcceptableTrack(SvtxTrack *track)
+bool ResonanceJetTagging::isAcceptableTrack(SvtxTrack *track)
 {
   if ((track->get_pt() < m_track_minpt) || (track->get_pt() > m_track_maxpt))
   {
@@ -480,12 +438,12 @@ bool JetTagging::isAcceptableTrack(SvtxTrack *track)
   return true;
 }
 
-void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
+void ResonanceJetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
 {
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
   {
-    std::cout << "JetTagging::getEmcalClusters - Fatal Error - GlobalVertexMap node is missing. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << std::endl;
+    std::cout << "ResonanceJetTagging::getEmcalClusters - Fatal Error - GlobalVertexMap node is missing. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << std::endl;
     assert(vertexmap);  // force quit
 
     return;
@@ -493,7 +451,7 @@ void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::Pseu
 
   if (vertexmap->empty())
   {
-    std::cout << "JetTagging::getEmcalClusters - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << std::endl;
+    std::cout << "ResonanceJetTagging::getEmcalClusters - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex." << std::endl;
     return;
   }
 
@@ -531,15 +489,6 @@ void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::Pseu
 
       CLHEP::Hep3Vector vertex(vtx->get_x(), vtx->get_y(), vtx->get_z());
       CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*cluster, vertex);
-
-      if (m_qualy_plots)
-      {
-        // No pt cut, but within eta acceptance
-        if ((E_vec_cluster.pseudoRapidity() > m_EMCal_cluster_mineta) && (E_vec_cluster.pseudoRapidity() < m_EMCal_cluster_maxeta))
-        {
-          m_rec_emcal_clusters_pt->Fill(E_vec_cluster.perp());
-        }
-      }
 
       if (!isAcceptableEMCalCluster(E_vec_cluster))
       {
@@ -581,8 +530,6 @@ void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::Pseu
     RawClusterContainer::ConstRange begin_end_HCALIN = clustersHCALIN->getClusters();
     RawClusterContainer::ConstIterator clusIter_HCALIN;
 
-    // std::cout << "idpart before HCALIN: " << idpart << std::endl;
-
     /// Loop over the EMCal clusters
     for (clusIter_HCALIN = begin_end_HCALIN.first;
          clusIter_HCALIN != begin_end_HCALIN.second;
@@ -593,15 +540,6 @@ void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::Pseu
 
       CLHEP::Hep3Vector vertex(vtx->get_x(), vtx->get_y(), vtx->get_z());
       CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*cluster, vertex);
-
-      if (m_qualy_plots)
-      {
-        // No pt cut, but within eta acceptance
-        if ((E_vec_cluster.pseudoRapidity() > m_EMCal_cluster_mineta) && (E_vec_cluster.pseudoRapidity() < m_EMCal_cluster_maxeta))
-        {
-          m_rec_hcalin_clusters_pt->Fill(E_vec_cluster.perp());
-        }
-      }
 
       if (!isAcceptableHCalCluster(E_vec_cluster))
       {
@@ -636,8 +574,6 @@ void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::Pseu
     RawClusterContainer::ConstRange begin_end_HCALOUT = clustersHCALOUT->getClusters();
     RawClusterContainer::ConstIterator clusIter_HCALOUT;
 
-    // std::cout << "idpart before HCALOUT: " << idpart << std::endl;
-
     /// Loop over the EMCal clusters
     for (clusIter_HCALOUT = begin_end_HCALOUT.first;
          clusIter_HCALOUT != begin_end_HCALOUT.second;
@@ -652,15 +588,6 @@ void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::Pseu
       /// This is important for e.g. eta determination and E_T determination
       CLHEP::Hep3Vector vertex(vtx->get_x(), vtx->get_y(), vtx->get_z());
       CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*cluster, vertex);
-
-      if (m_qualy_plots)
-      {
-        // No pt cut, but within eta acceptance
-        if ((E_vec_cluster.pseudoRapidity() > m_EMCal_cluster_mineta) && (E_vec_cluster.pseudoRapidity() < m_EMCal_cluster_maxeta))
-        {
-          m_rec_hcalout_clusters_pt->Fill(E_vec_cluster.perp());
-        }
-      }
 
       if (!isAcceptableHCalCluster(E_vec_cluster))
       {
@@ -685,10 +612,9 @@ void JetTagging::addClusters(PHCompositeNode *topNode, std::vector<fastjet::Pseu
     }
   }
 
-  // std::cout << "idpart after HCALOUT: " << idpart << std::endl;
 }
 
-bool JetTagging::isAcceptableEMCalCluster(CLHEP::Hep3Vector &E_vec_cluster)
+bool ResonanceJetTagging::isAcceptableEMCalCluster(CLHEP::Hep3Vector &E_vec_cluster)
 {
   if ((E_vec_cluster.perp() < m_EMCal_cluster_minpt) || (E_vec_cluster.perp() > m_EMCal_cluster_maxpt))
   {
@@ -702,7 +628,7 @@ bool JetTagging::isAcceptableEMCalCluster(CLHEP::Hep3Vector &E_vec_cluster)
   return true;
 }
 
-bool JetTagging::isAcceptableHCalCluster(CLHEP::Hep3Vector &E_vec_cluster)
+bool ResonanceJetTagging::isAcceptableHCalCluster(CLHEP::Hep3Vector &E_vec_cluster)
 {
   if ((E_vec_cluster.perp() < m_HCal_cluster_minpt) || (E_vec_cluster.perp() > m_HCal_cluster_maxpt))
   {
@@ -716,9 +642,9 @@ bool JetTagging::isAcceptableHCalCluster(CLHEP::Hep3Vector &E_vec_cluster)
   return true;
 }
 
-bool JetTagging::isSameParticle(SvtxTrack *track, KFParticle *particle)
+bool ResonanceJetTagging::isSameParticle(SvtxTrack *track, PHG4Particlev2 *particle)
 {
-  if (std::abs(track->get_px() - particle->Px()) < 0.00001 && std::abs(track->get_py() - particle->Py()) < 0.00001 && std::abs(track->get_pz() - particle->Pz()) < 0.00001)
+  if (std::abs(track->get_px() - particle->get_px()) < 0.00001 && std::abs(track->get_py() - particle->get_py()) < 0.00001 && std::abs(track->get_pz() - particle->get_pz()) < 0.00001)
   {
     return true;
   }
@@ -726,7 +652,7 @@ bool JetTagging::isSameParticle(SvtxTrack *track, KFParticle *particle)
   return false;
 }
 
-bool JetTagging::isDecay(SvtxTrack *track, KFParticle *decays[], int nDecays)
+bool ResonanceJetTagging::isDecay(SvtxTrack *track, PHG4Particlev2 *decays[], int nDecays)
 {
   for (int idecay = 0; idecay < nDecays; idecay++)
   {
@@ -739,7 +665,7 @@ bool JetTagging::isDecay(SvtxTrack *track, KFParticle *decays[], int nDecays)
   return false;
 }
 
-HepMC::GenParticle *JetTagging::findMCTaggedJets(PHCompositeNode *topNode, KFParticle *decays[], int nDecays)
+HepMC::GenParticle *ResonanceJetTagging::findMCTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *decays[], int nDecays)
 {
   fastjet::JetDefinition *jetdef = new fastjet::JetDefinition(m_jetalgo, m_jetr, m_recomb_scheme, fastjet::Best);
 
@@ -871,28 +797,12 @@ HepMC::GenParticle *JetTagging::findMCTaggedJets(PHCompositeNode *topNode, KFPar
     }
   }
 
-  m_truth_tagpartpx = mcTag->momentum().px();
-  m_truth_tagpartpy = mcTag->momentum().py();
-  m_truth_tagpartpz = mcTag->momentum().pz();
-  m_truth_tagpartpt = sqrt(m_truth_tagpartpx * m_truth_tagpartpx + m_truth_tagpartpy * m_truth_tagpartpy);
-  m_truth_tagparteta = atanh(m_truth_tagpartpz / mcTag->momentum().e());
-  m_truth_tagpartphi = atan(m_truth_tagpartpy / m_truth_tagpartpx);
-
-  m_truth_tagjetpx = mcTaggedJet->get_px();
-  m_truth_tagjetpy = mcTaggedJet->get_py();
-  m_truth_tagjetpz = mcTaggedJet->get_pz();
-  m_truth_tagjetpt = mcTaggedJet->get_pt();
-  m_truth_tagjeteta = mcTaggedJet->get_eta();
-  m_truth_tagjetphi = mcTaggedJet->get_phi();
-
   m_truth_taggedJetMap->insert(mcTaggedJet);
-
-  m_gen_withrec_tagpart_pt->Fill(m_truth_tagpartpt);
 
   return mcTag;
 }
 
-HepMC::GenParticle *JetTagging::findMCTag(PHCompositeNode *topNode, KFParticle *decays[], int nDecays, PHG4Particle *mcDaughters[])
+HepMC::GenParticle *ResonanceJetTagging::findMCTag(PHCompositeNode *topNode, PHG4Particlev2 *decays[], int nDecays, PHG4Particle *mcDaughters[])
 {
   PHG4Particle *g4particle = nullptr;
   SvtxTrack *dauTrack = nullptr;
@@ -970,7 +880,7 @@ HepMC::GenParticle *JetTagging::findMCTag(PHCompositeNode *topNode, KFParticle *
   return mcTag[0];
 }
 
-HepMC::GenParticle *JetTagging::getMother(PHCompositeNode *topNode, PHG4Particle *g4daughter)
+HepMC::GenParticle *ResonanceJetTagging::getMother(PHCompositeNode *topNode, PHG4Particle *g4daughter)
 {
   PHHepMCGenEventMap *hepmceventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
 
@@ -1018,7 +928,7 @@ HepMC::GenParticle *JetTagging::getMother(PHCompositeNode *topNode, PHG4Particle
   return nullptr;
 }
 
-bool JetTagging::isDecay(HepMC::GenParticle *particle, PHG4Particle *decays[], int nDecays)
+bool ResonanceJetTagging::isDecay(HepMC::GenParticle *particle, PHG4Particle *decays[], int nDecays)
 {
   for (int idecay = 0; idecay < nDecays; idecay++)
   {
@@ -1031,7 +941,7 @@ bool JetTagging::isDecay(HepMC::GenParticle *particle, PHG4Particle *decays[], i
   return false;
 }
 
-void JetTagging::findNonRecMC(PHCompositeNode *topNode, const std::vector<HepMC::GenParticle *> &mcTagsWithRec)
+void ResonanceJetTagging::findNonRecMC(PHCompositeNode *topNode, const std::vector<HepMC::GenParticle *> &mcTagsWithRec)
 {
   PHHepMCGenEventMap *hepmceventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
 
@@ -1101,7 +1011,7 @@ void JetTagging::findNonRecMC(PHCompositeNode *topNode, const std::vector<HepMC:
       fjMCParticle.set_user_index(0);
       particles.push_back(fjMCParticle);
 
-      int idpart = 1;
+      int idpart = particles.size();
 
       for (HepMC::GenEvent::particle_const_iterator p = hepMCGenEvent->particles_begin(); p != hepMCGenEvent->particles_end(); ++p)
       {
@@ -1187,140 +1097,15 @@ void JetTagging::findNonRecMC(PHCompositeNode *topNode, const std::vector<HepMC:
         }
       }
 
-      m_truth_tagpartpx = (*tag)->momentum().px();
-      m_truth_tagpartpy = (*tag)->momentum().py();
-      m_truth_tagpartpz = (*tag)->momentum().pz();
-      m_truth_tagpartpt = sqrt(m_truth_tagpartpx * m_truth_tagpartpx + m_truth_tagpartpy * m_truth_tagpartpy);
-      m_truth_tagparteta = atanh(m_truth_tagpartpz / (*tag)->momentum().e());
-      m_truth_tagpartphi = atan(m_truth_tagpartpy / m_truth_tagpartpx);
-
-      m_truth_tagjetpx = mcTaggedJet->get_px();
-      m_truth_tagjetpy = mcTaggedJet->get_py();
-      m_truth_tagjetpz = mcTaggedJet->get_pz();
-      m_truth_tagjetpt = mcTaggedJet->get_pt();
-      m_truth_tagjeteta = mcTaggedJet->get_eta();
-      m_truth_tagjetphi = mcTaggedJet->get_phi();
-      m_taggedjettree->Fill();
-      resetTreeVariables();
       m_truth_taggedJetMap->insert(mcTaggedJet);
       m_jet_id++;
     }
   }
 }
 
-void JetTagging::doMCLoop(PHCompositeNode *topNode)
-{
-  PHHepMCGenEventMap *hepmceventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
-
-  /// If the node was not properly put on the tree, return
-  if (!hepmceventmap)
-  {
-    std::cout << PHWHERE
-              << "HEPMC event map node is missing, can't collected HEPMC truth particles"
-              << std::endl;
-    return;
-  }
-
-  PHHepMCGenEvent *hepmcevent = hepmceventmap->get(1);
-
-  if (!hepmcevent)
-  {
-    return;
-  }
-
-  HepMC::GenEvent *hepMCGenEvent = hepmcevent->getEvent();
-
-  if (!hepMCGenEvent)
-  {
-    return;
-  }
-
-  TDatabasePDG *database = TDatabasePDG::Instance();
-  TParticlePDG *partPDG = nullptr;
-
-  for (HepMC::GenEvent::particle_const_iterator p = hepMCGenEvent->particles_begin(); p != hepMCGenEvent->particles_end(); ++p)
-  {
-    if (((*p)->momentum().eta() < m_track_mineta) || ((*p)->momentum().eta() > m_track_maxeta))
-    {
-      continue;
-    }
-
-    partPDG = database->GetParticle((*p)->pdg_id());
-    double hepmcPartPt = std::sqrt(((*p)->momentum().px() * (*p)->momentum().px()) + ((*p)->momentum().py() * (*p)->momentum().py()));
-
-    if (std::abs((*p)->pdg_id()) == m_tag_pdg)
-    {
-      m_gen_tagpart_pt->Fill(hepmcPartPt);  // For now, D0 is stable. This should change
-      HepMC::GenVertex *TagVertex = (*p)->end_vertex();
-      for (HepMC::GenVertex::particle_iterator it = TagVertex->particles_begin(HepMC::descendants); it != TagVertex->particles_end(HepMC::descendants); ++it)
-      {
-        std::cout << "daughter PDG: " << (*it)->pdg_id() << "daughter barcode: " << (*it)->barcode() << " px: " << (*it)->momentum().px() << " py: " << (*it)->momentum().py() << " pz: " << (*it)->momentum().pz() << std::endl;
-        continue;  // Remove this stable D0
-      }
-    }
-
-    if ((*p)->status() > 1)
-    {
-      continue;
-    }
-
-    if (partPDG->Charge() != 0)
-    {
-      if ((hepmcPartPt < m_track_minpt) || (hepmcPartPt > m_track_maxpt))
-      {
-        continue;
-      }
-      m_gen_tracks_pt->Fill(hepmcPartPt);
-    }
-  }
-}
-
-/**
- * This function puts all of the tree branch assignments in one place so as to not
- * clutter up the JetTagging::Init function.
- */
-void JetTagging::initializeTrees()
-{
-  m_taggedjettree = new TTree("m_taggedjettree", "A tree with Tagged-Jet info");
-  m_taggedjettree->Branch("m_tagpartpx", &m_tagpartpx, "m_tagpartpx/D");
-  m_taggedjettree->Branch("m_tagpartpy", &m_tagpartpy, "m_tagpartpy/D");
-  m_taggedjettree->Branch("m_tagpartpz", &m_tagpartpz, "m_tagpartpz/D");
-  m_taggedjettree->Branch("m_tagpartpt", &m_tagpartpt, "m_tagpartpt/D");
-  m_taggedjettree->Branch("m_tagparteta", &m_tagparteta, "m_tagparteta/D");
-  m_taggedjettree->Branch("m_tagpartphi", &m_tagpartphi, "m_tagpartphi/D");
-  m_taggedjettree->Branch("m_tagpartm", &m_tagpartm, "m_tagpartm/D");
-  m_taggedjettree->Branch("m_tagjetpx", &m_tagjetpx, "m_tagjetpx/D");
-  m_taggedjettree->Branch("m_tagjetpy", &m_tagjetpy, "m_tagjetpy/D");
-  m_taggedjettree->Branch("m_tagjetpz", &m_tagjetpz, "m_tagjetpz/D");
-  m_taggedjettree->Branch("m_tagjetpt", &m_tagjetpt, "m_tagjetpt/D");
-  m_taggedjettree->Branch("m_tagjeteta", &m_tagjeteta, "m_tagjeteta/D");
-  m_taggedjettree->Branch("m_tagjetphi", &m_tagjetphi, "m_tagjetphi/D");
-
-  m_taggedjettree->Branch("m_truth_tagpartpx", &m_truth_tagpartpx, "m_truth_tagpartpx/D");
-  m_taggedjettree->Branch("m_truth_tagpartpy", &m_truth_tagpartpy, "m_truth_tagpartpy/D");
-  m_taggedjettree->Branch("m_truth_tagpartpz", &m_truth_tagpartpz, "m_truth_tagpartpz/D");
-  m_taggedjettree->Branch("m_truth_tagpartpt", &m_truth_tagpartpt, "m_truth_tagpartpt/D");
-  m_taggedjettree->Branch("m_truth_tagparteta", &m_truth_tagparteta, "m_truth_tagparteta/D");
-  m_taggedjettree->Branch("m_truth_tagpartphi", &m_truth_tagpartphi, "m_truth_tagpartphi/D");
-  m_taggedjettree->Branch("m_truth_tagjetpx", &m_truth_tagjetpx, "m_truth_tagjetpx/D");
-  m_taggedjettree->Branch("m_truth_tagjetpy", &m_truth_tagjetpy, "m_truth_tagjetpy/D");
-  m_taggedjettree->Branch("m_truth_tagjetpz", &m_truth_tagjetpz, "m_truth_tagjetpz/D");
-  m_taggedjettree->Branch("m_truth_tagjetpt", &m_truth_tagjetpt, "m_truth_tagjetpt/D");
-  m_taggedjettree->Branch("m_truth_tagjeteta", &m_truth_tagjeteta, "m_truth_tagjeteta/D");
-  m_taggedjettree->Branch("m_truth_tagjetphi", &m_truth_tagjetphi, "m_truth_tagjetphi/D");
-}
-/**
- * This function initializes all of the member variables in this class so that there
- * are no variables that might not be set before e.g. writing them to the output
- * trees.
- */
-void JetTagging::initializeVariables()
-{
-  m_outfile = new TFile();
-}
 
 // Inspired by KFParticle_DST::createParticleNode
-int JetTagging::createJetNode(PHCompositeNode *topNode)
+int ResonanceJetTagging::createJetNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
@@ -1372,7 +1157,7 @@ int JetTagging::createJetNode(PHCompositeNode *topNode)
   lowerNode->addNode(jetNode);
   std::cout << jetNodeName << " node added" << std::endl;
 
-  if (m_ismc && m_save_truth_dst)
+  if (m_ismc)
   {
     m_truth_taggedJetMap = new JetMapv1();
     PHIODataNode<PHObject> *jetNodeMC = new PHIODataNode<PHObject>(m_truth_taggedJetMap, jetNodeNameMC.c_str(), "PHObject");
@@ -1381,34 +1166,4 @@ int JetTagging::createJetNode(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-void JetTagging::resetTreeVariables()
-{
-  m_tagpartpx = -9999.;
-  m_tagpartpy = -9999.;
-  m_tagpartpz = -9999.;
-  m_tagpartpt = -9999.;
-  m_tagparteta = -9999.;
-  m_tagpartphi = -9999.;
-  m_tagpartm = -9999.;
-  m_tagjetpx = -9999.;
-  m_tagjetpy = -9999.;
-  m_tagjetpz = -9999.;
-  m_tagjetpt = -9999.;
-  m_tagjeteta = -9999.;
-  m_tagjetphi = -9999.;
-  // Truth info
-  m_truth_tagpartpx = -9999.;
-  m_truth_tagpartpy = -9999.;
-  m_truth_tagpartpz = -9999.;
-  m_truth_tagpartpt = -9999.;
-  m_truth_tagparteta = -9999.;
-  m_truth_tagpartphi = -9999.;
-  m_truth_tagjetpx = -9999.;
-  m_truth_tagjetpy = -9999.;
-  m_truth_tagjetpz = -9999.;
-  m_truth_tagjetpt = -9999.;
-  m_truth_tagjeteta = -9999.;
-  m_truth_tagjetphi = -9999.;
 }
