@@ -59,7 +59,7 @@ int PHActsGSF::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_fitCfg.fit = ActsExamples::TrackFittingAlgorithm::makeGsfFitterFunction(
+  m_fitCfg.fit = ActsTrackFittingAlgorithm::makeGsfFitterFunction(
       m_tGeometry->geometry().tGeometry,
       m_tGeometry->geometry().magField);
 
@@ -115,7 +115,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
       wrappedSls.push_back(std::cref(sl));
     }
 
-    ActsExamples::MeasurementCalibrator calibrator(measurements);
+    Calibrator calibrator(measurements);
     auto magcontext = m_tGeometry->geometry().magFieldContext;
     auto calcontext = m_tGeometry->geometry().calibContext;
 
@@ -125,7 +125,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
                                                  m_pHypothesis)
                          ->Mass() *
                      Acts::UnitConstants::GeV;
-    ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions options{
+    ActsTrackFittingAlgorithm::GeneralFitterOptions options{
         m_tGeometry->geometry().getGeoContext(),
         magcontext,
         calcontext,
@@ -368,10 +368,10 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
   return sls;
 }
 
-ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsGSF::fitTrack(
+ActsTrackFittingAlgorithm::TrackFitterResult PHActsGSF::fitTrack(
     const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks,
     const ActsExamples::TrackParameters& seed,
-    const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& options)
+    const ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
 {
   return (*m_fitCfg.fit)(sourceLinks, seed, options);
 }

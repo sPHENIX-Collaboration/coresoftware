@@ -12,6 +12,7 @@
 
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/ActsSourceLink.h>
+#include <trackbase/Calibrator.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
@@ -24,7 +25,7 @@
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/Trajectories.hpp>
 
-#include <trackbase/ActsGSFTrackFittingAlgorithm.h>
+#include <trackbase/ActsTrackFittingAlgorithm.h>
 
 #include <string>
 
@@ -61,10 +62,10 @@ class PHActsGSF : public SubsysReco
   SourceLinkVec getSourceLinks(TrackSeed* track,
                                ActsExamples::MeasurementContainer& measurements,
                                const short int& crossing);
-  ActsExamples::TrackFittingAlgorithm::TrackFitterResult fitTrack(
+  ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
       const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks,
       const ActsExamples::TrackParameters& seed,
-      const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& options);
+      const ActsTrackFittingAlgorithm::GeneralFitterOptions& options);
 
   void updateTrack(const FitResult& result, SvtxTrack* track);
   void updateSvtxTrack(const Trajectory& traj, SvtxTrack* track);
@@ -85,7 +86,7 @@ class PHActsGSF : public SubsysReco
   int m_cluster_version = 4;
   ClusterErrorPara _ClusErrPara;
 
-  ActsExamples::TrackFittingAlgorithm::Config m_fitCfg;
+  ActsTrackFittingAlgorithm::Config m_fitCfg;
 };
 
 #endif  // PHACTSGSF_H
