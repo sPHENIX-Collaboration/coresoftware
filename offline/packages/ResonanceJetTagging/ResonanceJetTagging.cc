@@ -667,7 +667,7 @@ bool ResonanceJetTagging::isDecay(SvtxTrack *track, PHG4Particlev2 *decays[], in
 
 HepMC::GenParticle *ResonanceJetTagging::findMCTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *decays[], int nDecays)
 {
-  fastjet::JetDefinition *jetdef = new fastjet::JetDefinition(m_jetalgo, m_jetr, m_recomb_scheme, fastjet::Best);
+  std::unique_ptr<fastjet::JetDefinition> jetdef(new fastjet::JetDefinition(m_jetalgo, m_jetr, m_recomb_scheme, fastjet::Best));
 
   std::vector<fastjet::PseudoJet> particles;
 
@@ -765,8 +765,6 @@ HepMC::GenParticle *ResonanceJetTagging::findMCTaggedJets(PHCompositeNode *topNo
 
   fastjet::ClusterSequence jetFinder(particles, *jetdef);
   std::vector<fastjet::PseudoJet> mcfastjets = jetFinder.inclusive_jets();
-
-  delete jetdef;
 
   mcTaggedJet = new Jetv1();
 
@@ -1061,12 +1059,10 @@ void ResonanceJetTagging::findNonRecMC(PHCompositeNode *topNode, const std::vect
         idpart++;
       }
 
-      fastjet::JetDefinition *jetdef = new fastjet::JetDefinition(m_jetalgo, m_jetr, m_recomb_scheme, fastjet::Best);
+      std::unique_ptr<fastjet::JetDefinition> jetdef(new fastjet::JetDefinition(m_jetalgo, m_jetr, m_recomb_scheme, fastjet::Best));
 
       fastjet::ClusterSequence jetFinder(particles, *jetdef);
       std::vector<fastjet::PseudoJet> mcfastjets = jetFinder.inclusive_jets();
-
-      delete jetdef;
 
       mcTaggedJet = new Jetv1();
 
