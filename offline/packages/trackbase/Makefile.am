@@ -23,6 +23,7 @@ pkginclude_HEADERS = \
   ActsTrackFittingAlgorithm.h \
   ActsTrackingGeometry.h \
   ActsGeometry.h \
+  ActsSourceLink.h \
   AlignmentTransformation.h \
   alignmentTransformationContainer.h \
   ClusterErrorPara.h \
@@ -196,6 +197,7 @@ libtrack_io_la_SOURCES = \
   TpcDefs.cc \
   TrackFitUtils.cc \
   TrackFittingAlgorithmFunctionsKalman.cc \
+  TrackFittingAlgorithmFunctionsGsf.cc \
   TrkrTruthTrack.cc \
   TrkrTruthTrackv1.cc \
   TrkrTruthTrackContainer.cc \

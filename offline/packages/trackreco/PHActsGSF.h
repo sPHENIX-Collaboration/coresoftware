@@ -11,6 +11,7 @@
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/ActsSourceLink.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
@@ -20,14 +21,10 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
-#include <ActsExamples/EventData/IndexSourceLink.hpp>
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/Trajectories.hpp>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <ActsExamples/TrackFitting/TrackFittingAlgorithm.hpp>
-#pragma GCC diagnostic pop
+#include <trackbase/ActsGSFTrackFittingAlgorithm.h>
 
 #include <string>
 
@@ -37,7 +34,7 @@ class TrkrClusterContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
 
-using SourceLink = ActsExamples::IndexSourceLink;
+using SourceLink = ActsSourceLink;
 using FitResult = Acts::KalmanFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
