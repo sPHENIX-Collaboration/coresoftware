@@ -76,7 +76,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   int parseDecayDescriptor();
 
-  bool findParticle(std::string particle);
+  bool findParticle(const std::string &particle);
 
   ///Parameters for the user to vary
 

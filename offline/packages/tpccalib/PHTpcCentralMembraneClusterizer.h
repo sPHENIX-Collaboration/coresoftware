@@ -94,7 +94,7 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   std::unique_ptr<TFile> m_histogramfile;
   
   unsigned int _min_adc_value = 0;
-  double _min_z_value = 1.0;
+  double _min_z_value = 0.0;
   double _cmclus_dr_inner = 0.51;  //cm
   double _cmclus_dr_mid = 0.95;  //cm
   double _cmclus_dr_outer = 1.025;  //cm
