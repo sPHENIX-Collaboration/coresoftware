@@ -10,7 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include 
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -26,8 +26,7 @@ pkginclude_HEADERS = \
   TpcDistortionCorrection.h \
   TpcDistortionCorrectionContainer.h \
   TpcLoadDistortionCorrection.h \
-  TpcRawWriter.h \
-  TpcSimpleClusterizer.h
+	 TpcSimpleClusterizer.h
 
 pcmdir = $(libdir)
 
@@ -36,12 +35,10 @@ libtpc_la_SOURCES = \
   TpcClusterCleaner.cc \
   TpcClusterizer.cc \
   TpcLoadDistortionCorrection.cc \
-  TpcRawWriter.cc \
-  TpcSimpleClusterizer.cc
+	 TpcSimpleClusterizer.cc
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
-  -lmicromegas_io \
   -lfun4all \
   -lSpectrum \
   -lpthread
