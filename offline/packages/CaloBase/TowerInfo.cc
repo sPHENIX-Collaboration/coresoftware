@@ -7,6 +7,8 @@
 #include <cmath>
 
 TowerInfo::TowerInfo()
+  : _time(0)
+  , _amplitude(0)
 {
 
 }
