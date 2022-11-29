@@ -18,6 +18,9 @@ class TrkrHit;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
+class RawHit;
+class RawHitSet;
+class RawHitSetContainer;
 
 /**
  * @brief Clusterizer for the MVTX
@@ -53,16 +56,20 @@ class MvtxClusterizer : public SubsysReco
   }
   void set_cluster_version(int value) { m_cluster_version = value; }
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
+  void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
 
  private:
   //bool are_adjacent(const pixel lhs, const pixel rhs);
   bool are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs);
+  bool are_adjacent(RawHit* lhs,  RawHit* rhs);
 
   void ClusterMvtx(PHCompositeNode *topNode);
+  void ClusterMvtxRaw(PHCompositeNode *topNode);
   void PrintClusters(PHCompositeNode *topNode);
 
   // node tree storage pointers
   TrkrHitSetContainer *m_hits;
+  RawHitSetContainer *m_rawhits;
   TrkrClusterContainer *m_clusterlist; 
 
   TrkrClusterHitAssoc *m_clusterhitassoc;
@@ -70,6 +77,7 @@ class MvtxClusterizer : public SubsysReco
   // settings
   bool m_makeZClustering;  // z_clustering_option
   bool do_hit_assoc = true;
+  bool do_read_raw = false;
   int m_cluster_version = 4;
 };
 
