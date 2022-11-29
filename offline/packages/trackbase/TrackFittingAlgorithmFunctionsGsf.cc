@@ -51,9 +51,11 @@ struct GsfFitterFunctionImpl
   Fitter trackFitter;
   Acts::GainMatrixUpdater updater;
 
-  std::size_t maxComponents;
-  bool abortOnError;
-  bool disableAllMaterialHandling;
+  /// These default to the values set in the header file defining
+  /// makeGsfFitterFunction
+  std::size_t maxComponents = 4;
+  bool abortOnError = true;
+  bool disableAllMaterialHandling = false;
 
   GsfFitterFunctionImpl(Fitter&& f) : trackFitter(std::move(f)) {}
 
@@ -79,9 +81,9 @@ struct DirectedFitterFunctionImpl
   Fitter trackFitter;
   Acts::GainMatrixUpdater updater;
 
-  std::size_t maxComponents;
-  bool abortOnError;
-  bool disableAllMaterialHandling;
+  std::size_t maxComponents = 4;
+  bool abortOnError = true;
+  bool disableAllMaterialHandling = false;
 
   DirectedFitterFunctionImpl(Fitter&& f) : trackFitter(std::move(f)) {}
 

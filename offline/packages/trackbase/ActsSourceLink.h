@@ -30,7 +30,7 @@ class ActsSourceLink final : public Acts::SourceLink {
 
   // Construct an invalid source link. Must be default constructible to
   /// satisfy SourceLinkConcept.
-  ActsSourceLink() : SourceLink{Acts::GeometryIdentifier{}} {}
+  ActsSourceLink() : SourceLink{Acts::GeometryIdentifier{}} {m_cluskey = 0;}
   ActsSourceLink(const ActsSourceLink&) = default;
   ActsSourceLink(ActsSourceLink&&) = default;
   ActsSourceLink& operator=(const ActsSourceLink&) = default;
