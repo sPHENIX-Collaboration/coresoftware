@@ -6,6 +6,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+#pragma GCC diagnostic ignored "-Wunused-value"
 #include <Acts/Propagator/MultiEigenStepperLoop.hpp>
 #pragma GCC diagnostic pop
 
