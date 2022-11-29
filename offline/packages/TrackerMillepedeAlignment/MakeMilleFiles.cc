@@ -104,18 +104,14 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
   if (Verbosity() > 0)
     std::cout << PHWHERE << " track map size " << _track_map->size() << std::endl;
 
-  // loop over the tracks
-  for (auto phtrk_iter = _track_map->begin();
-       phtrk_iter != _track_map->end();
-       ++phtrk_iter)
+  for(auto [key, track] : *_track_map)
   {
-    auto track = phtrk_iter->second;
     auto crossing = track->get_silicon_seed()->get_crossing();
 
     if (Verbosity() > 0)
     {
       std::cout << std::endl
-                << __LINE__ << ": Processing track itrack: " << phtrk_iter->first << ": nhits: " << track->size_cluster_keys()
+                << __LINE__ << ": Processing track itrack: " << key << ": nhits: " << track->size_cluster_keys()
                 << ": Total tracks: " << _track_map->size() << ": phi: " << track->get_phi() << std::endl;
     }
 
@@ -123,7 +119,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
     // Maybe set a lower pT limit - low pT tracks are not very sensitive to alignment
 
     /// Get the corresponding acts trajectory to look up the state info
-    const auto traj = _trajectories->find(phtrk_iter->first)->second;
+    const auto traj = _trajectories->find(key)->second;
 
     AlignmentStateMap alignStates = getAlignmentStates(traj, track, crossing);
 
@@ -131,6 +127,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 
     /// Finish this track
     _mille->end();
+ 
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -455,7 +452,7 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
 	  // The following gives the sectors in the inner, mid, outer regions unique group labels
 	  int region = getTpcRegion(layer);  // inner, mid, outer
 	  label_base += 7*1000000 + (region * 24 + side*12 + sector) *10000; 
-	  std::cout << " layer " << layer << " sensor " << sensor << " region " << region << " side " << side << " sector " << sector << " label_base " << label_base << std::endl;
+	  //std::cout << " layer " << layer << " sensor " << sensor << " region " << region << " side " << side << " sector " << sector << " label_base " << label_base << std::endl;
 	  return label_base;
 	}
       if(tpc_group == tpcGroup::tpc)
@@ -664,12 +661,41 @@ AlignmentStateMap MakeMilleFiles::getAlignmentStates(const Trajectory& traj,
                 << dGlobResTrack << std::endl;
     }
 
-    AlignmentState astate(state.index(), actslocres, dLocResAlignment, dLocResTrack, clusGlobal);
+   
 
+    AlignmentState astate(state.index(), residual, dGlobResAlignment, dGlobResTrack, clusGlobal);
+
+    /// To switch to creating things WRT local coordinates, change 
+    /// AlignmentState::NLC to 8 and AlignmentState::NRES to 2 and 
+    /// uncomment the following
+    /// AlignmentState astate(state.index(actslocres, dLocResAlignment, dLocResTrack, clusGlobal);
+
+    if(m_useAnalytic)
+      {
+	auto surf = _tGeometry->maps().getSurface(ckey, clus);
+	auto anglederivs = getDerivativesAlignmentAngles(clusGlobal, ckey, 
+							 clus, surf, 
+							 crossing);
+	AlignmentState::GlobalMatrix analytic = AlignmentState::GlobalMatrix::Zero();
+        analytic(0,0) = 1;
+        analytic(1,1) = 1;
+        analytic(2,2) = 1;
+	for(int i=0; i<AlignmentState::NRES; ++i) 
+	  {
+	    for(int j=3; j<AlignmentState::NGL; ++j)
+	      {
+		/// convert to mm
+		analytic(i,j) = anglederivs.at(i)(j-3) * Acts::UnitConstants::cm;
+	      }
+	  }
+
+	astate.set_dResAlignmentPar(analytic);
+      }
+  
     alignStates.insert(std::make_pair(ckey, astate));
-
+    
     return true;
-  });
+    });
 
   return alignStates;
 }
@@ -679,11 +705,13 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
   for (auto& [ckey, astate] : alignStates)
   {
     if (Verbosity() > 2)
-      std::cout << "adding state for ckey " << ckey << std::endl;
-
+      {
+	std::cout << "adding state for ckey " << ckey << std::endl;
+      }
     // The global alignment parameters are given initial values of zero by default, we do not specify them
     // We identify the global alignment parameters for this surface
     const auto cluster = _cluster_map->findCluster(ckey);
+    const auto layer = TrkrDefs::getLayer(ckey);
 
     const auto residual = astate.get_residual();
     const auto& global = astate.get_clusglob();
@@ -754,7 +782,7 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
       std::cout << std::endl;
     }
 
-    /// For 3 residual coordinates x,y,z
+    /// For N residual coordinates x,y,z or local x,z
     for (int i = 0; i < AlignmentState::NRES; ++i)
     {
       // Add the measurement separately for each coordinate direction to Mille
@@ -762,6 +790,9 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
       for (int j = 0; j < AlignmentState::NGL; ++j)
       {
         glbl_derivative[j] = astate.get_dResAlignmentPar()(i, j);
+
+	if(is_layer_fixed(layer) || is_layer_param_fixed(layer,j))
+	  {glbl_derivative[j] = 0.0;}
       }
 
       float lcl_derivative[AlignmentState::NLC];
@@ -773,7 +804,7 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
       {
         std::cout << "coordinate " << i << " has residual " << residual(i) << " and clus_sigma " << clus_sigma(i) << std::endl
                   << "global deriv " << std::endl;
-        ;
+        
         for (int k = 0; k < AlignmentState::NGL; k++)
         {
           std::cout << glbl_derivative[k] << ", ";
@@ -793,6 +824,38 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
       }
     }
   }
-
+ 
   return;
 }
+
+ bool MakeMilleFiles::is_layer_fixed(unsigned int layer)
+ {
+  bool ret = false;
+  auto it = fixed_layers.find(layer);
+  if(it != fixed_layers.end()) 
+    ret = true;
+
+  return ret;
+ }
+
+ void MakeMilleFiles::set_layer_fixed(unsigned int layer)
+ {
+   fixed_layers.insert(layer);
+ }
+ 
+bool MakeMilleFiles::is_layer_param_fixed(unsigned int layer, unsigned int param)
+ {
+  bool ret = false;
+  std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
+  auto it = fixed_layer_params.find(pair);
+  if(it != fixed_layer_params.end()) 
+    ret = true;
+
+  return ret;
+ }
+
+void MakeMilleFiles::set_layer_param_fixed(unsigned int layer, unsigned int param)
+ {
+   std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
+   fixed_layer_params.insert(pair);
+ }

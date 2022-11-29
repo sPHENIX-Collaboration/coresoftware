@@ -70,9 +70,9 @@ class AlignmentState
   /// The number of global (alignment) parameters
   static const int NGL = 6;
   /// The number of local (track state) parameters
-  static const int NLC = 8;
+  static const int NLC = 6;
   /// The number of residuals per state (e.g. 2D or 3D)
-  static const int NRES = 2;
+  static const int NRES = 3;
 
   using GlobalMatrix = Acts::ActsMatrix<NRES, NGL>;
   using LocalMatrix = Acts::ActsMatrix<NRES, NLC>;
@@ -139,6 +139,8 @@ class MakeMilleFiles : public SubsysReco
   void set_silicon_grouping(int group) { si_group = (siliconGroup) group; }
   void set_tpc_grouping(int group) { tpc_group = (tpcGroup) group; }
   void set_mms_grouping(int group) { mms_group = (mmsGroup) group; }
+  void set_layer_fixed(unsigned int layer);
+  void set_layer_param_fixed(unsigned int layer, unsigned int param);
 
  private:
   Mille* _mille;
@@ -159,6 +161,9 @@ class MakeMilleFiles : public SubsysReco
   int getLabelBase(Acts::GeometryIdentifier id);
   int getTpcRegion(int layer);
 
+  bool is_layer_fixed(unsigned int layer);
+  bool is_layer_param_fixed(unsigned int layer, unsigned int param);
+
   AlignmentStateMap getAlignmentStates(const Trajectory& traj,
                                        SvtxTrack* track, short int crossing);
   void addTrackToMilleFile(AlignmentStateMap& alignStates, const Trajectory& traj);
@@ -172,6 +177,8 @@ class MakeMilleFiles : public SubsysReco
   bool _binary = true;
   unsigned int _cluster_version = 3;
 
+  bool m_useAnalytic = true;
+
   ClusterErrorPara _ClusErrPara;
 
   float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
@@ -182,6 +189,9 @@ class MakeMilleFiles : public SubsysReco
   mmsGroup mms_group = mmsGroup::tile;
 
   int nsensors_stave[7] = {9,9,9,4,4,4,4};
+
+  std::set<unsigned int> fixed_layers;
+  std::set<std::pair<unsigned int,unsigned int>> fixed_layer_params;
 
   std::map<unsigned int, unsigned int> base_layer_map = {{10, 0}, {12, 3}, {14, 7}, {16, 55}};
 

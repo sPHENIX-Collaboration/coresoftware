@@ -32,6 +32,11 @@ CDBHistos::~CDBHistos()
 
 void CDBHistos::WriteCDBHistos()
 {
+  if (m_HistoMap.empty())
+  {
+    std::cout << PHWHERE << " no histograms to be saved " << std::endl;
+    return;
+  }
   std::string currdir = gDirectory->GetPath();
   TFile *f = TFile::Open(m_Filename.c_str(), "RECREATE");
   for (auto &iter : m_HistoMap)
