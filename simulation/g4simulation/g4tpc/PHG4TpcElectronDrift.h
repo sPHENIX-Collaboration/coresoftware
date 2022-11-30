@@ -127,8 +127,9 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double min_time = NAN;
   double max_time = NAN;
 
-  std::array<TpcClusterBuilder,55> layer_clusterers; // Generate TrkrClusterv4's for TrkrTruthTracks
-  void buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsigned int>&);
+  std::map<TrkrDefs::hitsetkey,TpcClusterBuilder> truth_cluster_builders;
+  std::map<TrkrDefs::hitsetkey,unsigned int> truth_cluster_cnt; // needed for indexing the TrkrClusters into the TrkrClusterContainer
+  void buildTruthClusters();
 
   //! rng de-allocator
   class Deleter

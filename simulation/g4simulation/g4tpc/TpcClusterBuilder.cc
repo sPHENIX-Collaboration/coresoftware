@@ -9,95 +9,52 @@ class TpcClusterBuilder;
 using std::cout, std::endl;
 
 TpcClusterBuilder& TpcClusterBuilder::operator+=(const TpcClusterBuilder& rhs) {
-  // layer, side, and layerGeom won't change between different additions, but they
-  // but need to be set by the first addition
-  if (!rhs.has_data) return *this; 
+  // only builders with the same hitsetkey (and therefore side, layerGeom, etc...) are added
+  int rhs_phi_bin_lo = rhs.phi_bin_lo;
+  int rhs_phi_bin_hi = rhs.phi_bin_hi;
 
-  if (!has_data) {
-    layer          = rhs.layer;
-    side           = rhs.side;
-    neff_electrons = rhs.neff_electrons;
-    phi_integral   = rhs.phi_integral;
-    time_integral  = rhs.time_integral;
-    phi_bin_lo     = rhs.phi_bin_lo;
-    phi_bin_hi     = rhs.phi_bin_hi;
-    time_bin_lo    = rhs.time_bin_lo;
-    time_bin_hi    = rhs.time_bin_hi;
-    nphibins       = rhs.nphibins;
-    hasPhiBins     = rhs.hasPhiBins;
-    hasTimeBins    = rhs.hasTimeBins;
-    layerGeom      = rhs.layerGeom;
-  } else {
-    int rhs_phi_bin_lo = rhs.phi_bin_lo;
-    int rhs_phi_bin_hi = rhs.phi_bin_hi;
-
-    // if this is the case, wrap the lower values to be higher
-    if ( (phi_bin_lo - rhs_phi_bin_lo) > (nphibins/2)) {
-      rhs_phi_bin_lo += nphibins;
-      rhs_phi_bin_hi += nphibins;
-    } else if ( (rhs_phi_bin_lo - phi_bin_lo) > (nphibins/2)) {
-      phi_bin_lo += nphibins;
-      phi_bin_hi += nphibins;
-    }
-
-    if (rhs_phi_bin_lo < phi_bin_lo) phi_bin_lo = rhs_phi_bin_lo;
-    if (rhs_phi_bin_hi > phi_bin_hi) phi_bin_hi = rhs_phi_bin_hi;
-    hasPhiBins = true;
-
-    if (rhs.time_bin_lo < time_bin_lo) time_bin_lo = rhs.time_bin_lo;
-    if (rhs.time_bin_hi > time_bin_hi) time_bin_hi = rhs.time_bin_hi;
-    hasTimeBins = true;
-
-    neff_electrons += rhs.neff_electrons;
-    phi_integral   += rhs.phi_integral;
-    time_integral  += rhs.time_integral;
-    has_data       = true;
+  // each individual set of phi_bin_{lo,hi} are already checked to not wrap-around;
+  // it remains only to check if the the rhs vs *this side are wrapped relative to each other;
+  // if they are, then wrap the smaller one around to the larger one
+  if ( (phi_bin_lo - rhs_phi_bin_lo) > (nphibins/2)) {
+    rhs_phi_bin_lo += nphibins;
+    rhs_phi_bin_hi += nphibins;
+  } else if ( (rhs_phi_bin_lo - phi_bin_lo) > (nphibins/2)) {
+    phi_bin_lo += nphibins;
+    phi_bin_hi += nphibins;
   }
-  set_has_data();
+
+  if (rhs_phi_bin_lo < phi_bin_lo) phi_bin_lo = rhs_phi_bin_lo;
+  if (rhs_phi_bin_hi > phi_bin_hi) phi_bin_hi = rhs_phi_bin_hi;
+
+  // extend the timing bins
+  if (rhs.time_bin_lo < time_bin_lo) time_bin_lo = rhs.time_bin_lo;
+  if (rhs.time_bin_hi > time_bin_hi) time_bin_hi = rhs.time_bin_hi;
+
+  // add electrons
+  neff_electrons += rhs.neff_electrons;
+  phi_integral   += rhs.phi_integral;
+  time_integral  += rhs.time_integral;
+
   return *this;
 }
 
-void TpcClusterBuilder::reset() {
-  //hitsetkey = 0;
-  layerGeom      = nullptr; 
-  layer          = 0;
-  side           = 0;
-  neff_electrons = 0;
-  phi_integral   = 0.;
-  time_integral  = 0.;
-  phi_bin_lo     = INT_MAX;
-  phi_bin_hi     = INT_MIN;
-  time_bin_lo    = INT_MAX;
-  time_bin_hi    = INT_MIN;
-  nphibins       = 0;
-  hasPhiBins     = false;
-  hasTimeBins    = false;
-  has_data       = false;
-}
-
-TpcClusterBuilder::PairCluskeyCluster TpcClusterBuilder::build(MapHitsetkeyUInt& cluster_cnt) const {
-
+/* TpcClusterBuilder::PairCluskeyCluster TpcClusterBuilder::build(MapHitsetkeyUInt& cluster_cnt) const { */
+TrkrCluster* TpcClusterBuilder::build() const {
   int phi_size = phi_bin_hi-phi_bin_lo+1;
-  if (phi_size > CHAR_MAX || phi_size < 0) return { 0, nullptr };
+  if (phi_size > CHAR_MAX || phi_size < 0) return nullptr;
 
   int Z_size = time_bin_hi-time_bin_lo+1;
-  if (Z_size > CHAR_MAX || Z_size < 0)  return { 0, nullptr };
+  if (Z_size > CHAR_MAX || Z_size < 0)  return nullptr;
 
   TrkrClusterv4* cluster = new TrkrClusterv4();
-  cluster->setPhiSize  ( static_cast<char>(phi_size) );
-  cluster->setZSize    ( static_cast<char>(Z_size));
-
-  cluster->setAdc      ( neff_electrons );
+  cluster->setPhiSize ( static_cast<char>(phi_size) );
+  cluster->setZSize   ( static_cast<char>(Z_size)   );
+  cluster->setAdc     ( neff_electrons );
 
   // copy logic from packages/tpc/TpcClusterizer.cc ~line 333
   const double clusphi { phi_integral  / neff_electrons };
   const double clust   { time_integral / neff_electrons };
-  const int    phi_pad_number        = layerGeom->get_phibin(clusphi);
-  const auto   phibins               = layerGeom->get_phibins();
-  const unsigned int pads_per_sector = phibins / 12;
-  const unsigned int sector          = phi_pad_number / pads_per_sector;
-  TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layer, sector, side);
-  
   const double radius = layerGeom->get_radius();  // returns center of layer
   const float  clusx  = radius * cos(clusphi);
   const float  clusy  = radius * sin(clusphi);
@@ -115,7 +72,7 @@ TpcClusterBuilder::PairCluskeyCluster TpcClusterBuilder::build(MapHitsetkeyUInt&
 	// check if  surface not found and we can't track with it. 
   if(!surface) {
     delete cluster;
-    return {0, nullptr};
+    return nullptr;
   };
 
   global *= Acts::UnitConstants::cm;
@@ -123,33 +80,31 @@ TpcClusterBuilder::PairCluskeyCluster TpcClusterBuilder::build(MapHitsetkeyUInt&
   local /= Acts::UnitConstants::cm;     
   cluster->setLocalX (local(0));
   cluster->setLocalY (clust);
-
-  // generate the clusterkey 
-  unsigned int which_cluster = 0;
-  auto iter = cluster_cnt.find( hitsetkey );
-  if (iter == cluster_cnt.end()) {
-    cluster_cnt[hitsetkey] = which_cluster;
-  } else {
-    iter->second += 1;
-    which_cluster = iter->second;
-  }
-
-  // return the clusterkey which is needed to index the track
-  auto cluskey = TrkrDefs::genClusKey( hitsetkey, which_cluster );
-  return std::make_pair( cluskey, cluster );
+  return cluster;
 }
 
 void TpcClusterBuilder::set_has_data() {
   has_data = ( 
-      neff_electrons > 0. 
-      && phi_integral != 0.
+      neff_electrons   > 0. 
+      && phi_integral  > 0.
       && time_integral > 0.
       && hasPhiBins
       && hasTimeBins 
       && layerGeom != nullptr 
       && layer >= 0 
       && layer <  55
+      && nphibins > 0
   );
+  if (!has_data) return;
+
+  // Make the hitsetkey
+  // copy logic from packages/tpc/TpcClusterizer.cc ~line 333
+  const double clusphi { phi_integral  / neff_electrons };
+  const int    phi_pad_number        = layerGeom->get_phibin(clusphi);
+  const auto   phibins               = layerGeom->get_phibins();
+  const unsigned int pads_per_sector = phibins / 12;
+  const unsigned int sector          = phi_pad_number / pads_per_sector;
+  hitsetkey = TpcDefs::genHitSetKey(layer, sector, side);
 }
 
 void TpcClusterBuilder::fillPhiBins(const std::vector<int>& bins) {

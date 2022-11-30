@@ -82,7 +82,7 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , PHParameterInterface(name)
   , temp_hitsetcontainer(new TrkrHitSetContainerv1)
   , single_hitsetcontainer(new TrkrHitSetContainerv1)
-  , layer_clusterers{}
+  , truth_cluster_builders{}
 {
   InitializeParameters();
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
@@ -303,7 +303,8 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
   static constexpr unsigned int print_layer = 18;
-  std::map<TrkrDefs::hitsetkey,unsigned int> hitset_cnt; // needed for indexing the TrkrClusters into the TrkrClusterContainer
+  truth_cluster_cnt.clear();
+  /* std::map<TrkrDefs::hitsetkey,unsigned int> hitset_cnt; // needed for indexing the TrkrClusters into the TrkrClusterContainer */
 
 
   // tells m_distortionMap which event to look at
@@ -358,8 +359,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     if (trkid != trkid_new)
     {  // starting a new track
       if (is_embedded) 
-      { // build the clusters for the prior truth track and clear out the hits in the layer_clusterers
-        buildTruthClusters(hitset_cnt);
+      { // build the clusters for the prior truth track and clear out the hits in the truth_cluster_builders
+        buildTruthClusters();
       }
       trkid = trkid_new;
       is_embedded = (truthinfo->isEmbeded(hiter->second->get_trkid()));
@@ -517,10 +518,16 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       }
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
       /* auto pass_data = MapToPadPlane(x_final, y_final, t_final, side, hiter, ntpad, nthit); */
-      auto pass_data = padplane->MapToPadPlane(
+      auto cluster_builder = padplane->MapToPadPlane(
         single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, 
         x_final, y_final, t_final, side, hiter, ntpad, nthit);
-      if (is_embedded && pass_data.has_data) layer_clusterers[pass_data.layer-1] += pass_data;
+      if (is_embedded && cluster_builder.has_data) {
+        if (truth_cluster_builders.find(cluster_builder.hitsetkey) == truth_cluster_builders.end()) {
+          truth_cluster_builders[cluster_builder.hitsetkey] = cluster_builder;
+        } else {
+          truth_cluster_builders[cluster_builder.hitsetkey] += cluster_builder;
+        }
+      }
     }  // end loop over electrons for this g4hit
 
     TrkrHitSetContainer::ConstRange single_hitset_range = single_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -631,7 +638,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   
   if (is_embedded) 
   { // if ended on an embedded track, then fill the clusters for that track
-      buildTruthClusters(hitset_cnt);
+      buildTruthClusters();
   }
 
   if (Verbosity() > 2)
@@ -777,16 +784,35 @@ void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
   return;
 }
 
-void PHG4TpcElectronDrift::buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsigned int>& hitset_cnt)
+void PHG4TpcElectronDrift::buildTruthClusters()
 {
-  for (auto& cluster_builder : layer_clusterers) {
-    if (cluster_builder.has_data) {
-      std::pair<TrkrDefs::cluskey,TrkrCluster*> keyval = cluster_builder.build(hitset_cnt);
-      if (keyval.second != nullptr) {
-        current_track->addCluster(keyval.first);
-        truthclustercontainer->addClusterSpecifyKey(keyval.first, keyval.second);
-      }
-      cluster_builder.reset();
+  for (auto& key_builder : truth_cluster_builders) {
+    auto cluster   = key_builder.second.build();
+    if (cluster == nullptr) continue;
+
+    auto hitsetkey = key_builder.first;
+
+    // make and add the cluster key
+    unsigned int cluster_cnt = 0;
+    auto iter = truth_cluster_cnt.find(hitsetkey);
+    if (iter == truth_cluster_cnt.end()) {
+      truth_cluster_cnt[hitsetkey] = 0;
+    } else {
+      iter->second += 1;
+      cluster_cnt = iter->second;
+    }
+
+    auto cluskey = TrkrDefs::genClusKey( hitsetkey, cluster_cnt );
+
+    // build and add the cluster to truth cluster container
+    truthclustercontainer->addClusterSpecifyKey(cluskey, cluster);
+
+    // add the cluster key to truth track
+    current_track->addCluster(cluskey);
+
+    if (Verbosity() > 10) {
+      std::cout << " FIXME adding truth cluster to layer " << key_builder.second.layer << " now " << std::endl;
     }
   }
+  truth_cluster_builders.clear();
 }
