@@ -57,7 +57,8 @@ TruthRecoTrackMatching::TruthRecoTrackMatching(
       const double _cutoff_deta,
       const double _same_deta,
       const double _cluster_nzwidths,
-      const double _cluster_nphiwidths)
+      const double _cluster_nphiwidths,
+      const std::string _filename )
         : m_nmincluster_match    { _nmincluster_match  } // minimum number of clusters to match, default=4
         , m_nmincluster_ratio    { _nmincluster_ratio  } // minimum ratio to match a track, default=0.
                                                          // -- Track Kinematic Cuts to match --
@@ -69,7 +70,36 @@ TruthRecoTrackMatching::TruthRecoTrackMatching(
         // match TrkrClusters_reco within this ratio of TrkrCluster_true z widths
         , m_cluster_nphiwidths_2 { _cluster_nphiwidths * _cluster_nphiwidths } 
         // same as m_cluster_nzwidths for phi
-{ }
+{ 
+  m_maketree = (_filename != "");
+  if (m_maketree) {
+    m_fileout = new TFile(_filename.c_str(),"recreate");
+    m_fileout->cd();
+    m_treeout = new TTree("TrackClusters", "track_clusters");
+
+    //track kinematics
+    m_treeout->Branch("reco_eta", &b_reco_eta);
+    m_treeout->Branch("reco_phi", &b_reco_phi);
+    m_treeout->Branch("reco_pt",  &b_reco_pt);
+
+    m_treeout->Branch("truth_eta", &b_truth_eta);
+    m_treeout->Branch("truth_phi", &b_truth_phi);
+    m_treeout->Branch("truth_pt",  &b_truth_pt);
+
+    //truth kinematics
+    m_treeout->Branch("reco_cl_layer",    &b_reco_cl_layer);
+    m_treeout->Branch("reco_cl_phi",      &b_reco_cl_phi);
+    m_treeout->Branch("reco_cl_phiwidth", &b_reco_cl_phiwidth);
+    m_treeout->Branch("reco_cl_z",        &b_reco_cl_z);
+    m_treeout->Branch("reco_cl_zwidth",   &b_reco_cl_zwidth);
+
+    m_treeout->Branch("truth_cl_layer",    &b_truth_cl_layer);
+    m_treeout->Branch("truth_cl_phi",      &b_truth_cl_phi);
+    m_treeout->Branch("truth_cl_phiwidth", &b_truth_cl_phiwidth);
+    m_treeout->Branch("truth_cl_z",        &b_truth_cl_z);
+    m_treeout->Branch("truth_cl_zwidth",   &b_truth_cl_zwidth);
+  }
+}
 
 int TruthRecoTrackMatching::InitRun(PHCompositeNode *topNode) //`
 { 
@@ -78,6 +108,7 @@ int TruthRecoTrackMatching::InitRun(PHCompositeNode *topNode) //`
     return Fun4AllReturnCodes::ABORTRUN;
   }
   return Fun4AllReturnCodes::EVENT_OK;
+  topNode->print();
 }
 
 
@@ -88,28 +119,20 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  cout << " FIXME : H-1 new event " << endl;
-  topnode->print();
-
-  cout << " FIXME : H0 new event " << endl;
-  /*FIXME*/ std::cout << "id-truth-track-size: " << m_TrkrTruthTrackContainer->getTruthTracks().size() << std::endl;
-  for (auto track : m_TrkrTruthTrackContainer->getTruthTracks()) {
-    /*FIXME*/ std::cout << Form(" FIXME A002 Embedded Track:  (%2i)   phi(%5.2f) eta(%5.2f) pt(%5.2f)",
-        track->getTrackid(), track->getPhi(), track->getPseudoRapidity(), track->getPt()) << std::endl;
-  }
+  /* topnode->print(); */
 
   // -------------------------------------------------------------------------------
   // Build recoData
   // ------------------------------------------------------------------------------
   // Generate a vector use for matching criteria
-  if (true) std::cout << "reco tracks size: " << m_SvtxTrackMap->size() << std::endl; // FIXME
+  if (false) std::cout << "reco tracks size: " << m_SvtxTrackMap->size() << std::endl; // FIXME
 
   recoData.clear();
   for (auto reco = m_SvtxTrackMap->begin(); reco != m_SvtxTrackMap->end(); ++reco) {
     auto index_reco = reco->first;
     auto track = reco->second;
-    if (true) std::cout << Form(" Reconstructed Track in SvtxTrackMap: id(%2i-%2i)   phi(%5.2f) eta(%5.2f) pt(%5.2f)", // FIXME
-        reco->first, track->get_id(), track->get_phi(), track->get_eta(), track->get_pt()) << std::endl;
+    /* if (true) std::cout << Form(" Reconstructed Track in SvtxTrackMap: id(%2i-%2i)   phi(%5.2f) eta(%5.2f) pt(%5.2f)", // FIXME */
+        /* reco->first, track->get_id(), track->get_phi(), track->get_eta(), track->get_pt()) << std::endl; */
     recoData.push_back( {track->get_phi(), track->get_eta(), track->get_pt(), index_reco } );
   }
   std::sort(recoData.begin(), recoData.end(), CompRECOtoPhi());
@@ -133,7 +156,7 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
   // sort again to put the sandwiching phi-wrapped entries at the beginning and end in Phi
   std::sort(recoData.begin(), recoData.end(), CompRECOtoPhi());
 
-  if (true) {//FIXME
+  if (false) {//FIXME
     cout << " ************************************* " << endl;
     cout << " This is the map of tracks to match to " << endl;
     cout << " ************************************* " << endl;
@@ -151,12 +174,12 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
   std::vector<std::pair<unsigned short, unsigned short>> outerbox_indices {};
   std::vector<std::pair<unsigned short, unsigned short>> innerbox_indices {};
 
-  if (true) std::cout << "Number of truth tracks: " << m_TrkrTruthTrackContainer->getTruthTracks().size() << std::endl;
+  if (false) std::cout << "Number of truth tracks: " << m_TrkrTruthTrackContainer->getTruthTracks().size() << std::endl;
   unsigned short index_true {0};
   std::map<unsigned int,bool> map_matched;
   for (auto track : m_TrkrTruthTrackContainer->getTruthTracks()) {
     auto match_indices = find_box_matches(track->getPhi(), track->getPseudoRapidity(), track->getPt()); 
-    if (true) { //FIXME
+    if (false) { //FIXME
       std::cout << Form(" Embedded Track:  (%2i)   phi(%5.2f) eta(%5.2f) pt(%5.2f)", track->getTrackid(), track->getPhi(),
           track->getPseudoRapidity(), track->getPt()) << std::endl;
       cout << " matched: (inner box) ";
@@ -205,6 +228,13 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
 
 int TruthRecoTrackMatching::End(PHCompositeNode * /*topNode*/)
 {
+  if (m_maketree) {
+    std::cout << "FIXME location 0 " << std::endl;
+    m_fileout->cd();
+    m_treeout->Write();
+    m_fileout->Save();
+    m_fileout->Close();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -265,12 +295,8 @@ int TruthRecoTrackMatching::createNodes(PHCompositeNode* topNode)
     PHG4TpcCylinderGeom *layergeom = m_PHG4TpcCylinderGeomContainer->GetLayerCellGeom(layer);
     if (layer==7) m_zstep_2 = pow(layergeom->get_zstep(),2.);
     m_phistep_2[layer] = pow(layergeom->get_phistep(),2.);
-    cout << " FIXME Q001 :: layer("<<layer<<"): " << layergeom->get_phistep() << " -> squared("
-      << pow(layergeom->get_phistep(),2.) << endl;
-    cout << " FIXME Q002 :: zstep " << (double) (layergeom->get_zstep()) << endl;
   }
 
-  // new containers // FIXME check this
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
@@ -417,7 +443,7 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
     bool update_matched_sets)
 {
 
-  if (true) { // FIXME
+  if (false) { 
     cout << "---Verbosity() " << Verbosity() << "---in ::match_tracks_in_box" << endl
          << " True : ";
     for (auto id : true_matched) cout << " " << id;
@@ -438,7 +464,6 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
   vector<PossibleMatch> poss_matches;
   while (index0 != indices.end()) {
     auto id_true = index0->first;
-    if (true) cout << " aa0(id_true) : " << index0->first << " (id_reco) " << index0->second << endl;
 
     // skip all entries for which we already have a truth track match in the track
     if (true_matched.count(id_true) != 0) {
@@ -449,7 +474,6 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
       }
       continue;
     }
-    if (true) cout << " aa1(id_true) : " << index0->first << " (id_reco) " << index0->second << endl;
 
     // now make all possible reco matches matched for this track
     // fill in the keys_truth to match to all keys_reco (found in sub-function)
@@ -461,15 +485,17 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
       if (reco_matched.count(index0->second) == 0) {
         /* if (true) cout << " aa2(id_true) : " << index0->first << " (id_reco) " << index0->second << endl; */
         if (need_keys_truth) {
-          cout << " getting keys" << endl; // FIXME
+          /* cout << " getting keys" << endl; // FIXME */
           need_keys_truth = false;
           keys_truth = truekey_arr55(id_true);
         }
-          cout << " ---------------------------------------" << endl
-               << " ------- start cluster matching ------- " << endl;
+         if (false){
+           cout << " ---------------------------------------" << endl
+                  << " ------- start cluster matching ------- " << endl;
+         }
         
         PossibleMatch match = make_PossibleMatch(index0->first, index0->second, keys_truth);
-        if (true) { // FIXME
+        if (false) { // FIXME
           cout << " Got possible match (nMatch nTrue nReco idTrue idReco) : "; // FIXME
           for (auto m : match) {cout << " " << m;};
           auto truth = m_TrkrTruthTrackContainer->getTruthTracks()[match[PM_idtrue]];
@@ -489,7 +515,23 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
   // a truth or reco track that are already matched
 
   // Sort them from large to small in PM_nmatch, then small to large in PM_ntrue, and PM_nreco
-  std::sort(poss_matches.begin(), poss_matches.end(), SortPossibleMatch());
+  if (false) {
+    cout << "- - - - - - - " << endl << " FIXME : A001, pre-sort size(" << poss_matches.size() << ")" << endl;
+    int i{0};
+    for (auto match : poss_matches) cout << " match(" << (i++) <<") " 
+      <<get<0>(match)<<"-"
+      <<get<1>(match)<<"-"
+      <<get<2>(match)<<"-"
+      <<get<3>(match)<<"-"
+      <<get<4>(match)<<endl;
+    std::sort(poss_matches.begin(), poss_matches.end(), SortPossibleMatch());
+    for (auto match : poss_matches) cout << " SORTED match(" << (i++) <<") " 
+      <<get<0>(match)<<"-"
+      <<get<1>(match)<<"-"
+      <<get<2>(match)<<"-"
+      <<get<3>(match)<<"-"
+      <<get<4>(match)<<endl;
+  }
   // ok add all possible matches started for the largest PM_nmatch (the top)
   //  for groups of ties of PM_nmatch, sort by PM_ntrue (from smallest)
   //    for groups of ties (JNmath, PM_ntrue), go by smallest PM_nreco
@@ -615,8 +657,8 @@ std::array<std::vector<TrkrDefs::cluskey>,55> TruthRecoTrackMatching::recokey_ar
 
     // alternative way to get the keys
     for (auto key = tpcseed->begin_cluster_keys(); key!=tpcseed->end_cluster_keys(); ++key) {
-      auto layerid = static_cast<int>(TrkrDefs::getLayer(*key));
-      /* cout << " FIXME layer: " << static_cast<int>(layerid) << endl; */
+      auto layerid = TrkrDefs::getLayer(*key);
+      if (layerid > 54) continue;
       keys_reco[layerid].push_back(*key);
 
       if (pt_gt5) { //FIXME
@@ -658,13 +700,56 @@ PossibleMatch TruthRecoTrackMatching::make_PossibleMatch(
 
     if ( keys_truth[i] != 0 ) {
       for (auto& key_reco : keys_reco[i]) {
-        /* cout << " FIXME Z 01 " << endl; */
         if (compare_clusters(keys_truth[i], key_reco, true).first) {
           ++match_cnt;
           break;
         }
       }
     } 
+  }
+
+  if (m_maketree) {
+    // make output diagnostic values
+    b_reco_cl_phi     .clear();
+    b_reco_cl_phiwidth.clear();
+    b_reco_cl_z       .clear();
+    b_reco_cl_zwidth  .clear();
+
+    b_truth_cl_phi     .clear();
+    b_truth_cl_phiwidth.clear();
+    b_truth_cl_z       .clear();
+    b_truth_cl_zwidth  .clear();
+
+    auto& truth = m_TrkrTruthTrackContainer->getTruthTracks()[index_truth];
+    auto  reco  = m_SvtxTrackMap->get(index_reco);
+
+    b_truth_phi = truth->getPhi();
+    b_truth_eta = truth->getPseudoRapidity();
+    b_truth_pt  = truth->getPt();
+
+    b_reco_phi = reco->get_phi();
+    b_reco_eta = reco->get_eta();
+    b_reco_pt  = reco->get_pt();
+
+    for (int i{0};i<55;++i) {
+      if ( keys_truth[i] != 0 ) {
+        auto cl_true  = m_TruthClusterContainer->findCluster(keys_truth[i]);
+        b_truth_cl_phi      .push_back( cl_true->getPosition(0));
+        b_truth_cl_z        .push_back( cl_true->getPosition(1));
+        b_truth_cl_phiwidth .push_back( cl_true->getPhiSize()*pow(m_phistep_2[i],0.5));
+        b_truth_cl_zwidth   .push_back( cl_true->getZSize() * pow(m_zstep_2, 0.5));
+      }
+
+      for (auto& cl_key : keys_reco[i]) {
+        auto cl_reco = m_RecoClusterContainer->findCluster(cl_key);
+        b_reco_cl_phi      .push_back( cl_reco->getPosition(0));
+        b_reco_cl_z        .push_back( cl_reco->getPosition(1));
+        b_reco_cl_phiwidth .push_back( cl_reco->getPhiSize()*pow(m_phistep_2[i],0.5));
+        b_reco_cl_zwidth   .push_back( cl_reco->getZSize() * pow(m_zstep_2, 0.5));
+      }
+    }
+    m_fileout->cd();
+    m_treeout->Fill();
   }
   /* return std::make_tuple(match_cnt, truth_cnt, reco_cnt, index_truth, index_reco); */
   return { match_cnt, truth_cnt, reco_cnt, index_truth, index_reco };
@@ -674,6 +759,11 @@ std::pair<bool, double> TruthRecoTrackMatching::compare_clusters(
     TrkrDefs::cluskey truthkey, TrkrDefs::cluskey recokey, bool print) {
   // return phi_reco-phi_true, phi_size_true/step, phi_size_reco/step, 
   //        ditto for Z
+  if (TrkrDefs::getHitSetKeyFromClusKey(truthkey) != TrkrDefs::getHitSetKeyFromClusKey(recokey)) return {false, 0.};
+
+  /* cout << " <<<<< Same hitset key? layer(" << ((int)TrkrDefs::getLayer(truthkey))<<":"<<((int)TrkrDefs::getLayer(recokey)) */ 
+    /* << ( (TrkrDefs::getHitSetKeyFromClusKey(truthkey) == TrkrDefs::getHitSetKeyFromClusKey(recokey)) ? " yes " : " NO ") << endl; */
+
   auto cl_true  = m_TruthClusterContainer->findCluster(truthkey);
   auto cl_reco  = m_RecoClusterContainer-> findCluster(recokey);
 
@@ -698,7 +788,7 @@ std::pair<bool, double> TruthRecoTrackMatching::compare_clusters(
   const float z_size_reco   = cl_reco->getZSize();
   const float z_spread_2    = (pow(z_size_true,2.) + pow(z_size_reco,2.)) * m_zstep_2;
 
-  if (print) {
+  if (print && false) {
     std::cout << "phi_true("<<phi_true<<") phi_reco("<<phi_reco<<")   -> testphi(" << 
       dphi_2 << " < " << (phi_spread_2*m_cluster_nphiwidths_2) << ") ? phi:" <<
     ( dphi_2      <      (phi_spread_2*m_cluster_nphiwidths_2) ) << std::endl;
@@ -757,21 +847,6 @@ inline bool TruthRecoTrackMatching::skip_match(
       (true_matched.count(match[PM_idtrue]) != 0)
   ||  (reco_matched.count(match[PM_idreco]) != 0);
 }
-
-/* inline bool TruthRecoTrackMatching::is_match(const CompCluster& arr) { */
-/*   if (true) { */
-/*     cout << " --  test-phi: delta("<<arr[COMP_dphi] <<") < (" << (m_cluster_nphiwidths * arr[COMP_phisize_true] ) <<")   true?(" << */
-/*       ( arr[COMP_dphi] < m_cluster_nphiwidths * arr[COMP_phisize_true] ) << ")"<< endl; */
-/*     cout << " --  test-z  : delta("<<arr[COMP_dz] <<") < (" << (m_cluster_nzwidths * arr[COMP_zsize_true] ) <<")   true?(" << */
-/*       ( arr[COMP_dz] < m_cluster_nzwidths * arr[COMP_zsize_true] ) <<")"<<  endl; */
-/*     cout << " - - - - - - " << endl; */
-/*   } */
-/*   return ( arr[COMP_dphi] < m_cluster_nphiwidths * arr[COMP_phisize_true] && arr[COMP_dz] < m_cluster_nzwidths * arr[COMP_zsize_true] ); */
-/* } */
-
-/* inline std::pair<bool,double> TruthRecoTrackMatching::compare_clusters(TrkrDefs::cluskey truthkey, TrkrDefs::cluskey recokey) { */
-  /* return compare_clusters(make_CompCluster(truthkey, recokey)); */
-/* } */
 
 inline bool TruthRecoTrackMatching::match_pass_cuts(PossibleMatch& match) {
   return match[PM_nmatch] >= m_nmincluster_match

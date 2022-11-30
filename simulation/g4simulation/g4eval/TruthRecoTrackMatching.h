@@ -10,6 +10,8 @@
 #include <array>
 #include <set>
 #include <iostream>
+#include <TTree.h>
+#include <TFile.h>
 
 
 class PHG4TruthInfoContainer;
@@ -40,14 +42,14 @@ class TruthRecoTrackMatching : public SubsysReco
         const double _cutoff_deta        = 0.3,  //  same for eta as for phi
         const double _same_deta          = 0.05, //  '                     '
         const double _cluster_nzwidths   = 1.,   //  to match clusters: max |z_true-z_reco| in ratio to sqrt(dz_t^2+dz_m^2)
-        const double _cluster_nphiwidths = 1.);  // same for phi
+        const double _cluster_nphiwidths = 1.,
+        const std::string _m_filename = "" );  // same for phi
 
     ~TruthRecoTrackMatching() override = default; 
     int Init(PHCompositeNode          *) override { return 0; };
     int InitRun(PHCompositeNode       *) override; //`
     int process_event(PHCompositeNode *) override; //`
     int End(PHCompositeNode           *) override;
-
 
   private:
   //--------------------------------------------------
@@ -80,8 +82,23 @@ class TruthRecoTrackMatching : public SubsysReco
     TrkrClusterContainer         *m_RecoClusterContainer    {nullptr};
     TrkrTruthTrackContainer      *m_TrkrTruthTrackContainer {nullptr};
     PHG4TpcCylinderGeomContainer *m_PHG4TpcCylinderGeomContainer  {nullptr};
+
     // Output data node:
     EmbRecoMatchContainer   *m_EmbRecoMatchContainer   {nullptr};
+
+    // Output TTree for the sake of checking results statistics:
+    TFile * m_fileout;
+    TTree * m_treeout;
+    bool    m_maketree { true };
+
+    // branches for the output tree
+    float b_reco_phi,  b_reco_eta,  b_reco_pt,
+          b_truth_phi, b_truth_eta, b_truth_pt;
+
+    std::vector<int>   b_reco_cl_layer, b_truth_cl_layer;
+
+    std::vector<float> b_reco_cl_phi,  b_reco_cl_phiwidth,  b_reco_cl_z,  b_reco_cl_zwidth,
+                       b_truth_cl_phi, b_truth_cl_phiwidth, b_truth_cl_z, b_truth_cl_zwidth;
 
     //----------------------------------------------------------
     // Local data types for manipulation and passing
@@ -103,17 +120,17 @@ class TruthRecoTrackMatching : public SubsysReco
   private:
 
     struct CompRECOtoPhi {
-      bool operator() (const RECOentry& lhs, const double&    rhs) { return std::get<RECOphi>(lhs) < rhs;                    }
+      bool operator() (const RECOentry& lhs, const double&    rhs) { return std::get<RECOphi>(lhs) < rhs; }
       bool operator() (const double&    lhs, const RECOentry& rhs) { return lhs < std::get<RECOphi>(rhs); }
       bool operator() (const RECOentry& lhs, const RECOentry& rhs) { return std::get<RECOphi>(lhs) < std::get<RECOphi>(rhs); }
     };
     struct CompRECOtoEta {
-      bool operator() (const RECOentry& lhs, const double&    rhs) { return std::get<RECOeta>(lhs) < rhs;                    }
+      bool operator() (const RECOentry& lhs, const double&    rhs) { return std::get<RECOeta>(lhs) < rhs; }
       bool operator() (const double&    lhs, const RECOentry& rhs) { return lhs < std::get<RECOeta>(rhs); }
       bool operator() (const RECOentry& lhs, const RECOentry& rhs) { return std::get<RECOeta>(lhs) < std::get<RECOeta>(rhs); }
     };
     struct CompRECOtoPt  {
-      bool operator() (const RECOentry& lhs, const double&    rhs) { return std::get<RECOpt>(lhs) < rhs;                   }
+      bool operator() (const RECOentry& lhs, const double&    rhs) { return std::get<RECOpt>(lhs) < rhs; }
       bool operator() (const double&    lhs, const RECOentry& rhs) { return lhs < std::get<RECOpt>(rhs); }
       bool operator() (const RECOentry& lhs, const RECOentry& rhs) { return std::get<RECOpt>(lhs) < std::get<RECOpt>(rhs); }
     };
@@ -134,14 +151,9 @@ class TruthRecoTrackMatching : public SubsysReco
     static constexpr int PM_idreco = 4;
     struct SortPossibleMatch  {
       bool operator() (const PossibleMatch& lhs, const PossibleMatch& rhs) { 
-        if (lhs[PM_nmatch] > rhs[PM_nmatch]) return true;
-        if (lhs[PM_nmatch] < rhs[PM_nmatch]) return true;
-
-        if (lhs[PM_ntrue] < rhs[PM_ntrue]) return true;
-        if (lhs[PM_ntrue] > rhs[PM_ntrue]) return true;
-
-        if (lhs[PM_nreco] < rhs[PM_nreco]) return true;
-        if (lhs[PM_nreco] > rhs[PM_nreco]) return true;
+        if (lhs[PM_nmatch] != rhs[PM_nmatch]) return lhs[PM_nmatch] > rhs[PM_nmatch];
+        if (lhs[PM_ntrue ] != rhs[PM_ntrue ]) return lhs[PM_ntrue ] < rhs[PM_ntrue ];
+        if (lhs[PM_nreco ] != rhs[PM_nreco ]) return lhs[PM_nreco ] < rhs[PM_nreco ];
         return false;
       }
     };
