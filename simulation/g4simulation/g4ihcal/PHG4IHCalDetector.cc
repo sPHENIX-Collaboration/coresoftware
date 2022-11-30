@@ -273,10 +273,6 @@ std::tuple<int, int, int> PHG4IHCalDetector::ExtractLayerTowerId(const unsigned 
   }
   int column = map_towerid(tower_id);
   int row = map_layerid(layer_id);
-  //shift row number down by one so every sector start with a row number that mod4=0
-  row--;
-  while(row<0) row+=256;
-  while(row>255) row-=256;
   return std::make_tuple(isector, row, column);
 }
 
@@ -405,21 +401,23 @@ int PHG4IHCalDetector::map_towerid(const int tower_id)
 int PHG4IHCalDetector::map_layerid(const int layer_id)
 {
   int rowid = -1;
+
   if (layer_id <= 60)
   {
-    rowid = 60 - layer_id;
+    rowid = layer_id + 68;
   }
-  else if (layer_id <= 191)
+  else if (layer_id > 60 && layer_id < 188)
   {
-    rowid = 191 - layer_id + 125;
+    rowid = layer_id + 68;
   }
-  else
+  else if (layer_id >= 188)
   {
-    rowid = 255 - layer_id + 61;
+    rowid = layer_id - 188;
   }
-
-  //fix for rotating the detector
-  rowid = 259 - rowid;
-
+  if (rowid > 255 || rowid < 0)
+  {
+    std::cout << PHWHERE << " row id out of range: " << rowid << std::endl;
+    gSystem->Exit(1);
+  }
   return rowid;
 }

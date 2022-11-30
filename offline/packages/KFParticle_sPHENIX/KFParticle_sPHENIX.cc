@@ -404,7 +404,7 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   }
 }
 
-bool KFParticle_sPHENIX::findParticle(std::string particle)
+bool KFParticle_sPHENIX::findParticle(const std::string &particle)
 {
   bool particleFound = true;
   if (!particleList.count(particle))

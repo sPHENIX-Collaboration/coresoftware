@@ -30,6 +30,7 @@
 #include <trackbase/TrkrClusterContainerv4.h>
 
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
 
 #include <phparameter/PHParameterInterface.h>  // for PHParameterIn...
 #include <phparameter/PHParameters.h>
@@ -195,7 +196,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     auto newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
     runNode->addNode(newNode);
   }
-
+  
   UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
   auto RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));
@@ -297,6 +298,25 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   padplane->InitRun(topNode);
   padplane->CreateReadoutGeometry(topNode, seggeo);
 
+  // print all layers radii
+  if (Verbosity())
+  {
+    const auto range = seggeo->get_begin_end(); 
+    std::cout << "PHG4TpcElectronDrift::InitRun - layers: " << std::distance(range.first, range.second) << std::endl;
+    int counter = 0;
+    for (auto layeriter = range.first; layeriter != range.second; ++layeriter)
+    {
+      const auto radius = layeriter->second->get_radius();
+      std::cout << Form( "%.3f ", radius );
+      if( ++counter == 8 )
+      {
+        counter = 0;
+        std::cout << std::endl;
+      }
+    }
+    std::cout << std::endl;
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

@@ -51,7 +51,7 @@ void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
     std::string label = "EPD_tile_" + std::to_string(i);
 
     G4ExtrudedSolid* block = construct_block(i);
-    G4LogicalVolume* volume = new G4LogicalVolume(block, material, label, 0, 0, 0);
+    G4LogicalVolume* volume = new G4LogicalVolume(block, material, label, nullptr, nullptr, nullptr);
 
     GetDisplayAction()->AddVolume(volume, volume->GetName());
     m_ActiveLogVolSet.insert(volume);
@@ -64,11 +64,11 @@ void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
 
       m_volumes.emplace(
           new G4PVPlacement( rotate, positive, volume, label, world, false, 2 * k + 0, OverlapCheck()),
-	  module_id_for(i, k, 0));
+          module_id_for(i, k, 0));
 
       m_volumes.emplace(
           new G4PVPlacement( rotate, negative, volume, label, world, false, 2 * k + 1, OverlapCheck()),
-	  module_id_for(i, k, 1));
+          module_id_for(i, k, 1));
     }
   }
 }
@@ -93,9 +93,9 @@ int PHG4EPDDetector::IsInDetector(G4VPhysicalVolume* volume) const
   return 0;
 }
 
-uint32_t PHG4EPDDetector::module_id_for(int32_t index, int32_t slice, int32_t side)
+uint32_t PHG4EPDDetector::module_id_for(uint32_t index, uint32_t slice, uint32_t side)
 {
-  return (side << 9 | slice << 5 | index) & 0x3FF;
+  return (side << 9U | slice << 5U | index) & 0x3FF;
 }
 
 uint32_t PHG4EPDDetector::module_id_for(G4VPhysicalVolume* volume)

@@ -412,7 +412,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           
           unsigned int trid = m_trackMap->size();
           newTrack.set_id(trid);
-	
+
           if( getTrackFitResult(fitOutput, &newTrack))
           { m_trackMap->insertWithKey(&newTrack, trid); }
         
@@ -751,7 +751,7 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
 			trackTips, indexedParams);
  
   m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
-    
+ 
 
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
