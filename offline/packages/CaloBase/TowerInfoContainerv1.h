@@ -23,6 +23,9 @@ class TowerInfoContainerv1 : public TowerInfoContainer
  protected:
   TClonesArray *_clones;
 
+ private:
+  using TowerInfoContainer::add;
+
   ClassDefOverride(TowerInfoContainerv1, 1);
 };
 
