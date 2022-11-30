@@ -5,10 +5,10 @@
 #include <Acts/EventData/Measurement.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/SourceLink.hpp>
-#include <ActsExamples/EventData/IndexSourceLink.hpp>
 
 #include "TrkrDefs.h"
 #include "alignmentTransformationContainer.h"
+#include "ActsSourceLink.h"
 
 class Calibrator
 {
@@ -38,7 +38,7 @@ class Calibrator
                  Acts::MultiTrajectory::TrackStateProxy trackState) const
   {
     const auto& sourceLink =
-        static_cast<const ActsExamples::IndexSourceLink&>(trackState.uncalibrated());
+        static_cast<const ActsSourceLink&>(trackState.uncalibrated());
     assert(m_measurements and
            "Undefined measurement container in DigitizedCalibrator");
     assert((sourceLink.index() < m_measurements->size()) and
