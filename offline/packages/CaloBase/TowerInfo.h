@@ -1,31 +1,23 @@
-#ifndef TowerInfo_H
-#define TowerInfo_H
-
-#include <cstddef>  // for size_t
-#include <iostream>
-#include <set>
-#include <TObject.h>
+#ifndef TOWERINFO_H
+#define TOWERINFO_H
 
 #include <phool/PHObject.h>
 
-class TowerInfo : public TObject
+#include <cmath>
+
+class TowerInfo : public PHObject
 {
  public:
-  TowerInfo();
-  TowerInfo(const TowerInfo &ti);
-  ~TowerInfo() override;
+  TowerInfo() = default;
+  ~TowerInfo() override = default;
+  void Reset() override;
 
-  void setTime(short t) { _time = t; }
-  float getTime() { return _time; }
-  void setAmplitude(float amp) { _amplitude = amp; }
-  float getAmplitude() { return _amplitude; }
+  virtual void setTime(short /*t*/) { return; }
+  virtual float getTime() { return NAN; }
+  virtual void setAmplitude(float /*amp*/) { return; }
+  virtual float getAmplitude() { return NAN; }
 
-
-protected:
-  short _time;
-  float _amplitude;
-
-
+private:
   ClassDefOverride(TowerInfo, 1);
 };
 

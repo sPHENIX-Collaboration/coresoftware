@@ -1,28 +1,6 @@
 #include "TowerInfo.h"
 
-#include <phool/PHObject.h>  // for PHObject
-
-#include <algorithm>
-#include <cassert>
-#include <cmath>
-
-TowerInfo::TowerInfo()
-  : _time(0)
-  , _amplitude(0)
+void TowerInfo::Reset()
 {
-
-}
-
-TowerInfo::TowerInfo(const TowerInfo &ti)
-  : TObject(ti)
-  , _time(ti._time)
-  , _amplitude(ti._amplitude)
-{
-
-}
-
-TowerInfo::~TowerInfo()
-{
-
-
+  return;
 }

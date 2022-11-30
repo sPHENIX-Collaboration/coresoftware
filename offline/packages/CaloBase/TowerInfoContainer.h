@@ -1,30 +1,25 @@
 #ifndef TOWERINFOCONTAINER_H
 #define TOWERINFOCONTAINER_H
 
-#include <cstddef>  // for size_t
-#include <iostream>
-#include <set>
+#include "TowerInfo.h"
 
 #include <phool/PHObject.h>
+
 #include <TClonesArray.h>
 
-#include "TowerInfo.h"
 
 class TowerInfoContainer : public PHObject
 {
  public:
-  TowerInfoContainer();
-  ~TowerInfoContainer() override;
+  TowerInfoContainer() = default;
+  ~TowerInfoContainer() override = default;
 
-  void Reset() override;
-  void add(TowerInfo *ci, int pos);
-  TowerInfo* at(int pos);
-  int size() { return _clones->GetEntries(); }
+  virtual void Reset() override;
+  virtual void add(TowerInfo* /*ti*/, int /*pos*/);
+  virtual TowerInfo* at(int /*pos*/);
+  virtual size_t size() { return 0; }
 
  private:
-  TClonesArray *_clones;
-
-
   ClassDefOverride(TowerInfoContainer, 1);
 };
 
