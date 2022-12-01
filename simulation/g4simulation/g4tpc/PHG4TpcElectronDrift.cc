@@ -829,10 +829,7 @@ void PHG4TpcElectronDrift::buildTruthClusters()
 
     // add the cluster key to truth track
     current_track->addCluster(cluskey);
-
-    if (Verbosity() > 10) {
-      std::cout << " FIXME adding truth cluster to layer " << key_builder.second.layer << " now " << std::endl;
-    }
   }
+  std::sort(current_track->getClusters().begin(), current_track->getClusters().end());
   truth_cluster_builders.clear();
 }
