@@ -10,7 +10,7 @@ def chmod_px(name):
     f.chmod(f.stat().st_mode | stat.S_IEXEC)
     return 0
 
-work_dir = "/sphenix/user/shulga/Work/workfest2021_pull/coresoftware/calibrations/tpc/fillSpaceChargeMaps/"
+work_dir = "/sphenix/user/shulga/Work/TpcPadPlane_phi_coresoftware/coresoftware/calibrations/tpc/fillSpaceChargeMaps/"
 init_str = "Initialdir      = "+work_dir
 
 introduction = [
@@ -130,7 +130,7 @@ for j, (start,end) in enumerate(zip(evt_start,evt_end)):
     ff_B_sh = open(filename_B_sh,"w+")
 
     ff_B_sh.write("#!/usr/bin/bash"+"\n")
-    ff_B_sh.write("source /opt/sphenix/core/bin/sphenix_setup.sh -n"+"\n")
+    ff_B_sh.write("source /opt/sphenix/core/bin/sphenix_setup.sh -n new"+"\n")
     ff_B_sh.write("./macros/add_histos_bX.py {} {} \n".format(j,int(evt_bX[j])))
 
     ff_B_sh.close

@@ -124,8 +124,26 @@ int HelicalFitter::process_event(PHCompositeNode*)
       std::vector<float> fitpars =  fitClusters(global_vec, cluskey_vec);       // do helical fit
       if(fitpars.size() == 0) continue;  // discard this track, not enough clusters to fit
 
-      if(Verbosity() > 0)  { std::cout << " Track " << trackid   << " radius " << fitpars[0] << "X0 " << fitpars[1]<< " Y0 " << fitpars[2]
+      if(Verbosity() > 0)  
+	{ std::cout << " Track " << trackid   << " radius " << fitpars[0] << " X0 " << fitpars[1]<< " Y0 " << fitpars[2]
 		 << " zslope " << fitpars[3]  << " Z0 " << fitpars[4] << std::endl; }
+
+      // if a full track is requested, get the silicon clusters too and refit
+      if(fittpc && fitfulltrack)
+	{
+	  // this associates silicon clusters and adds them to the vectors
+	  unsigned int nsilicon = addSiliconClusters(fitpars, global_vec, cluskey_vec);
+	  if(nsilicon < 3) continue;  // discard this TPC seed, did not get a good match to silicon
+
+	  // fit the full track now
+	  fitpars.clear();
+	  fitpars =  fitClusters(global_vec, cluskey_vec);       // do helical fit
+	  if(fitpars.size() == 0) continue;  // discard this track, fit failed
+
+	  if(Verbosity() > 0)  
+	    { std::cout << " Full track " << trackid   << " radius " << fitpars[0] << " X0 " << fitpars[1]<< " Y0 " << fitpars[2]
+					   << " zslope " << fitpars[3]  << " Z0 " << fitpars[4] << std::endl; }
+	} 
 
       // get the residuals and derivatives for all clusters
       for(unsigned int ivec=0;ivec<global_vec.size(); ++ivec)
@@ -136,7 +154,6 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  if(!cluster) { continue;}
 	  
 	  // PCA of helix to cluster global position
-	  //Acts::Vector3 pca = get_helix_pca(radius, zslope, helix_center, global);
 	  Acts::Vector3 pca = get_helix_pca(fitpars, global);
 	  if(Verbosity() > 0) {std::cout << "    cluster position " << global(0) << " " << global(1) << " " << global(2) 
 					 << " pca " << pca(0) << " " << pca(1) << " " << pca(2)  << std::endl;}
@@ -162,19 +179,22 @@ int HelicalFitter::process_event(PHCompositeNode*)
 	  unsigned int layer = TrkrDefs::getLayer(cluskey_vec[ivec]);	  
 	  getLocalDerivativesX(pca, fitpars, lcl_derivative);
 	  getGlobalDerivativesX(angleDerivs, glbl_derivative, layer);
-	  if(Verbosity() > 3) { std::cout << "X buffers:" << std::endl; printBuffers(0, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label); }
+	  if(Verbosity() > 3)
+	    { std::cout << "layer " << layer << " X buffers:" << std::endl; printBuffers(0, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label); }
 	  if( !isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
 	    { _mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(0), clus_sigma(0));}
 
 	  getLocalDerivativesY(pca, fitpars, lcl_derivative);
 	  getGlobalDerivativesY(angleDerivs, glbl_derivative, layer);
-	  if(Verbosity() > 3) { std::cout << "Y buffers:" << std::endl; printBuffers(1, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label); }
+	  if(Verbosity() > 3) 
+	    { std::cout  << "layer " << layer << " Y buffers:" << std::endl; printBuffers(1, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label); }
 	  if( !isnan(residual(1)) && clus_sigma(1) < 1.0)  // discards crazy clusters
 	    {_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(1), clus_sigma(1));}
 
 	  getLocalDerivativesZ(pca, lcl_derivative);
 	  getGlobalDerivativesZ(angleDerivs, glbl_derivative, layer);
-	  if(Verbosity() > 3) { std::cout << "Z buffers:" << std::endl; printBuffers(2, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label); }
+	  if(Verbosity() > 3) 
+	    { std::cout  << "layer " << layer << " Z buffers:" << std::endl; printBuffers(2, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label); }
 	  if(!isnan(residual(2)) && clus_sigma(2) < 1.0)
 	    {_mille->mille(NLC, lcl_derivative, NGL, glbl_derivative, glbl_label, residual(2), clus_sigma(2));}
 	}
@@ -434,7 +454,8 @@ void HelicalFitter::getGlobalLabels(Surface surf, int glbl_label[])
   for(int i=0;i<NGL;++i) 
     {
       glbl_label[i] = label_base + i;
-      if(Verbosity() > 1) { std::cout << "    glbl " << i << " label " << glbl_label[i] << " "; }
+      if(Verbosity() > 1)
+	{ std::cout << "    glbl " << i << " label " << glbl_label[i] << " "; }
     }
   if(Verbosity() > 1) { std::cout << std::endl; }
 }
@@ -677,12 +698,18 @@ void HelicalFitter::getGlobalDerivativesX( std::vector<Acts::Vector3> angleDeriv
 {
   // x - relevant global pars are alpha, beta, gamma, dx (ipar 0,1,2,3), relevant local pars are x_x0, x_radius
   for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
-  if(layer != fixedLayer) 
+  if(!is_layer_fixed(layer))
     {
       glbl_derivative[3] = 1.0;  // optimize dx
       glbl_derivative[0] = angleDerivs[0](0);  // dx/dalpha
       glbl_derivative[1] = angleDerivs[1](0);  // dx/dbeta
       glbl_derivative[2] = angleDerivs[2](0);  // dx/dgamma
+
+      for(int i=0; i< NGL; ++i)
+	{
+	  if(is_layer_param_fixed(layer,i))
+	    {glbl_derivative[i] = 0.0;}
+	}
     }
 }
 
@@ -690,36 +717,143 @@ void HelicalFitter::getGlobalDerivativesY( std::vector<Acts::Vector3> angleDeriv
 {
   // y - relevant global pars are alpha, beta, gamma, dy (ipar 0,1,2,4)
   for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
-  if(layer != fixedLayer) { 
-    glbl_derivative[4] = 1.0; // optimize dy
-    glbl_derivative[0] = angleDerivs[0](1);   // dy/dalpha
-    glbl_derivative[1] = angleDerivs[1](1);   // dy/dbeta
-    glbl_derivative[2] = angleDerivs[2](1);   // dy/dgamma
-  }
+  if(!is_layer_fixed(layer)) 
+    {
+      glbl_derivative[4] = 1.0; // optimize dy
+      glbl_derivative[0] = angleDerivs[0](1);   // dy/dalpha
+      glbl_derivative[1] = angleDerivs[1](1);   // dy/dbeta
+      glbl_derivative[2] = angleDerivs[2](1);   // dy/dgamma
+      
+      for(int i=0; i< NGL; ++i)
+	{
+	  if(is_layer_param_fixed(layer,i))
+	    {glbl_derivative[i] = 0.0;}
+	}
+    }
 }
 
 void HelicalFitter::getGlobalDerivativesZ( std::vector<Acts::Vector3> angleDerivs, float glbl_derivative[], unsigned int layer)
 {
   // z - relevant global pars are alpha, beta, dz (ipar 0,1,5)
   for(int i=0;i<NGL;++i) {glbl_derivative[i] = 0.0;}
-  if(layer != fixedLayer) { 
-    glbl_derivative[5] = 1.0;  // optimize dz
-    glbl_derivative[0] = angleDerivs[0](2);  // dz/dalpha
-    glbl_derivative[1] = angleDerivs[1](2);  // dz/dbeta
-    glbl_derivative[2] = angleDerivs[2](2);  // dz/dgamma
-  } 
+  if(!is_layer_fixed(layer))
+    { 
+      glbl_derivative[5] = 1.0;  // optimize dz
+      glbl_derivative[0] = angleDerivs[0](2);  // dz/dalpha
+      glbl_derivative[1] = angleDerivs[1](2);  // dz/dbeta
+      glbl_derivative[2] = angleDerivs[2](2);  // dz/dgamma
+
+      for(int i=0; i< NGL; ++i)
+	{
+	  if(is_layer_param_fixed(layer,i))
+	    {glbl_derivative[i] = 0.0;}
+	}
+    } 
 }
 
 void HelicalFitter::printBuffers(int index, Acts::Vector3 residual, Acts::Vector3 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[])
 {
   std::cout << " float buffer: " << " residual " << "  " << residual(index);
-  for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_deriv["<< il << "] " << lcl_derivative[il] << "  ";  }
+  for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " lcl_deriv["<< il << "] " << lcl_derivative[il] << "  ";  }
   std::cout  << " sigma " << "  " << clus_sigma(index) << "  ";
   for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0)  std::cout << " glbl_deriv["<< ig << "] " << glbl_derivative[ig] << "  ";  }
   std::cout << " int buffer: " << " 0 " << "  ";
-  for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " llc_label["<< il << "] " << il << "  ";  }
+  for (int il=0;il<NLC;++il) { if(lcl_derivative[il] != 0) std::cout << " lcl_label["<< il << "] " << il << "  ";  }
   std::cout << " 0 " << "  ";
   for (int ig=0;ig<NGL;++ig) { if(glbl_derivative[ig] != 0) std::cout << " glbl_label["<< ig << "] " << glbl_label[ig] << "  ";  }
   std::cout << " end of meas " << std::endl;		    
 }
 
+unsigned int HelicalFitter::addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec)
+{
+  // project the fit of the TPC clusters to each silicon layer, and find the nearest silicon cluster
+  // iterate over the cluster map and find silicon clusters that match this track fit
+
+  unsigned int nsilicon = 0;
+
+  // We want the best match in each layer
+  std::vector<float> best_layer_dca;
+  best_layer_dca.assign(7, 999.0);
+  std::vector<TrkrDefs::cluskey> best_layer_cluskey;
+  best_layer_cluskey.assign(7, 0);
+
+  for(const auto& hitsetkey:_cluster_map->getHitSetKeys())
+    {
+      auto range = _cluster_map->getClusters(hitsetkey);
+      for( auto clusIter = range.first; clusIter != range.second; ++clusIter )
+	{
+	  TrkrDefs::cluskey cluskey = clusIter->first;
+	  unsigned int layer = TrkrDefs::getLayer(cluskey);
+	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
+	  
+	  if(trkrid != TrkrDefs::mvtxId && trkrid != TrkrDefs::inttId)  continue;
+	  
+	  TrkrCluster* cluster = clusIter->second;
+	  auto global = _tGeometry->getGlobalPosition(cluskey, cluster);
+
+	  Acts::Vector3 pca = get_helix_pca(fitpars, global);
+	  float dca = (pca - global).norm();
+	  if(trkrid == TrkrDefs::inttId || trkrid == TrkrDefs::mvtxId)
+	    {
+	      Acts::Vector2 global_xy(global(0), global(1));
+	      Acts::Vector2 pca_xy(pca(0), pca(1));
+	      Acts::Vector2 pca_xy_residual = pca_xy - global_xy;
+	      dca = pca_xy_residual.norm();
+	    }
+
+	  if(dca < best_layer_dca[layer])
+	    {
+	      best_layer_dca[layer] = dca;
+	      best_layer_cluskey[layer] = cluskey;
+	    }
+	}  // end cluster iteration
+    } // end hitsetkey iteration
+
+  for(unsigned int layer = 0; layer < 7; ++layer)
+    {
+      if(best_layer_dca[layer] < dca_cut)
+	{
+	  cluskey_vec.push_back(best_layer_cluskey[layer]);
+	  auto clus =  _cluster_map->findCluster(best_layer_cluskey[layer]);
+	  auto global = _tGeometry->getGlobalPosition(best_layer_cluskey[layer], clus);
+	  global_vec.push_back(global);
+	  nsilicon++;
+	  if(Verbosity() > 0) std::cout << "   add cluster in layer " << layer << " with cluskey " << best_layer_cluskey[layer] << " and dca " << best_layer_dca[layer] 
+		    << " nsilicon " << nsilicon << std::endl;
+	}
+    }
+
+  return nsilicon;
+}
+
+ bool HelicalFitter::is_layer_fixed(unsigned int layer)
+ {
+  bool ret = false;
+  auto it = fixed_layers.find(layer);
+  if(it != fixed_layers.end()) 
+    ret = true;
+
+  return ret;
+ }
+
+ void HelicalFitter::set_layer_fixed(unsigned int layer)
+ {
+   fixed_layers.insert(layer);
+ }
+ 
+bool HelicalFitter::is_layer_param_fixed(unsigned int layer, unsigned int param)
+ {
+  bool ret = false;
+  std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
+  auto it = fixed_layer_params.find(pair);
+  if(it != fixed_layer_params.end()) 
+    ret = true;
+
+  return ret;
+ }
+
+void HelicalFitter::set_layer_param_fixed(unsigned int layer, unsigned int param)
+ {
+   std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
+   fixed_layer_params.insert(pair);
+ }

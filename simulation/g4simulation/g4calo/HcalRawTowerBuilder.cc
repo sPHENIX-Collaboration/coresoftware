@@ -165,7 +165,7 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   }
   for (int i = 0; i < get_int_param(PHG4HcalDefs::n_towers); i++)
   {
-    double phiend = phistart - 2. * M_PI / get_int_param(PHG4HcalDefs::n_towers);
+    double phiend = phistart + 2. * M_PI / get_int_param(PHG4HcalDefs::n_towers);
     std::pair<double, double> range = std::make_pair(phiend, phistart);
     phistart = phiend;
     m_RawTowerGeom->set_phibounds(i, range);
@@ -467,7 +467,7 @@ void HcalRawTowerBuilder::SetDefaultParameters()
 
   set_default_double_param("scinti_eta_coverage_neg", 1.1);
   set_default_double_param("scinti_eta_coverage_pos", 1.1);
-  set_default_double_param("phistart", 0.);
+  set_default_double_param("phistart", NAN);
 }
 
 void HcalRawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)

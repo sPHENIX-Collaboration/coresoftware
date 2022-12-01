@@ -14,6 +14,7 @@
 #include <phool/phool.h>  // for PHWHERE
 
 #include <TVector3.h>
+#include <TString.h>
 
 #include <iostream>  // for operator<<, endl, basi...
 
@@ -23,6 +24,10 @@ namespace
 {
   // unique detector id for all direct lasers
   static const int detId = PHG4HitDefs::get_volume_id("PHG4TpcCentralMembrane");
+  
+  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+  
+  template<class T> inline T get_r( const T& x, const T& y ) { return std::sqrt( square(x) + square(y) ); }
 
 }  // namespace
 
@@ -70,7 +75,7 @@ PHG4TpcCentralMembrane::~PHG4TpcCentralMembrane()
 }
 
 //_____________________________________________________________
-int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* topNode)
+int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* /* topNode */)
 {
   // setup parameters
   UpdateParametersWithMacro();
@@ -79,17 +84,8 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* topNode)
 
   std::cout << "PHG4TpcCentralMembrane::InitRun - electrons_per_stripe: " << electrons_per_stripe << std::endl;
   std::cout << "PHG4TpcCentralMembrane::InitRun - electrons_per_gev " << electrons_per_gev << std::endl;
-
-  // make sure G4Hit container exists
-  hitnodename = "G4HIT_" + detector;
-  auto* g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  if (!g4hit)
-  {
-    std::cout << Name() << " Could not locate G4HIT node " << hitnodename << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  // reset vertices and g4hits
+  
+  // reset g4hits
   for (auto&& hit : PHG4Hits)
   {
     delete hit;
@@ -152,7 +148,7 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* topNode)
       }
     }
   }
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -198,7 +194,7 @@ void PHG4TpcCentralMembrane::SetDefaultParameters()
   set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1000000.);
 
   /// mean number of electrons per stripe
-  set_default_int_param("electrons_per_stripe", 300);
+  set_default_int_param("electrons_per_stripe", 100);
 }
 
 //_____________________________________________________________

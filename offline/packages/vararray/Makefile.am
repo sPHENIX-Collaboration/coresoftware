@@ -5,7 +5,7 @@ lib_LTLIBRARIES = libvararray.la
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include 
+  -isystem$(ROOTSYS)/include 
 
 AM_LDFLAGS = \
   -L$(libdir) \

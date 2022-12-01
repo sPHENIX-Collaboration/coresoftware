@@ -5,9 +5,10 @@
 #include <Acts/EventData/Measurement.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/SourceLink.hpp>
-#include <ActsExamples/EventData/IndexSourceLink.hpp>
 
+#include "TrkrDefs.h"
 #include "alignmentTransformationContainer.h"
+#include "ActsSourceLink.h"
 
 class Calibrator
 {
@@ -37,7 +38,7 @@ class Calibrator
                  Acts::MultiTrajectory::TrackStateProxy trackState) const
   {
     const auto& sourceLink =
-        static_cast<const ActsExamples::IndexSourceLink&>(trackState.uncalibrated());
+        static_cast<const ActsSourceLink&>(trackState.uncalibrated());
     assert(m_measurements and
            "Undefined measurement container in DigitizedCalibrator");
     assert((sourceLink.index() < m_measurements->size()) and
@@ -53,9 +54,11 @@ class Calibrator
           loc(1) = uncalibmeas.parameters()[Acts::eBoundLoc1];
 
           auto cov = uncalibmeas.covariance();
+          const auto& cluskey = sourceLink.cluskey();
+          const auto trkrid = TrkrDefs::getTrkrId(cluskey);
+          const double misalignmentFactor = gctx.get<alignmentTransformationContainer*>()->getMisalignmentFactor(trkrid);
 
           Acts::ActsSymMatrix<2> expandedCov = Acts::ActsSymMatrix<2>::Zero();
-          const double misalignmentFactor = gctx.get<alignmentTransformationContainer*>()->getMisalignmentFactor();
 
           for (int i = 0; i < cov.rows(); i++)
           {

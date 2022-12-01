@@ -162,6 +162,7 @@ libtrack_reco_la_LIBADD = \
   -lmicromegas_io \
   -lmvtx_io \
   -lintt_io \
+  -ltrack_io \
   -ltrackbase_historic_io \
   -lcalo_io \
   -lphparameter

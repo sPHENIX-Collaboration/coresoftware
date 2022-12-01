@@ -38,7 +38,7 @@
 class G4VPhysicalVolume;
 
 PHG4EPDSteppingAction::PHG4EPDSteppingAction(PHG4EPDDetector* detector,
-                                             const PHParameters*)
+                                             const PHParameters* /*unused*/)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
 {
@@ -49,7 +49,7 @@ PHG4EPDSteppingAction::~PHG4EPDSteppingAction()
   delete m_Hit;
 }
 
-bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   G4StepPoint* prestep = aStep->GetPreStepPoint();
   G4TouchableHandle prehandle = prestep->GetTouchableHandle();

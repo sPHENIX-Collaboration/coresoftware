@@ -91,8 +91,13 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, float inner_rad
 //! \output default field configuration object. Caller assumes ownership
 PHFieldConfig *PHFieldUtility::DefaultFieldConfig()
 {
-  return new PHFieldConfigv1(PHFieldConfigv1::Field3DCartesian,
-                             (std::string(getenv("CALIBRATIONROOT")) + std::string("/Field/Map/sphenix3dbigmapxyz_gap_rebuild.root")),1.);
+  char *calibrationroot = getenv("CALIBRATIONROOT");
+  std::string fieldmap = "sphenix3dbigmapxyz_gap_rebuild.root";
+  if (calibrationroot != nullptr)
+  {
+    fieldmap = std::string(calibrationroot) + "/Field/Map/" + fieldmap;
+  }
+  return new PHFieldConfigv1(PHFieldConfigv1::Field3DCartesian, fieldmap, 1.);
 }
 
 //! Get transient PHField from DST nodes. If not found, make a new one based on default_config
