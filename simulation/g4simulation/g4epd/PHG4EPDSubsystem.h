@@ -18,7 +18,7 @@ class PHG4SteppingAction;
 class PHG4EPDSubsystem : public PHG4DetectorSubsystem
 {
  public:
-  PHG4EPDSubsystem(std::string const& name);
+  PHG4EPDSubsystem(const std::string& name = "EPD");
   ~PHG4EPDSubsystem() override;
 
   /**
