@@ -33,6 +33,10 @@ class TrkrTruthTrackv1 : public TrkrTruthTrack
   std::vector<TrkrDefs::cluskey>& getClusters() override { return clusters; };
   void addCluster(TrkrDefs::cluskey) override;
 
+  bool has_hitsetkey(TrkrDefs::hitsetkey) const override; // note, only works when the data is sorted
+  bool has_hitsetkey(TrkrDefs::cluskey)   const override;
+  std::pair<bool, TrkrDefs::cluskey> get_cluskey(TrkrDefs::hitsetkey) const override; // bool is if there is the key, and 
+
   void setTrackid(unsigned int _) override { trackid = _; };
 
   void setX0(float _) override { X0 = _; };
@@ -44,6 +48,18 @@ class TrkrTruthTrackv1 : public TrkrTruthTrack
   void setPhi(float _) override { phi = _; };
 
   void identify(std::ostream& os = std::cout) const override;
+
+  struct CompHitSetKey {
+    bool operator()(const TrkrDefs::cluskey& lhs, const TrkrDefs::cluskey& rhs) {
+      return TrkrDefs::getHitSetKeyFromClusKey(lhs) < TrkrDefs::getHitSetKeyFromClusKey(rhs);
+    };
+    bool operator()(const TrkrDefs::cluskey& lhs, const TrkrDefs::hitsetkey& rhs) {
+      return TrkrDefs::getHitSetKeyFromClusKey(lhs) < rhs; 
+    };
+    bool operator()(const TrkrDefs::hitsetkey& lhs, const TrkrDefs::cluskey& rhs) {
+      return lhs < TrkrDefs::getHitSetKeyFromClusKey(rhs);
+    };
+  };
 
  protected:
   unsigned int trackid;

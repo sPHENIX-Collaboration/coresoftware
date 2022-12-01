@@ -75,3 +75,18 @@ void TrkrTruthTrackv1::addCluster(TrkrDefs::cluskey key)
 {
   clusters.push_back(key);
 }
+
+
+bool TrkrTruthTrackv1::has_hitsetkey(TrkrDefs::hitsetkey key) const {
+  return std::binary_search(clusters.begin(), clusters.end(), key, CompHitSetKey() );
+}
+
+bool TrkrTruthTrackv1::has_hitsetkey(TrkrDefs::cluskey key) const {
+  return std::binary_search(clusters.begin(), clusters.end(), key, CompHitSetKey() );
+}
+
+std::pair<bool, TrkrDefs::cluskey> TrkrTruthTrackv1::get_cluskey(TrkrDefs::hitsetkey hitsetkey) const { 
+  auto lb = std::lower_bound(clusters.begin(), clusters.end(), hitsetkey, CompHitSetKey());
+  if (lb == clusters.end() || TrkrDefs::getHitSetKeyFromClusKey(*lb) != hitsetkey) return { false, 0. };
+  else                      return { true,  *lb };
+}

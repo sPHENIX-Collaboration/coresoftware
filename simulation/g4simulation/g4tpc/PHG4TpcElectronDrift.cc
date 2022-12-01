@@ -810,5 +810,6 @@ void PHG4TpcElectronDrift::buildTruthClusters()
     // add the cluster key to truth track
     current_track->addCluster(cluskey);
   }
+  std::sort(current_track->getClusters().begin(), current_track->getClusters().end());
   truth_cluster_builders.clear();
 }

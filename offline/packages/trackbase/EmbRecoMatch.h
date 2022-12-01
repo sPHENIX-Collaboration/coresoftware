@@ -20,7 +20,6 @@ class EmbRecoMatch : public PHObject
     virtual unsigned short nClustersTruth () const { return USHRT_MAX; };
     virtual unsigned short nMatches       () const { return 0;         };
 
-    // the argument i is which match (ranked from 0 to nMatches-1, ordered by goodness of match)
     virtual unsigned short idRecoTrack      (unsigned short =0) const { return USHRT_MAX; };
     virtual unsigned short idTpcTrackSeed   (unsigned short =0) const { return USHRT_MAX; };
     virtual unsigned short idSvtxTrackSeed  (unsigned short =0) const { return USHRT_MAX; };
