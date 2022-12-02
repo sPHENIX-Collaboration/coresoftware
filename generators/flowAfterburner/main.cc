@@ -28,10 +28,10 @@
 #include <algorithm>
 #include <sstream>
 #include <string>
-#
+
 namespace CLHEP
 {
-class HepRandomEngine;
+  class HepRandomEngine;
 }
 
 CLHEP::HepRandomEngine *engine;
