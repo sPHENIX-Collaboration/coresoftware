@@ -10,13 +10,16 @@ AM_LDFLAGS = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -isystem$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include \
+	-DHomogeneousField
 
 pkginclude_HEADERS = \
-  ResonanceJetTagging.h
+  ResonanceJetTagging.h \
+	BuildResonanceJetTaggingTree.h
 
 libresonancejettagging_la_SOURCES = \
-  ResonanceJetTagging.cc
+  ResonanceJetTagging.cc \
+	BuildResonanceJetTaggingTree.cc
 
 libresonancejettagging_la_LDFLAGS = \
   -L$(libdir) \
