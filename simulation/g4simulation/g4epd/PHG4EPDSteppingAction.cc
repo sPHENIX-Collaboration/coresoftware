@@ -109,7 +109,6 @@ bool PHG4EPDSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     // only for active columes (scintillators)
     if (whichactive > 0)
     {
-      m_Hit->set_scint_id(tile_id);
       m_Hit->set_eion(0);
       m_Hit->set_light_yield(0);
     }
