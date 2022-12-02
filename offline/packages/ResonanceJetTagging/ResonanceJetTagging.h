@@ -1,15 +1,11 @@
 #ifndef RESONANCEJETTAGGING_H__
 #define RESONANCEJETTAGGING_H__
 
-#define HomogeneousField
-
 #include <g4jets/Jetv1.h>
 
 #include <fun4all/SubsysReco.h>
 
 #include <fastjet/JetDefinition.hh>
-
-#include <KFParticle.h>
 
 #include <map>      // for map
 #include <string>   // for string
@@ -17,15 +13,12 @@
 #include <vector>
 
 /// Class declarations for use in the analysis module
-class Fun4AllHistoManager;
-class PHCompositeNode;
 class PHCompositeNode;
 class SvtxTrack;
 class PHG4Particlev2;
 class PHG4Particle;
 class ParticleFlowElement;
 class JetMapv1;
-class KFParticle;
 
 namespace CLHEP
 {
@@ -211,8 +204,10 @@ class ResonanceJetTagging : public SubsysReco
   }
   void setJetContainerName(const std::string &n) { m_jetcontainer_name = n; }
   std::string getJetContainerName() { return m_jetcontainer_name; }
-  void setIsMC(bool b) { m_ismc = b; }
-  bool getIsMC() { return m_ismc; }
+  void setDoRecunstructed(bool b) { m_dorec = b; }
+  bool getDoRecunstructed() { return m_dorec; }
+  void setDoTruth(bool b) { m_dotruth = b; }
+  bool getDoTruth() { return m_dotruth; }
 
  private:
   /// String to contain the jetmap name containing the tagged jets
@@ -256,7 +251,9 @@ class ResonanceJetTagging : public SubsysReco
 
   int m_tag_pdg;
   unsigned int m_jet_id = 0;
-  bool m_ismc;
+  unsigned int m_truth_jet_id = 0;
+  bool m_dorec;
+  bool m_dotruth;
   TAG m_tag_particle;
 
   /// Methods for grabbing the data
@@ -265,17 +262,13 @@ class ResonanceJetTagging : public SubsysReco
   void addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, PHG4Particlev2 *TagDecays[], int nDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
   void addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, PHG4Particlev2 *TagDecays[], int nDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
   void addClusters(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
-  HepMC::GenParticle *findMCTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *decays[], int nDecays);
-  HepMC::GenParticle *findMCTag(PHCompositeNode *topNode, PHG4Particlev2 *decays[], int nDecays, PHG4Particle *mcDaughters[]);
-  HepMC::GenParticle *getMother(PHCompositeNode *topNode, PHG4Particle *g4daughter);
-  void findNonRecMC(PHCompositeNode *topNode, const std::vector<HepMC::GenParticle *> &mcTags);
+  void findMCTaggedJets(PHCompositeNode *topNode);
 
   bool isAcceptableParticleFlow(ParticleFlowElement *pfPart);
   bool isAcceptableTrack(SvtxTrack *track);
   bool isAcceptableEMCalCluster(CLHEP::Hep3Vector &E_vec_cluster);
   bool isAcceptableHCalCluster(CLHEP::Hep3Vector &E_vec_cluster);
   bool isDecay(HepMC::GenParticle *particle, PHG4Particle *decays[], int nDecays);
-  bool isSameParticle(SvtxTrack *track, PHG4Particlev2 *particle);
   bool isDecay(SvtxTrack *track, PHG4Particlev2 *decays[], int nDecays);
   int createJetNode(PHCompositeNode *topNode);
 };
