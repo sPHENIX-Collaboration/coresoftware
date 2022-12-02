@@ -534,7 +534,7 @@ void BuildResonanceJetTaggingTree::resetTreeVariables()
   m_truth_tagjetphi = NAN;
 }
 
-JetMapv1* BuildResonanceJetTaggingTree::getJetMapFromNode(PHCompositeNode *topNode, const std::string name)
+JetMapv1* BuildResonanceJetTaggingTree::getJetMapFromNode(PHCompositeNode *topNode, const std::string &name)
 {
   JetMapv1 *jetmap = findNode::getClass<JetMapv1>(topNode, name);
 
@@ -548,7 +548,7 @@ JetMapv1* BuildResonanceJetTaggingTree::getJetMapFromNode(PHCompositeNode *topNo
 
   return jetmap;
 }
-KFParticle_Container* BuildResonanceJetTaggingTree::getKFParticleContainerFromNode(PHCompositeNode *topNode, const std::string name)
+KFParticle_Container* BuildResonanceJetTaggingTree::getKFParticleContainerFromNode(PHCompositeNode *topNode, const std::string &name)
 {
   KFParticle_Container *cont = findNode::getClass<KFParticle_Container>(topNode, name);
 
@@ -562,7 +562,7 @@ KFParticle_Container* BuildResonanceJetTaggingTree::getKFParticleContainerFromNo
 
   return cont;
 }
-HepMC::GenEvent* BuildResonanceJetTaggingTree::getGenEventFromNode(PHCompositeNode *topNode, const std::string name)
+HepMC::GenEvent* BuildResonanceJetTaggingTree::getGenEventFromNode(PHCompositeNode *topNode, const std::string &name)
 {
   PHHepMCGenEventMap *hepmceventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, name);
 

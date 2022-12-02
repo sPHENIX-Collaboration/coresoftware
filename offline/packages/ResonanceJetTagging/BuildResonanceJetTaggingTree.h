@@ -51,18 +51,18 @@ class BuildResonanceJetTaggingTree : public SubsysReco
   void setDoTruth(bool b) { m_dotruth = b; }
   bool getDoTruth() { return m_dotruth; }
 
-  void setTagContainerName(std::string tagContName) { m_tagcontainer_name = tagContName; }
+  void setTagContainerName(const std::string &tagContName) { m_tagcontainer_name = tagContName; }
   std::string getTagContainerName() { return m_tagcontainer_name; }
-  void setJetContainerName(std::string jetContName) { m_jetcontainer_name = jetContName; }
+  void setJetContainerName(const std::string &jetContName) { m_jetcontainer_name = jetContName; }
   std::string getJetContainerName() { return m_jetcontainer_name; }
-  void setTruthJetContainerName(std::string jetContName) { m_truth_jetcontainer_name = jetContName; }
+  void setTruthJetContainerName(const std::string &jetContName) { m_truth_jetcontainer_name = jetContName; }
   std::string getTruthJetContainerName() { return m_truth_jetcontainer_name; }
 
  private:
 
-  JetMapv1* getJetMapFromNode(PHCompositeNode *topNode, const std::string name);
-  KFParticle_Container* getKFParticleContainerFromNode(PHCompositeNode *topNode, const std::string name);
-  HepMC::GenEvent* getGenEventFromNode(PHCompositeNode *topNode, const std::string name);
+  JetMapv1* getJetMapFromNode(PHCompositeNode *topNode, const std::string &name);
+  KFParticle_Container* getKFParticleContainerFromNode(PHCompositeNode *topNode, const std::string &name);
+  HepMC::GenEvent* getGenEventFromNode(PHCompositeNode *topNode, const std::string &name);
   /// String to contain the outfile name containing the trees
   std::string m_outfilename;
   std::string m_tagcontainer_name;
@@ -77,8 +77,8 @@ class BuildResonanceJetTaggingTree : public SubsysReco
   int m_tag_pdg;
 
   /// TFile to hold the following TTrees and histograms
-  TFile *m_outfile;
-  TTree *m_taggedjettree;
+  TFile *m_outfile = nullptr;
+  TTree *m_taggedjettree = nullptr;
 
   // Tagged-Jet variables
   double m_tagpartpx = NAN;
