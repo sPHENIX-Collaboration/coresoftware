@@ -63,6 +63,8 @@ BuildResonanceJetTaggingTree::BuildResonanceJetTaggingTree(const std::string &na
   , m_dotruth(false)
   , m_tag_particle(tag)
   , m_tag_pdg(0)
+  , m_outfile(nullptr)
+  , m_taggedjettree(nullptr)
 {
   /// Initialize variables and trees so we don't accidentally access
   /// memory that was never allocated
@@ -111,9 +113,6 @@ int BuildResonanceJetTaggingTree::Init(PHCompositeNode */*topNode*/)
   {
     std::cout << "Beginning Init in BuildResonanceJetTaggingTree" << std::endl;
   }
-
-  m_outfile = new TFile(m_outfilename.c_str(), "RECREATE");
-
 
   return 0;
 }
@@ -470,6 +469,7 @@ bool BuildResonanceJetTaggingTree::isReconstructed(int index, std::vector<int> i
 
 void BuildResonanceJetTaggingTree::initializeTrees()
 {
+  delete m_taggedjettree;
   m_taggedjettree = new TTree("m_taggedjettree", "A tree with Tagged-Jet info");
   m_taggedjettree->Branch("m_tagpartpx", &m_tagpartpx, "m_tagpartpx/D");
   m_taggedjettree->Branch("m_tagpartpy", &m_tagpartpy, "m_tagpartpy/D");
@@ -501,7 +501,8 @@ void BuildResonanceJetTaggingTree::initializeTrees()
 }
 void BuildResonanceJetTaggingTree::initializeVariables()
 {
-  m_outfile = new TFile();
+  delete m_outfile;
+  m_outfile = new TFile(m_outfilename.c_str(), "RECREATE");
 }
 
 void BuildResonanceJetTaggingTree::resetTreeVariables()
