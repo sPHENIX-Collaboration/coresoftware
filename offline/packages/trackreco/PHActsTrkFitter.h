@@ -25,7 +25,6 @@
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-
 #include <ActsExamples/EventData/Trajectories.hpp>
 #include <ActsExamples/EventData/Track.hpp>
 
@@ -34,7 +33,6 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
-
 
 #include <trackbase/alignmentTransformationContainer.h>
 
@@ -45,6 +43,7 @@ class TrackSeed;
 class TrackSeedContainer;
 class TrkrClusterContainer;
 class TpcDistortionCorrectionContainer;
+class SvtxAlignmentStateMap;
 
 using SourceLink = ActsSourceLink;
 using FitResult = Acts::KalmanFitterResult;
@@ -199,6 +198,8 @@ class PHActsTrkFitter : public SubsysReco
 
   /// Default particle assumption to pion
   unsigned int m_pHypothesis = 211;
+
+  SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;

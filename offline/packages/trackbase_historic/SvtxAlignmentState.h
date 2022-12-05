@@ -18,9 +18,9 @@ class SvtxAlignmentState : public PHObject
   /// Number of residual parameters 
   const static int NRES = 3;
 
-  typedef Eigen::Matrix<float, NRES, NGL> GlobalMatrix;
-  typedef Eigen::Matrix<float, NRES, NLOC> LocalMatrix;
-  typedef Eigen::Matrix<float, NRES, 1> ResidualVector;
+  typedef Eigen::Matrix<double, NRES, NGL> GlobalMatrix;
+  typedef Eigen::Matrix<double, NRES, NLOC> LocalMatrix;
+  typedef Eigen::Matrix<double, NRES, 1> ResidualVector;
 
   ~SvtxAlignmentState() override {}
 
@@ -32,9 +32,9 @@ class SvtxAlignmentState : public PHObject
   int isValid() const override { return 0; }
   PHObject *CloneMe() const override { return nullptr; }
 
-  virtual void set_residual(const ResidualVector& res) {}
-  virtual void set_local_derivative_matrix(const LocalMatrix& d) {}
-  virtual void set_global_derivative_matrix(const GlobalMatrix& d) {}
+  virtual void set_residual(const ResidualVector&) {}
+  virtual void set_local_derivative_matrix(const LocalMatrix&) {}
+  virtual void set_global_derivative_matrix(const GlobalMatrix&) {}
 
   
   virtual const ResidualVector& get_residual() const;

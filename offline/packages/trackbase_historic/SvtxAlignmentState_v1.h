@@ -10,6 +10,7 @@ class PHObject;
 
 class SvtxAlignmentState_v1 : public SvtxAlignmentState
 {
+ public:
   SvtxAlignmentState_v1();
   ~SvtxAlignmentState_v1() override {}
 

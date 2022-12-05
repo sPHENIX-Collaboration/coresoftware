@@ -22,6 +22,7 @@
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/SvtxAlignmentStateMap_v1.h>
 
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
@@ -1090,6 +1091,14 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
     {
       m_trackMap = new SvtxTrackMap_v2;
       PHIODataNode<PHObject>* node = new PHIODataNode<PHObject>(m_trackMap,_track_map_name,"PHObject");
+      svtxNode->addNode(node);
+    }
+
+  m_alignmentStateMap = findNode::getClass<SvtxAlignmentStateMap>(topNode, "SvtxAlignmentStateMap");
+  if(!m_alignmentStateMap)
+    {
+      m_alignmentStateMap = new SvtxAlignmentStateMap_v1;
+      auto node = new PHDataNode<SvtxAlignmentStateMap>(m_alignmentStateMap,"SvtxAlignmentStateMap");
       svtxNode->addNode(node);
     }
 
