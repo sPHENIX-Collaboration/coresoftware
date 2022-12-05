@@ -92,7 +92,7 @@ namespace
 
     ActsTrackFittingAlgorithm::TrackFitterResult operator()(
         const std::vector<std::reference_wrapper<
-            const ActsExamples::IndexSourceLink>>& sourceLinks,
+            const ActsSourceLink>>& sourceLinks,
         const ActsExamples::TrackParameters& initialParameters,
         const ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
         const override
@@ -129,7 +129,7 @@ namespace
 
     ActsTrackFittingAlgorithm::TrackFitterResult operator()(
         const std::vector<std::reference_wrapper<
-            const ActsExamples::IndexSourceLink>>& sourceLinks,
+            const ActsSourceLink>>& sourceLinks,
         const ActsExamples::TrackParameters& initialParameters,
         const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
         const std::vector<const Acts::Surface*>& sSequence) const override
@@ -164,7 +164,7 @@ struct sPHENIXTrackFitterFunctionImpl : public TrackFitterFunctionImpl
 
   ActsTrackFittingAlgorithm::TrackFitterResult operator()(
       const std::vector<std::reference_wrapper<
-          const ActsExamples::IndexSourceLink>>& sourceLinks,
+          const ActsSourceLink>>& sourceLinks,
       const ActsExamples::TrackParameters& initialParameters,
       const ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
       const override

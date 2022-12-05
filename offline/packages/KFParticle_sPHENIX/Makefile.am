@@ -12,7 +12,7 @@ AM_LDFLAGS = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
+  -isystem$(ROOTSYS)/include \
   -DHomogeneousField
 
 

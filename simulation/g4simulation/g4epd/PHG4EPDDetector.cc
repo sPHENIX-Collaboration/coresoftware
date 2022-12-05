@@ -4,6 +4,8 @@
 
 #include "PHG4EPDDisplayAction.h"
 
+#include <epd/EPDDefs.h>
+
 #include <g4main/PHG4Detector.h>
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
@@ -44,31 +46,31 @@ void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
   G4ThreeVector negative(0., 0., -m_Params->get_double_param("place_z") * cm);
 
   constexpr int32_t ntiles = 31;
-  constexpr int32_t nslices = 12;
+  constexpr int32_t nsectors = 12;
 
   for (int32_t i = 0; i < ntiles; ++i)
   {
     std::string label = "EPD_tile_" + std::to_string(i);
 
     G4ExtrudedSolid* block = construct_block(i);
-    G4LogicalVolume* volume = new G4LogicalVolume(block, material, label, 0, 0, 0);
+    G4LogicalVolume* volume = new G4LogicalVolume(block, material, label, nullptr, nullptr, nullptr);
 
     GetDisplayAction()->AddVolume(volume, volume->GetName());
     m_ActiveLogVolSet.insert(volume);
 
-    for (int32_t k = 0; k < nslices; ++k)
+    for (int32_t k = 0; k < nsectors; ++k)
     {
       G4RotationMatrix* rotate = new G4RotationMatrix();
 
-      rotate->rotateZ(k * 2 * M_PI / nslices);
+      rotate->rotateZ(k * 2 * M_PI / nsectors);
 
       m_volumes.emplace(
           new G4PVPlacement( rotate, positive, volume, label, world, false, 2 * k + 0, OverlapCheck()),
-	  module_id_for(i, k, 0));
+          module_id_for(i, k, 0));
 
       m_volumes.emplace(
           new G4PVPlacement( rotate, negative, volume, label, world, false, 2 * k + 1, OverlapCheck()),
-	  module_id_for(i, k, 1));
+          module_id_for(i, k, 1));
     }
   }
 }
@@ -93,9 +95,9 @@ int PHG4EPDDetector::IsInDetector(G4VPhysicalVolume* volume) const
   return 0;
 }
 
-uint32_t PHG4EPDDetector::module_id_for(int32_t index, int32_t slice, int32_t side)
+uint32_t PHG4EPDDetector::module_id_for(uint32_t tile_id, uint32_t sector, uint32_t arm)
 {
-  return (side << 9 | slice << 5 | index) & 0x3FF;
+  return EPDDefs::make_epd_key(arm,sector,tile_id);
 }
 
 uint32_t PHG4EPDDetector::module_id_for(G4VPhysicalVolume* volume)

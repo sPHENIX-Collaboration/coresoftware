@@ -60,6 +60,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_tpc_grouping(int group) {tpc_grp = (tpcGrp) group;}
   void set_mms_grouping(int group) {mms_grp = (mmsGrp) group;}
   void set_test_output(bool test) {test_output = test;}
+  void set_layer_fixed(unsigned int layer);
+  void set_layer_param_fixed(unsigned int layer, unsigned int param);
 
  private:
 
@@ -89,6 +91,8 @@ Mille* _mille;
   void getGlobalDerivativesY( std::vector<Acts::Vector3> angleDerivs, float glbl_derivatives[], unsigned int layer);
   void getGlobalDerivativesZ( std::vector<Acts::Vector3> angleDerivs, float glbl_derivatives[], unsigned int layer);
   void printBuffers(int index, Acts::Vector3 residual, Acts::Vector3 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[]);
+  bool is_layer_fixed(unsigned int layer);
+  bool is_layer_param_fixed(unsigned int layer, unsigned int param);
   unsigned int addSiliconClusters(std::vector<float>& fitpars, std::vector<Acts::Vector3>& global_vec,  std::vector<TrkrDefs::cluskey>& cluskey_vec);
 
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
@@ -102,8 +106,10 @@ Mille* _mille;
   ClusterErrorPara _ClusErrPara;
 
   float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
-  unsigned int fixedLayer = 100;
  
+  std::set<unsigned int> fixed_layers;
+  std::set<std::pair<unsigned int,unsigned int>> fixed_layer_params;
+
   // set default groups to lowest level
   siliconGrp si_grp = siliconGrp::snsr;
   tpcGrp tpc_grp = tpcGrp::htst;

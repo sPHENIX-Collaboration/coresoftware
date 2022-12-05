@@ -15,6 +15,7 @@
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/ActsTrackFittingAlgorithm.h>
 #include <trackbase/alignmentTransformationContainer.h>
+#include <trackbase/ActsSourceLink.h>
 
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterMover.h>
@@ -27,7 +28,6 @@
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 #include <ActsExamples/EventData/Track.hpp>
-#include <ActsExamples/EventData/IndexSourceLink.hpp>
 
 #include <memory>
 #include <string>
@@ -46,7 +46,7 @@ class TrackSeedContainer;
 class TrkrClusterContainer;
 class TpcDistortionCorrectionContainer;
 
-using SourceLink = ActsExamples::IndexSourceLink;
+using SourceLink = ActsSourceLink;
 using FitResult = Acts::KalmanFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices,2>;

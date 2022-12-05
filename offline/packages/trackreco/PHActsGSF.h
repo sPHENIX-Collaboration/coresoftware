@@ -11,6 +11,8 @@
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/ActsSourceLink.h>
+#include <trackbase/Calibrator.h>
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
@@ -20,14 +22,10 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
-#include <ActsExamples/EventData/IndexSourceLink.hpp>
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/Trajectories.hpp>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <ActsExamples/TrackFitting/TrackFittingAlgorithm.hpp>
-#pragma GCC diagnostic pop
+#include <trackbase/ActsTrackFittingAlgorithm.h>
 
 #include <string>
 
@@ -37,7 +35,7 @@ class TrkrClusterContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
 
-using SourceLink = ActsExamples::IndexSourceLink;
+using SourceLink = ActsSourceLink;
 using FitResult = Acts::KalmanFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
@@ -64,10 +62,10 @@ class PHActsGSF : public SubsysReco
   SourceLinkVec getSourceLinks(TrackSeed* track,
                                ActsExamples::MeasurementContainer& measurements,
                                const short int& crossing);
-  ActsExamples::TrackFittingAlgorithm::TrackFitterResult fitTrack(
+  ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
       const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks,
       const ActsExamples::TrackParameters& seed,
-      const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& options);
+      const ActsTrackFittingAlgorithm::GeneralFitterOptions& options);
 
   void updateTrack(const FitResult& result, SvtxTrack* track);
   void updateSvtxTrack(const Trajectory& traj, SvtxTrack* track);
@@ -88,7 +86,7 @@ class PHActsGSF : public SubsysReco
   int m_cluster_version = 4;
   ClusterErrorPara _ClusErrPara;
 
-  ActsExamples::TrackFittingAlgorithm::Config m_fitCfg;
+  ActsTrackFittingAlgorithm::Config m_fitCfg;
 };
 
 #endif  // PHACTSGSF_H
