@@ -741,7 +741,7 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
   /// Limiting collision region in z
   config.collisionRegionMin = -300. * Acts::UnitConstants::mm;
   config.collisionRegionMax = 300. * Acts::UnitConstants::mm;
-  config.sigmaScattering = 5.;
+  config.sigmaScattering = m_sigmaScattering;
   config.maxSeedsPerSpM = m_maxSeedsPerSpM;
   config.cotThetaMax = m_cotThetaMax;
   config.minPt = m_minSeedPt;

@@ -1,9 +1,13 @@
 #include "PHPy6ParticleTrigger.h"
 #include "PHPy6GenTrigger.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>     // for GenParticle
 #include <HepMC/GenVertex.h>       // for GenVertex, GenVertex::particles_in...
+#pragma GCC diagnostic pop
+
+#include <HepMC/GenParticle.h>     // for GenParticle
 #include <HepMC/SimpleVector.h>    // for FourVector
 
 #include <cmath>                  // for sqrt

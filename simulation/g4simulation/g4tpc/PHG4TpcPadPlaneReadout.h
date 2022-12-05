@@ -42,8 +42,10 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
  private:
   //  void populate_rectangular_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
-  void populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
+  void populate_zigzag_phibins(const unsigned int side, const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_tbins(const double t, const std::array<double, 2> &cloud_sig_tt, std::vector<int> &adc_tbin, std::vector<double> &adc_tbin_share);
+
+  double check_phi(const unsigned int side, const double phi, const double radius);
 
   std::string seggeonodename;
 
@@ -61,6 +63,14 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<double, 3> MinRadius;
   std::array<double, 3> MaxRadius;
   std::array<double, 5> Thickness;
+
+  static const int NSides = 2;
+  static const int NSectors = 12;
+  static const int NRSectors = 3;
+
+  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dR;
+  std::array< std::array< std::array< float,NRSectors >,NSectors >,NSides > dPhi;
+
   double MaxZ = NAN;
   double MinT = NAN;
   double MaxT = NAN;
@@ -75,6 +85,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   int NTBins = INT_MAX;
   std::array<int, 3> NPhiBins;
   std::array<int, 3> NTpcLayers;
+  std::array<double, 3> SectorPhi;
   int m_NHits = 0;
 
   // gaussian sampling
@@ -86,6 +97,12 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::vector<int> pad_phibin;
   std::vector<double> pad_phibin_share;
   std::vector<double> adc_tbin_share;
+  std::array<std::vector<double>, NSides > sector_R_bias;
+  std::array<std::vector<double>, NSides > sector_Phi_bias;
+  std::array<std::vector<double>, NSides > sector_min_Phi;
+  std::array<std::vector<double>, NSides > sector_max_Phi;
+  std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_min_Phi_sectors;
+  std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_max_Phi_sectors;
 
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();

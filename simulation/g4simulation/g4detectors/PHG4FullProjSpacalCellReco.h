@@ -102,7 +102,7 @@ class PHG4FullProjSpacalCellReco : public SubsysReco, public PHParameterInterfac
   //! timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
   double tmin = NAN;
   double tmax = NAN;
-
+  double m_DeltaT = NAN;
   LightCollectionModel light_collection_model;
 };
 

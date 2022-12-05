@@ -5,7 +5,7 @@ lib_LTLIBRARIES = libcompressor.la
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include 
+  -isystem$(ROOTSYS)/include 
 
 libcompressor_la_LDFLAGS = \
   -L$(libdir) \

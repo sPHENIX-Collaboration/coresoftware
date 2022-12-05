@@ -28,9 +28,13 @@
 
 #include <KFParticle.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>
 #include <HepMC/GenVertex.h>
+#pragma GCC diagnostic pop
+
+#include <HepMC/GenParticle.h>
 #include <HepMC/IteratorRange.h>
 
 #include <TH1.h>

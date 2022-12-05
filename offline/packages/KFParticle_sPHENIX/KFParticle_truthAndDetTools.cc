@@ -33,9 +33,13 @@
 #include <TString.h>     // for TString, operator+
 #include <TTree.h>       // for TTree
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>       // for GenEvent::particle_con...
-#include <HepMC/GenParticle.h>    // for GenParticle
 #include <HepMC/GenVertex.h>      // for GenVertex::particle_it...
+#pragma GCC diagnostic pop
+
+#include <HepMC/GenParticle.h>    // for GenParticle
 #include <HepMC/IteratorRange.h>  // for parents
 #include <HepMC/SimpleVector.h>   // for FourVector
 

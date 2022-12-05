@@ -32,7 +32,7 @@ class PHG4EPDDetector : public PHG4Detector
 
   int IsInDetector(G4VPhysicalVolume*) const;
 
-  uint32_t module_id_for(int32_t index, int32_t slice, int32_t side);
+  uint32_t module_id_for(uint32_t index, uint32_t slice, uint32_t side);
   uint32_t module_id_for(G4VPhysicalVolume* volume);
 
   void SuperDetector(std::string const& name) { superdetector = name; }

@@ -20,7 +20,10 @@
 
 #include <TSystem.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/algorithm/string.hpp>
+#pragma GCC diagnostic pop
 
 #include <cassert>
 #include <cstdlib>

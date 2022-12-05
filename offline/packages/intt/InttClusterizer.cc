@@ -30,7 +30,10 @@
 #include <TMatrixT.h>                               // for TMatrixT, operator*
 #include <TMatrixTUtils.h>                          // for TMatrixTRow
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/graph/adjacency_list.hpp>
+#pragma GCC diagnostic pop
 #include <boost/graph/connected_components.hpp>
 
 #include <array>

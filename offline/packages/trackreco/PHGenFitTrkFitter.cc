@@ -1125,11 +1125,11 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     {
 
       case TrkrDefs::mvtxId:
-	{
+      {
         double ladder_location[3] = {0.0, 0.0, 0.0};
         auto geom = static_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
-	auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-	auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
+        auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+        auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
         // returns the center of the sensor in world coordinates - used to get the ladder phi location
         geom->find_sensor_center(surf, m_tgeometry, ladder_location);
 
@@ -1144,8 +1144,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       {
         auto geom = static_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
         double hit_location[3] = {0.0, 0.0, 0.0};
-	auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-	auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
+        auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+        auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
         geom->find_segment_center(surf, m_tgeometry, hit_location);
 
         //cout << " Intt strip phi tilt = " <<  geom->get_strip_phi_tilt()
@@ -1170,9 +1170,46 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 
       default: break;
     }
+    
+    // get cluster errors
+    double cluster_rphi_error = 0;
+    double cluster_z_error = 0;
+    if( m_cluster_version >= 4 )
+    {
+      // get error from cluster error parametrization 
+      // get cluster radius
+      const auto cluster_r = std::sqrt(square(globalPosition_acts.x()) + square(globalPosition_acts.y()));
+
+      // decide of which seed to use depending on detector id
+      switch(  TrkrDefs::getTrkrId(cluster_key) )
+      {
+        case TrkrDefs::mvtxId:
+        case TrkrDefs::inttId:
+        {
+          const auto errors_square = m_cluster_error_parametrization.get_cluster_error( intrack->get_silicon_seed(), cluster, cluster_r, cluster_key ); 
+          cluster_rphi_error = std::sqrt( errors_square.first );
+          cluster_z_error = std::sqrt( errors_square.second );
+          break;
+        }
+        
+        case TrkrDefs::micromegasId:
+        case TrkrDefs::tpcId:
+        {
+          const auto errors_square = m_cluster_error_parametrization.get_cluster_error( intrack->get_tpc_seed(), cluster, cluster_r, cluster_key ); 
+          cluster_rphi_error = std::sqrt( errors_square.first );
+          cluster_z_error = std::sqrt( errors_square.second );
+          break;
+        }
+      }
+    } else {
+      // get error directly from cluster
+      cluster_rphi_error = cluster->getRPhiError();
+      cluster_z_error = cluster->getZError();
+    }
+
 
     // create measurement
-    auto meas = new PHGenFit::PlanarMeasurement(pos, n, cluster->getRPhiError(), cluster->getZError());
+    auto meas = new PHGenFit::PlanarMeasurement(pos, n, cluster_rphi_error, cluster_z_error);
 
     if(Verbosity() > 10)
     {

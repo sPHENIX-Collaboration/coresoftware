@@ -4,8 +4,9 @@
 #include <fun4all/SubsysReco.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
+#include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <Acts/Utilities/Result.hpp>
@@ -70,6 +71,10 @@ class PHTpcResiduals : public SubsysReco
   void setUseMicromegas( bool value )
   { m_useMicromegas = value; }
 
+  /// cluster version
+  /* Note: this could be retrived automatically using dynamic casts from TrkrCluster objects */
+  void setClusterVersion(int value) { m_cluster_version = value; }
+
   private:
 
   using BoundTrackParamPtr = 
@@ -88,7 +93,7 @@ class PHTpcResiduals : public SubsysReco
   /**
    * uses ActsTransformation to convert cluster local position into global coordinates
    */
-  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*, short int crossing);
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*, short int crossing) const;
 
   int processTracks(PHCompositeNode *topNode);
 
@@ -98,10 +103,6 @@ class PHTpcResiduals : public SubsysReco
   /// fill track state from bound track parameters
   void addTrackState( SvtxTrack* track, float pathlength, const Acts::BoundTrackParameters& params );
   
-  /// Calculates TPC residuals given an Acts::Propagation result to
-  /// a TPC surface
-  void calculateTpcResiduals(const Acts::BoundTrackParameters& params, TrkrDefs::cluskey, TrkrCluster* cluster);
-
   /** \brief 
    * Propagates the silicon+MM track fit to the surface on which
    * an available source link in the TPC exists, added from the stub
@@ -155,6 +156,12 @@ class PHTpcResiduals : public SubsysReco
   static constexpr unsigned int m_nLayersTpc = 48;
   static constexpr float m_zMin = -105.5; // cm
   static constexpr float m_zMax = 105.5;  // cm
+ 
+  /// cluster error parametrisation
+  ClusterErrorPara m_cluster_error_parametrization;
+  
+  /// cluster version
+  int m_cluster_version = 4;
 
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
@@ -162,9 +169,6 @@ class PHTpcResiduals : public SubsysReco
   // TODO: check if needed
   int m_event = 0;
   
-  /// Counter for number of bad propagations from propagateTrackState()
-  int m_nBadProps = 0;
-
   /// require micromegas to be present when extrapolating tracks to the TPC
   bool m_useMicromegas = true;
 

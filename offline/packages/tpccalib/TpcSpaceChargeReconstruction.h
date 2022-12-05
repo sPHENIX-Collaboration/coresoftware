@@ -11,6 +11,7 @@
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/ActsTrackingGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
 
 /// Acts includes to create all necessary definitions
 #include <Acts/Utilities/BinnedArray.hpp>
@@ -80,6 +81,10 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
     
   /// output file name for evaluation histograms
   void set_histogram_outputfile(const std::string &outputfile) {m_histogramfilename = outputfile;}
+  
+  /// cluster version
+  /* Note: this could be retrived automatically using dynamic casts from TrkrCluster objects */
+  void set_cluster_version(int value) { m_cluster_version = value; }
 
   /// output file
   /**
@@ -118,7 +123,7 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
    * uses ActsTransformation to convert cluster local position into global coordinates
    * incorporates TPC distortion correction, if present
    */
-  Acts::Vector3 get_global_position(TrkrDefs::cluskey, TrkrCluster*, short int /* crossing */);
+  Acts::Vector3 get_global_position(TrkrDefs::cluskey, TrkrCluster*, short int /* crossing */) const;
 
   /// process tracks
   void process_tracks();
@@ -157,7 +162,13 @@ class TpcSpaceChargeReconstruction: public SubsysReco, public PHParameterInterfa
   float m_max_tbeta = 1.5;
   float m_max_dz = 0.5;
   //@}
-
+ 
+  /// cluster error parametrisation
+  ClusterErrorPara m_cluster_error_parametrization;
+  
+  /// cluster version
+  int m_cluster_version = 4;
+  
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
 
