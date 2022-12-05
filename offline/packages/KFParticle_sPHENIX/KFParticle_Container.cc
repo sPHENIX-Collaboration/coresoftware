@@ -88,7 +88,7 @@ KFParticle* KFParticle_Container::insert(const KFParticle* particle)
   unsigned int index = 0;
   if (!m_kfpmap.empty()) index = m_kfpmap.rbegin()->first + 1;
   m_kfpmap.insert(std::make_pair(index, dynamic_cast<KFParticle*>(particle->Clone())));
-  m_kfpmap[index]->SetId(index);
+  //m_kfpmap[index]->SetId(index);
   return m_kfpmap[index];
 }
 

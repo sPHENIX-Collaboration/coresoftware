@@ -27,8 +27,8 @@ class JetMap : public PHObject
   typedef std::set<Jet::SRC>::const_iterator ConstSrcIter;
   typedef std::set<Jet::SRC>::iterator SrcIter;
 
-  JetMap() {}
-  ~JetMap() override {}
+  JetMap()  = default;
+  ~JetMap() override = default;
 
   void identify(std::ostream& os = std::cout) const override;
   int isValid() const override { return 0; }

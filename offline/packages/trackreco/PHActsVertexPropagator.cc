@@ -108,6 +108,8 @@ void PHActsVertexPropagator::setVtxChi2()
 	  ++trackiter)
 	{
 	  SvtxTrack* track = m_trackMap->get(*trackiter);
+	  if(!track) { continue; }
+
 	  float trkx = track->get_x();
 	  float trky = track->get_y();
 	  float trkz = track->get_z();
@@ -126,8 +128,8 @@ void PHActsVertexPropagator::setVtxChi2()
       /// Each track contributes independently to x,y,z, so the total
       /// ndf is total tracks * 3 minus 1*3 for each independent x,y,z
       vtx->set_ndof(vtx->size_tracks() * 3 - 3);
-    
     }
+ 
 }
 
 void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track, 
@@ -152,7 +154,7 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   if(params.covariance())
     {
       auto rotatedCov = rotater.rotateActsCovToSvtxTrack(params);
-      
+    
       /// Update covariance
       for(int i = 0; i < 3; i++) {
 	for(int j = 0; j < 3; j++) {

@@ -43,8 +43,6 @@ int PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
 
-  m_SteppingAction = new PHG4EPDSteppingAction(m_Detector, GetParams());
-
   if (GetParams()->get_int_param("active"))
   {
     std::set<std::string> nodes;
@@ -78,7 +76,7 @@ int PHG4EPDSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       nodes.insert(m_SupportNodeName);
     }
 
-    for (auto nodename : nodes)
+    for (const auto& nodename : nodes)
     {
       PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)

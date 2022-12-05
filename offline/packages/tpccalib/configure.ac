@@ -12,7 +12,7 @@ fi
 
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wno-deprecated-copy"
+  CXXFLAGS="$CXXFLAGS -Wno-deprecated-copy -Wno-unused-value -Wno-bitwise-instead-of-logical -Wno-dangling -Wno-unknown-warning-option"
  ;;
 esac
 

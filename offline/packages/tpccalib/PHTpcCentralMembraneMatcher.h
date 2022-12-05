@@ -37,7 +37,6 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
   ~PHTpcCentralMembraneMatcher() override = default;
 
-
   /// set to true to store evaluation histograms and ntuples
   void setSavehistograms( bool value )
   {m_savehistograms = value;}
@@ -100,6 +99,7 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   TH2F *hrdr = nullptr;
   TH2F *hrdphi = nullptr;
   TH1F *hdrphi = nullptr;
+  TH1F *hdphi = nullptr;
   TH1F *hdr1_single = nullptr;
   TH1F *hdr2_single = nullptr;
   TH1F *hdr3_single = nullptr;
@@ -111,14 +111,13 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   std::unique_ptr<TFile> fout;
 
   //@}
-  
-  /// radius cut for matching clusters to pad
-  /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
-  double m_rad_cut= 0.2;
+    
+  /// radius cut for matching clusters to pad, for size 2 clusters
+  double m_rad_cut= 0.5;
   
   /// phi cut for matching clusters to pad
   /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
-  double m_phi_cut= 0.01;
+  double m_phi_cut= 0.02;
   
   ///@name distortion correction histograms
   //@{
@@ -150,9 +149,6 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   static constexpr int nPads_R1 = 6 * 16;
   static constexpr int nPads_R2 = 8 * 16;
   static constexpr int nPads_R3 = 12 * 16;
-
-  /// radius of arc on end of a stripe
-  static constexpr double arc_r = 0.5 * mm;
 
   /// stripe radii
   static constexpr std::array<double, nRadii> R1_e = {{227.0902789 * mm, 238.4100043 * mm, 249.7297296 * mm, 261.049455 * mm, 272.3691804 * mm, 283.6889058 * mm, 295.0086312 * mm, 306.3283566 * mm}};
@@ -208,7 +204,7 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
     double cx[][nRadii], double cy[][nRadii] );
   
   /// store centers of all central membrane pads
-  std::vector<TVector3> truth_pos;
+  std::vector<TVector3> m_truth_pos;
 
   //@}
 

@@ -13,7 +13,7 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I${G4_MAIN}/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -21,24 +21,13 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  ../PHTpcTracker/PHTpcTrackerUtil.h \
-  ../PHTpcTracker/externals/kdfinder.hpp \
   ActsEvaluator.h \
   ALICEKF.h \
   AssocInfoContainer.h \
   AssocInfoContainerv1.h \
-  CellularAutomaton.h \
-  CellularAutomaton_v1.h \
   GPUTPCBaseTrackParam.h \
   GPUTPCTrackLinearisation.h \
   GPUTPCTrackParam.h \
-  HelixHoughBin.h \
-  HelixHoughBin_v1.h \
-  HelixHoughFuncs.h \
-  HelixHoughFuncs_v1.h \
-  HelixHoughSpace.h \
-  HelixHoughSpace_v1.h \
-  HelixKalmanFilter.h \
   MakeActsGeometry.h \
   nanoflann.hpp \
   PHActsGSF.h \
@@ -51,7 +40,6 @@ pkginclude_HEADERS = \
   PHGenFitTrkFitter.h \
   PHGhostRejection.h \
   PHInitVertexing.h \
-  PHInitZVertexing.h \
   PHMicromegasTpcTrackMatching.h \
   PHSiliconTpcTrackMatching.h \
   PHSimpleVertexFinder.h \
@@ -63,6 +51,7 @@ pkginclude_HEADERS = \
   PHSimpleKFProp.h \
   PHTpcClusterMover.h \
   PHTpcDeltaZCorrection.h \
+  PHTrackClusterAssociator.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
@@ -73,43 +62,23 @@ pkginclude_HEADERS = \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
   SvtxTrackStateRemoval.h \
-  VertexFitter.h
+  TrackingIterationCounter.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
-  AssocInfoContainerv1_Dict.cc \
-  HelixHoughBin_Dict.cc \
-  HelixHoughBin_v1_Dict.cc \
-  HelixHoughFuncs_Dict.cc \
-  HelixHoughFuncs_v1_Dict.cc \
-  HelixHoughSpace_Dict.cc \
-  HelixHoughSpace_v1_Dict.cc
+  AssocInfoContainerv1_Dict.cc
 
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
   AssocInfoContainer_Dict_rdict.pcm \
-  AssocInfoContainerv1_Dict_rdict.pcm \
-  HelixHoughBin_Dict_rdict.pcm \
-  HelixHoughBin_v1_Dict_rdict.pcm \
-  HelixHoughFuncs_Dict_rdict.pcm \
-  HelixHoughFuncs_v1_Dict_rdict.pcm \
-  HelixHoughSpace_Dict_rdict.pcm \
-  HelixHoughSpace_v1_Dict_rdict.pcm
+  AssocInfoContainerv1_Dict_rdict.pcm
 
 libtrack_reco_io_la_SOURCES = \
   $(ROOTDICTS) \
   AssocInfoContainerv1.cc \
   AssocInfoContainer.cc \
-  CellularAutomaton_v1.cc \
-  GPUTPCTrackParam.cxx \
-  HelixHoughBin.cc \
-  HelixHoughBin_v1.cc \
-  HelixHoughFuncs_v1.cc \
-  HelixHoughSpace_v1.cc \
-  HelixKalmanFilter.cc \
-  VertexFitter.cc
+  GPUTPCTrackParam.cxx
 
-if MAKE_ACTS
 ACTS_SOURCES = \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
@@ -138,11 +107,9 @@ ACTS_LIBS = \
   -lActsExamplesFramework \
   -lActsExamplesIoRoot \
   -lActsExamplesMagneticField
-endif
 
 libtrack_reco_la_SOURCES = \
   $(ACTS_SOURCES) \
-  ../PHTpcTracker/PHTpcTrackerUtil.cc \
   ALICEKF.cc \
   PH3DVertexing.cc \
   PHCASeeding.cc \
@@ -150,7 +117,6 @@ libtrack_reco_la_SOURCES = \
   PHGenFitTrkFitter.cc \
   PHGhostRejection.cc \
   PHInitVertexing.cc \
-  PHInitZVertexing.cc \
   PHMicromegasTpcTrackMatching.cc \
   PHRaveVertexing.cc \
   PHSiliconSeedMerger.cc \
@@ -161,6 +127,7 @@ libtrack_reco_la_SOURCES = \
   PHTpcClusterMover.cc \
   PHTpcDeltaZCorrection.cc \
   PHTrackCleaner.cc \
+  PHTrackClusterAssociator.cc \
   PHTrackSeeding.cc \
   PHTrackSelector.cc \
   PHTrackSetMerging.cc \
@@ -170,11 +137,11 @@ libtrack_reco_la_SOURCES = \
   PHTruthTrackSeeding.cc \
   PHTruthVertexing.cc \
   PHTruthSiliconAssociation.cc \
-  SvtxTrackStateRemoval.cc
+  SvtxTrackStateRemoval.cc \
+  TrackingIterationCounter.cc
 
 libtrack_reco_io_la_LIBADD = \
-  -lphool \
-  -lHelixHough 
+  -lphool
 
 libtrack_reco_la_LIBADD = \
   libtrack_reco_io.la \
@@ -185,8 +152,6 @@ libtrack_reco_la_LIBADD = \
   -lg4detectors \
   -lgsl \
   -lgslcblas \
-  -lFitNewton \
-  -lSeamstress \
   -lgenfit2 \
   -lgenfit2exp \
   -lPHGenFit \
@@ -197,10 +162,10 @@ libtrack_reco_la_LIBADD = \
   -lmicromegas_io \
   -lmvtx_io \
   -lintt_io \
+  -ltrack_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter \
-  -llog4cpp
+  -lphparameter
 
 
 # Rule for generating table CINT dictionaries.

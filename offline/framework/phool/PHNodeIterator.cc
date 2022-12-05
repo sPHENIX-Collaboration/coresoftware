@@ -15,7 +15,10 @@
 #include "PHPointerListIterator.h"
 #include "phooldefs.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/algorithm/string.hpp>
+#pragma GCC diagnostic pop
 
 #include <vector>
 

@@ -72,9 +72,9 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   m_FieldSetup =
     new PHG4OHCalFieldSetup(
       m_Params->get_string_param("IronFieldMapPath"), m_Params->get_double_param("IronFieldMapScale"),
-      m_InnerRadius - 10,
-      m_OuterRadius + 10,
-      m_SizeZ/2. + 10 // div by 2 bc G4 convention
+      m_InnerRadius - 10*cm, // subtract 10 cm to make sure fieldmap with 2x2 grid covers it
+      m_OuterRadius + 10*cm, // add 10 cm to make sure fieldmap with 2x2 grid covers it
+      m_SizeZ/2. + 10*cm // div by 2 bc G4 convention
         );
 }
 
@@ -435,54 +435,30 @@ int PHG4OHCalDetector::map_towerid(const int tower_id)
 
 int PHG4OHCalDetector::map_layerid(const unsigned int isector, const int layer_id)
 {
-  int tmp_layer = layer_id - 10 * isector;  // normalize to 0-9
   int rowid = -1;
-  if (isector == 29)  // chimney sectors are different
+  if (layer_id <= 60)
   {
-    rowid = 114 - layer_id;
+    rowid = layer_id + 95;
   }
-  else if (isector == 30 || isector == 31)  // chimney sectors are different
+  else if (/* layer_id > 60 && */ layer_id < 225)
   {
-    rowid = 84 - layer_id;
+    rowid = layer_id + 95;
   }
-  else
+  else  /* if (layer_id >= 225) */
   {
-    rowid = 4 - tmp_layer;  // lower half
-    if (rowid >= 0)
-    {
-      if (isector <= 6)
-      {
-        rowid += 10 * (6 - isector);
-      }
-      else if (isector <= 28)
-      {
-        rowid += 10 * (38 - isector);
-      }
-      else
-      {
-        rowid = -1;
-      }
-    }
-    else
-    {  // upper half
-      rowid += 10;
-      if (isector <= 5)
-      {
-        rowid += 10 * (5 - isector);
-      }
-      else if (isector <= 28)
-      {
-        rowid += 10 * (37 - isector);
-      }
-      else
-      {
-        rowid = -1;
-      }
-    }
+    rowid = layer_id - 225;
+  }
+  if (isector == 29)
+  {
+    rowid = 45 + layer_id;
+  }
+  else if (isector >= 30)
+  {
+    rowid = 75 + layer_id;
   }
   if (rowid < 0 || rowid > 319)
   {
-    std::cout << "bad rowid for sector " << isector << ", layer_id " << layer_id << std::endl;
+    std::cout << "bad rowid " << rowid << " for sector " << isector << ", layer_id " << layer_id << std::endl;
     gSystem->Exit(1);
   }
   return rowid;

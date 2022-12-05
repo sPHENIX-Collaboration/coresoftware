@@ -27,7 +27,10 @@
 
 #include <CLHEP/Vector/RotationZ.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/format.hpp>
+#pragma GCC diagnostic pop
 
 #include <algorithm>  // for max, copy
 #include <cassert>
