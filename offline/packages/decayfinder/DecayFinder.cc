@@ -333,7 +333,7 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
         bool breakOut = false;
         correctMotherProducts.clear();
         decayChain.clear();
-        decayChain.push_back(std::make_pair(g4particle->get_barcode(), g4particle->get_pid()));
+        decayChain.push_back(std::make_pair(std::make_pair(g4particle->get_primary_id(), g4particle->get_barcode()), g4particle->get_pid()));
   
         searchGeant4Record(g4particle->get_barcode(), g4particle->get_pid(), positive_motherDecayProducts, breakOut, aMotherHasPhoton, aMotherHasPi0, aTrackFailedPT, aTrackFailedETA, correctMotherProducts);
   
@@ -386,7 +386,7 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
         bool breakOut = false;
         correctMotherProducts.clear();
         decayChain.clear();
-        decayChain.push_back(std::make_pair((*p)->barcode(), (*p)->pdg_id()));
+        decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(), (*p)->barcode()), (*p)->pdg_id()));
 
         // Make sure that the mother has a decay in our record
         if (!(*p)->end_vertex()) //Mother has no end vertex, decay volume was limited
@@ -492,7 +492,7 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
         if (needThisParticle)
         {
           actualDecayProducts.push_back((*children)->pdg_id());
-          decayChain.push_back(std::make_pair((*children)->barcode(), (*children)->pdg_id()));
+          decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(),(*children)->barcode()), (*children)->pdg_id()));
         }
       }
       else
@@ -501,7 +501,7 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
         if (needThisParticle)
         {
           actualDecayProducts.push_back((*children)->pdg_id());
-          decayChain.push_back(std::make_pair((*children)->barcode(), (*children)->pdg_id()));
+          decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(),(*children)->barcode()), (*children)->pdg_id()));
         }
       }
     }  //Now check if it's part of the resonance list
@@ -523,7 +523,7 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
           if (needThisParticle)
           {
             actualDecayProducts.push_back((*grandchildren)->pdg_id());
-            decayChain.push_back(std::make_pair((*grandchildren)->barcode(), (*grandchildren)->pdg_id()));
+            decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(),(*grandchildren)->barcode()), (*grandchildren)->pdg_id()));
           }
         }
       }
@@ -581,7 +581,7 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> deca
         {
           if (Verbosity() >= VERBOSITY_MAX) std::cout << "This is a child you were looking for" << std::endl;
           actualDecayProducts.push_back(particleID);
-          decayChain.push_back(std::make_pair(g4particle->get_barcode(), particleID));
+          decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(),g4particle->get_barcode()), particleID));
         }
       }  //Now check if it's part of the other resonance list
       else if (m_allowPhotons && particleID == 22) continue;
@@ -941,7 +941,7 @@ void DecayFinder::printNode(PHCompositeNode* topNode)
     Decay decay = iter->second;
     for (unsigned int i = 0; i < decay.size(); ++i)
     {
-      std::cout << "Particle Barcode: " << decay[i].first << ", Particle PDG ID: " << decay[i].second << std::endl;
+      std::cout << "Particle embedding ID: " << decay[i].first.first << ", particle barcode: " << decay[i].first.second << ", particle PDG ID: " << decay[i].second << std::endl;
     }
   }
   std::cout << "--------------------------------------------------------------------------------------------------" << std::endl;

@@ -86,14 +86,7 @@ SvtxTrack *KFParticle_truthAndDetTools::getTrack(unsigned int track_id, SvtxTrac
 
 SvtxVertex *KFParticle_truthAndDetTools::getVertex(unsigned int vertex_id, SvtxVertexMap *vertexmap)
 {
-  SvtxVertex *matched_vertex = NULL;
-
-  for (SvtxVertexMap::Iter iter = vertexmap->begin();
-       iter != vertexmap->end();
-       ++iter)
-  {
-    if (iter->first == vertex_id) matched_vertex = iter->second;
-  }
+  SvtxVertex *matched_vertex = vertexmap->get(vertex_id);
 
   return matched_vertex;
 }

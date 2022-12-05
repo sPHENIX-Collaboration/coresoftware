@@ -21,7 +21,7 @@ namespace HepMC { class GenParticle; }
 class DecayFinder : public SubsysReco
 {
  public:
-  typedef std::vector<std::pair<int, int>> Decay;
+  typedef std::vector<std::pair<std::pair<int, int>, int>> Decay;
 
   DecayFinder();
 
