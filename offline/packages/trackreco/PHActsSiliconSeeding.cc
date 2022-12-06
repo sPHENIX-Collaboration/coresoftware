@@ -284,7 +284,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	    }
         
 	  trackSeed->lineFit(positions, 0, 8);
-	  
+	  z = trackSeed->get_Z0();
+
 	  fitTimer->stop();
 	  auto circlefittime = fitTimer->get_accumulated_time();
 	  fitTimer->restart();
