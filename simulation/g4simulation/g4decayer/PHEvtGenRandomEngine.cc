@@ -13,9 +13,9 @@ PHEvtGenRandomEngine::PHEvtGenRandomEngine()
 
 PHEvtGenRandomEngine::~PHEvtGenRandomEngine()
 {
-  //std::cout << "Detroy the Random Generator" << std::endl;
+  // std::cout << "Detroy the Random Generator" << std::endl;
   gsl_rng_free(RandomGenerator());
-  //delete m_RandomGenerator;
+  // delete m_RandomGenerator;
 }
 
 double PHEvtGenRandomEngine::random()

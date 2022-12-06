@@ -78,7 +78,7 @@ G4EvtGenDecayer::G4EvtGenDecayer()
   // delete mEvtGen;	QATree
 
   //	bool WilluseXml =false;
-  //SetDecayTable("EvtGenDecayFiles/Bc.DStar+D0Star.Phi.DEC",WilluseXml);
+  // SetDecayTable("EvtGenDecayFiles/Bc.DStar+D0Star.Phi.DEC",WilluseXml);
   //	SetDecayTable("EvtGenDecayFiles/D0KPi.DEC",WilluseXml);
 }
 
@@ -132,7 +132,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 
   theEvent.constructEvent(mParticle);
 
-  HepMC3::GenEvent* evt = theEvent.getEvent();  //Directly use HepMC3 records
+  HepMC3::GenEvent* evt = theEvent.getEvent();  // Directly use HepMC3 records
 
   G4DecayProducts* decayProducts = new G4DecayProducts(*(track.GetDynamicParticle()));
 
