@@ -35,12 +35,12 @@ class SvtxAlignmentState : public PHObject
   virtual void set_residual(const ResidualVector&) {}
   virtual void set_local_derivative_matrix(const LocalMatrix&) {}
   virtual void set_global_derivative_matrix(const GlobalMatrix&) {}
-
+  virtual void set_cluster_key(TrkrDefs::cluskey) {}
   
   virtual const ResidualVector& get_residual() const;
   virtual const LocalMatrix& get_local_derivative_matrix() const;
   virtual const GlobalMatrix& get_global_derivative_matrix() const;
- 
+  virtual TrkrDefs::cluskey get_cluster_key() const { return UINT_MAX; }
 
  protected:
   SvtxAlignmentState() {}

@@ -11,7 +11,7 @@ SvtxAlignmentStateMap::ConstIter SvtxAlignmentStateMap::begin() const
   return map.end();
 }
 
-SvtxAlignmentStateMap::ConstIter SvtxAlignmentStateMap::find(TrkrDefs::cluskey) const
+SvtxAlignmentStateMap::ConstIter SvtxAlignmentStateMap::find(unsigned int) const
 {
   return map.end();
 }
@@ -26,7 +26,7 @@ SvtxAlignmentStateMap::Iter SvtxAlignmentStateMap::begin()
   return map.end();
 }
 
-SvtxAlignmentStateMap::Iter SvtxAlignmentStateMap::find(TrkrDefs::cluskey)
+SvtxAlignmentStateMap::Iter SvtxAlignmentStateMap::find(unsigned int)
 {
   return map.end();
 }

@@ -31,19 +31,24 @@ class SvtxAlignmentState_v1 : public SvtxAlignmentState
   {
     m_globalDeriv = d;
   }
+  void set_cluster_key(const TrkrDefs::cluskey key) override
+  {
+    m_cluskey = key;
+  }
  
   
   const ResidualVector& get_residual() const override { return m_residual; }
   const LocalMatrix& get_local_derivative_matrix() const override { return m_localDeriv; }
   const GlobalMatrix& get_global_derivative_matrix() const override { return m_globalDeriv; }
-
+  TrkrDefs::cluskey get_cluster_key() const override { return m_cluskey; }
 
  private:
 
   ResidualVector m_residual;
   LocalMatrix m_localDeriv;
   GlobalMatrix m_globalDeriv;
-  
+  TrkrDefs::cluskey m_cluskey;
+
   ClassDefOverride(SvtxAlignmentState_v1, 1)
 };
 

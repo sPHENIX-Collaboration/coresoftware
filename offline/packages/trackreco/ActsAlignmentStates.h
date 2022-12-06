@@ -17,7 +17,9 @@
 
 class PHCompositeNode;
 class SvtxTrack;
-
+class SvtxAlignmentStateMap;
+class ActsGeometry;
+class TrkrClusterContainer;
 
 /*
  * Helper class that contains functionality to fill alignment state
@@ -31,17 +33,27 @@ class ActsAlignmentStates
   ActsAlignmentStates() {}
   ~ActsAlignmentStates() {}
   void clusterVersion(const int v) { m_clusterVersion = v; }
-  void fillAlignmentStateMap(PHCompositeNode* topNode,
-			     Trajectory traj,
+  void fillAlignmentStateMap(Trajectory traj,
 			     SvtxTrack* track);
   void verbosity(const int verb) { m_verbosity = verb; }
   void analyticGlobalDer(bool a) { m_analytic = a; }
+  void distortionContainers(TpcDistortionCorrectionContainer* stat,
+			    TpcDistortionCorrectionContainer *average,
+			    TpcDistortionCorrectionContainer *fluc)
+  {
+    m_dcc_static = stat;
+    m_dcc_average = average;
+    m_dcc_fluctuation = fluc;
+  }
+  void actsGeometry(ActsGeometry* geom) { m_tGeometry = geom; }
+  void clusters(TrkrClusterContainer *clus) { m_clusterMap = clus; }
+  void stateMap(SvtxAlignmentStateMap* map) { m_alignmentStateMap = map; }
 
  private:
-  void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global, PHCompositeNode* topNode);
-  std::vector<Acts::Vector3> getDerivativesAlignmentAngles(PHCompositeNode *topNode, Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing);
+  void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global);
+  std::vector<Acts::Vector3> getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing);
   Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
-  float convertTimeToZ(ActsGeometry* tGeometry, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster);
+  float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster* cluster);
 
   bool m_analytic = false;
   int m_verbosity = 0;
@@ -52,6 +64,14 @@ class ActsAlignmentStates
   ClusterErrorPara m_clusErrPara;
   TpcDistortionCorrection m_distortionCorrection;
   TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+
+  SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
+  TrkrClusterContainer *m_clusterMap = nullptr;
+  ActsGeometry *m_tGeometry = nullptr;
+  TpcDistortionCorrectionContainer *m_dcc_static = nullptr;
+  TpcDistortionCorrectionContainer *m_dcc_average = nullptr;
+  TpcDistortionCorrectionContainer *m_dcc_fluctuation = nullptr;
+
 };
 
 #endif

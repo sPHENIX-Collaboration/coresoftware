@@ -8,6 +8,7 @@
 #ifndef TRACKRECO_ACTSTRKFITTER_H
 #define TRACKRECO_ACTSTRKFITTER_H
 
+#include "ActsAlignmentStates.h"
 
 #include <fun4all/SubsysReco.h>
 
@@ -94,6 +95,8 @@ class PHActsTrkFitter : public SubsysReco
 
   void setAbsPdgHypothesis(unsigned int pHypothesis)
   { m_pHypothesis = pHypothesis; }
+
+  void commissioning(bool com) { m_commissioning = com; }
 
   void useOutlierFinder(bool outlier) { m_useOutlierFinder = outlier; }
 
@@ -200,6 +203,8 @@ class PHActsTrkFitter : public SubsysReco
   unsigned int m_pHypothesis = 211;
 
   SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
+  ActsAlignmentStates m_alignStates;
+  bool m_commissioning = false;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;

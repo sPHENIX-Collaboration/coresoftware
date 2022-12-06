@@ -17,6 +17,7 @@
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
+#include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxAlignmentState_v1.h>
 
 #include <Acts/Surfaces/Surface.hpp>
@@ -33,21 +34,14 @@ namespace
   }
 } 
 
-void ActsAlignmentStates::fillAlignmentStateMap(PHCompositeNode* topNode,
-						Trajectory traj,
+void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
 						SvtxTrack* track)
 {
-
-  auto alignmentMap = findNode::getClass<SvtxAlignmentStateMap>(topNode, "SvtxAlignmentStateMap");
-  auto clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-auto tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
-
-
   const auto mj = traj.multiTrajectory();
   const auto& tips = traj.tips();
   const auto& trackTip = tips.front();
   const auto crossing = track->get_silicon_seed()->get_crossing();
-  std::map<TrkrDefs::cluskey, SvtxAlignmentState_v1*> statemap;
+  SvtxAlignmentStateMap::StateVec statevec;
 
   mj.visitBackwards(trackTip, [&](const auto& state) {
     /// Collect only track states which were used in smoothing of KF and are measurements
@@ -67,27 +61,27 @@ auto tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
 		  << sl.cluskey() << std::endl;
       }
 
-    auto clus = clusterMap->findCluster(ckey);
+    auto clus = m_clusterMap->findCluster(ckey);
     const auto trkrId = TrkrDefs::getTrkrId(ckey);
 
     /// Gets the global parameters from the state
     const Acts::FreeVector freeParams =
-        Acts::MultiTrajectoryHelpers::freeSmoothed(tGeometry->geometry().getGeoContext(), state);
+        Acts::MultiTrajectoryHelpers::freeSmoothed(m_tGeometry->geometry().getGeoContext(), state);
 
     const Acts::ActsDynamicMatrix measCovariance =
         state.effectiveCalibratedCovariance();
 
     /// Calculate the residual in global coordinates
-    Acts::Vector3 clusGlobal = tGeometry->getGlobalPosition(ckey, clus);
+    Acts::Vector3 clusGlobal = m_tGeometry->getGlobalPosition(ckey, clus);
     if (trkrId == TrkrDefs::tpcId)
     {
-      makeTpcGlobalCorrections(ckey, crossing, clusGlobal, topNode);
+      makeTpcGlobalCorrections(ckey, crossing, clusGlobal);
     }
 
     /// convert to acts units
     clusGlobal *= Acts::UnitConstants::cm;
 
-    const Acts::FreeVector globalStateParams = Acts::detail::transformBoundToFreeParameters(surface, tGeometry->geometry().getGeoContext(), state.smoothed());
+    const Acts::FreeVector globalStateParams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), state.smoothed());
     Acts::Vector3 stateGlobal = globalStateParams.segment<3>(Acts::eFreePos0);
     Acts::Vector3 residual = clusGlobal - stateGlobal;
 
@@ -133,9 +127,9 @@ auto tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
 
     // Get the derivative of bound parameters w.r.t. alignment parameters
     Acts::AlignmentToBoundMatrix d =
-        surface.alignmentToBoundDerivative(tGeometry->geometry().getGeoContext(), freeParams, pathDerivative);
+        surface.alignmentToBoundDerivative(m_tGeometry->geometry().getGeoContext(), freeParams, pathDerivative);
     // Get the derivative of bound parameters wrt track parameters
-    Acts::FreeToBoundMatrix j = surface.freeToBoundJacobian(tGeometry->geometry().getGeoContext(), freeParams);
+    Acts::FreeToBoundMatrix j = surface.freeToBoundJacobian(m_tGeometry->geometry().getGeoContext(), freeParams);
 
     // derivative of residual wrt track parameters
     auto dLocResTrack = -H * j;
@@ -190,7 +184,7 @@ auto tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
     {
       std::cout << "derivative of residual wrt alignment parameters glob " << std::endl
                 << dGlobResAlignment << std::endl;
-      std::cout << "derivative of residual wrt trakc parameters glob " << std::endl
+      std::cout << "derivative of residual wrt track parameters glob " << std::endl
                 << dGlobResTrack << std::endl;
     }
 
@@ -199,13 +193,12 @@ auto tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
     svtxstate->set_residual(residual);
     svtxstate->set_local_derivative_matrix(dGlobResTrack);
     svtxstate->set_global_derivative_matrix(dGlobResAlignment);
-
+    svtxstate->set_cluster_key(ckey);
     
     if(m_analytic)
       {
-	auto surf = tGeometry->maps().getSurface(ckey, clus);
-	auto anglederivs = getDerivativesAlignmentAngles(topNode, 
-							 clusGlobal, ckey, 
+	auto surf = m_tGeometry->maps().getSurface(ckey, clus);
+	auto anglederivs = getDerivativesAlignmentAngles(clusGlobal, ckey, 
 							 clus, surf, 
 							 crossing);
         SvtxAlignmentState::GlobalMatrix analytic = SvtxAlignmentState::GlobalMatrix::Zero();
@@ -224,57 +217,56 @@ auto tGeometry = findNode::getClass<ActsGeometry>(topNode,"ActsGeometry");
 	svtxstate->set_global_derivative_matrix(analytic);
       }
 
-    statemap.insert(std::make_pair(ckey, svtxstate.get()));
+    statevec.push_back(svtxstate.release());
 
     return true;
     });
 
+  if(m_verbosity > 2)
+    {
+      std::cout << "Inserting track " << track->get_id() << " with nstates "
+		<< statevec.size() << std::endl;
+    }
+
+  m_alignmentStateMap->insertWithKey(track->get_id(),statevec);
 
   return;
 }
 
 
-void ActsAlignmentStates::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global, PHCompositeNode *topNode)
+void ActsAlignmentStates::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global)
 {
  
-   // tpc distortion corrections
-  auto dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
-  
-  auto dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
-
-  auto dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerFluctuation");
-
   // make all corrections to global position of TPC cluster
   unsigned int side = TpcDefs::getSide(cluster_key);
   float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
   global[2] = z;
   
   // apply distortion corrections
-  if (dcc_static)
+  if (m_dcc_static)
   {
-    global = m_distortionCorrection.get_corrected_position(global, dcc_static);
+    global = m_distortionCorrection.get_corrected_position(global, m_dcc_static);
   }
-  if (dcc_average)
+  if (m_dcc_average)
   {
-    global = m_distortionCorrection.get_corrected_position(global, dcc_average);
+    global = m_distortionCorrection.get_corrected_position(global, m_dcc_average);
   }
-  if (dcc_fluctuation)
+  if (m_dcc_fluctuation)
   {
-    global = m_distortionCorrection.get_corrected_position(global, dcc_fluctuation);
+    global = m_distortionCorrection.get_corrected_position(global, m_dcc_fluctuation);
   }
 }
 
 
-std::vector<Acts::Vector3> ActsAlignmentStates::getDerivativesAlignmentAngles(PHCompositeNode *topNode, Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing)
+std::vector<Acts::Vector3> ActsAlignmentStates::getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing)
 {
   // The value of global is from the geocontext transformation
   // we add to that transformation a small rotation around the relevant axis in the surface frame
-  auto tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  
+
   std::vector<Acts::Vector3> derivs_vector;
 
   // get the transformation from the geocontext
-  Acts::Transform3 transform = surface->transform(tGeometry->geometry().getGeoContext());
+  Acts::Transform3 transform = surface->transform(m_tGeometry->geometry().getGeoContext());
 
   // Make an additional transform that applies a small rotation angle in the surface frame
   for (unsigned int iangle = 0; iangle < 3; ++iangle)
@@ -310,7 +302,7 @@ std::vector<Acts::Vector3> ActsAlignmentStates::getDerivativesAlignmentAngles(PH
       auto y = cluster->getLocalY() * 10;
       if (trkrId == TrkrDefs::tpcId)
       {
-        y = convertTimeToZ(tGeometry, cluster_key, cluster);
+        y = convertTimeToZ(cluster_key, cluster);
       }
 
       Eigen::Vector3d clusterLocalPosition(x, y, 0);                                      // follows the convention for the acts transform of local = (x,z,y)
@@ -319,7 +311,7 @@ std::vector<Acts::Vector3> ActsAlignmentStates::getDerivativesAlignmentAngles(PH
       // have to add corrections for TPC clusters after transformation to global
       if (trkrId == TrkrDefs::tpcId)
       {
-        makeTpcGlobalCorrections(cluster_key, crossing, global, topNode);
+        makeTpcGlobalCorrections(cluster_key, crossing, global);
       }
 
       if (ip == 0)
@@ -382,10 +374,10 @@ Acts::Transform3 ActsAlignmentStates::makePerturbationTransformation(Acts::Vecto
 
   return perturbationTransformation;
 }
-float ActsAlignmentStates::convertTimeToZ(ActsGeometry* tGeometry, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster)
+float ActsAlignmentStates::convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster* cluster)
 {
   // must convert local Y from cluster average time of arival to local cluster z position
-  double drift_velocity = tGeometry->get_drift_velocity();
+  double drift_velocity = m_tGeometry->get_drift_velocity();
   double zdriftlength = cluster->getLocalY() * drift_velocity;
   double surfCenterZ = 52.89;                // 52.89 is where G4 thinks the surface center is
   double zloc = surfCenterZ - zdriftlength;  // converts z drift length to local z position in the TPC in north

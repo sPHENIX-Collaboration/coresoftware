@@ -10,8 +10,6 @@ class SvtxAlignmentStateMap_v1 : public SvtxAlignmentStateMap
 {
  public:
   SvtxAlignmentStateMap_v1();
-  SvtxAlignmentStateMap_v1(const SvtxAlignmentStateMap_v1& map);
-  SvtxAlignmentStateMap_v1& operator=(const SvtxAlignmentStateMap_v1& map);
   ~SvtxAlignmentStateMap_v1() override;
 
   void identify(std::ostream& os = std::cout) const override;
@@ -21,24 +19,21 @@ class SvtxAlignmentStateMap_v1 : public SvtxAlignmentStateMap
   
   bool empty() const override { return m_map.empty(); }
   std::size_t size() const override { return m_map.size(); }
-  std::size_t count(TrkrDefs::cluskey ckey) const override { return m_map.count(ckey); }
+  std::size_t count(unsigned int track) const override { return m_map.count(track); }
   void clear() override { Reset(); }
 
-  const SvtxAlignmentState* get(TrkrDefs::cluskey ckey) const override;
-  SvtxAlignmentState* get(TrkrDefs::cluskey ckey) override;
-  SvtxAlignmentState* insertWithKey(TrkrDefs::cluskey ckey, SvtxAlignmentState* state) override;
-  virtual std::size_t erase(TrkrDefs::cluskey ckey) override
-  {
-    delete m_map[ckey];
-    return m_map.erase(ckey);
-  }
+  const StateVec get(unsigned int track) const override;
+  StateVec get(unsigned int track) override;
+  StateVec insertWithKey(unsigned int track, StateVec states) override;
+  std::size_t erase(unsigned int track) override;
+
 
   ConstIter begin() const override { return m_map.begin(); }
-  ConstIter find(TrkrDefs::cluskey ckey) const override { return m_map.find(ckey); }
+  ConstIter find(unsigned int track) const override { return m_map.find(track); }
   ConstIter end() const override { return m_map.end(); }
 
   Iter begin() override { return m_map.begin(); }
-  Iter find(TrkrDefs::cluskey ckey) override { return m_map.find(ckey); }
+  Iter find(unsigned int track) override { return m_map.find(track); }
   Iter end() override { return m_map.end(); }
 
  private:
