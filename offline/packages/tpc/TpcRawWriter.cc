@@ -252,15 +252,15 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
 	 hitr != hitrangei.second;
 	 ++hitr){
-      int sector = InttDefs::getLadderPhiId(hitsetitr->first);
-      int side = InttDefs::getLadderZId(hitsetitr->first);
-      int layer  = TrkrDefs::getLayer(hitsetitr->first);
+      //int sector = InttDefs::getLadderPhiId(hitsetitr->first);
+      //int side = InttDefs::getLadderZId(hitsetitr->first);
+      //int layer  = TrkrDefs::getLayer(hitsetitr->first);
       unsigned short adc = (unsigned short)(hitr->second->getAdc());
       if(adc>0){
 	RawHitv1  *rHit = new RawHitv1;
 	unsigned short iphi =  InttDefs::getCol(hitr->first);
 	unsigned short it = InttDefs::getRow(hitr->first);
-	std::cout << " layer " << layer << " sector: " << sector << " side " << side << " col: " << iphi << " row " << it << std::endl;
+	//std::cout << " layer " << layer << " sector: " << sector << " side " << side << " col: " << iphi << " row " << it << std::endl;
 	rHit->setPhiBin(iphi);
 	rHit->setTBin(it);
 	rHit->setAdc(adc);
@@ -349,7 +349,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
     rhitset->setTpcPhiBins(NPhiBins);
 
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-    /* int zbinmax = 498;
+    int zbinmax = 498;
     int zbinmin = 0;
     if(layer>=7 && layer <22){
       int etacut = 249 - ((50+(layer-7))/105.5)*249;
@@ -361,7 +361,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
       zbinmin = etacut;
       zbinmax -= etacut;
     }
-    */
+    
       // std::cout << " layer: " << layer << " zbin limit " << zbinmin << " | " << zbinmax <<std::endl;
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
 	 hitr != hitrangei.second;
@@ -375,7 +375,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
       }
       unsigned short phibin = TpcDefs::getPad(hitr->first) - PhiOffset;
       unsigned short zbin = TpcDefs::getTBin(hitr->first) - ZOffset;
-      // unsigned short zbinorg = TpcDefs::getTBin(hitr->first);
+      unsigned short zbinorg = TpcDefs::getTBin(hitr->first);
       if(phibin>=NPhiBinsSector){
 	//std::cout << "WARNING phibin out of range: " << phibin << " | " << phibins << std::endl;
 	continue;
@@ -384,8 +384,8 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
 	//std::cout << "WARNING z bin out of range: " << zbin << " | " << zbins << std::endl;
 	continue;
       }
-      //      if(zbinorg>zbinmax||zbinorg<zbinmin)
-      //	continue;
+      if(zbinorg>zbinmax||zbinorg<zbinmin)
+      	continue;
       float_t fadc = (hitr->second->getAdc()) - pedestal; // proper int rounding +0.5
       unsigned short adc = 0;
       if(fadc>0) adc =  (unsigned short) fadc;

@@ -443,9 +443,8 @@ namespace
       hitkeyvec.clear();
     }
   
-  void *ProcessSector(void *threadarg) {
+  void ProcessSectorData(thread_data* my_data) {
 
-    auto my_data = static_cast<thread_data*>(threadarg);
     const auto& pedestal  = my_data->pedestal;
     const auto& phibins   = my_data->phibins;
     const auto& phioffset = my_data->phioffset;
@@ -612,7 +611,7 @@ namespace
       remove_hits(ihit_list,all_hit_map, adcval);
       ihit_list.clear();
     }
-    if( my_data->rawhitset!=nullptr){
+    /*    if( my_data->rawhitset!=nullptr){
       RawHitSetv1 *hitset = my_data->rawhitset;
       std::cout << "Layer: " << my_data->layer 
 		<< " Side: " << my_data->side
@@ -622,6 +621,13 @@ namespace
 		<< " nclus: " << my_data->cluster_vector.size()
 		<< std::endl;
     }
+    */
+    // pthread_exit(nullptr);
+  }
+  void *ProcessSector(void *threadarg) {
+
+    auto my_data = static_cast<thread_data*>(threadarg);
+    ProcessSectorData(my_data);
     pthread_exit(nullptr);
   }
 }
@@ -1019,7 +1025,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	    auto cluster = data.cluster_vector[index];
 	    
 	    // insert in map
-	    std::cout << "X: " << cluster->getLocalX() << "Y: " << cluster->getLocalY() << std::endl;
+	    //std::cout << "X: " << cluster->getLocalX() << "Y: " << cluster->getLocalY() << std::endl;
 	    m_clusterlist->addClusterSpecifyKey(ckey, cluster);
 	  }
 	
