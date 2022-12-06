@@ -9,6 +9,8 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
+#include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
@@ -16,8 +18,6 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
-#include <phhepmc/PHHepMCGenEvent.h>
-#include <phhepmc/PHHepMCGenEventMap.h>
 
 #include <CLHEP/Vector/LorentzVector.h>
 #include <CLHEP/Vector/ThreeVector.h>
@@ -25,7 +25,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenVertex.h>             // for GenVertex::particle_iterator
+#include <HepMC/GenVertex.h>  // for GenVertex::particle_iterator
 #pragma GCC diagnostic pop
 
 #include <HepMC/GenParticle.h>
@@ -87,7 +87,6 @@ class HFTrackEfficiency : public SubsysReco
   PHG4TruthInfoContainer *m_truthInfo = nullptr;
   PHHepMCGenEventMap *m_geneventmap = nullptr;
   PHHepMCGenEvent *m_genevt = nullptr;
-  PHG4Particle *m_g4particle = nullptr;
 
   DecayFinderContainer_v1 *m_decayMap = nullptr;
   std::string m_df_module_name;
@@ -127,8 +126,8 @@ class HFTrackEfficiency : public SubsysReco
   float m_true_mother_eta = 0.;
   float m_min_true_track_pT = FLT_MAX;
   float m_min_reco_track_pT = FLT_MAX;
-  float m_max_true_track_pT = -1.*FLT_MAX;
-  float m_max_reco_track_pT = -1.*FLT_MAX;
+  float m_max_true_track_pT = -1. * FLT_MAX;
+  float m_max_reco_track_pT = -1. * FLT_MAX;
   bool m_reco_track_exists[m_maxTracks] = {false};
   float m_true_track_pT[m_maxTracks] = {0.};
   float m_reco_track_pT[m_maxTracks] = {0.};

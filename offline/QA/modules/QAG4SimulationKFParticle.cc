@@ -4,7 +4,6 @@
 
 #include <kfparticle_sphenix/KFParticle_Container.h>
 #include <kfparticle_sphenix/KFParticle_Tools.h>
-#include <kfparticle_sphenix/KFParticle_particleList.h>
 
 #include <g4eval/SvtxClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>  // for SvtxEvalStack
@@ -51,14 +50,14 @@
 #include <utility>  // for pair
 #include <vector>
 
+KFParticle_Tools kfpTools;
+
 QAG4SimulationKFParticle::QAG4SimulationKFParticle(const std::string &name, const std::string &mother_name, double min_m, double max_m)
   : SubsysReco(name)
 {
-  KFParticle_particleList kfp_particleList_evtReco;
-  particleMasses = kfp_particleList_evtReco.getParticleList();
   m_min_mass = min_m;
   m_max_mass = max_m;
-  m_mother_id = particleMasses.find(mother_name)->second.first;
+  m_mother_id = kfpTools.getParticleID(mother_name);
   m_mother_name = mother_name;
 }
 
@@ -224,7 +223,6 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
 
   // std::map<unsigned int, KFParticle*> Map = m_kfpContainer->returnParticlesByPDGid(m_mother_id);
   std::vector<int> d_id;
-  KFParticle_Tools kfpTools;
   std::vector<KFParticle> vertex_vec = kfpTools.makeAllPrimaryVertices(topNode, "SvtxVertexMap");
 
   for (KFParticle_Container::Iter iter = m_kfpContainer->begin(); iter != m_kfpContainer->end(); ++iter)
@@ -379,17 +377,8 @@ CLHEP::HepLorentzVector *QAG4SimulationKFParticle::makeHepLV(PHCompositeNode *to
       {
         if (abs((*mother)->pdg_id()) == m_mother_id)
         {
-          double mass = 0;
-          for (auto it = particleMasses.begin(); it != particleMasses.end(); ++it)
-          {
-            if (it->second.first == abs((*p)->pdg_id()))
-            {
-              mass = it->second.second;
-            }
-          }
           lvParticle = new CLHEP::HepLorentzVector();
-          lvParticle->setVectM(CLHEP::Hep3Vector(track->get_px(), track->get_py(), track->get_pz()), mass);
-          // lvParticle->setVectM(CLHEP::Hep3Vector(g4particle->get_px(), g4particle->get_py(), g4particle->get_pz()), mass);
+          lvParticle->setVectM(CLHEP::Hep3Vector(track->get_px(), track->get_py(), track->get_pz()), kfpTools.getParticleMass((*p)->pdg_id()));
         }
         else
           continue;

@@ -93,11 +93,11 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool isInRange(float min, float value, float max);
 
-  bool findParticle(std::string particle);
+  bool findParticle(const std::string &particle);
 
-  int getParticleID(std::string particle);
+  int getParticleID(const std::string &particle);
 
-  float getParticleMass(std::string particle);
+  float getParticleMass(const std::string &particle);
   float getParticleMass(const int PDGID);
 
   void identify(KFParticle particle);

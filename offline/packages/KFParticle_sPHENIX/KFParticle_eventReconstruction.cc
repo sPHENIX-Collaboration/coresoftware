@@ -333,11 +333,11 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
             intParticle.Create(daughterTracks[i].Parameters(),
                                daughterTracks[i].CovarianceMatrix(),
                                (Int_t) daughterTracks[i].GetQ(),
-                               kfp_Tools_evtReco.getParticleMass(names[i].c_str()));
+                               kfp_Tools_evtReco.getParticleMass(names[i]));
             intParticle.NDF() = daughterTracks[i].GetNDF();
             intParticle.Chi2() = daughterTracks[i].GetChi2();
             intParticle.SetId(daughterTracks[i].Id());
-            intParticle.SetPDG(daughterTracks[i].GetQ() * kfp_Tools_evtReco.getParticleID(names[i].c_str()));
+            intParticle.SetPDG(daughterTracks[i].GetQ() * kfp_Tools_evtReco.getParticleID(names[i]));
             goodDaughters[i].push_back(intParticle);
           }
         }

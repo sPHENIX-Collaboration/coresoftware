@@ -496,7 +496,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
   }
 
   if (isIntermediate) mother.SetPDG(getParticleID(m_intermediate_name[intermediateNumber].c_str()));
-  if (!isIntermediate && !m_mother_name_Tools.empty()) mother.SetPDG(getParticleID(m_mother_name_Tools.c_str()));
+  if (!isIntermediate && !m_mother_name_Tools.empty()) mother.SetPDG(getParticleID(m_mother_name_Tools));
 
   bool chargeCheck;
   if (m_get_charge_conjugate)
@@ -692,7 +692,7 @@ void KFParticle_Tools::removeDuplicates(std::vector<std::vector<std::string>> &v
   v.erase(end, v.end());
 }
 
-bool KFParticle_Tools::findParticle(std::string particle)
+bool KFParticle_Tools::findParticle(const std::string &particle)
 {
   bool particleFound = true;
   if (!TDatabasePDG::Instance()->GetParticle(particle.c_str()))
@@ -705,12 +705,12 @@ bool KFParticle_Tools::findParticle(std::string particle)
   return particleFound;
 }
 
-int KFParticle_Tools::getParticleID(std::string particle)
+int KFParticle_Tools::getParticleID(const std::string &particle)
 {
   return TDatabasePDG::Instance()->GetParticle(particle.c_str())->PdgCode();
 }
 
-float KFParticle_Tools::getParticleMass(std::string particle)
+float KFParticle_Tools::getParticleMass(const std::string &particle)
 {
   return TDatabasePDG::Instance()->GetParticle(particle.c_str())->Mass();
 }
