@@ -1,29 +1,29 @@
 #include "ActsAlignmentStates.h"
 
 #include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
 
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/ActsSourceLink.h>
+#include <trackbase/TpcDefs.h>
+#include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/ActsSourceLink.h>
-#include <trackbase/ActsGeometry.h>
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TpcDefs.h>
 
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxAlignmentStateMap.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
+#include <trackbase_historic/SvtxAlignmentStateMap.h>
 #include <trackbase_historic/SvtxAlignmentState_v1.h>
+#include <trackbase_historic/SvtxTrack.h>
 
-#include <Acts/Surfaces/Surface.hpp>
 #include <Acts/Definitions/Units.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
+#include <Acts/Surfaces/Surface.hpp>
 
 namespace
 {
@@ -32,10 +32,10 @@ namespace
   {
     return x * x;
   }
-} 
+}  // namespace
 
 void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
-						SvtxTrack* track)
+                                                SvtxTrack* track)
 {
   const auto mj = traj.multiTrajectory();
   const auto& tips = traj.tips();
@@ -43,7 +43,8 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
   const auto crossing = track->get_silicon_seed()->get_crossing();
   SvtxAlignmentStateMap::StateVec statevec;
 
-  mj.visitBackwards(trackTip, [&](const auto& state) {
+  mj.visitBackwards(trackTip, [&](const auto& state)
+                    {
     /// Collect only track states which were used in smoothing of KF and are measurements
     if (not state.hasSmoothed() or
         not state.typeFlags().test(Acts::TrackStateFlag::MeasurementFlag))
@@ -219,29 +220,26 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
 
     statevec.push_back(svtxstate.release());
 
-    return true;
-    });
+    return true; });
 
-  if(m_verbosity > 2)
-    {
-      std::cout << "Inserting track " << track->get_id() << " with nstates "
-		<< statevec.size() << std::endl;
-    }
+  if (m_verbosity > 2)
+  {
+    std::cout << "Inserting track " << track->get_id() << " with nstates "
+              << statevec.size() << std::endl;
+  }
 
-  m_alignmentStateMap->insertWithKey(track->get_id(),statevec);
+  m_alignmentStateMap->insertWithKey(track->get_id(), statevec);
 
   return;
 }
 
-
 void ActsAlignmentStates::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global)
 {
- 
   // make all corrections to global position of TPC cluster
   unsigned int side = TpcDefs::getSide(cluster_key);
   float z = m_clusterCrossingCorrection.correctZ(global[2], side, crossing);
   global[2] = z;
-  
+
   // apply distortion corrections
   if (m_dcc_static)
   {
@@ -256,7 +254,6 @@ void ActsAlignmentStates::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key
     global = m_distortionCorrection.get_corrected_position(global, m_dcc_fluctuation);
   }
 }
-
 
 std::vector<Acts::Vector3> ActsAlignmentStates::getDerivativesAlignmentAngles(Acts::Vector3& global, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster, Surface surface, int crossing)
 {

@@ -5,7 +5,6 @@ namespace
   SvtxAlignmentStateMap::StateMap map;
 }
 
-
 SvtxAlignmentStateMap::ConstIter SvtxAlignmentStateMap::begin() const
 {
   return map.end();

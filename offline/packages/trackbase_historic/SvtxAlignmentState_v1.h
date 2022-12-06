@@ -14,16 +14,16 @@ class SvtxAlignmentState_v1 : public SvtxAlignmentState
   SvtxAlignmentState_v1();
   ~SvtxAlignmentState_v1() override {}
 
-  void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream& os = std::cout) const override;
   void Reset() override { *this = SvtxAlignmentState_v1(); }
   int isValid() const override { return 1; }
-  PHObject *CloneMe() const override { return new SvtxAlignmentState_v1(*this); }
+  PHObject* CloneMe() const override { return new SvtxAlignmentState_v1(*this); }
 
-  void set_residual(const ResidualVector& res) override 
+  void set_residual(const ResidualVector& res) override
   {
     m_residual = res;
   }
-  void set_local_derivative_matrix(const LocalMatrix& d) override 
+  void set_local_derivative_matrix(const LocalMatrix& d) override
   {
     m_localDeriv = d;
   }
@@ -35,15 +35,13 @@ class SvtxAlignmentState_v1 : public SvtxAlignmentState
   {
     m_cluskey = key;
   }
- 
-  
+
   const ResidualVector& get_residual() const override { return m_residual; }
   const LocalMatrix& get_local_derivative_matrix() const override { return m_localDeriv; }
   const GlobalMatrix& get_global_derivative_matrix() const override { return m_globalDeriv; }
   TrkrDefs::cluskey get_cluster_key() const override { return m_cluskey; }
 
  private:
-
   ResidualVector m_residual;
   LocalMatrix m_localDeriv;
   GlobalMatrix m_globalDeriv;

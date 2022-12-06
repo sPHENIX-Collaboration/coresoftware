@@ -89,7 +89,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_alignStates.actsGeometry(m_tGeometry);
   m_alignStates.clusters(m_clusterContainer);
   m_alignStates.stateMap(m_alignmentStateMap);
-  m_alignStates.verbosity(Verbosity()+10);
+  m_alignStates.verbosity(Verbosity());
 
   m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
     m_tGeometry->geometry().tGeometry,
