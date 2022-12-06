@@ -20,7 +20,7 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
 {
  public:
   /// constructor
-  PHG4TpcCentralMembrane(const std::string& name = "PHG4TpcDirectLaser");
+  PHG4TpcCentralMembrane(const std::string& name = "PHG4TpcCentralMembrane");
 
   /// destructor
   ~PHG4TpcCentralMembrane() override;
@@ -38,6 +38,7 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
   void Detector(const std::string& d)
   {
     detector = d;
+    hitnodename = "G4HIT_" + d;
   }
 
   /// check if coords are in a stripe
@@ -53,7 +54,7 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
   std::string detector = "TPC";
 
   /// g4hitnode name
-  std::string hitnodename;
+  std::string hitnodename = "G4HIT_TPC";
   std::vector<PHG4Hit*> PHG4Hits;
 
   static constexpr double mm = 1.0;

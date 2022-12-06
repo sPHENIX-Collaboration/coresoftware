@@ -2,6 +2,7 @@
 #include "alignmentTransformationContainer.h"
 #include "sPHENIXActsDetectorElement.h"
 
+#include <phool/phool.h>
 
 sPHENIXActsDetectorElement::~sPHENIXActsDetectorElement() = default;
 
@@ -32,10 +33,10 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
 	}
       
       // if we are still here, it was not found
-      std::cout << " Alignment transform not found, for identifier " << id << " use construction transform " << std::endl;
-      const Acts::Transform3& transform = TGeoDetectorElement::transform(ctxt);  // ctxt is unused here
-      //std::cout << "           construction transform: " << std::endl << transform.matrix() << std::endl;      
-      return transform;
+      std::cout << PHWHERE << " Alignment transform not found, for identifier " << id << " continuing on with ideal geometry is not ideal so we exit" << std::endl;
+   
+      exit(1);
+   
     }
  else
     {

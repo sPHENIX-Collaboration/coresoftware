@@ -452,7 +452,7 @@ int MakeMilleFiles::getLabelBase(Acts::GeometryIdentifier id)
 	  // The following gives the sectors in the inner, mid, outer regions unique group labels
 	  int region = getTpcRegion(layer);  // inner, mid, outer
 	  label_base += 7*1000000 + (region * 24 + side*12 + sector) *10000; 
-	  std::cout << " layer " << layer << " sensor " << sensor << " region " << region << " side " << side << " sector " << sector << " label_base " << label_base << std::endl;
+	  //std::cout << " layer " << layer << " sensor " << sensor << " region " << region << " side " << side << " sector " << sector << " label_base " << label_base << std::endl;
 	  return label_base;
 	}
       if(tpc_group == tpcGroup::tpc)
@@ -711,6 +711,7 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
     // The global alignment parameters are given initial values of zero by default, we do not specify them
     // We identify the global alignment parameters for this surface
     const auto cluster = _cluster_map->findCluster(ckey);
+    const auto layer = TrkrDefs::getLayer(ckey);
 
     const auto residual = astate.get_residual();
     const auto& global = astate.get_clusglob();
@@ -789,6 +790,9 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
       for (int j = 0; j < AlignmentState::NGL; ++j)
       {
         glbl_derivative[j] = astate.get_dResAlignmentPar()(i, j);
+
+	if(is_layer_fixed(layer) || is_layer_param_fixed(layer,j))
+	  {glbl_derivative[j] = 0.0;}
       }
 
       float lcl_derivative[AlignmentState::NLC];
@@ -823,3 +827,35 @@ void MakeMilleFiles::addTrackToMilleFile(AlignmentStateMap& alignStates, const T
  
   return;
 }
+
+ bool MakeMilleFiles::is_layer_fixed(unsigned int layer)
+ {
+  bool ret = false;
+  auto it = fixed_layers.find(layer);
+  if(it != fixed_layers.end()) 
+    ret = true;
+
+  return ret;
+ }
+
+ void MakeMilleFiles::set_layer_fixed(unsigned int layer)
+ {
+   fixed_layers.insert(layer);
+ }
+ 
+bool MakeMilleFiles::is_layer_param_fixed(unsigned int layer, unsigned int param)
+ {
+  bool ret = false;
+  std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
+  auto it = fixed_layer_params.find(pair);
+  if(it != fixed_layer_params.end()) 
+    ret = true;
+
+  return ret;
+ }
+
+void MakeMilleFiles::set_layer_param_fixed(unsigned int layer, unsigned int param)
+ {
+   std::pair<unsigned int, unsigned int> pair = std::make_pair(layer, param);
+   fixed_layer_params.insert(pair);
+ }
