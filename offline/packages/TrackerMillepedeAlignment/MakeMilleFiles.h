@@ -15,8 +15,8 @@
 #include <string>
 #include <vector>
 
-#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
@@ -77,7 +77,7 @@ class MakeMilleFiles : public SubsysReco
                                                            TrkrDefs::cluskey cluster_key,
                                                            TrkrCluster* cluster,
                                                            Surface surface, int crossing);
-  
+
   int getLabelBase(Acts::GeometryIdentifier id);
   int getTpcRegion(int layer);
 
@@ -100,17 +100,17 @@ class MakeMilleFiles : public SubsysReco
   tpcGroup tpc_group = tpcGroup::hitset;
   mmsGroup mms_group = mmsGroup::tile;
 
-  int nsensors_stave[7] = {9,9,9,4,4,4,4};
+  int nsensors_stave[7] = {9, 9, 9, 4, 4, 4, 4};
 
   std::set<unsigned int> fixed_layers;
-  std::set<std::pair<unsigned int,unsigned int>> fixed_layer_params;
+  std::set<std::pair<unsigned int, unsigned int>> fixed_layer_params;
 
   std::map<unsigned int, unsigned int> base_layer_map = {{10, 0}, {12, 3}, {14, 7}, {16, 55}};
 
   SvtxTrackMap* _track_map{nullptr};
   SvtxAlignmentStateMap* _state_map{nullptr};
   ActsGeometry* _tGeometry{nullptr};
-  TrkrClusterContainer *_cluster_map{nullptr};
+  TrkrClusterContainer* _cluster_map{nullptr};
   ClusterErrorPara _ClusErrPara;
 };
 
