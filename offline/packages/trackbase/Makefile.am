@@ -16,7 +16,7 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(ROOTSYS)/lib \
-  -L$(MYINSTALL)/lib64
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
