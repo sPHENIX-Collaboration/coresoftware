@@ -21,9 +21,6 @@
 
 #include "KFParticle_sPHENIX.h"
 
-#include "KFParticle_Tools.h"         // for KFParticle_Tools
-#include "KFParticle_particleList.h"  // for KFParticle_particleList
-
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
@@ -51,11 +48,6 @@ namespace TMVA
   class Reader;
 }
 
-typedef std::pair<int, float> particle_pair;
-
-KFParticle_Tools kfpTupleTools_Top;
-KFParticle_particleList kfp_list;
-std::map<std::string, particle_pair> particleList = kfp_list.getParticleList();
 int candidateCounter = 0;
 
 /// KFParticle constructor
@@ -95,14 +87,6 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
     std::vector<Float_t> MVA_parValues;
     tie(reader, MVA_parValues) = initMVA();
   }
-
-  for (int i = 0; i < m_num_tracks; ++i)
-    if (!particleList.count(m_daughter_name[i]))
-    {
-      std::cout << "Your track PID, " << m_daughter_name[i] << "is not in the particle list" << std::endl;
-      std::cout << "Check KFParticle_particleList.cxx for a list of available particles" << std::endl;
-      exit(0);
-    }
 
   int returnCode = 0;
   if (!m_decayDescriptor.empty()) returnCode = parseDecayDescriptor();
@@ -249,6 +233,9 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   std::string startIntermediate = "{";
   std::string endIntermediate = "}";
 
+  //These tracks require a + or - after their name for TDatabasePDG
+  std::string specialTracks[] = {"e", "mu", "pi", "K"};
+
   std::string manipulateDecayDescriptor = m_decayDescriptor;
 
   //Remove all white space before we begin
@@ -291,11 +278,15 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
     while ((daughterLocator = intermediateDecay.find(chargeIndicator)) != std::string::npos)
     {
       daughter = intermediateDecay.substr(0, daughterLocator);
+      std::string daughterChargeString = intermediateDecay.substr(daughterLocator + 1, 1);
+      if (std::find(std::begin(specialTracks), std::end(specialTracks), daughter) != std::end(specialTracks))
+      {
+        daughter += daughterChargeString;
+      }
       if (findParticle(daughter))
       {
         daughters_name.push_back(daughter.c_str());
 
-        std::string daughterChargeString = intermediateDecay.substr(daughterLocator + 1, 1);
         if (daughterChargeString == "+")
         {
           daughters_charge.push_back(+1);
@@ -328,10 +319,14 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
   while ((daughterLocator = manipulateDecayDescriptor.find(chargeIndicator)) != std::string::npos)
   {
     daughter = manipulateDecayDescriptor.substr(0, daughterLocator);
+    std::string daughterChargeString = manipulateDecayDescriptor.substr(daughterLocator + 1, 1);
+    if (std::find(std::begin(specialTracks), std::end(specialTracks), daughter) != std::end(specialTracks))
+    {
+      daughter += daughterChargeString;
+    }
     if (findParticle(daughter))
     {
       daughters_name.push_back(daughter.c_str());
-      std::string daughterChargeString = manipulateDecayDescriptor.substr(daughterLocator + 1, 1);
       if (daughterChargeString == "+")
       {
         daughters_charge.push_back(+1);
@@ -402,20 +397,4 @@ int KFParticle_sPHENIX::parseDecayDescriptor()
                                                  << "\nExiting!" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-}
-
-bool KFParticle_sPHENIX::findParticle(const std::string &particle)
-{
-  bool particleFound = true;
-  if (!particleList.count(particle))
-  {
-    if (Verbosity() >= VERBOSITY_SOME)
-    {
-      std::cout << "The particle, " << particle << " is not recognized" << std::endl;
-      std::cout << "Check KFParticle_particleList.cc for a list of available particles" << std::endl;
-    }
-    particleFound = false;
-  }
-
-  return particleFound;
 }

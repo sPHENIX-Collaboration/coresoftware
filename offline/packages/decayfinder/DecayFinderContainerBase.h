@@ -18,7 +18,9 @@
 class DecayFinderContainerBase : public PHObject
 {
  public:
-  typedef std::vector<std::pair<int, int>> Decay;
+  //Each decay is stored as an initial pair of embedding ID and barcode.
+  //This pair matches with another int, the PDGID
+  typedef std::vector<std::pair<std::pair<int, int>, int>> Decay;
   typedef std::map<unsigned int, Decay> Map;
   typedef std::map<unsigned int, Decay>::const_iterator ConstIter;
   typedef std::map<unsigned int, Decay>::iterator Iter;
