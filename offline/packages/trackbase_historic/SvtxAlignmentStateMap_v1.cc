@@ -22,6 +22,7 @@ void SvtxAlignmentStateMap_v1::Reset()
     {
       delete state;
     }
+    statevec.clear();
   }
 
   m_map.clear();

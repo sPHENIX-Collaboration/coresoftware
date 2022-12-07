@@ -1109,7 +1109,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
   if(!m_alignmentStateMap)
     {
       m_alignmentStateMap = new SvtxAlignmentStateMap_v1;
-      auto node = new PHDataNode<SvtxAlignmentStateMap>(m_alignmentStateMap,"SvtxAlignmentStateMap");
+      auto node = new PHDataNode<SvtxAlignmentStateMap>(m_alignmentStateMap,"SvtxAlignmentStateMap","PHObject");
       svtxNode->addNode(node);
     }
 
