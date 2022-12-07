@@ -19,7 +19,11 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
+#pragma GCC diagnostic pop
+
 #include <HepMC/Units.h>            // for GEV, MM
 #include <HepMC/WeightContainer.h>  // for WeightContainer
 

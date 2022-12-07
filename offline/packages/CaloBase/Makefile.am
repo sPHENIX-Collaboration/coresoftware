@@ -17,7 +17,7 @@ libcalo_io_la_LIBADD = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
   RawClusterUtility.h \

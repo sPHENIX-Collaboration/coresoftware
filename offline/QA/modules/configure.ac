@@ -10,7 +10,7 @@ LT_INIT([disable-static])
 CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wno-macro-redefined -Wno-deprecated-copy"
+  CXXFLAGS="$CXXFLAGS -Wno-macro-redefined -Wno-deprecated-copy -Wno-bitwise-instead-of-logical -Wno-unknown-warning-option"
  ;;
 esac
 

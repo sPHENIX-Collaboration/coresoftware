@@ -13,7 +13,7 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I${G4_MAIN}/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -21,8 +21,6 @@ AM_LDFLAGS = \
   -L$(MYINSTALL)/lib64
 
 pkginclude_HEADERS = \
-  ../PHTpcTracker/PHTpcTrackerUtil.h \
-  ../PHTpcTracker/externals/kdfinder.hpp \
   ActsEvaluator.h \
   ALICEKF.h \
   AssocInfoContainer.h \
@@ -65,7 +63,7 @@ pkginclude_HEADERS = \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
   SvtxTrackStateRemoval.h \
-  VertexFitter.h
+  TrackingIterationCounter.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -114,7 +112,6 @@ ACTS_LIBS = \
 
 libtrack_reco_la_SOURCES = \
   $(ACTS_SOURCES) \
-  ../PHTpcTracker/PHTpcTrackerUtil.cc \
   ALICEKF.cc \
   PH3DVertexing.cc \
   PHCASeeding.cc \
@@ -142,7 +139,8 @@ libtrack_reco_la_SOURCES = \
   PHTruthTrackSeeding.cc \
   PHTruthVertexing.cc \
   PHTruthSiliconAssociation.cc \
-  SvtxTrackStateRemoval.cc
+  SvtxTrackStateRemoval.cc \
+  TrackingIterationCounter.cc
 
 libtrack_reco_io_la_LIBADD = \
   -lphool
@@ -166,10 +164,10 @@ libtrack_reco_la_LIBADD = \
   -lmicromegas_io \
   -lmvtx_io \
   -lintt_io \
+  -ltrack_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter \
-  -llog4cpp
+  -lphparameter
 
 
 # Rule for generating table CINT dictionaries.

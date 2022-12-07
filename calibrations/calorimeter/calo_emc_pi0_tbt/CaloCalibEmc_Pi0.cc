@@ -41,7 +41,7 @@
 //____________________________________________________________________________..
 CaloCalibEmc_Pi0::CaloCalibEmc_Pi0(const std::string &name, const std::string &filename)
   : SubsysReco(name)
-  , _filename(filename)
+  , m_Filename(filename)
 {
   for (int nj = 0; nj < 96; nj++)
   {
@@ -58,9 +58,9 @@ int CaloCalibEmc_Pi0::InitRun(PHCompositeNode *topNode)
 {
   std::cout << "LiteCaloEval::Init(PHCompositeNode *topNode) Initializing" << std::endl;
 
-  _ievent = 0;
+  m_ievent = 0;
 
-  cal_output = new TFile(_filename.c_str(), "RECREATE");
+  cal_output = new TFile(m_Filename.c_str(), "RECREATE");
 
   pairInvMassTotal = new TH1F("pairInvMassTotal", "Pair Mass Histo", 70, 0.0, 0.7);
   mass_eta = new TH2F("mass_eta", "2d Pair Mass Histo", 70, 0.0, 0.7, 400, -1.5, 1.5);
@@ -114,14 +114,14 @@ int CaloCalibEmc_Pi0::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 {
-  if (_ievent % 50 == 0)
+  if (m_ievent % 50 == 0)
   {
     std::cout << std::endl;
-    std::cout << "Beginning of the event " << _ievent << std::endl;
+    std::cout << "Beginning of the event " << m_ievent << std::endl;
     std::cout << "====================================" << std::endl;
   }
 
-  _eventNumber = _ievent++;
+  _eventNumber = m_ievent++;
 
   // create a cluster object
   RawClusterContainer *recal_clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_POS_COR_CEMC");
@@ -295,7 +295,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
   }
   _eventTree->Fill();
 
-  //    _ievent++;
+  //    m_ievent++;
 
   // pause few seconds
   //	std::chrono::seconds dura(2);
@@ -306,7 +306,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int CaloCalibEmc_Pi0::End(PHCompositeNode *topNode)
+int CaloCalibEmc_Pi0::End(PHCompositeNode * /*topNode*/)
 {
   cal_output->cd();
   //	_eventTree->Write();
@@ -318,33 +318,33 @@ int CaloCalibEmc_Pi0::End(PHCompositeNode *topNode)
 }
 
 //______________________________________________________________________________..
-void CaloCalibEmc_Pi0::Loop(TString _filename, int nevts)
+void CaloCalibEmc_Pi0::Loop(TString filename, int nevts)
 {
-  TFile *f = new TFile(_filename);
+  TFile *f = new TFile(filename);
 
   TTree *t1 = (TTree *) f->Get("_eventTree");
 
   // Declaration of leaf types
-  Int_t _eventNumber;
-  Int_t _nClusters;
-  Int_t _clusterIDs[10000];         //[_nClusters]
-  Float_t _clusterEnergies[10000];  //[_nClusters]
-  Float_t _clusterPts[10000];
-  Int_t _clusterEtas[10000];  //[_nClusters]
-  Int_t _clusterPhis[10000];  //[_nClusters]
-  Int_t _maxTowerEtas[10000];
-  Int_t _maxTowerPhis[10000];
+  Int_t eventNumber;
+  Int_t nClusters;
+  Int_t clusterIDs[10000];         //[_nClusters]
+  Float_t clusterEnergies[10000];  //[_nClusters]
+  Float_t clusterPts[10000];
+  Int_t clusterEtas[10000];  //[_nClusters]
+  Int_t clusterPhis[10000];  //[_nClusters]
+  Int_t maxTowerEtas[10000];
+  Int_t maxTowerPhis[10000];
 
   // Set Branches
-  t1->SetBranchAddress("_eventNumber", &_eventNumber);
-  t1->SetBranchAddress("_nClusters", &_nClusters);
-  t1->SetBranchAddress("_clusterIDs", _clusterIDs);
-  t1->SetBranchAddress("_clusterEnergies", _clusterEnergies);
-  t1->SetBranchAddress("_clusterPts", _clusterPts);
-  t1->SetBranchAddress("_clusterEtas", _clusterEtas);
-  t1->SetBranchAddress("_clusterPhis", _clusterPhis);
-  t1->SetBranchAddress("_maxTowerEtas", _maxTowerEtas);
-  t1->SetBranchAddress("_maxTowerPhis", _maxTowerPhis);
+  t1->SetBranchAddress("_eventNumber", &eventNumber);
+  t1->SetBranchAddress("_nClusters", &nClusters);
+  t1->SetBranchAddress("_clusterIDs", clusterIDs);
+  t1->SetBranchAddress("_clusterEnergies", clusterEnergies);
+  t1->SetBranchAddress("_clusterPts", clusterPts);
+  t1->SetBranchAddress("_clusterEtas", clusterEtas);
+  t1->SetBranchAddress("_clusterPhis", clusterPhis);
+  t1->SetBranchAddress("_maxTowerEtas", maxTowerEtas);
+  t1->SetBranchAddress("_maxTowerPhis", maxTowerPhis);
 
   // pre-loop to save all the clusters LorentzVector
 
@@ -363,8 +363,8 @@ void CaloCalibEmc_Pi0::Loop(TString _filename, int nevts)
 
     // calibration correction will be applied here
     //
-    int nClusters = _nClusters;
-    for (int j = 0; j < nClusters; j++)
+    int nClusters_tmp = _nClusters;
+    for (int j = 0; j < nClusters_tmp; j++)
     {
       // float px, py, pz;
       float pt, eta, phi, E;
@@ -384,7 +384,7 @@ void CaloCalibEmc_Pi0::Loop(TString _filename, int nevts)
     // But lets keep it simple for now
 
     TLorentzVector *pho1, *pho2;
-    int iCs = nClusters;
+    int iCs = nClusters_tmp;
     for (int jCs = 0; jCs < iCs; jCs++)
     {
       pho1 = savClusLV[jCs];

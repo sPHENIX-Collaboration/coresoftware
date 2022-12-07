@@ -5,7 +5,7 @@ lib_LTLIBRARIES = libphnodedump.la
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
   Dumper.h \

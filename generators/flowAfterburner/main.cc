@@ -25,13 +25,13 @@
 #include <boost/operators.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
+#include <algorithm>
 #include <sstream>
 #include <string>
-#include <utility>  // for swap
 
 namespace CLHEP
 {
-class HepRandomEngine;
+  class HepRandomEngine;
 }
 
 CLHEP::HepRandomEngine *engine;

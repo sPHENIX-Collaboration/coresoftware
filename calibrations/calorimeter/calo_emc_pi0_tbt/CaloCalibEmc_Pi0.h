@@ -43,10 +43,10 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   void FittingHistos();
 
  private:
-  int _ievent = 0;
+  int m_ievent = 0;
   TFile *cal_output = nullptr;
   std::string _caloname = "CEMC";
-  std::string _filename;
+  std::string m_Filename;
 
   // histos lists
   TH1 *cemc_hist_eta_phi[96][258];
