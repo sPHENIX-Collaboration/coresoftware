@@ -637,7 +637,7 @@ bool ResonanceJetTagging::isDecay(SvtxTrack *track, PHG4Particlev2 *decays[], in
 {
   for (int idecay = 0; idecay < nDecays; idecay++)
   {
-    if(int(track->get_id()) == decays[idecay]->get_barcode()) return true;
+    if(int(track->get_id()) == decays[idecay]->get_barcode())
     {
       return true;
     }
