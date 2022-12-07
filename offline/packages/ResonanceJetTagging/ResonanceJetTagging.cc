@@ -206,9 +206,6 @@ int ResonanceJetTagging::tagD0(PHCompositeNode *topNode)
     KFParticle *TagDaughters[nDaughters];
     PHG4Particlev2 *Daughters[nDaughters];
 
-    std::vector<HepMC::GenParticle *> mcTags;
-    //HepMC::GenParticle *mcTag = nullptr;
-
     m_jet_id = 0;
 
     for (unsigned int i = 0; i < kfContainer->size(); i++)
@@ -237,13 +234,6 @@ int ResonanceJetTagging::tagD0(PHCompositeNode *topNode)
         Cand->set_barcode(i);
 
         findTaggedJets(topNode, Cand, Daughters, nDaughters);
-        /*
-        if (m_dotruth)
-        {
-          mcTag = findMCTaggedJets(topNode, Daughters, nDaughters);
-          mcTags.push_back(mcTag);
-        }
-        */
         m_jet_id++;
         i += nDaughters;  // Go to the next D meson
       }

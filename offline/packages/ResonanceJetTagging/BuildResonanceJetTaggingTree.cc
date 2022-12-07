@@ -1,5 +1,7 @@
 #include "BuildResonanceJetTaggingTree.h"
 
+#include "ResonanceJetTagging.h"
+
 #include <phool/phool.h>
 
 /// Jet includes
@@ -11,10 +13,13 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
-
 /// HEPMC truth includes
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
 #include <HepMC/GenVertex.h>
+#pragma GCC diagnostic pop
+
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
@@ -32,8 +37,6 @@
 
 #include <KFParticle.h>
 #include <kfparticle_sphenix/KFParticle_Container.h>
-
-#include <resonancejettagging/ResonanceJetTagging.h>
 
 /// ROOT includes
 #include <TFile.h>

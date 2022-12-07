@@ -1,13 +1,16 @@
 #ifndef BUILDRESONANCEJETTAGGINGTREE_H__
 #define BUILDRESONANCEJETTAGGINGTREE_H__
 
+#include "ResonanceJetTagging.h"
+
 #include <fun4all/SubsysReco.h>
 
 #include <g4jets/JetMapv1.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
-
-#include <resonancejettagging/ResonanceJetTagging.h>
+#pragma GCC diagnostic pop
 
 #include <vector>
 
