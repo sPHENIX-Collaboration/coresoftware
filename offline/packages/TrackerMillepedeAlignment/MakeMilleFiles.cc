@@ -66,8 +66,8 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
   _mille = new Mille(data_outfilename.c_str(), _binary);
 
   // Write the steering file here, and add the data file path to it
-  std::ofstream steering_file(steering_outfilename.c_str());
-  steering_file << data_outfilename.c_str() << std::endl;
+  std::ofstream steering_file(steering_outfilename);
+  steering_file << data_outfilename << std::endl;
   steering_file.close();
 
   // print grouping setup to log file:

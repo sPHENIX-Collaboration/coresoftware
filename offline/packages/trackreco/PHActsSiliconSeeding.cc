@@ -284,7 +284,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	    }
         
 	  trackSeed->lineFit(positions, 0, 8);
-	  
+	  z = trackSeed->get_Z0();
+
 	  fitTimer->stop();
 	  auto circlefittime = fitTimer->get_accumulated_time();
 	  fitTimer->restart();
@@ -683,7 +684,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 
 	  auto sp = makeSpacePoint(surface, cluskey, cluster).release();
 	  spVec.push_back(sp);
-	  rRangeSPExtent.check({sp->x(), sp->y(), sp->z()});
+	  rRangeSPExtent.extend({sp->x(), sp->y(), sp->z()});
 	  numSiliconHits++;
 	}
     }
