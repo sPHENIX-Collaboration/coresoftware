@@ -2,6 +2,7 @@
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/TrackFitUtils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -378,20 +379,18 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
 			    sqrt(square(glob(0)) + square(glob(1))));
 	}
     }
-  
-  
 
   /// Project the seed to the INTT to find matches
   for(int layer = 0; layer < m_nInttLayers; ++layer)
     {
-      double xplus = 0;
-      double yplus = 0;
-      double xminus = 0;
-      double yminus = 0;
-      circleCircleIntersection(m_nInttLayerRadii[layer],
-			       R, X0, Y0, xplus, yplus,
-			       xminus, yminus);
-      
+      auto cci = TrackFitUtils::circle_circle_intersection(
+                 m_nInttLayerRadii[layer],
+		 R, X0, Y0);
+      double xplus = std::get<0>(cci);
+      double yplus = std::get<1>(cci);
+      double xminus = std::get<2>(cci);
+      double yminus = std::get<3>(cci);
+  
       /// If there are no real solutions to the intersection, skip
       if(std::isnan(xplus))
 	{
@@ -412,7 +411,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
       const double lastClusPhi = atan2(lastclusglob(1), lastclusglob(0));
       const double plusPhi = atan2(yplus, xplus);
       const double minusPhi = atan2(yminus, xminus);
-      
+  
       if(fabs(lastClusPhi - plusPhi) < fabs(lastClusPhi - minusPhi))
 	{
 	  xProj[layer] = xplus;
@@ -545,46 +544,10 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 
   return matchedClusters;
 }
-void PHActsSiliconSeeding::circleCircleIntersection(const double layerRadius,
-						    const double circRadius,
-						    const double circX0,
-						    const double circY0,
-						    double& xplus,
-						    double& yplus,
-						    double& xminus,
-						    double& yminus)
-{
-  /// Solutions to the circle intersection are (xplus, yplus) and 
-  /// (xminus, yminus). The intersection of the two circles occurs when
-  /// (x-x1)^2 + (y-y1)^2 = r1^2,  / (x-x2)^2 + (y-y2)^2 = r2^2
-  /// Here we assume that circle 1 is an sPHENIX layer centered on x1=y1=0, 
-  /// and circle 2 is arbitrary such that they are described by
-  ///  x^2 +y^2 = r1^2,   (x-x0)^2 + (y-y0)^2 = r2^2
-  /// expand the equations and subtract to eliminate the x^2 and y^2 terms, 
-  /// gives the radial line connecting the intersection points
-  /// iy = - (2*x2*x - D) / 2*y2, 
-  /// then substitute for y in equation of circle 1
-
-  double D = layerRadius*layerRadius - circRadius*circRadius + circX0*circX0 + circY0*circY0;
-  double a = 1.0 + (circX0*circX0) / (circY0*circY0);
-  double b = - D * circX0/( circY0*circY0);
-  double c = D*D / (4.0*circY0*circY0) - layerRadius*layerRadius;
-
-  xplus = (-b + sqrt(b*b - 4.0* a * c) ) / (2.0 * a);
-  xminus = (-b - sqrt(b*b - 4.0* a * c) ) / (2.0 * a);
-
-  // both values of x are valid
-  // but for each of those values, there are two possible y values on circle 1
-  // but only one of those falls on the radical line:
-
-  yplus = - (2*circX0*xplus - D) / (2.0*circY0); 
-  yminus = -(2*circX0*xminus - D) / (2.0*circY0);
-}
 
 SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   const Surface& surf,
   const TrkrDefs::cluskey key,
-  //  const TrkrCluster* clus)
   TrkrCluster* clus)
 {
   Acts::Vector2 localPos(clus->getLocalX() * Acts::UnitConstants::cm, 
@@ -603,7 +566,6 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
     localCov(0,0) = para_errors.first* Acts::UnitConstants::cm2;
     localCov(1,1) = para_errors.second* Acts::UnitConstants::cm2;
   }
-	//     std::cout << "err clus: " << cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2*cluster->getActsLocalError(0,0) * Acts::UnitConstants::cm2 << " | " << cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2*cluster->getActsLocalError(1,1) * Acts::UnitConstants::cm2 << " err para " <<  para_errors.first << " | " << para_errors.second << std::endl;
     
   float x = globalPos.x();
   float y = globalPos.y();

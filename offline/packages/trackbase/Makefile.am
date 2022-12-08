@@ -40,6 +40,7 @@ pkginclude_HEADERS = \
   MvtxDefs.h \
   ResidualOutlierFinder.h \
   sPHENIXActsDetectorElement.h \
+  SpacePoint.h \
   TpcDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
