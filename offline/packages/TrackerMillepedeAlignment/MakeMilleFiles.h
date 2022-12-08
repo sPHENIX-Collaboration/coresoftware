@@ -19,15 +19,7 @@
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/ActsTransformations.h>
-
-#include <trackbase_historic/SvtxTrackState_v1.h>
-
-#include <tpc/TpcClusterZCrossingCorrection.h>
-#include <tpc/TpcDistortionCorrection.h>
-#include <tpc/TpcDistortionCorrectionContainer.h>
-
-#include <ActsExamples/EventData/Track.hpp>
-#include <ActsExamples/EventData/Trajectories.hpp>
+#include <trackbase_historic/SvtxAlignmentStateMap.h>
 
 class PHCompositeNode;
 class PHG4TpcCylinderGeomContainer;
@@ -35,8 +27,6 @@ class SvtxTrack;
 class SvtxTrackMap;
 class TrkrCluster;
 class TrkrClusterContainer;
-class TpcDistortionCorrectionContainer;
-class ClusterErrorPara;
 class Mille;
 
 using Trajectory = ActsExamples::Trajectories;
@@ -58,70 +48,6 @@ enum mmsGroup
   tile,
   mms
 };
-
-/*
- * Class which contains alignment information to be written to pede, 
- * obtained from Acts::Trajectories and track states
- * Also defines all matrix and residual dimensions
- */
-class AlignmentState
-{
- public:
-  /// The number of global (alignment) parameters
-  static const int NGL = 6;
-  /// The number of local (track state) parameters
-  static const int NLC = 6;
-  /// The number of residuals per state (e.g. 2D or 3D)
-  static const int NRES = 3;
-
-  using GlobalMatrix = Acts::ActsMatrix<NRES, NGL>;
-  using LocalMatrix = Acts::ActsMatrix<NRES, NLC>;
-  using ResidualVector = Eigen::Matrix<Acts::ActsScalar, NRES, 1>;
-
-  AlignmentState(size_t index, ResidualVector res,
-                 GlobalMatrix ralign,
-                 LocalMatrix rtrack,
-                 Acts::Vector3 clusglob)
-    : m_tsIndex(index)
-    , m_residual(res)
-    , m_dResAlignmentPar(ralign)
-    , m_dResTrackPar(rtrack)
-    , m_clusglob(clusglob)
-  {
-  }
-
-  void set_residual(const ResidualVector& res) { m_residual = res; }
-  void set_dResAlignmentPar(const GlobalMatrix& d)
-  {
-    m_dResAlignmentPar = d;
-  }
-  void set_dResTrackPar(const LocalMatrix& d)
-  {
-    m_dResTrackPar = d;
-  }
-
-  const ResidualVector& get_residual() const { return m_residual; }
-  const GlobalMatrix& get_dResAlignmentPar() const
-  {
-    return m_dResAlignmentPar;
-  }
-  const LocalMatrix& get_dResTrackPar() const
-  {
-    return m_dResTrackPar;
-  }
-  void set_tsIndex(const size_t index) { m_tsIndex = index; }
-  const size_t& get_tsIndex() const { return m_tsIndex; }
-  const Acts::Vector3& get_clusglob() const { return m_clusglob; }
-
- private:
-  size_t m_tsIndex;
-  ResidualVector m_residual;
-  GlobalMatrix m_dResAlignmentPar;
-  LocalMatrix m_dResTrackPar;
-  Acts::Vector3 m_clusglob;
-};
-
-using AlignmentStateMap = std::map<TrkrDefs::cluskey, AlignmentState>;
 
 class MakeMilleFiles : public SubsysReco
 {
@@ -145,64 +71,47 @@ class MakeMilleFiles : public SubsysReco
  private:
   Mille* _mille;
 
-  std::map<const unsigned int, Trajectory>* _trajectories;
-
   int GetNodes(PHCompositeNode* topNode);
   Acts::Vector3 getPCALinePoint(Acts::Vector3 global, SvtxTrackState* state);
   std::vector<Acts::Vector3> getDerivativesAlignmentAngles(Acts::Vector3& global,
                                                            TrkrDefs::cluskey cluster_key,
                                                            TrkrCluster* cluster,
                                                            Surface surface, int crossing);
-  SvtxTrack::StateIter getStateIter(Acts::Vector3& global, SvtxTrack* track);
-  void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key,
-                                short int crossing, Acts::Vector3& global);
-  float convertTimeToZ(TrkrDefs::cluskey cluster_key, TrkrCluster* cluster);
-  Acts::Transform3 makePerturbationTransformation(Acts::Vector3 angles);
+
   int getLabelBase(Acts::GeometryIdentifier id);
   int getTpcRegion(int layer);
 
   bool is_layer_fixed(unsigned int layer);
   bool is_layer_param_fixed(unsigned int layer, unsigned int param);
 
-  AlignmentStateMap getAlignmentStates(const Trajectory& traj,
-                                       SvtxTrack* track, short int crossing);
-  void addTrackToMilleFile(AlignmentStateMap& alignStates, const Trajectory& traj);
+  void addTrackToMilleFile(SvtxAlignmentStateMap::StateVec statevec);
 
   std::map<int, float> derivativeGL;
   std::string data_outfilename = ("mille_output_data_file.bin");
   std::string steering_outfilename = ("steer.txt");
 
-  /// tpc distortion correction utility class
-  TpcDistortionCorrection _distortionCorrection;
   bool _binary = true;
-  unsigned int _cluster_version = 3;
+  unsigned int _cluster_version = 4;
 
   bool m_useAnalytic = true;
-
-  ClusterErrorPara _ClusErrPara;
-
-  float sensorAngles[3] = {0.1, 0.1, 0.2};  // perturbation values for each alignment angle
 
   // set default groups to lowest level
   siliconGroup si_group = siliconGroup::sensor;
   tpcGroup tpc_group = tpcGroup::hitset;
   mmsGroup mms_group = mmsGroup::tile;
 
-  int nsensors_stave[7] = {9,9,9,4,4,4,4};
+  int nsensors_stave[7] = {9, 9, 9, 4, 4, 4, 4};
 
   std::set<unsigned int> fixed_layers;
-  std::set<std::pair<unsigned int,unsigned int>> fixed_layer_params;
+  std::set<std::pair<unsigned int, unsigned int>> fixed_layer_params;
 
   std::map<unsigned int, unsigned int> base_layer_map = {{10, 0}, {12, 3}, {14, 7}, {16, 55}};
 
   SvtxTrackMap* _track_map{nullptr};
-  TrkrClusterContainer* _cluster_map{nullptr};
+  SvtxAlignmentStateMap* _state_map{nullptr};
   ActsGeometry* _tGeometry{nullptr};
-
-  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
-  TpcDistortionCorrectionContainer* _dcc_static{nullptr};
-  TpcDistortionCorrectionContainer* _dcc_average{nullptr};
-  TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
+  TrkrClusterContainer* _cluster_map{nullptr};
+  ClusterErrorPara _ClusErrPara;
 };
 
 #endif  // MAKEMILLEFILES_H

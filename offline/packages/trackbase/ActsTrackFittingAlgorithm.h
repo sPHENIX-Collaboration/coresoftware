@@ -5,6 +5,7 @@
 
 #include "Calibrator.h"
 #include "ResidualOutlierFinder.h"
+#include "ActsSourceLink.h"
 
 #include <Acts/EventData/detail/CorrectedTransformationFreeToBound.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
@@ -14,7 +15,7 @@
 #include <Acts/TrackFitting/KalmanFitter.hpp>
 #pragma GCC diagnostic pop
 
-#include <ActsExamples/EventData/IndexSourceLink.hpp>
+
 #include <ActsExamples/EventData/Measurement.hpp>
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/Framework/BareAlgorithm.hpp>
@@ -61,7 +62,7 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
    public:
     virtual ~TrackFitterFunction() = default;
     virtual TrackFitterResult operator()(
-        const std::vector<std::reference_wrapper<const IndexSourceLink>>&,
+        const std::vector<std::reference_wrapper<const ActsSourceLink>>&,
         const TrackParameters&, const GeneralFitterOptions&) const = 0;
 
     virtual void outlierFinder(const ResidualOutlierFinder&) {}
@@ -77,7 +78,7 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
     virtual ~DirectedTrackFitterFunction() = default;
 
     virtual TrackFitterResult operator()(
-        const std::vector<std::reference_wrapper<const IndexSourceLink>>&,
+        const std::vector<std::reference_wrapper<const ActsSourceLink>>&,
         const TrackParameters&, const GeneralFitterOptions&,
         const std::vector<const Acts::Surface*>&) const = 0;
   };
@@ -145,7 +146,7 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
   /// Helper function to call correct FitterFunction
   TrackFitterResult fitTrack(
       const std::vector<std::reference_wrapper<
-          const ActsExamples::IndexSourceLink>>& sourceLinks,
+          const ActsSourceLink>>& sourceLinks,
       const ActsExamples::TrackParameters& initialParameters,
       const GeneralFitterOptions& options,
       const std::vector<const Acts::Surface*>& surfSequence) const;
@@ -156,7 +157,7 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
 inline ActsTrackFittingAlgorithm::TrackFitterResult
 ActsTrackFittingAlgorithm::fitTrack(
     const std::vector<std::reference_wrapper<
-        const ActsExamples::IndexSourceLink>>& sourceLinks,
+        const ActsSourceLink>>& sourceLinks,
     const ActsExamples::TrackParameters& initialParameters,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
     const std::vector<const Acts::Surface*>& surfSequence) const

@@ -68,6 +68,8 @@ public:
   void writeTuple(bool write) { m_write_nTuple = write; }
 
 private:
+  typedef std::vector<std::pair<std::pair<int, int>, int>> Decay;
+
   unsigned int m_nTracks;
   float m_pt_min;
   float m_eta_min;
