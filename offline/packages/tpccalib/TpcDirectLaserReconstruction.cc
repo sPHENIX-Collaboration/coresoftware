@@ -15,7 +15,6 @@
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <trackbase/ActsTrackingGeometry.h>
-#include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
@@ -228,16 +227,9 @@ int TpcDirectLaserReconstruction::load_nodes( PHCompositeNode* topNode )
   m_geom_container =  findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   assert( m_geom_container );
 
-  // acts surface map
-  m_surfmaps = findNode::getClass<ActsSurfaceMaps>(topNode, "ActsSurfaceMaps");
-  assert( m_surfmaps );
-
   // acts geometry
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   assert( m_tGeometry );
-
-  //  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
-  // assert( m_tGeometry );
 
   // tracks
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");

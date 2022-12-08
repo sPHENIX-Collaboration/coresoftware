@@ -13,13 +13,11 @@
 
 #include <memory>
 
-struct ActsSurfaceMaps;
-struct ActsTrackingGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
 class TrkrHitSetContainer;
-class   PHG4TpcCylinderGeomContainer;
+class PHG4TpcCylinderGeomContainer;
 
 class TFile;
 class TH1;
@@ -125,11 +123,7 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
 
   PHG4TpcCylinderGeomContainer *m_geom_container = nullptr;
 
-  /// Acts surface maps for surface lookup
-  ActsSurfaceMaps* m_surfmaps = nullptr;
-
-  /// Acts tracking geometry for surface lookup
-  //  ActsTrackingGeometry* m_tGeometry = nullptr;
+  /// Acts geometry
   ActsGeometry *m_tGeometry = nullptr;
 
   /// acts transformation
