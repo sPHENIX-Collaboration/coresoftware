@@ -8,16 +8,11 @@ AM_CPPFLAGS = \
   -DHomogeneousField
 
 lib_LTLIBRARIES = \
-   libqa_modules.la \
-   libqa_kfparticle.la
+   libqa_modules.la
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
-
-libqa_kfparticle_la_LIBADD = \
-  libqa_modules.la \
-  -lkfparticle_sphenix
 
 libqa_modules_la_LIBADD = \
   -lcalo_io \
@@ -46,9 +41,6 @@ pkginclude_HEADERS = \
   QAHistManagerDef.h \
   QAG4SimulationTruthDecay.h
 
-libqa_kfparticle_la_SOURCES = \
-  QAG4SimulationKFParticle.cc
-
 libqa_modules_la_SOURCES = \
   QAG4SimulationCalorimeter.cc \
   QAG4SimulationCalorimeterSum.cc \
@@ -67,8 +59,7 @@ libqa_modules_la_SOURCES = \
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals_qa \
-  testexternals_qa_kfparticle
+  testexternals_qa
 
 BUILT_SOURCES = \
 	testexternals.cc
@@ -77,12 +68,6 @@ testexternals_qa_SOURCES = \
 	testexternals.cc
 
 testexternals_qa_LDADD = \
-	libqa_modules.la
-
-testexternals_qa_kfparticle_SOURCES = \
-	testexternals.cc
-
-testexternals_qa_kfparticle_LDADD = \
 	libqa_modules.la
 
 testexternals.cc:
