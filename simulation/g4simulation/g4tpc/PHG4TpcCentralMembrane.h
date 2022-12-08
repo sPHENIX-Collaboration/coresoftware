@@ -169,7 +169,7 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
   static constexpr int nTotStripes = nStripesPerPetal * nPetals;
 
   /// mean number of electrons per stripe
-  int electrons_per_stripe = 300;
+  int electrons_per_stripe = 100;
 
   // number of electrons per deposited GeV in TPC gas
   /** 
