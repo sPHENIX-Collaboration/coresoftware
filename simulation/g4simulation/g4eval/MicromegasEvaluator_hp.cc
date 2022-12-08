@@ -66,6 +66,7 @@ namespace
   MicromegasEvaluator_hp::HitStruct create_hit( TrkrDefs::hitsetkey hitsetkey, TrkrDefs::hitkey hitkey, TrkrHit* hit )
   {
     MicromegasEvaluator_hp::HitStruct hit_struct;
+    hit_struct._detid = TrkrDefs::getTrkrId(hitsetkey);
     hit_struct._layer = TrkrDefs::getLayer(hitsetkey);
     hit_struct._tile = MicromegasDefs::getTileId(hitsetkey);
     hit_struct._strip = MicromegasDefs::getStrip(hitkey);
@@ -287,8 +288,8 @@ void MicromegasEvaluator_hp::evaluate_hits()
   TileStruct* current_tile = nullptr;
 
   // loop over micromegas and tpc hitsets
-  // for( auto id:{TrkrDefs::TrkrId::micromegasId, TrkrDefs::TrkrId::tpcId} )
-  for( auto id:{TrkrDefs::TrkrId::micromegasId} )
+  for( auto id:{TrkrDefs::TrkrId::micromegasId, TrkrDefs::TrkrId::tpcId} )
+  // for( auto id:{TrkrDefs::TrkrId::micromegasId} )
   {
 
     const auto hitset_range = m_hitsetcontainer->getHitSets(id);

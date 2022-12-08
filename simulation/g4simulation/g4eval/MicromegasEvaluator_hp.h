@@ -114,6 +114,9 @@ class MicromegasEvaluator_hp : public SubsysReco
 
     using List = std::vector<HitStruct>;
 
+    //! detector
+    uint8_t _detid = 0;
+    
     //! layer
     uint _layer = 0;
 
