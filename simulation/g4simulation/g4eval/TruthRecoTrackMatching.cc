@@ -71,24 +71,6 @@ TruthRecoTrackMatching::TruthRecoTrackMatching(
         , m_cluster_nphiwidths_2 { _cluster_nphiwidths * _cluster_nphiwidths } 
         // same as m_cluster_nzwidths for phi
 { 
-  cout << " FIXME : A002 " << endl;
-  vector<TrkrDefs::cluskey> keys;
-  for (auto clus : vector<int> { 3,2,1,2,3 }) {
-    for (auto hitset : vector<int> { 3,2,1,2,3 }) {
-      keys.push_back(TrkrDefs::genClusKey(hitset,clus));
-    }
-  }
-  cout << " Before sorting: " << endl;
-  for (auto key : keys) {
-    cout << " hitsetkey " << TrkrDefs::getHitSetKeyFromClusKey(key) << endl;
-  }
-  std::sort(keys.begin(), keys.end());
-  cout << " After sorting: " << endl;
-  for (auto key : keys) {
-    cout << " hitsetkey " << TrkrDefs::getHitSetKeyFromClusKey(key) << endl;
-  }
-
-
   m_maketree = (_filename != "");
   if (m_maketree) {
     m_fileout = new TFile(_filename.c_str(),"recreate");
@@ -132,12 +114,14 @@ int TruthRecoTrackMatching::InitRun(PHCompositeNode *topNode) //`
 
 int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
 {
+  cout << " FIXME : D000 : start" << endl;
   if (topnode == nullptr) {
     std::cout << " topnode is null " << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  /* topnode->print(); */
+  cout << " FIXME : D002 : start" << endl;
+  topnode->print();
+  cout << " FIXME : D003 : end" << endl;
 
   // -------------------------------------------------------------------------------
   // Build recoData
@@ -201,20 +185,37 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
       int n_clusters = track->getClusters().size();
       cout << " FIXME : A003 cluster check " << ii++ << " : " << n_clusters << endl;
       for (int i=0; i<n_clusters; ++i) {
-        auto cluster  = track->getClusters()[i];
-        auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster);
-        cout << "cluster["<<i<<"] key: " << hitsetkey << "  is found? ";
+        auto cluskey  = track->getClusters()[i];
+        auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+        cout << "cluskey["<<i<<"] key: " << hitsetkey << "  is found? ";
         auto check = track->get_cluskey(hitsetkey);
-        cout << check.first << " " << (cluster == check.second) << " AND("
-          <<TrkrDefs::getHitSetKeyFromClusKey(cluster)
+        cout << check.first << " " << (cluskey == check.second) << " AND("
+          <<TrkrDefs::getHitSetKeyFromClusKey(cluskey)
           <<":"<<hitsetkey
           <<":"<<TrkrDefs::getHitSetKeyFromClusKey(check.second)<<")"  ;
         auto check2 = track->get_cluskey(hitsetkey+1);
         if (check2.first) cout << "  BAD ONE " << check2.second;
         cout << endl;
 
+
+        if (false) {
+        auto cluster = m_TruthClusterContainer->findCluster(cluskey);
+    cout << " FIXME : B-001 " << endl;
+        if (cluster == nullptr) cout << " No cluster! " << endl;
+    cout << " Hmmmm " << cluster->getPosition(0) << " " << cluster->getPosition(1) << endl;
+    cout << " FIXME : B-002 " << endl;
+    cout << " cluskey key value: " << std::hex << cluskey << " hitsetkey: " << TrkrDefs::getHitSetKeyFromClusKey(cluskey) << std::dec << endl;
+        Acts::Vector3 doublePos = m_ActsGeometry->getGlobalPosition(cluskey, cluster);
+
+
+    cout << " FIXME : B-003 " << endl;
+        cout << "X: " << doublePos(0) << " Y: " <<doublePos(1) << " Z: " <<doublePos(2) << endl;
+    cout << " FIXME : B-004 " << endl;
+        }
+
       }
     }
+    cout << " FIXME : B001 " << endl;
     auto match_indices = find_box_matches(track->getPhi(), track->getPseudoRapidity(), track->getPt()); 
     if (true) { //FIXME
       std::cout << Form(" Truth Track:  (%2i)   phi(%5.2f) eta(%5.2f) pt(%5.2f)", track->getTrackid(), track->getPhi(),
@@ -357,6 +358,10 @@ int TruthRecoTrackMatching::createNodes(PHCompositeNode* topNode)
     auto newNode = new PHIODataNode<PHObject>(m_EmbRecoMatchContainer, "TRKR_EMBRECOMATCHCONTAINER", "PHObject");
     DetNode->addNode(newNode);
   }
+  
+  // temporary :: for translation to global coordinates FIXME
+  m_ActsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  cout << " FIXME : D001 : Found it? " << (m_ActsGeometry != nullptr) << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

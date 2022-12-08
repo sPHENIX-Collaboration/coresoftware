@@ -13,6 +13,11 @@
 #include <TTree.h>
 #include <TFile.h>
 
+#include <trackbase/ActsGeometry.h>
+/* #include <Acts/Definitions/Algebra.hpp> */
+/* #include <Eigen/Core> */
+/* #include <Eigen/Dense> */
+
 
 class PHG4TruthInfoContainer;
 class SvtxTrackMap;
@@ -82,6 +87,8 @@ class TruthRecoTrackMatching : public SubsysReco
     TrkrClusterContainer         *m_RecoClusterContainer    {nullptr};
     TrkrTruthTrackContainer      *m_TrkrTruthTrackContainer {nullptr};
     PHG4TpcCylinderGeomContainer *m_PHG4TpcCylinderGeomContainer  {nullptr};
+
+    ActsGeometry* m_ActsGeometry {nullptr};
 
     // Output data node:
     EmbRecoMatchContainer   *m_EmbRecoMatchContainer   {nullptr};
