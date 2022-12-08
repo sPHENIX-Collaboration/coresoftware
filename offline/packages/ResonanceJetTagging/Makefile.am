@@ -14,12 +14,10 @@ AM_CPPFLAGS = \
 	-DHomogeneousField
 
 pkginclude_HEADERS = \
-  ResonanceJetTagging.h \
-	BuildResonanceJetTaggingTree.h
+  ResonanceJetTagging.h
 
 libresonancejettagging_la_SOURCES = \
-  ResonanceJetTagging.cc \
-	BuildResonanceJetTaggingTree.cc
+  ResonanceJetTagging.cc
 
 libresonancejettagging_la_LDFLAGS = \
   -L$(libdir) \
