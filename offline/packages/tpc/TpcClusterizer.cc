@@ -87,28 +87,26 @@ namespace
   
   void remove_hit(double adc, int phibin, int tbin, int edge, std::multimap<unsigned short, ihit> &all_hit_map, std::vector<std::vector<unsigned short>> &adcval)
   {
-    typedef std::multimap<unsigned short, ihit>::iterator hit_iterator;
-    std::pair<hit_iterator, hit_iterator> iterpair = all_hit_map.equal_range(adc);
-    hit_iterator it = iterpair.first;
-    for (; it != iterpair.second; ++it) {
-      if (it->second.iphi == phibin && it->second.it == tbin) { 
-	all_hit_map.erase(it);
-	break;
+    const auto iterpair = all_hit_map.equal_range(adc);
+    for ( auto it = iterpair.first; it != iterpair.second; ++it) {
+      if (it->second.iphi == phibin && it->second.it == tbin) 
+      { 
+        all_hit_map.erase(it);
+        break;
       }
     }
-    if(edge)
-      adcval[phibin][tbin] = USHRT_MAX;
-    else
-      adcval[phibin][tbin] = 0;
+    if(edge) adcval[phibin][tbin] = USHRT_MAX;
+    else adcval[phibin][tbin] = 0;
   }
   
-  void remove_hits(std::vector<ihit> &ihit_list, std::multimap<unsigned short, ihit> &all_hit_map,std::vector<std::vector<unsigned short>> &adcval)
+  void remove_hits( const std::vector<ihit> &ihit_list, std::multimap<unsigned short, ihit> &all_hit_map,std::vector<std::vector<unsigned short>> &adcval)
   {
-    for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
-      unsigned short adc    = iter->adc; 
-      unsigned short phibin = iter->iphi;
-      unsigned short tbin   = iter->it;
-      unsigned short edge   = iter->edge;
+    for( const auto& ihit:ihit_list )
+    {
+      const unsigned short& adc    = ihit.adc; 
+      const unsigned short& phibin = ihit.iphi;
+      const unsigned short& tbin   = ihit.it;
+      const unsigned short& edge   = ihit.edge;
       remove_hit(adc,phibin,tbin,edge,all_hit_map,adcval);
     }
   }
@@ -435,7 +433,9 @@ namespace
       hitkeyvec.clear();
     }
   
-  void *ProcessSector(void *threadarg) {
+  //_________________________________________________________________________
+  void *ProcessSector(void *threadarg) 
+  {
 
     auto my_data = static_cast<thread_data*>(threadarg);
     const auto& pedestal  = my_data->pedestal;
@@ -447,7 +447,7 @@ namespace
 	
     TrkrHitSet *hitset = my_data->hitset;
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-    
+        
     // for convenience, create a 2D vector to store adc values in and initialize to zero
     std::vector<std::vector<unsigned short>> adcval(phibins, std::vector<unsigned short>(tbins, 0));
     std::multimap<unsigned short, ihit> all_hit_map;
@@ -511,15 +511,15 @@ namespace
       }
     }
     
-    while(all_hit_map.size()>0){
+    const auto accepted_hits =  all_hit_map.size();
+
+    while(!all_hit_map.empty()){
       
       auto iter = all_hit_map.rbegin();
-      if(iter == all_hit_map.rend()){
-	break;
-      }
-      ihit hiHit = iter->second;
-      int iphi = hiHit.iphi;
-      int it = hiHit.it;
+
+      const ihit hiHit = iter->second;
+      const int iphi = hiHit.iphi;
+      const int it = hiHit.it;
       
       //put all hits in the all_hit_map (sorted by adc)
       //start with highest adc hit
@@ -537,6 +537,15 @@ namespace
       remove_hits(ihit_list,all_hit_map, adcval);
       ihit_list.clear();
     }
+    
+    std::cout << "ProcessSector -"
+      << " layer: " << (int) layer
+      << " side: " << my_data->side
+      << " sector: " << my_data->sector
+      << " hits: " << std::distance( hitrangei.first, hitrangei.second )
+      << " accepted: " << accepted_hits
+      << " clusters: " << my_data->cluster_vector.size()
+      << std::endl;
 
     pthread_exit(nullptr);
   }
@@ -730,7 +739,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
     // instanciate new thread pair, at the end of thread vector
     thread_pair_t& thread_pair = threads.emplace_back();
-    
     thread_pair.data.layergeom = layergeom;
     thread_pair.data.hitset = hitset;
     thread_pair.data.layer = layer;
