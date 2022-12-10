@@ -129,13 +129,14 @@ int PHTrackSeeding::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
-  if (!_cluster_hit_map)
-  {
-    cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTERHITASSOC" << endl;
+  if(do_hit_assoc){
+    _cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+    if (!_cluster_hit_map)
+      {
+	cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTERHITASSOC" << endl;
+      }
   }
-
- _track_map = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
+  _track_map = findNode::getClass<TrackSeedContainer>(topNode, _track_map_name);
   if (!_track_map)
   {
     cerr << PHWHERE << " ERROR: Can't find " << _track_map_name << endl;

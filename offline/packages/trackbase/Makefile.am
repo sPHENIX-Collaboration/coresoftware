@@ -80,7 +80,14 @@ pkginclude_HEADERS = \
   TrkrHitSet.h \
   TrkrHitSetv1.h \
   TrkrHitSetContainer.h \
-  TrkrHitSetContainerv1.h
+  TrkrHitSetContainerv1.h \
+  RawHit.h \
+  RawHitv1.h \
+  RawHitTpc.h \
+  RawHitSet.h \
+  RawHitSetv1.h \
+  RawHitSetContainer.h \
+  RawHitSetContainerv1.h
 
 ROOTDICTS = \
   alignmentTransformationContainer_Dict.cc \
@@ -129,7 +136,14 @@ ROOTDICTS = \
   TrkrHitSetContainer_Dict.cc \
   TrkrHitSetContainerv1_Dict.cc \
   TpcSeedTrackMap_Dict.cc \
-  TpcSeedTrackMapv1_Dict.cc
+  TpcSeedTrackMapv1_Dict.cc \
+  RawHit_Dict.cc \
+  RawHitv1_Dict.cc \
+  RawHitTpc_Dict.cc \
+  RawHitSet_Dict.cc \
+  RawHitSetv1_Dict.cc \
+  RawHitSetContainer_Dict.cc \
+  RawHitSetContainerv1_Dict.cc
 
 
 pcmdir = $(libdir)
@@ -179,7 +193,14 @@ nobase_dist_pcm_DATA = \
   TrkrHitSetContainer_Dict_rdict.pcm \
   TrkrHitSetContainerv1_Dict_rdict.pcm \
   TpcSeedTrackMap_Dict_rdict.pcm \
-  TpcSeedTrackMapv1_Dict_rdict.pcm
+  TpcSeedTrackMapv1_Dict_rdict.pcm \
+  RawHit_Dict_rdict.pcm \
+  RawHitv1_Dict_rdict.pcm \
+  RawHitTpc_Dict_rdict.pcm \
+  RawHitSet_Dict_rdict.pcm \
+  RawHitSetv1_Dict_rdict.pcm \
+  RawHitSetContainer_Dict_rdict.pcm \
+  RawHitSetContainerv1_Dict_rdict.pcm 
 
 # sources for io library
 libtrack_io_la_SOURCES = \
@@ -232,7 +253,13 @@ libtrack_io_la_SOURCES = \
   TrkrTruthClusters.cc \
   TrkrTruthClustersv1.cc \
   TpcSeedTrackMap.cc \
-  TpcSeedTrackMapv1.cc
+  TpcSeedTrackMapv1.cc \
+  RawHitSet.cc \
+  RawHitSetv1.cc \
+  RawHitSetContainer.cc \
+  RawHitSetContainerv1.cc \
+  RawHitv1.cc \
+  RawHitTpc.cc 
 
 libtrack_io_la_LIBADD = \
   -lphool \
