@@ -49,7 +49,7 @@ class TpcRawWriter : public SubsysReco
   RawHitSetContainerv1 *m_rawhits = nullptr;
   TrkrClusterContainer *m_clusterlist = nullptr;
   TrkrClusterHitAssoc *m_clusterhitassoc = nullptr;
-  ActsSurfaceMaps *m_surfMaps = nullptr;
+  //  ActsSurfaceMaps *m_surfMaps = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
   bool do_hit_assoc = true;
   bool do_wedge_emulation = true;
@@ -65,8 +65,8 @@ class TpcRawWriter : public SubsysReco
   
   // TPC shaping offset correction parameters
   // From Tony Frawley May 13, 2021
-  double par0_neg = 0.0503;
-  double par0_pos = -0.0503;
+  //  double par0_neg = 0.0503;
+  // double par0_pos = -0.0503;
   
 };
 

@@ -451,7 +451,7 @@ namespace
     const auto& tbins     = my_data->tbins ;
     const auto& toffset   = my_data->toffset ;
     const auto& layer   = my_data->layer ;
-    int nhits = 0;
+    //    int nhits = 0;
     // for convenience, create a 2D vector to store adc values in and initialize to zero
     std::vector<std::vector<unsigned short>> adcval(phibins, std::vector<unsigned short>(tbins, 0));
     std::multimap<unsigned short, ihit> all_hit_map;
@@ -528,7 +528,7 @@ namespace
 		<< std::endl;
       */
       for(int nphi= 0; nphi < phibins;nphi++){
-	nhits += hitset->m_tpchits[nphi].size();
+	//	nhits += hitset->m_tpchits[nphi].size();
 	if(hitset->m_tpchits[nphi].size()==0) continue;
 
 	int pindex = 0;
