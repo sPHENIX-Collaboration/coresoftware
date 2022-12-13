@@ -55,7 +55,8 @@ void DecayFinderContainer_v1::identify(std::ostream& os) const
 
 const DecayFinderContainerBase::Decay DecayFinderContainer_v1::get(unsigned int id) const
 {
-  Decay dummyDecay = {{0, 0}};
+  std::pair<int, int> dummyPair = {0, 0};
+  Decay dummyDecay = {{dummyPair, 0}};
   ConstIter iter = m_decaymap.find(id);
   if (iter == m_decaymap.end()) return dummyDecay;
   return iter->second;
@@ -63,7 +64,8 @@ const DecayFinderContainerBase::Decay DecayFinderContainer_v1::get(unsigned int 
 
 DecayFinderContainerBase::Decay DecayFinderContainer_v1::get(unsigned int id)
 {
-  Decay dummyDecay = {{0, 0}};
+  std::pair<int, int> dummyPair = {0, 0};
+  Decay dummyDecay = {{dummyPair, 0}};
   Iter iter = m_decaymap.find(id);
   if (iter == m_decaymap.end()) return dummyDecay;
   return iter->second;

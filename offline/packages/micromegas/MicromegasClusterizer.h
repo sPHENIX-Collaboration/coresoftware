@@ -33,11 +33,13 @@ class MicromegasClusterizer : public SubsysReco
   int process_event(PHCompositeNode*) override;
 
   void set_cluster_version(int value) { m_cluster_version = value; }
+  void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
 
   private:
 
   //! detector name
   std::string m_detector;
+  bool do_read_raw = false;
   int m_cluster_version = 4;
 };
 

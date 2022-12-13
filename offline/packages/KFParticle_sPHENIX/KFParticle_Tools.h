@@ -23,7 +23,6 @@
 #define KFPARTICLESPHENIX_KFPARTICLETOOLS_H
 
 #include "KFParticle_MVA.h"
-#include "KFParticle_particleList.h"
 
 #include <KFParticle.h>
 
@@ -40,7 +39,7 @@ class SvtxTrackMap;
 class SvtxVertex;
 class SvtxTrack;
 
-class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MVA
+class KFParticle_Tools : protected KFParticle_MVA
 {
  public:
   KFParticle_Tools();
@@ -93,6 +92,13 @@ class KFParticle_Tools : public KFParticle_particleList, protected KFParticle_MV
   float calculateJT(KFParticle mother, KFParticle daughter);
 
   bool isInRange(float min, float value, float max);
+
+  bool findParticle(const std::string &particle);
+
+  int getParticleID(const std::string &particle);
+
+  float getParticleMass(const std::string &particle);
+  float getParticleMass(const int PDGID);
 
   void identify(KFParticle particle);
 

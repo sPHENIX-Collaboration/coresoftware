@@ -33,9 +33,13 @@
 #include <TString.h>     // for TString, operator+
 #include <TTree.h>       // for TTree
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>       // for GenEvent::particle_con...
-#include <HepMC/GenParticle.h>    // for GenParticle
 #include <HepMC/GenVertex.h>      // for GenVertex::particle_it...
+#pragma GCC diagnostic pop
+
+#include <HepMC/GenParticle.h>    // for GenParticle
 #include <HepMC/IteratorRange.h>  // for parents
 #include <HepMC/SimpleVector.h>   // for FourVector
 
@@ -82,14 +86,7 @@ SvtxTrack *KFParticle_truthAndDetTools::getTrack(unsigned int track_id, SvtxTrac
 
 SvtxVertex *KFParticle_truthAndDetTools::getVertex(unsigned int vertex_id, SvtxVertexMap *vertexmap)
 {
-  SvtxVertex *matched_vertex = NULL;
-
-  for (SvtxVertexMap::Iter iter = vertexmap->begin();
-       iter != vertexmap->end();
-       ++iter)
-  {
-    if (iter->first == vertex_id) matched_vertex = iter->second;
-  }
+  SvtxVertex *matched_vertex = vertexmap->get(vertex_id);
 
   return matched_vertex;
 }

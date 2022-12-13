@@ -14,6 +14,7 @@
 #include <trackbase/InttDefs.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/Calibrator.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
@@ -21,6 +22,7 @@
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/SvtxAlignmentStateMap_v1.h>
 
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
@@ -83,11 +85,17 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     { return Fun4AllReturnCodes::ABORTEVENT; }
   
-  m_fitCfg.fit = ActsExamples::TrackFittingAlgorithm::makeKalmanFitterFunction(
+  m_alignStates.distortionContainers(_dcc_static, _dcc_average, _dcc_fluctuation);
+  m_alignStates.actsGeometry(m_tGeometry);
+  m_alignStates.clusters(m_clusterContainer);
+  m_alignStates.stateMap(m_alignmentStateMap);
+  m_alignStates.verbosity(Verbosity());
+
+  m_fitCfg.fit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(
     m_tGeometry->geometry().tGeometry,
     m_tGeometry->geometry().magField);
 
-  m_fitCfg.dFit = ActsExamples::TrackFittingAlgorithm::makeKalmanFitterFunction(m_tGeometry->geometry().magField);
+  m_fitCfg.dFit = ActsTrackFittingAlgorithm::makeKalmanFitterFunction(m_tGeometry->geometry().magField);
 
   m_outlierFinder.verbosity = Verbosity();
   std::map<long unsigned int, float> chi2Cuts;
@@ -164,7 +172,7 @@ int PHActsTrkFitter::process_event(PHCompositeNode */*topNode*/)
     }
 
   loopTracks(logLevel);
-
+ 
   eventTimer.stop();
   auto eventTime = eventTimer.get_accumulated_time();
 
@@ -282,6 +290,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	  std::cout << " silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
 	  std::cout << " tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
 	}
+
       PHTimer trackTimer("TrackTimer");
       trackTimer.stop();
       trackTimer.restart();
@@ -358,12 +367,12 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       ppPlainOptions.mass = TDatabasePDG::Instance()->GetParticle(
         m_pHypothesis)->Mass() * Acts::UnitConstants::GeV;
        
-      ActsExamples::MeasurementCalibrator calibrator{measurements};
+      Calibrator calibrator{measurements};
 
       auto magcontext = m_tGeometry->geometry().magFieldContext;
       auto calibcontext = m_tGeometry->geometry().calibContext;
 
-      ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions 
+      ActsTrackFittingAlgorithm::GeneralFitterOptions 
         kfOptions{
 	m_tGeometry->geometry().getGeoContext(),
         magcontext,
@@ -411,7 +420,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           
           unsigned int trid = m_trackMap->size();
           newTrack.set_id(trid);
-	
+
           if( getTrackFitResult(fitOutput, &newTrack))
           { m_trackMap->insertWithKey(&newTrack, trid); }
         
@@ -750,8 +759,7 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
 			trackTips, indexedParams);
  
   m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
-    
-
+ 
   /// Get position, momentum from the Acts output. Update the values of
   /// the proto track
   PHTimer updateTrackTimer("UpdateTrackTimer");
@@ -760,6 +768,11 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
   if(fitOutput.fittedParameters)
     { updateSvtxTrack(trajectory, track); }
   
+  if(m_commissioning)
+    {
+      m_alignStates.fillAlignmentStateMap(trajectory, track);
+    }
+    
   updateTrackTimer.stop();
   auto updateTime = updateTrackTimer.get_accumulated_time();
   
@@ -773,10 +786,10 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
   return true;
 }
 
-ActsExamples::TrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
+ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
     const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
     const ActsExamples::TrackParameters& seed,
-    const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
+    const ActsTrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
     const SurfacePtrVec& surfSequence)
 {
 
@@ -1089,6 +1102,14 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
     {
       m_trackMap = new SvtxTrackMap_v2;
       PHIODataNode<PHObject>* node = new PHIODataNode<PHObject>(m_trackMap,_track_map_name,"PHObject");
+      svtxNode->addNode(node);
+    }
+
+  m_alignmentStateMap = findNode::getClass<SvtxAlignmentStateMap>(topNode, "SvtxAlignmentStateMap");
+  if(!m_alignmentStateMap)
+    {
+      m_alignmentStateMap = new SvtxAlignmentStateMap_v1;
+      auto node = new PHDataNode<SvtxAlignmentStateMap>(m_alignmentStateMap,"SvtxAlignmentStateMap","PHObject");
       svtxNode->addNode(node);
     }
 

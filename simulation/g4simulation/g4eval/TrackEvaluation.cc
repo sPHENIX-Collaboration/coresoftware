@@ -478,17 +478,18 @@ void TrackEvaluation::evaluate_clusters()
 //_____________________________________________________________________
 void TrackEvaluation::evaluate_tracks()
 {
-  if( !( m_track_map && m_cluster_map && m_container ) ) return;
 
+  if( !( m_track_map && m_cluster_map && m_container ) ) 
+  { return; }
+      
   // clear array
   m_container->clearTracks();
 
-  for( const auto& trackpair:*m_track_map )
+  for( const auto& [track_id,track]:*m_track_map )
   {
-
-    const auto track = trackpair.second;
+    
     auto track_struct = create_track( track );
-    bool has_mm = false;
+    
     // truth information
     const auto [id,contributors] = get_max_contributor( track );
     track_struct.contributors = contributors;
@@ -521,7 +522,6 @@ void TrackEvaluation::evaluate_tracks()
       const bool is_micromegas( TrkrDefs::getTrkrId(cluster_key) == TrkrDefs::micromegasId );
       if( is_micromegas )
       {
-	has_mm = true;
         const int tileid = MicromegasDefs::getTileId(cluster_key);
         add_truth_information_micromegas( cluster_struct, tileid, g4hits );
       } else {
@@ -554,8 +554,7 @@ void TrackEvaluation::evaluate_tracks()
       // add to track
       track_struct.clusters.push_back( cluster_struct );
     }
-    if(has_mm)
-      m_container->addTrack( track_struct );
+    m_container->addTrack( track_struct );
   }
 }
 

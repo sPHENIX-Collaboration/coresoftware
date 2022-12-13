@@ -19,10 +19,8 @@
 #include <trackbase/TrkrHitv2.h>
 
 #include <trackbase/TpcDefs.h>
-#include <trackbase/TrkrTruthTrack.h>
 #include <trackbase/TrkrTruthTrackv1.h>
 
-#include <trackbase/TrkrTruthTrackContainer.h>
 #include <trackbase/TrkrTruthTrackContainerv1.h>
 
 #include <trackbase/TrkrCluster.h>
@@ -32,6 +30,7 @@
 #include <trackbase/TrkrClusterContainerv4.h>
 
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
 
 #include <phparameter/PHParameterInterface.h>  // for PHParameterIn...
 #include <phparameter/PHParameters.h>
@@ -197,7 +196,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     auto newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
     runNode->addNode(newNode);
   }
-
+  
   UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
   auto RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));
@@ -299,6 +298,25 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   padplane->InitRun(topNode);
   padplane->CreateReadoutGeometry(topNode, seggeo);
 
+  // print all layers radii
+  if (Verbosity())
+  {
+    const auto range = seggeo->get_begin_end(); 
+    std::cout << "PHG4TpcElectronDrift::InitRun - layers: " << std::distance(range.first, range.second) << std::endl;
+    int counter = 0;
+    for (auto layeriter = range.first; layeriter != range.second; ++layeriter)
+    {
+      const auto radius = layeriter->second->get_radius();
+      std::cout << Form( "%.3f ", radius );
+      if( ++counter == 8 )
+      {
+        counter = 0;
+        std::cout << std::endl;
+      }
+    }
+    std::cout << std::endl;
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -326,9 +344,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   //std::cout << "g4hits size " << g4hit->size() << std::endl;
   unsigned int count_g4hits = 0;
-  int count_electrons = 0;
+  //  int count_electrons = 0;
 
-  double ecollectedhits = 0.0;
+  //  double ecollectedhits = 0.0;
   int ncollectedhits = 0;
   double ihit = 0;
   unsigned int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
@@ -372,7 +390,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     // Instead, use a temporary map to accumulate the charge from all drifted electrons, then copy to the node tree later
     double eion = hiter->second->get_eion();
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
-    count_electrons += n_electrons;
+    //    count_electrons += n_electrons;
 
     if (Verbosity() > 100)
       std::cout << "  new hit with t0, " << t0 << " g4hitid " << hiter->first
@@ -514,7 +532,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       auto pass_data = padplane->MapToPadPlane(
         single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, 
         x_final, y_final, t_final, side, hiter, ntpad, nthit);
-      if (is_embedded && pass_data.has_data()) layer_clusterers[pass_data.layer-1] += pass_data;
+      if (is_embedded && pass_data.has_data) layer_clusterers[pass_data.layer-1] += pass_data;
     }  // end loop over electrons for this g4hit
 
     TrkrHitSetContainer::ConstRange single_hitset_range = single_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -586,7 +604,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
                       << "  energy " << temp_tpchit->getEnergy() << " eg4hit " << eg4hit << std::endl;
 
             eg4hit += temp_tpchit->getEnergy();
-            ecollectedhits += temp_tpchit->getEnergy();
+	    //            ecollectedhits += temp_tpchit->getEnergy();
             ncollectedhits++;
           }
 
@@ -679,15 +697,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-/* TpcClusterBuilder PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple *padnt, TNtuple *hitnt) */
-/* { */
-/*   return padplane->MapToPadPlane( */
-/*       single_hitsetcontainer.get(), */ 
-/*       temp_hitsetcontainer.get(), */ 
-/*       hittruthassoc, */ 
-/*       x_gem, y_gem, t_gem, side, hiter, padnt, hitnt); */
-/* } */
 
 int PHG4TpcElectronDrift::End(PHCompositeNode * /*topNode*/)
 {
@@ -783,7 +792,7 @@ void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
 void PHG4TpcElectronDrift::buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsigned int>& hitset_cnt)
 {
   for (auto& cluster_builder : layer_clusterers) {
-    if (cluster_builder.has_data()) {
+    if (cluster_builder.has_data) {
       std::pair<TrkrDefs::cluskey,TrkrCluster*> keyval = cluster_builder.build(hitset_cnt);
       current_track->addCluster(keyval.first);
       truthclustercontainer->addClusterSpecifyKey(keyval.first, keyval.second);

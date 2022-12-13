@@ -14,6 +14,7 @@ libg4dst_la_LDFLAGS = \
   -lcalo_io \
   -lcalotrigger_io \
   -lcentrality_io \
+  -ldecayfinder_io \
   -leventplane_io \
   -lffaobjects \
   -lg4bbc_io \

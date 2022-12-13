@@ -213,10 +213,16 @@ void PHG4MvtxSubsystem::SetDefaultParameters()
   }
 
   set_default_string_param(GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
-  set_default_string_param(GLOBAL, "end_wheels_sideS",
-                           string(getenv("CALIBRATIONROOT")) + string("/Tracking/geometry/ITS_ibEndWheelSideA_mod_PEEK.gdml"));
-  set_default_string_param(GLOBAL, "end_wheels_sideN",
-                           string(getenv("CALIBRATIONROOT")) + string("/Tracking/geometry/ITS_ibEndWheelSideC_PEEK.gdml"));
+  char *calibrationsroot = getenv("CALIBRATIONROOT");
+  std::string end_wheels_sideS = "ITS_ibEndWheelSideA_mod_PEEK.gdml";
+  std::string end_wheels_sideN = "ITS_ibEndWheelSideC_PEEK.gdml";
+  if (calibrationsroot != nullptr)
+  {
+    end_wheels_sideS =  string(calibrationsroot) + string("/Tracking/geometry/") + end_wheels_sideS;
+    end_wheels_sideN = string(calibrationsroot) + string("/Tracking/geometry/") + end_wheels_sideN;
+  }
+  set_default_string_param(GLOBAL, "end_wheels_sideS", end_wheels_sideS);
+  set_default_string_param(GLOBAL, "end_wheels_sideN", end_wheels_sideN);
   /*
   set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_x", NAN);
   set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_z", NAN);

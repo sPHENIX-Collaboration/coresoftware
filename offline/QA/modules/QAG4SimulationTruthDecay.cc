@@ -645,7 +645,7 @@ void QAG4SimulationTruthDecay::getMotherPDG(PHCompositeNode *topNode)
   {
   }
 
-  std::vector<std::pair<int, int>> decay = m_decayMap->begin()->second;
+  Decay decay = m_decayMap->begin()->second;
   m_decay_pdg_id = decay[0].second;
 }
 
@@ -661,12 +661,9 @@ std::vector<int> QAG4SimulationTruthDecay::getDecayFinderMothers(PHCompositeNode
   
   for (DecayFinderContainer_v1::Iter iter = m_decayMap->begin(); iter != m_decayMap->end(); ++iter)
   {
-    std::vector<std::pair<int, int>> decay = iter->second;
+    Decay decay = iter->second;
     m_nTracks = decay.size() - 1;
-    for (unsigned int i = 0; i < decay.size(); ++i)
-    {
-      if (abs(decay[i].second) == abs(m_decay_pdg_id)) m_motherBarcodes.push_back(decay[i].first);
-    }
+    m_motherBarcodes.push_back(decay[0].first.second);
   }
 
   return m_motherBarcodes;

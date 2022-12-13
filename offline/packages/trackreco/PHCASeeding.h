@@ -16,13 +16,18 @@
 #include <tpc/TpcDistortionCorrection.h>
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
+#include <trackbase/ActsGeometry.h>
+
+#include <phool/PHTimer.h>  // for PHTimer
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-#include <trackbase/ActsGeometry.h>
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/geometry/geometries/box.hpp>    // for box
+#pragma GCC diagnostic pop
+
 #include <boost/geometry/geometries/point.hpp>  // for point
 #include <boost/geometry/index/rtree.hpp>       // for ca
 

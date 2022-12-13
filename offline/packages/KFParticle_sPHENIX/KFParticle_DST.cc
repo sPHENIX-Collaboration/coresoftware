@@ -18,7 +18,7 @@
 #include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack
 #include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, SvtxTr...
 #include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -151,7 +151,7 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFPa
 
   m_recoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, trackNodeName.c_str());
 
-  SvtxTrack* m_recoTrack = new SvtxTrack_v1();
+  SvtxTrack* m_recoTrack = new SvtxTrack_v2();
 
   m_recoTrack = buildSvtxTrack(motherParticle);
   m_recoTrackMap->insert(m_recoTrack);
@@ -237,7 +237,7 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, const K
 
 SvtxTrack* KFParticle_DST::buildSvtxTrack(KFParticle particle)
 {
-  SvtxTrack* track = new SvtxTrack_v1();
+  SvtxTrack* track = new SvtxTrack_v2();
 
   track->set_id(std::abs(particle.GetPDG()));
   track->set_charge((int) particle.GetQ());

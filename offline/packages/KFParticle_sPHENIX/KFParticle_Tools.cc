@@ -39,6 +39,7 @@
 #include <KFVertex.h>
 
 #include <Rtypes.h>
+#include <TDatabasePDG.h>
 #include <TMatrixD.h>
 #include <TMatrixDfwd.h>  // for TMatrixD
 #include <TMatrixT.h>     // for TMatrixT, operator*
@@ -52,13 +53,6 @@
 #include <iterator>   // for end
 #include <map>        // for _Rb_tree_iterator, map
 #include <memory>     // for allocator_traits<>::va...
-
-/// Create necessary objects
-typedef std::pair<int, float> particle_pair;
-KFParticle_particleList kfp_particleList;
-
-//Particle masses are in GeV
-std::map<std::string, particle_pair> particleMasses = kfp_particleList.getParticleList();
 
 /// KFParticle constructor
 KFParticle_Tools::KFParticle_Tools()
@@ -488,21 +482,21 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
   for (int i = 0; i < nTracks; ++i)
   {
     float daughterMass = 0;
-    daughterMass = constrainMass ? particleMasses.find(daughterOrder[i].c_str())->second.second : vDaughters[i].GetMass();
+    daughterMass = constrainMass ? getParticleMass(daughterOrder[i].c_str()) : vDaughters[i].GetMass();
     if ((num_remaining_tracks > 0 && i >= m_num_intermediate_states) || isIntermediate)
     {
-      daughterMass = particleMasses.find(daughterOrder[i].c_str())->second.second;
+      daughterMass = getParticleMass(daughterOrder[i].c_str());
     }
     inputTracks[i].Create(vDaughters[i].Parameters(),
                           vDaughters[i].CovarianceMatrix(),
                           (Int_t) vDaughters[i].GetQ(),
                           daughterMass);
     mother.AddDaughter(inputTracks[i]);
-    unique_vertexID += vDaughters[i].GetQ() * particleMasses.find(daughterOrder[i].c_str())->second.second;
+    unique_vertexID += vDaughters[i].GetQ() * getParticleMass(daughterOrder[i].c_str());
   }
 
-  if (isIntermediate) mother.SetPDG(particleMasses.find(m_intermediate_name[intermediateNumber].c_str())->second.first);
-  if (!isIntermediate && !m_mother_name_Tools.empty()) mother.SetPDG(particleMasses.find(m_mother_name_Tools.c_str())->second.first);
+  if (isIntermediate) mother.SetPDG(getParticleID(m_intermediate_name[intermediateNumber].c_str()));
+  if (!isIntermediate && !m_mother_name_Tools.empty()) mother.SetPDG(getParticleID(m_mother_name_Tools));
 
   bool chargeCheck;
   if (m_get_charge_conjugate)
@@ -696,6 +690,34 @@ void KFParticle_Tools::removeDuplicates(std::vector<std::vector<std::string>> &v
     end = remove(it + 1, end, *it);
   }
   v.erase(end, v.end());
+}
+
+bool KFParticle_Tools::findParticle(const std::string &particle)
+{
+  bool particleFound = true;
+  if (!TDatabasePDG::Instance()->GetParticle(particle.c_str()))
+  {
+    std::cout << "The particle, " << particle << " is not recognized" << std::endl;
+    std::cout << "Check TDatabasePDG for a list of available particles" << std::endl;
+    particleFound = false;
+  }
+
+  return particleFound;
+}
+
+int KFParticle_Tools::getParticleID(const std::string &particle)
+{
+  return TDatabasePDG::Instance()->GetParticle(particle.c_str())->PdgCode();
+}
+
+float KFParticle_Tools::getParticleMass(const std::string &particle)
+{
+  return TDatabasePDG::Instance()->GetParticle(particle.c_str())->Mass();
+}
+
+float KFParticle_Tools::getParticleMass(const int PDGID)
+{
+  return TDatabasePDG::Instance()->GetParticle(PDGID)->Mass();
 }
 
 void KFParticle_Tools::identify(KFParticle particle)

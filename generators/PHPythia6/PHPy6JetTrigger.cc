@@ -1,7 +1,11 @@
 #include "PHPy6JetTrigger.h"
 #include "PHPy6GenTrigger.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
+#pragma GCC diagnostic pop
+
 #include <HepMC/GenParticle.h>   // for GenParticle
 #include <HepMC/SimpleVector.h>  // for FourVector
 

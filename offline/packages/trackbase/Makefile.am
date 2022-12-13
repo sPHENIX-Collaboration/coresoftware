@@ -10,7 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -20,8 +20,10 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
+  ActsTrackFittingAlgorithm.h \
   ActsTrackingGeometry.h \
   ActsGeometry.h \
+  ActsSourceLink.h \
   AlignmentTransformation.h \
   alignmentTransformationContainer.h \
   ClusterErrorPara.h \
@@ -33,9 +35,12 @@ pkginclude_HEADERS = \
   CMFlashDifferencev1.h \
   CMFlashDifferenceContainer.h \
   CMFlashDifferenceContainerv1.h \
+  Calibrator.h \
   InttDefs.h \
   MvtxDefs.h \
+  ResidualOutlierFinder.h \
   sPHENIXActsDetectorElement.h \
+  SpacePoint.h \
   TpcDefs.h \
   TpcSeedTrackMap.h \
   TpcSeedTrackMapv1.h \
@@ -75,7 +80,14 @@ pkginclude_HEADERS = \
   TrkrHitSet.h \
   TrkrHitSetv1.h \
   TrkrHitSetContainer.h \
-  TrkrHitSetContainerv1.h
+  TrkrHitSetContainerv1.h \
+  RawHit.h \
+  RawHitv1.h \
+  RawHitTpc.h \
+  RawHitSet.h \
+  RawHitSetv1.h \
+  RawHitSetContainer.h \
+  RawHitSetContainerv1.h
 
 ROOTDICTS = \
   alignmentTransformationContainer_Dict.cc \
@@ -124,7 +136,14 @@ ROOTDICTS = \
   TrkrHitSetContainer_Dict.cc \
   TrkrHitSetContainerv1_Dict.cc \
   TpcSeedTrackMap_Dict.cc \
-  TpcSeedTrackMapv1_Dict.cc
+  TpcSeedTrackMapv1_Dict.cc \
+  RawHit_Dict.cc \
+  RawHitv1_Dict.cc \
+  RawHitTpc_Dict.cc \
+  RawHitSet_Dict.cc \
+  RawHitSetv1_Dict.cc \
+  RawHitSetContainer_Dict.cc \
+  RawHitSetContainerv1_Dict.cc
 
 
 pcmdir = $(libdir)
@@ -174,7 +193,14 @@ nobase_dist_pcm_DATA = \
   TrkrHitSetContainer_Dict_rdict.pcm \
   TrkrHitSetContainerv1_Dict_rdict.pcm \
   TpcSeedTrackMap_Dict_rdict.pcm \
-  TpcSeedTrackMapv1_Dict_rdict.pcm
+  TpcSeedTrackMapv1_Dict_rdict.pcm \
+  RawHit_Dict_rdict.pcm \
+  RawHitv1_Dict_rdict.pcm \
+  RawHitTpc_Dict_rdict.pcm \
+  RawHitSet_Dict_rdict.pcm \
+  RawHitSetv1_Dict_rdict.pcm \
+  RawHitSetContainer_Dict_rdict.pcm \
+  RawHitSetContainerv1_Dict_rdict.pcm 
 
 # sources for io library
 libtrack_io_la_SOURCES = \
@@ -192,7 +218,11 @@ libtrack_io_la_SOURCES = \
   MvtxDefs.cc \
   TpcDefs.cc \
   TrackFitUtils.cc \
+  TrackFittingAlgorithmFunctionsKalman.cc \
+  TrackFittingAlgorithmFunctionsGsf.cc \
+  TrkrTruthTrack.cc \
   TrkrTruthTrackv1.cc \
+  TrkrTruthTrackContainer.cc \
   TrkrTruthTrackContainerv1.cc \
   TrkrClusterv1.cc \
   TrkrClusterv2.cc \
@@ -220,9 +250,16 @@ libtrack_io_la_SOURCES = \
   TrkrHitTruthClustersv1.cc \
   TrkrHitv1.cc \
   TrkrHitv2.cc \
+  TrkrTruthClusters.cc \
   TrkrTruthClustersv1.cc \
   TpcSeedTrackMap.cc \
-  TpcSeedTrackMapv1.cc
+  TpcSeedTrackMapv1.cc \
+  RawHitSet.cc \
+  RawHitSetv1.cc \
+  RawHitSetContainer.cc \
+  RawHitSetContainerv1.cc \
+  RawHitv1.cc \
+  RawHitTpc.cc 
 
 libtrack_io_la_LIBADD = \
   -lphool \

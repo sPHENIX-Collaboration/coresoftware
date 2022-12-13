@@ -8,11 +8,15 @@
 #ifndef TRACKRECO_ACTSTRKFITTER_H
 #define TRACKRECO_ACTSTRKFITTER_H
 
+#include "ActsAlignmentStates.h"
 
 #include <fun4all/SubsysReco.h>
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/ActsTrackFittingAlgorithm.h>
+#include <trackbase/alignmentTransformationContainer.h>
+#include <trackbase/ActsSourceLink.h>
 
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterMover.h>
@@ -22,10 +26,8 @@
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-#include <ActsExamples/TrackFitting/TrackFittingAlgorithm.hpp>
 #include <ActsExamples/EventData/Trajectories.hpp>
 #include <ActsExamples/EventData/Track.hpp>
-#include <ActsExamples/EventData/IndexSourceLink.hpp>
 
 #include <memory>
 #include <string>
@@ -33,10 +35,7 @@
 #include <TH1.h>
 #include <TH2.h>
 
-
 #include <trackbase/alignmentTransformationContainer.h>
-
-
 
 class MakeActsGeometry;
 class SvtxTrack;
@@ -44,10 +43,10 @@ class SvtxTrackMap;
 class TrackSeed;
 class TrackSeedContainer;
 class TrkrClusterContainer;
-class TrkrClusterIterationMap;
 class TpcDistortionCorrectionContainer;
+class SvtxAlignmentStateMap;
 
-using SourceLink = ActsExamples::IndexSourceLink;
+using SourceLink = ActsSourceLink;
 using FitResult = Acts::KalmanFitterResult;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices,2>;
@@ -97,6 +96,8 @@ class PHActsTrkFitter : public SubsysReco
   void setAbsPdgHypothesis(unsigned int pHypothesis)
   { m_pHypothesis = pHypothesis; }
 
+  void commissioning(bool com) { m_commissioning = com; }
+
   void useOutlierFinder(bool outlier) { m_useOutlierFinder = outlier; }
 
   void SetIteration(int iter){_n_iteration = iter;}
@@ -123,10 +124,10 @@ class PHActsTrkFitter : public SubsysReco
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
-  ActsExamples::TrackFittingAlgorithm::TrackFitterResult fitTrack(
+  ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
            const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
 	   const ActsExamples::TrackParameters& seed,
-	   const ActsExamples::TrackFittingAlgorithm::GeneralFitterOptions& 
+	   const ActsTrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
 	   const SurfacePtrVec& surfSequence);
 
@@ -148,7 +149,7 @@ class PHActsTrkFitter : public SubsysReco
   ActsGeometry *m_tGeometry = nullptr;
 
   /// Configuration containing the fitting function instance
-  ActsExamples::TrackFittingAlgorithm::Config m_fitCfg;
+  ActsTrackFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
   alignmentTransformationContainer *m_alignmentTransformationMap = nullptr;  // added for testing purposes
@@ -193,13 +194,17 @@ class PHActsTrkFitter : public SubsysReco
   ClusterErrorPara _ClusErrPara;
 
   std::string m_fieldMap = "";
-  TrkrClusterIterationMap* _iteration_map = nullptr;
+
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
   std::string _seed_track_map_name = "SeedTrackMap";
 
   /// Default particle assumption to pion
   unsigned int m_pHypothesis = 211;
+
+  SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
+  ActsAlignmentStates m_alignStates;
+  bool m_commissioning = false;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;

@@ -12,7 +12,7 @@ dnl   at least see them, so here we go for g++: -Wall
 dnl   make warnings fatal errors: -Werror
 if test $ac_cv_prog_gxx = yes; then
 dnl turn off warnings about unused functions in cfortran.h
-   CXXFLAGS="$CXXFLAGS -Wall  -Wno-unused-function -Werror -Wextra"
+   CXXFLAGS="$CXXFLAGS -Wall  -Werror -Wextra -Wno-unused-function -Wno-deprecated-declarations"
 fi
 
 AC_CONFIG_FILES([Makefile])

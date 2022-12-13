@@ -11,12 +11,7 @@ AM_LDFLAGS = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(ROOTSYS)/include \
-  -I$(OFFLINE_MAIN)/include
-
-RINCLUDES = \
-  -I$(includedir) \
-  -I$(ROOTSYS)/include \
+  -isystem$(ROOTSYS)/include \
   -I$(OFFLINE_MAIN)/include
 
 pkginclude_HEADERS = \
