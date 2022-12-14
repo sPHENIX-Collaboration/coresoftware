@@ -1,5 +1,7 @@
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include <Acts/Definitions/TrackParametrization.hpp>
+#pragma GCC diagnostic pop
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/MagneticField/SharedBField.hpp>
@@ -26,9 +28,9 @@ namespace
   using Smoother = Acts::GainMatrixSmoother;
   using Stepper = Acts::EigenStepper<>;
   using Propagator = Acts::Propagator<Stepper, Acts::Navigator>;
-  using Fitter = Acts::KalmanFitter<Propagator>;
+  using Fitter = Acts::KalmanFitter<Propagator,Acts::VectorMultiTrajectory>;
   using DirectPropagator = Acts::Propagator<Stepper, Acts::DirectNavigator>;
-  using DirectFitter = Acts::KalmanFitter<DirectPropagator>;
+  using DirectFitter = Acts::KalmanFitter<DirectPropagator, Acts::VectorMultiTrajectory>;
 
   struct SimpleReverseFilteringLogic
   {
@@ -36,7 +38,7 @@ namespace
     double momentumThreshold = 0.0;
 
     bool doBackwardFiltering(
-        Acts::MultiTrajectory::ConstTrackStateProxy trackState) const
+			     Acts::MultiTrajectory<Acts::VectorMultiTrajectory>::ConstTrackStateProxy trackState) const
     {
       auto momentum = fabs(1 / trackState.filtered()[Acts::eBoundQOverP]);
       return (momentum <= momentumThreshold);
@@ -48,16 +50,16 @@ namespace
       const TrackFitterFunktion& f,
       ActsTrackFittingAlgorithm::GeneralFitterOptions options)
   {
-    Acts::KalmanFitterExtensions extensions;
-    extensions.updater.connect<&Acts::GainMatrixUpdater::operator()>(
+    Acts::KalmanFitterExtensions<Acts::VectorMultiTrajectory> extensions;
+    extensions.updater.connect<&Acts::GainMatrixUpdater::operator()<Acts::VectorMultiTrajectory>>(
         &f.kfUpdater);
-    extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()>(
+    extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()<Acts::VectorMultiTrajectory>>(
         &f.kfSmoother);
     extensions.reverseFilteringLogic
         .connect<&SimpleReverseFilteringLogic::doBackwardFiltering>(
             &f.reverseFilteringLogic);
 
-    Acts::KalmanFitterOptions kfOptions(
+    Acts::KalmanFitterOptions<Acts::VectorMultiTrajectory> kfOptions(
         options.geoContext, options.magFieldContext, options.calibrationContext,
         extensions, options.logger, options.propOptions,
         &(*options.referenceSurface));
@@ -94,7 +96,8 @@ namespace
         const std::vector<std::reference_wrapper<
             const ActsSourceLink>>& sourceLinks,
         const ActsExamples::TrackParameters& initialParameters,
-        const ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
+        const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
+        std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory)
         const override
     {
       auto kfOptions = makeKfOptions(*this, options);
@@ -102,7 +105,7 @@ namespace
           .connect<&Calibrator::calibrate>(
               &options.calibrator.get());
       return trackFitter.fit(sourceLinks.begin(), sourceLinks.end(),
-                             initialParameters, kfOptions);
+                             initialParameters, kfOptions, trajectory);
     };
   };
 
@@ -132,14 +135,15 @@ namespace
             const ActsSourceLink>>& sourceLinks,
         const ActsExamples::TrackParameters& initialParameters,
         const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
-        const std::vector<const Acts::Surface*>& sSequence) const override
+        const std::vector<const Acts::Surface*>& sSequence,
+        std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory) const override
     {
       auto kfOptions = makeKfOptions(*this, options);
       kfOptions.extensions.calibrator
           .connect<&Calibrator::calibrate>(
               &options.calibrator.get());
       return fitter.fit(sourceLinks.begin(), sourceLinks.end(), initialParameters,
-                        kfOptions, sSequence);
+                        kfOptions, sSequence, trajectory);
     };
   };
 
@@ -166,7 +170,8 @@ struct sPHENIXTrackFitterFunctionImpl : public TrackFitterFunctionImpl
       const std::vector<std::reference_wrapper<
           const ActsSourceLink>>& sourceLinks,
       const ActsExamples::TrackParameters& initialParameters,
-      const ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
+      const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
+      std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory)
       const override
   {
     auto kfOptions = makeKfOptions(*this, options);
@@ -179,7 +184,7 @@ struct sPHENIXTrackFitterFunctionImpl : public TrackFitterFunctionImpl
     }
 
     return trackFitter.fit(sourceLinks.begin(), sourceLinks.end(),
-                           initialParameters, kfOptions);
+                           initialParameters, kfOptions, trajectory);
   };
 };
 
