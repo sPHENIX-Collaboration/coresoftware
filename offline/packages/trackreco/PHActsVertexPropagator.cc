@@ -71,12 +71,14 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
 	{
 	  const auto& boundParams = trajectory.trackParameters(trackTip);
 
-	  auto propresult = propagateTrack(boundParams, svtxTrack->get_vertex_id());
-	  if(propresult.ok())
+	  const auto& paramsAtVertex = propagateTrack(boundParams, svtxTrack->get_vertex_id());
+	 
+	  if(not (paramsAtVertex.charge() == 0 && 
+		  paramsAtVertex.momentum().x() == 0 &&
+		  paramsAtVertex.momentum().y() == 0 && 
+		  paramsAtVertex.momentum().z() == 0))
 	    {
-	  
-	      auto paramsAtVertex = std::move(**propresult);
-	      updateSvtxTrack(svtxTrack,paramsAtVertex);
+	      updateSvtxTrack(svtxTrack, paramsAtVertex);
 	    }
 	}
     }
@@ -164,9 +166,9 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
     }
 }
 
-BoundTrackParamPtrResult PHActsVertexPropagator::propagateTrack(
-		         const Acts::BoundTrackParameters& params,
-			 const unsigned int vtxid)
+Acts::BoundTrackParameters PHActsVertexPropagator::propagateTrack(
+		           const Acts::BoundTrackParameters& params,
+			   const unsigned int vtxid)
 {
   
   /// create perigee surface
@@ -194,10 +196,14 @@ BoundTrackParamPtrResult PHActsVertexPropagator::propagateTrack(
   
   auto result = propagator.propagate(params, *perigee, 
 				     options);
-  if(result.ok())
-    { return std::move((*result).endParameters); }
   
-  return result.error();
+  if(result.ok())
+    { 
+      Acts::BoundTrackParameters params = *result.value().endParameters;
+      return params;
+    }
+
+  return Acts::BoundTrackParameters(nullptr, Acts::BoundVector::Zero(), 0);
 
 }
 

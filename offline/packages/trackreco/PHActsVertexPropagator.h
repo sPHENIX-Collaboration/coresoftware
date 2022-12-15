@@ -43,10 +43,11 @@ class PHActsVertexPropagator : public SubsysReco
 
   int getNodes(PHCompositeNode *topNode);
   void setTrackVertexTo0();
-  BoundTrackParamPtrResult propagateTrack(const Acts::BoundTrackParameters& params,
+  Acts::BoundTrackParameters propagateTrack(const Acts::BoundTrackParameters& params,
 					  const unsigned int vtxid);
   Acts::Vector3 getVertex(const unsigned int vtxid);
-  void updateSvtxTrack(SvtxTrack* track, const Acts::BoundTrackParameters& params);
+  void updateSvtxTrack(SvtxTrack* track, 
+		       const Acts::BoundTrackParameters& params);
   void setVtxChi2();
   
   ActsGeometry *m_tGeometry = nullptr;

@@ -25,6 +25,7 @@
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 #include <ActsExamples/EventData/Track.hpp>
@@ -47,7 +48,7 @@ class TpcDistortionCorrectionContainer;
 class SvtxAlignmentStateMap;
 
 using SourceLink = ActsSourceLink;
-using FitResult = Acts::KalmanFitterResult;
+using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices,2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;

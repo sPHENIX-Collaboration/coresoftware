@@ -76,7 +76,7 @@ class PHActsTrackProjection : public SubsysReco
   int projectTracks(int caloLayer);
 
   /// Propagate the fitted track parameters to a surface with Acts
-  BoundTrackParamPtrResult propagateTrack(
+  Acts::BoundTrackParameters propagateTrack(
       const Acts::BoundTrackParameters &params,
       const SurfacePtr &targetSurf);
 
