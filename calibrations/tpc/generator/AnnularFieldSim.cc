@@ -1372,7 +1372,7 @@ void AnnularFieldSim::save_spacecharge(const std::string &filename){
           for (int k = 0; k < nz; k++)
             {
               float z = zmin+step.Z()*(k+0.5);
-              hsc->Fill(q->GetChargeAtPosition(r,phi,z));                                                                                                        
+              hsc->Fill(phi,r,z,q->GetChargeAtPosition(r,phi,z));                                                                                                        
 	      //old version: hsc->Fill(phi,r,z,q->Get(j,i,k));
             }
         }
