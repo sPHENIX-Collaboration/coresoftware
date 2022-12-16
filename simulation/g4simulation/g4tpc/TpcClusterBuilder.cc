@@ -18,7 +18,7 @@
 
 /* class TpcClusterBuilder; */
 
-using std::cout, std::endl;
+using std::cout, std::endl, std::string, std::ofstream;
 
 double TpcClusterBuilder::square(double v) { return v*v; }
 double TpcClusterBuilder::square(float  v) { return v*v; }
@@ -31,12 +31,13 @@ TpcClusterBuilder::TpcClusterBuilder
    ): m_clusterlist         { _truth_cluster_container }
     , m_tGeometry           { _ActsGeometry            }
     , geom_container        { _geom_container          }
-{}
+{ }
 
 void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
+  if (m_hits == nullptr) cout << " m_hits == nullptr! " << endl;
 
   if (!is_embedded_track) {
-    m_hits->Reset();
+    reset(clear_hitsetkey_cnt);
     return;
   }
 
@@ -79,8 +80,8 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
     double t_sum = 0.0;
     double phi_sum = 0.0;
     double adc_sum = 0.0;
-    double t2_sum = 0.0;
-    double phi2_sum = 0.0;
+    // double t2_sum = 0.0;
+    // double phi2_sum = 0.0;
 
     double radius = layergeom->get_radius();  // returns center of layer
 
@@ -114,12 +115,12 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
       // update phi sums
       double phi_center = layergeom->get_phicenter(iphi);
       phi_sum += phi_center * adc;
-      phi2_sum += square(phi_center)*adc;
+      // phi2_sum += square(phi_center)*adc;
 
       // update t sums
       double t = layergeom->get_zcenter(it);
       t_sum += t*adc;
-      t2_sum += square(t)*adc;
+      // t2_sum += square(t)*adc;
 
       adc_sum += adc;
     }
@@ -173,18 +174,19 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
     TrkrDefs::cluskey cluskey = TrkrDefs::genClusKey(hitsetkey, hitsetkey_cnt[hitsetkey]);
     m_clusterlist->addClusterSpecifyKey(cluskey, cluster);
 
+    if (false) { // debug print statement
+        /* cout << hitsetkey_cnt[hitsetkey] << " " << cluster->getLocalX() << std::endl; */
+    }
+
     if (current_track != nullptr) current_track->addCluster(cluskey);
   }
 
-  // clear the hitsets before the next track
-  m_hits->Reset();
-
-  // if done with the event, also clear the hitsetkey_cnt
-  if (clear_hitsetkey_cnt) hitsetkey_cnt.clear();
+  reset(clear_hitsetkey_cnt);
 }
 
 void TpcClusterBuilder::set_current_track(TrkrTruthTrack* track) {
   current_track = track;
+  ++ n_tracks;
 }
 
 void TpcClusterBuilder::addhitset(
@@ -192,6 +194,8 @@ void TpcClusterBuilder::addhitset(
     TrkrDefs::hitkey hitkey, 
     float neffelectrons) 
 {
+  // copy of code in PHG4TpcPadPlaneReadout::MapToPadPlane, with a switch
+  // to ignore non embedded tracks
   if (!is_embedded_track) return;
 
   // Add the hitset to the current embedded track
@@ -209,3 +213,71 @@ void TpcClusterBuilder::addhitset(
   // Either way, add the energy to it  -- adc values will be added at digitization
   hit->addEnergy(neffelectrons);
 }
+
+void TpcClusterBuilder::reset(bool clear_hitsetkey_cnt) {
+  // clear the hitsets before the next track
+  m_hits->Reset();
+
+  // if done with the event, also clear the hitsetkey_cnt
+  if (clear_hitsetkey_cnt) {
+    hitsetkey_cnt.clear();
+    n_tracks = 0;
+  }
+}
+
+void TpcClusterBuilder::print(
+    TrkrTruthTrackContainer* truth_tracks, int nclusprint) {
+  cout << " ------------- content of TrkrTruthTrackContainer ---------- " << endl;
+  auto& tracks = truth_tracks->getTruthTracks();
+  cout << " Number of tracks: " << tracks.size() << endl;
+  for (auto& track : tracks) {
+    cout << " id( " << track->getTrackid() << ")  phi:eta:pt("<<
+      track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt() << ") nclusters(" 
+      << track->getClusters().size() <<") ";
+    int nclus = 0;
+    for (auto cluskey : track->getClusters()) {
+      cout << " " 
+        << ((int) TrkrDefs::getHitSetKeyFromClusKey(cluskey)) <<":index(" <<
+        ((int)  TrkrDefs::getClusIndex(cluskey)) << ")";
+      ++nclus;
+      if (nclusprint > 0 && nclus >= nclusprint) {
+        cout << " ... "; 
+        break;
+      }
+    }
+    cout << endl;
+  }
+  cout << " ----- end of tracks in TrkrrTruthTrackContainer ------ " << endl;
+}
+
+void TpcClusterBuilder::print_file(
+    TrkrTruthTrackContainer* truth_tracks, string ofile_name)
+{
+  ofstream fout;
+  fout.open(ofile_name.c_str());
+  fout << " ------------- content of TrkrTruthTrackContainer ---------- " << endl;
+  auto& tracks = truth_tracks->getTruthTracks();
+  fout << " Number of tracks: " << tracks.size() << endl;
+  for (auto& track : tracks) {
+    fout << " id( " << track->getTrackid() << ")  phi:eta:pt("<<
+      track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt() << ") nclusters(" 
+      << track->getClusters().size() <<") ";
+    int nclus = 0;
+    for (auto cluskey : track->getClusters()) {
+      auto C = m_clusterlist->findCluster(cluskey);
+      fout << " " 
+        << ((int) TrkrDefs::getHitSetKeyFromClusKey(cluskey)) <<":" <<
+        ((int)  TrkrDefs::getClusIndex(cluskey)) << "->adc:X:phisize:Y:zsize("
+        << C->getAdc()     <<":"
+        << C->getLocalX()  <<":"
+        << C->getPhiSize() <<":"
+        << C->getLocalY()  <<":"
+        << C->getZSize()  <<") ";
+      ++nclus;
+    }
+    fout << endl;
+  }
+  fout << " ----- end of tracks in TrkrrTruthTrackContainer ------ " << endl;
+  fout.close();
+}
+

@@ -33,6 +33,7 @@ class TrkrClusterContainer;
 class TrkrTruthTrack;
 class DistortedTrackContainer;
 class TpcClusterBuilder;
+class PHG4TpcCylinderGeomContainer;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
@@ -84,6 +85,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
   std::unique_ptr<PHG4TpcDistortion> m_distortionMap;
   ActsGeometry* m_tGeometry;
+  PHG4TpcCylinderGeomContainer *seggeo;
+
   int event_num = 0;
   bool do_ElectronDriftQAHistos = false;
 
@@ -131,7 +134,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 
 
   /* std::array<TpcClusterBuilder,55> layer_clusterers; // Generate TrkrClusterv4's for TrkrTruthTracks */
-  TpcClusterBuilder* truth_clusterer;
+  TpcClusterBuilder* truth_clusterer { nullptr };
 
   /* void buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsigned int>&); */
 
