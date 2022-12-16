@@ -391,12 +391,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     int trkid_new = hiter->second->get_trkid();
     if (trkid != trkid_new)
     {  // starting a new track
-      truth_clusterer->cluster_and_reset();
-      /* if (is_embedded) */ 
-      /* { // build the clusters for the prior truth track and clear out the hits in the layer_clusterers */
-      /*   truth_clusterer->build_clusters(); */
-      /*   /1* buildTruthClusters(hitset_cnt); *1/ */
-      /* } */
+      truth_clusterer->cluster_and_reset(false);
       trkid = trkid_new;
       truth_clusterer->is_embedded_track = (truthinfo->isEmbeded(hiter->second->get_trkid()));
       if (truth_clusterer->is_embedded_track) 
@@ -411,8 +406,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     }
 
 
-    // for very high occupancy events, accessing the TrkrHitsets on the node tree for every drifted electron seems to be very slow
-    // Instead, use a temporary map to accumulate the charge from all drifted electrons, then copy to the node tree later
+    // for very high occupancy events, accessing the TrkrHitsets on the node tree 
+    // for every drifted electron seems to be very slow
+    // Instead, use a temporary map to accumulate the charge from all 
+    // drifted electrons, then copy to the node tree later
+    
     double eion = hiter->second->get_eion();
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
     //    count_electrons += n_electrons;
@@ -420,29 +418,34 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     if (Verbosity() > 100)
       std::cout << "  new hit with t0, " << t0 << " g4hitid " << hiter->first
                 << " eion " << eion << " n_electrons " << n_electrons
-                << " entry z " << hiter->second->get_z(0) << " exit z " << hiter->second->get_z(1) << " avg z" << (hiter->second->get_z(0) + hiter->second->get_z(1)) / 2.0
+                << " entry z " << hiter->second->get_z(0) << " exit z " 
+                << hiter->second->get_z(1) << " avg z" 
+                << (hiter->second->get_z(0) + hiter->second->get_z(1)) / 2.0
                 << std::endl;
 
-    if (n_electrons == 0)
-    {
-      continue;
-    }
+    if (n_electrons == 0) { continue; }
 
     if (Verbosity() > 100)
     {
       std::cout << std::endl
-                << "electron drift: g4hit " << hiter->first << " created electrons: " << n_electrons
-                << " from " << eion * 1000000 << " keV" << std::endl;
-      std::cout << " entry x,y,z = " << hiter->second->get_x(0) << "  " << hiter->second->get_y(0) << "  " << hiter->second->get_z(0)
-                << " radius " << sqrt(pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2)) << std::endl;
-      std::cout << " exit x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1)
-                << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2)) << std::endl;
+                << "electron drift: g4hit " << hiter->first << " created electrons: " 
+                << n_electrons << " from " << eion * 1000000 << " keV" << std::endl;
+      std::cout << " entry x,y,z = " << hiter->second->get_x(0) << "  " 
+                << hiter->second->get_y(0) << "  " << hiter->second->get_z(0)
+                << " radius " << sqrt(pow(hiter->second->get_x(0), 2) + 
+                     pow(hiter->second->get_y(0), 2)) << std::endl;
+      std::cout << " exit x,y,z = " << hiter->second->get_x(1) << "  " 
+                << hiter->second->get_y(1) << "  " << hiter->second->get_z(1)
+                << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + 
+                    pow(hiter->second->get_y(1), 2)) << std::endl;
     }
 
     for (unsigned int i = 0; i < n_electrons; i++)
     {
-      // We choose the electron starting position at random from a flat distribution along the path length
-      // the parameter t is the fraction of the distance along the path betwen entry and exit points, it has values between 0 and 1
+      // We choose the electron starting position at random from a flat
+      // distribution along the path length the parameter t is the fraction of
+      // the distance along the path betwen entry and exit points, it has
+      // values between 0 and 1
       const double f = gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
 
       const double x_start = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
@@ -527,9 +530,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
       if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
-      {
-        continue;
-      }
+      { continue; }
 
       if (Verbosity() > 1000)
       {
@@ -543,8 +544,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
                   << " rantime " << rantime
                   << std::endl;
 
-        std::cout << "       rad_final " << rad_final << " x_final " << x_final << " y_final " << y_final
-                  << " z_final " << z_final << " t_final " << t_final << " zdiff " << z_final - z_start << std::endl;
+        std::cout << "       rad_final " << rad_final << " x_final " << x_final
+          << " y_final " << y_final
+          << " z_final " << z_final << " t_final " << t_final 
+          << " zdiff " << z_final - z_start << std::endl;
       }
 
       if (Verbosity() > 0)
@@ -553,11 +556,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
       }
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
-      /* auto pass_data = MapToPadPlane(x_final, y_final, t_final, side, hiter, ntpad, nthit); */
       padplane->MapToPadPlane(truth_clusterer, single_hitsetcontainer.get(),
           temp_hitsetcontainer.get(), hittruthassoc, x_final, y_final, t_final,
           side, hiter, ntpad, nthit);
-      /* if (is_embedded && pass_data.has_data) layer_clusterers[pass_data.layer-1] += pass_data; */
     }  // end loop over electrons for this g4hit
 
     TrkrHitSetContainer::ConstRange single_hitset_range = single_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -665,12 +666,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
   }  // end loop over g4hits
 
-  truth_clusterer->cluster_and_reset();
-  /* if (is_embedded) */ 
-  /* { // if ended on an embedded track, then fill the clusters for that track */
-  /*     truth_clusterer->build_clusters(); */
-  /*     /1* buildTruthClusters(hitset_cnt); *1/ */
-  /* } */
+  truth_clusterer->cluster_and_reset(true);
 
   if (Verbosity() > 2)
   {
