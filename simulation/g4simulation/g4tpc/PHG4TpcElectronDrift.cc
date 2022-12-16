@@ -402,9 +402,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       truth_clusterer->cluster_and_reset(/*argument is if to reset hitsetkey as well*/ false);
       trkid = trkid_new;
       truth_clusterer->is_embedded_track = (truthinfo->isEmbeded(hiter->second->get_trkid()));
-      // FIXME
-      /* if (Verbosity() > 1000){ */
-      if (true) {
+      if (Verbosity() > 1000){
         std::cout << " New track " << trkid << " is embed? : " 
           << truth_clusterer->is_embedded_track << std::endl;
       }
@@ -731,9 +729,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     truthtracks->identify();
   }
 
-  // FIXME
-  /* if (Verbosity()>50) { */
-  if (true) {
+  if (Verbosity()>800) {
     truth_clusterer->print(truthtracks);
     truth_clusterer->print_file(truthtracks,"drift_clusters.txt");
   }
