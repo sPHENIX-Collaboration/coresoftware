@@ -50,7 +50,9 @@ namespace
       ActsTrackFittingAlgorithm::GeneralFitterOptions options)
   {
     Acts::KalmanFitterExtensions<Acts::VectorMultiTrajectory> extensions;
+    // cppcheck-suppress constStatement
     extensions.updater.connect<&Acts::GainMatrixUpdater::operator()<Acts::VectorMultiTrajectory>>(&f.kfUpdater);
+    // cppcheck-suppress constStatement
     extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()<Acts::VectorMultiTrajectory>>(&f.kfSmoother);
     extensions.reverseFilteringLogic
         .connect<&SimpleReverseFilteringLogic::doBackwardFiltering>(

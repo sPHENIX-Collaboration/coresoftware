@@ -59,6 +59,7 @@ struct GsfFitterFunctionImpl
       const ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
       const {
     Acts::Experimental::GsfExtensions<Acts::VectorMultiTrajectory> extensions;
+    // cppcheck-suppress constStatement
     extensions.updater.connect<&Acts::GainMatrixUpdater::operator()<Acts::VectorMultiTrajectory>>(&updater);
 
     Acts::Experimental::GsfOptions<Acts::VectorMultiTrajectory> gsfOptions{
