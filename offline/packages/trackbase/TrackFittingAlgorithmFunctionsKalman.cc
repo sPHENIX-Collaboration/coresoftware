@@ -50,9 +50,11 @@ namespace
       ActsTrackFittingAlgorithm::GeneralFitterOptions options)
   {
     Acts::KalmanFitterExtensions<Acts::VectorMultiTrajectory> extensions;
-    extensions.updater.connect<&Acts::GainMatrixUpdater::operator()<Acts::VectorMultiTrajectory>>(
+    extensions.updater.connect<
+      &Acts::GainMatrixUpdater::operator()<Acts::VectorMultiTrajectory>>(
         &f.kfUpdater);
-    extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()<Acts::VectorMultiTrajectory>>(
+    extensions.smoother.connect<
+      &Acts::GainMatrixSmoother::operator()<Acts::VectorMultiTrajectory>>(
         &f.kfSmoother);
     extensions.reverseFilteringLogic
         .connect<&SimpleReverseFilteringLogic::doBackwardFiltering>(
