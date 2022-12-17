@@ -70,7 +70,6 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
       for(const auto& trackTip : trackTips)
 	{
 	  const auto& boundParams = trajectory.trackParameters(trackTip);
-
 	  auto propresult = propagateTrack(boundParams, svtxTrack->get_vertex_id());
 	  if(propresult.ok())
 	    {
@@ -78,6 +77,10 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
 	      auto paramsAtVertex = std::move(**propresult);
 	      updateSvtxTrack(svtxTrack,paramsAtVertex);
 	    }
+          else
+            {
+              svtxTrack->identify();
+            }
 	}
     }
   
