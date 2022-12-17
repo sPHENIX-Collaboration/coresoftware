@@ -245,7 +245,7 @@ class AnnularFieldSim
   void load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz, const std::string &filename, const std::string &histname, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
 
   void load_and_resample_spacecharge(int new_nphi, int new_nr, int new_nz, TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
-
+  void save_spacecharge(const std::string &filename);
   void load_analytic_spacecharge(float scalefactor);
   void add_testcharge(float r, float phi, float z, float coulombs);
 
