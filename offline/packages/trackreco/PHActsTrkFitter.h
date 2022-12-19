@@ -8,6 +8,7 @@
 #ifndef TRACKRECO_ACTSTRKFITTER_H
 #define TRACKRECO_ACTSTRKFITTER_H
 
+#include "ActsAlignmentStates.h"
 
 #include <fun4all/SubsysReco.h>
 
@@ -25,7 +26,6 @@
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-
 #include <ActsExamples/EventData/Trajectories.hpp>
 #include <ActsExamples/EventData/Track.hpp>
 
@@ -34,7 +34,6 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
-
 
 #include <trackbase/alignmentTransformationContainer.h>
 
@@ -45,6 +44,7 @@ class TrackSeed;
 class TrackSeedContainer;
 class TrkrClusterContainer;
 class TpcDistortionCorrectionContainer;
+class SvtxAlignmentStateMap;
 
 using SourceLink = ActsSourceLink;
 using FitResult = Acts::KalmanFitterResult;
@@ -96,6 +96,8 @@ class PHActsTrkFitter : public SubsysReco
   void setAbsPdgHypothesis(unsigned int pHypothesis)
   { m_pHypothesis = pHypothesis; }
 
+  void commissioning(bool com) { m_commissioning = com; }
+
   void useOutlierFinder(bool outlier) { m_useOutlierFinder = outlier; }
 
   void SetIteration(int iter){_n_iteration = iter;}
@@ -103,6 +105,9 @@ class PHActsTrkFitter : public SubsysReco
   void set_seed_track_map_name(const std::string &map_name) { _seed_track_map_name = map_name; }
 
   void set_cluster_version(int value) { m_cluster_version = value; }
+
+  /// Set flag for pp running
+  void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
 
  private:
 
@@ -175,6 +180,9 @@ class PHActsTrkFitter : public SubsysReco
   bool m_useOutlierFinder = false;
   ResidualOutlierFinder m_outlierFinder;
 
+  /// Flag for pp running
+  bool m_pp_mode = false;
+
   bool m_actsEvaluator = false;
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
   SvtxTrackMap *m_seedTracks = nullptr;
@@ -199,6 +207,10 @@ class PHActsTrkFitter : public SubsysReco
 
   /// Default particle assumption to pion
   unsigned int m_pHypothesis = 211;
+
+  SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
+  ActsAlignmentStates m_alignStates;
+  bool m_commissioning = false;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;

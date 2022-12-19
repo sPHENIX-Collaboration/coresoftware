@@ -124,9 +124,9 @@ PgPostBankBackupStorage::createBank()
   bw->setInsertTime(obj_header.getInsertTime());
   bw->setStartValTime(obj_header.getStartValTime());
   bw->setEndValTime(obj_header.getEndValTime());
-  bw->setDescription(obj_header.getDescription().c_str());
-  bw->setUserName(obj_header.getUserName().c_str());
-  bw->setTableName(obj_header.getTableName().c_str());
+  bw->setDescription(obj_header.getDescription());
+  bw->setUserName(obj_header.getUserName());
+  bw->setTableName(obj_header.getTableName());
 
   return bw;
 }

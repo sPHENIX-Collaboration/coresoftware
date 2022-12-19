@@ -17,6 +17,9 @@ class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrClusterCrossingAssoc;
 class TrkrHit;
+class RawHit;
+class RawHitSet;
+class RawHitSetContainer;
 
 class InttClusterizer : public SubsysReco
 {
@@ -71,15 +74,20 @@ class InttClusterizer : public SubsysReco
   }
   void set_cluster_version(int value) { m_cluster_version = value; }
   void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
+  void set_read_raw(bool read_raw){ do_read_raw = read_raw;}
+
  private:
   bool ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs, const int layer);
+  bool ladder_are_adjacent(RawHit* lhs,  RawHit* rhs, const int layer);
 
   void CalculateLadderThresholds(PHCompositeNode *topNode);
   void ClusterLadderCells(PHCompositeNode *topNode);
+  void ClusterLadderCellsRaw(PHCompositeNode *topNode);
   void PrintClusters(PHCompositeNode *topNode);
 
   // node tree storage pointers
   TrkrHitSetContainer *m_hits;
+  RawHitSetContainer *m_rawhits;
   TrkrClusterContainer *m_clusterlist; 
   TrkrClusterHitAssoc *m_clusterhitassoc;
   TrkrClusterCrossingAssoc *m_clustercrossingassoc{nullptr};
@@ -90,6 +98,7 @@ class InttClusterizer : public SubsysReco
   std::map<int, bool> _make_z_clustering;     // layer->z_clustering_option
   std::map<int, bool> _make_e_weights;        // layer->energy_weighting_option
   bool do_hit_assoc = true;
+  bool do_read_raw = false;
   int m_cluster_version = 4;
 };
 

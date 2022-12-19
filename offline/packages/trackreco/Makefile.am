@@ -22,6 +22,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   ActsEvaluator.h \
+  ActsAlignmentStates.h \
   ALICEKF.h \
   AssocInfoContainer.h \
   AssocInfoContainerv1.h \
@@ -31,6 +32,7 @@ pkginclude_HEADERS = \
   MakeActsGeometry.h \
   nanoflann.hpp \
   PHActsGSF.h \
+  PHActsKDTreeSeeding.h \
   PHActsSiliconSeeding.h \
   PHActsVertexPropagator.h \
   PHActsTrkFitter.h \
@@ -80,9 +82,11 @@ libtrack_reco_io_la_SOURCES = \
   GPUTPCTrackParam.cxx
 
 ACTS_SOURCES = \
+  ActsAlignmentStates.cc \
   ActsEvaluator.cc \
   MakeActsGeometry.cc \
   PHActsGSF.cc \
+  PHActsKDTreeSeeding.cc \
   PHActsSiliconSeeding.cc \
   PHActsTrkFitter.cc \
   PHActsVertexPropagator.cc \

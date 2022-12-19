@@ -1,7 +1,6 @@
 #include "KFParticle_nTuple.h"
 
 #include "KFParticle_Tools.h"
-#include "KFParticle_particleList.h"  // for KFParticle_particleList
 
 #include <ffaobjects/EventHeaderv1.h>
 
@@ -24,12 +23,7 @@ class PHCompositeNode;
 class PHNode;
 
 /// Create necessary objects
-typedef std::pair<int, float> particle_pair_nTuple;
-KFParticle_particleList kfp_particleList_nTuple;
 KFParticle_Tools kfpTupleTools;
-
-//Particle masses are in GeV
-std::map<std::string, particle_pair_nTuple> particleMasses_nTuple = kfp_particleList_nTuple.getParticleList();
 
 KFParticle_nTuple::KFParticle_nTuple()
   : m_has_intermediates_nTuple(false)
@@ -309,14 +303,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
         if (m_get_charge_conjugate_nTuple)
         {
-          float daughterA_mass = 0, daughterB_mass = 0;
-          for (const auto& key : particleMasses_nTuple)
-          {
-            if (key.second.first == abs(particleAPID))
-              daughterA_mass = key.second.second;
-            if (key.second.first == abs(particleBPID))
-              daughterB_mass = key.second.second;
-          }
+          float daughterA_mass = kfpTupleTools.getParticleMass(particleAPID);
+          float daughterB_mass = kfpTupleTools.getParticleMass(particleBPID);
           switchTrackPosition = daughterA_mass > daughterB_mass;
         }
         else
@@ -345,14 +333,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
       if (m_get_charge_conjugate_nTuple)
       {
-        float daughterA_mass = 0, daughterB_mass = 0;
-        for (const auto& key : particleMasses_nTuple)
-        {
-          if (key.second.first == abs(particleAPID))
-            daughterA_mass = key.second.second;
-          if (key.second.first == abs(particleBPID))
-            daughterB_mass = key.second.second;
-        }
+        float daughterA_mass = kfpTupleTools.getParticleMass(particleAPID);
+        float daughterB_mass = kfpTupleTools.getParticleMass(particleBPID);
         switchTrackPosition = daughterA_mass > daughterB_mass;
       }
       else
