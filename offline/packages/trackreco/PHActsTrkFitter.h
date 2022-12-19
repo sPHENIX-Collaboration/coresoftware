@@ -107,6 +107,9 @@ class PHActsTrkFitter : public SubsysReco
 
   void set_cluster_version(int value) { m_cluster_version = value; }
 
+  /// Set flag for pp running
+  void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
+
  private:
 
   /// Get all the nodes
@@ -177,6 +180,9 @@ class PHActsTrkFitter : public SubsysReco
   /// A bool to use the chi2 outlier finder in the track fitting
   bool m_useOutlierFinder = false;
   ResidualOutlierFinder m_outlierFinder;
+
+  /// Flag for pp running
+  bool m_pp_mode = false;
 
   bool m_actsEvaluator = false;
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;

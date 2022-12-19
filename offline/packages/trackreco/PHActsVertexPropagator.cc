@@ -80,6 +80,10 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
 	    {
 	      updateSvtxTrack(svtxTrack, paramsAtVertex);
 	    }
+          else
+            {
+              svtxTrack->identify();
+            }
 	}
     }
   
