@@ -130,10 +130,7 @@ int PHActsTrackProjection::projectTracks(const int caloLayer)
 
     const auto& result = propagateTrack(params, cylSurf);
 
-    if(not (result.charge() == 0 && 
-	    result.momentum().x() == 0 &&
-	    result.momentum().y() == 0 && 
-	    result.momentum().z() == 0))
+    if(result.referenceSurface().getSharedPtr())
       {
 	updateSvtxTrack(result, track, caloLayer);
       }
@@ -339,7 +336,7 @@ Acts::BoundTrackParameters PHActsTrackProjection::propagateTrack(
     return params;
   }
 
-  return Acts::BoundTrackParameters(nullptr,Acts::BoundVector::Zero(), 0);
+  return Acts::BoundTrackParameters(nullptr,Acts::BoundVector::Zero(), -1);
 }
 
 int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode* topNode,

@@ -574,7 +574,7 @@ PHTpcResiduals::BoundTrackParamPair  PHTpcResiduals::propagateTrackState( const 
     // return both path length and extrapolated parameters
     return std::make_pair( pathlength, params );
   } else {
-    return std::make_pair(NAN, Acts::BoundTrackParameters(nullptr, Acts::BoundVector::Zero(),0));
+    return std::make_pair(NAN, Acts::BoundTrackParameters(nullptr, Acts::BoundVector::Zero(),-1));
 
   }
 }
