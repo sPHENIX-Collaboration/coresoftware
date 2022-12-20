@@ -22,9 +22,9 @@ class SvtxTrackMap;
 class SvtxVertexMap;
 class SvtxTrack;
 
-using BoundTrackParamPtr = 
-  std::unique_ptr<const Acts::BoundTrackParameters>;
-using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
+using BoundTrackParam = 
+  const Acts::BoundTrackParameters;
+using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
 using Trajectory = ActsExamples::Trajectories;
 
@@ -43,7 +43,7 @@ class PHActsVertexPropagator : public SubsysReco
 
   int getNodes(PHCompositeNode *topNode);
   void setTrackVertexTo0();
-  Acts::BoundTrackParameters propagateTrack(const Acts::BoundTrackParameters& params,
+  BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params,
 					  const unsigned int vtxid);
   Acts::Vector3 getVertex(const unsigned int vtxid);
   void updateSvtxTrack(SvtxTrack* track, 

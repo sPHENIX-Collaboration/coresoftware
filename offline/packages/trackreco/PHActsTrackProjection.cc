@@ -128,12 +128,12 @@ int PHActsTrackProjection::projectTracks(const int caloLayer)
     auto cylSurf =
         m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
 
-    const auto& result = propagateTrack(params, cylSurf);
-
-    if(result.referenceSurface().getSharedPtr())
+    auto result = propagateTrack(params, cylSurf);
+    if(result.ok())
       {
-	updateSvtxTrack(result, track, caloLayer);
+	updateSvtxTrack(result.value(), track, caloLayer);
       }
+  
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -282,7 +282,7 @@ void PHActsTrackProjection::getSquareTowerEnergies(int phiBin,
   return;
 }
 
-Acts::BoundTrackParameters PHActsTrackProjection::propagateTrack(
+BoundTrackParamResult PHActsTrackProjection::propagateTrack(
     const Acts::BoundTrackParameters& params,
     const SurfacePtr& targetSurf)
 {
@@ -329,14 +329,13 @@ Acts::BoundTrackParameters PHActsTrackProjection::propagateTrack(
 
   auto result = propagator.propagate(params, *targetSurf,
                                      options);
+  if(result.ok())
+    {
+      return Acts::Result<BoundTrackParam>::success(std::move((*result).endParameters.value()));
+    }
 
-  if (result.ok())
-  {
-    Acts::BoundTrackParameters params = *result.value().endParameters;
-    return params;
-  }
-
-  return Acts::BoundTrackParameters(nullptr,Acts::BoundVector::Zero(), -1);
+  return result.error();
+  
 }
 
 int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode* topNode,

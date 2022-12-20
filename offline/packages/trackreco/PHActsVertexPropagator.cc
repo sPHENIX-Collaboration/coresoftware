@@ -71,15 +71,14 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
 	{
 	  const auto& boundParams = trajectory.trackParameters(trackTip);
 
-	  const auto& paramsAtVertex = propagateTrack(boundParams, svtxTrack->get_vertex_id());
-	 
-	  if(not paramsAtVertex.referenceSurface().getSharedPtr())
+	  auto result = propagateTrack(boundParams, svtxTrack->get_vertex_id());
+	  if(result.ok())
 	    {
-	      svtxTrack->identify();
+	      updateSvtxTrack(svtxTrack, result.value());
 	    }
 	  else
 	    {
-	      updateSvtxTrack(svtxTrack, paramsAtVertex);
+	      svtxTrack->identify();
 	    }
 	}
     }
@@ -167,7 +166,7 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
     }
 }
 
-Acts::BoundTrackParameters PHActsVertexPropagator::propagateTrack(
+BoundTrackParamResult PHActsVertexPropagator::propagateTrack(
 		           const Acts::BoundTrackParameters& params,
 			   const unsigned int vtxid)
 {
@@ -200,11 +199,11 @@ Acts::BoundTrackParameters PHActsVertexPropagator::propagateTrack(
   
   if(result.ok())
     { 
-      Acts::BoundTrackParameters params = *result.value().endParameters;
+      return Acts::Result<BoundTrackParam>::success(std::move((*result).endParameters.value()));
       return params;
     }
 
-  return Acts::BoundTrackParameters(nullptr, Acts::BoundVector::Zero(), -1);
+  return result.error();
 
 }
 
