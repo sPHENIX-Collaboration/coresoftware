@@ -59,7 +59,7 @@
 
 #include <EvtGenBase/EvtHepMCEvent.hh>
 
-#pragma GCC diagnostic pop GCC diagnostic push
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC3/GenEvent.h>
 #include <HepMC/GenEvent.h>
