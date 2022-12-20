@@ -63,7 +63,7 @@ G4EvtGenDecayer::G4EvtGenDecayer()
 {
   mEvtGenRandomEngine = new PHEvtGenRandomEngine();
 
-  EvtRandom::setRandomEngine((EvtRandomEngine*) mEvtGenRandomEngine);
+  EvtRandom::setRandomEngine(static_cast<EvtRandomEngine*>(mEvtGenRandomEngine));
 
   radCorrEngine = genList.getPhotosModel();
 
@@ -73,7 +73,7 @@ G4EvtGenDecayer::G4EvtGenDecayer()
   const string decay = string(getenv("OFFLINE_MAIN")) + "/share/EvtGen/DECAY.DEC";  // Using PDG 2019 reference as the input for now
   const string evt = string(getenv("OFFLINE_MAIN")) + "/share/EvtGen/evt.pdl";
 
-  mEvtGen = new EvtGen(decay, evt, (EvtRandomEngine*) mEvtGenRandomEngine, radCorrEngine, &extraModels);
+  mEvtGen = new EvtGen(decay, evt, static_cast<EvtRandomEngine*>(mEvtGenRandomEngine), radCorrEngine, &extraModels);
   extraModels.clear();
   // delete mEvtGen;	QATree
 
