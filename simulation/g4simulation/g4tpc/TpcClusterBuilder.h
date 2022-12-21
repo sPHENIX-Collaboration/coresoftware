@@ -65,6 +65,10 @@ class TpcClusterBuilder {
   void print(TrkrTruthTrackContainer*, int nclusprint=-1);
   void print_file(TrkrTruthTrackContainer*, std::string);
 
+  ~TpcClusterBuilder(){
+    delete m_hits;
+  };
+
   private: // from TpcClusterizer.h parameters; also used as general
   /* bool   do_wedge_emulation = false; */
   /* double SectorFiducialCut = 0.5; */
@@ -76,10 +80,6 @@ class TpcClusterBuilder {
   // TPC shaping offset correction parameter
   // From Tony Frawley July 5, 2022
   /* double m_sampa_tbias = 39.6;  // ns */  
-
-  ~TpcClusterBuilder(){
-    delete m_hits;
-  };
 
   void reset(bool clear_hitsetkey_cnt);
 };

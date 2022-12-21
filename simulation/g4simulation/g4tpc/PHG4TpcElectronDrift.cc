@@ -812,6 +812,10 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
   return;
 }
 
+PHG4TpcElectronDrift::~PHG4TpcElectronDrift() {
+  if (truth_clusterer != nullptr) delete truth_clusterer;
+}
+
 void PHG4TpcElectronDrift::setTpcDistortion(PHG4TpcDistortion *distortionMap)
 {
   m_distortionMap.reset(distortionMap);
