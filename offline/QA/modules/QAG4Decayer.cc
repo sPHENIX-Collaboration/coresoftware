@@ -21,7 +21,6 @@
 
 #include <TDatabasePDG.h>
 
-#include <TCanvas.h>
 #include <TF1.h>
 #include <TLatex.h>
 #include <TROOT.h>
@@ -46,7 +45,7 @@ QAG4Decayer::QAG4Decayer(const std::string &name)
   //  , m_write_QAHists(true)
   , m_SaveFiles(false)
 {
-  std::cout << "New QA Clean Up for Valgrind Test" << std::endl;
+  std::cout << "New QA Clean Up for Valgrind Test - New D+ - Reduced - ROCKED - pi phi" << std::endl;
 }
 
 QAG4Decayer::~QAG4Decayer()
@@ -293,6 +292,8 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
       }
 
       HFHadronStat->Fill(HFFillIndex);
+
+      std::cout << "gflavor = " << gflavor << "   HFFillIndex = " << HFFillIndex << std::endl;
     }
 
     int VtxSize = ParentTrkInfo.size();
@@ -614,17 +615,25 @@ std::vector<int> QAG4Decayer::Channel(int pdgid, std::vector<int> Daughter)
 
     if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 1 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(2);
 
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 1 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 1 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(3);
+    //	if(TotalKStarZ==0&&TotalKZ==0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 1 && TotalRhoM == 0  && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 1 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0&& TotalDsP == 0 &&  TotalDsM == 0) Channel.push_back(3);
 
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 1 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 1 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(4);
+    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 2 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(3);
 
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 1 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 1 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(5);
+    //		if(TotalKStarZ==0&&TotalKZ==0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 1 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 1 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0  && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0&& TotalDsP == 0 &&  TotalDsM == 0) Channel.push_back(4);
+
+    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 3 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 2 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(4);
+
+    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 1 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(5);
+
+    //	if(TotalKStarZ==0&&TotalKZ==0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 1 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 1 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0  && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0&& TotalDsP == 0 &&  TotalDsM == 0) Channel.push_back(5);
 
     if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 1 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 1 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 1 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(6);
 
-    if (TotalDZ == 1) Channel.push_back(7);
-    if (TotalPhi == 1) Channel.push_back(8);    // D0 -> K-e+ve
-    if (TotalElecM == 1) Channel.push_back(9);  // D0 -> K-mu+vmu
+    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(7);
+
+    if (TotalElecP == 1) Channel.push_back(8);
+    if (TotalPhi == 1) Channel.push_back(9);  // D0 -> K-e+ve
+    //		if(TotalEta == 1) Channel.push_back(9);  //D0 -> K-mu+vmu
   }
 
   //	std::cout << "Pass 3" << std::endl;
