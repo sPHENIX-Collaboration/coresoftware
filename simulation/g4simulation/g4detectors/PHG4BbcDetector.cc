@@ -20,6 +20,7 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Box.hh>
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>
 
@@ -406,6 +407,9 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
     }
   }
 
+  // Now make the Supports
+  ConstructSupport(logicWorld);
+
   // this is more to prevent compiler warnings about unused variables
   if (!fplate_vol[0] || !fplate_vol[1] || !bplate_vol[0] || !bplate_vol[1])
   {
@@ -422,6 +426,34 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   std::cout << "INSIDE BBC" << std::endl;
 
   return;
+}
+
+void PHG4BbcDetector::ConstructSupport(G4LogicalVolume *logicWorld)
+{
+  //std::cout << "PHG4BbcDetector::ConstructSupport()" << std::endl;
+
+  G4Material *Aluminum = GetDetectorMaterial("G4_Al");
+
+  // BBC Mount Plates
+  G4Box *bbc_mount_plate = new G4Box("bbc_mplate", 15.24/2 * cm, 1.27/2 * cm, 20.32/2 * cm);
+  G4LogicalVolume *bbc_mount_plate_lv = new G4LogicalVolume(bbc_mount_plate, Aluminum, G4String("Bbc_Mount_Plates"));
+  GetDisplayAction()->AddVolume(bbc_mount_plate_lv, "Bbc_Mount_Plates");
+
+  G4VPhysicalVolume *mount_plate_vol[2] = {nullptr};  // Mount Plates
+
+  // Place South Plates
+  mount_plate_vol[0] = new G4PVPlacement(nullptr, G4ThreeVector(0, (-15.-1.27/2) * cm, (-250. -12.) * cm),
+                                    bbc_mount_plate_lv, "BBC_MPLATE", logicWorld, false, 0, OverlapCheck());
+
+  // Place North Plates
+  mount_plate_vol[1] = new G4PVPlacement(nullptr, G4ThreeVector(0, (-15.-1.27/2) * cm, (250. + 12.0) * cm),
+                                    bbc_mount_plate_lv, "BBC_MPLATE", logicWorld, false, 1, OverlapCheck());
+
+  // this is more to prevent compiler warnings about unused variables
+  if (!mount_plate_vol[0] || !mount_plate_vol[1])
+  {
+    std::cout << "Problem placing BBC supports" << std::endl;
+  }
 }
 
 void PHG4BbcDetector::Print(const std::string &what) const
