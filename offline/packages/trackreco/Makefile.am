@@ -21,7 +21,6 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  ActsEvaluator.h \
   ActsAlignmentStates.h \
   ALICEKF.h \
   AssocInfoContainer.h \
@@ -83,7 +82,6 @@ libtrack_reco_io_la_SOURCES = \
 
 ACTS_SOURCES = \
   ActsAlignmentStates.cc \
-  ActsEvaluator.cc \
   MakeActsGeometry.cc \
   PHActsGSF.cc \
   PHActsKDTreeSeeding.cc \
