@@ -434,23 +434,26 @@ void PHG4BbcDetector::ConstructSupport(G4LogicalVolume *logicWorld)
 
   G4Material *Aluminum = GetDetectorMaterial("G4_Al");
 
-  // BBC Mount Plates
-  G4Box *bbc_mount_plate = new G4Box("bbc_mplate", 15.24/2 * cm, 1.27/2 * cm, 20.32/2 * cm);
-  G4LogicalVolume *bbc_mount_plate_lv = new G4LogicalVolume(bbc_mount_plate, Aluminum, G4String("Bbc_Mount_Plates"));
-  GetDisplayAction()->AddVolume(bbc_mount_plate_lv, "Bbc_Mount_Plates");
+  // BBC Base Plates
+  G4double basep_width = 35.56 * cm;
+  G4double basep_height = 1.91 * cm;
+  G4double basep_len = 46.99 * cm;
+  G4Box *bbc_base_plate = new G4Box("bbc_base_plate", basep_width/2, basep_height/2, basep_len/2);
+  G4LogicalVolume *bbc_base_plate_lv = new G4LogicalVolume(bbc_base_plate, Aluminum, G4String("Bbc_Base_Plates"));
+  GetDisplayAction()->AddVolume(bbc_base_plate_lv, "Bbc_Base_Plates");
 
-  G4VPhysicalVolume *mount_plate_vol[2] = {nullptr};  // Mount Plates
+  G4VPhysicalVolume *base_plate_vol[2] = {nullptr};  // Mount Plates
 
-  // Place South Plates
-  mount_plate_vol[0] = new G4PVPlacement(nullptr, G4ThreeVector(0, (-15.-1.27/2) * cm, (-250. -12.) * cm),
-                                    bbc_mount_plate_lv, "BBC_MPLATE", logicWorld, false, 0, OverlapCheck());
+  // Place South Base Plates
+  base_plate_vol[0] = new G4PVPlacement(nullptr, G4ThreeVector(0, -15.*cm - basep_height/2, (-250. -12.) * cm),
+                                    bbc_base_plate_lv, "BBC_BASE_PLATE", logicWorld, false, 0, OverlapCheck());
 
-  // Place North Plates
-  mount_plate_vol[1] = new G4PVPlacement(nullptr, G4ThreeVector(0, (-15.-1.27/2) * cm, (250. + 12.0) * cm),
-                                    bbc_mount_plate_lv, "BBC_MPLATE", logicWorld, false, 1, OverlapCheck());
+  // Place North Base Plates
+  base_plate_vol[1] = new G4PVPlacement(nullptr, G4ThreeVector(0, -15.*cm - basep_height/2, (250. + 12.0) * cm),
+                                    bbc_base_plate_lv, "BBC_BASE_PLATE", logicWorld, false, 1, OverlapCheck());
 
   // this is more to prevent compiler warnings about unused variables
-  if (!mount_plate_vol[0] || !mount_plate_vol[1])
+  if (!base_plate_vol[0] || !base_plate_vol[1])
   {
     std::cout << "Problem placing BBC supports" << std::endl;
   }
