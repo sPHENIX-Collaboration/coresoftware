@@ -72,8 +72,18 @@ G4EvtGenDecayer::G4EvtGenDecayer()
   extraModels = genList.getListOfModels();
 
   // the hardcoded paths are temporary
-  const std::string& decay = string(getenv("OFFLINE_MAIN")) + "/share/EvtGen/DECAY.DEC";  // Using PDG 2019 reference as the input for now
-  const std::string& evt = string(getenv("OFFLINE_MAIN")) + "/share/EvtGen/evt.pdl";
+  const string decay;
+  const string evt;
+
+  if (getenv("OFFLINE_MAIN") != NULL)
+  {
+    decay = string(getenv("OFFLINE_MAIN")) + "/share/EvtGen/DECAY.DEC";  // Using PDG 2019 reference as the input for now
+    evt = string(getenv("OFFLINE_MAIN")) + "/share/EvtGen/evt.pdl";
+  }
+  else
+  {
+    std::cout << "Environmental Variable: OFFLINE_MAIN is not set" << std::endl;
+  }
 
   mEvtGen = new EvtGen(decay, evt, static_cast<EvtRandomEngine*>(mEvtGenRandomEngine), radCorrEngine, &extraModels);
   extraModels.clear();
