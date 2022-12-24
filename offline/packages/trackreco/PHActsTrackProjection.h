@@ -32,9 +32,9 @@ class SvtxVertexMap;
 #include <memory>
 #include <string>
 
-using BoundTrackParamPtr =
-    std::unique_ptr<const Acts::BoundTrackParameters>;
-using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
+using BoundTrackParam =
+    const Acts::BoundTrackParameters;
+using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
 using Trajectory = ActsExamples::Trajectories;
 
@@ -76,7 +76,7 @@ class PHActsTrackProjection : public SubsysReco
   int projectTracks(int caloLayer);
 
   /// Propagate the fitted track parameters to a surface with Acts
-  BoundTrackParamPtrResult propagateTrack(
+  BoundTrackParamResult propagateTrack(
       const Acts::BoundTrackParameters &params,
       const SurfacePtr &targetSurf);
 

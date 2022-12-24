@@ -15,6 +15,14 @@
 #include <Acts/TrackFitting/KalmanFitter.hpp>
 #pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
+#pragma GCC diagnostic pop
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+#include <Acts/Propagator/MultiEigenStepperLoop.hpp>
+#pragma GCC diagnostic pop
 
 #include <ActsExamples/EventData/Measurement.hpp>
 #include <ActsExamples/EventData/Track.hpp>
@@ -37,9 +45,9 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
  public:
   /// Track fitter function that takes input measurements, initial trackstate
   /// and fitter options and returns some track-fitter-specific result.
-  using TrackFitterOptions = Acts::KalmanFitterOptions;
+  using TrackFitterOptions = Acts::KalmanFitterOptions<Acts::VectorMultiTrajectory>;
 
-  using TrackFitterResult = Acts::Result<Acts::KalmanFitterResult>;
+  using TrackFitterResult = Acts::Result<Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>>;
 
   /// General options that do not depend on the fitter type, but need to be
   /// handed over by the algorithm
@@ -63,7 +71,8 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
     virtual ~TrackFitterFunction() = default;
     virtual TrackFitterResult operator()(
         const std::vector<std::reference_wrapper<const ActsSourceLink>>&,
-        const TrackParameters&, const GeneralFitterOptions&) const = 0;
+        const TrackParameters&, const GeneralFitterOptions&,
+	std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory) const = 0;
 
     virtual void outlierFinder(const ResidualOutlierFinder&) {}
   };
@@ -80,7 +89,8 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
     virtual TrackFitterResult operator()(
         const std::vector<std::reference_wrapper<const ActsSourceLink>>&,
         const TrackParameters&, const GeneralFitterOptions&,
-        const std::vector<const Acts::Surface*>&) const = 0;
+        const std::vector<const Acts::Surface*>&,
+	std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory) const = 0;
   };
 
   struct Config
@@ -131,17 +141,6 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
       Acts::FreeToBoundCorrection freeToBoundCorrection =
           Acts::FreeToBoundCorrection());
 
-  static std::shared_ptr<TrackFitterFunction> makeGsfFitterFunction(
-      std::shared_ptr<const Acts::TrackingGeometry> trackingGeometry,
-      std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
-      std::size_t maxComponents = 4, bool abortOnError = true,
-      bool disableAllMaterialHandling = false);
-
-  static std::shared_ptr<DirectedTrackFitterFunction> makeGsfFitterFunction(
-      std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
-      std::size_t maxComponents = 4, bool abortOnError = true,
-      bool disableAllMaterialHandling = false);
-
  private:
   /// Helper function to call correct FitterFunction
   TrackFitterResult fitTrack(
@@ -149,7 +148,8 @@ class ActsTrackFittingAlgorithm final : public BareAlgorithm
           const ActsSourceLink>>& sourceLinks,
       const ActsExamples::TrackParameters& initialParameters,
       const GeneralFitterOptions& options,
-      const std::vector<const Acts::Surface*>& surfSequence) const;
+      const std::vector<const Acts::Surface*>& surfSequence,
+      std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory) const;
 
   Config m_cfg;
 };
@@ -160,14 +160,15 @@ ActsTrackFittingAlgorithm::fitTrack(
         const ActsSourceLink>>& sourceLinks,
     const ActsExamples::TrackParameters& initialParameters,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
-    const std::vector<const Acts::Surface*>& surfSequence) const
+    const std::vector<const Acts::Surface*>& surfSequence,
+    std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory) const
 {
   if (m_cfg.directNavigation)
   {
-    return (*m_cfg.dFit)(sourceLinks, initialParameters, options, surfSequence);
+    return (*m_cfg.dFit)(sourceLinks, initialParameters, options, surfSequence, trajectory);
   }
 
-  return (*m_cfg.fit)(sourceLinks, initialParameters, options);
+  return (*m_cfg.fit)(sourceLinks, initialParameters, options, trajectory);
 }
 
 #endif

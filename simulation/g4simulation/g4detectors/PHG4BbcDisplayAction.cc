@@ -83,6 +83,10 @@ void PHG4BbcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     {
       visatt->SetColour(G4Colour::White());
     }
+    else if (it.second == "Bbc_Base_Plates")
+    {
+      visatt->SetColour(G4Colour::Gray());
+    }
     else
     {
       std::cout << "PHG4BbcDisplayAction::ApplyDisplayAction unknown logical volume " << it.second << " in " << GetName() << std::endl;

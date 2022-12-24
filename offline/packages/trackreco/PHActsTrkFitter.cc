@@ -734,7 +734,7 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
-  std::vector<size_t> trackTips;
+  std::vector<Acts::MultiTrajectoryTraits::IndexType> trackTips;
   trackTips.reserve(1);
   trackTips.emplace_back(fitOutput.lastMeasurementIndex);
   ActsExamples::Trajectories::IndexedParameters indexedParams;
@@ -804,12 +804,12 @@ ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
     const SurfacePtrVec& surfSequence)
 {
-
+  auto mtj = std::make_shared<Acts::VectorMultiTrajectory>();
   if(m_fitSiliconMMs) 
   { 
-    return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence); 
+    return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence, mtj); 
   } else {
-    return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions); 
+    return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions, mtj); 
   }
 }
 
