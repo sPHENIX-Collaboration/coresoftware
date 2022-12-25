@@ -72,8 +72,8 @@ G4EvtGenDecayer::G4EvtGenDecayer()
   extraModels = genList.getListOfModels();
 
   // the hardcoded paths are temporary
-  const string decay;
-  const string evt;
+  string decay;
+  string evt;
 
   if (getenv("OFFLINE_MAIN") != NULL)
   {
