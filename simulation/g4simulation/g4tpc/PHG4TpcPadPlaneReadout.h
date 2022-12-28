@@ -104,6 +104,9 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_min_Phi_sectors;
   std::array< std::array< std::vector<double>, NRSectors >, NSides > sector_max_Phi_sectors;
 
+  // Return gain weight
+  double GetGainWeight(double x,double y, int side)
+
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
   gsl_rng *RandomGenerator;
