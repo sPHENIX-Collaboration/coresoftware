@@ -21,6 +21,7 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   ActsSurfaceMaps.h \
   ActsTrackFittingAlgorithm.h \
+  ActsGsfTrackFittingAlgorithm.h \
   ActsTrackingGeometry.h \
   ActsGeometry.h \
   ActsSourceLink.h \

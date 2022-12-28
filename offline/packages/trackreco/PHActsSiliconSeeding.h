@@ -8,7 +8,7 @@
 
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
-#include <Acts/Seeding/Seedfinder.hpp>
+#include <Acts/Seeding/SeedFinder.hpp>
 #include <Acts/Definitions/Units.hpp>
 
 #include <Acts/Seeding/BinFinder.hpp>
@@ -102,7 +102,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Configure the seeding parameters for Acts. There
   /// are a number of tunable parameters for the seeder here
-  Acts::SeedfinderConfig<SpacePoint> configureSeeder();
+  Acts::SeedFinderConfig<SpacePoint> configureSeeder();
   Acts::SpacePointGridConfig configureSPGrid();
   Acts::SeedFilterConfig configureSeedFilter();
 
@@ -142,7 +142,7 @@ class PHActsSiliconSeeding : public SubsysReco
   PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
   
   /// Configuration classes for Acts seeding
-  Acts::SeedfinderConfig<SpacePoint> m_seedFinderCfg;
+  Acts::SeedFinderConfig<SpacePoint> m_seedFinderCfg;
   Acts::SpacePointGridConfig m_gridCfg;
 
   /// Configurable parameters

@@ -260,21 +260,23 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	{ std::cout << "tpc and si id " << tpcid << ", " << siid << std::endl; }
 
       /// A track seed is made for every tpc seed. Not every tpc seed
-      /// has a silicon match, we skip those cases completely
-      if(siid == std::numeric_limits<unsigned int>::max()) 
+      /// has a silicon match, we skip those cases completely in pp running
+      if(m_pp_mode && siid == std::numeric_limits<unsigned int>::max()) 
 	{
-	  if(Verbosity() > 1) std::cout << "SvtxSeedTrack has no silicon match, skip it" << std::endl;
+	  if(Verbosity() > 1) std::cout << "Running in pp mode and SvtxSeedTrack has no silicon match, skip it" << std::endl;
 	  continue;
 	}
 
       // get the crossing number
       auto siseed = m_siliconSeeds->get(siid);
-      auto crossing = siseed->get_crossing();
+      short crossing = SHRT_MAX;
+      if(siseed) crossing = siseed->get_crossing();
+      else if(!m_pp_mode) crossing = 0;
 
-      // if the crossing was not determined, skip this case completely
-      if(crossing == SHRT_MAX) 
+      // if the crossing was not determined in pp running, skip this case completely
+      if(m_pp_mode && crossing == SHRT_MAX) 
 	{
-	  // Skip this in the pp case. For AuAu it should not happen
+	  // Skip this in the pp case.
 	  if(Verbosity() > 1) std::cout << "Crossing not determined, skipping track" << std::endl;
 	  continue;
 	}
@@ -287,7 +289,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
       if(Verbosity() > 0) 
 	{
-	  std::cout << " silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
+	  if(siseed) std::cout << " silicon seed position is (x,y,z) = " << siseed->get_x() << "  " << siseed->get_y() << "  " << siseed->get_z() << std::endl;
 	  std::cout << " tpc seed position is (x,y,z) = " << tpcseed->get_x() << "  " << tpcseed->get_y() << "  " << tpcseed->get_z() << std::endl;
 	}
 
@@ -296,15 +298,25 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       trackTimer.restart();
       ActsExamples::MeasurementContainer measurements;
   
-      auto sourceLinks = getSourceLinks(siseed, measurements, crossing);
+      SourceLinkVec sourceLinks;
+      if(siseed) sourceLinks = getSourceLinks(siseed, measurements, crossing);
       const auto tpcSourceLinks = getSourceLinks(tpcseed, measurements, crossing);
       sourceLinks.insert( sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end() );
 
-      // position comes from the silicon seed
+      // position comes from the silicon seed, unless there is no silicon seed
       Acts::Vector3 position(0,0,0);
-      position(0) = siseed->get_x() * Acts::UnitConstants::cm;
-      position(1) = siseed->get_y() * Acts::UnitConstants::cm;
-      position(2) = siseed->get_z() * Acts::UnitConstants::cm;
+      if(siseed)
+        {
+          position(0) = siseed->get_x() * Acts::UnitConstants::cm;
+          position(1) = siseed->get_y() * Acts::UnitConstants::cm;
+          position(2) = siseed->get_z() * Acts::UnitConstants::cm;
+        }
+      else
+        {
+          position(0) = tpcseed->get_x() * Acts::UnitConstants::cm;
+          position(1) = tpcseed->get_y() * Acts::UnitConstants::cm;
+          position(2) = tpcseed->get_z() * Acts::UnitConstants::cm;
+        }
       if( !is_valid( position ) ) continue;
 
       if(sourceLinks.empty()) { continue; }
@@ -459,7 +471,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 
   SourceLinkVec sourcelinks;
 
-  if(crossing == SHRT_MAX) 
+  if(m_pp_mode && crossing == SHRT_MAX) 
     {
       // Need to skip this in the pp case, for AuAu it should not happen
       return sourcelinks; 
@@ -722,7 +734,7 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
-  std::vector<size_t> trackTips;
+  std::vector<Acts::MultiTrajectoryTraits::IndexType> trackTips;
   trackTips.reserve(1);
   trackTips.emplace_back(fitOutput.lastMeasurementIndex);
   ActsExamples::Trajectories::IndexedParameters indexedParams;
@@ -792,12 +804,12 @@ ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
     const SurfacePtrVec& surfSequence)
 {
-
+  auto mtj = std::make_shared<Acts::VectorMultiTrajectory>();
   if(m_fitSiliconMMs) 
   { 
-    return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence); 
+    return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence, mtj); 
   } else {
-    return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions); 
+    return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions, mtj); 
   }
 }
 
