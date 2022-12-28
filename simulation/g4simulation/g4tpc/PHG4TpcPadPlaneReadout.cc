@@ -170,11 +170,11 @@ int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode * /*topNode*/,
 
   return 0;
 }
-double PHG4TpcPadPlaneReadout::GetGainWeight(double x,double y, int side){
-  // This function get weights for gain uniformity in the TPC readout
-  int binXY = h_Gain[side]->FindBin(x,y);
-  return h_Gain[side]->GetBinContent(binXY);
-}
+//double PHG4TpcPadPlaneReadout::GetGainWeight(double x,double y, int side){
+//  // This function get weights for gain uniformity in the TPC readout
+//  int binXY = h_Gain[side]->FindBin(x,y);
+//  return h_Gain[side]->GetBinContent(binXY);
+//}
 
 double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
 {
@@ -281,7 +281,7 @@ TpcClusterBuilder PHG4TpcPadPlaneReadout::MapToPadPlane(
   //===============================
 
   double nelec = getSingleEGEMAmplification();
-  nelec = nelec * GetGainWeight(x_gem,y_gem, side);
+  //nelec = nelec * GetGainWeight(x_gem,y_gem, side);
 
   pass_data.neff_electrons = nelec;
 
