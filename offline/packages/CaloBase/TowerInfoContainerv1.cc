@@ -3,6 +3,8 @@
 
 #include <phool/PHObject.h>
 
+#include <TClonesArray.h>
+
 int emcadc[8][8] = {
    {62,60,46,44,30,28,14,12},
    {63,61,47,45,31,29,15,13},
@@ -35,12 +37,7 @@ TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
 
 TowerInfoContainerv1::~TowerInfoContainerv1()
 {
-  if (_clones)
-  {
-    delete _clones;
-    _clones = 0;
-  }
-
+  delete _clones;
 }
 
 void TowerInfoContainerv1::Reset()
