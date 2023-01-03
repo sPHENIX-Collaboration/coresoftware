@@ -22,7 +22,6 @@ BbcPmtContainerV1::~BbcPmtContainerV1()
 {
   if (BbcPmtHits)
     {
-      Clear();
       delete BbcPmtHits;
     }
 }
@@ -38,13 +37,8 @@ int BbcPmtContainerV1::isValid() const
 
 void BbcPmtContainerV1::Reset()
 {
-  Clear();
-  npmt = 0;
-}
-
-void BbcPmtContainerV1::Clear(Option_t * /*option*/)
-{
   BbcPmtHits->Clear();
+  npmt = 0;
 }
 
 void BbcPmtContainerV1::AddBbcPmt(const Short_t pmt, const Float_t adc, const Float_t tdc0, const Float_t tdc1)

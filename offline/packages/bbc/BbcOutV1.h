@@ -15,12 +15,12 @@ public:
   virtual ~BbcOutV1();
 
   /// Clear Event from memory
-  virtual void Reset();
+  virtual void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream 
    */
-  virtual void identify(std::ostream& os = std::cout) const;
+  virtual void identify(std::ostream& os = std::cout) const override;
 
   /// isValid returns non zero if object contains vailid data
   virtual int isValid() const override;
@@ -76,8 +76,6 @@ public:
   virtual Float_t get_Timing(const int nBbc) const override;
 
 protected:
-
-  virtual void Clear(Option_t *option = "") override;
   
   virtual void Init();
   

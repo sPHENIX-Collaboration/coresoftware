@@ -16,7 +16,7 @@ public:
   virtual ~BbcPmtContainerV1();
 
   /// Clear Event
-  void Reset();
+  void Reset() override;
 
   /** identify Function from PHObject
       @param os Output Stream 
@@ -57,10 +57,9 @@ public:
       @param tdc1 Tdc1 value
       @param ipmt no of pmt
   */
-   void AddBbcPmt(const Short_t ipmt, const Float_t adc, const Float_t tdc0, const Float_t tdc1);
+   void AddBbcPmt(const Short_t ipmt, const Float_t adc, const Float_t tdc0, const Float_t tdc1) override;
 
 protected:
-  void Clear(Option_t *option = "");
   TClonesArray *GetBbcPmtHits() const {return BbcPmtHits;}
 
   Short_t npmt;

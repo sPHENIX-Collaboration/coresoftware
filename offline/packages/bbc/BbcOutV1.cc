@@ -32,10 +32,9 @@ void BbcOutV1::Init()
 BbcOutV1::~BbcOutV1()
 {  
   if (BbcNS)
-    {
-      Clear();
-      delete BbcNS;
-    }
+  {
+    delete BbcNS;
+  }
 }
 
 //______________________________________
@@ -45,16 +44,13 @@ int BbcOutV1::isValid() const
 }
 
 //______________________________________
-void BbcOutV1::Clear(Option_t * /*option*/)
-{  
-  BbcNS->Clear();
-}
-
-//______________________________________
 void BbcOutV1::Reset()
 {
-  Clear();
   Init();
+  if (BbcNS)
+  {
+    BbcNS->Clear();
+  }
 }
 
 //______________________________________
@@ -95,23 +91,23 @@ void BbcOutV1::AddBbcNS(const int iBBC, const Short_t npmt, const Float_t energy
 //______________________________________
 Short_t BbcOutV1::get_nPMT(const int nBbc) const
 {
-  BbcNorthSouthV1 *BbcNS = (BbcNorthSouthV1*) GetBbcNS()->UncheckedAt(nBbc);
-  //  if BbcNS=nil (does not exist) return BBC_INVALID_SHORT, else nPMT
-  return((BbcNS) ? BbcNS->get_nPMT() : BBC_INVALID_SHORT);
+  BbcNorthSouthV1 *bbcns = (BbcNorthSouthV1*) GetBbcNS()->UncheckedAt(nBbc);
+  //  if bbcns=nil (does not exist) return BBC_INVALID_SHORT, else nPMT
+  return((bbcns) ? bbcns->get_nPMT() : BBC_INVALID_SHORT);
 }
 
 //______________________________________
 Float_t BbcOutV1::get_nCharge(const int nBbc) const
 {
-  BbcNorthSouth *BbcNS = (BbcNorthSouthV1*) GetBbcNS()->UncheckedAt(nBbc);
-  //  if BbcNS=nil (does not exist) return BBC_INVALID_FLOAT, else Energy
-  return((BbcNS) ? BbcNS->get_nCharge() : BBC_INVALID_FLOAT);
+  BbcNorthSouth *bbcns = (BbcNorthSouthV1*) GetBbcNS()->UncheckedAt(nBbc);
+  //  if bbcns=nil (does not exist) return BBC_INVALID_FLOAT, else Energy
+  return((bbcns) ? bbcns->get_nCharge() : BBC_INVALID_FLOAT);
 }
 
 Float_t BbcOutV1::get_Timing(const int nBbc) const
 {
-  BbcNorthSouth *BbcNS = (BbcNorthSouthV1*) GetBbcNS()->UncheckedAt(nBbc);
-  //  if BbcNS=nil (does not exist) return BBC_INVALID_FLOAT, else Timing
-  return((BbcNS) ? BbcNS->get_MeanTime() : BBC_INVALID_FLOAT);
+  BbcNorthSouth *bbcns = (BbcNorthSouthV1*) GetBbcNS()->UncheckedAt(nBbc);
+  //  if bbcns=nil (does not exist) return BBC_INVALID_FLOAT, else Timing
+  return((bbcns) ? bbcns->get_MeanTime() : BBC_INVALID_FLOAT);
 }
 

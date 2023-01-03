@@ -14,6 +14,7 @@ public:
       @param os Output Stream 
    */
   virtual void identify(std::ostream& os = std::cout) const; 
+
   /// Clear Event
   virtual void Reset();
 

@@ -17,6 +17,9 @@ public:
   virtual Float_t get_nCharge() const { PHOOL_VIRTUAL_WARNING; return -9999; }
   virtual Float_t get_MeanTime() const { PHOOL_VIRTUAL_WARNING; return -9999; }
 
+protected:
+  virtual void Clear(Option_t * /*option*/ = "") override { PHOOL_VIRTUAL_WARNING; }
+
 private:
 
   ClassDef(BbcNorthSouth,1)
