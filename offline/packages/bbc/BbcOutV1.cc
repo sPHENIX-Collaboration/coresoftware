@@ -5,7 +5,7 @@
 #include <TClonesArray.h>
 #include <iostream>
 
-static const int NPMTBBCV1 = 128;
+//static const int NPMTBBCV1 = 128;
 static const int NBBC = 2;
 
 using namespace std;
