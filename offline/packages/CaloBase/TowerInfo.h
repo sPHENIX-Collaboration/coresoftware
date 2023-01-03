@@ -13,7 +13,7 @@ class TowerInfo : public PHObject
   void Reset() override;
 
   virtual void setTime(short /*t*/) { return; }
-  virtual short getTime() { return NAN; }
+  virtual short getTime() { return -1; }
   virtual void setAmplitude(float /*amp*/) { return; }
   virtual float getAmplitude() { return NAN; }
 
