@@ -63,11 +63,11 @@ int TowerInfoContainerv1::encode_key(int towerIndex)
   int phimap[64] = {0};
   int etamap[64] = {0};
 
-  int channels_per_sector;
-  int supersector;
-  int nchannelsperpacket;
-  int maxphibin;
-  int maxetabin;
+  int channels_per_sector = -1;
+  int supersector = -1;
+  int nchannelsperpacket = -1;
+  int maxphibin = -1;
+  int maxetabin = -1;
   int etabinoffset[4] = {0};
   int phibinoffset[4] = {0};
 
