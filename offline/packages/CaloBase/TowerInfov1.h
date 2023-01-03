@@ -14,7 +14,7 @@ class TowerInfov1 : public TowerInfo
   void Reset() override;
 
   void setTime(short t) override { _time = t; }
-  float getTime() override { return _time; }
+  short getTime() override { return _time; }
   void setAmplitude(float amp) override { _amplitude = amp; }
   float getAmplitude() override { return _amplitude; }
 
