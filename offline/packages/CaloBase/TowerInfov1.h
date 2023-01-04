@@ -11,7 +11,6 @@ class TowerInfov1 : public TowerInfo
 {
  public:
   TowerInfov1() {}
-  TowerInfov1(const TowerInfov1 &ti);
   ~TowerInfov1() override {}
   void Reset() override;
 
