@@ -133,7 +133,8 @@ class PHActsTrkFitter : public SubsysReco
 	   const ActsExamples::TrackParameters& seed,
 	   const ActsTrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
-	   const SurfacePtrVec& surfSequence);
+	   const SurfacePtrVec& surfSequence,
+	   std::shared_ptr<Acts::VectorMultiTrajectory>& mtj);
 
   /// Functions to get list of sorted surfaces for direct navigation, if
   /// applicable
