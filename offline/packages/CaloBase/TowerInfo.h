@@ -10,14 +10,14 @@ class TowerInfo : public PHObject
  public:
   TowerInfo() = default;
   ~TowerInfo() override = default;
-  void Reset() override;
+  void Reset() override { return; }
 
   virtual void setTime(short /*t*/) { return; }
   virtual short getTime() { return -1; }
   virtual void setAmplitude(float /*amp*/) { return; }
   virtual float getAmplitude() { return NAN; }
 
-private:
+ private:
   ClassDefOverride(TowerInfo, 1);
 };
 

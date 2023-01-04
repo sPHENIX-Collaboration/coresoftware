@@ -10,7 +10,7 @@
 class RawTowerGeomv2 : public RawTowerGeom
 {
  public:
-  RawTowerGeomv2();
+  RawTowerGeomv2() {}
   RawTowerGeomv2(RawTowerDefs::keytype id);
   ~RawTowerGeomv2() override {}
 
@@ -70,15 +70,15 @@ class RawTowerGeomv2 : public RawTowerGeom
   double get_phi() const override;
 
  protected:
-  RawTowerDefs::keytype _towerid;
+  RawTowerDefs::keytype _towerid = ~0U;
 
-  double _center_x;
-  double _center_y;
-  double _center_z;
+  double _center_x = 0.;
+  double _center_y = 0.;
+  double _center_z = 0.;
 
-  double _size_x;
-  double _size_y;
-  double _size_z;
+  double _size_x = 0.;
+  double _size_y = 0.;
+  double _size_z = 0.;
 
   ClassDefOverride(RawTowerGeomv2, 3)
 };

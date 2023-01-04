@@ -1,21 +1,6 @@
 #include "TowerInfoContainer.h"
-#include "TowerInfo.h"
 
 TowerInfoContainer::TowerMap DummyTowerMap;
-
-void TowerInfoContainer::Reset()
-{
-}
-
-void TowerInfoContainer::add(TowerInfo* /*ti*/, int /*pos*/)
-{
-  return;
-}
-
-TowerInfo* TowerInfoContainer::at(int /*pos*/)
-{
-  return nullptr;
-}
 
 TowerInfoContainer::TowerMap TowerInfoContainer::getTowerMap()
 {
