@@ -31,13 +31,13 @@ void RawTowerContainer::compress(const double emin)
 }
 
 RawTowerContainer::ConstRange
-RawTowerContainer::getTowers(void) const
+RawTowerContainer::getTowers() const
 {
   return make_pair(_towers.begin(), _towers.end());
 }
 
 RawTowerContainer::Range
-RawTowerContainer::getTowers(void)
+RawTowerContainer::getTowers()
 {
   return make_pair(_towers.begin(), _towers.end());
 }
@@ -76,7 +76,7 @@ RawTowerContainer::getTower(RawTowerDefs::keytype key)
   {
     return it->second;
   }
-  return NULL;
+  return nullptr;
 }
 
 const RawTower *
@@ -87,7 +87,7 @@ RawTowerContainer::getTower(RawTowerDefs::keytype key) const
   {
     return it->second;
   }
-  return NULL;
+  return nullptr;
 }
 
 RawTower *
