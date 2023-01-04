@@ -27,14 +27,14 @@ class TowerInfoContainer : public PHObject
 
   virtual void Reset() override {}
   virtual void add(TowerInfo* /*ti*/, int /*pos*/) {}
-  virtual TowerInfo* at(int /*pos*/) {return nullptr;}
+  virtual TowerInfo* at(int /*pos*/) { return nullptr; }
   virtual unsigned int encode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
   virtual TowerMap getTowerMap();
 
   virtual size_t size() { return 0; }
 
   virtual unsigned int getTowerPhiBin(unsigned int /*towerIndex*/) { return UINT_MAX; }
-  virtual unsigned int getTowerEtaBin (unsigned int /*towerIndex*/) { return UINT_MAX; }
+  virtual unsigned int getTowerEtaBin(unsigned int /*towerIndex*/) { return UINT_MAX; }
 
   virtual ConstIter begin() const;
   virtual ConstIter find(int key) const;

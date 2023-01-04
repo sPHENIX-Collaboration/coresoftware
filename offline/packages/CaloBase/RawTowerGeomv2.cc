@@ -11,7 +11,7 @@ RawTowerGeomv2::RawTowerGeomv2(RawTowerDefs::keytype id)
 double RawTowerGeomv2::get_center_radius() const
 {
   return std::sqrt(_center_x * _center_x +
-              _center_y * _center_y);
+                   _center_y * _center_y);
 }
 
 double RawTowerGeomv2::get_eta() const

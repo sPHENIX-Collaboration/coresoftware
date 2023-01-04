@@ -19,7 +19,7 @@ class TowerInfov1 : public TowerInfo
   void setAmplitude(float amp) override { _amplitude = amp; }
   float getAmplitude() override { return _amplitude; }
 
-private:
+ private:
   short _time = 0;
   float _amplitude = NAN;
 

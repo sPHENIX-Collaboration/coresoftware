@@ -10,7 +10,7 @@
 class RawTowerGeomv2 : public RawTowerGeom
 {
  public:
-  RawTowerGeomv2(){}
+  RawTowerGeomv2() {}
   RawTowerGeomv2(RawTowerDefs::keytype id);
   ~RawTowerGeomv2() override {}
 

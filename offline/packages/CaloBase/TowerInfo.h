@@ -17,7 +17,7 @@ class TowerInfo : public PHObject
   virtual void setAmplitude(float /*amp*/) { return; }
   virtual float getAmplitude() { return NAN; }
 
-private:
+ private:
   ClassDefOverride(TowerInfo, 1);
 };
 

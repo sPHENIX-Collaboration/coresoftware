@@ -46,7 +46,7 @@ void RawTowerGeomContainer_Cylinderv1::identify(std::ostream& os) const
      << ", phibins: " << get_phibins();
 
   int i = 0;
-  for (const auto & iter : eta_bound_map)
+  for (const auto& iter : eta_bound_map)
   {
     os << "eta_bin[" << i << "](" << iter.first << ", " << iter.second
        << ")  ";
@@ -54,7 +54,7 @@ void RawTowerGeomContainer_Cylinderv1::identify(std::ostream& os) const
   }
   os << endl;
   i = 0;
-  for (const auto & iter : phi_bound_map)
+  for (const auto& iter : phi_bound_map)
   {
     os << "phi_bin[" << i << "](" << iter.first << ", " << iter.second
        << ")  ";
@@ -101,7 +101,7 @@ int RawTowerGeomContainer_Cylinderv1::get_etabin(const double eta) const
   // since in a realistic calorimeter, there could be gaps
   double min_deta = 10;
 
-  for (const auto & iter : eta_bound_map)
+  for (const auto& iter : eta_bound_map)
   {
     const double mean_eta = 0.5 * (iter.first + iter.second);
 
@@ -145,7 +145,7 @@ int RawTowerGeomContainer_Cylinderv1::get_phibin(const double phi) const
   // since in a realistic calorimeter, there could be gaps
   double min_dphi = 10;
 
-  for (const auto & iter : phi_bound_map)
+  for (const auto& iter : phi_bound_map)
   {
     const double mean_phi = 0.5 * (iter.first + iter.second);
 

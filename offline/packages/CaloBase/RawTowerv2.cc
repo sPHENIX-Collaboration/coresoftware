@@ -8,8 +8,7 @@
 
 using namespace std;
 
-RawTowerv2::RawTowerv2()
-= default;
+RawTowerv2::RawTowerv2() = default;
 
 RawTowerv2::RawTowerv2(const RawTower& tower)
   : RawTowerv1(tower)
@@ -78,8 +77,10 @@ RawTowerv2::get_property(const PROPERTY prop_id) const
 {
   prop_map_t::const_iterator i = prop_map.find(prop_id);
 
-  if (i != prop_map.end()) { return i->second;
-}
+  if (i != prop_map.end())
+  {
+    return i->second;
+  }
 
   return NAN;
 }

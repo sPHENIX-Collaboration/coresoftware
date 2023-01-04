@@ -17,7 +17,7 @@ RawTowerGeomContainerv1::RawTowerGeomContainerv1(RawTowerDefs::CalorimeterId cal
 
 RawTowerGeomContainerv1::~RawTowerGeomContainerv1()
 {
-  Reset();  //make sure everything is deleted
+  Reset();  // make sure everything is deleted
 }
 
 RawTowerGeomContainerv1::ConstRange
