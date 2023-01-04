@@ -58,7 +58,7 @@ class BbcPmtContainer : public PHObject
  private:
   void virtual_warning(const char *funcname) const;
 
-  ClassDef(BbcPmtContainer,1)
+  ClassDefOverride(BbcPmtContainer,1)
 };
 
 #endif

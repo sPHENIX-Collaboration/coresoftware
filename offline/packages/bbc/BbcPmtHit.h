@@ -21,7 +21,7 @@ public:
   void identify(std::ostream& os = std::cout) const;
 
 private:
-  ClassDef(BbcPmtHit,1)
+  ClassDefOverride(BbcPmtHit,1)
 };
 
 #endif

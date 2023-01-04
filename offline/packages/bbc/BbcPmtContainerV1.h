@@ -67,7 +67,7 @@ protected:
 
 
 private: // so the ClassDef does not show up with doc++
-  ClassDef(BbcPmtContainerV1,1)
+  ClassDefOverride(BbcPmtContainerV1,1)
 };
 
 #endif

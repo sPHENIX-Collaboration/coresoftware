@@ -26,7 +26,7 @@ protected:
   Float_t tdc1;
 
 private:
-  ClassDef(BbcPmtHitV1,1)
+  ClassDefOverride(BbcPmtHitV1,1)
 };
 
 #endif

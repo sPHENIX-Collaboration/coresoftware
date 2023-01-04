@@ -24,7 +24,7 @@ protected:
   Float_t MeanTime;
 
 private:
-  ClassDef(BbcNorthSouth,1)
+  ClassDefOverride(BbcNorthSouth,1)
 };
 
 #endif

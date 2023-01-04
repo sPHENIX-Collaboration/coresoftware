@@ -90,7 +90,8 @@ private:
   TClonesArray *BbcNS;
 
 private: // so the ClassDef does not show up with doc++
-  ClassDef(BbcOutV1,1)
+  ClassDefOverride(BbcOutV1,1)
+
 };
 
 #endif
