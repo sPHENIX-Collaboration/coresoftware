@@ -55,7 +55,7 @@ TowerInfov1* TowerInfoContainerv1::at(int pos)
   return (TowerInfov1*)_clones->At(pos);
 }
 
-int TowerInfoContainerv1::encode_key(int towerIndex)
+unsigned int TowerInfoContainerv1::encode_key(unsigned int towerIndex)
 {
   int phimap[64] = {0};
   int etamap[64] = {0};
@@ -72,14 +72,14 @@ int TowerInfoContainerv1::encode_key(int towerIndex)
   {
     channels_per_sector = 31;
     supersector = channels_per_sector*12;
-    int supersectornumber = towerIndex/supersector;
+    unsigned int supersectornumber = towerIndex/supersector;
     int sector = ( (towerIndex%supersector))/channels_per_sector;
     int channel = ( (towerIndex%supersector))%channels_per_sector;
     int rmap[31]={0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15};
     int phimap_sepd[31] = {0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-    int globalphi = phimap_sepd[channel] + 2*sector;
-    int r = rmap[channel];
-    int key = globalphi+ (r << 10) + (supersectornumber << 20);
+    unsigned int globalphi = phimap_sepd[channel] + 2*sector;
+    unsigned int r = rmap[channel];
+    unsigned int key = globalphi+ (r << 10U) + (supersectornumber << 20U);
     return key;
   }
 
@@ -161,10 +161,10 @@ int TowerInfoContainerv1::encode_key(int towerIndex)
     packet_etabin = localetabin;
   }
 
-  int globaletabin = packet_etabin + etabinoffset[packet];
-  int globalphibin = localphibin + supersectornumber*8;
+  unsigned int globaletabin = packet_etabin + etabinoffset[packet];
+  unsigned int globalphibin = localphibin + supersectornumber*8;
 
-  int key = globalphibin + (globaletabin << 16);
+  unsigned int key = globalphibin + (globaletabin << 16U);
 
   return key;
 }
@@ -180,15 +180,15 @@ TowerInfoContainer::TowerMap TowerInfoContainerv1::getTowerMap()
   return tmap;
 }
 
-int TowerInfoContainerv1::getTowerPhiBin(int key)
+unsigned int TowerInfoContainerv1::getTowerPhiBin(unsigned int key)
 {
-  int etabin = key >> 16;
-  int phibin = key - (etabin << 16);
+  unsigned int etabin = key >> 16U;
+  unsigned int phibin = key - (etabin << 16U);
   return phibin;
 }
 
-int TowerInfoContainerv1::getTowerEtaBin(int key)
+unsigned int TowerInfoContainerv1::getTowerEtaBin(unsigned int key)
 {
-  int etabin = key >> 16;
+  unsigned int etabin = key >> 16U;
   return etabin;
 }
