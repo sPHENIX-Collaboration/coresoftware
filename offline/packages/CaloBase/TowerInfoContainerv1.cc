@@ -76,8 +76,8 @@ int TowerInfoContainerv1::encode_key(int towerIndex)
     int sector = ( (towerIndex%supersector))/channels_per_sector;
     int channel = ( (towerIndex%supersector))%channels_per_sector;
     int rmap[31]={0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15};
-    int phimap[31] = {0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-    int globalphi = phimap[channel] + 2*sector;
+    int phimap_sepd[31] = {0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
+    int globalphi = phimap_sepd[channel] + 2*sector;
     int r = rmap[channel];
     int key = globalphi+ (r << 10) + (supersectornumber << 20);
     return key;
@@ -150,7 +150,7 @@ int TowerInfoContainerv1::encode_key(int towerIndex)
 
   if(_detector == DETECTOR::EMCAL)
   {
-    int packet_etabin = localetabin+8*interfaceboard;
+    packet_etabin = localetabin+8*interfaceboard;
     if(packet == 0 || packet == 1)
     {
       packet_etabin = maxetabin - packet_etabin;
