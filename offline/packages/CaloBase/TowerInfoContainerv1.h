@@ -1,13 +1,12 @@
 #ifndef TOWERINFOCONTAINERV1_H
 #define TOWERINFOCONTAINERV1_H
 
-#include "TowerInfov1.h"
 #include "TowerInfoContainer.h"
+#include "TowerInfov1.h"
 
 #include <phool/PHObject.h>
 
 #include <TClonesArray.h>
-
 
 class TowerInfoContainerv1 : public TowerInfoContainer
 {
@@ -17,14 +16,14 @@ class TowerInfoContainerv1 : public TowerInfoContainer
 
   void Reset() override;
   void add(TowerInfov1 *ti, int pos);
-  TowerInfov1* at(int pos) override;
-  int encode_key(int towerIndex) override;
+  TowerInfov1 *at(int pos) override;
+  unsigned int encode_key(unsigned int towerIndex) override;
   TowerMap getTowerMap() override;
 
   size_t size() override { return _clones->GetEntries(); }
 
-  int getTowerPhiBin(int towerIndex) override;
-  int getTowerEtaBin(int towerIndex) override;
+  unsigned int getTowerPhiBin(unsigned int towerIndex) override;
+  unsigned int getTowerEtaBin(unsigned int towerIndex) override;
 
   ConstIter begin() const override { return _map.begin(); }
   ConstIter find(int key) const override { return _map.find(key); }

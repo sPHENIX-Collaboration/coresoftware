@@ -5,8 +5,7 @@
 
 #include <phool/PHObject.h>
 
-#include <TClonesArray.h>
-
+#include <climits>
 #include <map>
 
 class TowerInfoContainer : public PHObject
@@ -26,16 +25,16 @@ class TowerInfoContainer : public PHObject
   TowerInfoContainer() = default;
   ~TowerInfoContainer() override = default;
 
-  virtual void Reset() override;
-  virtual void add(TowerInfo* /*ti*/, int /*pos*/);
-  virtual TowerInfo* at(int /*pos*/);
-  virtual int encode_key(int /*towerIndex*/) { return 0; }
+  virtual void Reset() override {}
+  virtual void add(TowerInfo* /*ti*/, int /*pos*/) {}
+  virtual TowerInfo* at(int /*pos*/) { return nullptr; }
+  virtual unsigned int encode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
   virtual TowerMap getTowerMap();
 
   virtual size_t size() { return 0; }
 
-  virtual int getTowerPhiBin(int /*towerIndex*/) { return -1; }
-  virtual int getTowerEtaBin(int /*towerIndex*/) { return -1; }
+  virtual unsigned int getTowerPhiBin(unsigned int /*towerIndex*/) { return UINT_MAX; }
+  virtual unsigned int getTowerEtaBin(unsigned int /*towerIndex*/) { return UINT_MAX; }
 
   virtual ConstIter begin() const;
   virtual ConstIter find(int key) const;

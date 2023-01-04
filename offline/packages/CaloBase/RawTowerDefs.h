@@ -1,10 +1,10 @@
 #ifndef CALOBASE_RAWTOWERDEFS_H
 #define CALOBASE_RAWTOWERDEFS_H
 
+#include <bitset>
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <bitset>
 
 /*! Namespace with functions to encode / decode CaloTowerID. The highest 8 bits of the tower ID encode a unique ID
  * for the calorimeter the tower is in. The lower 24 bits uniquely identify the tower within a calorimeter.
@@ -37,7 +37,7 @@ namespace RawTowerDefs
     DRCALO = 7,
     EHCAL = 8,
     EEMC_crystal = 9,
-    EEMC_glass = 10, 
+    EEMC_glass = 10,
     LFHCAL = 11,
     BECAL = 12,
     ZDC = 13,
@@ -59,7 +59,7 @@ namespace RawTowerDefs
 
     if (tower_index_1 < 0xFFF && tower_index_2 < 0xFFF)
     {
-      calo_tower_id = (calo_id << RawTowerDefs::tower_idbits) + (tower_index_1 << RawTowerDefs::index1_idbits) + tower_index_2;      
+      calo_tower_id = (calo_id << RawTowerDefs::tower_idbits) + (tower_index_1 << RawTowerDefs::index1_idbits) + tower_index_2;
     }
     else
     {
@@ -126,27 +126,26 @@ namespace RawTowerDefs
     return calo_tower_id & 0xFFF;
   }
 
-  
-   /*! Extract tower index 1 of calorimeter tower from CaloTowerID with 3 indices
+  /*! Extract tower index 1 of calorimeter tower from CaloTowerID with 3 indices
    */
   inline unsigned int
   decode_index1v2(const unsigned int calo_tower_id)
   {
-//     static unsigned int bitsIndex1 = 10;   
-    static unsigned int bitsIndex2 = 10; // max 0x3FF (1023)
-    static unsigned int bitsIndex3 = 4;  // max 0xF (15)
+    //     static unsigned int bitsIndex1 = 10;
+    static unsigned int bitsIndex2 = 10;  // max 0x3FF (1023)
+    static unsigned int bitsIndex3 = 4;   // max 0xF (15)
 
-//     std::cout << std::bitset<32>(calo_tower_id) << "\t index 1: " << ((calo_tower_id >> (bitsIndex2+bitsIndex3) & 0x3FF)) <<  "\t"<< std::bitset<32>((calo_tower_id >> (bitsIndex2+bitsIndex3))) << "\t"<< std::bitset<32>((calo_tower_id >> (bitsIndex2+bitsIndex3))& 0x3FF) <<std::endl;
-    return (calo_tower_id >> (bitsIndex2+bitsIndex3)) & 0x3FF;
+    //     std::cout << std::bitset<32>(calo_tower_id) << "\t index 1: " << ((calo_tower_id >> (bitsIndex2+bitsIndex3) & 0x3FF)) <<  "\t"<< std::bitset<32>((calo_tower_id >> (bitsIndex2+bitsIndex3))) << "\t"<< std::bitset<32>((calo_tower_id >> (bitsIndex2+bitsIndex3))& 0x3FF) <<std::endl;
+    return (calo_tower_id >> (bitsIndex2 + bitsIndex3)) & 0x3FF;
   }
 
-   /*! Extract tower index 2 of calorimeter tower from CaloTowerID with 3 indices
+  /*! Extract tower index 2 of calorimeter tower from CaloTowerID with 3 indices
    */
   inline unsigned int
   decode_index2v2(const unsigned int calo_tower_id)
   {
     static unsigned int bitsIndex3 = 4;  // max 0xF (15)
-//     std::cout << std::bitset<32>(calo_tower_id) << "\t index 2: " << ((calo_tower_id >> (bitsIndex3) & 0x3FF)) <<  "\t"<< std::bitset<32>((calo_tower_id >> (bitsIndex3))) << "\t"<< std::bitset<32>((calo_tower_id >> (bitsIndex3))& 0x3FF) <<std::endl;
+                                         //     std::cout << std::bitset<32>(calo_tower_id) << "\t index 2: " << ((calo_tower_id >> (bitsIndex3) & 0x3FF)) <<  "\t"<< std::bitset<32>((calo_tower_id >> (bitsIndex3))) << "\t"<< std::bitset<32>((calo_tower_id >> (bitsIndex3))& 0x3FF) <<std::endl;
     return (calo_tower_id >> (bitsIndex3)) & 0x3FF;
   }
 
@@ -155,11 +154,11 @@ namespace RawTowerDefs
   inline unsigned int
   decode_index3v2(const unsigned int calo_tower_id)
   {
-//     std::cout << std::bitset<32>(calo_tower_id) << "\t index 3: " << (calo_tower_id & 0xF) <<  "\t"<< std::bitset<32>((calo_tower_id & 0xF)) <<std::endl;
+    //     std::cout << std::bitset<32>(calo_tower_id) << "\t index 3: " << (calo_tower_id & 0xF) <<  "\t"<< std::bitset<32>((calo_tower_id & 0xF)) <<std::endl;
     return calo_tower_id & 0xF;
   }
 
-   /*! Returns CaloTowerID for given calorimeter ID, tower index 1, tower index 2 and tower index 3
+  /*! Returns CaloTowerID for given calorimeter ID, tower index 1, tower index 2 and tower index 3
    */
   inline RawTowerDefs::keytype
   encode_towerid(const CalorimeterId calo_id, const unsigned int tower_index_1,
@@ -167,13 +166,13 @@ namespace RawTowerDefs
   {
     RawTowerDefs::keytype calo_tower_id = 0;
 
-//     static unsigned int bitsIndex1 = 10; // max 0x3FF (1023)
-    static unsigned int bitsIndex2 = 10; // max 0x3FF (1023)
-    static unsigned int bitsIndex3 = 4;  // max 0xF (15)
-    
-    if (tower_index_1 < 0x3FF && tower_index_2 < 0x3FF &&  tower_index_3 < 0xF)
+    //     static unsigned int bitsIndex1 = 10; // max 0x3FF (1023)
+    static unsigned int bitsIndex2 = 10;  // max 0x3FF (1023)
+    static unsigned int bitsIndex3 = 4;   // max 0xF (15)
+
+    if (tower_index_1 < 0x3FF && tower_index_2 < 0x3FF && tower_index_3 < 0xF)
     {
-      calo_tower_id = (calo_id << RawTowerDefs::tower_idbits) + (tower_index_1 << (bitsIndex2+bitsIndex3)) + (tower_index_2 << bitsIndex3) + tower_index_3;
+      calo_tower_id = (calo_id << RawTowerDefs::tower_idbits) + (tower_index_1 << (bitsIndex2 + bitsIndex3)) + (tower_index_2 << bitsIndex3) + tower_index_3;
     }
     else
     {
@@ -182,13 +181,13 @@ namespace RawTowerDefs
                 << ", index2: "
                 << tower_index_2 << " (max val " << 0x3FF << ")"
                 << ", index3: "
-                << tower_index_3 << " (max val " << 0xF << ")"<< std::endl;
+                << tower_index_3 << " (max val " << 0xF << ")" << std::endl;
       exit(1);
     }
-//     std::cout << std::bitset<32>(calo_tower_id) << "\t" << std::bitset<8>(calo_id) << "\t"<< tower_index_1 << "\t"<<  std::bitset<10>(tower_index_1) << "\t"<< tower_index_2 << "\t"<<  std::bitset<10>(tower_index_2) << "\t"<< tower_index_3<< "\t"<<  std::bitset<4>(tower_index_3)  << std::endl;
-//     decode_index1v2(calo_tower_id);
-//     decode_index2v2(calo_tower_id);
-//     decode_index3v2(calo_tower_id);
+    //     std::cout << std::bitset<32>(calo_tower_id) << "\t" << std::bitset<8>(calo_id) << "\t"<< tower_index_1 << "\t"<<  std::bitset<10>(tower_index_1) << "\t"<< tower_index_2 << "\t"<<  std::bitset<10>(tower_index_2) << "\t"<< tower_index_3<< "\t"<<  std::bitset<4>(tower_index_3)  << std::endl;
+    //     decode_index1v2(calo_tower_id);
+    //     decode_index2v2(calo_tower_id);
+    //     decode_index3v2(calo_tower_id);
     return calo_tower_id;
   }
 
@@ -226,27 +225,27 @@ namespace RawTowerDefs
     case EHCAL:
       return "EHCAL";
       break;
-      
+
     case FEMC:
       return "FEMC";
       break;
 
     case FHCAL:
       return "FHCAL";
-      break; 
+      break;
 
     case BECAL:
       return "BECAL";
-      break;	
+      break;
 
     case EEMC_crystal:
       return "EEMC_crystal";
       break;
-      
+
     case EEMC_glass:
       return "EEMC_glass";
       break;
-      
+
     case LFHCAL:
       return "LFHCAL";
       break;
@@ -254,31 +253,31 @@ namespace RawTowerDefs
     case ZDC:
       return "ZDC";
       break;
-  
+
     case B0ECAL:
       return "B0ECAL";
       break;
-  
+
     case BWD_0:
       return "BWD_0";
       break;
-  
+
     case BWD_1:
       return "BWD_1";
       break;
-  
+
     case BWD_2:
       return "BWD_2";
       break;
-  
+
     case BWD_3:
       return "BWD_3";
       break;
-  
+
     case BWD_4:
       return "BWD_4";
       break;
-  
+
     default:
       std::cout
           << "Invalid calorimeter ID passed to RawTowerDefs::convert_caloid_to_name"
@@ -321,13 +320,13 @@ namespace RawTowerDefs
 
     else if (caloname == "EEMC_crystal")
       return EEMC_crystal;
-    
+
     else if (caloname == "EEMC_glass")
       return EEMC_glass;
 
     else if (caloname == "LFHCAL")
       return LFHCAL;
-    
+
     else if (caloname == "BECAL")
       return BECAL;
 
