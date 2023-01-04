@@ -6,7 +6,7 @@
 using namespace std;
 
 RawTowerGeomv2::RawTowerGeomv2()
-  : _towerid(~0)
+  : _towerid(~0U)
   , _center_x(0)
   , _center_y(0)
   , _center_z(0)
