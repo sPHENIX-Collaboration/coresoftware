@@ -72,23 +72,15 @@ int SecondaryVertexFinder::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 {
-
-  if(Verbosity() > 0)
+  //if(Verbosity() > 0)
     std::cout << PHWHERE << " track map size " << _track_map->size()  << std::endl;
 
-  // reset maps
-  _vertex_track_map.clear();
-  _track_pair_map.clear();
-  _track_pair_pca_map.clear();
-  _vertex_position_map.clear();
-  _vertex_covariance_map.clear();
-  _vertex_set.clear();
-  
   // Loop over tracks and check for close DCA match with all other tracks
   for(auto tr1_it = _track_map->begin(); tr1_it != _track_map->end(); ++tr1_it)
     {
       auto id1 = tr1_it->first;
       auto tr1 = tr1_it->second;
+      std::cout << "Track 1 " << id1 << std::endl;
       if(tr1->get_quality() > _qual_cut) continue;
 
       // look for close DCA matches with all other such tracks
@@ -96,17 +88,22 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	{
 	  auto id2 = tr2_it->first;
 	  auto tr2 = tr2_it->second;
+	  std::cout << "Track 2 " << id2 << std::endl;
 	  if(tr2->get_quality() > _qual_cut) continue;
 
 	  // find DCA and PCA of these two tracks
-	  if(Verbosity() > 3) std::cout << "Check DCA for tracks " << id1 << " and  " << id2 << std::endl;
+	  //if(Verbosity() > 3) 
+	  std::cout << "Check DCA for tracks " << id1 << " and  " << id2 << std::endl;
 	  Eigen::Vector3d PCA1(0,0,0), PCA2(0,0,0);
-	  double dca = findTwoTrackPCA(tr1, tr2, PCA1, PCA2);
+	  double dca;
+
+	  findPcaTwoTracks(tr1, tr2, dca, PCA1, PCA2);  // assumes tracks are straight lines
+	  //	  double dca = findTwoTrackPCA(tr1, tr2, PCA1, PCA2);
 
 	  // check for close pair
 	  if(dca > _two_track_dcacut) { continue; }
 
-	  std::cout << "Found a decay pair: id1" << tr1_it->first << " id2 " << tr1_it->first 
+	  std::cout << "    Found a decay pair: id1 " << tr1_it->first << " id2 " << tr2_it->first 
 		    << " PCA1 " << PCA1(0) << "  " << PCA1(1) << "  " << PCA1(2)
 		    << " PCA2 " << PCA2(0) << "  " << PCA2(1) << "  " << PCA2(2)
 		    << " pair dca " << dca << std::endl;  
@@ -122,9 +119,9 @@ void SecondaryVertexFinder::updateSvtxTrack(SvtxTrack* track,
 {
   auto position = params.position(_tGeometry->geometry().getGeoContext());
   
-  if(Verbosity() > 2)
+  //  if(Verbosity() > 2)
     {
-      std::cout << "Updating position track parameters from " << track->get_x()
+      std::cout << "   Updating position track parameters from track " << track->get_id() << " x y z = " << track->get_x()
 		<< ", " << track->get_y() << ", " << track->get_z() << " to " 
 		<< position.transpose() / 10.
 		<< std::endl;
@@ -185,6 +182,53 @@ BoundTrackParamPtrResult SecondaryVertexFinder::propagateTrack(
 
 }
 
+void SecondaryVertexFinder::findPcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2,
+			double &dca, Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2)
+{
+ Eigen::Vector3d a1(tr1->get_x(), tr1->get_y(), tr1->get_z());
+  Eigen::Vector3d b1(tr1->get_px() / tr1->get_p(), tr1->get_py() / tr1->get_p(), tr1->get_pz() / tr1->get_p());
+  Eigen::Vector3d a2(tr2->get_x(), tr2->get_y(), tr2->get_z());
+  Eigen::Vector3d b2(tr2->get_px() / tr2->get_p(), tr2->get_py() / tr2->get_p(), tr2->get_pz() / tr2->get_p());
+
+  // The shortest distance between two skew lines described by
+  //  a1 + c * b1
+  //  a2 + d * b2
+  // where a1, a2, are vectors representing points on the lines, b1, b2 are direction vectors, 
+  //  and c and d are scalars
+  // is:
+  // dca = (b1 x b2) .(a2-a1) / |b1 x b2|
+
+  // bcrossb/mag_bcrossb is a unit vector perpendicular to both direction vectors b1 and b2
+  auto bcrossb = b1.cross(b2);
+  auto mag_bcrossb = bcrossb.norm();
+  // a2-a1 is the vector joining any arbitrary points on the two lines
+  auto aminusa = a2-a1;
+
+  // The DCA of these two lines is the projection of a2-a1 along the direction of the perpendicular to both 
+  // remember that a2-a1 is longer than (or equal to) the dca by definition
+  dca = 999;
+  if( mag_bcrossb != 0)
+    dca = bcrossb.dot(aminusa) / mag_bcrossb;
+  else
+    return;   // same track, skip combination
+  
+  // get the points at which the normal to the lines intersect the lines, where the lines are perpendicular
+
+  double X =  b1.dot(b2) - b1.dot(b1) * b2.dot(b2) / b2.dot(b1);
+  double Y =  (a2.dot(b2) - a1.dot(b2)) - (a2.dot(b1) - a1.dot(b1)) * b2.dot(b2) / b2.dot(b1) ;
+  double c = Y/X;
+
+  double F = b1.dot(b1) / b2.dot(b1); 
+  double G = - (a2.dot(b1) - a1.dot(b1)) / b2.dot(b1);
+  double d = c * F + G;
+
+  // then the points of closest approach are:
+  PCA1 = a1+c*b1;
+  PCA2 = a2+d*b2;
+
+  return;
+}
+
 double SecondaryVertexFinder::findTwoTrackPCA(SvtxTrack *track1, SvtxTrack *track2, Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2)
 {
   // For secondary vertex finding we cannot assume that the vertex is close to the beam line
@@ -227,6 +271,11 @@ double SecondaryVertexFinder::findTwoTrackPCA(SvtxTrack *track1, SvtxTrack *trac
       intersect(1) = y1;
     }
 
+  PCA1(0) = intersect(0);
+  PCA1(1) = intersect(1);
+
+  std::cout << "     x0 " << x0 << " y0 " << y0 << " x1 " << x1 << " y1 " << y1 << " circle-circle intersection point is " << PCA1 << std::endl;
+
   // Project both tracks to this point and get the momentum vectors
 
   // track 1  
@@ -240,7 +289,7 @@ double SecondaryVertexFinder::findTwoTrackPCA(SvtxTrack *track1, SvtxTrack *trac
 
   // track 2  
   auto boundParams2 = makeTrackParams(track2);
-  auto propresult2 = propagateTrack(boundParams2, PCA2);
+  auto propresult2 = propagateTrack(boundParams2, PCA1);
   if(propresult2.ok())
     {
       auto paramsAtVertex = std::move(**propresult2);
@@ -252,6 +301,11 @@ double SecondaryVertexFinder::findTwoTrackPCA(SvtxTrack *track1, SvtxTrack *trac
   Eigen::Vector3d b1(track1->get_px() / track1->get_p(), track1->get_py() / track1->get_p(), track1->get_pz() / track1->get_p());
   Eigen::Vector3d a2(track2->get_x(), track2->get_y(), track2->get_z());
   Eigen::Vector3d b2(track2->get_px() / track2->get_p(), track2->get_py() / track2->get_p(), track2->get_pz() / track2->get_p());
+
+  std::cout << "   Final updated track 1 pos: " << a1(0) << "  " << a1(1) << "  " << a1(2)
+	    << " updated track1 unit p " << b1(0) << "  " << b1(1) << "  " << b1(2) << std::endl;
+  std::cout << "   Final updated track 2 pos " << a2(0) << "  " << a2(1) << "  " << a2(2) 
+	    << " updated track2 unit p " << b2(0) << "  " << b2(1) << "  " << b2(2)  << std::endl;
 
   dca =  dcaTwoLines(a1,b1,a2, b2, PCA1, PCA2);
 

@@ -7,8 +7,8 @@
  *  \author	 Tony Frawley <afrawley@fsu.edu>
  */
 
-#ifndef PHSIMPLEVERTEXFINDER_H
-#define PHSIMPLEVERTEXFINDER_H
+#ifndef SECONDARYVERTEXFINDER_H
+#define SECONDARYVERTEXFINDER_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -75,6 +75,8 @@ class SecondaryVertexFinder : public SubsysReco
   int GetNodes(PHCompositeNode* topNode);
 //  int CreateNodes(PHCompositeNode* topNode);
 
+void findPcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2,
+					      double &dca, Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);
   double findTwoTrackPCA(SvtxTrack *track1, SvtxTrack *track2, Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);  
   double dcaTwoLines(const Eigen::Vector3d &p1, const Eigen::Vector3d &v1, 
 		     const Eigen::Vector3d &p2, const Eigen::Vector3d &v2, 
