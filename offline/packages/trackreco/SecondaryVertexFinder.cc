@@ -146,7 +146,7 @@ void SecondaryVertexFinder::updateSvtxTrack(SvtxTrack* track,
     }
 }
 
-BoundTrackParamPtrResult SecondaryVertexFinder::propagateTrack(
+BoundTrackParamResult SecondaryVertexFinder::propagateTrack(
 		         const Acts::BoundTrackParameters& params,
 			 const Eigen::Vector3d PCA)
 {
@@ -176,7 +176,9 @@ BoundTrackParamPtrResult SecondaryVertexFinder::propagateTrack(
   auto result = propagator.propagate(params, *perigee, 
 				     options);
   if(result.ok())
-    { return std::move((*result).endParameters); }
+    { 
+      return Acts::Result<BoundTrackParam>::success(std::move((*result).endParameters.value()));
+    }
   
   return result.error();
 
@@ -283,7 +285,7 @@ double SecondaryVertexFinder::findTwoTrackPCA(SvtxTrack *track1, SvtxTrack *trac
   auto propresult1 = propagateTrack(boundParams1, PCA1);
   if(propresult1.ok())
     {
-      auto paramsAtVertex = std::move(**propresult1);
+      auto paramsAtVertex = propresult1.value();
       updateSvtxTrack(track1,paramsAtVertex);
     }
 
@@ -292,7 +294,7 @@ double SecondaryVertexFinder::findTwoTrackPCA(SvtxTrack *track1, SvtxTrack *trac
   auto propresult2 = propagateTrack(boundParams2, PCA1);
   if(propresult2.ok())
     {
-      auto paramsAtVertex = std::move(**propresult2);
+      auto paramsAtVertex = propresult2.value();
       updateSvtxTrack(track2,paramsAtVertex);
     }
   

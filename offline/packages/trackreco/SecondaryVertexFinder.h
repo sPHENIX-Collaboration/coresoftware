@@ -46,9 +46,8 @@ class TrackSeed;
 class ActsGeometry;
 class TrkrClusterContainer;
 
-using BoundTrackParamPtr = 
-  std::unique_ptr<const Acts::BoundTrackParameters>;
-using BoundTrackParamPtrResult = Acts::Result<BoundTrackParamPtr>;
+using BoundTrackParam = const Acts::BoundTrackParameters;
+using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
 using SurfacePtr = std::shared_ptr<const Acts::Surface>;
 using Trajectory = ActsExamples::Trajectories;
 
@@ -86,7 +85,7 @@ void findPcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2,
   std::vector<double> circle_circle_intersection(double r0, double x0, double y0, double r1, double x1, double y1 );
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Eigen::Vector3d &global);
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
-  BoundTrackParamPtrResult propagateTrack(const Acts::BoundTrackParameters& params, const Eigen::Vector3d PCA);
+  BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params, const Eigen::Vector3d PCA);
   void updateSvtxTrack(SvtxTrack* track, const Acts::BoundTrackParameters& params);
   Acts::Vector3 getVertex(SvtxTrack* track);
 
