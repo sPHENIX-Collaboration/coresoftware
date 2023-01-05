@@ -24,6 +24,11 @@ class TowerInfoContainer : public PHObject
 
   TowerInfoContainer() = default;
   ~TowerInfoContainer() override = default;
+  typedef std::map<unsigned int, TowerInfo *> Map;
+  typedef Map::iterator Iterator;
+  typedef Map::const_iterator ConstIterator;
+  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
+  typedef std::pair<Iterator, Iterator> Range;
 
   virtual void Reset() override {}
   virtual void add(TowerInfo* /*ti*/, int /*pos*/) {}
