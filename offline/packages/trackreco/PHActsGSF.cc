@@ -15,6 +15,7 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsGsfTrackFittingAlgorithm.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -30,7 +31,7 @@
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
-
+#include <Acts/TrackFitting/BetheHeitlerApprox.hpp>
 #include <ActsExamples/EventData/Index.hpp>
 
 #include <TDatabasePDG.h>
@@ -59,9 +60,13 @@ int PHActsGSF::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_fitCfg.fit = ActsTrackFittingAlgorithm::makeGsfFitterFunction(
+  auto bha = Acts::Experimental::makeDefaultBetheHeitlerApprox();
+  ActsGsfTrackFittingAlgorithm gsf;
+  m_fitCfg.fit = gsf.makeGsfFitterFunction(
       m_tGeometry->geometry().tGeometry,
-      m_tGeometry->geometry().magField);
+      m_tGeometry->geometry().magField,
+      bha, 
+      4, Acts::FinalReductionMethod::eMean, true, false);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -373,22 +378,23 @@ ActsTrackFittingAlgorithm::TrackFitterResult PHActsGSF::fitTrack(
     const ActsExamples::TrackParameters& seed,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
 {
-  return (*m_fitCfg.fit)(sourceLinks, seed, options);
+  auto mtj = std::make_shared<Acts::VectorMultiTrajectory>();
+  return (*m_fitCfg.fit)(sourceLinks, seed, options,mtj);
 }
 
 void PHActsGSF::updateTrack(const FitResult& result, SvtxTrack* track)
 {
-  std::vector<size_t> trackTips;
+  std::vector<Acts::MultiTrajectoryTraits::IndexType> trackTips;
   trackTips.reserve(1);
   trackTips.emplace_back(result.lastMeasurementIndex);
   ActsExamples::Trajectories::IndexedParameters indexedParams;
-  std::cout << "fitted params" << std::endl;
+  
   if (result.fittedParameters)
   {
     indexedParams.emplace(result.lastMeasurementIndex,
                           result.fittedParameters.value());
     Trajectory traj(result.fittedStates, trackTips, indexedParams);
-    std::cout << "Created trajectory" << std::endl;
+
     updateSvtxTrack(traj, track);
   }
 }

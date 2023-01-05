@@ -68,10 +68,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
     /// Gets the global parameters from the state
     const Acts::FreeVector freeParams =
         Acts::MultiTrajectoryHelpers::freeSmoothed(m_tGeometry->geometry().getGeoContext(), state);
-
-    const Acts::ActsDynamicMatrix measCovariance =
-        state.effectiveCalibratedCovariance();
-
+ 
     /// Calculate the residual in global coordinates
     Acts::Vector3 clusGlobal = m_tGeometry->getGlobalPosition(ckey, clus);
     if (trkrId == TrkrDefs::tpcId)
@@ -124,7 +121,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
     const Acts::ActsDynamicMatrix H = state.effectiveProjector();
 
     /// Acts residual, in local coordinates
-    auto actslocres = state.effectiveCalibrated() - H * state.smoothed();
+    //auto actslocres = state.effectiveCalibrated() - H * state.smoothed();
 
     // Get the derivative of bound parameters w.r.t. alignment parameters
     Acts::AlignmentToBoundMatrix d =
@@ -139,8 +136,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
 
     if (m_verbosity > 4)
     {
-      std::cout << "local resids " << actslocres.transpose() << std::endl
-                << " derivative of resiudal wrt track params " << std::endl
+      std::cout << " derivative of resiudal wrt track params " << std::endl
                 << dLocResTrack << std::endl
                 << " derivative of residual wrt alignment params " << std::endl
                 << dLocResAlignment << std::endl;

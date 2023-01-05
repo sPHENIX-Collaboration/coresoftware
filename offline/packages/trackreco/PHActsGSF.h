@@ -21,6 +21,7 @@
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
 
 #include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/Trajectories.hpp>
@@ -36,7 +37,7 @@ class SvtxTrackMap;
 class SvtxVertexMap;
 
 using SourceLink = ActsSourceLink;
-using FitResult = Acts::KalmanFitterResult;
+using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
