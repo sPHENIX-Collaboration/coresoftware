@@ -24,12 +24,16 @@ class TowerInfoContainer : public PHObject
 
   TowerInfoContainer() = default;
   ~TowerInfoContainer() override = default;
+  typedef std::map<unsigned int, TowerInfo *> Map;
+  typedef Map::iterator Iterator;
+  typedef Map::const_iterator ConstIterator;
+  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
+  typedef std::pair<Iterator, Iterator> Range;
 
   virtual void Reset() override {}
   virtual void add(TowerInfo* /*ti*/, int /*pos*/) {}
   virtual TowerInfo* at(int /*pos*/) { return nullptr; }
   virtual unsigned int encode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
-  virtual TowerMap getTowerMap();
 
   virtual size_t size() { return 0; }
 

@@ -13,12 +13,19 @@ class TowerInfoContainerv1 : public TowerInfoContainer
  public:
   TowerInfoContainerv1(DETECTOR detec = DETECTOR::EMCAL);
   ~TowerInfoContainerv1() override;
+   typedef std::map<unsigned int, TowerInfo *> Map;
+   typedef Map::iterator Iterator;
+  typedef Map::const_iterator ConstIterator;
+  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
+  typedef std::pair<Iterator, Iterator> Range;
+
 
   void Reset() override;
   void add(TowerInfov1 *ti, int pos);
   TowerInfov1 *at(int pos) override;
   unsigned int encode_key(unsigned int towerIndex) override;
-  TowerMap getTowerMap() override;
+  Range getTowers(void);
+
 
   size_t size() override { return _clones->GetEntries(); }
 
@@ -37,6 +44,7 @@ class TowerInfoContainerv1 : public TowerInfoContainer
   TClonesArray *_clones;
   DETECTOR _detector;
   TowerMap _map;
+  Map _towers;
 
  private:
   using TowerInfoContainer::add;

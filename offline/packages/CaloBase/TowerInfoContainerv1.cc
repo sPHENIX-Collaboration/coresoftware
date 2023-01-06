@@ -40,6 +40,11 @@ TowerInfoContainerv1::~TowerInfoContainerv1()
 
 void TowerInfoContainerv1::Reset()
 {
+  while (_map.begin() != _map.end())
+    {
+      delete _map.begin()->second;
+      _map.erase(_map.begin());
+    }
   _clones->Clear();
 }
 
@@ -167,16 +172,20 @@ unsigned int TowerInfoContainerv1::encode_key(unsigned int towerIndex)
   return key;
 }
 
-TowerInfoContainer::TowerMap TowerInfoContainerv1::getTowerMap()
-{
-  TowerInfoContainer::TowerMap tmap;
-  for (unsigned int i = 0; i < size(); i++)
-  {
-    tmap.insert(std::make_pair(encode_key(i), at(i)));
-  }
 
-  return tmap;
+TowerInfoContainerv1::Range
+TowerInfoContainerv1::getTowers()
+{
+  if (_towers.empty())
+    {
+      for (unsigned int i = 0; i < size(); i++)
+	{
+	  _towers.insert(std::make_pair(encode_key(i), at(i)));
+	}
+    }
+  return make_pair(_towers.begin(), _towers.end());
 }
+
 
 unsigned int TowerInfoContainerv1::getTowerPhiBin(unsigned int key)
 {
