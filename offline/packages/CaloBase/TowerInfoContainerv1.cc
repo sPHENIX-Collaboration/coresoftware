@@ -187,18 +187,6 @@ TowerInfoContainerv1::getTowers()
 }
 
 
-
-TowerInfoContainer::TowerMap TowerInfoContainerv1::getTowerMap()
-{
-  TowerInfoContainer::TowerMap tmap;
-  for (unsigned int i = 0; i < size(); i++)
-  {
-    tmap.insert(std::make_pair(encode_key(i), at(i)));
-  }
-
-  return tmap;
-}
-
 unsigned int TowerInfoContainerv1::getTowerPhiBin(unsigned int key)
 {
   unsigned int etabin = key >> 16U;
