@@ -12,10 +12,10 @@ class TowerInfo : public PHObject
   ~TowerInfo() override = default;
   void Reset() override { return; }
 
-  virtual void setTime(short /*t*/) { return; }
-  virtual short getTime() { return -1; }
-  virtual void setAmplitude(float /*amp*/) { return; }
-  virtual float getAmplitude() { return NAN; }
+  virtual void set_time(short /*t*/) { return; }
+  virtual short get_time() { return -1; }
+  virtual void set_energy(float /*energy*/) { return; }
+  virtual float get_energy() { return NAN; }
 
  private:
   ClassDefOverride(TowerInfo, 1);

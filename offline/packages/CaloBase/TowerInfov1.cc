@@ -3,5 +3,5 @@
 void TowerInfov1::Reset()
 {
   _time = 0;
-  _amplitude = NAN;
+  _energy = NAN;
 }
