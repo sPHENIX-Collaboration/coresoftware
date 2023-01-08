@@ -45,6 +45,8 @@ class TrkrCluster;
 class TrackSeed;
 class ActsGeometry;
 class TrkrClusterContainer;
+class TH1D;
+class TFile;
 
 using BoundTrackParam = const Acts::BoundTrackParameters;
 using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
@@ -63,29 +65,40 @@ class SecondaryVertexFinder : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
- void setTrackDcaCut(const double cut) {_track_dcacut = cut;}
+  void setTrackDcaCut(const double cutxy, const double cutz) {_track_dcaxy_cut = cutxy; _track_dcaz_cut = cutz;}
  void setTwoTrackDcaCut(const double cut) {_two_track_dcacut = cut;}
  void setTrackQualityCut(double cut) {_qual_cut = cut;}
  void setRequireMVTX(bool set) {_require_mvtx = set;}
  void setNmvtxRequired(unsigned int n) {_nmvtx_required = n;}
+ void setOutfileName(std::string filename) {outfile = filename;}
 
  private:
 
   int GetNodes(PHCompositeNode* topNode);
 //  int CreateNodes(PHCompositeNode* topNode);
 
-void findPcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2,
+  bool  hasSiliconSeed(SvtxTrack* tr); 
+  void outputTrackDetails(SvtxTrack *tr);
+  void get_dca(SvtxTrack* track, float& dca3dxy, float& dca3dz,
+	       float& dca3dxysigma, float& dca3dzsigma);
+  //  double getTrackDCA(SvtxTrack* tr);
+  void findPcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2,
 					      double &dca, Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);
-  double findTwoTrackPCA(SvtxTrack *track1, SvtxTrack *track2, Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);  
+  double findTwoTrackPCA(SvtxTrack *track1, SvtxTrack *track2, 
+			 Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);  
   double dcaTwoLines(const Eigen::Vector3d &p1, const Eigen::Vector3d &v1, 
 		     const Eigen::Vector3d &p2, const Eigen::Vector3d &v2, 
 		     Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);
   std::vector<float> fitClusters(TrackSeed *tracklet);
-  void getTrackletClusters(TrackSeed *tracklet, std::vector<Eigen::Vector3d>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec);
-  std::vector<double> circle_circle_intersection(double r0, double x0, double y0, double r1, double x1, double y1 );
-  void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Eigen::Vector3d &global);
+  void getTrackletClusters(TrackSeed *tracklet, std::vector<Eigen::Vector3d>& global_vec,
+			   std::vector<TrkrDefs::cluskey>& cluskey_vec);
+  std::vector<double> circle_circle_intersection(double r0, double x0, double y0, 
+						 double r1, double x1, double y1 );
+  void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, 
+				Eigen::Vector3d &global);
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
-  BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params, const Eigen::Vector3d PCA);
+  BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params,
+				       const Eigen::Vector3d PCA);
   void updateSvtxTrack(SvtxTrack* track, const Acts::BoundTrackParameters& params);
   Acts::Vector3 getVertex(SvtxTrack* track);
 
@@ -102,12 +115,17 @@ void findPcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2,
 
  TpcDistortionCorrection _distortionCorrection;
 
-  double _track_dcacut = 0.10;  
+  double _track_dcaxy_cut = 0.010;  
+  double _track_dcaz_cut = 0.010;  
   double _two_track_dcacut = 0.050;  // 500 microns 
-  double _qual_cut = 5.0;
-  bool _require_mvtx = false;
+  double _qual_cut = 10.0;
+  bool _require_mvtx = true;
   unsigned int _nmvtx_required = 3; 
   double _track_pt_cut = 0.0;
+
+  TH1D *recomass{nullptr};
+  TH1D *recopt{nullptr};
+  std::string outfile;
 
   std::multimap<unsigned int, unsigned int> _vertex_track_map;
   using matrix_t = Eigen::Matrix<double,3,3>;

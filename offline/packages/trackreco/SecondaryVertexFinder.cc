@@ -47,6 +47,10 @@
 
 #include <Eigen/Dense>
 
+#include <TLorentzVector.h>
+#include <TH1D.h>
+#include <TFile.h>
+
 //____________________________________________________________________________..
 SecondaryVertexFinder::SecondaryVertexFinder(const std::string &name)
   : SubsysReco(name)
@@ -66,6 +70,9 @@ int SecondaryVertexFinder::InitRun(PHCompositeNode *topNode)
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
+  recomass = new TH1D("recomass", "invariant mass", 5000,0,5);
+  recopt = new TH1D("recopt", "invariant Pt", 1000,0,10);
+
   return ret;
 }
 
@@ -80,38 +87,227 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
     {
       auto id1 = tr1_it->first;
       auto tr1 = tr1_it->second;
-      std::cout << "Track 1 " << id1 << std::endl;
+
+      // Reverse or remove this to consider TPC only tracks
+      if(_require_mvtx && !hasSiliconSeed(tr1)) continue;
+
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << "Track1 " << id1 << " details: " << std::endl;
+	      outputTrackDetails(tr1);
+	    }
+
       if(tr1->get_quality() > _qual_cut) continue;
 
+      auto tpc_seed1 = tr1->get_tpc_seed();
+      int ntpc1 = tpc_seed1->size_cluster_keys();
+      if(ntpc1 < 20) continue;
+
+      float dca3dxy1, dca3dz1,dca3dxysigma1, dca3dzsigma1;
+      get_dca(tr1, dca3dxy1, dca3dz1, dca3dxysigma1, dca3dzsigma1);
+      //std::cout << "   dca3dxy1 = " << dca3dxy1 << " dca3dz1 = " << dca3dz1 << std::endl;
+
+      if(!dca3dxy1)
+	{
+	  std::cout << " get_dca returned NAN " << std::endl;
+	  continue;
+	}
+      if(fabs(dca3dxy1) < _track_dcaxy_cut) continue;
+      if(fabs(dca3dz1) < _track_dcaz_cut) continue;
+      
       // look for close DCA matches with all other such tracks
       for(auto tr2_it = std::next(tr1_it); tr2_it != _track_map->end(); ++tr2_it)
 	{
 	  auto id2 = tr2_it->first;
 	  auto tr2 = tr2_it->second;
-	  std::cout << "Track 2 " << id2 << std::endl;
+
+	  // Reverse or remove this to consider TPC only tracks
+	  if(_require_mvtx && !hasSiliconSeed(tr2)) continue;
+
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << "Track2 " << id2 << " details: " << std::endl;
+	      outputTrackDetails(tr2);
+	    }
+
+	  if(tr2->get_charge() == tr1->get_charge()) continue;
+
 	  if(tr2->get_quality() > _qual_cut) continue;
 
-	  // find DCA and PCA of these two tracks
-	  //if(Verbosity() > 3) 
-	  std::cout << "Check DCA for tracks " << id1 << " and  " << id2 << std::endl;
-	  Eigen::Vector3d PCA1(0,0,0), PCA2(0,0,0);
-	  double dca;
+	  auto tpc2_seed = tr2->get_tpc_seed();
+	  int ntpc2 = tpc2_seed->size_cluster_keys();
+	  if(ntpc2 < 20) continue;
 
-	  findPcaTwoTracks(tr1, tr2, dca, PCA1, PCA2);  // assumes tracks are straight lines
-	  //	  double dca = findTwoTrackPCA(tr1, tr2, PCA1, PCA2);
+	  float dca3dxy2, dca3dz2,dca3dxysigma2, dca3dzsigma2;
+	  get_dca(tr2, dca3dxy2, dca3dz2, dca3dxysigma2, dca3dzsigma2);
+	  //std::cout << "   dca3dxy2 = " << dca3dxy2 << " dca3dz2 = " << dca3dz2 << std::endl;
+	  if(!dca3dxy2)
+	    {
+	      std::cout << " get_dca returned NAN " << std::endl;
+	      continue;
+	    }
+	  if(fabs(dca3dxy2) < _track_dcaxy_cut) continue;
+	  if(fabs(dca3dz2) < _track_dcaz_cut) continue;
+
+	  // find DCA and PCA of these two tracks
+	  if(Verbosity() > 3) 
+	    { std::cout << "Check pair DCA for tracks " << id1 << " and  " << id2 << std::endl;}
+	  Eigen::Vector3d PCA1(0,0,0), PCA2(0,0,0);
+	  double pair_dca;
+
+	  findPcaTwoTracks(tr1, tr2, pair_dca, PCA1, PCA2);  // assumes tracks are straight lines
+	  //	  double dca = findTwoTrackPCA(tr1, tr2, PCA1, PCA2); // will be used later
 
 	  // check for close pair
-	  if(dca > _two_track_dcacut) { continue; }
+	  if(fabs(pair_dca) > _two_track_dcacut) { continue; }
 
 	  std::cout << "    Found a decay pair: id1 " << tr1_it->first << " id2 " << tr2_it->first 
 		    << " PCA1 " << PCA1(0) << "  " << PCA1(1) << "  " << PCA1(2)
 		    << " PCA2 " << PCA2(0) << "  " << PCA2(1) << "  " << PCA2(2)
-		    << " pair dca " << dca << std::endl;  
+		    << " pair dca " << pair_dca << std::endl;  
+
+	  float decaymass = 0.13957;  // pion
+
+	  TLorentzVector t1;
+	  Float_t E1 = sqrt(pow(tr1->get_px(),2) + pow(tr1->get_py(),2) + pow(tr1->get_pz(),2) 
+			    + pow(decaymass,2));
+	  t1.SetPxPyPzE(tr1->get_px(),tr1->get_py(),tr1->get_pz(),E1);	
+
+	  TLorentzVector t2;
+	  Float_t E2 = sqrt(pow(tr2->get_px(),2) + pow(tr2->get_py(),2) + pow(tr2->get_pz(),2) 
+			    + pow(decaymass,2));
+	  t2.SetPxPyPzE(tr2->get_px(),tr2->get_py(),tr2->get_pz(),E2);	
+
+	  TLorentzVector tsum = t1+t2;
+	  std::cout << "    Pair mass " << tsum.M() << " pair pT " << tsum.Pt() << std::endl;
+
+	  // calculate the decay length
+	  Eigen::Vector3d PCA = (PCA1+PCA2) / 2.0;  // average the PCA of the track pair
+	  auto vtxid = tr1->get_vertex_id();
+	  auto vertex1 = _svtx_vertex_map->get(vtxid);
+	  Eigen::Vector3d VTX(vertex1->get_x(), vertex1->get_y(), vertex1->get_z());
+	  Eigen::Vector3d path = PCA - VTX;
+
+	  if(path.norm() > 0.1)
+	    {
+	      recomass->Fill(tsum.M());
+	      recopt->Fill(tsum.Pt());
+	    }
 	}
 
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void SecondaryVertexFinder::outputTrackDetails(SvtxTrack *tr)
+{
+  auto tpc_seed = tr->get_tpc_seed();
+  int ntpc = tpc_seed->size_cluster_keys();
+
+  auto silicon_seed = tr->get_silicon_seed();
+
+  int nsilicon = 0;
+  if(silicon_seed) 
+    { nsilicon = silicon_seed->size_cluster_keys(); }
+
+  auto pt = tr->get_pt();
+  auto eta = tr->get_eta();
+  auto x = tr->get_x();
+  auto y = tr->get_y();
+  auto z = tr->get_z();
+  auto qual = tr->get_quality();
+
+  std::cout << "   ntpc " << ntpc << " nsilicon " << nsilicon << " quality " << qual 
+	    << " eta " << eta << std::endl; 
+  std::cout << "   pt " << pt << " x " << x << " y " << y << " z " << z << std::endl;
+
+  auto vtxid = tr->get_vertex_id();
+  auto vertex = _svtx_vertex_map->get(vtxid);
+  std::cout << "    vtxid " << vtxid 
+	    << " vertex x " << vertex->get_x()
+	    << " vertex y " << vertex->get_y()
+	    << " vertex z " << vertex->get_z()
+	    << std::endl;
+
+}
+
+bool  SecondaryVertexFinder::hasSiliconSeed(SvtxTrack* tr) 
+{
+  bool ret = false;
+  auto silicon_seed = tr->get_silicon_seed();
+  if(silicon_seed) ret = true;
+
+  return ret;
+  }
+
+void SecondaryVertexFinder::get_dca(SvtxTrack* track, 
+			    float& dca3dxy, float& dca3dz,
+			    float& dca3dxysigma, float& dca3dzsigma)
+{
+  dca3dxy = NAN;
+  Acts::Vector3 pos(track->get_x(),
+		    track->get_y(),
+		    track->get_z());
+  Acts::Vector3 mom(track->get_px(),
+		    track->get_py(),
+		    track->get_pz());
+
+  auto vtxid = track->get_vertex_id();
+  auto svtxVertex = _svtx_vertex_map->get(vtxid);
+  if(!svtxVertex)
+    { 
+      std::cout << "   Failed to find vertex for track " << std::endl;
+      return; 
+    }
+  Acts::Vector3 vertex(svtxVertex->get_x(),
+		       svtxVertex->get_y(),
+		       svtxVertex->get_z());
+
+  if(Verbosity() > 3)
+    {  
+      std::cout << "   track " << track->get_id() << " vertex id is " << vtxid 
+		<< " vertex is " << svtxVertex->get_x() << "  " 
+		<< svtxVertex->get_y() << "  "
+		<< svtxVertex->get_z() << std::endl;
+    }
+
+  pos -= vertex;
+
+  Acts::ActsSymMatrix<3> posCov;
+  for(int i = 0; i < 3; ++i)
+    {
+      for(int j = 0; j < 3; ++j)
+	{
+	  posCov(i, j) = track->get_error(i, j);
+	} 
+    }
+  
+  Acts::Vector3 r = mom.cross(Acts::Vector3(0.,0.,1.));
+  float phi = atan2(r(1), r(0));
+  
+  Acts::RotationMatrix3 rot;
+  Acts::RotationMatrix3 rot_T;
+  rot(0,0) = cos(phi);
+  rot(0,1) = -sin(phi);
+  rot(0,2) = 0;
+  rot(1,0) = sin(phi);
+  rot(1,1) = cos(phi);
+  rot(1,2) = 0;
+  rot(2,0) = 0;
+  rot(2,1) = 0;
+  rot(2,2) = 1;
+  
+  rot_T = rot.transpose();
+
+  Acts::Vector3 pos_R = rot * pos;
+  Acts::ActsSymMatrix<3> rotCov = rot * posCov * rot_T;
+
+  dca3dxy = pos_R(0);
+  dca3dz = pos_R(2);
+  dca3dxysigma = sqrt(rotCov(0,0));
+  dca3dzsigma = sqrt(rotCov(2,2));
+  
 }
 
 void SecondaryVertexFinder::updateSvtxTrack(SvtxTrack* track, 
@@ -492,6 +688,11 @@ void SecondaryVertexFinder::getTrackletClusters(TrackSeed *tracklet, std::vector
 
 int SecondaryVertexFinder::End(PHCompositeNode */*topNode*/)
 {
+  TFile *fout = new TFile(outfile.c_str(),"recreate");
+  recomass->Write();
+  recopt->Write();
+  fout->Close();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
