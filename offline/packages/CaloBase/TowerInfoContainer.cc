@@ -2,10 +2,6 @@
 
 TowerInfoContainer::TowerMap DummyTowerMap;
 
-TowerInfoContainer::TowerMap TowerInfoContainer::getTowerMap()
-{
-  return DummyTowerMap;
-}
 
 TowerInfoContainer::ConstIter TowerInfoContainer::begin() const
 {
