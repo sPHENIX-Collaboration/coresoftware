@@ -127,6 +127,7 @@ TpcDirectLaserReconstruction::TpcDirectLaserReconstruction( const std::string& n
 int TpcDirectLaserReconstruction::Init(PHCompositeNode*)
 {
   m_total_hits = 0;
+  m_matched_hits = 0;
   m_accepted_clusters = 0;
   
   if( m_savehistograms ) create_histograms();
@@ -191,12 +192,9 @@ int TpcDirectLaserReconstruction::End(PHCompositeNode* )
   }
 
   // print counters
-  std::cout
-    << "TpcDirectLaserReconstruction::End -"
-    << " hit statistics total: " << m_total_hits
-    << " clusters found: " << m_accepted_clusters << " fraction: "
-    << 100.*m_accepted_clusters/m_total_hits << "%"
-    << std::endl;
+  std::cout << "TpcDirectLaserReconstruction::End - m_total_hits: " << m_total_hits << std::endl;
+  std::cout << "TpcDirectLaserReconstruction::End - m_matched_hits: " << m_matched_hits << std::endl;
+  std::cout << "TpcDirectLaserReconstruction::End - m_accepted_clusters: " << m_accepted_clusters << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -330,7 +328,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     
     for (auto hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
       {
-	m_total_hits += 1;
+	++m_total_hits;
 
 	const unsigned short phibin = TpcDefs::getPad(hitr->first);
   const unsigned short zbin = TpcDefs::getTBin(hitr->first);
@@ -338,6 +336,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 	const double phi = layergeom->get_phicenter(phibin);
   const double x = layer_center_radius * cos(phi);
   const double y = layer_center_radius * sin(phi);
+//   const double z  =  layergeom->get_zcenter(zbin);
   
   const double zdriftlength = layergeom->get_zcenter(zbin)*m_tGeometry->get_drift_velocity();
   double z  =  tdriftmax*m_tGeometry->get_drift_velocity() - zdriftlength;
@@ -359,6 +358,9 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 	// do not associate if dca is too large
 	if( dca > m_max_dca ) continue;
 
+  ++m_matched_hits;
+  
+  
 	// bin hits by layer
 	std::pair<float, TVector3> cluspos_pair = std::make_pair(adc, global); 	
 	cluspos_map.insert(std::make_pair(layer, cluspos_pair));	
