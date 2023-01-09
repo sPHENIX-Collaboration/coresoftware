@@ -538,15 +538,18 @@ namespace
       ihit_list.clear();
     }
     
-    std::cout << "ProcessSector -"
-      << " layer: " << (int) layer
-      << " side: " << my_data->side
-      << " sector: " << my_data->sector
-      << " hits: " << std::distance( hitrangei.first, hitrangei.second )
-      << " accepted: " << accepted_hits
-      << " clusters: " << my_data->cluster_vector.size()
-      << std::endl;
-
+    if( false )
+    {
+      std::cout << "ProcessSector -"
+        << " layer: " << (int) layer
+        << " side: " << my_data->side
+        << " sector: " << my_data->sector
+        << " hits: " << std::distance( hitrangei.first, hitrangei.second )
+        << " accepted: " << accepted_hits
+        << " clusters: " << my_data->cluster_vector.size()
+        << std::endl;
+    }
+      
     pthread_exit(nullptr);
   }
 }
