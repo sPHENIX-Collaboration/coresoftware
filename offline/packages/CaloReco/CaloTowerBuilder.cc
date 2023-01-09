@@ -21,7 +21,7 @@
 
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfov1.h>
-#include <TRandom3.h>
+// #include <TRandom3.h>
 
 //____________________________________________________________________________..
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name):
@@ -31,6 +31,7 @@ CaloTowerBuilder::CaloTowerBuilder(const std::string &name):
  , m_detector("CEMC")
  , m_packet_low(6017)
  , m_packet_high(6032)
+ , m_nsamples(16)
  , m_isdata(true)
 {
   std::cout << "CaloTowerBuilder::CaloTowerBuilder(const std::string &name) Calling ctor" << std::endl;
@@ -45,7 +46,7 @@ CaloTowerBuilder::~CaloTowerBuilder()
 //____________________________________________________________________________..
 int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
 {
-  rnd = new TRandom3();
+  // rnd = new TRandom3();
 
   WaveformProcessing = new CaloWaveformProcessing();
   WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);
@@ -53,8 +54,9 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
   if (m_dettype == CaloTowerBuilder::CEMC)
     {
       m_detector = "CEMC";
-      m_packet_low = 6001;
-      m_packet_high = 6128;
+      m_packet_low = 6017;
+      m_packet_high = 6032;
+      // 6001, 60128
       WaveformProcessing->set_template_file("testbeam_cemc_template.root");
     }
   else if (m_dettype == CaloTowerBuilder::HCALIN)
@@ -87,13 +89,10 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
 {
-  _nevents++;
-  int nsamples = 16;
   std::vector<std::vector<float>> waveforms;
-
   if (m_isdata)
     {
-      _event = findNode::getClass<Event>(topNode, "PRDF");
+      Event *_event = findNode::getClass<Event>(topNode, "PRDF");
       if (_event == 0)
       	{
       	  std::cout << "CaloUnpackPRDF::Process_Event - Event not found" << std::endl;
@@ -113,7 +112,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       	  for ( int channel = 0; channel <  packet->iValue(0,"CHANNELS"); channel++)
       	    {
       	      std::vector<float> waveform;
-      	      for (int samp = 0; samp < nsamples;samp++)
+      	      for (int samp = 0; samp < m_nsamples;samp++)
       	      	{
       	      	  waveform.push_back(packet->iValue(samp,channel));	      
       	      	}
@@ -135,7 +134,6 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
       TowerInfov1 *caloinfo = new TowerInfov1();
       caloinfo->set_time(processed_waveforms.at(i).at(0));
       caloinfo->set_energy(processed_waveforms.at(i).at(1));
- 
 
       m_CaloInfoContainer->add(caloinfo,i);
       delete caloinfo;
@@ -150,8 +148,8 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
 {
   PHNodeIterator nodeItr(topNode);
   // DST node
-  dst_node = static_cast<PHCompositeNode *>(
-      nodeItr.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dst_node = dynamic_cast<PHCompositeNode *>(
+							     nodeItr.findFirst("PHCompositeNode", "DST"));
   if (!dst_node)
   {
     std::cout << "PHComposite node created: DST" << std::endl;
@@ -171,7 +169,9 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
     {
       m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainerv1::DETECTOR::HCAL);  
     }
+  
   PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, Form("TOWERS_%s",m_detector.c_str()), "PHObject");
+  // PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, "TOWERS_"+m_detector, "PHObject");
   dst_node->addNode(emcal_towerNode);
 }
 

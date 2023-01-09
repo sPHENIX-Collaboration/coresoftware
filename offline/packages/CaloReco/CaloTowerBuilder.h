@@ -42,13 +42,11 @@ class CaloTowerBuilder : public SubsysReco
  public:
 
   CaloTowerBuilder(const std::string &name = "CaloTowerBuilder");
-
   ~CaloTowerBuilder() override;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   void CreateNodeTree(PHCompositeNode *topNode);
-
 
   enum DetectorSystem
   {
@@ -58,44 +56,33 @@ class CaloTowerBuilder : public SubsysReco
     EPD = 3
   };
 
-
-
   void set_detector_type(CaloTowerBuilder::DetectorSystem dettype)
   {
     m_dettype = dettype;
     return;
   }
 
+  void set_nsamples(int _nsamples)
+  {
+    m_nsamples = _nsamples;
+    return;
+  }
   void set_dataflag(bool flag)
   {
     m_isdata =flag;
     return;
   }
 
-
-
  private:
-  int _nevents;
-  Event *_event;
-
-
-
-  CaloWaveformProcessing* WaveformProcessing;
-
-  PHCompositeNode *dst_node;
-
-
-
+ 
+  CaloWaveformProcessing* WaveformProcessing = new CaloWaveformProcessing();
   CaloTowerBuilder::DetectorSystem m_dettype; 
   TowerInfoContainerv1 *m_CaloInfoContainer; //! Calo info
   std::string m_detector;
   int m_packet_low;
   int m_packet_high;
+  int m_nsamples;
   bool m_isdata;
-
-
-  TRandom3* rnd;
-
 };
 
 #endif // CALOTOWERBUILDER_H
