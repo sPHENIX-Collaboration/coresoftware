@@ -127,6 +127,7 @@ TpcDirectLaserReconstruction::TpcDirectLaserReconstruction( const std::string& n
 int TpcDirectLaserReconstruction::Init(PHCompositeNode*)
 {
   m_total_hits = 0;
+  m_matched_hits = 0;
   m_accepted_clusters = 0;
   
   if( m_savehistograms ) create_histograms();
@@ -191,12 +192,10 @@ int TpcDirectLaserReconstruction::End(PHCompositeNode* )
   }
 
   // print counters
-  std::cout
-    << "TpcDirectLaserReconstruction::End -"
-    << " hit statistics total: " << m_total_hits
-    << " clusters found: " << m_accepted_clusters << " fraction: "
-    << 100.*m_accepted_clusters/m_total_hits << "%"
-    << std::endl;
+  std::cout << "TpcDirectLaserReconstruction::End - m_total_hits: " << m_total_hits << std::endl;
+  std::cout << "TpcDirectLaserReconstruction::End - m_matched_hits: " << m_matched_hits << std::endl;
+  std::cout << "TpcDirectLaserReconstruction::End - m_accepted_clusters: " << m_accepted_clusters << std::endl;
+  std::cout << "TpcDirectLaserReconstruction::End - fraction cluster/hits: " << m_accepted_clusters/m_total_hits << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -313,8 +312,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     const TrkrDefs::hitsetkey& hitsetkey = hitsetitr->first;
     const int side = TpcDefs::getSide(hitsetkey);
     
-    TrkrHitSet *hitset = hitsetitr->second;
-    
+    auto hitset = hitsetitr->second;
     const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
     const auto layergeom = m_geom_container->GetLayerCellGeom(layer);
     const auto layer_center_radius = layergeom->get_radius();
@@ -330,7 +328,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     
     for (auto hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
       {
-	m_total_hits += 1;
+	++m_total_hits;
 
 	const unsigned short phibin = TpcDefs::getPad(hitr->first);
   const unsigned short zbin = TpcDefs::getTBin(hitr->first);
@@ -343,8 +341,6 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
   double z  =  tdriftmax*m_tGeometry->get_drift_velocity() - zdriftlength;
   if(side == 0)  z *= -1;
       
-  std::cout << "TpcDirectLaserReconstruction::process_track - z: " << z << std::endl;
-  
 	const TVector3 global(x,y,z);
 
 	float adc = (hitr->second->getAdc()) - m_pedestal; 
@@ -359,8 +355,10 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 	// do not associate if dca is too large
 	if( dca > m_max_dca ) continue;
 
+  ++m_matched_hits;
+
 	// bin hits by layer
-	std::pair<float, TVector3> cluspos_pair = std::make_pair(adc, global); 	
+	const auto cluspos_pair = std::make_pair(adc, global); 	
 	cluspos_map.insert(std::make_pair(layer, cluspos_pair));	
 	layer_bin_set.insert(layer);
       }
@@ -433,7 +431,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 	    {
 	      std::cout << "  layer " << layer << " adc " << adc << std::endl;
 	      std::cout << "            cluspos " << cluspos.x() << "  " << cluspos.y() << "  " << cluspos.z() 
-			<< " clus radius " << sqrt(pow(cluspos.x(),2) + pow(cluspos.y(),2)) << std::endl;
+			<< " clus radius " << sqrt(square(cluspos.x()) + square(cluspos.y())) << std::endl;
 	    }
 
 	  clus_centroid += cluspos * adc;
