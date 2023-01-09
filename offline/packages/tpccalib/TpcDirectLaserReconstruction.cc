@@ -128,7 +128,7 @@ int TpcDirectLaserReconstruction::Init(PHCompositeNode*)
 {
   m_total_hits = 0;
   m_accepted_clusters = 0;
-
+  
   if( m_savehistograms ) create_histograms();
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -308,32 +308,43 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
   // loop over hits
   TrkrHitSetContainer::ConstRange hitsetrange = m_hit_map->getHitSets(TrkrDefs::TrkrId::tpcId);
 
-  for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr)
-    {
-      TrkrDefs::hitsetkey hitsetkey = hitsetitr->first;
-      TrkrHitSet *hitset = hitsetitr->second;
-      unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-      PHG4TpcCylinderGeom *layergeom = m_geom_container->GetLayerCellGeom(layer);
-      const auto layer_center_radius = layergeom->get_radius();
+  for(auto hitsetitr = hitsetrange.first; hitsetitr != hitsetrange.second; ++hitsetitr)
+  {
+    const TrkrDefs::hitsetkey& hitsetkey = hitsetitr->first;
+    const int side = TpcDefs::getSide(hitsetkey);
+    
+    TrkrHitSet *hitset = hitsetitr->second;
+    
+    const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+    const auto layergeom = m_geom_container->GetLayerCellGeom(layer);
+    const auto layer_center_radius = layergeom->get_radius();
+    
+    // maximum drift time.
+    /* it is needed to calculate a given hit position from its drift time */
+    static constexpr double AdcClockPeriod = 53.0;   // ns 
+    const unsigned short NTBins = (unsigned short)layergeom->get_zbins();
+    const float tdriftmax =  AdcClockPeriod * NTBins / 2.0;
 
     // get corresponding hits
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
     
-    for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-	 hitr != hitrangei.second;
-	 ++hitr)
+    for (auto hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
       {
 	m_total_hits += 1;
 
-	unsigned short phibin = TpcDefs::getPad(hitr->first);
-	unsigned short zbin = TpcDefs::getTBin(hitr->first);
+	const unsigned short phibin = TpcDefs::getPad(hitr->first);
+  const unsigned short zbin = TpcDefs::getTBin(hitr->first);
 
-	double phi = layergeom->get_phicenter(phibin);
-	double x = layer_center_radius * cos(phi);
-	double y = layer_center_radius * sin(phi);
-	double z = layergeom->get_zcenter(zbin);
+	const double phi = layergeom->get_phicenter(phibin);
+  const double x = layer_center_radius * cos(phi);
+  const double y = layer_center_radius * sin(phi);
+  
+  const double zdriftlength = layergeom->get_zcenter(zbin)*m_tGeometry->get_drift_velocity();
+  double z  =  tdriftmax*m_tGeometry->get_drift_velocity() - zdriftlength;
+  if(side == 0)  z *= -1;
+      
+  std::cout << "TpcDirectLaserReconstruction::process_track - z: " << z << std::endl;
+  
 	const TVector3 global(x,y,z);
 
 	float adc = (hitr->second->getAdc()) - m_pedestal; 
