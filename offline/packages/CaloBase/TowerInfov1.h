@@ -5,22 +5,23 @@
 
 #include <phool/PHObject.h>
 
+#include <cmath>
+
 class TowerInfov1 : public TowerInfo
 {
  public:
-  TowerInfov1();
-  TowerInfov1(const TowerInfov1 &ti);
-  ~TowerInfov1() override;
+  TowerInfov1() {}
+  ~TowerInfov1() override {}
   void Reset() override;
 
-  void setTime(short t) override { _time = t; }
-  float getTime() override { return _time; }
-  void setAmplitude(float amp) override { _amplitude = amp; }
-  float getAmplitude() override { return _amplitude; }
+  void set_time(short t) override { _time = t; }
+  short get_time() override { return _time; }
+  void set_energy(float energy) override { _energy = energy; }
+  float get_energy() override { return _energy; }
 
-private:
-  short _time;
-  float _amplitude;
+ private:
+  short _time = 0;
+  float _energy = NAN;
 
   ClassDefOverride(TowerInfov1, 1);
 };

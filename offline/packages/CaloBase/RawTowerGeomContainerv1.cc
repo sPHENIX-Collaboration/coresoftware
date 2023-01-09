@@ -17,17 +17,17 @@ RawTowerGeomContainerv1::RawTowerGeomContainerv1(RawTowerDefs::CalorimeterId cal
 
 RawTowerGeomContainerv1::~RawTowerGeomContainerv1()
 {
-  Reset();  //make sure everything is deleted
+  Reset();  // make sure everything is deleted
 }
 
 RawTowerGeomContainerv1::ConstRange
-RawTowerGeomContainerv1::get_tower_geometries(void) const
+RawTowerGeomContainerv1::get_tower_geometries() const
 {
   return make_pair<ConstIterator, ConstIterator>(_geoms.begin(), _geoms.end());
 }
 
 RawTowerGeomContainerv1::Range
-RawTowerGeomContainerv1::get_tower_geometries(void)
+RawTowerGeomContainerv1::get_tower_geometries()
 {
   return make_pair<Iterator, Iterator>(_geoms.begin(), _geoms.end());
 }
@@ -72,7 +72,7 @@ RawTowerGeomContainerv1::get_tower_geometry(RawTowerDefs::keytype key)
   {
     return it->second;
   }
-  return NULL;
+  return nullptr;
 }
 
 int RawTowerGeomContainerv1::isValid() const

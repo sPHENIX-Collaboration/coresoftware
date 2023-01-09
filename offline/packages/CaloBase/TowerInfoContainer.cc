@@ -1,16 +1,34 @@
 #include "TowerInfoContainer.h"
-#include "TowerInfo.h"
 
-void TowerInfoContainer::Reset()
+TowerInfoContainer::TowerMap DummyTowerMap;
+
+
+TowerInfoContainer::ConstIter TowerInfoContainer::begin() const
 {
+  return DummyTowerMap.end();
 }
 
-void TowerInfoContainer::add(TowerInfo* /*ti*/, int /*pos*/)
+TowerInfoContainer::ConstIter TowerInfoContainer::find(int /*key*/) const
 {
-  return;
+  return DummyTowerMap.end();
 }
 
-TowerInfo* TowerInfoContainer::at(int /*pos*/)
+TowerInfoContainer::ConstIter TowerInfoContainer::end() const
 {
-  return nullptr;
+  return DummyTowerMap.end();
+}
+
+TowerInfoContainer::Iter TowerInfoContainer::begin()
+{
+  return DummyTowerMap.end();
+}
+
+TowerInfoContainer::Iter TowerInfoContainer::find(int /*key*/)
+{
+  return DummyTowerMap.end();
+}
+
+TowerInfoContainer::Iter TowerInfoContainer::end()
+{
+  return DummyTowerMap.end();
 }

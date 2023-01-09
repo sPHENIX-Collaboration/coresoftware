@@ -131,7 +131,8 @@ class RawClusterv1 : public RawCluster
   typedef std::map<prop_id_t, prop_storage_t> prop_map_t;
 
   //! convert between 32bit inputs and storage type prop_storage_t
-  union u_property {
+  union u_property
+  {
     float fdata;
     int32_t idata;
     uint32_t uidata;
