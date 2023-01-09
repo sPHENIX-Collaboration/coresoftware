@@ -29,9 +29,13 @@
 
 #include <TLorentzVector.h>
 #include <TVector3.h>
+#include <iostream>
+#include <map>
 
-const int NHFQA = 13;
-int QAVtxPDGID[NHFQA] = {411, 421, 431, 4122, 511, 521, 531, 553, 443, 100443, 200443, 100553, 200553};
+const int NHFQA = 9;
+int QAVtxPDGID[NHFQA] = {411, 421, 431, 4122, 511, 521, 531, 443, 553};
+
+std::multimap<std::vector<int>, int> decaymap[NHFQA];
 
 /*
  *  QA module to check decay branching ratio, decay lifetime, and momentum conservation for inclusive heavy flavor hadron decay, which is handle by EvtGen as default
@@ -45,7 +49,7 @@ QAG4Decayer::QAG4Decayer(const std::string &name)
   //  , m_write_QAHists(true)
   , m_SaveFiles(false)
 {
-  std::cout << "New QA Clean Up for Valgrind Test - New D+ - Reduced - ROCKED - pi phi" << std::endl;
+  // std::cout << "New QA Clean Up for Valgrind Test - New D+ - Reduced - ROCKED - pi phi - QA it Why" << std::endl;
 }
 
 QAG4Decayer::~QAG4Decayer()
@@ -101,7 +105,7 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
     hm->registerHisto(h);
   }
 
-  h = new TH1F("HFHadronStat", "", 14, -0.5, 13.5);
+  h = new TH1F("HFHadronStat", "", 9, -0.5, 8.5);
   hm->registerHisto(h);
 
   h = new TH1F("OtherHis", "", 1, -0.5, 0.5);
@@ -116,7 +120,255 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   EvtID = 0;
   LifeTime = 0;
   NParticles = 0;
-  PVDaughtersPDGID.clear();
+  //	PVDaughtersPDGID.clear();
+
+  // Construct Maps for Decay BR Statistics
+
+  /*
+  Decay Channel Explanations
+
+  D+
+
+  0. Decay D+ -> pi0 pi+ with all intermediate resonances
+  1. Decay D+ -> pi+ pi- pi+ with all intermediate resonances
+  2. Decay D+ -> pi+ pi0 K0s
+  3. Decay D+ -> pi+ pi+ K-
+  4. Decay D+ -> pi+ pi+ pi+ pi- pi-
+  5. Decay D+ -> pi+ phi(1020)
+  6. Decay D+ -> mu+ + v_mu
+  7. Decay D+ -> K+ K0s
+  8. Decay D+ -> e+ + X
+  9. Decay D+ -> phi + X
+
+  D0
+
+  0. Decay D0 -> pi+ K- with all intermediate resonances
+  1. Decay D0 -> pi+ pi0 K-
+  2. Decay D0 -> pi- K+ with all intermediate resonances
+  3. Decay D0 -> K+ K- K0s
+  4. Decay D0 -> K0s K0s K0s
+  5. Decay D0 -> pi0 pi0
+  6. Decay D0 -> pi+ pi-
+  7. Decay D0 -> K0s + X
+  8. Decay D0 -> pi0 + X
+  9. Decay D0 -> e+ + X
+
+
+  Ds+
+
+  0. Decay Ds+ -> mu+ v_mu phi
+  1. Decay Ds+ -> mu+ v_mu
+  2. Decay Ds+ -> pi+ K+ K-
+  3. Decay Ds+ -> K+ K0s
+  4. Decay Ds+ -> pi+ eta
+  5. Decay Ds+ -> p n bar
+  6. Decay Ds+ -> pi+ phi
+  7. Decay Ds+ -> Ks + X
+  8. Decay Ds+ -> phi + X
+  9. Decay Ds+ -> e+ + X
+
+
+
+  LambdaC+
+
+  0. Decay LambdaC+ -> p K- pi+
+  1. Decay LambdaC+ -> p K0s
+  2. Decay LambdaC+ -> p phi
+  3. Decay LambdaC+ -> p K+ pi-
+  4. Decay LambdaC+ -> p phi pi0
+  5. Decay LambdaC+ -> n K0s pi+
+  6. Decay LambdaC+ -> p pi+ pi-
+  7. Decay LambdaC+ -> Ks + X
+  8. Decay LambdaC+ -> p + X
+  9. Decay LambdaC+ -> e+ + X
+
+
+
+  B+
+
+  0. Decay B+ -> K+ K- pi+ with all intermediate resonances
+  1. Decay B+ -> K+ K- K+ with all intermediate resonances
+  2. Decay B+ -> K+ phi(1020)
+  3. Decay B+ -> K+ J/psi
+  4. Decay B+ -> K+ Dbar
+  5. Decay B+ -> Ds+ Dbar
+  6. Decay B+ -> K+ K*0Bar(1430) (K*0Bar(1430) -> K- pi+)
+  7. Decay B+ -> e ve X
+  8. Decay B+ -> D + X
+  9. Decay B+ -> Jpsi + X
+
+  B0
+
+  0. Decay B0 -> pi- K+ with all intermediate resonances
+  1. Decay B0 -> pi- K+ pi0 with all intermediate resonances
+  2. Decay B0 -> pi+ pi-
+  3. Decay B0 -> pi0 pi0
+  4. Decay B0 -> D- pi+
+  5. Decay B0 -> D- Ds+
+  6. Decay B0 -> Jpsi K+ pi-
+  7. Decay B0 -> Jpsi pi+ pi-
+  8. Decay B0 -> D + X
+  9. Decay B0 -> Jpsi + X
+
+
+  Bs0
+
+  0. Decay Bs -> pi+ K-
+  1. Decay Bs -> K+ K-
+  2. Decay Bs -> p bar p K+ K-
+  3. Decay Bs -> phi gamma
+  4. Decay Bs -> D- pi+
+  5. Decay Bs -> Ds+ Ds-
+  6. Decay Bs -> Jpsi K+ K-
+  7. Decay Bs -> Jpsi phi
+  8. Decay Bs -> Ds- + X
+  9. Decay Bs -> Jpsi + X
+
+
+  Jpsi
+
+  0. Decay Jpsi -> e+ e-
+  1. Decay Jpsi -> mu+ mu-
+  2. Decay Jpsi -> pi+ pi-
+  3. Decay Jpsi -> pi+ pi- pi0
+  4. Decay Jpsi -> K+ K- pi0
+  5. Decay Jpsi -> K+ K- pi+ pi-
+  6. Decay Jpsi -> p+ p-
+  7. Decay Jpsi -> n bar n
+  8. Decay Jpsi -> gamma gamma gamma
+  9. Decay Jpsi -> gamma pi0
+
+
+  Upsilon(1S)
+
+  0. Decay Upsilon -> e+ e-
+  1. Decay Upsilon -> mu+ mu-
+  2. Decay Upsilon -> gamma pi+ pi-
+  3. Decay Upsilon -> pi+ pi- pi0
+  4. Decay Upsilon -> gamma K+ K-
+  5. Decay Upsilon -> gamma pi0 pi0
+  6. Decay Upsilon -> phi K+ K-
+  7. Decay Upsilon -> pi+ pi- pi0	pi0
+  8. Decay Upsilon -> gamma pi+ pi- p+ p-
+  9. Decay Upsilon -> Jpsi + X
+
+
+  */
+
+  // D+
+
+  decaymap[0].insert({{111, 211}, 0});
+  decaymap[0].insert({{-211, 211, 211}, 1});
+  decaymap[0].insert({{111, 211, 310}, 2});
+  decaymap[0].insert({{-321, 211, 211}, 3});
+  decaymap[0].insert({{-211, -211, 211, 211, 211}, 4});
+  decaymap[0].insert({{211, 333}, 5});
+  decaymap[0].insert({{-13, 14}, 6});
+  decaymap[0].insert({{310, 321}, 7});
+
+  //	decaymap.insert({vec1,7});
+  //	decaymap.insert({vec1,8});
+  //	decaymap.insert({vec1,9});
+
+  // D0
+  decaymap[1].insert({{-321, 211}, 0});
+  decaymap[1].insert({{-321, 111, 211}, 1});
+  decaymap[1].insert({{-221, 321}, 2});
+  decaymap[1].insert({{-321, 310, 321}, 3});
+  decaymap[1].insert({{310, 310, 310}, 4});
+  decaymap[1].insert({{111, 111}, 5});
+  decaymap[1].insert({{-211, 211}, 6});
+
+  // Ds
+  decaymap[2].insert({{-13, 14, 333}, 0});
+  decaymap[2].insert({{-13, 14}, 1});
+  decaymap[2].insert({{-321, 211, 321}, 2});
+  decaymap[2].insert({{310, 321}, 3});
+  decaymap[2].insert({{111, 111, 211}, 4});
+  decaymap[2].insert({{-2112, 2212}, 5});
+  decaymap[2].insert({{211, 333}, 6});
+
+  /*
+
+             LambdaC+
+
+             0. Decay LambdaC+ -> p K- pi+
+             1. Decay LambdaC+ -> p K0 bar
+             2. Decay LambdaC+ -> p phi
+             3. Decay LambdaC+ -> p K- pi+ pi0
+             4. Decay LambdaC+ -> p pi+ pi- K0bar
+             5. Decay LambdaC+ -> p pi+ pi- pi+ pi-
+             6. Decay LambdaC+ -> p pi+ pi-
+             7. Decay LambdaC+ -> K0bar + X
+             8. Decay LambdaC+ -> p + X
+             9. Decay LambdaC+ -> e+ + X
+*/
+
+  // LambdaC
+  decaymap[3].insert({{-321, 211, 2212}, 0});
+  decaymap[3].insert({{-311, 2212}, 1});
+  decaymap[3].insert({{333, 2212}, 2});
+  decaymap[3].insert({{-321, 111, 221, 2212}, 3});
+  decaymap[3].insert({{-311, -211, 211, 2212}, 4});
+  decaymap[3].insert({{-211, -211, 211, 211, 2112}, 5});
+  decaymap[3].insert({{-211, 211, 2212}, 6});
+
+  // B0
+  decaymap[4].insert({{-211, 321}, 0});
+  decaymap[4].insert({{-211, 111, 321}, 1});
+  decaymap[4].insert({{-211, 211}, 2});
+  decaymap[4].insert({{111, 111}, 3});
+  decaymap[4].insert({{-411, 211}, 4});
+  decaymap[4].insert({{-411, 431}, 5});
+  decaymap[4].insert({{-211, 321, 443}, 6});
+  decaymap[4].insert({{-211, 211, 443}, 7});
+
+  // B+
+  decaymap[5].insert({{-321, 211, 321}, 0});
+  decaymap[5].insert({{-321, 321, 321}, 1});
+  decaymap[5].insert({{321, 333}, 2});
+  decaymap[5].insert({{321, 443}, 3});
+  decaymap[5].insert({{-421, 321}, 4});
+  decaymap[5].insert({{-421, 431}, 5});
+  decaymap[5].insert({{-10311, 321}, 6});
+
+  // Bs
+  decaymap[6].insert({{-321, 211}, 0});
+  decaymap[6].insert({{-321, 321}, 1});
+  //	decaymap[6].insert({{-2212,-321,321,2212},2});
+  decaymap[6].insert({{333, 333}, 2});
+  decaymap[6].insert({{22, 333}, 3});
+  decaymap[6].insert({{-431, 211}, 4});
+  decaymap[6].insert({{-431, 431}, 5});
+  decaymap[6].insert({{-321, 321, 443}, 6});
+  decaymap[6].insert({{333, 443}, 7});
+
+  // Jpsi
+  decaymap[7].insert({{-11, 11}, 0});
+  decaymap[7].insert({{-13, 13}, 1});
+  decaymap[7].insert({{-211, 211}, 2});
+  decaymap[7].insert({{-211, 111, 211}, 3});
+  decaymap[7].insert({{-321, 111, 321}, 4});
+  decaymap[7].insert({{-321, -211, 211, 321}, 5});
+  decaymap[7].insert({{-2212, 2212}, 6});
+  decaymap[7].insert({{-2112, 2112}, 7});
+  decaymap[7].insert({{22, 22, 22}, 8});
+  decaymap[7].insert({{22, 111}, 9});
+
+  // Upsilon (1S)
+  decaymap[8].insert({{-11, 11}, 0});
+  decaymap[8].insert({{-13, 13}, 1});
+  decaymap[8].insert({{-211, 22, 211}, 2});
+  decaymap[8].insert({{-211, 111, 211}, 3});
+  decaymap[8].insert({{-321, 22, 321}, 4});
+  decaymap[8].insert({{22, 111, 111}, 5});
+  //	decaymap[8].insert({{-2212,2212},6});
+  decaymap[8].insert({{-321, 321, 333}, 6});
+  decaymap[8].insert({{-211, 111, 111, 211}, 7});
+  decaymap[8].insert({{-2212, -211, 22, 211, 2212}, 8});
+  //	decaymap[8].insert({{22,111},9});
+
+  // Finish Construction
 
   if (m_SaveFiles)
   {
@@ -241,6 +493,8 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
     int gflavor = g4particle->get_pid();
 
+    //		std::cout << "gflavor = " << gflavor << std::endl;
+
     NParticles = NParticles + 1;
 
     int ParentPDGID = -1;
@@ -293,7 +547,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
       HFHadronStat->Fill(HFFillIndex);
 
-      std::cout << "gflavor = " << gflavor << "   HFFillIndex = " << HFFillIndex << std::endl;
+      //			std::cout << "gflavor = " << gflavor << "   HFFillIndex = " << HFFillIndex << std::endl;
     }
 
     int VtxSize = ParentTrkInfo.size();
@@ -310,6 +564,8 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
       }
     }
 
+    VtxToQA = false;
+
     for (int p = 0; p < NHFQA; p++)
     {
       if (abs(ParentPDGID) == QAVtxPDGID[p])
@@ -318,6 +574,10 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
         HFIndex = p;
       }
     }
+
+    //		std::map<std::tuple<int,>>
+
+    //		std::map<std::tuple<int,>>
 
     if ((ParentTrkId > 0 || abs(gflavor) == abs(ParentPDGID)) && VtxToQA == true)
     {
@@ -398,17 +658,82 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
   }
   // BR Working here
 
+  //	decaymap.insert({{3,2,1}});
+
   for (int q = 0; q < VtxSizeFinal; q++)
   {
     int HFIndexToFill = HFIndexInfo[q];
 
-    std::vector<int> ChannelID = Channel(VertexInfo[q], DaughterInfo[q]);
-    int ChannelSize = ChannelID.size();
+    //		std::vector<int> ChannelID = Channel(VertexInfo[q],DaughterInfo[q]);
+    //		int ChannelSize = ChannelID.size();
+
+    //		int DaughterSize =  DaughterInfo[q].size();
+    sort(DaughterInfo[q].begin(), DaughterInfo[q].end());
+
+    //	int ChannelSize = ChannelID.size();
 
     if (HFIndexToFill < 0)
     {
       continue;
     }
+
+    int key = -1;
+    std::vector<int> ChannelID;
+
+    if (decaymap[HFIndexToFill].find({DaughterInfo[q]}) != decaymap[HFIndexToFill].end()) key = decaymap[HFIndexToFill].find({DaughterInfo[q]})->second;
+    ChannelID.push_back(key);
+
+    if (HFIndexToFill == 0)
+    {
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end()) ChannelID.push_back(8);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 333) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    if (HFIndexToFill == 1)
+    {
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 310) != DaughterInfo[q].end()) ChannelID.push_back(7);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 111) != DaughterInfo[q].end()) ChannelID.push_back(8);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    if (HFIndexToFill == 2)
+    {
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 310) != DaughterInfo[q].end()) ChannelID.push_back(7);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 333) != DaughterInfo[q].end()) ChannelID.push_back(8);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    if (HFIndexToFill == 3)
+    {
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -311) != DaughterInfo[q].end()) ChannelID.push_back(7);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 2212) != DaughterInfo[q].end()) ChannelID.push_back(8);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    if (HFIndexToFill == 4)
+    {
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end())) ChannelID.push_back(8);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    if (HFIndexToFill == 5)
+    {
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end())) ChannelID.push_back(8);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    if (HFIndexToFill == 6)
+    {
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end() || std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end()) ChannelID.push_back(8);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    if (HFIndexToFill == 8)
+    {
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    int ChannelSize = ChannelID.size();
 
     for (int r = 0; r < ChannelSize; r++)
     {
@@ -436,375 +761,6 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
   NPartHis->Fill(NParticles);
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-std::vector<int> QAG4Decayer::Channel(int pdgid, std::vector<int> Daughter)
-{
-  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
-  assert(hm);
-
-  TH1F *OtherHis = dynamic_cast<TH1F *>(hm->getHisto("OtherHis"));
-  assert(OtherHis);
-
-  std::vector<int> Channel;
-
-  int DaughterSize = Daughter.size();
-
-  int TotalPiP = 0;
-  int TotalKP = 0;
-  int TotalPP = 0;
-  int TotalElecP = 0;
-  int TotalMuP = 0;
-  int TotalPiM = 0;
-  int TotalKM = 0;
-  int TotalPM = 0;
-  int TotalElecM = 0;
-  int TotalMuM = 0;
-  int TotaleNu = 0;
-  int TotalmuNu = 0;
-  int TotaltauNu = 0;
-  int TotaleNuBar = 0;
-  int TotalmuNuBar = 0;
-  int TotaltauNuBar = 0;
-  int TotalN = 0;
-  int TotalNBar = 0;
-  int TotalKs = 0;
-  int TotalKL = 0;
-  int TotalGamma = 0;
-  int TotalPiZ = 0;
-  int TotalX = 0;
-
-  // Intermediate State Quicky Decaying: Light Flavors
-
-  int TotalRhoZ = 0;
-  int TotalRhoP = 0;
-  int TotalRhoM = 0;
-
-  int TotalPhi = 0;
-  //	int TotalKStarZ = 0;
-  int TotalKStarP = 0;
-  int TotalKStarM = 0;
-  //	int TotalKStarZBar = 0;
-
-  int TotalEta = 0;
-  int TotalEtaPrime = 0;
-  int Totalomega = 0;
-
-  // Intermediate State Quicky Decaying: Heavy Flavors
-
-  int TotalDZ = 0;
-  int TotalDZBar = 0;
-
-  int TotalDP = 0;
-  int TotalDM = 0;
-
-  int TotalDsP = 0;
-  int TotalDsM = 0;
-  int TotalJpsi = 0;
-
-  int TotalOther = 0;
-  int TotalKZ = 0;
-  int TotalKStarZ = 0;
-
-  // Extra Intermediate States
-  int TotalKStar1430 = 0;
-  int TotalKStar1430Bar = 0;
-
-  for (int s = 0; s < DaughterSize; s++)
-  {
-    // std::cout << "Daughter[s] = " << Daughter[s] << std::endl;
-
-    if (Daughter[s] == 211)
-      TotalPiP++;
-    else if (Daughter[s] == 321)
-      TotalKP++;
-    else if (Daughter[s] == 2212)
-      TotalPP++;
-    else if (Daughter[s] == -11)
-      TotalElecP++;
-    else if (Daughter[s] == -13)
-      TotalMuP++;
-    else if (Daughter[s] == -211)
-      TotalPiM++;
-    else if (Daughter[s] == -321)
-      TotalKM++;
-    else if (Daughter[s] == -2212)
-      TotalPM++;
-    else if (Daughter[s] == 11)
-      TotalElecM++;
-    else if (Daughter[s] == 13)
-      TotalMuM++;
-    else if (Daughter[s] == 12)
-      TotaleNu++;
-    else if (Daughter[s] == 14)
-      TotalmuNu++;
-    else if (Daughter[s] == 16)
-      TotaltauNu++;
-    else if (Daughter[s] == -12)
-      TotaleNuBar++;
-    else if (Daughter[s] == -14)
-      TotalmuNuBar++;
-    else if (Daughter[s] == -16)
-      TotaltauNuBar++;
-    else if (Daughter[s] == 2112)
-      TotalN++;
-    else if (Daughter[s] == -2112)
-      TotalNBar++;
-    else if (Daughter[s] == 310)
-      TotalKs++;
-    else if (Daughter[s] == 130)
-      TotalKL++;
-    else if (Daughter[s] == 22)
-      TotalGamma++;
-    else if (Daughter[s] == 111)
-      TotalPiZ++;
-    else if (Daughter[s] == 421)
-      TotalDZ++;
-    else if (Daughter[s] == -421)
-      TotalDZBar++;
-    else if (Daughter[s] == 411)
-      TotalDP++;
-    else if (Daughter[s] == -411)
-      TotalDM++;
-    else if (Daughter[s] == 431)
-      TotalDsP++;
-    else if (Daughter[s] == -431)
-      TotalDsM++;
-    else if (Daughter[s] == 443)
-      TotalJpsi++;
-    else if (abs(Daughter[s]) == 20443)
-      TotalX++;
-    else if (Daughter[s] == 333)
-      TotalPhi++;
-    else if (abs(Daughter[s]) == 311)
-      TotalKZ++;
-    else if (abs(Daughter[s]) == 313)
-      TotalKStarZ++;
-    else if (Daughter[s] == 221)
-      TotalEta++;
-    else if (Daughter[s] == 10311)
-      TotalKStar1430++;
-    else if (Daughter[s] == -10311)
-      TotalKStar1430Bar++;
-
-    //	else if(Daughter[s] == -313) TotalKStarZ++;
-    else
-    {
-      // std::cout << "Daughter[s]  = " << Daughter[s]  << std::endl;
-      TotalOther++;
-    }
-  }
-
-  if (TotalOther > 0)
-  {
-    OtherHis->Fill(0);
-    Channel.push_back(-1);
-    return Channel;
-  }
-
-  //	std::cout << "Pass 2" << std::endl;
-
-  if (pdgid == 411)
-  {  // D+
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 1 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(0);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 2 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(1);
-
-    //	if(TotalKStarZ==0&&TotalKZ==0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 1 && TotalRhoM == 0  && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0&& TotalDsP == 0 &&  TotalDsM == 0) Channel.push_back(2);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 1 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(2);
-
-    //	if(TotalKStarZ==0&&TotalKZ==0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 1 && TotalRhoM == 0  && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 1 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0&& TotalDsP == 0 &&  TotalDsM == 0) Channel.push_back(3);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 2 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(3);
-
-    //		if(TotalKStarZ==0&&TotalKZ==0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 1 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 1 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0  && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0&& TotalDsP == 0 &&  TotalDsM == 0) Channel.push_back(4);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 3 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 2 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(4);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 1 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(5);
-
-    //	if(TotalKStarZ==0&&TotalKZ==0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 1 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 1 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0  && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0&& TotalDsP == 0 &&  TotalDsM == 0) Channel.push_back(5);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 1 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 1 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 1 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(6);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(7);
-
-    if (TotalElecP == 1) Channel.push_back(8);
-    if (TotalPhi == 1) Channel.push_back(9);  // D0 -> K-e+ve
-    //		if(TotalEta == 1) Channel.push_back(9);  //D0 -> K-mu+vmu
-  }
-
-  //	std::cout << "Pass 3" << std::endl;
-
-  if (pdgid == 421)
-  {
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(0);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 1 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(1);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(2);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(3);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 3 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(4);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 2 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(5);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 1 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(6);
-
-    if (TotalKs > 0) Channel.push_back(7);
-    if (TotalPiZ > 0) Channel.push_back(8);
-
-    if (TotalElecP == 1) Channel.push_back(9);  // D0 -> K-mu+vmu
-  }
-
-  if (pdgid == 431)
-  {
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 1 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 1 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 1 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(0);  // Ds -> mu+ vmu phi
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 1 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 1 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(1);  // Ds -> mu+ vmu
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(2);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 1 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(3);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 1 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(4);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 1 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 1 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(5);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 1 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 1 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(6);
-
-    if (TotalDsM == 1) Channel.push_back(7);
-    if (TotalPhi == 1) Channel.push_back(8);
-    if (TotalElecP == 1) Channel.push_back(9);  // D0 -> K-mu+vmu
-  }
-
-  if (pdgid == 4122)
-  {  // Lambda_c
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 1 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(0);  // Ds -> mu+ vmu phi
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 1 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(1);  // Ds -> mu+ vmu
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 1 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(2);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 1 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 1 && TotalKL == 0 && TotalPiZ == 2 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(3);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 1 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 1 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 1 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(4);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 1 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(5);
-
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 1 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(6);
-
-    if (TotalPP == 1) Channel.push_back(7);
-    if (TotalN == 1) Channel.push_back(8);
-    if (TotalElecP == 1) Channel.push_back(9);  // D0 -> K-mu+vmu
-  }
-  //	std::cout << "Pass 4" << std::endl;
-
-  if (pdgid == 511)
-  {
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(0);
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 1 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(1);
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 1 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(2);  // Here
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 1 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(3);  //
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 1 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(4);  //
-    // if(TotalKStarZ==0&&TotalKZ==0&&TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 1 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0  && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 1 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 &&  TotalDsM == 0) Channel.push_back(4); //
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 1 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(5);  // Leptonic Mode
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 1 && TotalDsM == 0) Channel.push_back(6);  // Leptonic Mode
-    if (TotalX > 0) Channel.push_back(7);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           // Leptonic Mode
-    if (TotalDZ == 1 || TotalDZBar == 1 || TotalDP == 1 || TotalDM == 1 || TotalDsP == 1 || TotalDsM == 1) Channel.push_back(8);
-    if (TotalJpsi == 1) Channel.push_back(9);
-  }
-
-  if (pdgid == 521)
-  {
-    // Decay B+ -> K+ K- pi+ without any intermediate resonances
-    if (TotalKStar1430 == 0 && TotalKStar1430Bar == 0 && TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 1 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(0);
-
-    // Decay B+ -> K+ K- K+ without any resonances
-    if (TotalKStar1430 == 0 && TotalKStar1430Bar == 0 && TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 2 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(1);
-
-    // if(TotalX == 1 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0  && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0&& TotalDsP == 0 &&  TotalDsM == 0) Channel.push_back(2); //Leptonic Mode
-    // if(TotalKStar1430 == 0 &&  TotalKStar1430Bar == 0 && TotalKStarZ==0&&TotalKZ==0&&TotalX == 0 && TotalPiP == 2 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0  && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 1 && TotalDsP == 0 &&  TotalDsM == 0) Channel.push_back(2);
-
-    // Decay B+ -> K+ phi(1020) (phi likely to decay into K+ K-)
-    if (TotalKStar1430 == 0 && TotalKStar1430Bar == 0 && TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 1 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(2);
-
-    // Decay B+ -> K+ Jpsi
-    if (TotalKStar1430 == 0 && TotalKStar1430Bar == 0 && TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 1 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(3);
-    //	if(TotalKStarZ==0&&TotalKZ==0&&TotalX == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 1 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0  && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0&& TotalDsP == 0 &&  TotalDsM == 0) Channel.push_back(4); //Leptonic Mode
-
-    // Decay B+ -> K+ DBar
-    if (TotalKStar1430 == 0 && TotalKStar1430Bar == 0 && TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 1 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(4);  // Leptonic Mode
-
-    // Decay B+ -> DBar Ds+
-
-    if (TotalKStar1430 == 0 && TotalKStar1430Bar == 0 && TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 1 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 1 && TotalDsM == 0) Channel.push_back(5);  // Leptonic Mode
-    //	if(TotalX == 1 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0  && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0&& TotalDsP == 0 &&  TotalDsM == 0) Channel.push_back(6); //Leptonic Mode
-
-    // Decay B+ -> K+ K*0Bar(1430) (K*0Bar(1430) -> K- pi+)
-
-    if (TotalKStar1430 == 0 && TotalKStar1430Bar == 1 && TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(6);  // Leptonic Mode
-
-    //	if(TotalPP == 1  && TotalPM == 1) Channel.push_back(6); //3 prong p p bar + anyhadron (p and p bar identifiable)
-    // Decay B+ -> e ve X
-    if (TotalElecP == 1 && TotaleNu == 1) Channel.push_back(7);  // Leptonic Mode
-
-    // Decay B+ -> D + X
-    if (TotalDZ == 1 || TotalDZBar == 1 || TotalDP == 1 || TotalDM == 1 || TotalDsP == 1 || TotalDsM == 1) Channel.push_back(8);
-
-    // Decay B+ -> Jpsi + X
-    if (TotalJpsi == 1) Channel.push_back(9);
-  }
-
-  if (pdgid == 531)
-  {
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 1 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 1 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(0);
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 3 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(1);
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 1 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 1 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(2);  // Leptonic Mode
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 1 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(3);  // Leptonic Mode
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 2 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 1 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(4);  // Leptonic Mode
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 1 && TotalDM == 1 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(5);  // Leptonic Mode
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 1 && TotalDsM == 1) Channel.push_back(6);  // Leptonic Mode
-    if (TotalElecP == 1 && TotaleNu == 1) Channel.push_back(7);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     // Leptonic Mode
-    if (TotalDsM == 1) Channel.push_back(8);
-    if (TotalJpsi == 1) Channel.push_back(9);
-  }
-
-  if (pdgid == 443)
-  {
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 1 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(0);
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 3 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 1 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(1);
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(2);  // Leptonic Mode
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(3);  // Leptonic Mode
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 1 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 1 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(4);  // Leptonic Mode
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 1 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 1 && TotalMuM == 0 && TotalGamma == 1 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(5);  // Leptonic Mode
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 1 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 1 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(6);  // Leptonic Mode
-    if (TotalGamma == 1) Channel.push_back(7);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      // Leptonic Mode
-    if (TotalPhi == 1) Channel.push_back(8);
-    if (TotalDZ == 1 || TotalDZBar == 1 || TotalDP == 1 || TotalDM == 1 || TotalDsP == 1 || TotalDsM == 1) Channel.push_back(9);
-  }
-
-  // std::cout << "Pass 5" << std::endl;
-
-  if (pdgid == 553)
-  {
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 1 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(0);
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 3 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 1 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(1);
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 1 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 1 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(2);  // Leptonic Mode
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 1 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 1 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(3);  // Leptonic Mode
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 1 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 1 && TotalMuM == 0 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(4);  // Leptonic Mode
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 1 && TotalMuP == 0 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 1 && TotalMuM == 0 && TotalGamma == 1 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(5);  // Leptonic Mode
-    if (TotalKStarZ == 0 && TotalKZ == 0 && TotalX == 0 && TotalPiP == 0 && TotalKP == 0 && TotalPP == 0 && TotalElecP == 0 && TotalMuP == 1 && TotalPiM == 0 && TotalKM == 0 && TotalPM == 0 && TotalElecM == 0 && TotalMuM == 1 && TotalGamma == 0 && TotaleNu == 0 && TotalmuNu == 0 && TotaltauNu == 0 && TotaleNuBar == 0 && TotalmuNuBar == 0 && TotaltauNuBar == 0 && TotalN == 0 && TotalNBar == 0 && TotalKs == 0 && TotalKL == 0 && TotalPiZ == 0 && TotalRhoZ == 0 && TotalRhoP == 0 && TotalRhoM == 0 && TotalKStarP == 0 && TotalKStarM == 0 && TotalPhi == 0 && TotalEta == 0 && TotalEtaPrime == 0 && Totalomega == 0 && TotalDZ == 0 && TotalDZBar == 0 && TotalDP == 0 && TotalDM == 0 && TotalJpsi == 0 && TotalDsP == 0 && TotalDsM == 0) Channel.push_back(6);  // Leptonic Mode
-    if (TotalGamma == 1) Channel.push_back(7);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      // Leptonic Mode
-    if (TotalJpsi == 1) Channel.push_back(8);
-    if (TotalDZ == 1 || TotalDZBar == 1 || TotalDP == 1 || TotalDM == 1 || TotalDsP == 1 || TotalDsM == 1) Channel.push_back(9);
-  }
-
-  return Channel;
 }
 
 int QAG4Decayer::End(PHCompositeNode *topNode)
