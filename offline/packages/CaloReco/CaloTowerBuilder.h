@@ -83,7 +83,6 @@ class CaloTowerBuilder : public SubsysReco
   CaloWaveformProcessing* WaveformProcessing;
 
   PHCompositeNode *dst_node;
-  PHCompositeNode *data_node;
 
 
 
