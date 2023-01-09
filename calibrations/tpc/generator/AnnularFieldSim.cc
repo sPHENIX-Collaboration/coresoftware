@@ -1359,6 +1359,29 @@ commenting this out for now, until we see if it works.
   */
 }
 
+
+void AnnularFieldSim::save_spacecharge(const std::string &filename){
+  //save a histogram giving the spacecharge in our local coordinates, as we'll be using them..                                                                                  
+  TH3F* hsc=new TH3F("hInternalSpaceCharge","Internal Charge Histogram;phi(rad);r(cm);z(cm)",nphi,0,phispan,nr,rmin,rmax,nz,zmin,zmax);
+  for (int i = 0; i < nphi; i++)
+    {
+      float phi = 0+step.Phi()*(i+0.5);
+      for (int j = 0; j < nr; j++)
+        {
+          float r = rmin + step.Perp()*(j+0.5);
+          for (int k = 0; k < nz; k++)
+            {
+              float z = zmin+step.Z()*(k+0.5);
+              hsc->Fill(phi,r,z,q->GetChargeAtPosition(r,phi,z));                                                                                                        
+	      //old version: hsc->Fill(phi,r,z,q->Get(j,i,k));
+            }
+        }
+    }
+  hsc->SaveAs(filename.c_str());
+  return;
+}
+
+
 void AnnularFieldSim::add_testcharge(float r, float phi, float z, float coulombs)
 {
   q->AddChargeAtPosition(r, phi, z, coulombs * C);

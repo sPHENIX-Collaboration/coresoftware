@@ -31,13 +31,13 @@ void RawTowerContainer::compress(const double emin)
 }
 
 RawTowerContainer::ConstRange
-RawTowerContainer::getTowers(void) const
+RawTowerContainer::getTowers() const
 {
   return make_pair(_towers.begin(), _towers.end());
 }
 
 RawTowerContainer::Range
-RawTowerContainer::getTowers(void)
+RawTowerContainer::getTowers()
 {
   return make_pair(_towers.begin(), _towers.end());
 }
@@ -76,7 +76,7 @@ RawTowerContainer::getTower(RawTowerDefs::keytype key)
   {
     return it->second;
   }
-  return NULL;
+  return nullptr;
 }
 
 const RawTower *
@@ -87,7 +87,7 @@ RawTowerContainer::getTower(RawTowerDefs::keytype key) const
   {
     return it->second;
   }
-  return NULL;
+  return nullptr;
 }
 
 RawTower *
@@ -105,7 +105,7 @@ RawTowerContainer::getTower(const unsigned int ieta, const unsigned int iphi) co
 }
 
 RawTower *
-RawTowerContainer::getTower(const unsigned int ieta, const unsigned int iphi , const unsigned int il)
+RawTowerContainer::getTower(const unsigned int ieta, const unsigned int iphi, const unsigned int il)
 {
   RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(_caloid, ieta, iphi, il);
   return getTower(key);
@@ -117,7 +117,6 @@ RawTowerContainer::getTower(const unsigned int ieta, const unsigned int iphi, co
   RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(_caloid, ieta, iphi, il);
   return getTower(key);
 }
-
 
 int RawTowerContainer::isValid() const
 {

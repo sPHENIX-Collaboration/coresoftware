@@ -10,6 +10,11 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
+#include <trackbase/RawHit.h>
+#include <trackbase/RawHitSet.h>
+#include <trackbase/RawHitSetv1.h>
+#include <trackbase/RawHitSetContainer.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                         // for SubsysReco
 
@@ -62,6 +67,7 @@ namespace
   {
     PHG4TpcCylinderGeom *layergeom = nullptr;
     TrkrHitSet *hitset = nullptr;
+    RawHitSetv1 *rawhitset = nullptr;
     ActsGeometry *tGeometry = nullptr;
     unsigned int layer = 0;
     int side = 0;
@@ -69,6 +75,7 @@ namespace
     float pedestal = 0;
     bool do_assoc = true;
     bool do_wedge_emulation = true;
+    bool do_singles = true;
     unsigned short phibins = 0;
     unsigned short phioffset = 0;
     unsigned short tbins = 0;
@@ -267,7 +274,7 @@ namespace
 	  }
 	  return;
 	}
-  
+
     void calc_cluster_parameter(const std::vector<ihit> &ihit_list, thread_data& my_data, int ntouch, int nedge )
     {
     
@@ -406,6 +413,7 @@ namespace
 	clus->setActsLocalError(1,1, t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2));
 	my_data.cluster_vector.push_back(clus);
       }else if(my_data.cluster_version==4){
+	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
 	if(sqrt(phi_err_square) > 0.01){
 	auto clus = new TrkrClusterv4;
 	//auto clus = std::make_unique<TrkrClusterv3>();
@@ -433,21 +441,15 @@ namespace
       hitkeyvec.clear();
     }
   
-  //_________________________________________________________________________
-  void *ProcessSector(void *threadarg) 
-  {
+  void ProcessSectorData(thread_data* my_data) {
 
-    auto my_data = static_cast<thread_data*>(threadarg);
     const auto& pedestal  = my_data->pedestal;
     const auto& phibins   = my_data->phibins;
     const auto& phioffset = my_data->phioffset;
     const auto& tbins     = my_data->tbins ;
     const auto& toffset   = my_data->toffset ;
     const auto& layer   = my_data->layer ;
-	
-    TrkrHitSet *hitset = my_data->hitset;
-    TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-        
+    //    int nhits = 0;
     // for convenience, create a 2D vector to store adc values in and initialize to zero
     std::vector<std::vector<unsigned short>> adcval(phibins, std::vector<unsigned short>(tbins, 0));
     std::multimap<unsigned short, ihit> all_hit_map;
@@ -467,51 +469,121 @@ namespace
 	tbinmax -= etacut;
       }
     }
-    for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-	 hitr != hitrangei.second;
-	 ++hitr){
 
-      if( TpcDefs::getPad(hitr->first) - phioffset < 0 ){
-	//std::cout << "WARNING phibin out of range: " << TpcDefs::getPad(hitr->first) - phioffset << " | " << phibins << std::endl;
-	continue;
-      }
-      if( TpcDefs::getTBin(hitr->first) - toffset < 0 ){
-	//std::cout << "WARNING tbin out of range: " << TpcDefs::getTBin(hitr->first) - toffset  << " | " << tbins <<std::endl;
-      }
-      unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
-      unsigned short tbin = TpcDefs::getTBin(hitr->first) - toffset;
-      unsigned short tbinorg = TpcDefs::getTBin(hitr->first);
-      if(phibin>=phibins){
-	//std::cout << "WARNING phibin out of range: " << phibin << " | " << phibins << std::endl;
-	continue;
-      }
-      if(tbin>=tbins){
-	//std::cout << "WARNING z bin out of range: " << tbin << " | " << tbins << std::endl;
-	continue;
-      }
-      if(tbinorg>tbinmax||tbinorg<tbinmin)
-	continue;
-      float_t fadc = (hitr->second->getAdc()) - pedestal; // proper int rounding +0.5
-      unsigned short adc = 0;
-      if(fadc>0) adc =  (unsigned short) fadc;
-      if(phibin >= phibins) continue;
-      if(tbin   >= tbins) continue; // tbin is unsigned int, <0 cannot happen
+    if( my_data->hitset!=nullptr){
+      TrkrHitSet *hitset = my_data->hitset;
+      TrkrHitSet::ConstRange hitrangei = hitset->getHits();
       
-      if(adc>0){
-	if(adc>5){
-	  ihit  thisHit;
+      for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+	   hitr != hitrangei.second;
+	   ++hitr){
 	
-	  thisHit.iphi = phibin;
-	  thisHit.it = tbin;
-	  thisHit.adc = adc;
-	  thisHit.edge = 0;
-	  all_hit_map.insert(std::make_pair(adc, thisHit));
+	if( TpcDefs::getPad(hitr->first) - phioffset < 0 ){
+	  //std::cout << "WARNING phibin out of range: " << TpcDefs::getPad(hitr->first) - phioffset << " | " << phibins << std::endl;
+	  continue;
 	}
-	adcval[phibin][tbin] = (unsigned short) adc;
+	if( TpcDefs::getTBin(hitr->first) - toffset < 0 ){
+	  //std::cout << "WARNING tbin out of range: " << TpcDefs::getTBin(hitr->first) - toffset  << " | " << tbins <<std::endl;
+	}
+	unsigned short phibin = TpcDefs::getPad(hitr->first) - phioffset;
+	unsigned short tbin = TpcDefs::getTBin(hitr->first) - toffset;
+	unsigned short tbinorg = TpcDefs::getTBin(hitr->first);
+	if(phibin>=phibins){
+	  //std::cout << "WARNING phibin out of range: " << phibin << " | " << phibins << std::endl;
+	  continue;
+	}
+	if(tbin>=tbins){
+	  //std::cout << "WARNING z bin out of range: " << tbin << " | " << tbins << std::endl;
+	  continue;
+	}
+	if(tbinorg>tbinmax||tbinorg<tbinmin)
+	  continue;
+	float_t fadc = (hitr->second->getAdc()) - pedestal; // proper int rounding +0.5
+	unsigned short adc = 0;
+	if(fadc>0) adc =  (unsigned short) fadc;
+	if(phibin >= phibins) continue;
+	if(tbin   >= tbins) continue; // tbin is unsigned int, <0 cannot happen
+	
+	if(adc>0){
+	  if(adc>5){
+	    ihit  thisHit;
+	    
+	    thisHit.iphi = phibin;
+	    thisHit.it = tbin;
+	    thisHit.adc = adc;
+	    thisHit.edge = 0;
+	    all_hit_map.insert(std::make_pair(adc, thisHit));
+	  }
+	  adcval[phibin][tbin] = (unsigned short) adc;
+	}
+      }
+    }else  if( my_data->rawhitset!=nullptr){
+      RawHitSetv1 *hitset = my_data->rawhitset;
+      /*std::cout << "Layer: " << my_data->layer 
+		<< "Side: " << my_data->side
+		<< "Sector: " << my_data->sector
+		<< " nhits:  " << hitset.size()
+		<< std::endl;
+      */
+      for(int nphi= 0; nphi < phibins;nphi++){
+	//	nhits += hitset->m_tpchits[nphi].size();
+	if(hitset->m_tpchits[nphi].size()==0) continue;
+
+	int pindex = 0;
+	for(unsigned int nt = 0;nt<hitset->m_tpchits[nphi].size();nt++){
+	  unsigned short val = hitset->m_tpchits[nphi][nt];
+	  
+	  if(val==0)
+	    pindex++;
+	  else{
+	    if(nt==0){
+	      if(val>5){
+		ihit  thisHit;
+		thisHit.iphi = nphi;
+		thisHit.it = pindex;
+		thisHit.adc = val;
+		thisHit.edge = 0;
+		all_hit_map.insert(std::make_pair(val, thisHit));
+	      }
+	      adcval[nphi][pindex++]=val;
+	    }else{
+	      if((hitset->m_tpchits[nphi][nt-1]==0)&&(hitset->m_tpchits[nphi][nt+1]==0))//found zero count
+		pindex+=val;
+	      else{
+		if(val>5){
+		  ihit  thisHit;
+		  thisHit.iphi = nphi;
+		  thisHit.it = pindex;
+		  thisHit.adc = val;
+		  thisHit.edge = 0;
+		  all_hit_map.insert(std::make_pair(val, thisHit));
+		}
+		adcval[nphi][pindex++]=val;
+	      }
+	    }
+	  }
+	}
+      }
+    }
+   
+    if(my_data->do_singles){
+      for(auto ahit:all_hit_map){
+	ihit hiHit = ahit.second;
+	int iphi = hiHit.iphi;
+	int it = hiHit.it;
+	unsigned short edge = hiHit.edge;
+	double adc = hiHit.adc;
+	if(it>0&&it<tbins){
+	  if(adcval[iphi][it-1]==0&&
+	     adcval[iphi][it+1]==0){
+	    remove_hit(adc, iphi, it, edge, all_hit_map, adcval);
+	    
+	  }
+	}
       }
     }
     
-    const auto accepted_hits =  all_hit_map.size();
+    // const auto accepted_hits =  all_hit_map.size();
 
     while(!all_hit_map.empty()){
       
@@ -537,19 +609,38 @@ namespace
       remove_hits(ihit_list,all_hit_map, adcval);
       ihit_list.clear();
     }
-    
-    if( false )
-    {
-      std::cout << "ProcessSector -"
-        << " layer: " << (int) layer
-        << " side: " << my_data->side
-        << " sector: " << my_data->sector
-        << " hits: " << std::distance( hitrangei.first, hitrangei.second )
-        << " accepted: " << accepted_hits
-        << " clusters: " << my_data->cluster_vector.size()
-        << std::endl;
-    }
+
+//     if( false )
+//     {
+//       std::cout << "ProcessSector -"
+//         << " layer: " << (int) layer
+//         << " side: " << my_data->side
+//         << " sector: " << my_data->sector
+//         << " hits: " << std::distance( hitrangei.first, hitrangei.second )
+//         << " accepted: " << accepted_hits
+//         << " clusters: " << my_data->cluster_vector.size()
+//         << std::endl;
+//     }
       
+    /*    if( my_data->rawhitset!=nullptr){
+      RawHitSetv1 *hitset = my_data->rawhitset;
+      std::cout << "Layer: " << my_data->layer 
+		<< " Side: " << my_data->side
+		<< " Sector: " << my_data->sector
+		<< " nhits:  " << hitset->size()
+		<< " nhits coutn :  " << nhits
+		<< " nclus: " << my_data->cluster_vector.size()
+		<< std::endl;
+    }
+    */
+    // pthread_exit(nullptr);
+  }
+  
+  void *ProcessSector(void *threadarg) 
+  {
+
+    auto my_data = static_cast<thread_data*>(threadarg);
+    ProcessSectorData(my_data);
     pthread_exit(nullptr);
   }
 }
@@ -656,13 +747,22 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  // get node containing the digitized hits
-  m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (!m_hits)
-  {
-    std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+  if(!do_read_raw){
+    // get node containing the digitized hits
+    m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+    if (!m_hits)
+      {
+	std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
+	return Fun4AllReturnCodes::ABORTRUN;
+      }
+  }else{
+    // get node containing the digitized hits
+    m_rawhits = findNode::getClass<RawHitSetContainer>(topNode, "TRKR_RAWHITSET");
+    if (!m_rawhits)
+      {
+	std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
+	return Fun4AllReturnCodes::ABORTRUN;
+      }
   }
 
   // get node for clusters
@@ -702,9 +802,17 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   // The hits are stored in hitsets, where each hitset contains all hits in a given TPC readout (layer, sector, side), so clusters are confined to a hitset
   // The TPC clustering is more complicated than for the silicon, because we have to deal with overlapping clusters
 
-  // loop over the TPC HitSet objects
-  TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
-  const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
+  TrkrHitSetContainer::ConstRange hitsetrange;
+  RawHitSetContainer::ConstRange rawhitsetrange;
+  int num_hitsets = 0;
+
+  if(!do_read_raw){
+    hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
+    num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
+  }else{
+    rawhitsetrange = m_rawhits->getHitSets(TrkrDefs::TrkrId::tpcId);
+    num_hitsets = std::distance(rawhitsetrange.first,rawhitsetrange.second);
+  }
 
   // create structure to store given thread and associated data
   struct thread_pair_t
@@ -727,95 +835,224 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       return 1;
     }
   int count = 0;
-  for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr)
-  {
-    //if(count>0)continue;
-    //    const auto hitsetid = hitsetitr->first;
-    //    std::cout << " starting thread # " << count << std::endl;
-    TrkrHitSet *hitset = hitsetitr->second;
-    unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
-    int side = TpcDefs::getSide(hitsetitr->first);
-    unsigned int sector= TpcDefs::getSectorId(hitsetitr->first);
-    PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
 
-    // instanciate new thread pair, at the end of thread vector
-    thread_pair_t& thread_pair = threads.emplace_back();
-    thread_pair.data.layergeom = layergeom;
-    thread_pair.data.hitset = hitset;
-    thread_pair.data.layer = layer;
-    thread_pair.data.pedestal = pedestal;
-    thread_pair.data.sector = sector;
-    thread_pair.data.side = side;
-    thread_pair.data.do_assoc = do_hit_assoc;
-    thread_pair.data.do_wedge_emulation = do_wedge_emulation;
-    thread_pair.data.tGeometry = m_tGeometry;
-    thread_pair.data.maxHalfSizeT =  MaxClusterHalfSizeT;
-    thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
-    thread_pair.data.sampa_tbias = m_sampa_tbias;
-    thread_pair.data.cluster_version = cluster_version;
-    thread_pair.data.verbosity = Verbosity();
-    
-    unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
-    unsigned short NPhiBinsSector = NPhiBins/12;
-    unsigned short NTBins = (unsigned short)layergeom->get_zbins();
-    unsigned short NTBinsSide = NTBins;
-    unsigned short NTBinsMin = 0;
-    unsigned short PhiOffset = NPhiBinsSector * sector;
-    unsigned short TOffset = NTBinsMin;
+  if(!do_read_raw){
+    for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
+	 hitsetitr != hitsetrange.second;
+	 ++hitsetitr)
+      {
+      	//if(count>0)continue;
+	TrkrHitSet *hitset = hitsetitr->second;
+	unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
+	int side = TpcDefs::getSide(hitsetitr->first);
+	unsigned int sector= TpcDefs::getSectorId(hitsetitr->first);
+	PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+	
+	// instanciate new thread pair, at the end of thread vector
+	thread_pair_t& thread_pair = threads.emplace_back();
+	
+	thread_pair.data.layergeom = layergeom;
+	thread_pair.data.hitset = hitset;
+	thread_pair.data.rawhitset = nullptr;
+	thread_pair.data.layer = layer;
+	thread_pair.data.pedestal = pedestal;
+	thread_pair.data.sector = sector;
+	thread_pair.data.side = side;
+	thread_pair.data.do_assoc = do_hit_assoc;
+	thread_pair.data.do_wedge_emulation = do_wedge_emulation;
+	thread_pair.data.do_singles = do_singles;
+	thread_pair.data.tGeometry = m_tGeometry;
+	thread_pair.data.maxHalfSizeT =  MaxClusterHalfSizeT;
+	thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
+	thread_pair.data.sampa_tbias = m_sampa_tbias;
+	thread_pair.data.cluster_version = cluster_version;
+	thread_pair.data.verbosity = Verbosity();
+	
+	unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
+	unsigned short NPhiBinsSector = NPhiBins/12;
+	unsigned short NTBins = (unsigned short)layergeom->get_zbins();
+	unsigned short NTBinsSide = NTBins;
+	unsigned short NTBinsMin = 0;
+	unsigned short PhiOffset = NPhiBinsSector * sector;
+	unsigned short TOffset = NTBinsMin;
+	
+	m_tdriftmax = AdcClockPeriod * NTBins / 2.0;  
+	thread_pair.data.m_tdriftmax = m_tdriftmax;
+	
+	thread_pair.data.phibins   = NPhiBinsSector;
+	thread_pair.data.phioffset = PhiOffset;
+	thread_pair.data.tbins     = NTBinsSide;
+	thread_pair.data.toffset   = TOffset ;
+	
+	int rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *)&thread_pair.data);
+	if (rc) {
+	  std::cout << "Error:unable to create thread," << rc << std::endl;
+	}
+	if(do_sequential){
+	  int rc2 = pthread_join(thread_pair.thread, nullptr);
+	  if (rc2) 
+	    { std::cout << "Error:unable to join," << rc2 << std::endl; }
+	  
+	  // get the hitsetkey from thread data
+	  const auto& data( thread_pair.data );
+	  const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
+	  
+	  // copy clusters to map
+	  for( uint32_t index = 0; index < data.cluster_vector.size(); ++index )
+	    {
+	      // generate cluster key
+	      const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
+	      
+	      // get cluster
+	      auto cluster = data.cluster_vector[index];
+	      
+	      // insert in map
+	      m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+	    }
+	  
+	  // copy hit associations to map
+	  for( const auto& [index,hkey]:thread_pair.data.association_vector)
+	  { 
+	    // generate cluster key
+	    const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
+	    
+	    // add to association table
+	    m_clusterhitassoc->addAssoc(ckey,hkey); 
+	  }
+	}
+	count++;
+      }
+  }else{
 
-    m_tdriftmax = AdcClockPeriod * NTBins / 2.0;  
-    thread_pair.data.m_tdriftmax = m_tdriftmax;
+    for (RawHitSetContainer::ConstIterator hitsetitr = rawhitsetrange.first;
+	 hitsetitr != rawhitsetrange.second;
+	 ++hitsetitr){ 
+      //	if(count>0)continue;
+	//    const auto hitsetid = hitsetitr->first;
+      //	std::cout << " starting thread # " << count << std::endl;
 
-    thread_pair.data.phibins   = NPhiBinsSector;
-    thread_pair.data.phioffset = PhiOffset;
-    thread_pair.data.tbins     = NTBinsSide;
-    thread_pair.data.toffset   = TOffset ;
+	RawHitSet *hitset = hitsetitr->second;
+      unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
+      int side = TpcDefs::getSide(hitsetitr->first);
+      unsigned int sector= TpcDefs::getSectorId(hitsetitr->first);
+      PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+      
+      // instanciate new thread pair, at the end of thread vector
+      thread_pair_t& thread_pair = threads.emplace_back();
+      
+      thread_pair.data.layergeom = layergeom;
+      thread_pair.data.hitset = nullptr;
+      thread_pair.data.rawhitset = dynamic_cast<RawHitSetv1 *>(hitset);
+      thread_pair.data.layer = layer;
+      thread_pair.data.pedestal = pedestal;
+      thread_pair.data.sector = sector;
+      thread_pair.data.side = side;
+      thread_pair.data.do_assoc = do_hit_assoc;
+      thread_pair.data.do_wedge_emulation = do_wedge_emulation;
+      thread_pair.data.tGeometry = m_tGeometry;
+      thread_pair.data.maxHalfSizeT =  MaxClusterHalfSizeT;
+      thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
+      thread_pair.data.sampa_tbias = m_sampa_tbias;
+      thread_pair.data.cluster_version = cluster_version;
+      thread_pair.data.verbosity = Verbosity();
 
-    int rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *)&thread_pair.data);
-    if (rc) {
-      std::cout << "Error:unable to create thread," << rc << std::endl;
+      unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
+      unsigned short NPhiBinsSector = NPhiBins/12;
+      unsigned short NTBins = (unsigned short)layergeom->get_zbins();
+      unsigned short NTBinsSide = NTBins;
+      unsigned short NTBinsMin = 0;
+      unsigned short PhiOffset = NPhiBinsSector * sector;
+      unsigned short TOffset = NTBinsMin;
+
+      m_tdriftmax = AdcClockPeriod * NTBins / 2.0;  
+      thread_pair.data.m_tdriftmax = m_tdriftmax;
+
+      thread_pair.data.phibins   = NPhiBinsSector;
+      thread_pair.data.phioffset = PhiOffset;
+      thread_pair.data.tbins     = NTBinsSide;
+      thread_pair.data.toffset   = TOffset ;
+
+      int rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *)&thread_pair.data);
+      if (rc) {
+	std::cout << "Error:unable to create thread," << rc << std::endl;
+      }
+      
+      if(do_sequential){
+	int rc2 = pthread_join(thread_pair.thread, nullptr);
+	if (rc2) 
+	  { std::cout << "Error:unable to join," << rc2 << std::endl; }
+	
+	// get the hitsetkey from thread data
+	const auto& data( thread_pair.data );
+	const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
+	
+	// copy clusters to map
+	for( uint32_t index = 0; index < data.cluster_vector.size(); ++index )
+	  {
+	    // generate cluster key
+	    const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
+	    
+	    // get cluster
+	    auto cluster = data.cluster_vector[index];
+	    
+	    // insert in map
+	    m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+	  }
+	
+	// copy hit associations to map
+	for( const auto& [index,hkey]:thread_pair.data.association_vector)
+	  { 
+	    // generate cluster key
+	    const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
+	    
+	    // add to association table
+	    m_clusterhitassoc->addAssoc(ckey,hkey); 
+	  }
+	  }
+      count++;
     }
-    count++;
   }
+
   
   pthread_attr_destroy(&attr);
   count =0;
   // wait for completion of all threads
-  for( const auto& thread_pair:threads )
-  { 
-    int rc2 = pthread_join(thread_pair.thread, nullptr);
-    if (rc2) 
-    { std::cout << "Error:unable to join," << rc2 << std::endl; }
+  if(!do_sequential){
+    for( const auto& thread_pair:threads )
+      { 
+	int rc2 = pthread_join(thread_pair.thread, nullptr);
+	if (rc2) 
+	  { std::cout << "Error:unable to join," << rc2 << std::endl; }
+	
+	// get the hitsetkey from thread data
+	const auto& data( thread_pair.data );
+	const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
+	
+	// copy clusters to map
+	for( uint32_t index = 0; index < data.cluster_vector.size(); ++index )
+	  {
+	    // generate cluster key
+	    const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
+	    
+	    // get cluster
+	    auto cluster = data.cluster_vector[index];
+	    
+	    // insert in map
+	    //std::cout << "X: " << cluster->getLocalX() << "Y: " << cluster->getLocalY() << std::endl;
+	    m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+	  }
+	
+	// copy hit associations to map
+	for( const auto& [index,hkey]:thread_pair.data.association_vector)
+	  { 
+	    // generate cluster key
+	    const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
+	    
+	    // add to association table
+	    m_clusterhitassoc->addAssoc(ckey,hkey); 
+	  }
 
-    // get the hitsetkey from thread data
-    const auto& data( thread_pair.data );
-    const auto hitsetkey = TpcDefs::genHitSetKey( data.layer, data.sector, data.side );      
-
-    // copy clusters to map
-    for( uint32_t index = 0; index < data.cluster_vector.size(); ++index )
-    {
-      // generate cluster key
-      const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
-
-      // get cluster
-      auto cluster = data.cluster_vector[index];
-
-      // insert in map
-      m_clusterlist->addClusterSpecifyKey(ckey, cluster);
-    }
-
-    // copy hit associations to map
-    for( const auto& [index,hkey]:thread_pair.data.association_vector)
-    { 
-      // generate cluster key
-      const auto ckey = TrkrDefs::genClusKey( hitsetkey, index );
-
-      // add to association table
-      m_clusterhitassoc->addAssoc(ckey,hkey); 
-    }
-
+      }
   }
 
   if (Verbosity() > 0)

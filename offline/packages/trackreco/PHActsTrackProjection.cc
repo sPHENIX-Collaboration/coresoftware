@@ -129,13 +129,11 @@ int PHActsTrackProjection::projectTracks(const int caloLayer)
         m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
 
     auto result = propagateTrack(params, cylSurf);
-
-    if (result.ok())
-    {
-      auto trackStateParams = std::move(**result);
-      updateSvtxTrack(trackStateParams,
-                      track, caloLayer);
-    }
+    if(result.ok())
+      {
+	updateSvtxTrack(result.value(), track, caloLayer);
+      }
+  
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -284,7 +282,7 @@ void PHActsTrackProjection::getSquareTowerEnergies(int phiBin,
   return;
 }
 
-BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
+BoundTrackParamResult PHActsTrackProjection::propagateTrack(
     const Acts::BoundTrackParameters& params,
     const SurfacePtr& targetSurf)
 {
@@ -331,13 +329,13 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
 
   auto result = propagator.propagate(params, *targetSurf,
                                      options);
-
-  if (result.ok())
-  {
-    return std::move((*result).endParameters);
-  }
+  if(result.ok())
+    {
+      return Acts::Result<BoundTrackParam>::success(std::move((*result).endParameters.value()));
+    }
 
   return result.error();
+  
 }
 
 int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode* topNode,

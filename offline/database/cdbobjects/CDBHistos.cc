@@ -103,3 +103,14 @@ void CDBHistos::registerHisto(TH1 *h1)
   m_HistoMap.insert(std::make_pair(h1->GetName(), h1));
   return;
 }
+
+TH1 *CDBHistos::getHisto(const std::string &name)
+{
+  const auto iter = m_HistoMap.find(name);
+  if (iter == m_HistoMap.end())
+  {
+    std::cout << PHWHERE << ": Histogram " << name << " not found" << std::endl;
+    return nullptr;
+  }
+  return iter->second;
+}

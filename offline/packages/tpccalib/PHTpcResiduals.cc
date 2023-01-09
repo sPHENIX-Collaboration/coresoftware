@@ -26,7 +26,6 @@
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
-#include <Acts/MagneticField/SharedBField.hpp>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -321,7 +320,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     auto result = propagateTrackState(trackParams, surf);
     
     // skip if propagation failed
-    if(!result.ok())
+    if(std::isnan(result.first))
     {
       if( Verbosity() > 1 )
       {
@@ -341,8 +340,8 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     }
     
     // get extrapolated track state, convert to sPHENIX and add to track
-    auto pathLength = (*result).first;
-    auto trackStateParams = std::move(*(*result).second);
+    auto pathLength = result.first;
+    auto trackStateParams = result.second;
     if(Verbosity() > 1)
     {
       std::cout << "PHTpcResiduals::processTrack -"
@@ -573,7 +572,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 }
 
 //__________________________________________________________________________________________________________________________________________
-PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surf) const
+PHTpcResiduals::BoundTrackParamPair  PHTpcResiduals::propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surf) const
 {
  
 
@@ -599,10 +598,13 @@ PHTpcResiduals::ExtrapolationResult PHTpcResiduals::propagateTrackState( const A
    
   if(result.ok())
   {
+    const Acts::BoundTrackParameters params = *result.value().endParameters;
+    double pathlength = result.value().pathLength / Acts::UnitConstants::cm;
     // return both path length and extrapolated parameters
-    return std::make_pair( (*result).pathLength/Acts::UnitConstants::cm, std::move((*result).endParameters) );
+    return std::make_pair( pathlength, params );
   } else {
-    return result.error();
+    return std::make_pair(NAN, Acts::BoundTrackParameters(nullptr, Acts::BoundVector::Zero(),-1));
+
   }
 }
 

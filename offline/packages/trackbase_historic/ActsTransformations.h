@@ -8,6 +8,7 @@
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 
@@ -67,7 +68,7 @@ class ActsTransformations
 		    float &dca3DxyCov,
 		    float &dca3DzCov) const;
 
-  void fillSvtxTrackStates(const Acts::MultiTrajectory& traj, 
+  void fillSvtxTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj, 
 			   const size_t& trackTip,
 			   SvtxTrack *svtxTrack,
 			   Acts::GeometryContext& geoContext) const;
