@@ -6,9 +6,9 @@
 #include <fun4all/SubsysReco.h>
 
 
-#include <calobase/RawTower.h>  // for RawTower
-#include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>  // for HCALIN, HCALOUT, CEMC
+#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfov1.h>
 #include <caloreco/CaloWaveformProcessing.h>
 
 
@@ -30,13 +30,12 @@
 #include <utility>  // for pair
 
 
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfov1.h>
-#include <TRandom3.h>
 
+#include <TRandom3.h>
 #include <string>
 
 class PHCompositeNode;
+
 
 class CaloTowerBuilder : public SubsysReco
 {
@@ -85,9 +84,6 @@ class CaloTowerBuilder : public SubsysReco
 
   PHCompositeNode *dst_node;
   PHCompositeNode *data_node;
-  RawTowerContainer *hcalin_towers;
-  RawTowerContainer *hcalout_towers;
-  RawTowerContainer *emcal_towers;
 
 
 
