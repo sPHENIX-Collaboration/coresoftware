@@ -64,7 +64,7 @@ class CaloTowerCalib : public SubsysReco
   std::string m_detector;
   TowerInfoContainer::DETECTOR m_DETECTOR;
 
-  CDBTTree *cdbttree;
+  CDBTTree *cdbttree = nullptr;
   std::string m_fieldname;
 };
 

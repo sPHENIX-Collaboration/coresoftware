@@ -23,6 +23,7 @@ CaloTowerCalib::CaloTowerCalib(const std::string &name)
   : SubsysReco(name)
   , m_dettype(CaloTowerCalib::HCALOUT)
   , m_detector("HCALOUT")
+  , m_DETECTOR(TowerInfoContainer::HCAL)
 {
   std::cout << "CaloTowerCalib::CaloTowerCalib(const std::string &name) Calling ctor" << std::endl;
 }
