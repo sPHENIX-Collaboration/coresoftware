@@ -115,6 +115,7 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   ///@name counters
   //@{
   int m_total_hits = 0;
+  int m_matched_hits = 0;
   int m_accepted_clusters = 0;
   //@}
 
