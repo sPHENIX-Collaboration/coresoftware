@@ -98,7 +98,7 @@ int CaloTowerCalib::process_event(PHCompositeNode * /*topNode*/)
   {
     TowerInfov1 *caloinfo_raw = _raw_towers->at(i);
 
-    float raw_amplitude = caloinfo_raw->get_time();
+    float raw_amplitude = caloinfo_raw->get_energy();
 
     TowerInfov1 *caloinfo_calib = new TowerInfov1(*caloinfo_raw);
 
