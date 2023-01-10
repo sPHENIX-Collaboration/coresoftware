@@ -25,7 +25,7 @@ class PHG4Particle;
 class PHG4TruthInfoContainer;
 class SvtxTrack;
 class SvtxTrackMap;
-class DSTContainerv1;
+class DSTContainerv3;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
@@ -87,7 +87,7 @@ class DSTWriter : public SubsysReco
   int get_embed(PHG4Particle*) const;
 
   //! evaluation node
-  DSTContainerv1* m_container = nullptr;
+  DSTContainerv3* m_container = nullptr;
 
   //! flags
   int m_flags = WriteEvent | WriteClusters | WriteTracks;

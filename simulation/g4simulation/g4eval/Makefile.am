@@ -76,6 +76,7 @@ ROOTDICTS = \
   TrackEvaluationContainerv1_Dict.cc \
 	DSTContainer_Dict.cc \
   DSTContainerv1_Dict.cc \
+	DSTContainerv3_Dict.cc \
 	DSTContainerTcl_Dict.cc
 
 pcmdir = $(libdir)
@@ -84,12 +85,14 @@ nobase_dist_pcm_DATA = \
   TrackEvaluationContainerv1_Dict_rdict.pcm \
 	DSTContainer_Dict_rdict.pcm \
 	DSTContainerv1_Dict_rdict.pcm \
+	DSTContainerv3_Dict_rdict.pcm \
 	DSTContainerTcl_Dict_rdict.pcm
 
 libg4eval_io_la_SOURCES = \
   $(ROOTDICTS) \
   TrackEvaluationContainerv1.cc \
   DSTContainerv1.cc \
+	DSTContainerv3.cc \
 	DSTContainerTcl.cc
 
 libg4eval_la_SOURCES = \

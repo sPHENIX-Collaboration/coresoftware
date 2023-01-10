@@ -4,7 +4,7 @@
  */
 
 #include "DSTWriter.h"
-#include "DSTContainerv1.h"
+#include "DSTContainerv3.h"
 #include "DSTContainerTcl.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -21,6 +21,7 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHit.h>
@@ -138,9 +139,9 @@ namespace
   }
 
   //! create track struct from struct from svx track
-  DSTContainerv1::TrackStruct create_track( SvtxTrack* track )
+  DSTContainerv3::TrackStruct create_track( SvtxTrack* track )
   {
-    DSTContainerv1::TrackStruct trackStruct;
+    DSTContainerv3::TrackStruct trackStruct;
 
     trackStruct.charge = track->get_charge();
     trackStruct.nclusters = track->size_cluster_keys();
@@ -165,9 +166,9 @@ namespace
   }
 
   //! create cluster struct from svx cluster
-  DSTContainerv1::ClusterStruct create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster )
+  DSTContainerv3::ClusterStruct create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster )
   {
-    DSTContainerv1::ClusterStruct cluster_struct;
+    DSTContainerv3::ClusterStruct cluster_struct;
     cluster_struct.clusterKey = key;
     cluster_struct.layer = TrkrDefs::getLayer(key);
     cluster_struct.phi_seg = TrkrDefs::getPhiElement(key);
@@ -179,8 +180,8 @@ namespace
     cluster_struct.adc = cluster->getAdc();
     // for (int j = 0; j < 3; ++j) {
     //   for (int i = 0; i < 3; ++i) {
-    //     cluster_struct.cor_size[DSTContainerv1::covarIndex(i, j)] = cluster->getSize(i, j);
-    //     cluster_struct.cor_error[DSTContainerv1::covarIndex(i, j)] = cluster->getError(i, j);
+    //     cluster_struct.cor_size[DSTContainerv3::covarIndex(i, j)] = cluster->getSize(i, j);
+    //     cluster_struct.cor_error[DSTContainerv3::covarIndex(i, j)] = cluster->getError(i, j);
     //   }
     // }
 
@@ -204,7 +205,7 @@ namespace
   }
 
   //! number of hits associated to cluster
-  // void add_cluster_size( DSTContainerv1::ClusterStruct& cluster, TrkrDefs::cluskey clus_key, TrkrClusterHitAssoc* cluster_hit_map )
+  // void add_cluster_size( DSTContainerv3::ClusterStruct& cluster, TrkrDefs::cluskey clus_key, TrkrClusterHitAssoc* cluster_hit_map )
   // {
   //   if( !cluster_hit_map ) return;
   //   const auto range = cluster_hit_map->getHits(clus_key);
@@ -258,7 +259,7 @@ namespace
 
 
   // //! hit energy for a given cluster
-  // void add_cluster_energy( DSTContainerv1::ClusterStruct& cluster, TrkrDefs::cluskey clus_key,
+  // void add_cluster_energy( DSTContainerv3::ClusterStruct& cluster, TrkrDefs::cluskey clus_key,
   //   TrkrClusterHitAssoc* cluster_hit_map,
   //   TrkrHitSetContainer* hitsetcontainer )
   // {
@@ -322,18 +323,22 @@ int DSTWriter::Init(PHCompositeNode* topNode )
     dstNode->addNode(evalNode);
   }
 
-  auto newNode = new PHIODataNode<PHObject>( new DSTContainerv1, "DSTContainer","PHObject");
+  // // TClonesArary
+  // m_container->arrClsDST = new TClonesArray("DSTContainerv3::ClusterStruct");
+  // m_container->trkrClsDST = new TClonesArray("TrkrClusterv4");
+
+  auto newNode = new PHIODataNode<PHObject>( new DSTContainerv3, "DSTContainer","PHObject");
   evalNode->addNode(newNode);
 
   // TClonesArary
-  fcl = new TFile("dstcl.root", "recreate");
-  tcl = new TTree("tcl", "dst tree");
-  arrEvt = new TClonesArray("DSTContainerTcl::EventStruct");
-  arrTrk = new TClonesArray("DSTContainerTcl::TrackStruct");
-  arrCls = new TClonesArray("DSTContainerTcl::ClusterStruct");
-  tcl->Branch("evt", &arrEvt);
-  tcl->Branch("trk", &arrTrk);
-  tcl->Branch("cls", &arrCls);
+  // fcl = new TFile("dstcl.root", "recreate");
+  // tcl = new TTree("tcl", "dst tree");
+  // arrEvt = new TClonesArray("DSTContainerv3::EventStruct");
+  // arrTrk = new TClonesArray("DSTContainerv3::TrackStruct");
+  // arrCls = new TClonesArray("DSTContainerv3::ClusterStruct");
+  // tcl->Branch("evt", &arrEvt);
+  // tcl->Branch("trk", &arrTrk);
+  // tcl->Branch("cls", &arrCls);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -361,7 +366,7 @@ int DSTWriter::process_event(PHCompositeNode* topNode)
   }
   if(m_flags&WriteTracks) {
     std::cout << "DSTWriter::process_event doing tracks" << std::endl;
-    evaluate_tracks();
+    // evaluate_tracks();
   }
   std::cout << "exiting event" << "\n";
 
@@ -375,10 +380,10 @@ int DSTWriter::process_event(PHCompositeNode* topNode)
 int DSTWriter::End(PHCompositeNode* )
 {
 
-  tcl->Print();
-  tcl->Write();
-  fcl->Write();
-  fcl->Close();
+  // tcl->Print();
+  // tcl->Write();
+  // fcl->Write();
+  // fcl->Close();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -399,7 +404,7 @@ int DSTWriter::load_nodes( PHCompositeNode* topNode )
   m_hit_truth_map = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
 
   // local container
-  m_container = findNode::getClass<DSTContainerv1>(topNode, "DSTContainer");
+  m_container = findNode::getClass<DSTContainerv3>(topNode, "DSTContainer");
 
   // hitset container
   m_hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -423,7 +428,7 @@ void DSTWriter::evaluate_event()
   if(!m_container) return;
 
   // create event struct
-  DSTContainerv1::EventStruct event;
+  DSTContainerv3::EventStruct event;
   if( m_hitsetcontainer )
   {
     // loop over hitsets
@@ -431,7 +436,7 @@ void DSTWriter::evaluate_event()
     {
       const auto trkrId = TrkrDefs::getTrkrId(hitsetkey);
       const auto layer = TrkrDefs::getLayer(hitsetkey);
-      assert(layer<DSTContainerv1::EventStruct::max_layer);
+      assert(layer<DSTContainerv3::EventStruct::max_layer);
 
       if(m_cluster_map)
       {
@@ -468,8 +473,14 @@ void DSTWriter::evaluate_clusters()
   // clear array
   m_container->clearClusters();
 
-  TClonesArray& ar = *arrCls;
-  ar.Clear();
+  // TClonesArray& ar = *arrCls;
+  // ar.Clear();
+
+  TClonesArray& arDST = *m_container->arrClsDST;
+  arDST.Clear();
+
+  // TClonesArray& trkrDST = *m_container->trkrClsDST;
+  // trkrDST.Clear();
 
   Int_t iCluster = 0;
   // first loop over hitsets
@@ -490,11 +501,13 @@ void DSTWriter::evaluate_clusters()
       m_container->addCluster( cluster_struct );
       std::cout << "added cluster with key " << std::hex << (ulong) key << "\n";
 
-      new(ar[iCluster]) DSTContainerTcl::ClusterStruct( key, cluster );
+      // new(ar[iCluster]) DSTContainerTcl::ClusterStruct( key, cluster );
+      new(arDST[iCluster]) DSTContainerv3::ClusterStruct( key, cluster );
+      // new(trkrDST[iCluster]) TrkrClusterv4();
       ++iCluster;
     }
   }
-  tcl->Fill();
+  // tcl->Fill();
 
   std::cout << "DSTWriter::evaluate_clusters - clusters: " << m_container->clusters().size() << std::endl;
   
@@ -509,8 +522,11 @@ void DSTWriter::evaluate_tracks()
   // clear array
   m_container->clearTracks();
 
-  TClonesArray& ar = *arrTrk;
-  ar.Clear();
+  // TClonesArray& ar = *arrTrk;
+  // ar.Clear();
+
+  // TClonesArray& arDST = *m_container->arrClsDST;
+  // arDST.Clear();
 
   Int_t iTrk = 0;
   for( const auto& trackpair:*m_track_map )
