@@ -34,7 +34,7 @@ TpcClusterBuilder::TpcClusterBuilder
 { }
 
 void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
-  if (m_hits == nullptr) cout << " m_hits == nullptr! " << endl;
+  if (Verbosity()) if (m_hits == nullptr) cout << " m_hits == nullptr! " << endl;
 
   if (!is_embedded_track) {
     reset(clear_hitsetkey_cnt);
@@ -146,7 +146,7 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
       hitsetkey, global, subsurfkey);
 
     if (!surface) {
-      std::cout << "Can't find the surface! with hitsetkey " << ((int)hitsetkey) << std::endl;
+      if (Verbosity()) std::cout << "Can't find the surface! with hitsetkey " << ((int)hitsetkey) << std::endl;
       continue;
     }
 

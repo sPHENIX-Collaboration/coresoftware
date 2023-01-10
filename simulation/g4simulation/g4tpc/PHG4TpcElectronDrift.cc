@@ -259,8 +259,9 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
-  std::cout << PHWHERE << " drift velocity " << drift_velocity << " extended_readout_time " << get_double_param("extended_readout_time") 
-	    << " max time cutoff " << max_time << std::endl;
+  if (Verbosity() > 0) {
+    std::cout << PHWHERE << " drift velocity " << drift_velocity << " extended_readout_time " << get_double_param("extended_readout_time") << " max time cutoff " << max_time << std::endl;
+  }
 
   auto se = Fun4AllServer::instance();
   dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
@@ -333,10 +334,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   }
 
   if (truth_clusterer == nullptr)  {
-    std::cout << " truth clusterer was a null pointer " << std::endl;
+    if (Verbosity()) std::cout << " truth clusterer was a null pointer " << std::endl;
     truth_clusterer = new TpcClusterBuilder(truthclustercontainer, m_tGeometry, seggeo);
   } else {
-    std::cout << " truth clusterer was NOT a null pointer " << std::endl;
+    if (Verbosity()) std::cout << " truth clusterer was NOT a null pointer " << std::endl;
   }
 
 
@@ -373,7 +374,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     }
 
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
-  //std::cout << "g4hits size " << g4hit->size() << std::endl;
   unsigned int count_g4hits = 0;
   //  int count_electrons = 0;
 
@@ -823,11 +823,11 @@ void PHG4TpcElectronDrift::setTpcDistortion(PHG4TpcDistortion *distortionMap)
 
 void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
 {
-  std::cout << "Registering padplane " << std::endl;
+  if (Verbosity()) std::cout << "Registering padplane " << std::endl;
   padplane.reset(inpadplane);
   padplane->Detector(Detector());
   padplane->UpdateInternalParameters();
-  std::cout << "padplane registered and parameters updated" << std::endl;
+  if (Verbosity()) std::cout << "padplane registered and parameters updated" << std::endl;
 
   return;
 }
