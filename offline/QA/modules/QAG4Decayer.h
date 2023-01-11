@@ -40,20 +40,19 @@ class QAG4Decayer : public SubsysReco
   std::vector<int> Channel(int pdgid, std::vector<int> Daughter);
 
  private:
-  PHG4TruthInfoContainer *m_truth_info;
-
+  PHG4TruthInfoContainer *m_truth_info = nullptr;
   SvtxEvalStack *_svtxevalstack = NULL;
 
-  TFile *fout;
-  TTree *QATree;
-  int EvtID;
-  float LifeTime;
+  TFile *fout = nullptr;
+  TTree *QATree = nullptr;
+  int EvtID = -1;
+  float LifeTime = -1;
   /*
     TH1D * MassHis;
     TH1D * NPartHis;
     TH1D * BR1DHis;
    */
-  int NParticles;
+  int NParticles = -1;
   std::vector<int> PVDaughtersPDGID;
 
   bool m_write_nTuple;

@@ -273,7 +273,7 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   // D0
   decaymap[1].insert({{-321, 211}, 0});
   decaymap[1].insert({{-321, 111, 211}, 1});
-  decaymap[1].insert({{-221, 321}, 2});
+  decaymap[1].insert({{-211, 321}, 2});
   decaymap[1].insert({{-321, 310, 321}, 3});
   decaymap[1].insert({{310, 310, 310}, 4});
   decaymap[1].insert({{111, 111}, 5});
@@ -308,7 +308,7 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   decaymap[3].insert({{-321, 211, 2212}, 0});
   decaymap[3].insert({{-311, 2212}, 1});
   decaymap[3].insert({{333, 2212}, 2});
-  decaymap[3].insert({{-321, 111, 221, 2212}, 3});
+  decaymap[3].insert({{-321, 111, 211, 2212}, 3});
   decaymap[3].insert({{-311, -211, 211, 2212}, 4});
   decaymap[3].insert({{-211, -211, 211, 211, 2112}, 5});
   decaymap[3].insert({{-211, 211, 2212}, 6});
