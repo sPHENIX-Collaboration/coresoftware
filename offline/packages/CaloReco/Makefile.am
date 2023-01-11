@@ -32,6 +32,7 @@ AM_CPPFLAGS = \
 
 pkginclude_HEADERS = \
   CaloWaveformProcessing.h \
+  CaloTowerBuilder.h \
   RawClusterBuilderFwd.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
@@ -47,6 +48,7 @@ libcalo_reco_la_SOURCES = \
   BEmcRecFEMC.cc \
   BEmcRecEEMC.cc \
   CaloWaveformProcessing.cc \
+  CaloTowerBuilder.cc \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \
