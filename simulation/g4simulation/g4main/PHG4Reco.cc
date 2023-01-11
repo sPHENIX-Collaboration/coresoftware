@@ -1,3 +1,5 @@
+
+
 #include "PHG4Reco.h"
 
 #include "Fun4AllMessenger.h"
@@ -20,6 +22,8 @@
 
 #include <g4decayer/EDecayType.hh>
 #include <g4decayer/P6DExtDecayerPhysics.hh>
+
+#include <g4decayer/EvtGenExtDecayerPhysics.hh>
 
 #include <phgeom/PHGeomUtility.h>
 
@@ -232,9 +236,10 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     exit(1);
   }
 
-  if (m_ActiveDecayerFlag)
+  if (m_Decayer == kPYTHIA6Decayer)
   {
-    G4HadronicParameters::Instance()->SetEnableBCParticles(false); //Disable the Geant4 built in HF Decay and use external decayers for them
+    std::cout << "Use PYTHIA Decayer" << std::endl;
+    G4HadronicParameters::Instance()->SetEnableBCParticles(false);  //Disable the Geant4 built in HF Decay and use external decayers for them
     P6DExtDecayerPhysics *decayer = new P6DExtDecayerPhysics();
     if (m_ActiveForceDecayFlag)
     {
@@ -242,6 +247,20 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     }
     myphysicslist->RegisterPhysics(decayer);
   }
+
+  if (m_Decayer == kEvtGenDecayer)
+  {
+    std::cout << "Use EvtGen Decayer" << std::endl;
+    G4HadronicParameters::Instance()->SetEnableBCParticles(false);  //Disable the Geant4 built in HF Decay and use external decayers for them
+    EvtGenExtDecayerPhysics *decayer = new EvtGenExtDecayerPhysics();
+    myphysicslist->RegisterPhysics(decayer);
+  }
+
+  if (m_Decayer == kGEANTInternalDecayer)
+  {
+    std::cout << "Use GEANT Internal Decayer" << std::endl;
+  }
+
   myphysicslist->RegisterPhysics(new G4StepLimiterPhysics());
   // initialize cuts so we can ask the world region for it's default
   // cuts to propagate them to other regions in DefineRegions()
@@ -268,15 +287,10 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
 
   std::unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
 
-  if (m_FieldMapFile == "CDB")
+  if (m_FieldMapFile != "NONE")
   {
-    // loading from database
     std::string url = XploadInterface::instance()->getUrl("FIELDMAPBIG", m_FieldMapFile);
     default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, url, m_MagneticFieldRescale));
-  }
-  else if (m_FieldMapFile != "NONE")
-  {
-    default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, m_FieldMapFile, m_MagneticFieldRescale));
   }
   else
   {
