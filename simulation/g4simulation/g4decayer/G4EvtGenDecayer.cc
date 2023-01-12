@@ -63,14 +63,14 @@ G4EvtGenDecayer::G4EvtGenDecayer()
 {
   mEvtGenRandomEngine = new PHEvtGenRandomEngine();
 
-  EvtRandom::setRandomEngine(static_cast<EvtRandomEngine*> (mEvtGenRandomEngine));
+  EvtRandom::setRandomEngine(static_cast<EvtRandomEngine*>(mEvtGenRandomEngine));
 
   radCorrEngine = genList.getPhotosModel();
 
   extraModels = genList.getListOfModels();
 
   // the hardcoded paths are temporary
-  const char *offline_main = getenv("OFFLINE_MAIN");
+  const char* offline_main = getenv("OFFLINE_MAIN");
 
   if (!offline_main)
   {
@@ -80,15 +80,15 @@ G4EvtGenDecayer::G4EvtGenDecayer()
   string decay = string(offline_main) + "/share/EvtGen/DECAY.DEC";  // Using PDG 2019 reference as the input for now
   string evt = string(offline_main) + "/share/EvtGen/evt.pdl";
 
-  mEvtGen = new EvtGen(decay, evt, static_cast<EvtRandomEngine*> (mEvtGenRandomEngine), radCorrEngine, &extraModels);
+  mEvtGen = new EvtGen(decay, evt, static_cast<EvtRandomEngine*>(mEvtGenRandomEngine), radCorrEngine, &extraModels);
   extraModels.clear();
   // delete mEvtGen;	QATree
 
-//   bool WilluseXml =false;
+  //   bool WilluseXml =false;
   //  SetDecayTable("EvtGenDecayFiles/Bc.DStar+D0Star.Phi.DEC",WilluseXml);
-//   SetDecayTable("EvtGenDecayFiles/JPsi.PP.DEC",WilluseXml);
+  //   SetDecayTable("EvtGenDecayFiles/JPsi.PP.DEC",WilluseXml);
 
-   std::cout << "EvtGen Called Bro" << std::endl;
+  std::cout << "EvtGen Called Bro" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
