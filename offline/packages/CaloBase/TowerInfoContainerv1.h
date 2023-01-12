@@ -24,6 +24,7 @@ class TowerInfoContainerv1 : public TowerInfoContainer
   void add(TowerInfov1 *ti, int pos);
   TowerInfov1 *at(int pos) override;
   unsigned int encode_key(unsigned int towerIndex) override;
+  unsigned int decode_key(unsigned int tower_key) override;
   Range getTowers(void);
 
 
