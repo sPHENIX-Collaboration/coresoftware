@@ -29,17 +29,17 @@ TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
   : _detector(detec)
 {
   if (_detector == DETECTOR::SEPD)
-    {
-      _clones = new TClonesArray("TowerInfov1", 744);
-    }
+  {
+    _clones = new TClonesArray("TowerInfov1", 744);
+  }
   else if (_detector == DETECTOR::EMCAL)
-    {
-      _clones = new TClonesArray("TowerInfov1", 24576);
-    }
+  {
+    _clones = new TClonesArray("TowerInfov1", 24576);
+  }
   else if (_detector == DETECTOR::HCAL)
-    {
-      _clones = new TClonesArray("TowerInfov1", 1536);
-    }
+  {
+    _clones = new TClonesArray("TowerInfov1", 1536);
+  }
   _clones->SetOwner();
   _clones->SetName("TowerInfoContainerv1");
 }
@@ -52,10 +52,10 @@ TowerInfoContainerv1::~TowerInfoContainerv1()
 void TowerInfoContainerv1::Reset()
 {
   while (_map.begin() != _map.end())
-    {
-      delete _map.begin()->second;
-      _map.erase(_map.begin());
-    }
+  {
+    delete _map.begin()->second;
+    _map.erase(_map.begin());
+  }
   _clones->Clear();
 }
 
@@ -183,17 +183,6 @@ unsigned int TowerInfoContainerv1::encode_key(unsigned int towerIndex)
   return key;
 }
 
-
-
-
-
-
-
-
-
-
-
-
 unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
 {
   int channels_per_sector = -1;
@@ -206,28 +195,27 @@ unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
   int etabinmap[4] = {0};
 
   if (_detector == DETECTOR::SEPD)
+  {
+    channels_per_sector = 31;
+    supersector = channels_per_sector * 12;
+    unsigned int ns_sector = tower_key >> 20U;
+    unsigned int rbin = (tower_key - (ns_sector << 20U)) >> 10U;
+    unsigned int phibin = tower_key - (ns_sector << 20U) - (rbin << 10U);
+    int epdchnlmap[16][2] = {{0, 0}, {1, 2}, {3, 4}, {5, 6}, {7, 8}, {9, 10}, {11, 12}, {13, 14}, {15, 16}, {17, 18}, {19, 20}, {21, 22}, {23, 24}, {25, 26}, {27, 28}, {29, 30}};
+    int sector = phibin / 2;
+    int channel = 0;
+    if (rbin > 0)
     {
-      channels_per_sector = 31;
-      supersector = channels_per_sector*12;
-      int ns_sector = tower_key >> 20U;
-      int rbin = (tower_key - (ns_sector << 20U)) >> 10U; 
-      int phibin = tower_key - (ns_sector << 20U) - (rbin << 10U);
-      int epdchnlmap[16][2] = {    0, 0,    1,2,    3,4,    5,6,    7,8,    9,10,    11,12,    13,14,    15,16,    17,18,    19,20,    21,22,    23,24,    25,26,    27,28,    29,30};
-      int sector = phibin/2;
-      int channel = 0;
-      if (rbin > 0)
-	{
-	  channel = epdchnlmap[rbin][phibin-2*sector];
-	}  
-      else
-	{
-	  channel = 0;
-	}
-      unsigned int index = 0;
-      index = ns_sector * supersector + sector*channels_per_sector+channel;
-      return index;
+      channel = epdchnlmap[rbin][phibin - 2 * sector];
     }
-
+    else
+    {
+      channel = 0;
+    }
+    unsigned int index = 0;
+    index = ns_sector * supersector + sector * channels_per_sector + channel;
+    return index;
+  }
 
   if (_detector == DETECTOR::EMCAL)
   {
@@ -270,84 +258,73 @@ unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
     etabinmap[3] = 3;
   }
 
-
-  int etabin = tower_key >> 16U;
-  int phibin = tower_key - (etabin << 16U);
+  unsigned int etabin = tower_key >> 16U;
+  unsigned int phibin = tower_key - (etabin << 16U);
   int packet = 0;
   if (_detector == DETECTOR::HCAL)
-    {
-      packet =etabin/8;
-    }
+  {
+    packet = etabin / 8;
+  }
   else
-    {
-      packet = etabinmap[(int)etabin/24];
-    }
+  {
+    packet = etabinmap[(int) etabin / 24];
+  }
   int localetabin = etabin - etabinoffset[packet];
-  int localphibin = phibin%8;
-  int supersectornumber = phibin/8;
+  int localphibin = phibin % 8;
+  int supersectornumber = phibin / 8;
 
   int ib = 0;
   if (_detector == DETECTOR::HCAL)
-    {
-      ib = localphibin/2;
-    }
+  {
+    ib = localphibin / 2;
+  }
   else
+  {
+    if (packet == 0 || packet == 1)
     {
-      if (packet == 0 || packet == 1)
-	{
-	  localetabin = maxetabin - localetabin;
-	}  
-      ib = localetabin/8;
+      localetabin = maxetabin - localetabin;
     }
+    ib = localetabin / 8;
+  }
   unsigned int index = 0;
   if (_detector == DETECTOR::HCAL)
-    {
-      localphibin = localphibin - phibinoffset[ib];
-    }
-  else 
-    {
-      if (packet == 0 || packet == 1)
-	{
-	  localphibin = maxphibin - localphibin;
-	}
-      localetabin = localetabin%8;
-    }
-
-unsigned int localindex;
-  if (_detector == DETECTOR::HCAL)
-    {
-      localindex= hcaladc[localetabin][localphibin];
-    }
+  {
+    localphibin = localphibin - phibinoffset[ib];
+  }
   else
+  {
+    if (packet == 0 || packet == 1)
     {
-      localindex = emcadc[localetabin][localphibin];
+      localphibin = maxphibin - localphibin;
     }
-  index = localindex+channels_per_sector* ib + packet*nchannelsperpacket + supersector*supersectornumber;
+    localetabin = localetabin % 8;
+  }
+
+  unsigned int localindex;
+  if (_detector == DETECTOR::HCAL)
+  {
+    localindex = hcaladc[localetabin][localphibin];
+  }
+  else
+  {
+    localindex = emcadc[localetabin][localphibin];
+  }
+  index = localindex + channels_per_sector * ib + packet * nchannelsperpacket + supersector * supersectornumber;
   return index;
 }
-
-
-
-
-
-
-
-
-
 
 TowerInfoContainerv1::Range
 TowerInfoContainerv1::getTowers()
 {
   if (_towers.empty())
+  {
+    for (unsigned int i = 0; i < size(); i++)
     {
-      for (unsigned int i = 0; i < size(); i++)
-	{
-	  _towers.insert(std::make_pair(encode_key(i), at(i)));
-	}
+      _towers.insert(std::make_pair(encode_key(i), at(i)));
     }
+  }
   return make_pair(_towers.begin(), _towers.end());
 }
-
 
 unsigned int TowerInfoContainerv1::getTowerPhiBin(unsigned int key)
 {
