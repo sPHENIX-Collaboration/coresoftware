@@ -61,7 +61,6 @@ class EvtGenExtDecayerPhysics : public G4VPhysicsConstructor
   EvtGenExtDecayerPhysics(const EvtGenExtDecayerPhysics& right);
   /// Not implemented
   EvtGenExtDecayerPhysics& operator=(const EvtGenExtDecayerPhysics& right);
-  G4EvtGenDecayer* extDecayer = nullptr;
 };
 
 #endif  //P6D_EXT_DECAYER_PHYSICS_H

@@ -31,6 +31,7 @@
 /// \author Zhaozhong Shi; LANL, Los Alamos
 
 #include "EvtGenExtDecayerPhysics.hh"
+#include "G4EvtGenDecayer.hh"
 
 #include <Geant4/G4Decay.hh>
 #include <Geant4/G4ParticleDefinition.hh>
@@ -63,7 +64,6 @@ EvtGenExtDecayerPhysics::EvtGenExtDecayerPhysics(const G4String& name)
 EvtGenExtDecayerPhysics::~EvtGenExtDecayerPhysics()
 {
   /// Destructor
-  delete extDecayer;
 }
 
 //
@@ -85,7 +85,7 @@ void EvtGenExtDecayerPhysics::ConstructProcess()
   /// to all decay processes if External decayer is set
 
   // Create Geant4 external decayer
-  extDecayer = new G4EvtGenDecayer();
+  G4EvtGenDecayer* extDecayer = new G4EvtGenDecayer();
   extDecayer->SetVerboseLevel(0);
 
   aParticleIterator->reset();
@@ -129,6 +129,7 @@ void EvtGenExtDecayerPhysics::ConstructProcess()
   {
     delete extDecayer;
   }
+
   if (verboseLevel > 0)
   {
     std::cout << "External decayer physics constructed." << std::endl;
