@@ -117,7 +117,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   double world_phi = atan2(world[1], world[0]);
   double world_z = world[2];
   
-  std::vector<Surface> surf_vec = mapIter->second;
+  std::vector<Surface>& surf_vec = mapIter->second;
   unsigned int surf_index = 999;
     
   // Predict which surface index this phi and z will correspond to
