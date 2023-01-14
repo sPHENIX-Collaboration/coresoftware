@@ -17,46 +17,35 @@ namespace
 
 //_________________________________________________________________________
 void TrkrClusterHitAssocv3::Reset()
-{ 
-  // delete all entries
-  for( const auto& map_pair:m_map ){
-    Map thismap = map_pair.second;//
-
-    Map empty_map;
-    empty_map.swap(thismap);
-    thismap.clear();
-  }
-
-  m_map.clear();
-
+{
+  std::map<TrkrDefs::hitsetkey, Map> empty_map;
+  m_map.swap(empty_map);
 }
-
 //_________________________________________________________________________
-void TrkrClusterHitAssocv3::identify(std::ostream &os) const
+void TrkrClusterHitAssocv3::identify(std::ostream& os) const
 {
   std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator iter;
   os << "-----TrkrClusterHitAssocv3-----" << std::endl;
   os << "Number of associations: " << size() << std::endl;
-  for( const auto& map_pair:m_map )
+  for (const auto& map_pair : m_map)
   {
-    for( const auto& pair:map_pair.second )
+    for (const auto& pair : map_pair.second)
     {
       os << "clus key " << pair.first << std::dec
-        << " layer " << (unsigned int) TrkrDefs::getLayer(pair.first)
-        << " hit key: " << pair.second << std::endl;
+         << " layer " << (unsigned int) TrkrDefs::getLayer(pair.first)
+         << " hit key: " << pair.second << std::endl;
     }
   }
   os << "------------------------------" << std::endl;
 
   return;
-
 }
 
 //_________________________________________________________________________
 void TrkrClusterHitAssocv3::addAssoc(TrkrDefs::cluskey ckey, unsigned int hidx)
 {
   // get hitset key from cluster
-  const TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey( ckey );
+  const TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
 
   // find relevant association map, create one if not found
   Map& clusterMap = m_map[hitsetkey];
@@ -76,24 +65,28 @@ TrkrClusterHitAssocv3::Map* TrkrClusterHitAssocv3::getClusterMap(TrkrDefs::hitse
 TrkrClusterHitAssocv3::ConstRange TrkrClusterHitAssocv3::getHits(TrkrDefs::cluskey ckey)
 {
   // get hitset key from cluster
-  const TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey( ckey );
+  const TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
 
   // find relevant association map, create one if not found
   const auto iter = m_map.find(hitsetkey);
-  if( iter != m_map.end() )
+  if (iter != m_map.end())
   {
-    return std::make_pair( iter->second.lower_bound(ckey), iter->second.upper_bound(ckey) );
-  } else {
-    return std::make_pair( dummy_map.cbegin(), dummy_map.cend() );
+    return std::make_pair(iter->second.lower_bound(ckey), iter->second.upper_bound(ckey));
+  }
+  else
+  {
+    return std::make_pair(dummy_map.cbegin(), dummy_map.cend());
   }
 }
 
 //_________________________________________________________________________
-unsigned int TrkrClusterHitAssocv3::size(void) const
+unsigned int TrkrClusterHitAssocv3::size() const
 {
   unsigned int size = 0;
-  for( const auto& map_pair:m_map )
-  { size += map_pair.second.size(); }
+  for (const auto& map_pair : m_map)
+  {
+    size += map_pair.second.size();
+  }
 
   return size;
 }

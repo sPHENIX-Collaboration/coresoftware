@@ -9,6 +9,7 @@
 
 #include <phool/PHTimer.h>
 
+#include <deque>
 #include <iostream>
 #include <map>
 #include <string>
@@ -42,6 +43,7 @@ class Fun4AllServer : public Fun4AllBase
   virtual int isHistoRegistered(const std::string &name) const;
 
   int registerSubsystem(SubsysReco *subsystem, const std::string &topnodename = "TOP");
+  void addNewSubsystem(SubsysReco *subsystem, const std::string &topnodename = "TOP") { NewSubsystems.push_back(std::make_pair(subsystem, topnodename)); }
   int unregisterSubsystem(SubsysReco *subsystem);
   SubsysReco *getSubsysReco(const std::string &name);
   int registerOutputManager(Fun4AllOutputManager *manager);
@@ -58,6 +60,7 @@ class Fun4AllServer : public Fun4AllBase
   int dumpHistos(const std::string &filename, const std::string &openmode = "RECREATE");
   int Reset();
   virtual int BeginRun(const int runno);
+  int BeginRunSubsystem(const std::pair<SubsysReco *, PHCompositeNode *> &subsys);
   virtual int EndRun(const int runno = 0);
   virtual int End();
   PHCompositeNode *topNode() const { return TopNode; }
@@ -109,8 +112,8 @@ class Fun4AllServer : public Fun4AllBase
   void KeepDBConnection(const int i = 1) { keep_db_connected = i; }
   void PrintTimer(const std::string &name = "");
   void PrintMemoryTracker(const std::string &name = "") const;
-  int RunNumber() const {return runnumber;}
-  int EventCounter() const {return eventcounter;}
+  int RunNumber() const { return runnumber; }
+  int EventCounter() const { return eventcounter; }
 
  protected:
   Fun4AllServer(const std::string &name = "Fun4AllServer");
@@ -138,8 +141,9 @@ class Fun4AllServer : public Fun4AllBase
   int keep_db_connected = 0;
 
   std::vector<std::string> ComplaintList;
-  std::vector<std::pair<SubsysReco *, PHCompositeNode *> > Subsystems;
-  std::vector<std::pair<SubsysReco *, PHCompositeNode *> > DeleteSubsystems;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *>> Subsystems;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *>> DeleteSubsystems;
+  std::deque<std::pair<SubsysReco *, std::string>> NewSubsystems;
   std::vector<int> RetCodes;
   std::vector<Fun4AllOutputManager *> OutputManager;
   std::vector<TDirectory *> TDirCollection;

@@ -109,7 +109,7 @@ int PHG4ConeSubsystem::process_event(PHCompositeNode *topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4ConeSubsystem::GetDetector(void) const
+PHG4Detector *PHG4ConeSubsystem::GetDetector() const
 {
   return m_Detector;
 }

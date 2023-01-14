@@ -31,7 +31,6 @@ class PHG4CylinderCell : public PHG4Cell
   void set_ladder_z_index(const int) override { return; }
   int get_ladder_z_index() const override { return -9999; }
 
-
   // our own - not inherited
   virtual void set_cell_id(const PHG4CylinderCellDefs::keytype) { return; }
   virtual void set_layer(const unsigned int) { return; }

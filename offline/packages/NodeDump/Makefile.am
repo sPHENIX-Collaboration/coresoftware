@@ -5,7 +5,7 @@ lib_LTLIBRARIES = libphnodedump.la
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
   Dumper.h \
@@ -16,6 +16,7 @@ libphnodedump_la_SOURCES = \
   Dumper.cc \
   DumpBbcVertexMap.cc \
   DumpCaloTriggerInfo.cc \
+  DumpCdbUrlSave.cc \
   DumpCentralityInfo.cc \
   DumpEpInfo.cc \
   DumpEventHeader.cc \
@@ -38,6 +39,7 @@ libphnodedump_la_SOURCES = \
   DumpPHG4ScintillatorSlatContainer.cc \
   DumpPHG4TruthInfoContainer.cc \
   DumpPHG4InEvent.cc \
+  DumpPHGenIntegral.cc \
   DumpPHHepMCGenEventMap.cc \
   DumpRawClusterContainer.cc \
   DumpRawTowerContainer.cc \
@@ -49,9 +51,11 @@ libphnodedump_la_SOURCES = \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
   DumpTpcSeedTrackMap.cc \
+  DumpTrackSeedContainer.cc \
   DumpTrkrClusterContainer.cc \
   DumpTrkrClusterHitAssoc.cc \
   DumpTrkrHitSetContainer.cc \
+  DumpTrkrHitTruthClusters.cc \
   DumpTrkrClusterCrossingAssoc.cc \
   DumpTrkrHitTruthAssoc.cc \
   DumpVariableArray.cc \

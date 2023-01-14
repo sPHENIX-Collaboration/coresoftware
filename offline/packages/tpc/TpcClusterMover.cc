@@ -12,6 +12,8 @@
 #include <cmath>
 #include <iostream>
 #include <climits>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 TpcClusterMover::TpcClusterMover()
 {
@@ -31,6 +33,21 @@ TpcClusterMover::TpcClusterMover()
     {
       layer_radius[i+32] = outer_tpc_min_radius + (double) i * outer_tpc_spacing  +  0.5 * outer_tpc_spacing;
     }
+}
+
+void TpcClusterMover::initialize_geometry(PHG4TpcCylinderGeomContainer* cellgeo)
+{
+  
+  int layer=0;
+  PHG4TpcCylinderGeomContainer::ConstRange layerrange = cellgeo->get_begin_end();
+  for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+       layeriter != layerrange.second;
+       ++layeriter)
+  {
+    layer_radius[layer] = layeriter->second->get_radius();
+    layer++;
+  }
+
 }
 
 //____________________________________________________________________________..
@@ -122,8 +139,11 @@ int TpcClusterMover::get_circle_circle_intersection(double target_radius, double
    if(std::isnan(xplus)) 
      {
 	 {
-	   std::cout << " circle/circle intersection calculation failed, skip this cluster" << std::endl;
-	   std::cout << " target_radius " << target_radius << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
+	   if(_verbosity > 1)
+	     {
+	       std::cout << " circle/circle intersection calculation failed, skip this cluster" << std::endl;
+	       std::cout << " target_radius " << target_radius << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
+	     }
 	 }
        return Fun4AllReturnCodes::ABORTEVENT;  // skip to next cluster
      }

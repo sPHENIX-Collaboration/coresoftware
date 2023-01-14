@@ -50,6 +50,8 @@ int TpcClusterCleaner::InitRun(PHCompositeNode *topNode)
 int TpcClusterCleaner::process_event(PHCompositeNode *topNode)
 {
 
+  if(m_cluster_version==4) return Fun4AllReturnCodes::EVENT_OK;
+
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
   {

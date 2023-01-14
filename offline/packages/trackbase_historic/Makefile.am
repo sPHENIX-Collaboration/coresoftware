@@ -10,7 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include \
+  -isystem$(ROOTSYS)/include \
   -I$(OPT_SPHENIX)/include
 
 AM_LDFLAGS = \
@@ -40,9 +40,15 @@ pkginclude_HEADERS = \
   SvtxTrack_FastSim_v1.h \
   SvtxTrack_FastSim_v2.h \
   SvtxTrack_FastSim_v3.h \
+  SvtxAlignmentStateMap.h \
+  SvtxAlignmentStateMap_v1.h \
   SvtxTrackMap.h \
   SvtxTrackMap_v1.h \
   SvtxTrackMap_v2.h \
+  SvtxTrackCaloClusterMap.h \
+  SvtxTrackCaloClusterMap_v1.h \
+  SvtxAlignmentState.h \
+  SvtxAlignmentState_v1.h \
   SvtxTrackState.h \
   SvtxTrackState_v1.h \
   SvtxVertex.h \
@@ -61,6 +67,8 @@ ROOTDICTS = \
   PHG4ParticleSvtxMap_v1_Dict.cc \
   SvtxPHG4ParticleMap_Dict.cc \
   SvtxPHG4ParticleMap_v1_Dict.cc \
+  SvtxAlignmentState_Dict.cc \
+  SvtxAlignmentState_v1_Dict.cc \
   SvtxTrack_Dict.cc \
   SvtxTrackState_Dict.cc \
   SvtxTrackState_v1_Dict.cc \
@@ -72,9 +80,13 @@ ROOTDICTS = \
   SvtxTrack_FastSim_v1_Dict.cc \
   SvtxTrack_FastSim_v2_Dict.cc \
   SvtxTrack_FastSim_v3_Dict.cc \
+  SvtxAlignmentStateMap_Dict.cc \
+  SvtxAlignmentStateMap_v1_Dict.cc \
   SvtxTrackMap_Dict.cc \
   SvtxTrackMap_v1_Dict.cc \
   SvtxTrackMap_v2_Dict.cc \
+  SvtxTrackCaloClusterMap_Dict.cc \
+  SvtxTrackCaloClusterMap_v1_Dict.cc \
   SvtxVertex_Dict.cc \
   SvtxVertex_v1_Dict.cc \
   SvtxVertexMap_Dict.cc \
@@ -92,6 +104,8 @@ nobase_dist_pcm_DATA = \
   PHG4ParticleSvtxMap_v1_Dict_rdict.pcm \
   SvtxPHG4ParticleMap_Dict_rdict.pcm \
   SvtxPHG4ParticleMap_v1_Dict_rdict.pcm \
+  SvtxAlignmentState_Dict_rdict.pcm \
+  SvtxAlignmentState_v1_Dict_rdict.pcm \
   SvtxTrack_Dict_rdict.pcm \
   SvtxTrackState_Dict_rdict.pcm \
   SvtxTrackState_v1_Dict_rdict.pcm \
@@ -103,9 +117,13 @@ nobase_dist_pcm_DATA = \
   SvtxTrack_FastSim_v1_Dict_rdict.pcm \
   SvtxTrack_FastSim_v2_Dict_rdict.pcm \
   SvtxTrack_FastSim_v3_Dict_rdict.pcm \
+  SvtxAlignmentStateMap_Dict_rdict.pcm \
+  SvtxAlignmentStateMap_v1_Dict_rdict.pcm \
   SvtxTrackMap_Dict_rdict.pcm \
   SvtxTrackMap_v1_Dict_rdict.pcm \
   SvtxTrackMap_v2_Dict_rdict.pcm \
+  SvtxTrackCaloClusterMap_Dict_rdict.pcm \
+  SvtxTrackCaloClusterMap_v1_Dict_rdict.pcm \
   SvtxVertex_Dict_rdict.pcm \
   SvtxVertex_v1_Dict_rdict.pcm \
   SvtxVertexMap_Dict_rdict.pcm \
@@ -125,6 +143,8 @@ libtrackbase_historic_io_la_SOURCES = \
   PHG4ParticleSvtxMap_v1.cc \
   SvtxPHG4ParticleMap.cc \
   SvtxPHG4ParticleMap_v1.cc \
+  SvtxAlignmentState.cc \
+  SvtxAlignmentState_v1.cc \
   SvtxTrackState_v1.cc \
   SvtxTrack.cc \
   SvtxTrack_v1.cc \
@@ -135,9 +155,13 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxTrack_FastSim_v1.cc \
   SvtxTrack_FastSim_v2.cc \
   SvtxTrack_FastSim_v3.cc \
+  SvtxAlignmentStateMap.cc \
+  SvtxAlignmentStateMap_v1.cc \
   SvtxTrackMap.cc \
   SvtxTrackMap_v1.cc \
   SvtxTrackMap_v2.cc \
+  SvtxTrackCaloClusterMap.cc \
+  SvtxTrackCaloClusterMap_v1.cc \
   SvtxVertex.cc \
   SvtxVertex_v1.cc \
   SvtxVertexMap.cc \

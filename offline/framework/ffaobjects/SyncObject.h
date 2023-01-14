@@ -11,9 +11,12 @@
 class SyncObject : public PHObject
 {
  public:
+  /// ctor - daughter class copy ctor needs this
+  SyncObject() = default;
+  /// copy ctor daughter class copy ctor needs also this
+  SyncObject(const SyncObject& source) = default;
   /// dtor
   ~SyncObject() override {}
-
   /// Clear Sync
   void Reset() override;
 
@@ -26,7 +29,7 @@ class SyncObject : public PHObject
   int isValid() const override;
 
   PHObject* CloneMe() const override;
-  virtual SyncObject& operator=(const SyncObject& source);
+  SyncObject& operator=(const SyncObject& source);
   virtual int Different(const SyncObject* other) const;
 
   /// set Event Counter

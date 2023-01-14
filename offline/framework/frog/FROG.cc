@@ -21,7 +21,7 @@ const char *
 FROG::location(const std::string &logical_name)
 {
   pfn = logical_name;
-  if (logical_name.empty() || logical_name.find("/") != std::string::npos)
+  if (logical_name.empty() || logical_name.find('/') != std::string::npos)
   {
     if (Verbosity() > 0)
     {
@@ -29,7 +29,7 @@ FROG::location(const std::string &logical_name)
       {
         std::cout << "FROG: empty string as filename" << std::endl;
       }
-      else if (logical_name.find("/") != std::string::npos)
+      else if (logical_name.find('/') != std::string::npos)
       {
         std::cout << "FROG: found / in filename, assuming it contains a full path" << std::endl;
       }
@@ -38,7 +38,12 @@ FROG::location(const std::string &logical_name)
   }
   try
   {
-    std::string gsearchpath(getenv("GSEARCHPATH"));
+    char *gsearchpath_env = getenv("GSEARCHPATH");
+    if (gsearchpath_env == nullptr)
+    {
+      return pfn.c_str();
+    }
+    std::string gsearchpath(gsearchpath_env);
     if (Verbosity() > 0)
     {
       std::cout << "FROG: GSEARCHPATH: " << gsearchpath << std::endl;

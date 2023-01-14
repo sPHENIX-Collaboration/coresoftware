@@ -15,16 +15,26 @@
 #include "KFParticle_Tools.h"
 #include "KFParticle_truthAndDetTools.h"
 
+#include <trackbase_historic/SvtxTrack.h>     // for SvtxTrack
+#include <trackbase_historic/SvtxTrackMap.h>  // for SvtxTrackMap, SvtxTr...
 #include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack_v2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 
+#include <KFParticle.h>  // for KFParticle
+
+#include <cstdlib>   // for exit, size_t, abs
+#include <iostream>  // for operator<<, endl
+#include <map>       // for map, map<>::mapped_type
+#include <utility>   // for pair
 
 KFParticle_Tools kfpTupleTools_DST;
 KFParticle_truthAndDetTools kfpTruthTools_DST;
@@ -57,14 +67,14 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
   forbiddenStrings["/"] = undrscr;
   forbiddenStrings["("] = undrscr;
   forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus"; 
+  forbiddenStrings["+"] = "plus";
   forbiddenStrings["-"] = "minus";
   forbiddenStrings["*"] = "star";
   for (auto const& [badString, goodString] : forbiddenStrings)
   {
     size_t pos;
-    while ((pos = baseName.find(badString)) != std::string::npos) baseName.replace(pos, 1, goodString); 
-  } 
+    while ((pos = baseName.find(badString)) != std::string::npos) baseName.replace(pos, 1, goodString);
+  }
 
   trackNodeName = baseName + "_SvtxTrackMap";
   particleNodeName = baseName + "_KFParticle_Container";
@@ -103,7 +113,7 @@ void KFParticle_DST::fillParticleNode(PHCompositeNode* topNode, const KFParticle
   {
     fillParticleNode_Track(topNode, motherParticle, daughters, intermediates);
   }
-  if (m_write_particle_container) 
+  if (m_write_particle_container)
   {
     fillParticleNode_Particle(topNode, motherParticle, daughters, intermediates);
   }
@@ -128,20 +138,20 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFPa
   forbiddenStrings["/"] = undrscr;
   forbiddenStrings["("] = undrscr;
   forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus"; 
+  forbiddenStrings["+"] = "plus";
   forbiddenStrings["-"] = "minus";
   forbiddenStrings["*"] = "star";
   for (auto const& [badString, goodString] : forbiddenStrings)
   {
     size_t pos;
-    while ((pos = baseName.find(badString)) != std::string::npos) baseName.replace(pos, 1, goodString); 
-  } 
+    while ((pos = baseName.find(badString)) != std::string::npos) baseName.replace(pos, 1, goodString);
+  }
 
   trackNodeName = baseName + "_SvtxTrackMap";
 
   m_recoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, trackNodeName.c_str());
 
-  SvtxTrack* m_recoTrack = new SvtxTrack_v1();
+  SvtxTrack* m_recoTrack = new SvtxTrack_v2();
 
   m_recoTrack = buildSvtxTrack(motherParticle);
   m_recoTrackMap->insert(m_recoTrack);
@@ -197,14 +207,14 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, const K
   forbiddenStrings["/"] = undrscr;
   forbiddenStrings["("] = undrscr;
   forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus"; 
+  forbiddenStrings["+"] = "plus";
   forbiddenStrings["-"] = "minus";
   forbiddenStrings["*"] = "star";
   for (auto const& [badString, goodString] : forbiddenStrings)
   {
     size_t pos;
-    while ((pos = baseName.find(badString)) != std::string::npos) baseName.replace(pos, 1, goodString); 
-  } 
+    while ((pos = baseName.find(badString)) != std::string::npos) baseName.replace(pos, 1, goodString);
+  }
 
   particleNodeName = baseName + "_KFParticle_Container";
 
@@ -227,7 +237,7 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, const K
 
 SvtxTrack* KFParticle_DST::buildSvtxTrack(KFParticle particle)
 {
-  SvtxTrack* track = new SvtxTrack_v1();
+  SvtxTrack* track = new SvtxTrack_v2();
 
   track->set_id(std::abs(particle.GetPDG()));
   track->set_charge((int) particle.GetQ());
@@ -267,21 +277,21 @@ void KFParticle_DST::printNode(PHCompositeNode* topNode)
   forbiddenStrings["/"] = undrscr;
   forbiddenStrings["("] = undrscr;
   forbiddenStrings[")"] = nothing;
-  forbiddenStrings["+"] = "plus"; 
+  forbiddenStrings["+"] = "plus";
   forbiddenStrings["-"] = "minus";
   forbiddenStrings["*"] = "star";
   for (auto const& [badString, goodString] : forbiddenStrings)
   {
     size_t pos;
-    while ((pos = baseName.find(badString)) != std::string::npos) baseName.replace(pos, 1, goodString); 
-  } 
+    while ((pos = baseName.find(badString)) != std::string::npos) baseName.replace(pos, 1, goodString);
+  }
 
   if (m_write_track_container)
   {
     trackNodeName = baseName + "_SvtxTrackMap";
     std::cout << "----------------";
     std::cout << " KFParticle_DST: " << trackNodeName << " information ";
-    std::cout << "----------------"  << std::endl;
+    std::cout << "----------------" << std::endl;
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, trackNodeName.c_str());
     for (SvtxTrackMap::Iter iter = trackmap->begin(); iter != trackmap->end(); ++iter)
     {

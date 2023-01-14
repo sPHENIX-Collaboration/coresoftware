@@ -57,6 +57,10 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
     m_tmin = tmin;
     m_tmax = tmax;
   }
+  //! for symmetric windows
+  void setDetectorActiveCrossings(const std::string &name, const int nbcross);
+
+  void setDetectorActiveCrossings(const std::string &name, const int min, const int max);
 
  private:
 
@@ -113,6 +117,8 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   };
 
   std::unique_ptr<gsl_rng, Deleter> m_rng;
+
+  std::map<std::string,std::pair<double,double>> m_DetectorTiming;
 
 };
 

@@ -7,7 +7,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include
 
 libphparameter_la_SOURCES = \
   PHParameters.cc \
@@ -17,13 +17,14 @@ libphparameter_la_SOURCES = \
 
 libphparameter_la_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64
 
 libphparameter_la_LIBADD = \
-  -lphool \
+  -lboost_system \
+  -lffamodules \
   -lpdbcalBase \
-  -lstdc++fs \
-  -lboost_system 
+  -lphool
 
 
 ##############################################

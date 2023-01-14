@@ -1,33 +1,34 @@
 /*!
  *  \file		PHActsTrkFitter.h
  *  \brief		Refit SvtxTracks with Acts.
- *  \details	Refit SvtxTracks with Acts
+ *  \details	        Refit SvtxTracks with Acts
  *  \author		Joe Osborn, Tony Frawley <afrawley@fsu.edu>
  */
 
 #ifndef TRACKRECO_ACTSTRKFITTER_H
 #define TRACKRECO_ACTSTRKFITTER_H
 
+#include "ActsAlignmentStates.h"
 
 #include <fun4all/SubsysReco.h>
 
-#include "ResidualOutlierFinder.h"
-
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
+#include <trackbase/ActsTrackFittingAlgorithm.h>
+#include <trackbase/alignmentTransformationContainer.h>
+#include <trackbase/ActsSourceLink.h>
 
-#include <tpc/TpcClusterZCrossingCorrection.h>
-#include <tpc/TpcDistortionCorrectionContainer.h>
 #include <tpc/TpcDistortionCorrection.h>
 #include <tpc/TpcClusterMover.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
 
-#include <ActsExamples/TrackFitting/TrackFittingAlgorithm.hpp>
 #include <ActsExamples/EventData/Trajectories.hpp>
 #include <ActsExamples/EventData/Track.hpp>
-#include <ActsExamples/EventData/IndexSourceLink.hpp>
 
 #include <memory>
 #include <string>
@@ -35,6 +36,7 @@
 #include <TH1.h>
 #include <TH2.h>
 
+#include <trackbase/alignmentTransformationContainer.h>
 
 class MakeActsGeometry;
 class SvtxTrack;
@@ -42,10 +44,11 @@ class SvtxTrackMap;
 class TrackSeed;
 class TrackSeedContainer;
 class TrkrClusterContainer;
-class TrkrClusterIterationMap;
+class TpcDistortionCorrectionContainer;
+class SvtxAlignmentStateMap;
 
-using SourceLink = ActsExamples::IndexSourceLink;
-using FitResult = Acts::KalmanFitterResult;
+using SourceLink = ActsSourceLink;
+using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices,2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
@@ -94,11 +97,18 @@ class PHActsTrkFitter : public SubsysReco
   void setAbsPdgHypothesis(unsigned int pHypothesis)
   { m_pHypothesis = pHypothesis; }
 
+  void commissioning(bool com) { m_commissioning = com; }
+
   void useOutlierFinder(bool outlier) { m_useOutlierFinder = outlier; }
 
   void SetIteration(int iter){_n_iteration = iter;}
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void set_seed_track_map_name(const std::string &map_name) { _seed_track_map_name = map_name; }
+
+  void set_cluster_version(int value) { m_cluster_version = value; }
+
+  /// Set flag for pp running
+  void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
 
  private:
 
@@ -118,12 +128,13 @@ class PHActsTrkFitter : public SubsysReco
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
-  ActsExamples::TrackFittingAlgorithm::TrackFitterResult fitTrack(
+  ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
            const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
 	   const ActsExamples::TrackParameters& seed,
-	   const ActsExamples::TrackFittingAlgorithm::TrackFitterOptions& 
+	   const ActsTrackFittingAlgorithm::GeneralFitterOptions& 
 	     kfOptions,
-	   const SurfacePtrVec& surfSequence);
+	   const SurfacePtrVec& surfSequence,
+	   std::shared_ptr<Acts::VectorMultiTrajectory>& mtj);
 
   /// Functions to get list of sorted surfaces for direct navigation, if
   /// applicable
@@ -143,9 +154,10 @@ class PHActsTrkFitter : public SubsysReco
   ActsGeometry *m_tGeometry = nullptr;
 
   /// Configuration containing the fitting function instance
-  ActsExamples::TrackFittingAlgorithm::Config m_fitCfg;
+  ActsTrackFittingAlgorithm::Config m_fitCfg;
 
   /// TrackMap containing SvtxTracks
+  alignmentTransformationContainer *m_alignmentTransformationMap = nullptr;  // added for testing purposes
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxTrackMap *m_directedTrackMap = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;
@@ -170,6 +182,9 @@ class PHActsTrkFitter : public SubsysReco
   bool m_useOutlierFinder = false;
   ResidualOutlierFinder m_outlierFinder;
 
+  /// Flag for pp running
+  bool m_pp_mode = false;
+
   bool m_actsEvaluator = false;
   std::map<const unsigned int, Trajectory> *m_trajectories = nullptr;
   SvtxTrackMap *m_seedTracks = nullptr;
@@ -184,15 +199,20 @@ class PHActsTrkFitter : public SubsysReco
 
   // cluster mover utility class
   TpcClusterMover _clusterMover;
+  ClusterErrorPara _ClusErrPara;
 
   std::string m_fieldMap = "";
-  TrkrClusterIterationMap* _iteration_map = nullptr;
+
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
   std::string _seed_track_map_name = "SeedTrackMap";
 
   /// Default particle assumption to pion
   unsigned int m_pHypothesis = 211;
+
+  SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
+  ActsAlignmentStates m_alignStates;
+  bool m_commissioning = false;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;
@@ -202,6 +222,7 @@ class PHActsTrkFitter : public SubsysReco
   TH1 *h_updateTime = nullptr;
   TH1 *h_stateTime = nullptr;
   TH1 *h_rotTime = nullptr;
+  int m_cluster_version = 4;
 };
 
 #endif

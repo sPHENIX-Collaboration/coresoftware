@@ -7,14 +7,14 @@
 #ifndef TRACKBASE_TRKRCLUSTERHITASSOCV1_H
 #define TRACKBASE_TRKRCLUSTERHITASSOCV1_H
 
-#include "TrkrDefs.h"
 #include "TrkrClusterHitAssoc.h"
+#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
+#include <iostream>  // for cout, ostream
 #include <map>
-#include <utility>           // for pair
+#include <utility>  // for pair
 
 /**
  * @brief Class for associating clusters to the hits that went into them
@@ -23,8 +23,7 @@
  */
 class TrkrClusterHitAssocv1 : public TrkrClusterHitAssoc
 {
-public:
-
+ public:
   //! ctor
   TrkrClusterHitAssocv1() = default;
 
@@ -45,12 +44,11 @@ public:
    * @param[out] Range over hits associated with @c ckey
    */
   ConstRange getHits(TrkrDefs::cluskey) override;
-  
-private:
 
+ private:
   Map m_map;
 
   ClassDefOverride(TrkrClusterHitAssocv1, 1);
 };
 
-#endif // TRACKBASE_TRKRCLUSTERHITASSOCV1_H
+#endif  // TRACKBASE_TRKRCLUSTERHITASSOCV1_H

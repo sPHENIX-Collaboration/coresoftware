@@ -19,6 +19,7 @@ class PHCompositeNode;
 class PHG4IHCalDisplayAction;
 class PHParameters;
 class PHG4Subsystem;
+class PHG4GDMLConfig;
 
 class PHG4IHCalDetector : public PHG4Detector
 {
@@ -52,7 +53,7 @@ class PHG4IHCalDetector : public PHG4Detector
   int map_towerid(const int tower_id);
   int map_layerid(const int layer_id);
   int ConstructIHCal(G4LogicalVolume *sandwich);
-  std::tuple<int, int, int> ExtractLayerTowerId(const int isector, G4VPhysicalVolume *volume);
+  std::tuple<int, int, int> ExtractLayerTowerId(const unsigned int isector, G4VPhysicalVolume *volume);
   PHG4IHCalDisplayAction *m_DisplayAction = nullptr;
   PHParameters *m_Params = nullptr;
   G4AssemblyVolume *m_ScintiMotherAssembly = nullptr;
@@ -75,6 +76,9 @@ class PHG4IHCalDetector : public PHG4Detector
   std::set<G4LogicalVolume *> m_ScintiTileLogVolSet;
   std::map<G4VPhysicalVolume *, std::tuple<int, int, int>> m_ScintiTilePhysVolMap;
   std::map<G4VPhysicalVolume *, int> m_AbsorberPhysVolMap;
+
+  //! registry for volumes that should not be exported
+  PHG4GDMLConfig *gdml_config = nullptr;
 
   std::string m_GDMPath;
 };

@@ -10,6 +10,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ClusterErrorPara.h>
 
 #include <trackbase_historic/SvtxTrackState.h>
 #include <map>
@@ -18,7 +19,7 @@
 #include <vector>
 
 class ActsGeometry;
-class PHG4CylinderCellGeomContainer;
+class PHG4TpcCylinderGeomContainer;
 class PHG4CylinderGeomContainer;
 class PHG4Hit;
 class PHG4HitContainer;
@@ -79,6 +80,7 @@ class TrackEvaluation : public SubsysReco
   // get geant hits associated to a cluster
   using G4HitSet = std::set<PHG4Hit*>;
   G4HitSet find_g4hits( TrkrDefs::cluskey ) const;
+  G4HitSet find_g4hits( TrkrDefs::cluskey, int id ) const;
 
   //! get G4Particle id of max contributor to a given track
   std::pair<int,int> get_max_contributor( SvtxTrack* ) const;
@@ -87,7 +89,7 @@ class TrackEvaluation : public SubsysReco
   int get_embed(PHG4Particle*) const;
 
   //! create cluster structure from cluster
-  TrackEvaluationContainerv1::ClusterStruct create_cluster( TrkrDefs::cluskey, TrkrCluster* ) const;
+  TrackEvaluationContainerv1::ClusterStruct create_cluster( TrkrDefs::cluskey, TrkrCluster*,SvtxTrack* ) const;
 
   //! add track information to a cluster
   void add_trk_information( TrackEvaluationContainerv1::ClusterStruct&, SvtxTrackState* ) const;
@@ -145,7 +147,7 @@ class TrackEvaluation : public SubsysReco
   PHG4TruthInfoContainer* m_g4truthinfo = nullptr;
 
   //! tpc geometry
-  PHG4CylinderCellGeomContainer* m_tpc_geom_container = nullptr;
+  PHG4TpcCylinderGeomContainer* m_tpc_geom_container = nullptr;
 
   //! micromegas geometry
   PHG4CylinderGeomContainer* m_micromegas_geom_container = nullptr;
@@ -153,6 +155,7 @@ class TrackEvaluation : public SubsysReco
   // map cluster keys to g4hits
   using G4HitMap = std::map<TrkrDefs::cluskey,G4HitSet>;
   mutable G4HitMap m_g4hit_map;
+  ClusterErrorPara _ClusErrPara;
 
 };
 

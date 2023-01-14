@@ -8,6 +8,7 @@
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Utilities/Logger.hpp>
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 #include <ActsExamples/EventData/Track.hpp>
@@ -65,19 +66,18 @@ class ActsTransformations
   void calculateDCA(const ActsExamples::TrackParameters param,
 		    Acts::Vector3 vertex,
 		    Acts::BoundSymMatrix cov,
-		    Acts::GeometryContext geoCtxt,
+		    Acts::GeometryContext& geoCtxt,
 		    float &dca3Dxy,
 		    float &dca3Dz,
 		    float &dca3DxyCov,
 		    float &dca3DzCov) const;
 
-  void fillSvtxTrackStates(const Acts::MultiTrajectory& traj, 
+  void fillSvtxTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj, 
 			   const size_t& trackTip,
 			   SvtxTrack *svtxTrack,
 			   Acts::GeometryContext& geoContext) const;
   
- 
-  private:
+ private:
   int m_verbosity = 0;
   
 

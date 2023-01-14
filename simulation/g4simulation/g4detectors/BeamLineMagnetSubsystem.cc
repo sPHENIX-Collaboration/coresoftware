@@ -1,9 +1,9 @@
 #include "BeamLineMagnetSubsystem.h"
+
 #include "BeamLineMagnetDetector.h"
 #include "BeamLineMagnetDisplayAction.h"
 #include "BeamLineMagnetSteppingAction.h"
-
-#include <g4detectors/PHG4DetectorSubsystem.h>  // for PHG4DetectorSubsystem
+#include "PHG4DetectorSubsystem.h"  // for PHG4DetectorSubsystem
 
 #include <phparameter/PHParameters.h>
 
@@ -49,9 +49,10 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->Verbosity(Verbosity());
-  std::set<std::string> nodes;
+
   if (GetParams()->get_int_param("active"))
   {
+    std::set<std::string> nodes;
     PHNodeIterator dstIter(dstNode);
     PHCompositeNode *DetNode = dstNode;
     if (SuperDetector() != "NONE" || SuperDetector().empty())
@@ -79,7 +80,7 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     {
       nodes.insert(m_AbsorberNodeName);
     }
-    for (auto node : nodes)
+    for (const auto &node : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
       if (!g4_hits)
@@ -112,7 +113,7 @@ int BeamLineMagnetSubsystem::process_event(PHCompositeNode *topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector *BeamLineMagnetSubsystem::GetDetector(void) const
+PHG4Detector *BeamLineMagnetSubsystem::GetDetector() const
 {
   return m_Detector;
 }

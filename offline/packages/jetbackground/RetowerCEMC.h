@@ -31,10 +31,11 @@ class RetowerCEMC : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
+  void SetEnergyDistribution(int val) { _WEIGHTED_ENERGY_DISTRIBUTION = val; }
 
  private:
   int CreateNode(PHCompositeNode *topNode);
-
+  int _WEIGHTED_ENERGY_DISTRIBUTION;
   int _NETA;
   int _NPHI;
   std::vector<std::vector<float> > _EMCAL_RETOWER_E;

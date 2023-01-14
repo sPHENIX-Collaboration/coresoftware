@@ -68,7 +68,7 @@ class RawTower : public PHObject
     PHOOL_VIRTUAL_WARN("get_binphi()");
     return -1;
   }
-  
+
   //! return layer ID assigned to tower
   virtual int get_binl() const
   {
@@ -173,7 +173,7 @@ class RawTower : public PHObject
 
     //! Cherenkov photon count or energy
     prop_cerenkov_gammas = 2,
-    
+
     //! max limit in order to fit into 8 bit unsigned number
     prop_MAX_NUMBER = UCHAR_MAX
   };

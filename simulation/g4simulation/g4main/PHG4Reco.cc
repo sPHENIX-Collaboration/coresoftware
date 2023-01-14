@@ -29,6 +29,8 @@
 #include <phfield/PHFieldConfigv2.h>
 #include <phfield/PHFieldUtility.h>
 
+#include <ffamodules/XploadInterface.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 
@@ -41,8 +43,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 #include <phool/recoConsts.h>
-
-#include <xpload/xpload.h>
 
 #include <TSystem.h>  // for TSystem, gSystem
 
@@ -84,6 +84,7 @@
 #include <Geant4/G4Version.hh>
 #include <Geant4/G4VisExecutive.hh>
 #include <Geant4/G4VisManager.hh>  // for G4VisManager
+#include <G4HadronicParameters.hh> // for G4HadronicParameters
 
 // physics lists
 #include <Geant4/FTFP_BERT.hh>
@@ -97,7 +98,10 @@
 #include <Geant4/QGSP_INCLXX.hh>
 #include <Geant4/QGSP_INCLXX_HP.hh>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/filesystem.hpp>
+#pragma GCC diagnostic pop
 
 #include <cassert>
 #include <cstdlib>
@@ -230,6 +234,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 
   if (m_ActiveDecayerFlag)
   {
+    G4HadronicParameters::Instance()->SetEnableBCParticles(false); //Disable the Geant4 built in HF Decay and use external decayers for them
     P6DExtDecayerPhysics *decayer = new P6DExtDecayerPhysics();
     if (m_ActiveForceDecayFlag)
     {
@@ -244,13 +249,6 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   m_RunManager->SetUserInitialization(myphysicslist);
 
   DefineRegions();
-#if G4VERSION_NUMBER >= 1033
-  G4EmSaturation *emSaturation = G4LossTableManager::Instance()->EmSaturation();
-  if (!emSaturation)
-  {
-    std::cout << PHWHERE << "Could not initialize EmSaturation, Birks constants will fail" << std::endl;
-  }
-#endif
   // initialize registered subsystems
   for (SubsysReco *reco: m_SubsystemList)
   {
@@ -270,14 +268,14 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
 
   std::unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
 
-  if (m_FieldMapFile != "NONE")
+  if (m_FieldMapFile == "CDB")
   {
-    if (m_FieldMapFile == "CDB")
-    {
-      recoConsts *rc = recoConsts::instance();
-      xpload::Result result = xpload::fetch(rc->get_StringFlag("XPLOAD_TAG"), "FIELDMAPBIG", rc->get_uint64Flag("TIMESTAMP"), xpload::Configurator(rc->get_StringFlag("XPLOAD_CONFIG")));
-      m_FieldMapFile = result.payload;
-    }
+    // loading from database
+    std::string url = XploadInterface::instance()->getUrl("FIELDMAPBIG", m_FieldMapFile);
+    default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, url, m_MagneticFieldRescale));
+  }
+  else if (m_FieldMapFile != "NONE")
+  {
     default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, m_FieldMapFile, m_MagneticFieldRescale));
   }
   else
@@ -461,6 +459,14 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // initialize
   m_RunManager->Initialize();
 
+#if G4VERSION_NUMBER >= 1033
+  G4EmSaturation *emSaturation = G4LossTableManager::Instance()->EmSaturation();
+  if (!emSaturation)
+  {
+    std::cout << PHWHERE << "Could not initialize EmSaturation, Birks constants will fail" << std::endl;
+  }
+#endif
+  
   // add cerenkov and optical photon processes
   // std::cout << std::endl << "Ignore the next message - we implemented this correctly" << std::endl;
   G4Cerenkov *theCerenkovProcess = new G4Cerenkov("Cerenkov");
@@ -952,6 +958,10 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   PMMA->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 3.6 / (3.6 + 5.7 + 1.4));
   PMMA->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 5.7 / (3.6 + 5.7 + 1.4));
   PMMA->AddElement(G4NistManager::Instance()->FindOrBuildElement("O"), 1.4 / (3.6 + 5.7 + 1.4));
+
+  //scintillator for HCal, use a new name in order to change the Birks' constant
+  G4Material *Uniplast_scintillator = new G4Material("Uniplast_scintillator", 1.06 * g / cm3, ncomponents = 1);
+  Uniplast_scintillator->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_POLYSTYRENE"), fractionmass = 1.);
 
   G4Material *G10 =
       new G4Material("G10", density = 1.700 * g / cm3, ncomponents = 4);

@@ -1,3 +1,6 @@
+#ifndef TRACKRECO_PHGENFITTRKFITTER_H
+#define TRACKRECO_PHGENFITTRKFITTER_H
+
 /*!
  *  \file		PHGenFitTrkFitter.h
  *  \brief		Refit SvtxTracks with PHGenFit.
@@ -5,10 +8,10 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef TRACKRECO_PHGENFITTRKFITTER_H
-#define TRACKRECO_PHGENFITTRKFITTER_H
-
 #include <fun4all/SubsysReco.h>
+#include <tpc/TpcDistortionCorrection.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase_historic/ActsTransformations.h>
 
 #if defined(__CLING__)
@@ -52,8 +55,10 @@ class PHG4TruthInfoContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
 class SvtxVertex;
+class TpcDistortionCorrectionContainer;
 class TrkrClusterContainer;
 class TrackSeedContainer;
+
 class TTree;
 
 //! \brief		Refit SvtxTracks with PHGenFit.
@@ -197,7 +202,6 @@ class PHGenFitTrkFitter : public SubsysReco
     _fit_min_pT = cutMinPT;
   }
 
-
   bool is_over_write_svtxtrackmap() const
   {
     return _over_write_svtxtrackmap;
@@ -228,6 +232,10 @@ class PHGenFitTrkFitter : public SubsysReco
     _vertex_min_ndf = vertexMinPT;
   }
 
+  /// cluster version
+  /* Note: this could be retrived automatically using dynamic casts from TrkrCluster objects */
+  void set_cluster_version(int value) { m_cluster_version = value; }
+
   //!@name disabled layers interface
   //@{
 
@@ -245,6 +253,13 @@ class PHGenFitTrkFitter : public SubsysReco
 
   //@}
 
+  /// fit only tracks with silicon+MM hits
+  void set_fit_silicon_mms( bool );
+
+  /// require micromegas in SiliconMM fits
+  void set_use_micromegas( bool value )
+  { m_use_micromegas = value; }
+
   private:
   //! Event counter
   int _event = 0;
@@ -259,7 +274,7 @@ class PHGenFitTrkFitter : public SubsysReco
   /**
    * uses ActsTransformation to convert cluster local position into global coordinates
    */
-  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*);
+  Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*, short int crossing);
 
   /*
    * fit track with SvtxTrack as input seed.
@@ -296,7 +311,14 @@ class PHGenFitTrkFitter : public SubsysReco
   //! disabled layers
   /** clusters belonging to disabled layers are not included in track fit */
   std::set<int> _disabled_layers;
+  
+  /// Boolean to use normal tracking geometry navigator or the
+  /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
+  bool m_fit_silicon_mms = false;
 
+  /// requires micromegas present when fitting silicon-MM surfaces
+  bool m_use_micromegas = true;
+  
   //! KalmanFitterRefTrack, KalmanFitter, DafSimple, DafRef
   std::string _track_fitting_alg_name = "DafRef";
 
@@ -316,10 +338,6 @@ class PHGenFitTrkFitter : public SubsysReco
 
   /// acts geometry
   ActsGeometry *m_tgeometry = nullptr;
-
-  /// map cluster keys to global position
-  using PositionMap = std::map<TrkrDefs::cluskey, Acts::Vector3>;
-  PositionMap m_globalPositions;
   
   //! Input Node pointers
   PHG4TruthInfoContainer* _truth_container = nullptr;
@@ -337,6 +355,23 @@ class PHGenFitTrkFitter : public SubsysReco
   SvtxTrackMap* m_trackMap_refit = nullptr;
   SvtxTrackMap* m_primary_trackMap = nullptr;
   SvtxVertexMap* m_vertexMap_refit = nullptr;
+
+  // crossing z correction
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
+  
+  // distortion corrections
+  TpcDistortionCorrectionContainer* m_dcc_static = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_average = nullptr;
+  TpcDistortionCorrectionContainer* m_dcc_fluctuation = nullptr;
+
+  /// tpc distortion correction utility class
+  TpcDistortionCorrection m_distortionCorrection;
+ 
+  /// cluster error parametrisation
+  ClusterErrorPara m_cluster_error_parametrization;
+  
+  /// cluster version
+  int m_cluster_version = 4;
 
   //! Evaluation
   //! switch eval out

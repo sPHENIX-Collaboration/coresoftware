@@ -39,6 +39,7 @@ class PHTrackSeeding : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+  void set_do_hit_association(bool do_assoc){do_hit_assoc = do_assoc;}
   void SetUseTruthClusters(bool setit){_use_truth_clusters = setit;}
   void SetIteration(int iter){_n_iteration = iter;}
  protected:
@@ -57,6 +58,7 @@ class PHTrackSeeding : public SubsysReco
   TrkrClusterHitAssoc *_cluster_hit_map = nullptr;
   TrkrClusterIterationMapv1* _iteration_map;
   int _n_iteration;
+  bool do_hit_assoc = true;
   SvtxVertexMap *_vertex_map = nullptr;
   TrackSeedContainer *_track_map = nullptr;
   TrkrHitSetContainer  *_hitsets = nullptr;

@@ -16,7 +16,7 @@ class G4VPhysicalVolume;
 class BeamLineMagnetDisplayAction : public PHG4DisplayAction
 {
  public:
-  BeamLineMagnetDisplayAction(const std::string &name);
+  explicit BeamLineMagnetDisplayAction(const std::string &name);
 
   ~BeamLineMagnetDisplayAction() override;
 

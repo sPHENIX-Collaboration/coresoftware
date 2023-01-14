@@ -140,12 +140,6 @@ int PHMicromegasTpcTrackMatching::InitRun(PHCompositeNode *topNode)
   // get first micromegas layer
   _min_mm_layer = static_cast<CylinderGeomMicromegas*>(_geomContainerMicromegas->GetFirstLayerGeom())->get_layer();
 
-  fdrphi = new TF1("fdrphi", "[0] + [1]*std::abs(x)");
-  fdrphi->SetParameter(0, _par0 *_collision_rate / _reference_collision_rate);
-  fdrphi->SetParameter(1, _par1);
-
-  // base class setup
- 
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
@@ -297,7 +291,6 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       // select the angle that is the closest to last cluster
       // store phi, apply coarse space charge corrections in calibration mode
       double phi = std::abs(last_clus_phi - phi_plus) < std::abs(last_clus_phi - phi_minus) ? phi_plus:phi_minus;
-      if(_sc_calib_mode) phi -= fdrphi->Eval(z)/r;
 
       // create cylinder intersection point in world coordinates
       const TVector3 world_intersection_cylindrical( r*std::cos(phi), r*std::sin(phi), z );
@@ -341,17 +334,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       const TVector3 world_intersection_planar( x, y, z );
 
       // convert to tile local reference frame, apply SC correction
-      auto local_intersection_planar = layergeom->get_local_from_world_coords( tileid, _tGeometry, world_intersection_planar );
-      if(_sc_calib_mode)
-      {
-        /*
-         * apply SC correction to the local intersection,
-         * to make sure that the corrected intersection is still in the micromegas plane
-         * in local tile coordinates, the rphi direction, to which the correction is applied, corresponds to the x direction
-         * TODO: this is probably completely obsolete. Check/Remove
-         */
-        local_intersection_planar.SetX( local_intersection_planar.x() - fdrphi->Eval(z) );
-      }
+      const auto local_intersection_planar = layergeom->get_local_from_world_coords( tileid, _tGeometry, world_intersection_planar );
 
       // store segmentation type
       const auto segmentation_type = layergeom->get_segmentation_type();
@@ -488,34 +471,56 @@ int  PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
- // tpc distortion correction
-  _dcc = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
-  if( _dcc )
-  { std::cout << "PHMicromegasTpcTrackMatching::get_Nodes  - found static TPC distortion correction container" << std::endl; }
+  // tpc distortion corrections
+  m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerStatic");
+  if( m_dcc_static )
+  { 
+    std::cout << PHWHERE << "  found static TPC distortion correction container" << std::endl; 
+  }
+  
+  m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerAverage");
+  if( m_dcc_average )
+  { 
+    std::cout << PHWHERE << "  found average TPC distortion correction container" << std::endl; 
+  }
+  
+  m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode,"TpcDistortionCorrectionContainerFluctuation");
+  if( m_dcc_fluctuation )
+  { 
+    std::cout << PHWHERE << "  found fluctuation TPC distortion correction container" << std::endl; 
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
  Acts::Vector3 PHMicromegasTpcTrackMatching::getGlobalPosition( TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing, unsigned int side)
 {
-  auto trkrid = TrkrDefs::getTrkrId(key);
-
-  Acts::Vector3 globalpos; 
+  auto globalPosition = _tGeometry->getGlobalPosition(key, cluster);
+  const auto trkrid = TrkrDefs::getTrkrId(key);
   if(trkrid == TrkrDefs::tpcId)
+  {    
+    // ADF: for streaming mode, will need a crossing z correction here
+    globalPosition.z() = m_clusterCrossingCorrection.correctZ(globalPosition.z(), side, crossing);
+    
+    // apply distortion corrections
+    if(m_dcc_static) 
     {
-      globalpos = _tGeometry->getGlobalPosition(key, cluster);
-      
-      // ADF: for streaming mode, will need a crossing z correction here
-      float z = _clusterCrossingCorrection.correctZ(globalpos[2], side, crossing);
-      globalpos[2] = z;
-      
-      // check if TPC distortion correction are in place and apply
-      if(_dcc) { globalpos = _distortionCorrection.get_corrected_position( globalpos, _dcc ); }
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_static ); 
     }
-  else
-    globalpos = _tGeometry->getGlobalPosition(key, cluster);
+    
+    if(m_dcc_average) 
+    { 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_average ); 
+    }
+    
+    if(m_dcc_fluctuation) 
+    { 
+      globalPosition = m_distortionCorrection.get_corrected_position( globalPosition, m_dcc_fluctuation ); 
+    }
+
+  }
   
-  return globalpos;
+  return globalPosition;
 }
   
 

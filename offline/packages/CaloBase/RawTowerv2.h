@@ -29,11 +29,11 @@ class RawTowerv2 : public RawTowerv1
   void set_scint_gammas(const double e) override { set_property(prop_scint_gammas, e); }
   double get_cerenkov_gammas() const override { return get_property(prop_cerenkov_gammas); }
   void set_cerenkov_gammas(const double e) override { set_property(prop_cerenkov_gammas, e); }
-  
+
   bool has_property(const PROPERTY prop_id) const override;
   double get_property(const PROPERTY prop_id) const override;
   void set_property(const PROPERTY prop_id, const double value) override;
-  
+
  protected:
   typedef uint8_t prop_id_t;
   typedef std::map<prop_id_t, double> prop_map_t;

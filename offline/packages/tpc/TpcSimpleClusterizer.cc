@@ -13,8 +13,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                         // for SubsysReco
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
@@ -53,7 +53,7 @@ namespace
 	
   struct thread_data 
   {
-    PHG4CylinderCellGeom *layergeom = nullptr;
+    PHG4TpcCylinderGeom *layergeom = nullptr;
     TrkrHitSet *hitset = nullptr;
     ActsGeometry *tGeometry = nullptr;
     unsigned int layer = 0;
@@ -211,18 +211,18 @@ namespace
 	
 	  clus->setSubSurfKey(subsurfkey);
 	
-	  Acts::Vector3 center = surface->center(my_data.tGeometry->geometry().geoContext) 
+	  Acts::Vector3 center = surface->center(my_data.tGeometry->geometry().getGeoContext()) 
 	    / Acts::UnitConstants::cm;
 	  
 	  /// no conversion needed, only used in acts
-	  const Acts::Vector3 normal = surface->normal(my_data.tGeometry->geometry().geoContext);
+	  const Acts::Vector3 normal = surface->normal(my_data.tGeometry->geometry().getGeoContext());
    const double clusRadius = std::sqrt(square(clusx) + square(clusy));
 	  const double rClusPhi = clusRadius * clusphi;
    const double surfRadius = sqrt(center(0)*center(0) + center(1)*center(1));
    const double surfPhiCenter = atan2(center[1], center[0]);
 	  const double surfRphiCenter = surfPhiCenter * surfRadius;
    const double surfZCenter = center[2];
-   auto local = surface->globalToLocal(my_data.tGeometry->geometry().geoContext,
+   auto local = surface->globalToLocal(my_data.tGeometry->geometry().getGeoContext(),
 				       global * Acts::UnitConstants::cm,
 				       normal);
 	  Acts::Vector2 localPos;
@@ -339,7 +339,7 @@ TpcSimpleClusterizer::TpcSimpleClusterizer(const std::string &name)
   : SubsysReco(name)
 {}
 
-bool TpcSimpleClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4CylinderCellGeom *layergeom) const
+bool TpcSimpleClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const
 {
   bool reject_it = false;
 
@@ -461,8 +461,8 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
   
-  PHG4CylinderCellGeomContainer *geom_container =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcCylinderGeomContainer *geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
   {
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
@@ -515,7 +515,7 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
     unsigned int sector= TpcDefs::getSectorId(hitsetitr->first);
-    PHG4CylinderCellGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+    PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
     
     // instanciate new thread pair, at the end of thread vector
     thread_pair_t& thread_pair = threads.emplace_back();

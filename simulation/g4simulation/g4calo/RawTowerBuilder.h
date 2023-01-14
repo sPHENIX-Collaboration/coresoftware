@@ -3,6 +3,9 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <g4detectors/PHG4CellDefs.h>
+
+#include <cmath>
 #include <string>
 
 class PHCompositeNode;
@@ -56,25 +59,25 @@ class RawTowerBuilder : public SubsysReco
  protected:
   void CreateNodes(PHCompositeNode *topNode);
 
-  RawTowerContainer *m_TowerContainer;
-  RawTowerGeomContainer *m_RawTowerGeomContainer;
+  RawTowerContainer *m_TowerContainer = nullptr;
+  RawTowerGeomContainer *m_RawTowerGeomContainer = nullptr;
 
-  std::string m_Detector;
+  std::string m_Detector = "NONE";
   std::string m_TowerNodeName;
   std::string m_TowerGeomNodeName;
   std::string m_SimTowerNodePrefix;
 
-  enu_tower_energy_src m_TowerEnergySrcEnum;
-  int m_CellBinning;
-  int m_ChkEnergyConservationFlag;
-  int m_NumLayers;
-  int m_NumPhiBins;
-  int m_NumEtaBins;
-  double m_Emin;
-  double m_EtaMin;
-  double m_PhiMin;
-  double m_EtaStep;
-  double m_PhiStep;
+  enu_tower_energy_src m_TowerEnergySrcEnum = kLightYield;
+  int m_CellBinning = PHG4CellDefs::undefined;
+  int m_ChkEnergyConservationFlag = 0;
+  int m_NumLayers = -1;
+  int m_NumPhiBins = -1;
+  int m_NumEtaBins = -1;
+  double m_Emin = 1e-6;
+  double m_EtaMin = NAN;
+  double m_PhiMin = NAN;
+  double m_EtaStep = NAN;
+  double m_PhiStep = NAN;
 };
 
 #endif  // G4CALO_RAWTOWERBUILDER_H

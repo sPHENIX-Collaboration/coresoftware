@@ -20,6 +20,7 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Box.hh>
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>
 
@@ -313,8 +314,8 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4LogicalVolume *bbc_inner_shell_lv = new G4LogicalVolume(bbc_inner_shell, Aluminum, G4String("Bbc_Inner_Shell"));
   GetDisplayAction()->AddVolume(bbc_inner_shell_lv, "Bbc_Inner_Shell");
 
-  G4VPhysicalVolume *outer_shell_vol[2] = {0};
-  G4VPhysicalVolume *inner_shell_vol[2] = {0};
+  G4VPhysicalVolume *outer_shell_vol[2] = {nullptr};
+  G4VPhysicalVolume *inner_shell_vol[2] = {nullptr};
 
   // Place South Shells
   outer_shell_vol[0] = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, (-250 + 1.0 - 11.5) * cm),
@@ -338,8 +339,8 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4LogicalVolume *bbc_plate_lv = new G4LogicalVolume(bbc_plate, Aluminum, G4String("Bbc_Cover_Plates"));
   GetDisplayAction()->AddVolume(bbc_plate_lv, "Bbc_Cover_Plates");
 
-  G4VPhysicalVolume *fplate_vol[2] = {0};  // Front Plates
-  G4VPhysicalVolume *bplate_vol[2] = {0};  // Back Plates
+  G4VPhysicalVolume *fplate_vol[2] = {nullptr};  // Front Plates
+  G4VPhysicalVolume *bplate_vol[2] = {nullptr};  // Back Plates
 
   // Place South Plates
   fplate_vol[0] = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, (-250 + 1.0 + 0.5) * cm),
@@ -360,12 +361,14 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4Tubs *bbc_cablecond = new G4Tubs("bbc_cablecond", 0., r_CableConductor, len_cable * 0.5, 0 * deg, 360 * deg);
 
   G4LogicalVolume *bbc_cablecond_lv = new G4LogicalVolume(bbc_cablecond, Cu, G4String("Bbc_CableCond"));
+  GetDisplayAction()->AddVolume(bbc_cablecond_lv, "Bbc_CableCond");
 
   const G4double rIn_CableShield = 0.302876 * cm;
   const G4double rOut_CableShield = 0.3175 * cm;
   G4Tubs *bbc_cableshield = new G4Tubs("bbc_cableshield", rIn_CableShield, rOut_CableShield, len_cable * 0.5, 0 * deg, 360 * deg);
 
   G4LogicalVolume *bbc_cableshield_lv = new G4LogicalVolume(bbc_cableshield, Cu, G4String("Bbc_CableShield"));
+  GetDisplayAction()->AddVolume(bbc_cableshield_lv, "Bbc_CableShield");
 
   ypos = len_cable / 2 + 5 * cm;
 
@@ -404,6 +407,9 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
     }
   }
 
+  // Now make the Supports
+  ConstructSupport(logicWorld);
+
   // this is more to prevent compiler warnings about unused variables
   if (!fplate_vol[0] || !fplate_vol[1] || !bplate_vol[0] || !bplate_vol[1])
   {
@@ -420,6 +426,37 @@ void PHG4BbcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   std::cout << "INSIDE BBC" << std::endl;
 
   return;
+}
+
+void PHG4BbcDetector::ConstructSupport(G4LogicalVolume *logicWorld)
+{
+  //std::cout << "PHG4BbcDetector::ConstructSupport()" << std::endl;
+
+  G4Material *Aluminum = GetDetectorMaterial("G4_Al");
+
+  // BBC Base Plates
+  G4double basep_width = 35.56 * cm;
+  G4double basep_height = 1.91 * cm;
+  G4double basep_len = 46.99 * cm;
+  G4Box *bbc_base_plate = new G4Box("bbc_base_plate", basep_width/2, basep_height/2, basep_len/2);
+  G4LogicalVolume *bbc_base_plate_lv = new G4LogicalVolume(bbc_base_plate, Aluminum, G4String("Bbc_Base_Plates"));
+  GetDisplayAction()->AddVolume(bbc_base_plate_lv, "Bbc_Base_Plates");
+
+  G4VPhysicalVolume *base_plate_vol[2] = {nullptr};  // Mount Plates
+
+  // Place South Base Plates
+  base_plate_vol[0] = new G4PVPlacement(nullptr, G4ThreeVector(0, -15.*cm - basep_height/2, (-250. -12.) * cm),
+                                    bbc_base_plate_lv, "BBC_BASE_PLATE", logicWorld, false, 0, OverlapCheck());
+
+  // Place North Base Plates
+  base_plate_vol[1] = new G4PVPlacement(nullptr, G4ThreeVector(0, -15.*cm - basep_height/2, (250. + 12.0) * cm),
+                                    bbc_base_plate_lv, "BBC_BASE_PLATE", logicWorld, false, 1, OverlapCheck());
+
+  // this is more to prevent compiler warnings about unused variables
+  if (!base_plate_vol[0] || !base_plate_vol[1])
+  {
+    std::cout << "Problem placing BBC supports" << std::endl;
+  }
 }
 
 void PHG4BbcDetector::Print(const std::string &what) const

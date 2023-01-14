@@ -69,11 +69,11 @@ class PHG4PSTOFSubsystem : public PHG4DetectorGroupSubsystem
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4PSTOFDetector* detector_;
+  PHG4PSTOFDetector* detector_ = nullptr;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* steppingAction_;
+  PHG4SteppingAction* steppingAction_ = nullptr;
 };
 
 #endif

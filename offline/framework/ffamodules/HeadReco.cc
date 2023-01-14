@@ -20,10 +20,13 @@
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
+#pragma GCC diagnostic pop
+
 #include <HepMC/HeavyIon.h>  // for HeavyIon
 
-#include <iostream>
 #include <iterator>  // for operator!=, reverse_iterator
 #include <map>       // for _Rb_tree_iterator
 #include <utility>   // for pair

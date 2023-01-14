@@ -76,6 +76,9 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
   PHG4DisplayAction *m_DisplayAction = nullptr;
 
   int m_CosmicSetupFlag = 0;
+
+  std::string m_HitNodeName;
+  std::string m_AbsorberNodeName;
 };
 
 #endif

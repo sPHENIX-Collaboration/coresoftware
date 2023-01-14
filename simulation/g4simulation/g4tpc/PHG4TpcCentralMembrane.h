@@ -20,7 +20,7 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
 {
  public:
   /// constructor
-  PHG4TpcCentralMembrane(const std::string& name = "PHG4TpcDirectLaser");
+  PHG4TpcCentralMembrane(const std::string& name = "PHG4TpcCentralMembrane");
 
   /// destructor
   ~PHG4TpcCentralMembrane() override;
@@ -38,6 +38,7 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
   void Detector(const std::string& d)
   {
     detector = d;
+    hitnodename = "G4HIT_" + d;
   }
 
   /// check if coords are in a stripe
@@ -53,7 +54,7 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
   std::string detector = "TPC";
 
   /// g4hitnode name
-  std::string hitnodename;
+  std::string hitnodename = "G4HIT_TPC";
   std::vector<PHG4Hit*> PHG4Hits;
 
   static constexpr double mm = 1.0;
@@ -182,31 +183,31 @@ class PHG4TpcCentralMembrane : public SubsysReco, public PHParameterInterface
   int m_centralMembraneDelay = 0;
 
   void CalculateVertices(
-    int nStripes, int nPads,
-    const std::array<double, nRadii>& R,
-    std::array<double, nRadii>& spacing,
-    double x1a[][nRadii], double y1a[][nRadii],
-    double x1b[][nRadii], double y1b[][nRadii],
-    double x2a[][nRadii], double y2a[][nRadii],
-    double x2b[][nRadii], double y2b[][nRadii],
-    double x3a[][nRadii], double y3a[][nRadii],
-    double x3b[][nRadii], double y3b[][nRadii],
-    double padfrac,
-    double str_width[][nRadii],
-    const std::array<double, nRadii>& widthmod,
-    std::array<int, nRadii>& nGoodStripes,
-    const std::array<int, nRadii>& keepUntil,
-    std::array<int, nRadii>& nStripesIn,
-    std::array<int, nRadii>& nStripesBefore);
+      int nStripes, int nPads,
+      const std::array<double, nRadii>& R,
+      std::array<double, nRadii>& spacing,
+      double x1a[][nRadii], double y1a[][nRadii],
+      double x1b[][nRadii], double y1b[][nRadii],
+      double x2a[][nRadii], double y2a[][nRadii],
+      double x2b[][nRadii], double y2b[][nRadii],
+      double x3a[][nRadii], double y3a[][nRadii],
+      double x3b[][nRadii], double y3b[][nRadii],
+      double padfrac,
+      double str_width[][nRadii],
+      const std::array<double, nRadii>& widthmod,
+      std::array<int, nRadii>& nGoodStripes,
+      const std::array<int, nRadii>& keepUntil,
+      std::array<int, nRadii>& nStripesIn,
+      std::array<int, nRadii>& nStripesBefore);
 
   int SearchModule(int nStripes,
-    const double x1a[][nRadii], const double x1b[][nRadii],
-    const double x2a[][nRadii], const double x2b[][nRadii],
-    const double y1a[][nRadii], const double y1b[][nRadii],
-    const double y2a[][nRadii], const double y2b[][nRadii],
-    const double x3a[][nRadii], const double y3a[][nRadii],
-    const double x3b[][nRadii], const double y3b[][nRadii],
-    double x, double y, const std::array<int, nRadii>& nGoodStripes) const;
+                   const double x1a[][nRadii], const double x1b[][nRadii],
+                   const double x2a[][nRadii], const double x2b[][nRadii],
+                   const double y1a[][nRadii], const double y1b[][nRadii],
+                   const double y2a[][nRadii], const double y2b[][nRadii],
+                   const double x3a[][nRadii], const double y3a[][nRadii],
+                   const double x3b[][nRadii], const double y3b[][nRadii],
+                   double x, double y, const std::array<int, nRadii>& nGoodStripes) const;
 
   PHG4Hit* GetPHG4HitFromStripe(int petalID, int moduleID, int radiusID, int stripeID, int nElectrons) const;
 };

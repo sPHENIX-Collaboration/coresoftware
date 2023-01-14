@@ -71,12 +71,14 @@ int PHActsVertexPropagator::process_event(PHCompositeNode*)
 	{
 	  const auto& boundParams = trajectory.trackParameters(trackTip);
 
-	  auto propresult = propagateTrack(boundParams, svtxTrack->get_vertex_id());
-	  if(propresult.ok())
+	  auto result = propagateTrack(boundParams, svtxTrack->get_vertex_id());
+	  if(result.ok())
 	    {
-	  
-	      auto paramsAtVertex = std::move(**propresult);
-	      updateSvtxTrack(svtxTrack,paramsAtVertex);
+	      updateSvtxTrack(svtxTrack, result.value());
+	    }
+	  else
+	    {
+	      svtxTrack->identify();
 	    }
 	}
     }
@@ -108,6 +110,8 @@ void PHActsVertexPropagator::setVtxChi2()
 	  ++trackiter)
 	{
 	  SvtxTrack* track = m_trackMap->get(*trackiter);
+	  if(!track) { continue; }
+
 	  float trkx = track->get_x();
 	  float trky = track->get_y();
 	  float trkz = track->get_z();
@@ -126,14 +130,14 @@ void PHActsVertexPropagator::setVtxChi2()
       /// Each track contributes independently to x,y,z, so the total
       /// ndf is total tracks * 3 minus 1*3 for each independent x,y,z
       vtx->set_ndof(vtx->size_tracks() * 3 - 3);
-    
     }
+ 
 }
 
 void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track, 
 					     const Acts::BoundTrackParameters& params)
 {
-  auto position = params.position(m_tGeometry->geometry().geoContext);
+  auto position = params.position(m_tGeometry->geometry().getGeoContext());
   
   if(Verbosity() > 2)
     {
@@ -152,7 +156,7 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
   if(params.covariance())
     {
       auto rotatedCov = rotater.rotateActsCovToSvtxTrack(params);
-      
+    
       /// Update covariance
       for(int i = 0; i < 3; i++) {
 	for(int j = 0; j < 3; j++) {
@@ -162,9 +166,9 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
     }
 }
 
-BoundTrackParamPtrResult PHActsVertexPropagator::propagateTrack(
-		         const Acts::BoundTrackParameters& params,
-			 const unsigned int vtxid)
+BoundTrackParamResult PHActsVertexPropagator::propagateTrack(
+		           const Acts::BoundTrackParameters& params,
+			   const unsigned int vtxid)
 {
   
   /// create perigee surface
@@ -179,22 +183,26 @@ BoundTrackParamPtrResult PHActsVertexPropagator::propagateTrack(
   Acts::Navigator navigator(cfg);
   Propagator propagator(stepper, navigator);
   
-  Acts::Logging::Level logLevel = Acts::Logging::FATAL;
+  Acts::Logging::Level logLevel = Acts::Logging::INFO;
   if(Verbosity() > 3)
     { logLevel = Acts::Logging::VERBOSE; }
   
   auto logger = Acts::getDefaultLogger("PHActsVertexPropagator", 
 				       logLevel);
 
-  Acts::PropagatorOptions<> options(m_tGeometry->geometry().geoContext,
+  Acts::PropagatorOptions<> options(m_tGeometry->geometry().getGeoContext(),
 				    m_tGeometry->geometry().magFieldContext,
 				    Acts::LoggerWrapper{*logger});
   
   auto result = propagator.propagate(params, *perigee, 
 				     options);
-  if(result.ok())
-    { return std::move((*result).endParameters); }
   
+  if(result.ok())
+    { 
+      return Acts::Result<BoundTrackParam>::success(std::move((*result).endParameters.value()));
+      return params;
+    }
+
   return result.error();
 
 }

@@ -2,6 +2,7 @@
 
 #include <phool/PHFlag.h>
 
+#include <cstdint>  // for uint64_t
 #include <utility>  // for pair
 
 class PHObject;

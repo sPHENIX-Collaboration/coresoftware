@@ -29,7 +29,9 @@ class QAG4SimulationVertex : public SubsysReco
   int process_event(PHCompositeNode *topNode);
 
   std::string get_histo_prefix();
-
+  
+  void check_embed() { m_checkembed = true;}
+  void embed_id_cut(const int id) { m_embed_id_cut = id; }
   void addEmbeddingID(int embeddingID);
 
   void setTrackgMapName(const std::string &name) { m_trackMapName = name; }
@@ -43,6 +45,9 @@ class QAG4SimulationVertex : public SubsysReco
   unsigned int _nlayers_maps = 3;
 
   std::unique_ptr<SvtxEvalStack> m_svtxEvalStack;
+
+  int m_embed_id_cut = 0;
+  bool m_checkembed = false;
 
   SvtxTrackMap *m_trackMap = nullptr;
   SvtxVertexMap *m_vertexMap = nullptr;

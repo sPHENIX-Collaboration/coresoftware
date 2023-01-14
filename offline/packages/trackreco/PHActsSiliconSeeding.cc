@@ -1,6 +1,8 @@
 #include "PHActsSiliconSeeding.h"
 
 #include <trackbase_historic/ActsTransformations.h>
+#include <trackbase/ClusterErrorPara.h>
+#include <trackbase/TrackFitUtils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -164,7 +166,7 @@ int PHActsSiliconSeeding::End(PHCompositeNode */*topNode*/)
 GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
 {
   
-  Acts::Seedfinder<SpacePoint> seedFinder(m_seedFinderCfg);
+  Acts::SeedFinder<SpacePoint> seedFinder(m_seedFinderCfg);
   
   /// Covariance converter functor needed by seed finder
   auto covConverter = 
@@ -184,21 +186,26 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
   
   auto grid = 
     Acts::SpacePointGridCreator::createGrid<SpacePoint>(m_gridCfg);
-
+  
   auto spGroup = Acts::BinnedSPGroup<SpacePoint>(spVec.begin(),
 						 spVec.end(),
 						 covConverter,
 						 m_bottomBinFinder,
 						 m_topBinFinder,
-						 std::move(grid),
+						 std::move(grid), rRangeSPExtent,
 						 m_seedFinderCfg);
+
+  /// variable middle SP radial region of interest
+  const Acts::Range1D<float> rMiddleSPRange(
+	 std::floor(rRangeSPExtent.min(Acts::binR) / 2) * 2 + 1.5, 
+	 std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 - 1.5);
 
   GridSeeds seedVector;
   auto groupIt = spGroup.begin();
   auto endGroup = spGroup.end();
   SeedContainer seeds;
   seeds.clear();
-  decltype(seedFinder)::State state;
+  decltype(seedFinder)::SeedingState state;
 
   for(; !(groupIt == endGroup); ++groupIt)
     {
@@ -207,7 +214,7 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
 				     groupIt.bottom(),
 				     groupIt.middle(),
 				     groupIt.top(),
-				     rRangeSPExtent);
+				     rMiddleSPRange);
 
     }
   
@@ -283,7 +290,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 	    }
         
 	  trackSeed->lineFit(positions, 0, 8);
-	  
+	  z = trackSeed->get_Z0();
+
 	  fitTimer->stop();
 	  auto circlefittime = fitTimer->get_accumulated_time();
 	  fitTimer->restart();
@@ -376,20 +384,18 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
 			    sqrt(square(glob(0)) + square(glob(1))));
 	}
     }
-  
-  
 
   /// Project the seed to the INTT to find matches
   for(int layer = 0; layer < m_nInttLayers; ++layer)
     {
-      double xplus = 0;
-      double yplus = 0;
-      double xminus = 0;
-      double yminus = 0;
-      circleCircleIntersection(m_nInttLayerRadii[layer],
-			       R, X0, Y0, xplus, yplus,
-			       xminus, yminus);
-      
+      auto cci = TrackFitUtils::circle_circle_intersection(
+                 m_nInttLayerRadii[layer],
+		 R, X0, Y0);
+      double xplus = std::get<0>(cci);
+      double yplus = std::get<1>(cci);
+      double xminus = std::get<2>(cci);
+      double yminus = std::get<3>(cci);
+  
       /// If there are no real solutions to the intersection, skip
       if(std::isnan(xplus))
 	{
@@ -410,7 +416,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findInttMatches(
       const double lastClusPhi = atan2(lastclusglob(1), lastclusglob(0));
       const double plusPhi = atan2(yplus, xplus);
       const double minusPhi = atan2(yminus, xminus);
-      
+  
       if(fabs(lastClusPhi - plusPhi) < fabs(lastClusPhi - minusPhi))
 	{
 	  xProj[layer] = xplus;
@@ -454,10 +460,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
       const double projPhi = std::atan2(yProj[inttlayer], xProj[inttlayer]);
       const double projRphi = projR * projPhi;
 
-      for( const auto& hitsetkey:m_clusterMap->getHitSetKeys(TrkrDefs::TrkrId::inttId, inttlayer+3))
+      for( const auto& hitsetkey : m_clusterMap->getHitSetKeys(TrkrDefs::TrkrId::inttId, inttlayer+3))
       {
-	  const int ladderzindex = InttDefs::getLadderZId(hitsetkey);
-	  const int ladderphiindex = InttDefs::getLadderPhiId(hitsetkey);
 	  double ladderLocation[3] = {0.,0.,0.};
 
 	  // Add three to skip the mvtx layers for comparison
@@ -465,7 +469,9 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 	  auto layerGeom = dynamic_cast<CylinderGeomIntt*>
 	    (m_geomContainerIntt->GetLayerGeom(inttlayer+3));
 	  
-	  layerGeom->find_segment_center(ladderzindex, ladderphiindex, ladderLocation);
+	  auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
+	  layerGeom->find_segment_center(surf, m_tGeometry, ladderLocation);
+        
 	  const double ladderphi = atan2(ladderLocation[1], ladderLocation[0]) + layerGeom->get_strip_phi_tilt();
 	  const auto stripZSpacing = layerGeom->get_strip_z_spacing();
 	  float dphi = ladderphi - projPhi;
@@ -482,10 +488,11 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 
 	  TVector3 projectionLocal(0,0,0);
 	  TVector3 projectionGlobal(xProj[inttlayer],yProj[inttlayer],zProj[inttlayer]);
-	  projectionLocal = layerGeom->get_local_from_world_coords(ladderzindex, 
-								   ladderphiindex,
+	 
+	  projectionLocal = layerGeom->get_local_from_world_coords(surf, 
+								   m_tGeometry,
 								   projectionGlobal);
-
+        
 	  auto range = m_clusterMap->getClusters(hitsetkey);	
 	  for(auto clusIter = range.first; clusIter != range.second; ++clusIter )
 	    {
@@ -542,59 +549,29 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::matchInttClusters(
 
   return matchedClusters;
 }
-void PHActsSiliconSeeding::circleCircleIntersection(const double layerRadius,
-						    const double circRadius,
-						    const double circX0,
-						    const double circY0,
-						    double& xplus,
-						    double& yplus,
-						    double& xminus,
-						    double& yminus)
-{
-  /// Solutions to the circle intersection are (xplus, yplus) and 
-  /// (xminus, yminus). The intersection of the two circles occurs when
-  /// (x-x1)^2 + (y-y1)^2 = r1^2,  / (x-x2)^2 + (y-y2)^2 = r2^2
-  /// Here we assume that circle 1 is an sPHENIX layer centered on x1=y1=0, 
-  /// and circle 2 is arbitrary such that they are described by
-  ///  x^2 +y^2 = r1^2,   (x-x0)^2 + (y-y0)^2 = r2^2
-  /// expand the equations and subtract to eliminate the x^2 and y^2 terms, 
-  /// gives the radial line connecting the intersection points
-  /// iy = - (2*x2*x - D) / 2*y2, 
-  /// then substitute for y in equation of circle 1
-
-  double D = layerRadius*layerRadius - circRadius*circRadius + circX0*circX0 + circY0*circY0;
-  double a = 1.0 + (circX0*circX0) / (circY0*circY0);
-  double b = - D * circX0/( circY0*circY0);
-  double c = D*D / (4.0*circY0*circY0) - layerRadius*layerRadius;
-
-  xplus = (-b + sqrt(b*b - 4.0* a * c) ) / (2.0 * a);
-  xminus = (-b - sqrt(b*b - 4.0* a * c) ) / (2.0 * a);
-
-  // both values of x are valid
-  // but for each of those values, there are two possible y values on circle 1
-  // but only one of those falls on the radical line:
-
-  yplus = - (2*circX0*xplus - D) / (2.0*circY0); 
-  yminus = -(2*circX0*xminus - D) / (2.0*circY0);
-}
 
 SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   const Surface& surf,
   const TrkrDefs::cluskey key,
-  const TrkrCluster* clus)
+  TrkrCluster* clus)
 {
   Acts::Vector2 localPos(clus->getLocalX() * Acts::UnitConstants::cm, 
 			 clus->getLocalY() * Acts::UnitConstants::cm);
   Acts::Vector3 globalPos(0,0,0);
   Acts::Vector3 mom(1,1,1);
-
-  globalPos = surf->localToGlobal(m_tGeometry->geometry().geoContext,
+  globalPos = surf->localToGlobal(m_tGeometry->geometry().getGeoContext(),
 				  localPos, mom);
 
   Acts::SymMatrix2 localCov = Acts::SymMatrix2::Zero();
-  localCov(0,0) = clus->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
-  localCov(1,1) = clus->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
-  
+  if(m_cluster_version==3){
+    localCov(0,0) = clus->getActsLocalError(0,0) * Acts::UnitConstants::cm2;
+    localCov(1,1) = clus->getActsLocalError(1,1) * Acts::UnitConstants::cm2;
+  }else if(m_cluster_version==4){
+    auto para_errors = _ClusErrPara.get_si_cluster_error(clus,key);
+    localCov(0,0) = para_errors.first* Acts::UnitConstants::cm2;
+    localCov(1,1) = para_errors.second* Acts::UnitConstants::cm2;
+  }
+    
   float x = globalPos.x();
   float y = globalPos.y();
   float z = globalPos.z();
@@ -612,7 +589,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   ///       dz/dz = 1 
 
   Acts::RotationMatrix3 rotLocalToGlobal =
-    surf->referenceFrame(m_tGeometry->geometry().geoContext, globalPos, mom);
+    surf->referenceFrame(m_tGeometry->geometry().getGeoContext(), globalPos, mom);
   auto scale = 2 / std::hypot(x,y);
   Acts::ActsMatrix<2, 3> jacXyzToRhoZ = Acts::ActsMatrix<2, 3>::Zero();
   jacXyzToRhoZ(0, Acts::ePos0) = scale * x;
@@ -625,7 +602,13 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   // compute rho/z variance
   Acts::ActsVector<2> var = (jac * localCov * jac.transpose()).diagonal();
 
-  SpacePointPtr spPtr(new SpacePoint{key, x, y, z, r,  surf->geometryId(), var[0], var[1]});
+  /*
+   * From Acts v17 to v19 the scattering uncertainty value allowed was changed.
+   * This led to a decrease in efficiency. To offset this, we scale the 
+   * uncertainties by a tuned factor that gives the v17 performance
+   * Track reconstruction is an art as much as it is a science...
+   */
+  SpacePointPtr spPtr(new SpacePoint{key, x, y, z, r,  surf->geometryId(), var[0]*m_uncfactor, var[1]*m_uncfactor});
 
   if(Verbosity() > 2)
     std::cout << "Space point has " 
@@ -664,11 +647,11 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getMvtxSpacePoints(Acts::Ex
 	  const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
 	  const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey);
 	  if(!surface)
-	    continue;
+	    { continue; }
 
 	  auto sp = makeSpacePoint(surface, cluskey, cluster).release();
 	  spVec.push_back(sp);
-	  rRangeSPExtent.check({sp->x(), sp->y(), sp->z()});
+	  rRangeSPExtent.extend({sp->x(), sp->y(), sp->z()});
 	  numSiliconHits++;
 	}
     }
@@ -696,7 +679,7 @@ Acts::SpacePointGridConfig PHActsSiliconSeeding::configureSPGrid()
   config.deltaRMax = m_deltaRMax;
   config.cotThetaMax = m_cotThetaMax;
   config.impactMax = m_impactMax;
-  config.numPhiNeighbors = m_numPhiNeighbors;
+  config.phiBinDeflectionCoverage = m_numPhiNeighbors;
 
 
   return config;
@@ -709,10 +692,15 @@ Acts::SeedFilterConfig PHActsSiliconSeeding::configureSeedFilter()
   return config;
 }
 
-Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
+Acts::SeedFinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
 {
-  Acts::SeedfinderConfig<SpacePoint> config;
-  
+  Acts::SeedFinderConfig<SpacePoint> config;
+  /// these are default values that used to be set in Acts
+  config.deltaRMinTopSP = 5 * Acts::UnitConstants::mm;
+  config.deltaRMaxTopSP = 270 * Acts::UnitConstants::mm;
+  config.deltaRMinBottomSP = 5 * Acts::UnitConstants::mm;
+  config.deltaRMaxBottomSP = 270 * Acts::UnitConstants::mm;
+
   /// Limiting location of measurements (e.g. detector constraints)
   config.rMax = m_rMax;
   config.rMin = m_rMin;
@@ -726,7 +714,7 @@ Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
   /// Limiting collision region in z
   config.collisionRegionMin = -300. * Acts::UnitConstants::mm;
   config.collisionRegionMax = 300. * Acts::UnitConstants::mm;
-  config.sigmaScattering = 5.;
+  config.sigmaScattering = m_sigmaScattering;
   config.maxSeedsPerSpM = m_maxSeedsPerSpM;
   config.cotThetaMax = m_cotThetaMax;
   config.minPt = m_minSeedPt;
@@ -791,8 +779,9 @@ int PHActsSiliconSeeding::createNodes(PHCompositeNode *topNode)
     std::cerr << "DST node is missing, quitting" << std::endl;
     throw std::runtime_error("Failed to find DST node in PHActsSiliconSeeding::createNodes");
   }
-  
-  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+
+  PHNodeIterator dstIter(dstNode);
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", "SVTX"));
 
   if (!svtxNode)
   {

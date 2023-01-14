@@ -25,11 +25,8 @@
 #include <HepMC/SimpleVector.h>  // for FourVector
 #include <HepMC/Units.h>         // for CM, GEV
 
-#include <TDirectory.h>
 #include <TPRegexp.h>
-#include <TROOT.h>
 #include <TString.h>
-#include <TSystem.h>
 
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>

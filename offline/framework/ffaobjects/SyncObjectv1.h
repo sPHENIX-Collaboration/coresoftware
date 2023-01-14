@@ -50,6 +50,8 @@ class SyncObjectv1 : public SyncObject
   int EventNumber() const override { return eventnumber; }
   /// get Run Number
   int RunNumber() const override { return runnumber; }
+  /// get Segment Number
+  int SegmentNumber() const  override { return segmentnumber; }
 
  private:
   int eventcounter = 0;         // running counter
@@ -58,7 +60,6 @@ class SyncObjectv1 : public SyncObject
   int segmentnumber = -999999;  // segment number
 
   ClassDefOverride(SyncObjectv1, 1)
-
 };
 
 #endif

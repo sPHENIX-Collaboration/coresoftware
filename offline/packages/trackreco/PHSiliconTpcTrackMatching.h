@@ -33,14 +33,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_y_search_window(const double win){_y_search_win = win;}
   void set_z_search_window(const double win){_z_search_win = win;}
 
-  void set_field_dir(const double rescale)
-  {
-    _fieldDir = -1;
-    if(rescale > 0)
-      _fieldDir = 1;     
-  }
-  void set_field(const std::string &field) { _field = field;}
-
   void set_test_windows_printout(const bool test){_test_windows = test ;}
   void set_pp_mode(const bool flag){_pp_mode = flag ;}
   void set_use_intt_time(const bool flag){_use_intt_time = flag ;}
@@ -59,6 +51,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   int GetNodes(PHCompositeNode* topNode);
 
   void findEtaPhiMatches( std::set<unsigned int> &tpc_matched_set,
+                            std::set<unsigned int> &tpc_unmatched_set,
 			    std::multimap<unsigned int, unsigned int> &tpc_matches );
   std::vector<short int> getInttCrossings(TrackSeed *si_track);
    void checkCrossingMatches( std::multimap<unsigned int, unsigned int> &tpc_matches);
@@ -125,9 +118,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   bool _test_windows = false;
   bool _pp_mode = false;
   bool _use_intt_time = false;
-
-  std::string _field;
-  int _fieldDir = -1;
 
   int _n_iteration = 0;
   std::string _track_map_name = "TpcTrackSeedContainer";

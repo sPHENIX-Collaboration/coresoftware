@@ -15,6 +15,8 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
+
 #include <trackbase/TpcDefs.h>
 
 #include <trackbase/TrkrClusterContainer.h>
@@ -34,8 +36,8 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -127,7 +129,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                                                  "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_vertex_eval) _ntp_vertex = new TNtuple("ntp_vertex", "vertex => max truth",
-						 "event:seed:vx:vy:vz:ntracks:chi2:ndof:"
+						 "event:seed:vertexID:vx:vy:vz:ntracks:chi2:ndof:"
 						 "gvx:gvy:gvz:gvt:gembed:gntracks:gntracksmaps:"
 						 "gnembed:nfromtruth:"
 						 "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
@@ -163,7 +165,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                                            "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster", "svtxcluster => max truth",
-                                                   "event:seed:hitID:x:y:z:r:phi:eta:theta:ex:ey:ez:ephi:"
+                                                   "event:seed:hitID:x:y:z:r:phi:eta:theta:ex:ey:ez:ephi:pez:pephi:"
                                                    "e:adc:maxadc:layer:phielem:zelem:size:phisize:zsize:"
                                                    "trackID:niter:g4hitID:gx:"
                                                    "gy:gz:gr:gphi:geta:gt:gtrackID:gflavor:"
@@ -173,7 +175,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                                                    "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_g4cluster_eval) _ntp_g4cluster = new TNtuple("ntp_g4cluster", "g4cluster => max truth",
-						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary:gphisize:gzsize:gadc:nreco:x:y:z:r:phi:eta:ex:ey:ez:ephi:adc"); 
+						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary:gphisize:gzsize:gadc:nreco:x:y:z:r:phi:eta:ex:ey:ez:ephi:adc:phisize:zsize"); 
                                                        
   if (_do_gtrack_eval) _ntp_gtrack = new TNtuple("ntp_gtrack", "g4particle => best svtxtrack",
                                                  "event:seed:gntracks:gtrackID:gflavor:gnhits:gnmaps:gnintt:gnmms:"
@@ -186,13 +188,13 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                                                  "gembed:gprimary:"
                                                  "trackID:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:"
                                                  "charge:quality:chisq:ndf:nhits:layers:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:"
-                                                 "dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:ntruintt:ntrutpc:ntrumms:ntrutpc1:ntrutpc11:ntrutpc2:ntrutpc3:layersfromtruth:"
+                                                 "vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:ntruintt:ntrutpc:ntrumms:ntrutpc1:ntrutpc11:ntrutpc2:ntrutpc3:layersfromtruth:"
                                                  "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
 
   if (_do_track_eval) _ntp_track = new TNtuple("ntp_track", "svtxtrack => max truth",
                                                "event:seed:trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:"
                                                "quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:layers:"
-                                               "dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:"
+                                               "vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:"
 					       "gtrackID:gflavor:gnhits:gnmaps:gnintt:gntpc:gnmms:gnlmaps:gnlintt:gnltpc:gnlmms:"
                                                "gpx:gpy:gpz:gpt:geta:gphi:"
                                                "gvx:gvy:gvz:gvt:"
@@ -526,8 +528,8 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 	}
       }
 
-    PHG4CylinderCellGeomContainer* geom_container =
-      findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+    PHG4TpcCylinderGeomContainer* geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
       {
 	if (!geom_container)
 	  std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
@@ -537,7 +539,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 
     for (unsigned int ilayer = 0; ilayer < _nlayers_maps + _nlayers_intt + _nlayers_tpc; ++ilayer)
     {
-      PHG4CylinderCellGeom* GeoLayer = geom_container->GetLayerCellGeom(ilayer);
+      PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(ilayer);
 
       cout << "layer " << ilayer << ": nG4hits = " << ng4hits[ilayer]
            << " => nHits = " << nhits[ilayer]
@@ -788,13 +790,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		<< std::endl;
       return;
     }
-
+  
   SvtxVertexEval* vertexeval = _svtxevalstack->get_vertex_eval();
   SvtxClusterEval* clustereval = _svtxevalstack->get_cluster_eval();
   SvtxTrackEval* trackeval = _svtxevalstack->get_track_eval();
   SvtxHitEval* hiteval = _svtxevalstack->get_hit_eval();
   SvtxTruthEval* trutheval = _svtxevalstack->get_truth_eval();
-
+  
   float nhit_tpc_all = 0;
   float nhit_tpc_in = 0;
   float nhit_tpc_mid = 0;
@@ -812,7 +814,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   float occ216 = 0;
   float occ31  = 0;
   float occ316 = 0;
-
+  
   TrkrHitSetContainer* hitmap_in = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (hitmap_in)
     {
@@ -841,14 +843,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	}
     }
   /**********/
-  PHG4CylinderCellGeomContainer* geom_container =
-    findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcCylinderGeomContainer* geom_container =
+    findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
     {
       std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
       return;
     }
-  PHG4CylinderCellGeom* GeoLayer;
+  PHG4TpcCylinderGeom* GeoLayer;
   int layer = _nlayers_maps + _nlayers_intt;
   GeoLayer = geom_container->GetLayerCellGeom(layer);
   int nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
@@ -1091,6 +1093,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
        {
         SvtxVertex* vertex = iter->second;
         PHG4VtxPoint* point = vertexeval->max_truth_point_by_ntracks(vertex);
+        int vertexID = vertex->get_id();
         float vx = vertex->get_x();
         float vy = vertex->get_y();
         float vz = vertex->get_z();
@@ -1123,6 +1126,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         }
 	
         float vertex_data[] = {(float) _ievent,m_fSeed,
+                               (float) vertexID,
                                vx,
                                vy,
                                vz,
@@ -1536,8 +1540,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
     // need things off of the DST...
     TrkrHitSetContainer *hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-    PHG4CylinderCellGeomContainer* geom_container =
-        findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+    PHG4TpcCylinderGeomContainer* geom_container =
+        findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
     if (!geom_container)
     {
       std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
@@ -1581,7 +1585,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    
 	    if (layer >= _nlayers_maps + _nlayers_intt && layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc )
 	      {
-		PHG4CylinderCellGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
+		PHG4TpcCylinderGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
 		phibin = (float) TpcDefs::getPad(hit_key);
 		zbin = (float) TpcDefs::getTBin(hit_key);
 		phi = GeoLayer->get_phicenter(phibin);
@@ -1791,6 +1795,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  float ey = 0;
 	  float ez = 0;
 	  float ephi =  0;
+	  float pez = 0;
+	  float pephi =  0;
 	  float size = 0;
 	  float phisize = 0;
 	  float zsize = 0;
@@ -1803,6 +1809,21 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  }else if(m_cluster_version==4){
 	    phisize = cluster->getPhiSize();
 	    zsize = cluster->getZSize();
+	    double clusRadius = r;
+	    ClusterErrorPara ClusErrPara;
+	    TrackSeed *seed = nullptr;
+	    if(track!=NULL){
+	      if(layer < 7){
+		seed = track->get_silicon_seed();
+	      }else{
+		seed = track->get_tpc_seed();
+	      }
+	      if(seed != nullptr){
+		auto para_errors = ClusErrPara.get_cluster_error(seed,cluster,clusRadius,cluster_key);
+		pephi = sqrt(para_errors.first* Acts::UnitConstants::cm2);
+		pez =sqrt( para_errors.second* Acts::UnitConstants::cm2);
+	      }
+	    }
 	  }
 	  
 	  float e = cluster->getAdc();
@@ -1829,6 +1850,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
 	    {
 	      TrkrHit* hit = hitset->second->getHit(clushititer->second);
+	      if(!hit) continue;
+
 	      ++size; 
 	      sumadc += (hit->getAdc() - 70);
 	      if((hit->getAdc()-70)>maxadc)
@@ -1955,6 +1978,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 				  ey,
 				  ez,
 				  ephi,
+				  pez,
+				  pephi,
 				  e,
 				  adc,
 				  maxadc,
@@ -2029,32 +2054,52 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
            ++iter)
 	{
 	  SvtxTrack* track = iter->second;
-	  
+
 	  PHG4Particle* truth = trackeval->max_truth_particle_by_nclusters(track);
 	  if (truth)
 	    {
 	      if (trutheval->get_embed(truth) <= 0) continue;
 	    }
-	  
-	  for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
-	       iter != track->end_cluster_keys();
-	       ++iter)
+
+	  std::vector<TrkrDefs::cluskey> clusters;
+	  auto siseed = track->get_silicon_seed();
+          if(siseed)
+          {
+	    for (auto iter = siseed->begin_cluster_keys();
+	         iter != siseed->end_cluster_keys();
+	         ++iter)
+	      {
+	        TrkrDefs::cluskey cluster_key = *iter;
+	        clusters.push_back(cluster_key);
+	      }
+          }
+	  auto tpcseed = track->get_tpc_seed();
+          if(tpcseed)
+          {
+	    for (auto iter = tpcseed->begin_cluster_keys();
+	         iter != tpcseed->end_cluster_keys();
+	         ++iter)
+	      {
+	        TrkrDefs::cluskey cluster_key = *iter;
+	        clusters.push_back(cluster_key);
+	      }
+          }
+
+	  // loop over all cluster keys and build ntuple
+	  for(unsigned int iclus = 0; iclus < clusters.size(); ++iclus)
 	    {
-	      TrkrDefs::cluskey cluster_key = *iter;
+	      TrkrDefs::cluskey cluster_key = clusters[iclus];	      
 	      TrkrCluster* cluster = clustermap->findCluster(cluster_key);
 	      if(!cluster) continue;   // possible to be missing from corrected clusters if cluster mover fails
 	      
 	      PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster_key);
 	      PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 	      
-	      //float hitID = cluster_key;
 	      float niter = 0;
 	      if(_iteration_map!=NULL)
 		niter = _iteration_map->getIteration(cluster_key);
 	      float hitID = (float) TrkrDefs::getClusIndex(cluster_key);
-	      //auto trkrid = TrkrDefs::getTrkrId(cluster_key);
-	      Acts::Vector3 glob;
-	      glob = tgeometry->getGlobalPosition(cluster_key, cluster);
+	      Acts::Vector3 glob = tgeometry->getGlobalPosition(cluster_key, cluster);
 	      float x = glob(0);
 	      float y = glob(1);
 	      float z = glob(2);
@@ -2063,11 +2108,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float phi = pos.Phi();
 	      float eta = pos.Eta();
 	      float theta = pos.Theta();
-
 	      float ex = 0;
 	      float ey = 0;
 	      float ez = 0;
 	      float ephi =  0;
+	      float pez = 0;
+	      float pephi =  0;
 	      float size = 0;
 	      float phisize = 0;
 	      float zsize = 0;
@@ -2080,6 +2126,19 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      }else if(m_cluster_version==4){
 		phisize = cluster->getPhiSize();
 		zsize = cluster->getZSize();
+		double clusRadius = r;
+		ClusterErrorPara _ClusErrPara;
+		TrackSeed *seed = nullptr;
+		if(layer < 7){
+		  seed = track->get_silicon_seed();
+		}else{
+		  seed = track->get_tpc_seed();
+		}
+		if(seed != nullptr){
+		  auto para_errors = _ClusErrPara.get_cluster_error(seed,cluster,clusRadius,cluster_key);
+		  pephi = sqrt(para_errors.first* Acts::UnitConstants::cm2);
+		  pez =sqrt( para_errors.second* Acts::UnitConstants::cm2);
+		}
 	      }
 	      
 	      float e = cluster->getAdc();
@@ -2136,10 +2195,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      
 	      float efromtruth = NAN;
 	      
-	      //cout << "Look for truth cluster to match reco cluster " << cluster_key << endl;
-	      
 	      // get best matching truth cluster from clustereval
-        const auto [truth_ckey, truth_cluster] = clustereval->max_truth_cluster_by_energy(cluster_key);
+	      const auto [truth_ckey, truth_cluster] = clustereval->max_truth_cluster_by_energy(cluster_key);
 	      if(truth_cluster)
 		{
 		  if(Verbosity() > 1)
@@ -2208,6 +2265,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 				      ey,
 				      ez,
 				      ephi,
+				      pez,
+				      pephi,
 				      e,
 				      adc,
 				      maxadc,
@@ -2342,7 +2401,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float adc = NAN;
 
 	      float nreco = 0;
-
+	      float phisize = 0;
+	      float zsize = 0;
         const auto [reco_ckey,reco_cluster] = clustereval->reco_cluster_from_truth_cluster(ckey, gclus);
 	      if(reco_cluster)
 		{
@@ -2358,11 +2418,17 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  r = sqrt(x*x+y*y);
 		  phi = pos.Phi();
 		  eta = pos.Eta();
-		  auto globerr = calculateClusterError(reco_cluster,phi);
-		  ex = sqrt(globerr[0][0]);
-		  ey = sqrt(globerr[1][1]);
-		  ez = reco_cluster->getZError();		  
-		  ephi = reco_cluster->getRPhiError(); 
+		  if(m_cluster_version==3){
+		    auto globerr = calculateClusterError(reco_cluster,phi);
+		    ex = sqrt(globerr[0][0]);
+		    ey = sqrt(globerr[1][1]);
+		    ez = reco_cluster->getZError();		  
+		    ephi = reco_cluster->getRPhiError();
+		  }else if(m_cluster_version==4){
+		    //cout << " ver v4 " <<  endl;
+		    phisize = reco_cluster->getPhiSize();
+		    zsize = reco_cluster->getZSize();
+		  } 
 		  
 		  adc = reco_cluster->getAdc();
 
@@ -2407,7 +2473,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 					ey,
 					ez,
 					ephi,
-					adc };
+					adc,
+					phisize, 
+					zsize };
 	      _ntp_g4cluster->Fill(g4cluster_data);
 	    }
 	}
@@ -2447,7 +2515,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
 
         PHG4Particle* g4particle = iter->second;
-
+	
         if (_scan_for_embedded)
         {
           if (trutheval->get_embed(g4particle) <= 0) continue;
@@ -2628,6 +2696,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float nltpc = 0;
         float nlmms = 0;
         unsigned int layers = 0x0;
+        int vertexID = -1;
+        float vx = NAN;
+        float vy = NAN;
+        float vz = NAN;
         float dca2d = NAN;
         float dca2dsigma = NAN;
         float dca3dxy = NAN;
@@ -2658,7 +2730,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float ntrutpc2 = NAN;
         float ntrutpc3 = NAN;
         float layersfromtruth = NAN;
-
+        
         if (_do_track_match)
         {
           SvtxTrack* track = trackeval->best_track_from(g4particle);
@@ -2676,7 +2748,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      { nhits += tpcseed->size_cluster_keys(); }
 	    if(silseed)
 	      { nhits += silseed->size_cluster_keys(); }
-
+	  
             vector <int> maps(_nlayers_maps, 0);
             vector <int> intt(_nlayers_intt, 0);
             vector <int> tpc(_nlayers_tpc, 0);
@@ -2823,8 +2895,16 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		 << " nltpc  " << nltpc
 		 << endl;
 	    */
-	  
-	    get_dca(track, vertexmap, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma);
+	    
+            vertexID = track->get_vertex_id();
+            SvtxVertex* vertex = vertexmap->get(vertexID);
+	    if(vertex) {
+	      vx = vertex->get_x();
+	      vy = vertex->get_y();
+	      vz = vertex->get_z();
+	      
+	      get_dca(track, vertexmap, dca3dxy, dca3dz, dca3dxysigma, dca3dzsigma);
+	    }
 	    
             px = track->get_px();
             py = track->get_py();
@@ -2848,7 +2928,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
             nfromtruth = trackeval->get_nclusters_contribution(track, g4particle);
             nwrong = trackeval->get_nwrongclusters_contribution(track, g4particle);
-
+	   
             if (_nlayers_maps == 0)
             {
               ntrumaps = 0;
@@ -2950,6 +3030,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                nlintt,
                                nltpc,
 			       nlmms,
+                               (float) vertexID,
+                               vx,
+                               vy,
+                               vz,
                                dca2d,
                                dca2dsigma,
                                dca3dxy,
@@ -3176,9 +3260,20 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	float dca3dxy = NAN, dca3dz = NAN,
 	  dca3dxysigma = NAN, dca3dzsigma = NAN;
 	float dca2d = NAN, dca2dsigma = NAN;
-	get_dca(track, vertexmap, dca3dxy, dca3dz,
-		dca3dxysigma, dca3dzsigma);
 
+        int vertexID = track->get_vertex_id();
+        SvtxVertex* vertex = vertexmap->get(vertexID);
+	float vx = NAN;
+	float vy = NAN;
+	float vz = NAN;
+	if(vertex) {
+	  vx = vertex->get_x();
+	  vy = vertex->get_y();
+	  vz = vertex->get_z();
+	  
+	  get_dca(track, vertexmap, dca3dxy, dca3dz,
+		  dca3dxysigma, dca3dzsigma);
+	}
         float px = track->get_px();
         float py = track->get_py();
         float pz = track->get_pz();
@@ -3393,6 +3488,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 			      ntpc1,ntpc11,ntpc2,ntpc3,
 			      nlmaps, nlintt, nltpc,nlmms,
                               (float) layers,
+                              (float) vertexID,
+                              vx,
+                              vy,
+                              vz,
                               dca2d,
                               dca2dsigma,
                               dca3dxy,
@@ -3674,6 +3773,8 @@ void SvtxEvaluator::get_dca(SvtxTrack* track, SvtxVertexMap* vertexmap,
 
   auto vtxid = track->get_vertex_id();
   auto svtxVertex = vertexmap->get(vtxid);
+  if(!svtxVertex)
+    { return; }
   Acts::Vector3 vertex(svtxVertex->get_x(),
 		       svtxVertex->get_y(),
 		       svtxVertex->get_z());

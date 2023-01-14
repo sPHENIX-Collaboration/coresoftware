@@ -16,7 +16,7 @@ class PHG4ConeSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4ConeSteppingAction(PHG4ConeDetector*);
+  explicit PHG4ConeSteppingAction(PHG4ConeDetector*);
 
   //! destructor
   ~PHG4ConeSteppingAction() override;

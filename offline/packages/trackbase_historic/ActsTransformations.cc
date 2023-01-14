@@ -208,7 +208,7 @@ void ActsTransformations::printMatrix(const std::string &message, const Acts::Bo
 void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 				       Acts::Vector3 vertex,
 				       Acts::BoundSymMatrix cov,
-				       Acts::GeometryContext geoCtxt,
+				       Acts::GeometryContext& geoCtxt,
 				       float &dca3Dxy,
 				       float &dca3Dz,
 				       float &dca3DxyCov,
@@ -257,7 +257,7 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters param,
 }
 
 
-void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory& traj,
+void ActsTransformations::fillSvtxTrackStates(const Acts::MultiTrajectory<Acts::VectorMultiTrajectory>& traj,
 					      const size_t& trackTip,
 					      SvtxTrack *svtxTrack,
 					      Acts::GeometryContext& geoContext) const

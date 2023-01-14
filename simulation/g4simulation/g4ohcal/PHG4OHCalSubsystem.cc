@@ -4,6 +4,7 @@
 #include "PHG4OHCalDisplayAction.h"
 #include "PHG4OHCalSteppingAction.h"
 
+#include <g4detectors/PHG4DetectorSubsystem.h>  // for PHG4DetectorSubsystem
 #include <g4detectors/PHG4HcalDefs.h>
 
 #include <phparameter/PHParameters.h>
@@ -19,16 +20,11 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <boost/foreach.hpp>
-
 #include <cmath>     // for NAN
 #include <iostream>  // for operator<<, basic_ostream
 #include <set>       // for set
-#include <sstream>
-
+#include <cstdlib> // for getenv
 class PHG4Detector;
-
-using namespace std;
 
 //_______________________________________________________________________
 PHG4OHCalSubsystem::PHG4OHCalSubsystem(const std::string &name, const int lyr)
@@ -52,11 +48,18 @@ int PHG4OHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   // create display settings before detector
   m_DisplayAction = new PHG4OHCalDisplayAction(Name());
 
+  if (get_string_param("IronFieldMapPath") == "DefaultParameters-InvadPath" )
+  {
+    std::cout <<__PRETTY_FUNCTION__<<": invalid string parameter IronFieldMapPath, where we expect a 3D field map"<<std::endl;
+    exit (1);
+  }
+
+
   // create detector
   m_Detector = new PHG4OHCalDetector(this, topNode, GetParams(), Name());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
-  set<string> nodes;
+  std::set<std::string> nodes;
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
@@ -85,7 +88,7 @@ int PHG4OHCalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     {
       nodes.insert(m_AbsorberNodeName);
     }
-    for (auto nodename : nodes)
+    for (const auto &nodename : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
@@ -124,9 +127,9 @@ int PHG4OHCalSubsystem::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-void PHG4OHCalSubsystem::Print(const string &what) const
+void PHG4OHCalSubsystem::Print(const std::string &what) const
 {
-  cout << "Outer Hcal Parameters: " << endl;
+  std::cout << "Outer Hcal Parameters: " << std::endl;
   GetParams()->Print();
   if (m_Detector)
   {
@@ -136,7 +139,7 @@ void PHG4OHCalSubsystem::Print(const string &what) const
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4OHCalSubsystem::GetDetector(void) const
+PHG4Detector *PHG4OHCalSubsystem::GetDetector() const
 {
   return m_Detector;
 }
@@ -152,19 +155,20 @@ void PHG4OHCalSubsystem::SetLightCorrection(const double inner_radius, const dou
 
 void PHG4OHCalSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("inner_radius", 183.3);
+  set_default_double_param("inner_radius", 182.423  - 5);
   set_default_double_param("light_balance_inner_corr", NAN);
   set_default_double_param("light_balance_inner_radius", NAN);
   set_default_double_param("light_balance_outer_corr", NAN);
   set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param("outer_radius", 264.71);
+  set_default_double_param("outer_radius", 269.317  + 5 );
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
   set_default_double_param("rot_x", 0.);
-  set_default_double_param("rot_y", 0.);
+  set_default_double_param("rot_y", 180.);
   set_default_double_param("rot_z", 0.);
-  set_default_double_param("size_z", 304.91 * 2);
+  set_default_double_param("size_z", 639.240 + 10);
+  set_default_double_param("Birk_const", 0.07943);
   set_default_int_param("field_check", 0);
   set_default_int_param("light_scint_model", 1);
 
@@ -173,4 +177,22 @@ void PHG4OHCalSubsystem::SetDefaultParameters()
   set_default_int_param("n_scinti_tiles", 12);
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
+  std::string defaultmapfilename;
+  const char* Calibroot = getenv("CALIBRATIONROOT");
+  if (Calibroot)
+   {
+     defaultmapfilename = Calibroot;
+     defaultmapfilename += "/HCALOUT/tilemap/ohcalgdmlmapfiles102022.root";
+   }
+  set_default_string_param("MapFileName", defaultmapfilename);
+  set_default_string_param("MapHistoName", "ohcal_mephi_map_towerid_");
+  
+  if (!Calibroot)
+  {
+    std::cout<<__PRETTY_FUNCTION__ << ": no CALIBRATIONROOT environment variable" << std::endl;
+    exit(1);
+  }
+  set_default_string_param("IronFieldMapPath", std::string(Calibroot) + "/Field/Map/sphenix3dbigmapxyz_steel_rebuild.root" );
+  set_default_double_param("IronFieldMapScale", 1.);
+  
 }

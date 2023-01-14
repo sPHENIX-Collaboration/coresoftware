@@ -11,10 +11,10 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>          // for cout, ostream
-#include <map>
-#include <utility>           // for pair
 #include <climits>
+#include <iostream>  // for cout, ostream
+#include <map>
+#include <utility>  // for pair
 
 /**
  * @brief Base class for associating clusters to the hits that went into them
@@ -23,12 +23,11 @@
  */
 class TrkrClusterHitAssoc : public PHObject
 {
-public:
-
+ public:
   using Map = std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>;
   using ConstIterator = Map::const_iterator;
   using ConstRange = std::pair<Map::const_iterator, Map::const_iterator>;
-  
+
   void Reset() override;
 
   /**
@@ -39,7 +38,7 @@ public:
   virtual void addAssoc(TrkrDefs::cluskey ckey, unsigned int hidx) = 0;
 
   //! get pointer to cluster-to-hit map corresponding to a given hitset id
-  virtual Map* getClusterMap(TrkrDefs::hitsetkey) {return nullptr;}
+  virtual Map* getClusterMap(TrkrDefs::hitsetkey) { return nullptr; }
 
   /**
    * @brief Get all the hits associated with a cluster by key
@@ -49,14 +48,13 @@ public:
 
   virtual ConstRange getHits(TrkrDefs::cluskey) = 0;
 
-  virtual unsigned int size() const {return 0;}
+  virtual unsigned int size() const { return 0; }
 
-protected:
+ protected:
   TrkrClusterHitAssoc() = default;
 
-private:
-
+ private:
   ClassDefOverride(TrkrClusterHitAssoc, 1);
 };
 
-#endif // TRACKBASE_TRKRCLUSTERHITASSOC_H
+#endif  // TRACKBASE_TRKRCLUSTERHITASSOC_H

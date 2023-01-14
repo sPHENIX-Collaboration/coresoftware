@@ -61,6 +61,7 @@ void SvtxTrack_v4::identify(std::ostream& os) const
   os << "vertex id: " << get_vertex_id() << " ";
   os << "charge: " << get_charge() << " ";
   os << "chisq: " << get_chisq() << " ndf:" << get_ndf() << " ";
+  os << "nstates: " << _states.size() << " ";
   os << std::endl;
 
   os << "(px,py,pz) = ("
@@ -81,13 +82,15 @@ void SvtxTrack_v4::identify(std::ostream& os) const
 	}
     }
   os << std::endl << "Tpc + TPOT clusters " << std::endl;
+  if(_tpc_seed)
+  {
     for(auto iter = _tpc_seed->begin_cluster_keys(); 
       iter != _tpc_seed->end_cluster_keys();
       ++iter)
     {
       std::cout << *iter << ", ";
     }
-    
+  }
   os << std::endl;
 
   return;
