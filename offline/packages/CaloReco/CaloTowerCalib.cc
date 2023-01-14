@@ -92,6 +92,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int CaloTowerCalib::process_event(PHCompositeNode * /*topNode*/)
 {
+  /*
   int n_channels = _raw_towers->size();
 
   for (int i = 0; i < n_channels; i++)
@@ -110,7 +111,27 @@ int CaloTowerCalib::process_event(PHCompositeNode * /*topNode*/)
 
     _calib_towers->add(caloinfo_calib, i);
   }
+  */
+  TowerInfoContainerv1::Range begin_end = _raw_towers->getTowers();
+  TowerInfoContainerv1::Iterator rtiter;
+  for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+    {
+      unsigned int key = rtiter->first;
+      TowerInfo *caloinfo_raw = rtiter->second;
+      float raw_amplitude = caloinfo_raw->get_energy();
 
+      TowerInfov1 *caloinfo_calib = new TowerInfov1(*caloinfo_raw);
+     
+      float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
+
+      caloinfo_calib->set_energy(raw_amplitude * calibconst);
+
+      unsigned int channel = _calib_towers->decode_key(key);
+
+      _calib_towers->add(caloinfo_calib, channel);
+      
+    }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
