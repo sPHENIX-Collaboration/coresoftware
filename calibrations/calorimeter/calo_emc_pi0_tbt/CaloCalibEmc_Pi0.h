@@ -49,6 +49,9 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   void Fit_Histos_Eta_Phi_Add96(const char *infilent="");
   void Fit_Histos_Eta_Phi_Add32(const char *infilent="");
   
+  void set_centrality_nclusters_cut(int n){m_cent_nclus_cut=n;}
+
+  
   void Add_32();
   void Add_96();
   
@@ -59,6 +62,8 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   std::string m_Filename;
   TFile *cal_output = nullptr;
   std::string _caloname = "CEMC";
+
+  int m_cent_nclus_cut = 0;
 
   // histos lists
   TH1 *cemc_hist_eta_phi[96][258];

@@ -78,6 +78,9 @@ CaloCalibEmc_Pi0::CaloCalibEmc_Pi0(const std::string &name, const std::string &f
       cemc_hist_eta_phi[nj][nk] = nullptr;
     }
   }
+
+	m_cent_nclus_cut = 350;
+
 }
 
 //____________________________________________________________________________..
@@ -222,7 +225,8 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
   }
 
   _nClusters = iCs;
-  if (_nClusters > 300)
+
+  if (_nClusters > m_cent_nclus_cut)
     return Fun4AllReturnCodes::EVENT_OK;
 
   // looping on the saved clusters savCs[]
