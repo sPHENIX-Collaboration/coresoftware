@@ -312,12 +312,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     const TrkrDefs::hitsetkey& hitsetkey = hitsetitr->first;
     const int side = TpcDefs::getSide(hitsetkey);
     
-<<<<<<< HEAD
-    TrkrHitSet *hitset = hitsetitr->second;
-    
-=======
-    auto hitset = hitsetitr->second;
->>>>>>> master
+    auto& hitset = hitsetitr->second;
     const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
     const auto layergeom = m_geom_container->GetLayerCellGeom(layer);
     const auto layer_center_radius = layergeom->get_radius();
@@ -341,20 +336,12 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 	const double phi = layergeom->get_phicenter(phibin);
   const double x = layer_center_radius * cos(phi);
   const double y = layer_center_radius * sin(phi);
-<<<<<<< HEAD
-//   const double z  =  layergeom->get_zcenter(zbin);
-=======
->>>>>>> master
+
   
   const double zdriftlength = layergeom->get_zcenter(zbin)*m_tGeometry->get_drift_velocity();
   double z  =  tdriftmax*m_tGeometry->get_drift_velocity() - zdriftlength;
   if(side == 0)  z *= -1;
       
-<<<<<<< HEAD
-  std::cout << "TpcDirectLaserReconstruction::process_track - z: " << z << std::endl;
-  
-=======
->>>>>>> master
 	const TVector3 global(x,y,z);
 
 	float adc = (hitr->second->getAdc()) - m_pedestal; 
@@ -370,12 +357,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
 	if( dca > m_max_dca ) continue;
 
   ++m_matched_hits;
-<<<<<<< HEAD
-  
-  
-=======
 
->>>>>>> master
 	// bin hits by layer
 	const auto cluspos_pair = std::make_pair(adc, global); 	
 	cluspos_map.insert(std::make_pair(layer, cluspos_pair));	
