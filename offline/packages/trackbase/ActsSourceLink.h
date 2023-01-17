@@ -16,7 +16,7 @@
 class ActsSourceLink final : public Acts::SourceLink
 {
  public:
-  using Index = uint32_t;
+  using Index = uint8_t;
 
   /// Construct from geometry identifier and index.
   constexpr ActsSourceLink(Acts::GeometryIdentifier gid, Index idx)
