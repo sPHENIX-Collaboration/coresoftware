@@ -21,6 +21,7 @@
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
 
+#include <ActsExamples/EventData/Trajectories.hpp>
 class PHCompositeNode;
 class PHG4TpcCylinderGeomContainer;
 class SvtxTrack;
