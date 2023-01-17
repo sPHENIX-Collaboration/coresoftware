@@ -38,6 +38,8 @@ class ActsTrackFittingAlgorithm final
 {
  public:
   using TrackParameters = ::Acts::BoundTrackParameters;
+  using Measurement = ::Acts::BoundVariantMeasurement;
+  using MeasurementContainer = std::vector<Measurement>;
 
   /// Track fitter function that takes input measurements, initial trackstate
   /// and fitter options and returns some track-fitter-specific result.
