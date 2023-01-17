@@ -88,6 +88,10 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
       auto id1 = tr1_it->first;
       auto tr1 = tr1_it->second;
 
+      auto vertexId = tr1->get_vertex_id();
+      const SvtxVertex* svtxVertex = _svtx_vertex_map->get(vertexId);
+      if(svtxVertex->size_tracks() == 0) continue;  // event did not have a reconstructed vertex, vertex is bogus 
+
       // Reverse or remove this to consider TPC only tracks
       if(_require_mvtx && !hasSiliconSeed(tr1)) continue;
 
@@ -260,6 +264,7 @@ void SecondaryVertexFinder::get_dca(SvtxTrack* track,
       std::cout << "   Failed to find vertex for track " << std::endl;
       return; 
     }
+
   Acts::Vector3 vertex(svtxVertex->get_x(),
 		       svtxVertex->get_y(),
 		       svtxVertex->get_z());
