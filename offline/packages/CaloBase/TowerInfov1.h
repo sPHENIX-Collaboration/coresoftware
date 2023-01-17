@@ -11,6 +11,7 @@ class TowerInfov1 : public TowerInfo
 {
  public:
   TowerInfov1() {}
+  TowerInfov1(TowerInfo& tower);
   ~TowerInfov1() override {}
   void Reset() override;
 
