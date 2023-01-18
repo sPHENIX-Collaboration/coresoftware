@@ -41,6 +41,12 @@ public:
   float phi(uint id);
   float phi_from_side_r_phi(uint side, uint r_index, uint phi_index);
   float phi_from_side_sector_tile(uint side, uint sector, uint tile);
+  float z(uint id);
+  float z_from_side_r_phi(uint side, uint r_inxed, uint phi_index);
+  float z_from_side_sector_tile(uint side, uint sector, uint tile);
+  
+  
+  bool test_id_mapping();
 
 private:
   std::map<int, float> r_map;
@@ -60,7 +66,8 @@ private:
                                    4.05789051, 4.3196899 , 4.58148929, 4.84328867, 5.10508806,
                                    5.36688745, 5.62868684, 5.89048623, 6.15228561};
 
-  bool test_id_mapping();
+  const float NAIVE_Z_MAP[2] = {-325, 325};
+
   void build_map();
   
 

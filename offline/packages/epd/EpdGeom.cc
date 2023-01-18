@@ -2,6 +2,7 @@
 
 #include <map>
 #include <utility>
+#include <iostream>
 
 // Initializes the EPD Geometry
 EPD_GEOM::EPD_GEOM() {
@@ -100,17 +101,65 @@ float EPD_GEOM::phi_from_side_sector_tile(uint side, uint sector, uint tile) {
   return this->phi(id);
 }
 
+
+float EPD_GEOM::z(uint id) {
+  return this->z_map.at(id);
+}
+
+float EPD_GEOM::z_from_side_r_phi(uint side, uint r_index, uint phi_index) {
+  uint id = this->side_r_phi_to_id(side, r_index, phi_index);
+  return this->z(id);
+}
+
+float EPD_GEOM::z_from_side_sector_tile(uint side, uint sector, uint tile) {
+  uint id = this->side_sector_tile_to_id(side, sector, tile);
+  return this->z(id);
+}
+
+
 // Generates the maps returning the r and phi for a particular tile
 void EPD_GEOM::build_map() {
-  for (uint id = 0; id < this->NUM_TOWERS; id++) {
-    uint side, r_index, phi_index;
-    std::tie(side, r_index, phi_index) = this->id_to_side_r_phi(id);
-    this->r_map.at(id) = this->NAIVE_R_LOC[r_index];
-    if (r_index == 0) {
-      this->phi_map.at(id) = this->NAIVE_PHI_LOC_RING_0[phi_index]; // Inner ring only has 12 tiles
-    } else {
-      this->phi_map.at(id) = this->NAIVE_PHI_LOC[phi_index];        // The rest have 24
+  for (uint side = 0; side < 2; side++) {
+    for (uint r_index = 0; r_index < 16; r_index++) {
+      for (uint phi_index = 0; phi_index < 24; phi_index++) {
+        uint id = this->side_r_phi_to_id(side, r_index, phi_index);
+        this->z_map[id] = this->NAIVE_Z_MAP[side];
+        this->r_map[id] = this->NAIVE_R_LOC[r_index];
+        if (r_index == 0) {
+          this->phi_map[id] = this->NAIVE_PHI_LOC_RING_0[phi_index]; // Inner ring only has 12 tiles
+        } else {
+          this->phi_map[id] = this->NAIVE_PHI_LOC[phi_index];        // The rest have 24
+        }
+      }
     }
   }
+}
+
+bool EPD_GEOM::test_id_mapping() {
+  for (uint side = 0; side < 2; side++) {
+    for (uint r_index = 0; r_index < 16; r_index++) {
+      for (uint phi_index = 0; phi_index < 24; phi_index++) {
+        if (r_index == 0 && (phi_index & 0x1)) {
+          continue;
+        }
+        std::cout << "side: " << side << "\tr: " << r_index << "\tphi: " << phi_index << std::endl;
+        uint id_from_r_phi = this->side_r_phi_to_id(side, r_index, phi_index);  // side r phi to id
+        std::cout << "id 1: " << id_from_r_phi << std::endl;
+        uint temp_side, sector, tile;
+        std::tie(temp_side, sector, tile) = this->id_to_side_sector_tile(id_from_r_phi);  // id to side sector tile
+        std::cout << "side: " << side << "\tsector: " << sector << "\ttile: " << tile << std::endl;
+        uint id_from_sector_tile = this->side_sector_tile_to_id(temp_side, sector, tile); // side sector tile to id
+        std::cout << "id 2: " << id_from_sector_tile << std::endl;
+        uint final_side, final_r_index, final_phi_index;
+        std::tie(final_side, final_r_index, final_phi_index) = this->id_to_side_r_phi(id_from_sector_tile); /// id to side r phi
+        std::cout << "side: " << final_side << "\tr: " << final_r_index << "\tphi: " << final_phi_index << std::endl;
+        if (side != final_side || r_index != final_r_index || phi_index != final_phi_index) {
+          return false;
+        }
+        std::cout << "\n\n" << std::endl;
+      }
+    }
+  }
+  return true;
 }
 
