@@ -65,7 +65,7 @@
 #pragma GCC diagnostic pop
 
 #include <ActsExamples/Utilities/Options.hpp>
-#include <ActsExamples/MagneticField/MagneticFieldOptions.hpp>
+#include <ActsExamples/Options/MagneticFieldOptions.hpp>
 
 #include <ActsExamples/TGeoDetector/JsonTGeoDetectorConfig.hpp>
 

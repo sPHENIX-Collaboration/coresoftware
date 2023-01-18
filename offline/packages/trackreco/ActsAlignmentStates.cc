@@ -68,10 +68,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
     /// Gets the global parameters from the state
     const Acts::FreeVector freeParams =
         Acts::MultiTrajectoryHelpers::freeSmoothed(m_tGeometry->geometry().getGeoContext(), state);
-
-    const Acts::ActsDynamicMatrix measCovariance =
-        state.effectiveCalibratedCovariance();
-
+ 
     /// Calculate the residual in global coordinates
     Acts::Vector3 clusGlobal = m_tGeometry->getGlobalPosition(ckey, clus);
     if (trkrId == TrkrDefs::tpcId)
@@ -124,7 +121,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
     const Acts::ActsDynamicMatrix H = state.effectiveProjector();
 
     /// Acts residual, in local coordinates
-    auto actslocres = state.effectiveCalibrated() - H * state.smoothed();
+    //auto actslocres = state.effectiveCalibrated() - H * state.smoothed();
 
     // Get the derivative of bound parameters w.r.t. alignment parameters
     Acts::AlignmentToBoundMatrix d =
@@ -139,8 +136,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
 
     if (m_verbosity > 4)
     {
-      std::cout << "local resids " << actslocres.transpose() << std::endl
-                << " derivative of resiudal wrt track params " << std::endl
+      std::cout << " derivative of resiudal wrt track params " << std::endl
                 << dLocResTrack << std::endl
                 << " derivative of residual wrt alignment params " << std::endl
                 << dLocResAlignment << std::endl;
@@ -203,19 +199,9 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
 							 clus, surf, 
 							 crossing);
         SvtxAlignmentState::GlobalMatrix analytic = SvtxAlignmentState::GlobalMatrix::Zero();
-        analytic(0,0) = 1;
-        analytic(1,1) = 1;
-        analytic(2,2) = 1;
-	for(int i=0; i<SvtxAlignmentState::NRES; ++i) 
-	  {
-	    for(int j=3; j<SvtxAlignmentState::NGL; ++j)
-	      {
-		/// convert to mm
-		analytic(i,j) = anglederivs.at(i)(j-3) * Acts::UnitConstants::cm;
-	      }
-	  }
 
-	svtxstate->set_global_derivative_matrix(analytic);
+	getGlobalDerivatives(anglederivs,analytic);
+       	svtxstate->set_global_derivative_matrix(analytic);
       }
 
     statevec.push_back(svtxstate.release());
@@ -231,6 +217,23 @@ void ActsAlignmentStates::fillAlignmentStateMap(Trajectory traj,
   m_alignmentStateMap->insertWithKey(track->get_id(), statevec);
 
   return;
+}
+
+void ActsAlignmentStates::getGlobalDerivatives(std::vector<Acts::Vector3>& anglederivs, SvtxAlignmentState::GlobalMatrix& analytic)
+{
+  analytic(0,0) = 1;
+  analytic(1,1) = 1;
+  analytic(2,2) = 1;
+  
+  for(int res = 0; res < SvtxAlignmentState::NRES; ++res)
+    {
+      for(int gl = 3; gl < SvtxAlignmentState::NGL; ++gl)
+	{
+	  // this is not backwards - the angle derivs is transposed
+	  analytic(res,gl) = anglederivs.at(gl-3)(res) * Acts::UnitConstants::cm;
+	}
+    }
+  
 }
 
 void ActsAlignmentStates::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Acts::Vector3& global)

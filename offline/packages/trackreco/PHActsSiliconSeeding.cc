@@ -166,7 +166,7 @@ int PHActsSiliconSeeding::End(PHCompositeNode */*topNode*/)
 GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
 {
   
-  Acts::Seedfinder<SpacePoint> seedFinder(m_seedFinderCfg);
+  Acts::SeedFinder<SpacePoint> seedFinder(m_seedFinderCfg);
   
   /// Covariance converter functor needed by seed finder
   auto covConverter = 
@@ -186,21 +186,26 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
   
   auto grid = 
     Acts::SpacePointGridCreator::createGrid<SpacePoint>(m_gridCfg);
-
+  
   auto spGroup = Acts::BinnedSPGroup<SpacePoint>(spVec.begin(),
 						 spVec.end(),
 						 covConverter,
 						 m_bottomBinFinder,
 						 m_topBinFinder,
-						 std::move(grid),
+						 std::move(grid), rRangeSPExtent,
 						 m_seedFinderCfg);
+
+  /// variable middle SP radial region of interest
+  const Acts::Range1D<float> rMiddleSPRange(
+	 std::floor(rRangeSPExtent.min(Acts::binR) / 2) * 2 + 1.5, 
+	 std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 - 1.5);
 
   GridSeeds seedVector;
   auto groupIt = spGroup.begin();
   auto endGroup = spGroup.end();
   SeedContainer seeds;
   seeds.clear();
-  decltype(seedFinder)::State state;
+  decltype(seedFinder)::SeedingState state;
 
   for(; !(groupIt == endGroup); ++groupIt)
     {
@@ -209,7 +214,7 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
 				     groupIt.bottom(),
 				     groupIt.middle(),
 				     groupIt.top(),
-				     rRangeSPExtent);
+				     rMiddleSPRange);
 
     }
   
@@ -687,10 +692,15 @@ Acts::SeedFilterConfig PHActsSiliconSeeding::configureSeedFilter()
   return config;
 }
 
-Acts::SeedfinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
+Acts::SeedFinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
 {
-  Acts::SeedfinderConfig<SpacePoint> config;
-  
+  Acts::SeedFinderConfig<SpacePoint> config;
+  /// these are default values that used to be set in Acts
+  config.deltaRMinTopSP = 5 * Acts::UnitConstants::mm;
+  config.deltaRMaxTopSP = 270 * Acts::UnitConstants::mm;
+  config.deltaRMinBottomSP = 5 * Acts::UnitConstants::mm;
+  config.deltaRMaxBottomSP = 270 * Acts::UnitConstants::mm;
+
   /// Limiting location of measurements (e.g. detector constraints)
   config.rMax = m_rMax;
   config.rMin = m_rMin;

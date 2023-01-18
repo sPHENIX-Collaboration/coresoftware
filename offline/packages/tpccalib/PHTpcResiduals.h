@@ -77,15 +77,12 @@ class PHTpcResiduals : public SubsysReco
 
   private:
 
-  using BoundTrackParamPtr = 
-    std::unique_ptr<const Acts::BoundTrackParameters>;
+  using BoundTrackParam = 
+    const Acts::BoundTrackParameters;
   
   /// pairs path length and track parameters
-  using BoundTrackParamPtrPair = std::pair<float,BoundTrackParamPtr>;
+  using BoundTrackParamPair = std::pair<float,BoundTrackParam>;
 
-  /// result of track extrapolation
-  using ExtrapolationResult = Acts::Result<BoundTrackParamPtrPair>;
-  
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 
@@ -109,7 +106,7 @@ class PHTpcResiduals : public SubsysReco
    * matching propagation
    * returns the path lenght and the resulting parameters
    */
-  ExtrapolationResult propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surf ) const;
+  BoundTrackParamPair propagateTrackState( const Acts::BoundTrackParameters& params, const Surface& surf ) const;
 
   /// Gets distortion cell for identifying bins in TPC
   int getCell(const Acts::Vector3& loc);

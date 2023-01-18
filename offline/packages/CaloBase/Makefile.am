@@ -12,7 +12,7 @@ libcalo_io_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libcalo_io_la_LIBADD = \
-  -lphool 
+  -lphool
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -39,7 +39,11 @@ pkginclude_HEADERS = \
   RawTowerGeomv4.h \
   RawTowerGeomContainer.h \
   RawTowerGeomContainerv1.h \
-  RawTowerGeomContainer_Cylinderv1.h
+  RawTowerGeomContainer_Cylinderv1.h \
+  TowerInfo.h \
+  TowerInfov1.h \
+  TowerInfoContainer.h \
+  TowerInfoContainerv1.h
 
 ROOTDICTS = \
   RawCluster_Dict.cc \
@@ -58,7 +62,11 @@ ROOTDICTS = \
   RawTowerGeomv4_Dict.cc \
   RawTowerGeomContainer_Dict.cc \
   RawTowerGeomContainerv1_Dict.cc \
-  RawTowerGeomContainer_Cylinderv1_Dict.cc
+  RawTowerGeomContainer_Cylinderv1_Dict.cc \
+  TowerInfo_Dict.cc \
+  TowerInfov1_Dict.cc \
+  TowerInfoContainer_Dict.cc \
+  TowerInfoContainerv1_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
@@ -78,7 +86,11 @@ nobase_dist_pcm_DATA = \
   RawTowerGeomv4_Dict_rdict.pcm \
   RawTowerGeomContainer_Dict_rdict.pcm \
   RawTowerGeomContainerv1_Dict_rdict.pcm \
-  RawTowerGeomContainer_Cylinderv1_Dict_rdict.pcm
+  RawTowerGeomContainer_Cylinderv1_Dict_rdict.pcm \
+  TowerInfo_Dict_rdict.pcm \
+  TowerInfov1_Dict_rdict.pcm \
+  TowerInfoContainer_Dict_rdict.pcm \
+  TowerInfoContainerv1_Dict_rdict.pcm
 
 libcalo_io_la_SOURCES = \
   $(ROOTDICTS) \
@@ -98,7 +110,10 @@ libcalo_io_la_SOURCES = \
   RawTowerGeomv4.cc \
   RawTowerGeomContainer.cc \
   RawTowerGeomContainerv1.cc \
-  RawTowerGeomContainer_Cylinderv1.cc
+  RawTowerGeomContainer_Cylinderv1.cc \
+  TowerInfov1.cc \
+  TowerInfoContainer.cc \
+  TowerInfoContainerv1.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
