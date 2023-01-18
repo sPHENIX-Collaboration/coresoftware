@@ -78,9 +78,10 @@ class Calibrator
               uncalibmeas.sourceLink(), indices,
               loc, expandedCov);
 
-          trackState.setCalibrated(meas);
 	  trackState.allocateCalibrated(meas.size());
-        },
+          trackState.setCalibrated(meas);
+
+    },
         (*m_measurements)[sourceLink.index()]);
   }
     

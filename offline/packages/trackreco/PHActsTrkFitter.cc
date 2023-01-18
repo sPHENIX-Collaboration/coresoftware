@@ -396,10 +396,11 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       PHTimer fitTimer("FitTimer");
       fitTimer.stop();
       fitTimer.restart();
-      auto result = fitTrack(wrappedSls, seed, kfOptions, surfaces);
+      auto mtj = std::make_shared<Acts::VectorMultiTrajectory>();
+      auto result = fitTrack(wrappedSls, seed, kfOptions, surfaces,mtj);
       fitTimer.stop();
       auto fitTime = fitTimer.get_accumulated_time();
-            
+   
       if(Verbosity() > 1)
 	{ std::cout << "PHActsTrkFitter Acts fit time " << fitTime << std::endl; }
 
@@ -407,6 +408,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       if (result.ok())
       {  
         const FitResult& fitOutput = result.value();
+
         if(m_timeAnalysis)
         {
           h_fitTime->Fill(fitOutput.fittedParameters.value()
@@ -418,7 +420,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         newTrack.set_tpc_seed(tpcseed);
         newTrack.set_crossing(crossing);
         newTrack.set_silicon_seed(siseed);
-        
+
         if(m_fitSiliconMMs)
         {
           
@@ -740,8 +742,8 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
   ActsExamples::Trajectories::IndexedParameters indexedParams;
   if (fitOutput.fittedParameters)
     {
-       indexedParams.emplace(fitOutput.lastMeasurementIndex, 
-			     fitOutput.fittedParameters.value());
+      indexedParams.emplace(fitOutput.lastMeasurementIndex, 
+			    fitOutput.fittedParameters.value());
 
        if (Verbosity() > 2)
         {
@@ -782,7 +784,10 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
   
   if(m_commissioning)
     {
-      m_alignStates.fillAlignmentStateMap(trajectory, track);
+      if(track->get_silicon_seed() && track->get_tpc_seed())
+	{
+	  m_alignStates.fillAlignmentStateMap(trajectory, track);
+	}
     }
     
   updateTrackTimer.stop();
@@ -802,9 +807,9 @@ ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
     const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
     const ActsExamples::TrackParameters& seed,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
-    const SurfacePtrVec& surfSequence)
+    const SurfacePtrVec& surfSequence,
+    std::shared_ptr<Acts::VectorMultiTrajectory>& mtj)
 {
-  auto mtj = std::make_shared<Acts::VectorMultiTrajectory>();
   if(m_fitSiliconMMs) 
   { 
     return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence, mtj); 
