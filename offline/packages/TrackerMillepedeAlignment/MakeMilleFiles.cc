@@ -100,16 +100,22 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
   // Note: all units are in the Acts units of mm and GeV to avoid converting matrices
 
   if (Verbosity() > 0)
-    std::cout << PHWHERE << " track map size " << _track_map->size() << std::endl;
+    {
+      std::cout << PHWHERE << " track map size " << _track_map->size() << std::endl;
+      std::cout << "state map size " << _state_map->size() << std::endl;
+    }
 
   for (auto [key, statevec] : *_state_map)
   {
-    SvtxTrack* track = _track_map->find(key)->second;
-    /// Track was removed from cleaner
-    if (!track)
-    {
-      continue;
-    }
+    
+    // Check if track was removed from cleaner
+    auto iter = _track_map->find(key);
+    if(iter == _track_map->end())
+      {
+	continue;
+      }
+
+    SvtxTrack* track = iter->second;
 
     if (Verbosity() > 0)
     {
@@ -127,10 +133,15 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
     _mille->end();
   }
 
+  if(Verbosity() > 0 )
+    {
+      std::cout << "Finished processing mille file " << std::endl;
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int MakeMilleFiles::End(PHCompositeNode* /*topNode*/)
+int MakeMilleFiles::End(PHCompositeNode*)
 {
   delete _mille;
 
@@ -349,7 +360,8 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
       float glbl_derivative[SvtxAlignmentState::NGL];
       for (int j = 0; j < SvtxAlignmentState::NGL; ++j)
       {
-        glbl_derivative[j] = state->get_global_derivative_matrix()(i, j);
+	/// swap the order to match what is expected from the workflow
+        glbl_derivative[j] = state->get_global_derivative_matrix()(i, (j+3)%SvtxAlignmentState::NGL);
 
         if (is_layer_fixed(layer) || is_layer_param_fixed(layer, j))
         {
@@ -382,6 +394,12 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
 
       if (clus_sigma(i) < 1.0)  // discards crazy clusters
       {
+	 if(Verbosity() > 3)
+	    { 
+	      std::cout << "ckey " << ckey << " and layer " << layer << " buffers:" << std::endl; 
+	      printBuffers(i, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label); 
+	    }
+
         _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), clus_sigma(i));
       }
     }
@@ -390,6 +408,18 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec stateve
   return;
 }
 
+void MakeMilleFiles::printBuffers(int index, Acts::Vector3 residual, Acts::Vector3 clus_sigma, float lcl_derivative[], float glbl_derivative[], int glbl_label[])
+{
+  std::cout << " float buffer: " << " residual " << "  " << residual(index);
+  for (int il=0;il<SvtxAlignmentState::NLOC;++il) { if(lcl_derivative[il] != 0) std::cout << " lcl_deriv["<< il << "] " << lcl_derivative[il] << "  ";  }
+  std::cout  << " sigma " << "  " << clus_sigma(index) << "  ";
+  for (int ig=0;ig<SvtxAlignmentState::NGL;++ig) { if(glbl_derivative[ig] != 0)  std::cout << " glbl_deriv["<< ig << "] " << glbl_derivative[ig] << "  ";  }
+  std::cout << " int buffer: " << " 0 " << "  ";
+  for (int il=0;il<SvtxAlignmentState::NLOC;++il) { if(lcl_derivative[il] != 0) std::cout << " lcl_label["<< il << "] " << il << "  ";  }
+  std::cout << " 0 " << "  ";
+  for (int ig=0;ig<SvtxAlignmentState::NGL;++ig) { if(glbl_derivative[ig] != 0) std::cout << " glbl_label["<< ig << "] " << glbl_label[ig] << "  ";  }
+  std::cout << " end of meas " << std::endl;		    
+}
 bool MakeMilleFiles::is_layer_fixed(unsigned int layer)
 {
   bool ret = false;

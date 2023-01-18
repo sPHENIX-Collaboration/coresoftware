@@ -13,7 +13,6 @@
 #include <type_traits>
 #include <utility>
 
-
 class RawTowerGeom;
 
 /*! \class RawTowerGeomContainer
@@ -131,8 +130,8 @@ class RawTowerGeomContainer : public PHObject
   virtual void set_etabins(const int) { PHOOL_VIRTUAL_WARN("set_etabins(const int)"); }
   //  virtual void set_etamin(const double z) {PHOOL_VIRTUAL_WARN("set_etamin(const double)");}
   //  virtual void set_etastep(const double z) {PHOOL_VIRTUAL_WARN("set_etastep(const double)");}
-  virtual void set_etabounds(const int /*ibin*/, const std::pair<double, double> &/*bounds*/) { PHOOL_VIRTUAL_WARN("set_etabounds(const int ibin, const std::pair<double, double> & bounds)"); }
-  virtual void set_phibounds(const int /*ibin*/, const std::pair<double, double> &/*bounds*/) { PHOOL_VIRTUAL_WARN("set_etabounds(const int ibin, const std::pair<double, double> & bounds)"); }
+  virtual void set_etabounds(const int /*ibin*/, const std::pair<double, double> & /*bounds*/) { PHOOL_VIRTUAL_WARN("set_etabounds(const int ibin, const std::pair<double, double> & bounds)"); }
+  virtual void set_phibounds(const int /*ibin*/, const std::pair<double, double> & /*bounds*/) { PHOOL_VIRTUAL_WARN("set_etabounds(const int ibin, const std::pair<double, double> & bounds)"); }
 
   /**@}*/
 

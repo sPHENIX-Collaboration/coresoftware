@@ -197,10 +197,8 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
 
   /// variable middle SP radial region of interest
   const Acts::Range1D<float> rMiddleSPRange(
-      std::floor(rRangeSPExtent.min(Acts::binR) / 2) * 2 +
-          1.5,
-      std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 -
-          1.5);
+	 std::floor(rRangeSPExtent.min(Acts::binR) / 2) * 2 + 1.5, 
+	 std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 - 1.5);
 
   GridSeeds seedVector;
   auto groupIt = spGroup.begin();
@@ -697,7 +695,12 @@ Acts::SeedFilterConfig PHActsSiliconSeeding::configureSeedFilter()
 Acts::SeedFinderConfig<SpacePoint> PHActsSiliconSeeding::configureSeeder()
 {
   Acts::SeedFinderConfig<SpacePoint> config;
-  
+  /// these are default values that used to be set in Acts
+  config.deltaRMinTopSP = 5 * Acts::UnitConstants::mm;
+  config.deltaRMaxTopSP = 270 * Acts::UnitConstants::mm;
+  config.deltaRMinBottomSP = 5 * Acts::UnitConstants::mm;
+  config.deltaRMaxBottomSP = 270 * Acts::UnitConstants::mm;
+
   /// Limiting location of measurements (e.g. detector constraints)
   config.rMax = m_rMax;
   config.rMin = m_rMin;

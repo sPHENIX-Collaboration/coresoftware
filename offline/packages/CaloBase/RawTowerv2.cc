@@ -8,9 +8,7 @@
 
 using namespace std;
 
-RawTowerv2::RawTowerv2()
-{
-}
+RawTowerv2::RawTowerv2() = default;
 
 RawTowerv2::RawTowerv2(const RawTower& tower)
   : RawTowerv1(tower)
@@ -60,9 +58,9 @@ void RawTowerv2::identify(std::ostream& os) const
   os << "RawTowerv2: etabin: " << get_bineta() << ", phibin: " << get_binphi()
      << " energy=" << get_energy() << std::endl;
 
-  for (prop_map_t::const_iterator i = prop_map.begin(); i != prop_map.end(); ++i)
+  for (auto i : prop_map)
   {
-    PROPERTY prop_id = static_cast<PROPERTY>(i->first);
+    PROPERTY prop_id = static_cast<PROPERTY>(i.first);
     const string property_info = get_property_info(prop_id);
     cout << "\t" << prop_id << ":\t" << property_info << " = \t" << get_property(prop_id) << endl;
   }
@@ -79,7 +77,10 @@ RawTowerv2::get_property(const PROPERTY prop_id) const
 {
   prop_map_t::const_iterator i = prop_map.find(prop_id);
 
-  if (i != prop_map.end()) return i->second;
+  if (i != prop_map.end())
+  {
+    return i->second;
+  }
 
   return NAN;
 }
