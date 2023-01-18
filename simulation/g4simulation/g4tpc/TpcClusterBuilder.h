@@ -51,6 +51,8 @@ class TpcClusterBuilder {
 
   int n_tracks {0};
 
+  int verbosity {0};
+
   public:
   TpcClusterBuilder( 
       TrkrClusterContainer*         _truth_cluster_container
@@ -64,6 +66,7 @@ class TpcClusterBuilder {
   void set_current_track (TrkrTruthTrack* _trkrtruthtrack);
   void print(TrkrTruthTrackContainer*, int nclusprint=-1);
   void print_file(TrkrTruthTrackContainer*, std::string);
+  void set_verbosity(int verbosity_level);
 
   ~TpcClusterBuilder(){
     delete m_hits;

@@ -85,7 +85,6 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , PHParameterInterface(name)
   , temp_hitsetcontainer(new TrkrHitSetContainerv1)
   , single_hitsetcontainer(new TrkrHitSetContainerv1)
-  /* , layer_clusterers{} */
 {
   InitializeParameters();
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));

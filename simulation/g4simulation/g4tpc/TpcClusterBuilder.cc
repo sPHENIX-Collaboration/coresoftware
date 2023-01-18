@@ -23,6 +23,8 @@ using std::cout, std::endl, std::string, std::ofstream;
 double TpcClusterBuilder::square(double v) { return v*v; }
 double TpcClusterBuilder::square(float  v) { return v*v; }
 
+void TpcClusterBuilder::set_verbosity(int verbosity_level) { verbosity = verbosity_level; }
+
 TpcClusterBuilder::TpcClusterBuilder
     ( TrkrClusterContainer*         _truth_cluster_container
     /* , TrkrTruthTrackContainer*      _truth_track_container */
@@ -34,7 +36,7 @@ TpcClusterBuilder::TpcClusterBuilder
 { }
 
 void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
-  if (Verbosity()) if (m_hits == nullptr) cout << " m_hits == nullptr! " << endl;
+  if (verbosity) if (m_hits == nullptr) cout << " m_hits == nullptr! " << endl;
 
   if (!is_embedded_track) {
     reset(clear_hitsetkey_cnt);
@@ -146,7 +148,7 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
       hitsetkey, global, subsurfkey);
 
     if (!surface) {
-      if (Verbosity()) std::cout << "Can't find the surface! with hitsetkey " << ((int)hitsetkey) << std::endl;
+      if (verbosity) std::cout << "Can't find the surface! with hitsetkey " << ((int)hitsetkey) << std::endl;
       continue;
     }
 
