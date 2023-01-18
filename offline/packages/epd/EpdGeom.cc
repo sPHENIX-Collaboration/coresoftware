@@ -44,7 +44,10 @@ std::tuple<uint, uint, uint> EPD_GEOM::id_to_side_sector_tile(uint id) {
   uint side, r_index, phi_index;
   std::tie(side, r_index, phi_index) = this->id_to_side_r_phi(id);
   uint sector = phi_index / 2; 
-  uint tile = r_index * 2 - (phi_index % 2);
+  uint tile = r_index * 2;
+  if (r_index && (phi_index % 2 == 0)) {
+    tile --;
+  }
   return std::tuple<uint, uint, uint>(side, sector, tile);
 }
 
@@ -136,6 +139,7 @@ void EPD_GEOM::build_map() {
 }
 
 bool EPD_GEOM::test_id_mapping() {
+  bool pass = true;
   for (uint side = 0; side < 2; side++) {
     for (uint r_index = 0; r_index < 16; r_index++) {
       for (uint phi_index = 0; phi_index < 24; phi_index++) {
@@ -154,12 +158,15 @@ bool EPD_GEOM::test_id_mapping() {
         std::tie(final_side, final_r_index, final_phi_index) = this->id_to_side_r_phi(id_from_sector_tile); /// id to side r phi
         std::cout << "side: " << final_side << "\tr: " << final_r_index << "\tphi: " << final_phi_index << std::endl;
         if (side != final_side || r_index != final_r_index || phi_index != final_phi_index) {
-          return false;
+          pass = false;
+          std::cout << "COORDINATE FAILED" << std::endl;
+        } else{
+          std::cout << "coordinate passed" << std::endl;
         }
         std::cout << "\n\n" << std::endl;
       }
     }
   }
-  return true;
+  return pass;
 }
 
