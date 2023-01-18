@@ -36,9 +36,11 @@ class ActsSourceLink final : public Acts::SourceLink
   /// satisfy SourceLinkConcept.
   ActsSourceLink()
     : SourceLink{Acts::GeometryIdentifier{}}
+    , m_index(UINT8_MAX)
+    , m_cluskey(UINT64_MAX)
   {
-    m_cluskey = 0;
   }
+
   ActsSourceLink(const ActsSourceLink&) = default;
   ActsSourceLink(ActsSourceLink&&) = default;
   ActsSourceLink& operator=(const ActsSourceLink&) = default;

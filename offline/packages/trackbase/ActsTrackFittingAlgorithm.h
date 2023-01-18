@@ -11,6 +11,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wunused-value"
 #include <Acts/TrackFitting/KalmanFitter.hpp>
 #pragma GCC diagnostic pop
 
