@@ -26,6 +26,7 @@ libfillSpaceChargeMaps_la_LIBADD = \
   -lphg4hit \
   -lg4detectors \
   -lg4testbench \
+  -lg4tpc \
   -lSubsysReco
 
 BUILT_SOURCES = testexternals.cc
