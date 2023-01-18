@@ -13,6 +13,8 @@ Converts from r/phi index to location in r/phi space
 #define EPD_GEOM_H
 
 #include <map>
+#include <utility>
+
 
 // sEPD geometry class
 class EPD_GEOM {
@@ -25,20 +27,20 @@ public:
   EPD_GEOM();
   ~EPD_GEOM();
 
-  void id_to_r_phi(uint id, uint &side, uint &r_index, uint &phi_index);
-  void r_phi_to_id(uint side, uint r_index, uint phi_index, uint &id);
-  void side_sector_tile_to_id(uint side, uint sector, uint tile, uint &id);
-  void id_to_side_sector_tile(uint id, uint &side, uint &sector, uint &tile);
+  uint r_phi_to_id(uint side, uint r_index, uint phi_index);
+  uint side_sector_tile_to_id(uint side, uint sector, uint tile);
+  std::tuple<uint, uint, uint> id_to_r_phi(uint id);
+  std::tuple<uint, uint, uint> id_to_side_sector_tile(uint id);
   float r(uint id);
-  float r(uint r_index, uint phi_index);
-  float r(uint side, uint sector, uint tile);
+  float r_from_side_r_phi(uint side, uint r_index, uint phi_index);
+  float r_from_side_sector_tile(uint side, uint sector, uint tile);
   float phi(uint id);
-  float phi(uint r_index, uint phi_index);
-  float phi(uint side, uint sector, uint tile);
+  float phi_from_side_r_phi(uint side, uint r_index, uint phi_index);
+  float phi_from_side_sector_tile(uint side, uint sector, uint tile);
 
 private:
-  std::map<int, float> *r_map;
-  std::map<int, float> *phi_map;
+  std::map<int, float> r_map;
+  std::map<int, float> phi_map;
 
   // const float NAIVE_R_INDEX[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
   const float NAIVE_R_LOC[16] = {6.8, 11.2, 15.6, 20.565, 26.095, 31.625, 37.155, 42.685, 48.215, 53.745, 59.275, 64.805, 70.335, 75.865, 81.395, 86.925};
