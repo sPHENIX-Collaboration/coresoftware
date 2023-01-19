@@ -12,6 +12,7 @@
 class CaloCalibSimpleCorrFile;
 class PHCompositeNode;
 class RawTowerContainer;
+class TowerInfoContainerv1;
 class RawTowerGeomContainer;
 
 //! calibrate ADC value to measured energy deposition in calorimeter towers
@@ -151,6 +152,14 @@ class RawTowerCalibration : public SubsysReco
     m_UseConditionsDB = setUseCondDB;
   }
 
+
+  void set_towerinfo(int UseTowerInfo )
+  {
+    m_UseTowerInfo = UseTowerInfo;
+  }
+
+
+
  protected:
   void
   CreateNodes(PHCompositeNode *topNode);
@@ -159,11 +168,18 @@ class RawTowerCalibration : public SubsysReco
 
   RawTowerContainer *_calib_towers = nullptr;
   RawTowerContainer *_raw_towers = nullptr;
+
+  TowerInfoContainerv1 *_calib_towerinfos = nullptr;
+  TowerInfoContainerv1 *_raw_towerinfos = nullptr;
+
+
   RawTowerGeomContainer *rawtowergeom = nullptr;
 
   std::string detector;
   std::string RawTowerNodeName;
+  std::string RawTowerInfoNodeName;
   std::string CaliTowerNodeName;
+  std::string CaliTowerInfoNodeName;
   std::string TowerGeomNodeName;
 
   std::string _calib_tower_node_prefix;
@@ -191,6 +207,9 @@ class RawTowerCalibration : public SubsysReco
   bool m_UseConditionsDB = false;
 
   CaloCalibSimpleCorrFile *_cal_dbfile = nullptr;
+  int m_UseTowerInfo = 2;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
+
+
 };
 
 #endif
