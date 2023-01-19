@@ -28,18 +28,27 @@ int hcaladc[8][2] = {
 TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
   : _detector(detec)
 {
+
+  int nchannels = 744;
   if (_detector == DETECTOR::SEPD)
   {
-    _clones = new TClonesArray("TowerInfov1", 744);
+    nchannels= 744;
   }
   else if (_detector == DETECTOR::EMCAL)
   {
-    _clones = new TClonesArray("TowerInfov1", 24576);
+    nchannels= 24576;
   }
   else if (_detector == DETECTOR::HCAL)
   {
-    _clones = new TClonesArray("TowerInfov1", 1536);
+    nchannels= 1536;
   }
+  _clones = new TClonesArray("TowerInfov1", nchannels);
+  for (int i = 0 ; i < nchannels;i++)
+    {
+      TowerInfov1 *tower = new TowerInfov1();
+      tower->set_energy(0);
+      new ((*_clones)[i]) TowerInfov1(*tower);
+    }
   _clones->SetOwner();
   _clones->SetName("TowerInfoContainerv1");
 }
@@ -57,6 +66,30 @@ void TowerInfoContainerv1::Reset()
     _map.erase(_map.begin());
   }
   _clones->Clear();
+
+
+  int nchannels = 744;
+  if (_detector == DETECTOR::SEPD)
+    {
+      nchannels= 744;
+    }
+  else if (_detector == DETECTOR::EMCAL)
+    {
+      nchannels= 24576;
+    }
+  else if (_detector == DETECTOR::HCAL)
+    {
+    nchannels= 1536;
+    }
+  for (int i = 0 ; i < nchannels;i++)
+    {
+      TowerInfov1 *tower = new TowerInfov1();
+      tower->set_energy(0);
+      new ((*_clones)[i]) TowerInfov1(*tower);
+    }
+
+
+
 }
 
 void TowerInfoContainerv1::add(TowerInfov1* ti, int pos)

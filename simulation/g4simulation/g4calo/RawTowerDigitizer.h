@@ -4,6 +4,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <phparameter/PHParameters.h>
+#include <calobase/TowerInfoContainer.h>
 
 #include <gsl/gsl_rng.h>
 
@@ -13,6 +14,7 @@
 class CaloCalibSimpleCorrFile;
 class PHCompositeNode;
 class RawTower;
+class TowerInfo;
 class RawTowerContainer;
 class RawTowerGeomContainer;
 class RawTowerDeadMap;
@@ -192,6 +194,11 @@ class RawTowerDigitizer : public SubsysReco
     m_UseConditionsDB = setUseCondDB;
   }
 
+  void set_towerinfo(int UseTowerInfo )
+  {
+    m_UseTowerInfo = UseTowerInfo;
+  }
+
  private:
   void CreateNodes(PHCompositeNode *topNode);
 
@@ -199,15 +206,23 @@ class RawTowerDigitizer : public SubsysReco
   //! \param  sim_tower simulation tower input
   //! \return a new RawTower object contain digitalized value of ADC output in RawTower::get_energy()
   RawTower *simple_photon_digitization(RawTower *sim_tower);
+  TowerInfo *simple_photon_digitization(TowerInfo *sim_tower);
 
   //! digitization with photon statistics on SiPM with an effective pixel N, ADC conversion and pedestal
   //! this function use the effective pixel to count for the effect that the sipm is not evenly lit
   RawTower *sipm_photon_digitization(RawTower *sim_tower);
+  TowerInfo *sipm_photon_digitization(TowerInfo *sim_tower);
 
   enu_digi_algorithm m_DigiAlgorithm = kNo_digitization;
 
   RawTowerContainer *m_SimTowers = nullptr;
   RawTowerContainer *m_RawTowers = nullptr;
+
+  TowerInfoContainer *m_SimTowerInfos = nullptr;
+  TowerInfoContainer *m_RawTowerInfos = nullptr;
+
+
+
   RawTowerGeomContainer *m_RawTowerGeom = nullptr;
   RawTowerDeadMap *m_DeadMap = nullptr;
 
@@ -257,6 +272,11 @@ class RawTowerDigitizer : public SubsysReco
   std::string m_DecalFileName;
   bool m_UseConditionsDB = false;
   CaloCalibSimpleCorrFile *m_CalDBFile = nullptr;
+
+  int m_UseTowerInfo = 2;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
+
+
+
 };
 
 #endif /* G4CALO_RAWTOWERDIGITIZER_H */
