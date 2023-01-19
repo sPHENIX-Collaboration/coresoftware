@@ -161,9 +161,9 @@ void KFParticle_truthAndDetTools::initializeTruthBranches(TTree *m_tree, int dau
   m_tree->Branch(TString(daughter_number) + "_true_EV_z", &m_true_daughter_vertex_z[daughter_id], TString(daughter_number) + "_true_EV_z/F");
   if (m_constrain_to_vertex_truthMatch)
   {
-    m_tree->Branch(TString(daughter_number) + "_true_PV_x", &m_true_daughter_pv_x[daughter_id], TString(daughter_number) + "_true_pv_x/F");
-    m_tree->Branch(TString(daughter_number) + "_true_PV_y", &m_true_daughter_pv_y[daughter_id], TString(daughter_number) + "_true_pv_y/F");
-    m_tree->Branch(TString(daughter_number) + "_true_PV_z", &m_true_daughter_pv_z[daughter_id], TString(daughter_number) + "_true_pv_x/F");
+    m_tree->Branch(TString(daughter_number) + "_true_PV_x", &m_true_daughter_pv_x[daughter_id], TString(daughter_number) + "_true_PV_x/F");
+    m_tree->Branch(TString(daughter_number) + "_true_PV_y", &m_true_daughter_pv_y[daughter_id], TString(daughter_number) + "_true_PV_y/F");
+    m_tree->Branch(TString(daughter_number) + "_true_PV_z", &m_true_daughter_pv_z[daughter_id], TString(daughter_number) + "_true_PV_z/F");
   }
   m_tree->Branch(TString(daughter_number) + "_true_track_history_PDG_ID", &m_true_daughter_track_history_PDG_ID[daughter_id]);
   m_tree->Branch(TString(daughter_number) + "_true_track_history_PDG_mass", &m_true_daughter_track_history_PDG_mass[daughter_id]);
