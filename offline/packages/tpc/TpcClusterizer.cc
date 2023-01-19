@@ -277,7 +277,6 @@ namespace
 	  return;
 	}
 
-  //FIXME A00
     void calc_cluster_parameter(const std::vector<ihit> &ihit_list, thread_data& my_data, int ntouch, int nedge )
     {
     
@@ -304,7 +303,6 @@ namespace
       if(clus_size == 1) return;
       
       std::vector<TrkrDefs::hitkey> hitkeyvec;
-      // FIXME start A01
       for(auto iter = ihit_list.begin(); iter != ihit_list.end();++iter){
 	double adc = iter->adc; 
 	
@@ -333,7 +331,7 @@ namespace
 	TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
 	// if(adc>5)
 	hitkeyvec.push_back(hitkey);
-      } // FIXME end A01
+      } 
       if (adc_sum < 10){
 	hitkeyvec.clear();
 	return;  // skip obvious noise "clusters"
@@ -419,7 +417,7 @@ namespace
       }else if(my_data.cluster_version==4){
 	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
 	if(sqrt(phi_err_square) > 0.01){
-	auto clus = new TrkrClusterv4; // FIXME A02
+	auto clus = new TrkrClusterv4;
 	//auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setAdc(adc_sum);  
 	clus->setOverlap(ntouch);
@@ -443,7 +441,7 @@ namespace
         }
       }
       hitkeyvec.clear();
-    } // FIXME A03 end of calc_cluster_parameter
+    } 
   
   void ProcessSectorData(thread_data* my_data) {
     const auto& pedestal  = my_data->pedestal;
@@ -779,7 +777,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode,
 						 "ActsGeometry");
-  std::cout << " FIXME : A04 has ActsGeometry: " << m_tGeometry << std::endl;
   if(!m_tGeometry)
     {
       std::cout << PHWHERE
@@ -818,14 +815,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-  std::cout << " ::start:: FIXME APPLE parameters " << std::endl
-    << " do_hit_assoc " << do_hit_assoc << std::endl
-    << " do_wedge_emulation " <<  do_wedge_emulation << std::endl 
-    << " do_sequential " << do_sequential << std::endl
-    << " do_read_raw " << do_read_raw << std::endl
-    << " do_singles " << do_singles << std::endl
-    << " ::end:: FIXME APPLE " << std::endl;
-  
   if (pthread_mutex_init(&mythreadlock, nullptr) != 0)
     {
       printf("\n mutex init failed\n");
@@ -833,7 +822,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     }
   int count = 0;
 
-  if(!do_read_raw){ // FIXME B00
+  if(!do_read_raw){
     for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
 	 hitsetitr != hitsetrange.second;
 	 ++hitsetitr)
@@ -941,7 +930,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.hitset = nullptr;
       thread_pair.data.rawhitset = dynamic_cast<RawHitSetv1 *>(hitset);
       thread_pair.data.layer = layer;
-      thread_pair.data.pedestal = pedestal; // FIXME pedestal A04
+      thread_pair.data.pedestal = pedestal; // 
       thread_pair.data.sector = sector;
       thread_pair.data.side = side;
       thread_pair.data.do_assoc = do_hit_assoc;
