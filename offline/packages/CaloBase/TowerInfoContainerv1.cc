@@ -60,11 +60,8 @@ TowerInfoContainerv1::~TowerInfoContainerv1()
 
 void TowerInfoContainerv1::Reset()
 {
-  while (_map.begin() != _map.end())
-  {
-    delete _map.begin()->second;
-    _map.erase(_map.begin());
-  }
+  _map.clear();
+  _towers.clear();
   _clones->Clear();
 
 
