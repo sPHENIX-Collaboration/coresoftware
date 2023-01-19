@@ -36,12 +36,6 @@ class TGeoManager;
 class TGeoNode;
 class TGeoVolume;
 
-namespace ActsExamples 
-{
-  class IBaseDetector;
-  class IContextDecorator;
-}
-
 namespace Acts 
 {
   class Surface;
@@ -71,9 +65,6 @@ class MakeActsGeometry : public SubsysReco
 
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
-
-  std::vector<std::shared_ptr<ActsExamples::IContextDecorator>> getContextDecorators()
-    { return m_contextDecorators; }
 
   void loadMagField(const bool field) { m_useField = field; }
   void setMagField(const std::string &magField)
@@ -174,7 +165,6 @@ class MakeActsGeometry : public SubsysReco
   void makeGeometry(int argc, char* argv[], 
 		    ActsExamples::TGeoDetector& detector);
   std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
-    //std::pair<std::shared_ptr<Acts::TrackingGeometry>,
           std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
     build(const boost::program_options::variables_map& vm,
 			ActsExamples::TGeoDetector& detector);
@@ -224,10 +214,6 @@ class MakeActsGeometry : public SubsysReco
   bool m_useField = true;
   std::map<TrkrDefs::TrkrId, double> m_misalignmentFactor;
 
-  /// Acts Context decorators, which may contain e.g. calibration information
-  std::vector<std::shared_ptr<ActsExamples::IContextDecorator> > 
-    m_contextDecorators;
-
   /// Several maps that connect Acts world to sPHENIX G4 world 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> m_clusterNodeMap;
   std::map<TrkrDefs::hitsetkey, Surface> m_clusterSurfaceMapSilicon;
@@ -273,8 +259,6 @@ class MakeActsGeometry : public SubsysReco
   TrackingGeometry m_tGeometry;
   std::shared_ptr<Acts::MagneticFieldProvider> m_magneticField;
   Acts::GeometryContext  m_geoCtxt;  
-  Acts::CalibrationContext m_calibContext;
-  Acts::MagneticFieldContext m_magFieldContext;
 
   /// Structs to put on the node tree which carry around ActsGeom info
   ActsGeometry *m_actsGeometry = nullptr;

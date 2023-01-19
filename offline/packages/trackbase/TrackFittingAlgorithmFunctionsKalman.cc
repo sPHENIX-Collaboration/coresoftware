@@ -17,7 +17,6 @@
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 #include <Acts/Utilities/Helpers.hpp>
-#include <ActsExamples/MagneticField/MagneticField.hpp>
 
 #include "ActsTrackFittingAlgorithm.h"
 
@@ -27,7 +26,7 @@ namespace
   using Smoother = Acts::GainMatrixSmoother;
   using Stepper = Acts::EigenStepper<>;
   using Propagator = Acts::Propagator<Stepper, Acts::Navigator>;
-  using Fitter = Acts::KalmanFitter<Propagator,Acts::VectorMultiTrajectory>;
+  using Fitter = Acts::KalmanFitter<Propagator, Acts::VectorMultiTrajectory>;
   using DirectPropagator = Acts::Propagator<Stepper, Acts::DirectNavigator>;
   using DirectFitter = Acts::KalmanFitter<DirectPropagator, Acts::VectorMultiTrajectory>;
 
@@ -37,7 +36,7 @@ namespace
     double momentumThreshold = 0.0;
 
     bool doBackwardFiltering(
-			     Acts::MultiTrajectory<Acts::VectorMultiTrajectory>::ConstTrackStateProxy trackState) const
+        Acts::MultiTrajectory<Acts::VectorMultiTrajectory>::ConstTrackStateProxy trackState) const
     {
       auto momentum = fabs(1 / trackState.filtered()[Acts::eBoundQOverP]);
       return (momentum <= momentumThreshold);
@@ -94,7 +93,7 @@ namespace
     ActsTrackFittingAlgorithm::TrackFitterResult operator()(
         const std::vector<std::reference_wrapper<
             const ActsSourceLink>>& sourceLinks,
-        const ActsExamples::TrackParameters& initialParameters,
+        const ActsTrackFittingAlgorithm::TrackParameters& initialParameters,
         const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
         std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory)
         const override
@@ -132,7 +131,7 @@ namespace
     ActsTrackFittingAlgorithm::TrackFitterResult operator()(
         const std::vector<std::reference_wrapper<
             const ActsSourceLink>>& sourceLinks,
-        const ActsExamples::TrackParameters& initialParameters,
+        const ActsTrackFittingAlgorithm::TrackParameters& initialParameters,
         const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
         const std::vector<const Acts::Surface*>& sSequence,
         std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory) const override
@@ -168,7 +167,7 @@ struct sPHENIXTrackFitterFunctionImpl : public TrackFitterFunctionImpl
   ActsTrackFittingAlgorithm::TrackFitterResult operator()(
       const std::vector<std::reference_wrapper<
           const ActsSourceLink>>& sourceLinks,
-      const ActsExamples::TrackParameters& initialParameters,
+      const ActsTrackFittingAlgorithm::TrackParameters& initialParameters,
       const ActsTrackFittingAlgorithm::GeneralFitterOptions& options,
       std::shared_ptr<Acts::VectorMultiTrajectory>& trajectory)
       const override
