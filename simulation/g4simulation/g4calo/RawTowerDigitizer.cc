@@ -203,7 +203,7 @@ int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
       
       RawTower *digi_tower = nullptr;
       TowerInfo *digi_towerinfo = nullptr;
-
+    
       if(m_UseTowerInfo != 1)
 	{
 	  RawTower *sim_tower = m_SimTowers->getTower(key);
@@ -264,9 +264,7 @@ int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
 		  float e_dec = digi_tower->get_energy();
 		  digi_tower->set_energy(e_dec * decal_fctr);
 		}
-	      
 	      m_RawTowers->AddTower(key, digi_tower);
-	      
 	      if (Verbosity() >= VERBOSITY_MORE)
 		{
 		  std::cout << Name() << "::" << m_Detector << "::" << __PRETTY_FUNCTION__
@@ -275,13 +273,8 @@ int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
 		  digi_tower->identify();
 		}
 	    }
-	  
-	  
-	  
-
-
 	}    
-      else 
+      if (m_UseTowerInfo > 0)
 	{
 	  unsigned int towerkey = (eta << 16U) + phi;
 	  unsigned int towerindex = m_SimTowerInfos->decode_key(towerkey);
@@ -299,8 +292,6 @@ int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
 		    }
 		}
 	    }
-
-
 	  if (m_DigiAlgorithm == kNo_digitization)
 	    {
 	      // for no digitization just copy existing towers
@@ -309,7 +300,6 @@ int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
 		  digi_towerinfo = new TowerInfov1(*sim_tower);
 		}
 	    }
-
 	  else if (m_DigiAlgorithm == kSimple_photon_digitization)
 	    {
 	      // for photon digitization towers can be created if sim_tower is null pointer
@@ -328,9 +318,9 @@ int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
 	      
 	      return Fun4AllReturnCodes::ABORTRUN;
 	    }
-	
 
-	  if (digi_tower)
+
+	  if (digi_towerinfo)
 	    {
 	      if (m_DoDecal && m_Decal)
 		{
@@ -343,11 +333,14 @@ int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
 		  float e_dec = digi_towerinfo->get_energy();
 		  digi_towerinfo->set_energy(e_dec * decal_fctr);
 		}
-	      
-	      m_RawTowerInfos->add(digi_towerinfo,towerindex);
-	   
+
+	      TowerInfo *digitized_towerinfo = m_RawTowerInfos->at(towerindex);
+	      digitized_towerinfo->set_energy(digi_towerinfo->get_energy());
+
+
+
 	    }
-	  
+	
 	}
     }
 
@@ -770,8 +763,6 @@ void RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
   if (m_UseTowerInfo > 0 )
     {
      std::string TowerInfoNodeName = "TOWERINFO_" + m_RawTowerNodePrefix + "_" + m_Detector;
-      // m_RawTowerInfos = findNode::getClass<TowerInfoContainer>(DetNode, RawTowerNodeName);
-
      m_RawTowerInfos = findNode::getClass<TowerInfoContainer>(DetNode,TowerInfoNodeName);
      if (m_RawTowerInfos == nullptr)
        {
@@ -789,9 +780,6 @@ void RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
 	     std::cout << PHWHERE << "Detector not implemented into the TowerInfoContainer object, defaulting to HCal implementation." << std::endl;
 	     detec = TowerInfoContainer::DETECTOR::HCAL;
 	   }
-	 
-
-
 	 if (!m_RawTowerInfos)
 	   {
 	     m_RawTowerInfos = new TowerInfoContainerv1(detec);
