@@ -22,6 +22,13 @@ class PHG4MvtxSupport
  private:
   PHG4MvtxDisplayAction *m_DisplayAction;
 
+  void CreateMvtxSupportMaterials();
+
+  G4AssemblyVolume* CreateEndWheelsSideN();
+  G4AssemblyVolume* CreateEndWheelsSideS();
+  void GetEndWheelSideN(const int lay, G4AssemblyVolume* endWheel);
+  void GetEndWheelSideS(const int lay, G4AssemblyVolume* endWheel);
+
   std::vector<float> get_thickness(PHG4MvtxServiceStructure *object);
   void TrackingServiceCone(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume);
   void TrackingServiceCylinder(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume);
@@ -35,6 +42,8 @@ class PHG4MvtxSupport
   G4AssemblyVolume *buildL1Cable();
   G4AssemblyVolume *buildL2Cable();
 
+  G4AssemblyVolume *m_endWheelsN;
+  G4AssemblyVolume *m_endWheelsS;
   G4AssemblyVolume *m_avSupport;
   G4AssemblyVolume *m_avBarrelCable;
   G4AssemblyVolume *m_avL0Cable;
