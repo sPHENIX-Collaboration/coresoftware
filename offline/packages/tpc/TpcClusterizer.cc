@@ -331,7 +331,7 @@ namespace
 	TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
 	// if(adc>5)
 	hitkeyvec.push_back(hitkey);
-      }
+      } 
       if (adc_sum < 10){
 	hitkeyvec.clear();
 	return;  // skip obvious noise "clusters"
@@ -441,10 +441,9 @@ namespace
         }
       }
       hitkeyvec.clear();
-    }
+    } 
   
   void ProcessSectorData(thread_data* my_data) {
-
     const auto& pedestal  = my_data->pedestal;
     const auto& phibins   = my_data->phibins;
     const auto& phioffset = my_data->phioffset;
@@ -815,7 +814,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-  
+
   if (pthread_mutex_init(&mythreadlock, nullptr) != 0)
     {
       printf("\n mutex init failed\n");
@@ -931,7 +930,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.hitset = nullptr;
       thread_pair.data.rawhitset = dynamic_cast<RawHitSetv1 *>(hitset);
       thread_pair.data.layer = layer;
-      thread_pair.data.pedestal = pedestal;
+      thread_pair.data.pedestal = pedestal; // 
       thread_pair.data.sector = sector;
       thread_pair.data.side = side;
       thread_pair.data.do_assoc = do_hit_assoc;

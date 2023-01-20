@@ -62,6 +62,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_test_output(bool test) {test_output = test;}
   void set_layer_fixed(unsigned int layer);
   void set_layer_param_fixed(unsigned int layer, unsigned int param);
+  void set_cluster_version(unsigned int v) { _cluster_version = v; }
 
  private:
 
@@ -100,7 +101,7 @@ Mille* _mille;
   TpcDistortionCorrectionContainer* _dcc_average{nullptr};
   TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
 
-  unsigned int _cluster_version = 3;
+  unsigned int _cluster_version = 4;
   bool test_output = false;
 
   ClusterErrorPara _ClusErrPara;

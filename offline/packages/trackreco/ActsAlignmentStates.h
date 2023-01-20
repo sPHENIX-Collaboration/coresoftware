@@ -5,7 +5,6 @@
 
 #include <Acts/Definitions/Algebra.hpp>
 
-#include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/Trajectories.hpp>
 
 #include <tpc/TpcClusterZCrossingCorrection.h>
