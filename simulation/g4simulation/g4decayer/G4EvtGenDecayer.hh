@@ -136,6 +136,8 @@ class G4EvtGenDecayer : public G4VExtDecayer
 //  EvtParticle* mParticle;
   EvtAbsRadCorr* radCorrEngine = NULL;
   std::list<EvtDecayBase*> extraModels;  
+  float WidthThreshold = 100.0;   // Decay Width Threshold
+  
   //	TLorentzVector * mVertex = new TLorentzVector;
 //  bool mOwner;
 //  bool mDebug = false;

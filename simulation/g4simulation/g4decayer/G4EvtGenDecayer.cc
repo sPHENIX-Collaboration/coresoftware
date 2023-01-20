@@ -84,11 +84,12 @@ G4EvtGenDecayer::G4EvtGenDecayer()
   extraModels.clear();
   // delete mEvtGen;	QATree
 
-  //   bool WilluseXml =false;
+  // bool WilluseXml =false;
   //  SetDecayTable("EvtGenDecayFiles/Bc.DStar+D0Star.Phi.DEC",WilluseXml);
-  //   SetDecayTable("EvtGenDecayFiles/JPsi.PP.DEC",WilluseXml);
+  // SetDecayTable("EvtGenDecayFiles/JpsiRHO.DEC",WilluseXml);
+  // SetDecayTable("EvtGenDecayFiles/JPsi.ee.DEC",WilluseXml);
 
-  std::cout << "EvtGen Called Bro" << std::endl;
+  // std::cout << "EvtGen Called Bro e+ e- decay" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -133,7 +134,6 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
   EvtId parentID = EvtPDL::evtIdFromLundKC(pdgEncoding);
 
   auto mParticle = EvtParticleFactory::particleFactory(parentID, p_init);
-
   // Decay the particle
   mEvtGen->generateDecay(mParticle);
 
@@ -160,11 +160,13 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 
     for (auto children : particle->children())
     {
+      float EvtWidth = 9999;
       int pdg = children->pdg_id();
 
       G4ParticleDefinition* particleDefinition = GetParticleDefinition(pdg);
+      if (EvtPDL::evtIdFromLundKC(pdg).getId() != -1) EvtWidth = EvtPDL::getWidth(EvtPDL::evtIdFromLundKC(pdg)) * 1000000;  // Width Unit GeV -> keV
 
-      if (particleDefinition)
+      if (particleDefinition && EvtWidth < WidthThreshold)
       {
         bool SameVtxPos = 1;
 
@@ -189,9 +191,6 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
                       << dynamicParticle->GetDefinition()->GetParticleName()
                       << std::endl;
           }
-
-          //			std::cout << "pdg = " << pdg << "   part->momentum().px() = " << part->momentum().px() << "   part->momentum().py() = " <<  part->momentum().py() << "  part->momentum().pz() = " <<  part->momentum().pz() << std::endl;
-          //			std::cout << "pdg: " << pdg << "    Lifetime = " << abs(particle->end_vertex()->position().t() - particle->production_vertex()->position().t() ) << std::endl;
 
           decayProducts->PushProducts(dynamicParticle);
         }

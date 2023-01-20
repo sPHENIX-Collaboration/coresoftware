@@ -189,7 +189,7 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
   assert(h_norm);
   h_norm->Fill("Event", 1);
 
-  //buffer for daugther particles
+  // buffer for daugther particles
   typedef std::set<std::pair<PHG4Particle *, SvtxTrack *>> truth_reco_set_t;
   truth_reco_set_t truth_reco_set_pos;
   truth_reco_set_t truth_reco_set_neg;
@@ -215,7 +215,7 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
 
     if (m_embeddingIDs.size() > 0)
     {
-      //only analyze subset of particle with proper embedding IDs
+      // only analyze subset of particle with proper embedding IDs
       int candidate_embedding_id = trutheval->get_embed(g4particle);
       if (candidate_embedding_id < 0) candidate_embedding_id = -1;
 
@@ -318,7 +318,7 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
     }
   }  //  for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
 
-  //building pairs with buffer for daugter particles
+  // building pairs with buffer for daugter particles
   TParticlePDG *pdg_p = TDatabasePDG::Instance()->GetParticle(m_quarkoniaPID);
   if (!pdg_p)
   {

@@ -21,11 +21,11 @@
 
 #include <TDatabasePDG.h>
 
+//#include <g4eval/SvtxEvalStack.h>
 #include <TF1.h>
 #include <TLatex.h>
 #include <TROOT.h>
 #include <TStyle.h>
-#include <g4eval/SvtxEvalStack.h>
 
 #include <TLorentzVector.h>
 #include <TVector3.h>
@@ -49,7 +49,7 @@ QAG4Decayer::QAG4Decayer(const std::string &name)
   //  , m_write_QAHists(true)
   , m_SaveFiles(false)
 {
-  // std::cout << "New QA Clean Up for Valgrind Test - New D+ - Reduced - ROCKED - pi phi - QA it Why" << std::endl;
+  std::cout << "New QA Clean Up for Valgrind Test - New D+ - Reduced - ROCKED - pi phi - QA it Why" << std::endl;
 }
 
 QAG4Decayer::~QAG4Decayer()
@@ -75,20 +75,23 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   h = new TH1F("BadVtxPercent", "", 20, -0.5, 19.5);
   hm->registerHisto(h);
 
-  h = new TH1F("QAPx", "", 100, -1, 1);
-  hm->registerHisto(h);
+  /*
 
-  h = new TH1F("QAPy", "", 100, -1, 1);
-  hm->registerHisto(h);
+          h = new TH1F("QAPx","",100,-1,1);
+          hm->registerHisto(h);
 
-  h = new TH1F("QAPz", "", 100, -1, 1);
-  hm->registerHisto(h);
+          h = new TH1F("QAPy","",100,-1,1);
+          hm->registerHisto(h);
 
-  h = new TH1F("QAE", "", 100, -1, 1);
-  hm->registerHisto(h);
+          h = new TH1F("QAPz","",100,-1,1);
+          hm->registerHisto(h);
 
-  h = new TH1F("QACosTheta", "", 120, -1.2, 1.2);
-  hm->registerHisto(h);
+          h = new TH1F("QAE","",100,-1,1);
+          hm->registerHisto(h);
+
+          h = new TH1F("QACosTheta","",120,-1.2,1.2);
+          hm->registerHisto(h);
+  */
 
   h = new TH1F("MassHis", "", 100, 1.6, 2.1);
   hm->registerHisto(h);
@@ -98,10 +101,25 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
 
   for (int i = 0; i < NHFQA; i++)
   {
+    h = new TH1F(Form("QAPx_%d", i), "", 200, -1, 1);
+    hm->registerHisto(h);
+
+    h = new TH1F(Form("QAPy_%d", i), "", 200, -1, 1);
+    hm->registerHisto(h);
+
+    h = new TH1F(Form("QAPz_%d", i), "", 200, -1, 1);
+    hm->registerHisto(h);
+
+    h = new TH1F(Form("QAE_%d", i), "", 200, -1, 1);
+    hm->registerHisto(h);
+
+    h = new TH1F(Form("QACosTheta_%d", i), "", 120, -1.2, 1.2);
+    hm->registerHisto(h);
+
     h = new TH1F(Form("BR1DHis_%d", i), "", 10, -0.5, 9.5);
     hm->registerHisto(h);
 
-    h = new TH1F(Form("ProperLifeTime_%d", i), "", 100, 0, 0.05);
+    h = new TH1F(Form("ProperLifeTime_%d", i), "", 100, 0.0001, 0.05);
     hm->registerHisto(h);
   }
 
@@ -402,30 +420,58 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
   TH1F *BadVtxPercent = dynamic_cast<TH1F *>(hm->getHisto("BadVtxPercent"));
   assert(BadVtxPercent);
+  /*
+          TH1F * QAPx = dynamic_cast<TH1F *>(hm->getHisto("QAPx"));
+          assert(QAPx);
 
-  TH1F *QAPx = dynamic_cast<TH1F *>(hm->getHisto("QAPx"));
-  assert(QAPx);
 
-  TH1F *QAPy = dynamic_cast<TH1F *>(hm->getHisto("QAPy"));
-  assert(QAPy);
+          TH1F * QAPy = dynamic_cast<TH1F *>(hm->getHisto("QAPy"));
+          assert(QAPy);
 
-  TH1F *QAPz = dynamic_cast<TH1F *>(hm->getHisto("QAPz"));
-  assert(QAPz);
+          TH1F * QAPz = dynamic_cast<TH1F *>(hm->getHisto("QAPz"));
+          assert(QAPz);
 
-  TH1F *QAE = dynamic_cast<TH1F *>(hm->getHisto("QAE"));
-  assert(QAE);
+          TH1F * QAE = dynamic_cast<TH1F *>(hm->getHisto("QAE"));
+          assert(QAE);
 
-  TH1F *QACosTheta = dynamic_cast<TH1F *>(hm->getHisto("QACosTheta"));
-  assert(QACosTheta);
+
+          TH1F * QACosTheta = dynamic_cast<TH1F *>(hm->getHisto("QACosTheta"));
+          assert(QACosTheta);
+  */
 
   TH1F *MassHis = dynamic_cast<TH1F *>(hm->getHisto("MassHis"));
   assert(MassHis);
 
+  // Individual QA for every single heavy flavor particle//
+
+  TH1F *QAPx[NHFQA];
+  TH1F *QAPy[NHFQA];
+  TH1F *QAPz[NHFQA];
+  TH1F *QAE[NHFQA];
+  TH1F *QACosTheta[NHFQA];
   TH1F *BR1DHis[NHFQA];
   TH1F *ProperLifeTime[NHFQA];
 
   for (int i = 0; i < NHFQA; i++)
   {
+    QAPx[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("QAPx_%d", i)));
+    assert(QAPx[i]);
+
+    QAPy[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("QAPy_%d", i)));
+    assert(QAPy[i]);
+
+    QAPz[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("QAPz_%d", i)));
+    assert(QAPz[i]);
+
+    QAE[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("QAE_%d", i)));
+    assert(QAE[i]);
+
+    QACosTheta[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("QAPx_%d", i)));
+    assert(QAPx[i]);
+
+    QAPx[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("QAPx_%d", i)));
+    assert(QAPx[i]);
+
     BR1DHis[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("BR1DHis_%d", i)));
     assert(BR1DHis[i]);
 
@@ -439,19 +485,21 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
   TH1F *HFHadronStat = dynamic_cast<TH1F *>(hm->getHisto("HFHadronStat"));
   assert(HFHadronStat);
 
+  /*
   if (!_svtxevalstack)
   {
-    _svtxevalstack = new SvtxEvalStack(topNode);
-    _svtxevalstack->set_strict(false);
-    _svtxevalstack->set_verbosity(0);
-    _svtxevalstack->set_use_initial_vertex(1);
-    _svtxevalstack->set_use_genfit_vertex(1);
-    _svtxevalstack->next_event(topNode);
+          _svtxevalstack = new SvtxEvalStack(topNode);
+          _svtxevalstack->set_strict(false);
+          _svtxevalstack->set_verbosity(0);
+          _svtxevalstack->set_use_initial_vertex(1);
+          _svtxevalstack->set_use_genfit_vertex(1);
+          _svtxevalstack->next_event(topNode);
   }
   else
   {
-    _svtxevalstack->next_event(topNode);
+          _svtxevalstack->next_event(topNode);
   }
+  */
 
   m_truth_info = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
@@ -480,7 +528,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
   std::vector<double> DiffPzPerVertex;
 
   std::vector<std::vector<int>> DaughterInfo;
-  //	std::vector<std::vector<double>> DaughterEInfo;
+  std::vector<std::vector<double>> DaughterEInfo;
   std::vector<int> VertexInfo;
   std::vector<int> HFIndexInfo;
 
@@ -494,7 +542,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
     int gflavor = g4particle->get_pid();
 
-    //	std::cout << "gflavor = " << gflavor << std::endl;
+    //		if(gflavor == 113) std::cout << "gflavor = " << gflavor << "    g4particle->get_e() " << g4particle->get_e()  << std::endl;
 
     NParticles = NParticles + 1;
 
@@ -507,7 +555,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
     double ParentPy = 0;
     double ParentPz = 0;
 
-    PHG4Particle *mother = NULL;
+    PHG4Particle *mother = nullptr;
 
     TVector3 HFParMom(0, 0, 0);
     TVector3 HFProdVtx(0, 0, 0);
@@ -548,7 +596,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
       HFHadronStat->Fill(HFFillIndex);
 
-      //			std::cout << "gflavor = " << gflavor << "   HFFillIndex = " << HFFillIndex << std::endl;
+      // std::cout << "gflavor = " << gflavor << "   HFFillIndex = " << HFFillIndex << std::endl;
     }
 
     int VtxSize = ParentTrkInfo.size();
@@ -599,8 +647,9 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
         DaughterInfo.push_back(Daughters);
 
         // Check Energy
-        // std::vector<float> DaughtersE;
-        // DaughterEInfo.push_back(DaughtersE);
+        std::vector<double> DaughtersE;
+        DaughtersE.push_back(g4particle->get_e());
+        DaughterEInfo.push_back(DaughtersE);
       }
       if (!NewVtx)
       {
@@ -610,16 +659,15 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
         DiffPzPerVertex[Index] = DiffPzPerVertex[Index] - g4particle->get_pz();
 
         DaughterInfo[Index].push_back(gflavor);
-        //	DaughterEInfo[Index].push_back(g4particle->get_e());
+        DaughterEInfo[Index].push_back(g4particle->get_e());
       }
     }
 
-    SvtxTruthEval *trutheval = _svtxevalstack->get_truth_eval();
-    PHG4VtxPoint *vtx = trutheval->get_vertex(g4particle);
+    PHG4VtxPoint *vtx = m_truth_info->GetVtx(g4particle->get_vtx_id());
+    PHG4VtxPoint *ParentVtx = nullptr;
+    if (mother) ParentVtx = m_truth_info->GetVtx(mother->get_vtx_id());
 
-    PHG4VtxPoint *ParentVtx = trutheval->get_vertex(mother);
-
-    if (GrandParentPDGID == 0 && VtxToQA)
+    if (GrandParentPDGID == 0 && ParentVtx && VtxToQA)
     {
       float ParMass = sqrt(mother->get_e() * mother->get_e() - mother->get_px() * mother->get_px() - mother->get_py() * mother->get_py() - mother->get_pz() * mother->get_pz());
       float ParP = sqrt(mother->get_px() * mother->get_px() + mother->get_py() * mother->get_py() + mother->get_pz() * mother->get_pz());
@@ -630,12 +678,17 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
       SVtoPVDis = (HFDecayVtx - HFProdVtx).Mag();
       SVtoPVTau = SVtoPVDis / ParP * ParMass;
 
-      CosTheta = ((HFDecayVtx - HFProdVtx).Dot(HFParMom)) / ((HFDecayVtx - HFProdVtx).Mag() * HFParMom.Mag());
+      CosTheta = -2;
+      if (SVtoPVDis > 0) CosTheta = ((HFDecayVtx - HFProdVtx).Dot(HFParMom)) / ((HFDecayVtx - HFProdVtx).Mag() * HFParMom.Mag());
 
-      QACosTheta->Fill(CosTheta);
+      //		QACosTheta->Fill(CosTheta);
       MassHis->Fill(ParMass);
 
-      if (HFIndex > -1) ProperLifeTime[HFIndex]->Fill(SVtoPVTau);
+      if (HFIndex > -1)
+      {
+        ProperLifeTime[HFIndex]->Fill(SVtoPVTau);
+        QACosTheta[HFIndex]->Fill(CosTheta);
+      }
     }
   }
 
@@ -643,28 +696,28 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
   for (int q = 0; q < VtxSizeFinal; q++)
   {
-    if (abs(DiffEPerVertex[q]) > 0.004)
-    {
-      BadVtx = BadVtx + 1;
-      /*
-                              //Debug Bro//
-                              std::cout << "Bad Parent = " << HFIndexInfo[q] <<  "   E = " << ParentEInfo[q] << std::endl;
-                              for(int r = 0; r <  int(DaughterInfo[q].size()); r++){
-                                      std::cout << "Daughter: " <<  DaughterInfo[q][r] << "   E = " << DaughterEInfo[q][r] << std::endl;
-                              }
-                              std::cout << "------------------------------------------------------------------" << std::endl;
-      */
-    }
+    /*
 
-    DevPx = DiffPxPerVertex[q] / ParentPxInfo[q];
-    DevPy = DiffPyPerVertex[q] / ParentPyInfo[q];
-    DevPz = DiffPzPerVertex[q] / ParentPzInfo[q];
-    DevE = DiffEPerVertex[q] / ParentEInfo[q];
+                    if(abs(DiffEPerVertex[q]) > 0.004){
 
-    QAPx->Fill(DevPx);
-    QAPy->Fill(DevPy);
-    QAPz->Fill(DevPz);
-    QAE->Fill(DevE);
+                            std::cout << "------------------------------------------------------------------" << std::endl;
+                            std::cout << "DiffEPerVertex[q] = " << DiffEPerVertex[q] << std::endl;
+
+                            BadVtx = BadVtx + 1;
+
+                            //Debug Bro//
+                            float TotalBadE = 0;
+                            for(int r = 0; r <  int(DaughterInfo[q].size()); r++){
+                                    std::cout << "Daughter: " <<  DaughterInfo[q][r] << "   E = " << DaughterEInfo[q][r] << std::endl;
+                                    TotalBadE = TotalBadE + DaughterEInfo[q][r];
+                            }
+                            std::cout << "Bad Parent = " << HFIndexInfo[q] <<  "   E = " << ParentEInfo[q] << "    Total Daughter Energt = " << TotalBadE << std::endl;
+
+                            std::cout << "------------------------------------------------------------------" << std::endl;
+
+                    }
+
+    */
   }
   // BR Working here
 
@@ -677,10 +730,22 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
     //		std::vector<int> ChannelID = Channel(VertexInfo[q],DaughterInfo[q]);
     //		int ChannelSize = ChannelID.size();
 
+    DevPx = DiffPxPerVertex[q] / ParentPxInfo[q];
+    DevPy = DiffPyPerVertex[q] / ParentPyInfo[q];
+    DevPz = DiffPzPerVertex[q] / ParentPzInfo[q];
+    DevE = DiffEPerVertex[q] / ParentEInfo[q];
+
+    QAPx[HFIndexToFill]->Fill(DevPx);
+    QAPy[HFIndexToFill]->Fill(DevPy);
+    QAPz[HFIndexToFill]->Fill(DevPz);
+    QAE[HFIndexToFill]->Fill(DevE);
+
     //		int DaughterSize =  DaughterInfo[q].size();
     sort(DaughterInfo[q].begin(), DaughterInfo[q].end());
 
     //	int ChannelSize = ChannelID.size();
+
+    // Momentum - Energy Conservation Studies
 
     if (HFIndexToFill < 0)
     {
