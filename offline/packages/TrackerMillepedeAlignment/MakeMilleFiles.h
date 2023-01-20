@@ -68,6 +68,7 @@ class MakeMilleFiles : public SubsysReco
   void set_mms_grouping(int group) { mms_group = (mmsGroup) group; }
   void set_layer_fixed(unsigned int layer);
   void set_layer_param_fixed(unsigned int layer, unsigned int param);
+  void set_cluster_version(unsigned int v) { _cluster_version = v; }
 
  private:
   Mille* _mille;
