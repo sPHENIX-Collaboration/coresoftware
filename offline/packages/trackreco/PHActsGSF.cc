@@ -15,6 +15,7 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/ActsGsfTrackFittingAlgorithm.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -30,8 +31,7 @@
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
-
-#include <ActsExamples/EventData/Index.hpp>
+#include <Acts/TrackFitting/BetheHeitlerApprox.hpp>
 
 #include <TDatabasePDG.h>
 
@@ -59,9 +59,13 @@ int PHActsGSF::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_fitCfg.fit = ActsTrackFittingAlgorithm::makeGsfFitterFunction(
+  auto bha = Acts::Experimental::makeDefaultBetheHeitlerApprox();
+  ActsGsfTrackFittingAlgorithm gsf;
+  m_fitCfg.fit = gsf.makeGsfFitterFunction(
       m_tGeometry->geometry().tGeometry,
-      m_tGeometry->geometry().magField);
+      m_tGeometry->geometry().magField,
+      bha, 
+      4, Acts::FinalReductionMethod::eMean, true, false);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -82,7 +86,7 @@ int PHActsGSF::process_event(PHCompositeNode*)
     auto pSurface = makePerigee(track);
     const auto seed = makeSeed(track, pSurface);
 
-    ActsExamples::MeasurementContainer measurements;
+    ActsTrackFittingAlgorithm::MeasurementContainer measurements;
     TrackSeed* tpcseed = track->get_tpc_seed();
     TrackSeed* silseed = track->get_silicon_seed();
 
@@ -162,7 +166,7 @@ std::shared_ptr<Acts::PerigeeSurface> PHActsGSF::makePerigee(SvtxTrack* track) c
       vertexpos);
 }
 
-ActsExamples::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
+ActsTrackFittingAlgorithm::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
                                                   std::shared_ptr<Acts::PerigeeSurface> psurf) const
 {
   Acts::Vector4 fourpos(track->get_x() * Acts::UnitConstants::cm,
@@ -178,7 +182,7 @@ ActsExamples::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
   ActsTransformations transformer;
   auto cov = transformer.rotateSvtxTrackCovToActs(track);
 
-  return ActsExamples::TrackParameters::create(psurf,
+  return ActsTrackFittingAlgorithm::TrackParameters::create(psurf,
                                                m_tGeometry->geometry().getGeoContext(),
                                                fourpos,
                                                momentum,
@@ -188,7 +192,7 @@ ActsExamples::TrackParameters PHActsGSF::makeSeed(SvtxTrack* track,
 }
 
 SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
-                                        ActsExamples::MeasurementContainer& measurements,
+                                        ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
                                         const short int& crossing)
 {
   SourceLinkVec sls;
@@ -341,7 +345,7 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
       cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
     }
 
-    ActsExamples::Index index = measurements.size();
+    ActsSourceLink::Index index = measurements.size();
 
     SourceLink sl(surf->geometryId(), index, cluskey);
 
@@ -370,25 +374,26 @@ SourceLinkVec PHActsGSF::getSourceLinks(TrackSeed* track,
 
 ActsTrackFittingAlgorithm::TrackFitterResult PHActsGSF::fitTrack(
     const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks,
-    const ActsExamples::TrackParameters& seed,
+    const ActsTrackFittingAlgorithm::TrackParameters& seed,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& options)
 {
-  return (*m_fitCfg.fit)(sourceLinks, seed, options);
+  auto mtj = std::make_shared<Acts::VectorMultiTrajectory>();
+  return (*m_fitCfg.fit)(sourceLinks, seed, options,mtj);
 }
 
 void PHActsGSF::updateTrack(const FitResult& result, SvtxTrack* track)
 {
-  std::vector<size_t> trackTips;
+  std::vector<Acts::MultiTrajectoryTraits::IndexType> trackTips;
   trackTips.reserve(1);
   trackTips.emplace_back(result.lastMeasurementIndex);
   ActsExamples::Trajectories::IndexedParameters indexedParams;
-  std::cout << "fitted params" << std::endl;
+  
   if (result.fittedParameters)
   {
     indexedParams.emplace(result.lastMeasurementIndex,
                           result.fittedParameters.value());
     Trajectory traj(result.fittedStates, trackTips, indexedParams);
-    std::cout << "Created trajectory" << std::endl;
+
     updateSvtxTrack(traj, track);
   }
 }

@@ -10,6 +10,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <trackbase/ActsTrackFittingAlgorithm.h>
+
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
@@ -129,13 +131,11 @@ int PHActsTrackProjection::projectTracks(const int caloLayer)
         m_caloSurfaces.find(m_caloNames.at(caloLayer))->second;
 
     auto result = propagateTrack(params, cylSurf);
-
-    if (result.ok())
-    {
-      auto trackStateParams = std::move(**result);
-      updateSvtxTrack(trackStateParams,
-                      track, caloLayer);
-    }
+    if(result.ok())
+      {
+	updateSvtxTrack(result.value(), track, caloLayer);
+      }
+  
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -161,11 +161,11 @@ PHActsTrackProjection::makeTrackParams(SvtxTrack* track)
 
   Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
 
-  return ActsExamples::TrackParameters::create(perigee, m_tGeometry->geometry().getGeoContext(),
-                                               actsFourPos, momentum,
-                                               track->get_charge() / track->get_p(),
-                                               cov)
-      .value();
+  return ActsTrackFittingAlgorithm::TrackParameters::create(perigee, 
+     m_tGeometry->geometry().getGeoContext(),
+     actsFourPos, momentum,
+     track->get_charge() / track->get_p(),
+     cov).value();
 }
 Acts::Vector3 PHActsTrackProjection::getVertex(SvtxTrack* track)
 {
@@ -284,7 +284,7 @@ void PHActsTrackProjection::getSquareTowerEnergies(int phiBin,
   return;
 }
 
-BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
+BoundTrackParamResult PHActsTrackProjection::propagateTrack(
     const Acts::BoundTrackParameters& params,
     const SurfacePtr& targetSurf)
 {
@@ -331,13 +331,13 @@ BoundTrackParamPtrResult PHActsTrackProjection::propagateTrack(
 
   auto result = propagator.propagate(params, *targetSurf,
                                      options);
-
-  if (result.ok())
-  {
-    return std::move((*result).endParameters);
-  }
+  if(result.ok())
+    {
+      return Acts::Result<BoundTrackParam>::success(std::move((*result).endParameters.value()));
+    }
 
   return result.error();
+  
 }
 
 int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode* topNode,

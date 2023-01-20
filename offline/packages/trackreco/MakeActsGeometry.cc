@@ -43,7 +43,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/TrackingVolume.hpp>
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
@@ -52,11 +51,7 @@
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
-#include <ActsExamples/Detector/IBaseDetector.hpp>
-#include <ActsExamples/EventData/Track.hpp>
-#include <ActsExamples/Framework/AlgorithmContext.hpp>
 #include <ActsExamples/Framework/IContextDecorator.hpp>
-#include <ActsExamples/Framework/WhiteBoard.hpp>
 #include <ActsExamples/Geometry/CommonGeometry.hpp>
 
 #pragma GCC diagnostic push
@@ -65,7 +60,7 @@
 #pragma GCC diagnostic pop
 
 #include <ActsExamples/Utilities/Options.hpp>
-#include <ActsExamples/MagneticField/MagneticFieldOptions.hpp>
+#include <ActsExamples/Options/MagneticFieldOptions.hpp>
 
 #include <ActsExamples/TGeoDetector/JsonTGeoDetectorConfig.hpp>
 
@@ -147,9 +142,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   ActsTrackingGeometry trackingGeometry;
   trackingGeometry.tGeometry = m_tGeometry;
   trackingGeometry.magField = m_magneticField;
-  trackingGeometry.calibContext = m_calibContext;
-  trackingGeometry.magFieldContext = m_magFieldContext;
-  trackingGeometry.getGeoContext() = m_geoCtxt;  // set reference 
+  trackingGeometry.getGeoContext() = m_geoCtxt;  // set reference as plain geocontext
   trackingGeometry.tpcSurfStepPhi = m_surfStepPhi;
   trackingGeometry.tpcSurfStepZ = m_surfStepZ;
 
@@ -592,26 +585,12 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[],
   /// Geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
 
   m_tGeometry = geometry.first;
-  m_contextDecorators = geometry.second;
   if(m_useField)
     { m_magneticField = ActsExamples::Options::readMagneticField(vm); }
   else
     { m_magneticField = nullptr; }
 
-  size_t ievt = 0;
-  size_t ialg = 0;
-
-  /// Setup the event and algorithm context
-  ActsExamples::WhiteBoard eventStore(
-            Acts::getDefaultLogger("EventStore#" + std::to_string(ievt),
-				   Acts::Logging::Level::INFO));
-
-  /// The geometry context
-  ActsExamples::AlgorithmContext context(ialg, ievt, eventStore);
-
-  m_calibContext = context.calibContext;
-  m_magFieldContext = context.magFieldContext;
-  m_geoCtxt = context.geoContext;
+  m_geoCtxt = Acts::GeometryContext();
  
   unpackVolumes();
   
@@ -620,7 +599,6 @@ void MakeActsGeometry::makeGeometry(int argc, char* argv[],
 
 
 std::pair<std::shared_ptr<const Acts::TrackingGeometry>,
-	  //std::pair<std::shared_ptr<Acts::TrackingGeometry>,
           std::vector<std::shared_ptr<ActsExamples::IContextDecorator>>>
 MakeActsGeometry::build(const boost::program_options::variables_map& vm,
 			ActsExamples::TGeoDetector& detector) {

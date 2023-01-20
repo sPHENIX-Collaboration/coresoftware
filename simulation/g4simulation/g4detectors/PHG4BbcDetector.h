@@ -29,6 +29,7 @@ class PHG4BbcDetector : public PHG4Detector
 
   //! construct BBC/MBD
   void ConstructMe(G4LogicalVolume *world) override;
+  void ConstructSupport(G4LogicalVolume *world);
 
   void Print(const std::string &what = "ALL") const override;
 

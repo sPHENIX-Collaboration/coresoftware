@@ -214,8 +214,8 @@ void PHG4MvtxSubsystem::SetDefaultParameters()
 
   set_default_string_param(GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
   char *calibrationsroot = getenv("CALIBRATIONROOT");
-  std::string end_wheels_sideS = "ITS_ibEndWheelSideA_mod_PEEK.gdml";
-  std::string end_wheels_sideN = "ITS_ibEndWheelSideC_PEEK.gdml";
+  std::string end_wheels_sideS = "ITS_ibEndWheelSideA.gdml";
+  std::string end_wheels_sideN = "ITS_ibEndWheelSideC.gdml";
   if (calibrationsroot != nullptr)
   {
     end_wheels_sideS =  string(calibrationsroot) + string("/Tracking/geometry/") + end_wheels_sideS;

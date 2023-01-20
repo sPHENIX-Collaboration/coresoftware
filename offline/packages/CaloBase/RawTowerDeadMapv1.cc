@@ -7,13 +7,13 @@
 using namespace std;
 
 const RawTowerDeadMapv1::Map&
-RawTowerDeadMapv1::getDeadTowers(void) const
+RawTowerDeadMapv1::getDeadTowers() const
 {
   return m_DeadTowers;
 }
 
 RawTowerDeadMapv1::Map&
-RawTowerDeadMapv1::getDeadTowers(void)
+RawTowerDeadMapv1::getDeadTowers()
 {
   return m_DeadTowers;
 }

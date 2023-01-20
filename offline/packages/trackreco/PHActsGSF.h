@@ -21,8 +21,8 @@
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
+#include <Acts/EventData/VectorMultiTrajectory.hpp>
 
-#include <ActsExamples/EventData/Track.hpp>
 #include <ActsExamples/EventData/Trajectories.hpp>
 
 #include <trackbase/ActsTrackFittingAlgorithm.h>
@@ -36,7 +36,7 @@ class SvtxTrackMap;
 class SvtxVertexMap;
 
 using SourceLink = ActsSourceLink;
-using FitResult = Acts::KalmanFitterResult;
+using FitResult = Acts::KalmanFitterResult<Acts::VectorMultiTrajectory>;
 using Trajectory = ActsExamples::Trajectories;
 using Measurement = Acts::Measurement<Acts::BoundIndices, 2>;
 using SurfacePtrVec = std::vector<const Acts::Surface*>;
@@ -56,15 +56,15 @@ class PHActsGSF : public SubsysReco
  private:
   int getNodes(PHCompositeNode* topNode);
   std::shared_ptr<Acts::PerigeeSurface> makePerigee(SvtxTrack* track) const;
-  ActsExamples::TrackParameters makeSeed(
+  ActsTrackFittingAlgorithm::TrackParameters makeSeed(
       SvtxTrack* track,
       std::shared_ptr<Acts::PerigeeSurface> psurf) const;
   SourceLinkVec getSourceLinks(TrackSeed* track,
-                               ActsExamples::MeasurementContainer& measurements,
+                               ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
                                const short int& crossing);
   ActsTrackFittingAlgorithm::TrackFitterResult fitTrack(
       const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks,
-      const ActsExamples::TrackParameters& seed,
+      const ActsTrackFittingAlgorithm::TrackParameters& seed,
       const ActsTrackFittingAlgorithm::GeneralFitterOptions& options);
 
   void updateTrack(const FitResult& result, SvtxTrack* track);
