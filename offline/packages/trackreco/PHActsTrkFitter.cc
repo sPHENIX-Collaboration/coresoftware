@@ -49,7 +49,6 @@
 #include <Acts/TrackFitting/GainMatrixSmoother.hpp>
 #include <Acts/TrackFitting/GainMatrixUpdater.hpp>
 
-#include <ActsExamples/EventData/Index.hpp>
 
 #include <TDatabasePDG.h>
 
@@ -296,7 +295,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       PHTimer trackTimer("TrackTimer");
       trackTimer.stop();
       trackTimer.restart();
-      ActsExamples::MeasurementContainer measurements;
+      ActsTrackFittingAlgorithm::MeasurementContainer measurements;
   
       SourceLinkVec sourceLinks;
       if(siseed) sourceLinks = getSourceLinks(siseed, measurements, crossing);
@@ -362,7 +361,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       { wrappedSls.push_back(std::cref(sl)); }
            
       /// Reset the track seed with the dummy covariance
-      auto seed = ActsExamples::TrackParameters::create(
+      auto seed = ActsTrackFittingAlgorithm::TrackParameters::create(
         pSurface,
         m_tGeometry->geometry().getGeoContext(),
         actsFourPos,
@@ -467,7 +466,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
 //___________________________________________________________________________________
 SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
-					      ActsExamples::MeasurementContainer& measurements,
+					      ActsTrackFittingAlgorithm::MeasurementContainer& measurements,
 				   short int crossing )
 {
 
@@ -696,7 +695,7 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
 	cov(Acts::eBoundLoc1, Acts::eBoundLoc1) = para_errors.second * Acts::UnitConstants::cm2;
       }
 
-      ActsExamples::Index index = measurements.size();
+      ActsSourceLink::Index index = measurements.size();
       
       SourceLink sl(surf->geometryId(), index, cluskey);
       
@@ -805,7 +804,7 @@ bool PHActsTrkFitter::getTrackFitResult(const FitResult &fitOutput, SvtxTrack* t
 
 ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
     const std::vector<std::reference_wrapper<const SourceLink>>& sourceLinks, 
-    const ActsExamples::TrackParameters& seed,
+    const ActsTrackFittingAlgorithm::TrackParameters& seed,
     const ActsTrackFittingAlgorithm::GeneralFitterOptions& kfOptions, 
     const SurfacePtrVec& surfSequence,
     std::shared_ptr<Acts::VectorMultiTrajectory>& mtj)
@@ -1049,7 +1048,7 @@ Acts::BoundSymMatrix PHActsTrkFitter::setDefaultCovariance() const
   return cov;
 }
 
-void PHActsTrkFitter::printTrackSeed(const ActsExamples::TrackParameters& seed) const
+void PHActsTrkFitter::printTrackSeed(const ActsTrackFittingAlgorithm::TrackParameters& seed) const
 {
   std::cout 
     << PHWHERE 

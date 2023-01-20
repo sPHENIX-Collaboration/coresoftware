@@ -10,6 +10,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <trackbase/ActsTrackFittingAlgorithm.h>
+
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
@@ -159,11 +161,11 @@ PHActsTrackProjection::makeTrackParams(SvtxTrack* track)
 
   Acts::BoundSymMatrix cov = transformer.rotateSvtxTrackCovToActs(track);
 
-  return ActsExamples::TrackParameters::create(perigee, m_tGeometry->geometry().getGeoContext(),
-                                               actsFourPos, momentum,
-                                               track->get_charge() / track->get_p(),
-                                               cov)
-      .value();
+  return ActsTrackFittingAlgorithm::TrackParameters::create(perigee, 
+     m_tGeometry->geometry().getGeoContext(),
+     actsFourPos, momentum,
+     track->get_charge() / track->get_p(),
+     cov).value();
 }
 Acts::Vector3 PHActsTrackProjection::getVertex(SvtxTrack* track)
 {
