@@ -59,7 +59,7 @@ class TpcClusterizer : public SubsysReco
   bool do_read_raw = false;
   bool do_singles = false;
   double pedestal = 74.4;
-  double threshold = 4;
+  double threshold = 0;
   double SectorFiducialCut = 0.5;
   unsigned short MaxClusterHalfSizePhi = 3;
   unsigned short MaxClusterHalfSizeT = 5;
