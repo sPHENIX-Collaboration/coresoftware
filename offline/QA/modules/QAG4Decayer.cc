@@ -49,7 +49,7 @@ QAG4Decayer::QAG4Decayer(const std::string &name)
   //  , m_write_QAHists(true)
   , m_SaveFiles(false)
 {
-  std::cout << "New QA Clean Up for Valgrind Test - New D+ - Reduced - ROCKED - pi phi - QA it Why" << std::endl;
+  // std::cout << "New QA Clean Up for Valgrind Test - New D+ - Reduced - ROCKED - pi phi - QA it Why" << std::endl;
 }
 
 QAG4Decayer::~QAG4Decayer()
@@ -63,41 +63,27 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
 
   TH1 *h(nullptr);
 
-  h = new TH1F("SVtoPVDistance", "", 100, 0, 0.2);
-  hm->registerHisto(h);
-
-  h = new TH1F("TotalVtxStat", "", 20, -0.5, 19.5);
-  hm->registerHisto(h);
-
-  h = new TH1F("BadVtxStat", "", 20, -0.5, 19.5);
-  hm->registerHisto(h);
-
-  h = new TH1F("BadVtxPercent", "", 20, -0.5, 19.5);
-  hm->registerHisto(h);
-
   /*
-
-          h = new TH1F("QAPx","",100,-1,1);
+          h = new TH1F("SVtoPVDistance","",100,0,0.2);
           hm->registerHisto(h);
 
-          h = new TH1F("QAPy","",100,-1,1);
+
+          h = new TH1F("TotalVtxStat","",20,-0.5,19.5);
           hm->registerHisto(h);
 
-          h = new TH1F("QAPz","",100,-1,1);
+          h = new TH1F("BadVtxStat","",20,-0.5,19.5);
           hm->registerHisto(h);
 
-          h = new TH1F("QAE","",100,-1,1);
+          h = new TH1F("BadVtxPercent","",20,-0.5,19.5);
           hm->registerHisto(h);
 
-          h = new TH1F("QACosTheta","",120,-1.2,1.2);
+          h = new TH1F("MassHis","",100,1.6,2.1);
           hm->registerHisto(h);
+
+          h = new TH1F("NPartHis","",10,-0.5,9.5);
+          hm->registerHisto(h);
+
   */
-
-  h = new TH1F("MassHis", "", 100, 1.6, 2.1);
-  hm->registerHisto(h);
-
-  h = new TH1F("NPartHis", "", 10, -0.5, 9.5);
-  hm->registerHisto(h);
 
   for (int i = 0; i < NHFQA; i++)
   {
@@ -113,6 +99,9 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
     h = new TH1F(Form("QAE_%d", i), "", 200, -1, 1);
     hm->registerHisto(h);
 
+    h = new TH1F(Form("InvMass_%d", i), "", 200, 1, 6);
+    hm->registerHisto(h);
+
     h = new TH1F(Form("QACosTheta_%d", i), "", 120, -1.2, 1.2);
     hm->registerHisto(h);
 
@@ -124,9 +113,6 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   }
 
   h = new TH1F("HFHadronStat", "", 9, -0.5, 8.5);
-  hm->registerHisto(h);
-
-  h = new TH1F("OtherHis", "", 1, -0.5, 0.5);
   hm->registerHisto(h);
 
   NParticles = 0;
@@ -306,22 +292,6 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   decaymap[2].insert({{-2112, 2212}, 5});
   decaymap[2].insert({{211, 333}, 6});
 
-  /*
-
-             LambdaC+
-
-             0. Decay LambdaC+ -> p K- pi+
-             1. Decay LambdaC+ -> p K0 bar
-             2. Decay LambdaC+ -> p phi
-             3. Decay LambdaC+ -> p K- pi+ pi0
-             4. Decay LambdaC+ -> p pi+ pi- K0bar
-             5. Decay LambdaC+ -> p pi+ pi- pi+ pi-
-             6. Decay LambdaC+ -> p pi+ pi-
-             7. Decay LambdaC+ -> K0bar + X
-             8. Decay LambdaC+ -> p + X
-             9. Decay LambdaC+ -> e+ + X
-*/
-
   // LambdaC
   decaymap[3].insert({{-321, 211, 2212}, 0});
   decaymap[3].insert({{-311, 2212}, 1});
@@ -404,43 +374,45 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
 
 int QAG4Decayer::process_event(PHCompositeNode *topNode)
 {
-  NParticles = 0;
+  //	NParticles = 0;
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-
-  TH1F *SVtoPVDistance = dynamic_cast<TH1F *>(hm->getHisto("SVtoPVDistance"));
-  assert(SVtoPVDistance);
-
-  TH1F *TotalVtxStat = dynamic_cast<TH1F *>(hm->getHisto("TotalVtxStat"));
-  assert(TotalVtxStat);
-
-  TH1F *BadVtxStat = dynamic_cast<TH1F *>(hm->getHisto("BadVtxStat"));
-  assert(BadVtxStat);
-
-  TH1F *BadVtxPercent = dynamic_cast<TH1F *>(hm->getHisto("BadVtxPercent"));
-  assert(BadVtxPercent);
   /*
-          TH1F * QAPx = dynamic_cast<TH1F *>(hm->getHisto("QAPx"));
-          assert(QAPx);
+          TH1F * SVtoPVDistance = dynamic_cast<TH1F *>(hm->getHisto("SVtoPVDistance"));
+          assert(SVtoPVDistance);
 
 
-          TH1F * QAPy = dynamic_cast<TH1F *>(hm->getHisto("QAPy"));
-          assert(QAPy);
 
-          TH1F * QAPz = dynamic_cast<TH1F *>(hm->getHisto("QAPz"));
-          assert(QAPz);
+          TH1F * TotalVtxStat = dynamic_cast<TH1F *>(hm->getHisto("TotalVtxStat"));
+          assert(TotalVtxStat);
 
-          TH1F * QAE = dynamic_cast<TH1F *>(hm->getHisto("QAE"));
-          assert(QAE);
+          TH1F * BadVtxStat = dynamic_cast<TH1F *>(hm->getHisto("BadVtxStat"));
+          assert(BadVtxStat);
 
 
-          TH1F * QACosTheta = dynamic_cast<TH1F *>(hm->getHisto("QACosTheta"));
-          assert(QACosTheta);
+          TH1F * BadVtxPercent = dynamic_cast<TH1F *>(hm->getHisto("BadVtxPercent"));
+          assert(BadVtxPercent);
   */
 
-  TH1F *MassHis = dynamic_cast<TH1F *>(hm->getHisto("MassHis"));
-  assert(MassHis);
+  /*
+  TH1F * QAPx = dynamic_cast<TH1F *>(hm->getHisto("QAPx"));
+  assert(QAPx);
+
+
+  TH1F * QAPy = dynamic_cast<TH1F *>(hm->getHisto("QAPy"));
+  assert(QAPy);
+
+  TH1F * QAPz = dynamic_cast<TH1F *>(hm->getHisto("QAPz"));
+  assert(QAPz);
+
+  TH1F * QAE = dynamic_cast<TH1F *>(hm->getHisto("QAE"));
+  assert(QAE);
+
+
+  TH1F * QACosTheta = dynamic_cast<TH1F *>(hm->getHisto("QACosTheta"));
+  assert(QACosTheta);
+*/
 
   // Individual QA for every single heavy flavor particle//
 
@@ -451,6 +423,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
   TH1F *QACosTheta[NHFQA];
   TH1F *BR1DHis[NHFQA];
   TH1F *ProperLifeTime[NHFQA];
+  TH1F *InvMass[NHFQA];
 
   for (int i = 0; i < NHFQA; i++)
   {
@@ -475,37 +448,21 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
     BR1DHis[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("BR1DHis_%d", i)));
     assert(BR1DHis[i]);
 
+    InvMass[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("InvMass_%d", i)));
+    assert(InvMass[i]);
+
     ProperLifeTime[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("ProperLifeTime_%d", i)));
     assert(ProperLifeTime[i]);
   }
 
-  TH1F *NPartHis = dynamic_cast<TH1F *>(hm->getHisto("NPartHis"));
-  assert(NPartHis);
-
   TH1F *HFHadronStat = dynamic_cast<TH1F *>(hm->getHisto("HFHadronStat"));
   assert(HFHadronStat);
-
-  /*
-  if (!_svtxevalstack)
-  {
-          _svtxevalstack = new SvtxEvalStack(topNode);
-          _svtxevalstack->set_strict(false);
-          _svtxevalstack->set_verbosity(0);
-          _svtxevalstack->set_use_initial_vertex(1);
-          _svtxevalstack->set_use_genfit_vertex(1);
-          _svtxevalstack->next_event(topNode);
-  }
-  else
-  {
-          _svtxevalstack->next_event(topNode);
-  }
-  */
 
   m_truth_info = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   bool VtxToQA = false;
 
-  int BadVtx = 0;
+  //	int BadVtx = 0;
   float SVtoPVDis = 0;
   float SVtoPVTau = 0;
 
@@ -533,6 +490,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
   std::vector<int> HFIndexInfo;
 
   float CosTheta = -2;
+  // float ParMass = -1;
 
   PHG4TruthInfoContainer::ConstRange range = m_truth_info->GetParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
@@ -544,7 +502,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
     //		if(gflavor == 113) std::cout << "gflavor = " << gflavor << "    g4particle->get_e() " << g4particle->get_e()  << std::endl;
 
-    NParticles = NParticles + 1;
+    //		NParticles = NParticles + 1;
 
     int ParentPDGID = -1;
     int GrandParentPDGID = -1;
@@ -678,48 +636,22 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
       SVtoPVDis = (HFDecayVtx - HFProdVtx).Mag();
       SVtoPVTau = SVtoPVDis / ParP * ParMass;
 
-      CosTheta = -2;
       if (SVtoPVDis > 0) CosTheta = ((HFDecayVtx - HFProdVtx).Dot(HFParMom)) / ((HFDecayVtx - HFProdVtx).Mag() * HFParMom.Mag());
 
-      //		QACosTheta->Fill(CosTheta);
-      MassHis->Fill(ParMass);
+      // QACosTheta->Fill(CosTheta);
+      // MassHis->Fill(ParMass);
 
       if (HFIndex > -1)
       {
         ProperLifeTime[HFIndex]->Fill(SVtoPVTau);
         QACosTheta[HFIndex]->Fill(CosTheta);
+        InvMass[HFIndex]->Fill(ParMass);
       }
     }
   }
 
-  int VtxSizeFinal = DiffEPerVertex.size();
-
-  for (int q = 0; q < VtxSizeFinal; q++)
-  {
-    /*
-
-                    if(abs(DiffEPerVertex[q]) > 0.004){
-
-                            std::cout << "------------------------------------------------------------------" << std::endl;
-                            std::cout << "DiffEPerVertex[q] = " << DiffEPerVertex[q] << std::endl;
-
-                            BadVtx = BadVtx + 1;
-
-                            //Debug Bro//
-                            float TotalBadE = 0;
-                            for(int r = 0; r <  int(DaughterInfo[q].size()); r++){
-                                    std::cout << "Daughter: " <<  DaughterInfo[q][r] << "   E = " << DaughterEInfo[q][r] << std::endl;
-                                    TotalBadE = TotalBadE + DaughterEInfo[q][r];
-                            }
-                            std::cout << "Bad Parent = " << HFIndexInfo[q] <<  "   E = " << ParentEInfo[q] << "    Total Daughter Energt = " << TotalBadE << std::endl;
-
-                            std::cout << "------------------------------------------------------------------" << std::endl;
-
-                    }
-
-    */
-  }
   // BR Working here
+  int VtxSizeFinal = DiffEPerVertex.size();
 
   //	decaymap.insert({{3,2,1}});
 
@@ -816,16 +748,21 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
     }
 
     //		std::cout << "------------------------------------------------------------------------------"  << std::endl;
-    ProperLifeTime[HFIndexToFill]->Fill(SVtoPVTau);
+    //	ProperLifeTime[HFIndexToFill]->Fill(SVtoPVTau);
+    //	QACosTheta[HFIndexToFill]->Fill(CosTheta);
+    //	InvMass[HFIndexToFill]->Fill(ParMass);
+
+    // SVtoPVDistance[HFIndexToFill]->Fill(SVtoPVDis);
   }
 
-  SVtoPVDistance->Fill(SVtoPVDis);
+  /*
 
-  TotalVtxStat->Fill(VtxSizeFinal);
+          TotalVtxStat->Fill(VtxSizeFinal);
 
-  BadVtxStat->Fill(BadVtx);
+          BadVtxStat->Fill(BadVtx);
 
-  BadVtxPercent->Fill(BadVtx);
+          BadVtxPercent->Fill(BadVtx);
+  */
 
   LifeTime = SVtoPVTau;
 
@@ -833,7 +770,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
   EvtID = EvtID + 1;
 
-  NPartHis->Fill(NParticles);
+  //	NPartHis->Fill(NParticles);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

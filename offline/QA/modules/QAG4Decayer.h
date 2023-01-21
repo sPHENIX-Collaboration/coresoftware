@@ -41,7 +41,7 @@ class QAG4Decayer : public SubsysReco
 
  private:
   PHG4TruthInfoContainer *m_truth_info = nullptr;
-  SvtxEvalStack *_svtxevalstack = NULL;
+  // SvtxEvalStack *_svtxevalstack = NULL;
 
   TFile *fout = nullptr;
   TTree *QATree = nullptr;
