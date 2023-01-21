@@ -44,7 +44,10 @@ namespace ServiceProperties
   std::string materials[] = {"G4_Cu", "MVTX_CarbonFiber$", "G4_POLYETHYLENE"};
   const int nMaterials = sizeof(materials) / sizeof(materials[0]);
 
-  const float sEndWheelSNZdist = 308.0 * mm;  // ALIITSUP0187,0177,0143
+  const double sEndWheelSNHolesZdist = 308.0 * mm;  // ALIITSUP0187,0177,0143
+  const double sEndWStepHoleZpos = 4. * mm;
+  const double sEndWStepHoleZdist = 4. * mm;
+
 
   float ServiceEnd = -7.21;
   float ServiceOffset = -15.0;
@@ -67,6 +70,7 @@ PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDisplayAction *dispAct, bool overlapChe
   : m_DisplayAction(dispAct)
   , m_endWheelsN(nullptr)
   , m_endWheelsS(nullptr)
+  , m_cyssNFlange(nullptr)
   , m_avSupport(nullptr)
   , m_avBarrelCable(nullptr)
   , m_avL0Cable(nullptr)
@@ -92,11 +96,30 @@ void PHG4MvtxSupport::CreateMvtxSupportMaterials()
 {
   G4double density;
   G4int natoms;
+  G4String symbol;
   G4String material = "MVTX_EW_Al$";
   if ( ! PHG4Detector::GetDetectorMaterial( material.c_str(), false ) )
   {
-    auto MVTX_Al = new G4Material("MVTX_EW_Al$", density = 2.7 * g / cm3, natoms = 1, kStateSolid);
+    auto MVTX_Al = new G4Material(material.c_str(), density = 2.7 * g / cm3, natoms = 1, kStateSolid);
     MVTX_Al->AddMaterial(PHG4Detector::GetDetectorMaterial("G4_Al"), 100 * perCent);
+  }
+
+  material = "MVTX_Epoxy$";
+  if ( ! PHG4Detector::GetDetectorMaterial( material.c_str(), false ) )
+  {
+    auto MVTX_Epoxy = new G4Material(material.c_str(), density = 1.56 * g / cm3, natoms = 4);
+    MVTX_Epoxy->AddElement(PHG4Detector::GetDetectorElement("H", true), 32);  // Hydrogen
+    MVTX_Epoxy->AddElement(PHG4Detector::GetDetectorElement("C", true), 2);   // Nitrogen
+    MVTX_Epoxy->AddElement(PHG4Detector::GetDetectorElement("N", true), 4);   // Oxygen
+    MVTX_Epoxy->AddElement(PHG4Detector::GetDetectorElement("O", true), 15);  // Carbon
+  }
+
+  material = "MVTX_CarbonFiber$";
+  if ( ! PHG4Detector::GetDetectorMaterial( material.c_str(), false ) )
+  {
+    auto MVTX_CF = new G4Material( material.c_str(), density = 1.987 * g / cm3, natoms = 2);
+    MVTX_CF->AddMaterial(PHG4Detector::GetDetectorMaterial("G4_C"), 70 * perCent);  // Carbon (NX-80-240)
+    MVTX_CF->AddMaterial(PHG4Detector::GetDetectorMaterial("MVTX_Epoxy$"), 30 * perCent);                                      // Epoxy (EX-1515)
   }
 }
 
@@ -162,9 +185,6 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume* endWheel
 
   const double sEndWNStepZlen = sEndWheelNLen - sEndWheelNThick;
 
-  const double sEndWNStepHoleZpos = 4. * mm;
-  const double sEndWNStepHoleZdist = 4. * mm;
-
   // local varianbles
   double rmin, rmax, phimin, dphi;
   float xpos, ypos, zpos, rpos;
@@ -194,7 +214,7 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume* endWheel
                                    0, 2 * M_PI * rad);
 
   rmin = (sEndWheelNRmax[lay] + sEndWheelNWallR[lay]) / 2;
-  zpos = sEndWNStepHoleZpos;
+  zpos = sEndWStepHoleZpos;
   dphi = 180. / sEndWNWallNHoles[lay];
   phimin = dphi / 2;
   for ( int ihole = 0; ihole < 2 * sEndWNWallNHoles[lay]; ihole++ )
@@ -277,7 +297,7 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume* endWheel
   m_DisplayAction->AddVolume(endWheelNvol, "red");
 
   // Finally put everything in the mother volume
-  zpos = (sEndWheelSNZdist / 2)  - (sEndWNStepHoleZpos + sEndWNStepHoleZdist);
+  zpos = (sEndWheelSNHolesZdist / 2)  - (sEndWStepHoleZpos + sEndWStepHoleZdist);
   Ra.set(0., 0., 0.);
   Ta.set(0, 0, zpos);
   endWheel->AddPlacedVolume(endWheelNvol, Ta, &Ra);
@@ -342,9 +362,6 @@ void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume* endWheel
 
   const double sEndWSStepZlen = sEWSTotalLen - sEWSIntSectLongLen;
 
-  const double sEndWSStepHoleZpos = 4. * mm;
-  const double sEndWSStepHoleZdist = 4. * mm;
-
   // local varianbles
   double rmin, rmax, phimin, dphi;
   float xpos, ypos, zpos, rpos;
@@ -384,7 +401,7 @@ void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume* endWheel
                                    0, 2 * M_PI * rad);
 
   rmin = sEWSExtSectRmax[lay] - sEWSExtSectThick[lay] / 2;
-  zpos = sEndWSStepHoleZpos;
+  zpos = sEndWStepHoleZpos;
   dphi = 180. / sEndWSWallNHoles[lay];
   phimin = dphi / 2;
   for ( int ihole = 0; ihole < 2 * sEndWSWallNHoles[lay]; ihole++ )
@@ -441,42 +458,152 @@ void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume* endWheel
   auto endWheelSvol = new G4LogicalVolume(endWSBasis, matAl, Form("EndWheelSBasis%d", lay));
   m_DisplayAction->AddVolume(endWheelSvol, "red");
 
-  zpos = (sEndWheelSNZdist / 2)  - (sEndWSStepHoleZpos + sEndWSStepHoleZdist);
+  zpos = (sEndWheelSNHolesZdist / 2)  - (sEndWStepHoleZpos + sEndWStepHoleZdist);
   Ta.set(0, 0, -zpos);
   Ra.set(0, M_PI * rad, 0);
   endWheel->AddPlacedVolume(endWheelSvol, Ta, &Ra);
 
   return;
 }
-#pragma GCC diagnostic pop
+
+//________________________________________________________________________________
+void PHG4MvtxSupport::CreateConeLayers(G4AssemblyVolume *& av)
+{
+  for ( unsigned int iLay = 0; iLay < PHG4MvtxDefs::kNLayers; iLay++ )
+  {
+    GetConeVolume(iLay, av);
+  }
+}
+
+//________________________________________________________________________________
+void PHG4MvtxSupport::GetConeVolume(int lay, G4AssemblyVolume *& av)
+{
+  //
+  // Creates the single CF cone
+  // for a given layer of the MVTX detector
+  // (Layer 0: MVTX-2-S-00005)
+  // (Layer 1: MVTX-2-S-00032)
+  // (Layer 2: MVTX-2-S-00047)
+  //
+  // Input:
+  //         iLay : the layer number
+  //
+  // Output:
+  //         G4LogicalVolume
+  //
+  // Return:
+  //
+  // Created:      20 Jan 2023 Yasser Corrales Morales
+  //
+
+
+  const double sEndWheelSExtSectLen = 17 * mm;
+
+  const double sThickness[3] = {1 * mm, 1.12 * mm, 1.12 * mm};
+  const double sBigCylDmax[3] = {103 * mm, 149 * mm, 195 * mm};
+  const double sBigCylDmin = sBigCylDmax[lay] - 2 * sThickness[lay];
+  const double sSmallCylDmin[3] = { 59.94 * mm, 75.98 * mm, 91.48 * mm};
+  const double sTotalLen[3] = {186.8 * mm, 179.74 * mm, 223 * mm};
+  const double sSmallCylLen[3] = {91.86 * mm, 89.38 * mm, 85.38 * mm};
+  const double sConePlusSCLen[3] = {165.79 * mm, 158.51 * mm, 152.06 * mm};
+
+  const int nZplanes = 4;
+  const double zPlane[nZplanes] = { 0 * mm,
+                                    -sSmallCylLen[lay],
+                                    -sConePlusSCLen[lay],
+                                    -sTotalLen[lay] };
+
+ const double rInner[nZplanes] = { sSmallCylDmin[lay] / 2,
+                                   sSmallCylDmin[lay] / 2,
+                                   sBigCylDmin / 2,
+                                   sBigCylDmin / 2 };
+
+ const double rOuter[nZplanes] = { sSmallCylDmin[lay] / 2 + sThickness[lay],
+                                   sSmallCylDmin[lay] / 2 + sThickness[lay],
+                                   sBigCylDmax[lay] / 2,
+                                   sBigCylDmax[lay] / 2 };
+
+  auto coneSolid = new G4Polycone(Form("cfConeL%d", lay), 0., 2. * M_PI * rad,
+                                   nZplanes, zPlane, rInner, rOuter);
+
+  auto matCF = PHG4Detector::GetDetectorMaterial("MVTX_CarbonFiber$");
+  auto coneLogVol = new G4LogicalVolume(coneSolid, matCF,
+                                        Form("ConeL%d_LOGIC", lay), nullptr, nullptr, nullptr);
+  m_DisplayAction->AddVolume(coneLogVol, "MVTX_CarbonFiber$");
+  double zpos = sEndWheelSNHolesZdist / 2 - (sEndWStepHoleZpos + sEndWStepHoleZdist) + sEndWheelSExtSectLen;
+  G4ThreeVector Ta = G4ThreeVector(0., 0., -zpos);
+  G4RotationMatrix Ra;
+  av->AddPlacedVolume(coneLogVol, Ta, &Ra);
+}
+
+//________________________________________________________________________________
+void PHG4MvtxSupport::CreateCYSSNFlange(G4AssemblyVolume *& av)
+{
+  //
+  // Creates the Flange on Side North for the CYSS
+  // (MVTX-2-S-00075)
+  //
+  // Input:
+  //         av : assembly volume
+  //
+  // Output:
+  //
+  // Return:
+  //
+  //
+  // Created:     20 Jan 2023 Yasser Corrales Morales
+  //
+
+  const double sEndWheelNLen = 30 * mm;
+
+  // We split the CYSS flange in 2 polycone,
+  // Although it is a single piece.
+  const double sFlgExtThick = 1 * mm;
+  const double sFlgSringLen = 4.5 * mm;
+  const double sFlgLringLen = 7.5 * mm;
+  const double sFlgRmin = 23.6 * mm;
+  const double sFlgRmax = 52.8 * mm;
+  const double sFlgSringRmin = 46.4 * mm;
+  const double sFlgSringRmax = 47.4 * mm;
+  const double sFlgLringRmin = 50.6 * mm;
+  const double sFlgLringRmax = 51.5 * mm;
+
+  const int nZplanes = 4;//10;
+  const double zPlane_1[nZplanes] = {       0. * mm,  sFlgExtThick,  sFlgExtThick,  sFlgSringLen};
+  const double rInner_1[nZplanes] = {      sFlgRmin,      sFlgRmin, sFlgSringRmin, sFlgSringRmin};
+  const double rOuter_1[nZplanes] = { sFlgLringRmin, sFlgLringRmin, sFlgSringRmax, sFlgSringRmax};
+
+  const double zPlane_2[nZplanes] = {       0. * mm,   sFlgExtThick,  sFlgExtThick,  sFlgLringLen};
+  const double rInner_2[nZplanes] = { sFlgLringRmin,  sFlgLringRmin, sFlgLringRmin, sFlgLringRmin};
+  const double rOuter_2[nZplanes] = {      sFlgRmax,       sFlgRmax, sFlgLringRmax, sFlgLringRmax};
+
+
+  auto flangeSolid_1 = new G4Polycone("cyssFlangeNorth_1", 0., 2. * M_PI * rad,
+                                      nZplanes, zPlane_1, rInner_1, rOuter_1);
+
+  auto flangeSolid_2 = new G4Polycone("cyssFlangeNorth_2", 0., 2. * M_PI * rad,
+                                      nZplanes, zPlane_2, rInner_2, rOuter_2);
+
+  auto matAl = PHG4Detector::GetDetectorMaterial("MVTX_EW_Al$");
+  auto cyssFlangeLogVol_1 = new G4LogicalVolume(flangeSolid_1, matAl,
+                                                "cyssFlangeNorth_1_LOGIC", nullptr, nullptr, nullptr);
+  auto cyssFlangeLogVol_2 = new G4LogicalVolume(flangeSolid_2, matAl,
+                                                "cyssFlangeNorth_2_LOGIC", nullptr, nullptr, nullptr);
+  m_DisplayAction->AddVolume(cyssFlangeLogVol_1, "MVTX_EW_Al$");
+  m_DisplayAction->AddVolume(cyssFlangeLogVol_2, "MVTX_EW_Al$");
+
+  double zpos = sEndWheelSNHolesZdist / 2 - (sEndWStepHoleZpos + sEndWStepHoleZdist) + sEndWheelNLen + sFlgExtThick;
+  G4ThreeVector Ta = G4ThreeVector(0., 0., zpos);
+  G4RotationMatrix Ra(0, M_PI * rad, 0.);
+  av->AddPlacedVolume(cyssFlangeLogVol_1, Ta, &Ra);
+  av->AddPlacedVolume(cyssFlangeLogVol_2, Ta, &Ra);
+}
 
 std::vector<float> PHG4MvtxSupport::get_thickness(PHG4MvtxServiceStructure *object)
 {
   std::vector<float> thickness = {object->get_thickness_copper(), object->get_thickness_carbon(), object->get_thickness_plastic()};
   return thickness;
 }
-
-G4Material *supportMaterial()
-{
-  G4double density;
-  G4int natoms;
-  G4String symbol;
-
-  G4Material *Epoxy = new G4Material("MVTX_Epoxy$", density = 1.56 * g / cm3, natoms = 4);
-  Epoxy->AddElement(PHG4Detector::GetDetectorElement("H", true), 32);  // Hydrogen
-  Epoxy->AddElement(PHG4Detector::GetDetectorElement("C", true), 2);   // Nitrogen
-  Epoxy->AddElement(PHG4Detector::GetDetectorElement("N", true), 4);   // Oxygen
-  Epoxy->AddElement(PHG4Detector::GetDetectorElement("O", true), 15);  // Carbon
-
-  G4Material *G4_mat = new G4Material("MVTX_CarbonFiber$", density = 1.987 * g / cm3, natoms = 2);
-  G4_mat->AddMaterial(PHG4Detector::GetDetectorMaterial("G4_C"), 70 * perCent);  // Carbon (NX-80-240)
-  G4_mat->AddMaterial(Epoxy, 30 * perCent);                                      // Epoxy (EX-1515)
-
-
-  return G4_mat;
-}
-
-G4Material *carbonFibreMaterial = supportMaterial();
 
 
 void PHG4MvtxSupport::TrackingServiceCone(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume)
@@ -488,10 +615,8 @@ void PHG4MvtxSupport::TrackingServiceCone(PHG4MvtxServiceStructure *object, G4As
   float outerRadiusSouth;
   float outerRadiusNorth;
 
-  G4RotationMatrix *rot = new G4RotationMatrix();
-  rot->rotateZ(0.);
-  G4ThreeVector place;
-  place.setZ((object->get_zSouth() + length / 2) * cm);
+  G4RotationMatrix Ra = G4RotationMatrix();
+  G4ThreeVector Ta(0., 0., (object->get_zSouth() + length / 2) );
 
   for (int i = 0; i < nMaterials; ++i)
   {
@@ -499,22 +624,18 @@ void PHG4MvtxSupport::TrackingServiceCone(PHG4MvtxServiceStructure *object, G4As
     outerRadiusSouth = innerRadiusSouth + thickness[i];
     outerRadiusNorth = innerRadiusNorth + thickness[i];
 
-    G4Material *trackerMaterial = nullptr;
-    if (materials[i] == "MVTX_CarbonFiber$")
-      trackerMaterial = carbonFibreMaterial;
-    else
-      trackerMaterial = PHG4Detector::GetDetectorMaterial(materials[i]);
+    auto trackerMaterial = PHG4Detector::GetDetectorMaterial(materials[i]);
 
     G4VSolid *coneSolid = new G4Cons(G4String(object->get_name() + "_SOLID"),
-                                     innerRadiusSouth * cm, outerRadiusSouth * cm,
-                                     innerRadiusNorth * cm, outerRadiusNorth * cm, (length / 2) * cm, 0, 2 * M_PI);
+                                     innerRadiusSouth, outerRadiusSouth,
+                                     innerRadiusNorth, outerRadiusNorth, (length / 2), 0, 2 * M_PI);
 
     G4LogicalVolume *coneLogic = new G4LogicalVolume(coneSolid, trackerMaterial,
                                                      G4String(object->get_name() + "_LOGIC"), nullptr, nullptr, nullptr);
 
     m_DisplayAction->AddVolume(coneLogic, materials[i]);
 
-    assemblyVolume.AddPlacedVolume(coneLogic, place, rot);
+    assemblyVolume.AddPlacedVolume(coneLogic, Ta, &Ra);
 
     innerRadiusSouth = outerRadiusSouth;
     innerRadiusNorth = outerRadiusNorth;
@@ -524,38 +645,30 @@ void PHG4MvtxSupport::TrackingServiceCone(PHG4MvtxServiceStructure *object, G4As
 void PHG4MvtxSupport::TrackingServiceCylinder(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume)
 {
   float length = std::abs(object->get_zNorth() - object->get_zSouth());
+  std::cout << "Znorth = " << object->get_zNorth() << " Zsouth= " << object->get_zSouth() << " length= " << length << std::endl;
   std::vector<float> thickness = get_thickness(object);
   float innerRadius = object->get_rSouth();
   float outerRadius;
 
-  G4RotationMatrix *rot = new G4RotationMatrix();
-  rot->rotateZ(0.);
-  G4ThreeVector place;
-  place.setZ((object->get_zSouth() + length / 2) * cm);
+  G4RotationMatrix Ra = G4RotationMatrix();
+  G4ThreeVector Ta(0., 0., (object->get_zSouth() + length / 2) );
 
   for (int i = 0; i < nMaterials; ++i)
   {
     if (thickness[i] == 0) continue;
     outerRadius = innerRadius + thickness[i];
 
-    G4Material *trackerMaterial = nullptr;
-    if (materials[i] == "MVTX_CarbonFiber$")
-    {
-      trackerMaterial = carbonFibreMaterial;
-    }
-    else
-    {
-      trackerMaterial = PHG4Detector::GetDetectorMaterial(materials[i]);
-    }
+    auto trackerMaterial  = PHG4Detector::GetDetectorMaterial(materials[i]);
+
     G4VSolid *cylinderSolid = new G4Tubs(G4String(object->get_name() + "_SOLID"),
-                                         innerRadius * cm, outerRadius * cm, (length / 2) * cm, 0, 2 * M_PI);
+                                         innerRadius, outerRadius, (length / 2), 0, 2 * M_PI);
 
     G4LogicalVolume *cylinderLogic = new G4LogicalVolume(cylinderSolid, trackerMaterial,
                                                          G4String(object->get_name() + "_LOGIC"), nullptr, nullptr, nullptr);
 
     m_DisplayAction->AddVolume(cylinderLogic, materials[i]);
 
-    assemblyVolume.AddPlacedVolume(cylinderLogic, place, rot);
+    assemblyVolume.AddPlacedVolume(cylinderLogic, Ta, &Ra);
 
     innerRadius = outerRadius;
   }
@@ -807,9 +920,12 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
     totStaves += nStaves[i];
   }
 
-  std::vector<PHG4MvtxServiceStructure *> cylinders, cones;
   m_avSupport = new G4AssemblyVolume();
+  CreateConeLayers(m_avSupport);
+  CreateCYSSNFlange(m_avSupport);
 
+  /*
+  std::vector<PHG4MvtxServiceStructure *> cylinders, cones;
   //Service Barrel
   cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_serviceBarrel_0", 0, BarrelThickness, 0, -1. * (BarrelLength + BarrelOffset), -26.209, BarrelRadius, 0));
 
@@ -825,19 +941,6 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_CYSS_Rib_4", 0, CYSSRibThickness, 0., -16.958, -16.196, 9.762, 0));
 
   cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_CYSS_Cylinder", 0, 0.112, 0, -8.619, 36.153, 5.15, 0));
-
-  //MVTX Layers
-  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L0_0", 0, LayerThickness, 0., -18.680, -16.579, 5.050, 0));
-  cones.push_back(new PHG4MvtxServiceStructure("MVTX_L0_1", 0, LayerThickness, 0., -16.578, -9.186, 5.050, 2.997));
-  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L0_2", 0, LayerThickness, 0., -9.185, ServiceEnd, 2.997, 0));
-
-  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L1_0", 0, LayerThickness, 0., -17.970, -15.851, 7.338, 0));
-  cones.push_back(new PHG4MvtxServiceStructure("MVTX_L1_1", 0, LayerThickness, 0., -15.850, -8.938, 7.338, 3.799));
-  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L1_2", 0, LayerThickness, 0., -8.937, ServiceEnd, 3.799, 0));
-
-  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L2_0", 0, LayerThickness, 0., -22.300, -15.206, 9.580, 0));
-  cones.push_back(new PHG4MvtxServiceStructure("MVTX_L2_1", 0, LayerThickness, 0., -15.205, -8.538, 9.580, 4.574));
-  cylinders.push_back(new PHG4MvtxServiceStructure("MVTX_L2_2", 0, LayerThickness, 0., -8.537, ServiceEnd, 4.574, 0));
 
   //Conenct copper from barrel to layers
   //Currently non-discrete cones as rotations are acting up
@@ -855,13 +958,12 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
     TrackingServiceCone(cone, *m_avSupport);
     delete cone;
   }
-
-  G4RotationMatrix rot;
-  G4ThreeVector place;
-  place.setZ(ServiceOffset * cm);
-  G4Transform3D transform(rot, place);
-  m_avSupport->MakeImprint(lv, transform, 0, m_overlapCheck);
-
+*/
+  G4RotationMatrix Ra;
+  Ta = G4ThreeVector();
+  G4Transform3D Tr(Ra, Ta);
+  m_avSupport->MakeImprint(lv, Tr, 0, m_overlapCheck);
+/*
   m_avBarrelCable = buildBarrelCable();
   G4ThreeVector placeBarrelCable;
   for (unsigned int i = 0; i < totStaves; ++i)
@@ -896,5 +998,5 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
       if (iLayer == 1) m_avL1Cable->MakeImprint(lv, transformCable, 0, m_overlapCheck);
       if (iLayer == 2) m_avL2Cable->MakeImprint(lv, transformCable, 0, m_overlapCheck);
     }
-  }
+  }*/
 }

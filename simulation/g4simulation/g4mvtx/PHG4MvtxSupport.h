@@ -26,6 +26,11 @@ class PHG4MvtxSupport
 
   G4AssemblyVolume* CreateEndWheelsSideN();
   G4AssemblyVolume* CreateEndWheelsSideS();
+
+  void CreateConeLayers(G4AssemblyVolume *& av);
+  void GetConeVolume(int lay, G4AssemblyVolume *& av);
+  void CreateCYSSNFlange(G4AssemblyVolume *& av);
+
   void GetEndWheelSideN(const int lay, G4AssemblyVolume* endWheel);
   void GetEndWheelSideS(const int lay, G4AssemblyVolume* endWheel);
 
@@ -44,6 +49,7 @@ class PHG4MvtxSupport
 
   G4AssemblyVolume *m_endWheelsN;
   G4AssemblyVolume *m_endWheelsS;
+  G4AssemblyVolume *m_cyssNFlange;
   G4AssemblyVolume *m_avSupport;
   G4AssemblyVolume *m_avBarrelCable;
   G4AssemblyVolume *m_avL0Cable;
