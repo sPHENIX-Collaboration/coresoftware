@@ -68,9 +68,6 @@ using namespace ServiceProperties;
 
 PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDisplayAction *dispAct, bool overlapCheck)
   : m_DisplayAction(dispAct)
-  , m_endWheelsN(nullptr)
-  , m_endWheelsS(nullptr)
-  , m_cyssNFlange(nullptr)
   , m_avSupport(nullptr)
   , m_avBarrelCable(nullptr)
   , m_avL0Cable(nullptr)
@@ -82,8 +79,6 @@ PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDisplayAction *dispAct, bool overlapChe
 
 PHG4MvtxSupport::~PHG4MvtxSupport()
 {
-  delete m_endWheelsN;
-  delete m_endWheelsS;
   delete m_avSupport;
   delete m_avBarrelCable;
   delete m_avL0Cable;
@@ -124,20 +119,16 @@ void PHG4MvtxSupport::CreateMvtxSupportMaterials()
 }
 
 //________________________________________________________________________________
-G4AssemblyVolume* PHG4MvtxSupport::CreateEndWheelsSideN()
+void PHG4MvtxSupport::CreateEndWheelsSideN(G4AssemblyVolume *& av)
 {
-  G4AssemblyVolume* endWheelsVol = new G4AssemblyVolume();
-
   for ( unsigned int iLay = 0; iLay < PHG4MvtxDefs::kNLayers; iLay++ )
   {
-    GetEndWheelSideN(iLay, endWheelsVol);
+    GetEndWheelSideN(iLay, av);
   }
-
-  return endWheelsVol;
 }
 
 //________________________________________________________________________________
-void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume* endWheel)
+void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWheel)
 {
   //
   // Creates the single End Wheel on Side North
@@ -306,20 +297,16 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume* endWheel
 }
 
 //________________________________________________________________________________
-G4AssemblyVolume* PHG4MvtxSupport::CreateEndWheelsSideS()
+void PHG4MvtxSupport::CreateEndWheelsSideS(G4AssemblyVolume *&av)
 {
-  G4AssemblyVolume* endWheelsVol = new G4AssemblyVolume();
-
   for ( unsigned int iLay = 0; iLay < PHG4MvtxDefs::kNLayers; iLay++ )
   {
-    GetEndWheelSideS(iLay, endWheelsVol);
+    GetEndWheelSideS(iLay, av);
   }
-
-  return endWheelsVol;
 }
 
 //________________________________________________________________________________
-void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume* endWheel)
+void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume *&endWheel)
 {
   //
   // Creates the single End Wheel on Side South
@@ -904,13 +891,12 @@ G4AssemblyVolume *PHG4MvtxSupport::buildL2Cable()
 void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
 {
   CreateMvtxSupportMaterials();
+  m_avSupport = new G4AssemblyVolume();
 
-  m_endWheelsN = CreateEndWheelsSideN();
-  m_endWheelsS = CreateEndWheelsSideS();
-
-  G4ThreeVector Ta;
-  m_endWheelsN->MakeImprint(lv, Ta, new G4RotationMatrix, 0, m_overlapCheck);
-  m_endWheelsS->MakeImprint(lv, Ta, new G4RotationMatrix, 0, m_overlapCheck);
+  CreateEndWheelsSideN(m_avSupport);
+  CreateEndWheelsSideS(m_avSupport);
+  CreateConeLayers(m_avSupport);
+  CreateCYSSNFlange(m_avSupport);
 
   unsigned int nStaves[PHG4MvtxDefs::kNLayers];
   unsigned int totStaves = 0;
@@ -920,9 +906,6 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
     totStaves += nStaves[i];
   }
 
-  m_avSupport = new G4AssemblyVolume();
-  CreateConeLayers(m_avSupport);
-  CreateCYSSNFlange(m_avSupport);
 
   /*
   std::vector<PHG4MvtxServiceStructure *> cylinders, cones;
@@ -960,7 +943,7 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   }
 */
   G4RotationMatrix Ra;
-  Ta = G4ThreeVector();
+  G4ThreeVector Ta = G4ThreeVector();
   G4Transform3D Tr(Ra, Ta);
   m_avSupport->MakeImprint(lv, Tr, 0, m_overlapCheck);
 /*
