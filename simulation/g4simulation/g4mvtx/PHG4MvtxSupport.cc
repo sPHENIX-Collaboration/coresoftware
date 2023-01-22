@@ -60,13 +60,12 @@ namespace ServiceProperties
   float CYSSConeThickness = 0.216;
   float CYSSRibThickness = 0.170;
   float cableRotate[3] = {10., 5., 5.};  //Rotate the cables to line up with the staves
-  float radToDeg = 180.0 / M_PI;
-  float degToRad = 1. / radToDeg;
 }  // namespace ServiceProperties
 
 using namespace ServiceProperties;
 
-PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDisplayAction *dispAct, bool overlapCheck)
+//________________________________________________________________________________
+PHG4MvtxSupport::PHG4MvtxSupport( PHG4MvtxDisplayAction *dispAct, bool overlapCheck )
   : m_DisplayAction(dispAct)
   , m_avSupport(nullptr)
   , m_avBarrelCable(nullptr)
@@ -77,6 +76,7 @@ PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDisplayAction *dispAct, bool overlapChe
   m_overlapCheck = overlapCheck;
 }
 
+//________________________________________________________________________________
 PHG4MvtxSupport::~PHG4MvtxSupport()
 {
   delete m_avSupport;
@@ -95,40 +95,42 @@ void PHG4MvtxSupport::CreateMvtxSupportMaterials()
   G4String material = "MVTX_EW_Al$";
   if ( ! PHG4Detector::GetDetectorMaterial( material.c_str(), false ) )
   {
-    auto MVTX_Al = new G4Material(material.c_str(), density = 2.7 * g / cm3, natoms = 1, kStateSolid);
-    MVTX_Al->AddMaterial(PHG4Detector::GetDetectorMaterial("G4_Al"), 100 * perCent);
+    auto MVTX_Al = new G4Material( material.c_str(), density = 2.7 * g / cm3,
+                                   natoms = 1, kStateSolid );
+    MVTX_Al->AddMaterial( PHG4Detector::GetDetectorMaterial( "G4_Al" ), 100 * perCent );
   }
 
   material = "MVTX_Epoxy$";
   if ( ! PHG4Detector::GetDetectorMaterial( material.c_str(), false ) )
   {
-    auto MVTX_Epoxy = new G4Material(material.c_str(), density = 1.56 * g / cm3, natoms = 4);
-    MVTX_Epoxy->AddElement(PHG4Detector::GetDetectorElement("H", true), 32);  // Hydrogen
-    MVTX_Epoxy->AddElement(PHG4Detector::GetDetectorElement("C", true), 2);   // Nitrogen
-    MVTX_Epoxy->AddElement(PHG4Detector::GetDetectorElement("N", true), 4);   // Oxygen
-    MVTX_Epoxy->AddElement(PHG4Detector::GetDetectorElement("O", true), 15);  // Carbon
+    auto MVTX_Epoxy = new G4Material( material.c_str(), density = 1.56 * g / cm3, natoms = 4 );
+    MVTX_Epoxy->AddElement( PHG4Detector::GetDetectorElement( "H", true ), 32 );  // Hydrogen
+    MVTX_Epoxy->AddElement( PHG4Detector::GetDetectorElement( "C", true ), 2 );   // Nitrogen
+    MVTX_Epoxy->AddElement( PHG4Detector::GetDetectorElement( "N", true ), 4 );   // Oxygen
+    MVTX_Epoxy->AddElement( PHG4Detector::GetDetectorElement( "O", true ), 15 );  // Carbon
   }
 
   material = "MVTX_CarbonFiber$";
   if ( ! PHG4Detector::GetDetectorMaterial( material.c_str(), false ) )
   {
-    auto MVTX_CF = new G4Material( material.c_str(), density = 1.987 * g / cm3, natoms = 2);
-    MVTX_CF->AddMaterial(PHG4Detector::GetDetectorMaterial("G4_C"), 70 * perCent);  // Carbon (NX-80-240)
-    MVTX_CF->AddMaterial(PHG4Detector::GetDetectorMaterial("MVTX_Epoxy$"), 30 * perCent);                                      // Epoxy (EX-1515)
+    auto MVTX_CF = new G4Material( material.c_str(), density = 1.987 * g / cm3,
+                                   natoms = 2 );
+    MVTX_CF->AddMaterial( PHG4Detector::GetDetectorMaterial( "G4_C" ), 70 * perCent ); // Carbon (NX-80-240)
+    MVTX_CF->AddMaterial( PHG4Detector::GetDetectorMaterial( "MVTX_Epoxy$" ), 30 * perCent ); // Epoxy (EX-1515)
   }
 }
 
 //________________________________________________________________________________
-void PHG4MvtxSupport::CreateEndWheelsSideN(G4AssemblyVolume *& av)
+void PHG4MvtxSupport::CreateEndWheelsSideN( G4AssemblyVolume *& av )
 {
   for ( unsigned int iLay = 0; iLay < PHG4MvtxDefs::kNLayers; iLay++ )
   {
-    GetEndWheelSideN(iLay, av);
+    GetEndWheelSideN( iLay, av );
   }
 }
 
 //________________________________________________________________________________
-void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWheel)
+void PHG4MvtxSupport::GetEndWheelSideN( const int lay, G4AssemblyVolume *&endWheel )
 {
   //
   // Creates the single End Wheel on Side North
@@ -151,9 +153,9 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWhee
 
   // The Basis Cone North Side is two halves,
   // but for sake of simplicity, so here they are made as a single cone.
-  const double sEndWheelNRmax[3] = {30.57 * mm, 38.59 * mm, 46.30 * mm};
-  const double sEndWheelNRmin[3] = {22.83 * mm, 30.67 * mm, 38.70 * mm};
-  const double sEndWheelNWallR[3] = {29.57 * mm, 37.59 * mm, 45.30 * mm};
+  const double sEndWheelNRmax[3] = { 30.57 * mm, 38.59 * mm, 46.30 * mm };
+  const double sEndWheelNRmin[3] = { 22.83 * mm, 30.67 * mm, 38.70 * mm };
+  const double sEndWheelNWallR[3] = { 29.57 * mm, 37.59 * mm, 45.30 * mm };
   const double sEndWheelNLen = 30. * mm;
   const double sEndWheelNThick = 2.8 * mm;
 
@@ -161,18 +163,17 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWhee
   const int sEndWNBaseNSmallHoles = 5;
   const double sEndWNBaseBigHoleD = 4 * mm;
   const double sEndWNBaseSmallHoleD = 1.6 * mm;
-  const double sEndWNBaseHolesR[3] = {27. * mm, 35. * mm, 42.7 * mm};
+  const double sEndWNBaseHolesR[3] = { 27. * mm, 35. * mm, 42.7 * mm };
   const double sEndWNBaseHolesPhi = 15.; // Deg
 
-  const int    sEndWNWallNHoles[3] = {6, 8, 10};
+  const int    sEndWNWallNHoles[3] = { 6, 8, 10 };
   const double sEndWNWallHoleD = 4.5 * mm;
 
   // The End Wheel Steps
-  // Decrease xlen by 1 mm for Layer 1 to avoid overlaps
-  const double sEndWNStepXlen[3] = { 9.88 * mm, 10.2 * mm, 8.38 * mm };
+  const double sEndWNStepXlen[3] = { 9.88 * mm, 11.2 * mm, 8.38 * mm };
   const double sEndWNStepYdispl[3] = { 26.521 * mm, 33.891 * mm, 41.64 * mm };
-  const double sEndWNStepHolePhi[3] = {30.0, 22.5, 18.0}; // Deg
-  const double sEndWNStepHoleTilt[3] = {0.232, 0.295, 0.297};  // Rad
+  const double sEndWNStepHolePhi[3] = { 30.0, 22.5, 18.0 }; // Deg
+  const double sEndWNStepHoleTilt[3] = { 0., 0.295, 0.297 };  // Rad
 
   const double sEndWNStepZlen = sEndWheelNLen - sEndWheelNThick;
 
@@ -184,129 +185,135 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWhee
   auto Ta = G4ThreeVector();
   auto Ra = G4RotationMatrix();
 
-  const unsigned short nZplanes = 4;
-  const G4double zPlane[nZplanes] = {0. * mm,
-                                     sEndWheelNLen-sEndWheelNThick,
-                                     sEndWheelNLen-sEndWheelNThick,
-                                     sEndWheelNLen};
+  const unsigned short nZplanes   = 4;
+  const double zPlane[nZplanes] = { 0. * mm,
+                                    sEndWheelNLen-sEndWheelNThick,
+                                    sEndWheelNLen-sEndWheelNThick,
+                                    sEndWheelNLen };
 
-  const G4double rInner[nZplanes] = {sEndWheelNWallR[lay], sEndWheelNWallR[lay],
-                                     sEndWheelNRmin[lay], sEndWheelNRmin[lay]};
+  const double rInner[nZplanes] = { sEndWheelNWallR[lay], sEndWheelNWallR[lay],
+                                    sEndWheelNRmin[lay], sEndWheelNRmin[lay] };
 
-  const G4double rOuter[nZplanes] = {sEndWheelNRmax[lay], sEndWheelNRmax[lay],
-                                     sEndWheelNRmax[lay], sEndWheelNRmax[lay]};
+  const double rOuter[nZplanes] = { sEndWheelNRmax[lay], sEndWheelNRmax[lay],
+                                    sEndWheelNRmax[lay], sEndWheelNRmax[lay] };
 
-  G4VSolid *endWNBasis = new G4Polycone(Form("endwnbasis%d", lay), 0., 2. * M_PI * rad,
-                                   nZplanes, zPlane, rInner, rOuter);
+  G4VSolid *endWNBasis = new G4Polycone( Form("endwnbasis%d", lay), 0., 2. * M_PI * rad,
+                                         nZplanes, zPlane, rInner, rOuter );
 
   // The holes in the veritcal wall
-  auto endwnwalhol = new G4Tubs(Form("endwnwalhol%d", lay), 0, sEndWNWallHoleD / 2,
-                                   1.5 * (sEndWheelNRmax[lay] - sEndWheelNWallR[lay]),
-                                   0, 2 * M_PI * rad);
+  auto endwnwalhol = new G4Tubs( Form( "endwnwalhol%d", lay ), 0, sEndWNWallHoleD / 2,
+                                 1.5 * ( sEndWheelNRmax[lay] - sEndWheelNWallR[lay] ),
+                                 0, 2 * M_PI * rad );
 
-  rmin = (sEndWheelNRmax[lay] + sEndWheelNWallR[lay]) / 2;
+  rmin = ( sEndWheelNRmax[lay] + sEndWheelNWallR[lay] ) / 2;
   zpos = sEndWStepHoleZpos;
   dphi = 180. / sEndWNWallNHoles[lay];
   phimin = dphi / 2;
   for ( int ihole = 0; ihole < 2 * sEndWNWallNHoles[lay]; ihole++ )
   {
     double phi = phimin + ihole * dphi;
-    xpos = rmin * sin(phi * deg);
-    ypos = rmin * cos(phi * deg);
-    Ra.set(-phi * deg, 90 * deg, 0);
-    Ta.set(xpos, ypos, zpos);
-    endWNBasis = new G4SubtractionSolid (Form("endwnbasis-endwnwalhol%dl%d", ihole, lay),
-                                         endWNBasis, endwnwalhol, &Ra, Ta);
+    xpos = rmin * sin( phi * deg );
+    ypos = rmin * cos( phi * deg );
+    Ra.set( -phi * deg, 90 * deg, 0. );
+    Ta.set( xpos, ypos, zpos );
+    endWNBasis = new G4SubtractionSolid( Form( "endwnbasis-endwnwalhol%dl%d", ihole, lay ),
+                                         endWNBasis, endwnwalhol, &Ra, Ta );
   }
 
   // The holes in the base
-  auto endwnbasBhol = new G4Tubs(Form("endwnbasBhol%d", lay), 0, sEndWNBaseBigHoleD / 2,
-                                 1.5 * sEndWheelNThick, 0, 2 * M_PI * rad);
+  auto endwnbasBhol = new G4Tubs( Form( "endwnbasBhol%d", lay ), 0, sEndWNBaseBigHoleD / 2,
+                                  1.5 * sEndWheelNThick, 0, 2 * M_PI * rad );
 
-  auto endwnbasShol = new G4Tubs(Form("endwnbasShol%d", lay), 0, sEndWNBaseSmallHoleD / 2,
-                                 1.5 * sEndWheelNThick, 0, 2 * M_PI * rad);
+  auto endwnbasShol = new G4Tubs( Form( "endwnbasShol%d", lay ), 0, sEndWNBaseSmallHoleD / 2,
+                                  1.5 * sEndWheelNThick, 0, 2 * M_PI * rad );
 
   rmin = sEndWNBaseHolesR[lay];
-  zpos = sEndWheelNLen - sEndWheelNThick / 2;
+  zpos = sEndWheelNLen - ( sEndWheelNThick / 2 );
   phimin = 0.;
-  for ( int ihole = 0; ihole < (sEndWNBaseNBigHoles + sEndWNBaseNSmallHoles); ihole++ )
+  for ( int ihole = 0; ihole < ( sEndWNBaseNBigHoles + sEndWNBaseNSmallHoles ); ihole++ )
   {
     phimin += sEndWNBaseHolesPhi;
-    xpos = rmin * cos(phimin * deg);
-    ypos = rmin * sin(phimin * deg);
-    Ra.set(0,0,0);
-    Ta.set(xpos, ypos, zpos);
+    xpos = rmin * cos( phimin * deg );
+    ypos = rmin * sin( phimin * deg );
+    Ra.set( 0., 0., 0. );
+    Ta.set( xpos, ypos, zpos );
     auto endwnbashol =  ( ihole < 2 || ihole == 5 || ihole > 8 ) ? endwnbasShol : endwnbasBhol;
-    endWNBasis = new G4SubtractionSolid (Form("endwnbasis-endwnwalhol%dl%da", ihole, lay),
-                                         endWNBasis, endwnbashol, &Ra, Ta);
-    Ta = G4ThreeVector(-xpos, -ypos, zpos);
-    endWNBasis = new G4SubtractionSolid (Form("endwnbasis-endwnwalhol%dl%db", ihole, lay),
-                                         endWNBasis, endwnbashol, &Ra, Ta);
+    endWNBasis = new G4SubtractionSolid( Form( "endwnbasis-endwnwalhol%dl%da", ihole, lay ),
+                                         endWNBasis, endwnbashol, &Ra, Ta );
+    Ta = G4ThreeVector( -xpos, -ypos, zpos );
+    endWNBasis = new G4SubtractionSolid( Form( "endwnbasis-endwnwalhol%dl%db", ihole, lay ),
+                                         endWNBasis, endwnbashol, &Ra, Ta );
   }
 
   // Now the Step as a Composite Shape (subtraction of a Pcon from a BBox)
   // (cutting volume should be slightly larger than desired region)
   rmin = sEndWheelNWallR[lay];
-  xlen = sEndWNStepXlen[lay];
-  double xDispl = sqrt(rmin*rmin - sEndWNStepYdispl[lay]*sEndWNStepYdispl[lay]) - xlen;
-  ylen = sqrt(rmin*rmin - xDispl*xDispl) - sEndWNStepYdispl[lay];
+  xlen = sEndWNStepXlen[lay] - ( ( lay == 1 ) ? 0.01 * mm : 0. * mm );
+  double xDispl = sqrt( rmin * rmin - sEndWNStepYdispl[lay] * sEndWNStepYdispl[lay] ) - xlen;
+  ylen = sqrt( rmin * rmin - xDispl * xDispl ) - sEndWNStepYdispl[lay];
 
-  auto stepBoxNSh = new G4Box(Form("stepBoxNSh%d", lay), xlen / 2, ylen / 2, sEndWNStepZlen / 2);
+  auto stepBoxNSh = new G4Box( Form("stepBoxNSh%d", lay), xlen / 2, ylen / 2,
+                               ( sEndWNStepZlen / 2 ) - 0.05 * mm );
 
   xpos = xDispl + stepBoxNSh->GetXHalfLength();
   ypos = sEndWNStepYdispl[lay] + stepBoxNSh->GetYHalfLength();
-  rpos = sqrt(xpos*xpos + ypos*ypos);
+  rpos = sqrt( xpos * xpos + ypos * ypos );
 
-  phimin = (90. * deg) - acos( sEndWNStepYdispl[lay] / rmin) * rad - 5 * deg;
-  dphi = (90. * deg) - asin(xDispl / rmin) * rad - phimin + 5 * deg;
+  phimin = ( 90. * deg ) - acos( sEndWNStepYdispl[lay] / rmin ) * rad - 5 * deg;
+  dphi = ( 90. * deg ) - asin( xDispl / rmin ) * rad - phimin + 5 * deg;
   rmax = rmin + 2 * stepBoxNSh->GetYHalfLength();
 
-  auto stepTubNSh = new G4Tubs( Form("stepTubNSh%d", lay), rmin, rmax,
-                               1.5 * sEndWNStepZlen / 2, phimin, dphi );
-  Ra.set(0., 0., 0.);
-  Ta.set(-xpos, -ypos, 0);
-  auto stepNSh = new G4SubtractionSolid (Form("stepNSh%d", lay),
-                                         stepBoxNSh, stepTubNSh, &Ra, Ta);
+  auto stepTubNSh = new G4Tubs( Form( "stepTubNSh%d", lay ), rmin, rmax,
+                                1.5 * sEndWNStepZlen / 2, phimin, dphi );
+  Ra.set( 0., 0., 0. );
+  Ta.set( -xpos, -ypos, 0 );
+  auto stepNSh = new G4SubtractionSolid( Form( "stepNSh%d", lay ),
+                                         stepBoxNSh, stepTubNSh, &Ra, Ta );
 
-  dphi = PHG4MvtxDefs::mvtxdat[lay][PHG4MvtxDefs::kPhi0];
-  const int numberOfStaves = PHG4MvtxDefs::mvtxdat[lay][PHG4MvtxDefs::kNStave];
-  zpos = ( stepBoxNSh->GetZHalfLength() );
-  for ( int j = 0; j < numberOfStaves; j++ )
-  {
-    double phi = dphi * rad + j * sEndWNStepHolePhi[lay] * deg;
-    xpos = rpos * cos(phi);
-    ypos = rpos * sin(phi);
-    Ra.set( 180*deg, 0, 90*deg + phi + sEndWNStepHoleTilt[lay] );
-    Ta.set(xpos, ypos, zpos);
-    endWNBasis = new G4UnionSolid(Form("endwnbasis-stepNSh%dl%d", j, lay),
-                                       endWNBasis, stepNSh, &Ra, Ta);
-  }
+  auto matAl = PHG4Detector::GetDetectorMaterial( "MVTX_EW_Al$" );
 
-  auto matAl = PHG4Detector::GetDetectorMaterial("MVTX_EW_Al$");
+  auto endWheelNvol = new G4LogicalVolume( endWNBasis, matAl, Form( "EndWheelNBasis%d", lay ) );
+  m_DisplayAction->AddVolume( endWheelNvol, "red" );
 
-  auto endWheelNvol = new G4LogicalVolume( endWNBasis, matAl, Form("EndWheelNBasis%d", lay) );
-  m_DisplayAction->AddVolume(endWheelNvol, "red");
+  auto stepNShLogVol = new G4LogicalVolume( stepNSh , matAl, Form( "StepNL%d_LOGIC", lay ) );
+  m_DisplayAction->AddVolume( stepNShLogVol, "red" );
 
   // Finally put everything in the mother volume
-  zpos = (sEndWheelSNHolesZdist / 2)  - (sEndWStepHoleZpos + sEndWStepHoleZdist);
-  Ra.set(0., 0., 0.);
-  Ta.set(0, 0, zpos);
-  endWheel->AddPlacedVolume(endWheelNvol, Ta, &Ra);
+  zpos = ( sEndWheelSNHolesZdist / 2 )  - ( sEndWStepHoleZpos + sEndWStepHoleZdist );
+  Ra.set( 0., 0., 0. );
+  Ta.set( 0, 0, zpos );
+  endWheel->AddPlacedVolume( endWheelNvol, Ta, &Ra );
+
+  dphi = atan( ypos/xpos );
+  double phi0 = PHG4MvtxDefs::mvtxdat[lay][PHG4MvtxDefs::kPhi0];
+  const int numberOfStaves = PHG4MvtxDefs::mvtxdat[lay][PHG4MvtxDefs::kNStave];
+  zpos += ( stepBoxNSh->GetZHalfLength() );
+  for ( int j = 0; j < numberOfStaves; j++ )
+  {
+    double phi = phi0 * rad;
+    phi += j * sEndWNStepHolePhi[lay] * deg;
+    phi -= sEndWNStepHoleTilt[lay];
+    xpos = rpos * cos( phi );
+    ypos = rpos * sin( phi );
+    Ra.set( 0., 0., dphi - phi );
+    Ta.set( xpos, ypos, zpos );
+    endWheel->AddPlacedVolume( stepNShLogVol, Ta, &Ra );
+  }
 
   return;
 }
 
 //________________________________________________________________________________
-void PHG4MvtxSupport::CreateEndWheelsSideS(G4AssemblyVolume *&av)
+void PHG4MvtxSupport::CreateEndWheelsSideS( G4AssemblyVolume *&av )
 {
   for ( unsigned int iLay = 0; iLay < PHG4MvtxDefs::kNLayers; iLay++ )
   {
-    GetEndWheelSideS(iLay, av);
+    GetEndWheelSideS( iLay, av );
   }
 }
 
 //________________________________________________________________________________
-void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume *&endWheel)
+void PHG4MvtxSupport::GetEndWheelSideS( const int lay, G4AssemblyVolume *&endWheel )
 {
   //
   // Creates the single End Wheel on Side South
@@ -327,7 +334,7 @@ void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume *&endWhee
   //               (partially based on M. Sitta implementation in ITS2)
   //
 
-  // The Basis Cone North Side is two halves,
+  // The Basis Cone South Side is two halves,
   // but for sake of simplicity, so here they are made as a single cone.
   const double sEWSExtSectRmax[3] = { 30.97 * mm, 38.99 * mm, 46.74 * mm };
   const double sEWSExtSectThick[3] = { 0.97 * mm, 1.20 * mm, 1.01 * mm };
@@ -339,15 +346,16 @@ void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume *&endWhee
 
   const double sEWSTotalLen = 42. * mm;
 
-  const int    sEndWSWallNHoles[3] = {6, 8, 10};
+  const int    sEndWSWallNHoles[3] = { 6, 8, 10 };
   const double sEndWSWallHoleD = 4.5 * mm;
 
   const double sEndWSStepXlen[3] = { 10.80 * mm, 10.05 * mm, 9.45 * mm };
   const double sEndWSStepYdispl[3] = { 26.52 * mm, 33.89 * mm, 41.64 * mm };
-  const double sEndWSStepHolePhi[3] = {30.0, 22.5, 18.0}; // Deg
-  const double sEndWSStepHoleTilt[3] = {0.232, 0.295, 0.297};  // Rad
+  const double sEndWSStepHolePhi[3] = { 30.0, 22.5, 18.0 }; // Deg
+  const double sEndWSStepHoleTilt[3] = {0., 0.295, 0.297};  // Rad
 
   const double sEndWSStepZlen = sEWSTotalLen - sEWSIntSectLongLen;
+  const double sEndWheelNWallR = sEWSExtSectRmax[lay] - sEWSExtSectThick[lay] + 0.05 * mm;
 
   // local varianbles
   double rmin, rmax, phimin, dphi;
@@ -358,34 +366,34 @@ void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume *&endWhee
   auto Ra = G4RotationMatrix();
 
   const unsigned short nZplanes = 6;
-  const G4double zPlane[nZplanes] = { 0. * mm,
-                                      sEWSTotalLen - sEWSIntSectLongLen,
-                                      sEWSTotalLen - sEWSIntSectLongLen,
-                                      sEWSTotalLen - sEWSIntSectShortLen,
-                                      sEWSTotalLen - sEWSIntSectShortLen,
-                                      sEWSTotalLen };
+  const double zPlane[nZplanes] = { 0. * mm,
+                                    sEWSTotalLen - sEWSIntSectLongLen,
+                                    sEWSTotalLen - sEWSIntSectLongLen,
+                                    sEWSTotalLen - sEWSIntSectShortLen,
+                                    sEWSTotalLen - sEWSIntSectShortLen,
+                                    sEWSTotalLen };
 
-  const G4double rInner[nZplanes] = { sEWSExtSectRmax[lay] - sEWSExtSectThick[lay],
-                                      sEWSExtSectRmax[lay] - sEWSExtSectThick[lay],
-                                      sEWSIntSectRmin[lay],
-                                      sEWSIntSectRmin[lay],
-                                      sEWSIntSectRmin[lay],
-                                      sEWSIntSectRmin[lay] };
+  const double rInner[nZplanes] = { sEndWheelNWallR,
+                                    sEndWheelNWallR,
+                                    sEWSIntSectRmin[lay],
+                                    sEWSIntSectRmin[lay],
+                                    sEWSIntSectRmin[lay],
+                                    sEWSIntSectRmin[lay] };
 
-  const G4double rOuter[nZplanes] = { sEWSExtSectRmax[lay],
-                                      sEWSExtSectRmax[lay],
-                                      sEWSExtSectRmax[lay],
-                                      sEWSExtSectRmax[lay],
-                                      sEWSIntSectRmax[lay],
-                                      sEWSIntSectRmax[lay] };
+  const double rOuter[nZplanes] = { sEWSExtSectRmax[lay],
+                                    sEWSExtSectRmax[lay],
+                                    sEWSExtSectRmax[lay],
+                                    sEWSExtSectRmax[lay],
+                                    sEWSIntSectRmax[lay],
+                                    sEWSIntSectRmax[lay] };
 
-  G4VSolid *endWSBasis = new G4Polycone(Form("endwsbasis%d", lay), 0., 2. * M_PI * rad,
-                                   nZplanes, zPlane, rInner, rOuter);
+  G4VSolid *endWSBasis = new G4Polycone( Form( "endwsbasis%d", lay ), 0., 2. * M_PI * rad,
+                                         nZplanes, zPlane, rInner, rOuter);
 
   // The holes in the veritcal wall
-  auto endwswalhol = new G4Tubs(Form("endwswalhol%d", lay), 0, sEndWSWallHoleD / 2,
-                                   1.5 * sEWSExtSectThick[lay],
-                                   0, 2 * M_PI * rad);
+  auto endwswalhol = new G4Tubs( Form( "endwswalhol%d", lay ), 0, sEndWSWallHoleD / 2,
+                                 1.5 * sEWSExtSectThick[lay],
+                                 0, 2 * M_PI * rad);
 
   rmin = sEWSExtSectRmax[lay] - sEWSExtSectThick[lay] / 2;
   zpos = sEndWStepHoleZpos;
@@ -394,76 +402,83 @@ void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume *&endWhee
   for ( int ihole = 0; ihole < 2 * sEndWSWallNHoles[lay]; ihole++ )
   {
     double phi = phimin + ihole * dphi;
-    xpos = rmin * sin(phi * deg);
-    ypos = rmin * cos(phi * deg);
-    Ra.set(-phi * deg, 90 * deg, 0);
-    Ta.set(xpos, ypos, zpos);
-    endWSBasis = new G4SubtractionSolid (Form("endwsbasis-endwswalhol%dl%d", ihole, lay),
-                                         endWSBasis, endwswalhol, &Ra, Ta);
+    xpos = rmin * sin( phi * deg );
+    ypos = rmin * cos( phi * deg );
+    Ra.set( -phi * deg, 90 * deg, 0 );
+    Ta.set( xpos, ypos, zpos );
+    endWSBasis = new G4SubtractionSolid( Form( "endwsbasis-endwswalhol%dl%d", ihole, lay ),
+                                         endWSBasis, endwswalhol, &Ra, Ta );
   }
 
   // Now the Step as a Composite Shape (subtraction of a Pcon from a BBox)
   // (cutting volume should be slightly larger than desired region)
   rmin = sEWSExtSectRmax[lay] - sEWSExtSectThick[lay];
   xlen = sEndWSStepXlen[lay];
-  double xDispl = sqrt(rmin*rmin - sEndWSStepYdispl[lay]*sEndWSStepYdispl[lay]) - xlen;
-  ylen = sqrt(rmin*rmin - xDispl*xDispl) - sEndWSStepYdispl[lay];
+  double xDispl = sqrt( rmin * rmin - sEndWSStepYdispl[lay] * sEndWSStepYdispl[lay] ) - xlen;
+  ylen = sqrt( rmin * rmin - xDispl * xDispl ) - sEndWSStepYdispl[lay];
 
-  auto stepBoxSSh = new G4Box(Form("stepBoxSSh%d", lay), xlen / 2, ylen / 2, sEndWSStepZlen / 2);
+  auto stepBoxSSh = new G4Box( Form( "stepBoxSSh%d", lay ), xlen / 2, ylen / 2,
+                               ( sEndWSStepZlen / 2 ) - 0.05 * mm );
 
   xpos = xDispl + stepBoxSSh->GetXHalfLength();
   ypos = sEndWSStepYdispl[lay] + stepBoxSSh->GetYHalfLength();
-  rpos = sqrt(xpos*xpos + ypos*ypos);
+  rpos = sqrt( xpos * xpos + ypos * ypos );
 
-  phimin = (90. * deg) - acos( sEndWSStepYdispl[lay] / rmin) * rad - 5 * deg;
-  dphi = (90. * deg) - asin(xDispl / rmin) * rad - phimin + 5 * deg;
+  phimin = ( 90. * deg ) - acos( sEndWSStepYdispl[lay] / rmin ) * rad - 5 * deg;
+  dphi = ( 90. * deg ) - asin( xDispl / rmin ) * rad - phimin + 5 * deg;
   rmax = rmin + 2 * stepBoxSSh->GetYHalfLength();
 
-  auto stepTubSSh = new G4Tubs( Form("stepTubSSh%d", lay), rmin, rmax,
-                               1.5 * sEndWSStepZlen / 2, phimin, dphi );
-  Ra.set(0,0,0);
-  Ta.set(-xpos, -ypos, 0);
-  auto stepSSh = new G4SubtractionSolid (Form("stepSSh%d", lay),
-                                         stepBoxSSh, stepTubSSh, &Ra, Ta);
+  auto stepTubSSh = new G4Tubs( Form( "stepTubSSh%d", lay ), rmin, rmax,
+                                1.5 * sEndWSStepZlen / 2, phimin, dphi );
+  Ra.set( 0., 0., 0. );
+  Ta.set( -xpos, -ypos, 0. );
+  auto stepSSh = new G4SubtractionSolid( Form( "stepSSh%d", lay ),
+                                         stepBoxSSh, stepTubSSh, &Ra, Ta );
 
-  dphi = PHG4MvtxDefs::mvtxdat[lay][PHG4MvtxDefs::kPhi0];
+  auto matAl = PHG4Detector::GetDetectorMaterial( "MVTX_EW_Al$" );
+
+  auto endWheelSvol = new G4LogicalVolume( endWSBasis, matAl, Form( "EndWheelSBasis%d", lay ) );
+  m_DisplayAction->AddVolume( endWheelSvol, "red" );
+
+  auto stepSShLogVol = new G4LogicalVolume( stepSSh , matAl, Form( "StepSL%d_LOGIC", lay ) );
+  m_DisplayAction->AddVolume( stepSShLogVol, "red" );
+
+  // Finally put everything in the mother volume
+  zpos = ( sEndWheelSNHolesZdist / 2 )  - ( sEndWStepHoleZpos + sEndWStepHoleZdist );
+  Ra.set( 0., M_PI * rad, 0. );
+  Ta.set( 0, 0, -zpos );
+  endWheel->AddPlacedVolume( endWheelSvol, Ta, &Ra );
+
+  dphi = atan( ypos/xpos );
+  double phi0 = PHG4MvtxDefs::mvtxdat[lay][PHG4MvtxDefs::kPhi0];
   const int numberOfStaves = PHG4MvtxDefs::mvtxdat[lay][PHG4MvtxDefs::kNStave];
-  zpos = ( stepBoxSSh->GetZHalfLength() );
+  zpos += ( stepBoxSSh->GetZHalfLength() );
   for ( int j = 0; j < numberOfStaves; j++ )
   {
-    double phi = dphi * rad + j * sEndWSStepHolePhi[lay] * deg;
-    xpos = rpos * cos(phi);
-    ypos = rpos * sin(phi);
-    Ra.set( 180*deg, 180*deg, -90*deg + phi + sEndWSStepHoleTilt[lay] );
-    Ta.set(-xpos, ypos, zpos);
-    endWSBasis = new G4UnionSolid(Form("endwsbasis-stepSSh%dl%d", j, lay),
-                                       endWSBasis, stepSSh, &Ra, Ta);
+    double phi = phi0 * rad;
+    phi += j * sEndWSStepHolePhi[lay] * deg;
+    phi -= sEndWSStepHoleTilt[lay];
+    xpos = rpos * cos( phi );
+    ypos = rpos * sin( phi );
+    Ra.set( 0., 0., dphi - phi );
+    Ta.set( xpos, ypos, -zpos );
+    endWheel->AddPlacedVolume( stepSShLogVol, Ta, &Ra );
   }
-
-  auto matAl = PHG4Detector::GetDetectorMaterial("MVTX_EW_Al$");
-
-  auto endWheelSvol = new G4LogicalVolume(endWSBasis, matAl, Form("EndWheelSBasis%d", lay));
-  m_DisplayAction->AddVolume(endWheelSvol, "red");
-
-  zpos = (sEndWheelSNHolesZdist / 2)  - (sEndWStepHoleZpos + sEndWStepHoleZdist);
-  Ta.set(0, 0, -zpos);
-  Ra.set(0, M_PI * rad, 0);
-  endWheel->AddPlacedVolume(endWheelSvol, Ta, &Ra);
 
   return;
 }
 
 //________________________________________________________________________________
-void PHG4MvtxSupport::CreateConeLayers(G4AssemblyVolume *& av)
+void PHG4MvtxSupport::CreateConeLayers( G4AssemblyVolume *& av )
 {
   for ( unsigned int iLay = 0; iLay < PHG4MvtxDefs::kNLayers; iLay++ )
   {
-    GetConeVolume(iLay, av);
+    GetConeVolume( iLay, av );
   }
 }
 
 //________________________________________________________________________________
-void PHG4MvtxSupport::GetConeVolume(int lay, G4AssemblyVolume *& av)
+void PHG4MvtxSupport::GetConeVolume( int lay, G4AssemblyVolume *& av )
 {
   //
   // Creates the single CF cone
@@ -483,16 +498,15 @@ void PHG4MvtxSupport::GetConeVolume(int lay, G4AssemblyVolume *& av)
   // Created:      20 Jan 2023 Yasser Corrales Morales
   //
 
-
   const double sEndWheelSExtSectLen = 17 * mm;
 
-  const double sThickness[3] = {1 * mm, 1.12 * mm, 1.12 * mm};
-  const double sBigCylDmax[3] = {103 * mm, 149 * mm, 195 * mm};
+  const double sThickness[3] = { 1. * mm, 1.12 * mm, 1.12 * mm };
+  const double sBigCylDmax[3] = { 103 * mm, 149 * mm, 195 * mm };
   const double sBigCylDmin = sBigCylDmax[lay] - 2 * sThickness[lay];
-  const double sSmallCylDmin[3] = { 59.94 * mm, 75.98 * mm, 91.48 * mm};
-  const double sTotalLen[3] = {186.8 * mm, 179.74 * mm, 223 * mm};
-  const double sSmallCylLen[3] = {91.86 * mm, 89.38 * mm, 85.38 * mm};
-  const double sConePlusSCLen[3] = {165.79 * mm, 158.51 * mm, 152.06 * mm};
+  const double sSmallCylDmin[3] = { 59.94 * mm, 75.98 * mm, 91.48 * mm };
+  const double sTotalLen[3] = { 186.8 * mm, 179.74 * mm, 223 * mm };
+  const double sSmallCylLen[3] = { 91.86 * mm, 89.38 * mm, 85.38 * mm };
+  const double sConePlusSCLen[3] = { 165.79 * mm, 158.51 * mm, 152.06 * mm };
 
   const int nZplanes = 4;
   const double zPlane[nZplanes] = { 0 * mm,
@@ -510,25 +524,33 @@ void PHG4MvtxSupport::GetConeVolume(int lay, G4AssemblyVolume *& av)
                                    sBigCylDmax[lay] / 2,
                                    sBigCylDmax[lay] / 2 };
 
-  auto coneSolid = new G4Polycone(Form("cfConeL%d", lay), 0., 2. * M_PI * rad,
-                                   nZplanes, zPlane, rInner, rOuter);
+  auto coneSolid = new G4Polycone( Form( "cfConeL%d", lay ), 0., 2. * M_PI * rad,
+                                   nZplanes, zPlane, rInner, rOuter );
 
-  auto matCF = PHG4Detector::GetDetectorMaterial("MVTX_CarbonFiber$");
-  auto coneLogVol = new G4LogicalVolume(coneSolid, matCF,
-                                        Form("ConeL%d_LOGIC", lay), nullptr, nullptr, nullptr);
-  m_DisplayAction->AddVolume(coneLogVol, "MVTX_CarbonFiber$");
-  double zpos = sEndWheelSNHolesZdist / 2 - (sEndWStepHoleZpos + sEndWStepHoleZdist) + sEndWheelSExtSectLen;
-  G4ThreeVector Ta = G4ThreeVector(0., 0., -zpos);
+  auto matCF = PHG4Detector::GetDetectorMaterial( "MVTX_CarbonFiber$" );
+
+  auto coneLogVol = new G4LogicalVolume( coneSolid, matCF,
+                                         Form( "ConeL%d_LOGIC", lay ),
+                                         nullptr, nullptr, nullptr );
+
+  m_DisplayAction->AddVolume( coneLogVol, "MVTX_CarbonFiber$" );
+
+  double zpos = sEndWheelSNHolesZdist / 2 - (sEndWStepHoleZpos + sEndWStepHoleZdist) \
+                + sEndWheelSExtSectLen;
+  G4ThreeVector Ta = G4ThreeVector( 0., 0., -zpos );
   G4RotationMatrix Ra;
-  av->AddPlacedVolume(coneLogVol, Ta, &Ra);
+  av->AddPlacedVolume( coneLogVol, Ta, &Ra );
+
+  return;
 }
 
 //________________________________________________________________________________
-void PHG4MvtxSupport::CreateCYSSNFlange(G4AssemblyVolume *& av)
+void PHG4MvtxSupport::CreateCYSS( G4AssemblyVolume *& av )
 {
   //
-  // Creates the Flange on Side North for the CYSS
+  // Creates the CYSS
   // (MVTX-2-S-00075)
+  // (MVTX-s-S-00079)
   //
   // Input:
   //         av : assembly volume
@@ -556,34 +578,62 @@ void PHG4MvtxSupport::CreateCYSSNFlange(G4AssemblyVolume *& av)
   const double sFlgLringRmax = 51.5 * mm;
 
   const int nZplanes = 4;//10;
-  const double zPlane_1[nZplanes] = {       0. * mm,  sFlgExtThick,  sFlgExtThick,  sFlgSringLen};
-  const double rInner_1[nZplanes] = {      sFlgRmin,      sFlgRmin, sFlgSringRmin, sFlgSringRmin};
-  const double rOuter_1[nZplanes] = { sFlgLringRmin, sFlgLringRmin, sFlgSringRmax, sFlgSringRmax};
+  const double zPlane_1[nZplanes] = { 0. * mm,
+                                      sFlgExtThick,
+                                      sFlgExtThick,
+                                      sFlgSringLen };
 
-  const double zPlane_2[nZplanes] = {       0. * mm,   sFlgExtThick,  sFlgExtThick,  sFlgLringLen};
-  const double rInner_2[nZplanes] = { sFlgLringRmin,  sFlgLringRmin, sFlgLringRmin, sFlgLringRmin};
-  const double rOuter_2[nZplanes] = {      sFlgRmax,       sFlgRmax, sFlgLringRmax, sFlgLringRmax};
+  const double rInner_1[nZplanes] = { sFlgRmin,
+                                      sFlgRmin,
+                                      sFlgSringRmin,
+                                      sFlgSringRmin };
 
+  const double rOuter_1[nZplanes] = { sFlgLringRmin,
+                                      sFlgLringRmin,
+                                      sFlgSringRmax,
+                                      sFlgSringRmax };
 
-  auto flangeSolid_1 = new G4Polycone("cyssFlangeNorth_1", 0., 2. * M_PI * rad,
-                                      nZplanes, zPlane_1, rInner_1, rOuter_1);
+  const double zPlane_2[nZplanes] = { 0. * mm,
+                                      sFlgExtThick,
+                                      sFlgExtThick,
+                                      sFlgLringLen };
 
-  auto flangeSolid_2 = new G4Polycone("cyssFlangeNorth_2", 0., 2. * M_PI * rad,
-                                      nZplanes, zPlane_2, rInner_2, rOuter_2);
+  const double rInner_2[nZplanes] = { sFlgLringRmin,
+                                      sFlgLringRmin,
+                                      sFlgLringRmin,
+                                      sFlgLringRmin };
 
-  auto matAl = PHG4Detector::GetDetectorMaterial("MVTX_EW_Al$");
-  auto cyssFlangeLogVol_1 = new G4LogicalVolume(flangeSolid_1, matAl,
-                                                "cyssFlangeNorth_1_LOGIC", nullptr, nullptr, nullptr);
-  auto cyssFlangeLogVol_2 = new G4LogicalVolume(flangeSolid_2, matAl,
-                                                "cyssFlangeNorth_2_LOGIC", nullptr, nullptr, nullptr);
-  m_DisplayAction->AddVolume(cyssFlangeLogVol_1, "MVTX_EW_Al$");
-  m_DisplayAction->AddVolume(cyssFlangeLogVol_2, "MVTX_EW_Al$");
+  const double rOuter_2[nZplanes] = { sFlgRmax,
+                                      sFlgRmax,
+                                      sFlgLringRmax,
+                                      sFlgLringRmax };
 
-  double zpos = sEndWheelSNHolesZdist / 2 - (sEndWStepHoleZpos + sEndWStepHoleZdist) + sEndWheelNLen + sFlgExtThick;
-  G4ThreeVector Ta = G4ThreeVector(0., 0., zpos);
-  G4RotationMatrix Ra(0, M_PI * rad, 0.);
-  av->AddPlacedVolume(cyssFlangeLogVol_1, Ta, &Ra);
-  av->AddPlacedVolume(cyssFlangeLogVol_2, Ta, &Ra);
+  auto flangeSolid_1 = new G4Polycone( "cyssFlangeNorth_1", 0., 2. * M_PI * rad,
+                                       nZplanes, zPlane_1, rInner_1, rOuter_1 );
+
+  auto flangeSolid_2 = new G4Polycone( "cyssFlangeNorth_2", 0., 2. * M_PI * rad,
+                                       nZplanes, zPlane_2, rInner_2, rOuter_2 );
+
+  auto matAl = PHG4Detector::GetDetectorMaterial( "MVTX_EW_Al$" );
+
+  auto cyssFlangeLogVol_1 = new G4LogicalVolume( flangeSolid_1, matAl,
+                                                 "cyssFlangeNorth_1_LOGIC",
+                                                 nullptr, nullptr, nullptr );
+
+  m_DisplayAction->AddVolume( cyssFlangeLogVol_1, "MVTX_EW_Al$" );
+
+  auto cyssFlangeLogVol_2 = new G4LogicalVolume( flangeSolid_2, matAl,
+                                                 "cyssFlangeNorth_2_LOGIC",
+                                                 nullptr, nullptr, nullptr );
+
+  m_DisplayAction->AddVolume( cyssFlangeLogVol_2, "MVTX_EW_Al$");
+
+  double zpos = sEndWheelSNHolesZdist / 2 - (sEndWStepHoleZpos + sEndWStepHoleZdist) \
+                + sEndWheelNLen + sFlgExtThick;
+  G4ThreeVector Ta = G4ThreeVector( 0., 0., zpos );
+  G4RotationMatrix Ra( 0, M_PI * rad, 0. );
+  av->AddPlacedVolume( cyssFlangeLogVol_1, Ta, &Ra );
+  av->AddPlacedVolume( cyssFlangeLogVol_2, Ta, &Ra );
 }
 
 std::vector<float> PHG4MvtxSupport::get_thickness(PHG4MvtxServiceStructure *object)
@@ -888,19 +938,19 @@ G4AssemblyVolume *PHG4MvtxSupport::buildL2Cable()
   return av;
 }
 
-void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
+void PHG4MvtxSupport::ConstructMvtxSupport( G4LogicalVolume *&lv )
 {
   CreateMvtxSupportMaterials();
   m_avSupport = new G4AssemblyVolume();
 
-  CreateEndWheelsSideN(m_avSupport);
-  CreateEndWheelsSideS(m_avSupport);
-  CreateConeLayers(m_avSupport);
-  CreateCYSSNFlange(m_avSupport);
+  CreateEndWheelsSideN( m_avSupport );
+  CreateEndWheelsSideS( m_avSupport );
+  CreateConeLayers( m_avSupport );
+  CreateCYSS( m_avSupport );
 
   unsigned int nStaves[PHG4MvtxDefs::kNLayers];
   unsigned int totStaves = 0;
-  for (unsigned int i = 0; i < PHG4MvtxDefs::kNLayers; ++i)
+  for ( unsigned int i = 0; i < PHG4MvtxDefs::kNLayers; ++i )
   {
     nStaves[i] = (int) PHG4MvtxDefs::mvtxdat[i][PHG4MvtxDefs::kNStave];
     totStaves += nStaves[i];
@@ -944,8 +994,8 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
 */
   G4RotationMatrix Ra;
   G4ThreeVector Ta = G4ThreeVector();
-  G4Transform3D Tr(Ra, Ta);
-  m_avSupport->MakeImprint(lv, Tr, 0, m_overlapCheck);
+  G4Transform3D Tr( Ra, Ta );
+  m_avSupport->MakeImprint( lv, Tr, 0, m_overlapCheck );
 /*
   m_avBarrelCable = buildBarrelCable();
   G4ThreeVector placeBarrelCable;

@@ -13,33 +13,33 @@ class PHG4MvtxServiceStructure;
 class PHG4MvtxSupport
 {
  public:
-  PHG4MvtxSupport(PHG4MvtxDisplayAction *dispAct, bool overlapCheck);
+  PHG4MvtxSupport( PHG4MvtxDisplayAction *dispAct, bool overlapCheck );
 
   ~PHG4MvtxSupport();
 
-  void ConstructMvtxSupport(G4LogicalVolume *&lv);
+  void ConstructMvtxSupport( G4LogicalVolume *&lv );
 
  private:
   PHG4MvtxDisplayAction *m_DisplayAction;
 
   void CreateMvtxSupportMaterials();
 
-  void CreateEndWheelsSideN(G4AssemblyVolume *& av);
-  void CreateEndWheelsSideS(G4AssemblyVolume *& av);
-  void CreateConeLayers(G4AssemblyVolume *& av);
-  void CreateCYSSNFlange(G4AssemblyVolume *& av);
+  void CreateEndWheelsSideN( G4AssemblyVolume *&av );
+  void CreateEndWheelsSideS( G4AssemblyVolume *&av );
+  void CreateConeLayers( G4AssemblyVolume *&av );
+  void CreateCYSS( G4AssemblyVolume *&av );
 
-  void GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWheel);
-  void GetEndWheelSideS(const int lay, G4AssemblyVolume *&endWheel);
-  void GetConeVolume(int lay, G4AssemblyVolume *& av);
+  void GetEndWheelSideN( const int lay, G4AssemblyVolume *&endWheel );
+  void GetEndWheelSideS( const int lay, G4AssemblyVolume *&endWheel );
+  void GetConeVolume( int lay, G4AssemblyVolume *& av );
 
-  std::vector<float> get_thickness(PHG4MvtxServiceStructure *object);
-  void TrackingServiceCone(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume);
-  void TrackingServiceCylinder(PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume);
-  void CreateCable(PHG4MvtxCable *object, G4AssemblyVolume &assemblyVolume);
-  void CreateCableBundle(G4AssemblyVolume &assemblyVolume, const std::string &superName,
-                         bool enableSignal, bool enableCooling, bool enablePower,
-                         float x1, float x2, float y1, float y2, float z1, float z2);  //, float theta = 0);
+  std::vector<float> get_thickness( PHG4MvtxServiceStructure *object );
+  void TrackingServiceCone( PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume );
+  void TrackingServiceCylinder( PHG4MvtxServiceStructure *object, G4AssemblyVolume &assemblyVolume );
+  void CreateCable( PHG4MvtxCable *object, G4AssemblyVolume &assemblyVolume );
+  void CreateCableBundle( G4AssemblyVolume &assemblyVolume, const std::string &superName,
+                          bool enableSignal, bool enableCooling, bool enablePower,
+                          float x1, float x2, float y1, float y2, float z1, float z2);
 
   G4AssemblyVolume *buildBarrelCable();
   G4AssemblyVolume *buildL0Cable();
@@ -51,7 +51,6 @@ class PHG4MvtxSupport
   G4AssemblyVolume *m_avL0Cable;
   G4AssemblyVolume *m_avL1Cable;
   G4AssemblyVolume *m_avL2Cable;
-  //std::vector<G4AssemblyVolume*> m_endwheelCable;
 
   bool m_overlapCheck = false;
 };
