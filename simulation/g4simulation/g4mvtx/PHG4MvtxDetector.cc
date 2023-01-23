@@ -55,15 +55,12 @@ using namespace std;
 
 namespace mvtxGeomDef
 {
-  double mvtx_shell_inner_radius = 4.8 * cm;
-  double skin_thickness = 0.01 * cm;
-  double foam_core_thickness = 0.18 * cm;
-  double mvtx_shell_length = 46. * cm;
-  double mvtx_shell_thickness = skin_thickness + foam_core_thickness + skin_thickness;
-
-  double wrap_rmin = 2.2 * cm;
-  double wrap_rmax = mvtx_shell_inner_radius + mvtx_shell_thickness + 0.8 * cm;
-  double wrap_zlen = mvtx_shell_length;
+  const double wrap_rmax = ( 105.30 + 4.36 + 0.34 ) * mm; // 360 um margin wrt SB
+  const double wrap_rmin = 22 * mm;
+  const double wrap_smallCylR = 55.00 * mm; // CYSS Ext Nose + 905 um
+  const double wrap_CYSSFlgN_Z = ( 177.5 + 12.5 ) * mm;
+  const double wrap_CYSSNose_Z = -245 * mm;
+  const double wrap_SBCyl_Z = -1800 * mm; // SB Cyl (1650 mm + 15 cm Margin)
 }  // namespace mvtxGeomDef
 
 PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
@@ -176,20 +173,34 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
          << "PHG4MvtxDetector::Construct called for Mvtx " << endl;
   }
 
-  const G4double rMax = (10.330 + 0.436 + 0.001) * cm;
   const G4int numZPlanes = 4;
-  const G4double zPlane[numZPlanes] = {-160 * cm, -30.65 * cm, -23.95 * cm, mvtxGeomDef::wrap_zlen / 2.0};
-  const G4double rInner[numZPlanes] = {mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin};
-  const G4double rOuter[numZPlanes] = {rMax, rMax, mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_rmax};
-  auto polycone = new G4Polycone("sol_MVTX_Wrapper", 0, 2.0 * M_PI, numZPlanes, zPlane, rInner, rOuter);
-  auto world_mat = logicWorld->GetMaterial();
-  auto logicMVTX = new G4LogicalVolume(polycone, world_mat, "log_MVTX_Wrapper");
-  new G4PVPlacement(new G4RotationMatrix(), G4ThreeVector(), logicMVTX, "MVTX_Wrapper", logicWorld, false, 0, false);
+  const G4double zPlane[numZPlanes] = { mvtxGeomDef::wrap_SBCyl_Z,
+                                        mvtxGeomDef::wrap_CYSSNose_Z,
+                                        mvtxGeomDef::wrap_CYSSNose_Z,
+                                        mvtxGeomDef::wrap_CYSSFlgN_Z};
 
-  // the tracking layers are placed directly in the world volume, since some layers are (touching) double layers
+  const G4double rInner[numZPlanes] = { mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin,
+                                        mvtxGeomDef::wrap_rmin, mvtxGeomDef::wrap_rmin };
+
+  const G4double rOuter[numZPlanes] = { mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_rmax,
+                                        mvtxGeomDef::wrap_smallCylR,
+                                        mvtxGeomDef::wrap_smallCylR };
+
+  auto mvtxWrapSol = new G4Polycone( "sol_MVTX_Wrapper", 0, 2.0 * M_PI,
+                                     numZPlanes, zPlane, rInner, rOuter );
+
+  auto world_mat = logicWorld->GetMaterial();
+
+  auto logicMVTX = new G4LogicalVolume( mvtxWrapSol, world_mat, "log_MVTX_Wrapper" );
+
+  new G4PVPlacement( new G4RotationMatrix(), G4ThreeVector(), logicMVTX, "MVTX_Wrapper",
+                     logicWorld, false, 0, false );
+
+  // the tracking layers are placed directly in the world volume,
+  // since some layers are (touching) double layers
   // this reads in the ITS stave geometry from a file and constructs the layer from it
-  ConstructMvtx(logicMVTX);
-  ConstructMvtxPassiveVol(logicMVTX);
+  ConstructMvtx( logicMVTX );
+  ConstructMvtxPassiveVol( logicMVTX );
 
   AddGeometryNode();
   return;
