@@ -61,16 +61,17 @@ G4EvtGenDecayer::G4EvtGenDecayer()
   : G4VExtDecayer("G4EvtGenDecayer")
   , fVerboseLevel(0)
 {
+
   mEvtGenRandomEngine = new PHEvtGenRandomEngine();
 
-  EvtRandom::setRandomEngine(static_cast<EvtRandomEngine*>(mEvtGenRandomEngine));
+  EvtRandom::setRandomEngine(static_cast<EvtRandomEngine*> (mEvtGenRandomEngine));
 
   radCorrEngine = genList.getPhotosModel();
 
   extraModels = genList.getListOfModels();
 
   // the hardcoded paths are temporary
-  const char* offline_main = getenv("OFFLINE_MAIN");
+  const char *offline_main = getenv("OFFLINE_MAIN");
 
   if (!offline_main)
   {
@@ -80,16 +81,15 @@ G4EvtGenDecayer::G4EvtGenDecayer()
   string decay = string(offline_main) + "/share/EvtGen/DECAY.DEC";  // Using PDG 2019 reference as the input for now
   string evt = string(offline_main) + "/share/EvtGen/evt.pdl";
 
-  mEvtGen = new EvtGen(decay, evt, static_cast<EvtRandomEngine*>(mEvtGenRandomEngine), radCorrEngine, &extraModels);
+  mEvtGen = new EvtGen(decay, evt, static_cast<EvtRandomEngine*> (mEvtGenRandomEngine), radCorrEngine, &extraModels);
   extraModels.clear();
   // delete mEvtGen;	QATree
 
   // bool WilluseXml =false;
   //  SetDecayTable("EvtGenDecayFiles/Bc.DStar+D0Star.Phi.DEC",WilluseXml);
   // SetDecayTable("EvtGenDecayFiles/JpsiRHO.DEC",WilluseXml);
-  // SetDecayTable("EvtGenDecayFiles/JPsi.ee.DEC",WilluseXml);
+  // SetDecayTable("EvtGenDecayFiles/JPsi.Phi.DEC",WilluseXml);
 
-  // std::cout << "EvtGen Called Bro e+ e- decay" << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -159,14 +159,14 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
     stack.pop();
 
     for (auto children : particle->children())
-    {
+    {	
       float EvtWidth = 9999;
-      int pdg = children->pdg_id();
-
+	  int pdg = children->pdg_id();
+ 
       G4ParticleDefinition* particleDefinition = GetParticleDefinition(pdg);
-      if (EvtPDL::evtIdFromLundKC(pdg).getId() != -1) EvtWidth = EvtPDL::getWidth(EvtPDL::evtIdFromLundKC(pdg)) * 1000000;  // Width Unit GeV -> keV
+	  if(EvtPDL::evtIdFromLundKC(pdg).getId() != -1) EvtWidth = EvtPDL::getWidth(EvtPDL::evtIdFromLundKC(pdg)) * 1000000;	//Decay Width Unit: GeV -> keV to define stable particles in EvtGen -> G4
 
-      if (particleDefinition && EvtWidth < WidthThreshold)
+	  if (particleDefinition && EvtWidth < WidthThreshold)
       {
         bool SameVtxPos = 1;
 
@@ -192,7 +192,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
                       << std::endl;
           }
 
-          decayProducts->PushProducts(dynamicParticle);
+		  decayProducts->PushProducts(dynamicParticle);
         }
         else
         {
