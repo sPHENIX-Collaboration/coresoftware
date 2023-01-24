@@ -48,6 +48,7 @@ TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
       TowerInfov1 *tower = new TowerInfov1();
       tower->set_energy(0);
       new ((*_clones)[i]) TowerInfov1(*tower);
+      delete tower;
     }
   _clones->SetOwner();
   _clones->SetName("TowerInfoContainerv1");
@@ -83,6 +84,7 @@ void TowerInfoContainerv1::Reset()
       TowerInfov1 *tower = new TowerInfov1();
       tower->set_energy(0);
       new ((*_clones)[i]) TowerInfov1(*tower);
+      delete tower;
     }
 
 
