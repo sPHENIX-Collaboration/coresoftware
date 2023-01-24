@@ -38,7 +38,6 @@ class PHG4MvtxSupport
   void GetEndWheelSideS( const int lay, G4AssemblyVolume *&endWheel );
   void GetConeVolume( int lay, G4AssemblyVolume *& av );
 
-  std::vector<float> get_thickness( PHG4MvtxServiceStructure *object );
   void CreateCable( PHG4MvtxCable *object, G4AssemblyVolume &assemblyVolume );
   void CreateCableBundle( G4AssemblyVolume &assemblyVolume, const std::string &superName,
                           bool enableSignal, bool enableCooling, bool enablePower,
