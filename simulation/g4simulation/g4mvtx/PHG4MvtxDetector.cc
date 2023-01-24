@@ -194,7 +194,10 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   auto logicMVTX = new G4LogicalVolume( mvtxWrapSol, world_mat, "log_MVTX_Wrapper" );
 
-  new G4PVPlacement( new G4RotationMatrix(), G4ThreeVector(), logicMVTX, "MVTX_Wrapper",
+  G4RotationMatrix Ra;
+  G4ThreeVector Ta;
+  G4Transform3D Tr( Ra, Ta );
+  new G4PVPlacement( Tr, logicMVTX, "MVTX_Wrapper",
                      logicWorld, false, 0, false );
 
   // the tracking layers are placed directly in the world volume,
