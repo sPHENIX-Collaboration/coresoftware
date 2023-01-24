@@ -772,19 +772,19 @@ void PHG4MvtxSupport::CreateCYSS( G4AssemblyVolume *& av )
 
   const int nZplanesFlgS = 4;
   const double zPlanesFlgS[nZplanesFlgS] = { 0. * mm,
-                                            sFlgSRimWidth,
-                                            sFlgSRimWidth,
-                                            sFlgSTotalWidth };
+                                             sFlgSRimWidth,
+                                             sFlgSRimWidth,
+                                             sFlgSTotalWidth };
 
   const double rInnerFlgS[nZplanesFlgS] = { sFlgSRmin,
-                                           sFlgSRmin,
-                                           sFlgSRmin,
-                                           sFlgSRstep - sFlgSChamfeEnd };
+                                            sFlgSRmin,
+                                            sFlgSRmin,
+                                            sFlgSRstep - sFlgSChamfeEnd };
 
   const double rOuterFlgS[nZplanesFlgS] = { sFlgSRmax,
-                                           sFlgSRmax,
-                                           sFlgSRstep,
-                                           sFlgSRstep };
+                                            sFlgSRmax,
+                                            sFlgSRstep,
+                                            sFlgSRstep };
 
   auto cyssFlgSSol = new G4Polycone( "cyssFlgSSol", 0., 2. * M_PI * rad,
                                      nZplanesFlgS, zPlanesFlgS, rInnerFlgS, rOuterFlgS );
@@ -1015,7 +1015,6 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const 
                          ? coolingStaveCoreRadius : coolingCoreRadius;
       float sheathRadius = std::regex_search( superName, rx ) \
                            ? coolingStaveSheathRadius : coolingSheathRadius;
-      std::cout << "cooling tubing radius: " << coreRadius << " " << sheathRadius << std::endl;
       float deltaX = coolingShiftX + ( ( iCool + 1 ) * ( sheathRadius * 2 ) );
       float deltaY = coolingShiftY + ( sheathRadius * 2 );
       PHG4MvtxCable *cable = new PHG4MvtxCable( boost::str( boost::format( "%s_cooling_%d" ) \
