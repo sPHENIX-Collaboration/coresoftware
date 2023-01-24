@@ -55,11 +55,12 @@ using namespace std;
 
 namespace mvtxGeomDef
 {
-  const double wrap_rmax = ( 105.30 + 4.36 + 0.34 ) * mm; // 360 um margin wrt SB
+  const double wrap_rmax = ( 107.7 + 0.3 ) * mm; // 300 um Marging from SB Flange
   const double wrap_rmin = 22 * mm;
   const double wrap_smallCylR = 55.00 * mm; // CYSS Ext Nose + 905 um
   const double wrap_CYSSFlgN_Z = ( 177.5 + 12.5 ) * mm;
   const double wrap_CYSSNose_Z = -245 * mm;
+  const double wrap_CYSSHead_Z = - 315 * mm;
   const double wrap_SBCyl_Z = -1800 * mm; // SB Cyl (1650 mm + 15 cm Margin)
 }  // namespace mvtxGeomDef
 
@@ -175,7 +176,7 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   const G4int numZPlanes = 4;
   const G4double zPlane[numZPlanes] = { mvtxGeomDef::wrap_SBCyl_Z,
-                                        mvtxGeomDef::wrap_CYSSNose_Z,
+                                        mvtxGeomDef::wrap_CYSSHead_Z,
                                         mvtxGeomDef::wrap_CYSSNose_Z,
                                         mvtxGeomDef::wrap_CYSSFlgN_Z};
 
