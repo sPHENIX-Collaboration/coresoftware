@@ -527,9 +527,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
     }
   }
 
-  clang - format - i *.cc *.h *.C
-
-                       LifeTime = SVtoPVTau;
+  LifeTime = SVtoPVTau;
 
   if (m_write_nTuple) QATree->Fill();
 
