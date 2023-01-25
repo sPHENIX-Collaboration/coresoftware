@@ -37,9 +37,12 @@
 #include <TSystem.h>
 #include <algorithm>
 
+// To change:
+// Make the definition of matching clusters to be if the truth cluster center is withing 1/2 of width of the reco track center
+
 typedef TruthRecoTrackMatching::RECO_pair_iter RECO_pair_iter;
 typedef TruthRecoTrackMatching::PossibleMatch  PossibleMatch;
-typedef TruthRecoTrackMatching::CompCluster    CompCluster;
+/* typedef TruthRecoTrackMatching::CompCluster    CompCluster; */
 
 /* using vector<pair<short,short>> = VecShortPairs; */
 using std::make_tuple;
@@ -59,17 +62,24 @@ TruthRecoTrackMatching::TruthRecoTrackMatching
       , const double _same_deta
       , const double _cluster_nzwidths
       , const double _cluster_nphiwidths
-      ) : m_nmincluster_match    { _nmincluster_match  } // minimum number of clusters to match, default=4
-        , m_nmincluster_ratio    { _nmincluster_ratio  } // minimum ratio to match a track, default=0.
-                                                         // -- Track Kinematic Cuts to match --
-        , m_cutoff_dphi          { _cutoff_dphi        } // maximum |dphi|=|phi_reco-phi_truth| to search for match
-        , m_same_dphi            { _same_dphi          } // all tracks in this |dphi| must be tested for matches
-        , m_cutoff_deta          { _cutoff_deta        } // same as m_cutoff_dphi for deta
-        , m_same_deta            { _same_deta          } // same as m_same_dphi for deta
-        , m_cluster_nzwidths_2   { _cluster_nzwidths * _cluster_nzwidths } 
-        // match TrkrClusters_reco within this ratio of TrkrCluster_true z widths
-        , m_cluster_nphiwidths_2 { _cluster_nphiwidths * _cluster_nphiwidths } 
-        // same as m_cluster_nzwidths for phi
+      , const unsigned short    _max_nreco_per_truth
+      , const unsigned short    _max_ntruth_per_reco
+      ) : m_nmincluster_match { _nmincluster_match  } // minimum number of clusters to match, default=4
+        , m_nmincluster_ratio { _nmincluster_ratio } // minimum ratio to match a track, default=0.
+          // -- Track Kinematic Cuts to match --
+        , m_cutoff_dphi         { _cutoff_dphi         } // maximum |dphi|=|phi_reco-phi_truth| to search for match
+        , m_same_dphi           { _same_dphi           } // all tracks in this |dphi| must be tested for matches
+        , m_cutoff_deta         { _cutoff_deta         } // same as m_cutoff_dphi for deta
+        , m_same_deta           { _same_deta           } // same as m_same_dphi for deta
+          // cluster matching widths (how close the truth center must be reco center)          
+        , m_cluster_nzwidths    { _cluster_nzwidths    }
+        , m_cluster_nphiwidths  { _cluster_nphiwidths  }
+          // number of truth tracks allowed matched per reco track, and v. versa
+        , m_max_nreco_per_truth { _max_nreco_per_truth }
+        , m_max_ntruth_per_reco { _max_ntruth_per_reco }
+        , m_nmatched_index_true {}
+        , m_nmatched_id_reco {nullptr}
+        , m_nmatched_id_true {nullptr}
 { 
   if (Verbosity() > 50) cout << " Starting TruthRecoTrackMatching.cc " << endl;
 }
@@ -80,6 +90,8 @@ int TruthRecoTrackMatching::InitRun(PHCompositeNode *topNode) //`
   {
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  m_nmatched_id_reco = &(m_EmbRecoMatchContainer->map_nTruthPerReco());
+  m_nmatched_id_true = &(m_EmbRecoMatchContainer->map_nRecoPerTruth());
   return Fun4AllReturnCodes::EVENT_OK;
   if (Verbosity()>50) topNode->print();
 }
@@ -106,9 +118,11 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
   //     phi-n-2      eta-n-2     pT-n-2     index-n-2
   //     phi-n-1      eta-n-1     pT-n-1     index-n-1
   //     phi-n        eta-n       pT-n       index-n
-  if (Verbosity()>60) std::cout << "reco tracks size: " << m_SvtxTrackMap->size() << std::endl; // FIXME
+  if (Verbosity()>60) std::cout << "reco tracks size: " << m_SvtxTrackMap->size() << std::endl;
 
   recoData.clear();
+
+
   for (auto reco = m_SvtxTrackMap->begin(); reco != m_SvtxTrackMap->end(); ++reco) {
     auto index_reco = reco->first;
     auto track      = reco->second;
@@ -167,51 +181,31 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
 
   if (Verbosity()>70) std::cout << "Number of truth tracks: " << m_TrkrTruthTrackContainer->getTruthTracks().size() << std::endl;
 
-  std::map<unsigned int,bool> map_matched; // note: Truth tracks use index in vector, which reco tracks use map track-id directly
-
   unsigned short index_true {0};
   for (auto track : m_TrkrTruthTrackContainer->getTruthTracks()) {
     auto match_indices = find_box_matches(track->getPhi(), track->getPseudoRapidity(), track->getPt()); 
 
     // keep track of all truth tracks (by track-id) which has been matched
-    map_matched[track->getTrackid()]=false;
     for (auto& id_reco : match_indices.first)  innerbox_pairs.push_back( {index_true, id_reco} );
     for (auto& id_reco : match_indices.second) outerbox_pairs.push_back( {index_true, id_reco} );
     ++index_true;
   }
 
-  // current here
-  // keep sets of matching indices in order to only allow one match to be made per track (truth or reco)
-  std::set<int> idreco_matched {};     // uses track id's
-  std::set<int> index_true_matched {}; // uses vector position
-  
-  if (innerbox_pairs.size() > 0)
-    match_tracks_in_box (innerbox_pairs, index_true_matched, idreco_matched);
-  if (outerbox_pairs.size() > 0)
-    match_tracks_in_box (outerbox_pairs, index_true_matched, idreco_matched);
+  match_tracks_in_box (innerbox_pairs);
+  match_tracks_in_box (outerbox_pairs);
 
-  m_EmbRecoMatchContainer->sort();
 
-  // make a list of embedded tracks which are unmatched
-  auto matched = m_EmbRecoMatchContainer->ids_TruthMatched();
-  for (auto &id : matched) {
-    map_matched[id] = true;
-  }
-  auto unmatched = m_EmbRecoMatchContainer->ids_TruthUnmatched();
-  for (auto entry : map_matched) {
-    if (!entry.second) unmatched.push_back(entry.first);
+  // loop through all the truth track id's in order to fill the EmbRecoMatchContainer with the list of un-matched tracks
+  for (auto track : m_TrkrTruthTrackContainer->getTruthTracks()) {
+    m_EmbRecoMatchContainer->checkfill_idsTruthUnmatched(track->getTrackid());
   }
 
   if (Verbosity()>90) {
   // re-print all the tracks with the matches with the fit values
-    for (auto& track : m_TrkrTruthTrackContainer->getTruthTracks()) {
-      auto id = track->getTrackid();
-      if (m_EmbRecoMatchContainer->hasTruthMatch(id)) {
-        auto match = m_EmbRecoMatchContainer->getMatchTruth(id);
-        cout << Form(" Match id(%2i[%2i]->%2i) nClusMatch-nClusTrue-nClusReco (%2i:%2i:%2i)",
-          id, match->idTruthTrack(), match->idRecoTrack(),
+    for (auto match : m_EmbRecoMatchContainer->getMatches()) {
+      cout << Form(" Match id(%2i->%2i) nClusMatch-nClusTrue-nClusReco (%2i:%2i:%2i)",
+          match->idTruthTrack(), match->idRecoTrack(),
           match->nClustersMatched(), match->nClustersTruth(), match->nClustersReco()) << endl;
-      }
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -277,8 +271,8 @@ int TruthRecoTrackMatching::createNodes(PHCompositeNode* topNode)
   // note that layers 0-6, and > 55, don't work
   for (int layer=7; layer<55; ++layer) {
     PHG4TpcCylinderGeom *layergeom = m_PHG4TpcCylinderGeomContainer->GetLayerCellGeom(layer);
-    if (layer==7) m_zstep_2 = pow(layergeom->get_zstep(),2.);
-    m_phistep_2[layer] = pow(layergeom->get_phistep(),2.);
+    if (layer==7) m_zstep = layergeom->get_zstep();
+    m_phistep[layer] = layergeom->get_phistep();
   }
 
   PHNodeIterator iter(topNode);
@@ -425,14 +419,12 @@ TruthRecoTrackMatching::find_box_matches(float truth_phi, float truth_eta, float
   return std::make_pair(inner_box_matches, outer_box_matches);
 }
 
-unsigned int TruthRecoTrackMatching::match_tracks_in_box(
+void TruthRecoTrackMatching::match_tracks_in_box(
       std::vector<std::pair<unsigned short,unsigned short>>& box_pairs // possible matches by proximity in eta, phi, pT
-    , std::set<int>& true_matched
-    , std::set<int>& reco_matched
 ) {
+  if (box_pairs.size() == 0) return;
 
-  unsigned int cnt_matched_tracks {0};
-  std::sort(box_pairs.begin(), box_pairs.end());
+  std::sort(box_pairs.begin(), box_pairs.end()); // sorted by first index_true, then id_reco
 
   vector<PossibleMatch> poss_matches;
 
@@ -440,8 +432,8 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
   while (ipair != box_pairs.end()) {
     auto index_true = ipair->first;
 
-    // See if this track is already matched. If it is, then skip all pairs using this truth-track-index;
-    if (true_matched.count(index_true) != 0) {
+    // See if this track already has the maximum number of matches. If it does, then skip all pairs using this truth-track-index;
+    if (at_nmax_index_true(index_true)) {
       while (ipair != box_pairs.end()) {
         ++ipair;
         if (ipair->first != index_true) break;
@@ -450,7 +442,6 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
     }
 
     // make all possible reco matches matched for this track
-    // get the cluster keys for this tracks for possible matches
     std::map<TrkrDefs::hitsetkey,TrkrDefs::cluskey> truth_keys;
     auto truth_track = m_TrkrTruthTrackContainer->getTruthTracks()[index_true];
     for (auto& key : truth_track->getClusters()) {
@@ -460,70 +451,50 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
 
     while (ipair != box_pairs.end()) { // Loop over all possible matches only for this index_true (subsequent true tracks will be caught on following loops)
       if (ipair->first != index_true) break; // never true on first iteration
-      if (reco_matched.count(ipair->second) == 0) { // make sure the reco-track isn't alread matched
-        // ok, make a possible match: compare the clusters in the truth track and the reco track
-        unsigned short nclus_match = 0; // fill in the comparison loop
-        unsigned short nclus_nomatch = 0; // number of reco and truth cluster that share a hitsetkey, but still fair matching criteria
-        unsigned short nclus_reco  = 0; // count in the comparison loop
-        SvtxTrack* reco_track = m_SvtxTrackMap->get(ipair->second);
-        auto tpcseed = reco_track->get_tpc_seed();
-        if (tpcseed) {
-          for (auto r_key = tpcseed->begin_cluster_keys(); r_key!=tpcseed->end_cluster_keys(); ++r_key) {
-            ++nclus_reco;
-            auto r_hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(*r_key);
-            if (truth_keys.count(r_hitsetkey) != 0) {
-              // reco and truth cluster are in same hitsetkey-indexed subsurface. See if they match (++nclus_match) or not (++nclus_nomatch)
-              auto r_clus = m_RecoClusterContainer  ->findCluster(*r_key);
-              auto t_clus = m_TruthClusterContainer ->findCluster(truth_keys[r_hitsetkey]);
-              auto layer = TrkrDefs::getLayer(r_hitsetkey);
-              if (layer <7 || layer > 55) {
-                cout << " Error! Trying to compar cluster in layer < 7 or > 55, which is not programmed yet!" << endl;
-                ++nclus_nomatch;
-                continue;
-              }
-              const auto phi_step2 = m_phistep_2[layer];
-
-              const auto t_phi     = t_clus->getPosition(0);
-              const auto t_phisig2 = pow(t_clus->getPhiSize(), 2.);
-              const auto r_phi     = r_clus->getPosition(0);
-              const auto r_phisig2 = pow(r_clus->getPhiSize(), 2.);
-
-              const auto t_Z       = t_clus->getPosition(1);
-              const auto t_Zsig2   = pow(t_clus->getZSize(),   2.);
-              const auto r_Z       = r_clus->getPosition(1);
-              const auto r_Zsig2   = pow(r_clus->getZSize(),   2.);
-
-              // match is the distance in phi is less than the root-sum-square of the phi-widths
-              // and the same for the Z errors
-              if ( 
-                  ( pow(abs_dphi(t_phi,r_phi),2.) <= (m_cluster_nphiwidths_2 * phi_step2 * (t_phisig2+r_phisig2)) )
-               && ( pow(t_Z-r_Z,2.)               <= (m_cluster_nzwidths_2   * m_zstep_2 * (t_Zsig2+r_Zsig2))     )
-              ) {
-                ++nclus_match;
-              } else {
-                ++nclus_nomatch;
-              }
+      if (at_nmax_id_reco(ipair->second)) {
+        ++ipair;
+        continue;
+      }// make sure the reco-track isn't alread matched
+      // ok, make a possible match: compare the clusters in the truth track and the reco track
+      unsigned short nclus_match   = 0; // fill in the comparison loop
+      unsigned short nclus_nomatch = 0; // number of reco and truth cluster that share a hitsetkey, but still fair matching criteria
+      unsigned short nclus_reco    = 0; // count in the comparison loop
+      SvtxTrack* reco_track = m_SvtxTrackMap->get(ipair->second);
+      auto tpcseed = reco_track->get_tpc_seed();
+      if (tpcseed) {
+        for (auto r_key = tpcseed->begin_cluster_keys(); r_key!=tpcseed->end_cluster_keys(); ++r_key) {
+          ++nclus_reco;
+          auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(*r_key);
+          if (truth_keys.count(hitsetkey) != 0) {
+            // reco and truth cluster are in same hitsetkey-indexed subsurface. See if they match (++nclus_match) or not (++nclus_nomatch)
+            if (compare_cluster_pair(truth_keys[hitsetkey], *r_key, hitsetkey).first) {
+              ++nclus_match;
+            } else {
+              ++nclus_nomatch;
             }
           }
-        } // end reco seed loop
-        // if the match passes minimum cuts, then it is a possible match
-        if (Verbosity()>100) {
-          auto truth_track = m_TrkrTruthTrackContainer->getTruthTracks()[index_true];
-          cout << Form(" Match stats: (phi,eta,pT) Match true(%7.4f,%7.4f,%7.4f) reco(%7.4f,%7.4f,%7.4f) delta(%7.4f,%7.4f,%7.4f) "
-              "(nClMatch:nClTrue:nClReco:nClnomatch)(%2i-%2i-%2i-%2i)", 
-              truth_track->getPhi(), truth_track->getPseudoRapidity(), truth_track->getPt(),
-              reco_track->get_phi(), reco_track->get_eta(),            reco_track->get_pt(),
-              abs_dphi(truth_track->getPhi(),reco_track->get_phi()),
-              abs(truth_track->getPseudoRapidity()-reco_track->get_eta()),
-              abs(truth_track->getPt() -reco_track->get_pt()),
-             (int)nclus_match, (int)nclus_true, (int)nclus_reco, (int)nclus_nomatch)  << endl;
         }
-        if ( nclus_match >= m_nmincluster_match 
-            && ( static_cast<float>(nclus_match)/nclus_true >= m_nmincluster_ratio)
-        ) {
-          poss_matches.push_back( {nclus_match, nclus_true, nclus_reco, ipair->first, ipair->second} );
-        }
-      } // end comparison to reco track
+      } // end reco seed loop
+      // if the match passes minimum cuts, then it is a possible match
+      if (Verbosity()>100) {
+        auto truth_track = m_TrkrTruthTrackContainer->getTruthTracks()[index_true];
+        cout << Form(" Poss. pair: (phi,eta,pT) Match true(%7.4f,%7.4f,%7.4f) reco(%7.4f,%7.4f,%7.4f) delta(%7.4f,%7.4f,%7.4f) "
+            "(nClMatch:nClTrue:nClReco:nClnomatch)(%2i-%2i-%2i-%2i)", 
+            truth_track->getPhi(), truth_track->getPseudoRapidity(), truth_track->getPt(),
+            reco_track->get_phi(), reco_track->get_eta(),            reco_track->get_pt(),
+            abs_dphi(truth_track->getPhi(),reco_track->get_phi()),
+            abs(truth_track->getPseudoRapidity()-reco_track->get_eta()),
+            abs(truth_track->getPt() -reco_track->get_pt()),
+            (int)nclus_match, (int)nclus_true, (int)nclus_reco, (int)nclus_nomatch);
+      }
+      if ( nclus_match >= m_nmincluster_match 
+          && ( static_cast<float>(nclus_match)/nclus_true >= m_nmincluster_ratio)
+         ) {
+        if (Verbosity()>100) cout << " Y" << endl;
+        poss_matches.push_back( {nclus_match, nclus_true, nclus_reco, ipair->first, ipair->second} );
+      } else {
+        if (Verbosity()>100) cout << " N" << endl;
+      }
       ++ipair;
     }
   }
@@ -535,7 +506,7 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
   std::sort(poss_matches.begin(), poss_matches.end(), SortPossibleMatch());
 
   if (Verbosity()>200) {
-    cout << "- - " << endl << " Statistics for (" << poss_matches.size() << ") track pairs  (nClMatched-nClTrue-nClReco : idTrue-idReco)" << endl;
+    cout << " All Y possible matches (" << poss_matches.size() << ") track pairs  (nClMatched-nClTrue-nClReco : idTrue-idReco)" << endl;
     int i{0};
     for (auto match : poss_matches) {
       auto truth_track = m_TrkrTruthTrackContainer->getTruthTracks()[get<PM_idtrue>(match)];
@@ -552,7 +523,7 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
   /* std::set<int> matched_idreco, matched_idtrue; */
   auto iter = poss_matches.begin();
   while (iter != poss_matches.end()) {
-    if (skip_match(*iter, true_matched, reco_matched)) { 
+    if ( skip_match(*iter)) { 
       ++iter;
       continue;
     }
@@ -564,11 +535,10 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
        && (*iter_same) [PM_nmatch] == (*iter)[PM_nmatch]
        && (*iter_same) [PM_ntrue]  == (*iter)[PM_ntrue]
        && (*iter_same) [PM_nreco]  == (*iter)[PM_nreco]
-       && !skip_match (*iter_same, true_matched, reco_matched)
     ) {
       ++n_sigma;
-      if (n_sigma==1) { sigma_metric[0].first = sigma_CompCluster(*iter); }
-      sigma_metric.push_back({sigma_CompCluster(*iter_same), n_sigma});
+      if (n_sigma==1) { sigma_metric[0].first = sigma_CompMatchClusters(*iter); }
+      sigma_metric.push_back({sigma_CompMatchClusters(*iter_same), n_sigma});
       ++iter_same;
     }
     std::sort(sigma_metric.begin(), sigma_metric.end());
@@ -576,18 +546,35 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
     bool first = true;
     for (auto& sigma : sigma_metric) {
       if (first) first = false;
-      else if (skip_match(*(iter+sigma.second), true_matched, reco_matched)) continue;
+      else if (skip_match(*(iter+sigma.second))) continue;
       auto match = *(iter+sigma.second);
       auto index_true = match[PM_idtrue];
-      auto idreco = match[PM_idreco];
       auto truth_track = m_TrkrTruthTrackContainer->getTruthTracks()[index_true];
-      auto reco_track  = m_SvtxTrackMap->get(idreco);
-      auto save_match = new EmbRecoMatchv1( truth_track->getTrackid(), reco_track->get_id(),
+      auto id_reco = match[PM_idreco];
+      auto id_true = truth_track->getTrackid();
+      /* auto reco_track  = m_SvtxTrackMap->get(id_reco); */
+      auto save_match = new EmbRecoMatchv1( id_true, id_reco, //truth_track->getTrackid(), reco_track->get_id(),
           match[PM_ntrue], match[PM_nreco], match[PM_nmatch]); // FIXME -- add the id_trackseed and id_svtxtrackseed info
       m_EmbRecoMatchContainer->addMatch(save_match);
-      true_matched.insert(index_true);
-      reco_matched.insert(idreco);
-      ++cnt_matched_tracks;
+
+      if (m_nmatched_id_reco->find(id_reco) == m_nmatched_id_reco->end()) {
+        (*m_nmatched_id_reco)[id_reco] = 1;
+      } else {
+        (*m_nmatched_id_reco)[id_reco] += 1;
+      }
+
+      if (m_nmatched_id_true->find(id_true) == m_nmatched_id_true->end()) {
+        (*m_nmatched_id_true)[id_true] = 1;
+      } else {
+        (*m_nmatched_id_true)[id_true] += 1;
+      }
+
+      if (m_nmatched_index_true.find(index_true) == m_nmatched_index_true.end()) {
+        m_nmatched_index_true[index_true] = 1;
+      } else {
+        m_nmatched_index_true[index_true] += 1;
+      }
+
     }
     iter += sigma_metric.size();
   }
@@ -595,7 +582,6 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
   /*   for (auto& id : true_matched) { true_matched.insert(id); } */
   /*   for (auto& id : reco_matched) { true_matched.insert(id); } */
   /* } */
-  return cnt_matched_tracks;
 }
 
 // ----------------------------------------
@@ -603,11 +589,58 @@ unsigned int TruthRecoTrackMatching::match_tracks_in_box(
 // ----------------------------------------
 inline float TruthRecoTrackMatching::abs_dphi (float phi0, float phi1) {
   float dphi = fabs(phi0-phi1);
-  while (dphi > M_PI) dphi -= abs(2*M_PI);
-  return fabs(dphi);
+  while (dphi > M_PI) dphi -= fabs(2*M_PI);
+  return dphi;
 }
 
-float TruthRecoTrackMatching::sigma_CompCluster(PossibleMatch& match) {
+/* 
+  input: TrkrCluster* truth, TrkrCluster *reco, TrkrDefs::hitsetkey, bool calc_sigma=false
+  pair<bool, float> 
+  out:   Does it match? 
+
+ */
+std::pair<bool, float> TruthRecoTrackMatching::compare_cluster_pair (
+    TrkrDefs::cluskey key_T
+  , TrkrDefs::cluskey key_R
+  , TrkrDefs::hitsetkey hitsetkey
+  , bool calc_sigma
+) {
+  auto layer = TrkrDefs::getLayer(hitsetkey);
+  if (layer <7 || layer > 55) {
+    cout << " Error! Trying to compar cluster in layer < 7 or > 55, which is not programmed yet!" << endl;
+    return {false, 0.};
+  }
+
+  auto clus_T = m_TruthClusterContainer ->findCluster(key_T);
+  auto clus_R = m_RecoClusterContainer  ->findCluster(key_R);
+
+  const auto phi_step = m_phistep[layer];
+
+  const auto phi_T    = clus_T->getPosition(0);
+  // const auto phisize_T = clus_T->getPhiSize(); // not currently used for matching
+  const auto phi_R    = clus_R->getPosition(0);
+  const auto phisize_R = clus_R->getPhiSize();
+
+  const auto z_T      = clus_T->getPosition(1);
+  // const auto zsize_T   = clus_T->getZSize(); // not currently used for matching
+  const auto z_R      = clus_R->getPosition(1);
+  const auto zsize_R  = clus_R->getZSize();
+
+  const double phi_delta = abs_dphi (phi_T,phi_R);
+  const double z_delta   = fabs (z_T-z_R);
+
+  const double phi_stat = (m_cluster_nphiwidths * phi_step * phisize_R );
+  const double z_stat   = (m_cluster_nzwidths   * m_zstep  * zsize_R   );
+
+  if ( phi_delta > phi_stat || z_delta > z_stat ) return { false, 0. };
+  else if (!calc_sigma) {
+    return { true, 0. };
+  } else {
+    return { true, phi_delta/phi_stat +z_delta/z_stat };
+  }
+}
+
+float TruthRecoTrackMatching::sigma_CompMatchClusters(PossibleMatch& match) {
   auto index_true = match[PM_idtrue];
   auto id_reco = match[PM_idreco];
 
@@ -615,6 +648,7 @@ float TruthRecoTrackMatching::sigma_CompCluster(PossibleMatch& match) {
   if (!truth_track) return std::numeric_limits<float>::max();
   std::map<TrkrDefs::hitsetkey,TrkrDefs::cluskey> truth_keys; // truth cluster keys
   for (auto& key : truth_track->getClusters()) truth_keys[TrkrDefs::getHitSetKeyFromClusKey(key)] = key;
+
 
   SvtxTrack* reco_track = m_SvtxTrackMap->get(id_reco);
   if (!reco_track) return std::numeric_limits<float>::max();
@@ -626,57 +660,32 @@ float TruthRecoTrackMatching::sigma_CompCluster(PossibleMatch& match) {
   double sum_diff  = 0.;
 
   for (auto r_key = tpcseed->begin_cluster_keys(); r_key!=tpcseed->end_cluster_keys(); ++r_key) {
-    auto r_hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(*r_key);
-    if (truth_keys.count(r_hitsetkey) == 0) continue;
+    auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(*r_key);
+    if (truth_keys.count(hitsetkey) == 0) continue;
+    auto comp_val = compare_cluster_pair(truth_keys[hitsetkey], *r_key, hitsetkey, true);
 
-    auto r_clus = m_RecoClusterContainer  ->findCluster(*r_key);
-    auto t_clus = m_TruthClusterContainer ->findCluster(truth_keys[r_hitsetkey]);
-
-    // compare the two clusters and get the ratio of the difference in phi and Z (squared)
-    auto layer = TrkrDefs::getLayer(r_hitsetkey);
-    if (layer <7 || layer > 55) {
-      cout << " Error! Trying to compar cluster in layer < 7 or > 55, which is not programmed yet!" << endl;
-      continue;
-    }
-
-    const auto phi_step2 = m_phistep_2[layer];
-
-    const auto t_phi     = t_clus->getPosition(0);
-    const auto t_phisig2 = pow(t_clus->getPhiSize(), 2.);
-    const auto r_phi     = r_clus->getPosition(0);
-    const auto r_phisig2 = pow(r_clus->getPhiSize(), 2.);
-
-    const auto t_Z       = t_clus->getPosition(1);
-    const auto t_Zsig2   = pow(t_clus->getZSize(),   2.);
-    const auto r_Z       = r_clus->getPosition(1);
-    const auto r_Zsig2   = pow(r_clus->getZSize(),   2.);
-
-    if ( 
-        ( pow(abs_dphi(t_phi,r_phi),2.) <= (m_cluster_nphiwidths_2 * phi_step2 * (t_phisig2+r_phisig2)) )
-     && ( pow(t_Z-r_Z,2.)               <= (m_cluster_nzwidths_2   * m_zstep_2 * (t_Zsig2+r_Zsig2))     )
-    ) {
+    if (comp_val.first) {
       n_matches += 1.;
-      double diff_phi_2 = pow(abs_dphi(t_phi,r_phi),2.) / (m_cluster_nphiwidths_2 * phi_step2 * (t_phisig2+r_phisig2));
-      double diff_z_2   = pow(t_Z-r_Z,2.)               / (m_cluster_nzwidths_2   * m_zstep_2 * (t_Zsig2+r_Zsig2));
-      sum_diff += pow(diff_phi_2+diff_z_2, 0.5);
+      sum_diff += comp_val.second;
     }
   }
   return sum_diff/n_matches;
 }
 
-inline bool TruthRecoTrackMatching::skip_match(
-    PossibleMatch& match,
-    std::set<int>& true_matched,
-    std::set<int>& reco_matched) 
+inline bool TruthRecoTrackMatching::skip_match( PossibleMatch& match )
 {
   return 
-      (true_matched.count(match[PM_idtrue]) != 0)
-  ||  (reco_matched.count(match[PM_idreco]) != 0);
+     at_nmax_id_reco    (match[PM_idreco])
+  || at_nmax_index_true (match[PM_idreco]);
 }
 
-// ----------------------------------------
-// functions for permissible matching pt
-// ----------------------------------------
+// ----------------------------------------------
+// functions for permissible matching pt 
+// Currently not used, therefore tracks of any pT
+// will be compared against each other. 
+// If wanted, will have to be updated with 
+// same values in the future.
+// ----------------------------------------------
 float TruthRecoTrackMatching::delta_outer_pt(float pt) const {
   return -1. + pt*0.; //10. + 0.01*pt;
 }
@@ -684,3 +693,16 @@ float TruthRecoTrackMatching::delta_inner_pt(float pt) const {
   return -1. + pt*0.; //10. + 0.01*pt;
 }
 
+bool TruthRecoTrackMatching::at_nmax_index_true(unsigned short index_true) {
+  if (m_nmatched_index_true.find(index_true) == m_nmatched_index_true.end()) {
+    return false;
+  }
+  return m_nmatched_index_true[index_true] >= m_max_nreco_per_truth;
+}
+
+bool TruthRecoTrackMatching::at_nmax_id_reco(unsigned short id_reco) {
+  if (m_nmatched_id_reco->find(id_reco) == m_nmatched_id_reco->end()) {
+    return false;
+  }
+  return (*m_nmatched_id_reco)[id_reco] >= m_max_ntruth_per_reco;
+}

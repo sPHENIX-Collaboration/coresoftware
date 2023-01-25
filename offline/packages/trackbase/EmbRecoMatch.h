@@ -8,8 +8,6 @@
 #include <climits>
 #include <cmath>
 
-/* class VtxPoint; */
-
 class EmbRecoMatch : public PHObject
 {
   public:
@@ -18,7 +16,7 @@ class EmbRecoMatch : public PHObject
 
     virtual unsigned short idTruthTrack   () const { return USHRT_MAX; };
     virtual unsigned short nClustersTruth () const { return USHRT_MAX; };
-    virtual unsigned short nMatches       () const { return 0;         };
+    virtual unsigned short nMatches       () const { return USHRT_MAX; };
 
     virtual unsigned short idRecoTrack      (unsigned short =0) const { return USHRT_MAX; };
     virtual unsigned short idTpcTrackSeed   (unsigned short =0) const { return USHRT_MAX; };
@@ -35,13 +33,13 @@ class EmbRecoMatch : public PHObject
     bool operator()(const EmbRecoMatch* lhs, const unsigned int rhs) const
     {return lhs->idTruthTrack() < rhs;}
     bool operator()(const EmbRecoMatch* lhs, const EmbRecoMatch* rhs) const
-    {return lhs->idTruthTrack() < rhs->idTruthTrack();}
+    { if (lhs->idTruthTrack() != rhs->idTruthTrack()) return lhs->idTruthTrack() < rhs->idTruthTrack();
+      else                                            return lhs->idRecoTrack()  < rhs->idRecoTrack();
+    }
   };
 
   protected:
   ClassDefOverride(EmbRecoMatch, 1)
 };
-// this and that
-/* this is a comment, and I *really* care about it! */
 
 #endif // G4TPC_TruthTrack_h

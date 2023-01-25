@@ -10,23 +10,43 @@
 // -> BE SURE TO CALL *SORT*
 
 void EmbRecoMatchContainerv1::sort() {
-  std::sort(m_data.begin(), m_data.end(), EmbRecoMatch::Comp());
-  std::sort(m_RecoToTruth.begin(), m_RecoToTruth.end());
+  std::sort(m_data.begin(),              m_data.end(), EmbRecoMatch::Comp());
+  std::sort(m_RecoToTruth.begin(),       m_RecoToTruth.end());
   std::sort(m_idsTruthUnmatched.begin(), m_idsTruthUnmatched.end());
 }
 
 void EmbRecoMatchContainerv1::addMatch(EmbRecoMatch* match) {
   m_data.push_back(match);
-  for (int i=0; i<=match->nMatches(); ++i) {
-    m_RecoToTruth.push_back({match->idRecoTrack(i), match->idTruthTrack()});
+  auto id_true = match->idTruthTrack();
+  auto id_reco = match->idRecoTrack();
+
+  m_RecoToTruth.push_back({id_reco, id_true}); // vector of which to go to
+
+  if (m_nTruthPerReco.find(id_reco) == m_nTruthPerReco.end()) {
+    m_nTruthPerReco[id_reco] = 1;
+  } else {
+    m_nTruthPerReco[id_reco] += 1;
+  }
+  if (m_nRecoPerTruth.find(id_true) == m_nRecoPerTruth.end()) {
+    m_nRecoPerTruth[id_true] = 1;
+  } else {
+    m_nRecoPerTruth[id_true] += 1;
+  }
+}
+
+void EmbRecoMatchContainerv1::checkfill_idsTruthUnmatched(unsigned short id_true) {
+  if (m_nRecoPerTruth.find(id_true) == m_nRecoPerTruth.end()) {
+    m_idsTruthUnmatched.push_back(id_true);
   }
 }
 
 void EmbRecoMatchContainerv1::Reset() {
   for (auto &m : m_data) delete m;
-  m_data.clear();
-  m_RecoToTruth.clear();
-  m_idsTruthUnmatched.clear();
+  m_data              .clear();
+  m_RecoToTruth       .clear();
+  m_idsTruthUnmatched .clear();
+  m_nTruthPerReco     .clear();
+  m_nRecoPerTruth     .clear();
 }
 
 std::vector<unsigned short>  EmbRecoMatchContainerv1::ids_TruthMatched() const {
@@ -41,26 +61,27 @@ std::vector<unsigned short>  EmbRecoMatchContainerv1::ids_RecoMatched() const {
   return vec;
 }
 
-EmbRecoMatch* EmbRecoMatchContainerv1::getMatchTruth(unsigned short idtruth) {
+EmbRecoMatch* EmbRecoMatchContainerv1::getMatchTruth(unsigned short idtruth, unsigned short offset) {
   auto iter = std::lower_bound(m_data.begin(), m_data.end(), idtruth, EmbRecoMatch::Comp());
-  if (iter == m_data.end() || (*iter)->idTruthTrack() != idtruth) {
-    std::cout << "Asking for EmbTrackMatch for Embedded Track id " << idtruth 
-              << " which is not present. Returning empty match." << std::endl;
-    EmbRecoMatch* match = new EmbRecoMatchv1();
-    return match;
-  }
+  iter += offset;
+
+  if (iter >= m_data.end() || (*iter)->idTruthTrack() != idtruth) {
+    std::cout << "Error: asking for match (offset by " << offset <<") for truth track id " << idtruth 
+      << " which is not present. Returning null pointer." << nullptr;
+    return nullptr;
+  } 
   return *iter;
 }
 
-EmbRecoMatch* EmbRecoMatchContainerv1::getMatchReco(unsigned short idreco) {
+EmbRecoMatch* EmbRecoMatchContainerv1::getMatchReco(unsigned short idreco, unsigned short offset) {
   auto iter = std::lower_bound(m_RecoToTruth.begin(), m_RecoToTruth.end(), idreco, CompShortToPair());
-  if (iter==m_RecoToTruth.end() || iter->first != idreco) {
-    std::cout << "Asking for EmbTrackMatch for reco track id ("<<idreco<<") for which there is not match." << std::endl
-              << "Returning empty match." << std::endl;
-    EmbRecoMatch* match = new EmbRecoMatchv1();
-    return match;
-  }
-  return getMatchTruth(iter->second);
+  iter += offset;
+  if (iter >= m_RecoToTruth.end() || iter->first != idreco) {
+    std::cout << "Error: asking for match (offset by " << offset <<") for reco track id " << idreco
+      << " which is not present. Returning null pointer." << nullptr;
+    return nullptr;
+  } 
+  return getMatchTruth(iter->second, offset);
 }
 
 bool EmbRecoMatchContainerv1::hasTruthMatch(unsigned short idtruth) {

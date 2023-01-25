@@ -6,6 +6,7 @@
 #include <phool/PHObject.h>
 #include <vector>
 #include <climits>
+#include <map>
 
 class EmbRecoMatch;
 
@@ -15,6 +16,7 @@ class EmbRecoMatchContainer : public PHObject
   using Vector        = std::vector<EmbRecoMatch*>;
   using ConstIterator = Vector::const_iterator;
   using ConstRange    = std::pair<ConstIterator, ConstIterator>;
+  using Map_nMatches  = std::map<unsigned short, unsigned short>;
   /* using Iterator      = Vector::iterator; */
   /* using Range         = std::pair<Iterator, Iterator>; */
 
@@ -29,14 +31,19 @@ class EmbRecoMatchContainer : public PHObject
   virtual std::vector<unsigned short>  ids_TruthMatched() const { return {}; }; // id's of the TrkrTruthTrack's that are matched
   virtual std::vector<unsigned short>  ids_RecoMatched()  const { return {}; }; // id's of the TrkrTruthTrack's that are matched
 
+  virtual std::map<unsigned short, unsigned short>& map_nRecoPerTruth();
+  virtual std::map<unsigned short, unsigned short>& map_nTruthPerReco();
+
   virtual ConstRange getMatchedRange() const;
   virtual Vector&    getMatches()           ;
 
   virtual void addMatch(EmbRecoMatch*) {};
   virtual bool hasTruthMatch (unsigned short /*Truth Track Id*/) { return false; };
   virtual bool hasRecoMatch  (unsigned short /*Reco  Track Id*/) { return false; };
-  virtual EmbRecoMatch* getMatchTruth (unsigned short /*idEmb*/)  { return nullptr; };
-  virtual EmbRecoMatch* getMatchReco  (unsigned short /*idReco*/) { return nullptr; };
+  virtual EmbRecoMatch* getMatchTruth (unsigned short /*idEmb*/,  unsigned short /*offset*/=0) { return nullptr; };
+  virtual EmbRecoMatch* getMatchReco  (unsigned short /*idReco*/, unsigned short /*offset*/=0) { return nullptr; };
+
+  virtual void checkfill_idsTruthUnmatched(unsigned short){}; // add tracks one-by-one and add to m_idsTruthUnmatched if not matched
 
   virtual void sort() {}; // only to be used when filling the contianer. Sorts the internal vectors for the sake of using them.
 

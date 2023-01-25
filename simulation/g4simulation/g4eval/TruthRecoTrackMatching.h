@@ -50,8 +50,9 @@ class TruthRecoTrackMatching : public SubsysReco
          *  - same_dphi   : within this distance, all tracks must be checked
          *  - cutoff_deta :   like cutoff_dphi but for eta
          *  - same_deta   :   like same_dphi but for eta
-         *  - cluster_nzwidths   : for a truth and reco cluster to match, the 
-         *                         |z_true-z_reco| must be <= sqrt(dz_true^2+dz_reco^2)
+         *  - cluster_nzwidths   : z-distance allowed for the truth center to be from 
+         *                         reco-cluster center:
+         *                         |z_true-z_reco| must be <= dz_reco * cluster_nzwidths
          *  - cluster_nphiwidths : like cluster_nzwidths for phi
          *--------------------------------------------------------*/
           const unsigned short _nmin_match = 4    
@@ -60,15 +61,28 @@ class TruthRecoTrackMatching : public SubsysReco
         , const double _same_dphi          = 0.05 
         , const double _cutoff_deta        = 0.3  
         , const double _same_deta          = 0.05 
-        , const double _cluster_nzwidths   = 1.   
-        , const double _cluster_nphiwidths = 1.
+        , const double _cluster_nzwidths   = 0.5
+        , const double _cluster_nphiwidths = 0.5
+        , const unsigned short    _max_nreco_per_truth  = 1
+        , const unsigned short    _max_ntruth_per_reco  = 1
     );  // for some output kinematis
 
     ~TruthRecoTrackMatching() override = default; 
-    int Init(PHCompositeNode          *) override { return 0; };
+    int Init(PHCompositeNode          *) override  { return 0; };
     int InitRun(PHCompositeNode       *) override; //`
     int process_event(PHCompositeNode *) override; //`
     int End(PHCompositeNode           *) override;
+
+    void set_cluster_nzwidths         (float val) { m_cluster_nzwidths   = val; };
+    void set_cluster_nphiwidths       (float val) { m_cluster_nphiwidths = val; };
+    void set_nmin_truth_cluster_ratio (float val) { m_nmincluster_ratio  = val; };
+    void set_cutoff_dphi              (float val) { m_cutoff_dphi        = val; };
+    void set_cutoff_deta              (float val) { m_cutoff_deta        = val; };
+    void set_smallsearch_dphi         (float val) { m_same_dphi          = val; };
+    void set_smallsearch_deta         (float val) { m_same_deta          = val; };
+
+    void set_max_nreco_per_truth (unsigned short val) { m_max_nreco_per_truth = val; };
+    void set_max_ntruth_per_reco (unsigned short val) { m_max_ntruth_per_reco = val; };
 
   private:
   //--------------------------------------------------
@@ -78,19 +92,29 @@ class TruthRecoTrackMatching : public SubsysReco
     //--------------------------------------------------
     // Constant parameters for track matching
     //--------------------------------------------------
-    const unsigned short  m_nmincluster_match; // minimum of matched clustered to keep a truth to emb match
-    const float  m_nmincluster_ratio; // minimum ratio of truth clustered that must be matched in reconstructed track
+    unsigned short  m_nmincluster_match; // minimum of matched clustered to keep a truth to emb match
+    float  m_nmincluster_ratio; // minimum ratio of truth clustered that must be matched in reconstructed track
 
-    const double m_cutoff_dphi; // how far in |phi_truth-phi_reco| to match
-    const double m_same_dphi;   // |phi_truth-phi_reco| to auto-evaluate (is < _m_cutoff_dphi)
-    const double m_cutoff_deta; //  how far in |eta_truth-eta_reco| to match
-    const double m_same_deta;   // |eta_truth-eta_reco| to auto-evaluate (is < m_cutoff_deta)
+    double m_cutoff_dphi; // how far in |phi_truth-phi_reco| to match
+    double m_same_dphi;   // |phi_truth-phi_reco| to auto-evaluate (is < _m_cutoff_dphi)
+    double m_cutoff_deta; //  how far in |eta_truth-eta_reco| to match
+    double m_same_deta;   // |eta_truth-eta_reco| to auto-evaluate (is < m_cutoff_deta)
 
-    const double m_cluster_nzwidths_2;   // cutoff in *getPhiSize() in cluster for |cluster_phi_truth-cluster_phi_reco| to match
-    const double m_cluster_nphiwidths_2; // same for eta
+    double m_cluster_nzwidths;   // cutoff in *getPhiSize() in cluster for |cluster_phi_truth-cluster_phi_reco| to match
+    double m_cluster_nphiwidths; // same for eta
 
-    std::array<double, 55> m_phistep_2; // the phistep squared
-    double m_zstep_2;
+    unsigned short m_max_nreco_per_truth;
+    unsigned short m_max_ntruth_per_reco;
+
+
+    std::array<double, 55> m_phistep; // the phistep squared
+    double m_zstep;
+
+    std::map<unsigned short, unsigned short>  m_nmatched_index_true;
+
+    std::map<unsigned short, unsigned short>* m_nmatched_id_reco;
+    std::map<unsigned short, unsigned short>* m_nmatched_id_true;
+
 
     //--------------------------------------------------
     // Data from input nodes
@@ -113,13 +137,13 @@ class TruthRecoTrackMatching : public SubsysReco
     /* bool    m_maketree { true }; */
 
     // branches for the output tree
-    float b_reco_phi,  b_reco_eta,  b_reco_pt,
-          b_truth_phi, b_truth_eta, b_truth_pt;
+    /* float b_reco_phi,  b_reco_eta,  b_reco_pt, */
+    /*       b_truth_phi, b_truth_eta, b_truth_pt; */
 
-    std::vector<int>   b_reco_cl_layer, b_truth_cl_layer;
+    /* std::vector<int>   b_reco_cl_layer, b_truth_cl_layer; */
 
-    std::vector<float> b_reco_cl_phi,  b_reco_cl_phiwidth,  b_reco_cl_z,  b_reco_cl_zwidth,
-                       b_truth_cl_phi, b_truth_cl_phiwidth, b_truth_cl_z, b_truth_cl_zwidth;
+    /* std::vector<float> b_reco_cl_phi,  b_reco_cl_phiwidth,  b_reco_cl_z,  b_reco_cl_zwidth, */
+    /*                    b_truth_cl_phi, b_truth_cl_phiwidth, b_truth_cl_z, b_truth_cl_zwidth; */
 
     //----------------------------------------------------------
     // Local data types for manipulation and passing
@@ -182,15 +206,6 @@ class TruthRecoTrackMatching : public SubsysReco
     //    PossibleMatches (just array<unsinged short, 5>)
     //--------------------------------------------------
   public:
-    using CompCluster = std::array<float,6>;
-  private:
-    static constexpr int COMP_dphi = 0;
-    static constexpr int COMP_phisize_true = 1; // note this is converted with step size already
-    static constexpr int COMP_phisize_reco = 2; // converted with stepsize
-    static constexpr int COMP_dz = 3;
-    static constexpr int COMP_zsize_true = 4; // converted with stepsize
-    static constexpr int COMP_zsize_reco = 5; // converted with stepsize
-  
     //--------------------------------------------------
     // non-node member data
     //--------------------------------------------------
@@ -205,9 +220,7 @@ class TruthRecoTrackMatching : public SubsysReco
     int createNodes(PHCompositeNode* topNode);
     std::pair<std::vector<unsigned short>, std::vector<unsigned short>> 
       find_box_matches(float truth_phi, float truth_eta, float truth_pt); // will populate to truth_to_reco_map and 
-    unsigned int match_tracks_in_box( std::vector<std::pair<unsigned short,unsigned short>>& indices,  // pairs of {id_true, id_reco}
-      std::set<int>& true_matched,
-      std::set<int>& reco_matched);
+    void match_tracks_in_box( std::vector<std::pair<unsigned short,unsigned short>>& indices );  // pairs of {id_true, id_reco}
     
     //    Helper functions
     // -------------------------------------------------------------------
@@ -226,8 +239,13 @@ class TruthRecoTrackMatching : public SubsysReco
     /*     std::array<TrkrDefs::cluskey,55>& keys_truth); */
 
     /* CompCluster                         make_CompCluster(TrkrDefs::cluskey truthkey, TrkrDefs::cluskey recokey); */
-    float sigma_CompCluster(PossibleMatch&);
-    bool skip_match(PossibleMatch& match, std::set<int>& true_matched, std::set<int>& reco_matched); 
+    float sigma_CompMatchClusters(PossibleMatch&);
+
+    bool skip_match(PossibleMatch& match); 
+    bool at_nmax_index_true(unsigned short) ; // test if the truth track already has maximum matches matches
+    bool at_nmax_id_reco(unsigned short)    ;    // "           reco                                          "
+
+    std::pair<bool, float> compare_cluster_pair(TrkrDefs::cluskey key_T, TrkrDefs::cluskey key_R, TrkrDefs::hitsetkey key, bool calc_sigma=false);
     // skip match is true or reco track already matched
     /* std::pair<bool, double> compare_clusters(TrkrDefs::cluskey truthkey, TrkrDefs::cluskey recokey, bool print=false); */
     /* bool is_match(const CompCluster&); */
