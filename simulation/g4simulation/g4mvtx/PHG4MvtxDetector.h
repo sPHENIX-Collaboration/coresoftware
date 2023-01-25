@@ -55,8 +55,6 @@ class PHG4MvtxDetector : public PHG4Detector
   int ConstructMvtx_Layer(int layer, G4AssemblyVolume* stave, G4LogicalVolume*& trackerenvelope);
   int ConstructMvtxPassiveVol(G4LogicalVolume*& lv);
 
-  G4LogicalVolume* GetMvtxOuterShell(G4LogicalVolume*& trackerenvelope);
-
   void SetDisplayProperty(G4AssemblyVolume* av);
   void SetDisplayProperty(G4LogicalVolume* lv);
   void FillPVArray(G4AssemblyVolume* av);
@@ -84,8 +82,6 @@ class PHG4MvtxDetector : public PHG4Detector
   std::string m_Detector;
   std::string m_SuperDetector;
   std::string m_StaveGeometryFile;
-  std::string m_EndWheelsSideS;
-  std::string m_EndWheelsSideN;
 };
 
 #endif
