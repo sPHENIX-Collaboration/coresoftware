@@ -7,7 +7,7 @@
  * \modified Christof Roland <cer@mit.edu>
  */
 
-// #include "DSTContainerv1.h"
+// #include "DSTContainerv3.h"
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
@@ -24,7 +24,7 @@ class PHG4Particle;
 class PHG4TruthInfoContainer;
 class SvtxTrack;
 class SvtxTrackMap;
-class DSTContainerv1;
+class DSTContainerv3;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
@@ -36,7 +36,9 @@ class DSTReader : public SubsysReco
   public:
 
   //! constructor
-  DSTReader( const std::string& = "DSTReader");
+  DSTReader(const std::string& = "DSTReader",
+            bool dryrun = false,
+            bool generateKey = false);
 
   //! global initialization
   int Init(PHCompositeNode*) override;
@@ -85,12 +87,12 @@ class DSTReader : public SubsysReco
   //! get embedded id for given g4track
   int get_embed(PHG4Particle*) const;
 
-  // SvtxTrack recover_track(DSTContainerv1::TrackStruct);
+  // SvtxTrack recover_track(DSTContainerv3::TrackStruct);
 
-  // TrkrCluster recover_cluster(DSTContainerv1::ClusterStruct);
+  // TrkrCluster recover_cluster(DSTContainerv3::ClusterStruct);
 
   //! evaluation node
-  DSTContainerv1* m_container = nullptr;
+  DSTContainerv3* m_container = nullptr;
 
   //! flags
   int m_flags = WriteEvent | WriteClusters | WriteTracks;
@@ -126,7 +128,10 @@ class DSTReader : public SubsysReco
   mutable G4HitMap m_g4hit_map;
 
   // debugging helpers
+  bool dryrun = false;
+  bool generateKey = false;
   void showMe() const;
+  void showHitSet() const;
   void showAll() const;
   void printCluster(TrkrCluster&) const;
 };

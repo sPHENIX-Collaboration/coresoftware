@@ -165,44 +165,44 @@ namespace
     return trackStruct;
   }
 
-  //! create cluster struct from svx cluster
-  DSTContainerv3::ClusterStruct create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster )
-  {
-    DSTContainerv3::ClusterStruct cluster_struct;
-    cluster_struct.clusterKey = key;
-    cluster_struct.layer = TrkrDefs::getLayer(key);
-    cluster_struct.phi_seg = TrkrDefs::getPhiElement(key);
-    cluster_struct.z_seg = TrkrDefs::getZElement(key);
-    cluster_struct.loc_x = cluster->getLocalX();
-    cluster_struct.loc_y = cluster->getLocalY();
-    cluster_struct.loc_x_err = cluster->getActsLocalError(0,0);
-    cluster_struct.loc_y_err = cluster->getActsLocalError(1,1);
-    cluster_struct.adc = cluster->getAdc();
-    // for (int j = 0; j < 3; ++j) {
-    //   for (int i = 0; i < 3; ++i) {
-    //     cluster_struct.cor_size[DSTContainerv3::covarIndex(i, j)] = cluster->getSize(i, j);
-    //     cluster_struct.cor_error[DSTContainerv3::covarIndex(i, j)] = cluster->getError(i, j);
-    //   }
-    // }
+  // //! create cluster struct from svx cluster
+  // DSTContainerv3::ClusterStruct create_cluster( TrkrDefs::cluskey key, TrkrCluster* cluster )
+  // {
+  //   DSTContainerv3::ClusterStruct cluster_struct;
+  //   cluster_struct.clusterKey = key;
+  //   cluster_struct.layer = TrkrDefs::getLayer(key);
+  //   cluster_struct.phi_seg = TrkrDefs::getPhiElement(key);
+  //   cluster_struct.z_seg = TrkrDefs::getZElement(key);
+  //   cluster_struct.loc_x = cluster->getLocalX();
+  //   cluster_struct.loc_y = cluster->getLocalY();
+  //   cluster_struct.loc_x_err = cluster->getActsLocalError(0,0);
+  //   cluster_struct.loc_y_err = cluster->getActsLocalError(1,1);
+  //   cluster_struct.adc = cluster->getAdc();
+  //   // for (int j = 0; j < 3; ++j) {
+  //   //   for (int i = 0; i < 3; ++i) {
+  //   //     cluster_struct.cor_size[DSTContainerv3::covarIndex(i, j)] = cluster->getSize(i, j);
+  //   //     cluster_struct.cor_error[DSTContainerv3::covarIndex(i, j)] = cluster->getError(i, j);
+  //   //   }
+  //   // }
 
-    // for v3
-    int nLocal = 2;
-    for (auto iLocal = 0; iLocal < nLocal; ++iLocal) {
-      for (auto jLocal = 0; jLocal < nLocal; ++jLocal) {
-        cluster_struct.actsLocalError[iLocal][jLocal] =
-          cluster->getActsLocalError(iLocal, jLocal);
-      }
-    }
+  //   // for v3
+  //   int nLocal = 2;
+  //   for (auto iLocal = 0; iLocal < nLocal; ++iLocal) {
+  //     for (auto jLocal = 0; jLocal < nLocal; ++jLocal) {
+  //       cluster_struct.actsLocalError[iLocal][jLocal] =
+  //         cluster->getActsLocalError(iLocal, jLocal);
+  //     }
+  //   }
 
-    cluster_struct.subSurfKey = cluster->getSubSurfKey();
+  //   cluster_struct.subSurfKey = cluster->getSubSurfKey();
 
 
-    // below for v4
-    // cluster_struct.overlap = cluster->getOverlap();
-    // cluster_struct.edge = cluster->getEdge();
+  //   // below for v4
+  //   // cluster_struct.overlap = cluster->getOverlap();
+  //   // cluster_struct.edge = cluster->getEdge();
 
-    return cluster_struct;
-  }
+  //   return cluster_struct;
+  // }
 
   //! number of hits associated to cluster
   // void add_cluster_size( DSTContainerv3::ClusterStruct& cluster, TrkrDefs::cluskey clus_key, TrkrClusterHitAssoc* cluster_hit_map )
@@ -479,8 +479,11 @@ void DSTWriter::evaluate_clusters()
   TClonesArray& arDST = *m_container->arrClsDST;
   arDST.Clear();
 
-  // TClonesArray& trkrDST = *m_container->trkrClsDST;
-  // trkrDST.Clear();
+  TClonesArray& trkrDST = *m_container->trkrClsDST;
+  trkrDST.Clear();
+
+  TClonesArray& arrKeyDST = *m_container->arrKeyDST;
+  arrKeyDST.Clear();
 
   Int_t iCluster = 0;
   // first loop over hitsets
@@ -490,7 +493,7 @@ void DSTWriter::evaluate_clusters()
     for( const auto& [key,cluster]:range_adaptor(m_cluster_map->getClusters(hitsetkey)))
     {
       // create cluster structure
-      auto cluster_struct = create_cluster( key, cluster );
+      // auto cluster_struct = create_cluster( key, cluster );
       // add_cluster_size( cluster_struct, key, m_cluster_hit_map );
       // add_cluster_energy( cluster_struct, key, m_cluster_hit_map, m_hitsetcontainer );
       // truth information
@@ -498,12 +501,25 @@ void DSTWriter::evaluate_clusters()
       // add_truth_information( cluster_struct, g4hits );
 
       // add in array
-      m_container->addCluster( cluster_struct );
-      std::cout << "added cluster with key " << std::hex << (ulong) key << "\n";
+      // m_container->addCluster( cluster_struct );
+      // std::cout << "added cluster with key " << std::hex << (ulong) key << "\n";
 
       // new(ar[iCluster]) DSTContainerTcl::ClusterStruct( key, cluster );
-      new(arDST[iCluster]) DSTContainerv3::ClusterStruct( key, cluster );
+      // new(arDST[iCluster]) DSTContainerv3::ClusterStruct( key, cluster );
+      TrkrClusterv4 clusIn;
+      clusIn.CopyFrom(cluster);
+
+      // TrkrClusterv4 *clusIn = dynamic_cast<TrkrClusterv4*> (cluster);
+      // new(arDST[iCluster]) DSTContainerv3::ClusterStruct( hitsetkey, clusIn );
       // new(trkrDST[iCluster]) TrkrClusterv4();
+
+      // hitsetkey
+      // new(arrKeyDST[iCluster]) TrkrDefs::hitsetkey(hitsetkey);
+      // new(arrKeyDST[iCluster]) DSTContainerv3::ClusterKeyStruct(hitsetkey);
+      // new(arDST[iCluster]) DSTContainerv3::ClusterStruct(hitsetkey, clusIn);
+      new(arDST[iCluster]) DSTContainerv3::ClusterStruct(hitsetkey, clusIn, key);
+      // TrkrClusterv4* clsArr = (TrkrClusterv4*) trkrDST.ConstructedAt(iCluster);
+      // clsArr->CopyFrom(cluster);
       ++iCluster;
     }
   }

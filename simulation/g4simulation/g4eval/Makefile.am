@@ -18,7 +18,8 @@ lib_LTLIBRARIES = \
    libg4eval.la
 
 libg4eval_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -ltrack_io
 
 libg4eval_la_LIBADD = \
   libg4eval_io.la \
