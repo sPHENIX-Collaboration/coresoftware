@@ -136,7 +136,12 @@ class G4EvtGenDecayer : public G4VExtDecayer
 //  EvtParticle* mParticle;
   EvtAbsRadCorr* radCorrEngine = NULL;
   std::list<EvtDecayBase*> extraModels;  
-  float WidthThreshold = 5000.0;   // Decay Width Threshold: 5000 keV
+ 
+//! WidthThreshold on the particle mass width in keV for defining a stable particle in the decay process
+//! Particles with mass width below the WidthThreshold will be considered stable, and be passed to Geant4 as the final state of a decay vertex
+//! Particles with mass width above the WidthThreshold will be considered unstable, and be decayed in EvtGen at the same vertex as its parent. 
+//! Default value is 5 MeV so that the phi meson with a width of 4.9 MeV is decayed in Geant4
+  float WidthThreshold = 5000.0;   // 
 
   //	TLorentzVector * mVertex = new TLorentzVector;
 //  bool mOwner;

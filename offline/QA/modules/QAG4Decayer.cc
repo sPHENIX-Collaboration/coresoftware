@@ -49,7 +49,6 @@ QAG4Decayer::QAG4Decayer(const std::string &name)
   //  , m_write_QAHists(true)
   , m_SaveFiles(false)
 {
-  // std::cout << "New QA Clean Up for Valgrind Test - New D+ - Reduced - ROCKED - pi phi - QA it Why" << std::endl;
 }
 
 QAG4Decayer::~QAG4Decayer()
@@ -62,28 +61,6 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   assert(hm);
 
   TH1 *h(nullptr);
-
-  /*
-          h = new TH1F("SVtoPVDistance","",100,0,0.2);
-          hm->registerHisto(h);
-
-
-          h = new TH1F("TotalVtxStat","",20,-0.5,19.5);
-          hm->registerHisto(h);
-
-          h = new TH1F("BadVtxStat","",20,-0.5,19.5);
-          hm->registerHisto(h);
-
-          h = new TH1F("BadVtxPercent","",20,-0.5,19.5);
-          hm->registerHisto(h);
-
-          h = new TH1F("MassHis","",100,1.6,2.1);
-          hm->registerHisto(h);
-
-          h = new TH1F("NPartHis","",10,-0.5,9.5);
-          hm->registerHisto(h);
-
-  */
 
   for (int i = 0; i < NHFQA; i++)
   {
@@ -124,143 +101,8 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   EvtID = 0;
   LifeTime = 0;
   NParticles = 0;
-  //	PVDaughtersPDGID.clear();
-
-  // Construct Maps for Decay BR Statistics
-
-  /*
-  Decay Channel Explanations
-
-  D+
-
-  0. Decay D+ -> pi0 pi+ with all intermediate resonances
-  1. Decay D+ -> pi+ pi- pi+ with all intermediate resonances
-  2. Decay D+ -> pi+ pi0 K0s
-  3. Decay D+ -> pi+ pi+ K-
-  4. Decay D+ -> pi+ pi+ pi+ pi- pi-
-  5. Decay D+ -> pi+ phi(1020)
-  6. Decay D+ -> mu+ + v_mu
-  7. Decay D+ -> K+ K0s
-  8. Decay D+ -> e+ + X
-  9. Decay D+ -> phi + X
-
-  D0
-
-  0. Decay D0 -> pi+ K- with all intermediate resonances
-  1. Decay D0 -> pi+ pi0 K-
-  2. Decay D0 -> pi- K+ with all intermediate resonances
-  3. Decay D0 -> K+ K- K0s
-  4. Decay D0 -> K0s K0s K0s
-  5. Decay D0 -> pi0 pi0
-  6. Decay D0 -> pi+ pi-
-  7. Decay D0 -> K0s + X
-  8. Decay D0 -> pi0 + X
-  9. Decay D0 -> e+ + X
-
-
-  Ds+
-
-  0. Decay Ds+ -> mu+ v_mu phi
-  1. Decay Ds+ -> mu+ v_mu
-  2. Decay Ds+ -> pi+ K+ K-
-  3. Decay Ds+ -> K+ K0s
-  4. Decay Ds+ -> pi+ eta
-  5. Decay Ds+ -> p n bar
-  6. Decay Ds+ -> pi+ phi
-  7. Decay Ds+ -> Ks + X
-  8. Decay Ds+ -> phi + X
-  9. Decay Ds+ -> e+ + X
-
-
-
-  LambdaC+
-
-  0. Decay LambdaC+ -> p K- pi+
-  1. Decay LambdaC+ -> p K0s
-  2. Decay LambdaC+ -> p phi
-  3. Decay LambdaC+ -> p K+ pi-
-  4. Decay LambdaC+ -> p phi pi0
-  5. Decay LambdaC+ -> n K0s pi+
-  6. Decay LambdaC+ -> p pi+ pi-
-  7. Decay LambdaC+ -> Ks + X
-  8. Decay LambdaC+ -> p + X
-  9. Decay LambdaC+ -> e+ + X
-
-
-
-  B+
-
-  0. Decay B+ -> K+ K- pi+ with all intermediate resonances
-  1. Decay B+ -> K+ K- K+ with all intermediate resonances
-  2. Decay B+ -> K+ phi(1020)
-  3. Decay B+ -> K+ J/psi
-  4. Decay B+ -> K+ Dbar
-  5. Decay B+ -> Ds+ Dbar
-  6. Decay B+ -> K+ K*0Bar(1430) (K*0Bar(1430) -> K- pi+)
-  7. Decay B+ -> e ve X
-  8. Decay B+ -> D + X
-  9. Decay B+ -> Jpsi + X
-
-  B0
-
-  0. Decay B0 -> pi- K+ with all intermediate resonances
-  1. Decay B0 -> pi- K+ pi0 with all intermediate resonances
-  2. Decay B0 -> pi+ pi-
-  3. Decay B0 -> pi0 pi0
-  4. Decay B0 -> D- pi+
-  5. Decay B0 -> D- Ds+
-  6. Decay B0 -> Jpsi K+ pi-
-  7. Decay B0 -> Jpsi pi+ pi-
-  8. Decay B0 -> D + X
-  9. Decay B0 -> Jpsi + X
-
-
-  Bs0
-
-  0. Decay Bs -> pi+ K-
-  1. Decay Bs -> K+ K-
-  2. Decay Bs -> p bar p K+ K-
-  3. Decay Bs -> phi gamma
-  4. Decay Bs -> D- pi+
-  5. Decay Bs -> Ds+ Ds-
-  6. Decay Bs -> Jpsi K+ K-
-  7. Decay Bs -> Jpsi phi
-  8. Decay Bs -> Ds- + X
-  9. Decay Bs -> Jpsi + X
-
-
-  Jpsi
-
-  0. Decay Jpsi -> e+ e-
-  1. Decay Jpsi -> mu+ mu-
-  2. Decay Jpsi -> pi+ pi-
-  3. Decay Jpsi -> pi+ pi- pi0
-  4. Decay Jpsi -> K+ K- pi0
-  5. Decay Jpsi -> K+ K- pi+ pi-
-  6. Decay Jpsi -> p+ p-
-  7. Decay Jpsi -> n bar n
-  8. Decay Jpsi -> gamma gamma gamma
-  9. Decay Jpsi -> gamma pi0
-
-
-  Upsilon(1S)
-
-  0. Decay Upsilon -> e+ e-
-  1. Decay Upsilon -> mu+ mu-
-  2. Decay Upsilon -> gamma pi+ pi-
-  3. Decay Upsilon -> pi+ pi- pi0
-  4. Decay Upsilon -> gamma K+ K-
-  5. Decay Upsilon -> gamma pi0 pi0
-  6. Decay Upsilon -> phi K+ K-
-  7. Decay Upsilon -> pi+ pi- pi0	pi0
-  8. Decay Upsilon -> gamma pi+ pi- p+ p-
-  9. Decay Upsilon -> Jpsi + X
-
-
-  */
 
   // D+
-
   decaymap[0].insert({{111, 211}, 0});
   decaymap[0].insert({{-211, 211, 211}, 1});
   decaymap[0].insert({{111, 211, 310}, 2});
@@ -269,10 +111,6 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   decaymap[0].insert({{211, 333}, 5});
   decaymap[0].insert({{-13, 14}, 6});
   decaymap[0].insert({{310, 321}, 7});
-
-  //	decaymap.insert({vec1,7});
-  //	decaymap.insert({vec1,8});
-  //	decaymap.insert({vec1,9});
 
   // D0
   decaymap[1].insert({{-321, 211}, 0});
@@ -323,7 +161,6 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   // Bs
   decaymap[6].insert({{-321, 211}, 0});
   decaymap[6].insert({{-321, 321}, 1});
-  //	decaymap[6].insert({{-2212,-321,321,2212},2});
   decaymap[6].insert({{333, 333}, 2});
   decaymap[6].insert({{22, 333}, 3});
   decaymap[6].insert({{-431, 211}, 4});
@@ -350,11 +187,9 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   decaymap[8].insert({{-211, 111, 211}, 3});
   decaymap[8].insert({{-321, 22, 321}, 4});
   decaymap[8].insert({{22, 111, 111}, 5});
-  //	decaymap[8].insert({{-2212,2212},6});
   decaymap[8].insert({{-321, 321, 333}, 6});
   decaymap[8].insert({{-211, 111, 111, 211}, 7});
   decaymap[8].insert({{-2212, -211, 22, 211, 2212}, 8});
-  //	decaymap[8].insert({{22,111},9});
 
   // Finish Construction
 
@@ -374,46 +209,8 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
 
 int QAG4Decayer::process_event(PHCompositeNode *topNode)
 {
-  //	NParticles = 0;
-
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  /*
-          TH1F * SVtoPVDistance = dynamic_cast<TH1F *>(hm->getHisto("SVtoPVDistance"));
-          assert(SVtoPVDistance);
-
-
-
-          TH1F * TotalVtxStat = dynamic_cast<TH1F *>(hm->getHisto("TotalVtxStat"));
-          assert(TotalVtxStat);
-
-          TH1F * BadVtxStat = dynamic_cast<TH1F *>(hm->getHisto("BadVtxStat"));
-          assert(BadVtxStat);
-
-
-          TH1F * BadVtxPercent = dynamic_cast<TH1F *>(hm->getHisto("BadVtxPercent"));
-          assert(BadVtxPercent);
-  */
-
-  /*
-  TH1F * QAPx = dynamic_cast<TH1F *>(hm->getHisto("QAPx"));
-  assert(QAPx);
-
-
-  TH1F * QAPy = dynamic_cast<TH1F *>(hm->getHisto("QAPy"));
-  assert(QAPy);
-
-  TH1F * QAPz = dynamic_cast<TH1F *>(hm->getHisto("QAPz"));
-  assert(QAPz);
-
-  TH1F * QAE = dynamic_cast<TH1F *>(hm->getHisto("QAE"));
-  assert(QAE);
-
-
-  TH1F * QACosTheta = dynamic_cast<TH1F *>(hm->getHisto("QACosTheta"));
-  assert(QACosTheta);
-*/
-
   // Individual QA for every single heavy flavor particle//
 
   TH1F *QAPx[NHFQA];
@@ -462,7 +259,6 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
   bool VtxToQA = false;
 
-  //	int BadVtx = 0;
   float SVtoPVDis = 0;
   float SVtoPVTau = 0;
 
@@ -490,7 +286,6 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
   std::vector<int> HFIndexInfo;
 
   float CosTheta = -2;
-  // float ParMass = -1;
 
   PHG4TruthInfoContainer::ConstRange range = m_truth_info->GetParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
@@ -499,10 +294,6 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
     PHG4Particle *g4particle = iter->second;
 
     int gflavor = g4particle->get_pid();
-
-    //		if(gflavor == 113) std::cout << "gflavor = " << gflavor << "    g4particle->get_e() " << g4particle->get_e()  << std::endl;
-
-    //		NParticles = NParticles + 1;
 
     int ParentPDGID = -1;
     int GrandParentPDGID = -1;
@@ -553,8 +344,6 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
       }
 
       HFHadronStat->Fill(HFFillIndex);
-
-      // std::cout << "gflavor = " << gflavor << "   HFFillIndex = " << HFFillIndex << std::endl;
     }
 
     int VtxSize = ParentTrkInfo.size();
@@ -653,14 +442,9 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
   // BR Working here
   int VtxSizeFinal = DiffEPerVertex.size();
 
-  //	decaymap.insert({{3,2,1}});
-
   for (int q = 0; q < VtxSizeFinal; q++)
   {
     int HFIndexToFill = HFIndexInfo[q];
-
-    //		std::vector<int> ChannelID = Channel(VertexInfo[q],DaughterInfo[q]);
-    //		int ChannelSize = ChannelID.size();
 
     DevPx = DiffPxPerVertex[q] / ParentPxInfo[q];
     DevPy = DiffPyPerVertex[q] / ParentPyInfo[q];
@@ -672,12 +456,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
     QAPz[HFIndexToFill]->Fill(DevPz);
     QAE[HFIndexToFill]->Fill(DevE);
 
-    //		int DaughterSize =  DaughterInfo[q].size();
     sort(DaughterInfo[q].begin(), DaughterInfo[q].end());
-
-    //	int ChannelSize = ChannelID.size();
-
-    // Momentum - Energy Conservation Studies
 
     if (HFIndexToFill < 0)
     {
@@ -746,31 +525,15 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
     {
       BR1DHis[HFIndexToFill]->Fill(ChannelID[r]);
     }
-
-    //		std::cout << "------------------------------------------------------------------------------"  << std::endl;
-    //	ProperLifeTime[HFIndexToFill]->Fill(SVtoPVTau);
-    //	QACosTheta[HFIndexToFill]->Fill(CosTheta);
-    //	InvMass[HFIndexToFill]->Fill(ParMass);
-
-    // SVtoPVDistance[HFIndexToFill]->Fill(SVtoPVDis);
   }
 
-  /*
+  clang - format - i *.cc *.h *.C
 
-          TotalVtxStat->Fill(VtxSizeFinal);
-
-          BadVtxStat->Fill(BadVtx);
-
-          BadVtxPercent->Fill(BadVtx);
-  */
-
-  LifeTime = SVtoPVTau;
+                       LifeTime = SVtoPVTau;
 
   if (m_write_nTuple) QATree->Fill();
 
   EvtID = EvtID + 1;
-
-  //	NPartHis->Fill(NParticles);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
