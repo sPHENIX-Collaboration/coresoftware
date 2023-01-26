@@ -94,6 +94,7 @@ int TruthRecoTrackMatching::InitRun(PHCompositeNode *topNode) //`
   m_nmatched_id_true = &(m_EmbRecoMatchContainer->map_nRecoPerTruth());
   return Fun4AllReturnCodes::EVENT_OK;
   if (Verbosity()>50) topNode->print();
+  return 0;
 }
 
 
@@ -201,12 +202,14 @@ int TruthRecoTrackMatching::process_event(PHCompositeNode* topnode)  //`
   }
 
   if (Verbosity()>90) {
+    cout << " --0-- Printing all matches stored (start)" << endl;
   // re-print all the tracks with the matches with the fit values
     for (auto match : m_EmbRecoMatchContainer->getMatches()) {
       cout << Form(" Match id(%2i->%2i) nClusMatch-nClusTrue-nClusReco (%2i:%2i:%2i)",
           match->idTruthTrack(), match->idRecoTrack(),
           match->nClustersMatched(), match->nClustersTruth(), match->nClustersReco()) << endl;
     }
+    cout << " --1-- Printing all matches stored (done)" << endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -298,9 +301,7 @@ int TruthRecoTrackMatching::createNodes(PHCompositeNode* topNode)
     DetNode->addNode(newNode);
   }
   
-  // temporary :: for translation to global coordinates FIXME
   m_ActsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  cout << " FIXME : D001 : Found it? " << (m_ActsGeometry != nullptr) << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -509,13 +510,13 @@ void TruthRecoTrackMatching::match_tracks_in_box(
     cout << " All Y possible matches (" << poss_matches.size() << ") track pairs  (nClMatched-nClTrue-nClReco : idTrue-idReco)" << endl;
     int i{0};
     for (auto match : poss_matches) {
-      auto truth_track = m_TrkrTruthTrackContainer->getTruthTracks()[get<PM_idtrue>(match)];
-      auto id_true = truth_track->getTrackid();
-      cout << Form(" pair(%2i):  %2i-%2i-%2i-%2i-%2i ", i++
+      /* auto truth_track = m_TrkrTruthTrackContainer->getTruthTracks()[get<PM_idtrue>(match)]; */
+      /* auto index_trut = truth_track->getTrackid(); */
+      cout << Form(" pair(%2i):  %2i-%2i-%2i-<%2i>-%2i ", i++
       , get<PM_nmatch> (match) 
       , get<PM_ntrue>  (match) 
       , get<PM_nreco>  (match) 
-      , id_true
+      , get<PM_idtrue> (match)
       , get<PM_idreco> (match) ) << endl;
     }
   }
@@ -552,22 +553,9 @@ void TruthRecoTrackMatching::match_tracks_in_box(
       auto truth_track = m_TrkrTruthTrackContainer->getTruthTracks()[index_true];
       auto id_reco = match[PM_idreco];
       auto id_true = truth_track->getTrackid();
-      /* auto reco_track  = m_SvtxTrackMap->get(id_reco); */
-      auto save_match = new EmbRecoMatchv1( id_true, id_reco, //truth_track->getTrackid(), reco_track->get_id(),
-          match[PM_ntrue], match[PM_nreco], match[PM_nmatch]); // FIXME -- add the id_trackseed and id_svtxtrackseed info
+      auto save_match = new EmbRecoMatchv1( id_true, id_reco,
+          match[PM_ntrue], match[PM_nreco], match[PM_nmatch]);
       m_EmbRecoMatchContainer->addMatch(save_match);
-
-      if (m_nmatched_id_reco->find(id_reco) == m_nmatched_id_reco->end()) {
-        (*m_nmatched_id_reco)[id_reco] = 1;
-      } else {
-        (*m_nmatched_id_reco)[id_reco] += 1;
-      }
-
-      if (m_nmatched_id_true->find(id_true) == m_nmatched_id_true->end()) {
-        (*m_nmatched_id_true)[id_true] = 1;
-      } else {
-        (*m_nmatched_id_true)[id_true] += 1;
-      }
 
       if (m_nmatched_index_true.find(index_true) == m_nmatched_index_true.end()) {
         m_nmatched_index_true[index_true] = 1;
@@ -578,10 +566,6 @@ void TruthRecoTrackMatching::match_tracks_in_box(
     }
     iter += sigma_metric.size();
   }
-  /* if (update_matched_sets) { */
-  /*   for (auto& id : true_matched) { true_matched.insert(id); } */
-  /*   for (auto& id : reco_matched) { true_matched.insert(id); } */
-  /* } */
 }
 
 // ----------------------------------------
