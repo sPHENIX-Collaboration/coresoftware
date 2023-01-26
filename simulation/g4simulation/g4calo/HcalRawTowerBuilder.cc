@@ -311,6 +311,23 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     }
 
 
+    if (m_UseTowerInfo > 0)
+      {
+	// int nchannels = 1536; // number of channels for the HCals
+	// for (int i = 0; i < nchannels;i++) // this is implemented to ensure that every sequential element in the TClonesArray is populated with a 0 energy tower
+	//   {
+	//     TowerInfo  * towerinfo = m_TowerInfoContainer->at(i);
+	//     if (!towerinfo)
+	//       {
+	// 	towerinfo = new TowerInfo();
+	// 	towerinfo->set_energy(0);
+	// 	m_TowerInfoContainer->add(towerinfo,i); 
+	//       }
+	//   }
+	m_TowerInfoContainer->initialize_towers();
+      } 
+
+
   // get cells
   std::string cellnodename = "G4CELL_" + m_InputDetector;
   PHG4CellContainer *slats = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);

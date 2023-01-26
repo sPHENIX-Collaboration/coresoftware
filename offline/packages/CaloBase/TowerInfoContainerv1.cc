@@ -5,6 +5,16 @@
 
 #include <TClonesArray.h>
 
+  //---------------------------------------------------------------------------------------------------------------------------------
+  //  Critical Note to any user: The object as implemented MUST have sequential towers  
+  //  filled WITHOUT GAPS (though can be filled in an arbitrary order. The TClonesArray object 
+  // that is being used as the backbone does not play well with empty entries in between full ones.
+  //  Please see coresoftware/simulation/g4simulation/g4calo/RawTowerBuilder.cc for an example 
+  //  use case.  Namely it is key to call TowerInfoContainerv1::initialize_towers during your process event loop
+  //---------------------------------------------------------------------------------------------------------------------------------
+
+
+
 int emcadc[8][8] = {
     {62, 60, 46, 44, 30, 28, 14, 12},
     {63, 61, 47, 45, 31, 29, 15, 13},
@@ -28,7 +38,6 @@ int hcaladc[8][2] = {
 TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
   : _detector(detec)
 {
-
   int nchannels = 744;
   if (_detector == DETECTOR::SEPD)
   {
@@ -43,13 +52,7 @@ TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
     nchannels= 1536;
   }
   _clones = new TClonesArray("TowerInfov1", nchannels);
-  for (int i = 0 ; i < nchannels;i++)
-    {
-      TowerInfov1 *tower = new TowerInfov1();
-      tower->set_energy(0);
-      new ((*_clones)[i]) TowerInfov1(*tower);
-      delete tower;
-    }
+
   _clones->SetOwner();
   _clones->SetName("TowerInfoContainerv1");
 }
@@ -64,8 +67,11 @@ void TowerInfoContainerv1::Reset()
   _map.clear();
   _towers.clear();
   _clones->Clear();
+}
 
-
+void TowerInfoContainerv1::initialize_towers()
+{
+  
   int nchannels = 744;
   if (_detector == DETECTOR::SEPD)
     {
@@ -79,17 +85,15 @@ void TowerInfoContainerv1::Reset()
     {
     nchannels= 1536;
     }
+  TowerInfov1 *tower = new TowerInfov1();
+  tower->set_energy(0);
   for (int i = 0 ; i < nchannels;i++)
     {
-      TowerInfov1 *tower = new TowerInfov1();
-      tower->set_energy(0);
       new ((*_clones)[i]) TowerInfov1(*tower);
-      delete tower;
     }
-
-
-
+  delete tower;
 }
+
 
 void TowerInfoContainerv1::add(TowerInfov1* ti, int pos)
 {
@@ -128,7 +132,6 @@ unsigned int TowerInfoContainerv1::encode_key(unsigned int towerIndex)
     unsigned int key = globalphi + (r << 10U) + (supersectornumber << 20U);
     return key;
   }
-
   if (_detector == DETECTOR::EMCAL)
   {
     for (int j = 0; j < 8; j++)
@@ -139,7 +142,6 @@ unsigned int TowerInfoContainerv1::encode_key(unsigned int towerIndex)
         phimap[emcadc[j][k]] = k;
       }
     }
-
     channels_per_sector = 64;
     supersector = 64 * 12;
     nchannelsperpacket = 64 * 3;

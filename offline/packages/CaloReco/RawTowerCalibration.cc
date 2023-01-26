@@ -239,12 +239,11 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
 
   if ( m_UseTowerInfo > 0)
     {
-
+      _calib_towerinfos->initialize_towers();  // initializes the TClones array for every tower in the detector system with 0 energy towers
       TowerInfoContainer::ConstRange begin_end = _raw_towerinfos->getTowers();
       TowerInfoContainer::ConstIterator rtiter;
       for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
 	{
-	  // const RawTowerDefs::keytype key =_raw_towerinfos->decode_key(rtiter->first);
 	  unsigned int key =rtiter->first;
 
 	  TowerInfo *raw_tower = rtiter->second;
@@ -268,30 +267,23 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
 	      const int eta = _raw_towerinfos->getTowerEtaBin(key);
 	      const int phi = _raw_towerinfos->getTowerPhiBin(key);
 	      double tower_by_tower_calib = 1.;
-
 	      const std::string calib_const_name("calib_const_eta" + std::to_string(eta) + "_phi" + std::to_string(phi));
-	      
 	      tower_by_tower_calib = _tower_calib_params.get_double_param(calib_const_name);
-	      
 	      if (_pedestal_file == true)
 		{
 		  const std::string pedstal_name("PedCentral_ADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi));
 		  _pedstal_ADC =
 		    _tower_calib_params.get_double_param(pedstal_name);
 		}
-	      
 	      if (_GeV_ADC_file == true)
 		{
 		  const std::string GeVperADCname("GeVperADC_eta" + std::to_string(eta) + "_phi" + std::to_string(phi));
 		  _calib_const_GeV_ADC =
 		    _tower_calib_params.get_double_param(GeVperADCname);
 		}
-	    
 	      const double raw_energy = raw_tower->get_energy();
 	      const double calib_energy = (raw_energy - _pedstal_ADC) * _calib_const_GeV_ADC * tower_by_tower_calib;
-	      
 	      calib_tower->set_energy(calib_energy);
-	      
 	    }
 	  else if (_calib_algorithm == kDbfile_tbt_gain_corr)
 	    {
@@ -303,18 +295,13 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
 		}
 	      
 	      float gain_factor = -888;
-	      //      gain_factor = _cal_dbfile->getCorr(key);
 	      const int eta = _raw_towerinfos->getTowerEtaBin(key);
 	      const int phi = _raw_towerinfos->getTowerPhiBin(key);
 	       
 	      gain_factor = _cal_dbfile->getCorr(eta, phi);
 	      const double raw_energy = raw_tower->get_energy();
-	      // RawTower *calib_tower = new RawTowerv2(*raw_tower);
-	      // still include separate _calib_const_GeV_ADC factor
-	      // for global shifts.
 	      float corr_energy = raw_energy * gain_factor * _calib_const_GeV_ADC;
 	      calib_tower->set_energy(corr_energy);
-	      // _calib_towers->AddTower(key, calib_tower);
 	    }
 	  else
 	    {
@@ -327,6 +314,7 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
 
 	  TowerInfo *calibrated_towerinfo = _calib_towerinfos->at(_raw_towerinfos->decode_key(key));
 	   calibrated_towerinfo->set_energy(calib_tower->get_energy());  
+	   delete calib_tower;
 	} 
     }
   

@@ -123,7 +123,7 @@ int RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
+int RawTowerDigitizer::process_event(PHCompositeNode */**topNode*/)
 {
   if (Verbosity())
   {
@@ -144,6 +144,13 @@ int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
   // loop over all possible towers, even empty ones. The digitization can add towers containing
   // pedestals
   RawTowerGeomContainer::ConstRange all_towers = m_RawTowerGeom->get_tower_geometries();
+
+
+  if (m_UseTowerInfo > 0)
+    {
+      m_RawTowerInfos->initialize_towers();
+    } 
+  
 
   double deadChanEnergy = 0;
 
@@ -206,6 +213,7 @@ int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
     
       if(m_UseTowerInfo != 1)
 	{
+
 	  RawTower *sim_tower = m_SimTowers->getTower(key);
 	  if (m_DeadMap)
 	    {
@@ -222,8 +230,6 @@ int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
 		    }
 		}
 	    }
-
-
 	  if (m_DigiAlgorithm == kNo_digitization)
 	    {
 	      // for no digitization just copy existing towers
@@ -318,14 +324,12 @@ int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
 	      
 	      return Fun4AllReturnCodes::ABORTRUN;
 	    }
-
-
+	
 	  if (digi_towerinfo)
 	    {
 	      if (m_DoDecal && m_Decal)
 		{
 		  float decal_fctr = m_CalDBFile->getCorr(eta, phi);
-		  
 		  if (m_DecalInverse)
 		    {
 		      decal_fctr = 1.0 / decal_fctr;
@@ -333,14 +337,10 @@ int RawTowerDigitizer::process_event(PHCompositeNode * /*topNode*/)
 		  float e_dec = digi_towerinfo->get_energy();
 		  digi_towerinfo->set_energy(e_dec * decal_fctr);
 		}
-
 	      TowerInfo *digitized_towerinfo = m_RawTowerInfos->at(towerindex);
 	      digitized_towerinfo->set_energy(digi_towerinfo->get_energy());
-
-
-
-	    }
-	
+	    }	
+	  delete digi_towerinfo;
 	}
     }
 
@@ -438,8 +438,7 @@ RawTowerDigitizer::simple_photon_digitization(RawTower *sim_tower)
 TowerInfo *
 RawTowerDigitizer::simple_photon_digitization(TowerInfo *sim_tower)
 {
-  TowerInfo *digi_tower = nullptr;
-
+  TowerInfo* digi_tower = new TowerInfov1(*sim_tower);
   double energy = 0.;
   if (sim_tower)
   {
@@ -468,18 +467,9 @@ RawTowerDigitizer::simple_photon_digitization(TowerInfo *sim_tower)
   }
 
   if (sum_ADC > m_ZeroSuppressionADC)
-  {
-    // create new digitalizaed tower
-    if (sim_tower)
-    {
-      digi_tower = new TowerInfov1(*sim_tower);
+    {  
+      digi_tower->set_energy(sum_ADC_d);
     }
-    else
-    {
-      digi_tower = new TowerInfov1();
-    }
-    digi_tower->set_energy(sum_ADC_d);
-  }
 
   if (Verbosity() >= 2)
   {
@@ -650,7 +640,6 @@ RawTowerDigitizer::sipm_photon_digitization(TowerInfo *sim_tower)
       std::cout << "None" << std::endl;
     }
   }
-
   return digi_tower;
 }
 
@@ -734,6 +723,10 @@ void RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
 	}
     }
   
+
+
+
+
 
 
 

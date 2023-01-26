@@ -121,9 +121,11 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
       exit(1);
     }
 
-
-
-  // get cells
+    if (m_UseTowerInfo > 0)
+      {
+	m_TowerInfoContainer->initialize_towers();
+      } 
+    // get cells
   std::string cellnodename = "G4CELL_" + m_Detector;
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (!cells)
@@ -157,8 +159,6 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
     {
       cell_weight = cell->get_light_yield();
     }
-
-
 
 
     // add the energy to the corresponding tower

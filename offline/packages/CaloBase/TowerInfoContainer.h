@@ -35,6 +35,7 @@ class TowerInfoContainer : public PHObject
   virtual TowerInfo* at(int /*pos*/) { return nullptr; }
   virtual unsigned int encode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
   virtual unsigned int decode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
+  virtual void initialize_towers(){}
 
   virtual size_t size() { return 0; }
 
