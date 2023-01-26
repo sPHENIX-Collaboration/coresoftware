@@ -177,6 +177,7 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(std
   }
   return fit_values;
 }
+
 void CaloWaveformProcessing::FastMax(float x0, float x1, float x2, float y0, float y1, float y2, float & xmax, float & ymax) {
   int n = 3;
   double xp[3] = {x0, x1, x2};
@@ -211,7 +212,7 @@ void CaloWaveformProcessing::FastMax(float x0, float x1, float x2, float y0, flo
       }
     }
     else {
-      //find x then derivative = 0
+      //find x when derivative = 0
       float root = (-2 * C + sqrt(4 * C * C - 12 * B * D)) / (6 * D) + X;
       if (root >= xp[i] && root <= xp[i + 1]) {
         float yvalue = sp->Eval(root);
@@ -242,7 +243,7 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_fast(std
   {
     std::vector<float> v = chnlvector.at(m);
     int nsamples = v.size();
-    
+
     double maxy = v.at(0);
     float amp = 0;
     float time = 0;
@@ -250,21 +251,23 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_fast(std
     if (nsamples >= 3) {
       int maxx = 0;
       for (int i = 0; i < nsamples; i++) {
-        if(i < 3) ped += v.at(i);
-        if(v.at(i) > maxy){
-         maxy = v.at(i);
-         maxx = i;
+        if (i < 3) ped += v.at(i);
+        if (v.at(i) > maxy) {
+          maxy = v.at(i);
+          maxx = i;
         }
       }
       ped /= 3;
-      if(maxx == 0 || maxx == nsamples - 1){
+      if (maxx == 0 || maxx == nsamples - 1) {
         amp = maxy;
         time = maxx;
       }
-      else{
-        FastMax(maxx - 1,maxx, maxx+1, v.at(maxx - 1), v.at(maxx), v.at(maxx + 1), time, amp);
+      else {
+        FastMax(maxx - 1, maxx, maxx + 1, v.at(maxx - 1), v.at(maxx), v.at(maxx + 1), time, amp);
+
       }
     }
+    amp -= ped;
     std::vector<float> val = {amp, time, ped};
     fit_values.push_back(val);
     val.clear();
