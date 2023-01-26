@@ -438,7 +438,8 @@ RawTowerDigitizer::simple_photon_digitization(RawTower *sim_tower)
 TowerInfo *
 RawTowerDigitizer::simple_photon_digitization(TowerInfo *sim_tower)
 {
-  TowerInfo* digi_tower = new TowerInfov1(*sim_tower);
+  TowerInfo* digi_tower = nullptr;
+  // TowerInfo* digi_tower = new TowerInfov1(*sim_tower);
   double energy = 0.;
   if (sim_tower)
   {
@@ -468,6 +469,15 @@ RawTowerDigitizer::simple_photon_digitization(TowerInfo *sim_tower)
 
   if (sum_ADC > m_ZeroSuppressionADC)
     {  
+      if (sim_tower)
+	{
+	  digi_tower = new TowerInfov1(*sim_tower);
+	}
+      else
+	{
+	  digi_tower = new TowerInfov1();
+	}
+
       digi_tower->set_energy(sum_ADC_d);
     }
 
