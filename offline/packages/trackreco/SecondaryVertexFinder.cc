@@ -49,6 +49,7 @@
 
 #include <TLorentzVector.h>
 #include <TH1D.h>
+#include <TH2D.h>
 #include <TFile.h>
 
 //____________________________________________________________________________..
@@ -70,8 +71,8 @@ int SecondaryVertexFinder::InitRun(PHCompositeNode *topNode)
   int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  recomass = new TH1D("recomass", "invariant mass", 5000,0,5);
-  recopt = new TH1D("recopt", "invariant Pt", 1000,0,10);
+  recomass = new TH2D("recomass", "invariant mass vs pT", 1000, 0, 5, 5000,0,5);
+  // recopt = new TH1D("recopt", "invariant Pt", 1000,0,10);
 
   return ret;
 }
@@ -170,7 +171,8 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 		    << " PCA2 " << PCA2(0) << "  " << PCA2(1) << "  " << PCA2(2)
 		    << " pair dca " << pair_dca << std::endl;  
 
-	  float decaymass = 0.13957;  // pion
+	  //float decaymass = 0.13957;  // pion
+	  float decaymass = 0.000511;  // electron
 
 	  TLorentzVector t1;
 	  Float_t E1 = sqrt(pow(tr1->get_px(),2) + pow(tr1->get_py(),2) + pow(tr1->get_pz(),2) 
@@ -194,8 +196,8 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 
 	  if(path.norm() > 0.1)
 	    {
-	      recomass->Fill(tsum.M());
-	      recopt->Fill(tsum.Pt());
+	      recomass->Fill(tsum.Pt(), tsum.M());
+	      //	      recopt->Fill(tsum.Pt());
 	    }
 	}
 
@@ -695,7 +697,7 @@ int SecondaryVertexFinder::End(PHCompositeNode */*topNode*/)
 {
   TFile *fout = new TFile(outfile.c_str(),"recreate");
   recomass->Write();
-  recopt->Write();
+  //  recopt->Write();
   fout->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;

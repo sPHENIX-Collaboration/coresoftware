@@ -46,6 +46,7 @@ class TrackSeed;
 class ActsGeometry;
 class TrkrClusterContainer;
 class TH1D;
+class TH2D;
 class TFile;
 
 using BoundTrackParam = const Acts::BoundTrackParameters;
@@ -123,8 +124,8 @@ class SecondaryVertexFinder : public SubsysReco
   unsigned int _nmvtx_required = 3; 
   double _track_pt_cut = 0.0;
 
-  TH1D *recomass{nullptr};
-  TH1D *recopt{nullptr};
+  TH2D *recomass{nullptr};
+  //  TH1D *recopt{nullptr};
   std::string outfile;
 
   std::multimap<unsigned int, unsigned int> _vertex_track_map;
