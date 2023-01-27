@@ -69,6 +69,8 @@
 #include <map>      // for _Rb_tree_cons...
 #include <utility>  // for pair
 
+#include "TpcClusterBuilder.h"
+
 namespace
 {
   template <class T>
@@ -83,7 +85,6 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , PHParameterInterface(name)
   , temp_hitsetcontainer(new TrkrHitSetContainerv1)
   , single_hitsetcontainer(new TrkrHitSetContainerv1)
-  , layer_clusterers{}
 {
   InitializeParameters();
   RandomGenerator.reset(gsl_rng_alloc(gsl_rng_mt19937));
@@ -189,13 +190,14 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   }
 
   seggeonodename = "CYLINDERCELLGEOM_SVTX";  // + detector;
-  PHG4TpcCylinderGeomContainer *seggeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
+  seggeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   if (!seggeo)
   {
     seggeo = new PHG4TpcCylinderGeomContainer();
     auto newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename, "PHObject");
     runNode->addNode(newNode);
   }
+
   
   UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
@@ -256,8 +258,9 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
-  std::cout << PHWHERE << " drift velocity " << drift_velocity << " extended_readout_time " << get_double_param("extended_readout_time") 
-	    << " max time cutoff " << max_time << std::endl;
+  if (Verbosity() > 0) {
+    std::cout << PHWHERE << " drift velocity " << drift_velocity << " extended_readout_time " << get_double_param("extended_readout_time") << " max time cutoff " << max_time << std::endl;
+  }
 
   auto se = Fun4AllServer::instance();
   dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
@@ -322,8 +325,25 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if(!m_tGeometry)
+  {
+    std::cout << PHWHERE << "ActsGeometry not found on node tree. Exiting" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  if (truth_clusterer == nullptr)  {
+    if (Verbosity()) std::cout << " truth clusterer was a null pointer " << std::endl;
+    truth_clusterer = new TpcClusterBuilder(truthclustercontainer, m_tGeometry, seggeo);
+  } else {
+    if (Verbosity()) std::cout << " truth clusterer was NOT a null pointer " << std::endl;
+  }
+
+
   static constexpr unsigned int print_layer = 18;
+  truth_clusterer->is_embedded_track = false;
   std::map<TrkrDefs::hitsetkey,unsigned int> hitset_cnt; // needed for indexing the TrkrClusters into the TrkrClusterContainer
+  /* std::map<TrkrDefs::hitsetkey, std::vector<TrkrHitv*>> truthtrack_hits; */
 
 
   // tells m_distortionMap which event to look at
@@ -339,10 +359,20 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     std::cout << "Could not locate g4 hit node " << hitnodename << std::endl;
     gSystem->Exit(1);
   }
-  PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  PHG4TruthInfoContainer *truthinfo =
+    findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+
+
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if(!m_tGeometry)
+    {
+      std::cout << PHWHERE
+		<< "ActsGeometry not found on node tree. Exiting"
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
 
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
-  //std::cout << "g4hits size " << g4hit->size() << std::endl;
   unsigned int count_g4hits = 0;
   //  int count_electrons = 0;
 
@@ -353,7 +383,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   unsigned int dump_counter = 0;
 
   int trkid = -1;
-  bool is_embedded{false};
 
   for (auto hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
@@ -369,25 +398,30 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     int trkid_new = hiter->second->get_trkid();
     if (trkid != trkid_new)
     {  // starting a new track
-      if (is_embedded) 
-      { // build the clusters for the prior truth track and clear out the hits in the layer_clusterers
-        buildTruthClusters(hitset_cnt);
-      }
+      truth_clusterer->cluster_and_reset(/*argument is if to reset hitsetkey as well*/ false);
       trkid = trkid_new;
-      is_embedded = (truthinfo->isEmbeded(hiter->second->get_trkid()));
-      if (is_embedded) 
+      truth_clusterer->is_embedded_track = (truthinfo->isEmbeded(hiter->second->get_trkid()));
+      if (Verbosity() > 1000){
+        std::cout << " New track " << trkid << " is embed? : " 
+          << truth_clusterer->is_embedded_track << std::endl;
+      }
+      if (truth_clusterer->is_embedded_track) 
       { // build new TrkrTruthTrack
-        auto particle = (PHG4Particlev3*) truthinfo->GetParticle(trkid);
+        auto particle = /*(PHG4Particlev3*)*/ truthinfo->GetParticle(trkid);
         int vtxid = particle->get_vtx_id();
         PHG4VtxPoint* vtx = truthinfo->GetVtx(vtxid);
-        current_track =  new TrkrTruthTrackv1(trkid, particle, vtx) ;
+        current_track = new TrkrTruthTrackv1(trkid, particle, vtx) ;
         truthtracks->addTruthTrack(current_track);
+        truth_clusterer->set_current_track(current_track);
       }
     }
 
 
-    // for very high occupancy events, accessing the TrkrHitsets on the node tree for every drifted electron seems to be very slow
-    // Instead, use a temporary map to accumulate the charge from all drifted electrons, then copy to the node tree later
+    // for very high occupancy events, accessing the TrkrHitsets on the node tree 
+    // for every drifted electron seems to be very slow
+    // Instead, use a temporary map to accumulate the charge from all 
+    // drifted electrons, then copy to the node tree later
+    
     double eion = hiter->second->get_eion();
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator.get(), eion * electrons_per_gev);
     //    count_electrons += n_electrons;
@@ -395,29 +429,34 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     if (Verbosity() > 100)
       std::cout << "  new hit with t0, " << t0 << " g4hitid " << hiter->first
                 << " eion " << eion << " n_electrons " << n_electrons
-                << " entry z " << hiter->second->get_z(0) << " exit z " << hiter->second->get_z(1) << " avg z" << (hiter->second->get_z(0) + hiter->second->get_z(1)) / 2.0
+                << " entry z " << hiter->second->get_z(0) << " exit z " 
+                << hiter->second->get_z(1) << " avg z" 
+                << (hiter->second->get_z(0) + hiter->second->get_z(1)) / 2.0
                 << std::endl;
 
-    if (n_electrons == 0)
-    {
-      continue;
-    }
+    if (n_electrons == 0) { continue; }
 
     if (Verbosity() > 100)
     {
       std::cout << std::endl
-                << "electron drift: g4hit " << hiter->first << " created electrons: " << n_electrons
-                << " from " << eion * 1000000 << " keV" << std::endl;
-      std::cout << " entry x,y,z = " << hiter->second->get_x(0) << "  " << hiter->second->get_y(0) << "  " << hiter->second->get_z(0)
-                << " radius " << sqrt(pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2)) << std::endl;
-      std::cout << " exit x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1)
-                << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2)) << std::endl;
+                << "electron drift: g4hit " << hiter->first << " created electrons: " 
+                << n_electrons << " from " << eion * 1000000 << " keV" << std::endl;
+      std::cout << " entry x,y,z = " << hiter->second->get_x(0) << "  " 
+                << hiter->second->get_y(0) << "  " << hiter->second->get_z(0)
+                << " radius " << sqrt(pow(hiter->second->get_x(0), 2) + 
+                     pow(hiter->second->get_y(0), 2)) << std::endl;
+      std::cout << " exit x,y,z = " << hiter->second->get_x(1) << "  " 
+                << hiter->second->get_y(1) << "  " << hiter->second->get_z(1)
+                << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + 
+                    pow(hiter->second->get_y(1), 2)) << std::endl;
     }
 
     for (unsigned int i = 0; i < n_electrons; i++)
     {
-      // We choose the electron starting position at random from a flat distribution along the path length
-      // the parameter t is the fraction of the distance along the path betwen entry and exit points, it has values between 0 and 1
+      // We choose the electron starting position at random from a flat
+      // distribution along the path length the parameter t is the fraction of
+      // the distance along the path betwen entry and exit points, it has
+      // values between 0 and 1
       const double f = gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
 
       const double x_start = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
@@ -502,9 +541,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
       if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
-      {
-        continue;
-      }
+      { continue; }
 
       if (Verbosity() > 1000)
       {
@@ -518,8 +555,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
                   << " rantime " << rantime
                   << std::endl;
 
-        std::cout << "       rad_final " << rad_final << " x_final " << x_final << " y_final " << y_final
-                  << " z_final " << z_final << " t_final " << t_final << " zdiff " << z_final - z_start << std::endl;
+        std::cout << "       rad_final " << rad_final << " x_final " << x_final
+          << " y_final " << y_final
+          << " z_final " << z_final << " t_final " << t_final 
+          << " zdiff " << z_final - z_start << std::endl;
       }
 
       if (Verbosity() > 0)
@@ -528,11 +567,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
       }
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
-      /* auto pass_data = MapToPadPlane(x_final, y_final, t_final, side, hiter, ntpad, nthit); */
-      auto pass_data = padplane->MapToPadPlane(
-        single_hitsetcontainer.get(), temp_hitsetcontainer.get(), hittruthassoc, 
-        x_final, y_final, t_final, side, hiter, ntpad, nthit);
-      if (is_embedded && pass_data.has_data) layer_clusterers[pass_data.layer-1] += pass_data;
+      padplane->MapToPadPlane(truth_clusterer, single_hitsetcontainer.get(),
+          temp_hitsetcontainer.get(), hittruthassoc, x_final, y_final, t_final,
+          side, hiter, ntpad, nthit);
     }  // end loop over electrons for this g4hit
 
     TrkrHitSetContainer::ConstRange single_hitset_range = single_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -640,11 +677,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
   }  // end loop over g4hits
 
-  
-  if (is_embedded) 
-  { // if ended on an embedded track, then fill the clusters for that track
-      buildTruthClusters(hitset_cnt);
-  }
+  truth_clusterer->cluster_and_reset(/*argument is if to reset hitsetkey as well*/ true);
 
   if (Verbosity() > 2)
   {
@@ -693,6 +726,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   {
     std::cout << " TruthTrackContainer results at end of event in PHG4TpcElectronDrift::process_event " << std::endl;
     truthtracks->identify();
+  }
+
+  if (Verbosity()>800) {
+    truth_clusterer->print(truthtracks);
+    truth_clusterer->print_file(truthtracks,"drift_clusters.txt");
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -773,6 +811,10 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
   return;
 }
 
+PHG4TpcElectronDrift::~PHG4TpcElectronDrift() {
+  if (truth_clusterer != nullptr) delete truth_clusterer;
+}
+
 void PHG4TpcElectronDrift::setTpcDistortion(PHG4TpcDistortion *distortionMap)
 {
   m_distortionMap.reset(distortionMap);
@@ -780,23 +822,11 @@ void PHG4TpcElectronDrift::setTpcDistortion(PHG4TpcDistortion *distortionMap)
 
 void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
 {
-  std::cout << "Registering padplane " << std::endl;
+  if (Verbosity()) std::cout << "Registering padplane " << std::endl;
   padplane.reset(inpadplane);
   padplane->Detector(Detector());
   padplane->UpdateInternalParameters();
-  std::cout << "padplane registered and parameters updated" << std::endl;
+  if (Verbosity()) std::cout << "padplane registered and parameters updated" << std::endl;
 
   return;
-}
-
-void PHG4TpcElectronDrift::buildTruthClusters(std::map<TrkrDefs::hitsetkey,unsigned int>& hitset_cnt)
-{
-  for (auto& cluster_builder : layer_clusterers) {
-    if (cluster_builder.has_data) {
-      std::pair<TrkrDefs::cluskey,TrkrCluster*> keyval = cluster_builder.build(hitset_cnt);
-      current_track->addCluster(keyval.first);
-      truthclustercontainer->addClusterSpecifyKey(keyval.first, keyval.second);
-      cluster_builder.reset();
-    }
-  }
 }

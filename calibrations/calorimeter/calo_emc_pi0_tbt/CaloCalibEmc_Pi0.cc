@@ -289,7 +289,6 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
       _clusterPts[jCs] = tt_clus_pt;
       _clusterEtas[jCs] = tt_clus_eta;
       _clusterPhis[jCs] = tt_clus_phi;
-      _nClusters = savCs[jCs]->getNTowers();
 
       if (tt_clus_pt > 1.0 ) 
 	{
