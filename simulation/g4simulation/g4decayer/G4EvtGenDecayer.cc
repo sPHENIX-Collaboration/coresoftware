@@ -35,6 +35,27 @@
 // ----------------------------------------------------------------------------
 
 #include "G4EvtGenDecayer.hh"
+#include "PHEvtGenRandomEngine.hh"               // for PHEvtGenRandomEngine
+
+#include <EvtGen/EvtGen.hh>                      // for EvtGen
+#include <EvtGenBase/EvtAbsRadCorr.hh>           // for EvtAbsRadCorr
+#include <EvtGenBase/EvtHepMCEvent.hh>           // for EvtHepMCEvent
+#include <EvtGenBase/EvtId.hh>                   // for EvtId
+#include <EvtGenBase/EvtPDL.hh>                  // for EvtPDL
+#include <EvtGenBase/EvtParticle.hh>             // for EvtParticle
+#include <EvtGenBase/EvtParticleFactory.hh>      // for EvtParticleFactory
+#include <EvtGenBase/EvtRandom.hh>               // for EvtRandom
+#include <EvtGenBase/EvtVector4R.hh>             // for EvtVector4R
+#include <EvtGenExternal/EvtExternalGenList.hh>  // for EvtExternalGenList
+
+#include <HepMC3/Attribute.h>                    // for string
+#include <HepMC3/FourVector.h>                   // for FourVector
+#include <HepMC3/GenEvent.h>                     // for GenEvent
+#include <HepMC3/GenParticle.h>                  // for GenParticle
+#include <HepMC3/GenParticle_fwd.h>              // for GenParticlePtr
+#include <HepMC3/GenVertex.h>                    // for GenVertex
+#include <HepMC3/GenVertex_fwd.h>                // for GenVertexPtr
+#include <HepMC3/Print.h>                        // for Print
 
 #include <Geant4/G4DecayProducts.hh>
 #include <Geant4/G4DynamicParticle.hh>
@@ -42,18 +63,20 @@
 #include <Geant4/G4ParticleTable.hh>
 #include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>                      // for G4ThreeVector
+#include <Geant4/G4Types.hh>                            // for G4int, G4double
 #include <Geant4/G4Track.hh>
 #include <Geant4/G4VExtDecayer.hh>  // for G4VExtDecayer
 
-#include <CLHEP/Vector/LorentzVector.h>
-
+#include <algorithm>                             // for copy, max
+#include <memory>                                // for __shared_ptr_access
+#include <vector>                                // for vector
 #include <cstdlib>   // for abs
 #include <iostream>  // for operator<<, basic_ostream:...
-#include <queue>     // for operator<<
 #include <stack>     // for operator<<
 #include <string>    // for operator<<
 
-#include <phool/PHRandomSeed.h>  //Introduce Random Number with Dedicated PHENIX Random Seed
+class EvtDecayBase;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

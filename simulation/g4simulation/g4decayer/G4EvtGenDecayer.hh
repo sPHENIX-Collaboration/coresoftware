@@ -32,63 +32,32 @@
 #ifndef G4_EVTGEN_DECAYER_H
 #define G4_EVTGEN_DECAYER_H
 
-//#include "G4EvtGenDecayerMessenger.hh"
+#include <EvtGenExternal/EvtExternalGenList.hh>
 
-#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+// #pragma GCC diagnostic push
+// #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+// #include <EvtGenBase/EvtHepMCEvent.hh>
+// #pragma GCC diagnostic pop
+
+#include <HepMC3/Attribute.h>                    // for string
+
+#include <Geant4/G4LorentzVector.hh>
 #include <Geant4/G4Types.hh>        // for G4int, G4bool
 #include <Geant4/G4VExtDecayer.hh>
 
 #include <cstddef>
-
-#include <EvtGen/EvtGen.hh>
-#include <EvtGenBase/EvtRandom.hh>
-#include <EvtGenBase/EvtRandomEngine.hh>
-//#include <EvtGenBase/EvtSimpleRandomEngine.hh>
-#include <EvtGenExternal/EvtExternalGenList.hh>
-
-#include <EvtGenBase/EvtPDL.hh>
-#include <EvtGenBase/EvtParticle.hh>
-#include <EvtGenBase/EvtParticleFactory.hh>
-#include <EvtGenBase/EvtRandom.hh>
-
-#include <EvtGenBase/EvtAbsRadCorr.hh>
-#include <EvtGenBase/EvtDecayBase.hh>
-#include <EvtGenBase/EvtMTRandomEngine.hh>
-#include <EvtGenExternal/EvtExternalGenList.hh>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <HepMC3/GenEvent.h>
-#include <HepMC/GenEvent.h>
-#include <EvtGenBase/EvtHepMCEvent.hh>
-#pragma GCC diagnostic pop
-
-#include <HepMC3/GenParticle.h>
-#include <HepMC3/GenVertex.h>
-#include <HepMC3/HepMC3.h>
-
-#include <HepMC/GenParticle.h>
-#include <HepMC/GenVertex.h>
-
-#include <G4LorentzVector.hh>
-
-#include "PHEvtGenRandomEngine.hh"
+#include <list>                                  // for list
+#include <string>                                // for string, allocator
 
 class G4DecayProducts;
-class G4DynamicParticle;
 class G4ParticleDefinition;
 class G4Track;
 
-class EvtStdlibRandomEngine;
-class EvtParticle;
 class EvtRandomEngine;
+class EvtAbsRadCorr;
+class EvtDecayBase;
+class EvtGen;
 
-namespace CLHEP
-{
-  class HepLorentzVector;
-}
-
-/// Pythia6 decayer
 ///
 /// Implements the G4VExtDecayer abstract class using the Pythia6 interface.
 /// According to TPythia6Decayer class in Root:
@@ -109,7 +78,7 @@ class G4EvtGenDecayer : public G4VExtDecayer
  // void Decay(int pdgId, std::unique_ptr<G4LorentzVector> p);
 //  int ImportParticles(std::vector<int>& DecayPDGID, std::vector<int>& DecayStatus, std::vector<G4LorentzVector>& DecayMom, std::vector<G4LorentzVector>& DecayVtx);
   void SetVertex(G4LorentzVector* r);
-  void SetDecayTable(const string decayTable, bool useXml);
+  void SetDecayTable(const std::string decayTable, bool useXml);
  // void ClearEvent();
  // void AppendParticle(int pdg, std::unique_ptr<G4LorentzVector> _p);
 

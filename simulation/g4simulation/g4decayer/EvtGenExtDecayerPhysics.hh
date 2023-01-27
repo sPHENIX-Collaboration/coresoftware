@@ -35,7 +35,6 @@
 
 #include <Geant4/G4String.hh>
 #include <Geant4/G4VPhysicsConstructor.hh>
-#include "G4EvtGenDecayer.hh"
 
 /// The builder for external decayer.
 ///

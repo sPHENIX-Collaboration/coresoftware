@@ -41,6 +41,7 @@
 #include "G4Pythia6Decayer.hh"
 
 #include <Geant4/G4ApplicationState.hh>  // for G4State_Idle
+#include <Geant4/G4String.hh>                     // for G4String
 #include <Geant4/G4UIcmdWithAnInteger.hh>
 #include <Geant4/G4UIdirectory.hh>
 #include <Geant4/G4UImessenger.hh>  // for G4UImessenger
