@@ -35,7 +35,7 @@
 // ----------------------------------------------------------------------------
 
 #include "G4EvtGenDecayer.hh"
-#include "PHEvtGenRandomEngine.hh"               // for PHEvtGenRandomEngine
+#include "PHEvtGenRandomEngine.hh"  // for PHEvtGenRandomEngine
 
 #include <EvtGen/EvtGen.hh>                      // for EvtGen
 #include <EvtGenBase/EvtAbsRadCorr.hh>           // for EvtAbsRadCorr
@@ -48,14 +48,14 @@
 #include <EvtGenBase/EvtVector4R.hh>             // for EvtVector4R
 #include <EvtGenExternal/EvtExternalGenList.hh>  // for EvtExternalGenList
 
-#include <HepMC3/Attribute.h>                    // for string
-#include <HepMC3/FourVector.h>                   // for FourVector
-#include <HepMC3/GenEvent.h>                     // for GenEvent
-#include <HepMC3/GenParticle.h>                  // for GenParticle
-#include <HepMC3/GenParticle_fwd.h>              // for GenParticlePtr
-#include <HepMC3/GenVertex.h>                    // for GenVertex
-#include <HepMC3/GenVertex_fwd.h>                // for GenVertexPtr
-#include <HepMC3/Print.h>                        // for Print
+#include <HepMC3/Attribute.h>        // for string
+#include <HepMC3/FourVector.h>       // for FourVector
+#include <HepMC3/GenEvent.h>         // for GenEvent
+#include <HepMC3/GenParticle.h>      // for GenParticle
+#include <HepMC3/GenParticle_fwd.h>  // for GenParticlePtr
+#include <HepMC3/GenVertex.h>        // for GenVertex
+#include <HepMC3/GenVertex_fwd.h>    // for GenVertexPtr
+#include <HepMC3/Print.h>            // for Print
 
 #include <Geant4/G4DecayProducts.hh>
 #include <Geant4/G4DynamicParticle.hh>
@@ -63,18 +63,18 @@
 #include <Geant4/G4ParticleTable.hh>
 #include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>                      // for G4ThreeVector
-#include <Geant4/G4Types.hh>                            // for G4int, G4double
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4Track.hh>
+#include <Geant4/G4Types.hh>        // for G4int, G4double
 #include <Geant4/G4VExtDecayer.hh>  // for G4VExtDecayer
 
-#include <algorithm>                             // for copy, max
-#include <memory>                                // for __shared_ptr_access
-#include <vector>                                // for vector
-#include <cstdlib>   // for abs
-#include <iostream>  // for operator<<, basic_ostream:...
-#include <stack>     // for operator<<
-#include <string>    // for operator<<
+#include <algorithm>  // for copy, max
+#include <cstdlib>    // for abs
+#include <iostream>   // for operator<<, basic_ostream:...
+#include <memory>     // for __shared_ptr_access
+#include <stack>      // for operator<<
+#include <string>     // for operator<<
+#include <vector>     // for vector
 
 class EvtDecayBase;
 
@@ -133,8 +133,10 @@ G4ParticleDefinition* G4EvtGenDecayer::
   G4int pdgEncoding = ParPDGID;
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* particleDefinition = nullptr;
-  if (pdgEncoding != 0) { particleDefinition = particleTable->FindParticle(pdgEncoding);
-}
+  if (pdgEncoding != 0)
+  {
+    particleDefinition = particleTable->FindParticle(pdgEncoding);
+  }
 
   return particleDefinition;
 }
@@ -171,8 +173,10 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 
   auto part = evt->particles()[0];
 
-  if (part->pdg_id() != pdgEncoding) { std::cout << "Issue Found: The first particle in the decay chain is NOT the incoming particle decayed by EvtGen" << std::endl;
-}
+  if (part->pdg_id() != pdgEncoding)
+  {
+    std::cout << "Issue Found: The first particle in the decay chain is NOT the incoming particle decayed by EvtGen" << std::endl;
+  }
 
   stack.push(part);
 
@@ -187,15 +191,19 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
       int pdg = children->pdg_id();
 
       G4ParticleDefinition* particleDefinition = GetParticleDefinition(pdg);
-      if (EvtPDL::evtIdFromLundKC(pdg).getId() != -1) { EvtWidth = EvtPDL::getWidth(EvtPDL::evtIdFromLundKC(pdg)) * 1000000;  // Decay Width Unit: GeV -> keV to define stable particles in EvtGen -> G4
-}
+      if (EvtPDL::evtIdFromLundKC(pdg).getId() != -1)
+      {
+        EvtWidth = EvtPDL::getWidth(EvtPDL::evtIdFromLundKC(pdg)) * 1000000;  // Decay Width Unit: GeV -> keV to define stable particles in EvtGen -> G4
+      }
 
       if (particleDefinition && EvtWidth < WidthThreshold)
       {
         bool SameVtxPos = true;
 
-        if (children->production_vertex()->position().x() != particle->end_vertex()->position().x() || children->production_vertex()->position().y() != particle->end_vertex()->position().y() || children->production_vertex()->position().z() != particle->end_vertex()->position().z() || children->production_vertex()->position().t() != particle->end_vertex()->position().t()) { SameVtxPos = false;
-}
+        if (children->production_vertex()->position().x() != particle->end_vertex()->position().x() || children->production_vertex()->position().y() != particle->end_vertex()->position().y() || children->production_vertex()->position().z() != particle->end_vertex()->position().z() || children->production_vertex()->position().t() != particle->end_vertex()->position().t())
+        {
+          SameVtxPos = false;
+        }
         if (!SameVtxPos)
         {
           std::cout << "Issue Found: in this vertex, particles pushed to GEANT have different production positions, need to check and understand why!!!" << std::endl;

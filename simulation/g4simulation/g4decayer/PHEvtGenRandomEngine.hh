@@ -1,4 +1,4 @@
- /***********************************************************************
+/***********************************************************************
  * Copyright 1998-2020 CERN for the benefit of the EvtGen authors       *
  *                                                                      *
  * This file is part of EvtGen.                                         *
@@ -16,29 +16,27 @@
  * You should have received a copy of the GNU General Public License    *
  * along with EvtGen.  If not, see <https://www.gnu.org/licenses/>.     *
  ***********************************************************************/
- 
- #ifndef PHEvtGenRandomEngine_HH
- #define PHEvtGenRandomEngine_HH
 
- #include <EvtGenBase/EvtRandomEngine.hh>
+#ifndef PHEvtGenRandomEngine_HH
+#define PHEvtGenRandomEngine_HH
 
- #include <gsl/gsl_rng.h>
+#include <EvtGenBase/EvtRandomEngine.hh>
 
+#include <gsl/gsl_rng.h>
 
- class PHEvtGenRandomEngine : public EvtRandomEngine {
-   public:
-     PHEvtGenRandomEngine();
-	 virtual ~PHEvtGenRandomEngine();
-     virtual double random();
+class PHEvtGenRandomEngine : public EvtRandomEngine
+{
+ public:
+  PHEvtGenRandomEngine();
+  virtual ~PHEvtGenRandomEngine();
+  virtual double random();
 
-   protected:
-	  gsl_rng *RandomGenerator() const { return m_RandomGenerator; }
+ protected:
+  gsl_rng *RandomGenerator() const { return m_RandomGenerator; }
 
-   private:
-	  unsigned int m_Seed = 0;
-	  gsl_rng *m_RandomGenerator = nullptr;
+ private:
+  unsigned int m_Seed = 0;
+  gsl_rng *m_RandomGenerator = nullptr;
+};
 
-	
- };
- 
- #endif
+#endif

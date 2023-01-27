@@ -62,4 +62,4 @@ class EvtGenExtDecayerPhysics : public G4VPhysicsConstructor
   EvtGenExtDecayerPhysics& operator=(const EvtGenExtDecayerPhysics& right);
 };
 
-#endif  //P6D_EXT_DECAYER_PHYSICS_H
+#endif  // P6D_EXT_DECAYER_PHYSICS_H

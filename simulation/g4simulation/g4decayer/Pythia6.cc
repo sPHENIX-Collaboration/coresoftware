@@ -119,8 +119,10 @@ Pythia6* Pythia6::Instance()
 {
   /// Static access method
 
-  if (!fgInstance) { fgInstance = new Pythia6();
-}
+  if (!fgInstance)
+  {
+    fgInstance = new Pythia6();
+  }
 
   return fgInstance;
 }
@@ -166,9 +168,10 @@ Pythia6::~Pythia6()
   if (fParticles)
   {
     ParticleVector::const_iterator it;
-    for (it = fParticles->begin(); it != fParticles->end(); ++it) {
+    for (it = fParticles->begin(); it != fParticles->end(); ++it)
+    {
       delete *it;
-}
+    }
     delete fParticles;
   }
 }
@@ -221,13 +224,16 @@ int Pythia6::ImportParticles(ParticleVector* particles, const char* option)
   ///  This can be demanded explicitly by setting the option = "Final"
   ///  If the option = "All", all the particles are stored.
 
-  if (particles == nullptr) { return 0;
-}
+  if (particles == nullptr)
+  {
+    return 0;
+  }
 
   ParticleVector::const_iterator it;
-  for (it = particles->begin(); it != particles->end(); ++it) {
+  for (it = particles->begin(); it != particles->end(); ++it)
+  {
     delete *it;
-}
+  }
   particles->clear();
 
   int numpart = fPyjets->N;
