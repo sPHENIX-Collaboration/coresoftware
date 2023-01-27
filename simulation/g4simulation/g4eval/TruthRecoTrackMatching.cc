@@ -1,26 +1,10 @@
-#include <trackbase/TrkrDefs.h>
-#include <trackbase/TpcDefs.h>
 #include "TruthRecoTrackMatching.h"
 
-#include <trackbase/TrkrTruthTrackContainer.h>
-#include <trackbase/TrkrTruthTrack.h>
-
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-
+#include <g4main/PHG4TruthInfoContainer.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterContainer.h>
-
-#include <trackbase/EmbRecoMatch.h>
-#include <trackbase/EmbRecoMatchv1.h>
-
-#include <trackbase/EmbRecoMatchContainer.h>
-#include <trackbase/EmbRecoMatchContainerv1.h>
-
-// not actually sure if I need all of these
+#include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>  // for PHDataNode
 #include <phool/PHIODataNode.h>
@@ -30,11 +14,21 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+#include <trackbase/EmbRecoMatch.h>
+#include <trackbase/EmbRecoMatchContainer.h>
+#include <trackbase/EmbRecoMatchContainerv1.h>
+#include <trackbase/EmbRecoMatchv1.h>
+#include <trackbase/TpcDefs.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrTruthTrack.h>
+#include <trackbase/TrkrTruthTrackContainer.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
 
-#include <g4main/PHG4TruthInfoContainer.h>
-
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <TSystem.h>
+
 #include <algorithm>
 
 // To change:
@@ -42,9 +36,7 @@
 
 typedef TruthRecoTrackMatching::RECO_pair_iter RECO_pair_iter;
 typedef TruthRecoTrackMatching::PossibleMatch  PossibleMatch;
-/* typedef TruthRecoTrackMatching::CompCluster    CompCluster; */
 
-/* using vector<pair<short,short>> = VecShortPairs; */
 using std::make_tuple;
 using std::make_pair;
 using std::vector;

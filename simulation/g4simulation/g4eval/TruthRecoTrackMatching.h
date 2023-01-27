@@ -1,42 +1,36 @@
 #ifndef TRUTHTRKMATCHER__H
 #define TRUTHTRKMATCHER__H
 
+#include <fun4all/SubsysReco.h> 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
-#include <fun4all/SubsysReco.h>  // for SubsysReco
 
+#include <TFile.h>
+#include <TTree.h>
+
+#include <array>
+#include <iostream>
+#include <map>
+#include <set>
+#include <set>
 #include <tuple>
 #include <vector>
-#include <map>
-#include <array>
-#include <set>
-#include <iostream>
-#include <TTree.h>
-#include <TFile.h>
-#include <set>
 
-#include <trackbase/ActsGeometry.h>
-
-class PHG4TruthInfoContainer;
-class SvtxTrackMap;
-class SvtxTrack;
-class TrackSeedContainer;
-class TrkrClusterContainer;
-class TrkrCluster;
-class TrkrTruthTrackContainer;
-class TrkrTruthTrack;
-
-class PHG4TpcCylinderGeom;
 class EmbRecoMatchContainer;
 class PHCompositeNode;
+class PHG4TpcCylinderGeom;
 class PHG4TpcCylinderGeomContainer;
+class PHG4TruthInfoContainer;
+class SvtxTrack;
+class SvtxTrackMap;
+class TrackSeedContainer;
+class TrkrCluster;
+class TrkrClusterContainer;
+class TrkrTruthTrack;
+class TrkrTruthTrackContainer;
 
 class TruthRecoTrackMatching : public SubsysReco 
 {
-  std::set<uint32_t> setGoodHitsetkeys; // FIXME -- for debugging
-
-  std::set<std::pair<int,uint32_t>>sets_hitsetkeys_dave  {};  // FIXME -- for debugging
-  std::set<std::pair<int,uint32_t>>sets_hitsetkeys_prior  {}; // FIXME -- for debugging
-
   //--------------------------------------------------
   // Standard public interface
   //--------------------------------------------------
@@ -73,13 +67,15 @@ class TruthRecoTrackMatching : public SubsysReco
     int process_event(PHCompositeNode *) override; //`
     int End(PHCompositeNode           *) override;
 
-    void set_cluster_nzwidths         (float val) { m_cluster_nzwidths   = val; };
+    int createNodes(PHCompositeNode* topNode);
+
     void set_cluster_nphiwidths       (float val) { m_cluster_nphiwidths = val; };
-    void set_nmin_truth_cluster_ratio (float val) { m_nmincluster_ratio  = val; };
-    void set_cutoff_dphi              (float val) { m_cutoff_dphi        = val; };
+    void set_cluster_nzwidths         (float val) { m_cluster_nzwidths   = val; };
     void set_cutoff_deta              (float val) { m_cutoff_deta        = val; };
-    void set_smallsearch_dphi         (float val) { m_same_dphi          = val; };
+    void set_cutoff_dphi              (float val) { m_cutoff_dphi        = val; };
+    void set_nmin_truth_cluster_ratio (float val) { m_nmincluster_ratio  = val; };
     void set_smallsearch_deta         (float val) { m_same_deta          = val; };
+    void set_smallsearch_dphi         (float val) { m_same_dphi          = val; };
 
     void set_max_nreco_per_truth (unsigned short val) { m_max_nreco_per_truth = val; };
     void set_max_ntruth_per_reco (unsigned short val) { m_max_ntruth_per_reco = val; };
@@ -107,13 +103,13 @@ class TruthRecoTrackMatching : public SubsysReco
     unsigned short m_max_ntruth_per_reco;
 
 
-    std::array<double, 55> m_phistep; // the phistep squared
-    double m_zstep;
+    std::array<double, 55> m_phistep {0.}; // the phistep squared
+    double m_zstep {0.};
 
-    std::map<unsigned short, unsigned short>  m_nmatched_index_true;
+    std::map<unsigned short, unsigned short>  m_nmatched_index_true {};
 
-    std::map<unsigned short, unsigned short>* m_nmatched_id_reco;
-    std::map<unsigned short, unsigned short>* m_nmatched_id_true;
+    std::map<unsigned short, unsigned short>* m_nmatched_id_reco {nullptr};
+    std::map<unsigned short, unsigned short>* m_nmatched_id_true {nullptr};
 
 
     //--------------------------------------------------
@@ -130,25 +126,6 @@ class TruthRecoTrackMatching : public SubsysReco
 
     // Output data node:
     EmbRecoMatchContainer   *m_EmbRecoMatchContainer   {nullptr};
-
-    // Output TTree for the sake of checking results statistics:
-    TFile * m_fileout;
-    TTree * m_treeout;
-    /* bool    m_maketree { true }; */
-
-    // branches for the output tree
-    /* float b_reco_phi,  b_reco_eta,  b_reco_pt, */
-    /*       b_truth_phi, b_truth_eta, b_truth_pt; */
-
-    /* std::vector<int>   b_reco_cl_layer, b_truth_cl_layer; */
-
-    /* std::vector<float> b_reco_cl_phi,  b_reco_cl_phiwidth,  b_reco_cl_z,  b_reco_cl_zwidth, */
-    /*                    b_truth_cl_phi, b_truth_cl_phiwidth, b_truth_cl_z, b_truth_cl_zwidth; */
-
-    //----------------------------------------------------------
-    // Local data types for manipulation and passing
-    //   * provide indices to arrays and tuples in constexp ints
-    //----------------------------------------------------------
 
     //--------------------------------------------------
     //    RECO data for a "table" of reconstructed tracks
@@ -217,42 +194,23 @@ class TruthRecoTrackMatching : public SubsysReco
    
     //    Main functions
     // -------------------------------------------------------------------
-    int createNodes(PHCompositeNode* topNode);
     std::pair<std::vector<unsigned short>, std::vector<unsigned short>> 
       find_box_matches(float truth_phi, float truth_eta, float truth_pt); // will populate to truth_to_reco_map and 
     void match_tracks_in_box( std::vector<std::pair<unsigned short,unsigned short>>& indices );  // pairs of {id_true, id_reco}
     
     //    Helper functions
     // -------------------------------------------------------------------
-    float delta_outer_pt(float) const;
-    float delta_inner_pt(float) const;
+    float delta_outer_pt (float) const;
+    float delta_inner_pt (float) const;
     float abs_dphi (float phi0, float phi1);
+    float sigma_CompMatchClusters (PossibleMatch&);
+    bool  skip_match (PossibleMatch& match);
+    bool  at_nmax_index_true (unsigned short) ; // test if the truth track already has maximum matches matches
+    bool  at_nmax_id_reco    (unsigned short)    ;    // "           reco                                          "
 
-    //       Functions for gettings sets of TrkrClusters associated with tracks
-    // ------------------------------------------------------------------------
-    std::array<TrkrDefs::cluskey,55> truekey_arr55   (int id_true);              // get cluster keys for truth track
-    std::array<std::vector<TrkrDefs::cluskey>,55> recokey_arr55vec(int id_reco); // get cluster keys for reco track
-
-    /* PossibleMatch make_PossibleMatch( */
-    /*     unsigned short index_reco, */ 
-    /*     unsigned short index_truth, */ 
-    /*     std::array<TrkrDefs::cluskey,55>& keys_truth); */
-
-    /* CompCluster                         make_CompCluster(TrkrDefs::cluskey truthkey, TrkrDefs::cluskey recokey); */
-    float sigma_CompMatchClusters(PossibleMatch&);
-
-    bool skip_match(PossibleMatch& match); 
-    bool at_nmax_index_true(unsigned short) ; // test if the truth track already has maximum matches matches
-    bool at_nmax_id_reco(unsigned short)    ;    // "           reco                                          "
-
-    std::pair<bool, float> compare_cluster_pair(TrkrDefs::cluskey key_T, TrkrDefs::cluskey key_R, TrkrDefs::hitsetkey key, bool calc_sigma=false);
-    // skip match is true or reco track already matched
-    /* std::pair<bool, double> compare_clusters(TrkrDefs::cluskey truthkey, TrkrDefs::cluskey recokey, bool print=false); */
-    /* bool is_match(const CompCluster&); */
-    /* bool match_pass_cuts(PossibleMatch& match); */
-  
-    // locally - maybe?
-    /* TrackSeedContainer *m_tpcTrackSeedContainer   {nullptr}; // Get the seeds from the tracks to get the clusters */
+    std::pair<bool, float> compare_cluster_pair(TrkrDefs::cluskey key_T,
+        TrkrDefs::cluskey key_R, TrkrDefs::hitsetkey key, bool
+        calc_sigma=false);
 };
 
 
