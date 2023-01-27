@@ -233,23 +233,23 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
       const double tile_thickness = static_cast<G4Box*>(tile_logic->GetSolid())->GetXHalfLength()*2;
       radius = inner_radius + tile_thickness/2;
     }
-    
-    // palce tile in master volume
+
+    // place tile in master volume
     const double centerZ = tile.m_centerZ*cm;
     const double centerPhi = tile.m_centerPhi;
- 
-    // place
-    /* not completely sure why one must rotate with oposite angle as that use for the translation */
-    auto rotation = new G4RotationMatrix;
-    rotation->rotateZ( -centerPhi*radian );
 
+    G4RotationMatrix rotation;
+    rotation.rotateZ( centerPhi*radian );
+    
     const G4ThreeVector center(
       radius*std::cos(centerPhi),
       radius*std::sin(centerPhi),
       centerZ );
+
+    G4Transform3D transform( rotation, center );
     
     const auto tilename = GetName() + "_tile_" + std::to_string(tileid);
-    new G4PVPlacement( rotation, center, tile_logic, tilename+"_phys", logicWorld, false, 0, OverlapCheck() );
+    new G4PVPlacement( transform, tile_logic, tilename+"_phys", logicWorld, false, 0, OverlapCheck() );
   }
   
   // adjust active volume radius to account for world placement
