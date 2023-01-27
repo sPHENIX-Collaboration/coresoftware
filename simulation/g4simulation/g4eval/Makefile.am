@@ -5,10 +5,9 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include/eigen3 \
   -I$(OFFLINE_MAIN)/include \
   -I${G4_MAIN}/include \
-  -I`root-config --incdir`
+	-isystem`root-config --incdir`
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -47,6 +46,8 @@ pkginclude_HEADERS = \
   CaloRawClusterEval.h \
   CaloRawTowerEval.h \
   CaloTruthEval.h \
+  DSTCompressor.h \
+  DSTEmulator.h \
   EventCounter_hp.h \
   EventEvaluator.h \
   JetEvalStack.h \
@@ -55,24 +56,24 @@ pkginclude_HEADERS = \
   JetTruthEval.h \
   MicromegasEvaluator_hp.h \
   MomentumEvaluator.h \
-  PHG4DstCompressReco.h \
   PHG4DSTReader.h \
+  PHG4DstCompressReco.h \
   SimEvaluator_hp.h \
+  SvtxClusterEval.h \
   SvtxEvalStack.h \
   SvtxEvaluator.h \
   SvtxHitEval.h \
-  SvtxClusterEval.h \
   SvtxTrackEval.h \
   SvtxTruthEval.h \
   SvtxTruthRecoTableEval.h \
   SvtxVertexEval.h \
   TrackEvaluation.h \
-  TrackSeedTrackMapConverter.h \
-  DSTEmulator.h \
   TrackEvaluationContainer.h \
   TrackEvaluationContainerv1.h \
   TrackingEvaluator_hp.h \
-  DSTCompressor.h \
+  TrackEvaluationContainerv1.h  \
+  TrackSeedTrackMapConverter.h \
+  TruthRecoTrackMatching.h \
   compressor_generator.h
 
 ROOTDICTS_io = \
@@ -100,33 +101,37 @@ libg4eval_la_SOURCES = \
   $(ROOTDICTS) \
   BaseTruthEval.cc \
   CaloEvalStack.cc \
-  CaloTruthEval.cc \
-  CaloRawTowerEval.cc \
-  CaloRawClusterEval.cc \
   CaloEvaluator.cc \
+  CaloRawClusterEval.cc \
+  CaloRawTowerEval.cc \
+  CaloTruthEval.cc \
+  DSTEmulator.cc \
   EventCounter_hp.cc \
   EventEvaluator.cc \
   JetEvalStack.cc \
-  JetTruthEval.cc \
-  JetRecoEval.cc \
   JetEvaluator.cc \
   MicromegasEvaluator_hp.cc \
   MomentumEvaluator.cc \
   PHG4DSTReader.cc \
   PHG4DstCompressReco.cc \
   SimEvaluator_hp.cc \
-  SvtxEvalStack.cc \
-  SvtxTruthEval.cc \
-  SvtxHitEval.cc \
+  JetRecoEval.cc \
+  JetTruthEval.cc \
+  MomentumEvaluator.cc \
+  PHG4DSTReader.cc \
+  PHG4DstCompressReco.cc \
   SvtxClusterEval.cc \
+  SvtxEvalStack.cc \
+  SvtxEvaluator.cc \
+  SvtxHitEval.cc \
   SvtxTrackEval.cc \
+  SvtxTruthEval.cc \
   SvtxTruthRecoTableEval.cc \
   SvtxVertexEval.cc \
-  SvtxEvaluator.cc \
   TrackEvaluation.cc \
   TrackingEvaluator_hp.cc \
   TrackSeedTrackMapConverter.cc \
-  DSTEmulator.cc
+  TruthRecoTrackMatching.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
