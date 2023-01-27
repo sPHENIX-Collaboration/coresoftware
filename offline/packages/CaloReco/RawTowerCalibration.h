@@ -55,6 +55,12 @@ class RawTowerCalibration : public SubsysReco
     // use conditions DB file/wrapper (non-xml) file for most gain tracing correction factors
     kDbfile_tbt_gain_corr = 3
   };
+  enum ProcessTowerType
+  {
+    kRawTowerOnly= 0,
+    kTowerInfoOnly = 1,
+    kBothTowers =2
+  };
 
   enu_calib_algorithm
   get_calib_algorithm() const
@@ -153,11 +159,10 @@ class RawTowerCalibration : public SubsysReco
   }
 
 
-  void set_towerinfo(int UseTowerInfo )
+  void set_towerinfo(RawTowerCalibration::ProcessTowerType UseTowerInfo )
   {
     m_UseTowerInfo = UseTowerInfo;
   }
-
 
 
  protected:
@@ -207,7 +212,7 @@ class RawTowerCalibration : public SubsysReco
   bool m_UseConditionsDB = false;
 
   CaloCalibSimpleCorrFile *_cal_dbfile = nullptr;
-  int m_UseTowerInfo = 2;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
+  RawTowerCalibration::ProcessTowerType m_UseTowerInfo = RawTowerCalibration::ProcessTowerType::kBothTowers;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
 
 
 };
