@@ -69,7 +69,6 @@ pkginclude_HEADERS = \
   SvtxVertexEval.h \
   TrackEvaluation.h \
   TrackEvaluationContainer.h \
-  TrackEvaluationContainerv1.h \
   TrackingEvaluator_hp.h \
   TrackEvaluationContainerv1.h  \
   TrackSeedTrackMapConverter.h \
@@ -111,9 +110,6 @@ libg4eval_la_SOURCES = \
   JetEvalStack.cc \
   JetEvaluator.cc \
   MicromegasEvaluator_hp.cc \
-  MomentumEvaluator.cc \
-  PHG4DSTReader.cc \
-  PHG4DstCompressReco.cc \
   SimEvaluator_hp.cc \
   JetRecoEval.cc \
   JetTruthEval.cc \
