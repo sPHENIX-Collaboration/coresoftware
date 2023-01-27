@@ -34,11 +34,6 @@
 
 #include <EvtGenExternal/EvtExternalGenList.hh>
 
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-// #include <EvtGenBase/EvtHepMCEvent.hh>
-// #pragma GCC diagnostic pop
-
 #include <HepMC3/Attribute.h>  // for string
 
 #include <Geant4/G4LorentzVector.hh>
