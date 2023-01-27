@@ -63,7 +63,7 @@ G4Pythia6Decayer::G4Pythia6Decayer()
   , fMessenger(this)
   , fVerboseLevel(0)
   , fDecayType(fgkDefaultDecayType)
-  , fDecayProductsArray(0)
+  , fDecayProductsArray(nullptr)
 {
   /// Standard constructor
 
@@ -95,11 +95,12 @@ G4ParticleDefinition* G4Pythia6Decayer::
   // get particle definition from G4ParticleTable
   G4int pdgEncoding = particle->fKF;
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particleDefinition = 0;
-  if (pdgEncoding != 0)
+  G4ParticleDefinition* particleDefinition = nullptr;
+  if (pdgEncoding != 0) {
     particleDefinition = particleTable->FindParticle(pdgEncoding);
+}
 
-  if (particleDefinition == 0 && warn)
+  if (particleDefinition == nullptr && warn)
   {
     std::cerr
         << "G4Pythia6Decayer: GetParticleDefinition: " << std::endl
@@ -120,7 +121,8 @@ G4Pythia6Decayer::CreateDynamicParticle(const Pythia6Particle* particle) const
 
   // get particle properties
   const G4ParticleDefinition* particleDefinition = GetParticleDefinition(particle);
-  if (!particleDefinition) return 0;
+  if (!particleDefinition) { return nullptr;
+}
 
   G4ThreeVector momentum = GetParticleMomentum(particle);
 
@@ -163,9 +165,11 @@ G4int G4Pythia6Decayer::CountProducts(G4int channel, G4int particle)
   /// Count number of decay products
 
   G4int np = 0;
-  for (G4int i = 1; i <= 5; i++)
-    if (std::abs(Pythia6::Instance()->GetKFDP(channel, i)) == particle)
+  for (G4int i = 1; i <= 5; i++) {
+    if (std::abs(Pythia6::Instance()->GetKFDP(channel, i)) == particle) {
       np++;
+}
+}
   return np;
 }
 
@@ -216,11 +220,12 @@ void G4Pythia6Decayer::ForceParticleDecay(G4int particle, G4int* products,
   for (G4int channel = ifirst; channel <= ilast; channel++)
   {
     G4int nprod = 0;
-    for (G4int i = 0; i < npart; i++)
+    for (G4int i = 0; i < npart; i++) {
       nprod += (CountProducts(channel, products[i]) >= mult[i]);
-    if (nprod)
+}
+    if (nprod) {
       pythia6->SetMDME(channel, 1, 1);
-    else
+    } else
     {
       pythia6->SetMDME(channel, 1, 0);
     }
@@ -312,10 +317,11 @@ void G4Pythia6Decayer::ForceOmega()
   {
     if (pythia6->GetKFDP(channel, 1) == iLambda0 &&
         pythia6->GetKFDP(channel, 2) == iKMinus &&
-        pythia6->GetKFDP(channel, 3) == 0)
+        pythia6->GetKFDP(channel, 3) == 0) {
       pythia6->SetMDME(channel, 1, 1);
-    else
+    } else {
       pythia6->SetMDME(channel, 1, 0);
+}
     // selected channel ?
   }  // decay channels
 }
@@ -328,7 +334,8 @@ void G4Pythia6Decayer::ForceDecay(EDecayType decayType)
 
   Pythia6::Instance()->SetMSTJ(21, 2);
 
-  if (fDecayType == kNoDecayHeavy) return;
+  if (fDecayType == kNoDecayHeavy) { return;
+}
 
   //
   // select mode
@@ -636,7 +643,8 @@ void G4Pythia6Decayer::ForceDecayType(EDecayType decayType)
   /// Force a given decay type
 
   // Do nothing if the decay type is not different from current one
-  if (decayType == fDecayType) return;
+  if (decayType == fDecayType) { return;
+}
 
   fDecayType = decayType;
   ForceDecay(fDecayType);

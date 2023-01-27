@@ -57,9 +57,9 @@ G4Pythia6DecayerMessenger::G4Pythia6DecayerMessenger(
     G4Pythia6Decayer* pythia6Decayer)
   : G4UImessenger()
   , fPythia6Decayer(pythia6Decayer)
-  , fDirectory(0)
-  , fVerboseCmd(0)
-  , fDecayTypeCmd(0)
+  , fDirectory(nullptr)
+  , fVerboseCmd(nullptr)
+  , fDecayTypeCmd(nullptr)
 {
   /// Standard constructor
 

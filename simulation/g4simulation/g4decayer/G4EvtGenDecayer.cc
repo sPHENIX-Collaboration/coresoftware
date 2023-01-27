@@ -132,8 +132,9 @@ G4ParticleDefinition* G4EvtGenDecayer::
   // get particle definition from G4ParticleTable
   G4int pdgEncoding = ParPDGID;
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
-  G4ParticleDefinition* particleDefinition = 0;
-  if (pdgEncoding != 0) particleDefinition = particleTable->FindParticle(pdgEncoding);
+  G4ParticleDefinition* particleDefinition = nullptr;
+  if (pdgEncoding != 0) { particleDefinition = particleTable->FindParticle(pdgEncoding);
+}
 
   return particleDefinition;
 }
@@ -170,7 +171,8 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 
   auto part = evt->particles()[0];
 
-  if (part->pdg_id() != pdgEncoding) std::cout << "Issue Found: The first particle in the decay chain is NOT the incoming particle decayed by EvtGen" << std::endl;
+  if (part->pdg_id() != pdgEncoding) { std::cout << "Issue Found: The first particle in the decay chain is NOT the incoming particle decayed by EvtGen" << std::endl;
+}
 
   stack.push(part);
 
@@ -179,19 +181,21 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
     auto particle = stack.top();
     stack.pop();
 
-    for (auto children : particle->children())
+    for (const auto& children : particle->children())
     {
       float EvtWidth = 9999;
       int pdg = children->pdg_id();
 
       G4ParticleDefinition* particleDefinition = GetParticleDefinition(pdg);
-      if (EvtPDL::evtIdFromLundKC(pdg).getId() != -1) EvtWidth = EvtPDL::getWidth(EvtPDL::evtIdFromLundKC(pdg)) * 1000000;  // Decay Width Unit: GeV -> keV to define stable particles in EvtGen -> G4
+      if (EvtPDL::evtIdFromLundKC(pdg).getId() != -1) { EvtWidth = EvtPDL::getWidth(EvtPDL::evtIdFromLundKC(pdg)) * 1000000;  // Decay Width Unit: GeV -> keV to define stable particles in EvtGen -> G4
+}
 
       if (particleDefinition && EvtWidth < WidthThreshold)
       {
-        bool SameVtxPos = 1;
+        bool SameVtxPos = true;
 
-        if (children->production_vertex()->position().x() != particle->end_vertex()->position().x() || children->production_vertex()->position().y() != particle->end_vertex()->position().y() || children->production_vertex()->position().z() != particle->end_vertex()->position().z() || children->production_vertex()->position().t() != particle->end_vertex()->position().t()) SameVtxPos = 0;
+        if (children->production_vertex()->position().x() != particle->end_vertex()->position().x() || children->production_vertex()->position().y() != particle->end_vertex()->position().y() || children->production_vertex()->position().z() != particle->end_vertex()->position().z() || children->production_vertex()->position().t() != particle->end_vertex()->position().t()) { SameVtxPos = false;
+}
         if (!SameVtxPos)
         {
           std::cout << "Issue Found: in this vertex, particles pushed to GEANT have different production positions, need to check and understand why!!!" << std::endl;
@@ -235,7 +239,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void G4EvtGenDecayer::SetDecayTable(const string decayTable, bool useXml)
+void G4EvtGenDecayer::SetDecayTable(const string& decayTable, bool useXml)
 {
   mEvtGen->readUDecay(decayTable, useXml);
 }

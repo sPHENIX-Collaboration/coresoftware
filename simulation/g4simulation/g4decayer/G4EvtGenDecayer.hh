@@ -78,7 +78,7 @@ class G4EvtGenDecayer : public G4VExtDecayer
  // void Decay(int pdgId, std::unique_ptr<G4LorentzVector> p);
 //  int ImportParticles(std::vector<int>& DecayPDGID, std::vector<int>& DecayStatus, std::vector<G4LorentzVector>& DecayMom, std::vector<G4LorentzVector>& DecayVtx);
   void SetVertex(G4LorentzVector* r);
-  void SetDecayTable(const std::string decayTable, bool useXml);
+  void SetDecayTable(const std::string& decayTable, bool useXml);
  // void ClearEvent();
  // void AppendParticle(int pdg, std::unique_ptr<G4LorentzVector> _p);
 

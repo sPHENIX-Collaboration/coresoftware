@@ -43,7 +43,7 @@
 #include <Geant4/G4VProcess.hh>  // for G4VProcess
 #include <Geant4/G4Version.hh>
 
-#include <stddef.h>                         // for size_t
+#include <cstddef>                         // for size_t
 #include <iostream>                         // for operator<<, endl, basic_o...
 #include <string>   // for operator<<
 
