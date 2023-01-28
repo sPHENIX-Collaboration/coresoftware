@@ -1,8 +1,8 @@
 #include "PHEvtGenRandomEngine.hh"
-#include <phool/PHRandomSeed.h>
-//#include <g4main/PHG4ParticleGeneratorBase.h>
 
-#include <iostream>
+#include <phool/PHRandomSeed.h>
+
+#include <gsl/gsl_rng.h>  // for gsl_rng_alloc, gsl_rng_free, gsl_rng...
 
 PHEvtGenRandomEngine::PHEvtGenRandomEngine()
 {
@@ -13,9 +13,7 @@ PHEvtGenRandomEngine::PHEvtGenRandomEngine()
 
 PHEvtGenRandomEngine::~PHEvtGenRandomEngine()
 {
-  // std::cout << "Detroy the Random Generator" << std::endl;
   gsl_rng_free(RandomGenerator());
-  // delete m_RandomGenerator;
 }
 
 double PHEvtGenRandomEngine::random()

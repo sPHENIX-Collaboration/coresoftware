@@ -32,63 +32,27 @@
 #ifndef G4_EVTGEN_DECAYER_H
 #define G4_EVTGEN_DECAYER_H
 
-//#include "G4EvtGenDecayerMessenger.hh"
+#include <EvtGenExternal/EvtExternalGenList.hh>
 
-#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
-#include <Geant4/G4Types.hh>        // for G4int, G4bool
+#include <HepMC3/Attribute.h>  // for string
+
+#include <Geant4/G4LorentzVector.hh>
+#include <Geant4/G4Types.hh>  // for G4int, G4bool
 #include <Geant4/G4VExtDecayer.hh>
 
 #include <cstddef>
-
-#include <EvtGen/EvtGen.hh>
-#include <EvtGenBase/EvtRandom.hh>
-#include <EvtGenBase/EvtRandomEngine.hh>
-//#include <EvtGenBase/EvtSimpleRandomEngine.hh>
-#include <EvtGenExternal/EvtExternalGenList.hh>
-
-#include <EvtGenBase/EvtPDL.hh>
-#include <EvtGenBase/EvtParticle.hh>
-#include <EvtGenBase/EvtParticleFactory.hh>
-#include <EvtGenBase/EvtRandom.hh>
-
-#include <EvtGenBase/EvtAbsRadCorr.hh>
-#include <EvtGenBase/EvtDecayBase.hh>
-#include <EvtGenBase/EvtMTRandomEngine.hh>
-#include <EvtGenExternal/EvtExternalGenList.hh>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <HepMC3/GenEvent.h>
-#include <HepMC/GenEvent.h>
-#include <EvtGenBase/EvtHepMCEvent.hh>
-#pragma GCC diagnostic pop
-
-#include <HepMC3/GenParticle.h>
-#include <HepMC3/GenVertex.h>
-#include <HepMC3/HepMC3.h>
-
-#include <HepMC/GenParticle.h>
-#include <HepMC/GenVertex.h>
-
-#include <G4LorentzVector.hh>
-
-#include "PHEvtGenRandomEngine.hh"
+#include <list>    // for list
+#include <string>  // for string, allocator
 
 class G4DecayProducts;
-class G4DynamicParticle;
 class G4ParticleDefinition;
 class G4Track;
 
-class EvtStdlibRandomEngine;
-class EvtParticle;
 class EvtRandomEngine;
+class EvtAbsRadCorr;
+class EvtDecayBase;
+class EvtGen;
 
-namespace CLHEP
-{
-  class HepLorentzVector;
-}
-
-/// Pythia6 decayer
 ///
 /// Implements the G4VExtDecayer abstract class using the Pythia6 interface.
 /// According to TPythia6Decayer class in Root:
@@ -104,27 +68,27 @@ class G4EvtGenDecayer : public G4VExtDecayer
   virtual G4DecayProducts* ImportDecayProducts(const G4Track& track);
   void SetVerboseLevel(G4int verboseLevel) { fVerboseLevel = verboseLevel; }
 
-//  void PHEvtGenDecayer();
+  //  void PHEvtGenDecayer();
   //	virtual void ~PHEvtGenDecayer();
- // void Decay(int pdgId, std::unique_ptr<G4LorentzVector> p);
-//  int ImportParticles(std::vector<int>& DecayPDGID, std::vector<int>& DecayStatus, std::vector<G4LorentzVector>& DecayMom, std::vector<G4LorentzVector>& DecayVtx);
+  // void Decay(int pdgId, std::unique_ptr<G4LorentzVector> p);
+  //  int ImportParticles(std::vector<int>& DecayPDGID, std::vector<int>& DecayStatus, std::vector<G4LorentzVector>& DecayMom, std::vector<G4LorentzVector>& DecayVtx);
   void SetVertex(G4LorentzVector* r);
-  void SetDecayTable(const string decayTable, bool useXml);
- // void ClearEvent();
- // void AppendParticle(int pdg, std::unique_ptr<G4LorentzVector> _p);
+  void SetDecayTable(const std::string& decayTable, bool useXml);
+  // void ClearEvent();
+  // void AppendParticle(int pdg, std::unique_ptr<G4LorentzVector> _p);
 
  private:
   /// Not implemented
   G4EvtGenDecayer(const G4EvtGenDecayer& right);
   /// Not implemented
   G4EvtGenDecayer& operator=(const G4EvtGenDecayer& right);
-  //G4EvtGenDecayer* myEvtGenDecayer = NULL;
- // EvtGen* myGenerator;
+  // G4EvtGenDecayer* myEvtGenDecayer = NULL;
+  // EvtGen* myGenerator;
 
   G4ParticleDefinition*
   GetParticleDefinition(int ParPDGID) const;
 
-//  bool IsG4Detectable(int ParPDGID, G4bool warn = true) const;
+  //  bool IsG4Detectable(int ParPDGID, G4bool warn = true) const;
 
   std::string Decay_DEC = "InputDECAYFiles/DECAY.DEC";
   std::string Evt_pdl = "InputDECAYFiles/evt.pdl";
@@ -133,21 +97,21 @@ class G4EvtGenDecayer : public G4VExtDecayer
   EvtRandomEngine* mEvtGenRandomEngine = NULL;
   EvtExternalGenList genList;
 
-//  EvtParticle* mParticle;
+  //  EvtParticle* mParticle;
   EvtAbsRadCorr* radCorrEngine = NULL;
-  std::list<EvtDecayBase*> extraModels;  
- 
-//! WidthThreshold on the particle mass width in keV for defining a stable particle in the decay process
-//! Particles with mass width below the WidthThreshold will be considered stable, and be passed to Geant4 as the final state of a decay vertex
-//! Particles with mass width above the WidthThreshold will be considered unstable, and be decayed in EvtGen at the same vertex as its parent. 
-//! Default value is 5 MeV so that the phi meson with a width of 4.9 MeV is decayed in Geant4
-  float WidthThreshold = 5000.0;   // 
+  std::list<EvtDecayBase*> extraModels;
+
+  //! WidthThreshold on the particle mass width in keV for defining a stable particle in the decay process
+  //! Particles with mass width below the WidthThreshold will be considered stable, and be passed to Geant4 as the final state of a decay vertex
+  //! Particles with mass width above the WidthThreshold will be considered unstable, and be decayed in EvtGen at the same vertex as its parent.
+  //! Default value is 5 MeV so that the phi meson with a width of 4.9 MeV is decayed in Geant4
+  float WidthThreshold = 5000.0;  //
 
   //	TLorentzVector * mVertex = new TLorentzVector;
-//  bool mOwner;
-//  bool mDebug = false;
+  //  bool mOwner;
+  //  bool mDebug = false;
 
-  //EvtVector4R* mVertex;
+  // EvtVector4R* mVertex;
 
   G4int fVerboseLevel;  ///< verbose level
                         //  ParticleVector*  fDecayProductsArray ; ///< array of decay products

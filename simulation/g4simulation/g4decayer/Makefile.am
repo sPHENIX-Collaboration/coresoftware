@@ -54,16 +54,19 @@ pkginclude_HEADERS = \
 ################################################
 # linking tests
 
+BUILT_SOURCES = \
+  testexternals.cc
+
 noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = \
-  testexternals.C
+  testexternals.cc
 
 testexternals_LDADD = \
   libg4decayer.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
@@ -71,4 +74,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict*
+	rm -f $(BUILT_SOURCES)

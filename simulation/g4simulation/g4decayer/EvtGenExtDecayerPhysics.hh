@@ -35,7 +35,6 @@
 
 #include <Geant4/G4String.hh>
 #include <Geant4/G4VPhysicsConstructor.hh>
-#include "G4EvtGenDecayer.hh"
 
 /// The builder for external decayer.
 ///
@@ -63,4 +62,4 @@ class EvtGenExtDecayerPhysics : public G4VPhysicsConstructor
   EvtGenExtDecayerPhysics& operator=(const EvtGenExtDecayerPhysics& right);
 };
 
-#endif  //P6D_EXT_DECAYER_PHYSICS_H
+#endif  // P6D_EXT_DECAYER_PHYSICS_H
