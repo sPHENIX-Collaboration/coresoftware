@@ -55,6 +55,14 @@ TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
 
   _clones->SetOwner();
   _clones->SetName("TowerInfoContainerv1");
+
+  for (int i=0; i<nchannels; ++i)
+  {
+    // as tower numbers are fixed per event
+    // construct towers once per run, and clear the towers for first use
+    _clones->ConstructedAt(i,"C");
+  }
+
 }
 
 TowerInfoContainerv1::~TowerInfoContainerv1()
@@ -64,40 +72,7 @@ TowerInfoContainerv1::~TowerInfoContainerv1()
 
 void TowerInfoContainerv1::Reset()
 {
-  _map.clear();
-  _towers.clear();
-  _clones->Clear();
-}
-
-void TowerInfoContainerv1::initialize_towers()
-{
-  
-  int nchannels = 744;
-  if (_detector == DETECTOR::SEPD)
-    {
-      nchannels= 744;
-    }
-  else if (_detector == DETECTOR::EMCAL)
-    {
-      nchannels= 24576;
-    }
-  else if (_detector == DETECTOR::HCAL)
-    {
-    nchannels= 1536;
-    }
-  TowerInfov1 *tower = new TowerInfov1();
-  tower->set_energy(0);
-  for (int i = 0 ; i < nchannels;i++)
-    {
-      new ((*_clones)[i]) TowerInfov1(*tower);
-    }
-  delete tower;
-}
-
-
-void TowerInfoContainerv1::add(TowerInfov1* ti, int pos)
-{
-  new ((*_clones)[pos]) TowerInfov1(*ti);
+  _clones->Clear("C");
 }
 
 TowerInfov1* TowerInfoContainerv1::at(int pos)

@@ -31,11 +31,9 @@ class TowerInfoContainer : public PHObject
   typedef std::pair<Iterator, Iterator> Range;
 
   virtual void Reset() override {}
-  virtual void add(TowerInfo* /*ti*/, int /*pos*/) {}
   virtual TowerInfo* at(int /*pos*/) { return nullptr; }
   virtual unsigned int encode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
   virtual unsigned int decode_key(unsigned int /*towerIndex*/) { return UINT_MAX; }
-  virtual void initialize_towers(){}
 
   virtual size_t size() { return 0; }
 

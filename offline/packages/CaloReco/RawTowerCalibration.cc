@@ -239,7 +239,6 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
 
   if ( m_UseTowerInfo > 0)
     {
-      _calib_towerinfos->initialize_towers();  // initializes the TClones array for every tower in the detector system with 0 energy towers
       TowerInfoContainer::ConstRange begin_end = _raw_towerinfos->getTowers();
       TowerInfoContainer::ConstIterator rtiter;
       for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
