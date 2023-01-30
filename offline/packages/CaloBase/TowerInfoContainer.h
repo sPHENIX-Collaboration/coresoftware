@@ -19,7 +19,8 @@ class TowerInfoContainer : public PHObject
   {
     EMCAL = 0,
     HCAL = 1,
-    SEPD = 2
+    SEPD = 2,
+    DETECTOR_INVALID = 9999
   };
 
   TowerInfoContainer() = default;

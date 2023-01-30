@@ -11,7 +11,11 @@
 class TowerInfoContainerv1 : public TowerInfoContainer
 {
  public:
-  TowerInfoContainerv1(DETECTOR detec = DETECTOR::EMCAL);
+  TowerInfoContainerv1(DETECTOR detec);
+
+  // default constructor for ROOT IO
+  TowerInfoContainerv1() {}
+
   ~TowerInfoContainerv1() override;
   typedef std::map<unsigned int, TowerInfo *> Map;
   typedef Map::iterator Iterator;
@@ -31,8 +35,8 @@ class TowerInfoContainerv1 : public TowerInfoContainer
   unsigned int getTowerEtaBin(unsigned int towerIndex) override;
 
  protected:
-  TClonesArray *_clones;
-  DETECTOR _detector;
+  TClonesArray *_clones = nullptr;
+  DETECTOR _detector = DETECTOR_INVALID;
 
   //! static Tower index map, not saved on DST output and constructed on the fly
   Map _towers;  //!
