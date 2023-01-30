@@ -2738,7 +2738,7 @@ void AnnularFieldSim::PlotFieldSlices(const char *filebase, TVector3 pos, char w
   return;
 }
 
-void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int r_subsamples, int p_subsamples, int z_subsamples, int /*z_substeps*/, bool andCartesian, int nSteps = 500)
+void AnnularFieldSim::GenerateSeparateDistortionMaps(const char *filebase, int r_subsamples, int p_subsamples, int z_subsamples, int /*z_substeps*/, bool andCartesian, int nSteps)
 {
   //generates the distortion map for one or both sides of the detector, separating them so
   //they do not try to interpolate across the CM.
