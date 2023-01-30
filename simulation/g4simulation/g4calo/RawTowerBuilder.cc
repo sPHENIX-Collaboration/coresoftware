@@ -121,10 +121,6 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
       exit(1);
     }
 
-    if (m_UseTowerInfo > 0)
-      {
-	m_TowerInfoContainer->initialize_towers();
-      } 
     // get cells
   std::string cellnodename = "G4CELL_" + m_Detector;
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
@@ -228,13 +224,15 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
 	unsigned int towerkey = (etabin << 16U) + phibin;
 	unsigned int towerindex = m_TowerInfoContainer->decode_key(towerkey);
 	towerinfo = m_TowerInfoContainer->at(towerindex);
-	if (!towerinfo)
-	  {
-	    towerinfo = new TowerInfo();
-	    towerinfo->set_energy(0);
-	    m_TowerInfoContainer->add(towerinfo,towerindex); //By way of the initializer this should never happen
-	  }
-	towerinfo->set_energy(towerinfo->get_energy() + cell_weight);
+        if (!towerinfo)
+        {
+          std::cout << __PRETTY_FUNCTION__ << ": missing towerkey = " << towerkey << " in m_TowerInfoContainer!";
+          exit(1);
+        }
+        else
+        {
+          towerinfo->set_energy(towerinfo->get_energy() + cell_weight);
+        }
       }
   }
 

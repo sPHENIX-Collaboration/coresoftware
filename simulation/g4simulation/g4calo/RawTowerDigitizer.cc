@@ -145,13 +145,6 @@ int RawTowerDigitizer::process_event(PHCompositeNode */**topNode*/)
   // pedestals
   RawTowerGeomContainer::ConstRange all_towers = m_RawTowerGeom->get_tower_geometries();
 
-
-  if (m_UseTowerInfo > 0)
-    {
-      m_RawTowerInfos->initialize_towers();
-    } 
-  
-
   double deadChanEnergy = 0;
 
   for (RawTowerGeomContainer::ConstIterator it = all_towers.first;

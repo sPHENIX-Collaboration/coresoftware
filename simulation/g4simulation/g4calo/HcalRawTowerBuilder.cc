@@ -310,24 +310,6 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
       exit(1);
     }
 
-
-    if (m_UseTowerInfo > 0)
-      {
-	// int nchannels = 1536; // number of channels for the HCals
-	// for (int i = 0; i < nchannels;i++) // this is implemented to ensure that every sequential element in the TClonesArray is populated with a 0 energy tower
-	//   {
-	//     TowerInfo  * towerinfo = m_TowerInfoContainer->at(i);
-	//     if (!towerinfo)
-	//       {
-	// 	towerinfo = new TowerInfo();
-	// 	towerinfo->set_energy(0);
-	// 	m_TowerInfoContainer->add(towerinfo,i); 
-	//       }
-	//   }
-	m_TowerInfoContainer->initialize_towers();
-      } 
-
-
   // get cells
   std::string cellnodename = "G4CELL_" + m_InputDetector;
   PHG4CellContainer *slats = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
@@ -411,19 +393,18 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
 	
 	unsigned int towerkey = (etabin << 16U) + phibin;
 	unsigned int towerindex = m_TowerInfoContainer->decode_key(towerkey);
-	
-	towerinfo = m_TowerInfoContainer->at(towerindex);
-	if (!towerinfo)
-	  {
-	    towerinfo = new TowerInfo();
-	    towerinfo->set_energy(0);
-	    m_TowerInfoContainer->add(towerinfo,towerindex); //By way of the initializer this should never happen
-	  }
-	towerinfo->set_energy(towerinfo->get_energy() + cell_weight);
+
+        towerinfo = m_TowerInfoContainer->at(towerindex);
+        if (!towerinfo)
+        {
+          std::cout << __PRETTY_FUNCTION__ << ": missing towerkey = " << towerkey << " in m_TowerInfoContainer!";
+          exit(1);
+        }
+        else
+        {
+          towerinfo->set_energy(towerinfo->get_energy() + cell_weight);
+        }
       }
-
-
-
   }
 
   double towerE = 0;
