@@ -50,6 +50,13 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
     //! initialization value
     unknown = -1
   };
+  enum ProcessTowerType
+  {
+    kRawTowerOnly= 0,
+    kTowerInfoOnly = 1,
+    kBothTowers =2
+  };
+
 
   int get_tower_energy_src() const
   {
@@ -77,10 +84,12 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
   void set_cell_decal_factor(const int etabin, const int phibin, const double d);
   void set_tower_decal_factor(const int etabin, const int phibin, const double d);
   void Print(const std::string &what = "ALL") const override;
-  void set_towerinfo(int UseTowerInfo )
+
+  void set_towerinfo(HcalRawTowerBuilder::ProcessTowerType UseTowerInfo )
   {
     m_UseTowerInfo = UseTowerInfo;
   }
+
  private:
   void CreateNodes(PHCompositeNode *topNode);
   void ReadParamsFromNodeTree(PHCompositeNode *topNode);
@@ -94,7 +103,10 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
   int m_ChkEnergyConservationFlag = 0;
   int m_TowerEnergySrc = enu_tower_energy_src::unknown;
   int m_NcellToTower = -1;
-  int m_UseTowerInfo = 2;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
+  HcalRawTowerBuilder::ProcessTowerType m_UseTowerInfo = HcalRawTowerBuilder::ProcessTowerType::kBothTowers;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
+
+
+
   std::string m_OutputDetector;
   std::string m_InputDetector;
   std::string m_TowerNodeName;

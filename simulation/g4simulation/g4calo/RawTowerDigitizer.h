@@ -54,6 +54,13 @@ class RawTowerDigitizer : public SubsysReco
     kSiPM_photon_digitization = 2
   };
 
+  enum ProcessTowerType
+  {
+    kRawTowerOnly= 0,
+    kTowerInfoOnly = 1,
+    kBothTowers =2
+  };
+
   enu_digi_algorithm
   get_digi_algorithm() const
   {
@@ -194,7 +201,7 @@ class RawTowerDigitizer : public SubsysReco
     m_UseConditionsDB = setUseCondDB;
   }
 
-  void set_towerinfo(int UseTowerInfo )
+  void set_towerinfo(RawTowerDigitizer::ProcessTowerType UseTowerInfo )
   {
     m_UseTowerInfo = UseTowerInfo;
   }
@@ -273,8 +280,8 @@ class RawTowerDigitizer : public SubsysReco
   bool m_UseConditionsDB = false;
   CaloCalibSimpleCorrFile *m_CalDBFile = nullptr;
 
-  int m_UseTowerInfo = 2;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
 
+  RawTowerDigitizer::ProcessTowerType m_UseTowerInfo = RawTowerDigitizer::ProcessTowerType::kBothTowers;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
 
 
 };

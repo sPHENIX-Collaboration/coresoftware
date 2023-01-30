@@ -27,11 +27,16 @@ class RawTowerBuilder : public SubsysReco
   {
     //! save Geant4 energy deposition as the weight of the cells
     kEnergyDeposition,
-
     //! save light yield as the weight of the cells
     kLightYield
-
   };
+  enum ProcessTowerType
+  {
+    kRawTowerOnly= 0,
+    kTowerInfoOnly = 1,
+    kBothTowers =2
+  };
+
 
   enu_tower_energy_src
   get_tower_energy_src() const
@@ -57,7 +62,7 @@ class RawTowerBuilder : public SubsysReco
     m_SimTowerNodePrefix = simTowerNodePrefix;
   }
 
-  void set_towerinfo(int UseTowerInfo )
+  void set_towerinfo(RawTowerBuilder::ProcessTowerType UseTowerInfo )
   {
     m_UseTowerInfo = UseTowerInfo;
   }
@@ -86,7 +91,7 @@ class RawTowerBuilder : public SubsysReco
   double m_PhiMin = NAN;
   double m_EtaStep = NAN;
   double m_PhiStep = NAN;
-  int m_UseTowerInfo = 2;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
+  RawTowerBuilder::ProcessTowerType m_UseTowerInfo = RawTowerBuilder::ProcessTowerType::kBothTowers;  // 0 just produce RawTowers, 1 just produce TowerInfo objects, and 2 produce both
 };
 
 #endif  // G4CALO_RAWTOWERBUILDER_H
