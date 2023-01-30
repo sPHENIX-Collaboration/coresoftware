@@ -5,15 +5,15 @@
 
 #include <TClonesArray.h>
 
-  //---------------------------------------------------------------------------------------------------------------------------------
-  //  Critical Note to any user: The object as implemented MUST have sequential towers  
-  //  filled WITHOUT GAPS (though can be filled in an arbitrary order. The TClonesArray object 
-  // that is being used as the backbone does not play well with empty entries in between full ones.
-  //  Please see coresoftware/simulation/g4simulation/g4calo/RawTowerBuilder.cc for an example 
-  //  use case.  Namely it is key to call TowerInfoContainerv1::initialize_towers during your process event loop
-  //---------------------------------------------------------------------------------------------------------------------------------
+#include <cassert>
 
-
+//---------------------------------------------------------------------------------------------------------------------------------
+//  Critical Note to any user: The object as implemented MUST have sequential towers
+//  filled WITHOUT GAPS (though can be filled in an arbitrary order. The TClonesArray object
+// that is being used as the backbone does not play well with empty entries in between full ones.
+//  Please see coresoftware/simulation/g4simulation/g4calo/RawTowerBuilder.cc for an example
+//  use case.  Namely it is key to call TowerInfoContainerv1::initialize_towers during your process event loop
+//---------------------------------------------------------------------------------------------------------------------------------
 
 int emcadc[8][8] = {
     {62, 60, 46, 44, 30, 28, 14, 12},
@@ -41,28 +41,27 @@ TowerInfoContainerv1::TowerInfoContainerv1(DETECTOR detec)
   int nchannels = 744;
   if (_detector == DETECTOR::SEPD)
   {
-    nchannels= 744;
+    nchannels = 744;
   }
   else if (_detector == DETECTOR::EMCAL)
   {
-    nchannels= 24576;
+    nchannels = 24576;
   }
   else if (_detector == DETECTOR::HCAL)
   {
-    nchannels= 1536;
+    nchannels = 1536;
   }
   _clones = new TClonesArray("TowerInfov1", nchannels);
 
   _clones->SetOwner();
   _clones->SetName("TowerInfoContainerv1");
 
-  for (int i=0; i<nchannels; ++i)
+  for (int i = 0; i < nchannels; ++i)
   {
     // as tower numbers are fixed per event
     // construct towers once per run, and clear the towers for first use
-    _clones->ConstructedAt(i,"C");
+    _clones->ConstructedAt(i, "C");
   }
-
 }
 
 TowerInfoContainerv1::~TowerInfoContainerv1()
@@ -72,7 +71,18 @@ TowerInfoContainerv1::~TowerInfoContainerv1()
 
 void TowerInfoContainerv1::Reset()
 {
-  _clones->Clear("C");
+  // clear content of towers in the container for the next event
+
+  for (Int_t i = 0; i < _clones->GetSize(); ++i)
+  {
+    TObject* obj = _clones->UncheckedAt(i);
+    assert(obj);
+
+    obj->Clear();
+    obj->ResetBit(kHasUUID);
+    obj->ResetBit(kIsReferenced);
+    obj->SetUniqueID(0);
+  }
 }
 
 TowerInfov1* TowerInfoContainerv1::at(int pos)
