@@ -71,7 +71,7 @@ void generate_distortion_map(const char *inputname, const char *outputname, cons
 }
 
   
-void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.root", const char *outputfilebase="./apr07_maps/apr07", bool hasSpacecharge=true, bool isDigitalCurrent=false){
+void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.root", const char *outputfilebase="./apr07_maps/apr07", bool hasSpacecharge=true, bool isDigitalCurrent=false, int nSteps=500){
   
 
   int maxmaps=10;
