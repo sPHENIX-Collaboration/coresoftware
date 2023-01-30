@@ -14,7 +14,7 @@ AnnularFieldSim *SetupDigitalCurrentSphenixTpc(bool twinMe=false, bool useSpacec
 void TestSpotDistortion(AnnularFieldSim *t);
 void   SurveyFiles(TFileCollection* filelist);
 
-void generate_distortion_map(const char *inputname, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true, int nSteps=500){
+void generate_distortion_map(const char *inputname, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge, int nSteps=500){
   printf("generating single distortion map.  Caution:  This is vastly less efficient than re-using the tpc model once it is set up\n");
   
   bool hasTwin=true; //this flag prompts the code to build both a positive-half and a negative-half for the TPC, reusing as much of the calculations as possible.  It is more efficient to 'twin' one half of the TPC than to recalculate/store the greens functions for both.
@@ -71,7 +71,7 @@ void generate_distortion_map(const char *inputname, const char *outputname, cons
 }
 
   
-void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.root", const char *outputfilebase="./apr07_maps/apr07", bool hasSpacecharge=true, bool isDigitalCurrent=false, int nSteps=500){
+void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.root", const char *outputfilebase="./apr07_maps/apr07", bool hasSpacecharge, bool isDigitalCurrent, int nSteps=500){
   
 
   int maxmaps=10;
