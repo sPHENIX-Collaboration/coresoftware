@@ -5,11 +5,11 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <decayfinder/DecayFinderContainer_v1.h>     // for DecayFinderContainer_v1
+#include <decayfinder/DecayFinderContainer_v1.h>  // for DecayFinderContainer_v1
 
 #include <g4main/PHG4Particle.h>
-#include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
 
 #include <TBranch.h>
 #include <TFile.h>
@@ -22,8 +22,9 @@ class PHG4TruthInfoContainer;
 class PHG4Particle;
 class PHG4VtxPoint;
 
-class truthDecayTester : public SubsysReco {
-public:
+class truthDecayTester : public SubsysReco
+{
+ public:
   truthDecayTester(const std::string &name = "truthDecayTester");
 
   virtual ~truthDecayTester();
@@ -41,21 +42,26 @@ public:
   int process_event(PHCompositeNode *topNode) override;
 
   std::string get_histo_prefix();
-  
+
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
 
   void setMotherPDG(int PDGID) { m_decay_pdg_id = PDGID; }
   void setMinPT(float value) { m_min_pt = value; }
-  void setEtaRange(float min, float max) { m_min_eta = min; m_max_eta = max; }
+  void setEtaRange(float min, float max)
+  {
+    m_min_eta = min;
+    m_max_eta = max;
+  }
   void setDFNodeName(const std::string &name) { m_df_module_name = name; }
   void setOutputName(const std::string &name) { m_outfile_name = name; }
   void writeTuple(bool write) { m_write_nTuple = write; }
 
-private:
+ private:
   unsigned int m_nTracks;
   float m_min_pt;
-  float m_min_eta;;
+  float m_min_eta;
+  ;
   float m_max_eta;
   bool m_write_nTuple;
   int m_decay_pdg_id;
@@ -67,7 +73,7 @@ private:
   TFile *m_outfile;
   TTree *m_tree;
   bool m_write_QAHists;
-  DecayFinderContainer_v1* m_decayMap = nullptr;
+  DecayFinderContainer_v1 *m_decayMap = nullptr;
 
   void initializeBranches();
   void getMotherPDG(PHCompositeNode *topNode);
@@ -118,4 +124,4 @@ private:
   bool m_accept_pT = true;
 };
 
-#endif // GEANTTESTER_H
+#endif  // GEANTTESTER_H

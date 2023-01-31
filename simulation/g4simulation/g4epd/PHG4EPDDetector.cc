@@ -60,9 +60,21 @@ void PHG4EPDDetector::ConstructMe(G4LogicalVolume* world)
 
     for (int32_t k = 0; k < nsectors; ++k)
     {
-      G4RotationMatrix* rotate = new G4RotationMatrix();
 
-      rotate->rotateZ(k * 2 * M_PI / nsectors);
+      G4RotationMatrix* rotate = new G4RotationMatrix();
+     
+      double phi_shift = (k + 9) * 2 * M_PI / nsectors;
+     
+      if(phi_shift >= (2.0 * M_PI))
+      {
+         phi_shift -= (2.0 * M_PI);
+      }     
+      else if (phi_shift < 0.0)
+      {
+         phi_shift += (2.0 * M_PI);
+      }
+
+      rotate->rotateZ(-1*phi_shift);
 
       m_volumes.emplace(
           new G4PVPlacement( rotate, positive, volume, label, world, false, 2 * k + 0, OverlapCheck()),

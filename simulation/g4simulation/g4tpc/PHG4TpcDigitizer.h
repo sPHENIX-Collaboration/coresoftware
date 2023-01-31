@@ -52,6 +52,7 @@ class PHG4TpcDigitizer : public SubsysReco
   float added_noise();
 
   unsigned int TpcMinLayer;
+  unsigned int TpcNLayers;
   float ADCThreshold;
   float TpcEnc;
   float Pedestal;

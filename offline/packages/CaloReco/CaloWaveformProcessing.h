@@ -15,6 +15,7 @@ class CaloWaveformProcessing : public SubsysReco
     NONE = 0,
     TEMPLATE = 1,
     ONNX = 2,
+    FAST = 3,
   };
 
   CaloWaveformProcessing()
@@ -59,6 +60,7 @@ class CaloWaveformProcessing : public SubsysReco
   std::vector<std::vector<float>>  process_waveform(std::vector<std::vector<float>> waveformvector);
   std::vector<std::vector<float>>  calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
   std::vector<std::vector<float>>  calo_processing_templatefit(std::vector<std::vector<float>> chnlvector);
+  std::vector<std::vector<float>>  calo_processing_fast(std::vector<std::vector<float>> chnlvector);
 
 
   void initialize_processing(); 
@@ -76,6 +78,6 @@ class CaloWaveformProcessing : public SubsysReco
 
   std::string url_onnx;
   std::string m_model_name;
-
+  void FastMax(float x0, float x1, float x2, float y0, float y1, float y2, float & xmax, float & ymax);
 };
 #endif

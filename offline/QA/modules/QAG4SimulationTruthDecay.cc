@@ -1,5 +1,5 @@
 #include "QAG4SimulationTruthDecay.h"
- 
+
 #include "QAHistManagerDef.h"
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -7,7 +7,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <decayfinder/DecayFinder.h>
-#include <decayfinder/DecayFinderContainerBase.h>    // for DecayFinderContainerBase::Iter
+#include <decayfinder/DecayFinderContainerBase.h>  // for DecayFinderContainerBase::Iter
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
@@ -33,21 +33,22 @@ int candidateCounter = 0;
 
 //____________________________________________________________________________..
 QAG4SimulationTruthDecay::QAG4SimulationTruthDecay(const std::string &name)
-    : SubsysReco(name)
-    , m_nTracks(0)
-    , m_pt_min(0.2)
-    , m_eta_min(-1.1)
-    , m_eta_max(1.1)
-    , m_decay_pdg_id(0)
-    , m_truth_info(nullptr)
-    , m_g4particle(nullptr)
-    , m_df_module_name("myFinder")
-    , m_outfile_name("outputData.root")
-    , m_outfile(nullptr)
-    , m_tree(nullptr)
-    , m_write_nTuple(true)
-    , m_write_QAHists(true)
-{}
+  : SubsysReco(name)
+  , m_nTracks(0)
+  , m_pt_min(0.2)
+  , m_eta_min(-1.1)
+  , m_eta_max(1.1)
+  , m_decay_pdg_id(0)
+  , m_truth_info(nullptr)
+  , m_g4particle(nullptr)
+  , m_df_module_name("myFinder")
+  , m_outfile_name("outputData.root")
+  , m_outfile(nullptr)
+  , m_tree(nullptr)
+  , m_write_nTuple(true)
+  , m_write_QAHists(true)
+{
+}
 
 //____________________________________________________________________________..
 QAG4SimulationTruthDecay::~QAG4SimulationTruthDecay() {}
@@ -59,9 +60,9 @@ int QAG4SimulationTruthDecay::Init(PHCompositeNode *topNode)
   assert(hm);
 
   TH1 *h(nullptr);
-  
-  int m_mother_PDG_ID_nBins = (int) (m_mother_PDG_ID_max - m_mother_PDG_ID_min)*1.2;
-  int m_daughter_PDG_ID_nBins = (int) (m_daughter_PDG_ID_max - m_daughter_PDG_ID_min)*1.2;
+
+  int m_mother_PDG_ID_nBins = (int) (m_mother_PDG_ID_max - m_mother_PDG_ID_min) * 1.2;
+  int m_daughter_PDG_ID_nBins = (int) (m_daughter_PDG_ID_max - m_daughter_PDG_ID_min) * 1.2;
 
   h = new TH1I(TString(get_histo_prefix()) + "mother_PDG_ID",  //
                ";Mother PDG ID;Entries", m_mother_PDG_ID_nBins, m_mother_PDG_ID_min, m_mother_PDG_ID_max);
@@ -100,8 +101,8 @@ int QAG4SimulationTruthDecay::Init(PHCompositeNode *topNode)
 
   for (unsigned int i = 0; i < 4; ++i)
   {
-    std::string track_number = "track_" + std::to_string(i+1);
- 
+    std::string track_number = "track_" + std::to_string(i + 1);
+
     h = new TH1I(TString(get_histo_prefix()) + TString(track_number) + "_PDG_ID",  //
                  ";Track PDG ID;Entries", m_daughter_PDG_ID_nBins, m_daughter_PDG_ID_min, m_daughter_PDG_ID_max);
     hm->registerHisto(h);
@@ -129,11 +130,11 @@ int QAG4SimulationTruthDecay::Init(PHCompositeNode *topNode)
     h = new TH1F(TString(get_histo_prefix()) + TString(track_number) + "_eta",  //
                  ";Track Eta;Entries", 1000, -10, 10);
     hm->registerHisto(h);
-    //h = new TH1F(TString(get_histo_prefix()) + TString(track_number) + "_mass",  //
-    //             ";Track Mass [GeV/c^{2}];Entries", 100, 0, 3);
-    //hm->registerHisto(h);
+    // h = new TH1F(TString(get_histo_prefix()) + TString(track_number) + "_mass",  //
+    //              ";Track Mass [GeV/c^{2}];Entries", 100, 0, 3);
+    // hm->registerHisto(h);
   }
-  
+
   h = new TH1F(TString(get_histo_prefix()) + "delta_px",  //
                ";#delta p_{x} [GeV/c];Entries", 100, -3, 3);
   hm->registerHisto(h);
@@ -192,7 +193,7 @@ int QAG4SimulationTruthDecay::Init(PHCompositeNode *topNode)
   h = new TH1I(TString(get_histo_prefix()) + "accept_eta",  //
                ";Accept #eta;Entries", 2, 0, 1);
   hm->registerHisto(h);
-  
+
   assert(topNode);
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -265,7 +266,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
   assert(h_accept_pT);
   TH1I *h_accept_eta = dynamic_cast<TH1I *>(hm->getHisto(get_histo_prefix() + "accept_eta"));
   assert(h_accept_eta);
- 
+
   TH1I *h_track_1_PDG_ID = dynamic_cast<TH1I *>(hm->getHisto(get_histo_prefix() + "track_1_PDG_ID"));
   assert(h_track_1_PDG_ID);
   /*
@@ -282,9 +283,9 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
   assert(h_track_1_pT);
   TH1F *h_track_1_eta = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "track_1_eta"));
   assert(h_track_1_eta);
-  //TH1F *h_track_1_mass = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "track_1_mass"));
-  //assert(h_track_1_mass);
-    
+  // TH1F *h_track_1_mass = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "track_1_mass"));
+  // assert(h_track_1_mass);
+
   TH1I *h_track_2_PDG_ID = dynamic_cast<TH1I *>(hm->getHisto(get_histo_prefix() + "track_2_PDG_ID"));
   assert(h_track_2_PDG_ID);
   /*
@@ -301,8 +302,8 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
   assert(h_track_2_pT);
   TH1F *h_track_2_eta = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "track_2_eta"));
   assert(h_track_2_eta);
-  //TH1F *h_track_2_mass = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "track_2_mass"));
-  //assert(h_track_2_mass);
+  // TH1F *h_track_2_mass = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "track_2_mass"));
+  // assert(h_track_2_mass);
 
   TH1I *h_track_3_PDG_ID = dynamic_cast<TH1I *>(hm->getHisto(get_histo_prefix() + "track_3_PDG_ID"));
   assert(h_track_3_PDG_ID);
@@ -320,9 +321,9 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
   assert(h_track_3_pT);
   TH1F *h_track_3_eta = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "track_3_eta"));
   assert(h_track_3_eta);
-  //TH1F *h_track_3_mass = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "track_3_mass"));
-  //assert(h_track_3_mass);  
- 
+  // TH1F *h_track_3_mass = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "track_3_mass"));
+  // assert(h_track_3_mass);
+
   TH1I *h_track_4_PDG_ID = dynamic_cast<TH1I *>(hm->getHisto(get_histo_prefix() + "track_4_PDG_ID"));
   assert(h_track_4_PDG_ID);
   /*
@@ -339,9 +340,9 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
   assert(h_track_4_pT);
   TH1F *h_track_4_eta = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "track_4_eta"));
   assert(h_track_4_eta);
-  //TH1F *h_track_4_mass = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "track_4_mass"));
-  //assert(h_track_4_mass);
-  
+  // TH1F *h_track_4_mass = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "track_4_mass"));
+  // assert(h_track_4_mass);
+
   ++m_event_number;
   if (m_decay_pdg_id == 0) getMotherPDG(topNode);
   std::vector<int> motherBarcodes = getDecayFinderMothers(topNode);
@@ -349,7 +350,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
   if (motherBarcodes.size() == 1)
   {
     m_truth_info = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-    if (!m_truth_info) 
+    if (!m_truth_info)
     {
       std::cout << "QAG4SimulationTruthDecay: Missing node G4TruthInfo" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
@@ -365,11 +366,12 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
 
     PHG4TruthInfoContainer::ConstRange range = m_truth_info->GetParticleRange();
     for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
-         iter != range.second; ++iter) 
+         iter != range.second; ++iter)
     {
       m_g4particle = iter->second;
       if (std::find(std::begin(motherBarcodes), std::end(motherBarcodes),
-                    m_g4particle->get_barcode()) != std::end(motherBarcodes) && abs(m_g4particle->get_pid()) == abs(m_decay_pdg_id))
+                    m_g4particle->get_barcode()) != std::end(motherBarcodes) &&
+          abs(m_g4particle->get_pid()) == abs(m_decay_pdg_id))
       {
         m_mother_pdg_id = m_g4particle->get_pid();
         m_mother_barcode = m_g4particle->get_barcode();
@@ -381,7 +383,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
         m_mother_pT = motherLV.perp();
         m_mother_eta = motherLV.pseudoRapidity();
         m_mother_mass = motherLV.m();
-        
+
         m_delta_px += m_mother_px;
         m_delta_py += m_mother_py;
         m_delta_pz += m_mother_pz;
@@ -397,9 +399,10 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
 
       if (m_g4particle->get_parent_id() != 0)
       {
-        PHG4Particle* mother = m_truth_info->GetParticle(m_g4particle->get_parent_id());
+        PHG4Particle *mother = m_truth_info->GetParticle(m_g4particle->get_parent_id());
         if (std::find(std::begin(motherBarcodes), std::end(motherBarcodes),
-                      mother->get_barcode()) != std::end(motherBarcodes) && abs(mother->get_pid()) == abs(m_decay_pdg_id))
+                      mother->get_barcode()) != std::end(motherBarcodes) &&
+            abs(mother->get_pid()) == abs(m_decay_pdg_id))
         {
           m_track_pdg_id[trackCounter] = m_g4particle->get_pid();
           m_track_mother_barcode[trackCounter] = mother->get_barcode();
@@ -412,7 +415,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
           m_track_pT[trackCounter] = daughterLV.perp();
           m_track_eta[trackCounter] = daughterLV.pseudoRapidity();
           m_track_mass[trackCounter] = daughterLV.m();
-        
+
           m_delta_px -= m_track_px[trackCounter];
           m_delta_py -= m_track_py[trackCounter];
           m_delta_pz -= m_track_pz[trackCounter];
@@ -434,10 +437,10 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
 
     m_daughter_sum_mass = daughterSumLV.m();
 
-    float diff_percent_px = fabs(m_delta_px/m_mother_px)*100.;
-    float diff_percent_py = fabs(m_delta_py/m_mother_py)*100.;
-    float diff_percent_pz = fabs(m_delta_pz/m_mother_pz)*100.;
-    float diff_percent_pE = fabs(m_delta_pE/m_mother_pE)*100.;
+    float diff_percent_px = fabs(m_delta_px / m_mother_px) * 100.;
+    float diff_percent_py = fabs(m_delta_py / m_mother_py) * 100.;
+    float diff_percent_pz = fabs(m_delta_pz / m_mother_pz) * 100.;
+    float diff_percent_pE = fabs(m_delta_pE / m_mother_pE) * 100.;
 
     m_accept_px_1percent = diff_percent_px <= 1. ? 1 : 0;
     m_accept_py_1percent = diff_percent_py <= 1. ? 1 : 0;
@@ -457,7 +460,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
     m_mother_decayLength = sqrt(pow(daughter_x - mother_x, 2) + pow(daughter_y - mother_y, 2) + pow(daughter_z - mother_z, 2));
     float mother_p = sqrt(pow(m_mother_px, 2) + pow(m_mother_py, 2) + pow(m_mother_pz, 2));
     m_mother_decayTime = m_mother_mass * m_mother_decayLength / mother_p;
-    
+
     if (m_write_nTuple)
     {
       if (candidateCounter == 1) initializeBranches();
@@ -475,7 +478,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
       h_mother_pz->Fill(m_mother_pz);
       h_mother_pE->Fill(m_mother_pE);
       h_mother_pT->Fill(m_mother_pT);
-      h_mother_eta->Fill(m_mother_eta); 
+      h_mother_eta->Fill(m_mother_eta);
       h_delta_px->Fill(m_delta_px);
       h_delta_py->Fill(m_delta_py);
       h_delta_pz->Fill(m_delta_pz);
@@ -505,7 +508,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
         */
         h_track_1_pT->Fill(m_track_pT[0]);
         h_track_1_eta->Fill(m_track_eta[0]);
-        //h_track_1_mass->Fill(m_track_mass[0]);
+        // h_track_1_mass->Fill(m_track_mass[0]);
         h_track_2_PDG_ID->Fill(m_track_pdg_id[1]);
         /*
         h_track_2_px->Fill(m_track_px[1]);
@@ -515,7 +518,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
         */
         h_track_2_pT->Fill(m_track_pT[1]);
         h_track_2_eta->Fill(m_track_eta[1]);
-        //h_track_2_mass->Fill(m_track_mass[1]);
+        // h_track_2_mass->Fill(m_track_mass[1]);
       }
       if (m_nTracks >= 3)
       {
@@ -528,10 +531,10 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
         */
         h_track_3_pT->Fill(m_track_pT[2]);
         h_track_3_eta->Fill(m_track_eta[2]);
-        //h_track_3_mass->Fill(m_track_mass[2]);
+        // h_track_3_mass->Fill(m_track_mass[2]);
       }
       if (m_nTracks == 4)
-      { 
+      {
         h_track_4_PDG_ID->Fill(m_track_pdg_id[3]);
         /*
         h_track_4_px->Fill(m_track_px[3]);
@@ -541,7 +544,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
         */
         h_track_4_pT->Fill(m_track_pT[3]);
         h_track_4_eta->Fill(m_track_eta[3]);
-        //h_track_4_mass->Fill(m_track_mass[3]);
+        // h_track_4_mass->Fill(m_track_mass[3]);
       }
     }
   }
@@ -555,7 +558,7 @@ int QAG4SimulationTruthDecay::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int QAG4SimulationTruthDecay::End(PHCompositeNode *topNode) 
+int QAG4SimulationTruthDecay::End(PHCompositeNode *topNode)
 {
   if (m_write_nTuple)
   {
@@ -575,7 +578,7 @@ void QAG4SimulationTruthDecay::initializeBranches()
   delete m_tree;
   m_tree = new TTree("QAG4SimulationTruthDecay", "QAG4SimulationTruthDecay");
   m_tree->OptimizeBaskets();
-  m_tree->SetAutoSave(-5e6); // Save the output file every 5MB
+  m_tree->SetAutoSave(-5e6);  // Save the output file every 5MB
 
   m_tree->Branch("EventNumber", &m_event_number, "EventNumber/i");
   m_tree->Branch("mother_PDG_ID", &m_mother_pdg_id, "mother_PDG_ID/I");
@@ -590,10 +593,10 @@ void QAG4SimulationTruthDecay::initializeBranches()
   m_tree->Branch("mother_pT", &m_mother_pT, "mother_pT/F");
   m_tree->Branch("mother_eta", &m_mother_eta, "mother_eta/F");
   m_tree->Branch("mother_barcode", &m_mother_barcode, "mother_barcode/I");
- 
+
   for (unsigned int i = 0; i < m_nTracks; ++i)
   {
-    std::string track_number = "track_" + std::to_string(i + 1);    
+    std::string track_number = "track_" + std::to_string(i + 1);
 
     m_tree->Branch(TString(track_number) + "_PDG_ID", &m_track_pdg_id[i], TString(track_number) + "_PDG_ID/I");
     m_tree->Branch(TString(track_number) + "_px", &m_track_px[i], TString(track_number) + "_px/F");
@@ -636,7 +639,7 @@ void QAG4SimulationTruthDecay::getMotherPDG(PHCompositeNode *topNode)
 
   std::string node_name = m_df_module_name + "_DecayMap";
 
-  PHNode *findNode = dynamic_cast<PHNode*>(nodeIter.findFirst(node_name.c_str()));
+  PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(node_name.c_str()));
   if (findNode)
   {
     m_decayMap = findNode::getClass<DecayFinderContainer_v1>(topNode, node_name.c_str());
@@ -658,7 +661,7 @@ std::vector<int> QAG4SimulationTruthDecay::getDecayFinderMothers(PHCompositeNode
   std::string node_name = m_df_module_name + "_DecayMap";
 
   m_decayMap = findNode::getClass<DecayFinderContainer_v1>(topNode, node_name.c_str());
-  
+
   for (DecayFinderContainer_v1::Iter iter = m_decayMap->begin(); iter != m_decayMap->end(); ++iter)
   {
     Decay decay = iter->second;

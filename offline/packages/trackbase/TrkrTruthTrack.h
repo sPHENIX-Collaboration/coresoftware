@@ -28,7 +28,10 @@ class TrkrTruthTrack : public PHObject
 
   virtual std::vector<TrkrDefs::cluskey>& getClusters();
   virtual void addCluster(TrkrDefs::cluskey){};
-  // std::map<unsigned int /*track id*/, std::vector<TrkrDefs::cluskey>
+
+  virtual bool has_hitsetkey(TrkrDefs::hitsetkey) const { return false; };
+  virtual bool has_hitsetkey(TrkrDefs::cluskey)   const { return false; };
+  virtual std::pair<bool, TrkrDefs::cluskey> get_cluskey(TrkrDefs::hitsetkey) const { return {false, 0}; }; // bool is if there is the key, and if so, then hitsetket is the correspeonding key
 
   virtual void setTrackid(unsigned int){};
   virtual void setX0(float){};
