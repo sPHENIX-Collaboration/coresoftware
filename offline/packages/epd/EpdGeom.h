@@ -18,32 +18,35 @@ Key format:
 
 #include <map>
 #include <utility>
+#include <iostream>
+
+#include <phool/PHObject.h>
 
 
 // sEPD geometry class
 class EPD_GEOM {
 
 public:
-  const uint NUM_TOWERS = 768;
-  const uint MAX_R = 32;
-  const uint MAX_PHI = 24;
+  const unsigned int NUM_TOWERS = 768;
+  const unsigned int MAX_R = 32;
+  const unsigned int MAX_PHI = 24;
 
   EPD_GEOM();
   ~EPD_GEOM();
 
-  uint side_r_phi_to_id(uint side, uint r_index, uint phi_index);
-  uint side_sector_tile_to_id(uint side, uint sector, uint tile);
-  std::tuple<uint, uint, uint> id_to_side_r_phi(uint id);
-  std::tuple<uint, uint, uint> id_to_side_sector_tile(uint id);
-  float r(uint id);
-  float r_from_side_r_phi(uint side, uint r_index, uint phi_index);
-  float r_from_side_sector_tile(uint side, uint sector, uint tile);
-  float phi(uint id);
-  float phi_from_side_r_phi(uint side, uint r_index, uint phi_index);
-  float phi_from_side_sector_tile(uint side, uint sector, uint tile);
-  float z(uint id);
-  float z_from_side_r_phi(uint side, uint r_inxed, uint phi_index);
-  float z_from_side_sector_tile(uint side, uint sector, uint tile);
+  unsigned int side_r_phi_to_id(unsigned int side, unsigned int r_index, unsigned int phi_index);
+  unsigned int side_sector_tile_to_id(unsigned int side, unsigned int sector, unsigned int tile);
+  std::tuple<unsigned int, unsigned int, unsigned int> id_to_side_r_phi(unsigned int id);
+  std::tuple<unsigned int, unsigned int, unsigned int> id_to_side_sector_tile(unsigned int id);
+  float r(unsigned int id);
+  float r_from_side_r_phi(unsigned int side, unsigned int r_index, unsigned int phi_index);
+  float r_from_side_sector_tile(unsigned int side, unsigned int sector, unsigned int tile);
+  float phi(unsigned int id);
+  float phi_from_side_r_phi(unsigned int side, unsigned int r_index, unsigned int phi_index);
+  float phi_from_side_sector_tile(unsigned int side, unsigned int sector, unsigned int tile);
+  float z(unsigned int id);
+  float z_from_side_r_phi(unsigned int side, unsigned int r_inxed, unsigned int phi_index);
+  float z_from_side_sector_tile(unsigned int side, unsigned int sector, unsigned int tile);
   
   
   bool test_id_mapping();
@@ -66,7 +69,7 @@ private:
                                    4.05789051, 4.3196899 , 4.58148929, 4.84328867, 5.10508806,
                                    5.36688745, 5.62868684, 5.89048623, 6.15228561};
 
-  const float NAIVE_Z_MAP[2] = {-325, 325};
+  const float NAIVE_Z_MAP[2] = {-316, 316};
 
   void build_map();
   
