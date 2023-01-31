@@ -8,6 +8,14 @@
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/RawTowerGeomv1.h>
 #include <calobase/RawTowerv1.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfov1.h>
+
+
+
+
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -92,6 +100,7 @@ int RawTowerBuilder::InitRun(PHCompositeNode *topNode)
       std::cout << "save light yield as the weight of the cells" << std::endl;
     }
   }
+  topNode->print();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -103,7 +112,16 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << "Process event entered" << std::endl;
   }
 
-  // get cells
+
+  //load get TowerInfoContainer node from node tree:
+  TowerInfoContainer*  m_TowerInfoContainer = findNode::getClass<TowerInfoContainer>(topNode,m_TowerInfoNodeName);
+  if (!m_TowerInfoContainer && m_UseTowerInfo > 0)
+    {
+      std::cout << PHWHERE << "TowerInfoContainer Node missing, doing nothing." << std::endl;
+      exit(1);
+    }
+
+    // get cells
   std::string cellnodename = "G4CELL_" + m_Detector;
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (!cells)
@@ -126,33 +144,8 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
       cell->identify();
     }
 
-    // add the energy to the corresponding tower
-    RawTower *tower = nullptr;
-    short int firstpar;
-    short int secondpar;
-    if (cell->has_binning(PHG4CellDefs::sizebinning))
-    {
-      firstpar = PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid());
-      secondpar = PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid());
-    }
-    else if (cell->has_binning(PHG4CellDefs::spacalbinning))
-    {
-      firstpar = PHG4CellDefs::SpacalBinning::get_etabin(cell->get_cellid());
-      secondpar = PHG4CellDefs::SpacalBinning::get_phibin(cell->get_cellid());
-    }
-    else
-    {
-      boost::io::ios_flags_saver ifs(std::cout);
-      std::cout << "unknown cell binning, implement 0x" << std::hex << PHG4CellDefs::get_binning(cell->get_cellid()) << std::dec << std::endl;
-      exit(1);
-    }
-    tower = m_TowerContainer->getTower(firstpar, secondpar);
-    if (!tower)
-    {
-      tower = new RawTowerv1();
-      tower->set_energy(0);
-      m_TowerContainer->AddTower(firstpar, secondpar, tower);
-    }
+
+    //Calculate the cell weight
     float cell_weight = 0;
     if (m_TowerEnergySrcEnum == kEnergyDeposition)
     {
@@ -163,55 +156,119 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
       cell_weight = cell->get_light_yield();
     }
 
-    tower->add_ecell(cell->get_cellid(), cell_weight);
 
-    PHG4Cell::ShowerEdepConstRange range = cell->get_g4showers();
-    for (PHG4Cell::ShowerEdepConstIterator shower_iter = range.first;
-         shower_iter != range.second;
-         ++shower_iter)
-    {
-      tower->add_eshower(shower_iter->first, shower_iter->second);
-    }
-
-    tower->set_energy(tower->get_energy() + cell_weight);
-
-    if (Verbosity() > 2)
-    {
-      m_RawTowerGeomContainer = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
-      tower->identify();
-    }
+    // add the energy to the corresponding tower
+    if (m_UseTowerInfo  != 1)
+      {
+	RawTower *tower = nullptr;
+	short int firstpar;
+	short int secondpar;
+	if (cell->has_binning(PHG4CellDefs::sizebinning))
+	  {
+	    firstpar = PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid());
+	    secondpar = PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid());
+	  }
+	else if (cell->has_binning(PHG4CellDefs::spacalbinning))
+	  {
+	    firstpar = PHG4CellDefs::SpacalBinning::get_etabin(cell->get_cellid());
+	    secondpar = PHG4CellDefs::SpacalBinning::get_phibin(cell->get_cellid());
+	  }
+	else
+	  {
+	    boost::io::ios_flags_saver ifs(std::cout);
+	    std::cout << "unknown cell binning, implement 0x" << std::hex << PHG4CellDefs::get_binning(cell->get_cellid()) << std::dec << std::endl;
+	    exit(1);
+	  }
+	tower = m_TowerContainer->getTower(firstpar, secondpar);
+	if (!tower)
+	  {
+	    tower = new RawTowerv1();
+	    tower->set_energy(0);
+	    m_TowerContainer->AddTower(firstpar, secondpar, tower);
+	  }
+	
+	tower->add_ecell(cell->get_cellid(), cell_weight);
+	
+	PHG4Cell::ShowerEdepConstRange range = cell->get_g4showers();
+	for (PHG4Cell::ShowerEdepConstIterator shower_iter = range.first;
+	     shower_iter != range.second;
+	     ++shower_iter)
+	  {
+	    tower->add_eshower(shower_iter->first, shower_iter->second);
+	  }
+	
+	tower->set_energy(tower->get_energy() + cell_weight);
+	
+	if (Verbosity() > 2)
+	  {
+	    m_RawTowerGeomContainer = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
+	    tower->identify();
+	  }
+      }
+    if (m_UseTowerInfo > 0)
+      {
+	TowerInfo *towerinfo;
+	unsigned int etabin;
+	unsigned int phibin;
+	if (cell->has_binning(PHG4CellDefs::spacalbinning))
+	  {
+	    etabin = PHG4CellDefs::SpacalBinning::get_etabin(cell->get_cellid());
+	    phibin = PHG4CellDefs::SpacalBinning::get_phibin(cell->get_cellid());
+	  }
+	else
+	  {
+	    boost::io::ios_flags_saver ifs(std::cout);
+	    std::cout << "unknown cell binning, implement 0x" << std::hex << PHG4CellDefs::get_binning(cell->get_cellid()) << std::dec << std::endl;
+	    exit(1);
+	  }
+	unsigned int towerkey = (etabin << 16U) + phibin;
+	unsigned int towerindex = m_TowerInfoContainer->decode_key(towerkey);
+	towerinfo = m_TowerInfoContainer->at(towerindex);
+        if (!towerinfo)
+        {
+          std::cout << __PRETTY_FUNCTION__ << ": missing towerkey = " << towerkey << " in m_TowerInfoContainer!";
+          exit(1);
+        }
+        else
+        {
+          towerinfo->set_energy(towerinfo->get_energy() + cell_weight);
+        }
+      }
   }
-  double towerE = 0;
-  if (m_ChkEnergyConservationFlag)
-  {
-    double cellE = cells->getTotalEdep();
-    towerE = m_TowerContainer->getTotalEdep();
-    if (fabs(cellE - towerE) / cellE > 1e-5)
-    {
-      std::cout << "towerE: " << towerE << ", cellE: " << cellE << ", delta: "
-                << cellE - towerE << std::endl;
-    }
-  }
-  if (Verbosity())
-  {
-    towerE = m_TowerContainer->getTotalEdep();
-  }
 
-  m_TowerContainer->compress(m_Emin);
-  if (Verbosity())
-  {
-    std::cout << "Energy lost by dropping towers with less than " << m_Emin
-              << " GeV energy, lost energy: " << towerE - m_TowerContainer->getTotalEdep()
-              << std::endl;
-    m_TowerContainer->identify();
-    RawTowerContainer::ConstRange begin_end = m_TowerContainer->getTowers();
-    RawTowerContainer::ConstIterator iter;
-    for (iter = begin_end.first; iter != begin_end.second; ++iter)
+  if (m_UseTowerInfo != 1 )
     {
-      iter->second->identify();
+      double towerE = 0;
+      if (m_ChkEnergyConservationFlag)
+	{
+	  double cellE = cells->getTotalEdep();
+	  towerE = m_TowerContainer->getTotalEdep();
+	  if (fabs(cellE - towerE) / cellE > 1e-5)
+	    {
+	      std::cout << "towerE: " << towerE << ", cellE: " << cellE << ", delta: "
+			<< cellE - towerE << std::endl;
+	    }
+	}
+      if (Verbosity())
+	{
+	  towerE = m_TowerContainer->getTotalEdep();
+	}
+      
+      m_TowerContainer->compress(m_Emin);
+      if (Verbosity())
+	{
+	  std::cout << "Energy lost by dropping towers with less than " << m_Emin
+		    << " GeV energy, lost energy: " << towerE - m_TowerContainer->getTotalEdep()
+		    << std::endl;
+	  m_TowerContainer->identify();
+	  RawTowerContainer::ConstRange begin_end = m_TowerContainer->getTowers();
+	  RawTowerContainer::ConstIterator iter;
+	  for (iter = begin_end.first; iter != begin_end.second; ++iter)
+	    {
+	      iter->second->identify();
+	    }
+	}
     }
-  }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -568,24 +625,63 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
     dstNode->addNode(DetNode);
   }
 
-  // Create the tower nodes on the tree
-  if (m_SimTowerNodePrefix.empty())
-  {
-    // no prefix, consistent with older convention
-    m_TowerNodeName = "TOWER_" + m_Detector;
-  }
-  else
-  {
-    m_TowerNodeName = "TOWER_" + m_SimTowerNodePrefix + "_" + m_Detector;
-  }
-  m_TowerContainer = findNode::getClass<RawTowerContainer>(DetNode, m_TowerNodeName.c_str());
-  if (m_TowerContainer == nullptr)
-  {
-    m_TowerContainer = new RawTowerContainer(caloid);
+  
+  if (m_UseTowerInfo != 1)
+    {
+      // Create the tower nodes on the tree
+      if (m_SimTowerNodePrefix.empty())
+	{
+	  // no prefix, consistent with older convention
+	  m_TowerNodeName = "TOWER_" + m_Detector;
+	}
+      else
+	{
+	  m_TowerNodeName = "TOWER_" + m_SimTowerNodePrefix + "_" + m_Detector;
+	}
+      m_TowerContainer = findNode::getClass<RawTowerContainer>(DetNode, m_TowerNodeName.c_str());
+      if (m_TowerContainer == nullptr)
+	{
+	  m_TowerContainer = new RawTowerContainer(caloid);
+	  
+	  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_TowerContainer, m_TowerNodeName, "PHObject");
+	  DetNode->addNode(towerNode);
+	}
+    }
 
-    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_TowerContainer, m_TowerNodeName, "PHObject");
-    DetNode->addNode(towerNode);
-  }
 
+
+  if (m_UseTowerInfo > 0 )
+    {
+     if (m_SimTowerNodePrefix.empty())
+	{
+	  m_TowerInfoNodeName = "TOWERINFO_" + m_Detector;
+	}
+      else
+	{
+	  m_TowerInfoNodeName = "TOWERINFO_" + m_SimTowerNodePrefix + "_" + m_Detector;
+	}
+     TowerInfoContainer* m_TowerInfoContainer = findNode::getClass<TowerInfoContainer>(DetNode,m_TowerInfoNodeName);
+     if (m_TowerInfoContainer == nullptr)
+       {
+	 TowerInfoContainerv1::DETECTOR detec;
+	 if (caloid == RawTowerDefs::CalorimeterId::CEMC)
+	   {
+	     detec = TowerInfoContainer::DETECTOR::EMCAL;
+	   }
+	 else if (caloid == RawTowerDefs::CalorimeterId::HCALIN || caloid == RawTowerDefs::CalorimeterId::HCALOUT)
+	   {
+	     detec = TowerInfoContainer::DETECTOR::HCAL;
+	   }
+	 else
+	   {
+	     std::cout << PHWHERE << "Detector not implemented into the TowerInfoContainer object, defaulting to HCal implementation." << std::endl;
+	     detec = TowerInfoContainer::DETECTOR::HCAL;
+	   }
+	 m_TowerInfoContainer = new TowerInfoContainerv1(detec);
+	 PHIODataNode<PHObject> *TowerInfoNode = new PHIODataNode<PHObject>(m_TowerInfoContainer, m_TowerInfoNodeName, "PHObject");
+	 DetNode->addNode(TowerInfoNode);
+       }
+    }
+  
   return;
 }
