@@ -52,6 +52,7 @@ public:
   bool test_id_mapping();
 
   void identify(std::ostream &os = std::cout ) const override;
+  void Reset() {return;}; // Reset doesn't need to do anything
 
 private:
   std::map<int, float> r_map;
