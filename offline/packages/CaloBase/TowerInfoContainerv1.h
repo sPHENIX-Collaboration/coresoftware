@@ -27,6 +27,15 @@ class TowerInfoContainerv1 : public TowerInfoContainer
   TowerInfov1 *at(int pos) override;
   unsigned int encode_key(unsigned int towerIndex) override;
   unsigned int decode_key(unsigned int tower_key) override;
+
+  unsigned int encode_epd(unsigned int towerIndex) override;
+  unsigned int encode_hcal(unsigned int towerIndex) override;
+  unsigned int encode_emcal(unsigned int towerIndex) override;
+
+  unsigned int decode_epd(unsigned int towerIndex) override;
+  unsigned int decode_hcal(unsigned int towerIndex) override;
+  unsigned int decode_emcal(unsigned int towerIndex) override;
+
   Range getTowers(void);
 
   size_t size() override { return _clones->GetEntries(); }
