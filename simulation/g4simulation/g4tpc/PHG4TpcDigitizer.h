@@ -9,6 +9,7 @@
 #include <trackbase/TrkrHitSet.h>
 
 #include <map>
+#include <memory>
 #include <string>   // for string
 #include <utility>  // for pair, make_pair
 #include <vector>
@@ -21,7 +22,7 @@ class PHG4TpcDigitizer : public SubsysReco
 {
  public:
   PHG4TpcDigitizer(const std::string &name = "PHG4TpcDigitizer");
-  ~PHG4TpcDigitizer() override;
+  ~PHG4TpcDigitizer() override = default;
 
   //! module initialization
   int Init(PHCompositeNode * /*topNode*/) override { return 0; }
@@ -72,9 +73,19 @@ class PHG4TpcDigitizer : public SubsysReco
   // settings
   std::map<int, unsigned int> _max_adc;
   std::map<int, float> _energy_scale;
+  
+  //! rng de-allocator
+  class Deleter
+  {
+    public:
+    //! deletion operator
+    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
+  };
 
   //! random generator that conform with sPHENIX standard
-  gsl_rng *RandomGenerator;
+  /*! using a unique_ptr with custom Deleter ensures that the structure is properly freed when parent object is destroyed */
+  std::unique_ptr<gsl_rng, Deleter> m_rng;
+
 };
 
 #endif

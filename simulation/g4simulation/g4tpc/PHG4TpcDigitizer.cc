@@ -40,20 +40,15 @@ PHG4TpcDigitizer::PHG4TpcDigitizer(const std::string &name)
   , ADCSignalConversionGain(std::numeric_limits<float>::signaling_NaN())  // will be assigned in PHG4TpcDigitizer::InitRun
   , ADCNoiseConversionGain(std::numeric_limits<float>::signaling_NaN())   // will be assigned in PHG4TpcDigitizer::InitRun
 {
+  // initialize random generator
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   std::cout << Name() << " random seed: " << seed << std::endl;
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  gsl_rng_set(RandomGenerator, seed);
-
+  m_rng.reset( gsl_rng_alloc(gsl_rng_mt19937) );
+  gsl_rng_set( m_rng.get(), seed );
   if (Verbosity() > 0)
   {
     std::cout << "Creating PHG4TpcDigitizer with name = " << name << std::endl;
   }
-}
-
-PHG4TpcDigitizer::~PHG4TpcDigitizer()
-{
-  gsl_rng_free(RandomGenerator);
 }
 
 int PHG4TpcDigitizer::InitRun(PHCompositeNode *topNode)
@@ -614,7 +609,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 
 float PHG4TpcDigitizer::added_noise()
 {
-  float noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
+  float noise = gsl_ran_gaussian(m_rng.get(), TpcEnc);
 
   return noise;
 }
