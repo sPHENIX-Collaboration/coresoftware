@@ -233,31 +233,41 @@ unsigned int TowerInfoContainerv1::decode_epd(unsigned int tower_key)
 
 unsigned int TowerInfoContainerv1::decode_emcal(unsigned int tower_key)
 {
+  int etabinoffset[4] = {0};
+  int etabinmap[4] = {0};
   int channels_per_sector = 64;
   int supersector = 64 * 12;
   int nchannelsperpacket = 64 * 3;
   int maxphibin = 7;
   int maxetabin = 23;
-  int etabinoffset[4] = {24,0,48,72};
-  int etabinmap[3] = {1,0,2};
+  etabinoffset[0] = 24;
+  etabinoffset[1] = 0;
+  etabinoffset[2] = 48;
+  etabinoffset[3] = 72;
+
+  etabinmap[0] = 1;
+  etabinmap[1] = 0;
+  etabinmap[2] = 2;
+  etabinmap[3] = 3;
   unsigned int etabin = tower_key >> 16U;
   unsigned int phibin = tower_key - (etabin << 16U);
   int packet = etabinmap[(int) etabin / 24];
   int localetabin = etabin - etabinoffset[packet];
   int localphibin = phibin % 8;
   int supersectornumber = phibin / 8;
+  int ib = 0;
   if (packet == 0 || packet == 1)
     {
       localetabin = maxetabin - localetabin;
     }
-  int ib = localetabin / 8;
+  ib = localetabin / 8;
   unsigned int index = 0;
   if (packet == 0 || packet == 1)
     {
       localphibin = maxphibin - localphibin;
     }
   localetabin = localetabin % 8;
-  unsigned int localindex =  emcadc[localetabin][localphibin];
+  unsigned int localindex = emcadc[localetabin][localphibin];
   index = localindex + channels_per_sector * ib + packet * nchannelsperpacket + supersector * supersectornumber;
   return index;
 }
