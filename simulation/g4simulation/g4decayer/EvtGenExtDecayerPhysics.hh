@@ -23,17 +23,15 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// $Id: P6DExtDecayerPhysics.hh,v 1.3 2015/01/05 23:49:39 mccumber Exp $
+// $Id: EvtGenExtDecayerPhysics.hh,v 1.3 2015/01/05 23:49:39 mccumber Exp $
 //
-/// \file eventgenerator/pythia/decayer6/include/P6DExtDecayerPhysics.hh
-/// \brief Definition of the P6DExtDecayerPhysics class
+/// \file eventgenerator/pythia/decayer6/include/EvtGenExtDecayerPhysics.hh
+/// \brief Definition of the EvtGenExtDecayerPhysics class
 ///
 /// \author I. Hrivnacova; IPN Orsay
 
-#ifndef P6D_EXT_DECAYER_PHYSICS_H
-#define P6D_EXT_DECAYER_PHYSICS_H
-
-#include "EDecayType.hh"
+#ifndef EVT_EXT_DECAYER_PHYSICS_H
+#define EVT_EXT_DECAYER_PHYSICS_H
 
 #include <Geant4/G4String.hh>
 #include <Geant4/G4VPhysicsConstructor.hh>
@@ -45,18 +43,11 @@
 ///
 /// \author I. Hrivnacova; IPN Orsay
 
-class P6DExtDecayerPhysics : public G4VPhysicsConstructor
+class EvtGenExtDecayerPhysics : public G4VPhysicsConstructor
 {
  public:
-  P6DExtDecayerPhysics(const G4String& name = "ExtDecayer");
-  virtual ~P6DExtDecayerPhysics();
-
-  void SetForceDecay(EDecayType force_decay_type)
-  {
-    _active_force_decay = true;
-    _force_decay_type = force_decay_type;
-  }
-  EDecayType GetForceDecay() { return _force_decay_type; }
+  EvtGenExtDecayerPhysics(const G4String& name = "ExtDecayer");
+  virtual ~EvtGenExtDecayerPhysics();
 
  protected:
   // methods
@@ -66,12 +57,9 @@ class P6DExtDecayerPhysics : public G4VPhysicsConstructor
 
  private:
   /// Not implemented
-  P6DExtDecayerPhysics(const P6DExtDecayerPhysics& right);
+  EvtGenExtDecayerPhysics(const EvtGenExtDecayerPhysics& right);
   /// Not implemented
-  P6DExtDecayerPhysics& operator=(const P6DExtDecayerPhysics& right);
-
-  bool _active_force_decay;
-  EDecayType _force_decay_type;
+  EvtGenExtDecayerPhysics& operator=(const EvtGenExtDecayerPhysics& right);
 };
 
 #endif  // P6D_EXT_DECAYER_PHYSICS_H

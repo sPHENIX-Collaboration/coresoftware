@@ -15,6 +15,8 @@
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/ClusterErrorPara.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -23,8 +25,6 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase/ClusterErrorPara.h>
-#include <trackbase/TrackFitUtils.h>
 
 #include <g4eval/SvtxClusterEval.h>  // for SvtxClusterEval
 #include <g4eval/SvtxEvalStack.h>
@@ -274,7 +274,9 @@ int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
 
   m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!m_hitsets)
-  { std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl; }
+  {
+    std::cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << std::endl;
+  }
 
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_cluster_map)
@@ -311,7 +313,7 @@ int QAG4SimulationMicromegas::load_nodes(PHCompositeNode* topNode)
 void QAG4SimulationMicromegas::evaluate_hits()
 {
   // do nothing if hitsets are not there
-  if( !m_hitsets ) return;
+  if (!m_hitsets) return;
 
   // histogram manager
   auto hm = QAHistManagerDef::getHistoManager();
@@ -353,7 +355,8 @@ void QAG4SimulationMicromegas::evaluate_hits()
     for (auto hit_it = hitrange.first; hit_it != hitrange.second; ++hit_it)
     {
       // store ADC
-      auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
+      auto fill = [](TH1* h, float value)
+      { if( h ) h->Fill( value ); };
       fill(hiter->second.adc, hit_it->second->getAdc());
     }
   }
@@ -416,41 +419,42 @@ void QAG4SimulationMicromegas::evaluate_clusters()
     TrackFitUtils::position_vector_t xy_pts;
     TrackFitUtils::position_vector_t rz_pts;
 
-    for (const auto& [gkey, gclus]:truth_clusters){
+    for (const auto& [gkey, gclus] : truth_clusters)
+    {
       const auto layer = TrkrDefs::getLayer(gkey);
       if (layer < 7) continue;
-      
+
       float gx = gclus->getX();
       float gy = gclus->getY();
       float gz = gclus->getZ();
 
-      xy_pts.emplace_back( gx, gy );
-      rz_pts.emplace_back( std::sqrt(gx*gx + gy*gy),gz );
-    } 
+      xy_pts.emplace_back(gx, gy);
+      rz_pts.emplace_back(std::sqrt(gx * gx + gy * gy), gz);
+    }
 
     // fit a circle through x,y coordinates
-    const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin( xy_pts );
-    const auto [slope, intercept] = TrackFitUtils::line_fit( rz_pts );
+    const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin(xy_pts);
+    const auto [slope, intercept] = TrackFitUtils::line_fit(rz_pts);
 
     // skip chain entirely if fit fails
-    if( std::isnan( R ) ) continue;
+    if (std::isnan(R)) continue;
 
     // process residuals and pulls
     // get reco clusters
 
-    for (const auto ckey:ckeyset)
+    for (const auto ckey : ckeyset)
     {
       const auto layer = TrkrDefs::getLayer(ckey);
       const auto detID = TrkrDefs::getTrkrId(ckey);
-      if (detID!=TrkrDefs::TrkrId::micromegasId) continue;
+      if (detID != TrkrDefs::TrkrId::micromegasId) continue;
 
       // get tileid
       const auto tileid = MicromegasDefs::getTileId(ckey);
-      
+
       // load geometry
       const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geonode->GetLayerGeom(layer));
       if (!layergeom) continue;
-      
+
       // get relevant histograms
       const auto hiter = histograms.find(layer);
       if (hiter == histograms.end()) continue;
@@ -465,16 +469,19 @@ void QAG4SimulationMicromegas::evaluate_clusters()
       // get relevant cluster information
       double rphi_error = 0;
       double z_error = 0;
-      if(m_cluster_version==3){
-	rphi_error = cluster->getRPhiError();
-	z_error = cluster->getZError();
-      }else{
-	float r = cluster_r;
-	double alpha = (r*r) /(2*r*R);
-	double beta = slope;
-	auto para_errors = _ClusErrPara.get_cluster_error(cluster, ckey, alpha, beta);
-	rphi_error = sqrt(para_errors.first);
-	z_error = sqrt(para_errors.second);
+      if (m_cluster_version == 3)
+      {
+        rphi_error = cluster->getRPhiError();
+        z_error = cluster->getZError();
+      }
+      else
+      {
+        float r = cluster_r;
+        double alpha = (r * r) / (2 * r * R);
+        double beta = slope;
+        auto para_errors = _ClusErrPara.get_cluster_error(cluster, ckey, alpha, beta);
+        rphi_error = sqrt(para_errors.first);
+        z_error = sqrt(para_errors.second);
       }
       // convert cluster position to local tile coordinates
       const TVector3 cluster_world(global(0), global(1), global(2));
@@ -510,27 +517,27 @@ void QAG4SimulationMicromegas::evaluate_clusters()
           interpolate<&interpolation_data_t::z>(hits, z_extrap));
 
       // fill phi residuals, errors and pulls
-      auto fill = [](TH1* h, float value) { if( h ) h->Fill( value ); };
+      auto fill = [](TH1* h, float value)
+      { if( h ) h->Fill( value ); };
       switch (segmentation_type)
       {
-        case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
-        {
-          const auto drphi = cluster_local.x() - interpolation_local.x();
-          fill(hiter->second.residual, drphi);
-          fill(hiter->second.residual_error, rphi_error);
-          fill(hiter->second.pulls, drphi / rphi_error);
-          break;
-        }
-        
-        case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
-        {
-          const auto dz = cluster_local.y() - interpolation_local.y();
-          fill(hiter->second.residual, dz);
-          fill(hiter->second.residual_error, z_error);
-          fill(hiter->second.pulls, dz / z_error);
-          break;
+      case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+      {
+        const auto drphi = cluster_local.x() - interpolation_local.x();
+        fill(hiter->second.residual, drphi);
+        fill(hiter->second.residual_error, rphi_error);
+        fill(hiter->second.pulls, drphi / rphi_error);
+        break;
+      }
 
-        }
+      case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+      {
+        const auto dz = cluster_local.y() - interpolation_local.y();
+        fill(hiter->second.residual, dz);
+        fill(hiter->second.residual_error, z_error);
+        fill(hiter->second.pulls, dz / z_error);
+        break;
+      }
       }
 
       // cluster size
