@@ -21,14 +21,17 @@ AM_LDFLAGS = \
 libepd_la_LIBADD = \
   -lgsl \
   -lgslcblas \
-  -lphool
+  -lphool \
+  -lSubsysReco
 
 pkginclude_HEADERS = \
   EPDDefs.h \
-  EpdGeom.h
+  EpdGeom.h \
+  EpdGeomMaker.h
 
 libepd_la_SOURCES = \
-  EpdGeom.cc
+  EpdGeom.cc \
+  EpdGeomMaker.cc
 
 ################################################
 # linking tests

@@ -24,15 +24,15 @@ Key format:
 
 
 // sEPD geometry class
-class EPD_GEOM {
+class EpdGeom : public PHObject {
 
 public:
   const unsigned int NUM_TOWERS = 768;
   const unsigned int MAX_R = 32;
   const unsigned int MAX_PHI = 24;
 
-  EPD_GEOM();
-  ~EPD_GEOM();
+  EpdGeom();
+  ~EpdGeom();
 
   unsigned int side_r_phi_to_id(unsigned int side, unsigned int r_index, unsigned int phi_index);
   unsigned int side_sector_tile_to_id(unsigned int side, unsigned int sector, unsigned int tile);
@@ -50,6 +50,8 @@ public:
   
   
   bool test_id_mapping();
+
+  void identify(std::ostream &os = std::cout ) const override;
 
 private:
   std::map<int, float> r_map;
