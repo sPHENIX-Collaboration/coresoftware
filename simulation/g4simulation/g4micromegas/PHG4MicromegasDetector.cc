@@ -114,7 +114,7 @@ void PHG4MicromegasDetector::setup_tiles()
     static constexpr double phi = 3.*M_PI/2;
     
     // tiles z position from CAD model (THREE PANELS UPDATE 1-18-21)
-    for( const double& tile_z:{ -82.8, -27.6, 27.6, 82.2 } )
+    for( const double& tile_z:{ -84.6, -28.2, 28.2, 84.6 } )
     { m_tiles.emplace_back(phi, tile_z, tile_width/CylinderGeomMicromegas::reference_radius, tile_length); }
   }
   
