@@ -20,19 +20,19 @@ class MicromegasEvaluator_hp : public SubsysReco
 {
   public:
 
-  //! constructor
+  /// constructor
   MicromegasEvaluator_hp( const std::string& = "MicromegasEvaluator_hp" );
 
-  //! global initialization
+  /// global initialization
   virtual int Init(PHCompositeNode*);
 
-  //! run initialization
+  /// run initialization
   virtual int InitRun(PHCompositeNode*);
 
-  //! event processing
+  /// event processing
   virtual int process_event(PHCompositeNode*);
 
-  //! end of processing
+  /// end of processing
   virtual int End(PHCompositeNode*);
 
   // tile information
@@ -42,31 +42,31 @@ class MicromegasEvaluator_hp : public SubsysReco
 
     using List = std::vector<TileStruct>;
 
-    //! default constructor
+    /// default constructor
     TileStruct() = default;
 
-    //! constructor
+    /// constructor
     TileStruct( int layer, int tile ):
       _layer( layer ),
       _tile( tile )
     {}
 
-    //! layer
+    /// layer
     uint _layer = 0;
 
-    //! tile
+    /// tile
     uint _tile = 0;
 
-    //! total deposited energy in tile
+    /// total deposited energy in tile
     float _edep_total = 0;
 
-    //! total ionization energy in tile
+    /// total ionization energy in tile
     float _eion_total = 0;
 
-    //! total number of electron (after amplification)
+    /// total number of electron (after amplification)
     float _electrons_total = 0;
 
-    //! total number of fired strips
+    /// total number of fired strips
     int _strips_total = 0;
   };
 
@@ -77,10 +77,10 @@ class MicromegasEvaluator_hp : public SubsysReco
 
     using List = std::vector<G4HitStruct>;
 
-    //! layer
+    /// layer
     uint _layer = 0;
 
-    //! tile
+    /// tile
     uint _tile = 0;
 
     // position
@@ -89,70 +89,70 @@ class MicromegasEvaluator_hp : public SubsysReco
     float _z = 0;
     float _t = 0;
 
-    //! deposited energy
+    /// deposited energy
     float _edep = 0;
 
-    //! ionization energy
+    /// ionization energy
     float _eion = 0;
 
-    //! number of primary electrons
+    /// number of primary electrons
     uint _nprimary = 0;
 
-    //! total number of electrons
+    /// total number of electrons
     uint _nelectron = 0;
 
-    //! delta_r
+    /// delta_r
     /** used to identify whether g4hits cover the full drift space or not */
     float _delta_r = 0;
 
   };
 
-  //! hit information to be stored in tree
+  /// hit information to be stored in tree
   class HitStruct
   {
     public:
 
     using List = std::vector<HitStruct>;
 
-    //! detector
+    /// detector
     uint8_t _detid = 0;
     
-    //! layer
+    /// layer
     uint _layer = 0;
 
-    //! number of hits belonging to the cluster
+    /// number of hits belonging to the cluster
     uint _tile = 0;
 
-    //! strip
+    /// strip
     uint _strip = 0;
 
-    //! energy
+    /// energy
     float _energy = 0;
 
-    //! ADC counts
+    /// ADC counts
     uint _adc = 0;
 
   };
 
-  //! track container
+  /// track container
   class Container: public PHObject
   {
 
     public:
 
-    //! constructor
+    /// constructor
     explicit Container() = default;
 
-    //! copy constructor
+    /// copy constructor
     explicit Container(const Container &) = delete;
 
-    //! assignment operator
+    /// assignment operator
     Container& operator = ( const Container& ) = delete;
 
-    //! reset
+    /// reset
     virtual void Reset();
 
-    //!@name accessors
+    ///@name accessors
     //@{
 
     const TileStruct::List& tiles() const
@@ -166,10 +166,10 @@ class MicromegasEvaluator_hp : public SubsysReco
 
     //@}
 
-    //!@name modifiers
+    ///@name modifiers
     //@{
 
-    //! find tile matching given layer and tile id
+    /// find tile matching given layer and tile id
     /* create and store new one if not found */
     TileStruct& findTile( uint layer, uint tile );
 
@@ -192,13 +192,13 @@ class MicromegasEvaluator_hp : public SubsysReco
 
     private:
 
-    //! tiles
+    /// tiles
     TileStruct::List _tiles;
 
-    //! g4hits array
+    /// g4hits array
     G4HitStruct::List _g4hits;
 
-    //! hits array
+    /// hits array
     HitStruct::List _hits;
 
     ClassDef(Container,1)
@@ -208,51 +208,59 @@ class MicromegasEvaluator_hp : public SubsysReco
   enum Flags
   {
     EvalG4Hits = 1<<0,
-    EvalHits = 1<<1
+    EvalHits = 1<<1,
+    PrintGeometry = 1<<2
   };
 
-  //! set flags. Should be a bitwise or of Flags enum
+  /// set flags. Should be a bitwise or of Flags enum
   void set_flags( int flags )
   { m_flags = flags; }
 
   private:
 
-  //! load nodes
+  /// load nodes
   int load_nodes( PHCompositeNode* );
 
-  //! evaluate g4hits
+  /// evaluate g4hits
   void evaluate_g4hits();
 
-  //! evaluate hits
+  /// evaluate hits
   void evaluate_hits();
 
-  //! cluster array
+  /// print micromegas geometry
+  /**
+   * this prints out the begin and end point of the first and last strip of each Micromegas detector
+   * this can be compared to surveyed data
+   */
+  void print_micromegas_geometry();
+  
+  /// cluster array
   Container* m_container = nullptr;
 
   // flags
-  int m_flags = EvalG4Hits | EvalHits;
+  int m_flags = EvalG4Hits | EvalHits | PrintGeometry;
 
   /// Acts tracking geometry for surface lookup
   ActsGeometry *m_tGeometry = nullptr;
 
-  //! gemometry
+  /// gemometry
   PHG4CylinderGeomContainer* m_geonode = nullptr;
 
-  //! g4hit container
+  /// g4hit container
   PHG4HitContainer* m_g4hits_micromegas = nullptr;
 
-  //! hitset container
+  /// hitset container
   TrkrHitSetContainer* m_hitsetcontainer = nullptr;
 
-  //! rng de-allocator
+  /// rng de-allocator
   class Deleter
   {
     public:
-    //! deletion operator
+    /// deletion operator
     void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
   };
 
-  //! random generator that conform with sPHENIX standard
+  /// random generator that conform with sPHENIX standard
   /*! using a unique_ptr with custom Deleter ensures that the structure is properly freed when parent object is destroyed */
   std::unique_ptr<gsl_rng, Deleter> m_rng;
 

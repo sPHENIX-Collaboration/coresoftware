@@ -74,6 +74,13 @@ namespace
     hit_struct._adc = hit->getAdc();
     return hit_struct;
   }
+  
+  // TVector3 streamer
+  std::ostream& operator << (std::ostream& out, const TVector3& v )
+  {
+    out << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
+    return out;
+  }
 
 }
 
@@ -162,6 +169,13 @@ int MicromegasEvaluator_hp::process_event(PHCompositeNode* topNode)
   if( m_flags & EvalG4Hits ) evaluate_g4hits();
   if( m_flags & EvalHits ) evaluate_hits();
 
+  static bool first = true;
+  if( first )
+  {
+    first = false;
+    if( m_flags & PrintGeometry ) print_micromegas_geometry(); 
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -327,6 +341,85 @@ void MicromegasEvaluator_hp::evaluate_hits()
       }
     }
 
+  }
+
+}
+
+
+//_____________________________________________________________________
+void MicromegasEvaluator_hp::print_micromegas_geometry()
+{
+  std::cout << "MicromegasEvaluator_hp::print_micromegas_geometry" << std::endl;
+  
+  // loop over layers
+  const auto range = m_geonode->get_begin_end();
+  for( auto it = range.first; it != range.second; ++it )
+  {
+    // get relevant geometry
+    auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(it->second);
+    assert( layergeom );
+
+    const auto layer = layergeom->get_layer();
+    // std::cout << "MicromegasEvaluator_hp::print_micromegas_geometry - layer: " << (int) layer << std::endl;
+    
+    // loop over tiles
+    for( uint tileid = 0; tileid < layergeom->get_tiles_count(); ++tileid )
+    {
+      
+//       const auto strip_length = layergeom->get_strip_length( tileid, m_tGeometry);
+//       std::cout << "MicromegasEvaluator_hp::print_micromegas_geometry -"
+//         << " layer: " << (int) layer
+//         << " tile: " << tileid
+//         << " length: " << strip_length
+//         << std::endl;
+      
+      for( const uint stripnum:{0,255} )
+      {
+        
+        // get strip center, local coordinates
+        const auto strip_center_local = layergeom->get_local_coordinates( tileid, m_tGeometry, stripnum );
+        TVector3 strip_begin_world;
+        TVector3 strip_end_world;
+        
+        switch( layergeom->get_segmentation_type() )
+        {
+          case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+          {
+        
+            const double strip_length = 50;
+            const TVector2 strip_begin( strip_center_local.X(), -strip_length/2 );
+            const TVector2 strip_end( strip_center_local.X(), strip_length/2 );
+            
+            // convert to world coordinates and save
+            strip_begin_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, strip_begin );
+            strip_end_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, strip_end );            
+            break;
+          }
+          
+          case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+          {
+            const double strip_length = 25;
+            const TVector2 strip_begin( -strip_length/2, strip_center_local.Y() );
+            const TVector2 strip_end( strip_length/2, strip_center_local.Y() );
+
+            // convert to world coordinates and save
+            strip_begin_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, strip_begin );
+            strip_end_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, strip_end );            
+            break;
+          }
+      
+        }
+       
+        if( stripnum == 0 ) 
+        {
+          std::cout << (int) layer << "_" << tileid << "_s1 " << strip_begin_world << std::endl;
+          std::cout << (int) layer << "_" << tileid << "_s2 " << strip_end_world << std::endl;          
+        } else {
+          std::cout << (int) layer << "_" << tileid << "_s3 " << strip_begin_world << std::endl;
+          std::cout << (int) layer << "_" << tileid << "_s4 " << strip_end_world << std::endl;          
+        }
+      }
+    }
   }
 
 }
