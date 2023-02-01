@@ -112,8 +112,8 @@ void PHG4MicromegasDetector::setup_tiles()
   {
     // bottom most sector 3pi/2 has 4 modules
     static constexpr double phi = 3.*M_PI/2;
-    
-    // tiles z position from CAD model (THREE PANELS UPDATE 1-18-21)
+
+    // tiles z position from CAD model (T-POT DETECTOR ASSEMBLY 7-13-2022-w-new-trays-modules)
     for( const double& tile_z:{ -84.6, -28.2, 28.2, 84.6 } )
     { m_tiles.emplace_back(phi, tile_z, tile_width/CylinderGeomMicromegas::reference_radius, tile_length); }
   }
@@ -122,7 +122,7 @@ void PHG4MicromegasDetector::setup_tiles()
     // neighbor sectors have two modules, separated by 10cm
     for( const double& phi: { 4.*M_PI/3, 5.*M_PI/3 } )
     {
-      // tiles z position from CAD model (THREE PANELS UPDATE 1-18-21)
+      // tiles z position from CAD model (T-POT DETECTOR ASSEMBLY 7-13-2022-w-new-trays-modules)
       for( const double& tile_z:{ -37.1, 37.1 } )
       { m_tiles.emplace_back(phi, tile_z, tile_width/CylinderGeomMicromegas::reference_radius, tile_length); }
     }  
