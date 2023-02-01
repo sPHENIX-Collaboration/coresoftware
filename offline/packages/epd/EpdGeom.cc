@@ -129,7 +129,7 @@ void EpdGeom::build_map() {
         this->z_map[id] = this->NAIVE_Z_MAP[side];
         this->r_map[id] = this->NAIVE_R_LOC[r_index];
         if (r_index == 0) {
-          this->phi_map[id] = this->NAIVE_PHI_LOC_RING_0[phi_index]; // Inner ring only has 12 tiles
+          this->phi_map[id] = this->NAIVE_PHI_LOC_RING_0[phi_index / 2]; // Inner ring only has 12 tiles
         } else {
           this->phi_map[id] = this->NAIVE_PHI_LOC[phi_index];        // The rest have 24
         }

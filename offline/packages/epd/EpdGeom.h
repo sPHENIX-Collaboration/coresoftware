@@ -28,8 +28,10 @@ class EpdGeom : public PHObject {
 
 public:
   const unsigned int NUM_TOWERS = 768;
-  const unsigned int MAX_R = 32;
+  const unsigned int MAX_R = 16;
   const unsigned int MAX_PHI = 24;
+  const unsigned int NUM_SECTORS = 12;
+  const unsigned int NUM_TILES = 31;
 
   EpdGeom();
   ~EpdGeom();
@@ -52,7 +54,7 @@ public:
   bool test_id_mapping();
 
   void identify(std::ostream &os = std::cout ) const override;
-  void Reset() {return;}; // Reset doesn't need to do anything
+  void Reset() override {return;}; // Reset doesn't need to do anything
 
 private:
   std::map<int, float> r_map;
