@@ -93,6 +93,9 @@ bool ChargeMapReader::CanInterpolateAt(float x, float y, float z, TH3* h)
 
 void ChargeMapReader::FillChargeHistogram(TH3* h)
 {
+  //fills the provided histogram with the data from the internal representation.
+
+  
   //   0     1     2     ...   n-1
   // first|   ..|  ..  |  .. |last
   float dphi, dr, dz;  //bin widths in each dimension.  Got too confusing to make these an array.
@@ -122,7 +125,7 @@ void ChargeMapReader::FillChargeHistogram(TH3* h)
 
 void ChargeMapReader::RegenerateCharge()
 {
-  //Builds the charge 3D array from the charge density map.
+  //Builds the charge 3D array (internal representation) from the internal charge density map.
   //either the density map has changed, or the binning of the output has changed (hopefully not the latter, because that's a very unusual thing to change mid-run.
   //we want to rebuild the charge per bin of our output representation in any case.  Generally, we will interpolate from the charge density that we know we have, but we need to be careful not to ask to interpolate in regions where that is not allowed.
   if (DEBUG) printf("regenerating charge array contents with axis scale=%1.2E and charge scale=%1.2E\n", inputAxisScale, inputChargeScale);
@@ -136,44 +139,69 @@ void ChargeMapReader::RegenerateCharge()
 
   //   0     1     2     ...   n-1
   // first|   ..|  ..  |  .. |last
-  float dphi, dr, dz;  //bin widths in each dimension.  Got too confusing to make these an array.
+  float dphi, dr, dz;  //internal rep bin widths in each dimension.  Got too confusing to make these an array.
   dr = binWidth[0];
   dphi = binWidth[1];
   dz = binWidth[2];
+  float dzhist,drhist;
+  dzhist=dz/ inputAxisScale;
+  drhist=dr/inputAxisScale;
 
   float phimid, zmid;  //position of the center of each fixed-width array bin, in the input histogram units
   //note that since we computed density using the hist units, we must use those units for the volume term again here.
   int i[3];
-  for (i[0] = 0; i[0] <= nBins[0]; i[0]++)
+  for (i[0] = 0; i[0] < nBins[0]; i[0]++)
   {  //r
     float rmid = (lowerBound[0] + (i[0] + 0.5) * dr) / inputAxisScale;
-    float rlow = lowerBound[0] + dr * i[0];
-    float volume = dz * dphi * (rlow + 0.5 * dr) * dr;  //note that since we have equal bin widths, the volume term depends only on r.
-    float scaleFactor = volume * inputChargeScale;      //and the total scale factor is the volume term times the charge scale factor
-    for (i[1] = 0; i[1] <= nBins[1]; i[1]++)
-    {  //phi
+    // float rlow = (lowerBound[0] + dr * i[0]) / inputAxisScale;
+    float histBinVolume = dzhist * dphi * rmid * drhist;  //volume of our output bin in histogram units.
+    //note that since we have equal bin widths, the volume term depends only on r.
+    // Q_bin=Density_ion_interp*bin_volume*(coulomb/ion)
+    float scaleFactor = histBinVolume * inputChargeScale;      //hence the total scale factor is the volume term times the charge scale factor
+    for (i[1] = 0; i[1] < nBins[1]; i[1]++)
+    {  //phi 
       phimid = lowerBound[1] + (i[1] + 0.5) * dphi;
-      for (i[2] = 0; i[2] <= nBins[2]; i[2]++)
+      for (i[2] = 0; i[2] < nBins[2]; i[2]++)
       {  //z
         zmid = (lowerBound[2] + (i[2] + 0.5) * dz) / inputAxisScale;
-        if (CanInterpolateAt(rmid, phimid, zmid))
+	float q=0;
+        if (CanInterpolateAt(phimid, rmid, zmid,hChargeDensity))
         {  //interpolate if we can
-          if (0)
-          {
+          if (0) { //deep debug statements.
             printf("function said we could interpolate at (r,phi,z)=(%.2f, %.2f,%.2f), bounds are:\n", rmid, phimid, zmid);
             printf("  r: %.2f < %.2f < %.2f\n", hChargeDensity->GetYaxis()->GetXmin(), rmid, hChargeDensity->GetYaxis()->GetXmax());
             printf("  p: %.2f < %.2f < %.2f\n", hChargeDensity->GetXaxis()->GetXmin(), phimid, hChargeDensity->GetXaxis()->GetXmax());
             printf("  z: %.2f < %.2f < %.2f\n", hChargeDensity->GetZaxis()->GetXmin(), zmid, hChargeDensity->GetZaxis()->GetXmax());
           }
-
-          charge->Set(i[0], i[1], i[2],
-                      hChargeDensity->Interpolate(phimid, rmid, zmid) * scaleFactor);
+	  q=scaleFactor*hChargeDensity->Interpolate(phimid, rmid, zmid);
         }
         else
         {  //otherwise, just take the central value and assume it's flat.  Better than a zero.
-          charge->Set(i[0], i[1], i[2],
-                      hChargeDensity->GetBinContent(hChargeDensity->FindBin(phimid, rmid, zmid)) * scaleFactor);
+	  q=scaleFactor*hChargeDensity->GetBinContent(hChargeDensity->FindBin(phimid, rmid, zmid));
         }
+	if (0){ //deep debug statements.
+	  int global=hSourceCharge->FindBin(phimid, rmid, zmid);
+	  if (CanInterpolateAt(phimid, rmid, zmid,hChargeDensity)){
+            printf("density debug report (interp) (r,phi,z)=(%.2f, %.2f,%.2f), glob=%d, q_dens=%E", rmid, phimid, zmid, global,q);
+	    printf(", density=%E, vol=%E",hChargeDensity->Interpolate(phimid, rmid, zmid),histBinVolume);
+	    printf(", q_bin=%E, q_bin_coul=%E",
+		   hSourceCharge->GetBinContent(hSourceCharge->FindBin(phimid, rmid, zmid)),
+		   hSourceCharge->GetBinContent(hSourceCharge->FindBin(phimid, rmid, zmid))*inputChargeScale);
+	    printf(", q_interp=%E, q_bin_coul/vol=%E\n",
+		   hSourceCharge->Interpolate(phimid, rmid, zmid),
+		   hSourceCharge->GetBinContent(hSourceCharge->FindBin(phimid, rmid, zmid))/histBinVolume);
+	  } else {
+            printf("density debug report (getbin) (r,phi,z)=(%.2f, %.2f,%.2f), glob=%d, q_dens=%E", rmid, phimid, zmid, global,q);
+ 	    printf(", density=%E, vol=%E",hChargeDensity->GetBinContent(hChargeDensity->FindBin(phimid, rmid, zmid)),histBinVolume);
+	    printf(", q_bin=%E, q_bin_ions=%E",
+		   hSourceCharge->GetBinContent(hSourceCharge->FindBin(phimid, rmid, zmid)),
+		   hSourceCharge->GetBinContent(hSourceCharge->FindBin(phimid, rmid, zmid))/inputChargeScale);
+	    printf(", q_bin_ions/vol=%E\n",
+		   hSourceCharge->GetBinContent(hSourceCharge->FindBin(phimid, rmid, zmid))/scaleFactor);
+	  }
+	}
+	charge->Set(i[0], i[1], i[2],q);
+
       }  //z
     }    //phi
   }      //r
@@ -186,6 +214,7 @@ void ChargeMapReader::RegenerateCharge()
 void ChargeMapReader::RegenerateDensity()
 {
   //assume the input map has changed, so we need to rebuild our internal representation of the density.
+  //this is done by cloning the SourceCharge histogram and dividing each bin in it by its volume
   if (DEBUG) printf("regenerating density histogram\n");
 
   //if we have one already, delete it.
@@ -203,6 +232,7 @@ void ChargeMapReader::RegenerateDensity()
 
   //clone this from the source histogram, which we assume is open.
   hChargeDensity = static_cast<TH3*>(hSourceCharge->Clone("hChargeDensity"));
+  hChargeDensity->Reset();
 
   //then go through it, bin by bin, and replace each bin content with the corresponding density, so we can interpolate correctly.
   //TODO:  Does this mean we once again need 'guard' bins?  Gross.
@@ -249,6 +279,11 @@ void ChargeMapReader::RegenerateDensity()
         int globalBin = hSourceCharge->GetBin(i[0], i[1], i[2]);
         float q = hSourceCharge->GetBinContent(globalBin);
         hChargeDensity->SetBinContent(globalBin, q / volume);
+	if (0){//deep debug statements.
+	  printf("iprz=(%d,%d,%d),glob=%d",i[0],i[1],i[2],globalBin);
+	  printf("edges=[%.2f,%.2f],[%.1f,%.1f],[%.1f,%f.1],",low[0],high[0],low[1],high[1],low[2],high[2]);
+	  printf("\tq=%E,vol=%E,dens=%E\n",q,volume,hChargeDensity->GetBinContent(globalBin));
+	}
       }
     }
   }
