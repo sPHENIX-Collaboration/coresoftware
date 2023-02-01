@@ -148,6 +148,8 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* /* topNode */)
       }
     }
   }
+
+  m_eventNum = 0;
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -155,6 +157,14 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* /* topNode */)
 //_____________________________________________________________
 int PHG4TpcCentralMembrane::process_event(PHCompositeNode* topNode)
 {
+  
+  if(m_eventNum % m_eventModulo != 0)
+  {
+    if(Verbosity()) std::cout << "Event " << m_eventNum << " will not generate CM hits" << std::endl;
+    m_eventNum++;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   // load g4hit container
   auto g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hitcontainer)
@@ -169,6 +179,8 @@ int PHG4TpcCentralMembrane::process_event(PHCompositeNode* topNode)
     auto copy = new PHG4Hitv1(hit);
     g4hitcontainer->AddHit(detId, copy);
   }
+
+  m_eventNum++;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
