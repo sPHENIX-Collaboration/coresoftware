@@ -235,14 +235,14 @@ int ResonanceJetTagging::tagHFHadronic(PHCompositeNode *topNode)
       {
         for (int idau = 0; idau < m_nDaughters; idau++)
         {
-          TagDaughters[idau] = kfContainer->get(i + idau + 1);
-          Daughters[idau] = new PHG4Particlev2();
-          Daughters[idau]->set_px(TagDaughters[idau]->Px());
-          Daughters[idau]->set_py(TagDaughters[idau]->Py());
-          Daughters[idau]->set_pz(TagDaughters[idau]->Pz());
+          TagDaughters.at(idau) = kfContainer->get(i + idau + 1);
+          Daughters.at(idau) = new PHG4Particlev2();
+          Daughters.at(idau)->set_px(TagDaughters.at(idau)->Px());
+          Daughters.at(idau)->set_py(TagDaughters.at(idau)->Py());
+          Daughters.at(idau)->set_pz(TagDaughters.at(idau)->Pz());
           //For daughters keep ID as the track ID, so they can be removed from the sample
           //given to fastjet
-          Daughters[idau]->set_barcode(TagDaughters[idau]->Id());
+          Daughters.at(idau)->set_barcode(TagDaughters.at(idau)->Id());
         }
 
         Cand->set_px(TagCand->Px());
@@ -255,7 +255,7 @@ int ResonanceJetTagging::tagHFHadronic(PHCompositeNode *topNode)
 
         findTaggedJets(topNode, Cand, Daughters);
 
-        for (int idau = 0; idau < m_nDaughters; idau++) delete Daughters[idau];
+        for (long unsigned int idau = 0; idau < Daughters.size(); idau++) delete Daughters.at(idau);
 
         m_jet_id++;
         i += m_nDaughters;  // Go to the next D meson
@@ -656,7 +656,7 @@ bool ResonanceJetTagging::isDecay(SvtxTrack *track,  std::vector<PHG4Particlev2*
 {
   for (long unsigned int idecay = 0; idecay < decays.size(); idecay++)
   {
-    if(int(track->get_id()) == decays[idecay]->get_barcode())
+    if(int(track->get_id()) == decays.at(idecay)->get_barcode())
     {
       return true;
     }
@@ -668,7 +668,7 @@ bool ResonanceJetTagging::isDecay(HepMC::GenParticle *particle, std::vector<PHG4
 {
   for (long unsigned int idecay = 0; idecay < decays.size(); idecay++)
   {
-    if (particle->barcode() == decays[idecay]->get_barcode())
+    if (particle->barcode() == decays.at(idecay)->get_barcode())
     {
       return true;
     }
