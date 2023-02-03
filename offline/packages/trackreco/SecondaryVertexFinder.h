@@ -45,7 +45,7 @@ class TrkrCluster;
 class TrackSeed;
 class ActsGeometry;
 class TrkrClusterContainer;
-class TH1D;
+class TNtuple;
 class TH2D;
 class TFile;
 
@@ -68,6 +68,7 @@ class SecondaryVertexFinder : public SubsysReco
 
   void setTrackDcaCut(const double cutxy, const double cutz) {_track_dcaxy_cut = cutxy; _track_dcaz_cut = cutz;}
  void setTwoTrackDcaCut(const double cut) {_two_track_dcacut = cut;}
+ void setMinPathCut(const double cut) {_min_path_cut = cut;}
  void setTrackQualityCut(double cut) {_qual_cut = cut;}
  void setRequireMVTX(bool set) {_require_mvtx = set;}
  void setNmvtxRequired(unsigned int n) {_nmvtx_required = n;}
@@ -93,8 +94,7 @@ class SecondaryVertexFinder : public SubsysReco
   std::vector<float> fitClusters(TrackSeed *tracklet);
   void getTrackletClusters(TrackSeed *tracklet, std::vector<Eigen::Vector3d>& global_vec,
 			   std::vector<TrkrDefs::cluskey>& cluskey_vec);
-  std::vector<double> circle_circle_intersection(double r0, double x0, double y0, 
-						 double r1, double x1, double y1 );
+  bool circle_circle_intersection(double r0, double x0, double y0, double r1, double x1, double y1, std::vector<double>& intersectionXY);
   void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, 
 				Eigen::Vector3d &global);
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
@@ -102,6 +102,16 @@ class SecondaryVertexFinder : public SubsysReco
 				       const Eigen::Vector3d PCA);
   void updateSvtxTrack(SvtxTrack* track, const Acts::BoundTrackParameters& params);
   Acts::Vector3 getVertex(SvtxTrack* track);
+
+  bool findPcaRZ(SvtxTrack *tr1, SvtxTrack *tr2, Eigen::Vector2d &PCA);
+  bool projectTrackToCylinder(SvtxTrack* track, double Radius, Eigen::Vector3d& pos, Eigen::Vector3d& mom);
+  void findPcaTwoLines(Eigen::Vector3d pos1, Eigen::Vector3d mom1, Eigen::Vector3d pos2, Eigen::Vector3d mom2,
+		       double &dca, Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);
+  bool findTwoTrackIntersection(SvtxTrack *track1, SvtxTrack *track2, Eigen::Vector2d& intersect1,  Eigen::Vector2d& intersect2);
+  BoundTrackParamResult propagateTrack(
+				       const Acts::BoundTrackParameters& params,
+				       const SurfacePtr& targetSurf);
+  void fillNtp(SvtxTrack *track1, SvtxTrack *track2, double dca3dxy1, double dca3dz1, double dca3dxy2, double dca3dz2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, double path, int has_silicon_1, int has_siilicon_2);
 
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};  
@@ -116,16 +126,26 @@ class SecondaryVertexFinder : public SubsysReco
 
  TpcDistortionCorrection _distortionCorrection;
 
-  double _track_dcaxy_cut = 0.010;  
-  double _track_dcaz_cut = 0.010;  
-  double _two_track_dcacut = 0.050;  // 500 microns 
+ //double _track_dcaxy_cut = 0.010;  
+ double _track_dcaxy_cut = 0.020;  
+ //double _track_dcaz_cut = 0.010;  
+  double _track_dcaz_cut = 0.020;  
+  //double _two_track_dcacut = 0.050;  // 500 microns 
+  double _two_track_dcacut = 0.5;  // 5000 microns 
   double _qual_cut = 10.0;
-  bool _require_mvtx = true;
+  //bool _require_mvtx = true;
+  bool _require_mvtx = false;
   unsigned int _nmvtx_required = 3; 
   double _track_pt_cut = 0.0;
-
+  double _min_path_cut = 0.2;
+  double _max_intersection_radius = 40.0;  // discard intersections at greater than 40 cm radius
+  double _projected_track_z_cut = 0.5;
+  double decaymass = 0.13957;  // pion
+  double decaymass_electrons = 0.000511;  // electron
+  bool use_electrons = true;
+	      
   TH2D *recomass{nullptr};
-  //  TH1D *recopt{nullptr};
+  TNtuple *ntp{nullptr};
   std::string outfile;
 
   std::multimap<unsigned int, unsigned int> _vertex_track_map;
