@@ -76,7 +76,7 @@ class PHG4TruthInfoContainer;
 /**
  * Constructor of module
  */
-ResonanceJetTagging::ResonanceJetTagging(const std::string &name, const TAG tag, std::string KFparticle_Container_name)
+ResonanceJetTagging::ResonanceJetTagging(const std::string &name, const TAG tag, const std::string &KFparticle_Container_name)
   : SubsysReco(name)
   , m_particleflow_mineta(-1.1)
   , m_particleflow_maxeta(1.1)
@@ -192,7 +192,7 @@ int ResonanceJetTagging::process_event(PHCompositeNode *topNode)
       return tagHFHadronic(topNode);
       break;
     default:
-      std::cout<<"ERROR: Fill Tree Function Not Set, ABORTING!";
+      std::cout<<"ERROR: Tag Function Not Set, ABORTING!";
       return Fun4AllReturnCodes::ABORTRUN;
       break;
   }
@@ -272,7 +272,7 @@ int ResonanceJetTagging::tagHFHadronic(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void ResonanceJetTagging::findTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *Tag, std::vector<PHG4Particlev2*> TagDecays)
+void ResonanceJetTagging::findTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *Tag, const std::vector<PHG4Particlev2*> &TagDecays)
 {
   std::unique_ptr<fastjet::JetDefinition> jetdef(new fastjet::JetDefinition(m_jetalgo, m_jetr, m_recomb_scheme, fastjet::Best));
   std::vector<fastjet::PseudoJet> particles;
@@ -335,7 +335,7 @@ void ResonanceJetTagging::findTaggedJets(PHCompositeNode *topNode, PHG4Particlev
   return;
 }
 
-void ResonanceJetTagging::addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, std::vector<PHG4Particlev2*> TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
+void ResonanceJetTagging::addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<PHG4Particlev2*> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
 {
   ParticleFlowElementContainer *pflowContainer = findNode::getClass<ParticleFlowElementContainer>(topNode, "ParticleFlowElements");
 
@@ -397,7 +397,7 @@ bool ResonanceJetTagging::isAcceptableParticleFlow(ParticleFlowElement *pfPart)
 
   return true;
 }
-void ResonanceJetTagging::addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, std::vector<PHG4Particlev2*> TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
+void ResonanceJetTagging::addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<PHG4Particlev2*> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
 {
   SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 
@@ -652,7 +652,7 @@ bool ResonanceJetTagging::isAcceptableHCalCluster(CLHEP::Hep3Vector &E_vec_clust
   return true;
 }
 
-bool ResonanceJetTagging::isDecay(SvtxTrack *track,  std::vector<PHG4Particlev2*> decays)
+bool ResonanceJetTagging::isDecay(SvtxTrack *track,  const std::vector<PHG4Particlev2*> &decays)
 {
   for (long unsigned int idecay = 0; idecay < decays.size(); idecay++)
   {
@@ -664,7 +664,7 @@ bool ResonanceJetTagging::isDecay(SvtxTrack *track,  std::vector<PHG4Particlev2*
   return false;
 }
 
-bool ResonanceJetTagging::isDecay(HepMC::GenParticle *particle, std::vector<PHG4Particlev2*> decays)
+bool ResonanceJetTagging::isDecay(HepMC::GenParticle *particle, const std::vector<PHG4Particlev2*> &decays)
 {
   for (long unsigned int idecay = 0; idecay < decays.size(); idecay++)
   {

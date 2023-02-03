@@ -67,7 +67,7 @@ class ResonanceJetTagging : public SubsysReco
   };
 
   /// Constructor
-  ResonanceJetTagging(const std::string &name = "ResonanceJetTagging", const TAG tag = TAG::D0, std::string KFparticle_Container_name = "");
+  ResonanceJetTagging(const std::string &name = "ResonanceJetTagging", const TAG tag = TAG::D0, const std::string &KFparticle_Container_name = "");
 
   // Destructor
   virtual ~ResonanceJetTagging();
@@ -270,9 +270,9 @@ class ResonanceJetTagging : public SubsysReco
 
   /// Methods for grabbing the data
   int tagHFHadronic(PHCompositeNode *topNode);
-  void findTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *Tag, std::vector<PHG4Particlev2*> TagDecays);
-  void addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, std::vector<PHG4Particlev2*> TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
-  void addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, std::vector<PHG4Particlev2*> TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
+  void findTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *Tag, const std::vector<PHG4Particlev2*> &TagDecays);
+  void addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<PHG4Particlev2*> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
+  void addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<PHG4Particlev2*> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
   void addClusters(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
   void findMCTaggedJets(PHCompositeNode *topNode);
 
@@ -280,8 +280,8 @@ class ResonanceJetTagging : public SubsysReco
   bool isAcceptableTrack(SvtxTrack *track);
   bool isAcceptableEMCalCluster(CLHEP::Hep3Vector &E_vec_cluster);
   bool isAcceptableHCalCluster(CLHEP::Hep3Vector &E_vec_cluster);
-  bool isDecay(HepMC::GenParticle *particle, std::vector<PHG4Particlev2*> decays);
-  bool isDecay(SvtxTrack *track, std::vector<PHG4Particlev2*> decays);
+  bool isDecay(HepMC::GenParticle *particle, const std::vector<PHG4Particlev2*> &decays);
+  bool isDecay(SvtxTrack *track, const std::vector<PHG4Particlev2*> &decays);
   int createJetNode(PHCompositeNode *topNode);
 };
 
