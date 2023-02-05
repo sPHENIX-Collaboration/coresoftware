@@ -75,9 +75,6 @@ int SecondaryVertexFinder::InitRun(PHCompositeNode *topNode)
 
   ntp = new TNtuple("ntp","decay_pairs","x1:y1:z1:px1:py1:pz1:dca3dxy1:dca3dz1:vposx1:vposy1:vposz1:pca_relx_1:pca_rely_1:pca_relz_1:eta1:charge1:tpcClusters_1:quality1:eta1:x2:y2:z2:px2:py2:pz2:dca3dxy2:dca3dz2:vposx2:vposy2:vposz2:pca_relx_2:pca_rely_2:pca_relz_2:eta2:charge2:tpcClusters_2:quality2:eta2:vertex_x:vertex_y:vertex_z:pair_dca:invariant_mass:invariant_pt:path:has_silicon1:has_silicon2");
 
-  if(use_electrons)
-    decaymass = decaymass_electrons;
-
   GetNodes(topNode);
 
   return ret;
@@ -261,12 +258,12 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 
 	      TLorentzVector t1;
 	      Float_t E1 = sqrt(pow(vmom1(0),2) + pow(vmom1(1),2) + pow(vmom1(2),2) 
-				+ pow(decaymass,2));
+				+ pow(_decaymass,2));
 	      t1.SetPxPyPzE(vmom1(0),vmom1(1),vmom1(2),E1);	
 	      
 	      TLorentzVector t2;
 	      Float_t E2 = sqrt(pow(vmom2(0),2) + pow(vmom2(1),2) + pow(vmom2(2),2) 
-				+ pow(decaymass,2));
+				+ pow(_decaymass,2));
 	      t2.SetPxPyPzE(vmom2(0),vmom2(1),vmom2(2),E2);	
 	      
 	      TLorentzVector tsum = t1+t2;

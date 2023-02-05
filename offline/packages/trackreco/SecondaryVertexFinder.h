@@ -72,6 +72,7 @@ class SecondaryVertexFinder : public SubsysReco
  void setTrackQualityCut(double cut) {_qual_cut = cut;}
  void setRequireMVTX(bool set) {_require_mvtx = set;}
  void setOutfileName(std::string filename) {outfile = filename;}
+ void setDecayParticleMass(double mass) {_decaymass = mass;}
 
  private:
 
@@ -110,6 +111,7 @@ class SecondaryVertexFinder : public SubsysReco
  TpcDistortionCorrection _distortionCorrection;
 
  // these are minimal cuts used to make the ntuple
+ // They can be tightened later when analyzing the ntuple
  double _track_dcaxy_cut = 0.020;  
  double _track_dcaz_cut = 0.020;  
  double _two_track_dcacut = 0.5;  // 5000 microns 
@@ -119,9 +121,7 @@ class SecondaryVertexFinder : public SubsysReco
  double _min_path_cut = 0.2;
  double _max_intersection_radius = 40.0;  // discard intersections at greater than 40 cm radius
  double _projected_track_z_cut = 0.5;
- double decaymass = 0.13957;  // pion, default
- double decaymass_electrons = 0.000511;  // electron
- bool use_electrons = false;
+ double _decaymass = 0.13957;  // pion, default
 	      
   TH2D *recomass{nullptr};
   TNtuple *ntp{nullptr};
