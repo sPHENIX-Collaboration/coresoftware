@@ -260,7 +260,14 @@ if (defined $prodtype)
 	}
 	else
 	{
-	    $filenamestring = sprintf("%s_%s",$filenamestring, $particle, $pmin, $pmax);
+	    if (defined $embed)
+	    {
+		$filenamestring = sprintf("%s_%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring, $particle);
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring, $particle, $pmin, $pmax);
+	    }
 	}
 	&commonfiletypes();
     }
