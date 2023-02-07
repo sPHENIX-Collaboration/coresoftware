@@ -100,8 +100,6 @@ int RawTowerBuilder::InitRun(PHCompositeNode *topNode)
       std::cout << "save light yield as the weight of the cells" << std::endl;
     }
   }
-  topNode->print();
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
