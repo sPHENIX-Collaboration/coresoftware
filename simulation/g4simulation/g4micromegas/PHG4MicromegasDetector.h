@@ -9,6 +9,7 @@
  */
 
 #include <g4main/PHG4Detector.h>
+#include <micromegas/MicromegasDefs.h>
 #include <micromegas/MicromegasTile.h>
 
 #include <map>
@@ -70,9 +71,9 @@ class PHG4MicromegasDetector : public PHG4Detector
   //! construct
   void construct_micromegas(G4LogicalVolume*);
 
-  //! create a micromegas tile of given dimension
+  //! create a micromegas detector of given type
   /** returns the master logical volume that can then be placed inside the world logical volume */
-  G4LogicalVolume* construct_micromegas_tile( int tileid );
+  G4LogicalVolume* construct_micromegas_tile( int tileid, MicromegasDefs::SegmentationType );
   
   //! construct FEE board
   G4LogicalVolume* construct_fee_board( int id );

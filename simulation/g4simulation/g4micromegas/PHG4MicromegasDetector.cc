@@ -211,10 +211,11 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   static constexpr double inner_radius = 84.203*cm;
 
   /*
-   * this is the radius at the center of a module.
+   * this is the radius at the center of a detector.
    * it is updated when constructing the first tile, assuming that all tiles are identical
    */
-  double radius = 0;
+  double radius_phi = 0;
+  double radius_z = 0;
 
   // create detector
   // loop over tiles
@@ -224,37 +225,61 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     // get relevant tile
     const auto& tile = m_tiles[tileid];
 
-    // create tile master volume
-    auto tile_logic = construct_micromegas_tile( tileid );
+    // create phi tile master volume
+    const auto tile_logic_phi = construct_micromegas_tile( tileid, MicromegasDefs::SegmentationType::SEGMENTATION_PHI  );
+    const double tile_thickness_phi = static_cast<G4Box*>(tile_logic_phi->GetSolid())->GetXHalfLength()*2;
 
-    // get tile thickness
-    if( tileid == 0 )
+    // calculate radius at tile center
+    if( tileid == 0 ) radius_phi = inner_radius + tile_thickness_phi/2;
+
     {
-      const double tile_thickness = static_cast<G4Box*>(tile_logic->GetSolid())->GetXHalfLength()*2;
-      radius = inner_radius + tile_thickness/2;
+      // place tile in master volume
+      const double centerZ = tile.m_centerZ*cm;
+      const double centerPhi = tile.m_centerPhi;
+      
+      G4RotationMatrix rotation;
+      rotation.rotateZ( centerPhi*radian );
+      
+      const G4ThreeVector center(
+        radius_phi*std::cos(centerPhi),
+        radius_phi*std::sin(centerPhi),
+        centerZ );
+      
+      G4Transform3D transform( rotation, center );
+      const auto tilename = GetName() + "_tile_" + std::to_string(tileid) + "_phi";
+      new G4PVPlacement( transform, tile_logic_phi, tilename+"_phys", logicWorld, false, 0, OverlapCheck() );
     }
-
-    // place tile in master volume
-    const double centerZ = tile.m_centerZ*cm;
-    const double centerPhi = tile.m_centerPhi;
-
-    G4RotationMatrix rotation;
-    rotation.rotateZ( centerPhi*radian );
     
-    const G4ThreeVector center(
-      radius*std::cos(centerPhi),
-      radius*std::sin(centerPhi),
-      centerZ );
+    // create z tile master volume
+    const auto tile_logic_z = construct_micromegas_tile( tileid, MicromegasDefs::SegmentationType::SEGMENTATION_Z  );
+    const double tile_thickness_z = static_cast<G4Box*>(tile_logic_z->GetSolid())->GetXHalfLength()*2;
 
-    G4Transform3D transform( rotation, center );
-    
-    const auto tilename = GetName() + "_tile_" + std::to_string(tileid);
-    new G4PVPlacement( transform, tile_logic, tilename+"_phys", logicWorld, false, 0, OverlapCheck() );
+    // calculate radius at tile center
+    if( tileid == 0 ) radius_z = inner_radius + tile_thickness_phi + tile_thickness_z/2;
+
+    {
+      // place tile in master volume
+      const double centerZ = tile.m_centerZ*cm;
+      const double centerPhi = tile.m_centerPhi;
+      
+      G4RotationMatrix rotation;
+      rotation.rotateZ( centerPhi*radian );
+      
+      const G4ThreeVector center(
+        radius_z*std::cos(centerPhi),
+        radius_z*std::sin(centerPhi),
+        centerZ );
+      
+      G4Transform3D transform( rotation, center );
+      const auto tilename = GetName() + "_tile_" + std::to_string(tileid) + "_z";
+      new G4PVPlacement( transform, tile_logic_z, tilename+"_phys", logicWorld, false, 0, OverlapCheck() );
+    }    
   }
 
   // adjust active volume radius to account for world placement
-  for( auto&& [layer, layer_radius]:m_layer_radius ) { layer_radius += radius/cm; }
-
+  m_layer_radius.at(m_FirstLayer) += radius_phi/cm;
+  m_layer_radius.at(m_FirstLayer+1) += radius_z/cm;
+  
   if( Verbosity() )
   {
     // print physical layers
@@ -271,7 +296,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 }
 
 //_______________________________________________________________
-G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
+G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, MicromegasDefs::SegmentationType segmentation_type )
 {
   // components enumeration
   /*
@@ -349,9 +374,8 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
   };
 
   // setup layers in the correct order, going outwards from beam axis
-  /* same compoment can appear multiple times. Layer names must be unique */
   using LayerDefinition = std::tuple<Component,std::string>;
-  const std::vector<LayerDefinition> layer_stack =
+  const std::vector<LayerDefinition> layer_stack_phi =
   {
     // inner side
     std::make_tuple( Component::DriftCarbon, "DriftCarbon_inner" ),
@@ -363,8 +387,12 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
     std::make_tuple( Component::ResistiveStrips, "ResistiveStrips_inner" ),
     std::make_tuple( Component::KaptonStrips, "KaptonStrips_inner" ),
     std::make_tuple( Component::CuStrips, "CuStrips_inner"  ),
-    std::make_tuple( Component::PCB, "PCB_inner" ),
-
+    std::make_tuple( Component::PCB, "PCB_inner" )
+  };
+  
+  // layer stack for z view, same as phi view, but mirrored
+  const std::vector<LayerDefinition> layer_stack_z =
+  {
     // outer side (= inner side, mirrored)
     std::make_tuple( Component::PCB, "PCB_outer" ),
     std::make_tuple( Component::CuStrips, "CuStrips_outer" ),
@@ -381,21 +409,28 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
     std::make_tuple( Component::FeeSupport, "FEE_support" )
   };
 
-  // create two FEE boards up front, to get their total thickness and add to master volume
-  std::array<G4LogicalVolume*, 2> fee_board_logic =
+  const bool is_z = (segmentation_type == MicromegasDefs::SegmentationType::SEGMENTATION_Z);
+  
+  // get the right layer stack
+  const auto& layer_stack = is_z ? layer_stack_z: layer_stack_phi;
+  
+  // for z view, create two FEE boards up front, to get their total thickness and add to master volume
+  std::array<G4LogicalVolume*, 2> fee_board_logic = 
   {
-    construct_fee_board(0),
-    construct_fee_board(1)
+    is_z ? construct_fee_board(0):nullptr,
+    is_z ? construct_fee_board(1):nullptr
   };
 
-  // fee thickness
-  const double fee_thickness = static_cast<G4Box*>(fee_board_logic[0]->GetSolid())->GetXHalfLength()*2;
-
+  const double fee_thickness = is_z ? static_cast<G4Box*>(fee_board_logic[0]->GetSolid())->GetXHalfLength()*2:0;
+  
   // calculate total tile thickness
-  const double tile_thickness = std::accumulate(
+  double tile_thickness = std::accumulate(
     layer_stack.begin(), layer_stack.end(), 0.,
     [&layer_map](double value, const LayerDefinition& layer )
-    { return value + layer_map.at(std::get<0>(layer)).m_thickness; } ) + fee_thickness;
+    { return value + layer_map.at(std::get<0>(layer)).m_thickness; } );
+
+  // for z tile, adds fee thickness
+  if( is_z ) tile_thickness += fee_thickness;
 
   // tile dimensions match that of the PCB layer
   const double tile_dy = layer_map.at(Component::PCB).m_dy;
@@ -406,7 +441,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
   auto world_material = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
 
   // define tile name
-  const auto tilename = GetName() + "_tile_" + std::to_string(tileid);
+  const auto tilename = GetName() + "_tile_" + std::to_string(tileid) + (is_z ? "_z":"_phi" );
 
   auto tile_solid = new G4Box( tilename+"_solid", tile_thickness/2, tile_dy/2, tile_dz/2 );
   auto tile_logic = new G4LogicalVolume( tile_solid, world_material, "invisible_" + tilename + "_logic");
@@ -450,7 +485,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
 
       // store active volume
       // define layer from name
-      const int layer_index = (name == "Gas2_inner") ? m_FirstLayer : m_FirstLayer+1;
+      const int layer_index = is_z ? m_FirstLayer+1 : m_FirstLayer;
       m_activeVolumes.insert( std::make_pair( component_phys, layer_index ) );
       m_tiles_map.insert( std::make_pair( component_phys, tileid ) );
 
@@ -464,13 +499,18 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid )
     current_radius_local += thickness;
   }
 
-  // add FEE boards
-  /* offsets measured from CAD drawings */
-  static constexpr double fee_y_offset = ( 316./2 - 44.7 - 141.5/2 )*mm;
-  static constexpr double fee_x_offset = ( 542./2 - 113.1 - 140./2 )*mm;
-  new G4PVPlacement( nullptr, {current_radius_local+fee_thickness/2, -fee_y_offset, -fee_x_offset}, fee_board_logic[0], GetName() + "_fee_0_phys", tile_logic, false, 0, OverlapCheck() );
-  new G4PVPlacement( nullptr, {current_radius_local+fee_thickness/2, -fee_y_offset, fee_x_offset}, fee_board_logic[1], GetName() + "_fee_1_phys", tile_logic, false, 0, OverlapCheck() );
-
+  if( is_z )
+  {
+  
+    // add FEE boards
+    /* offsets measured from CAD drawings */
+    static constexpr double fee_y_offset = ( 316./2 - 44.7 - 141.5/2 )*mm;
+    static constexpr double fee_x_offset = ( 542./2 - 113.1 - 140./2 )*mm;
+    new G4PVPlacement( nullptr, {current_radius_local+fee_thickness/2, -fee_y_offset, -fee_x_offset}, fee_board_logic[0], GetName() + "_fee_0_phys", tile_logic, false, 0, OverlapCheck() );
+    new G4PVPlacement( nullptr, {current_radius_local+fee_thickness/2, -fee_y_offset, fee_x_offset}, fee_board_logic[1], GetName() + "_fee_1_phys", tile_logic, false, 0, OverlapCheck() );
+    
+  }
+  
   // return master logical volume
   return tile_logic;
 }
