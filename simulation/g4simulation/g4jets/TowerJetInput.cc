@@ -81,235 +81,210 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     std::cout << "TowerJetInput::get_input - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_bbc or tracking reco flags in the main macro in order to reconstruct the global vertex." << std::endl;
     return std::vector<Jet *>();
   }
+  m_use_towerinfo = false;
 
   RawTowerContainer *towers = nullptr;
   TowerInfoContainerv1 *towerinfos = nullptr; 
   RawTowerGeomContainer *geom = nullptr;
   if (_input == Jet::CEMC_TOWER)
   {
-    if (m_use_towerinfo)
-      {
-	towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC");
-	geocaloid = RawTowerDefs::CalorimeterId::CEMC;
-      }
-    else
-      {
-	towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
-      }
+    towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
     geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
-    if (!towers || !geom)
+    if ((!towers) || !geom)
     {
       return std::vector<Jet *>();
     }
+  }
+  else if (_input == Jet::CEMC_TOWERINFO)
+  {
+    m_use_towerinfo = true;
+    towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
+    geocaloid = RawTowerDefs::CalorimeterId::CEMC;
+    if ((!towerinfos) || !geom)
+      {
+	return std::vector<Jet *>();
+      }
   }
   else if (_input == Jet::EEMC_TOWER)
-  {
-   if (m_use_towerinfo)
-      {
-	towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_EEMC");
-   	geocaloid = RawTowerDefs::CalorimeterId::EEMC;
-   }
-    else
-      {
-	towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_EEMC");
-      }
-    geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_EEMC");
-    if (!towers || !geom)
     {
-      return std::vector<Jet *>();
+      towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_EEMC");
+      geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_EEMC");
+      if ((!towers && !towerinfos) || !geom)
+	{
+	  return std::vector<Jet *>();
+	}
     }
-  }
   else if (_input == Jet::HCALIN_TOWER)
-  {
-    if (m_use_towerinfo)
-      {
-	towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN");
-    	geocaloid = RawTowerDefs::CalorimeterId::HCALIN;
-     }
-    else
-      {
-	towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
-      }
-    geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-    if (!towers || !geom)
     {
-      return std::vector<Jet *>();
+      towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
+      geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
+      if ((!towers) || !geom)
+	{
+	  return std::vector<Jet *>();
+	}
     }
-  }
+  else if (_input == Jet::HCALIN_TOWERINFO)
+    {
+      m_use_towerinfo = true;
+      towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN");
+      geocaloid = RawTowerDefs::CalorimeterId::HCALIN;
+      geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
+      if ((!towerinfos) || !geom)
+	{
+	  return std::vector<Jet *>();
+	}
+    }
   else if (_input == Jet::HCALOUT_TOWER)
-  {
-   if (m_use_towerinfo)
-      {
-	towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT");
-    	geocaloid = RawTowerDefs::CalorimeterId::HCALOUT;
-      }
-    else
-      {
-	towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
-      }
-   geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
-    if (!towers || !geom)
     {
-      return std::vector<Jet *>();
+      towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
+      geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+      if ((!towers) || !geom)
+	{
+	  return std::vector<Jet *>();
+	}
     }
-  }
+  else if (_input == Jet::HCALOUT_TOWERINFO)
+    {
+      m_use_towerinfo = true;
+      towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT");
+      geocaloid = RawTowerDefs::CalorimeterId::HCALOUT;
+      geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+      if ((!towerinfos) || !geom)
+	{
+	  return std::vector<Jet *>();
+	}
+    }
+
   else if (_input == Jet::FEMC_TOWER)
     {
-      if (m_use_towerinfo)
-	{
-	  towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_FEMC");
-	  geocaloid = RawTowerDefs::CalorimeterId::FEMC;
-	}
-      else
-	{
-	  towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_FEMC");
-	}
+      towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_FEMC");
       geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_FEMC");
-      if (!towers || !geom)
+      if ((!towers) || !geom)
 	{
 	  return std::vector<Jet *>();
 	}
     }
   else if (_input == Jet::FHCAL_TOWER)
   {
-   if (m_use_towerinfo)
-      {
-	towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_FHCAL");
-	geocaloid = RawTowerDefs::CalorimeterId::FHCAL;
-      }
-    else
-      {
-	towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_FHCAL");
-      }
+    towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_FHCAL");
     geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_FHCAL");
-    if (!towers || !geom)
+    if ((!towers) || !geom)
     {
       return std::vector<Jet *>();
     }
   }
   else if (_input == Jet::CEMC_TOWER_RETOWER)
   {
-    if (m_use_towerinfo)
-      {
-	towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
-  	geocaloid = RawTowerDefs::CalorimeterId::HCALIN;
-    }
-    else
-      {
-	towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
-      }
+    towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
     geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-    if (!towers || !geom)
+    if ((!towers) || !geom)
     {
       return std::vector<Jet *>();
     }
   }
+  else if (_input == Jet::CEMC_TOWERINFO_RETOWER)
+    {
+      m_use_towerinfo = true;
+      towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
+      geocaloid = RawTowerDefs::CalorimeterId::HCALIN;
+      geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
+      if ((!towerinfos) || !geom)
+	{
+	  return std::vector<Jet *>();
+	}
+    }
   else if (_input == Jet::CEMC_TOWER_SUB1)
   {
-    if (m_use_towerinfo)
-      {
-	towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1");
-  	geocaloid = RawTowerDefs::CalorimeterId::HCALIN;
-      }
-    else
-      {
-	towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER_SUB1");
-      }
+    towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER_SUB1");
     geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-    if (!towers || !geom)
+    if ((!towers) || !geom)
     {
       return std::vector<Jet *>();
     }
   }
+  else if (_input == Jet::CEMC_TOWERINFO_SUB1)
+    {
+      m_use_towerinfo = true;
+      towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1");
+      geocaloid = RawTowerDefs::CalorimeterId::HCALIN;
+      geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
+      if ((!towerinfos) || !geom)
+	{
+	  return std::vector<Jet *>();
+	}
+    }
   else if (_input == Jet::HCALIN_TOWER_SUB1)
-  {
-   if (m_use_towerinfo)
-      {
-	towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN_SUB1");
-    	geocaloid = RawTowerDefs::CalorimeterId::HCALIN;
-    }
-    else
-      {
-	towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN_SUB1");
-      }
+  {  
+    towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN_SUB1");
     geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-    if (!towers || !geom)
+    if ((!towers) || !geom)
     {
       return std::vector<Jet *>();
     }
   }
+  else if (_input == Jet::HCALIN_TOWERINFO_SUB1)
+    {
+      m_use_towerinfo = true;
+      towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN_SUB1");
+      geocaloid = RawTowerDefs::CalorimeterId::HCALIN;
+      geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
+      if ((!towerinfos) || !geom)
+	{
+	  return std::vector<Jet *>();
+	}
+    }
   else if (_input == Jet::HCALOUT_TOWER_SUB1)
   {
-    if (m_use_towerinfo)
-      {
-	towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT_SUB1");
-  	geocaloid = RawTowerDefs::CalorimeterId::HCALOUT;
-      }
-    else
-      {
-	towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT_SUB1");
-      }
+    towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT_SUB1");
     geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
-    if (!towers || !geom)
+    if ((!towers) || !geom)
     {
       return std::vector<Jet *>();
     }
   }
+  else if (_input == Jet::HCALOUT_TOWERINFO_SUB1)
+    {
+      m_use_towerinfo = true;
+      towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT_SUB1");
+      geocaloid = RawTowerDefs::CalorimeterId::HCALOUT;
+      geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+      if ((!towerinfos) || !geom)
+	{
+	  return std::vector<Jet *>();
+	}
+    }
   else if (_input == Jet::CEMC_TOWER_SUB1CS)
-  {
-   if (m_use_towerinfo)
-      {
-	towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1CS");
-  	geocaloid = RawTowerDefs::CalorimeterId::HCALIN;
-      }
-    else
-      {
-	towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER_SUB1CS");
-      }
-    geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-    if (!towers || !geom)
     {
-      return std::vector<Jet *>();
+      towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER_SUB1CS");
+      geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
+      if ((!towers) || !geom)
+	{
+	  return std::vector<Jet *>();
+	}
     }
-  }
   else if (_input == Jet::HCALIN_TOWER_SUB1CS)
-  {
-   if (m_use_towerinfo)
-      {
-	towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN_SUB1CS");
-   	geocaloid = RawTowerDefs::CalorimeterId::HCALIN;
-     }
-    else
-      {
-    towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN_SUB1CS");
-      }
-    geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-    if (!towers || !geom)
     {
-      return std::vector<Jet *>();
+      towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN_SUB1CS");
+      geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
+      if ((!towers) || !geom)
+	{
+	  return std::vector<Jet *>();
+	}
     }
-  }
   else if (_input == Jet::HCALOUT_TOWER_SUB1CS)
     {
-   if (m_use_towerinfo)
-      {
-	towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT_SUB1CS");
-   	geocaloid = RawTowerDefs::CalorimeterId::HCALOUT;
-     }
-    else
-      {
-	towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT_SUB1CS");
-      }
-    geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
-    if (!towers || !geom)
+      towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT_SUB1CS");
+      geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+      if ((!towers) || !geom)
+	{
+	  return std::vector<Jet *>();
+	}
+    }
+  else
     {
       return std::vector<Jet *>();
     }
-  }
-  else
-  {
-    return std::vector<Jet *>();
-  }
 
   // first grab the event vertex or bail
   GlobalVertex *vtx = vertexmap->begin()->second;
@@ -339,6 +314,11 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   std::vector<Jet *> pseudojets;
   if (m_use_towerinfo)
     {
+      if (!towerinfos)
+	{
+	  std::cout << " hey tim this should have worked!" << std::endl;
+	  return std::vector<Jet *>();
+	}
       TowerInfoContainerv1::ConstRange begin_end = towerinfos->getTowers();
       TowerInfoContainerv1::ConstIterator rtiter;
       for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
@@ -362,6 +342,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	  double eta = asinh(z / r);  // eta after shift from vertex
 	  
 	  double pt = tower->get_energy() / cosh(eta);
+	  if (tower->get_energy() == NAN) {pt = 0/cosh(eta);}
 	  double px = pt * cos(phi);
 	  double py = pt * sin(phi);
 	  double pz = pt * sinh(eta);

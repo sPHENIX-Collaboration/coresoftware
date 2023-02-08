@@ -17,10 +17,6 @@ class TowerJetInput : public JetInput
   ~TowerJetInput() override {}
 
   void identify(std::ostream& os = std::cout) override;
-  void set_towerinfo(bool use_towerinfo)
-  {
-    m_use_towerinfo = use_towerinfo;
-  }
 
   Jet::SRC get_src() override { return _input; }
 
@@ -28,8 +24,8 @@ class TowerJetInput : public JetInput
 
  private:
   Jet::SRC _input;
-  bool m_use_towerinfo = true;
   RawTowerDefs::CalorimeterId geocaloid;
+  bool m_use_towerinfo = false;
 };
 
 #endif
