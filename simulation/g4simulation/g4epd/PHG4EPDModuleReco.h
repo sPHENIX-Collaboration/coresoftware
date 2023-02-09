@@ -8,7 +8,6 @@
 #include <fun4all/SubsysReco.h>
 
 #include <array>
-#include <vector>
 #include <cmath>
 #include <string>
 
@@ -32,7 +31,7 @@ class PHG4EPDModuleReco : public SubsysReco, public PHParameterInterface
 
   void SetDefaultParameters() override;
 
-  void Detector(const std::string &d);
+  void Detector(const std::string &detector);
     
   std::string
   get_epd_sim_tower_node_prefix() const
@@ -58,8 +57,6 @@ class PHG4EPDModuleReco : public SubsysReco, public PHParameterInterface
      m_EPDCalibTowerNodePrefix = epdcalibTowerNodePrefix;
   }
     
-  void set_EPD_MPV_in_GeV(const double epdmpv) { _epdmpv = epdmpv; }
-
   void set_timing_window(const double tmi, const double tma);
 
  private:
@@ -68,17 +65,17 @@ class PHG4EPDModuleReco : public SubsysReco, public PHParameterInterface
   int Getphimap(int phiindex);
   void CreateNodes(PHCompositeNode *topNode);
     
-  std::string detector;
-  std::string hitnodename;
+  std::string m_Detector;
+  std::string m_Hitnodename;
   std::string m_EPDSimTowerNodePrefix;
   std::string m_EPDCalibTowerNodePrefix;
 
   std::string m_TowerInfoNodeName;
   std::string m_TowerInfoNodeName_calib;
-  std::array<std::array<std::array<double,31>,12>,2> epd_tile_e = {};
-  std::array<std::array<std::array<double,31>,12>,2>  epd_tile_calib_e = {};
+  std::array<std::array<std::array<double,31>,12>,2> m_EpdTile_e = {};
+  std::array<std::array<std::array<double,31>,12>,2>  m_EpdTile_Calib_e = {};
 
-  double _epdmpv = 1.;    
+  double m_EpdMpv = NAN;
     
   double tmin = NAN;
   double tmax = NAN;
@@ -87,4 +84,3 @@ class PHG4EPDModuleReco : public SubsysReco, public PHParameterInterface
 };
 
 #endif
-

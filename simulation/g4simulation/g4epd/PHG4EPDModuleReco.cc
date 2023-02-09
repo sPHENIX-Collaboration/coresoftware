@@ -4,7 +4,6 @@
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfo.h>
-#include <calobase/TowerInfov1.h>
 
 #include <epd/EPDDefs.h>
 
@@ -14,7 +13,6 @@
 
 #include <phparameter/PHParameterInterface.h>
 
-#include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
@@ -28,12 +26,9 @@
 
 #include <TSystem.h>
 
-#include <vector>
-#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <map>  // for _Rb_tree_const_iterator
-#include <sstream>
 #include <utility>  // for pair
 
 PHG4EPDModuleReco::PHG4EPDModuleReco(const std::string &name)
@@ -59,10 +54,10 @@ int PHG4EPDModuleReco::InitRun(PHCompositeNode *topNode)
 int PHG4EPDModuleReco::process_event(PHCompositeNode *topNode)
 {
    
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, m_Hitnodename);
   if (!g4hit)
   {
-    std::cout << "Could not locate g4 hit node " << hitnodename << std::endl;
+    std::cout << "Could not locate g4 hit node " << m_Hitnodename << std::endl;
     exit(1);
   }
 
@@ -95,8 +90,8 @@ int PHG4EPDModuleReco::process_event(PHCompositeNode *topNode)
           int this_sector = EPDDefs::get_sector(sim_tileid);
           int this_arm = EPDDefs::get_arm(sim_tileid);
        
-          epd_tile_e[this_arm][this_sector][this_tile] += hiter->second->get_light_yield();
-          epd_tile_calib_e[this_arm][this_sector][this_tile] +=  hiter->second->get_light_yield()/_epdmpv;
+          m_EpdTile_e[this_arm][this_sector][this_tile] += hiter->second->get_light_yield();
+          m_EpdTile_Calib_e[this_arm][this_sector][this_tile] +=  hiter->second->get_light_yield()/m_EpdMpv;
 
       } // end loop over g4hits
 
@@ -108,16 +103,16 @@ int PHG4EPDModuleReco::process_event(PHCompositeNode *topNode)
                 for(int j = 0; j < 31; j++)
                 {
                     
-                    int globalphi = Getphimap(j) + 2 * i;
-                    int r = Getrmap(j);
+                    unsigned int globalphi = Getphimap(j) + 2 * i;
+                    unsigned int r = Getrmap(j);
                     
                     unsigned int key  = globalphi + (r << 10U) + (k << 20U);
                     
                     unsigned int ch = m_TowerInfoContainer->decode_key(key);
 
-                    m_TowerInfoContainer->at(ch)->set_energy(epd_tile_e[k][i][j]);
+                    m_TowerInfoContainer->at(ch)->set_energy(m_EpdTile_e[k][i][j]);
                    
-                    m_TowerInfoContainer_calib->at(ch)->set_energy(epd_tile_calib_e[k][i][j]);
+                    m_TowerInfoContainer_calib->at(ch)->set_energy(m_EpdTile_Calib_e[k][i][j]);
                }
             }
         
@@ -132,6 +127,7 @@ void PHG4EPDModuleReco::SetDefaultParameters()
   set_default_double_param("tmax", 60.0);
   set_default_double_param("tmin", -20.0);
   set_default_double_param("delta_t", 100.);
+  set_default_double_param("epdmpv",1.);
   return;
 }
 
@@ -164,22 +160,21 @@ void PHG4EPDModuleReco::CreateNodes(PHCompositeNode *topNode)
   if (!dstNode)
     {
     std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
-    throw std::runtime_error(
-        "Failed to find DST node in PHG4EPDModuleReco::CreateNodes");
+    gSystem->Exit(1);
+    exit(1);
   }
 
   PHNodeIterator dstiter(dstNode);
-  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", detector));
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", m_Detector));
   if (!DetNode)
   {
-    DetNode = new PHCompositeNode(detector);
+    DetNode = new PHCompositeNode(m_Detector);
     dstNode->addNode(DetNode);
   }
    TowerInfoContainer* m_TowerInfoContainer = findNode::getClass<TowerInfoContainer>(DetNode,m_TowerInfoNodeName);
    if (m_TowerInfoContainer == nullptr)
    {
-      TowerInfoContainer::DETECTOR detec = TowerInfoContainer::DETECTOR::SEPD;
-      m_TowerInfoContainer = new TowerInfoContainerv1(detec);
+      m_TowerInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::SEPD);
       PHIODataNode<PHObject> *TowerInfoNode = new PHIODataNode<PHObject>(m_TowerInfoContainer, m_TowerInfoNodeName, "PHObject");
       DetNode->addNode(TowerInfoNode);
    }
@@ -187,8 +182,7 @@ void PHG4EPDModuleReco::CreateNodes(PHCompositeNode *topNode)
   TowerInfoContainer* m_TowerInfoContainer_calib = findNode::getClass<TowerInfoContainer>(DetNode,m_TowerInfoNodeName_calib);
    if (m_TowerInfoContainer_calib == nullptr)
    {
-      TowerInfoContainer::DETECTOR detec_calib = TowerInfoContainer::DETECTOR::SEPD;
-      m_TowerInfoContainer_calib = new TowerInfoContainerv1(detec_calib);
+      m_TowerInfoContainer_calib = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::SEPD);
       PHIODataNode<PHObject> *TowerInfoNodecalib = new PHIODataNode<PHObject>(m_TowerInfoContainer_calib, m_TowerInfoNodeName_calib, "PHObject");
       DetNode->addNode(TowerInfoNodecalib);
    }
@@ -198,24 +192,23 @@ void PHG4EPDModuleReco::CreateNodes(PHCompositeNode *topNode)
 }
 int PHG4EPDModuleReco::ResetEvent(PHCompositeNode * /*topNode*/)
 {
- epd_tile_calib_e = {};
-epd_tile_e = {};
+ m_EpdTile_Calib_e = {};
+m_EpdTile_e = {};
 return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4EPDModuleReco::Detector(const std::string &d)
+void PHG4EPDModuleReco::Detector(const std::string &detector)
 {
-detector = d;
-  hitnodename = "G4HIT_" + detector;
+m_Detector = detector;
+  m_Hitnodename = "G4HIT_" + m_Detector;
   if (m_EPDCalibTowerNodePrefix.empty() || m_EPDSimTowerNodePrefix.empty())
   {
     std::cout << PHWHERE << " set m_EPDCalibTowerNodePrefix and/or m_EPDSimTowerNodePrefix before setting the detector name" << std::endl;
     exit(1);
   }
- m_TowerInfoNodeName_calib = "TOWERINFO_" + m_EPDCalibTowerNodePrefix + "_" + detector;
-    m_TowerInfoNodeName = "TOWERINFO_" + m_EPDSimTowerNodePrefix + "_" + detector;
+ m_TowerInfoNodeName_calib = "TOWERINFO_" + m_EPDCalibTowerNodePrefix + "_" + m_Detector;
+    m_TowerInfoNodeName = "TOWERINFO_" + m_EPDSimTowerNodePrefix + "_" + m_Detector;
 }
-
 
 
 
