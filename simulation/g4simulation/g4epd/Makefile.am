@@ -14,7 +14,8 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   PHG4EPDDetector.h \
   PHG4EPDSteppingAction.h \
-  PHG4EPDSubsystem.h
+  PHG4EPDSubsystem.h \
+  PHG4EPDModuleReco.h 
 
 lib_LTLIBRARIES = \
   libg4epd.la
@@ -23,7 +24,8 @@ libg4epd_la_SOURCES = \
   PHG4EPDDetector.cc \
   PHG4EPDDisplayAction.cc \
   PHG4EPDSteppingAction.cc \
-  PHG4EPDSubsystem.cc
+  PHG4EPDSubsystem.cc \
+  PHG4EPDModuleReco.cc
 
 libg4epd_la_LIBADD = \
   -lphool \
