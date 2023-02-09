@@ -75,7 +75,7 @@ class DetermineTowerBackground : public SubsysReco
   std::vector<float> _seed_eta;
   std::vector<float> _seed_phi;
 
-  bool m_use_towerinfo = true;
+  bool m_use_towerinfo = false;
 
 };
 

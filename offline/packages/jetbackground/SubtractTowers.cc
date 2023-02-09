@@ -197,7 +197,6 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 	}
     }
   // IHCal
-
   // replicate existing towers
   if (m_use_towerinfo)
     {
@@ -274,15 +273,12 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
   // replicate existing towers
   if (m_use_towerinfo)
     {
-
       TowerInfoContainerv1::ConstRange begin_end_OH = towerinfosOH3->getTowers();
       for (TowerInfoContainerv1::ConstIterator rtiter = begin_end_OH.first; rtiter != begin_end_OH.second; ++rtiter)
 	{ 
-
 	  TowerInfo *tower = rtiter->second;
 	  int ieta = towerinfosOH3->getTowerEtaBin(rtiter->first);
 	  int iphi = towerinfosOH3->getTowerPhiBin(rtiter->first);
-
 	  float raw_energy = tower->get_energy();
 	  float UE = towerbackground->get_UE(2).at(ieta);
 	  if (_use_flow_modulation)
@@ -327,8 +323,7 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 		}
 	    }
 	}
-    
-
+      
       // update towers for background subtraction...
       for (RawTowerContainer::ConstIterator rtiter = ohcal_towers->getTowers().first; rtiter != ohcal_towers->getTowers().second; ++rtiter)
 	{
@@ -411,9 +406,6 @@ int SubtractTowers::CreateNode(PHCompositeNode *topNode)
 	  std::cout << "SubtractTowers::CreateNode : TOWER_CALIB_CEMC_RETOWER_SUB1 already exists! " << std::endl;
 	}
     }
-
-
-
 
 
   // store the new IHCal towers

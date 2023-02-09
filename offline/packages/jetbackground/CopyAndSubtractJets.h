@@ -42,7 +42,7 @@ class CopyAndSubtractJets : public SubsysReco
   int CreateNode(PHCompositeNode *topNode);
 
   bool _use_flow_modulation;
-  bool m_use_towerinfo = true;
+  bool m_use_towerinfo = false;
 
 };
 

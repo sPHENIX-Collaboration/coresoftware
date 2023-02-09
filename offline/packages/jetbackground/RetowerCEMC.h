@@ -41,7 +41,7 @@ class RetowerCEMC : public SubsysReco
   int _WEIGHTED_ENERGY_DISTRIBUTION;
   int _NETA;
   int _NPHI;
-  bool m_use_towerinfo = true;
+  bool m_use_towerinfo = false;
   std::vector<std::vector<float> > _EMCAL_RETOWER_E;
 };
 

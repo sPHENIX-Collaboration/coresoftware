@@ -316,7 +316,6 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     {
       if (!towerinfos)
 	{
-	  std::cout << " hey tim this should have worked!" << std::endl;
 	  return std::vector<Jet *>();
 	}
       TowerInfoContainerv1::ConstRange begin_end = towerinfos->getTowers();
@@ -327,20 +326,15 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	  assert(tower);
 	  int ieta = towerinfos->getTowerEtaBin(rtiter->first);
 	  int iphi = towerinfos->getTowerPhiBin(rtiter->first);
-
 	  const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(geocaloid, ieta, iphi);
-	  
 	  RawTowerGeom *tower_geom = geom->get_tower_geometry(key);
 	  assert(tower_geom);
 
 	  double r = tower_geom->get_center_radius();
 	  double phi = atan2(tower_geom->get_center_y(), tower_geom->get_center_x());
 	  double z0 = tower_geom->get_center_z();
-	  
 	  double z = z0 - vtxz;
-	  
 	  double eta = asinh(z / r);  // eta after shift from vertex
-	  
 	  double pt = tower->get_energy() / cosh(eta);
 	  if (tower->get_energy() == NAN) {pt = 0/cosh(eta);}
 	  double px = pt * cos(phi);
@@ -353,9 +347,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	  jet->set_pz(pz);
 	  jet->set_e(tower->get_energy());
 	  jet->insert_comp(_input,towerinfos->decode_key(rtiter->first));
-	  
 	  pseudojets.push_back(jet);
-
 	}
     }
   else
@@ -372,11 +364,8 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	  double r = tower_geom->get_center_radius();
 	  double phi = atan2(tower_geom->get_center_y(), tower_geom->get_center_x());
 	  double z0 = tower_geom->get_center_z();
-	  
 	  double z = z0 - vtxz;
-	  
 	  double eta = asinh(z / r);  // eta after shift from vertex
-	  
 	  double pt = tower->get_energy() / cosh(eta);
 	  double px = pt * cos(phi);
 	  double py = pt * sin(phi);
@@ -388,7 +377,6 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	  jet->set_pz(pz);
 	  jet->set_e(tower->get_energy());
 	  jet->insert_comp(_input, tower->get_id());
-	  
 	  pseudojets.push_back(jet);
 	}
     }

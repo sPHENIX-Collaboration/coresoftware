@@ -39,7 +39,7 @@ class SubtractTowers : public SubsysReco
  private:
   int CreateNode(PHCompositeNode *topNode);
 
-  bool m_use_towerinfo = true;
+  bool m_use_towerinfo = false;
   bool _use_flow_modulation;
 };
 
