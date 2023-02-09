@@ -208,7 +208,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
   // start seting up volumes
   // Micromegas detector radius
   /* it corresponds to the radial position of the innermost surface of a Micromegas module , as measured in CAD model (THREE PANELS UPDATE 1-18-21) */
-  static constexpr double inner_radius = 84.203*cm;
+  static constexpr double inner_radius = 83.197*cm;
 
   /*
    * this is the radius at the center of a detector.
