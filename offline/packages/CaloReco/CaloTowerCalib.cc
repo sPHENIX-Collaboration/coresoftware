@@ -120,16 +120,11 @@ int CaloTowerCalib::process_event(PHCompositeNode * /*topNode*/)
       TowerInfo *caloinfo_raw = rtiter->second;
       float raw_amplitude = caloinfo_raw->get_energy();
 
-      TowerInfov1 *caloinfo_calib = new TowerInfov1(*caloinfo_raw);
-     
       float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
 
-      caloinfo_calib->set_energy(raw_amplitude * calibconst);
-
       unsigned int channel = _calib_towers->decode_key(key);
-
-      _calib_towers->add(caloinfo_calib, channel);
       
+      _calib_towers->at(channel)->set_energy(raw_amplitude * calibconst);
     }
   
   return Fun4AllReturnCodes::EVENT_OK;

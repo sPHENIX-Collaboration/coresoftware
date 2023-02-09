@@ -239,6 +239,7 @@ if (defined $prodtype)
     }
     elsif ($prodtype == 14)
     {
+        $embedok = 1;
         $nopileup = 1;
         my $bad = 0;
 	$filenamestring = "single";
@@ -247,23 +248,27 @@ if (defined $prodtype)
 	    print "-particle: G4 particle name needs to be set for single particle sims\n";
 	    $bad = 1;
 	}
-	if (!defined $pmin)
-	{
-	    print "-pmin: min mimentum needs to be set for single particle sims\n";
-	    $bad = 1;
-	}
-	if (!defined $pmax)
-	{
-	    print "-pmax: max momentum needs to be set for single particle sims\n";
-	    $bad = 1;
-	}
 	if ($bad > 0)
 	{
             print "\nExisting single particle sims, use:\n";
             print_single_types();
 	    exit(1);
 	}
-	$filenamestring = sprintf("%s_%s_%d_%dMeV",$filenamestring, $particle, $pmin, $pmax);
+	if (defined $pmin && defined $pmax)
+	{
+	    $filenamestring = sprintf("%s_%s_%d_%dMeV",$filenamestring, $particle, $pmin, $pmax);
+	}
+	else
+	{
+	    if (defined $embed)
+	    {
+		$filenamestring = sprintf("%s_%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring, $particle);
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring, $particle, $pmin, $pmax);
+	    }
+	}
 	&commonfiletypes();
     }
     elsif ($prodtype == 15)
@@ -670,17 +675,34 @@ sub fill_other_types
 
 sub print_single_types
 {
-    my $sqlstring = sprintf("select filename from datasets where runnumber = %d and filename like '%%_single_%%'",$runnumber);
+    my $sqlstring = sprintf("select filename from datasets where runnumber = %d and filename like '%%_single_%%' and segment=0",$runnumber);
     my $getallfiles = $dbh->prepare($sqlstring);
     $getallfiles->execute();
     my $runsplit = sprintf("MeV-%010d",$runnumber);
+    my $runsplit_embed = sprintf("_sHijing_0_20fm");
+    my $runsplit_runnumber = sprintf("-%010d",$runnumber);
     my %types = ();
     my %dsts = ();
     while (my @res = $getallfiles->fetchrow_array())
     {
 	my @sp1 = split(/_single_/,$res[0]);
-	my @sp2 = split(/$runsplit/,$sp1[1]);
-	$types{$sp2[0]} = 1;
+        my @sp2;
+        my $typeflag = "";
+	if ($sp1[1] =~ /MeV/)
+	{
+	    @sp2 = split(/$runsplit/,$sp1[1]);
+	}
+	elsif ($sp1[1] =~ /$runsplit_embed/)
+	{
+	    @sp2 = split(/$runsplit_embed/,$sp1[1]);
+            $typeflag = "-embed ";
+	}
+	else
+	{
+	    @sp2 = split(/$runsplit_runnumber/,$sp1[1]);
+	}
+
+	$types{$sp2[0]} = $typeflag;
         $dsts{$sp1[0]} = 1;
     }
     $getallfiles->finish();
@@ -688,7 +710,11 @@ sub print_single_types
     {
 	if ($name =~ /(\S+)\_(\d+)\_(\d+).*/ )
 	{
-	    print "CreateFileList.pl -type 14 -particle $1 -pmin $2 -pmax $3\n";
+	    print "CreateFileList.pl -type 14 -run $runnumber -particle $1 -pmin $2 -pmax $3\n";
+	}
+	else
+	{
+	    print "CreateFileList.pl -type 14 $types{$name}-run $runnumber -particle $name\n";
 	}
     }
     print "\nDST types:\n";
