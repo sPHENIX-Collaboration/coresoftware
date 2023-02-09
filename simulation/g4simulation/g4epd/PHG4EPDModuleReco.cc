@@ -80,9 +80,12 @@ int PHG4EPDModuleReco::process_event(PHCompositeNode *topNode)
    PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
    for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
      {
-          if (hiter->second->get_t(0) > tmax) continue;
-          if (hiter->second->get_t(1) < tmin) continue;
-          if (hiter->second->get_t(1) - hiter->second->get_t(0) >  m_DeltaT) continue;
+          if (hiter->second->get_t(0) > tmax) { continue;
+}
+          if (hiter->second->get_t(1) < tmin) { continue;
+}
+          if (hiter->second->get_t(1) - hiter->second->get_t(0) >  m_DeltaT) { continue;
+}
         
          
           int sim_tileid = (hiter->second->get_hit_id() >> PHG4HitDefs::hit_idbits);
@@ -96,7 +99,7 @@ int PHG4EPDModuleReco::process_event(PHCompositeNode *topNode)
       } // end loop over g4hits
 
 
-    for (int k = 0; k < 2; k++)
+    for (unsigned int k = 0; k < 2; k++)
     {
         for(int i = 0; i < 12; i++)
             {
@@ -192,8 +195,17 @@ void PHG4EPDModuleReco::CreateNodes(PHCompositeNode *topNode)
 }
 int PHG4EPDModuleReco::ResetEvent(PHCompositeNode * /*topNode*/)
 {
+// this only works for initializing to zero
  m_EpdTile_Calib_e = {};
 m_EpdTile_e = {};
+// if you ever want to initialize to a different value, do it this way:
+//   for (auto &entry : epd_tile_calib_e)
+//   {
+//     for (auto &entry1 : entry)
+//     {
+// entry1.fill(NAN);
+//     }
+//   }
 return Fun4AllReturnCodes::EVENT_OK;
 }
 
