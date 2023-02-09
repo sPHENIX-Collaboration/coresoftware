@@ -15,6 +15,9 @@ class TowerInfov1 : public TowerInfo
   ~TowerInfov1() override {}
   void Reset() override;
 
+  //! Clear is used by TClonesArray to reset the tower to initial state without calling destructor/constructor
+  void Clear(Option_t* = "") override;
+
   void set_time(short t) override { _time = t; }
   short get_time() override { return _time; }
   void set_energy(float energy) override { _energy = energy; }

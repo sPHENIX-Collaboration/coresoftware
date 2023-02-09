@@ -131,12 +131,8 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   int n_channels = processed_waveforms.size();
   for (int i = 0 ; i < n_channels;i++)
     {
-      TowerInfov1 *caloinfo = new TowerInfov1();
-      caloinfo->set_time(processed_waveforms.at(i).at(0));
-      caloinfo->set_energy(processed_waveforms.at(i).at(1));
-
-      m_CaloInfoContainer->add(caloinfo,i);
-      delete caloinfo;
+      m_CaloInfoContainer->at(i)->set_time(processed_waveforms.at(i).at(1));
+      m_CaloInfoContainer->at(i)->set_energy(processed_waveforms.at(i).at(0));
     }
   
   waveforms.clear();
