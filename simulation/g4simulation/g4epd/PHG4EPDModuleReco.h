@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4EPDMODULERECO_H
-#define G4DETECTORS_PHG4EPDMODULERECO_H
+#ifndef G4EPD_PHG4EPDMODULERECO_H
+#define G4EPD_PHG4EPDMODULERECO_H
 
 #include <phparameter/PHParameterInterface.h>
 
