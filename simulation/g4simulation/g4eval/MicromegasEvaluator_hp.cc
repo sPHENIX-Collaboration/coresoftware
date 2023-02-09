@@ -82,7 +82,28 @@ namespace
     return out;
   }
 
+  // tile/layer unique id
+  struct tile_id_t
+  {
+    tile_id_t( int layer, uint tile ):
+      _layer( layer ), 
+      _tile( tile )
+    {}
+    int _layer = 0;
+    uint _tile = 0;
+  };
+ 
+  bool operator == (const tile_id_t& lhs, const tile_id_t& rhs )
+  { return lhs._layer == rhs._layer && lhs._tile == rhs._tile; }
+  
 }
+
+template<>
+  struct std::hash<tile_id_t>
+{
+  std::size_t operator()(const tile_id_t& id) const noexcept
+  { return id._tile + (id._layer<<4); }
+};
 
 //_____________________________________________________________________
 void MicromegasEvaluator_hp::Container::Reset()
@@ -350,30 +371,53 @@ void MicromegasEvaluator_hp::evaluate_hits()
 void MicromegasEvaluator_hp::print_micromegas_geometry()
 {
   std::cout << "MicromegasEvaluator_hp::print_micromegas_geometry" << std::endl;
-  
-  // loop over layers
-  const auto range = m_geonode->get_begin_end();
-  for( auto it = range.first; it != range.second; ++it )
-  {
-    // get relevant geometry
-    auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(it->second);
-    assert( layergeom );
 
-    const auto layer = layergeom->get_layer();
-    // std::cout << "MicromegasEvaluator_hp::print_micromegas_geometry - layer: " << (int) layer << std::endl;
+  using tile_map_t = std::unordered_map<tile_id_t, std::string>;
+  tile_map_t tile_map = {
+    {{55,0},"M5P"},  {{56,0},"M5Z"},  
+    {{55,1},"M8P"},  {{56,1},"M8Z"},  
+    {{55,2},"M4P"},  {{56,2},"M4Z"},  
+    {{55,3},"M10P"}, {{56,3},"M10Z"}, 
+    {{55,4},"M9P"},  {{56,4},"M9Z"},  
+    {{55,5},"M2P"},  {{56,5},"M2Z"},  
+    {{55,6},"M6P"},  {{56,6},"M6Z"},  
+    {{55,7},"M7P"},  {{56,7},"M7Z"}   
+  };                                  
+                                      
+  // loop over layers
+//   const auto range = m_geonode->get_begin_end();
+//   for( auto it = range.first; it != range.second; ++it )
+//   {
+//     // get relevant geometry
+//     auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(it->second);
+//     assert( layergeom );
+// 
+//     const auto layer = layergeom->get_layer();
+//     
+//     // loop over tiles
+//     for( const uint& tileid:{3, 2, 1, 0, 5, 4, 7, 6} )
+//       // for( uint tileid = 0; tileid < layergeom->get_tiles_count(); ++tileid )
+//     {
+      
+  // loop over layers
+  
+  // loop over tiles
+  for( const uint& tileid:{3, 2, 1, 0, 5, 4, 7, 6} )
+  {
     
-    // loop over tiles
-    for( uint tileid = 0; tileid < layergeom->get_tiles_count(); ++tileid )
+    for( int layer:{55,56} )
     {
+      // get relevant geometry
+      auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_geonode->GetLayerGeom(layer));
+      assert( layergeom );
       
-//       const auto strip_length = layergeom->get_strip_length( tileid, m_tGeometry);
-//       std::cout << "MicromegasEvaluator_hp::print_micromegas_geometry -"
-//         << " layer: " << (int) layer
-//         << " tile: " << tileid
-//         << " length: " << strip_length
-//         << std::endl;
+      const auto thickness = layergeom->get_thickness();
+      const auto strip_length = layergeom->get_strip_length( tileid, m_tGeometry);      
       
-      for( const uint stripnum:{0,255} )
+//       if( tileid == 3 )
+//       { std::cout << "MicromegasEvaluator_hp::print_micromegas_geometry - layer: " << layer << " thickness: " << thickness << " strip_length: " << strip_length << std::endl; }
+      
+      for( const uint stripnum:{255,0} )
       {
         
         // get strip center, local coordinates
@@ -385,10 +429,10 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
         {
           case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
           {
-        
-            const double strip_length = 50;
-            const TVector2 strip_begin( strip_center_local.X(), -strip_length/2 );
-            const TVector2 strip_end( strip_center_local.X(), strip_length/2 );
+            
+            const double delta_z = (thickness/2+0.0120);
+            const TVector3 strip_begin( strip_center_local.X(), -strip_length/2, delta_z );
+            const TVector3 strip_end( strip_center_local.X(), strip_length/2, delta_z );
             
             // convert to world coordinates and save
             strip_begin_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, strip_begin );
@@ -398,9 +442,9 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
           
           case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
           {
-            const double strip_length = 25;
-            const TVector2 strip_begin( -strip_length/2, strip_center_local.Y() );
-            const TVector2 strip_end( strip_length/2, strip_center_local.Y() );
+            const double delta_z = -(thickness/2+0.0120);
+            const TVector3 strip_begin( -strip_length/2, strip_center_local.Y(), delta_z );
+            const TVector3 strip_end( strip_length/2, strip_center_local.Y(), delta_z );
 
             // convert to world coordinates and save
             strip_begin_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, strip_begin );
@@ -410,15 +454,32 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
       
         }
        
-        if( stripnum == 0 ) 
+        // get module name from layer and tileid
+        const auto module_name = tile_map[{layer, tileid}];
+        
+        if( layer == 55 )
         {
-          std::cout << (int) layer << "_" << tileid << "_s1 " << strip_begin_world << std::endl;
-          std::cout << (int) layer << "_" << tileid << "_s2 " << strip_end_world << std::endl;          
+          if( stripnum == 0 ) 
+          {
+            std::cout << module_name << "_s3 " << strip_begin_world << std::endl;
+            std::cout << module_name << "_s4 " << strip_end_world << std::endl;          
+          } else {
+            std::cout << module_name << "_s1 " << strip_begin_world << std::endl;
+            std::cout << module_name << "_s2 " << strip_end_world << std::endl;          
+          }
         } else {
-          std::cout << (int) layer << "_" << tileid << "_s3 " << strip_begin_world << std::endl;
-          std::cout << (int) layer << "_" << tileid << "_s4 " << strip_end_world << std::endl;          
-        }
+          if( stripnum == 0 ) 
+          {
+            std::cout << module_name << "_s3"  << strip_end_world << std::endl;          
+            std::cout << module_name << "_s4 " << strip_begin_world << std::endl;
+          } else {
+            std::cout << module_name << "_s1 " << strip_end_world << std::endl;          
+            std::cout << module_name << "_s2 " << strip_begin_world << std::endl;
+          }
+        }        
+        
       }
+      std::cout << std::endl;
     }
   }
 
