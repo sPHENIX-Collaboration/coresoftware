@@ -8,6 +8,9 @@
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
+#include <calobase/TowerInfov1.h>
+#include <calobase/TowerInfoContainerv1.h>
+
 #include <g4jets/Jet.h>
 #include <g4jets/JetMap.h>
 
@@ -77,15 +80,32 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   _seed_phi.resize(0);
 
   // pull out the tower containers and geometry objects at the start
-  RawTowerContainer *towersEM3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
-  RawTowerContainer *towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
-  RawTowerContainer *towersOH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
-  if (Verbosity() > 0)
-  {
-    std::cout << "DetermineTowerBackground::process_event: " << towersEM3->size() << " TOWER_CALIB_CEMC_RETOWER towers" << std::endl;
-    std::cout << "DetermineTowerBackground::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN towers" << std::endl;
-    std::cout << "DetermineTowerBackground::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
-  }
+  RawTowerContainer *towersEM3 = nullptr;
+  RawTowerContainer *towersIH3 =  nullptr;
+  RawTowerContainer *towersOH3 = nullptr;
+  TowerInfoContainerv1 *towerinfosEM3 = nullptr;
+  TowerInfoContainerv1 *towerinfosIH3 =  nullptr;
+  TowerInfoContainerv1 *towerinfosOH3 = nullptr;
+  if (m_use_towerinfo)
+    {
+      towerinfosEM3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
+      towerinfosIH3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN");
+      towerinfosOH3 =  findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT");
+    }
+  else
+    {
+      towersEM3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
+      towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
+      towersOH3 =  findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
+      
+      if (Verbosity() > 0)
+	{
+	  std::cout << "DetermineTowerBackground::process_event: " << towersEM3->size() << " TOWER_CALIB_CEMC_RETOWER towers" << std::endl;
+	  std::cout << "DetermineTowerBackground::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN towers" << std::endl;
+	  std::cout << "DetermineTowerBackground::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
+	}
+    }
+
 
   RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
   RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
@@ -93,8 +113,15 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   // seed type 0 is D > 3 R=0.2 jets run on retowerized CEMC
   if (_seed_type == 0)
   {
-    JetMap *reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r02");
-
+    JetMap *reco2_jets;
+    if (m_use_towerinfo)
+      {
+	reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_TowerInfo_HIRecoSeedsRaw_r02");
+      }
+    else
+      {
+	reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r02");
+      }
     if (Verbosity() > 1)
       std::cout << "DetermineTowerBackground::process_event: examining possible seeds (1st iteration) ... " << std::endl;
 
@@ -127,36 +154,73 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         float comp_ET = 0;
 
         RawTower *tower;
-        RawTowerGeom *tower_geom;
+   	TowerInfo* towerinfo;
+	RawTowerGeom *tower_geom;
 
-        if ((*comp).first == 5)
-        {
-          tower = towersIH3->getTower((*comp).second);
-          tower_geom = geomIH->get_tower_geometry(tower->get_key());
+	if (m_use_towerinfo)
+	  {
+	    if ((*comp).first == 5 || (*comp).first == 26)
+	      {
+		towerinfo = towerinfosIH3->at((*comp).second);
+		unsigned int towerkey = towerinfosIH3->encode_key((*comp).second);
+		comp_ieta = towerinfosIH3->getTowerEtaBin(towerkey);
+		comp_iphi = towerinfosIH3->getTowerPhiBin(towerkey);
+		const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
+		tower_geom = geomIH->get_tower_geometry(key);
+		comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
+	      }
+	    else if ((*comp).first == 7 || (*comp).first == 27)
+	      {
+		towerinfo = towerinfosOH3->at((*comp).second);
+		unsigned int towerkey = towerinfosOH3->encode_key((*comp).second);
+		comp_ieta = towerinfosOH3->getTowerEtaBin(towerkey);
+		comp_iphi = towerinfosOH3->getTowerPhiBin(towerkey);
+		const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, comp_ieta, comp_iphi);
+		tower_geom = geomOH->get_tower_geometry(key);
+		comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
+	      }
+	    else if ((*comp).first == 13 || (*comp).first == 28)
+	      {
+		towerinfo = towerinfosEM3->at((*comp).second);
+		unsigned int towerkey = towerinfosEM3->encode_key((*comp).second);
+		comp_ieta = towerinfosEM3->getTowerEtaBin(towerkey);
+		comp_iphi = towerinfosEM3->getTowerPhiBin(towerkey);
+		const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
+		tower_geom = geomIH->get_tower_geometry(key);
+		comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
+	      }
+	  }
+	else
+	  {
 
-          comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
-          comp_iphi = geomIH->get_phibin(tower_geom->get_phi());
-          comp_ET = tower->get_energy() / cosh(tower_geom->get_eta());
-        }
-        else if ((*comp).first == 7)
-        {
-          tower = towersOH3->getTower((*comp).second);
-          tower_geom = geomOH->get_tower_geometry(tower->get_key());
-
-          comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
-          comp_iphi = geomIH->get_phibin(tower_geom->get_phi());
-          comp_ET = tower->get_energy() / cosh(tower_geom->get_eta());
-        }
-        else if ((*comp).first == 13)
-        {
-          tower = towersEM3->getTower((*comp).second);
-          tower_geom = geomIH->get_tower_geometry(tower->get_key());
-
-          comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
-          comp_iphi = geomIH->get_phibin(tower_geom->get_phi());
-          comp_ET = tower->get_energy() / cosh(tower_geom->get_eta());
-        }
-
+	    if ((*comp).first == 5)
+	      {
+		tower = towersIH3->getTower((*comp).second);
+		tower_geom = geomIH->get_tower_geometry(tower->get_key());
+		
+		comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
+		comp_iphi = geomIH->get_phibin(tower_geom->get_phi());
+		comp_ET = tower->get_energy() / cosh(tower_geom->get_eta());
+	      }
+	    else if ((*comp).first == 7)
+	      {
+		tower = towersOH3->getTower((*comp).second);
+		tower_geom = geomOH->get_tower_geometry(tower->get_key());
+		
+		comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
+		comp_iphi = geomIH->get_phibin(tower_geom->get_phi());
+		comp_ET = tower->get_energy() / cosh(tower_geom->get_eta());
+	      }
+	    else if ((*comp).first == 13)
+	      {
+		tower = towersEM3->getTower((*comp).second);
+		tower_geom = geomIH->get_tower_geometry(tower->get_key());
+		
+		comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
+		comp_iphi = geomIH->get_phibin(tower_geom->get_phi());
+		comp_ET = tower->get_energy() / cosh(tower_geom->get_eta());
+	      }
+	  }
         int comp_ikey = 1000 * comp_ieta + comp_iphi;
 
         if (Verbosity() > 4)
@@ -220,8 +284,15 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   // pT > 20 GeV
   if (_seed_type == 1)
   {
-    JetMap *reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_Tower_HIRecoSeedsSub_r02");
-
+    JetMap *reco2_jets;
+    if (m_use_towerinfo)
+      {
+	reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_TowerInfo_HIRecoSeedsSub_r02");
+      }
+    else
+      {
+	reco2_jets = findNode::getClass<JetMap>(topNode, "AntiKt_Tower_HIRecoSeedsSub_r02");
+      }
     if (Verbosity() > 1)
       std::cout << "DetermineTowerBackground::process_event: examining possible seeds (2nd iteration) ... " << std::endl;
 
@@ -296,70 +367,111 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     _FULLCALOFLOW_PHI_VAL[iphi] = 0;
   }
 
-  // iterate over EMCal towers
-  RawTowerContainer::ConstRange begin_end = towersEM3->getTowers();
-  for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
-  {
-    RawTower *tower = rtiter->second;
 
-    RawTowerGeom *tower_geom = geomIH->get_tower_geometry(tower->get_key());
 
-    float this_eta = tower_geom->get_eta();
-    float this_phi = tower_geom->get_phi();
-    int this_etabin = geomIH->get_etabin(this_eta);
-    int this_phibin = geomIH->get_phibin(this_phi);
-    float this_E = tower->get_energy();
-
-    _EMCAL_E[this_etabin][this_phibin] += this_E;
-
-    if (Verbosity() > 2 && tower->get_energy() > 1)
+  if (m_use_towerinfo)
     {
-      std::cout << "DetermineTowerBackground::process_event: EMCal tower eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << this_etabin << " ) / " << this_phi << " ( " << this_phibin << " ) / " << this_E << std::endl;
+      // iterate over EMCal towerinfos
+      if (!towerinfosEM3 || !towerinfosIH3 || !towerinfosOH3)
+	{
+	  std::cout <<  PHWHERE << "missing tower info object, doing nothing" << std::endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
+      TowerInfoContainerv1::ConstRange begin_end_em = towerinfosEM3->getTowers();
+      for (TowerInfoContainerv1::ConstIterator rtiter = begin_end_em.first; rtiter != begin_end_em.second; ++rtiter)
+	{
+	  int this_etabin = towerinfosEM3->getTowerEtaBin(rtiter->first);
+	  int this_phibin = towerinfosEM3->getTowerPhiBin(rtiter->first);
+	  float this_E = rtiter->second->get_energy();
+	  _EMCAL_E[this_etabin][this_phibin] += this_E;
+	}
+
+      // iterate over IHCal towerinfos
+      TowerInfoContainerv1::ConstRange begin_end_ih = towerinfosIH3->getTowers();
+      for (TowerInfoContainerv1::ConstIterator rtiter = begin_end_ih.first; rtiter != begin_end_ih.second; ++rtiter)
+	{
+	  int this_etabin = towerinfosIH3->getTowerEtaBin(rtiter->first);
+	  int this_phibin = towerinfosIH3->getTowerPhiBin(rtiter->first);
+	  float this_E = rtiter->second->get_energy();
+	  _IHCAL_E[this_etabin][this_phibin] += this_E;
+	}
+
+      // iterate over OHCal towerinfos
+      TowerInfoContainerv1::ConstRange begin_end_oh = towerinfosOH3->getTowers();
+      for (TowerInfoContainerv1::ConstIterator rtiter = begin_end_oh.first; rtiter != begin_end_oh.second; ++rtiter)
+	{
+	  int this_etabin = towerinfosOH3->getTowerEtaBin(rtiter->first);
+	  int this_phibin = towerinfosOH3->getTowerPhiBin(rtiter->first);
+	  float this_E = rtiter->second->get_energy();
+	  _OHCAL_E[this_etabin][this_phibin] += this_E;
+	}
     }
-  }
-
-  // iterate over IHCal towers
-  RawTowerContainer::ConstRange begin_end_IH = towersIH3->getTowers();
-  for (RawTowerContainer::ConstIterator rtiter = begin_end_IH.first; rtiter != begin_end_IH.second; ++rtiter)
-  {
-    RawTower *tower = rtiter->second;
-    RawTowerGeom *tower_geom = geomIH->get_tower_geometry(tower->get_key());
-
-    float this_eta = tower_geom->get_eta();
-    float this_phi = tower_geom->get_phi();
-    int this_etabin = geomIH->get_etabin(this_eta);
-    int this_phibin = geomIH->get_phibin(this_phi);
-    float this_E = tower->get_energy();
-
-    _IHCAL_E[this_etabin][this_phibin] += this_E;
-
-    if (Verbosity() > 2 && tower->get_energy() > 1)
+  else
     {
-      std::cout << "DetermineTowerBackground::process_event: IHCal tower at eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << this_etabin << " ) / " << this_phi << " ( " << this_phibin << " ) / " << this_E << std::endl;
+      // iterate over EMCal towers
+      RawTowerContainer::ConstRange begin_end = towersEM3->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+	{
+	  RawTower *tower = rtiter->second;
+	  
+	  RawTowerGeom *tower_geom = geomIH->get_tower_geometry(tower->get_key());
+	  
+	  float this_eta = tower_geom->get_eta();
+	  float this_phi = tower_geom->get_phi();
+	  int this_etabin = geomIH->get_etabin(this_eta);
+	  int this_phibin = geomIH->get_phibin(this_phi);
+	  float this_E = tower->get_energy();
+	  
+	  _EMCAL_E[this_etabin][this_phibin] += this_E;
+	  
+	  if (Verbosity() > 2 && tower->get_energy() > 1)
+	    {
+	      std::cout << "DetermineTowerBackground::process_event: EMCal tower eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << this_etabin << " ) / " << this_phi << " ( " << this_phibin << " ) / " << this_E << std::endl;
+	    }
+	}
+      
+      // iterate over IHCal towers
+      RawTowerContainer::ConstRange begin_end_IH = towersIH3->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_IH.first; rtiter != begin_end_IH.second; ++rtiter)
+	{
+	  RawTower *tower = rtiter->second;
+	  RawTowerGeom *tower_geom = geomIH->get_tower_geometry(tower->get_key());
+	  
+	  float this_eta = tower_geom->get_eta();
+	  float this_phi = tower_geom->get_phi();
+	  int this_etabin = geomIH->get_etabin(this_eta);
+	  int this_phibin = geomIH->get_phibin(this_phi);
+	  float this_E = tower->get_energy();
+	  
+	  _IHCAL_E[this_etabin][this_phibin] += this_E;
+	  
+	  if (Verbosity() > 2 && tower->get_energy() > 1)
+	    {
+	      std::cout << "DetermineTowerBackground::process_event: IHCal tower at eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << this_etabin << " ) / " << this_phi << " ( " << this_phibin << " ) / " << this_E << std::endl;
+	    }
+	}
+      
+      // iterate over OHCal towers
+      RawTowerContainer::ConstRange begin_end_OH = towersOH3->getTowers();
+      for (RawTowerContainer::ConstIterator rtiter = begin_end_OH.first; rtiter != begin_end_OH.second; ++rtiter)
+	{
+	  RawTower *tower = rtiter->second;
+	  RawTowerGeom *tower_geom = geomOH->get_tower_geometry(tower->get_key());
+	  
+	  float this_eta = tower_geom->get_eta();
+	  float this_phi = tower_geom->get_phi();
+	  int this_etabin = geomOH->get_etabin(this_eta);
+	  int this_phibin = geomOH->get_phibin(this_phi);
+	  float this_E = tower->get_energy();
+	  
+	  _OHCAL_E[this_etabin][this_phibin] += this_E;
+	  
+	  if (Verbosity() > 2 && tower->get_energy() > 1)
+	    {
+	      std::cout << "DetermineTowerBackground::process_event: OHCal tower at eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << this_etabin << " ) / " << this_phi << " ( " << this_phibin << " ) / " << this_E << std::endl;
+	    }
+	}
     }
-  }
-
-  // iterate over OHCal towers
-  RawTowerContainer::ConstRange begin_end_OH = towersOH3->getTowers();
-  for (RawTowerContainer::ConstIterator rtiter = begin_end_OH.first; rtiter != begin_end_OH.second; ++rtiter)
-  {
-    RawTower *tower = rtiter->second;
-    RawTowerGeom *tower_geom = geomOH->get_tower_geometry(tower->get_key());
-
-    float this_eta = tower_geom->get_eta();
-    float this_phi = tower_geom->get_phi();
-    int this_etabin = geomOH->get_etabin(this_eta);
-    int this_phibin = geomOH->get_phibin(this_phi);
-    float this_E = tower->get_energy();
-
-    _OHCAL_E[this_etabin][this_phibin] += this_E;
-
-    if (Verbosity() > 2 && tower->get_energy() > 1)
-    {
-      std::cout << "DetermineTowerBackground::process_event: OHCal tower at eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << this_etabin << " ) / " << this_phi << " ( " << this_phibin << " ) / " << this_E << std::endl;
-    }
-  }
-
   // first, calculate flow: Psi2 & v2, if enabled
 
   _Psi2 = 0;
