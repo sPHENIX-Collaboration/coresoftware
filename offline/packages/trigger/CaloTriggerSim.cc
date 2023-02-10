@@ -136,9 +136,9 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   m_EMCAL_2x2_BEST_ETA = 0;
 
   // now reconstruct 2x2 map from 1x1 map
-  for (int ieta = 0; ieta < m_EMCAL_2x2_NETA; ieta++)
+  for (std::vector<double>::size_type ieta = 0; ieta < m_EMCAL_2x2_NETA; ieta++)
   {
-    for (int iphi = 0; iphi < m_EMCAL_2x2_NPHI; iphi++)
+    for (std::vector<double>::size_type iphi = 0; iphi < m_EMCAL_2x2_NPHI; iphi++)
     {
       double this_sum = 0;
 
@@ -434,9 +434,9 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   m_FULLCALO_0p2x0p2_BEST_ETA = 0;
 
   // now reconstruct (non-sliding) 0.2x0.2 map from 0.1x0.1 map
-  for (int ieta = 0; ieta < m_FULLCALO_0p2x0p2_NETA; ieta++)
+  for (std::vector<double>::size_type ieta = 0; ieta < m_FULLCALO_0p2x0p2_NETA; ieta++)
   {
-    for (int iphi = 0; iphi < m_FULLCALO_0p2x0p2_NPHI; iphi++)
+    for (std::vector<double>::size_type iphi = 0; iphi < m_FULLCALO_0p2x0p2_NPHI; iphi++)
     {
       double this_sum = 0;
 
