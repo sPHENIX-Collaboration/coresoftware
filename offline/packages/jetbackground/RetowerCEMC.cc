@@ -91,7 +91,11 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
   // partition existing CEMC energies among grid
  if (m_use_towerinfo)
     {
-
+      if (!towerinfosEM3)
+	{
+	  std::cout <<  PHWHERE << "no emcal tower info object, doing nothing" << std::endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
       TowerInfoContainerv1::ConstRange begin_end = towerinfosEM3->getTowers();
       TowerInfoContainerv1::ConstIterator rtiter;
       for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)

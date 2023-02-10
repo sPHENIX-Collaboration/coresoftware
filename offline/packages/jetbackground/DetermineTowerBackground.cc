@@ -372,6 +372,11 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   if (m_use_towerinfo)
     {
       // iterate over EMCal towerinfos
+      if (!towerinfosEM3 || !towerinfosIH3 || !towerinfosOH3)
+	{
+	  std::cout <<  PHWHERE << "missing tower info object, doing nothing" << std::endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
       TowerInfoContainerv1::ConstRange begin_end_em = towerinfosEM3->getTowers();
       for (TowerInfoContainerv1::ConstIterator rtiter = begin_end_em.first; rtiter != begin_end_em.second; ++rtiter)
 	{
