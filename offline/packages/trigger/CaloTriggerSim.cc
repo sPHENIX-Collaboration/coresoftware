@@ -52,7 +52,9 @@ int CaloTriggerSim::InitRun(PHCompositeNode *topNode)
 int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
+  {
     std::cout << "CaloTriggerSim::process_event: entering" << std::endl;
+  }
 
   // pull out the tower containers and geometry objects at the start
   RawTowerContainer *towersEM3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
@@ -159,8 +161,14 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
       double this_eta = 0.5 * (geomEM->get_etacenter(2 * ieta) + geomEM->get_etacenter(2 * ieta + 1));
       double this_phi = 0.5 * (geomEM->get_phicenter(2 * iphi) + geomEM->get_phicenter(2 * iphi + 1));
       // wrap-around phi (apparently needed for 2D geometry?)
-      if (this_phi > M_PI) this_phi -= 2 * M_PI;
-      if (this_phi < -M_PI) this_phi += 2 * M_PI;
+      if (this_phi > M_PI)
+      {
+        this_phi -= 2 * M_PI;
+      }
+      if (this_phi < -M_PI)
+      {
+        this_phi += 2 * M_PI;
+      }
 
       if (Verbosity() > 1 && this_sum > 1)
       {
@@ -203,8 +211,14 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
       // first tower and add 1.5 tower widths
       double this_phi = geomEM->get_phicenter(2 * iphi) + 1.5 * (geomEM->get_phicenter(2 * iphi + 1) - geomEM->get_phicenter(2 * iphi));
       // wrap-around phi (apparently needed for 2D geometry?)
-      if (this_phi > M_PI) this_phi -= 2 * M_PI;
-      if (this_phi < -M_PI) this_phi += 2 * M_PI;
+      if (this_phi > M_PI)
+      {
+        this_phi -= 2 * M_PI;
+      }
+      if (this_phi < -M_PI)
+      {
+        this_phi += 2 * M_PI;
+      }
 
       double this_sum = 0;
 
@@ -263,8 +277,14 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
       double this_eta = 0.25 * (geomEM->get_etacenter(2 * ieta) + geomEM->get_etacenter(2 * ieta + 1) + geomEM->get_etacenter(2 * ieta + 2) + geomEM->get_etacenter(2 * ieta + 3));
       double this_phi = geomEM->get_phicenter(2 * iphi) + 1.5 * (geomEM->get_phicenter(2 * iphi + 1) - geomEM->get_phicenter(2 * iphi));
 
-      if (this_phi > M_PI) this_phi -= 2 * M_PI;
-      if (this_phi < -M_PI) this_phi += 2 * M_PI;
+      if (this_phi > M_PI)
+      {
+        this_phi -= 2 * M_PI;
+      }
+      if (this_phi < -M_PI)
+      {
+        this_phi += 2 * M_PI;
+      }
 
       double this_sum = m_EMCAL_4x4_MAP[ieta][iphi];
 
@@ -357,8 +377,14 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
     double this_eta = tower_geom->get_eta();
     double this_phi = tower_geom->get_phi();
-    if (this_phi < m_FULLCALO_PHI_START) this_phi += 2 * M_PI;
-    if (this_phi > m_FULLCALO_PHI_END) this_phi -= 2 * M_PI;
+    if (this_phi < m_FULLCALO_PHI_START)
+    {
+      this_phi += 2 * M_PI;
+    }
+    if (this_phi > m_FULLCALO_PHI_END)
+    {
+      this_phi -= 2 * M_PI;
+    }
 
     // note: look up eta/phi index based on OHCal geometry, since this
     // defines the 0.1x0.1 regions
@@ -383,8 +409,14 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
     double this_eta = tower_geom->get_eta();
     double this_phi = tower_geom->get_phi();
-    if (this_phi < m_FULLCALO_PHI_START) this_phi += 2 * M_PI;
-    if (this_phi > m_FULLCALO_PHI_END) this_phi -= 2 * M_PI;
+    if (this_phi < m_FULLCALO_PHI_START)
+    {
+      this_phi += 2 * M_PI;
+    }
+    if (this_phi > m_FULLCALO_PHI_END)
+    {
+      this_phi -= 2 * M_PI;
+    }
 
     // note: look up eta/phi index based on OHCal geometry, even though I
     // think it is by construction the same as the IHCal geometry...
@@ -409,8 +441,14 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
     double this_eta = tower_geom->get_eta();
     double this_phi = tower_geom->get_phi();
-    if (this_phi < m_FULLCALO_PHI_START) this_phi += 2 * M_PI;
-    if (this_phi > m_FULLCALO_PHI_END) this_phi -= 2 * M_PI;
+    if (this_phi < m_FULLCALO_PHI_START)
+    {
+      this_phi += 2 * M_PI;
+    }
+    if (this_phi > m_FULLCALO_PHI_END)
+    {
+      this_phi -= 2 * M_PI;
+    }
 
     // note: use the nominal eta/phi index, since the fullcalo 0.1x0.1
     // map is defined by the OHCal geometry itself
@@ -724,7 +762,10 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
   FillNode(topNode);
 
-  if (Verbosity() > 0) std::cout << "CaloTriggerSim::process_event: exiting" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "CaloTriggerSim::process_event: exiting" << std::endl;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
