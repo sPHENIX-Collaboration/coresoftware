@@ -96,7 +96,8 @@ class SecondaryVertexFinder : public SubsysReco
   bool findTwoTrackIntersection(SvtxTrack *track1, SvtxTrack *track2, Eigen::Vector2d& intersect1,  Eigen::Vector2d& intersect2);
   BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params, const SurfacePtr& targetSurf);
   void fillNtp(SvtxTrack *track1, SvtxTrack *track2, double dca3dxy1, double dca3dz1, double dca3dxy2, double dca3dz2,  Eigen::Vector3d vpos1,  Eigen::Vector3d vpos2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, double path, int has_silicon_1, int has_siilicon_2);
-
+  void getCircleXYTrack(SvtxTrack *track, double& R, Eigen::Vector2d& center);
+  
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};  
   SvtxVertexMap *_svtx_vertex_map{nullptr};

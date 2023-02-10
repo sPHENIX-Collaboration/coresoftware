@@ -209,8 +209,49 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	  if(Verbosity() > 3) 
 	  { std::cout << "Check pair DCA for tracks " << id1 << " and  " << id2 << std::endl;}
 
+	  double R1;
+	  Eigen::Vector2d center1;
+	  getCircleXYTrack(tr1, R1, center1);
+	  if(Verbosity() > 2)
+	    {
+	      std::cout << "   tr1.x " << tr1->get_x() << " tr1.y " << tr1->get_y() << " tr1.z " << tr1->get_z() << " charge " << tr1->get_charge() << std::endl;
+	      std::cout << "   tr1.px " << tr1->get_px() << " tr1.py " << tr1->get_py() << " tr1.pz " << tr1->get_pz() << std::endl;	  
+	      std::cout << "         track1 " << tr1->get_id() << " circle R " << R1 << " (x, y)  " << center1(0) << "  " << center1(1) << std::endl;
+	    }
+	  double R2;
+	  Eigen::Vector2d center2;
+	  getCircleXYTrack(tr2, R2, center2);	  
+	  if(Verbosity() > 2)
+	    {
+	      std::cout << "   tr2.x " << tr2->get_x() << " tr2.y " << tr2->get_y() << " tr2.z " << tr2->get_z() << " charge " << tr2->get_charge() << std::endl;
+	      std::cout << "   tr2.px " << tr2->get_px() << " tr2.py " << tr2->get_py() << " tr2.pz " << tr2->get_pz() << std::endl;
+	      std::cout << "         track2 " << tr2->get_id() << " circle R " << R2 << " (x, y)  " << center2(0) << "  " << center2(1) << std::endl;
+	    }
+
+	  std::vector<double> intersections;
+	  circle_circle_intersection(R1, center1(0), center1(1), R2, center2(0), center2(1),  intersections);
+	  //std::cout << "  intersections.size " << intersections.size() << std::endl;
+
+	  Eigen::Vector2d intersection[2];
+	  if(intersections.size() > 0)
+	    {
+	      intersection[0](0) = intersections[0];
+	      intersection[0](1) = intersections[1];
+	      
+	      if(intersections.size() == 4)
+		{
+		  intersection[1](0) = intersections[2];
+		  intersection[1](1) = intersections[3];
+		}
+	    }
+	  else
+	    continue;
+
+
+	  /*
 	  Eigen::Vector2d intersection[2];
 	  if(!findTwoTrackIntersection(tr1, tr2, intersection[0], intersection[1])) continue; 
+	  */
 
 	  // process both intersections
 	  for(int i=0; i<2; ++i)
@@ -227,9 +268,10 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	      // Project the tracks to this radius
 	      Eigen::Vector3d vpos1(0,0,0), vmom1(0,0,0);
 	      if(!projectTrackToCylinder(tr1, vradius, vpos1, vmom1)) continue;
-	      
+	      if(Verbosity() > 2) std::cout << "  Projected track 1 has vpos " << vpos1(0) << "  " << vpos1(1) << "  " << vpos1(2) << std::endl;	      
 	      Eigen::Vector3d vpos2(0,0,0), vmom2(0,0,0);
 	      if(!projectTrackToCylinder(tr2, vradius, vpos2, vmom2)) continue;
+	      if(Verbosity() > 2) std::cout << "  Projected track 2 has vpos " << vpos2(0) << "  " << vpos2(1) << "  " << vpos2(2) << std::endl;	      
 	      
 	      // check that the z positions are close
 	      if(fabs(vpos1(2) - vpos2(2)) > _projected_track_z_cut) continue;
@@ -293,14 +335,47 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void SecondaryVertexFinder::getCircleXYTrack(SvtxTrack *track, double& R, Eigen::Vector2d& center)
+{
+  // Get the circle equation for the track
+  double Bz = 1.4; // T
+  double x = track->get_x();
+  double y = track->get_y();
+  //double z = track->get_z();
+  double px = track->get_px();
+  double py = track->get_py();
+  //double pz = track->get_pz();
+  double pt = track->get_pt();
+  int charge = track->get_charge();
+
+  // radius of curvature is from pT and B field
+  R = 3.3 * pt / (Bz * (double) charge) * 100;  // convert from m to cm, sign changes for negative charge
+
+  // the normal unit vector in (x,y) space at (x,y) is:
+  Eigen::Vector2d normal(py, -px);
+  normal /= normal.norm();
+
+  // The circle center is at
+  Eigen::Vector2d base(x,y);
+  center = base + R*normal;
+
+  // needed the sign to get the direction of the center, now we drop it
+  R *= (double) charge;
+
+  return;
+
+}
+
+
 bool SecondaryVertexFinder::projectTrackToCylinder(SvtxTrack* track, double Radius, Eigen::Vector3d& pos, Eigen::Vector3d& mom)
 {
   // Make a cylinder surface at the radius and project the track to that
   bool ret = true;
 
-  const double eta = 2.0;
-  const double theta = 2. * atan(exp(-eta));
-  const double halfZ = Radius / tan(theta) * Acts::UnitConstants::cm;
+  // const double eta = 10.0;
+  // const double theta = 2. * atan(exp(-eta));
+  // const double halfZ = Radius / tan(theta) * Acts::UnitConstants::cm;
+  const double halfZ = 200.0 * Acts::UnitConstants::cm;
   Radius *= Acts::UnitConstants::cm;  
 
   /// Make a cylindrical surface at (0,0,0) aligned along the z axis
@@ -310,7 +385,15 @@ bool SecondaryVertexFinder::projectTrackToCylinder(SvtxTrack* track, double Radi
     Acts::Surface::makeShared<Acts::CylinderSurface>(transform,
 						     Radius,
 						     halfZ);
-  
+
+  if(Verbosity() > 2)
+    {
+      std::cout << "  made surface with radius " << Radius << " halfZ " << halfZ << std::endl;  
+      std::cout <<  " has center "
+		<< cylSurf.get()->center(_tGeometry->geometry().getGeoContext()).transpose()
+		<< std::endl;
+    }
+
   const auto params = makeTrackParams(track);
   
   auto result = propagateTrack(params, cylSurf);  
@@ -327,7 +410,13 @@ bool SecondaryVertexFinder::projectTrackToCylinder(SvtxTrack* track, double Radi
       mom(2) = momentum.z();	      
     }
   else
-    ret = false;
+    {
+      std::cout << "   Failed projection of track with: " << std::endl;
+      std::cout << " x,y,z = " << track->get_x() << "  " << track->get_y() << "  " << track->get_z() << std::endl;
+      std::cout << " px,py,pz = " << track->get_px() << "  " << track->get_py() << "  " << track->get_pz() << std::endl;
+      std::cout << " to radius " << Radius << " with halfZ " << halfZ << std::endl; 
+      ret = false;
+    }
 
   return ret;
 }
@@ -627,6 +716,9 @@ bool SecondaryVertexFinder::findTwoTrackIntersection(SvtxTrack *track1, SvtxTrac
   std::vector<float> circle_fitpars2 = fitClusters(tr2);
   if(circle_fitpars2.size() == 0) return false;  // discard this track, not enough clusters to fit
 
+  std::cout << " old: TPC seed 1 radius " << circle_fitpars1[0] << " x,y " <<  circle_fitpars1[1] << "  " <<  circle_fitpars1[2] << std::endl;
+  std::cout << " old: TPC seed 2 radius " << circle_fitpars2[0] << " x,y " <<  circle_fitpars2[1] << "  " <<  circle_fitpars2[2] << std::endl;
+
   // get intersection point for these two tracks in x,y plane
   std::vector<double> intersections;
   if(!circle_circle_intersection(
@@ -695,6 +787,8 @@ bool SecondaryVertexFinder::circle_circle_intersection(double r0, double x0, dou
   Eigen::Vector2d p1(x1,y1);
 
   double d = (p0 - p1).norm();
+
+  //  std::cout << "   d " << d << " r1-r0 " << fabs(r1-r0) << std::endl;
 
   // no intersection possible
   if(d < fabs(r1-r0)) return false;  // one circle inside the other
