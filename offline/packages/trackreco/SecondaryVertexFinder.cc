@@ -174,7 +174,7 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	  auto id2 = tr2_it->first;
 	  auto tr2 = tr2_it->second;
 
-	  // Reverse or remove this to consider TPC only tracks
+	  // Reverse or remove this to consider TPC tracks too
 	  if(_require_mvtx && !hasSiliconSeed(tr2)) continue;
 
 	  int has_silicon_2 = 0;
@@ -214,7 +214,8 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	  getCircleXYTrack(tr1, R1, center1);
 	  if(Verbosity() > 2)
 	    {
-	      std::cout << "   tr1.x " << tr1->get_x() << " tr1.y " << tr1->get_y() << " tr1.z " << tr1->get_z() << " charge " << tr1->get_charge() << std::endl;
+	      std::cout << std::endl << "Track 1 circle: " << std::endl;
+	      std::cout <<  "  tr1.x " << tr1->get_x() << " tr1.y " << tr1->get_y() << " tr1.z " << tr1->get_z() << " charge " << tr1->get_charge() << std::endl;
 	      std::cout << "   tr1.px " << tr1->get_px() << " tr1.py " << tr1->get_py() << " tr1.pz " << tr1->get_pz() << std::endl;	  
 	      std::cout << "         track1 " << tr1->get_id() << " circle R " << R1 << " (x, y)  " << center1(0) << "  " << center1(1) << std::endl;
 	    }
@@ -223,6 +224,7 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	  getCircleXYTrack(tr2, R2, center2);	  
 	  if(Verbosity() > 2)
 	    {
+	      std::cout << "Track 2 circle: " << std::endl;
 	      std::cout << "   tr2.x " << tr2->get_x() << " tr2.y " << tr2->get_y() << " tr2.z " << tr2->get_z() << " charge " << tr2->get_charge() << std::endl;
 	      std::cout << "   tr2.px " << tr2->get_px() << " tr2.py " << tr2->get_py() << " tr2.pz " << tr2->get_pz() << std::endl;
 	      std::cout << "         track2 " << tr2->get_id() << " circle R " << R2 << " (x, y)  " << center2(0) << "  " << center2(1) << std::endl;
@@ -230,7 +232,6 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 
 	  std::vector<double> intersections;
 	  circle_circle_intersection(R1, center1(0), center1(1), R2, center2(0), center2(1),  intersections);
-	  //std::cout << "  intersections.size " << intersections.size() << std::endl;
 
 	  Eigen::Vector2d intersection[2];
 	  if(intersections.size() > 0)
@@ -245,10 +246,14 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 		}
 	    }
 	  else
-	    continue;
-
+	    {
+	      if(Verbosity() > 2) std::cout << "    - no intersections, skip this pair" << std::endl;
+	      continue;
+	    }
 
 	  /*
+	  // Gets circle parameters from fitting TPC clusters, finds intersections
+	  // Replaced with deriving circle parameters from track parameters
 	  Eigen::Vector2d intersection[2];
 	  if(!findTwoTrackIntersection(tr1, tr2, intersection[0], intersection[1])) continue; 
 	  */
@@ -259,41 +264,77 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	      if(intersection[i].norm() == 0) continue;
 
 	      double vradius = sqrt(intersection[i](0)*intersection[i](0) + intersection[i](1) * intersection[i](1));
-	      if(Verbosity() > 2)
-		std::cout << " track intersection " << i << " at (x,y) " << intersection[i](0) << "  " << intersection[i](1) 
-			  << " radius " << vradius << std::endl;
-
 	      if(vradius > _max_intersection_radius) continue;
 
-	      // Project the tracks to this radius
+	      double z1 = getZFromIntersectionXY(tr1, R1, center1, intersection[i]);
+	      double z2 = getZFromIntersectionXY(tr2, R2, center2, intersection[i]);
+	      if(Verbosity() > 2)
+		std::cout << " track intersection " << i << " at (x,y) " << intersection[i](0) << "  " << intersection[i](1) 
+			  << " radius " << vradius << " est. z1 " << z1 << " est. z2 " << z2 << std::endl;
+
+	      if( fabs(z1-z2) > 2.0)   // skip this intersection, it is not good
+		{
+		  if(Verbosity() > 2) std::cout << "    z-mismatch - wrong intersection, skip it " << std::endl;
+		  continue;  
+		}
+
 	      Eigen::Vector3d vpos1(0,0,0), vmom1(0,0,0);
-	      if(!projectTrackToCylinder(tr1, vradius, vpos1, vmom1)) continue;
-	      if(Verbosity() > 2) std::cout << "  Projected track 1 has vpos " << vpos1(0) << "  " << vpos1(1) << "  " << vpos1(2) << std::endl;	      
 	      Eigen::Vector3d vpos2(0,0,0), vmom2(0,0,0);
+
+	      /*
+	      // Project the tracks to this radius
+	      if(!projectTrackToCylinder(tr1, vradius, vpos1, vmom1)) continue;
 	      if(!projectTrackToCylinder(tr2, vradius, vpos2, vmom2)) continue;
-	      if(Verbosity() > 2) std::cout << "  Projected track 2 has vpos " << vpos2(0) << "  " << vpos2(1) << "  " << vpos2(2) << std::endl;	      
+	      */
+
+	      // Project the tracks to the intersection
+	      Eigen::Vector3d intersect1(intersection[i](0), intersection[i](1), z1);
+	      if(!projectTrackToPoint(tr1, intersect1, vpos1, vmom1)) continue;
+	      if(Verbosity() > 2) 
+		{
+		  std::cout << "  Projected track 1 to point " << intersect1(0) << "  " << intersect1(1) << "  " << intersect1(2) << std::endl; 
+		  std::cout <<  "                                 has vpos " << vpos1(0) << "  " << vpos1(1) << "  " << vpos1(2) << std::endl;	      
+		}
+	      Eigen::Vector3d intersect2(intersection[i](0), intersection[i](1), z2);
+	      if(!projectTrackToPoint(tr2, intersect2, vpos2, vmom2)) continue;
+	      if(Verbosity() > 2) 
+		{
+		 std::cout << "  Projected track 2 to point " << intersect2(0) << "  " << intersect2(1) << "  " << intersect2(2) << std::endl; 
+		 std::cout << "                                 has vpos " << vpos2(0) << "  " << vpos2(1) << "  " << vpos2(2) << std::endl;	      
+		 }
 	      
 	      // check that the z positions are close
-	      if(fabs(vpos1(2) - vpos2(2)) > _projected_track_z_cut) continue;
-	      
+	      if(fabs(vpos1(2) - vpos2(2)) > _projected_track_z_cut) 
+		{
+		  std::cout << "    Warning: projected z positions are screwed up, should not be" << std::endl;
+		  continue;
+		}
+
 	      if(Verbosity() > 2)
 		{
+		  std::cout << "Summary for projected pair:" << std::endl;
+		  std::cout << " Fitted tracks: " << std::endl;
 		  std::cout << "   tr1.x " << tr1->get_x() << " tr1.y " << tr1->get_y() << " tr1.z " << tr1->get_z() << std::endl;
-		  std::cout << "   tr1.px " << tr1->get_px() << " tr1.py " << tr1->get_py() << " tr1.pz " << tr1->get_pz() << std::endl;
-		  std::cout << "   pos1.x " << vpos1(0) << " pos1.y " << vpos1(1) << " pos1.z " << vpos1(2) << std::endl; 
-		  std::cout << "   mom1.x " << vmom1(0) << " mom1.y " << vmom1(1) << " mom1.z " << vmom1(2) << std::endl; 
-		  
 		  std::cout << "   tr2.x " << tr2->get_x() << " tr2.y " << tr2->get_y() << " tr2.z " << tr2->get_z() << std::endl;
+		  std::cout << "   tr1.px " << tr1->get_px() << " tr1.py " << tr1->get_py() << " tr1.pz " << tr1->get_pz() << std::endl;
 		  std::cout << "   tr2.px " << tr2->get_px() << " tr2.py " << tr2->get_py() << " tr2.pz " << tr2->get_pz() << std::endl;
+		  std::cout << " Projected tracks: " << std::endl;
+		  std::cout << "   pos1.x " << vpos1(0) << " pos1.y " << vpos1(1) << " pos1.z " << vpos1(2) << std::endl; 
 		  std::cout << "   pos2.x " << vpos2(0) << " pos2.y " << vpos2(1) << " pos2.z " << vpos2(2) << std::endl; 
+		  std::cout << "   mom1.x " << vmom1(0) << " mom1.y " << vmom1(1) << " mom1.z " << vmom1(2) << std::endl; 
 		  std::cout << "   mom2.x " << vmom2(0) << " mom2.y " << vmom2(1) << " mom2.z " << vmom2(2) << std::endl; 
 		}
 	      	      
 	      double pair_dca;
 	      Eigen::Vector3d PCA1(0,0,0), PCA2(0,0,0);
 	      findPcaTwoLines(vpos1, vmom1, vpos2, vmom2, pair_dca, PCA1, PCA2);  
-	      if(Verbosity() > 2 ) std::cout << "  pair_dca " << pair_dca << " two_track_dcacut " << _two_track_dcacut << std::endl;
-	      
+	      if(Verbosity() > 2 ) 
+		{
+		  std::cout << "       pair_dca " << pair_dca << " two_track_dcacut " << _two_track_dcacut << std::endl;
+		  std::cout << "       PCA1 " << PCA1(0) << "  " << PCA1(1) << "  " << PCA1(2) << std::endl;
+		  std::cout << "       PCA2 " << PCA2(0) << "  " << PCA2(1) << "  " << PCA2(2) << std::endl;
+		}
+
 	      if(fabs(pair_dca) > _two_track_dcacut) { continue; }
 	      
 	      // calculate the invariant mass using the track states at the decay vertex
@@ -335,6 +376,29 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+double SecondaryVertexFinder::getZFromIntersectionXY(SvtxTrack *track, double& R, Eigen::Vector2d& center, Eigen::Vector2d intersection)
+{
+  // Starting at the track base position, the path in the XY plane and the path in the Z direction are proportional
+  // They are related by:   dpath/dz = pT/pz
+
+  // The xy path to the intersection is an arc due to a rotation of pT:
+  double phi0 = atan2(track->get_y() - center(1), track->get_x() - center(0));
+  double phi1 = atan2(intersection(1) - center(1), intersection(0) - center(0));
+  double xypath = R * fabs(phi1-phi0);
+
+  double zpath = xypath * track->get_pz() / track->get_pt();
+  double z = track->get_z() + zpath;
+  if(Verbosity() > 3)
+    {
+      std::cout << " Radius " << R << " center xy " << center(0) << "  " << center(1) << "  pT " << track->get_pt() << " pz " << track->get_pz() << std::endl;
+      std::cout << " phi0 " << phi0 << " y0 " << track->get_y() << " x0 " << track->get_x() << std::endl; 
+      std::cout << " phi1 " << phi1 << " intersection y " << intersection(1) << " intersection x " << intersection(0) << std::endl;
+      std::cout << " xypath " << xypath << " zpath " << zpath << " z0 " << track->get_z() << " z " << z << std::endl; 
+    }
+
+  return z;
+}
+
 void SecondaryVertexFinder::getCircleXYTrack(SvtxTrack *track, double& R, Eigen::Vector2d& center)
 {
   // Get the circle equation for the track
@@ -363,6 +427,44 @@ void SecondaryVertexFinder::getCircleXYTrack(SvtxTrack *track, double& R, Eigen:
   R *= (double) charge;
 
   return;
+
+}
+
+bool SecondaryVertexFinder::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d& PCA, Eigen::Vector3d& pos, Eigen::Vector3d& mom)
+{
+
+  bool ret = true;
+  PCA *= Acts::UnitConstants::cm;  
+ 
+  /// create perigee surface
+  auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(PCA);
+
+  const auto params = makeTrackParams(track);
+
+  //  auto result = propagateTrack(params, cylSurf);  
+  auto result = propagateTrack(params, perigee);  
+  if(result.ok())
+    {
+      auto projectionPos = result.value().position(_tGeometry->geometry().getGeoContext());
+      const auto momentum = result.value().momentum();
+      pos(0) = projectionPos.x() / Acts::UnitConstants::cm;
+      pos(1) = projectionPos.y() / Acts::UnitConstants::cm;
+      pos(2) = projectionPos.z() / Acts::UnitConstants::cm;
+      
+      mom(0) = momentum.x();
+      mom(1) = momentum.y();
+      mom(2) = momentum.z();	      
+    }
+  else
+    {
+      std::cout << "   Failed projection of track with: " << std::endl;
+      std::cout << " x,y,z = " << track->get_x() << "  " << track->get_y() << "  " << track->get_z() << std::endl;
+      std::cout << " px,py,pz = " << track->get_px() << "  " << track->get_py() << "  " << track->get_pz() << std::endl;
+      std::cout << " to point (x,y,z) = " << PCA(0) / Acts::UnitConstants::cm << "  " << PCA(1) / Acts::UnitConstants::cm << "  " << PCA(2) / Acts::UnitConstants::cm << std::endl; 
+      ret = false;
+    }
+
+  return ret;
 
 }
 
@@ -414,7 +516,7 @@ bool SecondaryVertexFinder::projectTrackToCylinder(SvtxTrack* track, double Radi
       std::cout << "   Failed projection of track with: " << std::endl;
       std::cout << " x,y,z = " << track->get_x() << "  " << track->get_y() << "  " << track->get_z() << std::endl;
       std::cout << " px,py,pz = " << track->get_px() << "  " << track->get_py() << "  " << track->get_pz() << std::endl;
-      std::cout << " to radius " << Radius << " with halfZ " << halfZ << std::endl; 
+      std::cout << " to radius " << Radius / Acts::UnitConstants::cm << " with halfZ " << halfZ / Acts::UnitConstants::cm << std::endl; 
       ret = false;
     }
 
@@ -425,7 +527,7 @@ BoundTrackParamResult SecondaryVertexFinder::propagateTrack(
     const Acts::BoundTrackParameters& params,
     const SurfacePtr& targetSurf)
 {
-  if (Verbosity() > 1)
+  if (Verbosity() > 3)
   {
     std::cout << "Propagating final track fit with momentum: "
               << params.momentum() << " and position "
@@ -813,7 +915,7 @@ bool SecondaryVertexFinder::circle_circle_intersection(double r0, double x0, dou
 	  intersectionXY.push_back(PCA(0));
 	  intersectionXY.push_back(PCA(1));
 
-	  std::cout << "      *** Special case: Barely touching circles: " << " PCA.x, PCA.y " << PCA(0) << "   " << PCA(1) << std::endl; 
+	  if(Verbosity() > 2) std::cout << "      *** Special case: Barely touching circles: " << " PCA.x, PCA.y " << PCA(0) << "   " << PCA(1) << std::endl; 
 	  return ret;
 	}
 

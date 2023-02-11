@@ -97,7 +97,9 @@ class SecondaryVertexFinder : public SubsysReco
   BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params, const SurfacePtr& targetSurf);
   void fillNtp(SvtxTrack *track1, SvtxTrack *track2, double dca3dxy1, double dca3dz1, double dca3dxy2, double dca3dz2,  Eigen::Vector3d vpos1,  Eigen::Vector3d vpos2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, double path, int has_silicon_1, int has_siilicon_2);
   void getCircleXYTrack(SvtxTrack *track, double& R, Eigen::Vector2d& center);
-  
+  double getZFromIntersectionXY(SvtxTrack *track, double& R, Eigen::Vector2d& center, Eigen::Vector2d intersection);
+  bool projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d& PCA, Eigen::Vector3d& pos, Eigen::Vector3d& mom);
+
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};  
   SvtxVertexMap *_svtx_vertex_map{nullptr};
@@ -121,7 +123,7 @@ class SecondaryVertexFinder : public SubsysReco
  double _track_pt_cut = 0.0;
  double _min_path_cut = 0.2;
  double _max_intersection_radius = 40.0;  // discard intersections at greater than 40 cm radius
- double _projected_track_z_cut = 0.5;
+ double _projected_track_z_cut = 2.0;
  double _decaymass = 0.13957;  // pion, default
 	      
   TH2D *recomass{nullptr};
