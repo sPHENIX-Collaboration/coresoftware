@@ -107,7 +107,7 @@ class SecondaryVertexFinder : public SubsysReco
  double _track_pt_cut = 0.0;
  double _min_path_cut = 0.2;
  double _max_intersection_radius = 40.0;  // discard intersections at greater than 40 cm radius
- double _projected_track_z_cut = 2.0;
+ double _projected_track_z_cut = 1.0;
  double _decaymass = 0.13957;  // pion, default
 	      
   TH2D *recomass{nullptr};
