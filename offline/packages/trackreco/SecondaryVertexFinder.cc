@@ -251,13 +251,6 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	      continue;
 	    }
 
-	  /*
-	  // Gets circle parameters from fitting TPC clusters, finds intersections
-	  // Replaced with deriving circle parameters from track parameters
-	  Eigen::Vector2d intersection[2];
-	  if(!findTwoTrackIntersection(tr1, tr2, intersection[0], intersection[1])) continue; 
-	  */
-
 	  // process both intersections
 	  for(int i=0; i<2; ++i)
 	    {
@@ -280,12 +273,6 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 
 	      Eigen::Vector3d vpos1(0,0,0), vmom1(0,0,0);
 	      Eigen::Vector3d vpos2(0,0,0), vmom2(0,0,0);
-
-	      /*
-	      // Project the tracks to this radius
-	      if(!projectTrackToCylinder(tr1, vradius, vpos1, vmom1)) continue;
-	      if(!projectTrackToCylinder(tr2, vradius, vpos2, vmom2)) continue;
-	      */
 
 	      // Project the tracks to the intersection
 	      Eigen::Vector3d intersect1(intersection[i](0), intersection[i](1), z1);
@@ -405,10 +392,8 @@ void SecondaryVertexFinder::getCircleXYTrack(SvtxTrack *track, double& R, Eigen:
   double Bz = 1.4; // T
   double x = track->get_x();
   double y = track->get_y();
-  //double z = track->get_z();
   double px = track->get_px();
   double py = track->get_py();
-  //double pz = track->get_pz();
   double pt = track->get_pt();
   int charge = track->get_charge();
 
@@ -424,7 +409,7 @@ void SecondaryVertexFinder::getCircleXYTrack(SvtxTrack *track, double& R, Eigen:
   center = base + R*normal;
 
   // needed the sign to get the direction of the center, now we drop it
-  R *= (double) charge;
+  R = fabs(R);
 
   return;
 
@@ -466,61 +451,6 @@ bool SecondaryVertexFinder::projectTrackToPoint(SvtxTrack* track, Eigen::Vector3
 
   return ret;
 
-}
-
-
-bool SecondaryVertexFinder::projectTrackToCylinder(SvtxTrack* track, double Radius, Eigen::Vector3d& pos, Eigen::Vector3d& mom)
-{
-  // Make a cylinder surface at the radius and project the track to that
-  bool ret = true;
-
-  // const double eta = 10.0;
-  // const double theta = 2. * atan(exp(-eta));
-  // const double halfZ = Radius / tan(theta) * Acts::UnitConstants::cm;
-  const double halfZ = 200.0 * Acts::UnitConstants::cm;
-  Radius *= Acts::UnitConstants::cm;  
-
-  /// Make a cylindrical surface at (0,0,0) aligned along the z axis
-  auto transform = Acts::Transform3::Identity();
-  
-  std::shared_ptr<Acts::CylinderSurface> cylSurf =
-    Acts::Surface::makeShared<Acts::CylinderSurface>(transform,
-						     Radius,
-						     halfZ);
-
-  if(Verbosity() > 2)
-    {
-      std::cout << "  made surface with radius " << Radius << " halfZ " << halfZ << std::endl;  
-      std::cout <<  " has center "
-		<< cylSurf.get()->center(_tGeometry->geometry().getGeoContext()).transpose()
-		<< std::endl;
-    }
-
-  const auto params = makeTrackParams(track);
-  
-  auto result = propagateTrack(params, cylSurf);  
-  if(result.ok())
-    {
-      auto projectionPos = result.value().position(_tGeometry->geometry().getGeoContext());
-      const auto momentum = result.value().momentum();
-      pos(0) = projectionPos.x() / Acts::UnitConstants::cm;
-      pos(1) = projectionPos.y() / Acts::UnitConstants::cm;
-      pos(2) = projectionPos.z() / Acts::UnitConstants::cm;
-      
-      mom(0) = momentum.x();
-      mom(1) = momentum.y();
-      mom(2) = momentum.z();	      
-    }
-  else
-    {
-      std::cout << "   Failed projection of track with: " << std::endl;
-      std::cout << " x,y,z = " << track->get_x() << "  " << track->get_y() << "  " << track->get_z() << std::endl;
-      std::cout << " px,py,pz = " << track->get_px() << "  " << track->get_py() << "  " << track->get_pz() << std::endl;
-      std::cout << " to radius " << Radius / Acts::UnitConstants::cm << " with halfZ " << halfZ / Acts::UnitConstants::cm << std::endl; 
-      ret = false;
-    }
-
-  return ret;
 }
 
 BoundTrackParamResult SecondaryVertexFinder::propagateTrack(
@@ -684,76 +614,6 @@ void SecondaryVertexFinder::get_dca(SvtxTrack* track,
   
 }
 
-void SecondaryVertexFinder::updateSvtxTrack(SvtxTrack* track, 
-					     const Acts::BoundTrackParameters& params)
-{
-  auto position = params.position(_tGeometry->geometry().getGeoContext());
-  
-  if(Verbosity() > 2)
-    {
-      std::cout << "   Updating position track parameters from track " << track->get_id() << " x y z = " << track->get_x()
-		<< ", " << track->get_y() << ", " << track->get_z() << " to " 
-		<< position.transpose() / 10.
-		<< std::endl;
-    }
-
-  track->set_x(position(0) / Acts::UnitConstants::cm);
-  track->set_y(position(1) / Acts::UnitConstants::cm);
-  track->set_z(position(2) / Acts::UnitConstants::cm);
-
-  ActsTransformations rotater;
-  rotater.setVerbosity(Verbosity());
-  if(params.covariance())
-    {
-      auto rotatedCov = rotater.rotateActsCovToSvtxTrack(params);
-    
-      /// Update covariance
-      for(int i = 0; i < 3; i++) {
-	for(int j = 0; j < 3; j++) {
-	  track->set_error(i,j, rotatedCov(i,j));
-	}
-      }
-    }
-}
-
-BoundTrackParamResult SecondaryVertexFinder::propagateTrack(
-		         const Acts::BoundTrackParameters& params,
-			 const Eigen::Vector3d PCA)
-{
-  
-  /// create perigee surface
-  auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(PCA);
-
-  using Stepper = Acts::EigenStepper<>;
-  using Propagator = Acts::Propagator<Stepper, Acts::Navigator>;
-  
-  Stepper stepper(_tGeometry->geometry().magField);
-  Acts::Navigator::Config cfg{_tGeometry->geometry().tGeometry};
-  Acts::Navigator navigator(cfg);
-  Propagator propagator(stepper, navigator);
-  
-  Acts::Logging::Level logLevel = Acts::Logging::INFO;
-  if(Verbosity() > 3)
-    { logLevel = Acts::Logging::VERBOSE; }
-  
-  auto logger = Acts::getDefaultLogger("PHActsVertexPropagator", 
-				       logLevel);
-
-  Acts::PropagatorOptions<> options(_tGeometry->geometry().getGeoContext(),
-				    _tGeometry->geometry().magFieldContext,
-				    Acts::LoggerWrapper{*logger});
-  
-  auto result = propagator.propagate(params, *perigee, 
-				     options);
-  if(result.ok())
-    { 
-      return Acts::Result<BoundTrackParam>::success(std::move((*result).endParameters.value()));
-    }
-  
-  return result.error();
-
-}
-
 void SecondaryVertexFinder::findPcaTwoLines(Eigen::Vector3d pos1, Eigen::Vector3d mom1, Eigen::Vector3d pos2, Eigen::Vector3d mom2,
 			double &dca, Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2)
 {
@@ -763,11 +623,9 @@ void SecondaryVertexFinder::findPcaTwoLines(Eigen::Vector3d pos1, Eigen::Vector3
   Eigen::Vector3d b2(mom2(0) / mom2.norm(), mom2(1) / mom2.norm(), mom2(2) / mom2.norm());
 
   // The shortest distance between two skew lines described by
-  //  a1 + c * b1
-  //  a2 + d * b2
+  //  a1 + c * b1,   a2 + d * b2
   // where a1, a2, are vectors representing points on the lines, b1, b2 are direction vectors, 
-  //  and c and d are scalars
-  // is:
+  //  and c and d are scalars, is:
   // dca = (b1 x b2) .(a2-a1) / |b1 x b2|
 
   // bcrossb/mag_bcrossb is a unit vector perpendicular to both direction vectors b1 and b2
@@ -799,46 +657,6 @@ void SecondaryVertexFinder::findPcaTwoLines(Eigen::Vector3d pos1, Eigen::Vector3
   PCA2 = a2+d*b2;
 
   return;
-}
-
-bool SecondaryVertexFinder::findTwoTrackIntersection(SvtxTrack *track1, SvtxTrack *track2, Eigen::Vector2d& intersect1, Eigen::Vector2d& intersect2 )
-{
-  // For secondary vertex finding we cannot assume that the vertex is close to the beam line
-  // we start by fitting circles to the TPC clusters and determining the circle-circle intersection - roughly the decay vertex
-  // then we project the tracks to that point and get the momentum vector there
-  // then we call the line-line DCA/PCA method to get the precise result
-
-  bool ret = true;
-
-  TrackSeed *tr1 = track1->get_tpc_seed();
-  TrackSeed *tr2 = track2->get_tpc_seed();
-
-  std::vector<float> circle_fitpars1 = fitClusters(tr1);
-  if(circle_fitpars1.size() == 0) return false;  // discard this track, not enough clusters to fit
-  std::vector<float> circle_fitpars2 = fitClusters(tr2);
-  if(circle_fitpars2.size() == 0) return false;  // discard this track, not enough clusters to fit
-
-  std::cout << " old: TPC seed 1 radius " << circle_fitpars1[0] << " x,y " <<  circle_fitpars1[1] << "  " <<  circle_fitpars1[2] << std::endl;
-  std::cout << " old: TPC seed 2 radius " << circle_fitpars2[0] << " x,y " <<  circle_fitpars2[1] << "  " <<  circle_fitpars2[2] << std::endl;
-
-  // get intersection point for these two tracks in x,y plane
-  std::vector<double> intersections;
-  if(!circle_circle_intersection(
-				 circle_fitpars1[0], circle_fitpars1[1], circle_fitpars1[2],
-				 circle_fitpars2[0], circle_fitpars2[1], circle_fitpars2[2], intersections ) )   
-    {return false;}
-
-
-  intersect1(0) = intersections[0];
-  intersect1(1) = intersections[1];
-   
-  if(intersections.size() == 4)
-    {
-      intersect2(0) = intersections[2];
-      intersect2(1) = intersections[3];
-    }
-
-  return ret;
 }
 
  Acts::Vector3 SecondaryVertexFinder::getVertex(SvtxTrack* track)
@@ -944,76 +762,6 @@ bool SecondaryVertexFinder::circle_circle_intersection(double r0, double x0, dou
 
 }
 
-std::vector<float> SecondaryVertexFinder::fitClusters(TrackSeed *tracklet)
-{
-     std::vector<float> fitpars;
-
-     std::vector<Eigen::Vector3d> global_vec;
-     std::vector<TrkrDefs::cluskey> cluskey_vec;
-     getTrackletClusters(tracklet, global_vec, cluskey_vec);   // store cluster corrected global positions in a vector
-     
-      // make the helical fit using TrackFitUtils
-      if(global_vec.size() < 3)  
-	if(Verbosity() > 0) {  std::cout << " track has too few clusters for circle fit, skip it" << std::endl; return fitpars; }
-      std::tuple<double, double, double> circle_fit_pars = TrackFitUtils::circle_fit_by_taubin(global_vec);
-
-      // It is problematic that the large errors on the INTT strip z values are not allowed for - drop the INTT from the z line fit
-      std::vector<Eigen::Vector3d> global_vec_noINTT;
-      for(unsigned int ivec=0;ivec<global_vec.size(); ++ivec)
-	{
-	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
-	  if(trkrid != TrkrDefs::inttId) { global_vec_noINTT.push_back(global_vec[ivec]); }
-	}      
-      if(global_vec_noINTT.size() < 3) 
-	if(Verbosity() > 0) { std::cout << " track has too few non-INTT clusters for z fit, skip it" << std::endl; return fitpars; }
-     std::tuple<double,double> line_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
-
-     fitpars.push_back( std::get<0>(circle_fit_pars));
-     fitpars.push_back( std::get<1>(circle_fit_pars));
-     fitpars.push_back( std::get<2>(circle_fit_pars));
-     fitpars.push_back( std::get<0>(line_fit_pars));
-     fitpars.push_back( std::get<1>(line_fit_pars));
-
-     return fitpars; 
-}
-
-void SecondaryVertexFinder::getTrackletClusters(TrackSeed *tracklet, std::vector<Eigen::Vector3d>& global_vec, std::vector<TrkrDefs::cluskey>& cluskey_vec)
-{
-  for (auto clusIter = tracklet->begin_cluster_keys();
-       clusIter != tracklet->end_cluster_keys();
-       ++clusIter)
-    {
-      auto key = *clusIter;
-      auto cluster = _cluster_map->findCluster(key);
-      if(!cluster)
-	{
-	  std::cout << "Failed to get cluster with key " << key << std::endl;
-	  continue;
-	}	  
-      
-      /// Make a safety check for clusters that couldn't be attached to a surface
-      auto surf = _tGeometry->maps().getSurface(key, cluster);
-      if(!surf)
-	{ continue; }
-      
-      Eigen::Vector3d global  = _tGeometry->getGlobalPosition(key, cluster);	  
-      
-      const unsigned int trkrId = TrkrDefs::getTrkrId(key);	  
-      
-      // have to add corrections for TPC clusters after transformation to global
-      if(trkrId == TrkrDefs::tpcId) 
-	{  
-	  int crossing = 0;  // for now
-	  makeTpcGlobalCorrections(key, crossing, global); 
-	}
-      
-      // add the global positions to a vector to give to the helical fitter
-      global_vec.push_back(global);
-      cluskey_vec.push_back(key);
-      
-    } // end loop over clusters for this track 
-}
-
 int SecondaryVertexFinder::End(PHCompositeNode */*topNode*/)
 {
   TFile *fout = new TFile(outfile.c_str(),"recreate");
@@ -1022,20 +770,6 @@ int SecondaryVertexFinder::End(PHCompositeNode */*topNode*/)
   fout->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-
-void SecondaryVertexFinder::makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Eigen::Vector3d& global)
-{
-  // make all corrections to global position of TPC cluster
-  unsigned int side = TpcDefs::getSide(cluster_key);
-  float z = _clusterCrossingCorrection.correctZ(global[2], side, crossing);
-  global[2] = z;
-  
-  // apply distortion corrections
-  if(_dcc_static) { global = _distortionCorrection.get_corrected_position( global, _dcc_static ); }
-  if(_dcc_average) { global = _distortionCorrection.get_corrected_position( global, _dcc_average ); }
-  if(_dcc_fluctuation) { global = _distortionCorrection.get_corrected_position( global, _dcc_fluctuation ); }
 }
 
 int SecondaryVertexFinder::GetNodes(PHCompositeNode* topNode)
@@ -1048,12 +782,14 @@ int SecondaryVertexFinder::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  /*
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
     {
       std::cout << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+  */
 
   _svtx_vertex_map = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");  
   if(!_svtx_vertex_map)

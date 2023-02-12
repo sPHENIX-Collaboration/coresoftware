@@ -81,19 +81,11 @@ class SecondaryVertexFinder : public SubsysReco
   bool  hasSiliconSeed(SvtxTrack* tr); 
   void outputTrackDetails(SvtxTrack *tr);
   void get_dca(SvtxTrack* track, float& dca3dxy, float& dca3dz, float& dca3dxysigma, float& dca3dzsigma);
-  std::vector<float> fitClusters(TrackSeed *tracklet);
-  void getTrackletClusters(TrackSeed *tracklet, std::vector<Eigen::Vector3d>& global_vec,
-			   std::vector<TrkrDefs::cluskey>& cluskey_vec);
   bool circle_circle_intersection(double r0, double x0, double y0, double r1, double x1, double y1, std::vector<double>& intersectionXY);
-  void makeTpcGlobalCorrections(TrkrDefs::cluskey cluster_key, short int crossing, Eigen::Vector3d &global);
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack* track);
-  BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params, const Eigen::Vector3d PCA);
-  void updateSvtxTrack(SvtxTrack* track, const Acts::BoundTrackParameters& params);
   Acts::Vector3 getVertex(SvtxTrack* track);
-  bool projectTrackToCylinder(SvtxTrack* track, double Radius, Eigen::Vector3d& pos, Eigen::Vector3d& mom);
   void findPcaTwoLines(Eigen::Vector3d pos1, Eigen::Vector3d mom1, Eigen::Vector3d pos2, Eigen::Vector3d mom2,
 		       double &dca, Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);
-  bool findTwoTrackIntersection(SvtxTrack *track1, SvtxTrack *track2, Eigen::Vector2d& intersect1,  Eigen::Vector2d& intersect2);
   BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params, const SurfacePtr& targetSurf);
   void fillNtp(SvtxTrack *track1, SvtxTrack *track2, double dca3dxy1, double dca3dz1, double dca3dxy2, double dca3dz2,  Eigen::Vector3d vpos1,  Eigen::Vector3d vpos2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, double path, int has_silicon_1, int has_siilicon_2);
   void getCircleXYTrack(SvtxTrack *track, double& R, Eigen::Vector2d& center);
@@ -103,15 +95,7 @@ class SecondaryVertexFinder : public SubsysReco
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};  
   SvtxVertexMap *_svtx_vertex_map{nullptr};
-  TrkrClusterContainer *_cluster_map;
   ActsGeometry *_tGeometry;
-
-  TpcClusterZCrossingCorrection _clusterCrossingCorrection;
-  TpcDistortionCorrectionContainer* _dcc_static{nullptr};
-  TpcDistortionCorrectionContainer* _dcc_average{nullptr};
-  TpcDistortionCorrectionContainer* _dcc_fluctuation{nullptr};
-
- TpcDistortionCorrection _distortionCorrection;
 
  // these are minimal cuts used to make the ntuple
  // They can be tightened later when analyzing the ntuple
