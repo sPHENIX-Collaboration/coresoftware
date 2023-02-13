@@ -25,7 +25,7 @@ class TowerInfov1 : public TowerInfo
 
  private:
   short _time = 0;
-  float _energy = NAN;
+  float _energy = 0;
 
   ClassDefOverride(TowerInfov1, 1);
 };

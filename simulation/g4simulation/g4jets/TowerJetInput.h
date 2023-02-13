@@ -7,10 +7,9 @@
 
 #include <iostream>  // for cout, ostream
 #include <vector>
-
+#include <calobase/RawTowerDefs.h>
 // forward declarations
 class PHCompositeNode;
-
 class TowerJetInput : public JetInput
 {
  public:
@@ -25,6 +24,8 @@ class TowerJetInput : public JetInput
 
  private:
   Jet::SRC _input;
+  RawTowerDefs::CalorimeterId geocaloid;
+  bool m_use_towerinfo = false;
 };
 
 #endif
