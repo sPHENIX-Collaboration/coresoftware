@@ -354,7 +354,8 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile( int tileid, 
   const std::map<Component, LayerStruct> layer_map =
   {
     /* adjusted PCB thickness so that total thickness up to Gas2 is 1.6mm, consistently with CAD model */
-    { Component::PCB, LayerStruct(1.384*mm, GetDetectorMaterial("mmg_FR4"), G4Colour::Green(), 316*mm, 542*mm, 0, 0 )},
+    // { Component::PCB, LayerStruct(1.384*mm, GetDetectorMaterial("mmg_FR4"), G4Colour::Green(), 316*mm, 542*mm, 0, 0 )},
+    { Component::PCB, LayerStruct(1.0*mm, GetDetectorMaterial("mmg_FR4"), G4Colour::Green(), 316*mm, 542*mm, 0, 0 )},
     { Component::CuStrips, LayerStruct(12.*micrometer, GetDetectorMaterial("mmg_Strips"), G4Colour::Brown(), 256*mm, 512*mm, -15*mm, 0)},
     { Component::KaptonStrips, LayerStruct(50.*micrometer, GetDetectorMaterial("mmg_Kapton"), G4Colour::Brown(), 256*mm, 512*mm, -15*mm, 0)},
     { Component::ResistiveStrips, LayerStruct(20.*micrometer, GetDetectorMaterial("mmg_ResistPaste" ), G4Colour::Black(), 256*mm, 512*mm, -15*mm, 0)},
