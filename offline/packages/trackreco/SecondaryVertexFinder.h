@@ -87,10 +87,11 @@ class SecondaryVertexFinder : public SubsysReco
   void findPcaTwoLines(Eigen::Vector3d pos1, Eigen::Vector3d mom1, Eigen::Vector3d pos2, Eigen::Vector3d mom2,
 		       double &dca, Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);
   BoundTrackParamResult propagateTrack(const Acts::BoundTrackParameters& params, const SurfacePtr& targetSurf);
-  void fillNtp(SvtxTrack *track1, SvtxTrack *track2, double dca3dxy1, double dca3dz1, double dca3dxy2, double dca3dz2,  Eigen::Vector3d vpos1,  Eigen::Vector3d vpos2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, double path, int has_silicon_1, int has_siilicon_2);
   void getCircleXYTrack(SvtxTrack *track, double& R, Eigen::Vector2d& center);
   double getZFromIntersectionXY(SvtxTrack *track, double& R, Eigen::Vector2d& center, Eigen::Vector2d intersection);
   bool projectTrackToPoint(SvtxTrack* track, Eigen::Vector3d& PCA, Eigen::Vector3d& pos, Eigen::Vector3d& mom);
+
+  void fillNtp(SvtxTrack *track1, SvtxTrack *track2, double dca3dxy1, double dca3dz1, double dca3dxy2, double dca3dz2,  Eigen::Vector3d vpos1,  Eigen::Vector3d vmom1, Eigen::Vector3d vpos2, Eigen::Vector3d vmom2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, double path, int has_silicon_1, int has_siilicon_2);
 
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};  
@@ -104,7 +105,6 @@ class SecondaryVertexFinder : public SubsysReco
  double _two_track_dcacut = 0.5;  // 5000 microns 
  double _qual_cut = 10.0;
  bool _require_mvtx = false;
- double _track_pt_cut = 0.0;
  double _min_path_cut = 0.2;
  double _max_intersection_radius = 40.0;  // discard intersections at greater than 40 cm radius
  double _projected_track_z_cut = 1.0;
@@ -113,16 +113,6 @@ class SecondaryVertexFinder : public SubsysReco
   TH2D *recomass{nullptr};
   TNtuple *ntp{nullptr};
   std::string outfile;
-
-  std::multimap<unsigned int, unsigned int> _vertex_track_map;
-  using matrix_t = Eigen::Matrix<double,3,3>;
-  std::multimap<unsigned int, std::pair<unsigned int, double>> _track_pair_map;
-  // Eigen::Vector3d is an Eigen::Matrix<double,3,1>  
-  std::multimap<unsigned int, std::pair<unsigned int, std::pair<Eigen::Vector3d,
-  Eigen::Vector3d>>>  _track_pair_pca_map;
-  std::map<unsigned int, Eigen::Vector3d> _vertex_position_map;
-  std::map<unsigned int, matrix_t> _vertex_covariance_map;
-  std::set<unsigned int> _vertex_set;
   
 };
 

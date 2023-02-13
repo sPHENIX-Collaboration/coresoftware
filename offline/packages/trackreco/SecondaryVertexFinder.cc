@@ -73,14 +73,14 @@ int SecondaryVertexFinder::InitRun(PHCompositeNode *topNode)
 
   recomass = new TH2D("recomass", "invariant mass vs pT", 1000, 0, 5, 5000,0,5);
 
-  ntp = new TNtuple("ntp","decay_pairs","x1:y1:z1:px1:py1:pz1:dca3dxy1:dca3dz1:vposx1:vposy1:vposz1:pca_relx_1:pca_rely_1:pca_relz_1:eta1:charge1:tpcClusters_1:quality1:eta1:x2:y2:z2:px2:py2:pz2:dca3dxy2:dca3dz2:vposx2:vposy2:vposz2:pca_relx_2:pca_rely_2:pca_relz_2:eta2:charge2:tpcClusters_2:quality2:eta2:vertex_x:vertex_y:vertex_z:pair_dca:invariant_mass:invariant_pt:path:has_silicon1:has_silicon2");
+  ntp = new TNtuple("ntp","decay_pairs","x1:y1:z1:px1:py1:pz1:dca3dxy1:dca3dz1:vposx1:vposy1:vposz1:vmomx1:vmomy1:vmomz1:pca_relx_1:pca_rely_1:pca_relz_1:eta1:charge1:tpcClusters_1:quality1:eta1:x2:y2:z2:px2:py2:pz2:dca3dxy2:dca3dz2:vposx2:vposy2:vposz2:vmomx2:vmomy2:vmomz2:pca_relx_2:pca_rely_2:pca_relz_2:eta2:charge2:tpcClusters_2:quality2:eta2:vertex_x:vertex_y:vertex_z:pair_dca:invariant_mass:invariant_pt:path:has_silicon1:has_silicon2");
 
   GetNodes(topNode);
 
   return ret;
 }
 
-void SecondaryVertexFinder::fillNtp(SvtxTrack *track1, SvtxTrack *track2, double dca3dxy1, double dca3dz1, double dca3dxy2, double dca3dz2,  Eigen::Vector3d vpos1,  Eigen::Vector3d vpos2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, double path, int has_silicon_1, int has_silicon_2)
+void SecondaryVertexFinder::fillNtp(SvtxTrack *track1, SvtxTrack *track2, double dca3dxy1, double dca3dz1, double dca3dxy2, double dca3dz2,  Eigen::Vector3d vpos1,  Eigen::Vector3d vmom1, Eigen::Vector3d vpos2, Eigen::Vector3d vmom2, Acts::Vector3 pca_rel1, Acts::Vector3 pca_rel2, double pair_dca, double invariantMass, double invariantPt, double path, int has_silicon_1, int has_silicon_2)
 {
   double px1          = track1->get_px();
   double py1          = track1->get_py();
@@ -104,12 +104,14 @@ void SecondaryVertexFinder::fillNtp(SvtxTrack *track1, SvtxTrack *track2, double
     track1->get_x(), track1->get_y(), track1->get_z(), 
     track1->get_px(), track1->get_py(), track1->get_pz(), 
     (float) dca3dxy1, (float) dca3dz1, (float) vpos1(0), (float) vpos1(1), (float) vpos1(2),
+    (float) vmom1(0), (float) vmom1(1), (float) vmom1(2),
     (float) pca_rel1(0), (float) pca_rel1(1), (float) pca_rel1(2), 
     (float) eta1,  (float) track1->get_charge(), (float) tpcClusters1, 
     (float) track1->get_quality(), (float) eta1,
     track2->get_x(), track2->get_y(), track2->get_z(),  
     track2->get_px(), track2->get_py(), track2->get_pz(), 
     (float) dca3dxy2, (float) dca3dz2, (float) vpos2(0), (float) vpos2(1), (float) vpos2(2),
+    (float) vmom2(0), (float) vmom2(1), (float) vmom2(2),
     (float) pca_rel2(0), (float) pca_rel2(1), (float) pca_rel2(2), 
     (float) eta2, (float) track2->get_charge(), (float) tpcClusters2, 
     (float) track2->get_quality(), (float) eta2,
@@ -351,7 +353,7 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 			    << " decay length " << path.norm() << std::endl;
 		  recomass->Fill(tsum.Pt(), tsum.M());
 
-		  fillNtp(tr1, tr2,  dca3dxy1, dca3dz1, dca3dxy2, dca3dz2, vpos1, vpos2,
+		  fillNtp(tr1, tr2,  dca3dxy1, dca3dz1, dca3dxy2, dca3dz2, vpos1, vmom1, vpos2, vmom2,
 			  PCA1, PCA2, pair_dca, tsum.M(), tsum.Pt(), path.norm(), has_silicon_1, has_silicon_2);
 
 		}
