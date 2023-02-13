@@ -233,26 +233,24 @@ int SecondaryVertexFinder::process_event(PHCompositeNode */*topNode*/)
 	    }
 
 	  std::vector<double> intersections;
-	  circle_circle_intersection(R1, center1(0), center1(1), R2, center2(0), center2(1),  intersections);
-
-	  Eigen::Vector2d intersection[2];
-	  if(intersections.size() > 0)
-	    {
-	      intersection[0](0) = intersections[0];
-	      intersection[0](1) = intersections[1];
-	      
-	      if(intersections.size() == 4)
-		{
-		  intersection[1](0) = intersections[2];
-		  intersection[1](1) = intersections[3];
-		}
-	    }
-	  else
+	  if( !circle_circle_intersection(R1, center1(0), center1(1), R2, center2(0), center2(1),  intersections) ) 
 	    {
 	      if(Verbosity() > 2) std::cout << "    - no intersections, skip this pair" << std::endl;
 	      continue;
 	    }
 
+	  Eigen::Vector2d intersection[2];
+	  if(intersections.size() == 2)
+	    {
+	      intersection[0](0) = intersections[0];
+	      intersection[0](1) = intersections[1];
+	    }	      
+	  if(intersections.size() == 4)
+	    {
+	      intersection[1](0) = intersections[2];
+	      intersection[1](1) = intersections[3];
+	    }
+	  
 	  // process both intersections
 	  for(int i=0; i<2; ++i)
 	    {
@@ -738,7 +736,6 @@ bool SecondaryVertexFinder::circle_circle_intersection(double r0, double x0, dou
 	  if(Verbosity() > 2) std::cout << "      *** Special case: Barely touching circles: " << " PCA.x, PCA.y " << PCA(0) << "   " << PCA(1) << std::endl; 
 	  return ret;
 	}
-
       else
 	return false;  
     }

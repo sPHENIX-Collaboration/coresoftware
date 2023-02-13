@@ -71,7 +71,7 @@ class SecondaryVertexFinder : public SubsysReco
  void setMinPathCut(const double cut) {_min_path_cut = cut;}
  void setTrackQualityCut(double cut) {_qual_cut = cut;}
  void setRequireMVTX(bool set) {_require_mvtx = set;}
- void setOutfileName(std::string filename) {outfile = filename;}
+ void setOutfileName(const std::string& filename) {outfile = filename;}
  void setDecayParticleMass(double mass) {_decaymass = mass;}
 
  private:
@@ -96,7 +96,7 @@ class SecondaryVertexFinder : public SubsysReco
   SvtxTrackMap *_track_map{nullptr};
   SvtxTrack *_track{nullptr};  
   SvtxVertexMap *_svtx_vertex_map{nullptr};
-  ActsGeometry *_tGeometry;
+  ActsGeometry *_tGeometry{nullptr};
 
  // these are minimal cuts used to make the ntuple
  // They can be tightened later when analyzing the ntuple
