@@ -425,14 +425,20 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
         TVector3 strip_begin_world;
         TVector3 strip_end_world;
         
+        // delta_z strip accounts for strip position along z with respect to middle of drift space
+        const double delta_z_strip = thickness/2
+          + 18e-4  // mesh
+          + 120e-4 // amplification
+          + 20e-4  // resist layer
+          + 50e-4;  // kapton
+        
         switch( layergeom->get_segmentation_type() )
         {
           case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
           {
             
-            const double delta_z = (thickness/2+0.0120);
-            const TVector3 strip_begin( strip_center_local.X(), -strip_length/2, delta_z );
-            const TVector3 strip_end( strip_center_local.X(), strip_length/2, delta_z );
+            const TVector3 strip_begin( strip_center_local.X(), -strip_length/2, delta_z_strip );
+            const TVector3 strip_end( strip_center_local.X(), strip_length/2, delta_z_strip );
             
             // convert to world coordinates and save
             strip_begin_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, strip_begin );
@@ -442,9 +448,8 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
           
           case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
           {
-            const double delta_z = -(thickness/2+0.0120);
-            const TVector3 strip_begin( -strip_length/2, strip_center_local.Y(), delta_z );
-            const TVector3 strip_end( strip_length/2, strip_center_local.Y(), delta_z );
+            const TVector3 strip_begin( -strip_length/2, strip_center_local.Y(), -delta_z_strip );
+            const TVector3 strip_end( strip_length/2, strip_center_local.Y(), -delta_z_strip );
 
             // convert to world coordinates and save
             strip_begin_world = layergeom->get_world_from_local_coords( tileid, m_tGeometry, strip_begin );
