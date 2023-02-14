@@ -7,6 +7,7 @@
 #include "PHG4MicromegasDetector.h"
 
 #include "PHG4MicromegasDisplayAction.h"
+#include "PHG4MicromegasSurvey.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -48,6 +49,7 @@
 namespace
 {
   template<class T> inline constexpr T square( const T& x ) { return x*x; }
+  template<class T> inline T get_r( const T& x, const T&y ) { return std::sqrt( square(x) + square(y) ); }
 }
 
 
@@ -214,8 +216,11 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
    * this is the radius at the center of a detector.
    * it is updated when constructing the first tile, assuming that all tiles are identical
    */
-  double radius_phi = 0;
-  double radius_z = 0;
+  double radius_phi_mean = 0;
+  double radius_z_mean = 0;
+
+  // load survey data
+  PHG4MicromegasSurvey micromegas_survey;
 
   // create detector
   // loop over tiles
@@ -229,9 +234,6 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     const auto tile_logic_phi = construct_micromegas_tile( tileid, MicromegasDefs::SegmentationType::SEGMENTATION_PHI  );
     const double tile_thickness_phi = static_cast<G4Box*>(tile_logic_phi->GetSolid())->GetXHalfLength()*2;
 
-    // calculate radius at tile center
-    if( tileid == 0 ) radius_phi = inner_radius + tile_thickness_phi/2;
-
     {
       // place tile in master volume
       const double centerZ = tile.m_centerZ*cm;
@@ -240,12 +242,31 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
       G4RotationMatrix rotation;
       rotation.rotateZ( centerPhi*radian );
 
+      // calculate radius at tile center
+      double radius_phi = inner_radius + tile_thickness_phi/2;
       const G4ThreeVector center(
         radius_phi*std::cos(centerPhi),
         radius_phi*std::sin(centerPhi),
         centerZ );
 
       G4Transform3D transform( rotation, center );
+
+      if( true )
+      {
+        // get transformation from survey
+        std::cout << "PHG4MicromegasDetector::construct_micromegas - adding survey for " << m_FirstLayer << " " << tileid << std::endl;
+        const auto survey_transform = micromegas_survey.get_transformation( m_FirstLayer, tileid );
+        transform = survey_transform*transform;
+
+        // adjust radius at tile center to account for survey
+        const auto translation = transform.getTranslation();
+        radius_phi = get_r( translation.x(), translation.y() );
+
+      }
+
+      // update mean radius
+      radius_phi_mean += radius_phi;
+
       const auto tilename = GetName() + "_tile_" + std::to_string(tileid) + "_phi";
       new G4PVPlacement( transform, tile_logic_phi, tilename+"_phys", logicWorld, false, 0, OverlapCheck() );
     }
@@ -254,9 +275,6 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     const auto tile_logic_z = construct_micromegas_tile( tileid, MicromegasDefs::SegmentationType::SEGMENTATION_Z  );
     const double tile_thickness_z = static_cast<G4Box*>(tile_logic_z->GetSolid())->GetXHalfLength()*2;
 
-    // calculate radius at tile center
-    if( tileid == 0 ) radius_z = inner_radius + tile_thickness_phi + tile_thickness_z/2;
-
     {
       // place tile in master volume
       const double centerZ = tile.m_centerZ*cm;
@@ -265,20 +283,39 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
       G4RotationMatrix rotation;
       rotation.rotateZ( centerPhi*radian );
 
+      double radius_z = inner_radius + tile_thickness_phi + tile_thickness_z/2;
       const G4ThreeVector center(
         radius_z*std::cos(centerPhi),
         radius_z*std::sin(centerPhi),
         centerZ );
 
       G4Transform3D transform( rotation, center );
+
+      if( true )
+      {
+        // get transformation from survey
+        std::cout << "PHG4MicromegasDetector::construct_micromegas - adding survey for " << m_FirstLayer+1 << " " << tileid << std::endl;
+        const auto survey_transform = micromegas_survey.get_transformation( m_FirstLayer+1, tileid );
+        transform = survey_transform*transform;
+
+        // adjust radius at tile center to account for survey
+        const auto translation = transform.getTranslation();
+        radius_z = get_r( translation.x(), translation.y() );
+      }
+
+      radius_z_mean += radius_z;
+
       const auto tilename = GetName() + "_tile_" + std::to_string(tileid) + "_z";
       new G4PVPlacement( transform, tile_logic_z, tilename+"_phys", logicWorld, false, 0, OverlapCheck() );
     }
   }
 
   // adjust active volume radius to account for world placement
-  m_layer_radius.at(m_FirstLayer) += radius_phi/cm;
-  m_layer_radius.at(m_FirstLayer+1) += radius_z/cm;
+  radius_phi_mean /= m_tiles.size();
+  m_layer_radius.at(m_FirstLayer) += radius_phi_mean/cm;
+
+  radius_z_mean /= m_tiles.size();
+  m_layer_radius.at(m_FirstLayer+1) += radius_z_mean/cm;
 
   if( Verbosity() )
   {
