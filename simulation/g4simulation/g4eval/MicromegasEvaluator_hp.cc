@@ -475,7 +475,7 @@ void MicromegasEvaluator_hp::print_micromegas_geometry()
         } else {
           if( stripnum == 0 ) 
           {
-            std::cout << module_name << "_s3"  << strip_end_world << std::endl;          
+            std::cout << module_name << "_s3 "  << strip_end_world << std::endl;          
             std::cout << module_name << "_s4 " << strip_begin_world << std::endl;
           } else {
             std::cout << module_name << "_s1 " << strip_end_world << std::endl;          
