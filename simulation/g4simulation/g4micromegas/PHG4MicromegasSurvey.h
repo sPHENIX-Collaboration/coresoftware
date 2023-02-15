@@ -11,7 +11,7 @@
  * survey data are provided in the form of a G4Transform3D object for each TPOT detector
  * it is to be applied on top of the default GEANT tranformation as defined in PHG4MicromegasDetector
  * to move the strips from their "ideal" to their surveyed position
- */ 
+ */
 
 #include <Geant4/G4Transform3D.hh>
 
@@ -21,25 +21,25 @@
 
 class PHG4MicromegasSurvey
 {
-  
+
   public:
-  
+
   /// constructor
   PHG4MicromegasSurvey();
-  
+
   /// get module name from tile and layer
   std::string get_module_name( int layer, uint tile ) const;
-  
+
   /// get transformation from tile and layer
   G4Transform3D get_transformation( int layer, uint tile ) const;
-  
+
   private:
-    
-  // internal detector definition (tile number, detector)
+
+  /// internal detector definition (tile number, detector)
   struct tile_id_t
   {
     tile_id_t( int layer, uint tile ):
-      m_layer( layer ), 
+      m_layer( layer ),
       m_tile( tile )
     {}
     int m_layer = 0;
@@ -56,29 +56,32 @@ class PHG4MicromegasSurvey
     { return id.m_tile + (id.m_layer<<4); }
 
   };
-  
-  // map tile_id to module name
+
+  /// map tile_id to module name
   using tile_map_t = std::unordered_map<tile_id_t, std::string, tile_id_hash_t>;
   tile_map_t m_tile_map;
-  
-  // internal G4Transformation format
+
+  /// internal G4Transformation format
+  using rotation_t = std::array<double, 3>;
   using translation_t = std::array<double, 3>;
-  using rotation_t = std::array<double, 9>;
   struct transformation_t
   {
-    transformation_t( const translation_t& translation, const rotation_t& rotation ):
-      m_translation( translation ),
-      m_rotation( rotation )
+    transformation_t( const rotation_t& rotation, const translation_t& translation ):
+      m_rotation( rotation ),
+      m_translation( translation )
     {}
-    
-      translation_t m_translation = {{0}};
-      rotation_t m_rotation = {{0}};
+
+    /// x, y and z axis rotation in order, degrees
+    rotation_t m_rotation = {{0}};
+
+    /// x, y, z translation, cm
+    translation_t m_translation = {{0}};
   };
-  
-  // map module name to transformation
+
+  /// map module name to transformation
   using transformation_map_t = std::unordered_map<std::string, transformation_t>;
   transformation_map_t m_transformation_map;
-  
+
 };
 
 #endif
