@@ -680,6 +680,7 @@ void TrackingEvaluator_hp::evaluate_clusters()
   m_container->clearClusters();
 
   // print total hits in TPC
+  if( false )
   {
     int n_tpc_hits = 0;
     int n_tpc_clusters = 0;
