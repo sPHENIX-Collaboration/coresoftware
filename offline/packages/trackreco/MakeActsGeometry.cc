@@ -788,7 +788,7 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 //____________________________________________________________________________________________
 void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 {
-  // if(Verbosity() > 10)
+  if(Verbosity())
   { std::cout << "MakeActsGeometry::makeMmMapPairs - mmVolume: " << mmVolume->volumeName() << std::endl; }
   const auto mmLayerArray = mmVolume->confinedLayers();
   const auto mmLayerVector = mmLayerArray->arrayObjects();
@@ -845,7 +845,10 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
         std::cout << "MakeActsGeometry::makeMmMapPairs - could not file Micromegas tile matching ACTS surface" << std::endl;
         continue;
       } 
-            
+
+      if( Verbosity() )
+      { std::cout << "MakeActsGeometry::makeMmMapPairs - layer: " << layer << " tileid: " << tileid << std::endl; }
+
       // get segmentation type
       const auto segmentation_type = layergeom->get_segmentation_type();
       
