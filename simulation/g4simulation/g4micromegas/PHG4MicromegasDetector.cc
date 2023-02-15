@@ -221,7 +221,8 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 
   // load survey data
   PHG4MicromegasSurvey micromegas_survey;
-
+  static constexpr bool apply_survey = true;
+  
   // create detector
   // loop over tiles
   for( size_t tileid = 0; tileid < m_tiles.size(); ++tileid )
@@ -251,10 +252,9 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 
       G4Transform3D transform( rotation, center );
 
-      if( true )
+      if( apply_survey )
       {
         // get transformation from survey
-        std::cout << "PHG4MicromegasDetector::construct_micromegas - adding survey for " << m_FirstLayer << " " << tileid << std::endl;
         const auto survey_transform = micromegas_survey.get_transformation( m_FirstLayer, tileid );
         transform = survey_transform*transform;
 
@@ -291,10 +291,9 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
 
       G4Transform3D transform( rotation, center );
 
-      if( true )
+      if( apply_survey )
       {
         // get transformation from survey
-        std::cout << "PHG4MicromegasDetector::construct_micromegas - adding survey for " << m_FirstLayer+1 << " " << tileid << std::endl;
         const auto survey_transform = micromegas_survey.get_transformation( m_FirstLayer+1, tileid );
         transform = survey_transform*transform;
 
