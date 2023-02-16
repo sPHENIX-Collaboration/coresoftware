@@ -11,10 +11,9 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 //____________________________________________________________________________________________________
-PHG4MicromegasSurvey::PHG4MicromegasSurvey()
-{
+PHG4MicromegasSurvey::PHG4MicromegasSurvey():
   // map layer and tile number to detector name
-  m_tile_map =  {
+  m_tile_map{
     {{55,0},"M5P"},  {{56,0},"M5Z"},
     {{55,1},"M8P"},  {{56,1},"M8Z"},
     {{55,2},"M4P"},  {{56,2},"M4Z"},
@@ -23,14 +22,14 @@ PHG4MicromegasSurvey::PHG4MicromegasSurvey()
     {{55,5},"M2P"},  {{56,5},"M2Z"},
     {{55,6},"M6P"},  {{56,6},"M6Z"},
     {{55,7},"M7P"},  {{56,7},"M7Z"}
-  };
+  },
 
   // map module name to transformation
   /*
    * these are constructing by mapping the first and last strip positions as given by GEANT4 default implementation of TPOT
    * to the ones measured by the survey crew
    */
-  m_transformation_map = {
+  m_transformation_map{
     { "M10P",
       {
         {0.0238291, -0.0610202, 359.729},
@@ -127,9 +126,8 @@ PHG4MicromegasSurvey::PHG4MicromegasSurvey()
         {-0.99097, -0.0452179, -0.574241}
       }
     }
-  };
-
-}
+  }
+{}
 
 //____________________________________________________________________________________________________
 std::string PHG4MicromegasSurvey::get_module_name( int layer, uint tile ) const
