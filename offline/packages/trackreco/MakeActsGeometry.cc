@@ -832,11 +832,11 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
         }
       }
 
-//       if( !layergeom ) 
-//       {
-//         std::cout << "MakeActsGeometry::makeMmMapPairs - could not file CylinderGeomMicromegas matching ACTS surface" << std::endl;
-//         continue;
-//       }
+      if( !layergeom ) 
+      {
+        std::cout << "MakeActsGeometry::makeMmMapPairs - could not file CylinderGeomMicromegas matching ACTS surface" << std::endl;
+        continue;
+      }
 
       // get matching tile
       int tileid = layergeom->find_tile_cylindrical( world_center );
