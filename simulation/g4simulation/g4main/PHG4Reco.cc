@@ -19,9 +19,7 @@
 #include <eastphysicslist/eASTPhysicsList.hh>
 
 #include <g4decayer/EDecayType.hh>
-#include <g4decayer/P6DExtDecayerPhysics.hh>
 
-#include <g4decayer/EvtGenExtDecayerPhysics.hh>
 
 #include <phgeom/PHGeomUtility.h>
 
@@ -125,6 +123,7 @@ PHG4Reco::PHG4Reco(const std::string &name)
   : SubsysReco(name)
   , m_Fun4AllMessenger(new Fun4AllMessenger(Fun4AllServer::instance()))
 {
+	
   for (int i = 0; i < 3; i++)
   {
     m_WorldSize[i] = 1000.;
@@ -238,20 +237,20 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   {
     std::cout << "Use PYTHIA Decayer" << std::endl;
     G4HadronicParameters::Instance()->SetEnableBCParticles(false);  //Disable the Geant4 built in HF Decay and use external decayers for them
-    P6DExtDecayerPhysics *decayer = new P6DExtDecayerPhysics();
+    P6decayer = new P6DExtDecayerPhysics();
     if (m_ActiveForceDecayFlag)
     {
-      decayer->SetForceDecay(m_ForceDecayType);
+      P6decayer->SetForceDecay(m_ForceDecayType);
     }
-    myphysicslist->RegisterPhysics(decayer);
+    myphysicslist->RegisterPhysics(P6decayer);
   }
 
   if (m_Decayer == kEvtGenDecayer)
   {
     std::cout << "Use EvtGen Decayer" << std::endl;
     G4HadronicParameters::Instance()->SetEnableBCParticles(false);  //Disable the Geant4 built in HF Decay and use external decayers for them
-    EvtGenExtDecayerPhysics *decayer = new EvtGenExtDecayerPhysics();
-    myphysicslist->RegisterPhysics(decayer);
+    EvtGendecayer = new EvtGenExtDecayerPhysics();
+    myphysicslist->RegisterPhysics(EvtGendecayer);
   }
 
   if (m_Decayer == kGEANTInternalDecayer)
@@ -598,6 +597,18 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 //Dump TGeo File
 void PHG4Reco::Dump_GDML(const std::string &filename)
 {
+
+  const char* CALIBRATIONROOT = getenv("CALIBRATIONROOT");
+
+  if (!CALIBRATIONROOT)
+  {
+    exit(1);
+  }
+
+
+  std::string DecayFileMe = string(CALIBRATIONROOT) + "/EvtGen/D0.KPi.DEC";
+  SetEvtGenDecayFile(DecayFileMe);
+	
   PHG4GDMLUtility ::Dump_GDML(filename, m_Detector->GetPhysicalVolume());
 }
 
@@ -1514,4 +1525,10 @@ void PHG4Reco::ApplyDisplayAction()
       action->ApplyDisplayAction(physworld);
     }
   }
+}
+
+
+void PHG4Reco::SetEvtGenDecayFile(std::string& DecayFile){
+
+	EvtGendecayer->CustomizedDecay(DecayFile);
 }

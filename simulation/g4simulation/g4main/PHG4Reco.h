@@ -9,6 +9,9 @@
 
 #include <phfield/PHFieldConfig.h>
 
+#include <g4decayer/P6DExtDecayerPhysics.hh>
+
+#include <g4decayer/EvtGenExtDecayerPhysics.hh>
 #include <list>
 #include <string>  // for string
 
@@ -131,6 +134,7 @@ class PHG4Reco : public SubsysReco
   //! disable event/track/stepping actions to reduce resource consumption for G4 running only. E.g. dose analysis
   void setDisableUserActions(bool b = true) { m_disableUserActions = b; }
   void ApplyDisplayAction();
+  void SetEvtGenDecayFile(std::string& DecayFile);
 
  private:
   static void g4guithread(void *ptr);
@@ -196,6 +200,11 @@ class PHG4Reco : public SubsysReco
  
   // settings for the external Pythia6 decayer
   //bool m_ActiveDecayerFlag = true;     //< turn on/off decayer
+
+  P6DExtDecayerPhysics * P6decayer = nullptr;
+  EvtGenExtDecayerPhysics * EvtGendecayer = nullptr;
+  
+
   bool m_ActiveForceDecayFlag = false;  //< turn on/off force decay channels
 
   enum DecayerOptions
