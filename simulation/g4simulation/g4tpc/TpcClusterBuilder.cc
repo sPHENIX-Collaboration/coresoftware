@@ -58,8 +58,8 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
     TrkrDefs::hitsetkey hitsetkey  = hitsetitr->first;
     TrkrHitSet *hitset             = hitsetitr->second;
     unsigned int layer             = TrkrDefs::getLayer(hitsetitr->first);
-    /* int side                       = TpcDefs::getSide(hitsetitr->first); */
-    unsigned int sector            = TpcDefs::getSectorId(hitsetitr->first);
+    int side                       = TpcDefs::getSide(hitsetitr->first);
+    // unsigned int sector            = TpcDefs::getSectorId(hitsetitr->first);
     PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
 
     //get the maximum and minimum phi and time
@@ -67,16 +67,16 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
     unsigned short NPhiBinsSector = NPhiBins/12;
     unsigned short NTBins = (unsigned short)layergeom->get_zbins();
     unsigned short NTBinsSide = NTBins;
-    unsigned short NTBinsMin = 0;
-    unsigned short PhiOffset = NPhiBinsSector * sector;
-    unsigned short TOffset = NTBinsMin;
+    // unsigned short NTBinsMin = 0;
+    // unsigned short PhiOffset = NPhiBinsSector * sector;
+    // unsigned short TOffset = NTBinsMin;
 
     double m_tdriftmax = AdcClockPeriod * NTBins / 2.0;  
 
     unsigned short phibins   = NPhiBinsSector;
-    unsigned short phioffset = PhiOffset;
+    // unsigned short phioffset = PhiOffset;
     unsigned short tbins     = NTBinsSide;
-    unsigned short toffset   = TOffset ;
+    // unsigned short toffset   = TOffset ;
    
     // loop over the hits in this cluster
     double t_sum = 0.0;
@@ -97,8 +97,8 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
       unsigned int adc = iter->second->getAdc(); 
       if (adc <= 0) continue;
 
-      int iphi = TpcDefs::getPad(iter->first) - phioffset;
-      int it   = TpcDefs::getTBin(iter->first) - toffset;
+      int iphi = TpcDefs::getPad(iter->first);
+      int it   = TpcDefs::getTBin(iter->first);
 
       if(iphi<0 || iphi>=phibins){
         //std::cout << "WARNING phibin out of range: " << phibin << " | " << phibins << std::endl;
@@ -135,6 +135,7 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
     double zdriftlength = clust * m_tGeometry->get_drift_velocity();
     // convert z drift length to z position in the TPC
     double clusz = m_tdriftmax * m_tGeometry->get_drift_velocity() - zdriftlength;
+    if(side == 0) clusz = -clusz;
     /* const double phi_cov = phi2_sum/adc_sum - square(clusphi); */
 
     char tsize = tbinhi - tbinlo + 1;
@@ -151,6 +152,9 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
       if (verbosity) std::cout << "Can't find the surface! with hitsetkey " << ((int)hitsetkey) << std::endl;
       continue;
     }
+
+    // SAMPA shaping bias correction
+    clust = clust + m_sampa_tbias;
 
     global *= Acts::UnitConstants::cm;
 

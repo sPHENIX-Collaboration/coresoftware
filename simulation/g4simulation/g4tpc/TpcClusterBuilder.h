@@ -82,7 +82,7 @@ class TpcClusterBuilder {
 
   // TPC shaping offset correction parameter
   // From Tony Frawley July 5, 2022
-  /* double m_sampa_tbias = 39.6;  // ns */  
+  double m_sampa_tbias = 39.6;  // ns
 
   void reset(bool clear_hitsetkey_cnt);
 };
