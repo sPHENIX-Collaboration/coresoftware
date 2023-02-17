@@ -17,11 +17,6 @@ class TowerInfoContainerv1 : public TowerInfoContainer
   TowerInfoContainerv1() {}
 
   ~TowerInfoContainerv1() override;
-  typedef std::map<unsigned int, TowerInfo *> Map;
-  typedef Map::iterator Iterator;
-  typedef Map::const_iterator ConstIterator;
-  typedef std::pair<ConstIterator, ConstIterator> ConstRange;
-  typedef std::pair<Iterator, Iterator> Range;
 
   void Reset() override;
   TowerInfov1 *at(int pos) override;
@@ -36,7 +31,7 @@ class TowerInfoContainerv1 : public TowerInfoContainer
   unsigned int decode_hcal(unsigned int towerIndex) override;
   unsigned int decode_emcal(unsigned int towerIndex) override;
 
-  Range getTowers(void);
+  Range getTowers() override;
 
   size_t size() override { return _clones->GetEntries(); }
 
