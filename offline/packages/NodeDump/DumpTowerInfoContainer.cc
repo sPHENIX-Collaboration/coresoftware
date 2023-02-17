@@ -28,8 +28,9 @@ int DumpTowerInfoContainer::process_Node(PHNode *myNode)
   }
   if (towerinfocontainer)
   {
+    TowerInfoContainer::Range tower_range = towerinfocontainer->getTowers();
     *fout << "size: " << towerinfocontainer->size() << std::endl;
-    for (auto hiter = towerinfocontainer->begin(); hiter !=towerinfocontainer->end(); ++hiter )
+    for ( auto hiter = tower_range.first; hiter != tower_range.second; ++hiter )
     {
       TowerInfo *rawtwr = hiter->second;
       *fout << "time: " << rawtwr->get_time() << std::endl;
