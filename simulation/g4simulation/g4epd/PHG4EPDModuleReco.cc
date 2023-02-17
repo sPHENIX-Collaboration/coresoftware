@@ -43,7 +43,7 @@ int PHG4EPDModuleReco::InitRun(PHCompositeNode *topNode)
   tmin = get_double_param("tmin");
   tmax = get_double_param("tmax");
   m_DeltaT = get_double_param("delta_t");
-
+  m_EpdMpv = get_double_param("epdmpv");
   CreateNodes(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
