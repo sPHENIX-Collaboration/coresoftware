@@ -37,6 +37,7 @@
 #include "DumpSvtxVertexMap.h"
 #include "DumpSyncObject.h"
 #include "DumpTowerBackground.h"
+#include "DumpTowerInfoContainer.h"
 #include "DumpTpcSeedTrackMap.h"
 #include "DumpTrackSeedContainer.h"
 #include "DumpTrkrClusterContainer.h"
@@ -323,6 +324,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("TowerBackground"))
       {
         newdump = new DumpTowerBackground(NodeName);
+      }
+      else if (tmp->InheritsFrom("TowerInfoContainer"))
+      {
+        newdump = new DumpTowerInfoContainer(NodeName);
       }
       else if (tmp->InheritsFrom("TpcSeedTrackMap"))
       {
