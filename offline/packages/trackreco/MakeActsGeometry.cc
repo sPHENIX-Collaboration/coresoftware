@@ -103,6 +103,11 @@ namespace
     // not found
     return nullptr;
   }
+  
+  template<class T> inline constexpr T square( const T& x ) { return x*x; }
+
+  template<class T> inline T get_r( const T& x, const T&y ) { return std::sqrt( square(x) + square(y) ); }
+
 }
 
 MakeActsGeometry::MakeActsGeometry(const std::string &name)
@@ -783,7 +788,7 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 //____________________________________________________________________________________________
 void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
 {
-  if(Verbosity() > 10)
+  if(Verbosity())
   { std::cout << "MakeActsGeometry::makeMmMapPairs - mmVolume: " << mmVolume->volumeName() << std::endl; }
   const auto mmLayerArray = mmVolume->confinedLayers();
   const auto mmLayerVector = mmLayerArray->arrayObjects();
@@ -814,17 +819,19 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
       int layer = -1;
       CylinderGeomMicromegas* layergeom = nullptr;
       const auto range = m_geomContainerMicromegas->get_begin_end();
+      double delta_r_min = -1;
       for( auto iter = range.first; iter != range.second; ++iter )
       {
         auto this_layergeom =  static_cast<CylinderGeomMicromegas*>( iter->second );
-        if(this_layergeom->check_radius(world_center))
-        { 
+        const double delta_r = std::abs( this_layergeom->get_radius() - get_r( world_center.x(), world_center.y() ) );
+        if( delta_r_min < 0 || delta_r < delta_r_min )
+        {
           layer = iter->first;
           layergeom = this_layergeom;
-          break;
+          delta_r_min = delta_r;
         }
       }
-      
+
       if( !layergeom ) 
       {
         std::cout << "MakeActsGeometry::makeMmMapPairs - could not file CylinderGeomMicromegas matching ACTS surface" << std::endl;
@@ -838,7 +845,10 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
         std::cout << "MakeActsGeometry::makeMmMapPairs - could not file Micromegas tile matching ACTS surface" << std::endl;
         continue;
       } 
-            
+
+      if( Verbosity() )
+      { std::cout << "MakeActsGeometry::makeMmMapPairs - layer: " << layer << " tileid: " << tileid << std::endl; }
+
       // get segmentation type
       const auto segmentation_type = layergeom->get_segmentation_type();
       
