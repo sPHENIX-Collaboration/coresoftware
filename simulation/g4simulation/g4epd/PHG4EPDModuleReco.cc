@@ -169,6 +169,8 @@ void PHG4EPDModuleReco::CreateNodes(PHCompositeNode *topNode)
     DetNode = new PHCompositeNode(m_Detector);
     dstNode->addNode(DetNode);
   }
+
+  m_TowerInfoNodeName = "TOWERINFO_" + m_EPDSimTowerNodePrefix + "_" + m_Detector; // detector name and prefix are set by now
   TowerInfoContainer *m_TowerInfoContainer = findNode::getClass<TowerInfoContainer>(DetNode, m_TowerInfoNodeName);
   if (m_TowerInfoContainer == nullptr)
   {
@@ -177,6 +179,7 @@ void PHG4EPDModuleReco::CreateNodes(PHCompositeNode *topNode)
     DetNode->addNode(TowerInfoNode);
   }
 
+  m_TowerInfoNodeName_calib = "TOWERINFO_" + m_EPDCalibTowerNodePrefix + "_" + m_Detector; // detector name and prefix are set by now
   TowerInfoContainer *m_TowerInfoContainer_calib = findNode::getClass<TowerInfoContainer>(DetNode, m_TowerInfoNodeName_calib);
   if (m_TowerInfoContainer_calib == nullptr)
   {
@@ -207,11 +210,4 @@ void PHG4EPDModuleReco::Detector(const std::string &detector)
 {
   m_Detector = detector;
   m_Hitnodename = "G4HIT_" + m_Detector;
-  if (m_EPDCalibTowerNodePrefix.empty() || m_EPDSimTowerNodePrefix.empty())
-  {
-    std::cout << PHWHERE << " set m_EPDCalibTowerNodePrefix and/or m_EPDSimTowerNodePrefix before setting the detector name" << std::endl;
-    exit(1);
-  }
-  m_TowerInfoNodeName_calib = "TOWERINFO_" + m_EPDCalibTowerNodePrefix + "_" + m_Detector;
-  m_TowerInfoNodeName = "TOWERINFO_" + m_EPDSimTowerNodePrefix + "_" + m_Detector;
 }
