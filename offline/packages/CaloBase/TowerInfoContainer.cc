@@ -1,6 +1,6 @@
 #include "TowerInfoContainer.h"
 
-TowerInfoContainer::TowerMap DummyTowerMap;
+TowerInfoContainer::Map DummyTowerMap;
 
 
 TowerInfoContainer::ConstIter TowerInfoContainer::begin() const
@@ -31,4 +31,9 @@ TowerInfoContainer::Iter TowerInfoContainer::find(int /*key*/)
 TowerInfoContainer::Iter TowerInfoContainer::end()
 {
   return DummyTowerMap.end();
+}
+
+TowerInfoContainer::Range TowerInfoContainer::getTowers()
+{
+  return std::make_pair(DummyTowerMap.begin(), DummyTowerMap.begin());
 }

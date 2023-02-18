@@ -11,7 +11,7 @@
 class TowerInfoContainer : public PHObject
 {
  public:
-  typedef std::map<int, TowerInfo*> TowerMap;
+  typedef std::map<unsigned int, TowerInfo*> TowerMap;
   typedef TowerMap::const_iterator ConstIter;
   typedef TowerMap::iterator Iter;
 
@@ -56,6 +56,8 @@ class TowerInfoContainer : public PHObject
   virtual Iter begin();
   virtual Iter find(int key);
   virtual Iter end();
+
+  virtual Range getTowers();
 
  private:
   ClassDefOverride(TowerInfoContainer, 1);
