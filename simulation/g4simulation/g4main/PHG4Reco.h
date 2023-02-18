@@ -9,9 +9,6 @@
 
 #include <phfield/PHFieldConfig.h>
 
-#include <g4decayer/P6DExtDecayerPhysics.hh>
-
-#include <g4decayer/EvtGenExtDecayerPhysics.hh>
 #include <list>
 #include <string>  // for string
 
@@ -134,7 +131,12 @@ class PHG4Reco : public SubsysReco
   //! disable event/track/stepping actions to reduce resource consumption for G4 running only. E.g. dose analysis
   void setDisableUserActions(bool b = true) { m_disableUserActions = b; }
   void ApplyDisplayAction();
-  void SetEvtGenDecayFile(std::string& DecayFile);
+
+  void CustomizeEvtGenDecay(std::string& DecayFile)
+  {
+	  EvtGenDecayFile = DecayFile;
+	  if(!EvtGenDecayFile.empty()) CustomizeDecay = true;
+  }
 
  private:
   static void g4guithread(void *ptr);
@@ -200,11 +202,6 @@ class PHG4Reco : public SubsysReco
  
   // settings for the external Pythia6 decayer
   //bool m_ActiveDecayerFlag = true;     //< turn on/off decayer
-
-  P6DExtDecayerPhysics * P6decayer = nullptr;
-  EvtGenExtDecayerPhysics * EvtGendecayer = nullptr;
-  
-
   bool m_ActiveForceDecayFlag = false;  //< turn on/off force decay channels
 
   enum DecayerOptions
@@ -216,6 +213,9 @@ class PHG4Reco : public SubsysReco
   };  // Decayer Option for User to Choose: 0 - GEANT 4 Internal Decayer (with momentum conservation issues), 1, PYTHIA 6 Decayer, 2 - EvtGen Decayer
 
   DecayerOptions m_Decayer = kEvtGenDecayer;  // Here we use EvtGen as default
+  std::string EvtGenDecayFile = "";									
+  bool CustomizeDecay = false;
+
   EDecayType m_ForceDecayType = kAll;  //< forced decay channel setting
 
   bool m_SaveDstGeometryFlag = true;

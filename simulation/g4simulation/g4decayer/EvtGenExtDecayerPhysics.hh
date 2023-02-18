@@ -49,7 +49,10 @@ class EvtGenExtDecayerPhysics : public G4VPhysicsConstructor
  public:
   EvtGenExtDecayerPhysics(const G4String& name = "ExtDecayer");
   virtual ~EvtGenExtDecayerPhysics();
-  void CustomizedDecay(std::string& DecayFile);
+  void CustomizeEvtGenDecay(std::string& InputDecayFile)
+  {
+	  DecayFile = InputDecayFile;
+  }
 
  protected:
   // methods
@@ -63,6 +66,7 @@ class EvtGenExtDecayerPhysics : public G4VPhysicsConstructor
   /// Not implemented
   EvtGenExtDecayerPhysics& operator=(const EvtGenExtDecayerPhysics& right);
   G4EvtGenDecayer* extDecayer = nullptr;
+  std::string DecayFile = "";
 };
 
 #endif  // P6D_EXT_DECAYER_PHYSICS_H

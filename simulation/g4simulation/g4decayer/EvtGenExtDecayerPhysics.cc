@@ -89,6 +89,17 @@ void EvtGenExtDecayerPhysics::ConstructProcess()
   extDecayer->SetVerboseLevel(0);
   // extDecayer->SetDecayTable("EvtGenDecayFiles/D0.KPi.DEC",false);
 
+  if (!DecayFile.empty())
+  {
+    const char* CALIBRATIONROOT = getenv("CALIBRATIONROOT");
+    if (!CALIBRATIONROOT)
+    {
+      exit(1);
+    }
+    DecayFile = string(CALIBRATIONROOT) + "/EvtGen/" + DecayFile;
+    extDecayer->SetDecayTable(DecayFile, false);
+  }
+
   aParticleIterator->reset();
   int decayer_used = 0;
   while ((*aParticleIterator)())
@@ -135,13 +146,6 @@ void EvtGenExtDecayerPhysics::ConstructProcess()
   {
     std::cout << "External decayer physics constructed." << std::endl;
   }
-}
-
-void EvtGenExtDecayerPhysics::CustomizedDecay(std::string& DecayFile)
-{
-  extDecayer->SetDecayTable(DecayFile, false);
-
-  std::cout << "Customized Decay Using File: " << DecayFile << std::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
