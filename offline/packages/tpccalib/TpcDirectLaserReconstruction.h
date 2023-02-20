@@ -25,6 +25,7 @@ class TH2;
 class TH3;
 class TH2;
 class TVector3;
+class TNtuple;
 
 class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterface
 {
@@ -88,6 +89,9 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// get relevant cell for a given hit
   int get_cell_index( const TVector3& ) const;
+
+  /// get the GEM module where cluster hit
+  int Locate(float r , float phi , float z);
 
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
@@ -157,6 +161,15 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// number of entries per cell
   TH3 *h_entries = nullptr;
+  TNtuple *h_hits = nullptr;
+  TNtuple *h_origins = nullptr;
+  TNtuple *h_assoc_hits = nullptr;
+
+  /// for diagnosing separation b/w laser starting points and tpc volume hits
+  TH2 *h_deltheta_delphi = nullptr;
+
+  // for recording # of unique GEM modules hit for the clusters associated w/ each track
+  TH1 *h_GEMs_hit = nullptr;
 
   TH2* h_xy = nullptr;
   TH2* h_xz = nullptr;
@@ -166,6 +179,7 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
   TH2* h_zr = nullptr;
   TH2* h_zr_pca = nullptr;
   TH2* h_dz_z = nullptr;
+  TNtuple *h_clusters = nullptr;
 
   //@}
 
