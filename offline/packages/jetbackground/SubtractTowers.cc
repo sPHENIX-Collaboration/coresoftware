@@ -53,9 +53,9 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
   RawTowerContainer *towersEM3 = nullptr;
   RawTowerContainer *towersIH3 =  nullptr;
   RawTowerContainer *towersOH3 = nullptr;
-  TowerInfoContainerv1 *towerinfosEM3 = nullptr;
-  TowerInfoContainerv1 *towerinfosIH3 =  nullptr;
-  TowerInfoContainerv1 *towerinfosOH3 = nullptr;
+  TowerInfoContainer *towerinfosEM3 = nullptr;
+  TowerInfoContainer *towerinfosIH3 =  nullptr;
+  TowerInfoContainer *towerinfosOH3 = nullptr;
 
 
  if (m_use_towerinfo)
@@ -87,9 +87,9 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
   RawTowerContainer *emcal_towers = nullptr;
   RawTowerContainer *ihcal_towers = nullptr;
   RawTowerContainer *ohcal_towers = nullptr;
-  TowerInfoContainerv1 *emcal_towerinfos = nullptr;
-  TowerInfoContainerv1 *ihcal_towerinfos =  nullptr;
-  TowerInfoContainerv1 *ohcal_towerinfos = nullptr;
+  TowerInfoContainer *emcal_towerinfos = nullptr;
+  TowerInfoContainer *ihcal_towerinfos =  nullptr;
+  TowerInfoContainer *ohcal_towerinfos = nullptr;
   if (m_use_towerinfo)
     {
       emcal_towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1");
@@ -127,12 +127,13 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
   // replicate existing towers
   if (m_use_towerinfo)
     {
-      TowerInfoContainerv1::ConstRange begin_end_EM = towerinfosEM3->getTowers();
-      for (TowerInfoContainerv1::ConstIterator rtiter = begin_end_EM.first; rtiter != begin_end_EM.second; ++rtiter)
+      unsigned int nchannels_em = towerinfosEM3->size();
+      for (unsigned int channel = 0; channel < nchannels_em;channel++)
 	{
-	  TowerInfo *tower = rtiter->second;
-	  int ieta = towerinfosEM3->getTowerEtaBin(rtiter->first);
-	  int iphi = towerinfosEM3->getTowerPhiBin(rtiter->first);
+	  TowerInfo *tower = towerinfosEM3->get_tower_at_channel(channel);
+	  unsigned int towerkey = towerinfosEM3->encode_key(channel);
+	  int ieta = towerinfosEM3->getTowerEtaBin(towerkey);
+	  int iphi = towerinfosEM3->getTowerPhiBin(towerkey);
 	  float raw_energy = tower->get_energy();
 	  float UE = towerbackground->get_UE(0).at(ieta);
 	  if (_use_flow_modulation)
@@ -143,10 +144,8 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 	    }
 	  float new_energy = raw_energy - UE;
 
-	  int toweriter = towerinfosEM3->decode_key(rtiter->first);
-
-	  emcal_towerinfos->at(toweriter)->set_time(tower->get_time());
-	  emcal_towerinfos->at(toweriter)->set_energy(new_energy);
+	  emcal_towerinfos->get_tower_at_channel(channel)->set_time(tower->get_time());
+	  emcal_towerinfos->get_tower_at_channel(channel)->set_energy(new_energy);
 	}
     }
   else
@@ -200,12 +199,13 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
   // replicate existing towers
   if (m_use_towerinfo)
     {
-      TowerInfoContainerv1::ConstRange begin_end_IH = towerinfosIH3->getTowers();
-      for (TowerInfoContainerv1::ConstIterator rtiter = begin_end_IH.first; rtiter != begin_end_IH.second; ++rtiter)
+      unsigned int nchannels_ih = towerinfosIH3->size();
+      for (unsigned int channel = 0; channel < nchannels_ih;channel++)
 	{ 
-	  TowerInfo *tower = rtiter->second;
-	  int ieta = towerinfosIH3->getTowerEtaBin(rtiter->first);
-	  int iphi = towerinfosIH3->getTowerPhiBin(rtiter->first);
+	  TowerInfo *tower = towerinfosIH3->get_tower_at_channel(channel);
+	  unsigned int towerkey = towerinfosIH3->encode_key(channel);
+	  int ieta = towerinfosIH3->getTowerEtaBin(towerkey);
+	  int iphi = towerinfosIH3->getTowerPhiBin(towerkey);
 
 	  float raw_energy = tower->get_energy();
 	  float UE = towerbackground->get_UE(1).at(ieta);
@@ -216,9 +216,8 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 	      UE = UE * (1 + 2 * background_v2 * cos(2 * (tower_phi - background_Psi2)));
 	    }
 	  float new_energy = raw_energy - UE;
-	  int toweriter = towerinfosIH3->decode_key(rtiter->first);
-	  ihcal_towerinfos->at(toweriter)->set_time(tower->get_time());
-	  ihcal_towerinfos->at(toweriter)->set_energy(new_energy);
+	  ihcal_towerinfos->get_tower_at_channel(channel)->set_time(tower->get_time());
+	  ihcal_towerinfos->get_tower_at_channel(channel)->set_energy(new_energy);
 	}
     }
   else
@@ -273,12 +272,13 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
   // replicate existing towers
   if (m_use_towerinfo)
     {
-      TowerInfoContainerv1::ConstRange begin_end_OH = towerinfosOH3->getTowers();
-      for (TowerInfoContainerv1::ConstIterator rtiter = begin_end_OH.first; rtiter != begin_end_OH.second; ++rtiter)
+      unsigned int nchannels_oh = towerinfosOH3->size();
+      for (unsigned int channel = 0; channel < nchannels_oh;channel++)
 	{ 
-	  TowerInfo *tower = rtiter->second;
-	  int ieta = towerinfosOH3->getTowerEtaBin(rtiter->first);
-	  int iphi = towerinfosOH3->getTowerPhiBin(rtiter->first);
+	  TowerInfo *tower = towerinfosOH3->get_tower_at_channel(channel);
+	  unsigned int towerkey = towerinfosOH3->encode_key(channel);
+	  int ieta = towerinfosOH3->getTowerEtaBin(towerkey);
+	  int iphi = towerinfosOH3->getTowerPhiBin(towerkey);
 	  float raw_energy = tower->get_energy();
 	  float UE = towerbackground->get_UE(2).at(ieta);
 	  if (_use_flow_modulation)
@@ -288,9 +288,8 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
 	      UE = UE * (1 + 2 * background_v2 * cos(2 * (tower_phi - background_Psi2)));
 	    }
 	  float new_energy = raw_energy - UE;
-	  int toweriter = towerinfosOH3->decode_key(rtiter->first);
-	  ohcal_towerinfos->at(toweriter)->set_time(tower->get_time());
-	  ohcal_towerinfos->at(toweriter)->set_energy(new_energy);
+	  ohcal_towerinfos->get_tower_at_channel(channel)->set_time(tower->get_time());
+	  ohcal_towerinfos->get_tower_at_channel(channel)->set_energy(new_energy);
 	}
     }
   else
@@ -376,12 +375,12 @@ int SubtractTowers::CreateNode(PHCompositeNode *topNode)
     }
   if (m_use_towerinfo)
     {
-      TowerInfoContainerv1 *test_emcal_tower = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1");
+      TowerInfoContainer *test_emcal_tower = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1");
       if (!test_emcal_tower)
 	{
 	  if (Verbosity() > 0) std::cout << "SubtractTowers::CreateNode : creating TOWERINFO_CALIB_CEMC_RETOWER_SUB1 node " << std::endl;
 	  
-	  TowerInfoContainerv1 *emcal_towers = new TowerInfoContainerv1(TowerInfoContainerv1::DETECTOR::HCAL);
+	  TowerInfoContainer *emcal_towers = new TowerInfoContainerv1(TowerInfoContainerv1::DETECTOR::HCAL);
 	  PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>(emcal_towers, "TOWERINFO_CALIB_CEMC_RETOWER_SUB1", "PHObject");
 	  emcalNode->addNode(emcalTowerNode);
 	}
@@ -416,12 +415,12 @@ int SubtractTowers::CreateNode(PHCompositeNode *topNode)
   }
   if (m_use_towerinfo)
     {
-      TowerInfoContainerv1 *test_ihcal_tower = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN_SUB1");
+      TowerInfoContainer *test_ihcal_tower = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALIN_SUB1");
       if (!test_ihcal_tower)
 	{
 	  if (Verbosity() > 0) std::cout << "SubtractTowers::CreateNode : creating TOWERINFO_CALIB_HCALIN_SUB1 node " << std::endl;
 	  
-	  TowerInfoContainerv1 *ihcal_towers = new TowerInfoContainerv1(TowerInfoContainerv1::DETECTOR::HCAL);
+	  TowerInfoContainer *ihcal_towers = new TowerInfoContainerv1(TowerInfoContainerv1::DETECTOR::HCAL);
 	  PHIODataNode<PHObject> *ihcalTowerNode = new PHIODataNode<PHObject>(ihcal_towers, "TOWERINFO_CALIB_HCALIN_SUB1", "PHObject");
 	  ihcalNode->addNode(ihcalTowerNode);
 	}
@@ -457,12 +456,12 @@ int SubtractTowers::CreateNode(PHCompositeNode *topNode)
   }
   if (m_use_towerinfo)
     {
-      TowerInfoContainerv1 *test_ohcal_tower = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT_SUB1");
+      TowerInfoContainer *test_ohcal_tower = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_HCALOUT_SUB1");
       if (!test_ohcal_tower)
 	{
 	  if (Verbosity() > 0) std::cout << "SubtractTowers::CreateNode : creating TOWERINFO_CALIB_HCALOUT_SUB1 node " << std::endl;
 	  
-	  TowerInfoContainerv1 *ohcal_towers = new TowerInfoContainerv1(TowerInfoContainerv1::DETECTOR::HCAL);
+	  TowerInfoContainer *ohcal_towers = new TowerInfoContainerv1(TowerInfoContainerv1::DETECTOR::HCAL);
 	  PHIODataNode<PHObject> *ohcalTowerNode = new PHIODataNode<PHObject>(ohcal_towers, "TOWERINFO_CALIB_HCALOUT_SUB1", "PHObject");
 	  ohcalNode->addNode(ohcalTowerNode);
 	}
