@@ -323,20 +323,7 @@ unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
   }
   return index;
 }
-/*
-TowerInfoContainerv1::Range
-TowerInfoContainerv1::getTowers()
-{
-  if (_towers.empty())
-  {
-    for (unsigned int i = 0; i < size(); i++)
-    {
-      _towers.insert(std::make_pair(encode_key(i), at(i)));
-    }
-  }
-  return make_pair(_towers.begin(), _towers.end());
-}
-*/
+
 unsigned int TowerInfoContainerv1::getTowerPhiBin(unsigned int key)
 {
   unsigned int etabin = key >> 16U;
