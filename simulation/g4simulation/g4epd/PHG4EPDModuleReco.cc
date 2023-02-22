@@ -113,9 +113,9 @@ int PHG4EPDModuleReco::process_event(PHCompositeNode *topNode)
 
         unsigned int ch = m_TowerInfoContainer->decode_key(key);
 
-        m_TowerInfoContainer->at(ch)->set_energy(m_EpdTile_e[k][i][j]);
+        m_TowerInfoContainer->get_tower_at_channel(ch)->set_energy(m_EpdTile_e[k][i][j]);
 
-        m_TowerInfoContainer_calib->at(ch)->set_energy(m_EpdTile_Calib_e[k][i][j]);
+        m_TowerInfoContainer_calib->get_tower_at_channel(ch)->set_energy(m_EpdTile_Calib_e[k][i][j]);
       }
     }
   }
