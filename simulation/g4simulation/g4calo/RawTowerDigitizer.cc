@@ -278,8 +278,8 @@ int RawTowerDigitizer::process_event(PHCompositeNode */**topNode*/)
       if (m_UseTowerInfo > 0)
 	{
 	  unsigned int towerkey = (eta << 16U) + phi;
-	  unsigned int towerindex = m_SimTowerInfos->decode_key(towerkey);
-	  TowerInfo *sim_tower = m_SimTowerInfos->at(towerindex);
+	  // unsigned int towerindex = m_SimTowerInfos->decode_key(towerkey);
+	  TowerInfo *sim_tower = m_SimTowerInfos->get_tower_at_key(towerkey);
 	  if (m_DeadMap)
 	    {
 	      if (m_DeadMap->isDeadTower(key))
@@ -332,7 +332,7 @@ int RawTowerDigitizer::process_event(PHCompositeNode */**topNode*/)
 		  float e_dec = digi_towerinfo->get_energy();
 		  digi_towerinfo->set_energy(e_dec * decal_fctr);
 		}
-	      TowerInfo *digitized_towerinfo = m_RawTowerInfos->at(towerindex);
+	      TowerInfo *digitized_towerinfo = m_RawTowerInfos->get_tower_at_key(towerkey);
 	      if (m_UseTowerInfo == 2 ) //if reconstructing both RawTowers and towerinfo objects force them to be the same
 		{
 		  if (digi_tower)
@@ -776,7 +776,7 @@ void RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
      m_RawTowerInfos = findNode::getClass<TowerInfoContainer>(DetNode,TowerInfoNodeName);
      if (m_RawTowerInfos == nullptr)
        {
-	 TowerInfoContainerv1::DETECTOR detec;
+	 TowerInfoContainer::DETECTOR detec;
 	 if (m_Detector == "CEMC")
 	   {
 	     detec = TowerInfoContainer::DETECTOR::EMCAL;

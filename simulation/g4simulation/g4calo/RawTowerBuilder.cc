@@ -110,7 +110,6 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << "Process event entered" << std::endl;
   }
 
-
   //load get TowerInfoContainer node from node tree:
   TowerInfoContainer*  m_TowerInfoContainer = findNode::getClass<TowerInfoContainer>(topNode,m_TowerInfoNodeName);
   if (!m_TowerInfoContainer && m_UseTowerInfo > 0)
@@ -220,8 +219,8 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
 	    exit(1);
 	  }
 	unsigned int towerkey = (etabin << 16U) + phibin;
-	unsigned int towerindex = m_TowerInfoContainer->decode_key(towerkey);
-	towerinfo = m_TowerInfoContainer->at(towerindex);
+	// unsigned int towerindex = m_TowerInfoContainer->decode_key(towerkey);
+	towerinfo = m_TowerInfoContainer->get_tower_at_key(towerkey);
         if (!towerinfo)
         {
           std::cout << __PRETTY_FUNCTION__ << ": missing towerkey = " << towerkey << " in m_TowerInfoContainer!";
@@ -661,7 +660,7 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
      TowerInfoContainer* m_TowerInfoContainer = findNode::getClass<TowerInfoContainer>(DetNode,m_TowerInfoNodeName);
      if (m_TowerInfoContainer == nullptr)
        {
-	 TowerInfoContainerv1::DETECTOR detec;
+	 TowerInfoContainer::DETECTOR detec;
 	 if (caloid == RawTowerDefs::CalorimeterId::CEMC)
 	   {
 	     detec = TowerInfoContainer::DETECTOR::EMCAL;

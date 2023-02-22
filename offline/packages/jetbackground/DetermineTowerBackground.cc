@@ -83,9 +83,9 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   RawTowerContainer *towersEM3 = nullptr;
   RawTowerContainer *towersIH3 =  nullptr;
   RawTowerContainer *towersOH3 = nullptr;
-  TowerInfoContainerv1 *towerinfosEM3 = nullptr;
-  TowerInfoContainerv1 *towerinfosIH3 =  nullptr;
-  TowerInfoContainerv1 *towerinfosOH3 = nullptr;
+  TowerInfoContainer *towerinfosEM3 = nullptr;
+  TowerInfoContainer *towerinfosIH3 =  nullptr;
+  TowerInfoContainer *towerinfosOH3 = nullptr;
   if (m_use_towerinfo)
     {
       towerinfosEM3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
@@ -161,7 +161,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	  {
 	    if ((*comp).first == 5 || (*comp).first == 26)
 	      {
-		towerinfo = towerinfosIH3->at((*comp).second);
+		towerinfo = towerinfosIH3->get_tower_at_channel((*comp).second);
 		unsigned int towerkey = towerinfosIH3->encode_key((*comp).second);
 		comp_ieta = towerinfosIH3->getTowerEtaBin(towerkey);
 		comp_iphi = towerinfosIH3->getTowerPhiBin(towerkey);
@@ -171,7 +171,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	      }
 	    else if ((*comp).first == 7 || (*comp).first == 27)
 	      {
-		towerinfo = towerinfosOH3->at((*comp).second);
+		towerinfo = towerinfosOH3->get_tower_at_channel((*comp).second);
 		unsigned int towerkey = towerinfosOH3->encode_key((*comp).second);
 		comp_ieta = towerinfosOH3->getTowerEtaBin(towerkey);
 		comp_iphi = towerinfosOH3->getTowerPhiBin(towerkey);
@@ -181,7 +181,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	      }
 	    else if ((*comp).first == 13 || (*comp).first == 28)
 	      {
-		towerinfo = towerinfosEM3->at((*comp).second);
+		towerinfo = towerinfosEM3->get_tower_at_channel((*comp).second);
 		unsigned int towerkey = towerinfosEM3->encode_key((*comp).second);
 		comp_ieta = towerinfosEM3->getTowerEtaBin(towerkey);
 		comp_iphi = towerinfosEM3->getTowerPhiBin(towerkey);
@@ -377,32 +377,35 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	  std::cout <<  PHWHERE << "missing tower info object, doing nothing" << std::endl;
 	  return Fun4AllReturnCodes::ABORTRUN;
 	}
-      TowerInfoContainerv1::ConstRange begin_end_em = towerinfosEM3->getTowers();
-      for (TowerInfoContainerv1::ConstIterator rtiter = begin_end_em.first; rtiter != begin_end_em.second; ++rtiter)
+      unsigned int nchannels_em = towerinfosEM3->size();
+      for (unsigned int channel = 0; channel < nchannels_em;channel++)
 	{
-	  int this_etabin = towerinfosEM3->getTowerEtaBin(rtiter->first);
-	  int this_phibin = towerinfosEM3->getTowerPhiBin(rtiter->first);
-	  float this_E = rtiter->second->get_energy();
+	  unsigned int key = towerinfosEM3->encode_key(channel);
+	  int this_etabin = towerinfosEM3->getTowerEtaBin(key);
+	  int this_phibin = towerinfosEM3->getTowerPhiBin(key);
+	  float this_E = towerinfosEM3->get_tower_at_channel(channel)->get_energy();
 	  _EMCAL_E[this_etabin][this_phibin] += this_E;
 	}
 
       // iterate over IHCal towerinfos
-      TowerInfoContainerv1::ConstRange begin_end_ih = towerinfosIH3->getTowers();
-      for (TowerInfoContainerv1::ConstIterator rtiter = begin_end_ih.first; rtiter != begin_end_ih.second; ++rtiter)
+      unsigned int nchannels_ih = towerinfosIH3->size();
+      for (unsigned int channel = 0; channel < nchannels_ih;channel++)
 	{
-	  int this_etabin = towerinfosIH3->getTowerEtaBin(rtiter->first);
-	  int this_phibin = towerinfosIH3->getTowerPhiBin(rtiter->first);
-	  float this_E = rtiter->second->get_energy();
+	  unsigned int key = towerinfosIH3->encode_key(channel);
+	  int this_etabin = towerinfosIH3->getTowerEtaBin(key);
+	  int this_phibin = towerinfosIH3->getTowerPhiBin(key);
+	  float this_E = towerinfosIH3->get_tower_at_channel(channel)->get_energy();
 	  _IHCAL_E[this_etabin][this_phibin] += this_E;
 	}
 
       // iterate over OHCal towerinfos
-      TowerInfoContainerv1::ConstRange begin_end_oh = towerinfosOH3->getTowers();
-      for (TowerInfoContainerv1::ConstIterator rtiter = begin_end_oh.first; rtiter != begin_end_oh.second; ++rtiter)
+      unsigned int nchannels_oh = towerinfosOH3->size();
+      for (unsigned int channel = 0; channel < nchannels_oh;channel++)
 	{
-	  int this_etabin = towerinfosOH3->getTowerEtaBin(rtiter->first);
-	  int this_phibin = towerinfosOH3->getTowerPhiBin(rtiter->first);
-	  float this_E = rtiter->second->get_energy();
+	  unsigned int key = towerinfosOH3->encode_key(channel);
+	  int this_etabin = towerinfosOH3->getTowerEtaBin(key);
+	  int this_phibin = towerinfosOH3->getTowerPhiBin(key);
+	  float this_E = towerinfosOH3->get_tower_at_channel(channel)->get_energy();
 	  _OHCAL_E[this_etabin][this_phibin] += this_E;
 	}
     }

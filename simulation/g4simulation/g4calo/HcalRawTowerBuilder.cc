@@ -392,9 +392,8 @@ int HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
 	unsigned int phibin = twrrow;
 	
 	unsigned int towerkey = (etabin << 16U) + phibin;
-	unsigned int towerindex = m_TowerInfoContainer->decode_key(towerkey);
 
-        towerinfo = m_TowerInfoContainer->at(towerindex);
+        towerinfo = m_TowerInfoContainer->get_tower_at_key(towerkey);
         if (!towerinfo)
         {
           std::cout << __PRETTY_FUNCTION__ << ": missing towerkey = " << towerkey << " in m_TowerInfoContainer!";
@@ -515,7 +514,7 @@ void HcalRawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
      RawTowerDefs::CalorimeterId caloid = RawTowerDefs::convert_name_to_caloid(m_InputDetector);
      if (m_TowerInfoContainer == nullptr)
        {
-	 TowerInfoContainerv1::DETECTOR detec;
+	 TowerInfoContainer::DETECTOR detec;
 	 if (caloid == RawTowerDefs::CalorimeterId::CEMC)
 	   {
 	     detec = TowerInfoContainer::DETECTOR::EMCAL;

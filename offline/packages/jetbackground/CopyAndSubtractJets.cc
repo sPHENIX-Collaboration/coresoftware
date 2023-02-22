@@ -56,9 +56,9 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
   RawTowerContainer *towersEM3 = nullptr;
   RawTowerContainer *towersIH3 =  nullptr;
   RawTowerContainer *towersOH3 = nullptr;
-  TowerInfoContainerv1 *towerinfosEM3 = nullptr;
-  TowerInfoContainerv1 *towerinfosIH3 =  nullptr;
-  TowerInfoContainerv1 *towerinfosOH3 = nullptr;
+  TowerInfoContainer *towerinfosEM3 = nullptr;
+  TowerInfoContainer *towerinfosIH3 =  nullptr;
+  TowerInfoContainer *towerinfosOH3 = nullptr;
   if (m_use_towerinfo)
     {
       towerinfosEM3 = findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
@@ -145,7 +145,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 	    {
 	      if ((*comp).first == 5|| (*comp).first == 26)
 		{
-		  towerinfo = towerinfosIH3->at((*comp).second);
+		  towerinfo = towerinfosIH3->get_tower_at_channel((*comp).second);
 		  unsigned int towerkey = towerinfosIH3->encode_key((*comp).second);
 		  comp_ieta = towerinfosIH3->getTowerEtaBin(towerkey);
 		  int comp_iphi = towerinfosIH3->getTowerPhiBin(towerkey);
@@ -156,7 +156,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 		}
 	      else if ((*comp).first == 7 || (*comp).first == 27)
 		{
-		  towerinfo = towerinfosOH3->at((*comp).second);
+		  towerinfo = towerinfosOH3->get_tower_at_channel((*comp).second);
 		  unsigned int towerkey = towerinfosOH3->encode_key((*comp).second);
 		  comp_ieta = towerinfosOH3->getTowerEtaBin(towerkey);
 		  int comp_iphi = towerinfosOH3->getTowerPhiBin(towerkey);
@@ -166,7 +166,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 		}
 	      else if ((*comp).first == 13 || (*comp).first == 28)
 		{
-		  towerinfo = towerinfosEM3->at((*comp).second);
+		  towerinfo = towerinfosEM3->get_tower_at_channel((*comp).second);
 		  unsigned int towerkey = towerinfosEM3->encode_key((*comp).second);
 		  comp_ieta = towerinfosEM3->getTowerEtaBin(towerkey);
 		  int comp_iphi = towerinfosEM3->getTowerPhiBin(towerkey);
