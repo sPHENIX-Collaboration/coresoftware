@@ -187,7 +187,7 @@ int TpcDirectLaserReconstruction::End(PHCompositeNode* )
   if( m_savehistograms && m_histogramfile )
   {
     m_histogramfile->cd();
-    for(const auto& o:std::initializer_list<TObject*>({ h_dca_layer, h_deltarphi_layer_south,h_deltarphi_layer_north, h_deltaz_layer, h_deltar_r,h_deltheta_delphi,h_entries,h_hits,h_clusters,h_origins,h_assoc_hits,h_GEMs_hit,h_xy,h_xz,h_xy_pca,h_xz_pca,h_dca_path,h_zr,h_zr_pca, h_dz_z }))
+    for(const auto& o:std::initializer_list<TObject*>({ h_dca_layer, h_deltarphi_layer_south,h_deltarphi_layer_north, h_deltaz_layer, h_deltar_r,h_deltheta_delphi,h_deltheta_delphi_1,h_deltheta_delphi_2,h_deltheta_delphi_3,h_deltheta_delphi_4,h_deltheta_delphi_5,h_deltheta_delphi_6,h_deltheta_delphi_7,h_deltheta_delphi_8, h_entries,h_hits,h_clusters,h_origins,h_assoc_hits,h_GEMs_hit,h_layers_hit,h_xy,h_xz,h_xy_pca,h_xz_pca,h_dca_path,h_zr,h_zr_pca, h_dz_z }))
     { if( o ) o->Write(); }
     m_histogramfile->Close();
   }
@@ -271,19 +271,54 @@ void TpcDirectLaserReconstruction::create_histograms()
   h_clusters = new TNtuple("clusters","associated clusters","x:y:z");
   h_origins = new TNtuple("origins","track origins","x:y:z");
 
-  h_deltheta_delphi = new TH2F("deltheta_delphi","#Delta#theta, #Delta#phi for separation b/w TPC volume hits and laser start points", 181, -10.5,180.5,361, -180.5, 180.5);
+  h_deltheta_delphi = new TH2F("deltheta_delphi","#Delta#theta, #Delta#phi for separation b/w TPC volume hits and ALL laser start points", 181, -10.5,180.5,361, -180.5, 180.5);
   h_deltheta_delphi->SetXTitle("#Delta#theta");
   h_deltheta_delphi->SetYTitle("#Delta#phi");
 
+  h_deltheta_delphi_1 = new TH2F("deltheta_delphi_1","#Delta#theta, #Delta#phi for separation b/w TPC volume hits and LASER 0 only", 181, -10.5,180.5,361, -180.5, 180.5);
+  h_deltheta_delphi_1->SetXTitle("#Delta#theta");
+  h_deltheta_delphi_1->SetYTitle("#Delta#phi");
+
+  h_deltheta_delphi_2 = new TH2F("deltheta_delphi_2","#Delta#theta, #Delta#phi for separation b/w TPC volume hits and LASER 1 only", 181, -10.5,180.5,361, -180.5, 180.5);
+  h_deltheta_delphi_2->SetXTitle("#Delta#theta");
+  h_deltheta_delphi_2->SetYTitle("#Delta#phi");
+
+  h_deltheta_delphi_3 = new TH2F("deltheta_delphi_3","#Delta#theta, #Delta#phi for separation b/w TPC volume hits and LASER 2 only", 181, -10.5,180.5,361, -180.5, 180.5);
+  h_deltheta_delphi_3->SetXTitle("#Delta#theta");
+  h_deltheta_delphi_3->SetYTitle("#Delta#phi");
+
+  h_deltheta_delphi_4 = new TH2F("deltheta_delphi_4","#Delta#theta, #Delta#phi for separation b/w TPC volume hits and LASER 3 only", 181, -10.5,180.5,361, -180.5, 180.5);
+  h_deltheta_delphi_4->SetXTitle("#Delta#theta");
+  h_deltheta_delphi_4->SetYTitle("#Delta#phi");
+
+  h_deltheta_delphi_5 = new TH2F("deltheta_delphi_5","#Delta#theta, #Delta#phi for separation b/w TPC volume hits and LASER 4 only", 181, -10.5,180.5,361, -180.5, 180.5);
+  h_deltheta_delphi_5->SetXTitle("#Delta#theta");
+  h_deltheta_delphi_5->SetYTitle("#Delta#phi");
+
+  h_deltheta_delphi_6 = new TH2F("deltheta_delphi_6","#Delta#theta, #Delta#phi for separation b/w TPC volume hits and LASER 5 only", 181, -10.5,180.5,361, -180.5, 180.5);
+  h_deltheta_delphi_6->SetXTitle("#Delta#theta");
+  h_deltheta_delphi_6->SetYTitle("#Delta#phi");
+
+  h_deltheta_delphi_7 = new TH2F("deltheta_delphi_7","#Delta#theta, #Delta#phi for separation b/w TPC volume hits and LASER 6 only", 181, -10.5,180.5,361, -180.5, 180.5);
+  h_deltheta_delphi_7->SetXTitle("#Delta#theta");
+  h_deltheta_delphi_7->SetYTitle("#Delta#phi");
+
+  h_deltheta_delphi_8 = new TH2F("deltheta_delphi_8","#Delta#theta, #Delta#phi for separation b/w TPC volume hits and LASER 7 only", 181, -10.5,180.5,361, -180.5, 180.5);
+  h_deltheta_delphi_8->SetXTitle("#Delta#theta");
+  h_deltheta_delphi_8->SetYTitle("#Delta#phi");
+
   h_GEMs_hit = new TH1F("GEMS_hit","Number of Unique GEM Modules hit for each laser",8,0,8);
+  h_layers_hit = new TH1F("layers_hit","Number of Unique Layers hit for each laser",8,8,8);
 
   char GEM_bin_label[128];
   for(int GEMhistiter = 0; GEMhistiter < 8; GEMhistiter++)
   {  // (pos z) laser 1 {0,60}, laser 2 {60,0}, laser 3 {0,-60}, laser 4 {-60,0}, (neg z) laser 5 {0,60}, laser 2 {60,0}, laser 3 {0,-60}, laser 4 {-60,0}
     sprintf(GEM_bin_label,"laser %i",GEMhistiter+1);
     h_GEMs_hit->GetXaxis()->SetBinLabel(GEMhistiter+1,GEM_bin_label);
+    h_layers_hit->GetXaxis()->SetBinLabel(GEMhistiter+1,GEM_bin_label);
   }
   h_GEMs_hit->SetYTitle("Number of Unique GEM Modules Hit");
+  h_layers_hit->SetYTitle("Number of Unique Layers Hit");
 
   // entries vs cell grid
   /* histogram dimension and axis limits must match that of TpcSpaceChargeMatrixContainer */
@@ -329,6 +364,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
     std::cout << "TpcDirectLaserReconstruction::process_track - position: " << origin << " direction: " << direction << std::endl; 
   }
   
+  int GEM_Mod_Arr[72] = {0};
 
   // loop over hits
   TrkrHitSetContainer::ConstRange hitsetrange = m_hit_map->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -386,27 +422,38 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
         // relative angle histogram - only fill for hits in the same quadrant as origin
         h_deltheta_delphi->Fill(oc.Theta()*(180./M_PI), oc.Phi()*(180./M_PI)) ;
 
-        //FANCIER ANGLE FINDING COMING SOON !!!
-/*
-        if(signbit(global.z()) == signbit(origin.z())){ //get things only on the same side of the central membrane
-          if( (trkid == 1 || trkid == 5) && global.y() > global.x() && global.y() > -global.x() ){ // upper lasers
-            h_deltheta_delphi->Fill(oc.Theta()*(180./M_PI), oc.Phi()*(180./M_PI)) ;
-            std::cout<<"UPPER LASER"<<std::endl;
-          }
-          if( (trkid == 0 || trkid == 4) && global.y() < global.x() && global.y() > -global.x() ){ // RHS lasers
-            h_deltheta_delphi->Fill(oc.Theta()*(180./M_PI), oc.Phi()*(180./M_PI)) ;
-            std::cout<<"RHS LASER"<<std::endl;
-          }
-          if( (trkid == 3 || trkid == 7) && global.y() < global.x() && global.y() < -global.x() ){ // lower lasers
-            h_deltheta_delphi->Fill(oc.Theta()*(180./M_PI), oc.Phi()*(180./M_PI)) ;
-            std::cout<<"LOWER LASER"<<std::endl;
-          }
-          if( (trkid == 2 || trkid == 6) && global.y() > global.x() && global.y() < -global.x() ){ // LHS lasers
-            h_deltheta_delphi->Fill(oc.Theta()*(180./M_PI), oc.Phi()*(180./M_PI)) ;
-            std::cout<<"LHS LASER"<<std::endl;
-          }
+        if( trkid == 0) //only fill for the first laser !!!
+        {
+          h_deltheta_delphi_1->Fill(oc.Theta()*(180./M_PI), oc.Phi()*(180./M_PI)) ;
         }
-*/
+        if( trkid == 1) //only fill for the first laser !!!
+        {
+          h_deltheta_delphi_2->Fill(oc.Theta()*(180./M_PI), oc.Phi()*(180./M_PI)) ;
+        }
+        if( trkid == 2) //only fill for the first laser !!!
+        {
+          h_deltheta_delphi_3->Fill(oc.Theta()*(180./M_PI), oc.Phi()*(180./M_PI)) ;
+        }
+        if( trkid == 3) //only fill for the first laser !!!
+        {
+          h_deltheta_delphi_4->Fill(oc.Theta()*(180./M_PI), oc.Phi()*(180./M_PI)) ;
+        }
+        if( trkid == 4) //only fill for the first laser !!!
+        {
+          h_deltheta_delphi_5->Fill(oc.Theta()*(180./M_PI), oc.Phi()*(180./M_PI)) ;
+        }
+        if( trkid == 5) //only fill for the first laser !!!
+        {
+          h_deltheta_delphi_6->Fill(oc.Theta()*(180./M_PI), oc.Phi()*(180./M_PI)) ;
+        }
+        if( trkid == 6) //only fill for the first laser !!!
+        {
+          h_deltheta_delphi_7->Fill(oc.Theta()*(180./M_PI), oc.Phi()*(180./M_PI)) ;
+        }
+        if( trkid == 7) //only fill for the first laser !!!
+        {
+          h_deltheta_delphi_8->Fill(oc.Theta()*(180./M_PI), oc.Phi()*(180./M_PI)) ;
+        }
 
 	// do not associate if dca is too large
 	if( dca > m_max_dca ) continue;
@@ -417,6 +464,17 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
           h_assoc_hits->Fill( x,y,z);
         }
 
+        //for locating the associated hits   
+        float r2 = std::sqrt((x*x) + (y*y));
+        float phi2 = phi;
+        float z2 = z;
+        while( phi2 < m_phimin ) phi2 += 2.*M_PI; 
+        while( phi2 >= m_phimax ) phi2 -= 2.*M_PI; 
+
+        const int locateid = Locate(r2 , phi2 , z2); //find where the cluster is 
+      
+        if( z2 > m_zmin || z2 < m_zmax ) GEM_Mod_Arr[locateid-1]++; // the array ath the cluster location - counts the number of clusters in each array, (IFF its in the volume !!!)
+
 	// bin hits by layer
 	const auto cluspos_pair = std::make_pair(adc, global); 	
 	cluspos_map.insert(std::make_pair(layer, cluspos_pair));	
@@ -424,7 +482,16 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       }
   }
 
-  int GEM_Mod_Arr[72] = {0};
+  for(int GEMS_iter = 0; GEMS_iter < 72; GEMS_iter++)
+  {
+    if(GEM_Mod_Arr[GEMS_iter] > 0){  //laser 0
+      h_GEMs_hit->Fill(trkid + 0.5);
+    }
+  }
+
+  
+  // We will bring this back here when we fix the clustering
+  //int GEM_Mod_Arr[72] = {0};
 
   // we have all of the residuals for this track added to the map, binned by layer
   // now we calculate the centroid of the clusters in each bin
@@ -435,6 +502,8 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       const auto layer_center_radius = layergeom->get_radius();
       const auto layer_inner_radius = layer_center_radius - layergeom->get_thickness() / 2.0;
       const auto layer_outer_radius = layer_center_radius + layergeom->get_thickness() / 2.0;
+
+      h_layers_hit->Fill(trkid + 0.5);
           
       // does track pass completely through this layer? If not do not use the hits
       auto tupdn = line_circle_intersection(origin, direction, layer_outer_radius);
@@ -559,6 +628,8 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       const auto cluster_phi = std::atan2(clus_centroid.y(),clus_centroid.x());
       const auto cluster_z = clus_centroid.z();
 
+      // We will bring this back when we fix clustering !!
+      /*
       float r2 = cluster_r;
       float phi2 = cluster_phi;
       float z2 = cluster_z;
@@ -568,6 +639,7 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       const int locateid = Locate(r2 , phi2 , z2); //find where the cluster is 
       
       if( z2 > m_zmin || z2 < m_zmax ) GEM_Mod_Arr[locateid-1]++; // the array ath the cluster location - counts the number of clusters in each array, (IFF its in the volume !!!)
+      */
 
       // cluster errors
       const auto cluster_rphi_error = 0.015;
@@ -704,33 +776,15 @@ void TpcDirectLaserReconstruction::process_track( SvtxTrack* track )
       ++m_accepted_clusters;      
     }
 
+// We will eventually bring this back when we fix clustering
+/*
   for(int GEMS_iter = 0; GEMS_iter < 72; GEMS_iter++)
   {
-    if(trkid == 0 && GEM_Mod_Arr[GEMS_iter] > 0){  //laser 0
-      h_GEMs_hit->Fill(0.5);
-    }
-    if(trkid == 1 && GEM_Mod_Arr[GEMS_iter] > 0){  //laser 1
-      h_GEMs_hit->Fill(1.5);
-    }
-    if(trkid == 2 && GEM_Mod_Arr[GEMS_iter] > 0){  //laser 2
-      h_GEMs_hit->Fill(2.5);
-    }
-    if(trkid == 3 && GEM_Mod_Arr[GEMS_iter] > 0){  //laser 3
-      h_GEMs_hit->Fill(3.5);
-    }
-    if(trkid == 4 && GEM_Mod_Arr[GEMS_iter] > 0){  //laser 4
-      h_GEMs_hit->Fill(4.5);
-    }
-    if(trkid == 5 && GEM_Mod_Arr[GEMS_iter] > 0){  //laser 5
-      h_GEMs_hit->Fill(5.5);
-    }
-    if(trkid == 6 && GEM_Mod_Arr[GEMS_iter] > 0){  //laser 6
-      h_GEMs_hit->Fill(6.5);
-    }
-    if(trkid == 7 && GEM_Mod_Arr[GEMS_iter] > 0){  //laser 7
-      h_GEMs_hit->Fill(7.5);
+    if(GEM_Mod_Arr[GEMS_iter] > 0){  //laser 0
+      h_GEMs_hit->Fill(trkid + 0.5);
     }
   }
+*/
 
 }
 

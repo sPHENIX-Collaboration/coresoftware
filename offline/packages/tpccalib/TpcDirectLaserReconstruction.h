@@ -167,9 +167,18 @@ class TpcDirectLaserReconstruction: public SubsysReco, public PHParameterInterfa
 
   /// for diagnosing separation b/w laser starting points and tpc volume hits
   TH2 *h_deltheta_delphi = nullptr;
+  TH2 *h_deltheta_delphi_1 = nullptr;
+  TH2 *h_deltheta_delphi_2 = nullptr;
+  TH2 *h_deltheta_delphi_3 = nullptr;
+  TH2 *h_deltheta_delphi_4 = nullptr;
+  TH2 *h_deltheta_delphi_5 = nullptr;
+  TH2 *h_deltheta_delphi_6 = nullptr;
+  TH2 *h_deltheta_delphi_7 = nullptr;
+  TH2 *h_deltheta_delphi_8 = nullptr;
 
-  // for recording # of unique GEM modules hit for the clusters associated w/ each track
+  // for recording # of unique GEM modules hit for the number of associated hits (to be replaced with GEM Modules)
   TH1 *h_GEMs_hit = nullptr;
+  TH1 *h_layers_hit = nullptr;
 
   TH2* h_xy = nullptr;
   TH2* h_xz = nullptr;
