@@ -131,8 +131,8 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   int n_channels = processed_waveforms.size();
   for (int i = 0 ; i < n_channels;i++)
     {
-      m_CaloInfoContainer->at(i)->set_time(processed_waveforms.at(i).at(1));
-      m_CaloInfoContainer->at(i)->set_energy(processed_waveforms.at(i).at(0));
+      m_CaloInfoContainer->get_tower_at_channel(i)->set_time(processed_waveforms.at(i).at(1));
+      m_CaloInfoContainer->get_tower_at_channel(i)->set_energy(processed_waveforms.at(i).at(0));
     }
   
   waveforms.clear();
@@ -155,15 +155,15 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   // towers
   if (m_dettype == CaloTowerBuilder::CEMC)
     {
-      m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainerv1::DETECTOR::EMCAL);
+      m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::EMCAL);
     }
   else if (m_dettype == EPD)
     {
-      m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainerv1::DETECTOR::SEPD);
+      m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::SEPD);
     }
   else
     {
-      m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainerv1::DETECTOR::HCAL);  
+      m_CaloInfoContainer = new TowerInfoContainerv1(TowerInfoContainer::DETECTOR::HCAL);  
     }
   
   PHIODataNode<PHObject> *emcal_towerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, Form("TOWERS_%s",m_detector.c_str()), "PHObject");

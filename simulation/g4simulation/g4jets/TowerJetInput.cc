@@ -84,7 +84,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   m_use_towerinfo = false;
 
   RawTowerContainer *towers = nullptr;
-  TowerInfoContainerv1 *towerinfos = nullptr; 
+  TowerInfoContainer *towerinfos = nullptr; 
   RawTowerGeomContainer *geom = nullptr;
   if (_input == Jet::CEMC_TOWER)
   {
@@ -318,14 +318,15 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	{
 	  return std::vector<Jet *>();
 	}
-      TowerInfoContainerv1::ConstRange begin_end = towerinfos->getTowers();
-      TowerInfoContainerv1::ConstIterator rtiter;
-      for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+
+      unsigned int nchannels = towerinfos->size();
+      for (unsigned int channel = 0; channel < nchannels;channel++)
 	{
-	  TowerInfo *tower = rtiter->second;
+	  TowerInfo *tower = towerinfos->get_tower_at_channel(channel);
 	  assert(tower);
-	  int ieta = towerinfos->getTowerEtaBin(rtiter->first);
-	  int iphi = towerinfos->getTowerPhiBin(rtiter->first);
+	  unsigned int calokey = towerinfos->encode_key(channel);
+	  int ieta = towerinfos->getTowerEtaBin(calokey);
+	  int iphi = towerinfos->getTowerPhiBin(calokey);
 	  const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(geocaloid, ieta, iphi);
 	  RawTowerGeom *tower_geom = geom->get_tower_geometry(key);
 	  assert(tower_geom);
@@ -346,7 +347,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 	  jet->set_py(py);
 	  jet->set_pz(pz);
 	  jet->set_e(tower->get_energy());
-	  jet->insert_comp(_input,towerinfos->decode_key(rtiter->first));
+	  jet->insert_comp(_input,channel);
 	  pseudojets.push_back(jet);
 	}
     }

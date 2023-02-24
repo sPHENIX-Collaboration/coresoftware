@@ -112,7 +112,6 @@ libcalo_io_la_SOURCES = \
   RawTowerGeomContainerv1.cc \
   RawTowerGeomContainer_Cylinderv1.cc \
   TowerInfov1.cc \
-  TowerInfoContainer.cc \
   TowerInfoContainerv1.cc
 
 # Rule for generating table CINT dictionaries.
