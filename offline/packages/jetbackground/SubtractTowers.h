@@ -32,10 +32,14 @@ class SubtractTowers : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
 
   void SetFlowModulation(bool use_flow_modulation) { _use_flow_modulation = use_flow_modulation; }
-
+  void set_towerinfo(bool use_towerinfo)
+  {
+    m_use_towerinfo = use_towerinfo;
+  }
  private:
   int CreateNode(PHCompositeNode *topNode);
 
+  bool m_use_towerinfo = false;
   bool _use_flow_modulation;
 };
 

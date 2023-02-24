@@ -239,13 +239,14 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
 
   if ( m_UseTowerInfo > 0)
     {
-      TowerInfoContainer::ConstRange begin_end = _raw_towerinfos->getTowers();
-      TowerInfoContainer::ConstIterator rtiter;
-      for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+      unsigned int ntowers = _raw_towerinfos->size();
+      for (unsigned int channel = 0; channel < ntowers;channel++)
 	{
-	  unsigned int key =rtiter->first;
 
-	  TowerInfo *raw_tower = rtiter->second;
+	  // unsigned int key =rtiter->first;
+	  unsigned int key =_raw_towerinfos->encode_key(channel);
+
+	  TowerInfo *raw_tower = _raw_towerinfos->get_tower_at_channel(channel);
 	  assert(raw_tower);
 	  
 	  TowerInfo *calib_tower = new TowerInfov1();
@@ -311,7 +312,7 @@ int RawTowerCalibration::process_event(PHCompositeNode * /*topNode*/)
 	      return Fun4AllReturnCodes::ABORTRUN;
 	    }
 
-	  TowerInfo *calibrated_towerinfo = _calib_towerinfos->at(_raw_towerinfos->decode_key(key));
+	  TowerInfo *calibrated_towerinfo = _calib_towerinfos->get_tower_at_channel(channel);
 	   calibrated_towerinfo->set_energy(calib_tower->get_energy());  
 	   delete calib_tower;
 	} 

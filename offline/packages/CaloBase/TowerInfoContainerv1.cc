@@ -88,9 +88,17 @@ void TowerInfoContainerv1::Reset()
   }
 }
 
-TowerInfov1* TowerInfoContainerv1::at(int pos)
+
+TowerInfov1* TowerInfoContainerv1::get_tower_at_channel(int pos)
 {
   return (TowerInfov1*) _clones->At(pos);
+}
+
+
+TowerInfov1* TowerInfoContainerv1::get_tower_at_key(int pos)
+{
+  int index = decode_key(pos);
+  return (TowerInfov1*) _clones->At(index);
 }
 
 
@@ -314,19 +322,6 @@ unsigned int TowerInfoContainerv1::decode_key(unsigned int tower_key)
     index = TowerInfoContainerv1::decode_epd(tower_key);
   }
   return index;
-}
-
-TowerInfoContainerv1::Range
-TowerInfoContainerv1::getTowers()
-{
-  if (_towers.empty())
-  {
-    for (unsigned int i = 0; i < size(); i++)
-    {
-      _towers.insert(std::make_pair(encode_key(i), at(i)));
-    }
-  }
-  return make_pair(_towers.begin(), _towers.end());
 }
 
 unsigned int TowerInfoContainerv1::getTowerPhiBin(unsigned int key)
