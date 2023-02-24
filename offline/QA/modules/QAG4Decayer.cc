@@ -33,8 +33,6 @@
 #include <map>
 
 const int NHFQA = 16;
-const int QAParticle = 9;
-const int QAAntiParticle = 7;
 
 int QAVtxPDGID[NHFQA] = {411, 421, 431, 4122, 511, 521, 531, 443, 553, -411, -421, -431, -4122, -511, -521, -531};
 
@@ -89,7 +87,7 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
     h = new TH1F(Form("QACosTheta_%d", i), "", 120, -1.2, 1.2);
     hm->registerHisto(h);
 
-    h = new TH1F(Form("BR1DHis_%d", i), "", 10, -0.5, 15.5);
+    h = new TH1F(Form("BR1DHis_%d", i), "", 10, -0.5, 9.5);
     hm->registerHisto(h);
 
     h = new TH1F(Form("ProperLifeTime_%d", i), "", 100, 0.0001, 0.05);
@@ -205,7 +203,7 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
 
   // D-
   decaymap[9].insert({{-211, 111}, 0});
-  decaymap[9].insert({{-211, 211, 211}, 1});
+  decaymap[9].insert({{-211, -211, 211}, 1});
   decaymap[9].insert({{-211, 111, 310}, 2});
   decaymap[9].insert({{-211, -211, 321}, 3});
   decaymap[9].insert({{-211, -211, -211, 211, 211}, 4});
@@ -214,7 +212,7 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   decaymap[9].insert({{-321, 310}, 7});
 
   // D0 bar
-  decaymap[10].insert({{-211, -321}, 0});
+  decaymap[10].insert({{-211, 321}, 0});
   decaymap[10].insert({{-211, 111, 321}, 1});
   decaymap[10].insert({{-321, 211}, 2});
   decaymap[10].insert({{-321, 310, 321}, 3});
@@ -251,7 +249,7 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   decaymap[13].insert({{-211, 211, 443}, 7});
 
   // B-
-  decaymap[14].insert({{-321, 211, 321}, 0});
+  decaymap[14].insert({{-321, -211, 321}, 0});
   decaymap[14].insert({{-321, -321, 321}, 1});
   decaymap[14].insert({{-321, 333}, 2});
   decaymap[14].insert({{-321, 443}, 3});
@@ -618,6 +616,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
     if (HFIndexToFill == 5)
     {
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end()) && (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 12) != DaughterInfo[q].end())) ChannelID.push_back(7);
       if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end())) ChannelID.push_back(8);
       if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
     }
@@ -670,6 +669,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
     if (HFIndexToFill == 14)
     {
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end()) && (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -12) != DaughterInfo[q].end())) ChannelID.push_back(7);
       if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end())) ChannelID.push_back(8);
       if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
     }
