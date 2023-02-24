@@ -27,7 +27,7 @@ Key format:
 class EpdGeom : public PHObject {
 
 public:
-  const unsigned int NUM_TOWERS = 768;
+  const unsigned int NUM_TOWERS = 744;
   const unsigned int MAX_R = 16;
   const unsigned int MAX_PHI = 24;
   const unsigned int NUM_SECTORS = 12;
@@ -41,14 +41,18 @@ public:
   std::tuple<unsigned int, unsigned int, unsigned int> id_to_side_r_phi(unsigned int id);
   std::tuple<unsigned int, unsigned int, unsigned int> id_to_side_sector_tile(unsigned int id);
   float r(unsigned int id);
+  float r_from_key(unsigned int key);
   float r_from_side_r_phi(unsigned int side, unsigned int r_index, unsigned int phi_index);
   float r_from_side_sector_tile(unsigned int side, unsigned int sector, unsigned int tile);
   float phi(unsigned int id);
+  float phi_from_key(unsigned int key);
   float phi_from_side_r_phi(unsigned int side, unsigned int r_index, unsigned int phi_index);
   float phi_from_side_sector_tile(unsigned int side, unsigned int sector, unsigned int tile);
   float z(unsigned int id);
+  float z_from_key(unsigned int key);
   float z_from_side_r_phi(unsigned int side, unsigned int r_inxed, unsigned int phi_index);
   float z_from_side_sector_tile(unsigned int side, unsigned int sector, unsigned int tile);
+  unsigned int decode_epd(unsigned int tower_key);
   
   
   bool test_id_mapping();
@@ -60,6 +64,9 @@ private:
   std::map<int, float> r_map;
   std::map<int, float> phi_map;
   std::map<int, float> z_map;
+  std::vector<float> r_lookup;
+  std::vector<float> phi_lookup;
+  std::vector<float> z_lookup;
 
   // const float NAIVE_R_INDEX[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
   const float NAIVE_R_LOC[16] = {6.8, 11.2, 15.6, 20.565, 26.095, 31.625, 37.155, 42.685, 48.215, 53.745, 59.275, 64.805, 70.335, 75.865, 81.395, 86.925};
@@ -76,7 +83,7 @@ private:
 
   const float NAIVE_Z_MAP[2] = {-316, 316};
 
-  void build_map();
+  void build_lookup();
   
 
 };
