@@ -10,15 +10,17 @@ TPCMap::~TPCMap()
 {
 }
 
-
-TPCMap::TPCMap( const std::string r1, const std::string r2, const std::string r3 )
+void TPCMap::setMapNames( const std::string &r1, const std::string &r2, const std::string &r3 )
 {
-  
+
+  string full_path_r1 = string(getenv("CALIBRATIONROOT")) + "/TPC/Mapping/PadPlane/" + r1;
+  string full_path_r2 = string(getenv("CALIBRATIONROOT")) + "/TPC/Mapping/PadPlane/" + r2;
+  string full_path_r3 = string(getenv("CALIBRATIONROOT")) + "/TPC/Mapping/PadPlane/" + r3;
   _broken = 0;
   int status ; 
-  status = digest_map(r1, 0);
-  status = digest_map(r2, 1);
-  status = digest_map(r3, 2);
+  status = digest_map(full_path_r1, 0);
+  status = digest_map(full_path_r2, 1);
+  status = digest_map(full_path_r3, 2);
 
 }
 

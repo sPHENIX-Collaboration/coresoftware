@@ -47,7 +47,7 @@ class TPC_RawHit : public RawHit
   virtual void setPhiBin(const unsigned int v) override {m_phi = v;}
   virtual unsigned int getPhiBin() override { return m_phi;}
 
-  virtual void setTBin(const unsigned int bv) override {m_sample_nr = bv}
+  virtual void setTBin(const unsigned int bv) override {m_samplenr = bv;}
   virtual unsigned int getTBin() override { return m_samplenr;}
 
 

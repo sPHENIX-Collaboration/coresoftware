@@ -9,12 +9,13 @@ class  TPCMap
 
 public:
   // constructors and destructors
-  TPCMap( const std::string r1, const std::string r2, const std::string r3 );
+  TPCMap() = default;
   virtual ~TPCMap();
 
   virtual unsigned int getLayer(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int packetid = 0) const;
   virtual double getR(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int packetid = 0) const;
   virtual double getPhi(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int packetid = 0) const;
+  virtual void setMapNames(const std::string &r1, const std::string &r2, const std::string &r3);
 
 protected:
 

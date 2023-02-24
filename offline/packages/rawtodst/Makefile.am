@@ -17,11 +17,13 @@ lib_LTLIBRARIES = \
   librawtodst.la
 
 librawtodst_la_SOURCES = \
-  tpc_hits.cc
+  tpc_hits.cc \
+  TPCMap.cc
 
 librawtodst_la_LIBADD = \
   -lphool \
-  -lSubsysReco
+  -lSubsysReco \
+  -ltrack_io
 
 BUILT_SOURCES = testexternals.cc
 
