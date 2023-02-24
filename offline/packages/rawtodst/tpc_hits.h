@@ -55,7 +55,7 @@ class tpc_hits : public SubsysReco
   static const int layeroffset = 7 + 16;
 
   TrkrHitSetContainer *m_hits = nullptr;
-  TrkrHitSet *m_hitset[layercount];
+TrkrHitSet *m_hitset[layercount] = {};
   TrkrHit *m_hit = nullptr;
 
   // RawHitSetContainer *m_rawhits __attribute__ ((unused)) = nullptr;
