@@ -1,10 +1,10 @@
 
 #include "tpc_hits.h"
 
+#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitSetv1.h>
 #include <trackbase/TrkrHitv2.h>
-#include <trackbase/TpcDefs.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -70,7 +70,7 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
   std::cout << "tpc_hits::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
 
   Event *_event = findNode::getClass<Event>(topNode, "PRDF");
-  if (_event == 0)
+  if (_event == nullptr)
   {
     std::cout << "tpc_hits::Process_Event - Event not found" << std::endl;
     return -1;
@@ -88,16 +88,19 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
 
   int nr_of_waveforms = p->iValue(0, "NR_WF");
 
-  for (int l = 0; l < layercount; l++)
+  for (auto &l : m_hitset)
   {
-    m_hitset[l] = new TrkrHitSetv1();
+    l = new TrkrHitSetv1();
 
     int wf;
     for (wf = 0; wf < nr_of_waveforms; wf++)
     {
       int current_BCO = p->iValue(wf, "BCO") + rollover_value;
 
-      if (starting_BCO < 0) starting_BCO = current_BCO;
+      if (starting_BCO < 0)
+      {
+        starting_BCO = current_BCO;
+      }
 
       if (current_BCO < starting_BCO)  // we have a rollover
       {
@@ -111,11 +114,11 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
       int layer;
       if (channel < 128)
       {
-	layer = sampa_nr * 2;
+        layer = sampa_nr * 2;
       }
       else
       {
-	layer = sampa_nr * 2 + 1;
+        layer = sampa_nr * 2 + 1;
       }
       m_hit = new TrkrHitv2();
       //      mhit->setAdc(
@@ -125,22 +128,20 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
       TrkrHitSetContainer::Iterator hitsetit = m_hits->findOrAddHitSet(hitsetkey);
       for (int s = 0; s < p->iValue(wf, "SAMPLES"); s++)
       {
-	int pad = 0;
-	TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(pad, s + 2 * (current_BCO - starting_BCO));
-	TrkrHit *hit = hitsetit->second->getHit(hitkey);
-	hit->setAdc(0);
+        int pad = 0;
+        TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(pad, s + 2 * (current_BCO - starting_BCO));
+        TrkrHit *hit = hitsetit->second->getHit(hitkey);
+        hit->setAdc(0);
       }
-
     }
   }
   // we skip the mapping to real pads at first. We just say
   // that we get 16 rows (segment R2) with 128 pads
   // so each FEE fills 2 rows. Not right, but one step at a time.
 
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
- 
+
 //____________________________________________________________________________..
 int tpc_hits::ResetEvent(PHCompositeNode * /*topNode*/)
 {
