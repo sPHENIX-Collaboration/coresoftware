@@ -1,12 +1,11 @@
 #include "TPCMap.h"
+
+#include <climits>
+#include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
-
-using namespace std;
-
-TPCMap::~TPCMap() = default;
 
 void TPCMap::setMapNames(const std::string &r1, const std::string &r2, const std::string &r3)
 {
@@ -14,15 +13,15 @@ void TPCMap::setMapNames(const std::string &r1, const std::string &r2, const std
   std::string full_path;
   if (calibrationroot)
   {
-    full_path = string(getenv("CALIBRATIONROOT")) + "/TPC/Mapping/PadPlane/";
+    full_path = std::string(getenv("CALIBRATIONROOT")) + "/TPC/Mapping/PadPlane/";
   }
   else
   {
     full_path = "./";
   }
-  string full_path_r1 = full_path + r1;
-  string full_path_r2 = full_path + r2;
-  string full_path_r3 = full_path + r3;
+  std::string full_path_r1 = full_path + r1;
+  std::string full_path_r2 = full_path + r2;
+  std::string full_path_r3 = full_path + r3;
   int status;
   status = digest_map(full_path_r1, 0);
   if (status)
@@ -43,21 +42,21 @@ void TPCMap::setMapNames(const std::string &r1, const std::string &r2, const std
 
 int TPCMap::digest_map(const std::string &s, const unsigned int section_offset)
 {
-  ifstream infile(s, ios::in);
+  std::ifstream infile(s, std::ios::in);
 
   if (!infile.is_open())
   {
-    cerr << "Could not open file " << endl;
+    std::cout << "Could not open file " << std::endl;
     _broken = 1;
     return -1;
   }
 
-  string line;
+  std::string line;
   getline(infile, line);  // throwaway - we skip the first line
   //  cout << __FILE__<< " " << __LINE__ << ": " << line << endl;
 
-  int abs_pad;
-  int Radius;
+  int abs_pad = INT_MAX;
+  int Radius = INT_MAX;
   // int Pad;
   // int  U;
   // int  G;
@@ -65,22 +64,22 @@ int TPCMap::digest_map(const std::string &s, const unsigned int section_offset)
   // int PinColID;
   // int PinRowID;
   // string PadName;
-  int FEE;
+  int FEE = INT_MAX;
   //  int FEE_Connector;
-  int FEE_Chan;
+  int FEE_Chan = INT_MAX;
   // double phi;
   // double x;
   // double y;
   // double PadX;
   // double PadY;
-  double PadR;
-  double PadPhi;
+  double PadR = NAN;
+  double PadPhi = NAN;
 
   while (getline(infile, line))
   {
     //      cout << line<< endl;
-    stringstream ss(line);
-    string next;
+    std::stringstream ss(line);
+    std::string next;
 
     //  0  26    26
     //  1   0    0
@@ -108,7 +107,7 @@ int TPCMap::digest_map(const std::string &s, const unsigned int section_offset)
       getline(ss, next, ',');
       if (index == 0)
       {
-        abs_pad = stoul(next);
+        abs_pad = std::stoul(next);
       }
       else if (index == 1)
       {

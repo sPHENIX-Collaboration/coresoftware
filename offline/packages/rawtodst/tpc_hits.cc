@@ -21,8 +21,6 @@
 
 #include <phool/PHCompositeNode.h>
 
-using namespace std;
-
 //____________________________________________________________________________..
 tpc_hits::tpc_hits(const std::string &name)
   : SubsysReco(name)

@@ -9,7 +9,7 @@ class TPCMap
  public:
   // constructors and destructors
   TPCMap() = default;
-  virtual ~TPCMap();
+  virtual ~TPCMap() = default;
 
   virtual unsigned int getLayer(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int packetid = 0) const;
   virtual double getR(const unsigned int FEE, const unsigned int FEEChannel, const unsigned int packetid = 0) const;
