@@ -31,7 +31,6 @@
 /// \author Zhaozhong Shi; LANL, Los Alamos
 
 #include "EvtGenExtDecayerPhysics.hh"
-#include "G4EvtGenDecayer.hh"
 
 #include <Geant4/G4Decay.hh>
 #include <Geant4/G4ParticleDefinition.hh>
@@ -92,8 +91,20 @@ void EvtGenExtDecayerPhysics::ConstructProcess()
   /// to all decay processes if External decayer is set
 
   // Create Geant4 external decayer
-  G4EvtGenDecayer* extDecayer = new G4EvtGenDecayer();
+  extDecayer = new G4EvtGenDecayer();
   extDecayer->SetVerboseLevel(0);
+  // extDecayer->SetDecayTable("EvtGenDecayFiles/D0.KPi.DEC",false);
+
+  if (!DecayFile.empty())
+  {
+    const char* CALIBRATIONROOT = getenv("CALIBRATIONROOT");
+    if (!CALIBRATIONROOT)
+    {
+      exit(1);
+    }
+    DecayFile = string(CALIBRATIONROOT) + "/EvtGen/" + DecayFile;
+    extDecayer->SetDecayTable(DecayFile, false);
+  }
 
   aParticleIterator->reset();
   int decayer_used = 0;

@@ -250,8 +250,10 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   {
     std::cout << "Use EvtGen Decayer" << std::endl;
     G4HadronicParameters::Instance()->SetEnableBCParticles(false);  //Disable the Geant4 built in HF Decay and use external decayers for them
-    EvtGenExtDecayerPhysics *decayer = new EvtGenExtDecayerPhysics();
-    myphysicslist->RegisterPhysics(decayer);
+	EvtGenExtDecayerPhysics *decayer = new EvtGenExtDecayerPhysics();
+	if(CustomizeDecay)	decayer->CustomizeEvtGenDecay(EvtGenDecayFile);		
+
+	myphysicslist->RegisterPhysics(decayer);
   }
 
   if (m_Decayer == kGEANTInternalDecayer)
