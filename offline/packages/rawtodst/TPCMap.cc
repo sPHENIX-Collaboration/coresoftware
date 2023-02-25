@@ -13,7 +13,7 @@ void TPCMap::setMapNames(const std::string &r1, const std::string &r2, const std
   std::string full_path;
   if (calibrationroot)
   {
-    full_path = std::string(getenv("CALIBRATIONROOT")) + "/TPC/Mapping/PadPlane/";
+    full_path = std::string(calibrationroot) + "/TPC/Mapping/PadPlane/";
   }
   else
   {
