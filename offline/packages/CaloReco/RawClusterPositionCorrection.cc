@@ -126,7 +126,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     }
 
   RawTowerContainer *_towers = 0;
-  TowerInfoContainerv1 *  _towerinfos = 0;
+  TowerInfoContainer *  _towerinfos = 0;
 
   if (!m_UseTowerInfo)
     {
@@ -141,7 +141,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     {
       std::string towerinfoNodename = "TOWERINFO_CALIB_" + _det_name;
 
-      _towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, towerinfoNodename);
+      _towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towerinfoNodename);
       if (!_towerinfos)
 	{
 	  std::cerr << Name() << "::" << _det_name << "::" << __PRETTY_FUNCTION__
@@ -214,7 +214,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 	    
 	    unsigned int towerindex = _towerinfos->decode_key(towerkey);
 	    
-	    TowerInfo * towinfo = _towerinfos->at(towerindex);
+	    TowerInfo * towinfo = _towerinfos->get_tower_at_channel(towerindex);
 
 	    double towerenergy = towinfo->get_energy();
 	    

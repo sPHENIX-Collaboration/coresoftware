@@ -204,7 +204,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
   //if using towerinfo
   // create a tower object
   towernode = "TOWERINFO_CALIB_" + _caloname;
-  TowerInfoContainerv1 *_towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, towernode.c_str());
+  TowerInfoContainer *_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towernode.c_str());
   if (!_towerinfos && m_UseTowerInfo > 0)
     {
       std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
@@ -276,7 +276,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
     std::vector<float> towerenergies;
 
     RawTower * tower;
-    TowerInfov1 * towinfo;
+    TowerInfo * towinfo;
     
     // loop over the towers from the outer loop cluster
     // and find the max tower location and save the 
@@ -318,7 +318,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 	    unsigned int towerkey = iphi + (ieta << 16U);
 	    unsigned int towerindex =  _towerinfos->decode_key(towerkey);
 	    
-	    towinfo = _towerinfos->at(towerindex);
+	    towinfo = _towerinfos->get_tower_at_channel(towerindex);
 	    
 	    double towerenergy = towinfo->get_energy();
 	    

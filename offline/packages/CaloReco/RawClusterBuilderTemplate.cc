@@ -292,14 +292,14 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       
     } // if not use towinfo
   
-  TowerInfoContainerv1 *  calib_towerinfos = 0;
+  TowerInfoContainer *  calib_towerinfos = 0;
 
   if (m_UseTowerInfo > 0)
     {
       
       std::string towerinfoNodename = "TOWERINFO_CALIB_" + detector;
       
-      calib_towerinfos = findNode::getClass<TowerInfoContainerv1>(topNode, towerinfoNodename);
+      calib_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towerinfoNodename);
       if (!calib_towerinfos)
 	{
 	  std::cerr << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
@@ -391,21 +391,24 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       
       
       // make the list of towers above threshold
-      TowerInfoContainer::ConstRange begin_end = calib_towerinfos->getTowers();
-      TowerInfoContainer::ConstIterator rtiter;
-      for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
-	{
+      // TowerInfoContainer::ConstRange begin_end = calib_towerinfos->getTowers();
+      // TowerInfoContainer::ConstIterator rtiter;
+      unsigned int nchannels = calib_towerinfos->size();
+      // for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+      for ( unsigned int channel = 0; channel < nchannels;channel++)
+      {
 
-	  TowerInfo *tower_info = rtiter->second;
+	TowerInfo *tower_info = calib_towerinfos->get_tower_at_channel(channel);
 	  
 	  //      std::cout << "  Tower e = " << tower->get_energy()
 	  //           << " (" << _min_tower_e << ")" << std::endl;
 	  if (tower_info->get_energy() > _min_tower_e)
 	    {
 	      
-	      
-	      int ieta = calib_towerinfos->getTowerEtaBin(rtiter->first);
-	      int iphi = calib_towerinfos->getTowerPhiBin(rtiter->first);
+	      unsigned int towerkey = calib_towerinfos->encode_key(channel);
+	      int ieta = calib_towerinfos->getTowerEtaBin(towerkey);
+	      int iphi = calib_towerinfos->getTowerPhiBin(towerkey);
+
 	      const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ieta, iphi);
 	      
 	      int ix = RawTowerDefs::decode_index2(key);  // index2 is phi in CYL
