@@ -19,7 +19,10 @@ class TowerInfoContainerv1 : public TowerInfoContainer
   ~TowerInfoContainerv1() override;
 
   void Reset() override;
-  TowerInfov1 *at(int pos) override;
+  TowerInfov1 *get_tower_at_channel(int pos) override;
+  TowerInfov1 *get_tower_at_key(int pos) override;
+
+
   unsigned int encode_key(unsigned int towerIndex) override;
   unsigned int decode_key(unsigned int tower_key) override;
 
@@ -31,8 +34,6 @@ class TowerInfoContainerv1 : public TowerInfoContainer
   unsigned int decode_hcal(unsigned int towerIndex) override;
   unsigned int decode_emcal(unsigned int towerIndex) override;
 
-  Range getTowers() override;
-
   size_t size() override { return _clones->GetEntries(); }
 
   unsigned int getTowerPhiBin(unsigned int towerIndex) override;
@@ -41,9 +42,6 @@ class TowerInfoContainerv1 : public TowerInfoContainer
  protected:
   TClonesArray *_clones = nullptr;
   DETECTOR _detector = DETECTOR_INVALID;
-
-  //! static Tower index map, not saved on DST output and constructed on the fly
-  Map _towers;  //!
 
  private:
   ClassDefOverride(TowerInfoContainerv1, 1);

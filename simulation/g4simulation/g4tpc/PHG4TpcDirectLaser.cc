@@ -353,15 +353,15 @@ void PHG4TpcDirectLaser::SetupLasers()
     {
       laser.m_position.SetZ(position_base.z());
       laser.m_direction = -1;
+      laser.m_phi = M_PI / 2 * i + (15 * M_PI/180); //additional offset of 15 deg.
     }
     else
     {
       laser.m_position.SetZ(-position_base.z());
       laser.m_direction = 1;
+      laser.m_phi = M_PI / 2 * i - (15 * M_PI/180); //additional offset of 15 deg.
     }
-
     // rotate around z
-    laser.m_phi = M_PI / 2 * i;
     laser.m_position.RotateZ(laser.m_phi);
 
     // append
@@ -440,7 +440,9 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
 
   //adjust direction
   dir.RotateY(theta * direction);
-  dir.RotateZ(phi);
+
+  if(laser.m_direction == -1) dir.RotateZ(phi); //if +z facing -z
+  else dir.RotateZ(-phi); //if -z facting +z
 
   // also rotate by laser azimuth
   dir.RotateZ(laser.m_phi);

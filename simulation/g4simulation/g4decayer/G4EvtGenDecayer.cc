@@ -105,12 +105,6 @@ G4EvtGenDecayer::G4EvtGenDecayer()
 
   mEvtGen = new EvtGen(decay, evt, static_cast<EvtRandomEngine*>(mEvtGenRandomEngine), radCorrEngine, &extraModels);
   extraModels.clear();
-  // delete mEvtGen;	QATree
-
-  // bool WilluseXml =false;
-  //  SetDecayTable("EvtGenDecayFiles/Bc.DStar+D0Star.Phi.DEC",WilluseXml);
-  // SetDecayTable("EvtGenDecayFiles/JpsiRHO.DEC",WilluseXml);
-  // SetDecayTable("EvtGenDecayFiles/JPsi.Phi.DEC",WilluseXml);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

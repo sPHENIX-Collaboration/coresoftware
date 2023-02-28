@@ -140,6 +140,12 @@ class PHG4Reco : public SubsysReco
   void setDisableUserActions(bool b = true) { m_disableUserActions = b; }
   void ApplyDisplayAction();
 
+  void CustomizeEvtGenDecay(std::string& DecayFile)
+  {
+	  EvtGenDecayFile = DecayFile;
+	  if(!EvtGenDecayFile.empty()) CustomizeDecay = true;
+  }
+
  private:
   static void g4guithread(void *ptr);
   int InitUImanager();
@@ -207,7 +213,10 @@ class PHG4Reco : public SubsysReco
   bool m_ActiveForceDecayFlag = false;  //< turn on/off force decay channels
 
 
-  DecayerOptions m_Decayer = kPYTHIA6Decayer;  // Here we use pythia6 as default
+  DecayerOptions m_Decayer = kEvtGenDecayer;  // Here we use EvtGen as default
+  std::string EvtGenDecayFile = "";									
+  bool CustomizeDecay = false;
+
   EDecayType m_ForceDecayType = kAll;  //< forced decay channel setting
 
   bool m_SaveDstGeometryFlag = true;
