@@ -59,7 +59,7 @@ my $start_segment;
 my $last_segment;
 my $randomize;
 my $prodtype;
-my $runnumber = 40;
+my $runnumber = 6;
 my $verbose;
 my $nopileup;
 my $embed;
