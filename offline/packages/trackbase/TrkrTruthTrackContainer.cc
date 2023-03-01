@@ -2,15 +2,15 @@
 
 namespace
 {
-  TrkrTruthTrackContainer::Vector dummy_vector;
+  TrkrTruthTrackContainer::Map dummy_map;
 }
 
 TrkrTruthTrackContainer::ConstRange TrkrTruthTrackContainer::getTruthTrackRange() const
 {
-  return std::make_pair(dummy_vector.begin(), dummy_vector.end());
+  return std::make_pair(dummy_map.begin(), dummy_map.end());
 }
 
-TrkrTruthTrackContainer::Vector& TrkrTruthTrackContainer::getTruthTracks()
+TrkrTruthTrackContainer::Map& TrkrTruthTrackContainer::getMap()
 {
-  return dummy_vector;
+  return dummy_map;
 }

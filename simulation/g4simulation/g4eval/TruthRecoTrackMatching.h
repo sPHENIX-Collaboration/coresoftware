@@ -213,6 +213,4 @@ class TruthRecoTrackMatching : public SubsysReco
         calc_sigma=false);
 };
 
-
-
 #endif

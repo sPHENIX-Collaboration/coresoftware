@@ -7,13 +7,16 @@
 #include <map>
 #include <vector>
 
+class PHG4TruthInfoContainer;
 class TrkrTruthTrack;
+
 class TrkrTruthTrackContainer : public PHObject
 {
  public:
-  using Vector = std::vector<TrkrTruthTrack*>;
-  using Iterator = Vector::iterator;
-  using ConstIterator = Vector::const_iterator;
+  //using Vector = std::vector<TrkrTruthTrack*>;
+  using Map = std::map<unsigned int, TrkrTruthTrack*>;
+  using Iterator = Map::iterator; //Vector::iterator;
+  using ConstIterator = Map::const_iterator;
   using Range = std::pair<Iterator, Iterator>;
   using ConstRange = std::pair<ConstIterator, ConstIterator>;
 
@@ -21,11 +24,12 @@ class TrkrTruthTrackContainer : public PHObject
   void Reset() override {}
 
   //! add a Track
-  virtual void            addTruthTrack(TrkrTruthTrack*) {};
-  virtual ConstRange      getTruthTrackRange() const;
+  virtual void            addTruthTrack (TrkrTruthTrack*) { };
+  virtual TrkrTruthTrack* getTruthTrack (unsigned int /*trackid*/) { return nullptr; };
+  virtual TrkrTruthTrack* getTruthTrack (unsigned int /*trackid*/, PHG4TruthInfoContainer*) { return nullptr; };
+  virtual ConstRange      getTruthTrackRange () const;
   virtual bool            hasTrackid    (unsigned int /*trackid*/) const { return false;   };
-  virtual TrkrTruthTrack* getTruthTrack (unsigned int /*trackid*/) const { return nullptr; };
-  virtual Vector&         getTruthTracks();
+  virtual Map&            getMap();
   
   // PHObject virtual overload
   void identify(std::ostream& os = std::cout) const override

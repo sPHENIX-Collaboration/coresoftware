@@ -281,7 +281,8 @@ libtrack_io_la_LIBADD = \
   -lphool \
   -lActsCore \
   -lActsPluginTGeo \
-  -lffamodules
+  -lffamodules \
+	-lphg4hit 
 
 
 # Rule for generating table CINT dictionaries.

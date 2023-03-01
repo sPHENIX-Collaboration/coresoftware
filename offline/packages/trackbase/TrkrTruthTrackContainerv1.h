@@ -10,6 +10,7 @@
 
 #include "TrkrTruthTrackContainer.h"
 class TrkrTruthTrack;
+class PHG4TruthInfoContainer;
 
 /**
  * @brief Cluster container object
@@ -18,11 +19,13 @@ class TrkrTruthTrackContainerv1 : public TrkrTruthTrackContainer
 {
  public:
   void Reset() override;
-  void addTruthTrack(TrkrTruthTrack*) override;
+  /* void fillEmbeddedTrkIds(PHG4TruthInfoContainer*); // fill in all the embedded track ids at once */
+  void addTruthTrack (TrkrTruthTrack*) override;
+  TrkrTruthTrack* getTruthTrack(unsigned int trackid) override;
+  TrkrTruthTrack* getTruthTrack(unsigned int trackid, PHG4TruthInfoContainer*) override;
   ConstRange getTruthTrackRange() const override;
   bool hasTrackid(unsigned int trackid) const override;
-  Vector& getTruthTracks() override;
-  TrkrTruthTrack* getTruthTrack(unsigned int trackid) const override;
+  Map& getMap() override;
 
   TrkrTruthTrackContainerv1() = default;
 
@@ -30,7 +33,7 @@ class TrkrTruthTrackContainerv1 : public TrkrTruthTrackContainer
 
  private:
   // the data
-  Vector m_data;
+  Map m_data {};
 
   ClassDefOverride(TrkrTruthTrackContainerv1, 1)
 };

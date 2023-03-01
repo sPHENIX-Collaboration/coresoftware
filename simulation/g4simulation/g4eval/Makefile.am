@@ -46,6 +46,7 @@ pkginclude_HEADERS = \
   DSTCompressor.h \
   DSTEmulator.h \
   EventEvaluator.h \
+	FillTruthRecoMatchMap.h \
   JetEvalStack.h \
   JetEvaluator.h \
   JetRecoEval.h \
@@ -91,6 +92,7 @@ libg4eval_la_SOURCES = \
   CaloTruthEval.cc \
   DSTEmulator.cc \
   EventEvaluator.cc \
+  FillTruthRecoMatchMap.cc \
   JetEvalStack.cc \
   JetEvaluator.cc \
   JetRecoEval.cc \

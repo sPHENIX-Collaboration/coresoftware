@@ -234,9 +234,10 @@ void TpcClusterBuilder::reset(bool clear_hitsetkey_cnt) {
 void TpcClusterBuilder::print(
     TrkrTruthTrackContainer* truth_tracks, int nclusprint) {
   cout << " ------------- content of TrkrTruthTrackContainer ---------- " << endl;
-  auto& tracks = truth_tracks->getTruthTracks();
+  auto& tracks = truth_tracks->getMap();
   cout << " Number of tracks: " << tracks.size() << endl;
-  for (auto& track : tracks) {
+  for (auto& entry : tracks) {
+    auto& track = entry.second;
     cout << " id( " << track->getTrackid() << ")  phi:eta:pt("<<
       track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt() << ") nclusters(" 
       << track->getClusters().size() <<") ";
@@ -262,9 +263,10 @@ void TpcClusterBuilder::print_file(
   ofstream fout;
   fout.open(ofile_name.c_str());
   fout << " ------------- content of TrkrTruthTrackContainer ---------- " << endl;
-  auto& tracks = truth_tracks->getTruthTracks();
-  fout << " Number of tracks: " << tracks.size() << endl;
-  for (auto& track : tracks) {
+  auto& trackmap = truth_tracks->getMap();
+  fout << " Number of tracks: " << trackmap.size() << endl;
+  for (auto& entry : trackmap) {
+    auto& track = entry.second;
     fout << " id( " << track->getTrackid() << ")  phi:eta:pt("<<
       track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt() << ") nclusters(" 
       << track->getClusters().size() <<") ";
