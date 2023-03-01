@@ -583,7 +583,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       const int sector = TpcDefs::getSectorId(node_hitsetkey);
       const int side = TpcDefs::getSide(node_hitsetkey);
 
-      if (Verbosity() > 2)
+      if (Verbosity() > 8)
         std::cout << " hitsetkey " << node_hitsetkey << " layer " << layer << " sector " << sector << " side " << side << std::endl;
       // get all of the hits from the single hitset
       TrkrHitSet::ConstRange single_hit_range = single_hitset_iter->second->getHits();
@@ -679,7 +679,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
   truth_clusterer->cluster_and_reset(/*argument is if to reset hitsetkey as well*/ true);
 
-  if (Verbosity() > 2)
+  if (Verbosity() > 10)
   {
     std::cout << "From PHG4TpcElectronDrift: hitsetcontainer printout at end:" << std::endl;
     // We want all hitsets for the Tpc
@@ -728,6 +728,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     truthtracks->identify();
   }
 
+  if (Verbosity() == 6) truth_clusterer->print(truthtracks);
   if (Verbosity()>800) {
     truth_clusterer->print(truthtracks);
     truth_clusterer->print_file(truthtracks,"drift_clusters.txt");
