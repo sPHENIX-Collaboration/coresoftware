@@ -71,6 +71,10 @@
 
 #include "TpcClusterBuilder.h"
 
+using std::cout;
+using std::endl;
+using std::setw;
+
 namespace
 {
   template <class T>
@@ -96,6 +100,7 @@ int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
 {
   padplane->Init(topNode);
   event_num = 0;
+  f_out.open("PHG4TpcElectronDrift_out.txt");
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -325,6 +330,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
+  f_out << " New event " << endl;
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_tGeometry)
   {
@@ -399,6 +405,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     {  // starting a new track
       truth_clusterer->cluster_and_reset(/*argument is if to reset hitsetkey as well*/ false);
       trkid = trkid_new;
+      f_out << " New track: " << setw(2) << trkid << " is emb(" << (truthinfo->isEmbeded(trkid)) <<")" << endl;
       truth_clusterer->is_embedded_track = (truthinfo->isEmbeded(trkid));
       if (Verbosity() > 1000){
         std::cout << " New track " << trkid << " is embed? : " 
@@ -408,7 +415,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       { // build new TrkrTruthTrack
         current_track = truthtracks->getTruthTrack(trkid, truthinfo);
         truth_clusterer->set_current_track(current_track);
-      }
+      } 
     }
     // for very high occupancy events, accessing the TrkrHitsets on the node tree 
     // for every drifted electron seems to be very slow
@@ -576,7 +583,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       const int sector = TpcDefs::getSectorId(node_hitsetkey);
       const int side = TpcDefs::getSide(node_hitsetkey);
 
-      if (Verbosity() > 2)
+      if (Verbosity() > 8)
         std::cout << " hitsetkey " << node_hitsetkey << " layer " << layer << " sector " << sector << " side " << side << std::endl;
       // get all of the hits from the single hitset
       TrkrHitSet::ConstRange single_hit_range = single_hitset_iter->second->getHits();
@@ -672,7 +679,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
   truth_clusterer->cluster_and_reset(/*argument is if to reset hitsetkey as well*/ true);
 
-  if (Verbosity() > 2)
+  if (Verbosity() > 20)
   {
     std::cout << "From PHG4TpcElectronDrift: hitsetcontainer printout at end:" << std::endl;
     // We want all hitsets for the Tpc
@@ -721,6 +728,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     truthtracks->identify();
   }
 
+  std::cout << " YZY 2 " << std::endl;
   if (Verbosity()==6) {
     truth_clusterer->print(truthtracks);
   }
@@ -735,6 +743,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
 int PHG4TpcElectronDrift::End(PHCompositeNode * /*topNode*/)
 {
+  f_out.close();
   if (Verbosity() > 0)
   {
     assert(m_outf);
