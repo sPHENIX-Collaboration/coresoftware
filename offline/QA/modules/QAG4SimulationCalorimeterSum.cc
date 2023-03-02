@@ -9,8 +9,8 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 
 #include <calobase/RawCluster.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
+#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfo.h>
 #include <calobase/RawTowerGeomContainer.h>
 
 #include <trackbase_historic/SvtxTrack.h>
@@ -318,8 +318,8 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const std::string &detector, Sv
     towergeo->identify();
   }
   // pull the towers
-  std::string towernodename = "TOWER_CALIB_" + detector;
-  RawTowerContainer *towerList = findNode::getClass<RawTowerContainer>(topNode,
+  std::string towernodename = "TOWERINFO_CALIB_" + detector;
+  TowerInfoContainer *towerList = findNode::getClass<TowerInfoContainerv1>(topNode,
                                                                        towernodename);
   assert(towerList);
 
@@ -426,7 +426,10 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const std::string &detector, Sv
                   << wrapphi << " - [" << towergeo->get_phibounds(wrapphi).first
                   << ", " << towergeo->get_phibounds(wrapphi).second << "]" << std::endl;
 
-      RawTower *tower = towerList->getTower(ieta, wrapphi);
+
+
+      unsigned int towerkey =  (ieta << 16U) + wrapphi;
+      TowerInfo *tower = towerList->get_tower_at_key(towerkey);
       double energy = 0;
       if (tower)
       {

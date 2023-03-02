@@ -10,8 +10,8 @@
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
+#include <calobase/TowerInfoContainerv1.h>
+#include <calobase/TowerInfo.h>
 #include <calobase/RawTowerGeomContainer.h>
 
 #include <g4eval/CaloEvalStack.h>
@@ -497,11 +497,11 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
       get_histo_prefix() + "_Normalization"));
   assert(h_norm);
 
-  std::string towernodename = "TOWER_CALIB_" + detector;
+  std::string towernodename = "TOWERINFO_CALIB_" + detector;
   // Grab the towers
-  RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode,
+   TowerInfoContainer *towers = findNode::getClass<TowerInfoContainerv1>(topNode,
                                                                     towernodename);
-  if (!towers)
+ if (!towers)
   {
     std::cout << PHWHERE << ": Could not find node " << towernodename
               << std::endl;
@@ -573,7 +573,9 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
               wrapphi = wrapphi - towergeom->get_phibins();
             }
 
-            RawTower *tower = towers->getTower(ieta, wrapphi);
+
+	    unsigned int towerkey =  (ieta << 16U) + wrapphi;
+            TowerInfo *tower = towers->get_tower_at_key(towerkey);
 
             if (tower)
             {
