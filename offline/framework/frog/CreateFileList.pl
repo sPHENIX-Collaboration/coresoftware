@@ -136,7 +136,7 @@ if (defined $prodtype)
 	{
 	    $filenamestring = sprintf("sHijing_0_20fm_%s_bkg_0_20fm",$pileupstring);
 	}
-        $notlike{$filenamestring} = "pythia8";
+        $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
 	&commonfiletypes();
     }
     elsif ($prodtype == 5)
@@ -257,6 +257,10 @@ if (defined $prodtype)
 	if (defined $pmin && defined $pmax)
 	{
 	    $filenamestring = sprintf("%s_%s_%d_%dMeV",$filenamestring, $particle, $pmin, $pmax);
+	    if (defined $embed)
+	    {
+		$filenamestring = sprintf("%s_sHijing_0_20fm_50kHz_bkg_0_20fm",$filenamestring);
+	    }
 	}
 	else
 	{
@@ -438,7 +442,11 @@ my $conds = sprintf("dsttype = ? and filename like \'\%%%s\%\'",$filenamestring_
 
 if (exists $notlike{$filenamestring})
 {
-    $conds = sprintf("%s and filename not like  \'\%%%s\%\'",$conds,$notlike{$filenamestring});
+    my $ref = $notlike{$filenamestring};
+    foreach my $item  (@$ref)
+    {
+	$conds = sprintf("%s and filename not like  \'\%%%s\%\'",$conds,$item);
+    }
 }
 if (defined $start_segment)
 {
@@ -692,7 +700,7 @@ sub print_single_types
 	{
 	    @sp2 = split(/$runsplit/,$sp1[1]);
 	}
-	elsif ($sp1[1] =~ /$runsplit_embed/)
+	if ($sp1[1] =~ /$runsplit_embed/)
 	{
 	    @sp2 = split(/$runsplit_embed/,$sp1[1]);
             $typeflag = "-embed ";
@@ -701,7 +709,6 @@ sub print_single_types
 	{
 	    @sp2 = split(/$runsplit_runnumber/,$sp1[1]);
 	}
-
 	$types{$sp2[0]} = $typeflag;
         $dsts{$sp1[0]} = 1;
     }
@@ -710,11 +717,11 @@ sub print_single_types
     {
 	if ($name =~ /(\S+)\_(\d+)\_(\d+).*/ )
 	{
-	    print "CreateFileList.pl -type 14 -run $runnumber -particle $1 -pmin $2 -pmax $3\n";
+	    print "CreateFileList.pl -type 14 $types{$name} -run $runnumber -particle $1 -pmin $2 -pmax $3\n";
 	}
 	else
 	{
-	    print "CreateFileList.pl -type 14 $types{$name}-run $runnumber -particle $name\n";
+	    print "CreateFileList.pl -type 14 $types{$name} -run $runnumber -particle $name\n";
 	}
     }
     print "\nDST types:\n";
