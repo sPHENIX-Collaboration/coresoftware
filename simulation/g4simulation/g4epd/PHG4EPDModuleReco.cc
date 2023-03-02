@@ -40,6 +40,8 @@ PHG4EPDModuleReco::PHG4EPDModuleReco(const std::string &name)
 
 int PHG4EPDModuleReco::InitRun(PHCompositeNode *topNode)
 {
+  UpdateParametersWithMacro();
+
   tmin = get_double_param("tmin");
   tmax = get_double_param("tmax");
   m_DeltaT = get_double_param("delta_t");
