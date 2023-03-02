@@ -59,7 +59,7 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
     TrkrHitSet *hitset             = hitsetitr->second;
     unsigned int layer             = TrkrDefs::getLayer(hitsetitr->first);
     int side                       = TpcDefs::getSide(hitsetitr->first);
-    // unsigned int sector            = TpcDefs::getSectorId(hitsetitr->first);
+    unsigned int sector            = TpcDefs::getSectorId(hitsetitr->first);
     PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
 
     //get the maximum and minimum phi and time
@@ -67,21 +67,23 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
     unsigned short NPhiBinsSector = NPhiBins/12;
     unsigned short NTBins = (unsigned short)layergeom->get_zbins();
     unsigned short NTBinsSide = NTBins;
-    // unsigned short NTBinsMin = 0;
-    // unsigned short PhiOffset = NPhiBinsSector * sector;
-    // unsigned short TOffset = NTBinsMin;
+    unsigned short NTBinsMin = 0;
+    unsigned short PhiOffset = NPhiBinsSector * sector;
+    unsigned short TOffset = NTBinsMin;
 
     double m_tdriftmax = AdcClockPeriod * NTBins / 2.0;  
 
     unsigned short phibins   = NPhiBinsSector;
-    // unsigned short phioffset = PhiOffset;
+    unsigned short phioffset = PhiOffset;
     unsigned short tbins     = NTBinsSide;
-    // unsigned short toffset   = TOffset ;
+    unsigned short toffset   = TOffset ;
    
     // loop over the hits in this cluster
     double t_sum = 0.0;
-    double phi_sum = 0.0;
     double adc_sum = 0.0;
+
+    /* double phi_sum = 0.0; */
+    double iphi_sum = 0.0;
     // double t2_sum = 0.0;
     // double phi2_sum = 0.0;
 
@@ -97,8 +99,8 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
       unsigned int adc = iter->second->getAdc(); 
       if (adc <= 0) continue;
 
-      int iphi = TpcDefs::getPad(iter->first);
-      int it   = TpcDefs::getTBin(iter->first);
+      int iphi = TpcDefs::getPad(iter->first) - phioffset;
+      int it   = TpcDefs::getTBin(iter->first) - toffset;
 
       if(iphi<0 || iphi>=phibins){
         //std::cout << "WARNING phibin out of range: " << phibin << " | " << phibins << std::endl;
@@ -109,14 +111,18 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
         continue;
       }
 
+      iphi += phioffset;
+      it   += toffset;
+
       if (iphi > phibinhi) phibinhi = iphi;
       if (iphi < phibinlo) phibinlo = iphi;
       if (it > tbinhi) tbinhi = it;
       if (it < tbinlo) tbinlo = it;
 
       // update phi sums
-      double phi_center = layergeom->get_phicenter(iphi);
-      phi_sum += phi_center * adc;
+      /* double phi_center = layergeom->get_phicenter(iphi); */
+      /* phi_sum += phi_center * adc; */
+      iphi_sum += iphi * adc;
       // phi2_sum += square(phi_center)*adc;
 
       // update t sums
@@ -128,7 +134,9 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
     }
 
     // This is the global position
-    double clusphi = phi_sum / adc_sum;
+    double clusiphi = iphi_sum / adc_sum;
+    double clusphi  = layergeom->get_phi(clusiphi);
+    /* double clusphi = phi_sum / adc_sum; */
     float  clusx   = radius  * cos(clusphi);
     float  clusy   = radius  * sin(clusphi);
     double clust   = t_sum   / adc_sum;
@@ -235,23 +243,28 @@ void TpcClusterBuilder::print(
     TrkrTruthTrackContainer* truth_tracks, int nclusprint) {
   cout << " ------------- content of TrkrTruthTrackContainer ---------- " << endl;
   auto& tracks = truth_tracks->getTruthTracks();
-  cout << " Number of tracks: " << tracks.size() << endl;
+  cout << " Number of tracks:  xyz db : " << tracks.size() << endl;
   for (auto& track : tracks) {
-    cout << " id( " << track->getTrackid() << ")  phi:eta:pt("<<
-      track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt() << ") nclusters(" 
-      << track->getClusters().size() <<") ";
-    int nclus = 0;
-    for (auto cluskey : track->getClusters()) {
-      cout << " " 
-        << ((int) TrkrDefs::getHitSetKeyFromClusKey(cluskey)) <<":index(" <<
-        ((int)  TrkrDefs::getClusIndex(cluskey)) << ")";
-      ++nclus;
-      if (nclusprint > 0 && nclus >= nclusprint) {
-        cout << " ... "; 
-        break;
+    printf("id(%2i) phi:eta:pt(", (int)track->getTrackid());
+    cout << "phi:eta:pt(";
+    printf("%5.2f:%5.2f:%5.2f", track->getPhi(), track->getPseudoRapidity(), track->getPt());
+      /* Form("%5.2:%5.2:%5.2", track->getPhi(), track->getPseudoRapidity(), track->getPt()) */
+      //<<track->getPhi()<<":"<<track->getPseudoRapidity()<<":"<<track->getPt() 
+      cout << ") nclusters(" << track->getClusters().size() <<") ";
+    if (verbosity <= 10) { cout << endl; }
+    else {
+      int nclus = 0;
+      for (auto cluskey : track->getClusters()) {
+        cout << " " 
+          << ((int) TrkrDefs::getHitSetKeyFromClusKey(cluskey)) <<":index(" <<
+          ((int)  TrkrDefs::getClusIndex(cluskey)) << ")";
+        ++nclus;
+        if (nclusprint > 0 && nclus >= nclusprint) {
+          cout << " ... "; 
+          break;
+        }
       }
     }
-    cout << endl;
   }
   cout << " ----- end of tracks in TrkrrTruthTrackContainer ------ " << endl;
 }
