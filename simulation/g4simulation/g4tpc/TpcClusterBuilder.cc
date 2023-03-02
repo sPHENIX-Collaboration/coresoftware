@@ -80,8 +80,10 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
    
     // loop over the hits in this cluster
     double t_sum = 0.0;
-    double phi_sum = 0.0;
     double adc_sum = 0.0;
+
+    /* double phi_sum = 0.0; */
+    double iphi_sum = 0.0;
     // double t2_sum = 0.0;
     // double phi2_sum = 0.0;
 
@@ -99,8 +101,6 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
 
       int iphi = TpcDefs::getPad(iter->first) - phioffset;
       int it   = TpcDefs::getTBin(iter->first) - toffset;
-      // int iphi = TpcDefs::getPad(iter->first);
-      // int it   = TpcDefs::getTBin(iter->first);
 
       if(iphi<0 || iphi>=phibins){
         //std::cout << "WARNING phibin out of range: " << phibin << " | " << phibins << std::endl;
@@ -111,14 +111,18 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
         continue;
       }
 
+      iphi += phioffset;
+      it   += toffset;
+
       if (iphi > phibinhi) phibinhi = iphi;
       if (iphi < phibinlo) phibinlo = iphi;
       if (it > tbinhi) tbinhi = it;
       if (it < tbinlo) tbinlo = it;
 
       // update phi sums
-      double phi_center = layergeom->get_phicenter(iphi);
-      phi_sum += phi_center * adc;
+      /* double phi_center = layergeom->get_phicenter(iphi); */
+      /* phi_sum += phi_center * adc; */
+      iphi_sum += iphi * adc;
       // phi2_sum += square(phi_center)*adc;
 
       // update t sums
@@ -130,7 +134,9 @@ void TpcClusterBuilder::cluster_and_reset(bool clear_hitsetkey_cnt) {
     }
 
     // This is the global position
-    double clusphi = phi_sum / adc_sum;
+    double clusiphi = iphi_sum / adc_sum;
+    double clusphi  = layergeom->get_phi(clusiphi);
+    /* double clusphi = phi_sum / adc_sum; */
     float  clusx   = radius  * cos(clusphi);
     float  clusy   = radius  * sin(clusphi);
     double clust   = t_sum   / adc_sum;
