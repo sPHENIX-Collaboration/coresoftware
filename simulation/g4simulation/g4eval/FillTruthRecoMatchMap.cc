@@ -149,11 +149,11 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
 
     if (Verbosity() > 20) {
       printf("EmbRecoMatch: gtrackID(%2i) id_reco(%2i) nclusters:match(%i),gtrack(%2i),reco(%2i)\n",
-          gtrackID, id_reco, n_match, n_truth, n_reco);
+          gtrackID, (int)id_reco, (int)n_match, (int)n_truth, (int)n_reco);
       printf("   -> in SvtxPHG4ParticleMap {id_reco->{weight->id_true}} = {%2i->{%5.2f->%2i}}\n", 
-          id_reco,  weight_RtoT, gtrackID);
+          (int)id_reco,  weight_RtoT, (int)gtrackID);
       printf("   -> in PHG4ParticleSvtxMap {id_true->{weight->id_reco}} = {%2i->{%5.2f->%2i}}\n", 
-         gtrackID, weight_TtoR, id_reco );
+         gtrackID, weight_TtoR, (int)id_reco );
     }
   }
 
@@ -171,7 +171,7 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
 
   std::cout << " --BEGIN-- Contents of SvtxPHG4ParticleMap: " << std::endl;
     for (auto iter = m_SvtxPHG4ParticleMap->begin(); iter != m_SvtxPHG4ParticleMap->end(); ++iter) {
-      printf("    { %2i ", iter->first); // id_reco
+      printf("    { %2i ", (int)iter->first); // id_reco
       auto n_matches = iter->second.size();
       long unsigned int cnt_matches = 0;
       for (auto matches : iter->second) {
