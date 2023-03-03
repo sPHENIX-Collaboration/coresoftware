@@ -12,7 +12,6 @@
 #include <iostream>
 #include <map>
 #include <set>
-#include <set>
 #include <tuple>
 #include <vector>
 
@@ -57,8 +56,8 @@ class TruthRecoTrackMatching : public SubsysReco
         , const double _same_deta          = 0.05 
         , const double _cluster_nzwidths   = 0.5
         , const double _cluster_nphiwidths = 0.5
-        , const unsigned short    _max_nreco_per_truth  = 1
-        , const unsigned short    _max_ntruth_per_reco  = 1
+        , const unsigned short    _max_nreco_per_truth  = 4
+        , const unsigned short    _max_ntruth_per_reco  = 4
     );  // for some output kinematis
 
     ~TruthRecoTrackMatching() override = default; 

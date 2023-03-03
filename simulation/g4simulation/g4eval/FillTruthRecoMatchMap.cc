@@ -98,7 +98,7 @@ int FillTruthRecoMatchMap::createNodes(PHCompositeNode *topNode)
 
 int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
 {
-  if (Verbosity()>1) cout << " FIXME A0, FillTruthRecoMatchMap::process_event() " << endl;
+  if (Verbosity()>5) cout << " FillTruthRecoMatchMap::process_event() " << endl;
   // make maps to all the matches for both truth and reco and fill the 
   /* auto matches = m_EmbRecoMatchContainer->getMatches(); */
 
@@ -120,8 +120,6 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
     const unsigned short n_match  = match->nClustersMatched() ;
     const unsigned short n_truth  = match->nClustersTruth() ;
     const unsigned short n_reco   = match->nClustersReco()  ;
-    if (Verbosity()>1) cout << PHWHERE << endl
-      << " FIXME idT("<<gtrackID<<") id_reco ("<<id_reco<<") n_match("<<n_match<<") n_truth("<<n_truth<<") n_reco("<<n_reco<<")" << endl;
 
     // fill the map_TtoR
     /* PHG4ParticleSvtxMap::WeightedRecoTrackMap*  entry_TtoR; */
@@ -139,7 +137,7 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
     // fill the map_RtoT
     /* SvtxPHG4ParticleMap::WeightedTruthTrackMap*  entry_RtoT; */
     if (map_RtoT.find(id_reco) == map_RtoT.end()) {
-      map_RtoT[gtrackID] = SvtxPHG4ParticleMap::WeightedTruthTrackMap{};
+      map_RtoT[id_reco] = SvtxPHG4ParticleMap::WeightedTruthTrackMap{};
     } 
     auto& entry_RtoT = map_RtoT[id_reco];
     float weight_RtoT = (float)n_match + (float)n_reco/100.;
@@ -149,20 +147,75 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
       entry_RtoT[weight_RtoT].insert(gtrackID);
     }
 
-    cout << " Run here " << endl;
-    if (Verbosity() > 1) {
-      printf(" - Q0 - - Reco to True: id_reco(%2i) -> weight(%5.2f) id_true(%i)\n", id_reco,  weight_RtoT, gtrackID);
-      printf(" - Q1 - - True to Reco: id_true(%2i) -> weight(%5.2f) id_reco(%i)\n", gtrackID, weight_TtoR, id_reco );
+    if (Verbosity() > 20) {
+      printf("EmbRecoMatch: gtrackID(%2i) id_reco(%2i) nclusters:match(%i),gtrack(%2i),reco(%2i)\n",
+          gtrackID, id_reco, n_match, n_truth, n_reco);
+      printf("   -> in SvtxPHG4ParticleMap {id_reco->{weight->id_true}} = {%2i->{%5.2f->%2i}}\n", 
+          id_reco,  weight_RtoT, gtrackID);
+      printf("   -> in PHG4ParticleSvtxMap {id_true->{weight->id_reco}} = {%2i->{%5.2f->%2i}}\n", 
+         gtrackID, weight_TtoR, id_reco );
     }
   }
 
-  // Now fill the output maps
+  // fill the output maps
   for (auto& entry : map_TtoR) {
     m_PHG4ParticleSvtxMap->insert(entry.first, entry.second);
   }
   for (auto& entry : map_RtoT) {
     m_SvtxPHG4ParticleMap->insert(entry.first, entry.second);
   }
+
+  if (Verbosity()>15) {
+    cout << PHWHERE << " Print out: " << endl << " Contents of SvtxPHG4ParticleMap (node \"RecoToPHG4ParticleMap\")" << endl
+                    << " and PHG4ParticleSvtxMap (node \"PHG4ParticleToRecoMap\")" << endl;
+
+  std::cout << " --BEGIN-- Contents of SvtxPHG4ParticleMap: " << std::endl;
+    for (auto iter = m_SvtxPHG4ParticleMap->begin(); iter != m_SvtxPHG4ParticleMap->end(); ++iter) {
+      printf("    { %2i ", iter->first); // id_reco
+      auto n_matches = iter->second.size();
+      long unsigned int cnt_matches = 0;
+      for (auto matches : iter->second) {
+        if (cnt_matches==0) printf("-> { %5.2f -> ", matches.first);
+        else                printf("         -> { %5.2f -> ", matches.first);
+        auto size = matches.second.size();
+        long unsigned int i=0;
+        for (auto id_true : matches.second) {
+          if (i<size-1) printf("%2i, ",id_true);
+          else          printf("%2i }",id_true);
+          ++i;
+        } // end matches cnt
+        if (cnt_matches < (n_matches-1)) printf(",\n");
+        else                             printf("}\n");
+        ++cnt_matches;
+      }
+    }
+    std::cout << " --END-- Contents of SvtxPHG4ParticleMap: " << std::endl << std::endl;
+
+  std::cout << " --BEGIN-- Contents of PHG4ParticleToRecoMap: " << std::endl;
+    for (auto iter = m_PHG4ParticleSvtxMap->begin(); iter != m_PHG4ParticleSvtxMap->end(); ++iter) {
+      printf("    { %2i ", iter->first); // id_true
+      auto n_matches = iter->second.size();
+      long unsigned int cnt_matches = 0;
+      for (auto matches : iter->second) {
+        if (cnt_matches==0) printf("-> { %5.2f -> ", matches.first);
+        else                printf("         -> { %5.2f -> ", matches.first);
+        auto size = matches.second.size();
+        long unsigned int i=0;
+        for (auto id_reco : matches.second) {
+          if (i<size-1) printf("%2i, ",id_reco);
+          else          printf("%2i }",id_reco);
+          ++i;
+        } // end matches cnt
+        if (cnt_matches < (n_matches-1)) printf(",\n");
+        else                             printf("}\n");
+        ++cnt_matches;
+      }
+    }
+    std::cout << " --END-- Contents of SvtxPHG4ParticleMap: " << std::endl << std::endl;
+
+
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

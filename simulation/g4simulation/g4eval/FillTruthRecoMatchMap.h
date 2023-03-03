@@ -18,19 +18,24 @@
  *    Before the decimal, the number of matched clusters;
  *    After the decimal, the number of possible clusters
  *
- *    for example, an entry in SvtxPHG4ParticleMap could be:
+ *    -------------
+ *    Start Example
+ *    -------------
+ *
+ *    An entry in SvtxPHG4ParticleMap could be:
  *      12 -> 41.46 -> { 2, 4 }
  *         -> 18.46 -> { 7 }
  *    which is to say, reco track id 12 has matches to truth tracks 2, 4, and
  *    7. Matches 12->2 and 12->4 weighting key (41.46) indicate that there were
  *    41 matched clusters, that the reco track had 46 clusters. Match 12->7 key
- *    (18.46) indicates that there were 18 matched clusters, the reco track
- *    had  46 clusters.
+ *    (18.46) indicates that there were 18 matched clusters (and, again, the reco track had 46 clusters)
  *
- *    Conatrairise, PHG4ParticleSvtxMap must contain matches going in reverse:
- *      2 -> 41.?? { 12, (other possible matches) ... } // ?? is some number >= 41
- *      4 -> 41.?? { 12, (other possible matches) ... } // ?? is some number >= 41
- *      7 -> 18.?? { 12, (other possible matches) ... } // ?? is some number >= 18
+ *    Assuming that truth tracks 2, 4, and 7, were matched only to reco track 12, and 
+ *    each had 45, 44, and 47 clusters, respectively, then the corresponding entries
+ *    in PHG4ParticleSvtxMap would be:
+ *      2 -> 41.45 { 12 } 
+ *      4 -> 41.44 { 12 } 
+ *      7 -> 18.47 { 12 }
  *
  */
 
