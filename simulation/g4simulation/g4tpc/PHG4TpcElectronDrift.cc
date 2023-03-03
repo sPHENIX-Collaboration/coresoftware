@@ -100,7 +100,6 @@ int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
 {
   padplane->Init(topNode);
   event_num = 0;
-  f_out.open("PHG4TpcElectronDrift_out.txt");
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -330,7 +329,6 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
-  f_out << " New event " << endl;
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_tGeometry)
   {
@@ -405,7 +403,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     {  // starting a new track
       truth_clusterer->cluster_and_reset(/*argument is if to reset hitsetkey as well*/ false);
       trkid = trkid_new;
-      f_out << " New track: " << setw(2) << trkid << " is emb(" << (truthinfo->isEmbeded(trkid)) <<")" << endl;
       truth_clusterer->is_embedded_track = (truthinfo->isEmbeded(trkid));
       if (Verbosity() > 1000){
         std::cout << " New track " << trkid << " is embed? : " 
@@ -741,7 +738,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
 int PHG4TpcElectronDrift::End(PHCompositeNode * /*topNode*/)
 {
-  f_out.close();
   if (Verbosity() > 0)
   {
     assert(m_outf);
