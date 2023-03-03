@@ -728,11 +728,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     truthtracks->identify();
   }
 
-  std::cout << " YZY 2 " << std::endl;
   if (Verbosity()==6) {
     truth_clusterer->print(truthtracks);
   }
-
   if (Verbosity()>800) {
     truth_clusterer->print(truthtracks);
     truth_clusterer->print_file(truthtracks,"drift_clusters.txt");

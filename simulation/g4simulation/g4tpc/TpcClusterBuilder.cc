@@ -246,6 +246,7 @@ void TpcClusterBuilder::print(
   cout << " Number of tracks:  xyz db : " << tmap.size() << endl;
   for (auto& _pair : tmap) {
     auto& track = _pair.second;
+
     printf("id(%2i) phi:eta:pt(", (int)track->getTrackid());
     cout << "phi:eta:pt(";
     printf("%5.2f:%5.2f:%5.2f", track->getPhi(), track->getPseudoRapidity(), track->getPt());
