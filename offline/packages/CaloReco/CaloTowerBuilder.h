@@ -77,7 +77,7 @@ class CaloTowerBuilder : public SubsysReco
  
   CaloWaveformProcessing* WaveformProcessing = new CaloWaveformProcessing();
   CaloTowerBuilder::DetectorSystem m_dettype; 
-  TowerInfoContainerv1 *m_CaloInfoContainer; //! Calo info
+  TowerInfoContainer *m_CaloInfoContainer; //! Calo info
   std::string m_detector;
   int m_packet_low;
   int m_packet_high;

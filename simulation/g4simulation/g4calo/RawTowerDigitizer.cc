@@ -272,12 +272,14 @@ int RawTowerDigitizer::process_event(PHCompositeNode */**topNode*/)
 		  digi_tower->identify();
 		}
 	    }
-	}    
+	}
+  
+      
       if (m_UseTowerInfo > 0)
 	{
 	  unsigned int towerkey = (eta << 16U) + phi;
-	  unsigned int towerindex = m_SimTowerInfos->decode_key(towerkey);
-	  TowerInfo *sim_tower = m_SimTowerInfos->at(towerindex);
+	  // unsigned int towerindex = m_SimTowerInfos->decode_key(towerkey);
+	  TowerInfo *sim_tower = m_SimTowerInfos->get_tower_at_key(towerkey);
 	  if (m_DeadMap)
 	    {
 	      if (m_DeadMap->isDeadTower(key))
@@ -317,7 +319,7 @@ int RawTowerDigitizer::process_event(PHCompositeNode */**topNode*/)
 	      
 	      return Fun4AllReturnCodes::ABORTRUN;
 	    }
-	
+
 	  if (digi_towerinfo)
 	    {
 	      if (m_DoDecal && m_Decal)
@@ -330,13 +332,27 @@ int RawTowerDigitizer::process_event(PHCompositeNode */**topNode*/)
 		  float e_dec = digi_towerinfo->get_energy();
 		  digi_towerinfo->set_energy(e_dec * decal_fctr);
 		}
-	      TowerInfo *digitized_towerinfo = m_RawTowerInfos->at(towerindex);
-	      digitized_towerinfo->set_energy(digi_towerinfo->get_energy());
+	      TowerInfo *digitized_towerinfo = m_RawTowerInfos->get_tower_at_key(towerkey);
+	      if (m_UseTowerInfo == 2 ) //if reconstructing both RawTowers and towerinfo objects force them to be the same
+		{
+		  if (digi_tower)
+		    {
+		      digitized_towerinfo->set_energy(digi_tower->get_energy());
+		    }
+		  else 
+		    {
+		      digitized_towerinfo->set_energy(0);
+		    }
+		}
+	      else
+		{
+		  digitized_towerinfo->set_energy(digi_towerinfo->get_energy());
+		}
 	    }	
 	  delete digi_towerinfo;
 	}
     }
-
+  
   if (Verbosity())
   {
     if (m_UseTowerInfo !=1)
@@ -432,7 +448,14 @@ TowerInfo *
 RawTowerDigitizer::simple_photon_digitization(TowerInfo *sim_tower)
 {
   TowerInfo* digi_tower = nullptr;
-  // TowerInfo* digi_tower = new TowerInfov1(*sim_tower);
+   if (sim_tower)
+     {
+       digi_tower = new TowerInfov1(*sim_tower);
+     }
+   else
+     {
+       digi_tower = new TowerInfov1();
+     }
   double energy = 0.;
   if (sim_tower)
   {
@@ -462,15 +485,6 @@ RawTowerDigitizer::simple_photon_digitization(TowerInfo *sim_tower)
 
   if (sum_ADC > m_ZeroSuppressionADC)
     {  
-      if (sim_tower)
-	{
-	  digi_tower = new TowerInfov1(*sim_tower);
-	}
-      else
-	{
-	  digi_tower = new TowerInfov1();
-	}
-
       digi_tower->set_energy(sum_ADC_d);
     }
 
@@ -762,7 +776,7 @@ void RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
      m_RawTowerInfos = findNode::getClass<TowerInfoContainer>(DetNode,TowerInfoNodeName);
      if (m_RawTowerInfos == nullptr)
        {
-	 TowerInfoContainerv1::DETECTOR detec;
+	 TowerInfoContainer::DETECTOR detec;
 	 if (m_Detector == "CEMC")
 	   {
 	     detec = TowerInfoContainer::DETECTOR::EMCAL;
