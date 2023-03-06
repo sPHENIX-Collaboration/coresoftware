@@ -56,3 +56,19 @@ int InsertCalib::insertcalib(const std::string &fname, const std::string &payloa
   std::cout << sphenixnpc::insertPayload(globaltag, payloadtype, fname, iov_start) << std::endl;
   return 0;
 }
+
+int InsertCalib::insertcalib(const std::string &fname, const std::string &payloadtype, uint64_t iov_start, uint64_t iov_end)
+{
+  recoConsts *rc = recoConsts::instance();
+  std::string globaltag;
+  if (rc->FlagExist("CDB_GLOBALTAG"))
+  {
+    globaltag = rc->get_StringFlag("CDB_GLOBALTAG");
+  }
+  std::cout << sphenixnpc::createGlobalTag(globaltag) << std::endl;
+  std::cout << sphenixnpc::createPayloadType(payloadtype) << std::endl;
+  ;
+  std::cout << "inserting " << fname << std::endl;
+  std::cout << sphenixnpc::insertPayload(globaltag, payloadtype, fname, iov_start, iov_end) << std::endl;
+  return 0;
+}
