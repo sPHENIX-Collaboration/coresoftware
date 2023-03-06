@@ -8,6 +8,8 @@
 #include <string>
 #include <utility>
 
+class PHObject;
+
 class PdbParameterMap: public PdbCalChan
 {
  public:
