@@ -18,7 +18,6 @@ class PHObject;
  *
  * This version of TrkrCluster is reduced to a minimal number of data members
  */
-static const unsigned int kBitShiftMaxAdc __attribute__((unused)) = 8;
 
 class TrkrClusterv4 : public TrkrCluster
 {
@@ -79,7 +78,7 @@ class TrkrClusterv4 : public TrkrCluster
   }
 
   unsigned int getMaxAdc() const { 
-    uint8_t tmp = (m_adc >> kBitShiftMaxAdc);
+    uint8_t tmp = (m_adc >> 8);
     unsigned int out = 0;
     out |= tmp;
     return out; 
@@ -87,7 +86,7 @@ class TrkrClusterv4 : public TrkrCluster
 
   void setMaxAdc(uint16_t maxadc) {
     if(maxadc>0xff)maxadc=0xff;
-    uint16_t tmp = (maxadc << kBitShiftMaxAdc);
+    uint16_t tmp = (maxadc << 8);
     m_adc |= tmp;
   }
 
