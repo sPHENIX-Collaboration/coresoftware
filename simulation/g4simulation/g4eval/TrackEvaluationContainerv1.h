@@ -96,7 +96,7 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
 
     //! cluster charge
     unsigned int adc = 0;
-
+    unsigned int max_adc = 0;
     //! cluster quality info
     int ovlp = 0;
     int edge = 0;

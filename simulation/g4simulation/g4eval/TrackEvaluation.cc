@@ -199,6 +199,7 @@ namespace
     cluster.ovlp = trk_clusv4->getOverlap();
     cluster.edge = trk_clusv4->getEdge();
     cluster.adc = trk_clusv4->getAdc();
+    cluster.max_adc = trk_clusv4->getMaxAdc();
 
   }
 
@@ -341,7 +342,6 @@ int TrackEvaluation::process_event(PHCompositeNode* topNode)
 
   // cleanup output container
   if( m_container ) m_container->Reset();
-
   if(m_flags&EvalEvent) evaluate_event();
   if(m_flags&EvalClusters) evaluate_clusters();
   if(m_flags&EvalTracks) evaluate_tracks();
@@ -484,10 +484,8 @@ void TrackEvaluation::evaluate_tracks()
       
   // clear array
   m_container->clearTracks();
-
   for( const auto& [track_id,track]:*m_track_map )
   {
-    
     auto track_struct = create_track( track );
     
     // truth information
@@ -501,7 +499,6 @@ void TrackEvaluation::evaluate_tracks()
 
     // running iterator over track states, used to match a given cluster to a track state
     auto state_iter = track->begin_states();
-
     // loop over clusters
     for( const auto& cluster_key:get_cluster_keys( track ) )
     {
@@ -511,12 +508,10 @@ void TrackEvaluation::evaluate_tracks()
         std::cout << "TrackEvaluation::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
         continue;
       }
-
       // create new cluster struct
       auto cluster_struct = create_cluster( cluster_key, cluster, track );
       add_cluster_size( cluster_struct, cluster);
       add_cluster_energy( cluster_struct, cluster_key, m_cluster_hit_map, m_hitsetcontainer );
-
       // truth information
       const auto g4hits = find_g4hits( cluster_key );
       const bool is_micromegas( TrkrDefs::getTrkrId(cluster_key) == TrkrDefs::micromegasId );
@@ -664,7 +659,6 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrD
     si_seed = track->get_silicon_seed();
     tpc_seed = track->get_tpc_seed();
   }
-
   // get global coordinates
   Acts::Vector3 global;
   global = m_tGeometry->getGlobalPosition(key, cluster);
@@ -679,11 +673,15 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrD
   cluster_struct.z_error = 0.0;
   cluster_struct.trk_alpha = 0.0;
   cluster_struct.trk_beta = 0.0;
+
   ClusterErrorPara ClusErrPara;
+  
   if(track!=0){
     float r = cluster_struct.r;
-    if(cluster_struct.layer>7){
+
+    if(cluster_struct.layer>=7){
       auto para_errors_mm = ClusErrPara.get_cluster_error(tpc_seed,cluster,r,key);
+
       cluster_struct.phi_error = sqrt(para_errors_mm.first)/cluster_struct.r;
       cluster_struct.z_error = sqrt(para_errors_mm.second);
       //	float R = TMath::Abs(1.0/tpc_seed->get_qOverR());
@@ -700,6 +698,7 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster( TrkrD
       cluster_struct.trk_beta = atan(si_seed->get_slope());
     }
   }
+
   return cluster_struct;
 }
 
