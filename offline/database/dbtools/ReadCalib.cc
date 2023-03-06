@@ -39,5 +39,5 @@ std::string ReadCalib::getCalibrationFile(const std::string &type, uint64_t iov)
 std::string ReadCalib::getCalibrationFile(const std::string &globaltag, const std::string &type, uint64_t iov) const
   {
      nlohmann::json result = sphenixnpc::get(globaltag, type,iov);
-     return result.at("msg")[0];
+     return result.at("msg");
   }
