@@ -1,5 +1,5 @@
-#ifndef TRACKBASE_TRUTHTRACKCONTAINERV1_H
-#define TRACKBASE_TRUTHTRACKCONTAINERV1_H
+#ifndef G4TRACKING_TRUTHTRACKCONTAINERV1_H
+#define G4TRACKING_TRUTHTRACKCONTAINERV1_H
 
 /**
  * @file trackbase/TrkrTruthTrackContainerv1.h
@@ -30,6 +30,7 @@ class TrkrTruthTrackContainerv1 : public TrkrTruthTrackContainer
   TrkrTruthTrackContainerv1() = default;
 
   void identify(std::ostream& os = std::cout) const override;
+  int nhw_virt()  override { return 61; };
 
  private:
   // the data
@@ -38,4 +39,4 @@ class TrkrTruthTrackContainerv1 : public TrkrTruthTrackContainer
   ClassDefOverride(TrkrTruthTrackContainerv1, 1)
 };
 
-#endif  // TRACKBASE_TruthTrackContainerv1.h
+#endif  // G4TRACKING_TruthTrackContainerv1.h

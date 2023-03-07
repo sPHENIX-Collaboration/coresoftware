@@ -36,10 +36,6 @@ pkginclude_HEADERS = \
   CMFlashDifferencev1.h \
   Calibrator.h \
   ClusterErrorPara.h \
-  EmbRecoMatch.h \
-  EmbRecoMatchv1.h \
-  EmbRecoMatchContainer.h \
-  EmbRecoMatchContainerv1.h \
   InttDefs.h \
   MvtxDefs.h \
   RawHit.h \
@@ -81,16 +77,8 @@ pkginclude_HEADERS = \
   TrkrHitSetv1.h \
   TrkrHitTruthAssoc.h \
   TrkrHitTruthAssocv1.h \
-  TrkrHitTruthClusters.h \
-  TrkrHitTruthClustersv1.h \
   TrkrHitv1.h \
   TrkrHitv2.h \
-  TrkrTruthClusters.h \
-  TrkrTruthClustersv1.h \
-  TrkrTruthTrack.h \
-  TrkrTruthTrackContainer.h \
-  TrkrTruthTrackContainerv1.h \
-  TrkrTruthTrackv1.h \
   alignmentTransformationContainer.h \
   sPHENIXActsDetectorElement.h
 
@@ -103,10 +91,6 @@ ROOTDICTS = \
   CMFlashDifferenceContainerv1_Dict.cc \
   CMFlashDifference_Dict.cc \
   CMFlashDifferencev1_Dict.cc \
-  EmbRecoMatchContainer_Dict.cc \
-  EmbRecoMatchContainerv1_Dict.cc \
-  EmbRecoMatch_Dict.cc \
-  EmbRecoMatchv1_Dict.cc \
   RawHitSetContainer_Dict.cc \
   RawHitSetContainerv1_Dict.cc \
   RawHitSet_Dict.cc \
@@ -140,17 +124,9 @@ ROOTDICTS = \
   TrkrHitSetv1_Dict.cc \
   TrkrHitTruthAssoc_Dict.cc \
   TrkrHitTruthAssocv1_Dict.cc \
-  TrkrHitTruthClusters_Dict.cc \
-  TrkrHitTruthClustersv1_Dict.cc \
   TrkrHit_Dict.cc \
   TrkrHitv1_Dict.cc \
   TrkrHitv2_Dict.cc \
-  TrkrTruthClusters_Dict.cc \
-  TrkrTruthClustersv1_Dict.cc \
-  TrkrTruthTrackContainer_Dict.cc \
-  TrkrTruthTrackContainerv1_Dict.cc \
-  TrkrTruthTrack_Dict.cc \
-  TrkrTruthTrackv1_Dict.cc \
   alignmentTransformationContainer_Dict.cc \
   sPHENIXActsDetectorElement.cc
 
@@ -165,10 +141,6 @@ nobase_dist_pcm_DATA = \
   CMFlashDifferenceContainerv1_Dict_rdict.pcm \
   CMFlashDifference_Dict_rdict.pcm \
   CMFlashDifferencev1_Dict_rdict.pcm \
-  EmbRecoMatchContainer_Dict_rdict.pcm \
-  EmbRecoMatchContainerv1_Dict_rdict.pcm \
-  EmbRecoMatch_Dict_rdict.pcm \
-  EmbRecoMatchv1_Dict_rdict.pcm \
   RawHitSetContainer_Dict_rdict.pcm \
   RawHitSetContainerv1_Dict_rdict.pcm \
   RawHitSet_Dict_rdict.pcm \
@@ -202,17 +174,9 @@ nobase_dist_pcm_DATA = \
   TrkrHitSetv1_Dict_rdict.pcm \
   TrkrHitTruthAssoc_Dict_rdict.pcm \
   TrkrHitTruthAssocv1_Dict_rdict.pcm \
-  TrkrHitTruthClusters_Dict_rdict.pcm \
-  TrkrHitTruthClustersv1_Dict_rdict.pcm \
   TrkrHit_Dict_rdict.pcm \
   TrkrHitv1_Dict_rdict.pcm \
   TrkrHitv2_Dict_rdict.pcm \
-  TrkrTruthClusters_Dict_rdict.pcm \
-  TrkrTruthClustersv1_Dict_rdict.pcm \
-  TrkrTruthTrackContainer_Dict_rdict.pcm \
-  TrkrTruthTrackContainerv1_Dict_rdict.pcm \
-  TrkrTruthTrack_Dict_rdict.pcm \
-  TrkrTruthTrackv1_Dict_rdict.pcm \
   alignmentTransformationContainer_Dict_rdict.pcm
 
 # sources for io library
@@ -226,9 +190,6 @@ libtrack_io_la_SOURCES = \
   CMFlashDifferenceContainerv1.cc \
   CMFlashDifferencev1.cc \
   ClusterErrorPara.cc \
-  EmbRecoMatchContainer.cc \
-  EmbRecoMatchContainerv1.cc \
-  EmbRecoMatchv1.cc \
   InttDefs.cc \
   MvtxDefs.cc \
   RawHitSet.cc \
@@ -266,15 +227,8 @@ libtrack_io_la_SOURCES = \
   TrkrHitSetContainerv1.cc \
   TrkrHitSetv1.cc \
   TrkrHitTruthAssocv1.cc \
-  TrkrHitTruthClustersv1.cc \
   TrkrHitv1.cc \
   TrkrHitv2.cc \
-  TrkrTruthClusters.cc \
-  TrkrTruthClustersv1.cc \
-  TrkrTruthTrack.cc \
-  TrkrTruthTrackContainer.cc \
-  TrkrTruthTrackContainerv1.cc \
-  TrkrTruthTrackv1.cc \
   alignmentTransformationContainer.cc
 
 libtrack_io_la_LIBADD = \

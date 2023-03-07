@@ -1,9 +1,9 @@
 #ifndef TRACKBASE_EMBRECOMATCHV1_H
 #define TRACKBASE_EMBRECOMATCHV1_H
 
-#include "TrkrDefs.h"
 #include "EmbRecoMatch.h"
 
+#include <trackbase/TrkrDefs.h>
 #include <phool/PHObject.h>
 #include <vector>
 #include <array>

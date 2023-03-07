@@ -9,8 +9,8 @@
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/phool.h>  // for PHWHERE
 #include <phool/getClass.h>
-#include <trackbase/EmbRecoMatch.h>
-#include <trackbase/EmbRecoMatchContainer.h>
+#include <g4tracking/EmbRecoMatch.h>
+#include <g4tracking/EmbRecoMatchContainer.h>
 #include <trackbase_historic/PHG4ParticleSvtxMap.h>
 #include <trackbase_historic/PHG4ParticleSvtxMap_v1.h>
 #include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>

@@ -19,9 +19,8 @@
 #include <trackbase/TrkrHitv2.h>
 
 #include <trackbase/TpcDefs.h>
-#include <trackbase/TrkrTruthTrackv1.h>
-
-#include <trackbase/TrkrTruthTrackContainerv1.h>
+#include <g4tracking/TrkrTruthTrackv1.h>
+#include <g4tracking/TrkrTruthTrackContainerv1.h>
 
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterv4.h>
@@ -173,7 +172,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    truthtracks = new TrkrTruthTrackContainerv1;
+    truthtracks = new TrkrTruthTrackContainerv1();
     auto newNode = new PHIODataNode<PHObject>(truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
     DetNode->addNode(newNode);
   }
@@ -337,7 +336,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   }
 
   if (truth_clusterer == nullptr)  {
-    if (Verbosity()) std::cout << " truth clusterer was a null pointer " << std::endl;
+    /* if (Verbosity()) std::cout << " truth clusterer was a null pointer " << std::endl; */
     truth_clusterer = new TpcClusterBuilder(truthclustercontainer, m_tGeometry, seggeo);
   } else {
     if (Verbosity()) std::cout << " truth clusterer was NOT a null pointer " << std::endl;
@@ -725,9 +724,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     truthtracks->identify();
   }
 
-  if (Verbosity()==6) {
-    truth_clusterer->print(truthtracks);
-  }
   if (Verbosity()>800) {
     truth_clusterer->print(truthtracks);
     truth_clusterer->print_file(truthtracks,"drift_clusters.txt");

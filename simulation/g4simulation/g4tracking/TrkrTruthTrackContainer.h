@@ -1,8 +1,8 @@
-#ifndef TRACKBASE_TRKRTRUTHTRACKCONTAINER_H
-#define TRACKBASE_TRKRTRUTHTRACKCONTAINER_H
+#ifndef G4TRACKING_TRKRTRUTHTRACKCONTAINER_H
+#define G4TRACKING_TRKRTRUTHTRACKCONTAINER_H
 
-#include "TrkrDefs.h"
 
+#include <trackbase/TrkrDefs.h>
 #include <phool/PHObject.h>
 #include <map>
 #include <vector>
@@ -26,10 +26,14 @@ class TrkrTruthTrackContainer : public PHObject
   //! add a Track
   virtual void            addTruthTrack (TrkrTruthTrack*) { };
   virtual TrkrTruthTrack* getTruthTrack (unsigned int /*trackid*/) { return nullptr; };
-  virtual TrkrTruthTrack* getTruthTrack (unsigned int /*trackid*/, PHG4TruthInfoContainer*) { return nullptr; };
+  virtual TrkrTruthTrack* getTruthTrack (unsigned int /*trackid*/, PHG4TruthInfoContainer*) 
+  { return nullptr; };
   virtual ConstRange      getTruthTrackRange () const;
   virtual bool            hasTrackid    (unsigned int /*trackid*/) const { return false;   };
   virtual Map&            getMap();
+  int nhw() { return 6; };
+  int nhw_cc();
+  virtual int nhw_virt () { return 60; };
   
   // PHObject virtual overload
   void identify(std::ostream& os = std::cout) const override
@@ -42,4 +46,4 @@ class TrkrTruthTrackContainer : public PHObject
   ClassDefOverride(TrkrTruthTrackContainer, 1)
 };
 
-#endif  // TRACKBASE_TRUTHTRACKCONTAINER_H
+#endif  // G4TRACKING_TRUTHTRACKCONTAINER_H

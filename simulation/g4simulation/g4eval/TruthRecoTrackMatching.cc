@@ -14,16 +14,16 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
-#include <trackbase/EmbRecoMatch.h>
-#include <trackbase/EmbRecoMatchContainer.h>
-#include <trackbase/EmbRecoMatchContainerv1.h>
-#include <trackbase/EmbRecoMatchv1.h>
+#include <g4tracking/EmbRecoMatch.h>
+#include <g4tracking/EmbRecoMatchContainer.h>
+#include <g4tracking/EmbRecoMatchContainerv1.h>
+#include <g4tracking/EmbRecoMatchv1.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrTruthTrack.h>
-#include <trackbase/TrkrTruthTrackContainer.h>
+#include <g4tracking/TrkrTruthTrack.h>
+#include <g4tracking/TrkrTruthTrackContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 

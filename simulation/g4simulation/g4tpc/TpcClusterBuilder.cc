@@ -3,7 +3,7 @@
 #include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TpcDefs.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <trackbase/TrkrTruthTrack.h>
+#include <g4tracking/TrkrTruthTrack.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <algorithm>
 
@@ -14,7 +14,7 @@
 #include <map>  // for _Rb_tree_cons...
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrTruthTrackContainer.h>
+#include <g4tracking/TrkrTruthTrackContainer.h>
 
 /* class TpcClusterBuilder; */
 
