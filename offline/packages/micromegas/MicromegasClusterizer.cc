@@ -1,5 +1,5 @@
 /*!
- * \file MicromegasClusterizer.h
+ * \file MicromegasClusterizer.cc
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  */
 
@@ -83,9 +83,8 @@ namespace
 }
 
 //_______________________________________________________________________________
-MicromegasClusterizer::MicromegasClusterizer(const std::string &name, const std::string& detector)
+MicromegasClusterizer::MicromegasClusterizer(const std::string &name )
   : SubsysReco(name)
-  , m_detector( detector )
 {}
 
 //_______________________________________________________________________________
@@ -139,7 +138,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
   // geometry
   PHG4CylinderGeomContainer* geonode = nullptr;
-  for( const std::string& geonodename: {"CYLINDERGEOM_" + m_detector + "_FULL", "CYLINDERGEOM_" + m_detector } )
+  for( std::string geonodename: {"CYLINDERGEOM_MICROMEGAS_FULL", "CYLINDERGEOM_MICROMEGAS" } )
   { if(( geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str()) )) break; }
   assert(geonode);
 
