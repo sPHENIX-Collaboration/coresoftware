@@ -18,13 +18,12 @@
 #include <micromegas/CylinderGeomMicromegas.h>
 #include <micromegas/MicromegasDefs.h>
 
-
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
-#include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/PHObject.h>                         // for PHObject
 

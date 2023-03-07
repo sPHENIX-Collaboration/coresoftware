@@ -21,6 +21,7 @@ pkginclude_HEADERS = \
   CylinderGeomMicromegas.h \
   MicromegasClusterizer.h \
   MicromegasDefs.h \
+  MicromegasRawDataDecoder.h \
   MicromegasTile.h
 
 ROOTDICTS = \
@@ -47,7 +48,8 @@ libmicromegas_io_la_LIBADD = \
 
 # sources for micromegas library
 libmicromegas_la_SOURCES = \
-  MicromegasClusterizer.cc
+  MicromegasClusterizer.cc \
+  MicromegasRawDataDecoder.cc
 
 libmicromegas_la_LIBADD = \
   libmicromegas_io.la \
