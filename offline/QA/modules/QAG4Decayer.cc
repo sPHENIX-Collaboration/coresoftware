@@ -32,8 +32,13 @@
 #include <iostream>
 #include <map>
 
-const int NHFQA = 9;
-int QAVtxPDGID[NHFQA] = {411, 421, 431, 4122, 511, 521, 531, 443, 553};
+const int NHFQA = 16;
+
+int QAVtxPDGID[NHFQA] = {411, 421, 431, 4122, 511, 521, 531, 443, 553, -411, -421, -431, -4122, -511, -521, -531};
+
+// float MassMin[NHFQA] = {1.6,1.6,1.7,2.0,5.0,5.0,5.1,2.0,9.0};
+float MassMin[NHFQA] = {1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1, 1.2, 9.0, 1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1};
+float MassMax[NHFQA] = {2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6, 3.2, 10.0, 2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6};
 
 std::multimap<std::vector<int>, int> decaymap[NHFQA];
 
@@ -76,7 +81,7 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
     h = new TH1F(Form("QAE_%d", i), "", 200, -1, 1);
     hm->registerHisto(h);
 
-    h = new TH1F(Form("InvMass_%d", i), "", 200, 1, 6);
+    h = new TH1F(Form("InvMass_%d", i), "", 100, MassMin[i], MassMax[i]);
     hm->registerHisto(h);
 
     h = new TH1F(Form("QACosTheta_%d", i), "", 120, -1.2, 1.2);
@@ -90,6 +95,9 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   }
 
   h = new TH1F("HFHadronStat", "", 9, -0.5, 8.5);
+  hm->registerHisto(h);
+
+  h = new TH1F("HFAntiHadronStat", "", 9, -0.5, 8.5);
   hm->registerHisto(h);
 
   NParticles = 0;
@@ -191,6 +199,74 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
   decaymap[8].insert({{-211, 111, 111, 211}, 7});
   decaymap[8].insert({{-2212, -211, 22, 211, 2212}, 8});
 
+  // Antiparticles
+
+  // D-
+  decaymap[9].insert({{-211, 111}, 0});
+  decaymap[9].insert({{-211, -211, 211}, 1});
+  decaymap[9].insert({{-211, 111, 310}, 2});
+  decaymap[9].insert({{-211, -211, 321}, 3});
+  decaymap[9].insert({{-211, -211, -211, 211, 211}, 4});
+  decaymap[9].insert({{-211, 333}, 5});
+  decaymap[9].insert({{-14, 13}, 6});
+  decaymap[9].insert({{-321, 310}, 7});
+
+  // D0 bar
+  decaymap[10].insert({{-211, 321}, 0});
+  decaymap[10].insert({{-211, 111, 321}, 1});
+  decaymap[10].insert({{-321, 211}, 2});
+  decaymap[10].insert({{-321, 310, 321}, 3});
+  decaymap[10].insert({{310, 310, 310}, 4});
+  decaymap[10].insert({{111, 111}, 5});
+  decaymap[10].insert({{-211, 211}, 6});
+
+  // Ds bar
+  decaymap[11].insert({{-14, 13, 333}, 0});
+  decaymap[11].insert({{-14, 13}, 1});
+  decaymap[11].insert({{-321, 211, 321}, 2});
+  decaymap[11].insert({{-321, 310}, 3});
+  decaymap[11].insert({{-211, 111, 111}, 4});
+  decaymap[11].insert({{-2112, 2212}, 5});
+  decaymap[11].insert({{-211, 333}, 6});
+
+  // LambdaC bar
+  decaymap[12].insert({{-2212, -211, 321}, 0});
+  decaymap[12].insert({{-2212, 311}, 1});
+  decaymap[12].insert({{-2212, 333}, 2});
+  decaymap[12].insert({{-2212, -211, 111, 321}, 3});
+  decaymap[12].insert({{-2212, -211, 211, 311}, 4});
+  decaymap[12].insert({{-2112, -211, -211, 211, 211}, 5});
+  decaymap[12].insert({{-2212, -211, 211}, 6});
+
+  // B0 bar
+  decaymap[13].insert({{-321, 211}, 0});
+  decaymap[13].insert({{-321, 111, 211}, 1});
+  decaymap[13].insert({{-211, 211}, 2});
+  decaymap[13].insert({{111, 111}, 3});
+  decaymap[13].insert({{-211, 411}, 4});
+  decaymap[13].insert({{-431, 411}, 5});
+  decaymap[13].insert({{-321, 211, 443}, 6});
+  decaymap[13].insert({{-211, 211, 443}, 7});
+
+  // B-
+  decaymap[14].insert({{-321, -211, 321}, 0});
+  decaymap[14].insert({{-321, -321, 321}, 1});
+  decaymap[14].insert({{-321, 333}, 2});
+  decaymap[14].insert({{-321, 443}, 3});
+  decaymap[14].insert({{-321, 421}, 4});
+  decaymap[14].insert({{-431, 421}, 5});
+  decaymap[14].insert({{-321, 10311}, 6});
+
+  // Bs bar
+  decaymap[15].insert({{-221, 321}, 0});
+  decaymap[15].insert({{-321, 321}, 1});
+  decaymap[15].insert({{333, 333}, 2});
+  decaymap[15].insert({{22, 333}, 3});
+  decaymap[15].insert({{-211, 431}, 4});
+  decaymap[15].insert({{-431, 431}, 5});
+  decaymap[15].insert({{-321, 321, 443}, 6});
+  decaymap[15].insert({{333, 443}, 7});
+
   // Finish Construction
 
   if (m_SaveFiles)
@@ -219,6 +295,8 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
   TH1F *QAE[NHFQA];
   TH1F *QACosTheta[NHFQA];
   TH1F *BR1DHis[NHFQA];
+  //	TH1F *AntiBR1DHis[NHFQA];
+
   TH1F *ProperLifeTime[NHFQA];
   TH1F *InvMass[NHFQA];
 
@@ -244,6 +322,10 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
     BR1DHis[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("BR1DHis_%d", i)));
     assert(BR1DHis[i]);
+    /*
+       AntiBR1DHis[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("AntiBR1DHis_%d", i)));
+       assert(AntiBR1DHis[i]);
+       */
 
     InvMass[i] = dynamic_cast<TH1F *>(hm->getHisto(Form("InvMass_%d", i)));
     assert(InvMass[i]);
@@ -254,6 +336,9 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
   TH1F *HFHadronStat = dynamic_cast<TH1F *>(hm->getHisto("HFHadronStat"));
   assert(HFHadronStat);
+
+  TH1F *HFAntiHadronStat = dynamic_cast<TH1F *>(hm->getHisto("HFAntiHadronStat"));
+  assert(HFAntiHadronStat);
 
   m_truth_info = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
@@ -269,16 +354,21 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
   std::vector<int> ParentTrkInfo;
   std::vector<double> ParentEInfo;
-  std::vector<double> DiffEPerVertex;
+  //  std::vector<double> DiffEPerVertex;
 
   std::vector<double> ParentPxInfo;
-  std::vector<double> DiffPxPerVertex;
+  //  std::vector<double> DiffPxPerVertex;
 
   std::vector<double> ParentPyInfo;
-  std::vector<double> DiffPyPerVertex;
+  //  std::vector<double> DiffPyPerVertex;
 
   std::vector<double> ParentPzInfo;
-  std::vector<double> DiffPzPerVertex;
+  //  std::vector<double> DiffPzPerVertex;
+
+  std::vector<double> TotalEPerVertex;
+  std::vector<double> TotalPxPerVertex;
+  std::vector<double> TotalPyPerVertex;
+  std::vector<double> TotalPzPerVertex;
 
   std::vector<std::vector<int>> DaughterInfo;
   std::vector<std::vector<double>> DaughterEInfo;
@@ -340,16 +430,20 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
       for (int q = 0; q < NHFQA; q++)
       {
-        if (abs(gflavor) == QAVtxPDGID[q]) HFFillIndex = q;
+        if (gflavor == QAVtxPDGID[q]) HFFillIndex = q;
       }
 
-      HFHadronStat->Fill(HFFillIndex);
+      if (gflavor > 0) HFHadronStat->Fill(HFFillIndex);
+      if (gflavor < 0) HFAntiHadronStat->Fill(HFFillIndex - 9);
     }
 
     int VtxSize = ParentTrkInfo.size();
+
     bool NewVtx = true;
     int Index = -1;
     int HFIndex = -1;
+
+    // std::cout << "VtxSize = " << VtxSize << std::endl;
 
     for (int i = 0; i < VtxSize; i++)
     {
@@ -364,26 +458,33 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
     for (int p = 0; p < NHFQA; p++)
     {
-      if (abs(ParentPDGID) == QAVtxPDGID[p])
+      if (ParentPDGID == QAVtxPDGID[p])
       {
         VtxToQA = true;
         HFIndex = p;
       }
     }
 
-    if ((ParentTrkId > 0 || abs(gflavor) == abs(ParentPDGID)) && VtxToQA == true)
+    if ((ParentTrkId > 0 || abs(gflavor) == abs(ParentPDGID)) && VtxToQA == true)  // include only dielectrons for Jpsi and upsilon
     {
+      //`:wif(abs(gflavor) != 11) break;  //include only dielectrons for Jpsi and upsilon
+
       if (NewVtx)
       {
         ParentTrkInfo.push_back(ParentTrkId);
         ParentEInfo.push_back(ParentE);
-        DiffEPerVertex.push_back(ParentE - g4particle->get_e());
+        //      DiffEPerVertex.push_back(ParentE - g4particle->get_e());
         ParentPxInfo.push_back(ParentPx);
-        DiffPxPerVertex.push_back(ParentPx - g4particle->get_px());
+        //      DiffPxPerVertex.push_back(ParentPx - g4particle->get_px());
         ParentPyInfo.push_back(ParentPy);
-        DiffPyPerVertex.push_back(ParentPy - g4particle->get_py());
+        //      DiffPyPerVertex.push_back(ParentPy - g4particle->get_py());
         ParentPzInfo.push_back(ParentPz);
-        DiffPzPerVertex.push_back(ParentPz - g4particle->get_pz());
+        //     DiffPzPerVertex.push_back(ParentPz - g4particle->get_pz());
+
+        TotalEPerVertex.push_back(g4particle->get_e());
+        TotalPxPerVertex.push_back(g4particle->get_px());
+        TotalPyPerVertex.push_back(g4particle->get_py());
+        TotalPzPerVertex.push_back(g4particle->get_pz());
 
         VertexInfo.push_back(ParentPDGID);
         HFIndexInfo.push_back(HFIndex);
@@ -393,20 +494,27 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
         Daughters.push_back(gflavor);
         DaughterInfo.push_back(Daughters);
 
-        // Check Energy
+        // Add daughter kinematics info
         std::vector<double> DaughtersE;
         DaughtersE.push_back(g4particle->get_e());
         DaughterEInfo.push_back(DaughtersE);
       }
       if (!NewVtx)
       {
-        DiffEPerVertex[Index] = DiffEPerVertex[Index] - g4particle->get_e();
-        DiffPxPerVertex[Index] = DiffPxPerVertex[Index] - g4particle->get_px();
-        DiffPyPerVertex[Index] = DiffPyPerVertex[Index] - g4particle->get_py();
-        DiffPzPerVertex[Index] = DiffPzPerVertex[Index] - g4particle->get_pz();
+        /*
+           DiffEPerVertex[Index] = DiffEPerVertex[Index] - g4particle->get_e();
+           DiffPxPerVertex[Index] = DiffPxPerVertex[Index] - g4particle->get_px();
+           DiffPyPerVertex[Index] = DiffPyPerVertex[Index] - g4particle->get_py();
+           DiffPzPerVertex[Index] = DiffPzPerVertex[Index] - g4particle->get_pz();
+           */
 
         DaughterInfo[Index].push_back(gflavor);
         DaughterEInfo[Index].push_back(g4particle->get_e());
+
+        TotalEPerVertex[Index] = TotalEPerVertex[Index] + g4particle->get_e();
+        TotalPxPerVertex[Index] = TotalPxPerVertex[Index] + g4particle->get_px();
+        TotalPyPerVertex[Index] = TotalPyPerVertex[Index] + g4particle->get_py();
+        TotalPzPerVertex[Index] = TotalPzPerVertex[Index] + g4particle->get_pz();
       }
     }
 
@@ -416,14 +524,14 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
     if (GrandParentPDGID == 0 && ParentVtx && VtxToQA)
     {
-      float ParMass = sqrt(mother->get_e() * mother->get_e() - mother->get_px() * mother->get_px() - mother->get_py() * mother->get_py() - mother->get_pz() * mother->get_pz());
+      float ParentMass = sqrt(mother->get_e() * mother->get_e() - mother->get_px() * mother->get_px() - mother->get_py() * mother->get_py() - mother->get_pz() * mother->get_pz());
       float ParP = sqrt(mother->get_px() * mother->get_px() + mother->get_py() * mother->get_py() + mother->get_pz() * mother->get_pz());
 
       HFProdVtx.SetXYZ(ParentVtx->get_x(), ParentVtx->get_y(), ParentVtx->get_z());
       HFDecayVtx.SetXYZ(vtx->get_x(), vtx->get_y(), vtx->get_z());
 
       SVtoPVDis = (HFDecayVtx - HFProdVtx).Mag();
-      SVtoPVTau = SVtoPVDis / ParP * ParMass;
+      SVtoPVTau = SVtoPVDis / ParP * ParentMass;
 
       if (SVtoPVDis > 0) CosTheta = ((HFDecayVtx - HFProdVtx).Dot(HFParMom)) / ((HFDecayVtx - HFProdVtx).Mag() * HFParMom.Mag());
 
@@ -434,27 +542,30 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
       {
         ProperLifeTime[HFIndex]->Fill(SVtoPVTau);
         QACosTheta[HFIndex]->Fill(CosTheta);
-        InvMass[HFIndex]->Fill(ParMass);
       }
     }
   }
 
   // BR Working here
-  int VtxSizeFinal = DiffEPerVertex.size();
+  int VtxSizeFinal = TotalEPerVertex.size();
 
   for (int q = 0; q < VtxSizeFinal; q++)
   {
     int HFIndexToFill = HFIndexInfo[q];
+    //		int HFSign = HFIndexSignInfo[q];
 
-    DevPx = DiffPxPerVertex[q] / ParentPxInfo[q];
-    DevPy = DiffPyPerVertex[q] / ParentPyInfo[q];
-    DevPz = DiffPzPerVertex[q] / ParentPzInfo[q];
-    DevE = DiffEPerVertex[q] / ParentEInfo[q];
+    DevPx = (ParentPxInfo[q] - TotalPxPerVertex[q]) / ParentPxInfo[q];
+    DevPy = (ParentPyInfo[q] - TotalPyPerVertex[q]) / ParentPyInfo[q];
+    DevPz = (ParentPzInfo[q] - TotalPzPerVertex[q]) / ParentPzInfo[q];
+    DevE = (ParentEInfo[q] - TotalEPerVertex[q]) / ParentEInfo[q];
+
+    float ParMass = sqrt(TotalEPerVertex[q] * TotalEPerVertex[q] - ParentPxInfo[q] * ParentPxInfo[q] - ParentPyInfo[q] * ParentPyInfo[q] - ParentPzInfo[q] * ParentPzInfo[q]);
 
     QAPx[HFIndexToFill]->Fill(DevPx);
     QAPy[HFIndexToFill]->Fill(DevPy);
     QAPz[HFIndexToFill]->Fill(DevPz);
     QAE[HFIndexToFill]->Fill(DevE);
+    InvMass[HFIndexToFill]->Fill(ParMass);
 
     sort(DaughterInfo[q].begin(), DaughterInfo[q].end());
 
@@ -467,6 +578,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
     std::vector<int> ChannelID;
 
     if (decaymap[HFIndexToFill].find({DaughterInfo[q]}) != decaymap[HFIndexToFill].end()) key = decaymap[HFIndexToFill].find({DaughterInfo[q]})->second;
+
     ChannelID.push_back(key);
 
     if (HFIndexToFill == 0)
@@ -504,6 +616,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
     if (HFIndexToFill == 5)
     {
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -11) != DaughterInfo[q].end()) && (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 12) != DaughterInfo[q].end())) ChannelID.push_back(7);
       if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end())) ChannelID.push_back(8);
       if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
     }
@@ -516,6 +629,54 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
     if (HFIndexToFill == 8)
     {
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    // Antiparticles
+
+    if (HFIndexToFill == 9)
+    {
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end()) ChannelID.push_back(8);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 333) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    if (HFIndexToFill == 10)
+    {
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 310) != DaughterInfo[q].end()) ChannelID.push_back(7);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 111) != DaughterInfo[q].end()) ChannelID.push_back(8);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    if (HFIndexToFill == 11)
+    {
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 310) != DaughterInfo[q].end()) ChannelID.push_back(7);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 333) != DaughterInfo[q].end()) ChannelID.push_back(8);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    if (HFIndexToFill == 12)
+    {
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 311) != DaughterInfo[q].end()) ChannelID.push_back(7);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 2212) != DaughterInfo[q].end()) ChannelID.push_back(8);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    if (HFIndexToFill == 13)
+    {
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end())) ChannelID.push_back(8);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    if (HFIndexToFill == 14)
+    {
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 11) != DaughterInfo[q].end()) && (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -12) != DaughterInfo[q].end())) ChannelID.push_back(7);
+      if ((std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -411) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -421) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end()) || (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end())) ChannelID.push_back(8);
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
+    }
+
+    if (HFIndexToFill == 15)
+    {
+      if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 431) != DaughterInfo[q].end() || std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), -431) != DaughterInfo[q].end()) ChannelID.push_back(8);
       if (std::find(DaughterInfo[q].begin(), DaughterInfo[q].end(), 443) != DaughterInfo[q].end()) ChannelID.push_back(9);
     }
 

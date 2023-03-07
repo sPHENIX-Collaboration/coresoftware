@@ -35,6 +35,7 @@
 
 #include <Geant4/G4String.hh>
 #include <Geant4/G4VPhysicsConstructor.hh>
+#include "G4EvtGenDecayer.hh"
 
 /// The builder for external decayer.
 ///
@@ -48,6 +49,10 @@ class EvtGenExtDecayerPhysics : public G4VPhysicsConstructor
  public:
   EvtGenExtDecayerPhysics(const G4String& name = "ExtDecayer");
   virtual ~EvtGenExtDecayerPhysics();
+  void CustomizeEvtGenDecay(std::string& InputDecayFile)
+  {
+	  DecayFile = InputDecayFile;
+  }
 
  protected:
   // methods
@@ -60,6 +65,8 @@ class EvtGenExtDecayerPhysics : public G4VPhysicsConstructor
   EvtGenExtDecayerPhysics(const EvtGenExtDecayerPhysics& right);
   /// Not implemented
   EvtGenExtDecayerPhysics& operator=(const EvtGenExtDecayerPhysics& right);
+  G4EvtGenDecayer* extDecayer = nullptr;
+  std::string DecayFile = "";
 };
 
 #endif  // P6D_EXT_DECAYER_PHYSICS_H

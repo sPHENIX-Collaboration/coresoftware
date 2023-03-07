@@ -9,7 +9,6 @@
 #include <trackbase/TrkrHitSet.h>
 
 #include <map>
-#include <memory>
 #include <string>   // for string
 #include <utility>  // for pair, make_pair
 #include <vector>
@@ -22,7 +21,7 @@ class PHG4TpcDigitizer : public SubsysReco
 {
  public:
   PHG4TpcDigitizer(const std::string &name = "PHG4TpcDigitizer");
-  ~PHG4TpcDigitizer() override = default;
+  ~PHG4TpcDigitizer() override;
 
   //! module initialization
   int Init(PHCompositeNode * /*topNode*/) override { return 0; }
@@ -46,14 +45,18 @@ class PHG4TpcDigitizer : public SubsysReco
   void SetADCThreshold(const float thresh) { ADCThreshold = thresh; };
   void SetENC(const float enc) { TpcEnc = enc; };
   void set_drift_velocity(float vd) {_drift_velocity = vd;}
+  void set_skip_noise_flag(const bool skip) {skip_noise = skip;}
 
  private:
   void CalculateCylinderCellADCScale(PHCompositeNode *topNode);
   void DigitizeCylinderCells(PHCompositeNode *topNode);
   float added_noise();
-
+  float add_noise_to_bin(float signal);
+  
   unsigned int TpcMinLayer;
+  unsigned int TpcNLayers;
   float ADCThreshold;
+  float ADCThreshold_mV = 0;
   float TpcEnc;
   float Pedestal;
   float ChargeToPeakVolts;
@@ -61,6 +64,8 @@ class PHG4TpcDigitizer : public SubsysReco
 
   float ADCSignalConversionGain;
   float ADCNoiseConversionGain;
+
+  bool skip_noise = false;
 
   std::vector<std::vector<TrkrHitSet::ConstIterator> > phi_sorted_hits;
   std::vector<std::vector<TrkrHitSet::ConstIterator> > t_sorted_hits;
@@ -72,19 +77,9 @@ class PHG4TpcDigitizer : public SubsysReco
   // settings
   std::map<int, unsigned int> _max_adc;
   std::map<int, float> _energy_scale;
-  
-  //! rng de-allocator
-  class Deleter
-  {
-    public:
-    //! deletion operator
-    void operator() (gsl_rng* rng) const { gsl_rng_free(rng); }
-  };
 
   //! random generator that conform with sPHENIX standard
-  /*! using a unique_ptr with custom Deleter ensures that the structure is properly freed when parent object is destroyed */
-  std::unique_ptr<gsl_rng, Deleter> m_rng;
-
+  gsl_rng *RandomGenerator;
 };
 
 #endif

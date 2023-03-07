@@ -66,8 +66,8 @@ class PHG4EPDModuleReco : public SubsysReco, public PHParameterInterface
 
   std::string m_Detector;
   std::string m_Hitnodename;
-  std::string m_EPDSimTowerNodePrefix;
-  std::string m_EPDCalibTowerNodePrefix;
+  std::string m_EPDSimTowerNodePrefix = "SIM";
+  std::string m_EPDCalibTowerNodePrefix = "CALIB";
 
   std::string m_TowerInfoNodeName;
   std::string m_TowerInfoNodeName_calib;

@@ -49,7 +49,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
 
   // pull out the tower containers and geometry objects at the start
   RawTowerContainer *towersEM3 = nullptr; 
-  TowerInfoContainerv1 *towerinfosEM3 = nullptr; 
+  TowerInfoContainer *towerinfosEM3 = nullptr; 
   if (m_use_towerinfo)
     {
       towerinfosEM3= findNode::getClass<TowerInfoContainerv1>(topNode, "TOWERINFO_CALIB_CEMC");
@@ -96,13 +96,13 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
 	  std::cout <<  PHWHERE << "no emcal tower info object, doing nothing" << std::endl;
 	  return Fun4AllReturnCodes::ABORTRUN;
 	}
-      TowerInfoContainerv1::ConstRange begin_end = towerinfosEM3->getTowers();
-      TowerInfoContainerv1::ConstIterator rtiter;
-      for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+      unsigned int nchannels = towerinfosEM3->size();
+      for (unsigned int channel = 0; channel < nchannels;channel++)
 	{
-	  TowerInfo *tower = rtiter->second;
-	  int ieta = towerinfosEM3->getTowerEtaBin(rtiter->first);
-	  int iphi = towerinfosEM3->getTowerPhiBin(rtiter->first);
+	  TowerInfo *tower = towerinfosEM3->get_tower_at_channel(channel);
+	  unsigned int channelkey = towerinfosEM3->encode_key(channel);
+	  int ieta = towerinfosEM3->getTowerEtaBin(channelkey);
+	  int iphi = towerinfosEM3->getTowerPhiBin(channelkey);
 	  const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ieta, iphi);
 	  RawTowerGeom *tower_geom = geomEM->get_tower_geometry(key);
 	  int this_IHetabin = geomIH->get_etabin(tower_geom->get_eta());
@@ -221,7 +221,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
 	   {
 	     unsigned int towerkey = (eta << 16U) + phi;
 	     unsigned int towerindex = emcal_retower->decode_key(towerkey);
-	     TowerInfo *towerinfo = emcal_retower->at(towerindex);
+	     TowerInfo *towerinfo = emcal_retower->get_tower_at_channel(towerindex);
 	     towerinfo->set_energy(_EMCAL_RETOWER_E[eta][phi]);
 	   }
        }
