@@ -139,6 +139,81 @@ void PHTpcCentralMembraneMatcher::set_grid_dimensions( int phibins, int rbins )
   m_rbins = rbins;
 }
 
+std::vector<std::vector<double>> PHTpcCentralMembraneMatcher::getPhiGaps( TH2F *r_phi ){
+  
+  std::cout << "r_phi entries: " << r_phi->GetEntries() << std::endl;
+
+  int bin0 = r_phi->GetYaxis()->FindBin(0.0);
+  int bin40 = r_phi->GetYaxis()->FindBin(40.0);
+  int bin58 = r_phi->GetYaxis()->FindBin(58.0);
+  int bin100 = r_phi->GetYaxis()->FindBin(99.99);
+  
+  std::cout << "bin0: " << bin0 << "   bin40: " << bin40 << "   bin58: " << bin58 << "   bin100: " << bin100 << std::endl;
+
+  TH1D *phiHist[3];
+  phiHist[0] = r_phi->ProjectionX("phiHist_R1",bin0,bin40);
+  std::cout << "R1 entries " << phiHist[0]->GetEntries() << std::endl;
+  phiHist[1] = r_phi->ProjectionX("phiHist_R2",bin40,bin58);
+  std::cout << "R2 entries " << phiHist[1]->GetEntries() << std::endl;
+  phiHist[2] = r_phi->ProjectionX("phiHist_R3",bin58,bin100);
+  std::cout << "R3 entries " << phiHist[2]->GetEntries() << std::endl;
+
+  std::vector<std::vector<double>> phiGaps;
+
+  for(int R=0; R<3; R++){
+    std::vector<double> phiGaps_R;
+    for(int i=2; i<=phiHist[R]->GetNbinsX(); i++){
+      if(phiHist[R]->GetBinContent(i) > 0 && phiHist[R]->GetBinContent(i-1) == 0){
+	if(phiGaps_R.size() == 0) phiGaps_R.push_back(phiHist[R]->GetBinCenter(i));
+	else if(phiHist[R]->GetBinCenter(i) - phiGaps_R[phiGaps_R.size()-1] > (M_PI/36.)) phiGaps_R.push_back(phiHist[R]->GetBinCenter(i));
+      }
+    }
+
+    phiGaps.push_back(phiGaps_R);
+  }
+
+  return phiGaps;
+
+}
+
+std::vector<double> PHTpcCentralMembraneMatcher::getAverageRotation(std::vector<std::vector<double>> hit, std::vector<std::vector<double>> clust){
+
+  std::vector<double> avgAngle;
+
+  for(int R=0; R<3; R++){
+
+    double di = 0.0;
+    double dj = 0.0;
+
+    for(int i=0; i<(int)hit[R].size() - 1; i++){
+      di += hit[R][i+1] - hit[R][i];
+    }
+    di = di/(hit[R].size()-1);
+
+    for(int j=0; j<(int)clust[R].size() - 1; j++){
+      dj += clust[R][j+1] - clust[R][j];
+    }
+    dj = dj/(clust[R].size()-1);
+    
+    double sum = 0.0;
+    int nMatch = 0;
+    for(int i=0; i<(int)hit[R].size(); i++){
+      for(int j=0; j<(int)clust[R].size(); j++){
+	if(fabs(clust[R][j] - hit[R][i]) > (di+dj)/4.0) continue;
+	if(j!=0 && clust[R][j] - clust[R][j] > 1.5*M_PI/9.0) continue;
+	sum += clust[R][j] - hit[R][i];
+	nMatch++;
+      }
+    }
+
+    avgAngle.push_back(sum/nMatch);
+
+  }
+  
+  return avgAngle;
+
+}
+
 //____________________________________________________________________________..
 int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
 {
@@ -176,6 +251,16 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
     hdrphi = new TH1F("hdrphi","r * dphi", 200, -0.05, 0.05);
     hnclus = new TH1F("hnclus", " nclusters ", 3, 0., 3.);
   }
+
+  fout2.reset( new TFile(m_outputfile2.c_str(),"RECREATE") ); 
+    
+  hit_r_phi = new TH2F("hit_r_phi","hit r vs #phi;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
+  hit_r_phi_pos = new TH2F("hit_r_phi_pos","hit R vs #phi Z>0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
+  hit_r_phi_neg = new TH2F("hit_r_phi_neg","hit R vs #phi Z<0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
+
+  clust_r_phi = new TH2F("clust_r_phi","clust R vs #phi;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
+  clust_r_phi_pos = new TH2F("clust_r_phi_pos","clust R vs #phi Z>0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
+  clust_r_phi_neg = new TH2F("clust_r_phi_neg","clust R vs #phi Z<0;#phi (rad); r (cm)",360,-M_PI,M_PI,500,0,100);
   
   // Get truth cluster positions
   //=====================
@@ -192,9 +277,15 @@ int PHTpcCentralMembraneMatcher::InitRun(PHCompositeNode *topNode)
   {
     source.SetZ( +1 );
     m_truth_pos.push_back( source );
+
+    hit_r_phi->Fill(source.Phi(), source.Perp());
+    hit_r_phi_pos->Fill(source.Phi(), source.Perp());
     
     source.SetZ( -1 );
     m_truth_pos.push_back( source );
+
+    hit_r_phi->Fill(source.Phi(), source.Perp());
+    hit_r_phi_neg->Fill(source.Phi(), source.Perp());
   };
   
   // inner region extended is the 8 layers inside 30 cm    
@@ -272,6 +363,10 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
   // reset output distortion correction container histograms
   for( const auto& harray:{m_dcc_out->m_hDRint, m_dcc_out->m_hDPint, m_dcc_out->m_hDZint, m_dcc_out->m_hentries} )
   { for( const auto& h:harray ) { h->Reset(); } }
+
+  clust_r_phi->Reset();
+  clust_r_phi_pos->Reset();
+  clust_r_phi_neg->Reset();
   
   // read the reconstructed CM clusters
   auto clusrange = m_corrected_CMcluster_map->getClusters();
@@ -290,6 +385,10 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       reco_pos.push_back(tmp_pos);      
       reco_nclusters.push_back(nclus);
 
+      clust_r_phi->Fill(tmp_pos.Phi(),tmp_pos.Perp());
+      if(tmp_pos.Z() > 0) clust_r_phi_pos->Fill(tmp_pos.Phi(),tmp_pos.Perp());
+      else if(tmp_pos.Z() < 0) clust_r_phi_neg->Fill(tmp_pos.Phi(),tmp_pos.Perp());
+
       if(Verbosity())
 	{
 	  double raw_rad = sqrt( cmclus->getX()*cmclus->getX() + cmclus->getY()*cmclus->getY() );
@@ -303,6 +402,65 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
 	  hxy_reco->Fill(tmp_pos.X(), tmp_pos.Y());
 	}
     }
+  
+  std::cout << "hit_r_phi entries: " << hit_r_phi->GetEntries() << std::endl;
+  std::vector<std::vector<double>> hit_phiGaps = getPhiGaps(hit_r_phi);
+  for(int R=0; R<3; R++){
+    std::cout << Form("hit R%d gap size: ",R+1) << hit_phiGaps[R].size() << std::endl;
+    for(int i=0; i<(int)hit_phiGaps[R].size(); i++){
+      std::cout << Form("hit R%d gap ",R+1) << i << ": " << hit_phiGaps[R][i] << std::endl; 
+    }
+  }
+  std::cout << "clust_r_phi entries: " << clust_r_phi->GetEntries() << std::endl;
+  std::vector<std::vector<double>> clust_phiGaps = getPhiGaps(clust_r_phi);
+  for(int R=0; R<3; R++){
+    std::cout << Form("clust R%d gap size: ",R+1) << clust_phiGaps[R].size() << std::endl;
+    for(int i=0; i<(int)clust_phiGaps[R].size(); i++){
+      std::cout << Form("clust R%d gap ",R+1) << i << ": " << clust_phiGaps[R][i] << std::endl; 
+    }
+  }
+  std::vector<double> angleDiff = getAverageRotation(hit_phiGaps, clust_phiGaps);
+  
+
+  std::cout << "hit_r_phi_pos entries: " << hit_r_phi_pos->GetEntries() << std::endl;
+  std::vector<std::vector<double>> hit_phiGaps_pos = getPhiGaps(hit_r_phi_pos);
+  for(int R=0; R<3; R++){
+    std::cout << Form("pos hit R%d gap size: ",R+1) << hit_phiGaps_pos[R].size() << std::endl;
+    for(int i=0; i<(int)hit_phiGaps_pos[R].size(); i++){
+      std::cout << Form("pos hit R%d gap ",R+1) << i << ": " << hit_phiGaps_pos[R][i] << std::endl; 
+    }
+  }
+  std::cout << "clust_r_phi_pos entries: " << clust_r_phi_pos->GetEntries() << std::endl;
+  std::vector<std::vector<double>> clust_phiGaps_pos = getPhiGaps(clust_r_phi_pos);
+  for(int R=0; R<3; R++){
+    std::cout << Form("pos clust R%d gap size: ",R+1) << clust_phiGaps_pos[R].size() << std::endl;
+    for(int i=0; i<(int)clust_phiGaps_pos[R].size(); i++){
+      std::cout << Form("pos clust R%d gap ",R+1) << i << ": " << clust_phiGaps_pos[R][i] << std::endl; 
+    }
+  }
+  std::vector<double> angleDiff_pos = getAverageRotation(hit_phiGaps_pos, clust_phiGaps_pos);
+
+  std::cout << "hit_r_phi_neg entries: " << hit_r_phi_neg->GetEntries() << std::endl;
+  std::vector<std::vector<double>> hit_phiGaps_neg = getPhiGaps(hit_r_phi_neg);
+  for(int R=0; R<3; R++){
+    std::cout << Form("neg hit R%d gap size: ",R+1) << hit_phiGaps_neg[R].size() << std::endl;
+    for(int i=0; i<(int)hit_phiGaps_neg[R].size(); i++){
+      std::cout << Form("neg hit R%d gap ",R+1) << i << ": " << hit_phiGaps_neg[R][i] << std::endl; 
+    }
+  }
+  std::cout << "clust_r_phi_neg entries: " << clust_r_phi_neg->GetEntries() << std::endl;
+  std::vector<std::vector<double>> clust_phiGaps_neg = getPhiGaps(clust_r_phi_neg);
+  for(int R=0; R<3; R++){
+    std::cout << Form("neg clust R%d gap size: ",R+1) << clust_phiGaps_neg[R].size() << std::endl;
+    for(int i=0; i<(int)clust_phiGaps_neg[R].size(); i++){
+      std::cout << Form("neg clust R%d gap ",R+1) << i << ": " << clust_phiGaps_neg[R][i] << std::endl; 
+    }
+  }
+  std::vector<double> angleDiff_neg = getAverageRotation(hit_phiGaps_neg, clust_phiGaps_neg);
+
+  for(int R=0; R<3; R++){
+    std::cout << "angle diff: " << angleDiff[R] << "   pos: " << angleDiff_pos[R] << "   neg: " << angleDiff_neg[R] << std::endl;
+  }
 
   // Match reco and truth positions
   //std::map<unsigned int, unsigned int> matched_pair;
@@ -320,6 +478,18 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
     for(unsigned int j = 0; j < reco_pos.size(); ++j)
     {
       
+      int angleR = -1;
+      
+      if(reco_pos[j].Perp() < 40) angleR = 0;
+      else if(reco_pos[j].Perp() >= 40 && reco_pos[j].Perp() <58) angleR = 1;
+      if(reco_pos[j].Perp() >= 58) angleR = 2;
+      
+      
+      if(angleR != -1) reco_pos[j].RotateZ(-1.0*angleDiff[angleR]);
+      const double phi2_rot = reco_pos[j].Phi();
+      if(angleR != -1) reco_pos[j].RotateZ(angleDiff[angleR]);
+
+      
       const auto& nclus = reco_nclusters[j];
       const double z2 = reco_pos[j].Z(); 
       const double rad2=get_r(reco_pos[j].X(), reco_pos[j].Y());
@@ -333,7 +503,8 @@ int PHTpcCentralMembraneMatcher::process_event(PHCompositeNode * /*topNode*/)
       const bool accepted_r = std::abs(dr) < m_rad_cut;
 
       const auto dphi = delta_phi(phi1-phi2);
-      const bool accepted_phi = std::abs(dphi) < m_phi_cut;
+      const auto dphi_rot = delta_phi(phi1-phi2_rot);
+      const bool accepted_phi = std::abs(dphi_rot) < m_phi_cut;
       
       if(m_savehistograms)
       {
@@ -502,6 +673,18 @@ int PHTpcCentralMembraneMatcher::End(PHCompositeNode * /*topNode*/ )
     }
   }
   
+  fout2->cd();
+
+  hit_r_phi->Write();
+  hit_r_phi_pos->Write();
+  hit_r_phi_neg->Write();
+
+  clust_r_phi->Write();
+  clust_r_phi_pos->Write();
+  clust_r_phi_neg->Write();
+
+  fout2->Close();
+
   // write evaluation histograms
   if(m_savehistograms && fout)
   {

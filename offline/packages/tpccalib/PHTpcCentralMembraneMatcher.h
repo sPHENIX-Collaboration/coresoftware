@@ -110,6 +110,17 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   
   std::unique_ptr<TFile> fout;
 
+  TH2F *hit_r_phi;
+  TH2F *hit_r_phi_pos;
+  TH2F *hit_r_phi_neg;
+
+  TH2F *clust_r_phi;
+  TH2F *clust_r_phi_pos;
+  TH2F *clust_r_phi_neg;
+  
+  std::string m_outputfile2 = "CM_r_phi_maps.root";
+  std::unique_ptr<TFile> fout2;
+
   //@}
     
   /// radius cut for matching clusters to pad, for size 2 clusters
@@ -207,6 +218,10 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   std::vector<TVector3> m_truth_pos;
 
   //@}
+
+  std::vector<std::vector<double>> getPhiGaps(TH2F *r_phi);
+
+  std::vector<double> getAverageRotation(std::vector<std::vector<double>> hit, std::vector<std::vector<double>> clust);
 
 };
 

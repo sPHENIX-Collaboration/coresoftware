@@ -121,6 +121,8 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       
       if(cluster->getAdc() < _min_adc_value) continue;
       if( std::abs(z) < _min_z_value) continue;
+
+      if(removeSector && TpcDefs::getSide(cluskey) > 0 && TpcDefs::getSectorId(cluskey) == 1) continue;
       
       ++m_accepted_clusters;
       

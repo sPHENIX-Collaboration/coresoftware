@@ -45,6 +45,8 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   void set_min_z_value(const double val) {_min_z_value = val;}
   void set_stripe_dr_values(const double dr1, const double dr2, const double dr3){ _cmclus_dr_inner = dr1; _cmclus_dr_mid = dr2; _cmclus_dr_outer = dr3;}
 
+  void set_removeSector(bool a_removeSector){ removeSector = a_removeSector; }
+
  //! run initialization
   int InitRun(PHCompositeNode *topNode);
 
@@ -99,7 +101,7 @@ class PHTpcCentralMembraneClusterizer : public SubsysReco
   double _cmclus_dr_mid = 0.95;  //cm
   double _cmclus_dr_outer = 1.025;  //cm
 
-
+  bool removeSector = false;
 
 };
 
