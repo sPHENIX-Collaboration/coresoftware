@@ -16,7 +16,7 @@ class TFile;
 class TH1;
 class TH2;
 
-//! micromegas clusterizer
+//! micromegas raw data decoder
 class MicromegasRawDataDecoder : public SubsysReco
 {
   public:
