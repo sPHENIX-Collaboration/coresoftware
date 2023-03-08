@@ -45,7 +45,6 @@ TrkrTruthTrack* TrkrTruthTrackContainerv1::getTruthTrack(unsigned int trackid)
 
 TrkrTruthTrack* TrkrTruthTrackContainerv1::getTruthTrack (unsigned int id, PHG4TruthInfoContainer* truth_info) { 
   // return the track if already in m_data, otherwise make it and return the newly made track
-  std::cout << " FIXME b0 " << std::endl;
   if (hasTrackid(id)) return m_data[id];
       PHG4Particle* particle = /*(PHG4Particlev3*)*/ truth_info->GetParticle(id);
       if (particle == nullptr) {
@@ -56,15 +55,12 @@ TrkrTruthTrack* TrkrTruthTrackContainerv1::getTruthTrack (unsigned int id, PHG4T
         m_data[id] = current_track;
         return current_track;
       }
-  std::cout << " FIXME b1 " << std::endl;
       int vtxid = particle->get_vtx_id();
       PHG4VtxPoint* vtx = truth_info->GetVtx(vtxid);
       auto current_track = new TrkrTruthTrackv1(id, particle, vtx) ;
       m_data[id] = current_track;
       return current_track;
-  std::cout << " FIXME b2 " << std::endl;
 }
-
 
 
 TrkrTruthTrackContainer::ConstRange TrkrTruthTrackContainerv1::getTruthTrackRange() const
