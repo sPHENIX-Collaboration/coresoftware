@@ -626,6 +626,16 @@ SourceLinkVec PHActsTrkFitter::getSourceLinks(TrackSeed* track,
       TrkrDefs::cluskey cluskey = global_moved[i].first;
       Acts::Vector3 global = global_moved[i].second;
    
+      if(TrkrDefs::getLayer(cluskey) == m_ignoreLayer)
+	{
+	  if(Verbosity() > 3)
+	    {
+	      std::cout << PHWHERE << "skipping cluster in layer " 
+			<< (unsigned int) TrkrDefs::getLayer(cluskey) << std::endl;
+	    }
+	  continue;
+	}
+
       auto cluster = m_clusterContainer->findCluster(cluskey);
       Surface surf = m_tGeometry->maps().getSurface(cluskey, cluster);
 
