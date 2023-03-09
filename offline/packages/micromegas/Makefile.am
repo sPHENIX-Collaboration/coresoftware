@@ -22,6 +22,7 @@ pkginclude_HEADERS = \
   MicromegasClusterizer.h \
   MicromegasDefs.h \
   MicromegasMapping.h \
+  MicromegasRawDataCalibration.h \
   MicromegasRawDataDecoder.h \
   MicromegasTile.h
 
@@ -51,6 +52,7 @@ libmicromegas_io_la_LIBADD = \
 # sources for micromegas library
 libmicromegas_la_SOURCES = \
   MicromegasClusterizer.cc \
+  MicromegasRawDataCalibration.cc \
   MicromegasRawDataDecoder.cc
 
 libmicromegas_la_LIBADD = \
