@@ -18,18 +18,18 @@ class TH1;
 class TH2;
 class TProfile;
 
-//! micromegas raw data decoder
+/// micromegas raw data decoder
 class MicromegasRawDataCalibration : public SubsysReco
 {
   public:
 
-  //! constructor
+  /// constructor
   MicromegasRawDataCalibration( const std::string &name = "MicromegasRawDataCalibration" );
 
-  //! global initialization
+  /// global initialization
   int Init(PHCompositeNode*) override;
 
-  //! run initialization
+  /// run initialization
   int InitRun(PHCompositeNode*) override;
 
   /// event processing
@@ -63,23 +63,20 @@ class MicromegasRawDataCalibration : public SubsysReco
   static constexpr int m_nchannels_total = m_nfee*m_nchannels_fee;
   static constexpr int m_max_adc = 1024;
   
-  //! min sample for noise estimation 
+  /// min sample for noise estimation 
   int m_sample_min = 0;
   
-  //! max sample for noise estimation
+  /// max sample for noise estimation
   int m_sample_max = 100;
   
-  //! min number of entries to extract pedestal and rms
-  int m_min_entries = 1;
-  
-  //! calibration output file
+  /// calibration output file
   std::string m_outputfile = "TPOT_Pedestal_000.txt";
 
-  //! map fee id to Profile histogram
+  /// map fee id to Profile histogram
   using profile_map_t = std::map<int, TProfile*>;
   profile_map_t m_profile_map;
   
-  //!@name evaluation histograms
+  ///@name evaluation histograms
   //@{
 
   /// Output root histograms
@@ -89,10 +86,10 @@ class MicromegasRawDataCalibration : public SubsysReco
   std::string m_histogramfilename = "MicromegasRawDataCalibration.root";
   std::unique_ptr<TFile> m_histogramfile;
 
-  //! Fired FEE
+  /// Fired FEE
   TH1* m_h_fee_id = nullptr;
 
-  //! ADC distribution vs channel number
+  /// ADC distribution vs channel number
   TH2* m_h_adc_channel = nullptr;
 
   //@}

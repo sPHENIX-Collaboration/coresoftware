@@ -160,9 +160,6 @@ int MicromegasRawDataCalibration::End(PHCompositeNode* /*topNode*/ )
     {
       for( int i = 0; i < profile->GetNbinsX(); ++ i )
       {
-        const auto entries = profile->GetBinEntries(i+1);
-        if( entries < m_min_entries ) continue;
-        
         const auto pedestal = profile->GetBinContent(i+1);
         const auto rms = profile->GetBinError(i+1);
         
