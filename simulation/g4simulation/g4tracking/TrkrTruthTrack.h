@@ -1,9 +1,9 @@
 #ifndef TRACKBASE_TRKRTRUTHTRACK_H
 #define TRACKBASE_TRKRTRUTHTRACK_H
 
-#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <climits>
 #include <cmath>

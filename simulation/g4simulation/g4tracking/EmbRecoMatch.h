@@ -1,9 +1,9 @@
 #ifndef TRACKBASE_EMBRECOMATCH_H
 #define TRACKBASE_EMBRECOMATCH_H
 
-#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
+#include <trackbase/TrkrDefs.h>
 #include <vector>
 #include <climits>
 #include <cmath>

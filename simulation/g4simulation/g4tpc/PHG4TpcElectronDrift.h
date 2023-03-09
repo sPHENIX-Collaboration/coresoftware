@@ -4,18 +4,14 @@
 #ifndef G4TPC_PHG4TPCELECTRONDRIFT_H
 #define G4TPC_PHG4TPCELECTRONDRIFT_H
 
-
-#include <phparameter/PHParameterInterface.h>
-
-#include <g4main/PHG4HitContainer.h>
-
-#include <fun4all/SubsysReco.h>
-
-#include <gsl/gsl_rng.h>
-
 #include <array>
 #include <cmath>
+#include <fstream>
+#include <fun4all/SubsysReco.h>
+#include <g4main/PHG4HitContainer.h>
+#include <gsl/gsl_rng.h>
 #include <memory>
+#include <phparameter/PHParameterInterface.h>
 #include <string>
 #include <trackbase/ActsGeometry.h>
 
@@ -73,6 +69,8 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   /* TpcClusterBuilder MapToPadPlane(const double x, const double y, const */
   /*     double z, const unsigned int side, PHG4HitContainer::ConstIterator hiter, */
   /*     TNtuple *ntpad, TNtuple *nthit); */
+
+  std::ofstream f_out;
 
   TrkrHitSetContainer *hitsetcontainer = nullptr;
   TrkrHitTruthAssoc *hittruthassoc = nullptr;
