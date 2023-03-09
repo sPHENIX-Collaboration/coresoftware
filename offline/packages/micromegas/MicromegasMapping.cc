@@ -34,7 +34,7 @@ m_detectors( {
   {14, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z, 3 ), "M10Z", "NCOZ" },
   {19, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z, 2 ), "M4Z",  "NCIZ" },
   {11, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z, 5 ), "M2Z",  "NEIZ" },
-  {15, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z, 7 ), "M7Z",  "NWIZ" } 
+  {15, MicromegasDefs::genHitSetKey(56, MicromegasDefs::SegmentationType::SEGMENTATION_Z, 7 ), "M7Z",  "NWIZ" }
 } )
 {
   std::cout << "MicromegasMapping::MicromegasMapping." << std::endl;
@@ -80,9 +80,9 @@ std::string MicromegasMapping::get_detname_sphenix( int fee_id ) const
 //____________________________________________________________________________________________________
 int MicromegasMapping::get_physical_strip( int /*fee_id*/, int channel_id) const
 {
-  /* 
-   * this maps channel id (0-255) on a given FEE board, to physical strip number in the detector 
-   * Just a placeholder for now. We just return the same index. 
+  /*
+   * this maps channel id (0-255) on a given FEE board, to physical strip number in the detector
+   * Just a placeholder for now. We just return the same index.
    */
   return channel_id;
 }
