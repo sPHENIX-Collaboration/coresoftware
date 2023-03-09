@@ -19,6 +19,7 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   CylinderGeomMicromegas.h \
+ 	MicromegasCalibrationData.h \
   MicromegasClusterizer.h \
   MicromegasDefs.h \
   MicromegasMapping.h \
@@ -39,8 +40,9 @@ nobase_dist_pcm_DATA = \
 libmicromegas_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeomMicromegas.cc \
-  MicromegasMapping.cc \
-  MicromegasDefs.cc
+ 	MicromegasCalibrationData.cc \
+  MicromegasDefs.cc \
+  MicromegasMapping.cc
 
 libmicromegas_io_la_LIBADD = \
   -lCLHEP \

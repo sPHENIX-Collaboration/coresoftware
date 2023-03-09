@@ -26,7 +26,11 @@ MicromegasRawDataDecoder::MicromegasRawDataDecoder( const std::string& name ):
 
 //_____________________________________________________________________
 int MicromegasRawDataDecoder::Init(PHCompositeNode* /*topNode*/ )
-{ return Fun4AllReturnCodes::EVENT_OK; }
+{ 
+  // read calibrations
+  m_calibration_data.read( m_calibration_filename );
+  return Fun4AllReturnCodes::EVENT_OK; 
+}
 
 //____________________________________________________________________________..
 int MicromegasRawDataDecoder::InitRun(PHCompositeNode *topNode)

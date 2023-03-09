@@ -163,7 +163,7 @@ int MicromegasRawDataCalibration::End(PHCompositeNode* /*topNode*/ )
         const auto pedestal = profile->GetBinContent(i+1);
         const auto rms = profile->GetBinError(i+1);
         
-        out << fee << ", " << i << ", " << pedestal << ", " << rms << std::endl;
+        out << fee << " " << i << " " << pedestal << " " << rms << std::endl;
       }
     }
     out.close();    
