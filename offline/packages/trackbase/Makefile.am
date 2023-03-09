@@ -19,6 +19,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  ActsAborter.h \
   ActsGeometry.h \
   ActsGsfTrackFittingAlgorithm.h \
   ActsSourceLink.h \
