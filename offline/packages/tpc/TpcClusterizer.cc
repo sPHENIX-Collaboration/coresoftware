@@ -307,7 +307,7 @@ namespace
       int tbinhi = -1;
       int tbinlo = 666666;
       int clus_size = ihit_list.size();
-      
+      int max_adc  = 0;
       if(clus_size == 1) return;
       //      std::cout << "process list" << std::endl;    
       std::vector<TrkrDefs::hitkey> hitkeyvec;
@@ -315,7 +315,8 @@ namespace
 	double adc = iter->adc; 
 	
 	if (adc <= 0) continue;
-	
+	if(adc > max_adc)
+	  max_adc = adc;
 	int iphi = iter->iphi + my_data.phioffset;
 	int it   = iter->it + my_data.toffset;
 	if(iphi > phibinhi) phibinhi = iphi;
@@ -435,6 +436,7 @@ namespace
 	auto clus = new TrkrClusterv4;
 	//auto clus = std::make_unique<TrkrClusterv3>();
 	clus->setAdc(adc_sum);  
+	clus->setMaxAdc(max_adc);  
 	clus->setOverlap(ntouch);
 	clus->setEdge(nedge);
 	clus->setPhiSize(phisize);
@@ -442,6 +444,8 @@ namespace
 	clus->setSubSurfKey(subsurfkey);      
 	clus->setLocalX(local(0));
 	clus->setLocalY(clust);
+	//	clus->setPhiErr(sqrt(phi_err_square));
+	//clus->setZErr(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2)));
 	my_data.cluster_vector.push_back(clus);
 	}
       }
