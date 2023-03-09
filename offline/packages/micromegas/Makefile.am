@@ -21,6 +21,7 @@ pkginclude_HEADERS = \
   CylinderGeomMicromegas.h \
   MicromegasClusterizer.h \
   MicromegasDefs.h \
+  MicromegasMapping.h \
   MicromegasRawDataDecoder.h \
   MicromegasTile.h
 
@@ -37,6 +38,7 @@ nobase_dist_pcm_DATA = \
 libmicromegas_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeomMicromegas.cc \
+  MicromegasMapping.cc \
   MicromegasDefs.cc
 
 libmicromegas_io_la_LIBADD = \
@@ -62,7 +64,6 @@ libmicromegas_la_LIBADD = \
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;
-
 
 ################################################
 # linking tests
