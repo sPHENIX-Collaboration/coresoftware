@@ -122,7 +122,8 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       if(cluster->getAdc() < _min_adc_value) continue;
       if( std::abs(z) < _min_z_value) continue;
 
-      if(removeSector && TpcDefs::getSide(cluskey) > 0 && TpcDefs::getSectorId(cluskey) == 1) continue;
+      //      if(removeSector && TpcDefs::getSide(cluskey) > 0 && TpcDefs::getSectorId(cluskey) == 1 && TrkrDefs::getLayer(cluskey) < 38) continue;
+      if(removeSector && TpcDefs::getSide(cluskey) > 0 && TrkrDefs::getLayer(cluskey) < 38) continue;
       
       ++m_accepted_clusters;
       
@@ -182,6 +183,9 @@ int PHTpcCentralMembraneClusterizer::process_event(PHCompositeNode *topNode)
       
       // must match clusters that are on the same side
       if( side[i] != side[j] ) continue;
+      
+      //must match clusters that are close to each other in Z
+      if(std::abs(pos[i].Z() - pos[j].Z()) > 0.5) continue;
       
       const float newphidist=std::abs(pos[i].DeltaPhi(pos[j]));
       if (newphidist<bestphidist)

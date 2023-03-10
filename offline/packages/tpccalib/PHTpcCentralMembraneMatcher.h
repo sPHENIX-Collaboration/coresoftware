@@ -134,13 +134,13 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
   //@{
 
   /// distortion correction grid size along phi
-  int m_phibins = 36;
+  int m_phibins = 40;
 
   static constexpr float m_phiMin = 0;
   static constexpr float m_phiMax = 2.*M_PI;
 
   /// distortion correction grid size along r
-  int m_rbins = 16;
+  int m_rbins = 26;
 
   static constexpr float m_rMin = 20; // cm
   static constexpr float m_rMax = 78; // cm
@@ -223,6 +223,9 @@ class PHTpcCentralMembraneMatcher : public SubsysReco
 
   std::vector<double> getAverageRotation(std::vector<std::vector<double>> hit, std::vector<std::vector<double>> clust);
 
+  std::vector<double> getRPeaks(TH2F *r_phi);
+
+  int getClusterRMatch( std::vector<int> hitMatches, std::vector<double> clusterPeaks, double clusterR);
 };
 
 #endif // PHTPCCENTRALMEMBRANEMATCHER_H
