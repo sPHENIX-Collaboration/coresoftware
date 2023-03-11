@@ -45,7 +45,9 @@ my %proddesc = (
     "13" => "JS pythia8 Photon Jet",
     "14" => "Single Particles",
     "15" => "Special Productions",
-    "16" => "HF pythia8 D0 Jets"
+    "16" => "HF pythia8 D0 Jets",
+    "17" => "HF pythia8 D0 pi-k Jets ptmin = 5GeV ",
+    "18" => "HF pythia8 D0 pi-k Jets ptmin = 12GeV"
     );
 
 my %pileupdesc = (
@@ -296,6 +298,24 @@ if (defined $prodtype)
     elsif ($prodtype == 16)
     {
 	$filenamestring = "pythia8_JetD0";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	}
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 17)
+    {
+	$filenamestring = "pythia8_CharmD0piKJet5";
+	if (! defined $nopileup)
+	{
+	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	}
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 18)
+    {
+	$filenamestring = "pythia8_CharmD0piKJet12";
 	if (! defined $nopileup)
 	{
 	    $filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
@@ -644,6 +664,8 @@ sub commonfiletypes
     $filetypes{"DST_VERTEX"} = "Pileup Simulated Smeared Vertex";
 # pass3 calo
     $filetypes{"DST_CALO_CLUSTER"} = "Reconstructed Calorimeter Towers and Clusters";
+# pass3 global
+    $filetypes{"DST_GLOBAL"} = "Reconstructed Global Detectors (Bbc, Epd)";
 #pass3 trk
     $filetypes{"DST_TRKR_HIT"} = "TPC and Silicon Hits";
     $filetypes{"DST_TRUTH"} = "Truth Info (updated with Clusters)";
