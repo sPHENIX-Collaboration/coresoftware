@@ -54,7 +54,7 @@ void TrkrHitSetTpcv1::identify(std::ostream& os) const
   //    (entry.second)->identify(os);
   //  }
 
-  for (int i = 0; i < m_nPads; ++i)
+  for (unsigned int i = 0; i < m_nPads; ++i)
   {
     os << "Pad " << i << ":";
 
@@ -64,22 +64,6 @@ void TrkrHitSetTpcv1::identify(std::ostream& os) const
     }
     os << std::endl;
   }
-}
-
-TpcDefs::ADCDataType& TrkrHitSetTpcv1::getTpcADC(TrkrDefs::hitkey key)
-{
-  const uint16_t pad = TpcDefs ::getPad(key);
-  const uint16_t tbin = TpcDefs ::getTBin(key);
-
-  return getTpcADC(pad, tbin);
-}
-
-const TpcDefs::ADCDataType& TrkrHitSetTpcv1::getTpcADC(TrkrDefs::hitkey key) const
-{
-  const uint16_t pad = TpcDefs ::getPad(key);
-  const uint16_t tbin = TpcDefs ::getTBin(key);
-
-  return getTpcADC(pad, tbin);
 }
 
 TpcDefs::ADCDataType& TrkrHitSetTpcv1::getTpcADC(const uint16_t pad, const uint16_t tbin)
@@ -107,7 +91,7 @@ TrkrHitSetTpcv1::ConstIterator
 TrkrHitSetTpcv1::addHitSpecificKey(const TrkrDefs::hitkey key, TrkrHit* hit)
 {
   std::cout << __PRETTY_FUNCTION__
-            << " : This function is deprecated! Please use getTpcADC(TrkrDefs::hitkey key)" << endl;
+            << " : This function is deprecated! Please use getTpcADC(TrkrDefs::hitkey key)" << std::endl;
 
   if (hit)
   {
@@ -115,31 +99,27 @@ TrkrHitSetTpcv1::addHitSpecificKey(const TrkrDefs::hitkey key, TrkrHit* hit)
     delete hit;
   }
 
-  return TrkrHitSet::addHitSpecificKey(key, hit);
+  return TrkrHitSetTpc::addHitSpecificKey(key, hit);
 }
 
 TrkrHit*
 TrkrHitSetTpcv1::getHit(const TrkrDefs::hitkey key) const
 {
   std::cout << __PRETTY_FUNCTION__
-            << " : This function is deprecated! Please use getTpcADC(TrkrDefs::hitkey key)" << endl;
+            << " : This function is deprecated! Please use getTpcADC(TrkrDefs::hitkey key)" << std::endl;
 
   exit(1);
-  TrkrHitSetTpcv1::ConstIterator it = m_hits.find(key);
 
-  if (it != m_hits.end())
-    return it->second;
-  else
-    return nullptr;
+  return TrkrHitSetTpc::getHit(key);
 }
 
 TrkrHitSetTpcv1::ConstRange
 TrkrHitSetTpcv1::getHits() const
 {
   std::cout << __PRETTY_FUNCTION__
-            << " : This function is deprecated! Please use getTpcADC(TrkrDefs::hitkey key)" << endl;
+            << " : This function is deprecated! Please use getTpcADC(TrkrDefs::hitkey key)" << std::endl;
 
   exit(1);
 
-  return TrkrHitSet::getHits();
+  return TrkrHitSetTpc::getHits();
 }

@@ -76,6 +76,7 @@ pkginclude_HEADERS = \
   TrkrHitSetContainer.h \
   TrkrHitSetContainerv1.h \
   TrkrHitSetv1.h \
+  TrkrHitSetTpc.h \
   TrkrHitSetTpcv1.h \
   TrkrHitTruthAssoc.h \
   TrkrHitTruthAssocv1.h \
@@ -124,6 +125,7 @@ ROOTDICTS = \
   TrkrHitSetContainerv1_Dict.cc \
   TrkrHitSet_Dict.cc \
   TrkrHitSetv1_Dict.cc \
+  TrkrHitSetTpc_Dict.cc \
   TrkrHitSetTpcv1_Dict.cc \
   TrkrHitTruthAssoc_Dict.cc \
   TrkrHitTruthAssocv1_Dict.cc \
@@ -175,6 +177,7 @@ nobase_dist_pcm_DATA = \
   TrkrHitSetContainerv1_Dict_rdict.pcm \
   TrkrHitSet_Dict_rdict.pcm \
   TrkrHitSetv1_Dict_rdict.pcm \
+  TrkrHitSetTpc_Dict_rdict.pcm \
   TrkrHitSetTpcv1_Dict_rdict.pcm \
   TrkrHitTruthAssoc_Dict_rdict.pcm \
   TrkrHitTruthAssocv1_Dict_rdict.pcm \
@@ -230,6 +233,7 @@ libtrack_io_la_SOURCES = \
   TrkrHitSetContainer.cc \
   TrkrHitSetContainerv1.cc \
   TrkrHitSetv1.cc \
+  TrkrHitSetTpc.cc \
   TrkrHitSetTpcv1.cc \
   TrkrHitTruthAssocv1.cc \
   TrkrHitv1.cc \

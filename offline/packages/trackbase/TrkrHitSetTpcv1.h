@@ -1,9 +1,7 @@
 #ifndef TRACKBASE_TrkrHitSetTpcv1_H
 #define TRACKBASE_TrkrHitSetTpcv1_H
 
-#include "TpcDefs.h"
-#include "TrkrDefs.h"
-#include "TrkrHitSet.h"
+#include "TrkrHitSetTpc.h"
 
 #include <utility>  // for pair
 #include <vector>
@@ -12,12 +10,16 @@
 class TrkrHit;
 
 //! Vectorized TPC data time frame storage
-class TrkrHitSetTpcv1 : public TrkrHitSet
+class TrkrHitSetTpcv1 final : public TrkrHitSetTpc
 {
  public:
   TrkrHitSetTpcv1() = default;
 
-  TrkrHitSetTpcv1(const unsigned int n_pad, const unsigned int n_tbin) { Resize(n_pad, n_tbin); }
+  TrkrHitSetTpcv1(const unsigned int n_pad, const unsigned int n_tbin)
+    : TrkrHitSetTpc(n_pad, n_tbin)
+  {
+    Resize(n_pad, n_tbin);
+  }
 
   ~TrkrHitSetTpcv1() override
   {
@@ -25,7 +27,10 @@ class TrkrHitSetTpcv1 : public TrkrHitSet
 
   void identify(std::ostream& os = std::cout) const override;
 
-  void Resize(const unsigned int n_pad, const unsigned int n_tbin);
+  void Resize(const unsigned int n_pad, const unsigned int n_tbin) override;
+
+  //! For ROOT TClonesArray end of event Operation
+  void Clear(Option_t* /*option*/ = "") override { Reset(); }
 
   void Reset() override;
 
@@ -39,13 +44,12 @@ class TrkrHitSetTpcv1 : public TrkrHitSet
     return m_hitSetKey;
   }
 
-  TpcDefs::ADCDataType& getTpcADC(const TrkrDefs::hitkey);
+  // legacy TrkrDefs::hitkey accesses
+  using TrkrHitSetTpc::getTpcADC;
 
-  const TpcDefs::ADCDataType& getTpcADC(const TrkrDefs::hitkey) const;
+  TpcDefs::ADCDataType& getTpcADC(const uint16_t pad, const uint16_t tbin) override;
 
-  TpcDefs::ADCDataType& getTpcADC(const uint16_t pad, const uint16_t tbin);
-
-  const TpcDefs::ADCDataType& getTpcADC(const uint16_t pad, const uint16_t tbin) const;
+  const TpcDefs::ADCDataType& getTpcADC(const uint16_t pad, const uint16_t tbin) const override;
 
   ConstIterator addHitSpecificKey(const TrkrDefs::hitkey, TrkrHit*) override;
 
@@ -57,35 +61,35 @@ class TrkrHitSetTpcv1 : public TrkrHitSet
 
   unsigned int size() const override
   {
-    return m_hits.size();
+    return m_nPads * n_tBins;
   }
 
-  unsigned int getNPads() const
+  unsigned int getNPads() const override
   {
     return m_nPads;
   }
 
-  void setNPads(unsigned int nPads = 0)
+  void setNPads(unsigned int nPads = 0) override
   {
     m_nPads = nPads;
   }
 
-  const std::vector<std::vector<TpcDefs::ADCDataType> >& getTimeFrameAdcData() const
+  const TimeFrameADCDataType& getTimeFrameAdcData() const override
   {
     return m_timeFrameADCData;
   }
 
-  void setTimeFrameAdcData(const std::vector<std::vector<TpcDefs::ADCDataType> >& timeFrameAdcData)
+  void setTimeFrameAdcData(const TimeFrameADCDataType& timeFrameAdcData) override
   {
     m_timeFrameADCData = timeFrameAdcData;
   }
 
-  unsigned int getTBins() const
+  unsigned int getTBins() const override
   {
     return n_tBins;
   }
 
-  void setTBins(unsigned int tBins = 0)
+  void setTBins(unsigned int tBins = 0) override
   {
     n_tBins = tBins;
   }
@@ -97,7 +101,7 @@ class TrkrHitSetTpcv1 : public TrkrHitSet
   /// vector storage of TPC timeframe without zero suppression
   // Top level indexes are vectors of pads
   // Lower level indexes are vectors of time bin
-  std::vector<std::vector<TpcDefs::ADCDataType> > m_timeFrameADCData;
+  TimeFrameADCDataType m_timeFrameADCData;
 
   unsigned int m_nPads = 0;
   unsigned int n_tBins = 0;
