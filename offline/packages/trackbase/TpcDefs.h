@@ -38,6 +38,10 @@ static const unsigned int kBitShiftTBin __attribute__((unused)) = 0;
 static const uint16_t MAXPAD __attribute__((unused)) = 1024;
 static const uint16_t MAXTBIN __attribute__((unused)) = 512;
 
+// in memory representation of TPC ADC data: 10bit ADC value as 16bit signed integer.
+// This is signed to allow pedestal subtraction when needed
+typedef int16_t ADCDataType;
+
 /**
    * @brief Get the sector id from hitsetkey
    * @param[in] hitsetkey
@@ -109,6 +113,7 @@ TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t sector, const 
    * @param[out] cluskey
    */
 TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t sector, const uint8_t side, const uint32_t clusid);
+
 
 }  // namespace TpcDefs
 
