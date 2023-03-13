@@ -21,14 +21,33 @@ class MicromegasCalibrationData
   MicromegasCalibrationData()
   {}
 
+  ///@name modifiers
+  //@{
+  
   /// read calibration from file
   void read( const std::string& /*filename*/ );
+
+  /// set pedestal for a given channel
+  void set_pedestal( int /*fee*/, int /*channel*/, double /*value*/ );
+
+  /// set rms for a given channel
+  void set_rms( int /*fee*/, int /*channel*/, double /*value*/ );
+  
+  //@}
+  
+  //!@name accessors
+  //@{
+  
+  /// write calibration to file
+  void write( const std::string& /*filename*/ ) const;
   
   /// get pedestal for a given channel
   double get_pedestal( int /*fee*/, int /*channel*/ ) const;
  
   /// get rms for a given channel
   double get_rms( int /*fee*/, int /*channel*/ ) const;
+
+  //@}
   
   private:
   

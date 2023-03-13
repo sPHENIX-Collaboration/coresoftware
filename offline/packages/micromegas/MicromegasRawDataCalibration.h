@@ -45,7 +45,7 @@ class MicromegasRawDataCalibration : public SubsysReco
   void set_sample_max( int value ) { m_sample_max = value; }
 
   /// set to true to store evaluation histograms and ntuples
-  void set_outputfile( const std::string& value ) { m_outputfile = value; }
+  void set_calibration_file( const std::string& value ) { m_calibration_filename = value; }
   
   /// set to true to store evaluation histograms and ntuples
   void set_save_histograms( bool value ) { m_savehistograms = value; }
@@ -70,8 +70,8 @@ class MicromegasRawDataCalibration : public SubsysReco
   int m_sample_max = 100;
   
   /// calibration output file
-  std::string m_outputfile = "TPOT_Pedestal_000.txt";
-
+  std::string m_calibration_filename = "TPOT_Pedestal_000.txt";
+    
   /// map fee id to Profile histogram
   using profile_map_t = std::map<int, TProfile*>;
   profile_map_t m_profile_map;

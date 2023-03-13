@@ -4,6 +4,7 @@
  */
 
 #include "MicromegasRawDataCalibration.h"
+#include "MicromegasCalibrationData.h"
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -154,19 +155,20 @@ int MicromegasRawDataCalibration::End(PHCompositeNode* /*topNode*/ )
   {
     std::cout << "MicromegasRawDataCalibration::End - no data" << std::endl;
   } else {
-    std::ofstream out( m_outputfile.c_str() );
-    out << "// fee, channel, pedestal, rms" << std::endl;
+
+    // create calibration data object
+    MicromegasCalibrationData calibration_data;
     for( const auto& [fee, profile]:m_profile_map )
     {
       for( int i = 0; i < profile->GetNbinsX(); ++ i )
       {
         const auto pedestal = profile->GetBinContent(i+1);
         const auto rms = profile->GetBinError(i+1);
-        
-        out << fee << " " << i << " " << pedestal << " " << rms << std::endl;
+        calibration_data.set_pedestal( fee, i, pedestal );
+        calibration_data.set_rms( fee, i, rms );
       }
     }
-    out.close();    
+    calibration_data.write( m_calibration_filename );
   }
   
   // save evaluation histograms

@@ -37,7 +37,28 @@ void MicromegasCalibrationData::read( const std::string& filename )
     
     // store
     m_calibration_map[fee].at(channel) = std::move(calib_data);
-  }  
+  }
+}
+
+//________________________________________________________________________-
+void MicromegasCalibrationData::set_pedestal( int fee, int channel, double value )
+{ m_calibration_map[fee].at(channel).m_pedestal = value; }
+
+//________________________________________________________________________-
+void MicromegasCalibrationData::set_rms( int fee, int channel, double value )
+{ m_calibration_map[fee].at(channel).m_rms = value; }
+
+//________________________________________________________________________-
+void MicromegasCalibrationData::write( const std::string& filename ) const
+{
+  if( m_calibration_map.empty() ) return;
+  std::ofstream out( filename.c_str() );
+  out << "// fee, channel, pedestal, rms" << std::endl;
+  for( const auto& [fee,array]:m_calibration_map )
+  {
+    for( size_t i = 0; i < array.size(); ++i )
+    { out << fee << " " << i << " " << array[i].m_pedestal << " " << array[i].m_rms << std::endl; }
+  }
 }
 
 //________________________________________________________________________-
