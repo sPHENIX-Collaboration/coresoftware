@@ -1,7 +1,7 @@
 void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const char* ionFile, const char* ibfName, const char* primName, const char* outputFile){
   
  //load the adc-per-bin data from the specified file.
-  TFile* adcInputFile = TFile::Open(adcfilenameadcFile, "READ");
+  TFile* adcInputFile = TFile::Open(adcFile, "READ");
   TH3* hAdc=nullptr;
   adcInputFile->GetObject(adcName, hAdc);
   if (hAdc == nullptr)  {
@@ -10,7 +10,7 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
   }
   
   //load the ions-per-bin data from the specified file
-  TFile* ibfGainInputFile = TFile::Open(ionFile, "READ");
+  TFile* ibfInputFile = TFile::Open(ionFile, "READ");
   TH2* hIbf=nullptr;
   TH2* hPrimaries=nullptr;
   ibfInputFile->GetObject(ibfName,hIbf);
