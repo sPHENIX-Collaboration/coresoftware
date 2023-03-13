@@ -375,9 +375,7 @@ bool ChargeMapReader::ReadSourceAdc(TH3 *adcHist, TH2* gainHist, float axisScale
   //   0     1     2   ...   n-1    n    n+1
   // under|first|   ..|  ..  |  .. |last| over
   int i[3];
-  float low[3], high[3];
-  float dr, dz;  //bin widths in each dimension.  Got too confusing to make these an array.
-  //note that all of this is done in the native units of the source data, specifically, the volume element is in hist units, not our internal units.
+ 
 
   for (i[0] = 1; i[0] <= nbins[0]; i[0]++) {  //phi
     for (i[1] = 1; i[1] <= nbins[1]; i[1]++) {  //r
@@ -398,7 +396,7 @@ bool ChargeMapReader::ReadSourceAdc(TH3 *adcHist, TH2* gainHist, float axisScale
   RegenerateDensity();
   RegenerateCharge();
 
-  if (DEBUG) printf("done reading charge from %s\n", sourceHist->GetName());
+  if (DEBUG) printf("done converting ADCs from %s\n", adcHist->GetName());
 
   return true;
 }
