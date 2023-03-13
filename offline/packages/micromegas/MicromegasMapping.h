@@ -20,6 +20,9 @@ class MicromegasMapping
   /// constructor
   MicromegasMapping();
 
+  /// get list of fee ids
+  std::vector<int> get_fee_id_list() const;
+  
   /// get hitsetkey from fiber_id (fee_id)
   TrkrDefs::hitsetkey get_hitsetkey( int /*fee_id*/ ) const;
 
