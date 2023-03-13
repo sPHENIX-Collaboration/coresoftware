@@ -24,11 +24,13 @@ void TrkrHitSetTpcv1::Reset()
 }
 void TrkrHitSetTpcv1::Resize(const unsigned int n_pad, const unsigned int n_tbin)
 {
-  m_timeFrameADCData.resize(n_pad);
+  if (n_pad != m_timeFrameADCData.size())
+    m_timeFrameADCData.resize(n_pad);
 
   for (auto& pad : m_timeFrameADCData)
   {
-    pad.resize(n_tbin);
+    if (n_tbin != pad.size())
+      pad.resize(n_tbin);
   }
 
   Reset();
