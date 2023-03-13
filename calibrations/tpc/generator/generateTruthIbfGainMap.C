@@ -30,7 +30,7 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
   hTotalCharge=static_cast<TH3*>(hPrimaries->Clone("hTotalCharge"));
   TH2* hFlatTotal=(TH2*)hTotalCharge->Project3D("xy");
   TH2* hFlatIbf=(TH2*)hIbf->Project3D("xy");
-  
+  hFlatTotal->Add(hFlatIbf);
   
   
   //sanity check that the bounds are the same
@@ -51,8 +51,9 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
   {
     nbins[i] = ax[i]->GetNbins();  //number of bins, not counting under and overflow.
     if (nbins[i]!=ax2[i]->GetNbins()){
-      printf("Primaries and Adc bins are different in axis %d. (%d vs %d) Failing\n",i,nbins[i],ax2[i]->GetNbins());
-      return;
+      printf("Primaries and Adc bins are different in axis %d. (%d vs %d).  Aborting unless in z.\n",i,nbins[i],ax2[i]->GetNbins());
+      if (i!=2) return;
+      printf("this is a z difference, which we can recover.\n");
     }
   }
 
