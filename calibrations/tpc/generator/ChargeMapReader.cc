@@ -5,6 +5,7 @@
 #include <TAxis.h>
 #include <TFile.h>
 #include <TH3.h>
+#include <TH2.h>
 
 #include <cassert>
 #include <cmath>
@@ -324,7 +325,7 @@ bool ChargeMapReader::ReadSourceCharge(TH3* sourceHist, float axisScale, float c
 
 
 
-bool ChargeMapReader::ReadSourceAdc(const char *adcfilename, const char* adchistname, const char* ibfgainfilename, const char* ibfgainhistname, float  axisScale =1., float contentScale=1.)
+bool ChargeMapReader::ReadSourceAdc(const char *adcfilename, const char* adchistname, const char* ibfgainfilename, const char* ibfgainhistname, float axisScale, float contentScale)
 {
   //load the adc-per-bin data from the specified file.
   TFile* adcInputFile = TFile::Open(adcfilename, "READ");
@@ -345,12 +346,12 @@ bool ChargeMapReader::ReadSourceAdc(const char *adcfilename, const char* adchist
    
   //and then hand the task off to the next function
   bool ret=ReadSourceAdc(hAdc,hIbfGain,axisScale,contentScale);
-  inputFile->Close();
+  adcInputFile->Close();
   //after this, the source histograms don't exist anymore.
   return ret;
 }
 
-  bool ChargeMapReader::ReadSourceAdc(TH3 *adcHist, TH2* gainHist, float axisScale =1., float contentScale=1.);
+bool ChargeMapReader::ReadSourceAdc(TH3 *adcHist, TH2* gainHist, float axisScale, float contentScale)
 {
   if (DEBUG) printf("reading ADCs from %s, ibfGain from %s\n", adcHist->GetName(), gainHist->GetName());
   inputAxisScale = axisScale;

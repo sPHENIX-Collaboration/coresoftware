@@ -1,4 +1,5 @@
 class TH3;
+class TH2;
 template <class T>
 class MultiArray;
 
