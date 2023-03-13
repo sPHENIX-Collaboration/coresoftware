@@ -70,7 +70,7 @@ class MicromegasRawDataCalibration : public SubsysReco
   int m_sample_max = 100;
   
   /// calibration output file
-  std::string m_calibration_filename = "TPOT_Pedestal_000.txt";
+  std::string m_calibration_filename = "TPOT_Pedestal_000.root";
     
   /// map fee id to Profile histogram
   using profile_map_t = std::map<int, TProfile*>;
