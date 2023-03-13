@@ -51,7 +51,7 @@ class MicromegasRawDataDecoder : public SubsysReco
   private:
   
   //! calibration filename
-  std::string m_calibration_filename = "TPOT_Pedestal_000.txt";
+  std::string m_calibration_filename = "TPOT_Pedestal_000.root";
     
   //! calibration data
   MicromegasCalibrationData m_calibration_data;
