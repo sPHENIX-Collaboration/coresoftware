@@ -29,13 +29,11 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   CylinderGeomMicromegas_Dict.cc \
-  MicromegasCalibrationData_Dict.cc \
   MicromegasTile_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeomMicromegas_Dict_rdict.pcm \
-  MicromegasCalibrationData_Dict_rdict.pcm \
   MicromegasTile_Dict_rdict.pcm
 
 # sources for io library
@@ -48,6 +46,7 @@ libmicromegas_io_la_SOURCES = \
 
 libmicromegas_io_la_LIBADD = \
   -lCLHEP \
+  -lcdbobjects \
   -lg4detectors_io \
   -lphool \
   -ltrack_io \
