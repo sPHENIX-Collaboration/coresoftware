@@ -110,6 +110,8 @@ class TrackEvaluationContainerv1: public TrackEvaluationContainer
     float phi = 0;
     float phi_error = 0;
     float z_error = 0;
+    float para_phi_error = 0;
+    float para_z_error = 0;
     //@}
 
     //!@name track position at cluster

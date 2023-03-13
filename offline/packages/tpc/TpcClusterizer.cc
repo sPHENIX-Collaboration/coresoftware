@@ -4,6 +4,7 @@
 #include <trackbase/TrkrClusterContainerv4.h>
 #include <trackbase/TrkrClusterv3.h>
 #include <trackbase/TrkrClusterv4.h>
+#include <trackbase/TrkrClusterv5.h>
 #include <trackbase/TrkrClusterHitAssocv3.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHit.h>
@@ -416,7 +417,7 @@ namespace
       // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
       
       if(my_data.cluster_version==3){
-	
+	std::cout << "ver3" << std::endl;
 	// Fill in the cluster details
 	//================
 	auto clus = new TrkrClusterv3;
@@ -431,6 +432,7 @@ namespace
 	clus->setActsLocalError(1,1, t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2));
 	my_data.cluster_vector.push_back(clus);
       }else if(my_data.cluster_version==4){
+	std::cout << "ver4" << std::endl;
 	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
 	if(sqrt(phi_err_square) > 0.01){
 	auto clus = new TrkrClusterv4;
@@ -448,7 +450,26 @@ namespace
 	//clus->setZErr(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2)));
 	my_data.cluster_vector.push_back(clus);
 	}
+      }else if(my_data.cluster_version==5){
+	std::cout << "ver5" << std::endl;
+	//	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
+	if(sqrt(phi_err_square) > 0.01){
+	auto clus = new TrkrClusterv5;
+	//auto clus = std::make_unique<TrkrClusterv3>();
+	clus->setAdc(adc_sum);  
+	clus->setMaxAdc(max_adc); 
+	clus->setEdge(nedge);
+	clus->setPhiSize(phisize);
+	clus->setZSize(tsize);
+	clus->setSubSurfKey(subsurfkey);      
+	clus->setLocalX(local(0));
+	clus->setLocalY(clust);
+	clus->setPhiError(sqrt(phi_err_square));
+	clus->setZError(sqrt(t_err_square * pow(my_data.tGeometry->get_drift_velocity(),2)));
+	my_data.cluster_vector.push_back(clus);
+	}
       }
+	
       //std::cout << "end clus out" << std::endl;
       //      if(my_data.do_assoc && my_data.clusterhitassoc){
       if(my_data.do_assoc)
