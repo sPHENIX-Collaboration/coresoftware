@@ -1,6 +1,8 @@
 #ifndef G4MVTX_PHG4MVTXHITRECO_H
 #define G4MVTX_PHG4MVTXHITRECO_H
 
+#include "TruthMvtxClusterBuilder.h"
+
 #include <phparameter/PHParameterInterface.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -13,6 +15,8 @@
 #include <string>
 
 class PHCompositeNode;
+class TrkrTruthTrackContainer;
+class TrkrClusterContainer;
 
 class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 {
@@ -57,6 +61,10 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   double m_extended_readout_time = 0.0;
 
   bool m_in_sphenix_srdo = false;
+
+  TrkrTruthTrackContainer* m_truthtracks;
+  TrkrClusterContainer*    m_truthclusters;
+  TruthMvtxClusterBuilder* m_truth_clusterer;
 
   class Deleter
   {

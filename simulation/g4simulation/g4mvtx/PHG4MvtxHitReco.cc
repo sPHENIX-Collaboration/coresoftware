@@ -14,12 +14,18 @@
 #include <trackbase/TrkrHitTruthAssocv1.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterContainerv4.h>
+#include <g4tracking/TrkrTruthTrackContainer.h>
+#include <g4tracking/TrkrTruthTrackContainerv1.h>
+
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Utils.h>
+#include <g4main/PHG4TruthInfoContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
@@ -140,6 +146,38 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
     trkrnode->addNode(newNode);
   }
 
+  m_truthtracks = findNode::getClass<TrkrTruthTrackContainer>(topNode, "TRKR_TRUTHTRACKCONTAINER");
+  if (!m_truthtracks)
+  {
+    PHNodeIterator dstiter(dstNode);
+    auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
+    }
+
+    m_truthtracks = new TrkrTruthTrackContainerv1();
+    auto newNode = new PHIODataNode<PHObject>(m_truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
+    DetNode->addNode(newNode);
+  }
+  m_truthclusters = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_TRUTHCLUSTERCONTAINER");
+  if (!m_truthclusters)
+  {
+    PHNodeIterator dstiter(dstNode);
+    auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
+    }
+
+    m_truthclusters = new TrkrClusterContainerv4;
+    auto newNode = new PHIODataNode<PHObject>(m_truthclusters, "TRKR_TRUTHCLUSTERCONTAINER", "PHObject");
+    DetNode->addNode(newNode);
+  }
+  m_truth_clusterer = new TruthMvtxClusterBuilder(m_truthclusters, m_truthtracks);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -152,6 +190,16 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
     std::cout << "Could not locate acts geometry" << std::endl;
     exit(1);
   }
+
+  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+  if (!geom_container) {
+    std::cout << PHWHERE << " Couldn't get geometry container CYLINDERGEOM_MVTX" << std::endl;
+  }
+  m_truth_clusterer->set_geom_container(geom_container);
+
+  PHG4TruthInfoContainer *truthinfo =
+    findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  m_truth_clusterer->set_truthinfo(truthinfo);
   // load relevant nodes
   // G4Hits
   const std::string g4hitnodename = "G4HIT_" + m_detector;
@@ -215,6 +263,8 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
     {
       // get hit
       auto g4hit = g4hit_it->second;
+
+      m_truth_clusterer->check_g4hit(g4hit);
 
       //cout << "From PHG4MvtxHitReco: Call hit print method: " << endl;
       if (Verbosity() > 4)
@@ -589,7 +639,10 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
           }
 
           // Either way, add the energy to it
-          hit->addEnergy(venergy[i1].first * TrkrDefs::MvtxEnergyScaleup);
+          double hitenergy = venergy[i1].first * TrkrDefs::MvtxEnergyScaleup;
+          hit->addEnergy(hitenergy);
+
+          m_truth_clusterer->addhitset(hitsetkey, hitkey, hitenergy);
 
           if (Verbosity() > 0)
             std::cout << "     added hit " << hitkey << " to hitset " << hitsetkey << " with strobe id " << strobe << " in layer " << layer
@@ -607,7 +660,9 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       }  // end loop over hit cells
     }    // end loop over g4hits for this layer
 
+
   }  // end loop over layers
+  m_truth_clusterer->reset();
 
   // print the list of entries in the association table
   if (Verbosity() > 2)
