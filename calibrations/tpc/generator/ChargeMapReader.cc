@@ -338,7 +338,7 @@ bool ChargeMapReader::ReadSourceAdc(const char *adcfilename, const char* adchist
   //load the conversion factor from adc sum to ibf 
   TFile* ibfGainInputFile = TFile::Open(ibfgainfilename, "READ");
   TH2* hIbfGain=nullptr;
-  ibfGainInputFile->GetObject(ibfgainfilename,hIbfGain);
+  ibfGainInputFile->GetObject(ibfgainhistname,hIbfGain);
   if (hIbfGain == nullptr) {
     printf("IBF Gain hist or file %s not found!\n",ibfgainfilename);
     return false;
