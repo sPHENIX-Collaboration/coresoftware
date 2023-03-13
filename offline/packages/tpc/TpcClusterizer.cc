@@ -8,6 +8,7 @@
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetTpc.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
 #include <trackbase/RawHit.h>
@@ -45,6 +46,7 @@
 #include <utility>  // for pair
 #include <array>
 #include <vector>
+#include <cassert>
 #include <limits>
 // Terra incognita....
 #include <pthread.h>
@@ -66,7 +68,7 @@ namespace
   struct thread_data 
   {
     PHG4TpcCylinderGeom *layergeom = nullptr;
-    TrkrHitSet *hitset = nullptr;
+    TrkrHitSetTpc *hitset = nullptr;
     RawHitSetv1 *rawhitset = nullptr;
     ActsGeometry *tGeometry = nullptr;
     unsigned int layer = 0;
@@ -489,7 +491,7 @@ namespace
     }
 
     if( my_data->hitset!=nullptr){
-      TrkrHitSet *hitset = my_data->hitset;
+      TrkrHitSetTpc *hitset = my_data->hitset;
       TrkrHitSet::ConstRange hitrangei = hitset->getHits();
       
       for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
@@ -537,6 +539,9 @@ namespace
 	  }
 	}
       }
+
+
+
     }else  if( my_data->rawhitset!=nullptr){
       RawHitSetv1 *hitset = my_data->rawhitset;
       /*std::cout << "Layer: " << my_data->layer 
@@ -847,7 +852,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	 ++hitsetitr)
       {
       	//if(count>0)continue;
-	TrkrHitSet *hitset = hitsetitr->second;
+	TrkrHitSetTpc *hitset = dynamic_cast<TrkrHitSetTpc *>(hitsetitr->second);
+	assert(hitset);
 	unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
 	int side = TpcDefs::getSide(hitsetitr->first);
 	unsigned int sector= TpcDefs::getSectorId(hitsetitr->first);

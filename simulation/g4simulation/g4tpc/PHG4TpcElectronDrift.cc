@@ -12,8 +12,9 @@
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>  // for TrkrHit
-#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetTpc.h>
 #include <trackbase/TrkrHitSetContainerv1.h>
+#include <trackbase/TrkrHitSetContainerv2.h>
 #include <trackbase/TrkrHitTruthAssoc.h>  // for TrkrHitTruthA...
 #include <trackbase/TrkrHitTruthAssocv1.h>
 #include <trackbase/TrkrHitv2.h>
@@ -140,7 +141,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
       dstNode->addNode(DetNode);
     }
 
-    hitsetcontainer = new TrkrHitSetContainerv1;
+    hitsetcontainer = new TrkrHitSetContainerv2("TrkrHitSetTpcv1");
     auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
     DetNode->addNode(newNode);
   }
@@ -621,6 +622,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
         // find or add this hitset on the node tree
         TrkrHitSetContainer::Iterator node_hitsetit = hitsetcontainer->findOrAddHitSet(node_hitsetkey);
+        TrkrHitSetTpc * hitset = dynamic_cast<TrkrHitSetTpc *>(node_hitsetit->second);
+        assert(hitset);
 
         // get all of the hits from the temporary hitset
         TrkrHitSet::ConstRange temp_hit_range = temp_hitset_iter->second->getHits();
@@ -641,17 +644,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
             ncollectedhits++;
           }
 
-          // find or add this hit to the node tree
-          TrkrHit *node_hit = node_hitsetit->second->getHit(temp_hitkey);
-          if (!node_hit)
-          {
-            // Otherwise, create a new one
-            node_hit = new TrkrHitv2();
-            node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
-          }
-
-          // Either way, add the energy to it
-          node_hit->addEnergy(temp_tpchit->getEnergy());
+          hitset->getTpcADC(temp_hitkey) += temp_tpchit->getEnergy();
 
         }  // end loop over temp hits
 
@@ -695,16 +688,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       // get all of the hits from this hitset
       TrkrHitSet *hitset = hitset_iter->second;
-      TrkrHitSet::ConstRange hit_range = hitset->getHits();
-      for (TrkrHitSet::ConstIterator hit_iter = hit_range.first;
-           hit_iter != hit_range.second;
-           ++hit_iter)
-      {
-        TrkrDefs::hitkey hitkey = hit_iter->first;
-        TrkrHit *tpchit = hit_iter->second;
-        std::cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey)
-                  << "  energy " << tpchit->getEnergy() << std::endl;
-      }
+      hitset->identify(std::cout);
     }
   }
 
