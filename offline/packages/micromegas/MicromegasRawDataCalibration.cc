@@ -169,6 +169,7 @@ int MicromegasRawDataCalibration::End(PHCompositeNode* /*topNode*/ )
       }
     }
     calibration_data.write( m_calibration_filename );
+    calibration_data.write_binary( "TPOT_Pedestal_000.root" );
   }
   
   // save evaluation histograms

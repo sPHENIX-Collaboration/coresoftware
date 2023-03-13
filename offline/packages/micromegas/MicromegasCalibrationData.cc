@@ -5,6 +5,8 @@
 
 #include "MicromegasCalibrationData.h"
 
+#include <TFile.h>
+
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -51,6 +53,7 @@ void MicromegasCalibrationData::set_rms( int fee, int channel, double value )
 //________________________________________________________________________-
 void MicromegasCalibrationData::write( const std::string& filename ) const
 {
+  std::cout << "MicromegasCalibrationData::write - filename: " << filename << std::endl;
   if( m_calibration_map.empty() ) return;
   std::ofstream out( filename.c_str() );
   out << "// fee, channel, pedestal, rms" << std::endl;
@@ -59,6 +62,15 @@ void MicromegasCalibrationData::write( const std::string& filename ) const
     for( size_t i = 0; i < array.size(); ++i )
     { out << fee << " " << i << " " << array[i].m_pedestal << " " << array[i].m_rms << std::endl; }
   }
+}
+
+
+//________________________________________________________________________-
+void MicromegasCalibrationData::write_binary( const std::string& filename ) const
+{
+  std::unique_ptr<TFile> outputfile( TFile::Open( filename.c_str(), "RECREATE" ) );
+  outputfile->cd();
+  Write( "MicromegasCalibrationData" );
 }
 
 //________________________________________________________________________-
